@@ -26,6 +26,12 @@
 
 ;;; Code:
 
+(defvar require-features nil)
+
+(defadvice require (before ivy-tests-require-hook (feature &rest _) activate)
+  "Record the requires into `require-features'."
+  (push feature require-features))
+
 (require 'ert)
 (require 'colir)
 
@@ -36,6 +42,14 @@
 (require 'counsel)
 
 (message "%s" (emacs-version))
+
+(ert-deftest ivy--lazy-load-ffap--ffap-url-p ()
+  (should (not (memq 'ffap require-features)))
+  (should (not (fboundp 'ffap-url-p)))
+  (should (string= (ivy-ffap-url-p "https://foo.org")
+                   "https://foo.org"))
+  (should (memq 'ffap require-features))
+  (should (fboundp 'ffap-url-p)))
 
 (defvar ivy-expr nil
   "Holds a test expression to evaluate with `ivy-eval'.")
@@ -55,10 +69,12 @@ Since `execute-kbd-macro' doesn't pick up a let-bound `default-directory'.")
 
 (global-set-key (kbd "C-c e") 'ivy-eval)
 
+(defvar ivy-test-inhibit-message t)
+
 (cl-defun ivy-with (expr keys &key dir)
   "Evaluate EXPR followed by KEYS."
   (let ((ivy-expr expr)
-        (inhibit-message t)
+        (inhibit-message ivy-test-inhibit-message)
         (buf (current-buffer)))
     (save-window-excursion
       (unwind-protect
@@ -738,7 +754,7 @@ will bring the behavior in line with the newer Emacsen."
        (switch-to-buffer standard-output t)
        ,expr
        (ivy-mode)
-       (let ((inhibit-message t))
+       (let ((inhibit-message ivy-test-inhibit-message))
          (execute-kbd-macro
           ,(apply #'vconcat (mapcar #'kbd keys)))))))
 
@@ -934,23 +950,30 @@ will bring the behavior in line with the newer Emacsen."
     (should (eq (ivy--sort-function 'c) fn1))))
 
 (ert-deftest ivy-read-directory-name ()
+  (ivy-mode 1)
   (should
-   (equal "/tmp/"
+   (equal (expand-file-name "/tmp/")
           (ivy-with
            '(read-directory-name "cd: " "/tmp")
            "RET")))
   (should
-   (equal "/tmp"
+   (equal (expand-file-name "/tmp")
           (ivy-with
            '(read-directory-name "cd: ")
            "C-M-j"
            :dir "/tmp")))
   (should
-   (equal "/tmp/"
+   (equal (expand-file-name "/tmp/")
           (ivy-with
            '(read-directory-name "cd: ")
            "tmp C-j C-M-j"
-           :dir "/"))))
+           :dir "/")))
+  (should
+   (equal (expand-file-name "/")
+          (ivy-with
+           '(read-directory-name "cd: ")
+           "DEL C-M-j"
+           :dir "/tmp"))))
 
 (ert-deftest ivy-partial-files ()
   (when (file-exists-p "/tmp/ivy-partial-test")
@@ -984,14 +1007,15 @@ will bring the behavior in line with the newer Emacsen."
              (kill-buffer temp-buffer))))))
 
 (ert-deftest counsel-yank-pop ()
-  (let ((kill-ring '("foo")))
-    (should (equal
-             (ivy-with-temp-buffer '(counsel-yank-pop) "C-m")
-             '(4 "foo")))
-    (let ((counsel-yank-pop-after-point t))
-      (should (equal
-               (ivy-with-temp-buffer '(counsel-yank-pop) "C-m")
-               '(1 "foo"))))))
+  (should (equal
+           (let ((kill-ring '("foo")))
+             (ivy-with-temp-buffer '(counsel-yank-pop) "C-m"))
+           '(4 "foo")))
+  (should (equal
+           (let ((kill-ring '("foo"))
+                 (counsel-yank-pop-after-point t))
+             (ivy-with-temp-buffer '(counsel-yank-pop) "C-m"))
+           '(1 "foo"))))
 
 (ert-deftest ivy-read-file-name-in-buffer-visiting-file ()
   "Test `ivy-immediate-done' command in `read-file-name' without any editing in
@@ -1012,6 +1036,7 @@ a buffer visiting a file."
     (ivy-mode ivy-mode-reset-arg)))
 
 (ert-deftest ivy-read-file-name-make-directory ()
+  (ivy-mode 1)
   (should
    (equal
     (ivy-with
@@ -1019,7 +1044,7 @@ a buffer visiting a file."
        nil nil)
      "C-M-j"
      :dir "/tmp/non-existant-dir/")
-    "/tmp/non-existant-dir/")))
+    (expand-file-name "/tmp/non-existant-dir/"))))
 
 (ert-deftest ivy-starts-with-dotslash ()
   (should (ivy--starts-with-dotslash "./test1"))
@@ -1086,7 +1111,7 @@ a buffer visiting a file."
                 (search-backward "|")
                 (delete-char 1)
                 (setq current-prefix-arg nil)
-                (let ((inhibit-message t))
+                (let ((inhibit-message ivy-test-inhibit-message))
                   ,@(mapcar (lambda (x)
                               (if (and (listp x)
                                        (stringp (car x)))
@@ -1324,17 +1349,7 @@ a buffer visiting a file."
   (should (equal (ivy--minibuffer-index-bounds 10 11 10) '(2 11 8)))
   (should (equal (ivy--minibuffer-index-bounds 1 3 10) '(0 3 1))))
 
-(defun counsel--setup-test-files ()
-  (unless (file-exists-p "tests/")
-    (shell-command
-     "git clone -b test --single-branch https://github.com/abo-abo/swiper/ tests"))
-  (let ((default-directory (expand-file-name "tests/"))
-        (version "066ec1d"))
-    (shell-command
-     (format "git checkout %s || git fetch && git checkout %s" version version))))
-
 (ert-deftest counsel-find-file-with-dollars ()
-  (counsel--setup-test-files)
   (should (string=
            (file-relative-name
             (ivy-with '(counsel-find-file) "fo C-m"
@@ -1342,7 +1357,6 @@ a buffer visiting a file."
            "tests/find-file/files-with-dollar/foo$")))
 
 (ert-deftest counsel-find-file-with-dotfiles ()
-  (counsel--setup-test-files)
   (should (string=
            (file-relative-name
             (ivy-with '(counsel-find-file) "f C-m"
@@ -1355,7 +1369,6 @@ a buffer visiting a file."
            "tests/find-file/dotfiles/.foobar1")))
 
 (ert-deftest counsel-find-file-with-spaces ()
-  (counsel--setup-test-files)
   (let ((ivy-extra-directories nil))
     (should (string=
              (file-relative-name
@@ -1379,6 +1392,37 @@ a buffer visiting a file."
           (read-numbers '(ivy-read "test: " (mapcar #'number-to-string (number-sequence 1 100)))))
       (should (string= (ivy-with read-numbers "C-' a") "1"))
       (should (string= (ivy-with read-numbers "C-v C-' d") "7")))))
+
+(ert-deftest ivy--yank-handle-case-fold ()
+  (should (string=
+           (let ((ivy-text ""))
+             (ivy--yank-handle-case-fold "FirstName"))
+           "FirstName"))
+  (should (string=
+           (let ((ivy-text "f"))
+             (ivy--yank-handle-case-fold "irstName"))
+           "irstname")))
+
+(ert-deftest ivy--handle-directory ()
+  (should (string= (ivy--handle-directory "/") "/"))
+  (should (string= (let ((ivy--directory "/tmp/"))
+                     (ivy--handle-directory "/sudo::"))
+                   "/sudo::/tmp/")))
+
+(defun ivy-test-run-tests ()
+  (let ((test-sets
+         '(
+           ;; this test must run first as other tests might force a load
+           ivy--lazy-load-ffap--ffap-url-p
+           ;; run the rest of the tests
+           (not ivy--lazy-load-ffap--ffap-url-p)))
+        (unexpected 0))
+    (dolist (test-set test-sets)
+      (cl-incf
+       unexpected
+       (ert-stats-completed-unexpected
+        (ert-run-tests-batch test-set))))
+    (kill-emacs (if (zerop unexpected) 0 1))))
 
 (provide 'ivy-test)
 
