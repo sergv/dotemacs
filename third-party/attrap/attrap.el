@@ -9,7 +9,7 @@
 ;; Created: February 2018
 ;; Keywords: programming, tools
 ;; Package-Requires: ((dash "2.12.0") (emacs "25.1") (f "0.19.0") (flycheck "0.30") (s "1.11.0"))
-;; Version: 0.1
+;; Version: 0.2
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -133,6 +133,9 @@
   "Attempt to repair the error at POS."
   (interactive "d")
   (cond
+   ((and (bound-and-true-p flyspell-mode)
+         (-any #'flyspell-overlay-p (overlays-at (point))))
+    (flyspell-correct-at-point))
    ((bound-and-true-p flymake-mode) (attrap-flymake pos))
    ((bound-and-true-p flycheck-mode) (attrap-flycheck pos))
    (t (error "Expecting flymake or flycheck to be active"))))
@@ -151,6 +154,7 @@
     "EmptyCase"
     "EmptyDataDecls"
     "EmptyDataDeriving"
+    "ExistentialQuantification"
     "ExplicitNamespaces"
     "FlexibleContexts"
     "FlexibleInstances"
@@ -185,7 +189,8 @@
   :group 'attrap)
 
 (defmacro attrap-option (description &rest body)
-  "Create an attrap option with DESCRIPTION and BODY."
+  "Create an attrap option with DESCRIPTION and BODY.
+The body is code that performs the fix."
   (declare (indent 1))
   `(let ((saved-match-data (match-data)))
      (cons ,description
@@ -247,6 +252,13 @@ usage: (attrap-alternatives CLAUSES...)"
   "An `attrap' fixer for any GHC error or warning given as MSG and reported between POS and END."
   (let ((normalized-msg (s-collapse-whitespace msg)))
   (cond
+   ((string-match "Valid hole fits include" msg)
+    (let* ((options (-map 'cadr (-non-nil (--map (s-match "[ ]*\\(.*\\) ::" it) (s-split "\n" (substring msg (match-end 0))))))))
+      (--map (attrap-option (list 'plug-hole it)
+                     (goto-char pos)
+                     (delete-char 1)
+                     (insert it))
+             options)))
    ((string-match "Redundant constraints?: (?\\([^,)\n]*\\)" msg)
     (attrap-one-option 'delete-reduntant-constraint
       (let ((constraint (match-string 1 msg)))
