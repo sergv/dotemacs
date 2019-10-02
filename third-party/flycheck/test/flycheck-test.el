@@ -2871,6 +2871,16 @@ evaluating BODY."
    '(4 nil warning "section title out of sequence: expected level 1, got level 2" :checker asciidoctor)
    '(6 nil error "unmatched macro: endif::[]" :checker asciidoctor)))
 
+(flycheck-ert-def-checker-test bazel-buildifier bazel error
+  (flycheck-ert-should-syntax-check
+   "language/bazel/syntax-error.bazel" 'bazel-mode
+   '(1 11 error "syntax error near !" :checker bazel-buildifier)))
+
+(flycheck-ert-def-checker-test bazel-buildifier bazel nil
+  (flycheck-ert-should-syntax-check
+   "language/bazel/warnings.bazel" 'bazel-mode
+   '(1 nil warning "The file has no module docstring. (https://github.com/bazelbuild/buildtools/blob/master/WARNINGS.md#module-docstring)" :id "module-docstring" :checker bazel-buildifier)))
+
 (flycheck-ert-def-checker-test c/c++-clang (c c++) error
   (let ((flycheck-disabled-checkers '(c/c++-gcc)))
     (flycheck-ert-should-syntax-check
@@ -3306,9 +3316,17 @@ See https://github.com/flycheck/flycheck/issues/531 and Emacs bug #19206"))
                  "language/erlang/rebar3/_build/default/lib/dependency/_build")))))
 
 (flycheck-ert-def-checker-test eruby-erubis eruby nil
-  (flycheck-ert-should-syntax-check
-   "language/eruby.erb" '(html-erb-mode rhtml-mode)
-   '(9 nil error "syntax error, unexpected end-of-input, expecting keyword_end" :checker eruby-erubis)))
+  (let ((flycheck-disabled-checkers '(eruby-ruumba)))
+    (flycheck-ert-should-syntax-check
+     "language/eruby.erb" '(html-erb-mode rhtml-mode)
+     '(9 nil error "syntax error, unexpected end-of-input, expecting keyword_end" :checker eruby-erubis))))
+
+(flycheck-ert-def-checker-test eruby-ruumba eruby syntax-error
+  (let ((flycheck-disabled-checkers '(eruby-erubis)))
+    (flycheck-ert-should-syntax-check
+     "language/eruby.erb" '(html-erb-mode rhtml-mode)
+     '(8 1 error "unexpected token $end (Using Ruby 2.3 parser; configure using `TargetRubyVersion` parameter, under `AllCops`)"
+         :id "Lint/Syntax"  :checker eruby-ruumba))))
 
 (flycheck-ert-def-checker-test fortran-gfortran fortran error
   (flycheck-ert-should-syntax-check
@@ -3426,7 +3444,7 @@ See https://github.com/flycheck/flycheck/issues/531 and Emacs bug #19206"))
        "language/go/src/staticcheck/staticcheck1.go" 'go-mode
        '(8 6 error "should omit values from range; this loop is equivalent to `for range ...`"
            :checker go-staticcheck :id "S1005")
-       '(12 21 error "calling strings.Replace with n == 0 will return no results, did you mean -1?"
+       '(12 39 error "calling strings.Replace with n == 0 will return no results, did you mean -1?"
             :checker go-staticcheck :id "SA1018")
        '(16 6 error "func unused is unused"
             :checker go-staticcheck :id "U1000")))))
@@ -3657,9 +3675,9 @@ Why not:
      "language/javascript/style.js" flycheck-test-javascript-modes
      '(3 10 error "Missing space before function parentheses."
          :checker javascript-standard)
-     '(4 1 error "Expected indentation of 2 spaces but found 1 tab."
+     '(4 1 error "Unexpected tab character."
          :checker javascript-standard)
-     '(4 2 error "Unexpected tab character."
+     '(4 1 error "Expected indentation of 2 spaces but found 1 tab."
          :checker javascript-standard)
      '(4 6 error "'foo' is assigned a value but never used."
          :checker javascript-standard)
@@ -4599,7 +4617,7 @@ The manifest path is relative to
    "language/systemd-analyze-test.service" 'systemd-mode
    '(3 nil error "Invalid URL, ignoring: foo://bar"
        :checker systemd-analyze)
-   '(6 nil error "Unknown lvalue 'ExecSmart' in section 'Service'"
+   '(6 nil error "Unknown key name 'ExecSmart' in section 'Service', ignoring."
        :checker systemd-analyze)
    '(8 nil error "Unknown section 'Dog'. Ignoring."
        :checker systemd-analyze)))
