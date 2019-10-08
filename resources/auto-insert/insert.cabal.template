@@ -1,4 +1,6 @@
--- Created     :  ${date}
+cabal-version: 2.4
+
+-- Created : ${date}
 
 name:
   ${filename no ext}
@@ -9,7 +11,7 @@ synopsis:
 description:
   TODO
 license:
-  BSD2
+  BSD-2-Clause
 -- license-file:
 --   LICENSE
 author:
@@ -17,8 +19,6 @@ author:
 maintainer:
   ${author} <${email}>
 
-cabal-version:
-  2.0
 build-type:
   Simple
 
