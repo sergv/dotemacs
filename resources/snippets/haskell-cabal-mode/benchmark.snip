@@ -3,6 +3,7 @@
 # name: benchmark section
 # --
 benchmark ${1:benchmark-name}
+  import: ghc-options
   type:
     exitcode-stdio-1.0
   main-is:
@@ -15,27 +16,6 @@ ${3:  other-modules:
     base >= 4.9,
     gauge >= 0.2.3,
     ${6:my-package}
-  default-language:
-    Haskell2010
   ghc-options:
     -rtsopts
     -main-is ${2:$(haskell-cabal--yasnippet--main-module-from-main-file yas-text)}
-    -Wall
-    -fwarn-name-shadowing
-    -fno-warn-type-defaults
-  if impl(ghc >= 8.0)
-    ghc-options:
-      -Wall-missed-specialisations
-      -Wcompat
-      -Whi-shadowing
-      -Widentities
-      -Wincomplete-record-updates
-      -Wincomplete-uni-patterns
-      -Wmissing-exported-signatures
-  if impl(ghc >= 8.2)
-    ghc-options:
-      -Wcpp-undef
-      -Wmissing-home-modules
-      -Wunbanged-strict-patterns
-  ghc-prof-options:
-    -fprof-auto
