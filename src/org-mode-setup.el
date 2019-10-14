@@ -378,7 +378,7 @@ when question is rated."
 
                                  org-drill-optimal-factor-matrix))))
 
-     ;; remove unconditional hiding of sub-sublevels
+     ;; Remove unconditional hiding of sub-sublevels.
      (el-patch-defun org-drill-hide-subheadings-if (test)
        "TEST is a function taking no arguments. TEST will be called for each
 of the immediate subheadings of the current drill item, with the point
@@ -399,7 +399,7 @@ the current topic."
                             (funcall test)))
                   (hide-subtree))
                 (push (point) drill-sections)))
-            "" 'tree))
+            nil 'tree))
          (reverse drill-sections)))))
 
 ;;; other functions
