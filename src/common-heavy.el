@@ -514,6 +514,7 @@ PROJECT. EQ-FUNC will be used as hash-table comparison."
 
 ;;;
 
+;;;###autoload
 (defun* insert-info-format-template
     (&key
      start
@@ -543,6 +544,7 @@ PROJECT. EQ-FUNC will be used as hash-table comparison."
      :insert-message insert-message
      :insert-variable insert-variable)))
 
+;;;###autoload
 (defun* insert-info-template
     (&key
      start
