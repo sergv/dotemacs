@@ -1500,11 +1500,11 @@ last non-whitespace character."
   (declare (pure t) (side-effect-free t))
   (char-equal a b))
 
-(defun cadr-safe (x)
+(defsubst cadr-safe (x)
   (declare (pure t) (side-effect-free t))
   (car-safe (cdr-safe x)))
 
-(defun cddr-safe (x)
+(defsubst cddr-safe (x)
   (declare (pure t) (side-effect-free t))
   (cdr-safe (cdr-safe x)))
 
@@ -1852,10 +1852,32 @@ are CHAR1 and CHAR2 repsectively."
                 i j))))
     (coerce (nreverse result) 'string)))
 
-;; Heavy autoloads
+;;
 
-(autoload 'insert-info-template "common-heavy")
-(autoload 'insert-info-format-template "common-heavy")
+(defun shell-command-on-region-and-replace (start end command
+                                                  &optional output-buffer replace
+                                                  error-buffer display-error-buffer
+                                                  region-noncontiguous-p)
+  (interactive (let (string)
+                 (unless (region-active-p)
+                   (user-error "Region is not active"))
+                 ;; Do this before calling region-beginning
+                 ;; and region-end, in case subprocess output
+                 ;; relocates them while we are in the minibuffer.
+                 (setq string (read-shell-command "Shell command on region: "))
+                 ;; call-interactively recognizes region-beginning and
+                 ;; region-end specially, leaving them in the history.
+                 (list (region-beginning) (region-end)
+                       string
+                       current-prefix-arg
+                       current-prefix-arg
+                       shell-command-default-error-buffer
+                       t
+                       (region-noncontiguous-p))))
+
+  )
+
+;;
 
 (provide 'common)
 

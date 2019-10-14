@@ -184,6 +184,7 @@ like \"d w\".")
   ("'"       self-insert-command)
 
   ("!"       shell-command-on-region)
+  ("|"       shell-command-on-region-and-replace)
   ("TAB"     indent-region)
   ("<tab>"   indent-region)
   ("s"       vim:visual-ex-read-command)
