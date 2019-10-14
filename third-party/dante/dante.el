@@ -764,13 +764,15 @@ This is a standard process sentinel function."
 
 (defun dante-show-process-problem (process change)
   "Report to the user that PROCESS reported CHANGE, causing it to end."
-  (message "Problem with GHCi process!")
-  (switch-to-buffer (process-buffer process))
-  (goto-char (point-max))
-  (insert "\n---\n\n")
-  (insert
-   (propertize
-    (concat "This is the buffer associated with the GHCi session. This buffer
+  (message "Dante GHCi process failed! Further details in '%s'. Command: %s"
+           (process-buffer process)
+           (process-command process))
+  (with-current-buffer (process-buffer process)
+    (goto-char (point-max))
+    (insert "\n---\n\n")
+    (insert
+     (propertize
+      (concat "This is the buffer associated with the GHCi session. This buffer
 is normally hidden, but the GHCi process ended.
 
 WHAT TO DO NEXT
@@ -787,7 +789,7 @@ EXTRA TROUBLESHOOTING INFO
 
 Process state change: " change "
 " (dante-debug-info (current-buffer)))
-    'face 'compilation-error)))
+    'face 'compilation-error))))
 
 (defun dante-buffer-name ()
   "Create a dante process buffer name."
