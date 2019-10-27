@@ -340,13 +340,14 @@ usage: (attrap-alternatives CLAUSES...)"
     ;;       ‘BackCore.argMax’ (imported from TensorFlow.GenOps.Core),
     ;;       ‘BackCore.argMax'’ (imported from TensorFlow.GenOps.Core),
     ;;       ‘BackCore.max’ (imported from TensorFlow.GenOps.Core)
-    ((string-match (s-join "\\|"
-                           '("Data constructor not in scope:[ \n\t]*\\(?1:[^ \n]*\\)"
-                             "Variable not in scope:[ \n\t]*\\(?1:[^ \n]*\\)"
-                             "not in scope: data constructor ‘\\(?1:[^’]*\\)’"
-                             "not in scope: type constructor or class ‘\\(?1:[^’]*\\)’"
-                             "Not in scope: ‘\\(?1:[^’]*\\)’"
-                             )) ; in patterns
+    ((string-match (eval-when-compile
+                     (s-join "\\|"
+                             '("Data constructor not in scope:[ \n\t]*\\(?1:[^ \n]*\\)"
+                               "Variable not in scope:[ \n\t]*\\(?1:[^ \n]*\\)"
+                               "not in scope: data constructor ‘\\(?1:[^’]*\\)’"
+                               "not in scope: type constructor or class ‘\\(?1:[^’]*\\)’"
+                               "Not in scope: ‘\\(?1:[^’]*\\)’"
+                               ))) ; in patterns
                    msg)
     (let* ((delete (match-string 1 msg))
            (delete-has-paren (eq ?\( (elt delete 0)))
