@@ -407,7 +407,15 @@ usage: (attrap-alternatives CLAUSES...)"
            (string-match-p (rx "\\case\\_>") (buffer-substring-no-properties pos (line-end-position)))))
     (attrap-one-option (list 'use-extension "LambdaCase")
       (attrap-insert-extension "LambdaCase")))
-   ((string-match-p "Illegal symbol ‘forall’ in type" msg)
+   ((string-match-p (rx (or "Illegal symbol ‘forall’ in type"
+                            (seq "Perhaps you intended to use"
+                                 (* anything) "language"
+                                 (* anything) "extension"
+                                 (* anything) "to"
+                                 (* anything) "enable"
+                                 (* anything) "explicit-forall"
+                                 (* anything) "syntax")))
+                    msg)
     (attrap-one-option (list 'use-extension "ScopedTypeVariables")
       (attrap-insert-extension "ScopedTypeVariables")))
    ((--any? (s-matches? it msg) attrap-haskell-extensions)
