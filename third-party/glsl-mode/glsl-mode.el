@@ -1,22 +1,28 @@
 ;;; glsl-mode.el --- major mode for Open GLSL shader files
 
 ;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
-;; Copyright (C) 2011, 2014 Jim Hourihan
+;; Copyright (C) 2011, 2014, 2019 Jim Hourihan
 ;;
-;; Authors: Xavier.Decoret@imag.fr, 
-;;          Jim Hourihan <jimhourihan ~at~ gmail.com> (updated for 4.5, etc)
-;; Keywords: languages
-;; Version: 2.0
-;; X-URL: http://artis.inrialpes.fr/~Xavier.Decoret/resources/glsl-mode/
+;; Authors: Xavier.Decoret@imag.fr,
+;;          Jim Hourihan <jimhourihan ~at~ gmail.com> (updated for 4.6, etc)
+;; Keywords: languages OpenGL GPU SPIR-V Vulkan
+;; Version: 2.2
+;; X-URL: https://github.com/jimhourihan/glsl-mode
 ;;
-;; This software is distributed in the hope that it will be useful, but
-;; WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
-;;
-;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; Original X-URL http://artis.inrialpes.fr/~Xavier.Decoret/resources/glsl-mode/
+
+;; This file is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
+
+;; This file is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; For a full copy of the GNU General Public License
+;; see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -29,19 +35,19 @@
 ;;    replaced with keyword lists for easier maintenance
 ;;  * Added customization group and faces
 ;;  * Preprocessor faces
-;;  * Updated to GLSL 4.5
+;;  * Updated to GLSL 4.6
 ;;  * Separate deprecated symbols
 ;;  * Made _ part of a word
 ;;  * man page lookup at opengl.org
 
 ;; This package provides the following features:
 ;;  * Syntax coloring (via font-lock) for grammar symbols and
-;;    builtin functions and variables for up to GLSL version 4.5
+;;    builtin functions and variables for up to GLSL version 4.6
 ;;  * Indentation for the current line (TAB) and selected region (C-M-\).
 ;;  * Switching between file.vert and file.frag
 ;;    with S-lefttab (via ff-find-other-file)
 ;;  * interactive function glsl-find-man-page prompts for glsl built
-;;    in function, formats opengl.org url and passes to w3m
+;;    in function, formats opengl.org url and passes to browse-url
 
 ;;; Installation:
 
@@ -54,6 +60,9 @@
 ;;   (add-to-list 'auto-mode-alist '("\\.vert\\'" . glsl-mode))
 ;;   (add-to-list 'auto-mode-alist '("\\.frag\\'" . glsl-mode))
 ;;   (add-to-list 'auto-mode-alist '("\\.geom\\'" . glsl-mode))
+
+;; Reference:
+;; https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.4.60.pdf
 
 ;;; Code:
 
@@ -69,11 +78,15 @@
   "OpenGL Shading Language Major Mode"
   :group 'languages)
 
-(defconst glsl-language-version "4.5"
+(defconst glsl-language-version "4.6"
   "GLSL language version number.")
 
-(defconst gl-version "4.5"
+(defconst gl-version "4.6"
   "OpenGL major mode version number.")
+
+(defvar glsl-mode-menu nil "Menu for GLSL mode")
+
+(defvar glsl-mode-hook nil "GLSL mode hook")
 
 (defvar glsl-type-face 'glsl-type-face)
 (defface glsl-type-face
@@ -119,12 +132,18 @@
 
 (defvar glsl-mode-map
   (let ((glsl-mode-map (make-sparse-keymap)))
-    (define-key glsl-mode-map [S-iso-lefttab] 'ff-find-other-file)    
+    (define-key glsl-mode-map [S-iso-lefttab] 'ff-find-other-file)
     glsl-mode-map)
-  "Keymap for GLSL major mode")
+  "Keymap for GLSL major mode.")
 
+(defcustom glsl-browse-url-function 'browse-url
+  "Function used to display GLSL man pages. E.g. browse-url, eww, w3m, etc"
+  :type 'function
+  :group 'glsl)
+  
 (defcustom glsl-man-pages-base-url "http://www.opengl.org/sdk/docs/man/html/"
-  "Location of GL man pages"
+  "Location of GL man pages."
+  :type 'string
   :group 'glsl)
 
 ;;;###autoload
@@ -135,12 +154,9 @@
   (add-to-list 'auto-mode-alist '("\\.glsl\\'" . glsl-mode)))
 
 (eval-and-compile
-  ;;
-  ;;    These vars are useful for completion so keep them around after
-  ;;    compile as well. The goal here is to have the byte compiled code
-  ;;    have optimized regexps so its not done at eval time.
-  ;;
-
+  ;; These vars are useful for completion so keep them around after
+  ;; compile as well. The goal here is to have the byte compiled code
+  ;; have optimized regexps so its not done at eval time.
   (defvar glsl-type-list
     '("float" "double" "int" "void" "bool" "true" "false" "mat2" "mat3"
       "mat4" "dmat2" "dmat3" "dmat4" "mat2x2" "mat2x3" "mat2x4" "dmat2x2"
@@ -184,24 +200,31 @@
     '("varying" "attribute")) ; centroid is deprecated when used with varying
 
   (defvar glsl-builtin-list
-    '("abs" "acos" "acosh" "all" "any" "asin" "asinh" "atan" "atanh"
+    '("abs" "acos" "acosh" "all" "any" "anyInvocation" "allInvocations"
+      "allInvocationsEqual" "asin" "asinh" "atan" "atanh"
+      "atomicAdd" "atomicMin" "atomicMax" "atomicAnd" "atomicOr"
+      "atomicXor" "atomicExchange" "atomicCompSwap"
       "atomicCounter" "atomicCounterDecrement" "atomicCounterIncrement"
+      "atomicCounterAdd" "atomicCounterSubtract" "atomicCounterMin"
+      "atomicCounterMax" "atomicCounterAnd" "atomicCounterOr"
+      "atomicCounterXor" "atomicCounterExchange" "atomicCounterCompSwap"
       "barrier" "bitCount" "bitfieldExtract" "bitfieldInsert" "bitfieldReverse"
       "ceil" "clamp" "cos" "cosh" "cross" "degrees" "determinant" "dFdx" "dFdy"
-      "dFdyFine" "dFdxFine" "dFdyCoarse" "dFdxCourse" 
+      "dFdyFine" "dFdxFine" "dFdyCoarse" "dFdxCourse" "distance" "dot"
       "fwidthFine" "fwidthCoarse"
-      "distance" "dot" "EmitStreamVertex" "EmitVertex" "EndPrimitive"
+      "EmitStreamVertex" "EmitStreamPrimitive" "EmitVertex" "EndPrimitive"
       "EndStreamPrimitive" "equal" "exp" "exp2" "faceforward" "findLSB"
       "findMSB" "floatBitsToInt" "floatBitsToUint" "floor" "fma" "fract"
-      "frexp" "fwidth" "greaterThan" "greaterThanEqual" "imageAtomicAdd"
-      "imageAtomicAnd" "imageAtomicCompSwap" "imageAtomicExchange"
+      "frexp" "fwidth" "greaterThan" "greaterThanEqual" "groupMemoryBarrier"
+      "imageAtomicAdd" "imageAtomicAnd" "imageAtomicCompSwap" "imageAtomicExchange"
       "imageAtomicMax" "imageAtomicMin" "imageAtomicOr" "imageAtomicXor"
       "imageLoad" "imageSize" "imageStore" "imulExtended" "intBitsToFloat"
-      "imageSamples"
-      "interpolateAtCentroid" "interpolateAtOffset" "interpolateAtSample"
+      "imageSamples" "interpolateAtCentroid" "interpolateAtOffset" "interpolateAtSample"
       "inverse" "inversesqrt" "isinf" "isnan" "ldexp" "length" "lessThan"
-      "lessThanEqual" "log" "log2" "matrixCompMult" "max" "memoryBarrier" "min"
-      "mix" "mod" "modf" "noise" "normalize" "not" "notEqual" "outerProduct"
+      "lessThanEqual" "log" "log2" "matrixCompMult" "max" "memoryBarrier"
+      "memoryBarrierAtomicCounter" "memoryBarrierBuffer"
+      "memoryBarrierShared" "memoryBarrierImage" "memoryBarrier"
+      "min" "mix" "mod" "modf" "normalize" "not" "notEqual" "outerProduct"
       "packDouble2x32" "packHalf2x16" "packSnorm2x16" "packSnorm4x8"
       "packUnorm2x16" "packUnorm4x8" "pow" "radians" "reflect" "refract"
       "round" "roundEven" "sign" "sin" "sinh" "smoothstep" "sqrt" "step" "tan"
@@ -215,9 +238,10 @@
       "unpackSnorm4x8" "unpackUnorm2x16" "unpackUnorm4x8" "usubBorrow"))
 
   (defvar glsl-deprecated-builtin-list
-    '("texture1D" "texture1DProj" "texture1DLod" "texture1DProjLod"
+    '("noise1" "noise2" "noise3" "noise4"
+      "texture1D" "texture1DProj" "texture1DLod" "texture1DProjLod"
       "texture2D" "texture2DProj" "texture2DLod" "texture2DProjLod"
-      "texture2DRect" "texture2DRectProj" 
+      "texture2DRect" "texture2DRectProj"
       "texture3D" "texture3DProj" "texture3DLod" "texture3DProjLod"
       "shadow1D" "shadow1DProj" "shadow1DLod" "shadow1DProjLod"
       "shadow2D" "shadow2DProj" "shadow2DLod" "shadow2DProjLod"
@@ -237,7 +261,6 @@
   (defvar glsl-preprocessor-builtin-list
     '("__LINE__" "__FILE__" "__VERSION__"))
 
-  (autoload 'w3m-browse-url "w3m" "View URL using w3m")
   ) ; eval-and-compile
 
 (eval-when-compile
@@ -246,13 +269,13 @@
 
 (defvar glsl-font-lock-keywords-1
   (list
-   (cons (eval-when-compile 
-           (format "^[ \t]*#[ \t]*\\<\\(%s\\)\\>" 
+   (cons (eval-when-compile
+           (format "^[ \t]*#[ \t]*\\<\\(%s\\)\\>"
                    (regexp-opt glsl-preprocessor-directive-list)))
-         glsl-preprocessor-face) 
+         glsl-preprocessor-face)
    (cons (eval-when-compile
            (glsl-ppre glsl-type-list))
-         glsl-type-face) 
+         glsl-type-face)
    (cons (eval-when-compile
            (glsl-ppre glsl-deprecated-modifier-list))
          glsl-deprecated-keyword-face)
@@ -273,11 +296,11 @@
          glsl-deprecated-variable-name-face)
    (cons "gl_[A-Z][A-Za-z_]+" glsl-variable-name-face)
    )
-  "Minimal highlighting expressions for GLSL mode")
+  "Highlighting expressions for GLSL mode.")
 
 
 (defvar glsl-font-lock-keywords glsl-font-lock-keywords-1
-  "Default highlighting expressions for GLSL mode")
+  "Default highlighting expressions for GLSL mode.")
 
 (defvar glsl-mode-syntax-table
   (let ((glsl-mode-syntax-table (make-syntax-table)))
@@ -286,42 +309,76 @@
     (modify-syntax-entry ?\n "> b" glsl-mode-syntax-table)
     (modify-syntax-entry ?_ "w" glsl-mode-syntax-table)
     glsl-mode-syntax-table)
-  "Syntax table for glsl-mode")
+  "Syntax table for glsl-mode.")
 
 (defvar glsl-other-file-alist
   '(("\\.frag$" (".vert"))
     ("\\.vert$" (".frag"))
     )
-  "Alist of extensions to find given the current file's extension")
-
+  "Alist of extensions to find given the current file's extension.")
 
 (defun glsl-man-completion-list ()
+  "Return list of all GLSL keywords."
   (append glsl-builtin-list glsl-deprecated-builtin-list))
 
 (defun glsl-find-man-page (thing)
+  "Collects and displays manual entry for GLSL built-in function THING."
   (interactive
    (let ((word (current-word nil t)))
-     (list 
+     (list
       (completing-read
        (concat "OpenGL.org GLSL man page: (" word "): ")
        (glsl-man-completion-list)
        nil nil nil nil word))))
   (save-excursion
-    (browse-url
-     (concat glsl-man-pages-base-url thing ".xhtml"))))
+    (apply glsl-browse-url-function
+           (list (concat glsl-man-pages-base-url thing ".xhtml")))))
+
+(easy-menu-define glsl-menu glsl-mode-map
+  "GLSL Menu"
+    `("GLSL"
+      ["Comment Out Region"     comment-region
+       (c-fn-region-is-active-p)]
+      ["Uncomment Region"       (comment-region (region-beginning)
+						(region-end) '(4))
+       (c-fn-region-is-active-p)]
+      ["Indent Expression"      c-indent-exp
+       (memq (char-after) '(?\( ?\[ ?\{))]
+      ["Indent Line or Region"  c-indent-line-or-region t]
+      ["Fill Comment Paragraph" c-fill-paragraph t]
+      "----"
+      ["Backward Statement"     c-beginning-of-statement t]
+      ["Forward Statement"      c-end-of-statement t]
+      "----"
+      ["Up Conditional"         c-up-conditional t]
+      ["Backward Conditional"   c-backward-conditional t]
+      ["Forward Conditional"    c-forward-conditional t]
+      "----"
+      ["Backslashify"           c-backslash-region (c-fn-region-is-active-p)]
+      "----"
+      ["Find GLSL Man Page"  glsl-find-man-page t]
+      ))
 
 ;;;###autoload
-(define-derived-mode glsl-mode c-mode "GLSL"
-  "Major mode for editing OpenGLSL shader files."
+(define-derived-mode glsl-mode prog-mode "GLSL"
+  "Major mode for editing GLSL shader files."
+  (c-initialize-cc-mode t)
+  (setq abbrev-mode t)
+  (c-init-language-vars-for 'c-mode)
+  (c-common-init 'c-mode)
+  (cc-imenu-init cc-imenu-c++-generic-expression)
   (set (make-local-variable 'font-lock-defaults) '(glsl-font-lock-keywords))
   (set (make-local-variable 'ff-other-file-alist) 'glsl-other-file-alist)
   (set (make-local-variable 'comment-start) "// ")
   (set (make-local-variable 'comment-end) "")
   (set (make-local-variable 'comment-padding) "")
+  (easy-menu-add glsl-menu)
   (add-to-list 'align-c++-modes 'glsl-mode)
+  (c-run-mode-hooks 'c-mode-common-hook)
+  (run-mode-hooks 'glsl-mode-hook)
+  :after-hook (progn (c-make-noise-macro-regexps)
+		     (c-make-macro-with-semi-re)
+		     (c-update-modeline))
   )
-
-                                        ;(easy-menu-define c-glsl-menu glsl-mode-map "GLSL Mode Commands"
-                                        ;		  (cons "GLSL" (c-lang-const c-mode-menu glsl)))
 
 ;;; glsl-mode.el ends here
