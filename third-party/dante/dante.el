@@ -102,6 +102,7 @@ will be in different GHCi sessions."
 
 (defcustom dante-methods-alist
   `((styx "styx.yaml" ("styx" "repl" dante-target))
+    (snack ,(lambda (d) (directory-files d t "package\\.\\(yaml\\|nix\\)")) ("snack" "ghci" dante-target))
     (new-impure-nix dante-cabal-new-nix
                     ("nix-shell" "--run" (concat "cabal new-repl " (or dante-target (dante-package-name) "") " --builddir " ,(fold-platform-os-type "/tmp/dist/dante" "dist/dante")))
                     ("nix-shell" "--run" (concat "cabal new-repl " (or dante-target (dante-package-name) "") " --builddir " ,(fold-platform-os-type "/tmp/dist/dante-repl" "dist/dante-repl"))))
@@ -114,7 +115,7 @@ will be in different GHCi sessions."
     (impure-nix dante-cabal-nix
                 ("nix-shell" "--run" (concat "cabal repl " (or dante-target "") " --builddir " ,(fold-platform-os-type "/tmp/dist/dante" "dist/dante")))
                 ("nix-shell" "--run" (concat "cabal repl " (or dante-target "") " --builddir " ,(fold-platform-os-type "/tmp/dist/dante-repl" "dist/dante-repl"))))
-    (new-build "cabal.project"
+    (new-build "cabal.project\\(?:\\.local\\)?"
                ("cabal" "new-repl" (or dante-target (dante-package-name) nil) "--builddir" ,(fold-platform-os-type "/tmp/dist/dante" "dist/dante"))
                ("cabal" "new-repl" (or dante-target (dante-package-name) nil) "--builddir" ,(fold-platform-os-type "/tmp/dist/dante-repl" "dist/dante-repl")))
     (nix-ghci ,(lambda (d) (directory-files d t "shell.nix\\|default.nix")) ("nix-shell" "--pure" "--run" "ghci"))
@@ -167,11 +168,6 @@ otherwise search for project root using
 `dante-initialize-method'."
   (or dante-project-root
       (progn (dante-initialize-method) dante-project-root)))
-
-(defun dante-checker-working-directory (checker)
-  "Get the directory to run checker in."
-  (declare (ignore checker))
-  (dante-project-root))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Session-local variables. These are set *IN THE GHCi INTERACTION BUFFER*
@@ -362,7 +358,7 @@ process."
   :start 'dante-check
   :predicate (lambda () dante-mode)
   :modes '(haskell-mode literate-haskell-mode)
-  :working-directory #'dante-checker-working-directory)
+  :working-directory (lambda (_checker) (dante-project-root)))
 
 (add-to-list 'flycheck-checkers 'haskell-dante)
 
