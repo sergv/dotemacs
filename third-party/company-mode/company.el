@@ -415,7 +415,8 @@ non-prefix completion.
 anything not offered as a candidate.  Please don't use that value in normal
 backends.  The default value nil gives the user that choice with
 `company-require-match'.  Return value `never' overrides that option the
-other way around.
+other way around (using that value will indicate that the returned set of
+completions is often incomplete, so this behavior will not be useful).
 
 `init': Called once for each buffer. The backend can check for external
 programs and files and load any required libraries.  Raising an error here
@@ -2271,7 +2272,8 @@ character, stripping the modifiers.  That character must be a digit."
     (erase-buffer)
     (when string
       (save-excursion
-        (insert string)))
+        (insert string)
+        (visual-line-mode)))
     (current-buffer)))
 
 (defvar company--electric-saved-window-configuration nil)
