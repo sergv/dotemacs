@@ -1199,6 +1199,23 @@
       (sleep-for 1.1)
       (should (flycheck-deferred-check-p)))))
 
+(ert-deftest flycheck-check-syntax-automatically/idle-change-checks-changed-buffer ()
+  :tags '(automatic)
+  (let ((flycheck-check-syntax-automatically '(idle-change))
+        (flycheck-idle-change-delay 0.1))
+    (flycheck-ert-with-resource-buffer "automatic-check-dummy.el"
+      (let ((changed-buffer (current-buffer)))
+        (emacs-lisp-mode)
+        (flycheck-mode)
+        (insert "Hello world")
+        (switch-to-buffer "other-dummy2.el")
+        (emacs-lisp-mode)
+        (flycheck-mode)
+        (sleep-for 0.2)
+        (should-not (flycheck-deferred-check-p))
+        (set-buffer changed-buffer)
+        (should (flycheck-deferred-check-p))))))
+
 (ert-deftest flycheck-check-syntax-automatically/does-not-check-after-buffer-switch-by-default ()
   :tags '(automatic)
   (let ((flycheck-check-syntax-automatically '())
@@ -2212,6 +2229,17 @@ evaluating BODY."
     (goto-char (point-min))
     (let ((err (should-error (flycheck-next-error) :type 'user-error)))
       (should (string= (cadr err) "No more Flycheck errors")))))
+
+(ert-deftest flycheck-next-error/minimum-level/ignores-minimum-level-if-no-error-beyond-it ()
+  :tags '(navigation)
+  (flycheck-ert-with-resource-buffer "language/emacs-lisp/warnings.el"
+    (emacs-lisp-mode)
+    (flycheck-mode)
+    (let ((flycheck-navigation-minimum-level 'error))
+      (flycheck-ert-buffer-sync)
+      (goto-char (point-min))
+      (flycheck-next-error 1)
+      (should (flycheck-ert-at-nth-error 1)))))
 
 (ert-deftest flycheck-previous-error/over-errors/errors-before-first-error ()
   :tags '(navigation)
@@ -3442,7 +3470,7 @@ See https://github.com/flycheck/flycheck/issues/531 and Emacs bug #19206"))
         `(("GOPATH" . ,(flycheck-ert-resource-filename "language/go")))
       (flycheck-ert-should-syntax-check
        "language/go/src/staticcheck/staticcheck1.go" 'go-mode
-       '(8 6 error "should omit values from range; this loop is equivalent to `for range ...`"
+       '(8 6 error "unnecessary assignment to the blank identifier"
            :checker go-staticcheck :id "S1005")
        '(12 39 error "calling strings.Replace with n == 0 will return no results, did you mean -1?"
             :checker go-staticcheck :id "SA1018")
@@ -3975,7 +4003,7 @@ Why not:
         (flycheck-python-mypy-cache-dir null-device))
     (flycheck-ert-should-syntax-check
      "language/python/invalid_type.py" 'python-mode
-     '(2 5 error "Incompatible return value type (got \"str\", expected \"int\")"
+     '(2 12 error "Incompatible return value type (got \"str\", expected \"int\")"
          :checker python-mypy))))
 
 (flycheck-ert-def-checker-test python-pylint python syntax-error
@@ -3984,7 +4012,7 @@ Why not:
         (flycheck-python-pylint-executable "python3"))
     (flycheck-ert-should-syntax-check
      "language/python/syntax-error.py" 'python-mode
-     '(3 1 error "invalid syntax (<unknown>, line 3)"
+     '(3 13 error "invalid syntax (<unknown>, line 3)"
          :id "syntax-error" :checker python-pylint))))
 
 (flycheck-ert-def-checker-test python-pylint python nil
@@ -3992,21 +4020,21 @@ Why not:
         (flycheck-python-pylint-executable "python3"))
     (flycheck-ert-should-syntax-check
      "language/python/test.py" 'python-mode
-     '(1 1 info "Missing module docstring" :id "missing-docstring" :checker python-pylint)
+     '(1 1 info "Missing module docstring" :id "missing-module-docstring" :checker python-pylint)
      '(4 1 error "Unable to import 'spam'" :id "import-error" :checker python-pylint)
      '(5 1 error "No name 'antigravit' in module 'python'" :id "no-name-in-module"
          :checker python-pylint)
      '(5 1 warning "Unused import antigravit" :id "unused-import"
          :checker python-pylint)
-     '(7 1 info "Missing class docstring" :id "missing-docstring" :checker python-pylint)
+     '(7 1 info "Missing class docstring" :id "missing-class-docstring" :checker python-pylint)
      '(7 1 warning "Class 'Spam' inherits from object, can be safely removed from bases in python3"
          :id "useless-object-inheritance" :checker python-pylint)
      '(9 5 info "Method name \"withEggs\" doesn't conform to snake_case naming style"
          :id "invalid-name" :checker python-pylint)
-     '(9 5 info "Missing method docstring" :id "missing-docstring" :checker python-pylint)
+     '(9 5 info "Missing function or method docstring" :id "missing-function-docstring" :checker python-pylint)
      '(9 5 warning "Method could be a function" :id "no-self-use"
          :checker python-pylint)
-     '(12 5 info "Missing method docstring" :id "missing-docstring" :checker python-pylint)
+     '(12 5 info "Missing function or method docstring" :id "missing-function-docstring" :checker python-pylint)
      '(12 5 warning "Either all return statements in a function should return an expression, or none of them should."
           :id "inconsistent-return-statements" :checker python-pylint)
      '(12 5 warning "Method could be a function"
@@ -4024,21 +4052,21 @@ Why not:
         (flycheck-python-pylint-executable "python3"))
     (flycheck-ert-should-syntax-check
      "language/python/test.py" 'python-mode
-     '(1 1 info "Missing module docstring" :id "C0111" :checker python-pylint)
+     '(1 1 info "Missing module docstring" :id "C0114" :checker python-pylint)
      '(4 1 error "Unable to import 'spam'" :id "E0401" :checker python-pylint)
      '(5 1 error "No name 'antigravit' in module 'python'" :id "E0611"
          :checker python-pylint)
      '(5 1 warning "Unused import antigravit" :id "W0611"
          :checker python-pylint)
-     '(7 1 info "Missing class docstring" :id "C0111" :checker python-pylint)
+     '(7 1 info "Missing class docstring" :id "C0115" :checker python-pylint)
      '(7 1 warning "Class 'Spam' inherits from object, can be safely removed from bases in python3"
          :id "R0205" :checker python-pylint)
      '(9 5 info "Method name \"withEggs\" doesn't conform to snake_case naming style"
          :id "C0103" :checker python-pylint)
-     '(9 5 info "Missing method docstring" :id "C0111" :checker python-pylint)
+     '(9 5 info "Missing function or method docstring" :id "C0116" :checker python-pylint)
      '(9 5 warning "Method could be a function" :id "R0201"
          :checker python-pylint)
-     '(12 5 info "Missing method docstring" :id "C0111" :checker python-pylint)
+     '(12 5 info "Missing function or method docstring" :id "C0116" :checker python-pylint)
      '(12 5 warning "Either all return statements in a function should return an expression, or none of them should."
           :id "R1710" :checker python-pylint)
      '(12 5 warning "Method could be a function"
@@ -4282,7 +4310,7 @@ The manifest path is relative to
     (flycheck-ert-should-syntax-check
      "language/rust/flycheck-test/src/warnings.rs" 'rust-mode
      '(3 1 warning "function is never used: `main`" :checker rust-cargo :id "dead_code" :group 1)
-     '(3 1 info "#[warn(dead_code)] on by default" :checker rust-cargo :id "dead_code" :group 1)
+     '(3 1 info "`#[warn(dead_code)]` on by default" :checker rust-cargo :id "dead_code" :group 1)
      '(4 9 warning "unused variable: `x`" :checker rust-cargo :id "unused_variables" :group 2)
      '(4 9 info "consider prefixing with an underscore: `_x`" :checker rust-cargo :id "unused_variables" :group 2))))
 
@@ -4294,7 +4322,7 @@ The manifest path is relative to
     (flycheck-ert-should-syntax-check
      "language/rust/flycheck-test/src/warnings.rs" 'rust-mode
      '(3 1 warning "function is never used: `main`" :checker rust-cargo :id "dead_code" :group 1)
-     '(3 1 info "#[warn(dead_code)] on by default" :checker rust-cargo :id "dead_code" :group 1)
+     '(3 1 info "`#[warn(dead_code)]` on by default" :checker rust-cargo :id "dead_code" :group 1)
      '(4 9 warning "unused variable: `x`" :checker rust-cargo :id "unused_variables" :group 2)
      '(4 9 info "consider prefixing with an underscore: `_x`" :checker rust-cargo :id "unused_variables" :group 2))))
 
@@ -4317,7 +4345,7 @@ The manifest path is relative to
        "language/rust/cargo-targets/src/lib.rs" 'rust-mode
        '(3 1 warning "function is never used: `foo_lib`" :checker rust-cargo :id "dead_code" :group 1)
        '(6 17 warning "unused variable: `foo_lib_test`" :checker rust-cargo  :id "unused_variables" :group 2)
-       '(6 17 info "#[warn(unused_variables)] on by default" :checker rust-cargo :id "unused_variables" :group 2)
+       '(6 17 info "`#[warn(unused_variables)]` on by default" :checker rust-cargo :id "unused_variables" :group 2)
        '(6 17 info "consider prefixing with an underscore: `_foo_lib_test`" :checker rust-cargo :id "unused_variables" :group 2)))
 
     (let ((flycheck-rust-crate-type "lib"))
@@ -4325,7 +4353,7 @@ The manifest path is relative to
       (flycheck-ert-should-syntax-check
        "language/rust/cargo-targets/src/a.rs" 'rust-mode
        '(1 1 warning "function is never used: `foo_a`" :checker rust-cargo :id "dead_code" :group 1)
-       '(1 1 info "#[warn(dead_code)] on by default" :checker rust-cargo :id "dead_code" :group 1)
+       '(1 1 info "`#[warn(dead_code)]` on by default" :checker rust-cargo :id "dead_code" :group 1)
        '(4 17 warning "unused variable: `foo_a_test`" :checker rust-cargo :id "unused_variables" :group 2)
        '(4 17 info "consider prefixing with an underscore: `_foo_a_test`" :checker rust-cargo :id "unused_variables" :group 2)))
 
@@ -4335,7 +4363,7 @@ The manifest path is relative to
       (flycheck-ert-should-syntax-check
        "language/rust/cargo-targets/src/main.rs" 'rust-mode
        '(1 17 warning "unused variable: `foo_main`" :checker rust-cargo :id "unused_variables" :group 1)
-       '(1 17 info "#[warn(unused_variables)] on by default" :checker rust-cargo :id "unused_variables" :group 1)
+       '(1 17 info "`#[warn(unused_variables)]` on by default" :checker rust-cargo :id "unused_variables" :group 1)
        '(1 17 info "consider prefixing with an underscore: `_foo_main`" :checker rust-cargo :id "unused_variables" :group 1)
        '(4 17 warning "unused variable: `foo_main_test`" :checker rust-cargo :id "unused_variables" :group 2)
        '(4 17 info "consider prefixing with an underscore: `_foo_main_test`" :checker rust-cargo :id "unused_variables" :group 2)))
@@ -4346,7 +4374,7 @@ The manifest path is relative to
       (flycheck-ert-should-syntax-check
        "language/rust/cargo-targets/src/bin/a.rs" 'rust-mode
        '(1 17 warning "unused variable: `foo_bin_a`" :checker rust-cargo :id "unused_variables" :group 1)
-       '(1 17 info "#[warn(unused_variables)] on by default" :checker rust-cargo :id "unused_variables" :group 1)
+       '(1 17 info "`#[warn(unused_variables)]` on by default" :checker rust-cargo :id "unused_variables" :group 1)
        '(1 17 info "consider prefixing with an underscore: `_foo_bin_a`" :checker rust-cargo :id "unused_variables" :group 1)
        '(4 17 warning "unused variable: `foo_bin_a_test`" :checker rust-cargo :id "unused_variables" :group 2)
        '(4 17 info "consider prefixing with an underscore: `_foo_bin_a_test`" :checker rust-cargo :id "unused_variables" :group 2)))
@@ -4357,7 +4385,7 @@ The manifest path is relative to
       (flycheck-ert-should-syntax-check
        "language/rust/cargo-targets/benches/a.rs" 'rust-mode
        '(1 17 warning "unused variable: `foo_bench_a`" :checker rust-cargo :id "unused_variables" :group 1)
-       '(1 17 info "#[warn(unused_variables)] on by default" :checker rust-cargo :id "unused_variables" :group 1)
+       '(1 17 info "`#[warn(unused_variables)]` on by default" :checker rust-cargo :id "unused_variables" :group 1)
        '(1 17 info "consider prefixing with an underscore: `_foo_bench_a`" :checker rust-cargo :id "unused_variables" :group 1)
        '(4 17 warning "unused variable: `foo_bench_a_test`" :checker rust-cargo :id "unused_variables" :group 2)
        '(4 17 info "consider prefixing with an underscore: `_foo_bench_a_test`" :checker rust-cargo :id "unused_variables" :group 2)))
@@ -4368,10 +4396,10 @@ The manifest path is relative to
       (flycheck-ert-should-syntax-check
        "language/rust/cargo-targets/tests/a.rs" 'rust-mode
        '(2 16 warning "unused variable: `foo_test_a_test`" :checker rust-cargo :id "unused_variables" :group 1)
-       '(2 16 info "#[warn(unused_variables)] on by default" :checker rust-cargo :id "unused_variables" :group 1)
+       '(2 16 info "`#[warn(unused_variables)]` on by default" :checker rust-cargo :id "unused_variables" :group 1)
        '(2 16 info "consider prefixing with an underscore: `_foo_test_a_test`" :checker rust-cargo :id "unused_variables" :group 1)
        '(4 1 warning "function is never used: `foo_test_a`" :checker rust-cargo :id "dead_code" :group 2)
-       '(4 1 info "#[warn(dead_code)] on by default" :checker rust-cargo :id "dead_code" :group 2)))
+       '(4 1 info "`#[warn(dead_code)]` on by default" :checker rust-cargo :id "dead_code" :group 2)))
 
     (let ((flycheck-rust-crate-type "example")
           (flycheck-rust-binary-name "a"))
@@ -4379,7 +4407,7 @@ The manifest path is relative to
       (flycheck-ert-should-syntax-check
        "language/rust/cargo-targets/examples/a.rs" 'rust-mode
        '(1 17 warning "unused variable: `foo_ex_a`" :checker rust-cargo :id "unused_variables" :group 1)
-       '(1 17 info "#[warn(unused_variables)] on by default" :checker rust-cargo :id "unused_variables" :group 1)
+       '(1 17 info "`#[warn(unused_variables)]` on by default" :checker rust-cargo :id "unused_variables" :group 1)
        '(1 17 info "consider prefixing with an underscore: `_foo_ex_a`" :checker rust-cargo :id "unused_variables" :group 1)
        '(4 17 warning "unused variable: `foo_ex_a_test`" :checker rust-cargo :id "unused_variables" :group 2)
        '(4 17 info "consider prefixing with an underscore: `_foo_ex_a_test`" :checker rust-cargo :id "unused_variables" :group 2)))))
@@ -4392,7 +4420,7 @@ The manifest path is relative to
     (flycheck-ert-should-syntax-check
      "language/rust/workspace/crate1/src/lib.rs" 'rust-mode
      '(2 7 warning "unused variable: `a`" :checker rust-cargo :id "unused_variables" :group 1)
-     '(2 7 info "#[warn(unused_variables)] on by default" :checker rust-cargo :id "unused_variables" :group 1)
+     '(2 7 info "`#[warn(unused_variables)]` on by default" :checker rust-cargo :id "unused_variables" :group 1)
      '(2 7 info "consider prefixing with an underscore: `_a`" :checker rust-cargo :id "unused_variables" :group 1))))
 
 (flycheck-ert-def-checker-test rust-cargo rust dev-dependencies
@@ -4403,9 +4431,9 @@ The manifest path is relative to
     (flycheck-ert-should-syntax-check
      "language/rust/dev-deps/src/lib.rs" 'rust-mode
      '(2 1 warning "unused `#[macro_use]` import" :checker rust-cargo :id "unused_imports" :group 1)
-     '(2 1 info "#[warn(unused_imports)] on by default" :checker rust-cargo :id "unused_imports" :group 1)
+     '(2 1 info "`#[warn(unused_imports)]` on by default" :checker rust-cargo :id "unused_imports" :group 1)
      '(8 9 warning "unused variable: `foo`" :checker rust-cargo :id "unused_variables" :group 2)
-     '(8 9 info "#[warn(unused_variables)] on by default" :checker rust-cargo :id "unused_variables" :group 2)
+     '(8 9 info "`#[warn(unused_variables)]` on by default" :checker rust-cargo :id "unused_variables" :group 2)
      '(8 9 info "consider prefixing with an underscore: `_foo`" :checker rust-cargo :id "unused_variables" :group 2))))
 
 (flycheck-ert-def-checker-test rust rust syntax-error
@@ -4426,7 +4454,7 @@ The manifest path is relative to
     (flycheck-ert-should-syntax-check
      "language/rust/flycheck-test/src/warnings.rs" 'rust-mode
      '(4 9 warning "unused variable: `x`" :checker rust :id "unused_variables" :group 1)
-     '(4 9 info "#[warn(unused_variables)] on by default" :checker rust :id "unused_variables" :group 1)
+     '(4 9 info "`#[warn(unused_variables)]` on by default" :checker rust :id "unused_variables" :group 1)
      '(4 9 info "consider prefixing with an underscore: `_x`" :checker rust :id "unused_variables" :group 1))))
 
 (flycheck-ert-def-checker-test rust rust note-and-help
@@ -4441,10 +4469,7 @@ The manifest path is relative to
   (let ((flycheck-disabled-checkers '(rust-cargo)))
     (flycheck-ert-should-syntax-check
      "language/rust/flycheck-test/src/importing.rs" 'rust-mode
-     '(1 1 info "remove the whole `use` item: ``" :checker rust :id "unused_imports" :group 1)
      '(1 5 error "failed to resolve: there are too many initial `super`s. (there are too many initial `super`s.)" :checker rust :id "E0433" :group 2)
-     '(1 5 warning "unused import: `super::imported`" :checker rust :id "unused_imports" :group 1)
-     '(1 5 info "#[warn(unused_imports)] on by default" :checker rust :id "unused_imports" :group 1)
      '(4 24 error "failed to resolve: use of undeclared type or module `imported` (use of undeclared type or module `imported`)" :checker rust :id "E0433" :group 3)
      )))
 
@@ -4452,7 +4477,6 @@ The manifest path is relative to
   (let ((flycheck-disabled-checkers '(rust-cargo)))
     (flycheck-ert-should-syntax-check
      "language/rust/flycheck-test/src/macro-error.rs" 'rust-mode
-     '(2 3 info "1 positional argument in format string, but no arguments were given" :checker rust :group 1)
      '(2 13 error "1 positional argument in format string, but no arguments were given" :checker rust :group 1))))
 
 (flycheck-ert-def-checker-test sass sass nil
@@ -4713,6 +4737,17 @@ The manifest path is relative to
      "language/yaml.yaml" 'yaml-mode
      '(4 5 error "mapping values are not allowed in this context"
          :checker yaml-ruby))))
+
+(flycheck-ert-def-checker-test yaml-yamllint yaml nil
+  (let ((flycheck-disabled-checkers '(yaml-yamlyaml)))
+    (flycheck-ert-should-syntax-check
+     "language/yaml.yaml" 'yaml-mode
+     '(3 1 warning "missing document start "---" (document-start)"
+         :checker yaml-yamllint))
+    (flycheck-ert-should-syntax-check
+     "language/yaml.yaml" 'yaml-mode
+     '(4 5 error "syntax error: mapping values are not allowed here"
+         :checker yaml-yamllint))))
 
 (flycheck-ert-def-checker-test jsonnet jsonnet nil
   (flycheck-ert-should-syntax-check
