@@ -35,8 +35,8 @@ Make sure you have this in your [init file](http://www.gnu.org/software/emacs/ma
  ;; If there is more than one, they won't work right.
  '(package-archives
    (quote
-    (("gnu" . "http://elpa.gnu.org/packages/")
-     ("melpa-stable" . "http://stable.melpa.org/packages/")))))
+    (("gnu" . "https://elpa.gnu.org/packages/")
+     ("melpa-stable" . "https://stable.melpa.org/packages/")))))
 (package-initialize)
 ```
 
@@ -68,7 +68,7 @@ for setup and user guide.
 
 ## Installation - more information
 
-`haskell-mode` supports GNU Emacs version 24.3 or later.
+`haskell-mode` supports GNU Emacs version 25.1 or later.
 
 `haskell-mode` is available from [melpa-stable](http://stable.melpa.org) (releases) and [melpa](http://melpa.org)
 (git snapshots).
