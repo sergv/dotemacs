@@ -230,7 +230,23 @@ will bring the behavior in line with the newer Emacsen."
                    "your  king.")))
   (should (equal (ivy--split "^[^ ]") '("^[^ ]")))
   (should (equal (ivy--split "^[^ ] bar") '("^[^ ]" "bar")))
-  (should (equal (ivy--split "defun [^ ]+") '("defun" "[^ ]+"))))
+  (should (equal (ivy--split "defun [^ ]+") '("defun" "[^ ]+")))
+  (should (equal (ivy--split "[^ ]+ -> .*")
+                 '("[^ ]+" "->" ".*")))
+  (should (equal (ivy--split "[^ \n]+ \\( ->\\)")
+                 '("[^ \n]+" "\\( ->\\)")))
+  (should (equal (ivy--split "abc[^ \n]+\\( ->\\)")
+                 '("abc[^ \n]+" "\\( ->\\)")))
+  (should (equal (ivy--split "abc[^ \n]+\\( -> \\)def")
+                 '("abc[^ \n]+" "\\( -> \\)" "def")))
+  (should (equal (ivy--split "\\(?:interactive\\|swiper\\) \\(?:list\\|symbol\\)")
+                 '("\\(?:interactive\\|swiper\\)" "\\(?:list\\|symbol\\)")))
+  (should (equal (ivy--split "\\([^ \n]+\\)\\( -> \\).*")
+                 '("\\([^ \n]+\\)"
+                   "\\( -> \\)"
+                   ".*")))
+  (should (equal (ivy--split "[^ ]\\( -> \\).*")
+                 '("[^ ]" "\\( -> \\)" ".*"))))
 
 (ert-deftest ivy--regex ()
   (should (equal (ivy--regex
@@ -246,7 +262,11 @@ will bring the behavior in line with the newer Emacsen."
                   ".org")
                  "\\.org"))
   (should (equal (ivy--regex "foo\\") "foo"))
-  (should (equal (ivy--regex "foo\\|") "foo")))
+  (should (equal (ivy--regex "foo\\|") "foo"))
+  (should (equal (ivy--regex "[^ \n]+\\( -> \\).*")
+                 "\\([^ \n]+\\)\\( -> \\).*?\\(.*\\)"))
+  (should (equal (ivy--regex "\\([^ \\n]+\\)\\( -> \\).*")
+                 "\\([^ \\n]+\\)\\( -> \\).*?\\(.*\\)")))
 
 (ert-deftest ivy--split-negation ()
   (should (equal (ivy--split-negation "") ()))
@@ -975,6 +995,14 @@ will bring the behavior in line with the newer Emacsen."
            "DEL C-M-j"
            :dir "/tmp"))))
 
+(ert-deftest ivy-counsel-read-directory-name ()
+  (should
+   (equal (expand-file-name "/tmp/")
+          (ivy-with
+           '(counsel-read-directory-name "cd: ")
+           "RET"
+           :dir "/tmp/"))))
+
 (ert-deftest ivy-partial-files ()
   (when (file-exists-p "/tmp/ivy-partial-test")
     (delete-directory "/tmp/ivy-partial-test" t))
@@ -1313,14 +1341,13 @@ a buffer visiting a file."
            (len (length cands)))
       (should (equal cands '(3 9 15 20 25 30 35)))
       (dotimes (index len)
-        (should (string= (substring-no-properties
-                          (swiper--isearch-format
-                           index len
-                           cands
-                           input
-                           (nth index cands)
-                           (current-buffer)))
-                         "line0\nline1\nline line\nline line\nline5"))))))
+        (should (equal (swiper--isearch-format
+                        index len
+                        cands
+                        input
+                        (nth index cands)
+                        (current-buffer))
+                       '("line0" "line1" "line line" "line line" "line5")))))))
 
 (ert-deftest ivy-use-selectable-prompt ()
   (let ((ivy-use-selectable-prompt t)
