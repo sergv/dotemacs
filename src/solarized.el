@@ -229,16 +229,6 @@ Futher modified by Sergey Vinokurov."
             (agda2-highlight-unsolved-constraint-face     ((t (:inherit warning :bold t))))
             (agda2-highlight-unsolved-meta-face           ((t (:inherit warning :bold t))))
 
-            ;; idris
-            (idris-semantic-module-face                   ((t (:inherit default))))
-            (idris-semantic-namespace-face                ((t (:inherit default))))
-
-            (idris-semantic-type-face                     ((t (:foreground ,yellow))))
-            (idris-semantic-data-face                     ((t (:foreground ,yellow))))
-            (idris-semantic-function-face                 ((t (:inherit font-lock-function-name-face))))
-            (idris-semantic-bound-face                    ((t (:inherit default))))
-            (idris-operator-face                          ((t (:inherit haskell-operator-face))))
-
             (flycheck-error               ((((supports :underline (:style wave)))
                                             :underline (:style wave :color ,red :bold t))
                                            (t
