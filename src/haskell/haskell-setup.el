@@ -63,21 +63,6 @@
 (vim:defcmd vim:haskell-compile-choosing-command (nonrepeatable)
   (haskell-start-compilation t))
 
-
-(vim:defcmd vim:haskell-intero-load-file-into-repl (nonrepeatable)
-  (unless intero-mode
-    (error "Intero is not enabled"))
-  (intero-repl-load))
-(vim:defcmd vim:haskell-intero-restart (nonrepeatable)
-  (unless intero-mode
-    (error "Intero is not enabled"))
-  (intero-restart))
-(vim:defcmd vim:haskell-intero-restart-repl (nonrepeatable)
-  (unless intero-mode
-    (error "Intero is not enabled"))
-  (intero-restart-repl))
-
-
 (vim:defcmd vim:haskell-dante-load-file-into-repl (nonrepeatable)
   (dante-repl-load-file))
 
@@ -185,9 +170,6 @@
                       line
                       `((column . ,(1- col)))))))
 
-(defconst haskell-default-flycheck-checker 'haskell-dante
-  "Either 'intero, 'haskell-dante or nil")
-
 ;;;###autoload
 (defun haskell-setup ()
   (let ((non-vanilla-haskell-mode? (-any? #'derived-mode-p '(ghc-core-mode haskell-c2hs-mode haskell-hsc-mode))))
@@ -223,7 +205,7 @@
                 (eproj-query/flycheck-checker
                  proj
                  major-mode
-                 haskell-default-flycheck-checker)))
+                 'haskell-dante)))
           (setq-local flycheck-disabled-checkers
                       (eproj-query/flycheck-disabled-checkers
                        proj
@@ -233,8 +215,6 @@
               (progn
                 (when (eq flycheck-backend 'haskell-dante)
                   (dante-mode +1))
-                (when (eq flycheck-backend 'intero)
-                  (intero-mode +1))
                 (unless (flycheck-may-use-checker flycheck-backend)
                   (flycheck-verify-checker flycheck-backend)
                   (error "Unable to select checker '%s' for buffer '%s'"
@@ -252,8 +232,6 @@
 
     (when dante-mode
       (add-to-list 'company-backends 'dante-company))
-    (when intero-mode
-      (add-to-list 'company-backends 'intero-company))
 
     ;; ghci interaction uses comint - same as shell mode
     (turn-on-font-lock)
@@ -289,12 +267,6 @@
          (vim:local-emap cmd #'vim:haskell-dante-restart))
        (dolist (cmd '("conf" "configure"))
          (vim:local-emap cmd #'vim:haskell-dante-configure)))
-      (intero-mode
-       (setq-local flycheck-check-syntax-automatically '(save mode-enabled idle-change))
-       (setq-local flycheck-idle-change-delay 2)
-
-       (dolist (cmd '("re" "restart"))
-         (vim:local-emap cmd #'vim:haskell-intero-restart)))
       ((and flycheck-mode
             (memq flycheck-checker '(haskell-stack-ghc haskell-ghc)))
        (dolist (cmd '("conf" "configure"))
@@ -318,9 +290,7 @@
      :load-func
      (cond
        (dante-mode
-        #'vim:haskell-dante-load-file-into-repl)
-       (intero-mode
-        #'vim:haskell-intero-load-file-into-repl)))
+        #'vim:haskell-dante-load-file-into-repl)))
 
     (vim:local-emap "core" #'vim:ghc-core-create-core)
     (dolist (cmd '("cc" "ccompile"))
@@ -336,20 +306,7 @@
        (def-keys-for-map (vim:normal-mode-local-keymap
                           vim:visual-mode-local-keymap)
          ("- t"          dante-type-at)
-         ("- i"          dante-info)))
-      (intero-mode
-       (def-keys-for-map vim:normal-mode-local-keymap
-         ("SPC SPC"      intero-repl)
-         (("C-l" "<f6>") intero-repl-load)
-
-         ("- t"          intero-type-at)
-         ("- u"          intero-uses-at)
-         ("- i"          intero-info)
-         ("- ."          intero-goto-definition)
-         ("- s"          intero-expand-splice-at-point))
-
-       (def-keys-for-map vim:visual-mode-local-keymap
-         ("- e"          intero-repl-eval-region))))
+         ("- i"          dante-info))))
 
     (def-keys-for-map vim:normal-mode-local-keymap
       ("\\"           vim:flycheck-run)
@@ -554,71 +511,6 @@
     ("S-<up>"   haskell-interactive-jump-to-prev-prompt)
     ("S-<down>" haskell-interactive-jump-to-next-prompt))
 
-  (haskell-abbrev+-setup 2 :repl t))
-
-;;;###autoload
-(defun intero-repl-mode-setup ()
-  ;; undo-tree is useless for ghci interaction
-  ;; well I'm not sure now, I hope it's useful since it proved itself useful
-  ;; for other repls
-  ;; (undo-tree-mode -1)
-  (init-common :use-comment nil
-               :use-yasnippet nil
-               :use-whitespace nil
-               :use-fci nil)
-
-  ;; To make hideshow work
-  (setq-local comment-start "--")
-  (setq-local comment-end "")
-  (setq-local comment-column 32)
-  (setq-local comment-start-skip "--+ *")
-
-  (init-repl :create-keymaps t
-             :bind-return nil
-             :bind-vim:motion-current-line nil)
-  (setq-local indent-region-function #'ignore)
-  ;; very useful to automatically surround with spaces inserted operators
-  (install-haskell-smart-operators! vim:insert-mode-local-keymap
-    :bind-colon nil
-    :bind-hyphen nil)
-
-  (pretty-ligatures-install-safe!)
-  (pretty-ligatures-install-special-haskell-ligatures!)
-
-  (vim:local-emap "clear" 'vim:haskell-interactive-clear-buffer-above-prompt)
-  (dolist (cmd '("re" "restart"))
-    (vim:local-emap cmd 'vim:haskell-intero-restart-repl))
-
-  (def-keys-for-map vim:normal-mode-local-keymap
-    ("SPC SPC"  comint-clear-prompt)
-
-    ("C-t"      comint-previous-prompt)
-    ("C-h"      comint-next-prompt)
-    ("S-<up>"   comint-previous-prompt)
-    ("S-<down>" comint-next-prompt))
-
-  (def-keys-for-map vim:insert-mode-local-keymap
-    ("-"        haskell--ghci-hyphen)
-    (":"        haskell--ghci-colon)
-    ("`"        vim:wrap-backticks))
-
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:insert-mode-local-keymap)
-    ("<tab>"    completion-at-point)
-    ("<up>"     comint-previous-input)
-    ("<down>"   comint-next-input)
-
-    ("C-("      vim:sp-backward-slurp-sexp)
-    ("C-)"      vim:sp-forward-slurp-sexp)
-    ("M-("      sp-absorb-sexp)
-    ("M-)"      sp-emit-sexp)
-
-    ("C-SPC"    vim:comint-clear-buffer-above-prompt)
-    ("C-S-p"    browse-comint-input-history)
-
-    (("C-l" "<f5>") intero-repl-reload))
-
-  (haskell-setup-folding :enable-hs-minor-mode t)
   (haskell-abbrev+-setup 2 :repl t))
 
 ;;;###autoload
