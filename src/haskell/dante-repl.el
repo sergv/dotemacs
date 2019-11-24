@@ -126,6 +126,7 @@
 ;; :set prompt \"\"
 ;; :set -fbyte-code
 ;; :set -fdiagnostics-color=always -Wno-missing-home-modules -dsuppress-modules-prefixes -fshow-loaded-modules
+;; :set -XOverloadedStrings
                ":set prompt \"\\4 \""))
           (comint-simple-send proc (if extra-command
                                        (concat cmd "\n" extra-command)

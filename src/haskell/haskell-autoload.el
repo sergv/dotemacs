@@ -9,17 +9,12 @@
 (require 'happy-mode-autoload)
 (require 'mmm-setup)
 
-(eval-after-load "intero"
-  '(progn
-     (define-key intero-mode-map (kbd "M-.") nil)))
-
 (eval-after-load "attrap"
   '(progn
      (setf attrap-flycheck-checkers-alist
            (append
             '((haskell-ghc . attrap-ghc-fixer)
-              (haskell-stack-ghc . attrap-ghc-fixer)
-              (intero . attrap-ghc-fixer))
+              (haskell-stack-ghc . attrap-ghc-fixer))
             attrap-flycheck-checkers-alist))))
 
 (add-hook 'ghc-profiling-mode-hook #'ghc-profiling-mode-setup)
@@ -84,7 +79,6 @@
 (put 'haskell-compile-command 'safe-local-variable #'stringp)
 (put 'haskell-program-name 'safe-local-variable (lambda (x) (or (stringp x) (listp x))))
 (put 'hindent-style 'safe-local-variable #'stringp)
-(put 'intero-targets 'safe-local-variable (lambda (x) (and (listp x) (cl-every #'stringp x ))))
 
 (add-hook 'ghc-core-mode-hook #'ghc-core-setup)
 (add-hook 'haskell-cabal-mode-hook #'haskell-cabal-setup)
@@ -92,7 +86,6 @@
 (add-hook 'haskell-interactive-mode-hook #'haskell-interactive-mode-setup)
 (add-hook 'haskell-mode-hook #'haskell-setup)
 (add-hook 'inferior-haskell-mode-hook #'inferior-haskell-mode-setup)
-(add-hook 'intero-repl-mode-hook #'intero-repl-mode-setup)
 (add-hook 'dante-repl-mode-hook #'dante-repl-mode-setup)
 (add-hook 'literate-haskell-mode-hook #'haskell-setup)
 
