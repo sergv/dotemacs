@@ -990,6 +990,27 @@ the test."
 (js2-deftest-parse exponentiation-prohibits-unary-op
   "var a = -b ** c" :syntax-error "-b")
 
+(js2-deftest optional-chaining-operator-on-property-access
+  "var a = {}; a?.b;"
+  (js2-mode--and-parse)
+  (let ((node (js2-find-node js2-mode-ast 'js2-name-node-p)))
+    (should node)
+    (should (string= (js2-node-text node) "b"))))
+
+(js2-deftest optional-chaining-operator-on-get-element
+  "var a = []; a?.[99];"
+  (js2-mode--and-parse)
+  (let ((node (js2-find-node js2-mode-ast 'js2-number-node-p)))
+    (should node)
+    (should (string= (js2-node-text node) "99"))))
+
+(js2-deftest optional-chaining-operator-on-functioncall
+  "var a = function(b){}; a?.(99);"
+  (js2-mode--and-parse)
+  (let ((node (js2-find-node js2-mode-ast 'js2-number-node-p)))
+    (should node)
+    (should (string= (js2-node-text node) "99"))))
+
 (js2-deftest unary-void-node-start
   "var c = void 0"
   (js2-mode--and-parse)
@@ -1385,6 +1406,41 @@ the test."
 (js2-deftest-classify-variables import-namespace-used
   "import * as foo from 'module'; function bar() { return foo.x; }"
   '("foo@13:I" 56 "bar@41:U"))
+
+(js2-deftest-classify-variables destructured-function-params-1
+  "\
+function foo({var1}, var0) {
+    const bar = {var1},
+          var2 = {bar},
+          var3 = {var2},
+          var4 = {bar, var1, var2, var3, var4};
+    return({var4});
+}"
+  '("foo@10:U" "var1@15:P" 47 126 "var0@22:P" "bar@40:I" 72 121 "var2@64:I" 96 132 "var3@88:I" 138 "var4@113:I" 144 163))
+
+(js2-deftest-classify-variables destructured-function-params-2
+  "\
+function foo([var0, {var1}]) {
+    return var0 * var1;
+}"
+  '("foo@10:U" "var0@15:P" 43 "var1@22:P" 50))
+
+(js2-deftest-classify-variables uninitialized-class
+  "\
+import React from 'react';
+import PropTypes from 'prop-types';
+
+class SomeComponent extends React.Component {
+    render() {
+        return <div></div>;
+    }
+}
+
+SomeComponent.propTypes = {
+};
+
+export default SomeComponent;"
+  '("React@8:I" 93 "PropTypes@35:U" "SomeComponent@71:I" 163 210))
 
 ;; Side effects
 
