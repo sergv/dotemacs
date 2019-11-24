@@ -130,7 +130,6 @@ update-dir-autoloads \
     "third-party/groovy-mode" \
     "third-party/haskell-mode" \
     "third-party/haskell-tags-server/elisp" \
-    "third-party/intero/elisp" \
     "third-party/ivy" \
     "third-party/ivy-smex" \
     "third-party/lcr" \
