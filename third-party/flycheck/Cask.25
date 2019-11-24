@@ -19,14 +19,13 @@
  (depends-on "d-mode")
  (depends-on "dockerfile-mode")
  (depends-on "erlang")
- ;; Latest ess requires `project' from Emacs 25+.
- ;; (depends-on "ess")
+ (depends-on "ess")
  (depends-on "geiser")
  (depends-on "go-mode")
  (depends-on "groovy-mode")
  (depends-on "haml-mode")
  (depends-on "handlebars-mode")
- ;; (depends-on "haskell-mode")    ; requires Emacs 25.1+
+ (depends-on "haskell-mode")
  (depends-on "js2-mode")
  (depends-on "js3-mode")
  (depends-on "rjsx-mode")
@@ -36,8 +35,7 @@
  (depends-on "lua-mode")
  (depends-on "markdown-mode")
  (depends-on "mmm-mode")
- ;; nix-mode requires Emacs 25+.
- ;; (depends-on "nix-mode")
+ (depends-on "nix-mode")
  (depends-on "php-mode")
  (depends-on "processing-mode")
  (depends-on "protobuf-mode")
