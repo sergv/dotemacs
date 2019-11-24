@@ -34,8 +34,7 @@
         haskell-compilation-mode
         inferior-haskell-mode
         inferior-scheme-mode
-        intero-help-mode
-        intero-repl-mode
+        dante-repl-mode
         lisp-interaction-mode
         prolog-inferior-mode
         python-repl-mode

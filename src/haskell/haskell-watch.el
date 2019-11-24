@@ -188,8 +188,6 @@ modified and we should reconfigure the project.")
     (dante-mode
      (haskell-misc--configure-dante)
      (dante-restart))
-    (intero-mode
-     (intero-restart))
     (flycheck-mode
      (flycheck-haskell-configure))))
 

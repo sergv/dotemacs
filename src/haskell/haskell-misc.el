@@ -28,7 +28,6 @@
 (require 'flycheck)
 (require 'flycheck-haskell)
 (require 'flycheck-setup)
-(require 'intero)
 
 (require 'f)
 (require 's)
@@ -188,6 +187,11 @@ and indent them as singe line."
       (eval-when-compile
         (let* ((ghci-options
                 '("-fbyte-code"
+                  "-Wall"
+                  "-fwarn-name-shadowing"
+                  "-Wincomplete-uni-patterns"
+                  "-Wincomplete-record-updates"
+                  "-Wcompat"
                   "-fdiagnostics-color=always"
                   "-Wno-missing-home-modules"
                   "-dsuppress-module-prefixes"
@@ -213,28 +217,7 @@ and indent them as singe line."
                        ("cabal" "new-repl" (or dante-target (dante-package-name) nil) ,@build-dir)
                        ("cabal" "new-repl" (or dante-target (dante-package-name) nil) ,@build-dir ,@repl-options))
             (stack "stack.yaml" ("stack" "repl" dante-target) ("stack" "repl" dante-target ,@stack-ghci-options))
-            (bare-ghci ,(lambda (_) t) ("ghci")))))
-
-      intero-extra-ghc-options
-      '("-O0"
-        "-Wall"
-        "-fwarn-name-shadowing"
-        "-fno-warn-type-defaults"
-        "-Wincomplete-uni-patterns"
-        "-Wincomplete-record-updates"
-        "-Wcompat"
-        "-dsuppress-module-prefixes")
-      intero-extra-ghci-options
-      '("-XOverloadedStrings"))
-
-(def-keys-for-map intero-multiswitch-keymap
-  ("<escape>" abort-recursive-edit)
-  ("q"        abort-recursive-edit)
-  ("SPC"      widget-button-press)
-  ("h"        widget-forward)
-  ("<down>"   widget-forward)
-  ("t"        widget-backward)
-  ("<up>"     widget-backward))
+            (bare-ghci ,(lambda (_) t) ("ghci"))))))
 
 ;; Ghci flags
 (let* ((extensions '("-XLambdaCase" "-XOverloadedStrings" "-XTemplateHaskell" "-XQuasiQuotes"))
