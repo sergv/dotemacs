@@ -51,8 +51,6 @@
     ("C-b"             switch-to-buffer-or-file-in-current-project)
     ("M-b"             switch-to-buffer-or-file-in-current-or-related-projects)
 
-    ("C-l"             intero-repl-load)
-
     ("DEL"             haskell-backspace-with-block-dedent)
     ("<backspace>"     haskell-backspace-with-block-dedent)
 

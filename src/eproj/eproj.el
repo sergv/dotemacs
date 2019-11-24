@@ -33,12 +33,12 @@
 ;;       [(indent-offset <integer>)])])]
 ;;
 ;; [(flycheck-checker
-;;    [(haskell-mode <nil|haskell-stack-ghc|haskell-ghc|intero|...>)])]
+;;    [(haskell-mode <nil|haskell-stack-ghc|haskell-ghc|haskell-dante|...>)])]
 ;;
 ;; [(flycheck-disabled-checkers
 ;;    [(haskell-mode
-;;        [<haskell-stack-ghc|haskell-ghc|intero|...>]
-;;        [<haskell-stack-ghc|haskell-ghc|intero|...>]
+;;        [<haskell-stack-ghc|haskell-ghc|haskell-dante|...>]
+;;        [<haskell-stack-ghc|haskell-ghc|haskell-dante|...>]
 ;;        ...)])]
 ;;
 ;; [...] - optional directive
