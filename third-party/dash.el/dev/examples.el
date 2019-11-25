@@ -24,6 +24,9 @@
 
 (require 'dash)
 
+;; FIXME: These definitions ought to be exported along with the
+;; examples, if they are going to be used there.
+(defun odd? (num) (= 1 (% num 2)))
 (defun even? (num) (= 0 (% num 2)))
 (defun square (num) (* num num))
 (defun three-letters () '("A" "B" "C"))
@@ -592,19 +595,19 @@ new list."
     (-partition-by-header 'even? '(2 1 1 1 4 1 3 5 6 6 1)) => '((2 1 1 1) (4 1 3 5) (6 6 1)))
 
   (defexamples -partition-after-pred
-    (-partition-after-pred #'oddp '()) => '()
-    (-partition-after-pred #'oddp '(1)) => '((1))
-    (-partition-after-pred #'oddp '(0 1)) => '((0 1))
-    (-partition-after-pred #'oddp '(1 1)) => '((1) (1))
-    (-partition-after-pred #'oddp '(0 0 0 1 0 1 1 0 1)) => '((0 0 0 1) (0 1) (1) (0 1)))
+    (-partition-after-pred #'odd? '()) => '()
+    (-partition-after-pred #'odd? '(1)) => '((1))
+    (-partition-after-pred #'odd? '(0 1)) => '((0 1))
+    (-partition-after-pred #'odd? '(1 1)) => '((1) (1))
+    (-partition-after-pred #'odd? '(0 0 0 1 0 1 1 0 1)) => '((0 0 0 1) (0 1) (1) (0 1)))
 
   (defexamples -partition-before-pred
-    (-partition-before-pred #'oddp '()) => '()
-    (-partition-before-pred #'oddp '(1)) => '((1))
-    (-partition-before-pred #'oddp '(0 1)) => '((0) (1))
-    (-partition-before-pred #'oddp '(1 1)) => '((1) (1))
-    (-partition-before-pred #'oddp '(0 1 0)) => '((0) (1 0))
-    (-partition-before-pred #'oddp '(0 0 0 1 0 1 1 0 1)) => '((0 0 0) (1 0) (1) (1 0) (1)))
+    (-partition-before-pred #'odd? '()) => '()
+    (-partition-before-pred #'odd? '(1)) => '((1))
+    (-partition-before-pred #'odd? '(0 1)) => '((0) (1))
+    (-partition-before-pred #'odd? '(1 1)) => '((1) (1))
+    (-partition-before-pred #'odd? '(0 1 0)) => '((0) (1 0))
+    (-partition-before-pred #'odd? '(0 0 0 1 0 1 1 0 1)) => '((0 0 0) (1 0) (1) (1 0) (1)))
 
   (defexamples -partition-before-item
     (-partition-before-item 3 '()) => '()
@@ -692,7 +695,19 @@ new list."
 
   (defexamples -distinct
     (-distinct '()) => '()
-    (-distinct '(1 2 2 4)) => '(1 2 4)))
+    (-distinct '(1 2 2 4)) => '(1 2 4)
+    (-distinct '(t t t)) => '(t)
+    (-distinct '(nil nil nil)) => '(nil)
+    (let ((-compare-fn nil))
+      (-distinct '((1) (2) (1) (1)))) => '((1) (2))
+    (let ((-compare-fn #'eq))
+      (-distinct '((1) (2) (1) (1)))) => '((1) (2) (1) (1))
+    (let ((-compare-fn #'eq))
+      (-distinct '(:a :b :a :a))) => '(:a :b)
+    (let ((-compare-fn #'eql))
+      (-distinct '(2.1 3.1 2.1 2.1))) => '(2.1 3.1)
+    (let ((-compare-fn #'string=))
+      (-distinct '(dash "dash" "ash" "cash" "bash"))) => '(dash "ash" "cash" "bash")))
 
 (def-example-group "Other list operations"
   "Other list functions not fit to be classified elsewhere."
