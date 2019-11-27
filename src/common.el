@@ -1805,6 +1805,16 @@ are CHAR1 and CHAR2 repsectively."
       nil ;; !(nil < nil)
       )))
 
+(defun extended<= (a b)
+  "Operator `<=' extended to numbers that may be nil."
+  (if a
+      (if b
+          (<= a b)
+        nil ;; !(~nil <= nil)
+        )
+    t ;; either 'nil <= ~nil' or 'nil = nil'
+    ))
+
 (defun scroll-down-command-fast ()
   (interactive)
   (scroll-down 500))

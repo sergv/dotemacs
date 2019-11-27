@@ -31,6 +31,7 @@
           git-rebase-mode
           grep-mode
           haskell-compilation-mode
+          rust-compilation-mode
           haskell-lint-mode
           help-mode
           ibuffer-mode
