@@ -200,8 +200,7 @@
 
       (when (and (not non-vanilla-haskell-mode?)
                  (not noninteractive))
-        (let* (
-               (flycheck-backend
+        (let* ((flycheck-backend
                 (eproj-query/flycheck-checker
                  proj
                  major-mode

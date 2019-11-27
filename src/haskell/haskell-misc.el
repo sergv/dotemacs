@@ -898,64 +898,19 @@ both unicode and ascii characters.")
      (and (string-match-p "[0-9.]+" x)
           (< minimum-fraction (string->number x))))))
 
-(defparameter haskell-compilation-buffer "*haskell-compilation*")
-
-(defun haskell-compilation-use-selected-error-or-jump-to-next (win jump-to-next-err-func)
-  "Either return error currently selected in the haskell compilation buffer, if
-point is not located on it, or return the next error if current position argees
-with the position of the selected error."
-  (let ((buf (current-buffer))
-        (line (line-number-at-pos)))
-    (with-selected-window win
-      (with-current-buffer haskell-compilation-buffer
-        (if-let ((selected-err (compilation/get-selected-error)))
-            (if (and
-                 (eq (compilation/find-buffer
-                      (compilation-error/filename selected-err)
-                      (compilation-error/compilation-root-directory selected-err))
-                     buf)
-                 (equal (compilation-error/line-number selected-err)
-                        line))
-                ;; If we're already on the selected error then jump to next error.
-                (progn
-                  (funcall jump-to-next-err-func)
-                  (compilation/get-selected-error))
-              selected-err)
-          (progn
-            (funcall jump-to-next-err-func)
-            (compilation/get-selected-error)))))))
-
-(defun haskell-compilation-go-navigate-errors (jump-to-next-err-func fallback)
-  "Navigate errors in `haskell-compilation-buffer'."
-  (if (buffer-live-p (get-buffer haskell-compilation-buffer))
-      (let ((win (get-buffer-window haskell-compilation-buffer
-                                    t ;; all-frames
-                                    )))
-        (if (and win
-                 (window-live-p win))
-            (if-let (err (haskell-compilation-use-selected-error-or-jump-to-next
-                          win
-                          jump-to-next-err-func))
-                (compilation/jump-to-error err nil)
-              (funcall fallback))
-          (funcall fallback)))
-    (funcall fallback)))
+(defconst haskell-compilation-buffer "*haskell-compilation*")
 
 (defun haskell-compilation-next-error-other-window ()
   "Select next error in `haskell-compilation-buffer' buffer and jump to
 it's position in current window."
   (interactive)
-  (haskell-compilation-go-navigate-errors
-   #'compilation-jump-to-next-error
-   #'flycheck-next-error))
+  (compilation-navigation-next-error-in-buffer-other-window haskell-compilation-buffer))
 
 (defun haskell-compilation-prev-error-other-window ()
   "Select previous error in `haskell-compilation-buffer' buffer and jump to
 it's position in current window."
   (interactive)
-  (haskell-compilation-go-navigate-errors
-   #'compilation-jump-to-prev-error
-   #'flycheck-previous-error))
+  (compilation-navigation-prev-error-in-buffer-other-window haskell-compilation-buffer))
 
 (defun haskell-misc--get-potential-project-roots ()
   (haskell-watch-get-project-root))
