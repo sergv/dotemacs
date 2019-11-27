@@ -124,6 +124,7 @@ update-dir-autoloads \
     "third-party/elm-mode" \
     "third-party/flycheck" \
     "third-party/flycheck-elm" \
+    "third-party/flycheck-rust" \
     "third-party/flx" \
     "third-party/ghub" \
     "third-party/git-modes" \
@@ -146,8 +147,9 @@ update-dir-autoloads \
     "third-party/sml-mode" \
     "third-party/toml-mode" \
     "third-party/tuareg" \
-    "third-party/yafolding.el" \
-    "third-party/with-editor"
+    "third-party/with-editor" \
+    "third-party/xterm-color" \
+    "third-party/yafolding.el"
 
 if which make >/dev/null; then
     inform "Building autoloads in third-party/org-mode"
