@@ -7,6 +7,86 @@
 ;; Description:
 
 (require 'common)
+(require 'haskell-compile)
+(require 'indentation)
+
+(setf rust-indent-method-chain t
+      rust-indent-where-clause t
+
+      rust-playpen-url-format nil
+      rust-shortener-url-format nil
+
+      flycheck-cargo-check-args
+      (list (format "--target-dir=%s"
+                    (fold-platform-os-type "/tmp/target" "target"))))
+
+(puthash 'rust-mode
+         #'rust-format-buffer
+         *mode-indent-functions-table*)
+
+(defconst rust-compilation-buffer-name "*rust-compilation*")
+
+(defun rust-compilation-next-error-other-window ()
+  "Select next error in `rust-compilation-buffer-name' buffer and jump to
+it's position in current window."
+  (interactive)
+  (compilation-navigation-next-error-in-buffer-other-window rust-compilation-buffer-name))
+
+(defun rust-compilation-prev-error-other-window ()
+  "Select previous error in `rust-compilation-buffer-name' buffer and jump to
+it's position in current window."
+  (interactive)
+  (compilation-navigation-prev-error-in-buffer-other-window rust-compilation-buffer-name))
+
+(defvar rust-compilation-extra-error-modes haskell-compilation-extra-error-modes
+  "Extra modes from `compilation-error-regexp-alist-alist' whose
+warnings will be colorized in `rust-compilation-mode'.")
+
+(defun rust-compilation-filter-hook ()
+  (let ((inhibit-read-only t))
+    (ansi-color-apply-on-region compilation-filter-start (point-max))))
+
+(define-compilation-mode rust-compilation-mode "Rust Compilation"
+  "Rust-specific `compilation-mode' derivative."
+  (setq-local compilation-error-regexp-alist
+              (append (list rustc-compilation-regexps
+                            rustc-colon-compilation-regexps
+                            cargo-compilation-regexps)
+                      rust-compilation-extra-error-modes))
+  (setq-local *compilation-jump-error-regexp*
+              (mapconcat (lambda (x) (concat "\\(?:" (car x) "\\)"))
+                         (-filter #'listp compilation-error-regexp-alist)
+                         "\\|"))
+
+  (setq-local compilation-environment '("TERM=xterm-256color"))
+
+  (vim:local-emap "c" 'vim:recompile)
+
+  (add-hook 'compilation-filter-hook #'rust-compilation-filter-hook nil t))
+
+(def-keys-for-map rust-compilation-mode-map
+    +vim-interbuffer-navigation-keys+
+    +vim-special-keys+
+    ("<return>" compilation/goto-error)
+    ("SPC"      compilation/goto-error-other-window)
+    ("g g"      vim-mock:motion-go-to-first-non-blank-beg)
+    ("G"        vim-mock:motion-go-to-first-non-blank-end))
+
+
+
+(vim:defcmd vim:rust-compile (nonrepeatable)
+  (compilation-start
+   (format "%s build --color=always --target-dir=%s"
+           rust-cargo-bin
+           (fold-platform-os-type "/tmp/target" "target"))
+   'rust-compilation-mode
+   (lambda (_mode) rust-compilation-buffer-name)))
+
+(vim:defcmd vim:rust-flycheck-configure (nonrepeatable)
+  (flycheck-rust-setup))
+
+(with-eval-after-load 'rust-mode
+  (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
 
 ;;;###autoload
 (defun rust-setup ()
@@ -17,10 +97,46 @@
   (fontify-conflict-markers!)
   (setup-hs-minor-mode)
   (company-mode +1)
+  ;; Don't skip any messages.
+  (setq-local compilation-skip-threshold 0)
+  (setq-local compilation-buffer-name-function (lambda (_) rust-compilation-buffer-name))
+
+  (flycheck-mode +1)
 
   (setq-local whitespace-line-column 80)
-  (setq-local whitespace-style '(face tabs lines-tail)))
+  (setq-local whitespace-style '(face tabs lines-tail))
 
+  (setq-local mode-line-format
+              (apply #'default-mode-line-format
+                     (when flycheck-mode
+                       (list
+                        " "
+                        '(:eval (flycheck-pretty-mode-line))))))
+
+  (dolist (cmd '("conf" "configure"))
+    (vim:local-emap cmd #'vim:rust-flycheck-configure))
+  (dolist (cmd '("c" "compile"))
+    (vim:local-emap cmd #'vim:rust-compile))
+
+  (flycheck-install-ex-commands!
+   :install-flycheck flycheck-mode
+   :compile-func #'vim:rust-compile)
+
+  (def-keys-for-map vim:normal-mode-local-keymap
+    ("g h" rust-end-of-defun)
+    ("g t" rust-beginning-of-defun))
+
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:insert-mode-local-keymap)
+    (("C-m" "<f9>")    vim:rust-compile)
+
+    ("C-t"             flycheck-enhancements-previous-error-with-wraparound)
+    ("C-h"             flycheck-enhancements-next-error-with-wraparound)
+    ("M-t"             rust-compilation-prev-error-other-window)
+    ("M-h"             rust-compilation-next-error-other-window)
+    ("C-SPC"           company-complete)))
+
+;;;###autoload
 (add-hook 'rust-mode-hook #'rust-setup)
 
 (provide 'rust-setup)
