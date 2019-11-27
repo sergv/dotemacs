@@ -140,12 +140,24 @@
              (current-file-errors
               ;; Search in current file.
               (let* ((current-line (line-number-at-pos))
+                     (current-col (1+ (current-column)))
+                     (current-pos (cons current-line current-col))
                      ;; Make sure that current error will go to the
                      ;; end of the candidate list regardless of the
                      ;; direction we're searching.
-                     (cmp (if forward? #'<= #'<))
+                     (cmp (if forward? #'extended<= #'extended<))
+                     (position<= (lambda (x y)
+                                   (let ((line-x (car x))
+                                         (line-y (car y))
+                                         (col-x (cdr x))
+                                         (col-y (cdr y)))
+                                     (or (< line-x line-y)
+                                         (and (= line-x line-y)
+                                              (funcall cmp col-x col-y))))))
                      (current-file-errors-around-current-line
-                      (--split-with (funcall cmp (flycheck-error-line it) current-line)
+                      (--split-with (funcall position<=
+                                             (cons (flycheck-error-line it) (flycheck-error-column it))
+                                             current-pos)
                                     current-file-errors))
                      (current-file-errors-before-current-line
                       (first current-file-errors-around-current-line))
@@ -173,7 +185,7 @@
                   (move-to-character-column it))
                 (flycheck-display-error-at-point))
             (error "Error does not refer to any file: %s" next-error))
-        (message "No more errors")))))
+        (message "No more flycheck errors")))))
 
 (defun flycheck-enhancements-previous-error-with-wraparound ()
   (interactive)
