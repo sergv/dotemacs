@@ -177,6 +177,7 @@
      (minimap-mode . nil)
      (occur-mode . nil)
      (org-agenda-mode . nil)
+     (rust-compilation-mode . nil)
      (sldb-mode . nil)
      (slime-fuzzy-completions-mode . nil)
      (slime-inspector-mode . nil)

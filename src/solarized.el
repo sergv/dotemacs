@@ -30,6 +30,10 @@ Futher modified by Sergey Vinokurov."
          (base2   "#eee8d5")
          ;; background
          (base3   "#fdf6e3")
+
+         (black base0)
+         (white base01)
+
          (red     +solarized-red+)
          (orange  +solarized-orange+)
          (yellow  +solarized-yellow+)
@@ -73,6 +77,7 @@ Futher modified by Sergey Vinokurov."
       (rotatef base02 base2)
       (rotatef base01 base1)
       (rotatef base00 base0)
+      (rotatef black white)
 
       (setf light-orange-background     "#f9ea7c"
             light-yellow-background     "#fbee00"
@@ -89,6 +94,8 @@ Futher modified by Sergey Vinokurov."
             base02  "black"
             base2   "white"
             base3   "white"
+            black   "black"
+            white   "white"
             red     "red"
             orange  "red"
             yellow  "yellow"
@@ -98,19 +105,21 @@ Futher modified by Sergey Vinokurov."
             violet  "magenta"
             magenta "magenta")
       (if (eq 'light mode)
-          (setf base01                      "black"
-                base00                      "black"
-                base0                       "black"
-                base1                       "black"
-                light-orange-background     "white"
-                light-yellow-background     "white"
-                light-green-background      "white"
-                light-cyan-background       "white"
-                light-blue-background       "white"
-                light-violet-background     "white"
-                light-cyan-green-background "white"
-                light-pink-background       "white"
-                light-red-background        "white")
+          (progn
+            (rotatef black white)
+            (setf base01                      "black"
+                  base00                      "black"
+                  base0                       "black"
+                  base1                       "black"
+                  light-orange-background     "white"
+                  light-yellow-background     "white"
+                  light-green-background      "white"
+                  light-cyan-background       "white"
+                  light-blue-background       "white"
+                  light-violet-background     "white"
+                  light-cyan-green-background "white"
+                  light-pink-background       "white"
+                  light-red-background        "white"))
         (setf base01                      "white"
               base00                      "white"
               base0                       "white"
@@ -189,6 +198,8 @@ Futher modified by Sergey Vinokurov."
             (font-lock-string-face        ((t (:foreground ,orange))))
             (font-lock-type-face          ((t (:foreground ,yellow))))
             (font-lock-variable-name-face ((t (:inherit font-lock-function-name-face))))
+
+            (rust-question-mark-face      ((t (:weight bold :inherit font-lock-negation-char-face))))
 
             (elm-font-lock-operators      ((t (:inherit haskell-operator-face))))
             (haskell-operator-face        ((t (:foreground ,red))))
@@ -639,6 +650,8 @@ Futher modified by Sergey Vinokurov."
      org-drill-mature-count-color orange
      ansi-color-names-vector (vector base0 red green yellow blue magenta cyan base01)
      ansi-color-map (ansi-color-make-color-map)
+     xterm-color-names ansi-color-names-vector
+     xterm-color-names-bright xterm-color-names
      fci-rule-color base0
      ansi-term-color-vector
      [base3 base01 +solarized-red+ +solarized-green+ +solarized-yellow+
