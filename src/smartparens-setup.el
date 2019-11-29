@@ -9,6 +9,7 @@
 (eval-when-compile (require 'subr-x))
 
 (require 'macro-util)
+(require 'smart-operators-utils)
 
 (smartparens-global-mode 1)
 
@@ -23,6 +24,7 @@
       ;; do not reindent on ups
       sp-navigate-reindent-after-up nil
       sp-wrap-entire-symbol 'globally
+      sp-show-pair-delay 0.01 ;;625
       sp-ignore-modes-list '( ;; enable smartparens mode in minibuffer,
                              ;; and let it bind keys for currently active
                              ;; pairs, then auxiliary keys later in icicle setup
@@ -50,6 +52,7 @@
                              calendar-mode
                              select-mode
                              haskell-compilation-mode
+                             rust-compilation-mode
                              clojure-compilation-mode))
 
 (defun sp-wrap-or-insert (pair-open)
@@ -90,6 +93,31 @@ is wrapped instead.  This is useful with selection functions in
               (goto-char start)
               (insert (car active-pair))
               (sp--indent-region start end))))))))
+
+;; Expand foo {_|_} into
+;;
+;; foo {
+;;     _|_
+;; }
+(defadvice sp-newline
+    (around
+     sp-newline-expand-braced-block
+     activate
+     compile)
+  (destructuring-bind
+      (start end _is-before? _is-after? is-surrounded?)
+      (smart-operators--point-surrounded-by ?\{ ?\})
+    (when is-surrounded?
+      (delete-region start end))
+    ad-do-it
+    (when is-surrounded?
+      (let ((indent (if indent-tabs-mode
+                        "\t"
+                      (make-string tab-width ?\s))))
+        (newline-and-indent)
+        (let ((line-indent (current-line-indentation-str)))
+          (forward-line -1)
+          (insert line-indent indent))))))
 
 ;; these two are the same ones used for paredit
 (defadvice sp-forward-slurp-sexp
@@ -179,6 +207,21 @@ With negative argument move forward, still one level out."
   (sp-local-pair "{" "}"
                  :actions '(insert wrap)
                  :post-handlers '(:add cc-mode-open-block)))
+
+(defun rust-create-braced-block (_id action _context)
+  "Open a new brace or bracket expression, with relevant newlines and indent.
+
+E.g. make a following structure
+
+foo {
+    _|_
+}"
+  (when (eq action 'insert)
+    (newline)
+    (indent-according-to-mode)
+    (forward-line -1)
+    (indent-according-to-mode)))
+
 
 (sp-with-modes '(haskell-mode
                  literate-haskell-mode
