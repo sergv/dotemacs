@@ -12,26 +12,30 @@
 (defun tests-utils--multiline (&rest lines)
   (mapconcat #'identity lines "\n"))
 
-(defvar tests-utils--temp-buffer nil)
+(defvar test-utils--temp-buffers nil
+  "Alist from buffer-id (symbol) to actual buffer.")
 
-(defmacro* tests-utils--with-temp-buffer (&key action contents initialisation)
+(defmacro* tests-utils--with-temp-buffer (&key action contents initialisation buffer-id)
   (declare (indent 1))
   `(save-match-data
-     (unless tests-utils--temp-buffer
-       (setf tests-utils--temp-buffer (get-buffer-create " tests-utils-temp-buffer"))
-       (with-current-buffer tests-utils--temp-buffer
-         ,initialisation))
-     (with-current-buffer tests-utils--temp-buffer
-       (erase-buffer)
-       (insert ,contents)
-       (goto-char (point-min))
-       (if (re-search-forward "_|_" nil t)
-           (replace-match "")
-         (error "No _|_ marker for point position within contents:\n%s" ,contents))
-       (font-lock-fontify-buffer)
-       ,action)))
+     (let ((buf (cdr-safe (assq ',buffer-id test-utils--temp-buffers))))
+       (unless buf
+         (setf buf
+               (get-buffer-create ,(concat " tests-utils-temp-buffer-" (symbol-name buffer-id)))
+               test-utils--temp-buffers (cons (cons ',buffer-id  buf) test-utils--temp-buffers))
+         (with-current-buffer buf
+           ,initialisation))
+       (with-current-buffer buf
+         (erase-buffer)
+         (insert ,contents)
+         (goto-char (point-min))
+         (if (re-search-forward "_|_" nil t)
+             (replace-match "")
+           (error "No _|_ marker for point position within contents:\n%s" ,contents))
+         (font-lock-fontify-buffer)
+         ,action))))
 
-(defmacro* tests-utils--test-buffer-contents (&key action contents expected-value initialisation)
+(defmacro* tests-utils--test-buffer-contents (&key action contents expected-value initialisation buffer-id)
   (declare (indent 2))
   `(tests-utils--with-temp-buffer
     :initialisation ,initialisation
@@ -41,14 +45,13 @@
       (insert "_|_")
       (let ((actual-contents
              (buffer-substring-no-properties (point-min) (point-max)))
-            (expected-contents
-             ,expected-value))
+            (expected-contents ,expected-value))
         (unless (string-match-p "_|_" expected-contents)
           (error "Expected buffer contents does not provide point position with _|_"))
         (should (equal (split-into-lines actual-contents)
                        (split-into-lines expected-contents)))))
-    :contents
-    ,contents))
+    :contents ,contents
+    :buffer-id ,buffer-id))
 
 (defmacro* tests-utils--test-result (&key action expected-value contents)
   `(tests-utils--with-temp-buffer
