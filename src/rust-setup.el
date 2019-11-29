@@ -9,6 +9,8 @@
 (require 'common)
 (require 'haskell-compile)
 (require 'indentation)
+(require 'smartparens-rust)
+(require 'smartparens-setup)
 
 (setf rust-indent-method-chain t
       rust-indent-where-clause t
@@ -93,13 +95,17 @@ warnings will be colorized in `rust-compilation-mode'.")
   (init-common :use-render-formula nil
                :sp-slurp-sexp-insert-space nil
                :use-yasnippet t
-               :use-whitespace 'tabs-only)
+               :use-whitespace 'tabs-only
+               :hl-parens-backend 'smartparens)
   (fontify-conflict-markers!)
   (setup-hs-minor-mode)
   (company-mode +1)
   ;; Don't skip any messages.
   (setq-local compilation-skip-threshold 0)
   (setq-local compilation-buffer-name-function (lambda (_) rust-compilation-buffer-name))
+
+  (setf vim:shift-width rust-indent-offset
+        tab-width rust-indent-offset)
 
   (flycheck-mode +1)
 
