@@ -68,15 +68,15 @@ So we ignore that pair when at the end of word."
   (when (eq action 'navigate)
     (sp--looking-back-p (concat "\\(\\sw\\|\\s_\\)'+"))))
 
-(sp-with-modes '(haskell-mode haskell-interactive-mode)
-  (sp-local-pair "{-" "-}")
-  (sp-local-pair "{-#" "#-}")
-  (sp-local-pair "{-@" "@-}")
-  (sp-local-pair "'" nil
-                 :unless '(sp-point-after-word-p
-                           sp-haskell-strict-ignore-apostrophe-after-word)
-                 :skip-match 'sp-haskell-skip-apostrophe)
-  (sp-local-pair "\\(" nil :actions nil))
+;; (sp-with-modes '(haskell-mode haskell-interactive-mode)
+;;   (sp-local-pair "{-" "-}")
+;;   (sp-local-pair "{-#" "#-}")
+;;   (sp-local-pair "{-@" "@-}")
+;;   (sp-local-pair "'" nil
+;;                  :unless '(sp-point-after-word-p
+;;                            sp-haskell-strict-ignore-apostrophe-after-word)
+;;                  :skip-match 'sp-haskell-skip-apostrophe)
+;;   (sp-local-pair "\\(" nil :actions nil))
 
 (defun sp--inferior-haskell-mode-backward-bound-fn ()
   "Limit the backward search to the prompt if point is on prompt."
