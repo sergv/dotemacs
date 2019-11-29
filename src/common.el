@@ -1317,6 +1317,14 @@ further than END-POS."
     (skip-to-indentation)
     (current-column)))
 
+(defun current-line-indentation-str (&optional end-pos)
+  (save-excursion
+    (beginning-of-line nil)
+    (let ((start (point)))
+      (skip-indentation-forward end-pos)
+      (let ((end (point)))
+        (buffer-substring-no-properties start end)))))
+
 (defsubst count-lines1 (begin end)
   "Return line count in region like `count-lines' but don't
 confuse when point is not at the beginning of line"
