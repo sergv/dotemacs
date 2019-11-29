@@ -188,7 +188,11 @@ With negative argument move forward, still one level out."
                  inferior-haskell-mode
                  dante-repl-mode)
   (sp-local-pair "{-#" "#-}")
-  (sp-local-pair "'" nil :actions '(insert) :unless '(sp-point-after-word-p))
+  (sp-local-pair "'" nil
+                 :actions '(insert)
+                 :unless '(sp-point-after-word-p
+                           sp-haskell-strict-ignore-apostrophe-after-word)
+                 :skip-match 'sp-haskell-skip-apostrophe)
 
   (sp-local-pair "\\(" nil :when '(sp-in-string-p))
   (sp-local-pair "\\\\(" nil :when '(sp-in-string-p))
