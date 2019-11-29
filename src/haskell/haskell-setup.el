@@ -25,6 +25,7 @@
 (require 'haskell-tags-server)
 (require 'lcr)
 (require 'shell-setup)
+(require 'smartparens-haskell)
 
 ;; never cache module alist to a file
 (setf inferior-haskell-module-alist-file nil)
