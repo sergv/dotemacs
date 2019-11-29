@@ -13,6 +13,7 @@
 
 (require 'haskell-completions)
 (require 'haskell-ghc-support)
+(require 'smart-operators-utils)
 
 (defvar haskell-smart-operators--operator-chars
   (let ((tbl (make-hash-table :test #'eq)))
@@ -266,52 +267,6 @@ stick it to the previous operator on line."
       (delete-region start paren-start-pos))
     (haskell-smart-operators--insert-char-surrounding-with-spaces ?\$)))
 
-(defun haskell-smart-operators--point-surrounded-by2 (before2 before1 after1 after2)
-  "Check if previous 2 characters before point are BEFORE2 and BEFORE1 and
-that next 2 characters are AFTER1 and AFTER2."
-  (let* ((pt-before    (save-excursion
-                         (skip-syntax-backward " ")
-                         (point)))
-         (pt-after     (save-excursion
-                         (skip-syntax-forward " ")
-                         (point)))
-         (real-before2 (char-before (- pt-before 1)))
-         (real-before1 (char-before pt-before))
-         (real-after1  (char-after pt-after))
-         (real-after2  (char-after (+ pt-after 1))))
-    (list
-     pt-before
-     pt-after
-     (and real-before2
-          real-before1
-          real-after1
-          real-after2
-          (char-equal real-before2 before2)
-          (char-equal real-before1 before1)
-          (char-equal real-after1  after1)
-          (char-equal real-after2  after2)))))
-
-(defun haskell-smart-operators--point-surrounded-by (before after)
-  "Check if point is surrounded by BEFORE and AFTER characters."
-  (let* ((pt-before   (save-excursion
-                        (skip-syntax-backward " ")
-                        (point)))
-         (pt-after    (save-excursion
-                        (skip-syntax-forward " ")
-                        (point)))
-         (real-before (char-before pt-before))
-         (real-after  (char-after pt-after))
-         (is-before? (and real-before
-                          (char-equal real-before before)))
-         (is-after? (and real-after
-                         (char-equal real-after after))))
-    (list pt-before
-          pt-after
-          is-before?
-          is-after?
-          (and is-before?
-               is-after?))))
-
 ;;;###autoload
 (defun haskell-smart-operators-hyphen ()
   "Insert hyphen surrounding with spaces. No surrounding within
@@ -320,7 +275,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
   (let ((pt (point)))
     (destructuring-bind
         (pt-before pt-after is-before? is-after? is-surrounded?)
-        (haskell-smart-operators--point-surrounded-by ?\{ ?\})
+        (smart-operators--point-surrounded-by ?\{ ?\})
       (cond
         (is-surrounded?
          (progn
@@ -371,10 +326,10 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
   (interactive)
   (destructuring-bind
       (pt-pragma-start pt-pragma-end is-surrounded-for-pragma?)
-      (haskell-smart-operators--point-surrounded-by2 ?\{ ?- ?- ?\})
+      (smart-operators--point-surrounded-by2 ?\{ ?- ?- ?\})
     (destructuring-bind
         (pt-c2hs-start pt-c2hs-end is-before? is-after? is-surrounded-for-c2hs?)
-        (haskell-smart-operators--point-surrounded-by ?\{ ?\})
+        (smart-operators--point-surrounded-by ?\{ ?\})
       (cond (is-surrounded-for-pragma?
              (delete-region pt-pragma-start pt-pragma-end)
              (insert "#  #")
