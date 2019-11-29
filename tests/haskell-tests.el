@@ -39,7 +39,8 @@
     :action ,action
     :contents ,contents
     :expected-value ,expected-value
-    :initialisation (haskell-mode)))
+    :initialisation (haskell-mode)
+    :buffer-id haskell))
 
 (defmacro* haskell-tests--test-result (&key action expected-value contents)
   `(haskell-tests--with-temp-buffer
