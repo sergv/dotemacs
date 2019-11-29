@@ -369,6 +369,11 @@ Futher modified by Sergey Vinokurov."
                                                    (t
                                                     (:underline t))))
 
+            (hl-paren-selection-face              ((t (:underline ,magenta))))
+            (sp-show-pair-match-face              ((t (:underline ,magenta))))
+            (sp-show-pair-mismatch-face           ((t (:background ,red))))
+            (show-paren-mismatch                  ((t (:background ,red))))
+
             (rainbow-delimiters-depth-1-face      ((t (:foreground ,base0))))
             (rainbow-delimiters-depth-2-face      ((t (:foreground ,red))))
             (rainbow-delimiters-depth-3-face      ((t (:foreground ,orange))))
