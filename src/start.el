@@ -77,7 +77,9 @@ or not.")
                           (use-render-formula nil)
                           (use-hl-line t)
                           (sp-slurp-sexp-insert-space t)
-                          (enable-backup t))
+                          (enable-backup t)
+                          (hl-parens-backend 'hl-paren) ;; can be 'hl-paren, 'smartparens
+                          )
   (hl-line-mode (if use-hl-line +1 -1))
   (when use-comment
     (comment-util-mode 1))
@@ -133,7 +135,15 @@ or not.")
     (fci-mode (if (memq major-mode
                         +do-not-track-long-lines-modes+)
                   -1
-                +1))))
+                +1)))
+
+  (pcase hl-parens-backend
+    (`hl-paren
+     (setup-hl-paren))
+    (`smartparens
+     (show-smartparens-mode 1))
+    (_
+     (error "Invalid values for :hl-parens-backend argument: %s" hl-parens-backend))))
 
 (defun* init-repl (&key (show-directory nil)
                         (bind-return t)
