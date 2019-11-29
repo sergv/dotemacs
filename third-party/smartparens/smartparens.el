@@ -1805,7 +1805,7 @@ sp--looking-* functions more than once should wrap them all in
 (defun sp--evil-motion-state-p ()
   "Check to see if the current `evil-state' is in motion mode."
   (or (and (fboundp 'evil-motion-state-p) (evil-motion-state-p))
-      (and (fboundp 'vim:motion-mode-p (vim:motion-mode-p)))))
+      (and (fboundp 'vim:motion-mode-p) (vim:motion-mode-p))))
 
 (defun sp--evil-visual-state-p ()
   "Check to see if the current `evil-state' is in visual mode."
