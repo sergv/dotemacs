@@ -16,11 +16,8 @@
 (defface hl-paren-selection-face '((t (:underline "#d33682")))
   "Face to highlight parentheses.")
 
-;; (defvar-local hl-paren-overlay nil)
-
-;; overlays for current and its' corresponding paren
-(defvar-local hl-paren-current-overlay nil)
-(defvar-local hl-paren-corresponding-overlay nil)
+;; Cons with overlays for current and its' corresponding paren.
+(defvar-local hl-paren-overlay nil)
 
 (defsubst hl-paren-move-overlay-to (overlay pos)
   (move-overlay overlay pos (1+ pos)))
@@ -36,43 +33,30 @@
 
 (defsubst hl-paren-cleanup-overlays ()
   "Remove any currently active overlays."
-  (hl-paren-optionally-delete-overlay
-   hl-paren-current-overlay)
-  (hl-paren-optionally-delete-overlay
-   hl-paren-corresponding-overlay)
-
-  (setq hl-paren-current-overlay nil
-        hl-paren-corresponding-overlay nil))
+  (hl-paren-optionally-delete-overlay (car-safe hl-paren-overlay))
+  (hl-paren-optionally-delete-overlay (cdr-safe hl-paren-overlay)))
 
 (defun hl-paren-highlight-matching-paren-at-point ()
   "Highlight paren that is matching for symbol at point.
 Turn off highlighting if character at point is not parentheses."
   (interactive)
   (if (and (not (eobp))
-           (member (char-after)
-                   hl-paren-parentheses))
-    (let ((matching-pos (save-excursion
-                          (vim:motion-jump-item)
-                          (point))))
-      (if (and hl-paren-current-overlay
-               hl-paren-corresponding-overlay)
-        ;; move overlays if they already exist
-        (progn
-          (hl-paren-move-overlay-to
-           hl-paren-current-overlay (point))
-
-          (hl-paren-move-overlay-to
-           hl-paren-corresponding-overlay matching-pos))
-
-        ;; re-create overlays
-        (progn
-          (hl-paren-cleanup-overlays)
-
-          (setf hl-paren-current-overlay
-                (hl-paren-make-overlay (point))
-                hl-paren-corresponding-overlay
-                (hl-paren-make-overlay matching-pos)))))
-
+           (memq (char-after)
+                 hl-paren-parentheses))
+      (let ((matching-pos (save-excursion
+                            (vim:motion-jump-item)
+                            (point))))
+        (if hl-paren-overlay
+            (progn
+              ;; move overlays if they already exist
+              (hl-paren-move-overlay-to (car hl-paren-overlay) (point))
+              (hl-paren-move-overlay-to (cdr hl-paren-overlay) matching-pos))
+          (progn
+            ;; re-create overlays
+            (hl-paren-cleanup-overlays)
+            (setf hl-paren-overlay
+                  (cons (hl-paren-make-overlay (point))
+                        (hl-paren-make-overlay matching-pos))))))
     (hl-paren-cleanup-overlays)))
 
 (defun hl-paren-do-highlight ()
@@ -90,7 +74,8 @@ Turn off highlighting if character at point is not parentheses."
       ;; do not let errors interrupt normal workflow
       (error (hl-paren-cleanup-overlays)))))
 
-(add-hook 'post-command-hook #'hl-paren-do-highlight)
+(defun setup-hl-paren ()
+  (add-hook 'post-command-hook #'hl-paren-do-highlight nil t))
 
 (provide 'hl-paren)
 
