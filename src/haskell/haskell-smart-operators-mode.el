@@ -23,51 +23,6 @@
     tbl)
   "Characters that may constitute operators.")
 
-;;;###autoload
-(defun haskell-smart-operators--in-string-or-comment? ()
-  "Are we in string or comment?"
-  (let* ((state (parse-partial-sexp (line-beginning-position)
-                                    (point)))
-         (inside-string? (elt state 3))
-         (inside-comment? (elt state 4)))
-    (or inside-string?
-        inside-comment?
-        (and (eq 'font-lock-string-face
-                 (get-text-property (point) 'face))
-             (if (and (char-equal (char-after) ?\")
-                      (/= (point-min) (point)))
-                 (eq 'font-lock-string-face
-                     (get-text-property (- (point) 1) 'face))
-               t)))))
-
-;;;###autoload
-(defun haskell-smart-operators--literal-insertion? ()
-  "Should a node have literal insertion?"
-  (or (haskell-smart-operators--in-string-or-comment?)
-      (let ((before (char-before))
-            (after (char-after)))
-        (and before
-             after
-             (or
-              ;; Test for positions: '_|_', \\_|_'
-              (and (memq before '(?\' ?\\))
-                   (char-equal after ?\'))
-              ;; Test for positions: "_|_", \\_|_"
-              (and (memq before '(?\" ?\\))
-                   (char-equal after ?\")))))))
-
-(defun haskell-smart-operators--on-empty-string? ()
-  (let ((start (line-beginning-position)))
-    (or (= start (line-end-position))
-        (save-excursion
-          (goto-char start)
-          (looking-at-p "^[ \t]*$"))))
-  ;; (string-match-p "^[ \t]*$"
-  ;;                 (buffer-substring-no-properties
-  ;;                  (line-beginning-position)
-  ;;                  (point)))
-  )
-
 (defun haskell-smart-operators--on-a-line-with-guard? ()
   (save-excursion
     ;; Old version...
@@ -151,7 +106,7 @@ stick it to the previous operator on line."
        (insert-char char)
        (funcall insert-trailing-space nil (char-after)))
       ;; Must check for arrows here because otherwise
-      ;; `haskell-smart-operators--literal-insertion?' will treat '--'
+      ;; `smart-operators--literal-insertion?' will treat '--'
       ;; as a comment and not allow to do any meaningful work.
       ((and (not handling-haddock-comment?)
             pt-preceded-by-two-dashes?
@@ -160,14 +115,14 @@ stick it to the previous operator on line."
        (insert-char char)
        (funcall insert-trailing-space nil (char-after)))
       ((or disable-smart-operators?
-           (haskell-smart-operators--literal-insertion?)
+           (smart-operators--literal-insertion?)
            (not (gethash char haskell-smart-operators--operator-chars)))
        (insert-char char))
       (t
        (let ((whitespace-deleted? nil)
              (after (char-after)))
          ;; Decide whether to insert space before the operator.
-         (if (and (not (haskell-smart-operators--on-empty-string?))
+         (if (and (not (smart-operators--on-empty-string?))
                   ;; If inserting hash then we should not add a space
                   ;; if MagicHash is enabled.
                   (if (and (char-equal char ?#)
@@ -293,14 +248,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
          (haskell-smart-operators--insert-char-surrounding-with-spaces ?-))))))
 
 ;;;###autoload
-(defun haskell-smart-operators-comma ()
-  "Insert comma followed by space."
-  (interactive)
-  (let ((next-char (char-after)))
-    (insert-char ?\,)
-    (when (or (not next-char)
-              (not (member next-char '(?\s ?\t))))
-      (insert-char ?\s))))
+(defalias 'haskell-smart-operators-comma #'smart-operators-comma)
 
 ;;;###autoload
 (defun haskell-smart-operators-dot ()

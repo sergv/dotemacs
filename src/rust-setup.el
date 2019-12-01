@@ -132,6 +132,22 @@ warnings will be colorized in `rust-compilation-mode'.")
     ("g h" rust-end-of-defun)
     ("g t" rust-beginning-of-defun))
 
+  (def-keys-for-map vim:insert-mode-local-keymap
+    ("," smart-operators-comma)
+    ("+" rust-smart-operators-self-insert)
+    ("-" rust-smart-operators-self-insert)
+    ("*" rust-smart-operators-self-insert)
+    ("/" rust-smart-operators-self-insert)
+    ("%" rust-smart-operators-self-insert)
+    ("^" rust-smart-operators-self-insert)
+    ;; ! is too special
+    ;;("!" rust-smart-operators-self-insert)
+    ("&" rust-smart-operators-self-insert)
+    ("|" rust-smart-operators-self-insert)
+    ("<" rust-smart-operators-self-insert)
+    (">" rust-smart-operators-self-insert)
+    ("=" rust-smart-operators-self-insert))
+
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
     (("C-m" "<f9>")    vim:rust-compile)
