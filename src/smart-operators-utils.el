@@ -52,6 +52,56 @@ that next 2 characters are AFTER1 and AFTER2."
           (and is-before?
                is-after?))))
 
+;;;###autoload
+(defun smart-operators--in-string-or-comment? ()
+  "Are we in string or comment?"
+  (let* ((state (parse-partial-sexp (line-beginning-position)
+                                    (point)))
+         (inside-string? (elt state 3))
+         (inside-comment? (elt state 4)))
+    (or inside-string?
+        inside-comment?
+        (and (eq 'font-lock-string-face
+                 (get-text-property (point) 'face))
+             (if (and (char-equal (char-after) ?\")
+                      (/= (point-min) (point)))
+                 (eq 'font-lock-string-face
+                     (get-text-property (- (point) 1) 'face))
+               t)))))
+
+;;;###autoload
+(defun smart-operators--literal-insertion? ()
+  "Should a node have literal insertion?"
+  (or (smart-operators--in-string-or-comment?)
+      (let ((before (char-before))
+            (after (char-after)))
+        (and before
+             after
+             (or
+              ;; Test for positions: '_|_', \\_|_'
+              (and (memq before '(?\' ?\\))
+                   (char-equal after ?\'))
+              ;; Test for positions: "_|_", \\_|_"
+              (and (memq before '(?\" ?\\))
+                   (char-equal after ?\")))))))
+
+(defun smart-operators--on-empty-string? ()
+  (let ((start (line-beginning-position)))
+    (or (= start (line-end-position))
+        (save-excursion
+          (goto-char start)
+          (looking-at-p "^[ \t]*$")))))
+
+;;;###autoload
+(defun smart-operators-comma ()
+  "Insert comma followed by space."
+  (interactive)
+  (let ((next-char (char-after)))
+    (insert-char ?\,)
+    (when (or (not next-char)
+              (not (member next-char '(?\s ?\t))))
+      (insert-char ?\s))))
+
 (provide 'smart-operators-utils)
 
 ;; Local Variables:
