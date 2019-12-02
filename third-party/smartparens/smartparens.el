@@ -7485,6 +7485,8 @@ Examples:
           (save-excursion
             (let ((enc (sp-get-enclosing-sexp)))
               (sp-get enc
+                (unless enc
+                  (error "No encosing sexp"))
                 (cond
                  ((and raw (= arg 4))
                   (sp-get (sp-get-thing)
