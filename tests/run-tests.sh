@@ -13,9 +13,15 @@ set -o pipefail
 cd "$(dirname "$0")"
 
 tests=""
-for x in *.el; do
-    tests="$tests -l $x"
-done
+if [[ "$#" -gt 0 ]]; then
+    for x in "${@}"; do
+        tests="$tests -l $x"
+    done
+else
+    for x in *.el; do
+        tests="$tests -l $x"
+    done
+fi
 
 emacs -Q --batch \
       -L "$EMACS_ROOT/src" \
