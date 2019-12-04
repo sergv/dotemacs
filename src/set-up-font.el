@@ -50,12 +50,24 @@
       "-monotype-Courier New-normal-normal-normal-*-17-*-*-*-m-0-iso10646-1")))
   "List of fonts from best to worst availabse on the system.")
 
-(let ((font (car +emacs-fonts+)))
+(let* ((font (car +emacs-fonts+))
+       (width (display-pixel-width))
+       (height (display-pixel-height))
+       (font-scaling
+        (cond
+          ((and (<= 3840 width)
+                (<= 2160 height))
+           128)
+          (t
+           100))))
   (cl-assert (font-exist? font) nil "Font does not exist: %s" font)
   (set-frame-font font)
 
+  (set-face-attribute 'default nil :height font-scaling)
+
   (add-hook 'after-make-frame-functions
             (lambda (new-frame)
+              (set-face-attribute 'default new-frame :height font-scaling)
               (with-current-frame new-frame
                 (set-frame-font font)))))
 
