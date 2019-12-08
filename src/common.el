@@ -1272,12 +1272,15 @@ character found"
 
 (defun delete-whitespace-backward ()
   "Delete whitespaces backward until non-whitespace
-character found"
+character found. Returns t if any whitespace was actually deleted."
   (interactive)
-  (while (and (not (bobp))
-              (whitespace-char? (char-before))
-              (not (get-char-property (1- (point)) 'read-only)))
-    (delete-char -1)))
+  (let ((any-deleted? nil))
+    (while (and (not (bobp))
+                (whitespace-char? (char-before))
+                (not (get-char-property (1- (point)) 'read-only)))
+      (delete-char -1)
+      (setf any-deleted? t))
+    any-deleted?))
 
 (defun delete-current-line ()
   "Delete line where point is currently positioned including

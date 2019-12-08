@@ -33,7 +33,7 @@ stick it to the previous operator on line."
        (insert-char char))
       (t
        (let ((whitespace-deleted? nil)
-             (after (char-after)))
+             (after (char-after pt)))
          ;; Decide whether to insert space before the operator.
          (if (and (not (smart-operators--on-empty-string?))
                   (not (memq char '(?\< ?\>)))
@@ -42,34 +42,55 @@ stick it to the previous operator on line."
                    at-beginning-of-buffer?
                    (and (not (char-equal before ?\s))
                         (not (char-equal before ?\())
-                        (not (gethash before rust-smart-operators--operator-chars)))))
+                        (not (gethash before rust-smart-operators--operator-chars)))
+                   ;; Do break with a space after balanced >.
+                   (and (char-equal before ?\>)
+                        (save-excursion
+                          (forward-char -1)
+                          (awhen (sp-get-enclosing-sexp)
+                            (and (string-equal (plist-get it :op) "<")
+                                 (= (plist-get it :end) (+ 1 (point)))))))))
              (insert-char ?\s)
            ;; Delete spaces backwards if there's operator or open
            ;; paren char before the spaces.
            (let ((delete-whitespace?
                   (save-excursion
-                    (skip-syntax-backward " ")
-                    (let* ((pt-before-ws (point))
-                           (char-before-spaces (char-before pt-before-ws)))
-                      (and char-before-spaces ;; not at beginning of buffer
-                           (or (gethash char-before-spaces rust-smart-operators--operator-chars)
-                               (char-equal char-before-spaces ?\()
-                               (and (char= char ?=)
-                                    (char= char-before-spaces ?!))))))))
+                    (when (not (zerop (skip-syntax-backward " ")))
+                      (let* ((pt-before-ws (point))
+                             (char-before-spaces (char-before pt-before-ws)))
+                        (and char-before-spaces ;; not at beginning of buffer
+                             (if (char-equal char-before-spaces ?>)
+                                 (save-excursion
+                                   (forward-char -1)
+                                   (aif (sp-get-enclosing-sexp)
+                                       (if (= (plist-get it :end) (+ 1 (point)))
+                                           (not (string-equal (plist-get it :op) "<"))
+                                         t)
+                                     t ;; No sexp - ok to delete.
+                                     ))
+                               t ;; Not a > before spaces - ok to delete.
+                               )
+                             (or (gethash char-before-spaces rust-smart-operators--operator-chars)
+                                 (char-equal char-before-spaces ?\()
+                                 (and (char-equal char ?=)
+                                      (char-equal char-before-spaces ?!)))))))))
              (when delete-whitespace?
-               (delete-whitespace-backward)
-               (setf whitespace-deleted? t))))
+               (setf whitespace-deleted? (delete-whitespace-backward)))))
 
          (insert-char char)
 
          (when (and insert-space-after
                     (not (memq char '(?\< ?\>)))
                     (not (and (not at-beginning-of-buffer?)
-                              (char-equal before ?\())))
-           (when (or (not after) ;; at end of buffer
-                     (and (not (char-equal after ?\s))
-                          (not (char-equal after ?\)))))
-             (insert-char ?\s))))))))
+                              (char-equal before ?\()))
+
+                    (if (char-equal char ?\&)
+                        (or whitespace-deleted?
+                            (char-equal before ?\&))
+                      (or (not after) ;; at end of buffer
+                          (and (not (char-equal after ?\s))
+                               (not (char-equal after ?\)))))))
+           (insert-char ?\s)))))))
 
 ;;;###autoload
 (defun rust-smart-operators-self-insert (arg)
