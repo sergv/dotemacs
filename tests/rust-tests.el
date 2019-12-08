@@ -163,6 +163,24 @@
     "x = 1 ! _|_"
     "x = 1 != _|_"))
 
+(ert-deftest rust-tests/rust-smart-operators--equals-1 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?=)
+    "let bands: Vec<&mut [u8]>_|_"
+    "let bands: Vec<&mut [u8]> = _|_"))
+
+(ert-deftest rust-tests/rust-smart-operators--equals-2 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?=)
+    "let bands: Vec<&mut [u8]> _|_"
+    "let bands: Vec<&mut [u8]> = _|_"))
+
+(ert-deftest rust-tests/rust-smart-operators--ampersand-1 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?\&)
+    "Vec<_|_"
+    "Vec<&_|_"))
+
 (ert-deftest rust-tests/sp-splice-sexp-killing-backward-1 ()
   (rust-tests--test-buffer-contents
       (sp-splice-sexp-killing-backward)
