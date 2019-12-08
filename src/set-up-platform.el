@@ -16,32 +16,14 @@
 Use may be 'home, 'asus-netbook, 'netbook, 'work or something other
 Range of platforms may be expanded (extended?) in the future.")
 
-(let* ((system-type-file-dirs
-        (cond ((eq system-type 'windows-nt)
-               (list (expand-file-name "~")))
-              ((memq system-type
-                     '(gnu gnu/linux gnu/kfreebsd darwin))
-               (list "/home/sergey"
-                     (expand-file-name "~")))
-              (t
-               (list (expand-file-name "~")))))
-       (system-type-file
-        (cl-find-if (lambda (file)
-                      (and file
-                           (file-readable-p file)))
-                    (mapcar (lambda (prefix)
-                              (concat prefix "/system-type.el"))
-                            system-type-file-dirs))))
+(let ((sys-type-env (getenv "EMACS_SYSTEM_TYPE")))
   (setf +platform+
         (cond
-          (system-type-file
-           (with-temp-buffer
-             (insert-file-contents-literally system-type-file)
-             (goto-char (point-min))
-             (read (current-buffer))))
+          (sys-type-env
+           (read sys-type-env))
           ((eq system-type 'windows-nt)
            '(windows work))
-          ((eq system-type 'gnu/linux)
+          ((memq system-type '(gnu gnu/linux gnu/kfreebsd darwin))
            '(linux home))
           (t
            '(linux home)))))
