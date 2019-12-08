@@ -141,7 +141,7 @@ warnings will be colorized in `rust-compilation-mode'.")
     ("%" rust-smart-operators-self-insert)
     ("^" rust-smart-operators-self-insert)
     ;; ! is too special
-    ;;("!" rust-smart-operators-self-insert)
+    ("!" rust-smart-operators-self-insert)
     ("&" rust-smart-operators-self-insert)
     ("|" rust-smart-operators-self-insert)
     ("<" rust-smart-operators-self-insert)
