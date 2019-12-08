@@ -57,7 +57,7 @@
         (cond
           ((and (<= 3840 width)
                 (<= 2160 height))
-           128)
+           120)
           (t
            100))))
   (cl-assert (font-exist? font) nil "Font does not exist: %s" font)
@@ -67,9 +67,8 @@
 
   (add-hook 'after-make-frame-functions
             (lambda (new-frame)
-              (set-face-attribute 'default new-frame :height font-scaling)
-              (with-current-frame new-frame
-                (set-frame-font font)))))
+              (set-frame-font font nil (list new-frame))
+              (set-face-attribute 'default new-frame :height font-scaling))))
 
 ;; set default font for all unicode characters
 
