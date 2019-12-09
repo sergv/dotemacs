@@ -181,6 +181,24 @@
     "Vec<_|_"
     "Vec<&_|_"))
 
+(ert-deftest rust-tests/rust-smart-operators--pipe-1 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?\|)
+    "crossbeam::scope(_|_"
+    "crossbeam::scope(|_|_"))
+
+(ert-deftest rust-tests/rust-smart-operators--pipe-2 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?\|)
+    "crossbeam::scope(|spawner_|_"
+    "crossbeam::scope(|spawner| _|_"))
+
+(ert-deftest rust-tests/rust-smart-operators--pipe-3 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?\|)
+    "crossbeam::scope(|spawner_|_)"
+    "crossbeam::scope(|spawner|_|_)"))
+
 (ert-deftest rust-tests/sp-splice-sexp-killing-backward-1 ()
   (rust-tests--test-buffer-contents
       (sp-splice-sexp-killing-backward)
