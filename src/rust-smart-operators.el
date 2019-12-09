@@ -37,6 +37,16 @@ stick it to the previous operator on line."
          ;; Decide whether to insert space before the operator.
          (if (and (not (smart-operators--on-empty-string?))
                   (not (memq char '(?\< ?\>)))
+                  (if (char-equal char ?\|)
+                      (save-excursion
+                        (skip-chars-backward "^|" (- (point) 1024))
+                        (if (bobp)
+                            t
+                          (progn
+                            (forward-char -1)
+                            (not (or (bobp)
+                                     (char-equal (char-before) ?\())))))
+                    t)
                   (or
                    ;; At beginning of buffer.
                    at-beginning-of-buffer?
