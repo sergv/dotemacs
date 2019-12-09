@@ -32,13 +32,17 @@
   "Select next error in `rust-compilation-buffer-name' buffer and jump to
 it's position in current window."
   (interactive)
-  (compilation-navigation-next-error-in-buffer-other-window rust-compilation-buffer-name))
+  (aif (get-buffer rust-compilation-buffer-name)
+      (compilation-navigation-next-error-in-buffer-other-window it)
+    (error "No Rust compilation started")))
 
 (defun rust-compilation-prev-error-other-window ()
   "Select previous error in `rust-compilation-buffer-name' buffer and jump to
 it's position in current window."
   (interactive)
-  (compilation-navigation-prev-error-in-buffer-other-window rust-compilation-buffer-name))
+  (aif (get-buffer rust-compilation-buffer-name)
+      (compilation-navigation-prev-error-in-buffer-other-window it)
+    (error "No Rust compilation started")))
 
 (defvar rust-compilation-extra-error-modes haskell-compilation-extra-error-modes
   "Extra modes from `compilation-error-regexp-alist-alist' whose
