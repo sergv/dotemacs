@@ -129,7 +129,7 @@ error location - value of compilation-error structure."
   "Either return error currently selected in the compilation buffer BUF, if
 point is not located on it, or return the next error if current position argees
 with the position of the selected error."
-  (let ((buf (current-buffer))
+  (let ((curr-buf (current-buffer))
         (line (line-number-at-pos)))
     (with-selected-window win
       (with-current-buffer buf
@@ -138,7 +138,7 @@ with the position of the selected error."
                  (eq (compilation/find-buffer
                       (compilation-error/filename selected-err)
                       (compilation-error/compilation-root-directory selected-err))
-                     buf)
+                     curr-buf)
                  (equal (compilation-error/line-number selected-err)
                         line))
                 ;; If we're already on the selected error then jump to next error.
@@ -152,6 +152,7 @@ with the position of the selected error."
 
 (defun compilation-navigation--go-navigate-errors (buf jump-to-next-err-func fallback)
   "Navigate errors in compilation buffer BUF."
+  (cl-assert (bufferp buf))
   (if (buffer-live-p buf)
       (let ((win (get-buffer-window buf
                                     t ;; all-frames
