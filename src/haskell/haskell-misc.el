@@ -904,13 +904,17 @@ both unicode and ascii characters.")
   "Select next error in `haskell-compilation-buffer' buffer and jump to
 it's position in current window."
   (interactive)
-  (compilation-navigation-next-error-in-buffer-other-window haskell-compilation-buffer))
+  (aif (get-buffer haskell-compilation-buffer)
+      (compilation-navigation-next-error-in-buffer-other-window it)
+    (error "No Haskell compilation started")))
 
 (defun haskell-compilation-prev-error-other-window ()
   "Select previous error in `haskell-compilation-buffer' buffer and jump to
 it's position in current window."
   (interactive)
-  (compilation-navigation-prev-error-in-buffer-other-window haskell-compilation-buffer))
+  (aif (get-buffer haskell-compilation-buffer)
+      (compilation-navigation-prev-error-in-buffer-other-window it)
+    (error "No Haskell compilation started")))
 
 (defun haskell-misc--get-potential-project-roots ()
   (haskell-watch-get-project-root))
