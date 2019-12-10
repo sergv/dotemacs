@@ -886,6 +886,11 @@ symbol 'unresolved.")
     eproj/buffer-directory
     #'stringp)))
 
+;;;###autoload
+(defun eproj-sha1-of-project-root-for-buf (buffer)
+  (awhen (eproj-get-project-for-buf-lax buffer)
+    (sha1 (eproj-project/root it))))
+
 (defun eproj-get-project-for-buf-lax (buffer)
   "Get project for BUFFER. Return nil if there's no project for it."
   (eproj-get-project-for-path-lax
