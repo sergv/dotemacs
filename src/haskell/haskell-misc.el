@@ -197,13 +197,16 @@ and indent them as singe line."
                   "-dsuppress-module-prefixes"
                   "-fshow-loaded-modules"
                   "-fprint-potential-instances"))
-               (build-dir (list "--builddir" (fold-platform-os-type "/tmp/dist/dante" "dist/dante")))
+               (build-dir (list "--builddir"
+                                (fold-platform-os-type '(concat "/tmp/dist/dante"
+                                                                (awhen (eproj-sha1-of-project-root-for-buf (current-buffer))
+                                                                  (concat "-" it)))
+                                                       "dist/dante")))
                (repl-options (--mapcat (list "--repl-option" it) ghci-options))
                (stack-ghci-options (--mapcat (list "--ghci-options" it) ghci-options)))
           `((new-impure-nix dante-cabal-new-nix
                             `("nix-shell" "--run" (s-join " " (list "cabal" "new-repl" (or dante-target (dante-package-name) "") ,@build-dir)))
-                            `("nix-shell" "--run" (s-join " " (list "cabal" "new-repl" (or dante-target (dante-package-name) "") ,@build-dir ,@repl-options)))
-                            )
+                            `("nix-shell" "--run" (s-join " " (list "cabal" "new-repl" (or dante-target (dante-package-name) "") ,@build-dir ,@repl-options))))
             (new-nix dante-cabal-new-nix
                      ("nix-shell" "--pure" "--run" (s-join " " (list "cabal" "new-repl" (or dante-target (dante-package-name) "") ,@build-dir)))
                      ("nix-shell" "--pure" "--run" (s-join " " (list "cabal" "new-repl" (or dante-target (dante-package-name) "") ,@build-dir ,@repl-options))))
