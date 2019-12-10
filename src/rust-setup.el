@@ -78,7 +78,9 @@ warnings will be colorized in `rust-compilation-mode'.")
     ("g g"      vim-mock:motion-go-to-first-non-blank-beg)
     ("G"        vim-mock:motion-go-to-first-non-blank-end))
 
-
+(make-align-function rust-align-on-equals
+                     "\\([+*|&/!%]\\|-\\|\\^\\)?=[^=]"
+                     :require-one-or-more-spaces t)
 
 (vim:defcmd vim:rust-compile (nonrepeatable)
   (compilation-start
@@ -135,6 +137,9 @@ warnings will be colorized in `rust-compilation-mode'.")
   (def-keys-for-map vim:normal-mode-local-keymap
     ("g h" rust-end-of-defun)
     ("g t" rust-beginning-of-defun))
+
+  (def-keys-for-map vim:visual-mode-local-keymap
+    ("g a =" rust-align-on-equals))
 
   (def-keys-for-map vim:insert-mode-local-keymap
     ("," smart-operators-comma)
