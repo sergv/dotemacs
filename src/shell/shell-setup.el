@@ -11,6 +11,7 @@
 (require 'common)
 (require 'comint-setup)
 (require 'dirtrack)
+(require 'hideshow-setup)
 (require 'shell-script-abbrev+)
 
 ;;;###autoload
