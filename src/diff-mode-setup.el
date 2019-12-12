@@ -7,12 +7,32 @@
 ;; Description:
 
 (require 'common)
+(require 'hideshow-setup)
+
+;;;###autoload
+(add-to-list
+ 'hs-special-modes-alist
+ (list 'diff-mode
+       ;; start regex
+       (rx (or "[" "(" "{"))
+       ;; end regex
+       nil
+       ;; comment-start regex
+       (rx bol
+           (repeat 3 (or "-" "+"))
+           " ")
+       ;; forward-sexp function
+       nil
+       ;; adjust beg function
+       nil))
 
 ;;;###autoload
 (defun diff-mode-setup ()
   (init-common :use-yasnippet nil
                :use-comment nil
+               :use-hl-line t
                :use-whitespace 'tabs-only)
+  (setup-hs-minor-mode)
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("<up>"     diff-hunk-prev)

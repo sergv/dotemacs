@@ -109,6 +109,44 @@ Original match data is restored upon return."
         (goto-char (match-beginning hs-block-start-mdata-select))))
     (funcall hs-forward-sexp-func arg)))
 
+(el-patch-defun hs-grok-mode-type ()
+  "Set up hideshow variables for new buffers.
+If `hs-special-modes-alist' has information associated with the
+current buffer's major mode, use that.
+Otherwise, guess start, end and `comment-start' regexps; `forward-sexp'
+function; and adjust-block-beginning function."
+  (el-patch-splice 2 2
+    (if (and (boundp 'comment-start)
+             (boundp 'comment-end)
+             comment-start comment-end)
+        (let* ((lookup (assoc major-mode hs-special-modes-alist))
+               (start-elem (or (nth 1 lookup) "\\s(")))
+          (if (listp start-elem)
+              ;; handle (START-REGEXP MDATA-SELECT)
+              (setq hs-block-start-regexp (car start-elem)
+                    hs-block-start-mdata-select (cadr start-elem))
+            ;; backwards compatibility: handle simple START-REGEXP
+            (setq hs-block-start-regexp start-elem
+                  hs-block-start-mdata-select 0))
+          (setq hs-block-end-regexp (or (nth 2 lookup) "\\s)")
+                hs-c-start-regexp (or (nth 3 lookup)
+                                      (el-patch-wrap 2 2
+                                        (if comment-start
+                                            (let ((c-start-regexp
+                                                   (regexp-quote comment-start)))
+                                              (if (string-match " +$" c-start-regexp)
+                                                  (substring c-start-regexp
+                                                             0 (1- (match-end 0)))
+                                                c-start-regexp))
+                                          (setq hs-minor-mode nil)
+                                          (error "%s Mode doesn't support Hideshow Minor Mode"
+                                                 (format-mode-line mode-name)))))
+                hs-forward-sexp-func (or (nth 4 lookup) 'forward-sexp)
+                hs-adjust-block-beginning (nth 5 lookup)))
+      (setq hs-minor-mode nil)
+      (error "%s Mode doesn't support Hideshow Minor Mode"
+             (format-mode-line mode-name)))))
+
 ;; Local Variables:
 ;; End:
 
