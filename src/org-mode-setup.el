@@ -13,7 +13,6 @@
 (require 'common)
 (require 'el-patch)
 (require 'indentation)
-(require 'org-drill)
 (require 'render-formula)
 
 ;; for reveal.js presentations
@@ -25,8 +24,6 @@
 
 ;;;###autoload
 (el-patch-feature ob-tangle)
-;;;###autoload
-(el-patch-feature org-drill)
 
 (def-keys-for-map global-map
   ("C-c l" org-store-link)
@@ -96,15 +93,6 @@
       org-log-into-drawer nil
       org-log-state-notes-insert-after-drawers nil
       org-log-reschedule 'note
-
-      org-drill-leech-method 'warn
-      org-drill-use-visible-cloze-face-p t
-      org-drill-hide-item-headings-p t
-      org-drill-maximum-items-per-session 15
-      org-drill-maximum-duration 15                     ;; minutes
-      org-drill-save-buffers-after-drill-sessions-p nil ;; don't prompt for save
-      ;; this may be useful when working with large amounts of items
-      org-drill-add-random-noise-to-intervals-p t
 
       org-src-preserve-indentation t)
 
@@ -292,115 +280,6 @@ which enable the original code blocks to be found."
                (and end
                     (goto-char end))))
            (prog1 counter (message "Detangled %d code blocks" counter)))))))
-
-;;; common org-drill's question cards with math rendering
-;;; and other setup
-
-(defparameter *org-drill-hint-tags* '("reveal" "hint" "example")
-  "Subheadings with these tags will be shown revealed during question.
-These tags will be inherited by all subheadings. Use like this:
-
-** foo question         :drill:
-   foo is [bar]
-
-*** Example             :hint:
-**** baz
-**** quux
-")
-
-(defun org-drill-present-common-card ()
-  "Similar to `org-drill-present-simple-card' but also expands latex formulas
-into images."
-  (with-hidden-comments
-   (with-hidden-cloze-hints
-    (with-hidden-cloze-text
-     (render-buffer-off)
-     (let ((org-use-tag-inheritance (or org-use-tag-inheritance
-                                        *org-drill-hint-tags*)))
-       (org-drill-hide-subheadings-if
-        ;; return nil if subheading is to be revealed
-        (lambda ()
-          (not (--any? (member it *org-drill-hint-tags*)
-                       (org-get-tags-at))))))
-     (ignore-errors
-       (org-display-inline-images t))
-     (org-cycle-hide-drawers 'all)
-     (render-buffer-on)
-     (prog1 (org-drill-presentation-prompt)
-       (render-buffer-off)
-       (org-drill-hide-subheadings-if 'org-drill-entry-p))))))
-
-(defun org-drill-present-common-answer (reschedule-fn)
-  "If `org-drill-present-common-card' is yin then this is yang - this function
-handles formula rendering during answer showing and restores original text
-when question is rated."
-  (org-drill-hide-subheadings-if 'org-drill-entry-p)
-  (org-drill-unhide-clozed-text)
-  (ignore-errors
-    (org-display-inline-images t))
-  (render-buffer-on)
-  (prog1 (with-hidden-cloze-hints
-          (funcall reschedule-fn))
-    (render-buffer-off)))
-
-(defadvice org-drill-reschedule (before
-                                 org-drill-reschedule-hide-drawers
-                                 activate
-                                 compile)
-  (org-cycle-hide-drawers 'all))
-
-(setf org-drill-card-type-alist
-      (cons (list "common"
-                  #'org-drill-present-common-card
-                  #'org-drill-present-common-answer)
-            (cons (list nil
-                        #'org-drill-present-common-card
-                        #'org-drill-present-common-answer)
-                  (remove-if (lambda (x)
-                               (member* (car x) '(nil "common")
-                                        :test (lambda (a b)
-                                                (or (eq? a b) (string=? a b)))))
-                             org-drill-card-type-alist))))
-
-
-(eval-after-load
-    "org-drill"
-  '(progn
-     (setf org-drill-optimal-factor-matrix
-           (persistent-store-get 'org-drill-optimal-factor-matrix))
-
-     (el-patch-defun org-drill-save-optimal-factor-matrix ()
-       (el-patch-swap
-         (savehist-autosave)
-         (progn
-           (message "Saving optimal factor matrix...")
-           (persistent-store-put 'org-drill-optimal-factor-matrix
-
-                                 org-drill-optimal-factor-matrix))))
-
-     ;; Remove unconditional hiding of sub-sublevels.
-     (el-patch-defun org-drill-hide-subheadings-if (test)
-       "TEST is a function taking no arguments. TEST will be called for each
-of the immediate subheadings of the current drill item, with the point
-on the relevant subheading. TEST should return nil if the subheading is
-to be revealed, non-nil if it is to be hidden.
-Returns a list containing the position of each immediate subheading of
-the current topic."
-       (let ((drill-entry-level (org-current-level))
-             (drill-sections nil))
-         (org-show-subtree)
-         (save-excursion
-           (org-map-entries
-            (lambda ()
-              (when (and (not (org-invisible-p))
-                         (> (org-current-level) drill-entry-level))
-                (when (el-patch-splice 2 0
-                        (or (/= (org-current-level) (1+ drill-entry-level))
-                            (funcall test)))
-                  (hide-subtree))
-                (push (point) drill-sections)))
-            nil 'tree))
-         (reverse drill-sections)))))
 
 ;;; other functions
 
