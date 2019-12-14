@@ -266,13 +266,12 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
     (goto-char p)
     (move-marker p nil)))
 
-(defun nxml-indent-buffer ()
+(defun nxml-format-buffer ()
   (interactive)
-  (save-excursion
-    (indent-whole-buffer)))
+  (indent-whole-buffer))
 
 (puthash 'nxml-mode
-         #'nxml-indent-buffer
+         #'nxml-format-buffer
          *mode-indent-functions-table*)
 
 ;;;###autoload

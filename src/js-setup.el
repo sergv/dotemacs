@@ -12,6 +12,8 @@
 (autoload 'js2-mode "js2-mode" nil t)
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
+;;;###autoload
+(autoload 'json-mode-pretty-print-dwim "json-mode" nil t)
 
 (setf js2-highlight-level 3
       js2-basic-offset 2
@@ -54,12 +56,12 @@
 ;;;###autoload
 (add-hook 'js-mode-hook #'js-setup)
 
-(defun json-indent-buffer ()
+(defun json-format-buffer ()
   (interactive)
   (json-mode-pretty-print-dwim))
 
 (puthash 'json-mode
-         #'json-indent-buffer
+         #'json-format-buffer
          *mode-indent-functions-table*)
 
 ;;;###autoload

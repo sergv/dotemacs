@@ -412,13 +412,12 @@ the current topic."
     (outline-previous-heading)))
 
 ;;;###autoload
-(defun org-mode-indent-buffer ()
+(defun org-format-buffer ()
   (interactive)
-  (save-excursion
-    (indent-whole-buffer)))
+  (indent-whole-buffer))
 
 (puthash 'org-mode
-         #'org-mode-indent-buffer
+         #'org-format-buffer
          *mode-indent-functions-table*)
 
 (vimmize-motion org-beginning-of-line)
