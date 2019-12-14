@@ -195,6 +195,7 @@
 
       (company-mode +1)
       (setq-local company-backends '(company-eproj))
+      (setq-local flycheck-highlighting-mode 'symbols)
 
       (dolist (entry (eproj-query/local-variables proj major-mode nil))
         (set (make-local-variable (car entry)) (cadr entry)))
