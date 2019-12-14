@@ -182,7 +182,8 @@
                     (switch-to-buffer it)))
                 (goto-line1 (flycheck-error-line next-error))
                 (awhen (flycheck-error-column next-error)
-                  (move-to-character-column it))
+                  ;; Flycheck columns are 1-based .
+                  (move-to-character-column (- it 1)))
                 (flycheck-display-error-at-point))
             (error "Error does not refer to any file: %s" next-error))
         (message "No more flycheck errors")))))
