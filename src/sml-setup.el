@@ -23,13 +23,12 @@
   :error-msg "Can't switch to sml repl")
 
 ;;;###autoload
-(defun sml-indent-buffer ()
+(defun sml-format-buffer ()
   (interactive)
-  (save-excursion
-    (indent-whole-buffer)))
+  (indent-whole-buffer))
 
 (puthash 'sml-mode
-         #'sml-indent-buffer
+         #'sml-format-buffer
          *mode-indent-functions-table*)
 
 ;;;###autoload

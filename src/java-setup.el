@@ -12,6 +12,10 @@
 (require 'common)
 (require 'java-abbrev+)
 
+(puthash 'java-mode
+         #'c-format-buffer
+         *mode-indent-functions-table*)
+
 ;;;###autoload
 (defun java-setup ()
   (cc-setup :define-special-keys nil)

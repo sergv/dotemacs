@@ -27,14 +27,13 @@
   :save-buffer t
   :error-msg "Can't switch to ocaml repl")
 
-;;;###autoload
-(defun ocaml-indent-buffer ()
+(defun ocaml-format-buffer ()
   (interactive)
   (save-excursion
     (indent-whole-buffer)))
 
 (puthash 'tuareg-mode
-         #'ocaml-indent-buffer
+         #'ocaml-format-buffer
          *mode-indent-functions-table*)
 
 ;;; ocaml-setup
