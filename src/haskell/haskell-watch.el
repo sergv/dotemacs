@@ -52,6 +52,7 @@ roots (i.e. valid and existing keys within
                                                t ;; Do not sort - faster this way.
                                                )))))
 
+;;;###autoload
 (defun haskell-watch-get-project-root ()
   "Get absolute project root for current buffer."
   (if haskell-watch--project-root
