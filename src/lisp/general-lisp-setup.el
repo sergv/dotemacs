@@ -518,7 +518,7 @@ nor comment."
     (beginning-of-defun)
     (indent-sexp)))
 
-(defun lisp-indent-buffer ()
+(defun lisp-format-buffer ()
   (interactive)
   (save-excursion
     (goto-char (point-min))
@@ -533,7 +533,7 @@ nor comment."
 
 (dolist (mode +lisp-modes+)
   (puthash mode
-           #'lisp-indent-buffer
+           #'lisp-format-buffer
            *mode-indent-functions-table*))
 
 ;;;; this is useful for all lisps

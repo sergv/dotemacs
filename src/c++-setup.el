@@ -126,14 +126,15 @@
                        (--map (concat "*." it) alt-exts)
                        filename)))))))))
 
-(defun c++-indentation-indent-buffer ()
+(defun c++-format-buffer ()
+  (interactive)
   (clang-format-buffer))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.in\\(?:l\\|c\\|cl\\)\\'" . c++-mode))
 
 (puthash 'c++-mode
-         #'c++-indentation-indent-buffer
+         #'c++-format-buffer
          *mode-indent-functions-table*)
 
 ;;;###autoload

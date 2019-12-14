@@ -10,6 +10,10 @@
 (require 'cc-setup)
 (require 'c-abbrev+)
 
+(puthash 'c-mode
+         #'c-format-buffer
+         *mode-indent-functions-table*)
+
 ;;;###autoload
 (defun c-setup ()
   (cc-setup :define-special-keys t)
