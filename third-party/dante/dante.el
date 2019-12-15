@@ -340,8 +340,10 @@ and over."
       (let* ((temp-file (dante-local-name (dante-temp-file-name (current-buffer)))))
         (funcall cont
                  'finished
-                 (let ((errs (--remove (eq 'splice (flycheck-error-level it))
-                                       (--map (dante-fly-message it checker (current-buffer) temp-file) messages))))
+                 (let ((errs (-non-nil (--map (dante-fly-message it checker (current-buffer) temp-file) messages))
+                             ;; (--remove (eq 'splice (flycheck-error-level it))
+                             ;;           (--map (dante-fly-message it checker (current-buffer) temp-file) messages))
+                             ))
                    (remove-duplicates-by-hashing-projections
                     (lambda (err)
                       (list (flycheck-error-level err)
@@ -362,31 +364,35 @@ process."
 
 (add-to-list 'flycheck-checkers 'haskell-dante)
 
+(defcustom dante-flycheck-types
+  '(("^warning: \\[-W\\(?:typed-holes\\|deferred-\\(?:type-errors\\|out-of-scope-variables\\)\\)\\]" . error)
+    ("^warning" . warning)
+    ("^splicing " . nil)
+    ("" . error))
+  "Map of regular expressions to flycheck error types, ordered by priority."
+  :group 'dante :type '(repeat cons (regex symbol)))
+
 (defun dante-fly-message (matched checker buffer temp-file)
   "Convert the MATCHED message to flycheck format.
 CHECKER and BUFFER are added if the error is in TEMP-FILE."
   (save-match-data
     (cl-destructuring-bind (file location-raw err-type msg) matched
-      (let* ((fixed-err-type-and-kind
-              (cond
-                ((string-match "^\\(warning\\): \\[-W\\(?:typed-holes\\|deferred-\\(type-errors\\|out-of-scope-variables\\)\\)\\]" err-type)
-                 (cons (replace-match "error" nil nil err-type 1) 'error))
-                ((s-matches? "^warning:" err-type) (cons err-type 'warning))
-                ((s-matches? "^splicing " err-type) (cons err-type 'splice))
-                (t (cons err-type 'error))))
-             (fixed-err-type (car fixed-err-type-and-kind))
-             (type (cdr fixed-err-type-and-kind))
+      (let* ((type (cdr (--first (string-match (car it) err-type) dante-flycheck-types)))
+             (fixed-err-type (if (eq type 'error)
+                                 err-type
+                               (replace-match (symbol->string type) nil nil err-type)))
              (location (dante-parse-error-location location-raw)))
         ;; FIXME: sometimes the "error type" contains the actual error too.
-        (flycheck-error-new-at (car location) (cadr location) type
-                               (replace-regexp-in-string (regexp-quote temp-file)
-                                                         (dante-buffer-file-name buffer)
-                                                         (concat fixed-err-type "\n" (s-trim-right msg)))
-                               :checker checker
-                               :buffer buffer
-                               :filename (if (string= temp-file file)
-                                             (dante-buffer-file-name buffer)
-                                           file))))))
+        (when type
+          (flycheck-error-new-at (car location) (cadr location) type
+                                 (replace-regexp-in-string (regexp-quote temp-file)
+                                                           (dante-buffer-file-name buffer)
+                                                           (concat fixed-err-type "\n" (s-trim-right msg)))
+                                 :checker checker
+                                 :buffer buffer
+                                 :filename (if (string= temp-file file)
+                                               (dante-buffer-file-name buffer)
+                                             file)))))))
 
 (defun dante-parse-error-location (string)
   "Parse the line/col numbers from the error in STRING."
@@ -639,6 +645,7 @@ Note that sub-sessions are not interleaved."
                             ("-fdefer-typed-holes" "Accept typed holes, so that completion/type-at continues to work then.")
                             ("-fdefer-type-errors" "Accept incorrectly typed programs, so that completion/type-at continues to work then. (However errors in dependencies won't be detected as such)")
                             ("-Wwarn=missing-home-modules" "Do not error-out if a module is missing in .cabal file")
+                            ("-fdiagnostics-color=never" "No color codes in error messages")
                             ("-fno-diagnostics-show-caret" "Cleaner error messages for GHC >=8.2 (ignored by earlier versions)")))))
 
 (defun dante-start ()
