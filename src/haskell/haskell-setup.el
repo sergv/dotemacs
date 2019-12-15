@@ -222,7 +222,8 @@
                          flycheck-backend (current-buffer)))
                 (setq-local flycheck-checker flycheck-backend)
                 (when (memq flycheck-checker '(haskell-stack-ghc haskell-ghc))
-                  (add-hook 'flycheck-mode-hook #'flycheck-haskell-setup nil t))
+                  (error "Selected flycheck haskell checker will likely not work: %s"
+                         flycheck-checker))
                 (when (memq flycheck-checker '(haskell-dante))
                   (add-hook 'flycheck-mode-hook #'haskell-misc--configure-dante nil t))
                 (flycheck-mode +1))
