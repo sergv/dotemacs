@@ -1,10 +1,10 @@
-;;; mflogo.el --- AUCTeX style for `mflogo.sty'
+;;; fbox.el --- AUCTeX style for `fbox.sty' (v0.03)
 
-;; Copyright (C) 2012, 2019 Free Software Foundation, Inc.
+;; Copyright (C) 2019 Free Software Foundation, Inc.
 
-;; Author: Mads Jensen <mje@inducks.org>
+;; Author: Arash Esbati <arash@gnu.org>
 ;; Maintainer: auctex-devel@gnu.org
-;; Created: 2011-02-02
+;; Created: 2019-11-08
 ;; Keywords: tex
 
 ;; This file is part of AUCTeX.
@@ -26,9 +26,8 @@
 
 ;;; Commentary:
 
-;; This file adds support for `mflogo.sty'.
-
-;;; Code:
+;; This file adds support for `fbox.sty' (v0.03) from 2019/11/04.
+;; `fbox.sty' is part of TeXLive.
 
 ;; Silence the compiler:
 (declare-function font-latex-add-keywords
@@ -36,24 +35,17 @@
 		  (keywords class))
 
 (TeX-add-style-hook
- "mflogo"
+ "fbox"
  (lambda ()
    (TeX-add-symbols
-    '("textlogo"   "Text")
-    '("logofamily" -1)
-    '("MF"          0)
-    '("MP"          0))
+    '("fbox"  [ "Frame parts (combination of lrtb)" ] t)
+    '("fbox*" [ "Frame parts (combination of lrtb)" ] t))
 
    ;; Fontification
    (when (and (featurep 'font-latex)
 	      (eq TeX-install-font-lock 'font-latex-setup))
-     (font-latex-add-keywords '(("textlogo" "{"))
-			      'type-command)
-     (font-latex-add-keywords '(("logofamily" ""))
-			      'type-declaration)))
+     (font-latex-add-keywords '(("fbox" "*[{"))
+			      'function)))
  LaTeX-dialect)
 
-(defvar LaTeX-mflogo-package-options nil
-  "Package options for the mflogo package.")
-
-;;; mflogo.el ends here
+;;; fbox.el ends here
