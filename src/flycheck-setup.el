@@ -17,9 +17,6 @@
 ;;;###autoload
 (eval-after-load "flycheck" '(require 'flycheck-setup))
 
-;;;###autoload
-(autoload 'flycheck-haskell-setup "flycheck-haskell" nil nil)
-
 (eval-after-load "flycheck"
   '(progn
      ;; Don't show errors on fringes.
