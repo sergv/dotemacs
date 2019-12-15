@@ -619,7 +619,7 @@ inserted after the sectioning command."
 ;;; Environments
 
 (defgroup ConTeXt-environment nil
-  "Environments in AUCTeX."
+  "Environments in ConTeXt."
   :group 'ConTeXt-macro)
 
 ;; TODO: interface awareness
@@ -1782,7 +1782,7 @@ i.e. you do _not_ have to cater for this yourself by adding \\\\' or $."
   ;; run hooks
   (setq TeX-command-default "ConTeXt")
   (setq TeX-sentinel-default-function 'TeX-ConTeXt-sentinel)
-  (TeX-run-mode-hooks 'text-mode-hook 'TeX-mode-hook 'ConTeXt-mode-hook))
+  (run-mode-hooks 'text-mode-hook 'TeX-mode-hook 'ConTeXt-mode-hook))
 
 (defun context-guess-current-interface ()
   "Guess what ConTeXt interface the current buffer is using."

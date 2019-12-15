@@ -1,6 +1,6 @@
 ;;; latex.el --- Support for LaTeX documents.
 
-;; Copyright (C) 1991, 1993-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1993-2019 Free Software Foundation, Inc.
 
 ;; Maintainer: auctex-devel@gnu.org
 ;; Keywords: tex
@@ -1227,14 +1227,22 @@ Just like array and tabular."
   (LaTeX-insert-item))
 
 (defun LaTeX-env-contents (environment)
-  "Insert ENVIRONMENT with filename for contents."
-  (save-excursion
-    (when (re-search-backward LaTeX-header-end nil t)
-      (error "Put %s environment before \\begin{document}" environment)))
-  (LaTeX-insert-environment environment
-			    (concat TeX-grop
-				    (TeX-read-string "File: ")
-				    TeX-grcl))
+  "Insert ENVIRONMENT with optional argument and filename for contents."
+  (let* ((opt '("overwrite" "force" "nosearch"))
+	 (arg (mapconcat #'identity
+			 (TeX-completing-read-multiple
+			  (TeX-argument-prompt t nil "Options")
+			  (if (string= environment "filecontents*")
+			      opt
+			    (cons "noheader" opt)))
+			 ",")))
+    (LaTeX-insert-environment environment
+			      (concat
+			       (when (and arg (not (string= arg "")))
+				 (concat LaTeX-optop arg LaTeX-optcl))
+			       TeX-grop
+			       (TeX-read-string "File: ")
+			       TeX-grcl)))
   (delete-horizontal-space))
 
 (defun LaTeX-env-args (environment &rest args)
@@ -1701,7 +1709,8 @@ The value is actually the tail of the list of options given to CLASS."
   (member option (cdr (assoc class LaTeX-provided-class-options))))
 
 (defun LaTeX-match-class-option (regexp)
-  "Check if a documentclass option matching REGEXP is active."
+  "Check if a documentclass option matching REGEXP is active.
+Return first found class option matching REGEXP, or nil if not found."
   (TeX-member regexp (apply #'append
 			    (mapcar #'cdr LaTeX-provided-class-options))
 	      'string-match))
@@ -2351,7 +2360,8 @@ of the options, nil otherwise."
 	    packages))
     (insert LaTeX-optop options LaTeX-optcl))
   (insert TeX-grop (mapconcat 'identity packages ",") TeX-grcl)
-  (run-hooks 'LaTeX-after-usepackage-hook))
+  (run-hooks 'LaTeX-after-usepackage-hook)
+  (apply #'TeX-run-style-hooks packages))
 
 (defun LaTeX-arg-usepackage (_optional)
   "Insert arguments to usepackage.
@@ -2359,8 +2369,7 @@ OPTIONAL is ignored."
   (let* ((packages-options (LaTeX-arg-usepackage-read-packages-with-options))
 	 (packages (car packages-options))
 	 (options (cdr packages-options)))
-    (LaTeX-arg-usepackage-insert packages options)
-    (apply #'TeX-run-style-hooks packages)))
+    (LaTeX-arg-usepackage-insert packages options)))
 
 (defun LaTeX-insert-usepackages ()
   "Prompt for the insertion of usepackage macros until empty
@@ -2791,6 +2800,8 @@ Automatic right brace insertion is done only if no prefix ARG is given and
 `LaTeX-electric-left-right-brace' is non-nil.
 Normally bound to keys \(, { and [."
   (interactive "*P")
+  ;; If you change the condition for `auto-p', adjust the condition in
+  ;; the `delete-selection' property, just below this defun, accordingly.
   (let ((auto-p (and LaTeX-electric-left-right-brace (not arg))))
     (if (and auto-p
 	     (TeX-active-mark)
@@ -2828,6 +2839,33 @@ Normally bound to keys \(, { and [."
 		(goto-char (mark)))
 	    (LaTeX-insert-corresponding-right-macro-and-brace
 	     lmacro lbrace)))))))
+;; Cater for `delete-selection-mode' (bug#36385)
+;; See the header comment of delsel.el for detail.
+(put #'LaTeX-insert-left-brace 'delete-selection
+     ;; COMPATIBILITY for Emacs < 24.3
+     (if (and (= emacs-major-version 24)
+	      (< emacs-minor-version 3))
+	 ;; Emacs < 24.3 doesn't support a function as value of
+	 ;; `delete-selection' property.
+	 nil
+       (lambda ()
+	 ;; Consult `delete-selection' property when
+	 ;; `LaTeX-insert-left-brace' works just the same as
+	 ;; `self-insert-command'.
+	 (and (or (not LaTeX-electric-left-right-brace)
+		  current-prefix-arg)
+	      (let ((f (get #'self-insert-command 'delete-selection)))
+		;; If `delete-selection' property of
+		;; `self-insert-command' is one of the predefined
+		;; special symbols, just return itself.
+		(if (memq f '(yank supersede kill t nil))
+		    ;; FIXME: if this list of special symbols is
+		    ;; extended in future delsel.el, this discrimination
+		    ;; will become wrong.
+		    f
+		  ;; Otherwise, call it as a function and return
+		  ;; its value.
+		  (funcall f)))))))
 
 (defun LaTeX-insert-corresponding-right-macro-and-brace
   (lmacro lbrace &optional optional prompt)
@@ -2993,7 +3031,7 @@ including values of the variable
      #'TeX--list-of-string-p)
 
 (defcustom LaTeX-verbatim-environments
-  '("verbatim" "verbatim*")
+  '("verbatim" "verbatim*" "filecontents" "filecontents*")
   "Verbatim environments.
 
 Programs should not use this variable directly but the function
@@ -3166,6 +3204,8 @@ consideration just as is in the non-commented source code."
 (defcustom LaTeX-indent-environment-list
   '(("verbatim" current-indentation)
     ("verbatim*" current-indentation)
+    ("filecontents" current-indentation)
+    ("filecontents*" current-indentation)
     ("tabular" LaTeX-indent-tabular)
     ("tabular*" LaTeX-indent-tabular)
     ("align" LaTeX-indent-tabular)
@@ -3180,15 +3220,15 @@ consideration just as is in the non-commented source code."
     ("equation*")
     ("picture")
     ("tabbing"))
-    "Alist of environments with special indentation.
+  "Alist of environments with special indentation.
 The second element in each entry is the function to calculate the
 indentation level in columns.
 
 Environments present in this list are not filled by filling
 functions, see `LaTeX-fill-region-as-paragraph'."
-    :group 'LaTeX-indentation
-    :type '(repeat (list (string :tag "Environment")
-			 (option function))))
+  :group 'LaTeX-indentation
+  :type '(repeat (list (string :tag "Environment")
+		       (option function))))
 
 (defcustom LaTeX-indent-environment-check t
   "*If non-nil, check for any special environments."
@@ -5362,11 +5402,31 @@ commands are defined:
   "Insert \\STRING{}.  If DOLLAR is non-nil, put $'s around it.
 If `TeX-electric-math' is non-nil wrap that symbols around the
 string."
-  (when dollar
-    (insert (or (car TeX-electric-math) "$"))
-    (save-excursion
-      (insert (or (cdr TeX-electric-math) "$"))))
-  (funcall LaTeX-math-insert-function string))
+  (let ((active (TeX-active-mark))
+	m closer)
+    (if (and active (> (point) (mark)))
+	(exchange-point-and-mark))
+    (when dollar
+      (insert (or (car TeX-electric-math) "$"))
+      (save-excursion
+	(if active (goto-char (mark)))
+	;; Store closer string for later reference.
+	(setq closer (or (cdr TeX-electric-math) "$"))
+	(insert closer)
+	;; Set temporal marker to decide whether to put the point
+	;; after the math mode closer or not.
+	(setq m (point-marker))))
+    (funcall LaTeX-math-insert-function string)
+    (when dollar
+      ;; If the above `LaTeX-math-insert-function' resulted in
+      ;; inserting, e.g., a pair of "\langle" and "\rangle" by
+      ;; typing "`(", keep the point between them.  Otherwise
+      ;; move the point after the math mode closer.
+      (if (= m (+ (point) (length closer)))
+	  (goto-char m))
+      ;; Make temporal marker point nowhere not to slow down the
+      ;; subsequent editing in the buffer.
+      (set-marker m nil))))
 
 (defun LaTeX-math-cal (char dollar)
   "Insert a {\\cal CHAR}.  If DOLLAR is non-nil, put $'s around it.
@@ -5926,7 +5986,7 @@ of `LaTeX-mode-hook'."
 		       (apply #'append
 			      (mapcar #'cdr LaTeX-provided-class-options)))))
 	    nil t)
-  (TeX-run-mode-hooks 'text-mode-hook 'TeX-mode-hook 'LaTeX-mode-hook)
+  (run-mode-hooks 'text-mode-hook 'TeX-mode-hook 'LaTeX-mode-hook)
   (when (fboundp 'LaTeX-preview-setup)
     (LaTeX-preview-setup))
   (TeX-set-mode-name)
@@ -6020,7 +6080,7 @@ i.e. you do _not_ have to cater for this yourself by adding \\\\' or $."
 Also sets `match-data' so that group 1 is the already typed
 prefix.
 
-For example, in $a + \a| - 17$ with | denoting point, the
+For example, in $a + \\a| - 17$ with | denoting point, the
 function would return non-nil and `(match-string 1)' would return
 \"a\" afterwards."
   (and (texmathp)
@@ -6086,7 +6146,7 @@ function would return non-nil and `(match-string 1)' would return
 		  ("\\\\nocite{\\([^{}\n\r\\%,]*\\)" 1 LaTeX-bibitem-list "}")
 		  ("\\\\nocite{\\([^{}\n\r\\%]*,\\)\\([^{}\n\r\\%,]*\\)"
 		   2 LaTeX-bibitem-list)
-		  ("\\\\ref{\\([^{}\n\r\\%,]*\\)" 1 LaTeX-label-list "}")
+		  ("\\\\[Rr]ef{\\([^{}\n\r\\%,]*\\)" 1 LaTeX-label-list "}")
 		  ("\\\\eqref{\\([^{}\n\r\\%,]*\\)" 1 LaTeX-label-list "}")
 		  ("\\\\pageref{\\([^{}\n\r\\%,]*\\)" 1 LaTeX-label-list "}")
 		  ("\\\\\\(index\\|glossary\\){\\([^{}\n\r\\%]*\\)"
@@ -6172,6 +6232,9 @@ function would return non-nil and `(match-string 1)' would return
    '("label" TeX-arg-define-label)
    '("pageref" TeX-arg-ref)
    '("ref" TeX-arg-ref)
+   ;; \Ref and \labelformat are part of kernel with LaTeX 2019-10-01:
+   '("Ref" TeX-arg-ref)
+   '("labelformat" TeX-arg-counter t)
    '("newcommand" TeX-arg-define-macro [ TeX-arg-define-macro-arguments ] t)
    '("renewcommand" TeX-arg-macro [ TeX-arg-define-macro-arguments ] t)
    '("newenvironment" TeX-arg-define-environment
@@ -6496,7 +6559,11 @@ function would return non-nil and `(match-string 1)' would return
   ;; emacs 24.4.
   (when (and LaTeX-electric-left-right-brace
 	     (boundp 'electric-pair-mode))
-    (set (make-local-variable 'electric-pair-mode) nil)))
+    (set (make-local-variable 'electric-pair-mode) nil))
+
+  ;; Initialization of `add-log-current-defun-function':
+  (set (make-local-variable 'add-log-current-defun-function)
+       #'TeX-current-defun-name))
 
 (defun LaTeX-imenu-create-index-function ()
   "Imenu support function for LaTeX."
@@ -6639,6 +6706,47 @@ functions `TeX-arg-color' (style/color.el) or
 		   (null (equal current-prefix-arg '(4))))
 	      last-optional-rejected))
      ,@body))
+
+(defun LaTeX-extract-key-value-label (&optional key num)
+  "Return a regexp string to match a label in an optional argument.
+The optional KEY is a string which is the name of the key in the
+key=value, default is \"label\".  NUM is an integer for an
+explicitly numbered group construct, useful when adding items to
+`reftex-label-regexps'.
+
+As an extra feature, the key can be the symbol none where the
+entire matching for the key=value is skipped.  The regexp then is
+useful for skipping complex optional arguments.  It should be
+wrapped in \\(?:...\\)? then."
+  ;; The regexp produced here is ideally in sync with the complex one
+  ;; in `reftex-label-regexps'.
+  (concat
+   ;; Match the opening [ and the following chars
+   "\\[[^][]*"
+   ;; Allow nested levels of chars enclosed in braces
+   "\\(?:{[^}{]*"
+     "\\(?:{[^}{]*"
+       "\\(?:{[^}{]*}[^}{]*\\)*"
+     "}[^}{]*\\)*"
+   "}[^][]*\\)*"
+   ;; If KEY is the symbol none, don't look for any key=val:
+   (unless (eq key 'none)
+     (concat "\\<"
+	     ;; Match the key, default is label
+	     (or key "label")
+	     ;; Optional spaces
+	     "[[:space:]]*=[[:space:]]*"
+	     ;; Match the value; braces around the value are optional
+	     "{?\\("
+	     ;; Cater for NUM which sets the regexp group
+	     (when (and num (integerp num))
+	       (concat "?" (number-to-string num) ":"))
+	     ;; One of these chars terminates the value
+	     "[^] ,}\r\n\t%]+"
+	     ;; Close the group
+	     "\\)}?"))
+   ;; We are done.  Just search until the next closing bracket
+   "[^]]*\\]"))
 
 (provide 'latex)
 
