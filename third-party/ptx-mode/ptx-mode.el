@@ -49,7 +49,7 @@ body of any futher definition."
                     :initial-value main-expr
                     :from-end t)))
 
-(defparameter ptx-mode-syntax-table
+(defvar ptx-mode-syntax-table
   (let ((tbl (make-syntax-table)))
     (modify-syntax-entry ?/  ". 12" tbl)
     (modify-syntax-entry ?\n ">"    tbl)
@@ -69,8 +69,7 @@ body of any futher definition."
     tbl)
   "Syntax table in use in happy-mode buffers.")
 
-(defparameter ;; var
-  ptx-mode-font-lock-keywords
+(defvar ptx-mode-font-lock-keywords
   `((,(ptx-mode--rxx
           ((hex-num (any (?0 . ?9) (?a . ?f) (?A . ?F))))
         (or (seq (? (any ?\+ ?\-))
@@ -417,19 +416,12 @@ body of any futher definition."
          nil ;; no special syntax provided
          ))
 
-  ;; (setq-local paragraph-start (concat "^$\\|" page-delimiter))
-  ;; (setq-local paragraph-separate paragraph-start)
-  ;; (setq-local paragraph-ignore-fill-prefix t)
-
-  ;; (setq-local indent-line-function 'happy-indent-line)
   (setq-local require-final-newline t)
   (setq-local comment-start "//")
   (setq-local comment-end "")
   (setq-local comment-column 32)
   (setq-local comment-start-skip "//+ *")
   (setq-local parse-sexp-ignore-comments t)
-  ;; (setq-local selective-display t)
-  ;; (setq-local selective-display-ellipses t)
   (make-local-variable 'block-indent-level)
   (make-local-variable 'auto-fill-hook))
 
