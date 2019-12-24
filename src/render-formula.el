@@ -65,7 +65,7 @@ pnm utils suite.")
 ;;;###autoload
 (defun* render-formula (str &key
                             (point-size 10)
-                            (font-size "normalsize")
+                            (font-size "Large")
                             (foreground-color nil)
                             (background-color nil)
                             (dpi 150))
@@ -172,7 +172,7 @@ pnm utils suite.")
       (if (if +render-formula-use-dvipng+
               (= 0
                  (call-process "dvipng"
-                               nil                ;; infile
+                               nil                  ;; infile
                                conversion-error-buf ;; buffer
                                nil                  ;; display
                                "-T"
@@ -221,27 +221,29 @@ pnm utils suite.")
 displayed as images.")
 
 (defparameter +render-buffer-latex-re+
-  (rx "\$\$"
-      (? "[["
-         ;; command string will be interpreted as follows:
-         ;; it will be read as usual emacs lisp source and evaluated
-         ;;
-         ;; it should evaluate to list of following entries
-         ;; (remove <string>+) - all strings here will be treated as regexps and
-         ;;     will be removed from formula source
-         ;;
-         ;; evaluation context will contain following symbols:
-         ;; comment - regexp with current mode's comments suitable for stripping
-         ;; strip-comments - evaluates to `((remove ,comment)), just for convenience
-         (group
-          (+? (or "\\]]"
-                  "]\\]"
-                  "\\]\\]"
-                  anything)))
-         "]]")
-      (group
-       (+? anything))
-      "\$\$")
+  (rx (or
+       (seq "\\\(" (group-n 2 (+? anything)) "\\\)")
+       (seq "\\\[" (group-n 2 (+? anything)) "\\\]")
+       (seq "\$\$"
+            (? "[["
+               ;; Command string will be interpreted as follows:
+               ;; it will be read as usual emacs lisp source and evaluated
+               ;;
+               ;; It should evaluate to a list of the following entries:
+               ;; - (remove <string>+) - all strings here will be treated as regexps and
+               ;;                        will be removed from formula source
+               ;;
+               ;; Evaluation context will contain following symbols:
+               ;; comment - regexp with current mode's comments suitable for stripping
+               ;; strip-comments - evaluates to `((remove ,comment)), just for convenience
+               (group-n 1
+                        (+? (or "\\]]"
+                                "]\\]"
+                                "\\]\\]"
+                                anything)))
+               "]]")
+            (group-n 2 (+? anything))
+            "\$\$")))
   "Occurrences of regexp in brackets will be removed from formula")
 
 (defun render-buffer-disable-formula (start end)
