@@ -120,6 +120,10 @@ like \"d w\".")
   ("g j"     nil)
   ("g q"     nil))
 
+(def-keys-for-map (vim:normal-mode-keymap
+                   vim:insert-mode-keymap)
+  ("<f4>" vim:render-latex))
+
 ;;; normal mode keybindigs
 
 (def-keys-for-map vim:normal-mode-keymap
@@ -380,7 +384,7 @@ Basically swap current point with previous one."
 (vim:emap "in-bufs" #'vim:apply-to-selected-buffers)
 
 
-(autoload 'render-buffer "render-formula" "" t)
+(autoload 'render-formula-toggle-formulae "render-formula" "" t)
 
 (vim:defcmd vim:render-latex (nonrepeatable)
   (if (memq major-mode '(latex-mode tex-mode LaTeX-mode))
