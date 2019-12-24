@@ -386,7 +386,7 @@ pretty symbol. Intended for use in `font-lock-keywords' and
   (save-excursion
     (when position
       (goto-char position))
-    (or (python-point-inside-string-or-comment?)
+    (or (point-inside-string-or-comment?)
         (memq (get-text-property (point) 'face)
               '(font-lock-comment-face
                 font-lock-string-face))
