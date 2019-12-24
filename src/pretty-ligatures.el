@@ -108,6 +108,30 @@
          (vector '(Bc . Bc) c)))
     (error "No width for character '%s'" c)))
 
+(defconst pretty-ligatures-c-like-symbols
+  (eval-when-compile
+    (let* ((ligs
+            '(("<-"  . #xe100)
+              ("->"  . #xe101)
+              ("=>"  . #xe103)
+              ("=="  . #xe106)
+              ("/="  . #xe107)
+              ("<<"  . #xe111)
+              (">>"  . #xe112)
+              ("<="  . #xe122)
+              (">="  . #xe123)
+              ("||"  . #xe124)
+              ("&&"  . #xe125))))
+      (--map (cons (car it) (pretty-ligatures--make-composition (cdr it))) ligs))))
+
+(defconst pretty-ligatures-python-like-words
+  (eval-when-compile
+    (let ((ligs
+           '(("for" . #xe128)
+             ("in"  . #xe12b))))
+      (--map (cons (car it) (pretty-ligatures--make-composition (cdr it))) ligs)))
+  "Replacements of word with single symbols that work through `prettify-symbols-mode'.")
+
 (defconst pretty-ligatures--symbol-replacements
   (eval-when-compile
     (let* ((ligs
