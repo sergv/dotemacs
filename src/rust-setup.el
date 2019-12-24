@@ -9,6 +9,7 @@
 (require 'common)
 (require 'haskell-compile)
 (require 'indentation)
+(require 'pretty-ligatures)
 (require 'smartparens-rust)
 (require 'smartparens-setup)
 
@@ -109,6 +110,10 @@ warnings will be colorized in `rust-compilation-mode'.")
   ;; Don't skip any messages.
   (setq-local compilation-skip-threshold 0)
   (setq-local compilation-buffer-name-function (lambda (_) rust-compilation-buffer-name))
+
+  (pretty-ligatures--install
+   (append pretty-ligatures-c-like-symbols
+           pretty-ligatures-python-like-words))
 
   (setf vim:shift-width rust-indent-offset
         tab-width rust-indent-offset)
