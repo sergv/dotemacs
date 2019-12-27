@@ -10,6 +10,7 @@
 (require 'haskell-compile)
 (require 'indentation)
 (require 'pretty-ligatures)
+(require 'rust-compilation-commands)
 (require 'smartparens-rust)
 (require 'smartparens-setup)
 
@@ -83,14 +84,6 @@ warnings will be colorized in `rust-compilation-mode'.")
                      "\\([+*|&/!%]\\|-\\|\\^\\)?=[^=]"
                      :require-one-or-more-spaces t)
 
-(vim:defcmd vim:rust-compile (nonrepeatable)
-  (compilation-start
-   (format "%s build --color=always --target-dir=%s"
-           rust-cargo-bin
-           (fold-platform-os-type "/tmp/target" "target"))
-   'rust-compilation-mode
-   (lambda (_mode) rust-compilation-buffer-name)))
-
 (vim:defcmd vim:rust-flycheck-configure (nonrepeatable)
   (flycheck-rust-setup))
 
@@ -114,6 +107,7 @@ warnings will be colorized in `rust-compilation-mode'.")
   (pretty-ligatures--install
    (append pretty-ligatures-c-like-symbols
            pretty-ligatures-python-like-words))
+  (rust-compilation-commands-install!)
 
   (setf vim:shift-width rust-indent-offset
         tab-width rust-indent-offset)
@@ -132,12 +126,9 @@ warnings will be colorized in `rust-compilation-mode'.")
 
   (dolist (cmd '("conf" "configure"))
     (vim:local-emap cmd #'vim:rust-flycheck-configure))
-  (dolist (cmd '("c" "compile"))
-    (vim:local-emap cmd #'vim:rust-compile))
 
   (flycheck-install-ex-commands!
-   :install-flycheck flycheck-mode
-   :compile-func #'vim:rust-compile)
+   :install-flycheck flycheck-mode)
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("g h" rust-end-of-defun)
@@ -164,8 +155,6 @@ warnings will be colorized in `rust-compilation-mode'.")
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
-    (("C-m" "<f9>")    vim:rust-compile)
-
     ("C-t"             flycheck-enhancements-previous-error-with-wraparound)
     ("C-h"             flycheck-enhancements-next-error-with-wraparound)
     ("M-t"             rust-compilation-prev-error-other-window)
