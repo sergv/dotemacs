@@ -15,11 +15,13 @@
 (require 'company-eproj)
 (require 'company-mode-setup)
 (require 'compilation-setup)
+(require 'configurable-compilation)
 (require 'dante)
 (require 'dante-repl)
 (require 'eproj)
 (require 'flycheck-setup)
 (require 'haskell-abbrev+)
+(require 'haskell-compilation-commands)
 (require 'haskell-misc)
 (require 'haskell-outline)
 (require 'haskell-tags-server)
@@ -58,11 +60,6 @@
                           ghc-core-program-args))
             ghc-core-program-args)))
     (ghc-core-create-core current-prefix-arg)))
-
-(vim:defcmd vim:haskell-compile (nonrepeatable)
-  (haskell-start-compilation nil))
-(vim:defcmd vim:haskell-compile-choosing-command (nonrepeatable)
-  (haskell-start-compilation t))
 
 (vim:defcmd vim:haskell-dante-load-file-into-repl (nonrepeatable)
   (dante-repl-load-file))
@@ -180,6 +177,7 @@
 
     (pretty-ligatures-install!)
     (pretty-ligatures-install-special-haskell-ligatures!)
+    (haskell-compilation-commands-install!)
 
     (haskell-watch-register-current-buffer!)
     (setq-local flycheck-enhancements--get-project-root-for-current-buffer
@@ -288,15 +286,12 @@
 
     (flycheck-install-ex-commands!
      :install-flycheck flycheck-mode
-     :compile-func #'vim:haskell-compile
      :load-func
      (cond
        (dante-mode
         #'vim:haskell-dante-load-file-into-repl)))
 
     (vim:local-emap "core" #'vim:ghc-core-create-core)
-    (dolist (cmd '("cc" "ccompile"))
-      (vim:local-emap cmd #'vim:haskell-compile-choosing-command))
 
     (cond
       (dante-mode
@@ -359,8 +354,7 @@
       ("S-<tab>"         nil)
       ("<S-iso-lefttab>" nil)
       ("<return>"        haskell-newline-with-signature-expansion)
-      ("C-<return>"      haskell--simple-indent-newline-indent)
-      (("C-m" "<f9>")    haskell-start-compilation))
+      ("C-<return>"      haskell--simple-indent-newline-indent))
 
     (haskell-define-align-bindings! vim:visual-mode-local-keymap)
 
@@ -600,17 +594,13 @@
   (init-common :use-comment t :use-yasnippet t)
   (setq-local yas-indent-line 'fixed)
   (haskell-setup-folding)
+  (haskell-compilation-commands-install!)
   (fontify-merge-markers)
   (modify-syntax-entry ?. "_")
   (setup-indent-size 2)
   (setq-local indent-line-function
               (lambda ()
                 (indent-to standard-indent)))
-
-  (vim:local-emap "compile"  'vim:haskell-compile)
-  (vim:local-emap "c"        'vim:haskell-compile)
-  (vim:local-emap "ccompile" 'vim:haskell-compile-choosing-command)
-  (vim:local-emap "cc"       'vim:haskell-compile-choosing-command)
 
   (bind-tab-keys #'tab-to-tab-stop
                  #'tab-to-tab-stop-backward
@@ -621,7 +611,6 @@
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
-    (("C-m" "<f9>") haskell-start-compilation)
     ("<return>"     haskell--simple-indent-newline-same-col)
     ("C-<return>"   haskell--simple-indent-newline-indent)))
 
