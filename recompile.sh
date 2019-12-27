@@ -112,6 +112,7 @@ update-dir-autoloads \
     "src/latex" \
     "src/lisp" \
     "src/python" \
+    "src/rust" \
     "src/shell" \
     "third-party/async" \
     "third-party/attrap" \
