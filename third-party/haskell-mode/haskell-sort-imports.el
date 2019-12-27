@@ -57,7 +57,8 @@ within that region."
         (haskell-sort-imports-goto-group-start))
       (let* ((start (point))
              (imports (haskell-sort-imports-collect-imports))
-             (sorted (sort (cl-copy-list imports)
+             (sorted (sort (remove-duplicates-hashing imports
+                                                      #'equal)
                            (lambda (a b)
                              (string< (haskell-sort-imports-normalize a)
                                       (haskell-sort-imports-normalize b))))))
@@ -85,7 +86,7 @@ within that region."
         (goto-char (min (1+ (cdr points))
                         (point-max)))
         (setq imports (cons string imports))))
-    (reverse (delq nil (delete-dups imports)))))
+    (nreverse imports)))
 
 (defun haskell-sort-imports-goto-group-start ()
   "Go to the start of the import group."
