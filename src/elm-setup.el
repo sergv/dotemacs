@@ -140,8 +140,9 @@
 
   (flycheck-install-ex-commands!
    :install-flycheck t
-   :compile-func #'vim:elm-compile
    :load-func #'vim:elm-load-file)
+  (dolist (cmd '("c" "compile"))
+    (vim:local-emap cmd #'vim:elm-compile))
   (haskell-setup-folding)
 
   (def-keys-for-map vim:normal-mode-local-keymap
