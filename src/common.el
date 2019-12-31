@@ -163,26 +163,25 @@ of random numbers from RANDOM-GEN."
                           "\\)\\(?:/\\|$\\)")
                   filepath))
 
-(defun read-and-insert-filename (&optional nondir-only?)
-  "Read filename with completion from user and insert it at point.
-Of course directory names are also supported.
-
-If NONDIR-ONLY? is specified then insert only nondirectory part will be
-inserted."
+(defun read-and-insert-filename (&optional abs-path?)
+  "Read filename with completion and insert it at point. If ABS-PATH? is true
+then insert absolute filepath, otherwise insert one relative to the current
+`default-directory'. If `default-directory' is nil then insert absolute anyway."
   (interactive "P")
-  (let* ((path (funcall (if nondir-only?
-                            (comp #'file-name-nondirectory
-                                  #'strip-trailing-slash)
-                          #'identity)
-                        (expand-file-name
-                         (read-file-name
-                          ""
-                          nil
-                          ""
-                          nil
-                          nil
-                          (lambda (x) (or (file-directory-p x)
-                                     (file-exists-p x)))))))
+  (let* ((abs-path
+          (expand-file-name
+           (read-file-name
+            ""
+            nil
+            ""
+            nil
+            nil
+            (lambda (x) (or (file-directory-p x)
+                       (file-exists-p x))))))
+         (path (if (and default-directory
+                        (not abs-path?))
+                   (file-relative-name abs-path default-directory)
+                 abs-path))
          (output (if (and (eq major-mode 'org-mode)
                           (y-or-n-p "Insert link? "))
                      (concat "[[file:"
