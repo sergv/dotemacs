@@ -136,19 +136,19 @@ Prioritize directories unless they're invisible."
           (funcall cmp-dir))))))
 
 (def-keys-for-map ivy-minibuffer-map
-  ("C-h"        ivy-next-history-element)
-  ("C-t"        ivy-previous-history-element)
-  ("C-p"        vim:cmd-paste-before)
-  ("M-p"        browse-kill-ring)
-  ("C-w"        backward-delete-word)
-  ("C-S-w"      backward-delete-word*)
+  (("C-h" "<C-up>")   ivy-next-history-element)
+  (("C-t" "<C-down>") ivy-previous-history-element)
+  ("C-p"              vim:cmd-paste-before)
+  ("M-p"              browse-kill-ring)
+  ("C-w"              ivy-backward-kill-word)
+  ("C-S-w"            backward-delete-word*)
 
-  ("C-v"        set-mark-command)
-  ("C-y"        copy-region-as-kill)
-  ("C-d"        kill-region)
+  ("C-v"              set-mark-command)
+  ("C-y"              copy-region-as-kill)
+  ("C-d"              kill-region)
 
-  ("C-SPC"      delete-minibuffer-contents)
-  ("<C-return>" ivy-immediate-done))
+  ("C-SPC"            delete-minibuffer-contents)
+  ("<C-return>"       ivy-immediate-done))
 
 (provide 'completion-setup)
 
