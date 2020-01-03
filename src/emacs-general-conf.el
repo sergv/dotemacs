@@ -91,7 +91,12 @@
       undo-outer-limit (* 32 1024 1024)
       undo-strong-limit (* 256 1024 1024)
 
-      require-final-newline t
+      ;; Final newline requirement is for C89 or earlier programs that
+      ;; for some reason cannot figure out how to safely read lines
+      ;; from a file. Perhaps it’s time to replace those programs
+      ;; rather than perpetuate this lunacy.
+      require-final-newline nil
+
       inhibit-startup-message t
       inhibit-startup-screen t
       frame-title-format '("%f")
