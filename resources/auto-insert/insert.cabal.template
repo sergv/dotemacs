@@ -45,13 +45,16 @@ common ghc-options
       -Wincomplete-record-updates
       -Wincomplete-uni-patterns
       -Wmissing-exported-signatures
+      -Wredundant-constraints
   if impl(ghc >= 8.2)
     ghc-options:
       -Wcpp-undef
       -Wmissing-home-modules
       -Wunbanged-strict-patterns
-  ghc-prof-options:
-    -fprof-auto
+  if impl(ghc >= 8.4)
+    ghc-options:
+      -Wmissing-export-lists
+      -Wpartial-fields
 
 library
   import: ghc-options
