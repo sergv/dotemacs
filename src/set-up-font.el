@@ -50,27 +50,48 @@
       "-monotype-Courier New-normal-normal-normal-*-17-*-*-*-m-0-iso10646-1")))
   "List of fonts from best to worst availabse on the system.")
 
-(let* ((font (car +emacs-fonts+))
-       (width (display-pixel-width))
-       (height (display-pixel-height))
-       (font-scaling
-        (cond
-          ((and (<= 3840 width)
-                (<= 2160 height))
-           120)
-          (t
-           100))))
-  (cl-assert (font-exist? font) nil "Font does not exist: %s" font)
-  (set-frame-font font)
+(defvar current-font (car +emacs-fonts+))
 
-  (set-face-attribute 'default nil :height font-scaling)
+(cl-assert (font-exist? current-font) nil "Font does not exist: %s" current-font)
+(set-frame-font current-font)
 
-  (add-hook 'after-make-frame-functions
-            (lambda (new-frame)
-              (set-frame-font font nil (list new-frame))
-              (set-face-attribute 'default new-frame :height font-scaling))))
+(defvar current-font-scaling nil)
 
-;; set default font for all unicode characters
+(defun get-default-font-scaling ()
+  "Come up with a reasonable font scaling based on screen resolution."
+  (let* ((width (display-pixel-width))
+         (height (display-pixel-height)))
+    (cond
+      ((and (<= 3840 width)
+            (<= 2160 height))
+       (fold-platform-os-type 150 120))
+      (t
+       100))))
+
+(defun setup-frames-font ()
+  (set-frame-font current-font nil (frame-list))
+  (set-face-attribute 'default
+                      nil
+                      :height
+                      (or current-font-scaling
+                          (get-default-font-scaling))))
+
+(setup-frames-font)
+
+(defun update-font-scaling (&optional new-scaling)
+  "Set up font scaling for current frame. If NEW-SCALING is specified then
+use that, otherwise either use past specified value or a reasonable default."
+  (interactive "P")
+  (let ((effective-scaling
+         (or new-scaling
+             current-font-scaling
+             (get-default-font-scaling))))
+    (when new-scaling
+      (setf current-font-scaling new-scaling))
+    (dolist (frame (frame-list))
+      (set-face-attribute 'default nil :height effective-scaling))))
+
+;; Set default font for all unicode characters.
 
 (defconst +dejavu-sans-mono-font+ "DejaVu Sans Mono")
 
