@@ -17,11 +17,9 @@
 (defun eproj-tests/non-special-files (path)
   "Construct list of non-special files (i.e. that typically would be under version control)
 under ROOT directory."
-  (-filter (comp #'not
-                 (partial-first #'member '(".gitignore" ".eproj-info"))
-                 #'file-name-nondirectory)
-           (-filter (comp #'not #'file-directory?)
-                    (directory-files path t directory-files-no-dot-files-regexp))))
+  (--filter (not (member (file-name-nondirectory t) '(".gitignore" ".eproj-info")))
+            (--filter (not (file-directory? it))
+                      (directory-files path t directory-files-no-dot-files-regexp))))
 
 (defun eproj-tests/normalize-file-list (items)
   (cl-assert (-all? #'stringp items)
@@ -29,7 +27,7 @@ under ROOT directory."
              "Expected a list of strings but got: %s"
              items)
   (remove-duplicates-sorted
-   (sort (-map (comp #'strip-trailing-slash #'expand-file-name) items) #'string<)
+   (sort (--map (strip-trailing-slash (expand-file-name it)) items) #'string<)
    #'string=))
 
 (defun eproj-tests/normalize-string-list (items)

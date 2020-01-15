@@ -146,11 +146,11 @@ runtime but rather will be silently relied on)."
           (eproj--resolve-to-abs-path (eproj-tag/file tag)
                                       (eproj-project/root proj))
         (save-excursion
-          (goto-line1 (eproj-tag/line tag))
+          (goto-line-dumb (eproj-tag/line tag))
           (eproj/haskel-extract-block)
           ;; alternative implementation with regexps
           ;; (save-match-data
-          ;;   (goto-line1 (eproj-tag/line tag))
+          ;;   (goto-line-dumb (eproj-tag/line tag))
           ;;   (if (looking-at "^\\([^ \t\n\r\f\v].* ::\\(?: .*\n\\|\n\\)\\(?:^[ \t]+.+\n\\)*\\)")
           ;;     (match-string-no-properties 1)
           ;;     (current-line)))

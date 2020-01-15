@@ -6,6 +6,14 @@
 ;; Created: 15 April 2017
 ;; Description:
 
+;;;###autoload
+(defun setup-indent-size (width)
+  (declare (pure nil) (side-effect-free nil))
+  (setq-local vim:shift-width width)
+  (setq-local standard-indent width)
+  (setq-local tab-width width)
+  (setq-local tab-always-indent t))
+
 (defconst +buffer-indent-temporary-filename+
   (concat temporary-file-directory "/indent-buffer.tmp")
   "Path to temporary file reserved for buffer indentation puproses.
