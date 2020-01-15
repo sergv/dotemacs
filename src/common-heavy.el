@@ -934,6 +934,41 @@ to deleted items. ITEMS will be mutated in order to obtain result."
           (forward-line -1)
           nil)))))
 
+;; (defun circular-text-property-jump-forward (property value jump-to-end)
+;;   "Jump forward between text property PROPERTY with value VALUE with wraparound."
+;;   ;; (search-property 'forward t property value)
+;;   (search-property-forward property
+;;                            value
+;;                            'cycle
+;;                            t ;; no error
+;;                            )
+;;   (when jump-to-end
+;;     (let ((change-pos (next-single-property-change
+;;                        (point)
+;;                        ,property
+;;                        (current-buffer)
+;;                        (point-max))))
+;;       (if change-pos
+;;           (goto-char change-pos)
+;;         (goto-char (point-max))))))
+;;
+;; (defun circular-text-property-jump-backward (property value jump-to-end)
+;;   "Jump backward between text property PROPERTY with value VALUE with wraparound."
+;;   (search-property-backward property
+;;                             value
+;;                             'cycle
+;;                             t)
+;;   ;; (search-property 'backward t property value)
+;;   (when jump-to-end
+;;     (let ((change-pos (next-single-property-change
+;;                        (point)
+;;                        ,property
+;;                        (current-buffer)
+;;                        (point-max))))
+;;       (if change-pos
+;;           (goto-char change-pos)
+;;         (goto-char (point-max))))))
+
 (provide 'common-heavy)
 
 ;; Local Variables:

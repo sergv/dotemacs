@@ -52,7 +52,7 @@ with locking over LOCK-VAR"
 returns in major modes from list MODES. Do nothing if MODES is empty.
 Also perform synchronization such that no retursive calls of EXPAND-FUNC
 will be possible."
-  (let ((adv-name (util/make-joined-name func "-expand-on-search"))
+  (let ((adv-name (string->symbol (concat (symbol->string func) "-expand-on-search")))
         (mode-list (-flatten
                     (util/eval-if-symbol modes))))
     (when (not (null? mode-list))
@@ -73,7 +73,7 @@ But in case of non-nil prefix-arg no comment will be inserted.
 
 Intended to be used with comment-util-mode."
   `(defadvice ,func (around
-                     ,(util/make-joined-name func "-auto-comment")
+                     ,(string->symbol (concat (symbol->string func) "-auto-comment"))
                      activate
                      compile)
      (let* ((comment-line-regexp (when *comment-util-current-format*
