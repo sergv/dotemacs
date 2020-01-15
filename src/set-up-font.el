@@ -64,7 +64,7 @@
     (cond
       ((and (<= 3840 width)
             (<= 2160 height))
-       (fold-platform-os-type 150 120))
+       120)
       (t
        100))))
 
