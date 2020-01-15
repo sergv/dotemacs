@@ -125,11 +125,13 @@
     (when switch
       (pop-to-buffer inferior-octave-buffer t))))
 
+(defun octave-jump-to-next-prompt ()
+  (interactive)
+  (circular-jump-forward inferior-octave-prompt nil))
 
-(define-circular-jumps
-    octave-jump-to-next-prompt
-    octave-jump-to-prev-prompt
-  inferior-octave-prompt)
+(defun octave-jump-to-prev-prompt ()
+  (interactive)
+  (circular-jump-backward inferior-octave-prompt nil))
 
 ;;;
 
@@ -199,10 +201,12 @@
       eol))
 
 ;; error-specific jumps
-(define-circular-jumps
-    octave-jump-to-next-error
-    octave-jump-to-prev-error
-  +octave-repl-error-regexp+)
+(defun octave-jump-to-next-error ()
+  (interactive)
+  (circular-jump-forward +octave-repl-error-regexp+ nil))
+(defun octave-jump-to-prev-error ()
+  (interactive)
+  (circular-jump-backward +octave-repl-error-regexp+ nil))
 
 (defun octave--extract-group-bounds (group-nums)
   "Extract (beginning . end) pair of first non-nil group match by re by group

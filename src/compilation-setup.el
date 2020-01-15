@@ -43,19 +43,24 @@ in compilation or related buffers")
 
 
 (defun compilation--apply-ansi-colours-filter (f proc string)
+  "Turn ANSI colour codes into colourful text!"
   (funcall f proc (xterm-color-filter string)))
 
 (advice-add 'compilation-filter :around #'compilation--apply-ansi-colours-filter)
 
-;;;###autoload (autoload 'compilation-jump-to-next-error "compilation-setup" nil t)
-;;;###autoload (autoload 'compilation-jump-to-prev-error "compilation-setup" nil t)
-(define-circular-jumps
-    compilation-jump-to-next-error
-    compilation-jump-to-prev-error
-  *compilation-jump-error-regexp*
-  :init
+;;;###autoload
+(defun compilation-jump-to-next-error ()
+  (interactive)
   (unless (compilation-buffer-p (current-buffer))
-    (error "Not in a compilation buffer")))
+    (error "Not in a compilation buffer"))
+  (circular-jump-forward *compilation-jump-error-regexp* nil))
+
+;;;###autoload
+(defun compilation-jump-to-prev-error ()
+  (interactive)
+  (unless (compilation-buffer-p (current-buffer))
+    (error "Not in a compilation buffer"))
+  (circular-jump-backward *compilation-jump-error-regexp* nil))
 
 ;;; compilation info
 

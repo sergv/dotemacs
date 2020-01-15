@@ -821,11 +821,13 @@ both unicode and ascii characters.")
         (haskell-session-set session 'next-error-region nil)
         (haskell-session-set session 'next-error-locus nil)))))
 
-(define-circular-jumps
-    haskell-interactive-jump-to-next-prompt
-    haskell-interactive-jump-to-prev-prompt
-  (haskell-interactive-prompt-regex)
-  :jump-to-end t)
+(defun haskell-interactive-jump-to-next-prompt ()
+  (interactive)
+  (circular-jump-forward (haskell-interactive-prompt-regex) t))
+
+(defun haskell-interactive-jump-to-prev-prompt ()
+  (interactive)
+  (circular-jump-forward (haskell-interactive-prompt-regex) t))
 
 (defun haskell--ghci-hyphen (&optional prefix)
   "Version of `haskell-smart-operators-hyphen' for ghci."
