@@ -10,9 +10,6 @@
   (require 'cl-lib)
   (require 'subr-x))
 
-(defun util/make-joined-name (orig-symbol suffix-str &optional prefix-str)
-  (intern (concat prefix-str (symbol-name orig-symbol) suffix-str)))
-
 (defmacro util/eval-if-symbol (x)
   "Evaluate x if it's symbos. Intended to be used inside defmacro."
   `(if (symbolp ,x)
@@ -209,64 +206,6 @@ BODY if it returns nil."
              (let ((,value-var (progn ,@body)))
                (puthash ,cache-arg-var ,value-var ,cache-var)
                ,value-var)))))))
-
-;;; circular jumps
-
-(defmacro* define-circular-prompt-property-jumps (forward-name
-                                                  backward-name
-                                                  property
-                                                  value
-                                                  &key
-                                                  (init nil)
-                                                  (move-to-property-end t))
-  "Define two functions, FORWARD-NAME and BACKWARD-NAME to perform
-jumps over text property PROPERTY with value VALUE with wraparound in
-current buffer. INIT form will be executed before performing any jumps."
-  `(progn
-     (defun ,forward-name ()
-       "Jump forward between prompts with wraparound."
-       (interactive)
-       ,init
-       ;; (search-property 'forward
-       ;;                  t
-       ;;                  ,property
-       ;;                  ,value)
-       (search-property-forward ,property
-                                ,value
-                                'cycle
-                                t ;; no error
-                                )
-       ,(when move-to-property-end
-          '(let ((change-pos (next-single-property-change
-                              (point)
-                              'field
-                              (current-buffer)
-                              (point-max))))
-             (if change-pos
-                 (goto-char change-pos)
-               (goto-char (point-max))))))
-
-     (defun ,backward-name ()
-       "Jump backward between prompts with wraparound."
-       (interactive)
-       ,init
-       (search-property-backward ,property
-                                 ,value
-                                 'cycle
-                                 t)
-       ;; (search-property 'backward
-       ;;                  t
-       ;;                  ,property
-       ;;                  ,value)
-       ,(when move-to-property-end
-          '(let ((change-pos (next-single-property-change
-                              (point)
-                              'field
-                              (current-buffer)
-                              (point-max))))
-             (if change-pos
-                 (goto-char change-pos)
-               (goto-char (point-max))))))))
 
 ;;; other macros
 
