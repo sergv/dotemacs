@@ -27,16 +27,13 @@ See also `+buffer-indent-temporary-filename+'.")
       (insert ?\s))))
 
 ;;;###autoload
-(defun util/reindent-file (filename)
+(defun reindent-file-noninteractive (filename)
   "Load FILENAME contents, try to infer mode for it, reindent according
 to mode and write new contents back to FILENAME."
   (with-temp-buffer
     (insert-file-contents filename)
     (let ((buffer-file-name filename))
       (normal-mode)
-      (when (memq major-mode '(fundamental-mode
-                               text-mode))
-        (error "cannot reliably infer mode for file %s" filename))
       (vim:indent)
       (write-region (point-min) (point-max) filename))))
 
