@@ -1875,9 +1875,10 @@ are CHAR1 and CHAR2 repsectively."
 ;;
 
 (defun shell-command-on-region-and-replace (start end command
-                                                  &optional output-buffer replace
+                                                  &optional output-buffer
                                                   error-buffer display-error-buffer
                                                   region-noncontiguous-p)
+  "Call `shell-command-on-region' with REPLACE set to T."
   (interactive (let (string)
                  (unless (region-active-p)
                    (user-error "Region is not active"))
@@ -1892,10 +1893,11 @@ are CHAR1 and CHAR2 repsectively."
                        current-prefix-arg
                        current-prefix-arg
                        shell-command-default-error-buffer
-                       t
                        (region-noncontiguous-p))))
-
-  )
+  (shell-command-on-region start end command
+                           output-buffer t
+                           error-buffer display-error-buffer
+                           region-noncontiguous-p))
 
 ;;
 
