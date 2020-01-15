@@ -886,6 +886,54 @@ to deleted items. ITEMS will be mutated in order to obtain result."
           (error "File does not exist: %s" filename))
       (error "Failed to find a file ptah around point"))))
 
+;;;
+
+;;;###autoload
+(defun circular-jump-forward (regex jump-to-end)
+  "Jump forward between regexp matches with wraparound."
+  (let ((found? nil)
+        (orig-pos (point)))
+    (save-match-data
+      ;; This rather complicated check checks for case of first prompt in
+      ;; the buffer.
+      (when (or (= 1 (forward-line 1))
+                (eobp)
+                (progn
+                  (beginning-of-line)
+                  (not (setf found? (re-search-forward regex nil t)))))
+        (goto-char (point-min))
+        (setf found? (re-search-forward regex nil t)))
+      (if found?
+          (progn
+            (goto-char (if jump-to-end (match-end 0) (match-beginning 0)))
+            t)
+        (progn
+          (goto-char orig-pos)
+          (forward-line 1)
+          nil)))))
+
+;;;###autoload
+(defun circular-jump-backward (regex jump-to-end)
+  "Jump backward between regexp matches with wraparound."
+  (let ((found? nil)
+        (orig-pos (point)))
+    (save-match-data
+      (when (or (= -1 (forward-line -1))
+                (bobp)
+                (progn
+                  (end-of-line)
+                  (not (setf found? (re-search-backward regex nil t)))))
+        (goto-char (point-max))
+        (setf found? (re-search-backward regex nil t)))
+      (if found?
+          (progn
+            (goto-char (if jump-to-end (match-end 0) (match-beginning 0)))
+            t)
+        (progn
+          (goto-char orig-pos)
+          (forward-line -1)
+          nil)))))
+
 (provide 'common-heavy)
 
 ;; Local Variables:
