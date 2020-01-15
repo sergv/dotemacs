@@ -116,7 +116,7 @@ as accepted by `bounds-of-thing-at-point'.")
     file))
 
 (defun eproj-symbnav/locate-tag-in-current-buffer (tag-name tag)
-  (goto-line1 (eproj-tag/line tag))
+  (goto-line-dumb (eproj-tag/line tag))
   (save-match-data
     (when (re-search-forward (regexp-quote tag-name)
                              (line-end-position)
