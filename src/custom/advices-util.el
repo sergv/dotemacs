@@ -45,9 +45,9 @@ with locking over LOCK-VAR"
 
 ;;;
 
-(defvar defadvice:expand-on-search-lock nil)
+(defvar make-advice-expand-on-search--lock nil)
 
-(defmacro defadvice:expand-on-search (func expand-func &optional modes)
+(defmacro make-advice-expand-on-search (func expand-func &optional modes)
   "Define expand-on-search advice that will call EXPAND-FUNC after FUNC
 returns in major modes from list MODES. Do nothing if MODES is empty.
 Also perform synchronization such that no retursive calls of EXPAND-FUNC
@@ -59,7 +59,7 @@ will be possible."
       `(make-light-synchronizing-advice
         ,func
         ,adv-name
-        defadvice:expand-on-search-lock
+        make-advice-expand-on-search--lock
         (memq major-mode ',mode-list)
         ,expand-func))))
 
