@@ -451,7 +451,7 @@ Highlighting starts at the beginning of buffer")
                           search-for-symbol-at-point-backward
                           search-for-word-at-point-forward
                           search-for-word-at-point-backward)
-         collect `(defadvice:expand-on-search ,command ,expand-command ,modes))))
+         collect `(make-advice-expand-on-search ,command ,expand-command ,modes))))
 
 ;;;
 
