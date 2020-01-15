@@ -524,16 +524,16 @@ has been pressed."
           (motion (cond
                     ((and start-line end-line)
                      (vim:make-motion :begin (save-excursion
-                                               (goto-line1 start-line)
+                                               (goto-line-dumb start-line)
                                                (line-beginning-position))
                                       :end (save-excursion
-                                             (goto-line1 end-line)
+                                             (goto-line-dumb end-line)
                                              (line-beginning-position))
                                       :has-begin t
                                       :type 'linewise))
                     (start-line
                      (let ((beg-pos (save-excursion
-                                      (goto-line1 start-line)
+                                      (goto-line-dumb start-line)
                                       (line-beginning-position))))
                        (vim:make-motion :begin beg-pos
                                         :end beg-pos
@@ -696,7 +696,7 @@ the offset and the new position."
       (setq start (vim:ex-get-line start)))
     (when (and sep end)
       (save-excursion
-        (when (= sep ?\;) (goto-line1 start))
+        (when (= sep ?\;) (goto-line-dumb start))
         (setq end (vim:ex-get-line end))))
     (values start end)))
 
@@ -709,7 +709,7 @@ the offset and the new position."
        (let ((line (vim:ex-get-line (car address))))
          (when line
            (save-excursion
-             (goto-line1 line)
+             (goto-line-dumb line)
              (vim:ex-get-line (cdr address))))))
       (t
        (+ offset

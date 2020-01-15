@@ -12,7 +12,7 @@
   (interactive "p")
   (vim:save-position)
   (if count
-      (goto-line1 count)
+      (goto-line-dumb count)
     (goto-char (point-min)))
   (skip-to-indentation))
 

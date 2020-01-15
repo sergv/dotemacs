@@ -14,7 +14,7 @@
   (interactive "*p")
   (setf count (or count 1))
   (let ((col (current-column))
-        (line (count-lines1 (point-min) (point))))
+        (line (count-lines-dumb (point-min) (point))))
     (if (= 0 col)
         (backward-delete-char count)
       (destructuring-bind (function-applied? . at-indentation?)
@@ -27,7 +27,7 @@
                  (delete-char count)))))
         (if function-applied?
             (progn
-              (goto-line1 line)
+              (goto-line-dumb line)
               (if at-indentation?
                   (skip-to-indentation)
                 (move-to-column (max 0 (- col count)))))
@@ -38,7 +38,7 @@
   (interactive "*p")
   (setf count (or count 1))
   (let ((col (current-column))
-        (line (count-lines1 (point-min) (point))))
+        (line (count-lines-dumb (point-min) (point))))
     (destructuring-bind
         (function-applied? . at-indentation?)
         (let ((inhibit-modification-hooks t))
@@ -49,7 +49,7 @@
                (insert-char ?\s)))))
       (if function-applied?
           (progn
-            (goto-line1 line)
+            (goto-line-dumb line)
             (if at-indentation?
                 (skip-to-indentation)
               (move-to-column (+ col count))))

@@ -490,7 +490,7 @@ commented parts and leave point unchanged."
                (cl-assert (comment-util--on-commented-line?)
                           nil
                           "line number: %s;\nline: %s;\nprevious line: %s"
-                          (count-lines1 (point-min) (point))
+                          (count-lines-dumb (point-min) (point))
                           (current-line)
                           (save-excursion
                             (forward-line dir)
