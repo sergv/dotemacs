@@ -282,7 +282,7 @@ e.g. shell prompt.."
   "Moves the cursor to the first non-blank character of line count."
   (vim:save-position)
   (if count
-      (goto-line1 count)
+      (goto-line-dumb count)
     (goto-char (point-min)))
   (skip-to-indentation))
 
@@ -290,7 +290,7 @@ e.g. shell prompt.."
   "Moves the cursor to the first non-blank character of line count."
   (vim:save-position)
   (if count
-      (goto-line1 count)
+      (goto-line-dumb count)
     (goto-char (max
                 (1- (point-max))
                 (point-min))))

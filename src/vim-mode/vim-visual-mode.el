@@ -169,10 +169,10 @@
   (if vim:visual-reactivate-last-region
       (progn
         (set-mark (save-excursion
-                    (goto-line1 (car vim:visual-last-begin))
+                    (goto-line-dumb (car vim:visual-last-begin))
                     (move-to-column (cdr vim:visual-last-begin))
                     (point)))
-        (goto-line1 (car vim:visual-last-end))
+        (goto-line-dumb (car vim:visual-last-end))
         (move-to-column (cdr vim:visual-last-end))
         (setq vim:visual-reactivate-last-region nil))
     (set-mark (point)))
@@ -235,11 +235,11 @@
         vim:visual-last-end (cons (line-number-at-pos (point))
                                   (current-column)))
   (vim:set-mark ?< (save-excursion
-                     (goto-line1 (car vim:visual-last-begin))
+                     (goto-line-dumb (car vim:visual-last-begin))
                      (move-to-column (cdr vim:visual-last-begin))
                      (point)))
   (vim:set-mark ?> (save-excursion
-                     (goto-line1 (car vim:visual-last-end))
+                     (goto-line-dumb (car vim:visual-last-end))
                      (move-to-column (cdr vim:visual-last-end))
                      (point)))
 
@@ -507,7 +507,7 @@ This function is also responsible for setting the X-selection."
 (defun vim:visual-start-insert (insert-info)
   "Starts a new multi-line insert operation with `insert-info'."
   (setq vim:visual-last-insert-info insert-info)
-  (goto-line1 (vim:visual-insert-info-first-line insert-info))
+  (goto-line-dumb (vim:visual-insert-info-first-line insert-info))
   (move-to-column (vim:visual-insert-info-column insert-info) t)
   (pcase vim:visual-mode-type
     (`block
@@ -532,7 +532,7 @@ This function is also responsible for setting the X-selection."
         (endrow (vim:visual-insert-info-last-line vim:visual-last-insert-info)))
     (save-excursion
       (dotimes (i (- endrow begrow))
-        (goto-line1 (+ begrow i 1))
+        (goto-line-dumb (+ begrow i 1))
         (when (>= (save-excursion
                     (end-of-line)
                     (current-column))
@@ -547,9 +547,9 @@ This function is also responsible for setting the X-selection."
   (let ((begrow (vim:visual-insert-info-first-line vim:visual-last-insert-info))
         (endrow (vim:visual-insert-info-last-line vim:visual-last-insert-info)))
     (save-excursion
-      (goto-line1 (1+ begrow))
+      (goto-line-dumb (1+ begrow))
       (dotimes (i (- endrow begrow))
-        (goto-line1 (+ begrow i 1))
+        (goto-line-dumb (+ begrow i 1))
         (vim:cmd-repeat))
       (setq vim:last-undo vim:visual-last-insert-undo))))
 
@@ -563,7 +563,7 @@ This function is also responsible for setting the X-selection."
 (defun vim:visual-start-append (insert-info)
   "Starts a new multi-line append operation with `insert-info'."
   (setq vim:visual-last-insert-info insert-info)
-  (goto-line1 (vim:visual-insert-info-first-line insert-info))
+  (goto-line-dumb (vim:visual-insert-info-first-line insert-info))
   (move-to-column (vim:visual-insert-info-column insert-info) t)
   (pcase vim:visual-mode-type
     (`block
@@ -587,7 +587,7 @@ This function is also responsible for setting the X-selection."
         (endcol (vim:visual-insert-info-column vim:visual-last-insert-info))
         (endrow (vim:visual-insert-info-last-line vim:visual-last-insert-info)))
     (save-excursion
-      (goto-line1 (1+ begrow))
+      (goto-line-dumb (1+ begrow))
       (dotimes (i (- endrow begrow))
         (move-to-column (1+ endcol) t) ; extend the newline at the end
         (move-to-column endcol t)

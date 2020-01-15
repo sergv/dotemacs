@@ -558,7 +558,7 @@ buffer if no such buffer exists."
      (haskell-tags-server--extract-haskell-block)
      ;; alternative implementation with regexps
      ;; (save-match-data
-     ;;   (goto-line1 line)
+     ;;   (goto-line-dumb line)
      ;;   (if (looking-at "^\\([^ \t\n\r\f\v].* ::\\(?: .*\n\\|\n\\)\\(?:^[ \t]+.+\n\\)*\\)")
      ;;     (match-string-no-properties 1)
      ;;     (current-line)))

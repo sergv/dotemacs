@@ -68,10 +68,10 @@
                                         (file-name-sans-extension
                                          (file-name-nondirectory
                                           buffer-file-name)))))
-   (list "date"      (partial #'format-time-string
-                              "%e %B %Y"))
-   (list "date year" (partial #'format-time-string
-                              "%Y"))
+   (list "date"      (apply-partially #'format-time-string
+                                      "%e %B %Y"))
+   (list "date year" (apply-partially #'format-time-string
+                                      "%Y"))
    (list "author" (lambda () user-full-name))
    (list "email" (lambda () user-mail-address))
    (list "clojure-path-to-ns"

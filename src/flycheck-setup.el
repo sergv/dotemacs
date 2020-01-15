@@ -174,7 +174,7 @@
                   (awhen (compilation/find-buffer (flycheck-error-filename next-error)
                                                   (funcall flycheck-enhancements--get-project-root-for-current-buffer))
                     (switch-to-buffer it)))
-                (goto-line1 (flycheck-error-line next-error))
+                (goto-line-dumb (flycheck-error-line next-error))
                 (awhen (flycheck-error-column next-error)
                   ;; Flycheck columns are 1-based .
                   (move-to-character-column (- it 1)))

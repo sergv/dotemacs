@@ -189,8 +189,8 @@ more than once"
   (let* ((rgrep-ignore-case ignore-case)
          (user-supplied-files (split-string files))
          (grep-find-ignored-files
-          (remove-if (comp (partial-first #'member user-supplied-files))
-                     grep-find-ignored-files)))
+          (-filter (lambda (x) (not (member x user-supplied-files)))
+                   grep-find-ignored-files)))
     (rgrep regexp files dir current-prefix-arg)))
 
 (add-to-list 'compilation-finish-functions #'grep-set-up-error-regexp)

@@ -191,7 +191,7 @@ and switches to insert-mode."
   "Deletes the characters defined by motion."
   (pcase (vim:motion-type motion)
     (`linewise
-     (goto-line1 (vim:motion-first-line motion))
+     (goto-line-dumb (vim:motion-first-line motion))
      (vim:cmd-delete-line :count (vim:motion-line-count motion)
                           :register register))
 
@@ -223,7 +223,7 @@ and switches to insert-mode."
   "Deletes the characters defined by motion and goes to insert mode."
   (pcase (vim:motion-type motion)
     (`linewise
-     (goto-line1 (vim:motion-first-line motion))
+     (goto-line-dumb (vim:motion-first-line motion))
      (vim:cmd-change-line :count (vim:motion-line-count motion)
                           :register register))
 
@@ -313,7 +313,7 @@ and switches to insert-mode."
   "Saves the characters in motion into the kill-ring."
   (pcase (vim:motion-type motion)
     (`block (vim:cmd-yank-rectangle :motion motion :register register))
-    (`linewise (goto-line1 (vim:motion-first-line motion))
+    (`linewise (goto-line-dumb (vim:motion-first-line motion))
                (vim:cmd-yank-line :count (vim:motion-line-count motion)
                                   :register register))
     (_
@@ -354,7 +354,7 @@ and switches to insert-mode."
         (endrow (vim:motion-last-line motion))
         (endcol (vim:motion-last-col motion))
         (parts nil))
-    (goto-line1 endrow)
+    (goto-line-dumb endrow)
     (dotimes (i (1+ (- endrow begrow)))
       (let ((beg (save-excursion (move-to-column begcol) (point)))
             (end (save-excursion (move-to-column (1+ endcol)) (point))))
@@ -380,7 +380,7 @@ and switches to insert-mode."
         (progn
           (set-register register txt))
         (kill-new-ignoring-duplicates txt)))
-    (goto-line1 begrow)
+    (goto-line-dumb begrow)
     (move-to-column begcol)))
 
 (defun vim:yank-line-handler (text)
@@ -546,7 +546,7 @@ indented according to the current mode."
                          (vim:paste-info-end vim:last-paste))
           (setf (vim:paste-info-end vim:last-paste)
                 (save-excursion
-                  (goto-line1 endln)
+                  (goto-line-dumb endln)
                   (line-beginning-position)))
           (vim:motion-first-non-blank)))))
   (setf (vim:paste-info-command vim:last-paste)
@@ -569,14 +569,14 @@ indented according to the current mode."
                            (1+ (vim:paste-info-end vim:last-paste)))
             (setf (vim:paste-info-end vim:last-paste)
                   (save-excursion
-                    (goto-line1 endln)
+                    (goto-line-dumb endln)
                     (line-end-position))))
           (progn
             (indent-region (vim:paste-info-begin vim:last-paste)
                            (vim:paste-info-end vim:last-paste))
             (setf (vim:paste-info-end vim:last-paste)
                   (save-excursion
-                    (goto-line1 endln)
+                    (goto-line-dumb endln)
                     (line-beginning-position)))))
         (vim:motion-first-non-blank))))
   (setf (vim:paste-info-command vim:last-paste)
@@ -600,13 +600,13 @@ indented according to the current mode."
 
 (vim:defcmd vim:cmd-join (motion)
   "Join the lines covered by `motion'."
-  (goto-line1 (vim:motion-first-line motion))
+  (goto-line-dumb (vim:motion-first-line motion))
   (vim:cmd-join-lines :count (vim:motion-line-count motion)))
 
 (vim:defcmd vim:cmd-shift-left (motion)
   "Shift the lines covered by `motion' leftwards."
   (save-current-line-column
-   (goto-line1 (vim:motion-first-line motion))
+   (goto-line-dumb (vim:motion-first-line motion))
    (indent-rigidly (line-beginning-position)
                    (line-end-position (vim:motion-line-count motion))
                    (- vim:shift-width))))
@@ -614,7 +614,7 @@ indented according to the current mode."
 (vim:defcmd vim:cmd-shift-right (motion)
   "Shift the lines covered by `motion' rightwards."
   (save-current-line-column
-   (goto-line1 (vim:motion-first-line motion))
+   (goto-line-dumb (vim:motion-first-line motion))
    (indent-rigidly (line-beginning-position)
                    (line-end-position (vim:motion-line-count motion))
                    vim:shift-width)))
@@ -654,7 +654,7 @@ block motions."
                 (begcol (vim:motion-first-col motion))
                 (endrow (vim:motion-last-line motion))
                 (endcol (vim:motion-last-col motion)))
-            (goto-line1 begrow)
+            (goto-line-dumb begrow)
             (dotimes (i (1+ (- endrow begrow)))
               (let ((beg (save-excursion
                            (move-to-column begcol)

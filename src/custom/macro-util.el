@@ -445,10 +445,10 @@ of code may be called more than once."
   "Save current line (but not column), execute BODY and go to saved line."
   (declare (indent 0))
   (let ((line-var '#:line))
-    `(let ((,line-var (count-lines1 (point-min) (point))))
+    `(let ((,line-var (count-lines-dumb (point-min) (point))))
        (unwind-protect
            (progn ,@body)
-         (goto-line1 ,line-var)))))
+         (goto-line-dumb ,line-var)))))
 
 (defmacro save-current-line-column (&rest body)
   "Save current line and column, execute BODY and go to saved line and column."
