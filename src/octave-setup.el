@@ -125,6 +125,7 @@
     (when switch
       (pop-to-buffer inferior-octave-buffer t))))
 
+
 (defun octave-jump-to-next-prompt ()
   (interactive)
   (circular-jump-forward inferior-octave-prompt nil))
@@ -259,7 +260,7 @@ in GROUP-NUMS."
       (find-file-other-window filename)
       (vim:save-position)
       (when line
-        (goto-line1 (read line))
+        (goto-line-dumb (read line))
         (when column
           (line-beginning-position)
           (skip-to-indentation)

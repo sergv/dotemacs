@@ -19,10 +19,10 @@ DIRECTION may have value either 'forward or 'backward"
   (setq forward-func (or forward-func '#'forward-line))
   (setq backward-func (or backward-func '#'backward-line))
   `(lambda (count)
-     (let* ((lines-in-buf (count-lines1 (point-min) (point-max)))
+     (let* ((lines-in-buf (count-lines-dumb (point-min) (point-max)))
             (range-end (- lines-in-buf ,end))
             (lines-in-region (- lines-in-buf (+ ,begin ,end)))
-            (current (count-lines1 (point-min) (point))))
+            (current (count-lines-dumb (point-min) (point))))
        (setq count (% count lines-in-region))
        (cond ((or ;; not in cycling range
                (< current ,begin)

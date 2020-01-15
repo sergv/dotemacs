@@ -380,13 +380,13 @@ e.g. whether regexp is malformed, not matched, etc.")
                                ;; first line
                                (if (car-safe vim:ex-range)
                                    (save-excursion
-                                     (goto-line1 (car vim:ex-range))
+                                     (goto-line-dumb (car vim:ex-range))
                                      (line-beginning-position))
                                  (line-beginning-position))
                                ;; last line
                                (if (car-safe vim:ex-range)
                                    (save-excursion
-                                     (goto-line1 (or (cdr vim:ex-range)
+                                     (goto-line-dumb (or (cdr vim:ex-range)
                                                      (car vim:ex-range)))
                                      (line-end-position))
                                  (line-end-position)))
@@ -461,10 +461,10 @@ pattern and replace matches with REPLACEMENT.
             ((vim:pattern-whole-line pattern)
              ;; this one is easy, just use the built in function
              (let ((start (save-excursion
-                            (goto-line1 first-line)
+                            (goto-line-dumb first-line)
                             (line-beginning-position)))
                    (end (save-excursion
-                          (goto-line1 last-line)
+                          (goto-line-dumb last-line)
                           (line-end-position))))
                (perform-replace regex
                                 replacement
@@ -499,9 +499,9 @@ pattern and replace matches with REPLACEMENT.
                                      (setq last-point (point)))
                                    (lambda ()
                                      (let ((end (save-excursion
-                                                  (goto-line1 last-line)
+                                                  (goto-line-dumb last-line)
                                                   (line-end-position))))
-                                       (goto-line1 next-line)
+                                       (goto-line-dumb next-line)
                                        (beginning-of-line)
                                        (when (and (> end (point))
                                                   (re-search-forward regex end t nil))
@@ -512,11 +512,11 @@ pattern and replace matches with REPLACEMENT.
                  ;; just replace the first occurences per line
                  ;; without highlighting and asking
                  (progn
-                   (goto-line1 first-line)
+                   (goto-line-dumb first-line)
                    (beginning-of-line)
                    (while (and (<= (line-number-at-pos (point)) last-line)
                                (re-search-forward regex (save-excursion
-                                                          (goto-line1 last-line)
+                                                          (goto-line-dumb last-line)
                                                           (line-end-position))
                                                   t nil))
                      (incf nreplaced)

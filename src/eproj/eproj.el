@@ -250,26 +250,16 @@
       (eproj--resolve-to-abs-path (eproj-tag/file tag)
                                   (eproj-project/root proj))
     (save-excursion
-      (goto-line1 (eproj-tag/line tag))
+      (goto-line-dumb (eproj-tag/line tag))
       (current-line))))
 
 
 (defun eproj/load-ctags-project (lang-mode proj project-files-thunk parse-tags-proc)
   (with-temp-buffer
-    ;; (when eproj-verbose-tag-loading
-    ;;   (notify "Running ctags for %s in project %s"
-    ;;           lang-mode
-    ;;           (eproj-project/root proj))
-    ;;   (redisplay))
     (eproj/run-ctags-on-files lang-mode
                               (eproj-project/root proj)
                               (eproj-thunk-get-value project-files-thunk)
                               (current-buffer))
-    ;; (when eproj-verbose-tag-loading
-    ;;   (notify "Loading %s tags in project %s"
-    ;;           lang-mode
-    ;;           (eproj-project/root proj)
-    ;;           (redisplay)))
     (prog1 (funcall parse-tags-proc (eproj-project/root proj) (current-buffer))
       (erase-buffer))))
 

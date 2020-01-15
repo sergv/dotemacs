@@ -78,28 +78,28 @@
 (vim:defcmd vim:scroll-line-to-top (count nonrepeatable keep-visual)
   "Scrolls line number `count' (or the cursor line) to the top of the window."
   (vim:use-last-column)
-  (goto-line1 (or count (line-number-at-pos (point))))
+  (goto-line-dumb (or count (line-number-at-pos (point))))
   (recenter 0))
 
 
 (vim:defcmd vim:scroll-line-to-center (count nonrepeatable keep-visual)
   "Scrolls line number `count' (or the cursor line) to the center of the window."
   (vim:use-last-column)
-  (goto-line1 (or count (line-number-at-pos (point))))
+  (goto-line-dumb (or count (line-number-at-pos (point))))
   (recenter nil))
 
 
 (vim:defcmd vim:scroll-line-to-bottom (count nonrepeatable keep-visual)
   "Scrolls line number `count' (or the cursor line) to the bottom of the window."
   (vim:use-last-column)
-  (goto-line1 (or count (line-number-at-pos (point))))
+  (goto-line-dumb (or count (line-number-at-pos (point))))
   (recenter -1))
 
 
 (vim:defcmd vim:scroll-bottom-line-to-top (count nonrepeatable keep-visual)
   "Scrolls the line right below the window or line `count' to the top of the window."
   (if count
-      (goto-line1 count)
+      (goto-line-dumb count)
     (goto-char (window-end))
     (unless (bobp) (backward-char)))
   (recenter 0)
@@ -109,7 +109,7 @@
 (vim:defcmd vim:scroll-top-line-to-bottom (count nonrepeatable keep-visual)
   "Scrolls the line right below the window or line `count' to the top of the window."
   (if count
-      (goto-line1 count)
+      (goto-line-dumb count)
     (goto-char (window-start)))
   (recenter -1)
   (vim:motion-first-non-blank))

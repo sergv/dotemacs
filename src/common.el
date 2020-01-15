@@ -727,9 +727,9 @@ integer list B."
 end of END-LINE in current buffer."
   (declare (pure nil) (side-effect-free t))
   (save-excursion
-    (buffer-substring (progn (goto-line1 start-line)
+    (buffer-substring (progn (goto-line-dumb start-line)
                              (line-beginning-position))
-                      (progn (goto-line1 end-line)
+                      (progn (goto-line-dumb end-line)
                              (line-end-position)))))
 
 ;;;
@@ -752,7 +752,7 @@ end of END-LINE in current buffer."
   "List of file name endings to generally ignore.")
 
 (defconst +version-control-directories+
-  '(".svn" ".git" ".hg" "_darcs")
+  '(".svn" ".git" ".hg" "_darcs" ".pijul")
   "List of directory names used by version-control systems.")
 
 (defconst +ignored-directories+
@@ -1081,19 +1081,20 @@ the current buffer."
 (defun gc-stats ()
   "Do garbage collection and pretty-print results for use in modeline."
   (let* ((stats (garbage-collect))
-         (entry->bytes (lambda (entry)
+         (to-mb (lambda (x) (when x (/ x (* 1024 1024)))))
+         (entry->mb (lambda (entry)
                          (when entry
                            (let ((size (second entry))
                                  (used (third entry)))
-                             (* size used)))))
-         (to-mb (lambda (x) (when x (/ x (* 1024 1024)))))
+                             (funcall to-mb
+                                      (* size used))))))
          ;; (extract-used (lambda (x) (car-safe (cdr-safe (cdr-safe x)))))
-         (bytes-used (-sum (-map entry->bytes stats))))
+         (mbytes-used (-sum (-map entry->mb stats))))
     (format "[%sMb/cons %sMb/vec %sMb/heap %sMb]"
-            (funcall to-mb bytes-used)
-            (funcall (comp to-mb entry->bytes) (assoc 'conses stats))
-            (funcall (comp to-mb entry->bytes) (assoc 'vector-slots stats))
-            (funcall (comp to-mb entry->bytes) (assoc 'heap stats)))))
+            mbytes-used
+            (funcall entry->mb (assoc 'conses stats))
+            (funcall entry->mb (assoc 'vector-slots stats))
+            (funcall entry->mb (assoc 'heap stats)))))
 
 ;;;;
 
@@ -1327,7 +1328,7 @@ further than END-POS."
       (let ((end (point)))
         (buffer-substring-no-properties start end)))))
 
-(defsubst count-lines1 (begin end)
+(defsubst count-lines-dumb (begin end)
   "Return line count in region like `count-lines' but don't
 confuse when point is not at the beginning of line"
   (+ (count-lines begin end)
@@ -1372,86 +1373,12 @@ confuse when point is not at the beginning of line"
         (replace-regexp-in-string "[ \t\v\f\n\r]*\\'" "" s)))))
 
 
-(defsubst goto-line1 (line)
+(defsubst goto-line-dumb (line)
   "Set point at the beginning of line LINE counting from line 1 at
 beginning of buffer. Does not cause \"Scan error: \"Unbalanced parentheses\"\" as
 `goto-line' does."
   (goto-char (point-min))
   (forward-line (1- line)))
-
-;;;;
-
-;; Originally from stevey, adapted to support moving to a new directory.
-(defun rename-file-and-buffer (new-name)
-  "Renames both current buffer and file it's visiting to NEW-NAME."
-  (interactive
-   (progn
-     (unless buffer-file-name
-       (error "Buffer '%s' is not visiting a file" (buffer-name)))
-     (list (read-file-name (format "Rename %s to: " (file-name-nondirectory
-                                                     buffer-file-name))))))
-  (when (equal new-name "")
-    (error "Aborted rename"))
-  (setq new-name (if (file-directory-p new-name)
-                     (expand-file-name (file-name-nondirectory buffer-file-name)
-                                       new-name)
-                   (expand-file-name new-name)))
-  ;; If the file isn't saved yet, skip the file rename, but still update the
-  ;; buffer name and visited file.
-  (when (file-exists-p buffer-file-name)
-    (rename-file buffer-file-name new-name 1))
-  (let ((was-modified (buffer-modified-p)))
-    ;; This also renames the buffer, and works with uniquify
-    (set-visited-file-name new-name)
-    (if was-modified
-        (save-buffer)
-      ;; Clear buffer-modified flag caused by set-visited-file-name
-      (set-buffer-modified-p nil))
-    (message "Renamed to %s" new-name)))
-
-(defun copy-file-and-open (new-name)
-  "Copy current file to NEW-NAME and open it."
-  (interactive
-   (progn
-     (unless buffer-file-name
-       (error "Buffer '%s' is not visiting a file" (buffer-name)))
-     (list (read-file-name (format "Copy %s to: " (file-name-nondirectory
-                                                   buffer-file-name))))))
-  (when (equal new-name "")
-    (error "Aborted copy"))
-  (setf new-name (if (file-directory-p new-name)
-                     (expand-file-name (file-name-nondirectory
-                                        buffer-file-name)
-                                       new-name)
-                   (expand-file-name new-name)))
-  ;; If the file isn't saved yet, skip the file rename, but still update the
-  ;; buffer name and visited file.
-  (when (file-exists-p buffer-file-name)
-    (copy-file buffer-file-name new-name 1 nil t t)
-    (find-file new-name)
-    (message "Copied to %s" new-name)))
-
-(defun delete-file-or-directory (name)
-  "Delete NAME if it's either file or directory."
-  (interactive)
-  (let ((entity (strip-trailing-slash
-                 (expand-file-name
-                  (read-file-name "File or directory to delete: "
-                                  default-directory
-                                  ""
-                                  t)))))
-    (cond
-      ((file-directory-p entity)
-       (when (and (directory-files dir
-                                   nil
-                                   directory-files-no-dot-files-regexp
-                                   t)
-                  (y-or-n-p "Directory not empty, really delete? "))
-         (delete-directory entity t)))
-      ((file-regular-p entity)
-       (delete-file entity))
-      (t
-       (error "Name %s designates neither file nor directory")))))
 
 ;;; rotate list functions, very old...
 
@@ -1575,104 +1502,6 @@ last non-whitespace character."
 
 ;;;;
 
-(defmacro more-clojure/comp-impl (functions
-                                  fallback-function
-                                  use-apply-for-last-func)
-  "Optimization trick to expand chains of composed functions instead of
-using loop as in `more-clojure/comp'. But if expansion could not be done (e.g.
-some of FUNCTIONSS is an expression that is expected to be evaluated right
-where comp is called) then FALLBACK-FUNCTION will be used."
-  (block cannot-optimize
-    (let* ((args-var '#:args)
-           (strip-quotation
-            (lambda (x)
-              (if (and (list? x)
-                       (not (null? x))
-                       (memq (first x) '(quote function)))
-                  (first (rest x))
-                x)))
-           (make-call
-            (lambda (expr last-arg use-apply funcs)
-              (let ((call-form (if use-apply 'apply 'funcall)))
-                (pcase expr
-                  (`(,(or `function `quote) ,func)
-                   (if (and (not use-apply)
-                            (symbol? func))
-                       `(,func ,last-arg)
-                     `(,call-form ,expr ,last-arg)))
-                  (`(,(or `partial `apply-partially) ,func . ,args)
-                   (let ((f (funcall strip-quotation func)))
-                     (if (and (not use-apply)
-                              (symbol? f))
-                         `(,f ,@args ,last-arg)
-                       `(,call-form ,func ,@args ,last-arg))))
-                  (`(partial-first ,func . ,args)
-                   (let ((f (funcall strip-quotation func)))
-                     (if (and (not use-apply)
-                              (symbol? f))
-                         `(,f ,last-arg ,@args)
-                       `(,call-form ,func ,last-arg ,@args))))
-                  (_
-                   (cl-return-from cannot-optimize
-                     `(,(funcall strip-quotation fallback-function)
-                       ,@functions))))))))
-      (letrec ((iter
-                (lambda (funcs)
-                  (funcall make-call
-                           (first funcs)
-                           (if (not (null? (rest funcs)))
-                               (funcall iter (rest funcs))
-                             args-var)
-                           (and (null? (rest funcs))
-                                use-apply-for-last-func)
-                           funcs))))
-        `(lambda
-           ,(if use-apply-for-last-func
-                (list &rest ,args-var)
-              (list args-var))
-           ,(funcall iter functions))))))
-
-(defun more-clojure/comp (f &rest funcs)
-  "Fallback function composition routine."
-  (let ((functions (reverse (cons f funcs))))
-    (lambda (arg)
-      (let ((result (funcall (first functions) arg)))
-        (dolist (func (rest functions))
-          (setf result (funcall func result)))
-        result))))
-
-(defmacro comp (f &rest funcs)
-  "More or less intelligent creator of function compositions that can
-optimize away common use cases."
-  `(more-clojure/comp-impl ,(cons f funcs)
-                           more-clojure/comp
-                           nil))
-
-(defun more-clojure/comp* (f &rest funcs)
-  "Fallback function composition routine, creates lambdas in runtime."
-  (let ((functions (reverse (cons f funcs))))
-    (lambda (arg)
-      (let ((result (apply (first functions) arg)))
-        (dolist (func (rest functions))
-          (setf result (funcall func result)))
-        result))))
-
-(defmacro comp* (f &rest funcs)
-  "Similar to `comp' but uses `apply' for last function."
-  `(more-clojure/comp-impl ,(cons f funcs)
-                           more-clojure/comp*
-                           t))
-
-(defalias 'partial #'apply-partially)
-
-(defun partial-first (f &rest args)
-  "Just like `partial' but adds ARGS at the end of argument list when
-F will be called."
-  (lambda (&rest more-args)
-    (apply f (append more-args args))))
-
-;;;;
-
 (defun mk-regexp-from-alts (alts)
   (declare (pure t) (side-effect-free t))
   (cl-assert (listp alts) nil "Invalid regexp alternatives: %s" alts)
@@ -1686,11 +1515,13 @@ F will be called."
   (mk-regexp-from-alts (-map #'wildcard-to-regexp globs)))
 
 (defun ci-looking-at (regexp)
+  "Case-insensetive version of `looking-at'."
   (declare (pure nil) (side-effect-free nil))
   (let ((case-fold-search t))
     (looking-at regexp)))
 
 (defun ci-looking-at-p (regexp)
+  "Case-insensetive version of `looking-at-p'."
   (declare (pure nil) (side-effect-free t))
   (let ((case-fold-search t))
     (looking-at-p regexp)))
@@ -1698,13 +1529,6 @@ F will be called."
 (defun buffer-visible-p (buf)
   (declare (pure nil) (side-effect-free t))
   (not (null (get-buffer-window buf t))))
-
-(defun setup-indent-size (width)
-  (declare (pure nil) (side-effect-free nil))
-  (setq-local vim:shift-width width)
-  (setq-local standard-indent width)
-  (setq-local tab-width width)
-  (setq-local tab-always-indent t))
 
 ;;;;
 
@@ -1759,34 +1583,6 @@ are CHAR1 and CHAR2 repsectively."
          before2
          (eq before1 char1)
          (eq before2 char2))))
-
-(defun count-sentences (begin end &optional print-message)
-  "Count the number of sentences from BEGIN to END."
-  (interactive (if (use-region-p)
-                   (list (region-beginning)
-                         (region-end)
-                         t)
-                 (list nil nil t)))
-  (save-excursion
-    (save-restriction
-      (narrow-to-region (or begin (point-min))
-                        (progn
-                          (goto-char (or end (point-max)))
-                          (skip-chars-backward " \t\n")
-                          (point)))
-      (goto-char (point-min))
-      (let ((sentences 0))
-        (while (not (looking-at-p "[ \t\n]*\\'"))
-          (forward-sentence 1)
-          (setq sentences (1+ sentences)))
-        (if print-message
-            (message
-             "%s sentences in %s."
-             sentences
-             (if (use-region-p)
-                 "region"
-               "buffer"))
-          sentences)))))
 
 (defsubst is-uppercase? (c)
   (declare (pure t) (side-effect-free t))

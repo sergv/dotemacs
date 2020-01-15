@@ -417,9 +417,8 @@ expanded filenames in git repository to themselves.")
                                     "\0"
                                     t)))
                  (dolist (filename
-                          (-map (comp #'common/registered-filename
-                                      #'expand-file-name)
-                                rough-filenames))
+                          (--map (common/registered-filename (expand-file-name it))
+                                 rough-filenames))
                    (puthash filename filename filename-table))
                  filename-table))))
           (commit (git-get-head-commit-cached repo-path)))

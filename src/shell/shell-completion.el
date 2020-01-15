@@ -269,7 +269,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                          (flags-with-args (-filter #'pcmpl-flag/completion-expr flags))
                          ;; Positional arguments.
                          (args (assoc 'args info)))
-                    (cl-assert (--all? (-all? (comp (partial #'string-match-p "^--?[^-].*"))
+                    (cl-assert (--all? (-all? (lambda (x) (string-match-p "^--?[^-].*" x))
                                               (pcmpl-flag/names it))
                                        flags)
                                nil
