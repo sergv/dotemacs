@@ -198,7 +198,7 @@ This is a child of `compilation-mode-map'.")
     (ansi-color-apply-on-region compilation-filter-start (point-max))))
 
 (defvar haskell-compilation-extra-error-modes
-  '(4bsd watcom sun msft lcc gnu java ibm epc edg-1 edg-2 borland aix absoft)
+  '(gnu)
   "Extra modes from `compilation-error-regexp-alist-alist' whose warnings
 will be colorized in `haskell-compilation-mode'.")
 
