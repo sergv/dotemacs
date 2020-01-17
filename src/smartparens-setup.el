@@ -227,8 +227,6 @@ foo {
                  literate-haskell-mode
                  haskell-c-mode
                  haskell-cabal-mode
-                 haskell-interactive-mode
-                 inferior-haskell-mode
                  dante-repl-mode)
   (sp-local-pair "{-#" "#-}")
   (sp-local-pair "'" nil

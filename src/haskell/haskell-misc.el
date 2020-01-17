@@ -118,36 +118,6 @@ and indent them as singe line."
       ;; Don't kill any associated buffers when issuing `haskell-session-kill'.
       haskell-ask-also-kill-buffers nil
 
-      haskell-process-suggest-remove-import-lines t
-      haskell-process-auto-import-loaded-modules t
-      ;; haskell-process-suggest-hoogle-imports t ;; may be cool
-      haskell-interactive-mode-eval-mode #'haskell-mode
-
-      ;; haskell-process
-      haskell-interactive-prompt "λ> "
-      haskell-process-type 'auto
-      ;; haskell-process-type 'stack-ghci
-      haskell-process-log t
-      ;; don't prompt on starting repl
-      haskell-process-load-or-reload-prompt nil
-      haskell-process-show-debug-tips nil
-
-      haskell-process-suggest-haskell-docs-imports nil
-      haskell-process-suggest-hayoo-imports nil
-      haskell-process-suggest-hoogle-imports nil
-
-      haskell-process-suggest-add-package nil
-      haskell-process-suggest-remove-import-lines t
-      haskell-process-suggest-overloaded-strings nil
-
-      haskell-process-check-cabal-config-on-load t
-      haskell-process-auto-import-loaded-modules nil
-      haskell-interactive-popup-errors nil
-      ;; Don't show types for data without Show instance>
-      haskell-interactive-types-for-show-ambiguous nil
-      ;; unsure
-      ;; haskell-interactive-mode-delete-superseded-errors nil
-
       ghc-core-program-args
       `("-O2"
         "-dsuppress-uniques"
@@ -159,11 +129,6 @@ and indent them as singe line."
         "-dppr-cols200"
         "-hidir" ,small-temporary-file-directory
         "-odir" ,small-temporary-file-directory)
-
-      inferior-haskell-find-project-root nil
-
-      haskell-interactive-prompt-read-only t
-      haskell-interactive-mode-read-only t
 
       ;; Flycheck
       flycheck-ghc-args
@@ -222,87 +187,15 @@ and indent them as singe line."
             (stack "stack.yaml" ("stack" "repl" dante-target) ("stack" "repl" dante-target ,@stack-ghci-options))
             (bare-ghci ,(lambda (_) t) ("ghci"))))))
 
-;; Ghci flags
-(let* ((extensions '("-XLambdaCase" "-XOverloadedStrings" "-XTemplateHaskell" "-XQuasiQuotes"))
-       (ghc-options (append
-                     '("-ferror-spans"
-                       "-Wwarn")
-                     extensions)))
-  (setf haskell-process-path-ghci
-        (fold-platform-os-type
-         "ghci"
-         "ghc")
-        haskell-process-args-ghci
-        (let ((opts (append
-                     '("-fbyte-code" "-Wwarn")
-                     (fold-platform-os-type
-                      '("-i/tmp/dist/build"
-                        "-odir" "/tmp/ghc"
-                        "-hidir" "/tmp/ghc")
-                      nil)))
-              (rts-opts '("+RTS" "-M8G" "-RTS")))
-          (append (fold-platform-os-type
-                   nil
-                   '("--interactive"))
-                  extensions
-                  opts
-                  rts-opts))
-        haskell-process-args-cabal-repl (--map (concat "--ghc-option=" it) ghc-options)
-        haskell-process-args-stack-ghci (--map (concat "--ghci-options=" it) ghc-options)))
-
 (defconst +haskell-compile-error-or-warning-navigation-regexp+
   (mk-regexp-from-alts
-   (-map #'car
-         (--filter (let* ((type-field (car (cddddr it)))
-                          (error-or-warning?
-                           (cond
-                             ((null type-field)
-                              t)
-                             ((numberp type-field)
-                              (<= 1 type-field))
-                             ((and (consp type-field)
-                                   type-field
-                                   (numberp (car type-field)))
-                              (<= 1 (car type-field)))
-                             (t
-                              (message "Invalid entry type in haskell-compilation-error-regexp-alist: %s, entry: %s"
-                                       type-field
-                                       it)
-                              nil))))
-                     error-or-warning?)
-                   (append
-                    haskell-compilation-error-regexp-alist
-                    ;; Add C compilers into the mix so that their
-                    ;; errors will also be colorised when compiling
-                    ;; Haskell packages with foreign code.
-                    (-map #'cdr
-                          (--filter (memq (car it) haskell-compilation-extra-error-modes)
-                                    compilation-error-regexp-alist-alist))))))
+   (list
+    (default-value '*compilation-jump-error-regexp*)
+    ;; Tasty errors.
+    "\\<error, called at \\(.*\\.hs\\):\\([0-9]+\\):\\([0-9]+\\) in\\>"
+    ))
   "Regexp matching both errors and warnings. Used to navigate between errors
 in haskell compilation buffer.")
-
-(defconst haskell-module-quantification-regexp
-  (let ((conid "\\b[[:upper:]][[:alnum:]'_]*\\b"))
-    (concat "\\b\\(?:" conid "\\.\\)+")))
-
-;;;###autoload
-(defun haskell-remove-module-qualification (name)
-  "Removes hierarchihal modules qualification (e.g. Data.Map.null -> null,
- Prelude.++ -> ++, etc)"
-  (save-match-data
-    (if (string-match (eval-when-compile
-                        (concat "^\\("
-                                haskell-module-quantification-regexp
-                                "\\)"))
-                      name)
-        (replace-match "" t t name 1)
-      name)))
-
-(defun inf-haskell-send-input-or-jump-to-error ()
-  (interactive)
-  (if (looking-at-p *compilation-jump-error-regexp*)
-      (compile-goto-error)
-    (comint-send-input)))
 
 ;;; up level navigation
 
@@ -772,35 +665,6 @@ both unicode and ascii characters.")
                            nil))
     (haskell-space-with-block-indent)))
 
-(defun haskell-interactive-clear-prompt ()
-  "Clear haskell prompt from input."
-  (interactive "*")
-  (goto-char haskell-interactive-mode-prompt-start)
-  (when (not (equal (point)
-                    (line-end-position)))
-    (delete-region (point) (line-end-position))))
-
-(defun haskell-interactive-clear-buffer-above-prompt ()
-  (interactive "*")
-  (let ((session (haskell-session)))
-    (with-current-buffer (haskell-session-interactive-buffer session)
-      (save-excursion
-        (forward-line -1)
-        (let ((inhibit-read-only t))
-          (set-text-properties (point-min) (point) nil))
-        (remove-overlays (point-min) (line-end-position))
-        (delete-region (point-min) (line-end-position))
-        (haskell-session-set session 'next-error-region nil)
-        (haskell-session-set session 'next-error-locus nil)))))
-
-(defun haskell-interactive-jump-to-next-prompt ()
-  (interactive)
-  (circular-jump-forward (haskell-interactive-prompt-regex) t))
-
-(defun haskell-interactive-jump-to-prev-prompt ()
-  (interactive)
-  (circular-jump-forward (haskell-interactive-prompt-regex) t))
-
 (defun haskell--ghci-hyphen (&optional prefix)
   "Version of `haskell-smart-operators-hyphen' for ghci."
   (interactive "*p")
@@ -909,7 +773,7 @@ value section should have if it is to be properly indented."
               :data-start-column (+ 2 (current-column)))))))
 
 (defun haskell-misc-cabal-align-and-sort-subsection ()
-  "Sort lines of the subsection at point."
+  "Sort lines of the Cabal subsection at point."
   (interactive "*")
   (save-match-data
     (haskell-cabal-save-position
