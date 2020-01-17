@@ -26,12 +26,10 @@
                    "\\"))
         (filename (+ (not (any ?/ ?\\ ?\n ?\t)))))
     bol
-    (group (*? (? (or "."
-                      ".."))
-               delim
-               filename))
-    (? delim)
-    filename
+    (group (? delim)
+           (* filename
+              delim)
+           filename)
     ":"
     (group (+ (any (?0 . ?9))))
     ":"
