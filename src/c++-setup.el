@@ -39,47 +39,49 @@
 
 (defun c++-find-related-file ()
   (interactive)
-  (let* ((filename   buffer-file-name)
-         (path       (split-string filename "/"))
-         (ext        (file-name-extension filename))
-         (file-dir   (file-name-directory filename))
-         (file-nodir (file-name-nondirectory (car (last path)))))
+  (let* ((filename   buffer-file-name))
     (aif (gethash filename *c++-related-file-cache* nil)
         (find-file it)
-      (letrec ((path-join (lambda (path) (join-lines path "/")))
-               (find-subroot
-                (lambda (path needle)
-                  (let ((dir (funcall path-join
-                                      (append path
-                                              (list needle)))))
-                    (cond ((null path)
-                           (error "No %s subdirectory found while moving upward starting from %s"
-                                  needle
-                                  file-dir))
-                          ((file-exists? dir)
-                           path)
-                          (t
-                           (funcall find-subroot
-                                    (butlast path)
-                                    needle)))))))
-        (let* ((header-exts '("h" "hh" "hpp" "hxx"))
-               (inline-exts '("inc" "inl" "incl"))
-               (source-exts '("cc" "cc" "cpp" "cxx"))
-               (alt-exts (cond ((member ext header-exts)
-                                source-exts)
-                               ((or (member ext inline-exts)
-                                    (member ext source-exts))
-                                header-exts)
-                               (t
-                                nil)))
-               (alternative-names
-                (--map (concat (file-name-sans-extension file-nodir)
-                               "."
-                               it)
-                       alt-exts))
-               (alt-names-in-same-dir
-                (--map (concat file-dir "/" it)
-                       alternative-names)))
+      (let* ((path       (split-string filename "/"))
+             (ext        (file-name-extension filename))
+             (file-dir   (file-name-directory filename))
+             (file-nodir (file-name-nondirectory (car (last path))))
+
+
+             (header-exts '("h" "hh" "hpp" "hxx"))
+             (inline-exts '("inc" "inl" "incl"))
+             (source-exts '("cc" "cc" "cpp" "cxx"))
+             (alt-exts (cond ((member ext header-exts)
+                              source-exts)
+                             ((or (member ext inline-exts)
+                                  (member ext source-exts))
+                              header-exts)
+                             (t
+                              nil)))
+             (alternative-names
+              (--map (concat (file-name-sans-extension file-nodir)
+                             "."
+                             it)
+                     alt-exts))
+             (alt-names-in-same-dir
+              (--map (concat file-dir "/" it)
+                     alternative-names)))
+        (letrec ((path-join (lambda (path) (join-lines path "/")))
+                 (find-subroot
+                  (lambda (path needle)
+                    (let ((dir (funcall path-join
+                                        (append path
+                                                (list needle)))))
+                      (cond ((null path)
+                             (error "No %s subdirectory found while moving upward starting from %s"
+                                    needle
+                                    file-dir))
+                            ((file-exists? dir)
+                             path)
+                            (t
+                             (funcall find-subroot
+                                      (butlast path)
+                                      needle)))))))
           (aif (find-if #'file-exists? alt-names-in-same-dir)
               (progn
                 (puthash filename it *c++-related-file-cache*)
