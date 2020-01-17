@@ -39,7 +39,7 @@
     ":")
   "Regexp which is used by `compilation-jump-to-next-error'
 and `compilation-jump-to-prev-error' to detect errors
-in compilation or related buffers")
+in compilation or related buffers.")
 
 
 (defun compilation--apply-ansi-colours-filter (f proc string)
@@ -50,6 +50,7 @@ in compilation or related buffers")
 
 ;;;###autoload
 (defun compilation-jump-to-next-error ()
+  "Jump to next error in the compilation buffer."
   (interactive)
   (unless (compilation-buffer-p (current-buffer))
     (error "Not in a compilation buffer"))
@@ -57,6 +58,7 @@ in compilation or related buffers")
 
 ;;;###autoload
 (defun compilation-jump-to-prev-error ()
+  "Jump to previous error in the compilation buffer."
   (interactive)
   (unless (compilation-buffer-p (current-buffer))
     (error "Not in a compilation buffer"))
