@@ -29,11 +29,6 @@
   (browse-kill-ring-start-for-variable 'comint-input-ring "*Comint Input History*"))
 
 ;;;###autoload
-(defun browse-haskell-interactive-input-history ()
-  (interactive)
-  (browse-kill-ring-start-for-variable 'haskell-interactive-mode-history "*Haskell interactive history*"))
-
-;;;###autoload
 (defun browse-kill-ring-mode-setup ()
   (setq-local mode-line-format
               '(" %[%b%] "

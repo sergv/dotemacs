@@ -203,7 +203,6 @@ Futher modified by Sergey Vinokurov."
 
             (elm-font-lock-operators      ((t (:inherit haskell-operator-face))))
             (haskell-operator-face        ((t (:foreground ,red))))
-            (haskell-interactive-face-compile-error ((t (:foreground ,red))))
             (ghc-face-error               ((((supports :underline (:style wave)))
                                             (:underline (:style wave :color ,red)))
                                            (t (:inherit error))))

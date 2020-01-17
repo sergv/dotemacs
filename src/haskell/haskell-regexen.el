@@ -104,6 +104,24 @@
 (defconst-set haskell-regexen/qualified-import-line
   "import[ \t\r\n]+\\(?:\"[^\"]+\"[ \t\r\n]+\\)?qualified[ \t\r\n]+")
 
+
+(defconst-set haskell-module-quantification-regexp
+  (let ((conid "\\b[[:upper:]][[:alnum:]'_]*\\b"))
+    (concat "\\b\\(?:" conid "\\.\\)+")))
+
+;;;###autoload
+(defun haskell-remove-module-qualification (name)
+  "Removes hierarchihal modules qualification (e.g. Data.Map.null -> null,
+ Prelude.++ -> ++, etc)"
+  (save-match-data
+    (if (string-match (eval-when-compile
+                        (concat "^\\("
+                                haskell-module-quantification-regexp
+                                "\\)"))
+                      name)
+        (replace-match "" t t name 1)
+      name)))
+
 (provide 'haskell-regexen)
 
 ;; Local Variables:
