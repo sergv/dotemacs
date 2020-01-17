@@ -141,9 +141,9 @@ is no active region.  If no style is given uses `clang-format-style'."
 
           (cond
            ((stringp status)
-            (error "(clang-format killed by signal %s%s)" status stderr))
+            (error "clang-format killed by signal %s%s" status stderr))
            ((not (equal 0 status))
-            (error "(clang-format failed with code %d%s)" status stderr)))
+            (error "clang-format failed with code %d%s" status stderr)))
 
           (with-current-buffer temp-buffer
             (setq operations (clang-format--extract (car (xml-parse-region)))))
@@ -159,8 +159,8 @@ is no active region.  If no style is given uses `clang-format-style'."
               (goto-char (byte-to-position (1+ cursor))))
             (message "%s" incomplete-format)
             (if incomplete-format
-                (message "(clang-format: incomplete (syntax errors)%s)" stderr)
-              (message "(clang-format: success%s)" stderr))))
+                (message "clang-format: incomplete (syntax errors)%s" stderr)
+              (message "clang-format: success%s" stderr))))
       (delete-file temp-file)
       (when (buffer-name temp-buffer) (kill-buffer temp-buffer)))))
 
