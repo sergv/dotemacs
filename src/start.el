@@ -40,7 +40,7 @@
     comint-mode
     inferior-octave-mode
     python-repl-mode
-    inferior-haskell-mode
+    dante-repl-mode
 
     makefile-automake-mode
     makefile-bsdmake-mode

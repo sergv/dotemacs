@@ -70,8 +70,7 @@ name, for temporary buffers - just the buffer name."
            (require 'haskell-misc)
            (with-current-buffer buf (memq major-mode +haskell-syntax-modes+)))
          'haskell-compile-command
-         'haskell-compile-cabal-build-command
-         'haskell-process-args-ghci))
+         'haskell-compile-cabal-build-command))
   "List of buffer-local variables to save in session file.
 Format: list of (<predicate> <vars>) where predicate is a function of
 single buffer argument that should return t if <vars> variables should

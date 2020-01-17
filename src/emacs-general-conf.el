@@ -33,7 +33,6 @@
         dired-mode
         haskell-compilation-mode
         rust-compilation-mode
-        inferior-haskell-mode
         inferior-scheme-mode
         dante-repl-mode
         lisp-interaction-mode
