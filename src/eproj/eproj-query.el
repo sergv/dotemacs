@@ -13,14 +13,21 @@
 ;;;###autoload
 (defun eproj-query/haskell/indent-offset (proj &optional default)
   (declare (pure t) (side-effect-free nil))
+  (eproj-query/any-mode/indent-offset proj 'haskell-mode default))
+
+;;;###autoload
+(defun eproj-query/any-mode/indent-offset (proj mode &optional default)
+  (declare (pure t) (side-effect-free nil))
+  (cl-assert (symbolp mode) "Mode must be a symbol")
   (if-let ((p proj)
            (entry (eproj-project/query-aux-info-entry (eproj-project/aux-info p)
                     'language-specific
-                    'haskell-mode
+                    mode
                     'indent-offset)))
       (let ((res (car entry)))
         (cl-assert (integerp res) nil
-                   "language-specific.haskell-mode.indent-offset entry in .eproj-info of %s must be an integer, but got %s"
+                   "language-specific.%s.indent-offset entry in .eproj-info of %s must be an integer, but got %s"
+                   mode
                    (eproj-project/root proj)
                    res)
         res)
