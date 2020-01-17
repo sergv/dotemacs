@@ -109,24 +109,19 @@ The `%s' placeholder is replaced by the current buffer's filename."
              "\\|"
              "(\\(?2:[0-9]+\\),\\(?4:[0-9]+\\))-(\\(?3:[0-9]+\\),\\(?5:[0-9]+\\))" ;; "(289,5)-(291,36)"
              "\\)")))
-      (list
+      (concat
+       "\\(?:"
        (concat
-        "\\(?:"
-        (concat
-         "^" filename-re ":"
-         lines-and-columns-re
-         ":\\(?6:[ \t\r\n]+[Ww]arning:\\)?")
-        "\\)\\|\\(?:"
-        (concat
-         "^[ \t]+" filename-re ":"
-         lines-and-columns-re
-         ":\\(?:[ \t]+[Ee]rror\\|\\(?6:[ \t\r\n]+[Ww]arning\\)\\):")
-        "\\)")
-       1            ;; file
-       (cons 2 3)   ;; line
-       (cons 4 5)   ;; column
-       (cons 6 nil) ;; type - error/warning
-       ))))
+        "^" filename-re ":"
+        lines-and-columns-re
+        ":\\(?6:[ \t\r\n]+[Ww]arning:\\)?")
+       "\\)"
+       "\\|\\(?:"
+       (concat
+        "^[ \t]+" filename-re ":"
+        lines-and-columns-re
+        ":\\(?:[ \t]+[Ee]rror\\|\\(?6:[ \t\r\n]+[Ww]arning\\)\\):")
+       "\\)"))))
 
 (defconst haskell-compilation-error-auxiliary-filename-regexp
   (eval-when-compile
@@ -163,7 +158,12 @@ The `%s' placeholder is replaced by the current buffer's filename."
                                (cons 'or
                                      +haskell-extensions+)))))
       (list
-       haskell-compilation-error-main-filename-regexp
+       (list haskell-compilation-error-main-filename-regexp
+             1            ;; file
+             (cons 2 3)   ;; line
+             (cons 4 5)   ;; column
+             (cons 6 nil) ;; type - error/warning
+             )
 
        ;; multiple declarations
        (list
