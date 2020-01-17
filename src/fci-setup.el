@@ -8,6 +8,8 @@
 
 (require 'fill-column-indicator)
 
+(setf fci-rule-column 100)
+
 (defun toggle-fci ()
   (when fci-mode
     (fci-mode -1)
