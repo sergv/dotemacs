@@ -2547,7 +2547,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
            "-V"
            "--version"))
         (language-flags
-         '((("-X" "--language") (pcomplete-here haskell-language-extensions))))
+         '((("-X" "--language") (pcomplete-here (get-haskell-language-extensions)))))
         (extension-flags
          '("-e"
            "--extension"))

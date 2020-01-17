@@ -304,32 +304,6 @@ in haskell compilation buffer.")
       (compile-goto-error)
     (comint-send-input)))
 
-;;; simple documentation system
-
-(defconst haskell-language-extensions
-  ;; make this list from documentation, e.g.
-  ;; http://www.haskell.org/ghc/docs/7.6.3/html/users_guide/flag-reference.html
-  ;; command: '<,'>s/^-X\([^\t]+\)\t\([^\t]+\)\t[^\t]+\t-\(?:X\(.*\)\)?/("\1" "\2" "\3")/
-  (when-let (ghc-exec (cached-executable-find "ghc"))
-    (with-temp-buffer
-      (call-process ghc-exec
-                    nil
-                    (current-buffer)
-                    nil
-                    "--supported-extensions")
-      (sort
-       (split-string (buffer-substring-no-properties (point-min) (point-max))
-                     "[\n\r]+"
-                     t
-                     "[ \t]+")
-       #'string<)))
-  "List of Haskell extensions for current GHC in the PATH.
-
-See http://www.haskell.org/ghc/docs/7.6.3/html/users_guide/flag-reference.html
-for more information.")
-
-(setf attrap-haskell-extensions haskell-language-extensions)
-
 ;;; up level navigation
 
 (defun haskell-back-up-indent-level ()
