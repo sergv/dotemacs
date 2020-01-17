@@ -96,27 +96,29 @@ The `%s' placeholder is replaced by the current buffer's filename."
 
 (defconst haskell-compilation-error-main-filename-regexp
   (eval-when-compile
-    (let ((ext-re
-           (rx-to-string (list 'seq "."
-                               (cons 'or
-                                     +haskell-extensions+))))
-          (lines-and-columns-re
-           (concat
-            "\\(?:"
-            "\\(?2:[0-9]+\\):\\(?4:[0-9]+\\)\\(?:-\\(?5:[0-9]+\\)\\)?" ;; "121:1" & "12:3-5"
-            "\\|"
-            "(\\(?2:[0-9]+\\),\\(?4:[0-9]+\\))-(\\(?3:[0-9]+\\),\\(?5:[0-9]+\\))" ;; "(289,5)-(291,36)"
-            "\\)")))
+    (let* ((ext-re
+            (rx-to-string (list 'seq "."
+                                (cons 'or
+                                      +haskell-extensions+))))
+           (filename-re
+            (concat "\\(?1:[^ \n\r\v\t\f].*?" ext-re "\\)"))
+           (lines-and-columns-re
+            (concat
+             "\\(?:"
+             "\\(?2:[0-9]+\\):\\(?4:[0-9]+\\)\\(?:-\\(?5:[0-9]+\\)\\)?" ;; "121:1" & "12:3-5"
+             "\\|"
+             "(\\(?2:[0-9]+\\),\\(?4:[0-9]+\\))-(\\(?3:[0-9]+\\),\\(?5:[0-9]+\\))" ;; "(289,5)-(291,36)"
+             "\\)")))
       (list
        (concat
         "\\(?:"
         (concat
-         "^\\(?1:[^ \n\r\v\t\f].*?" ext-re "\\):"
+         "^" filename-re ":"
          lines-and-columns-re
          ":\\(?6:[ \t\r\n]+[Ww]arning:\\)?")
         "\\)\\|\\(?:"
         (concat
-         "^[ \t]+\\(?1:[^ \n\r\v\t\f].*?" ext-re "\\):"
+         "^[ \t]+" filename-re ":"
          lines-and-columns-re
          ":\\(?:[ \t]+[Ee]rror\\|\\(?6:[ \t\r\n]+[Ww]arning\\)\\):")
         "\\)")
