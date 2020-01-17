@@ -31,7 +31,6 @@
 (autoload 'vim:haskell-compile-choosing-command "haskell-setup" nil t)
 (autoload 'vim:haskell-load-file-into-repl "haskell-setup" nil t)
 (autoload 'vim:haskell-set-target "haskell-setup" nil t)
-(autoload 'vim:haskell-interactive-clear-buffer-above-prompt "haskell-setup" nil t)
 (autoload 'vim:haskell-flycheck-run "haskell-setup" nil t)
 (autoload 'vim:haskell-flycheck-compile "haskell-setup" nil t)
 (autoload 'vim:haskell-flycheck-configure "haskell-setup" nil t)
@@ -83,9 +82,7 @@
 (add-hook 'ghc-core-mode-hook #'ghc-core-setup)
 (add-hook 'haskell-cabal-mode-hook #'haskell-cabal-setup)
 (add-hook 'haskell-compilation-mode-hook #'haskell-compilation-setup)
-(add-hook 'haskell-interactive-mode-hook #'haskell-interactive-mode-setup)
 (add-hook 'haskell-mode-hook #'haskell-setup)
-(add-hook 'inferior-haskell-mode-hook #'inferior-haskell-mode-setup)
 (add-hook 'dante-repl-mode-hook #'dante-repl-mode-setup)
 (add-hook 'literate-haskell-mode-hook #'haskell-setup)
 

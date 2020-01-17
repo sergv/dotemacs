@@ -29,9 +29,6 @@
 (require 'shell-setup)
 (require 'smartparens-haskell)
 
-;; never cache module alist to a file
-(setf inferior-haskell-module-alist-file nil)
-
 (vimmize-motion haskell-backward-up-indentation-or-sexp
                 :name vim:haskell-backward-up-indentation-or-sexp
                 :exclusive t
@@ -81,9 +78,6 @@
     (error "dante is not enabled"))
   (haskell-misc--configure-dante)
   (vim:haskell-dante-restart))
-
-(vim:defcmd vim:haskell-interactive-clear-buffer-above-prompt (nonrepeatable)
-  (haskell-interactive-clear-buffer-above-prompt))
 
 (vim:defcmd vim:dante-clear-buffer-above-prompt (nonrepeatable)
   dante-repl-clear-buffer-above-prompt)
@@ -395,120 +389,6 @@
 (defun haskell-hsc-setup ()
   (add-to-list 'flycheck-disabled-checkers 'haskell-hlint))
 
-;;; Set up inferior-haskell-mode
-
-;;;###autoload
-(defun inferior-haskell-mode-setup ()
-  ;; undo-tree is useless for ghci interaction
-  ;; well I'm not sure now, I hope it's useful since it proved itself useful
-  ;; for other repls
-  ;; (undo-tree-mode -1)
-  (init-common :use-comment nil :use-yasnippet nil :use-fci nil)
-  (init-repl :create-keymaps nil)
-
-  (pretty-ligatures-install-safe!)
-  (pretty-ligatures-install-special-haskell-ligatures!)
-
-  (vim:local-emap "clear" 'vim:comint-clear-buffer-above-prompt)
-  (def-keys-for-map vim:normal-mode-local-keymap
-    ("SPC SPC"  comint-clear-prompt)
-    ("C-w"      backward-delete-word)
-    ("C-S-w"    backward-delete-word*)
-
-    ("<up>"     comint-previous-input)
-    ("<down>"   comint-next-input)
-    ("S-<up>"   comint-previous-prompt)
-    ("S-<down>" comint-next-prompt)
-    ("C-h"      comint-next-prompt)
-    ("C-t"      comint-previous-prompt)
-    ("C-<up>"   compilation-jump-to-prev-error)
-    ("C-<down>" compilation-jump-to-next-error))
-
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:insert-mode-local-keymap
-                     inferior-haskell-mode-map)
-    ("C-SPC"    vim:comint-clear-buffer-above-prompt)
-    ("C-S-p"    browse-comint-input-history)
-    ("<return>" inf-haskell-send-input-or-jump-to-error))
-
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:visual-mode-local-keymap)
-    ("- t" haskell-type)
-    ("- i" haskell-info)
-    ("- h" haskell-haddock-identifier)
-    ("- m" haskell-haddock-module)
-    ("- g" haskell-hoogle-at-point)
-    ("- y" haskell-hayoo-at-point))
-
-  (def-keys-for-map inferior-haskell-mode-map
-    ("C-w"   backward-delete-word)
-    ("C-S-w" backward-delete-word*)
-    ("<tab>" nil)
-
-    ("<up>"     comint-previous-input)
-    ("<down>"   comint-next-input)
-    ("C-<up>"   comint-previous-prompt)
-    ("C-<down>" comint-next-prompt)
-    ("C-h"      comint-next-prompt)
-    ("C-t"      comint-previous-prompt)
-    ("S-<up>"   compilation-jump-to-prev-error)
-    ("S-<down>" compilation-jump-to-next-error))
-
-  (haskell-abbrev+-setup 2 :repl t))
-
-;;;###autoload
-(defun haskell-interactive-mode-setup ()
-  ;; undo-tree is useless for ghci interaction
-  ;; well I'm not sure now, I hope it's useful since it proved itself useful
-  ;; for other repls
-  ;; (undo-tree-mode -1)
-  (init-common :use-comment nil
-               :use-yasnippet nil
-               :use-whitespace nil
-               :use-fci nil)
-  (init-repl :create-keymaps t
-             :bind-return nil
-             :bind-vim:motion-current-line nil)
-  (setq-local indent-region-function #'ignore)
-  ;; very useful to automatically surround with spaces inserted operators
-  (install-haskell-smart-operators! vim:insert-mode-local-keymap
-    :bind-colon nil
-    :bind-hyphen nil)
-
-  (pretty-ligatures-install-safe!)
-  (pretty-ligatures-install-special-haskell-ligatures!)
-
-  (vim:local-emap "clear" 'vim:haskell-interactive-clear-buffer-above-prompt)
-
-  (def-keys-for-map vim:normal-mode-local-keymap
-    ("SPC SPC"  haskell-interactive-clear-prompt))
-
-  (def-keys-for-map vim:insert-mode-local-keymap
-    ("-"        haskell--ghci-hyphen)
-    (":"        haskell--ghci-colon))
-
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:insert-mode-local-keymap
-                     haskell-interactive-mode-map)
-    ("C-SPC"    vim:comint-clear-buffer-above-prompt)
-    ("C-S-p"    browse-haskell-interactive-input-history))
-
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     haskell-interactive-mode-map)
-    ("C-w"      backward-delete-word)
-    ("C-S-w"    backward-delete-word*)
-
-    ("<up>"     haskell-interactive-mode-history-previous)
-    ("<down>"   haskell-interactive-mode-history-next)
-    ("<tab>"    haskell-interactive-mode-tab)
-
-    ("C-t"      haskell-interactive-jump-to-prev-prompt)
-    ("C-h"      haskell-interactive-jump-to-next-prompt)
-    ("S-<up>"   haskell-interactive-jump-to-prev-prompt)
-    ("S-<down>" haskell-interactive-jump-to-next-prompt))
-
-  (haskell-abbrev+-setup 2 :repl t))
-
 ;;;###autoload
 (defun dante-repl-mode-setup ()
   ;; undo-tree is useless for ghci interaction
@@ -538,7 +418,7 @@
   (pretty-ligatures-install-safe!)
   (pretty-ligatures-install-special-haskell-ligatures!)
 
-  (vim:local-emap "clear" 'vim:haskell-interactive-clear-buffer-above-prompt)
+  (vim:local-emap "clear" 'vim:comint-clear-buffer-above-prompt)
   (dolist (cmd '("re" "restart"))
     (vim:local-emap cmd #'vim:haskell-dante-repl-restart))
 
