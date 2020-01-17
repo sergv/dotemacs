@@ -234,7 +234,7 @@ then Bar would be the result."
         (ext nil))
     (unwind-protect
         (while (and
-                (setf ext (ivy-yas-completing-prompt "Extension: " haskell-language-extensions))
+                (setf ext (ivy-yas-completing-prompt "Extension: " (get-haskell-language-extensions)))
                 (not (string= "" ext)))
           (setf something-inserted? t)
           (insert "{-# LANGUAGE " ext " #-}")
@@ -247,13 +247,13 @@ then Bar would be the result."
                                      (and (not (point-inside-string-or-comment?))
                                           (or (null? c)
                                               (not (char=? c ?:)))))))
-         (haskell-extensions haskell-language-extensions)
+         (extensions (get-haskell-language-extensions))
          (expand-qualified-import-snippet
           "import qualified $1 as ${1:$(haskell-abbrev+-extract-first-capital-char (haskell-abbrev+-extract-mod-name yas-text))}$0")
          (expand-qualified-import-snippet-action
           (lambda () (yas-expand-snippet "import qualified $1 as ${1:$(haskell-abbrev+-extract-first-capital-char (haskell-abbrev+-extract-mod-name yas-text))}$0")))
          (language-snippet (format "{-# LANGUAGE ${1:$\$(yas-choose-value '%S)} #-}$0"
-                                   haskell-extensions))
+                                   extensions))
          (pragma-snippet (format "{-# ${1:$\$(yas-choose-value '%S)} $2 #-}$0"
                                  (remove-duplicates-sorting
                                   (cons "SCC" haskell-completions--pragma-names)
