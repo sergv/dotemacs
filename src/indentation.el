@@ -11,6 +11,7 @@
   (declare (pure nil) (side-effect-free nil))
   (setq-local vim:shift-width width)
   (setq-local standard-indent width)
+  ;; Affects only tab display.
   (setq-local tab-width width)
   (setq-local tab-always-indent t))
 

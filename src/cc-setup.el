@@ -10,6 +10,7 @@
 
 (require 'common)
 (require 'ctypes)
+(require 'indentation)
 (require 'find-file)
 (require 'eproj)
 (require 'company-eproj)
@@ -138,20 +139,20 @@
                                      (assq-delete-all 'c++-mode
                                                       hs-special-modes-alist))))))
 
-(defun* cc-setup/set-up-c-basic-offset (&key (use-work-code-style nil))
+(defun cc-setup/set-up-c-basic-offset ()
   "Try to guess offset (`c-basic-offset') for current buffer or use value
 dictated by code standard at work if use-work-code-style is non-nil.
 Also propagate new offset to `vim:shift-width'."
-  (let ((dtrt-indent-verbosity 0)
-        (work-code-style? (and use-work-code-style
-                               (platform-use? 'work))))
+  (let ((dtrt-indent-verbosity 0))
     (unless (dtrt-indent-try-set-offset)
-      (when work-code-style?
-        (setq-local c-basic-offset 4)))
-    (setq-local vim:shift-width
-                (cond ((integer? c-basic-offset) c-basic-offset)
-                      (work-code-style?          4)
-                      (t                         8)))))
+      (awhen (eproj-query/any-mode/indent-offset (eproj-get-project-for-buf-lax (current-buffer))
+                                                 major-mode
+                                                 nil)
+        (setq-local c-basic-offset it)))
+    (setup-indent-size
+     (if (integer? c-basic-offset)
+         c-basic-offset
+       4))))
 
 (defun* cc-setup (&key (define-special-keys t))
   (init-common :use-render-formula t
@@ -160,7 +161,6 @@ Also propagate new offset to `vim:shift-width'."
                :use-whitespace 'tabs-only)
   (fontify-conflict-markers!)
   (setup-hs-minor-mode)
-  (dtrt-indent-mode 1)
   (which-function-mode -1)
   (company-mode +1)
   (setq-local company-backends '(company-eproj))
@@ -170,8 +170,6 @@ Also propagate new offset to `vim:shift-width'."
 
   (setq-local whitespace-line-column 80)
   (setq-local whitespace-style '(face tabs lines-tail))
-  ;; affects only tab display
-  (setf tab-width 4)
   (setq-local yas-expand-fallback #'tab-to-tab-stop)
 
   (setf c-tab-always-indent t)
@@ -210,20 +208,7 @@ Also propagate new offset to `vim:shift-width'."
 ;; Indentation of c-style languages via AStyle command-line utility.
 
 (defparameter c-indentation-indent-styles-alist
-  '(("c-linux"
-     "--style=linux"
-     "--indent=spaces=8"
-     "--pad-oper"
-     "--pad-header"
-     "--unpad-paren"
-     "--keep-one-line-statements"
-     "--keep-one-line-blocks"
-     "--convert-tabs"
-     "--align-pointer=name"
-     "--mode=c"
-     "--suffix=none"
-     "--lineend=linux")
-    ("c-standard4"
+  '(("c-standard4"
      "--style=linux"
      "--indent=spaces=4"
      "--pad-oper"

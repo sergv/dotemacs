@@ -78,7 +78,6 @@ ENTRY should be of format used by `compilation-error-regexp-alist'."
             compilation-first-column))))))
 
 
-
 (defun compilation/find-buffer (filename &optional root)
   "Get buffer that corresponds to FILENAME, which may be neither full nor
 relative path. In case it's neither, the filename with suffix equal to FILENAME
@@ -120,9 +119,6 @@ error location - value of compilation-error structure."
   (interactive)
   (when-let (err (compilation/get-selected-error))
     (compilation/jump-to-error err t)))
-
-
-
 
 
 (defun compilation-navigation--use-selected-error-or-jump-to-next (win buf jump-to-next-err-func)

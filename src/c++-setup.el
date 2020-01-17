@@ -128,7 +128,7 @@
 
 (defun c++-format-buffer ()
   (interactive)
-  (clang-format-buffer))
+  (clang-format-buffer (format "{ IndentWidth: %s }" c-basic-offset)))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.in\\(?:l\\|c\\|cl\\)\\'" . c++-mode))
@@ -140,7 +140,7 @@
 ;;;###autoload
 (defun c++-setup ()
   (cc-setup :define-special-keys t)
-  (cc-setup/set-up-c-basic-offset :use-work-code-style t)
+  (cc-setup/set-up-c-basic-offset)
   (setf hs-forward-sexp-func #'c-hideshow-forward-sexp)
   (setq-local indent-tabs-mode nil)
   (def-keys-for-map vim:normal-mode-local-keymap
@@ -176,7 +176,7 @@
 
 ;; this will make sure that *.h c++ header will be correctly handled
 ;;;###autoload
-(push (cons #'c++-file-magic-function #'c++-mode) magic-mode-alist)
+(add-to-list 'magic-mode-alist (cons #'c++-file-magic-function #'c++-mode))
 
 (provide 'c++-setup)
 

@@ -155,11 +155,11 @@ warnings will be colorized in `rust-compilation-mode'.")
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
-    ("C-t"             flycheck-enhancements-previous-error-with-wraparound)
-    ("C-h"             flycheck-enhancements-next-error-with-wraparound)
-    ("M-t"             rust-compilation-prev-error-other-window)
-    ("M-h"             rust-compilation-next-error-other-window)
-    ("C-SPC"           company-complete)))
+    ("C-t"   flycheck-enhancements-previous-error-with-wraparound)
+    ("C-h"   flycheck-enhancements-next-error-with-wraparound)
+    ("M-t"   rust-compilation-prev-error-other-window)
+    ("M-h"   rust-compilation-next-error-other-window)
+    ("C-SPC" company-complete)))
 
 ;;;###autoload
 (add-hook 'rust-mode-hook #'rust-setup)
