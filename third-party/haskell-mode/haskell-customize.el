@@ -401,19 +401,6 @@ when Data.Map is the candidate.
                        (string :tag "Import lines")))
   :group 'haskell-interactive)
 
-(defcustom haskell-language-extensions
-  '()
-  "Language extensions in use. Should be in format: -XFoo,
--XNoFoo etc. The idea is that various tools written with HSE (or
-any haskell-mode code that needs to be aware of syntactical
-properties; such as an indentation mode) that don't know what
-extensions to use can use this variable. Examples: hlint,
-hindent, structured-haskell-mode, tool-de-jour, etc.
-
-You can set this per-project with a .dir-locals.el file"
-  :group 'haskell
-  :type '(repeat 'string))
-
 (defcustom haskell-stylish-on-save nil
   "Whether to run stylish-haskell on the buffer before saving.
 If this is true, `haskell-add-import' will not sort or align the
