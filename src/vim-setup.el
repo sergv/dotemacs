@@ -500,7 +500,7 @@ Basically swap current point with previous one."
 
 (vim:defcmd vim:cmd-new-frame (nonrepeatable keep-visual)
   "Pops up a new frame."
-  (new-frame))
+  (make-frame))
 
 (vim:emap "newf" #'vim:cmd-new-frame)
 (vim:emap "nf" #'vim:cmd-new-frame)
