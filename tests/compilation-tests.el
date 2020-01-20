@@ -24,8 +24,8 @@
              (or (< line-a line-b)
                  (and (= line-a line-b)
                       (let ((col-a (compilation-error/column-number err-a))
-                            (col-b (compilation-error/column-number err-b))))
-                      (< col-a col-b)))))))
+                            (col-b (compilation-error/column-number err-b)))
+                        (< col-a col-b))))))))
 
 (ert-deftest compilation-tests/haskell-compile-error-regexps-1 ()
   (save-match-data
