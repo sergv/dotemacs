@@ -55,6 +55,7 @@ last-wconf
 
 # extensions
 *.elc
+*.eln
 *~
 /doc/dir
 *.info
