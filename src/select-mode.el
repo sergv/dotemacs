@@ -217,25 +217,23 @@ by the user)."
 
 (defun select-mode--render-state (state)
   "It's assumed that this function is only called inside select buffer."
-  (let ((insert-item
-         (lambda (i item)
-           (let ((start (point-marker)))
-             (insert (funcall (select-mode--state-item-show-function state) item))
-             (let ((end (point-marker)))
-               (setf (aref (select-mode--state-item-positions state) i)
-                     (cons start end)))))))
-    (erase-buffer)
-    (goto-char (point-min))
-    (insert (select-mode--state-preamble state))
-    (let ((sep (or (select-mode--state-separator state)
-                   "")))
-      (loop
-        for item being the elements of (select-mode--state-items state) using (index i)
-        do
-        (unless (= i 0) (insert sep))
-        (funcall insert-item i item)))
-    (insert (select-mode--state-epilogue state))
-    (select-mode--move-selection-to state (select-mode--state-selected-item state) t)))
+  (erase-buffer)
+  (goto-char (point-min))
+  (insert (select-mode--state-preamble state))
+  (let ((sep (or (select-mode--state-separator state)
+                 "")))
+    (loop
+      for item being the elements of (select-mode--state-items state) using (index i)
+      do
+      (unless (= i 0) (insert sep))
+      ;; Insert item.
+      (let ((start (point-marker)))
+        (insert (funcall (select-mode--state-item-show-function state) item))
+        (let ((end (point-marker)))
+          (setf (aref (select-mode--state-item-positions state) i)
+                (cons start end))))))
+  (insert (select-mode--state-epilogue state))
+  (select-mode--move-selection-to state (select-mode--state-selected-item state) t))
 
 (defun select-mode--update-selected-item ()
   "Set selected item based on the point position inside buffer."
