@@ -78,6 +78,12 @@
 (put 'inhibit-startup-echo-area-message 'saved-value
      (setq inhibit-startup-echo-area-message (user-login-name)))
 
+;; Final newline requirement is for C89 or earlier programs that
+;; for some reason cannot figure out how to safely read lines
+;; from a file. Perhaps it’s time to replace those programs
+;; rather than perpetuate this lunacy.
+(setq-default require-final-newline nil)
+
 (setf x-select-enable-clipboard t
       interprogram-paste-function
       (fold-platform-os-type
@@ -90,11 +96,6 @@
       undo-outer-limit (* 32 1024 1024)
       undo-strong-limit (* 256 1024 1024)
 
-      ;; Final newline requirement is for C89 or earlier programs that
-      ;; for some reason cannot figure out how to safely read lines
-      ;; from a file. Perhaps it’s time to replace those programs
-      ;; rather than perpetuate this lunacy.
-      require-final-newline nil
 
       inhibit-startup-message t
       inhibit-startup-screen t
