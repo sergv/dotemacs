@@ -3,9 +3,15 @@
 PKG   = ghub
 
 ELS   = $(PKG).el
+ELS  += gsexp.el
+ELS  += $(PKG)-graphql.el
+ELS  += glab.el
+ELS  += gtea.el
+ELS  += gogs.el
+ELS  += buck.el
 ELCS  = $(ELS:.el=.elc)
 
-DEPS  = dash
+DEPS  = treepy
 
 VERSION ?= $(shell test -e $(TOP).git && git describe --tags --abbrev=0 | cut -c2-)
 
@@ -26,12 +32,12 @@ INSTALL_INFO     ?= $(shell command -v ginstall-info || printf install-info)
 MAKEINFO         ?= makeinfo
 MANUAL_HTML_ARGS ?= --css-ref /assets/page.css
 
-all: lisp info
-doc: info html html-dir pdf
+all:  lisp info
+docs: info html html-dir pdf
 
 help:
 	$(info make all          - generate lisp and manual)
-	$(info make doc          - generate most manual formats)
+	$(info make docs         - generate most manual formats)
 	$(info make lisp         - generate byte-code and autoloads)
 	$(info make texi         - generate texi manual (see comments))
 	$(info make info         - generate info manual)
@@ -138,6 +144,8 @@ release: html html-dir pdf
 	@aws s3 cp $(PKG).html $(RELEASE_TARGET)
 	@aws s3 cp $(PKG).pdf  $(RELEASE_TARGET)
 	@aws s3 sync $(PKG)    $(RELEASE_TARGET)$(PKG)/
+	@aws s3 cp $(PUBLISH_TARGET)dir.html $(RELEASE_TARGET)dir.html
+	@aws s3 cp $(PUBLISH_TARGET)dir/index.html $(RELEASE_TARGET)dir/index.html
 	@printf "Generating CDN invalidation\n"
 	@aws cloudfront create-invalidation --distribution-id $(CFRONT_DIST) --paths \
 	"$(subst $(space),$(comma),$(addprefix $(RELEASE_PATH),$(CFRONT_PATHS)))" > /dev/null
