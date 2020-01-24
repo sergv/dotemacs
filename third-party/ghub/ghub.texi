@@ -8,7 +8,7 @@
 
 @copying
 @quotation
-Copyright (C) 2017-2018 Jonas Bernoulli <jonas@@bernoul.li>
+Copyright (C) 2017-2020 Jonas Bernoulli <jonas@@bernoul.li>
 
 You can redistribute this document and/or modify it under the terms
 of the GNU General Public License as published by the Free Software
@@ -17,8 +17,9 @@ later version.
 
 This document is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE@.  See the GNU
 General Public License for more details.
+
 @end quotation
 @end copying
 
@@ -30,7 +31,7 @@ General Public License for more details.
 @finalout
 @titlepage
 @title Ghub User and Developer Manual
-@subtitle for version 2.0.0 (v2.0.0+1)
+@subtitle for version 3.3.0
 @author Jonas Bernoulli
 @page
 @vskip 0pt plus 1filll
@@ -43,28 +44,34 @@ General Public License for more details.
 @node Top
 @top Ghub User and Developer Manual
 
-Ghub is a library that provides basic support for using the Github API
-from Emacs packages.  It abstracts access to API resources using only
-a handful of functions that are not resource-specific.
+Ghub provides basic support for using the APIs of various Git forges
+from Emacs packages.  Originally it only supported the Github REST
+API, but now it also supports the Github GraphQL API as well as the
+REST APIs of Gitlab, Gitea, Gogs and Bitbucket.
 
-Ghub handles the creation, storage and use of access tokens using a
-setup wizard to make it easier for users to get started and to reduce
-the support burden imposed on package maintainers.  It also comes with
-a comprehensive manual to address the cases when things don't just
-work as expected or in case you don't want to use the wizard.
+Ghub abstracts access to API resources using only a handful of basic
+functions such as `ghub-get`.  These are convenience wrappers around
+`ghub-request`.  Additional forge-specific wrappers like `glab-put`,
+`gtea-put`, `gogs-post` and `buck-delete` are also available.  Ghub
+does not provide any resource-specific functions, with the exception
+of `FORGE-repository-id`.
+
+When accessing Github, then Ghub handles the creation and storage of
+access tokens using a setup wizard to make it easier for users to get
+started.  The tokens for other forges have to be created manually.
 
 Ghub is intentionally limited to only provide these two essential
 features — basic request functions and guided setup — to avoid being
 too opinionated, which would hinder wide adoption.  It is assumed that
 wide adoption would make life easier for users and maintainers alike,
-because then all packages that talk to the Github API could be
-configured the same way.
+because then all packages that talk to forge APIs could be configured
+the same way.
 
 @noindent
-This manual is for Ghub version 2.0.0 (v2.0.0+1).
+This manual is for Ghub version 3.3.0.
 
 @quotation
-Copyright (C) 2017-2018 Jonas Bernoulli <jonas@@bernoul.li>
+Copyright (C) 2017-2020 Jonas Bernoulli <jonas@@bernoul.li>
 
 You can redistribute this document and/or modify it under the terms
 of the GNU General Public License as published by the Free Software
@@ -73,8 +80,9 @@ later version.
 
 This document is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE@.  See the GNU
 General Public License for more details.
+
 @end quotation
 @end ifnottex
 
@@ -84,7 +92,8 @@ General Public License for more details.
 * Using Ghub in Personal Scripts::
 * Using Ghub in a Package::
 * API::
-* Gitlab Support::
+* GraphQL Support::
+* Support for Other Forges::
 
 @detailmenu
 --- The Detailed Node Listing ---
@@ -102,37 +111,48 @@ API
 * Authentication::
 * Configuration Variables::
 
+Support for Other Forges
+
+* Forge Functions and Variables::
+* Forge Limitations and Notes::
+
 @end detailmenu
 @end menu
 
 @node Introduction
 @chapter Introduction
 
-Ghub is a library that provides basic support for using the Github API
-from Emacs packages.  It abstracts access to API resources using only
-a handful of functions that are not resource-specific.
+Ghub provides basic support for using the APIs of various Git forges
+from Emacs packages.  Originally it only supported the Github REST
+API, but now it also supports the Github GraphQL API as well as the
+REST APIs of Gitlab, Gitea, Gogs and Bitbucket.
 
-Ghub handles the creation, storage and use of access tokens using a
-setup wizard to make it easier for users to get started and to reduce
-the support burden imposed on package maintainers.  It also comes with
-a comprehensive manual to address the cases when things don't just
-work as expected or in case you don't want to use the wizard.
+Ghub abstracts access to API resources using only a handful of basic
+functions such as `ghub-get`.  These are convenience wrappers around
+`ghub-request`.  Additional forge-specific wrappers like `glab-put`,
+`gtea-put`, `gogs-post` and `buck-delete` are also available.  Ghub
+does not provide any resource-specific functions, with the exception
+of `FORGE-repository-id`.
+
+When accessing Github, then Ghub handles the creation and storage of
+access tokens using a setup wizard to make it easier for users to get
+started.  The tokens for other forges have to be created manually.
 
 Ghub is intentionally limited to only provide these two essential
 features — basic request functions and guided setup — to avoid being
 too opinionated, which would hinder wide adoption.  It is assumed that
 wide adoption would make life easier for users and maintainers alike,
-because then all packages that talk to the Github API could be
-configured the same way.
+because then all packages that talk to forge APIs could be configured
+the same way.
 
-Fancier interfaces can implemented on top of Ghub, and one such
+Fancier interfaces can be implemented on top of Ghub, and one such
 wrapper — named simply Ghub+ — has already been implemented.  The
 benefit of basing various opinionated interfaces on top of a single
 library that provides only the core functionality is that choosing the
-programming interface does no longer also dictate how access tokens
-are handled.  Users can then use multiple packages that access the
-Github API without having to learn the various incompatible ways
-packages expects the appropriate token to be made available to them.
+programming interface no longer dictates how access tokens are
+handled.  Users can then use multiple packages that access the Github
+API without having to learn the various incompatible ways packages
+expect the appropriate token to be made available to them.
 
 Ghub uses the built-in @code{auth-source} library to store access tokens.
 That library is very flexible and supports multiple backends, which
@@ -140,7 +160,7 @@ means that it is up to the user how secrets are stored.  They can,
 among other things, choose between storing secrets in plain text for
 ease of use, or encrypted for better security.
 
-Previously (as in until this library is widely adapted) it was up to
+Previously (as in until this library is widely adopted) it was up to
 package authors to decide if things should be easy or secure.  (Note
 that @code{auth-source} defaults to "easy" — you have been warned.)
 
@@ -149,19 +169,90 @@ of sharing a single token between all packages that rely on it.  That
 means that users cannot configure Ghub once and later start using a
 new package without any additional setup.  But Ghub helps with that.
 
-When the user invokes some command defined in some package and that
-ultimately results in @code{ghub-request} being called and the appropriate
-token is not available yet, then the user is guided through the
-process of creating and storing a new token, and at the end of that
-process the request is carried out as if the token had been available
-to begin with.
+When the user invokes some command that ultimately results in
+@code{ghub-request} being called and the appropriate token is not available
+yet, then the user is guided through the process of creating and
+storing a new token, and at the end of that process the request is
+carried out as if the token had been available to begin with.
 
 @node Getting Started
 @chapter Getting Started
 
-If you would like to use a package that uses this library, then just
-do so.  If the necessary information isn't available when it attempts
-to make a request, then you will be asked to provide it.
+Each package that uses Ghub uses its own token.  Despite that, chances
+are good that after successfully configuring one package you can just
+start using another package pretty much instantly.
+
+If the necessary token to access a Github instance is not available
+when a package makes an API request, then a setup wizard pops up, and
+after answering a few questions you are good to go.  Even the request
+that caused the wizard to be summoned should succeed and for most
+users this should be true even when configuring the very first token.
+
+However, in some situations some manual configuration is necessary
+@strong{before} using the wizard, or the wizard cannot be used at all:
+
+@itemize
+@item
+If you don't want to use the wizard then you don't have to and can
+create tokens manually as described in @ref{Manually Creating and Storing a Token}.
+
+
+@item
+Unfortunately only Github supports the creation of tokens by using
+the API@.  If you want to access another forge, then you have to
+create the token manually as describe in @ref{Manually Creating and Storing a Token}.  Also see @ref{Support for Other Forges}.
+
+
+@item
+If you want to access a Github Enterprise instance, then you have
+to tell Ghub about that before the wizard makes its appearance by
+setting the Git variable @code{github.host}.  You also have to tell Ghub
+your username for that instance using the variable @code{github.HOST.user}
+even if it is the same as on Github.com.
+
+These variables are documented in @ref{Configuration Variables}. Also see
+@ref{Setting the Username}.  TL;DR: If your Github Enterprise instance is
+hosted at @code{git.example.com} and your username on that instance is
+@code{jtribbiani}, then set @code{github.host} to @code{git.example.com/api/v3} in every
+repository cloned from that instance (i.e. @emph{do not} set it globally)
+and @emph{globally} set @code{github.git.example.com/api/v3.user} to @code{jtribbiani}.
+The latter is necessary even if your username on Github.com is the
+same.
+
+For some Github Enterprice instances @code{/api} has to be used instead of
+@code{/api/v3} as shown above.  If the wizard fails in both cases, then try
+creating the token manually.
+
+
+@item
+If the variable @code{github.user} (or @code{github.HOST.user} for an Enterprise
+instance) is unset when the wizard is first summoned, then you are
+asked to provide your username.  That value is then stored @strong{globally}
+to avoid having to ask you that question once per repository.  If
+you have multiple accounts on Github.com (or a Github Enterprise
+instance), then you have to explicitly tell Ghub about that.  This
+can be done by setting the repository-local values of the
+appropriate variable @strong{before} the wizard is invoked.
+
+
+@item
+You might forget to do the above, which is why it is important to
+carefully read the output of the wizard.  If it turns out that you
+forgot to set a variable, then you must abort, set the variable, and
+repeat the request to trigger the wizard again.
+
+
+@item
+The setup wizard should work even if you have enabled two-factor
+authentication.  However if your Github Enterprise instance enforces
+Single Sign-On as an additional security measure, then you are out
+of luck and have to create the token manually as described in
+@ref{Manually Creating and Storing a Token}.
+@end itemize
+
+The variables mentioned above — and others — are documented in
+@ref{Configuration Variables} and the setup wizard is documented in
+@ref{Interactively Creating and Storing a Token}.
 
 @menu
 * Setting the Username::
@@ -243,8 +334,9 @@ Such a Github API token is not available:
   Store locally according to option `auth-sources':
     ("~/.authinfo" "~/.authinfo.gpg" "~/.netrc")
 
-If in doubt, then abort and first view the section of the Ghub
-documentation called "Manually Creating and Storing a Token".
+If in doubt, then abort and first view the section of
+the Ghub documentation called "Interactively Creating
+and Storing a Token".
 
 Create and store such a token? (yes or no)
 @end example
@@ -256,20 +348,21 @@ of the doubts that you might have:
 @item
 @code{Host} usually is "api.github.com" and that is usually what you want.
 If you are trying to access a Github Enterprise instance, then it
-should be something else and you have to set the value manually as
-described in the next section.
+should be something else and you have to set the value manually
+before the setup wizard is summoned, as described in the parent
+section.
 
 
 @item
 @code{User} should be your Github.com (or Github Enterprise instance)
-username.  If it is something else, then you made a mistake at the
-first prompt or during the step described in the previous section
-and have to refer to that in order to fix this issue.
+username.  If it is something else and it doesn't look like a simple
+typo, then you should read the parent section again.  In either case
+you have to abort.
 
 
 @item
 @code{Package} should be the name of the package you are using to access
-the Github API.
+the Github API@.
 
 If it is @code{ghub}, then the package author disregarded that convention
 and you should probably report a bug in the issue tracker of that
@@ -283,9 +376,9 @@ again.
 
 
 @item
-Each PACKAGE has to specify the tokens that it needs using a
-variable named @code{PACKAGE-github-token-scopes}.  The doc-string of that
-variable should document why the various scopes are needed.
+Each @code{PACKAGE} has to specify the tokens that it needs using a
+variable named @code{PACKAGE-github-token-scopes}.  The doc-string of
+that variable should document why the various scopes are needed.
 
 The meaning of the various scopes are documented at
 @uref{https://magit.vc/goto/f63aeb0a}.
@@ -299,7 +392,7 @@ unexpected, Ghub additionally displays a warning when appropriate.
 @example
 WARNING: The token will be stored unencrypted in "~/.authinfo".
          If you don't want that, you have to abort and customize
-         the `auth-sources' option.\n\n" (car auth-sources))
+         the `auth-sources' option.
 @end example
 
 Whether that is something that needs fixing, is up to you.  If your
@@ -342,7 +435,7 @@ The former is recommended and also easier to do, using the variable
 details.
 @end itemize
 
-After the above prompt you are also asked for you username and
+After the above prompt you are also asked for your username and
 password.  If you have enabled two-factor authentication, then you
 also have to provide the authentication code at least twice.  If you
 make sure the code is still good for a while when asked for it first,
@@ -356,15 +449,20 @@ figure out what scopes a package wants, (2) create such a token using
 the web interface and (3) store the token where Ghub expects to find
 it.
 
-A package named PACKAGE has to specify the scopes that it wants in the
-variable named @code{PACKAGE-ghub-token-scopes}.  The doc-string of such
-variables should document what the various scopes are needed for.
+A package named @code{PACKAGE} has to specify the scopes that it wants in
+the variable named @code{PACKAGE-github-token-scopes}.  The doc-string of
+such variables should document what the various scopes are needed for.
 
 To create or edit a token go to @uref{https://github.com/settings/tokens}.
 For Gitlab.com use @uref{https://gitlab.com/profile/personal_access_tokens}.
 
-Finally store the token in a place where Ghub looks for it, as described
-in @ref{How Ghub uses Auth-Source}.
+Finally store the token in a place where Ghub looks for it, as
+described in @ref{How Ghub uses Auth-Source}.
+
+If you store the token in a file like @code{~/.authinfo}, then note that
+@code{auth-source}'s parsing of that file is brittle.  Make sure the file
+ends with a newline character, that there are no empty or invalid
+lines, and that all comments are prefixed with @code{#}.
 
 @node How Ghub uses Auth-Source
 @section How Ghub uses Auth-Source
@@ -413,7 +511,7 @@ machine gitlab.com/api/v4 login ziggy^stardust password 012345abcdef...
 @chapter Using Ghub in Personal Scripts
 
 You can use @code{ghub-request} and its wrapper functions in your personal
-scripts of course.  Unlike when you use Ghub from a package that you
+scripts, of course.  Unlike when you use Ghub from a package that you
 distribute for others to use, you don't have to specify a package in
 personal scripts.
 
@@ -428,7 +526,7 @@ personal scripts.
 (ghub-get "/user" nil :auth 'foobar)
 @end lisp
 
-When you do not specify the AUTH argument, then a request is made on
+When you do not specify the @code{AUTH} argument, then a request is made on
 behalf of the @code{ghub} package itself.  Like for any package that uses
 Ghub, @code{ghub} has to declare what scopes it needs, using, in this case,
 the variable @code{ghub-github-token-scopes}.
@@ -450,10 +548,10 @@ of some package to only request access to API scopes that are actually
 needed, which in turn might make it easier for users to trust your
 package not to do unwanted things.
 
-The scopes used by PACKAGE have to be defined using the variable
+The scopes used by @code{PACKAGE} have to be defined using the variable
 @code{PACKAGE-github-token-scopes}, and you have to tell @code{ghub-request} on
-behalf of what package a request is being made by passing the symbol
-PACKAGE as the value of its AUTH argument.
+behalf of which package a request is being made by passing the symbol
+@code{PACKAGE} as the value of its @code{AUTH} argument.
 
 @lisp
 (ghub-request "GET" "/user" nil :auth 'PACKAGE)
@@ -462,11 +560,11 @@ PACKAGE as the value of its AUTH argument.
 @defvar PACKAGE-github-token-scopes
 
 This variable defines the token scopes requested by the package
-named PACKAGE.  The doc-string should explain what the various
-scopes are needed for to prevent users from giving PACKAGE fewer
+named @code{PACKAGE}.  The doc-string should explain what the various
+scopes are needed for to prevent users from giving @code{PACKAGE} fewer
 permissions than it absolutely needs and also to give them greater
-confidence that PACKAGE is only requesting the permissions that it
-actually need.
+confidence that @code{PACKAGE} is only requesting the permissions that it
+actually needs.
 
 The value of this variable does not necessarily correspond to the
 scopes that the respective token actually gives access to.  There is
@@ -490,13 +588,13 @@ issues without having to rely on users being thoughtful enough to
 correctly determine the used scopes manually.
 
 Just tell users to run @code{M-x ghub-token-scopes} and to provide the
-correct values for the HOST, USERNAME and PACKAGE when prompted,
-and to then post the output.
+correct values for the @code{HOST}, @code{USERNAME} and @code{PACKAGE} when
+prompted, and to then post the output.
 
 It is to be expected that users will occasionally mess that up so
-this command does not only output the scopes but also the user input
-so that you can have greater confidence in the validity of the
-user's answer.
+this command outputs not only the scopes but also the user input so
+that you can have greater confidence in the validity of the user's
+answer.
 
 @example
 Scopes for USERNAME^PACKAGE@@HOST: (SCOPE...)
@@ -506,10 +604,28 @@ Scopes for USERNAME^PACKAGE@@HOST: (SCOPE...)
 @node API
 @chapter API
 
-This section describes the Ghub API.  In other words it describes the
-public functions and variables provided by the Ghub library and not
-the Github API that can be accessed by using those functions.  The
-latter is documented at @uref{https://developer.github.com/v3}.
+This section describes the Ghub API@.  In other words it describes the
+public functions and variables provided by the Ghub package and not
+the APIs of the supported forges, which can be accessed by using those
+functions.  The forge APIs are documented at:
+
+@itemize
+@item
+Github: @uref{https://developer.github.com/v3}
+
+@item
+Gitlab: @uref{https://docs.gitlab.com/ee/api/README.html}
+
+@item
+Gitea: @uref{https://docs.gitea.io/en-us/api-usage} and
+@uref{https://try.gitea.io/api/swagger}
+
+@item
+Gogs: @uref{https://github.com/gogs/go-gogs-client/wiki}
+
+@item
+Bitbucket: @uref{https://developer.atlassian.com/bitbucket/api/2/reference}
+@end itemize
 
 @menu
 * Making Requests::
@@ -522,146 +638,149 @@ latter is documented at @uref{https://developer.github.com/v3}.
 
 @defun ghub-request method resource &optional params &key query payload headers unpaginate noerror reader username auth host callback errorback url value error extra method*
 
-This function makes a request for RESOURCE using METHOD.  PARAMS,
-QUERY, PAYLOAD and/or HEADERS are alists holding additional request
-data.  The response body is returned and the response header in
-stored in the variable @code{ghub-response-headers}.
+This function makes a request for @code{RESOURCE} using @code{METHOD}.
+@code{PARAMS}, @code{QUERY}, @code{PAYLOAD} and/or @code{HEADERS} are alists holding
+additional request data.  The response body is returned and the
+response headers are stored in the variable @code{ghub-response-headers}.
 
 @itemize
 @item
-METHOD is the http method, given as a string.
+@code{METHOD} is the HTTP method, given as a string.
 
 @item
-RESOURCE is the resource to access, given as a string beginning
+@code{RESOURCE} is the resource to access, given as a string beginning
 with a slash.
 
 
 @item
-PARAMS, QUERY, PAYLOAD and HEADERS are alists and are used to
-specify request data.  All these arguments are alists that
-resemble the json expected and returned by the Github API.  The
-keys are symbols and the values are stored in the @code{cdr} (not the
-@code{cadr}) and can be strings, integers and lists of strings and
+@code{PARAMS}, @code{QUERY}, @code{PAYLOAD} and @code{HEADERS} are alists and are used
+to specify request data.  All these arguments are alists that
+resemble the JSON expected and returned by the Github API@.  The
+keys are symbols and the values stored in the @code{cdr} (not the
+@code{cadr}) can be strings, integers, or lists of strings and
 integers.
 
 The Github API documentation is vague on how data has to be
 transmitted and for a particular resource usually just talks about
-"parameters".  Generally speaking when the METHOD is "HEAD" or
+"parameters".  Generally speaking when the @code{METHOD} is "HEAD" or
 "GET", then they have to be transmitted as a query, otherwise as a
 payload.
 
 @itemize
 @item
-Use PARAMS to automatically transmit like QUERY or PAYLOAD would
-depending on METHOD.
+Use @code{PARAMS} to automatically transmit like @code{QUERY} or @code{PAYLOAD}
+would depending on @code{METHOD}.
 
 @item
-Use QUERY to explicitly transmit data as a query.
+Use @code{QUERY} to explicitly transmit data as a query.
 
 @item
-Use PAYLOAD to explicitly transmit data as a payload.
-Instead of an alist, PAYLOAD may also be a string, in which
-case it gets encoded as UTF-8 but is otherwise transmitted as-is.
+Use @code{PAYLOAD} to explicitly transmit data as a payload.  Instead
+of an alist, @code{PAYLOAD} may also be a string, in which case it
+gets encoded as UTF-8 but is otherwise transmitted as-is.
 
 @item
-Use HEADERS for those rare resources that require that the data
-is transmitted as headers instead of as a query or payload.
+Use @code{HEADERS} for those rare resources that require that the
+data is transmitted as headers instead of as a query or payload.
 When that is the case, then the Github API documentation usually
 mentions it explicitly.
 @end itemize
 
 
 @item
-If SILENT is non-nil, then progress reports and the like are not
+If @code{SILENT} is non-nil, then progress reports and the like are not
 messaged.
 
 
 @item
-If UNPAGINATE is t, then this function make as many requests as
-necessary to get all values.  If UNPAGINATE is a natural number,
+If @code{UNPAGINATE} is t, then this function make as many requests as
+necessary to get all values.  If @code{UNPAGINATE} is a natural number,
 then it gets at most that many pages.  For any other non-nil value
 it raises an error.
 
 
 @item
-If NOERROR is non-nil, then no error is raised if the request
-fails and @code{nil} is returned instead.  If NOERROR is @code{return}, then the
-error payload is returned instead of @code{nil}.
+If @code{NOERROR} is non-nil, then no error is raised if the request
+fails and @code{nil} is returned instead.  If @code{NOERROR} is @code{return},
+then the error payload is returned instead of @code{nil}.
 
 
 @item
-If READER is non-nil, then it is used to read and return from the
-response buffer.  The default is @code{ghub--read-json-payload}.  For the
-very few resources that do not return json, you might want to use
-@code{ghub--decode-payload}.
+If @code{READER} is non-nil, then it is used to read and return from
+the response buffer.  The default is @code{ghub--read-json-payload}.
+For the very few resources that do not return JSON, you might want
+to use @code{ghub--decode-payload}.
 
 
 @item
-If USERNAME is non-nil, then the request is made on behalf of that
-user.  It is better to specify the user using the Git variable
-@code{github.user} for "api.github.com", or @code{github.HOST.user} if
-connecting to a Github Enterprise instance.
+If @code{USERNAME} is non-nil, then the request is made on behalf of
+that user.  It is better to specify the user using the Git
+variable @code{github.user} for "api.github.com", or @code{github.HOST.user}
+if connecting to a Github Enterprise instance.
 
 
 @item
-Each package that uses Ghub should use its own token. If AUTH is
-@code{nil} or unspecified, then the generic @code{ghub} token is used instead.
-This is only acceptable for personal utilities.  A packages that
-is distributed to other users should always use this argument to
-identify itself, using a symbol matching its name.
+Each package that uses Ghub should use its own token.  If @code{AUTH}
+is @code{nil} or unspecified, then the generic @code{ghub} token is used
+instead.  This is only acceptable for personal utilities.  A
+packages that is distributed to other users should always use this
+argument to identify itself, using a symbol matching its name.
 
 Package authors who find this inconvenient should write a wrapper
-around this function and possibly for the method specific
-functions also.
+around this function and possibly for the method-specific
+functions as well.
 
-Beside @code{nil}, some other symbols have a special meaning too.  @code{none}
-means to make an unauthorized request.  @code{basic} means to make a
-password based request.  If the value is a string, then it is
-assumed to be a valid token.  @code{basic} and an explicit token string
-are only intended for internal and debugging uses.
+Beside @code{nil}, some other symbols have a special meaning too.
+@code{none} means to make an unauthorized request.  @code{basic} means to
+make a password based request.  If the value is a string, then it
+is assumed to be a valid token.  @code{basic} and an explicit token
+string are only intended for internal and debugging uses.
 
-If AUTH is a package symbol, then the scopes are specified using
-the variable @code{AUTH-github-token-scopes}.  It is an error if that is
-not specified.  See @code{ghub-github-token-scopes} for an example.
-
-
-@item
-If HOST is non-nil, then connect to that Github instance.  This
-defaults to "api.github.com".  When a repository is connected to
-a Github Enterprise instance, then it is better to specify that
-using the Git variable @code{github.host} instead of using this argument.
+If @code{AUTH} is a package symbol, then the scopes are specified using
+the variable @code{AUTH-github-token-scopes}.  It is an error if that
+is not specified.  See @code{ghub-github-token-scopes} for an example.
 
 
 @item
-If FORGE is @code{gitlab}, then connect to Gitlab.com or, depending on
-HOST to another Gitlab instance.  This is only intended for
+If @code{HOST} is non-nil, then connect to that Github instance.
+This defaults to "api.github.com".  When a repository is connected
+to a Github Enterprise instance, then it is better to specify that
+using the Git variable @code{github.host} instead of using this
+argument.
+
+
+@item
+If @code{FORGE} is @code{gitlab}, then connect to Gitlab.com or, depending
+on @code{HOST}, to another Gitlab instance.  This is only intended for
 internal use.  Instead of using this argument you should use
 function @code{glab-request} and other @code{glab-*} functions.
 
 
 @item
-If CALLBACK and/or ERRORBACK is non-nil, then this function makes
-one or more asynchronous requests and calls CALLBACK or ERRORBACK
-when finished.  If an error occurred, then it calls ERRORBACK, or
-if that is @code{nil}, then CALLBACK.  When no error occurred then it
-calls CALLBACK.  When making asynchronous requests, then no errors
-are signaled, regardless of the value of NOERROR.
+If @code{CALLBACK} and/or @code{ERRORBACK} is non-nil, then this function makes
+one or more asynchronous requests and calls @code{CALLBACK} or @code{ERRORBACK}
+when finished.  If no error occurred, then it calls @code{CALLBACK},
+unless that is @code{nil}.
+
+If an error occurred, then it calls @code{ERRORBACK}, or if that is nil,
+then @code{CALLBACK}.  @code{ERRORBACK} can also be @code{t}, in which case it signals
+instead.  @code{NOERROR} is ignored for all asynchronous requests.
 
 Both callbacks are called with four arguments.
 
 @itemize
 @item
-For CALLBACK, the combined value of the retrieved pages.
-For ERRORBACk, the error that occured when retrieving the
+For @code{CALLBACK}, the combined value of the retrieved pages.
+For @code{ERRORBACK}, the error that occurred when retrieving the
 last page.
 
 @item
 The headers of the last page as an alist.
 
 @item
-Status information provided by @code{url-retrieve}. Its @code{:error}
-property holds the same information as ERRORBACK's first
-argument.
+Status information provided by @code{url-retrieve}.  Its @code{:error}
+property holds the same information as the first argument to
+@code{ERRORBACK}.
 
 @item
 A @code{ghub--req} struct, which can be passed to @code{ghub-continue}
@@ -675,13 +794,13 @@ A @code{ghub--req} struct, which can be passed to @code{ghub-continue}
 If there is a next page, then this function retrieves that.
 
 This function is only intended to be called from callbacks.  If
-there is a next page, then that is retrieve and the buffer that
+there is a next page, then that is retrieved and the buffer that
 the result will be loaded into is returned, or t if the process
-has already completed.  Otherwise nil is returned.
+has already completed.  If there is no next page, then return nil.
 
 Callbacks are called with four arguments (see @code{ghub-request}).
 The forth argument is a @code{ghub--req} struct, intended to be passed
-to this function.  A callbacks may use the struct's @code{extra} slot
+to this function.  A callback may use the struct's @code{extra} slot
 to pass additional information to the callback that will be called
 after the next request.  Use the function @code{ghub-req-extra} to get
 and set the value of that slot.
@@ -729,10 +848,16 @@ To access the response headers use this variable after @code{ghub-request}
 has returned.
 @end defvar
 
-@defun ghub-response-link-relations headers
+@defun ghub-response-link-relations req headers payload
 
-This function returns an alist of the link relations in HEADERS, or
-if optional HEADERS is nil, then those in @code{ghub-response-headers}.
+This function returns an alist of the link relations in @code{HEADERS}, or
+if optional @code{HEADERS} is nil, then those in @code{ghub-response-headers}.
+
+When accessing a Bitbucket instance then the link relations are in
+@code{PAYLOAD} instead of @code{HEADERS}, making their API merely RESTish and
+forcing this function to append those relations to the value of
+@code{ghub-response-headers}, for later use when this function is called
+with @code{nil} for @code{PAYLOAD}.
 @end defun
 
 @defvar ghub-override-system-name
@@ -748,8 +873,8 @@ each machine.  Also see @ref{Configuration Variables}.
 @defvar PACKAGE-github-token-scopes
 
 Such a variable defines the token scopes requested by the respective
-package PACKAGE given by the first word in the variable name.  @code{ghub}
-itself is treated like any other package.  Also see @ref{Using Ghub in a Package}.
+package @code{PACKAGE} given by the first word in the variable name.
+@code{ghub} itself is treated like any other package.  Also see @ref{Using Ghub in a Package}.
 @end defvar
 
 @defun ghub-head resource &optional params &key query payload headers unpaginate noerror reader username auth host callback errorback
@@ -758,11 +883,11 @@ itself is treated like any other package.  Also see @ref{Using Ghub in a Package
 
 These functions are simple wrappers around @code{ghub-request}.  Their
 signature is identical to that of the latter, except that they do
-not have an argument named METHOD.  The http method is instead
+not have an argument named @code{METHOD}.  The HTTP method is instead
 given by the second word in the function name.
 
 As described in the documentation for @code{ghub-request}, it depends on
-the used method whether the value of the PARAMS argument is used
+the used method whether the value of the @code{PARAMS} argument is used
 as the query or the payload.  For the "HEAD" and "GET" methods it
 is used as the query.
 @end defun
@@ -777,11 +902,11 @@ is used as the query.
 
 These functions are simple wrappers around @code{ghub-request}.  Their
 signature is identical to that of the latter, except that they do
-not have an argument named METHOD.  The http method is instead
+not have an argument named @code{METHOD}.  The HTTP method is instead
 given by the second word in the function name.
 
 As described in the documentation for @code{ghub-request}, it depends on
-the used method whether the value of the PARAMS argument is used
+the used method whether the value of the @code{PARAMS} argument is used
 as the query or the payload.  For the "PUT", "POST", "PATCH" and
 "DELETE" methods it is used as the payload.
 @end defun
@@ -802,16 +927,16 @@ repeatedly tries to access the resource until it becomes available
 or until the timeout exceeds.  In the latter case it signals
 @code{ghub-error}.
 
-RESOURCE specifies the resource that this function waits for.
+@code{RESOURCE} specifies the resource that this function waits for.
 
-DURATION specifies for how many seconds to wait at most, defaulting
-to 64 seconds.  Emacs will block during that time, but the user can
-abort using @code{C-g}.
+@code{DURATION} specifies the maximum number of seconds to wait for,
+defaulting to 64 seconds.  Emacs will block during that time, but
+the user can abort using @code{C-g}.
 
-The first attempt is made immediately and often that will actually
-succeed.  If not, then another attempt is made after two seconds,
-and each subsequent attempt is made after waiting as long as we
-already waited between all preceding attempts combined.
+The first attempt is made immediately and will often succeed.  If
+not, then another attempt is made after two seconds, and each
+subsequent attempt is made after waiting as long as we already
+waited between all preceding attempts combined.
 
 See @code{ghub-request}'s documentation above for information about the
 other arguments.
@@ -819,14 +944,14 @@ other arguments.
 
 @defun ghub-graphql graphql &optional variables &key username auth host callback
 
-This function makes a GraphQL request using GRAPHQL and VARIABLES as
-inputs.  GRAPHQL is a GraphQL string.  VARIABLES is a JSON-like
-alist.  The other arguments behave like for `ghub-request' (which
-see).
+This function makes a GraphQL request using @code{GRAPHQL} and
+@code{VARIABLES} as inputs.  @code{GRAPHQL} is a GraphQL string.  @code{VARIABLES}
+is a JSON-like alist.  The other arguments behave as for
+@code{ghub-request} (which see).
 
 The response is returned as a JSON-like alist.  Even if the response
-contains @code{errors}, this function does not raise an error.  Likewise
-cursor-handling too is left to the caller.
+contains @code{errors}, this function does not raise an error.
+Cursor-handling is likewise left to the caller.
 @end defun
 
 @node Authentication
@@ -836,8 +961,8 @@ cursor-handling too is left to the caller.
 @deffn Command ghub-create-token
 
 This command creates a new token using the values it reads from the
-user and then stores it according to variable @code{auth-sources}.  It can
-also be called non-interactively, but you shouldn't do that
+user and then stores it according to the variable @code{auth-sources}.
+It can also be called non-interactively, but you shouldn't do that
 yourself.
 
 This is useful if you want to fully setup things before attempting
@@ -848,24 +973,25 @@ request without doing this first.  (Note that instead of using this
 command you can also just repeat the initial request after making
 the desired adjustments — that is easier.)
 
-This command reads, in that order, the HOST (Github instance), the
-USERNAME, the PACKAGE and the SCOPES in the minibuffer, providing
-reasonable default choices.  SCOPES defaults to the scopes that
-PACKAGE requests using the variable @code{PACKAGE-github-token-scopes}.
+This command reads, in order, the @code{HOST} (Github instance), the
+@code{USERNAME}, the @code{PACKAGE}, and the @code{SCOPES} in the minibuffer,
+providing reasonable default choices.  @code{SCOPES} defaults to the
+scopes that @code{PACKAGE} requests using the variable
+@code{PACKAGE-github-token-scopes}.
 @end deffn
 
 @cindex ghub-token-scopes
 @deffn Command ghub-token-scopes
 
 Users are free to give a token access to fewer scopes than what the
-respective package requested.  That can of course lead to issues and
-package maintainers have to be able to quickly determine if such a
-(mis-)configuration is the root cause when users report issues.
+respective package requested.  That can, of course, lead to issues,
+and package maintainers have to be able to quickly determine if such
+a (mis-)configuration is the root cause when users report issues.
 
 This command reads the required values in the minibuffer and then
 shows a message containing these values along with the scopes of the
 respective token.  It also returns the scopes (only) when called
-non-interactively. Also see @ref{Using Ghub in a Package}.
+non-interactively.  Also see @ref{Using Ghub in a Package}.
 @end deffn
 
 @node Configuration Variables
@@ -887,7 +1013,7 @@ the secondary identity.
 @defvar github.HOST.user
 
 This variable serves the same purpose as @code{github.user} but for the
-Github Enterprise instance identified by HOST.
+Github Enterprise instance identified by @code{HOST}.
 
 The reason why separate variables are used is that this makes it
 possible to set both values globally instead of having to set one of
@@ -904,82 +1030,376 @@ and every repository becomes connected to the specified Github
 Enterprise instance, including those that should actually be
 connected to Github.com.
 
-When this is undefined, then "api.github.com" is used (define in the
-constant @code{ghub-default-host-host}, which you should never attempt to
+When this is undefined, then "api.github.com" is used (defined in
+the constant @code{ghub-default-host}, which you should never attempt to
 change.)
 @end defvar
 
 @defvar ghub-override-system-name
 
-Ghub uses a different token for each quadruple `(USERNAME PACKAGE
-HOST LOCAL-MACHINE)`.  Theoretically it could reuse tokens to some
-extend but that would be more difficult to implement, less flexible,
+Ghub uses a different token for each quadruple @code{(USERNAME PACKAGE
+  HOST LOCAL-MACHINE)}.  Theoretically it could reuse tokens to some
+extent but that would be more difficult to implement, less flexible,
 and less secure (though slightly more convenient).
 
 A token is identified on the respective Github instance (Github.com
-or a Github Enterprise instance) using the pair `(PACKAGE .
-LOCAL-MACHINE)`, or more precisely the string "Emacs package PACKAGE
-@@ LOCAL-MACHINE".  USERNAME and HOST do not have to be encoded
-because the token is stored for USERNAME on HOST and cannot be used
-by another user and/or on another instance.
+or a Github Enterprise instance) using the pair @code{(PACKAGE .
+  LOCAL-MACHINE)}, or more precisely the string "Emacs package PACKAGE
+@@ LOCAL-MACHINE".  @code{USERNAME} and @code{HOST} do not have to be encoded
+because the token is stored for @code{USERNAME} on @code{HOST} and cannot be
+used by another user and/or on another instance.
 
-There is one potential problem though; for any given `(PACKAGE
-. LOCAL-MACHINE)` there can only be one token identified by "Emacs
-package PACKAGE @@ LOCAL-MACHINE", Github does not allow multiple
+There is one potential problem though; for any given @code{(PACKAGE
+  . LOCAL-MACHINE)} there can only be one token identified by "Emacs
+package PACKAGE @@ LOCAL-MACHINE"; Github does not allow multiple
 tokens with the same description because it uses the description as
-the identifier.  (It could use some hash instead, but alas it does
-not.)
+the identifier (it could use some hash instead, but alas it does
+not).
 
 If you have multiple machines and some of them have the same name,
-then you should probably change that as this is not how thing ought
+then you should probably change that as this is not how things ought
 to be.  However if you dual-boot, then it might make sense to give
 that machine the same name regardless of what operating system you
 have booted into.
 
 You could use the same token on both operating systems, but setting
 that up might be somewhat difficult because it is not possible to
-download an existing token from Github.  You could of course locally
-copy the token, but that is inconvenient and would make it harder to
-only revoke the token used on your infected Windows installation
-without also revoking it for your totally safe *BSD installation.
+download an existing token from Github.  You could, of course,
+locally copy the token, but that is inconvenient and would make it
+harder to only revoke the token used on your infected Windows
+installation without also revoking it for your totally safe *BSD
+installation.
 
 Alternatively you can set this variable to a unique value, that will
 then be used to identify the local machine instead of the value
 returned by @code{system-name}.
 @end defvar
 
-@node Gitlab Support
-@chapter Gitlab Support
+@node GraphQL Support
+@chapter GraphQL Support
 
-Support for Gitlab.com and other Gitlab instances is implemented in
-the library @code{glab.el}.  This library is build on top of @code{ghub.el} and is
-maintained in the same repository, but it is distributed as a separate
-package.
+@defun ghub-graphql graphql &optional variables &key username auth host callback silent callback errorback value extra
 
-When accessing Gitlab.com or another Gitlab instance, use @code{glab-request}
-instead of @code{ghub-request}, @code{glab-get} instead of @code{ghub-get}, etc.  Likewise
-use the Git variables in the @code{gitlab} group instead of those in the
-@code{github} group, i.e.  @code{gitlab.user}, @code{gitlab.HOST.user} and @code{gitlab.host}.
+This function makes a GraphQL request using @code{GRAPHQL} and
+@code{VARIABLES} as inputs.  @code{GRAPHQL} is a GraphQL string.  @code{VARIABLES}
+is a JSON-like alist.  The other arguments behave as for
+@code{ghub-request} (which see).
 
-The Gitlab API cannot be used to create tokens, so Glab cannot provide
-a setup wizard like Ghub does.  As a consequence if the user makes a
-request and the necessary token cannot be found, then that results in
-an error.
+The response is returned as a JSON-like alist.  Even if the response
+contains @code{errors}, this function does not raise an error.
+Cursor-handling is likewise left to the caller.
+@end defun
 
-You have to manually create and store the necessary tokens.  Tokens
-can be created at @uref{https://gitlab.com/profile/personal_access_tokens},
-or the equivalent URL for another Gitlab instance.  To store the token
-locally, follow the instructions in @ref{Manually Creating and Storing a Token} and @ref{How Ghub uses Auth-Source}.
+@code{ghub-graphql} is a thin convenience wrapper around @code{ghub-request},
+similar to @code{ghub-post} and friends.  While the latter only hard-code
+the value of the @code{METHOD} argument, the former also hard-codes @code{RESOURCE}
+and constructs @code{PAYLOAD} from @code{GRAPHEQL} and @code{VARIABLES}.  It also drops
+@code{UNPAGINATE}, @code{NOERROR}, @code{READER} (internal functions expect alist-ified
+JSON) and @code{FORGE} (only Github currently supports GraphQL).
 
-Packages can that use Glab, can define @code{PACKAGE-gitlab-token-scopes} for
-documentation purposes.  But unlike @code{PACKAGE-github-token-scopes}, which
-is used by the setup wizard this is optional.
+@code{ghub-graphql} does not account for the fact that pagination works
+differently in GraphQL than it does in REST, so users of this function
+have to deal with that themselves.  Likewise error handling works
+differently and has to be done by the caller too.
 
-And a random hint: where you would use @code{user/repo} when accessing Github,
-you have to use @code{user%2Frepo} when accessing Gitlab, e.g.:
+An early attempt at implementing automatic unpaginating for GraphQL
+can be found in the @code{faithful-graphql} branch, provided I haven't
+deleted that by now.  On that branch I try to do things as intended by
+the designers of GraphQL, using variables and fragments, and drowning
+in a sea of boilerplate.
+
+The problem with that approach is that it only works for applications
+that fetch specific information on demand and actually want things to
+be paginated.  I am convinced that GraphQL is very nice for web apps.
+
+However the Forge package for which I am implementing all of this has
+very different needs.  It wants to fetch "all the data" and "cache"
+it locally, so that it is available even when there is no internet
+connection.  GraphQL was designed around the idea that you should be
+able to "ask for what you need and get exactly that".  But when that
+boils down to "look, if I persist, then you are going to hand me over
+all the data anyway, so just caught it up already", then things start
+to fall apart.  If Github's GraphQL allowed pagination to be turned
+off completely, then teaching @code{ghub-graphql} about error handling would
+be enough.
+
+But it doesn't and when doing things as intended, then that leads to
+huge amounts of repetitive boilerplate, which is so boring to write
+that doing it without introducing bugs left and right is near
+impossible; so I decided to give up on GraphQL variables, fragments
+and conditions, and instead implement something more powerful, though
+also more opinionated.
+
+@defun ghub--graphql-vacuum query variables callback &optional until &key narrow username auth host forge
+
+This function is an opinionated alternative to @code{ghub-graphql}.
+It relies and dark magic to get the job done.
+
+It makes an initial request using @code{QUERY}.  It then looks for
+paginated edges in the returned data and makes more requests to
+resolve them.  In order to do so it automatically transforms the
+initial @code{QUERY} into another query suitable for that particular edge.
+The data retrieved by subsequent requests is then injected into the
+data of the original request before that is returned or passed to
+the callback.  If subsequently retrieved data features new paginated
+edges, then those are followed recursively.
+
+The end result is essentially the same as using @code{ghub-graphql}, if
+only it were possible to say "do not paginate anything".  The
+implementation is much more complicated because it is not possible
+to do that.
+
+@code{QUERY} is a GraphQL query expressed as an s-expression.  The @code{graphql}
+package is used to turn that into a GraphQL query string, but the
+format is somewhat different than as documented for that package.
+Also only a subset of the GraphQL features are supported; fragments
+for example are not, and magical stuff happens to variables.  This
+is not documented yet, I am afraid.  Look at existing callers.
+
+@code{VARIABLES} is a JSON-like alist as for @code{ghub-graphql}.
+
+@code{UNTIL} is an alist @code{((EDGE-until . VALUE)...)}.  When unpaginating @code{EDGE}
+try not to fetch beyond the element whose first field has the value
+@code{VALUE} and remove that element as well as all "lesser" elements from
+the retrieved data if necessary.  Look at @code{forge--pull-repository} for
+an example.  This is only useful if you "cache" the response locally
+and want to avoid fetching data again that you already have.
+
+Other arguments behave as for @code{ghub-graphql} and @code{ghub-request}, more or
+less.
+@end defun
+
+Using @code{ghub--graphql-vacuum}, the following resource specific functions
+are implemented.  These functions are not part of the public API yet
+and are very much subject to change.
+
+@defun ghub-fetch-repository owner name callback &optional until &key username auth host forge
+
+This function asynchronously fetches forge data about the specified
+repository.  Once all data has been collected, @code{CALLBACK} is called
+with the data as the only argument.
+@end defun
+
+@defun ghub-fetch-issue owner name callback &optional until &key username auth host forge
+
+This function asynchronously fetches forge data about the specified
+issue.  Once all data has been collected, @code{CALLBACK} is called
+with the data as the only argument.
+@end defun
+
+@defun ghub-fetch-pullreq owner name callback &optional until &key username auth host forge
+
+This function asynchronously fetches forge data about the specified
+pull-request.  Once all data has been collected, @code{CALLBACK} is called
+with the data as the only argument.
+@end defun
+
+Note that in order to avoid duplication all of these functions base
+their initial query on the query stored in @code{ghub-fetch-repository}.  The
+latter two pass that query through @code{ghub--graphql-prepare-query}, which
+then used @code{ghub--graphql-narrow-query} to remove parts the caller is not
+interested in.  These two functions are also used internally, when
+unpaginating, but as demonstrated here they can be useful even before
+making an initial request.
+
+@node Support for Other Forges
+@chapter Support for Other Forges
+
+@menu
+* Forge Functions and Variables::
+* Forge Limitations and Notes::
+@end menu
+
+@node Forge Functions and Variables
+@section Forge Functions and Variables
+
+Originally Ghub supported only Github but now it also supports Gitlab,
+Gitea, Gogs and Bitbucket.  The function @code{ghub-request} and all the
+@code{ghub-METHOD} convenience wrappers default to acting on a Github forge
+but can be told to act on another forge using their FORGE argument.
+
+The FORGE argument only specifies what kind of forge to act on, not
+which instance.  The HOST argument can be used to select the instance.
+For some forges a default instance is defined:
+
+@itemize
+@item
+Forge @code{github} defaults to host @code{api.github.com}.
+
+@item
+Forge @code{gitlab} defaults to host @code{gitlab.com/api/v4}.
+
+@item
+Forge @code{bitbucket} defaults to host @code{api.bitbucket.org/2.0}.
+
+@item
+No canonical host exists for the @code{gitea} and @code{gogs} forges and
+@code{localhost:3000/api/v1} is used as the default host in both cases.
+@end itemize
+
+Together the FORGE and HOST arguments specify the forge type and
+instance.  In addition to that, it is also necessary to specify on
+whose behalf the request is being made, which can be done using the
+USERNAME and AUTH arguments.
+
+Having to specify these arguments for every request is inconvenient.
+Additional variables and convenience functions can be used to make
+that unnecessary in most cases.
+
+These variables can be set globally and/or for a specific repository
+as explained in @ref{Configuration Variables} with a focus on Github
+instances.  To summarize:
+
+@itemize
+@item
+For @uref{https://github.com} the Git variable @code{github.user} specifies the
+user.
+
+@item
+For another @code{github} instance the Git variable @code{github.HOST.user}
+specifies the user.  The HOST in that variable name is the same
+as the value of the HOST argument of the called function.
+
+@item
+Instead of specifying the HOST in every function call, the Git
+variable @code{github.host} can be used.  This should only be set locally.
+@end itemize
+
+@noindent
+For @code{gitlab} and @code{bitbucket} forges similar variables are available:
+
+@itemize
+@item
+@code{gitlab.user} specifies the @uref{https://gitlab.com} user.
+
+@item
+@code{gitlab.HOST.user} specifies the user for the HOST @code{gitlab} instance.
+
+@item
+@code{gitlab.host} specifies the @code{gitlab} host, unless the HOST argument
+is non-nil
+
+@item
+@code{bitbucket.user} specifies the @uref{https://bitbucket.org} user.
+
+@item
+@code{bitbucket.HOST.user} specifies the user for the HOST @code{bitbucket}
+instance.
+
+@item
+@code{bitbucket.host} specifies the @code{bitbucket} host, unless the HOST
+argument is non-nil.
+@end itemize
+
+For @code{gitea} and @code{gogs} forges some similar variables are available,
+however for some of the @code{ghub.*} variables no equivalent variable
+exist for these two forges:
+
+@itemize
+@item
+@code{gitea.user} is @strong{not} used because no canonical @code{gitea} instance exists.
+
+@item
+@code{gitea.HOST.user} specifies the user for the HOST @code{gitea} instance.
+
+@item
+@code{gitea.host} specifies the @code{gitea} host, unless the HOST argument is
+non-nil
+
+@item
+@code{gogs.user} is @strong{not} used because no canonical @code{gitea} instance exists.
+
+@item
+@code{gogs.HOST.user} specifies the user for the HOST @code{gogs} instance.
+
+@item
+@code{gogs.host} specifies the @code{gogs} host, unless the HOST argument is
+non-nil
+@end itemize
+
+@code{ghub-request} and @code{ghub-METHOD} can be used to make a request for any
+of the supported forge types, but except when making a request for
+a @code{github} instance, then that requires the use of the FORGE argument.
+
+To avoid that, functions named @code{FORGE-request} and @code{FORGE-METHOD} are also
+available.  The following forms are equivalent, for example:
+
+@lisp
+(ghub-get ... :auth 'PACKAGE :forge 'gitlab)
+(glab-get ... :auth 'PACKAGE)
+@end lisp
+
+These forms would remain equivalent even if you did not specify a
+value for the AUTH arguments — but you should not do that if you plan
+to share your code with others (see @ref{Using Ghub in a Package}).  If you
+do omit AUTH, then the request is made on behalf of the @code{ghub} package,
+@strong{regardless} of the symbol prefix of the function you use to do so.
+
+All @code{FORGE-request} and @code{FORGE-METHOD} functions, including but not
+limited to @code{ghub-METHOD}, are very simple wrappers around @code{ghub-request}.
+They take fewer arguments than @code{ghub-request} and instead pass constant
+values for the arguments METHOD and/or FORGE@.
+
+@node Forge Limitations and Notes
+@section Forge Limitations and Notes
+
+@itemize
+@item
+The token creation wizard is only available for @code{github} forges,
+because all other forges do not support using the API to create an
+API token.  As a consequence, if the user makes a request and the
+necessary token cannot be found, then that results in an error.
+Tokens can be created at:
+
+@itemize
+@item
+Gitlab: @uref{https://gitlab.com/profile/personal_access_tokens}
+
+@item
+Bitbucket: @uref{https://bitbucket.org/account/user/tarsius/app-passwords}
+
+@item
+Gitea: @uref{https://localhost:3000/user/settings/applications}
+
+@item
+Gogs: @uref{https://localhost:3000/user/settings/applications}
+@end itemize
+
+Also see @ref{Manually Creating and Storing a Token} and @ref{How Ghub uses Auth-Source}.
+
+
+@item
+As mentioned in the previous node, the variables @code{gitea.host} and
+@code{gogs.host} are not taken into account.
+
+
+@item
+Gitea and Gogs do not support limiting a token to certain scopes.
+
+
+@item
+The Bitbucket API is fairly broken.  Some resources only work if a
+slash is appended while others only work if no slash is appended.  I
+am unable to access any private repositories and some resources
+don't work for me at all.  Also the API is only RESTish; pagination
+information is part of the response body instead of the header.  Due
+to such issues it is possible that I will eventually have to remove
+support for Bitbucket altogether.
+
+
+@item
+The Gitlab API documentation is not always accurate, though I don't
+have an example at hand.  It also isn't structured well, making it
+occasionally difficult to find the information one is looking for.
+
+
+@item
+Where one would use @code{user/repo} when accessing another forge, one has
+to use @code{user%2Frepo} when accessing Gitlab, e.g.:
 
 @lisp
 (glab-get "/projects/python-mode-devs%2Fpython-mode")
 @end lisp
+@end itemize
 
 @bye
