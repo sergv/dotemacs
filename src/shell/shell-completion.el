@@ -12,6 +12,8 @@
 (require 'completion-setup)
 (require 'haskell-misc)
 
+;;;; Utilities
+
 ;; Use this to debug completion functions
 ;; (defun pcomplete/test ()
 ;;   (message "pcomplete-args = %s"
@@ -174,7 +176,7 @@ be either singular string or a list of strings."
         (error "process-opts: invalid entry %s" entry))))
    raw-flag-specs))
 
-;;; simple pcomplete macro
+;;;; The pcomplete macro
 
 ;;;###autoload
 (defmacro* defpcmpl (name definition &key (evaluate-definition nil))
@@ -340,7 +342,8 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                      1))))))
 
 (defun* pcmpl-entries (&key select ignore)
-  "Like `pcomplete-entries' but ignores files mathing RE."
+  "Like `pcomplete-entries' but ignores files mathing IGNORE
+regexp and files under version-control directories."
   (let ((pcomplete-file-ignore ignore)
         (pcomplete-dir-ignore
          (eval-when-compile
@@ -358,6 +361,8 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
     (pcomplete-dirs)))
 
 (defun pcmpl-entries-ignoring-common ()
+  "Like `pcomplete-entries' but ignores files from `+ignored-file-extensions+' and
+under version-control directories."
   (pcmpl-entries
    :ignore
    (eval-when-compile
@@ -365,7 +370,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
              (regexp-opt +ignored-file-extensions+)
              "\\'"))))
 
-;;; Version control
+;;;; Version control
 
 ;;;###autoload (autoload 'pcomplete/git "shell-completion" nil t)
 (defpcmpl pcomplete/git
@@ -1210,7 +1215,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
        (opts
         (args (pcomplete-here (pcmpl-git-get-refs "tags")))))))
 
-;;; Haskell
+;;;; Haskell
 
 (defun pcmpl-haskell-source-files ()
   (pcmpl-entries
@@ -2623,7 +2628,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
          ,@language-flags)))))
   :evaluate-definition t)
 
-;;; C, low-level stuff
+;;;; C, low-level stuff
 
 ;;;###autoload (autoload 'pcomplete/nm "shell-completion" nil t)
 (defpcmpl pcomplete/nm
@@ -2686,6 +2691,182 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
           "-V"
           "--version")
    (args (pcomplete-here (pcmpl-entries)))))
+
+;;;###autoload (autoload 'pcomplete/readelf "shell-completion" nil t)
+(defpcmpl pcomplete/readelf
+  (opts
+   (flags "-a"
+          "--all"
+          "-h"
+          "--file-header"
+          "-l"
+          "--program-headers"
+          "--segments"
+          "-S"
+          "--section-headers"
+          "--sections"
+          "-g"
+          "--section-groups"
+          "-t"
+          "--section-details"
+          "-e"
+          "--headers"
+          "-s"
+          "--syms"
+          "--symbols"
+          "--dyn-syms"
+          "-n"
+          "--notes"
+          "-r"
+          "--relocs"
+          "-u"
+          "--unwind"
+          "-d"
+          "--dynamic"
+          "-V"
+          "--version-info"
+          "-A"
+          "--arch-specific"
+          "-c"
+          "--archive-index"
+          "-D"
+          "--use-dynamic"
+          "-x"
+          "--hex-dump"
+          "-p"
+          "--string-dump"
+          "-R"
+          "--relocated-dump"
+          "-z"
+          "--decompress"
+
+          ("--debug-dump" (pcomplete-here
+                           '("rawline" "decodedline" "info" "abbrev" "pubnames" "aranges" "macro"
+                             "frames" "frames-interp" "str" "loc" "Ranges" "pubtypes" "gdb_index"
+                             "trace_info" "trace_abbrev" "trace_aranges" "addr" "cu_index"
+                             "links" "follow-links")))
+          "--debug-dump=rawline"
+          "--debug-dump=decodedline"
+          "--debug-dump=info"
+          "--debug-dump=abbrev"
+          "--debug-dump=pubnames"
+          "--debug-dump=aranges"
+          "--debug-dump=macro"
+          "--debug-dump=frames"
+          "--debug-dump=frames-interp"
+          "--debug-dump=str"
+          "--debug-dump=loc"
+          "--debug-dump=Ranges"
+          "--debug-dump=pubtypes"
+          "--debug-dump=gdb_index"
+          "--debug-dump=trace_info"
+          "--debug-dump=trace_abbrev"
+          "--debug-dump=trace_aranges"
+          "--debug-dump=addr"
+          "--debug-dump=cu_index"
+          "--debug-dump=links"
+          "--debug-dump=follow-links"
+
+          "--dwarf-depth"
+          "--dwarf-start"
+
+          "--ctf"
+          "--ctf-parent"
+          "--ctf-symbols"
+          "--ctf-strings"
+
+          "-I"
+          "--histogram"
+          "-W"
+          "--wide")
+   (args (pcomplete-here (pcmpl-entries)))))
+
+;;;###autoload (autoload 'pcomplete/objdump "shell-completion" nil t)
+(defpcmpl pcomplete/objdump
+  (opts
+   (flags
+    "-a"
+    "--archive-headers"
+    "-f"
+    "--file-headers"
+    "-p"
+    "--private-headers"
+    "-P"
+    "--private"
+    "-h"
+    "--section-headers"
+    "--headers"
+    "-x"
+    "--all-headers"
+    "-d"
+    "--disassemble"
+    "-D"
+    "--disassemble-all"
+    "--disassemble=<sym>"
+    "-S"
+    "--source"
+    "--source-comment"
+    "-s"
+    "--full-contents"
+    "-g"
+    "--debugging"
+    "-e"
+    "--debugging-tags"
+    "-G"
+    "--stabs"
+
+    ("--dwarf" (pcomplete-here
+                '("rawline" "decodedline" "info" "abbrev" "pubnames" "aranges" "macro" "frames"
+                  "frames-interp" "str" "loc" "Ranges" "pubtypes" "gdb_index" "trace_info"
+                  "trace_abbrev" "trace_aranges" "addr" "cu_index" "links" "follow-links")))
+    "--dwarf=rawline"
+    "--dwarf=decodedline"
+    "--dwarf=info"
+    "--dwarf=abbrev"
+    "--dwarf=pubnames"
+    "--dwarf=aranges"
+    "--dwarf=macro"
+    "--dwarf=frames"
+    "--dwarf=frames-interp"
+    "--dwarf=str"
+    "--dwarf=loc"
+    "--dwarf=Ranges"
+    "--dwarf=pubtypes"
+    "--dwarf=gdb_index"
+    "--dwarf=trace_info"
+    "--dwarf=trace_abbrev"
+    "--dwarf=trace_aranges"
+    "--dwarf=addr"
+    "--dwarf=cu_index"
+    "--dwarf=links"
+    "--dwarf=follow-links"
+
+    "-t"
+    "--syms"
+    "-T"
+    "--dynamic-syms"
+    "-r"
+    "--reloc"
+    "-R"
+    "--dynamic-reloc"
+
+    (("-M" "--disassembler-options") (pcomplete-here
+                                      '("intel" "att" "att-mnemonic" "intel-mnemonic" "x86-64" "i386"
+                                        "i8086" "addr64" "addr32" "addr16" "data32" "data16" "suffix"
+                                        "amd64" "intel64")))
+    "-l"
+    "--line-numbers"
+    "-F"
+    "--file-offsets"
+    (("-C" "--demangle") (pcomplete-here
+                          '("auto" "gnu" "lucid" "arm" "hp" "edg" "gnu-v3" "java" "gnat")))
+
+    "-w"
+    "--wide"
+    "--special-syms"
+    "--inlines")
+   (args (pcomplete-here (pcmpl-entries)))))
+
 
 (defun pcmpl-gcc-assembler-flags ()
   '())
@@ -2765,7 +2946,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
           "-marh"
           "-march=native"
           "-fomit-frame-pontier")
-   (args (pcomplete-here (pcmpl-entries-ignoring-common)))))
+   (args (pcomplete-here (pcmpl-entries)))))
 
 ;;;###autoload (autoload 'pcomplete/clang "shell-completion" nil t)
 (defpcmpl pcomplete/clang
@@ -3836,13 +4017,26 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
     "--no-undefined"
     "-z")
    (args
-    (pcomplete-here (pcmpl-entries-ignoring-common)))))
+    (pcomplete-here (pcmpl-entries)))))
 
-;;; simpler definitions, vanilla Unix & GNU tools
+;;;; Vanilla Unix & GNU tools
 
 ;;;###autoload (autoload 'pcomplete/cp "shell-completion" nil t)
 (defpcmpl pcomplete/cp
-  (opts (flags "-r")
+  (opts (flags "-r"
+               "--recursive"
+               "-f"
+               "--force"
+               "-l"
+               "--link"
+               "-P"
+               "--no-dereference"
+               "-n"
+               "--no-clobber"
+               "-s"
+               "--symbolic-link"
+               "-v"
+               "--verbose")
         (args (pcomplete-here (pcmpl-entries)))))
 
 ;;;###autoload (autoload 'pcomplete/ls "shell-completion" nil t)
@@ -4256,6 +4450,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
 ;;;###autoload
 (defalias 'pcomplete/ll 'pcomplete/ls)
 
+;;;###autoload (autoload 'pcomplete/emacs-repo-tool "shell-completion" nil t)
 (defpcmpl pcomplete/emacs-repo-tool
   (or
    ("generate-grafts"
@@ -4282,6 +4477,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                   "\n"
                   t)))
 
+;;;###autoload (autoload 'pcomplete/nix-channel "shell-completion" nil t)
 (defpcmpl pcomplete/nix-channel
   (or
    ("--add")
@@ -4291,6 +4487,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
     (opts
      (args (pcomplete-here (pcmpl-nix-get-channels)))))))
 
+;;;###autoload (autoload 'pcomplete/nix-env "shell-completion" nil t)
 (defpcmpl pcomplete/nix-env
   (opts
    (flags
