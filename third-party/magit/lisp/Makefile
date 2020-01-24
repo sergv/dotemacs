@@ -41,6 +41,11 @@ magit-notes.elc:	magit.elc
 magit-sequence.elc:	magit.elc
 magit-commit.elc:	magit.elc magit-sequence.elc
 magit-remote.elc:	magit.elc
+magit-clone.elc:	magit.elc
+magit-fetch.elc:	magit.elc
+magit-pull.elc:		magit.elc
+magit-push.elc:		magit.elc
+magit-patch.elc:	magit.elc
 magit-bisect.elc:	magit.elc
 magit-stash.elc:	magit.elc
 magit-blame.elc:	magit.elc
@@ -48,6 +53,7 @@ magit-obsolete.elc:	magit.elc
 magit-submodule.elc:	magit.elc
 magit-subtree.elc:	magit.elc
 magit-ediff.elc:	magit.elc
+magit-gitignore.elc:	magit.elc
 magit-extras.elc:	magit.elc magit-merge.elc
 git-rebase.elc:		magit.elc
 magit-imenu.elc:	magit.elc git-rebase.elc
@@ -135,3 +141,15 @@ define VERSIONLIB_TMPL
 endef
 export VERSIONLIB_TMPL
 #'
+
+define suppress_warnings
+(fset 'original-message (symbol-function 'message))
+(fset 'message ;'
+      (lambda (f &rest a)
+        (unless (or (equal f "Wrote %s")
+                    (equal f "pcase-memoize: equal first branch, yet different")
+                    (and (equal f "Warning: Unknown defun property `%S' in %S")
+                         (memq (car a) '(pure side-effect-free interactive-only))))
+          (apply 'original-message f a))))
+endef
+export suppress_warnings

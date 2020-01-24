@@ -28,6 +28,9 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'subr-x))
+
 (require 'magit)
 
 ;;; Options
@@ -239,8 +242,8 @@ Also see option `magit-blame-styles'."
                  (car (magit-blame--parse-chunk type))))))))
 
 (defun magit-blame-chunk-at (pos)
-  (--any (overlay-get it 'magit-blame-chunk)
-         (overlays-at pos)))
+  (--some (overlay-get it 'magit-blame-chunk)
+          (overlays-at pos)))
 
 (defun magit-blame--overlay-at (&optional pos key)
   (unless pos
@@ -267,7 +270,7 @@ in `magit-blame-read-only-mode-map' instead.")
            (define-key map (kbd   "I") 'magit-blame-previous-chunk-same-commit)
            (define-key map (kbd   "k") 'magit-blame-next-chunk)
            (define-key map (kbd   "K") 'magit-blame-next-chunk-same-commit)
-           (define-key map (kbd   "j") 'magit-blame)
+           (define-key map (kbd   "j") 'magit-blame-addition)
            (define-key map (kbd   "l") 'magit-blame-removal)
            (define-key map (kbd   "f") 'magit-blame-reverse)
            (define-key map (kbd   "b") 'magit-blame-popup))
@@ -277,7 +280,7 @@ in `magit-blame-read-only-mode-map' instead.")
            (define-key map (kbd   "P") 'magit-blame-previous-chunk-same-commit)
            (define-key map (kbd   "n") 'magit-blame-next-chunk)
            (define-key map (kbd   "N") 'magit-blame-next-chunk-same-commit)
-           (define-key map (kbd   "b") 'magit-blame)
+           (define-key map (kbd   "b") 'magit-blame-addition)
            (define-key map (kbd   "r") 'magit-blame-removal)
            (define-key map (kbd   "f") 'magit-blame-reverse)
            (define-key map (kbd   "B") 'magit-blame-popup)))
@@ -473,13 +476,12 @@ modes is toggled, then this mode also gets toggled automatically.
 (defun magit-blame--parse-chunk (type)
   (let (chunk revinfo)
     (looking-at "^\\(.\\{40\\}\\) \\([0-9]+\\) \\([0-9]+\\) \\([0-9]+\\)")
-    (setq chunk (let ((fn 'magit-blame-chunk))
-                  (funcall fn "" ; Suppress warning about obsolete name arg.
-                           :orig-rev                     (match-string 1)
-                           :orig-line  (string-to-number (match-string 2))
-                           :final-line (string-to-number (match-string 3))
-                           :num-lines  (string-to-number (match-string 4)))))
-    (with-slots (orig-rev orig-file prev-rev prev-file) chunk
+    (with-slots (orig-rev orig-file prev-rev prev-file)
+        (setq chunk (magit-blame-chunk
+                     :orig-rev                     (match-string 1)
+                     :orig-line  (string-to-number (match-string 2))
+                     :final-line (string-to-number (match-string 3))
+                     :num-lines  (string-to-number (match-string 4))))
       (forward-line)
       (let (done)
         (while (not done)
@@ -660,8 +662,8 @@ modes is toggled, then this mode also gets toggled automatically.
                 (?A . ,(p2 "author-time"    "author-tz"    'magit-blame-date))
                 (?C . ,(p2 "committer-time" "committer-tz" 'magit-blame-date))
                 (?f . "")))))))
-    (-if-let (width (and (string-suffix-p "%f" format)
-                         (magit-blame--style-get 'margin-width)))
+    (if-let ((width (and (string-suffix-p "%f" format)
+                         (magit-blame--style-get 'margin-width))))
         (concat str
                 (propertize (make-string (max 0 (- width (length str))) ?\s)
                             'face face))
@@ -695,10 +697,10 @@ modes is toggled, then this mode also gets toggled automatically.
 (defun magit-blame-maybe-show-message ()
   (when (magit-blame--style-get 'show-message)
     (let ((message-log-max 0))
-      (-if-let (msg (cdr (assq 'heading
+      (if-let ((msg (cdr (assq 'heading
                                (gethash (oref (magit-current-blame-chunk)
                                               orig-rev)
-                                        magit-blame-cache))))
+                                        magit-blame-cache)))))
           (progn (setq msg (substring msg 0 -1))
                  (set-text-properties 0 (length msg) nil msg)
                  (message msg))
@@ -721,12 +723,12 @@ not turn on `read-only-mode'."
               (cons 'eldoc-mode magit-blame-disable-modes))
   (if (not magit-blame-mode)
       (let ((magit-blame-read-only nil))
-        (magit-blame))
+        (magit-blame-addition))
     (read-only-mode -1)
     (magit-blame--update-overlays)))
 
 ;;;###autoload
-(defun magit-blame ()
+(defun magit-blame-addition ()
   "For each line show the revision in which it was added."
   (interactive)
   (magit-blame--pre-blame-assert 'addition)
@@ -758,7 +760,7 @@ not turn on `read-only-mode'."
     (magit--not-inside-repository-error))
   (if (and magit-blame-mode
            (eq type magit-blame-type))
-      (-if-let (chunk (magit-current-blame-chunk))
+      (if-let ((chunk (magit-current-blame-chunk)))
           (unless (oref chunk prev-rev)
             (user-error "Chunk has no further history"))
         (user-error "Commit data not available yet.  Still blaming."))
@@ -828,7 +830,7 @@ then also kill the buffer."
 (defun magit-blame-next-chunk-same-commit (&optional previous)
   "Move to the next chunk from the same commit.\n\n(fn)"
   (interactive)
-  (-if-let (rev (oref (magit-current-blame-chunk) orig-rev))
+  (if-let ((rev (oref (magit-current-blame-chunk) orig-rev)))
       (let ((pos (point)) ov)
         (save-excursion
           (while (and (not ov)
@@ -883,7 +885,7 @@ instead of the hash, like `kill-ring-save' would."
   :options  '((?M "Detect lines moved or copied within a file" "-M")
               (?C "Detect lines moved or copied between files" "-C"))
   :actions  '("Actions"
-              (?b "Show commits adding lines" magit-blame)
+              (?b "Show commits adding lines" magit-blame-addition)
               (?r (lambda ()
                     (with-current-buffer magit-pre-popup-buffer
                       (and (not buffer-file-name)
@@ -903,16 +905,16 @@ instead of the hash, like `kill-ring-save' would."
               (?c "Cycle style" magit-blame-cycle-style))
   :default-arguments '("-w")
   :max-action-columns 1
-  :default-action 'magit-blame)
+  :default-action 'magit-blame-addition)
 
 ;;; Utilities
 
 (defun magit-blame-maybe-update-revision-buffer ()
   (unless magit--update-revision-buffer
     (setq magit--update-revision-buffer nil)
-    (-when-let* ((chunk  (magit-current-blame-chunk))
-                 (commit (oref chunk orig-rev))
-                 (buffer (magit-mode-get-buffer 'magit-revision-mode nil t)))
+    (when-let ((chunk  (magit-current-blame-chunk))
+               (commit (oref chunk orig-rev))
+               (buffer (magit-mode-get-buffer 'magit-revision-mode nil t)))
       (setq magit--update-revision-buffer (list commit buffer))
       (run-with-idle-timer
        magit-update-other-window-delay nil
@@ -923,5 +925,6 @@ instead of the hash, like `kill-ring-save' would."
              (let ((magit-display-buffer-noselect t))
                (apply #'magit-show-commit rev (magit-diff-arguments))))))))))
 
+;;; _
 (provide 'magit-blame)
 ;;; magit-blame.el ends here

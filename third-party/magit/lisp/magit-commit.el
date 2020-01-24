@@ -34,6 +34,7 @@
 
 (eval-when-compile (require 'epa)) ; for `epa-protocol'
 (eval-when-compile (require 'epg))
+(eval-when-compile (require 'subr-x))
 
 ;;; Options
 
@@ -43,7 +44,7 @@
   :type '(repeat (string :tag "Argument")))
 
 (defcustom magit-commit-ask-to-stage 'verbose
-  "Whether to ask to stage everything when committing and nothing is staged."
+  "Whether to ask to stage all unstaged changes when committing and nothing is staged."
   :package-version '(magit . "2.3.0")
   :group 'magit-commands
   :type '(choice (const :tag "Ask showing diff" verbose)
@@ -79,6 +80,27 @@ an error while using those is harder to recover from."
   :group 'magit-commands
   :type 'boolean)
 
+(defcustom magit-post-commit-hook nil
+  "Hook run after creating a commit without the user editing a message.
+
+This hook is run by `magit-refresh' if `this-command' is a member
+of `magit-post-stage-hook-commands'.  This only includes commands
+named `magit-commit-*' that do *not* require that the user edits
+the commit message in a buffer and then finishes by pressing
+\\<with-editor-mode-map>\\[with-editor-finish].
+
+Also see `git-commit-post-finish-hook'."
+  :package-version '(magit . "2.90.0")
+  :group 'magit-commands
+  :type 'hook)
+
+(defvar magit-post-commit-hook-commands
+  '(magit-commit-extend
+    magit-commit-fixup
+    magit-commit-augment
+    magit-commit-instant-fixup
+    magit-commit-instant-squash))
+
 ;;; Popup
 
 (defun magit-commit-popup (&optional arg)
@@ -101,7 +123,7 @@ an error while using those is harder to recover from."
                (?S "Sign using gpg"       "--gpg-sign=" magit-read-gpg-secret-key)
                (?C "Reuse commit message" "--reuse-message="
                    magit-read-reuse-message))
-    :actions  ((?c "Commit"         magit-commit)
+    :actions  ((?c "Commit"         magit-commit-create)
                (?e "Extend"         magit-commit-extend)
                (?f "Fixup"          magit-commit-fixup)
                (?F "Instant Fixup"  magit-commit-instant-fixup) nil
@@ -111,7 +133,7 @@ an error while using those is harder to recover from."
                (?a "Amend"          magit-commit-amend)
                (?A "Augment"        magit-commit-augment))
     :max-action-columns 4
-    :default-action magit-commit))
+    :default-action magit-commit-create))
 
 (magit-define-popup-keys-deferred 'magit-commit-popup)
 
@@ -126,8 +148,8 @@ an error while using those is harder to recover from."
   (require 'epa)
   (let ((keys (--map (concat (epg-sub-key-id (car (epg-key-sub-key-list it)))
                              " "
-                             (-when-let (id-obj (car (epg-key-user-id-list it)))
-                               (let    ((id-str (epg-user-id-string id-obj)))
+                             (when-let ((id-obj (car (epg-key-user-id-list it))))
+                               (let ((id-str (epg-user-id-string id-obj)))
                                  (if (stringp id-str)
                                      id-str
                                    (epg-decode-dn id-obj)))))
@@ -147,7 +169,7 @@ an error while using those is harder to recover from."
 ;;; Commands
 
 ;;;###autoload
-(defun magit-commit (&optional args)
+(defun magit-commit-create (&optional args)
   "Create a new commit on `HEAD'.
 With a prefix argument, amend to the commit at `HEAD' instead.
 \n(git commit [--amend] ARGS)"
@@ -257,7 +279,7 @@ depending on the value of option `magit-commit-squash-confirm'."
 
 (defun magit-commit-squash-internal
     (option commit &optional args rebase edit confirmed)
-  (-when-let (args (magit-commit-assert args t))
+  (when-let ((args (magit-commit-assert args t)))
     (when commit
       (when (and rebase (not (magit-rev-ancestor-p commit "HEAD")))
         (magit-read-char-case
@@ -295,8 +317,7 @@ depending on the value of option `magit-commit-squash-confirm'."
                 (list "--autosquash" "--autostash")
               "" "true" nil t)))
         (format "Type %%p on a commit to %s into it,"
-                (substring option 2))
-        nil nil (list "--graph"))
+                (substring option 2)))
       (when magit-commit-show-diff
         (let ((magit-display-buffer-noselect t))
           (apply #'magit-diff-staged nil (magit-diff-arguments)))))))
@@ -324,6 +345,7 @@ depending on the value of option `magit-commit-squash-confirm'."
    ((and (magit-rebase-in-progress-p)
          (not (magit-anything-unstaged-p))
          (y-or-n-p "Nothing staged.  Continue in-progress rebase? "))
+    (setq this-command 'magit-rebase-continue)
     (magit-run-git-sequencer "rebase" "--continue")
     nil)
    ((and (file-exists-p (magit-git-dir "MERGE_MSG"))
@@ -334,7 +356,7 @@ depending on the value of option `magit-commit-squash-confirm'."
    (magit-commit-ask-to-stage
     (when (eq magit-commit-ask-to-stage 'verbose)
       (magit-diff-unstaged))
-    (prog1 (when (y-or-n-p "Nothing staged.  Stage and commit everything? ")
+    (prog1 (when (y-or-n-p "Nothing staged.  Stage and commit all unstaged changes? ")
              (magit-run-git "add" "-u" ".")
              (or args (list "--")))
       (when (and (eq magit-commit-ask-to-stage 'verbose)
@@ -370,11 +392,45 @@ history element."
                    (and (magit-rev-author-p "HEAD")
                         (concat "--date=" date)))))
 
+;;;###autoload (autoload 'magit-commit-absorb-popup "magit-commit" nil t)
+(magit-define-popup magit-commit-absorb-popup
+  "Spread unstaged changes across recent commits.
+Without a prefix argument just call `magit-commit-absorb'.
+With a prefix argument use a popup buffer to select arguments."
+  :man-page "git-bisect"
+  :options '((?c "Diff context lines" "--context=")
+             (?s "Strictness"         "--strict="))
+  :actions '((?x "Absorb" magit-commit-absorb))
+  :default-action 'magit-commit-absorb
+  :use-prefix 'popup)
+
+(defun magit-commit-absorb (&optional commit args confirmed)
+  "Spread unstaged changes across recent commits.
+This command requires the git-autofixup script, which is
+available from https://github.com/torbiak/git-autofixup."
+  (interactive (list (magit-get-upstream-branch)
+                     (magit-commit-absorb-arguments)))
+  (unless (executable-find "git-autofixup")
+    (user-error "This command requires the git-autofixup script, which %s"
+                "is available from https://github.com/torbiak/git-autofixup"))
+  (when (magit-anything-staged-p)
+    (user-error "Cannot absorb when there are staged changes"))
+  (unless (magit-anything-unstaged-p)
+    (user-error "There are no unstaged changes that could be absorbed"))
+  (when commit
+    (setq commit (magit-rebase-interactive-assert commit t)))
+  (if (and commit confirmed)
+      (progn (magit-run-git-async "autofixup" "-vv" args commit) t)
+    (magit-log-select
+      (lambda (commit)
+        (magit-commit-absorb commit args t))
+      nil nil nil nil commit)))
+
 ;;; Pending Diff
 
 (defun magit-commit-diff ()
   (when (and git-commit-mode magit-commit-show-diff)
-    (-when-let (diff-buffer (magit-mode-get-buffer 'magit-diff-mode))
+    (when-let ((diff-buffer (magit-mode-get-buffer 'magit-diff-mode)))
       ;; This window just started displaying the commit message
       ;; buffer.  Without this that buffer would immediately be
       ;; replaced with the diff buffer.  See #2632.
@@ -385,7 +441,7 @@ history element."
               (magit-display-buffer-noselect t)
               (inhibit-quit nil))
           (message "Diffing changes to be committed (C-g to abort diffing)")
-          (-if-let (fn (cl-case last-command
+          (if-let ((fn (cl-case last-command
                          (magit-commit
                           (apply-partially 'magit-diff-staged nil))
                          (magit-commit-all
@@ -393,7 +449,7 @@ history element."
                          ((magit-commit-amend
                            magit-commit-reword
                            magit-rebase-reword-commit)
-                          'magit-diff-while-amending)))
+                          'magit-diff-while-amending))))
               (funcall fn args)
             (if (magit-anything-staged-p)
                 (magit-diff-staged nil args)
@@ -426,8 +482,9 @@ If no commit is in progress, then initiate it.  Use the function
 specified by variable `magit-commit-add-log-insert-function' to
 actually insert the entry."
   (interactive)
-  (let ((hunk (magit-section-when 'hunk it))
-        (log (magit-commit-message-buffer)) buf pos)
+  (let ((hunk (and (magit-section-match 'hunk)
+                   (magit-current-section)))
+        (log  (magit-commit-message-buffer)) buf pos)
     (save-window-excursion
       (call-interactively #'magit-diff-visit-file)
       (setq buf (current-buffer))
@@ -435,7 +492,7 @@ actually insert the entry."
     (unless log
       (unless (magit-commit-assert nil)
         (user-error "Abort"))
-      (magit-commit)
+      (magit-commit-create)
       (while (not (setq log (magit-commit-message-buffer)))
         (sit-for 0.01)))
     (save-excursion
@@ -450,34 +507,37 @@ actually insert the entry."
     (undo-boundary)
     (goto-char (point-max))
     (while (re-search-backward (concat "^" comment-start) nil t))
-    (cond ((re-search-backward (format "* %s\\(?: (\\([^)]+\\))\\)?: " file)
-                               nil t)
-           (when (equal (match-string 1) defun)
-             (setq defun nil))
-           (re-search-forward ": "))
-          (t
-           (when (re-search-backward "^[\\*(].+\n" nil t)
-             (goto-char (match-end 0)))
-           (while (re-search-forward "^[^\\*#\n].*\n" nil t))
-           (if defun
-               (progn (insert (format "* %s (%s): \n" file defun))
-                      (setq defun nil))
-             (insert (format "* %s: \n" file)))
-           (backward-char)
-           (unless (looking-at "\n[\n\\']")
-             (insert ?\n)
-             (backward-char))))
-    (when defun
-      (forward-line)
-      (let ((limit (save-excursion
-                     (and (re-search-forward "^\\*" nil t)
-                          (point)))))
-        (unless (or (looking-back (format "(%s): " defun)
-                                  (line-beginning-position))
-                    (re-search-forward (format "^(%s): " defun) limit t))
-          (while (re-search-forward "^[^\\*#\n].*\n" limit t))
-          (insert (format "(%s): \n" defun))
-          (backward-char))))))
+    (save-restriction
+      (narrow-to-region (point-min) (point))
+      (cond ((re-search-backward (format "* %s\\(?: (\\([^)]+\\))\\)?: " file)
+                                 nil t)
+             (when (equal (match-string 1) defun)
+               (setq defun nil))
+             (re-search-forward ": "))
+            (t
+             (when (re-search-backward "^[\\*(].+\n" nil t)
+               (goto-char (match-end 0)))
+             (while (re-search-forward "^[^\\*\n].*\n" nil t))
+             (if defun
+                 (progn (insert (format "* %s (%s): \n" file defun))
+                        (setq defun nil))
+               (insert (format "* %s: \n" file)))
+             (backward-char)
+             (unless (looking-at "\n[\n\\']")
+               (insert ?\n)
+               (backward-char))))
+      (when defun
+        (forward-line)
+        (let ((limit (save-excursion
+                       (and (re-search-forward "^\\*" nil t)
+                            (point)))))
+          (unless (or (looking-back (format "(%s): " defun)
+                                    (line-beginning-position))
+                      (re-search-forward (format "^(%s): " defun) limit t))
+            (while (re-search-forward "^[^\\*\n].*\n" limit t))
+            (insert (format "(%s): \n" defun))
+            (backward-char)))))))
 
+;;; _
 (provide 'magit-commit)
 ;;; magit-commit.el ends here
