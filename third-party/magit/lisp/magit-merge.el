@@ -27,7 +27,12 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'subr-x))
+
 (require 'magit)
+
+(declare-function magit-git-push "magit-push" (branch target args))
 
 ;;; Commands
 
@@ -38,21 +43,21 @@
   :switches '((?f "Fast-forward only" "--ff-only")
               (?n "No fast-forward"   "--no-ff"))
   :options  '((?s "Strategy" "--strategy="))
-  :actions  '((?m "Merge"                  magit-merge)
+  :actions  '((?m "Merge"                  magit-merge-plain)
               (?p "Preview merge"          magit-merge-preview)
               (?e "Merge and edit message" magit-merge-editmsg) nil
               (?n "Merge but don't commit" magit-merge-nocommit)
               (?s "Squash merge"           magit-merge-squash)
               (?a "Absorb"                 magit-merge-absorb)
               (?i "Merge into"             magit-merge-into))
-  :sequence-actions   '((?m "Commit merge" magit-commit)
+  :sequence-actions   '((?m "Commit merge" magit-commit-create)
                         (?a "Abort merge"  magit-merge-abort))
   :sequence-predicate 'magit-merge-in-progress-p
   :default-action 'magit-merge
   :max-action-columns 2)
 
 ;;;###autoload
-(defun magit-merge (rev &optional args nocommit)
+(defun magit-merge-plain (rev &optional args nocommit)
   "Merge commit REV into the current branch; using default message.
 
 Unless there are conflicts or a prefix argument is used create a
@@ -103,9 +108,14 @@ that the respective pull-request (if any) won't get stuck on some
 obsolete version of the commits that are being merged.  Finally
 if `magit-branch-pull-request' was used to create the merged
 branch, then also remove the respective remote branch."
-  (interactive (list (magit-read-other-branch
-                      (format "Merge `%s' into" (magit-get-current-branch)))
-                     (magit-merge-arguments)))
+  (interactive
+   (list (magit-read-other-local-branch
+          (format "Merge `%s' into" (magit-get-current-branch))
+          nil
+          (when-let ((upstream (magit-get-upstream-branch)))
+            (when-let ((upstream (cdr (magit-split-branch-name upstream))))
+              (and (magit-branch-p upstream) upstream))))
+         (magit-merge-arguments)))
   (let ((current (magit-get-current-branch)))
     (when (zerop (magit-call-git "checkout" branch))
       (magit--merge-absort current args))))
@@ -127,9 +137,9 @@ branch, then also remove the respective remote branch."
 (defun magit--merge-absort (branch args)
   (when (equal branch "master")
     (unless (yes-or-no-p
-             "Do you really wanto to merge `master' into another branch? ")
+             "Do you really want to merge `master' into another branch? ")
       (user-error "Abort")))
-  (-if-let (target (magit-get-push-branch branch t))
+  (if-let ((target (magit-get-push-branch branch t)))
       (progn
         (magit-git-push branch target (list "--force-with-lease"))
         (set-process-sentinel
@@ -270,5 +280,6 @@ If no merge is in progress, do nothing."
              (push "--decorate=full" args))
            args))))))
 
+;;; _
 (provide 'magit-merge)
 ;;; magit-merge.el ends here

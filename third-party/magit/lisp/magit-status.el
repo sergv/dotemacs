@@ -27,9 +27,10 @@
 
 ;;; Code:
 
-(require 'magit)
+(eval-when-compile
+  (require 'subr-x))
 
-(eval-when-compile (require 'subr-x))
+(require 'magit)
 
 (defvar bookmark-make-record-function)
 
@@ -82,21 +83,41 @@ all."
     magit-insert-unstaged-changes
     magit-insert-staged-changes
     magit-insert-stashes
-    magit-insert-unpulled-from-upstream
-    magit-insert-unpulled-from-pushremote
+    magit-insert-unpushed-to-pushremote
     magit-insert-unpushed-to-upstream-or-recent
-    magit-insert-unpushed-to-pushremote)
+    magit-insert-unpulled-from-pushremote
+    magit-insert-unpulled-from-upstream)
   "Hook run to insert sections into a status buffer."
   :package-version '(magit . "2.12.0")
   :group 'magit-status
   :type 'hook)
 
-(defcustom magit-status-expand-stashes t
-  "OBSOLETE.  Whether the list of stashes is expanded initially.
-Use `magit-section-visibility-alist' instead."
-  :package-version '(magit . "2.3.0")
+(defcustom magit-status-initial-section '(1)
+  "The section point is placed on when a status buffer is created.
+
+When such a buffer is merely being refreshed or being shown again
+after it was merely burried, then this option has no effect.
+
+If this is nil, then point remains on the very first section as
+usual.  Otherwise it has to be a list of integers and section
+identity lists.  The members of that list are tried in order
+until a matching section is found.
+
+An integer means to jump to the nth section, 1 for example
+jumps over the headings.  To get a section's \"identity list\"
+use \\[universal-argument] \\[magit-describe-section-briefly].
+
+If, for example, you want to jump to the commits that haven't
+been pulled from the upstream, or else the second section, then
+use: (((unpulled . \"..@{upstream}\") (status)) 1).
+
+See option `magit-section-initial-visibility-alist' for how to
+control the initial visibility of the jumped to section."
+  :package-version '(magit . "2.90.0")
   :group 'magit-status
-  :type 'boolean)
+  :type '(choice (const :tag "as usual" nil)
+                 (repeat (choice (number :tag "nth top-level section")
+                                 (sexp   :tag "section identity")))))
 
 (defcustom magit-status-show-hashes-in-headers nil
   "Whether headers in the status buffer show hashes.
@@ -152,7 +173,7 @@ Non-interactively DIRECTORY is (re-)initialized unconditionally."
    (let ((directory (file-name-as-directory
                      (expand-file-name
                       (read-directory-name "Create repository in: ")))))
-     (-when-let (toplevel (magit-toplevel directory))
+     (when-let ((toplevel (magit-toplevel directory)))
        (setq toplevel (expand-file-name toplevel))
        (unless (y-or-n-p (if (file-equal-p toplevel directory)
                              (format "Reinitialize existing repository %s? "
@@ -216,10 +237,10 @@ also contains other useful hints.")
 (defvar magit--remotes-using-recent-git nil)
 
 (defun magit--tramp-asserts (directory)
-  (-when-let (remote (file-remote-p directory))
+  (when-let ((remote (file-remote-p directory)))
     (unless (member remote magit--remotes-using-recent-git)
-      (-if-let (version (let ((default-directory directory))
-                          (magit-git-version)))
+      (if-let ((version (let ((default-directory directory))
+                          (magit-git-version))))
           (if (version<= magit--minimal-git version)
               (push version magit--remotes-using-recent-git)
             (display-warning 'magit (format "\
@@ -302,8 +323,37 @@ Type \\[magit-commit-popup] to create a commit.
 (defun magit-status-refresh-buffer ()
   (magit-git-exit-code "update-index" "--refresh")
   (magit-insert-section (status)
-    (magit-run-section-hook 'magit-status-sections-hook))
-  (run-hooks 'magit-status-refresh-hook))
+    (magit-run-section-hook 'magit-status-sections-hook)))
+
+(defun magit-status-goto-initial-section ()
+  "In a `magit-status-mode' buffer, jump `magit-status-initial-section'.
+Actually doing so is deferred until `magit-refresh-buffer-hook'
+runs `magit-status-goto-initial-section-1'.  That function then
+removes itself from the hook, so that this only happens when the
+status buffer is first created."
+  (when (and magit-status-initial-section
+             (derived-mode-p 'magit-status-mode))
+    (add-hook 'magit-refresh-buffer-hook
+              'magit-status-goto-initial-section-1 nil t)))
+
+(defun magit-status-goto-initial-section-1 ()
+  "In a `magit-status-mode' buffer, jump `magit-status-initial-section'.
+This function removes itself from `magit-refresh-buffer-hook'."
+  (when-let ((section
+              (--some (if (integerp it)
+                          (nth (1- it)
+                               (magit-section-siblings (magit-current-section)
+                                                       'next))
+                        (magit-get-section it))
+                      magit-status-initial-section)))
+    (goto-char (oref section start))
+    (when-let ((vis (cdr (assq 'magit-status-initial-section
+                               magit-section-initial-visibility-alist))))
+      (if (eq vis 'hide)
+          (magit-section-hide section)
+        (magit-section-show section))))
+  (remove-hook 'magit-refresh-buffer-hook
+               'magit-status-goto-initial-section-1 t))
 
 (defun magit-status-maybe-update-revision-buffer (&optional _)
   "When moving in the status buffer, update the revision buffer.
@@ -325,7 +375,7 @@ If there is no blob buffer in the same frame, then do nothing."
 The sections are inserted by running the functions on the hook
 `magit-status-headers-hook'."
   (if (magit-rev-verify "HEAD")
-      (magit-insert-headers magit-status-headers-hook)
+      (magit-insert-headers 'magit-status-headers-hook)
     (insert "In the beginning there was darkness\n\n")))
 
 (defvar magit-error-section-map
@@ -346,18 +396,24 @@ the status buffer causes this section to disappear again."
       (insert (propertize (format "%-10s" "GitError! ")
                           'face 'magit-section-heading))
       (insert (propertize magit-this-error 'face 'font-lock-warning-face))
-      (-when-let (key (car (where-is-internal 'magit-process-buffer)))
+      (when-let ((key (car (where-is-internal 'magit-process-buffer))))
         (insert (format "  [Type `%s' for details]" (key-description key))))
       (insert ?\n))
     (setq magit-this-error nil)))
 
 (defun magit-insert-diff-filter-header ()
   "Insert a header line showing the effective diff filters."
-  (when magit-diff-section-file-args
-    (magit-insert-section (filter 'diff)
+  (let ((ignore-modules (magit-ignore-submodules-p)))
+    (when (or ignore-modules
+              magit-diff-section-file-args)
       (insert (propertize (format "%-10s" "Filter! ")
                           'face 'magit-section-heading))
-      (insert (mapconcat #'identity magit-diff-section-file-args " "))
+      (when ignore-modules
+        (insert ignore-modules)
+        (when magit-diff-section-file-args
+          (insert " -- ")))
+      (when magit-diff-section-file-args
+        (insert (mapconcat #'identity magit-diff-section-file-args " ")))
       (insert ?\n))))
 
 ;;;; Reference Headers
@@ -476,10 +532,10 @@ detached `HEAD'."
 If no remote is configured for the current branch, then fall back
 showing the \"origin\" remote, or if that does not exist the first
 remote in alphabetic order."
-  (-when-let* ((name (magit-get-some-remote))
-               ;; Under certain configurations it's possible for url
-               ;; to be nil, when name is not, see #2858.
-               (url (magit-get "remote" name "url")))
+  (when-let ((name (magit-get-some-remote))
+             ;; Under certain configurations it's possible for url
+             ;; to be nil, when name is not, see #2858.
+             (url (magit-get "remote" name "url")))
     (magit-insert-section (remote name)
       (insert (format "%-10s" "Remote: "))
       (insert (propertize name 'face 'magit-branch-remote) ?\s)
@@ -512,16 +568,17 @@ value of that variable can be set using \"D = f DIRECTORY RET g\"."
          (base (and base (file-directory-p base) base)))
     (unless (equal show "no")
       (if (equal show "all")
-          (-when-let (files (magit-untracked-files nil base))
+          (when-let ((files (magit-untracked-files nil base)))
             (magit-insert-section (untracked)
               (magit-insert-heading "Untracked files:")
               (magit-insert-files files base)
               (insert ?\n)))
-        (-when-let
-            (files (--mapcat (and (eq (aref it 0) ??)
-                                  (list (substring it 3)))
-                             (magit-git-items "status" "-z" "--porcelain"
-                                              "--" base)))
+        (when-let ((files
+                    (--mapcat (and (eq (aref it 0) ??)
+                                   (list (substring it 3)))
+                              (magit-git-items "status" "-z" "--porcelain"
+                                               (magit-ignore-submodules-p)
+                                               "--" base))))
           (magit-insert-section (untracked)
             (magit-insert-heading "Untracked files:")
             (dolist (file files)
@@ -537,7 +594,7 @@ value of that variable can be set using \"D = f DIRECTORY RET g\"."
 If the first element of `magit-diff-section-arguments' is a
 directory, then limit the list to files below that.  The value
 value of that variable can be set using \"D = f DIRECTORY RET g\"."
-  (-when-let (files (magit-list-files))
+  (when-let ((files (magit-list-files)))
     (let* ((base (car magit-diff-section-file-args))
            (base (and base (file-directory-p base) base)))
       (magit-insert-section (tracked nil t)
@@ -551,7 +608,7 @@ value of that variable can be set using \"D = f DIRECTORY RET g\"."
 If the first element of `magit-diff-section-arguments' is a
 directory, then limit the list to files below that.  The value
 of that variable can be set using \"D = f DIRECTORY RET g\"."
-  (-when-let (files (magit-ignored-files))
+  (when-let ((files (magit-ignored-files)))
     (let* ((base (car magit-diff-section-file-args))
            (base (and base (file-directory-p base) base)))
       (magit-insert-section (tracked nil t)
@@ -572,5 +629,6 @@ of that variable can be set using \"D = f DIRECTORY RET g\"."
           (setq files (magit-insert-files files dir))))))
   files)
 
+;;; _
 (provide 'magit-status)
 ;;; magit-status.el ends here
