@@ -1,6 +1,6 @@
 ;;; magit-popup.el --- Define prefix-infix-suffix command combos  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2018  The Magit Project Contributors
+;; Copyright (C) 2010-2019  The Magit Project Contributors
 ;;
 ;; You should have received a copy of the AUTHORS.md file which
 ;; lists all contributors.  If not, see http://magit.vc/authors.
@@ -12,7 +12,7 @@
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
 
-;; Package-Requires: ((emacs "24.4") (async "1.9.2") (dash "2.13.0"))
+;; Package-Requires: ((emacs "24.4") (dash "2.13.0"))
 ;; Keywords: bindings
 ;; Homepage: https://github.com/magit/magit-popup
 
@@ -32,19 +32,12 @@
 ;;; Commentary:
 
 ;; This package implements a generic interface for toggling switches
-;; and setting options and then invoking an Emacs command which does
-;; something with these arguments.  The prototypical use is for the
-;; command to call an external process, passing on the arguments as
-;; command line arguments.  But this is only one of many possible
-;; uses (though the one this library is optimized for).
+;; and setting options and then invoking an Emacs command that does
+;; something with these arguments.  Usually the command calls an
+;; external process with the specified arguments.
 
-;; With the Emacs concept of "prefix arguments" in mind this could be
-;; described as "infix arguments with feedback in a buffer".
-
-;; Commands that set the prefix argument for the subsequent command do
-;; not limit what that next command could be.  But entering a command
-;; console popup does limit the selection to the commands defined for
-;; that popup, and so we use the term "infix" instead of "prefix".
+;; This package has been superseded by Transient.  No new features
+;; will be added but bugs will be fixes.
 
 ;;; Code:
 
@@ -53,12 +46,6 @@
 (require 'dash)
 (require 'format-spec)
 (eval-when-compile (require 'subr-x))
-
-(and (require 'async-bytecomp nil t)
-     (cl-intersection '(all magit)
-                      (bound-and-true-p async-bytecomp-allowed-packages))
-     (fboundp 'async-bytecomp-package-mode)
-     (async-bytecomp-package-mode 1))
 
 (declare-function info 'info)
 (declare-function Man-find-section 'man)
@@ -669,8 +656,14 @@ If optional VALUE is non-nil then the option is on by default,
 and VALUE is its default value.
 
 READER is used to read a value from the user when the option is
-invoked and does not currently have a value.  It should take one
-argument and use it as the prompt.  If this is nil, then
+invoked and does not currently have a value.  (When the option
+has a value, then invoking the option causes it to be unset.)
+This function must take two arguments but may choose to ignore
+them.  The first argument is the name of the option (with \": \"
+appended, unless it ends with \"=\") and can be used as the
+prompt.  The second argument is nil or the value that was in
+effect before the option was unset, which may be suitable as
+initial completion input.  If no reader is specified, then
 `read-from-minibuffer' is used.
 
 OPTION is inserted after all other options already defined for
@@ -842,12 +835,13 @@ TYPE is one of `:action', `:sequence-action', `:switch', or
      ((memq use-prefix '(default popup nil))
       (magit-popup-mode-setup popup mode)
       (when magit-popup-show-help-echo
-        (message
-         (format
-          "[%s] show common commands, [%s] describe events, [%s] show manual"
-          (propertize "C-t"   'face 'magit-popup-key)
-          (propertize "?"     'face 'magit-popup-key)
-          (propertize "C-h i" 'face 'magit-popup-key)))))
+        (let ((message-log-max nil))
+          (message
+           (format
+            "[%s] show common commands, [%s] describe events, [%s] show manual"
+            (propertize "C-t"   'face 'magit-popup-key)
+            (propertize "?"     'face 'magit-popup-key)
+            (propertize "C-h i" 'face 'magit-popup-key))))))
      (local
       (error "Invalid :use-prefix popup property value: %s" use-prefix))
      (t

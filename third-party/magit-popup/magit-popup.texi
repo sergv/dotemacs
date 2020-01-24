@@ -8,7 +8,7 @@
 
 @copying
 @quotation
-Copyright (C) 2015-2018 Jonas Bernoulli <jonas@@bernoul.li>
+Copyright (C) 2015-2019 Jonas Bernoulli <jonas@@bernoul.li>
 
 You can redistribute this document and/or modify it under the terms
 of the GNU General Public License as published by the Free Software
@@ -19,6 +19,7 @@ This document is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE@.  See the GNU
 General Public License for more details.
+
 @end quotation
 @end copying
 
@@ -30,7 +31,7 @@ General Public License for more details.
 @finalout
 @titlepage
 @title Magit-Popup User Manual
-@subtitle for version 2.12.4
+@subtitle for version 2.13.1
 @author Jonas Bernoulli
 @page
 @vskip 0pt plus 1filll
@@ -43,16 +44,19 @@ General Public License for more details.
 @node Top
 @top Magit-Popup User Manual
 
-Taking inspiration from regular prefix commands and prefix arguments,
-this library implements a similar abstraction; a new kind of prefix
-command that is associated with a specific set of infix arguments and
-suffix commands.
+This package implements a generic interface for toggling switches
+and setting options and then invoking an Emacs command that does
+something with these arguments.  Usually the command calls an
+external process with the specified arguments.
+
+This package has been superseded by Transient (@ref{Top,,,transient,}).
+No new features will be added but bugs will be fixes.
 
 @noindent
-This manual is for Magit-Popup version 2.12.4.
+This manual is for Magit-Popup version 2.13.1.
 
 @quotation
-Copyright (C) 2015-2018 Jonas Bernoulli <jonas@@bernoul.li>
+Copyright (C) 2015-2019 Jonas Bernoulli <jonas@@bernoul.li>
 
 You can redistribute this document and/or modify it under the terms
 of the GNU General Public License as published by the Free Software
@@ -63,6 +67,7 @@ This document is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE@.  See the GNU
 General Public License for more details.
+
 @end quotation
 @end ifnottex
 
@@ -164,15 +169,8 @@ prefix----- argument2 --+-- suffix2
 @end example
 @end itemize
 
-This library was written as a replacement for @code{magit-key-mode}, which
-was used in Magit releases before 2.1.0.  It is used to implement all
-"popups" in the current Magit release but a future release will switch
-to yet another implementation.
-
-This library does not depend on any other Magit libraries and it is
-distributed as a separate package, which makes it possible to use it
-in packages that are not related to Magit.  But keep in mind that it
-will be deprecated eventually.
+This package has been superseded by Transient (@ref{Top,,,transient,}).  No
+new features will be added but bugs will be fixes.
 
 @node Usage
 @chapter Usage
@@ -351,8 +349,14 @@ If optional VALUE is non-nil then the option is on by default, and
 VALUE is its default value.
 
 READER is used to read a value from the user when the option is
-invoked and does not currently have a value.  It should take one
-argument and use it as the prompt.  If this is nil, then
+invoked and does not currently have a value.  (When the option
+has a value, then invoking the option causes it to be unset.)
+This function must take two arguments but may choose to ignore
+them.  The first argument is the name of the option (with ": \"
+appended, unless it ends with "=") and can be used as the
+prompt.  The second argument is nil or the value that was in
+effect before the option was unset, which may be suitable as
+initial completion input.  If no reader is specified, then
 @code{read-from-minibuffer} is used.
 
 OPTION is inserted after all other options already defined for
