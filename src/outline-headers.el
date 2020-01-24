@@ -29,58 +29,7 @@
   nil
   "Regular expression that defines headers")
 
-;;; original outline-headers
-
-(defun outline-headers-count-header-symbols ()
-  "Return number of `outline-headers/section-symbol' symbols in header
-at point."
-  (cl-assert (looking-at-p outline-headers/header-re))
-  (save-match-data
-    (if (looking-at outline-headers/header-re)
-        (- (match-end 1) (match-beginning 1))
-      0)))
-
-(defun outline-headers-outline-level ()
-  "Calculate header nesting level."
-  (outline-headers-count-header-symbols))
-
-(defun outline-headers-hide-all (&optional count)
-  "Find out maximum length of buffer headings and hide all those toplevel
-headings."
-  (interactive "P")
-  (save-excursion
-    (save-match-data
-      (let (header-re)
-        (unless count
-          (setf count outline-headers/min-header-length)
-          (goto-char (point-min))
-          (while (re-search-forward outline-headers/header-re nil t)
-            (goto-char (match-beginning 0))
-            (setf count (min count
-                             (outline-headers-count-header-symbols)))
-            (goto-char (match-end 0))))
-        (setf header-re
-              (format "%s%s\\{%d\\}%s"
-                      outline-headers/section-start
-                      outline-headers/section-symbol
-                      count
-                      outline-headers/section-end))
-        (goto-char (point-min))
-        (while (re-search-forward header-re nil t)
-          (when (and hs-minor-mode ;; do check only if hideshow enabled
-                     (hs-already-hidden-p))
-            ;; if we're in hideshow-hidden block then show it
-            (save-excursion
-              ;; since hs-show-block repositions point to the beginning of
-              ;; the block we need to surround it with save-excursion in order
-              ;; to retain our position of outline heading matched by header-re
-              (hs-show-block)))
-          (hide-subtree)
-          (forward-line 1)
-          (beginning-of-line))))))
-
-
-;;; setup function
+;;; Setup function
 
 ;;;###autoload
 (defun* setup-outline-headers (&key
@@ -117,7 +66,7 @@ headings."
         outline-headers/min-header-length length-min)
 
   (setf outline-headers/header-re
-        (format "%s\\(%s\\{%d,\\}\\)%s"
+        (format "%s\\(?1:%s\\{%d,\\}\\)%s"
                 outline-headers/section-start
                 outline-headers/section-symbol
                 outline-headers/min-header-length
@@ -138,14 +87,13 @@ headings."
                       "\n"
                       "\\)+"))
 
-  (setq-local outline-level #'outline-headers-outline-level)
   (outline-minor-mode +1)
 
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("z F" outline-headers-hide-all)
-    ("z f" hide-subtree)
-    ("z U" show-all)
-    ("z u" show-subtree)))
+    ("z F" outline-hide-body)
+    ("z f" outline-hide-subtree)
+    ("z U" outline-show-all)
+    ("z u" outline-show-subtree)))
 
 (provide 'outline-headers)
 

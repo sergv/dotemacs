@@ -148,7 +148,9 @@
   (def-keys-for-map vim:normal-mode-local-keymap
     ("SPC SPC" c++-find-related-file))
   (c++-abbrev+-setup)
-  (setup-eproj-symbnav))
+  (setup-eproj-symbnav)
+  (setup-outline-headers :header-symbol "/"
+                         :length-min 3))
 
 ;;;###autoload
 (add-hook 'c++-mode-hook #'c++-setup)

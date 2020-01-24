@@ -18,7 +18,7 @@
   (cc-setup/set-up-c-basic-offset)
   (setf hs-forward-sexp-func #'c-hideshow-forward-sexp)
   (setup-eproj-symbnav)
-  (setup-outline-headers :header-start "/"
+  (setup-outline-headers :header-start "^/"
                          :header-symbol "*"
                          :length-min 3))
 

@@ -28,6 +28,8 @@
          #'rust-format-buffer
          *mode-indent-functions-table*)
 
+;;;; Utilities
+
 (defconst rust-compilation-buffer-name "*rust-compilation*")
 
 (defun rust-compilation-next-error-other-window ()
@@ -53,6 +55,18 @@ warnings will be colorized in `rust-compilation-mode'.")
 (defun rust-compilation-filter-hook ()
   (let ((inhibit-read-only t))
     (ansi-color-apply-on-region compilation-filter-start (point-max))))
+
+(make-align-function rust-align-on-equals
+                     "\\([+*|&/!%]\\|-\\|\\^\\)?=[^=]"
+                     :require-one-or-more-spaces t)
+
+(vim:defcmd vim:rust-flycheck-configure (nonrepeatable)
+  (flycheck-rust-setup))
+
+(with-eval-after-load 'rust-mode
+  (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
+
+;;;;; rust-compilation-mode
 
 (define-compilation-mode rust-compilation-mode "Rust Compilation"
   "Rust-specific `compilation-mode' derivative."
@@ -80,15 +94,7 @@ warnings will be colorized in `rust-compilation-mode'.")
     ("g g"      vim-mock:motion-go-to-first-non-blank-beg)
     ("G"        vim-mock:motion-go-to-first-non-blank-end))
 
-(make-align-function rust-align-on-equals
-                     "\\([+*|&/!%]\\|-\\|\\^\\)?=[^=]"
-                     :require-one-or-more-spaces t)
-
-(vim:defcmd vim:rust-flycheck-configure (nonrepeatable)
-  (flycheck-rust-setup))
-
-(with-eval-after-load 'rust-mode
-  (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
+;;;; Setup
 
 ;;;###autoload
 (defun rust-setup ()
@@ -159,7 +165,10 @@ warnings will be colorized in `rust-compilation-mode'.")
     ("C-h"   flycheck-enhancements-next-error-with-wraparound)
     ("M-t"   rust-compilation-prev-error-other-window)
     ("M-h"   rust-compilation-next-error-other-window)
-    ("C-SPC" company-complete)))
+    ("C-SPC" company-complete))
+
+  (setup-outline-headers :header-symbol "/"
+                         :length-min 4))
 
 ;;;###autoload
 (add-hook 'rust-mode-hook #'rust-setup)
