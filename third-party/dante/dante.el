@@ -102,7 +102,7 @@ will be in different GHCi sessions."
 
 (defcustom dante-methods-alist
   `((styx "styx.yaml" ("styx" "repl" dante-target))
-    (snack ,(lambda (d) (directory-files d t "package\\.\\(yaml\\|nix\\)")) ("snack" "ghci" dante-target))
+    ; (snack ,(lambda (d) (directory-files d t "package\\.\\(yaml\\|nix\\)")) ("snack" "ghci" dante-target)) ; too easy to trigger, confuses too many people.
     (new-impure-nix dante-cabal-new-nix
                     ("nix-shell" "--run" (concat "cabal new-repl " (or dante-target (dante-package-name) "") " --builddir " ,(fold-platform-os-type "/tmp/dist/dante" "dist/dante")))
                     ("nix-shell" "--run" (concat "cabal new-repl " (or dante-target (dante-package-name) "") " --builddir " ,(fold-platform-os-type "/tmp/dist/dante-repl" "dist/dante-repl"))))
@@ -390,7 +390,8 @@ CHECKER and BUFFER are added if the error is in TEMP-FILE."
                                                            (concat fixed-err-type "\n" (s-trim-right msg)))
                                  :checker checker
                                  :buffer buffer
-                                 :filename (if (string= temp-file file)
+                                 :filename (if (string= (dante-canonicalize-path temp-file)
+                                                        (dante-canonicalize-path file))
                                                (dante-buffer-file-name buffer)
                                              file)))))))
 
@@ -566,14 +567,16 @@ The path returned is canonicalized and stripped of any text properties."
 
 (defun dante-canonicalize-path (path)
   "Return a standardized version of PATH.
-Path names are standardized and drive names are
-capitalized (relevant on Windows)."
-  (dante-capitalize-drive-letter (convert-standard-filename path)))
+On Windows, forward slashes are changed to backslashes and the
+drive letter is capitalized."
+  (let ((standard-path (convert-standard-filename path)))
+    (if (eq system-type 'windows-nt)
+        (dante-capitalize-drive-letter (s-replace "/" "\\"))
+      standard-path)))
 
 (defun dante-capitalize-drive-letter (path)
   "Ensures the drive letter is capitalized in PATH.
-This applies to paths of the form
-x:\\foo\\bar (i.e., Windows)."
+This applies to paths of the form x:\\foo\\bar"
   (save-match-data
     (let ((drive-path (split-string path ":\\\\")))
       (if (or (null (car drive-path)) (null (cdr drive-path)))
