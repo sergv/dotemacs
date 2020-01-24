@@ -17,7 +17,7 @@
      (unless (assoc* "my-c-style" c-style-alist :test #'string=?)
        ;; inherited from linux style
        (push '("my-c-style"
-               (c-basic-offset  . 8)
+               (c-basic-offset  . 4)
                (indent-tabs-mode . nil)
                (c-comment-only-line-offset . 0)
                (c-hanging-braces-alist . ((brace-list-open)
@@ -78,7 +78,8 @@
                               "my-c-style")
                              (t
                               "linux")))))
-     (setq-default c-basic-offset 8)))
+
+     (setq-default c-basic-offset 4)))
 
 (provide 'c-like-setup)
 

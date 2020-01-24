@@ -17,7 +17,6 @@
 ;;;###autoload
 (defun c-setup ()
   (cc-setup :define-special-keys t)
-  (setf tab-width 8)
 
   (cc-setup/set-up-c-basic-offset)
 
