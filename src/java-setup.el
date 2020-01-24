@@ -30,8 +30,7 @@
   (setq-local indent-tabs-mode t)
 
   (setup-eproj-symbnav)
-  (setup-outline-headers :header-start "/"
-                         :header-symbol "*"
+  (setup-outline-headers :header-symbol "/"
                          :length-min 3)
   (java-abbrev+-setup))
 

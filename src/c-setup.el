@@ -42,7 +42,7 @@
     ("- m" c-macro-expand))
   (c-abbrev+-setup)
   (setup-eproj-symbnav)
-  (setup-outline-headers :header-start "/"
+  (setup-outline-headers :header-start "^/"
                          :header-symbol "*"
                          :length-min 3))
 
