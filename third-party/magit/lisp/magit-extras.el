@@ -24,6 +24,9 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'subr-x))
+
 (require 'magit)
 
 (declare-function dired-read-shell-command "dired-aux" (prompt arg files))
@@ -102,6 +105,10 @@ blame to center around the line point is on."
 (defun ido-enter-magit-status ()
   "Drop into `magit-status' from file switching.
 
+This command does not work in Emacs 26.  It does work in Emacs 25
+and Emacs 27.  See https://github.com/magit/magit/issues/3634 and
+https://debbugs.gnu.org/cgi/bugreport.cgi?bug=31707.
+
 To make this command available use something like:
 
   (add-hook \\='ido-setup-hook
@@ -117,7 +124,9 @@ like pretty much every other keymap:
     (kbd \"C-x g\") \\='ido-enter-magit-status)"
   (interactive)
   (with-no-warnings ; FIXME these are internal variables
-    (setq ido-exit 'fallback fallback 'magit-status))
+    (setq ido-exit 'fallback)
+    (setq fallback 'magit-status)      ; for Emacs 25
+    (setq ido-fallback 'magit-status)) ; for Emacs 27
   (exit-minibuffer))
 
 ;;;###autoload
@@ -126,18 +135,17 @@ like pretty much every other keymap:
 With a prefix argument, visit in another window.  If there
 is no file at point, then instead visit `default-directory'."
   (interactive "P")
-  (dired-jump other-window (-if-let (file (magit-file-at-point))
-                               (progn (setq file (expand-file-name file))
-                                      (if (file-directory-p file)
-                                          (concat file "/.")
-                                        file))
-                             (concat default-directory "/."))))
+  (dired-jump other-window
+              (when-let ((file (magit-file-at-point)))
+                (expand-file-name (if (file-directory-p file)
+                                      (file-name-as-directory file)
+                                    file)))))
 
 ;;;###autoload
 (defun magit-dired-log (&optional follow)
   "Show log for all marked files, or the current file."
   (interactive "P")
-  (-if-let (topdir (magit-toplevel default-directory))
+  (if-let ((topdir (magit-toplevel default-directory)))
       (let ((args (car (magit-log-arguments)))
             (files (dired-get-marked-files nil nil #'magit-file-tracked-p)))
         (unless files
@@ -238,58 +246,6 @@ with two prefix arguments remove ignored files only.
     (magit-run-git "clean" "-f" "-d" (pcase arg (4 "-x") (16 "-X")))))
 
 (put 'magit-clean 'disabled t)
-
-;;; Gitignore
-
-;;;###autoload
-(defun magit-gitignore (file-or-pattern &optional local)
-  "Instruct Git to ignore FILE-OR-PATTERN.
-With a prefix argument only ignore locally."
-  (interactive (list (magit-gitignore-read-pattern current-prefix-arg)
-                     current-prefix-arg))
-  (let ((gitignore
-         (if local
-             (magit-git-dir (convert-standard-filename "info/exclude"))
-           (expand-file-name ".gitignore" (magit-toplevel)))))
-    (make-directory (file-name-directory gitignore) t)
-    (with-temp-buffer
-      (when (file-exists-p gitignore)
-        (insert-file-contents gitignore))
-      (goto-char (point-max))
-      (unless (bolp)
-        (insert "\n"))
-      (insert (replace-regexp-in-string "\\(\\\\*\\)" "\\1\\1" file-or-pattern))
-      (insert "\n")
-      (write-region nil nil gitignore))
-    (if local
-        (magit-refresh)
-      (magit-run-git "add" ".gitignore"))))
-
-;;;###autoload
-(defun magit-gitignore-locally (file-or-pattern)
-  "Instruct Git to locally ignore FILE-OR-PATTERN."
-  (interactive (list (magit-gitignore-read-pattern t)))
-  (magit-gitignore file-or-pattern t))
-
-(defun magit-gitignore-read-pattern (local)
-  (let* ((default (magit-current-file))
-         (choices
-          (delete-dups
-           (--mapcat
-            (cons (concat "/" it)
-                  (-when-let (ext (file-name-extension it))
-                    (list (concat "/" (file-name-directory "foo") "*." ext)
-                          (concat "*." ext))))
-            (magit-untracked-files)))))
-    (when default
-      (setq default (concat "/" default))
-      (unless (member default choices)
-        (setq default (concat "*." (file-name-extension default)))
-        (unless (member default choices)
-          (setq default nil))))
-    (magit-completing-read (concat "File or pattern to ignore"
-                                   (and local " locally"))
-                           choices nil nil nil nil default)))
 
 ;;; ChangeLog
 
@@ -513,6 +469,7 @@ that)."
                (choice (regexp :tag "Find index regexp")
                        (const :tag "Don't number entries" nil))))
 
+;;;###autoload
 (defun magit-pop-revision-stack (rev toplevel)
   "Insert a representation of a revision into the current buffer.
 
@@ -548,7 +505,8 @@ the minibuffer too."
      (push (caar magit-revision-stack) magit-revision-history)
      (pop magit-revision-stack)))
   (if rev
-      (-let [(pnt-format eob-format idx-format) magit-pop-revision-stack-format]
+      (pcase-let ((`(,pnt-format ,eob-format ,idx-format)
+                   magit-pop-revision-stack-format))
         (let ((default-directory toplevel)
               (idx (and idx-format
                         (save-excursion
@@ -610,8 +568,8 @@ above."
   (interactive)
   (if (use-region-p)
       (copy-region-as-kill nil nil 'region)
-    (-when-let* ((section (magit-current-section))
-                 (value (oref section value)))
+    (when-let ((section (magit-current-section))
+               (value (oref section value)))
       (magit-section-case
         ((branch commit module-commit tag)
          (let ((default-directory default-directory) ref)
@@ -654,7 +612,7 @@ above."
   (interactive)
   (if (use-region-p)
       (copy-region-as-kill nil nil 'region)
-    (-when-let (rev (cond ((memq major-mode '(magit-cherry-mode
+    (when-let ((rev (cond ((memq major-mode '(magit-cherry-mode
                                               magit-log-select-mode
                                               magit-reflog-mode
                                               magit-refs-mode
@@ -668,7 +626,7 @@ above."
                              (if (string-match "\\.\\.\\.?\\(.+\\)" r)
                                  (match-string 1 r)
                                r)))
-                          ((eq major-mode 'magit-status-mode) "HEAD")))
+                          ((eq major-mode 'magit-status-mode) "HEAD"))))
       (when (magit-rev-verify-commit rev)
         (setq rev (magit-rev-parse rev))
         (push (list rev default-directory) magit-revision-stack)
@@ -688,5 +646,6 @@ patch application, a cherry-pick, a revert, or a bisect."
         ((magit-sequencer-in-progress-p) (magit-sequencer-abort))
         ((magit-bisect-in-progress-p)    (magit-bisect-reset))))
 
+;;; _
 (provide 'magit-extras)
 ;;; magit-extras.el ends here

@@ -67,12 +67,10 @@ Currently this only supports Github, but that restriction will
 be lifted eventually to support other Git forges."
   (interactive (list (magit-read-pull-request "Visit pull request")))
   (browse-url (format "https://github.com/%s/pull/%s"
-                      ;; Cannot use --> yet.  See #3134.
-                      (let* ((it pr)
-                             (it (cdr (assq 'base it)))
-                             (it (cdr (assq 'repo it)))
-                             (it (cdr (assq 'full_name it))))
-                        it)
+                      (--> pr
+                           (cdr (assq 'base it))
+                           (cdr (assq 'repo it))
+                           (cdr (assq 'full_name it)))
                       (cdr (assq 'number pr)))))
 
 ;;; Utilities
@@ -135,7 +133,9 @@ exist, then raise an error."
            ;; in "~/.ssh/config".  Theoretically this could result
            ;; in false-positives, but that's rather unlikely.  #3392
            (and (or (string-match-p (regexp-quote "github.com") host)
-                    (string-match-p (regexp-quote (ghub--host)) host))
+                    (string-match-p
+                     (regexp-quote (car (split-string (ghub--host) "/")))
+                     host))
                 host)))))
 
 (defun magit--github-remote-p (remote)
@@ -169,5 +169,6 @@ exist, then raise an error."
         (user-error "Branch `%s' already exists" branch))
       branch)))
 
+;;; _
 (provide 'magit-collab)
 ;;; magit-collab.el ends here
