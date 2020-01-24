@@ -26,6 +26,7 @@ help:
 	$(info make html             - generate html manual files)
 	$(info make html-dir         - generate html manual directories)
 	$(info make pdf              - generate pdf manuals)
+	$(info make epub             - generate epub manuals)
 	$(info )
 	$(info Install)
 	$(info =======)
@@ -52,8 +53,8 @@ help:
 	$(info make test-interactive - run tests interactively)
 	$(info make emacs-Q          - run emacs -Q plus Magit)
 	$(info )
-	$(info Release Managment)
-	$(info =================)
+	$(info Release Management)
+	$(info ==================)
 	$(info )
 	$(info make texi             - regenerate texi from org)
 	$(info make stats            - regenerate statistics)
@@ -85,6 +86,9 @@ html-dir:
 
 pdf:
 	@$(MAKE) -C Documentation pdf
+
+epub:
+	@$(MAKE) -C Documentation epub
 
 ## Install ###########################################################
 
@@ -190,19 +194,18 @@ define set_package_requires
   (re-search-forward "^;; Package-Requires: ")
   (delete-region (point) (line-end-position))
   (insert (format "%S"
-`((emacs "24.4") ;`
+`((emacs ,emacs-version) ;`
   (dash ,dash-version)
   (with-editor ,with-editor-version))))
 (with-temp-file "lisp/magit-pkg.el"
   (insert (pp-to-string
-`(define-package "magit" "2.12.0" ;`
+`(define-package "magit" "$(VERSION)" ;`
    "A Git porcelain inside Emacs."
-   '((emacs "24.4") ;'
+   '((emacs ,emacs-version) ;'
      (async ,async-version)
      (dash ,dash-version)
      (ghub ,ghub-version)
      (git-commit ,git-commit-version)
-     (let-alist ,let-alist-version)
      (magit-popup ,magit-popup-version)
      (with-editor ,with-editor-version)))))
   (goto-char (point-min))
@@ -215,35 +218,23 @@ export set_package_requires
 bump-versions: bump-versions-1 texi
 bump-versions-1:
 	@$(BATCH) --eval "(let (\
+	(emacs-version \"$(EMACS_VERSION)\")\
         (async-version \"$(ASYNC_VERSION)\")\
         (dash-version \"$(DASH_VERSION)\")\
         (ghub-version \"$(GHUB_VERSION)\")\
         (git-commit-version \"$(GIT_COMMIT_VERSION)\")\
-        (let-alist-version \"$(LET_ALIST_VERSION)\")\
         (magit-popup-version \"$(MAGIT_POPUP_VERSION)\")\
         (with-editor-version \"$(WITH_EDITOR_VERSION)\"))\
         $$set_package_requires)"
 
 bump-snapshots:
 	@$(BATCH) --eval "(let (\
+	(emacs-version \"$(EMACS_VERSION)\")\
         (async-version \"$(ASYNC_MELPA_SNAPSHOT)\")\
         (dash-version \"$(DASH_MELPA_SNAPSHOT)\")\
         (ghub-version \"$(GHUB_MELPA_SNAPSHOT)\")\
         (git-commit-version \"$(GIT_COMMIT_MELPA_SNAPSHOT)\")\
-        (let-alist-version \"$(LET_ALIST_VERSION)\")\
         (magit-popup-version \"$(MAGIT_POPUP_MELPA_SNAPSHOT)\")\
         (with-editor-version \"$(WITH_EDITOR_MELPA_SNAPSHOT)\"))\
         $$set_package_requires)"
 	@git commit -a -m "Reset Package-Requires for Melpa"
-
-define suppress_warnings
-(fset 'original-message (symbol-function 'message))
-(fset 'message ;'
-      (lambda (f &rest a)
-        (unless (or (equal f "Wrote %s")
-                    (equal f "pcase-memoize: equal first branch, yet different")
-                    (and (equal f "Warning: Unknown defun property `%S' in %S")
-                         (memq (car a) '(pure side-effect-free interactive-only))))
-          (apply 'original-message f a))))
-endef
-export suppress_warnings
