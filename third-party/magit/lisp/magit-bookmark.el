@@ -27,6 +27,9 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'subr-x))
+
 (require 'magit)
 (require 'bookmark)
 
@@ -49,14 +52,14 @@ This function will:
         (apply fn args)
       (signal 'bookmark-error-no-filename (list 'stringp default-directory)))
     (when (derived-mode-p 'magit-mode)
-      (-when-let (hidden-sections (bookmark-prop-get bookmark
-                                                     'magit-hidden-sections))
-        (--each (oref magit-root-section children)
-          (if (member (cons (oref it type)
-                            (oref it value))
+      (when-let ((hidden-sections (bookmark-prop-get bookmark
+                                                     'magit-hidden-sections)))
+        (dolist (child (oref magit-root-section children))
+          (if (member (cons (oref child type)
+                            (oref child value))
                       hidden-sections)
-              (magit-section-hide it)
-            (magit-section-show it)))))
+              (magit-section-hide child)
+            (magit-section-show child)))))
     (--when-let (bookmark-get-position bookmark)
       (goto-char it))
     (--when-let (bookmark-get-front-context-string bookmark)
@@ -134,7 +137,7 @@ specifies additional properties to store in the bookmark."
 ;;;###autoload
 (defun magit-bookmark--log-jump (bookmark)
   "Handle a Magit log BOOKMARK."
-  (magit-bookmark--jump bookmark #'magit-log
+  (magit-bookmark--jump bookmark #'magit-log-other
     (bookmark-prop-get bookmark 'magit-revs)
     (bookmark-prop-get bookmark 'magit-args)
     (bookmark-prop-get bookmark 'magit-files)))
@@ -166,7 +169,8 @@ specifies additional properties to store in the bookmark."
   (magit-bookmark--jump bookmark
       (lambda ()
         (let ((magit-reflog-arguments (bookmark-prop-get bookmark 'magit-args)))
-          (magit-reflog (bookmark-prop-get bookmark 'magit-ref))))))
+          (magit-git-reflog (bookmark-prop-get bookmark 'magit-ref)
+                            magit-reflog-arguments)))))
 
 (defun magit-bookmark--reflog-make-name (buffer-name ref)
   "Generate the default name for a reflog bookmark."
@@ -362,5 +366,6 @@ specifies additional properties to store in the bookmark."
   (magit-bookmark--make-record 'magit-submodule-list-mode
     #'magit-bookmark--submodules-jump))
 
+;;; _
 (provide 'magit-bookmark)
 ;;; magit-bookmark.el ends here

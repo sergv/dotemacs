@@ -33,7 +33,8 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'subr-x))
+(eval-when-compile
+  (require 'subr-x))
 
 (require 'magit)
 (require 'git-rebase)
@@ -72,9 +73,9 @@ This function is used as a helper for functions set as
                  (cons (cons name (point))
                        (gethash parent-title entries (list)))
                  entries)))
-    (-map (lambda (menu-title)
-            (cons menu-title (gethash menu-title entries)))
-          (hash-table-keys entries))))
+    (mapcar (lambda (menu-title)
+              (cons menu-title (gethash menu-title entries)))
+            (hash-table-keys entries))))
 
 ;;; Log mode
 
@@ -237,5 +238,6 @@ beginning of the line."
   (buffer-substring-no-properties (line-beginning-position)
                                   (line-end-position)))
 
+;;; _
 (provide 'magit-imenu)
 ;;; magit-imenu.el ends here

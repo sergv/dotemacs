@@ -276,11 +276,12 @@ If N is negative, move the commit up instead.  With an active
 region, move all the lines that the region touches, not just the
 current line."
   (interactive "p")
-  (-let* (((beg end) (or (git-rebase-region-bounds)
-                         (list (line-beginning-position)
-                               (1+ (line-end-position)))))
-          (pt-offset (- (point) beg))
-          (mark-offset (and mark-active (- (mark) beg))))
+  (pcase-let* ((`(,beg ,end)
+                (or (git-rebase-region-bounds)
+                    (list (line-beginning-position)
+                          (1+ (line-end-position)))))
+               (pt-offset (- (point) beg))
+               (mark-offset (and mark-active (- (mark) beg))))
     (save-restriction
       (narrow-to-region
        (point-min)
@@ -545,11 +546,11 @@ By default, this is the same except for the \"pick\" command."
                   (concat git-rebase-comment-re "\\s-+p, pick")
                   nil t))
         (goto-char (line-beginning-position))
-        (--each git-rebase-command-descriptions
+        (pcase-dolist (`(,cmd . ,desc) git-rebase-command-descriptions)
           (insert (format "%s %-8s %s\n"
                           comment-start
-                          (substitute-command-keys (format "\\[%s]" (car it)))
-                          (cdr it))))
+                          (substitute-command-keys (format "\\[%s]" cmd))
+                          desc)))
         (while (re-search-forward (concat git-rebase-comment-re
                                           "\\(  ?\\)\\([^\n,],\\) "
                                           "\\([^\n ]+\\) ")
@@ -587,5 +588,6 @@ By default, this is the same except for the \"pick\" command."
 
 (add-to-list 'with-editor-file-name-history-exclude git-rebase-filename-regexp)
 
+;;; _
 (provide 'git-rebase)
 ;;; git-rebase.el ends here
