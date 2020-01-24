@@ -1,4 +1,4 @@
-# <img align="right" src="https://raw.github.com/magnars/dash.el/master/rainbow-dash.png"> dash.el [![Build Status](https://secure.travis-ci.org/magnars/dash.el.png)](http://travis-ci.org/magnars/dash.el)
+# <img align="right" src="https://raw.github.com/magnars/dash.el/master/rainbow-dash.png"> dash.el ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/magnars/dash.el/CI)
 
 A modern list api for Emacs. No 'cl required.
 
@@ -30,7 +30,8 @@ To get function combinators:
 - For backward compatibility reasons `-zip` return a cons-cell instead of a list
   with two elements when called on two lists. This is a clunky API, and in an
   upcoming 3.0 release of Dash it will always return a list. If you rely on the
-  cons-cell return value, use `-zip-pair` instead.
+  cons-cell return value, use `-zip-pair` instead.  During the 2.x
+  release cycle the new API is available as `-zip-lists`.
 
 ## Syntax highlighting of dash functions
 
@@ -97,6 +98,14 @@ Oh, and don't edit `README.md` directly, it is auto-generated.
 Change `readme-template.md` or `examples-to-docs.el` instead.
 
 ## Changelist
+
+### From 2.16 to 2.17
+
+- Speed up `-uniq` by using hash-tables when possible (@cireu, #305)
+- Fix `-inits` to be non-destructive (@SwiftLawnGnome, #313)
+- Fix indent rules for `-some->` and family (@wbolster, #321)
+- Add `-zip-lists` which always returns list of lists, even for two
+  input lists (see issue #135).
 
 ### From 2.15 to 2.16
 
