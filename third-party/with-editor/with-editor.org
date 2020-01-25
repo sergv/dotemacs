@@ -2,16 +2,18 @@
 :PREAMBLE:
 #+AUTHOR: Jonas Bernoulli
 #+EMAIL: jonas@bernoul.li
-#+DATE: 2015-2018
+#+DATE: 2015-2020
 #+LANGUAGE: en
 
 #+TEXINFO_DIR_CATEGORY: Emacs
 #+TEXINFO_DIR_TITLE: With-Editor: (with-editor).
 #+TEXINFO_DIR_DESC: Using the Emacsclient as $EDITOR
-#+SUBTITLE: for version 2.7.4
-#+BIND: ox-texinfo+-before-export-hook ox-texinfo+-update-version-strings
+#+SUBTITLE: for version 2.9.1
 
 #+TEXINFO_DEFFN: t
+#+PROPERTY: header-args :eval never
+#+BIND: ox-texinfo+-before-export-hook ox-texinfo+-update-copyright-years
+#+BIND: ox-texinfo+-before-export-hook ox-texinfo+-update-version-strings
 #+OPTIONS: H:4 num:4 toc:2
 
 The library ~with-editor~ makes it easy to use the Emacsclient as the
@@ -30,10 +32,10 @@ additional functionality which makes it useful even for end-users, who
 don't use Magit or another package which uses it internally.
 
 #+TEXINFO: @noindent
-This manual is for With-Editor version 2.7.4.
+This manual is for With-Editor version 2.9.1.
 
 #+BEGIN_QUOTE
-Copyright (C) 2015-2018 Jonas Bernoulli <jonas@bernoul.li>
+Copyright (C) 2015-2020 Jonas Bernoulli <jonas@bernoul.li>
 
 You can redistribute this document and/or modify it under the terms
 of the GNU General Public License as published by the Free Software
@@ -135,15 +137,19 @@ it receives a signal.
 
   #+BEGIN_SRC emacs-lisp
     "sh -c '\
-    echo \"WITH-EDITOR: $$ OPEN $0\"; \
+    echo \"WITH-EDITOR: $$ OPEN $0 IN $(pwd)\"; \
     trap \"exit 0\" USR1; \
     trap \"exit 1\" USR2; \
     while true; do sleep 1; done'"
   #+END_SRC
 
-  This leads to a delay of up to a second.  The delay can be shortened
-  by replacing ~sleep 1~ with ~sleep 0.01~, or if your implementation does
-  not support floats, then by using ~nanosleep 0.01~ instead.
+  Note that the unit separator character () right after the file
+  name ($0) is required.
+
+  Also note that using this alternative implementation leads to a
+  delay of up to a second.  The delay can be shortened by replacing
+  ~sleep 1~ with ~sleep 0.01~, or if your implementation does not support
+  floats, then by using ~nanosleep~ instead.
 
 ** Using With-Editor commands
 
@@ -165,10 +171,9 @@ prompt for an alternative environment variable such as ~$GIT_EDITOR~.
 
 - Command: with-editor-shell-command
 
-  This command is like ~async-shell-command~, but it runs the shell
-  command with the current Emacs instance exported as ~$EDITOR~.  This
-  only has an effect if the shell command is run asynchronously,
-  i.e. when the command ends with ~&~.
+  This command is like ~shell-command~, but if the shell command ends
+  with ~&~ and is therefore run asynchronously, then the current Emacs
+  instance is exported as ~$EDITOR~.
 
 To always use these variants add this to you init file:
 
@@ -244,10 +249,18 @@ package]].
   call home to the current Emacs instance when they require that the
   user edits a file.
 
-  This is essentially done by establishing a local binding for
-  ~process-environment~ and changing the value of the ~$EDITOR~
-  environment variable in that scope.  This affects all asynchronous
-  processes started by forms (dynamically) inside BODY.
+  This is done by establishing a local binding for ~process-environment~
+  and changing the value of the ~EDITOR~ environment variable in that
+  scope.  This affects all (asynchronous) processes started by forms
+  (dynamically) inside BODY.
+
+  If BODY begins with a literal string, then that variable is set
+  instead of ~EDITOR~.
+
+- Macro: with-editor envvar &rest body
+
+  This macro is like ~with-editor~ instead that the ENVVAR argument is
+  required and that it is evaluated at run-time.
 
 - Function: with-editor-set-process-filter process filter
 
@@ -285,7 +298,7 @@ Emacs and what is the output of ~M-x with-editor-debug RET~.
 :END:
 
 #+BEGIN_QUOTE
-Copyright (C) 2015-2018 Jonas Bernoulli <jonas@bernoul.li>
+Copyright (C) 2015-2020 Jonas Bernoulli <jonas@bernoul.li>
 
 You can redistribute this document and/or modify it under the terms
 of the GNU General Public License as published by the Free Software
@@ -302,7 +315,8 @@ General Public License for more details.
 
 # IMPORTANT: Also update ORG_ARGS and ORG_EVAL in the Makefile.
 # Local Variables:
-# eval: (require 'ox-extra nil t)
+# eval: (require 'magit-utils nil t)
+# eval: (require 'ox-extra    nil t)
 # eval: (require 'ox-texinfo+ nil t)
 # eval: (and (featurep 'ox-extra) (ox-extras-activate '(ignore-headlines)))
 # indent-tabs-mode: nil

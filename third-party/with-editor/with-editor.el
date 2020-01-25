@@ -1,6 +1,6 @@
 ;;; with-editor.el --- Use the Emacsclient as $EDITOR -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014-2018  The Magit Project Contributors
+;; Copyright (C) 2014-2020  The Magit Project Contributors
 ;;
 ;; You should have received a copy of the AUTHORS.md file.  If not,
 ;; see https://github.com/magit/with-editor/blob/master/AUTHORS.md.
@@ -86,7 +86,10 @@
 (require 'shell)
 
 (and (require 'async-bytecomp nil t)
-     (memq 'magit (bound-and-true-p async-bytecomp-allowed-packages))
+     (let ((pkgs (bound-and-true-p async-bytecomp-allowed-packages)))
+       (if (consp pkgs)
+           (cl-intersection '(all magit) pkgs)
+         (memq pkgs '(all t))))
      (fboundp 'async-bytecomp-package-mode)
      (async-bytecomp-package-mode 1))
 
@@ -173,7 +176,7 @@ please see https://github.com/magit/magit/wiki/Emacsclient."))))
 
 (defcustom with-editor-sleeping-editor "\
 sh -c '\
-echo \"WITH-EDITOR: $$ OPEN $0\"; \
+echo \"WITH-EDITOR: $$ OPEN $0 IN $(pwd)\"; \
 sleep 604800 & sleep=$!; \
 trap \"kill $sleep; exit 0\" USR1; \
 trap \"kill $sleep; exit 1\" USR2; \
@@ -202,15 +205,19 @@ with \"bash\" (and install that), or you can use the older, less
 performant implementation:
 
   \"sh -c '\\
-  echo \\\"WITH-EDITOR: $$ OPEN $0\\\"; \\
+  echo \\\"WITH-EDITOR: $$ OPEN $0 IN $(pwd)\\\"; \\
   trap \\\"exit 0\\\" USR1; \\
   trap \\\"exit 1\" USR2; \\
   while true; do sleep 1; done'\"
 
-Note that this leads to a delay of up to a second.  The delay can
-be shortened by replacing \"sleep 1\" with \"sleep 0.01\", or if your
-implementation does not support floats, then by using `nanosleep'
-instead."
+Note that the unit separator character () right after the file
+name ($0) is required.
+
+Also note that using this alternative implementation leads to a
+delay of up to a second.  The delay can be shortened by replacing
+\"sleep 1\" with \"sleep 0.01\", or if your implementation does
+not support floats, then by using \"nanosleep\" instead."
+  :package-version '(with-editor . "2.8.0")
   :group 'with-editor
   :type 'string)
 
@@ -292,7 +299,7 @@ like so:
   eval \"$EDITOR\" file
 
 And some tools that do not handle $EDITOR properly also break."
-  :package-version '(with-editor . "2.8.0")
+  :package-version '(with-editor . "2.7.1")
   :group 'with-editor
   :type 'boolean)
 
@@ -327,12 +334,18 @@ And some tools that do not handle $EDITOR properly also break."
   (interactive "P")
   (when (run-hook-with-args-until-failure
          'with-editor-finish-query-functions force)
-    (let ((with-editor-post-finish-hook-1
-           (ignore-errors (delq t with-editor-post-finish-hook))))
+    (let ((post-finish-hook with-editor-post-finish-hook)
+          (post-commit-hook (bound-and-true-p git-commit-post-finish-hook))
+          (dir default-directory))
       (run-hooks 'with-editor-pre-finish-hook)
       (with-editor-return nil)
       (accept-process-output nil 0.1)
-      (run-hooks 'with-editor-post-finish-hook-1))))
+      (with-temp-buffer
+        (setq default-directory dir)
+        (setq-local with-editor-post-finish-hook post-finish-hook)
+        (when post-commit-hook
+          (setq-local git-commit-post-finish-hook post-commit-hook))
+        (run-hooks 'with-editor-post-finish-hook)))))
 
 (defun with-editor-cancel (force)
   "Cancel the current edit session."
@@ -342,13 +355,16 @@ And some tools that do not handle $EDITOR properly also break."
     (let ((message with-editor-cancel-message))
       (when (functionp message)
         (setq message (funcall message)))
-      (let ((with-editor-post-cancel-hook-1
-             (ignore-errors (delq t with-editor-post-cancel-hook)))
-            (with-editor-cancel-alist nil))
+      (let ((post-cancel-hook with-editor-post-cancel-hook)
+            (with-editor-cancel-alist nil)
+            (dir default-directory))
         (run-hooks 'with-editor-pre-cancel-hook)
         (with-editor-return t)
         (accept-process-output nil 0.1)
-        (run-hooks 'with-editor-post-cancel-hook-1))
+        (with-temp-buffer
+          (setq default-directory dir)
+          (setq-local with-editor-post-cancel-hook post-cancel-hook)
+          (run-hooks 'with-editor-post-cancel-hook)))
       (message (or message "Canceled by user")))))
 
 (defun with-editor-return (cancel)
@@ -420,18 +436,36 @@ And some tools that do not handle $EDITOR properly also break."
 (put 'with-editor-mode 'permanent-local t)
 
 (defun with-editor-kill-buffer-noop ()
-  (user-error (substitute-command-keys "\
-Don't kill this buffer.  Instead cancel using \\[with-editor-cancel]")))
+  ;; We started doing this in response to #64, but it is not safe
+  ;; to do so, because the client has already been killed, causing
+  ;; `with-editor-return' (called by `with-editor-cancel') to delete
+  ;; the file, see #66.  The reason we delete the file in the first
+  ;; place are https://github.com/magit/magit/issues/2258 and
+  ;; https://github.com/magit/magit/issues/2248.
+  ;; (if (memq this-command '(save-buffers-kill-terminal
+  ;;                          save-buffers-kill-emacs))
+  ;;     (let ((with-editor-cancel-query-functions nil))
+  ;;       (with-editor-cancel nil)
+  ;;       t)
+  ;;   ...)
+  ;; So go back to always doing this instead:
+  (user-error (substitute-command-keys (format "\
+Don't kill this buffer %S.  Instead cancel using \\[with-editor-cancel]"
+                                               (current-buffer)))))
+
+(defvar-local with-editor-usage-message "\
+Type \\[with-editor-finish] to finish, \
+or \\[with-editor-cancel] to cancel")
 
 (defun with-editor-usage-message ()
   ;; Run after `server-execute', which is run using
   ;; a timer which starts immediately.
-  (run-with-timer
-   0.01 nil `(lambda ()
-               (with-current-buffer ,(current-buffer)
-                 (message (substitute-command-keys "\
-Type \\[with-editor-finish] to finish, \
-or \\[with-editor-cancel] to cancel"))))))
+  (let ((buffer (current-buffer)))
+    (run-with-timer
+     0.05 nil
+     (lambda ()
+       (with-current-buffer buffer
+         (message (substitute-command-keys with-editor-usage-message)))))))
 
 ;;; Wrappers
 
@@ -441,12 +475,26 @@ or \\[with-editor-cancel] to cancel"))))))
   "Use the Emacsclient as $EDITOR while evaluating BODY.
 Modify the `process-environment' for processes started in BODY,
 instructing them to use the Emacsclient as $EDITOR.  If optional
-ENVVAR is provided then bind that environment variable instead.
+ENVVAR is a literal string then bind that environment variable
+instead.
 \n(fn [ENVVAR] BODY...)"
   (declare (indent defun) (debug (body)))
   `(let ((with-editor--envvar ,(if (stringp (car body))
                                    (pop body)
                                  '(or with-editor--envvar "EDITOR")))
+         (process-environment process-environment))
+     (with-editor--setup)
+     ,@body))
+
+(defmacro with-editor* (envvar &rest body)
+  "Use the Emacsclient as the editor while evaluating BODY.
+Modify the `process-environment' for processes started in BODY,
+instructing them to use the Emacsclient as editor.  ENVVAR is the
+environment variable that is exported to do so, it is evaluated
+at run-time.
+\n(fn [ENVVAR] BODY...)"
+  (declare (indent defun) (debug (sexp body)))
+  `(let ((with-editor--envvar ,envvar)
          (process-environment process-environment))
      (with-editor--setup)
      ,@body))
@@ -535,7 +583,7 @@ the appropriate editor environment variable."
 (defun with-editor-set-process-filter (process filter)
   "Like `set-process-filter' but keep `with-editor-process-filter'.
 Give PROCESS the new FILTER but keep `with-editor-process-filter'
-if that was added earlier by the adviced `start-file-process'.
+if that was added earlier by the advised `start-file-process'.
 
 Do so by wrapping the two filter functions using a lambda, which
 becomes the actual filter.  It calls `with-editor-process-filter'
@@ -553,14 +601,17 @@ which may or may not insert the text into the PROCESS' buffer."
 
 (defun with-editor-output-filter (string)
   (save-match-data
-    (if (string-match "^WITH-EDITOR: \\([0-9]+\\) OPEN \\(.+?\\)\r?$" string)
+    (if (string-match "^WITH-EDITOR: \
+\\([0-9]+\\) OPEN \\([^]+?\\)\
+\\(?: IN \\([^\r]+?\\)\\)?\r?$" string)
         (let ((pid  (match-string 1 string))
-              (file (match-string 2 string)))
-          (with-current-buffer
-              (find-file-noselect
-               (if (and (file-name-absolute-p file) default-directory)
-                   (concat (file-remote-p default-directory) file)
-                 (expand-file-name file)))
+              (file (match-string 2 string))
+              (dir  (match-string 3 string)))
+          (unless (file-name-absolute-p file)
+            (setq file (expand-file-name file dir)))
+          (when default-directory
+            (setq file (concat (file-remote-p default-directory) file)))
+          (with-current-buffer (find-file-noselect file)
             (with-editor-mode 1)
             (setq with-editor--pid pid)
             (run-hooks 'with-editor-filter-visit-hook)
