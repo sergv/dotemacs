@@ -8,7 +8,7 @@
 
 @copying
 @quotation
-Copyright (C) 2015-2018 Jonas Bernoulli <jonas@@bernoul.li>
+Copyright (C) 2015-2020 Jonas Bernoulli <jonas@@bernoul.li>
 
 You can redistribute this document and/or modify it under the terms
 of the GNU General Public License as published by the Free Software
@@ -19,6 +19,7 @@ This document is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE@.  See the GNU
 General Public License for more details.
+
 @end quotation
 @end copying
 
@@ -30,7 +31,7 @@ General Public License for more details.
 @finalout
 @titlepage
 @title With-Editor User Manual
-@subtitle for version 2.7.4
+@subtitle for version 2.9.1
 @author Jonas Bernoulli
 @page
 @vskip 0pt plus 1filll
@@ -59,10 +60,10 @@ additional functionality which makes it useful even for end-users, who
 don't use Magit or another package which uses it internally.
 
 @noindent
-This manual is for With-Editor version 2.7.4.
+This manual is for With-Editor version 2.9.1.
 
 @quotation
-Copyright (C) 2015-2018 Jonas Bernoulli <jonas@@bernoul.li>
+Copyright (C) 2015-2020 Jonas Bernoulli <jonas@@bernoul.li>
 
 You can redistribute this document and/or modify it under the terms
 of the GNU General Public License as published by the Free Software
@@ -73,6 +74,7 @@ This document is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE@.  See the GNU
 General Public License for more details.
+
 @end quotation
 @end ifnottex
 
@@ -190,15 +192,19 @@ implementation:
 
 @lisp
 "sh -c '\
-echo \"WITH-EDITOR: $$ OPEN $0\"; \
+echo \"WITH-EDITOR: $$ OPEN $0 IN $(pwd)\"; \
 trap \"exit 0\" USR1; \
 trap \"exit 1\" USR2; \
 while true; do sleep 1; done'"
 @end lisp
 
-This leads to a delay of up to a second.  The delay can be shortened
-by replacing @code{sleep 1} with @code{sleep 0.01}, or if your implementation does
-not support floats, then by using @code{nanosleep 0.01} instead.
+Note that the unit separator character () right after the file
+name ($0) is required.
+
+Also note that using this alternative implementation leads to a
+delay of up to a second.  The delay can be shortened by replacing
+@code{sleep 1} with @code{sleep 0.01}, or if your implementation does not support
+floats, then by using @code{nanosleep} instead.
 @end defopt
 
 @node Using With-Editor commands
@@ -225,10 +231,9 @@ command with the current Emacs instance exported as @code{$EDITOR}.
 @cindex with-editor-shell-command
 @deffn Command with-editor-shell-command
 
-This command is like @code{async-shell-command}, but it runs the shell
-command with the current Emacs instance exported as @code{$EDITOR}.  This
-only has an effect if the shell command is run asynchronously,
-i.e. when the command ends with @code{&}.
+This command is like @code{shell-command}, but if the shell command ends
+with @code{&} and is therefore run asynchronously, then the current Emacs
+instance is exported as @code{$EDITOR}.
 @end deffn
 
 To always use these variants add this to you init file:
@@ -312,10 +317,19 @@ used as the editor of child processes, effectively teaching them to
 call home to the current Emacs instance when they require that the
 user edits a file.
 
-This is essentially done by establishing a local binding for
-@code{process-environment} and changing the value of the @code{$EDITOR}
-environment variable in that scope.  This affects all asynchronous
-processes started by forms (dynamically) inside BODY@.
+This is done by establishing a local binding for @code{process-environment}
+and changing the value of the @code{EDITOR} environment variable in that
+scope.  This affects all (asynchronous) processes started by forms
+(dynamically) inside BODY@.
+
+If BODY begins with a literal string, then that variable is set
+instead of @code{EDITOR}.
+@end defmac
+
+@defmac with-editor envvar &rest body
+
+This macro is like @code{with-editor} instead that the ENVVAR argument is
+required and that it is evaluated at run-time.
 @end defmac
 
 @defun with-editor-set-process-filter process filter

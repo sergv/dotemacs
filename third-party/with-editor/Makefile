@@ -43,7 +43,6 @@ help:
 	$(info make publish      - publish snapshot manuals)
 	$(info make release      - publish release manuals)
 	$(info make clean        - remove most generated files)
-	@printf "$(VERSION)\n"
 
 lisp: $(ELCS) loaddefs
 
@@ -136,6 +135,8 @@ release: html html-dir pdf
 	@aws s3 cp $(PKG).html $(RELEASE_TARGET)
 	@aws s3 cp $(PKG).pdf  $(RELEASE_TARGET)
 	@aws s3 sync --delete $(PKG) $(RELEASE_TARGET)$(PKG)/
+	@aws s3 cp $(PUBLISH_TARGET)dir.html $(RELEASE_TARGET)dir.html
+	@aws s3 cp $(PUBLISH_TARGET)dir/index.html $(RELEASE_TARGET)dir/index.html
 	@printf "Generating CDN invalidation\n"
 	@aws cloudfront create-invalidation --distribution-id $(CFRONT_DIST) --paths \
 	"$(subst $(space),$(comma),$(addprefix $(RELEASE_PATH),$(CFRONT_PATHS)))" > /dev/null
