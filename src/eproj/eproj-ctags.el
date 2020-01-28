@@ -90,6 +90,8 @@
 (defun eproj/run-ctags-on-files (lang-mode root-dir files out-buffer)
   (unless eproj-ctags--exec
     (error "ctags executable not found"))
+  (unless (file-executable-p eproj-ctags--exec)
+    (error "ctags executable does not exist: %s" eproj-ctags--exec))
   (with-current-buffer out-buffer
     (goto-char (point-max))
     (unless (looking-at-p "^$")
