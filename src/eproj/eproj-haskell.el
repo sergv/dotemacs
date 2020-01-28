@@ -19,7 +19,14 @@
      (with-inhibited-modification-hooks
       (let ((out-buffer (current-buffer))
             (ext-re (eproj-language/extension-re
-                     (gethash 'haskell-mode eproj/languages-table))))
+                     (gethash 'haskell-mode eproj/languages-table)))
+            (fast-tags-exe
+             (cached-executable-find "fast-tags")))
+        (unless fast-tags-exe
+          (error "Fast tags executable not found"))
+        (unless (file-executable-p fast-tags-exe)
+          (error "Fast tags executable does not exist: %s"
+                 fast-tags-exe))
         (with-temp-buffer
           (with-disabled-undo
            (with-inhibited-modification-hooks
@@ -30,7 +37,7 @@
                        (call-process-region
                         (point-min)
                         (point-max)
-                        (cached-executable-find "fast-tags")
+                        fast-tags-exe
                         nil
                         ;; Discard error output from fast-tags
                         (list out-buffer nil)
