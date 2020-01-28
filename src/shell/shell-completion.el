@@ -2265,12 +2265,12 @@ under version-control directories."
           "-tf"
           "-y"
           "-c")
-   (args (pcomplete-here (pcmpl-entries "\\.hp\\'")))))
+   (args (pcomplete-here (pcmpl-entries :select "\\.hp\\'")))))
 
 ;;;###autoload (autoload 'pcomplete/hp2pdf "shell-completion" nil t)
 (defpcmpl pcomplete/hp2pdf
   (opts
-   (args (pcomplete-here (pcmpl-entries "\\.hp\\'")))))
+   (args (pcomplete-here (pcmpl-entries :select "\\.hp\\'")))))
 
 ;;;###autoload (autoload 'pcomplete/hp2pretty "shell-completion" nil t)
 (defpcmpl pcomplete/hp2pretty
@@ -2280,7 +2280,7 @@ under version-control directories."
     "--uniform-scale=time"
     "--uniform-scale=memory"
     "--uniform-scale=both")
-   (args (pcomplete-here (pcmpl-entries "\\.hp\\'")))))
+   (args (pcomplete-here (pcmpl-entries :select "\\.hp\\'")))))
 
 ;;;###autoload (autoload 'pcomplete/hp2svg "shell-completion" nil nil)
 (defalias 'pcomplete/hp2svg 'pcomplete/hp2pretty)
@@ -2325,7 +2325,7 @@ under version-control directories."
            "--compiler"
            "--terminal"
            "--no-terminal"
-           ("--stack-yaml" (pcomplete-here (pcmpl-entries "\\.yaml\\'")))))
+           ("--stack-yaml" (pcomplete-here (pcmpl-entries :select "\\.yaml\\'")))))
         (build-args
          '("--dry-run"
            "--pedantic"
@@ -2538,7 +2538,7 @@ under version-control directories."
     "--silent"
     "-f"
     "--fource")
-   (args (pcomplete-here (pcmpl-entries "\\`package\\.yaml\\'")))))
+   (args (pcomplete-here (pcmpl-entries :select "\\`package\\.yaml\\'")))))
 
 ;;;###autoload (autoload 'pcomplete/hlint "shell-completion" nil t)
 (defpcmpl pcomplete/hlint
@@ -4355,7 +4355,7 @@ under version-control directories."
 (defpcmpl pcomplete/untar
   (opts
    (args
-    (pcomplete-here* (pcmpl-entries "\\.tar\\(?:\\.\\(?:gz\\|bz2\\|xz\\|lz\\|lzip\\|7z\\)\\)?\\'")))))
+    (pcomplete-here* (pcmpl-entries :select "\\.tar\\(?:\\.\\(?:gz\\|bz2\\|xz\\|lz\\|lzip\\|7z\\)\\)?\\'")))))
 
 ;;;###autoload (autoload 'pcomplete/ln "shell-completion" nil t)
 (defpcmpl pcomplete/ln
@@ -4441,7 +4441,7 @@ under version-control directories."
     "-^"
     "-2")
    (args
-    (pcomplete-here (pcmpl-entries "\\.zip\\'")))))
+    (pcomplete-here (pcmpl-entries :select "\\.zip\\'")))))
 
 ;;;###autoload
 (defalias 'pcomplete/l 'pcomplete/ls)
