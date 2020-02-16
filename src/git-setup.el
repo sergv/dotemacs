@@ -152,7 +152,7 @@ directory computed by git.")
   (save-excursion
     (letrec ((collect (lambda (section)
                         (let ((xs (-mapcat collect
-                                           (magit-section-children section))))
+                                           (oref section children))))
                           (if (magit-section-match '[hunk file unstaged]
                                                    section)
                               (cons section xs)
@@ -161,18 +161,18 @@ directory computed by git.")
       (magit-section-show-children magit-root-section)
       (sort (funcall collect magit-root-section)
             (lambda (section-a section-b)
-              (< (magit-section-start section-a)
-                 (magit-section-start section-b)))))))
+              (< (oref section-a start)
+                 (oref section-b start)))))))
 
 (defun magit-current-section-is-whitespace-only? ()
   (interactive)
   (let ((hunk (magit-current-section)))
     (message "Current hunk %s whitespace-only"
-             (if (and (eq? 'hunk (magit-section-type hunk))
+             (if (and (eq? 'hunk (oref hunk type))
                       (patch-whitespace-only-change?
                        (buffer-substring-no-properties
-                        (magit-section-start hunk)
-                        (magit-section-end hunk))))
+                        (oref hunk start)
+                        (oref hunk end))))
                  "IS"
                "IS NOT"))))
 
@@ -183,16 +183,16 @@ directory computed by git.")
      (not
       (patch-whitespace-only-change?
        (buffer-substring-no-properties
-        (magit-section-start hunk)
-        (magit-section-end hunk)))))))
+        (oref hunk start)
+        (oref hunk end)))))))
 
 (defun magit-stage-matching-changes (pred)
   "Stage all hunk that match predicate PRED."
   (let ((matching-patches
          (-map (lambda (hunk)
                  (buffer-substring-no-properties
-                  (magit-section-start hunk)
-                  (magit-section-end hunk)))
+                  (oref hunk start)
+                  (oref hunk end)))
                (-filter pred
                         (reverse (magit-collect-unstaged-hunk-sections))))))
     (dolist (patch matching-patches)
@@ -200,8 +200,8 @@ directory computed by git.")
                  (hunk (find-if (lambda (section)
                                   (string= patch
                                            (buffer-substring-no-properties
-                                            (magit-section-start section)
-                                            (magit-section-end section))))
+                                            (oref section start)
+                                            (oref section end))))
                                 sections)))
         (magit-apply-hunk hunk "--cached")))))
 
