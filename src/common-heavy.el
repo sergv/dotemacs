@@ -387,10 +387,7 @@ not exist after command is finished."
 
   (cond
     ((file-directory-p path)
-     (when (and (directory-files path
-                                 nil
-                                 directory-files-no-dot-files-regexp
-                                 t)
+     (when (and (directory-files path nil nil t)
                 (y-or-n-p "Directory not empty, really delete? "))
        (delete-directory path t)))
     ((file-regular-p path)
@@ -404,7 +401,8 @@ not exist after command is finished."
                   (y-or-n? (format "Kill buffer %s?" (buffer-name buf))))
          (kill-buffer buf))))
     (t
-     (error "Name %s designates neither file nor directory"))))
+     (error "Path is neither file nor directory: %s"
+            path))))
 
 ;;;###autoload
 (defun transpose-windows ()
