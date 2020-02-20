@@ -38,6 +38,7 @@ stick it to the previous operator on line."
          (if (and (not (smart-operators--on-empty-string?))
                   (not (memq char '(?\< ?\>)))
                   (if (char-equal char ?\|)
+                      ;; Check if we're preceded by '...(|..._|_'.
                       (save-excursion
                         (skip-chars-backward "^|" (- (point) 1024))
                         (if (bobp)
@@ -52,7 +53,10 @@ stick it to the previous operator on line."
                    at-beginning-of-buffer?
                    (and (not (char-equal before ?\s))
                         (not (char-equal before ?\())
-                        (not (gethash before rust-smart-operators--operator-chars)))
+                        (not (gethash before rust-smart-operators--operator-chars))
+                        (if (char-equal char ?=)
+                            (not (char-equal before ?!))
+                          t))
                    ;; Do break with a space after balanced >.
                    (and (char-equal before ?\>)
                         (save-excursion
@@ -87,27 +91,40 @@ stick it to the previous operator on line."
              (when delete-whitespace?
                (setf whitespace-deleted? (delete-whitespace-backward)))))
 
-         (insert-char char)
+         (let ((before-insert (char-before)))
+           (insert-char char)
 
-         (when (and insert-space-after
-                    (not (memq char '(?\< ?\>)))
-                    (not (and (not at-beginning-of-buffer?)
-                              (char-equal before ?\()))
+           (when (and insert-space-after
 
-                    (if (char-equal char ?\&)
-                        (or whitespace-deleted?
-                            (char-equal before ?\&))
+                      (not (char-equal char ?\<))
+
+                      (if (char-equal char ?\>)
+                          (if (memq before-insert '(?= ?-))
+                              t ;; Insert space after operators '->', '=>'
+                            nil)
+                        t)
+
+                      (or at-beginning-of-buffer?
+                          (not (char-equal before-insert ?\()))
+
+                      (if (char-equal char ?\&)
+                          (or whitespace-deleted?
+                              (char-equal before-insert ?\&) ;; Insert space after operator '&&'
+                              )
+                        t)
+
                       (or (not after) ;; at end of buffer
                           (and (not (char-equal after ?\s))
-                               (not (char-equal after ?\)))))))
-           (insert-char ?\s)))))))
+                               (not (char-equal after ?\))))))
+             (insert-char ?\s))))))))
 
 ;;;###autoload
 (defun rust-smart-operators-self-insert (arg)
   "Insert charater and take care to surround it with spaces."
   (interactive "p")
-  (unless (characterp last-command-event)
-    (error "Last event is not a character: %s" last-command-event))
+  (cl-assert (characterp last-command-event)
+             nil
+             "Last event is not a character: %s" last-command-event)
   (rust-smart-operators--insert-char-surrounding-with-spaces last-command-event))
 
 (provide 'rust-smart-operators)
