@@ -159,9 +159,21 @@
 
 (ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator-7 ()
   (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?+)
+    "x = 1  _|_ y"
+    "x = 1  +_|_ y"))
+
+(ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator-8 ()
+  (rust-tests--test-buffer-contents
       (rust-smart-operators--insert-char-surrounding-with-spaces ?=)
     "x = 1 ! _|_"
     "x = 1 != _|_"))
+
+(ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator-9 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?=)
+    "x = 1 !_|_ y"
+    "x = 1 !=_|_ y"))
 
 (ert-deftest rust-tests/rust-smart-operators--equals-1 ()
   (rust-tests--test-buffer-contents
@@ -180,6 +192,18 @@
       (rust-smart-operators--insert-char-surrounding-with-spaces ?\&)
     "Vec<_|_"
     "Vec<&_|_"))
+
+(ert-deftest rust-tests/rust-smart-operators--two-ampersands-1 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?\&)
+    "x &_|_"
+    "x && _|_"))
+
+(ert-deftest rust-tests/rust-smart-operators--two-ampersands-2 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?\&)
+    "x &_|_ y"
+    "x &&_|_ y"))
 
 (ert-deftest rust-tests/rust-smart-operators--pipe-1 ()
   (rust-tests--test-buffer-contents
@@ -204,6 +228,34 @@
       (sp-splice-sexp-killing-backward)
     "foo = ({ foo: _|_ a, b})"
     "foo = (_|_a, b)"))
+
+(ert-deftest rust-tests/rust-smart-operators--fat-arrow-1 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?\>)
+    "Foo(x) =_|_"
+    "Foo(x) => _|_"))
+
+(ert-deftest rust-tests/rust-smart-operators--fat-arrow-2 ()
+  (rust-tests--test-buffer-contents
+      (progn
+        (rust-smart-operators--insert-char-surrounding-with-spaces ?\=)
+        (rust-smart-operators--insert-char-surrounding-with-spaces ?\>))
+    "Foo(x)_|_"
+    "Foo(x) => _|_"))
+
+(ert-deftest rust-tests/rust-smart-operators--arrow-1 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?\>)
+    "fn foo(x: i32) -_|_"
+    "fn foo(x: i32) -> _|_"))
+
+(ert-deftest rust-tests/rust-smart-operators--arrow-2 ()
+  (rust-tests--test-buffer-contents
+      (progn
+        (rust-smart-operators--insert-char-surrounding-with-spaces ?\-)
+        (rust-smart-operators--insert-char-surrounding-with-spaces ?\>))
+    "foo(x: i32)_|_"
+    "foo(x: i32) -> _|_"))
 
 (provide 'rust-tests)
 
