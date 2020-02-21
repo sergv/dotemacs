@@ -46,9 +46,9 @@ while interactively prompting for variables/messages."
      :insert-variable insert-variable)))
 
 (defun java-abbrev+-setup ()
-  (setf abbrev+-skip-syntax '("w" "w_" "^ >")
+  (setf abbrev+-skip-syntax ["w" "w_" "^ >"]
         abbrev+-abbreviations
-        (list
+        (vector
          (make-abbrev+-abbreviation
           :trigger "Utils\\.d"
           :action-type 'function-with-side-effects

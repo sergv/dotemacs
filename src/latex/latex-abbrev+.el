@@ -38,9 +38,9 @@ from \\label{...} and \\ref{...} constructs."
     (insert "\\ref{" label "}")))
 
 (defun latex-setup-abbrev+ ()
-  (setf abbrev+-skip-syntax '("^ >")
+  (setf abbrev+-skip-syntax ["^ >"]
         abbrev+-abbreviations
-        (list
+        (vector
          (make-abbrev+-abbreviation
           :trigger (rx "\\" (or "i" "п" "и"))
           :action-type 'literal-string
