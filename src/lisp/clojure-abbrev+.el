@@ -55,28 +55,29 @@
      :format format
      :reindent-at-end #'prog-indent-sexp)))
 
+(defun-once clojure-abbrev+-make-abbrevs
+  (vector
+   (make-abbrev+-abbreviation
+    :trigger "info"
+    :action-type 'function-with-side-effects
+    :action-data #'clojure-print-info-template
+    :predicate (lambda ()
+                 (and (not (lisp-point-inside-string-or-comment?))
+                      (not (lisp-prev-pos-is-beginning-of-list? (point))))))
+   (make-abbrev+-abbreviation
+    :trigger "log"
+    :action-type 'function-with-side-effects
+    :action-data #'clojure-android-log-template
+    :predicate (lambda ()
+                 (and (not (lisp-point-inside-string-or-comment?))
+                      (not (lisp-prev-pos-is-beginning-of-list? (point))))))))
+
 (defun clojure-abbrev+-setup ()
   (setf abbrev+-skip-syntax ["w_"
                              "w_("
                              ;; "^ >"
                              ]
-        abbrev+-abbreviations
-        (vector
-         (make-abbrev+-abbreviation
-          :trigger "info"
-          :action-type 'function-with-side-effects
-          :action-data #'clojure-print-info-template
-          :predicate (lambda ()
-                       (and (not (lisp-point-inside-string-or-comment?))
-                            (not (lisp-prev-pos-is-beginning-of-list? (point))))))
-         (make-abbrev+-abbreviation
-          :trigger "log"
-          :action-type 'function-with-side-effects
-          :action-data #'clojure-android-log-template
-          :predicate (lambda ()
-                       (and (not (lisp-point-inside-string-or-comment?))
-                            (not (lisp-prev-pos-is-beginning-of-list? (point))))))))
-
+        abbrev+-abbreviations (clojure-abbrev+-make-abbrevs))
   (def-keys-for-map vim:insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))
 
