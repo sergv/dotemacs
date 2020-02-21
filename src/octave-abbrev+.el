@@ -68,20 +68,22 @@ while interactively prompting for variables/messages."
                  ": ")))
           (error ""))))))
 
+(defun-once octave-abbrev+-make-abbrevs
+  (vector
+   (make-abbrev+-abbreviation
+    :trigger "prf?"
+    :action-type 'yas-snippet
+    :action-data "printf(\"${1}\\n\");"
+    :predicate #'point-not-inside-string-or-comment?)
+   (make-abbrev+-abbreviation
+    :trigger "info"
+    :action-type 'function-with-side-effects
+    :action-data #'octave-print-info-template
+    :predicate #'point-not-inside-string-or-comment?)))
+
 (defun octave-abbrev+-setup ()
   (setf abbrev+-skip-syntax ["w" "w_" "^ >"]
-        abbrev+-abbreviations
-        (vector
-         (make-abbrev+-abbreviation
-          :trigger "prf?"
-          :action-type 'yas-snippet
-          :action-data "printf(\"${1}\\n\");"
-          :predicate #'point-not-inside-string-or-comment?)
-         (make-abbrev+-abbreviation
-          :trigger "info"
-          :action-type 'function-with-side-effects
-          :action-data #'octave-print-info-template
-          :predicate #'point-not-inside-string-or-comment?)))
+        abbrev+-abbreviations (octave-abbrev+-make-abbrevs))
 
   (def-keys-for-map vim:insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))

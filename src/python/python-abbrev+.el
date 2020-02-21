@@ -57,37 +57,39 @@ string on error"
                  ": ")))
           (error ""))))))
 
+(defun-once python-abbrev+-make-abbrevs
+  (vector
+   ;; Use space 'function-with-side-effects to avoid space at the end.
+   (make-abbrev+-abbreviation
+    :trigger "\\."
+    :action-type 'literal-string-no-space-at-end
+    :action-data "self."
+    :predicate #'point-not-inside-string-or-comment?)
+   (make-abbrev+-abbreviation
+    :trigger "pr\\(?:i\\(?:nt?\\)?\\)?"
+    :action-type 'yas-snippet
+    :action-data "print(\"$1\")$0"
+    :predicate #'point-not-inside-string-or-comment?)
+   (make-abbrev+-abbreviation
+    :trigger "pr\\(?:i\\(?:nt?\\)?\\)?f"
+    :action-type 'yas-snippet
+    :action-data "print(\"$1\".format($2))$0"
+    :predicate #'point-not-inside-string-or-comment?)
+   (make-abbrev+-abbreviation
+    :trigger "info"
+    :action-type 'function-with-side-effects
+    :action-data #'python-print-info-template
+    :predicate #'point-not-inside-string-or-comment?)
+   ;; print_function
+   (make-abbrev+-abbreviation
+    :trigger "pr\\(?:i\\(?:nt\\)?\\)?_f\\(?:u\\(?:n\\(?:c\\(?:t\\(?:i\\(?:on?\\)?\\)?\\)?\\)?\\)?\\)?"
+    :action-type 'literal-string-no-space-at-end
+    :action-data "from __future__ import print_function"
+    :predicate #'point-not-inside-string-or-comment?)))
+
 (defun python-abbrev+-setup ()
   (setf abbrev+-skip-syntax ["w" "w_" "^ >"]
-        abbrev+-abbreviations
-        (vector
-         ;; Use space 'function-with-side-effects to avoid space at the end.
-         (make-abbrev+-abbreviation
-          :trigger "\\."
-          :action-type 'literal-string-no-space-at-end
-          :action-data "self."
-          :predicate #'point-not-inside-string-or-comment?)
-         (make-abbrev+-abbreviation
-          :trigger "pr\\(?:i\\(?:nt?\\)?\\)?"
-          :action-type 'yas-snippet
-          :action-data "print(\"$1\")$0"
-          :predicate #'point-not-inside-string-or-comment?)
-         (make-abbrev+-abbreviation
-          :trigger "pr\\(?:i\\(?:nt?\\)?\\)?f"
-          :action-type 'yas-snippet
-          :action-data "print(\"$1\".format($2))$0"
-          :predicate #'point-not-inside-string-or-comment?)
-         (make-abbrev+-abbreviation
-          :trigger "info"
-          :action-type 'function-with-side-effects
-          :action-data #'python-print-info-template
-          :predicate #'point-not-inside-string-or-comment?)
-         ;; print_function
-         (make-abbrev+-abbreviation
-          :trigger "pr\\(?:i\\(?:nt\\)?\\)?_f\\(?:u\\(?:n\\(?:c\\(?:t\\(?:i\\(?:on?\\)?\\)?\\)?\\)?\\)?\\)?"
-          :action-type 'literal-string-no-space-at-end
-          :action-data "from __future__ import print_function"
-          :predicate #'point-not-inside-string-or-comment?)))
+        abbrev+-abbreviations (python-abbrev+-make-abbrevs))
   (def-keys-for-map vim:insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))
 

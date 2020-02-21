@@ -26,19 +26,21 @@
      :end end
      :format format)))
 
+(defun-once shell-script-abbrev+-make-abbrevs
+  (vector
+   (make-abbrev+-abbreviation
+    :trigger "info"
+    :action-type 'function-with-side-effects
+    :action-data #'shell-script-info-message-template
+    :predicate (lambda () (and (not (lisp-point-inside-string-or-comment?))
+                          (not (lisp-prev-pos-is-beginning-of-list? (point))))))))
+
 (defun shell-script-abbrev+-setup ()
   (setf abbrev+-skip-syntax ["w_"
                              "w_("
                              ;;"^ >"
                              ]
-        abbrev+-abbreviations
-        (vector
-         (make-abbrev+-abbreviation
-          :trigger "info"
-          :action-type 'function-with-side-effects
-          :action-data #'shell-script-info-message-template
-          :predicate (lambda () (and (not (lisp-point-inside-string-or-comment?))
-                                (not (lisp-prev-pos-is-beginning-of-list? (point))))))))
+        abbrev+-abbreviations (shell-script-abbrev+-make-abbrevs))
   (def-keys-for-map vim:insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))
 
