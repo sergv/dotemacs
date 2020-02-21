@@ -397,11 +397,11 @@ not exist after command is finished."
                   (string=
                    (with-current-buffer buf
                      (expand-file-name buffer-file-name))
-                   filename)
+                   path)
                   (y-or-n? (format "Kill buffer %s?" (buffer-name buf))))
          (kill-buffer buf))))
     (t
-     (error "Path is neither file nor directory: %s"
+     (error "Path does not exist: %s"
             path))))
 
 ;;;###autoload
