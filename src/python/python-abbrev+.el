@@ -58,9 +58,9 @@ string on error"
           (error ""))))))
 
 (defun python-abbrev+-setup ()
-  (setf abbrev+-skip-syntax '("w" "w_" "^ >")
+  (setf abbrev+-skip-syntax ["w" "w_" "^ >"]
         abbrev+-abbreviations
-        (list
+        (vector
          ;; Use space 'function-with-side-effects to avoid space at the end.
          (make-abbrev+-abbreviation
           :trigger "\\."
