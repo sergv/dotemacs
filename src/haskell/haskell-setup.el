@@ -450,7 +450,7 @@
     ("C-S-p"    browse-comint-input-history))
 
   (haskell-setup-folding :enable-hs-minor-mode t)
-  (haskell-abbrev+-setup 2 :repl t))
+  (haskell-abbrev+-setup t))
 
 ;;;###autoload
 (defun haskell-compilation-setup ()
