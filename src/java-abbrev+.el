@@ -45,15 +45,17 @@ while interactively prompting for variables/messages."
      :insert-message insert-message
      :insert-variable insert-variable)))
 
+(defun-once java-abbrev+-make-abbrevs
+  (vector
+   (make-abbrev+-abbreviation
+    :trigger "Utils\\.d"
+    :action-type 'function-with-side-effects
+    :action-data #'java-print-info-template
+    :predicate #'point-not-inside-string-or-comment?)))
+
 (defun java-abbrev+-setup ()
   (setf abbrev+-skip-syntax ["w" "w_" "^ >"]
-        abbrev+-abbreviations
-        (vector
-         (make-abbrev+-abbreviation
-          :trigger "Utils\\.d"
-          :action-type 'function-with-side-effects
-          :action-data #'java-print-info-template
-          :predicate #'point-not-inside-string-or-comment?)))
+        abbrev+-abbreviations (java-abbrev+-make-abbrevs))
   (def-keys-for-map vim:insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))
 

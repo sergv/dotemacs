@@ -242,12 +242,11 @@ then Bar would be the result."
           (haskell-align-language-pragmas start)
           (insert "\n")))))
 
-;;;###autoload
-(defun* haskell-abbrev+-setup (indent &key (repl nil))
+(defun-once haskell-abbrev+-make-abbrevs
   (let* ((import-expand-pred (lambda () (let ((c (char-before (point))))
-                                          (and (not (point-inside-string-or-comment?))
-                                               (or (null? c)
-                                                   (not (char=? c ?:)))))))
+                                     (and (not (point-inside-string-or-comment?))
+                                          (or (null? c)
+                                              (not (char=? c ?:)))))))
          (extensions (get-haskell-language-extensions))
          (expand-qualified-import-snippet
           "import qualified $1 as ${1:$(haskell-abbrev+-extract-first-capital-char (haskell-abbrev+-extract-mod-name yas-text))}$0")
@@ -288,157 +287,164 @@ then Bar would be the result."
            " ${1:-dsuppress-type-signatures }${2:-ddump-to-file }#-}")))
     (cl-assert (-all? #'stringp haskell-completions--pragma-names))
     (cl-assert (-all? #'stringp ghc-flags))
-    (setf abbrev+-skip-syntax ["w_" "^ >" [" " "w_"] [" " "^ >"]]
-          abbrev+-abbreviations
-          (vconcat
-           (unless repl
-             (vector
-              (make-abbrev+-abbreviation
-               :trigger "## *"
-               :action-type 'yas-snippet
-               :action-data pragma-snippet
-               :predicate #'point-not-inside-string-or-comment?)
-              (make-abbrev+-abbreviation
-               :trigger "##?scc *"
-               :action-type 'yas-snippet
-               :action-data "{-# SCC \"${1:cost center name}\" #-}$0"
-               :predicate #'point-not-inside-string-or-comment?)
-              (make-abbrev+-abbreviation
-               :trigger "##?l\\(?:ang\\)? *"
-               :action-type 'yas-snippet
-               :action-data language-snippet
-               :predicate #'point-not-inside-string-or-comment?
-               :on-successful-expansion #'haskell-abbrev+--register-alignment-of-language-pragmas)
-              (make-abbrev+-abbreviation
-               :trigger "##?ll\\(?:ang\\)? *"
-               :action-type 'function-with-side-effects
-               :action-data #'haskell-insert-language-pragmas
-               :predicate #'point-not-inside-string-or-comment?)
-              (make-abbrev+-abbreviation
-               :trigger "##?o\\(?:pts?\\)? *"
-               :action-type 'yas-snippet
-               :action-data options-snippet
-               :predicate #'point-not-inside-string-or-comment?)
-              (make-abbrev+-abbreviation
-               :trigger "##?d\\(?:ump\\(?:-core\\)?\\)? *"
-               :action-type 'yas-snippet
-               :action-data dump-core-snippet
-               :predicate #'point-not-inside-string-or-comment?)))
+    (let ((non-repl-abbrevs
            (vector
             (make-abbrev+-abbreviation
-             :trigger "hpr?f"
-             :action-type 'literal-string
-             :action-data "hPrintf"
-             :predicate #'point-not-inside-string-or-comment?)
-            (make-abbrev+-abbreviation
-             :trigger "pr?f"
-             :action-type 'literal-string
-             :action-data "printf"
-             :predicate #'point-not-inside-string-or-comment?)
-            (make-abbrev+-abbreviation
-             :trigger "\\(?:ps\\|p\\)l?n"
-             :action-type 'literal-string
-             :action-data "putStrLn"
-             :predicate #'point-not-inside-string-or-comment?)
-            (make-abbrev+-abbreviation
-             :trigger "hps?l?n"
-             :action-type 'literal-string
-             :action-data "hPutStrLn"
-             :predicate #'point-not-inside-string-or-comment?)
-            (make-abbrev+-abbreviation
-             :trigger "hp\\(?:s\\|l\\)\\{1,2\\}"
-             :action-type 'literal-string
-             :action-data "hPutStr"
-             :predicate #'point-not-inside-string-or-comment?)
-
-            (make-abbrev+-abbreviation
-             :trigger (concat (abbrev+--make-re-with-optional-suffix "import" 2))
-             :action-type 'literal-string
-             :action-data "import"
-             :predicate import-expand-pred)
-
-            (make-abbrev+-abbreviation
-             :trigger (concat (abbrev+--make-re-with-optional-suffix "import" 2) "q")
+             :trigger "## *"
              :action-type 'yas-snippet
-             :action-data expand-qualified-import-snippet
-             :predicate import-expand-pred)
+             :action-data pragma-snippet
+             :predicate #'point-not-inside-string-or-comment?)
             (make-abbrev+-abbreviation
-             :trigger (concat "q" (abbrev+--make-re-with-optional-suffix "import" 2))
+             :trigger "##?scc *"
              :action-type 'yas-snippet
-             :action-data expand-qualified-import-snippet
-             :predicate import-expand-pred)
+             :action-data "{-# SCC \"${1:cost center name}\" #-}$0"
+             :predicate #'point-not-inside-string-or-comment?)
+            (make-abbrev+-abbreviation
+             :trigger "##?l\\(?:ang\\)? *"
+             :action-type 'yas-snippet
+             :action-data language-snippet
+             :predicate #'point-not-inside-string-or-comment?
+             :on-successful-expansion #'haskell-abbrev+--register-alignment-of-language-pragmas)
+            (make-abbrev+-abbreviation
+             :trigger "##?ll\\(?:ang\\)? *"
+             :action-type 'function-with-side-effects
+             :action-data #'haskell-insert-language-pragmas
+             :predicate #'point-not-inside-string-or-comment?)
+            (make-abbrev+-abbreviation
+             :trigger "##?o\\(?:pts?\\)? *"
+             :action-type 'yas-snippet
+             :action-data options-snippet
+             :predicate #'point-not-inside-string-or-comment?)
+            (make-abbrev+-abbreviation
+             :trigger "##?d\\(?:ump\\(?:-core\\)?\\)? *"
+             :action-type 'yas-snippet
+             :action-data dump-core-snippet
+             :predicate #'point-not-inside-string-or-comment?)))
+          (plain-abbrevs
+           (vconcat
+            (vector
+             (make-abbrev+-abbreviation
+              :trigger "hpr?f"
+              :action-type 'literal-string
+              :action-data "hPrintf"
+              :predicate #'point-not-inside-string-or-comment?)
+             (make-abbrev+-abbreviation
+              :trigger "pr?f"
+              :action-type 'literal-string
+              :action-data "printf"
+              :predicate #'point-not-inside-string-or-comment?)
+             (make-abbrev+-abbreviation
+              :trigger "\\(?:ps\\|p\\)l?n"
+              :action-type 'literal-string
+              :action-data "putStrLn"
+              :predicate #'point-not-inside-string-or-comment?)
+             (make-abbrev+-abbreviation
+              :trigger "hps?l?n"
+              :action-type 'literal-string
+              :action-data "hPutStrLn"
+              :predicate #'point-not-inside-string-or-comment?)
+             (make-abbrev+-abbreviation
+              :trigger "hp\\(?:s\\|l\\)\\{1,2\\}"
+              :action-type 'literal-string
+              :action-data "hPutStr"
+              :predicate #'point-not-inside-string-or-comment?)
 
-            (make-abbrev+-abbreviation
-             :trigger "pp"
-             :trigger-is-case-sensitive t
-             :action-type 'function-with-side-effects
-             :action-data #'haskell-insert-pp-dict-info-template
-             :predicate #'point-not-inside-string-or-comment?)
-            (make-abbrev+-abbreviation
-             :trigger "\\(?:pp\\(?:dh\\|[dD]ict\\(?:[hH]eader\\)?\\)\\)"
-             :action-type 'function-with-side-effects
-             :action-data #'haskell-insert-pp-dict-info-template
-             :predicate #'point-not-inside-string-or-comment?)
-            (make-abbrev+-abbreviation
-             :trigger "\\(?:\\(?:info\\|trace\\)pp\\|pp\\(?:info\\|trace\\)\\)"
-             :action-type 'function-with-side-effects
-             :action-data #'haskell-insert-pp-info-template
-             :predicate #'point-not-inside-string-or-comment?)
-            (make-abbrev+-abbreviation
-             :trigger "\\(?:\\(?:info\\|trace\\)\\(?:[Mm]pp\\|pp[Mm]\\)\\|pp\\(?:info\\|trace\\)[Mm]\\)"
-             :action-type 'function-with-side-effects
-             :action-data #'haskell-insert-monadic-pp-info-template
-             :predicate #'point-not-inside-string-or-comment?)
-            (make-abbrev+-abbreviation
-             :trigger "trace"
-             :action-type 'function-with-side-effects
-             :action-data #'haskell-insert-trace-template
-             :predicate #'point-not-inside-string-or-comment?)
-            (make-abbrev+-abbreviation
-             :trigger "trace[Mm]"
-             :action-type 'function-with-side-effects
-             :action-data #'haskell-insert-tracem-template
-             :predicate #'point-not-inside-string-or-comment?)
-            (make-abbrev+-abbreviation
-             :trigger "info[Mm]"
-             :action-type 'function-with-side-effects
-             :action-data #'haskell-insert-monadic-info-template
-             :predicate #'point-not-inside-string-or-comment?))
-           (v--map
-            (destructuring-bind (suffix module-name type-name alias full-match?) it
-              (make-abbrev+-abbreviation
-               :trigger (concat (if full-match? "import" (abbrev+--make-re-with-optional-suffix "import" 2)) suffix)
-               :action-type 'literal-string
-               :action-data (concat (if type-name
-                                        (concat "import " module-name " (" type-name ")\n")
-                                      "")
-                                    "import qualified " module-name " as " alias)
-               :predicate import-expand-pred))
-            '[("m"   "Data.Map.Strict"               "Map"          "M"   nil)
-              ("s"   "Data.Set"                      "Set"          "S"   nil)
-              ("v"   "Data.Vector"                   "Vector"       "V"   nil)
-              ("vp"  "Data.Vector.Primitive"         nil            "VP"  nil)
-              ("vpm" "Data.Vector.Primitive.Mutable" nil            "VPM" nil)
-              ("vs"  "Data.Vector.Storable"          nil            "VS"  nil)
-              ("vsm" "Data.Vector.Storable.Mutable"  nil            "VSM" nil)
-              ("u"   "Data.Vector.Unboxed"           nil            "U"   nil)
-              ("vu"  "Data.Vector.Unboxed"           nil            "U"   nil)
-              ("um"  "Data.Vector.Unboxed.Mutable"   nil            "UM"  nil)
-              ("vum" "Data.Vector.Unboxed.Mutable"   nil            "UM"  nil)
-              ("im"  "Data.IntMap"                   "IntMap"       "IM"  nil)
-              ("is"  "Data.IntSet"                   "IntSet"       "IS"  nil)
-              ("hm"  "Data.HashMap.Strict"           "HashMap"      "HM"  nil)
-              ("hs"  "Data.HashSet"                  "HashSet"      "HS"  nil)
-              ("ne"  "Data.List.NonEmpty"            "NonEmpty(..)" "NE"  nil)
-              ("l"   "Data.List"                     nil            "L"   nil)
-              ("dl"  "Data.DList"                    "DList"        "DL"  nil)
-              ("t"   "Data.Text"                     "Text"         "T"   t)
-              ("tl"  "Data.Text.Lazy"                nil            "TL"  nil)
-              ("bs"  "Data.ByteString"               "ByteString"   "BS"  nil)
-              ("bl"  "Data.ByteString.Lazy"          nil            "BSL" nil)
-              ("bsl" "Data.ByteString.Lazy"          nil            "BSL" nil)
-              ("c8"  "Data.ByteString.Char8"         "ByteString"   "C8"  nil)
-              ("cl8" "Data.ByteString.Lazy.Char8"    nil            "CL8" nil)]))))
+             (make-abbrev+-abbreviation
+              :trigger (concat (abbrev+--make-re-with-optional-suffix "import" 2))
+              :action-type 'literal-string
+              :action-data "import"
+              :predicate import-expand-pred)
+
+             (make-abbrev+-abbreviation
+              :trigger (concat (abbrev+--make-re-with-optional-suffix "import" 2) "q")
+              :action-type 'yas-snippet
+              :action-data expand-qualified-import-snippet
+              :predicate import-expand-pred)
+             (make-abbrev+-abbreviation
+              :trigger (concat "q" (abbrev+--make-re-with-optional-suffix "import" 2))
+              :action-type 'yas-snippet
+              :action-data expand-qualified-import-snippet
+              :predicate import-expand-pred)
+
+             (make-abbrev+-abbreviation
+              :trigger "pp"
+              :trigger-is-case-sensitive t
+              :action-type 'function-with-side-effects
+              :action-data #'haskell-insert-pp-dict-info-template
+              :predicate #'point-not-inside-string-or-comment?)
+             (make-abbrev+-abbreviation
+              :trigger "\\(?:pp\\(?:dh\\|[dD]ict\\(?:[hH]eader\\)?\\)\\)"
+              :action-type 'function-with-side-effects
+              :action-data #'haskell-insert-pp-dict-info-template
+              :predicate #'point-not-inside-string-or-comment?)
+             (make-abbrev+-abbreviation
+              :trigger "\\(?:\\(?:info\\|trace\\)pp\\|pp\\(?:info\\|trace\\)\\)"
+              :action-type 'function-with-side-effects
+              :action-data #'haskell-insert-pp-info-template
+              :predicate #'point-not-inside-string-or-comment?)
+             (make-abbrev+-abbreviation
+              :trigger "\\(?:\\(?:info\\|trace\\)\\(?:[Mm]pp\\|pp[Mm]\\)\\|pp\\(?:info\\|trace\\)[Mm]\\)"
+              :action-type 'function-with-side-effects
+              :action-data #'haskell-insert-monadic-pp-info-template
+              :predicate #'point-not-inside-string-or-comment?)
+             (make-abbrev+-abbreviation
+              :trigger "trace"
+              :action-type 'function-with-side-effects
+              :action-data #'haskell-insert-trace-template
+              :predicate #'point-not-inside-string-or-comment?)
+             (make-abbrev+-abbreviation
+              :trigger "trace[Mm]"
+              :action-type 'function-with-side-effects
+              :action-data #'haskell-insert-tracem-template
+              :predicate #'point-not-inside-string-or-comment?)
+             (make-abbrev+-abbreviation
+              :trigger "info[Mm]"
+              :action-type 'function-with-side-effects
+              :action-data #'haskell-insert-monadic-info-template
+              :predicate #'point-not-inside-string-or-comment?))
+            (v--map
+             (destructuring-bind (suffix module-name type-name alias full-match?) it
+               (make-abbrev+-abbreviation
+                :trigger (concat (if full-match? "import" (abbrev+--make-re-with-optional-suffix "import" 2)) suffix)
+                :action-type 'literal-string
+                :action-data (concat (if type-name
+                                         (concat "import " module-name " (" type-name ")\n")
+                                       "")
+                                     "import qualified " module-name " as " alias)
+                :predicate import-expand-pred))
+             '[("m"   "Data.Map.Strict"               "Map"          "M"   nil)
+               ("s"   "Data.Set"                      "Set"          "S"   nil)
+               ("v"   "Data.Vector"                   "Vector"       "V"   nil)
+               ("vp"  "Data.Vector.Primitive"         nil            "VP"  nil)
+               ("vpm" "Data.Vector.Primitive.Mutable" nil            "VPM" nil)
+               ("vs"  "Data.Vector.Storable"          nil            "VS"  nil)
+               ("vsm" "Data.Vector.Storable.Mutable"  nil            "VSM" nil)
+               ("u"   "Data.Vector.Unboxed"           nil            "U"   nil)
+               ("vu"  "Data.Vector.Unboxed"           nil            "U"   nil)
+               ("um"  "Data.Vector.Unboxed.Mutable"   nil            "UM"  nil)
+               ("vum" "Data.Vector.Unboxed.Mutable"   nil            "UM"  nil)
+               ("im"  "Data.IntMap"                   "IntMap"       "IM"  nil)
+               ("is"  "Data.IntSet"                   "IntSet"       "IS"  nil)
+               ("hm"  "Data.HashMap.Strict"           "HashMap"      "HM"  nil)
+               ("hs"  "Data.HashSet"                  "HashSet"      "HS"  nil)
+               ("ne"  "Data.List.NonEmpty"            "NonEmpty(..)" "NE"  nil)
+               ("l"   "Data.List"                     nil            "L"   nil)
+               ("dl"  "Data.DList"                    "DList"        "DL"  nil)
+               ("t"   "Data.Text"                     "Text"         "T"   t)
+               ("tl"  "Data.Text.Lazy"                nil            "TL"  nil)
+               ("bs"  "Data.ByteString"               "ByteString"   "BS"  nil)
+               ("bl"  "Data.ByteString.Lazy"          nil            "BSL" nil)
+               ("bsl" "Data.ByteString.Lazy"          nil            "BSL" nil)
+               ("c8"  "Data.ByteString.Char8"         "ByteString"   "C8"  nil)
+               ("cl8" "Data.ByteString.Lazy.Char8"    nil            "CL8" nil)]))))
+      (cons plain-abbrevs (vconcat non-repl-abbrevs plain-abbrevs)))))
+
+(defun haskell-abbrev+-setup (repl)
+  (setf abbrev+-skip-syntax ["w_" "^ >" [" " "w_"] [" " "^ >"]]
+        abbrev+-abbreviations (let ((abbrevs (haskell-abbrev+-make-abbrevs)))
+                                (if repl
+                                    (car abbrevs)
+                                  (cdr abbrevs))))
   (def-keys-for-map vim:insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))
 
