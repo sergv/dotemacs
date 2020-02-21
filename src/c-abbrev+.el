@@ -8,15 +8,17 @@
 
 (require 'common)
 
+(defun-once c-abbrev+-make-abbrevs
+  (vector
+   (make-abbrev+-abbreviation
+    :trigger "\\<pr\\(?:i\\(?:nt?\\)?\\)?f?\\>"
+    :action-type 'yas-snippet
+    :action-data "printf(\"$1\\n\"$2);$0"
+    :predicate #'point-not-inside-string-or-comment?)))
+
 (defun c-abbrev+-setup ()
   (setf abbrev+-skip-syntax ["w" "w_" "^ >"]
-        abbrev+-abbreviations
-        (vector
-         (make-abbrev+-abbreviation
-          :trigger "\\<pr\\(?:i\\(?:nt?\\)?\\)?f?\\>"
-          :action-type 'yas-snippet
-          :action-data "printf(\"$1\\n\"$2);$0"
-          :predicate #'point-not-inside-string-or-comment?)))
+        abbrev+-abbreviations (c-abbrev+-make-abbrevs))
 
   (def-keys-for-map vim:insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))

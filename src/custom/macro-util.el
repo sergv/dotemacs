@@ -192,6 +192,7 @@ BODY if it returns nil."
         (hash-table-var '#:hash-table)
         (value-var '#:value)
         (cache-arg-var '#:cache-key)
+        (uninitialized '#:uninitialized)
         (empty-table-expr '(make-hash-table :test #'equal)))
     `(progn
        (defvar ,cache-var ,empty-table-expr)
@@ -200,12 +201,25 @@ BODY if it returns nil."
        (defun ,func ,args
          (let* ((,cache-arg-var ,mk-cache-key)
                 (,query-var
-                 (gethash ,cache-arg-var ,cache-var)))
-           (if ,query-var
-               ,query-var
-             (let ((,value-var (progn ,@body)))
-               (puthash ,cache-arg-var ,value-var ,cache-var)
-               ,value-var)))))))
+                 (gethash ,cache-arg-var ,cache-var ',uninitialized)))
+           (if (eq ,query-var ',uninitialized)
+               (let ((,value-var (progn ,@body)))
+                 (puthash ,cache-arg-var ,value-var ,cache-var)
+                 ,value-var)
+             ,query-var))))))
+
+(defmacro defun-once (name &rest body)
+  "Define function NAME with body BODY that will call BODY only once and return it's original
+value on all subsequent invokations."
+  (declare (indent 1))
+  (let ((value (gentemp "value"))
+        (uninitialized '#:uninitialized))
+    `(defalias ',name
+       (let ((,value ',uninitialized))
+         (lambda ()
+           (if (eq ,value ',uninitialized)
+               (setf ,value (progn ,@body))
+             ,value))))))
 
 ;;; other macros
 

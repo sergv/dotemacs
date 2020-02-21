@@ -67,7 +67,7 @@ single indentation unit."
     (setq-local haskell-indentation-layout-offset  real-offset)
     (setq-local haskell-indentation-starter-offset real-offset)
     (setq-local haskell-indentation-left-offset    real-offset)
-    (haskell-abbrev+-setup real-offset)))
+    (haskell-abbrev+-setup nil)))
 
 (defmacro haskell-misc--with-expanded-invisible-overlays-in-current-function (&rest body)
   `(with-expanded-invisible-overlays
