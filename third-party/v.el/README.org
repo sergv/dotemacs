@@ -1,0 +1,11 @@
+#+TITLE:       A vector library inspired by [[https://github.com/magnars/dash.el][dash.el]]
+#+DATE:        21 February 2020
+#+EMAIL:       sergey@debian
+#+DESCRIPTION:
+#+KEYWORDS:
+#+STARTUP:     content
+#+STARTUP:     inlineimages
+
+# Disable treating underscores as subscripts
+#+OPTIONS: ^:nil
+
