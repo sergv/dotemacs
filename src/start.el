@@ -267,10 +267,6 @@ or not.")
       (load-file it)
     (message "machine-specific-setup.el not found")))
 
-(fold-platform-os-type
- nil
- (load-library "windows-setup"))
-
 ;; Local Variables:
 ;; End:
 
