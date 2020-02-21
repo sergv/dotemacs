@@ -56,10 +56,12 @@
      :reindent-at-end #'prog-indent-sexp)))
 
 (defun clojure-abbrev+-setup ()
-  (setf abbrev+-skip-syntax '("w_" "w_(" ;;"^ >"
-                              )
+  (setf abbrev+-skip-syntax ["w_"
+                             "w_("
+                             ;; "^ >"
+                             ]
         abbrev+-abbreviations
-        (list
+        (vector
          (make-abbrev+-abbreviation
           :trigger "info"
           :action-type 'function-with-side-effects
@@ -67,7 +69,7 @@
           :predicate (lambda ()
                        (and (not (lisp-point-inside-string-or-comment?))
                             (not (lisp-prev-pos-is-beginning-of-list? (point))))))
-        (make-abbrev+-abbreviation
+         (make-abbrev+-abbreviation
           :trigger "log"
           :action-type 'function-with-side-effects
           :action-data #'clojure-android-log-template
