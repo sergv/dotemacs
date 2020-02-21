@@ -69,9 +69,9 @@ while interactively prompting for variables/messages."
           (error ""))))))
 
 (defun octave-abbrev+-setup ()
-  (setf abbrev+-skip-syntax '("w" "w_" "^ >")
+  (setf abbrev+-skip-syntax ["w" "w_" "^ >"]
         abbrev+-abbreviations
-        (list
+        (vector
          (make-abbrev+-abbreviation
           :trigger "prf?"
           :action-type 'yas-snippet

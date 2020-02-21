@@ -32,10 +32,12 @@
      :reindent-at-end #'prog-indent-sexp)))
 
 (defun emacs-lisp-abbrev+-setup ()
-  (setf abbrev+-skip-syntax '("w_" "w_(" ;;"^ >"
-                              )
+  (setf abbrev+-skip-syntax ["w_"
+                             "w_("
+                             ;;"^ >"
+                             ]
         abbrev+-abbreviations
-        (list
+        (vector
          (make-abbrev+-abbreviation
           :trigger (eval-when-compile
                      (make-abbrev+-re-for-lisp-func-name
@@ -176,7 +178,7 @@
           :action-type 'function-with-side-effects
           :action-data #'emacs-lisp-print-info-template
           :predicate (lambda () (and (not (lisp-point-inside-string-or-comment?))
-                                (not (lisp-prev-pos-is-beginning-of-list? (point))))))))
+                                     (not (lisp-prev-pos-is-beginning-of-list? (point))))))))
   (def-keys-for-map vim:insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))
 
