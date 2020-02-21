@@ -10,6 +10,7 @@
 
 (require 'common)
 (require 'dash)
+(require 'v)
 
 (defstruct (abbrev+-abbreviation
             (:constructor make--abbrev+-abbreviation))
@@ -68,7 +69,7 @@
    :on-successful-expansion on-successful-expansion))
 
 (defvar-local abbrev+-abbreviations
-  (list
+  (vector
    (make-abbrev+-abbreviation
     :trigger "^pwd"
     :action-type 'function-result
@@ -76,7 +77,7 @@
   "A list of `abbrev+-abbreviation' structures.")
 
 (defvar-local abbrev+-skip-syntax
-  '("w" "w_" "w_." "^->")
+  ["w" "w_" "w_." "^->"]
   "List of syntaxes that will be tried one after the other
 to find match for car-element in `abbrev+-abbreviations'")
 
@@ -86,11 +87,10 @@ inserted. Space is important - if conditions to insert space were not
 met then this hook would not run.")
 
 
-(defun abbrev+-get-substitution (str)
+(defun abbrev+--get-substitution (str)
   "Return substitution for STR obtained by matching STR against
 trigger of `abbrev+-abbreviations' and returning corresponding element in cdr."
-  ;; Do not ignore case during matches.
-  (--find
+  (v--find
    (let ((case-fold-search (not (abbrev+-abbreviation-trigger-is-case-sensitive it))))
      (string-match-p (abbrev+-abbreviation-trigger it) str))
    abbrev+-abbreviations))
@@ -141,7 +141,7 @@ expansion was performed."
         str
         result)
     (loop
-      for syntax in abbrev+-skip-syntax
+      for syntax across abbrev+-skip-syntax
       until entry
       do
       (goto-char start)
@@ -150,13 +150,14 @@ expansion was performed."
         (cond
           ((stringp syntax)
            (skip-syntax-backward syntax))
-          ((listp syntax)
-           (dolist (s syntax)
-             (skip-syntax-backward s)))
+          ((vectorp syntax)
+           (loop
+             for s across syntax
+             do (skip-syntax-backward s)))
           (t
-           (error "invalid syntax: %s" syntax)))
+           (error "Invalid abbrev+ skip syntax: %s" syntax)))
         (setf str (buffer-substring-no-properties (point) beginning)
-              entry (abbrev+-get-substitution str))))
+              entry (abbrev+--get-substitution str))))
     (let ((result
            (when (and entry
                       (aif (abbrev+-abbreviation-predicate entry)
@@ -167,7 +168,7 @@ expansion was performed."
              (let* ((point-before-substitution (point))
                     (insert-spacep (abbrev+-perform-substitution entry))
                     (new-text (buffer-substring-no-properties point-before-substitution (point))))
-               (unless (string= str new-text)
+               (unless (string-equal str new-text)
                  (when (and insert-spacep
                             (or (eobp)
                                 (not (char-equal (char-after) ?\s))))

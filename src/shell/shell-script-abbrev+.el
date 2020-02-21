@@ -27,10 +27,12 @@
      :format format)))
 
 (defun shell-script-abbrev+-setup ()
-  (setf abbrev+-skip-syntax '("w_" "w_(" ;;"^ >"
-                              )
+  (setf abbrev+-skip-syntax ["w_"
+                             "w_("
+                             ;;"^ >"
+                             ]
         abbrev+-abbreviations
-        (list
+        (vector
          (make-abbrev+-abbreviation
           :trigger "info"
           :action-type 'function-with-side-effects

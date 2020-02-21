@@ -9,9 +9,9 @@
 (require 'common)
 
 (defun c-abbrev+-setup ()
-  (setf abbrev+-skip-syntax '("w" "w_" "^ >")
+  (setf abbrev+-skip-syntax ["w" "w_" "^ >"]
         abbrev+-abbreviations
-        (list
+        (vector
          (make-abbrev+-abbreviation
           :trigger "\\<pr\\(?:i\\(?:nt?\\)?\\)?f?\\>"
           :action-type 'yas-snippet
