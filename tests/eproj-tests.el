@@ -191,112 +191,6 @@ under ROOT directory."
        ,@body)))
 
 (eproj-tests--define-tests
-    "eproj-tests/%s/eproj/get-fast-tags-from-buffer"
-  (let* ((test-root (fold-platform-os-type "/home/test/whatever"
-                                           "c:/home/test/whatever"))
-         (test-filename "foo.bar")
-         (test-filename-abs (expand-file-name test-filename test-root)))
-    (eproj-tests/test-ctags-get-tags-from-buffer
-     (format
-      "\
-foo1	%s	100;\"	x
-foo2	%s	101 ;\"	y
-foo3	%s	102	;\"	z
-"
-      test-filename
-      test-filename
-      test-filename)
-     tags-index
-     (eproj/get-fast-tags-tags-from-buffer test-root (current-buffer))
-     (should-not (= 0 (eproj-tag-index-size tags-index)))
-
-     (let ((tag1 (car-safe (eproj-tag-index-get "foo1" tags-index))))
-       (should tag1)
-       (should (string=? test-filename-abs (eproj-tag/file tag1)))
-       (should (= 100 (eproj-tag/line tag1)))
-       (should (equal (cons 'type "x") (assq 'type (eproj-tag/properties tag1)))))
-
-     (let ((tag2 (car-safe (eproj-tag-index-get "foo2" tags-index))))
-       (should tag2)
-       (should (string=? test-filename-abs (eproj-tag/file tag2)))
-       (should (= 101 (eproj-tag/line tag2)))
-       (should (equal (cons 'type "y") (assq 'type (eproj-tag/properties tag2)))))
-
-     (let ((tag3 (car-safe (eproj-tag-index-get "foo3" tags-index))))
-       (should tag3)
-       (should (string=? test-filename-abs (eproj-tag/file tag3)))
-       (should (= 102 (eproj-tag/line tag3)))
-       (should (equal (cons 'type "z") (assq 'type (eproj-tag/properties tag3))))))))
-
-(eproj-tests--define-tests
-    "eproj-tests/%s/eproj/get-fast-tags-from-buffer/filenames-with-spaces"
-  (let ((test-filename (fold-platform-os-type
-                        "/home/admin/my projects/test project/hello.c"
-                        "c:/home/admin/my projects/test project/hello.c")))
-    (eproj-tests/test-ctags-get-tags-from-buffer
-     (format
-      "\
-foo1	%s	100;\"	x
-foo2	%s	101 ;\"	y
-foo3	%s	102	;\"	z
-"
-      test-filename
-      test-filename
-      test-filename)
-     tags-index
-     (eproj/get-fast-tags-tags-from-buffer nil (current-buffer))
-     (should-not (= 0 (eproj-tag-index-size tags-index)))
-
-     (let ((tag1 (car-safe (eproj-tag-index-get "foo1" tags-index))))
-       (should tag1)
-       (should (string=? test-filename (eproj-tag/file tag1)))
-       (should (= 100 (eproj-tag/line tag1)))
-       (should (equal (cons 'type "x") (assq 'type (eproj-tag/properties tag1)))))
-
-     (let ((tag2 (car-safe (eproj-tag-index-get "foo2" tags-index))))
-       (should tag2)
-       (should (string=? test-filename (eproj-tag/file tag2)))
-       (should (= 101 (eproj-tag/line tag2)))
-       (should (equal (cons 'type "y") (assq 'type (eproj-tag/properties tag2)))))
-
-     (let ((tag3 (car-safe (eproj-tag-index-get "foo3" tags-index))))
-       (should tag3)
-       (should (string=? test-filename (eproj-tag/file tag3)))
-       (should (= 102 (eproj-tag/line tag3)))
-       (should (equal (cons 'type "z") (assq 'type (eproj-tag/properties tag3))))))))
-
-(eproj-tests--define-tests
-    "eproj-tests/%s/eproj/get-fast-tags-from-buffer/ignore-constructor-tags-that-repeat-type-tags"
-  (let ((test-filename (fold-platform-os-type "/home/sergey/Test.hs"
-                                              "c:/home/sergey/Test.hs")))
-    (eproj-tests/test-ctags-get-tags-from-buffer
-     (format
-      "\
-Identity	%s	100;\"	C
-Identity	%s	101 ;\"	t
-test	%s	102	;\"	f
-"
-      test-filename
-      test-filename
-      test-filename)
-     tags-index
-     (eproj/get-fast-tags-tags-from-buffer nil (current-buffer))
-     (should-not (= 0 (eproj-tag-index-size tags-index)))
-
-     (let ((type-tag (car-safe (eproj-tag-index-get "Identity" tags-index))))
-       (should type-tag)
-       (should (string=? test-filename (eproj-tag/file type-tag)))
-       (should (= 101 (eproj-tag/line type-tag)))
-       (should (equal (cons 'type "t") (assq 'type (eproj-tag/properties type-tag)))))
-
-     (let ((function-tag (car-safe (eproj-tag-index-get "test" tags-index))))
-       (should function-tag)
-       (should (string=? test-filename (eproj-tag/file function-tag)))
-       (should (= 102 (eproj-tag/line function-tag)))
-       (should (equal (cons 'type "f") (assq 'type (eproj-tag/properties function-tag))))))))
-
-
-(eproj-tests--define-tests
     "eproj-tests/%s/project-with-eproj-file-and-tags-file"
   (let* ((path eproj-tests/project-with-eproj-file-and-tags-file)
          (proj (eproj-get-project-for-path path)))
@@ -325,7 +219,8 @@ test	%s	102	;\"	f
                (list (list ">>>="
                            (make-eproj-tag identity-monad-test-path
                                            13
-                                           '((type . "o")))))
+                                           ?o
+                                           nil)))
                (-map (lambda (x) (list (first x) (second x)))
                      (eproj-get-matching-tags proj
                                               'haskell-mode
@@ -337,7 +232,8 @@ test	%s	102	;\"	f
                (list (list "outdated"
                            (make-eproj-tag nonexistent-test-path
                                            100000
-                                           '((type . "f")))))
+                                           ?f
+                                           nil)))
                (-map (lambda (x) (list (first x) (second x)))
                      (eproj-get-matching-tags proj
                                               'haskell-mode
@@ -376,7 +272,8 @@ test	%s	102	;\"	f
               (list (list "distributionTest1"
                           (make-eproj-tag distribution-test-path
                                           17
-                                          '((type . "f")))))
+                                          ?f
+                                          nil)))
               (-map (lambda (x) (list (first x) (second x)))
                     (eproj-get-matching-tags proj
                                              'haskell-mode
@@ -386,7 +283,8 @@ test	%s	102	;\"	f
               (list (list "distributionTest2"
                           (make-eproj-tag distribution-test-path
                                           17
-                                          '((type . "f")))))
+                                          ?f
+                                          nil)))
               (-map (lambda (x) (list (first x) (second x)))
                     (eproj-get-matching-tags proj
                                              'haskell-mode
@@ -431,6 +329,154 @@ test	%s	102	;\"	f
                      (--map (file-relative-name it path)
                             (eproj-tests/normalize-file-list
                              (eproj-project/aux-files proj))))))))
+
+;;;; eproj/ctags-get-tags-from-buffer
+
+(eproj-tests--define-tests
+    "eproj-tests/%s/eproj/get-ctags-from-buffer"
+  (let* ((test-root (fold-platform-os-type "/home/test/whatever"
+                                           "c:/home/test/whatever"))
+         (test-filename "foo.bar")
+         (test-filename-abs (expand-file-name test-filename test-root)))
+    (eproj-tests/test-ctags-get-tags-from-buffer
+     (format
+      "\
+foo1	%s	100;\"	x foo:bar
+foo2	%s	101 ;\"	y quux:frob
+foo3	%s	102	;\"	z
+"
+      test-filename
+      test-filename
+      test-filename)
+     tags-index
+     (eproj/ctags-get-tags-from-buffer test-root (current-buffer))
+     (should-not (= 0 (eproj-tag-index-size tags-index)))
+
+     (let ((tag1 (car-safe (eproj-tag-index-get "foo1" tags-index))))
+       (should tag1)
+       (should (string=? test-filename-abs (eproj-tag/file tag1)))
+       (should (= 100 (eproj-tag/line tag1)))
+       (should (equal ?x (eproj-tag/type tag1))))
+
+     (let ((tag2 (car-safe (eproj-tag-index-get "foo2" tags-index))))
+       (should tag2)
+       (should (string=? test-filename-abs (eproj-tag/file tag2)))
+       (should (= 101 (eproj-tag/line tag2)))
+       (should (equal ?y (eproj-tag/type tag2))))
+
+     (let ((tag3 (car-safe (eproj-tag-index-get "foo3" tags-index))))
+       (should tag3)
+       (should (string=? test-filename-abs (eproj-tag/file tag3)))
+       (should (= 102 (eproj-tag/line tag3)))
+       (should (equal ?z (eproj-tag/type tag3)))))))
+
+;;;; eproj/get-fast-tags-tags-from-buffer
+
+(eproj-tests--define-tests
+    "eproj-tests/%s/eproj/get-fast-tags-from-buffer"
+  (let* ((test-root (fold-platform-os-type "/home/test/whatever"
+                                           "c:/home/test/whatever"))
+         (test-filename "foo.bar")
+         (test-filename-abs (expand-file-name test-filename test-root)))
+    (eproj-tests/test-ctags-get-tags-from-buffer
+     (format
+      "\
+foo1	%s	100;\"	x
+foo2	%s	101 ;\"	y
+foo3	%s	102	;\"	z
+"
+      test-filename
+      test-filename
+      test-filename)
+     tags-index
+     (eproj/get-fast-tags-tags-from-buffer test-root (current-buffer))
+     (should-not (= 0 (eproj-tag-index-size tags-index)))
+
+     (let ((tag1 (car-safe (eproj-tag-index-get "foo1" tags-index))))
+       (should tag1)
+       (should (string=? test-filename-abs (eproj-tag/file tag1)))
+       (should (= 100 (eproj-tag/line tag1)))
+       (should (equal ?x (eproj-tag/type tag1))))
+
+     (let ((tag2 (car-safe (eproj-tag-index-get "foo2" tags-index))))
+       (should tag2)
+       (should (string=? test-filename-abs (eproj-tag/file tag2)))
+       (should (= 101 (eproj-tag/line tag2)))
+       (should (equal ?y (eproj-tag/type tag2))))
+
+     (let ((tag3 (car-safe (eproj-tag-index-get "foo3" tags-index))))
+       (should tag3)
+       (should (string=? test-filename-abs (eproj-tag/file tag3)))
+       (should (= 102 (eproj-tag/line tag3)))
+       (should (equal ?z (eproj-tag/type tag3)))))))
+
+(eproj-tests--define-tests
+    "eproj-tests/%s/eproj/get-fast-tags-from-buffer/filenames-with-spaces"
+  (let ((test-filename (fold-platform-os-type
+                        "/home/admin/my projects/test project/hello.c"
+                        "c:/home/admin/my projects/test project/hello.c")))
+    (eproj-tests/test-ctags-get-tags-from-buffer
+     (format
+      "\
+foo1	%s	100;\"	x
+foo2	%s	101 ;\"	y
+foo3	%s	102	;\"	z
+"
+      test-filename
+      test-filename
+      test-filename)
+     tags-index
+     (eproj/get-fast-tags-tags-from-buffer nil (current-buffer))
+     (should-not (= 0 (eproj-tag-index-size tags-index)))
+
+     (let ((tag1 (car-safe (eproj-tag-index-get "foo1" tags-index))))
+       (should tag1)
+       (should (string=? test-filename (eproj-tag/file tag1)))
+       (should (= 100 (eproj-tag/line tag1)))
+       (should (equal ?x (eproj-tag/type tag1))))
+
+     (let ((tag2 (car-safe (eproj-tag-index-get "foo2" tags-index))))
+       (should tag2)
+       (should (string=? test-filename (eproj-tag/file tag2)))
+       (should (= 101 (eproj-tag/line tag2)))
+       (should (equal ?y (eproj-tag/type tag2))))
+
+     (let ((tag3 (car-safe (eproj-tag-index-get "foo3" tags-index))))
+       (should tag3)
+       (should (string=? test-filename (eproj-tag/file tag3)))
+       (should (= 102 (eproj-tag/line tag3)))
+       (should (equal ?z (eproj-tag/type tag3)))))))
+
+(eproj-tests--define-tests
+    "eproj-tests/%s/eproj/get-fast-tags-from-buffer/ignore-constructor-tags-that-repeat-type-tags"
+  (let ((test-filename (fold-platform-os-type "/home/sergey/Test.hs"
+                                              "c:/home/sergey/Test.hs")))
+    (eproj-tests/test-ctags-get-tags-from-buffer
+     (format
+      "\
+Identity	%s	100;\"	C
+Identity	%s	101 ;\"	t
+test	%s	102	;\"	f
+"
+      test-filename
+      test-filename
+      test-filename)
+     tags-index
+     (eproj/get-fast-tags-tags-from-buffer nil (current-buffer))
+     (should-not (= 0 (eproj-tag-index-size tags-index)))
+
+     (let ((type-tag (car-safe (eproj-tag-index-get "Identity" tags-index))))
+       (should type-tag)
+       (should (string=? test-filename (eproj-tag/file type-tag)))
+       (should (= 101 (eproj-tag/line type-tag)))
+       (should (equal ?t (eproj-tag/type type-tag))))
+
+     (let ((function-tag (car-safe (eproj-tag-index-get "test" tags-index))))
+       (should function-tag)
+       (should (string=? test-filename (eproj-tag/file function-tag)))
+       (should (= 102 (eproj-tag/line function-tag)))
+       (should (equal ?f (eproj-tag/type function-tag)))))))
+
 
 
 ;; (let ((ert-debug-on-error nil))
