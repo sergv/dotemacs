@@ -39,8 +39,8 @@
                                (length-min 3))
   (unless header-symbol
     (setf header-symbol
-          (assoc 'one-line
-                 (assoc major-mode
+          (assq 'one-line
+                (v-assq major-mode
                         +comment-util-comment-format-alist+)))
     (when (< 1 (length header-symbol))
       (error "setup-outline-headers: error: fetched header-symbol from comment-util but it's length is greater than 1: \"%s\" and no other header-symbol was provided"
