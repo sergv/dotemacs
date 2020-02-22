@@ -11,6 +11,9 @@
 (require 'ert)
 (require 'tests-utils)
 
+(defun indentation-tests/initialise-buffer ()
+  (setf tab-width 2))
+
 (ert-deftest indentation-tests/indent-relative-forward-1 ()
   (tests-utils--test-buffer-contents
       :action
@@ -27,7 +30,9 @@
      ""
      "foo bar ="
      "  _|_"
-     "")))
+     "")
+    :initialisation (indentation-tests/initialise-buffer)
+    :buffer-id indentation))
 
 (ert-deftest indentation-tests/indent-relative-forward-2 ()
   (tests-utils--test-buffer-contents
@@ -46,7 +51,9 @@
      ""
      "foo bar ="
      "    _|_"
-     "")))
+     "")
+    :initialisation (indentation-tests/initialise-buffer)
+    :buffer-id indentation))
 
 (ert-deftest indentation-tests/indent-relative-forward-3 ()
   (tests-utils--test-buffer-contents
@@ -66,7 +73,9 @@
      ""
      "foo bar ="
      "        _|_"
-     "")))
+     "")
+    :initialisation (indentation-tests/initialise-buffer)
+    :buffer-id indentation))
 
 (ert-deftest indentation-tests/indent-relative-forward-4 ()
   (tests-utils--test-buffer-contents
@@ -87,7 +96,9 @@
      ""
      "foo bar ="
      "          _|_"
-     "")))
+     "")
+    :initialisation (indentation-tests/initialise-buffer)
+    :buffer-id indentation))
 
 (ert-deftest indentation-tests/indent-relative-forward-5 ()
   (tests-utils--test-buffer-contents
@@ -105,7 +116,9 @@
      "frob = foo 0 where"
      "  foo bar ="
      "  _|_"
-     "")))
+     "")
+    :initialisation (indentation-tests/initialise-buffer)
+    :buffer-id indentation))
 
 (ert-deftest indentation-tests/indent-relative-forward-6 ()
   (tests-utils--test-buffer-contents
@@ -124,7 +137,9 @@
      "frob = foo 0 where"
      "  foo bar ="
      "    _|_"
-     "")))
+     "")
+    :initialisation (indentation-tests/initialise-buffer)
+    :buffer-id indentation))
 
 (provide 'indentation-tests)
 
