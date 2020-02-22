@@ -187,7 +187,9 @@
        :offset (eproj-query/haskell/indent-offset proj))
 
       (company-mode +1)
-      (setq-local company-backends '(company-eproj))
+      (setq-local company-backends '(company-files
+                                     (company-eproj company-dabbrev-code)
+                                     company-dabbrev))
       (setq-local flycheck-highlighting-mode 'symbols)
 
       (dolist (entry (eproj-query/local-variables proj major-mode nil))
@@ -208,6 +210,9 @@
           (if flycheck-backend
               (progn
                 (when (eq flycheck-backend 'haskell-dante)
+                  (setq-local company-backends
+                              (cons 'dante-company
+                                    company-backends))
                   (dante-mode +1))
                 (unless (flycheck-may-use-checker flycheck-backend)
                   (flycheck-verify-checker flycheck-backend)

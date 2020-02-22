@@ -143,8 +143,15 @@
 (defun c++-setup ()
   (cc-setup :define-special-keys t)
   (cc-setup/set-up-c-basic-offset)
+  (setq-local company-backends
+              '(company-clang
+                company-files
+                (company-eproj company-dabbrev-code company-keywords)
+                company-dabbrev))
   (setf hs-forward-sexp-func #'c-hideshow-forward-sexp)
+
   (setq-local indent-tabs-mode nil)
+
   (def-keys-for-map vim:normal-mode-local-keymap
     ("SPC SPC" c++-find-related-file))
   (c++-abbrev+-setup)
