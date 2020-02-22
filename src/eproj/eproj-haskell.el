@@ -86,17 +86,13 @@ runtime but rather will be silently relied on)."
                   (line (string->number (match-string-no-properties 3))))
               (goto-char (match-end 0))
               ;; now we're past ;"
-              (let* ((fields-str (buffer-substring-no-properties
-                                  (point)
-                                  (line-end-position)))
-                     (fields
-                      (list (cons 'type
-                                  (eproj-ctags--cache-string
-                                   (trim-whitespace fields-str))))))
+              (skip-chars-forward "\t")
+              (let ((type (char-after (point))))
                 (eproj-tag-index-add! symbol
                                       file
                                       line
-                                      fields
+                                      type
+                                      nil
                                       tags-index))))
           (forward-line 1)
           (when eproj-verbose-tag-loading
@@ -106,48 +102,45 @@ runtime but rather will be silently relied on)."
 ;;;###autoload
 (defun eproj/haskell-tag-kind (tag)
   (cl-assert (eproj-tag-p tag) nil "Invalid tag: %s" tag)
-  (aif (cdr-safe (assq 'type (eproj-tag/properties tag)))
+  (aif (eproj-tag/type tag)
       (pcase it
-        ("m" "Module")
-        ("f" "Function")
-        ("c" "Class")
-        ("t" "Type")
-        ("C" "Constructor")
-        ("o" "Operator")
-        ("p" "Pattern")
-        ("F" "Type family")
-        (_
-         (error "Invalid haskell tag property %s"
-                (eproj-tag/properties tag))))
+        (?m "Module")
+        (?f "Function")
+        (?c "Class")
+        (?t "Type")
+        (?C "Constructor")
+        (?o "Operator")
+        (?p "Pattern")
+        (?F "Type family")
+        (invalid
+         (error "Invalid Haskell tag type %s" invalid)))
     "Unknown"))
 
 ;;;###autoload
 (defun eproj/haskell-tag->string (proj tag-name tag)
   (cl-assert (eproj-tag-p tag))
-  (let ((type (cdr-safe (assq 'type (eproj-tag/properties tag)))))
-    (concat tag-name
-            " ["
-            (eproj/haskell-tag-kind tag)
-            "]\n"
-            (eproj--resolve-to-abs-path (eproj-tag/file tag)
-                                        (eproj-project/root proj))
-            ":"
-            (number->string (eproj-tag/line tag))
-            (awhen (eproj-tag/column tag)
-              (concat ":" (number->string it)))
-            "\n"
-            (awhen (eproj/haskell-extract-tag-signature proj tag)
-              (concat it "\n")))))
+  (concat tag-name
+          " ["
+          (eproj/haskell-tag-kind tag)
+          "]\n"
+          (eproj--resolve-to-abs-path (eproj-tag/file tag)
+                                      (eproj-project/root proj))
+          ":"
+          (number->string (eproj-tag/line tag))
+          (awhen (eproj-tag/column tag)
+            (concat ":" (number->string it)))
+          "\n"
+          (awhen (eproj/haskell-extract-tag-signature proj tag)
+            (concat it "\n"))))
 
 ;;;###autoload
 (defun eproj/haskell-extract-tag-signature (proj tag)
   "Fetch line where TAG is defined."
   (cl-assert (eproj-tag-p tag) nil "Eproj tag is required.")
-  (let* ((type (cdr-safe (assq 'type (eproj-tag/properties tag))))
-         (is-module?
-          (pcase type
-            ("m" t)
-            (_   nil))))
+  (let ((is-module?
+         (pcase (eproj-tag/type tag)
+           (?m t)
+           (_  nil))))
     (unless is-module?
       (for-buffer-with-file
           (eproj--resolve-to-abs-path (eproj-tag/file tag)

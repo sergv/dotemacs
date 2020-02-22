@@ -22,14 +22,22 @@
 ;;   line   ;; number
 ;;   properties)
 
-(defsubst make-eproj-tag (file line props)
-  (cons file (cons line props)))
+(defsubst make-eproj-tag (file line type props)
+  (vector file line type props)
+  ;; (cons file (cons line props))
+  )
 
 (defsubst eproj-tag-p (tag-struct)
-  (and (consp tag-struct)
-       (stringp (car tag-struct))
-       (consp (cdr tag-struct))
-       (integerp (cadr tag-struct))))
+  (and (vectorp tag-struct)
+       (stringp (aref tag-struct 0))
+       (integerp (aref tag-struct 1))
+       (or (null (aref tag-struct 2))
+           (characterp (aref tag-struct 2))))
+  ;; (and (consp tag-struct)
+  ;;      (stringp (car tag-struct))
+  ;;      (consp (cdr tag-struct))
+  ;;      (integerp (cadr tag-struct)))
+  )
 
 ;; (defsubst eproj-tag/symbol (tag-struct)
 ;;   (declare (pure t) (side-effect-free t))
@@ -38,11 +46,15 @@
 (defsubst eproj-tag/file (tag-struct)
   "Get the file that current tag came from. Always absolute."
   (declare (pure t) (side-effect-free t))
-  (car tag-struct))
+  (aref tag-struct 0))
 
 (defsubst eproj-tag/line (tag-struct)
   (declare (pure t) (side-effect-free t))
-  (cadr tag-struct))
+  (aref tag-struct 1))
+
+(defsubst eproj-tag/type (tag-struct)
+  (declare (pure t) (side-effect-free t))
+  (aref tag-struct 2))
 
 (defsubst eproj-tag/column (tag-struct)
   (declare (pure t) (side-effect-free t))
@@ -51,8 +63,7 @@
 ;; Return associative list of tag properties.
 (defsubst eproj-tag/properties (tag-struct)
   (declare (pure t) (side-effect-free t))
-  (cddr tag-struct))
-
+  (aref tag-struct 3))
 
 (if (and nil use-foreign-libraries?)
     (progn
@@ -81,11 +92,11 @@
     (defun eproj-tag-index-size (index)
       (hash-table-count (cdr index)))
 
-    (defun eproj-tag-index-add! (symbol file line props index)
+    (defun eproj-tag-index-add! (symbol file line type props index)
       (cl-assert (stringp symbol))
       (let ((table (cdr index)))
         (puthash symbol
-                 (cons (make-eproj-tag file line props)
+                 (cons (make-eproj-tag file line type props)
                        (gethash symbol table))
                  table)))
 
