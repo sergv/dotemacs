@@ -106,6 +106,10 @@ warnings will be colorized in `rust-compilation-mode'.")
   (fontify-conflict-markers!)
   (setup-hs-minor-mode)
   (company-mode +1)
+  (setq-local company-backends
+              '(company-files
+                (company-eproj company-dabbrev-code company-keywords)
+                company-dabbrev))
   ;; Don't skip any messages.
   (setq-local compilation-skip-threshold 0)
   (setq-local compilation-buffer-name-function (lambda (_) rust-compilation-buffer-name))
