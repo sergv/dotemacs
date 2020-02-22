@@ -207,6 +207,7 @@ or not.")
 (load-library "c-like-setup")
 (load-library "haskell-autoload")
 (load-library "latex-autoloads")
+(load-library "rust-autoloads")
 
 (load-library "compilation-setup")
 (load-library "completion-setup")
