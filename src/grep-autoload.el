@@ -50,6 +50,8 @@
             ("mk"       . "[Mm]akefile* *.mk")
             ("make"     . "[Mm]akefile* *.mk")
             ("makefile" . "[Mm]akefile* *.mk")
+            ("rs"       . "*.rs")
+            ("rust"      . "*.rs")
             ("tex"      . "*.tex")
             ("texi"     . "*.texi")
             ("asm"      . "*.s")
