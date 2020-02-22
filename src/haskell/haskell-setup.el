@@ -160,7 +160,8 @@
            (col (string-to-number (match-string 3 string))))
       (make-eproj-tag (expand-file-name resolved-file dante-project-root)
                       line
-                      `((column . ,(1- col)))))))
+                      nil
+                      (vector `(column . ,(1- col)))))))
 
 ;;;###autoload
 (defun haskell-setup ()
