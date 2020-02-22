@@ -22,7 +22,9 @@
 ;;   line   ;; number
 ;;   properties)
 
+
 (defsubst make-eproj-tag (file line type props)
+  (cl-assert (or (null props) (vectorp props)))
   (vector file line type props)
   ;; (cons file (cons line props))
   )
@@ -58,12 +60,17 @@
 
 (defsubst eproj-tag/column (tag-struct)
   (declare (pure t) (side-effect-free t))
-  (cdr-safe (assq 'column (eproj-tag/properties tag-struct))))
+  (eproj-tag/get-prop 'column tag-struct))
 
-;; Return associative list of tag properties.
+;; Return associative array of tag properties.
 (defsubst eproj-tag/properties (tag-struct)
   (declare (pure t) (side-effect-free t))
   (aref tag-struct 3))
+
+(defsubst eproj-tag/get-prop (prop tag-struct)
+  (declare (pure t) (side-effect-free t))
+  (cl-assert (symbolp prop))
+  (cdr-safe (assq prop (aref tag-struct 3))))
 
 (if (and nil use-foreign-libraries?)
     (progn
