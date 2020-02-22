@@ -288,6 +288,17 @@
 ;;
 ;;   (maximize-frame))
 
+
+(defun egc--create-non-existent-directory ()
+  "Ask to create parent dirs when opening a non-existent file."
+  (let ((parent-directory (file-name-directory buffer-file-name)))
+    (when (and (not (file-directory-p parent-directory))
+               (y-or-n-p (format "Parent directory does not exist: %s. Create?" parent-directory)))
+      (make-directory parent-directory t))))
+
+(add-to-list 'find-file-not-found-functions #'egc--create-non-existent-directory)
+
+
 ;;;; aliases
 
 (fset 'yes-or-no-p 'y-or-n-p)
