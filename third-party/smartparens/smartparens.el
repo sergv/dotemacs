@@ -9277,7 +9277,10 @@ comment."
     (newline))
    ((sp-point-in-comment)
     (if (sp-region-ok-p (point) (point-at-eol))
-        (progn (newline-and-indent) (ignore-errors (indent-sexp)))
+        (progn
+          (newline-and-indent)
+          (when indent-sexp?
+            (ignore-errors (indent-sexp))))
       (newline-and-indent)))
    (t
     (newline-and-indent)
