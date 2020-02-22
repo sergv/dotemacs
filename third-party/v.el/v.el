@@ -61,6 +61,14 @@
   "Apply function F to all elements of a vector XS."
   (v--map (funcall f it) xs))
 
+(defun v-assq (key xs)
+  "Return non-nil if KEY is `eq' to the car of an element of vector XS.
+Return whole cons cell, if one's present.
+
+NOTE: while `assq' will ignore non-cons-cells in collection, this function
+will raise an error on such."
+  (v--find (eq key (car it)) xs))
+
 (provide 'v)
 
 ;; Local Variables:

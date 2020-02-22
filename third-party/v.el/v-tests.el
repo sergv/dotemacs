@@ -17,6 +17,16 @@
     (should (equal nil
                    (v--find (= 6 it) xs)))))
 
+(ert-deftest v/v--assq ()
+  (let ((xs (vector (cons 'x 1) (cons 'y "foo") (cons 'z nil))))
+    (should (equal (cons 'x 1)
+                   (v-assq 'x xs)))
+    (should (equal (cons 'y "foo")
+                   (v-assq 'y xs)))
+    (should (equal (cons 'z nil)
+                   (v-assq 'z xs)))
+    (should (equal nil
+                   (v-assq 'w xs)))))
 
 (ert "v/.*")
 
