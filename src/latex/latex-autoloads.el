@@ -26,6 +26,8 @@
 (add-hook 'latex-mode-hook #'latex-setup)
 (add-hook 'LaTeX-mode-hook #'latex-setup)
 
+(provide 'latex-autoloads)
+
 ;; Local Variables:
 ;; End:
 

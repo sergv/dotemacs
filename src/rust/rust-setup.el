@@ -167,11 +167,11 @@ warnings will be colorized in `rust-compilation-mode'.")
     ("M-h"   rust-compilation-next-error-other-window)
     ("C-SPC" company-complete))
 
+  (setup-eproj-symbnav)
+
   (setup-outline-headers :header-symbol "/"
                          :length-min 4))
 
-;;;###autoload
-(add-hook 'rust-mode-hook #'rust-setup)
 
 (provide 'rust-setup)
 
