@@ -1477,24 +1477,24 @@ last non-whitespace character."
 
 (defsubst string->list (str)
   (declare (pure t) (side-effect-free t))
-  (cl-coerce str 'list))
+  (append str nil))
 
 (defsubst list->string (items)
   (declare (pure t) (side-effect-free t))
-  (cl-coerce items 'string))
+  (concat items))
 
-(defsubst vector->list (str)
+(defsubst vector->list (x)
   (declare (pure t) (side-effect-free t))
-  (cl-coerce str 'list))
+  (append x nil))
 
 (defsubst list->vector (items)
   (declare (pure t) (side-effect-free t))
-  (cl-coerce items 'vector))
+  (vconcat items))
 
 (defsubst int-vector->string (v)
   "Convernt vector of integers to string."
   (declare (pure t) (side-effect-free t))
-  (cl-coerce v 'string))
+  (concat v))
 
 (defsubst char=? (a b)
   (declare (pure t) (side-effect-free t))
