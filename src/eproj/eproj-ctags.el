@@ -184,7 +184,7 @@ BUFFER is expected to contain output of ctags command."
                                       file
                                       line
                                       type
-                                      fields
+                                      (list->vector fields)
                                       tags-index)))
             (when eproj-verbose-tag-loading
               (funcall progress-reporter 1))))
