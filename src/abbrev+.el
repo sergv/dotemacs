@@ -198,7 +198,7 @@ if no expansion was produced.")
     (org-self-insert-command 1)))
 
 (defun abbrev+--make-re-with-optional-suffix (str suffix-len)
-  (declare ((pure t) (side-effect-free t)))
+  (declare (pure t) (side-effect-free t))
   (letrec ((make-suffix
             (lambda (list)
               (if (null list)
@@ -224,7 +224,7 @@ if no expansion was produced.")
 a list of the (partN suffix-lengthN) elements, resulting re would
 match part1-part2-...-partN with optional dashes and suffix
 recognition."
-  (declare ((pure t) (side-effect-free t)))
+  (declare (pure t) (side-effect-free t))
   (concat "("
           (mapconcat (lambda (x) (abbrev+--make-re-with-optional-suffix (car x) (cadr x)))
                      name-parts
