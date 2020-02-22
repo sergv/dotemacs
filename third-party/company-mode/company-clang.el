@@ -48,6 +48,16 @@ and `c-electric-colon', for automatic completion right after \">\" and
 \":\"."
   :type 'boolean)
 
+(defcustom company-clang-use-compile-flags-txt nil
+  "When non-nil, use flags from compile_flags.txt if present.
+
+The lines from that files will be appended to `company-clang-arguments'.
+
+And if such file is found, Clang is called from the directory containing
+it.  That allows the flags use relative file names within the project."
+  :type 'boolean
+  :safe 'booleanp)
+
 (defcustom company-clang-arguments nil
   "Additional arguments to pass to clang when completing.
 Prefix files (-include ...) can be selected with `company-clang-set-prefix'
@@ -249,12 +259,35 @@ or automatically through a custom `company-clang-prefix-guesser'."
   (append '("-fsyntax-only" "-Xclang" "-code-completion-macros")
           (unless (company-clang--auto-save-p)
             (list "-x" (company-clang--lang-option)))
-          company-clang-arguments
+          (company-clang--arguments)
           (when (stringp company-clang--prefix)
             (list "-include" (expand-file-name company-clang--prefix)))
           (list "-Xclang" (format "-code-completion-at=%s"
                                   (company-clang--build-location pos)))
           (list (if (company-clang--auto-save-p) buffer-file-name "-"))))
+
+(defun company-clang--arguments ()
+  (let ((fname "compile_flags.txt")
+        (args company-clang-arguments)
+        current-dir-rel)
+    (when company-clang-use-compile-flags-txt
+      (let ((dir (locate-dominating-file default-directory fname)))
+        (when dir
+          (setq current-dir-rel (file-relative-name default-directory dir))
+          (setq default-directory dir)
+          (with-temp-buffer
+            (insert-file-contents fname)
+            (setq args
+                  (append
+                   args
+                   (split-string (buffer-substring-no-properties
+                                  (point-min) (point-max))
+                                 "[\n\r]+"
+                                 t
+                                 "[ \t]+"))))
+          (unless (equal current-dir-rel "./")
+            (push (format "-I%s" current-dir-rel) args)))))
+    args))
 
 (defun company-clang--candidates (prefix callback)
   (and (company-clang--auto-save-p)
@@ -263,13 +296,14 @@ or automatically through a custom `company-clang-prefix-guesser'."
   (when (null company-clang--prefix)
     (company-clang-set-prefix (or (funcall company-clang-prefix-guesser)
                                   'none)))
-  (apply 'company-clang--start-process
-         prefix
-         callback
-         (company-clang--build-complete-args
-          (if (company-clang--check-version 4.0 9.0)
-              (point)
-            (- (point) (length prefix))))))
+  (let ((default-directory default-directory))
+    (apply 'company-clang--start-process
+           prefix
+           callback
+           (company-clang--build-complete-args
+            (if (company-clang--check-version 4.0 9.0)
+                (point)
+              (- (point) (length prefix)))))))
 
 (defun company-clang--prefix ()
   (if company-clang-begin-after-member-access
