@@ -92,14 +92,44 @@
     ""
     "// foobar _|_"
     ""
-    "fn foo() {}"
+    "fn foo() {"
+    "    let x = 2;"
+    "    x + x"
+    "}"
     "")
    (tests-utils--multiline
     ""
     "// foobar"
     "// _|_"
     ""
-    "fn foo() {}"
+    "fn foo() {"
+    "    let x = 2;"
+    "    x + x"
+    "}"
+    "")))
+
+(ert-deftest rust-tests/sp-newline--duplication-of-commented-line-2 ()
+  (rust-tests--test-buffer-contents
+   (progn
+     (sp-newline))
+   (tests-utils--multiline
+    ""
+    "// foobar _|_ quux"
+    ""
+    "fn foo() {"
+    "    let x = 2;"
+    "    x + x"
+    "}"
+    "")
+   (tests-utils--multiline
+    ""
+    "// foobar"
+    "// _|_quux"
+    ""
+    "fn foo() {"
+    "    let x = 2;"
+    "    x + x"
+    "}"
     "")))
 
 (ert-deftest rust-tests/sp-newline--duplication-of-commented-line-3 ()
@@ -109,15 +139,19 @@
    (tests-utils--multiline
     ""
     "// foobar _|_ quux"
-    ""
-    "fn foo() {}"
+    "fn foo() {"
+    "    let x = 2;"
+    "    x + x"
+    "}"
     "")
    (tests-utils--multiline
     ""
     "// foobar"
     "// _|_quux"
-    ""
-    "fn foo() {}"
+    "fn foo() {"
+    "    let x = 2;"
+    "    x + x"
+    "}"
     "")))
 
 
