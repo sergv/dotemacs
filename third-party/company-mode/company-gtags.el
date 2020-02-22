@@ -1,6 +1,6 @@
 ;;; company-gtags.el --- company-mode completion backend for GNU Global
 
-;; Copyright (C) 2009-2011, 2014  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011, 2014-2020  Free Software Foundation, Inc.
 
 ;; Author: Nikolaj Schumacher
 
@@ -65,7 +65,9 @@ completion."
 (defun company-gtags--fetch-tags (prefix)
   (with-temp-buffer
     (let (tags)
-      (when (= 0 (process-file company-gtags-executable nil
+      ;; For some reason Global v 6.6.3 is prone to returning exit status 1
+      ;; even on successful searches when '-T' is used.
+      (when (/= 3 (process-file company-gtags-executable nil
                                ;; "-T" goes through all the tag files listed in GTAGSLIBPATH
                                (list (current-buffer) nil) nil "-xGqT" (concat "^" prefix)))
         (goto-char (point-min))
@@ -87,7 +89,7 @@ completion."
 
 (defun company-gtags--annotation (arg)
   (let ((meta (get-text-property 0 'meta arg)))
-    (when (string-match (concat arg "\\((.*)\\).*") meta)
+    (when (string-match (concat (regexp-quote arg) "\\((.*)\\).*") meta)
       (match-string 1 meta))))
 
 ;;;###autoload
