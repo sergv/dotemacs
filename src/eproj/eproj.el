@@ -128,7 +128,10 @@
                  (autoloadp parse-tags-procedure)))
   (cl-assert (listp synonym-modes))
   (cl-assert (or (functionp tag->string-func)
-                 (autoloadp tag->string-func)))
+                 (autoloadp tag->string-func))
+             nil
+             "Invalid tag->string-func: %s"
+             tag->string-func)
   (cl-assert (listp synonym-modes))
   (cl-assert (-all? #'symbolp synonym-modes))
   (cl-assert (or (null normalise-identifier-before-navigation-procedure)
@@ -158,101 +161,6 @@
    extra-navigation-globs))
 
 ;;;; language definitions
-
-(defun eproj/generic-tag-kind (tag)
-  (format "%s" (eproj-tag/properties tag)))
-
-(defun eproj/generic-tag->string (proj tag-name tag)
-  (cl-assert (eproj-tag-p tag))
-  (concat "Generic tag "
-          tag-name
-          "\n"
-          (eproj--resolve-to-abs-path (eproj-tag/file tag)
-                                      (eproj-project/root proj))
-          ":"
-          (number->string (eproj-tag/line tag))
-          (awhen (eproj-tag/column tag)
-            (concat ":" it))
-          "\n"
-          (eproj/generic-tag-kind tag)
-          "\n")
-  ;; (lambda (entry)
-  ;;   (let ((delim (cadr (assq orig-major-mode
-  ;;                            *ctags-symbols-name-delimiter-alist*))))
-  ;;     (format "%s %s%s%s\n%s:%s\n%s:%s\n"
-  ;;             (ctags-tag-kind entry)
-  ;;             (aif (find-if (lambda (entry)
-  ;;                             (memq (car entry)
-  ;;                                   '(class
-  ;;                                     struct
-  ;;                                     union
-  ;;                                     enum)))
-  ;;                           (ctags-tag-aux-fields entry))
-  ;;               (concat (cdr it) delim)
-  ;;               "")
-  ;;             (ctags-tag-symbol entry)
-  ;;             (aif (assoc 'signature (ctags-tag-aux-fields entry))
-  ;;               (cdr it)
-  ;;               "")
-  ;;             (file-name-nondirectory (ctags-tag-file entry))
-  ;;             (ctags-tag-line entry)
-  ;;             (ctags-tag-file entry)
-  ;;             (ctags-tag-line entry))))
-  )
-
-(defun eproj/c-tag-kind (tag)
-  (cdr-safe (assq 'kind (eproj-tag/properties tag))))
-
-(defun eproj/c-tag->string (proj tag-name tag)
-  (cl-assert (eproj-tag-p tag))
-  (concat tag-name
-          (awhen (eproj/c-tag-kind tag)
-            (concat " [" it "]"))
-          "\n"
-          (eproj--resolve-to-abs-path (eproj-tag/file tag)
-                                      (eproj-project/root proj))
-          ":"
-          (number->string (eproj-tag/line tag))
-          "\n"
-          (eproj/extract-tag-line proj tag)
-          "\n"))
-
-(defun eproj/java-tag-kind (tag)
-  (concat
-   (cdr-safe (assq 'kind (eproj-tag/properties tag)))
-   (awhen (assq 'access (eproj-tag/properties tag))
-     (concat "/" (cdr it)))))
-
-(defun eproj/java-tag->string (proj tag-name tag)
-  (cl-assert (eproj-tag-p tag))
-  (concat tag-name
-          (awhen (eproj/java-tag-kind tag)
-            (concat " [" it "]"))
-          "\n"
-          (awhen (assq 'class (eproj-tag/properties tag))
-            (concat (cdr it)
-                    "."
-                    tag-name
-                    "\n"))
-          (eproj--resolve-to-abs-path (eproj-tag/file tag)
-                                      (eproj-project/root proj))
-          ":"
-          (number->string (eproj-tag/line tag))
-          "\n"
-          (when (eproj-tag/line tag)
-            (concat (eproj/extract-tag-line proj tag)
-                    "\n"))))
-
-(defun eproj/extract-tag-line (proj tag)
-  "Fetch line where TAG is defined."
-  (cl-assert (eproj-tag-p tag) nil "Eproj tag is required.")
-  (for-buffer-with-file
-      (eproj--resolve-to-abs-path (eproj-tag/file tag)
-                                  (eproj-project/root proj))
-    (save-excursion
-      (goto-line-dumb (eproj-tag/line tag))
-      (current-line))))
-
 
 (defun eproj/load-ctags-project (lang-mode proj project-files-thunk parse-tags-proc)
   (with-temp-buffer
@@ -288,6 +196,16 @@
     :extra-navigation-globs
     (append +haskell-watch-watched-files-globs+
             +cpp-extensions+))
+   (mk-eproj-lang
+    :mode 'rust-mode
+    :extensions +rust-extensions+
+    :create-tags-procedure
+    (lambda (proj project-files-thunk parse-tags-proc)
+      (eproj/load-ctags-project 'rust-mode proj project-files-thunk parse-tags-proc))
+    :parse-tags-procedure
+    #'eproj/ctags-get-tags-from-buffer
+    :show-tag-kind-procedure #'eproj/rust-tag-kind
+    :tag->string-func #'eproj/rust-tag->string)
    (mk-eproj-lang
     :mode 'c-mode
     :extensions +c-extensions+

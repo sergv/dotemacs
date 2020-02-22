@@ -15,33 +15,35 @@
 
 (defparameter eproj-ctags--exec
   (or (let ((ctags-exec
-             (platform-dependent-executable (concat +execs-path+ "/exuberant-ctags"))))
+             (platform-dependent-executable (concat +execs-path+ "/ctags"))))
         (when (and ctags-exec
                    (file-exists-p ctags-exec))
           ctags-exec))
-      (cached-executable-find "ctags-exuberant")
-      (cached-executable-find "exuberant-ctags")))
+      (cached-executable-find "ctags")))
 
 (defparameter *ctags-language-flags*
   '((c-mode
      "--language-force=c"
      "--c-kinds=-defgmpstuv"
      "--c-kinds=+defgmstuv"
-     "--fields=+SzkK"
+     "--fields=+kz"
      "--extras=+q")
     (c++-mode
      "--language-force=c++"
      "--c++-kinds=+cdefgmnpstuv"
-     "--fields=+iaSzkK"
+     "--fields=+kiaz"
      "--extras=+q")
     (python-mode
      "--language-force=python"
      "--python-kinds=+cfmvi"
-     "--fields=+SzkK")
+     "--fields=+k")
     (java-mode
      "--language-force=java"
      "--java-kinds=+cefgimp"
-     "--fields=+iaSzkK")))
+     "--fields=+kia")
+    (rust-mode
+     "--language-force=rust"
+     "--fields=+k")))
 
 (defconst eproj-ctags--line-re
   (rx bol
@@ -64,27 +66,6 @@
       (or (seq (* (any ?\s ?\t))
                ";\"")
           eol)))
-
-(defconst eproj-ctags--aux-fields-re
-  (eval-when-compile
-    (concat "\\=\\("
-            (eval-when-compile
-              (regexp-opt
-               '("kind"
-                 "access"
-                 "class"
-                 "file"
-                 "signature"
-                 "namespace"
-                 "struct"
-                 "enum"
-                 "union"
-                 "inherits"
-                 "typeref"
-                 "function"
-                 "interface"
-                 "annotation")))
-            "\\):\\(.*\\)")))
 
 ;;;###autoload
 (defun eproj/run-ctags-on-files (lang-mode root-dir files out-buffer)
@@ -176,36 +157,193 @@ BUFFER is expected to contain output of ctags command."
                   (line (string->number (match-string-no-properties 3))))
               (goto-char (match-end 0))
               ;; now we're past ;"
-              (let* ((line-end-pos (line-end-position))
+              (skip-chars-forward "\t")
+              (let* ((type (char-after (point)))
+                     (line-end-pos (line-end-position))
                      (fields nil))
+                (forward-char)
                 (while (< (point) line-end-pos)
                   (skip-chars-forward "\t")
                   (let ((start (point)))
-                    (skip-chars-forward "^\t\n")
-                    (let ((end (point)))
-                      (save-excursion
-                        (goto-char start)
-                        (if (re-search-forward eproj-ctags--aux-fields-re end t)
-                            (let ((identifier (match-string-no-properties 1))
-                                  (value (match-string-no-properties 2)))
-                              ;; when value is nonempty
-                              (when (not (string= "" value))
-                                (let ((new-field (cons (string->symbol identifier)
-                                                       (eproj-ctags--cache-string value))))
-                                  (push (aif (gethash new-field field-cache)
-                                            it
-                                          (puthash new-field new-field field-cache))
-                                        fields))))
-                          (error "Invalid ctags entry: %s" (buffer-substring-no-properties start end)))))))
+                    (skip-chars-forward "^:\t\n")
+                    (let ((key (buffer-substring-no-properties start (point))))
+                      (forward-char)
+                      (let ((start (point)))
+                        (skip-chars-forward "^\t\n")
+                        (let ((value (buffer-substring-no-properties start (point))))
+                          ;; When value is nonempty
+                          (unless (string-equal "" value)
+                            (let ((new-field (cons (string->symbol key)
+                                                   (eproj-ctags--cache-string value))))
+                              (push (aif (gethash new-field field-cache)
+                                        it
+                                      (puthash new-field new-field field-cache))
+                                    fields))))))))
                 (forward-char)
                 (eproj-tag-index-add! symbol
                                       file
                                       line
+                                      type
                                       fields
                                       tags-index)))
             (when eproj-verbose-tag-loading
               (funcall progress-reporter 1))))
         tags-index))))
+
+;;;; Rust tags
+
+(defun eproj/rust-tag-kind (tag)
+  (cl-assert (eproj-tag-p tag) nil "Invalid tag: %s" tag)
+  (aif (eproj-tag/type tag)
+      (pcase it
+        (?n "module")
+        (?s "structure")
+        (?i "trait interface")
+        (?c "implementation")
+        (?f "function")
+        (?g "enum")
+        (?t "type alias")
+        (?v "global variable")
+        (?M "macro definition")
+        (?m "struct field")
+        (?e "enum variant")
+        (?P "method")
+        (invalid
+         (error "Invalid Rust tag type %s" invalid)))
+    "Unknown"))
+
+;;;###autoload
+(defun eproj/rust-tag->string (proj tag-name tag)
+  (cl-assert (eproj-tag-p tag))
+  (concat tag-name
+          (awhen (eproj/rust-tag-kind tag)
+            (concat " [" it "]"))
+          "\n"
+          (eproj--resolve-to-abs-path (eproj-tag/file tag)
+                                      (eproj-project/root proj))
+          ":"
+          (number->string (eproj-tag/line tag))
+          "\n"
+          (eproj/extract-tag-line proj tag)
+          "\n"))
+
+;;;; C/C++ tags
+
+(defun eproj/c-tag-kind (tag)
+  (cl-assert (eproj-tag-p tag) nil "Invalid tag: %s" tag)
+  (aif (eproj-tag/type tag)
+      (pcase it
+        (?d "macro definition")
+        (?e "enumerated value")
+        (?f "function definition")
+        (?g "enumeration")
+        (?h "included header")
+        (?l "local variable")
+        (?m "member")
+        (?p "function prototype")
+        (?s "structure")
+        (?t "typedef")
+        (?u "union")
+        (?v "variable")
+        (?L "goto label")
+        (?c "class")
+        (?n "namespace")
+        (?A "namespace aliase")
+        (?Z "template parameter")
+        (invalid
+         (error "Invalid C tag type %s" invalid)))
+    "Unknown"))
+
+;;;###autoload
+(defun eproj/c-tag->string (proj tag-name tag)
+  (cl-assert (eproj-tag-p tag))
+  (concat tag-name
+          (awhen (eproj/c-tag-kind tag)
+            (concat " [" it "]"))
+          "\n"
+          (eproj--resolve-to-abs-path (eproj-tag/file tag)
+                                      (eproj-project/root proj))
+          ":"
+          (number->string (eproj-tag/line tag))
+          "\n"
+          (eproj/extract-tag-line proj tag)
+          "\n"))
+
+;;;; Java tags
+
+(defun eproj/java-tag-kind (tag)
+  (cl-assert (eproj-tag-p tag) nil "Invalid tag: %s" tag)
+  (aif (eproj-tag/type tag)
+      (concat
+       (pcase it
+         (?a "annotation")
+         (?c "class")
+         (?e "enum constant")
+         (?f "field")
+         (?g "enum type")
+         (?i "interface")
+         (?m "method")
+         (?p "package")
+         (invalid
+          (error "Invalid Java tag type %s" invalid)))
+       (awhen (eproj-tag/get-prop 'access tag)
+         (concat "/" it)))
+    "Unknown"))
+
+;;;###autoload
+(defun eproj/java-tag->string (proj tag-name tag)
+  (cl-assert (eproj-tag-p tag))
+  (concat tag-name
+          " ["
+          (eproj/java-tag-kind tag)
+          "]\n"
+          (awhen (eproj-tag/get-prop 'class tag)
+            (concat it
+                    "."
+                    tag-name
+                    "\n"))
+          (eproj--resolve-to-abs-path (eproj-tag/file tag)
+                                      (eproj-project/root proj))
+          ":"
+          (number->string (eproj-tag/line tag))
+          "\n"
+          (when (eproj-tag/line tag)
+            (concat (eproj/extract-tag-line proj tag)
+                    "\n"))))
+
+;;;; Generic tags
+
+(defun eproj/generic-tag-kind (tag)
+  (concat (awhen (eproj-tag/type tag)
+            (format "%c " it))
+          (format "%s" (eproj-tag/properties tag))))
+
+;;;###autoload
+(defun eproj/generic-tag->string (proj tag-name tag)
+  (cl-assert (eproj-tag-p tag))
+  (concat tag-name
+          "\n"
+          (eproj--resolve-to-abs-path (eproj-tag/file tag)
+                                      (eproj-project/root proj))
+          ":"
+          (number->string (eproj-tag/line tag))
+          (awhen (eproj-tag/column tag)
+            (concat ":" it))
+          "\n"
+          (eproj/generic-tag-kind tag)
+          "\n"))
+
+;;;; Tag presentation utilities
+
+(defun eproj/extract-tag-line (proj tag)
+  "Fetch line where TAG is defined."
+  (cl-assert (eproj-tag-p tag) nil "Eproj tag is required.")
+  (for-buffer-with-file
+      (eproj--resolve-to-abs-path (eproj-tag/file tag)
+                                  (eproj-project/root proj))
+    (save-excursion
+      (goto-line-dumb (eproj-tag/line tag))
+      (current-line))))
 
 (provide 'eproj-ctags)
 
