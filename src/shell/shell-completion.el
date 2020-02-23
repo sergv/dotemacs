@@ -11,10 +11,12 @@
 (require 'pcomplete)
 (require 'completion-setup)
 (require 'haskell-misc)
+;; (require 'json)
 
 ;;;; Utilities
 
 ;; Use this to debug completion functions
+
 ;; (defun pcomplete/test ()
 ;;   (message "pcomplete-args = %s"
 ;;            (pp-to-string (-map #'strip-text-properties pcomplete-args)))
@@ -197,7 +199,7 @@ flag       = <flag-string> | (<flag-string> <completion-expr>)
 terminals:
 flag-string     - emacs string describing flag, must include - or --
 completion-expr - elisp expression, like (pcomplete-here (pcmpl-entries))
-positional-arg  - emacs string, usually without -s
+positional-arg  - emacs string, usually without - or --
 
 N.B. Small deviations to the grammar may be tolerated, but they're mostly
 useless, e.g. (opts (args)) would be accepted but to no effect.
@@ -4019,6 +4021,171 @@ under version-control directories."
    (args
     (pcomplete-here (pcmpl-entries)))))
 
+;;;; Rust
+
+;; (defun pcmpl-cargo-metadata ()
+;;   "Return a list of cargo targets."
+;;   (save-match-data
+;;     (with-temp-buffer
+;;       (call-process "cargo"
+;;                     nil
+;;                     (current-buffer)
+;;                     nil
+;;                     "metadata"
+;;                     "--no-deps"
+;;                     "--format-version=1")
+;;       (goto-char (point-min))
+;;       (json-read-object))))
+
+;;;###autoload (autoload 'pcomplete/cargo "shell-completion" nil t)
+(defpcmpl pcomplete/cargo
+  (let ((common-flags
+         '("-V"
+           "--version"
+           "--list"
+           "--explain"
+           "-v"
+           "--verbose"
+           "-q"
+           "--quiet"
+           "--color=auto"
+           "--color=always"
+           "--color=never"
+           "--frozen"
+           "--locked"
+           "--offline"
+           "-Z"
+           "-h"
+           "--help"))
+        (target-flags
+         '("-p"
+           "--package"
+           ("--target" (pcomplete-here (rust-target-triples)))
+           ("--target-dir" (pcmpl-dirs))
+           "--release"
+           ("--profile" (pcomplete-here '("dev" "release" "test" "bench")))))
+        (build-flags
+         '("--workspace"
+           "--exclude"
+           "-j"
+           "--jobs"
+           "--lib"
+           "--bin"
+           "--bins"
+           "--example"
+           "--examples"
+           "--test"
+           "--tests"
+           "--bench"
+           "--benches"
+           "--all-targets"
+           "--features"
+           "--all-features"
+           "--no-default-features"
+           ("--out-dir" (pcmpl-dirs))
+           ("--manifest-path" (pcmpl-entries :select ".*\\.toml\\'"))
+           ("--message-format" (pcomplete-here '("human" "short" "json" "json-diagnostic-short" "json-diagnostic-rendered-ansi" "json-render-diagnostics")))
+           "--build-plan")))
+    `(or (("build" "check" "doc")
+          (opts
+           (flags ,@common-flags
+                  ,@target-flags
+                  ,@build-flags)))
+         ("clean"
+          (opts
+           (flags ,@common-flags
+                  ,@target-flags
+                  "--doc")))
+         ("new")
+         ("init")
+         ("run")
+         ("test")
+         ("bench")
+         ("update")
+         ("search")
+         ("publish")
+         ("install")
+         ("uninstall")
+         (opts
+          (flags ,@common-flags)
+          (args (pcomplete-here (pcmpl-entries))))))
+  :evaluate-definition t)
+
+;; (defun pcomplete/cargo ()
+;;   ;; (message "pcomplete-args = %s"
+;;   ;;          (pp-to-string (-map #'strip-text-properties pcomplete-args)))
+;;   (let* ((last-arg
+;;           (pcomplete-arg 'last))
+;;          (last-arg-starts-with-single-dash
+;;           (string-match-p "^-\\([^-]\\|$\\)" last-arg))
+;;          (last-arg-starts-with-two-dashes
+;;           (string-match-p "^--\\([^-]\\|$\\)" last-arg))
+;;          (got-end-of-flags
+;;           (and
+;;            (not last-arg-starts-with-two-dashes)
+;;            (member "--"
+;;                    (-take pcomplete-last pcomplete-args)))))
+;;     ;; (message "(-take pcomplete-last pcomplete-args) = %s"
+;;     ;;          (pp-to-string (-take pcomplete-last pcomplete-args)))
+;;     ;; (message "last-arg = %s, last-arg-starts-with-single-dash = %s, last-arg-starts-with-two-dashes = %s, got-end-of-flags = %s"
+;;     ;;          (pp-to-string (strip-text-properties last-arg))
+;;     ;;          (pp-to-string last-arg-starts-with-single-dash)
+;;     ;;          last-arg-starts-with-two-dashes
+;;     ;;          (pp-to-string got-end-of-flags))
+;;
+;;     (let ((arg (pcomplete-arg)))
+;;       (while (cond
+;;                ((string-match-p "--explain" arg)
+;;                 (pcomplete-here))
+;;                ((string-match-p "--list" arg)
+;;                 (pcomplete-here))
+;;                ((string-match-p "^--" arg)
+;;                 (pcomplete-here '("--explain" "--list")))
+;;                (t nil))))
+;;
+;;     (pcomplete-here '("build"))
+;;
+;;     (let ((arg (pcomplete-arg)))
+;;       (cond
+;;         ((string-match-p "build" arg)
+;;          (let ((arg (pcomplete-arg)))
+;;            (while (cond
+;;                     ((string-match-p "--release" arg))
+;;                     ((string-match-p "--lib" arg))
+;;                     ((string-match-p "^--" arg)
+;;                      (pcomplete-here '("--release" "--build")))
+;;                     (t nil)))))))))
+
+;; (defalias 'pcomplete/cargo
+;;   #'(lambda nil
+;;       (let
+;;           ((got-end-of-flags
+;;             (member "--" (-take pcomplete-last pcomplete-args))))
+;;         (progn
+;;           (pcomplete--here #'(lambda nil '("build")) nil nil nil)
+;;           (let ((positional-arg (pcomplete-arg 'first 1)))
+;;             (cond
+;;               ((string= positional-arg "build")
+;;                (while (if got-end-of-flags
+;;                           nil
+;;                         (let ((current-arg (pcomplete-arg)))
+;;                           (cond
+;;                             ((string-match-p "^--" current-arg)
+;;                              (pcomplete--here #'(lambda nil '("--release")) nil nil nil))
+;;                             (t
+;;                              (pcomplete--here #'(lambda nil (pcmpl-entries)) nil nil nil)))))))
+;;               (t
+;;                (while
+;;                    (if got-end-of-flags nil
+;;                      (let ((current-arg (pcomplete-arg)))
+;;                        (cond
+;;                          ((string-match-p "^--" current-arg)
+;;                           (pcomplete--here #'(lambda nil '("--offline")) nil nil nil))
+;;                          (t
+;;                           (pcomplete--here #'(lambda nil (pcmpl-entries))
+;;                                            nil nil nil)))))))))))))
+
+
 ;;;; Vanilla Unix & GNU tools
 
 ;;;###autoload (autoload 'pcomplete/cp "shell-completion" nil t)
@@ -4569,6 +4736,8 @@ under version-control directories."
     "--switch-generation"
 
     "--rollback")))
+
+;;;; Epilogue
 
 (provide 'shell-completion)
 
