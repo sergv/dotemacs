@@ -199,6 +199,7 @@ Futher modified by Sergey Vinokurov."
             (font-lock-type-face          ((t (:foreground ,yellow))))
             (font-lock-variable-name-face ((t (:inherit font-lock-function-name-face))))
 
+            (bison-rule-name-face         ((t (:foreground ,yellow))))
             (rust-question-mark-face      ((t (:weight bold :inherit font-lock-negation-char-face))))
 
             (elm-font-lock-operators      ((t (:inherit haskell-operator-face))))

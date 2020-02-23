@@ -144,13 +144,30 @@ key's electric variable")
 (defvar bison-electric-greater-than-v t
   "non-nil means use an electric greater-than")
 
+(defface bison-rule-name-face
+  '((t (:foreground "OrangeRed1")))
+  "Face to highlight name of the production being defined.")
 
 (defconst bison-font-lock-keywords
   (append
    (list
-    (cons (concat "^\\(" (regexp-opt bison--declarers) "\\)")
+    (cons (concat "^\\(" (regexp-opt (cons "%start" bison--declarers)) "\\)")
 	  '(1 font-lock-keyword-face))
     )
+  `((,(rx bol
+          (group
+           (+ (or (syntax word)
+                  "_")))
+          (* (or whitespace "\t" "\n"))
+          ":")
+     (1 'bison-rule-name-face t))
+    (,(rx bow
+          (group
+           (+ (regexp "[A-Z0-9_]")))
+          eow)
+     (0 'font-lock-constant-face))
+    (,(rx (or ":" "|" ";" "%%"))
+     (0 'font-lock-negation-char-face)))
    c-font-lock-keywords)
   "Default expressions to highlight in Bison mode")
 
