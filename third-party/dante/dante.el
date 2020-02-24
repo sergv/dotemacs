@@ -102,6 +102,9 @@ will be in different GHCi sessions."
 
 (defcustom dante-methods-alist
   `((styx "styx.yaml" ("styx" "repl" dante-target))
+    (new-build "cabal.project\\(?:\\.local\\)?"
+               ("cabal" "new-repl" (or dante-target (dante-package-name) nil) "--builddir" ,(fold-platform-os-type "/tmp/dist/dante" "dist/dante"))
+               ("cabal" "new-repl" (or dante-target (dante-package-name) nil) "--builddir" ,(fold-platform-os-type "/tmp/dist/dante-repl" "dist/dante-repl")))
     ; (snack ,(lambda (d) (directory-files d t "package\\.\\(yaml\\|nix\\)")) ("snack" "ghci" dante-target)) ; too easy to trigger, confuses too many people.
     (new-impure-nix dante-cabal-new-nix
                     ("nix-shell" "--run" (concat "cabal new-repl " (or dante-target (dante-package-name) "") " --builddir " ,(fold-platform-os-type "/tmp/dist/dante" "dist/dante")))
@@ -115,9 +118,6 @@ will be in different GHCi sessions."
     (impure-nix dante-cabal-nix
                 ("nix-shell" "--run" (concat "cabal repl " (or dante-target "") " --builddir " ,(fold-platform-os-type "/tmp/dist/dante" "dist/dante")))
                 ("nix-shell" "--run" (concat "cabal repl " (or dante-target "") " --builddir " ,(fold-platform-os-type "/tmp/dist/dante-repl" "dist/dante-repl"))))
-    (new-build "cabal.project\\(?:\\.local\\)?"
-               ("cabal" "new-repl" (or dante-target (dante-package-name) nil) "--builddir" ,(fold-platform-os-type "/tmp/dist/dante" "dist/dante"))
-               ("cabal" "new-repl" (or dante-target (dante-package-name) nil) "--builddir" ,(fold-platform-os-type "/tmp/dist/dante-repl" "dist/dante-repl")))
     (nix-ghci ,(lambda (d) (directory-files d t "shell.nix\\|default.nix")) ("nix-shell" "--pure" "--run" "ghci"))
     (stack "stack.yaml" ("stack" "repl" dante-target))
     (mafia "mafia" ("mafia" "repl" dante-target))
@@ -125,7 +125,7 @@ will be in different GHCi sessions."
                 ("cabal" "repl" dante-target "--builddir" ,(fold-platform-os-type "/tmp/dist/dante" "dist/dante"))
                 ("cabal" "repl" dante-target "--builddir" ,(fold-platform-os-type "/tmp/dist/dante-repl" "dist/dante-repl")))
     (bare-ghci ,(lambda (_) t) ("ghci")))
-"How to automatically locate project roots and launch GHCi.
+  "How to automatically locate project roots and launch GHCi.
 This is an alist from method name to a pair of
 a `locate-dominating-file' argument and a command line."
   :type '(alist :key-type symbol :value-type (list (choice (string :tag "File to locate") (function :tag "Predicate to use")) (repeat sexp))))
