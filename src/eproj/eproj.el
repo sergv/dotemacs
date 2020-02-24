@@ -205,7 +205,10 @@
     :parse-tags-procedure
     #'eproj/ctags-get-tags-from-buffer
     :show-tag-kind-procedure #'eproj/rust-tag-kind
-    :tag->string-func #'eproj/rust-tag->string)
+    :tag->string-func #'eproj/rust-tag->string
+    :extra-navigation-globs
+    (cons "toml"
+          +cpp-extensions+))
    (mk-eproj-lang
     :mode 'c-mode
     :extensions +c-extensions+
@@ -878,7 +881,7 @@ jump to."
   "Get globs for files to consider during quick navigation."
   (let ((globs
          (append (eproj-project/extra-navigation-globs proj)
-                 '("*.org" "*.md" "*.markdown" "*.rst" "*.sh" "*.mk" "*.txt" "*.yaml" "*.xml" "*.nix" "makefile*" "Makefile*" "*.inc" "*.spec" "README" "ChangeLog*" "Changelog*"))))
+                 '("*.org" "*.md" "*.markdown" "*.rst" "*.json" "*.sh" "*.mk" "*.txt" "*.yaml" "*.xml" "*.nix" "makefile*" "Makefile*" "*.inc" "*.spec" "README" "ChangeLog*" "Changelog*"))))
     (dolist (mode (eproj-project/languages proj))
       (let ((lang (gethash (eproj/resolve-synonym-modes mode)
                            eproj/languages-table)))
