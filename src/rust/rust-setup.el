@@ -32,6 +32,9 @@
 
 (defconst rust-compilation-buffer-name "*rust-compilation*")
 
+(defun rust-get-compilation-buffer-name (&rest args)
+  rust-compilation-buffer-name)
+
 (defun rust-compilation-next-error-other-window ()
   "Select next error in `rust-compilation-buffer-name' buffer and jump to
 it's position in current window."
@@ -112,7 +115,7 @@ warnings will be colorized in `rust-compilation-mode'.")
                 company-dabbrev))
   ;; Don't skip any messages.
   (setq-local compilation-skip-threshold 0)
-  (setq-local compilation-buffer-name-function (lambda (_) rust-compilation-buffer-name))
+  (setq-local compilation-buffer-name-function #'rust-get-compilation-buffer-name)
 
   (pretty-ligatures--install
    (append pretty-ligatures-c-like-symbols
@@ -122,7 +125,37 @@ warnings will be colorized in `rust-compilation-mode'.")
   (setf vim:shift-width rust-indent-offset
         tab-width rust-indent-offset)
 
-  (flycheck-mode +1)
+  (let (
+        ;; NB may be nil.
+        (proj (eproj-get-project-for-buf-lax (current-buffer))))
+
+    (dolist (entry (eproj-query/local-variables proj major-mode nil))
+      (set (make-local-variable (car entry)) (cadr entry)))
+
+    (when (not noninteractive)
+      (let* ((flycheck-backend
+              (eproj-query/flycheck-checker
+               proj
+               major-mode
+               'rust-clippy)))
+        (setq-local flycheck-disabled-checkers
+                    (eproj-query/flycheck-disabled-checkers
+                     proj
+                     major-mode
+                     flycheck-disabled-checkers))
+        (if flycheck-backend
+            (progn
+
+              (unless (flycheck-may-use-checker flycheck-backend)
+                (flycheck-verify-checker flycheck-backend)
+                (error "Unable to select checker '%s' for buffer '%s'"
+                       flycheck-backend (current-buffer)))
+              (setq-local flycheck-checker flycheck-backend)
+              (flycheck-mode +1))
+          ;; Disable flycheck if it was explicitly set to nil
+          (progn
+            (when flycheck-mode
+              (flycheck-mode -1)))))))
 
   (setq-local whitespace-line-column 80)
   (setq-local whitespace-style '(face tabs lines-tail))
@@ -141,6 +174,7 @@ warnings will be colorized in `rust-compilation-mode'.")
    :install-flycheck flycheck-mode)
 
   (def-keys-for-map vim:normal-mode-local-keymap
+    ("- e" flycheck-explain-error-at-point)
     ("g h" rust-end-of-defun)
     ("g t" rust-beginning-of-defun))
 
