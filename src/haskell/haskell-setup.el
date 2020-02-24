@@ -206,7 +206,7 @@
                       (eproj-query/flycheck-disabled-checkers
                        proj
                        major-mode
-                       (default-value 'flycheck-disabled-checkers)))
+                       flycheck-disabled-checkers))
           (if flycheck-backend
               (progn
                 (when (eq flycheck-backend 'haskell-dante)
@@ -298,7 +298,7 @@
        (def-keys-for-map vim:normal-mode-local-keymap
          ("SPC SPC"      dante-repl-switch-to-repl-buffer)
          (("C-l" "<f6>") vim:haskell-dante-load-file-into-repl)
-         (("- e" "j")    dante-eval-block))
+         ("j"            dante-eval-block))
 
        (def-keys-for-map (vim:normal-mode-local-keymap
                           vim:visual-mode-local-keymap)
