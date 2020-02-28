@@ -228,7 +228,12 @@ branch, then also remove the respective remote branch."
            ;; side.  And we cannot do anything about it.
            (magit-run-git "checkout" "--merge" "--" file)
          (magit-call-git "checkout" arg "--" file)
-         (magit-run-git "add" "-u" "--" file)))))
+         ;; Do not automatically stage file after we'we picked "ours"
+         ;; or "theirs" version because after it's staged there's no
+         ;; easy way to redo the choice. And this choice is basically
+         ;; a guess, so it needs to be redone pretty regularly.
+         ;; (magit-run-git "add" "-u" "--" file)
+         (message "Picked %s. Do manual stage if result looks OK" arg)))))
 
 ;;; Utilities
 
