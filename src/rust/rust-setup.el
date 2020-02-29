@@ -7,6 +7,7 @@
 ;; Description:
 
 (require 'common)
+(require 'flycheck)
 (require 'haskell-compile)
 (require 'indentation)
 (require 'pretty-ligatures)
