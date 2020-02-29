@@ -370,7 +370,8 @@ not exist after command is finished."
                 shell-command-default-error-buffer))
   (let ((buf (current-buffer)))
     (shell-command command output-buffer error-buffer)
-    (when (and (not (file-exists? buffer-file-name))
+    (when (and buffer-file-name
+               (not (file-exists? buffer-file-name))
                (y-or-n? (format "Kill buffer %s?" (buffer-name buf))))
       (kill-buffer buf))))
 
