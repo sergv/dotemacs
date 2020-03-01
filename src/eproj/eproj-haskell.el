@@ -112,6 +112,7 @@ runtime but rather will be silently relied on)."
         (?o "Operator")
         (?p "Pattern")
         (?F "Type family")
+        (?D "Preprocessor definition")
         (invalid
          (error "Invalid Haskell tag type %c" invalid)))
     "Unknown"))
