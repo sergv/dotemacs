@@ -209,7 +209,7 @@ BUFFER is expected to contain output of ctags command."
         (?e "enum variant")
         (?P "method")
         (invalid
-         (error "Invalid Rust tag type %s" invalid)))
+         (error "Invalid Rust tag type %c" invalid)))
     "Unknown"))
 
 ;;;###autoload
@@ -251,7 +251,7 @@ BUFFER is expected to contain output of ctags command."
         (?A "namespace aliase")
         (?Z "template parameter")
         (invalid
-         (error "Invalid C tag type %s" invalid)))
+         (error "Invalid C tag type %c" invalid)))
     "Unknown"))
 
 ;;;###autoload
@@ -285,7 +285,7 @@ BUFFER is expected to contain output of ctags command."
          (?m "method")
          (?p "package")
          (invalid
-          (error "Invalid Java tag type %s" invalid)))
+          (error "Invalid Java tag type %c" invalid)))
        (awhen (eproj-tag/get-prop 'access tag)
          (concat "/" it)))
     "Unknown"))
