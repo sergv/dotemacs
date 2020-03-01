@@ -113,7 +113,7 @@ runtime but rather will be silently relied on)."
         (?p "Pattern")
         (?F "Type family")
         (invalid
-         (error "Invalid Haskell tag type %s" invalid)))
+         (error "Invalid Haskell tag type %c" invalid)))
     "Unknown"))
 
 ;;;###autoload
