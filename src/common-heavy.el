@@ -375,6 +375,26 @@ not exist after command is finished."
                (y-or-n? (format "Kill buffer %s?" (buffer-name buf))))
       (kill-buffer buf))))
 
+(defun rm-on-file-and-kill-buffer-afterwards
+    (path on-directory on-file)
+  (cond
+    ((file-directory-p path)
+     (when (and (directory-files path nil nil t)
+                (y-or-n-p "Directory not empty, really delete? "))
+       (funcalal on-directory path)))
+    ((file-regular-p path)
+     (let ((buf (find-buffer-visiting path)))
+       (funcall on-file path)
+       (when (and (buffer-live-p buf)
+                  (string=
+                   (with-current-buffer buf
+                     (expand-file-name buffer-file-name))
+                   path)
+                  (y-or-n? (format "Kill buffer %s?" (buffer-name buf))))
+         (kill-buffer buf))))
+    (t
+     (error "Path does not exist: %s" path))))
+
 ;;;###autoload
 (defun rm (path)
   "Remove file or directory."
@@ -386,24 +406,10 @@ not exist after command is finished."
                                           (file-name-nondirectory it))
                                         t)))))
 
-  (cond
-    ((file-directory-p path)
-     (when (and (directory-files path nil nil t)
-                (y-or-n-p "Directory not empty, really delete? "))
-       (delete-directory path t)))
-    ((file-regular-p path)
-     (let ((buf (find-buffer-visiting path)))
-       (delete-file path)
-       (when (and (buffer-live-p buf)
-                  (string=
-                   (with-current-buffer buf
-                     (expand-file-name buffer-file-name))
-                   path)
-                  (y-or-n? (format "Kill buffer %s?" (buffer-name buf))))
-         (kill-buffer buf))))
-    (t
-     (error "Path does not exist: %s"
-            path))))
+  (rm-on-file-and-kill-buffer-afterwards
+   path
+   (lambda (path) (delete-directory path t))
+   #'delete-file))
 
 ;;;###autoload
 (defun transpose-windows ()
