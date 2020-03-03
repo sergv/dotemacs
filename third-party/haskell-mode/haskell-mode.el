@@ -230,11 +230,6 @@ be set to the preferred literate style."
     "---"
     ["Load tidy core" ghc-core-create-core]
     "---"
-    ,(if (default-boundp 'eldoc-documentation-function)
-         ["Doc mode" eldoc-mode
-          :style toggle :selected (bound-and-true-p eldoc-mode)]
-       ["Doc mode" haskell-doc-mode
-        :style toggle :selected (and (boundp 'haskell-doc-mode) haskell-doc-mode)])
     ["Customize" (customize-group 'haskell)]
     ))
 
@@ -735,8 +730,6 @@ Prefix ARG is handled as per `delete-indentation'."
   (let ((fill-prefix (or fill-prefix (if (eq haskell-literate 'bird) ">"))))
     (delete-indentation arg)))
 
-(defvar eldoc-print-current-symbol-info-function)
-
 (defvar electric-pair-inhibit-predicate)
 (declare-function electric-pair-default-inhibit "elec-pair")
 (defun haskell-mode--inhibit-bracket-inside-comment-or-default (ch)
@@ -814,8 +807,6 @@ Minor modes that work well with `haskell-mode':
   (setq-local parse-sexp-ignore-comments nil)
   (setq-local syntax-propertize-function #'haskell-syntax-propertize)
 
-  ;; Set things up for eldoc-mode.
-  (setq-local eldoc-documentation-function 'haskell-doc-current-info)
   ;; Set things up for imenu.
   (setq-local imenu-create-index-function 'haskell-ds-create-imenu-index)
   ;; Set things up for font-lock.
