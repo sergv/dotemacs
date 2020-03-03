@@ -463,13 +463,10 @@ Basically swap current point with previous one."
 (vim:emap "blame-quit" #'vim:blame-quit)
 
 (vim:defcmd vim:git-add (nonrepeatable)
-  "Run git add on current file."
-  (if buffer-file-name
-      (progn
-        (save-some-buffers)
-        (git-add)
-        (git-update-file-repository))
-    (error "current buffer has no associated file")))
+  "Run 'git add' on current file."
+  (save-some-buffers)
+  (git-add)
+  (git-update-file-repository))
 
 (vim:emap "add" #'vim:git-add)
 
@@ -488,6 +485,15 @@ Basically swap current point with previous one."
     (magit-refresh-all)))
 
 (vim:emap "amend" #'vim:git-amend)
+
+(vim:defcmd vim:git-rm (nonrepeatable)
+  "Run 'git rm' on current file."
+  (save-some-buffers)
+  (git-rm)
+  (git-update-file-repository))
+
+(vim:emap "rm" #'vim:git-rm)
+
 
 (vim:defcmd vim:ibuffer (nonrepeatable)
   "Open ibuffer buffer."
