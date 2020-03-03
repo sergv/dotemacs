@@ -481,11 +481,20 @@ under git version control."
 
 (defun git-add ()
   (interactive)
-  (unless buffer-file-name
+  (aif buffer-file-name
+      (magit-stage-file it)
     (error "Current buffer has no file"))
-  (magit-stage-file buffer-file-name)
   ;; (shell-command (concat "git add " (shell-quote-argument buffer-file-name)))
   )
+
+(defun git-rm ()
+  (interactive)
+  (aif buffer-file-name
+      (rm-on-file-and-kill-buffer-afterwards
+       it
+       (lambda (path) (shell-command (concat "git rm -r " (shell-quote-argument path))))
+       (lambda (path) (shell-command (concat "git rm " (shell-quote-argument path)))))
+    (error "Current buffer has no file")))
 
 (vim:define-keymap blame-mode "blame mode")
 
