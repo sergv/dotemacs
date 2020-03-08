@@ -1,4 +1,4 @@
-(* Copyright 1999,2004,2007,2010-2016 Stefan Monnier <monnier@gnu.org> *)
+(* Copyright 1999-2020  Stefan Monnier <monnier@gnu.org> *)
 
 (* sml-mode here treats the second `=' as an equal op because it
  * thinks it's seeing something like "... type t = (s.t = ...)".  FIXME!  *)
@@ -120,14 +120,14 @@ val tut = fn (x,y)
              body
 val tut =
     (let
-        local
+	local
             val x = 1 in val x = x end
-        val a = 1 val b = 2
-        local val x = 1 in val x = x end
-        local val x = 1 in val x = x end
-            local val x = 1 in val x = x end (* fixindent *)
-            local val x = 1 in val x = x end
-            val c = 3
+	val a = 1 val b = 2
+	local val x = 1 in val x = x end
+	local val x = 1 in val x = x end
+          local val x = 1 in val x = x end (* fixindent *)
+          local val x = 1 in val x = x end
+          val c = 3
     in
 	let
             val x = 3
