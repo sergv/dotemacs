@@ -1444,54 +1444,55 @@
   :tags '(error-api)
   (flycheck-ert-with-temp-buffer
     (insert "Hello\n    World\n")
-    (should (equal (flycheck-error-line-region (flycheck-error-new-at 1 1))
-                   '(1 . 6)))
-    (should (equal (flycheck-error-line-region (flycheck-error-new-at 2 4))
-                   '(11 . 16)))
+    (should (equal (flycheck--line-region (flycheck-line-column-to-position 1 1)) '(1 . 6)))
+    (should (equal (flycheck--line-region (flycheck-line-column-to-position 2 4)) '(11 . 16)))
     ;; An error column beyond the end of the line is simply ignored just like
     ;; all other error columns
-    (should (equal (flycheck-error-line-region (flycheck-error-new-at 2 10))
-                   '(11 . 16)))
+    (should (equal (flycheck--line-region (flycheck-line-column-to-position 2 10)) '(11 . 16)))
     ;; An error line beyond the end of file should highlight the last line
-    (should (equal (flycheck-error-line-region (flycheck-error-new-at 4 3))
-                   '(16 . 17)))))
+    (should (equal (flycheck--line-region (flycheck-line-column-to-position 4 3)) '(16 . 17)))))
 
 (ert-deftest flycheck-error-column-region ()
   :tags '(error-api)
   (flycheck-ert-with-temp-buffer
     (insert "Hello\n    World\n")
-    (should-not (flycheck-error-column-region (flycheck-error-new-at 1 nil)))
-    (should (equal (flycheck-error-column-region (flycheck-error-new-at 1 4))
+    (should (equal (flycheck--column-region (flycheck-line-column-to-position 1 4))
                    '(4 . 5)))
-    (should (equal (flycheck-error-column-region (flycheck-error-new-at 2 6))
+    (should (equal (flycheck--column-region (flycheck-line-column-to-position 2 6))
                    '(12 . 13)))
     ;; A column beyond the end of a line
-    (should (equal (flycheck-error-column-region (flycheck-error-new-at 1 7))
+    (should (equal (flycheck--column-region (flycheck-line-column-to-position 1 7))
                    '(6 . 7)))
     ;; A column right at the end of the last empty line of a file (an important
     ;; special case, because the Emacs Lisp checker reports undefined functions
     ;; at this place!)
-    (should (equal (flycheck-error-column-region (flycheck-error-new-at 3 1))
+    (should (equal (flycheck--column-region (flycheck-line-column-to-position 3 1))
                    '(16 . 17)))
     ;; A column beyond the end of file
-    (should (equal (flycheck-error-column-region (flycheck-error-new-at 4 2))
+    (should (equal (flycheck--column-region (flycheck-line-column-to-position 4 2))
                    '(16 . 17)))))
 
-(ert-deftest flycheck-error-thing-region ()
+(ert-deftest flycheck-bounds-of-things-at-point ()
   :tags '(error-api)
   (flycheck-ert-with-temp-buffer
     (insert "    (message)\n    (message")
     (emacs-lisp-mode)
-    (should-not (flycheck-error-thing-region 'sexp (flycheck-error-new-at 1 2)))
-    (should (equal (flycheck-error-thing-region 'sexp (flycheck-error-new-at 1 5))
+    (should-not (flycheck-bounds-of-thing-at-point
+                 'sexp (flycheck-line-column-to-position 1 2)))
+    (should (equal (flycheck-bounds-of-thing-at-point
+                    'sexp (flycheck-line-column-to-position 1 5))
                    '(5 . 14)))
-    (should-not (flycheck-error-thing-region 'symbol (flycheck-error-new-at 1 5)))
-    (should (equal (flycheck-error-thing-region 'sexp (flycheck-error-new-at 1 8))
+    (should-not (flycheck-bounds-of-thing-at-point
+                 'symbol (flycheck-line-column-to-position 1 5)))
+    (should (equal (flycheck-bounds-of-thing-at-point
+                    'sexp (flycheck-line-column-to-position 1 8))
                    '(6 . 13)))
-    (should (equal (flycheck-error-thing-region 'symbol (flycheck-error-new-at 1 8))
+    (should (equal (flycheck-bounds-of-thing-at-point
+                    'symbol (flycheck-line-column-to-position 1 8))
                    '(6 . 13)))
     ;; An incomplete expression
-    (should-not (flycheck-error-thing-region 'sexp (flycheck-error-new-at 2 5)))))
+    (should-not (flycheck-bounds-of-thing-at-point
+                 'sexp (flycheck-line-column-to-position 2 5)))))
 
 (ert-deftest flycheck-error-region-for-mode ()
   :tags '(error-api)
@@ -1512,7 +1513,43 @@
     ;; Test an error without column for all modes
     (let ((err (flycheck-error-new-at 1 nil)))
       (dolist (mode '(lines columns symbols sexps))
-        (should (equal (flycheck-error-region-for-mode err mode) '(5 . 29)))))))
+        (should (equal (flycheck-error-region-for-mode err mode) '(5 . 29)))))
+    ;; With end-line and end-col set, MODE shouldn't make a difference
+    (should (equal (flycheck-error-region-for-mode
+                    (flycheck-error-new-at
+                     1 18 nil nil :end-line 1 :end-column 29)
+                    nil)
+                   '(18 . 29)))
+    (should (equal (flycheck-error-region-for-mode
+                    (flycheck-error-new-at
+                     1 14 nil nil :end-line 1 :end-column 18)
+                    nil)
+                   '(14 . 18)))
+    (should (equal (flycheck-error-region-for-mode
+                    (flycheck-error-new-at ;;
+                     1 5 nil nil :end-line 2 :end-column 13)
+                    nil)
+                   '(5 . 42)))
+    (should (equal (flycheck-error-region-for-mode
+                    (flycheck-error-new-at ;; Missing end column
+                     1 nil nil nil :end-line 2)
+                    'lines)
+                   '(5 . 29)))
+    (should (equal (flycheck-error-region-for-mode
+                    (flycheck-error-new-at ;; Implicit end line
+                     2 5 nil nil :end-column 13)
+                    nil)
+                   '(34 . 42)))
+    (should (equal (flycheck-error-region-for-mode
+                    (flycheck-error-new-at ;; Out of bounds start
+                     10 1 nil nil :end-line 10 :end-column 3)
+                    nil)
+                   '(41 . 42)))
+    (should (equal (flycheck-error-region-for-mode
+                    (flycheck-error-new-at ;; Out of bounds end
+                     1 1 nil nil :end-line 10 :end-column 1)
+                    nil)
+                   '(1 . 42)))))
 
 (ert-deftest flycheck-error-pos ()
   :tags '(error-api)
@@ -3112,7 +3149,7 @@ The term \"1\" has type \"nat\" while it is expected to have type \"bool\"." :ch
   (let ((flycheck-cwl-schema-path "schema/CommonWorkflowLanguage.yml"))
     (flycheck-ert-should-syntax-check
      "language/cwl/cwl.cwl" 'cwl-mode
-     '(6 5 error "the `inputBinding` field is not valid because value is a str, expected null or CommandLineBinding"
+     '(6 5 error "value is a str, expected null or CommandLineBinding"
          :checker cwl))))
 
 (ert-deftest flycheck-d-module-re/matches-module-name ()
@@ -3311,6 +3348,16 @@ See https://github.com/flycheck/flycheck/issues/531 and Emacs bug #19206"))
   (let ((flycheck-emacs-lisp-check-declare nil))
     (flycheck-ert-should-syntax-check
      "language/emacs-lisp/check-declare-warnings.el" 'emacs-lisp-mode)))
+
+(flycheck-ert-def-checker-test ember-template ember-template error
+  (flycheck-ert-should-syntax-check
+   "language/ember-template-lint/ember-template-lint/error.hbs" 'web-mode
+   '(2 16 error "Incorrect indentation for `<span>` beginning at L2:C16. Expected `<span>` to be at an indentation of 2 but was found at 16." :id "block-indentation" :checker ember-template)))
+
+(flycheck-ert-def-checker-test ember-template ember-template warning
+  (flycheck-ert-should-syntax-check
+   "language/ember-template-lint/ember-template-lint/warning.hbs" 'web-mode
+   '(1 nil warning "Non-translated string used" :id "no-bare-strings" :checker ember-template)))
 
 (flycheck-ert-def-checker-test erlang erlang error
   (shut-up
@@ -3974,6 +4021,7 @@ Why not:
 
 (flycheck-ert-def-checker-test python-flake8 python syntax-error
   (let ((python-indent-guess-indent-offset nil) ; Silence Python Mode!
+
         (flycheck-python-flake8-executable "python3"))
     (flycheck-ert-should-syntax-check
      "language/python/syntax-error.py" 'python-mode
@@ -4007,7 +4055,7 @@ Why not:
          :checker python-mypy))))
 
 (flycheck-ert-def-checker-test python-pylint python syntax-error
-  (let ((flycheck-disabled-checkers '(python-flake8))
+  (let ((flycheck-disabled-checkers '(python-flake8 python-mypy))
         (python-indent-guess-indent-offset nil) ; Silence Python Mode
         (flycheck-python-pylint-executable "python3"))
     (flycheck-ert-should-syntax-check
@@ -4016,7 +4064,7 @@ Why not:
          :id "syntax-error" :checker python-pylint))))
 
 (flycheck-ert-def-checker-test python-pylint python nil
-  (let ((flycheck-disabled-checkers '(python-flake8))
+  (let ((flycheck-disabled-checkers '(python-flake8 python-mypy))
         (flycheck-python-pylint-executable "python3"))
     (flycheck-ert-should-syntax-check
      "language/python/test.py" 'python-mode
@@ -4047,7 +4095,7 @@ Why not:
           :checker python-pylint))))
 
 (flycheck-ert-def-checker-test python-pylint python no-symbolic-id
-  (let ((flycheck-disabled-checkers '(python-flake8))
+  (let ((flycheck-disabled-checkers '(python-flake8 python-mypy))
         (flycheck-pylint-use-symbolic-id nil)
         (flycheck-python-pylint-executable "python3"))
     (flycheck-ert-should-syntax-check
@@ -4080,7 +4128,7 @@ Why not:
 
 (flycheck-ert-def-checker-test python-pycompile python python27
   (skip-unless (executable-find "python2"))
-  (let ((flycheck-disabled-checkers '(python-flake8 python-pylint))
+  (let ((flycheck-disabled-checkers '(python-flake8 python-pylint python-mypy))
         (flycheck-python-pycompile-executable "python2")
         (python-indent-guess-indent-offset nil))
     (flycheck-ert-should-syntax-check
@@ -4088,7 +4136,7 @@ Why not:
      `(3 nil error "invalid syntax" :checker python-pycompile))))
 
 (flycheck-ert-def-checker-test python-pycompile python has-no-warnings
-  (let ((flycheck-disabled-checkers '(python-flake8 python-pylint)))
+  (let ((flycheck-disabled-checkers '(python-flake8 python-pylint python-mypy)))
     (flycheck-ert-should-syntax-check
      "language/python/test.py" 'python-mode)))
 
@@ -4309,8 +4357,8 @@ The manifest path is relative to
     (flycheck-ert-cargo-clean "language/rust/flycheck-test/Cargo.toml")
     (flycheck-ert-should-syntax-check
      "language/rust/flycheck-test/src/warnings.rs" 'rust-mode
-     '(3 1 warning "function is never used: `main`" :checker rust-cargo :id "dead_code" :group 1)
-     '(3 1 info "`#[warn(dead_code)]` on by default" :checker rust-cargo :id "dead_code" :group 1)
+     '(3 4 warning "function is never used: `main`" :checker rust-cargo :id "dead_code" :group 1)
+     '(3 4 info "`#[warn(dead_code)]` on by default" :checker rust-cargo :id "dead_code" :group 1)
      '(4 9 warning "unused variable: `x`" :checker rust-cargo :id "unused_variables" :group 2)
      '(4 9 info "consider prefixing with an underscore: `_x`" :checker rust-cargo :id "unused_variables" :group 2))))
 
@@ -4321,8 +4369,8 @@ The manifest path is relative to
     (flycheck-ert-cargo-clean "language/rust/flycheck-test/Cargo.toml")
     (flycheck-ert-should-syntax-check
      "language/rust/flycheck-test/src/warnings.rs" 'rust-mode
-     '(3 1 warning "function is never used: `main`" :checker rust-cargo :id "dead_code" :group 1)
-     '(3 1 info "`#[warn(dead_code)]` on by default" :checker rust-cargo :id "dead_code" :group 1)
+     '(3 4 warning "function is never used: `main`" :checker rust-cargo :id "dead_code" :group 1)
+     '(3 4 info "`#[warn(dead_code)]` on by default" :checker rust-cargo :id "dead_code" :group 1)
      '(4 9 warning "unused variable: `x`" :checker rust-cargo :id "unused_variables" :group 2)
      '(4 9 info "consider prefixing with an underscore: `_x`" :checker rust-cargo :id "unused_variables" :group 2))))
 
@@ -4343,7 +4391,7 @@ The manifest path is relative to
       (flycheck-ert-cargo-clean "language/rust/cargo-targets/Cargo.toml")
       (flycheck-ert-should-syntax-check
        "language/rust/cargo-targets/src/lib.rs" 'rust-mode
-       '(3 1 warning "function is never used: `foo_lib`" :checker rust-cargo :id "dead_code" :group 1)
+       '(3 4 warning "function is never used: `foo_lib`" :checker rust-cargo :id "dead_code" :group 1)
        '(6 17 warning "unused variable: `foo_lib_test`" :checker rust-cargo  :id "unused_variables" :group 2)
        '(6 17 info "`#[warn(unused_variables)]` on by default" :checker rust-cargo :id "unused_variables" :group 2)
        '(6 17 info "consider prefixing with an underscore: `_foo_lib_test`" :checker rust-cargo :id "unused_variables" :group 2)))
@@ -4352,8 +4400,8 @@ The manifest path is relative to
       (flycheck-ert-cargo-clean "language/rust/cargo-targets/Cargo.toml")
       (flycheck-ert-should-syntax-check
        "language/rust/cargo-targets/src/a.rs" 'rust-mode
-       '(1 1 warning "function is never used: `foo_a`" :checker rust-cargo :id "dead_code" :group 1)
-       '(1 1 info "`#[warn(dead_code)]` on by default" :checker rust-cargo :id "dead_code" :group 1)
+       '(1 4 warning "function is never used: `foo_a`" :checker rust-cargo :id "dead_code" :group 1)
+       '(1 4 info "`#[warn(dead_code)]` on by default" :checker rust-cargo :id "dead_code" :group 1)
        '(4 17 warning "unused variable: `foo_a_test`" :checker rust-cargo :id "unused_variables" :group 2)
        '(4 17 info "consider prefixing with an underscore: `_foo_a_test`" :checker rust-cargo :id "unused_variables" :group 2)))
 
@@ -4398,8 +4446,8 @@ The manifest path is relative to
        '(2 16 warning "unused variable: `foo_test_a_test`" :checker rust-cargo :id "unused_variables" :group 1)
        '(2 16 info "`#[warn(unused_variables)]` on by default" :checker rust-cargo :id "unused_variables" :group 1)
        '(2 16 info "consider prefixing with an underscore: `_foo_test_a_test`" :checker rust-cargo :id "unused_variables" :group 1)
-       '(4 1 warning "function is never used: `foo_test_a`" :checker rust-cargo :id "dead_code" :group 2)
-       '(4 1 info "`#[warn(dead_code)]` on by default" :checker rust-cargo :id "dead_code" :group 2)))
+       '(4 4 warning "function is never used: `foo_test_a`" :checker rust-cargo :id "dead_code" :group 2)
+       '(4 4 info "`#[warn(dead_code)]` on by default" :checker rust-cargo :id "dead_code" :group 2)))
 
     (let ((flycheck-rust-crate-type "example")
           (flycheck-rust-binary-name "a"))
@@ -4446,7 +4494,7 @@ The manifest path is relative to
   (let ((flycheck-disabled-checkers '(rust-cargo)))
     (flycheck-ert-should-syntax-check
      "language/rust/flycheck-test/src/multiline-error.rs" 'rust-mode
-     '(7 9 error "mismatched types (expected u8, found i8)" :checker rust :id "E0308" :group 1)
+     '(7 9 error "mismatched types (expected `u8`, found `i8`)" :checker rust :id "E0308" :group 1)
      '(7 9 info "you can convert an `i8` to `u8` and panic if the converted value wouldn't fit: `i.try_into().unwrap()`" :checker rust :id "E0308" :group 1))))
 
 (flycheck-ert-def-checker-test rust rust warning
@@ -4520,36 +4568,42 @@ The manifest path is relative to
   (geiser-mode))
 
 (flycheck-ert-def-checker-test scheme-chicken scheme nil
+  (skip-unless (version<= "25.1" emacs-version))
   (flycheck-ert-should-syntax-check
    "language/chicken/error.scm" 'flycheck/chicken-mode
    '(2 nil warning "in procedure call to `g1', expected a value of type `(procedure (* *) *)' but was given a value of type `number'"
        :checker scheme-chicken)))
 
 (flycheck-ert-def-checker-test scheme-chicken scheme error-no-line-number
+  (skip-unless (version<= "25.1" emacs-version))
   (flycheck-ert-should-syntax-check
    "language/chicken/error-no-line-number.scm" 'flycheck/chicken-mode
    '(0 nil error "(cddr) during expansion of (for-each ...) - bad argument type: ()\n\n\tCall history:\n\n\tlibrary.scm:3448: print-exit54375438\t  \n\tlibrary.scm:2290: body3981\t  \n\tlibrary.scm:2292: assign\t  \n\tlibrary.scm:3448: current-print-length54395440\t  \n\tlibrary.scm:2290: body3981\t  \n\tlibrary.scm:2292: assign\t  \n\tlibrary.scm:3926: ##sys#print\t  \n\tlibrary.scm:3188: case-sensitive\t  \n\tlibrary.scm:3189: keyword-style\t  \n\tlibrary.scm:3190: ##sys#print-length-limit\t  \n\tlibrary.scm:3297: outchr\t  \n\tlibrary.scm:3188: g5148\t  \n\tlibrary.scm:3927: print-call-chain\t  \n\tlibrary.scm:3882: ##sys#get-call-chain\t  \n\tlibrary.scm:3834: ##sys#make-vector\t  \n\tlibrary.scm:1371: ##sys#allocate-vector\t  \t<--"
        :checker scheme-chicken)))
 
 (flycheck-ert-def-checker-test scheme-chicken scheme io-type-error
+  (skip-unless (version<= "25.1" emacs-version))
   (flycheck-ert-should-syntax-check
    "language/chicken/io-type-warning.scm" 'flycheck/chicken-mode
    '(4 nil warning "in procedure call to `read-all', expected argument #1 of type `(or input-port string)' but was given an argument of type `output-port'"
        :checker scheme-chicken)))
 
 (flycheck-ert-def-checker-test scheme-chicken scheme syntax-error
+  (skip-unless (version<= "25.1" emacs-version))
   (flycheck-ert-should-syntax-check
    "language/chicken/syntax-error.scm" 'flycheck/chicken-mode
    '(1 nil error "not enough arguments\n\n\t(define)\n\n\tExpansion history:\n\n\textras.scm:630: loop\t  \n\textras.scm:633: get-output-string\t  \n\tlibrary.scm:3655: ##sys#substring\t  \n\tlibrary.scm:603: ##sys#make-string\t  \n\tlibrary.scm:511: ##sys#allocate-vector\t  \n\textras.scm:633: ##sys#print\t  \n\tlibrary.scm:3188: case-sensitive\t  \n\tlibrary.scm:3189: keyword-style\t  \n\tlibrary.scm:3190: ##sys#print-length-limit\t  \n\tlibrary.scm:3319: ##sys#number?\t  \n\tlibrary.scm:3349: outstr\t  \n\tlibrary.scm:3188: g5138\t  \n\tsupport.scm:122: print-call-chain\t  \n\tlibrary.scm:3882: ##sys#get-call-chain\t  \n\tlibrary.scm:3834: ##sys#make-vector\t  \n\tlibrary.scm:1371: ##sys#allocate-vector\t  \t<--"
        :checker scheme-chicken)))
 
 (flycheck-ert-def-checker-test scheme-chicken scheme syntax-error-no-line-number
+  (skip-unless (version<= "25.1" emacs-version))
   (flycheck-ert-should-syntax-check
    "language/chicken/syntax-error-no-line-number.scm" 'flycheck/chicken-mode
    '(0 nil error "illegal atomic form\n\n\t()\n\n\tExpansion history:\n\n\textras.scm:630: loop\t  \n\textras.scm:633: get-output-string\t  \n\tlibrary.scm:3655: ##sys#substring\t  \n\tlibrary.scm:603: ##sys#make-string\t  \n\tlibrary.scm:511: ##sys#allocate-vector\t  \n\textras.scm:633: ##sys#print\t  \n\tlibrary.scm:3188: case-sensitive\t  \n\tlibrary.scm:3189: keyword-style\t  \n\tlibrary.scm:3190: ##sys#print-length-limit\t  \n\tlibrary.scm:3319: ##sys#number?\t  \n\tlibrary.scm:3349: outstr\t  \n\tlibrary.scm:3188: g5138\t  \n\tsupport.scm:122: print-call-chain\t  \n\tlibrary.scm:3882: ##sys#get-call-chain\t  \n\tlibrary.scm:3834: ##sys#make-vector\t  \n\tlibrary.scm:1371: ##sys#allocate-vector\t  \t<--"
        :checker scheme-chicken)))
 
 (flycheck-ert-def-checker-test scheme-chicken scheme syntax-read-error
+  (skip-unless (version<= "25.1" emacs-version))
   (flycheck-ert-should-syntax-check
    "language/chicken/syntax-read-error.scm" 'flycheck/chicken-mode
    '(1 nil error "invalid sharp-sign read syntax: #\\n"
