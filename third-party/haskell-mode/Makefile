@@ -10,7 +10,7 @@
 # We should have a script that changes it everywhere it is needed and
 # syncs it with current git tag.
 #
-VERSION = 16.2-git
+VERSION = 17.2-git
 
 INSTALL_INFO = install-info
 
@@ -23,13 +23,12 @@ INSTALL_INFO = install-info
 #
 # This is particularly useful when EMACS is set in ~/.bash_profile
 #
-EMACS := $(shell which "$${EMACS}" 2> /dev/null || which "emacs" 2> /dev/null)
+EMACS ?= emacs
 EMACS_VERSION := $(shell "$(EMACS)" -Q --batch --eval '(princ emacs-version)')
 
-EFLAGS = --eval "(add-to-list 'load-path (expand-file-name \"tests/compat\") 'append)" \
-	 --eval "(when (boundp 'load-prefer-newer) (setq load-prefer-newer t))"
+EFLAGS = --eval "(when (boundp 'load-prefer-newer) (setq load-prefer-newer t))"
 
-BATCH = @echo EMACS $@; $(EMACS) $(EFLAGS) --batch -Q -L .
+BATCH = @echo EMACS $@; "$(EMACS)" $(EFLAGS) --batch -Q -L .
 
 ELFILES := $(filter-out haskell-mode-autoloads.el haskell-mode-pkg.el,$(wildcard *.el))
 
@@ -44,8 +43,8 @@ PKG_DIST_FILES = $(ELFILES) logo.svg NEWS haskell-mode.info dir
 all: check-emacs-version compile $(AUTOLOADS) info
 
 check-emacs-version :
-	$(BATCH) --eval "(when (version< emacs-version \"24.3\")				\
-                            (message \"Error: haskell-mode requires Emacs 24.3 or later\")	\
+	$(BATCH) --eval "(when (version< emacs-version \"25.1\")				\
+                            (message \"Error: haskell-mode requires Emacs 25.1 or later\")	\
                             (message \"Your version of Emacs is %s\" emacs-version)		\
                             (message \"Found as '$(EMACS)'\")					\
                             (message \"Use one of:\")						\
