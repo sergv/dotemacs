@@ -1,9 +1,9 @@
 ;;; sml-mode.el --- Major mode for editing (Standard) ML  -*- lexical-binding: t; coding: utf-8 -*-
 
-;; Copyright (C) 1989,1999,2000,2004,2007,2010-2017  Free Software Foundation, Inc.
+;; Copyright (C) 1989-2020  Free Software Foundation, Inc.
 
 ;; Maintainer: Stefan Monnier <monnier@iro.umontreal.ca>
-;; Version: 6.8
+;; Version: 6.10
 ;; Keywords: SML
 ;; Author:	Lars Bo Nielsen
 ;;		Olin Shivers
@@ -12,7 +12,7 @@
 ;;		Matthew Morley <mjm@scs.leeds.ac.uk>
 ;;		Matthias Blume <blume@cs.princeton.edu>
 ;;		(Stefan Monnier) <monnier@iro.umontreal.ca>
-;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
+;; Package-Requires: ((emacs "24.3") (cl-lib "0.5"))
 
 ;; This file is part of GNU Emacs.
 
@@ -50,6 +50,12 @@
 ;; - indentation of a declaration after a long `datatype' can be slow.
 
 ;;;; News:
+
+;;;;; Changes since 6.8:
+
+;; - new var sml-abbrev-skeletons to control whether to include skeletons
+;;   in the main abbrev table.
+;; - change parsing rule of "local"
 
 ;;;;; Changes since 5.0:
 
@@ -558,22 +564,6 @@ Regexp match data 0 points to the chars."
      (cond
       ((smie-rule-parent-p "datatype") (if (smie-rule-bolp) 2))
       ((smie-rule-parent-p "structure" "signature" "functor") 0)))
-    ;; Indent an expression starting with "local" as if it were starting
-    ;; with "fun".
-    (`(:before . "local") (smie-indent-keyword "fun"))
-    ;; FIXME: type/val/fun/... are separators but "local" is not, even though
-    ;; it appears in the same list.  Try to fix up the problem by hand.
-    ;; ((or (equal token "local")
-    ;;      (equal (cdr (assoc token smie-grammar))
-    ;;             (cdr (assoc "fun" smie-grammar))))
-    ;;  (let ((parent (save-excursion (smie-backward-sexp))))
-    ;;    (when (or (and (equal (nth 2 parent) "local")
-    ;;                   (null (car parent)))
-    ;;              (progn
-    ;;                (setq parent (save-excursion (smie-backward-sexp "fun")))
-    ;;                (eq (car parent) (nth 1 (assoc "fun" smie-grammar)))))
-    ;;      (goto-char (nth 1 parent))
-    ;;      (cons 'column (smie-indent-virtual)))))
     ))
 
 (defun sml-smie-definitional-equal-p ()
@@ -630,16 +620,37 @@ Assumes point is right before the | symbol."
          (skip-syntax-forward ".'"))
      (point))))
 
+;; "local...end" acts as a kind of parentheses, but it *also* terminates
+;; any preceding declaration: SMIE doesn't really know how to handle such
+;; a token correctly.  In the past we solved this problem in the
+;; `sml-smie-rules' with an ad-hoc indentation rule for `local', but instead
+;; we now just emit two tokens ("val" and "local") when we encounter
+;; a "local" keyword.
+(defvar-local sml-smie--pending-token nil
+  "Tokens already parsed but not yet emitted.
+Used when several tokens should be emitted at the same buffer position.
+Takes the form (DIR POS . TOKENS).")
+
 (defun sml-smie-forward-token ()
-  (let ((sym (sml-smie-forward-token-1)))
-    (cond
-     ((equal "op" sym)
-      (concat "op " (sml-smie-forward-token-1)))
-     ((member sym '("|" "of" "="))
-      ;; The important lexer for indentation's performance is the backward
-      ;; lexer, so for the forward lexer we delegate to the backward one.
-      (save-excursion (sml-smie-backward-token)))
-     (t sym))))
+  (or
+   (when sml-smie--pending-token
+     (if (and (eq 'forward (car sml-smie--pending-token))
+              (eql (point) (nth 1 sml-smie--pending-token))
+              (nthcdr 2 sml-smie--pending-token))
+         (pop (nthcdr 2 sml-smie--pending-token))
+       (setq sml-smie--pending-token nil)))
+   (let ((sym (sml-smie-forward-token-1)))
+     (cond
+      ((equal "op" sym)
+       (concat "op " (sml-smie-forward-token-1)))
+      ((member sym '("|" "of" "="))
+       ;; The important lexer for indentation's performance is the backward
+       ;; lexer, so for the forward lexer we delegate to the backward one.
+       (save-excursion (sml-smie-backward-token)))
+      ((string= sym "local")
+       (setq sml-smie--pending-token `(forward ,(point) ,sym))
+       "val")
+      (t sym)))))
 
 (defun sml-smie-backward-token-1 ()
   (forward-comment (- (point)))
@@ -651,18 +662,28 @@ Assumes point is right before the | symbol."
      (point))))
 
 (defun sml-smie-backward-token ()
-  (let ((sym (sml-smie-backward-token-1)))
-    (unless (zerop (length sym))
-      ;; FIXME: what should we do if `sym' = "op" ?
-      (let ((point (point)))
-	(if (equal "op" (sml-smie-backward-token-1))
-	    (concat "op " sym)
-	  (goto-char point)
-	  (cond
-	   ((string= sym "=") (if (sml-smie-definitional-equal-p) "d=" "="))
-	   ((string= sym "of") (if (sml-smie-non-nested-of-p) "=of" "of"))
-           ((string= sym "|") (if (sml-smie-datatype-|-p) "d|" "|"))
-	   (t sym)))))))
+  (or
+   (when sml-smie--pending-token
+     (if (and (eq 'backward (car sml-smie--pending-token))
+              (eql (point) (nth 1 sml-smie--pending-token))
+              (nthcdr 2 sml-smie--pending-token))
+         (pop (nthcdr 2 sml-smie--pending-token))
+       (setq sml-smie--pending-token nil)))
+   (let ((sym (sml-smie-backward-token-1)))
+     (unless (zerop (length sym))
+       ;; FIXME: what should we do if `sym' = "op" ?
+       (let ((point (point)))
+	 (if (equal "op" (sml-smie-backward-token-1))
+	     (concat "op " sym)
+	   (goto-char point)
+	   (cond
+	    ((string= sym "=") (if (sml-smie-definitional-equal-p) "d=" "="))
+	    ((string= sym "of") (if (sml-smie-non-nested-of-p) "=of" "of"))
+            ((string= sym "|") (if (sml-smie-datatype-|-p) "d|" "|"))
+            ((string= sym "local")
+             (setq sml-smie--pending-token `(backward ,(point) "val"))
+             sym)
+	    (t sym))))))))
 
 ;;;;
 ;;;; Imenu support
@@ -717,9 +738,8 @@ Assumes point is right before the | symbol."
     map)
   "Keymap for `sml-prog-proc-mode'.")
 
-(defvar sml-prog-proc--buffer nil
+(defvar-local sml-prog-proc--buffer nil
   "The inferior-process buffer to which to send code.")
-(make-variable-buffer-local 'sml-prog-proc--buffer)
 
 (cl-defstruct (sml-prog-proc-descriptor
             (:constructor sml-prog-proc-make)
@@ -759,7 +779,7 @@ Assumes point is right before the | symbol."
             (buf (sml-prog-proc--call run)))
         (with-current-buffer buf
           (if (and ppd (null sml-prog-proc-descriptor))
-              (set (make-local-variable 'sml-prog-proc-descriptor) ppd)))
+              (setq-local sml-prog-proc-descriptor ppd)))
         (setq sml-prog-proc--buffer buf)
         (get-buffer-process sml-prog-proc--buffer))))
 
@@ -924,7 +944,7 @@ Prefix arg AND-GO also means to switch to the read-eval-loop buffer afterwards."
      ;;     (setq dir (unless (equal newdir dir) newdir))))
      ;; (setq dir (or dir default-directory))
      ;; (list cmd dir)))
-  (set (make-local-variable 'sml-prog-proc--compile-command) command)
+  (setq-local sml-prog-proc--compile-command command)
   (save-some-buffers (not compilation-ask-about-save) nil)
   (let ((dir default-directory))
     (when (string-match "^\\s-*cd\\s-+\"\\([^\"]+\\)\"\\s-*;" command)
@@ -1232,16 +1252,14 @@ TAB file name completion, as in shell-mode, etc.."
   (add-hook 'next-error-hook 'inferior-sml-next-error-hook)
 
   ;; Make TAB add a " rather than a space at the end of a file name.
-  (set (make-local-variable 'comint-completion-addsuffix) '("/" . "\""))
+  (setq-local comint-completion-addsuffix '("/" . "\""))
 
-  (set (make-local-variable 'font-lock-defaults)
-       inferior-sml-font-lock-defaults)
+  (setq-local font-lock-defaults inferior-sml-font-lock-defaults)
 
   ;; Compilation support (used for `next-error').
-  (set (make-local-variable 'compilation-error-regexp-alist)
-       sml-error-regexp-alist)
+  (setq-local compilation-error-regexp-alist sml-error-regexp-alist)
   ;; FIXME: move it to sml-mode?
-  (set (make-local-variable 'compilation-error-screen-columns) nil)
+  (setq-local compilation-error-screen-columns nil)
 
   (setq mode-line-process '(": %s")))
 
@@ -1252,54 +1270,64 @@ TAB file name completion, as in shell-mode, etc.."
 
 (defvar comment-quote-nested)
 
+(defcustom sml-abbrev-skeletons t
+  "Whether to include skeletons in `sml-mode's abbrev table."
+  :type 'boolean)
+
+(define-abbrev-table 'sml-skel-abbrev-table nil
+  "Abbrev table for skeletons in `sml-mode.'"
+  :case-fixed t
+  :enable-function
+  (lambda () (and sml-abbrev-skeletons (not (nth 8 (syntax-ppss))))))
+
+(define-abbrev-table 'sml-mode-abbrev-table nil
+  "Abbrevs for `sml-mode.'"
+  :parents (list sml-skel-abbrev-table))
+
 ;;;###autoload
 (define-derived-mode sml-mode sml-prog-proc-mode "SML"
-  "\\<sml-mode-map>Major mode for editing Standard ML code.
+  "Major mode for editing Standard ML code.
 This mode runs `sml-mode-hook' just before exiting.
-See also (info \"(sml-mode)Top\").
-\\{sml-mode-map}"
-  (set (make-local-variable 'font-lock-defaults) sml-font-lock-defaults)
-  (set (make-local-variable 'prettify-symbols-alist)
-       sml-font-lock-symbols-alist)
-  (set (make-local-variable 'outline-regexp) sml-outline-regexp)
-  (set (make-local-variable 'imenu-create-index-function)
-       'sml-imenu-create-index)
-  (set (make-local-variable 'add-log-current-defun-function)
-       'sml-current-fun-name)
+See also (info \"(sml-mode)Top\")."
+  (setq-local font-lock-defaults sml-font-lock-defaults)
+  (setq-local prettify-symbols-alist sml-font-lock-symbols-alist)
+  (setq-local outline-regexp sml-outline-regexp)
+  (setq-local imenu-create-index-function #'sml-imenu-create-index)
+  (setq-local add-log-current-defun-function #'sml-current-fun-name)
   ;; Treat paragraph-separators in comments as paragraph-separators.
-  (set (make-local-variable 'paragraph-separate)
-       (concat "\\([ \t]*\\*)?\\)?\\(" paragraph-separate "\\)"))
-  (set (make-local-variable 'require-final-newline) t)
-  (set (make-local-variable 'electric-indent-chars)
-       (cons ?\; (if (boundp 'electric-indent-chars)
-                     electric-indent-chars '(?\n))))
-  (set (make-local-variable 'electric-layout-rules)
-       `((?\; . ,(lambda ()
-                   (save-excursion
-                     (skip-chars-backward " \t;")
-                     (unless (or (bolp)
-                                 (progn (skip-chars-forward " \t;")
-                                        (eolp)))
-                       'after))))))
+  (setq-local paragraph-separate
+              (concat "\\([ \t]*\\*)?\\)?\\(" paragraph-separate "\\)"))
+  (setq-local require-final-newline t)
+  (setq-local electric-indent-chars
+              (cons ?\; (if (boundp 'electric-indent-chars)
+                            electric-indent-chars '(?\n))))
+  (setq-local electric-layout-rules
+              `((?\; . ,(lambda ()
+                          (save-excursion
+                            (skip-chars-backward " \t;")
+                            (unless (or (bolp)
+                                        (progn (skip-chars-forward " \t;")
+                                               (eolp)))
+                              'after))))))
   (when sml-electric-pipe-mode
     (add-hook 'post-self-insert-hook #'sml-post-self-insert-pipe nil t))
   (sml-mode-variables))
 
 (defun sml-mode-variables ()
-  (set (make-local-variable 'sml-prog-proc-descriptor) sml-pp-functions)
+  (setq-local sml-prog-proc-descriptor sml-pp-functions)
   (set-syntax-table sml-mode-syntax-table)
   (setq local-abbrev-table sml-mode-abbrev-table)
   ;; Setup indentation and sexp-navigation.
   (smie-setup sml-smie-grammar #'sml-smie-rules
               :backward-token #'sml-smie-backward-token
               :forward-token #'sml-smie-forward-token)
-  (set (make-local-variable 'parse-sexp-ignore-comments) t)
-  (set (make-local-variable 'comment-start) "(* ")
-  (set (make-local-variable 'comment-end) " *)")
-  (set (make-local-variable 'comment-start-skip) "(\\*+\\s-*")
-  (set (make-local-variable 'comment-end-skip) "\\s-*\\*+)")
+  (setq-local parse-sexp-ignore-comments t)
+  (setq-local comment-start "(* ")
+  (setq-local comment-end " *)")
+  (setq-local comment-start-skip "(\\*+\\s-*")
+  (setq-local comment-end-skip "\\s-*\\*+)")
   ;; No need to quote nested comments markers.
-  (set (make-local-variable 'comment-quote-nested) nil))
+  (setq-local comment-quote-nested nil))
 
 (defun sml-funname-of-and ()
   "Name of the function this `and' defines, or nil if not a function.
@@ -1484,20 +1512,16 @@ arguments at all.
 signature, structure, and functor by default.")
 
 (defmacro sml-def-skeleton (name interactor &rest elements)
+  (declare (indent 2))
   (let ((fsym (intern (concat "sml-form-" name))))
     `(progn
        (add-to-list 'sml-forms-alist ',(cons name fsym))
-       (define-abbrev sml-mode-abbrev-table ,name "" ',fsym nil 'system)
-       (let ((abbrev (abbrev-symbol ,name sml-mode-abbrev-table)))
-         (abbrev-put abbrev :case-fixed t)
-         (abbrev-put abbrev :enable-function
-                     (lambda () (not (nth 8 (syntax-ppss))))))
+       (define-abbrev sml-skel-abbrev-table ,name "" ',fsym :system t)
        (define-skeleton ,fsym
          ,(format "SML-mode skeleton for `%s..' expressions" name)
          ,interactor
          ,(concat name " ") >
          ,@elements))))
-(put 'sml-def-skeleton 'lisp-indent-function 2)
 
 (sml-def-skeleton "let" nil
   @ "\nin " > _ "\nend" >)
@@ -1719,9 +1743,8 @@ MAINFILE is the top level file of the project."
 ;;;###autoload
 (define-derived-mode sml-cm-mode fundamental-mode "SML-CM"
   "Major mode for SML/NJ's Compilation Manager configuration files."
-  (set (make-local-variable 'sml-prog-proc-descriptor) sml-pp-functions)
-  (set (make-local-variable 'font-lock-defaults)
-       '(sml-cm-font-lock-keywords nil t nil nil)))
+  (setq-local sml-prog-proc-descriptor sml-pp-functions)
+  (setq-local font-lock-defaults '(sml-cm-font-lock-keywords nil t nil nil)))
 
 ;;;
 ;;; ML-Lex support
@@ -1738,7 +1761,7 @@ MAINFILE is the top level file of the project."
 ;;;###autoload
 (define-derived-mode sml-lex-mode sml-mode "SML-Lex"
   "Major Mode for editing ML-Lex files."
-  (set (make-local-variable 'font-lock-defaults) sml-lex-font-lock-defaults))
+  (setq-local font-lock-defaults sml-lex-font-lock-defaults))
 
 ;;;
 ;;; ML-Yacc support
@@ -1826,8 +1849,8 @@ If nil, align it with previous cases."
 ;;;###autoload
 (define-derived-mode sml-yacc-mode sml-mode "SML-Yacc"
   "Major Mode for editing ML-Yacc files."
-  (set (make-local-variable 'indent-line-function) 'sml-yacc-indent-line)
-  (set (make-local-variable 'font-lock-defaults) sml-yacc-font-lock-defaults))
+  (setq-local indent-line-function 'sml-yacc-indent-line)
+  (setq-local font-lock-defaults sml-yacc-font-lock-defaults))
 
 
 (provide 'sml-mode)
