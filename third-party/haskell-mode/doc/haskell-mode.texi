@@ -2,7 +2,7 @@
 @c %**start of header
 @setfilename haskell-mode.info
 @documentencoding UTF-8
-@settitle Haskell Mode 16.1-git
+@settitle Haskell Mode 17.2-git
 @c %**end of header
 
 @c Macro used to mark references of defcustom variables
@@ -17,7 +17,7 @@
 @end direntry
 
 @copying
-This manual is for Haskell mode, version 16.1-git
+This manual is for Haskell mode, version 17.2-git
 
 Copyright @copyright{} 2013-2017 Haskell Mode contributors.
 
@@ -48,7 +48,7 @@ Front-Cover Texts and no Back-Cover Texts.
 @top Haskell Mode
 
 Haskell Mode is an Haskell development Environment for GNU Emacs version
-24.3 or later.  It provides syntax-based indentation, font locking,
+25.1 or later.  It provides syntax-based indentation, font locking,
 editing cabal files, and supports running an inferior Haskell
 interpreter (e.g. GHCi).
 
@@ -63,7 +63,7 @@ interpreter (e.g. GHCi).
 * Unicode support::                      How to use Unicode
 * Indentation::                          Notes about indentation
 * External indentation::                 Other ways to indent code
-* Autoformating::                        Using external formatters
+* Autoformatting::                       Using external formatters
 * Module templates::                     Module templates
 * Declaration scanning::                 How to navigate in a source file
 * Compilation::                          How to compile
@@ -181,10 +181,6 @@ The above steps should result in the following snippet in your @file{.emacs}:
      ("melpa-stable" . "http://stable.melpa.org/packages/")))))
 @end lisp
 
-
-Haskell Mode supports GNU Emacs versions 24.3+, including 25
-(snapshot).
-
 Haskell Mode is available from
 @uref{http://stable.melpa.org,melpa-stable (releases)} and
 @uref{http://melpa.org, melpa (git snapshots)}.
@@ -193,10 +189,6 @@ Other means of obtaining @code{haskell-mode} include
 @uref{https://github.com/dimitri/el-get, el-get},
 @uref{https://github.com/bbatsov/prelude, Emacs Prelude} and
 @uref{https://packages.debian.org/search?keywords=haskell-mode, Debian package}.
-
-Last version of @code{haskell-mode} that supported Emacs 23, 24.1, and 24.2 is
-@code{haskell-mode} 13.16 available at
-@uref{https://github.com/haskell/haskell-mode/releases/tag/v13.16}.
 
 @section Customizing
 
@@ -910,7 +902,7 @@ Another alternative is to install
 which indents code by parsing the code with a full Haskell parser and
 deciding where to indent based on that.
 
-@node Autoformating
+@node Autoformatting
 @chapter Using external formatters
 
 You can enable @uref{https://github.com/jaspervdj/stylish-haskell,stylish-haskell} by
@@ -1263,15 +1255,9 @@ associate with.
 In a Haskell source buffer associated with a GHCi session, errors that
 prevent the file from loading are highlighted with
 @code{haskell-error-face}.  You can move between these error lines with
-
-@table @kbd
-@item M-n
-is bound to @code{haskell-goto-next-error}
-@item M-p
-is bound to @code{haskell-goto-prev-error}
-@item C-c M-p
-is bound to @code{haskell-goto-first-error}
-@end table
+with the commands @code{haskell-goto-next-error}, @code{haskell-goto-prev-error}
+and @code{haskell-goto-first-error}, which you might like to bind to
+convenient keys in @code{interactive-haskell-mode-map}.
 
 @section Using GHCi 8+ or GHCi-ng
 
@@ -1895,6 +1881,7 @@ You can disable this behaviour by disabling the customization option:
   '(haskell-interactive-types-for-show-ambiguous nil))
 @end lisp
 
+@anchor{printing mode}
 @subsection Printing mode
 
 You can choose between printing modes used for the results of
@@ -1972,6 +1959,10 @@ haskell-svg-toggle-render-images}, if you load the above code and type
 instead of the @acronym{XML} representation of the image.
 
 @vindex haskell-svg-render-images
+
+For this feature to work, it is required that the variable
+@code{haskell-interactive-mode-eval-mode} be set to a value different
+from @code{nil}, @pxref{printing mode}.
 
 This feature can be enabled by default by setting the customization
 variable @code{haskell-svg-render-images} to a non-nil value.
