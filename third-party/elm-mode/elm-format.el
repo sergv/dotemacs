@@ -23,17 +23,25 @@
 ;;; Commentary:
 ;;; Code:
 
-(require 'ansi-color)
+(require 'reformatter)
 
 (defcustom elm-format-on-save nil
-  "Controls whether or not `elm-format' should be run on the current buffer on save."
+  "When non-nil, run `elm-format-buffer' on save.
+
+This variable is obsolete, and you should prefer to enable
+`elm-format-on-save-mode' by adding it to your `elm-mode-hook',
+or by placing a clause like the following in the .dir-locals.el
+for your project:
+
+    ((elm-mode (mode . elm-format-on-save)))"
   :group 'elm-format
   :type 'boolean)
 
-(defcustom elm-format-elm-version "0.18"
+(defcustom elm-format-elm-version "0.19"
   "The version of Elm against which code should be formatted."
   :group 'elm-format
-  :type '(choice (const :tag "Default: 0.18" "0.18")
+  :type '(choice (const :tag "Default: 0.19" "0.19")
+		 (const :tag "0.18" "0.18")
                  (const :tag "0.17" "0.17")
                  (const :tag "0.16" "0.16")))
 
@@ -42,47 +50,16 @@
   :group 'elm-format
   :type 'string)
 
-;;;###autoload
-(defun elm-mode-format-buffer (&optional is-interactive)
-  "Apply `elm-format' to the current buffer.
-When called interactively, or with prefix argument
-IS-INTERACTIVE, show a buffer if the formatting fails."
-  (interactive "p")
-  (let* (;; elm-format requires that the file have a .elm extension
-         (in-file (make-temp-file "elm-format" nil ".elm"))
-         (err-file (make-temp-file "elm-format"))
-         (out-file (make-temp-file "elm-format"))
-         (contents (buffer-substring-no-properties (point-min) (point-max)))
-         (_ (with-temp-file in-file (insert contents))))
+;;;###autoload (autoload 'elm-format-buffer "elm-format" nil t)
+;;;###autoload (autoload 'elm-format-on-save-mode "elm-format" nil t)
+(reformatter-define elm-format
+  :program elm-format-command
+  :args (list "--stdin" "--elm-version" elm-format-elm-version "--yes")
+  :group 'elm-format
+  :lighter " ElmFmt")
 
-    (unwind-protect
-        (let* ((command elm-format-command)
-               (version elm-format-elm-version)
-               (error-buffer (get-buffer-create "*elm-format errors*"))
-               (retcode
-                (with-temp-buffer
-                  (call-process command
-                                nil (list (current-buffer) err-file)
-                                nil
-                                in-file
-                                "--output" out-file
-                                "--elm-version" version
-                                "--yes"))))
-          (with-current-buffer error-buffer
-            (read-only-mode 0)
-            (insert-file-contents err-file nil nil nil t)
-            (ansi-color-apply-on-region (point-min) (point-max))
-            (special-mode))
-          (if (eq retcode 0)
-              (progn
-                (insert-file-contents out-file nil nil nil t)
-                (message "elm-format applied"))
-            (if is-interactive
-                (display-buffer error-buffer)
-              (message "elm-format failed: see %s" (buffer-name error-buffer)))))
-      (delete-file in-file)
-      (delete-file err-file)
-      (delete-file out-file))))
+;;;###autoload
+(define-obsolete-function-alias 'elm-mode-format-buffer 'elm-format-buffer "20190113")
 
 
 (provide 'elm-format)
