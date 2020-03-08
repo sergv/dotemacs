@@ -26,6 +26,13 @@
     `(let ((,src-sym ,source))
        (should-indent-to ,src-sym ,src-sym))))
 
+(ert-deftest groovy-shebang ()
+  "Handle shebang line."
+  ;; http://docs.groovy-lang.org/latest/html/documentation/core-syntax.html#_shebang_line
+  (should-preserve-indent
+   "#!/usr/bin/env groovy
+println 'Hello from the shebang line'"))
+
 (ert-deftest groovy-indent-function ()
   "We should indent according to the number of parens."
   (should-indent-to
@@ -42,7 +49,150 @@ def foo() {
    "
 def foo() { // blah
     def bar = 123
+}")
+  ;; Comments containing keywords should not affect indentation.
+  (should-preserve-indent
+   "
+/* if for while else */
+def foo = true")
+  ;; Repeat with double slash comments.
+  (should-preserve-indent
+   "
+// if for while else
+def foo = true")
+  ;; Strings containing keywords should not affect indentation.
+  (should-preserve-indent
+   "
+def foo = 'if for while else'
+def bar = true"))
+
+(ert-deftest groovy-indent-braceless-while ()
+  "Indent the body of a braceless while statement."
+  (should-preserve-indent
+   "
+while (true)
+    foo()"))
+
+(ert-deftest groovy-indent-braceless-for ()
+  "Indent the body of a braceless for statement."
+  (should-preserve-indent
+   "
+for (i = 0; i < 10; i++)
+    foo()"))
+
+(ert-deftest groovy-indent-braceless-if-else ()
+  "Indent the body of braceless if/else statements."
+  (should-preserve-indent
+   "
+if (true)
+    foo()
+else
+    bar()"))
+
+(ert-deftest groovy-indent-braceless-if-nested ()
+  "Indent nested braceless if statements."
+  (should-preserve-indent
+   "
+if (true)
+    if (true)
+        foo()"))
+
+(ert-deftest groovy-do-not-indent-following-oneliner-if-braceless ()
+  "Don't indent the line following a oneliner if statement."
+  (should-preserve-indent
+   "
+if (x) bar()
+foo()"))
+
+(ert-deftest groovy-do-not-indent-following-oneliner-if-braced ()
+  "Don't indent the line following a oneliner if statement."
+  (should-preserve-indent
+   "
+if (x) { bar() }
+foo()"))
+
+(ert-deftest groovy-indent-braceless-if-line-before ()
+  "Don't indent the line before a braceless if statement."
+  (should-preserve-indent
+   "
+bar()
+if (true)
+    foo()"))
+
+(ert-deftest groovy-indent-braceless-if-line-after ()
+  "Don't indent the line after the body of a braceless if statement."
+  (should-preserve-indent
+   "
+if (true)
+    foo()
+bar()"))
+
+(ert-deftest groovy-indent-braceless-if-with-comment ()
+  "Correctly indent the body of braceless if/else statements with a comment in between."
+  (should-preserve-indent
+   "
+if (true)
+    // stuff
+    foo()"))
+
+(ert-deftest groovy-indent-braceless-while-trailing-ws ()
+  "Indent the body of a braceless while statement with trailing whitespace."
+  (should-preserve-indent
+   "
+while (true)\t\t
+    foo()"))
+
+(ert-deftest groovy-indent-if-with-braces ()
+  "Correctly indent the body of a braced if statement."
+  (should-preserve-indent
+   "
+if (true) {
+    foo()
 }"))
+
+(ert-deftest groovy-indent-if-body-else-no-body ()
+  "Correctly indent if-else when if has a body but else doesn't."
+  (should-preserve-indent
+   "
+if (x) foo() else
+    bar()"))
+
+(ert-deftest groovy-indent-indented-if-followed-by-else-on-next-line ()
+  "Correctly indent indented if followed by else on the next line."
+  (should-preserve-indent
+   "
+while (true)
+    if (x) foo()
+    else bar()"))
+
+(ert-deftest groovy-indent-while-if-if-else-chain ()
+  "Correctly indent block statement if followed by another if-else."
+  (should-preserve-indent
+   "
+while (true)
+    if (x) foo()
+
+if (y) bar()
+else baz()
+"))
+
+(ert-deftest groovy-indent-complex-block-statements ()
+  "Correctly indent complex block statements."
+  (should-preserve-indent
+   "
+while (a)
+
+    if (b) c()
+    else if (d) e()
+    else while (f)
+        for (;;)
+            if (g)
+                if (h) i()
+                else if (j) k()
+                else while (l) m()
+
+if (n) m()
+"))
 
 (ert-deftest groovy-indent-infix-operator ()
   "We should increase indent after infix operators."
@@ -88,6 +238,20 @@ def a = b--+
    "
 def a = b+++
     1"))
+
+(ert-deftest groovy-indent-label ()
+  "We should not increase indent after labels.
+These commonly occur when using the Spock test library for Groovy."
+  (should-preserve-indent
+   "def foo() {
+    label1:
+    bar()
+    baz()
+
+    label2:
+    test()
+    other_function_call()
+}"))
 
 (ert-deftest groovy-indent-after-comma ()
   "We should increase indent after comma at end-of-line. Unless
@@ -225,6 +389,22 @@ def x = [
         'another string',
     'another element'
 ]"))
+
+(ert-deftest groovy-indent-closure ()
+  "Ensure closures on another line get an additional indent level."
+  (should-preserve-indent "
+[1, 2, 3]
+    .findAll {
+        it % 2 == 0
+    }
+")
+  ;; Check we handle closures even if the line doesn't end with "{".
+  (should-preserve-indent "
+[1, 2, 3]
+    .collect { it ->
+        it + 1
+    }
+"))
 
 (defmacro with-highlighted-groovy (src &rest body)
   "Insert SRC in a temporary groovy-mode buffer, apply syntax highlighting,
@@ -390,6 +570,12 @@ final int foo = -1;"
     (search-forward "bar")
     (forward-char -1)
     (should (not (memq 'font-lock-string-face (faces-at-point))))))
+
+(ert-deftest groovy-highlight-slashy-string--comma ()
+  "Allow slashy strings as later arguments."
+  (with-highlighted-groovy "text.replaceAll(abc, /foo/)"
+    (search-forward "foo")
+    (should (memq 'font-lock-string-face (faces-at-point)))))
 
 (ert-deftest groovy-highlight-slashy-string--inner-dollar ()
   "Don't get confused by slashy-strings that contain $."
