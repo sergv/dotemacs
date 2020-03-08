@@ -882,9 +882,17 @@ packages are, in order of precedence, `amx' and `smex'."
 (defvar counsel-M-x-history nil
   "History for `counsel-M-x'.")
 
+(defsubst counsel--string-trim-left (string &optional regexp)
+  "Trim STRING of leading string matching REGEXP.
+
+REGEXP defaults to \"[ \\t\\n\\r]+\"."
+  (if (string-match (concat "\\`\\(?:" (or regexp "[ \t\n\r]+") "\\)") string)
+      (replace-match "" t t string)
+    string))
+
 (defun counsel-M-x-action (cmd)
   "Execute CMD."
-  (setq cmd (intern cmd))
+  (setq cmd (intern (counsel--string-trim-left cmd "\\^")))
   (cond ((bound-and-true-p amx-initialized)
          (amx-rank cmd))
         ((bound-and-true-p smex-initialized-p)
@@ -1867,6 +1875,7 @@ choose between `yes-or-no-p' and `y-or-n-p'; otherwise default to
    ("x" counsel-find-file-extern "open externally")
    ("r" counsel-find-file-as-root "open as root")
    ("R" find-file-read-only "read only")
+   ("l" find-file-literally "open literally")
    ("k" counsel-find-file-delete "delete")
    ("c" counsel-find-file-copy "copy file")
    ("m" counsel-find-file-move "move or rename")
@@ -2243,7 +2252,9 @@ https://www.freedesktop.org/wiki/Specifications/desktop-bookmark-spec/."
  'counsel-recentf
  '(("j" find-file-other-window "other window")
    ("f" find-file-other-frame "other frame")
-   ("x" counsel-find-file-extern "open externally")))
+   ("x" counsel-find-file-extern "open externally")
+   ("d" (lambda (file) (setq recentf-list (delete file recentf-list)))
+    "delete from recentf")))
 
 (defun counsel-recentf-candidates ()
   "Return candidates for `counsel-recentf'.
@@ -2257,8 +2268,13 @@ time."
        (sort (append (mapcar #'substring-no-properties recentf-list)
                      (counsel--recentf-get-xdg-recent-files))
              (lambda (file1 file2)
-               (> (time-to-seconds (file-attribute-access-time (file-attributes file1)))
-                  (time-to-seconds (file-attribute-access-time (file-attributes file2)))))))
+               (cond ((file-remote-p file1)
+                      nil)
+                     ((file-remote-p file2)
+                      t)
+                     (t
+                      (> (time-to-seconds (file-attribute-access-time (file-attributes file1)))
+                         (time-to-seconds (file-attribute-access-time (file-attributes file2)))))))))
     (mapcar #'substring-no-properties recentf-list)))
 
 (defun counsel--strip-prefix (prefix str)
@@ -2391,6 +2407,7 @@ By default `counsel-bookmark' opens a dired buffer for directories."
  'counsel-bookmark
  `(("d" bookmark-delete "delete")
    ("e" bookmark-rename "edit")
+   ("s" bookmark-set "overwrite")
    ("x" ,(counsel--apply-bookmark-fn #'counsel-find-file-extern)
         "open externally")
    ("r" ,(counsel--apply-bookmark-fn #'counsel-find-file-as-root)
@@ -2757,7 +2774,6 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search."
               :preselect (counsel--preselect-file)
               :require-match 'confirm-after-completion
               :history 'file-name-history
-              :keymap counsel-find-file-map
               :caller 'counsel-file-jump)))
 
 (ivy-set-actions
@@ -2920,12 +2936,13 @@ CALLER is passed to `ivy-read'."
   :grep-p t
   :exit-codes '(1 "No matches found"))
 
-(defun counsel-read-directory-name (prompt)
+(defun counsel-read-directory-name (prompt &optional default)
   "Read a directory name from user, a (partial) replacement of `read-directory-name'."
   (let ((counsel--find-file-predicate #'file-directory-p))
     (ivy-read prompt
               #'read-file-name-internal
               :matcher #'counsel--find-file-matcher
+              :def default
               :history 'file-name-history
               :keymap counsel-find-file-map
               :caller 'counsel-read-directory-name)))
@@ -2938,8 +2955,10 @@ CALLER is passed to `ivy-read'."
 Works for `counsel-git-grep', `counsel-ag', etc."
   (interactive)
   (counsel-delete-process)
-  (let ((input ivy-text)
-        (new-dir (counsel-read-directory-name "cd: ")))
+  (let* ((input ivy-text)
+         (def-dir (buffer-file-name (ivy-state-buffer ivy-last)))
+         (def-dir (and def-dir (file-name-directory def-dir)))
+         (new-dir (counsel-read-directory-name "cd: " def-dir)))
     (ivy-quit-and-run
       (funcall (ivy-state-caller ivy-last) input new-dir))))
 
