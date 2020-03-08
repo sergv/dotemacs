@@ -571,7 +571,7 @@ On Windows, forward slashes are changed to backslashes and the
 drive letter is capitalized."
   (let ((standard-path (convert-standard-filename path)))
     (if (eq system-type 'windows-nt)
-        (dante-capitalize-drive-letter (s-replace "/" "\\"))
+        (dante-capitalize-drive-letter (s-replace "/" "\\" standard-path))
       standard-path)))
 
 (defun dante-capitalize-drive-letter (path)
@@ -639,7 +639,7 @@ Note that sub-sessions are not interleaved."
       (let ((req (pop dante-queue)))
         (when req (funcall req buffer))))))
 
-(defcustom dante-load-flags '("+c" "-fno-diagnostics-show-caret" "-Wwarn=missing-home-modules" "-ferror-spans")
+(defcustom dante-load-flags '("+c" "-fdiagnostics-color=never" "-fno-diagnostics-show-caret" "-Wwarn=missing-home-modules" "-ferror-spans" )
   "Flags to set whenever GHCi is started."
   :type (cons 'set (--map (list 'const :tag (concat (car it) ": " (cadr it)) (car it))
                           '(("+c" "Gather type information (necessary for `dante-type-at')")
@@ -648,7 +648,7 @@ Note that sub-sessions are not interleaved."
                             ("-fdefer-typed-holes" "Accept typed holes, so that completion/type-at continues to work then.")
                             ("-fdefer-type-errors" "Accept incorrectly typed programs, so that completion/type-at continues to work then. (However errors in dependencies won't be detected as such)")
                             ("-Wwarn=missing-home-modules" "Do not error-out if a module is missing in .cabal file")
-                            ("-fdiagnostics-color=never" "No color codes in error messages")
+                            ("-fdiagnostics-color=never" "No color codes in error messages (color codes will trigger bugs in Dante)")
                             ("-fno-diagnostics-show-caret" "Cleaner error messages for GHC >=8.2 (ignored by earlier versions)")))))
 
 (defun dante-start ()
