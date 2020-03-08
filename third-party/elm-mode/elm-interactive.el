@@ -46,12 +46,12 @@
 (defvar elm-interactive--current-project nil)
 (defvar elm-interactive--process-name "elm")
 (defvar elm-interactive--buffer-name "*elm*")
-(defvar elm-reactor--process-name "elm-reactor")
 (defvar elm-reactor--buffer-name "*elm-reactor*")
 
-(defcustom elm-interactive-command "elm-repl"
-  "The Elm REPL command."
-  :type '(string)
+(defcustom elm-interactive-command '("elm" "repl")
+  "The Elm REPL command.
+For Elm 0.18 and earlier, set this to '(\"elm-repl\")."
+  :type '(repeat string)
   :group 'elm)
 
 (defcustom elm-interactive-arguments '()
@@ -62,14 +62,15 @@
 (defvar elm-interactive-prompt-regexp "^[>|] "
   "Prompt for `run-elm-interactive'.")
 
-(defcustom elm-reactor-command "elm-reactor"
-  "The Elm Reactor command."
-  :type '(string)
+(defcustom elm-reactor-command '("elm" "reactor")
+  "The Elm Reactor command.
+For Elm 0.18 and earlier, set this to '(\"elm-reactor\")."
+  :type '(repeat string)
   :group 'elm)
 
-(defcustom elm-reactor-port "8000"
+(defcustom elm-reactor-port 8000
   "The Elm Reactor port."
-  :type '(string)
+  :type '(integer)
   :group 'elm)
 
 (defcustom elm-reactor-address "127.0.0.1"
@@ -77,20 +78,22 @@
   :type '(string)
   :group 'elm)
 
-(defcustom elm-reactor-arguments `("-p" ,elm-reactor-port "-a" ,elm-reactor-address)
-  "Command line arguments to pass to the Elm Reactor command."
+(defcustom elm-reactor-arguments `((:eval (format "--port=%s" elm-reactor-port)))
+  "Command line arguments to pass to the Elm Reactor command.
+Args are expanded using `elm--expand-args'."
   :type '(repeat string)
   :group 'elm)
 
 (defvar elm-compile--buffer-name "*elm-make*")
 
-(defcustom elm-compile-command "elm-make"
+(defcustom elm-compile-command '("elm" "make")
   "The Elm compilation command."
-  :type '(string)
+  :type '(repeat string)
   :group 'elm)
 
-(defcustom elm-compile-arguments '("--yes" "--warn" "--output=elm.js")
-  "Command line arguments to pass to the Elm compilation command."
+(defcustom elm-compile-arguments '("--output=elm.js")
+  "Command line arguments to pass to the Elm compilation command.
+For Elm 0.18 and earlier, set this to '(\"--yes\" \"--warn\" \"--output=elm.js\")."
   :type '(repeat string)
   :group 'elm)
 
@@ -129,9 +132,10 @@
 
 (defvar elm-package-buffer-name "*elm-package*")
 
-(defcustom elm-package-command "elm-package"
-  "The Elm package command."
-  :type '(string)
+(defcustom elm-package-command '("elm" "package")
+  "The Elm package command.
+For Elm 0.18 and earler, set this to '(\"elm-package\")."
+  :type '(repeat string)
   :group 'elm)
 
 (defcustom elm-package-arguments '("install" "--yes")
@@ -267,23 +271,17 @@ Stolen from ‘haskell-mode’."
   (interactive)
   (elm-interactive-kill-current-session)
   (let* ((default-directory (elm--find-dependency-file-path))
-         (buffer (comint-check-proc elm-interactive--process-name))
-         (origin (point-marker)))
+         (origin (point-marker))
+         (cmd (append (elm--ensure-list elm-interactive-command) elm-interactive-arguments)))
 
     (setq elm-interactive--current-project default-directory)
-
-    (pop-to-buffer
-     (if (or buffer (not (derived-mode-p 'elm-interactive-mode))
-             (comint-check-proc (current-buffer)))
-         (get-buffer-create (or buffer elm-interactive--buffer-name))
-       (current-buffer)))
-
-    (unless buffer
+    (let ((buffer (get-buffer-create elm-interactive--buffer-name)))
       (apply #'make-comint-in-buffer elm-interactive--process-name buffer
-             elm-interactive-command nil elm-interactive-arguments)
-      (elm-interactive-mode))
-
-    (setq-local elm-repl--origin origin)))
+             (car cmd) nil (cdr cmd))
+      (with-current-buffer buffer
+        (elm-interactive-mode)
+        (setq-local elm-repl--origin origin))
+      (pop-to-buffer buffer))))
 
 (defun elm-repl-return-to-origin ()
   "Jump back to the location from which we last jumped to the repl."
@@ -328,6 +326,19 @@ of the file specified."
       (elm-interactive--send-command (concat line " \\\n")))
     (elm-interactive--send-command "\n")))
 
+(defun elm--ensure-list (v)
+  "Return V if it is a list, otherwise a single-element list containing V."
+  (if (consp v)
+      v
+    (list v)))
+
+(defun elm--expand-args (args)
+  "Expand any `(:eval ...)' entries in ARGS by evaluating them."
+  (mapcar (lambda (arg)
+            (pcase arg
+              (`(:eval ,sexp) (eval sexp))
+              (_ arg)))
+          args))
 
 ;;; Reactor:
 ;;;###autoload
@@ -335,20 +346,28 @@ of the file specified."
   "Run the Elm reactor process."
   (interactive)
   (let ((default-directory (elm--find-dependency-file-path))
-        (process (get-process elm-reactor--process-name)))
+        (cmd (elm--expand-args (append (elm--ensure-list elm-reactor-command) elm-reactor-arguments))))
+    (with-current-buffer (get-buffer-create elm-reactor--buffer-name)
+      (comint-mode)
+      (ansi-color-for-comint-mode-on)
+      (let ((proc (get-buffer-process (current-buffer))))
+        (if (and proc (process-live-p proc))
+            (progn
+              (message "Restarting elm-reactor")
+              (delete-process proc))
+          (message "Starting elm-reactor")))
 
-    (when process
-      (delete-process process))
-
-    (apply #'start-process elm-reactor--process-name elm-reactor--buffer-name
-           elm-reactor-command elm-reactor-arguments)))
+      (let ((proc (apply #'start-process "elm reactor" elm-reactor--buffer-name
+                         (car cmd) (cdr cmd))))
+        (when proc
+          (set-process-filter proc 'comint-output-filter))))))
 
 (defun elm-reactor--browse (path &optional debug)
   "Open (reactor-relative) PATH in browser with optional DEBUG.
 
 Runs `elm-reactor' first."
   (run-elm-reactor)
-  (browse-url (concat "http://" elm-reactor-address ":" elm-reactor-port "/" path (when debug "?debug"))))
+  (browse-url (format "http://localhost:%s/%s%s" elm-reactor-port path (if debug "?debug" ""))))
 
 ;;;###autoload
 (defun elm-preview-buffer (debug)
@@ -374,13 +393,13 @@ Runs `elm-reactor' first."
              (append (cl-remove-if (apply-partially #'string-prefix-p "--output=") elm-compile-arguments)
                      (list (concat "--output=" (expand-file-name output))))
            elm-compile-arguments)))
-    (concat elm-compile-command " "
-            (mapconcat 'shell-quote-argument
-                       (append (list file)
-                               elm-compile-arguments
-                               (when json
-                                 (list "--report=json")))
-                       " "))))
+    (s-join " "
+            (append (elm--ensure-list elm-compile-command)
+                    (mapcar 'shell-quote-argument
+                            (append (list file)
+                                    elm-compile-arguments
+                                    (when json
+                                      (list "--report=json"))))))))
 
 (defun elm-compile--filter ()
   "Filter function for compilation output."
@@ -563,15 +582,18 @@ Each is captured as a group.")
 (defun elm-package--get-marked-install-commands ()
   "Get a list of the commands required to install the marked packages."
   (-map (lambda (package)
-          (concat elm-package-command " " (s-join " " elm-package-arguments) " " package))
+          (s-join " " (append (elm--ensure-list elm-package-command) elm-package-arguments (list package))))
         (elm-package--get-marked-packages)))
 
 (defun elm-package--read-dependencies ()
   "Read the current package's dependencies."
   (setq elm-package--working-dir (elm--find-dependency-file-path))
   (let-alist (elm--read-dependency-file)
-    (setq elm-package--dependencies (-map (lambda (dep) (symbol-name (car dep)))
-                                          .dependencies))))
+    (setq elm-package--dependencies
+          (-map (lambda (dep) (symbol-name (car dep)))
+                (if (consp .dependencies.direct)
+                    (append .dependencies.direct .dependencies.indirect)
+                  .dependencies)))))
 
 (defun elm-package--read-json (uri)
   "Read a JSON file from a URI."
@@ -595,22 +617,18 @@ Each is captured as a group.")
 (defun elm-package-refresh-package (package version)
   "Refresh the cache for PACKAGE with VERSION."
   (let ((documentation-uri
-         (elm-package--build-uri "packages" package version "documentation.json")))
+         (elm-package--build-uri "packages" package version "docs.json")))
     (setq elm-package--cache
           (cons `(,package . ,(elm-package--read-json documentation-uri))
                 elm-package--cache))))
 
 (defun elm-package-latest-version (package)
   "Get the latest version of PACKAGE."
-  (let ((package (-find (lambda (p)
-                          (let-alist p
-                            (equal .name package)))
-                        elm-package--contents)))
-
-    (if (not package)
+  (let ((entry (assoc (intern-soft package) elm-package--contents)))
+    (if (not entry)
         (error "Package not found")
-      (let-alist package
-        (elt .versions 0)))))
+      (let ((versions (cdr entry)))
+        (elt versions 0)))))
 
 (defun elm-package--ensure-cached (package)
   "Ensure that PACKAGE has been cached."
@@ -1074,15 +1092,16 @@ Completions are in the same format as those returned by
 
 (defun elm-oracle--run (prefix &optional file)
   "Get completions for PREFIX inside FILE."
-  (let ((default-directory (elm--find-dependency-file-path))
-        (command (s-join " " (list elm-oracle-command
-                                   (shell-quote-argument file)
-                                   (shell-quote-argument prefix))))
-        (json-array-type 'list))
-    (seq-uniq
-     (json-read-from-string (shell-command-to-string command))
-     (lambda (i1 i2)
-       (string-equal (alist-get 'fullName i1) (alist-get 'fullName i2))))))
+  (when (executable-find elm-oracle-command)
+    (let ((default-directory (elm--find-dependency-file-path))
+          (command (s-join " " (list elm-oracle-command
+                                     (shell-quote-argument file)
+                                     (shell-quote-argument prefix))))
+          (json-array-type 'list))
+      (seq-uniq
+       (json-read-from-string (shell-command-to-string command))
+       (lambda (i1 i2)
+         (string-equal (alist-get 'fullName i1) (alist-get 'fullName i2)))))))
 
 ;;;###autoload
 (defun elm-test-project ()
