@@ -1,3 +1,7 @@
+[![Melpa Status](http://melpa.org/packages/elm-mode-badge.svg)](http://melpa.org/#/elm-mode)
+[![Melpa Stable Status](http://stable.melpa.org/packages/elm-mode-badge.svg)](http://stable.melpa.org/#/elm-mode)
+[![Build Status](https://github.com/jcollard/elm-mode/workflows/CI/badge.svg)](https://github.com/jcollard/elm-mode/actions)
+
 # elm-mode
 
 Elm mode for Emacs.
@@ -10,7 +14,7 @@ Elm mode for Emacs.
 1. Integration with [elm-repl](https://github.com/elm-lang/elm-repl).
 1. Integration with [elm-reactor](https://github.com/elm-lang/elm-reactor).
 1. Integration with [elm-package](https://github.com/elm-lang/elm-package).
-1. Integration with [elm-oracle][elm-oracle]
+1. Integration with [elm-oracle][elm-oracle] (but see _Completion_ below)
 1. Integration with [elm-format][elm-format]
 1. Integration with [elm-test][elm-test]
 
@@ -26,23 +30,19 @@ list (note that hitting any other key will cancel the cycle).
 
 ## Installation
 
+This package requires *Emacs 25.1 or later*.
+
 ### MELPA
 
-If your Emacs has `package.el` (which is automatically the case
-for Emacs >= 24), you can install `elm-mode` from the package in
-[MELPA](http://melpa.milkbox.net/).
+You can install `elm-mode` from the package in
+[MELPA](https://melpa.org/). This is by far the most straightforward
+and recommended installation method.
 
 ### From source
 
 Add this repo to your load-path and `(require 'elm-mode)`. Ensure that
-the following dependencies are available:
-
-* [f](https://github.com/rejeep/f.el)
-* [let-alist](https://elpa.gnu.org/packages/let-alist.html)
-* [s](https://github.com/magnars/s.el)
-* [dash](https://github.com/magnars/dash.el)
-
-This package assumes you are runing Emacs 24 or later.
+you have installed all the dependencies listed in the `Package-Requires`
+header of `elm-mode.el`.
 
 ## Bindings
 
@@ -123,7 +123,7 @@ The following bindings are available in the package list buffer:
 Set or customize `elm-sort-imports-on-save` to `t` to apply
 `elm-sort-imports` on the current buffer on every save.
 
-#### `elm-oracle`
+#### Completion for Elm <= 0.18 using `elm-oracle`
 
 The following functionality requires [elm-oracle][elm-oracle] to be
 installed.  `elm-oracle` does not come with the Elm installer so you
@@ -149,6 +149,14 @@ Here's a screenshot of `company-mode` in action:
 
 ![company-mode](/screenshots/company-mode.png)
 
+#### Completion for Elm >= 0.19
+
+To obtain completion, code navigation and other niceties, use
+[elm-language-server](https://github.com/elm-tooling/elm-language-server)
+and an LSP package. [eglot](https://github.com/joaotavora/eglot) is a lightweight
+LSP front-end package for Emacs, and has built-in support for `elm-language-server`.
+Some users might prefer the rather larger and more opinionated `lsp-mode`.
+
 #### `elm-format`
 
 The following functionality requires [elm-format][elm-format] to be
@@ -159,12 +167,18 @@ will have to install it manually.
 | ------------------ | ---------------------------------------- |
 | <kbd>C-c C-f</kbd> | Automatically format the current buffer. |
 
-Set or customize `elm-format-on-save` to `t` to apply `elm-format` on
-the current buffer on every save.
+Enable `elm-format-on-save-mode` to apply `elm-format` on the current
+buffer on every save.  You might like to add it to your
+`elm-mode-hook`, or enable it on a per-project basis by including an
+entry like the following in your `.dir-locals.el`:
+
+```elisp
+(elm-mode (mode . elm-format-on-save))
+```
 
 Set or customize `elm-format-elm-version` to change which version of
-Elm to format against. Valid options are `0.17` and `0.16`. The
-default is `0.17`.
+Elm to format against. Valid options are `0.19`, `0.18`, `0.17` and `0.16`. The
+default is `0.19`.
 
 #### `elm-test`
 
