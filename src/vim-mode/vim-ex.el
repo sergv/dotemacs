@@ -375,70 +375,75 @@ has been pressed."
 
 (defun vim:ex-complete (cmdline predicate flag)
   "Called to complete an object in the ex-buffer."
-  (multiple-value-bind (range cmd spaces arg beg end force) (vim:ex-split-cmdline cmdline)
-    (setq vim:ex-cmd cmd)
-    (cond
-      ;; only complete at the end of the command
-      ((< (point) (point-max)) nil)
-      ;; if at the end of a command, complete the command
-      ((and (zerop (length spaces)) (zerop (length arg)))
-       ;; We need to take care of the potential force argument `!'.
-       ;; If a ! is given only commands which can be forced are
-       ;; considered as completion. Furthermore the result has to be
-       ;; modified if no `!' has been given in order to show the possible
-       ;; `!' completions.
-       (let*
-           ((precicate predicate)
-            (pred
-             (cond
-               ((not force) predicate)
-               ((not predicate)
-                (lambda (x)
-                  (vim:cmd-force-p (vim:ex-binding (car x)))))
-               (t
-                (lambda (x)
-                  (and (funcall predicate x)
-                       (vim:cmd-force-p (vim:ex-binding (car x))))))))
-            (result (vim:ex-complete-command cmd pred flag)))
-         (pcase flag
-           ;; try-completion, take case of a unique match which
-           ;; may take a force argument
-           (`nil
-            (case result
-              ((nil) nil)
-              ((t) (if (and (not force)
-                            (vim:cmd-force-p (vim:ex-binding cmd)))
-                     cmd
-                     t))
-              (t (if force (concat result "!") result))))
-           ;; all-completions, append exclamation marks
-           (`t
-            (if force
-              (--map (concat it "!") result)
-              (let (newresult)
-                (dolist (r result)
-                  (push r newresult)
-                  (when (vim:cmd-force-p (vim:ex-binding r))
-                    (push (concat r "!") newresult)))
-                newresult)))
-           ;; test-completion, handle non-unique case if no force
-           ;; argument is given but possible for the command
-           (_
-            (and result
-                 (or force
-                     (not (vim:cmd-force-p (vim:ex-binding cmd)))))))))
-      ;; otherwise complete the argument
-      (t
-       (let ((result (vim:ex-complete-argument arg predicate flag)))
-         (cond
-           ((null result) nil)
-           ((eq t result) t)
-           ((stringp result) (if flag result (concat range cmd spaces result)))
-           ((listp result) (if flag
-                             result
-                             (--map (concat range cmd spaces it)
-                                    result)))
-           (t (error "Completion returned unexpected value"))))))))
+  ;; Check that we're in ex mode because ivy may store this function
+  ;; in its state and call it at an unexpected moment after ex session
+  ;; has ended
+  (when (and (bufferp vim:ex-minibuffer)
+             (eq (current-buffer) vim:ex-minibuffer))
+    (multiple-value-bind (range cmd spaces arg beg end force) (vim:ex-split-cmdline cmdline)
+      (setq vim:ex-cmd cmd)
+      (cond
+        ;; only complete at the end of the command
+        ((< (point) (point-max)) nil)
+        ;; if at the end of a command, complete the command
+        ((and (zerop (length spaces)) (zerop (length arg)))
+         ;; We need to take care of the potential force argument `!'.
+         ;; If a ! is given only commands which can be forced are
+         ;; considered as completion. Furthermore the result has to be
+         ;; modified if no `!' has been given in order to show the possible
+         ;; `!' completions.
+         (let*
+             ((precicate predicate)
+              (pred
+               (cond
+                 ((not force) predicate)
+                 ((not predicate)
+                  (lambda (x)
+                    (vim:cmd-force-p (vim:ex-binding (car x)))))
+                 (t
+                  (lambda (x)
+                    (and (funcall predicate x)
+                         (vim:cmd-force-p (vim:ex-binding (car x))))))))
+              (result (vim:ex-complete-command cmd pred flag)))
+           (pcase flag
+             ;; try-completion, take case of a unique match which
+             ;; may take a force argument
+             (`nil
+              (case result
+                ((nil) nil)
+                ((t) (if (and (not force)
+                              (vim:cmd-force-p (vim:ex-binding cmd)))
+                         cmd
+                       t))
+                (t (if force (concat result "!") result))))
+             ;; all-completions, append exclamation marks
+             (`t
+              (if force
+                  (--map (concat it "!") result)
+                (let (newresult)
+                  (dolist (r result)
+                    (push r newresult)
+                    (when (vim:cmd-force-p (vim:ex-binding r))
+                      (push (concat r "!") newresult)))
+                  newresult)))
+             ;; test-completion, handle non-unique case if no force
+             ;; argument is given but possible for the command
+             (_
+              (and result
+                   (or force
+                       (not (vim:cmd-force-p (vim:ex-binding cmd)))))))))
+        ;; otherwise complete the argument
+        (t
+         (let ((result (vim:ex-complete-argument arg predicate flag)))
+           (cond
+             ((null result) nil)
+             ((eq t result) t)
+             ((stringp result) (if flag result (concat range cmd spaces result)))
+             ((listp result) (if flag
+                                 result
+                               (--map (concat range cmd spaces it)
+                                      result)))
+             (t (error "Completion returned unexpected value")))))))))
 
 (defun vim:ex-complete-command (cmd predicate flag)
   "Called to complete the current command."
