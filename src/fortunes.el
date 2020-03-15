@@ -582,7 +582,7 @@ care, lest grievous harm befall thy program.”
 
    "“5 Thou shalt check the array bounds of all strings (indeed, all
 arrays), for surely where thou typest ‘foo’ someone someday shall
-type ‘supercalifragilis-ticexpialidocious’.”
+type ‘supercalifragilistic-expialidocious’.”
 ―Henry Spencer, The Ten Commandments for C Programmers"
 
    "“6 If a function be advertised to return an error code in the event of
