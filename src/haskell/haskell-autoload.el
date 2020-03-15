@@ -39,7 +39,7 @@
 (autoload 'vim:haskell-navigate-imports "haskell-setup" nil t)
 
 (defconst +haskell-extensions+
-  '("hs" "lhs" "hsc" "chs" "hs-boot" "lhs-boot" "alex" "x" "lx" "happy" "y" "ly" "ag" "lag"))
+  '("hs" "hsig" "lhs" "hsc" "chs" "hs-boot" "lhs-boot" "alex" "x" "lx" "happy" "y" "ly" "ag" "lag"))
 
 (mmm-add-classes
  '((literate-haskell-latex
