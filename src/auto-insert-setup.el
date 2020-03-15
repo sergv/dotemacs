@@ -24,7 +24,7 @@
 
                 ("tests?[/\\].*Test[^/\\]*\\.hs\\'"              "insert-haskell-test.hs")
                 ("\\(?:exes?[/\\][^/\\]+\\|[/\\]Main\\)\\.hs\\'" "insert-haskell-exe.hs")
-                ("\\.\\(?:hsc?\\|chs\\)\\'"                      "insert.hs.template")
+                ("\\.\\(?:hs\\(c\\|ig\\)?\\|chs\\)\\'"           "insert.hs.template")
                 ("\\.cabal\\'"                                   "insert.cabal.template")
                 ("stack\\.yaml\\'"                               "insert-stack.yaml.template")
                 ("cabal\\.project\\(?:\\.local\\)?\\'"           "insert-cabal-project")
