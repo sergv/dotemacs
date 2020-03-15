@@ -18,18 +18,18 @@
                   (`(,filename-regexp ,insert-template)
                    (cons filename-regexp
                          (vector insert-template #'auto-insert-update)))))
-              '(("tests?[/\\].*Test[^/\\]*\\.hs\\'" "insert-haskell-test.hs")
+              '(("\\.eproj-info\\'" "insert.eproj-info")
+                ("\\.gitignore\\'"  "insert.gitignore")
+                ("LICENSE\\'"       "insert.license-apache-2.0")
+
+                ("tests?[/\\].*Test[^/\\]*\\.hs\\'"              "insert-haskell-test.hs")
                 ("\\(?:exes?[/\\][^/\\]+\\|[/\\]Main\\)\\.hs\\'" "insert-haskell-exe.hs")
-                ("\\.\\(?:hsc?\\|chs\\)\\'"         "insert.hs.template")
-                ("\\.cabal\\'"      "insert.cabal.template")
-                ("stack\\.yaml\\'"  "insert-stack.yaml.template")
-                ("\\.eproj-info\\'" "insert.eproj-info")
-                ("\\.gitignore\\'"  "insert.haskell.gitignore")
+                ("\\.\\(?:hsc?\\|chs\\)\\'"                      "insert.hs.template")
+                ("\\.cabal\\'"                                   "insert.cabal.template")
+                ("stack\\.yaml\\'"                               "insert-stack.yaml.template")
+                ("cabal\\.project\\(?:\\.local\\)?\\'"           "insert-cabal-project")
 
-                ("cabal\\.project\\(?:\\.local\\)?\\'" "insert-cabal-project")
-
-                ("LICENSE\\'" "insert.license-bsd-2")
-
+                ("\\.rs\\'"         "insert.rs")
                 ("\\.awk\\'"        "insert.awk")
                 ("\\.h\\'"          "insert.h")
                 ("\\.html?\\'"      "insert.html")
@@ -55,7 +55,9 @@
 (defparameter auto-insert-fields
   (list
    (list "license type" (lambda ()
-                          "BSD-2"))
+                          "Apache-2.0"))
+   (list "license spdx" (lambda ()
+                          "Apache-2.0"))
    (list "filename" (lambda ()
                       (file-name-nondirectory
                        buffer-file-name)))

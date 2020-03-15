@@ -2,7 +2,7 @@
 -- |
 -- Module      :  ${haskell path to module name}
 -- Copyright   :  (c) ${author} ${date year}
--- License     :  ${license type} (see LICENSE)
+-- License     :  ${license spdx} (see LICENSE)
 -- Maintainer  :  ${email}
 ----------------------------------------------------------------------------
 
