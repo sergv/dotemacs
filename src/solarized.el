@@ -141,12 +141,8 @@ Futher modified by Sergey Vinokurov."
             (cursor-color     . ,cyan)))
          (faces
           `((default                      ((t (:foreground ,base0 :background ,base03))))
-            ;; (cursor                       ((((class color) (min-colors 16777216))
-            ;;                                 (:foreground ,magenta :background nil)
-            ;;                                 ;; (:foreground ,base03 :background ,base0)
-            ;;                                 )
-            ;;                                (t
-            ;;                                 (:inverse-video nil))))
+            (cursor                       ((t (:background ,cyan))))
+            (ivy-posframe-cursor          ((t (:foreground ,cyan :bold t))))
             (escape-glyph-face            ((t (:foreground ,red))))
             (fringe                       ((t (:foreground ,base01 :background ,base02))))
             (highlight                    ((((class color) (min-colors 16777216))
