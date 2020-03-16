@@ -147,7 +147,11 @@ case `default-directory' will be used.
       (setq-local buffer-undo-list
                   (if enable-undo nil t))
 
-      (let ((selection-overlay (make-overlay (point-min) (point-min))))
+      (let ((selection-overlay (make-overlay (point-min) (point-min)))
+            (items-vector (if (listp items)
+                              (select-mode--list->vector items)
+                            items)))
+        (cl-assert (vectorp items-vector))
         (overlay-put selection-overlay
                      'face
                      'select-mode-selection-face)
@@ -168,9 +172,7 @@ case `default-directory' will be used.
                      :separator separator
 
                      :selected-item 0
-                     :items (if (listp items)
-                                (select-mode--list->vector items)
-                              items)
+                     :items items-vector
                      :item-positions (make-vector items-count nil)
                      :items-count items-count
 
@@ -223,7 +225,8 @@ by the user)."
   (let ((sep (or (select-mode--state-separator state)
                  "")))
     (loop
-      for item being the elements of (select-mode--state-items state) using (index i)
+      for item across (select-mode--state-items state)
+      for i from 0
       do
       (unless (= i 0) (insert sep))
       ;; Insert item.
@@ -345,6 +348,7 @@ by the user)."
                                  (select-mode--list->vector items)
                                items))
                (items-count (length items-vector)))
+          (cl-assert (vectorp items-vector))
           (setf (select-mode--state-selected-item select-mode--current-state)  new-selection-index
                 (select-mode--state-items select-mode--current-state)          items-vector
                 (select-mode--state-item-positions select-mode--current-state) (make-vector items-count nil)
