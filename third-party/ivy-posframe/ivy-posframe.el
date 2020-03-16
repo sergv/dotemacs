@@ -511,7 +511,7 @@ selection, non-nil otherwise."
         (with-current-buffer ivy-posframe-buffer
           (goto-char (point-min))
           (delete-region (point) (line-beginning-position 2))
-          (insert prompt "  \n")
+          (insert prompt "_  \n")
           (add-text-properties point (1+ point) '(face ivy-posframe-cursor)))))))
 
 (defun ivy-posframe--display-function-prop (fn &rest args)
