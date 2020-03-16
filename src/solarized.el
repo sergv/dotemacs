@@ -725,7 +725,8 @@ only installing unique attributes."
 
 Useful for applying changes made to color theme definition."
   (interactive)
-  (solarized *color-theme-solarized-type*))
+  (solarized *color-theme-solarized-type*)
+  (update-font-scaling))
 
 (provide 'solarized)
 
