@@ -512,6 +512,8 @@ Futher modified by Sergey Vinokurov."
             (ivy-match-required-face              ((t :foreground ,red)))
             (ivy-confirm-face                     ((t :foreground ,green)))
 
+            (ivy-posframe-border                  ((t :foreground ,cyan :background ,cyan)))
+
             (lazy-highlight                       ((t (:background ,light-cyan-green-background))))
             (link                                 ((t (:foreground ,violet :underline t))))
             (match                                ((t (:background ,light-cyan-green-background))))
