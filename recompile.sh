@@ -134,6 +134,7 @@ update-dir-autoloads \
     "third-party/haskell-mode" \
     "third-party/haskell-tags-server/elisp" \
     "third-party/ivy" \
+    "third-party/ivy-posframe" \
     "third-party/ivy-smex" \
     "third-party/lcr" \
     "third-party/lean-mode" \
@@ -143,6 +144,7 @@ update-dir-autoloads \
     "third-party/nix-mode" \
     "third-party/pkg-info" \
     "third-party/popup-el" \
+    "third-party/posframe" \
     "third-party/ptx-mode" \
     "third-party/rust-mode" \
     "third-party/smartparens" \

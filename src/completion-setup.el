@@ -68,6 +68,7 @@
      (require 'pcmpl-rpm)
      (require 'pcmpl-unix)))
 
+(require 'ivy-posframe)
 (require 'ivy-smex)
 (require 'flx)
 
@@ -99,8 +100,14 @@
                                          +ignored-file-extensions+))))
                              (funcall re-group
                                       (regexp-opt +version-control-directories+))))
-           "\\'"))))
+           "\\'")))
+
+      ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-frame-center))
+      ivy-posframe-border-width 4
+      ivy-posframe-hide-minibuffer t)
+
 (ivy-mode +1)
+(ivy-posframe-mode +1)
 
 (add-to-list 'ivy-ignore-buffers invisible-buffers-re)
 
