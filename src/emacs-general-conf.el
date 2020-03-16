@@ -54,7 +54,7 @@
 ;;;; bunch of standard customizations
 
 (setq-default indent-tabs-mode nil) ;; never use tabs for indentation
-(setq-default cursor-type 'box)     ;; 'bar)
+
 (setf cursor-type 'hbar
       tab-width 2
       tab-always-indent t)
