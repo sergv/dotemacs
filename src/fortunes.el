@@ -10,7 +10,6 @@
 
 (require 'comment-util)
 (require 'common)
-(require 'dash)
 (require 'persistent-store)
 
 (defparameter *perlis-quotes*

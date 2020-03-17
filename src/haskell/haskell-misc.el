@@ -29,10 +29,6 @@
 (require 'flycheck-haskell)
 (require 'flycheck-setup)
 
-(require 'f)
-(require 's)
-(require 'dash)
-
 (defvar-local haskell-indent-offset 2
   "Haskell indentation amount used by functions written as part
 of my home config.")
