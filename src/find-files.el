@@ -6,8 +6,6 @@
 ;; Created: Monday, 22 February 2016
 ;; Description:
 
-(require 'dash)
-
 ;;;###autoload
 (defun* find-rec-do (path
                      &key
