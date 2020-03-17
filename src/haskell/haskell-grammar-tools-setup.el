@@ -48,8 +48,6 @@
     ("M-t"             haskell-compilation-prev-error-other-window)
     ("M-h"             haskell-compilation-next-error-other-window)
     ("C-SPC"           company-complete)
-    ("C-b"             switch-to-buffer-or-file-in-current-project)
-    ("M-b"             switch-to-buffer-or-file-in-current-or-related-projects)
 
     ("DEL"             haskell-backspace-with-block-dedent)
     ("<backspace>"     haskell-backspace-with-block-dedent)
