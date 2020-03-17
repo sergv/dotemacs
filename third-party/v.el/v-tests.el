@@ -28,6 +28,18 @@
     (should (equal nil
                    (v-assq 'w xs)))))
 
+(ert-deftest v/v--member ()
+  (let ((xs (vector (cons 'x 1) (cons 'y "foo") (cons 'z nil) "foo" "bar" "baz")))
+    (should-not (v-member 'x xs))
+    (should-not (v-member 'y xs))
+    (should-not (v-member 'z xs))
+    (should-not (v-member 'w xs))
+
+    (should (v-member "foo" xs))
+    (should (v-member "bar" xs))
+    (should (v-member "baz" xs))
+    (should (v-member (cons 'x 1) xs))))
+
 (ert "v/.*")
 
 ;; Local Variables:
