@@ -141,6 +141,8 @@
 (eval-when-compile
   (require 'cl))
 
+(require 'dash)
+
 ;;;; old revive
 
 (defconst revive:version
@@ -428,11 +430,12 @@ function defined in `revive'."
 If REVIVE-PLUS:ALL-FRAMES is true, print window configuration for
 all frames as a list of current-window-configuration-printable."
   (if (null revive-plus:all-frames)
-    (current-window-configuration-printable)
+      (current-window-configuration-printable)
     (let ((focus (selected-frame)))
       (mapcar #'(lambda (frame)
                   (current-window-configuration-printable frame))
-              (cons focus (remq focus (frame-list)))))))
+              (--filter (null (frame-parent it))
+                        (cons focus (remq focus (frame-list))))))))
 
 ;;;###autoload
 (defun revive-plus:restore-window-configuration (config)
