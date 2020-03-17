@@ -510,7 +510,6 @@ under git version control."
   :cursor 'hbar)
 
 (def-keys-for-map vim:blame-mode-keymap
-  +vim-interbuffer-navigation-keys+
   +vim-normal-mode-navigation-keys+
   +vim-search-keys+
   +vim-search-extended-keys+
