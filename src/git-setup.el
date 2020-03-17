@@ -13,6 +13,7 @@
 (require 'common)
 (require 'common-heavy)
 (require 'el-patch)
+(require 'hydra-setup)
 (require 'vim-mock)
 (require 'magit)
 (require 'magit-blame)
@@ -205,6 +206,56 @@ directory computed by git.")
                                 sections)))
         (magit-apply-hunk hunk "--cached")))))
 
+(defhydra hydra-magit (:exit t :foreign-keys warn :hint nil)
+  "
+^Command^      ^On commit^       ^Remote^      ^Options^
+--------------------------------------------------------
+_b_ranch       _a_: cherry-pick  _F_: pull     _D_iff options
+_c_ommit       _R_ename          _f_etch       _L_og options
+_d_iff         _t_ag             _p_ush
+_e_diff        no_T_e            re_M_ote
+_l_og          re_v_erse         subm_o_dules
+_m_erge
+_r_ebase
+_x_: reset
+_z_: stash
+
+Work with changes:
+         _s_tage      _u_nstage
+d_i_scard  _S_tage all  _U_nstage all"
+  ("b"        magit-branch-popup)
+  ("c"        magit-commit-popup)
+  ("d"        magit-diff-popup)
+  ("e"        magit-ediff-popup)
+  ("l"        magit-log-popup)
+  ("m"        magit-merge-popup)
+  ("r"        magit-rebase-popup)
+  ("x"        magit-reset-popup)
+  ("z"        magit-stash-popup)
+
+  ("a"        magit-cherry-pick-popup)
+  ("R"        magit-file-rename)
+  ("t"        magit-tag-popup)
+  ("T"        magit-notes-popup)
+  ("v"        magit-reverse)
+
+  ("i"        magit-discard)
+  ("s"        magit-stage)
+  ("u"        magit-unstage)
+  ("S"        magit-stage-modified)
+  ("U"        magit-unstage-all)
+
+  ("f"        magit-fetch-popup)
+  ("F"        magit-pull-popup)
+  ("M"        magit-remote-popup)
+  ("o"        magit-submodule-popup)
+  ("p"        magit-push-popup)
+
+  ("D"        magit-diff-refresh-popup)
+  ("L"        magit-log-refresh-popup)
+
+  ("<escape>" nil))
+
 (defun magit-bind-common-vimless-mode-keymap (map)
   (def-keys-for-map (magit-unstaged-section-map
                      magit-file-section-map
@@ -220,9 +271,12 @@ directory computed by git.")
   (def-keys-for-map map
     +vim-special-keys+
     +vim-search-keys+
-    ("?"               magit-dispatch-popup) ;; override "?" from vim search
     ("<down>"          forward-line)
     ("<up>"            backward-line)
+
+    ("e"               magit-ediff-popup)
+    ("E"               nil)
+
     ("h"               magit-section-forward)
     ("t"               magit-section-backward)
     ("T"               magit-tag-popup)
@@ -230,26 +284,20 @@ directory computed by git.")
     ("'"               magit-section-up)
 
     ("p"               magit-stash-popup)
-    ("H"               magit-refresh)
-    ("<f5>"            magit-refresh)
-    ("j"               magit-discard)
+    (("H" "<f5>")      magit-refresh)
+    (("-" "j")         hydra-magit/body)
     ("\\"              magit-discard)
     ("M"               vim:jump-to-prev-saved-position)
     ("O"               magit-remote-popup)
 
     ("k"               magit-unstage)
     ("K"               magit-unstage-all)
-    ("x"               magit-reset-soft)
-    ("X"               magit-reset-popup)
+    ("x"               magit-reset-popup)
 
     ;; ("SPC"             magit-visit-thing-other-window)
-    ("TAB"             magit-section-cycle)
-    ("<tab>"           magit-section-cycle)
-    ("S-TAB"           magit-section-cycle-global)
-    ("<S-tab>"         magit-section-cycle-global)
-    ("S-<tab>"         magit-section-cycle-global)
-    ("<S-iso-lefttab>" magit-section-cycle-global)
-    ("S-<iso-lefttab>" magit-section-cycle-global)
+    (("TAB" "<tab>")   magit-section-cycle)
+    (("S-TAB" "<S-tab>" "S-<tab>" "<S-iso-lefttab>" "S-<iso-lefttab>")
+                       magit-section-cycle-global)
 
     ("C-1"             magit-section-show-level-1-all)
     ("C-2"             magit-section-show-level-2-all)
