@@ -39,36 +39,6 @@
         (t
          (write-region beg-pos end-pos file-name append nil nil (not force)))))))
 
-
-(vim:defcmd vim:cmd-write (motion (argument:file file) force nonrepeatable)
-  "Saves file `file'."
-  (vim:save-buffer file
-                   :begin (and motion (vim:motion-first-line motion))
-                   :end (and motion (vim:motion-last-line motion))
-                   :force force))
-
-(vim:defcmd vim:cmd-write-current-buffer (force nonrepeatable)
-  "Saves current buffer."
-  (with-current-buffer vim:ex-current-buffer
-    (when (and
-           ;; If buffer is not an indirect buffer...
-           (null (buffer-base-buffer (current-buffer)))
-           ;; ... and does not have a file name.
-           (null buffer-file-name))
-      (error "Please specify a file-name for this buffer!"))
-    (save-buffer)))
-
-(vim:defcmd vim:cmd-write-all (force nonrepeatable)
-  "Saves all buffers."
-  (save-some-buffers force))
-
-(vim:defcmd vim:cmd-edit ((argument:file file) nonrepeatable)
-  "Visits a certain file."
-  (if file
-      (find-file file)
-    (when buffer-file-name
-      (find-file buffer-file-name))))
-
 (vim:defcmd vim:cmd-show-buffers (nonrepeatable)
   "Shows the buffer-list."
   (let (message-truncate-lines message-log-max)
