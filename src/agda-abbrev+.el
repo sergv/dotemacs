@@ -7,7 +7,6 @@
 ;; Description:
 
 (require 'abbrev+)
-(require 'v)
 
 (defun-once agda-abbrev+-make-abbrevs
   (v--map
