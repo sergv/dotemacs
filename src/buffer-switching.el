@@ -7,6 +7,7 @@
 ;; Description:
 
 (require 'common)
+(require 'hydra-setup)
 (require 'eproj)
 
 (add-to-list 'ivy-sort-matches-functions-alist
@@ -17,7 +18,8 @@
   "Switch to another buffer, query user for a buffer to switch to.."
   (interactive)
   (let ((this-command 'switch-to-buffer-with-completion))
-    (ivy-read "Switch to buffer: " 'internal-complete-buffer
+    (ivy-read "Switch to buffer: "
+              'internal-complete-buffer
               :matcher #'ivy--switch-buffer-matcher
               :preselect (buffer-name (other-buffer (current-buffer)))
               :action #'switch-to-buffer-create-if-missing
@@ -68,6 +70,20 @@ current buffer."
       (progn
         (message "No project for current buffer: %s" (current-buffer))
         (call-interactively #'switch-to-buffer-with-completion)))))
+
+;;;###autoload (autoload 'hydra-switching/body "buffer-switching" nil t)
+(defhydra hydra-switching (:exit t :foreign-keys warn :hint nil)
+  "
+Switch to:
+_b_uffer
+_f_ile
+buffer/file in _c_urrent project
+buffer/file in current or _r_elated projects"
+  ("c"        switch-to-buffer-or-file-in-current-project)
+  ("r"        switch-to-buffer-or-file-in-current-or-related-projects)
+  ("b"        switch-to-buffer-with-completion)
+  ("f"        counsel-find-file)
+  ("<escape>" nil))
 
 (provide 'buffer-switching)
 

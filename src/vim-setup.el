@@ -264,8 +264,6 @@ like \"d w\".")
   ("M-p"           browse-kill-ring)
   ("SPC"           abbrev+-insert-space-or-expand-abbrev)
   ("<insert>"      vim:scroll-line-up)
-  ("C-b"           switch-to-buffer-or-file-in-current-project)
-  ("M-b"           switch-to-buffer-or-file-in-current-or-related-projects)
   ("C-:"           pp-eval-expression)
 
   ("C-'"           typopunct-insert-single-quotation-mark)

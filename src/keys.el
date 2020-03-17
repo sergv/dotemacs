@@ -47,7 +47,8 @@
   ("C-t"      nil)
   ("C-<down>" nil)
   ("C-<up>"   nil)
-  ("C-b"      switch-to-buffer-with-completion)
+  ("C-b"      switch-to-prev-buffer-in-window)
+  ("M-b"      hydra-switching/body)
 
   ;; for icicle
   ("<M-tab>"  nil)
