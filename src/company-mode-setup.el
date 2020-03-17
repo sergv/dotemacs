@@ -6,6 +6,7 @@
 ;; Created: Monday, 15 February 2016
 ;; Description:
 
+(require 'company-posframe)
 (require 'company-statistics)
 (require 'persistent-store)
 
@@ -21,6 +22,7 @@
       company-statistics-size 512)
 
 (company-statistics-mode +1)
+(company-posframe-mode +1)
 
 (defadvice company-statistics--save (around
                                      company-statistics--save/use-persistent-store
@@ -62,6 +64,9 @@
 (add-hook 'company-completion-finished-hook #'company-maybe-turn-on-fci)
 ;;;###autoload
 (add-hook 'company-completion-cancelled-hook #'company-maybe-turn-on-fci)
+
+(def-keys-for-map company-posframe-active-map
+  ("<escape>" company-abort))
 
 (provide 'company-mode-setup)
 
