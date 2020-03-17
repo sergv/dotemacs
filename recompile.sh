@@ -119,6 +119,7 @@ update-dir-autoloads \
     "third-party/auctex" \
     "third-party/bison-mode" \
     "third-party/clojure-mode" \
+    "third-party/company-posframe" \
     "third-party/company-statistics" \
     "third-party/cuda-mode" \
     "third-party/dante" \
