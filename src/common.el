@@ -860,10 +860,7 @@ optimization purposes.")
                               notify-window-buffer-change
                               activate
                               compile)
-  (let ((window (ad-get-arg 0)
-                ;; (or (ad-get-arg 0)
-                ;;     (selected-window))
-                )
+  (let ((window (ad-get-arg 0))
         (new-buffer (ad-get-arg 1)))
     (set-window-parameter window
                           'prev-buffers
