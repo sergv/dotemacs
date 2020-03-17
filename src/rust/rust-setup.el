@@ -91,12 +91,11 @@ warnings will be colorized in `rust-compilation-mode'.")
   (add-hook 'compilation-filter-hook #'rust-compilation-filter-hook nil t))
 
 (def-keys-for-map rust-compilation-mode-map
-    +vim-interbuffer-navigation-keys+
-    +vim-special-keys+
-    ("<return>" compilation/goto-error)
-    ("SPC"      compilation/goto-error-other-window)
-    ("g g"      vim-mock:motion-go-to-first-non-blank-beg)
-    ("G"        vim-mock:motion-go-to-first-non-blank-end))
+  +vim-special-keys+
+  ("<return>" compilation/goto-error)
+  ("SPC"      compilation/goto-error-other-window)
+  ("g g"      vim-mock:motion-go-to-first-non-blank-beg)
+  ("G"        vim-mock:motion-go-to-first-non-blank-end))
 
 ;;;; Setup
 
