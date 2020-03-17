@@ -87,7 +87,6 @@
     ("C-b"   switch-to-buffer-or-file-in-current-project)
     ("M-b"   switch-to-buffer-or-file-in-current-or-related-projects)
     ("C-M-k" remove-buffer)
-    ("C-s"   save-buffer)
 
     ("g"     nil)
     ("g x"   ivy-smex)

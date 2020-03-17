@@ -382,12 +382,6 @@
 
 
 
-;; (vim:emap "edit" #'vim:cmd-edit)
-;; (vim:emap "e" "edit")
-;; (vim:emap "write" #'vim:cmd-write)
-;; (vim:emap "w" "write")
-(vim:emap "wall" #'vim:cmd-write-all)
-(vim:emap "wa" "wall")
 (vim:emap "buffer" #'vim:cmd-buffer)
 (vim:emap "b" "buffer")
 ;; (vim:emap "bnext" #'vim:cmd-next-buffer)
