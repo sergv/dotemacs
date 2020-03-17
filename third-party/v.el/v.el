@@ -69,6 +69,10 @@ NOTE: while `assq' will ignore non-cons-cells in collection, this function
 will raise an error on such."
   (v--find (eq key (car it)) xs))
 
+(defun v-member (key xs)
+  "Return t if KEY is an element of XS  Comparison done with ‘equal’."
+  (v--find (equal key it) xs))
+
 (provide 'v)
 
 ;; Local Variables:
