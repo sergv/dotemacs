@@ -221,7 +221,6 @@ the body or the head."
   "Timer for hiding posframe hint.")
 
 (defun hydra-posframe-show (str)
-  (require 'posframe)
   (when hydra--posframe-timer
     (cancel-timer hydra--posframe-timer))
   (setq hydra--posframe-timer nil)
@@ -231,7 +230,6 @@ the body or the head."
          hydra-posframe-show-params))
 
 (defun hydra-posframe-hide ()
-  (require 'posframe)
   (unless hydra--posframe-timer
     (setq hydra--posframe-timer
           (run-with-idle-timer
@@ -915,7 +913,6 @@ BODY-AFTER-EXIT is added to the end of the wrapper."
     `(defun ,cmd-name ()
        ,doc
        (interactive)
-       (require 'hydra)
        (hydra-default-pre)
        ,@(when body-pre (list body-pre))
        ,@(cond ((eq (hydra--head-property head :exit) t)
