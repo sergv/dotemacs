@@ -300,6 +300,12 @@ Futher modified by Sergey Vinokurov."
             (outline-7                    ((t (:foreground ,magenta))))
             (outline-8                    ((t (:foreground ,red))))
 
+            (hydra-face-blue              ((t (:foreground ,blue))))
+            (hydra-face-red               ((t (:foreground ,red))))
+            (hydra-face-amaranth          ((t (:foreground ,magenta))))
+            (hydra-face-pink              ((t (:foreground ,yellow))))
+            (hydra-face-teal              ((t (:foreground ,cyan))))
+
             ;; sunrise commander
             (sr-active-path-face          ((t (:inherit default :bold t))))
             (sr-passive-path-face         ((t (:inherit default))))
