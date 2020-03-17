@@ -25,6 +25,7 @@
 (require 'haskell-misc)
 (require 'haskell-outline)
 (require 'haskell-tags-server)
+(require 'hydra-setup)
 (require 'lcr)
 (require 'shell-setup)
 (require 'smartparens-haskell)
@@ -163,6 +164,19 @@
                       nil
                       (vector `(column . ,(1- col)))))))
 
+(defhydra hydra-haskell (:exit t :foreign-keys warn :hint nil)
+  "
+_a_ttrap          _j_: eval
+_i_nfo
+_t_ype
+_q_ualify import"
+  ("t"        dante-type-at)
+  ("i"        dante-info)
+  ("j"        dante-eval-block)
+  ("q"        haskell-qualify-import)
+  ("a"        attrap-flycheck)
+  ("<escape>" nil))
+
 ;;;###autoload
 (defun haskell-setup ()
   (let ((non-vanilla-haskell-mode? (-any? #'derived-mode-p '(ghc-core-mode haskell-c2hs-mode haskell-hsc-mode))))
@@ -297,13 +311,7 @@
       (dante-mode
        (def-keys-for-map vim:normal-mode-local-keymap
          ("SPC SPC"      dante-repl-switch-to-repl-buffer)
-         (("C-l" "<f6>") vim:haskell-dante-load-file-into-repl)
-         ("j"            dante-eval-block))
-
-       (def-keys-for-map (vim:normal-mode-local-keymap
-                          vim:visual-mode-local-keymap)
-         ("- t"          dante-type-at)
-         ("- i"          dante-info))))
+         (("C-l" "<f6>") vim:haskell-dante-load-file-into-repl))))
 
     (def-keys-for-map vim:normal-mode-local-keymap
       ("\\"           vim:flycheck-run)
@@ -312,9 +320,7 @@
       ("g i"          vim:haskell-navigate-imports)
       ("g I"          haskell-navigate-imports-return)
       ("g <tab>"      haskell-reindent-at-point)
-
-      ("- q"          haskell-qualify-import)
-      ("- a"          attrap-flycheck))
+      ("-"            hydra-haskell/body))
 
     (def-keys-for-map vim:visual-mode-local-keymap
       ("`"            vim:wrap-backticks)
