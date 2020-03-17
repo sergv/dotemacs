@@ -1180,6 +1180,7 @@ Returns list of (tag-name tag project) lists."
             (if include-related-projects?
                 (eproj-get-all-related-projects proj)
               (list proj)))
+           (related-roots (list->vector (-map #'eproj-project/root all-related-projects)))
            ;; List of (<display-name> . <absolute-file-name>).
            ;; <display-name> will be shown to the user anad used for completion.
            ;; <absolute-file-name> will be used to actually locate the file.
@@ -1232,7 +1233,11 @@ Returns list of (tag-name tag project) lists."
                 (funcall add-file path (file-relative-name path root)))))))
       (dolist (buf (nreverse (if include-all-buffers?
                                  (buffer-list)
-                               (visible-buffers))))
+                               (--filter (or (null (buffer-file-name it))
+                                             (if-let ((pr (eproj-get-project-for-buf-lax it)))
+                                                 (v-member (eproj-project/root pr)
+                                                           related-roots)))
+                                         (visible-buffers)))))
         (let* ((buffer-abs-file (buffer-file-name buf))
                (names
                 (if buffer-abs-file
