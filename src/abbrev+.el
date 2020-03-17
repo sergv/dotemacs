@@ -9,8 +9,6 @@
 (eval-when-compile (require 'cl-lib))
 
 (require 'common)
-(require 'dash)
-(require 'v)
 
 (defstruct (abbrev+-abbreviation
             (:constructor make--abbrev+-abbreviation))

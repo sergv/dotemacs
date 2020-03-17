@@ -10,7 +10,6 @@
 
 (require 'custom-predicates)
 (require 'macro-util)
-(require 'dash)
 
 ;;;###autoload
 (defun find-filename-in-tree-recursive (&optional case-sensetive)

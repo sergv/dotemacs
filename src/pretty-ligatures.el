@@ -7,8 +7,6 @@
 ;; Description:
 ;; Inspired by https://github.com/Profpatsch/blog/blob/master/posts/ligature-emulation-in-emacs/post.md.
 
-(require 'dash)
-
 ;; Alternative way to add ligatures. Let here for reference
 ;; NB order is important
 ;; (defconst pretty-ligatures--definitions

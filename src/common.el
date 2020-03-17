@@ -13,7 +13,12 @@
 
 (require 'macro-util)
 (require 'custom-predicates)
+
+(require 'f)
+(require 's)
 (require 'dash)
+(require 'v)
+
 
 (autoload 'if-let "subr-x" nil nil 'macro)
 
