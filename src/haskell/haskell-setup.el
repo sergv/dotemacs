@@ -164,18 +164,17 @@
                       nil
                       (vector `(column . ,(1- col)))))))
 
-(defhydra hydra-haskell (:exit t :foreign-keys warn :hint nil)
+(defhydra-ext hydra-haskell (:exit t :foreign-keys warn :hint nil)
   "
 _a_ttrap          _j_: eval
 _i_nfo
 _t_ype
 _q_ualify import"
-  ("t"        dante-type-at)
-  ("i"        dante-info)
-  ("j"        dante-eval-block)
-  ("q"        haskell-qualify-import)
-  ("a"        attrap-flycheck)
-  ("<escape>" nil))
+  ("t" dante-type-at)
+  ("i" dante-info)
+  ("j" dante-eval-block)
+  ("q" haskell-qualify-import)
+  ("a" attrap-flycheck))
 
 ;;;###autoload
 (defun haskell-setup ()
