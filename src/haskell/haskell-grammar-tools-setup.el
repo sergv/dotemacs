@@ -11,8 +11,18 @@
 (require 'haskell-outline)
 (require 'haskell-setup)
 (require 'haskell-watch)
+(require 'hydra-setup)
 
 (require 'mmm-setup)
+
+(defhydra-derive hydra-haskell-grammar-tools-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_a_lign
+_i_: jump to imports
+_I_: jump back"
+  ("a"     hydra-haskell-align/body)
+  ("i"     vim:haskell-navigate-imports)
+  ("I"     haskell-navigate-imports-return))
 
 ;;;###autoload
 (defun haskell-grammar-tools-setup ()
@@ -41,8 +51,7 @@
   (dolist (cmd '("cc" "ccompile"))
     (vim:local-emap cmd  #'vim:haskell-compile-choosing-command))
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("g i" vim:haskell-navigate-imports)
-    ("g I" haskell-navigate-imports-return))
+    ("g" hydra-haskell-grammar-tools-vim-normal-g-ext/body))
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
     ("M-t"             haskell-compilation-prev-error-other-window)
