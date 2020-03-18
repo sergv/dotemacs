@@ -176,6 +176,36 @@ _q_ualify import"
   ("q" haskell-qualify-import)
   ("a" attrap-flycheck))
 
+(defhydra-derive hydra-cabal-vim-normal-g-ext hydra-vim-normal-j-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_TAB_: align and sort subsection"
+  ("<tab>" haskell-misc-cabal-align-and-sort-subsection))
+
+(defhydra-derive hydra-haskell-vim-normal-j-ext hydra-vim-normal-j-ext (:exit t :foreign-keys nil :hint nil)
+  ""
+  ("cc" haskell-comment-node))
+
+(defhydra-derive hydra-haskell-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_a_lign                   _t_: jump to topmost node start
+_i_:     jump to imports  _h_: jump to topmont node end
+_I_:     jump back
+_<tab>_: reindent"
+  ("a"     hydra-haskell-align/body)
+  ("i"     vim:haskell-navigate-imports)
+  ("I"     haskell-navigate-imports-return)
+  ("<tab>" haskell-reindent-at-point)
+
+  ("t"     haskell-move-to-topmost-start)
+  ("h"     haskell-move-to-topmost-end))
+
+(defhydra-derive hydra-haskell-vim-visual-g-ext hydra-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_t_: jump to topmost node start
+_h_: jump to topmont node end"
+  ("t" haskell-move-to-topmost-start)
+  ("h" haskell-move-to-topmost-end))
+
 ;;;###autoload
 (defun haskell-setup ()
   (let ((non-vanilla-haskell-mode? (-any? #'derived-mode-p '(ghc-core-mode haskell-c2hs-mode haskell-hsc-mode))))
@@ -314,16 +344,14 @@ _q_ualify import"
 
     (def-keys-for-map vim:normal-mode-local-keymap
       ("\\"           vim:flycheck-run)
-      ("g c c"        haskell-comment-node)
+      ("g"            hydra-haskell-vim-normal-g-ext/body)
+      ("j"            hydra-haskell-vim-normal-j-ext/body)
       ("+"            input-unicode)
-      ("g i"          vim:haskell-navigate-imports)
-      ("g I"          haskell-navigate-imports-return)
-      ("g <tab>"      haskell-reindent-at-point)
       ("-"            hydra-haskell/body))
 
     (def-keys-for-map vim:visual-mode-local-keymap
       ("`"            vim:wrap-backticks)
-      ("g TAB"        haskell-format-pp-region-with-brittany))
+      ("g"            hydra-haskell-vim-visual-g-ext/body))
 
     (def-keys-for-map (vim:normal-mode-local-keymap
                        vim:visual-mode-local-keymap)
@@ -331,9 +359,7 @@ _q_ualify import"
       ("C-*"          search-for-haskell-symbol-at-point-forward-new-color)
       ("#"            search-for-haskell-symbol-at-point-backward)
       ("C-#"          search-for-haskell-symbol-at-point-backward-new-color)
-      ("'"            vim:haskell-backward-up-indentation-or-sexp)
-      ("g t"          haskell-move-to-topmost-start)
-      ("g h"          haskell-move-to-topmost-end))
+      ("'"            vim:haskell-backward-up-indentation-or-sexp))
 
     (def-keys-for-map vim:insert-mode-local-keymap
       ("`"            vim:wrap-backticks)
@@ -360,8 +386,6 @@ _q_ualify import"
       ("<S-iso-lefttab>" nil)
       ("<return>"        haskell-newline-with-signature-expansion)
       ("C-<return>"      haskell--simple-indent-newline-indent))
-
-    (haskell-define-align-bindings! vim:visual-mode-local-keymap)
 
     (def-keys-for-map (vim:normal-mode-local-keymap
                        vim:visual-mode-local-keymap
@@ -475,9 +499,7 @@ _q_ualify import"
   (def-keys-for-map haskell-compilation-mode-map
     +vim-special-keys+
     ("<return>" compilation/goto-error)
-    ("SPC"      compilation/goto-error-other-window)
-    ("g g"      vim-mock:motion-go-to-first-non-blank-beg)
-    ("G"        vim-mock:motion-go-to-first-non-blank-end)))
+    ("SPC"      compilation/goto-error-other-window)))
 
 ;;;###autoload
 (defun haskell-cabal-setup ()
@@ -496,8 +518,8 @@ _q_ualify import"
                  #'tab-to-tab-stop-backward
                  :enable-yasnippet t)
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("g <tab>" haskell-misc-cabal-align-and-sort-subsection)
-    ("'"       yafolding-go-parent-element))
+    ("g" hydra-cabal-vim-normal-g-ext/body)
+    ("'" yafolding-go-parent-element))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)

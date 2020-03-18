@@ -23,6 +23,7 @@
 (require 'haskell-format-setup)
 (require 'haskell-mode)
 (require 'haskell-regexen)
+(require 'hydra-setup)
 (require 'compilation-setup)
 
 (require 'flycheck)
@@ -303,19 +304,28 @@ sexps and indentation levels."
   (haskell-align-on-double-colons)
   (haskell-align-on-pragma-close))
 
-(defun haskell-define-align-bindings! (keymap)
-  (def-keys-for-map keymap
-    ("g a"       nil)
-    ("g a a"     haskell-align-generic)
-    ("g a $"     haskell-align-on-dollars)
-    ("g a ="     haskell-align-on-equals)
-    ("g a - >"   haskell-align-on-arrows)
-    ("g a < -"   haskell-align-on-left-arrows)
-    ("g a |"     haskell-align-on-guards)
-    ("g a ,"     haskell-align-on-commas)
-    ("g a - -"   haskell-align-on-comments)
-    ("g a : :"   haskell-align-on-double-colons)
-    ("g a # - }" haskell-align-on-pragma-close)))
+(defhydra-ext hydra-haskell-align (:exit t :foreign-keys nil :hint nil)
+  "
+_a_:   generic
+_$_:   on dollars
+_=_:   on equals
+_->_:  on arrows
+_<-_:  on left-arrows
+_|_:   on guards
+_,_:   on commas
+_--_:  on comments
+_::_:  on double colons
+_#-}_: on pragma close"
+  ("a"     haskell-align-generic)
+  ("$"     haskell-align-on-dollars)
+  ("="     haskell-align-on-equals)
+  ("- >"   haskell-align-on-arrows)
+  ("< -"   haskell-align-on-left-arrows)
+  ("|"     haskell-align-on-guards)
+  (","     haskell-align-on-commas)
+  ("- -"   haskell-align-on-comments)
+  (": :"   haskell-align-on-double-colons)
+  ("# - }" haskell-align-on-pragma-close))
 
 (defun haskell-reindent-at-point (&optional width)
   "Do some sensible reindentation depending on the current position in file."

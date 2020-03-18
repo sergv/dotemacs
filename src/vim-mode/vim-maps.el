@@ -407,9 +407,9 @@
 (vim:emap "substitute" #'vim:cmd-substitute)
 (vim:emap "s" "substitute")
 ;; (vim:emap "ju" "jumps")
-(vim:emap "nohlsearch" #'vim:cmd-nohighlight)
-(vim:emap "noh" "nohlsearch")
-(vim:emap "nh" "nohlsearch")
+;; (vim:emap "nohlsearch" #'vim:cmd-nohighlight)
+;; (vim:emap "noh" "nohlsearch")
+;; (vim:emap "nh" "nohlsearch")
 (vim:emap "nhg" #'vim:cmd-nohighlight-everywhere)
 ;; (vim:emap "setmode" #'vim:cmd-setmode)
 
