@@ -278,16 +278,20 @@ e.g. shell prompt.."
        (max (line-beginning-position)
             (1- (match-beginning 0)))))))
 
-(vim:defmotion vim:motion-go-to-first-non-blank-beg (linewise count)
-  "Moves the cursor to the first non-blank character of line count."
+(defun vim-mock:motion-go-to-first-non-blank-beg (&optional count)
+  (interactive "p")
   (vim:save-position)
   (if count
       (goto-line-dumb count)
     (goto-char (point-min)))
   (skip-to-indentation))
 
-(vim:defmotion vim:motion-go-to-first-non-blank-end (linewise count)
+(vim:defmotion vim:motion-go-to-first-non-blank-beg (linewise count)
   "Moves the cursor to the first non-blank character of line count."
+  (vim-mock:motion-go-to-first-non-blank-beg count))
+
+(defun vim-mock:motion-go-to-first-non-blank-end (&optional count)
+  (interactive "p")
   (vim:save-position)
   (if count
       (goto-line-dumb count)
@@ -295,6 +299,10 @@ e.g. shell prompt.."
                 (1- (point-max))
                 (point-min))))
   (skip-to-indentation))
+
+(vim:defmotion vim:motion-go-to-first-non-blank-end (linewise count)
+  "Moves the cursor to the first non-blank character of line count."
+  (vim-mock:motion-go-to-first-non-blank-end count))
 
 (defun vim:boundary-chars (direction chars)
   "A boundary selector for a sequence of `chars'."
