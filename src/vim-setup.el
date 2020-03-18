@@ -8,6 +8,7 @@
 
 (require 'common)
 (require 'completion-setup)
+(require 'hydra-setup)
 (require 'keys-def)
 (require 'search)
 (require 'smartparens-setup)
@@ -29,6 +30,93 @@ like \"d w\".")
 
 ;;; keybindings
 
+(defhydra-ext hydra-vim-normal-j-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_w_indows _cc_: comment         _sw_: replace word    _(d_: (a | b)         -> |b               _(l_: a (b | …) -> (a b | …)
+        _cu_: uncomment       _sW_: relpace WORD    _)d_: (a | b)         -> a|               _(r_: a (b | …) -> a b (| …)
+        _cd_: delete comment  _ss_: replace symbol  _a_:  a (b | c)       -> (b a | c)        _)l_: (… | a) b -> (… |) a b
+                                                _e_:  (a b c | d)     -> b c (a | d)      _)r_: (… | a) b -> (… | a b)
+                                                _?_:  (a b (c d | e)) -> (c d (a b | e))
+                                                _S_plit sexp
+                                                _J_oin sexp"
+  ("w"   hydra-window-management/body)
+
+  ("cc"  comment-util-comment-lines)
+  ("cu"  comment-util-uncomment-region)
+  ("cd"  comment-util-delete-commented-part)
+
+  ("sw"  vim-replace-word)
+  ("sW"  vim-replace-WORD)
+  ("ss"  vim-replace-symbol-at-point)
+
+  ("(d"  sp-splice-sexp-killing-backward)
+  (")d"  sp-splice-sexp-killing-forward)
+  ("a"   sp-absorb-sexp)
+  ("e"   sp-emit-sexp)
+  ("?"   sp-convolute-sexp)
+  ("S"   sp-split-sexp)
+  ("J"   sp-join-sexp)
+
+  ("(l"  sp-backward-slurp-sexp)
+  ("(r"  sp-backward-barf-sexp)
+  (")l"  sp-forward-barf-sexp)
+  (")r"  sp-forward-slurp-sexp)
+
+  ("(<left>"  sp-backward-slurp-sexp)
+  ("(<right>" sp-backward-barf-sexp)
+  (")<left>"  sp-forward-barf-sexp)
+  (")<right>" sp-forward-slurp-sexp))
+
+(defhydra-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
+  "
+new _f_rame           _#_: finish server edit          previous word _e_nd
+_g_o to start of file _k_ill buffer                    previous WORD _E_nd
+g_r_ep                _K_ill buffer and delete window
+_u_ndo tree           set _m_ark
+M-_x_
+"
+  ("f" make-frame)
+  ("g" vim-mock:motion-go-to-first-non-blank-beg)
+  ("r" egrep)
+  ("u" undo-tree-visualize)
+  ("x" ivy-smex)
+
+  ("#" server-edit)
+  ("k" remove-buffer)
+  ("K" remove-buffer-and-window)
+  ("m" vim:cmd-set-mark)
+
+  ("e" vim-mock:motion-bwd-word-end)
+  ("E" vim-mock:motion-bwd-WORD-end))
+
+(defhydra-ext hydra-vim-visual-j-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_cc_: comment
+_cu_: uncomment"
+  ("cc" comment-util-comment-region)
+  ("cu" comment-util-uncomment-region-simple))
+
+(defhydra-ext hydra-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
+  "
+g_r_ep
+replace _s_elected
+"
+  ("r" egrep-region)
+  ("s" vim-replace-selected))
+
+
+(defhydra-ext hydra-window-management (:exit t :foreign-keys warn :hint nil)
+  "
+_c_lose      _h_orizontal split
+_o_nly       _v_ertical split
+_t_ranspose"
+  ("c" delete-window)
+  ("o" delete-other-windows)
+  ("t" transpose-windows)
+
+  ("h" split-window-vertically)
+  ("v" split-window-horizontally))
+
 ;; redefine motions
 
 (def-keys-for-map (vim:normal-mode-keymap
@@ -38,9 +126,8 @@ like \"d w\".")
   ("0"         vim:motion-beginning-of-line-or-digit-argument)
   (("1" "2" "3" "4" "5" "6" "7" "8" "9")
    vim:digit-argument)
-  (("-" "g -") vim:universal-argument-minus)
+  ("-"   vim:universal-argument-minus)
 
-  ("g g" vim:motion-go-to-first-non-blank-beg)
   ("G"   vim:motion-go-to-first-non-blank-end)
   ("j"   nil)
 
@@ -49,6 +136,10 @@ like \"d w\".")
   ("m"   vim:motion-jump-item)
 
   ("q"   sp-up-sexp))
+
+(def-keys-for-map (vim:operator-pending-mode-keymap
+                   vim:motion-mode-keymap)
+  ("g g" vim:motion-go-to-first-non-blank-beg))
 
 (def-keys-for-map vim:operator-pending-mode-keymap
   (("is" "s") vim:motion-inner-symbol)
@@ -72,7 +163,6 @@ like \"d w\".")
     (":"         vim:motion-repeat-last-find-opposite)
 
     ("C-:"       pp-eval-expression)
-    ("g x"       ivy-smex)
     ("<down>"    vim:motion-fwd-paragraph)
     ("<up>"      vim:motion-bwd-paragraph)
 
@@ -83,9 +173,7 @@ like \"d w\".")
   '(("'"   sp-backward-up-sexp)
     ("]"   vim:motion-bwd-paragraph)
     ("["   vim:motion-fwd-paragraph)
-    ("s"   vim:ex-read-command)
-    ("g f" counsel-find-file)
-    ("g r" egrep)))
+    ("s"   vim:ex-read-command)))
 
 (def-keys-for-map (vim:normal-mode-keymap
                    vim:visual-mode-keymap)
@@ -99,8 +187,6 @@ like \"d w\".")
   ("X"       vim:cmd-delete-char-backward)
   ("M"       vim:jump-to-prev-saved-position)
 
-  ("g u"     undo-tree-visualize)
-
   ("S-<backspace>" delete-whitespace-backward)
   ("S-<delete>"    delete-whitespace-forward)
   ("C-w"           backward-delete-word)
@@ -108,15 +194,7 @@ like \"d w\".")
 
   ("Z"       nil)
 
-  ("g h"     nil)
-
-  ;; ("<f5>"    vim:motion-mark)
-  ("g m"     vim:cmd-set-mark)
-  ("Q"       vim:cmd-toggle-macro-recording)
-  ("S"       sp-split-sexp)
-  ("g J"     sp-join-sexp)
-  ("g j"     nil)
-  ("g q"     nil))
+  ("Q"       vim:cmd-toggle-macro-recording))
 
 (def-keys-for-map (vim:normal-mode-keymap
                    vim:insert-mode-keymap)
@@ -132,18 +210,6 @@ like \"d w\".")
   ("{"         scroll-up)
   ("}"         scroll-down)
   ("!"         shell-command+)
-
-  ("g ("       vim:sp-splice-sexp-killing-backward)
-  ("g )"       vim:sp-splice-sexp-killing-forward)
-  ("C-("       vim:sp-splice-sexp-killing-backward)
-  ("C-)"       vim:sp-splice-sexp-killing-forward)
-  ("( l"       vim:sp-absorb-sexp)
-  ("( r"       sp-emit-sexp)
-
-  ("( ("       vim:sp-backward-slurp-sexp)
-  ("( )"       vim:sp-backward-barf-sexp)
-  (") ("       vim:sp-forward-barf-sexp)
-  (") )"       vim:sp-forward-slurp-sexp)
 
   ("M-?"       sp-convolute-sexp)
   ("M-<left>"  sp-absorb-sexp)
@@ -163,19 +229,8 @@ like \"d w\".")
   ("C-p"       yank)
   ("M-p"       browse-kill-ring)
 
-  ("g s w"     vim-replace-word)
-  ("g s W"     vim-replace-WORD)
-  ("g s s"     vim-replace-symbol-at-point)
-
-  ;; ("g g f"     find-filename-in-tree-recursive)
-  ("g c c"     comment-util-comment-lines)
-  ("g c u"     comment-util-uncomment-region)
-  ("g c d"     comment-util-delete-commented-part)
-
-  ("g TAB"     nil)
-  ("g n"       nil)
-  ("g t"       nil)
-  ("g #"       server-edit)
+  ("g"         hydra-vim-normal-g-ext/body)
+  ("j"         hydra-vim-normal-j-ext/body)
 
   ("<f5>"      vim:revert-buffer)
   ("H"         vim:revert-buffer))
@@ -193,13 +248,11 @@ like \"d w\".")
   ("k"       vim:cmd-make-downcase)
   ("K"       vim:cmd-make-upcase)
 
-  ("g c c"   comment-util-comment-region)
-  ("g c u"   comment-util-uncomment-region-simple)
-
   ("SPC SPC" vim:visual-exchange-point-and-mark)
 
-  ("g r"     egrep-region)
-  ("g s"     vim-replace-selected)
+  ("j" hydra-vim-visual-j-ext/body)
+  ("g" hydra-vim-visual-g-ext/body)
+
   (("(" ")") vim:wrap-parens)
   (("[" "]") vim:wrap-braces)
   (("{" "}") vim:wrap-brackets)
@@ -280,54 +333,6 @@ like \"d w\".")
   "Jump to position pointed to by ' mark.
 Basically swap current point with previous one."
   (vim:motion-mark :argument ?\'))
-
-(vim:defcmd vim:cmd-only (nonrepeatable keep-visual)
-  "Close all window except current one, just like C-x 1."
-  (delete-other-windows))
-
-(vim:emap "only" #'vim:cmd-only)
-(vim:emap "on" #'vim:cmd-only)
-
-(vim:defcmd vim:cmd-close (nonrepeatable keep-visual)
-  "Close current window, just like C-x 0."
-  (delete-window))
-
-(vim:emap "close" #'vim:cmd-close)
-(vim:emap "cl" #'vim:cmd-close)
-
-(vimmize-function
- split-window-horizontally
- ;; this is not a bug, name is correct!
- :name vim:cmd-split-vertically
- :doc   "Split current window vertically, just like C-x 3."
- :repeatable nil
- :keep-visual t)
-
-(vimmize-function
- split-window-vertically
- ;; this is not a bug, this name is correct too!
- :name vim:cmd-split-horizontally
- :doc "Split current window horizontally, just like C-x 2."
- :repeatable nil
- :keep-visual t)
-
-(vimmize-function
- transpose-windows
- :name vim:transpose-windows
- :has-count nil
- :repeatable nil
- :keep-visual t)
-
-(vim:emap "hsplit" #'vim:cmd-split-horizontally)
-(vim:emap "hs" #'vim:cmd-split-horizontally)
-(vim:emap "vsplit" #'vim:cmd-split-vertically)
-(vim:emap "vs" #'vim:cmd-split-vertically)
-(vim:emap "transpose" #'vim:transpose-windows)
-(vim:emap "tr" #'vim:transpose-windows)
-
-(vim:emap "write" #'vim:cmd-write-current-buffer)
-(vim:emap "w" #'vim:cmd-write-current-buffer)
-
 
 (autoload 'awk-exit "awk+")
 (autoload 'awk-on-region "awk+")
@@ -497,15 +502,6 @@ Basically swap current point with previous one."
 
 (vim:emap "ibuffer" #'vim:ibuffer)
 (vim:emap "ib" #'vim:ibuffer)
-
-;; Frame commands
-
-(vim:defcmd vim:cmd-new-frame (nonrepeatable keep-visual)
-  "Pops up a new frame."
-  (make-frame))
-
-(vim:emap "newf" #'vim:cmd-new-frame)
-(vim:emap "nf" #'vim:cmd-new-frame)
 
 ;; Buffer commands
 

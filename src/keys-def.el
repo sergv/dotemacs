@@ -84,18 +84,10 @@
   `(("s"     vim:ex-read-command)
     ("C-M-k" remove-buffer)
 
-    ("g"     nil)
-    ("g x"   ivy-smex)
+    ("g"     hydra-vim-normal-g-ext/body)
+    ("j"     hydra-vim-normal-j-ext/body)
     ("M-x"   ivy-smex)
-    ("g e"   vim-mock:motion-bwd-word-end)
-    ("g E"   vim-mock:motion-bwd-WORD-end)
-    ("g f"   find-file)
-    ("g r"   egrep)
-    ("g k"   remove-buffer)
-    ("g K"   remove-buffer-and-window)
-    ("g u"   undo-tree-visualize)
 
-    ("g g"   vim-mock:motion-go-to-first-non-blank-beg)
     ("G"     vim-mock:motion-go-to-first-non-blank-end)
 
     ("z"     nil)
