@@ -16,6 +16,15 @@
 ;; (def-keys-for-map hydra-base-map
 ;;   )
 
+(defmacro defhydra-ext (name body &optional docstring &rest heads)
+  "Like `defhydra' but also binds standard keys I expect to find across
+all hydras in my setup."
+  (declare (indent defun) (doc-string 3))
+  `(defhydra ,name ,body
+     ,docstring
+     ,@heads
+     ("<escape>" nil)))
+
 (provide 'hydra-setup)
 
 ;; Local Variables:
