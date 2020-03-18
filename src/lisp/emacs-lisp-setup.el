@@ -77,6 +77,11 @@
   ;; taken from pp.el
   (insert (pp-to-string (macroexpand-all (pp-last-sexp)))))
 
+(defhydra-derive hydra-lisp-vim-normal-j-ext hydra-vim-normal-j-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_j_: eval"
+  ("j" eval-last-sexp))
+
 ;;;###autoload
 (defun emacs-lisp-setup ()
   (lisp-setup)
@@ -90,7 +95,7 @@
                      'paredit-close-round)
 
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("j"       eval-last-sexp)
+    ("j"       hydra-lisp-vim-normal-j-ext/body)
     ("- m"     expand-last-macro)
     ("- M"     expand-last-macro-all)
 
@@ -102,8 +107,8 @@
     ("<tab>"        indent-for-tab-command)
     (("C-m" "<f9>") elisp-compile-and-move))
 
-  (def-keys-for-map vim:visual-mode-local-keymap
-    ("j"       eval-region))
+  ;; (def-keys-for-map vim:visual-mode-local-keymap
+  ;;   ("j"       eval-region))
 
   (def-keys-for-map vim:insert-mode-local-keymap
     ("<tab>"   indent-for-tab-command)

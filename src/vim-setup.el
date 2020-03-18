@@ -32,13 +32,17 @@ like \"d w\".")
 
 (defhydra-ext hydra-vim-normal-j-ext (:exit t :foreign-keys nil :hint nil)
   "
-_w_indows _cc_: comment         _sw_: replace word    _(d_: (a | b)         -> |b               _(l_: a (b | …) -> (a b | …)
-        _cu_: uncomment       _sW_: relpace WORD    _)d_: (a | b)         -> a|               _(r_: a (b | …) -> a b (| …)
-        _cd_: delete comment  _ss_: replace symbol  _a_:  a (b | c)       -> (b a | c)        _)l_: (… | a) b -> (… |) a b
-                                                _e_:  (a b c | d)     -> b c (a | d)      _)r_: (… | a) b -> (… | a b)
-                                                _?_:  (a b (c d | e)) -> (c d (a b | e))
-                                                _S_plit sexp
-                                                _J_oin sexp"
+_w_indows _cc_: comment         _sw_: replace word
+        _cu_: uncomment       _sW_: relpace WORD
+        _cd_: delete comment  _ss_: replace symbol
+
+_(d_: (a | b)         -> |b               _(l_: a (b | …) -> (a b | …)
+_)d_: (a | b)         -> a|               _(r_: a (b | …) -> a b (| …)
+_a_:  a (b | c)       -> (b a | c)        _)l_: (… | a) b -> (… |) a b
+_e_:  (a b c | d)     -> b c (a | d)      _)r_: (… | a) b -> (… | a b)
+_?_:  (a b (c d | e)) -> (c d (a b | e))
+_S_plit sexp
+_J_oin sexp"
   ("w"   hydra-window-management/body)
 
   ("cc"  comment-util-comment-lines)

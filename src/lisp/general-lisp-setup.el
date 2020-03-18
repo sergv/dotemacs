@@ -16,6 +16,7 @@
 (require 'common)
 (require 'el-patch)
 (require 'eldoc)
+(require 'hydra-setup)
 (require 'indentation)
 (require 'macro-util)
 (require 'outline-headers)
@@ -548,25 +549,40 @@ nor comment."
      (show-subtree)))
  (clojure-mode lisp-mode common-lisp-mode scheme-mode emacs-lisp-mode))
 
-;;;; keybindings as variables
-
-(defparameter *lisp-vim-normal-mode-keybindings*
-  '(("g c c"   lisp-comment-sexp)
-    ("g c u"   lisp-uncomment-sexp)
-    ("g <tab>" sp-indent-defun)
-    ("+"       input-unicode)))
-
-(defparameter *lisp-vim-movement-keybindings*
-  '(("g t"     glisp/beginning-of-defun)
-    ("g h"     glisp/end-of-defun)))
-
-(defparameter *lisp-search-keybindings*
-  '(("*"   search-for-symbol-at-point-forward)
-    ("M-*" search-for-symbol-at-point-forward-new-color)
-    ("#"   search-for-symbol-at-point-backward)
-    ("M-#" search-for-symbol-at-point-backward-new-color)))
-
 ;;; Actual setup functions
+
+(defhydra-ext hydra-lisp-align (:exit t :foreign-keys nil :hint nil)
+  "
+_l_et
+_;_: comments"
+  ("l" realign-let)
+  (";" lisp-align-on-comments))
+
+(defhydra-derive hydra-lisp-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_a_lign                  _t_: jump to topmost node start
+_<tab>_: reindent defun  _h_: jump to topmont node end
+_cl_: comment lines"
+  ("a"     hydra-lisp-align/body)
+  ("cc"    lisp-comment-sexp)
+  ("cu"    lisp-uncomment-sexp)
+  ("<tab>" sp-indent-defun)
+  ("cl"    comment-util-comment-lines)
+
+  ("t"     glisp/beginning-of-defun)
+  ("h"     glisp/end-of-defun))
+
+(defhydra-derive hydra-lisp-vim-visual-g-ext hydra-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_a_lign                 _t_: jump to topmost node start
+_cc_: comment region    _h_: jump to topmont node end
+_cu_: uncomment region"
+  ("a"  hydra-lisp-align/body)
+  ("cc" comment-util-comment-region)
+  ("cu" comment-util-uncomment-region-simple)
+
+  ("t"     glisp/beginning-of-defun)
+  ("h"     glisp/end-of-defun))
 
 ;;;###autoload
 (defun* lisp-setup (&key (use-whitespace nil) (use-fci t))
@@ -599,28 +615,20 @@ nor comment."
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap)
-    *lisp-search-keybindings*)
+    ("*"   search-for-symbol-at-point-forward)
+    ("M-*" search-for-symbol-at-point-forward-new-color)
+    ("#"   search-for-symbol-at-point-backward)
+    ("M-#" search-for-symbol-at-point-backward-new-color))
 
   (def-keys-for-map vim:normal-mode-local-keymap
-    *lisp-vim-normal-mode-keybindings*
-
-    ("- c c"    comment-util-comment-lines)
-    ("- c u"    comment-util-uncomment-region)
-
-    ;; universal align, aligns everything
-    ;; but currently only aligns lets, setqs etc
-    ("g a"      nil)
-    ("g a a"    realign-let)
-    ("g a l"    realign-let))
+    ("+"        input-unicode)
+    ("g"        hydra-lisp-vim-normal-g-ext/body))
 
   (def-keys-for-map vim:visual-mode-local-keymap
-    ("g a"      nil)
-    ("g a ;"    lisp-align-on-comments)
+    ("g"        hydra-lisp-vim-visual-g-ext/body)
 
     ("z c"      hs-hide-sexps-in-region)
     ("z o"      hs-show-sexps-in-region)
-    ("g c c"    comment-util-comment-region)
-    ("g c u"    comment-util-uncomment-region-simple)
 
     ("'"        sp-backward-up-sexp))
 
@@ -629,11 +637,10 @@ nor comment."
     ("C-="      input-unicode)
     (")"        paredit-close-round))
 
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:visual-mode-local-keymap
-                     vim:operator-pending-mode-local-keymap
+  (def-keys-for-map (vim:operator-pending-mode-local-keymap
                      vim:motion-mode-local-keymap)
-    *lisp-vim-movement-keybindings*)
+    ("g t"     glisp/beginning-of-defun)
+    ("g h"     glisp/end-of-defun))
 
   (def-keys-for-map (vim:motion-mode-local-keymap
                      vim:operator-pending-mode-local-keymap)
