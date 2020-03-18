@@ -440,43 +440,39 @@ and switches to insert-mode."
 (defparameter vim:last-paste nil
   "Information of the latest paste as a `vim:paste-info' structure.")
 
-(defun vim:cmd-paste-pop (count)
-  "Cycle through the kill-ring like yank-pop if previous command was yank or paste-pop,
-and else negates meaning of the next command (e.g. vim:cmd-join-lines will split them)."
+
+(defun vim--cmd-paste-get-text (counter register)
+  (let ((text (if register
+                  (vim:get-register register)
+                (current-kill counter t))))
+    (if text
+        text
+      (error "%s empty" (if register "Register" "Kill-ring")))))
+
+(defun vim--cmd-paste-undo ()
   (when vim:last-paste
     (funcall (or yank-undo-function #'delete-region)
              (vim:paste-info-begin vim:last-paste)
              (vim:paste-info-end vim:last-paste))
-    (goto-char (vim:paste-info-point vim:last-paste))
-    (current-kill (or count 1))
-    (funcall (vim:paste-info-command vim:last-paste)
-             :count (vim:paste-info-count vim:last-paste))))
+    (goto-char (vim:paste-info-point vim:last-paste))))
 
-(vim:defcmd vim:cmd-paste-pop-prev (count)
-  "Cycles through the kill-ring like yank-pop."
-  (setq this-command last-command)
-  (vim:cmd-paste-pop (or count 1)))
+(defvar vim:cmd-paste-before-counter nil)
 
-(vim:defcmd vim:cmd-paste-pop-next (count)
-  "Cycles through the kill-ring like `yank-pop'."
-  (setq this-command last-command)
-  (vim:cmd-paste-pop (- (or count 1))))
-
-(vim:defcmd vim:cmd-paste-before (count register)
-  "Pastes the latest yanked text before the cursor position."
+(defun vim--cmd-paste-before (count register)
   (let ((pos (point))
-        beg end)
+        beg
+        end
+        (text (vim--cmd-paste-get-text vim:cmd-paste-before-counter register)))
     (save-excursion
       (dotimes (i (or count 1))
         (if register
-          (insert-for-yank (vim:get-register register))
+            (insert-for-yank text)
           (progn
             (set-mark (point))
-            (insert-for-yank (current-kill 0))
+            (insert-for-yank text)
             (setq beg (min (point) (mark t) (or beg (point)))
                   end (max (point) (mark t) (or end (point))))))))
-    (let* ((txt (if register (vim:get-register register) (current-kill 0)))
-           (yhandler (get-text-property 0 'vim:yank-handler txt)))
+    (let ((yhandler (get-text-property 0 'vim:yank-handler text)))
       (when (eq yhandler 'vim:yank-line-handler)
         ;; place cursor at for non-blank of first inserted line
         (goto-char pos)
@@ -488,46 +484,75 @@ and else negates meaning of the next command (e.g. vim:cmd-join-lines will split
                                :count count
                                :command 'vim:cmd-paste-before))))
 
+(vim:defcmd vim:cmd-paste-before (count register)
+  "Pastes the latest yanked text before the cursor position."
+  (if (eq last-command 'vim:cmd-paste-before)
+      (progn
+        (setf vim:cmd-paste-before-counter
+              (if vim:cmd-paste-before-counter
+                  (+ vim:cmd-paste-before-counter 1)
+                1))
+        (vim--cmd-paste-undo)
+        (vim--cmd-paste-before (vim:paste-info-count vim:last-paste) nil))
+    (progn
+      (setf vim:cmd-paste-before-counter 0)
+      (vim--cmd-paste-before count register))))
+
+(defvar vim:cmd-paste-behind-counter nil)
+
+(defun vim--cmd-paste-behind (count register)
+  (let ((yhandler (get-text-property 0 'vim:yank-handler
+                                     (vim--cmd-paste-get-text vim:cmd-paste-behind-counter register)))
+        (pos (point)))
+    (setf vim:cmd-paste-before-counter vim:cmd-paste-behind-counter)
+    (pcase yhandler
+      (`vim:yank-line-handler
+       (let ((at-eob (= (line-end-position) (point-max))))
+         ;; We have to take care of the special case where we cannot
+         ;; go to the next line because we reached eob.
+         (forward-line)
+         (when at-eob (newline))
+         (vim--cmd-paste-before count register)
+         (when at-eob
+           ;; we have to remove the final newline and update paste-info
+           (goto-char (vim:paste-info-begin vim:last-paste))
+           (delete-backward-char 1)
+           (setf
+            (vim:paste-info-begin vim:last-paste)  (max (point-min)
+                                                        (1- (vim:paste-info-begin vim:last-paste)))
+            (vim:paste-info-end vim:last-paste)    (1- (vim:paste-info-end vim:last-paste))
+            (vim:paste-info-at-eob vim:last-paste) t))
+         (vim:motion-first-non-blank)))
+
+      (`vim:yank-block-handler
+       (forward-char)
+       (vim--cmd-paste-before count register))
+
+      (_
+       (unless (eob?) (forward-char))
+       (vim--cmd-paste-before count register)
+       ;; goto end of paste
+       (goto-char (1- (vim:paste-info-end vim:last-paste)))))
+    (setf (vim:paste-info-point vim:last-paste) pos
+          (vim:paste-info-command vim:last-paste) 'vim:cmd-paste-behind)))
+
 (vim:defcmd vim:cmd-paste-behind (count register)
   "Pastes the latest yanked text behind point."
-  ;; Paste behind works by moving the cursor and calling
-  ;; vim:cmd-paste-before afterwards. Afterwards the information of
-  ;; vim:last-paste is updated.
-  (let ((txt (if register (vim:get-register register) (current-kill 0))))
-    (unless txt
-      (error "Kill-ring empty"))
-    (let ((yhandler (get-text-property 0 'vim:yank-handler txt))
-          (pos (point)))
-      (pcase yhandler
-        (`vim:yank-line-handler
-         (let ((at-eob (= (line-end-position) (point-max))))
-           ;; We have to take care of the special case where we cannot
-           ;; go to the next line because we reached eob.
-           (forward-line)
-           (when at-eob (newline))
-           (vim:cmd-paste-before :count count :register register)
-           (when at-eob
-             ;; we have to remove the final newline and update paste-info
-             (goto-char (vim:paste-info-begin vim:last-paste))
-             (delete-backward-char 1)
-             (setf
-              (vim:paste-info-begin vim:last-paste)  (max (point-min)
-                                                          (1- (vim:paste-info-begin vim:last-paste)))
-              (vim:paste-info-end vim:last-paste)    (1- (vim:paste-info-end vim:last-paste))
-              (vim:paste-info-at-eob vim:last-paste) t))
-           (vim:motion-first-non-blank)))
+  (if (eq last-command 'vim:cmd-paste-behind)
+      (progn
+        (setf vim:cmd-paste-behind-counter
+              (if vim:cmd-paste-behind-counter
+                  (+ vim:cmd-paste-behind-counter 1)
+                1))
+        (vim--cmd-paste-undo)
+        (vim--cmd-paste-behind count register))
+    ;; Paste behind works by moving the cursor and calling
+    ;; vim:cmd-paste-before afterwards. Afterwards the information of
+    ;; vim:last-paste is updated.
+    (progn
+      (setf vim:cmd-paste-behind-counter 0)
+      (vim--cmd-paste-behind count register))))
 
-        (`vim:yank-block-handler
-         (forward-char)
-         (vim:cmd-paste-before :count count :register register))
-
-        (_
-         (unless (eob?) (forward-char))
-         (vim:cmd-paste-before :count count :register register)
-         ;; goto end of paste
-         (goto-char (1- (vim:paste-info-end vim:last-paste)))))
-      (setf (vim:paste-info-point vim:last-paste) pos
-            (vim:paste-info-command vim:last-paste) 'vim:cmd-paste-behind))))
 
 (vim:defcmd vim:cmd-paste-before-and-indent (count register)
   "Pastes the latest yanked text before point.
