@@ -8,23 +8,6 @@
 
 (require 'vim-motions)
 
-(defun vim-mock:motion-go-to-first-non-blank-beg (&optional count)
-  (interactive "p")
-  (vim:save-position)
-  (if count
-      (goto-line-dumb count)
-    (goto-char (point-min)))
-  (skip-to-indentation))
-
-(defun vim-mock:motion-go-to-first-non-blank-end ()
-  (interactive)
-  (vim:save-position)
-  (goto-char (max
-              (1- (point-max))
-              (point-min)))
-  (skip-to-indentation))
-
-
 (defun vim-mock:scroll-line-to-center ()
   "Scroll selected line to the center of the window."
   (interactive)
