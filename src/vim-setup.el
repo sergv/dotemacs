@@ -96,8 +96,6 @@ like \"d w\".")
   (","       vim:cmd-delete)
   ("l"       vim:cmd-change-char)
 
-  ("="       vim:cmd-paste-pop-prev)
-  ("+"       vim:cmd-paste-pop-next)
   ("X"       vim:cmd-delete-char-backward)
   ("M"       vim:jump-to-prev-saved-position)
 
