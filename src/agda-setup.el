@@ -60,7 +60,7 @@
     ;; insert some value that matches hole's type
     ("- a"             agda2-auto)
     ;; query expression and evaluate (normalise) it)
-    ("j"               agda2-compute-normalised-maybe-toplevel)
+    ("- e"             agda2-compute-normalised-maybe-toplevel)
     ;; Give. Checks whether the term written in the current hole has the right
     ;; type and, if it does, replaces the hole with that term.
     ("- g"             agda2-give)
@@ -76,7 +76,7 @@
     ("C-t"             agda2-previous-goal)
     ("C-h"             agda2-next-goal))
   (def-keys-for-map vim:visual-mode-local-keymap
-    ("j"               agda2-compute-normalised-region)
+    ("- e"             agda2-compute-normalised-region)
     ("g a ="           haskell-align-on-equals)
     ("g a - >"         haskell-align-on-arrows)
     ("g a < -"         haskell-align-on-left-arrows)

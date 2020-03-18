@@ -222,7 +222,9 @@ _z_: stash
 
 Work with changes:
          _s_tage      _u_nstage
-d_i_scard  _S_tage all  _U_nstage all"
+d_i_scard  _S_tage all  _U_nstage all
+
+_w_indow"
   ("b" magit-branch-popup)
   ("c" magit-commit-popup)
   ("d" magit-diff-popup)
@@ -252,7 +254,9 @@ d_i_scard  _S_tage all  _U_nstage all"
   ("p" magit-push-popup)
 
   ("D" magit-diff-refresh-popup)
-  ("L" magit-log-refresh-popup))
+  ("L" magit-log-refresh-popup)
+
+  ("w" hydra-window-management/body))
 
 (defun magit-bind-common-vimless-mode-keymap (map)
   (def-keys-for-map (magit-unstaged-section-map
