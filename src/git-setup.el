@@ -206,7 +206,7 @@ directory computed by git.")
                                 sections)))
         (magit-apply-hunk hunk "--cached")))))
 
-(defhydra hydra-magit (:exit t :foreign-keys warn :hint nil)
+(defhydra-ext hydra-magit (:exit t :foreign-keys warn :hint nil)
   "
 ^Command^      ^On commit^       ^Remote^      ^Options^
 --------------------------------------------------------
@@ -223,38 +223,36 @@ _z_: stash
 Work with changes:
          _s_tage      _u_nstage
 d_i_scard  _S_tage all  _U_nstage all"
-  ("b"        magit-branch-popup)
-  ("c"        magit-commit-popup)
-  ("d"        magit-diff-popup)
-  ("e"        magit-ediff-popup)
-  ("l"        magit-log-popup)
-  ("m"        magit-merge-popup)
-  ("r"        magit-rebase-popup)
-  ("x"        magit-reset-popup)
-  ("z"        magit-stash-popup)
+  ("b" magit-branch-popup)
+  ("c" magit-commit-popup)
+  ("d" magit-diff-popup)
+  ("e" magit-ediff-popup)
+  ("l" magit-log-popup)
+  ("m" magit-merge-popup)
+  ("r" magit-rebase-popup)
+  ("x" magit-reset-popup)
+  ("z" magit-stash-popup)
 
-  ("a"        magit-cherry-pick-popup)
-  ("R"        magit-file-rename)
-  ("t"        magit-tag-popup)
-  ("T"        magit-notes-popup)
-  ("v"        magit-reverse)
+  ("a" magit-cherry-pick-popup)
+  ("R" magit-file-rename)
+  ("t" magit-tag-popup)
+  ("T" magit-notes-popup)
+  ("v" magit-reverse)
 
-  ("i"        magit-discard)
-  ("s"        magit-stage)
-  ("u"        magit-unstage)
-  ("S"        magit-stage-modified)
-  ("U"        magit-unstage-all)
+  ("i" magit-discard)
+  ("s" magit-stage)
+  ("u" magit-unstage)
+  ("S" magit-stage-modified)
+  ("U" magit-unstage-all)
 
-  ("f"        magit-fetch-popup)
-  ("F"        magit-pull-popup)
-  ("M"        magit-remote-popup)
-  ("o"        magit-submodule-popup)
-  ("p"        magit-push-popup)
+  ("f" magit-fetch-popup)
+  ("F" magit-pull-popup)
+  ("M" magit-remote-popup)
+  ("o" magit-submodule-popup)
+  ("p" magit-push-popup)
 
-  ("D"        magit-diff-refresh-popup)
-  ("L"        magit-log-refresh-popup)
-
-  ("<escape>" nil))
+  ("D" magit-diff-refresh-popup)
+  ("L" magit-log-refresh-popup))
 
 (defun magit-bind-common-vimless-mode-keymap (map)
   (def-keys-for-map (magit-unstaged-section-map
