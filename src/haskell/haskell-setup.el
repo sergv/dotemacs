@@ -176,7 +176,7 @@ _q_ualify import"
   ("q" haskell-qualify-import)
   ("a" attrap-flycheck))
 
-(defhydra-derive hydra-cabal-vim-normal-g-ext hydra-vim-normal-j-ext (:exit t :foreign-keys nil :hint nil)
+(defhydra-derive hydra-cabal-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
   "
 _TAB_: align and sort subsection"
   ("<tab>" haskell-misc-cabal-align-and-sort-subsection))
