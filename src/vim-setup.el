@@ -508,23 +508,6 @@ Basically swap current point with previous one."
 (vim:emap "ibuffer" #'vim:ibuffer)
 (vim:emap "ib" #'vim:ibuffer)
 
-;; Buffer commands
-
-(vim:defcmd vim:remove-buffer ((argument:buffer buf) nonrepeatable)
-  "Remove current buffer."
-  (remove-buffer buf))
-
-(vim:emap "rb" #'vim:remove-buffer)
-(vim:emap "bd" #'vim:remove-buffer)
-
-(vim:defcmd vim:remove-buffer-and-window (nonrepeatable)
-  "Remove current buffer and close its window."
-  (remove-buffer-and-window))
-
-(vim:emap "rbw" #'vim:remove-buffer-and-window)
-(vim:emap "bdw" #'vim:remove-buffer-and-window)
-
-
 (vim:defcmd vim:do-commands
   ((argument:text command) nonrepeatable)
   (mapc #'vim:ex-execute-command
