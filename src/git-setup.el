@@ -130,6 +130,13 @@ directory computed by git.")
   (interactive)
   (gitconfig-align-on-equals))
 
+(defhydra-ext hydra-gitconfig-align (:exit t :foreign-keys nil :hint nil)
+  "
+_a_: generic
+_=_: on equals"
+  ("a" gitconfig-align-generic)
+  ("=" gitconfig-align-on-equals))
+
 (defun gitconfig-setup ()
   (init-common :use-yasnippet nil
                :use-comment   t
@@ -143,8 +150,7 @@ directory computed by git.")
     ("S-<iso-tab>" tab-to-tab-stop-backward))
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap)
-    ("g a ="       gitconfig-align-on-equals)
-    ("g a a"       gitconfig-align-generic)))
+    ("g" hydra-gitconfig-align/body)))
 
 ;;; magit
 
@@ -254,8 +260,11 @@ _w_indow"
   ("p" magit-push-popup)
 
   ("D" magit-diff-refresh-popup)
-  ("L" magit-log-refresh-popup)
+  ("L" magit-log-refresh-popup))
 
+(defhydra-derive hydra-magit-j hydra-magit (:exit t :foreign-keys warn :hint nil)
+  "
+_w_indow"
   ("w" hydra-window-management/body))
 
 (defun magit-bind-common-vimless-mode-keymap (map)
@@ -287,7 +296,8 @@ _w_indow"
 
     ("p"               magit-stash-popup)
     (("H" "<f5>")      magit-refresh)
-    (("-" "j")         hydra-magit/body)
+    ("-"               hydra-magit/body)
+    ("j"               hydra-magit-j/body)
     ("\\"              magit-discard)
     ("M"               vim:jump-to-prev-saved-position)
     ("O"               magit-remote-popup)
@@ -351,6 +361,7 @@ _w_indow"
 ;;; git-modes
 
 (defun git-commit-mode-setup ()
+
   "Mode for editing commit message."
   (init-common :use-yasnippet nil
                :use-comment nil
@@ -367,6 +378,30 @@ _w_indow"
      )
     ("M-p"     nil)))
 
+(defhydra-ext hydra-git-rebase (:exit t :foreign-keys warn :hint nil)
+  "
+_d_elete  _k_: undo  _a_bort
+_e_dit               _q_uit
+_f_ixup
+_p_ick
+_r_eword
+_s_quash
+e_x_ec"
+  ("s" git-rebase-squash)
+  ("p" git-rebase-pick)
+  ("k" git-rebase-undo)
+  ("x" git-rebase-exec)
+  ("r" git-rebase-reword)
+  ("w" git-rebase-reword)
+  ("e" git-rebase-edit)
+  ("s" git-rebase-squash)
+  ("f" git-rebase-fixup)
+  ("d" git-rebase-kill-line))
+
+(defhydra-derive hydra-git-rebase-from-vim-normal hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
+  ""
+  ("#" with-editor-finish))
+
 (defun git-rebase-mode-setup ()
   (hl-line-mode +1)
   (def-keys-for-map git-rebase-mode-map
@@ -375,17 +410,20 @@ _w_indow"
     +vim-mock:word-motion-keys+
     +vim-special-keys+
     ("C-k"      nil) ;; its kill buffer in global map
-    ("q"        with-editor-cancel)
-    ("a"        git-rebase-abort)
     ("<down>"   git-rebase-move-line-down)
     ("<up>"     git-rebase-move-line-up)
     ("C-h"      git-rebase-move-line-down)
     ("C-t"      git-rebase-move-line-up)
     ("SPC"      git-rebase-show-commit)
-    ("g #"      with-editor-finish)
     ("<return>" with-editor-finish)
 
-    ("n"        ignore)
+    ("g"        hydra-git-rebase-from-vim-normal/body)
+    ("-"        hydra-git-rebase/body)
+
+    ("n"        nil)
+    ("q"        with-editor-cancel)
+    ("a"        git-rebase-abort)
+
     ("s"        git-rebase-squash)
     ("p"        git-rebase-pick)
     ("k"        git-rebase-undo)

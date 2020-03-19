@@ -22,8 +22,7 @@
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap)
-    ("g a =" gitconfig-align-on-equals)
-    ("g a a" gitconfig-align-generic)))
+    ("g" hydra-gitconfig-align/body)))
 
 (add-hook 'toml-mode-hook #'toml-setup)
 
