@@ -657,6 +657,11 @@ indented according to the current mode."
            (insert-char (if (eq c (upcase c)) (downcase c) (upcase c)) 1)
            (setq beg (1+ beg))))))))
 
+(vim:defcmd vim:cmd-toggle-case-one-char (count)
+  "Toggles the case of a single character at point and moves the point forward."
+  (interactive)
+  (vim:cmd-toggle-case :motion (vim:motion-right :count count)))
+
 (vim:defcmd vim:cmd-make-upcase (motion)
   "Upcases all characters defined by `motion'."
   (vim:apply-on-motion motion #'upcase-region))
