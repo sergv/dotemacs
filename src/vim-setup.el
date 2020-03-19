@@ -214,6 +214,7 @@ _t_ranspose"
   ("{"         scroll-up)
   ("}"         scroll-down)
   ("!"         shell-command+)
+  ("~"         vim:cmd-toggle-case-one-char)
 
   ("M-?"       sp-convolute-sexp)
   ("M-<left>"  sp-absorb-sexp)
