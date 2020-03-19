@@ -306,9 +306,7 @@
 (defalias 'cp 'copy-file-and-open)
 (defalias 'mkdir 'make-directory)
 (defalias 'rmdir 'delete-directory)
-(defalias 'qrr 'query-replace-regexp)
 (defalias 'unnarrow 'widen)
-(defalias 'toggle-wrap-lines 'toggle-truncate-lines)
 
 ;;;; Epilogue
 

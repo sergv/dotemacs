@@ -8,6 +8,7 @@
 
 (require 'hydra)
 (require 'posframe)
+(require 'simple)
 
 (setf hydra-hint-display-type (if (posframe-workable-p)
                                   'posframe
@@ -30,6 +31,23 @@ all hydras in my setup."
         (append (hydra--prop parent "/heads") heads)
         :key #'car
         :test #'equal)))
+
+(defhydra-ext hydra-toggle (:exit nil :foreign-keys nil :hint nil)
+  "
+Toggle:
+_d_ebug on error  %`debug-on-error
+auto _f_ill       %(if auto-fill-function t nil)
+debug on _q_uit   %`debug-on-quit
+_t_runate lines   %`truncate-lines
+_w_hitespace mode %`whitespace-mode
+"
+  ("d" toggle-debug-on-error)
+  ("f" auto-fill-mode)
+  ("q" toggle-debug-on-quit)
+  ("t" toggle-truncate-lines)
+  ("w" whitespace-mode))
+
+(defalias 'toggle #'hydra-toggle/body)
 
 (provide 'hydra-setup)
 
