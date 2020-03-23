@@ -281,7 +281,8 @@ e.g. shell prompt.."
 (defun vim-mock:motion-go-to-first-non-blank-beg (&optional count)
   (interactive "p")
   (vim:save-position)
-  (if count
+  (if (and current-prefix-arg
+           count)
       (goto-line-dumb count)
     (goto-char (point-min)))
   (skip-to-indentation))
@@ -293,7 +294,8 @@ e.g. shell prompt.."
 (defun vim-mock:motion-go-to-first-non-blank-end (&optional count)
   (interactive "p")
   (vim:save-position)
-  (if count
+  (if (and current-prefix-arg
+           count)
       (goto-line-dumb count)
     (goto-char (max
                 (1- (point-max))
