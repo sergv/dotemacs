@@ -233,6 +233,21 @@ value on all subsequent invokations."
 (defun quoted? (x)
   (eq 'quote (car-safe x)))
 
+(defun def-keys-for-map--expand-key (key)
+  "Expand key definition akin to `kbd' but may also add some
+compatibility mappings for unexpected environments."
+  (cl-assert (or (stringp key)
+                 (vectorp key))
+             nil
+             "Invalid key definition: %s" key)
+  (let ((kbd-expanded (eval `(kbd ,key))))
+    ;; Rebind "C-h" for terminals that refuse to send "C-h" and
+    ;; send "C-<backspace>" instead.
+    (if (equal kbd-expanded (kbd "C-h"))
+        (list kbd-expanded
+              (kbd "C-<backspace>"))
+      (list kbd-expanded))))
+
 (defmacro def-keys-for-map (mode-map &rest key-command-list)
   "Bind keys specified by KEY-COMMAND-LIST into map MODE-MAP. MODE-MAP can be
 either a single map or a list of maps.
@@ -283,7 +298,7 @@ another KEY-COMMAND-LIST spliced in place of a variable;
                               (cond
                                 ((list? key)
                                  (list
-                                  `(dolist (key ',(--map (eval `(kbd ,it)) key))
+                                  `(dolist (key ',(-mapcat #'def-keys-for-map--expand-key key))
                                      ,(funcall def-key map-var 'key command))))
                                 ((string? key)
                                  (list (funcall def-key map-var (eval `(kbd ,key)) command)))
