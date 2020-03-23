@@ -662,7 +662,9 @@ Futher modified by Sergey Vinokurov."
      ansi-term-color-vector
      [base3 base01 +solarized-red+ +solarized-green+ +solarized-yellow+
             +solarized-blue+ +solarized-magenta+ +solarized-cyan+ base0])
-    (run-hooks 'solarized-theme-mode-changed-hook)))
+    (run-hooks 'solarized-theme-mode-changed-hook))
+  (when window-system
+    (update-font-scaling)))
 
 (defun solarized/uniquify-alist (old-list)
   "Reduce OLD-LIST.
@@ -729,8 +731,7 @@ only installing unique attributes."
 
 Useful for applying changes made to color theme definition."
   (interactive)
-  (solarized *color-theme-solarized-type*)
-  (update-font-scaling))
+  (solarized *color-theme-solarized-type*))
 
 (provide 'solarized)
 
