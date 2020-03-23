@@ -77,8 +77,7 @@ new _f_rame           _#_: finish server edit          previous word _e_nd
 _g_o to start of file _k_ill buffer                    previous WORD _E_nd
 g_r_ep                _K_ill buffer and delete window
 _u_ndo tree           set _m_ark
-M-_x_
-"
+M-_x_"
   ("f" make-frame)
   ("g" vim-mock:motion-go-to-first-non-blank-beg)
   ("r" egrep)
@@ -202,6 +201,7 @@ _t_ranspose"
 
 (def-keys-for-map (vim:normal-mode-keymap
                    vim:insert-mode-keymap)
+  ("C-p"  vim:cmd-paste-before)
   ("<f4>" vim:render-latex))
 
 ;;; normal mode keybindigs
@@ -231,7 +231,6 @@ _t_ranspose"
   ("K"         undo-tree-redo)
   ("J"         vim:cmd-join-lines)
 
-  ("C-p"       yank)
   ("M-p"       browse-kill-ring)
 
   ("g"         hydra-vim-normal-g-ext/body)
@@ -316,7 +315,6 @@ _t_ranspose"
   ("C-w"           backward-delete-word)
   ("C-S-w"         backward-delete-word*)
   ("C-r"           nil)
-  ("C-p"           yank)
   ("M-p"           browse-kill-ring)
   ("SPC"           abbrev+-insert-space-or-expand-abbrev)
   ("<insert>"      vim:scroll-line-up)
