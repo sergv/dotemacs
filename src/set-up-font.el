@@ -78,6 +78,7 @@
 
 (setup-frames-font)
 
+;;;###autoload
 (defun update-font-scaling (&optional new-scaling)
   "Set up font scaling for current frame. If NEW-SCALING is specified then
 use that, otherwise either use past specified value or a reasonable default."
