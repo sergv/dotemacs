@@ -424,20 +424,23 @@ Highlighting starts at the beginning of buffer")
       (search--reset-search-highlight-face-index))))
 
 ;;;###autoload
-(defun search-toggle-highlighting (&optional reset)
-  "Hoggle highlighting of matches in current buffer."
-  (interactive "P")
-  (if reset
-      (search-disable-highlighting)
-    (when search--match-overlays
-      (let ((enabled (overlay-get (car search--match-overlays) 'face)))
-        (if enabled
-            (dolist (overlay search--match-overlays)
-              (overlay-put overlay 'face nil))
+(defun search-highlighting-is-enabled? ()
+  (awhen (car-safe search--match-overlays)
+    (not (null (overlay-get it 'face)))))
+
+;;;###autoload
+(defun search-toggle-highlighting (&optional eset)
+  "Toggle highlighting of matches in current buffer."
+  (interactive)
+  (when search--match-overlays
+    (let ((enabled (search-highlighting-is-enabled?)))
+      (if enabled
           (dolist (overlay search--match-overlays)
-            (overlay-put overlay
-                         'face
-                         (overlay-get overlay 'original-face))))))))
+            (overlay-put overlay 'face nil))
+        (dolist (overlay search--match-overlays)
+          (overlay-put overlay
+                       'face
+                       (overlay-get overlay 'original-face)))))))
 
 ;;;
 

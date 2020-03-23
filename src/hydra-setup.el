@@ -35,15 +35,17 @@ all hydras in my setup."
 (defhydra-ext hydra-toggle (:exit nil :foreign-keys nil :hint nil)
   "
 Toggle:
-_c_olour theme    %(identity *color-theme-solarized-type*)
-_d_ebug on error  %`debug-on-error
-auto _f_ill       %(if auto-fill-function t nil)
-debug on _q_uit   %`debug-on-quit
-_t_runate lines   %`truncate-lines
-_w_hitespace mode %`whitespace-mode"
+_c_olour theme       %(identity *color-theme-solarized-type*)
+_d_ebug on error     %`debug-on-error
+auto _f_ill          %(if auto-fill-function t nil)
+searh _h_ighlighting %(not (null (search-highlighting-is-enabled?)))
+debug on _q_uit      %`debug-on-quit
+_t_runate lines      %`truncate-lines
+_w_hitespace mode    %`whitespace-mode"
   ("c" solarized-toggle)
   ("d" toggle-debug-on-error)
   ("f" auto-fill-mode)
+  ("h" search-toggle-highlighting)
   ("q" toggle-debug-on-quit)
   ("t" toggle-truncate-lines)
   ("w" whitespace-mode))
