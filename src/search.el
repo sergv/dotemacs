@@ -119,7 +119,7 @@ highlighting searches.")
       ("<escape>"  search-abort)
 
       ("<f6>"      search-return-to-start)
-      ("C-p"       yank)
+      ("C-p"       vim:cmd-paste-before)
       ("C-w"       backward-delete-word)
       ("C-S-w"     backward-delete-word*)
 
