@@ -10,6 +10,13 @@
 
 (require 'common)
 
+(defhydra-derive hydra-awk-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_t_: beginning of defun
+_h_: end of defun"
+  ("t" c-awk-beginning-of-defun)
+  ("h" c-awk-end-of-defun))
+
 ;;;###autoload
 (defun awk-setup ()
   (init-common :use-yasnippet nil
@@ -18,8 +25,7 @@
   (add-hook 'after-save-hook #'make-script-file-exec)
 
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("g t" c-awk-beginning-of-defun)
-    ("g h" c-awk-end-of-defun)))
+    ("g" hydra-awk-vim-normal-g-ext/body)))
 
 ;;;###autoload
 (add-hook 'awk-mode-hook #'awk-setup)

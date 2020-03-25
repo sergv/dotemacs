@@ -8,6 +8,7 @@
 
 (require 'agda-abbrev+)
 (require 'common)
+(require 'hydra-setup)
 
 (eval-after-load "agda-input"
   `(progn
@@ -27,6 +28,64 @@
 
 (vim:defcmd vim:agda-load-file (nonrepeatable)
   (agda2-load))
+
+(defhydra-ext hydra-agda-align (:exit t :foreign-keys nil :hint nil)
+  "
+_=_:  on equals
+_->_: on arrows
+_<-_: on left-arrows
+_|_:  on guards
+_,_:  on commas
+_--_: on comments
+_:_:  on colons"
+  ("="  haskell-align-on-equals)
+  ("->" haskell-align-on-arrows)
+  ("<-" haskell-align-on-left-arrows)
+  ("|"  haskell-align-on-guards)
+  (","  haskell-align-on-commas)
+  ("--" haskell-align-on-comments)
+  (":"  haskell-align-on-colons))
+
+(defhydra-derive hydra-agda-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_a_lign"
+  ("a" hydra-agda-align/body))
+
+(defhydra-ext hydra-agda (:exit t :foreign-keys warn :hint nil)
+  "
+_a_uto
+_c_ase split
+_e_valuate
+_g_ive - Checks whether the term written in the current hole has the right type and, if it does, replaces the hole with that term.
+_r_efine - Checks whether the return type of the expression e in the hole matches the expected type
+
+_,_: zoom in into hole, show its goal and context
+_._: zoom in into hole, show its goal, context, and infer their type
+_b_: previous goal
+_f_: next goal"
+  ;; add more cases by splitting given argument
+  ("c" agda2-make-case)
+  ;; insert some value that matches hole’s type
+  ("a" agda2-auto)
+  ;; query expression and evaluate (normalise) it)
+  ("e" agda2-compute-normalised-maybe-toplevel)
+  ;; Give. Checks whether the term written in the current hole has the right
+  ;; type and, if it does, replaces the hole with that term.
+  ("g" agda2-give)
+  ;; Refine. Checks whether the return type of the expression e in the hole
+  ;; matches the expected type. If so, the hole is replaced by e { }1 ... { }n,
+  ;; where a sufficient number of new holes have been inserted.
+  ;; If the hole is empty, then the refine command instead inserts a lambda or
+  ;; constructor (if there is a unique type-correct choice).
+  ("r" agda2-refine)
+
+  ;; zoom in into hole, show its goal and context
+  ("," agda2-goal-and-context)
+  ;; same as ", ," but tries to infer type of current hole’s contents
+  ("." agda2-goal-and-context-and-inferred)
+  ;; navigate between holes
+  ("b" agda2-previous-goal)
+  ("f" agda2-next-goal))
 
 ;;;###autoload
 (defun agda-setup ()
@@ -51,39 +110,12 @@
     ("+"               input-unicode)
     ("C-."             agda2-goto-definition-keyboard)
     ("C-,"             agda2-go-back)
-    ;; zoom in into hole, show its goal and context
-    ("- ,"             agda2-goal-and-context)
-    ;; same as ", ," but tries to infer type of current hole's contents
-    ("- ."             agda2-goal-and-context-and-inferred)
-    ;; add more cases by splitting given argument
-    ("- c"             agda2-make-case)
-    ;; insert some value that matches hole's type
-    ("- a"             agda2-auto)
-    ;; query expression and evaluate (normalise) it)
-    ("- e"             agda2-compute-normalised-maybe-toplevel)
-    ;; Give. Checks whether the term written in the current hole has the right
-    ;; type and, if it does, replaces the hole with that term.
-    ("- g"             agda2-give)
-    ;; Refine. Checks whether the return type of the expression e in the hole
-    ;; matches the expected type. If so, the hole is replaced by e { }1 ... { }n,
-    ;; where a sufficient number of new holes have been inserted.
-    ;; If the hole is empty, then the refine command instead inserts a lambda or
-    ;; constructor (if there is a unique type-correct choice).
-    ("- r"             agda2-refine)
-    ;; navigate between holes
-    ("- b"             agda2-previous-goal)
-    ("- f"             agda2-next-goal)
+    ("-"               hydra-agda/body)
     ("C-t"             agda2-previous-goal)
     ("C-h"             agda2-next-goal))
   (def-keys-for-map vim:visual-mode-local-keymap
-    ("- e"             agda2-compute-normalised-region)
-    ("g a ="           haskell-align-on-equals)
-    ("g a - >"         haskell-align-on-arrows)
-    ("g a < -"         haskell-align-on-left-arrows)
-    ("g a |"           haskell-align-on-guards)
-    ("g a ,"           haskell-align-on-commas)
-    ("g a - -"         haskell-align-on-comments)
-    ("g a :"           haskell-align-on-colons))
+    ("- e" agda2-compute-normalised-region)
+    ("g"   hydra-agda-vim-normal-g-ext/body))
   (agda-abbrev+-setup))
 
 ;;;###autoload

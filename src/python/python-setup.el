@@ -346,6 +346,24 @@ greater indenation as current line."
     ("<up>"   compilation-jump-to-prev-error)
     ("<down>" compilation-jump-to-next-error)))
 
+
+(defhydra-ext hydra-python-align (:exit t :foreign-keys nil :hint nil)
+  "
+_=_:  on equals"
+  ("=" python-align-on-equals))
+
+(defhydra-derive hydra-python-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_t_: beginning of defun
+_h_: end of defun"
+  ("t" beginning-of-defun)
+  ("h" end-of-defun))
+
+(defhydra-derive hydra-python-vim-visual-g-ext hydra-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_a_lign"
+  ("a" hydra-python-align/body))
+
 ;;; actual setups
 
 ;;;###autoload
@@ -382,14 +400,12 @@ greater indenation as current line."
     ("j"       python-shell-send-defun)
     ("C-l"     python-shell-send-buffer)
 
-    ("SPC SPC" switch-to-python)
-    ("g s s"   vim-replace-symbol-at-point))
+    ("SPC SPC" switch-to-python))
 
   (def-keys-for-map vim:visual-mode-local-keymap
     ("<f6>"  python-shell-send-region)
     ("j"     python-shell-send-region)
-    ("g a"   nil)
-    ("g a =" python-align-on-equals))
+    ("g"     hydra-python-vim-visual-g-ext/body))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap)
@@ -399,8 +415,7 @@ greater indenation as current line."
 
     ("M-?"      python-convolute-lines)
 
-    ("g t"      beginning-of-defun)
-    ("g h"      end-of-defun)
+    ("g"        hydra-python-vim-normal-g-ext/body)
 
     ("C-<up>"   python-nav-backward-block)
     ("C-<down>" python-nav-forward-block)

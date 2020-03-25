@@ -93,9 +93,30 @@ warnings will be colorized in `rust-compilation-mode'.")
 (def-keys-for-map rust-compilation-mode-map
   +vim-special-keys+
   ("<return>" compilation/goto-error)
-  ("SPC"      compilation/goto-error-other-window)
-  ("g g"      vim-mock:motion-go-to-first-non-blank-beg)
-  ("G"        vim-mock:motion-go-to-first-non-blank-end))
+  ("SPC"      compilation/goto-error-other-window))
+
+(defhydra-ext hydra-rust-dash (:exit t :foreign-keys nil :hint nil)
+  "
+_e_xplain error at pointn
+"
+  ("e" flycheck-explain-error-at-point))
+
+(defhydra-ext hydra-rust-align (:exit t :foreign-keys nil :hint nil)
+  "
+_=_: on equals"
+  ("=" rust-align-on-equals))
+
+(defhydra-derive hydra-rust-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_t_: beginning of defun
+_h_: end of defun"
+  ("t" rust-beginning-of-defun)
+  ("h" rust-end-of-defun))
+
+(defhydra-derive hydra-rust-vim-visual-g-ext hydra-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_a_lign"
+  ("a" hydra-rust-align/body))
 
 ;;;; Setup
 
@@ -174,12 +195,11 @@ warnings will be colorized in `rust-compilation-mode'.")
    :install-flycheck flycheck-mode)
 
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("- e" flycheck-explain-error-at-point)
-    ("g h" rust-end-of-defun)
-    ("g t" rust-beginning-of-defun))
+    ("-" hydra-rust-dash/body)
+    ("g" hydra-rust-vim-normal-g-ext/body))
 
   (def-keys-for-map vim:visual-mode-local-keymap
-    ("g a =" rust-align-on-equals))
+    ("g" hydra-rust-vim-visual-g-ext/body))
 
   (def-keys-for-map vim:insert-mode-local-keymap
     ("," smart-operators-comma)
