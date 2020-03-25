@@ -32,9 +32,9 @@ like \"d w\".")
 
 (defhydra-ext hydra-vim-normal-j-ext (:exit t :foreign-keys nil :hint nil)
   "
-_w_indows _cc_: comment         _sw_: replace word
-        _cu_: uncomment       _sW_: relpace WORD
-        _cd_: delete comment  _ss_: replace symbol
+_t_oggle   _cc_: comment         _sw_: replace word
+_w_indows  _cu_: uncomment       _sW_: relpace WORD
+         _cd_: delete comment  _ss_: replace symbol
 
 _(d_: (a | b)         -> |b               _(l_: a (b | …) -> (a b | …)
 _)d_: (a | b)         -> a|               _(r_: a (b | …) -> a b (| …)
@@ -44,6 +44,7 @@ _?_:  (a b (c d | e)) -> (c d (a b | e))
 _S_plit sexp
 _J_oin sexp"
   ("w"   hydra-window-management/body)
+  ("t"   toggle)
 
   ("cc"  comment-util-comment-lines)
   ("cu"  comment-util-uncomment-region)
