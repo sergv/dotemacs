@@ -78,7 +78,7 @@ new _f_rame           _#_: finish server edit          previous word _e_nd
 _g_o to start of file _k_ill buffer                    previous WORD _E_nd
 g_r_ep                _K_ill buffer and delete window
 _u_ndo tree           set _m_ark
-M-_x_"
+M-_x_                 reactivate _v_isual mode"
   ("f" make-frame)
   ("g" vim-mock:motion-go-to-first-non-blank-beg)
   ("r" egrep)
@@ -89,6 +89,7 @@ M-_x_"
   ("k" remove-buffer)
   ("K" remove-buffer-and-window)
   ("m" vim:cmd-set-mark)
+  ("v" vim:visual-mode-reactivate)
 
   ("e" vim-mock:motion-bwd-word-end)
   ("E" vim-mock:motion-bwd-WORD-end))
