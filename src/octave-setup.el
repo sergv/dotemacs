@@ -11,6 +11,7 @@
 (require 'browse-kill-ring-setup)
 (require 'common)
 (require 'el-patch)
+(require 'hydra-setup)
 (require 'octave-abbrev+)
 
 ;;;###autoload
@@ -315,6 +316,54 @@ in GROUP-NUMS."
                                'compilation-column-number)))
         (goto-char (match-end 0))))))
 
+(defun octave-beginning-of-defun-interactive ()
+  (interactive)
+  (octave-beginning-of-defun))
+
+;;;
+
+(defhydra-ext hydra-octave-align (:exit t :foreign-keys nil :hint nil)
+  "
+_=_:  on equals
+_,_:  on commas"
+  ("="   octave-align-on-equals)
+  (","   octave-align-on-commas))
+
+(defhydra-derive hydra-octave-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_a_lign
+_<tab>_: indent defun
+
+_t_: beginning of defun
+_h_: end of defun"
+  ("a"     hydra-octave-align/body)
+  ("<tab>" octave-indent-defun)
+
+  ("t"     octave-beginning-of-defun-interactive)
+  ("h"     end-of-defun))
+
+(defhydra-derive hydra-octave-vim-visual-g-ext hydra-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_a_lign
+
+_t_: beginning of defun
+_h_: end of defun"
+  ("a" hydra-octave-align/body)
+  ("t" octave-beginning-of-defun-interactive)
+  ("h" end-of-defun))
+
+(defhydra-derive hydra-octave-vim-normal-j-ext hydra-vim-normal-j-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_j_: send line
+_d_: send defun"
+  ("j" octave-send-line)
+  ("d" octave-send-defun))
+
+(defhydra-derive hydra-octave-vim-visual-j-ext hydra-vim-visual-j-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_j_: send region"
+  ("j" octave-send-region))
+
 ;;;
 
 ;;;###autoload
@@ -341,28 +390,13 @@ in GROUP-NUMS."
   (def-keys-for-map vim:normal-mode-local-keymap
     ("<f6>"    octave-load-current-file)
     ("SPC SPC" switch-to-octave)
-    ("g <tab>" octave-indent-defun)
-    ("g s s"   vim-replace-symbol-at-point)
-
-    ("j"       octave-send-line)
-    ("J"       octave-send-defun)
-    ("g a ="   octave-align-on-equals)
-    ("g a ,"   octave-align-on-commas)
-
-    ("g t"     (lambda () (interactive) (octave-beginning-of-defun)))
-    ("g h"     end-of-defun))
+    ("g"       hydra-octave-vim-normal-g-ext/body)
+    ("j"       hydra-octave-vim-normal-j-ext/body))
 
   (def-keys-for-map vim:visual-mode-local-keymap
-    ("g a ="   octave-align-on-equals)
-    ("g a ,"   octave-align-on-commas)
-    ("j"       octave-send-region))
+    ("g" hydra-octave-vim-visual-g-ext/body)
+    ("j" hydra-octave-vim-visual-j-ext/body))
 
-  ;; (def-keys-for-map (vim:normal-mode-local-keymap
-  ;;                     vim:visual-mode-local-keymap
-  ;;                     vim:operator-pending-mode-local-keymap
-  ;;                     vim:motion-mode-local-keymap)
-  ;;   ("0" vim:octave-beginning-of-line)
-  ;;   ("$" vim:octave-end-of-line))
   (octave-abbrev+-setup))
 
 ;;;###autoload

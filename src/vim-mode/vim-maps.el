@@ -114,11 +114,6 @@
 
 (vim:mmap "k" #'vim:motion-up)
 (vim:mmap "j" #'vim:motion-down)
-;; (vim:mmap "G" #'vim:motion-go-to-first-non-blank-end)
-;; (vim:mmap "gg" #'vim:motion-go-to-first-non-blank-beg)
-
-;; (vim:omap "G" #'vim:motion-go-to-first-non-blank-end)
-;; (vim:omap "gg" #'vim:motion-go-to-first-non-blank-beg)
 
 ;; (vim:mmap "H" #'vim:motion-window-first-line)
 ;; (vim:mmap "M" #'vim:motion-window-middle-line)
@@ -240,8 +235,6 @@
 ;; (vim:mmap "?" #'vim:motion-search-bwd)
 ;; (vim:mmap "*" #'vim:search-word)
 ;; (vim:mmap "#" #'vim:search-word-backward)
-;; (vim:mmap "g*" #'vim:search-unbounded-word)
-;; (vim:mmap "g#" #'vim:search-unbounded-word-backward)
 ;; (vim:mmap (kbd "C-n") #'vim:motion-search-next)
 ;; (vim:mmap (kbd "C-S-N") #'vim:motion-search-next-reverse)
 ;; (vim:nmap "n" #'vim:motion-search-next)
@@ -273,7 +266,6 @@
 (vim:nmap "v" #'vim:visual-toggle-normal)
 (vim:nmap "V" #'vim:visual-toggle-linewise)
 (vim:nmap (kbd "C-v") #'vim:visual-toggle-block)
-(vim:nmap "gv" #'vim:visual-mode-reactivate)
 
 (vim:nmap ":" #'vim:ex-read-command)
 (vim:mmap ":" #'vim:ex-read-command)

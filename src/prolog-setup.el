@@ -27,6 +27,16 @@
                              auto-mode-alist))))
 ;; (add-to-list 'auto-mode-alist '("\\.m$" . mercury-mode))
 
+(defhydra-ext hydra-prolog-dash (:exit t :foreign-keys nil :hint nil)
+  "
+_e_: consult predicate"
+  ("e" prolog-consult-predicate))
+
+(defhydra-derive hydra-prolog-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_<tab>_: reindent predicate"
+  ("<tab>" prolog-indent-predicate))
+
 ;;;###autoload
 (defun prolog-setup ()
   (init-common :use-yasnippet nil
@@ -34,8 +44,8 @@
                :use-whitespace 'tabs-only)
 
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("g <tab>" prolog-indent-predicate)
-    ("- e"     prolog-consult-predicate)
+    ("g"       hydra-prolog-vim-normal-g-ext/body)
+    ("-"       hydra-prolog-dash/body)
 
     ("SPC SPC" switch-to-prolog)
 
