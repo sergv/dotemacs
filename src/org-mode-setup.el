@@ -412,8 +412,6 @@ which enable the original code blocks to be found."
     ;; hide everything except current entry and its parents
     ("z C"     outline-hide-other)
 
-    ("j"       eval-last-sexp)
-
     ("C-1"     org-mode-show-level-1)
     ("C-2"     org-mode-show-level-2)
     ("C-3"     org-mode-show-level-3)
@@ -425,8 +423,7 @@ which enable the original code blocks to be found."
     ("C-9"     org-mode-show-level-9))
 
   (def-keys-for-map vim:visual-mode-local-keymap
-    ("<tab>"   org-indent-region)
-    ("j"       eval-region))
+    ("<tab>"   org-indent-region))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)

@@ -7,6 +7,7 @@
 ;; Description:
 
 (require 'cc-setup)
+(require 'hydra-setup)
 
 ;;;###autoload
 (autoload 'lua-mode "lua-mode" "Lua editing mode." t)
@@ -14,6 +15,18 @@
 (add-to-list 'auto-mode-alist '("\\.lua$" . lua-mode))
 ;;;###autoload
 (add-to-list 'interpreter-mode-alist '("lua" . lua-mode))
+
+(defhydra-ext hydra-lua-align (:exit t :foreign-keys nil :hint nil)
+  "
+_a_: general
+_=_: on equals"
+  ("a" align)
+  ("=" c-align-on-equals))
+
+(defhydra-derive hydra-lua-vim-visual-g-ext hydra-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_a_lign"
+  ("a" hydra-lua-align/body))
 
 ;;;###autoload
 (defun lua-setup ()
@@ -26,8 +39,7 @@
   (setup-indent-size 2)
 
   (def-keys-for-map vim:visual-mode-local-keymap
-    ("g a a" align)
-    ("g a =" c-align-on-equals)))
+    ("g" hydra-lua-vim-visual-g-ext/body)))
 
 ;;;###autoload
 (add-hook 'lua-mode-hook #'lua-setup)

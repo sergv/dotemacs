@@ -11,21 +11,21 @@
   '(progn
      (load-library "sql-indent")))
 
+(defhydra-derive hydra-sql-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_t_: beginning of statement
+_h_: end of statement"
+  ("t" csql-beginning-of-statement)
+  ("h" sql-end-of-statement))
+
 ;;;###autoload
 (defun sql-setup ()
   (init-common :use-whitespace 'tabs-only)
 
   (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:insert-mode-local-keymap)
-    (("C-m" "<f9>") sql-send-region))
-
-  (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap)
-    ("g t" sql-beginning-of-statement)
-    ("g h" sql-end-of-statement))
-
-  (def-keys-for-map vim:visual-mode-local-keymap
-    (("C-m" "<f9>") sql-send-region)))
+    (("C-m" "<f9>") sql-send-region)
+    ("g" hydra-sql-vim-normal-g-ext/body)))
 
 ;;;###autoload
 (add-hook 'sql-mode-hook #'sql-setup)
