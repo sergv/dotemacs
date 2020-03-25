@@ -113,6 +113,40 @@
 (remove-hook 'compilation-filter-hook
              #'elm-compile--colorize-compilation-buffer)
 
+(defhydra-ext hydra-elm-dash (:exit t :foreign-keys nil :hint nil)
+  "
+_d_oc
+_t_ype"
+  ("t" elm-oracle-type-at-point)
+  ("d" elm-oracle-extended-doc-at-point))
+
+(defhydra-ext hydra-elm-align (:exit t :foreign-keys nil :hint nil)
+  "
+_=_:  on equals
+_->_: on arrows
+_<-_: on left-arrows
+_|_:  on pipes
+_,_:  on commas
+_--_: on comments
+_:_:  on colons"
+  ("="  elm-align-on-equals)
+  ("->" elm-align-on-arrows)
+  ("<-" elm-align-on-left-arrows)
+  ("|"  elm-align-on-pipes)
+  (","  elm-align-on-commas)
+  ("--" elm-align-on-comments)
+  (":"  elm-align-on-colons))
+
+(defhydra-derive hydra-elm-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_a_lign"
+  ("a" hydra-elm-align/body))
+
+(defhydra-derive hydra-elm-vim-visual-g-ext hydra-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_a_lign"
+  ("a" hydra-elm-align/body))
+
 ;;;###autoload
 (defun elm-setup ()
   (init-common :use-yasnippet t
@@ -148,16 +182,12 @@
   (def-keys-for-map vim:normal-mode-local-keymap
     (("<f6>" "SPC SPC") elm-repl-load)
     (("C-m" "<f9>")     elm-compile-buffer)
-    ("- t"              elm-oracle-type-at-point)
-    ("- d"              elm-oracle-extended-doc-at-point)
+    ("-"                hydra-elm-dash/body)
 
-    ("g a ="            elm-align-on-equals)
-    ("g a - >"          elm-align-on-arrows)
-    ("g a < -"          elm-align-on-left-arrows)
-    ("g a |"            elm-align-on-pipes)
-    ("g a ,"            elm-align-on-commas)
-    ("g a - -"          elm-align-on-comments)
-    ("g a :"            elm-align-on-colons))
+    ("g"                hydra-elm-vim-normal-g-ext/body))
+
+ (def-keys-for-map vim:visual-mode-local-keymap
+    ("g" hydra-elm-vim-visual-g-ext/body))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
