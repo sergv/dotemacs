@@ -45,7 +45,7 @@ _w_hitespace mode    %`whitespace-mode"
   ("c" solarized-toggle)
   ("d" toggle-debug-on-error)
   ("f" auto-fill-mode)
-  ("h" search-toggle-highlighting)
+  ("h" search-toggle-highlighting :exit t)
   ("q" toggle-debug-on-quit)
   ("t" toggle-truncate-lines)
   ("w" whitespace-mode))
