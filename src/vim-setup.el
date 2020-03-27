@@ -105,9 +105,10 @@ _cu_: uncomment"
   "
 g_r_ep
 replace _s_elected
-"
+M-_x_"
   ("r" egrep-region)
-  ("s" vim-replace-selected))
+  ("s" vim-replace-selected)
+  ("x" ivy-smex))
 
 
 (defhydra-ext hydra-window-management (:exit t :foreign-keys warn :hint nil)
