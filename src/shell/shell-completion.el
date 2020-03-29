@@ -324,7 +324,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                        ((string? name)
                         `(string= ,pcomplete-arg-var ,name))
                        ((list? name)
-                        `(member ,pcomplete-arg-var ,name))
+                        `(member ,pcomplete-arg-var ',name))
                        (t
                         (error "Invalid name while processing positional option: %s" name)))
                     ,@(awhen (cadr-safe definition)
@@ -4096,7 +4096,18 @@ under version-control directories."
            (flags ,@common-flags
                   ,@target-flags
                   "--doc")))
-         ("new")
+         ("new"
+          (opts
+           (flags ,@common-flags
+                  "--bin"
+                  "--lib"
+                  "--edition=2015"
+                  "--edition=2018"
+                  "--name"
+                  "--vcs=git"
+                  "--vcs=hg"
+                  "--vcs=pijul"
+                  "--vcs=fossil")))
          ("init")
          ("run")
          ("test")
