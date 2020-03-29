@@ -291,6 +291,24 @@
     "foo(x: i32)_|_"
     "foo(x: i32) -> _|_"))
 
+(ert-deftest rust-tests/rust-smart-operators--ampersand-1 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?\&)
+    "let foo: &Foo = _|_"
+    "let foo: &Foo = &_|_"))
+
+(ert-deftest rust-tests/rust-smart-operators--ampersand-2 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?\&)
+    "let foo: &Foo =_|_"
+    "let foo: &Foo = &_|_"))
+
+(ert-deftest rust-tests/rust-smart-operators--ampersand-3 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?\&)
+    "let foo: &Foo = _|_foobar"
+    "let foo: &Foo = &_|_foobar"))
+
 (provide 'rust-tests)
 
 ;; Local Variables:
