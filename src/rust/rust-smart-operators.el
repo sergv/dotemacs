@@ -63,7 +63,10 @@ stick it to the previous operator on line."
                           (forward-char -1)
                           (awhen (sp-get-enclosing-sexp)
                             (and (string-equal (plist-get it :op) "<")
-                                 (= (plist-get it :end) (+ 1 (point)))))))))
+                                 (= (plist-get it :end) (+ 1 (point)))))))
+                   ;; =& is not an operator so add a space
+                   (and (char-equal before ?=)
+                        (char-equal char ?&))))
              (insert-char ?\s)
            ;; Delete spaces backwards if there's operator or open
            ;; paren char before the spaces.
@@ -73,16 +76,21 @@ stick it to the previous operator on line."
                       (let* ((pt-before-ws (point))
                              (char-before-spaces (char-before pt-before-ws)))
                         (and char-before-spaces ;; not at beginning of buffer
-                             (if (char-equal char-before-spaces ?>)
-                                 (save-excursion
-                                   (forward-char -1)
-                                   (aif (sp-get-enclosing-sexp)
-                                       (if (= (plist-get it :end) (+ 1 (point)))
-                                           (not (string-equal (plist-get it :op) "<"))
-                                         t)
-                                     t ;; No sexp - ok to delete.
-                                     ))
-                               t ;; Not a > before spaces - ok to delete.
+                             (cond
+                               ((char-equal char-before-spaces ?>)
+                                (save-excursion
+                                  (forward-char -1)
+                                  (aif (sp-get-enclosing-sexp)
+                                      (if (= (plist-get it :end) (+ 1 (point)))
+                                          (not (string-equal (plist-get it :op) "<"))
+                                        t)
+                                    t ;; No sexp - ok to delete.
+                                    )))
+                               ((and (char-equal char-before-spaces ?=)
+                                     (char-equal char ?&))
+                                nil)
+                               (t
+                                t) ;; Not a > before spaces - ok to delete.
                                )
                              (or (gethash char-before-spaces rust-smart-operators--operator-chars)
                                  (char-equal char-before-spaces ?\()
@@ -108,9 +116,11 @@ stick it to the previous operator on line."
                           (not (char-equal before-insert ?\()))
 
                       (if (char-equal char ?\&)
-                          (or whitespace-deleted?
-                              (char-equal before-insert ?\&) ;; Insert space after operator '&&'
-                              )
+                          (if (char-equal before ?=)
+                              nil ;; We don’t want '= & _|_', we want '= &_|_'
+                            (or whitespace-deleted?
+                                (char-equal before-insert ?\&) ;; Insert space after operator '&&'
+                                ))
                         t)
 
                       (or (not after) ;; at end of buffer
