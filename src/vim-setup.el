@@ -204,7 +204,7 @@ _t_ranspose"
 
 (def-keys-for-map (vim:normal-mode-keymap
                    vim:insert-mode-keymap)
-  ("C-p"  vim:cmd-paste-before)
+  ("C-p"  vim:cmd-paste-behind-no-adjust)
   ("<f4>" vim:render-latex))
 
 ;;; normal mode keybindigs

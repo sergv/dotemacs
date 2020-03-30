@@ -500,7 +500,7 @@ and switches to insert-mode."
 
 (defvar vim:cmd-paste-behind-counter nil)
 
-(defun vim--cmd-paste-behind (count register)
+(defun vim--cmd-paste-behind (count register adjust?)
   (let ((yhandler (get-text-property 0 'vim:yank-handler
                                      (vim--cmd-paste-get-text vim:cmd-paste-behind-counter register)))
         (pos (point)))
@@ -529,30 +529,53 @@ and switches to insert-mode."
        (vim--cmd-paste-before count register))
 
       (_
-       (unless (eob?) (forward-char))
+       (when (and adjust?
+                  (not (eob?)))
+         (forward-char))
        (vim--cmd-paste-before count register)
        ;; goto end of paste
-       (goto-char (1- (vim:paste-info-end vim:last-paste)))))
+       (goto-char (if adjust?
+                      (1- (vim:paste-info-end vim:last-paste))
+                    (vim:paste-info-end vim:last-paste)))))
     (setf (vim:paste-info-point vim:last-paste) pos
           (vim:paste-info-command vim:last-paste) 'vim:cmd-paste-behind)))
 
 (vim:defcmd vim:cmd-paste-behind (count register)
   "Pastes the latest yanked text behind point."
-  (if (eq last-command 'vim:cmd-paste-behind)
+  (if (or (eq last-command 'vim:cmd-paste-behind)
+          (eq last-command 'vim:cmd-paste-behind-no-adjust))
       (progn
         (setf vim:cmd-paste-behind-counter
               (if vim:cmd-paste-behind-counter
                   (+ vim:cmd-paste-behind-counter 1)
                 1))
         (vim--cmd-paste-undo)
-        (vim--cmd-paste-behind count register))
+        (vim--cmd-paste-behind count register t))
     ;; Paste behind works by moving the cursor and calling
     ;; vim:cmd-paste-before afterwards. Afterwards the information of
     ;; vim:last-paste is updated.
     (progn
       (setf vim:cmd-paste-behind-counter 0)
-      (vim--cmd-paste-behind count register))))
+      (vim--cmd-paste-behind count register t))))
 
+(defun vim:cmd-paste-behind-no-adjust (count)
+  "Pastes the latest yanked text behind point."
+  (interactive "p")
+  (if (or (eq last-command 'vim:cmd-paste-behind)
+          (eq last-command 'vim:cmd-paste-behind-no-adjust))
+      (progn
+        (setf vim:cmd-paste-behind-counter
+              (if vim:cmd-paste-behind-counter
+                  (+ vim:cmd-paste-behind-counter 1)
+                1))
+        (vim--cmd-paste-undo)
+        (vim--cmd-paste-behind count nil nil))
+    ;; Paste behind works by moving the cursor and calling
+    ;; vim:cmd-paste-before afterwards. Afterwards the information of
+    ;; vim:last-paste is updated.
+    (progn
+      (setf vim:cmd-paste-behind-counter 0)
+      (vim--cmd-paste-behind count nil nil))))
 
 (vim:defcmd vim:cmd-paste-before-and-indent (count register)
   "Pastes the latest yanked text before point.

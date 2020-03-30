@@ -191,7 +191,7 @@
 
   ("C-w"               backward-delete-word)
   ("C-S-w"             backward-delete-word*)
-  ("C-p"               vim:cmd-paste-before)
+  ("C-p"               vim:cmd-paste-behind-no-adjust)
   ("M-p"               browse-kill-ring)
 
   ("C-/"               nil)

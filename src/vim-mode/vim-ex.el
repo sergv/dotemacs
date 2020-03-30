@@ -56,7 +56,7 @@
       ("C-S-w"         backward-delete-word*)
       ("C-h"           ivy-next-line)
       ("C-t"           ivy-previous-line)
-      ("C-p"           vim:cmd-paste-before)
+      ("C-p"           vim:cmd-paste-behind-no-adjust)
       ("M-p"           browse-kill-ring)
       ("C-/"           nil)
       ("C-v"           set-mark-command)

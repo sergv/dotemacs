@@ -223,11 +223,6 @@
 (vim:nmap "p" #'vim:cmd-paste-behind)
 (vim:nmap "P" #'vim:cmd-paste-before)
 ;; (vim:nmap (kbd "C-p") #'vim:cmd-paste-pop)
-;; (vim:nmap (kbd "C-n") #'vim:cmd-paste-pop-next)
-;; (vim:nmap "]p" #'vim:cmd-paste-behind-and-indent)
-;; (vim:nmap "[P" #'vim:cmd-paste-before-and-indent)
-;; (vim:nmap "]P" #'vim:cmd-paste-before-and-indent)
-;; (vim:nmap "[p" #'vim:cmd-paste-before-and-indent)
 
 (vim:nmap "J" #'vim:cmd-join-lines)
 

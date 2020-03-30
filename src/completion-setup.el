@@ -145,7 +145,7 @@ Prioritize directories unless they're invisible."
 (def-keys-for-map ivy-minibuffer-map
   (("C-h" "<C-up>")   ivy-next-history-element)
   (("C-t" "<C-down>") ivy-previous-history-element)
-  ("C-p"              vim:cmd-paste-before)
+  ("C-p"              vim:cmd-paste-behind-no-adjust)
   ("M-p"              browse-kill-ring)
   ("C-w"              ivy-backward-kill-word)
   ("C-S-w"            backward-delete-word*)
