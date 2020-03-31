@@ -326,17 +326,15 @@ in GROUP-NUMS."
   "
 _=_:  on equals
 _,_:  on commas"
-  ("="   octave-align-on-equals)
-  (","   octave-align-on-commas))
+  ("=" octave-align-on-equals)
+  ("," octave-align-on-commas))
 
 (defhydra-derive hydra-octave-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
   "
-_a_lign
 _<tab>_: indent defun
 
 _t_: beginning of defun
 _h_: end of defun"
-  ("a"     hydra-octave-align/body)
   ("<tab>" octave-indent-defun)
 
   ("t"     octave-beginning-of-defun-interactive)

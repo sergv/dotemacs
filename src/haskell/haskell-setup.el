@@ -187,11 +187,9 @@ _TAB_: align and sort subsection"
 
 (defhydra-derive hydra-haskell-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
   "
-_a_lign                   _t_: jump to topmost node start
-_i_:     jump to imports  _h_: jump to topmont node end
-_I_:     jump back
+_i_:     jump to imports  _t_: jump to topmost node start
+_I_:     jump back        _h_: jump to topmont node end
 _<tab>_: reindent"
-  ("a"     hydra-haskell-align/body)
   ("i"     vim:haskell-navigate-imports)
   ("I"     haskell-navigate-imports-return)
   ("<tab>" haskell-reindent-at-point)
@@ -201,8 +199,9 @@ _<tab>_: reindent"
 
 (defhydra-derive hydra-haskell-vim-visual-g-ext hydra-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
   "
-_t_: jump to topmost node start
-_h_: jump to topmont node end"
+_a_lign  _t_: jump to topmost node start
+         _h_: jump to topmont node end"
+  ("a" hydra-haskell-align/body)
   ("t" haskell-move-to-topmost-start)
   ("h" haskell-move-to-topmost-end))
 
