@@ -115,13 +115,23 @@ M-_x_"
   "
 _c_lose      _h_orizontal split
 _o_nly       _v_ertical split
-_t_ranspose"
+_t_ranspose
+
+_<left>_:  shrink horizontally
+_<right>_: enlarge horizontally
+_<down>_:  shrink vertically
+_<up>_:    enlarge vertically"
   ("c" delete-window)
   ("o" delete-other-windows)
   ("t" transpose-windows)
 
   ("h" split-window-vertically)
-  ("v" split-window-horizontally))
+  ("v" split-window-horizontally)
+
+  ("<left>"  shrink-window-horizontally :exit nil)
+  ("<right>" enlarge-window-horizontally :exit nil)
+  ("<up>"    enlarge-window :exit nil)
+  ("<down>"  shrink-window :exit nil))
 
 ;; redefine motions
 
