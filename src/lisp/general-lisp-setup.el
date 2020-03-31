@@ -572,15 +572,24 @@ _cl_: comment lines      _h_: jump to topmont node end"
 
 (defhydra-derive hydra-lisp-vim-visual-g-ext hydra-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
   "
-_a_lign                 _t_: jump to topmost node start
-_cc_: comment region    _h_: jump to topmont node end
-_cu_: uncomment region"
+_a_lign  _t_: jump to topmost node start
+         _h_: jump to topmont node end"
   ("a"  hydra-lisp-align/body)
-  ("cc" comment-util-comment-region)
-  ("cu" comment-util-uncomment-region-simple)
 
   ("t"     glisp/beginning-of-defun)
   ("h"     glisp/end-of-defun))
+
+(defhydra-derive hydra-lisp-vim-normal-j-ext hydra-vim-normal-j-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_cl_: comment lines"
+  ("cc" lisp-comment-sexp)
+  ("cu" lisp-uncomment-sexp)
+  ("cl" comment-util-comment-lines))
+
+(defhydra-derive hydra-lisp-vim-visual-j-ext hydra-vim-visual-j-ext (:exit t :foreign-keys nil :hint nil)
+  ""
+  ("cc" comment-util-comment-region)
+  ("cu" comment-util-uncomment-region-simple))
 
 ;;;###autoload
 (defun* lisp-setup (&key (use-whitespace nil) (use-fci t))
@@ -620,10 +629,12 @@ _cu_: uncomment region"
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("+"        input-unicode)
-    ("g"        hydra-lisp-vim-normal-g-ext/body))
+    ("g"        hydra-lisp-vim-normal-g-ext/body)
+    ("j"        hydra-lisp-vim-normal-j-ext))
 
   (def-keys-for-map vim:visual-mode-local-keymap
     ("g"        hydra-lisp-vim-visual-g-ext/body)
+    ("j"        hydra-lisp-vim-visual-j-ext/body)
 
     ("z c"      hs-hide-sexps-in-region)
     ("z o"      hs-show-sexps-in-region)
