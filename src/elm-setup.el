@@ -137,11 +137,6 @@ _:_:  on colons"
   ("--" elm-align-on-comments)
   (":"  elm-align-on-colons))
 
-(defhydra-derive hydra-elm-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
-  "
-_a_lign"
-  ("a" hydra-elm-align/body))
-
 (defhydra-derive hydra-elm-vim-visual-g-ext hydra-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
   "
 _a_lign"
@@ -182,9 +177,7 @@ _a_lign"
   (def-keys-for-map vim:normal-mode-local-keymap
     (("<f6>" "SPC SPC") elm-repl-load)
     (("C-m" "<f9>")     elm-compile-buffer)
-    ("-"                hydra-elm-dash/body)
-
-    ("g"                hydra-elm-vim-normal-g-ext/body))
+    ("-"                hydra-elm-dash/body))
 
  (def-keys-for-map vim:visual-mode-local-keymap
     ("g" hydra-elm-vim-visual-g-ext/body))
