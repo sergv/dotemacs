@@ -46,7 +46,7 @@ _:_:  on colons"
   ("--" haskell-align-on-comments)
   (":"  haskell-align-on-colons))
 
-(defhydra-derive hydra-agda-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
+(defhydra-derive hydra-agda-vim-visual-g-ext hydra-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
   "
 _a_lign"
   ("a" hydra-agda-align/body))
@@ -115,7 +115,7 @@ _f_: next goal"
     ("C-h"             agda2-next-goal))
   (def-keys-for-map vim:visual-mode-local-keymap
     ("- e" agda2-compute-normalised-region)
-    ("g"   hydra-agda-vim-normal-g-ext/body))
+    ("g"   hydra-agda-vim-visual-g-ext/body))
   (agda-abbrev+-setup))
 
 ;;;###autoload

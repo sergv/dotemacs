@@ -115,8 +115,12 @@ _h_: end of defun"
 
 (defhydra-derive hydra-rust-vim-visual-g-ext hydra-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
   "
-_a_lign"
-  ("a" hydra-rust-align/body))
+_a_lign  _t_: beginning of defun
+         _h_: end of defun"
+  ("a" hydra-rust-align/body)
+
+  ("t" rust-beginning-of-defun)
+  ("h" rust-end-of-defun))
 
 ;;;; Setup
 
