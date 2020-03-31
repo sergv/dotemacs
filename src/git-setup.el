@@ -137,6 +137,11 @@ _=_: on equals"
   ("a" gitconfig-align-generic)
   ("=" gitconfig-align-on-equals))
 
+(defhydra-derive hydra-gitconfig-vim-visual-g-ext hydra-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_a_lign"
+  ("a" hydra-gitconfig-align/body))
+
 (defun gitconfig-setup ()
   (init-common :use-yasnippet nil
                :use-comment   t
@@ -148,9 +153,8 @@ _=_: on equals"
     ("<backtab>"   tab-to-tab-stop-backward)
     ("S-<tab>"     tab-to-tab-stop-backward)
     ("S-<iso-tab>" tab-to-tab-stop-backward))
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:visual-mode-local-keymap)
-    ("g" hydra-gitconfig-align/body)))
+  (def-keys-for-map vim:visual-mode-local-keymap
+    ("g" hydra-gitconfig-vim-visual-g-ext/body)))
 
 ;;; magit
 
