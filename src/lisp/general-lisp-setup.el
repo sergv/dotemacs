@@ -501,12 +501,12 @@ nor comment."
 
 (defun glisp/beginning-of-defun ()
   (interactive)
-  (vim:save-in-function-position)
+  (vim:save-position)
   (glisp/find-beginning-of-defun #'backward-sexp))
 
 (defun glisp/end-of-defun ()
   (interactive)
-  (vim:save-in-function-position)
+  (vim:save-position)
   (glisp/find-beginning-of-defun #'ignore)
   (forward-sexp))
 

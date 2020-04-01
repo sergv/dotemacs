@@ -885,6 +885,7 @@ value section should have if it is to be properly indented."
 (defun haskell-move-to-topmost-start ()
   "Move to start of the topmost node, similar to `glisp/beginning-of-defun'."
   (interactive)
+  (vim:save-position)
   (save-match-data
    (re-search-backward "^[^ \t\v\f\n\r#]" nil t))
   ;; (beginning-of-line)
@@ -897,6 +898,7 @@ value section should have if it is to be properly indented."
 (defun haskell-move-to-topmost-end ()
   "Move to end of the topmost node, similar to `glisp/end-of-defun'."
   (interactive)
+  (vim:save-position)
   (beginning-of-line)
   (while (and (not (eobp))
               (= 0 (indentation-size)))
