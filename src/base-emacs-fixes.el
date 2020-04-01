@@ -374,6 +374,13 @@ interactively, this is t."
       (delete-file error-file))
     exit-status))
 
+(defadvice end-of-defun-save-vim-position (before
+                                           end-of-defun
+                                           activate
+                                           compile)
+  "Save position for vim’s emulation layer before moving the point."
+  (vim:save-position))
+
 (provide 'base-emacs-fixes)
 
 ;; Local Variables:

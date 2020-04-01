@@ -117,10 +117,6 @@
   "Save position to ' mark register."
   (vim:set-mark ?' pos))
 
-(defsubst vim:save-in-function-position (&optional pos)
-  "Save position in function."
-  (vim:save-position pos))
-
 (defun vim:set-mark (mark-char &optional pos)
   "Sets the mark `mark-char' to `pos' or (point)."
   (let (m)

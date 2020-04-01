@@ -318,6 +318,7 @@ in GROUP-NUMS."
 
 (defun octave-beginning-of-defun-interactive ()
   (interactive)
+  (vim:save-position)
   (octave-beginning-of-defun))
 
 ;;;
