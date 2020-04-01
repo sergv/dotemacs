@@ -113,14 +113,24 @@ _h_: end of defun"
   ("t" rust-beginning-of-defun)
   ("h" rust-end-of-defun))
 
+(defun vim:rust-beginning-of-defun (&optional arg)
+  (interactive "p")
+  (vim:save-position)
+  (rust-beginning-of-defun))
+
+(defun vim:rust-end-of-defun ()
+  (interactive)
+  (vim:save-position)
+  (rust-end-of-defun))
+
 (defhydra-derive hydra-rust-vim-visual-g-ext hydra-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
   "
 _a_lign  _t_: beginning of defun
          _h_: end of defun"
   ("a" hydra-rust-align/body)
 
-  ("t" rust-beginning-of-defun)
-  ("h" rust-end-of-defun))
+  ("t" vim:rust-beginning-of-defun)
+  ("h" vim:rust-end-of-defun))
 
 ;;;; Setup
 
