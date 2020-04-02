@@ -372,7 +372,7 @@ _j_: send region"
                :sp-slurp-sexp-insert-space nil
                :use-fci t
                :use-whitespace 'tabs-only)
-  (setup-hs-minor-mode)
+  (setup-folding t nil)
 
   (setq-local yas/indent-line 'fixed)
   (setq-local hs-set-up-overlay
