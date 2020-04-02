@@ -9,7 +9,7 @@
 ;;;###autoload
 (defun groovy-mode-setup ()
   (init-common :use-comment t :sp-slurp-sexp-insert-space nil)
-  (setup-hs-minor-mode))
+  (setup-folding t nil))
 
 ;;;###autoload
 (add-hook 'groovy-mode-hook #'groovy-mode-setup)

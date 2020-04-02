@@ -6,7 +6,6 @@
 ;; Created: Sunday, 23 September 2012
 ;; Description:
 
-(require 'cc-setup)
 (require 'hydra-setup)
 
 ;;;###autoload
@@ -35,7 +34,7 @@ _a_lign"
                :sp-slurp-sexp-insert-space nil
                :use-whitespace 'tabs-only
                :use-fci t)
-  (setup-hs-minor-mode)
+  (setup-folding t nil)
   (setup-indent-size 2)
 
   (def-keys-for-map vim:visual-mode-local-keymap

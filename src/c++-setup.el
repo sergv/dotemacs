@@ -148,16 +148,15 @@
                 company-files
                 (company-eproj company-dabbrev-code company-keywords)
                 company-dabbrev))
-  (setf hs-forward-sexp-func #'c-hideshow-forward-sexp)
+  (setq-local hs-forward-sexp-func #'c-hideshow-forward-sexp)
+  (setup-folding nil '(:header-symbol "/" :length-min 3))
 
   (setq-local indent-tabs-mode nil)
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("SPC SPC" c++-find-related-file))
   (c++-abbrev+-setup)
-  (setup-eproj-symbnav)
-  (setup-outline-headers :header-symbol "/"
-                         :length-min 3))
+  (setup-eproj-symbnav))
 
 ;;;###autoload
 (add-hook 'c++-mode-hook #'c++-setup)

@@ -11,7 +11,7 @@
 (require 'common)
 (require 'comint-setup)
 (require 'dirtrack)
-(require 'hideshow-setup)
+(require 'folding-setup)
 (require 'shell-script-abbrev+)
 
 ;;;###autoload
@@ -46,7 +46,7 @@
   (init-common :use-yasnippet t
                :use-whitespace 'tabs-only
                :use-fci nil)
-  (setup-hs-minor-mode)
+  (setup-folding t '(:header-symbol "#" :length-min 4))
   (add-hook 'after-save-hook #'make-script-file-exec nil t)
 
   (setq-local yas-indent-line 'fixed)
@@ -144,7 +144,7 @@ MSYS-style drives, e.g. \"/c/foo/bar.txt\" -> \"c:/foo/bar.txt\"."
 
   (setq-local comment-start "#")
   (setq-local comment-end   "")
-  (setup-hs-minor-mode)
+  (setup-folding t nil)
 
   (with-editor-export-editor)
   (with-editor-export-git-editor)

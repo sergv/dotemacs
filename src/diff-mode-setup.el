@@ -7,7 +7,7 @@
 ;; Description:
 
 (require 'common)
-(require 'hideshow-setup)
+(require 'folding-setup)
 
 ;;;###autoload
 (add-to-list
@@ -32,7 +32,7 @@
                :use-comment nil
                :use-hl-line t
                :use-whitespace 'tabs-only)
-  (setup-hs-minor-mode)
+  (setup-folding t nil)
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("<up>"     diff-hunk-prev)

@@ -16,10 +16,10 @@
 (require 'common)
 (require 'el-patch)
 (require 'eldoc)
+(require 'folding-setup)
 (require 'hydra-setup)
 (require 'indentation)
 (require 'macro-util)
-(require 'outline-headers)
 (require 'paredit-setup)
 (require 'rainbow-delimiters)
 (require 'search)
@@ -598,7 +598,7 @@ _cl_: comment lines"
                :use-render-formula t
                :use-fci use-fci)
   (rainbow-delimiters-mode 1)
-  (setup-hs-minor-mode)
+  (setup-folding t '(:header-symbol ";" :length-min 3))
   ;; hiding of comments is rather annoying feature when working with lisps
   (setq-local hs-hide-comments-when-hiding-all nil)
 
@@ -662,15 +662,7 @@ _cl_: comment lines"
     ("s"   vim:paredit-inner-symbol)
     ("i s" vim:paredit-inner-symbol)
     ("a s" vim:paredit-outer-symbol)
-    ("S"   vim:paredit-backward-symbol))
-
-  ;; (def-keys-for-map vim:complex-command-override-local-keymap
-  ;;   ("d w" vim:paredit-forward-kill-word)
-  ;;   ("d e" vim:paredit-forward-kill-word)
-  ;;   ("d b" vim:paredit-backward-kill-word))
-
-  (setup-outline-headers :header-symbol ";"
-                         :length-min 3))
+    ("S"   vim:paredit-backward-symbol)))
 
 ;;;###autoload
 (add-hook 'lisp-mode-hook #'lisp-setup)

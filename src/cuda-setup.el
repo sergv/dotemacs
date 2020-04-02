@@ -15,12 +15,10 @@
 ;;;###autoload
 (defun cuda-setup ()
   (cc-setup :define-special-keys nil)
+  (setup-folding t '(:header-start "^/" :header-symbol "*" :length-min 3))
   (cc-setup/set-up-c-basic-offset)
   (setf hs-forward-sexp-func #'c-hideshow-forward-sexp)
-  (setup-eproj-symbnav)
-  (setup-outline-headers :header-start "^/"
-                         :header-symbol "*"
-                         :length-min 3))
+  (setup-eproj-symbnav))
 
 ;;;###autoload
 (add-hook 'cuda-mode-hook #'cuda-setup)
