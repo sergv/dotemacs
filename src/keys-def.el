@@ -8,6 +8,7 @@
 
 (eval-when-compile (require 'cl-lib))
 
+(require 'hydra-setup)
 (require 'vim-mock)
 
 (declaim (special +vi-essential-keys+
@@ -75,6 +76,18 @@
     ("C-<right>" forward-char)
     ("C-<left>"  backward-char)))
 
+(defhydra-ext hydra-vim-mock-z-ext (:exit t :foreign-keys nil :hint nil)
+  "
+scroll to _b_ottom
+scroll to _t_op
+_z_: scroll to center
+"
+  ;; we do not always have vim mode enabled
+  ;; and these scrolling commands are completely independent of vim mode
+  ("b" vim-mock:scroll-line-to-bottom)
+  ("t" vim-mock:scroll-line-to-top)
+  ("z" vim-mock:scroll-line-to-center))
+
 (defconst +vim-special-keys+
   `(("s"     vim:ex-read-command)
     ("C-M-k" remove-buffer)
@@ -85,12 +98,7 @@
 
     ("G"     vim-mock:motion-go-to-first-non-blank-end)
 
-    ("z"     nil)
-    ;; we do not always have vim mode enabled
-    ;; and these scrolling commands are completely independent of vim mode
-    ("z t"   vim-mock:scroll-line-to-top)
-    ("z z"   vim-mock:scroll-line-to-center)
-    ("z b"   vim-mock:scroll-line-to-bottom)
+    ("z"     hydra-vim-mock-z-ext/body)
 
     ("<insert>" vim-mock:scroll-line-up)
     ("<delete>" vim-mock:scroll-line-down)

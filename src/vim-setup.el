@@ -94,6 +94,24 @@ M-_x_                 reactivate _v_isual mode"
   ("e" vim-mock:motion-bwd-word-end)
   ("E" vim-mock:motion-bwd-WORD-end))
 
+(defhydra-ext hydra-vim-normal-z-ext (:exit t :foreign-keys nil :hint nil)
+  "
+scroll to _b_ottom
+scroll to _t_op
+_z_: scroll to center"
+  ("b" vim:scroll-line-to-bottom)
+  ("t" vim:scroll-line-to-top)
+  ("z" vim:scroll-line-to-center))
+
+(defhydra-ext hydra-vim-visual-z-ext (:exit t :foreign-keys nil :hint nil)
+  "
+scroll to _b_ottom
+scroll to _t_op
+_z_: scroll to center"
+  ("b" vim:scroll-line-to-bottom)
+  ("t" vim:scroll-line-to-top)
+  ("z" vim:scroll-line-to-center))
+
 (defhydra-ext hydra-vim-visual-j-ext (:exit t :foreign-keys nil :hint nil)
   "
 _cc_: comment
@@ -249,6 +267,7 @@ _<up>_:    enlarge vertically"
 
   ("g"         hydra-vim-normal-g-ext/body)
   ("j"         hydra-vim-normal-j-ext/body)
+  ("z"         hydra-vim-normal-z-ext/body)
 
   ("<f5>"      vim:revert-buffer)
   ("H"         vim:revert-buffer))
@@ -268,8 +287,9 @@ _<up>_:    enlarge vertically"
 
   ("SPC SPC" vim:visual-exchange-point-and-mark)
 
-  ("j" hydra-vim-visual-j-ext/body)
-  ("g" hydra-vim-visual-g-ext/body)
+  ("j"       hydra-vim-visual-j-ext/body)
+  ("g"       hydra-vim-visual-g-ext/body)
+  ("z"       hydra-vim-visual-z-ext/body)
 
   (("(" ")") vim:wrap-parens)
   (("[" "]") vim:wrap-braces)
