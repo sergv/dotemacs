@@ -250,14 +250,6 @@
 (vim:nmap "<" #'vim:cmd-shift-left)
 (vim:nmap ">" #'vim:cmd-shift-right)
 
-(vim:omap "zt" #'vim:scroll-line-to-top)
-;; (vim:omap (vconcat "z" [return]) "zt^")
-;; (vim:omap (kbd "z RET") (vconcat "z" [return]))
-(vim:omap "zz" #'vim:scroll-line-to-center)
-;; (vim:omap "z." "zz^")
-(vim:omap "zb" #'vim:scroll-line-to-bottom)
-;; (vim:omap "z-" "zb^")
-
 (vim:nmap "v" #'vim:visual-toggle-normal)
 (vim:nmap "V" #'vim:visual-toggle-linewise)
 (vim:nmap (kbd "C-v") #'vim:visual-toggle-block)
