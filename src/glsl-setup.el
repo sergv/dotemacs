@@ -27,6 +27,7 @@
 ;;;###autoload
 (defun glsl-setup ()
   (cc-setup :define-special-keys nil)
+  (setup-folding t nil)
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("- ?" glsl-find-man-page)))

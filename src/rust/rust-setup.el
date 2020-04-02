@@ -142,7 +142,7 @@ _a_lign  _t_: beginning of defun
                :use-whitespace 'tabs-only
                :hl-parens-backend 'smartparens)
   (fontify-conflict-markers!)
-  (setup-hs-minor-mode)
+  (setup-folding t '(:header-symbol "/" :length-min 4))
   (company-mode +1)
   (setq-local company-backends
               '(company-files
@@ -239,10 +239,7 @@ _a_lign  _t_: beginning of defun
     ("M-h"   rust-compilation-next-error-other-window)
     ("C-SPC" company-complete))
 
-  (setup-eproj-symbnav)
-
-  (setup-outline-headers :header-symbol "/"
-                         :length-min 4))
+  (setup-eproj-symbnav))
 
 
 (provide 'rust-setup)

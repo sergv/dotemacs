@@ -11,7 +11,8 @@
 
 ;;;###autoload
 (defun idl-setup ()
-  (cc-setup :define-special-keys t))
+  (cc-setup :define-special-keys t)
+  (setup-folding t nil))
 
 ;;;###autoload
 (add-hook 'idl-mode-hook #'idl-setup)
