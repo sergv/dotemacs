@@ -220,27 +220,64 @@ function; and adjust-block-beginning function."
                       "\n"
                       "\\)+"))
 
-  (outline-minor-mode +1)
-
-  (def-keys-for-map vim:normal-mode-local-keymap
-    ("z F" outline-hide-body)
-    ("z f" outline-hide-subtree)
-    ("z U" outline-show-all)
-    ("z u" outline-show-subtree)))
+  (outline-minor-mode +1))
 
 ;;;; Combined
 
+(defhydra-derive hydra-vim-normal-z-hideshow hydra-vim-normal-z-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_c_: hide block
+_o_: show block
+_C_: hide all blocks
+_O_: show all blocks"
+  ("o" hs-show-block)
+  ("c" hs-hide-block)
+  ("C" hs-hide-all)
+  ("O" hs-show-all))
+
+(defhydra-derive hydra-vim-normal-z-outline hydra-vim-normal-z-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_f_: hide outline block
+_u_: show outline block
+_F_: hide all outline blocks leaving all headings visible
+_U_: show all outline blocks"
+  ("F" outline-hide-body)
+  ("f" outline-hide-subtree)
+  ("U" outline-show-all)
+  ("u" outline-show-subtree))
+
+(defhydra-derive hydra-vim-normal-z-hideshow-and-outline hydra-vim-normal-z-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_c_: hide block       _f_: hide outline block
+_o_: show block       _u_: show outline block
+_C_: hide all blocks  _F_: hide all outline blocks leaving all headings visible
+_O_: show all blocks  _U_: show all outline blocks"
+  ("o" hs-show-block)
+  ("c" hs-hide-block)
+  ("C" hs-hide-all)
+  ("O" hs-show-all)
+
+  ("F" outline-hide-body)
+  ("f" outline-hide-subtree)
+  ("U" outline-show-all)
+  ("u" outline-show-subtree))
+
 ;;;###autoload
 (defun setup-folding (enable-hideshow? outline-params)
-  (when enable-hideshow?
-    (hs-minor-mode +1)
-    (def-keys-for-map vim:normal-mode-local-keymap
-      ("z o" hs-show-block)
-      ("z c" hs-hide-block)
-      ("z C" hs-hide-all)
-      ("z O" hs-show-all)))
-  (when outline-params
-    (apply #'setup-outline-headers outline-params)))
+  (if enable-hideshow?
+      (progn
+        (hs-minor-mode +1)
+        (if outline-params
+            (progn
+              (apply #'setup-outline-headers outline-params)
+              (def-keys-for-map vim:normal-mode-local-keymap
+                ("z" hydra-vim-normal-z-hideshow-and-outline/body)))
+          (def-keys-for-map vim:normal-mode-local-keymap
+            ("z" hydra-vim-normal-z-hideshow/body))))
+    (when outline-params
+      (apply #'setup-outline-headers outline-params)
+      (def-keys-for-map vim:normal-mode-local-keymap
+        ("z" hydra-vim-normal-z-outline/body)))))
 
 ;; Local Variables:
 ;; End:

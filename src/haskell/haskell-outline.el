@@ -23,6 +23,29 @@
  (yafolding-show-element)
  (haskell-mode))
 
+(defhydra-derive hydra-haskell-vim-normal-z hydra-vim-normal-z-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_c_: hide indented or sexp  _f_: hide outline block
+_o_: show indented or sexp  _u_: show outline block
+_C_: hide all indented      _F_: hide all outline blocks leaving all headings visible
+_O_: show all indented      _U_: show all outline blocks
+_T_: toggle all indented"
+  ("c" haskell-hide-indented-or-sexp)
+  ("o" haskell-show-indented-or-sexp)
+  ("C" yafolding-hide-all)
+  ("O" yafolding-show-all)
+  ("T" yafolding-toggle-all)
+
+  ("F" outline-hide-body)
+  ("f" outline-hide-subtree)
+  ("U" outline-show-all)
+  ("u" outline-show-subtree))
+
+(defhydra-derive hydra-haskell-vim-visual-z hydra-vim-visual-z-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_c_: yafolding hide region"
+  ("c" yafolding-hide-region))
+
 ;;;###autoload
 (defun* haskell-setup-folding (&key (enable-hs-minor-mode t))
   "Configure folding for Haskell. ENABLE-HS-MINOR-MODE controls whether
@@ -35,13 +58,12 @@ to enable folding of balanced S-expressions."
                           (string-to-vector " ..."))
 
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("z C" yafolding-hide-all)
-    ("z c" haskell-hide-indented-or-sexp)
-    ("z O" yafolding-show-all)
-    ("z o" haskell-show-indented-or-sexp)
-    ("z T" yafolding-toggle-all))
+    ("z" hydra-haskell-vim-normal-z/body)
+
+
+    )
   (def-keys-for-map vim:visual-mode-local-keymap
-    ("z c" yafolding-hide-region)))
+    ("z" hydra-haskell-vim-visual-z)))
 
 ;;;###autoload
 (defun haskell-hide-indented-or-sexp ()
