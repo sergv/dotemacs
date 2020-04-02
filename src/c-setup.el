@@ -17,6 +17,7 @@
 ;;;###autoload
 (defun c-setup ()
   (cc-setup :define-special-keys t)
+  (setup-folding t '(:header-start "^/" :header-symbol "*" :length-min 3))
   (cc-setup/set-up-c-basic-offset)
   (setq-local company-backends
               '(company-clang
@@ -44,10 +45,7 @@
   (def-keys-for-map vim:visual-mode-local-keymap
     ("- m" c-macro-expand))
   (c-abbrev+-setup)
-  (setup-eproj-symbnav)
-  (setup-outline-headers :header-start "^/"
-                         :header-symbol "*"
-                         :length-min 3))
+  (setup-eproj-symbnav))
 
 ;;;###autoload
 (add-hook 'c-mode-hook #'c-setup)

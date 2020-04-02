@@ -20,6 +20,7 @@
 (setf dtrt-indent-verbosity 2
       dtrt-indent-max-relevant-lines 10000)
 
+;;;###autoload (autoload 'c-align-on-equals "cc-setup")
 (make-align-function c-align-on-equals
                      "\\([+*|&/!%]\\|-\\|\\^\\)?=[^=]"
                      :require-one-or-more-spaces t)
@@ -160,7 +161,6 @@ Also propagate new offset to `vim:shift-width'."
                :use-yasnippet t
                :use-whitespace 'tabs-only)
   (fontify-conflict-markers!)
-  (setup-hs-minor-mode)
   (which-function-mode -1)
   (company-mode +1)
   (setq-local company-backends '(company-eproj))

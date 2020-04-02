@@ -410,10 +410,7 @@ _a_lign  _t_: jump to topmost node start
       ;; ("C-M-," haskell-tags-server-go-back)
       ;; ("M-."   haskell-go-to-global-symbol-home)
 
-      )
-
-    (setup-outline-headers :header-symbol "-"
-                           :length-min 3)))
+      )))
 
 ;;;###autoload
 (defun haskell-c2hs-setup ()

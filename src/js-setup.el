@@ -37,7 +37,7 @@
 ;;;###autoload
 (defun js2-setup ()
   (init-common :use-whitespace 'tabs-only)
-  (setup-hs-minor-mode)
+  (setup-folding t nil)
   (def-keys-for-map (vim:normal-mode-local-keymap)
     ("z c" js2-hide-indented-or-sexp)
     ("z o" js2-show-indented-or-sexp)
@@ -51,7 +51,7 @@
   (init-common :use-whitespace 'tabs-only
                :use-yasnippet t
                :use-comment t)
-  (setup-hs-minor-mode))
+  (setup-folding t nil))
 
 ;;;###autoload
 (add-hook 'js-mode-hook #'js-setup)
@@ -69,7 +69,7 @@
   (init-common :use-whitespace 'tabs-only
                :use-yasnippet t
                :use-comment t)
-  (setup-hs-minor-mode)
+  (setup-folding t nil)
   (def-keys-for-map vim:normal-mode-local-keymap
     ("- p" json-mode-show-path)))
 

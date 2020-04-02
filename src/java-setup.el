@@ -19,6 +19,7 @@
 ;;;###autoload
 (defun java-setup ()
   (cc-setup :define-special-keys nil)
+  (setup-folding t '(:header-symbol "/" :length-min 3))
   (setf c-basic-offset 4)
   (setq-local vim:shift-width 4)
   (setq-local c-indentation-indent-style
@@ -30,8 +31,6 @@
   (setq-local indent-tabs-mode t)
 
   (setup-eproj-symbnav)
-  (setup-outline-headers :header-symbol "/"
-                         :length-min 3)
   (java-abbrev+-setup))
 
 ;;;###autoload

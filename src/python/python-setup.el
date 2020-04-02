@@ -15,7 +15,6 @@
 (require 'common)
 (require 'compile)
 (require 'macro-util)
-(require 'outline-headers)
 
 (require 'python)
 (require 'python-abbrev+)
@@ -373,7 +372,7 @@ _a_lign"
                :sp-slurp-sexp-insert-space nil
                :use-whitespace 'tabs-only
                :use-fci t)
-  (setup-hs-minor-mode)
+  (setup-folding t '(:header-start "^[ \t]*" :header-symbol "#" :length-min 3))
 
   (setup-indent-size 4)
   (setq-local whitespace-style '(face lines-tail))
@@ -442,9 +441,6 @@ _a_lign"
   ;; (when pabbrev-mode
   ;;   (pabbrev-scavenge-buffer))
 
-  (setup-outline-headers :header-start "^[ \t]*"
-                         :header-symbol "#"
-                         :length-min 3)
   (add-hook 'after-save-hook #'make-script-file-exec nil t)
   (setup-eproj-symbnav))
 

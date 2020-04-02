@@ -203,7 +203,7 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
 ;;;###autoload
 (defun markup-setup (tags-context-func)
   (init-common :use-whitespace 'tabs-only)
-  (setup-hs-minor-mode)
+  (setup-folding t nil)
   (hl-tags-mode t)
 
   (setq-local yas-fallback-behavior 'call-other-command)
@@ -285,7 +285,7 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
 ;;;###autoload
 (defun web-mode-setup ()
   (init-common :use-whitespace 'tabs-only)
-  (setup-hs-minor-mode)
+  (setup-folding t nil)
 
   (put 'hs-set-up-overlay 'permanent-local t)
 
