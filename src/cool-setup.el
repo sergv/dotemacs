@@ -14,7 +14,7 @@
                :sp-slurp-sexp-insert-space nil
                :use-whitespace 'tabs-only
                :use-fci t)
-  (setup-hs-minor-mode))
+  (setup-folding t nil))
 
 ;;;###autoload
 (add-hook 'cool-mode-hook #'cool-setup)
