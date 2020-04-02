@@ -142,7 +142,7 @@ _a_lign  _t_: beginning of defun
                :use-whitespace 'tabs-only
                :hl-parens-backend 'smartparens)
   (fontify-conflict-markers!)
-  (setup-folding t '(:header-symbol "/" :length-min 4))
+  (setup-folding t '(:header-symbol "/" :length-min 3))
   (company-mode +1)
   (setq-local company-backends
               '(company-files
