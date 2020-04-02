@@ -9,6 +9,7 @@
 (require 'haskell-misc)
 (require 'search)
 (require 'yafolding)
+(require 'vim-setup)
 
 (defadvice yafolding-go-parent-element
     (after

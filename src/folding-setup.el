@@ -8,6 +8,7 @@
 
 (require 'comment-util)
 (require 'el-patch)
+(require 'vim-setup)
 
 (provide 'folding-setup)
 
