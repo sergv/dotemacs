@@ -145,7 +145,7 @@
 
 (defun pcpmpl/make-name-regex (flag)
   (cl-assert (pcmpl-flag-p flag))
-  (regexp-opt (pcmpl-flag/names flag)))
+  (regexp-opt (pcmpl-flag/names flag) 'symbols))
 
 (defun pcmpl/make-flags (raw-flag-specs)
   "RAW-FLAG-SPECS is a list of either strings or 1- or 2-element lists where
@@ -297,7 +297,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                                  (cond
                                    ,@(-map (lambda (flag)
                                              `((pcomplete-match ,(pcpmpl/make-name-regex flag))
-                                               ,@(awhen (pcmpl-flag/completion-expr flag) (list it))))
+                                               (pcomplete-here ,(pcmpl-flag/completion-expr flag))))
                                            flags-with-args)
                                    ,@(when single-dash-flags
                                        (list
@@ -309,7 +309,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                                           (pcomplete-here ',double-dash-flags))))
                                    (t
                                     ,@(if (cdr args)
-                                          (cdr args)
+                                          (--map (list 'pcomplete-here* it) (cdr args))
                                         ;; Return nil to while loop to show that
                                         ;; there are no more completions.
                                         '(nil)))))))))))))
@@ -400,27 +400,27 @@ under version-control directories."
                "--refresh"
                "--ignore-errors"
                "--ignore-missing")
-        (args (pcomplete-here (pcmpl-entries)))))
+        (args (pcmpl-entries))))
       ("bisect"
        (or
         ("help")
         ("start"
          (opts
           (flags "--no-checkout")
-          (args (pcomplete-here (pcmpl-git-rev)))))
+          (args (pcmpl-git-rev))))
         ("bad"
          (opts
-          (args (pcomplete-here (pcmpl-git-rev)))))
+          (args (pcmpl-git-rev))))
         ("good"
          (opts
-          (args (pcomplete-here (pcmpl-git-rev)))))
+          (args (pcmpl-git-rev))))
         ("skip"
          (opts
-          (args (pcomplete-here (pcmpl-git-rev)))))
+          (args (pcmpl-git-rev))))
         ("next")
         ("reset"
          (opts
-          (args (pcomplete-here (pcmpl-git-commits)))))
+          (args (pcmpl-git-commits))))
         ("visualize")
         ("replay")
         ("log")
@@ -459,12 +459,12 @@ under version-control directories."
                "--no-merged"
                "--merged"
                "--column")
-        (args (pcomplete-here (pcmpl-git-commits)))))
+        (args (pcmpl-git-commits))))
       ("checkout"
        (opts
         (flags "-q"
                "--quiet"
-               (("-b" "-B" "--orphan") (pcomplete-here (pcmpl-git-branch-names)))
+               (("-b" "-B" "--orphan") (pcmpl-git-branch-names))
                "-l"
                "--detach"
                "-t"
@@ -483,7 +483,7 @@ under version-control directories."
                "-p"
                "--patch"
                "--ignore-skip-worktree-bits")
-        (args (pcomplete-here (pcmpl-git-commits)))))
+        (args (pcmpl-git-commits))))
       ("clone"
        (opts
         (flags "-v"
@@ -566,7 +566,7 @@ under version-control directories."
                "--no-post-rewrite"
                "-u"
                "--untracked-files")
-        (args (pcomplete-here (pcmpl-entries)))))
+        (args (pcmpl-entries))))
       ("diff"
        (opts
         (flags "--no-index"
@@ -647,7 +647,7 @@ under version-control directories."
                "--src-prefix"
                "--dst-prefix"
                "--no-prefix")
-        (args (pcomplete-here (pcmpl-git-commits-and-files)))))
+        (args (pcmpl-git-commits-and-files))))
       ("fetch"
        (opts
         (flags "-v"
@@ -740,13 +740,13 @@ under version-control directories."
                "-O"
                "--open-files-in-pager"
                "--ext-grep")
-        (args (pcomplete-here (pcmpl-entries)))))
+        (args (pcmpl-entries))))
       ("init"
        (opts
         (flags "--bare"
                "--shared"
-               ("--separate-git-dir" (pcomplete-here (pcomplete-dirs))))
-        (args (pcomplete-here (pcmpl-entries)))))
+               ("--separate-git-dir" (pcomplete-dirs)))
+        (args (pcmpl-entries))))
       ("log"
        (opts
         (flags "-q"
@@ -916,7 +916,7 @@ under version-control directories."
                "--src-prefix"
                "--dst-prefix"
                "--no-prefix")
-        (args (pcomplete-here (pcmpl-git-commits-and-files)))))
+        (args (pcmpl-git-commits-and-files))))
       ("merge"
        (opts
         (flags "-n"
@@ -946,7 +946,7 @@ under version-control directories."
                "-S"
                "--gpg-sign"
                "--overwrite-ignore")
-        (args (pcomplete-here (pcmpl-git-commits)))))
+        (args (pcmpl-git-commits))))
       ("mv"
        (opts
         (flags "-v"
@@ -956,7 +956,7 @@ under version-control directories."
                "-f"
                "--force"
                "-k")
-        (args (pcomplete-here (pcmpl-entries)))))
+        (args (pcmpl-entries))))
       ("p4"
        (or ("submit")
            ("rebase")
@@ -1003,8 +1003,8 @@ under version-control directories."
                "--no-verify"
                "--follow-tags")
         (args
-         (pcomplete-here (pcmpl-git-get-remotes))
-         (pcomplete-here (pcmpl-git-branch-names)))))
+         (pcmpl-git-get-remotes)
+         (pcmpl-git-branch-names))))
       ("rebase"
        (opts
         (flags "-i"
@@ -1015,7 +1015,7 @@ under version-control directories."
                "--abort"
                "--continue"
                "--skip")
-        (args (pcomplete-here (pcmpl-git-rev)))))
+        (args (pcmpl-git-rev))))
       ("remote"
        (or
         ("add"
@@ -1023,7 +1023,7 @@ under version-control directories."
           (flags
            "-v"
            "--verbose"
-           ("-t" (pcomplete-here (pcmpl-git-branch-names)))
+           ("-t" (pcmpl-git-branch-names))
            "-f"
            "--tags"
            "--no-tags"
@@ -1036,15 +1036,15 @@ under version-control directories."
            "-v"
            "--verbose"))
          (args
-          (pcomplete-here (pcmpl-git-get-remotes))
-          (pcomplete-here (pcmpl-git-get-remotes))))
+          (pcmpl-git-get-remotes)
+          (pcmpl-git-get-remotes)))
         ("remove"
          (opts
           (flags
            "-v"
            "--verbose"))
          (args
-          (pcomplete-here (pcmpl-git-get-remotes))))
+          (pcmpl-git-get-remotes)))
         ("set-head"
          (opts
           (flags
@@ -1055,8 +1055,8 @@ under version-control directories."
            "-d"
            "--delete")
           (args
-           (pcomplete-here (pcmpl-git-get-remotes))
-           (pcomplete-here (pcmpl-git-get-refs "heads")))))
+           (pcmpl-git-get-remotes)
+           (pcmpl-git-get-refs "heads"))))
         ("set-branches"
          (opts
           (flags
@@ -1064,7 +1064,7 @@ under version-control directories."
            "--verbose"
            "--add")
           (args
-           (pcomplete-here (pcmpl-git-get-remotes)))))
+           (pcmpl-git-get-remotes))))
         ("get-url"
          (opts
           (flags
@@ -1073,7 +1073,7 @@ under version-control directories."
            "--push"
            "--add")
           (args
-           (pcomplete-here (pcmpl-git-get-remotes)))))
+           (pcmpl-git-get-remotes))))
         ("set-url"
          (opts
           (flags
@@ -1083,7 +1083,7 @@ under version-control directories."
            "--add"
            "--delete")
           (args
-           (pcomplete-here (pcmpl-git-get-remotes)))))
+           (pcmpl-git-get-remotes))))
         ("show"
          (opts
           (flags
@@ -1091,7 +1091,7 @@ under version-control directories."
            "--verbose"
            "-n")
           (args
-           (pcomplete-here (pcmpl-git-get-remotes)))))
+           (pcmpl-git-get-remotes))))
         ("prune"
          (opts
           (flags
@@ -1100,7 +1100,7 @@ under version-control directories."
            "-n"
            "--dry-run")
           (args
-           (pcomplete-here (pcmpl-git-get-remotes)))))
+           (pcmpl-git-get-remotes))))
         ("update"
          (opts
           (flags
@@ -1109,7 +1109,7 @@ under version-control directories."
            "-p"
            "--prune")
           (args
-           (pcomplete-here (pcmpl-git-get-remotes)))))))
+           (pcmpl-git-get-remotes))))))
       ("reset"
        (opts
         (flags "--mixed"
@@ -1117,7 +1117,7 @@ under version-control directories."
                "--hard"
                "--merge"
                "--keep")
-        (args (pcomplete-here (pcmpl-git-commits-and-files)))))
+        (args (pcmpl-git-commits-and-files))))
       ("rm"
        (opts
         (flags "-f"
@@ -1126,7 +1126,7 @@ under version-control directories."
                "--cached"
                "--dry-run"
                "--force")
-        (args (pcomplete-here (pcmpl-entries)))))
+        (args (pcmpl-entries))))
       ("show"
        (opts
         (flags "-q"
@@ -1135,7 +1135,7 @@ under version-control directories."
                "--source"
                "--use-mailmap"
                "--decorate")
-        (args (pcomplete-here (pcmpl-entries)))))
+        (args (pcmpl-entries))))
       ("status"
        (opts
         (flags
@@ -1171,21 +1171,21 @@ under version-control directories."
                  "--force"
                  "--name"
                  "--reference")
-          (args (pcomplete-here (pcmpl-dirs)))))
+          (args (pcmpl-dirs))))
         ("status"
          (opts
           (flags "--cached"
                  "--recursive")
-          (args (pcomplete-here (pcmpl-dirs)))))
+          (args (pcmpl-dirs))))
 
         ("init"
          (opts
-          (args (pcomplete-here (pcmpl-dirs)))))
+          (args (pcmpl-dirs))))
         ("deinit"
          (opts
           (flags "-f"
                  "--force")
-          (args (pcomplete-here (pcmpl-dirs)))))
+          (args (pcmpl-dirs))))
         ("update"
          (opts
           (flags "--init"
@@ -1198,24 +1198,24 @@ under version-control directories."
                  "--reference"
                  "--merge"
                  "--recursive")
-          (args (pcomplete-here (pcmpl-dirs)))))
+          (args (pcmpl-dirs))))
         ("summary"
          (opts
           (flags "--cached"
                  "--files"
                  "--summary-limit"
                  "--commit")
-          (args (pcomplete-here (pcmpl-dirs)))))
+          (args (pcmpl-dirs))))
         ("foreach"
          (opts
           (flags "--recursive")))
         ("sync"
          (opts
           (flags "--recursive")
-          (args (pcomplete-here (pcmpl-dirs)))))))
+          (args (pcmpl-dirs))))))
       ("tag"
        (opts
-        (args (pcomplete-here (pcmpl-git-get-refs "tags")))))))
+        (args (pcmpl-git-get-refs "tags"))))))
 
 ;;;; Haskell
 
@@ -1260,12 +1260,12 @@ under version-control directories."
 ;;;###autoload (autoload 'pcomplete/runghc "shell-completion" nil t)
 (defpcmpl pcomplete/runghc
   (opts
-   (args (pcomplete-here (pcmpl-haskell-source-or-obj-files)))))
+   (args (pcmpl-haskell-source-or-obj-files))))
 
 ;;;###autoload (autoload 'pcomplete/runhaskell "shell-completion" nil t)
 (defpcmpl pcomplete/runhaskell
   (opts
-   (args (pcomplete-here (pcmpl-haskell-source-or-obj-files t)))))
+   (args (pcmpl-haskell-source-or-obj-files t))))
 
 ;;;###autoload (autoload 'pcomplete-ghc-flags "shell-completion" nil)
 (defparameter pcomplete-ghc-flags
@@ -1312,7 +1312,7 @@ under version-control directories."
     "--mk-dll"
     "--numeric-version"
     "--print-libdir"
-    ("--show-iface" (pcomplete-here (pcmpl-haskell-hi-files)))
+    ("--show-iface" (pcmpl-haskell-hi-files))
     "--show-options"
     "--supported-extensions"
     "--supported-languages"
@@ -1328,8 +1328,8 @@ under version-control directories."
     "-S"
     "-x"
 
-    (("--exclude-module" "-dep-makefile" "-o") (pcomplete-here (pcmpl-entries)))
-    (("-i" "-I" "-L" "--dumpdir" "-hidir" "-odir" "-outputdir" "-stubdir" "-tmpdir") (pcomplete-here (pcmpl-dirs)))
+    (("--exclude-module" "-dep-makefile" "-o") (pcmpl-entries))
+    (("-i" "-I" "-L" "--dumpdir" "-hidir" "-odir" "-outputdir" "-stubdir" "-tmpdir") (pcmpl-dirs))
     "-ddump-mod-cycles"
     "-dep-suffix"
     "-hcsuf"
@@ -1374,7 +1374,7 @@ under version-control directories."
     "-ignore-dot-ghci"
     "-interactive-print"
 
-    (("-package-db" "-package-env") (pcomplete-here (pcmpl-entries-ignoring-common)))
+    (("-package-db" "-package-env") (pcmpl-entries-ignoring-common))
     "-clear-package-db"
     "-distrust"
     "-distrust-all-packages"
@@ -1865,7 +1865,7 @@ under version-control directories."
     "-dsuppress-unfoldings"
     "-dsuppress-uniques"
     "-dsuppress-var-kinds"
-    ("-dth-dec-file" (pcomplete-here (pcmpl-entries)))
+    ("-dth-dec-file" (pcmpl-entries))
     "-dunique-increment=⟨i⟩"
     "-dverbose-core2core"
     "-dverbose-stg2stg"
@@ -1885,7 +1885,7 @@ under version-control directories."
 (defpcmpl pcomplete/ghc
   `(opts
     (flags ,@pcomplete-ghc-flags)
-    (args (pcomplete-here (pcmpl-haskell-source-or-obj-files))))
+    (args (pcmpl-haskell-source-or-obj-files)))
   :evaluate-definition t)
 
 ;;;###autoload (autoload 'pcomplete/cabal "shell-completion" nil t)
@@ -1925,7 +1925,7 @@ under version-control directories."
                                  "--verbose=1"
                                  "--verbose=2"
                                  "--verbose=3"))
-         (builddir-flags '(("--builddir" (pcomplete-here (pcmpl-dirs)))))
+         (builddir-flags '(("--builddir" (pcmpl-dirs))))
          (solver-flags '("--solver=modular"))
          (fetch-flags '("--max-backjumps"
                         "--reorder-goals"
@@ -1940,7 +1940,7 @@ under version-control directories."
          (program-options-flags
           (-mapcat (lambda (p)
                      `((,(concat "--" p)
-                        (pcomplete-here (pcmpl-entries-ignoring-common)))
+                        (pcmpl-entries-ignoring-common))
                        ,(concat "--" p "-option")
                        ,(concat "--" p "-options")))
                    programs))
@@ -1977,7 +1977,7 @@ under version-control directories."
                               "--sysconfdir"
                               "-b"
                               "--scratchdir")
-                             (pcomplete-here (pcmpl-dirs)))
+                             (pcmpl-dirs))
 
                             "--program-prefix"
                             "--program-suffix"
@@ -2032,12 +2032,12 @@ under version-control directories."
                             "--configure-option"
                             "--user"
                             "--global"
-                            ("--package-db" (pcomplete-here (pcmpl-entries-ignoring-common)))
+                            ("--package-db" (pcmpl-entries-ignoring-common))
                             "-f"
                             "--flags"
                             "--allow-depending-on-private-libs"
                             (("--extra-include-dirs" "--extra-lib-dirs" "--extra-prog-path")
-                             (pcomplete-here (pcmpl-dirs)))
+                             (pcmpl-dirs))
                             ,@program-options-flags
                             "--cabal-lib-version"
                             "--constraint"
@@ -2063,7 +2063,7 @@ under version-control directories."
                             "--force-reinstalls"
                             "--upgrade-dependencies"
                             "--index-state="
-                            ("--symlink-bindir" (pcomplete-here (pcmpl-dirs)))
+                            ("--symlink-bindir" (pcmpl-dirs))
                             "--build-summary="
                             "--build-log="
                             "--remote-build-reporting"
@@ -2077,7 +2077,7 @@ under version-control directories."
                             "-j"
                             "--jobs"
                             "--offline"
-                            ("--project-file" (pcomplete-here (pcmpl-haskell-cabal-project-file))))))
+                            ("--project-file" (pcmpl-haskell-cabal-project-file)))))
     `(or
       ("install"
        (opts
@@ -2096,18 +2096,18 @@ under version-control directories."
                "--haddock-benchmarks"
                "--haddock-all"
                "--haddock-internal"
-               (("--haddock-css" "--haddock-hscolour-css") (pcomplete-here (pcmpl-entries-ignoring-common)))
+               (("--haddock-css" "--haddock-hscolour-css") (pcmpl-entries-ignoring-common))
                "--haddock-quickjump"
                "--haddock-hyperlink-source"
                "--haddock-contents-location=URL"
 
-               ("-package-env" (pcomplete-here (pcmpl-entries-ignoring-common)))
+               ("-package-env" (pcmpl-entries-ignoring-common))
                "--lib"
                "--overwrite-policy=always"
                "--overwrite-policy=never"
                "--install-method=copy"
                "--install-method=symlink"
-               ("--installdir" (pcomplete-here (pcmpl-dirs))))))
+               ("--installdir" (pcmpl-dirs)))))
       ("update"
        (opts
         (flags ,@help-verbosity-flags)))
@@ -2129,7 +2129,7 @@ under version-control directories."
       ("get"
        (opts
         (flags ,@help-verbosity-flags
-               (("-d" "--destdir") (pcomplete-here (pcmpl-dirs)))
+               (("-d" "--destdir") (pcmpl-dirs))
                "-s"
                "--source-repository"
                "--source-repository=head"
@@ -2212,7 +2212,7 @@ under version-control directories."
            ("delete")
            ("add-source"
             (opts
-             (args (pcomplete-here (pcmpl-entries-ignoring-common)))))
+             (args (pcmpl-entries-ignoring-common))))
            ("hc-pkg")
            ("list-sources")))
       ("copy")
@@ -2267,12 +2267,12 @@ under version-control directories."
           "-tf"
           "-y"
           "-c")
-   (args (pcomplete-here (pcmpl-entries :select "\\.hp\\'")))))
+   (args (pcmpl-entries :select "\\.hp\\'"))))
 
 ;;;###autoload (autoload 'pcomplete/hp2pdf "shell-completion" nil t)
 (defpcmpl pcomplete/hp2pdf
   (opts
-   (args (pcomplete-here (pcmpl-entries :select "\\.hp\\'")))))
+   (args (pcmpl-entries :select "\\.hp\\'"))))
 
 ;;;###autoload (autoload 'pcomplete/hp2pretty "shell-completion" nil t)
 (defpcmpl pcomplete/hp2pretty
@@ -2282,7 +2282,7 @@ under version-control directories."
     "--uniform-scale=time"
     "--uniform-scale=memory"
     "--uniform-scale=both")
-   (args (pcomplete-here (pcmpl-entries :select "\\.hp\\'")))))
+   (args (pcmpl-entries :select "\\.hp\\'"))))
 
 ;;;###autoload (autoload 'pcomplete/hp2svg "shell-completion" nil nil)
 (defalias 'pcomplete/hp2svg 'pcomplete/hp2pretty)
@@ -2327,7 +2327,7 @@ under version-control directories."
            "--compiler"
            "--terminal"
            "--no-terminal"
-           ("--stack-yaml" (pcomplete-here (pcmpl-entries :select "\\.yaml\\'")))))
+           ("--stack-yaml" (pcmpl-entries :select "\\.yaml\\'"))))
         (build-args
          '("--dry-run"
            "--pedantic"
@@ -2540,7 +2540,7 @@ under version-control directories."
     "--silent"
     "-f"
     "--fource")
-   (args (pcomplete-here (pcmpl-entries :select "\\`package\\.yaml\\'")))))
+   (args (pcmpl-entries :select "\\`package\\.yaml\\'"))))
 
 ;;;###autoload (autoload 'pcomplete/hlint "shell-completion" nil t)
 (defpcmpl pcomplete/hlint
@@ -2554,22 +2554,22 @@ under version-control directories."
            "-V"
            "--version"))
         (language-flags
-         '((("-X" "--language") (pcomplete-here (get-haskell-language-extensions)))))
+         '((("-X" "--language") (get-haskell-language-extensions))))
         (extension-flags
          '("-e"
            "--extension"))
         (hint-flags
-         '(("--datadir" (pcomplete-here (pcmpl-dirs)))
-           (("-r" "--report") (pcomplete-here (pcmpl-entries)))
-           (("-h" "--hint") (pcomplete-here (pcmpl-entries)))
+         '(("--datadir" (pcmpl-dirs))
+           (("-r" "--report") (pcmpl-entries))
+           (("-h" "--hint") (pcmpl-entries))
            "-w"
            "--with"))
         (cpp-flags
          '("-p"
            "--path"
            "--cpp-define"
-           ("--cpp-include" (pcomplete-here (pcmpl-dirs)))
-           ("--cpp-file" (pcomplete-here (pcmpl-entries)))
+           ("--cpp-include" (pcmpl-dirs))
+           ("--cpp-file" (pcmpl-entries))
            "--cpp-simple"
            "--cpp-ansi")))
     `(or
@@ -2604,7 +2604,7 @@ under version-control directories."
                "--color=never"
                "--color=auto"
                "--colour")
-        (args (pcomplete-here (pcmpl-haskell-source-files)))))
+        (args (pcmpl-haskell-source-files))))
       ("grep"
        (opts
         (flags
@@ -2613,14 +2613,14 @@ under version-control directories."
          ,@language-flags
          ,@cpp-flags))
        (args
-        (pcomplete-here (pcmpl-haskell-source-files))))
+        (pcmpl-haskell-source-files)))
       ("test"
        (opts
         (flags
          ,@standard-flags
          ,@hint-flags
-         ("--proof" (pcomplete-here (pcmpl-entries)))
-         ("--tempdir" (pcomplete-here (pcmpl-dirs)))
+         ("--proof" (pcmpl-entries))
+         ("--tempdir" (pcmpl-dirs))
          "--quickcheck"
          "--typecheck")))
       ("hse"
@@ -2692,7 +2692,7 @@ under version-control directories."
           "--help"
           "-V"
           "--version")
-   (args (pcomplete-here (pcmpl-entries)))))
+   (args (pcmpl-entries))))
 
 ;;;###autoload (autoload 'pcomplete/readelf "shell-completion" nil t)
 (defpcmpl pcomplete/readelf
@@ -2742,11 +2742,10 @@ under version-control directories."
           "-z"
           "--decompress"
 
-          ("--debug-dump" (pcomplete-here
-                           '("rawline" "decodedline" "info" "abbrev" "pubnames" "aranges" "macro"
-                             "frames" "frames-interp" "str" "loc" "Ranges" "pubtypes" "gdb_index"
-                             "trace_info" "trace_abbrev" "trace_aranges" "addr" "cu_index"
-                             "links" "follow-links")))
+          ("--debug-dump" '("rawline" "decodedline" "info" "abbrev" "pubnames" "aranges" "macro"
+                            "frames" "frames-interp" "str" "loc" "Ranges" "pubtypes" "gdb_index"
+                            "trace_info" "trace_abbrev" "trace_aranges" "addr" "cu_index"
+                            "links" "follow-links"))
           "--debug-dump=rawline"
           "--debug-dump=decodedline"
           "--debug-dump=info"
@@ -2781,7 +2780,7 @@ under version-control directories."
           "--histogram"
           "-W"
           "--wide")
-   (args (pcomplete-here (pcmpl-entries)))))
+   (args (pcmpl-entries))))
 
 ;;;###autoload (autoload 'pcomplete/objdump "shell-completion" nil t)
 (defpcmpl pcomplete/objdump
@@ -2817,10 +2816,9 @@ under version-control directories."
     "-G"
     "--stabs"
 
-    ("--dwarf" (pcomplete-here
-                '("rawline" "decodedline" "info" "abbrev" "pubnames" "aranges" "macro" "frames"
-                  "frames-interp" "str" "loc" "Ranges" "pubtypes" "gdb_index" "trace_info"
-                  "trace_abbrev" "trace_aranges" "addr" "cu_index" "links" "follow-links")))
+    ("--dwarf" '("rawline" "decodedline" "info" "abbrev" "pubnames" "aranges" "macro" "frames"
+                 "frames-interp" "str" "loc" "Ranges" "pubtypes" "gdb_index" "trace_info"
+                 "trace_abbrev" "trace_aranges" "addr" "cu_index" "links" "follow-links"))
     "--dwarf=rawline"
     "--dwarf=decodedline"
     "--dwarf=info"
@@ -2852,22 +2850,20 @@ under version-control directories."
     "-R"
     "--dynamic-reloc"
 
-    (("-M" "--disassembler-options") (pcomplete-here
-                                      '("intel" "att" "att-mnemonic" "intel-mnemonic" "x86-64" "i386"
-                                        "i8086" "addr64" "addr32" "addr16" "data32" "data16" "suffix"
-                                        "amd64" "intel64")))
+    (("-M" "--disassembler-options") '("intel" "att" "att-mnemonic" "intel-mnemonic" "x86-64" "i386"
+                                       "i8086" "addr64" "addr32" "addr16" "data32" "data16" "suffix"
+                                       "amd64" "intel64"))
     "-l"
     "--line-numbers"
     "-F"
     "--file-offsets"
-    (("-C" "--demangle") (pcomplete-here
-                          '("auto" "gnu" "lucid" "arm" "hp" "edg" "gnu-v3" "java" "gnat")))
+    (("-C" "--demangle") '("auto" "gnu" "lucid" "arm" "hp" "edg" "gnu-v3" "java" "gnat"))
 
     "-w"
     "--wide"
     "--special-syms"
     "--inlines")
-   (args (pcomplete-here (pcmpl-entries)))))
+   (args (pcmpl-entries))))
 
 
 (defun pcmpl-gcc-assembler-flags ()
@@ -2914,47 +2910,47 @@ under version-control directories."
           "-Wa,"
           "-Wp,"
           "-Wl,"
-          ("-Xassembler" (pcomplete-here (pcmpl-gcc-assembler-flags)))
-          ("-Xpreprocessor" (pcomplete-here (pcmpl-gcc-preprocessor-flags)))
-          ("-Xlinker" (pcomplete-here (pcmpl-gcc-linker-flags)))
+          ("-Xassembler" (pcmpl-gcc-assembler-flags))
+          ("-Xpreprocessor" (pcmpl-gcc-preprocessor-flags))
+          ("-Xlinker" (pcmpl-gcc-linker-flags))
           "-save-temps"
           "-save-temps"
           "-no-canonical-prefixes"
           "-pipe"
           "-time"
-          ("-specs" (pcomplete-here (pcmpl-entries-ignoring-common)))
+          ("-specs" (pcmpl-entries-ignoring-common))
           "-std"
           "-std=c++11"
           "-std=c99"
           "-std=c89"
-          ("--sysroot" (pcomplete-here (pcmpl-dirs)))
-          ("-B" (pcomplete-here (pcmpl-dirs)))
+          ("--sysroot" (pcmpl-dirs))
+          ("-B" (pcmpl-dirs))
           "-v"
           "-###"
           "-E"
           "-S"
           "-c"
-          ("-o" (pcomplete-here (pcmpl-entries)))
+          ("-o" (pcmpl-entries))
           "-pie"
           "-shared"
-          ("-x" (pcomplete-here '("c" "c++" "assembler" "none")))
+          ("-x" '("c" "c++" "assembler" "none"))
 
           "-static"
 
-          (("-I" "-L") (pcomplete-here (pcmpl-dirs)))
+          (("-I" "-L") (pcmpl-dirs))
           "-Os"
           "-O2"
           "-O3"
           "-marh"
           "-march=native"
           "-fomit-frame-pontier")
-   (args (pcomplete-here (pcmpl-entries)))))
+   (args (pcmpl-entries))))
 
 ;;;###autoload (autoload 'pcomplete/clang "shell-completion" nil t)
 (defpcmpl pcomplete/clang
   (opts
    (flags
-    (("-B" "--prefix" "-I" "--include-directory" "-F" "--sysroot" "-working-directory" "-fprofile-dir" "-L" "--library-directory") (pcomplete-here (pcmpl-dirs)))
+    (("-B" "--prefix" "-I" "--include-directory" "-F" "--sysroot" "-working-directory" "-fprofile-dir" "-L" "--library-directory") (pcmpl-dirs))
     "-I-"
 
     "--analyze"
@@ -3160,7 +3156,7 @@ under version-control directories."
     "-mcpu="
     "-mtune="
 
-    (("-std" "--std") (pcomplete-here '("c++98" "c++03" "gnu++98" "gnu++03" "c++11" "gnu++11" "c++14" "gnu++14" "c++17" "gnu++17" "c++2a" "gnu++2a") ))
+    (("-std" "--std") '("c++98" "c++03" "gnu++98" "gnu++03" "c++11" "gnu++11" "c++14" "gnu++14" "c++17" "gnu++17" "c++2a" "gnu++2a"))
 
     "-D"
     "-U"
@@ -3178,7 +3174,7 @@ under version-control directories."
     "-P"
     "--no-line-commands"
 
-    (("-include" "--include") (pcomplete-here (pcmpl-entries-ignoring-common)))
+    (("-include" "--include") (pcmpl-entries-ignoring-common))
 
     "-M"
     "--dependencies"
@@ -4019,7 +4015,7 @@ under version-control directories."
     "--no-undefined"
     "-z")
    (args
-    (pcomplete-here (pcmpl-entries)))))
+    (pcmpl-entries))))
 
 ;;;; Rust
 
@@ -4059,11 +4055,11 @@ under version-control directories."
            "--help"))
         (target-flags
          '("-p"
-           "--package"
-           ("--target" (pcomplete-here (rust-target-triples)))
+           ("--package" (pcmpl-rust-package-names))
+           ("--target" (rust-target-triples))
            ("--target-dir" (pcmpl-dirs))
            "--release"
-           ("--profile" (pcomplete-here '("dev" "release" "test" "bench")))))
+           ("--profile" '("dev" "release" "test" "bench"))))
         (build-flags
          '("--workspace"
            "--exclude"
@@ -4084,7 +4080,7 @@ under version-control directories."
            "--no-default-features"
            ("--out-dir" (pcmpl-dirs))
            ("--manifest-path" (pcmpl-entries :select ".*\\.toml\\'"))
-           ("--message-format" (pcomplete-here '("human" "short" "json" "json-diagnostic-short" "json-diagnostic-rendered-ansi" "json-render-diagnostics")))
+           ("--message-format" '("human" "short" "json" "json-diagnostic-short" "json-diagnostic-rendered-ansi" "json-render-diagnostics"))
            "--build-plan")))
     `(or (("build" "check" "doc")
           (opts
@@ -4215,7 +4211,7 @@ under version-control directories."
                "--symbolic-link"
                "-v"
                "--verbose")
-        (args (pcomplete-here (pcmpl-entries)))))
+        (args (pcmpl-entries))))
 
 ;;;###autoload (autoload 'pcomplete/ls "shell-completion" nil t)
 (defpcmpl pcomplete/ls
@@ -4302,12 +4298,12 @@ under version-control directories."
                "-1"
                "--help"
                "--version")
-        (args (pcomplete-here (pcmpl-entries)))))
+        (args (pcmpl-entries))))
 
 ;;;###autoload (autoload 'pcomplete/cat "shell-completion" nil t)
 (defpcmpl pcomplete/cat
   (opts (flags "--help")
-        (args (pcomplete-here (pcmpl-entries-ignoring-common)))))
+        (args (pcmpl-entries-ignoring-common))))
 
 ;;;###autoload (autoload 'pcomplete/mv "shell-completion" nil t)
 (defpcmpl pcomplete/mv
@@ -4332,7 +4328,7 @@ under version-control directories."
                "--verbose"
                "--help"
                "--version")
-        (args (pcomplete-here (pcmpl-entries)))))
+        (args (pcmpl-entries))))
 
 ;;;###autoload (autoload 'pcomplete/bash "shell-completion" nil t)
 (defpcmpl pcomplete/bash
@@ -4352,7 +4348,7 @@ under version-control directories."
              "--dump-po-strings"
              "--dump-strings"
              "--help"
-             (("--init-file" "--rcfile") (pcomplete-here (pcmpl-entries-ignoring-common)))
+             (("--init-file" "--rcfile") (pcmpl-entries-ignoring-common))
              "-l"
              "--login"
              "--noediting"
@@ -4362,7 +4358,7 @@ under version-control directories."
              "--restricted"
              "--verbose"
              "--version")
-      (args (pcomplete-here (pcmpl-entries-ignoring-common)))))
+      (args (pcmpl-entries-ignoring-common))))
   :evaluate-definition t)
 
 ;;;###autoload (autoload 'pcomplete/diff "shell-completion" nil t)
@@ -4413,7 +4409,7 @@ under version-control directories."
           "--exclude="
           "-X"
           "-S"
-          (("--exclude-from" "--starting-file" "--from-file" "--to-file") (pcomplete-here (pcmpl-entries-ignoring-common)))
+          (("--exclude-from" "--starting-file" "--from-file" "--to-file") (pcmpl-entries-ignoring-common))
           "-i"
           "--ignore-case"
           "-E"
@@ -4441,11 +4437,11 @@ under version-control directories."
           "--speed-large-files--help"
           "-v"
           "--version")
-   (args (pcomplete-here (pcmpl-entries-ignoring-common)))))
+   (args (pcmpl-entries-ignoring-common))))
 
 ;;;###autoload (autoload 'pcomplete/source "shell-completion" nil t)
 (defpcmpl pcomplete/source
-  (opts (args (pcomplete-here (pcmpl-entries-ignoring-common)))))
+  (opts (args (pcmpl-entries-ignoring-common))))
 
 ;;;###autoload (autoload 'pcomplete/ssh-add "shell-completion" nil t)
 (defpcmpl pcomplete/ssh-add
@@ -4460,7 +4456,7 @@ under version-control directories."
                "-X"
                "-s"
                "-e")
-        (args (pcomplete-here (pcmpl-entries)))))
+        (args (pcmpl-entries))))
 
 ;;;###autoload (autoload 'pcomplete/find "shell-completion" nil t)
 (defpcmpl pcomplete/find
@@ -4470,24 +4466,24 @@ under version-control directories."
     "-L"
     "-P"
     "-O3"
-    (("-maxdepth" "-mindepth") (pcomplete-here '("1" "2" "3")))
+    (("-maxdepth" "-mindepth") '("1" "2" "3"))
     "-a"
     "-o"
     "-not"
     "-iname"
     "-name"
     "-path"
-    ("-type" (pcomplete-here '("f" "d")))
+    ("-type" '("f" "d"))
     "-print"
     "-print0")
    (args
-    (pcomplete-here* (pcmpl-dirs)))))
+    (pcmpl-dirs))))
 
 ;;;###autoload (autoload 'pcomplete/du "shell-completion" nil t)
 (defpcmpl pcomplete/du
   (opts
    (flags
-    (("-d" "--max-depth") (pcomplete-here '("1" "2" "3")))
+    (("-d" "--max-depth") '("1" "2" "3"))
     "-h"
     "--human-readable"
     "--inodes"
@@ -4497,7 +4493,7 @@ under version-control directories."
     "-L"
     "--dereference")
    (args
-    (pcomplete-here* (pcmpl-dirs)))))
+    (pcmpl-dirs))))
 
 ;;;###autoload (autoload 'pcomplete/busybox "shell-completion" nil t)
 (defpcmpl pcomplete/busybox
@@ -4533,7 +4529,7 @@ under version-control directories."
 (defpcmpl pcomplete/untar
   (opts
    (args
-    (pcomplete-here* (pcmpl-entries :select "\\.tar\\(?:\\.\\(?:gz\\|bz2\\|xz\\|lz\\|lzip\\|7z\\)\\)?\\'")))))
+    (pcmpl-entries :select "\\.tar\\(?:\\.\\(?:gz\\|bz2\\|xz\\|lz\\|lzip\\|7z\\)\\)?\\'"))))
 
 ;;;###autoload (autoload 'pcomplete/ln "shell-completion" nil t)
 (defpcmpl pcomplete/ln
@@ -4560,7 +4556,7 @@ under version-control directories."
     "--symbolic"
     "-S"
     "--suffix"
-    (("-t" "--target-directony") (pcomplete-here (pcmpl-dirs)))
+    (("-t" "--target-directony") (pcmpl-dirs))
     "-T"
     "--no-target-directony"
     "-v"
@@ -4568,14 +4564,14 @@ under version-control directories."
     "--help"
     "--version")
    (args
-    (pcomplete-here (pcmpl-entries-ignoring-common))
-    (pcomplete-here (pcmpl-entries-ignoring-common)))))
+    (pcmpl-entries-ignoring-common)
+    (pcmpl-entries-ignoring-common))))
 
 ;;;###autoload (autoload 'pcomplete/unzip "shell-completion" nil t)
 (defpcmpl pcomplete/unzip
   (opts
    (flags
-    ("-d" (pcomplete-here (pcmpl-dirs)))
+    ("-d" (pcmpl-dirs))
     "-Z"
     "-A"
     "-c"
@@ -4619,7 +4615,7 @@ under version-control directories."
     "-^"
     "-2")
    (args
-    (pcomplete-here (pcmpl-entries :select "\\.zip\\'")))))
+    (pcmpl-entries :select "\\.zip\\'"))))
 
 ;;;###autoload
 (defalias 'pcomplete/l 'pcomplete/ls)
@@ -4634,7 +4630,7 @@ under version-control directories."
    ("generate-grafts"
     (opts
      (flags
-      ("--output" (pcomplete-here (pcmpl-entries-ignoring-common)))
+      ("--output" (pcmpl-entries-ignoring-common))
       "-f"
       "--force"
       "-h"
@@ -4663,7 +4659,7 @@ under version-control directories."
    ("--rollback")
    (("--remove" "--update")
     (opts
-     (args (pcomplete-here (pcmpl-nix-get-channels)))))))
+     (args (pcmpl-nix-get-channels))))))
 
 ;;;###autoload (autoload 'pcomplete/nix-env "shell-completion" nil t)
 (defpcmpl pcomplete/nix-env
@@ -4671,9 +4667,9 @@ under version-control directories."
    (flags
     "--help"
     "--dry-run"
-    (("-f" "--file") (pcomplete-here (pcmpl-entries)))
-    (("-p" "--profile") (pcomplete-here (pcmpl-entries)))
-    (("-v" "--verbose") (pcomplete-here '("0" "1" "2" "3" "4" "5")))
+    (("-f" "--file") (pcmpl-entries))
+    (("-p" "--profile") (pcmpl-entries))
+    (("-v" "--verbose") '("0" "1" "2" "3" "4" "5"))
     "-quiet"
     "-Q"
     "--no-build-output"
@@ -4695,7 +4691,7 @@ under version-control directories."
     "--attr"
     "-E"
     "--expr"
-    ("-I" (pcomplete-here (pcmpl-entries)))
+    ("-I" (pcmpl-entries))
     "--option"
     "--repair"
 
