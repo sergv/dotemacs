@@ -26,7 +26,11 @@ all hydras in my setup."
 (defmacro defhydra-derive (name parent args &optional docstring &rest heads)
   (declare (indent defun) (doc-string 4))
   `(defhydra-ext ,name ,args
-     ,(when docstring (concat (hydra--prop parent "/docstring") "\n\n" (s-trim-left docstring)))
+     ,(concat (hydra--prop parent "/docstring")
+              (if (and docstring
+                       (< 0 (length docstring)))
+                  (concat "\n\n" (s-trim-left docstring))
+                ""))
      ,@(cl-delete-duplicates
         (append (hydra--prop parent "/heads") heads)
         :key #'car
