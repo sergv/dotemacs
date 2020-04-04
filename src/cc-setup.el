@@ -155,6 +155,39 @@ Also propagate new offset to `vim:shift-width'."
          c-basic-offset
        4))))
 
+
+(defhydra-ext hydra-c-align (:exit t :foreign-keys nil :hint nil)
+  "
+_a_:   generic
+_=_: on equals"
+  ("a" align)
+  ("=" c-align-on-equals))
+
+(defhydra-derive hydra-c-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_<tab>_: reindent function  _t_: jump to function start
+                            _h_: jump to function end"
+  ("TAB" c-indent-defun)
+
+  ("t"   c-beginning-of-defun)
+  ("h"   c-end-of-defun))
+
+(defhydra-derive hydra-c-vim-visual-g-ext hydra-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_a_lign  _t_: jump to function start
+         _h_: jump to function end"
+  ("a" hydra-c-align/body)
+
+  ("t" c-beginning-of-defun)
+  ("h" c-end-of-defun))
+
+(defhydra-derive hydra-c-vim-visual-z-ext hydra-vim-visual-z-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_c_: hide c sexps in region
+_o_: show c sexps in region"
+  ("c" hs-hide-c-sexps-in-region)
+  ("o" hs-show-c-sexps-in-region))
+
 (defun* cc-setup (&key (define-special-keys t))
   (init-common :use-render-formula t
                :sp-slurp-sexp-insert-space nil
@@ -178,18 +211,11 @@ Also propagate new offset to `vim:shift-width'."
   (c-toggle-auto-newline -1)
 
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("g TAB" c-indent-defun)
-
-    ("g t"   c-beginning-of-defun)
-    ("g h"   c-end-of-defun))
+    ("g" hydra-c-vim-normal-g-ext/body))
 
   (def-keys-for-map vim:visual-mode-local-keymap
-    ("z c"   hs-hide-c-sexps-in-region)
-    ("z o"   hs-show-c-sexps-in-region)
-    ("g a a" align)
-    ("g a =" c-align-on-equals)
-    ("g t"   c-beginning-of-defun)
-    ("g h"   c-end-of-defun))
+    ("z" hydra-c-vim-visual-z-ext/body)
+    ("g" hydra-c-vim-visual-g-ext/body))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
