@@ -82,6 +82,14 @@
 _j_: eval"
   ("j" eval-last-sexp))
 
+(defhydra-ext hydra-emacs-lisp-dash (:exit t :foreign-keys nil :hint nil)
+  "
+_e_val
+expand _m_acro  _M_: fully expand macro"
+  ("e" eval-last-sexp)
+  ("m" expand-last-macro)
+  ("M" expand-last-macro-all))
+
 ;;;###autoload
 (defun emacs-lisp-setup ()
   (lisp-setup)
@@ -96,8 +104,7 @@ _j_: eval"
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("j"       hydra-lisp-vim-normal-j-ext/body)
-    ("- m"     expand-last-macro)
-    ("- M"     expand-last-macro-all)
+    ("-"       hydra-emacs-lisp-dash/body)
 
     ("M-:"     nil)
     ("C-:"     pp-eval-expression)

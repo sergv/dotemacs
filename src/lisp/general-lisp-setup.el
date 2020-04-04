@@ -560,8 +560,8 @@ _;_: comments"
 
 (defhydra-derive hydra-lisp-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
   "
-_<tab>_: reindent defun  _t_: jump to topmost node start
-_cl_: comment lines      _h_: jump to topmont node end"
+_<tab>_: reindent defun  _t_: jump to function start
+_cl_: comment lines      _h_: jump to function end"
   ("cc"    lisp-comment-sexp)
   ("cu"    lisp-uncomment-sexp)
   ("<tab>" sp-indent-defun)
