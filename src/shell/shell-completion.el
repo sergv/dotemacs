@@ -4033,6 +4033,15 @@ under version-control directories."
 ;;       (goto-char (point-min))
 ;;       (json-read-object))))
 
+(defun pcmpl-rust-package-names ()
+  (vector->list (rust-metadata-package-names (rust-metadata-get-full-metadata))))
+
+(defun pcmpl-rust-binary-targets ()
+  (rust-metadata-binary-targets (rust-metadata-get-full-metadata)))
+
+(defun pcmpl-rust-example-targets ()
+  (rust-metadata-example-targets (rust-metadata-get-full-metadata)))
+
 ;;;###autoload (autoload 'pcomplete/cargo "shell-completion" nil t)
 (defpcmpl pcomplete/cargo
   (let ((common-flags
@@ -4105,7 +4114,15 @@ under version-control directories."
                   "--vcs=pijul"
                   "--vcs=fossil")))
          ("init")
-         ("run")
+         ("run"
+          (opts
+           (flags ,@common-flags
+                  ,@target-flags
+                  ("--bin" (pcmpl-rust-binary-targets))
+                  ("--example" (pcmpl-rust-example-targets))
+                  "--features"
+                  "--all-features"
+                  "--no-default-features")))
          ("test")
          ("bench")
          ("update")
@@ -4115,83 +4132,8 @@ under version-control directories."
          ("uninstall")
          (opts
           (flags ,@common-flags)
-          (args (pcomplete-here (pcmpl-entries))))))
+          (args (pcmpl-entries)))))
   :evaluate-definition t)
-
-;; (defun pcomplete/cargo ()
-;;   ;; (message "pcomplete-args = %s"
-;;   ;;          (pp-to-string (-map #'strip-text-properties pcomplete-args)))
-;;   (let* ((last-arg
-;;           (pcomplete-arg 'last))
-;;          (last-arg-starts-with-single-dash
-;;           (string-match-p "^-\\([^-]\\|$\\)" last-arg))
-;;          (last-arg-starts-with-two-dashes
-;;           (string-match-p "^--\\([^-]\\|$\\)" last-arg))
-;;          (got-end-of-flags
-;;           (and
-;;            (not last-arg-starts-with-two-dashes)
-;;            (member "--"
-;;                    (-take pcomplete-last pcomplete-args)))))
-;;     ;; (message "(-take pcomplete-last pcomplete-args) = %s"
-;;     ;;          (pp-to-string (-take pcomplete-last pcomplete-args)))
-;;     ;; (message "last-arg = %s, last-arg-starts-with-single-dash = %s, last-arg-starts-with-two-dashes = %s, got-end-of-flags = %s"
-;;     ;;          (pp-to-string (strip-text-properties last-arg))
-;;     ;;          (pp-to-string last-arg-starts-with-single-dash)
-;;     ;;          last-arg-starts-with-two-dashes
-;;     ;;          (pp-to-string got-end-of-flags))
-;;
-;;     (let ((arg (pcomplete-arg)))
-;;       (while (cond
-;;                ((string-match-p "--explain" arg)
-;;                 (pcomplete-here))
-;;                ((string-match-p "--list" arg)
-;;                 (pcomplete-here))
-;;                ((string-match-p "^--" arg)
-;;                 (pcomplete-here '("--explain" "--list")))
-;;                (t nil))))
-;;
-;;     (pcomplete-here '("build"))
-;;
-;;     (let ((arg (pcomplete-arg)))
-;;       (cond
-;;         ((string-match-p "build" arg)
-;;          (let ((arg (pcomplete-arg)))
-;;            (while (cond
-;;                     ((string-match-p "--release" arg))
-;;                     ((string-match-p "--lib" arg))
-;;                     ((string-match-p "^--" arg)
-;;                      (pcomplete-here '("--release" "--build")))
-;;                     (t nil)))))))))
-
-;; (defalias 'pcomplete/cargo
-;;   #'(lambda nil
-;;       (let
-;;           ((got-end-of-flags
-;;             (member "--" (-take pcomplete-last pcomplete-args))))
-;;         (progn
-;;           (pcomplete--here #'(lambda nil '("build")) nil nil nil)
-;;           (let ((positional-arg (pcomplete-arg 'first 1)))
-;;             (cond
-;;               ((string= positional-arg "build")
-;;                (while (if got-end-of-flags
-;;                           nil
-;;                         (let ((current-arg (pcomplete-arg)))
-;;                           (cond
-;;                             ((string-match-p "^--" current-arg)
-;;                              (pcomplete--here #'(lambda nil '("--release")) nil nil nil))
-;;                             (t
-;;                              (pcomplete--here #'(lambda nil (pcmpl-entries)) nil nil nil)))))))
-;;               (t
-;;                (while
-;;                    (if got-end-of-flags nil
-;;                      (let ((current-arg (pcomplete-arg)))
-;;                        (cond
-;;                          ((string-match-p "^--" current-arg)
-;;                           (pcomplete--here #'(lambda nil '("--offline")) nil nil nil))
-;;                          (t
-;;                           (pcomplete--here #'(lambda nil (pcmpl-entries))
-;;                                            nil nil nil)))))))))))))
-
 
 ;;;; Vanilla Unix & GNU tools
 
