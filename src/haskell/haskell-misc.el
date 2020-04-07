@@ -304,6 +304,7 @@ sexps and indentation levels."
   (haskell-align-on-double-colons)
   (haskell-align-on-pragma-close))
 
+;;;###autoload (autoload 'hydra-haskell-align/body "haskell-misc" nil t)
 (defhydra-ext hydra-haskell-align (:exit t :foreign-keys nil :hint nil)
   "
 _a_:   generic

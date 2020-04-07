@@ -573,7 +573,7 @@ _cl_: comment lines      _h_: jump to function end"
 (defhydra-derive hydra-lisp-vim-visual-g-ext hydra-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
   "
 _a_lign  _t_: jump to topmost node start
-         _h_: jump to topmont node end"
+       _h_: jump to topmont node end"
   ("a"  hydra-lisp-align/body)
 
   ("t"     glisp/beginning-of-defun)
