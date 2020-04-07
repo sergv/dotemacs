@@ -383,6 +383,16 @@ which enable the original code blocks to be found."
   (outline-hide-subtree)
   (outline-show-children 9))
 
+(defhydra-derive org-mode-vim-normal-z-outline hydra-vim-normal-z-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_O_: show all outlines
+_c_: hide subtree
+_C_: hide everything except current entry and its parents"
+  ("O" outline-show-all)
+  ;; ("o" show-subtree)
+  ("c" outline-hide-subtree)
+  ("C" outline-hide-other))
+
 (defun org-mode-setup ()
   (init-common :use-yasnippet t
                :use-render-formula nil
@@ -406,11 +416,7 @@ which enable the original code blocks to be found."
 
     ("'"       org-mode-up-heading)
 
-    ("z O"     outline-show-all)
-    ;; ("z o"   show-subtree)
-    ("z c"     outline-hide-subtree)
-    ;; hide everything except current entry and its parents
-    ("z C"     outline-hide-other)
+    ("z"       org-mode-vim-normal-z-outline/body)
 
     ("C-1"     org-mode-show-level-1)
     ("C-2"     org-mode-show-level-2)
