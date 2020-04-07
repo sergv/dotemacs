@@ -343,10 +343,8 @@ _h_: end of defun"
 
 (defhydra-derive hydra-octave-vim-visual-g-ext hydra-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
   "
-_a_lign
-
-_t_: beginning of defun
-_h_: end of defun"
+_a_lign  _t_: beginning of defun
+       _h_: end of defun"
   ("a" hydra-octave-align/body)
   ("t" octave-beginning-of-defun-interactive)
   ("h" end-of-defun))
