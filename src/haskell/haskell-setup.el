@@ -200,7 +200,7 @@ _<tab>_: reindent"
 (defhydra-derive hydra-haskell-vim-visual-g-ext hydra-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
   "
 _a_lign  _t_: jump to topmost node start
-         _h_: jump to topmont node end"
+       _h_: jump to topmont node end"
   ("a" hydra-haskell-align/body)
   ("t" haskell-move-to-topmost-start)
   ("h" haskell-move-to-topmost-end))
