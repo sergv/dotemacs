@@ -149,7 +149,7 @@
                 (company-eproj company-dabbrev-code company-keywords)
                 company-dabbrev))
   (setq-local hs-forward-sexp-func #'c-hideshow-forward-sexp)
-  (setup-folding nil '(:header-symbol "/" :length-min 3))
+  (setup-folding t '(:header-symbol "/" :length-min 3))
 
   (setq-local indent-tabs-mode nil)
 
