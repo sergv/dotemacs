@@ -175,7 +175,7 @@ _<tab>_: reindent function  _t_: jump to function start
 (defhydra-derive hydra-c-vim-visual-g-ext hydra-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
   "
 _a_lign  _t_: jump to function start
-         _h_: jump to function end"
+       _h_: jump to function end"
   ("a" hydra-c-align/body)
 
   ("t" c-beginning-of-defun)
