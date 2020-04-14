@@ -304,8 +304,10 @@ sexps and indentation levels."
   (haskell-align-on-double-colons)
   (haskell-align-on-pragma-close))
 
+(defvar hydra-haskell-align--empty-keymap (make-sparse-keymap))
+
 ;;;###autoload (autoload 'hydra-haskell-align/body "haskell-misc" nil t)
-(defhydra-ext hydra-haskell-align (:exit t :foreign-keys nil :hint nil)
+(defhydra-ext hydra-haskell-align (:exit t :foreign-keys nil :hint nil :base-map hydra-haskell-align--empty-keymap)
   "
 _a_:   generic
 _$_:   on dollars
@@ -320,11 +322,11 @@ _#-}_: on pragma close"
   ("a"     haskell-align-generic)
   ("$"     haskell-align-on-dollars)
   ("="     haskell-align-on-equals)
-  ("- >"   haskell-align-on-arrows)
-  ("< -"   haskell-align-on-left-arrows)
+  ("->"    haskell-align-on-arrows)
+  ("<-"    haskell-align-on-left-arrows)
   ("|"     haskell-align-on-guards)
   (","     haskell-align-on-commas)
-  ("- -"   haskell-align-on-comments)
+  ("--"    haskell-align-on-comments)
   (": :"   haskell-align-on-double-colons)
   ("# - }" haskell-align-on-pragma-close))
 
