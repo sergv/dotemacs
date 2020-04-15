@@ -26,12 +26,12 @@
      "--language-force=c"
      "--c-kinds=-defgmpstuv"
      "--c-kinds=+defgmstuv"
-     "--fields=+kz"
+     "--fields=+k"
      "--extras=+q")
     (c++-mode
      "--language-force=c++"
      "--c++-kinds=+cdefgmnpstuv"
-     "--fields=+kiaz"
+     "--fields=+kia"
      "--extras=+q")
     (python-mode
      "--language-force=python"
