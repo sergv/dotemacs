@@ -115,19 +115,20 @@ _z_: scroll to center"
 (defhydra-ext hydra-vim-visual-j-ext (:exit t :foreign-keys nil :hint nil)
   "
 _cc_: comment
-_cu_: uncomment"
+_cu_: uncomment
+
+replace _s_elected"
   ("cc" comment-util-comment-region)
-  ("cu" comment-util-uncomment-region-simple))
+  ("cu" comment-util-uncomment-region-simple)
+  ("s" vim-replace-selected))
 
 (defhydra-ext hydra-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
   "
 _g_o to start of file
 g_r_ep
-replace _s_elected
 M-_x_"
   ("g" vim-mock:motion-go-to-first-non-blank-beg)
   ("r" egrep-region)
-  ("s" vim-replace-selected)
   ("x" ivy-smex))
 
 (defhydra-ext hydra-window-management (:exit t :foreign-keys warn :hint nil)
