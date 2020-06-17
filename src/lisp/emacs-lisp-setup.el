@@ -77,7 +77,7 @@
   ;; taken from pp.el
   (insert (pp-to-string (macroexpand-all (pp-last-sexp)))))
 
-(defhydra-derive hydra-lisp-vim-normal-j-ext hydra-vim-normal-j-ext (:exit t :foreign-keys nil :hint nil)
+(defhydra-derive hydra-lisp-vim-normal-j-ext hydra-lisp-vim-normal-j-ext (:exit t :foreign-keys nil :hint nil)
   "
 _j_: eval"
   ("j" eval-last-sexp))
