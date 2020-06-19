@@ -309,6 +309,18 @@
     "let foo: &Foo = _|_foobar"
     "let foo: &Foo = &_|_foobar"))
 
+(ert-deftest rust-tests/rust-smart-operators--ampersand-4 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?\&)
+    "a -> _|_b"
+    "a -> &_|_b"))
+
+(ert-deftest rust-tests/rust-smart-operators--asterisk-1 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?\*)
+    "let foo: &Foo = _|_foobar"
+    "let foo: &Foo = *_|_foobar"))
+
 (provide 'rust-tests)
 
 ;; Local Variables:
