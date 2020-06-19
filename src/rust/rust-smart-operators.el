@@ -21,6 +21,9 @@
 stick it to the previous operator on line."
   (rust-smart-operators--insert-char-optionally-surrounding-with-spaces char t))
 
+(defconst rust-smart-operators--chars-to-separate-from-ampersand-and-asterisk
+  '(?= ?>))
+
 (defun rust-smart-operators--insert-char-optionally-surrounding-with-spaces (char insert-space-after)
   (let* ((disable-smart-operators? current-prefix-arg)
          (pt (point))
@@ -64,9 +67,9 @@ stick it to the previous operator on line."
                           (awhen (sp-get-enclosing-sexp)
                             (and (string-equal (plist-get it :op) "<")
                                  (= (plist-get it :end) (+ 1 (point)))))))
-                   ;; =& is not an operator so add a space
-                   (and (char-equal before ?=)
-                        (char-equal char ?&))))
+                   ;; =& and >& are not operators so add a space
+                   (and (memq char '(?& ?*))
+                        (memq before rust-smart-operators--chars-to-separate-from-ampersand-and-asterisk))))
              (insert-char ?\s)
            ;; Delete spaces backwards if there's operator or open
            ;; paren char before the spaces.
@@ -77,6 +80,9 @@ stick it to the previous operator on line."
                              (char-before-spaces (char-before pt-before-ws)))
                         (and char-before-spaces ;; not at beginning of buffer
                              (cond
+                               ((and (memq char '(?& ?*))
+                                     (memq char-before-spaces rust-smart-operators--chars-to-separate-from-ampersand-and-asterisk))
+                                nil)
                                ((char-equal char-before-spaces ?>)
                                 (save-excursion
                                   (forward-char -1)
@@ -86,9 +92,6 @@ stick it to the previous operator on line."
                                         t)
                                     t ;; No sexp - ok to delete.
                                     )))
-                               ((and (char-equal char-before-spaces ?=)
-                                     (char-equal char ?&))
-                                nil)
                                (t
                                 t) ;; Not a > before spaces - ok to delete.
                                )
@@ -115,9 +118,11 @@ stick it to the previous operator on line."
                       (or at-beginning-of-buffer?
                           (not (char-equal before-insert ?\()))
 
-                      (if (char-equal char ?\&)
-                          (if (char-equal before ?=)
-                              nil ;; We don’t want '= & _|_', we want '= &_|_'
+                      (if (memq char '(?\& ?*))
+                          (if (memq before rust-smart-operators--chars-to-separate-from-ampersand-and-asterisk)
+                              ;; We don’t want '= & _|_' or '-> & _|_' or '= * _|_',
+                              ;; we want '= &_|_' or '-> &_|_' or '= *_|_' respectively
+                              nil
                             (or whitespace-deleted?
                                 (char-equal before-insert ?\&) ;; Insert space after operator '&&'
                                 ))
