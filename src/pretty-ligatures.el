@@ -106,21 +106,29 @@
          (vector '(Bc . Bc) c)))
     (error "No width for character '%s'" c)))
 
+;; ‘>>’ shows up in generic functions in addition to being a shift operator, thus it’s removed.
+;; For consistency ‘<<’ is removed as well.
+(defconst pretty-ligatures-rust-symbols
+  (eval-when-compile
+    (let* ((ligs
+            '(("<-" . #xe100)
+              ("->" . #xe101)
+              ("=>" . #xe103)
+              ("==" . #xe106)
+              ("/=" . #xe107)
+              ("<=" . #xe122)
+              (">=" . #xe123)
+              ("||" . #xe124)
+              ("&&" . #xe125))))
+      (--map (cons (car it) (pretty-ligatures--make-composition (cdr it))) ligs))))
+
 (defconst pretty-ligatures-c-like-symbols
   (eval-when-compile
     (let* ((ligs
-            '(("<-"  . #xe100)
-              ("->"  . #xe101)
-              ("=>"  . #xe103)
-              ("=="  . #xe106)
-              ("/="  . #xe107)
-              ("<<"  . #xe111)
-              (">>"  . #xe112)
-              ("<="  . #xe122)
-              (">="  . #xe123)
-              ("||"  . #xe124)
-              ("&&"  . #xe125))))
-      (--map (cons (car it) (pretty-ligatures--make-composition (cdr it))) ligs))))
+            '(("<<" . #xe111)
+              (">>" . #xe112))))
+      (append pretty-ligatures-rust-symbols
+              (--map (cons (car it) (pretty-ligatures--make-composition (cdr it))) ligs)))))
 
 (defconst pretty-ligatures-python-like-words
   (eval-when-compile
