@@ -153,7 +153,7 @@ _a_lign  _t_: beginning of defun
   (setq-local compilation-buffer-name-function #'rust-get-compilation-buffer-name)
 
   (pretty-ligatures--install
-   (append pretty-ligatures-c-like-symbols
+   (append pretty-ligatures-rust-symbols
            pretty-ligatures-python-like-words))
   (rust-compilation-commands-install!)
 
