@@ -5,7 +5,7 @@
 ;; Author: Feng Shu <tumashu@163.com>
 ;; Maintainer: Feng Shu <tumashu@163.com>
 ;; URL: https://github.com/tumashu/posframe
-;; Version: 0.6.0
+;; Version: 0.7.0
 ;; Keywords: convenience, tooltip
 ;; Package-Requires: ((emacs "26"))
 
@@ -38,7 +38,13 @@
 
 ;; NOTE:
 ;; 1. For MacOS users, posframe needs Emacs version >= 26.0.91
-;; 2. Posframe will be very very slow when emacs is built with --with-x-toolkit=athena.
+;; 2. GNOME users with GTK3 builds need Emacs 27 or later.
+;;    See variable `posframe-gtk-resize-child-frames'
+;;    which auto-detects this configuration.
+
+;;    More details:
+;;    1. [[https://git.savannah.gnu.org/cgit/emacs.git/commit/?h=emacs-27&id=c49d379f17bcb0ce82604def2eaa04bda00bd5ec][Fix some problems with moving and resizing child frames]]
+;;    2. [[https://lists.gnu.org/archive/html/emacs-devel/2020-01/msg00343.html][Emacs's set-frame-size can not work well with gnome-shell?]]
 
 ;; [[./snapshots/posframe-1.png]]
 
@@ -146,8 +152,12 @@
   :group 'lisp
   :prefix "posframe-")
 
-(defcustom posframe-mouse-banish nil
-  "Mouse will be moved to (0 , 0) when it is non-nil."
+(defcustom posframe-mouse-banish (not (eq system-type 'darwin))
+  "Mouse will be moved to (0 , 0) when it is non-nil.
+
+This option is used to solve the problem of child frame getting
+focus, with the help of `posframe--redirect-posframe-focus',
+setting this option to `nil' will work well in *most* cases."
   :group 'posframe
   :type 'boolean)
 
@@ -197,6 +207,25 @@ frame.")
 (defvar-local posframe--initialized-p nil
   "Record initialize status of `posframe-show'.")
 
+;; Avoid compilation warnings on Emacs < 27.
+(defvar x-gtk-resize-child-frames)
+
+(defvar posframe-gtk-resize-child-frames
+  (when (and
+         (> emacs-major-version 26)
+         (string-match-p "GTK3" system-configuration-features)
+         (let ((value (getenv "XDG_CURRENT_DESKTOP")))
+           (and (stringp value)
+                ;; It can be "ubuntu:GNOME".
+                (string-match-p "GNOME" value))))
+    ;; Not future-proof, but we can use it now.
+    'resize-mode)
+  "Value to bind `x-gtk-resize-child-frames' to.
+
+The value `resize-mode' only has effect on new child frames, so
+if you change it, call `posframe-delete-all' for it to take
+effect.")
+
 ;;;###autoload
 (defun posframe-workable-p ()
   "Test posframe workable status."
@@ -216,9 +245,11 @@ frame.")
                                      internal-border-color
                                      font
                                      keep-ratio
+                                     lines-truncate
                                      override-parameters
                                      respect-header-line
-                                     respect-mode-line)
+                                     respect-mode-line
+                                     respect-tab-line)
   "Create and return a posframe child frame.
 This posframe's buffer is BUFFER-OR-NAME."
   (let ((left-fringe (or left-fringe 0))
@@ -226,6 +257,7 @@ This posframe's buffer is BUFFER-OR-NAME."
         (internal-border-width (or internal-border-width 0))
         (buffer (get-buffer-create buffer-or-name))
         (after-make-frame-functions nil)
+        (x-gtk-resize-child-frames posframe-gtk-resize-child-frames)
         (args (list parent-frame
                     foreground-color
                     background-color
@@ -236,7 +268,8 @@ This posframe's buffer is BUFFER-OR-NAME."
                     keep-ratio
                     override-parameters
                     respect-header-line
-                    respect-mode-line)))
+                    respect-mode-line
+                    respect-tab-line)))
     (with-current-buffer buffer
       ;; Many variables take effect after call `set-window-buffer'
       (setq-local display-line-numbers nil)
@@ -246,7 +279,10 @@ This posframe's buffer is BUFFER-OR-NAME."
       (setq-local left-fringe-width nil)
       (setq-local right-fringe-width nil)
       (setq-local fringes-outside-margins 0)
-      (setq-local truncate-lines nil)
+      ;; Need to use `lines-truncate' as our keyword variable instead of
+      ;; `truncate-lines' so we don't shadow the variable that we are trying to
+      ;; set.
+      (setq-local truncate-lines lines-truncate)
       (setq-local cursor-type nil)
       (setq-local cursor-in-non-selected-windows nil)
       (setq-local show-trailing-whitespace nil)
@@ -254,6 +290,8 @@ This posframe's buffer is BUFFER-OR-NAME."
         (setq-local mode-line-format nil))
       (unless respect-header-line
         (setq-local header-line-format nil))
+      (unless respect-tab-line
+        (setq-local tab-line-format nil))
 
       (add-hook 'kill-buffer-hook #'posframe-auto-delete nil t)
 
@@ -315,6 +353,8 @@ This posframe's buffer is BUFFER-OR-NAME."
             (set-window-parameter posframe-window 'mode-line-format 'none))
           (unless respect-header-line
             (set-window-parameter posframe-window 'header-line-format 'none))
+          (unless respect-tab-line
+            (set-window-parameter posframe-window 'tab-line-format 'none))
           (set-window-buffer posframe-window buffer)
           (set-window-dedicated-p posframe-window t)))
       posframe--frame)))
@@ -344,9 +384,11 @@ This posframe's buffer is BUFFER-OR-NAME."
                          background-color
                          respect-header-line
                          respect-mode-line
+                         respect-tab-line
                          initialize
                          no-properties
                          keep-ratio
+                         lines-truncate
                          override-parameters
                          timeout
                          refresh
@@ -382,6 +424,7 @@ position.  Its argument is a plist of the following form:
    :minibuffer-height
    :mode-line-height
    :header-line-height
+   :tab-line-height
    :x-pixel-offset xxx
    :y-pixel-offset xxx)
 
@@ -412,10 +455,11 @@ or a name of a (possibly nonexistent) buffer.
 If NO-PROPERTIES is non-nil, The STRING's properties will
 be removed before being shown in posframe.
 
-Posframe's frame size can be set by WIDTH and HEIGHT.
-If one of them is nil, posframe's frame size will fit the
-buffer.  MIN-WIDTH and MIN-HEIGTH can be useful to prevent
-posframe becoming too small.
+WIDTH, MIN-WIDTH, HEIGHT and MIN-HEIGHT, specify bounds on the
+new total size of posframe.  MIN-HEIGHT and MIN-WIDTH default to
+the values of ‘window-min-height’ and ‘window-min-width’
+respectively.  These arguments are specified in the canonical
+character width and height of posframe.
 
 If LEFT-FRINGE or RIGHT-FRINGE is a number, left fringe or
 right fringe with be shown with the specified width.
@@ -430,9 +474,10 @@ derived from the current frame by default, but can be overridden
 using the FONT, FOREGROUND-COLOR and BACKGROUND-COLOR arguments,
 respectively.
 
-By default, posframe will display no header-line or mode-line.
-In case a header-line or mode-line is desired, users can set
-RESPECT-HEADER-LINE or RESPECT-MODE-LINE to t.
+By default, posframe will display no header-line, mode-line and
+tab-line.  In case a header-line, mode-line or tab-line is
+desired, users can set RESPECT-HEADER-LINE, RESPECT-MODE-LINE or
+RESPECT-TAB-LINE to t.
 
 INITIALIZE is a function with no argument.  It will run when
 posframe buffer is first selected with `with-current-buffer'
@@ -440,6 +485,9 @@ in `posframe-show', and only run once (for performance reasons).
 If INITIALIZE is nil, `posframe-default-initialize-function' will
 be used as fallback; this variable can be used to set posframe
 buffer gobally.
+
+If LINES-TRUNCATE is non-nil, then lines will truncate in the
+posframe instead of wrap.
 
 OVERRIDE-PARAMETERS is very powful, *all* the frame parameters
 used by posframe's frame can be overridden by it.
@@ -468,9 +516,11 @@ You can use `posframe-delete-all' to delete all posframes."
          (background-color (funcall posframe-arghandler buffer-or-name :background-color background-color))
          (respect-header-line (funcall posframe-arghandler buffer-or-name :respect-header-line respect-header-line))
          (respect-mode-line (funcall posframe-arghandler buffer-or-name :respect-mode-line respect-mode-line))
+         (respect-tab-line (funcall posframe-arghandler buffer-or-name :respect-tab-line respect-tab-line))
          (initialize (funcall posframe-arghandler buffer-or-name :initialize initialize))
          (no-properties (funcall posframe-arghandler buffer-or-name :no-properties no-properties))
          (keep-ratio (funcall posframe-arghandler buffer-or-name :keep-ratio keep-ratio))
+         (lines-truncate (funcall posframe-arghandler buffer-or-name :lines-truncate lines-truncate))
          (override-parameters (funcall posframe-arghandler buffer-or-name :override-parameters override-parameters))
          (timeout (funcall posframe-arghandler buffer-or-name :timeout timeout))
          (refresh (funcall posframe-arghandler buffer-or-name :refresh refresh))
@@ -494,6 +544,9 @@ You can use `posframe-delete-all' to delete all posframes."
          (mode-line-height (window-mode-line-height))
          (minibuffer-height (window-pixel-height (minibuffer-window)))
          (header-line-height (window-header-line-height parent-window))
+         (tab-line-height (if (functionp 'window-tab-line-height)
+                              (window-tab-line-height)
+                            0))
          (frame-resize-pixelwise t)
          posframe)
 
@@ -522,8 +575,10 @@ You can use `posframe-delete-all' to delete all posframes."
              :foreground-color foreground-color
              :background-color background-color
              :keep-ratio keep-ratio
+             :lines-truncate lines-truncate
              :respect-header-line respect-header-line
              :respect-mode-line respect-mode-line
+             :respect-tab-line respect-tab-line
              :override-parameters override-parameters))
 
       ;; Insert string into the posframe buffer
@@ -537,29 +592,30 @@ You can use `posframe-delete-all' to delete all posframes."
       (posframe--set-frame-position
        posframe
        (posframe-run-poshandler
-        `(;All poshandlers will get info from this plist.
-          :position ,position
-          :position-info ,position-info
-          :poshandler ,poshandler
-          :font-height ,font-height
-          :font-width ,font-width
-          :posframe ,posframe
-          :posframe-width ,(frame-pixel-width posframe)
-          :posframe-height ,(frame-pixel-height posframe)
-          :posframe-buffer ,buffer
-          :parent-frame ,parent-frame
-          :parent-frame-width ,parent-frame-width
-          :parent-frame-height ,parent-frame-height
-          :parent-window ,parent-window
-          :parent-window-top ,parent-window-top
-          :parent-window-left ,parent-window-left
-          :parent-window-width ,parent-window-width
-          :parent-window-height ,parent-window-height
-          :mode-line-height ,mode-line-height
-          :minibuffer-height ,minibuffer-height
-          :header-line-height ,header-line-height
-          :x-pixel-offset ,x-pixel-offset
-          :y-pixel-offset ,y-pixel-offset))
+        ;; All poshandlers will get info from this plist.
+        (list :position position
+              :position-info position-info
+              :poshandler poshandler
+              :font-height font-height
+              :font-width font-width
+              :posframe posframe
+              :posframe-width (frame-pixel-width posframe)
+              :posframe-height (frame-pixel-height posframe)
+              :posframe-buffer buffer
+              :parent-frame parent-frame
+              :parent-frame-width parent-frame-width
+              :parent-frame-height parent-frame-height
+              :parent-window parent-window
+              :parent-window-top parent-window-top
+              :parent-window-left parent-window-left
+              :parent-window-width parent-window-width
+              :parent-window-height parent-window-height
+              :mode-line-height mode-line-height
+              :minibuffer-height minibuffer-height
+              :header-line-height header-line-height
+              :tab-line-height tab-line-height
+              :x-pixel-offset x-pixel-offset
+              :y-pixel-offset y-pixel-offset))
        parent-frame-width parent-frame-height)
 
       ;; Delay hide posframe when timeout is a number.
@@ -595,19 +651,11 @@ You can use `posframe-delete-all' to delete all posframes."
             (cons position height))
       height)))
 
-(defvar posframe--previous-frame nil)
-
 (defun posframe--redirect-posframe-focus ()
-  "Redirect focus from the posframe to the previous frame. This prevents the
+  "Redirect focus from the posframe to the parent frame. This prevents the
 posframe from catching keyboard input if the window manager selects it."
-  (interactive)
-  (if (eq (selected-frame) posframe--frame)
-      (when posframe--previous-frame
-        (redirect-frame-focus posframe--frame posframe--previous-frame))
-    (progn
-      (setf posframe--previous-frame (selected-frame))
-      (when posframe--frame
-        (redirect-frame-focus posframe--frame posframe--previous-frame)))))
+  (when (eq (selected-frame) posframe--frame)
+    (redirect-frame-focus posframe--frame (frame-parent))))
 
 (add-hook 'focus-in-hook #'posframe--redirect-posframe-focus)
 
@@ -632,21 +680,20 @@ will be removed."
       (erase-buffer)
       (insert str))))
 
+(defun posframe--fit-frame-to-buffer (posframe height min-height width min-width)
+  ;; This only has effect if the user set the latter var to `hide'.
+  (let ((x-gtk-resize-child-frames posframe-gtk-resize-child-frames))
+    (fit-frame-to-buffer
+     posframe height min-height width min-width)))
+
 (defun posframe--set-frame-size (posframe height min-height width min-width)
   "Set POSFRAME's size.
 It will set the size by the POSFRAME's HEIGHT, MIN-HEIGHT
 WIDTH and MIN-WIDTH."
-  (if (and width height)
-      (unless (equal posframe--last-posframe-size
-                     (list height min-height width min-width))
-        (fit-frame-to-buffer
-         posframe height min-height width min-width)
-        (setq-local posframe--last-posframe-size
-                    (list height min-height width min-width)))
-    (fit-frame-to-buffer
-     posframe height min-height width min-width)
-    (setq-local posframe--last-posframe-size
-                (list height min-height width min-width))))
+  (posframe--fit-frame-to-buffer
+   posframe height min-height width min-width)
+  (setq-local posframe--last-posframe-size
+              (list height min-height width min-width)))
 
 (defun posframe--set-frame-position (posframe position
                                               parent-frame-width
@@ -699,7 +746,7 @@ WIDTH and MIN-WIDTH."
                    #'(lambda (frame height min-height width min-width)
                        (let ((frame-resize-pixelwise t))
                          (when (and frame (frame-live-p frame))
-                           (fit-frame-to-buffer
+                           (posframe--fit-frame-to-buffer
                             frame height min-height width min-width))))
                    posframe height min-height width min-width)))))
 
@@ -731,7 +778,7 @@ to do similar job:
       (when (or (equal buffer-or-name (car buffer-info))
                 (equal buffer-or-name (cdr buffer-info)))
         (with-current-buffer buffer-or-name
-          (apply #'fit-frame-to-buffer
+          (apply #'posframe--fit-frame-to-buffer
                  frame posframe--last-posframe-size))))))
 
 (defun posframe-hide (buffer-or-name)
@@ -857,11 +904,13 @@ Optional argument FONT-HEIGHT ."
          (ymax (plist-get info :parent-frame-height))
          (position-info (plist-get info :position-info))
          (header-line-height (plist-get info :header-line-height))
+         (tab-line-height (plist-get info :tab-line-height))
          (x (+ (car (window-inside-pixel-edges window))
                (- (or (car (posn-x-y position-info)) 0)
                   (or (car (posn-object-x-y position-info)) 0))
                x-pixel-offset))
          (y-top (+ (cadr (window-pixel-edges window))
+                   tab-line-height
                    header-line-height
                    (- (or (cdr (posn-x-y position-info)) 0)
                       ;; Fix the conflict with flycheck
@@ -1061,6 +1110,7 @@ bottom center.  The structure of INFO can be found in docstring of
     (cons (+ window-left (/ (- window-width posframe-width) 2))
           (+ window-top window-height
              (- 0 mode-line-height posframe-height)))))
+
 
 (provide 'posframe)
 
