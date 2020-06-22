@@ -169,9 +169,9 @@
 
 (ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator-3 ()
   (rust-tests--test-buffer-contents
-      (rust-smart-operators--insert-char-surrounding-with-spaces ?*)
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?/)
     "x = 1 +           _|_"
-    "x = 1 +* _|_"))
+    "x = 1 +/ _|_"))
 
 (ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator-4 ()
   (rust-tests--test-buffer-contents
@@ -320,6 +320,12 @@
       (rust-smart-operators--insert-char-surrounding-with-spaces ?\*)
     "let foo: &Foo = _|_foobar"
     "let foo: &Foo = *_|_foobar"))
+
+(ert-deftest rust-tests/rust-smart-operators--asterisk-2 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?\*)
+    "x + _|_y"
+    "x + *_|_y"))
 
 (provide 'rust-tests)
 

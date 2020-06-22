@@ -8,7 +8,7 @@
 
 (require 'smart-operators-utils)
 
-(defvar rust-smart-operators--operator-chars
+(defconst rust-smart-operators--operator-chars
   (let ((tbl (make-hash-table :test #'eq)))
     (loop
       for c across "+-*/%^&|<>=" ;; ! - too special, used for macro calls
@@ -22,7 +22,7 @@ stick it to the previous operator on line."
   (rust-smart-operators--insert-char-optionally-surrounding-with-spaces char t))
 
 (defconst rust-smart-operators--chars-to-separate-from-ampersand-and-asterisk
-  '(?= ?>))
+  '(?= ?> ?< ?| ?^ ?% ?/ ?- ?+ ?*))
 
 (defun rust-smart-operators--insert-char-optionally-surrounding-with-spaces (char insert-space-after)
   (let* ((disable-smart-operators? current-prefix-arg)
@@ -37,70 +37,70 @@ stick it to the previous operator on line."
       (t
        (let ((whitespace-deleted? nil)
              (after (char-after pt)))
+         ;; Delete spaces backwards if there's operator or open
+         ;; paren char before the spaces.
+         (when-let ((delete-whitespace?
+                     (save-excursion
+                       (when (not (zerop (skip-syntax-backward " ")))
+                         (let* ((pt-before-ws (point))
+                                (char-before-spaces (char-before pt-before-ws)))
+                           (and char-before-spaces ;; not at beginning of buffer
+                                (cond
+                                  ((and (memq char '(?& ?*))
+                                        (memq char-before-spaces rust-smart-operators--chars-to-separate-from-ampersand-and-asterisk))
+                                   nil)
+                                  ((char-equal char-before-spaces ?>)
+                                   (save-excursion
+                                     (forward-char -1)
+                                     (aif (sp-get-enclosing-sexp)
+                                         (if (= (plist-get it :end) (+ 1 (point)))
+                                             (not (string-equal (plist-get it :op) "<"))
+                                           t)
+                                       t ;; No sexp - ok to delete.
+                                       )))
+                                  (t
+                                   t) ;; Not a > before spaces - ok to delete.
+                                  )
+                                (or (gethash char-before-spaces rust-smart-operators--operator-chars)
+                                    (char-equal char-before-spaces ?\()
+                                    (and (char-equal char ?=)
+                                         (char-equal char-before-spaces ?!)))))))))
+           (setf whitespace-deleted? (delete-whitespace-backward)))
+
          ;; Decide whether to insert space before the operator.
-         (if (and (not (smart-operators--on-empty-string?))
-                  (not (memq char '(?\< ?\>)))
-                  (if (char-equal char ?\|)
-                      ;; Check if we're preceded by '...(|..._|_'.
-                      (save-excursion
-                        (skip-chars-backward "^|" (- (point) 1024))
-                        (if (bobp)
-                            t
-                          (progn
-                            (forward-char -1)
-                            (not (or (bobp)
-                                     (char-equal (char-before) ?\())))))
-                    t)
-                  (or
-                   ;; At beginning of buffer.
-                   at-beginning-of-buffer?
-                   (and (not (char-equal before ?\s))
-                        (not (char-equal before ?\())
-                        (not (gethash before rust-smart-operators--operator-chars))
-                        (if (char-equal char ?=)
-                            (not (char-equal before ?!))
-                          t))
-                   ;; Do break with a space after balanced >.
-                   (and (char-equal before ?\>)
+         (when (and (not (smart-operators--on-empty-string?))
+                    (not (memq char '(?\< ?\>)))
+                    (if (char-equal char ?\|)
+                        ;; Check if we're preceded by '...(|..._|_'.
                         (save-excursion
-                          (forward-char -1)
-                          (awhen (sp-get-enclosing-sexp)
-                            (and (string-equal (plist-get it :op) "<")
-                                 (= (plist-get it :end) (+ 1 (point)))))))
-                   ;; =& and >& are not operators so add a space
-                   (and (memq char '(?& ?*))
-                        (memq before rust-smart-operators--chars-to-separate-from-ampersand-and-asterisk))))
-             (insert-char ?\s)
-           ;; Delete spaces backwards if there's operator or open
-           ;; paren char before the spaces.
-           (let ((delete-whitespace?
-                  (save-excursion
-                    (when (not (zerop (skip-syntax-backward " ")))
-                      (let* ((pt-before-ws (point))
-                             (char-before-spaces (char-before pt-before-ws)))
-                        (and char-before-spaces ;; not at beginning of buffer
-                             (cond
-                               ((and (memq char '(?& ?*))
-                                     (memq char-before-spaces rust-smart-operators--chars-to-separate-from-ampersand-and-asterisk))
-                                nil)
-                               ((char-equal char-before-spaces ?>)
-                                (save-excursion
-                                  (forward-char -1)
-                                  (aif (sp-get-enclosing-sexp)
-                                      (if (= (plist-get it :end) (+ 1 (point)))
-                                          (not (string-equal (plist-get it :op) "<"))
-                                        t)
-                                    t ;; No sexp - ok to delete.
-                                    )))
-                               (t
-                                t) ;; Not a > before spaces - ok to delete.
-                               )
-                             (or (gethash char-before-spaces rust-smart-operators--operator-chars)
-                                 (char-equal char-before-spaces ?\()
-                                 (and (char-equal char ?=)
-                                      (char-equal char-before-spaces ?!)))))))))
-             (when delete-whitespace?
-               (setf whitespace-deleted? (delete-whitespace-backward)))))
+                          (skip-chars-backward "^|" (- (point) 1024))
+                          (if (bobp)
+                              t
+                            (progn
+                              (forward-char -1)
+                              (not (or (bobp)
+                                       (char-equal (char-before) ?\())))))
+                      t)
+                    (or
+                     ;; At beginning of buffer.
+                     at-beginning-of-buffer?
+                     (and (not (char-equal before ?\s))
+                          (not (char-equal before ?\())
+                          (not (gethash before rust-smart-operators--operator-chars))
+                          (if (char-equal char ?=)
+                              (not (char-equal before ?!))
+                            t))
+                     ;; Do break with a space after balanced >.
+                     (and (char-equal before ?\>)
+                          (save-excursion
+                            (forward-char -1)
+                            (awhen (sp-get-enclosing-sexp)
+                              (and (string-equal (plist-get it :op) "<")
+                                   (= (plist-get it :end) (+ 1 (point)))))))
+                     ;; =& and >& are not operators so add a space
+                     (and (memq char '(?& ?*))
+                          (memq before rust-smart-operators--chars-to-separate-from-ampersand-and-asterisk))))
+           (insert-char ?\s))
 
          (let ((before-insert (char-before)))
            (insert-char char)
