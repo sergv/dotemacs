@@ -1,4 +1,4 @@
-;;; company-posframe.el --- Use a posframe as company candidate menu
+;;; company-posframe.el --- Use a posframe as company candidate menu       -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2017-2019 Clément Pit-Claudel, Feng Shu, Lars Andersen
 
@@ -202,20 +202,20 @@ be triggered manually using `company-posframe-quickhelp-show'."
         (setq company-my-keymap company-posframe-active-map)
       (setq company-my-keymap keymap))))
 
-(defun company-posframe-format-backend-name-active-first (backends separator)
+(defun company-posframe-format-backend-name-active-first (_backends separator)
   "Format BACKEND for displaying in the modeline, displays active backend first"
-  (let (active
-        inactive)
-
+  (let (active inactive)
     (dolist (backend company-backends)
       (if (eq backend company-backend)
-          (add-to-list 'active (propertize (company-posframe-format-backend-name-active-first-helper backend)
-                                           'face 'company-posframe-active-backend-name))
-        (add-to-list 'inactive (propertize (company-posframe-format-backend-name-active-first-helper backend)
-                                           'face 'company-posframe-inactive-backend-name))
-        ))
-    (mapconcat (lambda (elem) (format "%s" elem)) (append active inactive) separator)
-    ))
+          (push (propertize (company-posframe-format-backend-name-active-first-helper backend)
+                            'face 'company-posframe-active-backend-name)
+                active)
+        (push (propertize (company-posframe-format-backend-name-active-first-helper backend)
+                          'face 'company-posframe-inactive-backend-name)
+              inactive)))
+    (mapconcat (lambda (elem)
+                 (format "%s" elem))
+               (append active inactive) separator)))
 
 (defun company-posframe-format-backend-name-active-first-helper (backend)
   "Helper function for `company-posframe-format-backend-name-active-first`"
@@ -226,8 +226,7 @@ be triggered manually using `company-posframe-quickhelp-show'."
 
 (defun company-posframe-format-backend-name (backends separator)
   "Format BACKEND for displaying in the modeline."
-  (mapconcat #'company-posframe-format-backend-name-helper backends separator)
-  )
+  (mapconcat #'company-posframe-format-backend-name-helper backends separator))
 
 (defun company-posframe-format-backend-name-helper (backend)
   "Helper function for `company-posframe-format-backend-name`"
@@ -268,12 +267,13 @@ be triggered manually using `company-posframe-quickhelp-show'."
            :position (- (point) (length company-prefix))
            :min-height (+ height
                           (if company-posframe-show-indicator 1 0))
-           :min-width company-tooltip-minimum-width
-           :max-width company-tooltip-maximum-width
+           :min-width (+ company-tooltip-minimum-width (* 2 company-tooltip-margin))
+           :max-width (+ company-tooltip-maximum-width (* 2 company-tooltip-margin))
            :x-pixel-offset (* -1 company-tooltip-margin (default-font-width))
            :respect-mode-line company-posframe-show-indicator
            :font company-posframe-font
            :background-color (face-attribute 'company-tooltip :background)
+           :lines-truncate t
            company-posframe-show-params)))
 
 (defun company-posframe-hide ()
@@ -303,7 +303,6 @@ COMMAND: See `company-frontends'."
            (company-posframe-quickhelp-cancel-timer))
          (company-posframe-quickhelp-hide)
          (company-posframe-hide))
-        (update (company-posframe-show))
         (post-command
          (when (not run-quickhelp-command-p)
            (company-posframe-show)))))))
@@ -342,7 +341,7 @@ COMMAND: See `company-frontends'."
                (looking-at-p "^\\s-*$")))
     (forward-line -1)))
 
-(defun company-posframe-quickhelp-completing-read (prompt candidates &rest rest)
+(defun company-posframe-quickhelp-completing-read (_prompt candidates &rest _rest)
   "`cider', and probably other libraries, prompt the user to
 resolve ambiguous documentation requests.  Instead of failing we
 just grab the first candidate and press forward."
@@ -412,16 +411,17 @@ just grab the first candidate and press forward."
                         (if company-posframe-show-metadata 1 0))
                      (with-current-buffer company-posframe-buffer
                        (frame-height posframe--frame)))))
-          (apply #'posframe-show
-                 company-posframe-quickhelp-buffer
-                 :string doc
-                 :width width
-                 :min-width width
-                 :min-height height
-                 :height height
-                 :background-color (face-attribute 'company-posframe-quickhelp :background nil t)
-                 :foreground-color (face-attribute 'company-posframe-quickhelp :foreground nil t)
-                 company-posframe-quickhelp-show-params))))))
+          (lower-frame
+           (apply #'posframe-show
+                  company-posframe-quickhelp-buffer
+                  :string doc
+                  :width width
+                  :min-width width
+                  :min-height height
+                  :height height
+                  :background-color (face-attribute 'company-posframe-quickhelp :background nil t)
+                  :foreground-color (face-attribute 'company-posframe-quickhelp :foreground nil t)
+                  company-posframe-quickhelp-show-params)))))))
 
 (defun company-posframe-quickhelp-right-poshandler (_info)
   (with-current-buffer company-posframe-buffer
@@ -432,6 +432,11 @@ just grab the first candidate and press forward."
 (defun company-posframe-quickhelp-hide ()
   (posframe-hide company-posframe-quickhelp-buffer))
 
+(defun company-posframe-quickhelp-raise-frame ()
+  (interactive)
+  (posframe-funcall company-posframe-quickhelp-buffer
+                    #'raise-frame))
+
 (defun company-posframe-quickhelp-toggle ()
   (interactive)
   (if (posframe-funcall
@@ -439,17 +444,20 @@ just grab the first candidate and press forward."
        (lambda ()
          (frame-parameter (window-frame) 'visibility)))
       (company-posframe-quickhelp-hide)
-    (company-posframe-quickhelp-show)))
+    (company-posframe-quickhelp-show)
+    (company-posframe-quickhelp-raise-frame)))
 
 (defun company-posframe-quickhelp-scroll-up (&optional arg)
   (interactive "^P")
+  (company-posframe-quickhelp-raise-frame)
   (posframe-funcall company-posframe-quickhelp-buffer
-                    'scroll-up-command arg))
+                    #'scroll-up-command arg))
 
 (defun company-posframe-quickhelp-scroll-down (&optional arg)
   (interactive "^P")
+  (company-posframe-quickhelp-raise-frame)
   (posframe-funcall company-posframe-quickhelp-buffer
-                    'scroll-down-command arg))
+                    #'scroll-down-command arg))
 
 ;;;###autoload
 (define-minor-mode company-posframe-mode
@@ -481,9 +489,5 @@ just grab the first candidate and press forward."
     (remove-hook 'window-configuration-change-hook #'company-posframe-window-change)))
 
 (provide 'company-posframe)
-
-;; Local Variables:
-;; coding: utf-8-unix
-;; End:
 
 ;;; company-posframe.el ends here
