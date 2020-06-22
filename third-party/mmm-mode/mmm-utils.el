@@ -1,6 +1,6 @@
 ;;; mmm-utils.el --- Coding Utilities for MMM Mode
 
-;; Copyright (C) 2000-2003, 2011-2013  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2003, 2011-2013, 2020  Free Software Foundation, Inc.
 
 ;; Author: Michael Abraham Shulman <viritrilbia@gmail.com>
 
@@ -55,6 +55,7 @@ means not hidden, not a minibuffer, not in batch mode, and not in of
 (defmacro mmm-save-all (&rest body)
   "Execute BODY forms, then restoring point, mark, current buffer,
 restrictions, and match data."
+  (declare (indent 1) (debug t))
   `(save-excursion
      (save-restriction
        (save-match-data
