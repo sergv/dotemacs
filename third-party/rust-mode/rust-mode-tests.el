@@ -1,17 +1,18 @@
-;;; rust-mode-tests.el --- ERT tests for rust-mode.el
+;;; rust-mode-tests.el --- ERT tests for rust-mode.el  -*- lexical-binding: t; -*-
 
 (require 'rust-mode)
 (require 'ert)
-(require 'cl)
+(require 'cl-lib)
+(require 'compile)
 (require 'imenu)
 
-(setq rust-test-fill-column 32)
+(defconst rust-test-fill-column 32)
 (setq-default indent-tabs-mode nil)
 
-(defun rust-compare-code-after-manip (original point-pos manip-func expected got)
+(defun rust-compare-code-after-manip (_original _point-pos _manip-func expected got)
   (equal expected got))
 
-(defun rust-test-explain-bad-manip (original point-pos manip-func expected got)
+(defun rust-test-explain-bad-manip (original point-pos _manip-func expected got)
   (if (equal expected got)
       nil
     (list
@@ -23,14 +24,14 @@
      `(goto-char ,point-pos)
      'expected `(insert ,expected)
      'got `(insert ,got)
-     (loop for i from 0 to (max (length original) (length expected))
-           for oi = (if (< i (length got)) (elt got i))
-           for ei = (if (< i (length expected)) (elt expected i))
-           while (equal oi ei)
-           finally return `(first-difference-at
-                            (goto-char ,(+ 1 i))
-                            expected ,(char-to-string ei)
-                            got ,(char-to-string oi))))))
+     (cl-loop for i from 0 to (max (length original) (length expected))
+              for oi = (if (< i (length got)) (elt got i))
+              for ei = (if (< i (length expected)) (elt expected i))
+              while (equal oi ei)
+              finally return `(first-difference-at
+                               (goto-char ,(+ 1 i))
+                               expected ,(char-to-string ei)
+                               got ,(char-to-string oi))))))
 (put 'rust-compare-code-after-manip 'ert-explainer
      'rust-test-explain-bad-manip)
 
@@ -51,27 +52,25 @@ Also, the result should be the same regardless of whether the code is at the beg
          (end-pos (or end-pos (length unfilled)))
          (padding "\n     \n")
          (padding-len (length padding)))
-    (loop
+    (cl-loop
      for pad-at-beginning from 0 to 1
-     do (loop for pad-at-end from 0 to 1
-              with padding-beginning = (if (= 0 pad-at-beginning) "" padding)
-              with padding-end = (if (= 0 pad-at-end) "" padding)
-              with padding-adjust = (* padding-len pad-at-beginning)
-              with padding-beginning = (if (= 0 pad-at-beginning) "" padding)
-              with padding-end = (if (= 0 pad-at-end) "" padding)
-              ;; If we're adding space to the beginning, and our start position
-              ;; is at the very beginning, we want to test within the added space.
-              ;; Otherwise adjust the start and end for the beginning padding.
-              with start-pos = (if (= 1 start-pos) 1 (+ padding-adjust start-pos))
-              with end-pos = (+ end-pos padding-adjust)
-              do (loop for pos from start-pos to end-pos
-                       do (rust-test-manip-code
-                           (concat padding-beginning unfilled padding-end)
-                           pos
-                           (lambda ()
-                             (let ((fill-column rust-test-fill-column))
-                               (fill-paragraph)))
-                           (concat padding-beginning expected padding-end)))))
+     do (cl-loop for pad-at-end from 0 to 1
+                 with padding-beginning = (if (= 0 pad-at-beginning) "" padding)
+                 with padding-end = (if (= 0 pad-at-end) "" padding)
+                 with padding-adjust = (* padding-len pad-at-beginning)
+                 ;; If we're adding space to the beginning, and our start position
+                 ;; is at the very beginning, we want to test within the added space.
+                 ;; Otherwise adjust the start and end for the beginning padding.
+                 with start-pos = (if (= 1 start-pos) 1 (+ padding-adjust start-pos))
+                 with end-pos = (+ end-pos padding-adjust)
+                 do (cl-loop for pos from start-pos to end-pos
+                             do (rust-test-manip-code
+                                 (concat padding-beginning unfilled padding-end)
+                                 pos
+                                 (lambda ()
+                                   (let ((fill-column rust-test-fill-column))
+                                     (fill-paragraph)))
+                                 (concat padding-beginning expected padding-end)))))
     ;; In addition to all the fill-paragraph tests, check that it works using fill-region
     (rust-test-manip-code
      unfilled
@@ -866,7 +865,7 @@ struct A {
 "
    ))
 
-(setq rust-test-motion-string
+(defconst rust-test-motion-string
       "
 fn fn1(arg: i32) -> bool {
     let x = 5;
@@ -889,10 +888,10 @@ pub fn fn3(arg: i32) -> bool {
 struct Foo {
     x: i32
 }
-"
-      rust-test-region-string rust-test-motion-string
-      rust-test-indent-motion-string
-      "
+")
+(defconst rust-test-region-string rust-test-motion-string)
+(defconst rust-test-indent-motion-string
+  "
 fn blank_line(arg:i32) -> bool {
 
 }
@@ -914,41 +913,41 @@ fn indented_already() {
 
     // The previous line already has its spaces
 }
-"
+")
 
-      ;; Symbol -> (line column)
-      rust-test-positions-alist '((start-of-fn1 (2 0))
-                                  (start-of-fn1-middle-of-line (2 15))
-                                  (middle-of-fn1 (3 7))
-                                  (end-of-fn1 (6 0))
-                                  (between-fn1-fn2 (7 0))
-                                  (start-of-fn2 (8 0))
-                                  (middle-of-fn2 (10 4))
-                                  (before-start-of-fn1 (1 0))
-                                  (after-end-of-fn2 (13 0))
-                                  (beginning-of-fn3 (14 0))
-                                  (middle-of-fn3 (16 4))
-                                  (middle-of-struct (21 10))
-                                  (before-start-of-struct (19 0))
-                                  (after-end-of-struct (23 0))
-                                  (blank-line-indent-start (3 0))
-                                  (blank-line-indent-target (3 4))
-                                  (closing-brace-indent-start (8 1))
-                                  (closing-brace-indent-target (8 5))
-                                  (middle-push-indent-start (13 2))
-                                  (middle-push-indent-target (13 9))
-                                  (after-whitespace-indent-start (13 1))
-                                  (after-whitespace-indent-target (13 8))
-                                  (middle-pull-indent-start (15 19))
-                                  (middle-pull-indent-target (15 12))
-                                  (blank-line-indented-already-bol-start (20 0))
-                                  (blank-line-indented-already-bol-target (20 4))
-                                  (blank-line-indented-already-middle-start (20 2))
-                                  (blank-line-indented-already-middle-target (20 4))
-                                  (nonblank-line-indented-already-bol-start (21 0))
-                                  (nonblank-line-indented-already-bol-target (21 4))
-                                  (nonblank-line-indented-already-middle-start (21 2))
-                                  (nonblank-line-indented-already-middle-target (21 4))))
+;; Symbol -> (line column)
+(defconst rust-test-positions-alist '((start-of-fn1 (2 0))
+                                      (start-of-fn1-middle-of-line (2 15))
+                                      (middle-of-fn1 (3 7))
+                                      (end-of-fn1 (6 0))
+                                      (between-fn1-fn2 (7 0))
+                                      (start-of-fn2 (8 0))
+                                      (middle-of-fn2 (10 4))
+                                      (before-start-of-fn1 (1 0))
+                                      (after-end-of-fn2 (13 0))
+                                      (beginning-of-fn3 (14 0))
+                                      (middle-of-fn3 (16 4))
+                                      (middle-of-struct (21 10))
+                                      (before-start-of-struct (19 0))
+                                      (after-end-of-struct (23 0))
+                                      (blank-line-indent-start (3 0))
+                                      (blank-line-indent-target (3 4))
+                                      (closing-brace-indent-start (8 1))
+                                      (closing-brace-indent-target (8 5))
+                                      (middle-push-indent-start (13 2))
+                                      (middle-push-indent-target (13 9))
+                                      (after-whitespace-indent-start (13 1))
+                                      (after-whitespace-indent-target (13 8))
+                                      (middle-pull-indent-start (15 19))
+                                      (middle-pull-indent-target (15 12))
+                                      (blank-line-indented-already-bol-start (20 0))
+                                      (blank-line-indented-already-bol-target (20 4))
+                                      (blank-line-indented-already-middle-start (20 2))
+                                      (blank-line-indented-already-middle-target (20 4))
+                                      (nonblank-line-indented-already-bol-start (21 0))
+                                      (nonblank-line-indented-already-bol-target (21 4))
+                                      (nonblank-line-indented-already-middle-start (21 2))
+                                      (nonblank-line-indented-already-middle-target (21 4))))
 
 (defun rust-get-buffer-pos (pos-symbol)
   "Get buffer position from POS-SYMBOL.
@@ -961,7 +960,8 @@ Convert the line-column information from that list into a buffer position value.
          (line (nth 0 line-and-column))
          (column (nth 1 line-and-column)))
     (save-excursion
-      (goto-line line)
+      (goto-char (point-min))
+      (forward-line (1- line))
       (move-to-column column)
       (point))))
 
@@ -1219,9 +1219,9 @@ fn test4();")
     (rust-mode)
     (insert "fn main() {\n    let x = 1;")
     ;; Insert 150 separate comments on the same line
-    (dotimes (i 150)
+    (dotimes (_i 150)
       (insert "/* foo */ "))
-    ;; Rewinding from the last commment to the end of the let needs at least
+    ;; Rewinding from the last comment to the end of the let needs at least
     ;; 150 iterations, but if we limit the stack depth to 100 (this appears to
     ;; be some minimum), a recursive function would overflow, throwing an
     ;; error.
@@ -1235,20 +1235,21 @@ fn test4();")
   (with-temp-buffer
     (rust-mode)
     (insert str)
-    (font-lock-fontify-buffer)
+    (font-lock-flush)
+    (font-lock-ensure)
     (buffer-string)))
 
 (defun rust-test-group-str-by-face (str)
   "Fontify `STR' in rust-mode and group it by face, returning a
 list of substrings of `STR' each followed by its face."
-  (loop with fontified = (rust-test-fontify-string str)
-        for start = 0 then end
-        while start
-        for end   = (next-single-property-change start 'face fontified)
-        for prop  = (get-text-property start 'face fontified)
-        for text  = (substring-no-properties fontified start end)
-        if prop
-        append (list text prop)))
+  (cl-loop with fontified = (rust-test-fontify-string str)
+           for start = 0 then end
+           while start
+           for end   = (next-single-property-change start 'face fontified)
+           for prop  = (get-text-property start 'face fontified)
+           for text  = (substring-no-properties fontified start end)
+           if prop
+           append (list text prop)))
 
 (defun rust-test-font-lock (source face-groups)
   "Test that `SOURCE' fontifies to the expected `FACE-GROUPS'"
@@ -1457,7 +1458,8 @@ fn g() {
   (with-temp-buffer
     (rust-mode)
     (insert "const foo = \"foo bar\"")
-    (font-lock-fontify-buffer)
+    (font-lock-flush)
+    (font-lock-ensure)
     ;; right-word should move the point to the end of the words.
     (goto-char 14)
     (right-word)
@@ -1517,7 +1519,8 @@ this_is_not_a_string();)"
 1......................500......................50
 \"#;
 ")
-    (font-lock-fontify-buffer)
+    (font-lock-flush)
+    (font-lock-ensure)
     (goto-char 530)
     (insert "#")
     ;; We have now closed the raw string.  Check that the whole string is
@@ -1894,8 +1897,10 @@ fn indented_already() {
     \n    // The previous line already has its spaces
 }
 ")
-    (font-lock-fontify-buffer)
-    (goto-line 11)
+    (font-lock-flush)
+    (font-lock-ensure)
+    (goto-char (point-min))
+    (forward-line 10)
     (move-to-column 0)
     (indent-for-tab-command)
     (should (equal (current-column) 4))
@@ -2129,7 +2134,8 @@ fn main() {
   (with-temp-buffer
     (rust-mode)
     (insert content)
-    (font-lock-fontify-buffer)
+    (font-lock-flush)
+    (font-lock-ensure)
     (dolist (pair pairs)
       (let* ((open-pos (nth 0 pair))
              (close-pos (nth 1 pair)))
@@ -2139,8 +2145,8 @@ fn main() {
         (should (equal (scan-sexps (+ 1 close-pos) -1) open-pos))))
     (dolist (nonpar-pos nonparen-positions)
       (let ((nonpar-syntax-class (syntax-class (syntax-after nonpar-pos))))
-        (should (not (equal 4 nonpar-syntax-class)))
-        (should (not (equal 5 nonpar-syntax-class)))))))
+        (should-not (equal 4 nonpar-syntax-class))
+        (should-not (equal 5 nonpar-syntax-class))))))
 
 (ert-deftest rust-test-unmatched-single-quote-in-comment-paren-matching ()
   ;; This was a bug from the char quote handling that affected the paren
@@ -2162,7 +2168,8 @@ fn main() {
 (ert-deftest rust-test-two-character-quotes-in-a-row ()
   (with-temp-buffer
     (rust-mode)
-    (font-lock-fontify-buffer)
+    (font-lock-flush)
+    (font-lock-ensure)
     (insert "'\\n','a', fn")
     (font-lock-after-change-function 1 12 0)
 
@@ -2221,7 +2228,7 @@ fn main() {
                   ("print!\(\"abcd {0} efgh\"\);" 9 23 ((14 17)))
                   ("print!\(\"{1} abcd {0} efgh\"\);" 9 27 ((9 12) (18 21)))
                   ("print!\(\"{{{1} abcd }} {0}}} {{efgh}}\"\);" 9 33 ((11 14) (23 26)))))
-    (destructuring-bind (text cursor limit matches) test
+    (cl-destructuring-bind (text cursor limit matches) test
       (with-temp-buffer
         ;; make sure we have a clean slate
         (save-match-data
@@ -2923,6 +2930,112 @@ macro_c!{
      125 ;; macro_d >
      )))
 
+(ert-deftest rust-test-paren-matching-no-angle-brackets-in-macro-rules ()
+  (rust-test-matching-parens
+   "
+fn foo<A>(a:A) {
+    macro_rules! foo ( foo::<ignore the bracets> );
+    macro_rules! bar [ foo as Option<B> ];
+}
+
+macro_c!{
+    struct Boo<D> {}
+}"
+   '((8 10))
+   ;; Inside macros, it should not find any angle brackets, even if it normally
+   ;; would
+   '(47 ;; foo <
+     62 ;; foo >
+     107 ;; bar <
+     109 ;; bar >
+     141 ;; macro_c <
+     143 ;; macro_c >
+     )))
+
+(ert-deftest rust-test-in-macro-do-not-fail-on-unbalance ()
+  (should
+   ;; We don't care about the results here, so long as they do not error
+   (with-temp-buffer
+     (insert
+      "fn foo<A>(a:A) {
+    macro_c!{
+        struct Boo<D> {}
+")
+     (rust-mode)
+     (goto-char (point-max))
+     (syntax-ppss))))
+
+
+(ert-deftest rust-test-in-macro-no-caching ()
+  (should-not
+   (with-temp-buffer
+     (insert
+      "fn foo<A>(a:A) {
+    macro_c!{
+        struct Boo<D> {}
+")
+     (rust-mode)
+     (search-backward "macro")
+     ;; do not use the cache
+     (let ((rust-macro-scopes nil))
+       (rust-in-macro)))))
+
+(ert-deftest rust-test-in-macro-fake-cache ()
+  (should
+   (with-temp-buffer
+     (insert
+      "fn foo<A>(a:A) {
+    macro_c!{
+        struct Boo<D> {}
+")
+     (rust-mode)
+     (search-backward "macro")
+     ;; make the cache lie to make the whole buffer in scope
+     ;; we need to be at paren level 1 for this to work
+     (let ((rust-macro-scopes `((,(point-min) ,(point-max)))))
+       (rust-in-macro)))))
+
+(ert-deftest rust-test-in-macro-broken-cache ()
+  (should-error
+   (with-temp-buffer
+     (insert
+      "fn foo<A>(a:A) {
+    macro_c!{
+        struct Boo<D> {}
+")
+     (rust-mode)
+     (search-backward "Boo")
+     ;; do we use the cache at all
+     (let ((rust-macro-scopes '(I should break)))
+       (rust-in-macro)))))
+
+(ert-deftest rust-test-in-macro-nested ()
+  (should
+   (equal
+    (with-temp-buffer
+      (insert
+       "macro_rules! outer {
+    () => { vec![] };
+}")
+      (rust-mode)
+      (rust-macro-scope (point-min) (point-max)))
+    '((38 40) (20 45)))))
+
+(ert-deftest rust-test-in-macro-not-with-space ()
+  (should
+   (equal
+    (with-temp-buffer
+      (insert
+       "fn foo<T>() {
+    if !(mem::size_of::<T>() > 8) {
+        bar()
+    }
+}")
+      (rust-mode)
+      (rust-macro-scope (point-min) (point-max)))
+    'empty)))
+
+
 (ert-deftest rust-test-paren-matching-type-with-module-name ()
   (rust-test-matching-parens
    "
@@ -3040,7 +3153,7 @@ type Foo<T> where T: Copy = Box<T>;
      '(7 9))))
 
 
-(ert-deftest redo-syntax-after-change-far-from-point ()  
+(ert-deftest redo-syntax-after-change-far-from-point ()
   (let*
       ((tmp-file-name (make-temp-file "rust-mdoe-test-issue104"))
        (base-contents (apply 'concat (append '("fn foo() {\n\n}\n") (make-list 500 "// More stuff...\n") '("fn bar() {\n\n}\n")))))
@@ -3220,10 +3333,41 @@ impl Two<'a> {
 
 (when (executable-find rust-cargo-bin)
   (ert-deftest rust-test-project-located ()
-    (lexical-let* ((test-dir (expand-file-name "test-project/" default-directory))
-                   (manifest-file (expand-file-name "Cargo.toml" test-dir)))
+    (let* ((test-dir (expand-file-name "test-project/" default-directory))
+           (manifest-file (expand-file-name "Cargo.toml" test-dir)))
       (let ((default-directory test-dir))
         (should (equal (expand-file-name (rust-buffer-project)) manifest-file))))))
+
+(defun rust-collect-matches (spec)
+  (let ((matches nil))
+    (goto-char (point-min))
+    (while (re-search-forward (car spec) nil t)
+      (push
+       (mapcar (lambda (r)
+                 (let ((match-pos
+                        (nth (cdr r) spec)))
+                   (cond ((and (eq :type (car r)) (consp match-pos))
+                          (compilation-face match-pos))
+                         ((eq :type (car r))
+                          (cdr (assoc match-pos '((1 . compilation-warning)
+                                                  (0 . compilation-info)
+                                                  (2 . compilation-error)))))
+                         ((and (null match-pos) (eq :column (car r)))
+                          'back-to-indentation)
+                         ((and (null match-pos) (eq :file (car r)))
+                          'like-previous-one)
+                         ((null match-pos)
+                          (error (format "%S" (car r))))
+                         (t
+                          (match-string match-pos)))))
+               ;; see compilation-error-regexp-alist
+               '((:file . 1)
+                 (:line . 2)
+                 (:column . 3)
+                 (:type . 4)
+                 (:mouse-highlight . 5)))
+       matches))
+    (nreverse matches)))
 
 (ert-deftest compilation-regexp-dashes ()
   (with-temp-buffer
@@ -3231,33 +3375,31 @@ impl Two<'a> {
     (insert "error found a -> b\n  --> file1.rs:12:34\n\n")
     (insert "error[E1234]: found a -> b\n  --> file2.rs:12:34\n\n")
     (insert "warning found a -> b\n  --> file3.rs:12:34\n\n")
+    (insert "note: `ZZZ` could also refer to the constant imported here -> b\n  --> file4.rs:12:34\n\n")
+    (insert "    ::: file5.rs:12:34\n\n")
     ;; should not match
-    (insert "werror found a -> b\n  --> file4.rs:12:34\n\n")
-
-    (goto-char (point-min))
-    (let ((matches nil))
-      (while (re-search-forward (car rustc-compilation-regexps) nil t)
-        (push
-         (mapcar (lambda (r)
-                   (let ((match-pos
-                          (nth (cdr r) rustc-compilation-regexps)))
-                     (if (eq :is-warning (car r))
-                         (compilation-face match-pos)
-                       (match-string match-pos))))
-                 ;; see compilation-error-regexp-alist
-                 '((:file . 1)
-                   (:line . 2)
-                   (:column . 3)
-                   (:is-warning . 4)
-                   (:mouse-highlight . 5)))
-         matches))
-      (setq matches (reverse matches))
-
-      (should (equal
-               '(("file1.rs" "12" "34" compilation-error "file1.rs:12:34")
-                 ("file2.rs" "12" "34" compilation-error "file2.rs:12:34")
-                 ("file3.rs" "12" "34" compilation-warning "file3.rs:12:34"))
-               matches)))))
+    (insert "werror found a -> b\n  --> no_match.rs:12:34\n\n")
+    (insert "error[E0061]: this function takes 1 parameter but 2 parameters were supplied\n  --> file6.rs:132:34
+    |
+82  | fn duration_ms_since(time: &Option<SystemTime>) -> u128 {
+    | ------------------------------------------------------- defined here
+...
+132 |             self.total_time_ms = duration_ms_since(&self.program_start, 2);
+    |                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+")
+    (should (equal
+             '((("file1.rs" "12" "34" compilation-error "file1.rs:12:34")
+                ("file2.rs" "12" "34" compilation-error "file2.rs:12:34")
+                ("file3.rs" "12" "34" compilation-warning "file3.rs:12:34")
+                ("file4.rs" "12" "34" compilation-info "file4.rs:12:34")
+                ("file6.rs" "132" "34" compilation-error "file6.rs:132:34"))
+               (("file5.rs" "12" "34" compilation-info "file5.rs:12:34"))
+               ((like-previous-one "82" back-to-indentation compilation-info "82")
+                (like-previous-one "132" back-to-indentation compilation-info "132")))
+             (mapcar #'rust-collect-matches
+                     (list rustc-compilation-regexps
+                           rustc-colon-compilation-regexps
+                           rustc-refs-compilation-regexps))))))
 
 ;; If electric-pair-mode is available, load it and run the tests that use it.  If not,
 ;; no error--the tests will be skipped.
@@ -3274,7 +3416,8 @@ impl Two<'a> {
           (with-temp-buffer
             (rust-mode)
             (insert original)
-            (font-lock-fontify-buffer)
+            (font-lock-flush)
+            (font-lock-ensure)
 
             (goto-char point-pos)
             (deactivate-mark)
@@ -3315,6 +3458,11 @@ impl Two<'a> {
              (equal "tmp<T>" (buffer-substring-no-properties (point-min)
                                                              (point-max)))))
         (electric-pair-mode (or old-electric-pair-mode 1))))))
+
+;; Ensure the byte compiler knows about this function, even though it’s
+;; conditionally-defined.
+(declare-function test-electric-pair-insert "rust-mode-tests"
+                  (original point-pos char closer))
 
 (ert-deftest rust-mode-map ()
   (with-temp-buffer
