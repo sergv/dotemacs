@@ -1784,7 +1784,7 @@ a variable number of arguments, such that
 is identity (given that the lists are the same length).
 
 Note in particular that calling this on a list of two lists will
-return a list of cons-cells such that the aboce identity works.
+return a list of cons-cells such that the above identity works.
 
 See also: [`-zip`](#-zip-rest-lists)
 
@@ -2835,7 +2835,7 @@ iteration halts when either of the following conditions is satisfied:
       tested using `equal-test`. If `equal-test` is not specified,
       `equal` is used. For functions over the floating point
       numbers, it may be necessary to provide an appropriate
-      appoximate comparison test.
+      approximate comparison test.
 
  2. `halt-test` returns a non-nil value. `halt-test` defaults to a
       simple counter that returns t after `-fixfn-max-iterations`,
