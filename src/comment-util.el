@@ -174,14 +174,15 @@ or down if LINES is negative or comment whole region if region is active."
     (comment-util-comment-next-n-lines lines)))
 
 ;;;###autoload
-(defun comment-util-comment-region (begin end)
+(defun comment-util-comment-region ()
   "Comment region between BEGIN and END position inserting region comments if
 they are defined for current mode or one-line comments otherwise."
-  (interactive "r")
-  (save-excursion
-    (if (comment-util-region-comments-defined?)
-        (comment-util-comment-chunk-region begin end)
-      (comment-util--comment-lined-region begin end))))
+  (interactive)
+  (destructuring-bind (begin . end) (get-region-bounds)
+    (save-excursion
+      (if (comment-util-region-comments-defined?)
+          (comment-util-comment-chunk-region begin end)
+        (comment-util--comment-lined-region begin end)))))
 
 ;;;###autoload
 (defun comment-util-uncomment-region ()
