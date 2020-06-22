@@ -1,3 +1,6 @@
+_This package is no longer actively maintained.  If you're interested in
+becoming maintainer, please let me know._
+
 Many modern editors and IDEs can graphically indicate the location of the
 fill column by drawing a thin line (in design parlance, a "rule") down the
 length of the editing window.  Fill-column-indicator implements this
@@ -8,7 +11,7 @@ facility in Emacs:
 #### Please Note
 
 There is a small incompatibility between this package and the current stable
-Emacs relase (v24.3).  See [issue #31](https://github.com/alpaker/Fill-Column-Indicator/issues/31) for more
+Emacs release (v24.3).  See [issue #31](https://github.com/alpaker/Fill-Column-Indicator/issues/31) for more
 information.
 
 #### Installation and Usage
