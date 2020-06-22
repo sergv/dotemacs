@@ -1,6 +1,6 @@
 ;;; mmm-region.el --- Manipulating and behavior of MMM submode regions
 
-;; Copyright (C) 2000-2003, 2010-2015, 2018  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2003, 2010-2015, 2018, 2020  Free Software Foundation, Inc.
 
 ;; Author: Michael Abraham Shulman <viritrilbia@gmail.com>
 
@@ -146,10 +146,16 @@ attention is paid to stickiness."
 		 (min stop (point-max))))))
 
 (defun mmm-sort-overlays (overlays)
-  "Sort OVERLAYS in order of decreasing priority."
-  (sort (cl-copy-list overlays)
-        (lambda (x y) (> (or (overlay-get x 'priority) 0)
-                           (or (overlay-get y 'priority) 0)))))
+  "Sort OVERLAYS in order of decreasing priority or nesting."
+  (sort (copy-sequence overlays)
+        (lambda (x y)
+          (let ((prio-x (overlay-get x 'priority))
+                (prio-y (overlay-get y 'priority)))
+            (if (or prio-x prio-y)
+                (> (or prio-x 0)
+                   (or prio-y 0))
+              (> (overlay-start x)
+                 (overlay-start y)))))))
 
 ;;}}}
 ;;{{{ Current Submode
@@ -787,7 +793,8 @@ of the REGIONS covers START to STOP."
            mmm-current-submode mmm-current-overlay)
           (mapc (lambda (elt)
                     (when (get (car elt) 'mmm-font-lock-mode)
-                      (mmm-fontify-region-list (car elt) (cdr elt))))
+                      (mmm-fontify-region-list (car elt) (cdr elt)
+                                               start stop)))
                 (mmm-regions-alist start stop)))
       ;; `post-command-hook' contains `mmm-update-submode-region',
       ;; but jit-lock runs later, so we need to restore local vars now.
@@ -798,8 +805,9 @@ of the REGIONS covers START to STOP."
 (defvar syntax-ppss-cache)
 (defvar syntax-ppss-last)
 
-(defun mmm-fontify-region-list (mode regions)
-  "Fontify REGIONS, each like (BEG END), in mode MODE."
+(defun mmm-fontify-region-list (mode regions start stop)
+  "Fontify REGIONS, each like (BEG END), in mode MODE.
+START and STOP are the boundaries of the area to fontify."
   (save-excursion
     (let ((func (get mode 'mmm-fontify-region-function))
           font-lock-extend-region-functions)
@@ -823,7 +831,10 @@ of the REGIONS covers START to STOP."
                       ;; respects submode boundaries.
                       (when (and ovl (not (memq mode mmm-c-derived-modes)))
                         (narrow-to-region beg end))
-                      (funcall func beg end nil)))
+                      (funcall func
+                               (max beg start)
+                               (min end stop)
+                               nil)))
                   ;; Catch changes in font-lock cache.
                   (mmm-save-changed-local-variables
                    mmm-current-submode mmm-current-overlay)))
