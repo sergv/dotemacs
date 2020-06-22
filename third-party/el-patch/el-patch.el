@@ -7,7 +7,8 @@
 ;; Homepage: https://github.com/raxod502/el-patch
 ;; Keywords: extensions
 ;; Package-Requires: ((emacs "25"))
-;; Version: 2.2.3
+;; SPDX-License-Identifier: MIT
+;; Version: 2.3
 
 ;;; Commentary:
 
@@ -623,7 +624,10 @@ is the Lisp form, read from the buffer at point."
                           ;; buffer.
                           (cl-letf (((symbol-function #'get-file-buffer)
                                      #'ignore))
-                            ,@body)))
+                            ;; Because we get an error if the function
+                            ;; doesn't have a definition anywhere.
+                            (ignore-errors
+                              ,@body))))
           (defun-buffer (car buffer-point))
           (defun-point (cdr buffer-point)))
      (and defun-buffer
