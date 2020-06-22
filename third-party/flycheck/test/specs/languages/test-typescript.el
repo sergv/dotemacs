@@ -34,13 +34,15 @@
   \"failure\":\"unused variable: 'invalidAlignment'\",
   \"name\":\"sample.ts\",
   \"ruleName\":\"no-unused-variable\",
+  \"ruleSeverity\":\"ERROR\",
   \"startPosition\":{\"character\":9,\"line\":0,\"position\":9}},
  {\"endPosition\":{\"character\":14,\"line\":2,\"position\":76},
   \"failure\":\"missing semicolon\",
   \"name\":\"sample.ts\",
   \"ruleName\":\"semicolon\",
+  \"ruleSeverity\":\"WARNING\",
   \"startPosition\":{\"character\":14,\"line\":2,\"position\":76}}]")
-          (json-with-deprecations "no-unused-variable is deprecated. Use the tsc compiler options --noUnusedParameters and --noUnusedLocals instead.
+          (json-with-unknown-severity "no-unused-variable is deprecated. Use the tsc compiler options --noUnusedParameters and --noUnusedLocals instead.
 
   Could not find implementations for the following rules specified in the configuration:
       label-undefined
@@ -55,25 +57,30 @@
  \"failure\":\"unused variable: 'invalidAlignment'\",
  \"name\":\"sample.ts\",
  \"ruleName\":\"no-unused-variable\",
+ \"ruleSeverity\":\"XXX\",
  \"startPosition\":{\"character\":9,\"line\":0,\"position\":9}}]"))
       (it "parses TSLint JSON output"
         (expect (flycheck-parse-tslint json 'checker 'buffer)
                 :to-be-equal-flycheck-errors
                 (list
-                 (flycheck-error-new-at 1 10 'warning
+                 (flycheck-error-new-at 1 10 'error
                                         "unused variable: 'invalidAlignment'"
                                         :id "no-unused-variable"
                                         :checker 'checker
                                         :buffer 'buffer
-                                        :filename "sample.ts")
+                                        :filename "sample.ts"
+                                        :end-line 1
+                                        :end-column 26)
                  (flycheck-error-new-at 3 15 'warning
                                         "missing semicolon"
                                         :id "semicolon"
                                         :checker 'checker
                                         :buffer 'buffer
-                                        :filename "sample.ts"))))
-      (it "parses TSLint JSON output with deprecation output"
-        (expect (flycheck-parse-tslint json-with-deprecations 'checker 'buffer)
+                                        :filename "sample.ts"
+                                        :end-line 3
+                                        :end-column 15))))
+      (it "parses TSLint JSON output with unknown severity"
+        (expect (flycheck-parse-tslint json-with-unknown-severity 'checker 'buffer)
                 :to-be-equal-flycheck-errors
                 (list
                  (flycheck-error-new-at 1 10 'warning
@@ -81,6 +88,8 @@
                                         :id "no-unused-variable"
                                         :checker 'checker
                                         :buffer 'buffer
-                                        :filename "sample.ts")))))))
+                                        :filename "sample.ts"
+                                        :end-line 1
+                                        :end-column 26)))))))
 
 ;;; test-typescript.el ends here

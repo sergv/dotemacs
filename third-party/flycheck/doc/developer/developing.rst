@@ -28,7 +28,8 @@ started (see :ref:`flycheck-syntax-checks`), the following happens:
    the error.
 3. Flycheck then filters the collected errors to keep only the relevant ones.
    For instance, errors directed at other files than the one you are editing are
-   discarded.
+   discarded.  The exact sementics of which errors are relevant is defined in
+   ``flycheck-relevant-error-p``.
 4. Relevant errors are highlighted by Flycheck in the buffer, according to user
    preference.  By default, each error adds a mark in the fringe at the line it
    occurs, and underlines the symbol at the position of the error using
@@ -43,7 +44,10 @@ Flycheck follows this process for all the :ref:`many different syntax checkers
    Specifically, the above describes the process of *command checkers*, i.e.,
    checkers that run external programs.  All the checkers defined in
    ``flycheck-checkers`` are command checkers, but command checkers are actually
-   instances of *generic checkers*.  See :flyc:`flycheck-ocaml` for an example
+   instances of *generic checkers*.  Many external packages, such as
+   ``dafny-mode``, ``fstar-mode``, etc. use generic checkers, which allow you
+   more flexibility, including running Flycheck with persistent subprocess such
+   as language servers.  See :flyc:`flycheck-ocaml` for an example
    of how to use a generic checker.
 
 .. seealso::
@@ -214,10 +218,10 @@ a checker is disabled by user configuration (see
      This is the function that looks through `flycheck-checkers` to find a
      valid checker for the buffer.
 
-A more complex example
-----------------------
+Writing more complex checkers
+-----------------------------
 
-Here is a slightly more complex checker:
+Here are two examples of more complex checkers:
 
 .. code-block:: elisp
 
@@ -241,29 +245,80 @@ Here is a slightly more complex checker:
      :modes protobuf-mode
      :predicate (lambda () (buffer-file-name)))
 
-The ``:command`` is longer, as the checker passes more flags to ``protoc``.
-Note the use of ``eval`` for transforming Flycheck checker options into flags
-for the command.  See the docstring for `flycheck-substitute-argument` for more
-info, and look at other checkers for examples.
+.. code-block:: elisp
 
-Note also that there are three patterns in ``:error-patterns``; the first one
+   (flycheck-define-checker sh-shellcheck
+     "A shell script syntax and style checker using Shellcheck.
+
+   See URL `https://github.com/koalaman/shellcheck/'."
+     :command ("shellcheck"
+               "--format" "checkstyle"
+               "--shell" (eval (symbol-name sh-shell))
+               (option-flag "--external-sources"
+                            flycheck-shellcheck-follow-sources)
+               (option "--exclude" flycheck-shellcheck-excluded-warnings list
+                       flycheck-option-comma-separated-list)
+               "-")
+     :standard-input t
+     :modes sh-mode
+     :error-parser flycheck-parse-checkstyle
+     :error-filter (lambda (errors)
+                     (flycheck-remove-error-file-names "-" errors))
+     :predicate (lambda () (memq sh-shell '(bash ksh88 sh)))
+     :verify
+     (lambda (_)
+       (let ((supported (memq sh-shell '(bash ksh88 sh))))
+         (list (flycheck-verification-result-new
+                :label (format "Shell %s supported" sh-shell)
+                :message (if supported "yes" "no")
+                :face (if supports-shell 'success '(bold warning))))))
+     :error-explainer
+     (lambda (err)
+       (let ((error-code (flycheck-error-id err))
+             (url "https://github.com/koalaman/shellcheck/wiki/%S"))
+         (and error-code `(url . ,(format url error-code))))))
+
+The ``:command`` forms are longer, as the checkers pass more flags to ``protoc``
+and ``shellcheck``.  Note the use of ``eval``, ``option``, and ``option-flag``
+for transforming Flycheck checker options into flags for the command.  See the
+docstring for `flycheck-substitute-argument` for more info, and look at other
+checkers for examples.
+
+The ``shellcheck`` checker does no use ``source`` nor ``source-inplace``:
+instead, it passes the buffer contents on standard input, using
+``:standard-input t``.
+
+The ``protoc`` checker has three patterns in ``:error-patterns``; the first one
 will catch ``notes`` from the compiler and turn them into `flycheck-error`
 objects with the ``info`` severity; the second is for errors from the file being
-checked, and the third one is for errors from other files.
+checked, and the third one is for errors from other files.  In the
+``shellcheck`` checker, on the other hand, ``:error-parser`` replaces
+``:error-patterns``: ``shellcheck`` outputs results in the standard CheckStyle
+XML format, so the definition above uses Flycheck's built-in CheckStyle parser,
+and an ``:error-filter`` to replace ``-`` by the current buffer's filename.
 
-There is a new ``:predicate`` property, that is used to determine when the
-checker can be called.  In addition to the ``:mode`` property which restricts
-the checker to buffer in the ``protobuf-mode``, this checker should be called
-only when there is a file associated to the buffer.  This is necessary since we
-are passing the file associated to the buffer ``protobuf`` using
-``source-inplace`` in ``:command``.
+Both checkers use a new ``:predicate`` property to determine when the checker
+can be called.  In addition to the ``:mode`` property which restricts the
+``protoc`` checker to buffers in ``protobuf-mode``, the ``:predicate`` property
+ensures that ``protoc`` is called only when there is a file associated to the
+buffer (this is necessary since we are passing the file associated to the buffer
+``protobuf`` using ``source-inplace`` in ``:command``; in contrast, the
+``shellcheck`` checker can run in all buffers, because it sends buffer contents
+through a pipe).  The second checker has a more complex ``:predicate`` to make
+sure that the current shell dialect is supported, and a ``:verify`` function to
+help users diagnose configuration issues ( ``:verify`` is helpful for giving
+feedback to users; its output gets included when users invoke
+`flycheck-verify-setup`)
 
-There are other useful properties, depending on your situation.  ``:enabled`` is
-like ``:predicate``, but is run only once; it is used to make sure a checker has
-everything it needs before being allowed to run in a buffer.  ``:verify`` is
-helpful for giving feedback to users.  ``:error-parser`` replaces
-``:error-patterns`` and is for parsing checker output from machine-readable
-formats like XML or JSON.
+Finally, the ``shellcheck`` checker includes an error explainer, which opens the
+relevant page on the ShellCheck wiki when users run
+`flycheck-explain-error-at-point`.
+
+There are other useful properties, depending on your situation.  Most important
+is ``:enabled``, which is like ``:predicate`` but is run only once; it is used
+to make sure a checker has everything it needs before being allowed to run in a
+buffer (this is particularly useful when the checks are costly: running an
+external program and parsing its output, checking for a plugin, etc.).
 
 .. seealso::
 
@@ -275,8 +330,8 @@ formats like XML or JSON.
 .. note::
 
    Don't be afraid to look into the ``flycheck.el`` code.  The existing checkers
-   serve as useful examples you can draw from, and most of core functions are
-   well documented.
+   serve as useful examples you can draw from, and all core functions are
+   documented.
 
 Sharing your checker
 --------------------
@@ -285,3 +340,60 @@ Once you have written your own syntax checker, why not `submit a pull request
 <https://github.com/flycheck/flycheck/pulls>`__ to integrate it into Flycheck?
 If it's useful to you, it may be useful for someone else!  Please do check out
 our :ref:`flycheck-contributors-guide` to learn how we deal with pull requests.
+
+Issues with auto-quoting in `flycheck-define-checker`
+-----------------------------------------------------
+
+You may have noticed that lists passed to the ``:command`` or
+``:error-patterns`` in the snippets above are not quoted.  That is because
+`flycheck-define-checker` is a macro which automatically quotes these arguments
+(not unlike ``use-package`` and other configuration macros).
+
+While this makes for less noisy syntax, it unfortunately prevents you from
+defining a checker with compile-time arguments.  For example, you may be tempted
+to have a custom checker in your Emacs configuration written like this:
+
+.. code-block:: elisp
+
+   (flycheck-define-checker my-foobar-checker
+     :command ("foobar" source)
+     :error-patterns ((error …))
+     :modes `(foobar-mode ,my-other-foobar-mode))
+
+The idea is that you know statically one mode that you want to use the checker
+in: ``foobar-mode``, but another mode can be given via the variable
+``my-other-foobar-mode`` before the checker is defined.  This won't work,
+because the ``:modes`` property is auto-quoted by `flycheck-define-checker`.
+The issue arises not just with ``:modes``:, but with almost all the other
+properties since they are also auto-quoted.
+
+If you do find yourself in need to define such a checker, there is a solution
+though.  The `flycheck-define-checker` macro is just a convenience over
+`flycheck-define-command-checker`, so you could define the checker above as
+follows:
+
+.. code-block:: elisp
+
+   (flycheck-def-executable-var my-foobar-checker "foobar")
+   (flycheck-define-command-checker 'my-foobar-checker
+     :command '("foobar" source)
+     :error-patterns '((error …))
+     :modes `(foobar-mode ,my-other-foobar-mode))
+
+Using `flycheck-define-command-checker`, you now need to quote all the list
+arguments, but now with the confidence that no auto-quoting will take place,
+since `flycheck-define-command-checker` is just a function.  Also note that you
+need to explicitly define the executable variable for the checker.  Using
+`flycheck-define-command-checker` is the recommended way to define a checker
+with compile-time arguments.
+
+.. note::
+
+   The `flycheck-define-checker` macro is an autoload, so using it inside a
+   `with-eval-after-load` form will load all of Flycheck.  While this ensures
+   the macro is correctly expanded, it also defeats the purpose of using
+   `with-eval-after-load`.
+
+   For the background behind this state of affairs, see `issue 1398`_.
+
+   .. _issue 1398: https://github.com/flycheck/flycheck/issues/1398
