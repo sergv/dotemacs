@@ -6,7 +6,7 @@ When a syntax check in the current buffer has finished Flycheck reports the
 results of the check in the current buffer in two ways:
 
 * Highlight errors, warnings, etc. directly in the buffer according to
-  `flycheck-highlighting-mode`.
+  `flycheck-highlighting-mode` and `flycheck-highlighting-style`.
 * Indicate errors, warnings, etc. in the fringe according to
   `flycheck-indication-mode`.
 
@@ -53,16 +53,17 @@ Error highlights
 ================
 
 Flycheck highlights errors directly in the buffer according to
-`flycheck-highlighting-mode`.  By default these highlights consist of a coloured
-wave underline which spans the whole symbol at the error location as in the
-screenshot above but the highlights are entirely customisable.  You can change
-the extents of highlighting or disable it completely with
-`flycheck-highlighting-mode`, or customise Flycheck’s faces to change the style
-of the underline or use different colours.
+`flycheck-highlighting-mode` and `flycheck-highlighting-style`.
+
+Most checkers report a single error position, not a range, so Flycheck typically
+needs to guess how far to extend the highlighting: by default, it highlights the
+whole symbol at the location reported by the checker, as in the screenshot
+above, but you can change that range (or even disable highlighting completely)
+using `flycheck-highlighting-mode`.
 
 .. defcustom:: flycheck-highlighting-mode
 
-   How Flycheck highlights errors and warnings in the buffer:
+   How Flycheck chooses which buffer region to highlight:
 
    ``nil``
       Do not highlight anything at all.
@@ -84,13 +85,45 @@ of the underline or use different colours.
    .. warning::
 
       In some major modes ``sexps`` is *very* slow, because discovering
-      expression boundaries efficiently is hard.
+      expression boundaries is costly.
 
       The built-in ``python-mode`` is known to suffer from this issue.
 
       Be careful when enabling this mode.
 
-The highlights use the following faces depending on the error level:
+Conversely, when a checker reports a range, Flycheck uses that.
+
+The style of the highlighting is determined by the value of
+`flycheck-highlighting-style`.  By default, Flycheck highlights error text with
+a face indicating the severity of the error (typically, this face applies a
+coloured wavy underline).  Instead of faces, however, Flycheck can also indicate
+erroneous text by inserting delimiters around it (checkers sometimes report
+errors that span a large region of the buffer, making underlines distracting, so
+in fact Flycheck only applies a face if the error spans less than 5 lines; this
+is achieved using the ``conditional`` style described below).
+
+.. defcustom:: flycheck-highlighting-style
+
+   How Flycheck highlights error regions.
+
+   ``nil``
+     Do not indicate error regions.
+
+   ``level-face``
+      Apply a face to erroneous text.
+
+   ``(delimiters BEFORE AFTER)``
+      Bracket the error text between ``BEFORE`` and ``AFTER``, which can be
+      strings, images, etc.  Chars are handled specially: they are repeated
+      twice to form double brackets.
+
+   ``(conditional NLINES S1 S2)``
+      Chose between styles ``S1`` and ``S2``: ``S1`` if the error covers up to
+      ``NLINES``, and ``S2`` otherwise.
+
+To change the style of the underline or use different colours in the
+``level-face`` style, customize the following faces, which are used depending on
+the error level:
 
 .. defface:: flycheck-error
              flycheck-warning
@@ -99,13 +132,27 @@ The highlights use the following faces depending on the error level:
    The highlighting face for ``error``, ``warning`` and ``info`` levels
    respectively.
 
-Fringe icons
-============
+Delimiters use the same faces as the fringe icons described below, in addition
+to the `flycheck-error-delimiter` face; delimited text has the
+`flycheck-delimited-error` face, which is empty by default.
 
-In GUI frames Flycheck also adds indicators to the fringe—the left or right
-border of an Emacs window that is—to help you identify erroneous lines quickly.
+.. defface:: flycheck-error-delimiter
+
+   The face applied to ``BEFORE`` and ``AFTER`` delimiters.
+
+.. defface:: flycheck-delimited-error
+
+   The face applied to error text in ``delimiters`` style.
+
+Fringe and margin icons
+=======================
+
+In GUI frames, Flycheck also adds indicators to the fringe—the left or right
+border of an Emacs window—to help you identify erroneous lines quickly.
 These indicators consist of a rightward-pointing double arrow shape coloured in
-the colour of the corresponding error level.
+the colour of the corresponding error level.  By default the arrow is 8 pixels
+wide, but a 16 pixels version is used if the fringe is `wide enough
+<https://www.gnu.org/software/emacs/manual/html_node/emacs/Fringes.html>`_.
 
 .. note::
 
@@ -115,32 +162,76 @@ the colour of the corresponding error level.
    distribution please take a look at its documentation if you're unsure about
    the appearance of Flycheck's indicators.
 
-   Note that we discourage you from changing the shape of Flycheck’s fringe
-   indicators.
-
 You can customise the location of these indicators (left or right fringe) with
-`flycheck-indication-mode` which also lets you turn off these indicators
-completely:
+`flycheck-indication-mode`, which also lets you turn off these indicators
+completely; additionally, you can move these indicators into the margins instead
+of the fringes:
 
 .. defcustom:: flycheck-indication-mode
 
    How Flycheck indicates errors and warnings in the buffer fringes:
 
    ``left-fringe`` or ``right-fringe``
-      Use the left or right fringe respectively.
+      Use the left or right fringe respectively.  Fringes can only contain
+      monochrome bitmaps, so Flycheck draws small pixel-art arrows.
+
+   ``left-margin`` or ``right-margin``
+      Use the left or right margin respectively.  Margins can support all of
+      Emacs' rendering facilities, so Flycheck uses the ``»`` character, which
+      scales with the font size.
 
    ``nil``
-      Do not indicate errors and warnings in the fringe.
+      Do not indicate errors and warnings in the fringe or in the margin.
 
-The following faces control the colours of the fringe indicators.  However they
-do not let you change the shape of the indicators—to achieve this you'd have to
-redefine the error levels with `flycheck-define-error-level`.
+By default, Emacs displays fringes, but not margins.  With ``left-margin`` and
+``right-margin`` indication modes, you will need to enable margins in your
+``.emacs``.  For example:
+
+.. code-block:: elisp
+
+   (setq-default left-fringe-width 1 right-fringe-width 8
+                 left-margin-width 1 right-margin-width 0)
+
+If you intend to use margins only with Flycheck, consider using
+``flycheck-set-indication-mode`` in a hook instead; this function adjusts
+margins and fringes for the current buffer.
+
+.. code-block:: elisp
+
+   (setq-default flycheck-indication-mode 'left-margin)
+   (add-hook 'flycheck-mode-hook #'flycheck-set-indication-mode)
+
+That function sets fringes and margins to reasonable (but opinionated) defaults,
+according to ``flycheck-indication-mode``.  To set your own margin and fringe
+widths, use a hook and call ``flycheck-refresh-fringes-and-margins``, like this:
+
+.. code-block:: elisp
+
+   ;; Show indicators in the left margin
+   (setq flycheck-indication-mode 'left-margin)
+
+   ;; Adjust margins and fringe widths…
+   (defun my/set-flycheck-margins ()
+     (setq left-fringe-width 8 right-fringe-width 8
+           left-margin-width 1 right-margin-width 0)
+     (flycheck-refresh-fringes-and-margins))
+
+   ;; …every time Flycheck is activated in a new buffer
+   (add-hook 'flycheck-mode-hook #'my/set-flycheck-margins)
+
+The following faces control the colours of fringe and margin indicators.
 
 .. defface:: flycheck-fringe-error
              flycheck-fringe-warning
              flycheck-fringe-info
 
    The icon faces for ``error``, ``warning`` and ``info`` levels respectively.
+
+When an error spans multiple lines, Flycheck displays a hatch pattern in the
+fringes or vertical dots in the margins to indicate the extent of the error.
+
+To change the fringe bitmap or the symbol used in the margins, use the function
+``flycheck-redefine-standard-error-levels``.
 
 Mode line
 =========

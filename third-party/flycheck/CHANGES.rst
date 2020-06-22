@@ -1,93 +1,153 @@
-32-cvs (in development)
+33-cvs (in development)
 =======================
+
+- New features and improvements
+
+  - The ``flycheck-verify-setup`` UI now includes buttons to re-enable manually
+    disabled checkers and to try to re-enable automatically disabled checkers
+    (command checkers are automatically disabled when their executable cannot be
+    found). [GH-1755]
+  - Error explainers can now return URLs (to show a webpage) or functions (to
+    use custom formatting).  For example, the Rust checker now renders
+    explanations using ``markdown-view-mode``. [GH-1753]
 
 - **Breaking changes**
 
-  - Remove ``javascript-jscs`` checker [GH-1024]
-  - Remove ``elixir-dogma`` checker [GH-1450]
-  - ``rust-cargo`` now requires Rust 1.17 or newer [GH-1289]
-  - ``rust`` now requires 1.18 or newer [GH-1501]
-  - Rename ``flycheck-cargo-rustc-args`` to ``flycheck-cargo-check-args``
-    [GH-1289]
-  - ``rust-cargo`` does not use the variable ``flycheck-rust-args`` anymore
-    [GH-1289]
-  - Improve detection of default directory for ``haskell-ghc`` to consider
-    ``hpack`` project files [GH-1435]
-  - Replace ``go tool vet`` with ``go vet`` [GH-1548]
-  - Remove the deprecated ``go-megacheck`` checker, which is replaced by
-    ``go-staticcheck``. [GH-1583]
+  - The variable ``flycheck-current-errors`` now contains errors in the order in
+    which they were returned by checkers.  In previous versions of Flycheck,
+    this list was sorted by error position and severity. [GH-1749]
+
+32-cvs (frozen on May 3rd, 2020)
+================================
+
+- Highlights
+
+  - Many checkers and compiler, such as ``ocaml``, ``rust``, ``eslint``, and
+    others, include end-line and end-column information.  Flycheck can now
+    highlight the exact region that they report.  Authors of checker definitions
+    can use the new ``:end-line`` and ``:end-column`` arguments in
+    ``flycheck-error-new``, or the new ``end-line`` and ``end-column`` fields in
+    error patterns. [GH-1400]
+
+  - Errors that checkers return for other files will now be displayed on the
+    first line of the current buffer instead of begin discarded.  The error list
+    indicates which file each error came from, and navigation moves
+    automatically moves between files.  This change helps with compiled
+    languages, where an error in another file may cause the current file to be
+    considered invalid.  Variables ``flycheck-relevant-error-other-file-show``
+    and ``flycheck-relevant-error-other-file-minimum-level`` control this
+    behavior. [GH-1427]
+
+  - Flycheck can now draw error indicators in margins in addition to fringes.
+    Margins can contain arbitrary characters and images, not just monochrome
+    bitmaps, allowing for a better experience on high-DPI screens.
+    ``flycheck-indication-mode`` controls this behavior, and
+    ``flycheck-set-indication-mode`` can be used to automatically adjust the
+    fringes and margins.  Additionally, Flycheck's will now use high-resolution
+    fringe bitmaps if the fringe is wide enough [GH-1742, GH-1744]
+
+  - Error highlighting is now configurable, using the new
+    ``flycheck-highlighting-style`` variable: instead of applying
+    level-dependent faces (typically with wavy underlines), Flycheck can now
+    insert delimiters around errors, or mix styles depending on how many lines
+    an error covers.  Additionally, stipples are added in the fringes to
+    indicate errors that span multiple lines. [GH-1743]
+
+- New features and improvements
+
+  - Flycheck can now trigger a syntax check automatically after switching
+    buffers, using the ``idle-buffer-switch`` option in
+    ``flycheck-check-syntax-automatically``.  This is useful when errors in a
+    file are due to problems in a separate file.  Variables
+    ``flycheck-idle-buffer-switch-delay`` and
+    ``flycheck-buffer-switch-check-intermediate-buffers`` control the
+    functionality. [GH-1297]
+  - Flycheck will now use Emacs' native XML parsing when libXML fails.  This
+    behavior can be changed by customizing ``flycheck-xml-parser``. [GH-1349]
+  - ``flycheck-verify-setup`` now shows more clearly which checkers
+    will run in the buffer, and which are misconfigured. [GH-1478]
+  - Flycheck now locates checker executables using a customizable function,
+    ``flycheck-executable-find``.  The default value of this function allows
+    relative paths (set e.g. in file or dir-local variables) in addition to
+    absolute paths and executable names. [GH-1485]
+  - Checkers that report error positions as a single offset from the start of
+    the file can use the new ``flycheck-error-new-at-pos`` constructor instead
+    of converting that position to a line and a column. [GH-1400]
+  - Config-file variables can now be set to a list of file names.  This is
+    useful for checkers like mypy which don't run correctly when called from a
+    subdirectory without passing an explicit config file. [GH-1711]
+  - Thanks to algorithmic improvements in error reporting, Flycheck is now much
+    faster in large buffers. [GH-1750]
 
 - New syntax checkers:
 
+  - Awk with ``gawk`` [GH-1708]
+  - Bazel with ``bazel-buildifier`` [GH-1613]
   - CUDA with ``cuda-nvcc`` [GH-1508]
   - CWL with ``schema-salad-tool`` [GH-1361]
+  - Elixir with ``credo`` [GH-1062]
   - JSON with ``json-jq`` [GH-1568]
   - Jsonnet with ``jsonnet`` [GH-1345]
   - MarkdownLint CLI with ``markdownlint`` [GH-1366]
+  - mypy with ``python-mypy`` [GH-1354]
   - Nix with ``nix-linter`` [GH-1530]
   - Opam with ``opam lint`` [GH-1532]
+  - protobuf-prototool with ``prototool`` [GH-1591]
   - Rust with ``rust-clippy`` [GH-1385]
+  - Ruumba with ``eruby-ruumba`` [GH-1616]
   - Staticcheck with ``go-staticheck`` [GH-1541]
+  - terraform with ``terraform fmt``, ``tflint`` [GH-1586]
   - Tcl with ``nagelfar`` [GH-1365]
   - Text prose with ``textlint`` [GH-1534]
   - VHDL with ``ghdl`` [GH-1160]
-  - mypy with ``python-mypy`` [GH-1354]
-  - terraform with ``terraform fmt`` [GH-1586]
-  - terraform-tflint with ``tflint`` [GH-1586]
-  - protobuf-prototool with ``prototool`` [GH-1591]
-  - Bazel with ``bazel-buildifier`` [GH-1613]
-  - Ruumba with ``eruby-ruumba`` [GH-1616]
 
-- New features:
+- Checker improvements:
 
-  - Add ``flycheck-cppcheck-suppressions-file`` to pass a suppressions
-    file to cppcheck [GH-1329]
-  - Add ``--force-exclusion`` flag to ``rubocop`` command [GH-1348]
-  - Add ``flycheck-ghc-stack-project-file`` for the
-    ``haskell-stack-ghc`` checker. [GH-1316]
+  - ``python-pylint`` and ``python-flake8`` are now invoked with ``python -c``,
+    to make it easier to change between Python 2 and Python 3. [GH-1113]
   - Add ``flycheck-perl-module-list`` to use specified modules when
     syntax checking code with the ``perl`` checker. [GH-1207]
-  - Add ``flycheck-sh-bash-args`` to pass arguments to ``sh-bash`` [GH-1439].
+  - ``rust-cargo`` now uses ``cargo check`` and ``cargo test``. [GH-1289]
+  - Add ``flycheck-ghc-stack-project-file`` for the
+    ``haskell-stack-ghc`` checker. [GH-1316]
+  - Add ``flycheck-cppcheck-suppressions-file`` to pass a suppressions
+    file to cppcheck. [GH-1329]
+  - Add ``--force-exclusion`` flag to ``rubocop`` command. [GH-1348]
+  - Flycheck now uses ESLint's JSON output instead of checkstyle XML. [GH-1350]
   - Add ``flychjeck-eslint-args`` to pass arguments to ``javascript-eslint``.
     [GH-1360]
-  - Add ``flycheck-default-executable-find``, the new default value for
-    ``flycheck-executable-find``, to allow using relative paths to checkers
-    (set e.g. in file or dir-local variables). [GH-1485]
-  - Add ``idle-buffer-switch`` option for use in
-    ``flycheck-check-syntax-automatically``.  Variables
-    ``flycheck-idle-buffer-switch-delay`` and
-    ``flycheck-buffer-switch-check-intermediate-buffers`` control the
-    functionality [GH-1297]
+  - Flycheck will now execute ``rubocop`` from the directory where a ``Gemfile``
+    is located. If a ``Gemfile`` does not exist, the old behaviour of running
+    the command from the directory where ``.rubocop.yml`` is found will be
+    used. [GH-1368]
+  - Add ``flycheck-sh-bash-args`` to pass arguments to ``sh-bash``. [GH-1439]
+  - ``haskell-stack-ghc`` will not try to install GHC anymore. [GH-1443]
   - Add ``flycheck-ghdl-ieee-library`` to select which standard IEEE
     library to use for ghdl. [GH-1547]
-  - ``javascript-eslint`` checker now supports ``typescript-mode`` by default.
+  - The ``javascript-eslint`` checker now supports ``typescript-mode`` by
+    default.
   - Add ``flycheck-erlang-rebar3-profile`` to select which profile to
-    use when compiling erlang with rebar3.
+    use when compiling erlang with rebar3. [GH-1560]
   - Add ``flycheck-relevant-error-other-file-show`` to avoid showing errors
     from other files. [GH-1579]
-  - Add an error explainer for the ``nix-linter`` checker. [GH-1586]
-  - Checkers can now specify the exact region covered by an error, using
-    the :end-line and :end-column properties. [GH-1400]
+  - The ``nix-linter`` checker now has an error explainer. [GH-1586]
+  - The Emacs Lisp checker can now run in buffers not backed by files. [GH-1695]
 
-- Improvements
+- **Breaking changes**
 
-  - When a checker returns errors for another file, they will be displayed
-    instead of ignored.  They can be navigated to from the error list.
-    This change helps with compiled languages, where an error in another file
-    may cause the current file to be considered invalid. [GH-1427]
-  - Enhanced the ``flycheck-verify-setup`` to show more clearly which checkers
-    will run in the buffer, and which are misconfigured. [GH-1478]
-  - Use Emacs' native XML parsing when libXML fails.  This behavior can be
-    changed by customizing ``flycheck-xml-parser`` [GH-1349]
-  - Changed parsing of ESLint output from checkstyle XML to JSON [GH-1350]
-  - Flycheck will execute ``rubocop`` from directory where ``Gemfile`` is
-    located. If ``Gemfile`` does not exist, old behaviour of running command
-    from directory where ``.rubocop.yml`` is found will be used [GH-1368]
-  - ``rust-cargo`` now uses ``cargo check`` and ``cargo test`` [GH-1289]
-  - ``python-pylint`` and ``python-flake8`` are now invoked with ``python -c``,
-    to make it easier to change between Python 2 and Python 3 [GH-1113]
-  - ``haskell-stack-ghc`` will not try to install GHC thereby freezing Emacs
-    [GH-1443]
+  - Remove the ``javascript-jscs`` checker. [GH-1024]
+  - Remove the ``elixir-dogma`` checker. [GH-1450]
+  - ``rust-cargo`` now requires Rust 1.17 or newer. [GH-1289]
+  - ``rust`` now requires 1.18 or newer. [GH-1501]
+  - Rename ``flycheck-cargo-rustc-args`` to ``flycheck-cargo-check-args``.
+    [GH-1289]
+  - ``rust-cargo`` does not use the variable ``flycheck-rust-args`` anymore.
+    [GH-1289]
+  - Improve detection of default directory for ``haskell-ghc`` to consider
+    ``hpack`` project files. [GH-1435]
+  - Replace ``go tool vet`` with ``go vet``. [GH-1548]
+  - Remove the deprecated ``go-megacheck`` checker, which is replaced by
+    ``go-staticcheck``. [GH-1583]
 
 31 (Oct 07, 2017)
 =================

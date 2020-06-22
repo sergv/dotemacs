@@ -48,7 +48,8 @@ than too little. Here’s a list of facts that are important:
 
 .. _search existing issues: https://github.com/flycheck/flycheck/issues?q=is%3Aissue
 .. _issue form: https://github.com/flycheck/flycheck/issues/new
-.. _reproduce the issue in emacs -Q: https://swsnr.de/posts/reproduce-bugs-in-emacs-q/
+.. _reproduce the issue in emacs -Q: https://emacs.stackexchange.com/questions/28429/how-do-i-troubleshoot-emacs-problems
+
 
 .. _flycheck-windows-issues:
 
@@ -65,7 +66,7 @@ requests for improved Windows compatibility. If you know Windows and Emacs,
 please take a look at the list of open Windows issues and try to fix any of
 these.
 
-.. _list of open Windows issues: https://github.com/flycheck/flycheck/labels/windows%20only
+.. _list of open Windows issues: https://github.com/flycheck/flycheck/labels/arch%3A%20windows%20only
 
 Feature requests
 ================
