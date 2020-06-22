@@ -62,6 +62,14 @@ to view the docstring of the syntax checker.  Likewise, you may use
 
       .. _AsciiDoc: http://www.methods.co.nz/asciidoc
 
+.. supported-language:: Awk
+
+   .. syntax-checker:: awk-gawk
+
+      Check Awk with gawk_.
+
+      .. _gawk: https://www.gnu.org/software/gawk/manual
+
 .. supported-language:: Bazel
 
    .. syntax-checker:: bazel-buildifier
@@ -335,6 +343,16 @@ to view the docstring of the syntax checker.  Likewise, you may use
 
       .. _hadolint: https://github.com/hadolint/hadolint
 
+.. supported-language:: Elixir
+
+   .. syntax-checker:: elixir-credo
+
+      Check code style with `credo <https://github.com/rrrene/credo>`_
+
+      .. defcustom:: flycheck-elixir-credo-strict
+
+         When non-nil, run credo in strict mode, via ``--strict``.
+
 .. supported-language:: Emacs Lisp
 
    Flycheck checks Emacs Lisp with `emacs-lisp` and then with
@@ -387,7 +405,7 @@ to view the docstring of the syntax checker.  Likewise, you may use
    .. syntax-checker:: ember-template
 
       Check your Ember templates with
-      `ember-template-lint <https://github.com/ember-template-lint/ember-template-lint>`_ 
+      `ember-template-lint <https://github.com/ember-template-lint/ember-template-lint>`_
 
       .. syntax-checker-config-file:: flycheck-ember-template-lintrc
 
@@ -416,8 +434,9 @@ to view the docstring of the syntax checker.  Likewise, you may use
       .. defcustom:: flycheck-erlang-rebar3-profile
 
          The profile to use when compiling, e.g. "default" or "test".
-         The default value is nil which will use test profile
-         in test directories and default profile otherwise.
+         The default value is nil which will use the test profile in test
+         directories, the eqc profile in eqc directories and the default profile
+         otherwise.
 
 .. supported-language:: ERuby
 
@@ -567,7 +586,7 @@ to view the docstring of the syntax checker.  Likewise, you may use
 
    .. syntax-checker:: go-staticcheck
 
-      Perform static analysis and code linting with staticcheck_, the successor to megacheck_.
+      Perform static analysis and code linting with staticcheck_, the successor to megacheck.
 
       .. defcustom:: flycheck-go-version
 
@@ -872,7 +891,7 @@ to view the docstring of the syntax checker.  Likewise, you may use
 
       .. defcustom:: flycheck-perlcritic-theme
 
-		 The theme expression, passed as the ``--theme`` to ``perlcritic``.
+         The theme expression, passed as the ``--theme`` to ``perlcritic``.
 
       .. syntax-checker-config-file:: flycheck-perlcriticrc
 
@@ -964,11 +983,19 @@ to view the docstring of the syntax checker.  Likewise, you may use
 
    All Python checkers are invoked indirectly using ``python -c ...`` (rather
    than a direct call to ``flake8`` or ``pylint``) to make it easier to switch
-   between Python 2 and 3.  For example, you can use ``(setq-local
+   between Python 2 and 3.  For example, you can use ``(setq
    flycheck-python-pylint-executable "python3")`` to run ``pylint`` using Python
    3, or ``(defvaralias 'flycheck-python-flake8-executable
    'python-shell-interpreter)`` to run ``flake8`` through the executable pointed
    to by ``python-shell-interpreter``.
+
+   .. note::
+
+      If Flycheck complains about a missing Python checker, make sure that the
+      checker is reachable from ``sys.path``, using e.g. ``python -m pylint``:
+      often, the issue is that the checker is installed globally but not in the
+      current virtualenv.  Alternatively, you can invoke the checker script
+      directly, with ``(setq flycheck-python-pylint-executable "pylint")``.
 
    .. seealso::
 
@@ -1010,7 +1037,7 @@ to view the docstring of the syntax checker.  Likewise, you may use
 
          This syntax checker requires mypy 0.580 or newer.
 
-      .. syntax-checker-config-file:: flycheck-python-mypy-ini
+      .. syntax-checker-config-file:: flycheck-python-mypy-config
 
       .. defcustom:: flycheck-python-mypy-cache-dir
 
@@ -1115,6 +1142,21 @@ to view the docstring of the syntax checker.  Likewise, you may use
          option.
 
       .. syntax-checker-config-file:: flycheck-rubocoprc
+
+   .. syntax-checker:: ruby-standard
+
+      Check syntax and lint with `Ruby Standard <https://github.com/testdouble/standard/>`_.
+
+      .. note::
+
+         This syntax checker and ruby-rubocop are mutually exclusive, since Standard employs an opinionated rubocop config.
+
+      .. defcustom:: flycheck-rubocop-lint-only
+         :noindex:
+
+         See `flycheck-rubocop-lint-only`.
+
+      .. syntax-checker-config-file:: flycheck-ruby-standardrc
 
    .. syntax-checker:: ruby-reek
 
@@ -1559,5 +1601,3 @@ to view the docstring of the syntax checker.  Likewise, you may use
       Check syntax with yamllint.
 
       .. syntax-checker-config-file:: flycheck-yamllintrc
-
-         Location of yamllint configuration file.
