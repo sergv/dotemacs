@@ -5504,7 +5504,9 @@ and if the echo area is not occupied by minibuffer input."
 
 (define-derived-mode flycheck-error-message-mode text-mode
   "Flycheck error messages"
-  "Major mode for extended error messages.")
+  "Major mode for extended error messages."
+  (setq-local comment-start nil)
+  (setq-local comment-end ""))
 
 (defun flycheck-display-error-messages (errors)
   "Display the messages of ERRORS.
