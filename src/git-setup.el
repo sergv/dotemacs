@@ -234,7 +234,10 @@ Work with changes:
          _s_tage      _u_nstage
 d_i_scard  _S_tage all  _U_nstage all
 
-_w_indow"
+Diff chunks:
+_+_: more context
+_-_: less context
+_=_: default context"
   ("b" magit-branch-popup)
   ("c" magit-commit-popup)
   ("d" magit-diff-popup)
@@ -264,7 +267,11 @@ _w_indow"
   ("p" magit-push-popup)
 
   ("D" magit-diff-refresh-popup)
-  ("L" magit-log-refresh-popup))
+  ("L" magit-log-refresh-popup)
+
+  ("+" magit-diff-more-context :exit nil)
+  ("-" magit-diff-less-context :exit nil)
+  ("=" magit-diff-default-context))
 
 (defhydra-derive hydra-magit-j hydra-magit (:exit t :foreign-keys warn :hint nil)
   "
