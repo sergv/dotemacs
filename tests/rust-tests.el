@@ -327,6 +327,12 @@
     "x + _|_y"
     "x + *_|_y"))
 
+(ert-deftest rust-tests/rust-smart-operators--asterisk-3 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?\*)
+    "use crate::common::_|_;"
+    "use crate::common::*_|_;"))
+
 (provide 'rust-tests)
 
 ;; Local Variables:
