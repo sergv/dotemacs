@@ -94,6 +94,20 @@
     (deactivate-mark)
     (vim:visual-mode-exit)))
 
+(el-patch-defun hs-show-all ()
+  "Show everything then run `hs-show-hook'.  See `run-hooks'."
+  (interactive)
+  (hs-life-goes-on
+   (el-patch-wrap 2 0
+     (unless inhibit-message
+       (message "Showing all blocks ...")))
+   (let ((hs-allow-nesting nil))
+     (hs-discard-overlays (point-min) (point-max)))
+   (el-patch-wrap 2 0
+     (unless inhibit-message
+       (message "Showing all blocks ... done")))
+   (run-hooks 'hs-show-hook)))
+
 (el-patch-defun hs-forward-sexp (match-data arg)
   "Adjust point based on MATCH-DATA and call `hs-forward-sexp-func' w/ ARG.
 Original match data is restored upon return."
@@ -125,7 +139,7 @@ function; and adjust-block-beginning function."
                   hs-block-start-mdata-select 0))
           (setq hs-block-end-regexp (or (nth 2 lookup) "\\s)")
                 hs-c-start-regexp (or (nth 3 lookup)
-                                      (el-patch-wrap 2 2
+                                      (el-patch-wrap 2 1
                                         (if comment-start
                                             (let ((c-start-regexp
                                                    (regexp-quote comment-start)))
@@ -133,15 +147,18 @@ function; and adjust-block-beginning function."
                                                   (substring c-start-regexp
                                                              0 (1- (match-end 0)))
                                                 c-start-regexp))
-                                          (setq hs-minor-mode nil)
-                                          (error "%s Mode doesn't support Hideshow Minor Mode"
-                                                 (format-mode-line mode-name)))))
+                                          (el-patch-wrap 3 0
+                                            (if (memq major-mode '(select-mode text-mode flycheck-error-message-mode))
+                                                "\\(?:#\\|//\\)"
+                                              (progn
+                                                (setq hs-minor-mode nil)
+                                                (error "%s Mode doesn't support Hideshow Minor Mode"
+                                                       (format-mode-line mode-name))))))))
                 hs-forward-sexp-func (or (nth 4 lookup) 'forward-sexp)
                 hs-adjust-block-beginning (nth 5 lookup)))
       (setq hs-minor-mode nil)
       (error "%s Mode doesn't support Hideshow Minor Mode"
              (format-mode-line mode-name)))))
-
 
 ;;;; Outline
 
@@ -267,7 +284,8 @@ _O_: show all blocks  _U_: show all outline blocks"
 (defun setup-folding (enable-hideshow? outline-params)
   (if enable-hideshow?
       (progn
-        (hs-minor-mode +1)
+        (let ((inhibit-message t))
+          (hs-minor-mode +1))
         (if outline-params
             (progn
               (apply #'setup-outline-headers outline-params)
