@@ -8,11 +8,16 @@
 
 (require 'comment-util)
 (require 'el-patch)
+(require 'hideshow)
 (require 'vim-setup)
 
 (provide 'folding-setup)
 
 ;;;; Hideshow
+
+;;;###autoload
+(el-patch-feature hideshow)
+
 
 ;;;###autoload
 (eval-after-load "hideshow" '(require 'folding-setup))
@@ -98,14 +103,12 @@
   "Show everything then run `hs-show-hook'.  See `run-hooks'."
   (interactive)
   (hs-life-goes-on
-   (el-patch-wrap 2 0
-     (unless inhibit-message
-       (message "Showing all blocks ...")))
+   (el-patch-remove
+     (message "Showing all blocks ..."))
    (let ((hs-allow-nesting nil))
      (hs-discard-overlays (point-min) (point-max)))
-   (el-patch-wrap 2 0
-     (unless inhibit-message
-       (message "Showing all blocks ... done")))
+   (el-patch-remove
+     (message "Showing all blocks ... done"))
    (run-hooks 'hs-show-hook)))
 
 (el-patch-defun hs-forward-sexp (match-data arg)
@@ -284,8 +287,7 @@ _O_: show all blocks  _U_: show all outline blocks"
 (defun setup-folding (enable-hideshow? outline-params)
   (if enable-hideshow?
       (progn
-        (let ((inhibit-message t))
-          (hs-minor-mode +1))
+        (hs-minor-mode +1)
         (if outline-params
             (progn
               (apply #'setup-outline-headers outline-params)
