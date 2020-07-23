@@ -284,13 +284,19 @@ _w_indow"
                      magit-file-section-map
                      magit-hunk-section-map
                      magit-staged-section-map
+                     magit-untracked-section-map)
+    (";"   magit-stage)
+    ("k"   magit-unstage)
+    ("SPC" magit-diff-visit-file-other-window))
+  (def-keys-for-map (magit-unstaged-section-map
+                     magit-file-section-map
+                     magit-hunk-section-map
+                     magit-staged-section-map
                      magit-untracked-section-map
                      magit-mode-map
                      map)
     ("u" nil)
-    ("s" vim:ex-read-command)
-    (";" magit-stage)
-    ("k" magit-unstage))
+    ("s" vim:ex-read-command))
   (def-keys-for-map map
     +vim-special-keys+
     +vim-search-keys+
