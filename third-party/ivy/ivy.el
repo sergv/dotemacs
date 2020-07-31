@@ -2371,7 +2371,7 @@ This is useful for recursive `ivy-read'."
     (setq ivy-exit nil)
     (setq ivy--default
           (if (region-active-p)
-              (buffer-substring (region-beginning) (region-end))
+              (buffer-substring (region-beginning) (min (region-end) (point-max)))
             (ivy-thing-at-point)))
     (setq ivy--prompt (ivy-add-prompt-count (ivy--quote-format-string prompt)))
     (setq ivy--use-selectable-prompt (ivy--prompt-selectable-p))
