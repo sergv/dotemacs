@@ -74,7 +74,7 @@ actual call to function. If FUNC is a symbol and CALL-N-TIMES is nil
 then symbol should name function of one argument - prefix argument count.
 
 Non-nil CALL-N-TIMES causes resulting function to call FUNC as
-many times as was specified by prefix argument.
+many times as was specified by the prefix argument.
 
 Therefore, if FUNC is a call to some function (e.g. (foo bar baz)) then
 CALL-N-TIMES should be non nil to cause this call to be applied n times."
@@ -617,13 +617,8 @@ Temporary file will be removed after BODY finishes."
 
 (defmacro defparameter (var &optional value doc)
   "Just like CL's defparameter, sets variable value when evaluated."
-  (let ((tmp-var '#:store))
-    `(progn
-       (setf ,tmp-var ,value)
-       (if (boundp ',var)
-           (setf ,var ,tmp-var)
-         (defvar ,var ,tmp-var ,doc))
-       nil)))
+  `(prog1 nil
+     (set (defvar ,var nil ,doc) ,value)))
 
 (defmacro defparameter-local (var &optional value doc)
   "Similar to `defparameter' but defines buffer-local variables."
