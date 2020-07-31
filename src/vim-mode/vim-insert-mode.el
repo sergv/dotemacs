@@ -128,8 +128,7 @@ where to insert a newline."
   "Called in insert-mode to save key-events."
   (when (and (not (eq this-command 'vim:intercept-ESC))
              (functionp this-command))
-    (setq vim:current-key-sequence (vconcat vim:current-key-sequence
-                                            (this-command-keys-vector)))))
+    (vim:remember-this-command-keys)))
 
 
 (provide 'vim-insert-mode)
