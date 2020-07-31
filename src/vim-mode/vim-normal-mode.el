@@ -94,8 +94,7 @@ like 'dd', 'yy',... .")
                       vim:cmd-force-linewise
                       vim:cmd-force-blockwise))
       (progn
-        (setf vim:current-key-sequence
-              (vconcat vim:current-key-sequence (this-command-keys-vector)))
+        (vim:remember-this-command-keys)
         (funcall command))
     (unwind-protect
         (pcase (vim:cmd-type command)
@@ -199,9 +198,8 @@ If the old motion type was already characterwise exclusive/inclusive will be tog
   (when current-prefix-arg
     (setf vim:current-cmd-count (prefix-numeric-value current-prefix-arg)))
 
-  (setf vim:current-cmd command
-        vim:current-key-sequence (vconcat vim:current-key-sequence
-                                          (this-command-keys-vector)))
+  (setf vim:current-cmd command)
+  (vim:remember-this-command-keys)
   (vim:activate-operator-pending-mode))
 
 (defun vim:normal-execute-complex-command (motion-command)

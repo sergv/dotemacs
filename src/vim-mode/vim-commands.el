@@ -797,9 +797,7 @@ to make `vim:cmd-repeat' and visual block mode work as expected."
   (interactive "P")
   ;; (call-interactively #'universal-argument-minus arg)
   (call-interactively #'negative-argument arg)
-  (setf vim:current-key-sequence
-        (vconcat vim:current-key-sequence
-                 (this-command-keys-vector))))
+  (vim:remember-this-command-keys))
 
 (defun vim:digit-argument (arg)
   "Wrapper around `digit-argument' that does the necessary bookkeeping to
@@ -807,9 +805,7 @@ maintain `vim:current-key-sequence' in order. That is needed to make
 `vim:cmd-repeat' and visual block mode work as expected."
   (interactive "P")
   (call-interactively #'digit-argument arg)
-  (setf vim:current-key-sequence
-        (vconcat vim:current-key-sequence
-                 (this-command-keys-vector))))
+  (vim:remember-this-command-keys))
 
 (define-key universal-argument-map [remap digit-argument] 'vim:digit-argument)
 (define-key universal-argument-map [?-] 'vim:universal-argument-minus)
