@@ -59,6 +59,7 @@
    (cuda-mode             (one-line "//") (line-regexp "//+"))
    (rust-mode             (one-line "//") (line-regexp "//+"))
    (toml-mode             (one-line "#")  (line-regexp "#+"))
+   (cargo-toml-mode       (one-line "#")  (line-regexp "#+"))
    (tuareg-mode           (region-begin "(*") (region-end "*)") (line-regexp "(\\*"))
    (sml-mode              (region-begin "(*") (region-end "*)") (line-regexp "(\\*"))
    (ptx-mode              (one-line "//")  (line-regexp "//+"))

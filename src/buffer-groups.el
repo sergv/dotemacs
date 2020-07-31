@@ -56,6 +56,7 @@
                           (mode . c++-mode)
                           (mode . glsl-mode)))
        (rust-filter `(or (mode . rust-mode)
+                         (mode . cargo-toml-mode)
                          (mode . toml-mode)))
        (ml-filter `(or (mode . sml-mode)
                        (mode . tuareg-mode)
