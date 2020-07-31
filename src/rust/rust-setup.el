@@ -139,7 +139,7 @@ _a_lign  _t_: beginning of defun
   (init-common :use-render-formula nil
                :sp-slurp-sexp-insert-space nil
                :use-yasnippet t
-               :use-whitespace 'tabs-only
+               :use-whitespace t
                :hl-parens-backend 'smartparens)
   (fontify-conflict-markers!)
   (setup-folding t '(:header-symbol "/" :length-min 3))

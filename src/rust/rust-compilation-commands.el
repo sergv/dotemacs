@@ -18,7 +18,7 @@
    'rust-compilation-mode
    (lambda (_mode) rust-compilation-buffer-name)))
 
-(defvar rust-compilation-cabal-build-command-presets
+(defvar rust-compilation-cargo-build-command-presets
   (let* ((tmp (fold-platform-os-type "/tmp/target" nil))
          (cargo-command
           (lambda (env cmd &rest args)
@@ -42,7 +42,7 @@
 
 (defun rust-compilation-commands-install! ()
   (configurable-compilation-install-command-presets!
-   'rust-compilation-cabal-build-command-presets
+   'rust-compilation-cargo-build-command-presets
    'rust-compile--build-presets-history
    'rust-compilation-mode
    (lambda (_mode) rust-compilation-buffer-name))
