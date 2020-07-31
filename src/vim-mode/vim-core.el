@@ -119,6 +119,10 @@ of the command handling code the buffer in vim:new-buffer is made current.")
   "Clears the internal log of key-sequences."
   (setq vim:current-key-sequence nil))
 
+(defsubst vim:remember-this-command-keys ()
+  "Adds keys that invoked current command to `vim:current-key-sequence'."
+  (setf vim:current-key-sequence
+        (vconcat vim:current-key-sequence (this-command-keys-vector))))
 
 (defsubst vim:cmd-count-p (cmd)
   "Returns non-nil iff command cmd takes a count."
