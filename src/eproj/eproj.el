@@ -195,7 +195,7 @@
     #'eproj/haskell-get-extra-navigation-files
     :extra-navigation-globs
     (append +haskell-watch-watched-files-globs+
-            +cpp-extensions+))
+            (--map (concat "*." it) +cpp-extensions+)))
    (mk-eproj-lang
     :mode 'rust-mode
     :extensions +rust-extensions+
@@ -207,8 +207,9 @@
     :show-tag-kind-procedure #'eproj/rust-tag-kind
     :tag->string-func #'eproj/rust-tag->string
     :extra-navigation-globs
-    (cons "toml"
-          +cpp-extensions+))
+    (--map (concat "*." it)
+           (cons "toml"
+                 +cpp-extensions+)))
    (mk-eproj-lang
     :mode 'c-mode
     :extensions +c-extensions+
