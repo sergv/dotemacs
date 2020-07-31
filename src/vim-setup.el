@@ -36,13 +36,16 @@ _t_oggle   _cc_: comment         _sw_: replace word
 _w_indows  _cu_: uncomment       _sW_: relpace WORD
          _cd_: delete comment  _ss_: replace symbol
 
-_(d_: (a | b)         -> |b               _(l_: a (b | …) -> (a b | …)
-_)d_: (a | b)         -> a|               _(r_: a (b | …) -> a b (| …)
-_a_:  a (b | c)       -> (b a | c)        _)l_: (… | a) b -> (… |) a b
-_e_:  (a b c | d)     -> b c (a | d)      _)r_: (… | a) b -> (… | a b)
-_?_:  (a b (c d | e)) -> (c d (a b | e))
-_S_plit sexp
-_J_oin sexp"
+_(d_: (a | b)         -> |b               _((_: a (b | …) -> (a b | …)
+_)d_: (a | b)         -> a|               _()_: a (b | …) -> a b (| …)
+_(a_: (a | (b c) d)   -> |(b c)           _))_: (… | a) b -> (… |) a b
+_)a_: (a | (b c) d)   -> |(b c)           _)(_: (… | a) b -> (… | a b)
+
+_a_bsorb:     a (b | c)       -> (b a | c)
+_e_mit:       (a b c | d)     -> b c (a | d)
+_c_onvolute:  (a b (c d | e)) -> (c d (a b | e))
+_S_plit sexp: (a | b)         -> (a) |(b)
+_J_oin sexp:  (a) | (b)       -> (a |  b)"
   ("w"   hydra-window-management/body)
   ("t"   toggle)
 
@@ -54,23 +57,25 @@ _J_oin sexp"
   ("sW"  vim-replace-WORD)
   ("ss"  vim-replace-symbol-at-point)
 
-  ("(d"  sp-splice-sexp-killing-backward)
-  (")d"  sp-splice-sexp-killing-forward)
+  ("(d"  vim:sp-splice-sexp-killing-backward)
+  (")d"  vim:sp-splice-sexp-killing-forward)
+  ("(a"  vim:sp-splice-sexp-killing-around)
+  (")a"  vim:sp-splice-sexp-killing-around)
   ("a"   sp-absorb-sexp)
   ("e"   sp-emit-sexp)
   ("?"   sp-convolute-sexp)
-  ("S"   sp-split-sexp)
-  ("J"   sp-join-sexp)
+  ("S"   vim:sp-split-sexp)
+  ("J"   vim:sp-join-sexp)
 
-  ("(l"  sp-backward-slurp-sexp)
-  ("(r"  sp-backward-barf-sexp)
-  (")l"  sp-forward-barf-sexp)
-  (")r"  sp-forward-slurp-sexp)
+  ("(("  vim:sp-backward-slurp-sexp)
+  ("()"  vim:sp-backward-barf-sexp)
+  (")("  vim:sp-forward-barf-sexp)
+  ("))"  vim:sp-forward-slurp-sexp)
 
-  ("(<left>"  sp-backward-slurp-sexp)
-  ("(<right>" sp-backward-barf-sexp)
-  (")<left>"  sp-forward-barf-sexp)
-  (")<right>" sp-forward-slurp-sexp))
+  ("( <left>"  vim:sp-backward-slurp-sexp)
+  ("( <right>" vim:sp-backward-barf-sexp)
+  (") <left>"  vim:sp-forward-barf-sexp)
+  (") <right>" vim:sp-forward-slurp-sexp))
 
 (defhydra-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
   "
