@@ -53,7 +53,7 @@
   '((toml-equals
      (regexp . "\\(\\s-*\\)=\\(\\s-*\\)")
      (group  . (1 2))
-     (modes  . '(toml-mode))
+     (modes  . '(toml-mode cargo-toml-mode))
      (separate . entire)))
   "Align rules for Toml Mode.")
 
