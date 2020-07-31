@@ -267,6 +267,11 @@ foo {
 (vimmize-function sp-backward-kill-char
                   :name vim:sp-backward-kill-char)
 
+(vimmize-function sp-split-sexp
+                  :name vim:sp-split-sexp)
+(vimmize-function sp-join-sexp
+                  :name vim:sp-join-sexp)
+
 
 ;; After starting emacs the first input via minibuffer does not have
 ;; smartparens-mode enabled. This forces minibuffer to always have
