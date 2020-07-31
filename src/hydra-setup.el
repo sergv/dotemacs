@@ -18,23 +18,31 @@
   "Like `defhydra' but also binds standard keys I expect to find across
 all hydras in my setup."
   (declare (indent defun) (doc-string 3))
-  `(defhydra ,name ,args
-     ,docstring
-     ,@heads
-     ("<escape>" nil)))
+  (let ((args-ext
+         ;; Supplying (vim:remember-this-command-keys) for :body-pre makes
+         ;; it record key for vim’s repeat facility when `name' is invoked.
+         (cons :body-pre (cons '(vim:remember-this-command-keys) args))))
+    `(defhydra ,name ,args-ext
+       ,docstring
+       ,@heads
+       ("<escape>" nil))))
 
 (defmacro defhydra-derive (name parent args &optional docstring &rest heads)
   (declare (indent defun) (doc-string 4))
-  `(defhydra-ext ,name ,args
-     ,(concat (hydra--prop parent "/docstring")
-              (if (and docstring
-                       (< 0 (length docstring)))
-                  (concat "\n\n" (s-trim-left docstring))
-                ""))
-     ,@(cl-delete-duplicates
-        (append (hydra--prop parent "/heads") heads)
-        :key #'car
-        :test #'equal)))
+  (let ((args-ext
+         ;; Supplying (vim:remember-this-command-keys) for :body-pre makes
+         ;; it record key for vim’s repeat facility when `name' is invoked.
+         (cons :body-pre (cons '(vim:remember-this-command-keys) args))))
+    `(defhydra-ext ,name ,args-ext
+       ,(concat (hydra--prop parent "/docstring")
+                (if (and docstring
+                         (< 0 (length docstring)))
+                    (concat "\n\n" (s-trim-left docstring))
+                  ""))
+       ,@(cl-delete-duplicates
+          (append (hydra--prop parent "/heads") heads)
+          :key #'car
+          :test #'equal))))
 
 (defhydra-ext hydra-toggle (:exit nil :foreign-keys nil :hint nil)
   "
