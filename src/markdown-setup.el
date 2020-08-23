@@ -24,7 +24,8 @@
 (setf markdown-enable-math t
       markdown-list-indent-width 2
       markdown-asymmetric-header nil
-      markdown-indent-on-enter nil)
+      markdown-indent-on-enter nil
+      markdown-fontify-code-blocks-natively t)
 
 (defun markdown--yasnippet-indent-fallback ()
   (interactive)
@@ -44,6 +45,7 @@
   (flyspell-english)
   (setup-indent-size 4)
   (def-keys-for-map vim:normal-mode-local-keymap
+    ("<f6>"       markdown-toggle-inline-images)
     ("C-h"        markdown-forward-paragraph)
     ("C-t"        markdown-backward-paragraph)
     ("M-h"        markdown-next-visible-heading)
