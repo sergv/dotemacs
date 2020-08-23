@@ -18,8 +18,8 @@
   (declare (indent 1))
   `(tests-utils--test-buffer-contents
     :action ,action
-    :contents ,contents
-    :expected-value ,expected-value
+    :contents (concat "\n\n" ,contents "\n\n")
+    :expected-value (concat "\n\n" ,expected-value "\n\n")
     :initialisation (rust-mode)
     :buffer-id rust))
 
@@ -221,6 +221,18 @@
     "let bands: Vec<&mut [u8]> _|_"
     "let bands: Vec<&mut [u8]> = _|_"))
 
+(ert-deftest rust-tests/rust-smart-operators--equals-3 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?=)
+    "for x in 1.._|_"
+    "for x in 1..=_|_"))
+
+(ert-deftest rust-tests/rust-smart-operators--equals-4 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?=)
+    "for x in 1..   _|_"
+    "for x in 1..=_|_"))
+
 (ert-deftest rust-tests/rust-smart-operators--ampersand-1 ()
   (rust-tests--test-buffer-contents
       (rust-smart-operators--insert-char-surrounding-with-spaces ?\&)
@@ -256,6 +268,66 @@
       (rust-smart-operators--insert-char-surrounding-with-spaces ?\|)
     "crossbeam::scope(|spawner_|_)"
     "crossbeam::scope(|spawner|_|_)"))
+
+(ert-deftest rust-tests/rust-smart-operators--pipe-4 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?\|)
+    "crossbeam::scope(move |spawner_|_)"
+    "crossbeam::scope(move |spawner|_|_)"))
+
+(ert-deftest rust-tests/rust-smart-operators--pipe-5 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?\|)
+    "crossbeam::scope(move  |spawner_|_)"
+    "crossbeam::scope(move  |spawner|_|_)"))
+
+(ert-deftest rust-tests/rust-smart-operators--pipe-6 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?\|)
+    "crossbeam::scope( move  |spawner_|_)"
+    "crossbeam::scope( move  |spawner|_|_)"))
+
+(ert-deftest rust-tests/rust-smart-operators--pipe-7 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?\|)
+    "crossbeam::scope(  move  |spawner_|_)"
+    "crossbeam::scope(  move  |spawner|_|_)"))
+
+(ert-deftest rust-tests/rust-smart-operators--pipe-8 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?\|)
+    "crossbeam::scope( |spawner_|_)"
+    "crossbeam::scope( |spawner|_|_)"))
+
+(ert-deftest rust-tests/rust-smart-operators--pipe-9 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?\|)
+    "crossbeam::scope(  |spawner_|_)"
+    "crossbeam::scope(  |spawner|_|_)"))
+
+(ert-deftest rust-tests/rust-smart-operators--pipe-10 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?\|)
+    "crossbeam::scope(move |spawner_|_"
+    "crossbeam::scope(move |spawner| _|_"))
+
+(ert-deftest rust-tests/rust-smart-operators--pipe-11 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?\|)
+    "crossbeam::scope(  move  |spawner_|_"
+    "crossbeam::scope(  move  |spawner| _|_"))
+
+(ert-deftest rust-tests/rust-smart-operators--pipe-12 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?\|)
+    "crossbeam::scope(move_|_"
+    "crossbeam::scope(move |_|_"))
+
+(ert-deftest rust-tests/rust-smart-operators--pipe-13 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?\|)
+    "crossbeam::scope(move _|_"
+    "crossbeam::scope(move |_|_"))
 
 (ert-deftest rust-tests/sp-splice-sexp-killing-backward-1 ()
   (rust-tests--test-buffer-contents
@@ -332,6 +404,12 @@
       (rust-smart-operators--insert-char-surrounding-with-spaces ?\*)
     "use crate::common::_|_;"
     "use crate::common::*_|_;"))
+
+(ert-deftest rust-tests/rust-smart-operators--asterisk-4 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?\*)
+    "use crate::common::_|_"
+    "use crate::common::*_|_"))
 
 (provide 'rust-tests)
 
