@@ -6,7 +6,7 @@
 ;; Authors: Xavier.Decoret@imag.fr,
 ;;          Jim Hourihan <jimhourihan ~at~ gmail.com> (updated for 4.6, etc)
 ;; Keywords: languages OpenGL GPU SPIR-V Vulkan
-;; Version: 2.2
+;; Version: 2.4
 ;; X-URL: https://github.com/jimhourihan/glsl-mode
 ;;
 ;; Original X-URL http://artis.inrialpes.fr/~Xavier.Decoret/resources/glsl-mode/
@@ -100,7 +100,12 @@
 
 (defvar glsl-deprecated-builtin-face 'glsl-deprecated-builtin-face)
 (defface glsl-deprecated-builtin-face
-  '((t (:inherit glsl-builtin-face))) "glsl: deprecated builtin face"
+  '((t (:inherit font-lock-warning-face))) "glsl: deprecated builtin face"
+  :group 'glsl)
+
+(defvar glsl-qualifier-face 'glsl-qualifier-face)
+(defface glsl-qualifier-face
+  '((t (:inherit font-lock-keyword-face))) "glsl: qualifier face"
   :group 'glsl)
 
 (defvar glsl-keyword-face 'glsl-keyword-face)
@@ -110,7 +115,7 @@
 
 (defvar glsl-deprecated-keyword-face 'glsl-deprecated-keyword-face)
 (defface glsl-deprecated-keyword-face
-  '((t (:inherit glsl-keyword-face))) "glsl: deprecated keyword face"
+  '((t (:inherit font-lock-warning-face))) "glsl: deprecated keyword face"
   :group 'glsl)
 
 (defvar glsl-variable-name-face 'glsl-variable-name-face)
@@ -120,12 +125,48 @@
 
 (defvar glsl-deprecated-variable-name-face 'glsl-deprecated-variable-name-face)
 (defface glsl-deprecated-variable-name-face
-  '((t (:inherit glsl-variable-name-face))) "glsl: deprecated variable face"
+  '((t (:inherit font-lock-warning-face))) "glsl: deprecated variable face"
+  :group 'glsl)
+
+(defvar glsl-reserved-keyword-face 'glsl-reserved-keyword-face)
+(defface glsl-reserved-keyword-face
+  '((t (:inherit glsl-keyword-face))) "glsl: reserved keyword face"
   :group 'glsl)
 
 (defvar glsl-preprocessor-face 'glsl-preprocessor-face)
 (defface glsl-preprocessor-face
   '((t (:inherit font-lock-preprocessor-face))) "glsl: preprocessor face"
+  :group 'glsl)
+
+(defcustom glsl-additional-types nil
+  "List of additional keywords to be considered types. These are
+added to the `glsl-type-list' and are fontified using the
+`glsl-type-face'. Examples of existing types include \"float\", \"vec4\",
+  and \"int\"."
+  :type '(repeat (string :tag "Type Name"))
+  :group 'glsl)
+
+(defcustom glsl-additional-qualifiers nil
+  "List of additional keywords to be considered qualifiers. These
+are added to the `glsl-qualifier-list' and are fontified using
+the `glsl-qualifier-face'. Examples of existing qualifiers
+include \"const\", \"in\", and \"out\"."
+  :type '(repeat (string :tag "Qualifier Name"))
+  :group 'glsl)
+
+(defcustom glsl-additional-keywords nil
+  "List of additional GLSL keywords. These are added to the
+`glsl-keyword-list' and are fontified using the
+`glsl-keyword-face'. Example existing keywords include \"while\",
+\"if\", and \"return\"."
+  :type '(repeat (string :tag "Keyword"))
+  :group 'glsl)
+
+(defcustom glsl-additional-built-ins nil
+  "List of additional functions to be considered built-in. These
+are added to the `glsl-builtin-list' and are fontified using the
+`glsl-builtin-face'."
+  :type '(repeat (string :tag "Keyword"))
   :group 'glsl)
 
 (defvar glsl-mode-hook nil)
@@ -163,9 +204,9 @@
       "dmat2x3" "dmat2x4" "mat3x2" "mat3x3" "mat3x4" "dmat3x2" "dmat3x3"
       "dmat3x4" "mat4x2" "mat4x3" "mat4x4" "dmat4x2" "dmat4x3" "dmat4x4" "vec2"
       "vec3" "vec4" "ivec2" "ivec3" "ivec4" "bvec2" "bvec3" "bvec4" "dvec2"
-      "dvec3" "dvec4" "uint" "uvec2" "uvec3" "uvec4" "sampler1D" "sampler2D"
-      "sampler3D" "samplerCube" "sampler1DShadow" "sampler2DShadow"
-      "samplerCubeShadow" "sampler1DArray" "sampler2DArray"
+      "dvec3" "dvec4" "uint" "uvec2" "uvec3" "uvec4" "atomic_uint" 
+      "sampler1D" "sampler2D" "sampler3D" "samplerCube" "sampler1DShadow"
+      "sampler2DShadow" "samplerCubeShadow" "sampler1DArray" "sampler2DArray"
       "sampler1DArrayShadow" "sampler2DArrayShadow" "isampler1D" "isampler2D"
       "isampler3D" "isamplerCube" "isampler1DArray" "isampler2DArray"
       "usampler1D" "usampler2D" "usampler3D" "usamplerCube" "usampler1DArray"
@@ -180,23 +221,28 @@
       "uimageBuffer" "image1DArray" "iimage1DArray" "uimage1DArray"
       "image2DArray" "iimage2DArray" "uimage2DArray" "imageCubeArray"
       "iimageCubeArray" "uimageCubeArray" "image2DMS" "iimage2DMS" "uimage2DMS"
-      "image2DMSArray" "iimage2DMSArray" "uimage2DMSArray" "long" "short"
-      "half" "fixed" "unsigned" "hvec2" "hvec3" "hvec4" "fvec2" "fvec3" "fvec4"
+      "image2DMSArray" "iimage2DMSArray" "uimage2DMSArray"))
+
+  (defvar glsl-qualifier-list
+    '("attribute" "const" "uniform" "varying" "buffer" "shared" "coherent"
+    "volatile" "restrict" "readonly" "writeonly" "layout" "centroid" "flat"
+    "smooth" "noperspective" "patch" "sample" "in" "out" "inout"
+    "invariant" "lowp" "mediump" "highp")) 
+
+  (defvar glsl-keyword-list
+    '("break" "continue" "do" "for" "while" "if" "else" "subroutine"
+      "discard" "return" "precision" "struct" "switch" "default" "case"))
+
+  (defvar glsl-reserved-list
+    '("input" "output" "asm" "class" "union" "enum" "typedef" "template" "this" 
+      "packed" "resource" "goto" "inline" "noinline"
+      "common" "partition" "active" "long" "short" "half" "fixed" "unsigned" "superp"
+      "public" "static" "extern" "external" "interface" 
+      "hvec2" "hvec3" "hvec4" "fvec2" "fvec3" "fvec4"
+      "filter" "sizeof" "cast" "namespace" "using" 
       "sampler3DRect"))
 
-  (defvar glsl-modifier-list
-    '("attribute" "const" "uniform" "varying" "buffer" "shared" "coherent" "volatile" "restrict"
-      "readonly" "writeonly" "atomic_uint" "layout" "centroid" "flat" "smooth"
-      "noperspective" "patch" "sample" "break" "continue" "do" "for" "while"
-      "switch" "case" "default" "if" "else" "subroutine" "in" "out" "inout"
-      "invariant" "discard" "return" "lowp" "mediump" "highp" "precision"
-      "struct" "common" "partition" "active" "asm" "class" "union" "enum"
-      "typedef" "template" "this" "packed" "resource" "goto" "inline" "noinline"
-      "public" "static" "extern" "external" "interface" "superp" "input" "output"
-      "filter" "sizeof" "cast" "namespace" "using" "row_major"
-      "early_fragment_tests"))
-
-  (defvar glsl-deprecated-modifier-list
+  (defvar glsl-deprecated-qualifier-list
     '("varying" "attribute")) ; centroid is deprecated when used with varying
 
   (defvar glsl-builtin-list
@@ -210,7 +256,7 @@
       "atomicCounterXor" "atomicCounterExchange" "atomicCounterCompSwap"
       "barrier" "bitCount" "bitfieldExtract" "bitfieldInsert" "bitfieldReverse"
       "ceil" "clamp" "cos" "cosh" "cross" "degrees" "determinant" "dFdx" "dFdy"
-      "dFdyFine" "dFdxFine" "dFdyCoarse" "dFdxCourse" "distance" "dot"
+      "dFdyFine" "dFdxFine" "dFdyCoarse" "dFdxCoarse" "distance" "dot"
       "fwidthFine" "fwidthCoarse"
       "EmitStreamVertex" "EmitStreamPrimitive" "EmitVertex" "EndPrimitive"
       "EndStreamPrimitive" "equal" "exp" "exp2" "faceforward" "findLSB"
@@ -229,7 +275,7 @@
       "packUnorm2x16" "packUnorm4x8" "pow" "radians" "reflect" "refract"
       "round" "roundEven" "sign" "sin" "sinh" "smoothstep" "sqrt" "step" "tan"
       "tanh" "texelFetch" "texelFetchOffset" "texture" "textureGather"
-      "textureGatherOffset" "textureGatherOffsets" "textureGrad"
+      "textureGatherOffset" "textureGatherOffsets" "textureGrad" "textureSamples"
       "textureGradOffset" "textureLod" "textureLodOffset" "textureOffset"
       "textureProj" "textureProjGrad" "textureProjGradOffset" "textureProjLod"
       "textureProjLodOffset" "textureProjOffset" "textureQueryLevels" "textureQueryLod"
@@ -263,38 +309,59 @@
 
   ) ; eval-and-compile
 
-(eval-when-compile
+(eval-and-compile
   (defun glsl-ppre (re)
     (format "\\<\\(%s\\)\\>" (regexp-opt re))))
 
 (defvar glsl-font-lock-keywords-1
-  (list
-   (cons (eval-when-compile
-           (format "^[ \t]*#[ \t]*\\<\\(%s\\)\\>"
-                   (regexp-opt glsl-preprocessor-directive-list)))
-         glsl-preprocessor-face)
-   (cons (eval-when-compile
-           (glsl-ppre glsl-type-list))
-         glsl-type-face)
-   (cons (eval-when-compile
-           (glsl-ppre glsl-deprecated-modifier-list))
-         glsl-deprecated-keyword-face)
-   (cons (eval-when-compile
-           (glsl-ppre glsl-modifier-list))
-         glsl-keyword-face)
-   (cons (eval-when-compile
-           (glsl-ppre glsl-preprocessor-builtin-list))
-         glsl-keyword-face)
-   (cons (eval-when-compile
-           (glsl-ppre glsl-deprecated-builtin-list))
-         glsl-deprecated-builtin-face)
-   (cons (eval-when-compile
-           (glsl-ppre glsl-builtin-list))
-         glsl-builtin-face)
-   (cons (eval-when-compile
-           (glsl-ppre glsl-deprecated-variables-list))
-         glsl-deprecated-variable-name-face)
-   (cons "gl_[A-Z][A-Za-z_]+" glsl-variable-name-face)
+  (append
+   (list
+    (cons (eval-when-compile
+            (format "^[ \t]*#[ \t]*\\<\\(%s\\)\\>"
+                    (regexp-opt glsl-preprocessor-directive-list)))
+          glsl-preprocessor-face)
+    (cons (eval-when-compile
+            (glsl-ppre glsl-type-list))
+          glsl-type-face)
+    (cons (eval-when-compile
+            (glsl-ppre glsl-deprecated-qualifier-list))
+          glsl-deprecated-keyword-face)
+    (cons (eval-when-compile
+            (glsl-ppre glsl-reserved-list))
+          glsl-reserved-keyword-face)
+    (cons (eval-when-compile
+            (glsl-ppre glsl-qualifier-list))
+          glsl-qualifier-face)
+    (cons (eval-when-compile
+            (glsl-ppre glsl-keyword-list))
+          glsl-keyword-face)
+    (cons (eval-when-compile
+            (glsl-ppre glsl-preprocessor-builtin-list))
+          glsl-keyword-face)
+    (cons (eval-when-compile
+            (glsl-ppre glsl-deprecated-builtin-list))
+          glsl-deprecated-builtin-face)
+    (cons (eval-when-compile
+            (glsl-ppre glsl-builtin-list))
+          glsl-builtin-face)
+    (cons (eval-when-compile
+            (glsl-ppre glsl-deprecated-variables-list))
+          glsl-deprecated-variable-name-face)
+    (cons "gl_[A-Z][A-Za-z_]+" glsl-variable-name-face)
+    )
+
+   (when glsl-additional-types
+     (list
+      (cons (glsl-ppre glsl-additional-types) glsl-type-face))) 
+   (when glsl-additional-keywords
+     (list
+      (cons (glsl-ppre glsl-additional-keywords) glsl-keyword-face))) 
+   (when glsl-additional-qualifiers
+     (list
+      (cons (glsl-ppre glsl-additional-qualifiers) glsl-qualifier-face)))
+   (when glsl-additional-built-ins
+     (list
+      (cons (glsl-ppre glsl-additional-built-ins) glsl-builtin-face)))
    )
   "Highlighting expressions for GLSL mode.")
 
