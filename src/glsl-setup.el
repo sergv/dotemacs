@@ -24,10 +24,17 @@
                        eot)
                    'glsl-mode))
 
+(eval-after-load "glsl-mode"
+  '(progn
+     (add-to-list 'glsl-other-file-alist
+                  '(("\\.fs\\'" (".vs"))
+                    ("\\.vs\\'" (".fs"))))))
+
 ;;;###autoload
 (defun glsl-setup ()
   (cc-setup :define-special-keys nil)
   (setup-folding t nil)
+  (setup-indent-size 4)
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("- ?" glsl-find-man-page)))
