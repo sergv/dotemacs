@@ -22,26 +22,14 @@
    (append
     '("-*-Iosevka Slab Lig-normal-normal-normal-*-16-*-*-*-*-*-iso10646-1"
       "-*-Iosevka Slab Lig-*-*-*-*-16-*-*-*-*-*-*-*"
-      "-*-Iosevka Slab-normal-normal-normal-*-16-*-*-*-*-*-iso10646-1")
-    (fold-platform-os-type
-     (cond
-       ((platform-use? '(home asus-netbook work))
-        '("-*-Terminus-normal-normal-normal-*-14-*-*-*-c-80-iso10646-1"
-          "-*-Terminus (TTF)-normal-normal-normal-*-16-*-*-*-m-0-iso10646-1"
-          "-*-Anonymous Pro-normal-normal-normal-*-17-*-*-*-m-0-iso10646-1"))
-       ((platform-use? 'netbook)
-        '("-*-Terminus-normal-normal-normal-*-14-*-*-*-c-80-iso10646-1"
-          "-*-Terminus (TTF)-normal-normal-normal-*-16-*-*-*-m-0-iso10646-1"
-          "-*-Anonymous Pro-normal-normal-normal-*-15-*-*-*-m-0-iso10646-1"))
-       (t nil))
-     (append
-      '("-*-Terminus-normal-normal-normal-mono-16-*-*-*-m-0-iso10646-1"
-        "-*-Terminus (TTF)-normal-normal-normal-mono-16-*-*-*-m-0-iso10646-1"
-        "-raster-Terminus-normal-normal-normal-mono-20-*-*-*-c-*-iso8859-1")
-      (if (and (<= (display-pixel-width) 1280)
-               (<= (display-pixel-height) 1024))
-          '("-outline-Anonymous Pro-normal-normal-normal-mono-15-*-*-*-c-*-iso8859-1")
-        '("-outline-Anonymous Pro-normal-normal-normal-mono-19-*-*-*-c-*-iso8859-1"))))
+      "-*-Iosevka Slab-normal-normal-normal-*-16-*-*-*-*-*-iso10646-1"
+      "-*-Terminus-normal-normal-normal-*-16-*-*-*-*-*-iso10646-1"
+      "-*-Terminus (TTF)-normal-normal-normal-*-16-*-*-*-*-*-iso10646-1"
+      "-raster-Terminus-normal-normal-normal-*-20-*-*-*-c-*-iso8859-1")
+    (if (and (<= (display-pixel-width) 1280)
+             (<= (display-pixel-height) 1024))
+        '("-outline-Anonymous Pro-normal-normal-normal-mono-15-*-*-*-c-*-iso8859-1")
+      '("-outline-Anonymous Pro-normal-normal-normal-mono-19-*-*-*-c-*-iso8859-1"))
     '("-unknown-Droid Sans Mono-normal-normal-normal-*-15-*-*-*-m-0-iso10646-1"
       "-unknown-DejaVu Sans Mono-normal-normal-normal-*-15-*-*-*-m-0-iso10646-1"
       "-unknown-Inconsolata-normal-normal-normal-*-17-*-*-*-m-0-iso10646-1"
