@@ -24,7 +24,6 @@
 (require 'haskell-compilation-commands)
 (require 'haskell-misc)
 (require 'haskell-outline)
-(require 'haskell-tags-server)
 (require 'hydra-setup)
 (require 'lcr)
 (require 'shell-setup)
@@ -101,26 +100,6 @@
 (defun haskell-update-eproj-tags-on-save ()
   (ignore-errors
     (eproj-update-current-buffer-within-its-project!)))
-
-(defun haskell-go-to-local-symbol-home (&optional use-regexp?)
-  (interactive "P")
-  (haskell-go-to-symbol-home t use-regexp?))
-
-(defun haskell-go-to-global-symbol-home (&optional use-regexp?)
-  (interactive "P")
-  (haskell-go-to-symbol-home nil use-regexp?))
-
-(defun haskell-go-to-symbol-home (is-local? use-regexp?)
-  (if-let (proj (eproj-get-project-for-buf-lax (current-buffer)))
-      (let ((namespace (let* ((all-projects (eproj-get-all-related-projects proj))
-                              (shallow-dirs nil)
-                              (recursive-dirs (-map #'eproj-project/root all-projects))
-                              (ignored-globs (-mapcat #'eproj-project/ignored-files-globs all-projects)))
-                         (list shallow-dirs
-                               recursive-dirs
-                               ignored-globs))))
-        (haskell-tags-server-goto-definition is-local? use-regexp? namespace))
-    (error "Current buffer has no project")))
 
 (defun haskell-go-to-symbol-home-via-dante-or-eproj (&optional use-regexp?)
   (interactive "P")
@@ -400,17 +379,7 @@ _a_lign  _t_: jump to topmost node start
       ("M-." haskell-go-to-symbol-home-via-dante-or-eproj)
       ("C-." eproj-symbnav/go-to-symbol-home)
       ("C-," eproj-symbnav/go-back)
-      ("C-?" xref-find-references)
-
-      ;; ("C-."   eproj-symbnav/go-to-symbol-home)
-      ;; ("C-,"   eproj-symbnav/go-back)
-      ;; ;; ("C-M-." eproj-symbnav/go-to-symbol-home)
-      ;; ;; ("C-M-," eproj-symbnav/go-back)
-      ;; ("C-M-." haskell-go-to-local-symbol-home)
-      ;; ("C-M-," haskell-tags-server-go-back)
-      ;; ("M-."   haskell-go-to-global-symbol-home)
-
-      )))
+      ("C-?" xref-find-references))))
 
 ;;;###autoload
 (defun haskell-c2hs-setup ()
