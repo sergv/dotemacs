@@ -5,7 +5,7 @@
 ;; Author: Nikolaj Schumacher
 ;; Maintainer: Dmitry Gutov <dgutov@yandex.ru>
 ;; URL: http://company-mode.github.io/
-;; Version: 0.9.12
+;; Version: 0.9.13
 ;; Keywords: abbrev, convenience, matching
 ;; Package-Requires: ((emacs "24.3"))
 
@@ -280,6 +280,11 @@ This doesn't include the margins and the scroll bar."
   :type 'integer
   :package-version '(company . "0.9.5"))
 
+(defcustom company-tooltip-width-grow-only nil
+  "When non-nil, the tooltip width is not allowed to decrease."
+  :type 'boolean
+  :package-version '(company . "0.9.14"))
+
 (defcustom company-tooltip-margin 1
   "Width of margin columns to show around the toolip."
   :type 'integer)
@@ -307,21 +312,19 @@ This doesn't include the margins and the scroll bar."
     (company-capf . "completion-at-point-functions")
     (company-clang . "Clang")
     (company-cmake . "CMake")
-    (company-css . "CSS")
+    (company-css . "CSS (obsolete backend)")
     (company-dabbrev . "dabbrev for plain text")
     (company-dabbrev-code . "dabbrev for code")
-    (company-eclim . "Eclim (an Eclipse interface)")
-    (company-elisp . "Emacs Lisp")
+    (company-elisp . "Emacs Lisp (obsolete backend)")
     (company-etags . "etags")
     (company-files . "Files")
     (company-gtags . "GNU Global")
     (company-ispell . "Ispell")
     (company-keywords . "Programming language keywords")
-    (company-nxml . "nxml")
+    (company-nxml . "nxml (obsolete backend)")
     (company-oddmuse . "Oddmuse")
     (company-semantic . "Semantic")
-    (company-tempo . "Tempo templates")
-    (company-xcode . "Xcode")))
+    (company-tempo . "Tempo templates")))
 (put 'company-safe-backends 'risky-local-variable t)
 
 (defun company-safe-backends-p (backends)
@@ -339,9 +342,10 @@ This doesn't include the margins and the scroll bar."
                                   (list 'company-nxml))
                               ,@(unless (version<= "26" emacs-version)
                                   (list 'company-css))
-                              company-eclim company-semantic company-clang
-                              company-xcode company-cmake
+                              company-semantic
+                              company-cmake
                               company-capf
+                              company-clang
                               company-files
                               (company-dabbrev-code company-gtags company-etags
                                company-keywords)
@@ -1819,6 +1823,7 @@ each one wraps a part of the input string."
 (defun company--permutations (lst)
   (if (not lst)
       '(nil)
+    ;; FIXME: Replace with `mapcan' in Emacs 26.
     (cl-mapcan
      (lambda (e)
        (mapcar (lambda (perm) (cons e perm))
@@ -2015,14 +2020,6 @@ The command `company-search-toggle-filtering' (\\[company-search-toggle-filterin
 uses the search string to filter the completion candidates."
   (interactive)
   (company-search-mode 1))
-
-(defvar company-filter-map
-  (let ((keymap (make-keymap)))
-    (define-key keymap [remap company-search-printing-char]
-      'company-filter-printing-char)
-    (set-keymap-parent keymap company-search-map)
-    keymap)
-  "Keymap used for incrementally searching the completion candidates.")
 
 (defun company-filter-candidates ()
   "Start filtering the completion candidates incrementally.
@@ -2438,6 +2435,7 @@ If SHOW-VERSION is non-nil, show the version in the echo area."
                           thereis (let ((company-backend b))
                                     (setq backend b)
                                     (company-call-backend 'prefix))))
+         (c-a-p-f completion-at-point-functions)
          cc annotations)
     (when (or (stringp prefix) (consp prefix))
       (let ((company-backend backend))
@@ -2464,7 +2462,7 @@ If SHOW-VERSION is non-nil, show the version in the echo area."
               (memq 'company-capf backend)
             (eq backend 'company-capf))
       (insert "Value of c-a-p-f: "
-              (pp-to-string completion-at-point-functions)))
+              (pp-to-string c-a-p-f)))
     (insert "Major mode: " mode)
     (insert "\n")
     (insert "Prefix: " (pp-to-string prefix))
@@ -2485,6 +2483,8 @@ If SHOW-VERSION is non-nil, show the version in the echo area."
 (defvar-local company-pseudo-tooltip-overlay nil)
 
 (defvar-local company-tooltip-offset 0)
+
+(defvar-local company--tooltip-current-width 0)
 
 (defun company-tooltip--lines-update-offset (selection num-lines limit)
   (cl-decf limit 2)
@@ -2637,7 +2637,10 @@ If SHOW-VERSION is non-nil, show the version in the echo area."
       ((match-beginning 1)
        ;; FIXME: Better char for 'non-printable'?
        ;; We shouldn't get any of these, but sometimes we might.
-       "\u2017")
+       ;; The official "replacement character" is not supported by some fonts.
+       ;;"\ufffd"
+       "?"
+       )
       ((match-beginning 2)
        ;; Zero-width non-breakable space.
        "")
@@ -2744,9 +2747,20 @@ If SHOW-VERSION is non-nil, show the version in the echo area."
                     (company--offset-line (pop lines) offset))
             new))
 
-    (let ((str (concat (when nl " \n")
-                       (mapconcat 'identity (nreverse new) "\n")
-                       "\n")))
+    ;; XXX: Also see branch 'more-precise-extend'.
+    (let* ((nl-face (list
+                     :extend t
+                     :inverse-video nil
+                     :background (face-attribute 'default :background)))
+           (str (apply #'concat
+                       (when nl " \n")
+                       (cl-mapcan
+                        ;; https://debbugs.gnu.org/cgi/bugreport.cgi?bug=42552#23
+                        (lambda (line) (list line (propertize "\n" 'face nl-face)))
+                        (nreverse new)))))
+      ;; Use add-face-text-property in Emacs 24.4
+      ;; https://debbugs.gnu.org/38563
+      (font-lock-append-text-property 0 (length str) 'face 'default str)
       (when nl (put-text-property 0 1 'cursor t str))
       str)))
 
@@ -2803,6 +2817,7 @@ If SHOW-VERSION is non-nil, show the version in the echo area."
           (setq annotation (company--clean-string annotation))
           (when company-tooltip-align-annotations
             ;; `lisp-completion-at-point' adds a space.
+            ;; FIXME: Use `string-trim' in Emacs 24.4
             (setq annotation (comment-string-strip annotation t nil))))
         (push (cons value annotation) items)
         (setq width (max (+ (length value)
@@ -2817,6 +2832,10 @@ If SHOW-VERSION is non-nil, show the version in the echo area."
                           (if company-show-numbers
                               (+ 2 width)
                             width))))
+
+    (when company-tooltip-width-grow-only
+      (setq width (max company--tooltip-current-width width))
+      (setq company--tooltip-current-width width))
 
     (let ((items (nreverse items))
           (numbered (if company-show-numbers 0 99999))
@@ -2955,14 +2974,12 @@ Returns a negative number if the tooltip should be displayed above point."
       (overlay-put ov 'priority 111)
       ;; No (extra) prefix for the first line.
       (overlay-put ov 'line-prefix "")
-      ;; `display' is better
-      ;; (http://debbugs.gnu.org/18285, http://debbugs.gnu.org/20847),
-      ;; but it doesn't work on 0-length overlays.
-      (if (< (overlay-start ov) (overlay-end ov))
-          (overlay-put ov 'display disp)
-        (overlay-put ov 'after-string disp)
-        (overlay-put ov 'invisible t))
-      (overlay-put ov 'face 'default)
+      (overlay-put ov 'after-string disp)
+      ;; `display' is better than `invisible':
+      ;; https://debbugs.gnu.org/18285
+      ;; https://debbugs.gnu.org/20847
+      ;; https://debbugs.gnu.org/42521
+      (overlay-put ov 'display "")
       (overlay-put ov 'window (selected-window)))))
 
 (defun company-pseudo-tooltip-guard ()
@@ -2996,6 +3013,7 @@ Returns a negative number if the tooltip should be displayed above point."
        (overlay-put company-pseudo-tooltip-overlay
                     'company-guard (company-pseudo-tooltip-guard)))
      (company-pseudo-tooltip-unhide))
+    (show (setq company--tooltip-current-width 0))
     (hide (company-pseudo-tooltip-hide)
           (setq company-tooltip-offset 0))
     (update (when (overlayp company-pseudo-tooltip-overlay)
