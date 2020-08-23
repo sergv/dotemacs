@@ -380,9 +380,6 @@ get proper flycheck checker."
   (eproj-normalise-file-name-expand-cached/reset-cache)
   ;; do not forget to reset cache
   (eproj/reset-buffer-local-cache)
-  (when (fboundp #'haskell-tags-server-finish-started-subprocess)
-    (with-demoted-errors "Error while finishing haskell tags server: %s"
-      (haskell-tags-server-finish-started-subprocess)))
   (garbage-collect))
 
 (defun eproj-update-projects ()

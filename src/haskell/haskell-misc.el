@@ -107,12 +107,7 @@ and indent them as singe line."
 
 
 
-(setf haskell-tags-server-extra-args (eval-when-compile
-                                       (list "--serialised-state"
-                                             (concat (strip-trailing-slash +tmp-global-path+)
-                                                     "/haskell-tags-server-state")))
-
-      ;; Don't kill any associated buffers when issuing `haskell-session-kill'.
+(setf ;; Don't kill any associated buffers when issuing `haskell-session-kill'.
       haskell-ask-also-kill-buffers nil
 
       ghc-core-program-args

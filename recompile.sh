@@ -134,7 +134,6 @@ update-dir-autoloads \
     "third-party/glsl-mode" \
     "third-party/groovy-mode" \
     "third-party/haskell-mode" \
-    "third-party/haskell-tags-server/elisp" \
     "third-party/hydra" \
     "third-party/ivy" \
     "third-party/ivy-posframe" \
