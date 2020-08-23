@@ -52,8 +52,9 @@
 
 (defvar current-font (car +emacs-fonts+))
 
-(cl-assert (font-exist? current-font) nil "Font does not exist: %s" current-font)
-(set-frame-font current-font)
+(unless noninteractive
+  (cl-assert (font-exist? current-font) nil "Font does not exist: %s" current-font)
+  (set-frame-font current-font))
 
 (defvar current-font-scaling nil)
 
@@ -76,7 +77,8 @@
                       (or current-font-scaling
                           (get-default-font-scaling))))
 
-(setup-frames-font)
+(unless noninteractive
+  (setup-frames-font))
 
 ;;;###autoload
 (defun update-font-scaling (&optional new-scaling)
