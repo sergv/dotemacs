@@ -2865,6 +2865,19 @@ under version-control directories."
     "--inlines")
    (args (pcmpl-entries))))
 
+;;;###autoload (autoload 'pcomplete/readelf "shell-completion" nil t)
+(defpcmpl pcomplete/ldd
+  (opts
+   (flags "-d"
+          "--data-relocs"
+          "-r"
+          "--function-relocs"
+          "-u"
+          "--unused"
+          "-v"
+          "--verbose")
+   (args (pcmpl-entries))))
+
 
 (defun pcmpl-gcc-assembler-flags ()
   '())
