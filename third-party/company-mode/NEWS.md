@@ -2,6 +2,23 @@
 
 ## Next
 
+* `company-clang` filters out duplicates
+  ([#841](https://github.com/company-mode/company-mode/issues/841)).
+* New user option `company-tooltip-width-grow-only`.
+* `company-xcode` has been removed. It has not been useful for years now.
+* `company-clang` has been moved to after `company-capf` in the default value of
+  `company-backends`. So now if there is an active completion function in
+  `completion-at-point-functions`, it will have priority over
+  `company-clang`. Unless it's `tags-completion-at-point-function` (this one is
+  still skipped explicitly).
+* `company-eclim` has been removed. Eclim is generally not recommended for Emacs
+  users these days, with
+  ([emacs-eclim](https://github.com/emacs-eclim/emacs-eclim/)) declared obsolete
+  in favor of `lsp-java`. Though it used its own backend anyway.
+
+## 2020-07-26 (0.9.13)
+
+* `company-clang`: error handling is more permissive.
 * `company-tng` stops disabling `post-completion` in backends
   ([#946](https://github.com/company-mode/company-mode/pull/946)). Instead,
   `company-tng-configure-default` disables snippet expansion in most popular
@@ -9,6 +26,9 @@
   `company-tng`, disable snippet insertion by customizing a relevant option
   provided by the backend. The result is better compatibility with LSP backends
   because they currently depend on `post-completion` in all cases.
+* `company-keywords`: additions for C and C++.
+* `company-yasnippet` supports the `doc-buffer` action.
+* `company-bbdb` supports more headers.
 
 ## 2020-02-07 (0.9.12)
 
