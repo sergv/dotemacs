@@ -38,7 +38,8 @@ stick it to the previous operator on line."
                     (save-excursion
                       (when (not (zerop (skip-syntax-backward " ")))
                         (let* ((pt-before-ws (point))
-                               (char-before-spaces (char-before pt-before-ws)))
+                               (char-before-spaces (char-before pt-before-ws))
+                               (char-before-spaces2 (char-before (- pt-before-ws 1))))
                           (and char-before-spaces ;; not at beginning of buffer
                                (cond
                                  ((and (memq char '(?& ?*))
@@ -59,7 +60,9 @@ stick it to the previous operator on line."
                                (or (gethash char-before-spaces rust-smart-operators--operator-chars)
                                    (char-equal char-before-spaces ?\()
                                    (and (char-equal char ?=)
-                                        (char-equal char-before-spaces ?!)))))))))
+                                        (or (char-equal char-before-spaces ?!)
+                                            (and (char-equal char-before-spaces ?.)
+                                                 (char-equal char-before-spaces2 ?.)))))))))))
           (setf whitespace-deleted? (delete-whitespace-backward)))
 
         (let* ((pt (point))
@@ -72,20 +75,42 @@ stick it to the previous operator on line."
                  (and (not (smart-operators--on-empty-string?))
                       (not (memq char '(?\< ?\>)))
                       (if (char-equal char ?\|)
-                          ;; Check if we're preceded by '...(|..._|_'.
+                          ;; Check if we're preceded by '...( *(move +)?|..._|_'.
                           (save-excursion
-                            (skip-chars-backward "^|" (- (point) 1024))
-                            (if (bobp)
-                                t
-                              (progn
-                                (forward-char -1)
-                                (not (or (bobp)
-                                         (char-equal (char-before) ?\())))))
+                            (skip-chars-backward "^|(" (line-beginning-position))
+                            (cond
+                              ((bobp)
+                               t)
+                              ((looking-at "move\\( *\\)")
+                               ;; Don’t want a space after first pipe in a closure.
+                               (setf insert-space-after nil)
+                               (if (= (match-end 1)
+                                      (match-beginning 1))
+                                   t ;; no spaces => add some
+                                 nil))
+                              (t
+                               (skip-chars-backward "| move" (line-beginning-position))
+                               (cond
+                                 ((bobp)
+                                  nil)
+                                 ((char-equal (char-before) ?\()
+                                  nil)
+                                 (t
+                                  t)))))
                         t)
+                      ;; ::*
                       (if (and (char-equal char ?*)
                                (char-equal before ?:)
                                (char-equal before2 ?:))
                           nil
+                        t)
+                      ;; ..=
+                      (if (and (char-equal char ?=)
+                               (char-equal before ?.)
+                               (char-equal before2 ?.))
+                          (progn
+                            (setf insert-space-after nil)
+                            nil)
                         t)
                       (or
                        ;; At beginning of buffer.
