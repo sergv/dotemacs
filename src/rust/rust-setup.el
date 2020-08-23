@@ -22,7 +22,8 @@
       rust-shortener-url-format nil
 
       flycheck-cargo-check-args
-      (list (format "--target-dir=%s"
+      (list "--offline"
+            (format "--target-dir=%s"
                     (fold-platform-os-type "/tmp/target" "target"))))
 
 (puthash 'rust-mode
@@ -180,7 +181,6 @@ _a_lign  _t_: beginning of defun
                      flycheck-disabled-checkers))
         (if flycheck-backend
             (progn
-
               (unless (flycheck-may-use-checker flycheck-backend)
                 (flycheck-verify-checker flycheck-backend)
                 (error "Unable to select checker '%s' for buffer '%s'"
