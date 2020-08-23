@@ -70,12 +70,14 @@
        100))))
 
 (defun setup-frames-font ()
-  (set-frame-font current-font nil (frame-list))
   (set-face-attribute 'default
                       nil
                       :height
                       (or current-font-scaling
-                          (get-default-font-scaling))))
+                          (get-default-font-scaling))
+                      :font
+                      current-font)
+  (set-frame-font current-font nil (frame-list)))
 
 (unless noninteractive
   (setup-frames-font))
