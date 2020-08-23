@@ -33,6 +33,8 @@
 
 ;; (set-fontset-font t '(#Xe100 . #Xe115) "Iosevka Slab Lig")
 
+(require 'set-up-font)
+
 (defconst pretty-ligatures--glyph-widths
   (eval-when-compile
     (alist->hash-table
@@ -326,12 +328,14 @@ into accound and do the replacement only within specific circumstances.")
 
 (defun pretty-ligatures--install (ligatures)
   "Add hasklig ligatures for use with prettify-symbols-mode."
-  (setq-local prettify-symbols-alist
-              (append ligatures
-                      prettify-symbols-alist))
-  (setq-local prettify-symbols-unprettify-at-point t)
-  (setq-local prettify-symbols-compose-predicate #'pretty-ligatures--compose-p)
-  (prettify-symbols-mode))
+  (when (and current-font
+             (string-match-p "Iosevka Slab Lig" current-font))
+    (setq-local prettify-symbols-alist
+                (append ligatures
+                        prettify-symbols-alist))
+    (setq-local prettify-symbols-unprettify-at-point t)
+    (setq-local prettify-symbols-compose-predicate #'pretty-ligatures--compose-p)
+    (prettify-symbols-mode)))
 
 (defun pretty-ligatures--compose-p (start end str)
   "Do not prettify withing strings, comments or within words/operators."
