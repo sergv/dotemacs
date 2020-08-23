@@ -847,7 +847,7 @@ mapconcat #'(lambda (arg)
   ;; See https://github.com/joaotavora/yasnippet/issues/800.
   (with-temp-buffer
     (yas-minor-mode 1)
-    (should-error (yas-expand-snippet "```foo\n\n```"))
+    (yas-expand-snippet "```foo\n\n```")
     (erase-buffer) ; Bad snippet may leave wrong text.
     ;; But expanding the corrected snippet should work fine.
     (yas-expand-snippet "\\`\\`\\`foo\n\n\\`\\`\\`")
@@ -855,6 +855,8 @@ mapconcat #'(lambda (arg)
 
 (defmacro yas--with-font-locked-temp-buffer (&rest body)
   "Like `with-temp-buffer', but ensure `font-lock-mode'."
+  ;; NOTE: Replace all uses of this with `font-lock-ensure' when we
+  ;; drop support for Emacs 24.
   (declare (indent 0) (debug t))
   (let ((temp-buffer (make-symbol "temp-buffer")))
     ;; NOTE: buffer name must not start with a space, otherwise
@@ -874,6 +876,8 @@ mapconcat #'(lambda (arg)
                   (kill-buffer ,temp-buffer))))))))
 
 (ert-deftest example-for-issue-474 ()
+  ;; This issue only reproduces in Emacs 24.3, most likely due to some
+  ;; bug in the cc-mode included with that Emacs version.
   (yas--with-font-locked-temp-buffer
     (c-mode)
     (yas-minor-mode 1)
@@ -946,6 +950,18 @@ mapconcat #'(lambda (arg)
       (should (string= (yas--buffer-contents) "foobaaarfail"))
       (yas-mock-insert "baz")
       (should (string= (yas--buffer-contents) "foobaaarbazok")))))
+
+(ert-deftest yas-escaping-close-brace ()
+  "Close braces may be escaped with braces, reduction from eglot issue.
+See https://github.com/joaotavora/eglot/issues/336."
+  (with-temp-buffer
+    (yas-minor-mode +1)
+    ;; NOTE: put a period at the end to avoid the bug tested by
+    ;; `protection-overlay-no-cheating'.
+    (yas-expand-snippet "${1:one{\\}}, ${2:two{\\}}.")
+    (yas-next-field)
+    (yas-next-field)
+    (should (string= (buffer-string) "one{}, two{}."))))
 
 
 ;;; Misc tests
@@ -1098,6 +1114,24 @@ hello ${1:$(when (stringp yas-text) (funcall func yas-text))} foo${1:$$(concat \
         (should (= (length snippets) 2))
         (should (= (length (yas--snippet-fields (nth 0 snippets))) 2))
         (should (= (length (yas--snippet-fields (nth 1 snippets))) 1))))))
+
+(ert-deftest nested-snippet-expansion-depth-2 ()
+  (with-temp-buffer
+    (yas-with-snippet-dirs
+      '((".emacs.d/snippets"
+         ("text-mode"
+          ("nest" . "( $1"))))
+      (let ((yas-triggers-in-field t))
+        (yas-reload-all)
+        (text-mode)
+        (yas-minor-mode +1)
+        (dotimes (_ 3)
+          (yas-mock-insert "nest")
+          (ert-simulate-command '(yas-expand)))
+        (dotimes (_ 3)
+          (yas-mock-insert ")")
+          (ert-simulate-command '(yas-next-field-or-maybe-expand)))
+        ))))
 
 (ert-deftest nested-snippet-expansion-2 ()
   (let ((yas-triggers-in-field t))
