@@ -131,6 +131,7 @@ update-dir-autoloads \
     "third-party/flx" \
     "third-party/ghub" \
     "third-party/git-modes" \
+    "third-party/glsl-mode" \
     "third-party/groovy-mode" \
     "third-party/haskell-mode" \
     "third-party/haskell-tags-server/elisp" \
