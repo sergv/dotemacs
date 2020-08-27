@@ -70,7 +70,7 @@
 (defsubst eproj-tag/get-prop (prop tag-struct)
   (declare (pure t) (side-effect-free t))
   (cl-assert (symbolp prop))
-  (cdr-safe (assq prop (aref tag-struct 3))))
+  (cdr-safe (v-assq prop (aref tag-struct 3))))
 
 (if (and nil use-foreign-libraries?)
     (progn
