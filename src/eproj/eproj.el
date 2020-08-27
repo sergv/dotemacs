@@ -335,7 +335,10 @@ get proper flycheck checker."
   ;; present on disk) and should be used only for user navigation.
   ;; This field is initialised lazily when file list is first
   ;; constructed or user does a search.
-  (cached-files-for-navigation nil))
+  (cached-files-for-navigation nil)
+
+  ;; Regexp that matches any files that should be ignored
+  (cached-ignored-files-re nil :read-only t))
 
 (defmacro eproj-project/query-aux-info-entry (aux-info &rest keys)
   "Retrieve aux-data assoc entry associated with a KEY in the aux info AUX-INFO."
@@ -614,27 +617,34 @@ for project at ROOT directory."
   (unless (and (file-exists-p root)
                (file-directory-p root))
     (error "Invalid project root, directory must exist: %s" root))
-  (let ((languages (aif (eproj-project/query-aux-info-entry aux-info 'languages)
-                       it
-                     (progn
-                       (notify "warning: no languages defined for project %s"
-                               root)
-                       nil)))
-        (ignored-files-globs
-         (eproj--get-ignored-files root aux-info))
-        (file-list-filename
-         (awhen (eproj-project/query-aux-info aux-info 'file-list)
-           (let ((fname (eproj--resolve-to-abs-path it root)))
-             (when (or (null fname)
-                       (not (file-exists-p fname)))
-               (error "File list filename does not exist: %s" fname))
-             fname)))
-        (create-tag-files
-         (eproj-project/query-aux-info aux-info 'create-tag-files))
-        (tag-file
-         (eproj-project/query-aux-info aux-info 'tag-file))
-        (extra-navigation-globs
-         (eproj-project/query-aux-info-entry aux-info 'extra-navigation-files)))
+  (let* ((languages (aif (eproj-project/query-aux-info-entry aux-info 'languages)
+                        it
+                      (progn
+                        (notify "warning: no languages defined for project %s"
+                                root)
+                        nil)))
+         (ignored-files-globs
+          (eproj--get-ignored-files root aux-info))
+         (file-list-filename
+          (awhen (eproj-project/query-aux-info aux-info 'file-list)
+            (let ((fname (eproj--resolve-to-abs-path it root)))
+              (when (or (null fname)
+                        (not (file-exists-p fname)))
+                (error "File list filename does not exist: %s" fname))
+              fname)))
+         (create-tag-files
+          (eproj-project/query-aux-info aux-info 'create-tag-files))
+         (tag-file
+          (eproj-project/query-aux-info aux-info 'tag-file))
+         (extra-navigation-globs
+          (eproj-project/query-aux-info-entry aux-info 'extra-navigation-files))
+
+         (related-projects
+          (eproj-get-related-projects root aux-info))
+         (cached-ignored-files-re
+          (let ((related-projs-globs
+                 (--map (concat it "*") related-projects)))
+            (globs-to-regexp (append ignored-files-globs related-projs-globs)))))
     (cl-assert (sequencep languages) nil "Project languages is not a sequence: %s" languages)
     (cl-assert (listp extra-navigation-globs))
     (cl-assert (-all? #'stringp extra-navigation-globs))
@@ -643,7 +653,7 @@ for project at ROOT directory."
                                :aux-info aux-info
                                :aux-files-entries (cdr-safe (assq 'aux-files aux-info))
                                :tags nil
-                               :related-projects (eproj-get-related-projects root aux-info)
+                               :related-projects related-projects
                                :languages languages
                                :cached-file-list nil
                                :ignored-files-globs ignored-files-globs
@@ -652,7 +662,8 @@ for project at ROOT directory."
                                :tag-file (awhen tag-file
                                            (eproj--resolve-to-abs-path it root))
                                :extra-navigation-globs extra-navigation-globs
-                               :cached-files-for-navigation nil)))
+                               :cached-files-for-navigation nil
+                               :cached-ignored-files-re cached-ignored-files-re)))
       (eproj--prepare-to-load-fresh-tags-lazily-on-demand! proj)
       proj)))
 
@@ -851,20 +862,12 @@ project for PATH."
       (error "File .eproj-info not found when looking from %s directory"
              path))))
 
-
 (defun eproj--filter-ignored-files-from-file-list (proj files)
   "Filter list of FILES using ignored-files-globs of project PROJ."
-  (let ((related-projs-globs
-         (--map (concat it "*")
-                (eproj-project/related-projects proj))))
-    (aif (globs-to-regexp
-          (append (eproj-project/ignored-files-globs proj)
-                  related-projs-globs))
-        (let ((regexp it))
-          (--filter (not (string-match-p regexp it))
-                    files))
-      files)))
-
+  (if-let ((regexp (eproj-project/cached-ignored-files-re proj)))
+      (--filter (not (string-match-p regexp it))
+                files)
+    files))
 
 (defun eproj-get-all-project-files-for-navigation (proj)
   "Obtain all files related to project PROJ that user might want to quickly
