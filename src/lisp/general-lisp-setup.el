@@ -627,7 +627,7 @@ _cl_: comment lines"
   (def-keys-for-map vim:normal-mode-local-keymap
     ("+"        input-unicode)
     ("g"        hydra-lisp-vim-normal-g-ext/body)
-    ("j"        hydra-lisp-vim-normal-j-ext))
+    ("j"        hydra-lisp-vim-normal-j-ext/body))
 
   (def-keys-for-map vim:visual-mode-local-keymap
     ("g"        hydra-lisp-vim-visual-g-ext/body)
