@@ -6,7 +6,12 @@
 ;; Created: long ago
 ;; Description:
 
-(load-library "set-up-environment")
+(require 'set-up-platform)
+(require 'set-up-environment-variables)
+(require 'set-up-paths)
+(unless noninteractive
+  (require 'set-up-font))
+
 (load-library "base-emacs-fixes")
 
 (load-library "foreign-setup")
