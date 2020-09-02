@@ -135,15 +135,13 @@ or not.")
     ("M-<up>"    sp-splice-sexp-killing-backward)
     ("M-<down>"  sp-splice-sexp-killing-forward))
 
-  ;; TODO: switch to 'display-fill-column-indicator' and
-  ;;  'display-fill-column-indicator-character' on Emacs 27.
-  ;; (when (and use-fci
-  ;;            (not disable-fci-mode?))
-  ;;   (fci-mode (if (memq major-mode
-  ;;                       +do-not-track-long-lines-modes+)
-  ;;                 -1
-  ;;               +1)))
-
+  (when (and use-fci
+             (not disable-fci-mode?))
+    (setf display-fill-column-indicator-column 80)
+    (display-fill-column-indicator-mode (if (memq major-mode
+                                                  +do-not-track-long-lines-modes+)
+                                            -1
+                                          +1)))
   (pcase hl-parens-backend
     (`hl-paren
      (setup-hl-paren))
@@ -208,8 +206,6 @@ or not.")
                            (kbd "S-<tab>")
                            (kbd "S-<iso-lefttab>")))
       (define-key kmap binding backtab-binding))))
-
-(load-library "fci-setup")
 
 (load-library "c-like-setup")
 (load-library "haskell-autoload")
