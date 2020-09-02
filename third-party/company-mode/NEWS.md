@@ -2,6 +2,12 @@
 
 ## Next
 
+* `company-tng-mode` has been added to replace both
+  `company-tng-configure-default` and the manual method of enabling
+  `company-tng-frontend` (see also `company-tng-auto-configure`). Also,
+  `company-selection` can now have `nil` value, which means no selection.
+* `company-auto-complete` and `company-auto-complete-chars` have been renamed to
+  `company-auto-commit` and `company-auto-commit-chars` respectively.
 * `company-clang` filters out duplicates
   ([#841](https://github.com/company-mode/company-mode/issues/841)).
 * New user option `company-tooltip-width-grow-only`.
