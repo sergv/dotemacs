@@ -380,7 +380,7 @@ not exist after command is finished."
     ((file-directory-p path)
      (when (and (directory-files path nil nil t)
                 (y-or-n-p "Directory not empty, really delete? "))
-       (funcalal on-directory path)))
+       (funcall on-directory path)))
     ((file-regular-p path)
      (let ((buf (find-buffer-visiting path)))
        (funcall on-file path)
