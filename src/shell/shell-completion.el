@@ -460,7 +460,7 @@ under version-control directories."
                "--merged"
                "--column")
         (args (pcmpl-git-commits))))
-      ("checkout"
+      (("ch" "checkout")
        (opts
         (flags "-q"
                "--quiet"
@@ -515,7 +515,7 @@ under version-control directories."
                "--separate-git-dir"
                "-c"
                "--config")))
-      ("commit"
+      (("co" "commit")
        (opts
         (flags "-q"
                "--quiet"
@@ -917,7 +917,7 @@ under version-control directories."
                "--dst-prefix"
                "--no-prefix")
         (args (pcmpl-git-commits-and-files))))
-      ("merge"
+      (("m" "me" "merge")
        (opts
         (flags "-n"
                "--stat"
@@ -1136,7 +1136,7 @@ under version-control directories."
                "--use-mailmap"
                "--decorate")
         (args (pcmpl-entries))))
-      ("status"
+      (("st" "status")
        (opts
         (flags
          "-s"
