@@ -347,7 +347,7 @@ number of spaces equal to `tab-width'."
   (save-window-excursion
     (custom--run-first-matching-exec
      (eval-when-compile
-       (-filter #'executable-find '("mate-terminal" "xfce4-terminal" "exo-open" "konsole"
+       (-filter #'executable-find '("konsole" "mate-terminal" "xfce4-terminal" "exo-open"
                                     ;; "gnome-terminal"
                                     ))))))
 
