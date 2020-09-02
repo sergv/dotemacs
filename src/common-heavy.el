@@ -440,7 +440,7 @@ not exist after command is finished."
 
 ;;;###autoload
 (defun narrow-to-region-indirect (start end)
-  "Restrict editing in this buffer to the current region, indirectly."
+  "Restrict editing in this buffer to the current region, indirectly (meaning: create a new buffer for this)."
   (interactive "r")
   (let ((buf (clone-indirect-buffer nil nil)))
     (with-current-buffer buf
@@ -693,7 +693,7 @@ PROJECT. EQ-FUNC will be used as hash-table comparison."
 
 ;;;###autoload
 (defun split-shell-command-into-arguments (command)
-  "Split command by space, while taking quotation  into account. Strips quotes
+  "Split command by space, while taking quotation into account. Strips quotes
 around individual arguments."
   (let ((result nil)
         (word nil)
