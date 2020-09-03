@@ -33,17 +33,30 @@
     (cond
       (buf (switch-to-buffer buf))
       ((string-match-p (rx bol
-                           (or (seq "*shell" (* any))
-                               (seq (? "*")
-                                    "sh"
-                                    (? (seq (or "-"
+                           (? "*")
+                           "sh"
+                           (or (seq "ell" (* any))
+                               (seq (? (seq (or "-"
                                                 (char (?0 . ?9)))
                                             (* any)))))
                            eol)
                        buffer-name)
-       (let ((shell-buf (get-buffer-create buffer-name)))
-         (switch-to-buffer shell-buf nil t)
-         (shell shell-buf)))
+       (let ((buf (get-buffer-create buffer-name)))
+         (switch-to-buffer buf nil t)
+         (shell buf)))
+      ((string-match-p (rx bol
+                           (? "*")
+                           "esh"
+                           (or (seq "ell" (* any))
+                               (seq (? (seq (or "-"
+                                                (char (?0 . ?9)))
+                                            (* any)))))
+                           eol)
+                       buffer-name)
+       (let* ((buf (get-buffer-create buffer-name))
+              (eshell-buffer-name buf))
+         (switch-to-buffer buf nil t)
+         (eshell)))
       (t
        (switch-to-buffer (get-buffer-create buffer-name) t)))))
 
