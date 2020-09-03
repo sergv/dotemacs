@@ -64,7 +64,8 @@
 ;; ;;;###autoload
 ;; (add-hook 'text-mode-hook 'flyspell-mode)
 
-(setf ispell-have-new-look t)
+(setf ispell-have-new-look t
+      flyspell-case-fold-duplications t)
 
 (provide 'spell)
 
