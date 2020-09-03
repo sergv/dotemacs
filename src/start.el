@@ -84,7 +84,7 @@ or not.")
                           (sp-slurp-sexp-insert-space t)
                           (enable-backup t)
                           (hl-parens-backend 'hl-paren) ;; can be 'hl-paren, 'smartparens
-                          )
+                          (typography t))
   (hl-line-mode (if use-hl-line +1 -1))
   (when use-comment
     (comment-util-mode 1))
@@ -148,7 +148,9 @@ or not.")
     (`smartparens
      (show-smartparens-mode 1))
     (_
-     (error "Invalid values for :hl-parens-backend argument: %s" hl-parens-backend))))
+     (error "Invalid values for :hl-parens-backend argument: %s" hl-parens-backend)))
+
+  (electric-quote-local-mode (if typography +1 -1)))
 
 (defun* init-repl (&key (show-directory nil)
                         (bind-return t)
@@ -223,6 +225,7 @@ or not.")
 (load-library "recentf-setup")
 (load-library "misc-autoloads")
 (load-library "flycheck-setup")
+(load-library "typography-setup")
 
 ;; load keys after everything to ensure that nothing will be rebond
 ;; after it finishes
