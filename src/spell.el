@@ -65,7 +65,8 @@
 ;; (add-hook 'text-mode-hook 'flyspell-mode)
 
 (setf ispell-have-new-look t
-      flyspell-always-use-popup t)
+      flyspell-always-use-popup t
+      flyspell-case-fold-duplications t)
 
 (provide 'spell)
 
