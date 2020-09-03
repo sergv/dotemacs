@@ -153,9 +153,7 @@ _a_lign  _t_: beginning of defun
   (setq-local compilation-skip-threshold 0)
   (setq-local compilation-buffer-name-function #'rust-get-compilation-buffer-name)
 
-  (pretty-ligatures--install
-   (append pretty-ligatures-rust-symbols
-           pretty-ligatures-python-like-words))
+  (pretty-ligatures--install pretty-ligatures-rust-symbols)
   (rust-compilation-commands-install!)
 
   (setf vim:shift-width rust-indent-offset
