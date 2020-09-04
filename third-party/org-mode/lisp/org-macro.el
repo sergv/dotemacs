@@ -1,6 +1,6 @@
 ;;; org-macro.el --- Macro Replacement Code for Org  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2019 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <n.goaziou@gmail.com>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -62,7 +62,7 @@
 (declare-function org-file-contents "org" (file &optional noerror nocache))
 (declare-function org-file-url-p "org" (file))
 (declare-function org-in-commented-heading-p "org" (&optional no-inheritance))
-(declare-function org-link-search "org" (s &optional avoid-pos stealth))
+(declare-function org-link-search "ol" (s &optional avoid-pos stealth))
 (declare-function org-mode "org" ())
 (declare-function vc-backend "vc-hooks" (f))
 (declare-function vc-call "vc-hooks" (fun file &rest args) t)
@@ -88,11 +88,10 @@ directly, use instead:
 VALUE is the template of the macro.  The new value override the
 previous one, unless VALUE is nil.  TEMPLATES is the list of
 templates.  Return the updated list."
-  (when value
-    (let ((old-definition (assoc name templates)))
-      (if old-definition
-	  (setcdr old-definition value)
-	(push (cons name value) templates))))
+  (let ((old-definition (assoc name templates)))
+    (cond ((and value old-definition) (setcdr old-definition value))
+	  (old-definition)
+	  (t (push (cons name (or value "")) templates))))
   templates)
 
 (defun org-macro--collect-macros (&optional files templates)
@@ -149,6 +148,7 @@ In addition to buffer-defined macros, the function installs the
 following ones: \"n\", \"author\", \"email\", \"keyword\",
 \"time\", \"property\", and, if the buffer is associated to
 a file, \"input-file\" and \"modification-time\"."
+  (require 'org-element)
   (org-macro--counter-initialize)	;for "n" macro
   (setq org-macro-templates
 	(nconc

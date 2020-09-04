@@ -1,6 +1,6 @@
 ;;; org-archive.el --- Archiving for Org             -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2019 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2020 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -24,7 +24,7 @@
 ;;
 ;;; Commentary:
 
-;; This file contains the face definitions for Org.
+;; This file contains the archive functionality for Org.
 
 ;;; Code:
 
@@ -450,7 +450,7 @@ Archiving time is retained in the ARCHIVE_TIME node property."
 	 (format-time-string
 	  (substring (cdr org-time-stamp-formats) 1 -1)))
 	(outline-up-heading 1 t)
-	(outline-hide-subtree)
+	(org-flag-subtree t)
 	(org-cycle-show-empty-lines 'folded)
 	(when org-provide-todo-statistics
 	  ;; Update TODO statistics of parent.

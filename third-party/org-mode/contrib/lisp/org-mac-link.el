@@ -1,6 +1,6 @@
 ;;; org-mac-link.el --- Insert org-mode links to items selected in various Mac apps
 ;;
-;; Copyright (c) 2010-2018 Free Software Foundation, Inc.
+;; Copyright (c) 2010-2020 Free Software Foundation, Inc.
 ;;
 ;; Author: Anthony Lander <anthony.lander@gmail.com>
 ;;      John Wiegley <johnw@gnu.org>
@@ -514,7 +514,7 @@ The links are of the form <link>::split::<name>."
 ;;;###autoload
 (defun org-mac-together-get-selected ()
   (interactive)
-  (message "Applescript: Getting Togther items...")
+  (message "Applescript: Getting Together items...")
   (org-mac-paste-applescript-links (as-get-selected-together-items)))
 
 ;;;###autoload

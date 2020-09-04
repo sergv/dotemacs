@@ -1,6 +1,6 @@
 ;;; org-bibtex-extras --- extras for working with org-bibtex entries
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte <eric dot schulte at gmx dot com>
 ;; Keywords: outlines, hypermedia, bibtex, d3
@@ -59,7 +59,7 @@
 ;;	 	      (obe-html-export-citations))))
 
 ;;; Code:
-(require 'org-bibtex)
+(require 'ol-bibtex)
 
 (declare-function org-trim "org" (s &optional keep-lead))
 

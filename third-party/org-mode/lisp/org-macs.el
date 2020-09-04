@@ -1,6 +1,6 @@
 ;;; org-macs.el --- Top-level Definitions for Org -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2019 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2020 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -209,17 +209,6 @@ because otherwise all these markers will point to nowhere."
   `(let (pop-up-frames display-buffer-alist)
      ,@body))
 
-(defmacro org-table-with-shrunk-field (&rest body)
-  "Save field shrunk state, execute BODY and restore state."
-  (declare (debug (body)))
-  (org-with-gensyms (end shrunk size)
-    `(let* ((,shrunk (save-match-data (org-table--shrunk-field)))
-	    (,end (and ,shrunk (copy-marker (overlay-end ,shrunk) t)))
-	    (,size (and ,shrunk (- ,end (overlay-start ,shrunk)))))
-       (when ,shrunk (delete-overlay ,shrunk))
-       (unwind-protect (progn ,@body)
-	 (when ,shrunk (move-overlay ,shrunk (- ,end ,size) ,end))))))
-
 
 ;;; Buffer and windows
 
@@ -346,7 +335,7 @@ if it fails."
 		 (let ((min-ind (point-max)))
 		   (save-excursion
 		     (while (re-search-forward "^[ \t]*\\S-" nil t)
-		       (let ((ind (1- (current-column))))
+		       (let ((ind (current-indentation)))
 			 (if (zerop ind) (throw :exit nil)
 			   (setq min-ind (min min-ind ind))))))
 		   min-ind))))
@@ -427,6 +416,7 @@ is selected, only the bare key is returned."
     (let ((inhibit-quit t)
 	  (buffer (org-switch-to-buffer-other-window "*Org Select*"))
 	  (prompt (or prompt "Select: "))
+	  case-fold-search
 	  current)
       (unwind-protect
 	  (catch 'exit
@@ -596,15 +586,6 @@ Optional argument REGEXP selects variables to clone."
 		  (or (null regexp) (string-match-p regexp (symbol-name name))))
 	 (ignore-errors (set (make-local-variable name) value)))))))
 
-
-
-;;; Logic
-
-(defsubst org-xor (a b)
-  "Exclusive `or'."
-  (if a (not b) b))
-
-
 
 ;;; Miscellaneous
 
@@ -652,7 +633,7 @@ program is needed for, so that the error message can be more informative."
 (defvar org-inlinetask-min-level) ; defined in org-inlinetask.el
 (defun org-get-limited-outline-regexp ()
   "Return outline-regexp with limited number of levels.
-The number of levels is controlled by `org-inlinetask-min-level'"
+The number of levels is controlled by `org-inlinetask-min-level'."
   (cond ((not (derived-mode-p 'org-mode))
 	 outline-regexp)
 	((not (featurep 'org-inlinetask))
@@ -1000,6 +981,43 @@ as-is if removal failed."
     (insert code)
     (if (org-do-remove-indentation n) (buffer-string) code)))
 
+(defun org-fill-template (template alist)
+  "Find each %key of ALIST in TEMPLATE and replace it."
+  (let ((case-fold-search nil))
+    (dolist (entry (sort (copy-sequence alist)
+                         (lambda (a b) (< (length (car a)) (length (car b))))))
+      (setq template
+	    (replace-regexp-in-string
+	     (concat "%" (regexp-quote (car entry)))
+	     (or (cdr entry) "") template t t)))
+    template))
+
+(defun org-replace-escapes (string table)
+  "Replace %-escapes in STRING with values in TABLE.
+TABLE is an association list with keys like \"%a\" and string values.
+The sequences in STRING may contain normal field width and padding information,
+for example \"%-5s\".  Replacements happen in the sequence given by TABLE,
+so values can contain further %-escapes if they are define later in TABLE."
+  (let ((tbl (copy-alist table))
+	(case-fold-search nil)
+        (pchg 0)
+        re rpl)
+    (dolist (e tbl)
+      (setq re (concat "%-?[0-9.]*" (substring (car e) 1)))
+      (when (and (cdr e) (string-match re (cdr e)))
+        (let ((sref (substring (cdr e) (match-beginning 0) (match-end 0)))
+              (safe "SREF"))
+          (add-text-properties 0 3 (list 'sref sref) safe)
+          (setcdr e (replace-match safe t t (cdr e)))))
+      (while (string-match re string)
+        (setq rpl (format (concat (substring (match-string 0 string) 0 -1) "s")
+                          (cdr e)))
+        (setq string (replace-match rpl t t string))))
+    (while (setq pchg (next-property-change pchg string))
+      (let ((sref (get-text-property pchg 'sref string)))
+	(when (and sref (string-match "SREF" string pchg))
+	  (setq string (replace-match sref t t string)))))
+    string))
 
 
 ;;; Text properties
@@ -1048,10 +1066,16 @@ the value in cdr."
       (get-text-property (or (next-single-property-change 0 prop s) 0)
 			 prop s)))
 
-(defun org-invisible-p (&optional pos)
+(defun org-invisible-p (&optional pos folding-only)
   "Non-nil if the character after POS is invisible.
-If POS is nil, use `point' instead."
-  (get-char-property (or pos (point)) 'invisible))
+If POS is nil, use `point' instead.  When optional argument
+FOLDING-ONLY is non-nil, only consider invisible parts due to
+folding of a headline, a block or a drawer, i.e., not because of
+fontification."
+  (let ((value (get-char-property (or pos (point)) 'invisible)))
+    (cond ((not value) nil)
+	  (folding-only (memq value '(org-hide-block org-hide-drawer outline)))
+	  (t value))))
 
 (defun org-truely-invisible-p ()
   "Check if point is at a character currently not visible.
@@ -1068,6 +1092,18 @@ move it back by one char before doing this check."
     (when (and (eolp) (not (bobp)))
       (backward-char 1))
     (org-invisible-p)))
+
+(defun org-find-visible ()
+  "Return closest visible buffer position, or `point-max'"
+  (if (org-invisible-p)
+      (next-single-char-property-change (point) 'invisible)
+    (point)))
+
+(defun org-find-invisible ()
+  "Return closest invisible buffer position, or `point-max'"
+  (if (org-invisible-p)
+      (point)
+    (next-single-char-property-change (point) 'invisible)))
 
 
 ;;; Time

@@ -1,6 +1,6 @@
 ;;; ob-exp.el --- Exportation of Babel Source Blocks -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2019 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
 
 ;; Authors: Eric Schulte
 ;;	Dan Davison
@@ -32,7 +32,6 @@
 (declare-function org-element-type "org-element" (element))
 (declare-function org-escape-code-in-string "org-src" (s))
 (declare-function org-export-copy-buffer "ox" ())
-(declare-function org-fill-template "org" (template alist))
 (declare-function org-in-commented-heading-p "org" (&optional no-inheritance))
 
 (defvar org-src-preserve-indentation)
@@ -281,7 +280,8 @@ this template."
 		    (set-marker begin nil)
 		    (set-marker end nil)))))
 	  (kill-buffer org-babel-exp-reference-buffer)
-	  (remove-text-properties (point-min) (point-max) '(org-reference)))))))
+          (remove-text-properties (point-min) (point-max)
+                                  '(org-reference nil)))))))
 
 (defun org-babel-exp-do-export (info type &optional hash)
   "Return a string with the exported content of a code block.

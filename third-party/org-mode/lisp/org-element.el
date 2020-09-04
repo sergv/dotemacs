@@ -1,6 +1,6 @@
 ;;; org-element.el --- Parser for Org Syntax         -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2019 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2020 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <n.goaziou at gmail dot com>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -58,10 +58,54 @@
 
 ;;; Code:
 
-(require 'org)
 (require 'avl-tree)
 (require 'cl-lib)
+(require 'ol)
+(require 'org)
+(require 'org-compat)
+(require 'org-entities)
+(require 'org-footnote)
+(require 'org-list)
+(require 'org-macs)
+(require 'org-table)
 
+(declare-function org-at-heading-p "org" (&optional _))
+(declare-function org-end-of-subtree "org" (&optional invisible-ok to-heading))
+(declare-function org-escape-code-in-string "org-src" (s))
+(declare-function org-macro-escape-arguments "org-macro" (&rest args))
+(declare-function org-macro-extract-arguments "org-macro" (s))
+(declare-function org-reduced-level "org" (l))
+(declare-function org-unescape-code-in-string "org-src" (s))
+(declare-function outline-next-heading "outline" ())
+(declare-function outline-previous-heading "outline" ())
+
+(defvar org-archive-tag)
+(defvar org-clock-line-re)
+(defvar org-closed-string)
+(defvar org-comment-string)
+(defvar org-complex-heading-regexp)
+(defvar org-dblock-start-re)
+(defvar org-deadline-string)
+(defvar org-done-keywords)
+(defvar org-drawer-regexp)
+(defvar org-edit-src-content-indentation)
+(defvar org-emph-re)
+(defvar org-emphasis-regexp-components)
+(defvar org-keyword-time-not-clock-regexp)
+(defvar org-match-substring-regexp)
+(defvar org-odd-levels-only)
+(defvar org-outline-regexp-bol)
+(defvar org-planning-line-re)
+(defvar org-property-drawer-re)
+(defvar org-property-format)
+(defvar org-property-re)
+(defvar org-scheduled-string)
+(defvar org-src-preserve-indentation)
+(defvar org-tags-column)
+(defvar org-time-stamp-formats)
+(defvar org-todo-regexp)
+(defvar org-ts-regexp-both)
+(defvar org-verbatim-re)
 
 
 ;;; Definitions And Rules
@@ -91,7 +135,7 @@ specially in `org-element--object-lex'.")
   (setq org-element-paragraph-separate
 	(concat "^\\(?:"
 		;; Headlines, inlinetasks.
-		org-outline-regexp "\\|"
+		"\\*+ " "\\|"
 		;; Footnote definitions.
 		"\\[fn:[-_[:word:]]+\\]" "\\|"
 		;; Diary sexps.
@@ -117,7 +161,7 @@ specially in `org-element--object-lex'.")
 		;; LaTeX environments.
 		"\\\\begin{\\([A-Za-z0-9*]+\\)}" "\\|"
 		;; Clock lines.
-		(regexp-quote org-clock-string) "\\|"
+		"CLOCK:" "\\|"
 		;; Lists.
 		(let ((term (pcase org-plain-list-ordered-item-terminator
 			      (?\) ")") (?. "\\.") (_ "[.)]")))
@@ -928,7 +972,7 @@ Return value is a plist."
 Return a list whose CAR is `headline' and CDR is a plist
 containing `:raw-value', `:title', `:begin', `:end',
 `:pre-blank', `:contents-begin' and `:contents-end', `:level',
-`:priority', `:tags', `:todo-keyword',`:todo-type', `:scheduled',
+`:priority', `:tags', `:todo-keyword', `:todo-type', `:scheduled',
 `:deadline', `:closed', `:archivedp', `:commentedp'
 `:footnote-section-p', `:post-blank' and `:post-affiliated'
 keywords.
@@ -1723,7 +1767,7 @@ Return a list whose CAR is `clock' and CDR is a plist containing
   (save-excursion
     (let* ((case-fold-search nil)
 	   (begin (point))
-	   (value (progn (search-forward org-clock-string (line-end-position) t)
+	   (value (progn (search-forward "CLOCK:" (line-end-position) t)
 			 (skip-chars-forward " \t")
 			 (org-element-timestamp-parser)))
 	   (duration (and (search-forward " => " (line-end-position) t)
@@ -1748,7 +1792,7 @@ Return a list whose CAR is `clock' and CDR is a plist containing
 
 (defun org-element-clock-interpreter (clock _)
   "Interpret CLOCK element as Org syntax."
-  (concat org-clock-string " "
+  (concat "CLOCK: "
 	  (org-element-timestamp-interpreter
 	   (org-element-property :value clock) nil)
 	  (let ((duration (org-element-property :duration clock)))
@@ -2834,7 +2878,7 @@ Assume point is at the beginning of the snippet."
 
 When at a footnote reference, return a list whose car is
 `footnote-reference' and cdr a plist with `:label', `:type',
-`:begin', `:end', `:content-begin', `:contents-end' and
+`:begin', `:end', `:contents-begin', `:contents-end' and
 `:post-blank' as keywords.  Otherwise, return nil."
   (when (looking-at org-footnote-re)
     (let ((closing (with-syntax-table org-element--pair-square-table
@@ -3097,10 +3141,10 @@ Assume point is at the beginning of the link."
 	(setq contents-begin (match-beginning 1))
 	(setq contents-end (match-end 1)))
        ;; Type 2: Standard link, i.e. [[https://orgmode.org][homepage]]
-       ((looking-at org-bracket-link-regexp)
+       ((looking-at org-link-bracket-re)
 	(setq format 'bracket)
-	(setq contents-begin (match-beginning 3))
-	(setq contents-end (match-end 3))
+	(setq contents-begin (match-beginning 2))
+	(setq contents-end (match-end 2))
 	(setq link-end (match-end 0))
 	;; RAW-LINK is the original link.  Decode any encoding.
 	;; Expand any abbreviation in it.
@@ -3147,7 +3191,7 @@ Assume point is at the beginning of the link."
 	  (setq type "fuzzy")
 	  (setq path raw-link))))
        ;; Type 3: Plain link, e.g., https://orgmode.org
-       ((looking-at org-plain-link-re)
+       ((looking-at org-link-plain-re)
 	(setq format 'plain)
 	(setq raw-link (match-string-no-properties 0))
 	(setq type (match-string-no-properties 1))
@@ -3156,7 +3200,7 @@ Assume point is at the beginning of the link."
        ;; Type 4: Angular link, e.g., <https://orgmode.org>.  Unlike to
        ;; bracket links, follow RFC 3986 and remove any extra
        ;; whitespace in URI.
-       ((looking-at org-angle-link-re)
+       ((looking-at org-link-angle-re)
 	(setq format 'angle)
 	(setq type (match-string-no-properties 1))
 	(setq link-end (match-end 0))
@@ -3854,7 +3898,8 @@ element it has to parse."
        ((org-at-heading-p)
 	(org-element-inlinetask-parser limit raw-secondary-p))
        ;; From there, elements can have affiliated keywords.
-       (t (let ((affiliated (org-element--collect-affiliated-keywords limit)))
+       (t (let ((affiliated (org-element--collect-affiliated-keywords
+			     limit (memq granularity '(nil object)))))
 	    (cond
 	     ;; Jumping over affiliated keywords put point off-limits.
 	     ;; Parse them as regular keywords.
@@ -3940,7 +3985,7 @@ element it has to parse."
 ;; that element, and, in the meantime, collect information they give
 ;; into appropriate properties.  Hence the following function.
 
-(defun org-element--collect-affiliated-keywords (limit)
+(defun org-element--collect-affiliated-keywords (limit parse)
   "Collect affiliated keywords from point down to LIMIT.
 
 Return a list whose CAR is the position at the first of them and
@@ -3949,13 +3994,16 @@ beginning of the first line after them.
 
 As a special case, if element doesn't start at the beginning of
 the line (e.g., a paragraph starting an item), CAR is current
-position of point and CDR is nil."
+position of point and CDR is nil.
+
+When PARSE is non-nil, values from keywords belonging to
+`org-element-parsed-keywords' are parsed as secondary strings."
   (if (not (bolp)) (list (point))
     (let ((case-fold-search t)
 	  (origin (point))
 	  ;; RESTRICT is the list of objects allowed in parsed
-	  ;; keywords value.
-	  (restrict (org-element-restriction 'keyword))
+	  ;; keywords value.  If PARSE is nil, no object is allowed.
+	  (restrict (and parse (org-element-restriction 'keyword)))
 	  output)
       (while (and (< (point) limit) (looking-at org-element--affiliated-re))
 	(let* ((raw-kwd (upcase (match-string 1)))
@@ -3964,35 +4012,36 @@ position of point and CDR is nil."
 	       (kwd (or (cdr (assoc raw-kwd
 				    org-element-keyword-translation-alist))
 			raw-kwd))
+	       ;; PARSED? is non-nil when keyword should have its
+	       ;; value parsed.
+	       (parsed? (member kwd org-element-parsed-keywords))
 	       ;; Find main value for any keyword.
 	       (value
-		(save-match-data
-		  (org-trim
-		   (buffer-substring-no-properties
-		    (match-end 0) (line-end-position)))))
-	       ;; PARSEDP is non-nil when keyword should have its
-	       ;; value parsed.
-	       (parsedp (member kwd org-element-parsed-keywords))
-	       ;; If KWD is a dual keyword, find its secondary
-	       ;; value.  Maybe parse it.
-	       (dualp (member kwd org-element-dual-keywords))
+		(let ((beg (match-end 0))
+		      (end (save-excursion
+			     (end-of-line)
+			     (skip-chars-backward " \t")
+			     (point))))
+		  (if parsed?
+		      (save-match-data
+			(org-element--parse-objects beg end nil restrict))
+		    (org-trim (buffer-substring-no-properties beg end)))))
+	       ;; If KWD is a dual keyword, find its secondary value.
+	       ;; Maybe parse it.
+	       (dual? (member kwd org-element-dual-keywords))
 	       (dual-value
-		(and dualp
+		(and dual?
 		     (let ((sec (match-string-no-properties 2)))
-		       (if (or (not sec) (not parsedp)) sec
+		       (cond
+			((and sec parsed?)
 			 (save-match-data
 			   (org-element--parse-objects
-			    (match-beginning 2) (match-end 2) nil restrict))))))
+			    (match-beginning 2) (match-end 2) nil restrict)))
+			(sec sec)))))
 	       ;; Attribute a property name to KWD.
 	       (kwd-sym (and kwd (intern (concat ":" (downcase kwd))))))
 	  ;; Now set final shape for VALUE.
-	  (when parsedp
-	    (setq value
-		  (org-element--parse-objects
-		   (match-end 0)
-		   (progn (end-of-line) (skip-chars-backward " \t") (point))
-		   nil restrict)))
-	  (when dualp
+	  (when dual?
 	    (setq value (and (or value dual-value) (cons value dual-value))))
 	  (when (or (member kwd org-element-multiple-keywords)
 		    ;; Attributes can always appear on multiple lines.
@@ -4312,54 +4361,52 @@ elements.
 Elements are accumulated into ACC."
   (save-excursion
     (goto-char beg)
-    ;; Visible only: skip invisible parts at the beginning of the
-    ;; element.
-    (when (and visible-only (org-invisible-p2))
-      (goto-char (min (1+ (org-find-visible)) end)))
     ;; When parsing only headlines, skip any text before first one.
     (when (and (eq granularity 'headline) (not (org-at-heading-p)))
       (org-with-limited-levels (outline-next-heading)))
     (let (elements)
       (while (< (point) end)
-	;; Find current element's type and parse it accordingly to
-	;; its category.
-	(let* ((element (org-element--current-element
-			 end granularity mode structure))
-	       (type (org-element-type element))
-	       (cbeg (org-element-property :contents-begin element)))
-	  (goto-char (org-element-property :end element))
-	  ;; Visible only: skip invisible parts between siblings.
-	  (when (and visible-only (org-invisible-p2))
-	    (goto-char (min (1+ (org-find-visible)) end)))
-	  ;; Fill ELEMENT contents by side-effect.
-	  (cond
-	   ;; If element has no contents, don't modify it.
-	   ((not cbeg))
-	   ;; Greater element: parse it between `contents-begin' and
-	   ;; `contents-end'.  Make sure GRANULARITY allows the
-	   ;; recursion, or ELEMENT is a headline, in which case going
-	   ;; inside is mandatory, in order to get sub-level headings.
-	   ((and (memq type org-element-greater-elements)
-		 (or (memq granularity '(element object nil))
-		     (and (eq granularity 'greater-element)
-			  (eq type 'section))
-		     (eq type 'headline)))
-	    (org-element--parse-elements
-	     cbeg (org-element-property :contents-end element)
-	     ;; Possibly switch to a special mode.
-	     (org-element--next-mode type t)
-	     (and (memq type '(item plain-list))
-		  (org-element-property :structure element))
-	     granularity visible-only element))
-	   ;; ELEMENT has contents.  Parse objects inside, if
-	   ;; GRANULARITY allows it.
-	   ((memq granularity '(object nil))
-	    (org-element--parse-objects
-	     cbeg (org-element-property :contents-end element) element
-	     (org-element-restriction type))))
-	  (push (org-element-put-property element :parent acc) elements)
-	  ;; Update mode.
-	  (setq mode (org-element--next-mode type nil))))
+	;; Visible only: skip invisible parts due to folding.
+	(if (and visible-only (org-invisible-p nil t))
+	    (progn
+	      (goto-char (org-find-visible))
+	      (when (and (eolp) (not (eobp))) (forward-char)))
+	  ;; Find current element's type and parse it accordingly to
+	  ;; its category.
+	  (let* ((element (org-element--current-element
+			   end granularity mode structure))
+		 (type (org-element-type element))
+		 (cbeg (org-element-property :contents-begin element)))
+	    (goto-char (org-element-property :end element))
+	    ;; Fill ELEMENT contents by side-effect.
+	    (cond
+	     ;; If element has no contents, don't modify it.
+	     ((not cbeg))
+	     ;; Greater element: parse it between `contents-begin' and
+	     ;; `contents-end'.  Ensure GRANULARITY allows recursion,
+	     ;; or ELEMENT is a headline, in which case going inside
+	     ;; is mandatory, in order to get sub-level headings.
+	     ((and (memq type org-element-greater-elements)
+		   (or (memq granularity '(element object nil))
+		       (and (eq granularity 'greater-element)
+			    (eq type 'section))
+		       (eq type 'headline)))
+	      (org-element--parse-elements
+	       cbeg (org-element-property :contents-end element)
+	       ;; Possibly switch to a special mode.
+	       (org-element--next-mode type t)
+	       (and (memq type '(item plain-list))
+		    (org-element-property :structure element))
+	       granularity visible-only element))
+	     ;; ELEMENT has contents.  Parse objects inside, if
+	     ;; GRANULARITY allows it.
+	     ((memq granularity '(object nil))
+	      (org-element--parse-objects
+	       cbeg (org-element-property :contents-end element) element
+	       (org-element-restriction type))))
+	    (push (org-element-put-property element :parent acc) elements)
+	    ;; Update mode.
+	    (setq mode (org-element--next-mode type nil)))))
       ;; Return result.
       (apply #'org-element-set-contents acc (nreverse elements)))))
 
@@ -4819,13 +4866,13 @@ you want to help debugging the issue.")
 (defvar org-element-cache-sync-idle-time 0.6
   "Length, in seconds, of idle time before syncing cache.")
 
-(defvar org-element-cache-sync-duration (seconds-to-time 0.04)
+(defvar org-element-cache-sync-duration 0.04
   "Maximum duration, as a time value, for a cache synchronization.
 If the synchronization is not over after this delay, the process
 pauses and resumes after `org-element-cache-sync-break'
 seconds.")
 
-(defvar org-element-cache-sync-break (seconds-to-time 0.3)
+(defvar org-element-cache-sync-break 0.3
   "Duration, as a time value, of the pause between synchronizations.
 See `org-element-cache-sync-duration' for more information.")
 
@@ -5107,7 +5154,7 @@ Assume ELEMENT belongs to cache and that a cache is active."
   (setq org-element--cache-sync-timer
 	(run-with-idle-timer
 	 (let ((idle (current-idle-time)))
-	   (if idle (time-add idle org-element-cache-sync-break)
+	   (if idle (org-time-add idle org-element-cache-sync-break)
 	     org-element-cache-sync-idle-time))
 	 nil
 	 #'org-element--cache-sync
@@ -5118,7 +5165,7 @@ Assume ELEMENT belongs to cache and that a cache is active."
 TIME-LIMIT is a time value or nil."
   (and time-limit
        (or (input-pending-p)
-	   (time-less-p time-limit (current-time)))))
+	   (org-time-less-p time-limit nil))))
 
 (defsubst org-element--cache-shift-positions (element offset &optional props)
   "Shift ELEMENT properties relative to buffer positions by OFFSET.
@@ -5172,11 +5219,8 @@ updated before current modification are actually submitted."
 	     (and next (aref next 0))
 	     threshold
 	     (and (not threshold)
-		  ;; NOTE: Here and in other `time-add' calls, we use
-		  ;; (current-time) rather than nil for Emacs 24
-		  ;; compatibility.
-		  (time-add (current-time)
-			    org-element-cache-sync-duration))
+		  (org-time-add nil
+				org-element-cache-sync-duration))
 	     future-change)
 	    ;; Request processed.  Merge current and next offsets and
 	    ;; transfer ending position.
@@ -5516,7 +5560,7 @@ the process stopped before finding the expected result."
 
 (defconst org-element--cache-sensitive-re
   (concat
-   org-outline-regexp-bol "\\|"
+   "^\\*+ " "\\|"
    "\\\\end{[A-Za-z0-9*]+}[ \t]*$" "\\|"
    "^[ \t]*\\(?:"
    "#\\+\\(?:BEGIN[:_]\\|END\\(?:_\\|:?[ \t]*$\\)\\)" "\\|"
@@ -5767,7 +5811,7 @@ element.
 
 Possible types are defined in `org-element-all-elements'.
 Properties depend on element or object type, but always include
-`:begin', `:end', `:parent' and `:post-blank' properties.
+`:begin', `:end', and `:post-blank' properties.
 
 As a special case, if point is at the very beginning of the first
 item in a list or sub-list, returned element will be that list
