@@ -1,6 +1,6 @@
 ;;; org-toc.el --- Table of contents for Org-mode buffer
 
-;; Copyright 2007-2018 Free Software Foundation, Inc.
+;; Copyright 2007-2020 Free Software Foundation, Inc.
 ;;
 ;; Author: Bastien Guerry <bzg@gnu.org>
 ;; Keywords: Org table of contents
@@ -90,7 +90,7 @@ This variable is only used when `org-toc-recenter-mode' is set to
 
 (defcustom org-toc-info-exclude '("ALLTAGS")
   "A list of excluded properties when displaying info in the
-echo-area. The COLUMNS property is always exluded."
+echo-area. The COLUMNS property is always excluded."
   :group 'org-toc
   :type 'lits)
 

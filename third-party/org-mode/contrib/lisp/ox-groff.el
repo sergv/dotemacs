@@ -1,6 +1,6 @@
 ;;; ox-groff.el --- Groff Back-End for Org Export Engine
 
-;; Copyright (C) 2011-2018  Free Software Foundation, Inc.
+;; Copyright (C) 2011-2020  Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <n.goaziou at gmail dot com>
 ;; Author: Luis R Anaya <papoanaya aroba hot mail punto com>
@@ -429,7 +429,7 @@ language.")
   is replace on the value of the CDR. "
   :group 'org-export-groff
   :type '(list
-          (cons :tag "Character Subtitute"
+          (cons :tag "Character Substitute"
                 (string :tag "Original Character Group")
                 (string :tag "Replacement Character"))))
 

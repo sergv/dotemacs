@@ -1474,6 +1474,18 @@
 	    (replace-regexp-in-string
 	     "\\( [.A-Za-z]+\\)\\( \\+[0-9][hdmwy]\\)?>" "" (buffer-string)
 	     nil nil 1))))
+  ;; Clone repeating once in backward.
+  (should
+   (equal "\
+* H1\n<2015-06-21>
+* H1\n<2015-06-19>
+* H1\n<2015-06-17 +1w>
+"
+	  (org-test-with-temp-text "* H1\n<2015-06-21 Sun +1w>"
+	    (org-clone-subtree-with-time-shift 1 "-2d")
+	    (replace-regexp-in-string
+	     "\\( [.A-Za-z]+\\)\\( \\+[0-9][hdmwy]\\)?>" "" (buffer-string)
+	     nil nil 1))))
   ;; Clone non-repeating zero times.
   (should
    (equal "\
@@ -2319,7 +2331,7 @@ SCHEDULED: <2014-03-04 tue.>"
   ;; Handle escape characters.
   (should
    (org-test-with-temp-text
-       "* H1\n:PROPERTIES:\n:CUSTOM_ID: [%]\n:END:\n* H2\n[[#%5B%25%5D<point>]]"
+       "* H1\n:PROPERTIES:\n:CUSTOM_ID: [%]\n:END:\n* H2\n[[#\\[%\\]<point>]]"
      (org-open-at-point)
      (looking-at-p "\\* H1")))
   ;; Throw an error on false positives.
@@ -2413,13 +2425,9 @@ Foo Bar
    (org-test-with-temp-text "[[*Test]]\n* TODO COMMENT Test"
      (org-open-at-point)
      (looking-at "\\* TODO COMMENT Test")))
-  ;; Correctly un-hexify fuzzy links.
+  ;; Correctly un-escape fuzzy links.
   (should
-   (org-test-with-temp-text "* With space\n[[*With%20space][With space<point>]]"
-     (org-open-at-point)
-     (bobp)))
-  (should
-   (org-test-with-temp-text "* [1]\n[[*%5B1%5D<point>]]"
+   (org-test-with-temp-text "* [foo]\n[[*\\[foo\\]][With escaped characters]]"
      (org-open-at-point)
      (bobp)))
   ;; Match search strings containing newline characters, including
@@ -2442,81 +2450,6 @@ Foo Bar
        (let ((org-link-search-must-match-exact-headline nil))
 	 (org-open-at-point 0))
        (looking-at-p "line1")))))
-
-;;;; Link Escaping
-
-(ert-deftest test-org/org-link-escape-ascii-character ()
-  "Escape an ascii character."
-  (should
-   (string=
-    "%5B"
-    (org-link-escape "["))))
-
-(ert-deftest test-org/org-link-escape-ascii-ctrl-character ()
-  "Escape an ascii control character."
-  (should
-   (string=
-    "%09"
-    (org-link-escape "\t"))))
-
-(ert-deftest test-org/org-link-escape-multibyte-character ()
-  "Escape an unicode multibyte character."
-  (should
-   (string=
-    "%E2%82%AC"
-    (org-link-escape "€"))))
-
-(ert-deftest test-org/org-link-escape-custom-table ()
-  "Escape string with custom character table."
-  (should
-   (string=
-    "Foo%3A%42ar%0A"
-    (org-link-escape "Foo:Bar\n" '(?\: ?\B)))))
-
-(ert-deftest test-org/org-link-escape-custom-table-merge ()
-  "Escape string with custom table merged with default table."
-  (should
-   (string=
-    "%5BF%6F%6F%3A%42ar%0A%5D"
-    (org-link-escape "[Foo:Bar\n]" '(?\: ?\B ?\o) t))))
-
-(ert-deftest test-org/org-link-unescape-ascii-character ()
-  "Unescape an ascii character."
-  (should
-   (string=
-    "["
-    (org-link-unescape "%5B"))))
-
-(ert-deftest test-org/org-link-unescape-ascii-ctrl-character ()
-  "Unescpae an ascii control character."
-  (should
-   (string=
-    "\n"
-    (org-link-unescape "%0A"))))
-
-(ert-deftest test-org/org-link-unescape-multibyte-character ()
-  "Unescape unicode multibyte character."
-  (should
-   (string=
-    "€"
-    (org-link-unescape "%E2%82%AC"))))
-
-(ert-deftest test-org/org-link-unescape-ascii-extended-char ()
-  "Unescape old style percent escaped character."
-  (should
-   (string=
-    "àâçèéêîôùû"
-        (decode-coding-string
-	 (org-link-unescape "%E0%E2%E7%E8%E9%EA%EE%F4%F9%FB") 'latin-1))))
-
-(ert-deftest test-org/org-link-escape-url-with-escaped-char ()
-  "Escape and unescape a URL that includes an escaped char.
-http://article.gmane.org/gmane.emacs.orgmode/21459/"
-  (should
-   (string=
-    "http://some.host.com/form?&id=blah%2Bblah25"
-    (org-link-unescape
-     (org-link-escape "http://some.host.com/form?&id=blah%2Bblah25")))))
 
 ;;;; Open at point
 
@@ -2581,126 +2514,12 @@ http://article.gmane.org/gmane.emacs.orgmode/21459/"
      (catch :result
        (cl-letf (((symbol-function 'org-tags-view)
 		  (lambda (&rest args) (throw :result t))))
-	 (org-open-at-point)
+	 ;; When point isn't on a tag it's going to try other things,
+	 ;; possibly trying to open attachments which will return an
+	 ;; error if there isn't an attachment. Suppress that error.
+	 (ignore-errors
+	     (org-open-at-point))
 	 nil)))))
-
-;;;; Stored links
-
-(ert-deftest test-org/store-link ()
-  "Test `org-store-link' specifications."
-  ;; On a headline, link to that headline.  Use heading as the
-  ;; description of the link.
-  (should
-   (let (org-store-link-props org-stored-links)
-     (org-test-with-temp-text-in-file "* H1"
-       (let ((file (buffer-file-name)))
-	 (equal (format "[[file:%s::*H1][H1]]" file)
-		(org-store-link nil))))))
-  ;; On a headline, remove any link from description.
-  (should
-   (let (org-store-link-props org-stored-links)
-     (org-test-with-temp-text-in-file "* [[#l][d]]"
-       (let ((file (buffer-file-name)))
-	 (equal (format "[[file:%s::*%s][d]]"
-			file
-			(org-link-escape "[[#l][d]]"))
-		(org-store-link nil))))))
-  (should
-   (let (org-store-link-props org-stored-links)
-     (org-test-with-temp-text-in-file "* [[l]]"
-       (let ((file (buffer-file-name)))
-	 (equal (format "[[file:%s::*%s][l]]" file (org-link-escape "[[l]]"))
-		(org-store-link nil))))))
-  (should
-   (let (org-store-link-props org-stored-links)
-     (org-test-with-temp-text-in-file "* [[l1][d1]] [[l2][d2]]"
-       (let ((file (buffer-file-name)))
-	 (equal (format "[[file:%s::*%s][d1 d2]]"
-			file
-			(org-link-escape "[[l1][d1]] [[l2][d2]]"))
-		(org-store-link nil))))))
-  ;; On a named element, link to that element.
-  (should
-   (let (org-store-link-props org-stored-links)
-     (org-test-with-temp-text-in-file "#+NAME: foo\nParagraph"
-       (let ((file (buffer-file-name)))
-	 (equal (format "[[file:%s::foo][foo]]" file)
-		(org-store-link nil))))))
-  ;; Store link to Org buffer, with context.
-  (should
-   (let ((org-stored-links nil)
-	 (org-id-link-to-org-use-id nil)
-	 (org-context-in-file-links t))
-     (org-test-with-temp-text-in-file "* h1"
-       (let ((file (buffer-file-name)))
-	 (equal (format "[[file:%s::*h1][h1]]" file)
-		(org-store-link nil))))))
-  ;; Store link to Org buffer, without context.
-  (should
-   (let ((org-stored-links nil)
-	 (org-id-link-to-org-use-id nil)
-	 (org-context-in-file-links nil))
-     (org-test-with-temp-text-in-file "* h1"
-       (let ((file (buffer-file-name)))
-	 (equal (format "[[file:%s][file:%s]]" file file)
-		(org-store-link nil))))))
-  ;; C-u prefix reverses `org-context-in-file-links' in Org buffer.
-  (should
-   (let ((org-stored-links nil)
-	 (org-id-link-to-org-use-id nil)
-	 (org-context-in-file-links nil))
-     (org-test-with-temp-text-in-file "* h1"
-       (let ((file (buffer-file-name)))
-	 (equal (format "[[file:%s::*h1][h1]]" file)
-		(org-store-link '(4)))))))
-  ;; A C-u C-u does *not* reverse `org-context-in-file-links' in Org
-  ;; buffer.
-  (should
-   (let ((org-stored-links nil)
-	 (org-id-link-to-org-use-id nil)
-	 (org-context-in-file-links nil))
-     (org-test-with-temp-text-in-file "* h1"
-       (let ((file (buffer-file-name)))
-	 (equal (format "[[file:%s][file:%s]]" file file)
-		(org-store-link '(16)))))))
-  ;; Store file link to non-Org buffer, with context.
-  (should
-   (let ((org-stored-links nil)
-	 (org-context-in-file-links t))
-     (org-test-with-temp-text-in-file "one\n<point>two"
-       (fundamental-mode)
-       (let ((file (buffer-file-name)))
-	 (equal (format "[[file:%s::one]]" file)
-		(org-store-link nil))))))
-  ;; Store file link to non-Org buffer, without context.
-  (should
-   (let ((org-stored-links nil)
-	 (org-context-in-file-links nil))
-     (org-test-with-temp-text-in-file "one\n<point>two"
-       (fundamental-mode)
-       (let ((file (buffer-file-name)))
-	 (equal (format "[[file:%s][file:%s]]" file file)
-	 	(org-store-link nil))))))
-  ;; C-u prefix reverses `org-context-in-file-links' in non-Org
-  ;; buffer.
-  (should
-   (let ((org-stored-links nil)
-	 (org-context-in-file-links nil))
-     (org-test-with-temp-text-in-file "one\n<point>two"
-       (fundamental-mode)
-       (let ((file (buffer-file-name)))
-	 (equal (format "[[file:%s::one]]" file)
-		(org-store-link '(4)))))))
-  ;; A C-u C-u does *not* reverse `org-context-in-file-links' in
-  ;; non-Org buffer.
-  (should
-   (let ((org-stored-links nil)
-	 (org-context-in-file-links nil))
-     (org-test-with-temp-text-in-file "one\n<point>two"
-       (fundamental-mode)
-       (let ((file (buffer-file-name)))
-	 (equal (format "[[file:%s][file:%s]]" file file)
-	 	(org-store-link '(16))))))))
 
 
 ;;; Node Properties
@@ -2761,6 +2580,27 @@ http://article.gmane.org/gmane.emacs.orgmode/21459/"
 
 
 ;;; Mark Region
+
+(ert-deftest test-org/mark-element ()
+  "Test `org-mark-element' specifications."
+  ;; Mark beginning and end of element.
+  (should
+   (equal '(t t)
+	  (org-test-with-temp-text "Para<point>graph"
+	    (org-mark-element)
+	    (list (bobp) (= (mark) (point-max))))))
+  (should
+   (equal '(t t)
+	  (org-test-with-temp-text "P1\n\nPara<point>graph\n\nP2"
+	    (org-mark-element)
+	    (list (looking-at "Paragraph")
+		  (org-with-point-at (mark) (looking-at "P2"))))))
+  ;; Do not set mark past (point-max).
+  (should
+   (org-test-with-temp-text "Para<point>graph"
+     (narrow-to-region 2 6)
+     (org-mark-element)
+     (= 6 (mark)))))
 
 (ert-deftest test-org/mark-subtree ()
   "Test `org-mark-subtree' specifications."
@@ -5043,7 +4883,7 @@ Paragraph<point>"
 
 (ert-deftest test-org/buffer-property-keys ()
   "Test `org-buffer-property-keys' specifications."
-  ;; Retrieve properties accross siblings.
+  ;; Retrieve properties across siblings.
   (should
    (equal '("A" "B")
 	  (org-test-with-temp-text "
@@ -5056,7 +4896,7 @@ Paragraph<point>"
 :B: 1
 :END:"
 	    (org-buffer-property-keys))))
-  ;; Retrieve properties accross children.
+  ;; Retrieve properties across children.
   (should
    (equal '("A" "B")
 	  (org-test-with-temp-text "
@@ -5245,18 +5085,18 @@ Paragraph<point>"
   (should
    (equal
     "1"
-    (org-test-with-temp-text "* H\n:PROPERTIES:\n:A: 1\n:END:\n** <point>H2"
-      (org-entry-get (point) "A" t))))
+    (org-test-with-temp-text "* H\n:PROPERTIES:\n:A: 1\n:END:\n** H2"
+      (org-entry-get (point-max) "A" t))))
   (should
    (equal
     "1"
-    (org-test-with-temp-text "* H\n:PROPERTIES:\n:A: 1\n:END:\n** <point>H2"
+    (org-test-with-temp-text "* H\n:PROPERTIES:\n:A: 1\n:END:\n** H2"
       (let ((org-use-property-inheritance t))
-	(org-entry-get (point) "A" 'selective)))))
+	(org-entry-get (point-max) "A" 'selective)))))
   (should-not
-   (org-test-with-temp-text "* H\n:PROPERTIES:\n:A: 1\n:END:\n** <point>H2"
+   (org-test-with-temp-text "* H\n:PROPERTIES:\n:A: 1\n:END:\n** H2"
      (let ((org-use-property-inheritance nil))
-       (org-entry-get (point) "A" 'selective))))
+       (org-entry-get (point-max) "A" 'selective))))
   (should
    (equal
     "1 2"
@@ -5621,40 +5461,6 @@ Paragraph<point>"
 	    (let ((org-use-property-inheritance t))
 	      (org-refresh-properties "A" 'org-test))
 	    (get-text-property (point) 'org-test)))))
-
-
-;;; Radio Targets
-
-(ert-deftest test-org/update-radio-target-regexp ()
-  "Test `org-update-radio-target-regexp' specifications."
-  ;; Properly update cache with no previous radio target regexp.
-  (should
-   (eq 'link
-       (org-test-with-temp-text "radio\n\nParagraph\n\nradio"
-	 (save-excursion (goto-char (point-max)) (org-element-context))
-	 (insert "<<<")
-	 (search-forward "o")
-	 (insert ">>>")
-	 (org-update-radio-target-regexp)
-	 (goto-char (point-max))
-	 (org-element-type (org-element-context)))))
-  ;; Properly update cache with previous radio target regexp.
-  (should
-   (eq 'link
-       (org-test-with-temp-text "radio\n\nParagraph\n\nradio"
-	 (save-excursion (goto-char (point-max)) (org-element-context))
-	 (insert "<<<")
-	 (search-forward "o")
-	 (insert ">>>")
-	 (org-update-radio-target-regexp)
-	 (search-backward "r")
-	 (delete-char 5)
-	 (insert "new")
-	 (org-update-radio-target-regexp)
-	 (goto-char (point-max))
-	 (delete-region (line-beginning-position) (point))
-	 (insert "new")
-	 (org-element-type (org-element-context))))))
 
 
 ;;; Refile
@@ -6394,12 +6200,52 @@ Paragraph<point>"
 		(goto-char (point-max))
 		(org-set-tags-command)))
 	    (buffer-string))))
-  ;; With a non-nil prefix argument, align all tags in the buffer.
+  ;; With a C-u prefix argument, align all tags in the buffer.
   (should
    (equal "* H1 :foo:\n* H2 :bar:"
 	  (org-test-with-temp-text "* H1    :foo:\n* H2    :bar:"
-	    (let ((org-tags-column 1)) (org-set-tags-command t))
-	    (buffer-string)))))
+	    (let ((org-tags-column 1)) (org-set-tags-command '(4)))
+	    (buffer-string))))
+  ;; Point does not move with empty headline.
+  (should
+   (equal ":foo:"
+	  (org-test-with-temp-text "* <point>"
+	    (cl-letf (((symbol-function 'completing-read)
+		       (lambda (&rest args) ":foo:")))
+	      (let ((org-use-fast-tag-selection nil)
+		    (org-tags-column 1))
+		(org-set-tags-command)))
+	    (buffer-substring (point) (line-end-position)))))
+  ;; Point does not move at start of line.
+  (should
+   (equal "* H1 :foo:"
+	  (org-test-with-temp-text "* H1"
+	    (cl-letf (((symbol-function 'completing-read)
+		       (lambda (&rest args) ":foo:")))
+	      (let ((org-use-fast-tag-selection nil)
+		    (org-tags-column 1))
+		(org-set-tags-command)))
+	    (buffer-substring (point) (line-end-position)))))
+  ;; Point does not move when within *'s.
+  (should
+   (equal "* H1 :foo:"
+	  (org-test-with-temp-text "*<point>* H1"
+	    (cl-letf (((symbol-function 'completing-read)
+		       (lambda (&rest args) ":foo:")))
+	      (let ((org-use-fast-tag-selection nil)
+		    (org-tags-column 1))
+		(org-set-tags-command)))
+	    (buffer-substring (point) (line-end-position)))))
+  ;; Point workaround does not get fooled when looking at a space.
+  (should
+   (equal " b :foo:"
+	  (org-test-with-temp-text "* a<point> b"
+	    (cl-letf (((symbol-function 'completing-read)
+		       (lambda (&rest args) ":foo:")))
+	      (let ((org-use-fast-tag-selection nil)
+		    (org-tags-column 1))
+		(org-set-tags-command)))
+	    (buffer-substring (point) (line-end-position))))))
 
 (ert-deftest test-org/toggle-tag ()
   "Test `org-toggle-tag' specifications."
@@ -6473,7 +6319,7 @@ Paragraph<point>"
 
 (ert-deftest test-org/tags-expand ()
   "Test `org-tags-expand' specifications."
-  ;; Expand tag groups as a regexp enclosed withing curly brackets.
+  ;; Expand tag groups as a regexp enclosed within curly brackets.
   (should
    (equal "{\\<[ABC]\\>}"
 	  (org-test-with-temp-text "#+TAGS: [ A : B C ]"
@@ -7039,46 +6885,44 @@ CLOCK: [2012-03-29 Thu 10:00]--[2012-03-29 Thu 16:40] =>  6:40"
   (should-not (org-timestamp-from-string "<2012-03-29"))
   ;; Otherwise, return a valid Org timestamp object.
   (should
-   (equal "<2012-03-29 Thu>"
-	  (let ((system-time-locale "en_US"))
-	       (org-element-interpret-data
-		(org-timestamp-from-string "<2012-03-29 Thu>")))))
+   (string-match-p "<2012-03-29 .+>"
+		   (org-element-interpret-data
+		    (org-timestamp-from-string "<2012-03-29 Thu>"))))
   (should
-   (equal "[2014-03-04 Tue]"
-	  (let ((system-time-locale "en_US"))
-	       (org-element-interpret-data
-		(org-timestamp-from-string "[2014-03-04 Tue]"))))))
+   (string-match-p "[2014-03-04 .+]"
+		   (org-element-interpret-data
+		    (org-timestamp-from-string "[2014-03-04 Tue]")))))
 
 (ert-deftest test-org/timestamp-from-time ()
   "Test `org-timestamp-from-time' specifications."
   ;; Standard test.
   (should
-   (equal "<2012-03-29 Thu>"
-	  (let ((system-time-locale "en_US"))
-	    (org-element-interpret-data
-	     (org-timestamp-from-time
-	      (apply #'encode-time
-		     (org-parse-time-string "<2012-03-29 Thu 16:40>")))))))
+   (string-match-p
+    "<2012-03-29 .+>"
+    (org-element-interpret-data
+     (org-timestamp-from-time
+      (apply #'encode-time
+	     (org-parse-time-string "<2012-03-29 Thu 16:40>"))))))
   ;; When optional argument WITH-TIME is non-nil, provide time
   ;; information.
   (should
-   (equal "<2012-03-29 Thu 16:40>"
-	  (let ((system-time-locale "en_US"))
-	    (org-element-interpret-data
-	     (org-timestamp-from-time
-	      (apply #'encode-time
-		     (org-parse-time-string "<2012-03-29 Thu 16:40>"))
-	      t)))))
+   (string-match-p
+    "<2012-03-29 .+ 16:40>"
+    (org-element-interpret-data
+     (org-timestamp-from-time
+      (apply #'encode-time
+	     (org-parse-time-string "<2012-03-29 Thu 16:40>"))
+      t))))
   ;; When optional argument INACTIVE is non-nil, return an inactive
   ;; timestamp.
   (should
-   (equal "[2012-03-29 Thu]"
-	  (let ((system-time-locale "en_US"))
-	    (org-element-interpret-data
-	     (org-timestamp-from-time
-	      (apply #'encode-time
-		     (org-parse-time-string "<2012-03-29 Thu 16:40>"))
-	      nil t))))))
+   (string-match-p
+    "[2012-03-29 .+]"
+    (org-element-interpret-data
+     (org-timestamp-from-time
+      (apply #'encode-time
+	     (org-parse-time-string "<2012-03-29 Thu 16:40>"))
+      nil t)))))
 
 (ert-deftest test-org/timestamp-to-time ()
   "Test `org-timestamp-to-time' specifications."
@@ -7473,6 +7317,16 @@ Contents
 :END:"
      (org-set-visibility-according-to-property)
      (invisible-p (point)))))
+
+(ert-deftest test-org/visibility-show-branches ()
+  "Test visibility of inline archived subtrees."
+  (org-test-with-temp-text
+   "* Foo<point>
+** Bar :ARCHIVE:
+*** Baz
+"
+   (org-kill-note-or-show-branches)
+   (should (org-invisible-p (- (point-max) 2)))))
 
 
 ;;; Yank and Kill

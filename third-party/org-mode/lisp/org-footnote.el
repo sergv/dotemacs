@@ -1,6 +1,6 @@
 ;;; org-footnote.el --- Footnote support in Org      -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2009-2019 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -56,7 +56,7 @@
 
 (defvar electric-indent-mode)
 (defvar org-blank-before-new-entry)	; defined in org.el
-(defvar org-bracket-link-regexp)	; defined in org.el
+(defvar org-link-bracket-re)	; defined in org.el
 (defvar org-complex-heading-regexp)	; defined in org.el
 (defvar org-odd-levels-only)		; defined in org.el
 (defvar org-outline-regexp)		; defined in org.el
@@ -489,7 +489,7 @@ This function is meant to be used for fontification only."
 			     (goto-char beg)
 			     (let ((linkp
 				    (save-match-data
-				      (org-in-regexp org-bracket-link-regexp))))
+				      (org-in-regexp org-link-bracket-re))))
 			       (and linkp (< (point) (cdr linkp))))))
 		      ;; Verify point doesn't belong to a LaTeX macro.
 		      (not (org-inside-latex-macro-p))

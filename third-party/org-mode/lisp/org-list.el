@@ -1,6 +1,6 @@
 ;;; org-list.el --- Plain lists for Org              -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2004-2019 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2020 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;;	   Bastien Guerry <bzg@gnu.org>
@@ -86,7 +86,6 @@
 (defvar org-clock-string)
 (defvar org-closed-string)
 (defvar org-deadline-string)
-(defvar org-description-max-indent)
 (defvar org-done-keywords)
 (defvar org-drawer-regexp)
 (defvar org-element-all-objects)
@@ -328,14 +327,6 @@ with the word \"recursive\" in the value."
   :group 'org-plain-lists
   :type 'boolean)
 
-(defcustom org-list-description-max-indent 20
-  "Maximum indentation for the second line of a description list.
-When the indentation would be larger than this, it will become
-5 characters instead."
-  :group 'org-plain-lists
-  :type 'integer
-  :safe #'wholenump)
-
 (defcustom org-list-indent-offset 0
   "Additional indentation for sub-items in a list.
 By setting this to a small number, usually 1 or 2, one can more
@@ -347,14 +338,6 @@ clearly distinguish sub-items in a list."
 (defvar org-list-forbidden-blocks '("example" "verse" "src" "export")
   "Names of blocks where lists are not allowed.
 Names must be in lower case.")
-
-(defvar org-list-export-context '(block inlinetask)
-  "Context types where lists will be interpreted during export.
-
-Valid types are `drawer', `inlinetask' and `block'.  More
-specifically, type `block' is determined by the variable
-`org-list-forbidden-blocks'.")
-
 
 
 ;;; Predicates and regexps
@@ -1250,125 +1233,121 @@ after the bullet.  Cursor will be after this text once the
 function ends.
 
 This function modifies STRUCT."
-  (let ((case-fold-search t))
-    ;; 1. Get information about list: ITEM containing POS, position of
-    ;;    point with regards to item start (BEFOREP), blank lines
-    ;;    number separating items (BLANK-NB), if we're allowed to
-    ;;    (SPLIT-LINE-P).
-    (let* ((item (goto-char (catch :exit
-			      (let ((inner-item 0))
-				(pcase-dolist (`(,i . ,_) struct)
-				  (cond
-				   ((= i pos) (throw :exit i))
-				   ((< i pos) (setq inner-item i))
-				   (t (throw :exit inner-item))))
-				inner-item))))
-	   (item-end (org-list-get-item-end item struct))
-	   (item-end-no-blank (org-list-get-item-end-before-blank item struct))
-	   (beforep
-	    (progn
-	      (looking-at org-list-full-item-re)
-	      (<= pos
-		  (cond
-		   ((not (match-beginning 4)) (match-end 0))
-		   ;; Ignore tag in a non-descriptive list.
-		   ((save-match-data (string-match "[.)]" (match-string 1)))
-		    (match-beginning 4))
-		   (t (save-excursion
-			(goto-char (match-end 4))
-			(skip-chars-forward " \t")
-			(point)))))))
-	   (split-line-p (org-get-alist-option org-M-RET-may-split-line 'item))
-	   (blank-nb (org-list-separating-blank-lines-number
-		      pos struct prevs))
-	   ;; 2. Build the new item to be created.  Concatenate same
-	   ;;    bullet as item, checkbox, text AFTER-BULLET if
-	   ;;    provided, and text cut from point to end of item
-	   ;;    (TEXT-CUT) to form item's BODY.  TEXT-CUT depends on
-	   ;;    BEFOREP and SPLIT-LINE-P.  The difference of size
-	   ;;    between what was cut and what was inserted in buffer
-	   ;;    is stored in SIZE-OFFSET.
-	   (ind (org-list-get-ind item struct))
-	   (ind-size (if indent-tabs-mode
-			 (+ (/ ind tab-width) (mod ind tab-width))
-		       ind))
-	   (bullet (org-list-bullet-string (org-list-get-bullet item struct)))
-	   (box (when checkbox "[ ]"))
-	   (text-cut
-	    (and (not beforep) split-line-p
-		 (progn
-		   (goto-char pos)
-		   ;; If POS is greater than ITEM-END, then point is
-		   ;; in some white lines after the end of the list.
-		   ;; Those must be removed, or they will be left,
-		   ;; stacking up after the list.
-		   (when (< item-end pos)
-		     (delete-region (1- item-end) (point-at-eol)))
-		   (skip-chars-backward " \r\t\n")
-		   (setq pos (point))
-		   (delete-and-extract-region pos item-end-no-blank))))
-	   (body (concat bullet (when box (concat box " ")) after-bullet
-			 (and text-cut
-			      (if (string-match "\\`[ \t]+" text-cut)
-				  (replace-match "" t t text-cut)
-				text-cut))))
-	   (item-sep (make-string  (1+ blank-nb) ?\n))
-	   (item-size (+ ind-size (length body) (length item-sep)))
-	   (size-offset (- item-size (length text-cut))))
-      ;; 4. Insert effectively item into buffer.
-      (goto-char item)
-      (indent-to-column ind)
-      (insert body item-sep)
-      ;; 5. Add new item to STRUCT.
-      (mapc (lambda (e)
-              (let ((p (car e)) (end (nth 6 e)))
-                (cond
-		 ;; Before inserted item, positions don't change but
-		 ;; an item ending after insertion has its end shifted
-		 ;; by SIZE-OFFSET.
-		 ((< p item)
-		  (when (> end item) (setcar (nthcdr 6 e) (+ end size-offset))))
-		 ;; Trivial cases where current item isn't split in
-		 ;; two.  Just shift every item after new one by
-		 ;; ITEM-SIZE.
-		 ((or beforep (not split-line-p))
-		  (setcar e (+ p item-size))
-		  (setcar (nthcdr 6 e) (+ end item-size)))
-		 ;; Item is split in two: elements before POS are just
-		 ;; shifted by ITEM-SIZE.  In the case item would end
-		 ;; after split POS, ending is only shifted by
-		 ;; SIZE-OFFSET.
-		 ((< p pos)
-		  (setcar e (+ p item-size))
-		  (if (< end pos)
-		      (setcar (nthcdr 6 e) (+ end item-size))
-		    (setcar (nthcdr 6 e) (+ end size-offset))))
-		 ;; Elements after POS are moved into new item.
-		 ;; Length of ITEM-SEP has to be removed as ITEM-SEP
-		 ;; doesn't appear in buffer yet.
-		 ((< p item-end)
-		  (setcar e (+ p size-offset (- item pos (length item-sep))))
-		  (if (= end item-end)
-		      (setcar (nthcdr 6 e) (+ item item-size))
-		    (setcar (nthcdr 6 e)
-			    (+ end size-offset
-			       (- item pos (length item-sep))))))
-		 ;; Elements at ITEM-END or after are only shifted by
-		 ;; SIZE-OFFSET.
-		 (t (setcar e (+ p size-offset))
-		    (setcar (nthcdr 6 e) (+ end size-offset))))))
-	    struct)
-      (push (list item ind bullet nil box nil (+ item item-size)) struct)
-      (setq struct (sort struct (lambda (e1 e2) (< (car e1) (car e2)))))
-      ;; 6. If not BEFOREP, new item must appear after ITEM, so
-      ;; exchange ITEM with the next item in list.  Position cursor
-      ;; after bullet, counter, checkbox, and label.
-      (if beforep
-	  (goto-char item)
-	(setq struct (org-list-swap-items item (+ item item-size) struct))
-	(goto-char (org-list-get-next-item
-		    item struct (org-list-prevs-alist struct))))
-      struct)))
+  (let* ((case-fold-search t)
+	 ;; Get information about list: ITEM containing POS, position
+	 ;; of point with regards to item start (BEFOREP), blank lines
+	 ;; number separating items (BLANK-NB), if we're allowed to
+	 ;; (SPLIT-LINE-P).
+	 (item
+	  (catch :exit
+	    (let ((i nil))
+	      (pcase-dolist (`(,start ,_ ,_ ,_ ,_ ,_ ,end) struct)
+		(cond
+		 ((> start pos) (throw :exit i))
+		 ((< end pos) nil)	;skip sub-lists before point
+		 (t (setq i start))))
+	      ;; If no suitable item is found, insert a sibling of the
+	      ;; last item in buffer.
+	      (or i (caar (reverse struct))))))
+	 (item-end (org-list-get-item-end item struct))
+	 (item-end-no-blank (org-list-get-item-end-before-blank item struct))
+	 (beforep
+	  (progn
+	    (goto-char item)
+	    (looking-at org-list-full-item-re)
+	    (<= pos
+		(cond
+		 ((not (match-beginning 4)) (match-end 0))
+		 ;; Ignore tag in a non-descriptive list.
+		 ((save-match-data (string-match "[.)]" (match-string 1)))
+		  (match-beginning 4))
+		 (t (save-excursion
+		      (goto-char (match-end 4))
+		      (skip-chars-forward " \t")
+		      (point)))))))
+	 (split-line-p (org-get-alist-option org-M-RET-may-split-line 'item))
+	 (blank-nb (org-list-separating-blank-lines-number pos struct prevs))
+	 ;; Build the new item to be created.  Concatenate same bullet
+	 ;; as item, checkbox, text AFTER-BULLET if provided, and text
+	 ;; cut from point to end of item (TEXT-CUT) to form item's
+	 ;; BODY.  TEXT-CUT depends on BEFOREP and SPLIT-LINE-P.  The
+	 ;; difference of size between what was cut and what was
+	 ;; inserted in buffer is stored in SIZE-OFFSET.
+	 (ind (org-list-get-ind item struct))
+	 (ind-size (if indent-tabs-mode
+		       (+ (/ ind tab-width) (mod ind tab-width))
+		     ind))
+	 (bullet (org-list-bullet-string (org-list-get-bullet item struct)))
+	 (box (and checkbox "[ ]"))
+	 (text-cut
+	  (and (not beforep)
+	       split-line-p
+	       (progn
+		 (goto-char pos)
+		 ;; If POS is greater than ITEM-END, then point is in
+		 ;; some white lines after the end of the list.  Those
+		 ;; must be removed, or they will be left, stacking up
+		 ;; after the list.
+		 (when (< item-end pos)
+		   (delete-region (1- item-end) (point-at-eol)))
+		 (skip-chars-backward " \r\t\n")
+		 (setq pos (point))
+		 (delete-and-extract-region pos item-end-no-blank))))
+	 (body
+	  (concat bullet
+		  (and box (concat box " "))
+		  after-bullet
+		  (and text-cut
+		       (if (string-match "\\`[ \t]+" text-cut)
+			   (replace-match "" t t text-cut)
+			 text-cut))))
+	 (item-sep (make-string  (1+ blank-nb) ?\n))
+	 (item-size (+ ind-size (length body) (length item-sep)))
+	 (size-offset (- item-size (length text-cut))))
+    ;; Insert effectively item into buffer.
+    (goto-char item)
+    (indent-to-column ind)
+    (insert body item-sep)
+    ;; Add new item to STRUCT.
+    (dolist (e struct)
+      (let ((p (car e)) (end (nth 6 e)))
+	(cond
+	 ;; Before inserted item, positions don't change but an item
+	 ;; ending after insertion has its end shifted by SIZE-OFFSET.
+	 ((< p item)
+	  (when (> end item)
+	    (setcar (nthcdr 6 e) (+ end size-offset))))
+	 ;; Item where insertion happens may be split in two parts.
+	 ;; In this case, move start by ITEM-SIZE and end by
+	 ;; SIZE-OFFSET.
+	 ((and (= p item) (not beforep) split-line-p)
+	  (setcar e (+ p item-size))
+	  (setcar (nthcdr 6 e) (+ end size-offset)))
+	 ;; Items starting after modified item fall into two
+	 ;; categories.  If item was split, and current item was
+	 ;; located after split point, it was moved to the new item.
+	 ;; This means that the part between body start of body and
+	 ;; split point was removed.  So we compute the offset and
+	 ;; shift item's positions accordingly.  In any other case,
+	 ;; the item was simply shifted by ITEM-SIZE.
+	 ((and split-line-p (not beforep) (>= p pos) (<= p item-end-no-blank))
+	  (let ((offset (- pos item ind (length bullet) (length after-bullet))))
+	    (setcar e (- p offset))
+	    (setcar (nthcdr 6 e) (- end offset))))
+	 (t
+	  (setcar e (+ p item-size))
+	  (setcar (nthcdr 6 e) (+ end item-size))))))
+    (push (list item ind bullet nil box nil (+ item item-size)) struct)
+    (setq struct (sort struct #'car-less-than-car))
+    ;; If not BEFOREP, new item must appear after ITEM, so exchange
+    ;; ITEM with the next item in list.  Position cursor after bullet,
+    ;; counter, checkbox, and label.
+    (if beforep
+	(goto-char item)
+      (setq struct (org-list-swap-items item (+ item item-size) struct))
+      (goto-char (org-list-get-next-item
+		  item struct (org-list-prevs-alist struct))))
+    struct))
 
 (defun org-list-delete-item (item struct)
   "Remove ITEM from the list and return the new structure.
@@ -2074,25 +2053,13 @@ Possible values are: `folded', `children' or `subtree'.  See
   "Return column at which body of ITEM should start."
   (save-excursion
     (goto-char item)
-    (if (save-excursion
-	  (end-of-line)
-	  (re-search-backward
-	   "[ \t]::\\([ \t]\\|$\\)" (line-beginning-position) t))
-	;; Descriptive list item.  Body starts after item's tag, if
-	;; possible.
-	(let ((start (1+ (- (match-beginning 1) (line-beginning-position))))
-	      (ind (current-indentation)))
-	  (if (> start (+ ind org-list-description-max-indent))
-	      (+ ind 5)
-	    start))
-      ;; Regular item.  Body starts after bullet.
-      (looking-at "[ \t]*\\(\\S-+\\)")
-      (+ (progn (goto-char (match-end 1)) (current-column))
-	 (if (and org-list-two-spaces-after-bullet-regexp
-		  (string-match-p org-list-two-spaces-after-bullet-regexp
-				  (match-string 1)))
-	     2
-	   1)))))
+    (looking-at "[ \t]*\\(\\S-+\\)")
+    (+ (progn (goto-char (match-end 1)) (current-column))
+       (if (and org-list-two-spaces-after-bullet-regexp
+		(string-match-p org-list-two-spaces-after-bullet-regexp
+				(match-string 1)))
+	   2
+	 1))))
 
 
 
@@ -3179,10 +3146,14 @@ Point is left at list's end."
 (defun org-list-make-subtree ()
   "Convert the plain list at point into a subtree."
   (interactive)
-  (if (not (ignore-errors (goto-char (org-in-item-p))))
-      (error "Not in a list")
-    (let ((list (save-excursion (org-list-to-lisp t))))
-      (insert (org-list-to-subtree list) "\n"))))
+  (let ((item (org-in-item-p)))
+    (unless item (error "Not in a list"))
+    (goto-char item)
+    (let ((level (pcase (org-current-level)
+		   (`nil 1)
+		   (l (1+ (org-reduced-level l)))))
+	  (list (save-excursion (org-list-to-lisp t))))
+      (insert (org-list-to-subtree list level) "\n"))))
 
 (defun org-list-to-generic (list params)
   "Convert a LIST parsed through `org-list-to-lisp' to a custom format.
@@ -3491,21 +3462,22 @@ with overruling parameters for `org-list-to-generic'."
 		 :cbtrans "[-] ")))
     (org-list-to-generic list (org-combine-plists defaults params))))
 
-(defun org-list-to-subtree (list &optional params)
+(defun org-list-to-subtree (list &optional start-level params)
   "Convert LIST into an Org subtree.
-LIST is as returned by `org-list-to-lisp'.  PARAMS is a property
-list with overruling parameters for `org-list-to-generic'."
+LIST is as returned by `org-list-to-lisp'.  Subtree starts at
+START-LEVEL or level 1 if nil.  PARAMS is a property list with
+overruling parameters for `org-list-to-generic'."
   (let* ((blank (pcase (cdr (assq 'heading org-blank-before-new-entry))
 		  (`t t)
 		  (`auto (save-excursion
 			   (org-with-limited-levels (outline-previous-heading))
 			   (org-previous-line-empty-p)))))
-	 (level (org-reduced-level (or (org-current-level) 0)))
+	 (level (or start-level 1))
 	 (make-stars
 	  (lambda (_type depth &optional _count)
 	    ;; Return the string for the heading, depending on DEPTH
 	    ;; of current sub-list.
-	    (let ((oddeven-level (+ level depth)))
+	    (let ((oddeven-level (+ level (1- depth))))
 	      (concat (make-string (if org-odd-levels-only
 				       (1- (* 2 oddeven-level))
 				     oddeven-level)
