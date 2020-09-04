@@ -1,6 +1,6 @@
 ;;; ob-core.el --- Working with Code Blocks          -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2019 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
 
 ;; Authors: Eric Schulte
 ;;	Dan Davison
@@ -38,6 +38,7 @@
 (defvar org-link-file-path-type)
 (defvar org-src-lang-modes)
 (defvar org-src-preserve-indentation)
+(defvar org-babel-tangle-uncomment-comments)
 
 (declare-function org-at-item-p "org-list" ())
 (declare-function org-at-table-p "org" (&optional table-type))
@@ -59,6 +60,7 @@
 (declare-function org-element-type "org-element" (element))
 (declare-function org-entry-get "org" (pom property &optional inherit literal-nil))
 (declare-function org-escape-code-in-region "org-src" (beg end))
+(declare-function org-in-commented-heading-p "org" (&optional no-inheritance))
 (declare-function org-indent-line "org" ())
 (declare-function org-list-get-list-end "org-list" (item struct prevs))
 (declare-function org-list-prevs-alist "org-list" (struct))
@@ -75,6 +77,7 @@
 (declare-function org-show-context "org" (&optional key))
 (declare-function org-src-coderef-format "org-src" (&optional element))
 (declare-function org-src-coderef-regexp "org-src" (fmt &optional label))
+(declare-function org-src-get-lang-mode "org-src" (lang))
 (declare-function org-table-align "org-table" ())
 (declare-function org-table-end "org-table" (&optional table-type))
 (declare-function org-table-import "org-table" (file arg))
@@ -526,7 +529,7 @@ to raise errors for all languages.")
   "Hook for functions to be called after `org-babel-execute-src-block'")
 
 (defun org-babel-named-src-block-regexp-for-name (&optional name)
-  "This generates a regexp used to match a source block named NAME.
+  "Generate a regexp used to match a source block named NAME.
 If NAME is nil, match any name.  Matched name is then put in
 match group 9.  Other match groups are defined in
 `org-babel-src-block-regexp'."
@@ -537,7 +540,7 @@ match group 9.  Other match groups are defined in
 	  (substring org-babel-src-block-regexp 1)))
 
 (defun org-babel-named-data-regexp-for-name (name)
-  "This generates a regexp used to match data named NAME."
+  "Generate a regexp used to match data named NAME."
   (concat org-babel-name-regexp (regexp-quote name) "[ \t]*$"))
 
 (defun org-babel--normalize-body (datum)
@@ -677,9 +680,16 @@ block."
 		      (replace-regexp-in-string
 		       (org-src-coderef-regexp coderef) "" expand nil nil 1))))
 		 (dir (cdr (assq :dir params)))
+		 (mkdirp (cdr (assq :mkdirp params)))
 		 (default-directory
-		   (or (and dir (file-name-as-directory (expand-file-name dir)))
-		       default-directory))
+		   (cond
+		    ((not dir) default-directory)
+		    ((member mkdirp '("no" "nil" nil))
+		     (file-name-as-directory (expand-file-name dir)))
+		    (t
+		     (let ((d (file-name-as-directory (expand-file-name dir))))
+		       (make-directory d 'parents)
+		       d))))
 		 (cmd (intern (concat "org-babel-execute:" lang)))
 		 result)
 	    (unless (fboundp cmd)
@@ -699,7 +709,8 @@ block."
 			       (not (listp r)))
 			  (list (list r))
 			r)))
-	      (let ((file (cdr (assq :file params))))
+	      (let ((file (and (member "file" result-params)
+			       (cdr (assq :file params)))))
 		;; If non-empty result and :file then write to :file.
 		(when file
 		  ;; If `:results' are special types like `link' or
@@ -1015,7 +1026,7 @@ evaluation mechanisms."
    (call-interactively
     (key-binding (or key (read-key-sequence nil))))))
 
-(defvar org-bracket-link-regexp)
+(defvar org-link-bracket-re)
 
 (defun org-babel-active-location-p ()
   (memq (org-element-type (save-match-data (org-element-context)))
@@ -1041,7 +1052,7 @@ exist."
        (end-of-line)
        (skip-chars-forward " \r\t\n")
        ;; Open the results.
-       (if (looking-at org-bracket-link-regexp) (org-open-at-point)
+       (if (looking-at org-link-bracket-re) (org-open-at-point)
 	 (let ((r (org-babel-format-result (org-babel-read-result)
 					   (cdr (assq :sep arguments)))))
 	   (pop-to-buffer (get-buffer-create "*Org Babel Results*"))
@@ -1295,19 +1306,6 @@ CONTEXT specifies the context of evaluation.  It can be `:eval',
        (goto-char result)
        (looking-at org-babel-result-regexp)
        (match-string-no-properties 1)))))
-
-(defun org-babel-set-current-result-hash (hash info)
-  "Set the current in-buffer hash to HASH."
-  (org-with-wide-buffer
-   (goto-char (org-babel-where-is-src-block-result nil info))
-   (looking-at org-babel-result-regexp)
-   (goto-char (match-beginning 1))
-   (mapc #'delete-overlay (overlays-at (point)))
-   (forward-char org-babel-hash-show)
-   (mapc #'delete-overlay (overlays-at (point)))
-   (replace-match hash nil nil nil 1)
-   (beginning-of-line)
-   (org-babel-hide-hash)))
 
 (defun org-babel-hide-hash ()
   "Hide the hash in the current results line.
@@ -1789,7 +1787,7 @@ to `org-babel-named-src-block-regexp'."
 	  (ignore-errors (org-next-block 1 nil regexp))))))
 
 (defun org-babel-src-block-names (&optional file)
-  "Returns the names of source blocks in FILE or the current buffer."
+  "Return the names of source blocks in FILE or the current buffer."
   (with-current-buffer (if file (find-file-noselect file) (current-buffer))
     (org-with-point-at 1
       (let ((regexp "^[ \t]*#\\+begin_src ")
@@ -1834,7 +1832,7 @@ buffer or nil if no such result exists."
 	      (throw :found (line-beginning-position)))))))))
 
 (defun org-babel-result-names (&optional file)
-  "Returns the names of results in FILE or the current buffer."
+  "Return the names of results in FILE or the current buffer."
   (save-excursion
     (when file (find-file file)) (goto-char (point-min))
     (let ((case-fold-search t) names)
@@ -2098,7 +2096,7 @@ Return nil if ELEMENT cannot be read."
      (`paragraph
       ;; Treat paragraphs containing a single link specially.
       (skip-chars-forward " \t")
-      (if (and (looking-at org-bracket-link-regexp)
+      (if (and (looking-at org-link-bracket-re)
 	       (save-excursion
 		 (goto-char (match-end 0))
 		 (skip-chars-forward " \r\t\n")
@@ -2140,7 +2138,7 @@ Return nil if ELEMENT cannot be read."
 If the path of the link is a file path it is expanded using
 `expand-file-name'."
   (let* ((case-fold-search t)
-         (raw (and (looking-at org-bracket-link-regexp)
+         (raw (and (looking-at org-link-bracket-re)
                    (org-no-properties (match-string 1))))
          (type (and (string-match org-link-types-re raw)
                     (match-string 1 raw))))
@@ -2312,7 +2310,7 @@ INFO may provide the values of these header arguments (in the
 			   (setq start inline-start)
 			   (setq finish inline-finish)
 			   (setq no-newlines t))
-			 (let ((before-finish (marker-position end)))
+			 (let ((before-finish (copy-marker end)))
 			   (goto-char end)
 			   (insert (concat finish (unless no-newlines "\n")))
 			   (goto-char beg)
@@ -2484,14 +2482,14 @@ in the buffer."
 (defun org-babel-result-end ()
   "Return the point at the end of the current set of results."
   (cond ((looking-at-p "^[ \t]*$") (point)) ;no result
-	((looking-at-p (format "^[ \t]*%s[ \t]*$" org-bracket-link-regexp))
+	((looking-at-p (format "^[ \t]*%s[ \t]*$" org-link-bracket-re))
 	 (line-beginning-position 2))
 	(t
 	 (let ((element (org-element-at-point)))
 	   (if (memq (org-element-type element)
 		     ;; Possible results types.
 		     '(drawer example-block export-block fixed-width item
-			      plain-list src-block table))
+			      plain-list special-block src-block table))
 	       (save-excursion
 		 (goto-char (min (point-max) ;for narrowed buffers
 				 (org-element-property :end element)))
@@ -2641,19 +2639,6 @@ parameters when merging lists."
 				  results
 				  (split-string
 				   (if (stringp value) value (eval value t))))))
-	  (`(,(or :file :file-ext) . ,value)
-	   ;; `:file' and `:file-ext' are regular keywords but they
-	   ;; imply a "file" `:results' and a "results" `:exports'.
-	   (when value
-	     (setq results
-		   (funcall merge results-exclusive-groups results '("file")))
-	     (unless (or (member "both" exports)
-			 (member "none" exports)
-			 (member "code" exports))
-	       (setq exports
-		     (funcall merge
-			      exports-exclusive-groups exports '("results"))))
-	     (push pair params)))
 	  (`(:exports . ,value)
 	   (setq exports (funcall merge
 				  exports-exclusive-groups
@@ -2780,11 +2765,12 @@ block but are passed literally to the \"example-block\"."
 			    (lambda (s)
 			      ;; Comment, according to LANG mode,
 			      ;; string S.  Return new string.
-			      (with-temp-buffer
-				(funcall (intern (concat lang "-mode")))
-				(comment-region (point)
-						(progn (insert s) (point)))
-				(org-trim (buffer-string)))))
+			      (unless org-babel-tangle-uncomment-comments
+				(with-temp-buffer
+				  (funcall (org-src-get-lang-mode lang))
+				  (comment-region (point)
+						  (progn (insert s) (point)))
+				  (org-trim (buffer-string))))))
 			   (expand-body
 			    (lambda (i)
 			      ;; Expand body of code blocked
@@ -2797,7 +2783,8 @@ block but are passed literally to the \"example-block\"."
 				    (concat (funcall c-wrap (car cs)) "\n"
 					    b "\n"
 					    (funcall c-wrap (cadr cs)))))))))
-		      (if (re-search-forward name-regexp nil t)
+		      (if (and (re-search-forward name-regexp nil t)
+			       (not (org-in-commented-heading-p)))
 			  ;; Found a source block named SOURCE-NAME.
 			  ;; Assume it is unique; do not look after
 			  ;; `:noweb-ref' header argument.
@@ -2808,14 +2795,16 @@ block but are passed literally to the \"example-block\"."
 			;; those with a matching Noweb reference.
 			(let ((expansion nil))
 			  (org-babel-map-src-blocks nil
-			    (let* ((info (org-babel-get-src-block-info 'light))
-				   (parameters (nth 2 info)))
-			      (when (equal source-name
-					   (cdr (assq :noweb-ref parameters)))
-				(push (funcall expand-body info) expansion)
-				(push (or (cdr (assq :noweb-sep parameters))
-					  "\n")
-				      expansion))))
+			    (unless (org-in-commented-heading-p)
+			      (let* ((info
+				      (org-babel-get-src-block-info 'light))
+				     (parameters (nth 2 info)))
+				(when (equal source-name
+					     (cdr (assq :noweb-ref parameters)))
+				  (push (funcall expand-body info) expansion)
+				  (push (or (cdr (assq :noweb-sep parameters))
+					    "\n")
+					expansion)))))
 			  (when expansion
 			    (mapconcat #'identity
 				       (nreverse (cdr expansion))
@@ -2944,8 +2933,10 @@ situations in which is it not appropriate."
 (defun org-babel--string-to-number (string)
   "If STRING represents a number return its value.
 Otherwise return nil."
-  (and (string-match-p "\\`-?[0-9]*\\.?[0-9]*\\'" string)
-       (string-to-number string)))
+  (unless (string-match-p "\\s-" (org-trim string))
+    (let ((interned-string (ignore-errors (read string))))
+      (when (numberp interned-string)
+	interned-string))))
 
 (defun org-babel-import-elisp-from-file (file-name &optional separator)
   "Read the results located at FILE-NAME into an elisp table.
@@ -2992,7 +2983,7 @@ If NAME specifies a remote location, the remote portion of the
 name is removed, since in that case the process will be executing
 remotely.  The file name is then processed by `expand-file-name'.
 Unless second argument NO-QUOTE-P is non-nil, the file name is
-additionally processed by `shell-quote-argument'"
+additionally processed by `shell-quote-argument'."
   (let ((f (org-babel-local-file-name (expand-file-name name))))
     (if no-quote-p f (shell-quote-argument f))))
 
@@ -3068,7 +3059,9 @@ of `org-babel-temporary-directory'."
 		    (delete-file file)))
 		;; We do not want to delete "." and "..".
 		(directory-files org-babel-temporary-directory 'full
-				 "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*"))
+				 ;; Note: Use `any' for compatibility
+				 ;; with Emacs < 27.
+				 (rx (or (not (any ".")) "..."))))
 	  (delete-directory org-babel-temporary-directory))
       (error
        (message "Failed to remove temporary Org-babel directory %s"

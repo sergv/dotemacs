@@ -1,6 +1,6 @@
 ;;; org-inlinetask.el --- Tasks Independent of Outline Hierarchy -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2019 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -267,17 +267,6 @@ If the task has an end part, also demote it."
 	  (when org-adapt-indentation
 	    (goto-char beg)
 	    (org-fixup-indentation diff)))))))
-
-(defun org-inlinetask-get-current-indentation ()
-  "Get the indentation of the last non-while line above this one."
-  (save-excursion
-    (beginning-of-line 1)
-    (skip-chars-backward " \t\n")
-    (beginning-of-line 1)
-    (or (org-at-item-p)
-	(looking-at "[ \t]*"))
-    (goto-char (match-end 0))
-    (current-column)))
 
 (defvar org-indent-indentation-per-level) ; defined in org-indent.el
 
