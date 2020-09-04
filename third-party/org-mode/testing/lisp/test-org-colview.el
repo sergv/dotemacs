@@ -142,7 +142,7 @@
   ;; Special case: width takes into account link narrowing in ITEM.
   (should
    (equal
-    '("* [123]" . 7)
+    '("* 123" . 5)
     (org-test-with-temp-text "* [[https://orgmode.org][123]]"
       (let ((org-columns-default-format "%ITEM")) (org-columns))
       (cons (get-char-property (point) 'org-columns-value-modified)
@@ -224,7 +224,7 @@
 :END:"
       (let ((org-columns-default-format "%A{+;%.1f}")) (org-columns))
       (get-char-property (point) 'org-columns-value-modified))))
-  ;; {:} sums times.  Plain numbers are hours.
+  ;; {:} sums times.  Plain numbers are minutes.
   (should
    (equal
     "4:10"
@@ -242,7 +242,7 @@
       (get-char-property (point) 'org-columns-value-modified))))
   (should
    (equal
-    "3:30"
+    "1:32"
     (org-test-with-temp-text
 	"* H
 ** S1
@@ -1464,6 +1464,26 @@
 :END:"
       (let ((org-columns-default-format "%ITEM %A")) (org-update-dblock))
       (buffer-substring-no-properties (point) (outline-next-heading)))))
+  ;; Test `:exclude-tags' parameter.
+  (should
+   (equal
+    "#+BEGIN: columnview :exclude-tags (\"excludeme\")
+| ITEM | A |
+|------+---|
+| H1   |   |
+#+END:
+"
+    (org-test-with-temp-text
+        "
+* H1
+<point>#+BEGIN: columnview :exclude-tags (\"excludeme\")
+#+END:
+** H1.1 :excludeme:
+:PROPERTIES:
+:A: 1
+:END:"
+      (let ((org-columns-default-format "%ITEM %A")) (org-update-dblock))
+      (buffer-substring-no-properties (point) (outline-next-heading)))))
   ;; Test `:format' parameter.
   (should
    (equal
@@ -1499,7 +1519,24 @@
     (org-test-with-temp-text
         "* H src_emacs-lisp{(+ 1 1)} 1\n<point>#+BEGIN: columnview\n#+END:"
       (let ((org-columns-default-format "%ITEM")) (org-update-dblock))
-      (buffer-substring-no-properties (point) (point-max))))))
+      (buffer-substring-no-properties (point) (point-max)))))
+  ;; Active time stamps are displayed as inactive.
+  (should
+   (equal
+    "#+BEGIN: columnview
+| ITEM | d                | s                | t                |
+|------+------------------+------------------+------------------|
+| H    | [2020-05-14 Thu] | [2020-05-11 Mon] | [2020-06-10 Wed] |
+#+END:"
+    (org-test-with-temp-text
+     "* H
+SCHEDULED: <2020-05-11 Mon> DEADLINE: <2020-05-14 Thu>
+<2020-06-10 Wed>
+<point>#+BEGIN: columnview\n#+END:"
+     (let ((org-columns-default-format
+	    "%ITEM %DEADLINE(d) %SCHEDULED(s) %TIMESTAMP(t)"))
+       (org-update-dblock))
+     (buffer-substring-no-properties (point) (point-max))))))
 
 (provide 'test-org-colview)
 ;;; test-org-colview.el ends here
