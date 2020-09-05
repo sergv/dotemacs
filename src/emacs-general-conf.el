@@ -227,6 +227,12 @@
 
 (global-font-lock-mode 1)
 
+;; Give user a chance to close file with very long lines without freezing Emacs.
+(global-so-long-mode)
+(setf so-long-variable-overrides
+      (append so-long-variable-overrides
+              '((show-trailing-whitespace . nil))))
+
 ;;;; key definitions
 
 (require 'keys-def)
