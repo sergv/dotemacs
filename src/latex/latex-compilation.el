@@ -22,15 +22,14 @@
                      #'latex-compilation-mode))
 
 (define-compilation-mode latex-compilation-mode "LaTeX"
-  (setq-local compilation-scroll-output 'first-error)
+  (setq-local compilation-scroll-output 'first-error
 
-  (setq-local compilation-error-regexp-alist
+              compilation-error-regexp-alist
               (list
                (list latex-compile-warning-regexp nil)
-               (list latex-compile-error-regexp 1 2)))
+               (list latex-compile-error-regexp 1 2))
 
-  (setq-local *compilation-jump-error-regexp*
-              latex-compile-error-regexp))
+              *compilation-jump-error-regexp* latex-compile-error-regexp))
 
 ;; Local Variables:
 ;; End:

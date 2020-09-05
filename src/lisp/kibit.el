@@ -21,13 +21,13 @@
                      2   ;; line-group
                      nil ;; column-group
                      0   ;; type - 0 - info
-                     )))
+                     ))
 
-  (set (make-local-variable '*compilation-jump-error-regexp*)
-       +kibit-error-regexp+)
+              *compilation-jump-error-regexp*
+              +kibit-error-regexp+
 
-  (set (make-local-variable 'compilation-disable-input) t)
-  (set (make-local-variable 'compilation-scroll-output) nil))
+              compilation-disable-input t
+              compilation-scroll-output nil))
 
 (defun kibit ()
   "Run kibit on the current project.

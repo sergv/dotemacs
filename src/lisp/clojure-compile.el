@@ -82,14 +82,13 @@
                      2 ;; line-group
                      3 ;; column-group
                      2 ;; type - 2 - real error
-                     )))
+                     ))
 
-  (set (make-local-variable '*compilation-jump-error-regexp*)
-       +clojure-compile-error-regexp+)
+              *compilation-jump-error-regexp* +clojure-compile-error-regexp+
 
-  (set (make-local-variable 'compilation-first-column) 1) ;; clojure counts from 1
-  (set (make-local-variable 'compilation-disable-input) t)
-  (set (make-local-variable 'compilation-scroll-output) nil))
+              compilation-first-column 1 ;; clojure counts from 1
+              compilation-disable-input t
+              compilation-scroll-output nil))
 
 
 

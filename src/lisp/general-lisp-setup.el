@@ -597,20 +597,21 @@ _cl_: comment lines"
   (rainbow-delimiters-mode 1)
   (setup-folding t '(:header-symbol ";" :length-min 3))
   ;; hiding of comments is rather annoying feature when working with lisps
-  (setq-local hs-hide-comments-when-hiding-all nil)
 
   (when use-whitespace
-    (setq-local whitespace-line-column 81)
-    (setq-local whitespace-style '(face lines-tail tabs)))
+    (setq-local whitespace-line-column 81
+                whitespace-style '(face lines-tail tabs)))
   ;; (whitespace-mode 1)
 
-  (setq-local comment-style 'indent)
-  (setq-local comment-start ";")
-  (setq-local comment-end "")
-  (setq-local comment-padding " ")
+  (setq-local hs-hide-comments-when-hiding-all nil
+              comment-style 'indent
+              comment-start ";"
+              comment-end ""
+              comment-padding " "
 
-  ;; somehow setf does not work here
-  (setq-local lisp-indent-function #'lisp-indent-function)
+              ;; somehow setf does not work here
+              lisp-indent-function #'lisp-indent-function)
+
   ;; just in case someone will want to use standard #'lisp-indent-function
   ;; put information for this case
   ;; (put 'if 'lisp-indent-function nil)
@@ -672,8 +673,8 @@ _cl_: comment lines"
   (whitespace-mode -1)
 
   ;; don't use prompt regexp to make comint use special field property
-  (setq-local comint-use-prompt-regexp nil)
-  (setq-local comint-prompt-regexp "^[^> \n\t\r\f\v]*\\(>+:?\\|[*?]+\\) *")
+  (setq-local comint-use-prompt-regexp nil
+              comint-prompt-regexp "^[^> \n\t\r\f\v]*\\(>+:?\\|[*?]+\\) *")
 
   (vim:local-emap "clear" #'vim:comint-clear-buffer-above-prompt)
 
