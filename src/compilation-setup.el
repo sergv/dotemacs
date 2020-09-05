@@ -22,19 +22,19 @@
       compilation-ask-about-save nil)
 
 (defvar-local *compilation-jump-error-regexp*
-  (rxx ((delim (or "/"
-                   "\\"))
-        (filename (+ (not (any ?/ ?\\ ?\n ?\t)))))
-    bol
-    (group (? delim)
-           (* filename
-              delim)
-           filename)
-    ":"
-    (group (+ (any (?0 . ?9))))
-    ":"
-    (group (+ (any (?0 . ?9))))
-    ":")
+  (rx-let ((delim (or "/"
+                      "\\"))
+           (filename (+ (not (any ?/ ?\\ ?\n ?\t)))))
+    (rx bol
+        (group (? delim)
+               (* filename
+                  delim)
+               filename)
+        ":"
+        (group (+ (any (?0 . ?9))))
+        ":"
+        (group (+ (any (?0 . ?9))))
+        ":"))
   "Regexp which is used by `compilation-jump-to-next-error'
 and `compilation-jump-to-prev-error' to detect errors
 in compilation or related buffers.")

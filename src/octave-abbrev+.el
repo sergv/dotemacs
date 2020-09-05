@@ -47,22 +47,22 @@ while interactively prompting for variables/messages."
             (progn
               (beginning-of-defun)
               (when (looking-at
-                     (rxx ((name (regex "[a-zA-Z_][a-zA-Z0-9_]*"))
-                           (arg-name name))
-                       "function"
-                       (??
-                        (* whitespace)
-                        arg-name
-                        (* ","
+                     (rx-let ((name (regex "[a-zA-Z_][a-zA-Z0-9_]*"))
+                              (arg-name name))
+                       (rx "function"
+                           (??
+                            (* whitespace)
+                            arg-name
+                            (* ","
+                               (* whitespace)
+                               arg-name)
+                            (* whitespace)
+                            "=")
                            (* whitespace)
-                           arg-name)
-                        (* whitespace)
-                        "=")
-                       (* whitespace)
-                       (group
-                        name)
-                       (* whitespace)
-                       "("))
+                           (group
+                            name)
+                           (* whitespace)
+                           "(")))
                 (concat
                  (upcase (match-string 1))
                  ": ")))
