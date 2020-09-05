@@ -77,17 +77,17 @@
                 nil ;; perform syntactic fontification
                 nil ;; do not ignore case
                 nil ;; no special syntax provided
-                ))
+                )
 
-  (setq-local paragraph-start (concat "^$\\|" page-delimiter))
-  (setq-local paragraph-separate paragraph-start)
-  (setq-local paragraph-ignore-fill-prefix t)
-  (setq-local require-final-newline t)
-  (setq-local comment-start "--")
-  (setq-local comment-end "")
-  (setq-local comment-column 32)
-  (setq-local comment-start-skip "--+ *")
-  (setq-local parse-sexp-ignore-comments t))
+              paragraph-start (concat "^$\\|" page-delimiter)
+              paragraph-separate paragraph-start
+              paragraph-ignore-fill-prefix t
+              require-final-newline t
+              comment-start "--"
+              comment-end ""
+              comment-column 32
+              comment-start-skip "--+ *"
+              parse-sexp-ignore-comments t))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.ag\\'" . uuag-mode))

@@ -79,12 +79,12 @@
 ;;;###autoload
 (define-derived-mode cool-mode prog-mode "Cool"
   "Major mode to edit .gitconfig files"
-  (setq-local comment-start "--+")
-  ;; (setq-local comment-end "\\*)")
-  (setq-local comment-start-skip "(\\*+ *\\|--+ *")
+  (setq-local comment-start "--+"
+              ;; comment-end "\\*)"
+              comment-start-skip "(\\*+ *\\|--+ *"
 
-  (setq-local indent-tabs-mode nil)
-  (setq-local font-lock-defaults
+              indent-tabs-mode nil
+              font-lock-defaults
               '(cool-font-lock-keywords
                 nil ;; perform syntactic fontification (e.g. strings, comments)
                 )))
