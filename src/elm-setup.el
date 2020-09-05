@@ -158,9 +158,9 @@ _a_lign"
   (pretty-ligatures-install!)
   (pretty-ligatures-install-special-haskell-ligatures!)
 
-  (setq-local elm-sort-imports-on-save t)
+  (setq-local elm-sort-imports-on-save t
 
-  (setq-local mode-line-format
+              mode-line-format
               (apply #'default-mode-line-format
                      (when flycheck-mode
                        (list

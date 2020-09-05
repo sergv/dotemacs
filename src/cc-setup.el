@@ -196,14 +196,14 @@ _o_: show c sexps in region"
   (fontify-conflict-markers!)
   (which-function-mode -1)
   (company-mode +1)
-  (setq-local company-backends '(company-eproj))
 
   (modify-syntax-entry ?_ "_")
   (modify-syntax-entry ?# ".")
 
-  (setq-local whitespace-line-column 80)
-  (setq-local whitespace-style '(face tabs lines-tail))
-  (setq-local yas-expand-fallback #'tab-to-tab-stop)
+  (setq-local company-backends '(company-eproj)
+              whitespace-line-column 80
+              whitespace-style '(face tabs lines-tail)
+              yas-expand-fallback #'tab-to-tab-stop)
 
   (setf c-tab-always-indent t)
   (c-toggle-hungry-state 1)

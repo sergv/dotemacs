@@ -39,9 +39,9 @@
 ;;;###autoload
 (define-derived-mode dante-repl-mode comint-mode "Dante-REPL"
   "Interactive prompt for Dante."
-  (setq-local comint-prompt-regexp +dante-prompt-re+)
-  ;; (setq-local warning-suppress-types (cons '(undo discard-info) warning-suppress-types))
-  (setq-local comint-prompt-read-only t)
+  (setq-local comint-prompt-regexp +dante-prompt-re+
+              ;; warning-suppress-types (cons '(undo discard-info) warning-suppress-types)
+              comint-prompt-read-only t)
   (add-hook 'completion-at-point-functions 'dante-repl-completion-at-point nil t)
   (company-mode +1))
 
