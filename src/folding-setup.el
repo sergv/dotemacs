@@ -275,9 +275,8 @@ function; and adjust-block-beginning function."
                           'selective-display
                           (string-to-vector " ..."))
 
-  (setq-local outline-regexp
-              outline-headers/header-re)
-  (setq-local outline-heading-end-regexp
+  (setq-local outline-regexp outline-headers/header-re
+              outline-heading-end-regexp
               (concat "\\(?:"
                       outline-headers/header-re
                       ".*?"

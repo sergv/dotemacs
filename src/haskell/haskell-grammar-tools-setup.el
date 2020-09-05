@@ -33,8 +33,8 @@ _I_: jump back"
     (haskell-setup-indentation
      :offset (eproj-query/haskell/indent-offset proj)
      :simpler-indentation-by-default t)
-    (setq-local tab-always-indent t)
-    (setq-local indent-line-function
+    (setq-local tab-always-indent t
+                indent-line-function
                 (lambda ()
                   (indent-to standard-indent))))
   (haskell-setup-folding :enable-hs-minor-mode t)

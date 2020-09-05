@@ -210,8 +210,8 @@ _a_lign  _t_: jump to topmost node start
       (company-mode +1)
       (setq-local company-backends '(company-files
                                      (company-eproj company-dabbrev-code)
-                                     company-dabbrev))
-      (setq-local flycheck-highlighting-mode 'symbols)
+                                     company-dabbrev)
+                  flycheck-highlighting-mode 'symbols)
 
       (dolist (entry (eproj-query/local-variables proj major-mode nil))
         (set (make-local-variable (car entry)) (cadr entry)))
@@ -257,27 +257,28 @@ _a_lign  _t_: jump to topmost node start
     ;; ghci interaction uses comint - same as shell mode
     (turn-on-font-lock)
 
-    ;; fix vim treatment of words for Haskell
-    ;; note: do not include underscore into vim:word as this would cause
-    ;; inefficiencies while navigating haskell identifiers
-    (setq-local vim:word "[:word:]'")
     ;; The underscore should remain part of word so we never search within
     ;; _c_style_identifiers.
     (modify-syntax-entry ?_  "_")
     (modify-syntax-entry ?\' "w")
     (modify-syntax-entry ?\@ "'")
 
-    (setq-local eproj-symbnav/identifier-type 'haskell-symbol)
-    (setq-local indent-region-function #'ignore)
-    (setq-local yas-indent-line 'fixed)
+    (setq-local eproj-symbnav/identifier-type 'haskell-symbol
+                indent-region-function #'ignore
+                yas-indent-line 'fixed
 
-    (setq-local indent-line-function #'ignore)
-    (setq-local abbrev+-fallback-function #'haskell-abbrev+-fallback-space)
+                ;; fix vim treatment of words for Haskell
+                ;; note: do not include underscore into vim:word as this would cause
+                ;; inefficiencies while navigating haskell identifiers
+                vim:word "[:word:]'"
 
-    (setq-local compilation-read-command nil)
-    (setq-local compilation-auto-jump-to-first-error nil)
-    ;; Don't skip any messages.
-    (setq-local compilation-skip-threshold 0)
+                indent-line-function #'ignore
+                abbrev+-fallback-function #'haskell-abbrev+-fallback-space
+
+                compilation-read-command nil
+                compilation-auto-jump-to-first-error nil
+                ;; Don't skip any messages.
+                compilation-skip-threshold 0)
 
     ;; Dante doesn't play well with idle-change checks.
     (cond
@@ -401,15 +402,15 @@ _a_lign  _t_: jump to topmost node start
                :use-fci nil)
 
   ;; To make hideshow work
-  (setq-local comment-start "--")
-  (setq-local comment-end "")
-  (setq-local comment-column 32)
-  (setq-local comment-start-skip "--+ *")
+  (setq-local comment-start "--"
+              comment-end ""
+              comment-column 32
+              comment-start-skip "--+ *"
+              indent-region-function #'ignore)
 
   (init-repl :create-keymaps t
              :bind-return nil
              :bind-vim:motion-current-line nil)
-  (setq-local indent-region-function #'ignore)
   ;; very useful to automatically surround with spaces inserted operators
   (install-haskell-smart-operators! vim:insert-mode-local-keymap
     :bind-colon nil
@@ -469,13 +470,13 @@ _a_lign  _t_: jump to topmost node start
 ;;;###autoload
 (defun haskell-cabal-setup ()
   (init-common :use-comment t :use-yasnippet t)
-  (setq-local yas-indent-line 'fixed)
   (haskell-setup-folding)
   (haskell-compilation-commands-install!)
   (fontify-merge-markers)
   (modify-syntax-entry ?. "_")
   (setup-indent-size 2)
-  (setq-local indent-line-function
+  (setq-local yas-indent-line 'fixed
+              indent-line-function
               (lambda ()
                 (indent-to standard-indent)))
 

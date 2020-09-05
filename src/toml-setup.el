@@ -17,8 +17,8 @@
                :use-whitespace 'tabs-only)
   (fontify-conflict-markers!)
 
-  (setq-local whitespace-line-column 80)
-  (setq-local whitespace-style '(face tabs lines-tail))
+  (setq-local whitespace-line-column 80
+              whitespace-style '(face tabs lines-tail))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap)

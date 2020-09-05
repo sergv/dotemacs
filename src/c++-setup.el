@@ -147,11 +147,10 @@
               '(company-clang
                 company-files
                 (company-eproj company-dabbrev-code company-keywords)
-                company-dabbrev))
-  (setq-local hs-forward-sexp-func #'c-hideshow-forward-sexp)
+                company-dabbrev)
+              hs-forward-sexp-func #'c-hideshow-forward-sexp
+              indent-tabs-mode nil)
   (setup-folding t '(:header-symbol "/" :length-min 3))
-
-  (setq-local indent-tabs-mode nil)
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("SPC SPC" c++-find-related-file))

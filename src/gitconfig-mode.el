@@ -17,10 +17,10 @@
 
 (define-derived-mode gitconfig-mode text-mode "Gitconfig"
   "Major mode to edit .gitconfig files"
-  (setq-local comment-start "# ")
-  (setq-local comment-start-skip "#+ *")
-  (setq-local indent-tabs-mode nil)
-  (setq-local font-lock-defaults
+  (setq-local comment-start "# "
+              comment-start-skip "#+ *"
+              indent-tabs-mode nil
+              font-lock-defaults
               '(gitconfig-font-lock-keywords
                 nil ;; perform syntactic fontification (e.g. strings, comments)
                 )))

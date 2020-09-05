@@ -33,9 +33,9 @@ the command to execute.")
              (or (cdr-safe (assq 'build (symbol-value configurable-compilation-command-presets-var)))
                  (error "Failed to set up configurable-compile-cabal-build-command"))
              configurable-compilation-last-command))
-  (setq-local configurable-compilation-history-var history-var)
-  (setq-local configurable-compilation-mode compilation-mode)
-  (setq-local configurable-compilation-make-buffer-name make-buffer-name))
+  (setq-local configurable-compilation-history-var history-var
+              configurable-compilation-mode compilation-mode
+              configurable-compilation-make-buffer-name make-buffer-name))
 
 (defun configurable-compilation-start (&optional edit-command)
   "Run a compile command for the current Haskell buffer."

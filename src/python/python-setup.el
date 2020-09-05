@@ -332,14 +332,13 @@ greater indenation as current line."
                      2   ;; LINE
                      nil ;; COLUMN - no column present
                      nil ;; TYPE - error
-                     )))
+                     ))
 
-  (setq-local *compilation-jump-error-regexp*
-              +python-run-error-regexp+)
+              *compilation-jump-error-regexp* +python-run-error-regexp+
 
-  (setq-local compilation-first-column t)
-  (setq-local compilation-disable-input t)
-  (setq-local compilation-scroll-output t)
+              compilation-first-column t
+              compilation-disable-input t
+              compilation-scroll-output t)
 
   (def-keys-for-map python-run-mode-map
     ("<up>"   compilation-jump-to-prev-error)
