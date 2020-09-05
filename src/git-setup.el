@@ -322,7 +322,8 @@ _w_indow"
 
     ("k"               magit-unstage)
     ("K"               magit-unstage-all)
-    ("x"               magit-reset-popup)
+    ("x"               magit-reset-quickly)
+    ("X"               magit-reset-popup)
 
     ;; ("SPC"             magit-visit-thing-other-window)
     (("TAB" "<tab>")   magit-section-cycle)
