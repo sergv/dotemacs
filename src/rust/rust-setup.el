@@ -79,13 +79,13 @@ warnings will be colorized in `rust-compilation-mode'.")
               (append (list rustc-compilation-regexps
                             rustc-colon-compilation-regexps
                             cargo-compilation-regexps)
-                      rust-compilation-extra-error-modes))
-  (setq-local *compilation-jump-error-regexp*
+                      rust-compilation-extra-error-modes)
+              *compilation-jump-error-regexp*
               (mapconcat (lambda (x) (concat "\\(?:" (car x) "\\)"))
                          (-filter #'listp compilation-error-regexp-alist)
-                         "\\|"))
+                         "\\|")
 
-  (setq-local compilation-environment '("TERM=xterm-256color"))
+              compilation-environment '("TERM=xterm-256color"))
 
   (vim:local-emap "c" 'vim:recompile)
 
@@ -148,10 +148,10 @@ _a_lign  _t_: beginning of defun
   (setq-local company-backends
               '(company-files
                 (company-eproj company-dabbrev-code company-keywords)
-                company-dabbrev))
-  ;; Don't skip any messages.
-  (setq-local compilation-skip-threshold 0)
-  (setq-local compilation-buffer-name-function #'rust-get-compilation-buffer-name)
+                company-dabbrev)
+              ;; Don't skip any messages.
+              compilation-skip-threshold 0
+              compilation-buffer-name-function #'rust-get-compilation-buffer-name)
 
   (pretty-ligatures--install pretty-ligatures-rust-symbols)
   (rust-compilation-commands-install!)
@@ -190,10 +190,10 @@ _a_lign  _t_: beginning of defun
             (when flycheck-mode
               (flycheck-mode -1)))))))
 
-  (setq-local whitespace-line-column 80)
-  (setq-local whitespace-style '(face tabs lines-tail))
+  (setq-local whitespace-line-column 80
+              whitespace-style '(face tabs lines-tail)
 
-  (setq-local mode-line-format
+              mode-line-format
               (apply #'default-mode-line-format
                      (when flycheck-mode
                        (list

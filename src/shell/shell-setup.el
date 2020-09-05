@@ -139,8 +139,8 @@ MSYS-style drives, e.g. \"/c/foo/bar.txt\" -> \"c:/foo/bar.txt\"."
   (setf dirtrack-list '("^[^: \r\n]+:\\([^$\r\n]+\\)[$#]" 1))
   (dirtrack-mode +1)
 
-  (setq-local comment-start "#")
-  (setq-local comment-end   "")
+  (setq-local comment-start "#"
+              comment-end   "")
   (setup-folding t nil)
 
   (with-editor-export-editor)

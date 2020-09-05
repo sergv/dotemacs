@@ -71,18 +71,19 @@
   (set (make-local-variable 'font-lock-defaults)
        '(alex-mode-font-lock-keywords))
 
-  (setq-local paragraph-start (concat "^$\\|" page-delimiter))
-  (setq-local paragraph-separate paragraph-start)
-  (setq-local paragraph-ignore-fill-prefix t)
-  (setq-local indent-line-function 'alex-indent-line)
-  (setq-local require-final-newline t)
-  (setq-local comment-start "--")
-  (setq-local comment-end "")
-  (setq-local comment-column 32)
-  (setq-local comment-start-skip "--+ *")
-  (setq-local parse-sexp-ignore-comments t)
-  ;; (setq-local selective-display t)
-  ;; (setq-local selective-display-ellipses t)
+  (setq-local paragraph-start (concat "^$\\|" page-delimiter)
+              paragraph-separate paragraph-start
+              paragraph-ignore-fill-prefix t
+              indent-line-function 'alex-indent-line
+              require-final-newline t
+              comment-start "--"
+              comment-end ""
+              comment-column 32
+              comment-start-skip "--+ *"
+              parse-sexp-ignore-comments t
+              ;; selective-display t
+              ;; selective-display-ellipses t
+              )
   (make-local-variable 'block-indent-level)
   (make-local-variable 'auto-fill-hook))
 

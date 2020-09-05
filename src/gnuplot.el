@@ -44,13 +44,12 @@
 
   (setq-local compilation-error-regexp-alist
               (list
-               (list gnuplot-error-regexp 1 2 nil 2)))
+               (list gnuplot-error-regexp 1 2 nil 2))
 
-  (setq-local *compilation-jump-error-regexp*
-              gnuplot-error-regexp)
+              *compilation-jump-error-regexp* gnuplot-error-regexp
 
-  (setq-local compilation-disable-input t)
-  (setq-local compilation-scroll-output nil)
+              compilation-disable-input t
+              compilation-scroll-output nil)
 
   ;; (setq-local compilation-finish-functions
   ;; (list ',(intern (concat nm "-finish-hook"))))

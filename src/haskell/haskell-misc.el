@@ -58,12 +58,12 @@ single indentation unit."
         ("C-S-<iso-lefttab>" indent-relative-backward))))
 
   (let ((real-offset (or offset 2)))
-    (setq-local vim:shift-width                    real-offset)
-    (setq-local tab-width                          real-offset)
-    (setq-local haskell-indent-offset              real-offset)
-    (setq-local haskell-indentation-layout-offset  real-offset)
-    (setq-local haskell-indentation-starter-offset real-offset)
-    (setq-local haskell-indentation-left-offset    real-offset)
+    (setq-local vim:shift-width                    real-offset
+                tab-width                          real-offset
+                haskell-indent-offset              real-offset
+                haskell-indentation-layout-offset  real-offset
+                haskell-indentation-starter-offset real-offset
+                haskell-indentation-left-offset    real-offset)
     (haskell-abbrev+-setup nil)))
 
 (defmacro haskell-misc--with-expanded-invisible-overlays-in-current-function (&rest body)

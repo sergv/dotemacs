@@ -9,11 +9,11 @@
 ;;;###autoload
 (defun setup-indent-size (width)
   (declare (pure nil) (side-effect-free nil))
-  (setq-local vim:shift-width width)
-  (setq-local standard-indent width)
-  ;; Affects only tab display.
-  (setq-local tab-width width)
-  (setq-local tab-always-indent t))
+  (setq-local vim:shift-width width
+              standard-indent width
+              ;; Affects only tab display.
+              tab-width width
+              tab-always-indent t))
 
 (defconst +buffer-indent-temporary-filename+
   (concat temporary-file-directory "/indent-buffer.tmp")

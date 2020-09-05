@@ -20,16 +20,13 @@
 (defun java-setup ()
   (cc-setup :define-special-keys nil)
   (setup-folding t '(:header-symbol "/" :length-min 3))
-  (setf c-basic-offset 4)
-  (setq-local vim:shift-width 4)
-  (setq-local c-indentation-indent-style
-              "java-standard"
+  (setq-local c-basic-offset 4
+              vim:shift-width 4
+              c-indentation-indent-style "java-standard"
               ;; "java-clojure"
-              )
-  ;; indent with tabs
-  (setq-local whitespace-style '(face tabs space-after-tab space-before-tab))
-  (setq-local indent-tabs-mode t)
-
+              whitespace-style '(face tabs space-after-tab space-before-tab)
+              ;; indent with tabs
+              indent-tabs-mode t)
   (setup-eproj-symbnav)
   (java-abbrev+-setup))
 

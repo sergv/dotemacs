@@ -372,8 +372,8 @@ _j_: send region"
                :use-whitespace 'tabs-only)
   (setup-folding t nil)
 
-  (setq-local yas/indent-line 'fixed)
-  (setq-local hs-set-up-overlay
+  (setq-local yas/indent-line 'fixed
+              hs-set-up-overlay
               (lambda (ov)
                 (when (eq 'code (overlay-get ov 'hs))
                   (overlay-put ov

@@ -206,7 +206,8 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
   (setup-folding t nil)
   (hl-tags-mode t)
 
-  (setq-local yas-fallback-behavior 'call-other-command)
+  (setq-local yas-fallback-behavior 'call-other-command
+              *markup-tags-context-func* tags-context-func)
 
   (put 'hs-set-up-overlay 'permanent-local t)
 
@@ -214,7 +215,6 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
 
   (font-lock-add-keywords nil *hexcolour-keywords*)
 
-  (setq-local *markup-tags-context-func* tags-context-func)
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("<up>"   sgml-skip-tag-backward)

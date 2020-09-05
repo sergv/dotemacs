@@ -99,13 +99,13 @@
                    +tmp-path+
                    input-file
                    tmp-file
-                   result-file)))
+                   result-file))
 
-    ;; don't ask - just compile
-    (setq-local compilation-read-command nil)
-    (setq-local compilation-auto-jump-to-first-error nil)
-    ;; don't skip any messages
-    (setq-local compilation-skip-threshold 0))
+                ;; don't ask - just compile
+                compilation-read-command nil
+                compilation-auto-jump-to-first-error nil
+                ;; don't skip any messages
+                compilation-skip-threshold 0))
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("S-<f9>"       open-buffer-as-pdf)

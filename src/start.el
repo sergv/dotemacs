@@ -157,10 +157,10 @@ or not.")
                         (create-keymaps nil)
                         (bind-vim:motion-current-line t))
   (use-repl-modeline :show-directory show-directory)
-  (setq-local *vim:do-not-adjust-point* t)
-  (setq-local vim:insert-mode-exit-move-point 'dont-move-at-line-end)
+  (setq-local *vim:do-not-adjust-point* t
+              vim:insert-mode-exit-move-point 'dont-move-at-line-end
+              global-auto-revert-ignore-buffer t)
   (emacs-forget-buffer-process)
-  (setq-local global-auto-revert-ignore-buffer t)
 
   (when create-keymaps
     (vim:bind-local-keymaps))
