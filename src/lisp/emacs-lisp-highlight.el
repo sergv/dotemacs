@@ -45,50 +45,51 @@ with exclamation mark"
 
 (defconst +emacs-lisp-basic-keywords+
   (eval-when-compile
-    `( ;; support nearly full numeric tower
+    `(;; support nearly full numeric tower
       ;; upd: full numeric tower is supported (? needs tests)
       ;; upd upd: rationals were not handled properly, merged with integers
       ;; - everything else seems to work fine
-      (,(rxx ((int-or-rat (seq (? (regexp "[+-]"))
-                               (+ digit)
-                               ;; now rationals go here
-                               (? "/"
-                                  (+ digit))))
-              (binary      (seq "#b" (+ (regexp "[01]"))))
-              (octal       (seq "#o" (+ (regexp "[0-7]"))))
-              (hexadecimal (seq "#x" (+ (regexp "[0-9abcdefABCDEF]"))))
-              ;; (rational    (seq integer "/" integer))
-              (float-point (seq (? (regexp "[+-]"))
-                                (or (seq (+ digit)
-                                         (? "." (* digit)))
-                                    (seq (* digit)
-                                         "." (+ digit)))))
-              (float       (seq float-point
-                                (? (regexp "[deDE]")
-                                   float-point)))
-              (number (seq (or (seq symbol-start
-                                    (or int-or-rat
-                                        float))
-                               binary
-                               octal
-                               hexadecimal)
-                           symbol-end))
-              ;; (number (seq (or int-or-rat
-              ;;                  binary
-              ;;                  octal
-              ;;                  hexadecimal
-              ;;                  ;; rational
-              ;;                  float)
-              ;;              symbol-end))
-              (complex (seq "#c("
-                            (* whitespace)
-                            number
-                            (+ whitespace)
-                            number
-                            (* whitespace)
-                            ")")))
-          (or number
-              complex))
+      (,(rx-let ((int-or-rat (seq (? (regexp "[+-]"))
+                                  (+ digit)
+                                  ;; now rationals go here
+                                  (? "/"
+                                     (+ digit))))
+                 (binary      (seq "#b" (+ (regexp "[01]"))))
+                 (octal       (seq "#o" (+ (regexp "[0-7]"))))
+                 (hexadecimal (seq "#x" (+ (regexp "[0-9abcdefABCDEF]"))))
+                 ;; (rational    (seq integer "/" integer))
+                 (float-point (seq (? (regexp "[+-]"))
+                                   (or (seq (+ digit)
+                                            (? "." (* digit)))
+                                       (seq (* digit)
+                                            "." (+ digit)))))
+                 (float       (seq float-point
+                                   (? (regexp "[deDE]")
+                                      float-point)))
+                 (number (seq (or (seq symbol-start
+                                       (or int-or-rat
+                                           float))
+                                  binary
+                                  octal
+                                  hexadecimal)
+                              symbol-end))
+                 ;; (number (seq (or int-or-rat
+                 ;;                  binary
+                 ;;                  octal
+                 ;;                  hexadecimal
+                 ;;                  ;; rational
+                 ;;                  float)
+                 ;;              symbol-end))
+                 (complex (seq "#c("
+                               (* whitespace)
+                               number
+                               (+ whitespace)
+                               number
+                               (* whitespace)
+                               ")")))
+          (rx
+           (or number
+               complex)))
        (0 'emacs-lisp-constant-face))
 
       ("\\_<\\(?:\\(?:[^: \t\n\r]+:\\)?\\(\\+[^+ \n\t\r\f]+\\+\\)\\)\\_>"

@@ -29,7 +29,6 @@
          "when-let"
          "def-keys-for-map"
          "defvar-local"
-         "rxx"
          "with-disabled-undo"
          "with-current-frame"
          "with-preserved-buffer-modified-p"
@@ -46,7 +45,6 @@
     (awhen 1)
     (def-keys-for-map 1)
     (condition-case 2)
-    (rxx 1)
     (define-derived-mode 3)
     (with-disabled-undo nil)
     (with-current-frame 1)
