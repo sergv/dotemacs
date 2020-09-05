@@ -55,14 +55,14 @@
                                             "gs")
                                         eot)
                                     ext)
-                    (looking-at-p (rxx ((wh (or whitespace (char ?\n))))
-                                    bot
-                                    (* anything)
-                                    "#"
-                                    (* wh)
-                                    "version"
-                                    (+ wh)
-                                    (+ (or digit "."))))))))))
+                    (looking-at-p (rx-let ((wh (or whitespace (char ?\n))))
+                                    (rx bot
+                                        (* anything)
+                                        "#"
+                                        (* wh)
+                                        "version"
+                                        (+ wh)
+                                        (+ (or digit ".")))) )))))))
 
 ;;;###autoload
 (push (cons #'glsl-file-magic-function #'glsl-mode) magic-mode-alist)

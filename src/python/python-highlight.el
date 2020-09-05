@@ -39,22 +39,22 @@
 
 
 (defconst +python-plain-format-directive-regexp+
-  (rxx ((conversion-flag (regexp "[#0- +]"))
-        (numbers-or-star (or (+ numeric)
-                             "*"))
-        (minimum-field-width numbers-or-star)
-        (precision (seq "." numbers-or-star))
-        (length-modifier (regexp "[hlL]"))
+  (rx-let ((conversion-flag (regexp "[#0- +]"))
+           (numbers-or-star (or (+ numeric)
+                                "*"))
+           (minimum-field-width numbers-or-star)
+           (precision (seq "." numbers-or-star))
+           (length-modifier (regexp "[hlL]"))
 
-        (conversion-type (regexp "[diouxXeEfFgGcrs%]")))
-    "%"
-    (? "(" (regexp "[^()]") ")")
-    ;; (* (regexp "[#-+ 0-9*.hlL]"))
-    (* conversion-flag)
-    (? minimum-field-width)
-    (? precision)
-    (? length-modifier)
-    conversion-type))
+           (conversion-type (regexp "[diouxXeEfFgGcrs%]")))
+    (rx "%"
+        (? "(" (regexp "[^()]") ")")
+        ;; (* (regexp "[#-+ 0-9*.hlL]"))
+        (* conversion-flag)
+        (? minimum-field-width)
+        (? precision)
+        (? length-modifier)
+        conversion-type)))
 
 (make-highlight-procedure
  python-highlight-format-plain-directives
@@ -63,56 +63,56 @@
 
 
 (defconst +python-fancy-format-directive-regexp+
-  (rxx ((binary      (seq (regexp "[bB]")
-                          (+ (regexp "[01]"))))
-        (octal       (seq (? (regexp "[oO]"))
-                          (+ (regexp "[0-7]"))))
-        (hexadecimal (seq (regexp "[xX]")
-                          (+ hex-digit)))
-        (integer     (or (+ digit) (seq "0"
-                                        (or binary
-                                            octal
-                                            hexadecimal))))
-        (identifier  (regexp "[a-zA-Z_][a-zA-Z0-9_]*"))
+  (rx-let ((binary      (seq (regexp "[bB]")
+                             (+ (regexp "[01]"))))
+           (octal       (seq (? (regexp "[oO]"))
+                             (+ (regexp "[0-7]"))))
+           (hexadecimal (seq (regexp "[xX]")
+                             (+ hex-digit)))
+           (integer     (or (+ digit) (seq "0"
+                                           (or binary
+                                               octal
+                                               hexadecimal))))
+           (identifier  (regexp "[a-zA-Z_][a-zA-Z0-9_]*"))
 
-        (index-string (+ (regexp "[^]]")))
+           (index-string (+ (regexp "[^]]")))
 
-        (element-index (or integer index-string))
-        (attribute-name identifier)
-        (arg-name (or identifier integer))
-        (field-name (seq arg-name
-                         (* (or (seq "."
-                                     attribute-name)
-                                (seq "["
-                                     element-index
-                                     "]")))))
+           (element-index (or integer index-string))
+           (attribute-name identifier)
+           (arg-name (or identifier integer))
+           (field-name (seq arg-name
+                            (* (or (seq "."
+                                        attribute-name)
+                                   (seq "["
+                                        element-index
+                                        "]")))))
 
-        (conversion (regexp "[rs]"))
+           (conversion (regexp "[rs]"))
 
-        (fill (regexp "[^}]"))
-        (align (regexp "[<>=^]"))
-        (sign  (or "+" "-"))
-        (format-width integer)
-        (format-precision integer)
-        (format-type (regexp "[bcdeEfFgGnosxX%]"))
+           (fill (regexp "[^}]"))
+           (align (regexp "[<>=^]"))
+           (sign  (or "+" "-"))
+           (format-width integer)
+           (format-precision integer)
+           (format-type (regexp "[bcdeEfFgGnosxX%]"))
 
-        (format-spec (seq (? (? fill)
-                             align)
-                          (? sign)
-                          (? "#")
-                          (? "0")
-                          (? format-width)
-                          (? ",")
-                          (? "." format-precision)
-                          (? format-type)))
+           (format-spec (seq (? (? fill)
+                                align)
+                             (? sign)
+                             (? "#")
+                             (? "0")
+                             (? format-width)
+                             (? ",")
+                             (? "." format-precision)
+                             (? format-type)))
 
-        (fancy-formatting (seq "{"
-                               ;; (*? (regexp "[^}]"))
-                               (? field-name)
-                               (? "!" conversion)
-                               (? ":" format-spec)
-                               "}")))
-    fancy-formatting))
+           (fancy-formatting (seq "{"
+                                  ;; (*? (regexp "[^}]"))
+                                  (? field-name)
+                                  (? "!" conversion)
+                                  (? ":" format-spec)
+                                  "}")))
+    (rx fancy-formatting)))
 
 (make-highlight-procedure
  python-highlight-format-fancy-directives
@@ -324,40 +324,39 @@
   "Standard Python keywords and tokens highlighted with regexps")
 
 (defconst +python-highlight-constants+
-  `((,(rxx ((sign        (or "-" "+"))
-            (integer     (+ digit))
-            (binary      (seq (regexp "[bB]")
-                              (+ (regexp "[01]"))))
-            (octal       (seq (? (regexp "[oO]"))
-                              (+ (regexp "[0-7]"))))
-            (hexadecimal (seq (or "x" "X")
-                              (+ hex-digit)))
+  `((,(rx-let ((sign        (or "-" "+"))
+               (integer     (+ digit))
+               (binary      (seq (regexp "[bB]")
+                                 (+ (regexp "[01]"))))
+               (octal       (seq (? (regexp "[oO]"))
+                                 (+ (regexp "[0-7]"))))
+               (hexadecimal (seq (or "x" "X")
+                                 (+ hex-digit)))
 
-            (float-point (seq (? sign)
-                              symbol-start
-                              (or (seq (+ digit)
-                                       (? "." (* digit)))
-                                  (seq (* digit)
-                                       "." (+ digit)))))
-            (float       (seq float-point
-                              (? (or "e" "E")
-                                 float-point)))
+               (float-point (seq (? sign)
+                                 symbol-start
+                                 (or (seq (+ digit)
+                                          (? "." (* digit)))
+                                     (seq (* digit)
+                                          "." (+ digit)))))
+               (float       (seq float-point
+                                 (? (or "e" "E")
+                                    float-point)))
 
-            (complex     (seq (or integer float) (or "j" "J")))
+               (complex     (seq (or integer float) (or "j" "J")))
 
-            (number (or (seq (? sign)
-                             symbol-start
-                             (or integer
-                                 (seq "0"
-                                      (or binary
-                                          octal
-                                          hexadecimal)))
-                             (? (or "l" "L")))
-                        float
-                        complex)))
-        number
-        symbol-end)
-
+               (number (or (seq (? sign)
+                                symbol-start
+                                (or integer
+                                    (seq "0"
+                                         (or binary
+                                             octal
+                                             hexadecimal)))
+                                (? (or "l" "L")))
+                           float
+                           complex)))
+        (rx number
+            symbol-end))
      (0 'python-constant-face))
 
     (,(rx symbol-start
