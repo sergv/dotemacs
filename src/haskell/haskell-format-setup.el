@@ -42,13 +42,13 @@
                     (when (re-search-forward "\\_<module\\_>[ \r\n]" nil t)
                       (match-beginning 0))))))
           (while (re-search-forward
-                  (rxx ((whitespace (* (regexp "[ \v\f\r\n]"))))
-                    "{-#"
-                    whitespace
-                    "LANGUAGE"
-                    (group (regexp "\\(?:.\\|[\r\n]\\)*?"))
-                    whitespace
-                    "#-}")
+                  (rx-let ((wh (* (regexp "[ \v\f\r\n]"))))
+                    (rx "{-#"
+                        wh
+                        "LANGUAGE"
+                        (group (regexp "\\(?:.\\|[\r\n]\\)*?"))
+                        wh
+                        "#-}"))
                   module-header-position ;; bound
                   t                      ;; no error
                   )
