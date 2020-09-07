@@ -61,14 +61,17 @@
     ("E" vim-mock:motion-fwd-WORD-end)))
 
 (defconst +vim-interbuffer-navigation-keys+
-  '(("<home>"    next-f)
-    ("<end>"     prev-f)
-    ("S-<home>"  swap-buffers-forward-through-frames)
-    ("S-<end>"   swap-buffers-backward-through-frames)
-    ("<left>"    prev-w)
-    ("<right>"   next-w)
-    ("S-<left>"  swap-buffers-backward)
-    ("S-<right>" swap-buffers-forward)))
+  '(("<home>"     tab-next)
+    ("<end>"      tab-previous)
+
+    ("C-<home>"   next-f)
+    ("C-<end>"    prev-f)
+    ("C-S-<home>" swap-buffers-forward-through-frames)
+    ("C-S-<end>"  swap-buffers-backward-through-frames)
+    ("<left>"     prev-w)
+    ("<right>"    next-w)
+    ("S-<left>"   swap-buffers-backward)
+    ("S-<right>"  swap-buffers-forward)))
 
 (defconst +vim-character-navigation-keys+
   '(("C-<down>"  forward-line)
