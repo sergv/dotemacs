@@ -34,7 +34,7 @@ like \"d w\".")
   "
 _t_oggle   _cc_: comment         _sw_: replace word
 _w_indows  _cu_: uncomment       _sW_: relpace WORD
-         _cd_: delete comment  _ss_: replace symbol
+ta_b_s     _cd_: delete comment  _ss_: replace symbol
 
 _(d_: (a | b)         -> |b               _((_: a (b | …) -> (a b | …)
 _)d_: (a | b)         -> a|               _()_: a (b | …) -> a b (| …)
@@ -48,6 +48,7 @@ _S_plit sexp: (a | b)         -> (a) |(b)
 _J_oin sexp:  (a) | (b)       -> (a |  b)"
   ("w"   hydra-window-management/body)
   ("t"   toggle)
+  ("b"   hydra-tab-management/body)
 
   ("cc"  comment-util-comment-lines)
   ("cu"  comment-util-uncomment-region)
@@ -157,6 +158,35 @@ _<up>_:    enlarge vertically"
   ("<right>" enlarge-window-horizontally :exit nil)
   ("<up>"    enlarge-window :exit nil)
   ("<down>"  shrink-window :exit nil))
+
+(defun sergv-move-tab-to-the-right ()
+  (interactive)
+  (tab-bar-move-tab 1))
+
+(defun sergv-move-tab-to-the-left ()
+  (interactive)
+  (tab-bar-move-tab -1))
+
+(defhydra-ext hydra-tab-management (:exit t :foreign-keys warn :hint nil)
+  "
+_n_ew
+_c_lose
+_o_nly (close other)
+_u_ndo
+_s_elect by name
+_r_ename
+
+_<left>_:  move tab to the left
+_<right>_: move tab to the right"
+  ("n" tab-new)
+  ("c" tab-close)
+  ("o" tab-close-other)
+  ("u" tab-undo)
+  ("s" tab-bar-select-tab-by-name)
+  ("r" tab-rename)
+
+  ("<left>"  sergv-move-tab-to-the-left :exit nil)
+  ("<right>" sergv-move-tab-to-the-left :exit nil))
 
 ;; redefine motions
 
