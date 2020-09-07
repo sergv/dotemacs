@@ -75,7 +75,7 @@
   ;; taken from pp.el
   (insert (pp-to-string (macroexpand-all (pp-last-sexp)))))
 
-(defhydra-derive hydra-lisp-vim-normal-j-ext hydra-lisp-vim-normal-j-ext (:exit t :foreign-keys nil :hint nil)
+(defhydra-derive hydra-emacs-lisp-vim-normal-j-ext hydra-lisp-vim-normal-j-ext (:exit t :foreign-keys nil :hint nil)
   "
 _j_: eval"
   ("j" eval-last-sexp))
@@ -101,7 +101,7 @@ expand _m_acro  _M_: fully expand macro"
                      'paredit-close-round)
 
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("j"       hydra-lisp-vim-normal-j-ext/body)
+    ("j"       hydra-emacs-lisp-vim-normal-j-ext/body)
     ("-"       hydra-emacs-lisp-dash/body)
 
     ("M-:"     nil)
