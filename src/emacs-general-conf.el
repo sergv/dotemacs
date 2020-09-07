@@ -243,6 +243,20 @@
       fci-rule-column 80
       fill-colunm 80)
 
+;;;; tab bar
+
+;; hide tab bar if there's only one tab
+(setf tab-bar-show 1
+      ;; Open current buffer in new tab
+      tab-bar-new-tab-choice t
+      tab-bar-close-button-show nil
+      tab-bar-new-button-show nil
+      tab-bar-tab-hints t
+      tab-bar-tab-name-function #'tab-bar-tab-name-current-with-count
+      tab-bar-new-tab-to 'right)
+
+(tab-bar-mode 1)
+
 ;;;; customizations without dedicated setup file
 
 (eval-after-load "term" ;; ansi-term et al
