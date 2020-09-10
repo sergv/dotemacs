@@ -367,7 +367,7 @@ _w_indow"
 
 (defun magit-revision-mode-setup ()
   "Setup for commit browsing mode."
-  (fci-mode -1)
+  (display-fill-column-indicator-mode -1)
   ;; Do show continuation lines.
   (setq-local truncate-lines nil)
   (magit-bind-common-vimless-mode-keymap magit-revision-mode-map))
