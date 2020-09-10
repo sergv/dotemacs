@@ -143,10 +143,16 @@ _c_lose      _h_orizontal split
 _o_nly       _v_ertical split
 _t_ranspose
 
-_<left>_:  shrink horizontally
-_<right>_: enlarge horizontally
-_<down>_:  shrink vertically
-_<up>_:    enlarge vertically"
+_<left>_:    shrink horizontally
+_<right>_:   enlarge horizontally
+_<down>_:    shrink vertically
+_<up>_:      enlarge vertically
+
+_S-<left>_:  fast shrink horizontally
+_S-<right>_: fast enlarge horizontally
+_S-<down>_:  fast shrink vertically
+_S-<up>_:    fast enlarge vertically
+"
   ("c" delete-window)
   ("o" delete-other-windows)
   ("t" transpose-windows)
@@ -157,7 +163,12 @@ _<up>_:    enlarge vertically"
   ("<left>"  shrink-window-horizontally :exit nil)
   ("<right>" enlarge-window-horizontally :exit nil)
   ("<up>"    enlarge-window :exit nil)
-  ("<down>"  shrink-window :exit nil))
+  ("<down>"  shrink-window :exit nil)
+
+  ("S-<left>"  shrink-window-horizontally-fast :exit nil)
+  ("S-<right>" enlarge-window-horizontally-fast :exit nil)
+  ("S-<up>"    enlarge-window-fast :exit nil)
+  ("S-<down>"  shrink-window-fast :exit nil))
 
 (defun sergv-move-tab-to-the-right ()
   (interactive)
