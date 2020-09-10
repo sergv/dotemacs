@@ -30,6 +30,7 @@
 
 ;;;###autoload
 (defun browse-kill-ring-mode-setup ()
+  (hl-line-mode +1)
   (setq-local mode-line-format
               '(" %[%b%] "
                 (:eval (when buffer-read-only
