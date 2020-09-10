@@ -39,20 +39,29 @@
       whitespace-global-modes nil)
 
 (defconst +do-not-track-long-lines-modes+
-  '(lisp-interaction-mode
-    inferior-scheme-mode
-    prolog-inferior-mode
-    comint-mode
-    inferior-octave-mode
-    python-repl-mode
-    dante-repl-mode
+  (let ((tbl (make-hash-table :test #'eq)))
+    (dolist (mode
+             '(lisp-interaction-mode
+               inferior-scheme-mode
+               prolog-inferior-mode
+               comint-mode
+               inferior-octave-mode
+               python-repl-mode
+               dante-repl-mode
 
-    makefile-automake-mode
-    makefile-bsdmake-mode
-    makefile-gmake-mode
-    makefile-imake-mode
-    makefile-mode
-    makefile-makepp-mode))
+               makefile-automake-mode
+               makefile-bsdmake-mode
+               makefile-gmake-mode
+               makefile-imake-mode
+               makefile-mode
+               makefile-makepp-mode
+
+               magit-revision-mode
+               magit-reflog-mode
+               magit-refs-mode
+               magit-status-mode))
+      (puthash mode t tbl))
+    tbl))
 
 (defun vim:bind-local-keymaps ()
   (setf vim:normal-mode-local-keymap              (make-sparse-keymap)
@@ -61,19 +70,6 @@
         vim:operator-pending-mode-local-keymap    (make-sparse-keymap)
         vim:motion-mode-local-keymap              (make-sparse-keymap)
         vim:complex-command-override-local-keymap (make-sparse-keymap)))
-
-(defvar disable-fci-mode? nil
-  "Variable to control, whether to enable `fci-mode' in new buffers
-or not.")
-
-(defmacro with-disabled-fci (&rest body)
-  (let ((old-val-var (gensym "Old-value")))
-    `(let ((,old-val-var disable-fci-mode?))
-       (unwind-protect
-           (progn
-             (setf disable-fci-mode? t)
-             ,@body)
-         (setf disable-fci-mode? ,old-val-var)))))
 
 (defun* init-common (&key (use-yasnippet t)
                           (use-comment t)
@@ -99,8 +95,9 @@ or not.")
 
   (when use-whitespace
     (when (and (not (eq? use-whitespace 'tabs-only))
-               (memq major-mode
-                     +do-not-track-long-lines-modes+))
+               (gethash major-mode
+                        +do-not-track-long-lines-modes+
+                        nil))
       (error "Shouldn't have enabled whitespace-mode in %s" major-mode))
     (when (eq? use-whitespace 'tabs-only)
       (setq-local whitespace-style '(face tabs)))
@@ -135,11 +132,11 @@ or not.")
     ("M-<up>"    sp-splice-sexp-killing-backward)
     ("M-<down>"  sp-splice-sexp-killing-forward))
 
-  (when (and use-fci
-             (not disable-fci-mode?))
+  (when use-fci
     (setf display-fill-column-indicator-column 80)
-    (display-fill-column-indicator-mode (if (memq major-mode
-                                                  +do-not-track-long-lines-modes+)
+    (display-fill-column-indicator-mode (if (gethash major-mode
+                                                     +do-not-track-long-lines-modes+
+                                                     t)
                                             -1
                                           +1)))
   (pcase hl-parens-backend

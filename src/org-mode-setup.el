@@ -315,24 +315,20 @@ which enable the original code blocks to be found."
 
 (vim:defcmd vim:org-mode-make-revealjs-presentation (nonrepeatable)
   (save-buffer)
-  (with-disabled-fci
-   (org-reveal-export-to-html))
+  (org-reveal-export-to-html)
   (message "Done"))
 
 (vim:defcmd vim:org-mode-export (nonrepeatable)
   (save-buffer)
-  (with-disabled-fci
-   (org-export-dispatch)))
+  (org-export-dispatch))
 
 (vim:defcmd vim:org-mode-tangle (nonrepeatable)
   (save-buffer)
-  (with-disabled-fci
-   (org-babel-tangle)))
+  (org-babel-tangle))
 
 (vim:defcmd vim:org-mode-make-beamer-presentation (nonrepeatable)
   (save-buffer)
-  (with-disabled-fci
-   (org-beamer-export-to-pdf)))
+  (org-beamer-export-to-pdf))
 
 (vim:defcmd vim:org-latex-export-to-pdf (nonrepeatable)
   (save-buffer)

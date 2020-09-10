@@ -299,7 +299,6 @@ FILE-GLOBS and don't match IGNORED-FILE-GLOBS."
      :enable-undo t
      :after-init (lambda ()
                    (use-local-map (make-sparse-keymap))
-                   (fci-mode -1)
                    (undo-tree-mode +1)
                    (setf vim:normal-mode-local-keymap kmap
                          vim:insert-mode-local-keymap (make-sparse-keymap))

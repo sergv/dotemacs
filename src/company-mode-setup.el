@@ -44,27 +44,6 @@
        company-statistics--log
        company-statistics--index))
 
-;; Workaround to make company-mode play nicely with fci mode,
-;; cf https://github.com/company-mode/company-mode/issues/180
-(defvar-local company-fci-mode-on-p nil)
-
-;;;###autoload
-(defun company-turn-off-fci (&rest ignore)
-  (when (boundp 'fci-mode)
-    (setq company-fci-mode-on-p fci-mode)
-    (when fci-mode (fci-mode -1))))
-
-;;;###autoload
-(defun company-maybe-turn-on-fci (&rest ignore)
-  (when company-fci-mode-on-p (fci-mode 1)))
-
-;;;###autoload
-(add-hook 'company-completion-started-hook #'company-turn-off-fci)
-;;;###autoload
-(add-hook 'company-completion-finished-hook #'company-maybe-turn-on-fci)
-;;;###autoload
-(add-hook 'company-completion-cancelled-hook #'company-maybe-turn-on-fci)
-
 (def-keys-for-map company-posframe-active-map
   ("<escape>" company-abort))
 
