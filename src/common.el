@@ -1697,6 +1697,28 @@ are CHAR1 and CHAR2 repsectively."
                            error-buffer display-error-buffer
                            region-noncontiguous-p))
 
+;;;;
+
+;;;###autoload
+(defun shrink-window-horizontally-fast ()
+  (interactive)
+  (shrink-window-horizontally 4))
+
+;;;###autoload
+(defun enlarge-window-horizontally-fast ()
+  (interactive)
+  (enlarge-window-horizontally 4))
+
+;;;###autoload
+(defun shrink-window-fast ()
+  (interactive)
+  (shrink-window 4))
+
+;;;###autoload
+(defun enlarge-window-fast ()
+  (interactive)
+  (enlarge-window 4))
+
 ;;
 
 (provide 'common)
