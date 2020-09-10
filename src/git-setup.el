@@ -276,8 +276,10 @@ _=_: default context"
 
 (defhydra-derive hydra-magit-j hydra-magit (:exit t :foreign-keys warn :hint nil)
   "
-_w_indow"
-  ("w" hydra-window-management/body))
+_w_indow
+ta_b_s"
+  ("w" hydra-window-management/body)
+  ("b" hydra-tab-management/body))
 
 (defun magit-bind-common-vimless-mode-keymap (map)
   (def-keys-for-map (magit-unstaged-section-map
