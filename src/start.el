@@ -223,6 +223,7 @@
 (load-library "misc-autoloads")
 (load-library "flycheck-setup")
 (load-library "typography-setup")
+(load-library "eshell-setup")
 
 ;; load keys after everything to ensure that nothing will be rebond
 ;; after it finishes

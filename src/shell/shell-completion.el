@@ -4482,9 +4482,10 @@ under version-control directories."
 
 ;;;###autoload (autoload 'pcomplete/untar "shell-completion" nil t)
 (defpcmpl pcomplete/untar
-  (opts
-   (args
-    (pcmpl-entries :select "\\.tar\\(?:\\.\\(?:gz\\|bz2\\|xz\\|lz\\|lzip\\|7z\\)\\)?\\'"))))
+  `(opts
+    (args
+     (pcmpl-entries :select ,+tar-regexp+)))
+  :evaluate-definition t)
 
 ;;;###autoload (autoload 'pcomplete/ln "shell-completion" nil t)
 (defpcmpl pcomplete/ln
