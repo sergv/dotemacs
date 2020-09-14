@@ -657,17 +657,9 @@ both unicode and ascii characters.")
            (t
             (haskell--simple-indent-newline-same-col))))))))
 
-(defun haskell-abbrev+-fallback-space ()
+(defsubst haskell-abbrev+-fallback-space ()
   (interactive "*")
-  (if (and fci-mode
-           (= 0 (current-column))
-           (= (point) (line-end-position)))
-      (progn
-        (haskell-space-with-block-indent)
-        (fci-redraw-region (line-beginning-position)
-                           (line-end-position)
-                           nil))
-    (haskell-space-with-block-indent)))
+  (haskell-space-with-block-indent))
 
 (defun haskell--ghci-hyphen (&optional prefix)
   "Version of `haskell-smart-operators-hyphen' for ghci."
