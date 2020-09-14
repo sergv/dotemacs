@@ -55,8 +55,12 @@
                        buffer-name)
        (let* ((buf (get-buffer-create buffer-name))
               (eshell-buffer-name buf))
-         ;; Eshell will switch to new buffer automatically, no need to
-         ;; do it ourselves.
+         ;; On Linux eshell will switch to new buffer automatically,
+         ;; no need to do it ourselves. But on Windows that’s not the
+         ;; case.
+         (fold-platform-os-type
+          nil
+          (switch-to-buffer buf nil t))
          (eshell)))
       (t
        (switch-to-buffer (get-buffer-create buffer-name) t)))))
