@@ -255,7 +255,9 @@
       tab-bar-tab-name-function #'tab-bar-tab-name-current-with-count
       tab-bar-new-tab-to 'right)
 
-(tab-bar-mode 1)
+;; The tab bar will appear automatically once new tab is created
+;; thanks to setting ‘tab-bar-show’ to 1.
+;; (tab-bar-mode 1)
 
 ;;;; customizations without dedicated setup file
 

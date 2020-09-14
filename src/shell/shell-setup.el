@@ -166,7 +166,7 @@ MSYS-style drives, e.g. \"/c/foo/bar.txt\" -> \"c:/foo/bar.txt\"."
                      vim:insert-mode-local-keymap
                      shell-mode-map)
     ("C-SPC"     vim:comint-clear-buffer-above-prompt)
-    ("<tab>"     pcomplete)
+    ("<tab>"     completion-at-point)
 
     ("C-S-p"     browse-comint-input-history)
 
