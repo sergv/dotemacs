@@ -55,7 +55,8 @@
                        buffer-name)
        (let* ((buf (get-buffer-create buffer-name))
               (eshell-buffer-name buf))
-         (switch-to-buffer buf nil t)
+         ;; Eshell will switch to new buffer automatically, no need to
+         ;; do it ourselves.
          (eshell)))
       (t
        (switch-to-buffer (get-buffer-create buffer-name) t)))))

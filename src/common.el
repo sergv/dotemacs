@@ -460,6 +460,53 @@ main table and value in aux table."
          (gethash key table value-missing)))))
 ;;;
 
+(defconst +tar-regexp+
+  (rx "."
+      (or "tgz"
+          "t7z"
+          "tbz"
+          "tbz2"
+          "txz"
+          "taz"
+          "tar"
+          "tar.gz"
+          "tar.bz2"
+          "tar.7z"
+          "tar.xz"
+          "tar.lz"
+          "tar.lzip")
+      eos))
+
+(defconst +archive-regexp+
+  (rx "."
+      (or "tgz"
+          "t7z"
+          "tbz"
+          "tbz2"
+          "txz"
+          "taz"
+          "tar"
+          "tar.gz"
+          "tar.bz2"
+          "tar.7z"
+          "tar.xz"
+          "tar.lz"
+          "tar.lzip"
+
+          "arj"
+          "lzh"
+          "zip"
+          "z"
+          "Z"
+          "gz"
+          "bz"
+          "deb"
+          "rpm"
+          "lzip"
+          "lz"
+          "xz")
+      eos))
+
 ;; this may be useful for something
 ;;
 ;; (defun make-ntree-node (value children)
@@ -739,21 +786,33 @@ end of END-LINE in current buffer."
 
 ;;;
 
+(defconst +build-products-extensions+
+  (append
+   '(".cmi" ".cmxa" ".cma" ".cmx" ".cmo"
+     ".o" ".obj" ".hi" ".chi" ".p_o" ".p_hi" ".prof_o" ".prof_hi" ".dyn_o" ".dyn_hi"
+     ".a"
+     ".mix" ".tix"
+     ".fasl" ".lo" ".la" ".gmo" ".mo"
+     ".pyc" ".pyo"
+     ".class" ".dex"
+     ".ibc" ".agdai"
+     ".elc")
+   (fold-platform-os-type
+    nil
+    '(".pdb" ".lib")))
+  "List of file name endings to generally ignore.")
+
 (defconst +ignored-file-extensions+
   (append
+   +build-products-extensions+
    '(".annot"
-     ".cmi" ".cmxa" ".cma" ".cmx" ".cmo"
-     ".o" ".hi" ".chi" ".p_o" ".p_hi" ".prof_o" ".prof_hi" ".dyn_o" ".dyn_hi"
-     ".mix" ".tix"
-     "~" ".bin" ".out" ".lbin" ".a" ".elc" ".glo" ".idx" ".lot"
-     ".fasl" ".lo" ".la" ".gmo" ".mo"
+     "~" ".bin" ".out" ".lbin" ".elc" ".glo" ".idx" ".lot"
      ".bbl" ".toc" ".aux" ".cp" ".fn" ".ky" ".pg" ".tp" ".vr" ".cps"
-     ".fns" ".kys" ".pgs" ".tps" ".vrs" ".pyc" ".pyo"
-     ".class" ".dex"
-     ".gz" ".tar" ".bz2" ".xz" ".7z" ".ibc" ".agdai")
+     ".fns" ".kys" ".pgs" ".tps" ".vrs"
+     ".gz" ".tar" ".bz2" ".xz" ".7z")
    (fold-platform-os-type
     '(".so")
-    '(".dll" ".pdb" ".lib")))
+    '(".dll")))
   "List of file name endings to generally ignore.")
 
 (defconst +version-control-directories+
