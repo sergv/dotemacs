@@ -196,13 +196,13 @@
 
 ;; property-based jumps, work better than regexp ones
 
-(defun eshell-jump-to-next-prompt-jump-to-next-prompt ()
+(defun eshell-jump-to-next-prompt ()
   (interactive)
   (circular-text-property-jump-forward 'field 'prompt t))
 
 (defun eshell-jump-to-prev-prompt ()
   (interactive)
-  (circular-text-property-jump-backward 'field 'prompt nil))
+  (circular-text-property-jump-backward 'field 'prompt t))
 
 (defun eshell-setup ()
   (init-repl :show-directory t

@@ -962,7 +962,7 @@ to deleted items. ITEMS will be mutated in order to obtain result."
   (when jump-to-end
     (let ((change-pos (next-single-property-change
                        (point)
-                       ,property
+                       property
                        (current-buffer)
                        (point-max))))
       (if change-pos
@@ -979,7 +979,7 @@ to deleted items. ITEMS will be mutated in order to obtain result."
   (when jump-to-end
     (let ((change-pos (next-single-property-change
                        (point)
-                       ,property
+                       property
                        (current-buffer)
                        (point-max))))
       (if change-pos
