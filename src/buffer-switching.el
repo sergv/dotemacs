@@ -13,6 +13,9 @@
 (add-to-list 'ivy-sort-matches-functions-alist
              '(switch-to-buffer-with-completion . ivy-sort-function-buffer))
 
+(defvar eshell-buffer-name)
+(defvar this-command)
+
 ;;;###autoload
 (defun switch-to-buffer-with-completion ()
   "Switch to another buffer, query user for a buffer to switch to.."
@@ -55,12 +58,8 @@
                        buffer-name)
        (let* ((buf (get-buffer-create buffer-name))
               (eshell-buffer-name buf))
-         ;; On Linux eshell will switch to new buffer automatically,
-         ;; no need to do it ourselves. But on Windows that’s not the
-         ;; case.
-         (fold-platform-os-type
-          nil
-          (switch-to-buffer buf nil t))
+         ;; Eshell will switch to new buffer automatically,
+         ;; no need to do it ourselves.
          (eshell)))
       (t
        (switch-to-buffer (get-buffer-create buffer-name) t)))))
