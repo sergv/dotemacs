@@ -39,29 +39,27 @@
       whitespace-global-modes nil)
 
 (defconst +do-not-track-long-lines-modes+
-  (let ((tbl (make-hash-table :test #'eq)))
-    (dolist (mode
-             '(lisp-interaction-mode
-               inferior-scheme-mode
-               prolog-inferior-mode
-               comint-mode
-               inferior-octave-mode
-               python-repl-mode
-               dante-repl-mode
+  (alist->hash-table
+   '((lisp-interaction-mode . t)
+     (inferior-scheme-mode . t)
+     (prolog-inferior-mode . t)
+     (comint-mode . t)
+     (inferior-octave-mode . t)
+     (python-repl-mode . t)
+     (dante-repl-mode . t)
 
-               makefile-automake-mode
-               makefile-bsdmake-mode
-               makefile-gmake-mode
-               makefile-imake-mode
-               makefile-mode
-               makefile-makepp-mode
+     (makefile-automake-mode . t)
+     (makefile-bsdmake-mode . t)
+     (makefile-gmake-mode . t)
+     (makefile-imake-mode . t)
+     (makefile-mode . t)
+     (makefile-makepp-mode . t)
 
-               magit-revision-mode
-               magit-reflog-mode
-               magit-refs-mode
-               magit-status-mode))
-      (puthash mode t tbl))
-    tbl))
+     (magit-revision-mode . t)
+     (magit-reflog-mode . t)
+     (magit-refs-mode . t)
+     (magit-status-mode . t))
+   #'eq))
 
 (defun vim:bind-local-keymaps ()
   (setf vim:normal-mode-local-keymap              (make-sparse-keymap)
