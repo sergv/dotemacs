@@ -134,11 +134,10 @@
 
   (when use-fci
     (setf display-fill-column-indicator-column 80)
-    (display-fill-column-indicator-mode (if (gethash major-mode
-                                                     +do-not-track-long-lines-modes+
-                                                     t)
-                                            -1
-                                          +1)))
+    (display-fill-column-indicator-mode
+     (if (gethash major-mode +do-not-track-long-lines-modes+ nil)
+         -1
+       +1)))
   (pcase hl-parens-backend
     (`hl-paren
      (setup-hl-paren))
