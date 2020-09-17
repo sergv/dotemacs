@@ -10,7 +10,7 @@
 (defun text-mode-setup ()
   (init-common :use-yasnippet nil
                :use-comment nil
-               :use-render-formlua nil
+               :use-render-formula nil
                :use-whitespace nil
                :sp-slurp-sexp-insert-space nil)
   (setq-local hs-allow-nesting t)
