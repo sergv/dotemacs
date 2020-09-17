@@ -216,39 +216,45 @@ entries."
                 (with-inhibited-read-only
                  (goto-char (point-max))
                  (forward-line -1)
-                 (list (list 'contents
-                             ;; collect properties as well
-                             (buffer-substring (point-min) (point-max)))
+                 (list (list 'contents (sessions/store-buffer-contents buf))
                        (list 'current-dir
-                             (expand-file-name default-directory))
+                             (sessions/store-string
+                              (expand-file-name default-directory)))
                        (list 'eshell-history-ring
-                             eshell-history-ring))))))
-     (restore ,(lambda (buffer-name saved-data)
+                             (sessions/store-ring eshell-history-ring)))))))
+     (restore ,(lambda (version buffer-name saved-data)
                  (message "Restoring eshell buffer %s" buffer-name)
                  (when-let (contents (assoc 'contents saved-data))
                    (save-excursion
                      (require 'eshell)
-                     (let ((eshell-buffer-name buffer-name))
-                       (eshell)
-                       (with-inhibited-read-only
-                        (forward-line -1)
-                        (delete-region (point-min)
-                                       ;; do not capture trailing \n
-                                       (line-end-position)))
-                       (save-excursion
-                         (with-inhibited-read-only
-                          (with-inhibited-modification-hooks
-                           (with-inhibited-redisplay
-                             (goto-char (point-min))
-                             (insert (second contents))))))
-                       (when-let (current-dir
-                                  (cadr-safe
-                                   (assoc 'current-dir saved-data)))
-                         (goto-char (point-max))
-                         (insert "cd \"" current-dir "\"")
-                         (eshell-send-input))
-                       (awhen (cadr-safe (assoc 'eshell-history-ring saved-data))
-                         (setf eshell-history-ring it))))))))
+                     (let* ((eshell-buffer-name buffer-name)
+                            ;; The buffer is created here.
+                            (buf (eshell)))
+                       (sessions/report-and-ignore-asserts
+                           (format "while restoring contents of an eshell buffer '%s'" buffer-name)
+                         (aif (assq 'contents saved-data)
+                             (with-current-buffer buf
+                               (sessions/versioned/restore-buffer-contents
+                                version
+                                buf
+                                (cadr it)
+                                (lambda () (insert "\n\n"))))
+                           (message "shell-restore: no 'contents")))
+                       (sessions/report-and-ignore-asserts
+                           (format "while restoring current-directory of an eshell buffer '%s'" buffer-name)
+                         (if-let (current-dir (cadr-safe (assq 'current-dir saved-data)))
+                             (progn
+                               (goto-char (point-max))
+                               (insert "cd \""
+                                       (sessions/versioned/restore-string version current-dir)
+                                       "\"")
+                               (eshell-send-input))
+                           (message "shell-restore: no 'current-dir")))
+                       (sessions/report-and-ignore-asserts
+                           (format "while restoring 'comint-input-ring of shell buffer '%s'" buffer-name)
+                         (aif (cadr-safe (assoc 'eshell-history-ring saved-data))
+                             (setf eshell-history-ring (sessions/versioned/restore-ring version it))
+                           (message "shell-restore: no 'eshell-input-ring")))))))))
     (shell-mode
      (save ,(lambda (buf)
               (save-excursion
@@ -264,7 +270,7 @@ entries."
      (restore ,(lambda (version buffer-name saved-data)
                  (let ((buf (get-buffer-create buffer-name)))
                    (sessions/report-and-ignore-asserts
-                       (format "while restoring contents of shell buffer '%s'" buffer-name)
+                       (format "while restoring contents of a shell buffer '%s'" buffer-name)
                      (aif (assq 'contents saved-data)
                          (with-current-buffer buf
                            (sessions/versioned/restore-buffer-contents
