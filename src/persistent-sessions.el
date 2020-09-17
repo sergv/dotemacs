@@ -16,6 +16,8 @@
 (require 'pp)
 (require 'revive-minimal)
 
+(defvar eshell-buffer-name)
+
 (setf revive-plus:all-frames t
       revive:save-variables-mode-local-private
       '((c++-mode c-indentation-style c-basic-offset)))
@@ -64,7 +66,7 @@ name, for temporary buffers - just the buffer name."
   (car-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe entry)))))))
 
 
-(defparameter *sessions-buffer-variables*
+(defvar *sessions-buffer-variables*
   (list
    (list (lambda (buf)
            (require 'haskell-misc)
@@ -102,7 +104,7 @@ on values of said variables.")
            bindings))))))
 
 
-(defparameter *sessions-special-variables*
+(defvar *sessions-special-variables*
   (remove nil
           (list
            (when (fboundp #'structured-haskell-mode)
@@ -133,20 +135,19 @@ on values of said variables.")
   (dolist (entry values)
     (pcase entry
       (`(,var-name ,value)
-       (let ((set-value (caddr (assq var-name *sessions-special-variables*))))
-         (if set-value
-             (if (functionp set-value)
-                 (funcall set-value buffer value)
-               (error "Error: found non-function set-value entry in *sessions-special-variables* for key %s"
-                      set-value))
-           (message "*sessions-special-variables*: warning: cannot find setter for special variable %s"
-                    var-name))))
+       (if-let (set-value (caddr (assq var-name *sessions-special-variables*)))
+           (if (functionp set-value)
+               (funcall set-value buffer value)
+             (error "Error: found non-function set-value entry in *sessions-special-variables* for key %s"
+                    set-value))
+         (message "*sessions-special-variables*: warning: cannot find setter for special variable %s"
+                  var-name)))
       (_
        (message "*sessions-special-variables*: warning: invalid special variables entry: %s"
                 entry)))))
 
 
-(defparameter *sessions-global-variables*
+(defvar *sessions-global-variables*
   (alist->hash-table
    '((log-edit-comment-ring . t)
      (vim:ex-history . t)
@@ -175,11 +176,11 @@ entries."
   "Restore global variables from BINDINGS."
   (dolist (bind bindings)
     (let ((var (car bind)))
-      (when (gethash var *sessions-global-variables*))
-      (set var
-           (sessions/versioned/restore-value version (cdr bind))))))
+      (when (gethash var *sessions-global-variables*)
+        (set var
+             (sessions/versioned/restore-value version (cdr bind)))))))
 
-(defparameter sessions/ignored-temporary-buffer-modes
+(defvar sessions/ignored-temporary-buffer-modes
   '(dired-mode
     magit-diff-mode
     magit-revision-mode
@@ -198,7 +199,7 @@ entries."
     magit-reflog-mode)
   "Buffer with these modes should never be preserved across sessions.")
 
-(defparameter sessions/local-vars/haskell-compilation-mode
+(defvar sessions/local-vars/haskell-compilation-mode
   '(compilation-error-regexp-alist
     *compilation-jump-error-regexp*
     compilation-filter-hook
@@ -208,7 +209,7 @@ entries."
     mode-line-process)
   "Local variables to store for `haskell-compilation-mode' buffers.")
 
-(defparameter sessions/special-modes
+(defvar sessions/special-modes
   `((eshell-mode
      (save ,(lambda (buf)
               (save-excursion
@@ -224,8 +225,7 @@ entries."
                              eshell-history-ring))))))
      (restore ,(lambda (buffer-name saved-data)
                  (message "Restoring eshell buffer %s" buffer-name)
-                 (when-let (contents
-                            (assoc 'contents saved-data))
+                 (when-let (contents (assoc 'contents saved-data))
                    (save-excursion
                      (require 'eshell)
                      (let ((eshell-buffer-name buffer-name))
@@ -279,17 +279,14 @@ entries."
                                           )
                    (sessions/report-and-ignore-asserts
                        (format "while restoring current-directory of shell buffer '%s'" buffer-name)
-                     (let ((current-dir
-                            (cadr-safe
-                             (assq 'current-dir saved-data))))
-                       (aif current-dir
-                           (progn
-                             (goto-char (point-max))
-                             (insert "cd \""
-                                     (sessions/versioned/restore-string version current-dir)
-                                     "\"")
-                             (comint-send-input))
-                         (message "shell-restore: no 'current-dir"))))
+                     (if-let (current-dir (cadr-safe (assq 'current-dir saved-data)))
+                         (progn
+                           (goto-char (point-max))
+                           (insert "cd \""
+                                   (sessions/versioned/restore-string version current-dir)
+                                   "\"")
+                           (comint-send-input))
+                       (message "shell-restore: no 'current-dir")))
                    (sessions/report-and-ignore-asserts
                        (format "while restoring 'comint-input-ring of shell buffer '%s'" buffer-name)
                      (aif (cadr-safe (assq 'comint-input-ring saved-data))
@@ -330,17 +327,14 @@ entries."
                          (message "haskell-compilation-restore: no 'local-variables"))))
                    (sessions/report-and-ignore-asserts
                        (format "while restoring current directory of haskell compilation buffer '%s'" buffer-name)
-                     (let ((current-dir
-                            (cadr-safe
-                             (assq 'current-dir saved-data))))
-                       (aif current-dir
-                           (progn
-                             (goto-char (point-max))
-                             (insert "cd \""
-                                     (sessions/versioned/restore-string version current-dir)
-                                     "\"")
-                             (comint-send-input))
-                         (message "shell-restore: no 'current-dir"))))
+                     (if-let (current-dir (cadr-safe (assq 'current-dir saved-data)))
+                         (progn
+                           (goto-char (point-max))
+                           (insert "cd \""
+                                   (sessions/versioned/restore-string version current-dir)
+                                   "\"")
+                           (comint-send-input))
+                       (message "shell-restore: no 'current-dir")))
                    (sessions/report-and-ignore-asserts
                        (format "while restoring 'comint-input-ring of haskell compilation buffer '%s'" buffer-name)
                      (aif (cadr-safe (assq 'comint-input-ring saved-data))
