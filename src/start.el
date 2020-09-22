@@ -131,7 +131,7 @@
     ("M-<down>"  sp-splice-sexp-killing-forward))
 
   (when use-fci
-    (setf display-fill-column-indicator-column 80)
+    (setf display-fill-column-indicator-column 100)
     (display-fill-column-indicator-mode
      (if (gethash major-mode +do-not-track-long-lines-modes+ nil)
          -1
