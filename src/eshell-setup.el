@@ -210,6 +210,7 @@
              :create-keymaps t)
 
   (smartparens-mode +1)
+  (hl-line-mode +1)
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ;; clear all previous output
