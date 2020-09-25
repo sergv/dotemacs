@@ -6,6 +6,8 @@
 ;; Created: 14 September 2020
 ;; Description:
 
+(provide 'eshell-autoload)
+
 (setf eshell-buffer-name "esh"
       eshell-directory-name (concat +prog-data-path+ "/eshell/")
       eshell-bad-command-tolerance 10000 ;; don't want eshell autocorrection aliases
@@ -43,8 +45,6 @@
       )
 
 (eval-after-load "eshell" (require 'eshell-setup))
-
-(provide 'eshell-autoload)
 
 ;; Local Variables:
 ;; End:
