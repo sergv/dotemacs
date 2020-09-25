@@ -8,6 +8,7 @@
 
 (require 'common)
 (require 'folding-setup)
+(require 'hydra-setup)
 
 ;;;###autoload
 (add-to-list
@@ -26,6 +27,11 @@
        ;; adjust beg function
        nil))
 
+(defhydra-derive hydra-diff-vim-normal-g-ext hydra-diff-normal-g-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_,_: kill hunk"
+  ("," diff-hunk-kill))
+
 ;;;###autoload
 (defun diff-mode-setup ()
   (init-common :use-yasnippet nil
@@ -41,7 +47,7 @@
     ("C-<down>" diff-file-next)
     ("SPC"      diff-goto-source)
     ("<return>" diff-goto-source)
-    ("g ,"      diff-hunk-kill)))
+    ("g"        hydra-diff-vim-normal-g-ext/body)))
 
 ;;;###autoload
 (add-hook 'diff-mode-hook #'diff-mode-setup)
