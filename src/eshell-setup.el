@@ -19,6 +19,8 @@
 (require 'browse-kill-ring-setup)
 (require 'completion-setup)
 
+(require 'eshell-autoload)
+
 (eval-when-compile (require 'cl-lib))
 
 ;;;###autoload
