@@ -411,6 +411,44 @@
     "use crate::common::_|_"
     "use crate::common::*_|_"))
 
+(ert-deftest rust-tests/rust-smart-operators--gt-1 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?\>)
+    (tests-utils--multiline
+     ""
+     "let x: Vec<Box<i32_|_"
+     "")
+    (tests-utils--multiline
+     ""
+     "let x: Vec<Box<i32>_|_"
+     "")))
+
+(ert-deftest rust-tests/rust-smart-operators--gt-2 ()
+  (rust-tests--test-buffer-contents
+      (progn
+        (rust-smart-operators--insert-char-surrounding-with-spaces ?\>)
+        (rust-smart-operators--insert-char-surrounding-with-spaces ?\>))
+    (tests-utils--multiline
+     ""
+     "let x: Vec<Box<i32_|_ = vec![1, 2, 3];"
+     "")
+    (tests-utils--multiline
+     ""
+     "let x: Vec<Box<i32>>_|_ = vec![1, 2, 3];"
+     "")))
+
+(ert-deftest rust-tests/rust-smart-operators--gt-3 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?\>)
+    (tests-utils--multiline
+     ""
+     "let x: Vec<Box<i32> _|_ = vec![1, 2, 3];"
+     "")
+    (tests-utils--multiline
+     ""
+     "let x: Vec<Box<i32>>_|_ = vec![1, 2, 3];"
+     "")))
+
 (provide 'rust-tests)
 
 ;; Local Variables:

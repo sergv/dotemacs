@@ -46,14 +46,16 @@ stick it to the previous operator on line."
                                        (memq char-before-spaces rust-smart-operators--chars-to-separate-from-ampersand-and-asterisk))
                                   nil)
                                  ((char-equal char-before-spaces ?>)
-                                  (save-excursion
-                                    (forward-char -1)
-                                    (aif (sp-get-enclosing-sexp)
-                                        (if (= (plist-get it :end) (+ 1 (point)))
-                                            (not (string-equal (plist-get it :op) "<"))
-                                          t)
-                                      t ;; No sexp - ok to delete.
-                                      )))
+                                  (if (char-equal char ?>)
+                                      t ;; either it’s operator >> or generic type
+                                    (save-excursion
+                                      (forward-char -1)
+                                      (aif (sp-get-enclosing-sexp)
+                                          (if (= (plist-get it :end) (+ 1 (point)))
+                                              (not (string-equal (plist-get it :op) "<"))
+                                            t)
+                                        t ;; No sexp - ok to delete.
+                                        ))))
                                  (t
                                   t) ;; Not a > before spaces - ok to delete.
                                  )
