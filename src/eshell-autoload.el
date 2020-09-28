@@ -44,7 +44,7 @@
       ;; eshell-ls-exclude-regexp nil
       )
 
-(eval-after-load "eshell" (require 'eshell-setup))
+(add-hook 'eshell-mode-hook #'eshell-setup)
 
 ;; Local Variables:
 ;; End:
