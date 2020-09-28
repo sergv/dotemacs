@@ -202,6 +202,7 @@
   (interactive)
   (text-property-jump-backward 'field 'prompt t))
 
+;;;###autoload
 (defun eshell-setup ()
   (init-repl :show-directory t
              :bind-return nil
@@ -242,8 +243,6 @@
     ("C-d"      eshell-send-eof-to-process)
     ("<tab>"    completion-at-point)
     ("C-SPC"    eshell/clear)))
-
-(add-hook 'eshell-mode-hook #'eshell-setup)
 
 (provide 'eshell-setup)
 
