@@ -48,10 +48,6 @@
       (eshell-interactive-print prompt)))
   (run-hooks 'eshell-after-prompt-hook))
 
-(defadvice pcomplete/cd (around pcomplete/cd--clear-ignored-dirs activate compile)
-  (let ((pcomplete-dir-ignore nil))
-    ad-do-it))
-
 (setenv "PAGER" "cat")
 
 ;; Try eshell-complex-commands if some command doesn’t work.
