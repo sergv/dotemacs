@@ -387,6 +387,12 @@
     "a -> _|_b"
     "a -> &_|_b"))
 
+(ert-deftest rust-tests/rust-smart-operators--ampersand-5 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?\&)
+    "let x: &[_|_]"
+    "let x: &[&_|_]"))
+
 (ert-deftest rust-tests/rust-smart-operators--asterisk-1 ()
   (rust-tests--test-buffer-contents
       (rust-smart-operators--insert-char-surrounding-with-spaces ?\*)
@@ -410,6 +416,12 @@
       (rust-smart-operators--insert-char-surrounding-with-spaces ?\*)
     "use crate::common::_|_"
     "use crate::common::*_|_"))
+
+(ert-deftest rust-tests/rust-smart-operators--asterisk-5 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?\*)
+    "while i < level.len() && _|_level[i].1 == &Tree::Empty {"
+    "while i < level.len() && *_|_level[i].1 == &Tree::Empty {"))
 
 (ert-deftest rust-tests/rust-smart-operators--gt-1 ()
   (rust-tests--test-buffer-contents
