@@ -210,6 +210,7 @@
 
   (smartparens-mode +1)
   (hl-line-mode +1)
+  (setup-folding t nil)
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ;; clear all previous output
