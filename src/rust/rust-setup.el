@@ -61,6 +61,22 @@ warnings will be colorized in `rust-compilation-mode'.")
   (let ((inhibit-read-only t))
     (ansi-color-apply-on-region compilation-filter-start (point-max))))
 
+(defun rust--prettify-symbols-compose-p (start end match)
+  "Return true iff the symbol MATCH should be composed.
+The symbol starts at position START and ends at position END.
+This is the default for `prettify-symbols-compose-predicate'
+which is suitable for most programming languages such as C or Lisp."
+  (and (pretty-ligatures--compose-p start end match)
+       (if (string-match-p (rx bos (or "&&" "<<" ">>" "||") eos)
+                           match)
+           (let ((start-char (or (char-before start) ?\s))
+                 (end-char (or (char-after end) ?\s)))
+             (and (or (char= start-char ?\n)
+                      (char= (char-syntax start-char) ?\ ))
+                  (or (memq end-char '(?\r ?\n))
+                      (char= (char-syntax end-char) ?\ ))))
+         t)))
+
 (make-align-function rust-align-on-equals
                      "\\([+*|&/!%]\\|-\\|\\^\\)?=[^=]"
                      :require-one-or-more-spaces t)
@@ -153,7 +169,9 @@ _a_lign  _t_: beginning of defun
               compilation-skip-threshold 0
               compilation-buffer-name-function #'rust-get-compilation-buffer-name)
 
-  (pretty-ligatures--install pretty-ligatures-rust-symbols)
+  (pretty-ligatures--install (append pretty-ligatures-c-like-symbols
+                                     pretty-ligatures-python-like-words))
+  (setq-local prettify-symbols-compose-predicate #'rust--prettify-symbols-compose-p)
   (rust-compilation-commands-install!)
 
   (setf vim:shift-width rust-indent-offset
