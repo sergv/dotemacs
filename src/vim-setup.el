@@ -197,7 +197,7 @@ _<right>_: move tab to the right"
   ("r" tab-rename)
 
   ("<left>"  sergv-move-tab-to-the-left :exit nil)
-  ("<right>" sergv-move-tab-to-the-left :exit nil))
+  ("<right>" sergv-move-tab-to-the-right :exit nil))
 
 ;; redefine motions
 
