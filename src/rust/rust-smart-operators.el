@@ -21,8 +21,11 @@
 stick it to the previous operator on line."
   (rust-smart-operators--insert-char-optionally-surrounding-with-spaces char t))
 
-(defconst rust-smart-operators--chars-to-separate-from-ampersand-and-asterisk
+(defconst rust-smart-operators--chars-to-separate-from-ampersand
   '(?= ?> ?< ?| ?^ ?% ?/ ?- ?+ ?*))
+
+(defconst rust-smart-operators--chars-to-separate-from-asterisk
+  '(?= ?> ?< ?| ?^ ?% ?/ ?- ?+ ?* ?&))
 
 (defun rust-smart-operators--insert-char-optionally-surrounding-with-spaces (char insert-space-after)
   (let ((disable-smart-operators? current-prefix-arg))
@@ -42,8 +45,11 @@ stick it to the previous operator on line."
                                (char-before-spaces2 (char-before (- pt-before-ws 1))))
                           (and char-before-spaces ;; not at beginning of buffer
                                (cond
-                                 ((and (memq char '(?& ?*))
-                                       (memq char-before-spaces rust-smart-operators--chars-to-separate-from-ampersand-and-asterisk))
+                                 ((and (char= char ?*)
+                                       (memq char-before-spaces rust-smart-operators--chars-to-separate-from-asterisk))
+                                  nil)
+                                 ((and (char= char ?&)
+                                       (memq char-before-spaces rust-smart-operators--chars-to-separate-from-ampersand))
                                   nil)
                                  ((char-equal char-before-spaces ?>)
                                   (if (char-equal char ?>)
@@ -114,6 +120,10 @@ stick it to the previous operator on line."
                             (setf insert-space-after nil)
                             nil)
                         t)
+                      (if (and (char-equal char ?&)
+                               (char-equal before ?\[))
+                          nil
+                        t)
                       (or
                        ;; At beginning of buffer.
                        at-beginning-of-buffer?
@@ -130,8 +140,10 @@ stick it to the previous operator on line."
                                 (and (string-equal (plist-get it :op) "<")
                                      (= (plist-get it :end) (+ 1 (point)))))))
                        ;; =& and >& are not operators so add a space
-                       (and (memq char '(?& ?*))
-                            (memq before rust-smart-operators--chars-to-separate-from-ampersand-and-asterisk))))))
+                       (and (char= char ?*)
+                            (memq before rust-smart-operators--chars-to-separate-from-asterisk))
+                       (and (char= char ?&)
+                            (memq before rust-smart-operators--chars-to-separate-from-ampersand))))))
 
             ;; Decide whether to insert space before the operator.
             (when insert-space-before-char?
@@ -153,10 +165,17 @@ stick it to the previous operator on line."
                        (or at-beginning-of-buffer?
                            (not (char-equal before-insert ?\()))
 
-                       (if (memq char '(?\& ?*))
-                           (if (memq before rust-smart-operators--chars-to-separate-from-ampersand-and-asterisk)
-                               ;; We don’t want '= & _|_' or '-> & _|_' or '= * _|_',
-                               ;; we want '= &_|_' or '-> &_|_' or '= *_|_' respectively
+                       (if (char= char ?*)
+                           (if (memq before rust-smart-operators--chars-to-separate-from-asterisk)
+                               ;; We don’t want '= * _|_',
+                               ;; we want '= *_|_' respectively
+                               nil
+                             whitespace-deleted?)
+                         t)
+                       (if (char= char ?\&)
+                           (if (memq before rust-smart-operators--chars-to-separate-from-ampersand)
+                               ;; We don’t want '= & _|_' or '-> & _|_'
+                               ;; we want '= &_|_' or '-> &_|_' respectively
                                nil
                              (or whitespace-deleted?
                                  (char-equal before-insert ?\&) ;; Insert space after operator '&&'
