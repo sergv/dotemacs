@@ -121,7 +121,8 @@
               ("<=" . #xe122)
               (">=" . #xe123)
               ("||" . #xe124)
-              ("&&" . #xe125))))
+              ("&&" . #xe125)
+              ("::" . #xe108))))
       (--map (cons (car it) (pretty-ligatures--make-composition (cdr it))) ligs))))
 
 (defconst pretty-ligatures-c-like-symbols
@@ -337,7 +338,7 @@ into accound and do the replacement only within specific circumstances.")
                 prettify-symbols-compose-predicate #'pretty-ligatures--compose-p)
     (prettify-symbols-mode)))
 
-(defun pretty-ligatures--compose-p (start end str)
+(defun pretty-ligatures--compose-p (start end _match)
   "Do not prettify withing strings, comments or within words/operators."
   (let* ((start-char (char-after start))
          (end-char (char-before end))
