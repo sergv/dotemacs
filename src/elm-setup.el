@@ -30,29 +30,29 @@
 (setf elm-format-elm-version "0.18")
 
 ;;;###autoload (autoload 'elm-align-on-equals "elm-setup.el" nil t)
-(make-align-function elm-align-on-equals
-                     "=[^=]"
-                     :require-one-or-more-spaces t)
+(defalign elm-align-on-equals
+  "=[^=]"
+  :require-one-or-more-spaces t)
 ;;;###autoload (autoload 'elm-align-on-arrows "elm-setup.el" nil t)
-(make-align-function elm-align-on-arrows
-                     "\\(?:->\\|→\\)\\(?: \\|$\\)")
+(defalign elm-align-on-arrows
+  "\\(?:->\\|→\\)\\(?: \\|$\\)")
 ;;;###autoload (autoload 'elm-align-on-left-arrows "elm-setup.el" nil t)
-(make-align-function elm-align-on-left-arrows
-                     "\\(?:<-\\|←\\)\\(?: \\|$\\)")
+(defalign elm-align-on-left-arrows
+  "\\(?:<-\\|←\\)\\(?: \\|$\\)")
 ;;;###autoload (autoload 'elm-align-on-pipes "elm-setup.el" nil t)
-(make-align-function elm-align-on-pipes
-                     "|\\(?:[^|]\\|$\\)"
-                     :require-one-or-more-spaces t)
+(defalign elm-align-on-pipes
+  "|\\(?:[^|]\\|$\\)"
+  :require-one-or-more-spaces t)
 ;;;###autoload (autoload 'elm-align-on-commas "elm-setup.el" nil t)
-(make-align-function elm-align-on-commas
-                     ",\\(?:[^,\)]\\|$\\)")
+(defalign elm-align-on-commas
+  ",\\(?:[^,\)]\\|$\\)")
 ;;;###autoload (autoload 'elm-align-on-comments "elm-setup.el" nil t)
-(make-align-function elm-align-on-comments
-                     "--+\\(?: \\|$\\)"
-                     :require-one-or-more-spaces t)
+(defalign elm-align-on-comments
+  "--+\\(?: \\|$\\)"
+  :require-one-or-more-spaces t)
 ;;;###autoload (autoload 'elm-align-on-colons "elm-setup.el" nil t)
-(make-align-function elm-align-on-colons
-                     "\\(?::[^:]\\)")
+(defalign elm-align-on-colons
+  "\\(?::[^:]\\)")
 
 (vim:defcmd vim:elm-compile (nonrepeatable)
   (elm-compile-buffer))

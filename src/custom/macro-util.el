@@ -408,12 +408,13 @@ of code may be called more than once."
                                           buffer-names
                                           ", ")))))))))
 
-(defmacro* make-align-function (func
-                                align-str
-                                &key
-                                (repeat nil)
-                                (require-one-or-more-spaces nil)
-                                (put-align-spaces-after-str nil))
+(defmacro* defalign (func
+                     align-str
+                     &key
+                     (repeat nil)
+                     (require-one-or-more-spaces nil)
+                     (put-align-spaces-after-str nil))
+  (declare (indent 1))
   (let ((spaces-re (concat "\\([ \t]"
                            (if require-one-or-more-spaces
                                "+"
@@ -443,13 +444,13 @@ of code may be called more than once."
        (defun ,func ()
          (interactive "*")
          (when (region-active-p)
-           (destructuring-bind (start . end) (get-region-bounds)
+           (with-region-bounds start end
              (when prettify-symbols-mode
                (with-silent-modifications
-                (remove-text-properties start end
-                                        '(composition
-                                          prettify-symbols-start
-                                          prettify-symbols-end))))
+                 (remove-text-properties start end
+                                         '(composition
+                                           prettify-symbols-start
+                                           prettify-symbols-end))))
              (,indent-region-func start end)
              (when prettify-symbols-mode
                (font-lock-flush start end))))))))

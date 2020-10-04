@@ -77,13 +77,13 @@ which is suitable for most programming languages such as C or Lisp."
                       (char= (char-syntax end-char) ?\ ))))
          t)))
 
-(make-align-function rust-align-on-equals
-                     (rx (? (or (any ?+ ?* ?| ?& ?/ ?! ?% ?- ?^)
-                                "<<"
-                                ">>"))
-                         "="
-                         (not ?=))
-                     :require-one-or-more-spaces t)
+(defalign rust-align-on-equals
+  (rx (? (or (any ?+ ?* ?| ?& ?/ ?! ?% ?- ?^)
+             "<<"
+             ">>"))
+      "="
+      (not ?=))
+  :require-one-or-more-spaces t)
 
 (vim:defcmd vim:rust-flycheck-configure (nonrepeatable)
   (flycheck-rust-setup))
