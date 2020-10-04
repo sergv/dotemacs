@@ -3,6 +3,7 @@ check out/**
 doc/**
 experimental/**
 drills/**
+eshell/**
 lib/**
 local/**
 local.24.*/**
