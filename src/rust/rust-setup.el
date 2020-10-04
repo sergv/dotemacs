@@ -78,7 +78,11 @@ which is suitable for most programming languages such as C or Lisp."
          t)))
 
 (make-align-function rust-align-on-equals
-                     "\\([+*|&/!%]\\|-\\|\\^\\)?=[^=]"
+                     (rx (? (or (any ?+ ?* ?| ?& ?/ ?! ?% ?- ?^)
+                                "<<"
+                                ">>"))
+                         "="
+                         (not ?=))
                      :require-one-or-more-spaces t)
 
 (vim:defcmd vim:rust-flycheck-configure (nonrepeatable)
