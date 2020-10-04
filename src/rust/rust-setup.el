@@ -197,7 +197,7 @@ _a_lign  _t_: beginning of defun
                      flycheck-disabled-checkers))
         (if flycheck-backend
             (progn
-              (unless (flycheck-may-use-checker flycheck-backend)
+              (unless (flycheck-eligible-checker? flycheck-backend)
                 (flycheck-verify-checker flycheck-backend)
                 (error "Unable to select checker '%s' for buffer '%s'"
                        flycheck-backend (current-buffer)))
