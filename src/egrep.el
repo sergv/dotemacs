@@ -378,7 +378,7 @@ string patterns."
       (and current-prefix-arg
            (<= 4 (first current-prefix-arg))))))
   (cl-assert (listp exts-globs))
-  (egrep-search (expand-escape-sequences regexp) exts-globs grep-find-ignored-files dir ignore-case))
+  (egrep-search (expand-escape-sequences! regexp) exts-globs grep-find-ignored-files dir ignore-case))
 
 ;;;###autoload
 (defun egrep-region (str exts-globs dir &optional ignore-case)
