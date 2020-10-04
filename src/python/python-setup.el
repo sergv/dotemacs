@@ -242,11 +242,11 @@ in the current *Python* session."
             (and (elt state 3)
                  (null (elt state 4)))))))))
 
-(make-align-function python-align-on-equals
-                     (rx (or "=" "+=" "-=" "*=" "/=" "//=" "%=" "**="
-                             ">>=" "<<=" "&=" "^=" "|=")
-                         (regexp "[^=]"))
-                     :require-one-or-more-spaces t)
+(defalign python-align-on-equals
+  (rx (or "=" "+=" "-=" "*=" "/=" "//=" "%=" "**="
+          ">>=" "<<=" "&=" "^=" "|=")
+      (not ?=))
+  :require-one-or-more-spaces t)
 
 (defun python-backward-sexp (&optional count)
   (interactive "p")
