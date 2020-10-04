@@ -14,7 +14,7 @@
 (defun haskell-format-pp-region-with-brittany (width)
   "Format selected region using brittany haskell formatter."
   (interactive "p*")
-  (destructuring-bind (start . end) (get-region-bounds)
+  (with-region-bounds start end
     (haskell-format--format-with-brittany
      haskell-indent-offset
      (if (< 1 width)
