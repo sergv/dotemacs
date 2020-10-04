@@ -31,7 +31,7 @@
 (defun mode-line-show-region-size ()
   "Format region size for `mode-line-format'."
   (when (region-active-p)
-    (destructuring-bind (start . end) (get-region-bounds)
+    (with-region-bounds start end
       (format " [%s]"
               (count-lines start end)))))
 

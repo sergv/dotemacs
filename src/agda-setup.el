@@ -128,7 +128,7 @@ top-level module.
 With a prefix argument \"abstract\" is ignored during the computation."
   (interactive "P")
   (cl-assert (region-active-p))
-  (destructuring-bind (start . end) (get-region-bounds)
+  (with-region-bounds start end
     (let* ((expr (buffer-substring-no-properties start end))
            (cmd (concat "Cmd_compute_toplevel"
                         (if arg " True" " False")
