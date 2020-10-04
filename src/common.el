@@ -1272,7 +1272,6 @@ ant reindents it."
 (defun yank-next-and-reindent ()
   (interactive)
   (yank-next)
-  (yank-pop 1)
   (reindent-region (region-beginning) (region-end))
   (goto-char (region-end)))
 
