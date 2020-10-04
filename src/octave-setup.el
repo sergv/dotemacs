@@ -98,11 +98,11 @@
 
 ;; my own functions
 
-(make-align-function octave-align-on-commas ","
-                     :repeat t
-                     :require-one-or-more-spaces t
-                     :put-align-spaces-after-str t)
-(make-align-function octave-align-on-equals "=")
+(defalign octave-align-on-commas ","
+  :repeat t
+  :require-one-or-more-spaces t
+  :put-align-spaces-after-str t)
+(defalign octave-align-on-equals "=")
 
 (define-switch-to-interpreter
   switch-to-octave
