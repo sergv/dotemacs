@@ -170,7 +170,7 @@ Contains single-line and region comments.")
 or down if LINES is negative or comment whole region if region is active."
   (interactive "p")
   (if (region-active-p)
-      (destructuring-bind (start . end) (get-region-bounds)
+      (with-region-bounds start end
         (comment-util-comment-region start end))
     (comment-util-comment-next-n-lines lines)))
 
@@ -178,8 +178,8 @@ or down if LINES is negative or comment whole region if region is active."
 (defun comment-util-comment-region ()
   "Comment region between BEGIN and END position inserting region comments if
 they are defined for current mode or one-line comments otherwise."
-  (interactive)
-  (destructuring-bind (begin . end) (get-region-bounds)
+  (interactive "*")
+  (with-region-bounds begin end
     (save-excursion
       (if (comment-util-region-comments-defined?)
           (comment-util-comment-chunk-region begin end)
@@ -188,7 +188,7 @@ they are defined for current mode or one-line comments otherwise."
 ;;;###autoload
 (defun comment-util-uncomment-region ()
   "Uncomment region at point commented either with line comments or block comments."
-  (interactive)
+  (interactive "*")
   (save-excursion
     (if (or (and (comment-format-one-line *comment-util-current-format*)
                  (save-excursion
