@@ -72,6 +72,12 @@
     (with-current-buffer (get-buffer-create flycheck-error-message-buffer)
       (text-mode))))
 
+;;;###autoload
+(defun flycheck-eligible-checker? (checker)
+  "Similar to `flycheck-may-use-checker' but doesn’t pay attention to checker’s predicate."
+  (and (flycheck-valid-checker-p checker)
+       (flycheck-checker-supports-major-mode-p checker)
+       (flycheck-may-enable-checker checker)))
 
 (vim:defcmd vim:flycheck-run (nonrepeatable)
   (flycheck-buffer))
