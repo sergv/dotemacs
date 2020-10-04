@@ -1700,6 +1700,9 @@ are CHAR1 and CHAR2 repsectively."
 ;;
 
 (defun expand-escape-sequences (str)
+  (expand-escape-sequences! (copy-sequence str)))
+
+(defun expand-escape-sequences! (str)
   "Expand escape sequences within STR:
 
 \\\\ -> <backspace>
@@ -1709,27 +1712,29 @@ are CHAR1 and CHAR2 repsectively."
 "
   (cl-assert (stringp str))
   (let ((limit (length str))
-        (result nil)
-        (i 0))
+        (i 0)
+        (r 0))
     (while (< i limit)
       (let ((c (aref str i))
             (j (+ i 1)))
         (if (and (char= c ?\\)
                  (< j limit))
-            (pcase (aref str j)
-              (`?n  (setf result (cons ?\n result)
-                          i (+ i 2)))
-              (`?r  (setf result (cons ?\r result)
-                          i (+ i 2)))
-              (`?t  (setf result (cons ?\t result)
-                          i (+ i 2)))
-              (`?\\ (setf result (cons ?\\ result)
-                          i (+ i 2)))
-              (_    (setf result (cons c result)
-                          i j)))
-          (setf result (cons c result)
-                i j))))
-    (coerce (nreverse result) 'string)))
+          (pcase (aref str j)
+            (`?n  (setf (aref str r) ?\n)
+                  (setf i (+ i 2)))
+            (`?r  (setf (aref str r) ?\r)
+                  (setf i (+ i 2)))
+            (`?t  (setf (aref str r) ?\t)
+                  (setf i (+ i 2)))
+            (`?\\ (setf (aref str r) ?\\)
+                  (setf i (+ i 2)))
+            (_    (setf (aref str r) c)
+                  (setf i j)))
+          (progn
+            (setf (aref str r) c)
+            (setf i j)))
+        (setf r (+ r 1))))
+    (substring-no-properties str 0 r)))
 
 ;;
 
