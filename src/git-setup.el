@@ -124,7 +124,7 @@ directory computed by git.")
                :use-fci       t))
 
 ;;;###autoload (autoload 'gitconfig-align-on-equals "git-setup.el" nil t)
-(make-align-function gitconfig-align-on-equals "=")
+(defalign gitconfig-align-on-equals "=")
 
 ;;;###autoload
 (defun gitconfig-align-generic ()

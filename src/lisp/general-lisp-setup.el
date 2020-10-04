@@ -78,7 +78,7 @@ rigidly along with this one."
                     (> end beg))
                   (indent-code-rigidly beg end shift-amt))))))))
 
-(make-align-function lisp-align-on-comments ";+")
+(defalign lisp-align-on-comments ";+")
 
 
 (setq-default lisp-indent-function #'lisp-indent-function)

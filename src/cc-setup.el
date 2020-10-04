@@ -21,9 +21,13 @@
       dtrt-indent-max-relevant-lines 10000)
 
 ;;;###autoload (autoload 'c-align-on-equals "cc-setup")
-(make-align-function c-align-on-equals
-                     "\\([+*|&/!%]\\|-\\|\\^\\)?=[^=]"
-                     :require-one-or-more-spaces t)
+(defalign c-align-on-equals
+  (rx (? (or (any ?+ ?* ?| ?& ?/ ?! ?% ?- ?^)
+             "<<"
+             ">>"))
+      "="
+      (not ?=))
+  :require-one-or-more-spaces t)
 
 (defun c-forward-preprocessor-conditional (count)
   "Clone of `c-scan-conditionals' with interface of `forward-sexp' for matching
