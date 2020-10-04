@@ -447,6 +447,42 @@
         (ert-deftest ,(string->symbol (format "common-tests/trim-whitespace-right-%d" n)) ()
           (should (equal (trim-whitespace-right ,input) ,expected-right)))))))
 
+(ert-deftest common-tests/expand-escape-sequences-1 ()
+  (should (equal (expand-escape-sequences "abc")
+                 "abc")))
+
+(ert-deftest common-tests/expand-escape-sequences-2 ()
+  (should (equal (expand-escape-sequences "ab\\nc")
+                 "ab\nc")))
+
+(ert-deftest common-tests/expand-escape-sequences-3 ()
+  (should (equal (expand-escape-sequences "abc\\n")
+                 "abc\n")))
+
+(ert-deftest common-tests/expand-escape-sequences-4 ()
+  (should (equal (expand-escape-sequences "abc\\n\\n")
+                 "abc\n\n")))
+
+(ert-deftest common-tests/expand-escape-sequences-5 ()
+  (should (equal (expand-escape-sequences "\\nabc")
+                 "\nabc")))
+
+(ert-deftest common-tests/expand-escape-sequences-6 ()
+  (should (equal (expand-escape-sequences "\\n\\nabc")
+                 "\n\nabc")))
+
+(ert-deftest common-tests/expand-escape-sequences-7 ()
+  (should (equal (expand-escape-sequences "ab\\\\c")
+                 "ab\\c")))
+
+(ert-deftest common-tests/expand-escape-sequences-8 ()
+  (should (equal (expand-escape-sequences "ab\\tc")
+                 "ab\tc")))
+
+(ert-deftest common-tests/expand-escape-sequences-9 ()
+  (should (equal (expand-escape-sequences "ab\\rc")
+                 "ab\rc")))
+
 ;; (progn
 ;;   (ert "common-tests/.*")
 ;;   nil)

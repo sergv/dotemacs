@@ -555,55 +555,48 @@ regular expressions."
         flags-end
 
         delimiter
-        (delimiters (string-to-list "/|,;:!@#")))
-    (let* ((skip-quoted
-            (lambda ()
-              (while (and (< i len)
-                          (not (char= (aref str i) delimiter)))
-                ;; skip quoted character
-                (if (char= (aref str i) ?\\)
-                    (incf i 2)
-                  (incf i)))))
-           (skip-flags
-            (lambda ()
-              (while (and (< i len)
-                          (member* (aref str i)
-                                   (string-to-list "niIcg")
-                                   :test #'char=))
-                (incf i)))))
+        (delimiters (eval-when-compile (string-to-list "/|,;:!@#"))))
+    (symbol-macrolet ((skip-quoted
+                       (while (and (< i len)
+                                   (not (char= (aref str i) delimiter)))
+                         ;; skip quoted character
+                         (if (char= (aref str i) ?\\)
+                             (incf i 2)
+                           (incf i))))
+                      (skip-flags
+                       (while (and (< i len)
+                                   (memq (aref str i)
+                                         (eval-when-compile (string-to-list "niIcg"))))
+                         (incf i))))
       (while (and (< i len)
-                  (not (member* (aref str i)
-                                delimiters
-                                :test #'char=))
-                  ;; (not (char= (aref str i) ?/))
-                  )
+                  (not (memq (aref str i) delimiters)))
         (incf i))
       (setf delimiter (aref str i))
       (incf i)
       (setf pattern-start i)
-      (funcall skip-quoted)
+      skip-quoted
       (setf pattern-end i)
 
       (incf i)
       (when (< i len)
         (setf replacement-start i)
-        (funcall skip-quoted)
+        skip-quoted
         (setf replacement-end i)
         (incf i)
 
         (when (< i len)
           (setf flags-start i)
-          (funcall skip-flags)
+          skip-flags
           (setf flags-end i)))
-      (values (expand-escape-sequences
-               (subseq str pattern-start (min len pattern-end)))
+      (values (expand-escape-sequences!
+               (substring-no-properties str pattern-start (min len pattern-end)))
               (when (and replacement-start
                          replacement-end
                          ;; hack
                          (<= replacement-end len))
-                (subseq str replacement-start (min len replacement-end)))
+                (substring-no-properties str replacement-start (min len replacement-end)))
               (when (and flags-start flags-end)
-                (subseq str flags-start (min len flags-end)))))))
+                (substring-no-properties str flags-start (min len flags-end)))))))
 
 (defun vim:substitute-expand-escapes (replacement)
   "Expand escapes in the replacement string of vim substitue command."
