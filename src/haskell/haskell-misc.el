@@ -253,41 +253,41 @@ sexps and indentation levels."
 
 ;;;; align functions
 
-(make-align-function haskell-align-on-dollars
-                     "[$][^$]"
-                     :require-one-or-more-spaces t)
-(make-align-function haskell-align-on-equals
-                     "=[^=]"
-                     :require-one-or-more-spaces t)
-(make-align-function haskell-align-on-arrows
-                     (rx
-                      (or (seq
-                           (+ (any ?: ?| ?- ?=))
-                           (+ ">"))
-                          "→")
-                      (or " "
-                          eol)))
-(make-align-function haskell-align-on-left-arrows
-                     (rx
-                      (or (seq
-                           (+ "<")
-                           (+ (any ?: ?| ?- ?=)))
-                          "←")
-                      (or " "
-                          eol)))
-(make-align-function haskell-align-on-guards
-                     "|\\(?:[^|]\\|$\\)"
-                     :require-one-or-more-spaces t)
-(make-align-function haskell-align-on-commas
-                     ",\\(?:[^,\)]\\|$\\)")
-(make-align-function haskell-align-on-comments
-                     "--+\\(?: \\|$\\)"
-                     :require-one-or-more-spaces t)
+(defalign haskell-align-on-dollars
+  "[$][^$]"
+  :require-one-or-more-spaces t)
+(defalign haskell-align-on-equals
+  "=[^=]"
+  :require-one-or-more-spaces t)
+(defalign haskell-align-on-arrows
+  (rx
+   (or (seq
+        (+ (any ?: ?| ?- ?=))
+        (+ ">"))
+       "→")
+   (or " "
+       eol)))
+(defalign haskell-align-on-left-arrows
+  (rx
+   (or (seq
+        (+ "<")
+        (+ (any ?: ?| ?- ?=)))
+       "←")
+   (or " "
+       eol)))
+(defalign haskell-align-on-guards
+  "|\\(?:[^|]\\|$\\)"
+  :require-one-or-more-spaces t)
+(defalign haskell-align-on-commas
+  ",\\(?:[^,\)]\\|$\\)")
+(defalign haskell-align-on-comments
+  "--+\\(?: \\|$\\)"
+  :require-one-or-more-spaces t)
 
-(make-align-function haskell-align-on-double-colons
-                     haskell-regexen/function-signature-colons)
-(make-align-function haskell-align-on-pragma-close
-                     "#-}")
+(defalign haskell-align-on-double-colons
+  haskell-regexen/function-signature-colons)
+(defalign haskell-align-on-pragma-close
+  "#-}")
 
 
 (defun haskell-align-generic ()

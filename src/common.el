@@ -970,32 +970,35 @@ if there's no region."
        (region-end))
     (error "Region not active")))
 
+(defmacro with-region-bounds (start end &rest body)
+  "Call BODY with variables START and END bound to current region bounds."
+  (declare (indent 2))
+  (cl-assert (symbolp start))
+  (cl-assert (symbolp end))
+  `(progn
+     (unless (region-active-p)
+       (error "Region not active"))
+     (let ((,start nil)
+           (,end nil))
+       (if (and (vim:visual-mode-p)
+                (eq? vim:visual-mode-type 'linewise))
+           (setf ,start (save-excursion
+                          (goto-char (region-beginning))
+                          (line-beginning-position))
+                 ,end (save-excursion
+                        (goto-char (region-end))
+                        (line-end-position)))
+         (setf ,start (region-beginning)
+               ,end (region-end)))
+       (setf end (min end (point-max)))
+       ,@body)))
+
 (defun get-region-bounds ()
   "Return pair of region bounds, (begin . end), depending
 on currently active vim highlight mode."
   (declare (pure nil) (side-effect-free t))
-  (unless (region-active-p)
-    (error "Region not active"))
-  (let ((result
-         (if (vim:visual-mode-p)
-             (cond
-               ((eq? vim:visual-mode-type 'normal)
-                (cons (region-beginning) (region-end)))
-               ((eq? vim:visual-mode-type 'linewise)
-                (cons (save-excursion
-                        (goto-char (region-beginning))
-                        (line-beginning-position))
-                      (save-excursion
-                        (goto-char (region-end))
-                        (line-end-position))))
-               (t
-                (cons (region-beginning) (region-end))))
-           (cons (region-beginning) (region-end)))))
-    (if (> (cdr result) (point-max))
-        (progn
-          (setcdr result (point-max))
-          result)
-        result)))
+  (with-region-bounds start end
+    (cons start end)))
 
 ;;;
 
