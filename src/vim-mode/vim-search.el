@@ -424,19 +424,17 @@ Allowed flags are:
         (when (memq ?g flags)
           (error "Don't use flag g, use \"n\" with inverted meaning instead"))
         (let ((confirm (memq ?c flags)))
-          (vim:do-substitute
-           :motion motion
-           :pattern (vim--construct-substitute-pattern pattern flags)
-           :replacement replacement
-           :flags flags
-           :confirm confirm))))))
+          (vim:do-substitute motion
+                             (vim--construct-substitute-pattern pattern flags)
+                             replacement
+                             flags
+                             confirm))))))
 
-(defun* vim:do-substitute (&key
-                           motion
-                           pattern
-                           replacement
-                           flags
-                           confirm)
+(defun vim:do-substitute (motion
+                          pattern
+                          replacement
+                          flags
+                          confirm)
   "Do the actual substitution in current buffer. Search for regexp
 pattern and replace matches with REPLACEMENT.
 "
