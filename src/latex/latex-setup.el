@@ -92,14 +92,16 @@
                                              (file-name-directory input-file))
                                             "/"
                                             result-name)))
-                  (format
-                   (concat "cd '%s' && pdflatex -halt-on-error -shell-escape --file-line-error "
-                           "-output-directory '%s' '%s' && cp '%s' '%s'")
-                   +tmp-path+
-                   +tmp-path+
-                   input-file
-                   tmp-file
-                   result-file))
+                  (format "pdflatex -halt-on-error -shell-escape --file-line-error '%s'" input-file)
+                  ;; (format
+                  ;;  (concat "cd '%s' && pdflatex -halt-on-error -shell-escape --file-line-error "
+                  ;;          "-output-directory '%s' '%s' && cp '%s' '%s'")
+                  ;;  +tmp-path+
+                  ;;  +tmp-path+
+                  ;;  input-file
+                  ;;  tmp-file
+                  ;;  result-file)
+                  )
 
                 ;; don't ask - just compile
                 compilation-read-command nil
