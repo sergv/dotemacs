@@ -27,7 +27,7 @@
        ;; adjust beg function
        nil))
 
-(defhydra-derive hydra-diff-vim-normal-g-ext hydra-diff-normal-g-ext (:exit t :foreign-keys nil :hint nil)
+(defhydra-derive hydra-diff-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
   "
 _,_: kill hunk"
   ("," diff-hunk-kill))
