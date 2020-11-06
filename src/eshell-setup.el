@@ -70,8 +70,9 @@
          ("ediff3" "ediff3 $1 $2 $3")
          ("open" "find-file $1")
 
-         ("gcc" "*gcc $*")
-         ("python" "*python -B $*"))))
+         (".." "cd ..")
+         ("..." "cd ../..")
+         ("...." "cd ../../.."))))
 
 ;; commands to run in separate buffer
 (push "ssh" eshell-visual-commands)
