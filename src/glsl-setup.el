@@ -44,7 +44,7 @@
 
 ;;;###autoload
 (defun glsl-file-magic-function ()
-  (if-buffer-has-file
+  (when-buffer-has-file
     (let ((ext (and buffer-file-name
                     (file-name-extension buffer-file-name))))
       ;; check for null since .emacs doesn't have extension

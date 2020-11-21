@@ -20,7 +20,7 @@
   (bind-tab-keys #'indent-relative-forward
                  #'indent-relative-backward
                  :enable-yasnippet t)
-  (if-buffer-has-file
+  (when-buffer-has-file
     (when (string-match-p "^stack.*\\.yaml$"
                           (file-name-nondirectory (buffer-file-name)))
       (vim:local-emap "compile"  #'vim:haskell-compile)
