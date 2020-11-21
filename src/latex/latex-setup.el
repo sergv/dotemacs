@@ -80,7 +80,7 @@
   (modify-syntax-entry ?$ "\"")
 
   ;; compilation setup
-  (if-buffer-has-file
+  (when-buffer-has-file
     (setq-local compile-command
                 (let* ((input-file buffer-file-name)
                        (result-name (concat
