@@ -25,7 +25,7 @@
 (autoload 'doc-view-current-page "doc-view" "" nil 'macro)
 
 (defun doc-view-save-page ()
-  (if-buffer-has-file
+  (when-buffer-has-file
     (let ((fname (file-name-nondirectory buffer-file-name)))
       (persistent-store-put
        'doc-view-documents
@@ -48,7 +48,7 @@
           (:eval (number-to-string (doc-view-current-page)))
           "/"
           (:eval (number-to-string (doc-view-last-page-number)))))
-  (if-buffer-has-file
+  (when-buffer-has-file
     (awhen (assoc (file-name-nondirectory buffer-file-name)
                   (persistent-store-get 'doc-view-documents nil))
       (doc-view-goto-page (cdr it))))

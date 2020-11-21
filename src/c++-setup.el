@@ -162,7 +162,7 @@
 
 ;;;###autoload
 (defun c++-file-magic-function ()
-  (if-buffer-has-file
+  (when-buffer-has-file
     (let ((ext (file-name-extension buffer-file-name)))
       ;; check for null since .emacs doesn't have extension
       (when (and ext

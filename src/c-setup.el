@@ -27,7 +27,7 @@
 
   (setf hs-forward-sexp-func #'c-hideshow-forward-sexp)
 
-  (if-buffer-has-file
+  (when-buffer-has-file
     (setq-local compile-command
                 (let* ((fname  (file-name-nondirectory buffer-file-name))
                        (target (file-name-sans-extension fname)))
