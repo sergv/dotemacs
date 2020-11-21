@@ -26,7 +26,7 @@
   ;; but now it has file then set command...
   (unless compile-command
     (setq compile-command
-          (if-buffer-has-file
+          (when-buffer-has-file
             (concat gnuplot-program
                     " "
                     (shell-quote-argument
@@ -183,7 +183,7 @@ lines."
        '(gnuplot-font-lock-keywords t t))
 
   (set (make-local-variable 'compile-command)
-       (if-buffer-has-file
+       (when-buffer-has-file
          (concat gnuplot-program
                  " "
                  (shell-quote-argument

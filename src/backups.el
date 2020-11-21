@@ -71,7 +71,7 @@
 (defun backups--perform-backup (buf)
   "Make backup of specified buffer or current buffer if BUF is nil."
   (with-current-buffer buf
-    (if-buffer-has-file
+    (when-buffer-has-file
       ;; Ensure that destination directory exists.
       (unless (file-exists-p b/backup-directory)
         (make-directory b/backup-directory t))

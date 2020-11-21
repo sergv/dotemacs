@@ -1181,7 +1181,7 @@ topmost `kill-ring' item is equal to text."
 ;;;;
 
 (defun save-buffer-if-modified ()
-  (if-buffer-has-file
+  (when-buffer-has-file
     (when (buffer-modified-p)
       (save-buffer))))
 
@@ -1204,7 +1204,7 @@ Save buffer if it has assigned file and this file exists on disk."
   (interactive)
   (let ((old-functions kill-buffer-query-functions)
         (kill-buffer-query-functions nil))
-    (if-buffer-has-file
+    (when-buffer-has-file
       (when (file-exists? buffer-file-name)
         (save-buffer)))
     (kill-buffer buffer-or-name)

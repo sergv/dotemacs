@@ -575,7 +575,7 @@ under git version control."
 
   (defun git-update-file-repository ()
     "Update git-repository for current buffer."
-    (if-buffer-has-file
+    (when-buffer-has-file
       (when (or (not git-repository)
                 (not (string-prefix? (expand-file-name git-repository)
                                      (expand-file-name buffer-file-name))))

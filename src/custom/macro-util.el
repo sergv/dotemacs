@@ -207,7 +207,7 @@ value on all subsequent invokations."
 
 ;;; other macros
 
-(defmacro if-buffer-has-file (&rest body)
+(defmacro when-buffer-has-file (&rest body)
   "Execute BODY if current buffer has file assigned."
   (declare (indent 0))
   `(when buffer-file-name
