@@ -615,7 +615,7 @@ Basically swap current point with previous one."
      nil ;; output buffer
      t   ;; replace
      )
-    (if-buffer-has-file
+    (when-buffer-has-file
       (when (and (not (file-exists? buffer-file-name))
                  (y-or-n? (format "Kill buffer %s?" (buffer-name buf))))
         (kill-buffer buf)))))
