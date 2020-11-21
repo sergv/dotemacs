@@ -65,7 +65,7 @@
                                         (+ (or digit ".")))) )))))))
 
 ;;;###autoload
-(push (cons #'glsl-file-magic-function #'glsl-mode) magic-mode-alist)
+(add-to-list 'magic-mode-alist (cons #'glsl-file-magic-function #'glsl-mode))
 
 (provide 'glsl-setup)
 
