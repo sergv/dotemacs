@@ -169,19 +169,17 @@
                  (member ext +cpp-header-exts+))
         (save-excursion
           (save-match-data
-            (let ((search-result
-                   (re-search-forward (rx
-                                       (or "class"
-                                           "namespace"
-                                           "::"
-                                           ;; it's quite rare to see other template
-                                           ;; open brace styles so lets accomodate
-                                           ;; only for frequently used ones
-                                           (regex "template[[:space:]]*<")
-                                           (regex "\\(?:public\\|protected\\|private\\)[[:space:]]*:")))
-                                      nil
-                                      t)))
-              search-result)))))))
+            (re-search-forward (rx
+                                (or "class"
+                                    "namespace"
+                                    "::"
+                                    ;; it's quite rare to see other template
+                                    ;; open brace styles so lets accomodate
+                                    ;; only for frequently used ones
+                                    (regex "template[[:space:]]*<")
+                                    (regex "\\(?:public\\|protected\\|private\\)[[:space:]]*:")))
+                               nil
+                               t)))))))
 
 ;; this will make sure that *.h c++ header will be correctly handled
 ;;;###autoload
