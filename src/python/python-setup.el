@@ -14,6 +14,7 @@
 (require 'comint-setup)
 (require 'common)
 (require 'compile)
+(require 'hydra-setup)
 (require 'macro-util)
 
 (require 'python)
@@ -362,6 +363,16 @@ _h_: end of defun"
 _a_lign"
   ("a" hydra-python-align/body))
 
+(defhydra-derive hydra-python-vim-normal-j-ext hydra-vim-normal-j-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_j_: send defun to repl"
+  ("j" python-shell-send-defun))
+
+(defhydra-derive hydra-python-vim-visual-j-ext hydra-vim-visual-j-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_j_: send region to repl"
+  ("j" python-shell-send-region))
+
 ;;; actual setups
 
 ;;;###autoload
@@ -395,14 +406,14 @@ _a_lign"
     (vim:local-emap cmd #'vim:python-shell-send-buffer))
 
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("j"       python-shell-send-defun)
+    ("j"       hydra-python-vim-normal-j-ext/body)
     ("C-l"     python-shell-send-buffer)
 
     ("SPC SPC" switch-to-python))
 
   (def-keys-for-map vim:visual-mode-local-keymap
     ("<f6>"  python-shell-send-region)
-    ("j"     python-shell-send-region)
+    ("j"     hydra-python-vim-visual-j-ext/body)
     ("g"     hydra-python-vim-visual-g-ext/body))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
