@@ -17,7 +17,7 @@
 ;;;###autoload
 (defun c-setup ()
   (cc-setup :define-special-keys t)
-  (setup-folding t '(:header-start "^/" :header-symbol "*" :length-min 3))
+  (setup-folding t '(:header-symbol "/" :length-min 3))
   (cc-setup/set-up-c-basic-offset)
   (setq-local company-backends
               '(company-clang
