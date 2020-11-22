@@ -14,6 +14,7 @@
 (require 'emacs-lisp-highlight)
 (require 'find-func)
 (require 'general-lisp-setup)
+(require 'hydra-setup)
 
 ;;; elisp fontification and indentation
 
