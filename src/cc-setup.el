@@ -207,7 +207,8 @@ _o_: show c sexps in region"
   (setq-local company-backends '(company-eproj)
               whitespace-line-column 80
               whitespace-style '(face tabs lines-tail)
-              yas-expand-fallback #'tab-to-tab-stop)
+              yas-expand-fallback #'tab-to-tab-stop
+              hs-allow-nesting t)
 
   (setf c-tab-always-indent t)
   (c-toggle-hungry-state 1)
