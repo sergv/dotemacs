@@ -133,13 +133,13 @@
                                  "else")
                              symbol-end)
                         "{"))
-                0
+                nil
                 "/[*/]"
                 #'c-hideshow-forward-sexp
                 nil)))
   (setf hs-special-modes-alist
-        (cons `(c-mode ,hs-spec)
-              (cons `(c++-mode ,hs-spec)
+        (cons (cons 'c-mode hs-spec)
+              (cons (cons 'c++-mode hs-spec)
                     (assq-delete-all 'c-mode
                                      (assq-delete-all 'c++-mode
                                                       hs-special-modes-alist))))))
