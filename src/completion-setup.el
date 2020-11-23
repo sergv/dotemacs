@@ -27,7 +27,15 @@
 ;; it more powerful
 (setf completion-styles '(partial-completion)
       completion-category-overrides '()
-      read-buffer-function #'completing-read-buffer)
+      read-buffer-function #'completing-read-buffer
+      ;; Make tab completion in hell not offer ‘.’ and ‘..’ completions.
+      completion-regexp-list (list
+                              (rx bos (or (not ?.)
+                                          (seq (char ?.)
+                                               (not ?.))
+                                          (seq (char ?.)
+                                               (char ?.)
+                                               anything)))))
 
 ;; Smex - convenient command completer
 (setf smex-history-length 100
