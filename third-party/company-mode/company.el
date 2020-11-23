@@ -1203,6 +1203,7 @@ update if FORCE-UPDATE."
     (let* ((offset (if company-selection-default 0 1))
            (company-candidates-length
             (+ company-candidates-length offset)))
+      (setq selection (+ selection offset))
       (setq selection
             (if company-selection-wrap-around
                 (mod selection company-candidates-length)
@@ -2065,8 +2066,7 @@ meant for no selection."
     (let ((selection (+ (or arg 1)
                         (or company-selection
                             company-selection-default
-                            -1)
-                        (if company-selection-default 0 1))))
+                            -1))))
       (company-set-selection selection))))
 
 (defun company-select-previous (&optional arg)
@@ -2097,6 +2097,16 @@ With ARG, move by that many elements."
       (company-select-previous arg)
     (company-abort)
     (company--unread-this-command-keys)))
+
+(defun company-select-first ()
+  "Select the first completion candidate."
+  (interactive)
+  (company-set-selection 0))
+
+(defun company-select-last ()
+  "Select the last completion candidate."
+  (interactive)
+  (company-set-selection (1- company-candidates-length)))
 
 (defun company-next-page ()
   "Select the candidate one page further."
@@ -2746,6 +2756,27 @@ If SHOW-VERSION is non-nil, show the version in the echo area."
       (cl-decf ww (1- (length (aref buffer-display-table ?\n)))))
     ww))
 
+(defun company--face-attribute (face attr)
+  ;; Like `face-attribute', but accounts for faces that have been remapped to
+  ;; another face, a list of faces, or a face spec.
+  (cond ((null face) nil)
+        ((symbolp face)
+         (let ((remap (cdr (assq face face-remapping-alist))))
+           (if remap
+               (company--face-attribute
+                ;; Faces can be remapped to their unremapped selves, but that
+                ;; would cause us infinite recursion.
+                (if (listp remap) (remq face remap) remap)
+                attr)
+             (face-attribute face attr nil t))))
+        ((keywordp (car-safe face))
+         (or (plist-get face attr)
+             (company--face-attribute (plist-get face :inherit) attr)))
+        ((listp face)
+         (cl-find-if #'stringp
+                     (mapcar (lambda (f) (company--face-attribute f attr))
+                             face)))))
+
 (defun company--replacement-string (lines old column nl &optional align-top)
   (cl-decf column company-tooltip-margin)
 
@@ -2782,7 +2813,8 @@ If SHOW-VERSION is non-nil, show the version in the echo area."
     (let* ((nl-face (list
                      :extend t
                      :inverse-video nil
-                     :background (face-attribute 'default :background)))
+                     :background (or (company--face-attribute 'default :background)
+                                     (face-attribute 'default :background nil t))))
            (str (apply #'concat
                        (when nl " \n")
                        (cl-mapcan
@@ -3238,10 +3270,12 @@ Delay is determined by `company-tooltip-idle-delay'."
                                      'face 'company-echo))
               (cl-incf len 3)
               (cl-incf i)
-              (add-text-properties 3 (+ 3 (string-width company-common))
+              ;; FIXME: Add support for the `match' backend action, and thus,
+              ;; non-prefix matches.
+              (add-text-properties 3 (+ 3 (string-width (or company-common "")))
                                    '(face company-echo-common) comp))
           (setq comp (propertize comp 'face 'company-echo))
-          (add-text-properties 0 (string-width company-common)
+          (add-text-properties 0 (string-width (or company-common ""))
                                '(face company-echo-common) comp))
         (if (>= len limit)
             (setq candidates nil)
