@@ -162,7 +162,7 @@ With negative argument move forward, still one level out."
 ;; will handle the situation when ' is used as a contraction symbol in
 ;; natural language.  Nil for second argument means to keep the
 ;; original definition of closing pair.
-(sp-pair "'" nil :unless '(sp-point-after-word-p sp-in-minibuffer?))
+(sp-pair "'" "'" :unless '(sp-point-after-word-p sp-in-minibuffer?))
 
 ;; emacs is lisp hacking enviroment, so we set up some most common
 ;; lisp modes too
@@ -184,6 +184,9 @@ With negative argument move forward, still one level out."
 
 
 (sp-local-pair 'awk-mode "/" "/")
+
+(sp-pair "‘" nil :actions :rem)
+(sp-pair "“" nil :actions :rem)
 
 (sp-pair "‘" "’" :actions '(insert wrap))
 (sp-pair "“" "”" :actions '(insert wrap))
