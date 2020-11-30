@@ -1198,17 +1198,20 @@ Does well against `prettify-symbols-mode' and `compose-region'."
   (declare (pure nil) (side-effect-free nil))
   (goto-char (min (+ (line-beginning-position) col) (line-end-position))))
 
-(defun remove-buffer (&optional buffer-or-name)
+(defun remove-buffer (&optional hard-kill? buffer-or-name)
   "Remove buffer completely bypassing all its prompt functions.
 Save buffer if it has assigned file and this file exists on disk."
-  (interactive)
-  (let ((old-functions kill-buffer-query-functions)
-        (kill-buffer-query-functions nil))
+  (interactive "P")
+  (let ((kill-buffer-query-functions nil)
+        ;; Fool Emacs into thinking that buffer has no corresponding file
+        ;; so that it won’t query to save it.
+        (buffer-file-name (if hard-kill?
+                              nil
+                            buffer-file-name)))
     (when-buffer-has-file
       (when (file-exists? buffer-file-name)
         (save-buffer)))
-    (kill-buffer buffer-or-name)
-    (setq kill-buffer-query-functions old-functions)))
+    (kill-buffer buffer-or-name)))
 
 (defun remove-buffer-and-window ()
   "Remove buffer and close it's window"
