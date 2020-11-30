@@ -28,9 +28,10 @@
 (setf completion-styles '(partial-completion)
       completion-category-overrides '()
       read-buffer-function #'completing-read-buffer
-      ;; Make tab completion in hell not offer ‘.’ and ‘..’ completions.
+      ;; Make tab completion in shell not offer ‘.’ and ‘..’ completions.
       completion-regexp-list (list
-                              (rx bos (or (not ?.)
+                              (rx bos (or ""
+                                          (not ?.)
                                           (seq (char ?.)
                                                (not ?.))
                                           (seq (char ?.)
