@@ -547,9 +547,9 @@ Futher modified by Sergey Vinokurov."
 
             ;; stable magit fontification
             (git-rebase-hash                      ((t (:foreground ,red))))
-            (magit-bisect-bad                     ((t (:foreground ,red :background nil))))
-            (magit-bisect-good                    ((t (:foreground ,green :background nil))))
-            (magit-bisect-skip                    ((t (:foreground ,yellow :background nil))))
+            (magit-bisect-bad                     ((t (:foreground ,red :background nil :bold t))))
+            (magit-bisect-good                    ((t (:foreground ,green :background nil :bold t))))
+            (magit-bisect-skip                    ((t (:foreground ,yellow :background nil :bold t))))
             (magit-blame-hash                     ((t (:inherit magit-hash))))
             (magit-blame-heading                  ((t (:inherit highlight))))
             (magit-branch-current                 ((t (:foreground ,red :background nil :box t))))
