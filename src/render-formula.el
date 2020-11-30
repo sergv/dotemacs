@@ -161,7 +161,7 @@ pnm utils suite.")
                                     "-output-directory" +render-formula-tmp-path+
                                     "-jobname" tmp-filename))
             (progn
-              (mapc #'remove-buffer latex-bufs))
+              (mapc (lambda (buf) (remove-buffer nil buf)) latex-bufs))
           (progn
             (dolist (buf latex-bufs)
               (with-current-buffer buf
@@ -208,7 +208,7 @@ pnm utils suite.")
                                    'png
                                    nil
                                    :ascent 'center)))
-            (remove-buffer conversion-error-buf)
+            (remove-buffer nil conversion-error-buf)
             (setf *formula-index* (+ 1 *formula-index*))
             (puthash str img *formula-images-cache*)
             img)
