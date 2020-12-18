@@ -1331,32 +1331,39 @@ With argument COUNT, do this that many times."
   "Delete whitespaces forward until non-whitespace
 character found"
   (interactive)
-  (while (and (not (eobp))
-              (whitespace-char? (char-after))
-              (not (get-char-property (1- (point)) 'read-only)))
-    (delete-char 1)))
+  (let ((start (point)))
+    (while (and (not (eobp))
+                (whitespace-char? (char-after))
+                (not (get-char-property (1- (point)) 'read-only)))
+      (forward-char 1))
+    (delete-region start (point))))
 
 (defun delete-whitespace-backward ()
   "Delete whitespaces backward until non-whitespace
 character found. Returns t if any whitespace was actually deleted."
   (interactive)
-  (let ((any-deleted? nil))
+  (let ((any-deleted? nil)
+        (start (point)))
     (while (and (not (bobp))
                 (whitespace-char? (char-before))
                 (not (get-char-property (1- (point)) 'read-only)))
-      (delete-char -1)
+      (forward-char -1)
       (setf any-deleted? t))
+    (when any-deleted?
+      (delete-region (point) start))
     any-deleted?))
 
 (defun delete-current-line ()
   "Delete line where point is currently positioned including
 trailing newline"
   (beginning-of-line)
-  (while (and (not (eobp))
-              (not (char= ?\n (char-after))))
-    (delete-char 1))
-  (unless (eobp)
-    (delete-char 1)))
+  (let ((start (point)))
+    (while (and (not (eobp))
+                (not (char= ?\n (char-after))))
+      (forward-char 1))
+    (unless (eobp)
+      (forward-char 1))
+    (delete-region start (point))))
 
 (defsubst current-line ()
   "Return line point is currently on."
