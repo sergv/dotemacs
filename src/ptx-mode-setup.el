@@ -19,7 +19,9 @@
   (init-common
    :use-yasnippet nil
    :use-comment t
-   :use-fci t))
+   :use-fci t)
+
+  (setup-folding t '(:header-symbol "/" :length-min 3)))
 
 ;;;###autoload
 (defun ptx-file-magic-function ()
