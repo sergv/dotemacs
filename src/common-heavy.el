@@ -1032,6 +1032,52 @@ to deleted items. ITEMS will be mutated in order to obtain result."
     (find-file new-name)
     (message "Copied to %s" new-name)))
 
+;;;
+
+(defface evaporate-region-face
+  '((t :foreground "#666666"))
+  "Face for text that will evaporate when modified/overwritten.")
+
+(defun evaporate-region (beg end &optional disable-cycling?)
+  "Make the region evaporate when typed over."
+  (interactive "r")
+  (let ((o (make-overlay beg end nil nil nil)))
+    (overlay-put o 'face 'evaporate-region-face)
+    (overlay-put o 'priority 2)
+    (overlay-put o 'modification-hooks '(evaporate-region--modification-hook))
+    (overlay-put o 'insert-in-front-hooks '(evaporate-region--insert-before-hook))
+    (overlay-put o 'insert-behind-hooks '(evaporate-region--insert-behind-hook))))
+
+(defun evaporate-region--modification-hook (o changed beg end &optional len)
+  "Remove the overlay after a modification occurs."
+  (let ((inhibit-modification-hooks t))
+    (when (and changed
+                (overlay-start o))
+      (evaporate-region--delete-text o beg end)
+      (delete-overlay o))))
+
+(defun evaporate-region--insert-before-hook (o changed beg end &optional len)
+  "Remove the overlay before inserting something at the start."
+  (let ((inhibit-modification-hooks t))
+    (when (and (not changed)
+               (overlay-start o))
+      (evaporate-region--delete-text o beg end)
+      (delete-overlay o))))
+
+(defun evaporate-region--insert-behind-hook (o changed beg end &optional len)
+  "Remove the overlay when calling backspace at the end.."
+  (let ((inhibit-modification-hooks t))
+    (when (and (not changed)
+               (overlay-start o))
+      (evaporate-region--delete-text o beg end)
+      (delete-overlay o))))
+
+(defun evaporate-region--delete-text (o beg end)
+  "Delete the text associated with the evaporating slot."
+  (unless (eq this-command 'undo)
+    (delete-region (overlay-start o)
+                   (overlay-end o))))
+
 (provide 'common-heavy)
 
 ;; Local Variables:
