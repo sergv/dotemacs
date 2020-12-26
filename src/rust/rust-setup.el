@@ -118,7 +118,7 @@ which is suitable for most programming languages such as C or Lisp."
 
 (defhydra-ext hydra-rust-dash (:exit t :foreign-keys nil :hint nil)
   "
-_e_xplain error at pointn
+_e_xplain error at point
 "
   ("e" flycheck-explain-error-at-point))
 
