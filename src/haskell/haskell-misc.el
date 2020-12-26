@@ -810,51 +810,6 @@ value section should have if it is to be properly indented."
 
 ;;; Utilities salvaged from structured-haskell-mode.
 
-(defface haskell-evaporate-face
-  '((t :foreground "#666666"))
-  "Face for text that will evaporate when modified/overwritten.")
-
-(defun haskell-evaporate (beg end &optional disable-cycling?)
-  "Make the region evaporate when typed over."
-  (interactive "r")
-  (let ((o (make-overlay beg end nil nil nil)))
-    (overlay-put o 'face 'haskell-evaporate-face)
-    (overlay-put o 'priority 2)
-    (overlay-put o 'modification-hooks '(haskell-evaporate-modification-hook))
-    (overlay-put o 'insert-in-front-hooks '(haskell-evaporate-insert-before-hook))
-    (overlay-put o 'insert-behind-hooks '(haskell-evaporate-insert-behind-hook))))
-
-(defun haskell-evaporate-modification-hook (o changed beg end &optional len)
-  "Remove the overlay after a modification occurs."
-  (let ((inhibit-modification-hooks t))
-    (when (and changed
-                (overlay-start o))
-      (haskell-evaporate-delete-text o beg end)
-      (delete-overlay o))))
-
-(defun haskell-evaporate-insert-before-hook (o changed beg end &optional len)
-  "Remove the overlay before inserting something at the start."
-  (let ((inhibit-modification-hooks t))
-    (when (and (not changed)
-               (overlay-start o))
-      (haskell-evaporate-delete-text o beg end)
-      (delete-overlay o))))
-
-(defun haskell-evaporate-insert-behind-hook (o changed beg end &optional len)
-  "Remove the overlay when calling backspace at the end.."
-  (let ((inhibit-modification-hooks t))
-    (when (and (not changed)
-               (overlay-start o))
-      (haskell-evaporate-delete-text o beg end)
-      (delete-overlay o))))
-
-(defun haskell-evaporate-delete-text (o beg end)
-  "Delete the text associated with the evaporating slot."
-  (unless (eq this-command 'undo)
-    (delete-region (overlay-start o)
-                   (overlay-end o))))
-
-
 (defun haskell-insert-undefined ()
   "Insert undefined."
   (interactive "*")
@@ -868,7 +823,7 @@ value section should have if it is to be properly indented."
       (insert " ")
       (forward-char -1))
     (insert "undefined")
-    (haskell-evaporate start (point) nil)
+    (evaporate-region start (point) nil)
     (goto-char start)))
 
 

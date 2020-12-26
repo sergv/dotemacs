@@ -153,6 +153,22 @@ _a_lign  _t_: beginning of defun
   ("t" vim:rust-beginning-of-defun)
   ("h" vim:rust-end-of-defun))
 
+(defun rust-insert-unimplemented ()
+  "Insert unimplemented!()."
+  (interactive "*")
+  (let ((start (point)))
+    (when (and (looking-back "[^\[\(\{;, ]")
+               (not (bolp)))
+      (insert " ")
+      (setq start (1+ start)))
+    (when (and (looking-at-p "[^\]\)\},; ]+_*")
+               (not (eolp)))
+      (insert " ")
+      (forward-char -1))
+    (insert "unimplemented!()")
+    (evaporate-region start (point) nil)
+    (goto-char start)))
+
 ;;;; Setup
 
 ;;;###autoload
@@ -253,6 +269,7 @@ _a_lign  _t_: beginning of defun
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
+    ("C-u"   rust-insert-unimplemented)
     ("C-t"   flycheck-enhancements-previous-error-with-wraparound)
     ("C-h"   flycheck-enhancements-next-error-with-wraparound)
     ("M-t"   rust-compilation-prev-error-other-window)
