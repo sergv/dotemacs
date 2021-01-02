@@ -329,12 +329,6 @@
     "crossbeam::scope(move _|_"
     "crossbeam::scope(move |_|_"))
 
-(ert-deftest rust-tests/sp-splice-sexp-killing-backward-1 ()
-  (rust-tests--test-buffer-contents
-      (sp-splice-sexp-killing-backward)
-    "foo = ({ foo: _|_ a, b})"
-    "foo = (_|_a, b)"))
-
 (ert-deftest rust-tests/rust-smart-operators--fat-arrow-1 ()
   (rust-tests--test-buffer-contents
       (rust-smart-operators--insert-char-surrounding-with-spaces ?\>)
@@ -459,6 +453,32 @@
     (tests-utils--multiline
      ""
      "let x: Vec<Box<i32>>_|_ = vec![1, 2, 3];"
+     "")))
+
+(ert-deftest rust-tests/sp-splice-sexp-killing-backward-1 ()
+  (rust-tests--test-buffer-contents
+      (sp-splice-sexp-killing-backward)
+    "foo = ({ foo: _|_ a, b})"
+    "foo = (_|_a, b)"))
+
+(ert-deftest rust-tests/sp-splice-sexp-killing-backward-2 ()
+  (rust-tests--test-buffer-contents
+      (sp-splice-sexp-killing-backward)
+    (tests-utils--multiline
+     ""
+     "if ulen <= rest1.len() {"
+     "    Ok(((_|_&rest2[..ulen]), &rest2[ulen..]))"
+     "} else {"
+     "    Err(ParseError::PrematureStringEnd(mk_string(input)))"
+     "}"
+     "")
+    (tests-utils--multiline
+     ""
+     "if ulen <= rest1.len() {"
+     "    Ok((_|_&rest2[..ulen], &rest2[ulen..]))"
+     "} else {"
+     "    Err(ParseError::PrematureStringEnd(mk_string(input)))"
+     "}"
      "")))
 
 (provide 'rust-tests)
