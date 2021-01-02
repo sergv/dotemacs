@@ -141,7 +141,8 @@
 ;; 3. [[https://github.com/tumashu/pyim][pyim]]
 ;; 4. [[https://github.com/tumashu/ivy-posframe][ivy-posframe]]
 ;; 5. [[https://github.com/tumashu/company-posframe][company-posframe]]
-;; 6. ...
+;; 6. [[https://github.com/randomwangran/org-marginalia-posframe][org-marginalia-posframe]]
+;; 7. ...
 
 ;;; Code:
 ;; * posframe's code                         :CODE:
@@ -422,10 +423,10 @@ position.  Its argument is a plist of the following form:
    :parent-window xxx
    :parent-window-width  xxx
    :parent-window-height xxx
-   :minibuffer-height
-   :mode-line-height
-   :header-line-height
-   :tab-line-height
+   :minibuffer-height xxx
+   :mode-line-height  xxx
+   :header-line-height xxx
+   :tab-line-height xxx
    :x-pixel-offset xxx
    :y-pixel-offset xxx)
 
