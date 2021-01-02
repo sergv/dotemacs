@@ -6,7 +6,7 @@
 ;;         Naoya Yamashita <conao3@gmail.com>
 ;; Maintainer: Feng Shu <tumashu@163.com>
 ;; URL: https://github.com/tumashu/ivy-posframe
-;; Version: 0.5.2
+;; Version: 0.5.5
 ;; Keywords: abbrev, convenience, matching, ivy
 ;; Package-Requires: ((emacs "26.0") (posframe "0.8.0") (ivy "0.13.0"))
 
@@ -332,11 +332,19 @@ This variable is useful for `ivy-posframe-read-action' .")
 (declare-function swiper-avy "swiper")
 (declare-function swiper--update-input-ivy "swiper")
 
+(defun ivy-posframe--dispatching-done ()
+  "Select one of the available actions and call `ivy-done'."
+  (interactive)
+  (let ((ivy-exit 'ivy-posframe--dispatching-done))
+    (when (ivy-read-action)
+      (ivy-done)))
+  (ivy-posframe-shrink-after-dispatching))
+
 (defun ivy-posframe-dispatching-done ()
   "Ivy-posframe's `ivy-dispatching-done'."
   (interactive)
   (let ((ivy-read-action-function #'ivy-posframe-read-action-by-key))
-    (ivy-dispatching-done)))
+    (ivy-posframe--dispatching-done)))
 
 (defun ivy-posframe-read-action ()
   "Ivy-posframe version `ivy-read-action'"
@@ -361,15 +369,16 @@ This variable is useful for `ivy-posframe-read-action' .")
                                     (string-prefix-p key (car x)))
                                   (cdr actions)))
                 (not (string= key (car (nth action-idx (cdr actions))))))
-      (setq key (concat key (string
-                             (read-key
-                              (if (functionp display-function)
-                                  (let ((ivy-posframe--ignore-prompt t))
-                                    (funcall display-function hint)
-                                    "Please type a key: ")
-                                hint))))))
-    (ivy-shrink-after-dispatching)
-    (cond ((member key '("ESC" "C-g"))
+      (setq key (concat key (key-description
+                             (vector
+                              (read-key
+                               (if (functionp display-function)
+                                   (let ((ivy-posframe--ignore-prompt t))
+                                     (funcall display-function hint)
+                                     "Please type a key: ")
+                                 hint)))))))
+    (ivy-posframe-shrink-after-dispatching)
+    (cond ((member key '("ESC" "C-g" "M-o"))
            nil)
           ((null action-idx)
            (message "%s is not bound" key)
@@ -378,6 +387,11 @@ This variable is useful for `ivy-posframe-read-action' .")
            (message "")
            (setcar actions (1+ action-idx))
            (ivy-set-action actions)))))
+
+(defun ivy-posframe-shrink-after-dispatching ()
+  "Shrink the minibuffer to the minimum size after dispatching."
+  (when (window-minibuffer-p)
+    (window-resize nil (- (window-size)))))
 
 (defun ivy-posframe--window ()
   "Return the posframe window displaying `ivy-posframe-buffer'."
@@ -531,7 +545,9 @@ This variable is useful for `ivy-posframe-read-action' .")
         (overlay-put ov 'ivy-posframe t)
         (overlay-put ov 'face
                      (let ((bg-color (face-background 'default nil)))
-                       `(:background ,bg-color :foreground ,bg-color)))
+                       `( :background ,bg-color :foreground ,bg-color
+                          :box nil :underline nil
+                          :overline nil :strike-through nil)))
         (setq-local cursor-type nil)))))
 
 (defun ivy-posframe--add-prompt (fn &rest args)
