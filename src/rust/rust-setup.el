@@ -30,6 +30,11 @@
          #'rust-format-buffer
          *mode-indent-functions-table*)
 
+(setf sp-sexp-prefix
+      (cons '(rust-mode regexp "[&]")
+            (--remove (eq (car it) 'rust-mode)
+                      sp-sexp-prefix)))
+
 ;;;; Utilities
 
 (defconst rust-compilation-buffer-name "*rust-compilation*")
