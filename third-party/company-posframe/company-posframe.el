@@ -5,7 +5,7 @@
 ;; Author: Clément Pit-Claudel, Feng Shu, Lars Andersen <expez@expez.com>
 ;; Maintainer: Feng Shu <tumashu@163.com>
 ;; URL: https://github.com/tumashu/company-posframe
-;; Version: 0.1.0
+;; Version: 0.5.0
 ;; Keywords: abbrev, convenience, matching
 ;; Package-Requires: ((emacs "26.0")(company "0.9.0")(posframe "0.1.0"))
 
@@ -445,8 +445,12 @@ just grab the first candidate and press forward."
 
 (defun company-posframe-quickhelp-raise-frame ()
   (interactive)
-  (posframe-funcall company-posframe-quickhelp-buffer
-                    #'raise-frame))
+  ;; FIXME: On macOS, the new lower-frame call causes Emacs to hide.
+  ;; 1. https://github.com/tumashu/company-posframe/issues/43
+  ;; 2. https://lists.gnu.org/archive/html/emacs-devel/2020-05/msg03253.html
+  (unless (memq system-type '(darwin))
+    (posframe-funcall company-posframe-quickhelp-buffer
+                      #'raise-frame)))
 
 (defun company-posframe-quickhelp-toggle ()
   (interactive)
