@@ -121,6 +121,8 @@ which is suitable for most programming languages such as C or Lisp."
   ("<return>" compilation/goto-error)
   ("SPC"      compilation/goto-error-other-window))
 
+;;;;
+
 (defhydra-ext hydra-rust-dash (:exit t :foreign-keys nil :hint nil)
   "
 _e_xplain error at point
