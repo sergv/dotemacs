@@ -32,7 +32,7 @@ or just to bury selection buffer, leaving it's windows inplace (nil).)"
 (defface select-mode-selection-face '((t (:inherit secondary-selection)))
   "Face to highlight currently selected item")
 
-(defparameter select-mode-bold-separator (select-make-bold-separator "--------\n"))
+(defvar select-mode-bold-separator (select-make-bold-separator "--------\n"))
 
 
 (defstruct select-mode--state

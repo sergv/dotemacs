@@ -269,7 +269,7 @@ name `name' to `new-regex'."
       (awhen (vim:hl-update-hook hl)
         (funcall it result)))))
 
-(defparameter vim:hl-update-timer nil
+(defvar vim:hl-update-timer nil
   "Time used for updating highlights.")
 
 (defun vim:hl-idle-update ()

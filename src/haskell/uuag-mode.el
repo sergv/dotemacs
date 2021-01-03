@@ -11,7 +11,7 @@
 (require 'common)
 (require 'solarized)
 
-(defparameter uuag-mode-syntax-table
+(defvar uuag-mode-syntax-table
   (let ((tbl (make-syntax-table haskell-mode-syntax-table)))
     ;; (modify-syntax-entry ?\n ">"    tbl)
     tbl)
@@ -25,7 +25,7 @@
   `((t (:foreground ,+solarized-orange+ :bold t)))
   "Face to highlight references to other attributes (i.e. things that start with @).")
 
-(defparameter uuag-mode-font-lock-keywords
+(defvar uuag-mode-font-lock-keywords
   `(("@[[:lower:]_][[:alnum:]'_]*"
      (0 'uuag-field-name-face))
 

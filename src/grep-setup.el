@@ -166,7 +166,7 @@ quoting, e.g. `\\[quoted-insert]<space>'."
             ))))
 
 
-(defparameter rgrep-ignore-case nil
+(defvar rgrep-ignore-case nil
   "Dynamically-bound variable that controls whether current
 rgrep invocation should be case-insensetive.")
 

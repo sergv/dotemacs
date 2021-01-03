@@ -79,7 +79,7 @@
   "List of syntaxes that will be tried one after the other
 to find match for car-element in `abbrev+-abbreviations'")
 
-(defparameter abbrev+-after-expand-and-space-hook nil
+(defvar abbrev+-after-expand-and-space-hook nil
   "Hook to be run after expansion was carried out and trailing space was
 inserted. Space is important - if conditions to insert space were not
 met then this hook would not run.")

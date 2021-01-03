@@ -172,7 +172,7 @@ of section."
       (intern (match-string 1 str)))))
 
 
-(defparameter latex:document-start nil
+(defvar latex:document-start nil
   "Marker that marks \\begin{document} in latex file.")
 (make-variable-buffer-local 'latex:document-start)
 (set-default 'latex:document-start nil)

@@ -13,7 +13,7 @@
 
 (eval-when-compile (require 'subr-x))
 
-(defparameter eproj-ctags--exec
+(defvar eproj-ctags--exec
   (or (let ((ctags-exec
              (platform-dependent-executable (concat +execs-path+ "/ctags"))))
         (when (and ctags-exec
@@ -21,7 +21,7 @@
           ctags-exec))
       (cached-executable-find "ctags")))
 
-(defparameter *ctags-language-flags*
+(defvar *ctags-language-flags*
   '((c-mode
      "--language-force=c"
      "--c-kinds=-defgmpstuv"
@@ -122,7 +122,7 @@
                     (error "ctags reports on stderr:\n%s"
                            (buffer-substring-no-properties (point-min) (point-max)))))))))))))
 
-(defparameter eproj/ctags-string-cache
+(defvar eproj/ctags-string-cache
   (make-hash-table :test #'equal :size 997 :weakness t))
 
 (defsubst eproj-ctags--cache-string (x)

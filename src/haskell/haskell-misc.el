@@ -479,7 +479,7 @@ extensions as a list of strings. Leaves point at the end of pragma"
 
 ;;; define forward-haskell-symbol
 
-(defparameter haskell-symbol--identifier-syntax-table
+(defvar haskell-symbol--identifier-syntax-table
   (let ((tbl (copy-syntax-table haskell-mode-syntax-table)))
     (modify-syntax-entry ?#  "w" tbl)
     (modify-syntax-entry ?_  "w" tbl)

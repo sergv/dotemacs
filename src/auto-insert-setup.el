@@ -52,7 +52,7 @@
                 ("\\.\\(?:c?l\\|asdf?\\|li?sp\\|clisp\\)\\'"
                  "insert.lisp"))))
 
-(defparameter auto-insert-fields
+(defvar auto-insert-fields
   (list
    (list "license type" (lambda ()
                           "Apache-2.0"))
