@@ -8,7 +8,7 @@
 
 (require 'company-mode-setup)
 
-(defparameter company-eproj-ignore-case nil)
+(defvar company-eproj-ignore-case nil)
 
 (defun company-eproj (command &optional arg &rest ignored)
   (interactive (list 'interactive))

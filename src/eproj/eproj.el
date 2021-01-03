@@ -171,7 +171,7 @@
     (prog1 (funcall parse-tags-proc (eproj-project/root proj) (current-buffer))
       (erase-buffer))))
 
-(defparameter eproj/languages
+(defvar eproj/languages
   (list
    (mk-eproj-lang
     :mode 'haskell-mode
@@ -269,13 +269,13 @@
     :show-tag-kind-procedure #'eproj/generic-tag-kind
     :tag->string-func #'eproj/generic-tag->string)))
 
-(defparameter eproj/languages-table
+(defvar eproj/languages-table
   (let ((table (make-hash-table :test #'eq)))
     (dolist (lang eproj/languages)
       (puthash (eproj-language/mode lang) lang table))
     table))
 
-(defparameter eproj/synonym-modes-table
+(defvar eproj/synonym-modes-table
   (let ((table (make-hash-table :test #'eq)))
     (dolist (lang eproj/languages)
       (dolist (synonym (eproj-language/synonym-modes lang))
@@ -369,7 +369,7 @@ get proper flycheck checker."
   (string< (eproj-project/root proj-a)
            (eproj-project/root proj-b)))
 
-(defparameter *eproj-projects*
+(defvar *eproj-projects*
   (make-hash-table :test #'equal)
   "Hash table mapping project roots to projects.")
 

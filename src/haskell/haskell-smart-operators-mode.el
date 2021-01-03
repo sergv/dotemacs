@@ -34,7 +34,7 @@
     (and (looking-at-p "^[ \t]+|")
          (point))))
 
-(defparameter haskell-quasiquoter-name-syntax-table
+(defvar haskell-quasiquoter-name-syntax-table
   (let ((tbl (copy-syntax-table haskell-mode-syntax-table)))
     (modify-syntax-entry ?. "w" tbl)
     (modify-syntax-entry ?' "w" tbl)

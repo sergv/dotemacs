@@ -21,34 +21,34 @@
   "Configure ex-mode and search mode."
   :group 'vim-mode)
 
-(defparameter vim:ex-commands (make-hash-table :test #'equal)
+(defvar vim:ex-commands (make-hash-table :test #'equal)
   "Hash table, keys are string commands, values are functions.")
 
 (defvar-local vim:ex-local-commands nil
   "Buffer-local version of `vim:ex-commands'.")
 
-(defparameter vim:ex-minibuffer nil
+(defvar vim:ex-minibuffer nil
   "The currenty active ex minibuffer.")
 
-(defparameter vim:ex-current-buffer nil
+(defvar vim:ex-current-buffer nil
   "The buffer to which the currently active ex session belongs to.")
 
-(defparameter vim:ex-current-window nil
+(defvar vim:ex-current-window nil
   "The window to which the currently active ex session belongs to.")
 
-(defparameter vim:ex-history nil
+(defvar vim:ex-history nil
   "History of ex-commands.")
 
-(defparameter vim:ex-cmd nil
+(defvar vim:ex-cmd nil
   "The currently parsed command.")
-(defparameter vim:ex-arg nil
+(defvar vim:ex-arg nil
   "The currently parse command.")
-(defparameter vim:ex-arg-handler nil
+(defvar vim:ex-arg-handler nil
   "The currently active argument handler.")
-(defparameter vim:ex-range nil
+(defvar vim:ex-range nil
   "The currently parsed region.")
 
-(defparameter vim:ex-keymap
+(defvar vim:ex-keymap
   (let ((map (make-sparse-keymap)))
     (def-keys-for-map map
       ("<escape>"      abort-recursive-edit)
@@ -98,7 +98,7 @@ currently defined ex commands. Should be updated with
   "Local variont of `vim-ex--global-commands-re-cache' that includes both global and
 local commands.")
 
-(defparameter vim:all-known-global-ex-commands nil
+(defvar vim:all-known-global-ex-commands nil
   "List of strings of all known ex-mode commands.")
 
 (defvar-local vim:all-known-local-ex-commands nil
@@ -203,7 +203,7 @@ cancel ex-mode."
   update     ;; Called whenever the argument has changed.
   )
 
-(defparameter vim:argument-handlers-alist
+(defvar vim:argument-handlers-alist
   `((text . ,(vim:make-arg-handler :complete #'vim:ex-complete-text-argument))
     (file . ,(vim:make-arg-handler :complete #'vim:ex-complete-file-argument))
     (buffer . ,(vim:make-arg-handler :complete #'vim:ex-complete-buffer-argument)))

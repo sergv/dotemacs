@@ -508,14 +508,14 @@ pretty symbol. Intended for use in `font-lock-keywords' and
 ;; x ** 2 + y**2 + z **2 - w** 2
 ;;
 
-(defparameter *python-font-lock-keywords*
+(defvar *python-font-lock-keywords*
   (append +python-standard-keywords+
           +python-highlight-constants+
           +python-highlight-procedures+
           +python-pretty-symbols+)
   "Additional expressions to highlight in Python mode.")
 
-(defparameter *python-repl-font-lock-keywords*
+(defvar *python-repl-font-lock-keywords*
   (append +python-standard-keywords+
           +python-highlight-constants+
           ;; +python-pretty-symbols+

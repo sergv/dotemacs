@@ -18,11 +18,11 @@
 (defvar persistent-store-content nil
   "Current contents of the database. A hash table with :test type being 'eq.")
 
-(defparameter persistent-store-store-file
+(defvar persistent-store-store-file
   (path-concat +prog-data-path+ "persistent-store")
   "Filename of database store file")
 
-(defparameter persistent-store-backup-file
+(defvar persistent-store-backup-file
   (concat persistent-store-store-file ".bak")
   "Filename of backup database store file")
 

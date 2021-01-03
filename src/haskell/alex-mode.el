@@ -15,12 +15,12 @@
 (defconst alex-percent-column 41 "\
 *The column in which to place a percent introducing a modifier (e.g. %prec).")
 
-(defparameter alex-mode-map
+(defvar alex-mode-map
   (let ((keymap (make-sparse-keymap)))
     keymap)
   "Keymap used in alex mode.")
 
-(defparameter alex-mode-syntax-table
+(defvar alex-mode-syntax-table
   (let ((tbl (make-syntax-table)))
     (modify-syntax-entry ?/ ". 14"  tbl)
     (modify-syntax-entry ?* ". 23"  tbl)
@@ -36,7 +36,7 @@
     tbl)
   "Syntax table in use in alex-mode buffers.")
 
-(defparameter alex-mode-font-lock-keywords
+(defvar alex-mode-font-lock-keywords
   `((,(rx (or "%wrapper"
               ":-"))
      (0 'font-lock-keyword-face))

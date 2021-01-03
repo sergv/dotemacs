@@ -99,18 +99,18 @@ highlighting searches.")
 
 ;;; global search state
 
-(defparameter *search-minibuffer-history* nil
+(defvar *search-minibuffer-history* nil
   "List of previously entered regexps.")
 
-(defparameter *search-init-window* nil
+(defvar *search-init-window* nil
   "Window with buffer being searched in.")
 
-(defparameter *search-init-buffer* nil
+(defvar *search-init-buffer* nil
   "Buffer being searched in.")
 
 ;;; constants
 
-(defparameter *search-minibuffer-keymap*
+(defvar *search-minibuffer-keymap*
   (let ((map (make-sparse-keymap)))
     (def-keys-for-map map
       ("<enter>"   search-done)

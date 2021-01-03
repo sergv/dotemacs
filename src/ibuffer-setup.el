@@ -151,7 +151,7 @@ The value from `ibuffer-saved-filter-groups' is used."
              ("default"
               ,@+buffer-groups+)))
 
-     (defparameter ibuffer-aux-filter-groups
+     (defvar ibuffer-aux-filter-groups
        `(("git repo" . ,#'ibuffer-generate-filter-group-by-git-repository-root)
          ("eproj" . ,#'ibuffer-generate-filter-group-by-eproj))
        "List of auxiliary filter groups than can have default filter-group format

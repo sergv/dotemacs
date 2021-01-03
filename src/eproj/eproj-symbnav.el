@@ -14,13 +14,13 @@
 
 ;;; tag/symbol navigation (navigation over homes)
 
-(defparameter eproj-symbnav/previous-homes nil
+(defvar eproj-symbnav/previous-homes nil
   "Previous locations (markers) from which symbol search was invoked.")
 
-(defparameter eproj-symbnav/selected-loc nil
+(defvar eproj-symbnav/selected-loc nil
   "Home entry corresponding to the most recently visited tag.")
 
-(defparameter eproj-symbnav/next-homes nil
+(defvar eproj-symbnav/next-homes nil
   "Next locations that were visited but now obscured by going back.")
 
 (defstruct (eproj-home-entry

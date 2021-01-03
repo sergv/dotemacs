@@ -1268,7 +1268,7 @@ under version-control directories."
    (args (pcmpl-haskell-source-or-obj-files t))))
 
 ;;;###autoload (autoload 'pcomplete-ghc-flags "shell-completion" nil)
-(defparameter pcomplete-ghc-flags
+(defvar pcomplete-ghc-flags
   '("-fdiagnostics-color=always"
     "-fdiagnostics-color=auto"
     "-fdiagnostics-color=never"

@@ -9,7 +9,7 @@
 (require 'common)
 (require 'solarized)
 
-(defparameter *formula-images-cache* (make-hash-table :test 'equal))
+(defvar *formula-images-cache* (make-hash-table :test 'equal))
 
 ;;;###autoload
 (defun render-buffer-flush-cache ()
@@ -23,15 +23,15 @@
           #'render-buffer-flush-cache)
 
 
-(defparameter *formula-index* 0
+(defvar *formula-index* 0
   "Global numbering of formulas to index filenames so that emacs
 won't be confused by the same filename used for different images.")
 
-(defparameter render-formula-latex-input-buf "#latex-input#"
+(defvar render-formula-latex-input-buf "#latex-input#"
   "Buffer with text that is fed to latex.")
-(defparameter render-formula-latex-output-buf "#latex-output#"
+(defvar render-formula-latex-output-buf "#latex-output#"
   "Buffer for latex errors.")
-(defparameter render-formula-conversion-errors-buf "#errors-converting-to-png#"
+(defvar render-formula-conversion-errors-buf "#errors-converting-to-png#"
   "Buffer for errors during conversion to png.")
 (defconst +render-formula-standard-packages+
   '("amsmath"
@@ -220,7 +220,7 @@ pnm utils suite.")
   "Is set to t by `render-formula-toggle-formulas' when latex code in buffer is
 displayed as images.")
 
-(defparameter +render-buffer-latex-re+
+(defvar +render-buffer-latex-re+
   (rx (or
        (seq "\\\(" (group-n 2 (+? anything)) "\\\)")
        (seq "\\\[" (group-n 2 (+? anything)) "\\\]")

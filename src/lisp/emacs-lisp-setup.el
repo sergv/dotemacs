@@ -39,7 +39,7 @@
          "with-hidden-cloze-hints"
          "with-hidden-cloze-text")))
 
-(defparameter *emacs-lisp-indent-specs*
+(defvar *emacs-lisp-indent-specs*
   '((autoload nil)
     (loop 0)
     (cond 0)
