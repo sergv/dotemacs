@@ -40,6 +40,9 @@
              `((build . ,(funcall cargo-command nil "build" "--color=always"))
                (test .  ,(funcall cargo-command "RUST_BACKTRACE=1" "test" "--color=always"))))))
 
+(defvar rust-compile--build-presets-history nil)
+(sessions-mark-global-var-for-save 'rust-compile--build-presets-history)
+
 (defun rust-compilation-commands-install! ()
   (configurable-compilation-install-command-presets!
    'rust-compilation-cargo-build-command-presets
