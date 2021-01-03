@@ -256,7 +256,7 @@ number of spaces equal to `tab-width'."
   path
   args)
 
-(defparameter custom--known-executables
+(defvar custom--known-executables
   (let ((tbl (make-hash-table :test #'equal)))
     (fold-platform-os-type
      (progn

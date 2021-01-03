@@ -244,7 +244,7 @@ _o_: show c sexps in region"
 
 ;; Indentation of c-style languages via AStyle command-line utility.
 
-(defparameter c-indentation-indent-styles-alist
+(defvar c-indentation-indent-styles-alist
   '(("c-standard4"
      "--style=linux"
      "--indent=spaces=4"
@@ -319,15 +319,15 @@ _o_: show c sexps in region"
      "--suffix=none"
      "--lineend=linux")))
 
-(defparameter c-indentation-indent-styles
+(defvar c-indentation-indent-styles
   (alist->hash-table
    (remq nil
          c-indentation-indent-styles-alist)))
 
-(defparameter c-indentation-indent-style (caar c-indentation-indent-styles-alist)
+(defvar c-indentation-indent-style (caar c-indentation-indent-styles-alist)
   "Default indent style to use.")
 
-(defparameter c-indentation-style-history nil)
+(defvar c-indentation-style-history nil)
 
 (defun c-format-buffer (&optional change-indent-style)
   (interactive "p")

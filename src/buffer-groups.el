@@ -8,7 +8,7 @@
 ;; Common information as to how classify buffers based on ther name, major mode etc
 
 
-(defparameter +buffer-groups+
+(defvar +buffer-groups+
   (symbol-macrolet
       ((haskell-filter `(or (mode . haskell-mode)
                             (mode . literate-haskell-mode)

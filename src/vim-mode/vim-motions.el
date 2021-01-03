@@ -82,7 +82,7 @@
 (defvar-local vim:local-marks-alist nil
   "Local marks for this buffer.")
 
-(defparameter vim:global-marks-alist nil
+(defvar vim:global-marks-alist nil
   "Global marks.")
 
 ;; Definitions of custom errors
