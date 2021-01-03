@@ -39,6 +39,8 @@
 (defvar vim:ex-history nil
   "History of ex-commands.")
 
+(sessions-mark-global-var-for-save 'vim:ex-history)
+
 (defvar vim:ex-cmd nil
   "The currently parsed command.")
 (defvar vim:ex-arg nil
