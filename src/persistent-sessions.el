@@ -192,154 +192,144 @@ entries."
     magit-reflog-mode)
   "Buffer with these modes should never be preserved across sessions.")
 
-(defvar sessions/local-vars/haskell-compilation-mode
+(defvar sessions/local-vars/compilation-mode
   '(compilation-error-regexp-alist
-    *compilation-jump-error-regexp*
-    compilation-filter-hook
-    font-lock-keywords
     compilation-directory
     compilation-arguments
     mode-line-process)
-  "Local variables to store for `haskell-compilation-mode' buffers.")
+  "Local variables to store for `compilation-mode' buffers.")
 
 (defvar sessions/special-modes
-  `((eshell-mode
-     (save ,(lambda (buf)
-              (save-excursion
-                (with-inhibited-read-only
-                 (goto-char (point-max))
-                 (forward-line -1)
-                 (list (list 'contents (sessions/store-buffer-contents buf))
-                       (list 'current-dir
-                             (sessions/store-string
-                              (expand-file-name default-directory)))
-                       (list 'eshell-history-ring
-                             (sessions/store-ring eshell-history-ring)))))))
-     (restore ,(lambda (version buffer-name saved-data)
-                 (message "Restoring eshell buffer %s" buffer-name)
-                 (when-let (contents (assoc 'contents saved-data))
-                   (save-excursion
-                     (require 'eshell)
-                     (let* ((eshell-buffer-name buffer-name)
-                            ;; The buffer is created here.
-                            (buf (eshell)))
-                       (sessions/report-and-ignore-asserts
-                           (format "while restoring contents of an eshell buffer '%s'" buffer-name)
-                         (aif (assq 'contents saved-data)
-                             (with-current-buffer buf
-                               (sessions/versioned/restore-buffer-contents
-                                version
-                                buf
-                                (cadr it)
-                                (lambda () (insert "\n\n"))))
-                           (message "shell-restore: no 'contents")))
-                       (sessions/report-and-ignore-asserts
-                           (format "while restoring current-directory of an eshell buffer '%s'" buffer-name)
-                         (if-let (current-dir (cadr-safe (assq 'current-dir saved-data)))
-                             (progn
-                               (goto-char (point-max))
-                               (insert "cd \""
-                                       (sessions/versioned/restore-string version current-dir)
-                                       "\"")
-                               (eshell-send-input))
-                           (message "shell-restore: no 'current-dir")))
-                       (sessions/report-and-ignore-asserts
-                           (format "while restoring 'comint-input-ring of shell buffer '%s'" buffer-name)
-                         (aif (cadr-safe (assoc 'eshell-history-ring saved-data))
-                             (setf eshell-history-ring (sessions/versioned/restore-ring version it))
-                           (message "shell-restore: no 'eshell-input-ring")))))))))
-    (shell-mode
-     (save ,(lambda (buf)
-              (save-excursion
-                (with-inhibited-read-only
-                 (goto-char (point-max))
-                 (forward-line -1)
-                 (list (list 'contents (sessions/store-buffer-contents buf))
-                       (list 'current-dir
-                             (sessions/store-string
-                              (expand-file-name default-directory)))
-                       (list 'comint-input-ring
-                             (sessions/store-ring comint-input-ring)))))))
-     (restore ,(lambda (version buffer-name saved-data)
-                 (let ((buf (get-buffer-create buffer-name)))
-                   (sessions/report-and-ignore-asserts
-                       (format "while restoring contents of a shell buffer '%s'" buffer-name)
-                     (aif (assq 'contents saved-data)
-                         (with-current-buffer buf
-                           (sessions/versioned/restore-buffer-contents
-                            version
-                            buf
-                            (cadr it)
-                            (lambda () (insert "\n\n"))))
-                       (message "shell-restore: no 'contents")))
-                   (shell buf)
-                   (accept-process-output (get-buffer-process buf)
-                                          5 ;; Time to wait in seconds.
-                                          )
-                   (sessions/report-and-ignore-asserts
-                       (format "while restoring current-directory of shell buffer '%s'" buffer-name)
-                     (if-let (current-dir (cadr-safe (assq 'current-dir saved-data)))
-                         (progn
-                           (goto-char (point-max))
-                           (insert "cd \""
-                                   (sessions/versioned/restore-string version current-dir)
-                                   "\"")
-                           (comint-send-input))
-                       (message "shell-restore: no 'current-dir")))
-                   (sessions/report-and-ignore-asserts
-                       (format "while restoring 'comint-input-ring of shell buffer '%s'" buffer-name)
-                     (aif (cadr-safe (assq 'comint-input-ring saved-data))
-                         (setf comint-input-ring
-                               (sessions/versioned/restore-ring version it))
-                       (message "shell-restore: no 'comint-input-ring")))))))
-    (haskell-compilation-mode
-     (save ,(lambda (buf)
-              (with-current-buffer buf
+  (let ((save-compilation-buffer
+         (lambda (buf)
+           (with-current-buffer buf
+             (save-excursion
+               (with-inhibited-read-only
+                (list (list 'contents (sessions/store-buffer-contents buf))
+                      (list 'local-variables
+                            (sessions/store-buffer-local-variables
+                             buf
+                             sessions/local-vars/compilation-mode))))))))
+        (mk-restore-compilation-buffer
+         (lambda (mode)
+           (cl-assert (symbolp mode))
+           (lambda (version buffer-name saved-data)
+             (let ((buf (get-buffer-create buffer-name)))
+               (with-current-buffer buf
+                 (sessions/report-and-ignore-asserts
+                     (format "while restoring contents of compilation buffer '%s'" buffer-name)
+                   (aif (assq 'contents saved-data)
+                       (sessions/versioned/restore-buffer-contents
+                        version
+                        buf
+                        (cadr it)
+                        (lambda () (insert "\n\n")))
+                     (message "compilation-restore: no 'contents")))
+                 (funcall mode)
+                 (sessions/report-and-ignore-asserts
+                     (format "while restoring local variables of compilation buffer '%s'" buffer-name)
+                   (aif (assq 'local-variables saved-data)
+                       (sessions/versioned/restore-buffer-local-variables
+                        version
+                        buf
+                        sessions/local-vars/compilation-mode
+                        (cadr it))
+                     (message "compilation-restore: no 'local-variables")))))))))
+    `((eshell-mode
+       (save ,(lambda (buf)
                 (save-excursion
                   (with-inhibited-read-only
+                   (goto-char (point-max))
+                   (forward-line -1)
                    (list (list 'contents (sessions/store-buffer-contents buf))
-                         (list 'local-variables
-                               (sessions/store-buffer-local-variables
-                                buf
-                                sessions/local-vars/haskell-compilation-mode))))))))
-     (restore ,(lambda (version buffer-name saved-data)
-                 (let ((buf (get-buffer-create buffer-name)))
-                   (with-current-buffer buf
+                         (list 'current-dir
+                               (sessions/store-string
+                                (expand-file-name default-directory)))
+                         (list 'eshell-history-ring
+                               (sessions/store-ring eshell-history-ring)))))))
+       (restore ,(lambda (version buffer-name saved-data)
+                   (message "Restoring eshell buffer %s" buffer-name)
+                   (when-let (contents (assoc 'contents saved-data))
+                     (save-excursion
+                       (require 'eshell)
+                       (let* ((eshell-buffer-name buffer-name)
+                              ;; The buffer is created here.
+                              (buf (eshell)))
+                         (sessions/report-and-ignore-asserts
+                             (format "while restoring contents of an eshell buffer '%s'" buffer-name)
+                           (aif (assq 'contents saved-data)
+                               (with-current-buffer buf
+                                 (sessions/versioned/restore-buffer-contents
+                                  version
+                                  buf
+                                  (cadr it)
+                                  (lambda () (insert "\n\n"))))
+                             (message "shell-restore: no 'contents")))
+                         (sessions/report-and-ignore-asserts
+                             (format "while restoring current-directory of an eshell buffer '%s'" buffer-name)
+                           (if-let (current-dir (cadr-safe (assq 'current-dir saved-data)))
+                               (progn
+                                 (goto-char (point-max))
+                                 (insert "cd \""
+                                         (sessions/versioned/restore-string version current-dir)
+                                         "\"")
+                                 (eshell-send-input))
+                             (message "shell-restore: no 'current-dir")))
+                         (sessions/report-and-ignore-asserts
+                             (format "while restoring 'comint-input-ring of shell buffer '%s'" buffer-name)
+                           (aif (cadr-safe (assoc 'eshell-history-ring saved-data))
+                               (setf eshell-history-ring (sessions/versioned/restore-ring version it))
+                             (message "shell-restore: no 'eshell-input-ring")))))))))
+      (shell-mode
+       (save ,(lambda (buf)
+                (save-excursion
+                  (with-inhibited-read-only
+                   (goto-char (point-max))
+                   (forward-line -1)
+                   (list (list 'contents (sessions/store-buffer-contents buf))
+                         (list 'current-dir
+                               (sessions/store-string
+                                (expand-file-name default-directory)))
+                         (list 'comint-input-ring
+                               (sessions/store-ring comint-input-ring)))))))
+       (restore ,(lambda (version buffer-name saved-data)
+                   (let ((buf (get-buffer-create buffer-name)))
                      (sessions/report-and-ignore-asserts
-                         (format "while restoring contents of haskell compilation buffer '%s'" buffer-name)
-                       (aif (cadr-safe (assq 'contents saved-data))
-                           (sessions/versioned/restore-buffer-contents
-                            version
-                            buf
-                            it
-                            (lambda () (insert "\n\n"))))
-                       (message "haskell-compilation-restore: no 'contents"))
-                     (haskell-compilation-mode)
+                         (format "while restoring contents of a shell buffer '%s'" buffer-name)
+                       (aif (assq 'contents saved-data)
+                           (with-current-buffer buf
+                             (sessions/versioned/restore-buffer-contents
+                              version
+                              buf
+                              (cadr it)
+                              (lambda () (insert "\n\n"))))
+                         (message "shell-restore: no 'contents")))
+                     (shell buf)
+                     (accept-process-output (get-buffer-process buf)
+                                            5 ;; Time to wait in seconds.
+                                            )
                      (sessions/report-and-ignore-asserts
-                         (format "while restoring local variables of haskell compilation buffer '%s'" buffer-name)
-                       (aif (cadr-safe (assq 'local-variables saved-data))
-                           (sessions/versioned/restore-buffer-local-variables
-                            version
-                            buf
-                            sessions/local-vars/haskell-compilation-mode
-                            it)
-                         (message "haskell-compilation-restore: no 'local-variables"))))
-                   (sessions/report-and-ignore-asserts
-                       (format "while restoring current directory of haskell compilation buffer '%s'" buffer-name)
-                     (if-let (current-dir (cadr-safe (assq 'current-dir saved-data)))
-                         (progn
-                           (goto-char (point-max))
-                           (insert "cd \""
-                                   (sessions/versioned/restore-string version current-dir)
-                                   "\"")
-                           (comint-send-input))
-                       (message "shell-restore: no 'current-dir")))
-                   (sessions/report-and-ignore-asserts
-                       (format "while restoring 'comint-input-ring of haskell compilation buffer '%s'" buffer-name)
-                     (aif (cadr-safe (assq 'comint-input-ring saved-data))
-                         (setf comint-input-ring
-                               (sessions/versioned/restore-ring version it))
-                       (message "shell-restore: no 'comint-input-ring")))))))))
+                         (format "while restoring current-directory of shell buffer '%s'" buffer-name)
+                       (if-let (current-dir (cadr-safe (assq 'current-dir saved-data)))
+                           (progn
+                             (goto-char (point-max))
+                             (insert "cd \""
+                                     (sessions/versioned/restore-string version current-dir)
+                                     "\"")
+                             (comint-send-input))
+                         (message "shell-restore: no 'current-dir")))
+                     (sessions/report-and-ignore-asserts
+                         (format "while restoring 'comint-input-ring of shell buffer '%s'" buffer-name)
+                       (aif (cadr-safe (assq 'comint-input-ring saved-data))
+                           (setf comint-input-ring
+                                 (sessions/versioned/restore-ring version it))
+                         (message "shell-restore: no 'comint-input-ring")))))))
+      (haskell-compilation-mode
+       (save ,save-compilation-buffer)
+       (restore ,(funcall mk-restore-compilation-buffer #'haskell-compilation-mode)))
+      (rust-compilation-mode
+       (save ,save-compilation-buffer)
+       (restore ,(funcall mk-restore-compilation-buffer #'rust-compilation-mode))))))
 
 (defun sessions/is-temporary-buffer? (buf)
   (with-current-buffer buf
