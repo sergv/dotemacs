@@ -22,7 +22,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -542,6 +542,16 @@ shorter than both `company-minimum-prefix-length' and the length of the
 prefix it was started from."
   :type 'boolean
   :package-version '(company . "0.8.0"))
+
+(defcustom company-abort-on-unique-match t
+  "If non-nil, typing a full unique match aborts completion.
+
+You can still invoke `company-complete' manually to run the
+`post-completion' handler, though.
+
+If it's nil, completion will remain active until you type a prefix that
+doesn't match anything or finish it manually, e.g. with RET."
+  :type 'boolean)
 
 (defcustom company-require-match 'company-explicit-action-p
   "If enabled, disallow non-matching input.
@@ -1188,11 +1198,11 @@ can retrieve meta-data for them."
                  (string-match-p "\\`company-" (symbol-name this-command)))))))
 
 (defun company-call-frontends (command)
-  (dolist (frontend company-frontends)
-    (condition-case-unless-debug err
-        (funcall frontend command)
-      (error (error "Company: frontend %s error \"%s\" on command %s"
-                    frontend (error-message-string err) command)))))
+  (cl-loop for frontend in company-frontends collect
+           (condition-case-unless-debug err
+               (funcall frontend command)
+             (error (error "Company: frontend %s error \"%s\" on command %s"
+                           frontend (error-message-string err) command)))))
 
 (defun company-set-selection (selection &optional force-update)
   "Set SELECTION for company candidates.
@@ -1596,7 +1606,8 @@ prefix match (same case) will be prioritized."
                           (- company-point (length company-prefix))))
               (company-calculate-candidates new-prefix ignore-case))))
     (cond
-     ((company--unique-match-p c new-prefix ignore-case)
+     ((and company-abort-on-unique-match
+           (company--unique-match-p c new-prefix ignore-case))
       ;; Handle it like completion was aborted, to differentiate from user
       ;; calling one of Company's commands to insert the candidate,
       ;; not to trigger template expansion, etc.
@@ -1637,7 +1648,8 @@ prefix match (same case) will be prioritized."
                   company-backend backend
                   c (company-calculate-candidates company-prefix ignore-case))
             (cond
-             ((and (company--unique-match-p c company-prefix ignore-case)
+             ((and company-abort-on-unique-match
+                   (company--unique-match-p c company-prefix ignore-case)
                    (if company--manual-action
                        ;; If `company-manual-begin' was called, the user
                        ;; really wants something to happen.  Otherwise...
@@ -2151,31 +2163,19 @@ With ARG, move by that many elements."
 (defun company--event-col-row (event)
   (company--posn-col-row (event-start event)))
 
+(defvar company-mouse-event nil
+  "Holds the mouse event from `company-select-mouse'.
+For use in the `select-mouse' frontend action.  `let'-bound.")
+
 (defun company-select-mouse (event)
   "Select the candidate picked by the mouse."
   (interactive "e")
-  (let ((event-col-row (company--event-col-row event))
-        (ovl-row (company--row))
-        (ovl-height (and company-pseudo-tooltip-overlay
-                         (min (overlay-get company-pseudo-tooltip-overlay
-                                           'company-height)
-                              company-candidates-length))))
-    (if (and ovl-height
-             (company--inside-tooltip-p event-col-row ovl-row ovl-height))
-        (progn
-          (company-set-selection (+ (cdr event-col-row)
-                                    (1- company-tooltip-offset)
-                                    (if (and (eq company-tooltip-offset-display 'lines)
-                                             (not (zerop company-tooltip-offset)))
-                                        -1 0)
-                                    (- ovl-row)
-                                    (if (< ovl-height 0)
-                                        (- 1 ovl-height)
-                                      0)))
-          t)
-      (company-abort)
-      (company--unread-this-command-keys)
-      nil)))
+  (or (let ((company-mouse-event event))
+        (cl-some #'identity (company-call-frontends 'select-mouse)))
+      (progn
+        (company-abort)
+        (company--unread-this-command-keys)
+        nil)))
 
 (defun company-complete-mouse (event)
   "Insert the candidate picked by the mouse."
@@ -2436,7 +2436,7 @@ It defaults to 0.
 CALLBACK is a function called with the selected result if the user
 successfully completes the input.
 
-Example: \(company-begin-with '\(\"foo\" \"foobar\" \"foobarbaz\"\)\)"
+Example: \(company-begin-with \\='\(\"foo\" \"foobar\" \"foobarbaz\"\)\)"
   (let ((begin-marker (copy-marker (point) t)))
     (company-begin-backend
      (lambda (command &optional arg &rest ignored)
@@ -3066,14 +3066,14 @@ Returns a negative number if the tooltip should be displayed above point."
     (pre-command (company-pseudo-tooltip-hide-temporarily))
     (post-command
      (unless (when (overlayp company-pseudo-tooltip-overlay)
-              (let* ((ov company-pseudo-tooltip-overlay)
-                     (old-height (overlay-get ov 'company-height))
-                     (new-height (company--pseudo-tooltip-height)))
-                (and
-                 (>= (* old-height new-height) 0)
-                 (>= (abs old-height) (abs new-height))
-                 (equal (company-pseudo-tooltip-guard)
-                        (overlay-get ov 'company-guard)))))
+               (let* ((ov company-pseudo-tooltip-overlay)
+                      (old-height (overlay-get ov 'company-height))
+                      (new-height (company--pseudo-tooltip-height)))
+                 (and
+                  (>= (* old-height new-height) 0)
+                  (>= (abs old-height) (abs new-height))
+                  (equal (company-pseudo-tooltip-guard)
+                         (overlay-get ov 'company-guard)))))
        ;; Redraw needed.
        (company-pseudo-tooltip-show-at-point (point) (length company-prefix))
        (overlay-put company-pseudo-tooltip-overlay
@@ -3083,7 +3083,26 @@ Returns a negative number if the tooltip should be displayed above point."
     (hide (company-pseudo-tooltip-hide)
           (setq company-tooltip-offset 0))
     (update (when (overlayp company-pseudo-tooltip-overlay)
-              (company-pseudo-tooltip-edit company-selection)))))
+              (company-pseudo-tooltip-edit company-selection)))
+    (select-mouse
+     (let ((event-col-row (company--event-col-row company-mouse-event))
+           (ovl-row (company--row))
+           (ovl-height (and company-pseudo-tooltip-overlay
+                            (min (overlay-get company-pseudo-tooltip-overlay
+                                              'company-height)
+                                 company-candidates-length))))
+       (cond ((and ovl-height
+                   (company--inside-tooltip-p event-col-row ovl-row ovl-height))
+              (company-set-selection (+ (cdr event-col-row)
+                                        (1- company-tooltip-offset)
+                                        (if (and (eq company-tooltip-offset-display 'lines)
+                                                 (not (zerop company-tooltip-offset)))
+                                            -1 0)
+                                        (- ovl-row)
+                                        (if (< ovl-height 0)
+                                            (- 1 ovl-height)
+                                          0)))
+              t))))))
 
 (defun company-pseudo-tooltip-unless-just-one-frontend (command)
   "`company-pseudo-tooltip-frontend', but not shown for single candidates."
