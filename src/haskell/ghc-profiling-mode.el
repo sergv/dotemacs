@@ -13,7 +13,7 @@
   `((t (:underline (:style wave :color ,+solarized-orange+))))
   "Face to highlight expensive entries with in the profile")
 
-(defparameter ghc-profiling-mode-expensive-cumulative-threshold 8
+(defvar ghc-profiling-mode-expensive-cumulative-threshold 8
   "Highlight profile entries that take more percentage either in
 cpu time or allocations that the value of this variable.")
 
@@ -51,7 +51,7 @@ cpu time or allocations that the value of this variable.")
     (<= ghc-profiling-mode-expensive-cumulative-threshold
         (max inherited-time inherited-alloc))))
 
-(defparameter ghc-profiling-mode-font-lock-keywords
+(defvar ghc-profiling-mode-font-lock-keywords
   `((,ghc-profiling-mode-entry-re
      (0
       (when (ghc-profiling-mode--matched-expersive-entry?)

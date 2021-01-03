@@ -56,7 +56,7 @@
   )
 
 
-(defparameter gnuplot-mode-syntax-table
+(defvar gnuplot-mode-syntax-table
   (let ((table (make-syntax-table)))
     (modify-syntax-entry ?* "."  table)
     (modify-syntax-entry ?+ "."  table)
@@ -79,7 +79,7 @@ string quote character, ` and _ are word characters, and math
 operators are punctuation characters.")
 
 
-(defparameter gnuplot-font-lock-keywords
+(defvar gnuplot-font-lock-keywords
   (list
    ;; comments
    '("#.*$" . font-lock-comment-face)
