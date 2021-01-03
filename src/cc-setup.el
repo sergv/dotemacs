@@ -192,6 +192,11 @@ _o_: show c sexps in region"
   ("c" hs-hide-c-sexps-in-region)
   ("o" hs-show-c-sexps-in-region))
 
+;;;###autoload
+(defvar-local c-like-mode nil
+  "Flag for buffers that have c-like mode enabled.")
+
+;;;###autoload
 (defun* cc-setup (&key (define-special-keys t))
   (init-common :use-render-formula t
                :sp-slurp-sexp-insert-space nil
@@ -200,6 +205,7 @@ _o_: show c sexps in region"
   (fontify-conflict-markers!)
   (which-function-mode -1)
   (company-mode +1)
+  (setq-local c-like-mode t)
 
   (modify-syntax-entry ?_ "_")
   (modify-syntax-entry ?# ".")
