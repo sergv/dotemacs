@@ -2,6 +2,12 @@
 
 ## Next
 
+* New user option `company-abort-on-unique-match`
+  ([#1046](https://github.com/company-mode/company-mode/issues/1046)).
+* `company-select-mouse` is a new frontend action
+  ([#1045](https://github.com/company-mode/company-mode/pull/1045)).
+* `company-gtags` on remote hosts is improved
+  ([#1037](https://github.com/company-mode/company-mode/pull/1037)).
 * New commands `company-select-first` and `company-select-last`.
 * `company-tng-mode` has been added to replace both
   `company-tng-configure-default` and the manual method of enabling

@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 
 ;;; Commentary:
@@ -37,7 +37,7 @@
 
 (defcustom company-elisp-detect-function-context t
   "If enabled, offer Lisp functions only in appropriate contexts.
-Functions are offered for completion only after ' and \(."
+Functions are offered for completion only after \\=' and \(."
   :type '(choice (const :tag "Off" nil)
                  (const :tag "On" t)))
 
