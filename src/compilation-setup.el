@@ -71,7 +71,7 @@ in compilation or related buffers.")
 ;;   buffer ;; Buffer from where compilation was started.
 ;;   )
 ;;
-;; (defparameter *compile-caller-info* nil
+;; (defvar *compile-caller-info* nil
 ;;   "Structure containing information about buffer, major mode etc.
 ;; from where current compile command was invoked. Should be cleared
 ;; up by functions in compilation-finish-functions.")

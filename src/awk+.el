@@ -44,20 +44,20 @@
 (defconst awk-bin "awk")
 
 
-(defparameter awk-original-input nil
+(defvar awk-original-input nil
   "String that will be passed to awk program as input.")
 
-(defparameter awk-output-begin nil
+(defvar awk-output-begin nil
   "Marker that points to place where output should be inserted.")
 
-(defparameter awk-output-end-pos nil
+(defvar awk-output-end-pos nil
   "Position that points to end of awk output in buffer.")
 
 (defface awk-selection-face '((t (:underline "#268bd2")))
   "Face to highlight input and output
 in buffer from where `awk' was invoked.")
 
-(defparameter awk-overlay nil
+(defvar awk-overlay nil
   "Overlay that highlights input and output
 in buffer from where `awk' was invoked.")
 
@@ -154,14 +154,14 @@ in place of input."
                     awk-output-end-pos))))
 
 
-(defparameter awk-programs (make-hash-table :test #'equal :size 257)
+(defvar awk-programs (make-hash-table :test #'equal :size 257)
   "Hash of text programs entered by user. Key is the program id.")
 
-(defparameter awk-program-ids nil
+(defvar awk-program-ids nil
   "List of identifiers of programs entered by user.
 Identifiers point to the global storage of programs `awk-programs'.")
 
-(defparameter awk-program-id 1
+(defvar awk-program-id 1
   "Currently active AWK program id. Corresponds to awk invokation")
 
 (defun awk-store-program ()
@@ -212,7 +212,7 @@ with id value of `awk-program-id'."
     (error "awk-next-program: error: no programs inputed, aborting")))
 
 
-(defparameter awk-window-config nil
+(defvar awk-window-config nil
   "Window configuration before awk invokation.")
 
 (defun awk-restore-window-config ()

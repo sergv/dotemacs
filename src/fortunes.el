@@ -12,7 +12,7 @@
 (require 'common)
 (require 'persistent-store)
 
-(defparameter *perlis-quotes*
+(defvar *perlis-quotes*
   ["“Both knowledge and wisdom extend man’s reach. Knowledge led to
 computers, wisdom to chopsticks.”
 ―Alan Perlis"
@@ -528,7 +528,7 @@ They are a superb high-level documentation.”
    ]
   "Quotes and epigrams by Alan J. Perlis")
 
-(defparameter *good-fortunes*
+(defvar *good-fortunes*
   ["“γνωθι σεαUτόυ \(Познай себя\)”
 ―Inscription at Temple of Apollo at Delphi"
 
@@ -1792,7 +1792,7 @@ the bugs to start with.”
 ]
   "Good and nice fortunes.")
 
-(defparameter *fortunes*
+(defvar *fortunes*
   *good-fortunes*)
 
 (defun fortune--reschedule-queue ()

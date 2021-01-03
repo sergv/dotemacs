@@ -13,7 +13,7 @@
 (require 'indentation)
 (require 'select-mode)
 
-(defparameter *c++-related-file-cache*
+(defvar *c++-related-file-cache*
   (make-hash-table :test 'equal))
 
 ;;;###autoload

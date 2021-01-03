@@ -729,7 +729,7 @@ only installing unique attributes."
         (error (message "Error using face spec %S: %S" spec err))))))
 
 
-(defparameter solarized-theme-mode-changed-hook '()
+(defvar solarized-theme-mode-changed-hook '()
   "Hook to run when theme changes")
 
 (defun solarized-dark ()
@@ -740,7 +740,7 @@ only installing unique attributes."
   (interactive)
   (solarized 'light))
 
-(defparameter *color-theme-solarized-type* nil
+(defvar *color-theme-solarized-type* nil
   "Type of current solarized color theme, either 'light or 'dark.")
 
 (defun solarized-toggle ()

@@ -99,7 +99,7 @@
 (autoload 'git-add "git-setup" nil t)
 
 
-(defparameter *have-git?* (executable-find "git")
+(defvar *have-git?* (executable-find "git")
   "Becomes t when git executable is accessible")
 
 (when *have-git?*

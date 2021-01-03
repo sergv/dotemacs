@@ -193,7 +193,7 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
                 :exclusive t
                 :do-not-adjust-point t)
 
-(defparameter *hexcolour-keywords*
+(defvar *hexcolour-keywords*
   '(("#[[:xdigit:]]\\{6\\}"
      (0 (put-text-property (match-beginning 0)
                            (match-end 0)
