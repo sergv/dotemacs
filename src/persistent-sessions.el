@@ -14,6 +14,7 @@
 
 (require 'common)
 (require 'persistent-sessions-error-reporting)
+(require 'persistent-sessions-global-vars)
 (require 'persistent-sessions-serializers)
 (require 'pp)
 
@@ -148,16 +149,6 @@ on values of said variables.")
        (message "*sessions-special-variables*: warning: invalid special variables entry: %s"
                 entry)))))
 
-
-(defvar *sessions-global-variables*
-  (alist->hash-table
-   '((log-edit-comment-ring . t)
-     (vim:ex-history . t)
-     (read-expression-history . t)
-     (*search-minibuffer-history* . t)
-     (haskell-compile-cabal-build-command . t)
-     (haskell-compile--build-presets-history . t)))
-  "List of global variables to save in session file.")
 
 (defun sessions/get-global-variables ()
   "Get global variables that should be saved in form of sequence of (var . value)

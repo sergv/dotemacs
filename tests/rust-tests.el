@@ -481,6 +481,26 @@
      "}"
      "")))
 
+;; (ert-deftest rust-tests/sp-splice-sexp-killing-backward-3 ()
+;;   (rust-tests--test-buffer-contents
+;;       (sp-splice-sexp-killing-backward)
+;;     (tests-utils--multiline
+;;      ""
+;;      "if ulen <= rest1.len() {"
+;;      "    Ok(((&_|_rest2[..ulen]), &rest2[ulen..]))"
+;;      "} else {"
+;;      "    Err(ParseError::PrematureStringEnd(mk_string(input)))"
+;;      "}"
+;;      "")
+;;     (tests-utils--multiline
+;;      ""
+;;      "if ulen <= rest1.len() {"
+;;      "    Ok((_|_rest2[..ulen], &rest2[ulen..]))"
+;;      "} else {"
+;;      "    Err(ParseError::PrematureStringEnd(mk_string(input)))"
+;;      "}"
+;;      "")))
+
 (provide 'rust-tests)
 
 ;; Local Variables:

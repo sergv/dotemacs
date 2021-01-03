@@ -222,10 +222,10 @@ _a_lign  _t_: beginning of defun
                      flycheck-disabled-checkers))
         (if flycheck-backend
             (progn
-              (unless (flycheck-eligible-checker? flycheck-backend)
-                (flycheck-verify-checker flycheck-backend)
-                (error "Unable to select checker '%s' for buffer '%s'"
-                       flycheck-backend (current-buffer)))
+              ;; (unless (flycheck-eligible-checker? flycheck-backend)
+              ;;   (flycheck-verify-checker flycheck-backend)
+              ;;   (error "Unable to select checker '%s' for buffer '%s'"
+              ;;          flycheck-backend (current-buffer)))
               (setq-local flycheck-checker flycheck-backend)
               (flycheck-mode +1))
           ;; Disable flycheck if it was explicitly set to nil
