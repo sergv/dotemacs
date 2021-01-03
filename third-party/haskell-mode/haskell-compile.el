@@ -46,6 +46,8 @@ For legacy compat, `%s' is replaced by the cabal package top folder."
   :group 'haskell-compile
   :type 'string)
 
+(sessions-mark-global-var-for-save 'haskell-compile-cabal-build-command)
+
 (defcustom haskell-compile-cabal-build-command-presets
   ()
   "Predefined build commands for `haskell-compile'. Should be alist of
@@ -221,6 +223,7 @@ messages pointing to additional source locations."
             'haskell-compilation-filter-hook nil t))
 
 (defvar haskell-compile--build-presets-history nil)
+(sessions-mark-global-var-for-save 'haskell-compile--build-presets-history)
 
 ;;;###autoload
 (defun haskell-compile (&optional edit-command)

@@ -102,6 +102,8 @@ highlighting searches.")
 (defvar *search-minibuffer-history* nil
   "List of previously entered regexps.")
 
+(sessions-mark-global-var-for-save '*search-minibuffer-history*)
+
 (defvar *search-init-window* nil
   "Window with buffer being searched in.")
 
