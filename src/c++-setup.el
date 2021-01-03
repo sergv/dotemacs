@@ -39,7 +39,7 @@
 
 (defun c++-find-related-file ()
   (interactive)
-  (let* ((filename   buffer-file-name))
+  (let* ((filename buffer-file-name))
     (aif (gethash filename *c++-related-file-cache* nil)
         (find-file it)
       (let* ((path       (split-string filename "/"))
