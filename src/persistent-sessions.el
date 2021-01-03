@@ -10,23 +10,22 @@
   (require 'cl-lib)
   (require 'subr-x))
 
+(require 'frameset)
+
 (require 'common)
 (require 'persistent-sessions-error-reporting)
 (require 'persistent-sessions-serializers)
 (require 'pp)
-(require 'revive-minimal)
 
 (defvar eshell-buffer-name)
 
-(setf revive-plus:all-frames t
-      revive:save-variables-mode-local-private
-      '((c++-mode c-indentation-style c-basic-offset)))
-
-;; nil - no 'version field in session data structure;
-;;     - encode strings and rings as-is via prin1
-;; 2   - add 'version field to session data structure;
-;;     - encode strings and ring contents with explicit property list
-(defconst +sessions-schema-version+ 2)
+;; nil - No 'version field in session data structure.
+;;     - Encode strings and rings as-is via prin1.
+;; 2   - Add 'version field to session data structure.
+;;     - Encode strings and ring contents with explicit property list.
+;; 3   - Support saving tabs from ‘tab-bar-mode’. Will output 'frames-per-tab instead of 'frames
+;;       if 'tab-bar-mode was active.
+(defconst +sessions-schema-version+ 3)
 
 (defsubst make-session-entry (buf-name point variables major-mode other-data special-variables)
   "BUF-NAME         - buffer name
@@ -66,13 +65,16 @@ name, for temporary buffers - just the buffer name."
   (car-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe entry)))))))
 
 
-(defvar *sessions-buffer-variables*
+(defconst +sessions-buffer-variables+
   (list
    (list (lambda (buf)
-           (require 'haskell-misc)
            (with-current-buffer buf (memq major-mode +haskell-syntax-modes+)))
          'haskell-compile-command
-         'haskell-compile-cabal-build-command))
+         'haskell-compile-cabal-build-command)
+   (list (lambda (buf)
+           (buffer-local-value 'c-like-mode buf))
+         'c-indentation-style
+         'c-basic-offset))
   "List of buffer-local variables to save in session file.
 Format: list of (<predicate> <vars>) where predicate is a function of
 single buffer argument that should return t if <vars> variables should
@@ -87,12 +89,12 @@ on values of said variables.")
                      (vars (cdr entry)))
                  (when (funcall pred buffer)
                    (sessions/store-buffer-local-variables buffer vars))))
-             *sessions-buffer-variables*)))
+             +sessions-buffer-variables+)))
 
 (defun sessions/restore-buffer-variables (version buffer bindings)
   "Restore variables captured in BINDINGS for buffer BUFFER."
   (with-current-buffer buffer
-    (dolist (entry *sessions-buffer-variables*)
+    (dolist (entry +sessions-buffer-variables+)
       (let ((pred (car entry))
             (vars (cdr entry)))
         (when (and (funcall pred buffer)
@@ -403,14 +405,16 @@ entries."
                                    (buffer-name buf))
                                   (funcall save-func buf)))))
                       buffers)))
-         (frame-data
-          (revive-plus:window-configuration-printable)))
+         (frames-entry
+          (list 'frameset (frameset-save (frame-list)))))
+
     (list (list 'schema-version +sessions-schema-version+)
           (list 'buffers buffer-data)
           (list 'temporary-buffers temporary-buffer-data)
           (list 'special-buffers special-buffer-data)
-          (list 'frames frame-data)
-          (list 'global-variables (sessions/get-global-variables)))))
+          (list 'global-variables (sessions/get-global-variables))
+          frames-entry
+          (list 'tab-bar-mode tab-bar-mode))))
 
 (defun sessions/save-buffers (file)
   "Save all buffers that have physical file assigned into FILE."
@@ -537,9 +541,17 @@ entries."
                     (funcall restore-func version buffer-name special-data))))
               (cadr it))
       (message "sessions/load-from-data: no 'special-buffers field"))
-    (aif (assq 'frames session-entries)
-        (revive-plus:restore-window-configuration (cadr it))
-      (message "sessions/load-from-data: no 'frames field"))
+
+    (aif (assq 'tab-bar-mode session-entries)
+        (tab-bar-mode (cadr it))
+      (message "sessions/load-from-data: no 'tab-bar-mode field"))
+
+    (aif (assq 'frameset session-entries)
+      (frameset-restore (cadr it)
+                        :reuse-frames t
+                        :cleanup-frames t)
+      (message "sessios/load-from-data: no 'frameset field"))
+
     (aif (assq 'global-variables session-entries)
         (sessions/restore-global-variables version (cadr it))
       (message "sessions/load-from-data: no 'global-variables field"))))
@@ -555,9 +567,7 @@ entries."
         (sessions/load-from-data
          (with-temp-buffer
            (insert-file-contents-literally file)
-           (read (buffer-substring-no-properties (point-min) (point-max)))
-           ;; (read (current-buffer))
-           ))
+           (read (buffer-substring-no-properties (point-min) (point-max)))))
         (run-hooks 'sessions/load-buffers-hook))
     (message "warning: file %s does not exist" file)))
 
