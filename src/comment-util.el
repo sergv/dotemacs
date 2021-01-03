@@ -16,7 +16,7 @@
 (defvar-local *comment-util-current-format* nil
   "Comment format for current buffer.")
 
-(defparameter *comment-util-space-count* 1
+(defvar *comment-util-space-count* 1
   "Amount of spaces to put after comment markers.")
 
 (advices/auto-comment sp-newline)

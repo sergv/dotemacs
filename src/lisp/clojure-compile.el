@@ -57,7 +57,7 @@
          (group (+ digit)))
       ")"))
 
-(defparameter clojure-compilation-mode-map
+(defvar clojure-compilation-mode-map
   (let ((m (make-sparse-keymap)))
     (def-keys-for-map m
       +vim-special-keys+
@@ -92,11 +92,11 @@
 
 
 
-(defparameter clojure-compile/avaliable-profiles
+(defvar clojure-compile/avaliable-profiles
   '("dev" "release")
   "Available Leiningen profiles for compilation.")
 
-(defparameter clojure-compile/current-profile "dev"
+(defvar clojure-compile/current-profile "dev"
   "Leiningen profile to compile with.")
 
 (defvar-local clojure-compile/lein-command nil

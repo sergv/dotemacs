@@ -105,7 +105,7 @@ current time and"
      (+ (emacs-pid) 8)
      (+ (max c microsec) 16))))
 
-(defparameter *random-gen*
+(defvar *random-gen*
   ;; NB on x32 systems hightest three bits will be zero
   ;; and (expt 2 32)/(ash 1 32) will be 0, so use
   ;; simpler generator that has no overflows
@@ -324,11 +324,11 @@ structure like this (:arg1 value1 :arg2 value2 ... :argN valueN)"
 
 ;;;
 
-(defparameter *invisible-buffers* '()
+(defvar *invisible-buffers* '()
   "List of buffer name regexps than should not be visible in e.g. ibuffer,
 tabbar, etc")
 
-(defparameter invisible-buffers-re nil
+(defvar invisible-buffers-re nil
   "Regexp that is synced with `*invisible-buffers*' variable.")
 
 (defun add-invisible-buffer (buf-re)
@@ -895,7 +895,7 @@ end of END-LINE in current buffer."
 
 ;;;
 
-(defparameter common/registered-filenames (make-hash-table :test #'equal)
+(defvar common/registered-filenames (make-hash-table :test #'equal)
   "Hashtable binding filename strings to themselves. Exists for memory
 optimization purposes.")
 

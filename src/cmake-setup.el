@@ -15,7 +15,7 @@
 ;;;###autoload
 (autoload 'cmake-mode "cmake-mode" nil t)
 
-(defparameter cmake-keywords-re
+(defvar cmake-keywords-re
   (rx (group
        symbol-start
        (or "add_custom_command"

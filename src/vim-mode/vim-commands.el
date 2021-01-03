@@ -145,7 +145,7 @@ and switches to insert-mode."
   (vim:activate-insert-mode)
   (vim:insert-mode-toggle-replace))
 
-(defparameter vim:insert-mode-exit-move-point t
+(defvar vim:insert-mode-exit-move-point t
   "Whether to move point backwards on `vim:insert-mode-exit'. Can be t, nil or
 'dont-move-at-line-end.")
 
@@ -437,7 +437,7 @@ and switches to insert-mode."
   at-eob  ;; t iff last paste-behind took place at eob
   )
 
-(defparameter vim:last-paste nil
+(defvar vim:last-paste nil
   "Information of the latest paste as a `vim:paste-info' structure.")
 
 

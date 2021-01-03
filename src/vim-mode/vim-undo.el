@@ -35,7 +35,7 @@
 ;;     (condition-case nil (require 'redo nil t) (error nil))
 ;;     (message "vim-mode: Could not load 'redo+' or 'redo', redo-command not available."))
 
-(defparameter vim:last-undo nil
+(defvar vim:last-undo nil
   "The last item in the undo list.")
 
 ;; undo stuff
