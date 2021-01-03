@@ -10,6 +10,7 @@
 
 (require 'set-up-paths)
 (require 'common)
+(require 'persistent-sessions-global-vars)
 
 (require 'vim)
 (vim-mode 1)
