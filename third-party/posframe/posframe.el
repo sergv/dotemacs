@@ -1196,6 +1196,11 @@ bottom center.  The structure of INFO can be found in docstring of
           (+ window-top window-height
              (- 0 mode-line-height posframe-height)))))
 
+(setf frameset-filter-alist
+      (cons '(posframe-buffer . :never)
+            (cons '(posframe-hidehandler . :never)
+                  (cons '(posframe-parent-buffer . :never)
+                        frameset-filter-alist))))
 
 (provide 'posframe)
 
