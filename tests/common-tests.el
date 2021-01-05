@@ -483,6 +483,20 @@
   (should (equal (expand-escape-sequences "ab\\rc")
                  "ab\rc")))
 
+;;;
+
+(ert-deftest common-tests/call-n-1 ()
+  (should (equal (call-n 0 (lambda (x) (+ x 1)) 0)
+                 0)))
+
+(ert-deftest common-tests/call-n-2 ()
+  (should (equal (call-n 1 (lambda (x) (+ x 1)) 0)
+                 1)))
+
+(ert-deftest common-tests/call-n-3 ()
+  (should (equal (call-n 10 (lambda (x) (+ x 1)) 0)
+                 10)))
+
 ;; (progn
 ;;   (ert "common-tests/.*")
 ;;   nil)
