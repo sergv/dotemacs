@@ -141,7 +141,7 @@ M-_x_"
   "
 _c_lose      _h_orizontal split
 _o_nly       _v_ertical split
-_t_ranspose
+_t_ranspose  _b_alance
 
 _<left>_:    shrink horizontally
 _<right>_:   enlarge horizontally
@@ -156,6 +156,7 @@ _S-<up>_:    fast enlarge vertically
   ("c" delete-window)
   ("o" delete-other-windows)
   ("t" transpose-windows)
+  ("b" balance-windows)
 
   ("h" split-window-vertically)
   ("v" split-window-horizontally)
