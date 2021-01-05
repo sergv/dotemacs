@@ -1088,19 +1088,35 @@ the current buffer."
         (select-window win-b)
         (switch-to-buffer buf-a)))))
 
-(defun swap-buffers-forward ()
-  "Swap current buffer with next buffer"
-  (interactive)
-  (let* ((curr-win (selected-window))
-         (next-win (next-window curr-win 0)))
-    (swap-buffers-in-windows curr-win next-win)))
+(defun call-n (n f x)
+  "Call function F multiple times (N repetitions) feeding its output to itself. Initial input is X."
+  (cl-assert (<= 0 n))
+  (while (< 0 n)
+    (setf x (funcall f x)
+          n (- n 1)))
+  x)
 
-(defun swap-buffers-backward ()
-  "Swap current buffer with previous buffer"
-  (interactive)
+(defun swap-buffers-forward (&optional n)
+  "Swap current buffer with next buffer"
+  (interactive "p")
   (let* ((curr-win (selected-window))
-         (prev-win (previous-window curr-win 0)))
-    (swap-buffers-in-windows curr-win prev-win)))
+         (next-win (call-n n
+                            (lambda (win) (next-window win 0))
+                            curr-win)))
+    (if (eq curr-win next-win)
+        (error "Not swapping window with itself")
+      (swap-buffers-in-windows curr-win next-win))))
+
+(defun swap-buffers-backward (&optional n)
+  "Swap current buffer with previous buffer"
+  (interactive "p")
+  (let* ((curr-win (selected-window))
+         (prev-win (call-n n
+                            (lambda (win) (previous-window win 0))
+                            curr-win)))
+    (if (eq curr-win prev-win)
+        (error "Not swapping window with itself")
+      (swap-buffers-in-windows curr-win prev-win))))
 
 (defun swap-buffers-forward-through-frames ()
   "Swap current buffer with selected buffer in the next frame."
