@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        emacs_version:
+          - 26.1
+          - 26.2
+          - 26.3
+          - snapshot
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: actions/setup-python@v1.1.1
+      with:
+        python-version: '3.6'
+        architecture: 'x64'
+
+    - uses: purcell/setup-emacs@master
+      with:
+        version: ${{ matrix.emacs_version }}
+
+    - uses: conao3/setup-cask@master
+      with:
+        version: 0.8.4
+
+    - name: Install Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: stable
+        override: true
+        components: rust-src
+
+    - name: Install Rust Analyzer
+      env:
+        RUST_ANALYZER_VERSION: 2020-04-20
+      run: |
+        mkdir -p $HOME/bin
+        wget https://github.com/rust-analyzer/rust-analyzer/releases/download/$RUST_ANALYZER_VERSION/rust-analyzer-linux -O $HOME/bin/rust-analyzer
+        chmod +x $HOME/bin/rust-analyzer
+        echo "::add-path::$HOME/bin"
+
+    - name: Run tests
+      run: 'make ci'
