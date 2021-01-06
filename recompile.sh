@@ -152,6 +152,7 @@ update-dir-autoloads \
     "third-party/rust-mode" \
     "third-party/smartparens" \
     "third-party/sml-mode" \
+    "third-party/spinner.el" \
     "third-party/toml-mode" \
     "third-party/tuareg" \
     "third-party/with-editor" \
