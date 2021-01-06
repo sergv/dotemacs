@@ -10,6 +10,7 @@
 (require 'flycheck)
 (require 'haskell-compile)
 (require 'indentation)
+(require 'lsp-rust)
 (require 'pretty-ligatures)
 (require 'rust-compilation-commands)
 (require 'smartparens-rust)
@@ -24,7 +25,52 @@
       flycheck-cargo-check-args
       (list "--offline"
             (format "--target-dir=%s"
-                    (fold-platform-os-type "/tmp/target" "target"))))
+                    (fold-platform-os-type "/tmp/target" "target")))
+
+
+      ;; lsp-log-io t
+      ;; lsp-print-performance t
+
+      lsp-client-packages '(lsp-rust lsp-clangd lsp-cmake)
+
+      lsp-disabled-clients
+      '(ccls lsp-ada lsp-angular lsp-bash lsp-clojure
+             lsp-crystal lsp-csharp lsp-css lsp-dart lsp-dhall lsp-dockerfile lsp-elm
+             lsp-elixir lsp-erlang lsp-eslint lsp-fortran lsp-fsharp lsp-gdscript lsp-go
+             lsp-hack lsp-groovy lsp-haskell lsp-haxe lsp-java lsp-javascript lsp-json
+             lsp-kotlin lsp-lua lsp-nim lsp-nix lsp-metals lsp-ocaml lsp-perl lsp-php lsp-pwsh
+             lsp-pyls lsp-python-ms lsp-purescript lsp-r lsp-rf lsp-solargraph lsp-sorbet
+             lsp-tex lsp-terraform lsp-vala lsp-verilog lsp-vetur lsp-vhdl lsp-vimscript lsp-xml
+             lsp-yaml lsp-sqls lsp-svelte lsp-steep)
+
+      lsp-file-watch-threshold nil
+      lsp-vscode-ext-url nil
+
+      ;; lsp-progress-via-spinner nil
+
+      lsp-rust-server 'rust-analyzer
+      lsp-rust-crate-blacklist []
+      lsp-rust-racer-completion nil
+      lsp-rust-target-dir (fold-platform-os-type "/tmp/target/rls" "target/rls")
+      lsp-rust-full-docs t
+
+      lsp-rust-analyzer-proc-macro-enable t
+      lsp-rust-analyzer-cargo-load-out-dirs-from-check t
+
+      ;; lsp-rust-analyzer-display-parameter-hints t
+      ;; lsp-rust-analyzer-server-display-inlay-hints t
+      ;; lsp-rust-analyzer-display-chaining-hints t
+      )
+
+(let ((cargo-home (getenv "CARGO_HOME"))
+      (rustup-home (getenv "RUSTUP_HOME")))
+  (when (or cargo-home
+            rustup-home)
+    (setf lsp-rust-library-directories nil)
+    (awhen cargo-home
+      (push (concat it "/registry/src") lsp-rust-library-directories))
+    (awhen rustup-home
+      (push (concat it "/toolchains") lsp-rust-library-directories))))
 
 (puthash 'rust-mode
          #'rust-format-buffer
