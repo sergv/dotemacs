@@ -1,0 +1,10 @@
+tutorial:
+  - docs/tutorials/**/*
+
+documentation:
+  - docs/**/*
+  - mkdocs.yml
+  - README.md
+
+client:
+  - clients/**/*
