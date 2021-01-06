@@ -613,9 +613,10 @@ Force 12/14 release until we fix https://github.com/emacs-lsp/lsp-mode/issues/24
 (lsp-dependency
  'rust-analyzer
  '(:system "rust-analyzer")
- `(:download :url lsp-rust-analyzer-download-url
-             :store-path lsp-rust-analyzer-store-path
-             :set-executable? t))
+ ;; `(:download :url lsp-rust-analyzer-download-url
+ ;;             :store-path lsp-rust-analyzer-store-path
+ ;;             :set-executable? t)
+ )
 
 (lsp-defun lsp-rust--analyzer-run-single ((&Command :arguments?))
   (lsp-rust-analyzer-run (lsp-seq-first arguments?)))
