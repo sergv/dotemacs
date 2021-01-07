@@ -5209,9 +5209,9 @@ execute a CODE-ACTION-KIND action."
                                                   (lsp--region-to-range start end)))
 
 (defconst lsp--highlight-kind-face
-  '((1 . lsp-face-highlight-textual)
-    (2 . lsp-face-highlight-read)
-    (3 . lsp-face-highlight-write)))
+  [lsp-face-highlight-textual
+   lsp-face-highlight-read
+   lsp-face-highlight-write])
 
 (defun lsp--remove-overlays (name)
   (save-restriction
@@ -5249,45 +5249,45 @@ A reference is highlighted only if it is visible in a window."
                        (not (and lsp-symbol-highlighting-skip-current
                                  (<= start-point (point) end-point))))
               (-doto (make-overlay start-point end-point)
-                (overlay-put 'face (cdr (assq (or kind? 1) lsp--highlight-kind-face)))
+                (overlay-put 'face (aref lsp--highlight-kind-face (- (or kind? 1) 1)))
                 (overlay-put 'lsp-highlight t)))))
         wins-visible-pos))
      highlights)))
 
 (defconst lsp--symbol-kind
-  '((1 . "File")
-    (2 . "Module")
-    (3 . "Namespace")
-    (4 . "Package")
-    (5 . "Class")
-    (6 . "Method")
-    (7 . "Property")
-    (8 . "Field")
-    (9 . "Constructor")
-    (10 . "Enum")
-    (11 . "Interface")
-    (12 . "Function")
-    (13 . "Variable")
-    (14 . "Constant")
-    (15 . "String")
-    (16 . "Number")
-    (17 . "Boolean")
-    (18 . "Array")
-    (19 . "Object")
-    (20 . "Key")
-    (21 . "Null")
-    (22 . "Enum Member")
-    (23 . "Struct")
-    (24 . "Event")
-    (25 . "Operator")
-    (26 . "Type Parameter")))
+  ["File"
+   "Module"
+   "Namespace"
+   "Package"
+   "Class"
+   "Method"
+   "Property"
+   "Field"
+   "Constructor"
+   "Enum"
+   "Interface"
+   "Function"
+   "Variable"
+   "Constant"
+   "String"
+   "Number"
+   "Boolean"
+   "Array"
+   "Object"
+   "Key"
+   "Null"
+   "Enum Member"
+   "Struct"
+   "Event"
+   "Operator"
+   "Type Parameter"])
 
 (lsp-defun lsp--symbol-information-to-xref
   ((&SymbolInformation :kind :name
                        :location (&Location :uri :range (&Range :start
                                                                 (&Position :line :character)))))
   "Return a `xref-item' from SYMBOL information."
-  (xref-make (format "[%s] %s" (alist-get kind lsp--symbol-kind) name)
+  (xref-make (format "[%s] %s" (aref lsp--symbol-kind (- kind 1)) name)
              (xref-make-file-location (lsp--uri-to-path uri)
                                       line
                                       character)))
@@ -6114,10 +6114,9 @@ an alist
 
 (lsp-defun lsp--get-symbol-type ((&SymbolInformation :kind))
   "The string name of the kind of SYM."
-  (-> kind
-      (assoc lsp--symbol-kind)
-      (cl-rest)
-      (or "Other")))
+  (if (<= kind (length lsp--symbol-kind))
+      (aref lsp--symbol-kind (- kind 1))
+    "Other"))
 
 (defun lsp--get-line-and-col (sym)
   "Obtain the line and column corresponding to SYM."
