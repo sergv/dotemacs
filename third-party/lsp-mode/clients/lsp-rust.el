@@ -802,7 +802,7 @@ Force 12/14 release until we fix https://github.com/emacs-lsp/lsp-mode/issues/24
       (let ((inhibit-read-only t))
         (erase-buffer)
         (insert result)
-        (special-mode)))
+        (rust-syntax-mode)))
     (display-buffer buf)))
 
 ;; runnables
