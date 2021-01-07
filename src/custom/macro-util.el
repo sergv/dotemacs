@@ -482,7 +482,7 @@ buffer if no such buffer exists."
   (let ((buf-var '#:buf)
         (exec-func '#:exec-func))
     `(let ((,exec-func (lambda () ,@body)))
-       (if-let (,buf-var (get-file-buffer ,filename))
+       (if-let (,buf-var (find-buffer-visiting ,filename))
            (with-current-buffer ,buf-var
              (save-excursion
                (funcall ,exec-func)))

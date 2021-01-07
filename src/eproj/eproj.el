@@ -1210,7 +1210,7 @@ Returns list of (tag-name tag project) lists."
                     (find-file target))))))
            (add-file
             (lambda (abs-path rel-path)
-              (let ((buf (get-file-buffer abs-path)))
+              (let ((buf (find-buffer-visiting abs-path)))
                 (when (or (not buf)
                           (invisible-buffer? buf))
                   (dolist (p (if (string= abs-path rel-path)
