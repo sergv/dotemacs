@@ -124,8 +124,7 @@ runtime but rather will be silently relied on)."
           " ["
           (eproj/haskell-tag-kind tag)
           "]\n"
-          (eproj--resolve-to-abs-path (eproj-tag/file tag)
-                                      (eproj-project/root proj))
+          (eproj-resolve-to-abs-path (eproj-tag/file tag) proj)
           ":"
           (number->string (eproj-tag/line tag))
           (awhen (eproj-tag/column tag)
@@ -144,8 +143,7 @@ runtime but rather will be silently relied on)."
            (_  nil))))
     (unless is-module?
       (for-buffer-with-file
-          (eproj--resolve-to-abs-path (eproj-tag/file tag)
-                                      (eproj-project/root proj))
+          (eproj-resolve-to-abs-path (eproj-tag/file tag) proj)
         (save-excursion
           (goto-line-dumb (eproj-tag/line tag))
           (eproj/haskel-extract-block)
