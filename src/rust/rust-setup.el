@@ -133,15 +133,25 @@ which is suitable for most programming languages such as C or Lisp."
   ("<return>" compilation/goto-error)
   ("SPC"      compilation/goto-error-other-window))
 
+;;;;; rust-syntax-mode
+
+(define-derived-mode rust-syntax-mode special-mode "Rust syntax"
+  "Major mode to highlight Rust programs."
+  :group 'rust-mode
+  :syntax-table rust-mode-syntax-table
+  (rust-mode--set-up-local-vars))
+
 ;;;;
 
 (defhydra-ext hydra-rust-dash (:exit t :foreign-keys nil :hint nil)
   "
 _d_ocumentation
 _e_xplain error at point
+_m_acro expand
 "
   ("d" lsp-doc-other-window)
-  ("e" flycheck-explain-error-at-point))
+  ("e" flycheck-explain-error-at-point)
+  ("m" lsp-rust-analyzer-expand-macro))
 
 (defhydra-ext hydra-rust-align (:exit t :foreign-keys nil :hint nil)
   "
