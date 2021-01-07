@@ -225,8 +225,7 @@ BUFFER is expected to contain output of ctags command."
           (awhen (eproj/rust-tag-kind tag)
             (concat " [" it "]"))
           "\n"
-          (eproj--resolve-to-abs-path (eproj-tag/file tag)
-                                      (eproj-project/root proj))
+          (eproj-resolve-to-abs-path (eproj-tag/file tag) proj)
           ":"
           (number->string (eproj-tag/line tag))
           "\n"
@@ -267,8 +266,7 @@ BUFFER is expected to contain output of ctags command."
           (awhen (eproj/c-tag-kind tag)
             (concat " [" it "]"))
           "\n"
-          (eproj--resolve-to-abs-path (eproj-tag/file tag)
-                                      (eproj-project/root proj))
+          (eproj-resolve-to-abs-path (eproj-tag/file tag) proj)
           ":"
           (number->string (eproj-tag/line tag))
           "\n"
@@ -308,8 +306,7 @@ BUFFER is expected to contain output of ctags command."
                     "."
                     tag-name
                     "\n"))
-          (eproj--resolve-to-abs-path (eproj-tag/file tag)
-                                      (eproj-project/root proj))
+          (eproj-resolve-to-abs-path (eproj-tag/file tag) proj)
           ":"
           (number->string (eproj-tag/line tag))
           "\n"
@@ -329,8 +326,7 @@ BUFFER is expected to contain output of ctags command."
   (cl-assert (eproj-tag-p tag))
   (concat tag-name
           "\n"
-          (eproj--resolve-to-abs-path (eproj-tag/file tag)
-                                      (eproj-project/root proj))
+          (eproj-resolve-to-abs-path (eproj-tag/file tag) proj)
           ":"
           (number->string (eproj-tag/line tag))
           (awhen (eproj-tag/column tag)
@@ -345,8 +341,7 @@ BUFFER is expected to contain output of ctags command."
   "Fetch line where TAG is defined."
   (cl-assert (eproj-tag-p tag) nil "Eproj tag is required.")
   (for-buffer-with-file
-      (eproj--resolve-to-abs-path (eproj-tag/file tag)
-                                  (eproj-project/root proj))
+      (eproj-resolve-to-abs-path (eproj-tag/file tag) proj)
     (save-excursion
       (goto-line-dumb (eproj-tag/line tag))
       (current-line))))

@@ -378,7 +378,7 @@ get proper flycheck checker."
   (interactive)
   (setf *eproj-projects* (make-hash-table :test #'equal))
   (eproj-get-initial-project-root/reset-cache)
-  (eproj--resolve-to-abs-path/reset-cache)
+  (eproj--resolve-to-abs-path-cached/reset-cache)
   (eproj-normalise-file-name-cached/reset-cache)
   (eproj-normalise-file-name-expand-cached/reset-cache)
   ;; do not forget to reset cache
@@ -627,7 +627,7 @@ for project at ROOT directory."
           (eproj--get-ignored-files root aux-info))
          (file-list-filename
           (awhen (eproj-project/query-aux-info aux-info 'file-list)
-            (let ((fname (eproj--resolve-to-abs-path it root)))
+            (let ((fname (eproj--resolve-to-abs-path-cached it root)))
               (when (or (null fname)
                         (not (file-exists-p fname)))
                 (error "File list filename does not exist: %s" fname))
@@ -660,7 +660,7 @@ for project at ROOT directory."
                                :file-list-filename file-list-filename
                                :create-tag-files create-tag-files
                                :tag-file (awhen tag-file
-                                           (eproj--resolve-to-abs-path it root))
+                                           (eproj--resolve-to-abs-path-cached it root))
                                :extra-navigation-globs extra-navigation-globs
                                :cached-files-for-navigation nil
                                :cached-ignored-files-re cached-ignored-files-re)))
@@ -744,9 +744,7 @@ for project at ROOT directory."
                         (format "%s:%s\n"
                                 (file-relative-name
                                  (expand-file-name
-                                  (eproj--resolve-to-abs-path
-                                   (eproj-tag/file subentry)
-                                   (eproj-project/root proj)))
+                                  (eproj-resolve-to-abs-path (eproj-tag/file subentry) proj))
                                  (expand-file-name (eproj-project/root proj)))
                                 (eproj-tag/line subentry)))))))))))
 
@@ -964,7 +962,7 @@ paths."
             (cl-assert (listp list-of-files))
             (let* ((absolute-files
                     (-map (lambda (filename)
-                            (eproj--resolve-to-abs-path filename (eproj-project/root proj)))
+                            (eproj-resolve-to-abs-path filename proj))
                           list-of-files))
                    (resolved-files
                     (eproj--filter-ignored-files-from-file-list proj absolute-files)))
@@ -1011,7 +1009,7 @@ Returns nil if no relevant entry found in AUX-INFO."
                        "invalid entry under related clause, string expected %s"
                        path)
             (progn ;; condition-case err
-              (eproj--resolve-to-abs-path path root)
+              (eproj--resolve-to-abs-path-cached path root)
               ;; (error
               ;;  (error "invalid related-project entry: non-existing absolute/relative directory: %s\n%s"
               ;;         path
@@ -1048,8 +1046,8 @@ Returns nil if no relevant entry found in AUX-INFO."
                       "Invalid patterns under aux-files/tree clause: %s"
                       patterns)
            (let ((resolved-tree-root
-                  (eproj--resolve-to-abs-path tree-root
-                                              project-root)))
+                  (eproj--resolve-to-abs-path-cached tree-root
+                                                     project-root)))
              (cl-assert (file-name-absolute-p resolved-tree-root)
                         nil
                         "Resolved aux tree root is not absolute: %s"
@@ -1116,10 +1114,18 @@ projects into the mix."
   (--map (replace-regexp-in-string "[$]{eproj-root}" root it)
          (cdr-safe (assq 'ignored-files aux-info))))
 
+(defmacro eproj-resolve-to-abs-path (path proj)
+  `(if (file-name-absolute-p ,path)
+       ,path
+     ,(if proj
+          `(eproj--resolve-to-abs-path-cached ,path (eproj-project/root ,proj))
+        `(error "Path is not absolute and no project available to resolve it: %s"
+                ,path))))
+
 ;; If PATH is existing absoute file then return it, otherwise try to check
 ;; whether it's existing file relative to DIR and return that. Report error if
 ;; both conditions don't hold.
-(defun-caching eproj--resolve-to-abs-path (path dir) eproj--resolve-to-abs-path/reset-cache (cons path dir)
+(defun-caching eproj--resolve-to-abs-path-cached (path dir) eproj--resolve-to-abs-path-cached/reset-cache (cons path dir)
   (resolve-to-abs-path path dir))
 
 (defun-caching eproj-normalise-file-name-cached (path) eproj-normalise-file-name-cached/reset-cache path
