@@ -117,14 +117,24 @@
                                (-map #'haskell-misc--ghc-src-span-to-eproj-tag
                                      (s-lines targets)))))
           (if ghci-tags
-              (let ((proj (eproj-get-project-for-buf (current-buffer))))
-                (eproj-symbnav/choose-symbol-home-to-jump-to
+              (let ((proj (eproj-get-project-for-buf (current-buffer)))
+                    (effective-major-mode
+                     (eproj/resolve-synonym-modes major-mode))
+                    ((lang (aif (gethash effective-major-mode eproj/languages-table)
+                      it
+                    (error "unsupported language %s" effective-major-mode))))
+                    (tag->string (eproj-language/tag->string-func lang))
+                    (tag->kind (eproj-language/show-tag-kind-procedure lang)))
+                (eproj-symbnav/choose-location-to-jump-to
                  dante-identifier
-                 (eproj/resolve-synonym-modes major-mode)
-                 (expand-file-name buffer-file-name)
+                 tag->string
+                 tag->kind
+                 (eproj-symbnav-get-file-name)
                  proj
                  (eproj-symbnav-current-home-entry)
-                 (--map (list dante-identifier it proj) ghci-tags)))
+                 (--map (list dante-identifier it proj) ghci-tags)
+                 t
+                 "Choose symbol\n\n"))
             (eproj-symbnav/go-to-symbol-home use-regexp?)))))))
 
 (defun haskell-misc--ghc-src-span-to-eproj-tag (string)
