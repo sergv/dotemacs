@@ -143,17 +143,19 @@ as accepted by `bounds-of-thing-at-point'.")
                          :position (point-marker)
                          :symbol nil))
 
+(defun eproj-symbnav-get-file-name ()
+  (cond
+    (buffer-file-name
+     (expand-file-name buffer-file-name))
+    ((and (boundp 'magit-buffer-file-name)
+          magit-buffer-file-name)
+     (expand-file-name magit-buffer-file-name))))
+
 (defun eproj-symbnav/go-to-symbol-home-impl (identifier use-regexp?)
   (let* ((proj (eproj-get-project-for-buf (current-buffer)))
          (case-fold-search (and (not (null current-prefix-arg))
                                 (<= 16 (car current-prefix-arg))))
          (effective-major-mode (eproj/resolve-synonym-modes major-mode))
-         (orig-file-name (cond
-                           (buffer-file-name
-                            (expand-file-name buffer-file-name))
-                           ((and (boundp 'magit-buffer-file-name)
-                                 magit-buffer-file-name)
-                            (expand-file-name magit-buffer-file-name))))
          (current-home-entry (eproj-symbnav-current-home-entry))
          (next-home-entry (car-safe eproj-symbnav/next-homes)))
     ;; Load tags if there're none.
@@ -181,30 +183,57 @@ as accepted by `bounds-of-thing-at-point'.")
                 eproj-symbnav/previous-homes)
           (setf eproj-symbnav/selected-loc (pop eproj-symbnav/next-homes)))
 
-      (eproj-symbnav/choose-symbol-home-to-jump-to
-       identifier
-       effective-major-mode
-       orig-file-name
-       proj
-       (eproj-symbnav-current-home-entry)
-       (eproj-get-matching-tags proj
-                                effective-major-mode
-                                identifier
-                                use-regexp?)))))
+      (let* ((lang (aif (gethash effective-major-mode eproj/languages-table)
+                       it
+                     (error "unsupported language %s" effective-major-mode)))
+             (tag->string (eproj-language/tag->string-func lang))
+             (tag->kind (eproj-language/show-tag-kind-procedure lang)))
+        (eproj-symbnav/choose-location-to-jump-to
+         identifier
+         tag->string
+         tag->kind
+         (eproj-symbnav-get-file-name)
+         proj
+         (eproj-symbnav-current-home-entry)
+         (eproj-get-matching-tags proj
+                                  effective-major-mode
+                                  identifier
+                                  use-regexp?)
+         t
+         "Choose symbol\n\n")))))
 
-(defun eproj-symbnav/choose-symbol-home-to-jump-to (identifier current-major-mode current-buffer-file-name current-proj current-home-entry tag-entries)
-  (let* ((lang (aif (gethash current-major-mode eproj/languages-table)
-                   it
-                 (error "unsupported language %s" current-major-mode)))
-         (entry->string-func (eproj-language/tag->string-func lang))
-         (show-tag-kind-procedure (eproj-language/show-tag-kind-procedure lang))
-         (tag->sort-token
+(defface eproj-symbnav-file-name
+  '((t :inherit compilation-info))
+  "Face to put on file names.")
+
+(defface eproj-symbnav-line-number
+  '((t :inherit compilation-line-number))
+  "Face to put on line numbers.")
+
+(defface eproj-symbnav-column-number
+  '((t :inherit compilation-column-number))
+  "Face to put on line numbers.")
+
+(defun eproj-symbnav/choose-location-to-jump-to
+    (identifier
+     tag->string
+     tag->kind
+     current-buffer-file-name
+     current-proj ;; may be nil
+     current-home-entry
+     tag-entries ;; list of (tag-name tag-struct tag-proj) triples
+     enable-shortcut?
+     preamble
+     )
+  (cl-assert (functionp tag->string))
+  (cl-assert (functionp tag->kind))
+  (cl-assert (or (null current-proj) (eproj-project-p current-proj)))
+  (let* ((tag->sort-token
           (lambda (tag-name tag)
-            (list
-             tag-name
-             (funcall show-tag-kind-procedure tag)
-             (eproj-tag/file tag)
-             (eproj-tag/line tag))))
+            (list tag-name
+                  (funcall tag->kind tag)
+                  (eproj-tag/file tag)
+                  (eproj-tag/line tag))))
          (sort-tokens<
           (lambda (x y)
             (let ((symbol-x (first x))
@@ -217,34 +246,51 @@ as accepted by `bounds-of-thing-at-point'.")
                   (line-y (fourth y)))
               (cl-assert (stringp symbol-x))
               (cl-assert (stringp symbol-y))
-              (cl-assert (stringp tag-kind-x))
-              (cl-assert (stringp tag-kind-y))
+              (cl-assert (or (stringp tag-kind-x) (null tag-kind-x)) nil "Unexpected tag kind: %s" tag-kind-x)
+              (cl-assert (or (stringp tag-kind-y) (null tag-kind-y)) nil "Unexpected tag kind: %s" tag-kind-y)
               (cl-assert (stringp file-x))
               (cl-assert (stringp file-y))
               (cl-assert (numberp line-x))
               (cl-assert (numberp line-y))
               (or (string< symbol-x symbol-y)
                   (and (string= symbol-x symbol-y)
-                       (or (string< tag-kind-x tag-kind-y)
-                           (and (string= tag-kind-x tag-kind-y)
+                       (or (and tag-kind-x
+                                tag-kind-y
+                                (string< tag-kind-x tag-kind-y))
+                           (and (or (not tag-kind-x)
+                                    (not tag-kind-y)
+                                    (string= tag-kind-x tag-kind-y))
                                 (or (string< file-x file-y)
                                     (and (string= file-x file-y)
                                          (< line-x line-y))))))))))
          (tag->string
-          (lambda (tag-proj tag-name tag)
-            (let ((txt (funcall entry->string-func tag-proj tag-name tag))
-                  (expanded-tag-file
-                   (expand-file-name
-                    (eproj-resolve-to-abs-path (eproj-tag/file tag) tag-proj))))
-              (cond ((string= current-buffer-file-name
-                              expanded-tag-file)
-                     (propertize txt 'face 'font-lock-negation-char-face))
-                    ((string= (eproj-project/root current-proj)
-                              (eproj-project/root tag-proj))
-                     ;; use italic instead of underscore
-                     (propertize txt 'face 'italic))
-                    (t
-                     txt)))))
+          (if current-proj
+              (lambda (tag-proj tag-name tag)
+                (let* ((expanded-tag-file
+                        (expand-file-name
+                         (eproj-resolve-to-abs-path (eproj-tag/file tag) tag-proj)))
+                       (tag-name-pretty
+                        (cond ((string= current-buffer-file-name
+                                        expanded-tag-file)
+                               (propertize tag-name 'face 'font-lock-negation-char-face))
+                              ((string= (eproj-project/root current-proj)
+                                        (eproj-project/root tag-proj))
+                               ;; use italic instead of underscore
+                               (propertize tag-name 'face 'italic))
+                              (t
+                               tag-name))))
+                  (funcall tag->string tag-proj tag-name-pretty tag)))
+            (lambda (tag-proj tag-name tag)
+              (let* ((expanded-tag-file
+                      (expand-file-name
+                       (eproj-resolve-to-abs-path (eproj-tag/file tag) tag-proj)))
+                     (tag-name-pretty
+                      (cond ((string= current-buffer-file-name
+                                      expanded-tag-file)
+                             (propertize tag-name 'face 'font-lock-negation-char-face))
+                            (t
+                             tag-name))))
+                (funcall tag->string tag-proj tag-name-pretty tag)))))
          (entry-sort-token #'first)
          (entry-tag-name #'second)
          (entry-tag #'third)
@@ -290,7 +336,8 @@ as accepted by `bounds-of-thing-at-point'.")
     (pcase (length entries)
       (`0
        (error "No entries for %s" identifier))
-      (`1
+      ((and (guard enable-shortcut?)
+            `1)
        (let ((entry (elt entries 0)))
          (funcall jump-to-home
                   (funcall entry-tag-name entry)
@@ -307,7 +354,7 @@ as accepted by `bounds-of-thing-at-point'.")
                        (funcall entry-proj entry))))))
          (select-mode-start-selection
           entries
-          :buffer-name "Symbol homes"
+          :buffer-name "*Symbol navigation*"
           :after-init (lambda ()
                         (select-mode-setup)
                         (select-mode-extend-keymap-with kmap))
@@ -318,9 +365,8 @@ as accepted by `bounds-of-thing-at-point'.")
                      (funcall entry-tag-name entry)
                      (funcall entry-tag entry)
                      (funcall entry-proj entry)))
-          :item-show-function
-          entry-string
-          :preamble "Choose symbol\n\n"))))))
+          :item-show-function entry-string
+          :preamble preamble))))))
 
 ;;;###autoload
 (defun eproj-symbnav/go-back ()

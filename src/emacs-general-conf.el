@@ -42,7 +42,8 @@
         select-mode
         shell-mode
         special-mode
-        undo-tree-visualizer-mode))
+        undo-tree-visualizer-mode
+        xref--xref-buffer-mode))
 
 (global-auto-revert-mode 1)
 
@@ -140,7 +141,10 @@
 
       sentence-end-double-space nil
 
-      vc-display-status nil)
+      vc-display-status nil
+
+      ;; LSP may produce pretty large outputs during its work.
+      read-process-output-max 32768)
 
 (remove-hook 'find-file-hook #'vc-refresh-state)
 
