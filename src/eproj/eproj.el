@@ -19,7 +19,7 @@
 ;;                             the directory of the .eproj-info file, without
 ;;                             trailing slash.
 ;; [(file-list <abs-or-rel-file>)] - filename listing all files on on each line
-;; [(extra-navigation-files <glob>+)] - more files to include into navigation via `switch-to-buffer-or-file-in-current-project'.
+;; [(extra-navigation-files <glob>+)] - more files to include into navigation via `eproj-switch-to-file-or-buffer'.
 ;;
 ;; [(create-tag-files <t-or-nil>)] - whether to cache tags in tag files for this project
 ;;
