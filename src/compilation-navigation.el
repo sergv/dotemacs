@@ -88,7 +88,7 @@ will searched for."
                 (visible-buffers))
       it
     (let ((resolved-filename (resolve-to-abs-path filename root)))
-      (aif (get-file-buffer resolved-filename)
+      (aif (find-buffer-visiting resolved-filename)
           it
         (find-file-noselect resolved-filename)))))
 
