@@ -161,6 +161,7 @@
      (image-mode . nil)
      (isearch-mode . nil)
      (latex-compilation-mode . nil)
+     (lsp-doc-presentation-mode . nil)
      (magit-branch-manager-mode . nil)
      (magit-commit-mode . nil)
      (magit-diff-mode . nil)
