@@ -248,6 +248,17 @@ Use idomenu (imenu with `ido-mode') for best mileage.")
   :group 'rust-mode
   :syntax-table rust-mode-syntax-table
 
+  (rust-mode--set-up-local-vars)
+
+  (add-hook 'before-save-hook 'rust-before-save-hook nil t)
+  (add-hook 'after-save-hook 'rust-after-save-hook nil t)
+
+  (setq-local rust-buffer-project nil)
+
+  (when rust-always-locate-project-on-open
+    (rust-update-buffer-project)))
+
+(defun rust-mode--set-up-local-vars ()
   ;; Syntax.
   (setq-local syntax-propertize-function #'rust-syntax-propertize)
 
@@ -288,15 +299,7 @@ Use idomenu (imenu with `ido-mode') for best mileage.")
   (setq-local end-of-defun-function 'rust-end-of-defun)
   (setq-local parse-sexp-lookup-properties t)
   (setq-local electric-pair-inhibit-predicate 'rust-electric-pair-inhibit-predicate-wrap)
-  (setq-local electric-pair-skip-self 'rust-electric-pair-skip-self-wrap)
-
-  (add-hook 'before-save-hook 'rust-before-save-hook nil t)
-  (add-hook 'after-save-hook 'rust-after-save-hook nil t)
-
-  (setq-local rust-buffer-project nil)
-
-  (when rust-always-locate-project-on-open
-    (rust-update-buffer-project)))
+  (setq-local electric-pair-skip-self 'rust-electric-pair-skip-self-wrap))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-mode))
