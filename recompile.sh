@@ -141,6 +141,7 @@ update-dir-autoloads \
     "third-party/lcr" \
     "third-party/lean-mode" \
     "third-party/lsp-mode" \
+    "third-party/lsp-ui" \
     "third-party/magit" \
     "third-party/magit-popup" \
     "third-party/misc-modes" \
