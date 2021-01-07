@@ -124,9 +124,7 @@ runtime but rather will be silently relied on)."
           " ["
           (eproj/haskell-tag-kind tag)
           "]\n"
-          (eproj-resolve-to-abs-path (eproj-tag/file tag) proj)
-          ":"
-          (number->string (eproj-tag/line tag))
+          (eproj/format-tag-path-and-line proj tag)
           (awhen (eproj-tag/column tag)
             (concat ":" (number->string it)))
           "\n"
@@ -140,7 +138,8 @@ runtime but rather will be silently relied on)."
   (let ((is-module?
          (pcase (eproj-tag/type tag)
            (?m t)
-           (_  nil))))
+           (_  nil)))
+        (inhibit-field-text-motion t))
     (unless is-module?
       (for-buffer-with-file
           (eproj-resolve-to-abs-path (eproj-tag/file tag) proj)

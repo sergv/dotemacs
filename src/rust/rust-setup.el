@@ -11,6 +11,7 @@
 (require 'haskell-compile)
 (require 'indentation)
 (require 'lsp-rust)
+(require 'lsp-setup)
 (require 'pretty-ligatures)
 (require 'rust-compilation-commands)
 (require 'smartparens-rust)
@@ -25,42 +26,7 @@
       flycheck-cargo-check-args
       (list "--offline"
             (format "--target-dir=%s"
-                    (fold-platform-os-type "/tmp/target" "target")))
-
-
-      ;; lsp-log-io t
-      ;; lsp-print-performance t
-
-      lsp-client-packages '(lsp-rust lsp-clangd lsp-cmake)
-
-      lsp-disabled-clients
-      '(ccls lsp-ada lsp-angular lsp-bash lsp-clojure
-             lsp-crystal lsp-csharp lsp-css lsp-dart lsp-dhall lsp-dockerfile lsp-elm
-             lsp-elixir lsp-erlang lsp-eslint lsp-fortran lsp-fsharp lsp-gdscript lsp-go
-             lsp-hack lsp-groovy lsp-haskell lsp-haxe lsp-java lsp-javascript lsp-json
-             lsp-kotlin lsp-lua lsp-nim lsp-nix lsp-metals lsp-ocaml lsp-perl lsp-php lsp-pwsh
-             lsp-pyls lsp-python-ms lsp-purescript lsp-r lsp-rf lsp-solargraph lsp-sorbet
-             lsp-tex lsp-terraform lsp-vala lsp-verilog lsp-vetur lsp-vhdl lsp-vimscript lsp-xml
-             lsp-yaml lsp-sqls lsp-svelte lsp-steep)
-
-      lsp-file-watch-threshold nil
-      lsp-vscode-ext-url nil
-
-      ;; lsp-progress-via-spinner nil
-
-      lsp-rust-server 'rust-analyzer
-      lsp-rust-crate-blacklist []
-      lsp-rust-racer-completion nil
-      lsp-rust-target-dir (fold-platform-os-type "/tmp/target/rls" "target/rls")
-      lsp-rust-full-docs t
-
-      lsp-rust-analyzer-proc-macro-enable t
-      lsp-rust-analyzer-cargo-load-out-dirs-from-check t
-
-      ;; lsp-rust-analyzer-display-parameter-hints t
-      ;; lsp-rust-analyzer-server-display-inlay-hints t
-      ;; lsp-rust-analyzer-display-chaining-hints t
-      )
+                    (fold-platform-os-type "/tmp/target" "target"))))
 
 (let ((cargo-home (getenv "CARGO_HOME"))
       (rustup-home (getenv "RUSTUP_HOME")))
@@ -171,8 +137,10 @@ which is suitable for most programming languages such as C or Lisp."
 
 (defhydra-ext hydra-rust-dash (:exit t :foreign-keys nil :hint nil)
   "
+_d_ocumentation
 _e_xplain error at point
 "
+  ("d" lsp-doc-other-window)
   ("e" flycheck-explain-error-at-point))
 
 (defhydra-ext hydra-rust-align (:exit t :foreign-keys nil :hint nil)
@@ -329,7 +297,10 @@ _a_lign  _t_: beginning of defun
     ("M-h"   rust-compilation-next-error-other-window)
     ("C-SPC" company-complete))
 
-  (setup-eproj-symbnav))
+  ;; (setup-eproj-symbnav)
+  (setup-lsp-symbnav)
+
+  (lsp))
 
 
 (provide 'rust-setup)

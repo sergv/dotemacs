@@ -184,7 +184,8 @@
      (slime-repl-mode . normal)
      (slime-xref-mode . nil)
      (text-mode . normal)
-     (undo-tree-visualizer-mode . nil))
+     (undo-tree-visualizer-mode . nil)
+     (xref--xref-buffer-mode . nil))
    #'eq)
   "Associated list of (major-mode . vim:mode) which specifies the
 vim sub-mode in which vim-mode should start when a buffer with the
