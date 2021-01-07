@@ -7476,12 +7476,17 @@ Returns nil if the project should not be added to the current SESSION."
                       (prog1 t
                         (lsp--info "File %s is in blacklisted directory %s" file-name it))))
         not)
-   (or
-    (when lsp-auto-guess-root
-      (lsp--suggest-project-root))
-    (lsp-find-session-folder session file-name)
-    (unless lsp-auto-guess-root
-      (lsp--find-root-interactively session)))))
+   (if-let ((proj (eproj-get-project-for-buf-lax (current-buffer))))
+       (eproj-project/root proj)
+     (aif (when (featurep 'project)
+            (when-let ((project (project-current)))
+              (if (fboundp 'project-root)
+                  (project-root project)
+                (car (with-no-warnings
+                       (project-roots project))))))
+         it
+       (or (lsp-find-session-folder session file-name)
+           (lsp--find-root-interactively session))))))
 
 (defun lsp--try-open-in-library-workspace ()
   "Try opening current file as library file in any of the active workspace.
@@ -7508,10 +7513,11 @@ The library folders are defined by each client for each of the active workspace.
 
 (defun lsp--persist-session (session)
   "Persist SESSION to `lsp-session-file'."
-  (lsp--persist lsp-session-file (make-lsp-session
-                                  :folders (lsp-session-folders session)
-                                  :folders-blacklist (lsp-session-folders-blacklist session)
-                                  :server-id->folders (lsp-session-server-id->folders session))))
+  (when lsp-session-file
+    (lsp--persist lsp-session-file (make-lsp-session
+                                    :folders (lsp-session-folders session)
+                                    :folders-blacklist (lsp-session-folders-blacklist session)
+                                    :server-id->folders (lsp-session-server-id->folders session)))))
 
 (defun lsp--try-project-root-workspaces (ask-for-client ignore-multi-folder)
   "Try create opening file as a project file.
