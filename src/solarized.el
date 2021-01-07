@@ -20,9 +20,9 @@ Futher modified by Sergey Vinokurov."
          (base02  "#073642")
          ;; optional emphasized content
          (base01  "#586e75")
-         ;; body text/default code/primary content
+         ;; Aux: unused in dark, swaps with base0 in light. Indistinguishable from base0 in dark.
          (base00  "#657b83")
-         ;; ?
+         ;; body text/default code/primary content
          (base0   "#839496")
          ;; comments/secondary content
          (base1   "#93a1a1")
