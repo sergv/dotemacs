@@ -188,7 +188,7 @@
   :lighter ""
   (cond
    (lsp-modeline-code-actions-mode
-    (add-to-list 'global-mode-string '(t (:eval lsp-modeline--code-actions-string)))
+    (add-to-list 'global-mode-string '(" " (:eval lsp-modeline--code-actions-string)))
 
     (add-hook 'lsp-on-idle-hook 'lsp-modeline--check-code-actions nil t)
     (add-hook 'lsp-configure-hook #'lsp-modeline--enable-code-actions nil t)
@@ -197,7 +197,7 @@
     (remove-hook 'lsp-on-idle-hook 'lsp-modeline--check-code-actions t)
     (remove-hook 'lsp-configure-hook #'lsp-modeline--enable-code-actions t)
     (remove-hook 'lsp-unconfigure-hook #'lsp-modeline--disable-code-actions t)
-    (setq global-mode-string (remove '(t (:eval lsp-modeline--code-actions-string)) global-mode-string)))))
+    (setq global-mode-string (remove '(" " (:eval lsp-modeline--code-actions-string)) global-mode-string)))))
 
 
 ;; diagnostics
