@@ -186,7 +186,7 @@ Futher modified by Sergey Vinokurov."
             ;; emacs-wiki
             (emacs-wiki-bad-link-face     ((t (:foreground ,red :underline t))))
             (emacs-wiki-link-face         ((t (:foreground ,blue :underline t))))
-            (emacs-wiki-verbatim-face     ((t (:foreground ,base00 :underline t))))
+            (emacs-wiki-verbatim-face     ((t (:inherit default :underline t))))
             (error                        ((t (:foreground ,red :bold t))))
             ;; font-lock
             (font-lock-comment-face       ((t (:foreground ,base01 ;; :italic t
@@ -203,6 +203,7 @@ Futher modified by Sergey Vinokurov."
             (font-lock-string-face        ((t (:foreground ,orange))))
             (font-lock-type-face          ((t (:foreground ,yellow))))
             (font-lock-variable-name-face ((t (:inherit font-lock-function-name-face))))
+            (homoglyph                    ((t (:foreground ,cyan))))
 
             (bison-rule-name-face         ((t (:foreground ,yellow))))
             (rust-question-mark-face      ((t (:weight bold :inherit font-lock-negation-char-face))))
@@ -257,6 +258,19 @@ Futher modified by Sergey Vinokurov."
                                             :underline (:style wave :color ,green :bold t))
                                            (t
                                             :underline t :inherit success)))
+
+            (evaporate-region-face        ((t :foreground ,base01)))
+            (lsp-lsp-flycheck-warning-unnecessary-face
+                                          ((t :foreground ,base01
+                                              :inherit flycheck-warning)))
+
+            (lsp-face-highlight-textual   ((t :inherit highlight :underline t)))
+            (lsp-face-highlight-read      ((t :inherit lsp-face-highlight-textual)))
+            (lsp-face-highlight-write     ((t :inherit lsp-face-highlight-textual :bold t)))
+
+
+            (lsp-modeline-code-actions-preferred-face
+                                          ((t (:foreground ,yellow))))
 
             (clojure-constant-face        ((t (:foreground ,cyan))))
             (clojure-java-interop-face    ((t (:foreground ,yellow))))
