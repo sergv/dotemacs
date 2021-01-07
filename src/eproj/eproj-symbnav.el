@@ -109,8 +109,7 @@ as accepted by `bounds-of-thing-at-point'.")
 
 (defun eproj-symbnav/resolve-tag-file-in-project (tag proj)
   (let ((file
-         (eproj--resolve-to-abs-path (eproj-tag/file tag)
-                                     (eproj-project/root proj))))
+         (eproj-resolve-to-abs-path (eproj-tag/file tag) proj)))
     (unless (file-exists-p file)
       (error "file %s does not exist" file))
     file))
@@ -236,9 +235,7 @@ as accepted by `bounds-of-thing-at-point'.")
             (let ((txt (funcall entry->string-func tag-proj tag-name tag))
                   (expanded-tag-file
                    (expand-file-name
-                    (eproj--resolve-to-abs-path
-                     (eproj-tag/file tag)
-                     (eproj-project/root tag-proj)))))
+                    (eproj-resolve-to-abs-path (eproj-tag/file tag) tag-proj))))
               (cond ((string= current-buffer-file-name
                               expanded-tag-file)
                      (propertize txt 'face 'font-lock-negation-char-face))
