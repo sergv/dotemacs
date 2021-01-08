@@ -23,6 +23,7 @@
                  "\\'")))
       recentf-arrange-rules
       (list
+       (list "Rust files (%d)" (rx (or ".rs" "Cargo.toml") eos))
        (list "Haskell files (%d)" (eval-when-compile
                                     (concat ".\\."
                                             (regexp-opt (cons "cabal" +haskell-extensions+))

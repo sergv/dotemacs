@@ -49,9 +49,10 @@
 
 
 ;;;; saveplace - minor mode to remember positions in visited files
-(setq save-place-file (path-concat +prog-data-path+ "saveplace"))
-(setq-default save-place t)
+(setq save-place-file (path-concat +prog-data-path+ "saveplace")
+      save-place-limit nil)
 (require 'saveplace)
+(save-place-mode +1)
 
 ;;;; bunch of standard customizations
 
