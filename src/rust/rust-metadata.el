@@ -10,10 +10,20 @@
 
 ;;;###autoload
 (defun rust-metadata-get-full-metadata ()
-  (let ((str (shell-command-to-string "cargo metadata --offline --format-version 1 --color never --no-deps")))
+  (with-temp-buffer
+    (call-process "cargo" nil '(t nil) nil
+                  "metadata"
+                  "--format-version" "1"
+                  "--color" "never"
+                  "--no-deps")
+    (goto-char (point-min))
     (condition-case err
-        (json-read-from-string str)
-      (error (error "Failed to deserialize cargo metadata output from json: %s\n%s" err str)))))
+        (let ((json-array-type 'vector)
+              (json-object-type 'alist))
+          (json-read))
+      (error (error "Failed to deserialize cargo metadata output from json: %s\n%s"
+                    err
+                    (buffer-substring-no-properties (point) (point-max)))))))
 
 ;;;###autoload
 (defun rust-metadata-targets (meta f)
