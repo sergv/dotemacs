@@ -4055,6 +4055,12 @@ under version-control directories."
 (defun pcmpl-rust-example-targets ()
   (rust-metadata-example-targets (rust-metadata-get-full-metadata)))
 
+(defun pcmpl-rust-test-targets ()
+  (rust-metadata-test-targets (rust-metadata-get-full-metadata)))
+
+(defun pcmpl-rust-bench-targets ()
+  (rust-metadata-bench-targets (rust-metadata-get-full-metadata)))
+
 ;;;###autoload (autoload 'pcomplete/cargo "shell-completion" nil t)
 (defpcmpl pcomplete/cargo
   (let ((common-flags
@@ -4088,13 +4094,13 @@ under version-control directories."
            "-j"
            "--jobs"
            "--lib"
-           "--bin"
+           ("--bin" (pcmpl-rust-binary-targets))
            "--bins"
-           "--example"
+           ("--example" (pcmpl-rust-example-targets))
            "--examples"
-           "--test"
+           ("--test" (pcmpl-rust-test-targets))
            "--tests"
-           "--bench"
+           ("--bench" (pcmpl-rust-bench-targets))
            "--benches"
            "--all-targets"
            "--features"
