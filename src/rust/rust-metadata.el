@@ -67,7 +67,7 @@
   (rust-metadata-targets-by-type "test" meta))
 
 ;;;###autoload
-(defun rust-metadata-benchmark-targets (meta)
+(defun rust-metadata-bench-targets (meta)
   (rust-metadata-targets-by-type "bench" meta))
 
 ;;;###autoload
