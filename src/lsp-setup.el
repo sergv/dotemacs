@@ -6,6 +6,7 @@
 ;; Created:  7 January 2021
 ;; Description:
 
+(require 's)
 (require 'lsp)
 (require 'lsp-ui-doc)
 
@@ -46,6 +47,13 @@
       ;; lsp-progress-via-spinner nil
 
       lsp-rust-server 'rust-analyzer
+      lsp-rust-analyzer-server-command '("rust-analyzer")
+      lsp-rust-analyzer-server-args '(nil "--spammy" "--log-file" "/tmp/rust-analyzer-log.txt")
+
+      ;; ;; For debugging
+      ;; lsp-response-timeout 10000
+      ;; lsp-rust-analyzer-server-command '("/tmp/target/release/rust-analyzer")
+
       lsp-rust-crate-blacklist []
       lsp-rust-racer-completion nil
       lsp-rust-target-dir (fold-platform-os-type "/tmp/target/rls" "target/rls")
@@ -140,6 +148,38 @@
          (replace-regexp-in-string "\r" "" (lsp-ui-doc--extract contents))))
       (switch-to-buffer-other-window doc-buf))))
 
+(defun lsp-rust-type-at-point ()
+  (interactive)
+  (let ((buf (current-buffer)))
+    (lsp-request-async
+     "textDocument/hover"
+     (lsp--text-document-position-params)
+     (lambda (hover)
+       (lsp-rust-type-at-point--callback hover buf))
+     :mode 'current ;; 'tick
+     :cancel-token :lsp-doc-hover)))
+
+(lsp-defun lsp-rust-type-at-point--callback ((hover &as &Hover? :contents) buf)
+  (unless contents
+    (error "Empty response from server. Aborting"))
+  (if (and (lsp-markup-content? contents)
+           (string= (lsp:markup-content-kind contents) lsp/markup-kind-markdown))
+      (let* ((lines (--drop-while (not (s-starts-with? "```" it))
+                                  (s-lines (lsp:markup-content-value contents))))
+             (blocks (--partition-by (equal "```" it) lines)))
+        (pcase blocks
+          (`(,x . (,y . nil))
+           (message
+            (lsp-ui-doc--extract-marked-string (s-join "\n" (append x y))
+                                               lsp/markup-kind-markdown)))
+          (`(,x . (,y . (,z . (,w . ,_))))
+           (message
+            (lsp-ui-doc--extract-marked-string (s-join "\n" (append x y z w))
+                                               lsp/markup-kind-markdown)))
+          (other
+           (error "Unhandled case: %s" other))))
+    (error "Expected markdown MarkupContent but got something else: %s" contents)))
+
 ;;;; Define some faces so that they’ll look ok
 
 (defface lsp-lsp-flycheck-warning-unnecessary-face
@@ -178,43 +218,70 @@
                            (lsp-request "textDocument/definition"
                                         (lsp--text-document-position-params)))))))))
     (destructuring-bind (ident . tags) ident-and-tags
-      (eproj-symbnav/choose-location-to-jump-to
-       ident
-       (lambda (_proj tag-name tag)
-         (cl-assert (stringp tag-name))
-         (concat tag-name
-                 (awhen (eproj-tag/type tag)
-                   (concat " [" it "]"))
-                 "\n"
-                 (lsp-symbnav--tag->string tag)))
-       #'lsp-symbnav--tag-kind
-       (eproj-symbnav-get-file-name)
-       nil
-       (eproj-symbnav-current-home-entry)
-       tags
-       t
-       "Choose symbol\n\n"))))
+      (let ((proj nil)
+            (enable-shortcut? t))
+        (eproj-symbnav/choose-location-to-jump-to
+         ident
+         (lambda (_proj tag-name tag)
+           (cl-assert (stringp tag-name))
+           (concat tag-name
+                   (awhen (eproj-tag/type tag)
+                     (concat " [" it "]"))
+                   "\n"
+                   (lsp-symbnav--tag->string tag)))
+         #'lsp-symbnav--tag-kind
+         (eproj-symbnav-get-file-name)
+         proj
+         (eproj-symbnav-current-home-entry)
+         tags
+         enable-shortcut?
+         "Choose symbol\n\n")))))
 
-(defun lsp-symbnav/find-references ()
-  (interactive)
+(defun lsp-symbnav/find-references (&optional include-declaration?)
+  (interactive "P")
   (let* ((identifier (eproj-symbnav/identifier-at-point nil))
          (tag-triples
           (--map (list identifier it nil)
                  (lsp-symbnav--locations-->eproj-tags
                   identifier
                   (lsp-request "textDocument/references"
-                               (lsp--make-reference-params))))))
-    (eproj-symbnav/choose-location-to-jump-to
-     identifier
-     (lambda (_proj _tag-name tag)
-       (lsp-symbnav--tag->string tag))
-     #'lsp-symbnav--tag-kind
-     (eproj-symbnav-get-file-name)
-     nil
-     (eproj-symbnav-current-home-entry)
-     tag-triples
-     nil
-     (concat "Uses of " identifier "\n\n"))))
+                               (lsp--make-reference-params nil include-declaration?))))))
+    (let ((proj nil)
+          (enable-shortcut? nil))
+      (eproj-symbnav/choose-location-to-jump-to
+       identifier
+       (lambda (_proj _tag-name tag)
+         (lsp-symbnav--tag->string tag))
+       #'lsp-symbnav--tag-kind
+       (eproj-symbnav-get-file-name)
+       proj
+       (eproj-symbnav-current-home-entry)
+       tag-triples
+       enable-shortcut?
+       (concat "Uses of " identifier "\n\n")))))
+
+(defun lsp-symbnav/find-implementations ()
+  (interactive "P")
+  (let* ((identifier (eproj-symbnav/identifier-at-point nil))
+         (tag-triples
+          (--map (list identifier it nil)
+                 (lsp-symbnav--locations-->eproj-tags
+                  identifier
+                  (lsp-request "textDocument/implementation"
+                               (lsp--text-document-position-params))))))
+    (let ((proj nil)
+          (enable-shortcut? nil))
+      (eproj-symbnav/choose-location-to-jump-to
+       identifier
+       (lambda (_proj _tag-name tag)
+         (lsp-symbnav--tag->string tag))
+       #'lsp-symbnav--tag-kind
+       (eproj-symbnav-get-file-name)
+       proj
+       (eproj-symbnav-current-home-entry)
+       tag-triples
+       enable-shortcut?
+       (concat "Implementations for " identifier "\n\n")))))
 
 (defsubst lsp-symbnav--tag->string (tag)
   (cl-assert (eproj-tag-p tag))
