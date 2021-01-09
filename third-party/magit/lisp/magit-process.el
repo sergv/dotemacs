@@ -237,6 +237,7 @@ Used when `magit-process-display-mode-line-error' is non-nil."
     map)
   "Keymap for `magit-process-mode'.")
 
+;;;###autoload
 (define-derived-mode magit-process-mode magit-mode "Magit Process"
   "Mode for looking at Git process output."
   :group 'magit-process
