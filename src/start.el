@@ -7,7 +7,7 @@
 ;; Description:
 
 (require 'set-up-platform)
-(require 'set-up-environment-variables)
+(load-library "set-up-environment-variables")
 (require 'set-up-paths)
 (unless noninteractive
   (require 'set-up-font))
@@ -204,24 +204,24 @@
                            (kbd "S-<iso-lefttab>")))
       (define-key kmap binding backtab-binding))))
 
-(load-library "c-like-setup")
-(load-library "haskell-autoload")
-(load-library "latex-autoloads")
-(load-library "rust-autoloads")
+(require 'c-like-setup)
+(require 'haskell-autoload)
+(require 'latex-autoloads)
+(require 'rust-autoloads)
 
-(load-library "compilation-setup")
-(load-library "completion-setup")
-(load-library "hl-paren")
-(load-library "grep-autoload")
-(load-library "yasnippet-autoload")
-(load-library "git-autoload")
-(load-library "ediff-autoload")
-(load-library "undo-tree-setup")
-(load-library "recentf-setup")
-(load-library "misc-autoloads")
-(load-library "flycheck-setup")
-(load-library "typography-setup")
-(load-library "eshell-autoload")
+(require 'compilation-setup)
+(require 'completion-setup)
+(require 'hl-paren)
+(require 'grep-autoload)
+(require 'yasnippet-autoload)
+(require 'git-autoload)
+(require 'ediff-autoload)
+(require 'undo-tree-setup)
+(require 'recentf-setup)
+(require 'misc-autoloads)
+(require 'flycheck-setup)
+(require 'typography-setup)
+(require 'eshell-autoload)
 
 ;; load keys after everything to ensure that nothing will be rebond
 ;; after it finishes
