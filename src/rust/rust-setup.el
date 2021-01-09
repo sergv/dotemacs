@@ -143,15 +143,44 @@ which is suitable for most programming languages such as C or Lisp."
 
 ;;;;
 
+(defhydra hydra-rust-toggle (:exit nil :foreign-keys nil :hint nil)
+  "
+Toggle:
+_f_ormatting on typing             %`lsp-enable-on-type-formatting
+_h_ighlight of symbol at point     %`lsp-enable-symbol-highlighting
+"
+  ("f" lsp-toggle-on-type-formatting)
+  ("h" lsp-toggle-symbol-highlight))
+
 (defhydra-ext hydra-rust-dash (:exit t :foreign-keys nil :hint nil)
   "
-_d_ocumentation
-_e_xplain error at point
+_d_ocumentation           jump to _c_argo toml      toggle some _o_ptions
+_e_xplain error at point  jump to _p_arent module
+_i_mplementations
 _m_acro expand
+_r_ename
+_t_ype
+_u_sages
 "
   ("d" lsp-doc-other-window)
   ("e" flycheck-explain-error-at-point)
-  ("m" lsp-rust-analyzer-expand-macro))
+  ("i" lsp-symbnav/find-implementations)
+  ("m" lsp-rust-analyzer-expand-macro)
+  ("r" lsp-rename)
+  ("t" lsp-rust-type-at-point)
+  ("u" lsp-symbnav/find-references)
+
+  ("c" lsp-rust-open-cargo-toml)
+  ("p" lsp-rust-find-parent-module)
+
+  ("o" hydra-rust-toggle/body))
+
+(defun lsp-rust-open-cargo-toml ()
+  "Open Cargo.toml for current project."
+  (interactive)
+  (aif (lsp-request "experimental/openCargoToml" (lsp--text-document-position-params))
+      (find-file (lsp--uri-to-path (lsp:location-uri it)))
+    (error "Failed to locate Cargo.toml")))
 
 (defhydra-ext hydra-rust-align (:exit t :foreign-keys nil :hint nil)
   "
@@ -276,8 +305,8 @@ _a_lign  _t_: beginning of defun
    :install-flycheck flycheck-mode)
 
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("-" hydra-rust-dash/body)
-    ("g" hydra-rust-vim-normal-g-ext/body))
+    ("-"   hydra-rust-dash/body)
+    ("g"   hydra-rust-vim-normal-g-ext/body))
 
   (def-keys-for-map vim:visual-mode-local-keymap
     ("g" hydra-rust-vim-visual-g-ext/body))
@@ -310,7 +339,11 @@ _a_lign  _t_: beginning of defun
   ;; (setup-eproj-symbnav)
   (setup-lsp-symbnav)
 
-  (lsp))
+  (lsp)
+
+  (when lsp-mode
+    (def-keys-for-map vim:normal-mode-local-keymap
+      ("C-r" lsp-rename))))
 
 
 (provide 'rust-setup)
