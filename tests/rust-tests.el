@@ -455,6 +455,60 @@
      "let x: Vec<Box<i32>>_|_ = vec![1, 2, 3];"
      "")))
 
+(ert-deftest rust-tests/rust-smart-operators--slash-1 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?/)
+    (tests-utils--multiline
+     ""
+     "_|_"
+     "fn foo(x: i32) -> i32 {"
+     "   x + 1"
+     "}"
+     "")
+    (tests-utils--multiline
+     ""
+     "/ _|_"
+     "fn foo(x: i32) -> i32 {"
+     "   x + 1"
+     "}"
+     "")))
+
+(ert-deftest rust-tests/rust-smart-operators--slash-2 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?/)
+    (tests-utils--multiline
+     ""
+     "/ _|_"
+     "fn foo(x: i32) -> i32 {"
+     "   x + 1"
+     "}"
+     "")
+    (tests-utils--multiline
+     ""
+     "// _|_"
+     "fn foo(x: i32) -> i32 {"
+     "   x + 1"
+     "}"
+     "")))
+
+(ert-deftest rust-tests/rust-smart-operators--slash-3 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?/)
+    (tests-utils--multiline
+     ""
+     "// _|_"
+     "fn foo(x: i32) -> i32 {"
+     "   x + 1"
+     "}"
+     "")
+    (tests-utils--multiline
+     ""
+     "/// _|_"
+     "fn foo(x: i32) -> i32 {"
+     "   x + 1"
+     "}"
+     "")))
+
 (ert-deftest rust-tests/sp-splice-sexp-killing-backward-1 ()
   (rust-tests--test-buffer-contents
       (sp-splice-sexp-killing-backward)
