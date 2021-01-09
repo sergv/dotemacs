@@ -53,12 +53,14 @@ that next 2 characters are AFTER1 and AFTER2."
                is-after?))))
 
 ;;;###autoload
-(defun smart-operators--in-string-or-comment? ()
+(defun smart-operators--in-string-or-comment? (&optional disable-comment-check?)
   "Are we in string or comment?"
   (let* ((state (parse-partial-sexp (line-beginning-position)
                                     (point)))
          (inside-string? (elt state 3))
-         (inside-comment? (elt state 4)))
+         (inside-comment? (if disable-comment-check?
+                              nil
+                            (elt state 4))))
     (or inside-string?
         inside-comment?
         (and (eq 'font-lock-string-face
@@ -70,9 +72,9 @@ that next 2 characters are AFTER1 and AFTER2."
                t)))))
 
 ;;;###autoload
-(defun smart-operators--literal-insertion? ()
+(defun smart-operators--literal-insertion? (&optional disable-comment-check?)
   "Should a node have literal insertion?"
-  (or (smart-operators--in-string-or-comment?)
+  (or (smart-operators--in-string-or-comment? disable-comment-check?)
       (let ((before (char-before))
             (after (char-after)))
         (and before
