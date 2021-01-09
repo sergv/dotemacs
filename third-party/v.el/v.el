@@ -73,6 +73,10 @@ will raise an error on such."
   "Return t if KEY is an element of XS  Comparison done with ‘equal’."
   (v--find (equal key it) xs))
 
+(defun v-memq (key xs)
+  "Return t if KEY is an element of XS  Comparison done with ‘eq’."
+  (v--find (eq key it) xs))
+
 (provide 'v)
 
 ;; Local Variables:
