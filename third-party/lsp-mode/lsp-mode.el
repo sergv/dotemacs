@@ -3511,9 +3511,9 @@ in that particular folder."
   nil nil nil
   (cond
    (lsp-managed-mode
-    (when (lsp-feature? "textDocument/hover")
-      (add-function :before-until (local 'eldoc-documentation-function) #'lsp-eldoc-function)
-      (eldoc-mode 1))
+    ;; (when (lsp-feature? "textDocument/hover")
+    ;;   (add-function :before-until (local 'eldoc-documentation-function) #'lsp-eldoc-function)
+    ;;   (eldoc-mode 1))
 
     (add-hook 'after-change-functions #'lsp-on-change nil t)
     (add-hook 'after-revert-hook #'lsp-on-revert nil t)
