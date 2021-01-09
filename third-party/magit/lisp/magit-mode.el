@@ -556,6 +556,7 @@ which visits the thing at point using `browse-url'."
       (when (fboundp sym)
         (funcall sym 1)))))
 
+;;;###autoload
 (define-derived-mode magit-mode special-mode "Magit"
   "Parent major mode from which Magit major modes inherit.
 
