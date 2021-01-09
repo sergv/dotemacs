@@ -74,7 +74,6 @@ binaries."
       (t
        final-name))))
 
-
 (provide 'set-up-platform)
 
 ;; Local Variables:
