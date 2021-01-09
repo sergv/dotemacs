@@ -311,6 +311,7 @@ in `magit-blame-read-only-mode-map' instead.")
 
 ;;;; Base Mode
 
+;;;###autoload
 (define-minor-mode magit-blame-mode
   "Display blame information inline."
   :lighter magit-blame-mode-lighter

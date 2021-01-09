@@ -118,6 +118,7 @@ directory computed by git.")
 
 ;;; gitignore
 
+;;;###autoload
 (defun gitignore-setup ()
   (init-common :use-yasnippet nil
                :use-comment   t
@@ -143,6 +144,7 @@ _=_: on equals"
 _a_lign"
   ("a" hydra-gitconfig-align/body))
 
+;;;###autoload
 (defun gitconfig-setup ()
   (init-common :use-yasnippet nil
                :use-comment   t
@@ -159,6 +161,7 @@ _a_lign"
 
 ;;; magit
 
+;;;###autoload
 (defun magit-collect-unstaged-hunk-sections ()
   "Return all staged hunk sections in magit status buffer."
   (save-excursion
@@ -176,6 +179,7 @@ _a_lign"
               (< (oref section-a start)
                  (oref section-b start)))))))
 
+;;;###autoload
 (defun magit-current-section-is-whitespace-only? ()
   (interactive)
   (let ((hunk (magit-current-section)))
@@ -188,6 +192,7 @@ _a_lign"
                  "IS"
                "IS NOT"))))
 
+;;;###autoload
 (defun magit-stage-non-whitespace-changes ()
   (interactive)
   (magit-stage-matching-changes
@@ -198,6 +203,7 @@ _a_lign"
         (oref hunk start)
         (oref hunk end)))))))
 
+;;;###autoload
 (defun magit-stage-matching-changes (pred)
   "Stage all hunk that match predicate PRED."
   (let ((matching-patches
@@ -342,31 +348,38 @@ ta_b_s"
     ;; I don't use "Y" so swap it with "y"
     ("Y"               magit-show-refs-popup)))
 
+;;;###autoload
 (defun magit-diff-mode-setup ()
   "Setup for diff browsing mode."
   (magit-bind-common-vimless-mode-keymap magit-diff-mode-map))
 
+;;;###autoload
 (defun magit-stash-mode-setup ()
   "Setup for stash browsing mode."
   (magit-bind-common-vimless-mode-keymap magit-stash-mode-map))
 
+;;;###autoload
 (defun magit-log-mode-setup ()
   (magit-bind-common-vimless-mode-keymap magit-log-mode-map)
   (def-keys-for-map magit-log-mode-map
     ("h" vim-mock:motion-down)
     ("t" vim-mock:motion-up)))
 
+;;;###autoload
 (defun magit-popup-setup ()
   (def-keys-for-map magit-popup-mode-map
     ("<escape>" magit-popup-quit)
     ("q"        magit-popup-quit)))
 
+;;;###autoload
 (defun magit-refs-mode-setup ()
   (magit-bind-common-vimless-mode-keymap magit-refs-mode-map))
 
+;;;###autoload
 (defun magit-reflog-mode-setup ()
   (magit-bind-common-vimless-mode-keymap magit-reflog-mode-map))
 
+;;;###autoload
 (defun magit-revision-mode-setup ()
   "Setup for commit browsing mode."
   (display-fill-column-indicator-mode -1)
@@ -374,6 +387,7 @@ ta_b_s"
   (setq-local truncate-lines nil)
   (magit-bind-common-vimless-mode-keymap magit-revision-mode-map))
 
+;;;###autoload
 (defun magit-status-mode-setup ()
   "`magit-status' switches to window with this mode"
   ;; don't do (init-common) here since it's not so common mode
@@ -381,6 +395,7 @@ ta_b_s"
 
 ;;; git-modes
 
+;;;###autoload
 (defun git-commit-mode-setup ()
 
   "Mode for editing commit message."
@@ -423,6 +438,7 @@ e_x_ec"
   ""
   ("#" with-editor-finish))
 
+;;;###autoload
 (defun git-rebase-mode-setup ()
   (hl-line-mode +1)
   (def-keys-for-map git-rebase-mode-map
@@ -460,134 +476,139 @@ e_x_ec"
 (defvar-local git-repository nil
   "Path to root of git repository this buffer's file is member of, if any.")
 
-(when *have-git?*
-  (defvar *git-get-head-commit-cache* nil
-    "Optional cache for `git-get-head-commit-cached'.")
+(defvar *git-get-head-commit-cache* nil
+  "Optional cache for `git-get-head-commit-cached'.")
 
-  (defmacro git-with-temp-head-commit-cache (&rest body)
-    "Execute BODY with `*git-get-head-commit-cache*' temporarily bound to
+;;;###autoload
+(defmacro git-with-temp-head-commit-cache (&rest body)
+  "Execute BODY with `*git-get-head-commit-cache*' temporarily bound to
 hash-table. Therefore all calls to `git-get-head-commit-cached' in BODY
 will be cached and therefore will not be able to see changes to HEAD reference
 in any repository that was already queried with `git-get-head-commit-cached'."
-    `(let ((*git-get-head-commit-cache* (make-hash-table :test #'equal)))
-       ,@body))
+  `(let ((*git-get-head-commit-cache* (make-hash-table :test #'equal)))
+     ,@body))
 
-  (defun git-get-head-commit-cached (repo-root)
-    "Get head commit as sha-1 string of length 40 for git project at REPO-ROOT.
+;;;###autoload
+(defun git-get-head-commit-cached (repo-root)
+  "Get head commit as sha-1 string of length 40 for git project at REPO-ROOT.
 If *git-get-head-commit-cache* is a hash table then try to find answer there
 and put one if nothing was found."
-    (let ((get-head-commit
-           (lambda (repo-root)
-             (with-temp-buffer
-               (cd repo-root)
-               (call-process "git"
-                             nil
-                             (current-buffer)
-                             nil
-                             "log"
-                             "-n"
-                             "1"
-                             "--pretty='%H'"
-                             "HEAD")
-               (trim-whitespace
-                (buffer-substring-no-properties (point-min) (point-max)))))))
-      (if (hash-table-p *git-get-head-commit-cache*)
-          (aif (gethash repo-root *git-get-head-commit-cache*)
-              it
-            (let ((commit (funcall get-head-commit repo-root)))
-              (puthash repo-root commit *git-get-head-commit-cache*)
-              commit))
-        (funcall get-head-commit repo-root))))
+  (let ((get-head-commit
+         (lambda (repo-root)
+           (with-temp-buffer
+             (cd repo-root)
+             (call-process "git"
+                           nil
+                           (current-buffer)
+                           nil
+                           "log"
+                           "-n"
+                           "1"
+                           "--pretty='%H'"
+                           "HEAD")
+             (trim-whitespace
+              (buffer-substring-no-properties (point-min) (point-max)))))))
+    (if (hash-table-p *git-get-head-commit-cache*)
+        (aif (gethash repo-root *git-get-head-commit-cache*)
+            it
+          (let ((commit (funcall get-head-commit repo-root)))
+            (puthash repo-root commit *git-get-head-commit-cache*)
+            commit))
+      (funcall get-head-commit repo-root))))
 
-  (defvar *git-get-tracked-files-cache* (make-hash-table :test #'equal)
-    "Hash table from repository root (expanded) to hash table of
+(defvar *git-get-tracked-files-cache* (make-hash-table :test #'equal)
+  "Hash table from repository root (expanded) to hash table of
 repository commits (sha-1 strings of length 40) to hash tables that map
 expanded filenames in git repository to themselves.")
 
-  (defun git-get-tracked-files (repo-path)
-    "Returns hashtable of tracked files in repository located at REPO-PATH"
-    (let ((get-tracked-files
-           (lambda (repo-path)
-             (with-temp-buffer
-               (cd repo-path)
-               (call-process "git"
-                             nil
-                             (current-buffer)
-                             nil
-                             "ls-files"
-                             ;; cached
-                             "-c"
-                             ;; null-separated
-                             "-z")
-               (let ((filename-table (make-hash-table :test #'equal))
-                     (rough-filenames
-                      (split-string (buffer-substring-no-properties (point-min)
-                                                                    (point-max))
-                                    "\0"
-                                    t)))
-                 (dolist (filename
-                          (--map (common/registered-filename (expand-file-name it))
-                                 rough-filenames))
-                   (puthash filename filename filename-table))
-                 filename-table))))
-          (commit (git-get-head-commit-cached repo-path)))
-      (if-let (inner-table (gethash repo-path *git-get-tracked-files-cache*))
-          (if-let (files-entry (gethash commit inner-table))
-              files-entry
-            (let ((files (funcall get-tracked-files repo-path)))
-              (puthash commit files inner-table)
-              files))
-        (let* ((files (funcall get-tracked-files repo-path))
-               (inner-table (make-hash-table :test #'equal)))
-          (puthash commit files inner-table)
-          (puthash repo-path inner-table *git-get-tracked-files-cache*)
-          files))))
+;;;###autoload
+(defun git-get-tracked-files (repo-path)
+  "Returns hashtable of tracked files in repository located at REPO-PATH"
+  (let ((get-tracked-files
+         (lambda (repo-path)
+           (with-temp-buffer
+             (cd repo-path)
+             (call-process "git"
+                           nil
+                           (current-buffer)
+                           nil
+                           "ls-files"
+                           ;; cached
+                           "-c"
+                           ;; null-separated
+                           "-z")
+             (let ((filename-table (make-hash-table :test #'equal))
+                   (rough-filenames
+                    (split-string (buffer-substring-no-properties (point-min)
+                                                                  (point-max))
+                                  "\0"
+                                  t)))
+               (dolist (filename
+                        (--map (common/registered-filename (expand-file-name it))
+                               rough-filenames))
+                 (puthash filename filename filename-table))
+               filename-table))))
+        (commit (git-get-head-commit-cached repo-path)))
+    (if-let (inner-table (gethash repo-path *git-get-tracked-files-cache*))
+        (if-let (files-entry (gethash commit inner-table))
+            files-entry
+          (let ((files (funcall get-tracked-files repo-path)))
+            (puthash commit files inner-table)
+            files))
+      (let* ((files (funcall get-tracked-files repo-path))
+             (inner-table (make-hash-table :test #'equal)))
+        (puthash commit files inner-table)
+        (puthash repo-path inner-table *git-get-tracked-files-cache*)
+        files))))
 
-  (defun git-get-repository-root (path)
-    "Return root of git repository PATH is part of or nil if it's not
+;;;###autoload
+(defun git-get-repository-root (path)
+  "Return root of git repository PATH is part of or nil if it's not
 under git version control."
-    (when (file-directory? path)
-      (if (file-directory? (concat (strip-trailing-slash path) "/.git"))
-          path
-        (with-temp-buffer
-          (cd path)
-          (when (= 0 (call-process "git"
-                                   nil
-                                   t
-                                   nil
-                                   "rev-parse"
-                                   "--show-toplevel"))
-            (let ((fix-cygwin-paths
-                   (fold-platform-os-type
-                    #'identity
-                    (lambda (x)
-                      (save-match-data
-                        (if (string-match "^/\\([a-zA-Z]\\)\\(.*\\)$" x)
-                            (concat (match-string 1 x)
-                                    ":"
-                                    (match-string 2 x))
-                          x))))))
-              (funcall fix-cygwin-paths
-                       (strip-trailing-slash
-                        (trim-whitespace
-                         (buffer-substring-no-properties (point-min)
-                                                         (point-max)))))))))))
+  (when (file-directory? path)
+    (if (file-directory? (concat (strip-trailing-slash path) "/.git"))
+        path
+      (with-temp-buffer
+        (cd path)
+        (when (= 0 (call-process "git"
+                                 nil
+                                 t
+                                 nil
+                                 "rev-parse"
+                                 "--show-toplevel"))
+          (let ((fix-cygwin-paths
+                 (fold-platform-os-type
+                  #'identity
+                  (lambda (x)
+                    (save-match-data
+                      (if (string-match "^/\\([a-zA-Z]\\)\\(.*\\)$" x)
+                          (concat (match-string 1 x)
+                                  ":"
+                                  (match-string 2 x))
+                        x))))))
+            (funcall fix-cygwin-paths
+                     (strip-trailing-slash
+                      (trim-whitespace
+                       (buffer-substring-no-properties (point-min)
+                                                       (point-max)))))))))))
 
-  (defun git-update-file-repository ()
-    "Update git-repository for current buffer."
-    (when-buffer-has-file
-      (when (or (not git-repository)
-                (not (string-prefix? (expand-file-name git-repository)
-                                     (expand-file-name buffer-file-name))))
-        (when-let (repository
-                   (git-get-repository-root (file-name-directory buffer-file-name)))
-          (let ((tracked-files-table (git-get-tracked-files repository)))
-            ;; buffer-file-truename does not contain symbolic links
-            ;; as buffer-file-name does
-            (when (gethash (expand-file-name buffer-file-truename)
-                           tracked-files-table)
-              (setf git-repository repository))))))))
+;;;###autoload
+(defun git-update-file-repository ()
+  "Update git-repository for current buffer."
+  (when-buffer-has-file
+    (when (or (not git-repository)
+              (not (string-prefix? (expand-file-name git-repository)
+                                   (expand-file-name buffer-file-name))))
+      (when-let (repository
+                 (git-get-repository-root (file-name-directory buffer-file-name)))
+        (let ((tracked-files-table (git-get-tracked-files repository)))
+          ;; buffer-file-truename does not contain symbolic links
+          ;; as buffer-file-name does
+          (when (gethash (expand-file-name buffer-file-truename)
+                         tracked-files-table)
+            (setf git-repository repository)))))))
 
+;;;###autoload
 (defun git-add ()
   (interactive)
   (aif buffer-file-name
