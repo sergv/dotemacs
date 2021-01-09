@@ -141,6 +141,7 @@ Futher modified by Sergey Vinokurov."
             (cursor-color     . ,cyan)))
          (faces
           `((default                      ((t (:foreground ,base0 :background ,base03))))
+            (shadow                       ((t (:foreground ,base1))))
             (cursor                       ((t (:background ,cyan))))
             (ivy-posframe-cursor          ((t (:foreground ,cyan :bold t))))
             (escape-glyph-face            ((t (:foreground ,red))))
