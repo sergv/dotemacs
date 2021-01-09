@@ -94,6 +94,8 @@ DIRECTION may have value either 'forward or 'backward"
   (interactive "p")
   (custom-occur-find-match n nil t))
 
+(provide 'cycle-on-lines)
+
 ;; Local Variables:
 ;; End:
 
