@@ -1116,6 +1116,7 @@ restored."
 
 ;;; Modes
 
+;;;###autoload
 (define-derived-mode magit-popup-mode fundamental-mode "MagitPopup"
   "Major mode for infix argument popups."
   :mode 'magit-popup
