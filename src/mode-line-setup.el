@@ -36,7 +36,7 @@
               (count-lines start end)))))
 
 
-(defun* use-repl-modeline (&key (show-column t) (show-directory nil))
+(defun* use-repl-modeline (&key (show-directory nil))
   "Set up `mode-line' for use in vairous repl."
   (setf mode-line-format
         `(" %[%b%] "
