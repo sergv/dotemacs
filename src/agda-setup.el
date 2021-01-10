@@ -10,6 +10,27 @@
 (require 'common)
 (require 'hydra-setup)
 
+(require 'agda2)
+
+(eval-when-compile
+  (defvar agda-input-translations))
+
+(declare-function agda-input-setup "agda-input")
+(declare-function agda2-load "agda2-mode")
+(declare-function agda2-make-case "agda2-mode")
+(declare-function agda2-auto-maybe-all "agda2-mode")
+(declare-function agda2-compute-normalised-maybe-toplevel "agda2-mode")
+(declare-function agda2-give "agda2-mode")
+(declare-function agda2-refine "agda2-mode")
+(declare-function agda2-goal-and-context "agda2-mode")
+(declare-function agda2-goal-and-context-and-inferred "agda2-mode")
+(declare-function agda2-previous-goal "agda2-mode")
+(declare-function agda2-next-goal "agda2-mode")
+(declare-function eri-indent "eri")
+(declare-function eri-indent-reverse "eri")
+(declare-function agda2-go "agda2-mode")
+(declare-function agda2-string-quote "agda2-mode")
+
 (eval-after-load "agda-input"
   `(progn
      (push '("forall" "∀") agda-input-translations)
@@ -23,28 +44,23 @@
      (push '("top" "⊤") agda-input-translations)
      (agda-input-setup)))
 
-;;;###autoload
-(require 'agda2)
-
 (vim:defcmd vim:agda-load-file (nonrepeatable)
   (agda2-load))
 
-(defhydra-ext hydra-agda-align (:exit t :foreign-keys nil :hint nil)
+(defhydra-ext hydra-agda-align (:exit t :foreign-keys nil :hint nil :base-map (make-sparse-keymap))
   "
 _=_:  on equals
 _->_: on arrows
 _<-_: on left-arrows
 _|_:  on guards
 _,_:  on commas
-_--_: on comments
-_:_:  on colons"
+_--_: on comments"
   ("="  haskell-align-on-equals)
   ("->" haskell-align-on-arrows)
   ("<-" haskell-align-on-left-arrows)
   ("|"  haskell-align-on-guards)
   (","  haskell-align-on-commas)
-  ("--" haskell-align-on-comments)
-  (":"  haskell-align-on-colons))
+  ("--" haskell-align-on-comments))
 
 (defhydra-derive hydra-agda-vim-visual-g-ext hydra-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
   "
@@ -66,7 +82,7 @@ _f_: next goal"
   ;; add more cases by splitting given argument
   ("c" agda2-make-case)
   ;; insert some value that matches hole’s type
-  ("a" agda2-auto)
+  ("a" agda2-auto-maybe-all)
   ;; query expression and evaluate (normalise) it)
   ("e" agda2-compute-normalised-maybe-toplevel)
   ;; Give. Checks whether the term written in the current hole has the right
@@ -99,7 +115,7 @@ _f_: next goal"
                  #'eri-indent-reverse
                  :enable-yasnippet t)
   (dolist (cmd '("load" "lo" "l"))
-    (vim:local-emap "load" #'vim:agda-load-file))
+    (vim:local-emap cmd #'vim:agda-load-file))
   (def-keys-for-map vim:normal-mode-local-keymap
     ("C-l"             agda2-load)
     ("<f6>"            agda2-load)

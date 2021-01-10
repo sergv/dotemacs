@@ -253,12 +253,15 @@ sexps and indentation levels."
 
 ;;;; align functions
 
+;;;###autoload (autoload 'haskell-align-on-dollars "haskell-misc" nil t)
 (defalign haskell-align-on-dollars
   "[$][^$]"
   :require-one-or-more-spaces t)
+;;;###autoload (autoload 'haskell-align-on-equals "haskell-misc" nil t)
 (defalign haskell-align-on-equals
   "=[^=]"
   :require-one-or-more-spaces t)
+;;;###autoload (autoload 'haskell-align-on-arrows "haskell-misc" nil t)
 (defalign haskell-align-on-arrows
   (rx
    (or (seq
@@ -267,6 +270,7 @@ sexps and indentation levels."
        "→")
    (or " "
        eol)))
+;;;###autoload (autoload 'haskell-align-on-left-arrows "haskell-misc" nil t)
 (defalign haskell-align-on-left-arrows
   (rx
    (or (seq
@@ -275,17 +279,22 @@ sexps and indentation levels."
        "←")
    (or " "
        eol)))
+;;;###autoload (autoload 'haskell-align-on-guards "haskell-misc" nil t)
 (defalign haskell-align-on-guards
   "|\\(?:[^|]\\|$\\)"
   :require-one-or-more-spaces t)
+;;;###autoload (autoload 'haskell-align-on-commas "haskell-misc" nil t)
 (defalign haskell-align-on-commas
   ",\\(?:[^,\)]\\|$\\)")
+;;;###autoload (autoload 'haskell-align-on-comments "haskell-misc" nil t)
 (defalign haskell-align-on-comments
   "--+\\(?: \\|$\\)"
   :require-one-or-more-spaces t)
 
+;;;###autoload (autoload 'haskell-align-on-double-colons "haskell-misc" nil t)
 (defalign haskell-align-on-double-colons
   haskell-regexen/function-signature-colons)
+;;;###autoload (autoload 'haskell-align-on-pragma-close "haskell-misc" nil t)
 (defalign haskell-align-on-pragma-close
   "#-}")
 
@@ -314,16 +323,16 @@ _,_:   on commas
 _--_:  on comments
 _::_:  on double colons
 _#-}_: on pragma close"
-  ("a"     haskell-align-generic)
-  ("$"     haskell-align-on-dollars)
-  ("="     haskell-align-on-equals)
-  ("->"    haskell-align-on-arrows)
-  ("<-"    haskell-align-on-left-arrows)
-  ("|"     haskell-align-on-guards)
-  (","     haskell-align-on-commas)
-  ("--"    haskell-align-on-comments)
-  (": :"   haskell-align-on-double-colons)
-  ("# - }" haskell-align-on-pragma-close))
+  ("a"   haskell-align-generic)
+  ("$"   haskell-align-on-dollars)
+  ("="   haskell-align-on-equals)
+  ("->"  haskell-align-on-arrows)
+  ("<-"  haskell-align-on-left-arrows)
+  ("|"   haskell-align-on-guards)
+  (","   haskell-align-on-commas)
+  ("--"  haskell-align-on-comments)
+  ("::"  haskell-align-on-double-colons)
+  ("#-}" haskell-align-on-pragma-close))
 
 (defun haskell-reindent-at-point (&optional width)
   "Do some sensible reindentation depending on the current position in file."
@@ -814,7 +823,7 @@ value section should have if it is to be properly indented."
   "Insert undefined."
   (interactive "*")
   (let ((start (point)))
-    (when (and (looking-back "[^\[\(\{;, ]")
+    (when (and (looking-back "[^\[\(\{;, ]" (line-beginning-position))
                (not (bolp)))
       (insert " ")
       (setq start (1+ start)))

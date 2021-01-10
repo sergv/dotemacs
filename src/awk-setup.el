@@ -10,6 +10,10 @@
 
 (require 'common)
 
+(declare-function c-awk-beginning-of-defun "cc-awk")
+(declare-function c-awk-end-of-defun "cc-awk")
+(declare-function server-edit "server")
+
 (defhydra-derive hydra-awk-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
   "
 _t_: beginning of defun

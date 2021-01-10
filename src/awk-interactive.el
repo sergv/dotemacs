@@ -1,4 +1,4 @@
-;; awk+.el --- -*- lexical-binding: t; -*-
+;; awk-interactive.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -10,10 +10,11 @@
 
 ;; Use awk or sed on current region in interactive manner
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+  (defvar awk-mode-map))
 
 (require 'common)
-
 
 (defconst awk-init-content
   (concat
@@ -55,16 +56,31 @@
 
 (defface awk-selection-face '((t (:underline "#268bd2")))
   "Face to highlight input and output
-in buffer from where `awk' was invoked.")
+in buffer from where `awk' was invoked."
+  :group 'c)
 
 (defvar awk-overlay nil
   "Overlay that highlights input and output
 in buffer from where `awk' was invoked.")
 
+(defvar awk-window-config nil
+  "Window configuration before awk invokation.")
+
+
+(defvar awk-programs (make-hash-table :test #'equal :size 257)
+  "Hash of text programs entered by user. Key is the program id.")
+
+(defvar awk-program-ids nil
+  "List of identifiers of programs entered by user.
+Identifiers point to the global storage of programs `awk-programs'.")
+
+(defvar awk-program-id 1
+  "Currently active AWK program id. Corresponds to awk invokation")
+
 
 ;;;###autoload
 (defun awk-on-region (begin end)
-  "Initialize awk+ on selected region."
+  "Initialize interactive awk session on selected region."
   (setf awk-original-input (buffer-substring-no-properties begin end)
         awk-window-config  (current-window-configuration)
         awk-output-begin   (copy-marker begin)
@@ -153,17 +169,6 @@ in place of input."
                     (marker-position awk-output-begin)
                     awk-output-end-pos))))
 
-
-(defvar awk-programs (make-hash-table :test #'equal :size 257)
-  "Hash of text programs entered by user. Key is the program id.")
-
-(defvar awk-program-ids nil
-  "List of identifiers of programs entered by user.
-Identifiers point to the global storage of programs `awk-programs'.")
-
-(defvar awk-program-id 1
-  "Currently active AWK program id. Corresponds to awk invokation")
-
 (defun awk-store-program ()
   "Store currently inputed program in `awk-programs'
 with id value of `awk-program-id'."
@@ -171,6 +176,7 @@ with id value of `awk-program-id'."
            (buffer-substring (point-min) (point-max))
            awk-programs))
 
+;;;###autoload
 (defun awk-exit ()
   "Exit from current awk session saving inputed program."
   (interactive)
@@ -211,16 +217,11 @@ with id value of `awk-program-id'."
         (insert (gethash (car awk-program-ids) awk-programs)))
     (error "awk-next-program: error: no programs inputed, aborting")))
 
-
-(defvar awk-window-config nil
-  "Window configuration before awk invokation.")
-
 (defun awk-restore-window-config ()
   "Restore window configuration to the state before awk invokation."
   (when awk-window-config
     (set-window-configuration awk-window-config)
     (setf awk-window-config nil)))
-
 
 ;;; user functions
 
@@ -240,9 +241,9 @@ with id value of `awk-program-id'."
         (awk-on-region begin end))
     (awk-on-region (point-min) (point-max))))
 
-(provide 'awk+)
+(provide 'awk-interactive)
 
 ;; Local Variables:
 ;; End:
 
-;; awk+.el ends here
+;; awk-interactive.el ends here
