@@ -17,8 +17,7 @@
 
 (require 'dtrt-indent) ;; indent offset guesser
 
-(setf dtrt-indent-verbosity 2
-      dtrt-indent-max-relevant-lines 10000)
+(setf dtrt-indent-verbosity 2)
 
 ;;;###autoload (autoload 'c-align-on-equals "cc-setup")
 (defalign c-align-on-equals
