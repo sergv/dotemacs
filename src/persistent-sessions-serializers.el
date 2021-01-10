@@ -198,9 +198,7 @@ can allows value to be decoded back fully.)"
           (if ranges
             (let ((first-range (car ranges)))
               (cl-assert (consp first-range))
-              (let ((range-start (car first-range))
-                    (range-end (cdr first-range)))
-                (cl-assert (numberp range-start))
+              (let ((range-end (cdr first-range)))
                 (cl-assert (numberp range-end))
                 (cl-assert (<= range-end start)
                            nil

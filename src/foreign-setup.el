@@ -7,7 +7,8 @@
 ;; Description:
 
 (defcustom use-foreign-libraries? t
-  "Whether to use foreign extensions to Emacs.")
+  "Whether to use foreign extensions to Emacs."
+  :type 'boolean)
 
 (when use-foreign-libraries?
   (load (fold-platform-os-type

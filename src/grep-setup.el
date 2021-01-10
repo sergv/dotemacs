@@ -155,7 +155,7 @@ quoting, e.g. `\\[quoted-insert]<space>'."
                  (while (re-search-forward re end t)
                    (replace-match "."))))))))))
 
-(defun grep-set-up-error-regexp (buffer msg)
+(defun grep-set-up-error-regexp (buffer _msg)
   "Set up `*compilation-jump-error-regexp*' from `compilation-error-regexp-alist'."
   (with-current-buffer buffer
     (when (eq? major-mode 'grep-mode)
