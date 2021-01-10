@@ -11,7 +11,13 @@
 (defconst +ignored-files-re+
   (rx bol
       (or "third-party/yafolding.el/features/support/env.el"
-          (seq (* any) "tests" (* any)))
+          (seq (* any) "tests" (* any))
+          (seq "src/"
+               (or "dump.el"
+                   "huffman.el"
+                   "rb-tree.el"
+                   "recompile.el"))
+          )
       eol))
 
 (defun recompile-disable-hooks ()
@@ -58,44 +64,51 @@
     (cons emacs-dir init-file)))
 
 (defun recompile-main (emacs-dir)
-  ;; (dolist (file files-to-recompile)
-  ;;   (load-library file))
-
   (destructuring-bind
       (emacs-dir . init-file)
       (recompile-set-up-env emacs-dir)
-    (let* ((dirs
-            (progn
-              (message "[recompile.el] collecting *.el files")
-              (append
-               (find-elisp-dirs (concat emacs-dir "/src"))
-               (find-elisp-dirs (concat emacs-dir "/third-party")
-                                set-up-paths--ignored-third-party-el-dirs-re))))
+    (message "[recompile.el] collecting *.el files")
+    (let* ((local-dirs
+            (find-elisp-dirs (concat emacs-dir "/src")))
+           (third-party-dirs
+            (find-elisp-dirs (concat emacs-dir "/third-party")
+                             set-up-paths--ignored-third-party-el-dirs-re))
            (extra-files (list init-file))
-           (files-to-recompile
-            (remove-if
-             (lambda (x)
-               (let ((fname (file-name-nondirectory x))
-                     (rel-name (file-relative-name x emacs-dir)))
-                 (or (string-match-p +ignored-files-re+ rel-name)
-                     ;; (string-match-p "^ob-.*\\.el$" fname)
-                     (string-match-p "^\\..*el$" fname))))
-             (append
-              extra-files
-              (mapcan (lambda (dir)
-                        (directory-files dir
-                                         t ;; produce full names
-                                         "^.*\\.el\\'"
-                                         nil ;; do sort
-                                         ))
-                      dirs))))
+           (dir-el-files
+            (lambda (dir)
+              (directory-files dir
+                               t ;; produce full names
+                               "^.*\\.el\\'"
+                               nil ;; do sort
+                               )))
+           (should-not-recompile-p
+            (lambda (x)
+              (let ((fname (file-name-nondirectory x))
+                    (rel-name (file-relative-name x emacs-dir)))
+                (or (string-match-p +ignored-files-re+ rel-name)
+                    ;; (string-match-p "^ob-.*\\.el$" fname)
+                    (string-match-p "^\\..*el$" fname)))))
+           (local-files
+            (cl-remove-if should-not-recompile-p
+                          (mapcan dir-el-files local-dirs)))
+           (third-party-files
+            (cl-remove-if should-not-recompile-p
+                          (append extra-files
+                                  (mapcan dir-el-files third-party-dirs))))
            ;; (byte-compile-warning-types
            ;;  '(redefine callargs free-vars unresolved obsolete noruntime
            ;;             interactive-only make-local mapcar
            ;;             constants suspicious lexical))
            )
+
+      (message "[recompile.el] loading local *.el files")
+      (dolist (file local-files)
+        (require (intern (file-name-sans-extension (file-name-nondirectory file))))
+        ;; (load-library file)
+        )
+
       (message "[recompile.el] recompiling files")
-      (dolist (file files-to-recompile)
+      (dolist (file (append local-files third-party-files))
         (message "[recompile.el] byte-compiling %s" file)
         (byte-compile-file file))))
 
@@ -106,8 +119,6 @@
 (defun recompile-native (emacs-dir)
 
   (require 'comp)
-  ;; (dolist (file files-to-recompile)
-  ;;   (load-library file))
 
   (setf emacs-dir (car (recompile-set-up-env emacs-dir)))
 
@@ -498,6 +509,7 @@
 
 
 ;; Local Variables:
+;; no-byte-compile: t
 ;; End:
 
 ;; recompile.el ends here

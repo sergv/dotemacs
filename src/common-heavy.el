@@ -6,7 +6,18 @@
 ;; Created: Saturday, 18 May 2013
 ;; Description:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+  (defvar org-element-all-objects)
+  (defvar org-element-all-elements))
+
+(declare-function org-element-parse-buffer "org-element")
+(declare-function org-element-map "org-element")
+(declare-function org-element-put-property "org-element")
+(declare-function json-encode "json")
+(declare-function dired-get-filename "dired")
+(declare-function ffap-guesser "ffap")
+(declare-function search-property "search-prop")
 
 (require 'custom-predicates)
 (require 'macro-util)
@@ -62,7 +73,7 @@ if CASE-SENSETIVE is t."
                files
                :after-init #'select-mode-setup
                :on-selection
-               (lambda (idx file selection-type)
+               (lambda (_idx file selection-type)
                  (select-mode-exit)
                  (funcall
                   (pcase selection-type
@@ -222,7 +233,7 @@ number of spaces equal to `tab-width'."
            (cleanup-diff-line (lambda (line)
                                 (if (= 0 (length line))
                                     line
-                                  (remove-whitespace (subseq line 1)))))
+                                  (remove-whitespace (substring line 1)))))
            (old (join-lines (-map cleanup-diff-line
                                   (-filter (funcall make-filter ?-)
                                            lines))
@@ -536,14 +547,14 @@ PROJECT. EQ-FUNC will be used as hash-table comparison."
     (&key
      start
      end    ;; takes list of variable names in order defined by user
-     format ;; format specifier, e.g. %s
+     format ;; inserts user input and appropriate format specifier
      (reindent-at-end #'ignore)
      (quote-message #'identity))
   (let* ((beginning (point))
          (var-list nil)
          (insert-message
-          (lambda (is-initial-insertion? user-input)
-            (insert user-input)))
+          (lambda (_is-initial-insertion? user-input)
+            (insert (funcall quote-message user-input))))
          (insert-variable
           (lambda (is-initial-insertion? user-input)
             (unless is-initial-insertion?
@@ -574,8 +585,7 @@ PROJECT. EQ-FUNC will be used as hash-table comparison."
   (cl-assert (functionp insert-continuation))
   (cl-assert (functionp insert-message))
   (cl-assert (functionp insert-variable))
-  (let ((start-position (point))
-        (user-input nil)
+  (let ((user-input nil)
         (is-initial-insertion? t)
         (prev-was-message? nil)
         (is-message?
@@ -1034,11 +1044,17 @@ to deleted items. ITEMS will be mutated in order to obtain result."
 
 ;;;
 
+(defgroup common
+  nil
+  "My utilities"
+  :group 'tools)
+
 (defface evaporate-region-face
   '((t :foreground "#666666"))
-  "Face for text that will evaporate when modified/overwritten.")
+  "Face for text that will evaporate when modified/overwritten."
+  :group 'common-heavy)
 
-(defun evaporate-region (beg end &optional disable-cycling?)
+(defun evaporate-region (beg end)
   "Make the region evaporate when typed over."
   (interactive "r")
   (let ((o (make-overlay beg end nil nil nil)))
@@ -1048,7 +1064,7 @@ to deleted items. ITEMS will be mutated in order to obtain result."
     (overlay-put o 'insert-in-front-hooks '(evaporate-region--insert-before-hook))
     (overlay-put o 'insert-behind-hooks '(evaporate-region--insert-behind-hook))))
 
-(defun evaporate-region--modification-hook (o changed beg end &optional len)
+(defun evaporate-region--modification-hook (o changed beg end &optional _len)
   "Remove the overlay after a modification occurs."
   (let ((inhibit-modification-hooks t))
     (when (and changed
@@ -1056,7 +1072,7 @@ to deleted items. ITEMS will be mutated in order to obtain result."
       (evaporate-region--delete-text o beg end)
       (delete-overlay o))))
 
-(defun evaporate-region--insert-before-hook (o changed beg end &optional len)
+(defun evaporate-region--insert-before-hook (o changed beg end &optional _len)
   "Remove the overlay before inserting something at the start."
   (let ((inhibit-modification-hooks t))
     (when (and (not changed)
@@ -1064,7 +1080,7 @@ to deleted items. ITEMS will be mutated in order to obtain result."
       (evaporate-region--delete-text o beg end)
       (delete-overlay o))))
 
-(defun evaporate-region--insert-behind-hook (o changed beg end &optional len)
+(defun evaporate-region--insert-behind-hook (o changed beg end &optional _len)
   "Remove the overlay when calling backspace at the end.."
   (let ((inhibit-modification-hooks t))
     (when (and (not changed)
@@ -1072,7 +1088,7 @@ to deleted items. ITEMS will be mutated in order to obtain result."
       (evaporate-region--delete-text o beg end)
       (delete-overlay o))))
 
-(defun evaporate-region--delete-text (o beg end)
+(defun evaporate-region--delete-text (o _beg _end)
   "Delete the text associated with the evaporating slot."
   (unless (eq this-command 'undo)
     (delete-region (overlay-start o)

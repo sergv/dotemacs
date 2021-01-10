@@ -14,7 +14,7 @@
 
 (eval-after-load "cc-styles"
   '(progn
-     (unless (assoc* "my-c-style" c-style-alist :test #'string=?)
+     (unless (assoc "my-c-style" c-style-alist)
        ;; inherited from linux style
        (push '("my-c-style"
                (c-basic-offset  . 4)
@@ -37,7 +37,7 @@
 
      ;; (setf c-style-alist
      ;;       (remove* "my-java-style" c-style-alist :test #'string=? :key #'first))
-     (unless (assoc* "my-java-style" c-style-alist :test #'string=?)
+     (unless (assoc "my-java-style" c-style-alist)
        ;; inherited from linux style
        (push `("my-java-style"
                (c-basic-offset . 4)
@@ -74,7 +74,7 @@
            `((java-mode . "my-java-style")
              (awk-mode . "awk")
              (c++-mode . "my-c-style")
-             (other . ,(cond ((assoc* "my-c-style" c-style-alist :test #'string=?)
+             (other . ,(cond ((assoc "my-c-style" c-style-alist)
                               "my-c-style")
                              (t
                               "linux")))))

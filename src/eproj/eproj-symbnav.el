@@ -8,6 +8,8 @@
 
 (eval-when-compile (require 'subr-x))
 
+(declare-function eproj-reload-project! "eproj")
+
 (require 'select-mode)
 (require 'eproj)
 (require 'eproj-customization)
@@ -156,7 +158,6 @@ as accepted by `bounds-of-thing-at-point'.")
          (case-fold-search (and (not (null current-prefix-arg))
                                 (<= 16 (car current-prefix-arg))))
          (effective-major-mode (eproj/resolve-synonym-modes major-mode))
-         (current-home-entry (eproj-symbnav-current-home-entry))
          (next-home-entry (car-safe eproj-symbnav/next-homes)))
     ;; Load tags if there're none.
     (unless (or (eproj--get-tags proj)
@@ -179,7 +180,7 @@ as accepted by `bounds-of-thing-at-point'.")
         (progn
           (eproj-symbnav/switch-to-home-entry next-home-entry)
           (eproj-symbnav/on-switch)
-          (push (eproj-symbnav--current-home-entry)
+          (push (eproj-symbnav-current-home-entry)
                 eproj-symbnav/previous-homes)
           (setf eproj-symbnav/selected-loc (pop eproj-symbnav/next-homes)))
 
@@ -204,15 +205,18 @@ as accepted by `bounds-of-thing-at-point'.")
 
 (defface eproj-symbnav-file-name
   '((t :inherit compilation-info))
-  "Face to put on file names.")
+  "Face to put on file names."
+  :group 'eproj)
 
 (defface eproj-symbnav-line-number
   '((t :inherit compilation-line-number))
-  "Face to put on line numbers.")
+  "Face to put on line numbers."
+  :group 'eproj)
 
 (defface eproj-symbnav-column-number
   '((t :inherit compilation-column-number))
-  "Face to put on line numbers.")
+  "Face to put on line numbers."
+  :group 'eproj)
 
 (defun eproj-symbnav/choose-location-to-jump-to
     (identifier
@@ -359,7 +363,7 @@ as accepted by `bounds-of-thing-at-point'.")
                         (select-mode-setup)
                         (select-mode-extend-keymap-with kmap))
           :on-selection
-          (lambda (idx entry _selection-type)
+          (lambda (_idx entry _selection-type)
             (select-mode-exit)
             (funcall jump-to-home
                      (funcall entry-tag-name entry)

@@ -115,5 +115,5 @@
  ("V" ?Ю)
  ("Z" ?,))
 
-
+(provide 'cyrillic-dvorak)
 

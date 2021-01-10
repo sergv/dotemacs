@@ -8,7 +8,9 @@
 
 (eval-when-compile
   (require 'cl-lib)
-  (require 'subr-x))
+  (require 'subr-x)
+
+  (defvar eshell-history-ring))
 
 (require 'frameset)
 
@@ -28,17 +30,17 @@
 ;;       if 'tab-bar-mode was active.
 (defconst +sessions-schema-version+ 3)
 
-(defsubst make-session-entry (buf-name point variables major-mode other-data special-variables)
+(defsubst make-session-entry (buf-name point variables mode other-data special-variables)
   "BUF-NAME         - buffer name
 POINT             - position within buffer
 VARIABLES         - values of local variables
-MAJOR-MODE        - buffer's mode
+MODE              - buffer's major mode
 OTHER-DATA        - some data, depending on buffer type
 SPECIAL-VARIABLES - local variables that may require special treatment when restoring"
   (list buf-name
         point
         variables
-        major-mode
+        mode
         other-data
         special-variables))
 
@@ -102,7 +104,6 @@ on values of said variables.")
                    bindings)
           (sessions/versioned/restore-buffer-local-variables
            version
-           buffer
            vars
            bindings))))))
 
@@ -231,7 +232,6 @@ entries."
                    (aif (assq 'local-variables saved-data)
                        (sessions/versioned/restore-buffer-local-variables
                         version
-                        buf
                         sessions/local-vars/compilation-mode
                         (cadr it))
                      (message "compilation-restore: no 'local-variables")))))))))
@@ -441,7 +441,7 @@ entries."
          (setup-buffer
           (lambda (point mode vars special-vars)
             (sessions/report-and-ignore-asserts
-                (format "while restoring major mode of buffer '%s'" buffer-name)
+                (format "while restoring major mode of buffer '%s'" (buffer-name))
               (sessions/assert-with-args (symbolp mode)
                                          "Invalid mode: %s"
                                          mode)
@@ -451,16 +451,16 @@ entries."
               (unless (eq? major-mode mode)
                 (sessions/call-symbol-function mode)))
             (sessions/report-and-ignore-asserts
-                (format "while restoring point of buffer '%s'" buffer-name)
+                (format "while restoring point of buffer '%s'" (buffer-name))
               (sessions/assert-with-args (numberp point)
                                          "Invalid point: %s"
                                          point)
               (goto-char point))
             (sessions/report-and-ignore-asserts
-                (format "while restoring buffer variables of buffer '%s'" buffer-name)
+                (format "while restoring buffer variables of buffer '%s'" (buffer-name))
               (sessions/restore-buffer-variables version (current-buffer) vars))
             (sessions/report-and-ignore-asserts
-                (format "while restoring special buffer variables of buffer '%s'" buffer-name)
+                (format "while restoring special buffer variables of buffer '%s'" (buffer-name))
               (sessions/restore-special-buffer-variables (current-buffer) special-vars)))))
     (sessions/report-and-ignore-asserts
         "while restoring extracting version"
@@ -512,14 +512,14 @@ entries."
     (aif (assq 'special-buffers session-entries)
         (-map (lambda (saved-info)
                 (let ((mmode (first saved-info))
-                      (buffer-name
+                      (buf-name
                        (sessions/versioned/restore-string
                         version
                         (second saved-info)))
                       (special-data (third saved-info)))
                   (when-let ((spec-entry (assq mmode sessions/special-modes))
                              (restore-func (cadr-safe (assq 'restore spec-entry))))
-                    (funcall restore-func version buffer-name special-data))))
+                    (funcall restore-func version buf-name special-data))))
               (cadr it))
       (message "sessions/load-from-data: no 'special-buffers field"))
 
@@ -585,12 +585,12 @@ entries."
                     (ring-insert r item)
                     r)
                   (make-ring max-size)
-                  (subseq (ring-elements val) 0 (min max-size (ring-length val))))
+                  (seq-subseq (ring-elements val) 0 (min max-size (ring-length val))))
          val))
       ((and (or (list? val)
                 (vector? val))
             (< max-size (length val)))
-       (subseq val 0 (min max-size (length val))))
+       (seq-subseq val 0 (min max-size (length val))))
       (t
        val))))
 
@@ -626,7 +626,7 @@ entries."
                                  (symbol-value var)))))
                       vars)))))
 
-(defun sessions/versioned/restore-buffer-local-variables (version buffer vars encoded-bindings)
+(defun sessions/versioned/restore-buffer-local-variables (version vars encoded-bindings)
   (sessions/assert-with-args
    (and encoded-bindings
         (listp encoded-bindings)
@@ -680,7 +680,7 @@ to make output that `read' can handle, whenever this is possible."
 
 (provide 'persistent-sessions)
 
-;; local Variables:
+;; Local Variables:
 ;; End:
 
 ;; persistent-sessions.el ends here

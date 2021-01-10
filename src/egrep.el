@@ -231,10 +231,8 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
          (for-buffer-with-file file-name
            (dolist (entry entries)
              (let ((match-entry (car entry))
-                   (orig-str (cadr entry))
-                   (new-contents (caddr entry)))
+                   (orig-str (cadr entry)))
                (cl-assert (stringp orig-str))
-               (cl-assert (stringp new-contents))
                (goto-line-dumb (egrep-match-line match-entry))
                (beginning-of-line)
                (let ((current-str
@@ -317,7 +315,7 @@ FILE-GLOBS and don't match IGNORED-FILE-GLOBS."
                    ;; effective immediately.
                    (vim:activate-normal-mode))
      :on-selection
-     (lambda (idx match selection-type)
+     (lambda (_idx match selection-type)
        ;; NB Don't call `select-mode-exit' here since we may return to *grep* buffer
        ;; to try out another match.
        (let ((buf (aif (find-buffer-visiting (egrep-match-file match))

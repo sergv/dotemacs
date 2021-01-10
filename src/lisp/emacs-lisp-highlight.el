@@ -146,9 +146,9 @@ with exclamation mark"
 (eval-when-compile
   (letrec ((check-font-lock-keywords
             (lambda (keywords)
-              (unless (every #'listp keywords)
+              (unless (-all? #'listp keywords)
                 (error "Non-list entry: %s"
-                       (find-if-not #'listp keywords)))
+                       (--find (not (listp it)) keywords)))
               (mapc (lambda (entry)
                       (unless (or (stringp (car entry))
                                   (symbolp (car entry)))
@@ -158,7 +158,7 @@ with exclamation mark"
                       (cond
                         ((funcall highlight-entryp (cdr entry))
                          (funcall check-highlight-entry (cdr entry)))
-                        ((every highlight-entryp (cdr entry))
+                        ((-all? highlight-entryp (cdr entry))
                          (mapc check-highlight-entry (cdr entry)))
                         (t
                          (error "Non-highlight directive(s) found: %s" (cdr entry)))))

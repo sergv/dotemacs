@@ -930,8 +930,7 @@ directly; use `browse-kill-ring' instead.
                                 'browse-kill-ring-target))
            (target-cell
             (generic/member target
-                            (browse-kill-ring--get-ring-value)
-                            #'equal)))
+                            (browse-kill-ring--get-ring-value))))
       (unless target-cell
         (error "Item deleted from the %s" browse-kill-ring--ring-var))
       (switch-to-buffer (get-buffer-create "*Kill Ring Edit*"))

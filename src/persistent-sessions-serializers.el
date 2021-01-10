@@ -151,7 +151,7 @@ can allows value to be decoded back fully.)"
                    ignored-text-properties)))
         (multibyte-string-p str)))
 
-(defun sessions/versioned/restore-string (version encoded-data)
+(defun sessions/versioned/restore-string (_version encoded-data)
   (sessions/restore-string encoded-data))
 
 (defun sessions/restore-string (encoded-data)

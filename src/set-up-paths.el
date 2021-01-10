@@ -6,7 +6,8 @@
 ;; Created: Tuesday,  6 November 2012
 ;; Description:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib))
 
 (require 'set-up-platform)
 (require 'set-up-environment-variables)
@@ -63,11 +64,11 @@ system restars.")
 (defmacro add-to-load-path (&rest items)
   (declare (indent 0))
   `(setf load-path
-         ,(reduce (lambda (item acc)
-                    `(cons ,item ,acc))
-                  items
-                  :initial-value 'load-path
-                  :from-end t)))
+         ,(cl-reduce (lambda (item acc)
+                       `(cons ,item ,acc))
+                     items
+                     :initial-value 'load-path
+                     :from-end t)))
 
 (defun find-elisp-dirs (root &optional ignored-dirs-re)
   "Recursively find directories containing elisp files starting at ROOT. Omit

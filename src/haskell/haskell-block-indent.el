@@ -31,7 +31,7 @@
               (if at-indentation?
                   (skip-to-indentation)
                 (move-to-column (max 0 (- col count)))))
-          (delete-backward-char count))))))
+          (delete-char (- count)))))))
 
 ;;;###autoload
 (defun haskell-space-with-block-indent (&optional count)
@@ -45,7 +45,7 @@
           (haskell--apply-to-block
            (lambda (start)
              (goto-char start)
-             (dotimes (n count)
+             (dotimes (_ count)
                (insert-char ?\s)))))
       (if function-applied?
           (progn
@@ -53,7 +53,7 @@
             (if at-indentation?
                 (skip-to-indentation)
               (move-to-column (+ col count))))
-        (dotimes (n count)
+        (dotimes (_ count)
           (insert-char ?\s))))))
 
 (defun haskell--apply-to-block (f)

@@ -228,8 +228,8 @@ default into prompt."
 (defun constantly (x)
   (declare (pure t) (side-effect-free t))
   (let ((tmp x))
-    (lambda (&rest y)
-      (declare (ignore y))
+    (lambda (&rest _y)
+      (declare (ignore _y))
       tmp)))
 
 ;;; combinatorics
@@ -406,14 +406,14 @@ tabbar, etc")
   "Get list of keys of hash table."
   (declare (pure t) (side-effect-free t))
   (let ((result '()))
-    (maphash (lambda (k v) (push k result)) table)
+    (maphash (lambda (k _v) (push k result)) table)
     result))
 
 (defun hash-table-values (table)
   "Get list of values of hash table."
   (declare (pure t) (side-effect-free t))
   (let ((result '()))
-    (maphash (lambda (k v) (push v result)) table)
+    (maphash (lambda (_k v) (push v result)) table)
     result))
 
 (defun hash-table-keys-filter (pred table)
@@ -579,19 +579,17 @@ START is inclusive and END is exclusive in ITEMS."
   ;; if you doubt the implementation and want to improve it make sure
   ;; tests do pass
   (cl-assert (< start end))
-  (let ((orig-start start)
-        (orig-end end))
-    (while (< start end)
-      (let* ((mid (/ (+ end start) 2))
-             (mid-item (aref items mid)))
-        (cond ((funcall less? item mid-item)
-               (setf end mid))
-              ((funcall eq? item mid-item)
-               (setf start mid
-                     end mid))
-              (t
-               (setf start (+ mid 1))))))
-    start))
+  (while (< start end)
+    (let* ((mid (/ (+ end start) 2))
+           (mid-item (aref items mid)))
+      (cond ((funcall less? item mid-item)
+             (setf end mid))
+            ((funcall eq? item mid-item)
+             (setf start mid
+                   end mid))
+            (t
+             (setf start (+ mid 1))))))
+  start)
 
 (defun bisect-leftmost (item items start end eq? less?)
   "Similar to `bisect' but returns smallest index, idx, in ITEMS for which
@@ -654,12 +652,12 @@ faster than byte-by-byte comparison of respective file contents."
 faster than byte-by-byte comparison of respecfive file contents."
     (declare (pure nil) (side-effect-free t))
     (if (= (file-size file1) (file-size file2))
-        (string=? (with-temp-buffer
-                    (insert-file-contents file1)
-                    (buffer-substring-no-properties (point-min) (point-max)))
-                  (with-temp-buffer
-                    (insert-file-contents file2)
-                    (buffer-substring-no-properties (point-min) (point-max))))
+        (string= (with-temp-buffer
+                   (insert-file-contents file1)
+                   (buffer-substring-no-properties (point-min) (point-max)))
+                 (with-temp-buffer
+                   (insert-file-contents file2)
+                   (buffer-substring-no-properties (point-min) (point-max))))
       t)))
 
 ;;;
@@ -673,15 +671,6 @@ faster than byte-by-byte comparison of respecfive file contents."
   "Convert line endings in current buffer to windows ones (\\r\\n)."
   (interactive)
   (set-buffer-file-coding-system 'utf-8-dos nil))
-
-;;;
-
-(defun insert-my-formatted-date ()
-  "Insert today's date as \"<Day Name>, <day> <Month name> <Year>\""
-  (interactive)
-  (insert (format-time-string "%A, %e %B %Y" (current-time))))
-
-(defalias 'insert-current-date #'insert-my-formatted-date)
 
 ;;;
 
@@ -734,12 +723,12 @@ write buffer contents back into file if flag DONT-WRITE is nil."
         (t
          (error "Cannot determine generic length of item %s" item))))
 
-(defun generic/member (item sequence test)
+(defun generic/member (item sequence)
   (declare (pure t) (side-effect-free t))
   (cond ((ring? sequence)
-         (ring-member sequence item :test test))
+         (ring-member sequence item))
         ((list? sequence)
-         (cl-member item sequence :test test))
+         (member item sequence))
         (t
          (error "Cannot determine generic membership of item %s in sequence %s"
                 item
@@ -844,6 +833,7 @@ end of END-LINE in current buffer."
 ;;;
 
 (defun insert-current-date ()
+  "Insert today's date as \"<Day Name>, <day> <Month name> <Year>\""
   (interactive)
   (insert (format-time-string "%A, %e %B %Y")))
 
@@ -909,13 +899,9 @@ optimization purposes.")
 
 ;;;
 
-(defun* pp-to-string* (obj
-                       &key
-                       (length nil) ;; print-length
-                       (depth nil)  ;; print-level
-                       )
+(defun* pp-to-string* (obj &key (length nil) (depth nil))
   (let ((print-length length)
-        (print-depth depth))
+        (print-level depth))
     (pp-to-string obj)))
 
 ;;;; keeping window's previous buffers and switching to them
@@ -1022,10 +1008,6 @@ return pair (x (F x))."
 
 ;;;
 
-(defsubst cadr-safe (x)
-  (declare (pure t) (side-effect-free t))
-  (car-safe (cdr-safe x)))
-
 (defun normalise-file-name (fname)
   "Normalize file name"
   (declare (pure t) (side-effect-free t))
@@ -1041,14 +1023,14 @@ return pair (x (F x))."
 (defun next-buffer (n)
   "Go to the buffer which is at the end of buffer list."
   (interactive "p")
-  (dotimes (i n)
+  (dotimes (_ n)
     (unbury-buffer)))
 
 (defun prev-buffer (n)
   "Go to the buffer which is at the top of buffer list behind
 the current buffer."
   (interactive "p")
-  (dotimes (i n)
+  (dotimes (_ n)
     (bury-buffer (current-buffer))
     (switch-to-buffer (other-buffer (current-buffer))))) ;dont forget about 0 here (??)
 
@@ -1302,7 +1284,7 @@ With argument COUNT, do this that many times."
   (delete-region (point)
                  (progn
                    ;; (vim-mock:motion-fwd-word count)
-                   (forward-word arg)
+                   (forward-word count)
                    (point))))
 
 (defun delete-word* (count)
