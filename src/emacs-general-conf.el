@@ -98,7 +98,6 @@
       undo-outer-limit (* 32 1024 1024)
       undo-strong-limit (* 256 1024 1024)
 
-
       inhibit-startup-message t
       inhibit-startup-screen t
       frame-title-format '("%f")
