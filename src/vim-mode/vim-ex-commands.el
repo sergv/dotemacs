@@ -45,19 +45,17 @@
     (message "%s"
              (join-lines (-map #'buffer-name (buffer-list))))))
 
-(vim:defcmd vim:cmd-buffer ((argument:buffer buffer) nonrepeatable)
+(vim:defcmd vim:cmd-buffer ((argument:buffer _) nonrepeatable)
   "Switches to another buffer."
   (switch-to-prev-buffer-in-window))
 
 (vim:defcmd vim:cmd-next-buffer (count nonrepeatable)
   "Goes to the `count'-th next buffer in the buffer list."
-  (dotimes (i (or count 1))
-    (next-buffer)))
+  (next-buffer (or count 1)))
 
 (vim:defcmd vim:cmd-prev-buffer (count nonrepeatable)
   "Goes to the `count'-th prev buffer in the buffer list."
-  (dotimes (i (or count 1))
-    (previous-buffer)))
+  (prev-buffer (or count 1)))
 
 (vim:defcmd vim:cmd-split-buffer ((argument:buffer buffer) nonrepeatable)
   "Splits window and switches to another buffer."
@@ -72,7 +70,7 @@
 (vim:defcmd vim:cmd-split-prev-buffer (count nonrepeatable)
   "Splits window and goes to the `count'-th prev buffer in the buffer list."
   (vim:window-split)
-  ((vim:cmd-prev-buffer :count count)))
+  (prev-buffer (or count 1)))
 
 (vim:defcmd vim:cmd-delete-buffer ((argument:buffer buffer) force nonrepeatable)
   "Deletes a buffer."

@@ -676,14 +676,13 @@ for project at ROOT directory."
     (with-current-buffer buf
       (erase-buffer)
       (text-mode)
-      (let ((projs (sort (hash-table->alist *eproj-projects*)
+      (let ((projs (sort (hash-table-values *eproj-projects*)
                          (lambda (a b)
-                           (string< (car a)
-                                    (car b))))))
-        (-map (lambda (entry)
-                (destructuring-bind (root . proj) entry
-                  (eproj-descibe-proj buf proj nil t)
-                  (insert (make-string 80 ?\-) "\n")))
+                           (string< (eproj-project/root a)
+                                    (eproj-project/root b))))))
+        (mapc (lambda (proj)
+                (eproj-descibe-proj buf proj nil t)
+                (insert (make-string 80 ?\-) "\n"))
               projs))
       (goto-char (point-min)))))
 
@@ -887,7 +886,7 @@ jump to."
       (let ((lang (gethash (eproj/resolve-synonym-modes mode)
                            eproj/languages-table)))
         (unless lang
-          (error "Project %s specifies unrecognised language: %s" root mode))
+          (error "Project %s specifies unrecognised language: %s" (eproj-project/root proj) mode))
         (setf globs
               (append (eproj-language/extra-navigation-globs lang)
                       globs))))
@@ -1053,7 +1052,7 @@ Returns nil if no relevant entry found in AUX-INFO."
                         "Resolved aux tree root is not absolute: %s"
                         resolved-tree-root)
              (let ((globs (globs-to-regexp patterns)))
-               (find-rec tree-root
+               (find-rec resolved-tree-root
                          :filep
                          (lambda (path)
                            (string-match-p globs path)))))))
@@ -1084,7 +1083,7 @@ project.")
     (eproj--transitive-closure-of-related-projects
      (cons proj all-related-default-projects))))
 
-(defun eproj-get-all-related-projects-for-mode (proj major-mode)
+(defun eproj-get-all-related-projects-for-mode (proj mode)
   "Return eproj-project structures of projects realted to PROJ
 throuct specific MAJOR-MODE including PROJ itself. MAJOR-MODE will add some default
 projects into the mix."
@@ -1093,7 +1092,7 @@ projects into the mix."
   (eproj--transitive-closure-of-related-projects
    (cons proj
          (-map #'eproj-get-project-for-path
-               (gethash major-mode eproj/default-projects nil)))))
+               (gethash mode eproj/default-projects nil)))))
 
 (defun eproj--transitive-closure-of-related-projects (projs-to-close-over)
   (cl-assert (-all? #'eproj-project-p projs-to-close-over))

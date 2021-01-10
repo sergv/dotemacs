@@ -94,7 +94,6 @@ pnm utils suite.")
                       (or foreground-color
                           (frame-parameter nil 'foreground-color))))
            (tmp-filename (format "formula%d" *formula-index*))
-           (tmp-file (concat +render-formula-tmp-path+ "/" tmp-filename ".tex"))
            ;; ps will be nedded if we're not using dvipng
            (ps-file (concat +render-formula-tmp-path+ "/" tmp-filename ".ps"))
            (dvi-file (concat +render-formula-tmp-path+ "/" tmp-filename ".dvi"))
@@ -279,7 +278,7 @@ carried out on FORMULA-STR."
                                  major-mode)
                         nil)))
            (eval-result
-            (condition-case err
+            (condition-case _
                 (eval `(let* ((comment ,comment)
                               (strip-comments `((remove ,comment))))
                          ,(car (read-from-string command)))
@@ -349,13 +348,20 @@ carried out on FORMULA-STR."
     (render-buffer-on))
   (setf render-buffer-rendered? (not render-buffer-rendered?)))
 
+(defgroup render-formula
+  nil
+  "Rendering of tex formulas"
+  :group 'tools)
+
 (defface render-formula-regexp-face
   '((t (:foreground "blue")))
-  "Face to highlight regexp after \$\$.")
+  "Face to highlight regexp after \$\$."
+  :group 'render-formula)
 
 (defface render-formula-formula-face
   '((t (:foreground "blue")))
-  "Face to highlight latex code between \$\$'s.")
+  "Face to highlight latex code between \$\$'s."
+  :group 'render-formula)
 
 ;;;###autoload
 (define-minor-mode render-formula-mode

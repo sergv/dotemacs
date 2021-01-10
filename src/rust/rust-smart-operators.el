@@ -197,13 +197,13 @@ stick it to the previous operator on line."
                   (insert-char ?\s))))))))))
 
 ;;;###autoload
-(defun rust-smart-operators-self-insert (arg)
+(defun rust-smart-operators-self-insert (n)
   "Insert charater and take care to surround it with spaces."
   (interactive "p")
-  (cl-assert (characterp last-command-event)
-             nil
+  (cl-assert (characterp last-command-event) nil
              "Last event is not a character: %s" last-command-event)
-  (rust-smart-operators--insert-char-surrounding-with-spaces last-command-event))
+  (dotimes (_ n)
+    (rust-smart-operators--insert-char-surrounding-with-spaces last-command-event)))
 
 (provide 'rust-smart-operators)
 
