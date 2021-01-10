@@ -59,18 +59,12 @@
       (t
        100))))
 
-(defun setup-frames-font ()
-  (set-face-attribute 'default
-                      nil
-                      :height
-                      (or current-font-scaling
-                          (get-default-font-scaling))
-                      :font
-                      current-font)
-  (set-frame-font current-font nil (frame-list)))
-
 (unless noninteractive
-  (setup-frames-font))
+  (let ((scaling (or current-font-scaling
+                     (get-default-font-scaling))))
+    (set-face-attribute 'default nil :height scaling)
+    (setf current-font-scaling scaling)
+    (set-frame-font current-font nil (frame-list))))
 
 ;;;###autoload
 (defun update-font-scaling (&optional new-scaling)
@@ -81,10 +75,11 @@ use that, otherwise either use past specified value or a reasonable default."
          (or new-scaling
              current-font-scaling
              (get-default-font-scaling))))
-    (when new-scaling
-      (setf current-font-scaling new-scaling))
-    (dolist (frame (frame-list))
-      (set-face-attribute 'default nil :height effective-scaling))))
+    (when (or (null current-font-scaling)
+              (not (= effective-scaling current-font-scaling)))
+      (setf current-font-scaling effective-scaling)
+      (dolist (frame (frame-list))
+        (set-face-attribute 'default frame :height effective-scaling)))))
 
 ;; Set default font for all unicode characters.
 
