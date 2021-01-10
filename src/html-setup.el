@@ -184,7 +184,7 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
 (defun markup-forward-up-element ()
   "Similar to `vim:lisp-up-list' - jump to the end of enclosing tag exclusively."
   (interactive)
-  (with-html-tags-context bb be eb ee
+  (with-html-tags-context _bb _be _eb ee
                           (goto-char ee)))
 
 ;;;###autoload (autoload 'vim:markup-forward-up-element "html-setup" "" t)
@@ -260,7 +260,7 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
                      (<= pnt end2)))
         (nxml-backward-up-element 2)
         (setf context (hl-tags-context-nxml-mode)))
-      (destructuring-bind ((start1 . end1) start2 . end2)
+      (destructuring-bind ((start1 . _) _ . end2)
           context
         (reindent-region start1 end2)))
     (goto-char p)
