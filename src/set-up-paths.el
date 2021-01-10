@@ -133,6 +133,7 @@ directories whose absolute path matches IGNORED-DIR-RE."
        (seq "flycheck/" (or ".cask" "test"))
        "groovy-mode/test"
        (seq "haskell-mode/" (or "doc/gifcasts" "tests" "tests/compat"))
+       "ht/test"
        "js2-mode/tests"
        "lua-mode/test"
        "magit/t"
