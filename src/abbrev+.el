@@ -10,6 +10,9 @@
 
 (require 'common)
 
+(declare-function org-self-insert-command "org")
+(declare-function yas-expand-snippet "yasnipet")
+
 (defstruct (abbrev+-abbreviation
             (:constructor make--abbrev+-abbreviation))
   ;; Regular expression that should be matched in order for
@@ -136,8 +139,7 @@ of `abbrev-abbreviations'. Returns boolean indicating whether
 expansion was performed."
   (let ((start (point))
         entry
-        str
-        result)
+        str)
     (loop
       for syntax across abbrev+-skip-syntax
       until entry
@@ -211,11 +213,11 @@ if no expansion was produced.")
                  (list ?\\
                        ?\)
                        ??))))))
-    (concat (subseq str 0 suffix-len)
+    (concat (cl-subseq str 0 suffix-len)
             (apply #'string
                    (funcall make-suffix
                             (string-to-list
-                             (subseq str suffix-len)))))))
+                             (cl-subseq str suffix-len)))))))
 
 (defun make-abbrev+-re-for-lisp-func-name (name-parts)
   "Return re that matches emacs lisp function name, NAME-PARTS is
