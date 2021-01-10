@@ -544,9 +544,9 @@ nor comment."
    (when (hs-already-hidden-p)
      (hs-show-block))
    (when (outline-invisible-p)
-     (show-subtree))
+     (outline-show-subtree))
    (when (outline-invisible-p)
-     (show-subtree)))
+     (outline-show-subtree)))
  (clojure-mode lisp-mode common-lisp-mode scheme-mode emacs-lisp-mode))
 
 ;;; Actual setup functions

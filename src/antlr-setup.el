@@ -6,13 +6,11 @@
 ;; Created: Friday, 21 June 2013
 ;; Description:
 
-;;;###autoload
-(autoload 'antlr-mode "antlr-mode" nil t)
+(eval-when-compile
+  (defvar antlr-font-lock-maximum-decoration))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.g\\'" . antlr-mode))
-
-(setf antlr-font-lock-maximum-decoration t)
 
 ;;;###autoload
 (defun antlr-setup ()

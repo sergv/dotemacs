@@ -8,8 +8,8 @@
 
 ;; TODO add nasm-mode
 
-;;;###autoload
-(autoload 'nasm-mode "nasm-mode" nil t)
+(eval-when-compile
+  (defvar asm-mode-map))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.asm\\'" . nasm-mode))

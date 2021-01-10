@@ -147,7 +147,7 @@ template files, data description may be found in
                auto-insert-fields)))))))
 
 ;;;###autoload
-(add-hook 'find-file-hooks 'auto-insert)
+(add-hook 'find-file-hook #'auto-insert)
 
 (provide 'auto-insert-setup)
 
