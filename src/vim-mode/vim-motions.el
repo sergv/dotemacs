@@ -1521,42 +1521,6 @@ jumps to the corresponding one."
   "Go to the `count'-th previous unmatched opening {."
   (vim:backward-beginning-of-block "{" "}" count))
 
-(vim:defmotion vim:motion-forward-preprocessor-endif (exclusive count)
-  "Go the the `count'-th next unmatched #else or #endif."
-  (let ((cnt (or count 1))
-        (re "\\(^[ \t]*#if\\)\\|\\(^[ \t]*#else\\)\\|\\(^[ \t]*#endif\\)"))
-    (save-excursion
-      (while (and (> cnt 0)
-                  (re-search-forward re nil t))
-        (cond
-          ((match-beginning 1)          ; found #if
-           (incf cnt))
-          ((match-beginning 2)          ; found #else
-           (when (= 1 cnt) (decf cnt)))
-          (t                            ; found #endif
-           (decf cnt)))))
-    (if (zerop cnt)
-        (goto-char (match-beginning 0))
-      (signal 'vim/no-such-object (list "No closing of block found.")))))
-
-(vim:defmotion vim:motion-backward-preprocessor-if (exclusive count)
-  "Go the the `count'-th next unmatched #else or #if."
-  (let ((cnt (or count 1))
-        (re "\\(^[ \t]*#if\\)\\|\\(^[ \t]*#else\\)\\|\\(^[ \t]*#endif\\)"))
-    (save-excursion
-      (while (and (> cnt 0)
-                  (re-search-backward re nil t))
-        (cond
-          ((match-beginning 1)          ; found #if
-           (decf cnt))
-          ((match-beginning 2)          ; found #else
-           (when (= 1 cnt) (decf cnt)))
-          (t                            ; found #endif
-           (incf cnt)))))
-    (if (zerop cnt)
-        (goto-char (match-beginning 0))
-      (signal 'vim/no-such-object (list "No opening of block found.")))))
-
 (vim:defmotion vim:motion-backward-opening-comment (exclusive count)
   "Go to the `count'-th previous unmatched opening /*."
   (when (save-excursion
