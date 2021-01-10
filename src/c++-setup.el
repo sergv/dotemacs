@@ -6,6 +6,10 @@
 ;; Created: long ago
 ;; Description:
 
+(eval-when-compile
+  (defvar c-basic-offset)
+  (defvar hs-forward-sexp-func))
+
 (require 'c++-abbrev+)
 (require 'cc-setup)
 (require 'clang-format)
@@ -82,7 +86,7 @@
                              (funcall find-subroot
                                       (butlast path)
                                       needle)))))))
-          (aif (find-if #'file-exists? alt-names-in-same-dir)
+          (aif (-find #'file-exists? alt-names-in-same-dir)
               (progn
                 (puthash filename it *c++-related-file-cache*)
                 (puthash it filename *c++-related-file-cache*)
@@ -98,8 +102,7 @@
                                            "include")))))
               (aif (find-rec (funcall path-join subroot)
                              :filep (lambda (p)
-                                      (string= alternative-name
-                                               (file-name-nondirectory p))))
+                                      (member (file-name-nondirectory p) alternative-names)))
                   (pcase it
                     (`(,related)
                      (puthash filename related *c++-related-file-cache*)
@@ -111,7 +114,7 @@
                       :buffer-name "select file"
                       :after-init #'select-mode-setup
                       :on-selection
-                      (lambda (idx alt-file selection-type)
+                      (lambda (_idx alt-file selection-type)
                         (select-mode-exit)
                         (puthash filename alt-file *c++-related-file-cache*)
                         (puthash alt-file filename *c++-related-file-cache*)

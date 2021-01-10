@@ -87,13 +87,12 @@
 ;; rather than perpetuate this lunacy.
 (setq-default require-final-newline nil)
 
-(setf x-select-enable-clipboard t
+(setf select-enable-clipboard t
       interprogram-paste-function
       (fold-platform-os-type
-       #'x-cut-buffer-or-selection-value
+       #'gui-selection-value
        #'w32-get-clipboard-data)
       query-replace-highlight t
-      query-replace-interactive nil ;; do not use last search string as initial regexp
       search-highlight t
       undo-limit (* 100 1024 1024)
       undo-outer-limit (* 32 1024 1024)

@@ -93,7 +93,7 @@
 ;; coding: utf-8
 ;; mode: emacs-lisp
 ;; End:"))
-    (write-region (point-min) (point-max) persistent-store-store-file)))
+    (write-region (point-min) (point-max) filename)))
 
 (defvar persistent-store-merge-handlers nil
   "Alist of (symbol-key . merge-function) pairs, where symbol-key

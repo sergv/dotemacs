@@ -617,6 +617,7 @@ under git version control."
   ;; (shell-command (concat "git add " (shell-quote-argument buffer-file-name)))
   )
 
+;;;###autoload
 (defun git-rm ()
   (interactive)
   (aif buffer-file-name
@@ -628,6 +629,7 @@ under git version control."
 
 (vim:define-keymap blame-mode "blame mode")
 
+;;;###autoload (autoload 'vim:activate-blame-mode "git-setup" nil t)
 (vim:define-mode blame "VIM git blame mode\n\nBlame mode keymap:\n\\{vim:blame-mode-keymap}"
   :ident "B"
   ;; :message "-- BLAME --"

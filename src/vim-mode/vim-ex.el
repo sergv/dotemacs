@@ -263,10 +263,10 @@ This function should be called whenever the minibuffer is exited."
   "Deinitializes the minibuffer when ex-mode is stopped."
   (when-let (arg-deactivate (and vim:ex-arg-handler
                                  (vim:arg-handler-deactivate vim:ex-arg-handler)))
-    (with-demoted-errors
-        (format "vim:ex-change: error when activating handler %s: %%s"
-                vim:ex-arg-handler)
-      (funcall arg-deactivate)))
+    (let ((format (format "vim:ex-change: error when activating handler %s: %%s"
+                          vim:ex-arg-handler)))
+      (with-demoted-errors format
+        (funcall arg-deactivate))))
   (remove-hook 'after-change-functions #'vim:ex-change t)
   (vim:ex-teardown))
 
@@ -288,11 +288,11 @@ This function should be called whenever the minibuffer is exited."
   (vim:ex-stop-session)
   (keyboard-escape-quit))
 
-(defun vim:ex-change (beg end len)
+(defun vim:ex-change (_beg _end _len)
   "Checks if the command or argument changed and informs the
 argument handler. Gets called on every minibuffer change."
   (let ((cmdline (vim:ex-contents)))
-    (multiple-value-bind (range cmd spaces arg beg end force)
+    (multiple-value-bind (_range cmd _spaces arg beg end _force)
         (vim:ex-split-cmdline cmdline)
       (cond
         ((not (string= vim:ex-cmd cmd))
@@ -303,10 +303,10 @@ argument handler. Gets called on every minibuffer change."
          ;; ... deactivate old handler ...
          (when-let (arg-deactivate (and vim:ex-arg-handler
                                         (vim:arg-handler-deactivate vim:ex-arg-handler)))
-           (with-demoted-errors
-               (format "vim:ex-change: error when activating handler %s: %%s"
-                       vim:ex-arg-handler)
-             (funcall arg-deactivate)))
+           (let ((format (format "vim:ex-change: error when activating handler %s: %%s"
+                         vim:ex-arg-handler)))
+             (with-demoted-errors format
+               (funcall arg-deactivate))))
          ;; ... activate and store new handler ...
          (let ((cmd (vim:ex-binding cmd)))
            (cond
@@ -320,10 +320,10 @@ argument handler. Gets called on every minibuffer change."
                     (and cmd (vim:ex-get-arg-handler cmd)))
               (when-let (arg-activate (and vim:ex-arg-handler
                                            (vim:arg-handler-activate vim:ex-arg-handler)))
-                (with-demoted-errors
-                    (format "vim:ex-change: error when activating handler %s: %%s"
-                            vim:ex-arg-handler)
-                  (funcall arg-activate)))))))
+                (let ((format (format "vim:ex-change: error when activating handler %s: %%s"
+                                      vim:ex-arg-handler)))
+                  (with-demoted-errors format
+                    (funcall arg-activate))))))))
         ((or (not (string= vim:ex-arg arg))
              (not (equal (cons beg end) vim:ex-range)))
          ;; command remained the same, but argument or range changed
@@ -365,7 +365,7 @@ has been pressed."
   (interactive "p")
   (let ((cmdline (vim:ex-contents)))
     (self-insert-command n)
-    (multiple-value-bind (range cmd spaces arg beg end force) (vim:ex-split-cmdline cmdline)
+    (multiple-value-bind (_range cmd spaces arg _beg _end _force) (vim:ex-split-cmdline cmdline)
       (when (and (= (point) (point-max))
                  (zerop (length spaces))
                  (zerop (length arg)))
@@ -382,7 +382,7 @@ has been pressed."
   ;; has ended
   (when (and (bufferp vim:ex-minibuffer)
              (eq (current-buffer) vim:ex-minibuffer))
-    (multiple-value-bind (range cmd spaces arg beg end force) (vim:ex-split-cmdline cmdline)
+    (multiple-value-bind (range cmd spaces arg _beg _end force) (vim:ex-split-cmdline cmdline)
       (setq vim:ex-cmd cmd)
       (cond
         ;; only complete at the end of the command
@@ -395,8 +395,7 @@ has been pressed."
          ;; modified if no `!' has been given in order to show the possible
          ;; `!' completions.
          (let*
-             ((precicate predicate)
-              (pred
+             ((pred
                (cond
                  ((not force) predicate)
                  ((not predicate)
@@ -468,7 +467,7 @@ has been pressed."
                arg predicate flag)
       (vim:ex-complete-text-argument arg predicate flag))))
 
-(defun vim:ex-complete-file-argument (arg predicate flag)
+(defun vim:ex-complete-file-argument (arg _predicate flag)
   "Called to complete a file argument."
   (if (null arg)
     default-directory
@@ -501,7 +500,7 @@ has been pressed."
         ((eq 'lambda flag)
          (test-completion arg buffers predicate))))))
 
-(defun vim:ex-complete-text-argument (arg predicate flag)
+(defun vim:ex-complete-text-argument (arg _predicate flag)
   "Called to complete standard argument, therefore does nothing."
   (when arg
     (pcase flag
@@ -517,13 +516,13 @@ has been pressed."
                                        t
                                        str)))
     (if info-start
-      (subseq str 0 info-start)
+        (substring str 0 info-start)
       str)))
 
 (defun vim:ex-execute-command (cmdline)
   "Called to execute the current command."
   (interactive)
-  (multiple-value-bind (range cmd spaces arg start-line end-line force)
+  (multiple-value-bind (_range cmd _spaces arg start-line end-line force)
       (vim:ex-split-cmdline cmdline)
     (setq vim:ex-cmd cmd)
     (setf arg (vim:strip-ex-info arg))

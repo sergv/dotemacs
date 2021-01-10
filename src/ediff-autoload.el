@@ -17,7 +17,7 @@
 (setf ediff-split-window-function
       (if (platform-use? 'netbook)
           ;; when on netbook, the screen isn't wide enough so split horizontally
-          #'split-window-vertical
+          #'split-window-vertically
         ;; otherwise split vertically
         #'split-window-horizontally))
 (setf ediff-merge-split-window-function ediff-split-window-function)
