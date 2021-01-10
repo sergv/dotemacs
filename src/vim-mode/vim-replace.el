@@ -86,8 +86,8 @@ special characters are introduced via backlash only."
    (vim--construct-ex-replace-command
     (vim--get-str-covered-by-motion
      (save-excursion
-       (vim:motion-inner-WORD))))
-   :fill-replace (not current-prefix-arg)))
+       (vim:motion-inner-WORD)))
+    :fill-replace (not current-prefix-arg))))
 
 (vim:defcmd vim-replace-selected (nonrepeatable)
   "Partially construct vim ex-replace command from selected region."
