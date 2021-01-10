@@ -112,7 +112,7 @@ List will be in order of appearance of environments in region."
                 ;;             (>= (cdr v) 0))
                 ;;   (error "have negative count of ends: %s on %s" v env-name))
                 (when (> (cdr v) 0)
-                  (dotimes (i (cdr v))
+                  (dotimes (_ (cdr v))
                     (push (cons env-name (car v)) result))))
               table)
      (-map #'car
@@ -220,7 +220,7 @@ for use in utility functions."
 
      (goto-char (marker-position latex:document-start))
      (while (search-forward-regexp type-re nil t)
-       (hide-subtree)))))
+       (outline-hide-subtree)))))
 
 
 (defconst latex-outline-regexp
