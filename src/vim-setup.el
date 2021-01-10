@@ -419,9 +419,6 @@ _<right>_: move tab to the right"
 Basically swap current point with previous one."
   (vim:motion-mark :argument ?\'))
 
-(autoload 'awk-exit "awk+")
-(autoload 'awk-on-region "awk+")
-
 (vim:defcmd vim:start-awk (motion nonrepeatable)
   (when (get-buffer awk-buffer-name)
     (with-current-buffer (get-buffer awk-buffer-name)
