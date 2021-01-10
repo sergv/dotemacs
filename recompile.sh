@@ -107,6 +107,7 @@ inform "Generating src/local-autoloads.el"
 update-dir-autoloads \
     "src/local-autoloads.el" \
     "src" \
+    "src/custom" \
     "src/eproj" \
     "src/haskell" \
     "src/latex" \
@@ -114,6 +115,7 @@ update-dir-autoloads \
     "src/python" \
     "src/rust" \
     "src/shell" \
+    "src/vim-mode" \
     "third-party/async" \
     "third-party/attrap" \
     "third-party/auctex" \
@@ -143,6 +145,7 @@ update-dir-autoloads \
     "third-party/lsp-mode" \
     "third-party/lsp-ui" \
     "third-party/magit" \
+    "third-party/magit/lisp" \
     "third-party/magit-popup" \
     "third-party/misc-modes" \
     "third-party/nix-mode" \
