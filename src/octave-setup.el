@@ -8,6 +8,23 @@
 ;; Requirements:
 ;; Status:
 
+(eval-when-compile
+  (defvar inferior-octave-buffer)
+  (defvar inferior-octave-output-list)
+  (defvar inferior-octave-output-list)
+  (defvar inferior-octave-output-string)
+  (defvar inferior-octave-process)
+  (defvar inferior-octave-prompt)
+  (defvar inferior-octave-receive-in-progress)
+  (defvar inferior-octave-receive-in-progress)
+  (defvar octave-send-echo-input)
+  (defvar octave-send-show-buffer))
+
+(declare-function inferior-octave-send-list-and-digest "octave")
+(declare-function octave-beginning-of-defun "octave")
+(declare-function octave-send-line "octave")
+(declare-function octave-send-defun "octave")
+
 (require 'browse-kill-ring-setup)
 (require 'common)
 (require 'el-patch)
@@ -336,7 +353,7 @@ _<tab>_: indent defun
 
 _t_: beginning of defun
 _h_: end of defun"
-  ("<tab>" octave-indent-defun)
+  ("<tab>" prog-indent-sexp)
 
   ("t"     octave-beginning-of-defun-interactive)
   ("h"     end-of-defun))
@@ -372,7 +389,7 @@ _j_: send region"
                :use-whitespace 'tabs-only)
   (setup-folding t nil)
 
-  (setq-local yas/indent-line 'fixed
+  (setq-local yas-indent-line 'fixed
               hs-set-up-overlay
               (lambda (ov)
                 (when (eq 'code (overlay-get ov 'hs))

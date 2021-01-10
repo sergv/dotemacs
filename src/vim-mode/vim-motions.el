@@ -158,7 +158,7 @@
     (t
      (error "Unknown mark: '%c'" mark-char))))
 
-(defun vim:set-change-mark (beg end)
+(defun vim:set-change-mark (beg _end)
   "Sets the change mark . to `beg'."
   (vim:set-mark ?. beg))
 
@@ -188,7 +188,7 @@
   (let ((line-move-visual nil))
     ;; don't use `forward-line' because `previous-line' skips invisible parts
     ;; of buffer while `forward-line' doesn't
-    (previous-line (or count 1))))
+    (forward-line (- (or count 1)))))
 
 (vim:defmotion vim:motion-down (linewise count)
   "Move the cursor count lines down."
@@ -196,7 +196,7 @@
   (let ((line-move-visual nil))
     ;; don't use `forward-line' because `next-line' skips invisible parts
     ;; of buffer while `forward-line' doesn't
-    (next-line (or count 1))))
+    (forward-line (or count 1))))
 
 (vim:defmotion vim:motion-lines (linewise count)
   "Moves count - 1 lines down."
@@ -204,7 +204,7 @@
   (let (line-move-visual
         (c (1- (or count 1))))
     (if (/= 0 c)
-        (next-line c)
+        (forward-line c)
       (vim:make-motion :has-begin t
                        :begin (line-beginning-position)
                        :end (line-end-position)
@@ -228,7 +228,7 @@ e.g. shell prompt.."
   (move-to-window-line (or count 0))
   (back-to-indentation))
 
-(vim:defmotion vim:motion-window-middle-line (linewise count)
+(vim:defmotion vim:motion-window-middle-line (linewise)
   "Moves the cursor to the beginning of the middle line of the window.  Ignores count."
   (vim:save-position)
   (move-to-window-line (/ (window-body-height) 2))
@@ -387,16 +387,16 @@ counted."
                        (unless pos (throw 'end nil))
                        (goto-char pos)
                        (when (and (not (bolp))
-                                  (looking-at "\n")
-                                  (not (looking-back "[ \t\r\n]")))
+                                  (looking-at-p "\n")
+                                  (not (looking-back "[ \t\r\n]" (point-min))))
                          (forward-char) t))))
         (`bwd (let ((start (point)))
                 (while (let ((pos (vim:boundary-chars 'bwd " \t\r\n")))
                          (unless pos (throw 'end nil))
                          (goto-char pos)
                          (when (and (not (bolp))
-                                    (looking-at "\n"))
-                           (if (and (looking-at "\n[ \t\r\n]")
+                                    (looking-at-p "\n"))
+                           (if (and (looking-at-p "\n[ \t\r\n]")
                                     (< (point) start))
                                (progn (forward-char) nil)
                              (backward-char) t)))))))
@@ -529,7 +529,7 @@ contained in the first text-object before or at point."
           ;; if not, count this object
           (decf n))
         ;; search the end of the next objects
-        (dotimes (i n)
+        (dotimes (_ n)
           (if linewise (forward-line) (forward-char))
           (let ((next (funcall boundary 'fwd)))
             (unless next (goto-char (point-max)) (throw 'end nil))
@@ -549,7 +549,7 @@ contained in the first text-object before or at point."
     (when (and (not (vim:operator-pending-mode-p))
                (>= (point) (1- (point-max))))
       (signal 'vim/end-of-buffer nil))
-    (dotimes (i n)
+    (dotimes (_ n)
       (if linewise (forward-line) (forward-char))
       (goto-char (or (funcall boundary 'fwd) (point-max))))))
 
@@ -563,7 +563,7 @@ parameter is 'bwd the function should return the first position
 contained in the first text-object before or at point."
   (when (> n 0)
     (when (bobp) (signal 'vim/beginning-of-buffer nil))
-    (dotimes (i n)
+    (dotimes (_ n)
       (if linewise (forward-line -1) (backward-char))
       (goto-char (or (funcall boundary 'bwd) (point-min))))))
 
@@ -590,7 +590,7 @@ contained in the first text-object before or at point."
         (when (> start (or (funcall boundary 'fwd) (point-min)))
           ;; if not, count this object
           (decf n))
-        (dotimes (i n)
+        (dotimes (_ n)
           (if linewise (forward-line -1) (forward-char -1))
           (let ((next (funcall boundary 'bwd)))
             (unless next (goto-char (point-min)) (throw 'end nil))
@@ -618,26 +618,26 @@ text-object before or at point."
         (if (< (point) (mark))
             ;; extend backward
             (progn
-              (dotimes (i n)
+              (dotimes (_ n)
                 (funcall forward -1)
-                (multiple-value-bind (b e) (funcall sel 'bwd)
+                (multiple-value-bind (b _) (funcall sel 'bwd)
                   (goto-char (or b (point-min)))))
               (setq end (mark)
                     pnt (point)))
           ;; extend forward
-          (dotimes (i n)
+          (dotimes (_ n)
             (funcall forward +1)
-            (multiple-value-bind (b e) (funcall sel 'fwd)
+            (multiple-value-bind (_ e) (funcall sel 'fwd)
               (goto-char (or e (1- (point-max))))))
           (setq end (point)
                 pnt (point)))
 
       ;; select current ...
       (multiple-value-bind (b e) (funcall sel 'fwd)
-        (dotimes (i (1- n))
+        (dotimes (_ (1- n))
           (goto-char (or e (1- (point-max))))
           (funcall forward +1)
-          (multiple-value-bind (nb ne) (funcall sel 'fwd)
+          (multiple-value-bind (_ ne) (funcall sel 'fwd)
             (setq e (or ne (1- (point-max))))))
         (setq beg b
               end e
@@ -674,7 +674,7 @@ text-object before or at point."
         (if (< (point) (mark))
             ;; extend backward
             (progn
-              (dotimes (i n)
+              (dotimes (_ n)
                 (multiple-value-bind (wsb wse) (save-excursion
                                                  (funcall forward -1)
                                                  (funcall ws-sel 'bwd))
@@ -688,7 +688,7 @@ text-object before or at point."
                     pnt (point)))
 
           ;; extend forward
-          (dotimes (i n)
+          (dotimes (_ n)
             (multiple-value-bind (wsb wse) (save-excursion
                                              (funcall forward +1)
                                              (funcall ws-sel 'fwd))
@@ -705,10 +705,10 @@ text-object before or at point."
       (save-excursion
         (multiple-value-bind (b e) (funcall sel 'fwd)
           (unless b (signal 'vim/no-such-object nil))
-          (dotimes (i (1- n))
+          (dotimes (_ (1- n))
             (goto-char e)
             (funcall forward +1)
-            (multiple-value-bind (nb ne) (funcall sel 'fwd)
+            (multiple-value-bind (_ ne) (funcall sel 'fwd)
               (when ne (setq e ne))))
           (setq beg b
                 end e)))
@@ -716,7 +716,7 @@ text-object before or at point."
       ;; check whitespace before object
       (cond
         ;; started at white-space
-        ((multiple-value-bind (wsb wse) (funcall ws-sel 'fwd)
+        ((multiple-value-bind (wsb _) (funcall ws-sel 'fwd)
            (if (and wsb (<= wsb (point)))
                (setq beg wsb))))
 
@@ -786,7 +786,7 @@ text-object before or at point."
               (cnt n)
               found-stack)
           ;; set default match-test
-          (unless match-test (setq match-test (lambda (a b) t)))
+          (unless match-test (setq match-test (lambda (_a _b) t)))
           ;; search the opening object
           (funcall find-at-point open-re open-pos nil)
           (while (> cnt 0)
@@ -847,7 +847,7 @@ text-object before or at point."
             close-pos (point)))
 
     ;; check if we the current inner tag is selected completely
-    (multiple-value-bind (op-beg op-end cl-beg cl-end)
+    (multiple-value-bind (op-beg op-end cl-beg _)
         (vim:block-select open-re close-re match-test open-pos close-pos 1)
       (when (and op-beg
                  (or (= (1+ op-end) open-pos)
@@ -862,7 +862,7 @@ text-object before or at point."
                             (bolp)))))
         (incf n)))
 
-    (multiple-value-bind (op-beg op-end cl-beg cl-end)
+    (multiple-value-bind (op-beg op-end cl-beg _)
         (vim:block-select open-re close-re match-test open-pos close-pos n)
       (when op-beg
         (when (save-excursion
@@ -888,14 +888,14 @@ text-object before or at point."
             close-pos (point)))
 
     ;; check if we the current inner tag is selected completely
-    (multiple-value-bind (op-beg op-end cl-beg cl-end)
+    (multiple-value-bind (op-beg _ _ cl-end)
         (vim:block-select open-re close-re match-test open-pos close-pos 1)
       (when (and op-beg
                  (= op-beg open-pos)
                  (= cl-end close-pos))
         (incf n)))
 
-    (multiple-value-bind (op-beg op-end cl-beg cl-end)
+    (multiple-value-bind (op-beg _ _ cl-end)
         (vim:block-select open-re close-re match-test open-pos close-pos n)
       (when op-beg
         ;; see vim:inner-block for this problem
@@ -1011,7 +1011,7 @@ text-object before or at point."
 
 (vim:defmotion vim:motion-fwd-sentence (exclusive count)
   "Move the cursor `count' sentences forward."
-  (dotimes (i (or count 1))
+  (dotimes (_ (or count 1))
     (goto-char (min (save-excursion
                       (vim:move-fwd-beg 1 #'vim:boundary-sentence)
                       (point))
@@ -1041,14 +1041,14 @@ text-object before or at point."
 (vim:defmotion vim:motion-fwd-paragraph (exclusive count)
   "Move the cursor `count' paragraphs forward."
   (if (eobp) (signal 'vim/end-of-buffer nil)
-    (dotimes (i (or count 1))
+    (dotimes (_ (or count 1))
       (goto-char (or (vim:boundary-paragraph 'fwd) (point-max)))
       (forward-line))))
 
 (vim:defmotion vim:motion-bwd-paragraph (exclusive count)
   "Move the cursor `count' paragraphs backward."
   (if (bobp) (signal 'vim/beginning-of-buffer nil)
-    (dotimes (i (or count 1))
+    (dotimes (_ (or count 1))
       (goto-char (or (vim:boundary-paragraph 'bwd) (point-min)))
       (forward-line -1))))
 
@@ -1197,7 +1197,7 @@ but only on the current line."
                         :end (1- (cdr bounds))
                         :type 'inclusive)))))
 
-(defun vim:outer-quote (count open-qt &optional close-qt)
+(defun vim:outer-quote (_count open-qt &optional close-qt)
   "Select text between two quotes including the quotes."
   (if (and (vim:visual-mode-p)
            (/= (point) (mark)))
@@ -1258,14 +1258,15 @@ but only on the current line."
            (inside-stringp (elt state 3))
            (string-start (elt state 8)))
       (if inside-stringp
-          (let* ((after-string-state
-                  (parse-partial-sexp end
-                                      (point-max)
-                                      nil
-                                      nil
-                                      state
-                                      'syntax-table ;; stop after string end
-                                      )))
+          (progn
+            ;; Continue parsing to find the end of string.
+            (parse-partial-sexp end
+                                (point-max)
+                                nil
+                                nil
+                                state
+                                'syntax-table ;; Stop after string end.
+                                )
             (list string-start (- (point) 1)))
         nil))))
 
@@ -1307,7 +1308,8 @@ but only on the current line."
                             :end (1- end)
                             :type 'inclusive)))))))
 
-(defun vim:outer-doubled-quote (count)
+;; TODO: find out how to support count here
+(defun vim:outer-doubled-quote (_count)
   "Select text between two quotes including the quotes."
   (if (and (vim:visual-mode-p)
            (/= (point) (mark)))
@@ -1315,9 +1317,9 @@ but only on the current line."
       (let* ((to-right (>= (point) (mark)))
              (bounds (vim:bounds-of-string (point))))
         (when bounds
-          (let (((beg (min (point) (mark) (first bounds))))
-                (end (max (point) (mark) (second bounds)))
-                (pnt (if to-right end beg)))
+          (let* ((beg (min (point) (mark) (first bounds)))
+                 (end (max (point) (mark) (second bounds)))
+                 (pnt (if to-right end beg)))
             (goto-char pnt)
             (when to-right
               (forward-char)
@@ -1528,8 +1530,7 @@ jumps to the corresponding one."
                   (re-search-forward re nil t))
         (cond
           ((match-beginning 1)          ; found #if
-           (incf cnt)
-           (setq prev-was-endif nil))
+           (incf cnt))
           ((match-beginning 2)          ; found #else
            (when (= 1 cnt) (decf cnt)))
           (t                            ; found #endif
@@ -1547,8 +1548,7 @@ jumps to the corresponding one."
                   (re-search-backward re nil t))
         (cond
           ((match-beginning 1)          ; found #if
-           (decf cnt)
-           (setq prev-was-endif nil))
+           (decf cnt))
           ((match-beginning 2)          ; found #else
            (when (= 1 cnt) (decf cnt)))
           (t                            ; found #endif

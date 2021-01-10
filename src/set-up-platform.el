@@ -49,7 +49,7 @@ Range of platforms may be expanded (extended?) in the future.")
   (cond ((symbolp use)
          (eq (cadr +platform+) use))
         ((listp use)
-         (some (lambda (u) (eq (cadr +platform+) u)) use))
+         (memq (cadr +platform+) use))
         (t
          (error "invalid use argument: %s" use))))
 

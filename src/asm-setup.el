@@ -41,7 +41,7 @@
 ;;;###autoload
 (add-hook 'asm-mode-hook #'asm-mode-setup)
 
-(provide 'asm-mode-setup)
+(provide 'asm-setup)
 
 ;; Local Variables:
 ;; End:

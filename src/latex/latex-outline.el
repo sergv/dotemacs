@@ -271,6 +271,7 @@ for use in utility functions."
     ("z O" show-all)
     ("z o" show-subtree)))
 
+(provide 'latex-outline)
 
 ;; Local Variables:
 ;; End:

@@ -6,6 +6,17 @@
 ;; Created: long ago
 ;; Description:
 
+(eval-when-compile
+  (defvar awk-buffer-name)
+  (defvar git-repository)
+  (defvar magit-blame-mode))
+
+(declare-function ibuffer-get-marked-buffers "ibuffer")
+(declare-function magit-blame-quit "magit-blame")
+(declare-function magit-refresh-all "magit-mode")
+(declare-function server-edit "server")
+(declare-function vim:activate-blame-mode "git-setup")
+
 (require 'common)
 (require 'completion-setup)
 (require 'hydra-setup)
@@ -20,7 +31,8 @@
 (defcustom vim-scroll-move-point t
   "Controlls whether scrolling functions like `vim:scroll-line-up' should
 move point to next/previous line."
-  :type 'boolean)
+  :type 'boolean
+  :group 'vim-mode-general)
 
 ;;; overriding keymap
 
@@ -531,7 +543,7 @@ Basically swap current point with previous one."
 
 (vim:defcmd vim:blame (nonrepeatable)
   "Run `magit-blame-mode'."
-  (call-interactively #'magit-blame)
+  (call-interactively #'magit-blame-addition)
   (vim:activate-blame-mode))
 
 (vim:emap "blame" #'vim:blame)

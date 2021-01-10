@@ -6,7 +6,9 @@
 ;; Created: Monday,  8 October 2012
 ;; Description:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+  (defvar whitespace-line-column))
 
 (require 'common)
 (require 'ctypes)

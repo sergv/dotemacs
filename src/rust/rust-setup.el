@@ -6,6 +6,11 @@
 ;; Created: 22 March 2018
 ;; Description:
 
+(eval-when-compile
+  (defvar whitespace-line-column))
+
+(declare-function server-edit "server")
+
 (require 'common)
 (require 'flycheck)
 (require 'haskell-compile)
@@ -51,7 +56,7 @@
 
 (defconst rust-compilation-buffer-name "*rust-compilation*")
 
-(defun rust-get-compilation-buffer-name (&rest args)
+(defun rust-get-compilation-buffer-name (&rest _args)
   rust-compilation-buffer-name)
 
 (defun rust-compilation-next-error-other-window ()
@@ -195,11 +200,13 @@ _h_: end of defun"
   ("h" rust-end-of-defun))
 
 (defun vim:rust-beginning-of-defun (&optional arg)
+  "Vim wrapper around `rust-beginning-of-defun'."
   (interactive "p")
   (vim:save-position)
-  (rust-beginning-of-defun))
+  (rust-beginning-of-defun arg))
 
 (defun vim:rust-end-of-defun ()
+  "Vim wrapper around `rust-end-of-defun'."
   (interactive)
   (vim:save-position)
   (rust-end-of-defun))
@@ -217,7 +224,7 @@ _a_lign  _t_: beginning of defun
   "Insert unimplemented!()."
   (interactive "*")
   (let ((start (point)))
-    (when (and (looking-back "[^\[\(\{;, ]")
+    (when (and (looking-back "[^\[\(\{;, ]" (line-beginning-position))
                (not (bolp)))
       (insert " ")
       (setq start (1+ start)))
@@ -226,7 +233,7 @@ _a_lign  _t_: beginning of defun
       (insert " ")
       (forward-char -1))
     (insert "unimplemented!()")
-    (evaporate-region start (point) nil)
+    (evaporate-region start (point))
     (goto-char start)))
 
 ;;;; Setup

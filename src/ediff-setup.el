@@ -98,16 +98,20 @@ window configuration on end of ediff session."
   (with-current-buffer buffer
     (let ((line-min 1)
           (line-max (count-lines (point-min) (point-max))))
-      (and (<= line-min line-num)
-           (<= line-num line-max)))))
+      (values (and (<= line-min line-num)
+                   (<= line-num line-max))
+              line-min
+              line-max))))
 
 ;;;###autoload
 (defun ediff/read-line-in-buffer (prompt
                                   buffer
                                   error-func)
   (let ((num (read-number prompt)))
-    (unless (ediff/line-in-buffer? buffer num)
-      (funcall error-func num line-min line-max))
+    (multiple-value-bind (in-buf? line-min line-max)
+        (ediff/line-in-buffer? buffer num)
+      (unless in-buf?
+        (funcall error-func num line-min line-max)))
     num))
 
 ;;;###autoload

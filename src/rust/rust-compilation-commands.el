@@ -6,17 +6,11 @@
 ;; Created: 27 December 2019
 ;; Description:
 
+(declare-function rust-get-compilation-buffer-name "rust-setup")
+
 (require 'configurable-compilation)
 (require 'rust-mode)
 (require 's)
-
-(vim:defcmd vim:rust-compile (nonrepeatable)
-  (compilation-start
-   (format "%s build --color=always --target-dir=%s"
-           rust-cargo-bin
-           (fold-platform-os-type "/tmp/target" "target"))
-   'rust-compilation-mode
-   (lambda (_mode) rust-compilation-buffer-name)))
 
 (defvar rust-compilation-cargo-build-command-presets
   (let* ((tmp (fold-platform-os-type "/tmp/target" nil))
@@ -48,7 +42,7 @@
    'rust-compilation-cargo-build-command-presets
    'rust-compile--build-presets-history
    'rust-compilation-mode
-   (lambda (_mode) rust-compilation-buffer-name))
+   #'rust-get-compilation-buffer-name)
 
   (vim:local-emap "compile"  'vim:rust-compile)
   (vim:local-emap "c"        'vim:rust-compile)

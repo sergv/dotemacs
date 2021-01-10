@@ -187,12 +187,13 @@ stick it to the previous operator on line."
          (funcall insert-trailing-space whitespace-deleted? after))))))
 
 ;;;###autoload
-(defun haskell-smart-operators-self-insert (arg)
+(defun haskell-smart-operators-self-insert (n)
   "Insert charater and take care to surround it with spaces."
   (interactive "p")
-  (unless (characterp last-command-event)
-    (error "Last event is not a character: %s" last-command-event))
-  (haskell-smart-operators--insert-char-surrounding-with-spaces last-command-event))
+  (cl-assert (characterp last-command-event) nil
+             "Last event is not a character: %s" last-command-event)
+  (dotimes (_ n)
+    (haskell-smart-operators--insert-char-surrounding-with-spaces last-command-event)))
 
 ;;;###autoload
 (defun haskell-smart-operators-$ ()

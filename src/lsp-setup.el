@@ -6,9 +6,32 @@
 ;; Created:  7 January 2021
 ;; Description:
 
-(require 's)
+(eval-when-compile
+  (defvar lsp-diagnostics-attributes)
+  (defvar lsp-modeline-code-actions-segments)
+  (defvar lsp-modeline-diagnostics-scope)
+  (defvar lsp-rust-analyzer-cargo-load-out-dirs-from-check)
+  (defvar lsp-rust-analyzer-display-chaining-hints)
+  (defvar lsp-rust-analyzer-display-parameter-hints)
+  (defvar lsp-rust-analyzer-proc-macro-enable)
+  (defvar lsp-rust-analyzer-server-args)
+  (defvar lsp-rust-analyzer-server-command)
+  (defvar lsp-rust-analyzer-server-display-inlay-hints)
+  (defvar lsp-rust-crate-blacklist)
+  (defvar lsp-rust-full-docs)
+  (defvar lsp-rust-racer-completion)
+  (defvar lsp-rust-server)
+  (defvar lsp-rust-target-dir)
+  (defvar lsp-ui-sideline-enable)
+  (defvar lsp-ui-sideline-show-code-actions)
+  (defvar lsp-ui-sideline-show-diagnostics)
+  (defvar lsp-ui-sideline-show-hover))
+
+(require 'eproj-ctags)
+
 (require 'lsp)
 (require 'lsp-ui-doc)
+(require 's)
 
 (setf lsp-client-packages '(lsp-rust lsp-clangd lsp-cmake)
 
@@ -162,29 +185,31 @@
 (lsp-defun lsp-rust-type-at-point--callback ((hover &as &Hover? :contents) buf)
   (unless contents
     (error "Empty response from server. Aborting"))
-  (if (and (lsp-markup-content? contents)
-           (string= (lsp:markup-content-kind contents) lsp/markup-kind-markdown))
-      (let* ((lines (--drop-while (not (s-starts-with? "```" it))
-                                  (s-lines (lsp:markup-content-value contents))))
-             (blocks (--partition-by (equal "```" it) lines)))
-        (pcase blocks
-          (`(,x . (,y . nil))
-           (message
-            (lsp-ui-doc--extract-marked-string (s-join "\n" (append x y))
-                                               lsp/markup-kind-markdown)))
-          (`(,x . (,y . (,z . (,w . ,_))))
-           (message
-            (lsp-ui-doc--extract-marked-string (s-join "\n" (append x y z w))
-                                               lsp/markup-kind-markdown)))
-          (other
-           (error "Unhandled case: %s" other))))
-    (error "Expected markdown MarkupContent but got something else: %s" contents)))
+  (when (equal buf (current-buffer))
+    (if (and (lsp-markup-content? contents)
+             (string= (lsp:markup-content-kind contents) lsp/markup-kind-markdown))
+        (let* ((lines (--drop-while (not (s-starts-with? "```" it))
+                                    (s-lines (lsp:markup-content-value contents))))
+               (blocks (--partition-by (equal "```" it) lines)))
+          (pcase blocks
+            (`(,x . (,y . nil))
+             (message
+              (lsp-ui-doc--extract-marked-string (s-join "\n" (append x y))
+                                                 lsp/markup-kind-markdown)))
+            (`(,x . (,y . (,z . (,w . ,_))))
+             (message
+              (lsp-ui-doc--extract-marked-string (s-join "\n" (append x y z w))
+                                                 lsp/markup-kind-markdown)))
+            (other
+             (error "Unhandled case: %s" other))))
+      (error "Expected markdown MarkupContent but got something else: %s" contents))))
 
 ;;;; Define some faces so that they’ll look ok
 
 (defface lsp-lsp-flycheck-warning-unnecessary-face
   '((t :foreground "#666666"))
-  "Face for text that will evaporate when modified/overwritten.")
+  "Face for text that will evaporate when modified/overwritten."
+  :group 'lsp-faces)
 
 ;;;; Symbnav
 
@@ -201,6 +226,22 @@
       ("C-?" lsp-symbnav/find-references))))
 
 (defalias 'lsp-symbnav/go-back #'eproj-symbnav/go-back)
+
+(defsubst lsp-symbnav--tag->string (tag)
+  (cl-assert (eproj-tag-p tag))
+  (concat (propertize (eproj-tag/file tag) 'face 'eproj-symbnav-file-name)
+          ":"
+          (number->string (eproj-tag/line tag))
+          "\n"
+          (aif (eproj-tag/get-prop 'summary tag)
+              it
+            (eproj/extract-tag-line nil tag))
+          "\n"))
+
+(defsubst lsp-symbnav--tag-kind (tag)
+  (awhen (eproj-tag/type tag)
+    (cl-assert (stringp it))
+    it))
 
 (defun lsp-symbnav/go-to-symbol-home (&optional use-regexp?)
   (interactive "P")
@@ -283,22 +324,6 @@
        enable-shortcut?
        (concat "Implementations for " identifier "\n\n")))))
 
-(defsubst lsp-symbnav--tag->string (tag)
-  (cl-assert (eproj-tag-p tag))
-  (concat (propertize (eproj-tag/file tag) 'face 'eproj-symbnav-file-name)
-          ":"
-          (number->string (eproj-tag/line tag))
-          "\n"
-          (aif (eproj-tag/get-prop 'summary tag)
-              it
-            (eproj/extract-tag-line nil tag))
-          "\n"))
-
-(defun lsp-symbnav--tag-kind (tag)
-  (awhen (eproj-tag/type tag)
-    (cl-assert (stringp it))
-    it))
-
 ;; sync with `lsp--symbol-information-to-xref’
 (lsp-defun lsp-symbnav--symbol-information->eproj-tag-triple
   ((&SymbolInformation :kind :name :deprecated?
@@ -306,8 +331,8 @@
                                                                 (&Position :line :character)))))
   "Return a `xref-item' from SYMBOL information."
   (let ((tag-kind (aref lsp--symbol-kind (- kind 1)))
-        (tag-name (if deprecated
-                      (propertize name 'strike-through t)
+        (tag-name (if deprecated?
+                      (propertize name 'face 'lsp-face-semhl-deprecated)
                     name))
         (tag-line line)
         (tag-column character)
@@ -365,7 +390,8 @@
 
 (defface lsp-symbnav-focus
   '((t :underline t))
-  "Face to show focused parts.")
+  "Face to show focused parts."
+  :group 'lsp-faces)
 
 (lsp-defun lsp-symbnav--make--eproj-item
   (filename (&Range :start (start &as &Position :character start-char :line start-line)

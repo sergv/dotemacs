@@ -431,7 +431,7 @@ Highlighting starts at the beginning of buffer")
     (not (null (overlay-get it 'face)))))
 
 ;;;###autoload
-(defun search-toggle-highlighting (&optional eset)
+(defun search-toggle-highlighting ()
   "Toggle highlighting of matches in current buffer."
   (interactive)
   (when search--match-overlays
