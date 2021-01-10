@@ -125,6 +125,7 @@ update-dir-autoloads \
     "third-party/company-statistics" \
     "third-party/cuda-mode" \
     "third-party/dante" \
+    "third-party/dtrt-indent" \
     "third-party/el-patch" \
     "third-party/elm-mode" \
     "third-party/flycheck" \
