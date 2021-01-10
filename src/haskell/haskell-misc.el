@@ -832,7 +832,7 @@ value section should have if it is to be properly indented."
       (insert " ")
       (forward-char -1))
     (insert "undefined")
-    (evaporate-region start (point) nil)
+    (evaporate-region start (point))
     (goto-char start)))
 
 

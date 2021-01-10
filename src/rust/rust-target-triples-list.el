@@ -1,4 +1,4 @@
-;; rust-targe-triples-list.el --- -*- lexical-binding: t; -*-
+;; rust-target-triples-list.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -29,4 +29,4 @@
 ;; Local Variables:
 ;; End:
 
-;; rust-targe-triples-list.el ends here
+;; rust-target-triples-list.el ends here

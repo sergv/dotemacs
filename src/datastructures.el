@@ -141,7 +141,7 @@ items and remove any duplicates."
                (setf items (rest items)))
              (values result len)))))
     (multiple-value-bind (items len) (funcall remove-duplicates
-                                              (sort (copy-list items) lt-pred))
+                                              (sort (seq-copy items) lt-pred))
       (make-sorted-set :items items
                        :lt-pred lt-pred
                        :length len))))

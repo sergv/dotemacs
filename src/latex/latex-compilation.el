@@ -31,6 +31,8 @@
 
               *compilation-jump-error-regexp* latex-compile-error-regexp))
 
+(provide 'latex-compilation)
+
 ;; Local Variables:
 ;; End:
 

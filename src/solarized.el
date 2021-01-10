@@ -706,6 +706,8 @@ Futher modified by Sergey Vinokurov."
   (when window-system
     (update-font-scaling)))
 
+
+
 (defun solarized/uniquify-alist (old-list)
   "Reduce OLD-LIST.
 The resulting list will be newly allocated and will not contain any elements

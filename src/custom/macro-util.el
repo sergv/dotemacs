@@ -171,7 +171,7 @@ BODY if it returns nil."
   (declare (indent 4))
   (cl-assert (symbol? func))
   (cl-assert (symbol? reset-cache-func))
-  (let ((cache-var (gentemp "cache"))
+  (let ((cache-var (gentemp "defun-caching--cache"))
         (query-var '#:query)
         (hash-table-var '#:hash-table)
         (value-var '#:value)

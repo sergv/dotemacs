@@ -22,22 +22,22 @@
 \(i.e. the selected one), depending on `compilation-error-regexp-alist'."
   (save-excursion
     (save-match-data
-      (when-let (err-entry (find-if (lambda (entry)
-                                      (save-excursion
-                                        (let ((regexp (car entry)))
-                                          (when (< 0 (length regexp))
-                                            (or (looking-at regexp)
-                                                (progn
-                                                  (beginning-of-line)
-                                                  (looking-at regexp)))))))
-                                    (-map (lambda (entry)
-                                            (if (symbolp entry)
-                                                (cdr-safe
-                                                 (assq
-                                                  entry
-                                                  compilation-error-regexp-alist-alist))
-                                              entry))
-                                          compilation-error-regexp-alist)))
+      (when-let (err-entry (-find (lambda (entry)
+                                    (save-excursion
+                                      (let ((regexp (car entry)))
+                                        (when (< 0 (length regexp))
+                                          (or (looking-at regexp)
+                                              (progn
+                                                (beginning-of-line)
+                                                (looking-at regexp)))))))
+                                  (-map (lambda (entry)
+                                          (if (symbolp entry)
+                                              (cdr-safe
+                                               (assq
+                                                entry
+                                                compilation-error-regexp-alist-alist))
+                                            entry))
+                                        compilation-error-regexp-alist)))
         (compilation/parse-matched-error-entry err-entry)))))
 
 
@@ -83,9 +83,9 @@ ENTRY should be of format used by `compilation-error-regexp-alist'."
 relative path. In case it's neither, the filename with suffix equal to FILENAME
 will searched for."
   (cl-assert (not (= 0 (length filename))))
-  (aif (find-if (lambda (buf)
-                  (string-suffix-p filename (buffer-file-name buf)))
-                (visible-buffers))
+  (aif (-find (lambda (buf)
+                (string-suffix-p filename (buffer-file-name buf)))
+              (visible-buffers))
       it
     (let ((resolved-filename (resolve-to-abs-path filename root)))
       (aif (find-buffer-visiting resolved-filename)

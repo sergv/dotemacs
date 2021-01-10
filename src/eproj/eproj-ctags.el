@@ -327,6 +327,7 @@ BUFFER is expected to contain output of ctags command."
 
 ;;;; Tag presentation utilities
 
+;;;###autoload
 (defun eproj/extract-tag-line (proj tag)
   "Fetch line where TAG is defined."
   (cl-assert (eproj-tag-p tag) nil "Eproj tag is required.")

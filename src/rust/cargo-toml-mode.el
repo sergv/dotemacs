@@ -16,7 +16,7 @@
              (cons (rx "Cargo.toml" eos)
                    'cargo-toml-mode))
 
-(provide 'cargo-toml-mode.el)
+(provide 'cargo-toml-mode)
 
 ;; Local Variables:
 ;; End:

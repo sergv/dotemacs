@@ -44,13 +44,13 @@ DIRECTION may have value either 'forward or 'backward"
 
                      (goto-char (point-min))
                      (funcall ,forward-func ,begin)
-                     (dotimes (i count)
+                     (dotimes (_ count)
                        (funcall ,forward-func +1)))
                  `((incf count (- (- current ,begin)))
 
                    (goto-char (point-max))
                    (funcall ,backward-func ,(abs end))
-                   (dotimes (i count)
+                   (dotimes (_ count)
                      (funcall ,backward-func -1)))))
              (t
               (funcall ,(if is-forward?

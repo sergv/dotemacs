@@ -29,6 +29,7 @@
   "Becomes t when latex buffer is being previewed and nil
   otherwise.")
 
+;;;###autoload
 (defun latex-toggle-preview ()
   "Toggle preview in current buffer."
   (if latex:preview
