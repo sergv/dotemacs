@@ -66,9 +66,9 @@
       '((unnecessary :foreground "#666666")
         (deprecated  :strike-through t))
 
-      lsp-rust-analyzer-server-display-inlay-hints nil
-      lsp-rust-analyzer-display-parameter-hints nil
-      lsp-rust-analyzer-display-chaining-hints nil)
+      lsp-rust-analyzer-server-display-inlay-hints t
+      lsp-rust-analyzer-display-parameter-hints t
+      lsp-rust-analyzer-display-chaining-hints t)
 
 ;;;###autoload
 (defun lsp-doc-other-window ()
