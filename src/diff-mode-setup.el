@@ -6,6 +6,9 @@
 ;; Created: Thursday, 28 August 2014
 ;; Description:
 
+(declare-function diff-hunk-kill "diff-mode")
+(declare-function server-edit "server")
+
 (require 'common)
 (require 'folding-setup)
 (require 'hydra-setup)

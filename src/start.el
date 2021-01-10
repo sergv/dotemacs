@@ -255,17 +255,17 @@
   (load-library ".emacs"))
 
 (let ((user-info-file
-       (find-if #'file-exists?
-                (list (expand-file-name "~/user-info.el")
-                      (concat +emacs-config-path+ "/src/user-info.el")))))
+       (-find #'file-exists?
+              (list (expand-file-name "~/user-info.el")
+                    (concat +emacs-config-path+ "/src/user-info.el")))))
   (aif user-info-file
       (load-file it)
     (message "user-info.el not found")))
 
 (let ((machine-specific-setup-file
-       (find-if #'file-exists?
-                (list (expand-file-name "~/machine-specific-setup.el")
-                      (concat +emacs-config-path+ "/src/machine-specific-setup.el")))))
+       (-find #'file-exists?
+              (list (expand-file-name "~/machine-specific-setup.el")
+                    (concat +emacs-config-path+ "/src/machine-specific-setup.el")))))
   (aif machine-specific-setup-file
       (load-file it)
     (message "machine-specific-setup.el not found")))

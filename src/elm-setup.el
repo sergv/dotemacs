@@ -24,7 +24,7 @@
   (elm-repl-load))
 
 (puthash 'elm-mode
-         #'elm-mode-format-buffer
+         #'elm-format-buffer
          *mode-indent-functions-table*)
 
 (setf elm-format-elm-version "0.18")
@@ -120,7 +120,7 @@ _t_ype"
   ("t" elm-oracle-type-at-point)
   ("d" elm-oracle-extended-doc-at-point))
 
-(defhydra-ext hydra-elm-align (:exit t :foreign-keys nil :hint nil)
+(defhydra-ext hydra-elm-align (:exit t :foreign-keys nil :hint nil :base-map (make-sparse-keymap))
   "
 _=_:  on equals
 _->_: on arrows

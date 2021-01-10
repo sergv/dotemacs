@@ -213,11 +213,11 @@ if no expansion was produced.")
                  (list ?\\
                        ?\)
                        ??))))))
-    (concat (cl-subseq str 0 suffix-len)
+    (concat (substring str 0 suffix-len)
             (apply #'string
                    (funcall make-suffix
                             (string-to-list
-                             (cl-subseq str suffix-len)))))))
+                             (substring str suffix-len)))))))
 
 (defun make-abbrev+-re-for-lisp-func-name (name-parts)
   "Return re that matches emacs lisp function name, NAME-PARTS is

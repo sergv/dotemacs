@@ -6,6 +6,9 @@
 ;; Created: Wednesday,  7 November 2012
 ;; Description:
 
+(eval-when-compile
+  (require 'cl-lib))
+
 (require 'set-up-platform)
 (require 'set-up-environment-variables)
 (require 'set-up-paths)
@@ -17,7 +20,7 @@
     (error nil)))
 
 (defconst +emacs-fonts+
-  (remove-if-not
+  (seq-filter
    #'font-exist?
    (append
     '("-*-Iosevka Slab Lig-normal-normal-normal-*-16-*-*-*-*-*-iso10646-1"
