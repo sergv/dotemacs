@@ -268,11 +268,6 @@ another KEY-COMMAND-LIST spliced in place of a variable;
             (lambda (map-var key-command-list)
               (loop
                 for entry in key-command-list
-                if (symbol? entry)
-                for (key command) = (if (or (quoted? entry)
-                                            (symbol? entry))
-                                        (eval entry)
-                                      entry)
                 appending (if (symbol? entry)
                               (funcall process-key-command-list map-var (eval entry))
                             (destructuring-bind (key command)
@@ -353,9 +348,7 @@ mean that this piece of code failed to yield proper buffer name at the
 moment of call so it would be skipped on current iteration. Piece
 of code may be called more than once."
   (cl-assert (< 0 try-count))
-  (let ((switch '#:switch)
-        (tries '#:tries)
-        (called-interpreter '#:called-interpreter)
+  (let ((tries '#:tries)
         (done-block '#:done-block)
         (runned '#:runned)
         (tmp '#:tmp))
