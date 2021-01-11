@@ -153,9 +153,11 @@ which is suitable for most programming languages such as C or Lisp."
 Toggle:
 _f_ormatting on typing             %`lsp-enable-on-type-formatting
 _h_ighlight of symbol at point     %`lsp-enable-symbol-highlighting
+_i_nlay hints                      %`lsp-rust-analyzer-inlay-hints-mode
 "
   ("f" lsp-toggle-on-type-formatting)
-  ("h" lsp-toggle-symbol-highlight))
+  ("h" lsp-toggle-symbol-highlight)
+  ("i" lsp-rust-analyzer-inlay-hints-mode))
 
 (defhydra-ext hydra-rust-dash (:exit t :foreign-keys nil :hint nil)
   "
