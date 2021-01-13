@@ -343,6 +343,8 @@ _O_: show all blocks  _U_: show all outline blocks"
       (def-keys-for-map vim:normal-mode-local-keymap
         ("z" hydra-vim-normal-z-outline/body)))))
 
+(provide 'folding-setup)
+
 ;; Local Variables:
 ;; End:
 

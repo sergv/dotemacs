@@ -8,8 +8,6 @@
 
 ;;; Code:
 
-(require 'vim-macs)
-
 (defvar vim:repeat-events nil
   "The sequence of events for the repeat command.")
 
