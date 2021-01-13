@@ -48,6 +48,7 @@
       (eshell-interactive-print prompt)))
   (run-hooks 'eshell-after-prompt-hook))
 
+;;;###autoload
 (setenv "PAGER" "cat")
 
 ;; Try eshell-complex-commands if some command doesn’t work.
