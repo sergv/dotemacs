@@ -1840,7 +1840,9 @@ make up new queue if persistent one is empty."
   "Put fortune into scratch buffer."
   (random t)
   (setf initial-scratch-message
-        (fortunes-comment-out-fortune (fortunes-get-next-fortune))))
+        (fortunes-comment-out-fortune (fortunes-get-next-fortune)))
+  (awhen (get-buffer "*scratch*")
+    (set-buffer-major-mode it)))
 
 ;;;###autoload
 (defun fortunes-comment-out-fortune (fortune-text)
