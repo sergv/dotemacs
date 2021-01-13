@@ -59,6 +59,16 @@
     (require 'company)
     (require 'el-patch)
     (require 'eshell)
+    (require 'em-alias)
+    (require 'em-banner)
+    (require 'em-basic)
+    (require 'em-dirs)
+    (require 'em-glob)
+    (require 'em-hist)
+    (require 'em-ls)
+    (require 'em-script)
+    (require 'em-unix)
+    (require 'em-xtra)
     (require 'grep)
     (require 'ibuffer)
     (require 'ivy)
@@ -84,18 +94,20 @@
 
     (require 'haskell-autoload)
     (require 'org-mode-autoload)
-
-    (require 'c++-setup)
-    (require 'haskell-watch)
     (require 'rust-autoloads)
 
+    (require 'haskell-watch)
+
+    (require 'c++-setup)
     (require 'comint-setup)
     (require 'completion-setup)
     (require 'compilation-setup)
     (require 'egrep)
     (require 'eproj)
+    (require 'emacs-lisp-setup)
     (require 'eshell-setup)
     (require 'folding-setup)
+    (require 'fortunes)
     (require 'git-setup)
     (require 'grep-setup)
     (require 'ibuffer-setup)
@@ -108,7 +120,8 @@
     (require 'solarized)
     (require 'spell)
     (require 'toml-mode-setup)
-    (require 'undo-tree-setup)
+    (require 'typography-setup)
+    ;; (require 'undo-tree-setup)
 
     (require 'shell-setup)
     (require 'shell-completion)
@@ -120,6 +133,9 @@
     (require 'vim-keymap)
     (require 'vim-compat)
     (require 'vim-undo)
+
+    (require 'keys)
+    (require 'vim-setup)
 
     ;; (require 'persistent-store)
     ;;

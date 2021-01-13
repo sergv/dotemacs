@@ -77,7 +77,6 @@
      (require 'pcmpl-rpm)
      (require 'pcmpl-unix)))
 
-(require 'ivy-posframe)
 (require 'ivy-smex)
 (require 'flx)
 

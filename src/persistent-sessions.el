@@ -397,6 +397,7 @@ entries."
           frames-entry
           (list 'tab-bar-mode tab-bar-mode))))
 
+;;;###autoload
 (defun sessions/save-buffers (file)
   "Save all buffers that have physical file assigned into FILE."
   (interactive "FFile to save session in: ")
@@ -433,6 +434,7 @@ entries."
       (write-region (point-min) (point-max) file)
       (make-file-executable file))))
 
+;;;###autoload
 (defun sessions/load-from-data (session-entries)
   "Load session from DATA."
   (let* ((version
@@ -540,6 +542,7 @@ entries."
 (defvar sessions/load-buffers-hook nil
   "Hook run after restoring session in `sessions/load-buffers'.")
 
+;;;###autoload
 (defun sessions/load-buffers (file)
   "Load session from FILE's contents."
   (interactive "fFile to load session from: ")
