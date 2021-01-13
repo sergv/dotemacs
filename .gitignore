@@ -10,7 +10,7 @@ local.24.*/**
 local.*/**
 misc/**
 packages/**
-scripts/**
+scripts/git-branch-filtering/**
 standalone/**
 tmp/**
 
