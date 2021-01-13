@@ -6676,12 +6676,7 @@ SESSION is the active session."
 
 (defun lsp--load-default-session ()
   "Load default session."
-  (setq lsp--session (or (condition-case err
-                             (lsp--read-from-file lsp-session-file)
-                           (error (lsp--error "Failed to parse the session %s, starting with clean one."
-                                              (error-message-string err))
-                                  nil))
-                         (make-lsp-session))))
+  (make-lsp-session))
 
 (defun lsp-session ()
   "Get the session associated with the current buffer."
