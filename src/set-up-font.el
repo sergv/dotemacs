@@ -9,8 +9,8 @@
 (eval-when-compile
   (require 'cl-lib))
 
-(when noninteractive
-  (error "Should not be reached"))
+(when dump-mode
+  (error "Should not be reached when dumping"))
 
 (require 'set-up-platform)
 (require 'set-up-environment-variables)
