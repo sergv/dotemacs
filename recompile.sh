@@ -53,7 +53,7 @@ function update-dir-autoloads {
             (mapconcat #'identity (list $dirs) ", "
             ))))
 EOF
-    emacs --batch --eval "$emacs_cmd"
+    emacs-pristine --batch --eval "$emacs_cmd"
 }
 
 inform "Removing generated autoload el files"
@@ -191,7 +191,7 @@ fi
 # fi
 
 inform "Recompiling"
-emacs --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\")"
+emacs-pristine --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\")"
 
 exit 0
 
