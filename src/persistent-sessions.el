@@ -395,7 +395,7 @@ entries."
           (list 'special-buffers special-buffer-data)
           (list 'global-variables (sessions/get-global-variables))
           frames-entry
-          (list 'tab-bar-mode tab-bar-mode))))
+          (list 'tab-bar-mode (if tab-bar-mode 1 -1)))))
 
 ;;;###autoload
 (defun sessions/save-buffers (file)
