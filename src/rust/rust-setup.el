@@ -61,23 +61,47 @@
 (defun rust-get-compilation-buffer-name (&rest _args)
   rust-compilation-buffer-name)
 
+(defun rust-compilation-next-error ()
+  "Select next error in `rust-compilation-buffer-name' buffer and jump to
+it's position in current window."
+  (interactive)
+  (text-property-jump-forward 'compilation-message nil t nil))
+
+(defun rust-compilation-prev-error ()
+  "Select previous error in `rust-compilation-buffer-name' buffer and jump to
+it's position in current window."
+  (interactive)
+  (text-property-jump-backward 'compilation-message nil t nil))
+
 (defun rust-compilation-next-error-other-window ()
   "Select next error in `rust-compilation-buffer-name' buffer and jump to
 it's position in current window."
   (interactive)
   (aif (get-buffer rust-compilation-buffer-name)
-      (compilation-navigation-next-error-in-buffer-other-window it)
-    (error "No Rust compilation started")))
+      (let ((err (with-selected-window (get-buffer-window it t)
+                   (with-current-buffer it
+                     (rust-compilation-next-error)
+                     (when hl-line-mode
+                       (hl-line-highlight))
+                     (rust-compilation--error-at-point)))))
+        (compilation/jump-to-error err nil))
+    (error "No Rust compilation buffer")))
 
 (defun rust-compilation-prev-error-other-window ()
   "Select previous error in `rust-compilation-buffer-name' buffer and jump to
 it's position in current window."
   (interactive)
   (aif (get-buffer rust-compilation-buffer-name)
-      (compilation-navigation-prev-error-in-buffer-other-window it)
-    (error "No Rust compilation started")))
+      (let ((err (with-selected-window (get-buffer-window it t)
+                   (with-current-buffer it
+                     (rust-compilation-prev-error)
+                     (when hl-line-mode
+                       (hl-line-highlight)))
+                   (rust-compilation--error-at-point))))
+        (compilation/jump-to-error err nil))
+    (error "No Rust compilation buffer")))
 
-(defvar rust-compilation-extra-error-modes haskell-compilation-extra-error-modes
+(defvar rust-compilation-extra-error-modes '(gnu)
   "Extra modes from `compilation-error-regexp-alist-alist' whose
 warnings will be colorized in `rust-compilation-mode'.")
 
@@ -117,12 +141,35 @@ which is suitable for most programming languages such as C or Lisp."
 
 ;;;;; rust-compilation-mode
 
+(add-to-list 'compilation-transform-file-match-alist
+             (list "/rustc/" nil))
+
+(defconst cargo-test-regexps
+  (list
+   (rx bol
+       (* " ")
+       "at "
+       (group (+ not-newline))
+       ":"
+       (group (+ (any (?0 . ?9))))
+       ":"
+       (group (+ (any (?0 . ?9))))
+       eol)
+   1 ;; file group
+   2 ;; line group
+   3 ;; cloumn group
+   0 ;; error type, 0 = info
+   nil ;; hyperlink
+   )
+  "Regexp to highlight backtrace positions when tests fail.")
+
 (define-compilation-mode rust-compilation-mode "Rust Compilation"
   "Rust-specific `compilation-mode' derivative."
   (setq-local compilation-error-regexp-alist
               (append (list rustc-compilation-regexps
                             rustc-colon-compilation-regexps
-                            cargo-compilation-regexps)
+                            cargo-compilation-regexps
+                            cargo-test-regexps)
                       rust-compilation-extra-error-modes)
               *compilation-jump-error-regexp*
               (mapconcat (lambda (x) (concat "\\(?:" (car x) "\\)"))
@@ -135,10 +182,39 @@ which is suitable for most programming languages such as C or Lisp."
 
   (add-hook 'compilation-filter-hook #'rust-compilation-filter-hook nil t))
 
+(defun rust-compilation--error-at-point ()
+  (aif (plist-get (text-properties-at (point)) 'compilation-message)
+      (let* ((loc (compilation--message->loc it))
+             (file (caar (compilation--loc->file-struct loc)))
+             (line (compilation--loc->line loc))
+             (col (1- (compilation--loc->col loc))))
+        (make-compilation-error :compilation-root-directory default-directory
+                                :filename file
+                                :line-number line
+                                :column-number col))
+    (error "No compilation error at point")))
+
+(defun rust-compilation-jump-to-error (other-window)
+  (compilation/jump-to-error (rust-compilation--error-at-point) other-window))
+
+(defun rust-compilation-goto-error ()
+  "Jump to location of error or warning (file, line and column) in current window."
+  (interactive)
+  (rust-compilation-jump-to-error nil))
+
+(defun rust-compilation-goto-error-other-window ()
+  "Jump to location of error or warning (file, line and column) in other window."
+  (interactive)
+  (rust-compilation-jump-to-error t))
+
+
 (def-keys-for-map rust-compilation-mode-map
-  +vim-special-keys+
-  ("<return>" compilation/goto-error)
-  ("SPC"      compilation/goto-error-other-window))
+  ("<up>"     rust-compilation-prev-error)
+  ("<down>"   rust-compilation-next-error)
+  ("t"        rust-compilation-prev-error)
+  ("h"        rust-compilation-next-error)
+  ("<return>" rust-compilation-goto-error)
+  ("SPC"      rust-compilation-goto-error-other-window))
 
 ;;;;; rust-syntax-mode
 
