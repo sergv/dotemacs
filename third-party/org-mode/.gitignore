@@ -44,7 +44,6 @@ version.mk
 manual
 org_dual_license.texi
 ORGWEBPAGE/Changes.txt
-local*.mk
 .gitattributes
 mk/x11idle
 ChangeLog
