@@ -9,6 +9,9 @@
 (eval-when-compile
   (require 'cl-lib))
 
+(when noninteractive
+  (error "Should not be reached"))
+
 (require 'set-up-platform)
 (require 'set-up-environment-variables)
 (require 'set-up-paths)
