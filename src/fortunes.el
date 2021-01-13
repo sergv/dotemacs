@@ -1789,6 +1789,158 @@ were first led up to it, that you can make it more.”
 they should not waste their time debugging, they should not introduce
 the bugs to start with.”
 —Edsger Dijkstra, Turing Award Lecture (1972)"
+
+     "No matter how much money you spend, you can't make a racehorse out of a
+pig.  You can, however, make an awfully fast pig.
+– An old saying about program efficiency"
+
+    "Histocompatibility, Disease and Aging
+	poem on a paper by E. Yunis
+
+“The crown of life, our play's last act,”
+Cicero on old age was opining.
+What he didn’t know, but now is a fact:
+It’s then your T-cells are declining,
+Too many tick-tocks of the old thymic clock;
+It runs down like a watch on the shelf.
+Then suppressor T-cells aren’t sufficient to block
+B-cell clones that arise against self.
+This theory’s supported, Dr. Yunis explained,
+By studies in mice and in man.
+The data suggest that the program’s ingrained;
+It’s a genetic kind of a plan.
+It seems to depend on your HLA type.
+If you have a desire to die late,
+And your wish is, in time, to become overripe,
+It is better not to B-8.
+–Donald Patterson
+
+reprinted from 9 April 1982 issue of “Science”
+reprinted from “Institute of Laboratory Animal Resources News”,
+25 (No. 2), 6 (winter 1982)"
+
+    "Increasingly, people seem to misinterpret complexity as
+sophistication, which is baffling – the incomprehensible should cause
+suspicion rather than admiration. Possibly this trend results from a
+mistaken belief that using a somewhat mysterious device confers an
+aura of power on the user.
+–Niklaus Wirth"
+
+;; Mail should be at least a mixture of upper and lower case.  Devising
+;; your own font (Devanagari, pinhead graphics, etc.) and using it in the
+;; mail is a good entertainment tactic, as is finding some way to use
+;; existing obscure fonts.
+;;                 -- from the Symbolics Guidelines for Sending Mail
+;; %
+;; It is considered artful to append many messages on a subject, leaving
+;; only the most inflammatory lines from each, and reply to all in one
+;; swift blow.  The choice of lines to support your argument can make or
+;; break your case.
+;;                 -- from the Symbolics Guidelines for Sending Mail
+;; %
+;; Replying to one's own message is a rarely-exposed technique for
+;; switching positions once you have thought about something only after
+;; sending mail.
+;;                 -- from the Symbolics Guidelines for Sending Mail
+;; %
+;; State opinions in the syntax of fact: "...as well as the bug in LMFS
+;; where you have to expunge directories to get rid of files....."
+;;                 -- from the Symbolics Guidelines for Sending Mail
+;; %
+;; If you have nothing to say on a subject, replying with a line such as,
+;; "I agree with this." puts you in the TO:'s for all future messages, and
+;; establishes you as "one who really cares", if not an actual expert, on
+;; the topic at hand.
+;;                 -- from the Symbolics Guidelines for Sending Mail
+;; %
+;; Inclusion of very old messages from others makes for an impressive show.
+;;                 -- from the Symbolics Guidelines for Sending Mail
+;; %
+;; People can be set wondering by loading obscure personal patchable
+;; systems, and sending bug reports.  Who would not stop and wonder upon
+;; seeing "Experimental TD80-TAPE 1.17, MegaDeath 2.5..."?  The same for
+;; provocatively-named functions and variables in stack traces.
+;;                 -- from the Symbolics Guidelines for Sending Mail
+;; %
+;; Know the list of "large, chronic problems".  If there is any problem
+;; with the window system, blame it on the activity system.  Any lack of
+;; user functionality should be attributed to the lack of a command
+;; processor.  A suprisingly large number of people will believe that you
+;; have thought in depth about the issue to which you are alluding when you
+;; do.
+;;                 -- from the Symbolics Guidelines for Sending Mail
+;; %
+;; Know how to blow any problem up into insolubility.  Know how to use the
+;; phrase "The new ~A system" to insult its argument, e.g., "I guess this
+;; destructuring LET thing is fixed in the new Lisp system", or better yet,
+;; PROLOG.
+;;                 -- from the Symbolics Guidelines for Sending Mail
+;; %
+;; Never hit someone head on, always sideswipe.  Never say, "Foo's last
+;; patch was brain-damaged", but rather, "While fixing the miscellaneous
+;; bugs in 243.xyz [foo's patch], I found...."
+;;                 -- from the Symbolics Guidelines for Sending Mail
+;; %
+;; Idiosyncratic indentations, double-spacing, capitalization, etc., while
+;; stamps of individuality, leave one an easy target for parody.
+;;                 -- from the Symbolics Guidelines for Sending Mail
+;; %
+;; Strong language gets results.  "The reloader is completely broken in
+;; 242" will open a lot more eyes than "The reloader doesn't load files
+;; with intermixed spaces, asterisks, and <'s in their names that are
+;; bigger than 64K".  You can always say the latter in a later paragraph.
+;;                 -- from the Symbolics Guidelines for Sending Mail
+;; %
+;; Including a destination in the CC list that will cause the recipients'
+;; mailer to blow out is a good way to stifle dissent.
+;;                 -- from the Symbolics Guidelines for Sending Mail
+;; %
+;; When replying, it is often possible to cleverly edit the original
+;; message in such a way as to subtly alter its meaning or tone to your
+;; advantage while appearing that you are taking pains to preserve the
+;; author's intent.  As a bonus, it will seem that your superior
+;; intellect is cutting through all the excess verbiage to the very heart
+;; of the matter.
+;;                 -- from the Symbolics Guidelines for Sending Mail
+;; %
+;; Referring to undocumented private communications allows one to claim
+;; virtually anything: "we discussed this idea in our working group last
+;; year, and concluded that it was totally brain-damaged".
+;;                 -- from the Symbolics Guidelines for Sending Mail
+;; %
+;; Points are awarded for getting the last word in.  Drawing the
+;; conversation out so long that the original message disappears due to
+;; being indented off the right hand edge of the screen is one way to do
+;; this.  Another is to imply that anyone replying further is a hopeless
+;; cretin and is wasting everyone's valuable time.
+;;                 -- from the Symbolics Guidelines for Sending Mail
+;; %
+;; Keeping a secret "Hall Of Flame" file of people's mail indiscretions,
+;; or copying messages to private mailing lists for subsequent derision,
+;; is good fun and also a worthwhile investment in case you need to
+;; blackmail the senders later.
+;;                 -- from the Symbolics Guidelines for Sending Mail
+;; %
+;; Users should cultivate an ability to make the simplest molehill into a
+;; mountain by finding controversial interpretations of innocuous
+;; sounding statements that the sender never intended or imagined.
+;;                 -- from the Symbolics Guidelines for Sending Mail
+;; %
+;; Obversely, a lot of verbal mileage can also be gotten by sending out
+;; incomprehensible, cryptic, confusing or unintelligible messages, and
+;; then iteratively "correcting" the "mistaken interpretations" in the
+;; replys.
+;;                 -- from the Symbolics Guidelines for Sending Mail
+;; %
+;; Trivialize a user's bug report by pointing out that it was fixed
+;; independently long ago in a system that hasn't been released yet.
+;;                 -- from the Symbolics Guidelines for Sending Mail
+;; %
+;; Send messages calling for fonts not available to the
+;; recipient(s).  This can (in the case of Zmail) totally disable
+;; the user's machine and mail system for up to a whole day in some
+;; circumstances.
+;;                 -- from the Symbolics Guidelines for Sending Mail
 ]
   "Good and nice fortunes.")
 
