@@ -49,7 +49,7 @@ ENTRY should be of format used by `compilation-error-regexp-alist'."
   (let* ((file-group (cadr entry))
          (strip-cons (lambda (x)
                        (if (consp x)
-                         (car x)
+                           (car x)
                          x)))
          (line-group
           (funcall strip-cons (cadr-safe (cdr entry))))
