@@ -327,7 +327,7 @@ into accound and do the replacement only within specific circumstances.")
 
 (defun pretty-ligatures--install (ligatures)
   "Add hasklig ligatures for use with prettify-symbols-mode."
-  (when (and current-font
+  (when (and (bound-and-true-p current-font)
              (string-match-p "Iosevka Slab Lig" current-font))
     (setq-local prettify-symbols-alist
                 (append ligatures

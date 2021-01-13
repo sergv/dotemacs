@@ -22,6 +22,8 @@
 (require 'smartparens-rust)
 (require 'smartparens-setup)
 
+(require 'rust-autoloads)
+
 (setf rust-indent-method-chain t
       rust-indent-where-clause t
 
