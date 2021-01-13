@@ -961,10 +961,9 @@ to deleted items. ITEMS will be mutated in order to obtain result."
           (forward-line -1)
           nil)))))
 
-(defun text-property-jump-forward (property value jump-to-end)
+(defun text-property-jump-forward (property value cycle? jump-to-end)
   "Jump forward between text property PROPERTY with value VALUE with wraparound."
-
-  (when (and (search-property 'forward nil property value)
+  (when (and (search-property 'forward cycle? property value)
              ;; Only do jump to end if we have moved on initial search.
              jump-to-end)
     (goto-char (if-let (change-pos (next-single-property-change
@@ -975,9 +974,9 @@ to deleted items. ITEMS will be mutated in order to obtain result."
                    change-pos
                  (point-max)))))
 
-(defun text-property-jump-backward (property value jump-to-end)
+(defun text-property-jump-backward (property value cycle? jump-to-end)
   "Jump backward between text property PROPERTY with value VALUE with wraparound."
-  (when (and (search-property 'backward nil property value)
+  (when (and (search-property 'backward cycle? property value)
              ;; Only do jump to end if we have moved on initial search.
              jump-to-end)
     (goto-char (if-let (change-pos (next-single-property-change
