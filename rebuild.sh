@@ -10,7 +10,7 @@ set -u
 # propagate errors from all parts of pipes
 set -o pipefail
 
-./scripts/recompile.sh && ./tests/run-tests.sh && ./scripts/dump.sh
+./scripts/recompile.sh && ./scripts/dump.sh && ./tests/run-tests.sh
 
 exit 0
 
