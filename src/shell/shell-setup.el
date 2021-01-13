@@ -29,9 +29,6 @@
 (add-to-list 'display-buffer-alist
              '("^\\*shell.*\\*" . (display-buffer-same-window)))
 
-
-(autoload 'shell-command+ "common-heavy" nil t)
-
 ;;;###autoload
 (defun shell-run-file ()
   "Run buffer's script file."
