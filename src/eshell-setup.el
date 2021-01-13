@@ -198,11 +198,11 @@
 
 (defun eshell-jump-to-next-prompt ()
   (interactive)
-  (text-property-jump-forward 'field 'prompt t))
+  (text-property-jump-forward 'field 'prompt nil t))
 
 (defun eshell-jump-to-prev-prompt ()
   (interactive)
-  (text-property-jump-backward 'field 'prompt t))
+  (text-property-jump-backward 'field 'prompt nil t))
 
 ;;;###autoload
 (defun eshell-setup ()
