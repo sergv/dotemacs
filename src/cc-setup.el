@@ -14,7 +14,6 @@
 (require 'ctypes)
 (require 'indentation)
 (require 'find-file)
-(require 'eproj)
 (require 'company-eproj)
 
 (require 'dtrt-indent) ;; indent offset guesser
