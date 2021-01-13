@@ -263,6 +263,8 @@ inclusively."
      (delete-region (point-min) (line-end-position))
      (delete-char 1))))
 
+(provide 'comint-setup)
+
 ;; Local Variables:
 ;; End:
 

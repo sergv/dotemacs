@@ -33,8 +33,6 @@
 
 ;; (set-fontset-font t '(#Xe100 . #Xe115) "Iosevka Slab Lig")
 
-(require 'set-up-font)
-
 (defconst pretty-ligatures--glyph-widths
   (eval-when-compile
     (alist->hash-table
