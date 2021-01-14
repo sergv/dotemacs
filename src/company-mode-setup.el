@@ -22,7 +22,7 @@
       company-statistics-size 512)
 
 (company-statistics-mode +1)
-(company-posframe-mode +1)
+;; (company-posframe-mode +1)
 
 (defadvice company-statistics--save (around
                                      company-statistics--save/use-persistent-store
