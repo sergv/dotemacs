@@ -140,7 +140,7 @@ and switches to insert-mode."
   "Inserts a new line below the current one and goes to insert mode."
   (vim:start-insert-mode count 'below))
 
-(vim:defcmd vim:cmd-replace (count)
+(vim:defcmd vim:cmd-replace ()
   "Goes to replace-mode."
   (vim:activate-insert-mode)
   (vim:insert-mode-toggle-replace))
@@ -355,7 +355,7 @@ and switches to insert-mode."
         (endcol (vim:motion-last-col motion))
         (parts nil))
     (goto-line-dumb endrow)
-    (dotimes (i (1+ (- endrow begrow)))
+    (dotimes (_ (1+ (- endrow begrow)))
       (let ((beg (save-excursion (move-to-column begcol) (point)))
             (end (save-excursion (move-to-column (1+ endcol)) (point))))
         (push (cons (save-excursion (goto-char beg)
@@ -464,7 +464,7 @@ and switches to insert-mode."
         end
         (text (vim--cmd-paste-get-text vim:cmd-paste-before-counter register)))
     (save-excursion
-      (dotimes (i (or count 1))
+      (dotimes (_ (or count 1))
         (if register
             (insert-for-yank text)
           (progn
@@ -516,7 +516,7 @@ and switches to insert-mode."
          (when at-eob
            ;; we have to remove the final newline and update paste-info
            (goto-char (vim:paste-info-begin vim:last-paste))
-           (delete-backward-char 1)
+           (delete-char -1)
            (setf
             (vim:paste-info-begin vim:last-paste)  (max (point-min)
                                                         (1- (vim:paste-info-begin vim:last-paste)))
@@ -586,10 +586,8 @@ indented according to the current mode."
          (yhandler (get-text-property 0 'vim:yank-handler txt)))
     (when (eq (car-safe yhandler) 'vim:yank-line-handler)
       ;; We have to reindent the lines and update the paste-data.
-      (let* ((txt (if register (vim:get-register register) (current-kill 0)))
-             (yhandler (get-text-property 0 'vim:yank-handler txt)))
-        (let ((begln (line-number-at-pos (vim:paste-info-begin vim:last-paste)))
-              (endln (line-number-at-pos (vim:paste-info-end vim:last-paste))))
+      (let* ((txt (if register (vim:get-register register) (current-kill 0))))
+        (let ((endln (line-number-at-pos (vim:paste-info-end vim:last-paste))))
           (indent-region (vim:paste-info-begin vim:last-paste)
                          (vim:paste-info-end vim:last-paste))
           (setf (vim:paste-info-end vim:last-paste)
@@ -609,8 +607,7 @@ indented according to the current mode."
          (yhandler (get-text-property 0 'vim:yank-handler txt)))
     (when (eq yhandler 'vim:yank-line-handler)
       ;; We have to reindent the lines and update the paste-data.
-      (let ((begln (line-number-at-pos (vim:paste-info-begin vim:last-paste)))
-            (endln (line-number-at-pos (vim:paste-info-end vim:last-paste))))
+      (let ((endln (line-number-at-pos (vim:paste-info-end vim:last-paste))))
         (if (vim:paste-info-at-eob vim:last-paste)
           (progn
             (indent-region (1+ (vim:paste-info-begin vim:last-paste))
@@ -634,10 +631,10 @@ indented according to the current mode."
   "Join `count' lines with a minimum of two lines."
   (setf count (or count 1))
   (if (< count 0)
-      (dotimes (i (abs count))
+      (dotimes (_ (abs count))
         (split-line))
     (save-match-data
-      (dotimes (i (max 1 (1- count)))
+      (dotimes (_ (max 1 (1- count)))
         (when (re-search-forward "\\(\\s-*\\)\\(\n\\s-*\\)\\()?\\)")
           (delete-region (match-beginning 2)
                          (match-end 2))
@@ -708,7 +705,7 @@ block motions."
                 (endrow (vim:motion-last-line motion))
                 (endcol (vim:motion-last-col motion)))
             (goto-line-dumb begrow)
-            (dotimes (i (1+ (- endrow begrow)))
+            (dotimes (_ (1+ (- endrow begrow)))
               (let ((beg (save-excursion
                            (move-to-column begcol)
                            (point)))
@@ -720,7 +717,7 @@ block motions."
     (`linewise
      (save-excursion
        (goto-char (vim:motion-begin-pos motion))
-       (dotimes (i (vim:motion-line-count motion))
+       (dotimes (_ (vim:motion-line-count motion))
          (funcall func (line-beginning-position) (line-end-position))
          (forward-line))))
     (_
@@ -733,7 +730,6 @@ block motions."
     (error "Nothing to repeat"))
   (vim:reset-key-state)
   (let ((repeat-events vim:repeat-events)
-        (current-key-sequence vim:current-key-sequence)
         vim:repeat-events
         vim:current-key-sequence)
     (execute-kbd-macro repeat-events)))
