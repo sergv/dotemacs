@@ -60,6 +60,8 @@
       ;; lsp-modeline-diagnostics-scope :workspace
       lsp-modeline-diagnostics-scope :file
 
+      lsp-auto-execute-action nil
+
       lsp-ui-sideline-enable nil
       lsp-ui-sideline-show-diagnostics nil
       lsp-ui-sideline-show-hover t
