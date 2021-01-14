@@ -61,6 +61,7 @@
       lsp-modeline-diagnostics-scope :file
 
       lsp-auto-execute-action nil
+      lsp-enable-relative-indentation t
 
       lsp-ui-sideline-enable nil
       lsp-ui-sideline-show-diagnostics nil
