@@ -239,14 +239,15 @@ _i_nlay hints                      %`lsp-rust-analyzer-inlay-hints-mode
 
 (defhydra-ext hydra-rust-dash (:exit t :foreign-keys nil :hint nil)
   "
-_d_ocumentation           jump to _c_argo toml      toggle some _o_ptions
-_e_xplain error at point  jump to _p_arent module
+_a_ctions                 jump to _c_argo toml     toggle some _o_ptions
+_d_ocumentation           jump to _p_arent module
+_e_xplain error at point
 _i_mplementations
 _m_acro expand
 _r_ename
 _t_ype
-_u_sages
-"
+_u_sages"
+  ("a" lsp-execute-code-action)
   ("d" lsp-doc-other-window)
   ("e" flycheck-explain-error-at-point)
   ("i" lsp-symbnav/find-implementations)
