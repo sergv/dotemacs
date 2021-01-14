@@ -84,6 +84,8 @@
 (require 'lv)
 (require 'ring)
 
+(require 'v)
+
 (defvar hydra-curr-map nil
   "The keymap of the current Hydra called.")
 
@@ -239,9 +241,9 @@ the body or the head."
                    (posframe-hide " *hydra-posframe*"))))))
 
 (defvar hydra-hint-display-alist
-  (list (list 'lv #'lv-message #'lv-delete-window)
-        (list 'message (lambda (str) (message "%s" str)) (lambda () (message "")))
-        (list 'posframe #'hydra-posframe-show #'hydra-posframe-hide))
+  (vector (vector 'lv #'lv-message #'lv-delete-window)
+          (vector 'message (lambda (str) (message "%s" str)) (lambda () (message "")))
+          (vector 'posframe #'hydra-posframe-show #'hydra-posframe-hide))
   "Store the functions for `hydra-hint-display-type'.")
 
 (defcustom hydra-hint-display-type 'lv
@@ -537,7 +539,7 @@ Remove :color key. And sort the plist alphabetically."
   (unless (and hydra--ignore
                (null hydra--work-around-dedicated))
     (funcall
-     (nth 2 (assoc hydra-hint-display-type hydra-hint-display-alist))))
+     (aref (v--find (eq (aref it 0) hydra-hint-display-type) hydra-hint-display-alist) 2)))
   nil)
 
 (defvar hydra-head-format "[%s]: "
@@ -966,7 +968,7 @@ KEY is forwarded to `plist-get'."
           (t
            (when hydra-is-helpful
              (funcall
-              (nth 1 (assoc hydra-hint-display-type hydra-hint-display-alist))
+              (aref (v--find (eq (aref it 0) hydra-hint-display-type) hydra-hint-display-alist) 1)
               (eval hint)))))))
 
 (defmacro hydra--make-funcall (sym)
