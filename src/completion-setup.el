@@ -10,6 +10,18 @@
 
 (require 'common)
 
+(require 'ivy)
+(require 'ivy-posframe)
+(require 'ivy-smex)
+(require 'flx)
+
+(eval-after-load "pcomplete"
+  '(progn
+     (require 'pcmpl-gnu)
+     (require 'pcmpl-linux)
+     (require 'pcmpl-rpm)
+     (require 'pcmpl-unix)))
+
 ;; Vanilla completion
 
 (setf read-buffer-completion-ignore-case t)
@@ -70,16 +82,6 @@
                                                       eol)
                                                   filename)))))))
 
-(eval-after-load "pcomplete"
-  '(progn
-     (require 'pcmpl-gnu)
-     (require 'pcmpl-linux)
-     (require 'pcmpl-rpm)
-     (require 'pcmpl-unix)))
-
-(require 'ivy-smex)
-(require 'flx)
-
 (setf ivy-use-virtual-buffers t
       ivy-initial-inputs-alist nil
       ivy-wrap t
@@ -115,7 +117,7 @@
       ivy-posframe-hide-minibuffer t)
 
 (ivy-mode +1)
-(ivy-posframe-mode +1)
+;; (ivy-posframe-mode +1)
 
 (add-to-list 'ivy-ignore-buffers invisible-buffers-re)
 

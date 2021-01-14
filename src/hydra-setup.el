@@ -10,9 +10,10 @@
 (require 'posframe)
 (require 'simple)
 
-(setf hydra-hint-display-type (if (posframe-workable-p)
-                                  'posframe
-                                'lv))
+;; (setf hydra-hint-display-type (if (posframe-workable-p)
+;;                                   'posframe
+;;                                 'lv))
+(setf hydra-hint-display-type 'lv)
 
 (defmacro defhydra-ext (name args &optional docstring &rest heads)
   "Like `defhydra' but also binds standard keys I expect to find across
