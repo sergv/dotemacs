@@ -305,7 +305,7 @@
        (concat "Uses of " identifier "\n\n")))))
 
 (defun lsp-symbnav/find-implementations ()
-  (interactive "P")
+  (interactive)
   (let* ((identifier (eproj-symbnav/identifier-at-point nil))
          (tag-triples
           (--map (list identifier it nil)
