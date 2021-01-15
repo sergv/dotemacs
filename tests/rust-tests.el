@@ -233,12 +233,6 @@
     "for x in 1..   _|_"
     "for x in 1..=_|_"))
 
-(ert-deftest rust-tests/rust-smart-operators--ampersand-1 ()
-  (rust-tests--test-buffer-contents
-      (rust-smart-operators--insert-char-surrounding-with-spaces ?\&)
-    "Vec<_|_"
-    "Vec<&_|_"))
-
 (ert-deftest rust-tests/rust-smart-operators--two-ampersands-1 ()
   (rust-tests--test-buffer-contents
       (rust-smart-operators--insert-char-surrounding-with-spaces ?\&)
@@ -387,6 +381,18 @@
     "let x: &[_|_]"
     "let x: &[&_|_]"))
 
+(ert-deftest rust-tests/rust-smart-operators--ampersand-6 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?\&)
+    "Vec<_|_"
+    "Vec<&_|_"))
+
+(ert-deftest rust-tests/rust-smart-operators--ampersand-7 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?\&)
+    "fn parse(self) -> Result<_|_str> {"
+    "fn parse(self) -> Result<&_|_str> {"))
+
 (ert-deftest rust-tests/rust-smart-operators--asterisk-1 ()
   (rust-tests--test-buffer-contents
       (rust-smart-operators--insert-char-surrounding-with-spaces ?\*)
@@ -416,6 +422,12 @@
       (rust-smart-operators--insert-char-surrounding-with-spaces ?\*)
     "while i < level.len() && _|_level[i].1 == &Tree::Empty {"
     "while i < level.len() && *_|_level[i].1 == &Tree::Empty {"))
+
+(ert-deftest rust-tests/rust-smart-operators--asterisk-6 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?\*)
+    "fn parse(self) -> Result<_|_int> {"
+    "fn parse(self) -> Result<*_|_int> {"))
 
 (ert-deftest rust-tests/rust-smart-operators--gt-1 ()
   (rust-tests--test-buffer-contents
