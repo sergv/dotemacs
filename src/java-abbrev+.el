@@ -24,10 +24,10 @@ while interactively prompting for variables/messages."
          (insert-continuation
           (lambda (should-merge-messages?)
             (if should-merge-messages?
-                (delete-backward-char 1)
+                (delete-char -1)
               (insert " + \""))))
          (insert-message
-          (lambda (is-initial-insertion? user-input)
+          (lambda (_ user-input)
             (insert (format "%s\"" (funcall quote-input user-input)))))
          (insert-variable
           (lambda (is-initial-insertion? user-input)
