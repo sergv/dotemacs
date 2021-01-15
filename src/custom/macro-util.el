@@ -611,6 +611,19 @@ Temporary file will be removed after BODY finishes."
          (defvar-local ,var ,tmp-var ,doc))
        nil)))
 
+(defmacro time-it (msg &rest body)
+  "Count how many seconds BODY executes and report it with format
+MSG which should have one %s or %f place."
+  (declare (indent 1))
+  (let ((start '#:start)
+        (end '#:end)
+        (res '#:res))
+    `(let ((,start (current-time)))
+       (let ((,res (progn ,@body)))
+         (let ((,end (current-time)))
+           (message ,msg (float-time (time-subtract ,end ,start)))
+           ,res)))))
+
 ;;; end
 
 (provide 'macro-util)
