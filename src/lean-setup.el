@@ -6,6 +6,10 @@
 ;; Created: 21 June 2019
 ;; Description:
 
+(declare-function lean-find-definition "lean-info")
+(declare-function lean-find-definition-cont "lean-info")
+(declare-function lean-server-send-synchronous-command "lean-server")
+
 (require 'select-mode)
 
 (defun lean-setup--get-definitions-candidates (pat)
@@ -43,7 +47,7 @@
                        (select-mode-setup)
                        (select-mode-extend-keymap-with kmap))
          :on-selection
-         (lambda (idx candidate _selection-type)
+         (lambda (_ candidate _selection-type)
            (select-mode-exit)
            (apply #'lean-find-definition-cont
                   (plist-get candidate :source)))
