@@ -23,10 +23,10 @@ stick it to the previous operator on line."
   (rust-smart-operators--insert-char-optionally-surrounding-with-spaces char t))
 
 (defconst rust-smart-operators--chars-to-separate-from-ampersand
-  '(?= ?> ?< ?| ?^ ?% ?/ ?- ?+ ?*))
+  '(?= ?> ?| ?^ ?% ?/ ?- ?+ ?*))
 
 (defconst rust-smart-operators--chars-to-separate-from-asterisk
-  '(?= ?> ?< ?| ?^ ?% ?/ ?- ?+ ?* ?&))
+  '(?= ?> ?| ?^ ?% ?/ ?- ?+ ?* ?&))
 
 (defun rust-smart-operators--insert-char-optionally-surrounding-with-spaces (char insert-space-after)
   (let ((disable-smart-operators? current-prefix-arg))
@@ -54,10 +54,12 @@ stick it to the previous operator on line."
                             (and char-before-spaces ;; not at beginning of buffer
                                  (cond
                                    ((and (char= char ?*)
-                                         (memq char-before-spaces rust-smart-operators--chars-to-separate-from-asterisk))
+                                         (memq char-before-spaces
+                                               rust-smart-operators--chars-to-separate-from-asterisk))
                                     nil)
                                    ((and (char= char ?&)
-                                         (memq char-before-spaces rust-smart-operators--chars-to-separate-from-ampersand))
+                                         (memq char-before-spaces
+                                               rust-smart-operators--chars-to-separate-from-ampersand))
                                     nil)
                                    ((char-equal char-before-spaces ?>)
                                     (if (char-equal char ?>)
