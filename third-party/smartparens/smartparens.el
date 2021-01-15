@@ -8861,7 +8861,7 @@ Examples:
                  ((= (sp-get thing :beg) (point))
                   (goto-char (sp-get thing :beg-in)))
                  (t
-                  (delete-char (length (match-string 0)) do-kil)))
+                  (delete-char (length (match-string 0)) do-kill)))
               (delete-char (length (match-string 0)) do-kill))
             ;; make this customizable
             (setq n (1- n)))
