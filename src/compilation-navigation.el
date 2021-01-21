@@ -129,22 +129,25 @@ with the position of the selected error."
         (line (line-number-at-pos)))
     (with-selected-window win
       (with-current-buffer buf
-        (if-let ((selected-err (compilation/get-selected-error)))
-            (if (and
-                 (eq (compilation/find-buffer
-                      (compilation-error/filename selected-err)
-                      (compilation-error/compilation-root-directory selected-err))
-                     curr-buf)
-                 (equal (compilation-error/line-number selected-err)
-                        line))
-                ;; If we're already on the selected error then jump to next error.
-                (progn
-                  (funcall jump-to-next-err-func)
-                  (compilation/get-selected-error))
-              selected-err)
-          (progn
-            (funcall jump-to-next-err-func)
-            (compilation/get-selected-error)))))))
+        (prog1
+            (if-let ((selected-err (compilation/get-selected-error)))
+                (if (and
+                     (eq (compilation/find-buffer
+                          (compilation-error/filename selected-err)
+                          (compilation-error/compilation-root-directory selected-err))
+                         curr-buf)
+                     (equal (compilation-error/line-number selected-err)
+                            line))
+                    ;; If we're already on the selected error then jump to next error.
+                    (progn
+                      (funcall jump-to-next-err-func)
+                      (compilation/get-selected-error))
+                  selected-err)
+              (progn
+                (funcall jump-to-next-err-func)
+                (compilation/get-selected-error)))
+          (when hl-line-mode
+            (hl-line-highlight)))))))
 
 (defun compilation-navigation--go-navigate-errors (buf jump-to-next-err-func fallback)
   "Navigate errors in compilation buffer BUF."
