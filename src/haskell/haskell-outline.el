@@ -59,12 +59,9 @@ to enable folding of balanced S-expressions."
                           (string-to-vector " ..."))
 
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("z" hydra-haskell-vim-normal-z/body)
-
-
-    )
+    ("z" hydra-haskell-vim-normal-z/body))
   (def-keys-for-map vim:visual-mode-local-keymap
-    ("z" hydra-haskell-vim-visual-z)))
+    ("z" hydra-haskell-vim-visual-z/body)))
 
 ;;;###autoload
 (defun haskell-hide-indented-or-sexp ()
