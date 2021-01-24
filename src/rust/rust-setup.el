@@ -134,10 +134,25 @@ which is suitable for most programming languages such as C or Lisp."
   :require-one-or-more-spaces t)
 
 (vim:defcmd vim:rust-flycheck-configure (nonrepeatable)
-  (flycheck-rust-setup))
+  (unless rust-flycheck-configure
+    (error "Don’t know how to configure %s checker"
+           flycheck-cherker)))
+
+(defun rust-flycheck-configure ()
+  (when (and (boundp 'flycheck-checker)
+             (memq flycheck-checker '(rust rust-clippy)))
+    (flycheck-rust-setup)
+    t))
+
+(defun rust-flycheck-reset ()
+  (interactive)
+  (vim:flycheck-clear)
+  (when (and (boundp 'flycheck-checker)
+             (eq flycheck-checker 'lsp))
+    (lsp-restar-workspace)))
 
 (with-eval-after-load 'rust-mode
-  (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
+  (add-hook 'flycheck-mode-hook #'rust-flycheck-configure))
 
 ;;;;; rust-compilation-mode
 
@@ -390,7 +405,8 @@ _a_lign  _t_: beginning of defun
     (vim:local-emap cmd #'vim:rust-flycheck-configure))
 
   (flycheck-install-ex-commands!
-   :install-flycheck flycheck-mode)
+   :install-flycheck flycheck-mode
+   :reset-func #'rust-flycheck-reset)
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("-"   hydra-rust-dash/body)
