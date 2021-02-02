@@ -754,8 +754,16 @@ Groups 6-9 can be used in any of argument regexps."
   (unless (assq 'lua-mode hs-special-modes-alist)
     (add-to-list 'hs-special-modes-alist
                  `(lua-mode
-                   ,(regexp-opt (mapcar 'car lua-sexp-alist) 'words) ;start
-                   ,(regexp-opt (mapcar 'cdr lua-sexp-alist) 'words) ;end
+                   ;; Start
+                   ,(concat
+                     "\\(:?"
+                     (regexp-opt (mapcar 'car lua-sexp-alist) 'words)
+                     "\\)\\|[({]")
+                   ;; End
+                   ,(concat
+                     "\\(:?"
+                     (regexp-opt (mapcar 'cdr lua-sexp-alist) 'words)
+                     "\\)\\|[)}]")
                    nil lua-forward-sexp))))
 
 
