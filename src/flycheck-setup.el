@@ -99,7 +99,7 @@
     (vim:local-emap "ff" #'vim:flycheck-compile)
     (dolist (cmd '("check" "ch"))
       (vim:local-emap cmd #'vim:flycheck-run))
-    (dolist (cmd '("clear" "reset"))
+    (dolist (cmd '("clear" "reset" "re"))
       (vim:local-emap cmd
                       (or reset-func
                           #'vim:flycheck-clear)))
