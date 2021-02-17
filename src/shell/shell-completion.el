@@ -4063,7 +4063,10 @@ under version-control directories."
 
 ;;;###autoload (autoload 'pcomplete/cargo "shell-completion" nil t)
 (defpcmpl pcomplete/cargo
-  (let ((common-flags
+  (let ((help-flags
+         '("-h"
+           "--help"))
+        (common-flags
          '("-V"
            "--version"
            "--list"
@@ -4078,9 +4081,7 @@ under version-control directories."
            "--frozen"
            "--locked"
            "--offline"
-           "-Z"
-           "-h"
-           "--help"))
+           "-Z"))
         (target-flags
          '("-p"
            ("--package" (pcmpl-rust-package-names))
@@ -4113,16 +4114,19 @@ under version-control directories."
     `(or (("build" "check" "doc")
           (opts
            (flags ,@common-flags
+                  ,@help-flags
                   ,@target-flags
                   ,@build-flags)))
          ("clean"
           (opts
            (flags ,@common-flags
+                  ,@help-flags
                   ,@target-flags
                   "--doc")))
          ("new"
           (opts
            (flags ,@common-flags
+                  ,@help-flags
                   "--bin"
                   "--lib"
                   "--edition=2015"
@@ -4132,25 +4136,33 @@ under version-control directories."
                   "--vcs=hg"
                   "--vcs=pijul"
                   "--vcs=fossil")))
-         ("init")
+
          ("run"
           (opts
-           (flags ,@common-flags
-                  ,@target-flags
+           (flags ,@target-flags
                   ("--bin" (pcmpl-rust-binary-targets))
                   ("--example" (pcmpl-rust-example-targets))
                   "--features"
                   "--all-features"
                   "--no-default-features")))
-         ("test")
-         ("bench")
-         ("update")
-         ("search")
-         ("publish")
-         ("install")
-         ("uninstall")
+         (("build" "check" "doc")
+          (opts
+           (flags ,@common-flags
+                  ,@help-flags
+                  ,@target-flags
+                  ,@build-flags)))
+         (("init"
+           "test"
+           "bench"
+           "update"
+           "search"
+           "publish"
+           "install"
+           "uninstall")
+          (opts
+           (flags ,@help-flags)))
          (opts
-          (flags ,@common-flags)
+          (flags ,@common-flags ,@help-flags)
           (args (pcmpl-entries)))))
   :evaluate-definition t)
 
