@@ -144,12 +144,15 @@ which is suitable for most programming languages such as C or Lisp."
     (flycheck-rust-setup)
     t))
 
+(vim:defcmd vim:rust-flycheck-reset (nonrepeatable)
+  (rust-flycheck-reset))
+
 (defun rust-flycheck-reset ()
   (interactive)
   (vim:flycheck-clear)
   (when (and (boundp 'flycheck-checker)
              (eq flycheck-checker 'lsp))
-    (lsp-restar-workspace)))
+    (lsp-restart-workspace)))
 
 (with-eval-after-load 'rust-mode
   (add-hook 'flycheck-mode-hook #'rust-flycheck-configure))
@@ -406,7 +409,7 @@ _a_lign  _t_: beginning of defun
 
   (flycheck-install-ex-commands!
    :install-flycheck flycheck-mode
-   :reset-func #'rust-flycheck-reset)
+   :reset-func #'vim:rust-flycheck-reset)
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("-"   hydra-rust-dash/body)
