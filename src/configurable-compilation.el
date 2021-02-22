@@ -37,6 +37,8 @@ the command to execute.")
               configurable-compilation-mode compilation-mode
               configurable-compilation-make-buffer-name make-buffer-name))
 
+(defvar-local configurable-compilation--cached-rust-project-root nil)
+
 (defun configurable-compilation-start (&optional edit-command)
   "Run a compile command for the current Haskell buffer."
   (interactive "P")
@@ -44,6 +46,13 @@ the command to execute.")
                      compilation-save-buffers-predicate)
   (let* ((proj-dir (or (when (derived-mode-p 'haskell-mode)
                          (haskell-watch-get-project-root))
+                       (when (derived-mode-p 'rust-mode)
+                         (if configurable-compilation--cached-rust-project-root
+                             configurable-compilation--cached-rust-project-root
+                           (when-let ((buf (buffer-file-name))
+                                      (manifest (flycheck-rust-find-manifest buf)))
+                             (setq-local configurable-compilation--cached-rust-project-root
+                                         (file-name-directory manifest)))))
                        (when-let ((epr (eproj-get-project-for-buf-lax (current-buffer))))
                          (eproj-project/root epr))
                        default-directory))
