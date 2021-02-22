@@ -4392,10 +4392,10 @@ and the position respectively."
 
 (defun lsp--get-buffer-diagnostics ()
   "Return buffer diagnostics."
-  (gethash (or
-            (plist-get lsp--virtual-buffer :buffer-file-name)
-            (lsp--fix-path-casing (buffer-file-name)))
-           (lsp-diagnostics t)))
+  (when-let (name (or (plist-get lsp--virtual-buffer :buffer-file-name)
+                      (and (buffer-file-name)
+                           (lsp--fix-path-casing (buffer-file-name)))))
+    (gethash name (lsp-diagnostics t))))
 
 (defun lsp-cur-line-diagnostics ()
   "Return any diagnostics that apply to the current line."
