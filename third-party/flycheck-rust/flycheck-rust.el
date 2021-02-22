@@ -100,14 +100,21 @@ more information on setting your PATH with Emacs."))
     ;; targets.  We concatenate all targets, regardless of the package.
     (-when-let (packages (let-alist
                              (with-temp-buffer
-                               (call-process cargo nil '(t nil) nil
-                                             "metadata" "--no-deps"
-                                             "--manifest-path" manifest
-                                             "--format-version" "1")
-                               (goto-char (point-min))
-                               (let ((json-array-type 'list)
-                                     (json-object-type 'alist))
-                                 (json-read)))
+                               (let ((exit-status
+                                      (call-process cargo nil '(t t) nil
+                                                    "metadata" "--no-deps"
+                                                    "--manifest-path" manifest
+                                                    "--format-version" "1")))
+                                 (if (or (not (numberp exit-status))
+                                         (not (= exit-status 0)))
+                                     (user-error "Cargo failed to produce metadata for %s:\n%s"
+                                                 manifest
+                                                 (buffer-substring-no-properties (point-min) (point-max)))
+                                   (progn
+                                     (goto-char (point-min))
+                                     (let ((json-array-type 'list)
+                                           (json-object-type 'alist))
+                                       (json-read))))))
                            .packages))
       (seq-map (lambda (pkg)
                     (let-alist pkg .targets))
