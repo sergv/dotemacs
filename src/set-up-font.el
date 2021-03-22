@@ -81,11 +81,9 @@ use that, otherwise either use past specified value or a reasonable default."
          (or new-scaling
              current-font-scaling
              (get-default-font-scaling))))
-    (when (or (null current-font-scaling)
-              (not (= effective-scaling current-font-scaling)))
-      (setf current-font-scaling effective-scaling)
-      (dolist (frame (frame-list))
-        (set-face-attribute 'default frame :height effective-scaling)))))
+    (setf current-font-scaling effective-scaling)
+    (dolist (frame (frame-list))
+      (set-face-attribute 'default frame :height effective-scaling))))
 
 ;; Set default font for all unicode characters.
 
