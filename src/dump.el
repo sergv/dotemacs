@@ -38,6 +38,7 @@
     (require 'set-up-platform)
     (load-library "set-up-environment-variables")
     (require 'set-up-paths)
+    (load-library "set-up-tmp-paths")
 
     (require 'base-emacs-fixes)
     (require 'cycle-on-lines)
