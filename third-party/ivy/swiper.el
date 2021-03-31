@@ -1,11 +1,11 @@
 ;;; swiper.el --- Isearch with an overview. Oh, man! -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2020  Free Software Foundation, Inc.
+;; Copyright (C) 2015-2021 Free Software Foundation, Inc.
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Version: 0.13.0
-;; Package-Requires: ((emacs "24.5") (ivy "0.13.0"))
+;; Version: 0.13.4
+;; Package-Requires: ((emacs "24.5") (ivy "0.13.4"))
 ;; Keywords: matching
 
 ;; This file is part of GNU Emacs.
@@ -42,47 +42,47 @@
   :prefix "swiper-")
 
 (defface swiper-match-face-1
-  '((t (:inherit lazy-highlight)))
+  '((t :inherit lazy-highlight))
   "The background face for `swiper' matches."
   :group 'ivy-faces)
 
 (defface swiper-match-face-2
-  '((t (:inherit isearch)))
+  '((t :inherit isearch))
   "Face for `swiper' matches modulo 1."
   :group 'ivy-faces)
 
 (defface swiper-match-face-3
-  '((t (:inherit match)))
+  '((t :inherit match))
   "Face for `swiper' matches modulo 2."
   :group 'ivy-faces)
 
 (defface swiper-match-face-4
-  '((t (:inherit isearch-fail)))
+  '((t :inherit isearch-fail))
   "Face for `swiper' matches modulo 3."
   :group 'ivy-faces)
 
 (defface swiper-background-match-face-1
-  '((t (:inherit swiper-match-face-1)))
+  '((t :inherit swiper-match-face-1))
   "The background face for non-current `swiper' matches."
   :group 'ivy-faces)
 
 (defface swiper-background-match-face-2
-  '((t (:inherit swiper-match-face-2)))
+  '((t :inherit swiper-match-face-2))
   "Face for non-current `swiper' matches modulo 1."
   :group 'ivy-faces)
 
 (defface swiper-background-match-face-3
-  '((t (:inherit swiper-match-face-3)))
+  '((t :inherit swiper-match-face-3))
   "Face for non-current `swiper' matches modulo 2."
   :group 'ivy-faces)
 
 (defface swiper-background-match-face-4
-  '((t (:inherit swiper-match-face-4)))
+  '((t :inherit swiper-match-face-4))
   "Face for non-current `swiper' matches modulo 3."
   :group 'ivy-faces)
 
 (defface swiper-line-face
-  '((t (:inherit highlight)))
+  '((t :inherit highlight))
   "Face for current `swiper' line."
   :group 'ivy-faces)
 
@@ -108,13 +108,12 @@
                  swiper-background-match-face-4))
         (colir-compose-method #'colir-compose-soft-light))
     (cl-mapc (lambda (f1 f2)
-               (let ((bg (face-background f1)))
+               (let* ((bg (face-background f1))
+                      ;; FIXME: (colir-color-parse "color-22") is nil.
+                      (bg (and bg (colir-color-parse bg))))
                  (when bg
-                   (set-face-background
-                    f2
-                    (colir-blend
-                     (colir-color-parse bg)
-                     (colir-color-parse "#ffffff"))))))
+                   (setq bg (colir-blend bg (colir-color-parse "#ffffff")))
+                   (set-face-background f2 bg))))
              swiper-faces
              faces)))
 (swiper--recompute-background-faces)
@@ -1142,11 +1141,11 @@ WND, when specified is the window."
 (defun swiper-from-isearch ()
   "Invoke `swiper' from isearch."
   (interactive)
-  (let ((query (if isearch-regexp
-                   isearch-string
-                 (regexp-quote isearch-string))))
-    (isearch-exit)
-    (swiper query)))
+  (swiper (prog1 (if isearch-regexp
+                     isearch-string
+                   (regexp-quote isearch-string))
+            (let ((search-nonincremental-instead nil))
+              (isearch-exit)))))
 
 (defvar swiper-multi-buffers nil
   "Store the current list of buffers.")
