@@ -17,6 +17,8 @@ nav:
         - Treemacs: https://github.com/emacs-lsp/lsp-treemacs
         - Helm: https://github.com/emacs-lsp/helm-lsp
         - Ivy: https://github.com/emacs-lsp/lsp-ivy
+        - Iedit: page/integration/iedit.md
+        - Ido: page/integration/ido.md
     - Limitations: page/limitations.md
     - Remote: page/remote.md
     - FAQ: page/faq.md
@@ -24,6 +26,7 @@ nav:
     - Adding new language: page/adding-new-language.md
   - Languages:
     - page/languages.md
+    - ActionScript: page/lsp-actionscript.md
     - Ada: page/lsp-ada.md
     - Angular: page/lsp-angular.md
     - Bash: page/lsp-bash.md
@@ -34,6 +37,7 @@ nav:
     - CMake: page/lsp-cmake.md
     - Crystal: page/lsp-crystal.md
     - CSS/LessCSS/SASS/SCSS: page/lsp-css.md
+    - D: page/lsp-d.md
     - Dart: https://emacs-lsp.github.io/lsp-dart
     - Dhall: page/lsp-dhall.md
     - Dockerfile: page/lsp-dockerfile.md
@@ -45,7 +49,7 @@ nav:
     - Fortran: page/lsp-fortran.md
     - GDScript: page/lsp-gdscript.md
     - Go (gopls): page/lsp-gopls.md
-    - Go (bingo): page/lsp-bingo.md
+    - Grammarly: page/lsp-grammarly.md
     - Groovy: page/lsp-groovy.md
     - Hack: page/lsp-hack.md
     - HTML: page/lsp-html.md
@@ -54,6 +58,7 @@ nav:
     - Lua (Lua Language Server): page/lsp-lua-language-server.md
     - Lua (Lua-Lsp): page/lsp-lua-lsp.md
     - Java: https://emacs-lsp.github.io/lsp-java
+    - Javascript/Typescript (deno): page/lsp-deno.md
     - JavaScript/TypeScript (sourcegraph): page/lsp-typescript-javascript.md
     - JavaScript/TypeScript (theia-ide): page/lsp-typescript.md
     - JavaScript Flow: page/lsp-flow.md
@@ -91,12 +96,14 @@ nav:
     - TeX, LaTeX, etc (digestif): page/lsp-tex.md
     - TeX, LaTeX, etc (texlab): page/lsp-texlab.md
     - TeX, LaTeX, etc (texlab, external): page/lsp-latex.md
+    - Vala: page/lsp-vala.md
     - Verilog/SystemVerilog: page/lsp-verilog.md
     - VHDL: page/lsp-vhdl.md
     - Vimscript: page/lsp-vim.md
     - Vue: page/lsp-vetur.md
     - XML: page/lsp-xml.md
     - YAML: page/lsp-yaml.md
+    - Zig: page/lsp-zig.md
   - Debugging:
       - https://emacs-lsp.github.io/dap-mode
   - Gallery:
@@ -108,6 +115,7 @@ nav:
       - 'A guide on disabling/enabling lsp-mode features': tutorials/how-to-turn-off.md
       - 'React JavaScript Tutorial in Emacs': tutorials/reactjs-tutorial.md
       - 'Configuring Emacs as a Clojure IDE': tutorials/clojure-guide.md
+      - 'Debugging Clojurescript': tutorials/debugging-clojure-script.md
   - Blog:
       - 2020:
           - '7.0 Release': blog/2020/7.0-release.md

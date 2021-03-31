@@ -40,7 +40,9 @@
                  temp-directory
                  (lambda (event)
                    (message "received: %s" event)
-                   (add-to-list 'events (cdr event)))))
+                   (add-to-list 'events (cdr event)))
+                 lsp-file-watch-ignored-files
+                 lsp-file-watch-ignored-directories))
 
     (write-region "bla" nil matching-file)
 
@@ -111,7 +113,9 @@
   :tags '(no-win)
   (lsp-kill-watch (lsp-watch-root-folder
                    "non-existing-directory"
-                   #'ignore)))
+                   #'ignore
+                   lsp-file-watch-ignored-files
+                   lsp-file-watch-ignored-directories)))
 
 (ert-deftest lsp-file-watch--relative-path-glob-patterns ()
   :tags '(no-win)
@@ -131,7 +135,9 @@
                  temp-directory
                  (lambda (event)
                    (message "received: %s" event)
-                   (add-to-list 'events (cdr event)))))
+                   (add-to-list 'events (cdr event)))
+                 lsp-file-watch-ignored-files
+                 lsp-file-watch-ignored-directories))
 
     (write-region "bla" nil matching-file)
     (sit-for 0.3)
@@ -158,20 +164,20 @@
   ;; (https://github.com/Microsoft/vscode/blob/466da1c9013c624140f6d1473b23a870abc82d44/src/vs/base/test/node/glob.test.ts)
   (should (string-match (lsp-glob-convert-to-wrapped-regexp "**/.*") ".git"))
   (should (string-match (lsp-glob-convert-to-wrapped-regexp "**/.*") ".hidden.txt"))
-  (should (not (string-match (lsp-glob-convert-to-wrapped-regexp "**/.*") "git")))
-  (should (not (string-match (lsp-glob-convert-to-wrapped-regexp "**/.*") "hidden.txt")))
+  (should-not (string-match (lsp-glob-convert-to-wrapped-regexp "**/.*") "git"))
+  (should-not (string-match (lsp-glob-convert-to-wrapped-regexp "**/.*") "hidden.txt"))
 
   (should (string-match (lsp-glob-convert-to-wrapped-regexp "**/.*") "path/.git"))
   (should (string-match (lsp-glob-convert-to-wrapped-regexp "**/.*") "path/.hidden.txt"))
-  (should (not (string-match (lsp-glob-convert-to-wrapped-regexp "**/.*") "path/git")))
-  (should (not (string-match (lsp-glob-convert-to-wrapped-regexp "**/.*") "pat.h/hidden.txt")))
+  (should-not (string-match (lsp-glob-convert-to-wrapped-regexp "**/.*") "path/git"))
+  (should-not (string-match (lsp-glob-convert-to-wrapped-regexp "**/.*") "pat.h/hidden.txt"))
 
   (should (string-match (lsp-glob-convert-to-wrapped-regexp "**/node_modules/**") "node_modules"))
   (should (string-match (lsp-glob-convert-to-wrapped-regexp "**/node_modules/**") "node_modules/"))
-  (should (not (string-match (lsp-glob-convert-to-wrapped-regexp "**/node_modules/**") "node/_modules/")))
+  (should-not (string-match (lsp-glob-convert-to-wrapped-regexp "**/node_modules/**") "node/_modules/"))
 
   (should (string-match (lsp-glob-convert-to-wrapped-regexp "?") "h"))
-  (should (not (string-match (lsp-glob-convert-to-wrapped-regexp "?") "hi")))
+  (should-not (string-match (lsp-glob-convert-to-wrapped-regexp "?") "hi"))
 
   (should (string-match (lsp-glob-convert-to-wrapped-regexp "foo.[[]") "foo.["))
 
@@ -187,19 +193,19 @@
   (should (string-match (lsp-glob-convert-to-wrapped-regexp "some/**/*") "some/foo.js"))
   (should (string-match (lsp-glob-convert-to-wrapped-regexp "some/**/*") "some/folder/foo.js"))
 
-  (should (not (string-match (lsp-glob-convert-to-wrapped-regexp "some/**/*") "something/foo.js")))
-  (should (not (string-match (lsp-glob-convert-to-wrapped-regexp "some/**/*") "something/folder/foo.js")))
+  (should-not (string-match (lsp-glob-convert-to-wrapped-regexp "some/**/*") "something/foo.js"))
+  (should-not (string-match (lsp-glob-convert-to-wrapped-regexp "some/**/*") "something/folder/foo.js"))
 
-  (should (not (string-match (lsp-glob-convert-to-wrapped-regexp "{**/*.d.ts,**/*.js,foo.[0-9]}") "foo.f")))
+  (should-not (string-match (lsp-glob-convert-to-wrapped-regexp "{**/*.d.ts,**/*.js,foo.[0-9]}") "foo.f"))
   (should (string-match (lsp-glob-convert-to-wrapped-regexp "prefix/{**/*.d.ts,**/*.js,foo.[0-9]}") "prefix/foo.8"))
-  (should (not (string-match (lsp-glob-convert-to-wrapped-regexp "prefix/{**/*.d.ts,**/*.js,foo.[0-9]}") "prefix/foo.f")))
+  (should-not (string-match (lsp-glob-convert-to-wrapped-regexp "prefix/{**/*.d.ts,**/*.js,foo.[0-9]}") "prefix/foo.f"))
 
-  (should (not (string-match (lsp-glob-convert-to-wrapped-regexp "foo.[!0-9]") "foo.5")))
-  (should (not (string-match (lsp-glob-convert-to-wrapped-regexp "foo.[!0-9]") "foo.8")))
+  (should-not (string-match (lsp-glob-convert-to-wrapped-regexp "foo.[!0-9]") "foo.5"))
+  (should-not (string-match (lsp-glob-convert-to-wrapped-regexp "foo.[!0-9]") "foo.8"))
   (should (string-match (lsp-glob-convert-to-wrapped-regexp "foo.[!0-9]") "foo.f"))
 
-  (should (not (string-match (lsp-glob-convert-to-wrapped-regexp "foo.[^0-9]") "foo.5")))
-  (should (not (string-match (lsp-glob-convert-to-wrapped-regexp "foo.[^0-9]") "foo.8")))
+  (should-not (string-match (lsp-glob-convert-to-wrapped-regexp "foo.[^0-9]") "foo.5"))
+  (should-not (string-match (lsp-glob-convert-to-wrapped-regexp "foo.[^0-9]") "foo.8"))
   (should (string-match (lsp-glob-convert-to-wrapped-regexp "foo.[^0-9]") "foo.f"))
 
   ;; ???: This should properly fail since path-separators should be
@@ -212,7 +218,7 @@
   ;; way of handling this to recognize that because we're unbalanced
   ;; at the end, that everything should be treated as a literal. But
   ;; after experimenting with zsh, this isn't what they use.
-  (should (not (string-match (lsp-glob-convert-to-wrapped-regexp "foo[/]bar") "foo/bar"))))
+  (should-not (string-match (lsp-glob-convert-to-wrapped-regexp "foo[/]bar") "foo/bar")))
 
 (ert-deftest lsp-file-watch--ignore-list ()
   :tags '(no-win)
@@ -220,14 +226,17 @@
          (nested-dir (f-join temp-directory "nested"))
          (nested-matching-file (f-join nested-dir "file.ext"))
          (create-lockfiles nil)
-         (lsp-file-watch-ignored-directories '("nested"))
+         (ignored-files lsp-file-watch-ignored-files)
+         (ignored-directories '("nested"))
          events watch)
 
     (mkdir nested-dir)
 
     (setq watch (lsp-watch-root-folder
                  temp-directory
-                 (lambda (event) (add-to-list 'events (cdr event)))))
+                 (lambda (event) (add-to-list 'events (cdr event)))
+                 ignored-files
+                 ignored-directories))
 
     (write-region "bla" nil nested-matching-file)
     (sit-for 0.3)
@@ -241,6 +250,8 @@
          (nested-dir (f-join temp-directory "nested"))
          (nested-matching-file (f-join nested-dir "file.ext"))
          (create-lockfiles nil)
+         (ignored-files lsp-file-watch-ignored-files)
+         (ignored-directories lsp-file-watch-ignored-directories)
          events watch expected-events)
 
     (mkdir nested-dir)
@@ -248,7 +259,9 @@
     (setq watch (lsp-watch-root-folder
                  temp-directory
                  (lambda (event)
-                   (add-to-list 'events (cdr event)))))
+                   (add-to-list 'events (cdr event)))
+                 ignored-files
+                 ignored-directories))
 
     (write-region "bla" nil nested-matching-file)
     (sit-for 0.3)
