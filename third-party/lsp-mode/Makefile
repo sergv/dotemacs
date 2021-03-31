@@ -19,7 +19,10 @@ LSP-FILES := lsp-protocol.el lsp-mode.el lsp.el lsp-completion.el \
 		lsp-diagnostics.el lsp-lens.el lsp-modeline.el \
 		$(wildcard clients/*.el)
 
-TEST-FILES := test/windows-bootstrap.el test/test-helper.el \
+WIN-BOOTSTRAP=test/windows-bootstrap.el
+TEST-PKGS=test/test-packages.el
+
+TEST-FILES := $(WIN-BOOTSTRAP) $(TEST-PKGS) test/test-helper.el \
 		$(shell ls test/lsp-*.el)
 LOAD-FILE = -l $(test-file)
 LOAD-TEST-FILES := $(foreach test-file, $(TEST-FILES), $(LOAD-FILE))
@@ -31,10 +34,10 @@ unix-build:
 	$(CASK) install
 
 # TODO: add 'checkdoc' and 'lint' here when they pass
-unix-ci: clean unix-build unix-compile unix-test
+unix-ci: clean unix-build unix-compile prepare_cpp_project unix-test test-downstream-pkgs
 
 windows-ci: CASK=
-windows-ci: clean windows-compile windows-test
+windows-ci: clean windows-compile windows-test test-downstream-pkgs
 
 unix-compile:
 	@echo "Compiling..."
@@ -43,13 +46,24 @@ unix-compile:
 		--eval '(setq byte-compile-error-on-warn t)' \
 		-f batch-byte-compile $(LSP-FILES)
 
+prepare_cpp_project:
+	@echo "Setting up Sample C++ project with CMake and clangd"
+	cd test/fixtures/SampleCppProject/ && mkdir -p build && cd build/ && cmake ..
+
 windows-compile:
 	@echo "Compiling..."
 	@$(CASK) $(EMACS) -Q --batch \
-		-l test/windows-bootstrap.el \
+		-l $(WIN-BOOTSTRAP) \
 		-L . -L clients \
 		--eval '(setq byte-compile-error-on-warn t)' \
 		-f batch-byte-compile $(LSP-FILES)
+
+test-downstream-pkgs:
+	@echo "Test emacs-lsp packages..."
+	@$(CASK) $(EMACS) -Q --batch \
+		-l $(WIN-BOOTSTRAP) \
+		--eval '(setq emacs-lsp-ci t)' \
+		-l $(TEST-PKGS)
 
 checkdoc:
 	$(eval LOG := $(shell mktemp -d)/checklog.log)
@@ -79,11 +93,11 @@ lint:
 		$(LSP-FILES)
 
 unix-test:
-	$(CASK) exec ert-runner -L . -L clients  -t '!no-win' -t '!org'
+	$(CASK) exec ert-runner -L . -L clients	 -t '!no-win' -t '!org'
 
 windows-test:
 	@$(EMACS) -Q --batch \
-		-l test/windows-bootstrap.el \
+		-l $(WIN-BOOTSTRAP) \
 		-L . -L clients \
 		$(LOAD-TEST-FILES) \
 		--eval "(ert-run-tests-batch-and-exit \
@@ -100,5 +114,7 @@ local-webpage: docs
 
 clean:
 	rm -rf .cask *.elc clients/*.elc
+	rm -rf test/fixtures/SampleCppProject/build test/fixtures/SampleCppProject/.cache
 
-.PHONY: all unix-build	 ci unix-compile windows-compile checkdoc lint unix-test windows-test docs local-webpage clean
+
+.PHONY: all unix-build ci unix-compile windows-compile checkdoc lint unix-test windows-test docs local-webpage clean
