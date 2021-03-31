@@ -17,6 +17,18 @@
   * Add [[https://github.com/soutaro/steep][Steep Language Server]] for typechecking Ruby code.
   * Rename semantic highlighting -> semantic tokens.
   * Add [[https://github.com/phpactor/phpactor][Phpactor Language server]]
+  * Add ~lsp-headerline-breadcrumb-icons-enable~ to disable breadcrumb icons.
+  * Add ActionScript support.
+  * Add ~iedit~ integration (=documentHighlights=)
+  * Add an interactive =lsp-clangd-find-other-file= method that uses the clangd extension to return the corresponding header/cpp file from cpp/header file respectively.
+  * Add support for [[https://deno.land/][Deno language server]].
+  * Add ~lsp-dired-mode~ - integration between [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Dired.html][dired]] and ~lsp-mode~
+  * Add Grammarly support.
+  * Add D support.
+  * Add Zig support.
+  * Add an interactive ~lsp-rust-analyzer-reload-workspace~ function that reloads the Rust-Analyzer workspace from Cargo.toml
+  * Rename ~lsp-rust-analyzer-cargo-load-out-dirs-from-check~ to ~lsp-rust-analyzer-cargo-run-build-scripts~ to align with upstream.
+  * Allow customization of ~lsp-file-watch-ignored-directories~ and ~lsp-file-watch-ignored-files~ at the root of an lsp workspace.
 ** Release 7.0.1
   * Introduced ~lsp-diagnostics-mode~.
   * Safe renamed ~lsp-flycheck-default-level~ -> ~lsp-diagnostics-flycheck-default-level~

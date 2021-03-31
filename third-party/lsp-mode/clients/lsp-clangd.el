@@ -40,7 +40,6 @@
 (eval-when-compile (require 'subr-x))
 
 (require 'dash)
-(require 'dash-functional)
 (require 's)
 
 (defvar flycheck-explain-error-buffer)
@@ -174,7 +173,7 @@ find a suitable one. Set this variable before loading lsp."
   "Clang default executable full path when found.
 This must be set only once after loading the clang client.")
 
-(defcustom lsp-clients-clangd-args '()
+(defcustom lsp-clients-clangd-args '("--header-insertion-decorators=0")
   "Extra arguments for the clangd executable."
   :group 'lsp-clangd
   :risky t
@@ -241,6 +240,21 @@ returned to avoid that the echo area grows uncomfortably."
   (cond ((string-equal "clang-tidy" (flycheck-error-group e))
          (lsp-cpp-flycheck-clang-tidy-error-explainer e))
         (t (flycheck-error-message e))))
+
+(defun lsp-clangd-find-other-file (&optional new-window)
+  "Switch between the corresponding C/C++ source and header file.
+If NEW-WINDOW (interactively the prefix argument) is non-nil,
+open in a new window.
+
+Only works with clangd."
+  (interactive "P")
+  (let ((other (lsp-send-request (lsp-make-request
+                                  "textDocument/switchSourceHeader"
+                                  (lsp--text-document-identifier)))))
+    (unless (s-present? other)
+      (user-error "Could not find other file"))
+    (funcall (if new-window #'find-file-other-window #'find-file)
+             (lsp--uri-to-path other))))
 
 (provide 'lsp-clangd)
 ;;; lsp-clangd.el ends here

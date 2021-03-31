@@ -56,8 +56,8 @@
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-rust-sysroot nil
-  "If non-nil, use the given path as the sysroot for all rustc invocations instead of trying
-to detect the sysroot automatically."
+  "If non-nil, use the given path as the sysroot for all rustc invocations
+instead of trying to detect the sysroot automatically."
   :type '(choice
           (const :tag "None" nil)
           (string :tag "Sysroot"))
@@ -87,14 +87,18 @@ to detect the sysroot automatically."
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-rust-build-lib nil
-  "If non-nil, checks the project as if you passed the `--lib' argument to cargo.
+  "If non-nil, checks the project as if you passed the `--lib' argument to
+cargo.
+
 Mutually exclusive with, and preferred over, `lsp-rust-build-bin'. (Unstable)"
   :type 'boolean
   :group 'lsp-rust
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-rust-build-bin nil
-  "If non-nil, checks the project as if you passed `-- bin <build_bin>' argument to cargo.
+  "If non-nil, checks the project as if you passed `-- bin <build_bin>'
+argument to cargo.
+
 Mutually exclusive with `lsp-rust-build-lib'. (Unstable)"
   :type '(choice
           (const :tag "None" nil)
@@ -103,7 +107,9 @@ Mutually exclusive with `lsp-rust-build-lib'. (Unstable)"
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-rust-cfg-test nil
-  "If non-nil, checks the project as if you were running `cargo test' rather than cargo build.
+  "If non-nil, checks the project as if you were running `cargo test' rather
+than cargo build.
+
 I.e., compiles (but does not run) test code."
   :type 'boolean
   :group 'lsp-rust
@@ -152,8 +158,7 @@ the latest build duration."
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-rust-build-on-save nil
-  "Only index the project when a file is saved and not on
-change."
+  "Only index the project when a file is saved and not on change."
   :type 'boolean
   :group 'lsp-rust
   :package-version '(lsp-mode . "6.1"))
@@ -183,12 +188,12 @@ change."
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-rust-clippy-preference "opt-in"
-  "Controls eagerness of clippy diagnostics when available. Valid
-  values are (case-insensitive):\n - \"off\": Disable clippy
-  lints.\n - \"opt-in\": Clippy lints are shown when crates
-  specify `#![warn(clippy)]`.\n - \"on\": Clippy lints enabled
-  for all crates in workspace.\nYou need to install clippy via
-  rustup if you haven't already."
+  "Controls eagerness of clippy diagnostics when available.
+Valid values are (case-insensitive):\n - \"off\": Disable clippy
+lints.\n - \"opt-in\": Clippy lints are shown when crates
+specify `#![warn(clippy)]`.\n - \"on\": Clippy lints enabled
+for all crates in workspace.\nYou need to install clippy via
+rustup if you haven't already."
   :type '(choice
           (const "on")
           (const "opt-in")
@@ -290,7 +295,7 @@ PARAMS progress report notification data."
         (lsp-workspace-status nil workspace)
       (lsp-workspace-status (format "%s - %s" title (or message? "")) workspace))))
 
-(cl-defmethod lsp-execute-command (_server (_command (eql rls.run)) params)
+(lsp-defun lsp-rust--rls-run ((&Command :arguments? params))
   (-let* (((&rls:Cmd :env :binary :args :cwd) (lsp-seq-first params))
           (default-directory (or cwd (lsp-workspace-root) default-directory) ))
     (compile
@@ -323,7 +328,8 @@ PARAMS progress report notification data."
   :package-version '(lsp-mode . "6.2"))
 
 (defcustom lsp-rust-analyzer-server-args '()
-  "Args to start rust-analyzer with when rust-analyzer is downloaded automatically."
+  "Args to start rust-analyzer with when rust-analyzer is downloaded \
+automatically."
   :type '(repeat string)
   :group 'lsp-rust
   :package-version '(lsp-mode . "7.1"))
@@ -402,7 +408,8 @@ The command should include `--message=format=json` or similar option."
   :package-version '(lsp-mode . "6.2.2"))
 
 (defcustom lsp-rust-analyzer-macro-expansion-method 'lsp-rust-analyzer-macro-expansion-default
-  "Use a different function if you want formatted macro expansion results and syntax highlighting."
+  "Use a different function if you want formatted macro expansion results and
+syntax highlighting."
   :type 'function
   :group 'lsp-rust
   :package-version '(lsp-mode . "6.2.2"))
@@ -414,7 +421,8 @@ The command should include `--message=format=json` or similar option."
   :package-version '(lsp-mode . "6.3.2"))
 
 (defcustom lsp-rust-analyzer-diagnostics-enable-experimental t
-  "Whether to show native rust-analyzer diagnostics that are still experimental (might have more false positives than usual)."
+  "Whether to show native rust-analyzer diagnostics that are still experimental
+(might have more false positives than usual)."
   :type 'boolean
   :group 'lsp-rust
   :package-version '(lsp-mode . "7.1.0"))
@@ -425,11 +433,16 @@ The command should include `--message=format=json` or similar option."
   :group 'lsp-rust
   :package-version '(lsp-mode . "7.1.0"))
 
-(defcustom lsp-rust-analyzer-cargo-load-out-dirs-from-check nil
-  "Whether to run `cargo check` on startup to get the correct value for package OUT_DIRs."
+(define-obsolete-variable-alias
+  'lsp-rust-analyzer-cargo-load-out-dirs-from-check
+  'lsp-rust-analyzer-cargo-run-build-scripts
+  "7.1.0")
+
+(defcustom lsp-rust-analyzer-cargo-run-build-scripts t
+  "Whether to run build scripts (`build.rs`) for more precise code analysis."
   :type 'boolean
   :group 'lsp-rust
-  :package-version '(lsp-mode . "6.3.2"))
+  :package-version '(lsp-mode . "7.1.0"))
 
 (defcustom lsp-rust-analyzer-rustfmt-extra-args []
   "Additional arguments to rustfmt."
@@ -438,7 +451,8 @@ The command should include `--message=format=json` or similar option."
   :package-version '(lsp-mode . "6.3.2"))
 
 (defcustom lsp-rust-analyzer-rustfmt-override-command []
-  "Advanced option, fully override the command rust-analyzer uses for formatting."
+  "Advanced option, fully override the command rust-analyzer uses
+for formatting."
   :type 'lsp-string-vector
   :group 'lsp-rust
   :package-version '(lsp-mode . "6.3.2"))
@@ -468,13 +482,15 @@ The command should include `--message=format=json` or similar option."
   :package-version '(lsp-mode . "6.3.2"))
 
 (defcustom lsp-rust-analyzer-proc-macro-enable nil
-  "Enable Proc macro support; lsp-rust-analyzer-cargo-load-out-dirs-from-check must be enabled."
+  "Enable Proc macro support; implies lsp-rust-analyzer-cargo-run-build-scripts"
   :type 'boolean
   :group 'lsp-rust
   :package-version '(lsp-mode . "6.3.2"))
 
 (defcustom lsp-rust-analyzer-import-merge-behaviour "full"
-  "The strategy to use when inserting new imports or merging imports. Valid values are:\n - \"none\": No merging\n - \"full\": Merge all layers of the import trees\n - \"last\": Only merge the last layer of the import trees"
+  "The strategy to use when inserting new imports or merging imports.
+Valid values are:\n - \"none\": No merging\n - \"full\": Merge all layers of
+the import trees\n - \"last\": Only merge the last layer of the import trees"
   :type '(choice
           (const "none")
           (const "full")
@@ -483,7 +499,13 @@ The command should include `--message=format=json` or similar option."
   :package-version '(lsp-mode . "7.1.0"))
 
 (defcustom lsp-rust-analyzer-import-prefix "plain"
-  "The path structure for newly inserted paths to use. Valid values are:\n - \"plain\": Insert import paths relative to the current module, using up to one `super` prefix if the parent module contains the requested item.\n - \"by_self\": Prefix all import paths with `self` if they don't begin with `self`, `super`, `crate` or a crate name\n - \"by_crate\": Force import paths to be absolute by always starting them with `crate` or the crate name they refer to."
+  "The path structure for newly inserted paths to use.
+Valid values are:\n - \"plain\": Insert import paths relative to the
+current module, using up to one `super` prefix if the parent module
+contains the requested item.\n - \"by_self\": Prefix all import paths
+with `self` if they don't begin with `self`, `super`, `crate` or a crate
+name\n - \"by_crate\": Force import paths to be absolute by always starting
+them with `crate` or the crate name they refer to."
   :type '(choice
           (const "plain")
           (const "by_self")
@@ -511,7 +533,9 @@ The command should include `--message=format=json` or similar option."
     :cargo (:allFeatures ,(lsp-json-bool lsp-rust-all-features)
             :noDefaultFeatures ,(lsp-json-bool lsp-rust-no-default-features)
             :features ,lsp-rust-features
-            :loadOutDirsFromCheck ,(lsp-json-bool lsp-rust-analyzer-cargo-load-out-dirs-from-check))
+            :runBuildScripts ,(lsp-json-bool lsp-rust-analyzer-cargo-run-build-scripts)
+            ; Obsolete, but used by old Rust-Analyzer versions
+            :loadOutDirsFromCheck ,(lsp-json-bool lsp-rust-analyzer-cargo-run-build-scripts))
     :rustfmt (:extraArgs ,lsp-rust-analyzer-rustfmt-extra-args
               :overrideCommand ,lsp-rust-analyzer-rustfmt-override-command)
     :inlayHints (:typeHints ,(lsp-json-bool lsp-rust-analyzer-server-display-inlay-hints)
@@ -536,26 +560,23 @@ The command should include `--message=format=json` or similar option."
 (defun lsp-rust-analyzer-syntax-tree ()
   "Display syntax tree for current buffer."
   (interactive)
-  (-if-let* ((workspace (lsp-find-workspace 'rust-analyzer))
-             (root (lsp-workspace-root default-directory))
-             (params (lsp-make-rust-analyzer-syntax-tree-params
-                      :text-document (lsp--text-document-identifier)
-                      :range? (if (use-region-p)
-                                  (lsp--region-to-range (region-beginning) (region-end))
-                                (lsp--region-to-range (point-min) (point-max)))))
-             (results (with-lsp-workspace workspace
-                        (lsp-send-request (lsp-make-request
-                                           "rust-analyzer/syntaxTree"
-                                           params)))))
-      (let ((buf (get-buffer-create (format "*rust-analyzer syntax tree %s*" root)))
-            (inhibit-read-only t))
-        (with-current-buffer buf
-          (lsp-rust-analyzer-syntax-tree-mode)
-          (erase-buffer)
-          (insert results)
-          (goto-char (point-min)))
-        (pop-to-buffer buf))
-    (message "rust-analyzer not running.")))
+  (-let* ((root (lsp-workspace-root default-directory))
+          (params (lsp-make-rust-analyzer-syntax-tree-params
+                   :text-document (lsp--text-document-identifier)
+                   :range? (if (use-region-p)
+                               (lsp--region-to-range (region-beginning) (region-end))
+                             (lsp--region-to-range (point-min) (point-max)))))
+          (results (lsp-send-request (lsp-make-request
+                                      "rust-analyzer/syntaxTree"
+                                      params))))
+    (let ((buf (get-buffer-create (format "*rust-analyzer syntax tree %s*" root)))
+          (inhibit-read-only t))
+      (with-current-buffer buf
+        (lsp-rust-analyzer-syntax-tree-mode)
+        (erase-buffer)
+        (insert results)
+        (goto-char (point-min)))
+      (pop-to-buffer buf))))
 
 (define-derived-mode lsp-rust-analyzer-status-mode special-mode "Rust-Analyzer-Status"
   "Mode for the rust-analyzer status buffer.")
@@ -563,19 +584,19 @@ The command should include `--message=format=json` or similar option."
 (defun lsp-rust-analyzer-status ()
   "Displays status information for rust-analyzer."
   (interactive)
-  (-if-let* ((workspace (lsp-find-workspace 'rust-analyzer))
-             (root (lsp-workspace-root default-directory))
-             (results (with-lsp-workspace workspace
-                        (lsp-send-request (lsp-make-request
-                                           "rust-analyzer/analyzerStatus")))))
-      (let ((buf (get-buffer-create (format "*rust-analyzer status %s*" root)))
-            (inhibit-read-only t))
-        (with-current-buffer buf
-          (lsp-rust-analyzer-status-mode)
-          (erase-buffer)
-          (insert results)
-          (pop-to-buffer buf)))
-    (message "rust-analyzer not running.")))
+  (-let* ((root (lsp-workspace-root default-directory))
+          (params (lsp-make-rust-analyzer-analyzer-status-params
+                   :text-document (lsp--text-document-identifier)))
+          (results (lsp-send-request (lsp-make-request
+                                      "rust-analyzer/analyzerStatus"
+                                      params))))
+    (let ((buf (get-buffer-create (format "*rust-analyzer status %s*" root)))
+          (inhibit-read-only t))
+      (with-current-buffer buf
+        (lsp-rust-analyzer-status-mode)
+        (erase-buffer)
+        (insert results)
+        (pop-to-buffer buf)))))
 
 (defun lsp-rust-analyzer-join-lines ()
   "Join selected lines into one, smartly fixing up whitespace and trailing commas."
@@ -588,14 +609,19 @@ The command should include `--message=format=json` or similar option."
          (result (lsp-send-request (lsp-make-request "experimental/joinLines" params))))
     (lsp--apply-text-edits result 'code-action)))
 
+(defun lsp-rust-analyzer-reload-workspace ()
+  "Reload workspace, picking up changes from Cargo.toml"
+  (interactive)
+  (lsp--cur-workspace-check)
+  (lsp-send-request (lsp-make-request "rust-analyzer/reloadWorkspace")))
+
 (defcustom lsp-rust-analyzer-download-url
-  (format "https://github.com/rust-analyzer/rust-analyzer/releases/download/2020-12-14/%s"
+  (format "https://github.com/rust-analyzer/rust-analyzer/releases/latest/download/%s"
           (pcase system-type
             ('gnu/linux "rust-analyzer-linux")
             ('darwin "rust-analyzer-mac")
             ('windows-nt "rust-analyzer-windows.exe")))
-  "Automatic download url for Rust Analyzer.
-Force 12/14 release until we fix https://github.com/emacs-lsp/lsp-mode/issues/2436"
+  "Automatic download url for Rust Analyzer"
   :type 'string
   :group 'lsp-rust
   :package-version '(lsp-mode . "7.1"))
@@ -612,14 +638,23 @@ Force 12/14 release until we fix https://github.com/emacs-lsp/lsp-mode/issues/24
 
 (lsp-dependency
  'rust-analyzer
- '(:system "rust-analyzer")
  ;; `(:download :url lsp-rust-analyzer-download-url
  ;;             :store-path lsp-rust-analyzer-store-path
  ;;             :set-executable? t)
- )
+ '(:system "rust-analyzer"))
 
 (lsp-defun lsp-rust--analyzer-run-single ((&Command :arguments?))
   (lsp-rust-analyzer-run (lsp-seq-first arguments?)))
+
+(lsp-defun lsp-rust--analyzer-show-references
+  ((&Command :title :arguments? [_uri _filepos references]))
+  (lsp-show-xrefs (lsp--locations-to-xref-items references) nil
+                  (s-contains-p "reference" title)))
+
+(declare-function dap-debug "ext:dap-mode" (template) t)
+
+(lsp-defun lsp-rust--analyzer-debug-lens ((&Command :arguments? [args]))
+  (lsp-rust-analyzer-debug args))
 
 (lsp-register-client
  (make-lsp-client
@@ -634,7 +669,9 @@ Force 12/14 release until we fix https://github.com/emacs-lsp/lsp-mode/issues/24
   :priority (if (eq lsp-rust-server 'rust-analyzer) 1 -1)
   :initialization-options 'lsp-rust-analyzer--make-init-options
   :notification-handlers (ht<-alist lsp-rust-notification-handlers)
-  :action-handlers (ht ("rust-analyzer.runSingle" #'lsp-rust--analyzer-run-single))
+  :action-handlers (ht ("rust-analyzer.runSingle" #'lsp-rust--analyzer-run-single)
+                       ("rust-analyzer.debugSingle" #'lsp-rust--analyzer-debug-lens)
+                       ("rust-analyzer.showReferences" #'lsp-rust--analyzer-show-references))
   :library-folders-fn (lambda (_workspace) lsp-rust-library-directories)
   :after-open-fn (lambda ()
                    (when lsp-rust-analyzer-server-display-inlay-hints
@@ -674,7 +711,8 @@ Force 12/14 release until we fix https://github.com/emacs-lsp/lsp-mode/issues/24
   :package-version '(lsp-mode . "7.1"))
 
 (defcustom lsp-rust-analyzer-inlay-type-space-format "%s"
-  "Format string for spacing around variable inlays (not part of the inlay face)."
+  "Format string for spacing around variable inlays
+(not part of the inlay face)."
   :type '(string :tag "String")
   :group 'lsp-rust
   :package-version '(lsp-mode . "7.1"))
@@ -692,7 +730,8 @@ Force 12/14 release until we fix https://github.com/emacs-lsp/lsp-mode/issues/24
   :package-version '(lsp-mode . "7.1"))
 
 (defcustom lsp-rust-analyzer-inlay-param-space-format "%s "
-  "Format string for spacing around parameter inlays (not part of the inlay face)."
+  "Format string for spacing around parameter inlays
+(not part of the inlay face)."
   :type '(string :tag "String")
   :group 'lsp-rust
   :package-version '(lsp-mode . "7.1"))
@@ -758,7 +797,7 @@ Force 12/14 release until we fix https://github.com/emacs-lsp/lsp-mode/issues/24
  nil)
 
 (defun lsp-rust-analyzer-initialized? ()
-  (when-let ((workspace (lsp-find-workspace 'rust-analyzer)))
+  (when-let ((workspace (lsp-find-workspace 'rust-analyzer (buffer-file-name))))
     (eq 'initialized (lsp--workspace-status workspace))))
 
 (defun lsp-rust-analyzer-inlay-hints-change-handler (&rest _rest)
@@ -781,18 +820,15 @@ Force 12/14 release until we fix https://github.com/emacs-lsp/lsp-mode/issues/24
 (defun lsp-rust-analyzer-expand-macro ()
   "Expands the macro call at point recursively."
   (interactive)
-  (-if-let (workspace (lsp-find-workspace 'rust-analyzer))
-      (-if-let* ((params (lsp-make-rust-analyzer-expand-macro-params
-                          :text-document (lsp--text-document-identifier)
-                          :position (lsp--cur-position)))
-                 (response (with-lsp-workspace workspace
-                             (lsp-send-request (lsp-make-request
-                                                "rust-analyzer/expandMacro"
-                                                params))))
-                 ((&rust-analyzer:ExpandedMacro :expansion) response))
-          (funcall lsp-rust-analyzer-macro-expansion-method expansion)
-        (message "No macro found at point, or it could not be expanded."))
-    (message "rust-analyzer not running.")))
+  (-if-let* ((params (lsp-make-rust-analyzer-expand-macro-params
+                      :text-document (lsp--text-document-identifier)
+                      :position (lsp--cur-position)))
+             (response (lsp-send-request (lsp-make-request
+                                          "rust-analyzer/expandMacro"
+                                          params)))
+             ((&rust-analyzer:ExpandedMacro :expansion) response))
+      (funcall lsp-rust-analyzer-macro-expansion-method expansion)
+    (message "No macro found at point, or it could not be expanded.")))
 
 (defun lsp-rust-analyzer-macro-expansion-default (result)
   "Default method for displaying macro expansion."
@@ -840,6 +876,46 @@ Force 12/14 release until we fix https://github.com/emacs-lsp/lsp-mode/issues/24
        (if (functionp 'cargo-process-mode) 'cargo-process-mode nil)
        (lambda (_) (concat "*" label "*")))
       (setq lsp-rust-analyzer--last-runnable runnable))))
+
+(defun lsp-rust-analyzer-debug (runnable)
+  "Select and run a runnable action."
+  (interactive (list (lsp-rust-analyzer--select-runnable)))
+  (unless (featurep 'dap-cpptools)
+    (user-error "You must require `dap-cpptools'."))
+  (-let (((&rust-analyzer:Runnable
+           :args (&rust-analyzer:RunnableArgs :cargo-args :workspace-root? :executable-args)
+           :label) runnable))
+    (cl-case (aref cargo-args 0)
+      ("run" (aset cargo-args 0 "build"))
+      ("test" (when (-contains? (append cargo-args ()) "--no-run")
+                (cl-callf append cargo-args (list "--no-run")))))
+    (->> (append (list (executable-find "cargo"))
+                 cargo-args
+                 (list "--message-format=json"))
+         (s-join " ")
+         (shell-command-to-string)
+         (s-lines)
+         (-keep (lambda (s)
+                  (condition-case nil
+                      (-let* ((json-object-type 'plist)
+                              ((msg &as &plist :reason :executable) (json-read-from-string s)))
+                        (when (and executable (string= "compiler-artifact" reason))
+                          executable))
+                    (error))))
+         (funcall
+          (lambda (artifact-spec)
+            (pcase artifact-spec
+              (`() (user-error "No compilation artifacts or obtaining the runnable artifacts failed."))
+              (`(,spec) spec)
+              (_ (user-error "Multiple compilation artifacts are not supported.")))))
+         (list :type "cppdbg"
+               :request "launch"
+               :name label
+               :args executable-args
+               :cwd workspace-root?
+               :sourceLanguages ["rust"]
+               :program)
+         (dap-debug))))
 
 (defun lsp-rust-analyzer-rerun (&optional runnable)
   (interactive (list (or lsp-rust-analyzer--last-runnable
