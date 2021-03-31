@@ -20,14 +20,11 @@
 
 ;;; Commentary:
 
-;; Flycheck integration for lsp-mode.  To enable, put this in your config:
-;; (require 'lsp-ui-flycheck)
-;; (with-eval-after-load 'lsp-mode
-;;   (add-hook 'lsp-after-open-hook (lambda () (lsp-ui-flycheck-enable 1))))
+;; Flycheck integration for lsp-mode.
 
 ;;; Code:
 
-(require 'flycheck)
+(require 'flycheck nil 'noerror)  ; Temporary solution, see #514
 (require 'pcase)
 (require 'dash)
 
@@ -43,7 +40,8 @@
   :link '(info-link "(lsp-ui-flycheck) Customizing"))
 
 (defcustom lsp-ui-flycheck-list-position 'bottom
-  "Position where `lsp-ui-flycheck-list' will show diagnostics for the whole workspace."
+  "Position where `lsp-ui-flycheck-list' will show diagnostics for the
+whole workspace."
   :type '(choice (const :tag "Bottom" bottom)
                  (const :tag "Right" right))
   :group 'lsp-ui-flycheck)
@@ -153,14 +151,13 @@ Use `lsp-diagnostics' to receive diagnostics from your LSP server."
   (interactive)
   (kill-buffer))
 
-(defvar lsp-ui-flycheck-list-mode-map nil
-  "Keymap for ‘lsp-ui-flycheck-list-mode’.")
-(unless lsp-ui-flycheck-list-mode-map
+(defvar lsp-ui-flycheck-list-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "q") 'lsp-ui-flycheck-list--quit)
     (define-key map (kbd "<return>") 'lsp-ui-flycheck-list--view)
     (define-key map (kbd "<M-return>") 'lsp-ui-flycheck-list--visit)
-    (setq lsp-ui-flycheck-list-mode-map map)))
+    map)
+  "Keymap for ‘lsp-ui-flycheck-list-mode’.")
 
 (define-derived-mode lsp-ui-flycheck-list-mode special-mode "lsp-ui-flycheck-list"
   "Mode showing flycheck diagnostics for the whole workspace."
