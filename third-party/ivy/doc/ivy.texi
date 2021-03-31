@@ -8,7 +8,7 @@
 
 @copying
 @ifnottex
-Ivy manual, version 0.13.0
+Ivy manual, version 0.13.4
 
 Ivy is an interactive interface for completion in Emacs. Emacs uses
 completion mechanism in a variety of contexts: code, menus, commands,
@@ -20,7 +20,7 @@ final candidate is either through simple keyboard character inputs or
 through powerful regular expressions.
 @end ifnottex
 
-Copyright (C) 2015-2019 Free Software Foundation, Inc.
+Copyright (C) 2015--2021 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -29,6 +29,7 @@ or any later version published by the Free Software Foundation;
 with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
 A copy of the license is included in the section entitled "GNU
 Free Documentation License".
+
 @end quotation
 @end copying
 
@@ -216,22 +217,23 @@ version that runs Ivy with fancy faces display.
 
 @kbd{M-x} @code{package-install} @kbd{RET} @code{counsel} @kbd{RET}
 
-Ivy is installed as part of the @code{counsel} package, which is available
-from two different package archives, GNU ELPA and MELPA.  For the
-latest stable version, use the GNU ELPA archives.  For current hourly
-builds, use the MELPA archives.
+Ivy is installed alongside the @code{counsel} package, which is available
+from two different package archives, GNU ELPA and MELPA@.  For the
+latest stable version, use the GNU ELPA archive.  For the latest
+development snaphshot, use the GNU-devel ELPA archive.
 
 Ivy is split into three packages: @code{ivy}, @code{swiper} and @code{counsel}; by
 installing @code{counsel}, the other two are brought in as dependencies.
 If you are not interested in the extra functionality provided by
 @code{swiper} and @code{counsel}, you can install only @code{ivy}.
 
-See the code below for adding MELPA to the list of package archives:
+See the code below for adding GNU-devel ELPA to your list of package
+archives:
 
 @lisp
 (require 'package)
 (add-to-list 'package-archives
-	     '("melpa" . "https://melpa.org/packages/"))
+             '("gnu-devel" . "https://elpa.gnu.org/devel/"))
 @end lisp
 
 After this do @kbd{M-x} @code{package-refresh-contents} @kbd{RET}, followed by @kbd{M-x}
@@ -246,7 +248,7 @@ For package manager details, see @ref{Packages,,,emacs,}.
 @indentedblock
 @itemize
 @item
-No need to wait for MELPA's hourly builds
+No need to wait for GNU ELPA / MELPA builds
 @item
 Easy to revert to previous versions
 @item
@@ -516,12 +518,16 @@ keystrokes followed by @kbd{C-m}.
 @subsection Key bindings for multiple selections and actions, keep minibuffer open
 
 For repeatedly applying multiple actions or acting on multiple
-candidates, Ivy does not close the minibuffer between commands. It
+candidates, Ivy does not close the minibuffer between commands.  It
 keeps the minibuffer open for applying subsequent actions.
 
 Adding an extra meta key to the normal key chord invokes the special
 version of the regular commands that enables applying multiple
 actions.
+
+Note that these operations are supported only by completion sessions
+that use the @code{ivy-read} API, rather than the built-in
+@code{completing-read}.
 
 @subsubheading @kbd{C-M-m} (@code{ivy-call})
 @vindex ivy-call
@@ -1101,6 +1107,8 @@ i.e., when @kbd{DEL} is typed at the beginning of the minibuffer.
 
 The default behavior is to quit the completion after @kbd{DEL} -- a
 handy key to invoke after mistakenly triggering a completion.
+
+Another common option is @code{ignore}, which does nothing.
 @end defopt
 
 @node Actions
@@ -1811,12 +1819,12 @@ then retrieves that value and displays it.
 @end itemize
 
 @node Variable Index
-@unnumbered Variable Index
+@chapter Variable Index
 
 @printindex vr
 
 @node Keystroke Index
-@unnumbered Keystroke Index
+@chapter Keystroke Index
 
 @printindex ky
 
