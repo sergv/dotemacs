@@ -1,10 +1,10 @@
 ;;; ivy.el --- Incremental Vertical completYon -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2020  Free Software Foundation, Inc.
+;; Copyright (C) 2015-2021 Free Software Foundation, Inc.
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Version: 0.13.0
+;; Version: 0.13.4
 ;; Package-Requires: ((emacs "24.5"))
 ;; Keywords: matching
 
@@ -99,7 +99,8 @@ a behavior similar to `swiper'."
 The usual reason for `ivy-backward-delete-char' to fail is when
 there is no text left to delete, i.e., when it is called at the
 beginning of the minibuffer.
-The default setting provides a quick exit from completion."
+The default setting provides a quick exit from completion.
+Another common option is `ignore', which does nothing."
   :type '(choice
           (const :tag "Exit completion" abort-recursive-edit)
           (const :tag "Do nothing" ignore)
@@ -853,9 +854,9 @@ selection, non-nil otherwise."
                                     (string-prefix-p key (car x)))
                                   (cdr actions)))
                 (not (string= key (car (nth action-idx (cdr actions))))))
-      (setq key (concat key (key-description (string (read-key hint))))))
+      (setq key (concat key (key-description (vector (read-key hint))))))
     (ivy-shrink-after-dispatching)
-    (cond ((member key '("ESC" "C-g"))
+    (cond ((member key '("ESC" "C-g" "M-o"))
            nil)
           ((null action-idx)
            (message "%s is not bound" key)
@@ -1689,6 +1690,7 @@ minibuffer."
   (interactive)
   (setq ivy--old-re nil)
   (cl-rotatef ivy--regex-function ivy--regexp-quote)
+  (setq ivy--old-text "")
   (setq ivy-regex (funcall ivy--regex-function ivy-text)))
 
 (defcustom ivy-format-functions-alist
@@ -1768,7 +1770,8 @@ specified for the current collection in
 `ivy-sort-functions-alist'."
   (interactive)
   (let ((cell (or (assq (ivy-state-collection ivy-last) ivy-sort-functions-alist)
-                  (assq (ivy-state-caller ivy-last) ivy-sort-functions-alist))))
+                  (assq (ivy-state-caller ivy-last) ivy-sort-functions-alist)
+                  (assq t ivy-sort-functions-alist))))
     (when (consp (cdr cell))
       (setcdr cell (nconc (cddr cell) (list (cadr cell))))
       (ivy--reset-state ivy-last))))
@@ -2627,6 +2630,12 @@ See `ivy-set-prompt'."
   "When non-nil `ivy-mode' will set `completion-in-region-function'."
   :type 'boolean)
 
+(defvar ivy--old-crf nil
+  "Store previous value of `completing-read-function'.")
+
+(defvar ivy--old-cirf nil
+  "Store previous value of `completion-in-region-function'.")
+
 ;;;###autoload
 (define-minor-mode ivy-mode
   "Toggle Ivy mode on or off.
@@ -2645,11 +2654,21 @@ Minibuffer bindings:
   :lighter " ivy"
   (if ivy-mode
       (progn
-        (setq completing-read-function 'ivy-completing-read)
+        (unless (eq completing-read-function #'ivy-completing-read)
+          (setq ivy--old-crf completing-read-function)
+          (setq completing-read-function #'ivy-completing-read))
         (when ivy-do-completion-in-region
-          (setq completion-in-region-function 'ivy-completion-in-region)))
-    (setq completing-read-function 'completing-read-default)
-    (setq completion-in-region-function 'completion--in-region)))
+          (unless (eq completion-in-region-function #'ivy-completion-in-region)
+            (setq ivy--old-cirf completion-in-region-function)
+            (setq completion-in-region-function #'ivy-completion-in-region))))
+    (when (eq completing-read-function #'ivy-completing-read)
+      (setq completing-read-function (or ivy--old-crf
+                                         #'completing-read-default))
+      (setq ivy--old-crf nil))
+    (when (eq completion-in-region-function #'ivy-completion-in-region)
+      (setq completion-in-region-function (or ivy--old-cirf
+                                              #'completion--in-region))
+      (setq ivy--old-cirf nil))))
 
 (defun ivy--preselect-index (preselect candidates)
   "Return the index of PRESELECT in CANDIDATES."
@@ -3267,10 +3286,16 @@ The function was added in Emacs 26.1.")
           "~"
         home)))))
 
+(defvar ivy--minibuffer-metadata nil)
+
 (defun ivy-update-candidates (cands)
-  (ivy--insert-minibuffer
-   (ivy--format
-    (setq ivy--all-candidates cands))))
+  (let ((ivy--minibuffer-metadata
+         (unless (ivy-state-dynamic-collection ivy-last)
+           (completion-metadata "" minibuffer-completion-table
+                                minibuffer-completion-predicate))))
+    (ivy--insert-minibuffer
+     (ivy--format
+      (setq ivy--all-candidates cands)))))
 
 (defun ivy--exhibit ()
   "Insert Ivy completions display.
@@ -4020,7 +4045,8 @@ in this case."
                     (funcall ivy--highlight-function str))
                 str))
          (olen (length str))
-         (annot (plist-get completion-extra-properties :annotation-function)))
+         (annot (or (completion-metadata-get ivy--minibuffer-metadata 'annotation-function)
+                    (plist-get completion-extra-properties :annotation-function))))
     (add-text-properties
      0 olen
      '(mouse-face
@@ -4413,7 +4439,8 @@ BUFFER may be a string or nil."
 (defun ivy--kill-current-candidate-buffer ()
   (setf (ivy-state-preselect ivy-last) ivy--index)
   (setq ivy--old-re nil)
-  (setq ivy--all-candidates (ivy--buffer-list "" ivy-use-virtual-buffers nil))
+  (setq ivy--all-candidates (ivy--buffer-list "" ivy-use-virtual-buffers
+                                              (ivy-state-predicate ivy-last)))
   (let ((ivy--recompute-index-inhibit t))
     (ivy--exhibit)))
 
@@ -5122,7 +5149,7 @@ EVENT gives the mouse position."
   (ivy--occur-press-update-window)
   (when (save-excursion
           (beginning-of-line)
-          (looking-at "\\(?:./\\|    \\)\\(.*\\)$"))
+          (looking-at "\\(?:.[/\\]\\|    \\)\\(.*\\)$"))
     (let* ((ivy-last ivy-occur-last)
            (ivy-text (ivy-state-text ivy-last))
            (str (buffer-substring
