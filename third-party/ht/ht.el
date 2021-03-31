@@ -3,7 +3,7 @@
 ;; Copyright (C) 2013 Wilfred Hughes
 
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
-;; Version: 2.3
+;; Version: 2.4
 ;; Keywords: hash table, hash map, hash
 ;; Package-Requires: ((dash "2.12.0"))
 
@@ -114,9 +114,10 @@ for the final key, which may return any value."
   (declare (side-effect-free t))
   (inline-letevals (table keys)
     (inline-quote
-     (prog1 ,table
+     (progn
        (while ,keys
-         (setf ,table (ht-get table (pop ,keys))))))))
+         (setf ,table (ht-get ,table (pop ,keys))))
+       ,table))))
 
 (put 'ht-get* 'compiler-macro
      (lambda (_ table &rest keys)
