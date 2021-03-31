@@ -135,7 +135,8 @@ source.fixAll code action."
   :package-version '(lsp-mode . "6.3"))
 
 (defcustom lsp-eslint-lint-task-options "."
-  "Command line options applied when running the task for linting the whole workspace (see https://eslint.org/docs/user-guide/command-line-interface)."
+  "Command line options applied when running the task for linting the whole
+workspace (see https://eslint.org/docs/user-guide/command-line-interface)."
   :type 'string
   :package-version '(lsp-mode . "6.3"))
 
@@ -154,9 +155,22 @@ source.fixAll code action."
   :type 'alist)
 
 (defcustom lsp-eslint-experimental-incremental-sync t
-  "Controls whether the new incremental text document synchronization should be used."
+  "Controls whether the new incremental text document synchronization should
+be used."
   :type 'boolean
   :package-version '(lsp-mode . "6.3"))
+
+(defcustom lsp-eslint-save-library-choices t
+  "Controls whether to remember choices made to permit or deny ESLint libraries
+from running."
+  :type 'boolean
+  :package-version '(lsp-mode . "7.1"))
+
+(defcustom lsp-eslint-library-choices-file (expand-file-name (locate-user-emacs-file ".lsp-eslint-choices"))
+  "The file where choices to permit or deny ESLint libraries from running is
+stored."
+  :type 'string
+  :package-version '(lsp-mode . "7.1"))
 
 (defun lsp--find-eslint ()
   (or
@@ -253,10 +267,37 @@ source.fixAll code action."
         first-argument-exist
       (executable-find (cl-first eslint-server-command)))))
 
-(defun lsp-eslint--confirm-local (_workspace _params)
-  ;; don't bother implementing since it will be dropped in next version of the
-  ;; server
-  t)
+(defvar lsp-eslint--stored-libraries (ht)
+  "Hash table defining if a given path to an ESLint library is allowed to run.
+If the value for a key is 4, it will be allowed. If it is 1, it will not. If a
+value does not exist for the key, or the value is nil, the user will be prompted
+to allow or deny it.")
+
+(when (and (file-exists-p lsp-eslint-library-choices-file)
+           lsp-eslint-save-library-choices)
+  (setq lsp-eslint--stored-libraries (lsp--read-from-file lsp-eslint-library-choices-file)))
+
+(lsp-defun lsp-eslint--confirm-local (_workspace (&eslint:ConfirmExecutionParams :library-path) callback)
+  (if-let ((option-alist '(("Always" 4 . t)
+                           ("Yes" 4 . nil)
+                           ("No" 1 . nil)
+                           ("Never" 1 . t)))
+           (remembered-answer (gethash library-path lsp-eslint--stored-libraries)))
+      (funcall callback remembered-answer)
+    (lsp-ask-question
+     (format "Allow lsp-mode to execute %s?" library-path)
+     (mapcar 'car option-alist)
+     (lambda (response)
+       (let ((option (cdr (assoc response option-alist))))
+         (when (cdr option)
+           (puthash library-path (car option) lsp-eslint--stored-libraries)
+           (when lsp-eslint-save-library-choices
+             (lsp--persist lsp-eslint-library-choices-file lsp-eslint--stored-libraries)))
+         (funcall callback (car option)))))))
+
+(defun lsp-eslint--probe-failed (_workspace _message)
+  "Called when the server detects a misconfiguration in ESLint."
+  (lsp--error "ESLint is not configured correctly. Please ensure your eslintrc is set up for the languages you are using."))
 
 (lsp-register-client
  (make-lsp-client
@@ -277,7 +318,8 @@ source.fixAll code action."
   :notification-handlers (ht ("eslint/status" #'lsp-eslint-status-handler))
   :request-handlers (ht ("workspace/configuration" #'lsp-eslint--configuration)
                         ("eslint/openDoc" #'lsp-eslint--open-doc)
-                        ("eslint/confirmLocalESLint" #'lsp-eslint--confirm-local))
+                        ("eslint/probeFailed" #'lsp-eslint--probe-failed))
+  :async-request-handlers (ht ("eslint/confirmESLintExecution" #'lsp-eslint--confirm-local))
   :server-id 'eslint
   :initialized-fn (lambda (workspace)
                     (with-lsp-workspace workspace
@@ -304,7 +346,7 @@ source.fixAll code action."
                                    (funcall callback))
                                (error (funcall error-callback err))))
                            error-callback
-                           :url (lsp-vscode-extension-url "dbaeumer" "vscode-eslint" "2.1.8")
+                           :url (lsp-vscode-extension-url "dbaeumer" "vscode-eslint" "2.1.14")
                            :store-path tmp-zip)))))
 
 (provide 'lsp-eslint)

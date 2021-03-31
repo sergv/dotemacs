@@ -47,28 +47,50 @@ or manually by cloning the repo and following the installing instructions."
 
 (defcustom lsp-elm-elm-path
   ""
-  "The path to your elm executable.  Should be empty by default, in that case it will assume the name and try to first get it from a local npm installation or a global one.  If you set it manually it will not try to load from the npm folder."
+  "The path to your elm executable.
+
+Should be empty by default, in that case it will assume the name and try
+to first get it from a local npm installation or a global one.  If you
+set it manually it will not try to load from the npm folder."
   :type 'file
   :group 'lsp-elm)
 
 (defcustom lsp-elm-elm-format-path
   ""
-  "The path to your elm-format executable.  Should be empty by default, in that case it will assume the name and try to first get it from a local npm installation or a global one.  If you set it manually it will not try to load from the npm folder."
+  "The path to your elm-format executable.
+
+Should be empty by default, in that case it will assume the name and try
+to first get it from a local npm installation or a global one.  If you
+set it manually it will not try to load from the npm folder."
   :type 'file
   :group 'lsp-elm)
 
 (defcustom lsp-elm-elm-test-path
   ""
-  "The path to your elm-test executable.  Should be empty by default, in that case it will assume the name and try to first get it from a local npm installation or a global one.  If you set it manually it will not try to load from the npm folder."
+  "The path to your elm-test executable.
+
+Should be empty by default, in that case it will assume the name and try
+to first get it from a local npm installation or a global one.  If you
+set it manually it will not try to load from the npm folder."
   :type 'file
   :group 'lsp-elm)
 
-(defcustom lsp-elm-elm-analyse-trigger
-  "change"
-  "Elm-analyse executed on 'change', 'save' or 'never' (default: 'change')."
-  :type '(choice (const "change")
-                 (const "save")
-                 (const "never"))
+(defcustom lsp-elm-disable-elmls-diagnostics
+  nil
+  "Enable/Disable linting diagnostics from the language server."
+  :type 'boolean
+  :group 'lsp-elm)
+
+(defcustom lsp-elm-only-update-diagnostics-on-save
+  nil
+  "Only update compiler diagnostics on save, not on document change."
+  :type 'boolean
+  :group 'lsp-elm)
+
+(defcustom lsp-elm-skip-install-package-confirmation
+  nil
+  "Skip confirmation for the Install Package code action."
+  :type 'boolean
   :group 'lsp-elm)
 
 (defcustom lsp-elm-server-args
@@ -89,7 +111,9 @@ or manually by cloning the repo and following the installing instructions."
   `(:elmPath ,lsp-elm-elm-path
     :elmFormatPath ,lsp-elm-elm-format-path
     :elmTestPath ,lsp-elm-elm-test-path
-    :elmAnalyseTrigger ,lsp-elm-elm-analyse-trigger
+    :disableElmLSDiagnostics ,(lsp-json-bool lsp-elm-disable-elmls-diagnostics)
+    :onlyUpdateDiagnosticsOnSave ,(lsp-json-bool lsp-elm-only-update-diagnostics-on-save)
+    :skipInstallPackageConfirmation ,(lsp-json-bool lsp-elm-skip-install-package-confirmation)
     :trace.server ,(lsp-json-bool lsp-elm-trace-server)))
 
 (lsp-dependency 'elm-language-server

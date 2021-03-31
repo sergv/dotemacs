@@ -42,35 +42,56 @@
   :risky t
   :type '(repeat string))
 
-(defcustom lsp-clojure-server-download-url "https://github.com/snoe/clojure-lsp/releases/latest/download/clojure-lsp"
+(defcustom lsp-clojure-server-download-url
+  (format "https://github.com/clojure-lsp/clojure-lsp/releases/latest/download/clojure-lsp-native-%s-amd64.zip"
+          (pcase system-type
+            ('gnu/linux "linux")
+            ('darwin "macos")
+            ('windows-nt "windows")))
   "Automatic download url for lsp-clojure."
   :type 'string
   :group 'lsp-clojure
   :package-version '(lsp-mode . "7.1"))
 
-(defcustom lsp-clojure-server-store-path (f-join lsp-server-install-dir
-                                                "clojure"
-                                                "clojure-lsp")
+(defcustom lsp-clojure-server-store-path
+  (f-join lsp-server-install-dir
+          "clojure"
+          (if (eq system-type 'windows-nt)
+              "clojure-lsp.exe"
+            "clojure-lsp"))
   "The path to the file in which `clojure-lsp' will be stored."
   :type 'file
   :group 'lsp-clojure
   :package-version '(lsp-mode . "7.1"))
 
+(defcustom lsp-clojure-workspace-dir (expand-file-name (locate-user-emacs-file "workspace/"))
+  "LSP clojure workspace directory."
+  :group 'lsp-clojure
+  :risky t
+  :type 'directory)
+
+(defcustom lsp-clojure-workspace-cache-dir (expand-file-name ".cache/" lsp-clojure-workspace-dir)
+  "LSP clojure workspace cache directory."
+  :group 'lsp-clojure
+  :risky t
+  :type 'directory)
+
 ;; Internal
 
 (lsp-dependency
  'clojure-lsp
- '(:system "clojure-lsp")
  `(:download :url lsp-clojure-server-download-url
+             :decompress :zip
              :store-path lsp-clojure-server-store-path
-             :set-executable? t))
+             :set-executable? t)
+ '(:system "clojure-lsp"))
 
 ;; Refactorings
 
 (defun lsp-clojure--execute-command (command &optional args)
   "Send an executeCommand request for COMMAND with ARGS."
   (lsp--cur-workspace-check)
-  (lsp--send-execute-command command (apply #'vector args)))
+  (lsp-send-execute-command command (apply #'vector args)))
 
 (defun lsp-clojure--refactoring-call (refactor-name &rest additional-args)
   "Send an executeCommand request for REFACTOR-NAME with ADDITIONAL-ARGS.
@@ -80,6 +101,11 @@ If there are more arguments expected after the line and column numbers."
                                                         (- (line-number-at-pos) 1) ;; clojure-lsp expects line numbers to start at 0
                                                         (current-column)
                                                         additional-args)))
+
+(defun lsp-clojure-add-import-to-namespace (import-name)
+  "Add to IMPORT-NAME to :import form."
+  (interactive "MImport name: ")
+  (lsp-clojure--refactoring-call "add-import-to-namespace" import-name))
 
 (defun lsp-clojure-add-missing-libspec ()
   "Apply add-missing-libspec refactoring at point."
@@ -161,27 +187,82 @@ If there are more arguments expected after the line and column numbers."
   (interactive)
   (lsp-clojure--execute-command "server-info"))
 
-(defun lsp-clojure--library-folders (_workspace)
-  "Return the library folders path to analyze for WORKSPACE."
-  (when (string-match-p ".m2/repository" (buffer-file-name))
-    (list (file-name-directory (buffer-file-name)))))
+(defun lsp-clojure-cursor-info ()
+  "Request cursor info at point."
+  (interactive)
+  (lsp--cur-workspace-check)
+  (lsp-clojure--execute-command "cursor-info" (list (lsp--buffer-uri)
+                                                    (- (line-number-at-pos) 1) ;; clojure-lsp expects line numbers to start at 0
+                                                    (current-column))))
+
+(defun lsp-clojure--ask-macro-to-resolve ()
+  "Ask to user the macro to resolve."
+  (lsp--completing-read
+   "Select how LSP should resolve this macro:"
+   '("clojure.core/def"
+     "clojure.core/defn"
+     "clojure.core/let"
+     "clojure.core/for"
+     "clojure.core/->"
+     "clojure.core/->>"
+     "clj-kondo.lint-as/def-catch-all")
+   #'identity
+   nil
+   t))
+
+(defun lsp-clojure--ask-clj-kondo-config-dir ()
+  "Ask to user the clj-kondo config dir path."
+  (lsp--completing-read
+   "Select where LSP should save this setting:"
+   (list (concat (expand-file-name "~/") ".clj-kondo/config.edn")
+         (concat (or (lsp-workspace-root) "project") ".clj-kondo/config.edn"))
+   #'identity
+   nil
+   t))
+
+(defun lsp-clojure-resolve-macro-as ()
+  "Ask to user how the unresolved macro should be resolved."
+  (interactive)
+  (lsp--cur-workspace-check)
+  (lsp-clojure--execute-command "resolve-macro-as"
+                                (list (lsp--buffer-uri)
+                                      (- (line-number-at-pos) 1) ;; clojure-lsp expects line numbers to start at 0
+                                      (current-column)
+                                      (lsp-clojure--ask-macro-to-resolve)
+                                      (lsp-clojure--ask-clj-kondo-config-dir))))
+
+(lsp-defun lsp-clojure--resolve-macro-as ((&Command :command :arguments?))
+  "Intercept resolve-macro-as command and send all necessary data."
+  (let ((chosen-macro (lsp-clojure--ask-macro-to-resolve))
+        (clj-kondo-config-path (lsp-clojure--ask-clj-kondo-config-dir)))
+    (lsp-clojure--execute-command command (append arguments? (list chosen-macro clj-kondo-config-path)))))
+
+(defun lsp-clojure--ensure-dir (path)
+  "Ensure that directory PATH exists."
+  (unless (file-directory-p path)
+    (make-directory path t)))
+
+(defun lsp-clojure--get-metadata-location (file-location)
+  "Given a FILE-LOCATION return the file containing the metadata for the file."
+  (format "%s.%s.metadata"
+          (file-name-directory file-location)
+          (file-name-base file-location)))
 
 (defun lsp-clojure--file-in-jar (uri)
   "Check URI for a valid jar and include it in workspace."
   (string-match "^\\(jar\\|zip\\):\\(file:.+\\)!/\\(.+\\)" uri)
-  (-when-let* ((entry (match-string 3 uri))
-               (path (lsp--uri-to-path (match-string 2 uri)))
-               (name (format "%s:%s" path entry))
-               (content (lsp-send-request (lsp-make-request "clojure/dependencyContents" (list :uri uri)))))
-    (unless (find-buffer-visiting name)
-      (with-current-buffer (generate-new-buffer name)
-        (insert content)
-        (set-visited-file-name name)
-        (setq-local buffer-read-only t)
-        (set-buffer-modified-p nil)
-        (set-auto-mode)
-        (current-buffer)))
-    name))
+  (let* ((ns-path (match-string 3 uri))
+         (ns (s-replace "/" "." ns-path))
+         (file-location (concat lsp-clojure-workspace-cache-dir ns)))
+    (unless (file-readable-p file-location)
+      (lsp-clojure--ensure-dir (file-name-directory file-location))
+      (with-lsp-workspace (lsp-find-workspace 'clojure-lsp nil)
+        (let ((content (lsp-send-request (lsp-make-request "clojure/dependencyContents" (list :uri uri)))))
+          (with-temp-file file-location
+            (insert content))
+          (with-temp-file (lsp-clojure--get-metadata-location file-location)
+            (insert uri)))))
+    file-location))
 
 (defun lsp-clojure--server-executable-path ()
   "Return the clojure-lsp server command."
@@ -195,13 +276,14 @@ If there are more arguments expected after the line and column numbers."
   :new-connection (lsp-stdio-connection
                    (lambda ()
                      (or lsp-clojure-custom-server-command
-                         `("bash" "-c" ,(lsp-clojure--server-executable-path))))
+                         `(,(lsp-clojure--server-executable-path))))
                    (lambda ()
                      (or lsp-clojure-custom-server-command
                          (lsp-clojure--server-executable-path))))
   :major-modes '(clojure-mode clojurec-mode clojurescript-mode)
-  :library-folders-fn #'lsp-clojure--library-folders
+  :library-folders-fn (lambda (_workspace) (list lsp-clojure-workspace-cache-dir))
   :uri-handlers (lsp-ht ("jar" #'lsp-clojure--file-in-jar))
+  :action-handlers (lsp-ht ("resolve-macro-as" #'lsp-clojure--resolve-macro-as))
   :initialization-options '(:dependency-scheme "jar")
   :server-id 'clojure-lsp))
 
