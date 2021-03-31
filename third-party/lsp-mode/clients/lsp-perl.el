@@ -51,7 +51,8 @@
   :package-version '(lsp-mode . "6.3"))
 
 (defcustom lsp-perl-perl-cmd nil
-  "Path to perl interpreter used in Perl Language Server.  Defaults to `perl' if nil."
+  "Path to perl interpreter used in Perl Language Server.
+Defaults to `perl' if nil."
   :type 'string
   :group 'lsp-perl
   :package-version '(lsp-mode . "7.0.1"))
@@ -61,27 +62,45 @@
   :group 'lsp-perl
   :package-version '(lsp-mode . "7.0.1"))
 (defcustom lsp-perl-file-filter nil
-  "A vector of directories filtering perl file.  Defaults to `[\".pm\" \".pl\"]' if nil."
+  "A vector of directories filtering perl file.
+Defaults to `[\".pm\" \".pl\"]' if nil."
   :type 'lsp-string-vector
   :group 'lsp-perl
   :package-version '(lsp-mode . "7.0.1"))
 (defcustom lsp-perl-ignore-dirs nil
-  "A vector of directories to ignore.  Defaults to `[\".vscode\" \".git\" \".svn\"]' if nil."
+  "A vector of directories to ignore.
+Defaults to `[\".vscode\" \".git\" \".svn\"]' if nil."
   :type 'lsp-string-vector
   :group 'lsp-perl
   :package-version '(lsp-mode . "7.0.1"))
+
+(defcustom lsp-perl-show-local-vars nil
+  "If true, show also local variables in symbol view.
+Defaults to false if nil"
+  :type 'boolean
+  :group 'lsp-perl
+  :package-version '(lsp-mode . "7.1"))
+
+(defcustom lsp-perl-log-level nil
+  "Log level 0-2.
+Defaults to 0."
+  :type 'integer
+  :group 'lsp-perl
+  :package-version '(lsp-mode . "7.1"))
 
 (lsp-register-custom-settings
  '(("perl.perlCmd" lsp-perl-perl-cmd)
    ("perl.perlInc" lsp-perl-perl-inc)
    ("perl.fileFilter" lsp-perl-file-filter)
-   ("perl.ignoreDirs" lsp-perl-ignore-dirs)))
+   ("perl.ignoreDirs" lsp-perl-ignore-dirs)
+   ("perl.showLocalVars" lsp-perl-show-local-vars t)
+   ("perl.logLevel" lsp-perl-log-level)))
 
 (lsp-register-client
  (make-lsp-client :new-connection (lsp-stdio-connection
                                    (lambda ()
                                      (list lsp-perl-language-server-path
-                                           "-MPerl::LanguageServer" "-e" "Perl::LanguageServer::run" "--" 
+                                           "-MPerl::LanguageServer" "-e" "Perl::LanguageServer::run" "--"
                                            (format "--port %d --version %s"
                                                    lsp-perl-language-server-port lsp-perl-language-server-client-version))))
                   :major-modes '(perl-mode cperl-mode)
@@ -94,4 +113,3 @@
 
 (provide 'lsp-perl)
 ;;; lsp-perl.el ends here
-

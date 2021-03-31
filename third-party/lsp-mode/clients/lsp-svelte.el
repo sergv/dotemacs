@@ -98,7 +98,11 @@
   :package-version '(lsp-mode . "7.1.0"))
 
 (defcustom lsp-svelte-plugin-css-globals ""
-  "Which css files should be checked for global variables (`--global-var: value;`). These variables are added to the css completions. String of comma-separated file paths or globs relative to workspace root."
+  "Which css files should be checked for global variables
+(`--global-var: value;`).
+
+These variables are added to the css completions.  String of comma-separated
+file paths or globs relative to workspace root."
   :type 'string
   :package-version '(lsp-mode . "7.1.0"))
 
@@ -270,12 +274,9 @@ Example: '((css-unused-selector . ignore) (unused-export-let . error))"
                             "svelte"))
   :initialization-options
   (lambda ()
-    ;; XXX: workaround for https://github.com/Wilfred/ht.el/issues/38
-    ;; Use `ht-get*' instead of `lsp--ht-get' when
-    ;; https://github.com/Wilfred/ht.el/pull/39 is merged
-    (list :config (lsp--ht-get (lsp-configuration-section "svelte.plugin")
-                               "svelte"
-                               "plugin")
+    (list :config (ht-get* (lsp-configuration-section "svelte.plugin")
+                           "svelte"
+                           "plugin")
           :prettierConfig (lsp-configuration-section "prettier")
           :emmetConfig (lsp-configuration-section "emmet")
           :typescriptConfig: (list :typescript (lsp-configuration-section "typescript")

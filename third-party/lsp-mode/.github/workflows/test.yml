@@ -4,14 +4,17 @@ on: [push, pull_request]
 
 jobs:
     unix-test:
-        runs-on: ubuntu-latest
+        runs-on: ${{ matrix.os }}
         strategy:
+            fail-fast: false
             matrix:
+                os: [ubuntu-latest, macos-latest]
                 emacs-version:
                     - 26.1
                     - 26.2
                     - 26.3
                     - 27.1
+                    - 27.2
                     - snapshot
 
         steps:
@@ -30,8 +33,28 @@ jobs:
               with:
                   version: 0.8.4
 
-            - name: Install depedencies
-              run: "pip3 install python-language-server"
+            - name: Setup cmake
+              uses: jwlawson/actions-setup-cmake@v1.4
+              with:
+                 cmake-version: '3.18.x'
+
+            - name: Check cmake
+              run: "cmake --version"
+
+            - name: Install depedencies on Linux
+              if: runner.os == 'Linux'
+              run: |
+                   pip3 install python-language-server
+                   sudo apt-get install clangd-9
+
+            - name: Install deps on macOS
+              if: runner.os == 'macOS'
+              run: |
+                   pip3 install python-language-server
+
+            - name: Check clangd
+              if: runner.os == 'Linux'
+              run: "clangd-9 --version"
 
             - name: Run tests
               run:
@@ -40,9 +63,14 @@ jobs:
     windows-test:
         runs-on: windows-latest
         strategy:
+            fail-fast: false
             matrix:
                 emacs-version:
+                    - 26.1
+                    - 26.2
+                    - 26.3
                     - 27.1
+                    - snapshot
 
         steps:
             - uses: actions/checkout@v2
