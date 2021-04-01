@@ -521,6 +521,23 @@
      "}"
      "")))
 
+(ert-deftest rust-tests/rust-smart-operators--comma-1 ()
+  (rust-tests--test-buffer-contents
+      (smart-operators-comma)
+    (tests-utils--multiline
+     ""
+     "fn foo(x: i32) -> char {"
+     "   '_|_'"
+     "}"
+     "")
+    (tests-utils--multiline
+     ""
+     ""
+     "fn foo(x: i32) -> char {"
+     "   ',_|_'"
+     "}"
+     "")))
+
 (ert-deftest rust-tests/sp-splice-sexp-killing-backward-1 ()
   (rust-tests--test-buffer-contents
       (sp-splice-sexp-killing-backward)
