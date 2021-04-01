@@ -101,7 +101,7 @@ that next 2 characters are AFTER1 and AFTER2."
   (let ((next-char (char-after)))
     (insert-char ?\,)
     (when (or (not next-char)
-              (not (member next-char '(?\s ?\t))))
+              (not (member next-char '(?\s ?\t ?\'))))
       (insert-char ?\s))))
 
 (provide 'smart-operators-utils)
