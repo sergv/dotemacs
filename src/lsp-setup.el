@@ -74,7 +74,7 @@
 
       lsp-rust-server 'rust-analyzer
       lsp-rust-analyzer-server-command '("rust-analyzer")
-      lsp-rust-analyzer-server-args '(nil "--spammy" "--log-file" "/tmp/rust-analyzer-log.txt")
+      lsp-rust-analyzer-server-args '(nil "--log-file" "/tmp/rust-analyzer-log.txt")
 
       ;; ;; For debugging
       ;; lsp-response-timeout 10000
