@@ -44,7 +44,6 @@ _I_: jump back"
     :bind-colon t
     :bind-hyphen t)
   (setup-eproj-symbnav)
-  (haskell-define-align-bindings! vim:visual-mode-local-keymap)
 
   (dolist (cmd '("c" "compile"))
     (vim:local-emap cmd  #'vim:haskell-compile))
@@ -52,6 +51,8 @@ _I_: jump back"
     (vim:local-emap cmd  #'vim:haskell-compile-choosing-command))
   (def-keys-for-map vim:normal-mode-local-keymap
     ("g" hydra-haskell-grammar-tools-vim-normal-g-ext/body))
+  (def-keys-for-map vim:visual-mode-local-keymap
+    ("g" hydra-haskell-vim-visual-g-ext/body))
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
     ("M-t"             haskell-compilation-prev-error-other-window)

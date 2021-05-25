@@ -24,7 +24,7 @@
 
 ;;; search faces
 
-(defgroup searhc nil
+(defgroup search nil
   "A mode for presenting and selecting from a list of items."
   :group 'search)
 

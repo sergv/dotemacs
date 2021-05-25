@@ -17,13 +17,19 @@
     tbl)
   "Syntax table in use in alex-mode buffers.")
 
+(defgroup uuag nil
+  "UUAG mode"
+  :group 'uuag)
+
 (defface uuag-meta-keyword-face
   `((t (:inherit font-lock-keyword-face)))
-  "Face to highlight keywords specific to UUAG.")
+  "Face to highlight keywords specific to UUAG."
+  :group 'uuag)
 
 (defface uuag-field-name-face
   `((t (:foreground ,+solarized-orange+ :bold t)))
-  "Face to highlight references to other attributes (i.e. things that start with @).")
+  "Face to highlight references to other attributes (i.e. things that start with @)."
+  :group 'uuag)
 
 (defvar uuag-mode-font-lock-keywords
   `(("@[[:lower:]_][[:alnum:]'_]*"

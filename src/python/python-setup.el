@@ -99,11 +99,11 @@
       python-shell-prompt-block-regexp "   \\.\\.*\\.: "
       python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: "
 
-      python-shell-enable-font-lock t
+      python-shell-font-lock-enable t
 
       python-shell-completion-setup-code
       "\n\nfrom IPython.core.completerlib import module_completion"
-      python-shell-completion-module-string-code
+      python-shell-completion-string-code
       "';'.join(module_completion(\"\"\"%s\"\"\"))\n"
       python-shell-completion-string-code
       ;; use "_ =" to ignore return value of write function
@@ -154,7 +154,6 @@ in the current *Python* session."
                                ;;XXX hack for .py buffers
                                ;; (get-process py-which-bufname)
                                ))
-           (prompt-beg (cdr comint-last-prompt))
            ;; XXX currently we go backwards to find the beginning of an
            ;; expression part; a more powerful approach in the future might be
            ;; to let ipython have the complete line, so that context can be used
@@ -174,7 +173,7 @@ in the current *Python* session."
       (process-send-string python-process
                            (format python-shell-completion-string-code sep pattern))
       (accept-process-output python-process)
-      (let ((compl-end-pos (position ?\0 completion-accum)))
+      (let ((compl-end-pos (cl-position ?\0 completion-accum)))
         (setq completions
               (split-string (substring completion-accum
                                        0
@@ -224,7 +223,7 @@ in the current *Python* session."
                                symbol-end)
                           nil
                           "#"
-                          ,(lambda (arg)
+                          ,(lambda (_)
                              (python-forward-indentation-level))
                           nil)
             (assq-delete-all 'python hs-special-modes-alist)))

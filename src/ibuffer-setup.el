@@ -182,7 +182,7 @@ generate actual filter group.")
         (make-cycle-on-lines-in-region (if ibuffer-filter-groups 2 3) 2 nil)
         count))
 
-     (defun ibuffer-visit-buffer-other-window (&optional single)
+     (defun ibuffer-visit-buffer-other-window ()
        "Visit the buffer on this line in other window."
        (interactive)
        (let ((buf (ibuffer-current-buffer t)))

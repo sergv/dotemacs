@@ -6,6 +6,8 @@
 ;; Created: 27 December 2019
 ;; Description:
 
+(declare-function flycheck-rust-find-manifest "flycheck-rust")
+
 (defvar-local configurable-compilation-command-presets-var nil
   "Variable with value of alist of (<symbol> . <string>) pairs
 where symbol is the user-visible name of the preset and string is

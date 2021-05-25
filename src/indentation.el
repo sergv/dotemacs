@@ -32,8 +32,7 @@ See also `+buffer-indent-temporary-filename+'.")
     (beginning-of-line)
     (skip-chars-forward " \t")
     (delete-region (line-beginning-position) (point))
-    (dotimes (i col)
-      (insert ?\s))))
+    (insert-char ?\s col)))
 
 ;;;###autoload
 (defun reindent-file-noninteractive (filename)

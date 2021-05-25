@@ -1198,9 +1198,6 @@ Returns list of (tag-name tag project) lists."
            ;; Hash table to filter out duplicates.
            (collected-entries
             (make-hash-table :test #'equal :size 997))
-           (current-home-entry (make-eproj-home-entry :buffer (current-buffer)
-                                                      :position (point-marker)
-                                                      :symbol nil))
            (on-item-selected
             (lambda (selected-entry)
               (if (stringp selected-entry)

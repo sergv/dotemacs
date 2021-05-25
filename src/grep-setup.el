@@ -54,7 +54,7 @@
      ;; pay attention to rgrep-ignore-case
      (el-patch-defun grep-expand-template (template &optional regexp files dir excl)
        "Patch grep COMMAND string replacing <C>, <D>, <F>, <R>, and <X>."
-       (el-patch-wrap 2 0
+       (el-patch-splice 2 0
          ((setf dir (or dir "."))
           (setf *grep-latest-dir* dir)
           (let* ((command template)
