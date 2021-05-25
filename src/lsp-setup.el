@@ -86,7 +86,7 @@
       lsp-rust-full-docs t
 
       lsp-rust-analyzer-proc-macro-enable t
-      lsp-rust-analyzer-cargo-load-out-dirs-from-check t
+      lsp-rust-analyzer-cargo-run-build-scripts t
 
       lsp-diagnostics-attributes
       '((unnecessary :foreground "#666666")
@@ -333,7 +333,7 @@
                        :location (&Location :uri :range (&Range :start
                                                                 (&Position :line :character)))))
   "Return a `xref-item' from SYMBOL information."
-  (let ((tag-kind (aref lsp--symbol-kind (- kind 1)))
+  (let ((tag-kind (aref lsp--symbol-kinds (- kind 1)))
         (tag-name (if deprecated?
                       (propertize name 'face 'lsp-face-semhl-deprecated)
                     name))

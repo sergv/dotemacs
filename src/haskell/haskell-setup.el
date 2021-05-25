@@ -29,6 +29,9 @@
 (require 'shell-setup)
 (require 'smartparens-haskell)
 
+(defvar ghc-core-program)
+(defvar ghc-core-program-args)
+
 (vimmize-motion haskell-backward-up-indentation-or-sexp
                 :name vim:haskell-backward-up-indentation-or-sexp
                 :exclusive t
@@ -80,7 +83,7 @@
   (vim:haskell-dante-restart))
 
 (vim:defcmd vim:dante-clear-buffer-above-prompt (nonrepeatable)
-  dante-repl-clear-buffer-above-prompt)
+  (dante-repl-clear-buffer-above-prompt))
 
 (vim:defcmd vim:haskell-flycheck-configure (nonrepeatable)
   (flycheck-haskell-clear-config-cache)
@@ -110,21 +113,21 @@
             (when dante-ident-bounds
               (buffer-substring-no-properties (car dante-ident-bounds)
                                               (cdr dante-ident-bounds)))))
-      (lcr-cps-let ((_load_messages (dante-async-load-current-buffer nil))
+      (lcr-cps-let ((_load_messages (dante-async-load-current-buffer nil nil))
                     (targets (dante-async-call
                               (concat ":loc-at " (dante--ghc-subexp dante-ident-bounds)))))
         (let ((ghci-tags (delq nil
                                (-map #'haskell-misc--ghc-src-span-to-eproj-tag
                                      (s-lines targets)))))
           (if ghci-tags
-              (let ((proj (eproj-get-project-for-buf (current-buffer)))
-                    (effective-major-mode
-                     (eproj/resolve-synonym-modes major-mode))
-                    ((lang (aif (gethash effective-major-mode eproj/languages-table)
-                      it
-                    (error "unsupported language %s" effective-major-mode))))
-                    (tag->string (eproj-language/tag->string-func lang))
-                    (tag->kind (eproj-language/show-tag-kind-procedure lang)))
+              (let* ((proj (eproj-get-project-for-buf (current-buffer)))
+                     (effective-major-mode
+                      (eproj/resolve-synonym-modes major-mode))
+                     (lang (aif (gethash effective-major-mode eproj/languages-table)
+                               it
+                             (error "unsupported language %s" effective-major-mode)))
+                     (tag->string (eproj-language/tag->string-func lang))
+                     (tag->kind (eproj-language/show-tag-kind-procedure lang)))
                 (eproj-symbnav/choose-location-to-jump-to
                  dante-identifier
                  tag->string
