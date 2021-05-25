@@ -229,10 +229,10 @@ Newlines and excess whitespace are removed."
 
 (lsp-register-client
  (make-lsp-client :new-connection (lsp-xml--create-connection)
-                  :activation-fn (lambda (file-name _mode)
-                                   (string= (f-ext file-name) "xml"))
+                  :activation-fn (lsp-activate-on "xml")
                   :priority 0
                   :server-id 'xmlls
+                  :multi-root t
                   :initialized-fn (lambda (workspace)
                                     (with-lsp-workspace workspace
                                       (lsp--set-configuration (lsp-configuration-section "xml"))))

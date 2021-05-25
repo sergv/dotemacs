@@ -23,20 +23,33 @@
 
 (require 'lsp-mode)
 
+(defgroup lsp-lens nil
+  "LSP support for lens"
+  :prefix "lsp-lens-"
+  :group 'lsp-mode
+  :tag "LSP Lens")
+
 (defcustom lsp-lens-debounce-interval 0.001
   "Debounce interval for loading lenses."
-  :group 'lsp-mode
+  :group 'lsp-lens
   :type 'number)
+
+(defcustom lsp-lens-place-position 'above-line
+  "The position to place lens relative to returned lens position."
+  :group 'lsp-lens
+  :type '(choice (const above-line)
+                 (const end-of-line))
+  :package-version '(lsp-mode . "7.1"))
 
 (defface lsp-lens-mouse-face
   '((t :height 0.8 :inherit link))
   "The face used for code lens overlays."
-  :group 'lsp-faces)
+  :group 'lsp-lens)
 
 (defface lsp-lens-face
   '((t :inherit lsp-details-face))
   "The face used for code lens overlays."
-  :group 'lsp-faces)
+  :group 'lsp-lens)
 
 (defvar-local lsp-lens--modified? nil)
 
@@ -75,19 +88,24 @@ Results are meaningful only if FROM and TO are on the same line."
                                        (save-excursion
                                          (beginning-of-line-text)
                                          (point))))
-         (str (concat (make-string offset ?\s)
-                      (overlay-get ov 'lsp--lens-contents)
-                      "\n")))
+         (str (if (eq 'end-of-line lsp-lens-place-position)
+                  (overlay-get ov 'lsp--lens-contents)
+                (concat (make-string offset ?\s)
+                        (overlay-get ov 'lsp--lens-contents)))))
     (save-excursion
       (goto-char (overlay-start ov))
-      (overlay-put ov 'before-string str)
+      (if (eq 'end-of-line lsp-lens-place-position)
+          (overlay-put ov 'after-string (concat " " str))
+        (overlay-put ov 'before-string (concat str "\n")))
       (overlay-put ov 'lsp-original str))))
 
 (defun lsp-lens--overlay-ensure-at (pos)
   "Find or create a lens for the line at POS."
   (-doto (save-excursion
            (goto-char pos)
-           (make-overlay (point-at-bol) (1+ (point-at-eol)) nil t t))
+           (if (eq 'end-of-line lsp-lens-place-position)
+               (make-overlay (point-at-eol) -1 nil t t)
+             (make-overlay (point-at-bol) (1+ (point-at-eol)) nil t t)))
     (overlay-put 'lsp-lens t)
     (overlay-put 'evaporate t)
     (overlay-put 'lsp-lens-position pos)))
@@ -185,7 +203,7 @@ mustn't be nil."
                                      title
                                      'face (or face 'lsp-lens-face)
                                      'action (lsp-lens--create-interactive-command command)
-                                     'point 'hand
+                                     'pointer 'hand
                                      'mouse-face 'lsp-lens-mouse-face
                                      'local-map (lsp-lens--keymap command)))
                                   sorted)))
@@ -326,7 +344,7 @@ CALLBACK - callback for the lenses."
 ;;;###autoload
 (define-minor-mode lsp-lens-mode
   "Toggle code-lens overlays."
-  :group 'lsp-mode
+  :group 'lsp-lens
   :global nil
   :init-value nil
   :lighter " Lens"

@@ -1,10 +1,10 @@
 SHELL := /usr/bin/env bash
 
 deps:
-	cask
+	cask install
 
 generate: deps
-	@echo "Generating..."
+	@echo "Generating docs..."
 
 	@cask emacs -Q --batch \
 		-L ../ \
