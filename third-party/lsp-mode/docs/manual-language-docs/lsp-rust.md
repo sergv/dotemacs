@@ -81,6 +81,26 @@ Get a list of possible auto import candidates with `lsp-execute-code-action`
 
 ![](../examples/lsp-rust-analyzer-auto-import.png)
 
+### Open Cargo.toml
+
+`lsp-rust-analyzer-open-cargo-toml` opens the Cargo.toml closest to the current file. Calling it with a universal argument will open the Cargo.toml in another window.
+
+Corresponds to [the rust-analyzer LSP extension](https://github.com/rust-analyzer/rust-analyzer/blob/master/docs/dev/lsp-extensions.md#open-cargotoml) 
+
+![](./manual-language-docs/lsp-rust-analyzer-open-cargo-toml.gif)
+
+### Find and execute tests related to current position
+
+`lsp-rust-analyzer-related-tests` find all tests related to the current position, asks for user completion and executes the selected test in a compilation buffer.
+
+Corresponds to [the rust-analyzer LSP extension](https://github.com/rust-analyzer/rust-analyzer/blob/master/docs/dev/lsp-extensions.md#related-tests) 
+
+In the example below, first you see that
+   + On the left, the function `check_infer` is defined, on the right another file is opened with many test functions, some of which call `check_infer`. With the cursor on `check_infer`, call `lsp-rust-analyzer-related-tests` and select `infer_pattern_match_slice` with fuzzy matching. The test is executed on the right with compilation major mode
+   + Move the cursor to `fn ellipsize` and attempt to find related tests to no avail. Confirm that the function is indeed untested by using swiper and finding one place in the file, where the function is called
+
+![](./manual-language-docs/lsp-rust-analyzer-find-related-tests.gif)
+
 ### Caveats
 
 - Rust Analyzer does not support disabling snippets - https://github.com/rust-analyzer/rust-analyzer/issues/2518
@@ -89,3 +109,25 @@ Get a list of possible auto import candidates with `lsp-execute-code-action`
 
 This [unmerged PR](https://github.com/emacs-lsp/lsp-mode/pull/1740) contains an example method that allows
 modifying the signature that is displayed by eldoc.
+
+### TRAMP Example
+
+The following is an example configuration for using lsp-mode with a remote rust-analyzer server:
+
+```
+(with-eval-after-load "lsp-rust"
+  (lsp-register-client
+   (make-lsp-client
+    :new-connection (lsp-tramp-connection "rust-analyzer")
+    :remote? t
+    :major-modes '(rust-mode rustic-mode)
+    :initialization-options 'lsp-rust-analyzer--make-init-options
+    :notification-handlers (ht<-alist lsp-rust-notification-handlers)
+    :action-handlers (ht ("rust-analyzer.runSingle" #'lsp-rust--analyzer-run-single))
+    :library-folders-fn (lambda (_workspace) lsp-rust-library-directories)
+    :after-open-fn (lambda ()
+                     (when lsp-rust-analyzer-server-display-inlay-hints
+                       (lsp-rust-analyzer-inlay-hints-mode)))
+    :ignore-messages nil
+    :server-id 'rust-analyzer-remote)))
+```
