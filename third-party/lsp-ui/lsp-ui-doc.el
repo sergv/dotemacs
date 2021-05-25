@@ -599,7 +599,7 @@ FN is the function to call on click."
   "Make empty lines half normal lines."
   (progn  ; Customize line before header
     (goto-char 1)
-    (insert (propertize "\n" 'face '(:height 0.2))))
+    (insert (propertize "\n" 'face '(:height 0.3))))
   (progn  ; Customize line after header
     (forward-line 1)
     (insert (propertize " " 'face '(:height 0.1))))
@@ -836,6 +836,8 @@ HEIGHT is the documentation number of lines."
     (set-window-dedicated-p window t)
     ;;(redirect-frame-focus frame (frame-parent frame))
     (set-face-background 'internal-border lsp-ui-doc-border frame)
+    (when (facep 'child-frame-border)
+      (set-face-background 'child-frame-border lsp-ui-doc-border frame))
     (set-face-background 'fringe nil frame)
     (run-hook-with-args 'lsp-ui-doc-frame-hook frame window)
     (when lsp-ui-doc-use-webkit
