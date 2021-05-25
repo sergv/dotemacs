@@ -1,6 +1,10 @@
 name: CI
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - master
+  pull_request:
 
 jobs:
     unix-test:
@@ -70,6 +74,7 @@ jobs:
                     - 26.2
                     - 26.3
                     - 27.1
+                    - 27.2
                     - snapshot
 
         steps:

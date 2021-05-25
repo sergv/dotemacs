@@ -20,8 +20,8 @@ Language Server Protocol Support for Emacs
   <a href="https://emacs-lsp.github.io/lsp-mode"><strong>homepage</strong></a> •
   <a href="https://emacs-lsp.github.io/lsp-mode/page/installation"><strong>installation</strong></a> •
   <a href="https://emacs-lsp.github.io/lsp-mode/page/languages"><strong>languages</strong></a> •
-  <a href="https://emacs-lsp.github.io/lsp-mode/page/settings"><strong>settings</strong></a> •
-  <a href="https://emacs-lsp.github.io/lsp-mode/page/extensions"><strong>extensions</strong></a> •
+  <a href="https://emacs-lsp.github.io/lsp-mode/page/settings/mode/"><strong>settings</strong></a> •
+  <a href="https://emacs-lsp.github.io/lsp-mode/tutorials/CPP-guide/"><strong>tutorials</strong></a> •
   <a href="https://emacs-lsp.github.io/lsp-mode/page/troubleshooting"><strong>troubleshooting</strong></a> •
   <a href="https://emacs-lsp.github.io/lsp-mode/page/gallery"><strong>screenshots</strong></a> •
   <a href="https://emacs-lsp.github.io/lsp-mode/page/faq"><strong>FAQ</strong></a>
@@ -69,6 +69,7 @@ most popular Emacs packages like `company`, `flycheck` and `projectile`.
   - Helm integration -
     [helm-lsp](https://github.com/emacs-lsp/helm-lsp/)
   - Ivy integration - [lsp-ivy](https://github.com/emacs-lsp/lsp-ivy/)
+  - Consult integration - [consult-lsp](https://github.com/gagbo/consult-lsp)
   - Treemacs integration -
     [lsp-treemacs](https://github.com/emacs-lsp/lsp-treemacs)
   - Semantic tokens as defined by LSP 3.16 (compatible language servers include recent development builds of clangd and rust-analyzer)
