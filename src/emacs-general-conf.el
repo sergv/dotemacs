@@ -143,7 +143,9 @@
       vc-display-status nil
 
       ;; LSP may produce pretty large outputs during its work.
-      read-process-output-max 32768)
+      read-process-output-max 32768
+
+      user-mail-address "serg.foo@gmail.com")
 
 (remove-hook 'find-file-hook #'vc-refresh-state)
 
