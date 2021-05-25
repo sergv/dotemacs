@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog].
 
+## Unreleased
+### New features
+* New way to patch elisp objects based on a partial template and the
+  original definition the object ([#50]). See the documentation on
+  `el-patch-template` in the README.
+
+### Bugs fixed
+* Patch forms were not processed when they appeared inside a vector.
+  This has been fixed ([#51]).
+
+[#50]: https://github.com/raxod502/el-patch/issues/50
+[#51]: https://github.com/raxod502/el-patch/issues/51
+
 ## 2.3.1 (released 2020-07-16)
 ### Bugs fixed
 * If a function is not defined, then `el-patch-validate-all` will
