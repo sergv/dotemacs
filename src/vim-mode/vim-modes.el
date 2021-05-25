@@ -96,7 +96,8 @@ vim-command should be executed, a `cursor' shape and a list of `keymaps'."
     `(progn
        (defcustom ,cursor-name ,cursor
          ,(concat "The cursor-type for vim-mode " (symbol->string name) ".")
-         :group 'vim-cursors)
+         :group 'vim-cursors
+         :type 'symbol)
 
        (push (cons ',mode-name ,(symbol->string name)) vim:mode-alist)
 
