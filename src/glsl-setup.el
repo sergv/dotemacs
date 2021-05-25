@@ -24,6 +24,8 @@
                        eot)
                    'glsl-mode))
 
+(defvar glsl-other-file-alist)
+
 (eval-after-load "glsl-mode"
   '(progn
      (add-to-list 'glsl-other-file-alist

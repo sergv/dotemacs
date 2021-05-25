@@ -645,7 +645,7 @@ START is inclusive and END is exclusive in ITEMS."
 faster than byte-by-byte comparison of respective file contents."
       (declare (pure nil) (side-effect-free t))
       (if (= (file-size file1) (file-size file2))
-          (= 1 (call-process-shell-command "cmp" nil nil nil file1 file2))
+          (= 1 (call-process "cmp" nil nil nil file1 file2))
         t))
   (defun different-files-fast? (file1 file2)
     "Return t if content of FILE1 and FILE2 differs and try to yield answer

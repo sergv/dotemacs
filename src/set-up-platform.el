@@ -44,6 +44,11 @@ Range of platforms may be expanded (extended?) in the future.")
       (t
        (error "Invalid platform os type: %s" os-type)))))
 
+(defmacro when-windows (body)
+  (let ((os-type (car +platform+)))
+    (when (eq os-type 'windows)
+      body)))
+
 (defun platform-use? (use)
   "Use may be a symbol or a list of symbols"
   (cond ((symbolp use)

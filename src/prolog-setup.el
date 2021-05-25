@@ -9,6 +9,7 @@
 ;; Status:
 
 (require 'browse-kill-ring-setup)
+(require 'dash)
 
 ;;;###autoload
 (autoload 'run-prolog "prolog" "Start a Prolog sub-process." t)
@@ -17,14 +18,20 @@
 ;;;###autoload
 (autoload 'mercury-mode "prolog" "Major mode for editing Mercury programs." t)
 
+(defvar prolog-system)
+(defvar prolog-inferior-mode-map)
+
+(declare-function prolog-consult-predicate "prolog")
+(declare-function prolog-indent-predicate "prolog")
+
 (setf prolog-system 'swi)
 
 ;;;###autoload
 (setf auto-mode-alist
       (cons '("\\.pl$" . prolog-mode)
             (cons '("\\.pro$" . prolog-mode)
-                  (remove-if (lambda (x) (eq 'perl-mode (cdr x)))
-                             auto-mode-alist))))
+                  (--filter (not (eq 'perl-mode (cdr it)))
+                            auto-mode-alist))))
 ;; (add-to-list 'auto-mode-alist '("\\.m$" . mercury-mode))
 
 (defhydra-ext hydra-prolog-dash (:exit t :foreign-keys nil :hint nil)
