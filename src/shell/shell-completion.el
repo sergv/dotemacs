@@ -293,7 +293,11 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                                       (-mapcat #'pcmpl-flag/names flags))
                         `(while
                              (unless ,got-end-of-flags-var
-                               (let ((current-arg (pcomplete-arg)))
+                               (let (
+                                     ,@(when (or single-dash-flags
+                                                 double-dash-flags)
+                                         (list
+                                          '(current-arg (pcomplete-arg)))))
                                  (cond
                                    ,@(-map (lambda (flag)
                                              `((pcomplete-match ,(pcpmpl/make-name-regex flag))
@@ -1265,7 +1269,7 @@ under version-control directories."
 ;;;###autoload (autoload 'pcomplete/runhaskell "shell-completion" nil t)
 (defpcmpl pcomplete/runhaskell
   (opts
-   (args (pcmpl-haskell-source-or-obj-files t))))
+   (args (pcmpl-haskell-source-or-obj-files))))
 
 ;;;###autoload (autoload 'pcomplete-ghc-flags "shell-completion" nil)
 (defvar pcomplete-ghc-flags
@@ -4305,7 +4309,60 @@ under version-control directories."
 
 ;;;###autoload (autoload 'pcomplete/bash "shell-completion" nil t)
 (defpcmpl pcomplete/bash
-  (let ((short-options nil))
+  (let ((short-options
+         '("assoc_expand_once"
+           "autocd "
+           "cdable_vars"
+           "cdspell "
+           "checkhash"
+           "checkjobs"
+           "checkwinsize"
+           "cmdhist "
+           "compat31"
+           "compat32"
+           "compat40"
+           "compat41"
+           "compat42"
+           "compat43"
+           "compat44"
+           "complete_fullquote"
+           "direxpand"
+           "dirspell"
+           "dotglob "
+           "execfail"
+           "expand_aliases"
+           "extdebug"
+           "extglob "
+           "extquote"
+           "failglob"
+           "force_fignore"
+           "globasciiranges"
+           "globstar"
+           "gnu_errfmt"
+           "histappend"
+           "histreedit"
+           "histverify"
+           "hostcomplete"
+           "huponexit"
+           "inherit_errexit"
+           "interactive_comments"
+           "lastpipe"
+           "lithist "
+           "localvar_inherit"
+           "localvar_unset"
+           "login_shell"
+           "mailwarn"
+           "no_empty_cmd_completion"
+           "nocaseglob"
+           "nocasematch"
+           "nullglob"
+           "progcomp"
+           "progcomp_alias"
+           "promptvars"
+           "restricted_shell"
+           "shift_verbose"
+           "sourcepath"
+           "xpg_echo")))
     `(opts
       (flags "-c"
              "-i"
@@ -4313,8 +4370,7 @@ under version-control directories."
              "-r"
              "-s"
              "-D"
-             ("-O"
-              (opt (flags ,@short-options)))
+             ("-O" ',short-options)
              ;; ("+O"
              ;;  (opt (flags ,@short-options)))
              "--debugger"

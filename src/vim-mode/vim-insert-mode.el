@@ -29,7 +29,8 @@
 
 (defcustom vim:insert-mode-replace-cursor 'hbar
   "Cursor for replace-mode."
-  :group 'vim-cursors)
+  :group 'vim-cursors
+  :type 'symbolp)
 
 (vim:define-keymap insert-mode "insert-mode" :map-command imap)
 
@@ -56,6 +57,8 @@
       (let (message-log-max) (message "-- INSERT --"))
       (setq cursor-type vim:insert-mode-cursor)
       (vim:update-mode-line "I"))))
+
+(defvar-local vim:insert-newline nil)
 
 (defun vim:insert-mode-insert-newline ()
   "Inserts a newline according to current insert-mode direction."
@@ -111,7 +114,7 @@ where to insert a newline."
   (setq vim:last-undo vim:last-insert-undo)
 
   ;; repeat insertion
-  (dotimes (i (1- (or vim:insert-count 1)))
+  (dotimes (_ (1- (or vim:insert-count 1)))
     (goto-char (if (eq vim:insert-marker 'eob)
                  (point-max)
                  (1- vim:insert-marker)))

@@ -16,7 +16,7 @@
          (lambda ()
            (insert "echo \"")))
         (end
-         (lambda (var-list)
+         (lambda (_)
            (insert "\"")))
         (format
          (lambda (user-input)

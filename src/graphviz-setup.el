@@ -11,6 +11,8 @@
 ;;;###autoload
 (autoload 'graphviz-dot-mode "graphviz-dot-mode" nil t)
 
+(defvar graphviz-dot-mode-map)
+
 ;;;###autoload
 (defun graphviz-setup ()
   (init-common :use-whitespace 'tabs-only)

@@ -9,33 +9,44 @@
 (require 'common)
 (require 'solarized)
 
+(defgroup python-highlight nil
+  "Python highlight"
+  :group 'python-highlight)
+
 (defface python-keyword-face
   '((t (:inherit font-lock-keyword-face)))
-  "Face to highlight python keywords.")
+  "Face to highlight python keywords."
+  :group 'python-highlight)
 
 (defface python-builtin-face
   '((t (:inherit font-lock-builtin-face)))
-  "Face to highlight python builtin functions.")
+  "Face to highlight python builtin functions."
+  :group 'python-highlight)
 
 (defface python-warnings-and-errors-face
   `((t (:foreground ,+solarized-orange+)))
-  "Face to highlight warious python runtime warning and error objects.")
+  "Face to highlight warious python runtime warning and error objects."
+  :group 'python-highlight)
 
 (defface python-decorator-face
   '((t (:inherit font-lock-preprocessor-face)))
-  "Face to highlight python decorators.")
+  "Face to highlight python decorators."
+  :group 'python-highlight)
 
 (defface python-function-name-face
   '((t (:inherit font-lock-function-name-face)))
-  "Face to highlight python function names.")
+  "Face to highlight python function names."
+  :group 'python-highlight)
 
 (defface python-constant-face
   '((t (:inherit font-lock-constant-face)))
-  "Face to highlight python constants.")
+  "Face to highlight python constants."
+  :group 'python-highlight)
 
 (defface python-format-directive-face
   '((t (:inherit font-lock-negation-char-face)))
-  "Face to highlight python format directives")
+  "Face to highlight python format directives"
+  :group 'python-highlight)
 
 
 (defconst +python-plain-format-directive-regexp+

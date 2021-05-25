@@ -23,6 +23,9 @@
 
 (eval-when-compile (require 'cl-lib))
 
+(declare-function eshell/echo "em-basic")
+(declare-function eshell/rm "em-unix")
+
 ;;;###autoload
 (el-patch-feature eshell)
 

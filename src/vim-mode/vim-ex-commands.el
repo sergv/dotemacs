@@ -39,39 +39,6 @@
         (t
          (write-region beg-pos end-pos file-name append nil nil (not force)))))))
 
-(vim:defcmd vim:cmd-show-buffers (nonrepeatable)
-  "Shows the buffer-list."
-  (let (message-truncate-lines message-log-max)
-    (message "%s"
-             (join-lines (-map #'buffer-name (buffer-list))))))
-
-(vim:defcmd vim:cmd-buffer ((argument:buffer _) nonrepeatable)
-  "Switches to another buffer."
-  (switch-to-prev-buffer-in-window))
-
-(vim:defcmd vim:cmd-next-buffer (count nonrepeatable)
-  "Goes to the `count'-th next buffer in the buffer list."
-  (next-buffer (or count 1)))
-
-(vim:defcmd vim:cmd-prev-buffer (count nonrepeatable)
-  "Goes to the `count'-th prev buffer in the buffer list."
-  (prev-buffer (or count 1)))
-
-(vim:defcmd vim:cmd-split-buffer ((argument:buffer buffer) nonrepeatable)
-  "Splits window and switches to another buffer."
-  (vim:window-split)
-  (vim:cmd-buffer :argument buffer))
-
-(vim:defcmd vim:cmd-split-next-buffer (count nonrepeatable)
-  "Splits window and goes to the `count'-th next buffer in the buffer list."
-  (vim:window-split)
-  (vim:cmd-next-buffer :count count))
-
-(vim:defcmd vim:cmd-split-prev-buffer (count nonrepeatable)
-  "Splits window and goes to the `count'-th prev buffer in the buffer list."
-  (vim:window-split)
-  (prev-buffer (or count 1)))
-
 (vim:defcmd vim:cmd-delete-buffer ((argument:buffer buffer) force nonrepeatable)
   "Deletes a buffer."
   (when force
@@ -93,21 +60,10 @@
             (kill-emacs)
           (save-buffers-kill-emacs)))))))
 
-(vim:defcmd vim:cmd-quit-all (force nonrepeatable)
-  "Exits Emacs, asking for saving."
-  (if force
-      (kill-emacs)
-    (save-buffers-kill-emacs)))
-
-(vim:defcmd vim:cmd-save-and-quit (nonrepeatable)
-  "Exits Emacs, without saving."
-  (save-buffers-kill-emacs 1))
-
 (vim:defcmd vim:cmd-save-and-close ((argument:file file) force nonrepeatable)
   "Saves the current buffer and closes the window."
   (vim:cmd-write :argument file :force force)
   (vim:cmd-quit))
-
 
 (defun vim:ex-complete-mode-argument (mode predicate flag)
   "Completes a registered vim-mode submode."

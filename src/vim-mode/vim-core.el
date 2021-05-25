@@ -507,8 +507,7 @@ command-specific transformations."
 (defun vim:escape-to-emacs (events)
   "Executes some `events' in emacs."
 
-  (let* ((vim-key-mode nil)
-         (unread-command-events events)
+  (let* ((unread-command-events events)
          (keys (read-key-sequence nil))
          (event (elt (listify-key-sequence keys) 0)))
 

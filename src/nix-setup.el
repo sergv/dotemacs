@@ -18,7 +18,7 @@
   (setf nix-state-dir it))
 
 ;;;###autoload
-(global-nix-prettify-mode +1)
+(nix-prettify-global-mode +1)
 
 ;;;###autoload
 (defun nix-setup ()
