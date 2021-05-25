@@ -178,6 +178,7 @@
     "RecordWildCards"
     "ScopedTypeVariables"
     "StandaloneDeriving"
+    ; "StarIsType" ; not a 'cool' extension
     "TemplateHaskell"
     "TransformListComp"
     "TupleSections"
@@ -221,6 +222,16 @@ usage: (attrap-alternatives CLAUSES...)"
 (defun attrap-elisp-fixer (msg _beg _end)
   "An `attrap' fixer for any elisp warning given as MSG."
   (attrap-alternatives
+   ((string-match "Lisp symbol ‘\\(.*\\)’ should appear in quotes" msg)
+    (attrap-one-option 'kill-message-period
+      (let ((sym (match-string 1 msg)))
+        (re-search-forward sym)
+        (replace-match (concat "`" sym "'") nil t nil 0))))
+   ((string-match "Error messages should \\*not\\* end with a period" msg)
+    (attrap-one-option 'kill-message-period
+      (let ((case-fold-search nil))
+        (re-search-forward "\\.\"" (line-end-position))
+        (replace-match "\"" nil t nil 0))))
    ((string-match "Name emacs should appear capitalized as Emacs" msg)
     (attrap-one-option 'capitalize-emacs
       (let ((case-fold-search nil))
@@ -258,6 +269,15 @@ usage: (attrap-alternatives CLAUSES...)"
   "An `attrap' fixer for any GHC error or warning given as MSG and reported between POS and END."
   (let ((normalized-msg (s-collapse-whitespace msg)))
   (cond
+   ((string-match "Using ‘.*’ (or its Unicode variant) to mean ‘Data.Kind.Type’" msg)
+    (attrap-one-option 'replace-star-by-Type
+      (goto-char pos)
+      (delete-char 1)
+      (insert "Type")
+      (unless (search-backward-regexp "import.*Data\.Kind" nil t)
+        (search-backward-regexp "^module")
+        (end-of-line)
+        (insert "\nimport Data.Kind (Type)"))))
    ((string-match "Valid hole fits include" msg)
     (let* ((options (-map 'cadr (-non-nil (--map (s-match "[ ]*\\(.*\\) ::" it) (s-split "\n" (substring msg (match-end 0))))))))
       (--map (attrap-option (list 'plug-hole it)
