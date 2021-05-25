@@ -207,7 +207,7 @@ Futher modified by Sergey Vinokurov."
             (homoglyph                    ((t (:foreground ,cyan))))
 
             (bison-rule-name-face         ((t (:foreground ,yellow))))
-            (rust-question-mark-face      ((t (:weight bold :inherit font-lock-negation-char-face))))
+            (rust-question-mark           ((t (:weight bold :inherit font-lock-negation-char-face))))
 
             (elm-font-lock-operators      ((t (:inherit haskell-operator-face))))
             (haskell-operator-face        ((t (:foreground ,red))))
