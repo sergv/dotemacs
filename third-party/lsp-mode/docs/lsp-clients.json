@@ -30,7 +30,7 @@
     "server-name": "bash-language-server",
     "server-url": "https://github.com/mads-hartmann/bash-language-server",
     "installation": "npm i -g bash-language-server",
-    "lsp-install-server": "bash",
+    "lsp-install-server": "bash-ls",
     "debugger": "Not available"
   },
   {
@@ -179,6 +179,14 @@
     "debugger": "Not available"
   },
   {
+    "name": "gettext",
+    "full-name": "gettext",
+    "server-name": "po-language-server",
+    "server-url": "https://github.com/JulienPalard/po-language-server",
+    "installation-url": "https://github.com/JulienPalard/po-language-server",
+    "debugger": "Not available"
+  },
+  {
     "name": "gopls",
     "full-name": "Go",
     "server-name": "gopls",
@@ -305,6 +313,14 @@
     "debugger": "Not available"
   },
   {
+    "name": "markdown",
+    "full-name": "Markdown",
+    "server-name": "unified-language-server",
+    "server-url": "https://github.com/unifiedjs/unified-language-server",
+    "installation": "npm i -g unified-language-server",
+    "debugger": "Not available"
+  },
+  {
     "name": "nim",
     "full-name": "Nim",
     "server-name": "nimlsp",
@@ -409,15 +425,23 @@
   },
   {
     "name": "jedi",
-    "full-name": "Python(Jedi-language-server)",
+    "full-name": "Python (Jedi-language-server)",
     "server-name": "jedi",
     "server-url": "https://github.com/pappasam/jedi-language-server",
     "installation-url": "https://github.com/fredcamps/lsp-jedi",
     "debugger": "Not available"
   },
   {
-    "name": "pyls",
+    "name": "pylsp",
     "full-name": "Python",
+    "server-name": "pylsp",
+    "server-url": "https://github.com/python-lsp/python-lsp-server",
+    "installation": "pip install 'python-lsp-server[all]'",
+    "debugger": "Yes"
+  },
+  {
+    "name": "pyls",
+    "full-name": "Python (deprecated Palantir version)",
     "server-name": "pyls",
     "server-url": "https://github.com/palantir/python-language-server",
     "installation": "pip install 'python-language-server[all]'",
@@ -425,7 +449,7 @@
   },
   {
     "name": "pyright",
-    "full-name": "Python(Pyright)",
+    "full-name": "Python (Pyright)",
     "server-name": "pyright-langserver",
     "server-url": "https://github.com/microsoft/pyright",
     "client-name": "lsp-pyright",
@@ -435,7 +459,7 @@
   },
   {
     "name": "python-ms",
-    "full-name": "Python(Microsoft)",
+    "full-name": "Python (Microsoft)",
     "server-name": "Microsoft Python Language Server",
     "server-url": "https://github.com/Microsoft/python-language-server",
     "client-name": "lsp-python-ms",
@@ -540,6 +564,14 @@
     "server-url": "https://github.com/sveltejs/language-tools",
     "installation": "npm i -g svelte-language-server",
     "lsp-install-server": "svelte-ls",
+    "debugger": "Not available"
+  },
+  {
+    "name": "svlangserver",
+    "full-name": "Verilog/SystemVerilog",
+    "server-name": "svlangserver",
+    "server-url": "https://github.com/imc-trading/svlangserver",
+    "installation-url": "https://github.com/imc-trading/svlangserver#installation",
     "debugger": "Not available"
   },
   {
