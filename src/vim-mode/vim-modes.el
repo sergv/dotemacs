@@ -30,12 +30,12 @@
 (defvar-local vim:emulation-mode-alist nil
   "List of all keymaps used by some modes.")
 
-(defun vim:update-mode-line (ident)
-  "Updates the mode-line to show the specified identifier `ident'."
-  ;; Not used, so avoid unnecessary updates. Still, may come handy someday.
-  ;; (setq vim:mode-string (concat "<" (or ident "?") ">"))
-  ;; (force-mode-line-update)
-  )
+;; (defun vim:update-mode-line (ident)
+;;   "Updates the mode-line to show the specified identifier `ident'."
+;;   ;; Not used, so avoid unnecessary updates. Still, may come handy someday.
+;;   ;; (setq vim:mode-string (concat "<" (or ident "?") ">"))
+;;   ;; (force-mode-line-update)
+;;   )
 
 (defun vim:mode-name (mode)
   "Converts a mode-name to vim-mode naming conventions, e.g.
@@ -86,6 +86,7 @@ activation `message', a `command-function' to be called when a
 vim-command should be executed, a `cursor' shape and a list of `keymaps'."
   (declare (indent 2))
   (let* ((mode-name (vim:mode-name name))
+         (_ ident)
          (pred-name (string->symbol (concat (symbol->string mode-name) "-p")))
          (on-name (string->symbol (concat "vim:activate-" (symbol->string name) "-mode")))
          (cursor-name (string->symbol (concat (symbol->string mode-name)
@@ -104,7 +105,7 @@ vim-command should be executed, a `cursor' shape and a list of `keymaps'."
        ;; (add-hook 'find-file-hook 'vim:normal-mode-update-keymaps)
        (define-minor-mode ,mode-name ,doc nil nil nil
          (when ,mode-name
-           ,@(when ident `((vim:update-mode-line ,ident)))
+           ;; ,@(when ident `((vim:update-mode-line ,ident)))
            ,@(when message `((let (message-log-max) (message ,message))))
            (setq vim:active-mode ',mode-name)
            (setq vim:active-command-function

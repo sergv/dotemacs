@@ -586,15 +586,14 @@ indented according to the current mode."
          (yhandler (get-text-property 0 'vim:yank-handler txt)))
     (when (eq (car-safe yhandler) 'vim:yank-line-handler)
       ;; We have to reindent the lines and update the paste-data.
-      (let* ((txt (if register (vim:get-register register) (current-kill 0))))
-        (let ((endln (line-number-at-pos (vim:paste-info-end vim:last-paste))))
-          (indent-region (vim:paste-info-begin vim:last-paste)
-                         (vim:paste-info-end vim:last-paste))
-          (setf (vim:paste-info-end vim:last-paste)
-                (save-excursion
-                  (goto-line-dumb endln)
-                  (line-beginning-position)))
-          (vim:motion-first-non-blank)))))
+      (let ((endln (line-number-at-pos (vim:paste-info-end vim:last-paste))))
+        (indent-region (vim:paste-info-begin vim:last-paste)
+                       (vim:paste-info-end vim:last-paste))
+        (setf (vim:paste-info-end vim:last-paste)
+              (save-excursion
+                (goto-line-dumb endln)
+                (line-beginning-position)))
+        (vim:motion-first-non-blank))))
   (setf (vim:paste-info-command vim:last-paste)
         'vim:cmd-paste-before-and-indent))
 

@@ -277,7 +277,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
       (pt-pragma-start pt-pragma-end is-surrounded-for-pragma?)
       (smart-operators--point-surrounded-by2 ?\{ ?- ?- ?\})
     (destructuring-bind
-        (pt-c2hs-start pt-c2hs-end is-before? is-after? is-surrounded-for-c2hs?)
+        (pt-c2hs-start pt-c2hs-end _is-before? _is-after? is-surrounded-for-c2hs?)
         (smart-operators--point-surrounded-by ?\{ ?\})
       (cond (is-surrounded-for-pragma?
              (delete-region pt-pragma-start pt-pragma-end)

@@ -6318,7 +6318,7 @@ an alist
 
 (lsp-defun lsp--get-symbol-type ((&SymbolInformation :kind))
   "The string name of the kind of SYM."
-  (if (<= kind (length lsp-symbol-kinds))
+  (if (<= kind (length lsp--symbol-kinds))
       (aref lsp-symbol-kinds (- kind 1))
     "Other"))
 
