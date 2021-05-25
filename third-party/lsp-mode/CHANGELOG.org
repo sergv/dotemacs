@@ -1,5 +1,10 @@
 * Changelog
 ** Release 7.1
+  * Breaking change: bindings for commands under ~s~ (like ~lsp-workspace-shutdown~) were moved under ~w~ for better compatibility with =Spacemacs=
+  * removed ~lsp-print-performance~
+  * Add support for insert/replace when performing completion. When using
+    ~company~ pressing ~C-u RET~ will perform the alternative action (the
+    default is replace, but can be changed).
   * Add ~lsp-auto-save-changed-buffers~ which save the changed buffers after any text edit operation by lsp-mode.
   * Safe renamed ~lsp-diagnose~ to ~lsp-doctor~.
   * Add ~lsp-modeline-code-actions-segments~ for a better customization.
@@ -29,6 +34,14 @@
   * Add an interactive ~lsp-rust-analyzer-reload-workspace~ function that reloads the Rust-Analyzer workspace from Cargo.toml
   * Rename ~lsp-rust-analyzer-cargo-load-out-dirs-from-check~ to ~lsp-rust-analyzer-cargo-run-build-scripts~ to align with upstream.
   * Allow customization of ~lsp-file-watch-ignored-directories~ and ~lsp-file-watch-ignored-files~ at the root of an lsp workspace.
+  * Add client for markdown language server (called [[https://github.com/unifiedjs/unified-language-server][unified-language-server]])
+  * Add client for SystemVerilog language server (called [[https://github.com/imc-trading/svlangserver]])
+  * Add client for python-lsp-server, pylsp (https://github.com/python-lsp/python-lsp-server)
+  * Deprecate the Palantir Python language server, pyls.
+  * Add 2 rust-analyzer LSP extension function ~lsp-rust-analyzer-related-tests~ and
+    ~lsp-rust-analyzer-open-cargo-toml~
+  * Work around bug in NPM versions 7.0.0 through 7.4.1 that prevented ~lsp-install-server~ from working for NPM-based language servers.
+  * Add ~lsp-lens-place-position~ with option to place code lens at end of line.
 ** Release 7.0.1
   * Introduced ~lsp-diagnostics-mode~.
   * Safe renamed ~lsp-flycheck-default-level~ -> ~lsp-diagnostics-flycheck-default-level~

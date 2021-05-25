@@ -10,7 +10,6 @@ nav:
         - Installation: page/installation.md
         - Performance: page/performance.md
     - Main features: page/main-features.md
-    - Settings: page/settings.md
     - Keybindings: page/keybindings.md
     - Extensions:
         - UI: https://emacs-lsp.github.io/lsp-ui
@@ -19,11 +18,30 @@ nav:
         - Ivy: https://github.com/emacs-lsp/lsp-ivy
         - Iedit: page/integration/iedit.md
         - Ido: page/integration/ido.md
-    - Limitations: page/limitations.md
+    - File watchers: page/file-watchers.md
     - Remote: page/remote.md
     - FAQ: page/faq.md
     - Troubleshooting: page/troubleshooting.md
     - Adding new language: page/adding-new-language.md
+  - Settings:
+    - Features:
+      - Core: page/settings/mode.md
+      - Completion: page/settings/completion.md
+      - Diagnostics: page/settings/diagnostics.md
+      - Headerline: page/settings/headerline.md
+      - Modeline: page/settings/modeline.md
+      - Lens: page/settings/lens.md
+      - Icons: page/settings/icons.md
+      - Semantic Tokens: page/settings/semantic-tokens.md
+    - Extensions:
+      - UI: https://emacs-lsp.github.io/lsp-ui
+      - Treemacs: https://github.com/emacs-lsp/lsp-treemacs
+      - Helm: https://github.com/emacs-lsp/helm-lsp
+      - Ivy: https://github.com/emacs-lsp/lsp-ivy
+      - Consult: https://github.com/gagbo/consult-lsp
+      - Dired: page/settings/dired.md
+      - Iedit: page/settings/iedit.md
+      - Ido: page/settings/ido.md
   - Languages:
     - page/languages.md
     - ActionScript: page/lsp-actionscript.md
@@ -54,9 +72,6 @@ nav:
     - Hack: page/lsp-hack.md
     - HTML: page/lsp-html.md
     - Haskell: https://emacs-lsp.github.io/lsp-haskell
-    - Lua (EmmyLua): page/lsp-emmy-lua.md
-    - Lua (Lua Language Server): page/lsp-lua-language-server.md
-    - Lua (Lua-Lsp): page/lsp-lua-lsp.md
     - Java: https://emacs-lsp.github.io/lsp-java
     - Javascript/Typescript (deno): page/lsp-deno.md
     - JavaScript/TypeScript (sourcegraph): page/lsp-typescript-javascript.md
@@ -65,6 +80,10 @@ nav:
     - Json: page/lsp-json.md
     - Julia: page/lsp-julia.md
     - Kotlin: page/lsp-kotlin.md
+    - Lua (EmmyLua): page/lsp-emmy-lua.md
+    - Lua (Lua Language Server): page/lsp-lua-language-server.md
+    - Lua (Lua-Lsp): page/lsp-lua-lsp.md
+    - Markdown: page/lsp-markdown.md
     - MSSQL: https://emacs-lsp.github.io/lsp-mssql
     - Nim: page/lsp-nim.md
     - Nix: page/lsp-nix.md
@@ -97,7 +116,8 @@ nav:
     - TeX, LaTeX, etc (texlab): page/lsp-texlab.md
     - TeX, LaTeX, etc (texlab, external): page/lsp-latex.md
     - Vala: page/lsp-vala.md
-    - Verilog/SystemVerilog: page/lsp-verilog.md
+    - Verilog/SystemVerilog (hdl-checker): page/lsp-verilog.md
+    - Verilog/SystemVerilog (svlangserver): page/lsp-svlangserver.md
     - VHDL: page/lsp-vhdl.md
     - Vimscript: page/lsp-vim.md
     - Vue: page/lsp-vetur.md
