@@ -278,7 +278,7 @@
     (setq vim:current-motion-count (prefix-numeric-value current-prefix-arg)))
   (when (vim:cmd-arg-p command)
     (setq vim:current-motion-arg (read-char-exclusive)))
-  (condition-case err
+  (condition-case _
       (vim:visual-adjust-region (vim:execute-current-motion))
     (error (beep)))
   (vim:adjust-point)
@@ -320,13 +320,13 @@ This function is also responsible for setting the X-selection."
   (when (eq window-system 'x)
     (cond
       ((= 1 (length vim:visual-overlays))
-       (x-set-selection nil (car vim:visual-overlays)))
+       (gui-set-selection nil (car vim:visual-overlays)))
       ((< 1 (length vim:visual-overlays))
        (let ((text (join-lines
                     (--map (buffer-substring-no-properties (overlay-start it)
                                                            (overlay-end it))
                            vim:visual-overlays))))
-         (x-set-selection nil text))))))
+         (gui-set-selection nil text))))))
 
 (defun vim:visual-highlight-normal (start end)
   "Adjusts the normal region between `start' and `end'."
@@ -396,7 +396,7 @@ This function is also responsible for setting the X-selection."
         ;; Iterate over those lines of the rectangle which are visible
         ;; in the currently selected window.
         (goto-char window-start)
-        (dotimes (i nlines)
+        (dotimes (_ nlines)
           (let ((row-start (progn
                              (move-to-column start-col nil)
                              (point)))
@@ -588,7 +588,7 @@ This function is also responsible for setting the X-selection."
         (endrow (vim:visual-insert-info-last-line vim:visual-last-insert-info)))
     (save-excursion
       (goto-line-dumb (1+ begrow))
-      (dotimes (i (- endrow begrow))
+      (dotimes (_ (- endrow begrow))
         (move-to-column (1+ endcol) t) ; extend the newline at the end
         (move-to-column endcol t)
         (vim:cmd-repeat)
