@@ -72,9 +72,7 @@ current buffer."
   (let ((proj (eproj-get-project-for-buf-lax (current-buffer))))
     (if proj
         (eproj-switch-to-file-or-buffer proj nil include-all-buffers?)
-      (progn
-        (message "No project for current buffer: %s" (current-buffer))
-        (call-interactively #'switch-to-buffer-with-completion)))))
+      (error "No project for current buffer: %s" (current-buffer)))))
 
 ;;;###autoload
 (defun switch-to-buffer-or-file-in-current-or-related-projects (&optional include-all-buffers?)
@@ -84,9 +82,7 @@ current buffer."
   (let ((proj (eproj-get-project-for-buf-lax (current-buffer))))
     (if proj
         (eproj-switch-to-file-or-buffer proj t include-all-buffers?)
-      (progn
-        (message "No project for current buffer: %s" (current-buffer))
-        (call-interactively #'switch-to-buffer-with-completion)))))
+      (error "No project for current buffer: %s" (current-buffer)))))
 
 ;;;###autoload (autoload 'hydra-switching/body "buffer-switching" nil t)
 (defhydra-ext hydra-switching (:exit t :foreign-keys warn :hint nil)
