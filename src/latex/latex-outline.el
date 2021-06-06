@@ -245,6 +245,17 @@ for use in utility functions."
                               (*? nonl)
                               "}")))))
 
+(defhydra-derive hydra-latex-vim-normal-z-ext hydra-vim-normal-z-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_C_: hide all
+_O_: show all
+_c_: hide subtree
+_o_: show subtree"
+  ("C" latex-hide-all)
+  ("c" hide-subtree)
+  ("O" show-all)
+  ("o" show-subtree))
+
 (defun latex-setup-folding ()
   (interactive)
   (setq buffer-display-table (make-display-table))
@@ -265,11 +276,8 @@ for use in utility functions."
   ;;(hide-body)
 
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("'"   outline-up-heading)
-    ("z C" latex-hide-all)
-    ("z c" hide-subtree)
-    ("z O" show-all)
-    ("z o" show-subtree)))
+    ("'" outline-up-heading)
+    ("z" hydra-latex-vim-normal-z-ext/body)))
 
 (provide 'latex-outline)
 
