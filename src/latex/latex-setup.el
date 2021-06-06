@@ -63,6 +63,13 @@
       (latex-toggle-russian-spell-check)
     (latex-toggle-preview)))
 
+(defhydra-derive hydra-latex-vim-visual-z-ext hydra-vim-visual-z-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_c_: fold region
+_o_: unfold region
+"
+  ("c" TeX-fold-region)
+  ("o" TeX-fold-clearout-region))
 
 (load-library "latex-outline")
 
@@ -121,10 +128,7 @@
   ;; (define-key vim:insert-mode-local-keymap (kbd "<f3>") LaTeX-math-keymap)
 
   (def-keys-for-map vim:visual-mode-local-keymap
-    ("z c" TeX-fold-region)
-    ("z C" TeX-fold-region)
-    ("z o" TeX-fold-clearout-region)
-    ("z O" TeX-fold-clearout-region))
+    ("z" hydra-latex-vim-visual-z-ext/body))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap
