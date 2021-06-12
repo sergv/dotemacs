@@ -25,6 +25,23 @@ the command to execute.")
 (defvar configurable-compilation-history-var nil
   "Symbol - history variable to store history of chosen commands.")
 
+(defvar-local compilation-command nil
+  "Either literal string or symbol naming a variable that contains command to use.")
+
+(defun configurable-compilation--get-presets ()
+  (cl-assert (symbolp configurable-compilation-command-presets-var))
+  (cl-assert (boundp configurable-compilation-command-presets-var))
+  (aif (or (and (stringp compilation-command)
+                compilation-command)
+           (and (symbolp compilation-command)
+                (boundp compilation-command)
+                (eval compilation-command)))
+      (if (stringp it)
+          (cons (cons 'custom it)
+                (symbol-value configurable-compilation-command-presets-var))
+        (error "`compilation-command' evaluated to non-string"))
+    (symbol-value configurable-compilation-command-presets-var)))
+
 (defun configurable-compilation-install-command-presets! (presets-var history-var compilation-mode make-buffer-name)
   (cl-assert (symbolp presets-var))
   (cl-assert (symbolp history-var))
@@ -32,8 +49,8 @@ the command to execute.")
   (setq-local configurable-compilation-command-presets-var presets-var)
   (unless (gethash major-mode configurable-compilation-last-command)
     (puthash major-mode
-             (or (cdr-safe (assq 'build (symbol-value configurable-compilation-command-presets-var)))
-                 (error "Failed to set up configurable-compile-cabal-build-command"))
+             (or (cdr-safe (assq 'build (configurable-compilation--get-presets)))
+                 (error "Failed to get default build preset from configurable-compilation-command-presets-var: %s" configurable-compilation-command-presets-var))
              configurable-compilation-last-command))
   (setq-local configurable-compilation-history-var history-var
               configurable-compilation-mode compilation-mode
@@ -63,14 +80,14 @@ the command to execute.")
               (let* ((preset
                       (string->symbol
                        (completing-read "Build preset: "
-                                        (symbol-value configurable-compilation-command-presets-var)
+                                        (configurable-compilation--get-presets)
                                         nil ;; predicate
                                         t   ;; require match
                                         nil ;; initial input
                                         configurable-compilation-history-var)))
                      (command
                       (cdr
-                       (assq preset (symbol-value configurable-compilation-command-presets-var)))))
+                       (assq preset (configurable-compilation--get-presets)))))
                 ;; Remember command so it will be called again in the future.
                 (puthash major-mode command configurable-compilation-last-command)
                 command)
