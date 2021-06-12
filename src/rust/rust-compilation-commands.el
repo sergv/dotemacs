@@ -7,6 +7,7 @@
 ;; Description:
 
 (declare-function rust-get-compilation-buffer-name "rust-setup")
+(defvar compilation-command nil)
 
 (require 'configurable-compilation)
 (require 'rust-mode)
@@ -37,7 +38,15 @@
 (defvar rust-compile--build-presets-history nil)
 (sessions-mark-global-var-for-save 'rust-compile--build-presets-history)
 
+(defvar-local rust-compile-command nil
+  "Variable to configure via file local variables to set custom compilation command for current file.")
+(put 'rust-compile-command 'safe-local-variable #'stringp)
+
 (defun rust-compilation-commands-install! ()
+  ;; When ‘rust-compile-command’ is set via local variables we don’t see it here when we’re called
+  ;; by ‘rust-setup’. So checking whether it’s non-nil has to be delayed until runtime.
+  (setq-local compilation-command 'rust-compile-command)
+
   (configurable-compilation-install-command-presets!
    'rust-compilation-cargo-build-command-presets
    'rust-compile--build-presets-history

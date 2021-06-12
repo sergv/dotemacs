@@ -75,6 +75,9 @@ name, for temporary buffers - just the buffer name."
          'haskell-compile-command
          'haskell-compile-cabal-build-command)
    (list (lambda (buf)
+           (with-current-buffer buf (memq major-mode +rust-modes+)))
+         'rust-compile-command)
+   (list (lambda (buf)
            (buffer-local-value 'c-like-mode buf))
          'c-indentation-style
          'c-basic-offset))
