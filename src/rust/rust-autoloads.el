@@ -9,6 +9,9 @@
 (defconst +rust-extensions+
   '("rs"))
 
+(defconst +rust-modes+
+  '(rust-mode))
+
 (add-hook 'rust-mode-hook #'rust-setup)
 
 (provide 'rust-autoloads)
