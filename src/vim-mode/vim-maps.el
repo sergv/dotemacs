@@ -102,8 +102,8 @@
 
 ;; (vim:nmap "ZZ" #'vim:cmd-write-and-close)
 
-(vim:mmap "h" #'vim:motion-left)
-(vim:mmap "l" #'vim:motion-right)
+;; (vim:mmap "h" #'vim:motion-left)
+;; (vim:mmap "l" #'vim:motion-right)
 (vim:mmap "^" #'vim:motion-first-non-blank)
 (vim:mmap "$" #'vim:motion-end-of-line)
 ;; (vim:mmap "g_" #'vim:motion-last-non-blank)
@@ -112,8 +112,8 @@
 ;; (vim:mmap "gm" "g0")
 ;; (vim:mmap "g$" #'vim:motion-end-of-screen-line)
 
-(vim:mmap "k" #'vim:motion-up)
-(vim:mmap "j" #'vim:motion-down)
+;; (vim:mmap "k" #'vim:motion-up)
+;; (vim:mmap "j" #'vim:motion-down)
 
 ;; (vim:mmap "H" #'vim:motion-window-first-line)
 ;; (vim:mmap "M" #'vim:motion-window-middle-line)
