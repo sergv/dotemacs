@@ -33,14 +33,18 @@
 
 (defun persistent-store-init ()
   "Initialize database."
-  (unless persistent-store-content
+  (unless (persistent-store-initialized?)
     (add-hook 'kill-emacs-hook #'persistent-store-flush-database)
     (setf persistent-store-content (make-hash-table :test #'equal))
     (persistent-store-load-contents)))
 
+(defsubst persistent-store-initialized? ()
+  (not (null persistent-store-content)))
+
 (defsubst persistent-store-put (key value)
   "Store entry in database."
-  (puthash key value persistent-store-content))
+  (when (persistent-store-initialized?)
+    (puthash key value persistent-store-content)))
 
 (defsubst persistent-store-get (key &optional default)
   "Retrieve entry from database."
