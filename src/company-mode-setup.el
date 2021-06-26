@@ -18,8 +18,7 @@
 (setf company-idle-delay nil ;; disable auto-completion
       company-tooltip-minimum-width 40
       company-tooltip-align-annotations t
-      company-tooltip-offset-display 'lines
-      company-statistics-size 512)
+      company-tooltip-offset-display 'lines)
 
 (company-statistics-mode +1)
 ;; (company-posframe-mode +1)
