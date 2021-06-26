@@ -53,7 +53,7 @@
   "Completion candidates ranking by historical statistics."
   :group 'company)
 
-(defcustom company-statistics-size 400
+(defcustom company-statistics-size 401
   "Number of completion choices that `company-statistics' keeps track of.
 As this is a global cache, making it too small defeats the purpose."
   :type 'integer
