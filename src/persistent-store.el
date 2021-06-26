@@ -120,9 +120,9 @@ performed for some field."
           ((eq old-entry-key new-entry-key)
            (cond
              ((and (hash-table-p old-entry-value)
-                   (hash-table-p new-entry-value))
-              (equal (hash-table->alist old-entry-value)
-                     (hash-table->alist new-entry-value))
+                   (hash-table-p new-entry-value)
+                   (equal (hash-table->alist old-entry-value)
+                          (hash-table->alist new-entry-value)))
               (setf result
                     (cons old-entry result)))
              ((equal old-entry-value new-entry-value)
@@ -209,7 +209,7 @@ performed for some field."
           (let ((done nil))
             (while (not done)
               (let ((ch nil))
-                (while (not (member ch '(?y ?n ?d ?b ?h ?\? ?Y ?N ?D ?B ?H 7 27 ?q ?Q)))
+                (while (not (memq ch '(?y ?n ?d ?b ?h ?\? ?Y ?N ?D ?B ?H 7 27 ?q ?Q)))
                   (setf ch (read-key (format "Store file changed since last load, store anyway? [?hyYnNdDbB]: "))))
                 (cond
                   ((or (= ch 7)  ;; C-g, abort
@@ -267,7 +267,7 @@ performed for some field."
 
 (defun persistent-store-debug-print-content ()
   (interactive)
-  (if (equal 0 (persistent-store-database-size))
+  (if (= 0 (persistent-store-database-size))
       (message "database is empty")
     (let ((counter 0))
       (maphash (lambda (key value)
