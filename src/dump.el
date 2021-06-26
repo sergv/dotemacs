@@ -58,6 +58,7 @@
 
     (require 'browse-kill-ring)
     (require 'company)
+    (require 'company-mode-setup)
     (require 'el-patch)
     (require 'em-alias)
     (require 'em-banner)
