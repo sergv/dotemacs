@@ -1793,6 +1793,20 @@ are CHAR1 and CHAR2 repsectively."
   (interactive)
   (enlarge-window 4))
 
+(defun text-before-matches? (str)
+  "Check if text before point is equal to STR."
+  (let ((res t)
+        (p (point)))
+    (loop
+      for i from 0
+      for j downfrom (1- (length str)) to 0
+      while res
+      do
+      (setf res
+            (awhen (char-before (- p i))
+              (char= it (aref str j)))))
+    res))
+
 ;;
 
 (provide 'common)
