@@ -58,7 +58,7 @@
     :action (should (equal ,action ,expected-value))
     :contents ,contents))
 
-(defmacro tests-utils--test-evaluate (action contents expected-value)
+(defmacro tests-utils--test-evaluate (action contents)
   (declare (indent 1))
   `(tests-utils--with-temp-buffer
     :action ,action
