@@ -39,7 +39,7 @@
 
 (defconst rust-rustfmt-buffername "*rustfmt*")
 
-(defun rust--format-call (buf)
+(defun rust--format-call (buf start end)
   "Format BUF using rustfmt."
   (with-current-buffer (get-buffer-create rust-rustfmt-buffername)
     (view-mode +1)
@@ -48,8 +48,8 @@
       (insert-buffer-substring buf)
       (let* ((tmpf (make-temp-file "rustfmt"))
              (ret (apply 'call-process-region
-                         (point-min)
-                         (point-max)
+                         start
+                         end
                          rust-rustfmt-bin
                          t
                          `(t ,tmpf)
@@ -58,19 +58,22 @@
         (unwind-protect
             (cond
              ((zerop ret)
-              (if (not (string= (buffer-string)
-                                (with-current-buffer buf (buffer-string))))
+              (if (not (string= (buffer-substring-no-properties (point-min) (point-max))
+                                (with-current-buffer buf
+                                  (buffer-substring-no-properties start end))))
                   ;; replace-buffer-contents was in emacs 26.1, but it
                   ;; was broken for non-ASCII strings, so we need 26.2.
-                  (if (and (fboundp 'replace-buffer-contents)
-                           (version<= "26.2" emacs-version))
+                  (if (eval-when-compile
+                        (and (fboundp 'replace-buffer-contents)
+                             (version<= "26.2" emacs-version)))
                       (with-current-buffer buf
                         (replace-buffer-contents rust-rustfmt-buffername))
                     (copy-to-buffer buf (point-min) (point-max))))
               (kill-buffer))
              ((= ret 3)
-              (if (not (string= (buffer-string)
-                                (with-current-buffer buf (buffer-string))))
+              (if (not (string= (buffer-substring-no-properties (point-min) (point-max))
+                                (with-current-buffer buf
+                                  (buffer-substring-no-properties start end))))
                   (copy-to-buffer buf (point-min) (point-max)))
               (erase-buffer)
               (insert-file-contents tmpf)
@@ -263,16 +266,16 @@ Return the created process."
           (pop-to-buffer (current-buffer)))
       (message "rustfmt check passed."))))
 
-(defun rust--format-buffer-using-replace-buffer-contents ()
+(defun rust--format-buffer-using-replace-buffer-contents (start end)
   (condition-case err
       (progn
-        (rust--format-call (current-buffer))
+        (rust--format-call (current-buffer) start end)
         (message "Formatted buffer with rustfmt."))
     (error
      (or (rust--format-error-handler)
          (signal (car err) (cdr err))))))
 
-(defun rust--format-buffer-saving-position-manually ()
+(defun rust--format-buffer-saving-position-manually (start end)
   (let* ((current (current-buffer))
          (base (or (buffer-base-buffer current) current))
          buffer-loc
@@ -300,7 +303,7 @@ Return the created process."
             ;; after reformatting
             ;; to avoid the disturbing scrolling
             (let ((w-start (window-start)))
-              (rust--format-call (current-buffer))
+              (rust--format-call (current-buffer) start end)
               (set-window-start (selected-window) w-start)
               (message "Formatted buffer with rustfmt."))
           (dolist (loc buffer-loc)
@@ -325,12 +328,18 @@ Return the created process."
   (interactive)
   (unless (executable-find rust-rustfmt-bin)
     (error "Could not locate executable \"%s\"" rust-rustfmt-bin))
-  ;; If emacs version >= 26.2, we can use replace-buffer-contents to
-  ;; preserve location and markers in buffer, otherwise we can try to
-  ;; save locations as best we can, though we still lose markers.
-  (if (version<= "26.2" emacs-version)
-      (rust--format-buffer-using-replace-buffer-contents)
-    (rust--format-buffer-saving-position-manually)))
+  (let ((start (if region-active-p
+                   (region-beginning/fix-start-for-vim)
+                 (point-min)))
+        (end (if region-active-p
+                 (region-end/fix-end-for-vim)
+               (point-max))))
+    ;; If emacs version >= 26.2, we can use replace-buffer-contents to
+    ;; preserve location and markers in buffer, otherwise we can try to
+    ;; save locations as best we can, though we still lose markers.
+    (if (eval-when-compile (version<= "26.2" emacs-version))
+        (rust--format-buffer-using-replace-buffer-contents start end)
+      (rust--format-buffer-saving-position-manually start end))))
 
 (defun rust-enable-format-on-save ()
   "Enable formatting using rustfmt when saving buffer."
