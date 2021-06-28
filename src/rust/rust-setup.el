@@ -118,8 +118,16 @@ which is suitable for most programming languages such as C or Lisp."
        (if (string-match-p (rx bos (or "&&" "<<" ">>" "||") eos)
                            match)
            (let ((start-char (or (char-before start) ?\s))
-                 (end-char (or (char-after end) ?\s)))
-             (and (or (char= start-char ?\n)
+                 (end-char (or (char-after end) ?\s))
+                 (is-closure?
+                  (save-excursion
+                    (goto-char start)
+                    (skip-syntax-backward " >")
+                    (awhen (char-before)
+                      (or (memq it '(?\( ?, ?\{ ?=))
+                          (text-before-matches? "move"))))))
+             (and (not is-closure?)
+                  (or (char= start-char ?\n)
                       (char= (char-syntax start-char) ?\ ))
                   (or (memq end-char '(?\r ?\n))
                       (char= (char-syntax end-char) ?\ ))))
