@@ -497,6 +497,46 @@
   (should (equal (call-n 10 (lambda (x) (+ x 1)) 0)
                  10)))
 
+(ert-deftest common-tests/text-before-matches?-1 ()
+  (tests-utils--with-temp-buffer
+   :action (should (text-before-matches? "foobar"))
+   :contents
+   (tests-utils--multiline
+    ""
+    "abc foobar_|_"
+    "")
+   :initialisation (text-mode)
+   :buffer-id common))
+
+(ert-deftest common-tests/text-before-matches?-2 ()
+  (tests-utils--with-temp-buffer
+   :action (should (text-before-matches? "foobar"))
+   :contents
+   (tests-utils--multiline
+    "foobar_|_")
+   :initialisation (text-mode)
+   :buffer-id common))
+
+(ert-deftest common-tests/text-before-matches?-3 ()
+  (tests-utils--with-temp-buffer
+   :action (should-not (text-before-matches? "foobar"))
+   :contents
+   (tests-utils--multiline
+    ""
+    "abc  oobar_|_"
+    "")
+   :initialisation (text-mode)
+   :buffer-id common))
+
+(ert-deftest common-tests/text-before-matches?-4 ()
+  (tests-utils--with-temp-buffer
+   :action (should-not (text-before-matches? "foobar"))
+   :contents
+   (tests-utils--multiline
+    "fooba_|_r")
+   :initialisation (text-mode)
+   :buffer-id common))
+
 ;; (progn
 ;;   (ert "common-tests/.*")
 ;;   nil)
