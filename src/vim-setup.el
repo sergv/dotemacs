@@ -351,9 +351,10 @@ _<right>_: move tab to the right"
   ("g"       hydra-vim-visual-g-ext/body)
   ("z"       hydra-vim-visual-z-ext/body)
 
-  (("(" ")") vim:wrap-parens)
-  (("[" "]" "C-[" "C-]") vim:wrap-braces)
-  (("{" "}") vim:wrap-brackets)
+  (("(" ")")     vim:wrap-parens)
+  (("C-[" "C-]") vim:wrap-braces)
+  (("{" "}")     vim:wrap-brackets)
+  (("C-<" "C->") vim:wrap-angles)
 
   ("J"       vim:cmd-join)
 
@@ -376,6 +377,10 @@ _<right>_: move tab to the right"
   (interactive)
   (sp-wrap-or-insert "{"))
 
+(defun vim-wrap-angles-impl ()
+  "Wrap region in <...>."
+  (interactive)
+  (sp-wrap-or-insert "<"))
 
 (vim:defcmd vim:wrap-parens (nonrepeatable)
   "Wrap region in (...)."
@@ -388,6 +393,10 @@ _<right>_: move tab to the right"
 (vim:defcmd vim:wrap-brackets (nonrepeatable)
   "Wrap region in {...}."
   (vim-wrap-brackets-impl))
+
+(vim:defcmd vim:wrap-angles (nonrepeatable)
+  "Wrap region in <...>."
+  (vim-wrap-angles-impl))
 
 (vim:defcmd vim:wrap-typographical-single-quotes (nonrepeatable)
   "Wrap region in ‘...’."
