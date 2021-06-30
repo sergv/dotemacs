@@ -478,18 +478,38 @@ If MODE is nil - fontify in current buffer."
 (defun resolve-to-abs-path (path &optional dir)
   "Try to come up with an absolute filename that refers to
 existing file. If PATH is relative then try resolving it against DIR."
-  (if (or (file-exists-p path)
-          (file-directory-p path))
+  (resolve-to-abs-path-lax path dir #'error))
+
+;;;###autoload
+(defun resolve-to-abs-path-lax (path &optional dir on-err)
+  "Try to come up with an absolute filename that refers to
+existing file. If PATH is relative then try resolving it against DIR."
+  (let ((on-err (or on-err #'ignore)))
+    (if (or (file-exists-p path)
+            (file-directory-p path))
+        (if (file-name-absolute-p path)
+            path
+          (expand-file-name path))
       (if (file-name-absolute-p path)
-          path
-        (expand-file-name path))
-    (if (file-name-absolute-p path)
-        (error "Non-existing absolute file name: %s, probably something went wrong" path)
-      (let ((abs-path (normalise-file-name (expand-file-name path dir))))
-        (if (or (file-exists-p abs-path)
-                (file-directory-p abs-path))
-            abs-path
-          (error "File/directory does not exist: %s" abs-path))))))
+          (funcall on-err "Non-existing absolute file name: %s, probably something went wrong" path)
+        (let ((abs-path (normalise-file-name (expand-file-name path dir))))
+          (if (or (file-exists-p abs-path)
+                  (file-directory-p abs-path))
+              abs-path
+            (funcall on-err "File/directory does not exist: %s" abs-path)))))))
+
+;;;###autoload
+(defun file-name-all-parents (path)
+  (let* ((prev "")
+         (results (cons nil nil))
+         (tmp results))
+    (while (and path
+                (not (string= prev path))
+                (not (string= path "")))
+      (setf tmp (setf (cdr tmp) (cons path nil))
+            prev path
+            path (file-name-directory (strip-trailing-slash path))))
+    (cdr results)))
 
 ;;;###autoload
 (defun remove-duplicates-sorted (xs eq-func)
