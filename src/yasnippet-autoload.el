@@ -22,6 +22,17 @@
   '(progn
      (require 'yasnippet-setup)))
 
+(defun yas--switch-to-vim-insert-mode ()
+  "Switch to vim insert mode after snippet has expanded if not already."
+  ;; If there’s vim around and there’s some vim mode active
+  (when (and vim:active-mode
+             (eval vim:active-mode)
+             (not (eq vim:active-mode 'vim:insert-mode)))
+    (vim:insert-mode)))
+
+(add-hook 'yas-after-exit-snippet-hook
+          #'yas--switch-to-vim-insert-mode)
+
 (provide 'yasnippet-autoload)
 
 ;; Local Variables:
