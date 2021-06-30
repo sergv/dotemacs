@@ -204,7 +204,7 @@ This function's anaphoric counterpart is `--dotimes'."
   (declare (indent 1))
   (--dotimes num (funcall fn it)))
 
-(defun -map (fn list)
+(defsubst -map (fn list)
   "Apply FN to each item in LIST and return the list of results.
 
 This function's anaphoric counterpart is `--map'."
