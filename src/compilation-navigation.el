@@ -87,10 +87,19 @@ will searched for."
                 (string-suffix-p filename (buffer-file-name buf)))
               (visible-buffers))
       it
-    (let ((resolved-filename (resolve-to-abs-path filename root)))
-      (aif (get-file-buffer resolved-filename)
-          it
-        (find-file-noselect resolved-filename)))))
+    (catch 'done
+      (dolist (resolved-filename
+               ;; If filename did not resolve in immediate root then try all the parents,
+               ;; perhaps compilation was actually executed/reported its errors from the
+               ;; directory above?
+               (--map (resolve-to-abs-path-lax filename it)
+                      (file-name-all-parents root)))
+        (when (and resolved-filename
+                   (file-exists-p resolved-filename))
+          (throw 'done
+                 (aif (get-file-buffer resolved-filename)
+                     it
+                   (find-file-noselect resolved-filename))))))))
 
 (defun compilation/jump-to-error (err &optional other-window)
   "Jump to source of compilation error. ERR should be structure describing

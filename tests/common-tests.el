@@ -537,6 +537,38 @@
    :initialisation (text-mode)
    :buffer-id common))
 
+(ert-deftest common-tests/file-name-all-parents-1 ()
+  (should (equal (file-name-all-parents "/foo/bar/baz/quux")
+                 (list "/foo/bar/baz/quux"
+                       "/foo/bar/baz/"
+                       "/foo/bar/"
+                       "/foo/"
+                       "/"))))
+
+(ert-deftest common-tests/file-name-all-parents-2 ()
+  (should (equal (file-name-all-parents "c:/foo/bar/baz/quux")
+                 (list "c:/foo/bar/baz/quux"
+                       "c:/foo/bar/baz/"
+                       "c:/foo/bar/"
+                       "c:/foo/"
+                       "c:/"))))
+
+(ert-deftest common-tests/file-name-all-parents-3 ()
+  (should (equal (file-name-all-parents "/foo/bar/baz/quux/")
+                 (list "/foo/bar/baz/quux/"
+                       "/foo/bar/baz/"
+                       "/foo/bar/"
+                       "/foo/"
+                       "/"))))
+
+(ert-deftest common-tests/file-name-all-parents-4 ()
+  (should (equal (file-name-all-parents "c:/foo/bar/baz/quux/")
+                 (list "c:/foo/bar/baz/quux/"
+                       "c:/foo/bar/baz/"
+                       "c:/foo/bar/"
+                       "c:/foo/"
+                       "c:/"))))
+
 ;; (progn
 ;;   (ert "common-tests/.*")
 ;;   nil)
