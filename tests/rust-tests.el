@@ -209,6 +209,48 @@
     "x = 1 !_|_ y"
     "x = 1 !=_|_ y"))
 
+(ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator-10 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?-)
+    "f(|x|_|_ g(x))"
+    "f(|x| -_|_ g(x))"))
+
+(ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator-11 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?-)
+    "f(|x| _|_ g(x))"
+    "f(|x| -_|_ g(x))"))
+
+(ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator-12 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?-)
+    "f(|x|  _|_ g(x))"
+    "f(|x| -_|_ g(x))"))
+
+(ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator->-1 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?>)
+    "f(|x| -_|_ g(x))"
+    "f(|x| ->_|_ g(x))"))
+
+(ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator->-2 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?>)
+    "f(|x| -   _|_ g(x))"
+    "f(|x| ->_|_ g(x))"))
+
+(ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator->-3 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?>)
+    "f(|x| -   _|_g(x))"
+    "f(|x| -> _|_g(x))"))
+
+(ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator->-4 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?>)
+    "f(|x| -_|_g(x))"
+    "f(|x| -> _|_g(x))"))
+
 (ert-deftest rust-tests/rust-smart-operators--equals-1 ()
   (rust-tests--test-buffer-contents
       (rust-smart-operators--insert-char-surrounding-with-spaces ?=)
