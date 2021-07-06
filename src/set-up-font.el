@@ -46,10 +46,6 @@
 
 (defvar current-font (car +emacs-fonts+))
 
-(unless noninteractive
-  (cl-assert (font-exist? current-font) nil "Font does not exist: %s" current-font)
-  (set-frame-font current-font))
-
 (defvar current-font-scaling nil)
 
 (defun get-default-font-scaling ()
@@ -66,11 +62,21 @@
        100))))
 
 (unless noninteractive
-  (let ((scaling (or current-font-scaling
-                     (get-default-font-scaling))))
-    (set-face-attribute 'default nil :height scaling)
-    (setf current-font-scaling scaling)
-    (set-frame-font current-font nil (frame-list))))
+  (defun set-up-font--init-font-and-scaling ()
+    (let ((scaling (or current-font-scaling
+                       (get-default-font-scaling)))
+          (frames (frame-list)))
+      (setf current-font-scaling scaling)
+      (set-frame-font current-font nil frames)
+      (dolist (frame frames)
+        (set-face-attribute 'default frame :height scaling))))
+
+  (defun set-up-font--set-current-font-for-frame (&option frame)
+    (cl-assert (font-exist? current-font) nil "Font does not exist: %s" current-font)
+    (set-frame-font current-font nil (if frame (list frame) nil)))
+
+  (add-hook 'window-setup-hook #'set-up-font--init-font-and-scaling)
+  (add-hook 'after-make-frame-functions #'set-up-font--set-current-font-for-frame))
 
 ;;;###autoload
 (defun update-font-scaling (&optional new-scaling)
