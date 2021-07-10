@@ -41,50 +41,54 @@
 
 (defun rust--format-call (buf start end)
   "Format BUF using rustfmt."
-  (with-current-buffer (get-buffer-create rust-rustfmt-buffername)
-    (view-mode +1)
-    (let ((inhibit-read-only t))
-      (erase-buffer)
-      (insert-buffer-substring buf)
-      (let* ((tmpf (make-temp-file "rustfmt"))
-             (ret (apply 'call-process-region
-                         start
-                         end
-                         rust-rustfmt-bin
-                         t
-                         `(t ,tmpf)
-                         nil
-                         rust-rustfmt-switches)))
-        (unwind-protect
-            (cond
-             ((zerop ret)
-              (if (not (string= (buffer-substring-no-properties (point-min) (point-max))
-                                (with-current-buffer buf
-                                  (buffer-substring-no-properties start end))))
-                  ;; replace-buffer-contents was in emacs 26.1, but it
-                  ;; was broken for non-ASCII strings, so we need 26.2.
-                  (if (eval-when-compile
-                        (and (fboundp 'replace-buffer-contents)
-                             (version<= "26.2" emacs-version)))
-                      (with-current-buffer buf
-                        (replace-buffer-contents rust-rustfmt-buffername))
-                    (copy-to-buffer buf (point-min) (point-max))))
-              (kill-buffer))
-             ((= ret 3)
-              (if (not (string= (buffer-substring-no-properties (point-min) (point-max))
-                                (with-current-buffer buf
-                                  (buffer-substring-no-properties start end))))
-                  (copy-to-buffer buf (point-min) (point-max)))
-              (erase-buffer)
-              (insert-file-contents tmpf)
-              (rust--format-fix-rustfmt-buffer (buffer-name buf))
-              (error "Rustfmt could not format some lines, see *rustfmt* buffer for details"))
-             (t
-              (erase-buffer)
-              (insert-file-contents tmpf)
-              (rust--format-fix-rustfmt-buffer (buffer-name buf))
-              (error "Rustfmt failed, see *rustfmt* buffer for details"))))
-        (delete-file tmpf)))))
+  (let ((tmp (get-buffer-create rust-rustfmt-buffername)))
+    (with-current-buffer tmp
+      (view-mode +1)
+      (let ((inhibit-read-only t))
+        (erase-buffer)
+        (insert-buffer-substring buf start end)
+        (let* ((tmpf (make-temp-file "rustfmt"))
+               (ret (apply 'call-process-region
+                           (point-min)
+                           (point-max)
+                           rust-rustfmt-bin
+                           t
+                           `(t ,tmpf)
+                           nil
+                           rust-rustfmt-switches)))
+          (unwind-protect
+              (cond
+                ((zerop ret)
+                 (if (not (string= (buffer-substring-no-properties (point-min) (point-max))
+                                   (with-current-buffer buf
+                                     (buffer-substring-no-properties start end))))
+                     (with-current-buffer buf
+                       (save-excursion
+                         (goto-char start)
+                         (delete-region start end))
+                       (insert-buffer-substring tmp)))
+                 (kill-buffer))
+                ((= ret 3)
+                 (if (not (string= (buffer-substring-no-properties (point-min) (point-max))
+                                   (with-current-buffer buf
+                                     (buffer-substring-no-properties start end))))
+                     (with-current-buffer buf
+                       (save-excursion
+                         (goto-char start)
+                         (delete-region start end))
+                       (insert-buffer-substring tmp)))
+                 (erase-buffer)
+                 (insert-file-contents tmpf)
+                 (rust--format-fix-rustfmt-buffer (buffer-name buf))
+                 (error "Rustfmt could not format some lines, see %s buffer for details"
+                        rust-rustfmt-buffername))
+                (t
+                 (erase-buffer)
+                 (insert-file-contents tmpf)
+                 (rust--format-fix-rustfmt-buffer (buffer-name buf))
+                 (error "Rustfmt failed, see %s buffer for details"
+                        rust-rustfmt-buffername))))
+          (delete-file tmpf))))))
 
 ;; Since we run rustfmt through stdin we get <stdin> markers in the
 ;; output. This replaces them with the buffer name instead.
@@ -266,15 +270,6 @@ Return the created process."
           (pop-to-buffer (current-buffer)))
       (message "rustfmt check passed."))))
 
-(defun rust--format-buffer-using-replace-buffer-contents (start end)
-  (condition-case err
-      (progn
-        (rust--format-call (current-buffer) start end)
-        (message "Formatted buffer with rustfmt."))
-    (error
-     (or (rust--format-error-handler)
-         (signal (car err) (cdr err))))))
-
 (defun rust--format-buffer-saving-position-manually (start end)
   (let* ((current (current-buffer))
          (base (or (buffer-base-buffer current) current))
@@ -328,18 +323,16 @@ Return the created process."
   (interactive)
   (unless (executable-find rust-rustfmt-bin)
     (error "Could not locate executable \"%s\"" rust-rustfmt-bin))
-  (let ((start (if region-active-p
-                   (region-beginning/fix-start-for-vim)
+  (let ((start (if (region-active-p)
+                   (region-beginning/fix-start-for-vim (region-beginning))
                  (point-min)))
-        (end (if region-active-p
-                 (region-end/fix-end-for-vim)
+        (end (if (region-active-p)
+                 (region-end/fix-end-for-vim (region-end))
                (point-max))))
-    ;; If emacs version >= 26.2, we can use replace-buffer-contents to
-    ;; preserve location and markers in buffer, otherwise we can try to
-    ;; save locations as best we can, though we still lose markers.
-    (if (eval-when-compile (version<= "26.2" emacs-version))
-        (rust--format-buffer-using-replace-buffer-contents start end)
-      (rust--format-buffer-saving-position-manually start end))))
+    ;; NB replace-buffer-contents deal with whole buffer and doesn’t
+    ;; work with substrings, which we actually want in here. So code path
+    ;; dependant on replace-buffer-contents is removed in its entirety.
+    (rust--format-buffer-saving-position-manually start end)))
 
 (defun rust-enable-format-on-save ()
   "Enable formatting using rustfmt when saving buffer."
