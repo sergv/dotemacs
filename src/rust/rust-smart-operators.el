@@ -123,8 +123,10 @@ stick it to the previous operator on line."
                             t)
                           ;; ::*
                           (if (and (char= char ?*)
-                                   (char= before ?:)
-                                   (char= before2 ?:))
+                                   (or (and (char= before ?:)
+                                            (char= before2 ?:))
+                                       (and (char= before ?&)
+                                            (not (char= before2 ?&)))))
                               nil
                             t)
                           ;; ..=
@@ -159,6 +161,9 @@ stick it to the previous operator on line."
                                 (memq before rust-smart-operators--chars-to-separate-from-asterisk))
                            (and (char= char ?&)
                                 (memq before rust-smart-operators--chars-to-separate-from-ampersand))
+                           (and (char= char ?+)
+                                (not (char= before ?=))
+                                (gethash before rust-smart-operators--operator-chars))
                            (and (char= char ?-)
                                 (char= char-before-spaces ?|))))))
 
