@@ -124,7 +124,7 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
                                       ignored-absolute-dirs
                                       ignored-directories
                                       ignored-directory-prefixes)
-  "A version of `find-rec' that uses system's find executable to do the search."
+  "A version of `find-rec' that uses ffi to do the search."
   (declare (pure nil) (side-effect-free nil))
   (let ((ignored-dirs
          (nconc (--map (concat "*/" it)
