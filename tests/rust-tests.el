@@ -159,13 +159,13 @@
   (rust-tests--test-buffer-contents
       (rust-smart-operators--insert-char-surrounding-with-spaces ?+)
     "x = 1 +_|_2"
-    "x = 1 ++ _|_2"))
+    "x = 1 + + _|_2"))
 
 (ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator-2 ()
   (rust-tests--test-buffer-contents
       (rust-smart-operators--insert-char-surrounding-with-spaces ?+)
     "x = 1 +           _|_ 2"
-    "x = 1 ++_|_ 2"))
+    "x = 1 + +_|_ 2"))
 
 (ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator-3 ()
   (rust-tests--test-buffer-contents
@@ -226,6 +226,62 @@
       (rust-smart-operators--insert-char-surrounding-with-spaces ?-)
     "f(|x|  _|_ g(x))"
     "f(|x| -_|_ g(x))"))
+
+(ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator-+-1 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?+)
+    "foo +_|_ bar"
+    "foo + +_|_ bar"))
+
+(ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator-+-2 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?+)
+    "foo +_|_bar"
+    "foo + + _|_bar"))
+
+(ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator-+-3 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?+)
+    "foo +    _|_bar"
+    "foo + + _|_bar"))
+
+(ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator-+-4 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?+)
+    "foo +    _|_  bar"
+    "foo + +_|_  bar"))
+
+(ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator-*-1 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?*)
+    "foo *_|_ bar"
+    "foo * *_|_ bar"))
+
+(ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator-*-2 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?*)
+    "foo *_|_bar"
+    "foo * *_|_bar"))
+
+(ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator-*-3 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?*)
+    "foo *    _|_bar"
+    "foo *    *_|_bar"))
+
+(ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator-*-4 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?*)
+    "foo *    _|_  bar"
+    "foo *    *_|_  bar"))
+
+(ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator-*-5 ()
+  (rust-tests--test-buffer-contents
+      (progn
+        (rust-smart-operators--insert-char-surrounding-with-spaces ?&)
+        (rust-smart-operators--insert-char-surrounding-with-spaces ?*))
+    "foo * _|_bar"
+    "foo * &*_|_bar"))
 
 (ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator->-1 ()
   (rust-tests--test-buffer-contents
