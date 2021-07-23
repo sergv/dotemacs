@@ -10,12 +10,12 @@
 (require 'smart-operators-utils)
 
 (defconst rust-smart-operators--operator-chars
-  (let ((tbl (make-hash-table :test #'eq)))
-    (loop
-      for c across "+-*/%^&|<>=" ;; ! - too special, used for macro calls
-      do (puthash c t tbl))
-    tbl)
+  (coerce "+-*/%^&|<>=" 'list) ;; ! - too special, used for macro calls
   "Characters that may constitute operators.")
+
+(defconst rust-smart-operators--numeric-literal-chars
+  (coerce "+-" 'list)
+  "Characters that are used in numeric literals, e.g. +5, -2.")
 
 (defun rust-smart-operators--insert-char-surrounding-with-spaces (char)
   "Insert CHARacter while trying to surround it with spaces and
@@ -29,9 +29,10 @@ stick it to the previous operator on line."
   '(?= ?> ?| ?^ ?% ?/ ?- ?+ ?* ?&))
 
 (defun rust-smart-operators--insert-char-optionally-surrounding-with-spaces (char insert-space-after)
-  (let ((disable-smart-operators? current-prefix-arg))
+  (let ((disable-smart-operators? current-prefix-arg)
+        (char-is-smart-op? (memq char rust-smart-operators--operator-chars)))
     (if (or disable-smart-operators?
-            (not (gethash char rust-smart-operators--operator-chars)))
+            (not char-is-smart-op?))
         (insert-char char)
 
       (let* ((ws-size nil)
@@ -50,37 +51,41 @@ stick it to the previous operator on line."
             (when-let ((delete-whitespace?
                         (when (and char-before-spaces ;; not at beginning of buffer
                                    (not (zerop ws-size)))
-                          (let ((char-before-spaces2 (char-before (- pt-before-ws 1))))
-                            (or (and (char= char-before-spaces ?|)
-                                     (char= char ?-))
-                                (and (char= char-before-spaces ?-)
-                                     (char= char ?>))
-                                (and (cond
-                                       ((and (char= char ?*)
-                                             (memq char-before-spaces
-                                                   rust-smart-operators--chars-to-separate-from-asterisk))
-                                        nil)
-                                       ((and (char= char ?&)
-                                             (memq char-before-spaces
-                                                   rust-smart-operators--chars-to-separate-from-ampersand))
-                                        nil)
-
-                                       ((char= char-before-spaces ?>)
-                                        (if (char= char ?>)
-                                            t ;; either it’s operator >> or generic type
-                                          (save-excursion
-                                            (goto-char pt-before-ws)
-                                            (forward-char -1)
-                                            (aif (sp-get-enclosing-sexp)
-                                                (if (= (plist-get it :end) (+ 1 (point)))
-                                                    (not (string-equal (plist-get it :op) "<"))
-                                                  t)
-                                              t ;; No sexp - ok to delete.
-                                              ))))
-                                       (t
-                                        t) ;; Not a > before spaces - ok to delete.
-                                       )
-                                     (or (gethash char-before-spaces rust-smart-operators--operator-chars)
+                          (or (and (char= char-before-spaces ?|)
+                                   (char= char ?-))
+                              (and (char= char-before-spaces ?-)
+                                   (char= char ?>))
+                              (and (cond
+                                     ((and (char= char ?*)
+                                           (memq char-before-spaces
+                                                 rust-smart-operators--chars-to-separate-from-asterisk))
+                                      nil)
+                                     ((and (char= char ?&)
+                                           (memq char-before-spaces
+                                                 rust-smart-operators--chars-to-separate-from-ampersand))
+                                      nil)
+                                     ((and (char= char-before-spaces ?=)
+                                           (not (char= char ?>)) ;; for =>
+                                           char-is-smart-op?)
+                                      nil)
+                                     ((char= char-before-spaces ?>)
+                                      (if (char= char ?>)
+                                          t ;; either it’s operator >> or generic type
+                                        (save-excursion
+                                          (goto-char pt-before-ws)
+                                          (forward-char -1)
+                                          (aif (sp-get-enclosing-sexp)
+                                              (if (= (plist-get it :end) (+ 1 (point)))
+                                                  (not (string-equal (plist-get it :op) "<"))
+                                                t)
+                                            t ;; No sexp - ok to delete.
+                                            ))))
+                                     (t
+                                      t) ;; Not a > before spaces - ok to delete.
+                                     )
+                                   (let ((char-before-spaces2 (char-before (- pt-before-ws 1))))
+                                     (or (and (memq char-before-spaces rust-smart-operators--operator-chars)
+                                              (not (char= char ?=)))
                                          (char= char-before-spaces ?\()
                                          (and (char= char ?=)
                                               (or (char= char-before-spaces ?!)
@@ -141,11 +146,16 @@ stick it to the previous operator on line."
                                    (char= before ?\[))
                               nil
                             t)
+                          (if (and (char= char ?=)
+                                   (not (char= before ?>)) ;; > may be close of type signature, e.g. let foo: Vec<i32> _|_= bar;
+                                   (memq before rust-smart-operators--operator-chars))
+                              nil
+                            t)
                           (or
                            ;; At beginning of buffer.
                            at-beginning-of-buffer?
                            (and (not (memq before '(?\s ?\()))
-                                (not (gethash before rust-smart-operators--operator-chars))
+                                (not (memq before rust-smart-operators--operator-chars))
                                 (if (char= char ?=)
                                     (not (char= before ?!))
                                   t))
@@ -163,9 +173,11 @@ stick it to the previous operator on line."
                                 (memq before rust-smart-operators--chars-to-separate-from-ampersand))
                            (and (char= char ?+)
                                 (not (char= before ?=))
-                                (gethash before rust-smart-operators--operator-chars))
+                                (memq before rust-smart-operators--operator-chars))
                            (and (char= char ?-)
-                                (char= char-before-spaces ?|))))))
+                                (char= char-before-spaces ?|))
+                           (and (memq char rust-smart-operators--numeric-literal-chars)
+                                (char= before ?=))))))
 
                 ;; Decide whether to insert space before the operator.
                 (when insert-space-before-char?
@@ -194,6 +206,7 @@ stick it to the previous operator on line."
                                    nil
                                  whitespace-deleted?)
                              t)
+
                            (if (char= char ?\&)
                                (if (memq before rust-smart-operators--chars-to-separate-from-ampersand)
                                    ;; We don’t want '= & _|_' or '-> & _|_'
@@ -202,6 +215,11 @@ stick it to the previous operator on line."
                                  (or whitespace-deleted?
                                      (char= before-insert ?\&) ;; Insert space after operator '&&'
                                      ))
+                             t)
+
+                           (if (and (char= char-before-spaces ?=)
+                                    (memq char rust-smart-operators--numeric-literal-chars))
+                               nil
                              t)
 
                            (or (not after) ;; at end of buffer
