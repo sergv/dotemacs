@@ -227,6 +227,30 @@
     "f(|x|  _|_ g(x))"
     "f(|x| -_|_ g(x))"))
 
+(ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator-13 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?-)
+    "let mut groups_count = _|_;"
+    "let mut groups_count = -_|_;"))
+
+(ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator-14 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?+)
+    "let mut groups_count = _|_;"
+    "let mut groups_count = +_|_;"))
+
+(ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator-15 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?-)
+    "let mut groups_count =_|_;"
+    "let mut groups_count = -_|_;"))
+
+(ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator-16 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?+)
+    "let mut groups_count =_|_;"
+    "let mut groups_count = +_|_;"))
+
 (ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator-+-1 ()
   (rust-tests--test-buffer-contents
       (rust-smart-operators--insert-char-surrounding-with-spaces ?+)
