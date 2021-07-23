@@ -40,8 +40,8 @@ stick it to the previous operator on line."
                              (point)))
              (char-before-spaces (char-before pt-before-ws)))
         (if (smart-operators--literal-insertion? (awhen *comment-util-current-format*
-                                                   (and (v-memq char (comment-format-comment-chars it))
-                                                        (v-memq char-before-spaces (comment-format-comment-chars it)))))
+                                                   (and (memq char (comment-format-comment-chars it))
+                                                        (memq char-before-spaces (comment-format-comment-chars it)))))
             (insert-char char)
           (let ((whitespace-deleted? nil)
                 (after (char-after (point))))
