@@ -160,7 +160,7 @@ Contains single-line and region comments.")
                                                   (regexp-quote one-line))
                                                  (t
                                                   nil))
-                                 :comment-chars (list->vector comment-chars))))))
+                                 :comment-chars comment-chars)))))
 
 (defstruct comment-format
   one-line
