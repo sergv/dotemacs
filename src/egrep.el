@@ -16,13 +16,16 @@
 (autoload 'grep-read-regexp "grep")
 
 
-(defvar egrep-backend
-  (cond
-    ((fboundp #'haskell-native-grep-rec)
-     'native)
-    (t
-     'elisp))
+(defvar egrep-backend nil
   "Which immplementation to use to provide grepping capability within Emacs.")
+
+;; Configure explicitly so that dumped emacs will pick it up properly.
+(setf egrep-backend
+      (cond
+        ((fboundp #'haskell-native-grep-rec)
+         'native)
+        (t
+         'elisp)))
 
 (defun make-egrep-match (file short-file-name line column matched-prefix matched-text matched-suffix)
   (cons file (cons short-file-name (cons line (cons column (cons matched-prefix (cons matched-text matched-suffix)))))))
