@@ -73,16 +73,18 @@ Valid values are:
     ((or `find `cygwin-find) "find")
     (`busybox "busybox")))
 
-(defvar find-rec-backend
-  (cond
-    ((fboundp #'haskell-native-find-rec)
-     'native)
-    (find-files/find-program-type
-     'executable)
-    (t
-     'elisp))
+(defvar find-rec-backend nil
   "Control implementation of `find-rec*'. Valid values: 'native,
   'executable and 'elisp.")
+
+(setf find-rec-backend
+      (cond
+        ((fboundp #'haskell-native-find-rec)
+         'native)
+        (find-files/find-program-type
+         'executable)
+        (t
+         'elisp)))
 
 ;;;###autoload
 (defun* find-rec* (&key
