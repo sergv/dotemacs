@@ -251,6 +251,18 @@
     "let mut groups_count =_|_;"
     "let mut groups_count = +_|_;"))
 
+(ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator-17 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?=)
+    "let mut groups_count +_|_;"
+    "let mut groups_count += _|_;"))
+
+(ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator-18 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?=)
+    "let mut groups_count + _|_;"
+    "let mut groups_count += _|_;"))
+
 (ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator-+-1 ()
   (rust-tests--test-buffer-contents
       (rust-smart-operators--insert-char-surrounding-with-spaces ?+)
