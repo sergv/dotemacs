@@ -84,8 +84,10 @@ stick it to the previous operator on line."
                                       t) ;; Not a > before spaces - ok to delete.
                                      )
                                    (let ((char-before-spaces2 (char-before (- pt-before-ws 1))))
-                                     (or (and (memq char-before-spaces rust-smart-operators--operator-chars)
-                                              (not (char= char ?=)))
+                                     (or (if (char= char ?=)
+                                             ;; So that we create arithmetic increments, e.g. +=
+                                             (memq char-before-spaces '(?+ ?- ?* ?/ ?%))
+                                           (memq char-before-spaces rust-smart-operators--operator-chars))
                                          (char= char-before-spaces ?\()
                                          (and (char= char ?=)
                                               (or (char= char-before-spaces ?!)
