@@ -34,11 +34,20 @@
     "debugger": "Not available"
   },
   {
+    "name": "beancount",
+    "full-name": "Beancount",
+    "server-name": "beancount-langserver",
+    "server-url": "https://github.com/polarmutex/beancount-language-server",
+    "installation": "npm install -g beancount-langserver",
+    "lsp-install-server": "beancount-ls",
+    "debugger": "Not available"
+  },
+  {
     "name": "csharp",
     "full-name": "C#",
     "server-name": "OmniSharp-Roslyn",
     "server-url": "https://github.com/OmniSharp/omnisharp-roslyn",
-    "installation": "Supports automatic installation. Use M-x lsp-csharp-update-server to update to latest.",
+    "installation": "Supports automatic installation.",
     "lsp-install-server": "csharp",
     "debugger": "Not available"
   },
@@ -197,10 +206,10 @@
   {
     "name": "grammarly",
     "full-name": "Grammarly",
-    "server-name": "unofficial-grammarly-language-server-2",
+    "server-name": "@emacs-grammarly/unofficial-grammarly-language-server",
     "server-url": "https://github.com/emacs-grammarly/unofficial-grammarly-language-server",
     "installation-url": "https://github.com/emacs-grammarly/unofficial-grammarly-language-server",
-    "installation": "npm i -g unofficial-grammarly-language-server-2",
+    "installation": "npm i -g @emacs-grammarly/unofficial-grammarly-language-server",
     "debugger": "Not available"
   },
   {
@@ -288,6 +297,14 @@
     "debugger": "Not available"
   },
   {
+    "name": "ltex",
+    "full-name": "LanguageTool",
+    "server-name": "LTEX",
+    "server-url": "https://github.com/valentjn/ltex-ls",
+    "installation-url": "https://github.com/valentjn/ltex-ls#installation",
+    "debugger": "Not available"
+  },
+  {
     "name": "emmy-lua",
     "full-name": "Lua",
     "server-name": "EmmyLua",
@@ -310,6 +327,14 @@
     "installation-url": "https://luarocks.org/modules/alloyed/lua-lsp",
     "server-url": "https://github.com/Alloyed/lua-lsp",
     "installation": "luarocks install --server=https://luarocks.org/dev lua-lsp --local",
+    "debugger": "Not available"
+  },
+  {
+    "name": "lua-roblox",
+    "full-name": "Lua Roblox",
+    "server-name": "lua-roblox-language-server",
+    "installation-url": "https://github.com/NightrainsRbx/RobloxLsp",
+    "server-url": "https://github.com/NightrainsRbx/RobloxLsp",
     "debugger": "Not available"
   },
   {
@@ -502,20 +527,20 @@
     "debugger": "Yes"
   },
   {
-    "name": "rust",
-    "full-name": "Rust",
-    "server-name": "rls",
-    "server-url": "https://github.com/rust-lang/rls",
-    "installation-url": "https://github.com/rust-lang/rls",
-    "debugger": "Yes"
-  },
-  {
     "name": "rust-analyzer",
     "full-name": "Rust",
     "server-name": "rust-analyzer",
     "server-url": "https://github.com/rust-analyzer/rust-analyzer",
     "installation-url": "https://github.com/rust-analyzer/rust-analyzer#language-server-quick-start",
     "debugger": "Not available"
+  },
+  {
+    "name": "rust-rls",
+    "full-name": "Rust",
+    "server-name": "rls",
+    "server-url": "https://github.com/rust-lang/rls",
+    "installation-url": "https://github.com/rust-lang/rls",
+    "debugger": "Yes"
   },
   {
     "name": "serenata",
@@ -606,6 +631,14 @@
     "server-name": "texlab",
     "server-url": "https://github.com/latex-lsp/texlab",
     "installation": "cargo install --git https://github.com/latex-lsp/texlab.git",
+    "debugger": "Not available"
+  },
+  {
+    "name": "v",
+    "full-name": "V",
+    "server-name": "vls",
+    "server-url": "https://github.com/vlang/vls/tree/master",
+    "installation-url": "https://github.com/vlang/vls/tree/master#installation",
     "debugger": "Not available"
   },
   {

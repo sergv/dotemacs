@@ -20,6 +20,7 @@
 ;;  LSP icons management
 ;;
 ;;; Code:
+(require 'lsp-mode)
 
 (defgroup lsp-icons nil
   "LSP icons"
@@ -88,6 +89,8 @@ if its enabled."
       (all-the-icons-material icon-name
                               :face face)
     (propertize fallback 'face face)))
+
+(lsp-consistency-check lsp-icons)
 
 (provide 'lsp-icons)
 ;;; lsp-icons.el ends here

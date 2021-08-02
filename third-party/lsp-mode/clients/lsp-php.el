@@ -390,7 +390,8 @@ already present."
                      (unless lsp-php-composer-dir
                        (setq lsp-php-composer-dir (lsp-php-get-composer-dir)))
                      (unless lsp-phpactor-path
-                       (setq lsp-phpactor-path (f-join lsp-php-composer-dir "vendor/phpactor/phpactor/bin/phpactor")))
+                       (setq lsp-phpactor-path (or (executable-find "phpactor")
+                                                   (f-join lsp-php-composer-dir "vendor/phpactor/phpactor/bin/phpactor"))))
                      (list lsp-phpactor-path "language-server")))
   :activation-fn (lsp-activate-on "php")
   ;; `phpactor' is not really that feature-complete: it doesn't support
@@ -426,6 +427,8 @@ https://phpactor.readthedocs.io/en/develop/extensions.html."
    nil
    (lambda (_mode)
      (format "*Phpactor install %s*" extension))))
+
+(lsp-consistency-check lsp-php)
 
 (provide 'lsp-php)
 ;;; lsp-php.el ends here
