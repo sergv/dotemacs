@@ -76,6 +76,8 @@
       lsp-rust-analyzer-server-command '("rust-analyzer")
       lsp-rust-analyzer-server-args '(nil "--log-file" "/tmp/rust-analyzer-log.txt")
 
+      lsp-eldoc-enable-hover nil
+
       ;; ;; For debugging
       ;; lsp-response-timeout 10000
       ;; lsp-rust-analyzer-server-command '("/tmp/target/release/rust-analyzer")
