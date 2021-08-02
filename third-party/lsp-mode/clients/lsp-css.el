@@ -241,12 +241,14 @@ server."
 (lsp-register-client
  (make-lsp-client
   :new-connection (lsp-stdio-connection #'lsp-css--server-command)
-  :major-modes '(css-mode less-mode less-css-mode sass-mode scss-mode)
+  :activation-fn (lsp-activate-on "css" "scss" "sass")
   :priority -1
   :action-handlers (lsp-ht ("_css.applyCodeAction" #'lsp-css--apply-code-action))
   :server-id 'css-ls
   :download-server-fn (lambda (_client callback error-callback _update?)
                         (lsp-package-ensure 'css-languageserver callback error-callback))))
+
+(lsp-consistency-check lsp-css)
 
 (provide 'lsp-css)
 ;;; lsp-css.el ends here

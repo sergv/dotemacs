@@ -1,8 +1,8 @@
-;;; lsp-zig.el --- lsp-mode Zig integration -*- lexical-binding: t; -*-
+;;; lsp-v.el --- lsp-mode V integration -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021 Riccardo Binetti
+;; Copyright (C) 2021 remimimimi
 
-;; Author: Riccardo Binetti <rbino@gmx.com>
+;; Author: remimimimi
 ;; Keywords: languages,tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -20,31 +20,31 @@
 
 ;;; Commentary:
 
-;;  client for zls, the Zig language server
+;;  client for vls, the V language server
 
 ;;; Code:
 
 (require 'lsp-mode)
 
-(defgroup lsp-zig nil
-  "LSP support for Zig via zls."
+(defgroup lsp-v nil
+  "LSP support for V via vls."
   :group 'lsp-mode
-  :link '(url-link "https://github.com/zigtools/zls"))
+  :link '(url-link "https://github.com/vlang/vls/tree/master"))
 
-(defcustom lsp-zig-zls-executable "zls"
-  "The zls executable to use.
+(defcustom lsp-v-vls-executable "vls"
+  "The vls executable to use.
 Leave as just the executable name to use the default behavior of
 finding the executable with variable `exec-path'."
-  :group 'lsp-zig
+  :group 'lsp-v
   :type 'string)
 
 (lsp-register-client
  (make-lsp-client
-  :new-connection (lsp-stdio-connection (lambda () lsp-zig-zls-executable))
-  :activation-fn (lsp-activate-on "zig")
-  :server-id 'zls))
+  :new-connection (lsp-stdio-connection (lambda () lsp-v-vls-executable))
+  :activation-fn (lsp-activate-on "V")
+  :server-id 'v-ls))
 
-(lsp-consistency-check lsp-zig)
+(lsp-consistency-check lsp-v)
 
-(provide 'lsp-zig)
-;;; lsp-zig.el ends here
+(provide 'lsp-v)
+;;; lsp-v.el ends here

@@ -179,7 +179,7 @@ styles."
                                    (lambda ()
                                      (cons (lsp-package-path 'html-language-server)
                                            lsp-html-server-command-args)))
-                  :major-modes '(html-mode sgml-mode mhtml-mode web-mode)
+                  :activation-fn (lsp-activate-on "html")
                   :priority -4
                   :completion-in-comments? t
                   :server-id 'html-ls
@@ -191,6 +191,8 @@ styles."
                                         (lsp-package-ensure
                                          'html-language-server callback
                                          error-callback))))
+
+(lsp-consistency-check lsp-html)
 
 (provide 'lsp-html)
 ;;; lsp-html.el ends here
