@@ -3897,6 +3897,13 @@ N wraps around."
       (add-face-text-property j (1+ j) (ivy--minibuffer-face i) nil str))
     str))
 
+(defvar ivy--flx-sort--backend nil)
+
+(setf ivy--flx-sort--backend
+      (if (fboundp 'haskell-native-score-matches)
+          'native
+        'elisp))
+
 (defun ivy--flx-sort (name cands)
   "Sort according to closeness to string NAME the string list CANDS."
   (condition-case nil
@@ -3930,23 +3937,26 @@ N wraps around."
 
         (nconc
          ;; Compute all of the flx scores in one pass and sort
-         (if (fboundp 'haskell-native-score-matches)
-             (haskell-native-score-matches
-              flx-name
-              cands-to-sort)
-           (mapcar #'car
-                   (sort (mapcar
-                          (lambda (cand)
-                            (cons cand
-                                  (car (flx-score cand flx-name ivy--flx-cache))))
-                          cands-to-sort)
-                         (lambda (c1 c2)
-                           ;; Break ties by length
-                           (if (/= (cdr c1) (cdr c2))
-                               (> (cdr c1)
-                                  (cdr c2))
-                             (< (length (car c1))
-                                (length (car c2))))))))
+         (pcase ivy--flx-sort--backend
+           (`native (haskell-native-score-matches
+                     flx-name
+                     cands-to-sort))
+           (`elisp
+            (mapcar #'car
+                    (sort (mapcar
+                           (lambda (cand)
+                             (cons cand
+                                   (car (flx-score cand flx-name ivy--flx-cache))))
+                           cands-to-sort)
+                          (lambda (c1 c2)
+                            ;; Break ties by length
+                            (if (/= (cdr c1) (cdr c2))
+                                (> (cdr c1)
+                                   (cdr c2))
+                              (< (length (car c1))
+                                 (length (car c2))))))))
+           (invalid
+            (error "Invalid ivy--flx-sort--backend: %s" invalid)))
 
          ;; Add the unsorted candidates
          cands-left))
