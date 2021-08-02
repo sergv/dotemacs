@@ -1,5 +1,6 @@
 * Changelog
 ** Release 7.1
+  * Add ~lsp-sql-execute-paragraph~ to execute the current paragraph (like ~sql-send-paragraph~).
   * Breaking change: bindings for commands under ~s~ (like ~lsp-workspace-shutdown~) were moved under ~w~ for better compatibility with =Spacemacs=
   * removed ~lsp-print-performance~
   * Add support for insert/replace when performing completion. When using
@@ -41,7 +42,17 @@
   * Add 2 rust-analyzer LSP extension function ~lsp-rust-analyzer-related-tests~ and
     ~lsp-rust-analyzer-open-cargo-toml~
   * Work around bug in NPM versions 7.0.0 through 7.4.1 that prevented ~lsp-install-server~ from working for NPM-based language servers.
-  * Add ~lsp-lens-place-position~ with option to place code lens at end of line.
+  * Add ~lsp-lens-place-position~ with option to place code lens at end of line as default.
+  * Add LanguageTool support.
+  * Add Beancount support.
+  * Update the ESLint server to 2.1.23
+  * Add ~lsp-eslint-warn-on-ignored-files~ and ~lsp-eslint-rules-customizations~
+    options to the ESLint client
+  * Change interface for configuring ESLint code actions - see documentation of
+    ~lsp-eslint-code-action-disable-rule-comment~ and
+    ~lsp-eslint-code-action-show-documentation~ for details
+  * Add interactive ~lsp-rust-analyzer-move-item-up~ and ~lsp-rust-analyzer-move-item-down~ functions to move Rust items / statements
+
 ** Release 7.0.1
   * Introduced ~lsp-diagnostics-mode~.
   * Safe renamed ~lsp-flycheck-default-level~ -> ~lsp-diagnostics-flycheck-default-level~

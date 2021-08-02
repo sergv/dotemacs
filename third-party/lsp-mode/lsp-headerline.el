@@ -31,7 +31,7 @@
   :tag "LSP Headerline")
 
 (defcustom lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols)
-  "Face used on breadcrumb text on modeline."
+  "Segments used in breadcrumb text on headerline."
   :type '(repeat
           (choice (const :tag "Include the project name." project)
                   (const :tag "Include the open file name." file)
@@ -466,6 +466,8 @@ PATH is the current folder to be checked."
             (lsp--info "Symbol not found for position %s" symbol-position))
         (lsp--info "Server does not support breadcrumb."))
     (lsp--info "Call this function with a number representing the symbol position on breadcrumb")))
+
+(lsp-consistency-check lsp-headerline)
 
 (provide 'lsp-headerline)
 ;;; lsp-headerline.el ends here
