@@ -263,6 +263,28 @@
     "let mut groups_count + _|_;"
     "let mut groups_count += _|_;"))
 
+(ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator-19 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?=)
+    "if foo = _|_"
+    "if foo == _|_"))
+
+(ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator-20 ()
+  (rust-tests--test-buffer-contents
+      (progn
+        (rust-smart-operators--insert-char-surrounding-with-spaces ?=)
+        (rust-smart-operators--insert-char-surrounding-with-spaces ?=))
+    "if x_|_ { 0 } else { 1 }"
+    "if x ==_|_ { 0 } else { 1 }"))
+
+(ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator-21 ()
+  (rust-tests--test-buffer-contents
+      (progn
+        (rust-smart-operators--insert-char-surrounding-with-spaces ?=)
+        (rust-smart-operators--insert-char-surrounding-with-spaces ?=))
+    "let is_contiguous = idx_|_"
+    "let is_contiguous = idx == _|_"))
+
 (ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator-+-1 ()
   (rust-tests--test-buffer-contents
       (rust-smart-operators--insert-char-surrounding-with-spaces ?+)
@@ -318,6 +340,12 @@
         (rust-smart-operators--insert-char-surrounding-with-spaces ?*))
     "foo * _|_bar"
     "foo * &*_|_bar"))
+
+(ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator-*-6 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?*)
+    "heatmap[_|_idx2 as usize]"
+    "heatmap[*_|_idx2 as usize]"))
 
 (ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator->-1 ()
   (rust-tests--test-buffer-contents
@@ -652,6 +680,24 @@
      "/// _|_"
      "fn foo(x: i32) -> i32 {"
      "   x + 1"
+     "}"
+     "")))
+
+(ert-deftest rust-tests/rust-smart-operators--slash-4 ()
+  (rust-tests--test-buffer-contents
+      (rust-smart-operators--insert-char-surrounding-with-spaces ?\/)
+    (tests-utils--multiline
+     ""
+     "_|_// Test"
+     "fn foo(x: i32) -> i32 {"
+     "    x * 2"
+     "}"
+     "")
+    (tests-utils--multiline
+     ""
+     "/_|_// Test"
+     "fn foo(x: i32) -> i32 {"
+     "    x * 2"
      "}"
      "")))
 
