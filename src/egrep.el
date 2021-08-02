@@ -27,8 +27,8 @@
         (t
          'elisp)))
 
-(defun make-egrep-match (file short-file-name line column matched-prefix matched-text matched-suffix)
-  (cons file (cons short-file-name (cons line (cons column (cons matched-prefix (cons matched-text matched-suffix)))))))
+(defun make-egrep-match (file short-file-name line offset matched-prefix matched-text matched-suffix)
+  (cons file (cons short-file-name (cons line (cons offset (cons matched-prefix (cons matched-text matched-suffix)))))))
 
 (defsubst egrep-match-file (x)
   (declare (pure t) (side-effect-free t))
@@ -42,7 +42,7 @@
   (declare (pure t) (side-effect-free t))
   (caddr x))
 
-(defsubst egrep-match-column (x)
+(defsubst egrep-match-offset (x)
   (declare (pure t) (side-effect-free t))
   (cadddr x))
 
@@ -154,7 +154,7 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
                       (let* ((match-start (match-beginning 0))
                              (match-end (match-end 0))
                              (line (line-number-at-pos match-start))
-                             (column (- match-start (line-beginning-position))))
+                             (offset match-start))
                         (save-excursion
                           (goto-char match-start)
                           (let ((match-prefix
@@ -171,7 +171,7 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
                                          filename
                                          (file-relative-name filename root)
                                          line
-                                         column
+                                         offset
                                          match-prefix
                                          match-text
                                          match-suffix)
@@ -194,17 +194,17 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
   (interactive)
   (let ((changed-entries nil))
     (select-mode-on-selectable-items
-     (lambda (match-entry str)
+     (lambda (match-entry buffer-str)
        (let ((orig-str
               (concat
                (substring-no-properties (egrep-match-matched-prefix match-entry))
                (substring-no-properties (egrep-match-matched-text match-entry))
                (substring-no-properties (egrep-match-matched-suffix match-entry))))
-             (stripped-str (substring (substring-no-properties str)
-                                      0
-                                      -1)))
-         (when (not (string= orig-str stripped-str))
-           (push (list match-entry orig-str stripped-str) changed-entries)))))
+             (stripped-buffer-str (substring (substring-no-properties buffer-str)
+                                             0
+                                             -1)))
+         (when (not (string= orig-str stripped-buffer-str))
+           (push (list match-entry orig-str stripped-buffer-str) changed-entries)))))
     (let ((changed-entries-hash-table
            (make-hash-table :test #'equal))
           (ordered-changed-entries
@@ -216,6 +216,7 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
                    (cons entry
                          (gethash file-name changed-entries-hash-table nil))
                    changed-entries-hash-table)))
+      ;; Sort entries: changed-entries-hash-table -> ordered-changed-entries.
       (maphash (lambda (file-name entries)
                  (puthash file-name
                           (sort entries
@@ -229,6 +230,7 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
                                        (egrep-match-line y-match)))))
                           ordered-changed-entries))
                changed-entries-hash-table)
+      ;; Sanity check that changes can be applied - old content didn’t change after we gathered it.
       (maphash
        (lambda (file-name entries)
          (for-buffer-with-file file-name
@@ -249,7 +251,7 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
                           orig-str
                           current-str)))))))
        ordered-changed-entries)
-
+      ;; Apply the changes.
       (maphash
        (lambda (file-name entries)
          (with-temp-buffer
@@ -329,9 +331,7 @@ FILE-GLOBS and don't match IGNORED-FILE-GLOBS."
             (`same-window  #'switch-to-buffer)
             (`other-window #'switch-to-buffer-other-window))
           buf)
-         (progn
-           (goto-line-dumb (egrep-match-line match))
-           (move-to-character-column (egrep-match-column match)))))
+         (goto-char (egrep-match-offset match))))
      :item-show-function
      #'egrep--format-match-entry
      :preamble
