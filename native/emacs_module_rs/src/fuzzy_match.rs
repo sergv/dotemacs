@@ -1,0 +1,897 @@
+// Copyright 2021 Sergey Vinokurov
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+use std::collections::HashMap;
+
+type Heat = i16;
+
+pub type StrIdx = i16;
+
+const LAST_CHAR_BONUS: Heat = 1;
+const INIT_SCORE: Heat = -35;
+const LEADING_PENALTY: Heat = -45;
+const WORD_START: Heat = 85;
+
+#[derive(PartialEq, Eq, Debug)]
+pub struct Match<PS> {
+    pub score: Heat,
+    pub positions: PS,
+}
+
+#[derive(PartialEq, Eq, Debug)]
+pub struct Submatch {
+    score: Heat,
+    position: StrIdx,
+    contiguous_count: i16,
+    prev: i16,
+}
+
+pub trait Positions {
+    fn infer_positions(idx: SubmatchIdx, submatches: &Vec<Submatch>) -> Self;
+    fn empty() -> Self;
+}
+
+impl Positions for Vec<StrIdx> {
+    fn infer_positions(mut idx: SubmatchIdx, submatches: &Vec<Submatch>) -> Self {
+        let mut positions = Vec::new();
+        while idx >= 0 {
+            let m = &submatches[idx as usize];
+            positions.push(m.position);
+            idx = m.prev;
+        }
+        positions
+    }
+
+    fn empty() -> Self {
+        Vec::new()
+    }
+}
+
+impl Positions for () {
+    fn infer_positions(_idx: SubmatchIdx, _submatches: &Vec<Submatch>) -> Self { () }
+    fn empty() -> Self { () }
+}
+
+mod occurs {
+    use super::*;
+
+    pub struct State<'a> {
+        m: HashMap<char, Vec<StrIdx>>,
+        needle: &'a str,
+        pub needle_size: usize,
+    }
+
+    pub fn prepare<'a, 'b>(needle: &'a str, haystack: &'b str) -> State<'a> {
+        let size = needle.chars().count();
+        let mut m: HashMap<char, Vec<StrIdx>> = HashMap::with_capacity(size);
+        for c in needle.chars() {
+            m.entry(c).or_insert_with(|| Vec::new());
+        }
+
+        for (pos, c) in haystack.chars().enumerate() {
+            match m.get_mut(&c) {
+                None => (),
+                Some(ps) => ps.push(pos as StrIdx),
+            }
+            if is_capital(c) {
+                let mut lower = c.to_lowercase();
+                if lower.len() == 1 {
+                    match m.get_mut(&lower.next().unwrap()) {
+                        None => (),
+                        Some(ps) => ps.push(pos as StrIdx),
+                    }
+                }
+            }
+        }
+
+        State { m, needle, needle_size: size }
+    }
+
+    impl<'a> State<'a> {
+        pub fn get_positions<'b>(&'b self) -> Option<Vec<&'b [StrIdx]>> {
+            if self.m.values().any(|v| v.is_empty()) {
+                return None;
+            }
+
+            let mut res = Vec::with_capacity(self.needle_size);
+            for c in self.needle.chars() {
+                // Each character was initialized in the prepare function so unwrap is safe.
+                res.push(self.m.get(&c).unwrap() as &[StrIdx])
+            }
+            Some(res)
+        }
+    }
+}
+
+fn no_match<PS>() -> Match<PS>
+    where
+    PS: Positions,
+{
+    Match { score: 0, positions: Positions::empty() }
+}
+
+/// Return subslice that is strictly bigger that the argument index. Assumes input slice is sorted.
+fn bigger<'a, T: Ord>(x: T, xs: &'a [T]) -> &'a [T] {
+    match xs.binary_search(&x) {
+        Ok(i) => &xs[i + 1..],
+        Err(j) => &xs[j..],
+    }
+}
+
+pub struct ReuseState {
+    cache: HashMap<(StrIdx, StrIdx), Option<SubmatchIdx>>,
+    submatches: Vec<Submatch>,
+    heatmap: Vec<Heat>,
+}
+
+impl ReuseState {
+    pub fn new() -> Self {
+        ReuseState {
+            cache: HashMap::new(),
+            submatches: Vec::new(),
+            heatmap: Vec::new(),
+        }
+    }
+}
+
+pub fn fuzzy_match<PS>(
+    needle: &str,
+    haystack: &str,
+    group_seps: &[char],
+    reuse_state: &mut ReuseState,
+) -> Match<PS>
+    where
+    PS: Positions,
+{
+    heatmap(haystack, group_seps, &mut reuse_state.heatmap);
+
+    fuzzy_match_impl(
+        needle,
+        haystack,
+        &mut reuse_state.cache,
+        &mut reuse_state.submatches,
+        &reuse_state.heatmap,
+    )
+}
+
+pub fn fuzzy_match_impl<PS>(
+    needle: &str,
+    haystack: &str,
+    cache: &mut HashMap<(StrIdx, StrIdx), Option<SubmatchIdx>>,
+    submatches: &mut Vec<Submatch>,
+    heatmap: &[Heat],
+) -> Match<PS>
+    where
+    PS: Positions,
+{
+    if needle.is_empty() {
+        return no_match();
+    }
+
+    let s = occurs::prepare(needle, haystack);
+    let positions = match s.get_positions() {
+        None => return no_match(),
+        Some(x) => x,
+    };
+
+    cache.clear();
+    submatches.clear();
+
+    let submatch = top_down_match(
+        cache,
+        submatches,
+        &heatmap,
+        &positions,
+        0,
+        -1,
+        s.needle_size as StrIdx - 1,
+    );
+
+    match submatch {
+        None => no_match(),
+        Some(sub_idx) => {
+            let score = submatches[sub_idx as usize].score;
+            Match { score, positions: Positions::infer_positions(sub_idx, &submatches) }
+        }
+    }
+}
+
+
+type SubmatchIdx = i16;
+
+fn is_score_better(new: i16, old: i16) -> bool {
+    // If scores are equal then perefer later submatces (i.e. the ones
+    // that occured later in the needle) to the earlier ones.
+    new >= old
+}
+
+fn top_down_match<'a, 'b, 'c, 'd, 'e>(
+    cache: &'a mut HashMap<(StrIdx, StrIdx), Option<SubmatchIdx>>,
+    submatches: &'b mut Vec<Submatch>,
+    heatmap: &'c [Heat],
+    positions: &'d Vec<&'e [StrIdx]>,
+    haystack_idx: StrIdx,
+    cutoff_idx: StrIdx,
+    end_idx: StrIdx,
+) -> Option<SubmatchIdx>
+{
+    let key = (haystack_idx, cutoff_idx);
+    match cache.get(&key) {
+        Some(res) => return *res,
+        None => (),
+    }
+
+    let remaining_occurs =
+        bigger(cutoff_idx, positions[haystack_idx as usize])
+        .iter();
+
+    let mut max_submatch = None;
+    let mut max_score = -1;
+
+    for idx in remaining_occurs {
+        let submatch = top_down_submatch_at(
+            *idx,
+            cache,
+            submatches,
+            heatmap,
+            positions,
+            haystack_idx + 1,
+            *idx,
+            end_idx,
+        );
+
+        match (max_submatch, submatch) {
+            (None, None) => (),
+            (Some(_), None) => (),
+            (None, Some(sub_idx)) => {
+                max_submatch = submatch;
+                max_score = submatches[sub_idx as usize].score;
+            }
+            (Some(_), Some(sub_idx)) => {
+                let new_score = submatches[sub_idx as usize].score;
+                if is_score_better(new_score, max_score) {
+                    max_score = new_score;
+                    max_submatch = submatch;
+                }
+            }
+        }
+    }
+
+    cache.insert(key, max_submatch.clone());
+    max_submatch
+}
+
+fn add_submatch(submatches: &mut Vec<Submatch>, x: Submatch) -> SubmatchIdx {
+    let idx = submatches.len();
+    submatches.push(x);
+    idx as SubmatchIdx
+}
+
+fn contiguous_bonus(is_contiguous: bool, contiguous_count: i16) -> Heat {
+    if is_contiguous {
+        60 + 15 * contiguous_count.min(3)
+    } else {
+        0
+    }
+}
+
+fn top_down_submatch_at<'a, 'b, 'c, 'd, 'e>(
+    idx1: StrIdx,
+    cache: &'a mut HashMap<(StrIdx, StrIdx), Option<SubmatchIdx>>,
+    submatches: &'b mut Vec<Submatch>,
+    heatmap: &'c [Heat],
+    positions: &'d Vec<&'e [StrIdx]>,
+    haystack_idx: StrIdx,
+    cutoff_idx: StrIdx,
+    end_idx: StrIdx,
+) -> Option<SubmatchIdx>
+{
+    let key = (haystack_idx, cutoff_idx);
+    match cache.get(&key) {
+        Some(res) => return *res,
+        None => (),
+    }
+
+    let mut remaining_occurs =
+        bigger(cutoff_idx, positions[haystack_idx as usize])
+        .iter();
+    let res;
+
+    if haystack_idx == end_idx {
+        if let Some(idx2) = remaining_occurs.next() {
+            let is_contiguous2 = idx1 + 1 == *idx2;
+            let score1 = heatmap[idx1 as usize];
+            let score2 = heatmap[*idx2 as usize];
+            let mut max_submatch = Submatch {
+                score: score1 + score2 + contiguous_bonus(is_contiguous2, 0),
+                position: idx1,
+                contiguous_count: if is_contiguous2 { 1 } else { 0 },
+                prev: -1, // Gets filled out at the end!
+            };
+            let mut terminal_submatch_for_max = Submatch {
+                score: score2,
+                position: *idx2,
+                contiguous_count: 0,
+                prev: -1, // Does not get filled out - terminal submatch.
+            };
+
+            for idx3 in remaining_occurs {
+                let is_contiguous3 = idx1 + 1 == *idx3;
+                let score3 = heatmap[*idx3 as usize];
+                let new_score = score1 + score3 + contiguous_bonus(is_contiguous3, 0);
+                if is_score_better(new_score, max_submatch.score) {
+                    max_submatch.score = new_score;
+                    max_submatch.contiguous_count = if is_contiguous3 { 1 } else { 0 };
+
+                    terminal_submatch_for_max.score = score3;
+                    terminal_submatch_for_max.position = *idx3;
+                }
+            }
+
+            max_submatch.prev = add_submatch(submatches, terminal_submatch_for_max);
+            res = Some(add_submatch(submatches, max_submatch));
+        } else {
+            res = None;
+        }
+    } else {
+        match top_down_match(cache, submatches, heatmap, positions, haystack_idx, cutoff_idx, end_idx) {
+            None => res = None,
+            Some(idx) => {
+                let score1 = heatmap[idx1 as usize];
+                let submatch = &submatches[idx as usize];
+                let is_contiguous = idx1 + 1 == submatch.position;
+                let m = Submatch {
+                    score: score1 + submatch.score + contiguous_bonus(is_contiguous, submatch.contiguous_count),
+                    position: idx1,
+                    contiguous_count: if is_contiguous { submatch.contiguous_count + 1 } else { 0 },
+                    prev: idx,
+                };
+                res = Some(add_submatch(submatches, m));
+            }
+        }
+    }
+    cache.insert(key, res.clone());
+    res
+}
+
+pub fn heatmap<'a>(
+    s: &str,
+    group_seps: &[char], // sorted
+    mut heatmap: &'a mut Vec<i16>,
+) -> &'a mut Vec<Heat> {
+    heatmap.clear();
+    if s.is_empty() {
+        return heatmap;
+    }
+
+    let mut group_idx = 0;
+
+    let mut is_base_path = false;
+    let mut group_start: isize = 0;
+    let mut group_end: isize = -1; // to account for fake separator
+    let mut group_score = 0;
+    let mut group_non_base_score = 0;
+
+    let split = split_with_seps(' ', s, group_seps);
+
+    let groups_count = match &split {
+        Ok((_, _)) => 1,
+        Err(groups) => groups.len() as i16,
+    };
+
+    let init_adjustment = if groups_count > 1 { -2 * groups_count } else { 0 };
+
+    heatmap.resize(s.chars().count(), INIT_SCORE + init_adjustment);
+    *heatmap.last_mut().unwrap() += LAST_CHAR_BONUS;
+
+    match split {
+        Ok((prev, text)) => {
+            analyze_group(
+                prev,
+                text,
+                &mut heatmap,
+                &mut is_base_path,
+                &mut group_idx,
+                groups_count,
+                &mut group_start,
+                &mut group_end,
+                &mut group_score,
+                &mut group_non_base_score,
+            )
+        },
+        Err(groups) => {
+            let mut prev_is_base_path = false;
+            let mut prev_group_start = 0;
+            let mut prev_group_end = 0;
+            let mut prev_group_score = 0;
+            let mut prev_group_non_base_score = 0;
+            for (prev, text) in groups {
+                analyze_group(
+                    prev,
+                    text,
+                    &mut heatmap,
+                    &mut is_base_path,
+                    &mut group_idx,
+                    groups_count,
+                    &mut group_start,
+                    &mut group_end,
+                    &mut group_score,
+                    &mut group_non_base_score,
+                );
+
+                if prev_is_base_path && is_base_path {
+                    let delta = prev_group_non_base_score - prev_group_score;
+                    apply_group_score(delta, heatmap, prev_group_start, prev_group_end);
+                    prev_is_base_path = false;
+                }
+
+                if is_base_path {
+                    prev_is_base_path = is_base_path;
+                    prev_group_start = group_start;
+                    prev_group_end = group_end;
+                    prev_group_score = group_score;
+                    prev_group_non_base_score = group_non_base_score;
+                }
+            }
+        }
+    };
+
+    heatmap
+}
+
+fn apply_group_score(score: Heat, heatmap: &mut [Heat], start: isize, end: isize) {
+    for i in start..end {
+        heatmap[i as usize] += score;
+    }
+    if end < heatmap.len() as isize {
+        heatmap[end as usize] += score;
+    }
+}
+
+fn analyze_group(
+    mut prev: char,
+    text: &str,
+    heatmap: &mut [Heat],
+    is_base_path: &mut bool,
+    group_idx: &mut i16,
+    groups_count: i16,
+    group_start: &mut isize,
+    group_end: &mut isize,
+    group_score: &mut Heat,
+    group_non_base_score: &mut Heat,
+) {
+    let mut word_char_idx = 0;
+    let mut word_idx = -1;
+    let mut word_count = 0;
+
+    *group_start = *group_end + 1;
+
+    let mut chars_count = 0;
+
+    for (i, c) in text.chars().enumerate() {
+        let j = *group_start as usize + i;
+        let is_word = !is_word(prev) && is_word(c);
+        if is_word {
+            word_count += 1;
+        }
+
+        let is_boundary = is_word || !prev.is_uppercase() && c.is_uppercase();
+        if is_boundary {
+            word_idx += 1;
+            word_char_idx = 0;
+            heatmap[j] += WORD_START;
+        }
+
+        if word_idx >= 0 {
+            heatmap[j] += (-3) * word_idx - word_char_idx;
+        }
+
+        word_char_idx += 1;
+        if penalizes_if_leading(c) {
+            let k = j + 1;
+            if k < heatmap.len() {
+                heatmap[k] += LEADING_PENALTY;
+            }
+        }
+        prev = c;
+        chars_count += 1;
+    }
+
+    *group_end = *group_start + chars_count;
+
+    // Update score for trailing separator of a group.
+    let k = *group_end as usize;
+    if k < heatmap.len() && word_idx >= 0 {
+        heatmap[k] += (-3) * word_idx - word_char_idx;
+    }
+
+    let base_path = word_count != 0;
+    *is_base_path = base_path;
+    *group_score = calc_group_score(base_path, groups_count, word_count, *group_idx);
+    if base_path {
+        *group_non_base_score =
+            calc_group_score(false, groups_count, word_count, *group_idx);
+    }
+
+    *group_idx += 1;
+
+    apply_group_score(*group_score, heatmap, *group_start, *group_end);
+}
+
+#[derive(Debug)]
+struct SplitWithSeps<'a, 'b> {
+    prev: char,
+    s: &'a str,
+    group_seps: &'b [char],
+}
+
+impl<'a, 'b> SplitWithSeps<'a, 'b> {
+    fn is_sep(&self, c: char) -> bool {
+        is_member(c, self.group_seps)
+    }
+}
+
+impl<'a, 'b> Iterator for SplitWithSeps<'a, 'b> {
+    type Item = (char, &'a str);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.s.split_once(|c| self.is_sep(c)) {
+            None => {
+                if self.s.is_empty() {
+                    None
+                } else {
+                    let tmp = self.s;
+                    self.s = "";
+                    Some((self.prev, tmp))
+                }
+            },
+            Some((prefix, suffix)) => {
+                let sep = self.s[prefix.len()..].chars().next().unwrap();
+                let tmp = self.prev;
+                self.prev = sep;
+                self.s = suffix;
+                Some((tmp, prefix))
+            }
+        }
+    }
+}
+
+impl<'a, 'b> ExactSizeIterator for SplitWithSeps<'a, 'b> {
+    fn len(&self) -> usize {
+        self.s.chars().filter(|c| self.is_sep(*c)).count() + 1
+    }
+}
+
+fn split_with_seps<'a, 'b>(
+    first_sep: char,
+    s: &'a str,
+    group_seps: &'b [char],
+) -> Result<(char, &'a str), SplitWithSeps<'a, 'b>>
+{
+    if group_seps.is_empty() {
+        Ok((first_sep, s))
+    } else {
+        // Assert that group_seps is sorted.
+        debug_assert!(
+            group_seps
+                .iter()
+                .fold((group_seps[0], true), |(prev, is_sorted), &c| (c, is_sorted && prev <= c))
+                .1
+        );
+        Err(SplitWithSeps {
+            prev: first_sep,
+            s,
+            group_seps
+        })
+    }
+}
+
+fn calc_group_score(is_base_path: bool, groups_count: i16, word_count: i16, n: i16) -> Heat {
+    if is_base_path {
+        35 + (groups_count - 2).max(0) - word_count
+    } else {
+        let delta = if n == 0 {
+            -3
+        } else {
+            -6 + n
+        };
+        delta
+    }
+}
+
+fn is_member(c: char, xs: &[char]) -> bool {
+    xs.binary_search(&c).is_ok()
+}
+
+fn is_word_separator(c: char) -> bool {
+    match c {
+        ' ' | '*' | '+' | '-' | '_' | ':' | ';' | '.' | '/' | '\\' => true,
+        _ => false,
+    }
+}
+
+fn is_word(c: char) -> bool {
+    !is_word_separator(c)
+}
+
+fn is_capital(c: char) -> bool {
+    !is_word_separator(c) && c.is_uppercase()
+}
+
+fn penalizes_if_leading(c: char) -> bool {
+    c == '.'
+}
+
+#[test]
+fn test_heat_map1() {
+    assert_eq!(heatmap("foo", &[], &mut Vec::new()), &mut vec![84, -2, -2]);
+}
+
+#[test]
+fn test_heat_map2() {
+    assert_eq!(heatmap("bar", &[], &mut Vec::new()), &mut vec![84, -2, -2]);
+}
+
+#[test]
+fn test_heat_map3() {
+    assert_eq!(heatmap("foo.bar", &[], &mut Vec::new()), &mut vec![83, -3, -4, -5, 35, -6, -6]);
+}
+
+#[test]
+fn test_heat_map4() {
+    assert_eq!(
+        heatmap("foo/bar/baz", &[], &mut Vec::new()),
+        &mut vec![82, -4, -5, -6, 79, -7, -8, -9, 76, -10, -10]
+    );
+}
+
+#[test]
+fn test_heat_map5() {
+    assert_eq!(
+        heatmap("foo/bar/baz", &['/'], &mut Vec::new()),
+        &mut vec![41, -45, -46, -47, 39, -47, -48, -49, 79, -7, -7]
+    );
+}
+
+#[test]
+fn test_heat_map6() {
+    assert_eq!(
+        heatmap("foo/bar+quux/fizz.buzz/frobnicate/frobulate", &[], &mut Vec::new()),
+        &mut vec![78, -8, -9, -10, 75, -11, -12, -13, 72, -14, -15, -16, -17, 69, -17, -18, -19, -20, 21, -20, -21, -22, -23, 63, -23, -24, -25, -26, -27, -28, -29, -30, -31, -32, 60, -26, -27, -28, -29, -30, -31, -32, -32]
+    );
+}
+
+#[test]
+fn test_heat_map7() {
+    assert_eq!(
+        heatmap("foo/bar+quux/fizz.buzz/frobnicate/frobulate", &['/'], &mut Vec::new()),
+        &mut vec![37, -49, -50, -51, 35, -51, -52, -53, 32, -54, -55, -56, -57, 36, -50, -51, -52, -53, -12, -53, -54, -55, -56, 37, -49, -50, -51, -52, -53, -54, -55, -56, -57, -58, 77, -9, -10, -11, -12, -13, -14, -15, -15]
+    );
+}
+
+#[test]
+fn test_heat_map7a() {
+    assert_eq!(
+        heatmap("foo/bar+quux/fizz.buzz", &['/'], &mut Vec::new()),
+        &mut vec![41, -45, -46, -47, 39, -47, -48, -49, 36, -50, -51, -52, -53, 78, -8, -9, -10, -11, 30, -11, -12, -12]
+    );
+}
+
+#[test]
+fn test_heat_map8() {
+    assert_eq!(
+        heatmap("foo/bar+quux/fizz.buzz//frobnicate/frobulate", &['/'], &mut Vec::new()),
+        &mut vec![35, -51, -52, -53, 33, -53, -54, -55, 30, -56, -57, -58, -59, 34, -52, -53, -54, -55, -14, -55, -56, -57, -58, -50, 36, -50, -51, -52, -53, -54, -55, -56, -57, -58, -59, 76, -10, -11, -12, -13, -14, -15, -16, -16]
+    );
+}
+
+#[test]
+fn test_heat_map9() {
+    assert_eq!(
+        heatmap("foo/bar+quux/fizz.buzz//frobnicate/frobulate", &['/', 'u'], &mut Vec::new()),
+        &mut vec![27, -59, -60, -61, 25, -61, -62, -63, 22, -64, -59, -58, -58, 28, -58, -59, -60, -61, -20, -61, -56, -56, -56, -55, 31, -55, -56, -57, -58, -59, -60, -61, -62, -63, -64, 72, -14, -15, -16, -17, -52, -52, -52, -51]
+    );
+}
+
+#[test]
+fn test_heat_map10() {
+    assert_eq!(
+        heatmap("foo/barQuux/fizzBuzz//frobnicate/frobulate", &[], &mut Vec::new()),
+        &mut vec![80, -6, -7, -8, 77, -9, -10, 74, -12, -13, -14, -15, 71, -15, -16, -17, 68, -18, -19, -20, -21, -22, 65, -21, -22, -23, -24, -25, -26, -27, -28, -29, -30, 62, -24, -25, -26, -27, -28, -29, -30, -30]
+    );
+}
+
+#[test]
+fn test_heat_map11() {
+    assert_eq!(
+        heatmap("foo//bar", &[], &mut Vec::new()),
+        &mut vec![83, -3, -4, -5, -6, 80, -6, -6]
+    );
+}
+
+#[test]
+fn test_heat_map12() {
+    assert_eq!(
+        heatmap("foo//bar", &['/'], &mut Vec::new()),
+        &mut vec![41, -45, -46, -47, -46, 79, -7, -7]
+    );
+}
+
+#[test]
+fn test_heat_map13() {
+    assert_eq!(
+        heatmap("contrib/apr/atomic/unix/s390.c", &[], &mut Vec::new()),
+        // // Result from elisp that considers numbers uppercase an thus finds two words in "s390"
+        // &mut vec![79, -7, -8, -9, -10, -11, -12, -13, 76, -10, -11, -12, 73, -13, -14, -15, -16, -17, -18, 70, -16, -17, -18, -19, 67, 64, -22, -23, -24, 17]
+        &mut vec![79, -7, -8, -9, -10, -11, -12, -13, 76, -10, -11, -12, 73, -13, -14, -15, -16, -17, -18, 70, -16, -17, -18, -19, 67, -19, -20, -21, -22, 20]
+    );
+}
+
+#[test]
+fn test_bigger1() {
+    let v: &[i32] = &[1, 2, 3, 4, 5];
+    assert_eq!(bigger(2, v), &[3, 4, 5]);
+}
+
+#[test]
+fn test_bigger2() {
+    let v: &[i32] = &[1, 2, 3, 4, 5];
+    assert_eq!(bigger(0, v), v);
+}
+
+#[test]
+fn test_bigger3() {
+    let v: &[i32] = &[1, 2, 3, 4, 5];
+    assert_eq!(bigger(4, v), &[5]);
+}
+
+#[test]
+fn test_bigger4() {
+    let v: &[i32] = &[1, 2, 3, 4, 5];
+    let res: &[i32] = &[];
+    assert_eq!(bigger(5, v), res);
+}
+
+#[test]
+fn test_bigger5() {
+    let v: &[i32] = &[1, 2, 4, 5];
+    assert_eq!(bigger(3, v), &[4, 5]);
+}
+
+
+
+#[cfg(test)]
+const FOOBAR_HEATMAP: &[Heat] = &[84, -2, -3, -4, -5, -5];
+
+#[cfg(test)]
+pub fn fuzzy_match_test(
+    heatmap: &[Heat],
+    needle: &str,
+    haystack: &str,
+) -> Match<Vec<StrIdx>>
+{
+    let s = &mut ReuseState::new();
+    fuzzy_match_impl(
+        needle,
+        haystack,
+        &mut s.cache,
+        &mut s.submatches,
+        heatmap
+    )
+}
+
+
+#[test]
+fn fuzzy_match1() {
+    let m = fuzzy_match_test(
+        FOOBAR_HEATMAP,
+        "foo",
+        "foobar"
+    );
+    assert_eq!(m, Match { score: 214, positions: vec![0, 1, 2] });
+}
+
+#[test]
+fn fuzzy_match2() {
+    let m = fuzzy_match_test(
+        FOOBAR_HEATMAP,
+        "fo",
+        "foobar"
+    );
+    assert_eq!(m, Match { score: 142, positions: vec![0, 1] });
+}
+
+#[test]
+fn fuzzy_match3() {
+    let m = fuzzy_match_test(
+        FOOBAR_HEATMAP,
+        "oob",
+        "foobar"
+    );
+    assert_eq!(m, Match { score: 126, positions: vec![1, 2, 3] });
+}
+
+#[test]
+fn fuzzy_match4() {
+    let m = fuzzy_match_test(
+        FOOBAR_HEATMAP,
+        "ooba",
+        "foobar"
+    );
+    assert_eq!(m, Match { score: 211, positions: vec![1, 2, 3, 4] });
+}
+
+#[test]
+fn fuzzy_match5() {
+    let m = fuzzy_match_test(
+        FOOBAR_HEATMAP,
+        "or",
+        "foobar"
+    );
+    assert_eq!(m, Match { score: - 7, positions: vec![1, 5] });
+}
+
+#[test]
+fn fuzzy_match6() {
+    let m = fuzzy_match_test(
+        FOOBAR_HEATMAP,
+        "x",
+        "foobar"
+    );
+    assert_eq!(m, no_match());
+}
+
+#[test]
+fn fuzzy_match7() {
+    let m = fuzzy_match_test(
+        FOOBAR_HEATMAP,
+        "fooxbar",
+        "foobar"
+    );
+    assert_eq!(m, no_match());
+}
+
+#[test]
+fn fuzzy_match8() {
+    let m = fuzzy_match_test(
+        &(0..100).map(|_| 1).collect::<Vec<Heat>>(),
+        "aaaaaaaaaa",
+        &(0..100).map(|_| 'a').collect::<String>(),
+    );
+    assert_eq!(m, Match { score: 865, positions: (90..100).collect() });
+}
+
+#[test]
+fn fuzzy_match9() {
+    let m = fuzzy_match_test(
+        &(0..200).map(|_| 1).collect::<Vec<Heat>>(),
+        "aaaaaaaaaa",
+        &(0..200).map(|_| 'a').collect::<String>(),
+    );
+    assert_eq!(m, Match { score: 865, positions: (190..200).collect() });
+}
+
+#[test]
+fn fuzzy_match10() {
+    let needle = "cat.c";
+    let haystack = "sys/dev/acpica/Osd/OsdTable.c";
+    let mut h = Vec::new();
+    let heatmap = heatmap(haystack, &[], &mut h);
+    let m = fuzzy_match_test(
+        heatmap,
+        needle,
+        haystack,
+    );
+    assert_eq!(m, Match { score: 142, positions: vec![12, 13, 22, 27, 28] });
+}
