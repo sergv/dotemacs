@@ -107,7 +107,7 @@
   :package-version '(lsp-mode . "6.2"))
 
 (defcustom lsp-yaml-schema-store-uri "https://www.schemastore.org/api/json/catalog.json"
-  "URI of schema store that would be fetched to get the list of schemas."
+  "URL of schema store catalog to use."
   :type 'string
   :group 'lsp-yaml)
 
@@ -117,6 +117,14 @@
   "Cached databse of schema store."
   :type 'file
   :group 'lsp-yaml)
+
+(defcustom lsp-yaml-max-items-computed 5000
+  "The maximum number of outline symbols and folding regions computed.
+Limited for performance reasons."
+  :type 'number
+  :group 'lsp-yaml
+  :package-version '(lsp-mode . "7.1"))
+
 
 (defvar lsp-yaml--schema-store-schemas-alist nil
   "A list of schemas fetched from schema stores.")
@@ -132,7 +140,9 @@
    ("yaml.completion" lsp-yaml-completion t)
    ("yaml.schemas" lsp-yaml-schemas)
    ("yaml.schemaStore.enable" lsp-yaml-schema-store-enable t)
-   ("yaml.customTags" lsp-yaml-custom-tags)))
+   ("yaml.schemaStore.url" lsp-yaml-schema-store-uri)
+   ("yaml.customTags" lsp-yaml-custom-tags)
+   ("yaml.maxItemsComputed" lsp-yaml-max-items-computed)))
 
 (defcustom lsp-yaml-server-command '("yaml-language-server" "--stdio")
   "Command to start yaml-languageserver."
@@ -151,7 +161,7 @@
                                      `(,(or (executable-find (cl-first lsp-yaml-server-command))
                                             (lsp-package-path 'yaml-language-server))
                                        ,@(cl-rest lsp-yaml-server-command))))
-                  :major-modes '(yaml-mode)
+                  :major-modes '(yaml-mode k8s-mode)
                   :priority 0
                   :server-id 'yamlls
                   :initialized-fn (lambda (workspace)
@@ -215,7 +225,7 @@ Set FORCE-DOWNLOADING to non-nil to force re-download the database."
   (let* ((schema (lsp--completing-read "Select buffer schema: "
                                        (lsp-yaml--get-supported-schemas)
                                        (lambda (schema)
-                                         (alist-get 'description schema))
+                                         (format "%s: %s" (alist-get 'name schema)(alist-get 'description schema)))
                                        nil t))
          (uri (alist-get 'url schema)))
     (lsp-yaml-set-buffer-schema uri)))
@@ -225,6 +235,8 @@ Set FORCE-DOWNLOADING to non-nil to force re-download the database."
     (cons (car mapping)
           (vconcat (-filter (lambda (p) (not (equal p glob)))
                             (append patterns nil)) nil))))
+
+(lsp-consistency-check lsp-yaml)
 
 (provide 'lsp-yaml)
 ;;; lsp-yaml.el ends here

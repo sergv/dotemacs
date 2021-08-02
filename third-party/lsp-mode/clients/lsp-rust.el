@@ -175,6 +175,12 @@ the latest build duration."
   :group 'lsp-rust
   :package-version '(lsp-mode . "6.1"))
 
+(defcustom lsp-rust-analyzer-cargo-target nil
+  "Compilation target (target triple)."
+  :type 'string
+  :group 'lsp-rust
+  :package-version '(lsp-mode . "7.1"))
+
 (defcustom lsp-rust-no-default-features nil
   "Do not enable default Cargo features."
   :type 'boolean
@@ -189,11 +195,12 @@ the latest build duration."
 
 (defcustom lsp-rust-clippy-preference "opt-in"
   "Controls eagerness of clippy diagnostics when available.
-Valid values are (case-insensitive):\n - \"off\": Disable clippy
-lints.\n - \"opt-in\": Clippy lints are shown when crates
-specify `#![warn(clippy)]`.\n - \"on\": Clippy lints enabled
-for all crates in workspace.\nYou need to install clippy via
-rustup if you haven't already."
+Valid values are (case-insensitive):
+ - \"off\": Disable clippy lints.
+ - \"opt-in\": Clippy lints are shown when crates specify `#![warn(clippy)]'.
+ - \"on\": Clippy lints enabled for all crates in workspace.
+
+You need to install clippy via rustup if you haven't already."
   :type '(choice
           (const "on")
           (const "opt-in")
@@ -236,11 +243,12 @@ instead of the bundled one"
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-rust-build-command nil
-  "EXPERIMENTAL (requires `unstable_features`)\nIf set, executes
-a given program responsible for rebuilding save-analysis to be
-loaded by the RLS. The program given should output a list of
-resulting .json files on stdout. \nImplies `rust.build_on_save`:
-true."
+  "EXPERIMENTAL (requires `rust.unstable_features')
+If set, executes a given program responsible for rebuilding save-analysis to be
+loaded by the RLS. The program given should output a list of resulting .json
+files on stdout.
+
+Implies `rust.build_on_save': true."
   :type '(choice
           (const :tag "None" nil)
           (string :tag "Command"))
@@ -400,6 +408,12 @@ The command should include `--message=format=json` or similar option."
   :group 'lsp-rust
   :package-version '(lsp-mode . "6.2.2"))
 
+(defcustom lsp-rust-analyzer-exclude-dirs []
+  "These directories will be ignored by rust-analyzer."
+  :type 'lsp-string-vector
+  :group 'lsp-rust
+  :package-version '(lsp-mode . "7.1.0"))
+
 (defcustom lsp-rust-analyzer-macro-expansion-method 'lsp-rust-analyzer-macro-expansion-default
   "Use a different function if you want formatted macro expansion results and
 syntax highlighting."
@@ -422,6 +436,18 @@ syntax highlighting."
 
 (defcustom lsp-rust-analyzer-diagnostics-disabled []
   "List of native rust-analyzer diagnostics to disable."
+  :type 'lsp-string-vector
+  :group 'lsp-rust
+  :package-version '(lsp-mode . "7.1.0"))
+
+(defcustom lsp-rust-analyzer-diagnostics-warnings-as-hint []
+  "List of warnings that should be displayed with hint severity."
+  :type 'lsp-string-vector
+  :group 'lsp-rust
+  :package-version '(lsp-mode . "7.1.0"))
+
+(defcustom lsp-rust-analyzer-diagnostics-warnings-as-info []
+  "List of warnings that should be displayed with info severity."
   :type 'lsp-string-vector
   :group 'lsp-rust
   :package-version '(lsp-mode . "7.1.0"))
@@ -475,15 +501,18 @@ for formatting."
   :package-version '(lsp-mode . "6.3.2"))
 
 (defcustom lsp-rust-analyzer-proc-macro-enable nil
-  "Enable Proc macro support; implies lsp-rust-analyzer-cargo-run-build-scripts"
+  "Enable Proc macro support.
+Implies `lsp-rust-analyzer-cargo-run-build-scripts'"
   :type 'boolean
   :group 'lsp-rust
   :package-version '(lsp-mode . "6.3.2"))
 
 (defcustom lsp-rust-analyzer-import-merge-behaviour "full"
   "The strategy to use when inserting new imports or merging imports.
-Valid values are:\n - \"none\": No merging\n - \"full\": Merge all layers of
-the import trees\n - \"last\": Only merge the last layer of the import trees"
+Valid values are:
+ - \"none\": No merging
+ - \"full\": Merge all layers of the import trees
+ - \"last\": Only merge the last layer of the import trees"
   :type '(choice
           (const "none")
           (const "full")
@@ -493,12 +522,13 @@ the import trees\n - \"last\": Only merge the last layer of the import trees"
 
 (defcustom lsp-rust-analyzer-import-prefix "plain"
   "The path structure for newly inserted paths to use.
-Valid values are:\n - \"plain\": Insert import paths relative to the
-current module, using up to one `super` prefix if the parent module
-contains the requested item.\n - \"by_self\": Prefix all import paths
-with `self` if they don't begin with `self`, `super`, `crate` or a crate
-name\n - \"by_crate\": Force import paths to be absolute by always starting
-them with `crate` or the crate name they refer to."
+Valid values are:
+ - \"plain\": Insert import paths relative to the current module, using up to
+one `super' prefix if the parent module contains the requested item.
+ - \"by_self\": Prefix all import paths with `self' if they don't begin with
+`self', `super', `crate' or a crate name.
+ - \"by_crate\": Force import paths to be absolute by always starting
+them with `crate' or the crate name they refer to."
   :type '(choice
           (const "plain")
           (const "by_self")
@@ -506,13 +536,83 @@ them with `crate` or the crate name they refer to."
   :group 'lsp-rust
   :package-version '(lsp-mode . "7.1.0"))
 
+(defcustom lsp-rust-analyzer-import-granularity "crate"
+  "How imports should be grouped into use statements."
+  :type '(choice
+          (const "crate" :doc "Merge imports from the same crate into a single use statement. This kind of nesting is only supported in Rust versions later than 1.24.")
+          (const "module" :doc "Merge imports from the same module into a single use statement.")
+          (const "item" :doc "Don’t merge imports at all, creating one import per item.")
+          (const "preserve" :doc "Do not change the granularity of any imports. For auto-import this has the same effect as `\"item\"'"))
+  :group 'lsp-rust
+  :package-version '(lsp-mode . "7.1.0"))
+
+(defcustom lsp-rust-analyzer-cargo-auto-reload t
+  "Automatically refresh project info via `cargo metadata' on `Cargo.toml' changes."
+  :type 'boolean
+  :group 'lsp-rust
+  :package-version '(lsp-mode . "7.1.0"))
+
+(defcustom lsp-rust-analyzer-use-rustc-wrapper-for-build-scripts t
+  "Use `RUSTC_WRAPPER=rust-analyzer' when running build scripts to avoid
+compiling unnecessary things."
+  :type 'boolean
+  :group 'lsp-rust
+  :package-version '(lsp-mode . "7.1.0"))
+
+(defcustom lsp-rust-analyzer-completion-auto-import-enable t
+  "Toggles the additional completions that automatically add imports when
+completed. `lsp-completion-enable-additional-text-edit' must be non-nil
+ for this feature to be fully enabled."
+  :type 'boolean
+  :group 'lsp-rust
+  :package-version '(lsp-mode . "7.1.0"))
+
+(defcustom lsp-rust-analyzer-completion-auto-self-enable t
+  "Toggles the additional completions that automatically show method calls
+and field accesses with self prefixed to them when inside a method."
+  :type 'boolean
+  :group 'lsp-rust
+  :package-version '(lsp-mode . "7.1.0"))
+
+(defcustom lsp-rust-analyzer-import-enforce-granularity nil
+  "Whether to enforce the import granularity setting for all files.
+ If set to nil rust-analyzer will try to keep import styles consistent per file."
+  :type 'boolean
+  :group 'lsp-rust
+  :package-version '(lsp-mode . "7.1.0"))
+
+(defcustom lsp-rust-analyzer-import-group t
+  "Group inserted imports by the following order:
+https://rust-analyzer.github.io/manual.html#auto-import.
+ Groups are separated by newlines."
+  :type 'boolean
+  :group 'lsp-rust
+  :package-version '(lsp-mode . "7.1.0"))
+
+(defcustom lsp-rust-analyzer-highlighting-strings t
+  "Use semantic tokens for strings."
+  :type 'boolean
+  :group 'lsp-rust
+  :package-version '(lsp-mode . "7.1.0"))
+
+(defcustom lsp-rust-analyzer-rustc-source nil
+  "Path to the Cargo.toml of the rust compiler workspace."
+  :type 'string
+  :group 'lsp-rust
+  :package-version '(lsp-mode . "7.1.0"))
+
 (defun lsp-rust-analyzer--make-init-options ()
   "Init options for rust-analyzer"
   `(:diagnostics (:enable ,(lsp-json-bool lsp-rust-analyzer-diagnostics-enable)
                   :enableExperimental ,(lsp-json-bool lsp-rust-analyzer-diagnostics-enable-experimental)
-                  :disabled ,lsp-rust-analyzer-diagnostics-disabled)
+                  :disabled ,lsp-rust-analyzer-diagnostics-disabled
+                  :warningsAsHint ,lsp-rust-analyzer-diagnostics-warnings-as-hint
+                  :warningsAsInfo ,lsp-rust-analyzer-diagnostics-warnings-as-info)
     :assist (:importMergeBehaviour ,lsp-rust-analyzer-import-merge-behaviour
-             :importPrefix ,lsp-rust-analyzer-import-prefix)
+             :importPrefix ,lsp-rust-analyzer-import-prefix
+             :importGranularity ,lsp-rust-analyzer-import-granularity
+             :importEnforceGranularity ,(lsp-json-bool lsp-rust-analyzer-import-enforce-granularity)
+             :importGroup ,(lsp-json-bool lsp-rust-analyzer-import-group))
     :lruCapacity ,lsp-rust-analyzer-lru-capacity
     :checkOnSave (:enable ,(lsp-json-bool lsp-rust-analyzer-cargo-watch-enable)
                   :command ,lsp-rust-analyzer-cargo-watch-command
@@ -522,13 +622,17 @@ them with `crate` or the crate name they refer to."
     :files (:exclude ,lsp-rust-analyzer-exclude-globs
             :watcher ,(lsp-json-bool (if lsp-rust-analyzer-use-client-watching
                                          "client"
-                                       "notify")))
+                                       "notify"))
+            :excludeDirs ,lsp-rust-analyzer-exclude-dirs)
     :cargo (:allFeatures ,(lsp-json-bool lsp-rust-all-features)
             :noDefaultFeatures ,(lsp-json-bool lsp-rust-no-default-features)
             :features ,lsp-rust-features
+            :target ,lsp-rust-analyzer-cargo-target
             :runBuildScripts ,(lsp-json-bool lsp-rust-analyzer-cargo-run-build-scripts)
             ; Obsolete, but used by old Rust-Analyzer versions
-            :loadOutDirsFromCheck ,(lsp-json-bool lsp-rust-analyzer-cargo-run-build-scripts))
+            :loadOutDirsFromCheck ,(lsp-json-bool lsp-rust-analyzer-cargo-run-build-scripts)
+            :autoreload ,(lsp-json-bool lsp-rust-analyzer-cargo-auto-reload)
+            :useRustcWrapperForBuildScripts ,(lsp-json-bool lsp-rust-analyzer-use-rustc-wrapper-for-build-scripts))
     :rustfmt (:extraArgs ,lsp-rust-analyzer-rustfmt-extra-args
               :overrideCommand ,lsp-rust-analyzer-rustfmt-override-command)
     :inlayHints (:typeHints ,(lsp-json-bool lsp-rust-analyzer-server-display-inlay-hints)
@@ -537,9 +641,13 @@ them with `crate` or the crate name they refer to."
                  :maxLength ,lsp-rust-analyzer-max-inlay-hint-length)
     :completion (:addCallParenthesis ,(lsp-json-bool lsp-rust-analyzer-completion-add-call-parenthesis)
                  :addCallArgumentSnippets ,(lsp-json-bool lsp-rust-analyzer-completion-add-call-argument-snippets)
-                 :postfix (:enable ,(lsp-json-bool lsp-rust-analyzer-completion-postfix-enable)))
+                 :postfix (:enable ,(lsp-json-bool lsp-rust-analyzer-completion-postfix-enable))
+                 :autoimport (:enable ,(lsp-json-bool lsp-rust-analyzer-completion-auto-import-enable))
+                 :autoself (:enable ,(lsp-json-bool lsp-rust-analyzer-completion-auto-self-enable)))
     :callInfo (:full ,(lsp-json-bool lsp-rust-analyzer-call-info-full))
-    :procMacro (:enable ,(lsp-json-bool lsp-rust-analyzer-proc-macro-enable))))
+    :procMacro (:enable ,(lsp-json-bool lsp-rust-analyzer-proc-macro-enable))
+    :rustcSource ,lsp-rust-analyzer-rustc-source
+    :highlighting (:strings ,(lsp-json-bool lsp-rust-analyzer-highlighting-strings))))
 
 (defconst lsp-rust-notification-handlers
   '(("rust-analyzer/publishDecorations" . (lambda (_w _p)))))
@@ -611,9 +719,9 @@ them with `crate` or the crate name they refer to."
 (defcustom lsp-rust-analyzer-download-url
   (format "https://github.com/rust-analyzer/rust-analyzer/releases/latest/download/%s"
           (pcase system-type
-            ('gnu/linux "rust-analyzer-linux")
-            ('darwin "rust-analyzer-mac")
-            ('windows-nt "rust-analyzer-windows.exe")))
+            ('gnu/linux "rust-analyzer-x86_64-unknown-linux-gnu.gz")
+            ('darwin "rust-analyzer-x86_64-apple-darwin.gz")
+            ('windows-nt "rust-analyzer-x86_64-pc-windows-msvc.gz")))
   "Automatic download url for Rust Analyzer"
   :type 'string
   :group 'lsp-rust
@@ -629,12 +737,18 @@ them with `crate` or the crate name they refer to."
   :group 'lsp-rust
   :package-version '(lsp-mode . "7.1"))
 
-(lsp-dependency
- 'rust-analyzer
- ;; `(:download :url lsp-rust-analyzer-download-url
- ;;             :store-path lsp-rust-analyzer-store-path
- ;;             :set-executable? t)
- '(:system "rust-analyzer"))
+;; Don’t download anything on linux but do download on Windows where it may not be available.
+(fold-platform-os-type
+ (lsp-dependency
+  'rust-analyzer
+  '(:system "rust-analyzer"))
+ (lsp-dependency
+  'rust-analyzer
+  `(:download :url lsp-rust-analyzer-download-url
+              :decompress :gzip
+              :store-path lsp-rust-analyzer-store-path
+              :set-executable? t)
+  '(:system "rust-analyzer")))
 
 (lsp-defun lsp-rust--analyzer-run-single ((&Command :arguments?))
   (lsp-rust-analyzer-run (lsp-seq-first arguments?)))
@@ -753,6 +867,19 @@ them with `crate` or the crate name they refer to."
   :group 'lsp-rust
   :package-version '(lsp-mode . "7.1"))
 
+(defcustom lsp-rust-analyzer-debug-lens-extra-dap-args
+  '(:MIMode "gdb" :miDebuggerPath "gdb" :stopAtEntry t :externalConsole :json-false)
+  "Extra arguments to pass to DAP template when debugging a test from code lens.
+
+As a rule of the thumb, do not add extra keys to this plist unless you exactly
+what you are doing, it might break the \"Debug test\" lens otherwise.
+
+See dap-mode documentation and cpptools documentation for the extra variables
+meaning."
+  :type 'plist
+  :group 'lsp-rust
+  :package-version '(lsp-mode . "7.1"))
+
 (defun lsp-rust-analyzer-update-inlay-hints (buffer)
   (if (and (lsp-rust-analyzer-initialized?)
            (eq buffer (current-buffer)))
@@ -771,23 +898,23 @@ them with `crate` or the crate name they refer to."
              (cond
               ((equal kind lsp/rust-analyzer-inlay-hint-kind-type-hint)
                (overlay-put overlay 'after-string
-                (format lsp-rust-analyzer-inlay-type-space-format
-                 (propertize (format lsp-rust-analyzer-inlay-type-format label)
-                  'font-lock-face 'lsp-rust-analyzer-inlay-type-face))))
+                            (format lsp-rust-analyzer-inlay-type-space-format
+                                    (propertize (format lsp-rust-analyzer-inlay-type-format label)
+                                                'font-lock-face 'lsp-rust-analyzer-inlay-type-face))))
 
               ((equal kind lsp/rust-analyzer-inlay-hint-kind-param-hint)
                (overlay-put overlay 'before-string
-                (format lsp-rust-analyzer-inlay-param-space-format
-                 (propertize (format lsp-rust-analyzer-inlay-param-format label)
-                  'font-lock-face 'lsp-rust-analyzer-inlay-param-face))))
+                            (format lsp-rust-analyzer-inlay-param-space-format
+                                    (propertize (format lsp-rust-analyzer-inlay-param-format label)
+                                                'font-lock-face 'lsp-rust-analyzer-inlay-param-face))))
 
               ((equal kind lsp/rust-analyzer-inlay-hint-kind-chaining-hint)
                (overlay-put overlay 'after-string
-                (format lsp-rust-analyzer-inlay-chain-space-format
-                 (propertize (format lsp-rust-analyzer-inlay-chain-format label)
-                  'font-lock-face 'lsp-rust-analyzer-inlay-chain-face))))))))
+                            (format lsp-rust-analyzer-inlay-chain-space-format
+                                    (propertize (format lsp-rust-analyzer-inlay-chain-format label)
+                                                'font-lock-face 'lsp-rust-analyzer-inlay-chain-face))))))))
        :mode 'tick))
- nil)
+  nil)
 
 (defun lsp-rust-analyzer-initialized? ()
   (when-let ((workspace (lsp-find-workspace 'rust-analyzer (buffer-file-name))))
@@ -917,6 +1044,7 @@ and run a compilation"
                :cwd workspace-root?
                :sourceLanguages ["rust"]
                :program)
+         (append lsp-rust-analyzer-debug-lens-extra-dap-args)
          (dap-debug))))
 
 (defun lsp-rust-analyzer-rerun (&optional runnable)
@@ -984,6 +1112,28 @@ https://github.com/rust-analyzer/rust-analyzer/blob/master/docs/dev/lsp-extensio
       (lsp-rust-analyzer--common-runner runnable)
     (lsp--info "There are no tests related to the symbol at point")))
 
+(defun lsp-rust-analyzer-move-item (direction)
+  "Move item under cursor or selection in some DIRECTION"
+  (let* ((params (lsp-make-rust-analyzer-move-item-params
+                  :text-document (lsp--text-document-identifier)
+                  :range (if (use-region-p)
+                             (lsp--region-to-range (region-beginning) (region-end))
+                           (lsp--region-to-range (point) (point)))
+                  :direction direction))
+         (edits (lsp-request "experimental/moveItem" params)))
+    (lsp--apply-text-edits edits 'code-action)))
+
+(defun lsp-rust-analyzer-move-item-up ()
+  "Move item under cursor or selection up"
+  (interactive)
+  (lsp-rust-analyzer-move-item "Up"))
+
+(defun lsp-rust-analyzer-move-item-down ()
+  "Move item under cursor or selection down"
+  (interactive)
+  (lsp-rust-analyzer-move-item "Down"))
+
+(lsp-consistency-check lsp-rust)
 
 (provide 'lsp-rust)
 ;;; lsp-rust.el ends here

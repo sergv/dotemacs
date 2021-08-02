@@ -167,13 +167,13 @@ As defined by the Language Server Protocol 3.16."
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-client-packages
-  '(ccls lsp-actionscript lsp-ada lsp-angular lsp-bash lsp-clangd lsp-clojure lsp-cmake
+  '(ccls lsp-actionscript lsp-ada lsp-angular lsp-bash lsp-beancount lsp-clangd lsp-clojure lsp-cmake
          lsp-crystal lsp-csharp lsp-css lsp-d lsp-dart lsp-dhall lsp-dockerfile lsp-elm
          lsp-elixir lsp-erlang lsp-eslint lsp-fortran lsp-fsharp lsp-gdscript lsp-go
          lsp-hack lsp-grammarly lsp-groovy lsp-haskell lsp-haxe lsp-java lsp-javascript lsp-json
-         lsp-kotlin lsp-lua lsp-markdown lsp-nim lsp-nix lsp-metals lsp-ocaml lsp-perl lsp-php lsp-pwsh
+         lsp-kotlin lsp-ltex lsp-lua lsp-markdown lsp-nim lsp-nix lsp-metals lsp-ocaml lsp-perl lsp-php lsp-pwsh
          lsp-pyls lsp-pylsp lsp-python-ms lsp-purescript lsp-r lsp-rf lsp-rust lsp-solargraph lsp-sorbet
-         lsp-tex lsp-terraform lsp-vala lsp-verilog lsp-vetur lsp-vhdl lsp-vimscript lsp-xml
+         lsp-tex lsp-terraform lsp-v lsp-vala lsp-verilog lsp-vetur lsp-vhdl lsp-vimscript lsp-xml
          lsp-yaml lsp-sqls lsp-svelte lsp-steep lsp-zig)
   "List of the clients to be automatically required."
   :group 'lsp-mode
@@ -317,6 +317,7 @@ the server has requested that."
     "[/\\\\]\\.ensime_cache\\'"
     "[/\\\\]\\.eunit\\'"
     "[/\\\\]node_modules"
+    "[/\\\\]\\.yarn\\'"
     "[/\\\\]\\.fslckout\\'"
     "[/\\\\]\\.tox\\'"
     "[/\\\\]dist\\'"
@@ -679,15 +680,18 @@ Changes take effect only when a new session is started."
                                         (".*\\.tsx$" . "typescriptreact")
                                         (".*\\.ts$" . "typescript")
                                         (".*\\.jsx$" . "javascriptreact")
+                                        (".*\\.js$" . "javascript")
                                         (".*\\.xml$" . "xml")
                                         (".*\\.hx$" . "haxe")
                                         (".*\\.lua$" . "lua")
                                         (".*\\.sql$" . "sql")
                                         (".*\\.html$" . "html")
+                                        (".*\\.css" . "css")
                                         (".*/settings.json$" . "jsonc")
                                         (".*\\.json$" . "json")
                                         (".*\\.jsonc$" . "jsonc")
                                         (".*\\.php$" . "php")
+                                        (".*\\.svelte$" . "svelte")
                                         (ada-mode . "ada")
                                         (nxml-mode . "xml")
                                         (sql-mode . "sql")
@@ -712,12 +716,12 @@ Changes take effect only when a new session is started."
                                         (less-css-mode . "less")
                                         (lua-mode . "lua")
                                         (sass-mode . "sass")
+                                        (ssass-mode . "sass")
                                         (scss-mode . "scss")
                                         (xml-mode . "xml")
                                         (c-mode . "c")
                                         (c++-mode . "cpp")
                                         (objc-mode . "objective-c")
-                                        (web-mode . "html")
                                         (html-mode . "html")
                                         (sgml-mode . "html")
                                         (mhtml-mode . "html")
@@ -754,6 +758,7 @@ Changes take effect only when a new session is started."
                                         (csharp-tree-sitter-mode . "csharp")
                                         (plain-tex-mode . "plaintex")
                                         (latex-mode . "latex")
+                                        (v-mode . "v")
                                         (vhdl-mode . "vhdl")
                                         (verilog-mode . "verilog")
                                         (terraform-mode . "terraform")
@@ -776,7 +781,8 @@ Changes take effect only when a new session is started."
                                         (d-mode . "d")
                                         (zig-mode . "zig")
                                         (text-mode . "plaintext")
-                                        (markdown-mode . "markdown"))
+                                        (markdown-mode . "markdown")
+                                        (beancount-mode . "beancount"))
   "Language id configuration.")
 
 (defvar lsp--last-active-workspaces nil
@@ -828,8 +834,12 @@ directory")
     ("textDocument/semanticTokensFull"
      :check-command (lambda (workspace)
                       (with-lsp-workspace workspace
-                        (lsp-get (lsp--capability :semanticTokensProvider)
-                                 :full))))
+                        (lsp-get (lsp--capability :semanticTokensProvider) :full))))
+    ("textDocument/semanticTokensFull/Delta"
+     :check-command (lambda (workspace)
+                      (with-lsp-workspace workspace
+                        (let ((capFull (lsp-get (lsp--capability :semanticTokensProvider) :full)))
+                          (and (not (booleanp capFull)) (lsp-get capFull :delta))))))
     ("textDocument/semanticTokensRangeProvider"
      :check-command (lambda (workspace)
                       (with-lsp-workspace workspace
@@ -1672,10 +1682,15 @@ This set of allowed chars is enough for hexifying local file paths.")
            (seq-do (lambda (f)
                      (unless (file-directory-p f)
                        (funcall callback (list nil 'created f)))))))
-     ((and (not (file-directory-p file-name))
-           (not (lsp--string-match-any ignored-files file-name))
-           (memq event-type '(created deleted changed)))
-      (funcall callback event)))))
+     ((and (memq event-type '(created deleted changed))
+           (not (file-directory-p file-name))
+           (not (lsp--string-match-any ignored-files file-name)))
+      (funcall callback event))
+     ((and (memq event-type '(renamed))
+           (not (file-directory-p file-name))
+           (not (lsp--string-match-any ignored-files file-name)))
+      (funcall callback `(,(cl-first event) deleted ,(cl-third event)))
+      (funcall callback `(,(cl-first event) created ,(cl-fourth event)))))))
 
 (defun lsp--ask-about-watching-big-repo (number-of-directories dir)
   "Ask the user if they want to watch NUMBER-OF-DIRECTORIES from a repository DIR.
@@ -1783,6 +1798,75 @@ regex in IGNORED-FILES."
            (indent 1))
   `(let ((lsp--buffer-workspaces ,workspaces)) ,@body))
 
+
+
+(defconst lsp-downstream-deps
+  '(;; external packages
+    ccls consult-lsp dap-mode helm-lsp lsp-dart lsp-docker lsp-focus lsp-grammarly
+    lsp-haskell lsp-ivy lsp-java lsp-javacomp lsp-jedi lsp-julia lsp-latex lsp-ltex
+    lsp-metals lsp-mssql lsp-origami lsp-p4 lsp-pascal lsp-pyre lsp-pyright
+    lsp-python-ms lsp-rescript lsp-sonarlint lsp-sourcekit lsp-tailwindcss lsp-treemacs
+    lsp-ui swift-helpful
+    ;; clients
+    lsp-actionscript lsp-ada lsp-angular lsp-bash lsp-beancount lsp-clangd
+    lsp-clojure lsp-cmake lsp-crystal lsp-csharp lsp-css lsp-d lsp-dhall
+    lsp-dockerfile lsp-elixir lsp-elm lsp-erlang lsp-eslint lsp-fortran lsp-fsharp lsp-gdscript
+    lsp-go lsp-groovy lsp-hack lsp-haxe lsp-html lsp-javascript lsp-json lsp-kotlin lsp-lua
+    lsp-markdown lsp-nim lsp-nix lsp-ocaml lsp-perl lsp-php lsp-prolog lsp-purescript lsp-pwsh
+    lsp-pyls lsp-pylsp lsp-racket lsp-r lsp-rf lsp-rust lsp-solargraph lsp-sorbet lsp-sqls
+    lsp-steep lsp-svelte lsp-terraform lsp-tex lsp-v lsp-vala lsp-verilog lsp-vetur lsp-vhdl
+    lsp-vimscript lsp-xml lsp-yaml lsp-zig)
+  "List of downstream deps.")
+
+(defmacro lsp-consistency-check (package)
+  `(defconst ,(intern (concat (symbol-name package)
+                              "-plist-value-when-compiled"))
+     (eval-when-compile lsp-use-plists)))
+
+;; (mapc
+;;  (lambda (package)
+;;    (with-eval-after-load package
+;;      (let ((symbol-name (intern
+;;                          (concat (symbol-name package)
+;;                                  "-plist-value-when-compiled"))))
+;;        (cond
+;;         ((not (boundp symbol-name))
+;;          (warn "We have detected that you are using version of %s that is not compatible with current version of lsp-mode.el, please update it." (propertize (symbol-name package)
+;;                                                                                                                                                              'face 'bold)))
+;;         ((not (eq (symbol-value symbol-name) lsp-use-plists))
+;;          (warn "Package %s is inconsistent with lsp-mode.el. This is indication of race during installation. In order to solve that please delete all packages related to lsp-mode, restar Emacs and install them again." (propertize (symbol-name package) 'face 'bold)))))))
+;;  lsp-downstream-deps)
+
+
+;; loading code-workspace files
+
+;;;###autoload
+(defun lsp-load-vscode-workspace (file)
+  "Load vscode workspace from FILE"
+  (interactive "fSelect file to import: ")
+  (mapc #'lsp-workspace-folders-remove (lsp-session-folders (lsp-session)))
+
+  (let ((dir (f-dirname file)))
+    (->> file
+         (json-read-file)
+         (alist-get 'folders)
+         (-map (-lambda ((&alist 'path))
+                 (lsp-workspace-folders-add (expand-file-name path dir)))))))
+
+;;;###autoload
+(defun lsp-save-vscode-workspace (file)
+  "Save vscode workspace to FILE"
+  (interactive "FSelect file to save to: ")
+
+  (let ((json-encoding-pretty-print t))
+    (f-write-text (json-encode
+                   `((folders . ,(->> (lsp-session)
+                                      (lsp-session-folders)
+                                      (--map `((path . ,it)))))))
+                  'utf-8
+                  file)))
+
+
 (defmacro lsp-foreach-workspace (&rest body)
   "Execute BODY for each of the current workspaces."
   (declare (debug (form body)))
@@ -2265,11 +2349,12 @@ BINDINGS is a list of (key def desc cond)."
 
 (defvar lsp--describe-buffer nil)
 
-(defun lsp-describe-buffer-bindings-advice (buffer &optional _prefix _menus)
-  (setq lsp--describe-buffer buffer))
+(defun lsp-describe-buffer-bindings-advice (fn buffer &optional prefix menus)
+  (let ((lsp--describe-buffer buffer))
+    (funcall fn buffer prefix menus)))
 
 (advice-add 'describe-buffer-bindings
-            :before
+            :around
             #'lsp-describe-buffer-bindings-advice)
 
 (defun lsp--prepend-prefix (mappings)
@@ -3260,7 +3345,15 @@ disappearing, unset all the variables related to it."
                    (executeCommand . ((dynamicRegistration . :json-false)))
                    ,@(when lsp-enable-file-watchers '((didChangeWatchedFiles . ((dynamicRegistration . t)))))
                    (workspaceFolders . t)
-                   (configuration . t)))
+                   (configuration . t)
+                   ,@(when lsp-semantic-tokens-enable '((semanticTokens . ((refreshSupport . t)))))
+                   ,@(when lsp-lens-enable '((codeLens . ((refreshSupport . :json-false)))))
+                   (fileOperations . ((didCreate . :json-false)
+                                      (willCreate . :json-false)
+                                      (didRename . :json-false)
+                                      (willRename . :json-false)
+                                      (didDelete . :json-false)
+                                      (willDelete . :json-false)))))
      (textDocument . ((declaration . ((linkSupport . t)))
                       (definition . ((linkSupport . t)))
                       (implementation . ((linkSupport . t)))
@@ -3302,7 +3395,8 @@ disappearing, unset all the variables related to it."
                                                          . ((properties . ["documentation"
                                                                            "details"
                                                                            "additionalTextEdits"
-                                                                           "command"])))))
+                                                                           "command"])))
+                                                        (insertTextModeSupport . ((valueSet . [1 2])))))
                                      (contextSupport . t)))
                       (signatureHelp . ((signatureInformation . ((parameterInformation . ((labelOffsetSupport . t)))))))
                       (documentLink . ((dynamicRegistration . t)
@@ -3317,8 +3411,12 @@ disappearing, unset all the variables related to it."
                       (callHierarchy . ((dynamicRegistration . :json-false)))
                       (publishDiagnostics . ((relatedInformation . t)
                                              (tagSupport . ((valueSet . [1 2])))
-                                             (versionSupport . t)))))
-     (window . ((workDoneProgress . t))))
+                                             (versionSupport . t)))
+                      (moniker . nil)
+                      (linkedEditingRange . nil)))
+     (window . ((workDoneProgress . t)
+                (showMessage . nil)
+                (showDocument . nil))))
    custom-capabilities))
 
 (defun lsp-find-roots-for-workspace (workspace session)
@@ -3416,7 +3514,7 @@ disappearing, unset all the variables related to it."
   ;; The intent of this function is to provide per-root workspace-level customization of the
   ;; lsp-file-watch-ignored-directories and lsp-file-watch-ignored-files variables.
   (lsp--with-workspace-temp-buffer workspace-root
-    (list lsp-file-watch-ignored-files lsp-file-watch-ignored-directories)))
+    (list lsp-file-watch-ignored-files (lsp-file-watch-ignored-directories))))
 
 
 (defun lsp--cleanup-hanging-watches ()
@@ -4009,29 +4107,48 @@ The method uses `replace-buffer-contents'."
   "Enable relative indentation when insert texts, snippets ...
 from language server.")
 
-(defun lsp--expand-snippet (snippet &optional start end expand-env keep-whitespace)
+(defun lsp--expand-snippet (snippet &optional start end expand-env)
   "Wrapper of `yas-expand-snippet' with all of it arguments.
 The snippet will be convert to LSP style and indent according to
 LSP server result."
   (let* ((inhibit-field-text-motion t)
-         (offset (save-excursion
-                   (goto-char start)
-                   (back-to-indentation)
-                   (buffer-substring-no-properties
-                    (line-beginning-position)
-                    (point))))
          (yas-wrap-around-region nil)
-         (yas-indent-line (unless keep-whitespace 'auto))
-         (yas-also-auto-indent-first-line nil)
-         (indent-line-function (if (or lsp-enable-relative-indentation
-                                       (derived-mode-p 'org-mode))
-                                   (lambda () (save-excursion
-                                                (forward-line 0)
-                                                (insert offset)))
-                                 indent-line-function)))
+         (yas-indent-line 'none)
+         (yas-also-auto-indent-first-line nil))
     (yas-expand-snippet
      (lsp--to-yasnippet-snippet snippet)
      start end expand-env)))
+
+(defun lsp--indent-lines (start end &optional insert-text-mode?)
+  "Indent from START to END based on INSERT-TEXT-MODE? value.
+- When INSERT-TEXT-MODE? is provided
+  - if it's `lsp/insert-text-mode-as-it', do no editor indentation.
+  - if it's `lsp/insert-text-mode-adjust-indentation', adjust leading
+    whitespaces to match the line where text is inserted.
+- When it's not provided, using `indent-line-function' for each line."
+  (save-excursion
+    (goto-char end)
+    (let* ((end-line (line-number-at-pos))
+           (offset (save-excursion
+                     (goto-char start)
+                     (current-indentation)))
+           (indent-line-function
+            (cond ((equal insert-text-mode? lsp/insert-text-mode-as-it)
+                   #'ignore)
+                  ((or (equal insert-text-mode? lsp/insert-text-mode-adjust-indentation)
+                       lsp-enable-relative-indentation
+                       ;; Indenting snippets is extremely slow in `org-mode' buffers
+                       ;; since it has to calculate indentation based on SRC block
+                       ;; position.  Thus we use relative indentation as default.
+                       (derived-mode-p 'org-mode))
+                   (lambda () (save-excursion
+                                (beginning-of-line)
+                                (indent-to-column offset))))
+                  (t indent-line-function))))
+      (goto-char start)
+      (while (and (equal (forward-line 1) 0)
+                  (<= (line-number-at-pos) end-line))
+        (funcall indent-line-function)))))
 
 (defun lsp--apply-text-edits (edits &optional operation)
   "Apply the EDITS described in the TextEdit[] object.
@@ -4059,7 +4176,10 @@ OPERATION is symbol representing the source of this text edit."
                            (-when-let ((&SnippetTextEdit :range (&RangeToPoint :start)
                                                          :insert-text-format? :new-text) edit)
                              (when (eq insert-text-format? lsp/insert-text-format-snippet)
-                               (lsp--expand-snippet new-text start (+ start (length new-text))))))
+                               ;; No `save-excursion' needed since expand snippet will change point anyway
+                               (goto-char (+ start (length new-text)))
+                               (lsp--indent-lines start (point))
+                               (lsp--expand-snippet new-text start (point)))))
                          (run-hook-with-args 'lsp-after-apply-edits-hook operation))))
           (undo-amalgamate-change-group change-group)
           (progress-reporter-done reporter))))))
@@ -4411,7 +4531,12 @@ Applies on type formatting."
   (let* ((parsed-url (url-generic-parse-url (url-unhex-string url)))
          (type (url-type parsed-url)))
     (pcase type
-      ("file" (find-file (lsp--uri-to-path url)))
+      ("file"
+       (find-file (lsp--uri-to-path url))
+       (-when-let ((_ line column) (s-match (rx "#" (group (1+ num)) "," (group (1+ num))) url))
+         (goto-char (lsp--position-to-point
+                     (lsp-make-position :character (1- (string-to-number column))
+                                        :line (1- (string-to-number line)))))))
       ((or "http" "https") (browse-url url))
       (type (if-let ((handler (lsp--get-uri-handler type)))
                 (funcall handler url)
@@ -4845,7 +4970,11 @@ In addition, each can have property:
           (insert str)
           (delay-mode-hooks (funcall mode))
           (cl-flet ((window-body-width () lsp-window-body-width))
-            (font-lock-ensure)
+            ;; This can go wrong in some cases, and the fontification would
+            ;; not work as expected.
+            ;;
+            ;; See #2984
+            (ignore-errors (font-lock-ensure))
             (lsp--display-inline-image mode))
           (lsp--buffer-string-visible))
       (error str))))
@@ -4958,10 +5087,12 @@ RENDER-ALL - nil if only the signature should be rendered."
     (define-key (kbd "M-n") #'lsp-signature-next)
     (define-key (kbd "M-p") #'lsp-signature-previous)
     (define-key (kbd "M-a") #'lsp-signature-toggle-full-docs)
-    (define-key (kbd "C-c C-k") #'lsp-signature-stop))
-  "Keymap for `lsp-signature-mode-map'")
+    (define-key (kbd "C-c C-k") #'lsp-signature-stop)
+    (define-key (kbd "C-g") #'lsp-signature-stop))
+  "Keymap for `lsp-signature-mode-map'.")
 
-(define-minor-mode lsp-signature-mode ""
+(define-minor-mode lsp-signature-mode
+  "Mode used to show signature popup."
   :keymap lsp-signature-mode-map
   :lighter ""
   :group 'lsp-mode)
@@ -5322,40 +5453,43 @@ Request codeAction/resolve for more info if server supports."
 
 (defvar lsp--formatting-indent-alist
   ;; Taken from `dtrt-indent-mode'
-  '((c-mode             . c-basic-offset)            ; C
-    (c++-mode           . c-basic-offset)            ; C++
-    (d-mode             . c-basic-offset)            ; D
-    (java-mode          . c-basic-offset)            ; Java
-    (jde-mode           . c-basic-offset)            ; Java (JDE)
-    (js-mode            . js-indent-level)           ; JavaScript
-    (js2-mode           . js2-basic-offset)          ; JavaScript-IDE
-    (js3-mode           . js3-indent-level)          ; JavaScript-IDE
-    (json-mode          . js-indent-level)           ; JSON
-    (lua-mode           . lua-indent-level)          ; Lua
-    (objc-mode          . c-basic-offset)            ; Objective C
-    (php-mode           . c-basic-offset)            ; PHP
-    (perl-mode          . perl-indent-level)         ; Perl
-    (cperl-mode         . cperl-indent-level)        ; Perl
-    (raku-mode          . raku-indent-offset)        ; Perl6/Raku
-    (erlang-mode        . erlang-indent-level)       ; Erlang
-    (ada-mode           . ada-indent)                ; Ada
-    (sgml-mode          . sgml-basic-offset)         ; SGML
-    (nxml-mode          . nxml-child-indent)         ; XML
-    (pascal-mode        . pascal-indent-level)       ; Pascal
-    (typescript-mode    . typescript-indent-level)   ; Typescript
-    (sh-mode            . sh-basic-offset)           ; Shell Script
-    (ruby-mode          . ruby-indent-level)         ; Ruby
-    (enh-ruby-mode      . enh-ruby-indent-level)     ; Ruby
-    (crystal-mode       . crystal-indent-level)      ; Crystal (Ruby)
-    (css-mode           . css-indent-offset)         ; CSS
-    (rust-mode          . rust-indent-offset)        ; Rust
-    (rustic-mode        . rustic-indent-offset)      ; Rust
-    (scala-mode         . scala-indent:step)         ; Scala
-    (powershell-mode    . powershell-indent)         ; PowerShell
-    (ess-mode           . ess-indent-offset)         ; ESS (R)
-    (yaml-mode          . yaml-indent-offset)        ; YAML
+  '((c-mode                     . c-basic-offset)                   ; C
+    (c++-mode                   . c-basic-offset)                   ; C++
+    (csharp-mode                . c-basic-offset)                   ; C#
+    (csharp-tree-sitter-mode    . csharp-tree-sitter-indent-offset) ; C#
+    (d-mode                     . c-basic-offset)                   ; D
+    (java-mode                  . c-basic-offset)                   ; Java
+    (jde-mode                   . c-basic-offset)                   ; Java (JDE)
+    (js-mode                    . js-indent-level)                  ; JavaScript
+    (js2-mode                   . js2-basic-offset)                 ; JavaScript-IDE
+    (js3-mode                   . js3-indent-level)                 ; JavaScript-IDE
+    (json-mode                  . js-indent-level)                  ; JSON
+    (lua-mode                   . lua-indent-level)                 ; Lua
+    (objc-mode                  . c-basic-offset)                   ; Objective C
+    (php-mode                   . c-basic-offset)                   ; PHP
+    (perl-mode                  . perl-indent-level)                ; Perl
+    (cperl-mode                 . cperl-indent-level)               ; Perl
+    (raku-mode                  . raku-indent-offset)               ; Perl6/Raku
+    (erlang-mode                . erlang-indent-level)              ; Erlang
+    (ada-mode                   . ada-indent)                       ; Ada
+    (sgml-mode                  . sgml-basic-offset)                ; SGML
+    (nxml-mode                  . nxml-child-indent)                ; XML
+    (pascal-mode                . pascal-indent-level)              ; Pascal
+    (typescript-mode            . typescript-indent-level)          ; Typescript
+    (sh-mode                    . sh-basic-offset)                  ; Shell Script
+    (ruby-mode                  . ruby-indent-level)                ; Ruby
+    (enh-ruby-mode              . enh-ruby-indent-level)            ; Ruby
+    (crystal-mode               . crystal-indent-level)             ; Crystal (Ruby)
+    (css-mode                   . css-indent-offset)                ; CSS
+    (rust-mode                  . rust-indent-offset)               ; Rust
+    (rustic-mode                . rustic-indent-offset)             ; Rust
+    (scala-mode                 . scala-indent:step)                ; Scala
+    (powershell-mode            . powershell-indent)                ; PowerShell
+    (ess-mode                   . ess-indent-offset)                ; ESS (R)
+    (yaml-mode                  . yaml-indent-offset)               ; YAML
+    (hack-mode                  . hack-indent-offset)               ; Hack
 
-    (default            . standard-indent))          ; default fallback
+    (default                    . standard-indent))                 ; default fallback
   "A mapping from `major-mode' to its indent variable.")
 
 (defun lsp--get-indent-width (mode)
@@ -5796,7 +5930,7 @@ REFERENCES? t when METHOD returns references."
   (evil-set-command-property 'lsp-find-type-definition :jump t))
 
 (defun lsp--find-workspaces-for (msg-or-method)
-  "Find all workspaces in the current that can handle MSG."
+  "Find all workspaces in the current project that can handle MSG."
   (let ((method (if (stringp msg-or-method)
                     msg-or-method
                   (plist-get msg-or-method :method))))
@@ -5917,7 +6051,6 @@ textDocument/didOpen for the new file."
 (defconst lsp--default-notification-handlers
   (ht ("window/showMessage" #'lsp--window-show-message)
       ("window/logMessage" #'lsp--window-log-message)
-      ("workspace/semanticTokens/refresh" #'ignore)
       ("textDocument/publishDiagnostics" #'lsp--on-diagnostics)
       ("textDocument/diagnosticsEnd" #'ignore)
       ("textDocument/diagnosticsBegin" #'ignore)
@@ -5934,7 +6067,7 @@ textDocument/didOpen for the new file."
     (if-let ((handler (or (gethash method (lsp--client-notification-handlers client))
                           (gethash method lsp--default-notification-handlers))))
         (funcall handler workspace params)
-      (unless (string-prefix-p "$" method)
+      (when (and method (not (string-prefix-p "$" method)))
         (lsp-warn "Unknown notification: %s" method)))))
 
 (lsp-defun lsp--build-workspace-configuration-response ((&ConfigurationParams :items))
@@ -6041,6 +6174,11 @@ WORKSPACE is the active workspace."
                      ((equal method "window/workDoneProgress/create")
                       nil ;; no specific reply, no processing required
                       )
+                     ((equal method "workspace/semanticTokens/refresh")
+                      (when (and lsp-semantic-tokens-enable
+                                 (fboundp 'lsp--semantic-tokens-on-refresh))
+                        (lsp--semantic-tokens-on-refresh workspace))
+                      nil)
                      (t (lsp-warn "Unknown request method: %s" method) nil))))
     ;; Send response to the server.
     (unless (eq response 'delay-response)
@@ -6166,59 +6304,62 @@ deserialization.")
       (setf chunk (if (s-blank? leftovers)
                       input
                     (concat leftovers input)))
-      (while (not (s-blank? chunk))
-        (if (not body-length)
-            ;; Read headers
-            (if-let ((body-sep-pos (string-match-p "\r\n\r\n" chunk)))
-                ;; We've got all the headers, handle them all at once:
-                (setf body-length (lsp--get-body-length
-                                   (mapcar #'lsp--parse-header
-                                           (split-string
-                                            (substring-no-properties chunk
-                                                       (or (string-match-p "Content-Length" chunk)
-                                                           (error "Unable to find Content-Length header."))
-                                                       body-sep-pos)
-                                            "\r\n")))
-                      body-received 0
-                      leftovers nil
-                      chunk (substring-no-properties chunk (+ body-sep-pos 4)))
 
-              ;; Haven't found the end of the headers yet. Save everything
-              ;; for when the next chunk arrives and await further input.
-              (setf leftovers chunk
-                    chunk nil))
-          (let* ((chunk-length (string-bytes chunk))
-                 (left-to-receive (- body-length body-received))
-                 (this-body (if (< left-to-receive chunk-length)
-                                (prog1 (substring-no-properties chunk 0 left-to-receive)
-                                  (setf chunk (substring-no-properties chunk left-to-receive)))
-                              (prog1 chunk
-                                (setf chunk nil))))
-                 (body-bytes (string-bytes this-body)))
-            (push this-body body)
-            (setf body-received (+ body-received body-bytes))
-            (when (>= chunk-length left-to-receive)
-              (lsp--parser-on-message
-               (condition-case err
-                   (with-temp-buffer
-                     (apply #'insert
-                            (nreverse
-                             (prog1 body
-                               (setf leftovers nil
-                                     body-length nil
-                                     body-received nil
-                                     body nil))))
-                     (decode-coding-region (point-min)
-                                           (point-max)
-                                           'utf-8)
-                     (goto-char (point-min))
-                     (lsp-json-read-buffer))
+      (let (messages)
+        (while (not (s-blank? chunk))
+          (if (not body-length)
+              ;; Read headers
+              (if-let ((body-sep-pos (string-match-p "\r\n\r\n" chunk)))
+                  ;; We've got all the headers, handle them all at once:
+                  (setf body-length (lsp--get-body-length
+                                     (mapcar #'lsp--parse-header
+                                             (split-string
+                                              (substring-no-properties chunk
+                                                                       (or (string-match-p "Content-Length" chunk)
+                                                                           (error "Unable to find Content-Length header."))
+                                                                       body-sep-pos)
+                                              "\r\n")))
+                        body-received 0
+                        leftovers nil
+                        chunk (substring-no-properties chunk (+ body-sep-pos 4)))
 
-                 (error
-                  (lsp-warn "Failed to parse the following chunk:\n'''\n%s\n'''\nwith message %s"
-                            (concat leftovers input)
-                            err)))
-               workspace))))))))
+                ;; Haven't found the end of the headers yet. Save everything
+                ;; for when the next chunk arrives and await further input.
+                (setf leftovers chunk
+                      chunk nil))
+            (let* ((chunk-length (string-bytes chunk))
+                   (left-to-receive (- body-length body-received))
+                   (this-body (if (< left-to-receive chunk-length)
+                                  (prog1 (substring-no-properties chunk 0 left-to-receive)
+                                    (setf chunk (substring-no-properties chunk left-to-receive)))
+                                (prog1 chunk
+                                  (setf chunk nil))))
+                   (body-bytes (string-bytes this-body)))
+              (push this-body body)
+              (setf body-received (+ body-received body-bytes))
+              (when (>= chunk-length left-to-receive)
+                (condition-case err
+                    (with-temp-buffer
+                      (apply #'insert
+                             (nreverse
+                              (prog1 body
+                                (setf leftovers nil
+                                      body-length nil
+                                      body-received nil
+                                      body nil))))
+                      (decode-coding-region (point-min)
+                                            (point-max)
+                                            'utf-8)
+                      (goto-char (point-min))
+                      (push (lsp-json-read-buffer) messages))
+
+                  (error
+                   (lsp-warn "Failed to parse the following chunk:\n'''\n%s\n'''\nwith message %s"
+                             (concat leftovers input)
+                             err)))))))
+        (mapc (lambda (msg)
+                (lsp--parser-on-message msg workspace))
+              (nreverse messages))))))
 
 (defvar-local lsp--line-col-to-point-hash-table nil
   "Hash table with keys (line . col) and values that are either point positions
@@ -7153,6 +7294,10 @@ are still shown."
                 'mouse-face 'highlight)))
 
 (defun lsp--install-server-internal (client &optional update?)
+  (unless (lsp--client-download-server-fn client)
+    (user-error "There is no automatic installation for `%s', you have to install it manually following lsp-mode's documentation."
+                (lsp--client-server-id client)))
+
   (setf (lsp--client-download-in-progress? client) t)
   (add-to-list 'global-mode-string '(t (:eval (lsp--download-status))))
   (cl-flet ((done
@@ -7205,6 +7350,7 @@ Check `*lsp-install*' and `*lsp-log*' buffer."
             lsp-client-packages)
     (setq lsp--client-packages-required t)))
 
+;;;###autoload
 (defun lsp-install-server (update? &optional server-id)
   "Interactively install server.
 When prefix UPDATE? is t force installation even if the server is present."
@@ -7226,6 +7372,16 @@ When prefix UPDATE? is t force installation even if the server is present."
         nil
         t))
    update?))
+
+;;;###autoload
+(defun lsp-ensure-server (server-id)
+  "Ensure server SERVER-ID"
+  (lsp--require-packages)
+  (if-let ((client (gethash server-id lsp-clients)))
+      (unless (lsp--server-binary-present? client)
+        (lsp--info "Server `%s' is not preset, installing..." server-id)
+        (lsp-install-server nil server-id))
+    (warn "Unable to find server registration with id %s" server-id)))
 
 (defun lsp-async-start-process (callback error-callback &rest command)
   "Start async process COMMAND with CALLBACK and ERROR-CALLBACK."
@@ -7353,6 +7509,8 @@ nil."
            (progn
              (when (f-exists? download-path)
                (f-delete download-path))
+             (when (f-exists? store-path)
+               (f-delete store-path))
              (lsp--info "Starting to download %s to %s..." url download-path)
              (mkdir (f-parent download-path) t)
              (url-copy-file url download-path)
@@ -7391,12 +7549,15 @@ nil."
              (funcall callback))
          (error (funcall error-callback err)))))))
 
-(cl-defun lsp-download-path (&key store-path set-executable? &allow-other-keys)
+(cl-defun lsp-download-path (&key store-path binary-path set-executable? &allow-other-keys)
   "Download URL and store it into STORE-PATH.
 
 SET-EXECUTABLE? when non-nil change the executable flags of
-STORE-PATH to make it executable."
-  (let ((store-path (lsp-resolve-value store-path)))
+STORE-PATH to make it executable. BINARY-PATH can be specified
+when the binary to start does not match the name of the
+archieve(e. g. when the archieve has multiple files)"
+  (let ((store-path (or (lsp-resolve-value binary-path)
+                        (lsp-resolve-value store-path))))
     (cond
      ((executable-find store-path) store-path)
      ((and set-executable? (f-exists? store-path))
@@ -7614,7 +7775,7 @@ TBL - a hash table, PATHS is the path to the nested VALUE."
   "Get settings for SECTION."
   (let ((ret (ht-create)))
     (mapc (-lambda ((path variable boolean?))
-            (when (s-matches? (concat section "\\..*") path)
+            (when (s-matches? (concat (regexp-quote section) "\\..*") path)
               (let* ((symbol-value (-> variable
                                        lsp-resolve-value
                                        lsp-resolve-value))
@@ -7812,8 +7973,7 @@ IGNORE-MULTI-FOLDER to ignore multi folder server."
            (lsp--find-workspace session client project-root)
            (unless ignore-multi-folder
              (lsp--find-multiroot-workspace session client project-root))
-           (lsp--start-connection session client project-root))
-          (lsp--find-workspace session client project-root))
+           (lsp--start-connection session client project-root)))
         clients))
 
 (defun lsp--spinner-stop ()
@@ -7948,7 +8108,6 @@ Returns nil if the project should not be added to the current SESSION."
 (defun lsp--try-open-in-library-workspace ()
   "Try opening current file as library file in any of the active workspace.
 The library folders are defined by each client for each of the active workspace."
-
   (when-let ((workspace (->> (lsp-session)
                              (lsp--session-workspaces)
                              ;; Sort the last active workspaces first as they are more likely to be
@@ -7956,8 +8115,7 @@ The library folders are defined by each client for each of the active workspace.
                              (-sort (lambda (a _b)
                                       (-contains? lsp--last-active-workspaces a)))
                              (--first
-                              (and (-contains? (-> it lsp--workspace-client lsp--client-major-modes)
-                                               major-mode)
+                              (and (-> it lsp--workspace-client lsp--matching-clients?)
                                    (when-let ((library-folders-fn
                                                (-> it lsp--workspace-client lsp--client-library-folders-fn)))
                                      (-first (lambda (library-folder)
@@ -8330,6 +8488,8 @@ This avoids overloading the server with many files when starting Emacs."
 (declare-function flycheck-checker-supports-major-mode-p "ext:flycheck")
 (declare-function flycheck-add-mode "ext:flycheck")
 (declare-function lsp-diagnostics-lsp-checker-if-needed "lsp-diagnostics")
+
+(defalias 'lsp-client-download-server-fn 'lsp--client-download-server-fn)
 
 (defun lsp-flycheck-add-mode (mode)
   "Register flycheck support for MODE."

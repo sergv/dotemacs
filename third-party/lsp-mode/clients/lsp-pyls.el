@@ -368,7 +368,7 @@ precedence over parameters referenced in config."
   :package-version '(lsp-mode . "6.3"))
 
 (defcustom lsp-pyls-plugins-jedi-environment nil
-  "Specify the environment that jedi runs on where <environmeent>/bin/python
+  "Specify the environment that jedi runs on where <environment>/bin/python
 should be the python executable. This option will be prioritized over
 `lsp-pyls-plugins-jedi-use-pyenv-environment'."
   :type 'string
@@ -497,6 +497,8 @@ So it will rename only references it can find."
                                                     "you can install it with pip via: pip install python-lsp-server")))
                                     (with-lsp-workspace workspace
                                       (lsp--set-configuration (lsp-configuration-section "pyls"))))))
+
+(lsp-consistency-check lsp-pyls)
 
 (provide 'lsp-pyls)
 ;;; lsp-pyls.el ends here
