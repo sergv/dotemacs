@@ -370,10 +370,10 @@ The MARKERS and PREFIX value will be attached to each candidate."
 
 (defun lsp-completion--get-context (trigger-characters)
   "Get completion context with provided TRIGGER-CHARACTERS."
-  (let* ((triggered-by-char (equal last-command 'self-insert-command))
+  (let* ((triggered-by-char non-essential)
          (trigger-char (when triggered-by-char
-                           (lsp-completion--looking-back-trigger-characterp
-                            trigger-characters)))
+                         (lsp-completion--looking-back-trigger-characterp
+                          trigger-characters)))
          (trigger-kind (cond
                         (trigger-char
                          lsp/completion-trigger-kind-trigger-character)
@@ -530,8 +530,7 @@ Others: CANDIDATES"
                        'lsp-completion-prefix prefix)
                (text-properties-at 0 candidate))
               ((&CompletionItem? :label :insert-text? :text-edit? :insert-text-format?
-                                 :additional-text-edits? :keep-whitespace?
-                                 :command?)
+                                 :additional-text-edits? :insert-text-mode? :command?)
                item))
         (cond
          (text-edit?
@@ -553,12 +552,11 @@ Others: CANDIDATES"
           (delete-region start-point (point))
           (insert (or (unless (lsp-falsy? insert-text?) insert-text?) label))))
 
+        (lsp--indent-lines start-point (point) insert-text-mode?)
         (when (equal insert-text-format? lsp/insert-text-format-snippet)
           (lsp--expand-snippet (buffer-substring start-point (point))
                                start-point
-                               (point)
-                               nil
-                               keep-whitespace?))
+                               (point)))
 
         (when lsp-completion-enable-additional-text-edit
           (if (or (get-text-property 0 'lsp-completion-resolved candidate)
@@ -774,6 +772,8 @@ The CLEANUP-FN will be called to cleanup."
                                 (when (and lsp-auto-configure
                                            lsp-completion-enable)
                                   (lsp-completion--enable))))
+
+(lsp-consistency-check lsp-completion)
 
 (provide 'lsp-completion)
 ;;; lsp-completion.el ends here

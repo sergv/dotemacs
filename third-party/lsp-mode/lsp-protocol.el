@@ -355,7 +355,11 @@ See `-let' for a description of the destructuring mechanism."
                (WorkDoneProgressOptions nil (:workDoneProgress))
                (SemanticTokensOptions (:legend) (:rangeProvider :documentProvider))
                (SemanticTokensLegend (:tokenTypes :tokenModifiers))
-               (SematicTokensPartialResult (:data) nil))
+               (SemanticTokensResult (:resultId) (:data))
+               (SemanticTokensPartialResult nil (:data))
+               (SemanticTokensEdit (:start :deleteCount) (:data))
+               (SemanticTokensDelta (:resultId) (:edits))
+               (SemanticTokensDeltaPartialResult nil (:edits)))
 
 (lsp-interface (v1:ProgressParams (:id :title) (:message :percentage :done)))
 
@@ -401,6 +405,7 @@ See `-let' for a description of the destructuring mechanism."
                (rust-analyzer:OpenCargoTomlParams (:textDocument) nil)
                (rust-analyzer:ResovedCodeActionParams (:id :codeActionParams) nil)
                (rust-analyzer:JoinLinesParams (:textDocument :ranges) nil)
+               (rust-analyzer:MoveItemParams (:textDocument :range :direction) nil)
                (rust-analyzer:RunnablesParams (:textDocument) (:position))
                (rust-analyzer:Runnable (:label :kind :args) (:location))
                (rust-analyzer:RunnableArgs (:cargoArgs :executableArgs) (:workspaceRoot))
@@ -472,6 +477,10 @@ See `-let' for a description of the destructuring mechanism."
   [nil PlainText Snippet])
 (defconst lsp/insert-text-format-plain-text 1)
 (defconst lsp/insert-text-format-snippet 2)
+(defvar lsp/insert-text-mode-lookup
+  [nil AsIs AdjustIndentation])
+(defconst lsp/insert-text-mode-as-it 1)
+(defconst lsp/insert-text-mode-adjust-indentation 2)
 (defvar lsp/message-type-lookup
   [nil Error Warning Info Log])
 (defconst lsp/message-type-error 1)
@@ -559,7 +568,7 @@ See `-let' for a description of the destructuring mechanism."
  (Command (:title :command) (:arguments))
  (CompletionCapabilities nil (:completionItem :completionItemKind :contextSupport :dynamicRegistration))
  (CompletionContext (:triggerKind) (:triggerCharacter))
- (CompletionItem (:label) (:additionalTextEdits :command :commitCharacters :data :deprecated :detail :documentation :filterText :insertText :insertTextFormat :kind :preselect :sortText :tags :textEdit :score :keepWhitespace))
+ (CompletionItem (:label) (:additionalTextEdits :command :commitCharacters :data :deprecated :detail :documentation :filterText :insertText :insertTextFormat :insertTextMode :kind :preselect :sortText :tags :textEdit :score))
  (CompletionItemCapabilities nil (:commitCharactersSupport :deprecatedSupport :documentationFormat :preselectSupport :snippetSupport :tagSupport :insertReplaceSupport :resolveSupport))
  (CompletionItemKindCapabilities nil (:valueSet))
  (CompletionItemTagSupportCapabilities (:valueSet) nil)
