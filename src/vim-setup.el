@@ -53,11 +53,11 @@ _)d_: (a | b)         -> a|               _()_: a (b | …) -> a b (| …)
 _(a_: (a | (b c) d)   -> |(b c)           _))_: (… | a) b -> (… |) a b
 _)a_: (a | (b c) d)   -> |(b c)           _)(_: (… | a) b -> (… | a b)
 
-_a_bsorb:     a (b | c)       -> (b a | c)
-_e_mit:       (a b c | d)     -> b c (a | d)
-_c_onvolute:  (a b (c d | e)) -> (c d (a b | e))
-_S_plit sexp: (a | b)         -> (a) |(b)
-_J_oin sexp:  (a) | (b)       -> (a |  b)"
+_a_bsorb:         a (b | c)       -> (b a | c)
+_e_mit:           (a b c | d)     -> b c (a | d)
+_?_ (convolute):  (a b (c d | e)) -> (c d (a b | e))
+_S_plit sexp:     (a | b)         -> (a) |(b)
+_J_oin sexp:      (a) | (b)       -> (a |  b)"
   ("w"   hydra-window-management/body)
   ("t"   toggle)
   ("b"   hydra-tab-management/body)
