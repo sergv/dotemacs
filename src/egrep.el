@@ -27,8 +27,8 @@
         (t
          'elisp)))
 
-(defun make-egrep-match (file short-file-name line offset matched-prefix matched-text matched-suffix)
-  (cons file (cons short-file-name (cons line (cons offset (cons matched-prefix (cons matched-text matched-suffix)))))))
+(defun make-egrep-match (file short-file-name line column matched-prefix matched-text matched-suffix)
+  (cons file (cons short-file-name (cons line (cons column (cons matched-prefix (cons matched-text matched-suffix)))))))
 
 (defsubst egrep-match-file (x)
   (declare (pure t) (side-effect-free t))
@@ -42,8 +42,7 @@
   (declare (pure t) (side-effect-free t))
   (caddr x))
 
-;; Number of bytes since the beginning of buffer, 1-based.
-(defsubst egrep-match-offset (x)
+(defsubst egrep-match-column (x)
   (declare (pure t) (side-effect-free t))
   (cadddr x))
 
@@ -71,6 +70,9 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
           ":"
           (propertize (number->string (egrep-match-line match-entry))
                       'face 'compilation-line-number)
+          ":"
+          (propertize (number->string (egrep-match-column match-entry))
+                      'face 'compilation-column-number)
           ":"))
         (matched-text
          (concat
@@ -153,7 +155,7 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
                       (let* ((match-start (match-beginning 0))
                              (match-end (match-end 0))
                              (line (line-number-at-pos match-start))
-                             (offset (position-bytes match-start)))
+                             (column (- match-start (line-beginning-position))))
                         (save-excursion
                           (goto-char match-start)
                           (let ((match-prefix
@@ -170,7 +172,7 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
                                          filename
                                          (file-relative-name filename root)
                                          line
-                                         offset
+                                         column
                                          match-prefix
                                          match-text
                                          match-suffix)
@@ -330,7 +332,9 @@ FILE-GLOBS and don't match IGNORED-FILE-GLOBS."
             (`same-window  #'switch-to-buffer)
             (`other-window #'switch-to-buffer-other-window))
           buf)
-         (goto-char (bytes-to-position (egrep-match-offset match)))))
+         (goto-line-dumb (egrep-match-line match))
+         (beginning-of-line)
+         (forward-char (egrep-match-column match))))
      :item-show-function
      #'egrep--format-match-entry
      :preamble

@@ -34,7 +34,7 @@
    (egrep-tests--normalise-file-name (egrep-match-file entry) t)
    (egrep-tests--normalise-file-name (egrep-match-short-file-name entry) nil)
    (egrep-match-line entry)
-   (egrep-match-offset entry)
+   (egrep-match-column entry)
    (substring-no-properties (egrep-match-matched-prefix entry))
    (substring-no-properties (egrep-match-matched-text entry))
    (substring-no-properties (egrep-match-matched-suffix entry))))
@@ -51,12 +51,12 @@
 
 (defconst egrep-tests--bar-matches
   (vector
-   (make-egrep-match (concat egrep-tests/project-dir "/bar.c")     "bar.c"     5 52 "  int " "hello" " = x + y;")
-   (make-egrep-match (concat egrep-tests/project-dir "/bar.c")     "bar.c"     6 76 "  return " "hello" ";")))
+   (make-egrep-match (concat egrep-tests/project-dir "/bar.c")     "bar.c"     5 6 "  int " "hello" " = x + y;")
+   (make-egrep-match (concat egrep-tests/project-dir "/bar.c")     "bar.c"     6 9 "  return " "hello" ";")))
 
 (defconst egrep-tests--foo-matches
   (vector
-   (make-egrep-match (concat egrep-tests/project-dir "/src/foo.c") "src/foo.c" 3 26 "void " "hello" "(char const * name)")))
+   (make-egrep-match (concat egrep-tests/project-dir "/src/foo.c") "src/foo.c" 3 5 "void " "hello" "(char const * name)")))
 
 (grep-tests--define-tests "egrep-tests-1/%s"
     regexp
