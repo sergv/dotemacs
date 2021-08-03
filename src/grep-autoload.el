@@ -66,7 +66,6 @@
         (append +ignored-directories+
                 (--map (concat it "*") +ignored-directory-prefixes+))))
 
-
 (autoload 'grep-set-up-error-regexp "grep-setup")
 (autoload 'rgrep-wrapper "grep-setup" nil t)
 (autoload 'rgrep-region "grep-setup" nil t)

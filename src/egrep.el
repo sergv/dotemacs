@@ -113,10 +113,10 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
           (rust-native-grep
            (vector root)
            regexp
-           (cl-coerce globs-to-find 'vector)
-           (cl-coerce ignored-files 'vector)
-           (cl-coerce (--map (strip-trailing-slash it) +ignored-directories+) 'vector)
-           (cl-coerce +ignored-directory-prefixes+ 'vector)
+           (list->vector globs-to-find)
+           (list->vector ignored-files)
+           +ignored-directories+
+           +ignored-directory-prefixes+
            []
            ignore-case)))
     (cl-assert (vectorp matches))
