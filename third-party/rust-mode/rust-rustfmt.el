@@ -323,12 +323,7 @@ Return the created process."
   (interactive)
   (unless (executable-find rust-rustfmt-bin)
     (error "Could not locate executable \"%s\"" rust-rustfmt-bin))
-  (let ((start (if (region-active-p)
-                   (region-beginning/fix-start-for-vim (region-beginning))
-                 (point-min)))
-        (end (if (region-active-p)
-                 (region-end/fix-end-for-vim (region-end))
-               (point-max))))
+  (with-region-bounds start end
     ;; NB replace-buffer-contents deal with whole buffer and doesn’t
     ;; work with substrings, which we actually want in here. So code path
     ;; dependant on replace-buffer-contents is removed in its entirety.
