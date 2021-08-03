@@ -123,6 +123,10 @@ pub struct Ignores {
     pub ignored_dirs: GlobEntry,
 }
 
+fn strip_trailing_slash(s: &str) -> &str {
+    s.trim_end_matches('/')
+}
+
 impl Ignores {
     pub fn new<E, I1, I2, I3, I4, I5, S1, S2, S3, S4, S5>(
         globs: I1,
@@ -176,14 +180,14 @@ impl Ignores {
             let mut tmp = String::new();
             for x in ignored_abs_dirs {
                 let y = x?;
-                ignored_dir_abs_builder.add(mk_glob(y.as_ref())?);
+                ignored_dir_abs_builder.add(mk_glob(strip_trailing_slash(y.as_ref()))?);
                 tmp.clear();
             }
             for x in ignored_dir_globs {
                 let y = x?;
-                let z = y.as_ref();
+                let z = strip_trailing_slash(y.as_ref());
                 tmp.push_str("**/");
-                tmp.extend(z.chars());
+                tmp.push_str(z);
                 let g = mk_glob(&tmp)?;
                 if glob_should_test_against_abs(z) {
                     ignored_dir_abs_builder.add(g);
@@ -196,7 +200,7 @@ impl Ignores {
                 let y = x?;
                 let z = y.as_ref();
                 tmp.push_str("**/");
-                tmp.extend(z.chars());
+                tmp.push_str(z);
                 tmp.push('*');
                 let g = mk_glob(&tmp)?;
                 if glob_should_test_against_abs(z) {
