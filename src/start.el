@@ -6,6 +6,8 @@
 ;; Created: long ago
 ;; Description:
 
+(defvar dumping nil)
+
 (require 'set-up-platform)
 (load-library "set-up-environment-variables")
 (require 'set-up-paths)
