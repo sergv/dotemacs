@@ -42,6 +42,7 @@
   (declare (pure t) (side-effect-free t))
   (caddr x))
 
+;; Number of bytes since the beginning of buffer, 1-based.
 (defsubst egrep-match-offset (x)
   (declare (pure t) (side-effect-free t))
   (cadddr x))
@@ -152,7 +153,7 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
                       (let* ((match-start (match-beginning 0))
                              (match-end (match-end 0))
                              (line (line-number-at-pos match-start))
-                             (offset match-start))
+                             (offset (position-bytes match-start)))
                         (save-excursion
                           (goto-char match-start)
                           (let ((match-prefix
@@ -329,7 +330,7 @@ FILE-GLOBS and don't match IGNORED-FILE-GLOBS."
             (`same-window  #'switch-to-buffer)
             (`other-window #'switch-to-buffer-other-window))
           buf)
-         (goto-char (egrep-match-offset match))))
+         (goto-char (bytes-to-position (egrep-match-offset match)))))
      :item-show-function
      #'egrep--format-match-entry
      :preamble
