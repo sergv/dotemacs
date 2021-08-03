@@ -8,19 +8,21 @@ use std::sync::{Arc, mpsc};
 
 use anyhow;
 use emacs;
-use emacs::{defun, Env, Result, Value, Vector, FromLisp, IntoLisp};
+use emacs::{defun, Env, Result, Value, Vector, IntoLisp};
 use grep_matcher::Matcher;
 use grep_regex::{RegexMatcher, RegexMatcherBuilder};
 use grep_searcher::{self, Searcher, SearcherBuilder};
 use pathdiff;
 
+pub mod emacs_conv;
 pub mod find;
 pub mod fuzzy_match;
 pub mod path;
 
+use emacs_conv::*;
 use path::EmacsPath;
 
-emacs::use_symbols!(nil make_egrep_match setcdr);
+emacs::use_symbols!(nil make_egrep_match);
 
 // Emacs won't load the module without this.
 emacs::plugin_is_GPL_compatible!();
@@ -58,11 +60,12 @@ fn score_matches<'a>(
 
     scored.sort_unstable_by(
         |(x, xstr, _), (y, ystr, _)| {
+            // Propagate greatest score to the beginning.
             // Resolve equal scores by comparing lengths.
-            x.cmp(y).then_with(|| xstr.len().cmp(&ystr.len()))
+            x.cmp(y).reverse().then_with(|| xstr.len().cmp(&ystr.len()))
         });
 
-    let mut results = SuccessesList::new(env)?;
+    let mut results = IncrementalResList::new(env)?;
     for (_, _, s) in scored {
         results.update(s)?;
     }
@@ -109,7 +112,7 @@ fn find_rec<'a>(
 
     let ignores = find::Ignores::new(globs, ignored_file_globs, ignored_dir_globs, ignored_dir_prefixes_globs, ignored_abs_dirs)?;
 
-    let mut s = SuccessesAndErrors::new(env)?;
+    let mut s = IncrementalResErrList::new(env)?;
 
     find::find_rec(
         roots,
@@ -154,7 +157,7 @@ fn find_rec_serial<'a>(
         }
     }
 
-    let mut s = SuccessesAndErrors::new(env)?;
+    let mut s = IncrementalResErrVec::new(env)?;
 
     loop {
         let root: PathBuf =
@@ -199,7 +202,7 @@ fn grep<'a>(
 
     let ignores = find::Ignores::new(globs, ignored_file_globs, ignored_dir_globs, ignored_dir_prefixes_globs, ignored_abs_dirs)?;
 
-    let mut results = SuccessesVec::new(env)?;
+    let mut results = IncrementalResVec::new(env)?;
 
     find::find_rec(
         roots,
@@ -353,241 +356,3 @@ impl<'a, 'b, 'c> grep_searcher::Sink for GrepSink<'a, 'b, 'c> {
     }
 }
 
-fn path_to_string(path: PathBuf) -> result::Result<String, String> {
-    match path.to_str() {
-        None => Err(format!("Invalid file name: {:?}", path)),
-        Some(x) => Ok(x.to_string()),
-    }
-}
-
-fn to_strings_iter<'a>(
-    input: Vector<'a>
-) -> std::iter::Map<<Vector as IntoIterator>::IntoIter, fn(Value<'a>) -> emacs::Result<String>>
-{
-    input
-        .into_iter()
-        .map(String::from_lisp)
-}
-
-fn resize<'a>(env: &'a Env, v: Vector<'a>) -> Result<Vector<'a>> {
-    let n = v.len();
-    let res = env.make_vector(if n == 0 { 1 } else { n * 2 }, nil)?;
-    for (i, x) in v.into_iter().enumerate() {
-        res.set(i, x)?;
-    }
-    Ok(res)
-}
-
-fn take<'a>(env: &'a Env, count: usize, v: Vector<'a>) -> Result<Vector<'a>> {
-    let res = env.make_vector(count, nil)?;
-    for i in 0..count {
-        res.set(i, v.get::<Value<'a>>(i)?)?;
-    }
-    Ok(res)
-}
-
-/// State for incrementally collecting potentially faliing results into a vector.
-struct SuccessesAndErrors<'a> {
-    env: &'a Env,
-
-    a: Vector<'a>,
-    cap_a: usize,
-    size_a: usize,
-
-    b: Vector<'a>,
-    cap_b: usize,
-    size_b: usize,
-}
-
-impl<'a> SuccessesAndErrors<'a> {
-    fn new(env: &'a Env) -> Result<SuccessesAndErrors> {
-        Ok(SuccessesAndErrors {
-            env,
-
-            a: env.make_vector(0, nil)?,
-            cap_a: 0,
-            size_a: 0,
-
-            b: env.make_vector(0, nil)?,
-            cap_b: 0,
-            size_b: 0,
-        })
-    }
-
-    fn update<A, B>(&mut self, x: result::Result<A, B>) -> Result<()>
-        where
-        A: IntoLisp<'a>,
-        B: IntoLisp<'a>,
-    {
-        match x {
-            Ok(y) => {
-                let new_size = self.size_a + 1;
-                if new_size > self.cap_a {
-                    self.a = resize(self.env, self.a)?;
-                    self.cap_a = self.a.len();
-                }
-                self.a.set(self.size_a, y.into_lisp(self.env)?)?;
-                self.size_a = new_size;
-            }
-            Err(y) => {
-                let new_size = self.size_b + 1;
-                if new_size > self.cap_b {
-                    self.b = resize(self.env, self.b)?;
-                    self.cap_b = self.b.len();
-                }
-                self.b.set(self.size_b, y.into_lisp(self.env)?)?;
-                self.size_b = new_size;
-            }
-        }
-        Ok(())
-    }
-
-    fn finalize(self) -> Result<(Vector<'a>, Vector<'a>)> {
-        let a = take(self.env, self.size_a, self.a)?;
-        let b = take(self.env, self.size_b, self.b)?;
-        Ok((a, b))
-    }
-}
-
-/// State for incrementally collecting successful results into a vector.
-struct SuccessesVec<'a> {
-    env: &'a Env,
-
-    items: Vector<'a>,
-    cap: usize,
-    size: usize,
-}
-
-impl<'a> SuccessesVec<'a> {
-    fn new(env: &'a Env) -> Result<SuccessesVec> {
-        Ok(SuccessesVec {
-            env,
-            items: env.make_vector(0, nil)?,
-            cap: 0,
-            size: 0,
-        })
-    }
-
-    fn update<A>(&mut self, x: A) -> Result<()>
-        where
-        A: IntoLisp<'a>,
-    {
-        let new_size = self.size + 1;
-        if new_size > self.cap {
-            self.items = resize(self.env, self.items)?;
-            self.cap = self.items.len();
-        }
-        self.items.set(self.size, x.into_lisp(self.env)?)?;
-        self.size = new_size;
-        Ok(())
-    }
-
-    fn finalize(self) -> Result<Vector<'a>> {
-        let a = take(self.env, self.size, self.items)?;
-        Ok(a)
-    }
-}
-
-/// State for incrementally collecting successful results into a list.
-struct SuccessesList<'a> {
-    env: &'a Env,
-
-    store: Value<'a>,
-    last_cell: Value<'a>,
-}
-
-impl<'a> SuccessesList<'a> {
-    fn new(env: &'a Env) -> Result<SuccessesList> {
-        let tmp = env.cons(nil, nil)?;
-        Ok(SuccessesList {
-            env,
-            store: tmp,
-            last_cell: tmp,
-        })
-    }
-
-    fn update<A>(&mut self, x: A) -> Result<()>
-        where
-        A: IntoLisp<'a>,
-    {
-        self.last_cell =
-            self.env.call(
-                setcdr,
-                (self.last_cell, self.env.cons(x.into_lisp(self.env)?, nil)?)
-            )?;
-        Ok(())
-    }
-
-    fn finalize(self) -> Result<Value<'a>> {
-        self.store.cdr()
-    }
-}
-
-fn to_list<'a, I, A>(env: &'a Env, iter: I) -> emacs::Result<Value<'a>>
-    where
-    I: Iterator<Item = A>,
-    A: IntoLisp<'a>,
-{
-    let mut s = SuccessesList::new(env)?;
-    for x in iter {
-        s.update(x)?;
-    }
-    s.finalize()
-}
-
-struct ListIter<'a> {
-    list: Value<'a>,
-}
-
-impl<'a> ListIter<'a> {
-    fn new(list: Value<'a>) -> Self {
-        ListIter { list }
-    }
-}
-
-impl<'a> Iterator for ListIter<'a> {
-    type Item = emacs::Result<Value<'a>>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.list.is_not_nil() {
-            let rest = match self.list.cdr() {
-                Err(err) => return Some(Err(err)),
-                Ok(x) => x,
-            };
-            let x = match self.list.car() {
-                Err(err) => return Some(Err(err)),
-                Ok(x) => x,
-            };
-            self.list = rest;
-            Some(Ok(x))
-        } else {
-            None
-        }
-    }
-}
-
-struct DecodingListIter<'a, A> {
-    iter: ListIter<'a>,
-    item: std::marker::PhantomData<A>,
-}
-
-impl<'a, A> DecodingListIter<'a, A> {
-    fn new(list: Value<'a>) -> Self {
-        DecodingListIter {
-            iter: ListIter::new(list),
-            item: std::marker::PhantomData,
-        }
-    }
-}
-
-impl<'a, A: FromLisp<'a>> Iterator for DecodingListIter<'a, A> {
-    type Item = emacs::Result<A>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        match self.iter.next() {
-            None => None,
-            Some(Err(err)) => Some(Err(err)),
-            Some(Ok(x)) => Some(A::from_lisp(x)),
-        }
-    }
-}
