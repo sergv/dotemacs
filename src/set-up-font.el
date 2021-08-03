@@ -53,13 +53,14 @@
   (let* ((width (display-pixel-width))
          (height (display-pixel-height)))
     (cond
-      ((or (and (<= 3840 width)
-                (<= 2160 height))
-           (and (= 1366 width)
-                (= 768 height)))
+      ((and (= 3840 width)
+            (= 2160 height))
+       140)
+      ((and (= 1366 width)
+            (= 768 height))
        120)
       (t
-       100))))
+       120))))
 
 (unless noninteractive
   (defun set-up-font--init-font-and-scaling ()
