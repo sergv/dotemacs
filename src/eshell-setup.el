@@ -59,7 +59,8 @@
 
 (setf eshell-cmpl-file-ignore "~\\'\\|\\`\\.#"
       eshell-cmpl-dir-ignore
-      (concat "\\`" (regexp-opt +ignored-directories+) "\\'")
+      (eval-when-compile
+        (concat "\\`" (regexp-opt (vector->list +ignored-directories+)) "\\'"))
       eshell-command-aliases-list
       (append
        (fold-platform-os-type
