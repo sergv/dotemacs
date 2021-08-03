@@ -8,6 +8,8 @@
 
 (require 'cl)
 
+(defvar dumping t)
+
 (defun dump-main (emacs-dir)
   (let ((init-file
          (cl-find-if #'file-exists-p
@@ -41,6 +43,9 @@
     (load-library "set-up-tmp-paths")
 
     (require 'base-emacs-fixes)
+
+    (require 'foreign-setup)
+
     (require 'cycle-on-lines)
     (require 'common)
     (require 'common-heavy)
@@ -243,6 +248,8 @@
 
     (provide 'already-dumped)
 
+    (makunbound 'dumping)
+    (fmakunbound 'dump-main)
     (delete-file dump-target)
     (dump-emacs-portable dump-target)
 

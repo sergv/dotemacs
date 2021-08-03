@@ -6,6 +6,8 @@
 ;; Created: Monday, 22 February 2016
 ;; Description:
 
+(defvar use-foreign-libraries?)
+
 ;;;###autoload
 (defun* find-rec-do (path
                      &key
@@ -79,7 +81,7 @@ Valid values are:
 
 (setf find-rec-backend
       (cond
-        ((fboundp #'rust-native-find-rec)
+        (use-foreign-libraries?
          'native)
         (find-files/find-program-type
          'executable)
