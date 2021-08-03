@@ -12,6 +12,8 @@
 (require 'find-files)
 (require 'macro-util)
 
+(defvar use-foreign-libraries?)
+
 (autoload 'grep-read-files "grep")
 (autoload 'grep-read-regexp "grep")
 
@@ -22,7 +24,7 @@
 ;; Configure explicitly so that dumped emacs will pick it up properly.
 (setf egrep-backend
       (cond
-        ((fboundp #'rust-native-grep)
+        (use-foreign-libraries?
          'native)
         (t
          'elisp)))
