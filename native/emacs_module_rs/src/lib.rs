@@ -239,8 +239,8 @@ fn grep<'a>(
 }
 
 struct Match {
-    line: u64,
-    byte_offset: u64,
+    line: u32,
+    column: u16,
     prefix: String,
     body: String,
     suffix: String,
@@ -255,7 +255,7 @@ impl<'a> emacs::IntoLisp<'a> for Match {
             (&*self.abs_path,
              &*self.rel_path,
              self.line,
-             self.byte_offset,
+             self.column,
              self.prefix,
              self.body,
              self.suffix
@@ -300,7 +300,7 @@ impl<'a, 'b, 'c> grep_searcher::Sink for GrepSink<'a, 'b, 'c> {
     type Error = Error;
 
     fn matched(&mut self, _searcher: &Searcher, m: &grep_searcher::SinkMatch) -> result::Result<bool, Self::Error> {
-        let line = m.line_number().expect("Line numbers must be available");
+        let line = m.line_number().expect("Line numbers must be available") as u32;
         // Add 1 since in Emacs byte offsets are 1-based.
         let byte_offset = m.absolute_byte_offset() + 1;
         let matched_lines = m.bytes();
@@ -339,9 +339,11 @@ impl<'a, 'b, 'c> grep_searcher::Sink for GrepSink<'a, 'b, 'c> {
             .map_err(|err| Error::msg(format!("Failed to utf-8 encode match suffix: {}", err)))?
             .trim_end_matches(|c| c == '\r' || c == '\n');
 
+        let column = submatch.start() as u16;
+
         self.results.send(Match {
             line,
-            byte_offset: byte_offset + submatch.start() as u64,
+            column,
             prefix: prefix.to_string(),
             body: body.to_string(),
             suffix: suffix.to_string(),
