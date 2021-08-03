@@ -33,9 +33,21 @@ fn init(env: &Env) -> Result<Value<'_>> {
     Ok(nil.bind(env))
 }
 
+fn decode_vector_of_chars(v: Vector) -> Result<Vec<char>> {
+    v.into_iter()
+     .map(|x| {
+         x.into_rust().and_then(|y| {
+             std::char::from_u32(y)
+                 .ok_or_else(|| anyhow::Error::msg(format!("Invalid character: {}", y)))
+         })
+     })
+     .collect()
+}
+
 #[defun]
 fn score_matches<'a>(
     env: &'a Env,
+    input_group_seps: Vector<'a>,
     needle: String,
     haystacks: Value<'a>,
 ) -> Result<Value<'a>>
@@ -44,6 +56,8 @@ fn score_matches<'a>(
 
     let mut scored = Vec::new();
 
+    let group_seps: Vec<char> = decode_vector_of_chars(input_group_seps)?;
+
     for haystack in ListIter::new(haystacks) {
         let haystack = haystack?;
         let haystack_str: String = haystack.clone().into_rust()?;
@@ -51,7 +65,7 @@ fn score_matches<'a>(
         let m: fuzzy_match::Match<()> = fuzzy_match::fuzzy_match(
             &needle,
             &haystack_str,
-            &[],
+            &group_seps,
             &mut reuse
         );
 
@@ -75,16 +89,19 @@ fn score_matches<'a>(
 #[defun]
 fn score_single_match<'a>(
     env: &'a Env,
+    input_group_seps: Vector<'a>,
     needle: String,
     haystack: String,
 ) -> Result<Value<'a>>
 {
     let mut reuse = fuzzy_match::ReuseState::new();
 
+    let group_seps: Vec<char> = decode_vector_of_chars(input_group_seps)?;
+
     let m: fuzzy_match::Match<Vec<fuzzy_match::StrIdx>> = fuzzy_match::fuzzy_match(
         &needle,
         &haystack,
-        &[],
+        &group_seps,
         &mut reuse,
     );
 
