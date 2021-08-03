@@ -14,11 +14,18 @@
 (eval-when-compile (require 'subr-x))
 
 (defvar eproj-ctags--exec
-  (or (let ((ctags-exec
+  (or (let ((universal-ctags-exec
+             (platform-dependent-executable (concat +execs-path+ "/universal-ctags")))
+	          (ctags-exec
              (platform-dependent-executable (concat +execs-path+ "/ctags"))))
-        (when (and ctags-exec
-                   (file-exists-p ctags-exec))
-          ctags-exec))
+				(or
+         (when (and universal-ctags-exec
+                    (file-exists-p universal-ctags-exec))
+           universal-ctags-exec)
+         (when (and ctags-exec
+                    (file-exists-p ctags-exec))
+           ctags-exec)))
+      (cached-executable-find "universal-ctags")
       (cached-executable-find "ctags")))
 
 (defvar *ctags-language-flags*
