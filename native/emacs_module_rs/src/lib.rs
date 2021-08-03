@@ -28,7 +28,7 @@ emacs::plugin_is_GPL_compatible!();
 // Register the initialization hook that Emacs will call when it loads the module.
 #[emacs::module(name = "rust_native")]
 fn init(env: &Env) -> Result<Value<'_>> {
-    ().into_lisp(env)
+    Ok(nil.bind(env))
 }
 
 #[defun]
@@ -85,7 +85,7 @@ fn score_single_match<'a>(
         &mut reuse,
     );
 
-    env.cons(m.score.into_lisp(env)?, to_list(env, m.positions.iter().copied())?)
+    env.cons(m.score.into_lisp(env)?, to_list(env, m.positions.into_iter())?)
 }
 
 #[defun]
