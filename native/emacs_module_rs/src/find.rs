@@ -384,6 +384,10 @@ fn process_main<R, A, F, E>(
             children_awoken = true;
         }
     }
+    // Wake up children if not already - we’re wrapping up.
+    if !children_awoken {
+        barr.wait();
+    }
     Ok(())
 }
 
