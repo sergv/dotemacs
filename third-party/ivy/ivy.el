@@ -48,6 +48,8 @@
 (eval-when-compile
   (require 'subr-x))
 
+(defvar use-foreign-libraries?)
+
 ;;* Customization
 (defgroup ivy nil
   "Incremental vertical completion."
@@ -3900,7 +3902,7 @@ N wraps around."
 (defvar ivy--flx-sort--backend nil)
 
 (setf ivy--flx-sort--backend
-      (if (fboundp 'rust-native-score-matches)
+      (if use-foreign-libraries?
           'native
         'elisp))
 
