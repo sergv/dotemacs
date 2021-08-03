@@ -301,8 +301,6 @@ impl<'a, 'b, 'c> grep_searcher::Sink for GrepSink<'a, 'b, 'c> {
 
     fn matched(&mut self, _searcher: &Searcher, m: &grep_searcher::SinkMatch) -> result::Result<bool, Self::Error> {
         let line = m.line_number().expect("Line numbers must be available") as u32;
-        // Add 1 since in Emacs byte offsets are 1-based.
-        let byte_offset = m.absolute_byte_offset() + 1;
         let matched_lines = m.bytes();
 
         let rel_path = match self.rel_path_cache {
