@@ -23,10 +23,12 @@ pub struct EmacsPath {
 }
 
 impl EmacsPath {
+    // mut will be required on Windows
+    #[allow(unused_mut)]
     pub fn new(path: PathBuf) -> Result<Self, String> {
         match path.into_os_string().into_string() {
             Err(err) => Err(format!("Path has invalid utf8 encoding: {:?}", err)),
-            Ok(s) => {
+            Ok(mut s) => {
                 #[cfg(target_family = "windows")]
                 let path = unsafe {
                     for b in s.as_bytes_mut() {
