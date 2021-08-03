@@ -21,12 +21,20 @@ anyhow = ">= 1.0.38"
 crossbeam = ">= 0.8.1"
 crossbeam-utils = ">= 0.8.0"
 emacs = ">= 0.17"
-globset = { version = ">= 0.4.8", features = [] }
+globset = { version = ">= 0.4.8", default-features = false, features = [] }
 pathdiff = ">= 0.1"
 
-grep = ">= 0.2.8"
-# Requires nigthly
-# grep = { version = ">= 0.2.8", features = ["simd-accel"] }
+# grep = ">= 0.2.8"
+
+grep-matcher = "0.1.5"
+grep-regex = "0.1.9"
+grep-searcher = "0.1.8"
 
 [features]
-simd-accel = ["grep/simd-accel"]
+# Requires nigthly
+simd-accel = ["grep-searcher/simd-accel"]
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
