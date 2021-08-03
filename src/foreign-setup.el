@@ -12,7 +12,7 @@
   :group 'common)
 
 (when use-foreign-libraries?
-  (load "libemacs_native_rs"))
+  (load (fold-platform-os-type "libemacs_native_rs" "emacs_native_rs")))
 
 (provide 'foreign-setup)
 
