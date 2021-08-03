@@ -104,6 +104,8 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
   (declare (pure nil) (side-effect-free nil))
   (when (null globs-to-find)
     (error "No globs to search for under %s" root))
+  (cl-assert (vectorp ignored-directories))
+  (cl-assert (vectorp ignored-directory-prefixes))
   (funcall (pcase find-rec-backend
              (`native
               #'find-rec--rust-native-impl)
@@ -137,16 +139,16 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
     (let* ((results
            (rust-native-find-rec
             (vector root)
-            (cl-coerce globs-to-find              'vector)
-            (cl-coerce ignored-files              'vector)
-            (cl-coerce ignored-directories        'vector)
-            (cl-coerce ignored-directory-prefixes 'vector)
-            (cl-coerce (--map (strip-trailing-slash it) ignored-absolute-dirs) 'vector)))
+            (list->vector globs-to-find)
+            (list->vector ignored-files)
+            ignored-directories
+            ignored-directory-prefixes
+            (list->vector ignored-absolute-dirs)))
            (errs (cdr results)))
       (when (< 0 (length errs))
         (dolist (err errs)
           (message "Error during file search: %s" err)))
-      (coerce (car results) 'list))))
+      (car results))))
 
 (defun find-rec--find-executable-impl (root
                                        globs-to-find
@@ -160,7 +162,7 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
   (when (null globs-to-find)
     (error "No globs to search for under %s" root))
   (let* ((ignored-dirs-globs
-          (nconc (--map (concat "*/" it)
+          (nconc (--map (concat "*/" (strip-trailing-slash it))
                         ignored-directories)
                  (--map (concat "*/" it "*")
                         ignored-directory-prefixes)
@@ -259,7 +261,7 @@ as a fallback if those are not available."
                        ignored-files-absolute-re))))
          (ignored-dirs-re
           (globs-to-regexp
-           (append ignored-directories
+           (append (-map #'strip-trailing-slash ignored-directories)
                    (--map (concat it "*") ignored-directory-prefixes))))
          (ignored-absolute-dirs-re
           (mk-regexp-from-alts ignored-absolute-dirs)))
