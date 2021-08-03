@@ -79,7 +79,7 @@ Valid values are:
 
 (setf find-rec-backend
       (cond
-        ((fboundp #'haskell-native-find-rec)
+        ((fboundp #'rust-native-find-rec)
          'native)
         (find-files/find-program-type
          'executable)
@@ -104,7 +104,7 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
     (error "No globs to search for under %s" root))
   (funcall (pcase find-rec-backend
              (`native
-              #'find-rec--haskell-native-impl)
+              #'find-rec--rust-native-impl)
              (`executable
               #'find-rec--find-executable-impl)
              (`elisp
@@ -119,33 +119,32 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
            ignored-directories
            ignored-directory-prefixes))
 
-(defun find-rec--haskell-native-impl (root
-                                      globs-to-find
-                                      ignored-extensions-globs
-                                      ignored-files-globs
-                                      ignored-absolute-dirs
-                                      ignored-directories
-                                      ignored-directory-prefixes)
+(defun find-rec--rust-native-impl (root
+                                   globs-to-find
+                                   ignored-extensions-globs
+                                   ignored-files-globs
+                                   ignored-absolute-dirs
+                                   ignored-directories
+                                   ignored-directory-prefixes)
   "A version of `find-rec' that uses ffi to do the search."
   (declare (pure nil) (side-effect-free nil))
-  (let ((ignored-dirs
-         (nconc (--map (concat "*/" it)
-                       ignored-directories)
-                (--map (concat "*/" it "*")
-                       ignored-directory-prefixes)
-                (--map (strip-trailing-slash it)
-                       ignored-absolute-dirs)))
-        (ignored-files
-         (append
-          ignored-extensions-globs
-          ignored-files-globs)))
-    (cl-assert (featurep 'haskell-native-emacs-extensions))
-    (cl-assert (fboundp #'haskell-native-find-rec))
-    (haskell-native-find-rec
-     (vector root)
-     (cl-coerce globs-to-find 'vector)
-     (cl-coerce ignored-files 'vector)
-     (cl-coerce ignored-dirs  'vector))))
+  (let ((ignored-files
+         (append ignored-extensions-globs
+                 ignored-files-globs)))
+    (cl-assert (fboundp #'rust-native-find-rec))
+    (let* ((results
+           (rust-native-find-rec
+            (vector root)
+            (cl-coerce globs-to-find              'vector)
+            (cl-coerce ignored-files              'vector)
+            (cl-coerce ignored-directories        'vector)
+            (cl-coerce ignored-directory-prefixes 'vector)
+            (cl-coerce (--map (strip-trailing-slash it) ignored-absolute-dirs) 'vector)))
+           (errs (cdr results)))
+      (when (< 0 (length errs))
+        (dolist (err errs)
+          (message "Error during file search: %s" err)))
+      (coerce (car results) 'list))))
 
 (defun find-rec--find-executable-impl (root
                                        globs-to-find

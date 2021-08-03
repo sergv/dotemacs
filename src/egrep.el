@@ -22,7 +22,7 @@
 ;; Configure explicitly so that dumped emacs will pick it up properly.
 (setf egrep-backend
       (cond
-        ((fboundp #'haskell-native-grep-rec)
+        ((fboundp #'rust-native-grep)
          'native)
         (t
          'elisp)))
@@ -104,17 +104,15 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
   (save-some-buffers)
   (let* ((globs-to-find exts-globs)
          (ignored-files ignored-files-globs)
-         (ignored-dirs
-          (nconc
-           (--map (concat "*/" (strip-trailing-slash it) "*") +ignored-directories+)
-           (--map (concat "*/" it "*") +ignored-directory-prefixes+)))
          (matches
-          (haskell-native-grep-rec
+          (rust-native-grep
            (vector root)
            regexp
            (cl-coerce globs-to-find 'vector)
            (cl-coerce ignored-files 'vector)
-           (cl-coerce ignored-dirs 'vector)
+           (cl-coerce (--map (strip-trailing-slash it) +ignored-directories+) 'vector)
+           (cl-coerce +ignored-directory-prefixes+ 'vector)
+           []
            ignore-case)))
     (cl-assert (vectorp matches))
     (when (or (null matches)

@@ -3900,7 +3900,7 @@ N wraps around."
 (defvar ivy--flx-sort--backend nil)
 
 (setf ivy--flx-sort--backend
-      (if (fboundp 'haskell-native-score-matches)
+      (if (fboundp 'rust-native-score-matches)
           'native
         'elisp))
 
@@ -3938,7 +3938,7 @@ N wraps around."
         (nconc
          ;; Compute all of the flx scores in one pass and sort
          (pcase ivy--flx-sort--backend
-           (`native (haskell-native-score-matches
+           (`native (rust-native-score-matches
                      flx-name
                      cands-to-sort))
            (`elisp
@@ -4031,9 +4031,13 @@ It has it by default, but the current theme also needs to set it."
            (eq (ivy-alist-setting ivy-re-builders-alist) 'ivy--regex-fuzzy))
       (let ((flx-name (string-remove-prefix "^" ivy-text)))
         (ivy--flx-propertize
-         (cons (if (fboundp 'haskell-native-score-single-match)
-                   (haskell-native-score-single-match flx-name str)
-                 (flx-score str flx-name ivy--flx-cache))
+         (cons (pcase ivy--flx-sort--backend
+                 (`native
+                  (rust-native-score-single-match flx-name str))
+                 (`elisp
+                  (flx-score str flx-name ivy--flx-cache))
+                 (invalid
+                  (error "Invalid ivy--flx-sort--backend: %s" invalid)))
                str)))
     (ivy--highlight-default str)))
 

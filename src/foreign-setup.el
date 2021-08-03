@@ -12,9 +12,7 @@
   :group 'common)
 
 (when use-foreign-libraries?
-  (load (fold-platform-os-type
-         "libemacs-native"
-         (error "Shared module is not yet available on Windows"))))
+  (load "libemacs_native_rs"))
 
 (provide 'foreign-setup)
 
