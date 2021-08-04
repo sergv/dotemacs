@@ -40,6 +40,7 @@ pub struct Submatch {
 pub trait Positions {
     fn infer_positions(idx: SubmatchIdx, submatches: &Vec<Submatch>) -> Self;
     fn empty() -> Self;
+    fn singleton(idx: StrIdx) -> Self;
 }
 
 impl Positions for Vec<StrIdx> {
@@ -56,11 +57,16 @@ impl Positions for Vec<StrIdx> {
     fn empty() -> Self {
         Vec::new()
     }
+
+    fn singleton(idx: SubmatchIdx) -> Self {
+        vec![idx]
+    }
 }
 
 impl Positions for () {
     fn infer_positions(_idx: SubmatchIdx, _submatches: &Vec<Submatch>) -> Self { () }
     fn empty() -> Self { () }
+    fn singleton(_idx: StrIdx) -> Self { () }
 }
 
 mod occurs {
@@ -188,22 +194,37 @@ pub fn fuzzy_match_impl<PS>(
     cache.clear();
     submatches.clear();
 
-    let submatch = top_down_match(
-        cache,
-        submatches,
-        &heatmap,
-        &positions,
-        0,
-        -1,
-        s.needle_size as StrIdx - 1,
-    );
+    if s.needle_size == 1 {
+        let submatch = match_singleton_needle(
+            &heatmap,
+            &positions[0],
+        );
 
-    match submatch {
-        None => no_match(),
-        Some(sub_idx) => {
-            let score = submatches[sub_idx as usize].score;
-            Match { score, positions: Positions::infer_positions(sub_idx, &submatches) }
+        match submatch {
+            None => no_match(),
+            Some(s) => {
+                Match { score: s.score, positions: Positions::singleton(s.position) }
+            }
         }
+    } else {
+        let submatch = top_down_match(
+            cache,
+            submatches,
+            &heatmap,
+            &positions,
+            0,
+            -1,
+            s.needle_size as StrIdx - 1,
+        );
+
+        match submatch {
+            None => no_match(),
+            Some(sub_idx) => {
+                let score = submatches[sub_idx as usize].score;
+                Match { score, positions: Positions::infer_positions(sub_idx, &submatches) }
+            }
+        }
+
     }
 }
 
@@ -216,24 +237,56 @@ fn is_score_better(new: i16, old: i16) -> bool {
     new >= old
 }
 
+// Terminal submatch, doesn’t get filled.
+const TERMIAL_SUBMATCH: SubmatchIdx = -1;
+
+fn match_singleton_needle<'a, 'b>(
+    heatmap: &'a [Heat],
+    occurrences: &'b [StrIdx],
+) -> Option<Submatch> {
+    let mut remaining_occurs = occurrences.iter();
+    if let Some(idx) = remaining_occurs.next() {
+        let score = heatmap[*idx as usize];
+
+        let mut max_submatch = Submatch {
+            score,
+            position: *idx,
+            contiguous_count: 0,
+            prev: TERMIAL_SUBMATCH
+        };
+
+        for idx in remaining_occurs {
+            let score = heatmap[*idx as usize];
+            if score >= max_submatch.score {
+                max_submatch.score = score;
+                max_submatch.position = *idx;
+            }
+        }
+
+        Some(max_submatch)
+    } else {
+        None
+    }
+}
+
 fn top_down_match<'a, 'b, 'c, 'd, 'e>(
     cache: &'a mut HashMap<(StrIdx, StrIdx), Option<SubmatchIdx>>,
     submatches: &'b mut Vec<Submatch>,
     heatmap: &'c [Heat],
     positions: &'d Vec<&'e [StrIdx]>,
-    haystack_idx: StrIdx,
+    needle_idx: StrIdx,
     cutoff_idx: StrIdx,
     end_idx: StrIdx,
 ) -> Option<SubmatchIdx>
 {
-    let key = (haystack_idx, cutoff_idx);
+    let key = (needle_idx, cutoff_idx);
     match cache.get(&key) {
         Some(res) => return *res,
         None => (),
     }
 
     let remaining_occurs =
-        bigger(cutoff_idx, positions[haystack_idx as usize])
+        bigger(cutoff_idx, positions[needle_idx as usize])
         .iter();
 
     let mut max_submatch = None;
@@ -246,7 +299,7 @@ fn top_down_match<'a, 'b, 'c, 'd, 'e>(
             submatches,
             heatmap,
             positions,
-            haystack_idx + 1,
+            needle_idx + 1,
             *idx,
             end_idx,
         );
@@ -266,7 +319,7 @@ fn top_down_match<'a, 'b, 'c, 'd, 'e>(
                 }
             }
         }
-    }
+        }
 
     cache.insert(key, max_submatch.clone());
     max_submatch
@@ -309,6 +362,8 @@ fn top_down_submatch_at<'a, 'b, 'c, 'd, 'e>(
     let res;
 
     if haystack_idx == end_idx {
+        // Fuse single-character submatches with submatch for penultimate character in order to
+        // not allocate list of submatches for single characters.
         if let Some(idx2) = remaining_occurs.next() {
             let is_contiguous2 = idx1 + 1 == *idx2;
             let score1 = heatmap[idx1 as usize];
@@ -323,7 +378,7 @@ fn top_down_submatch_at<'a, 'b, 'c, 'd, 'e>(
                 score: score2,
                 position: *idx2,
                 contiguous_count: 0,
-                prev: -1, // Does not get filled out - terminal submatch.
+                prev: TERMIAL_SUBMATCH, // Does not get filled out - terminal submatch.
             };
 
             for idx3 in remaining_occurs {
@@ -894,4 +949,19 @@ fn fuzzy_match10() {
         haystack,
     );
     assert_eq!(m, Match { score: 142, positions: vec![12, 13, 22, 27, 28] });
+}
+
+#[test]
+fn fuzzy_match11() {
+    let needle = "s";
+    let haystack = "*scratch*";
+    let mut h = Vec::new();
+    let heatmap = heatmap(haystack, &[], &mut h);
+    let m = fuzzy_match_test(
+        heatmap,
+        needle,
+        haystack,
+    );
+    let expected_idx = 1;
+    assert_eq!(m, Match { score: heatmap[expected_idx as usize], positions: vec![expected_idx] });
 }
