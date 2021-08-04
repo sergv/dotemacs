@@ -1812,6 +1812,7 @@ like.")
 (defvar ivy-highlight-functions-alist
   '((ivy--regex-ignore-order . ivy--highlight-ignore-order)
     (ivy--regex-fuzzy . ivy--highlight-fuzzy)
+    (ivy--regex-fuzzy-filenames . ivy--highlight-fuzzy-filenames)
     (ivy--regex-plus . ivy--highlight-default))
   "An alist of highlighting functions for each regex builder function.")
 
@@ -2975,6 +2976,8 @@ Insert .* between each char."
         (setq ivy--subexps (length (match-string 2 str))))
     str))
 
+(defalias 'ivy--regex-fuzzy-filenames #'ivy--regex-fuzzy)
+
 (defcustom ivy-fixed-height-minibuffer nil
   "When non nil, fix the height of the minibuffer during ivy completion.
 This effectively sets the minimum height at this level to `ivy-height' and
@@ -3512,9 +3515,11 @@ height < `ivy-height', auto-shrink the minibuffer."
 (declare-function flx-score "ext:flx")
 
 (defvar ivy--flx-cache nil)
+(defvar ivy--flx-filenames-cache nil)
 
 (with-eval-after-load 'flx
-  (setq ivy--flx-cache (flx-make-string-cache)))
+  (setq ivy--flx-cache (flx-make-string-cache)
+        ivy--flx-filename-cache (flx-make-filename-cache)))
 
 (defun ivy-toggle-case-fold ()
   "Toggle `case-fold-search' for Ivy operations.
@@ -3653,7 +3658,9 @@ The alist VAL is a sorting function with the signature of
   (let ((default-directory ivy--directory))
     (sort (copy-sequence candidates) #'file-newer-than-file-p)))
 
-(defvar ivy--flx-featurep (require 'flx nil 'noerror))
+(defvar ivy--flx-featurep
+  (or (require 'flx nil 'noerror)
+      use-foreign-libraries?))
 
 (defun ivy--sort (name candidates)
   "Re-sort candidates by NAME.
@@ -3664,6 +3671,9 @@ All CANDIDATES are assumed to match NAME."
           ((and ivy--flx-featurep
                 (eq ivy--regex-function 'ivy--regex-fuzzy))
            (ivy--flx-sort name candidates))
+          ((and ivy--flx-featurep
+                (eq ivy--regex-function 'ivy--regex-fuzzy-filenames))
+           (ivy--flx-sort-filenames name candidates))
           (t
            candidates))))
 
@@ -3769,7 +3779,7 @@ CANDS are the current candidates."
                      ((and (not empty)
                            (not (eq caller 'swiper))
                            (not (and ivy--flx-featurep
-                                     (eq ivy--regex-function 'ivy--regex-fuzzy)
+                                     (memq ivy--regex-function '(ivy--regex-fuzzy ivy--regex-fuzzy-filenames))
                                      ;; Limit to configured number of candidates
                                      (null (nthcdr ivy-flx-limit cands))))
                            ;; If there was a preselected candidate, don't try to
@@ -3906,7 +3916,7 @@ N wraps around."
           'native
         'elisp))
 
-(defun ivy--flx-sort (name cands)
+(defun ivy--flx-sort-impl (name cands match-filenames?)
   "Sort according to closeness to string NAME the string list CANDS."
   (condition-case nil
       (let* ((bolp (= (string-to-char name) ?^))
@@ -3941,28 +3951,40 @@ N wraps around."
          ;; Compute all of the flx scores in one pass and sort
          (pcase ivy--flx-sort--backend
            (`native (rust-native-score-matches
+                     (if match-filenames? [?/] [])
                      flx-name
                      cands-to-sort))
            (`elisp
-            (mapcar #'car
-                    (sort (mapcar
-                           (lambda (cand)
-                             (cons cand
-                                   (car (flx-score cand flx-name ivy--flx-cache))))
-                           cands-to-sort)
-                          (lambda (c1 c2)
-                            ;; Break ties by length
-                            (if (/= (cdr c1) (cdr c2))
-                                (> (cdr c1)
-                                   (cdr c2))
-                              (< (length (car c1))
-                                 (length (car c2))))))))
+            (let ((cache (if match-filenames?
+                             ivy--flx-cache
+                           ivy--flx-filename-cache)))
+              (mapcar #'car
+                      (sort (mapcar
+                             (lambda (cand)
+                               (cons cand
+                                     (car (flx-score cand flx-name cache))))
+                             cands-to-sort)
+                            (lambda (c1 c2)
+                              ;; Break ties by length
+                              (if (/= (cdr c1) (cdr c2))
+                                  (> (cdr c1)
+                                     (cdr c2))
+                                (< (length (car c1))
+                                   (length (car c2)))))))))
            (invalid
             (error "Invalid ivy--flx-sort--backend: %s" invalid)))
 
          ;; Add the unsorted candidates
          cands-left))
     (error cands)))
+
+(defun ivy--flx-sort (name cands)
+  "Sort according to closeness to string NAME the string list CANDS."
+  (ivy--flx-sort-impl name cands nil))
+
+(defun ivy--flx-sort-filenames (name cands)
+  "Sort according to closeness to string NAME the string list CANDS."
+  (ivy--flx-sort-impl name cands t))
 
 (defun ivy--truncate-string (str width)
   "Truncate STR to WIDTH."
@@ -4027,21 +4049,29 @@ It has it by default, but the current theme also needs to set it."
         (cl-incf i))))
   str)
 
-(defun ivy--highlight-fuzzy (str)
+(defun ivy--highlight-fuzzy-impl (str match-filenames?)
   "Highlight STR, using the fuzzy method."
   (if (and ivy--flx-featurep
-           (eq (ivy-alist-setting ivy-re-builders-alist) 'ivy--regex-fuzzy))
+           (memq (ivy-alist-setting ivy-re-builders-alist) '(ivy--regex-fuzzy ivy--regex-fuzzy-filenames)))
       (let ((flx-name (string-remove-prefix "^" ivy-text)))
         (ivy--flx-propertize
          (cons (pcase ivy--flx-sort--backend
                  (`native
-                  (rust-native-score-single-match flx-name str))
+                  (rust-native-score-single-match (if match-filenames? [?/] []) flx-name str))
                  (`elisp
-                  (flx-score str flx-name ivy--flx-cache))
+                  (flx-score str flx-name (if match-filenames? ivy--flx-filename-cache ivy--flx-cache)))
                  (invalid
                   (error "Invalid ivy--flx-sort--backend: %s" invalid)))
                str)))
     (ivy--highlight-default str)))
+
+(defun ivy--highlight-fuzzy (str)
+  "Highlight STR, using the fuzzy method."
+  (ivy--highlight-fuzzy-impl str nil))
+
+(defun ivy--highlight-fuzzy-filenames (str)
+  "Highlight STR, using the fuzzy method for filenames."
+  (ivy--highlight-fuzzy-impl str t))
 
 (defcustom ivy-use-group-face-if-no-groups t
   "If t, and the expression has no subgroups, highlight whole match as a group.
@@ -4793,7 +4823,8 @@ Don't finish completion."
 (defcustom ivy-preferred-re-builders
   '((ivy--regex-plus . "ivy")
     (ivy--regex-ignore-order . "order")
-    (ivy--regex-fuzzy . "fuzzy"))
+    (ivy--regex-fuzzy . "fuzzy")
+    (ivy--regex-fuzzy-filenames . "fuzzy-filenames"))
   "Alist of preferred re-builders with display names.
 This list can be rotated with `ivy-rotate-preferred-builders'."
   :type '(alist :key-type function :value-type string))
