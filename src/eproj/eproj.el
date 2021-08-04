@@ -1175,10 +1175,10 @@ Returns list of (tag-name tag project) lists."
 
 (add-to-list 'ivy-sort-functions-alist
              '(eproj-switch-to-file-or-buffer . nil))
-;; (add-to-list 'ivy-sort-matches-functions-alist
-;;              '(eproj-switch-to-file-or-buffer . ivy--flx-sort))
+(add-to-list 'ivy-sort-matches-functions-alist
+             '(eproj-switch-to-file-or-buffer . ivy--flx-sort-filenames))
 (add-to-list 'ivy-re-builders-alist
-             '(eproj-switch-to-file-or-buffer . ivy--regex-fuzzy))
+             '(eproj-switch-to-file-or-buffer . ivy--regex-fuzzy-filenames))
 
 ;;;###autoload
 (defun eproj-switch-to-file-or-buffer (proj include-related-projects? include-all-buffers?)
