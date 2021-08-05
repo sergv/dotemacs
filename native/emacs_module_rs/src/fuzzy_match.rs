@@ -72,28 +72,108 @@ impl Positions for () {
 mod occurs {
     use super::*;
 
-    pub struct State<'a> {
-        m: HashMap<char, Vec<StrIdx>>,
-        needle: &'a str,
-        pub needle_size: usize,
+    type Positions<'a> = &'a [StrIdx];
+
+    pub struct PositionsStore {
+        ptr: usize,
+        len: usize,
+        cap: usize,
     }
 
-    pub fn prepare<'a, 'b>(needle: &'a str, haystack: &'b str) -> State<'a> {
+    impl PositionsStore {
+        fn from_vec<'a>(mut v: Vec<Positions<'a>>) -> Self {
+            let s = PositionsStore {
+                ptr: v.as_mut_ptr() as usize,
+                len: v.len(),
+                cap: v.capacity(),
+            };
+            std::mem::forget(v);
+            s
+        }
+
+        fn with_vec<'a, 'b, F, A>(
+            &'a mut self,
+            f: F
+        ) -> A
+            where
+            F: for<'d> FnOnce(&'d mut Vec<Positions<'b>>) -> A
+        {
+            let mut v = unsafe {
+                Vec::from_raw_parts(self.ptr as *mut Positions<'b>, self.len, self.cap)
+            };
+            let res = f(&mut v);
+            *self = PositionsStore::from_vec(v);
+            res
+        }
+
+        // Take care since vec can be mutated  while original PositionsState is still being retained.
+        unsafe fn as_vec<'a>(&mut self) -> Vec<Positions<'a>>
+        {
+            // Not much need to zero everything out if we require user to check that by hand!!
+            // let res = Vec::from_raw_parts(self.ptr as *mut CharPositions<'a>, self.len, self.cap);
+            // self.ptr = std::ptr::null::<&'a [StrIdx]>() as usize;
+            // self.len = 0;
+            // self.cap = 0;
+            // res
+            Vec::from_raw_parts(self.ptr as *mut Positions<'a>, self.len, self.cap)
+        }
+    }
+
+    pub struct ReuseState {
+        pos_by_char: HashMap<char, Vec<StrIdx>>,
+        pos: PositionsStore,
+    }
+
+    impl Drop for ReuseState {
+        fn drop(&mut self) {
+            // If we reached this point then just clean up the vector - nothing will happen
+            // to the original PositionsState any more.
+            unsafe {
+                std::mem::drop(self.pos.as_vec())
+            }
+        }
+    }
+
+    impl ReuseState {
+        pub fn new() -> ReuseState {
+            ReuseState {
+                pos_by_char: HashMap::new(),
+                pos: PositionsStore::from_vec(Vec::new()),
+            }
+        }
+    }
+
+    pub fn with_occurrences<'a, 'b, 'c, F, A>(
+        reuse: &'a mut ReuseState,
+        needle: &'b str,
+        haystack: &'c str,
+        f: F,
+    ) -> A
+        where
+        F: for<'d> FnOnce(usize, Option<&'d Vec<&'a [StrIdx]>>) -> A
+    {
         let size = needle.chars().count();
-        let mut m: HashMap<char, Vec<StrIdx>> = HashMap::with_capacity(size);
+
+        let pos_by_char = &mut reuse.pos_by_char;
+        let pos = &mut reuse.pos;
+
+        // Reuse vectors inside hash map instead of creating new ones.
+        for v in pos_by_char.values_mut() {
+            v.clear();
+        }
         for c in needle.chars() {
-            m.entry(c).or_insert_with(|| Vec::new());
+            pos_by_char.entry(c).or_insert_with(|| Vec::new());
         }
 
         for (pos, c) in haystack.chars().enumerate() {
-            match m.get_mut(&c) {
+            match pos_by_char.get_mut(&c) {
                 None => (),
                 Some(ps) => ps.push(pos as StrIdx),
             }
             if is_capital(c) {
                 let mut lower = c.to_lowercase();
                 if lower.len() == 1 {
-                    match m.get_mut(&lower.next().unwrap()) {
+                    match pos_by_char.get_mut(&lower.next().unwrap()) {
                         None => (),
                         Some(ps) => ps.push(pos as StrIdx),
                     }
@@ -101,22 +181,19 @@ mod occurs {
             }
         }
 
-        State { m, needle, needle_size: size }
-    }
-
-    impl<'a> State<'a> {
-        pub fn get_positions<'b>(&'b self) -> Option<Vec<&'b [StrIdx]>> {
-            if self.m.values().any(|v| v.is_empty()) {
-                return None;
-            }
-
-            let mut res = Vec::with_capacity(self.needle_size);
-            for c in self.needle.chars() {
+        // Lifetime of created vector is restricted so everything’s ok.
+        pos.with_vec(move |positions: &mut Vec<&'a [StrIdx]>| {
+            positions.clear();
+            for c in needle.chars() {
                 // Each character was initialized in the prepare function so unwrap is safe.
-                res.push(self.m.get(&c).unwrap() as &[StrIdx])
+                let ps = pos_by_char.get(&c).unwrap() as &'a [StrIdx];
+                if ps.is_empty() {
+                    return f(size, None);
+                }
+                positions.push(ps)
             }
-            Some(res)
-        }
+            f(size, Some(positions))
+        })
     }
 }
 
@@ -136,6 +213,7 @@ fn bigger<'a, T: Ord>(x: T, xs: &'a [T]) -> &'a [T] {
 }
 
 pub struct ReuseState {
+    occurs: occurs::ReuseState,
     cache: HashMap<(StrIdx, StrIdx), Option<SubmatchIdx>>,
     submatches: Vec<Submatch>,
     heatmap: Vec<Heat>,
@@ -144,6 +222,7 @@ pub struct ReuseState {
 impl ReuseState {
     pub fn new() -> Self {
         ReuseState {
+            occurs: occurs::ReuseState::new(),
             cache: HashMap::new(),
             submatches: Vec::new(),
             heatmap: Vec::new(),
@@ -151,11 +230,11 @@ impl ReuseState {
     }
 }
 
-pub fn fuzzy_match<PS>(
-    needle: &str,
-    haystack: &str,
-    group_seps: &[char],
-    reuse_state: &mut ReuseState,
+pub fn fuzzy_match<'a, 'b, 'c, 'd, PS>(
+    needle: &'a str,
+    haystack: &'b str,
+    group_seps: &'c [char],
+    reuse_state: &'d mut ReuseState,
 ) -> Match<PS>
     where
     PS: Positions,
@@ -163,6 +242,7 @@ pub fn fuzzy_match<PS>(
     heatmap(haystack, group_seps, &mut reuse_state.heatmap);
 
     fuzzy_match_impl(
+       &mut reuse_state.occurs,
         needle,
         haystack,
         &mut reuse_state.cache,
@@ -171,61 +251,62 @@ pub fn fuzzy_match<PS>(
     )
 }
 
-pub fn fuzzy_match_impl<PS>(
-    needle: &str,
-    haystack: &str,
-    cache: &mut HashMap<(StrIdx, StrIdx), Option<SubmatchIdx>>,
-    submatches: &mut Vec<Submatch>,
-    heatmap: &[Heat],
+pub fn fuzzy_match_impl<'a, 'b, 'c, 'd, 'e, 'f, PS>(
+    occurs_reuse: &'a mut occurs::ReuseState,
+    needle: &'b str,
+    haystack: &'c str,
+    cache: &'d mut HashMap<(StrIdx, StrIdx), Option<SubmatchIdx>>,
+    submatches: &'e mut Vec<Submatch>,
+    heatmap: &'f [Heat],
 ) -> Match<PS>
-    where
+where
     PS: Positions,
 {
     if needle.is_empty() {
         return no_match();
     }
 
-    let s = occurs::prepare(needle, haystack);
-    let positions = match s.get_positions() {
-        None => return no_match(),
-        Some(x) => x,
-    };
+    occurs::with_occurrences(occurs_reuse, needle, haystack, |needle_size, positions| {
+        let positions: &Vec<&[StrIdx]> = match positions {
+            None => return no_match(),
+            Some(x) => x,
+        };
 
-    cache.clear();
-    submatches.clear();
+        cache.clear();
+        submatches.clear();
 
-    if s.needle_size == 1 {
-        let submatch = match_singleton_needle(
-            &heatmap,
-            &positions[0],
-        );
+        if needle_size == 1 {
+            let submatch = match_singleton_needle(&heatmap, &positions[0]);
+            match submatch {
+                None => return no_match(),
+                Some(s) => Match {
+                    score: s.score,
+                    positions: Positions::singleton(s.position),
+                },
+            }
+        } else {
+            let submatch = top_down_match(
+                cache,
+                submatches,
+                &heatmap,
+                &positions,
+                0,
+                -1,
+                needle_size as StrIdx - 1,
+            );
 
-        match submatch {
-            None => no_match(),
-            Some(s) => {
-                Match { score: s.score, positions: Positions::singleton(s.position) }
+            match submatch {
+                None => return no_match(),
+                Some(sub_idx) => {
+                    let score = submatches[sub_idx as usize].score;
+                    Match {
+                        score,
+                        positions: Positions::infer_positions(sub_idx, submatches),
+                    }
+                }
             }
         }
-    } else {
-        let submatch = top_down_match(
-            cache,
-            submatches,
-            &heatmap,
-            &positions,
-            0,
-            -1,
-            s.needle_size as StrIdx - 1,
-        );
-
-        match submatch {
-            None => no_match(),
-            Some(sub_idx) => {
-                let score = submatches[sub_idx as usize].score;
-                Match { score, positions: Positions::infer_positions(sub_idx, &submatches) }
-            }
-        }
-
-    }
+    })
 }
 
 
@@ -319,7 +400,7 @@ fn top_down_match<'a, 'b, 'c, 'd, 'e>(
                 }
             }
         }
-        }
+    }
 
     cache.insert(key, max_submatch.clone());
     max_submatch
@@ -838,6 +919,7 @@ pub fn fuzzy_match_test(
 {
     let s = &mut ReuseState::new();
     fuzzy_match_impl(
+        &mut s.occurs,
         needle,
         haystack,
         &mut s.cache,
