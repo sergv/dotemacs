@@ -16,16 +16,22 @@
 (defvar eproj-ctags--exec
   (or (let ((universal-ctags-exec
              (platform-dependent-executable (concat +execs-path+ "/universal-ctags")))
-	          (ctags-exec
+            (ctags-universal-exec
+             (platform-dependent-executable (concat +execs-path+ "/universal-ctags")))
+            (ctags-exec
              (platform-dependent-executable (concat +execs-path+ "/ctags"))))
-				(or
+        (or
          (when (and universal-ctags-exec
                     (file-exists-p universal-ctags-exec))
            universal-ctags-exec)
+         (when (and ctags-universal-exec
+                    (file-exists-p ctags-universal-exec))
+           ctags-universal-exec)
          (when (and ctags-exec
                     (file-exists-p ctags-exec))
            ctags-exec)))
       (cached-executable-find "universal-ctags")
+      (cached-executable-find "ctags-universal")
       (cached-executable-find "ctags")))
 
 (defvar *ctags-language-flags*
