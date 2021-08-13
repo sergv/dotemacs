@@ -40,7 +40,6 @@ common ghc-options
     ghc-options:
       -Wall-missed-specialisations
       -Wcompat
-      -Whi-shadowing
       -Widentities
       -Wincomplete-record-updates
       -Wincomplete-uni-patterns
