@@ -25,11 +25,11 @@
                     mode
                     'indent-offset)))
       (let ((res (car entry)))
-        (cl-assert (integerp res) nil
-                   "language-specific.%s.indent-offset entry in .eproj-info of %s must be an integer, but got %s"
-                   mode
-                   (eproj-project/root proj)
-                   res)
+        (unless (integerp res)
+          (error "language-specific.%s.indent-offset entry in .eproj-info of %s must be an integer, but got %s"
+                 mode
+                 (eproj-project/root proj)
+                 res))
         res)
     default))
 
@@ -43,11 +43,11 @@
                       'flycheck-checker
                       effective-mode)))
         (let ((res (car entry)))
-          (cl-assert (symbolp res) nil
-                     "flycheck-checker.%s entry in .eproj-info of %s must be a boolean, but got %s"
-                     effective-mode
-                     (eproj-project/root proj)
-                     res)
+          (unless (symbolp res)
+            (error "flycheck-checker.%s entry in .eproj-info of %s must be a boolean, but got %s"
+                   effective-mode
+                   (eproj-project/root proj)
+                   res))
           res)
       default)))
 
@@ -61,13 +61,12 @@
                       'flycheck-disabled-checkers
                       effective-mode)))
         (let ((res entry))
-          (cl-assert (and (listp res)
-                          (-all-p #'symbolp res))
-                     nil
-                     "flycheck-disabled-checkers.%s entry in .eproj-info of %s must be a list of symbols, but got %s"
-                     effective-mode
-                     (eproj-project/root proj)
-                     res)
+          (unless (and (listp res)
+                       (-all-p #'symbolp res))
+            (error "flycheck-disabled-checkers.%s entry in .eproj-info of %s must be a list of symbols, but got %s"
+                   effective-mode
+                   (eproj-project/root proj)
+                   res))
           res)
       default)))
 
@@ -80,14 +79,13 @@
                       'local-variables
                       effective-mode)))
         (let ((res (cdr entry)))
-          (cl-assert (--all? (and (symbolp (car it))
-                                  (null (cddr it)))
-                             res)
-                     nil
-                     "local-variables.%s entry in .eproj-info of %s must be an associative list of (<var-name-symbol> <value>) lists, but got %s"
-                     effective-mode
-                     (eproj-project/root proj)
-                     res)
+          (unless (--all? (and (symbolp (car it))
+                               (null (cddr it)))
+                          res)
+            (error "local-variables.%s entry in .eproj-info of %s must be an associative list of (<var-name-symbol> <value>) lists, but got %s"
+                   effective-mode
+                   (eproj-project/root proj)
+                   res))
           res)
       default)))
 
