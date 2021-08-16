@@ -59,6 +59,9 @@
       ((and (= 1366 width)
             (= 768 height))
        120)
+      ((and (= 1024 width)
+            (= 600 height))
+       90)
       (t
        120))))
 
