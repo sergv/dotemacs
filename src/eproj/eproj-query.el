@@ -11,21 +11,29 @@
 ;; Predefined queries
 
 ;;;###autoload
-(defun eproj-query/rust/target-dir (proj &optional default)
+(defun eproj-query/build-dir (proj &optional default)
   (declare (pure t) (side-effect-free nil))
   (if-let ((p proj)
            (entry (eproj-project/query-aux-info-entry (eproj-project/aux-info p)
-                    'language-specific
-                    'rust-mode
-                    'target-dir)))
+                    'build-dir)))
       (let ((res (car entry)))
         (unless (or (stringp res)
                     (null res))
-          (error "language-specific.rust-mode.target-dir entry in .eproj-info of %s must be a string or nil, but got %s"
+          (error "build-dir entry in .eproj-info of %s must be a string or nil, but got %s"
                  (eproj-project/root proj)
                  res))
         res)
     default))
+
+;;;###autoload
+(defun eproj-query/fold-build-dir (proj if-undef if-def)
+  (if proj
+      (let* ((undef '#:undef)
+             (dir (eproj-query/build-dir proj undef)))
+        (if (eq dir undef)
+            (funcall if-undef)
+          (funcall if-def dir)))
+    (funcall if-undef)))
 
 ;;;###autoload
 (defun eproj-query/haskell/indent-offset (proj &optional default)
