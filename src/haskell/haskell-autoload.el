@@ -57,17 +57,18 @@
     ;; :back-verify haskell-blocks-verify-back
     )))
 
-(add-to-list 'auto-mode-alist '("\\.lhs\\'" . LaTeX-mode))
-(mmm-add-mode-ext-class 'LaTeX-mode "\\.lhs\\'" 'literate-haskell-latex)
-(mmm-add-mode-ext-class 'latex-mode "\\.lhs\\'" 'literate-haskell-latex)
-
 (add-to-list 'auto-mode-alist '("\\.ghci\\'" . ghci-script-mode))
 (add-to-list 'auto-mode-alist '("\\.\\(?:hcr\\|dump-\\(?:simpl\\|splices\\)\\)\\'" . ghc-core-mode))
 (add-to-list 'auto-mode-alist '("cabal\\.\\(?:config\\|project\\).*\\'" . haskell-cabal-mode))
 (add-to-list 'auto-mode-alist '("\\.cabal\\(?:[./\\]config.*\\)?\\'" . haskell-cabal-mode))
-(add-to-list 'auto-mode-alist '("\\.hs\\(?:-boot\\)?\\'" . haskell-mode))
-(add-to-list 'auto-mode-alist '("\\.hs\\(?:ig\\|c\\)\\'" . haskell-mode))
-(add-to-list 'auto-mode-alist '("\\.lhs\\(?:-boot\\)?\\'" . latex-mode))
+(add-to-list 'auto-mode-alist '("\\.hs\\(?:-boot\\|ig\\|c\\)?\\'" . haskell-mode))
+
+(add-to-list 'auto-mode-alist '("\\.lhs\\(?:-boot\\)?\\'" . literate-haskell-mode))
+
+;; (add-to-list 'auto-mode-alist '("\\.lhs\\(?:-boot\\)?\\'" . latex-mode))
+
+(dolist (mode '(LaTeX-mode latex-mode))
+  (mmm-add-mode-ext-class mode "\\.lhs\\(?:-boot\\)\\'" 'literate-haskell-latex))
 
 (add-to-list 'interpreter-mode-alist '("runghc" . haskell-mode))
 (add-to-list 'interpreter-mode-alist '("runhaskell" . haskell-mode))
