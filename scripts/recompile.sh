@@ -64,8 +64,7 @@ rm -f \
    "third-party/clojure-mode/clojure-mode-autoloads.el" \
    "third-party/smartparens/smartparens-autoloads.el"  \
    "third-party/sml-mode/sml-mode-autoloads.el" \
-   "third-party/flycheck/flycheck-autoloads.el" \
-   "third-party/elm-mode/elm-mode-autoloads.el"
+   "third-party/flycheck/flycheck-autoloads.el"
 
 inform "Removing old *.elc files"
 find -O3 . -name '*.elc' -delete
