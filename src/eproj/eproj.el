@@ -575,7 +575,8 @@ cache tags in."
     tag-file
     language-specific
     flycheck-checker
-    flycheck-disabled-checkers)
+    flycheck-disabled-checkers
+    build-dir)
   "List .eproj-info keys that are currently supported.")
 
 (defun eproj-read-eproj-info-file (root filename)
