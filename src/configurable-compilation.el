@@ -8,10 +8,10 @@
 
 (declare-function flycheck-rust-find-manifest "flycheck-rust")
 
-(defvar-local configurable-compilation-command-presets-var nil
-  "Variable with value of alist of (<symbol> . <string>) pairs
-where symbol is the user-visible name of the preset and string is
-the command to execute.")
+(defvar-local configurable-compilation-command-presets nil
+  "Alist of (<symbol> . <string>) pairs where symbol is the
+user-visible name of the preset and string is the command to
+execute.")
 
 (defvar configurable-compilation-last-command (make-hash-table :test #'eq)
   "Mapping between major modes and last chosen compilation command.")
@@ -28,9 +28,8 @@ the command to execute.")
 (defvar-local compilation-command nil
   "Either literal string or symbol naming a variable that contains command to use.")
 
+
 (defun configurable-compilation--get-presets ()
-  (cl-assert (symbolp configurable-compilation-command-presets-var))
-  (cl-assert (boundp configurable-compilation-command-presets-var))
   (aif (or (and (stringp compilation-command)
                 compilation-command)
            (and (symbolp compilation-command)
@@ -38,19 +37,22 @@ the command to execute.")
                 (eval compilation-command)))
       (if (stringp it)
           (cons (cons 'custom it)
-                (symbol-value configurable-compilation-command-presets-var))
+                configurable-compilation-command-presets)
         (error "`compilation-command' evaluated to non-string"))
-    (symbol-value configurable-compilation-command-presets-var)))
+    configurable-compilation-command-presets))
 
-(defun configurable-compilation-install-command-presets! (presets-var history-var compilation-mode make-buffer-name)
-  (cl-assert (symbolp presets-var))
+(defun configurable-compilation-install-command-presets! (presets history-var compilation-mode make-buffer-name)
+  (cl-assert (--all? (and (consp it)
+                          (symbolp (car it))
+                          (stringp (cdr it)))
+                     presets))
   (cl-assert (symbolp history-var))
   (cl-assert (symbolp compilation-mode))
-  (setq-local configurable-compilation-command-presets-var presets-var)
+  (setq-local configurable-compilation-command-presets presets)
   (unless (gethash major-mode configurable-compilation-last-command)
     (puthash major-mode
              (or (cdr-safe (assq 'build (configurable-compilation--get-presets)))
-                 (error "Failed to get default build preset from configurable-compilation-command-presets-var: %s" configurable-compilation-command-presets-var))
+                 (error "Failed to get default build preset from %s" configurable-compilation-command-presets))
              configurable-compilation-last-command))
   (setq-local configurable-compilation-history-var history-var
               configurable-compilation-mode compilation-mode
