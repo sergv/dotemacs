@@ -20,10 +20,11 @@
 (add-hook 'ghc-profiling-mode-hook #'ghc-profiling-mode-setup)
 (add-to-list 'auto-mode-alist '("\\.prof\\'" . ghc-profiling-mode))
 
-(add-hook 'dante-mode-hook
-          '(lambda ()
-             (flycheck-add-next-checker 'haskell-dante
-                                        '(warning . haskell-hlint))))
+(defun enable-hlint-after-dante-for-flycheck ()
+  (flycheck-add-next-checker 'haskell-dante
+                             '(warning . haskell-hlint)))
+
+(add-hook 'dante-mode-hook #'enable-hlint-after-dante-for-flycheck)
 
 
 (autoload 'vim:ghc-core-create-core "haskell-setup" nil t)
