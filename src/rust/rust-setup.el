@@ -24,16 +24,22 @@
 
 (require 'rust-autoloads)
 
+(defun flycheck-cargo--make-check-args (dir)
+  (append '("--offline")
+          (when dir
+            (list (format "--target-dir=%s"
+                          dir)))))
+
+(defvar flycheck-cargo--default-check-args
+  (flycheck-cargo--make-check-args (fold-platform-os-type "/tmp/target" "target")))
+
 (setf rust-indent-method-chain t
       rust-indent-where-clause t
 
       rust-playpen-url-format nil
       rust-shortener-url-format nil
 
-      flycheck-cargo-check-args
-      (list "--offline"
-            (format "--target-dir=%s"
-                    (fold-platform-os-type "/tmp/target" "target"))))
+      flycheck-cargo-check-args flycheck-cargo--default-check-args)
 
 (let ((cargo-home (getenv "CARGO_HOME"))
       (rustup-home (getenv "RUSTUP_HOME")))

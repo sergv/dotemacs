@@ -102,34 +102,45 @@ will be in different GHCi sessions."
   (and (directory-files d t "shell.nix\\|default.nix")
        (directory-files d t ".cabal$")))
 
-(defcustom dante-methods-alist
-  `((styx "styx.yaml" ("styx" "repl" dante-target))
-    (new-build "cabal.project\\(?:\\.local\\)?"
-               ("cabal" "new-repl" (or dante-target (dante-package-name) nil) "--builddir" ,(fold-platform-os-type "/tmp/dist/dante" "dist/dante"))
-               ("cabal" "new-repl" (or dante-target (dante-package-name) nil) "--builddir" ,(fold-platform-os-type "/tmp/dist/dante-repl" "dist/dante-repl")))
-    ; (snack ,(lambda (d) (directory-files d t "package\\.\\(yaml\\|nix\\)")) ("snack" "ghci" dante-target)) ; too easy to trigger, confuses too many people.
-    (new-impure-nix dante-cabal-new-nix
-                    ("nix-shell" "--run" (concat "cabal new-repl " (or dante-target (dante-package-name) "") " --builddir " ,(fold-platform-os-type "/tmp/dist/dante" "dist/dante")))
-                    ("nix-shell" "--run" (concat "cabal new-repl " (or dante-target (dante-package-name) "") " --builddir " ,(fold-platform-os-type "/tmp/dist/dante-repl" "dist/dante-repl"))))
-    (new-nix dante-cabal-new-nix
-             ("nix-shell" "--pure" "--run" (concat "cabal new-repl " (or dante-target (dante-package-name) "") " --builddir " ,(fold-platform-os-type "/tmp/dist/dante" "dist/dante")))
-             ("nix-shell" "--pure" "--run" (concat "cabal new-repl " (or dante-target (dante-package-name) "") " --builddir " ,(fold-platform-os-type "/tmp/dist/dante-repl" "dist/dante-repl"))))
-    (nix dante-cabal-nix
-         ("nix-shell" "--pure" "--run" (concat "cabal repl " (or dante-target "") " --builddir " ,(fold-platform-os-type "/tmp/dist/dante" "dist/dante")))
-         ("nix-shell" "--pure" "--run" (concat "cabal repl " (or dante-target "") " --builddir " ,(fold-platform-os-type "/tmp/dist/dante-repl" "dist/dante-repl"))))
-    (impure-nix dante-cabal-nix
-                ("nix-shell" "--run" (concat "cabal repl " (or dante-target "") " --builddir " ,(fold-platform-os-type "/tmp/dist/dante" "dist/dante")))
-                ("nix-shell" "--run" (concat "cabal repl " (or dante-target "") " --builddir " ,(fold-platform-os-type "/tmp/dist/dante-repl" "dist/dante-repl"))))
-    (nix-ghci ,(lambda (d) (directory-files d t "shell.nix\\|default.nix")) ("nix-shell" "--pure" "--run" "ghci"))
-    (stack "stack.yaml" ("stack" "repl" dante-target))
-    (mafia "mafia" ("mafia" "repl" dante-target))
-    (bare-cabal ,(lambda (d) (directory-files d t ".cabal$"))
-                ("cabal" "repl" dante-target "--builddir" ,(fold-platform-os-type "/tmp/dist/dante" "dist/dante"))
-                ("cabal" "repl" dante-target "--builddir" ,(fold-platform-os-type "/tmp/dist/dante-repl" "dist/dante-repl")))
-    (bare-v1-cabal ,(lambda (d) (directory-files d t "..cabal$"))
-                   ("cabal" "v1-repl" dante-target "--builddir" ,(fold-platform-os-type "/tmp/dist/dante" "dist/dante"))
-                   ("cabal" "v1-repl" dante-target "--builddir" ,(fold-platform-os-type "/tmp/dist/dante-repl" "dist/dante-repl")))
-    (bare-ghci ,(lambda (_) t) ("ghci")))
+(defun dante--make-methods (tmp)
+  (let ((build (when tmp
+                 (list "--builddir"
+                       (concat tmp "/dante"))))
+        (repl (when tmp
+                (list "--builddir"
+                      (concat tmp "/dante-repl")))))
+    `((styx "styx.yaml" ("styx" "repl" dante-target))
+      (new-build "cabal.project\\(?:\\.local\\)?"
+                 ("cabal" "new-repl" (or dante-target (dante-package-name) nil) ,@build)
+                 ("cabal" "new-repl" (or dante-target (dante-package-name) nil) ,@repl))
+                                        ; (snack ,(lambda (d) (directory-files d t "package\\.\\(yaml\\|nix\\)")) ("snack" "ghci" dante-target)) ; too easy to trigger, confuses too many people.
+      (new-impure-nix dante-cabal-new-nix
+                      ("nix-shell" "--run" (concat "cabal new-repl " (or dante-target (dante-package-name) "") ,(if build (concat " " (s-join " " build)))))
+                      ("nix-shell" "--run" (concat "cabal new-repl " (or dante-target (dante-package-name) "") ,(if repl (concat " " (s-join " " repl))))))
+      (new-nix dante-cabal-new-nix
+               ("nix-shell" "--pure" "--run" (concat "cabal new-repl " (or dante-target (dante-package-name) "") ,(if build (concat " " (s-join " " build)))))
+               ("nix-shell" "--pure" "--run" (concat "cabal new-repl " (or dante-target (dante-package-name) "") ,(if repl (concat " " (s-join " " repl))))))
+      (nix dante-cabal-nix
+           ("nix-shell" "--pure" "--run" (concat "cabal repl " (or dante-target "") ,(if build (concat " " (s-join " " build)))))
+           ("nix-shell" "--pure" "--run" (concat "cabal repl " (or dante-target "") ,(if repl (concat " " (s-join " " repl))))))
+      (impure-nix dante-cabal-nix
+                  ("nix-shell" "--run" (concat "cabal repl " (or dante-target "") ,(if build (concat " " (s-join " " build)))))
+                  ("nix-shell" "--run" (concat "cabal repl " (or dante-target "") ,(if repl (concat " " (s-join " " repl))))))
+      (nix-ghci ,(lambda (d) (directory-files d t "shell.nix\\|default.nix")) ("nix-shell" "--pure" "--run" "ghci"))
+      (stack "stack.yaml" ("stack" "repl" dante-target))
+      (mafia "mafia" ("mafia" "repl" dante-target))
+      (bare-cabal ,(lambda (d) (directory-files d t ".cabal$"))
+                  ("cabal" "repl" dante-target ,@build)
+                  ("cabal" "repl" dante-target ,@repl))
+      (bare-v1-cabal ,(lambda (d) (directory-files d t "..cabal$"))
+                     ("cabal" "v1-repl" dante-target ,@build)
+                     ("cabal" "v1-repl" dante-target ,@repl))
+      (bare-ghci ,(lambda (_) t) ("ghci")))))
+
+(defvar dante--default-methods
+  (dante--make-methods (fold-platform-os-type "/tmp/dist/dante" "dist/dante")))
+
+(defcustom dante-methods-alist dante--default-methods
   "How to automatically locate project roots and launch GHCi.
 This is an alist from method name to a pair of
 a `locate-dominating-file' argument and a command line."
