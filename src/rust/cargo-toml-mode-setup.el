@@ -11,7 +11,8 @@
 
 ;;;###autoload
 (defun cargo-toml-mode-setup ()
-  (rust-compilation-commands-install!))
+  (rust-compilation-commands-install!
+   (eproj-get-project-for-buf-lax (current-buffer))))
 
 ;;;###autoload
 (add-hook 'cargo-toml-mode-hook #'cargo-toml-mode-setup)
