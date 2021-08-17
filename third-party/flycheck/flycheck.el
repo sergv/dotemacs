@@ -9479,7 +9479,7 @@ See URL `https://github.com/commercialhaskell/stack'."
             "-x" (eval
                   (pcase major-mode
                     (`haskell-mode "hs")
-                    (`haskell-literate-mode "lhs")))
+                    ((or `literate-haskell-mode 'haskell-literate-mode) "lhs")))
             source)
   :error-patterns
   ((warning line-start (file-name) ":" line ":" column ":"
@@ -9504,7 +9504,7 @@ See URL `https://github.com/commercialhaskell/stack'."
   :error-filter
   (lambda (errors)
     (flycheck-sanitize-errors (flycheck-dedent-error-messages errors)))
-  :modes (haskell-mode haskell-literate-mode)
+  :modes (haskell-mode haskell-literate-mode literate-haskell-mode)
   :next-checkers ((warning . haskell-hlint))
   :working-directory (lambda (_)
                        (flycheck-haskell--find-stack-default-directory))
@@ -9538,7 +9538,7 @@ See URL `https://www.haskell.org/ghc/'."
             "-x" (eval
                   (pcase major-mode
                     (`haskell-mode "hs")
-                    (`haskell-literate-mode "lhs")))
+                    ((or `literate-haskell-mode 'haskell-literate-mode) "lhs")))
             source)
   :error-patterns
   ((warning line-start (file-name) ":" line ":" column ":"
@@ -9563,7 +9563,7 @@ See URL `https://www.haskell.org/ghc/'."
   :error-filter
   (lambda (errors)
     (flycheck-sanitize-errors (flycheck-dedent-error-messages errors)))
-  :modes (haskell-mode haskell-literate-mode)
+  :modes (haskell-mode haskell-literate-mode literate-haskell-mode)
   :next-checkers ((warning . haskell-hlint))
   :working-directory flycheck-haskell--ghc-find-default-directory)
 
@@ -9631,7 +9631,7 @@ See URL `https://github.com/ndmitchell/hlint'."
           ": Error: "
           (message (one-or-more (and (one-or-more (not (any ?\n))) ?\n)))
           line-end))
-  :modes (haskell-mode haskell-literate-mode))
+  :modes (haskell-mode haskell-literate-mode literate-haskell-mode))
 
 (flycheck-def-config-file-var flycheck-tidyrc html-tidy ".tidyrc")
 
