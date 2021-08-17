@@ -206,7 +206,6 @@ _a_lign  _t_: jump to topmost node start
 
     (pretty-ligatures-install!)
     (pretty-ligatures-install-special-haskell-ligatures!)
-    (haskell-compilation-commands-install!)
 
     (haskell-watch-register-current-buffer!)
     (setq-local flycheck-enhancements--get-project-root-for-current-buffer
@@ -216,6 +215,8 @@ _a_lign  _t_: jump to topmost node start
     (let (
           ;; NB may be nil.
           (proj (eproj-get-project-for-buf-lax (current-buffer))))
+
+      (haskell-compilation-commands-install! proj)
 
       (haskell-setup-indentation
        :offset (eproj-query/haskell/indent-offset proj))
@@ -484,7 +485,8 @@ _a_lign  _t_: jump to topmost node start
 (defun haskell-cabal-setup ()
   (init-common :use-comment t :use-yasnippet t)
   (haskell-setup-folding)
-  (haskell-compilation-commands-install!)
+  (let ((proj (eproj-get-project-for-buf-lax (current-buffer))))
+    (haskell-compilation-commands-install! proj))
   (fontify-merge-markers)
   (modify-syntax-entry ?. "_")
   (setup-indent-size 2)

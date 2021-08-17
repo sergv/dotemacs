@@ -48,20 +48,29 @@
   ;; When ‘rust-compile-command’ is set via local variables we don’t see it here when we’re called
   ;; by ‘rust-setup’. So checking whether it’s non-nil has to be delayed until runtime.
   (setq-local compilation-command 'rust-compile-command)
-  (let ((presets
-         (if proj
-             (let* ((undef '#:undef)
-                    (dir (eproj-query/rust/target-dir proj undef)))
-               (if (eq dir undef)
-                   rust-compilation-cargo-build-command-default-presets
-                 (rust-compilation--make-cargo-build-command-presets dir)))
-           rust-compilation-cargo-build-command-default-presets)))
+  (let* ((tmp (eproj-query/fold-build-dir
+               proj
+               (lambda ()
+                 (list rust-compilation-cargo-build-command-default-presets
+                       nil
+                       flycheck-cargo--default-check-args))
+               (lambda (dir)
+                 (list (rust-compilation--make-cargo-build-command-presets dir)
+                       (if dir
+                           (concat dir "/rls")
+                         nil)
+                       (flycheck-cargo--make-check-args dir)))))
+         (presets (first tmp))
+         (target-dir (second tmp))
+         (check-args (third tmp)))
 
     (configurable-compilation-install-command-presets!
      presets
      'rust-compile--build-presets-history
      'rust-compilation-mode
-     #'rust-get-compilation-buffer-name))
+     #'rust-get-compilation-buffer-name)
+    (setq-local lsp-rust-target-dir target-dir
+                flycheck-cargo-check-args check-args))
 
   (vim:local-emap "compile"  'vim:rust-compile)
   (vim:local-emap "c"        'vim:rust-compile)
