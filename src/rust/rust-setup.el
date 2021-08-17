@@ -357,25 +357,29 @@ _<tab>_: format region _h_: end of defun"
   (fontify-conflict-markers!)
   (setup-folding t '(:header-symbol "/" :length-min 3))
   (company-mode +1)
-  (setq-local company-backends
-              '(company-files
-                (company-eproj company-dabbrev-code company-keywords)
-                company-dabbrev)
-              ;; Don't skip any messages.
-              compilation-skip-threshold 0
-              compilation-buffer-name-function #'rust-get-compilation-buffer-name)
+  (setq-local ;; Don't skip any messages.
+   compilation-skip-threshold 0
+   compilation-buffer-name-function #'rust-get-compilation-buffer-name)
 
   (pretty-ligatures--install (append pretty-ligatures-c-like-symbols
                                      pretty-ligatures-python-like-words))
   (setq-local prettify-symbols-compose-predicate #'rust--prettify-symbols-compose-p)
-  (rust-compilation-commands-install!)
+
 
   (setf vim:shift-width rust-indent-offset
         tab-width rust-indent-offset)
 
-  (let (
-        ;; NB may be nil.
+  (let (;; NB may be nil.
         (proj (eproj-get-project-for-buf-lax (current-buffer))))
+
+    (setq-local company-backends
+                `(company-files
+                  ,(if proj
+                       '(company-eproj company-dabbrev-code company-keywords)
+                     '(company-dabbrev-code company-keywords))
+                  company-dabbrev))
+
+    (rust-compilation-commands-install! proj)
 
     (dolist (entry (eproj-query/local-variables proj major-mode nil))
       (set (make-local-variable (car entry)) (cadr entry)))
