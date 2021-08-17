@@ -32,7 +32,7 @@
 
 (defun haskell-compilation-commands-install! ()
   (configurable-compilation-install-command-presets!
-   'haskell-compilation-cabal-build-command-presets
+   haskell-compilation-cabal-build-command-presets
    'haskell-compile--build-presets-history
    'haskell-compilation-mode
    nil ;; Make buffer name.

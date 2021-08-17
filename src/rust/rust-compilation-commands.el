@@ -13,20 +13,19 @@
 (require 'rust-mode)
 (require 's)
 
-(defvar rust-compilation-cargo-build-command-presets
-  (let* ((tmp (fold-platform-os-type "/tmp/target" nil))
-         (cargo-command
-          (lambda (env cmd &rest args)
-            (format "cd \"%%s\" &&%s %s %s%s %s"
-                    (if env
-                        (concat " " env)
-                      "")
-                    rust-cargo-bin
-                    cmd
-                    (if tmp
-                        (concat " --target-dir=" tmp)
-                      "")
-                    (s-join " " args)))))
+(defun rust-compilation--make-cargo-build-command-presets (target-dir)
+  (let ((cargo-command
+         (lambda (env cmd &rest args)
+           (format "cd \"%%s\" &&%s %s %s%s %s"
+                   (if env
+                       (concat " " env)
+                     "")
+                   rust-cargo-bin
+                   cmd
+                   (if target-dir
+                       (concat " --target-dir=" target-dir)
+                     "")
+                   (s-join " " args)))))
     (-mapcat (lambda (entry)                 ;
                (let ((target (car entry)))
                  (if (listp target)
@@ -35,6 +34,9 @@
              `((build . ,(funcall cargo-command nil "build" "--color=always"))
                (test .  ,(funcall cargo-command "RUST_BACKTRACE=1" "test" "--color=always"))))))
 
+(defvar rust-compilation-cargo-build-command-default-presets
+  (rust-compilation--make-cargo-build-command-presets (fold-platform-os-type "/tmp/target" nil)))
+
 (defvar rust-compile--build-presets-history nil)
 (sessions-mark-global-var-for-save 'rust-compile--build-presets-history)
 
@@ -42,16 +44,24 @@
   "Variable to configure via file local variables to set custom compilation command for current file.")
 (put 'rust-compile-command 'safe-local-variable #'stringp)
 
-(defun rust-compilation-commands-install! ()
+(defun rust-compilation-commands-install! (proj)
   ;; When ‘rust-compile-command’ is set via local variables we don’t see it here when we’re called
   ;; by ‘rust-setup’. So checking whether it’s non-nil has to be delayed until runtime.
   (setq-local compilation-command 'rust-compile-command)
+  (let ((presets
+         (if proj
+             (let* ((undef '#:undef)
+                    (dir (eproj-query/rust/target-dir proj undef)))
+               (if (eq dir undef)
+                   rust-compilation-cargo-build-command-default-presets
+                 (rust-compilation--make-cargo-build-command-presets dir)))
+           rust-compilation-cargo-build-command-default-presets)))
 
-  (configurable-compilation-install-command-presets!
-   'rust-compilation-cargo-build-command-presets
-   'rust-compile--build-presets-history
-   'rust-compilation-mode
-   #'rust-get-compilation-buffer-name)
+    (configurable-compilation-install-command-presets!
+     presets
+     'rust-compile--build-presets-history
+     'rust-compilation-mode
+     #'rust-get-compilation-buffer-name))
 
   (vim:local-emap "compile"  'vim:rust-compile)
   (vim:local-emap "c"        'vim:rust-compile)
