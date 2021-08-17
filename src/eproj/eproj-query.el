@@ -11,6 +11,23 @@
 ;; Predefined queries
 
 ;;;###autoload
+(defun eproj-query/rust/target-dir (proj &optional default)
+  (declare (pure t) (side-effect-free nil))
+  (if-let ((p proj)
+           (entry (eproj-project/query-aux-info-entry (eproj-project/aux-info p)
+                    'language-specific
+                    'rust-mode
+                    'target-dir)))
+      (let ((res (car entry)))
+        (unless (or (stringp res)
+                    (null res))
+          (error "language-specific.rust-mode.target-dir entry in .eproj-info of %s must be a string or nil, but got %s"
+                 (eproj-project/root proj)
+                 res))
+        res)
+    default))
+
+;;;###autoload
 (defun eproj-query/haskell/indent-offset (proj &optional default)
   (declare (pure t) (side-effect-free nil))
   (eproj-query/any-mode/indent-offset proj 'haskell-mode default))
