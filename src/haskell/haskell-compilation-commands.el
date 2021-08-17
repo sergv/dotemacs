@@ -9,16 +9,15 @@
 (require 'configurable-compilation)
 (require 's)
 
-(defvar haskell-compilation-cabal-build-command-presets
-  (let* ((tmp (fold-platform-os-type "/tmp/dist" nil))
-         (cabal-command
-          (lambda (cmd &rest args)
-            (format "cd \"%%s\" && cabal %s%s %s"
-                    cmd
-                    (if tmp
-                        (concat " --builddir=" tmp)
-                      "")
-                    (s-join " " args)))))
+(defun haskell-compilation--make-cabal-build-command-presets (tmp)
+  (let ((cabal-command
+         (lambda (cmd &rest args)
+           (format "cd \"%%s\" && cabal %s%s %s"
+                   cmd
+                   (if tmp
+                       (concat " --builddir=" tmp)
+                     "")
+                   (s-join " " args)))))
     (-mapcat (lambda (entry)                 ;
                (let ((target (car entry)))
                  (if (listp target)
@@ -30,13 +29,26 @@
                (test .  ,(funcall cabal-command "test" "--test-show-details=direct"))
                (bench . ,(funcall cabal-command "bench"))))))
 
-(defun haskell-compilation-commands-install! ()
-  (configurable-compilation-install-command-presets!
-   haskell-compilation-cabal-build-command-presets
-   'haskell-compile--build-presets-history
-   'haskell-compilation-mode
-   nil ;; Make buffer name.
-   )
+(defvar haskell-compilation--default-cabal-build-command-presets
+  (haskell-compilation--make-cabal-build-command-presets (fold-platform-os-type "/tmp/dist" nil)))
+
+(defun haskell-compilation-commands-install! (proj)
+  (let* ((presets (eproj-query/fold-build-dir
+                   proj
+                   (constantly (cons haskell-compilation--default-cabal-build-command-presets
+                                     dante--default-methods))
+                   (lambda (dir)
+                     (cons (haskell-compilation--make-cabal-build-command-presets dir)
+                           (dante--make-methods dir)))))
+         (comp-commands (car presets))
+         (dante-check-and-repl-methods (cdr presets)))
+    (configurable-compilation-install-command-presets!
+     comp-commands
+     'haskell-compile--build-presets-history
+     'haskell-compilation-mode
+     nil ;; Make buffer name.
+     )
+    (setq-local dante-methods-alist dante-check-and-repl-methods))
 
   (vim:local-emap "compile"  'vim:haskell-compile)
   (vim:local-emap "c"        'vim:haskell-compile)
