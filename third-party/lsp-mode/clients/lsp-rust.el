@@ -24,6 +24,8 @@
 
 ;;; Code:
 
+(require 'common)
+
 (require 'lsp-mode)
 (require 'ht)
 (require 'dash)
@@ -1056,6 +1058,8 @@ and run a compilation"
 (cl-defun lsp-rust-find-parent-module (&key display-action)
   "Find parent module of current module."
   (interactive)
+  (lsp--check-capability "experimental/parentModule"
+    lsp-rust--has-experimental-parent-module-cap)
   (lsp-find-locations "experimental/parentModule" nil :display-action display-action))
 
 (defun lsp-rust-analyzer-open-cargo-toml (&optional new-window)
@@ -1067,6 +1071,8 @@ https://github.com/rust-analyzer/rust-analyzer/blob/master/docs/dev/lsp-extensio
 If NEW-WINDOW (interactively the prefix argument) is non-nil,
 open in a new window."
   (interactive "P")
+  (lsp--check-capability "experimental/openCargoToml"
+    lsp-rust--has-experimental-open-cargo-toml-cap)
   (-if-let (workspace (lsp-find-workspace 'rust-analyzer))
       (-if-let* ((response (with-lsp-workspace workspace
                              (lsp-send-request (lsp-make-request
@@ -1078,7 +1084,6 @@ open in a new window."
                    (lsp--uri-to-path uri))
         (lsp--warn "Couldn't find a Cargo.toml file or your version of rust-analyzer doesn't support this extension"))
     (lsp--error "OpenCargoToml is an extension available only with rust-analyzer")))
-
 
 (defun lsp-rust-analyzer--related-tests ()
   "Get runnable test items related to the current TextDocumentPosition.
@@ -1132,6 +1137,24 @@ https://github.com/rust-analyzer/rust-analyzer/blob/master/docs/dev/lsp-extensio
   "Move item under cursor or selection down"
   (interactive)
   (lsp-rust-analyzer-move-item "Down"))
+
+
+(defvar-local lsp-rust--has-experimental-parent-module-cap +undef+)
+(defvar-local lsp-rust--has-experimental-open-cargo-toml-cap +undef+)
+
+;;;###autoload
+(defmacro lsp--check-capability (capability var)
+  (declare (indent 1))
+  (let ((capability-call (cl-reduce (lambda (acc s)
+                                      `(lsp--capability ,s ,acc))
+                                    (split-string capability "/")
+                                    :initial-value nil)))
+    `(progn
+       (when (eq ,var +undef+)
+         (setq-local ,var ,capability-call))
+       (unless ,var
+         (error "Current LSP server doesn’t support %s capability"
+                ,capability)))))
 
 (lsp-consistency-check lsp-rust)
 
