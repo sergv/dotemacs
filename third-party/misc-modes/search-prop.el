@@ -80,6 +80,7 @@
 
 ;;; Code:
 
+;;;###autoload
 (defun search-property (direction cycle prop &optional val)
   "Search according to DIRECTION in current buffer for property PROP.
 The position of the found property is returned, or nil if none
@@ -175,6 +176,7 @@ VAL."
       (goto-char pos)
       pos)))
 
+;;;###autoload
 (defun search-property-forward (prop &optional val bound noerror)
   "Search forward in the current buffer for property PROP.
 Set point to the beginning of the occurrence found, and return
@@ -220,6 +222,7 @@ nil."
           (t (goto-char (point-max))
              nil))))
 
+;;;###autoload
 (defun search-property-backward (prop &optional val bound noerror)
   "Search backward in the current buffer for property PROP.
 Set point to the beginning of the occurrence found, and return
