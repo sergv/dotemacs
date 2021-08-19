@@ -71,14 +71,15 @@
       lsp-ui-sideline-show-hover t
       lsp-ui-sideline-show-code-actions nil
 
-      lsp-ui-doc-enable nil
-
       ;; lsp-progress-via-spinner nil
 
       lsp-rust-server 'rust-analyzer
       lsp-rust-analyzer-server-command '("rust-analyzer")
       lsp-rust-analyzer-server-args '(nil "--log-file" "/tmp/rust-analyzer-log.txt")
 
+      lsp-ui-doc-enable nil
+      lsp-signature-auto-activate nil
+      lsp-signature-render-documentation nil
       lsp-eldoc-enable-hover nil
 
       ;; ;; For debugging
@@ -87,7 +88,7 @@
 
       lsp-rust-crate-blacklist []
       lsp-rust-racer-completion nil
-      lsp-rust-target-dir (fold-platform-os-type "/tmp/target/rls" "target/rls")
+      lsp-rust-target-dir (fold-platform-os-type "/tmp/target/rls" nil)
       lsp-rust-full-docs t
 
       lsp-rust-analyzer-proc-macro-enable t
