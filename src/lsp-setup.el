@@ -27,6 +27,7 @@
   (defvar lsp-ui-sideline-show-diagnostics)
   (defvar lsp-ui-sideline-show-hover))
 
+(require 'common)
 (require 'eproj-ctags)
 
 (require 'lsp)
@@ -50,6 +51,8 @@
              lsp-pyls lsp-python-ms lsp-purescript lsp-r lsp-rf lsp-solargraph lsp-sorbet
              lsp-tex lsp-terraform lsp-vala lsp-verilog lsp-vetur lsp-vhdl lsp-vimscript lsp-xml
              lsp-yaml lsp-sqls lsp-svelte lsp-steep)
+
+      lsp-diagnostics-provider :flycheck
 
       lsp-file-watch-threshold nil
       lsp-vscode-ext-url nil
@@ -176,18 +179,46 @@
          (replace-regexp-in-string "\r" "" (lsp-ui-doc--extract contents))))
       (switch-to-buffer-other-window doc-buf))))
 
-(defun lsp-rust-type-at-point ()
+(defvar-local lsp-rust--has-experimental-hover-range-cap +undef+)
+
+(defun lsp-rust-type-of-thing-at-point (&optional goto-def)
+  "Display the type of the thing at point. With universal
+argument jump to type definition."
+  (interactive "P")
+  (lsp--check-capability "experimental/hoverRange"
+    lsp-rust--has-experimental-hover-range-cap)
+  (let* ((bounds (if (region-active-p)
+                     (with-region-bounds start end
+                       (cons start end))
+                   (bounds-of-thing-at-point 'symbol)))
+         (range (lsp--text-document-range-params (car bounds) (cdr bounds))))
+    (lsp-request-async
+     "textDocument/hover"
+     range
+     (lambda (hover)
+       (lsp-rust-type-of-thing-at-point--callback hover))
+     :mode 'current ;; 'tick
+     :cancel-token :lsp-doc-type-at-point)))
+
+(defun lsp-rust-type-of-thing-at-point--callback (response)
+  (let ((contents (lsp:hover-contents response)))
+    (if (and contents
+             (not (equal contents "")))
+        (message "%s" (string-trim-right (lsp--render-on-hover-content contents t)))
+      (lsp--info "No content at point."))))
+
+(defun lsp-rust-type-at-point-dumb ()
   (interactive)
   (let ((buf (current-buffer)))
     (lsp-request-async
      "textDocument/hover"
      (lsp--text-document-position-params)
      (lambda (hover)
-       (lsp-rust-type-at-point--callback hover buf))
-     :mode 'current ;; 'tick
+       (lsp-rust-type-at-point-dumb--callback hover buf))
+     :mode 'current ;; 'tict
      :cancel-token :lsp-doc-hover)))
 
-(lsp-defun lsp-rust-type-at-point--callback ((hover &as &Hover? :contents) buf)
+(lsp-defun lsp-rust-type-at-point-dumb--callback ((hover &as &Hover? :contents) buf)
   (unless contents
     (error "Empty response from server. Aborting"))
   (when (equal buf (current-buffer))
