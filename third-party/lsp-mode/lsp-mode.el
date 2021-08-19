@@ -4653,6 +4653,12 @@ and the position respectively."
   (list :textDocument (or identifier (lsp--text-document-identifier))
         :position (or position (lsp--cur-position))))
 
+(defun lsp--text-document-range-params (start end &optional identifier)
+  "Make TextDocumentPositionParams for the current point in the current document.
+If IDENTIFIER and POSITION are non-nil, they will be used as the document identifier
+and the position respectively."
+  (lsp--text-document-position-params identifier (lsp--region-to-range start end)))
+
 (defun lsp--get-buffer-diagnostics ()
   "Return buffer diagnostics."
   (when-let (name (or (plist-get lsp--virtual-buffer :buffer-file-name)
