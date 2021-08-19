@@ -286,13 +286,20 @@ _u_sages"
   ("i" lsp-symbnav/find-implementations)
   ("m" lsp-rust-analyzer-expand-macro)
   ("r" lsp-rename)
-  ("t" lsp-rust-type-at-point)
+  ("t" lsp-rust-type-of-thing-at-point)
   ("u" lsp-symbnav/find-references)
 
   ("c" lsp-rust-open-cargo-toml)
   ("p" lsp-rust-find-parent-module)
 
   ("o" hydra-rust-toggle/body))
+
+(defhydra-ext hydra-rust-visual-dash (:exit t :foreign-keys nil :hint nil)
+  "
+_a_ctions
+_t_ype of region"
+  ("a" lsp-execute-code-action)
+  ("t" lsp-rust-type-of-thing-at-point))
 
 (defun lsp-rust-open-cargo-toml ()
   "Open Cargo.toml for current project."
@@ -436,7 +443,8 @@ _<tab>_: format region _h_: end of defun"
     ("g"   hydra-rust-vim-normal-g-ext/body))
 
   (def-keys-for-map vim:visual-mode-local-keymap
-    ("g" hydra-rust-vim-visual-g-ext/body))
+    ("-"   hydra-rust-visual-dash/body)
+    ("g"   hydra-rust-vim-visual-g-ext/body))
 
   (def-keys-for-map vim:insert-mode-local-keymap
     ("," smart-operators-comma)
