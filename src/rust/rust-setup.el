@@ -179,21 +179,36 @@ which is suitable for most programming languages such as C or Lisp."
 
 (defconst cargo-test-regexps
   (list
-   (rx bol
-       (* " ")
-       "at "
-       (group (+ not-newline))
-       ":"
-       (group (+ (any (?0 . ?9))))
-       ":"
-       (group (+ (any (?0 . ?9))))
-       eol)
-   1 ;; file group
-   2 ;; line group
-   3 ;; cloumn group
-   0 ;; error type, 0 = info
-   nil ;; hyperlink
-   )
+   (list (rx (or (seq bol
+                      (* " ")
+                      "at")
+                 ",")
+             " "
+             (group-n 1 (+? not-newline))
+             ":"
+             (group-n 2 (+ (any (?0 . ?9))))
+             (? ":"
+                (group-n 3 (+ (any (?0 . ?9)))))
+             eol)
+         1   ;; file group
+         2   ;; line group
+         3   ;; cloumn group
+         0   ;; error type, 0 = info
+         nil ;; hyperlink
+         )
+   ;; Output of dbg! macro
+   (list (rx bol
+             "["
+             (group-n 1 (+ not-newline))
+             ":"
+             (group-n 2 (+ (any (?0 . ?9))))
+             "]")
+         1   ;; file group
+         2   ;; line group
+         nil ;; cloumn group
+         0   ;; error type, 0 = info
+         nil ;; hyperlink
+         ))
   "Regexp to highlight backtrace positions when tests fail.")
 
 (define-compilation-mode rust-compilation-mode "Rust Compilation"
@@ -201,8 +216,8 @@ which is suitable for most programming languages such as C or Lisp."
   (setq-local compilation-error-regexp-alist
               (append (list rustc-compilation-regexps
                             rustc-colon-compilation-regexps
-                            cargo-compilation-regexps
-                            cargo-test-regexps)
+                            cargo-compilation-regexps)
+                      cargo-test-regexps
                       rust-compilation-extra-error-modes)
               *compilation-jump-error-regexp*
               (mapconcat (lambda (x) (concat "\\(?:" (car x) "\\)"))
@@ -220,7 +235,7 @@ which is suitable for most programming languages such as C or Lisp."
       (let* ((loc (compilation--message->loc it))
              (file (caar (compilation--loc->file-struct loc)))
              (line (compilation--loc->line loc))
-             (col (1- (compilation--loc->col loc))))
+             (col (awhen (compilation--loc->col loc) (1- it))))
         (make-compilation-error :compilation-root-directory default-directory
                                 :filename file
                                 :line-number line
