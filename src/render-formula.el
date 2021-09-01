@@ -292,7 +292,6 @@ carried out on FORMULA-STR."
                (unless (and (list? command-cell)
                             (not (null? command-cell)))
                  (error "invalid command cell, list expected: %s"
-                        eval-result
                         command-cell))
                (cond
                  ((eq? (car command-cell) 'remove)
