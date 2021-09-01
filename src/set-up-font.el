@@ -55,7 +55,7 @@
     (cond
       ((and (= 3840 width)
             (= 2160 height))
-       140)
+       120)
       ((and (= 1366 width)
             (= 768 height))
        120)
