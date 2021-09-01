@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::collections::HashMap;
+use fnv::FnvHashMap;
 
 type Heat = i16;
 
@@ -80,7 +80,36 @@ mod occurs {
         cap: usize,
     }
 
+    struct PositionsVec<'a, 'b> {
+        store: &'a mut PositionsStore,
+        vec: Vec<Positions<'b>>,
+    }
+
+    impl<'a, 'b> PositionsVec<'a, 'b> {
+        fn new(store: &'a mut PositionsStore) -> Self {
+            let vec = unsafe {
+                Vec::from_raw_parts(store.ptr as *mut Positions<'b>, store.len, store.cap)
+            };
+            PositionsVec {
+                store,
+                vec
+            }
+        }
+    }
+
+    impl<'a, 'b> Drop for PositionsVec<'a, 'b> {
+        fn drop(&mut self) {
+            *self.store = PositionsStore::from_vec(
+                std::mem::replace(&mut self.vec, Vec::new())
+            );
+        }
+    }
+
     impl PositionsStore {
+        fn new<'a>() -> Self {
+            PositionsStore::from_vec(Vec::new())
+        }
+
         fn from_vec<'a>(mut v: Vec<Positions<'a>>) -> Self {
             let s = PositionsStore {
                 ptr: v.as_mut_ptr() as usize,
@@ -98,12 +127,8 @@ mod occurs {
             where
             F: for<'d> FnOnce(&'d mut Vec<Positions<'b>>) -> A
         {
-            let mut v = unsafe {
-                Vec::from_raw_parts(self.ptr as *mut Positions<'b>, self.len, self.cap)
-            };
-            let res = f(&mut v);
-            *self = PositionsStore::from_vec(v);
-            res
+            let mut r = PositionsVec::new(self);
+            f(&mut r.vec)
         }
 
         // Take care since vec can be mutated  while original PositionsState is still being retained.
@@ -120,7 +145,7 @@ mod occurs {
     }
 
     pub struct ReuseState {
-        pos_by_char: HashMap<char, Vec<StrIdx>>,
+        needle_occurs: FnvHashMap<char, Vec<StrIdx>>,
         pos: PositionsStore,
     }
 
@@ -137,8 +162,8 @@ mod occurs {
     impl ReuseState {
         pub fn new() -> ReuseState {
             ReuseState {
-                pos_by_char: HashMap::new(),
-                pos: PositionsStore::from_vec(Vec::new()),
+                needle_occurs: FnvHashMap::default(),
+                pos: PositionsStore::new(),
             }
         }
     }
@@ -154,26 +179,26 @@ mod occurs {
     {
         let size = needle.chars().count();
 
-        let pos_by_char = &mut reuse.pos_by_char;
+        let needle_occurs = &mut reuse.needle_occurs;
         let pos = &mut reuse.pos;
 
         // Reuse vectors inside hash map instead of creating new ones.
-        for v in pos_by_char.values_mut() {
+        for v in needle_occurs.values_mut() {
             v.clear();
         }
         for c in needle.chars() {
-            pos_by_char.entry(c).or_insert_with(|| Vec::new());
+            needle_occurs.entry(c).or_insert_with(|| Vec::new());
         }
 
         for (pos, c) in haystack.chars().enumerate() {
-            match pos_by_char.get_mut(&c) {
+            match needle_occurs.get_mut(&c) {
                 None => (),
                 Some(ps) => ps.push(pos as StrIdx),
             }
             if is_capital(c) {
                 let mut lower = c.to_lowercase();
                 if lower.len() == 1 {
-                    match pos_by_char.get_mut(&lower.next().unwrap()) {
+                    match needle_occurs.get_mut(&lower.next().unwrap()) {
                         None => (),
                         Some(ps) => ps.push(pos as StrIdx),
                     }
@@ -186,7 +211,7 @@ mod occurs {
             positions.clear();
             for c in needle.chars() {
                 // Each character was initialized in the prepare function so unwrap is safe.
-                let ps = pos_by_char.get(&c).unwrap() as &'a [StrIdx];
+                let ps = needle_occurs.get(&c).unwrap() as &'a [StrIdx];
                 if ps.is_empty() {
                     return f(size, None);
                 }
@@ -214,7 +239,7 @@ fn bigger<'a, T: Ord>(x: T, xs: &'a [T]) -> &'a [T] {
 
 pub struct ReuseState {
     occurs: occurs::ReuseState,
-    cache: HashMap<(StrIdx, StrIdx), Option<SubmatchIdx>>,
+    cache: FnvHashMap<(StrIdx, StrIdx), Option<SubmatchIdx>>,
     submatches: Vec<Submatch>,
     heatmap: Vec<Heat>,
 }
@@ -223,7 +248,7 @@ impl ReuseState {
     pub fn new() -> Self {
         ReuseState {
             occurs: occurs::ReuseState::new(),
-            cache: HashMap::new(),
+            cache: FnvHashMap::default(),
             submatches: Vec::new(),
             heatmap: Vec::new(),
         }
@@ -255,7 +280,7 @@ pub fn fuzzy_match_impl<'a, 'b, 'c, 'd, 'e, 'f, PS>(
     occurs_reuse: &'a mut occurs::ReuseState,
     needle: &'b str,
     haystack: &'c str,
-    cache: &'d mut HashMap<(StrIdx, StrIdx), Option<SubmatchIdx>>,
+    cache: &'d mut FnvHashMap<(StrIdx, StrIdx), Option<SubmatchIdx>>,
     submatches: &'e mut Vec<Submatch>,
     heatmap: &'f [Heat],
 ) -> Match<PS>
@@ -351,7 +376,7 @@ fn match_singleton_needle<'a, 'b>(
 }
 
 fn top_down_match<'a, 'b, 'c, 'd, 'e>(
-    cache: &'a mut HashMap<(StrIdx, StrIdx), Option<SubmatchIdx>>,
+    cache: &'a mut FnvHashMap<(StrIdx, StrIdx), Option<SubmatchIdx>>,
     submatches: &'b mut Vec<Submatch>,
     heatmap: &'c [Heat],
     positions: &'d Vec<&'e [StrIdx]>,
@@ -422,7 +447,7 @@ fn contiguous_bonus(is_contiguous: bool, contiguous_count: i16) -> Heat {
 
 fn top_down_submatch_at<'a, 'b, 'c, 'd, 'e>(
     idx1: StrIdx,
-    cache: &'a mut HashMap<(StrIdx, StrIdx), Option<SubmatchIdx>>,
+    cache: &'a mut FnvHashMap<(StrIdx, StrIdx), Option<SubmatchIdx>>,
     submatches: &'b mut Vec<Submatch>,
     heatmap: &'c [Heat],
     positions: &'d Vec<&'e [StrIdx]>,
@@ -769,281 +794,307 @@ fn penalizes_if_leading(c: char) -> bool {
     c == '.'
 }
 
-#[test]
-fn test_heat_map1() {
-    assert_eq!(heatmap("foo", &[], &mut Vec::new()), &mut vec![84, -2, -2]);
-}
-
-#[test]
-fn test_heat_map2() {
-    assert_eq!(heatmap("bar", &[], &mut Vec::new()), &mut vec![84, -2, -2]);
-}
-
-#[test]
-fn test_heat_map3() {
-    assert_eq!(heatmap("foo.bar", &[], &mut Vec::new()), &mut vec![83, -3, -4, -5, 35, -6, -6]);
-}
-
-#[test]
-fn test_heat_map4() {
-    assert_eq!(
-        heatmap("foo/bar/baz", &[], &mut Vec::new()),
-        &mut vec![82, -4, -5, -6, 79, -7, -8, -9, 76, -10, -10]
-    );
-}
-
-#[test]
-fn test_heat_map5() {
-    assert_eq!(
-        heatmap("foo/bar/baz", &['/'], &mut Vec::new()),
-        &mut vec![41, -45, -46, -47, 39, -47, -48, -49, 79, -7, -7]
-    );
-}
-
-#[test]
-fn test_heat_map6() {
-    assert_eq!(
-        heatmap("foo/bar+quux/fizz.buzz/frobnicate/frobulate", &[], &mut Vec::new()),
-        &mut vec![78, -8, -9, -10, 75, -11, -12, -13, 72, -14, -15, -16, -17, 69, -17, -18, -19, -20, 21, -20, -21, -22, -23, 63, -23, -24, -25, -26, -27, -28, -29, -30, -31, -32, 60, -26, -27, -28, -29, -30, -31, -32, -32]
-    );
-}
-
-#[test]
-fn test_heat_map7() {
-    assert_eq!(
-        heatmap("foo/bar+quux/fizz.buzz/frobnicate/frobulate", &['/'], &mut Vec::new()),
-        &mut vec![37, -49, -50, -51, 35, -51, -52, -53, 32, -54, -55, -56, -57, 36, -50, -51, -52, -53, -12, -53, -54, -55, -56, 37, -49, -50, -51, -52, -53, -54, -55, -56, -57, -58, 77, -9, -10, -11, -12, -13, -14, -15, -15]
-    );
-}
-
-#[test]
-fn test_heat_map7a() {
-    assert_eq!(
-        heatmap("foo/bar+quux/fizz.buzz", &['/'], &mut Vec::new()),
-        &mut vec![41, -45, -46, -47, 39, -47, -48, -49, 36, -50, -51, -52, -53, 78, -8, -9, -10, -11, 30, -11, -12, -12]
-    );
-}
-
-#[test]
-fn test_heat_map8() {
-    assert_eq!(
-        heatmap("foo/bar+quux/fizz.buzz//frobnicate/frobulate", &['/'], &mut Vec::new()),
-        &mut vec![35, -51, -52, -53, 33, -53, -54, -55, 30, -56, -57, -58, -59, 34, -52, -53, -54, -55, -14, -55, -56, -57, -58, -50, 36, -50, -51, -52, -53, -54, -55, -56, -57, -58, -59, 76, -10, -11, -12, -13, -14, -15, -16, -16]
-    );
-}
-
-#[test]
-fn test_heat_map9() {
-    assert_eq!(
-        heatmap("foo/bar+quux/fizz.buzz//frobnicate/frobulate", &['/', 'u'], &mut Vec::new()),
-        &mut vec![27, -59, -60, -61, 25, -61, -62, -63, 22, -64, -59, -58, -58, 28, -58, -59, -60, -61, -20, -61, -56, -56, -56, -55, 31, -55, -56, -57, -58, -59, -60, -61, -62, -63, -64, 72, -14, -15, -16, -17, -52, -52, -52, -51]
-    );
-}
-
-#[test]
-fn test_heat_map10() {
-    assert_eq!(
-        heatmap("foo/barQuux/fizzBuzz//frobnicate/frobulate", &[], &mut Vec::new()),
-        &mut vec![80, -6, -7, -8, 77, -9, -10, 74, -12, -13, -14, -15, 71, -15, -16, -17, 68, -18, -19, -20, -21, -22, 65, -21, -22, -23, -24, -25, -26, -27, -28, -29, -30, 62, -24, -25, -26, -27, -28, -29, -30, -30]
-    );
-}
-
-#[test]
-fn test_heat_map11() {
-    assert_eq!(
-        heatmap("foo//bar", &[], &mut Vec::new()),
-        &mut vec![83, -3, -4, -5, -6, 80, -6, -6]
-    );
-}
-
-#[test]
-fn test_heat_map12() {
-    assert_eq!(
-        heatmap("foo//bar", &['/'], &mut Vec::new()),
-        &mut vec![41, -45, -46, -47, -46, 79, -7, -7]
-    );
-}
-
-#[test]
-fn test_heat_map13() {
-    assert_eq!(
-        heatmap("contrib/apr/atomic/unix/s390.c", &[], &mut Vec::new()),
-        // // Result from elisp that considers numbers uppercase an thus finds two words in "s390"
-        // &mut vec![79, -7, -8, -9, -10, -11, -12, -13, 76, -10, -11, -12, 73, -13, -14, -15, -16, -17, -18, 70, -16, -17, -18, -19, 67, 64, -22, -23, -24, 17]
-        &mut vec![79, -7, -8, -9, -10, -11, -12, -13, 76, -10, -11, -12, 73, -13, -14, -15, -16, -17, -18, 70, -16, -17, -18, -19, 67, -19, -20, -21, -22, 20]
-    );
-}
-
-#[test]
-fn test_bigger1() {
-    let v: &[i32] = &[1, 2, 3, 4, 5];
-    assert_eq!(bigger(2, v), &[3, 4, 5]);
-}
-
-#[test]
-fn test_bigger2() {
-    let v: &[i32] = &[1, 2, 3, 4, 5];
-    assert_eq!(bigger(0, v), v);
-}
-
-#[test]
-fn test_bigger3() {
-    let v: &[i32] = &[1, 2, 3, 4, 5];
-    assert_eq!(bigger(4, v), &[5]);
-}
-
-#[test]
-fn test_bigger4() {
-    let v: &[i32] = &[1, 2, 3, 4, 5];
-    let res: &[i32] = &[];
-    assert_eq!(bigger(5, v), res);
-}
-
-#[test]
-fn test_bigger5() {
-    let v: &[i32] = &[1, 2, 4, 5];
-    assert_eq!(bigger(3, v), &[4, 5]);
-}
-
-
-
 #[cfg(test)]
-const FOOBAR_HEATMAP: &[Heat] = &[84, -2, -3, -4, -5, -5];
+mod test {
+    use super::*;
 
-#[cfg(test)]
-pub fn fuzzy_match_test(
-    heatmap: &[Heat],
-    needle: &str,
-    haystack: &str,
-) -> Match<Vec<StrIdx>>
-{
-    let s = &mut ReuseState::new();
-    fuzzy_match_impl(
-        &mut s.occurs,
-        needle,
-        haystack,
-        &mut s.cache,
-        &mut s.submatches,
-        heatmap
-    )
-}
+    const FOOBAR_HEATMAP: &[Heat] = &[84, -2, -3, -4, -5, -5];
 
+    pub fn fuzzy_match_test(
+        heatmap: &[Heat],
+        needle: &str,
+        haystack: &str,
+    ) -> Match<Vec<StrIdx>>
+    {
+        let s = &mut ReuseState::new();
+        fuzzy_match_impl(
+            &mut s.occurs,
+            needle,
+            haystack,
+            &mut s.cache,
+            &mut s.submatches,
+            heatmap
+        )
+    }
 
-#[test]
-fn fuzzy_match1() {
-    let m = fuzzy_match_test(
-        FOOBAR_HEATMAP,
-        "foo",
-        "foobar"
-    );
-    assert_eq!(m, Match { score: 214, positions: vec![0, 1, 2] });
-}
+    #[test]
+    fn heat_map1() {
+        assert_eq!(heatmap("foo", &[], &mut Vec::new()), &mut vec![84, -2, -2]);
+    }
 
-#[test]
-fn fuzzy_match2() {
-    let m = fuzzy_match_test(
-        FOOBAR_HEATMAP,
-        "fo",
-        "foobar"
-    );
-    assert_eq!(m, Match { score: 142, positions: vec![0, 1] });
-}
+    #[test]
+    fn heat_map2() {
+        assert_eq!(heatmap("bar", &[], &mut Vec::new()), &mut vec![84, -2, -2]);
+    }
 
-#[test]
-fn fuzzy_match3() {
-    let m = fuzzy_match_test(
-        FOOBAR_HEATMAP,
-        "oob",
-        "foobar"
-    );
-    assert_eq!(m, Match { score: 126, positions: vec![1, 2, 3] });
-}
+    #[test]
+    fn heat_map3() {
+        assert_eq!(heatmap("foo.bar", &[], &mut Vec::new()), &mut vec![83, -3, -4, -5, 35, -6, -6]);
+    }
 
-#[test]
-fn fuzzy_match4() {
-    let m = fuzzy_match_test(
-        FOOBAR_HEATMAP,
-        "ooba",
-        "foobar"
-    );
-    assert_eq!(m, Match { score: 211, positions: vec![1, 2, 3, 4] });
-}
+    #[test]
+    fn heat_map4() {
+        assert_eq!(
+            heatmap("foo/bar/baz", &[], &mut Vec::new()),
+            &mut vec![82, -4, -5, -6, 79, -7, -8, -9, 76, -10, -10]
+        );
+    }
 
-#[test]
-fn fuzzy_match5() {
-    let m = fuzzy_match_test(
-        FOOBAR_HEATMAP,
-        "or",
-        "foobar"
-    );
-    assert_eq!(m, Match { score: - 7, positions: vec![1, 5] });
-}
+    #[test]
+    fn heat_map5() {
+        assert_eq!(
+            heatmap("foo/bar/baz", &['/'], &mut Vec::new()),
+            &mut vec![41, -45, -46, -47, 39, -47, -48, -49, 79, -7, -7]
+        );
+    }
 
-#[test]
-fn fuzzy_match6() {
-    let m = fuzzy_match_test(
-        FOOBAR_HEATMAP,
-        "x",
-        "foobar"
-    );
-    assert_eq!(m, no_match());
-}
+    #[test]
+    fn heat_map6() {
+        assert_eq!(
+            heatmap("foo/bar+quux/fizz.buzz/frobnicate/frobulate", &[], &mut Vec::new()),
+            &mut vec![78, -8, -9, -10, 75, -11, -12, -13, 72, -14, -15, -16, -17, 69, -17, -18, -19, -20, 21, -20, -21, -22, -23, 63, -23, -24, -25, -26, -27, -28, -29, -30, -31, -32, 60, -26, -27, -28, -29, -30, -31, -32, -32]
+        );
+    }
 
-#[test]
-fn fuzzy_match7() {
-    let m = fuzzy_match_test(
-        FOOBAR_HEATMAP,
-        "fooxbar",
-        "foobar"
-    );
-    assert_eq!(m, no_match());
-}
+    #[test]
+    fn heat_map7() {
+        assert_eq!(
+            heatmap("foo/bar+quux/fizz.buzz/frobnicate/frobulate", &['/'], &mut Vec::new()),
+            &mut vec![37, -49, -50, -51, 35, -51, -52, -53, 32, -54, -55, -56, -57, 36, -50, -51, -52, -53, -12, -53, -54, -55, -56, 37, -49, -50, -51, -52, -53, -54, -55, -56, -57, -58, 77, -9, -10, -11, -12, -13, -14, -15, -15]
+        );
+    }
 
-#[test]
-fn fuzzy_match8() {
-    let m = fuzzy_match_test(
-        &(0..100).map(|_| 1).collect::<Vec<Heat>>(),
-        "aaaaaaaaaa",
-        &(0..100).map(|_| 'a').collect::<String>(),
-    );
-    assert_eq!(m, Match { score: 865, positions: (90..100).collect() });
-}
+    #[test]
+    fn heat_map7a() {
+        assert_eq!(
+            heatmap("foo/bar+quux/fizz.buzz", &['/'], &mut Vec::new()),
+            &mut vec![41, -45, -46, -47, 39, -47, -48, -49, 36, -50, -51, -52, -53, 78, -8, -9, -10, -11, 30, -11, -12, -12]
+        );
+    }
 
-#[test]
-fn fuzzy_match9() {
-    let m = fuzzy_match_test(
-        &(0..200).map(|_| 1).collect::<Vec<Heat>>(),
-        "aaaaaaaaaa",
-        &(0..200).map(|_| 'a').collect::<String>(),
-    );
-    assert_eq!(m, Match { score: 865, positions: (190..200).collect() });
-}
+    #[test]
+    fn heat_map8() {
+        assert_eq!(
+            heatmap("foo/bar+quux/fizz.buzz//frobnicate/frobulate", &['/'], &mut Vec::new()),
+            &mut vec![35, -51, -52, -53, 33, -53, -54, -55, 30, -56, -57, -58, -59, 34, -52, -53, -54, -55, -14, -55, -56, -57, -58, -50, 36, -50, -51, -52, -53, -54, -55, -56, -57, -58, -59, 76, -10, -11, -12, -13, -14, -15, -16, -16]
+        );
+    }
 
-#[test]
-fn fuzzy_match10() {
-    let needle = "cat.c";
-    let haystack = "sys/dev/acpica/Osd/OsdTable.c";
-    let mut h = Vec::new();
-    let heatmap = heatmap(haystack, &[], &mut h);
-    let m = fuzzy_match_test(
-        heatmap,
-        needle,
-        haystack,
-    );
-    assert_eq!(m, Match { score: 142, positions: vec![12, 13, 22, 27, 28] });
-}
+    #[test]
+    fn heat_map9() {
+        assert_eq!(
+            heatmap("foo/bar+quux/fizz.buzz//frobnicate/frobulate", &['/', 'u'], &mut Vec::new()),
+            &mut vec![27, -59, -60, -61, 25, -61, -62, -63, 22, -64, -59, -58, -58, 28, -58, -59, -60, -61, -20, -61, -56, -56, -56, -55, 31, -55, -56, -57, -58, -59, -60, -61, -62, -63, -64, 72, -14, -15, -16, -17, -52, -52, -52, -51]
+        );
+    }
 
-#[test]
-fn fuzzy_match11() {
-    let needle = "s";
-    let haystack = "*scratch*";
-    let mut h = Vec::new();
-    let heatmap = heatmap(haystack, &[], &mut h);
-    let m = fuzzy_match_test(
-        heatmap,
-        needle,
-        haystack,
-    );
-    let expected_idx = 1;
-    assert_eq!(m, Match { score: heatmap[expected_idx as usize], positions: vec![expected_idx] });
+    #[test]
+    fn heat_map10() {
+        assert_eq!(
+            heatmap("foo/barQuux/fizzBuzz//frobnicate/frobulate", &[], &mut Vec::new()),
+            &mut vec![80, -6, -7, -8, 77, -9, -10, 74, -12, -13, -14, -15, 71, -15, -16, -17, 68, -18, -19, -20, -21, -22, 65, -21, -22, -23, -24, -25, -26, -27, -28, -29, -30, 62, -24, -25, -26, -27, -28, -29, -30, -30]
+        );
+    }
+
+    #[test]
+    fn heat_map11() {
+        assert_eq!(
+            heatmap("foo//bar", &[], &mut Vec::new()),
+            &mut vec![83, -3, -4, -5, -6, 80, -6, -6]
+        );
+    }
+
+    #[test]
+    fn heat_map12() {
+        assert_eq!(
+            heatmap("foo//bar", &['/'], &mut Vec::new()),
+            &mut vec![41, -45, -46, -47, -46, 79, -7, -7]
+        );
+    }
+
+    #[test]
+    fn heat_map13() {
+        assert_eq!(
+            heatmap("contrib/apr/atomic/unix/s390.c", &[], &mut Vec::new()),
+            // // Result from elisp that considers numbers uppercase an thus finds two words in "s390"
+            // &mut vec![79, -7, -8, -9, -10, -11, -12, -13, 76, -10, -11, -12, 73, -13, -14, -15, -16, -17, -18, 70, -16, -17, -18, -19, 67, 64, -22, -23, -24, 17]
+            &mut vec![79, -7, -8, -9, -10, -11, -12, -13, 76, -10, -11, -12, 73, -13, -14, -15, -16, -17, -18, 70, -16, -17, -18, -19, 67, -19, -20, -21, -22, 20]
+        );
+    }
+
+    #[test]
+    fn bigger1() {
+        let v: &[i32] = &[1, 2, 3, 4, 5];
+        assert_eq!(bigger(2, v), &[3, 4, 5]);
+    }
+
+    #[test]
+    fn bigger2() {
+        let v: &[i32] = &[1, 2, 3, 4, 5];
+        assert_eq!(bigger(0, v), v);
+    }
+
+    #[test]
+    fn bigger3() {
+        let v: &[i32] = &[1, 2, 3, 4, 5];
+        assert_eq!(bigger(4, v), &[5]);
+    }
+
+    #[test]
+    fn bigger4() {
+        let v: &[i32] = &[1, 2, 3, 4, 5];
+        let res: &[i32] = &[];
+        assert_eq!(bigger(5, v), res);
+    }
+
+    #[test]
+    fn bigger5() {
+        let v: &[i32] = &[1, 2, 4, 5];
+        assert_eq!(bigger(3, v), &[4, 5]);
+    }
+
+    #[test]
+    fn fuzzy_match1() {
+        let m = fuzzy_match_test(
+            FOOBAR_HEATMAP,
+            "foo",
+            "foobar"
+        );
+        assert_eq!(m, Match { score: 214, positions: vec![0, 1, 2] });
+    }
+
+    #[test]
+    fn fuzzy_match2() {
+        let m = fuzzy_match_test(
+            FOOBAR_HEATMAP,
+            "fo",
+            "foobar"
+        );
+        assert_eq!(m, Match { score: 142, positions: vec![0, 1] });
+    }
+
+    #[test]
+    fn fuzzy_match3() {
+        let m = fuzzy_match_test(
+            FOOBAR_HEATMAP,
+            "oob",
+            "foobar"
+        );
+        assert_eq!(m, Match { score: 126, positions: vec![1, 2, 3] });
+    }
+
+    #[test]
+    fn fuzzy_match4() {
+        let m = fuzzy_match_test(
+            FOOBAR_HEATMAP,
+            "ooba",
+            "foobar"
+        );
+        assert_eq!(m, Match { score: 211, positions: vec![1, 2, 3, 4] });
+    }
+
+    #[test]
+    fn fuzzy_match5() {
+        let m = fuzzy_match_test(
+            FOOBAR_HEATMAP,
+            "or",
+            "foobar"
+        );
+        assert_eq!(m, Match { score: - 7, positions: vec![1, 5] });
+    }
+
+    #[test]
+    fn fuzzy_match6() {
+        let m = fuzzy_match_test(
+            FOOBAR_HEATMAP,
+            "x",
+            "foobar"
+        );
+        assert_eq!(m, no_match());
+    }
+
+    #[test]
+    fn fuzzy_match7() {
+        let m = fuzzy_match_test(
+            FOOBAR_HEATMAP,
+            "fooxbar",
+            "foobar"
+        );
+        assert_eq!(m, no_match());
+    }
+
+    #[test]
+    fn fuzzy_match8() {
+        let m = fuzzy_match_test(
+            &(0..100).map(|_| 1).collect::<Vec<Heat>>(),
+            "aaaaaaaaaa",
+            &(0..100).map(|_| 'a').collect::<String>(),
+        );
+        assert_eq!(m, Match { score: 865, positions: (90..100).collect() });
+    }
+
+    #[test]
+    fn fuzzy_match9() {
+        let m = fuzzy_match_test(
+            &(0..200).map(|_| 1).collect::<Vec<Heat>>(),
+            "aaaaaaaaaa",
+            &(0..200).map(|_| 'a').collect::<String>(),
+        );
+        assert_eq!(m, Match { score: 865, positions: (190..200).collect() });
+    }
+
+    #[test]
+    fn fuzzy_match10() {
+        let needle = "cat.c";
+        let haystack = "sys/dev/acpica/Osd/OsdTable.c";
+        let mut h = Vec::new();
+        let heatmap = heatmap(haystack, &[], &mut h);
+        let m = fuzzy_match_test(
+            heatmap,
+            needle,
+            haystack,
+        );
+        assert_eq!(m, Match { score: 142, positions: vec![12, 13, 22, 27, 28] });
+    }
+
+    #[test]
+    fn fuzzy_match11() {
+        let needle = "s";
+        let haystack = "*scratch*";
+        let mut h = Vec::new();
+        let heatmap = heatmap(haystack, &[], &mut h);
+        let m = fuzzy_match_test(
+            heatmap,
+            needle,
+            haystack,
+        );
+        let expected_idx = 1;
+        assert_eq!(m, Match { score: heatmap[expected_idx as usize], positions: vec![expected_idx] });
+    }
+
+    #[test]
+    fn fuzzy_match_cache_reuse() {
+        let mut reuse = ReuseState::new();
+        let m1 = fuzzy_match(
+            "foo",
+            "foobar",
+            &[],
+            &mut reuse,
+        );
+        let m2 = fuzzy_match(
+            "fo",
+            "foobar",
+            &[],
+            &mut reuse,
+        );
+        let m3 = fuzzy_match(
+            "oob",
+            "foobar",
+            &[],
+            &mut reuse,
+        );
+        assert_eq!(m1, Match { score: 214, positions: vec![0, 1, 2] });
+        assert_eq!(m2, Match { score: 142, positions: vec![0, 1] });
+        assert_eq!(m3, Match { score: 126, positions: vec![1, 2, 3] });
+    }
 }
