@@ -718,6 +718,25 @@
      "}"
      "")))
 
+;; ;; Impossible to support?
+;; (ert-deftest rust-tests/rust-smart-operators--comma-2 ()
+;;   (rust-tests--test-buffer-contents
+;;    (smart-operators-comma)
+;;    (tests-utils--multiline
+;;     ""
+;;     "fn append(&mut self, payload: A)"
+;;     "    where"
+;;     "    A: Clone + for<'b> Monoid<'static_|_'b>"
+;;     "{"
+;;     "")
+;;    (tests-utils--multiline
+;;     ""
+;;     "fn append(&mut self, payload: A)"
+;;     "    where"
+;;     "    A: Clone + for<'b> Monoid<'static, _|_'b>"
+;;     "{"
+;;     "")))
+
 (ert-deftest rust-tests/sp-splice-sexp-killing-backward-1 ()
   (rust-tests--test-buffer-contents
       (sp-splice-sexp-killing-backward)
