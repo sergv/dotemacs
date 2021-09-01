@@ -21,6 +21,7 @@ anyhow = ">= 1.0.38"
 crossbeam = ">= 0.8.1"
 crossbeam-utils = ">= 0.8.0"
 emacs = ">= 0.17"
+fnv = ">= 1.0"
 globset = { version = ">= 0.4.8", default-features = false, features = [] }
 pathdiff = ">= 0.1"
 
