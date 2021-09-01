@@ -1089,7 +1089,7 @@ interesting than the question of whether a submarine can swim.”
 - Edsger W. Dijkstra"
 
    ;; "Nobody can fix the economy.  Nobody can be trusted with their finger on the
-;; button.  Nobody’s perfect.  VOTE FOR NOBODY."
+   ;; button.  Nobody’s perfect.  VOTE FOR NOBODY."
 
    "“One of the things every sorcerer will tell you, is that if you have
 the name of a spirit, you have power over it.”
@@ -1760,7 +1760,7 @@ extremeties. However, just as in physics, the fact that models
 are not universally valid actually keeps people in work.”
 — page 19, Mark Joshi, The Concepts and Practice of Mathematical Finance, Cambridge University Press, 2003"
 
-    "“There is a tide in the affairs of men,
+   "“There is a tide in the affairs of men,
 Which, taken at the flood, leads on to fortune;
 Omitted, all the voyage of their life
 Is bound in shallows and miseries.
@@ -1768,7 +1768,7 @@ We must take the current when it serves,
 Or lose our ventures.”
 — Shakespeare"
 
-    "“I think that it’s extraordinarily important that we in computer
+   "“I think that it’s extraordinarily important that we in computer
 science keep fun in computing. When it started out, it was an awful
 lot of fun. Of course, the paying customers got shafted every now and
 then, and after a while we began to take their complaints seriously.
@@ -1785,16 +1785,16 @@ intelligence: the ability to see the machine as more than when you
 were first led up to it, that you can make it more.”
 - Alan Perlis, The Structure and Interpretation of Computer Programs"
 
-    "“If you want more effective programmers, you will discover that
+   "“If you want more effective programmers, you will discover that
 they should not waste their time debugging, they should not introduce
 the bugs to start with.”
 —Edsger Dijkstra, Turing Award Lecture (1972)"
 
-     "No matter how much money you spend, you can't make a racehorse out of a
+   "No matter how much money you spend, you can't make a racehorse out of a
 pig.  You can, however, make an awfully fast pig.
 – An old saying about program efficiency"
 
-    "Histocompatibility, Disease and Aging
+   "Histocompatibility, Disease and Aging
 	poem on a paper by E. Yunis
 
 “The crown of life, our play's last act,”
@@ -1819,13 +1819,820 @@ reprinted from 9 April 1982 issue of “Science”
 reprinted from “Institute of Laboratory Animal Resources News”,
 25 (No. 2), 6 (winter 1982)"
 
-    "Increasingly, people seem to misinterpret complexity as
+   "Increasingly, people seem to misinterpret complexity as
 sophistication, which is baffling – the incomprehensible should cause
 suspicion rather than admiration. Possibly this trend results from a
 mistaken belief that using a somewhat mysterious device confers an
 aura of power on the user.
 - Niklaus Wirth"
-]
+
+   "I made it a rule to forbear all direct contradictions to the sentiments of
+others, and all positive assertion of my own.  I even forbade myself the use
+of every word or expression in the language that imported a fixed opinion,
+such as “certainly”, “undoubtedly”, etc.   I adopted instead of them “I
+conceive”, “I apprehend”, or “I imagine” a thing to be so or so; or “so it
+appears to me at present”.
+
+When another asserted something that I thought an error, I denied myself the
+pleasure of contradicting him abruptly, and of showing him immediately some
+absurdity in his proposition.  In answering I began by observing that in
+certain cases or circumstances his opinion would be right, but in the present
+case there appeared or semed to me some difference, etc.
+
+I soon found the advantage of this change in my manner; the conversations I
+engaged in went on more pleasantly.  The modest way in which I proposed my
+opinions procured them a readier reception and less contradiction.  I had
+less mortification when I was found to be in the wrong, and I more easily
+prevailed with others to give up their mistakes and join with me when I
+happened to be in the right.
+- Autobiography of Benjamin Franklin"
+
+   "The notion that science does not concern itself with first causes - that it
+leaves the field to theology or metaphysics, and confines itself to mere
+effects - this notion has no support in the plain facts.  If it could,
+science would explain the origin of life on earth at once-and there is
+every reason to believe that it will do so on some not too remote tomorrow.
+To argue that gaps in knowledge which will confront the seeker must be filled,
+not by patient inquiry, but by intuition or revelation, is simply to give
+ignorance a gratuitous and preposterous dignity....
+- H. L. Mencken, 1930"
+
+   "For every complex problem, there is a solution that is simple, neat, and wrong.
+- H. L. Mencken"
+
+   "It is now quite lawful for a Catholic woman to avoid pregnancy by a resort to
+mathematics, though she is still forbidden to resort to physics and chemistry.
+- H.L. Mencken"
+
+   "All [zoos] actually offer to the public in return for the taxes spent
+upon them is a form of idle and witless amusement, compared to which a
+visit to a penitentiary, or even to a State legislature in session, is
+informing, stimulating and ennobling.
+- H. L. Mencken"
+
+   "The older I grow, the more I distrust the familiar doctrine that age
+brings wisdom.  - H.L. Mencken
+(Plus je vieillis, moins je crois en l’idÃ©e commune que l’age apporte
+la sagesse.)"
+
+   "Evil is that which one believes of others.  It is a sin to believe evil
+of others, but it is seldom a mistake.
+- H.L. Mencken"
+
+   "Men have a much better time of it than women; for one thing they marry later;
+for another thing they die earlier.
+- H.L. Mencken"
+
+   "Love is the triumph of imagination over intelligence.
+- H. L. Mencken"
+
+   "The penalty for laughing in a courtroom is six months in jail; if it
+were not for this penalty, the jury would never hear the evidence.
+- H. L. Mencken"
+
+   "The only way for a reporter to look at a politician is down.
+- H.L. Mencken"
+
+   "H. L. Mencken’s Law:
+	Those who can - do.
+	Those who can’t - teach.
+
+Martin’s Extension:
+	Those who cannot teach - administrate."
+
+   "“An idealist is one who, on noticing that a rose smells better than a
+cabbage, concludes that it will also make better soup.” - H.L. Mencken"
+
+   "Re: Graphics:
+	A picture is worth 10K words - but only those to describe
+	the picture.  Hardly any sets of 10K words can be adequately
+	described with pictures.
+- Alan Perlis"
+
+   "Question:  How many Intel/Microsoft executives does it take to screw in a
+light bulb?
+
+
+Answer:  None, they simply make darkness an industry standard."
+
+   "Programming today is a race between software engineers striving to
+build bigger and better idiot-proof programs, and the Universe trying
+to produce bigger and better idiots.
+
+So far, the Universe is winning.
+- Rich Cook"
+
+   "United Nations, New York, December 25.  The peace and joy of the
+Christmas season was marred by a proclamation of a general strike of
+all the military forces of the world.  Panic reigns in the hearts of
+all the patriots of every persuasion.
+
+Meanwhile, fears of universal disaster sank to an all-time low over the
+world.
+- Isaac Asimov"
+
+   "Christian, n.:
+	One who believes that the New Testament is a divinely inspired
+book admirably suited to the spiritual needs of his neighbor.  One who
+follows the teachings of Christ in so far as they are not inconsistent
+with a life of sin."
+
+   "Alliance, n.:
+	In international politics, the union of two thieves who have
+their hands so deeply inserted in each other’s pocket that they cannot
+separately plunder a third.
+- Ambrose Bierce, “The Devil’s Dictionary”"
+
+   "Alliance, n.f.:
+	En politique internationale, l’union de deux voleurs qui ont leur
+main si profondÃ©ment plongÃ©e dans la poche l’un de l’autre qu’ils ne peuvent
+pas en dÃ©possÃ©der sÃ©parÃ©ment un troisiÃ¨me.
+- Ambrose Bierce, “Le dictionnaire du diable”"
+
+   "AMAZING BUT TRUE ...
+
+There is so much sand in Northern Africa that if it were spread out it
+would completely cover the Sahara Desert."
+
+   "Aphorism, n.:
+	A concise, clever statement.
+Afterism, n.:
+	A concise, clever statement you don’t think of until too late.
+- James Alexander Thom"
+
+   "“The society which scorns excellence in plumbing as a humble activity
+and tolerates shoddiness in philosophy because it is an exaulted
+activity will have neither good plumbing nor good philosophy.
+Neither its pipes nor its theories will hold water.”"
+
+   "- Ayn Rand, novelist and philosopher
+La sociÃ©tÃ© qui mÃ©prise l’excellence en plomberie sous prÃ©texte que c’est une
+activitÃ© basse, et tolÃ¨re la mÃ©diocritÃ© en philosophie sous prÃ©texte que c’est
+une activitÃ© Ã©levÃ©e n’aura ni une bonne plomberie ni une bonne philosophie.
+Ni ses tuyaux ni ses thÃ©ories ne tiendront l’eau."
+
+   "NAPOLEON: What shall we do with this soldier, Giuseppe?  Everything he
+	  says is wrong.
+GIUSEPPE: Make him a general, Excellency, and then everything he says
+	  will be right.
+- G. B. Shaw, “The Man of Destiny”"
+
+   "A Plan for the Improvement of English Spelling
+			  by Mark Twain
+
+	For example, in Year 1 that useless letter “c” would be dropped
+to be replased either by “k” or “s”, and likewise “x” would no longer
+be part of the alphabet.  The only kase in which “c” would be retained
+would be the “ch” formation, which will be dealt with later.  Year 2
+might reform “w” spelling, so that “which” and “one” would take the
+same konsonant, wile Year 3 might well abolish “y” replasing it with
+“i” and Iear 4 might fiks the “g/j” anomali wonse and for all.
+	Jenerally, then, the improvement would kontinue iear bai iear
+with Iear 5 doing awai with useless double konsonants, and Iears 6-12
+or so modifaiing vowlz and the rimeining voist and unvoist konsonants.
+Bai Iear 15 or sou, it wud fainali bi posibl tu meik ius ov thi
+ridandant letez “c”, “y” and “x” - bai now jast a memori in the maindz
+ov ould doderez - tu riplais “ch”, “sh”, and “th” rispektivli.
+	Fainali, xen, aafte sam 20 iers ov orxogrefkl riform, wi wud
+hev a lojikl, kohirnt speling in ius xrewawt xe Ingliy-spiking werld."
+
+   "Every gun that is made, every warship launched, every rocket fired
+signifies in the final sense, a theft from those who hunger and are not
+fed, those who are cold and are not clothed.  This world in arms is not
+spending money alone.  It is spending the sweat of its laborers, the
+genius of its scientists, the hopes of its children.  This is not a way
+of life at all in any true sense.  Under the clouds of war, it is
+humanity hanging on a cross of iron.
+- Dwight Eisenhower, April 16, 1953"
+
+   "I like to believe that people in the long run are going to do more to promote
+peace than our governments.  Indeed, I think that people want peace so much
+that one of these days governments had better get out of the way and let them
+have it.
+- Dwight D. Eisenhower"
+
+   "On the subject of C program indentation:
+
+	“In My Egotistical Opinion, most people’s C programs should be
+	indented six feet downward and covered with dirt.”
+- Blair P. Houghton"
+
+   ""
+
+   "(Hypocrisie unixienne)
+Unix gives you just enough rope to hang yourself - and then a couple
+of more feet, just to be sure.
+- Eric Allman"
+
+   "(ditto)
+UNIX was not designed to stop you from doing stupid things, because that
+would also stop you from doing clever things.
+- Doug Gwyn"
+
+   "Some people claim that the UNIX learning curve is steep,
+but at least you only have to climb it once."
+
+   "“On two occasions I have been asked [by members of Parliament!], ‘Pray,
+Mr.  Babbage, if you put into the machine wrong figures, will the right
+answers come out?’  I am not able rightly to apprehend the kind of
+confusion of ideas that could provoke such a question.”
+- Charles Babbage"
+
+   "Once upon a time, when I was training to be a mathematician, a group of
+us bright young students taking number theory discovered the names of
+the smaller prime numbers.
+
+2:  The Odd Prime -
+	It’s the only even prime, therefore is odd.  QED.
+3:  The True Prime -
+	Lewis Carroll: “If I tell you three times, it’s true.”
+31: The Arbitrary Prime -
+	Determined by unanimous unvote.  We needed an arbitrary prime
+	in case the prof asked for one, and so had an election.  91
+	received the most votes (well, it *looks* prime) and 3+4i the
+	next most.  However, 31 was the only candidate to receive none
+	at all.
+
+Since the composite numbers are formed from primes, their qualities are
+derived from those primes.  So, for instance, the number 6 is “odd but
+true”, while the powers of 2 are all extremely odd numbers."
+
+   "Once Law was sitting on the bench
+	And Mercy knelt a-weeping.
+“Clear out!” he cried, “disordered wench!
+	Nor come before me creeping.
+Upon you knees if you appear,
+‘Tis plain you have no standing here.”
+
+Then Justice came.  His Honor cried:
+	“YOUR states? - Devil seize you!”
+“Amica curiae,” she replied -
+	“Friend of the court, so please you.”
+“Begone!” he shouted - “There’s the door -
+I never saw your face before!”
+- Ambrose Bierce, “The Devil’s Dictionary”"
+
+   "“What the hell are you getting so upset about?  I thought you
+didn’t believe in God.”
+	“I don’t,” she sobbed, bursting violently into tears, “but the
+God I don’t believe in is a good God, a just God, a merciful God.  He’s
+not the mean and stupid God you make Him out to be.”
+- Joseph Heller, “Catch-22”"
+
+   "The temperature of Heaven can be rather accurately computed.  Our
+authority is Isaiah 30:26, “Moreover, the light of the Moon shall be as
+the light of the Sun and the light of the Sun shall be sevenfold, as
+the light of seven days.”  Thus Heaven receives from the Moon as much
+radiation as we do from the Sun, and in addition 7*7 (49) times as much
+as the Earth does from the Sun, or 50 times in all.  The light we
+receive from the Moon is one 1/10,000 of the light we receive from the
+Sun, so we can ignore that ... The radiation falling on Heaven will
+heat it to the point where the heat lost by radiation is just equal to
+the heat received by radiation, i.e., Heaven loses 50 times as much
+heat as the Earth by radiation.  Using the Stefan-Boltzmann law for
+radiation, (H/E)^4 = 50, where E is the absolute temperature of the
+earth (~300K), gives H as 798K (525C).  The exact temperature of Hell
+cannot be computed ... [However] Revelations 21:8 says “But the
+fearful, and unbelieving ... shall have their part in the lake which
+burneth with fire and brimstone.”  A lake of molten brimstone means
+that its temperature must be at or below the boiling point, 444.6C.  We
+have, then, that Heaven, at 525C is hotter than Hell at 445C.
+- From “Applied Optics” vol. 11, A14, 1972"
+
+   "“A commercial, and in some respects a social, doubt has been started within the
+ last year or two, whether or not it is right to discuss so openly the security
+ or insecurity of locks.  Many well-meaning persons suppose that the discus-
+ sion respecting the means for baffling the supposed safety of locks offers a
+ premium for dishonesty, by showing others how to be dishonest.  This is a fal-
+ lacy.  Rogues are very keen in their profession, and already know much more
+ than we can teach them respecting their several kinds of roguery.  Rogues knew
+ a good deal about lockpicking long before locksmiths discussed it among them-
+ selves, as they have lately done.  If a lock - let it have been made in what-
+ ever country, or by whatever maker - is not so inviolable as it has hitherto
+ been deemed to be, surely it is in the interest of *honest* persons to know
+ this fact, because the *dishonest* are tolerably certain to be the first to
+ apply the knowledge practically; and the spread of knowledge is necessary to
+ give fair play to those who might suffer by ignorance.  It cannot be too ear-
+ nestly urged, that an acquaintance with real facts will, in the end, be better
+ for all parties.”
+- Charles Tomlinson’s Rudimentary Treatise on the Construction of Locks,
+   published around 1850"
+
+   "No man is an Iland, intire of it selfe; every man is a peece of the
+Continent, a part of the maine; if a Clod bee washed away by the Sea,
+Europe is the lesse, as well as if a Promontorie were, as well as if
+a Mannor of thy friends or of thine owne were; any mans death diminishes
+me, because I am involved in Mankinde; And therefore never send to know
+for whom the bell tolls; It tolls for thee.
+- John Donne, “No Man is an Iland”"
+
+   "“Ah, you know the type.  They like to blame it all on the Jews or the Blacks,
+‘cause if they couldn’t, they’d have to wake up to the fact that life’s one
+big, scary, glorious, complex and ultimately unfathomable crapshoot - and the
+only reason THEY can’t seem to keep up is they’re a bunch of misfits
+and losers.”
+- an analysis of neo-Nazis and such, Badger comics"
+
+   "“I’ve finally learned what ‘upward compatible’ means.  It means we
+ get to keep all our old mistakes.”
+- Dennie van Tassel"
+
+   "“Necessity is the mother of invention” is a silly proverb.  “Necessity
+is the mother of futile dodges” is much nearer the truth.
+- Alfred North Whitehead"
+
+   "The major advances in civilization are processes that all but wreck the
+societies in which they occur.
+- A.N. Whitehead"
+
+   "It is a profoundly erroneous truism, repeated by all copy-books and
+by eminent people when they are making speeches, that we should cultivate
+the habit of thinking about what we are doing.  The precise opposite is the
+case.  Civilization advances by extending the numbers of important operations
+which we can perform without thinking about them.  Operations of thought are
+like cavalry charges in battle - they are strictly limited in number, they
+require fresh horses, and must only be made at decisive moments.
+- Alfred North Whitehead"
+
+   "So from the depths of its enchantment, Terra was able to calculate a course
+of action.  Here at last was an opportunity to consort with Dirbanu on a
+friendly basis - great Durbanu which, since it had force fields which Earth
+could not duplicate, must of necessity have many other things Earth could
+use; mighty Durbanu before whom we would kneel in supplication (with purely-
+for-defense bombs hidden in our pockets) with lowered heads (making invisible
+the knife in our teeth) and ask for crumbs from their table (in order to
+extrapolate the location of their kitchens).
+- Theodore Sturgeon, “The World Well Lost”"
+
+   "... Any resemblance between the above views and those of my employer,
+my terminal, or the view out my window are purely coincidental.  Any
+resemblance between the above and my own views is non-deterministic.  The
+question of the existence of views in the absence of anyone to hold them
+is left as an exercise for the reader.  The question of the existence of
+the reader is left as an exercise for the second god coefficient.  (A
+discussion of non-orthogonal, non-integral polytheism is beyond the scope
+of this article.)"
+
+   "NOTE: No warranties, either express or implied, are hereby given. All
+software is supplied as is, without guarantee.  The user assumes all
+responsibility for damages resulting from the use of these features,
+including, but not limited to, frustration, disgust, system abends, disk
+head-crashes, general malfeasance, floods, fires, shark attack, nerve
+gas, locust infestation, cyclones, hurricanes, tsunamis, local
+electromagnetic disruptions, hydraulic brake system failure, invasion,
+hashing collisions, normal wear and tear of friction surfaces, comic
+radiation, inadvertent destruction of sensitive electronic components,
+windstorms, the Riders of Nazgul, infuriated chickens, malfunctioning
+mechanical or electrical sexual devices, premature activation of the
+distant early warning system, peasant uprisings, halitosis, artillery
+bombardment, explosions, cave-ins, and/or frogs falling from the sky."
+
+   "Obviously, a man’s judgement cannot be better than the information on which he
+has based it.  Give him the truth and he may still go wrong when he has
+the chance to be right, but give him no news or present him only with distorted
+and incomplete data, with ignorant, sloppy or biased reporting, with propaganda
+and deliberate falsehoods, and you destroy his whole reasoning processes, and
+make him something less than a man.
+- Arthur Hays Sulzberger"
+
+   "Alan Turing thought about criteria to settle the question of whether
+machines can think, a question of which we now know that it is about
+as relevant as the question of whether submarines can swim.
+- Dijkstra"
+
+   "The meta-Turing test counts a thing as intelligent if it seeks to apply
+Turing tests to objects of its own creation.
+- Lew Mammel, Jr."
+
+   "Man usually avoids attributing cleverness to somebody else - unless it
+is an enemy.
+- Albert Einstein"
+
+   "Have the courage to take your own thoughts seriously, for they will shape you.
+- Albert Einstein"
+
+   "“Reality is that which, when you stop believing in it, doesn’t go away”.
+- Philip K. Dick"
+
+   "Only presidents, editors, and people with tapeworms have the right
+to use the editorial “we.”
+- Mark Twain"
+
+   "Seuls les prÃ©sidents, les Ã©diteurs, et les gens ayant des vers solitaires ont
+le droit d’utiliser le “nous” de majestÃ©.
+- Mark Twain"
+
+   "Reisner’s Rule of Conceptual Inertia:
+	If you think big enough, you’ll never have to do it."
+
+   "First Rule of History:
+	History doesn’t repeat itself - historians merely repeat each other."
+
+   "The rule is, jam to-morrow and jam yesterday, but never jam today.
+- Lewis Carroll"
+
+   "We have not inherited the earth from our parents, we’ve borrowed it from
+our children."
+
+   "vu attribuÃ© Ã  LÃ©opold SÃ©dar Senghor:"
+
+   "Nous n’hÃ©ritons pas la Terre de nos parents. Nous l’empruntons Ã  nos enfants."
+
+   "To converse at the distance of the Indes by means of sympathetic contrivances
+may be as natural to future times as to us is a literary correspondence.
+- Joseph Glanvill, 1661"
+
+   "The Constitution may not be perfect, but it’s a lot better than what we’ve got!"
+
+   "The degree of civilization in a society can be judged by entering its prisons.
+- F. Dostoyevski"
+
+   "The problem with most conspiracy theories is that they seem to believe that
+for a group of people to behave in a way detrimental to the common good
+requires intent."
+
+   "All programmers are playwrights and all computers are lousy actors."
+
+   "Committee, n.:
+	A group of men who individually can do nothing but as a group
+decide that nothing can be done.
+- Fred Allen"
+
+   "Individualists unite!"
+
+   "Demand the establishment of the government in its rightful home at Disneyland."
+
+   "Rocky’s Lemma of Innovation Prevention
+	Unless the results are known in advance, funding agencies will
+	reject the proposal."
+
+   "Conservative, n.:
+	One who admires radicals centuries after they’re dead.
+- Leo C. Rosten"
+
+   "I am an atheist, thank God!"
+
+   "Anyone who is capable of getting themselves made President should on no
+account be allowed to do the job.
+- Douglas Adams, “The Hitchhiker’s Guide to the Galaxy”
+In a five year period we can get one superb programming language.
+Only we can’t control when the five year period will begin.
+- Alan Perlis"
+
+   "A language that doesn’t affect the way you think about programming,
+is not worth knowing.
+- Alan Perlis"
+
+   "Every program has at least one bug and can be shortened by at least one
+instruction - from which, by induction, one can deduce that every
+program can be reduced to one instruction which doesn’t work."
+
+   "COBOL programs are an exercise in Artificial Inelegance."
+
+   "We will encourage you to develop the three great virtues of a programmer:
+laziness, impatience, and hubris.
+- LarryWall, Programming Perl (1st edition)"
+
+   "Sex without love is an empty experience, but, as empty experiences go,
+it’s one of the best.
+- Woody Allen"
+
+   "traduction FarÃ©:
+“Le sexe sans amour est une expÃ©rience vaine, mais, de toutes les expÃ©riences
+vaines, c’est l’une des meilleures.” - Woody Allen"
+
+   "“I think sex is better than logic, but I can’t prove it.” - Monty Python"
+
+   "“I’m going to live forever, or die trying!”
+- Spider Robinson"
+
+   ""
+
+   "Yossarian said something similar"
+
+   "Trying to be happy is like trying to build a machine for which the only
+specification is that it should run noiselessly."
+
+   "You can learn many things from children.  How much patience you have,
+for instance.
+- Franklin P. Jones"
+
+   "Worst Response To A Crisis, 1985:
+	From a readers’ Q and A column in TV GUIDE: “If we get involved
+in a nuclear war, would the electromagnetic pulses from exploding bombs
+damage my videotapes?”"
+
+   "On-line, adj.:
+	The idea that a human being should always be accessible to a computer."
+
+   "Ours is a world of nuclear giants and ethical infants.
+- General Omar N. Bradley"
+
+   "Faith, n:
+	That quality which enables us to believe what we know to be untrue."
+
+   "God must love the Common Man; He made so many of them."
+
+   "Lie, n.:
+	A very poor substitute for the truth, but the only one
+discovered to date."
+
+   "God is real, unless declared integer."
+
+   "Lubarsky’s Law of Cybernetic Entomology:
+	There’s always one more bug."
+
+   "The reasonable man adapts himself to the world; the unreasonable one
+persists in trying to adapt the world to himself.  Therefore all
+progress depends on the unreasonable man.
+- George Bernard Shaw"
+
+   "Experience is the worst teacher.  It always gives the test first and
+the instruction afterward."
+
+   "All wars are civil wars, because all men are brothers ... Each one owes
+infinitely more to the human race than to the particular country in
+which he was born.
+- Francois Fenelon"
+
+   "Due to circumstances beyond your control, you are master of your fate
+and captain of your soul."
+
+   "found in Douglas Hofstadter’s Metamagical Themas"
+
+   "En raison de circonstances indÃ©pendantes de votre volontÃ©,
+vous voilÃ  maÃ®tre de votre destin et capitaine de votre Ã¢me."
+
+   "Majority, n.:
+	That quality that distinguishes a crime from a law."
+
+   "Die, v.:
+	To stop sinning suddenly.
+- Elbert Hubbard"
+
+   "It may be bad manners to talk with your mouth full, but it isn’t too
+good either if you speak when your head is empty."
+
+   "Life is like an onion: you peel off layer after layer,
+then you find there is nothing in it.
+Mathematicians are like Frenchmen: whatever you say to them they translate
+into their own language, and forthwith it is something entirely different.
+- Johann Wolfgang von Goethe"
+
+   "Every four seconds a woman has a baby.
+Our problem is to find this woman and stop her."
+
+   "Love thy neighbor as thyself, but choose your neighborhood.
+- Louise Beal"
+
+   "Brain, n.:
+	The apparatus with which we think that we think.
+- Ambrose Bierce, “The Devil’s Dictionary”"
+
+   "Clairvoyant, n.:
+	A person, commonly a woman, who has the power of seeing that
+which is invisible to her patron - namely, that he is a blockhead.
+- Ambrose Bierce"
+
+   "Clothes make the man.  Naked people have little or no influence on society.
+- Mark Twain"
+
+   "“I wish there was a knob on the TV to turn up the intelligence.
+There’s a knob called ‘brightness’, but it doesn’t work.”
+- Gallagher"
+
+   "Sex is not the answer.  Sex is the question.  “Yes” is the answer.
+- Swami X"
+
+   "Anyone who goes to a psychiatrist ought to have his head examined.
+- Samuel Goldwyn"
+
+   "Always remember that you are unique.  Just like everyone else.
+
+.. To which “Life of Brian” replies:
+- We’re all different.
+- I’m not!"
+
+   "Souviens-toi toujours que tu es unique. Comme tout le monde."
+
+   "A student who changes the course of history is probably taking an exam."
+
+   "A successful [software] tool is one that was used to do something
+undreamed of by its author.
+- S. C. Johnson"
+
+   "A tautology is a thing which is tautological."
+
+   "Absent, adj.:
+    Exposed to the attacks of friends and acquaintances; defamed; slandered."
+
+   "You should never wear your best trousers when you go out to fight for
+freedom and liberty.
+- Henrik Ibsen"
+
+   "Living on Earth may be expensive, but it includes an annual free trip
+around the Sun."
+
+   "As far as we know, our computer has never had an undetected error.
+- Weisert"
+
+   "“The Army is a place where you get up early in the morning to be yelled
+at by people with short haircuts and tiny brains.”
+- Dave Barry"
+
+   "Your conscience never stops you from doing anything.  It just stops you
+from enjoying it."
+
+   "You worry too much about your job.  Stop it.  You’re not paid enough to worry."
+
+   "A mathematician is a machine for converting coffee into theorems.
+[A co-mathematician is a machine for converting cotheorems into fee.]"
+
+   "A real person has two reasons for doing anything ... a good reason and
+the real reason."
+
+   "...so this guy walks into a bar.
+“The usual, Mr. Descartes?” the barman asked.
+“I think not,” Rene replied, and promptly disappeared."
+
+   "There are two kinds of people, those who do the work
+and those who take the credit. Try to be in the first group;
+there is less competition there
+- Indira Gandhi."
+
+   "“Don’t worry about people stealing your ideas.  If your ideas are any good,
+you’ll have to ram them down people’s throats.”
+- Howard Aiken"
+
+   "The most exciting phrase to hear in science, the one that heralds new
+discoveries, is not “Eureka!” (I found it!) but “That’s funny ...”
+- Isaac Asimov"
+
+   "“I do not fear computers.  I fear the lack of them.”
+- Isaac Asimov"
+
+   "An apple every eight hours will keep three doctors away."
+
+   "My opinions may have changed, but not the fact that I am right."
+
+   "The program isn’t debugged until the last user is dead."
+
+   "You have the capacity to learn from mistakes.  You’ll learn a lot today."
+
+   "“As an adolescent I aspired to lasting fame, I craved factual certainty, and
+I thirsted for a meaningful vision of human life - so I became a scientist.
+This is like becoming an archbishop so you can meet girls.”
+- Matt Cartmill"
+
+   "Don’t tell me how hard you work.  Tell me how much you get done.
+- James J. Ling"
+
+   "Paralysis through analysis."
+
+   "The sunlights differ, but there is only one darkness.
+- Ursula K. LeGuin, “The Dispossessed”"
+
+   "There are 40 kinds of lunacy, but only one kind of common sense.
+- African proverb"
+
+   "“Never ascribe to malice that which is caused by greed and ignorance.”
+- Cal Keegan"
+
+   "Who’s Keegan? See instead Hanlon’s razor."
+
+   "The trouble with opportunity is that it always comes disguised as hard work.
+- Herbert V. Prochnow"
+
+   "Opportunity is missed by most people because it comes dressed in overalls
+and looks like work.
+- T. A. Edison"
+
+   "Too many people are thinking of security instead of opportunity.  They seem
+more afraid of life than death.
+- James F. Byrnes"
+
+   "Reporter: Mr Gandhi, what do you think of Western Civilization?
+Gandhi: I think it would be a good idea."
+
+   "Whatever you do will be insignificant, but it is very important that you do it.
+- Gandhi"
+
+   "Life is a sexually transmitted disease with 100"
+
+   "mortality."
+
+   "Reality must take precedence over public relations,
+for Mother Nature cannot be fooled.
+- R.P. Feynman"
+
+   "Genius is one percent inspiration and ninety-nine percent perspiration.
+- Thomas Alva Edison"
+
+   "Disraeli was pretty close: actually, there are Lies, Damn lies, Statistics,
+Benchmarks, and Delivery dates."
+
+   "Death is only a state of mind.
+
+Only it doesn’t leave you much time to think about anything else."
+
+   "The superior man understands what is right;
+the inferior man understands what will sell.
+- Confucius"
+
+   "In the beginning there was nothing.  And the Lord said “Let There Be Light!”
+And still there was nothing, but at least now you could see it."
+
+   "The two most common things in the Universe are hydrogen and stupidity.
+- Harlan Ellison"
+
+   "They laughed at Columbus, they laughed at Fulton, they laughed at the
+Wright brothers.  But they also laughed at Bozo the Clown.
+- Carl Sagan"
+
+   "drug, n:
+	A substance that, injected into a rat, produces a scientific paper."
+
+   "An entrepreneur purchased an old, abandoned farm. The fields are grown over
+with weeds, the farmhouse is falling apart, and the fences are collapsing
+all around. During his first day of work, the town preacher stops by to bless
+the man’s work, praying, “May you and God work together to make this the farm
+of your dreams!”
+	A few months later, the preacher stops by again. The place is
+completely different: the farmhouse is like new, livestock is fed in
+well-fenced pens, and the fields are ripe for an abundant harvest. “Amazing!”
+the preacher says. “Look what God and you have accomplished together!”
+	“Yes sir,” replies the farmer, “but remember what the farm was like
+when God was working it alone!”"
+
+   "Un entrepreneur reprend une vieille ferme abandonnÃ©e. Les champs sont couverts
+de mauvaises herbes, les bÃ¢timents sont en ruine, les clotÃ»res sont effondrÃ©es.
+Au premier jour des rÃ©novations, un prÃªtre local s’arrÃªte pour bÃ©nir le
+chantier. “Puissiez vous et Dieu travailler de concert pour que s’Ã©lÃ¨ve la
+ferme de vos rÃªves.”
+   Quelques mois plus tard, le prÃªtre revient visiter la ferme. L’endroit a
+complÃ¨tement changÃ©: les bÃ¢timents sont comme neufs, le bÃ©tail mange
+tranquillement dans des enclos solides, et les champs bien semÃ©s sont mÃ»rs
+pour une rÃ©colte abondante. “Quelle merveille!” s’Ã©crie le prÃªtre. “Regardez
+ce que Dieu et vous avez accompli ensemble!”
+   “Oui monsieur,” rÃ©pond l’agriculteur, “mais souvenez-vous de l’Ã©tat de la
+ferme quand Dieu s’en occupait tout seul.”"
+
+   "Be careful what you set your heart on - for it will surely be yours.
+- James Baldwin, “Nobody Knows My Name”"
+
+   "A child of five would understand this. Send someone to fetch a child of five.
+- Groucho Marx"
+
+   "Extremism in the defense of liberty is no vice... moderation in the pursuit
+of justice is no virtue.
+- Barry Goldwater"
+
+   "Tom Paine said it better. See collected."
+
+   "What we Are is God’s gift to us.
+What we Become is our gift to God."
+
+   "Do not handicap your children by making their lives easy.
+- Robert Heinlein"
+
+   "Wishing without work is like fishing without bait.
+- Frank Tyger"
+
+   "Living your life is a task so difficult, it has never been attempted before."
+
+   "The only thing necessary for the triumph of evil is for good men to do nothing.
+- Edmund Burke"
+
+   "If you were plowing a field, which would you rather use?
+Two strong oxen or 1024 chickens?
+- Seymour Cray"
+
+   "No woman ever falls in love with a man unless she has
+a better opinion of him than he deserves.
+- Edgar Watson Howe"
+
+   "No man would listen to you talk if he didn’t know it was his turn next.
+- Edgar Watson Howe"
+
+   "You may easily play a joke on a man who likes to argue - agree with him.
+- Edgar Waston Howe"
+
+   "Instead of loving your enemies, treat your friends a little better.
+- Edgar Watson Howe"
+
+   "“Anything created must necessarily be inferior to the essence of the creator.”
+- Claude Shouse (shouse@macomw.ARPA)"
+
+   "“Einstein’s mother must have been one heck of a physicist.”
+- Joseph C. Wang (joe@athena.mit.edu)"
+
+   "It is said an Eastern monarch once charged his wise men to invent him
+a sentence to be ever in view, and which should be true and appropriate
+in alltimes and situations. They presented him the words:
+	“And this, too, shall pass away.”
+- Abraham Lincoln"
+
+   ]
   "Good and nice fortunes.")
 
 (defvar *fortunes*
