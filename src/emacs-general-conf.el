@@ -151,7 +151,8 @@
 
 ;; Speed up display of long lines at the expense of correct
 ;; handling of bidirectional text.
-(setq-default bidi-display-reordering nil)
+(setq bidi-inhibit-bpa t)
+(setq-default bidi-paragraph-direction 'left-to-right)
 
 (when (boundp 'ring-bell-function)
   (setf ring-bell-function #'ignore))
