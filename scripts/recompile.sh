@@ -42,7 +42,7 @@ function update-dir-autoloads {
 (progn
   ;; Completely disable local variables because they cause much
   ;; trouble when files have invalid local variable entries.
-  (defun hack-local-variables (&optional ignored) nil)
+  (defun hack-local-variables (&rest ignored) nil)
   (setq debug-on-error t
         generated-autoload-file "$emacs_dir/$name"
         make-backup-files nil
