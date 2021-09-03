@@ -140,6 +140,7 @@ update-dir-autoloads \
     "third-party/ivy" \
     "third-party/ivy-posframe" \
     "third-party/ivy-smex" \
+    "third-party/j-mode" \
     "third-party/lcr" \
     "third-party/lean-mode" \
     "third-party/lsp-mode" \

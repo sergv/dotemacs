@@ -63,8 +63,10 @@
                        (mode . tuareg-interactive-mode)
                        (name . ,(rx "*\\(?:ocaml\\|sml\\)-repl*"
                                     (? "<" (+ digit) ">")))))
+       (array-filter `(or (mode . j-mode)
+                          (mode . inferior-j-mode)))
        (octave-filter `(or (mode . octave-mode)
-                           (mode . inferiro-octave-mode)
+                           (mode . inferior-octave-mode)
                            (name . ,(rx "*Octave*"
                                         (? "<"
                                            (+ digit)
@@ -221,6 +223,7 @@
       ("rust"       ,rust-filter)
       ("c/c++"      ,c-c++-filter)
       ("ptx"        ,ptx-filter)
+      ("array"      ,array-filter)
       ("octave"     ,octave-filter)
       ("hdl"        ,hdl-filter)
       ("nix"        ,nix-filter)
