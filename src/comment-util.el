@@ -42,7 +42,7 @@
    (makefile-automake-mode   (one-line "#")  (line-regexp "#+")  (comment-chars ?#))
    (makefile-bsdmake-mode    (one-line "#")  (line-regexp "#+")  (comment-chars ?#))
    (cmake-mode               (one-line "#")  (line-regexp "#+")  (comment-chars ?#))
-
+   (j-mode                   (one-line "NB.")                    (comment-chars ?N ?B ?.))
    (lean-mode                (one-line "--") (line-regexp "--+") (comment-chars ?-))
    (latex-mode               (one-line "%")  (line-regexp "%+")  (comment-chars ?%))
    (octave-mode              (one-line "%")  (line-regexp "\\(?:%+\\|#+\\)") (comment-chars ?% ?#))
