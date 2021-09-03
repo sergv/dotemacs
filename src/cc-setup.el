@@ -242,128 +242,16 @@ _o_: show c sexps in region"
     (def-keys-for-map vim:normal-mode-local-keymap
       ("SPC SPC" ff-find-related-file))))
 
-
-;; Indentation of c-style languages via AStyle command-line utility.
-
-(defvar c-indentation-indent-styles-alist
-  '(("c-standard4"
-     "--style=linux"
-     "--indent=spaces=4"
-     "--pad-oper"
-     "--pad-header"
-     "--unpad-paren"
-     "--keep-one-line-statements"
-     "--keep-one-line-blocks"
-     "--convert-tabs"
-     "--align-pointer=name"
-     "--mode=c"
-     "--suffix=none"
-     "--lineend=linux")
-    ("c-standard2"
-     "--style=linux"
-     "--indent=spaces=2"
-     "--pad-oper"
-     "--pad-header"
-     "--unpad-paren"
-     "--keep-one-line-statements"
-     "--keep-one-line-blocks"
-     "--convert-tabs"
-     "--align-pointer=name"
-     "--mode=c"
-     "--suffix=none"
-     "--lineend=linux")
-    ("c-gnu2"
-     "--style=gnu"
-     "--indent=spaces=2"
-     "--pad-oper"
-     "--pad-header"
-     "--unpad-paren"
-     "--keep-one-line-statements"
-     "--keep-one-line-blocks"
-     "--convert-tabs"
-     "--align-pointer=name"
-     "--mode=c"
-     "--suffix=none"
-     "--lineend=linux")
-
-    ("java-standard"
-     "--style=java"
-     "--align-pointer=middle"
-     "--formatted"
-     "--indent=spaces=4"
-     "--pad-oper"
-     "--pad-header"
-     "--unpad-paren"
-     "--keep-one-line-statements"
-     "--keep-one-line-blocks"
-     "--add-brackets"
-     "--convert-tabs"
-     "--mode=java"
-     "--suffix=none"
-     "--lineend=linux"
-     "--indent-namespaces" ;; standard java indents namespaces
-     )
-    ("java-clojure"
-     "--style=java"
-     ;; "--style=break"
-     "--align-pointer=middle"
-     "--formatted"
-     "--indent=spaces=4"
-     "--pad-oper"
-     "--pad-header"
-     "--unpad-paren"
-     "--keep-one-line-statements"
-     "--keep-one-line-blocks"
-     "--add-brackets"
-     "--convert-tabs"
-     "--mode=java"
-     "--suffix=none"
-     "--lineend=linux")))
-
-(defvar c-indentation-indent-styles
-  (alist->hash-table
-   (remq nil
-         c-indentation-indent-styles-alist)))
-
-(defvar c-indentation-indent-style (caar c-indentation-indent-styles-alist)
-  "Default indent style to use.")
-
-(defvar c-indentation-style-history nil)
-
-(defun c-format-buffer (&optional change-indent-style)
-  (interactive "p")
-  (when change-indent-style
-    (setf c-indentation-indent-style
-          (completing-read "Choose style: "
-                           (hash-table-keys c-indentation-indent-styles)
-                           nil
-                           t ;; require match
-                           nil
-                           c-indentation-style-history ;; history
-                           )))
-  (let ((file +buffer-indent-temporary-filename+)
-        (p (point))
-        (indent-options (gethash c-indentation-indent-style
-                                 c-indentation-indent-styles)))
-    (unless indent-options
-      (error "No options for indent style %s" c-indentation-indent-style))
-    (write-region (point-min) (point-max) file)
-    (erase-buffer)
-    (shell-command
-     (join-lines (append (list (platform-dependent-executable
-                                (concat +execs-path+ "/astyle.custom")))
-                         indent-options
-                         (list (format "<%s" file)))
-                 " ")
-     (current-buffer))
-    (goto-char p)))
+(defun c-format-buffer ()
+  (interactive)
+  (clang-format-buffer (format "{ IndentWidth: %s }" c-basic-offset)))
 
 (defun c-format-file (filename &optional style)
   "Indent FILENAME according to STYLE by running astyle on it."
   (with-temp-buffer
     (insert-file-contents filename)
-    (let ((c-indentation-indent-style (or style
-                                          c-indentation-indent-style)))
+    (let ((astyle-indent-style (or style
+                                   astyle-indent-style)))
       (c-format-buffer)
       (write-region (point-min) (point-max) filename))))
 
