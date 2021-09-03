@@ -15,16 +15,10 @@
               tab-width width
               tab-always-indent t))
 
-(defconst +buffer-indent-temporary-filename+
-  (concat temporary-file-directory "/indent-buffer.tmp")
-  "Path to temporary file reserved for buffer indentation puproses.
-See also `*mode-indent-functions-table*'.")
-
 (defvar *mode-indent-functions-table*
   (make-hash-table :test #'eq)
   "Hash table of (major-mode . function) pairs, where functions
-should take no arguments and destructively indent current buffer.
-See also `+buffer-indent-temporary-filename+'.")
+should take no arguments and destructively indent current buffer.")
 
 (defun indent-to! (col)
   "Indent current line to exactly COL'th column with spaces."
