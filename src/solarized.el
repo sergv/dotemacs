@@ -635,6 +635,11 @@ Futher modified by Sergey Vinokurov."
             (company-preview                      ((t (:foreground ,yellow))))
             (company-preview-common               ((t (:foreground ,orange))))
 
+            (j-verb-face                          ((t (:foreground ,red))))
+            (j-adverb-face                        ((t (:foreground ,green))))
+            (j-conjunction-face                   ((t (:foreground ,magenta))))
+            (j-other-face                         ((t (:foreground ,violet))))
+
             (minibuffer-prompt                    ((t (:foreground ,violet))))
             (navigation-node-face                 ((t (:foreground ,magenta))))
             (paren-face-no-match                  ((t (:underline ,yellow))))
