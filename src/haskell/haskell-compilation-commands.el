@@ -48,7 +48,8 @@
      'haskell-compilation-mode
      nil ;; Make buffer name.
      )
-    (setq-local dante-methods-alist dante-check-and-repl-methods))
+    (setq-local dante-methods-alist dante-check-and-repl-methods
+                dante-methods (-map 'car dante-methods-alist)))
 
   (vim:local-emap "compile"  'vim:haskell-compile)
   (vim:local-emap "c"        'vim:haskell-compile)
