@@ -92,15 +92,19 @@ will be in different GHCi sessions."
 
 (put 'dante-target 'safe-local-variable #'stringp)
 
+(defun dante-cabal-new (d)
+  "non-nil iff D contains a nix file and a cabal file."
+  (directory-files d t "cabal.project\\(?:.local\\)?") t)
+
 (defun dante-cabal-new-nix (d)
   "non-nil iff D contains a nix file and a cabal file."
-  (and (directory-files d t "shell.nix\\|default.nix")
-       (directory-files d t "cabal.project\\(?:.local\\)?")))
+  (and (directory-files d t "shell.nix\\|default.nix" t)
+       (directory-files d t "cabal.project\\(?:.local\\)?" t)))
 
 (defun dante-cabal-nix (d)
   "non-nil iff D contains a nix file and a cabal file."
-  (and (directory-files d t "shell.nix\\|default.nix")
-       (directory-files d t ".cabal$")))
+  (and (directory-files d t "shell.nix\\|default.nix" t)
+       (directory-files d t ".cabal$" t)))
 
 (defun dante--make-methods (tmp)
   (let ((build (when tmp
@@ -110,7 +114,7 @@ will be in different GHCi sessions."
                 (list "--builddir"
                       (concat tmp "/dante-repl")))))
     `((styx "styx.yaml" ("styx" "repl" dante-target))
-      (new-build "cabal.project\\(?:\\.local\\)?"
+      (new-build dante-cabal-new
                  ("cabal" "new-repl" (or dante-target (dante-package-name) nil) ,@build)
                  ("cabal" "new-repl" (or dante-target (dante-package-name) nil) ,@repl))
                                         ; (snack ,(lambda (d) (directory-files d t "package\\.\\(yaml\\|nix\\)")) ("snack" "ghci" dante-target)) ; too easy to trigger, confuses too many people.
