@@ -285,6 +285,24 @@
     "let is_contiguous = idx_|_"
     "let is_contiguous = idx == _|_"))
 
+(ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator-22 ()
+  (rust-tests--test-buffer-contents
+   (rust-smart-operators--insert-char-surrounding-with-spaces ?-)
+    "Sign::Minus => _|_x,"
+    "Sign::Minus => - _|_x,"))
+
+(ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator-23 ()
+  (rust-tests--test-buffer-contents
+   (rust-smart-operators--insert-char-surrounding-with-spaces ?+)
+    "Sign::Minus => _|_x,"
+    "Sign::Minus => + _|_x,"))
+
+(ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator-24 ()
+  (rust-tests--test-buffer-contents
+   (rust-smart-operators--insert-char-surrounding-with-spaces ?/)
+    "Sign::Minus => _|_x,"
+    "Sign::Minus => / _|_x,"))
+
 (ert-deftest rust-tests/rust-smart-operators--prepend-to-prev-operator-+-1 ()
   (rust-tests--test-buffer-contents
       (rust-smart-operators--insert-char-surrounding-with-spaces ?+)
