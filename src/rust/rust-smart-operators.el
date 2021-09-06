@@ -28,6 +28,36 @@ stick it to the previous operator on line."
 (defconst rust-smart-operators--chars-to-separate-from-asterisk
   '(?= ?> ?| ?^ ?% ?/ ?- ?+ ?* ?&))
 
+(defconst +rust-smart-operators--valid-operators+
+  '("!" "!=" "%" "%=" "&" "&" "&" "&=" "&&" "*" "*=" "*" "*" "+" "+" "+=" "," "-" "-" "-=" "->" "." ".." "..=" ".." ".." "..." "/" "/=" ":" ":" ":" ";" ";" "<<" "<<=" "<" "<=" "=" "==" "=>" ">" ">=" ">>" ">>=" "@" "^" "^=" "|" "|" "|=" "||" "?"))
+
+(defconst +rust-smart-operators--composite-operators+
+  (--filter (< 1 (length it)) +rust-smart-operators--valid-operators+))
+
+(defmacro rust-smart-operators--char-before-matches (specs idx get-char)
+  "Specs is a list of strings."
+  (declare (indent 2))
+  (when (symbolp specs)
+    (setq specs (eval specs)))
+  (if specs
+      (let ((entries (make-hash-table :test #'eq))
+            (trimmed-specs nil))
+        (dolist (entry specs)
+          (when (not (string= entry ""))
+            (let ((last-idx (1- (length entry))))
+              (when-let ((last (aref entry last-idx)))
+                (puthash last (cons (subseq entry 0 last-idx)
+                                    (gethash last entries))
+                         entries)))))
+        `(pcase ,(funcall get-char idx)
+           ,@(--map (list (car it)
+                          `(rust-smart-operators--char-before-matches
+                               ,(--filter (< 0 (length it)) (cdr it))
+                               ,(+ idx 1)
+                             ,get-char))
+                    (hash-table->alist entries))))
+    `t))
+
 (defun rust-smart-operators--insert-char-optionally-surrounding-with-spaces (char insert-space-after)
   (let ((disable-smart-operators? current-prefix-arg)
         (char-is-smart-op? (memq char rust-smart-operators--operator-chars)))
@@ -84,15 +114,19 @@ stick it to the previous operator on line."
                                       t) ;; Not a > before spaces - ok to delete.
                                      )
                                    (let ((char-before-spaces2 (char-before (- pt-before-ws 1))))
-                                     (or (if (char= char ?=)
-                                             ;; So that we create arithmetic increments, e.g. +=
-                                             (memq char-before-spaces '(?+ ?- ?* ?/ ?% ?=))
-                                           (memq char-before-spaces rust-smart-operators--operator-chars))
-                                         (char= char-before-spaces ?\()
-                                         (and (char= char ?=)
-                                              (or (char= char-before-spaces ?!)
-                                                  (and (char= char-before-spaces ?.)
-                                                       (char= char-before-spaces2 ?.)))))))))))
+                                     (and (not (rust-smart-operators--char-before-matches
+                                                   +rust-smart-operators--composite-operators+
+                                                   0
+                                                 (lambda (n) `(char-before (- pt-before-ws ,n)))))
+                                          (or (if (char= char ?=)
+                                                  ;; So that we create arithmetic increments, e.g. +=
+                                                  (memq char-before-spaces '(?+ ?- ?* ?/ ?% ?=))
+                                                (memq char-before-spaces rust-smart-operators--operator-chars))
+                                              (char= char-before-spaces ?\()
+                                              (and (char= char ?=)
+                                                   (or (char= char-before-spaces ?!)
+                                                       (and (char= char-before-spaces ?.)
+                                                            (char= char-before-spaces2 ?.))))))))))))
               (setf whitespace-deleted? (delete-whitespace-backward)))
 
             (let* ((pt (point))
