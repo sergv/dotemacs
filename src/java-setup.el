@@ -24,9 +24,10 @@
               vim:shift-width 4
               c-indentation-indent-style "java-standard"
               ;; "java-clojure"
-              whitespace-style '(face tabs space-after-tab space-before-tab)
-              ;; indent with tabs
-              indent-tabs-mode t)
+              whitespace-style '(face tabs space-after-tab space-before-tab))
+  (let ((proj (eproj-get-project-for-buf-lax (current-buffer))))
+    ;; indent with tabs?
+    (setq-local indent-tabs-mode (eproj-query/java/indent-tab proj t)))
   (setup-eproj-symbnav)
   (java-abbrev+-setup))
 
