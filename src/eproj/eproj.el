@@ -710,6 +710,7 @@ for project at ROOT directory."
       (insert "related projects:\n")
       (dolist (related-proj (eproj-project/related-projects proj))
         (insert indent related-proj "\n"))
+      (insert (format "aux info: %s\n" (eproj-project/aux-info proj)))
       (when describe-buffers
         (insert "buffers:\n")
         (dolist (buf (-filter (lambda (buf)
