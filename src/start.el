@@ -190,21 +190,20 @@
                        &key
                        (enable-yasnippet nil)
                        (yasnippet-fallback nil))
-  (if enable-yasnippet
-      (progn
-        (setq-local yas-expand-fallback (or yasnippet-fallback tab-binding))
-        (def-keys-for-map (vim:normal-mode-local-keymap
-                           vim:insert-mode-local-keymap)
-          ("<tab>" yas-expand-or-fallback)))
-    (dolist (kmap (list vim:normal-mode-local-keymap
-                        vim:insert-mode-local-keymap))
-      (define-key kmap (kbd "<tab>") tab-binding)))
-  (dolist (kmap (list vim:normal-mode-local-keymap
-                      vim:insert-mode-local-keymap))
-    (dolist (binding (list (kbd "<backtab>")
-                           (kbd "S-<tab>")
-                           (kbd "S-<iso-lefttab>")))
-      (define-key kmap binding backtab-binding))))
+  (let ((keymaps (list vim:normal-mode-local-keymap
+                       vim:insert-mode-local-keymap)))
+    (if enable-yasnippet
+        (progn
+          (setq-local yas-expand-fallback (or yasnippet-fallback tab-binding))
+          (dolist (kmap keymaps)
+            (define-key kmap (kbd "<tab>") #'yas-expand-or-fallback)))
+      (dolist (kmap keymaps)
+        (define-key kmap (kbd "<tab>") tab-binding)))
+    (dolist (kmap keymaps)
+      (dolist (binding (list (kbd "<backtab>")
+                             (kbd "S-<tab>")
+                             (kbd "S-<iso-lefttab>")))
+        (define-key kmap binding backtab-binding)))))
 
 (require 'c-like-setup)
 (require 'haskell-autoload)
