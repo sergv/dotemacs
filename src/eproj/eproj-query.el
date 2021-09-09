@@ -59,6 +59,29 @@
     default))
 
 ;;;###autoload
+(defun eproj-query/java/indent-tab (proj &optional default)
+  (declare (pure t) (side-effect-free nil))
+  (eproj-query/any-mode/indent-tab proj 'java-mode default))
+
+;;;###autoload
+(defun eproj-query/any-mode/indent-tab (proj mode &optional default)
+  (declare (pure t) (side-effect-free nil))
+  (cl-assert (symbolp mode) "Mode must be a symbol")
+  (if-let ((p proj)
+           (entry (eproj-project/query-aux-info-entry (eproj-project/aux-info p)
+                    'language-specific
+                    mode
+                    'indent-tab)))
+      (let ((res (car entry)))
+        (unless (booleanp res)
+          (error "language-specific.%s.indent-tab entry in .eproj-info of %s must be a boolean, but got %s"
+                 mode
+                 (eproj-project/root proj)
+                 res))
+        res)
+    default))
+
+;;;###autoload
 (defun eproj-query/flycheck-checker (proj mode default)
   (declare (pure t) (side-effect-free nil))
   (cl-assert (symbolp mode))
