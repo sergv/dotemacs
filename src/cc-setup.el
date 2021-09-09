@@ -213,7 +213,6 @@ _o_: show c sexps in region"
   (setq-local company-backends '(company-eproj)
               whitespace-line-column 80
               whitespace-style '(face tabs lines-tail)
-              yas-expand-fallback #'tab-to-tab-stop
               hs-allow-nesting t)
 
   (setf c-tab-always-indent t)
@@ -233,7 +232,7 @@ _o_: show c sexps in region"
     ("C-SPC"       company-complete)
     ("<backspace>" backward-delete-char))
 
-  (bind-tab-keys #'tab-to-tab-stop
+  (bind-tab-keys #'indent-for-tab-command
                  #'tab-to-tab-stop-backward
                  :enable-yasnippet t)
 
