@@ -393,6 +393,9 @@ _<tab>_: format region _h_: end of defun"
                                      pretty-ligatures-python-like-words))
   (setq-local prettify-symbols-compose-predicate #'rust--prettify-symbols-compose-p)
 
+  (bind-tab-keys #'indent-for-tab-command
+                 #'tab-to-tab-stop-backward
+                 :enable-yasnippet t)
 
   (setf vim:shift-width rust-indent-offset
         tab-width rust-indent-offset)
