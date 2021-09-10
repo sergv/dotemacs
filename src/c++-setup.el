@@ -142,6 +142,16 @@
          #'c++-format-buffer
          *mode-indent-functions-table*)
 
+(defconst c++-compilation-buffer-name "*c++-compilation*")
+
+(defun c++-get-compilation-buffer-name (&rest _args)
+  c++-compilation-buffer-name)
+
+(defvar c++-compile--build-presets-history nil)
+
+(defconst +c++-compilation-presets+
+  `((make . "make")))
+
 ;;;###autoload
 (defun c++-setup ()
   (cc-setup :define-special-keys t)
@@ -155,10 +165,87 @@
               indent-tabs-mode nil)
   (setup-folding t '(:header-symbol "/" :length-min 3))
 
+  (configurable-compilation-install-command-presets!
+   +c++-compilation-presets+
+   'c++-compile--build-presets-history
+   'compilation-mode
+   #'c++-get-compilation-buffer-name)
+
+  (vim:local-emap "compile"  'vim:c++-compile)
+  (vim:local-emap "c"        'vim:c++-compile)
+  (vim:local-emap "ccompile" 'vim:c++-compile-choosing-command)
+  (vim:local-emap "cc"       'vim:c++-compile-choosing-command)
+
   (def-keys-for-map vim:normal-mode-local-keymap
     ("SPC SPC" c++-find-related-file))
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:insert-mode-local-keymap)
+    (("C-m" "<f9>") vim:c++-compile)
+    ("C-t"          flycheck-enhancements-previous-error-with-wraparound)
+    ("C-h"          flycheck-enhancements-next-error-with-wraparound)
+    ("M-t"          c++-compilation-prev-error-other-window)
+    ("M-h"          c++-compilation-next-error-other-window)
+    ;; ("C-SPC" company-complete)
+    )
   (c++-abbrev+-setup)
   (setup-eproj-symbnav))
+
+(vim:defcmd vim:c++-compile (nonrepeatable)
+  (configurable-compilation-start nil))
+(vim:defcmd vim:c++-compile-choosing-command (nonrepeatable)
+  (configurable-compilation-start t))
+
+(defun c++-compilation-next-error ()
+  "Select next error in `c++-compilation-buffer-name' buffer and jump to
+it's position in current window."
+  (interactive)
+  (text-property-jump-forward 'compilation-message nil t nil))
+
+(defun c++-compilation-prev-error ()
+  "Select previous error in `c++-compilation-buffer-name' buffer and jump to
+it's position in current window."
+  (interactive)
+  (text-property-jump-backward 'compilation-message nil t nil))
+
+(defun c++-compilation-next-error-other-window ()
+  "Select next error in `c++-compilation-buffer-name' buffer and jump to
+it's position in current window."
+  (interactive)
+  (aif (get-buffer c++-compilation-buffer-name)
+      (let ((err (with-selected-window (get-buffer-window it t)
+                   (with-current-buffer it
+                     (c++-compilation-next-error)
+                     (when hl-line-mode
+                       (hl-line-highlight))
+                     (c++-compilation--error-at-point)))))
+        (compilation/jump-to-error err nil))
+    (error "No Rust compilation buffer")))
+
+(defun c++-compilation-prev-error-other-window ()
+  "Select previous error in `c++-compilation-buffer-name' buffer and jump to
+it's position in current window."
+  (interactive)
+  (aif (get-buffer c++-compilation-buffer-name)
+      (let ((err (with-selected-window (get-buffer-window it t)
+                   (with-current-buffer it
+                     (c++-compilation-prev-error)
+                     (when hl-line-mode
+                       (hl-line-highlight)))
+                   (c++-compilation--error-at-point))))
+        (compilation/jump-to-error err nil))
+    (error "No Rust compilation buffer")))
+
+(defun c++-compilation--error-at-point ()
+  (aif (plist-get (text-properties-at (point)) 'compilation-message)
+      (let* ((loc (compilation--message->loc it))
+             (file (caar (compilation--loc->file-struct loc)))
+             (line (compilation--loc->line loc))
+             (col (awhen (compilation--loc->col loc) (1- it))))
+        (make-compilation-error :compilation-root-directory default-directory
+                                :filename file
+                                :line-number line
+                                :column-number col))
+    (error "No compilation error at point")))
 
 ;;;###autoload
 (add-hook 'c++-mode-hook #'c++-setup)
