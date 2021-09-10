@@ -349,13 +349,10 @@ impl<'a, 'b, 'c> grep_searcher::Sink for GrepSink<'a, 'b, 'c> {
 
         let submatch = self.matcher.find(matched_lines).unwrap().expect("Match is guaranteed to be found");
 
-        let prefix = std::str::from_utf8(&matched_lines[..submatch.start()])
-            .map_err(|err| Error::msg(format!("Failed to utf-8 encode match prefix: {}", err)))?;
-        let body = std::str::from_utf8(&matched_lines[submatch])
-            .map_err(|err| Error::msg(format!("Failed to utf-8 encode match body: {}", err)))?;
-        let suffix = std::str::from_utf8(&matched_lines[submatch.end()..])
-            .map_err(|err| Error::msg(format!("Failed to utf-8 encode match suffix: {}", err)))?
-            .trim_end_matches(|c| c == '\r' || c == '\n');
+        let prefix = String::from_utf8_lossy(&matched_lines[..submatch.start()]);
+        let body = String::from_utf8_lossy(&matched_lines[submatch]);
+        let suffix = String::from_utf8_lossy(&matched_lines[submatch.end()..]);
+        let suffix = suffix.trim_end_matches(|c| c == '\r' || c == '\n');
 
         let column = submatch.start() as u16;
 
