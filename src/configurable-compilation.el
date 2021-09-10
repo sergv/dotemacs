@@ -51,8 +51,10 @@ execute.")
   (setq-local configurable-compilation-command-presets presets)
   (unless (gethash major-mode configurable-compilation-last-command)
     (puthash major-mode
-             (or (cdr-safe (assq 'build (configurable-compilation--get-presets)))
-                 (error "Failed to get default build preset from %s" configurable-compilation-command-presets))
+             (let ((presets (configurable-compilation--get-presets)))
+               (or (cdr-safe (assq 'build presets))
+                   (cdar-safe presets)
+                   (error "Failed to get default build preset from %s" configurable-compilation-command-presets)))
              configurable-compilation-last-command))
   (setq-local configurable-compilation-history-var history-var
               configurable-compilation-mode compilation-mode
