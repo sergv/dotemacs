@@ -8,6 +8,29 @@
 
 (require 'common)
 
+(defun c++-print-info-template ()
+  "Insert call to printf statement to print some variables and messages
+while interactively prompting for variables/messages."
+  (interactive)
+  (let* ((start (lambda () (insert "std::cout")))
+         (end (lambda () (insert " << std::endl;")))
+         (message (lambda (is-initial? input)
+                    (insert " << \""
+                            (if is-initial? "" ", ")
+                            (replace-regexp-in-string "\\([\"\\]\\)" "\\\\1" input) "\"")))
+         (variable (lambda (is-initial? input)
+                     (insert " << \""
+                             (if is-initial? "" ", ")
+                             input
+                             " = \" << "
+                             input))))
+    (insert-info-template
+     :start start
+     :end end
+     :insert-continuation #'ignore
+     :insert-message message
+     :insert-variable variable)))
+
 (defun-once c++-abbrev+-make-abbrevs
   (vector
    (make-abbrev+-abbreviation
@@ -17,8 +40,8 @@
     :predicate #'point-not-inside-string-or-comment?)
    (make-abbrev+-abbreviation
     :trigger "info"
-    :action-type 'yas-snippet
-    :action-data "std::cout << \"$1: \" << $1 << std::endl;$2"
+    :action-type 'function-with-side-effects
+    :action-data #'c++-print-info-template
     :predicate #'point-not-inside-string-or-comment?)
    (make-abbrev+-abbreviation
     :trigger "\\(?:std::?\\)?cout"
