@@ -1282,6 +1282,10 @@ Returns list of (tag-name tag project) lists."
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.eproj-info\\'" . emacs-lisp-mode))
 
+(defun eproj-setup-local-variables (proj)
+  (dolist (entry (eproj-query/local-variables proj major-mode nil))
+    (set (make-local-variable (car entry)) (cadr entry))))
+
 ;; Local Variables:
 ;; End:
 
