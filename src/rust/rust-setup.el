@@ -411,34 +411,10 @@ _<tab>_: format region _h_: end of defun"
                   company-dabbrev))
 
     (rust-compilation-commands-install! proj)
-
     (eproj-setup-local-variables proj)
+    (flycheck-setup-from-eproj 'rust-clippy))
 
-    (when (not noninteractive)
-      (let* ((flycheck-backend
-              (eproj-query/flycheck-checker
-               proj
-               major-mode
-               'rust-clippy)))
-        (setq-local flycheck-disabled-checkers
-                    (eproj-query/flycheck-disabled-checkers
-                     proj
-                     major-mode
-                     flycheck-disabled-checkers))
-        (if flycheck-backend
-            (progn
-              ;; (unless (flycheck-eligible-checker? flycheck-backend)
-              ;;   (flycheck-verify-checker flycheck-backend)
-              ;;   (error "Unable to select checker '%s' for buffer '%s'"
-              ;;          flycheck-backend (current-buffer)))
-              (setq-local flycheck-checker flycheck-backend)
-              (flycheck-mode +1))
-          ;; Disable flycheck if it was explicitly set to nil
-          (progn
-            (when flycheck-mode
-              (flycheck-mode -1)))))))
-
-  (setq-local whitespace-line-column 80
+  (setq-local whitespace-line-column 100
               whitespace-style '(face tabs lines-tail)
 
               mode-line-format
