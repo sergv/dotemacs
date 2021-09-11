@@ -10,6 +10,10 @@
   (declare (pure t) (side-effect-free t))
   (char-equal a b))
 
+(defsubst caar-safe (x)
+  (declare (pure t) (side-effect-free t))
+  (car-safe (car-safe x)))
+
 (defsubst cadr-safe (x)
   (declare (pure t) (side-effect-free t))
   (car-safe (cdr-safe x)))
@@ -17,6 +21,10 @@
 (defsubst cddr-safe (x)
   (declare (pure t) (side-effect-free t))
   (cdr-safe (cdr-safe x)))
+
+(defsubst cdar-safe (x)
+  (declare (pure t) (side-effect-free t))
+  (cdr-safe (car-safe x)))
 
 ;;;;
 
