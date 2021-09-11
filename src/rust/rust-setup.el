@@ -412,7 +412,9 @@ _<tab>_: format region _h_: end of defun"
 
     (rust-compilation-commands-install! proj)
     (eproj-setup-local-variables proj)
-    (flycheck-setup-from-eproj 'rust-clippy))
+    (flycheck-setup-from-eproj proj 'lsp)
+    ;; (flycheck-setup-from-eproj proj 'rust-clippy)
+    )
 
   (setq-local whitespace-line-column 100
               whitespace-style '(face tabs lines-tail)
