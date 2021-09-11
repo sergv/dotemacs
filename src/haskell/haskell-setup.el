@@ -227,8 +227,8 @@ _a_lign  _t_: jump to topmost node start
                                      company-dabbrev)
                   flycheck-highlighting-mode 'symbols)
 
-      (dolist (entry (eproj-query/local-variables proj major-mode nil))
-        (set (make-local-variable (car entry)) (cadr entry)))
+
+      (eproj-setup-local-variables proj)
 
       (when (and (not non-vanilla-haskell-mode?)
                  (not noninteractive))
