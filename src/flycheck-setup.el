@@ -198,6 +198,31 @@
   (interactive)
   (flycheck-enhancements--navigate-errors-with-wraparound t flycheck-current-errors))
 
+;;;###autoload
+(defun flycheck-setup-from-eproj (proj default-checker &optional preprocess-checker)
+  (when (not noninteractive)
+    (let* ((flycheck-backend
+            (eproj-query/flycheck-checker proj major-mode default-checker)))
+      (setq-local flycheck-disabled-checkers
+                  (eproj-query/flycheck-disabled-checkers
+                   proj
+                   major-mode
+                   flycheck-disabled-checkers))
+      (if flycheck-backend
+          (progn
+            (awhen preprocess-checker
+              (funcall it flycheck-backend))
+            ;; (unless (flycheck-eligible-checker? flycheck-backend)
+            ;;   (flycheck-verify-checker flycheck-backend)
+            ;;   (error "Unable to select checker '%s' for buffer '%s'"
+            ;;          flycheck-backend (current-buffer)))
+            (setq-local flycheck-checker flycheck-backend)
+            (flycheck-mode +1))
+        ;; Disable flycheck if it was explicitly set to nil
+        (progn
+          (when flycheck-mode
+            (flycheck-mode -1)))))))
+
 (provide 'flycheck-setup)
 
 ;; Local Variables:
