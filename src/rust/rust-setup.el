@@ -412,8 +412,7 @@ _<tab>_: format region _h_: end of defun"
 
     (rust-compilation-commands-install! proj)
 
-    (dolist (entry (eproj-query/local-variables proj major-mode nil))
-      (set (make-local-variable (car entry)) (cadr entry)))
+    (eproj-setup-local-variables proj)
 
     (when (not noninteractive)
       (let* ((flycheck-backend
