@@ -230,40 +230,23 @@ _a_lign  _t_: jump to topmost node start
 
       (eproj-setup-local-variables proj)
 
-      (when (and (not non-vanilla-haskell-mode?)
-                 (not noninteractive))
-        (let* ((flycheck-backend
-                (eproj-query/flycheck-checker
-                 proj
-                 major-mode
-                 'haskell-dante)))
-          (setq-local flycheck-disabled-checkers
-                      (eproj-query/flycheck-disabled-checkers
-                       proj
-                       major-mode
-                       flycheck-disabled-checkers))
-          (if flycheck-backend
-              (progn
-                (when (eq flycheck-backend 'haskell-dante)
-                  (setq-local company-backends
-                              (cons 'dante-company
-                                    company-backends))
-                  (dante-mode +1))
-                (unless (flycheck-may-use-checker flycheck-backend)
-                  (flycheck-verify-checker flycheck-backend)
-                  (error "Unable to select checker '%s' for buffer '%s'"
-                         flycheck-backend (current-buffer)))
-                (setq-local flycheck-checker flycheck-backend)
-                (when (memq flycheck-checker '(haskell-stack-ghc haskell-ghc))
-                  (error "Selected flycheck haskell checker will likely not work: %s"
-                         flycheck-checker))
-                (when (memq flycheck-checker '(haskell-dante))
-                  (add-hook 'flycheck-mode-hook #'haskell-misc--configure-dante nil t))
-                (flycheck-mode +1))
-            ;; Disable flycheck if it was explicitly set to nil
-            (progn
-              (when flycheck-mode
-                (flycheck-mode -1)))))))
+      (when (not non-vanilla-haskell-mode?)
+        (flycheck-setup-from-eproj
+         proj
+         'haskell-dante
+         (lambda (backend)
+           (when (eq backend 'haskell-dante)
+             (setq-local company-backends (cons 'dante-company company-backends))
+             (dante-mode +1))
+           (unless (flycheck-may-use-checker backend)
+             (flycheck-verify-checker backend)
+             (error "Unable to select checker '%s' for buffer '%s'"
+                    backend (current-buffer)))
+           (when (memq backend '(haskell-stack-ghc haskell-ghc))
+             (error "Selected flycheck haskell checker will likely not work: %s"
+                    backend))
+           (when (memq backend '(haskell-dante))
+             (add-hook 'flycheck-mode-hook #'haskell-misc--configure-dante nil t))))))
 
     (when dante-mode
       (add-to-list 'company-backends 'dante-company))
