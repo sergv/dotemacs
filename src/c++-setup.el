@@ -140,6 +140,14 @@
   (interactive)
   (clang-format-buffer (format "{ IndentWidth: %s }" c-basic-offset)))
 
+(defun c++-indent-region (start end)
+  (clang-format-region start end (format "{ IndentWidth: %s }" c-basic-offset)))
+
+(defun c++-format-region ()
+  (interactive)
+  (with-region-bounds start end
+    (c++-indent-region start end)))
+
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.in\\(?:l\\|c\\|cl\\)\\'" . c++-mode))
 
@@ -198,6 +206,12 @@ _a_ctions"
              (eq flycheck-checker 'lsp))
     (lsp-restart-workspace)))
 
+(defhydra-derive hydra-c++-vim-visual-g-ext hydra-c-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_<tab>_: format region
+"
+  ("<tab>" c++-format-region))
+
 ;;;###autoload
 (defun c++-setup ()
   (cc-setup :define-special-keys t)
@@ -242,8 +256,11 @@ _a_ctions"
   (def-keys-for-map vim:normal-mode-local-keymap
     ("SPC SPC" c++-find-related-file)
     ("-"       hydra-c++-dash/body))
+
   (def-keys-for-map vim:visual-mode-local-keymap
-    ("-"       hydra-c++-visual-dash/body))
+    ("-"       hydra-c++-visual-dash/body)
+    ("g"       hydra-c++-vim-visual-g-ext/body))
+
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
     (("C-m" "<f9>") vim:c++-compile)
@@ -253,14 +270,23 @@ _a_ctions"
     ("M-h"          c++-compilation-next-error-other-window)
     ;; ("C-SPC" company-complete)
     )
+
   (c++-abbrev+-setup)
   ;; (setup-eproj-symbnav)
   (setup-lsp-symbnav)
 
   (setq-local company-idle-delay 0.0
               company-minimum-prefix-length 1
-              lsp-idle-delay 0.1)
+              lsp-idle-delay 0.1
+              lsp-clients-clangd-args
+              (list "--header-insertion-decorators=0"
+                    (format "--fallback-style={ IndentWidth: %s }" c-basic-offset)
+                    "--clang-tidy"
+                    "--suggest-missing-includes"
+                    "--cross-file-rename")
+              lsp-enable-indentation nil)
   (lsp)
+  (setq-local indent-region-function #'c++-indent-region)
   (when lsp-mode
     (def-keys-for-map vim:normal-mode-local-keymap
       ("C-r" lsp-rename))))
