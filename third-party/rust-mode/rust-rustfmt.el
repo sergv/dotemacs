@@ -318,7 +318,7 @@ Return the created process."
        (or (rust--format-error-handler)
            (signal (car err) (cdr err)))))))
 
-(defun rust-format-buffer ()
+(defun rust-format-region ()
   "Format the current buffer using rustfmt."
   (interactive)
   (unless (executable-find rust-rustfmt-bin)
@@ -344,7 +344,7 @@ Return the created process."
 (defun rust-before-save-hook ()
   (when rust-format-on-save
     (condition-case e
-        (rust-format-buffer)
+        (rust-format-region)
       (error (format "rust-before-save-hook: %S %S"
                      (car e)
                      (cdr e))))))

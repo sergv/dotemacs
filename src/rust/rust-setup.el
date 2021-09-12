@@ -352,7 +352,7 @@ _h_: end of defun"
 _a_lign                _t_: beginning of defun
 _<tab>_: format region _h_: end of defun"
   ("a"     hydra-rust-align/body)
-  ("<tab>" rust-format-buffer)
+  ("<tab>" rust-format-region)
 
   ("t"     vim:rust-beginning-of-defun)
   ("h"     vim:rust-end-of-defun))
