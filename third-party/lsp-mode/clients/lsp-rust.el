@@ -1142,20 +1142,6 @@ https://github.com/rust-analyzer/rust-analyzer/blob/master/docs/dev/lsp-extensio
 (defvar-local lsp-rust--has-experimental-parent-module-cap +undef+)
 (defvar-local lsp-rust--has-experimental-open-cargo-toml-cap +undef+)
 
-;;;###autoload
-(defmacro lsp--check-capability (capability var)
-  (declare (indent 1))
-  (let ((capability-call (cl-reduce (lambda (acc s)
-                                      `(lsp--capability ,s ,acc))
-                                    (split-string capability "/")
-                                    :initial-value nil)))
-    `(progn
-       (when (eq ,var +undef+)
-         (setq-local ,var ,capability-call))
-       (unless ,var
-         (error "Current LSP server doesn’t support %s capability"
-                ,capability)))))
-
 (lsp-consistency-check lsp-rust)
 
 (provide 'lsp-rust)
