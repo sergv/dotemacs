@@ -21,7 +21,8 @@
      "--align-pointer=name"
      "--mode=c"
      "--suffix=none"
-     "--lineend=linux")
+     "--lineend=linux"
+     "--add-brackets")
     ("c-standard2"
      "--style=linux"
      "--indent=spaces=2"
@@ -34,7 +35,8 @@
      "--align-pointer=name"
      "--mode=c"
      "--suffix=none"
-     "--lineend=linux")
+     "--lineend=linux"
+     "--add-brackets")
     ("c-gnu2"
      "--style=gnu"
      "--indent=spaces=2"
