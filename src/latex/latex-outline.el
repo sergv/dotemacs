@@ -15,6 +15,8 @@
 ;; file and forget about it until You lose too much time
 ;; tinkering with it.
 
+(require 'vim-setup)
+
 (defmacro latex:save-ex-save-re (&rest body)
   (declare (indent defun))
   `(save-excursion

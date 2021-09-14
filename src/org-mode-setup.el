@@ -14,6 +14,7 @@
 (require 'el-patch)
 (require 'indentation)
 (require 'render-formula)
+(require 'vim-setup)
 
 ;; for reveal.js presentations
 (require 'htmlize)
