@@ -8660,6 +8660,20 @@ This avoids overloading the server with many files when starting Emacs."
         (lsp--info "Disconnected from buffer %s" file-name))
     (lsp--error "Nothing to disconnect from?")))
 
+;;;###autoload
+(defmacro lsp--check-capability (capability var)
+  (declare (indent 1))
+  (let ((capability-call (cl-reduce (lambda (acc s)
+                                      `(lsp--capability ,s ,acc))
+                                    (split-string capability "/")
+                                    :initial-value nil)))
+    `(progn
+       (when (eq ,var +undef+)
+         (setq-local ,var ,capability-call))
+       (unless ,var
+         (error "Current LSP server doesn’t support %s capability"
+                ,capability)))))
+
 
 
 (provide 'lsp-mode)
