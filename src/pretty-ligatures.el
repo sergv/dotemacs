@@ -325,10 +325,13 @@ a pretty symbol."
 of `prettify-symbols-mode'. For example, some replacements must take context
 into accound and do the replacement only within specific circumstances.")
 
+(defun pretty-ligatures-supported? ()
+  (and (bound-and-true-p current-font)
+       (string-match-p "Iosevka Slab Lig" current-font)))
+
 (defun pretty-ligatures--install (ligatures)
   "Add hasklig ligatures for use with prettify-symbols-mode."
-  (when (and (bound-and-true-p current-font)
-             (string-match-p "Iosevka Slab Lig" current-font))
+  (when (pretty-ligatures-supported?)
     (setq-local prettify-symbols-alist
                 (append ligatures
                         prettify-symbols-alist)
@@ -369,9 +372,10 @@ safe to use on any kind of text."
 
 ;;;###autoload
 (defun pretty-ligatures-install-special-haskell-ligatures! ()
-  (font-lock-add-keywords
-   nil
-   pretty-ligatures--special-haskell-ligatures))
+  (when (pretty-ligatures-supported?)
+   (font-lock-add-keywords
+    nil
+    pretty-ligatures--special-haskell-ligatures)))
 
 (provide 'pretty-ligatures)
 
