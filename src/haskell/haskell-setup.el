@@ -358,10 +358,10 @@ _a_lign  _t_: jump to topmost node start
       ("M-h"             haskell-compilation-next-error-other-window)
       ("C-SPC"           company-complete)
 
-      ("S-<tab>"         nil)
-      ("<S-iso-lefttab>" nil)
       ("<return>"        haskell-newline-with-signature-expansion)
-      ("C-<return>"      haskell--simple-indent-newline-indent))
+      ("C-<return>"      haskell--simple-indent-newline-indent)
+
+      (("S-<tab>" "<S-iso-lefttab>" "<backtab>") nil))
 
     (def-keys-for-map (vim:normal-mode-local-keymap
                        vim:visual-mode-local-keymap

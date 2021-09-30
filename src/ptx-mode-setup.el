@@ -21,7 +21,15 @@
    :use-comment t
    :use-fci t)
 
-  (setup-folding t '(:header-symbol "/" :length-min 3)))
+  (setq-local indent-tabs-mode t)
+
+  (setup-folding t '(:header-symbol "/" :length-min 3))
+
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:insert-mode-local-keymap)
+    ("<tab>" tab-to-tab-stop)
+
+    (("S-<tab>" "<S-iso-lefttab>" "<backtab>") tab-to-tab-stop-backward)))
 
 ;;;###autoload
 (defun ptx-file-magic-function ()
