@@ -183,11 +183,11 @@ _S-<up>_:    fast enlarge vertically
   ("S-<up>"    enlarge-window-fast :exit nil)
   ("S-<down>"  shrink-window-fast :exit nil))
 
-(defun sergv-move-tab-to-the-right ()
+(defun tabbar-move-tab-to-the-right ()
   (interactive)
   (tab-bar-move-tab 1))
 
-(defun sergv-move-tab-to-the-left ()
+(defun tabbar-move-tab-to-the-left ()
   (interactive)
   (tab-bar-move-tab -1))
 
@@ -209,8 +209,8 @@ _<right>_: move tab to the right"
   ("s" tab-bar-select-tab-by-name)
   ("r" tab-rename)
 
-  ("<left>"  sergv-move-tab-to-the-left :exit nil)
-  ("<right>" sergv-move-tab-to-the-right :exit nil))
+  ("<left>"  tabbar-move-tab-to-the-left :exit nil)
+  ("<right>" tabbar-move-tab-to-the-right :exit nil))
 
 ;; redefine motions
 
