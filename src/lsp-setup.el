@@ -256,11 +256,19 @@ argument jump to type definition."
       (def-keys-for-map it
         ("C-." lsp-symbnav/go-to-symbol-home)
         ("C-," lsp-symbnav/go-back)
-        ("C-?" lsp-symbnav/find-references)))
+        ("C-?" lsp-symbnav/find-references)
+
+        ("M-." eproj-symbnav/go-to-symbol-home)
+        ("M-," eproj-symbnav/go-back)
+        ("M-?" xref-find-references)))
     (def-keys-for-map vim:normal-mode-local-keymap
       ("C-." lsp-symbnav/go-to-symbol-home)
       ("C-," lsp-symbnav/go-back)
-      ("C-?" lsp-symbnav/find-references))))
+      ("C-?" lsp-symbnav/find-references)
+
+      ("M-." eproj-symbnav/go-to-symbol-home)
+      ("M-," eproj-symbnav/go-back)
+      ("M-?" xref-find-references))))
 
 (defalias 'lsp-symbnav/go-back #'eproj-symbnav/go-back)
 
