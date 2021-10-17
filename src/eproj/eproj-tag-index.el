@@ -83,7 +83,8 @@
       (defalias 'eproj-tag-index-keys                            #'haskell-native--eproj-tag-index-keys)
       (defalias 'eproj-tag-index-entries                         #'haskell-native--eproj-tag-index-entries)
       (defalias 'eproj-tag-index-drop-tags-from-file!            #'haskell-native--eproj-tag-index-drop-tags-from-file!)
-      (defalias 'eproj-tag-index-merge!                          #'haskell-native--eproj-tag-index-map-union!))
+      (defalias 'eproj-tag-index-merge!                          #'haskell-native--eproj-tag-index-map-union!)
+      (defalias 'eproj-tag-all-completions                       #'haskell-native--eproj-tag-index-all-completions))
   (progn
     (defsubst eproj-tag-index--create (tbl)
       (cons 'eproj-tag-index tbl))
@@ -161,7 +162,10 @@ equal keys using `append'."
        (lambda (_sym tags-a tags-b)
          (append tags-a tags-b))
        (cdr index-a)
-       (cdr index-b)))))
+       (cdr index-b)))
+
+    (defun eproj-tag-index-all-completions (s index)
+      (all-completions s (cdr index)))))
 
 (provide 'eproj-tag-index)
 

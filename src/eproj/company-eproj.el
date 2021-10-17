@@ -36,10 +36,12 @@
                       (--map (cdr-safe (assq effective-major-mode (eproj--get-tags it)))
                              all-projs)))
          (all-matches
-          (-mapcat (lambda (table)
+          (-mapcat (lambda (tag-index)
+                     (cl-assert (eproj-tag-index-p tag-index))
                      (-mapcat (lambda (completion)
-                                (let ((tags (gethash completion table)))
+                                (let ((tags (eproj-tag-index-get completion tag-index)))
                                   (-map (lambda (tag)
+                                          (cl-assert (eproj-tag-p tag))
                                           (let ((new-completion (copy-sequence completion)))
                                             (set-text-properties
                                              0
@@ -51,7 +53,7 @@
                                              new-completion)
                                             new-completion))
                                         tags)))
-                              (all-completions arg table)))
+                              (eproj-tag-index-all-completions arg tag-index)))
                    tag-tables)))
     (remove-duplicates-hashing all-matches #'equal)))
 
