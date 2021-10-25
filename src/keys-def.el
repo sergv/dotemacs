@@ -61,8 +61,8 @@
     ("E" vim-mock:motion-fwd-WORD-end)))
 
 (defconst +vim-interbuffer-navigation-keys+
-  '(("<home>"     tab-next)
-    ("<end>"      tab-previous)
+  '(("<home>"     next-tab-or-frame)
+    ("<end>"      prev-tab-or-frame)
 
     ("C-<home>"   next-f)
     ("C-<end>"    prev-f)
