@@ -310,7 +310,6 @@
          ;;       "src/haskell/haskell-outline.el"
          ;;       "src/haskell/haskell-setup.el"
          ;;       "src/haskell/haskell-smart-operators-mode.el"
-         ;;       "src/haskell/haskell-watch.el"
          ;;       "src/haskell/uuag-mode.el"
          ;;       "src/hideshow-setup.el"
          ;;       "src/hl-paren.el"

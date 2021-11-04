@@ -109,8 +109,6 @@
     (require 'org-mode-autoload)
     (require 'rust-autoloads)
 
-    (require 'haskell-watch)
-
     (require 'c++-setup)
     (require 'comint-setup)
     (require 'completion-setup)
