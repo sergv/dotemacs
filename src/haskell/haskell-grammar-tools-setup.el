@@ -10,7 +10,6 @@
 (require 'haskell-misc)
 (require 'haskell-outline)
 (require 'haskell-setup)
-(require 'haskell-watch)
 (require 'hydra-setup)
 
 (require 'mmm-setup)
@@ -28,7 +27,6 @@ _I_: jump back"
 (defun haskell-grammar-tools-setup ()
   (init-common :use-whitespace 'tabs-only)
   (fontify-merge-markers)
-  (haskell-watch-register-current-buffer!)
   (let ((proj (eproj-get-project-for-buf-lax (current-buffer))))
     (haskell-setup-indentation
      :offset (eproj-query/haskell/indent-offset proj)

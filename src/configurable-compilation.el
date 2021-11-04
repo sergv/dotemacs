@@ -68,7 +68,7 @@ execute.")
   (save-some-buffers (not compilation-ask-about-save)
                      compilation-save-buffers-predicate)
   (let* ((proj-dir (or (when (derived-mode-p 'haskell-mode)
-                         (haskell-watch-get-project-root))
+                         (haskell-misc-get-project-root))
                        (when (derived-mode-p 'rust-mode)
                          (if configurable-compilation--cached-rust-project-root
                              configurable-compilation--cached-rust-project-root
