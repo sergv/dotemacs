@@ -195,7 +195,7 @@
     #'eproj/haskell-get-extra-navigation-files
     :extra-navigation-globs
     (eval-when-compile
-      (append +haskell-watch-watched-files-globs+
+      (append '("*.cabal" "package.yaml" "stack*.yaml")
               (--map (concat "*." it) +cpp-extensions+))))
    (mk-eproj-lang
     :mode 'rust-mode
