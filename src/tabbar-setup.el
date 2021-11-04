@@ -14,14 +14,14 @@
   (interactive "p")
   (if (tabbar--at-least-2-elements? (tab-bar-tabs))
       (tab-next arg)
-    (next-f arg))
+    (next-f arg)))
 
 ;;;###autoload
 (defun prev-tab-or-frame (arg)
   (interactive "p")
   (if (tabbar--at-least-2-elements? (tab-bar-tabs))
       (tab-previous arg)
-    (prev-f arg))
+    (prev-f arg)))
 
 (provide 'tabbar-setup)
 
