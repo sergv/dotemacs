@@ -10,7 +10,6 @@
 (require 'eproj)
 (require 'eproj-ctags)
 (require 'eproj-tag-index)
-(require 'haskell-watch)
 
 ;;;###autoload
 (defun eproj/create-haskell-tags (proj project-files-thunk parse-tags-proc)
@@ -176,18 +175,17 @@ runtime but rather will be silently relied on)."
 
 ;;;###autoload
 (defun eproj/haskell-get-extra-navigation-files (proj)
-  (when-let (watch-project
-             (ignore-errors
-               (haskell-watch-get-project (eproj-project/root proj))))
-    (let ((res nil)
-          (cabal-project
-           (concat (eproj-project/root proj) "/cabal.project")))
-      (maphash (lambda (key _value)
-                 (push key res))
-               (haskell-watched-project/watched-files watch-project))
-      (when (file-exists-p cabal-project)
-        (push cabal-project res))
-      res)))
+  (let ((cabal-project-files
+         (directory-files (eproj-project/root proj)
+                          t ;; full
+                          (rx bos
+                              (or (seq "cabal" (* nonl) ".project" (? ".local"))
+                                  (seq "stack" (* nonl) ".yaml")
+                                  (seq (+ nonl) ".cabal"))
+                              eos)
+                          t ;; nosort
+                          )))
+    cabal-project-files))
 
 (provide 'eproj-haskell)
 

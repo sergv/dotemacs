@@ -723,9 +723,6 @@ it's position in current window."
       (compilation-navigation-prev-error-in-buffer-other-window it)
     (error "No Haskell compilation started")))
 
-(defun haskell-misc--get-potential-project-roots ()
-  (haskell-watch-get-project-root))
-
 (defun haskell-misc--cabal-indented-subsection ()
   "Similar to `haskell-cabal-subsection' but sets `:data-start-column' to the
 value section should have if it is to be properly indented."
@@ -921,6 +918,35 @@ value section should have if it is to be properly indented."
         (let ((typ (car entry))
               (name (cadr entry)))
           (concat typ ":" name))))))
+
+(defun haskell-misc--get-project-root-for-path (start-dir)
+  "Obtain root of a Haskell project that FILE is part of."
+  (cl-assert (file-directory-p start-dir))
+  (let ((regexp
+         (rx (seq bos
+                  (or (seq "cabal" (* nonl) ".project" (? ".local"))
+                      ".cabal.sandbox"
+                      (seq "stack" (* nonl) ".yaml")
+                      (seq (+ nonl) ".cabal")
+                      "package.yaml")
+                  eos))))
+    (locate-dominating-file start-dir
+                            (lambda (dir-name)
+                              (directory-files dir-name
+                                               nil ;; Relative names.
+                                               regexp
+                                               t ;; Do not sort - faster this way.
+                                               )))))
+
+(defvar-local haskell-misc--project-root nil)
+
+(defun haskell-misc-get-project-root ()
+  (if haskell-misc--project-root
+      haskell-misc--project-root
+    (setf haskell-misc--project-root
+          (haskell-misc--get-project-root-for-path (or (and buffer-file-name
+                                                            (file-name-directory buffer-file-name))
+                                                       default-directory)))))
 
 (provide 'haskell-misc)
 

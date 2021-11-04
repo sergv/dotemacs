@@ -207,9 +207,8 @@ _a_lign  _t_: jump to topmost node start
     (pretty-ligatures-install!)
     (pretty-ligatures-install-special-haskell-ligatures!)
 
-    (haskell-watch-register-current-buffer!)
     (setq-local flycheck-enhancements--get-project-root-for-current-buffer
-                #'haskell-misc--get-potential-project-roots)
+                #'haskell-misc-get-project-root)
 
     ;; Read settings from '.eproj-info' file, if any.
     (let (
