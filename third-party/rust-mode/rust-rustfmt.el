@@ -57,37 +57,39 @@
                            nil
                            rust-rustfmt-switches)))
           (unwind-protect
-              (cond
-                ((zerop ret)
-                 (if (not (string= (buffer-substring-no-properties (point-min) (point-max))
-                                   (with-current-buffer buf
-                                     (buffer-substring-no-properties start end))))
-                     (with-current-buffer buf
-                       (save-excursion
-                         (goto-char start)
-                         (delete-region start end))
-                       (insert-buffer-substring tmp)))
-                 (kill-buffer))
-                ((= ret 3)
-                 (if (not (string= (buffer-substring-no-properties (point-min) (point-max))
-                                   (with-current-buffer buf
-                                     (buffer-substring-no-properties start end))))
-                     (with-current-buffer buf
-                       (save-excursion
-                         (goto-char start)
-                         (delete-region start end))
-                       (insert-buffer-substring tmp)))
-                 (erase-buffer)
-                 (insert-file-contents tmpf)
-                 (rust--format-fix-rustfmt-buffer (buffer-name buf))
-                 (error "Rustfmt could not format some lines, see %s buffer for details"
-                        rust-rustfmt-buffername))
-                (t
-                 (erase-buffer)
-                 (insert-file-contents tmpf)
-                 (rust--format-fix-rustfmt-buffer (buffer-name buf))
-                 (error "Rustfmt failed, see %s buffer for details"
-                        rust-rustfmt-buffername))))
+              (let ((old-contents (with-current-buffer buf
+                                    (buffer-substring-no-properties start end)))
+                    (new-contents (buffer-substring-no-properties (point-min) (point-max))))
+                (if (or (zerop ret)
+                        (= ret 3) ;; Has useful output but couldn’t format something
+                        )
+                    (when (not (string= new-contents old-contents))
+                      ;; replace-buffer-contents was in emacs 26.1, but it
+                      ;; was broken for non-ASCII strings, so we need 26.2.
+                      (with-current-buffer buf
+                        (if (and (fboundp 'replace-buffer-contents)
+                                 (version<= "26.2" emacs-version))
+                            (save-restriction
+                              (narrow-to-region start end)
+                              (replace-buffer-contents rust-rustfmt-buffername))
+                          (save-excursion
+                            (goto-char start)
+                            (delete-region start end)
+                            (insert-buffer-substring tmp)))))
+                  (if (zerop ret)
+                      (kill-buffer)
+                    (progn
+                      (erase-buffer)
+                      (insert-file-contents tmpf)
+                      (rust--format-fix-rustfmt-buffer (buffer-name buf))
+                      (error "Rustfmt could not format some lines, see %s buffer for details"
+                             rust-rustfmt-buffername)))
+                  (t
+                   (erase-buffer)
+                   (insert-file-contents tmpf)
+                   (rust--format-fix-rustfmt-buffer (buffer-name buf))
+                   (error "Rustfmt failed, see %s buffer for details"
+                          rust-rustfmt-buffername)))))
           (delete-file tmpf))))))
 
 ;; Since we run rustfmt through stdin we get <stdin> markers in the
@@ -124,7 +126,7 @@ rustfmt complain in the echo area."
   ;; buffer it is from.
   (let ((rustfmt (get-buffer rust-rustfmt-buffername)))
     (if (not rustfmt)
-        (message "No *rustfmt*, no problems.")
+        (message "No %s, no problems." rust-rustfmt-buffername)
       (let ((target-buffer (with-current-buffer rustfmt
                              (save-excursion
                                (goto-char (point-min))
@@ -357,7 +359,8 @@ Return the created process."
         ;; KLDUGE: re-run the error handlers -- otherwise message area
         ;; would show "Wrote ..." instead of the error description.
         (or (rust--format-error-handler)
-            (message "rustfmt detected problems, see *rustfmt* for more."))))))
+            (message "rustfmt detected problems, see %s for more."
+                     rust-rustfmt-buffername))))))
 
 ;;; _
 (provide 'rust-rustfmt)
