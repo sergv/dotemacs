@@ -146,6 +146,11 @@ option."
   :type 'boolean
   :group 'lsp-ui-doc)
 
+(defcustom lsp-ui-doc-enhanced-markdown t
+  "Lsp-ui-doc will attempt to better format the markdown documentation."
+  :type 'boolean
+  :group 'lsp-ui-doc)
+
 (defcustom lsp-ui-doc-text-scale-level 0
   "Text scale amount for doc buffer."
   :type 'integer
@@ -694,7 +699,7 @@ FN is the function to call on click."
            'lsp-ui-doc--webkit-resize-callback))
       (erase-buffer)
       (insert (s-trim string))
-      (unless (lsp-ui-doc--inline-p)
+      (unless (or (lsp-ui-doc--inline-p) (not lsp-ui-doc-enhanced-markdown))
         (lsp-ui-doc--fill-document)
         (lsp-ui-doc--make-smaller-empty-lines)
         (lsp-ui-doc--handle-hr-lines))
@@ -1166,7 +1171,8 @@ It is supposed to be called from `lsp-ui--toggle'"
 (defun lsp-ui-doc-glance ()
   "Trigger display hover information popup and hide it on next typing."
   (interactive)
-  (lsp-ui-doc--make-request)
+  (let ((lsp-ui-doc-show-with-cursor t))
+    (lsp-ui-doc--make-request))
   (when lsp-ui-doc--unfocus-frame-timer
     (cancel-timer lsp-ui-doc--unfocus-frame-timer))
   (add-hook 'post-command-hook 'lsp-ui-doc--glance-hide-frame))
