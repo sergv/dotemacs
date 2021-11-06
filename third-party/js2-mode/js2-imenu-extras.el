@@ -1,4 +1,4 @@
-;;; js2-imenu-extras.el --- Imenu support for additional constructs
+;;; js2-imenu-extras.el --- Imenu support for additional constructs  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2012-2014  Free Software Foundation, Inc.
 
@@ -32,10 +32,12 @@
 ;; To customize how it works:
 ;;   M-x customize-group RET js2-imenu RET
 
-(eval-when-compile
-  (require 'cl))
-
+(require 'cl-lib)
 (require 'js2-mode)
+
+(eval-when-compile
+  (when (<= emacs-major-version 26)
+    (require 'subr-x)))
 
 (defvar js2-imenu-extension-styles
   `((:framework jquery
@@ -61,6 +63,14 @@
     (:framework react
      :call-re "\\_<React\\.createClass\\s-*("
      :recorder js2-imenu-record-react-class)
+
+    (:framework mocha
+     :call-re ,(rx line-start
+                   (* (syntax whitespace))
+                   (or "describe" "fdescribe" "describe.only")
+                   (* (syntax whitespace))
+                   "(")
+     :recorder js2-imenu-record-mocha-describe)
 
     (:framework sencha
      :call-re "^\\s-*Ext\\.define\\s-*("
@@ -126,18 +136,18 @@ Currently used for jQuery widgets, Dojo and Enyo declarations."
   (remove-hook 'js2-build-imenu-callbacks 'js2-imenu-walk-ast t))
 
 (defun js2-imenu-record-declarations ()
-  (let* ((styles (loop for style in js2-imenu-extension-styles
-                       when (memq (plist-get style :framework)
-                                  js2-imenu-enabled-frameworks)
-                       collect style))
+  (let* ((styles (cl-loop for style in js2-imenu-extension-styles
+                          when (memq (plist-get style :framework)
+                                     js2-imenu-enabled-frameworks)
+                          collect style))
          (re (mapconcat (lambda (style)
                           (concat "\\(" (plist-get style :call-re) "\\)"))
                         styles "\\|")))
     (goto-char (point-min))
     (while (js2-re-search-forward re nil t)
-      (loop for i from 0 to (1- (length styles))
-            when (match-beginning (1+ i))
-            return (funcall (plist-get (nth i styles) :recorder))))))
+      (cl-loop for i from 0 to (1- (length styles))
+               when (match-beginning (1+ i))
+               return (funcall (plist-get (nth i styles) :recorder))))))
 
 (defun js2-imenu-record-jquery-extend ()
   (let ((pred (lambda (subject)
@@ -159,17 +169,17 @@ Currently used for jQuery widgets, Dojo and Enyo declarations."
 (defun js2-imenu-record-extend-first-arg (point pred qname-fn)
   (let* ((node (js2-node-at-point point))
          (args (js2-call-node-args node))
-         (subject (first args)))
+         (subject (cl-first args)))
     (when (funcall pred subject)
-      (loop for arg in (cdr args)
-            when (js2-object-node-p arg)
-            do (js2-record-object-literal
-                arg (funcall qname-fn subject) (js2-node-abs-pos arg))))))
+      (cl-loop for arg in (cdr args)
+               when (js2-object-node-p arg)
+               do (js2-record-object-literal
+                   arg (funcall qname-fn subject) (js2-node-abs-pos arg))))))
 
 (defun js2-imenu-record-backbone-or-react ()
   (let* ((node (js2-node-at-point (1- (point))))
          (args (js2-call-node-args node))
-         (methods (first args))
+         (methods (cl-first args))
          (parent (js2-node-parent node)))
     (when (js2-object-node-p methods)
       (let ((subject (cond ((js2-var-init-node-p parent)
@@ -188,21 +198,21 @@ Currently used for jQuery widgets, Dojo and Enyo declarations."
 (defun js2-imenu-record-enyo-kind ()
   (let* ((node (js2-node-at-point (1- (point))))
          (args (js2-call-node-args node))
-         (options (first args)))
+         (options (cl-first args)))
     (when (js2-object-node-p options)
       (let ((name-value
-             (loop for elem in (js2-object-node-elems options)
-                   thereis
-                   (let ((key (js2-object-prop-node-left elem))
-                         (value (js2-object-prop-node-right elem)))
-                     (when (and (equal
-                                 (cond ((js2-name-node-p key)
-                                        (js2-name-node-name key))
-                                       ((js2-string-node-p key)
-                                        (js2-string-node-value key)))
-                                 "name")
-                                (js2-string-node-p value))
-                       (js2-string-node-value value))))))
+             (cl-loop for elem in (js2-object-node-elems options)
+                      thereis
+                      (let ((key (js2-object-prop-node-left elem))
+                            (value (js2-object-prop-node-right elem)))
+                        (when (and (equal
+                                    (cond ((js2-name-node-p key)
+                                           (js2-name-node-name key))
+                                          ((js2-string-node-p key)
+                                           (js2-string-node-value key)))
+                                    "name")
+                                   (js2-string-node-p value))
+                          (js2-string-node-value value))))))
         (when name-value
           (js2-record-object-literal options
                                      (if js2-imenu-split-string-identifiers
@@ -213,8 +223,8 @@ Currently used for jQuery widgets, Dojo and Enyo declarations."
 (defun js2-imenu-record-sencha-class ()
   (let* ((node (js2-node-at-point (1- (point))))
          (args (js2-call-node-args node))
-         (name (first args))
-         (methods (second args)))
+         (name (cl-first args))
+         (methods (cl-second args)))
     (when (and (js2-string-node-p name) (js2-object-node-p methods))
       (let ((name-value (js2-string-node-value name)))
         (js2-record-object-literal methods
@@ -222,6 +232,151 @@ Currently used for jQuery widgets, Dojo and Enyo declarations."
                                        (split-string name-value "\\." t)
                                      (list name-value))
                                    (js2-node-abs-pos methods))))))
+
+(defun js2-imenu-record-mocha-describe ()
+  "Populate `js2-imenu-recorder' with mocha-like describe/it/beforeEach/… nodes."
+  (let ((node (js2-node-at-point (1- (point)))))
+    (when (js2-imenu-extras--mocha-top-level-describe-p node)
+      (js2-imenu-extras--mocha-visit-node node (list)))))
+
+(defun js2-imenu-extras--mocha-visit-node (node qname)
+  "Search NODE and its children for mocha test blocks.
+
+If mocha test blocks are found (e.g., a describe() or it() block)
+they are added to `js2-imenu-recorder' with QNAME as prefix.
+
+QNAME is a list of nodes representing the qualified name of
+NODE's parent.  If NODE has no parent, QNAME is the empty list.
+The last item of QNAME is NODE's parent name while the item
+before that is NODE's grandparent name etc."
+  (js2-visit-ast
+   node
+   (lambda (child end-p)
+     (when (not end-p)
+       (js2-imenu-extras--mocha-check-unknown-node child qname)))))
+
+(defun js2-imenu-extras--mocha-check-unknown-node (node qname)
+  "If NODE is a mocha test block, populate `js2-imenu-recorder'.
+
+QNAME is the same as described in
+`js2-imenu-extras--mocha-visit-node'."
+  (cond
+   ((js2-imenu-extras--mocha-describe-node-p node)
+    (progn
+      (js2-imenu-extras--mocha-visit-describe-node node qname)
+      nil))
+   ((js2-imenu-extras--mocha-it-node-p node)
+    (progn
+      (js2-imenu-extras--mocha-visit-it-node node qname)
+      nil))
+   ((js2-imenu-extras--mocha-before-after-node-p node)
+    (progn
+      (js2-imenu-extras--mocha-visit-before-after-node node qname)
+      nil))
+   ((js2-imenu-extras--mocha-named-function-node-p node)
+    (progn
+      (js2-imenu-extras--mocha-visit-named-function-node node qname)
+      nil))
+   (t t)))
+
+(defun js2-imenu-extras--mocha-top-level-describe-p (node)
+  "Return non-nil if NODE is a top-level mocha describe() block.
+
+A top-level block is one which isn't included in another mocha
+describe() block."
+  (and (js2-imenu-extras--mocha-describe-node-p node)
+       (not (js2-imenu-extras--mocha-is-or-within-describe-block-p (js2-node-parent node)))))
+
+(defun js2-imenu-extras--mocha-within-describe-block-p (node)
+  "Return non-nil if NODE is within a mocha describe() block."
+  (js2-imenu-extras--mocha-is-or-within-describe-block-p (js2-node-parent node)))
+
+(defun js2-imenu-extras--mocha-is-or-within-describe-block-p (node)
+  "Return non-nil if NODE is a or within a mocha describe() block."
+  (when node
+    (or (js2-imenu-extras--mocha-describe-node-p node)
+        (js2-imenu-extras--mocha-within-describe-block-p node))))
+
+(defun js2-imenu-extras--mocha-describe-node-p (node)
+  "Return non-nil if NODE is a mocha describe() block."
+  (when-let ((name (js2-imenu-extras--call-target-name node)))
+    (member name '("describe" "describe.only" "fdescribe"))))
+
+(defun js2-imenu-extras--mocha-it-node-p (node)
+  "Return non-nil if NODE is a mocha it() block."
+  (when-let ((name (js2-imenu-extras--call-target-name node)))
+    (member name '("it" "it.only" "fit"))))
+
+(defun js2-imenu-extras--mocha-before-after-node-p (node)
+  "Return non-nil if NODE is a `{before,after}{Each,All}' block."
+  (when-let ((name (js2-imenu-extras--call-target-name node)))
+    (member name '("beforeEach" "afterEach" "beforeAll" "afterAll"))))
+
+(defun js2-imenu-extras--mocha-named-function-node-p (node)
+  "Return non-nil if NODE is a function definition."
+  (and (js2-function-node-p node)
+       (js2-function-name node)))
+
+(defun js2-imenu-extras--mocha-visit-describe-node (node qname)
+  "Record NODE, a mocha describe() block, in imenu.
+Also search and record other mocha blocks within NODE's body.
+
+QNAME is the same as described in
+`js2-imenu-extras--mocha-visit-node'."
+  (let* ((args (js2-call-node-args node))
+         (name (cl-first args))
+         (qname (append qname (list name)))
+         (body (car (last args)))
+         (position (js2-node-abs-pos node)))
+    (js2-record-imenu-entry body qname position)
+    (js2-imenu-extras--mocha-visit-node body qname)))
+
+(defun js2-imenu-extras--mocha-visit-it-node (node qname)
+  "Record NODE, a mocha it() block, in imenu.
+
+QNAME is the same as described in
+`js2-imenu-extras--mocha-visit-node'."
+  (let* ((args (js2-call-node-args node))
+         (name (cl-first args))
+         (qname (append qname (list name)))
+         (body (car (last args)))
+         (position (js2-node-abs-pos node)))
+    (js2-record-imenu-entry body qname position)))
+
+(defun js2-imenu-extras--mocha-visit-before-after-node (node qname)
+  "Record NODE, a mocha {before,after}{Each,All}() block, in imenu.
+
+QNAME is the same as described in
+`js2-imenu-extras--mocha-visit-node'."
+  (let* ((args (js2-call-node-args node))
+         (qname (append qname (list (js2-imenu-extras--call-target-name node))))
+         (body (car (last args)))
+         (position (js2-node-abs-pos node)))
+    (js2-record-imenu-entry body qname position)))
+
+(defun js2-imenu-extras--mocha-visit-named-function-node (node qname)
+  "Record NODE, a function declaration, in imenu.
+
+QNAME is the same as described in
+`js2-imenu-extras--mocha-visit-node'."
+  (let* ((qname (append qname (list (js2-function-name node))))
+         (position (js2-node-abs-pos node)))
+    (js2-record-imenu-entry node qname position)))
+
+(defun js2-imenu-extras--call-target-name (node)
+  "Return the function name, as string, called by NODE.
+If node is not a function call, return nil."
+  (when (js2-call-node-p node)
+    (js2-imenu-extras--string-content (js2-call-node-target node))))
+
+(defun js2-imenu-extras--string-content (node)
+  "Return a string representing the value of NODE."
+  (if (js2-string-node-p node)
+      (js2-string-node-value node)
+    (let ((start (js2-node-abs-pos node)))
+      (buffer-substring-no-properties
+       start
+       (+ start (js2-node-len node))))))
 
 (defun js2-imenu-walk-ast ()
   (js2-visit-ast
@@ -270,7 +425,7 @@ For example, for code
   {rules: {password: {required: function() {}}}}
 
 when NODE is the inner `js2-object-prop-mode',
-it returns `(\"rules\" \"password\")'."
+it returns (\"rules\" \"password\")."
   (let (rlt (n node))
     (while (setq n (js2-imenu-parent-prop-node n))
       (push (js2-prop-node-name (js2-object-prop-node-left n)) rlt))
@@ -299,7 +454,6 @@ NODE must be `js2-object-prop-node'."
       (unless (and js2-imenu-function-map
                    (gethash fn-node js2-imenu-function-map))
         (let ((key-node (js2-object-prop-node-left node))
-              (parent-prop-node (js2-imenu-parent-prop-node node))
               chain)
           (setq chain (nconc (js2-imenu-parent-key-names node)
                              (list (js2-prop-node-name key-node))))
