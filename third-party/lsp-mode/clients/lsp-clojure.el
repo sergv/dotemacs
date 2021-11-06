@@ -27,6 +27,7 @@
 (require 'lsp-mode)
 (require 'lsp-protocol)
 (require 'cl-lib)
+(require 'lsp-semantic-tokens)
 
 (defgroup lsp-clojure nil
   "LSP support for Clojure."
@@ -35,7 +36,7 @@
   :tag "Lsp Clojure")
 
 (define-obsolete-variable-alias 'lsp-clojure-server-command
-  'lsp-clojure-custom-server-command  "lsp-mode 7.1")
+  'lsp-clojure-custom-server-command  "lsp-mode 8.0.0")
 
 (defcustom lsp-clojure-custom-server-command nil
   "The clojure-lisp server command."
@@ -52,7 +53,7 @@
   "Automatic download url for lsp-clojure."
   :type 'string
   :group 'lsp-clojure
-  :package-version '(lsp-mode . "7.1"))
+  :package-version '(lsp-mode . "8.0.0"))
 
 (defcustom lsp-clojure-server-store-path
   (f-join lsp-server-install-dir
@@ -63,7 +64,7 @@
   "The path to the file in which `clojure-lsp' will be stored."
   :type 'file
   :group 'lsp-clojure
-  :package-version '(lsp-mode . "7.1"))
+  :package-version '(lsp-mode . "8.0.0"))
 
 (defcustom lsp-clojure-workspace-dir (expand-file-name (locate-user-emacs-file "workspace/"))
   "LSP clojure workspace directory."
@@ -186,6 +187,11 @@ If there are more arguments expected after the line and column numbers."
   (interactive)
   (lsp-clojure--refactoring-call "unwind-thread"))
 
+(defun lsp-clojure-create-test ()
+  "Apply create-test refactoring at point."
+  (interactive)
+  (lsp-clojure--refactoring-call "create-test"))
+
 (defun lsp-clojure-server-info ()
   "Request server info."
   (interactive)
@@ -282,12 +288,28 @@ If there are more arguments expected after the line and column numbers."
   (or (executable-find "clojure-lsp")
       (lsp-package-path 'clojure-lsp)))
 
+(lsp-defun lsp-clojure--show-references ((&Command :arguments? args))
+  "Show references for command with ARGS.
+ARGS is a vector which the first element is the uri, the second the line
+and the third the column."
+  (lsp-show-xrefs
+   (lsp--locations-to-xref-items
+    (lsp-request "textDocument/references"
+                 (lsp--make-reference-params
+                  (lsp--text-document-position-params
+                   (list :uri (seq-elt args 0))
+                   (list :line (1- (seq-elt args 1))
+                         :character (1- (seq-elt args 2)))))))
+   t
+   t))
+
 (lsp-register-client
  (make-lsp-client
   :download-server-fn (lambda (_client callback error-callback _update?)
                         (lsp-package-ensure 'clojure-lsp callback error-callback))
   :semantic-tokens-faces-overrides '(:types (("macro" . font-lock-keyword-face)
-                                             ("keyword" . clojure-keyword-face)))
+                                             ("keyword" . clojure-keyword-face)
+                                             ("event" . default)))
   :new-connection (lsp-stdio-connection
                    (lambda ()
                      (or lsp-clojure-custom-server-command
@@ -298,11 +320,26 @@ If there are more arguments expected after the line and column numbers."
   :major-modes '(clojure-mode clojurec-mode clojurescript-mode)
   :library-folders-fn (lambda (_workspace) (list lsp-clojure-workspace-cache-dir))
   :uri-handlers (lsp-ht ("jar" #'lsp-clojure--file-in-jar))
-  :action-handlers (lsp-ht ("resolve-macro-as" #'lsp-clojure--resolve-macro-as))
-  :initialization-options '(:dependency-scheme "jar")
+  :action-handlers (lsp-ht ("resolve-macro-as" #'lsp-clojure--resolve-macro-as)
+                           ("code-lens-references" #'lsp-clojure--show-references))
+  :initialization-options '(:dependency-scheme "jar"
+                            :show-docs-arity-on-same-line? t)
   :server-id 'clojure-lsp))
 
 (lsp-consistency-check lsp-clojure)
+
+;; Cider integration
+
+(defun lsp-clojure-semantic-tokens-refresh ()
+  "Force refresh semantic tokens."
+  (when (and lsp-semantic-tokens-enable
+             (lsp-find-workspace 'clojure-lsp (buffer-file-name)))
+    (lsp-semantic-tokens--enable)))
+
+(with-eval-after-load 'cider
+  (when lsp-semantic-tokens-enable
+    ;; refresh tokens as cider flush font-faces after disconnected
+    (add-hook 'cider-mode-hook #'lsp-clojure-semantic-tokens-refresh)))
 
 (provide 'lsp-clojure)
 ;;; lsp-clojure.el ends here
