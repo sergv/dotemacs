@@ -31,19 +31,19 @@
   "Settings for the markdown language server client."
   :group 'lsp-mode
   :link '(url-link "https://github.com/unifiedjs/unified-language-server")
-  :package-version '(lsp-mode . "7.1"))
+  :package-version '(lsp-mode . "8.0.0"))
 
 (defcustom lsp-markdown-server-command "unified-language-server"
   "The binary (or full path to binary) which executes the server."
   :type 'string
   :group 'lsp-markdown
-  :package-version '(lsp-mode . "7.1"))
+  :package-version '(lsp-mode . "8.0.0"))
 
 (defcustom lsp-markdown-server-command-args '("--parser=remark-parse" "--stdio")
   "Command-line arguments for the markdown lsp server."
   :type '(repeat 'string)
   :group 'lsp-markdown
-  :package-version '(lsp-mode . "7.1"))
+  :package-version '(lsp-mode . "8.0.0"))
 
 (defcustom lsp-markdown-remark-plugins [["#remark-preset-lint-markdown-style-guide"]]
   "The JSON configuration object for plugins.
@@ -52,7 +52,7 @@ For a complete list of plugins, check:
  https://github.com/unifiedjs/unified-language-server/blob/main/CONFIGURATION.md#re-using-settings"
   :type 'lsp-string-vector
   :group 'lsp-markdown
-  :package-version '(lsp-mode . "7.1"))
+  :package-version '(lsp-mode . "8.0.0"))
 
 (defcustom lsp-markdown-remark-check-text-with-setting "retext-english"
   "Configure `checkTextWith' subproperty.
@@ -63,7 +63,7 @@ For a complete list of plugins, check:
                   (const "retext-english")
                   (const "remark-parse")))
   :group 'lsp-markdown
-  :package-version '(lsp-mode . "7.1"))
+  :package-version '(lsp-mode . "8.0.0"))
 
 (defcustom lsp-markdown-remark-check-text-with-mutator ["#remark-retext" "#parse-latin"]
   "Vector of additional mutators.
@@ -72,7 +72,7 @@ For a complete list of plugins, check:
  https://github.com/unifiedjs/unified-language-server/blob/main/CONFIGURATION.md#re-using-settings"
   :type 'lsp-string-vector
   :group 'lsp-markdown
-  :package-version '(lsp-mode . "7.1"))
+  :package-version '(lsp-mode . "8.0.0"))
 
 (lsp-dependency 'unified-language-server
                 '(:system "unified-language-server")
@@ -88,15 +88,13 @@ For a complete list of plugins, check:
  (make-lsp-client :new-connection (lsp-stdio-connection
                                    (lambda ()
                                      (cons (or (executable-find lsp-markdown-server-command)
-                                              (lsp-package-path 'unified-language-server))
+                                               (lsp-package-path 'unified-language-server))
                                            lsp-markdown-server-command-args)))
                   :activation-fn (lsp-activate-on "markdown")
                   :initialized-fn (lambda (workspace)
                                     (with-lsp-workspace workspace
                                       (lsp--set-configuration (lsp-configuration-section "unified-language-server"))))
-                  :major-modes '(markdown-mode)
                   :priority -1
-                  :major-modes '(markdown-mode)
                   :server-id 'unified))
 
 (lsp-consistency-check lsp-markdown)

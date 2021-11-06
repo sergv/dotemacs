@@ -159,7 +159,7 @@ Newlines and excess whitespace are removed."
   "Enable/disable resolution (downloading) of external entities from the internet."
   :type 'boolean
   :group 'lsp-xml
-  :package-version '(lsp-mode . "7.1"))
+  :package-version '(lsp-mode . "8.0.0"))
 
 (defcustom lsp-xml-validation-schema t
   "Enable/disable schema based validation. Ignored if
@@ -189,7 +189,7 @@ Newlines and excess whitespace are removed."
   ("xml.catalogs" lsp-xml-catalogs)
   ("xml.trace.server" lsp-xml-trace-server)))
 
-(defconst lsp-xml-jar-version "0.13.1")
+(defconst lsp-xml-jar-version "0.18.0")
 
 (defconst lsp-xml-jar-name (format "org.eclipse.lemminx-%s-uber.jar" lsp-xml-jar-version))
 
@@ -208,7 +208,7 @@ Newlines and excess whitespace are removed."
   "Automatic download url for lsp-xml."
   :type 'string
   :group 'lsp-xml
-  :package-version '(lsp-mode . "7.1"))
+  :package-version '(lsp-mode . "8.0.0"))
 
 (lsp-dependency
  'xmlls
