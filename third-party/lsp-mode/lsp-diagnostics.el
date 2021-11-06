@@ -72,7 +72,7 @@ on top the flycheck face for that error level."
   "A list of major models for which `lsp-diagnostics-mode' should be disabled."
   :type '(repeat symbol)
   :group 'lsp-diagnostics
-  :package-version '(lsp-mode . "7.1"))
+  :package-version '(lsp-mode . "8.0.0"))
 
 ;; Flycheck integration
 
@@ -181,7 +181,8 @@ CALLBACK is the status callback passed by Flycheck."
 (defun lsp-diagnostics--flycheck-buffer ()
   "Trigger flyckeck on buffer."
   (remove-hook 'lsp-on-idle-hook #'lsp-diagnostics--flycheck-buffer t)
-  (flycheck-buffer))
+  (when (bound-and-true-p flycheck-mode)
+    (flycheck-buffer)))
 
 (defun lsp-diagnostics--flycheck-report ()
   "Report flycheck.
