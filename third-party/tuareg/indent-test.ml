@@ -4,12 +4,10 @@
  * - the indentation is acceptable (maybe not perfect for everyone,
  *   but at least correct for some users).
  * - the indentation code does find this indentation.
- * We use this for regression testing: "make indent-test" should normally
- * show no changes, and if it does show changes it should be improvements.
+ * This file is used for regression testing in tuareg-tests.el.
  *
- * This is in contrast to sample.ml which contains indentation layouts
- * which the indentation code doesn't know how to find, so it's normal
- * for "make sample.ml.test" to show changes which are regressions.
+ * This is in contrast to indent-test-failed.ml which contains indentation
+ * layouts which the indentation code doesn't know how to find.
  *)
 
 let server_comments request t =
@@ -56,6 +54,7 @@ let test1 = with_connection (fun conn ->
                 do_something conn x;
                 ...
               )
+              toto
 
 let x = match y with            (* Issue #71 *)
   | A | B | C ->
@@ -146,7 +145,7 @@ type t = [ `Foo of int
 
 type t =
   | A
-  | B
+  | B  (* issue #76 *)
   | C
 with sexp
 
@@ -443,10 +442,6 @@ let foo =
     else c
   )
 
-let quux list = List.map list ~f:(fun item ->
-                           print_item item
-                         )
-
 let foo x = function
   | Some _ -> true
   | None -> false
@@ -480,13 +475,6 @@ let g x =
       f x;
       g x;
       y x;
-  with e -> raise e
-
-let h x =
-  try  ff a b
-          c d;
-       gg 1 2
-          3 4;
   with e -> raise e
 
 let () =
@@ -537,9 +525,6 @@ let a f = function
      (match z with
       | 4 -> 3
       |  5 -> 7)
-
-let x = foo ~f:(fun _ -> 0              (* Comment.  *)
-               )
 
 let f = function x ->
           y
@@ -618,12 +603,6 @@ let () = try
 let () = (try
             f x;
           with _ -> ())
-
-let () =
-  foo (sprintf ("a: %s"
-                ^ " b: %s")
-               a
-               b)
 
 let () =
   try f a
@@ -802,14 +781,6 @@ let () =
   x
 
 let () =
-  Hashtbl.iter times ~f:(fun ~key:time ~data:azot ->
-                 Clock.at time
-                 >>> fun () ->
-                 Db.iter t.db ~f:(fun dbo ->
-                           if S.mem azot (Dbo.azo dbo) then
-                             Dbo.dont dbo))
-
-let () =
   f 1
   |! (fun x ->
     g x x)
@@ -880,17 +851,37 @@ let () =
       step1
       >>= fun () -> step2)
 
-let w f =
-  List.map f ~f:(fun (a, b) ->
-             L.r a
-             >>= function
-             | Ok s -> `Fst (b, s)
-             | Error e -> `Snd (b, a, e))
+class c (a : b) =
+  object
+    inherit d
+    method m = 1
+  end
 
 class c (a : b) =
-object
+  object(self)
+    inherit d
+    method m = 1
+  end
+
+class c (a : b) = object
   inherit d
   method m = 1
+end
+
+class c (a : b) = object(self)
+  inherit d
+  method m = 1
+end
+
+class type restricted_point_type =
+  object
+    method get_x : int
+    method bump : unit
+  end
+
+class type restricted_point_type = object
+  method get_x : int
+  method bump : unit
 end
 
 let f = {
@@ -911,12 +902,6 @@ let () =
   for i = 10 to 17 do
     printf "%d" i;
   done
-
-let a =
-  B.c d ~e:f [
-        "g";
-        "h";
-      ]
 
 let () =
   f a ~b:c ~d ~e:g
@@ -1018,63 +1003,10 @@ let a =
     (fun () -> a
     )
 
-let a =
-  foo
-    ~f:(fun () -> a
-       )
-
-let () =
-  (* Comment.  *)
-  bar a b
-      c d;
-  foo ~size
-      (* Comment.  *)
-      ~min:foo
-      ?reduce
-      ?override
-      ()
-
-let foo =
-  (* Comment.  *)
-  List.map z
-           ~f:(fun m ->
-             M.q m
-             |! T.u ~pr ~verbose:false
-                    ~p:H.P.US ~is_bar:false)
-  |! List.sort ~cmp:(fun a b ->
-                 compare
-                   (I.r a.T.s)
-                   (I.r b.T.s))
-
 let check =
   a lsr 30 >= 3
   && b lsr 20 >= 1
   && c * 10 > f
-
-let () =
-  snoo ~f:(fun foo ->
-         foo = bar
-         && snoo)
-
-let () =
-  snoo ~f:(fun foo ->
-         foo + bar
-         && snoo)
-
-let () =
-  snoo ~f:(fun foo ->
-         foo
-         && snoo)
-
-let variants a =
-  match String.split a ~on:'-' with
-  | [ s1; s2; s3 ] ->
-     let a0 = String.concat ~sep:"" [ s1; s2] in
-     let a1 = String.concat ~sep:"-" [ s1; s2; s3; "055" ] in (* Comment.  *)
-     List.map [ a0; a1; a]
-              ~f:(fun a_s -> lookup a_s)
-     |! List.flatten
-  | _ -> failwith "bad"
 
 let f a1 a2 a3
       b1 b2 b3 d1 d2 d3 = {
@@ -1178,10 +1110,6 @@ let x =
 let x =
   try a
   with Not_found ->
-    b
-let x =
-  try a
-  with Not_found ->
         b
      | _ ->
         c
@@ -1197,31 +1125,11 @@ let x =
 let x = "toto try \
          tata"
 
-let optional_sci_float =
-  do_something ~a:1e-7
-               ~b:(fun x -> x + 1)
-
 let () =
   f x ~tol:1.0
     more arguments;
   f x ~tol:1.
     more arguments
-
-let array_args =
-  fold s multi_sms.(0).message_number folder
-       more_args (* FIXME *)
-
-let () =
-  match var with
-  | <:expr< $lid:f$ >> ->
-     KO
-  | <:expr< $lid:f$ >> when f x ->
-     KO
-  | y when f y ->
-     OK
-  | long_pattern
-       when f long_pattern -> (* Should be more indented than the clause body *)
-     z
 
 type t = {
     mutable a: float;
@@ -1298,6 +1206,207 @@ val f :
        int ->
        int
 
+let x = List.map
+          (function x ->
+             blabla
+               blabla
+               blabla)
+          l
+
+(* The two "let"s below are indented under the assumption that
+   tuareg-indent-align-with-first-arg is nil!  *)
+let x = List.map (fun x -> 5)
+          my list
+
+let x =
+  logf `Info "User %s has %i new messages" ba
+    (Uid.to_string uid)
+    (List.length new_messages)
+
+(* MetaOCaml thingies, issue #195.  *)
+let f x = .< 0.0 + g .~ x
+                     5
+                   * 7
+             + .<.~x
+                 +. 10>.
+          >.
+
+let f = function
+  | A -> 1
+  | B | C -> 2
+
+let quux list = List.map list ~f:(fun item ->
+                    print_item item
+                  )
+
+let h x =
+  try  ff a b
+         c d;
+       gg 1 2
+         3 4;
+  with e -> raise e
+
+let x = foo ~f:(fun _ -> 0              (* Comment.  *)
+          )
+
+let x =
+  let foo = 1 and bar = 2 and zot = 3 in
+  let quux = 4 in
+  foo
+  + bar
+  + zot
+  + quux
+
+let () =
+  foo (sprintf ("a: %s"
+                ^ " b: %s")
+         a
+         b)
+
+let () =
+  Hashtbl.iter times ~f:(fun ~key:time ~data:azot ->
+      Clock.at time
+      >>> fun () ->
+      Db.iter t.db ~f:(fun dbo ->
+          if S.mem azot (Dbo.azo dbo) then
+            Dbo.dont dbo))
+
+let () =
+  f 1
+  |> (fun x ->
+    g x x)
+  |> (fun y ->
+    h y y)
+
+let () =
+  tagL "ol" (List.map ~f:(tag ~a:[] "li") (
+                 (List.map results ~f:(fun (what,_) ->
+                      tag "a" ~a:[("href","#" ^ what)] (what_title what)))
+                 @ [tag "a" ~a:[("href","#" ^ message_id)] message_title;
+                    tag "a" ~a:[("href","#" ^ legend_id)] legend_title]))
+  |> IO.println out
+
+let w f =
+  List.map f ~f:(fun (a, b) ->
+      L.r a
+      >>= function
+      | Ok s -> `Fst (b, s)
+      | Error e -> `Snd (b, a, e))
+
+let a =
+  B.c d ~e:f [
+      "g";
+      "h";
+    ]
+
+let x =
+  [(W.background `Blue (W.hbox [
+                            x
+   ]));
+  ]
+
+let c f =
+  if S.is_file f then
+    S.load f C.t
+    |> fun x -> c := Some x
+  else
+    C.s C.default |> S.save f
+    |> fun () -> c := None
+
+let c f =
+  if S.is_file f then (
+    S.load f C.t
+    |> fun x -> c := Some x
+  ) else (
+    C.s C.default |> S.save f
+    |> fun () -> c := None)
+
+let a =
+  foo
+    (fun () ->
+      a)
+
+let a =
+  foo
+    ~f:(fun () ->
+      a)
+
+let a =
+  foo
+    (fun () -> a
+    )
+
+let a =
+  foo
+    ~f:(fun () -> a
+    )
+
+let () =
+  (* Comment.  *)
+  bar a b
+    c d;
+  foo ~size
+    (* Comment.  *)
+    ~min:foo
+    ?reduce
+    ?override
+    ()
+
+let foo =
+  (* Comment.  *)
+  List.map z
+    ~f:(fun m ->
+      M.q m
+      |> T.u ~pr ~verbose:false
+           ~p:H.P.US ~is_bar:false)
+  |> List.sort ~cmp:(fun a b ->
+         compare
+           (I.r a.T.s)
+           (I.r b.T.s))
+
+let () =
+  snoo ~f:(fun foo ->
+      foo = bar
+      && snoo)
+
+let () =
+  snoo ~f:(fun foo ->
+      foo + bar
+      && snoo)
+
+let () =
+  snoo ~f:(fun foo ->
+      foo
+      && snoo)
+
+let variants a =
+  match String.split a ~on:'-' with
+  | [ s1; s2; s3 ] ->
+     let a0 = String.concat ~sep:"" [ s1; s2] in
+     let a1 = String.concat ~sep:"-" [ s1; s2; s3; "055" ] in (* Comment.  *)
+     List.map [ a0; a1; a]
+       ~f:(fun a_s -> lookup a_s)
+     |> List.flatten
+  | _ -> failwith "bad"
+
+let x =
+  try a
+  with Not_found ->
+    b
+
+let optional_sci_float =
+  do_something ~a:1e-7
+    ~b:(fun x -> x + 1)
+
+let array_args =
+  fold s multi_sms.(0).message_number folder
+    more_args (* FIXME *)
+
+type t = {
+    mutable a: float;
+    b : int;
+  }
+
 let subscribe_impl dir topic ~aborted =
   return (
       match Directory.subscribe dir topic with
@@ -1306,21 +1415,13 @@ let subscribe_impl dir topic ~aborted =
          whenever (aborted >>| fun () -> Pipe.close_read pipe);
          Ok pipe
     )
-         next_argument (* should be indented correctly, given the braces *)
-
-
-let x = List.map
-          (function x ->
-             blabla
-               blabla
-               blabla)
-          l
+    next_argument (* should be indented correctly, given the braces *)
 
 let command =
   Command.Spec.(
     empty
     +> flag "-hello" (optional_with_default "Hello" string)
-            ~doc:" The 'hello' of 'hello world'"
+         ~doc:" The 'hello' of 'hello world'"
     +> flag "-world" (optional_with_default "World" string)
-            ~doc:" The 'world' of 'hello world'"
+         ~doc:" The 'world' of 'hello world'"
   )
