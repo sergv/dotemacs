@@ -891,7 +891,9 @@ if there's no region."
                           (line-beginning-position))
                  ,end (save-excursion
                         (goto-char (region-end))
-                        (line-end-position)))
+                        (min (point-max)
+                             ;; Include newline and the end of line.
+                             (+ 1 (line-end-position)))))
          (setf ,start (region-beginning)
                ,end (region-end)))
        (setf end (min end (point-max)))
