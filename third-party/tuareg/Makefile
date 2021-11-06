@@ -9,12 +9,12 @@ TARBALL = $(DIST_NAME).tar.gz
 OPAM_FILE = packages/tuareg/tuareg.$(VERSION)/opam
 
 SOURCES = tuareg.el ocamldebug.el tuareg-opam.el \
-  tuareg-menhir.el
+  tuareg-menhir.el tuareg-compat.el
 ELS = $(SOURCES) tuareg-site-file.el
 ELC = $(ELS:.el=.elc)
 
 INSTALL_FILES = $(ELS) $(ELC)
-INSTALL_DIR ?= $(shell opam config var share)/emacs/site-lisp
+INSTALL_DIR ?= $(shell opam var share)/emacs/site-lisp
 
 DIST_FILES += $(ELS) Makefile README.md tuareg.install
 
@@ -37,7 +37,6 @@ endif
 endif
 EMACS ?= emacs
 
-#ENABLE_SMIE = --eval '(setq tuareg-use-smie t)'
 RM ?= rm -f
 CP ?= cp -f
 LN = ln
@@ -45,13 +44,15 @@ DIFF = diff -u -B
 
 INSTALL_RM_R = $(RM) -r
 INSTALL_MKDIR = mkdir -p
-INSTALL_CP = $(CP)
+INSTALL_CP = cp
 
 all elc : $(ELC) tuareg-site-file.el
 
+elc-werror: WERROR=--eval '(setq byte-compile-error-on-warn t)'
+elc-werror: elc
+
 %.elc : %.el
-	$(EMACS) --batch -L . --no-init-file -f batch-byte-compile $<
-	@echo "Files byte-compiled using $(EMACS)"
+	$(EMACS) --batch -L . --no-init-file $(WERROR) -f batch-byte-compile $<
 
 install : $(INSTALL_FILES)
 	$(INSTALL_MKDIR) $(INSTALL_DIR)
@@ -65,7 +66,9 @@ uninstall :
 .PHONY: refresh
 refresh:
 
-check : sample.ml.test
+.PHONY: check
+check:
+	$(EMACS) -batch -Q -L . -l tuareg-tests -f ert-run-tests-batch-and-exit
 
 %.test: % $(ELC) refresh
 	@echo ====Indent $*====
@@ -82,7 +85,7 @@ check : sample.ml.test
 indent-test: indent-test.ml.test
 
 tuareg-site-file.el: $(SOURCES)
-	(echo ";;; $@ --- Automatically extracted autoloads.";\
+	(echo ";;; $@ --- Automatically extracted autoloads.  -*- lexical-binding: t; -*-";\
 	 echo ";;; Code:";\
 	 echo "(add-to-list 'load-path";\
 	 echo "             (or (file-name-directory load-file-name) (car load-path)))";\
