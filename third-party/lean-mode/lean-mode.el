@@ -1,4 +1,4 @@
-;;; lean-mode.el --- A major mode for the Lean language -*- lexical-binding: t -*-
+;;; lean-mode.el --- A major mode for the Lean 3 language -*- lexical-binding: t -*-
 
 ;; Copyright (c) 2013, 2014 Microsoft Corporation. All rights reserved.
 ;; Copyright (c) 2014, 2015 Soonho Kong. All rights reserved.
@@ -10,14 +10,14 @@
 ;; Maintainer: Sebastian Ullrich <sebasti@nullri.ch>
 ;; Created: Jan 09, 2014
 ;; Keywords: languages
-;; Package-Requires: ((emacs "24.3") (dash "2.12.0") (dash-functional "1.2.0") (s "1.10.0") (f "0.19.0") (flycheck "30"))
+;; Package-Requires: ((emacs "24.3") (dash "2.18.0") (s "1.10.0") (f "0.19.0") (flycheck "30"))
 ;; URL: https://github.com/leanprover/lean-mode
 
 ;; Released under Apache 2.0 license as described in the file LICENSE.
 
 ;;; Commentary:
 
-;; Provides a major mode for the Lean programming language.
+;; Provides a major mode for the Lean 3 programming language.
 
 ;; Provides highlighting, diagnostics, goal visualization,
 ;; and many other useful features for Lean users.
@@ -188,8 +188,13 @@ enabled and disabled respectively.")
   (lean-ensure-info-buffer lean-show-goal-buffer-name)
   ;; eldoc
   (when lean-eldoc-use
-    (set (make-local-variable 'eldoc-documentation-function)
-         'lean-eldoc-documentation-function)
+    (cond ((<= emacs-major-version 27)
+           (set (make-local-variable 'eldoc-documentation-function)
+                'lean-eldoc-documentation-function))
+          (t (add-hook 'eldoc-documentation-functions
+                       #'lean-eldoc-documentation-function nil t)
+             (setq-local eldoc-documentation-strategy
+                         'eldoc-documentation-default)))
     (eldoc-mode t)))
 
 ;; Automode List
@@ -220,6 +225,12 @@ Invokes `lean-mode-hook'.
   ;; (abbrev-mode 1)
   (pcase-dolist (`(,hook . ,fn) lean-hooks-alist)
     (add-hook hook fn nil 'local))
+  (setq imenu-generic-expression '(("Inductive" "^ *\\(?:@\\[.*\\]\\)? *inductive +\\([^\n ]+\\)" 1)
+                                   ("Function" "^ *\\(?:@\\[.*\\]\\)? *def +\\([^\n ]+\\)" 1)
+                                   ("Lemma" "^ *\\(?:@\\[.*\\]\\)? *lemma +\\([^\n ]+\\)" 1)
+                                   ("Theorem" "^ *\\(?:@\\[.*\\]\\)? *theorem +\\([^\n ]+\\)" 1)
+                                   ("Theorem" "^ *\\(?:@\\[.*\\]\\)? *theorem +\\([^\n ]+\\)" 1)
+                                   ("Namespace" "^ *\\(?:@\\[.*\\]\\)? *namespace +\\([^\n ]+\\)" 1)))
   (lean-mode-setup))
 
 ;; Automatically use lean-mode for .lean files.
