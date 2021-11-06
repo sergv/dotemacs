@@ -1,4 +1,6 @@
+[![NonGNU ELPA](https://elpa.nongnu.org/nongnu/tuareg.svg)](https://elpa.nongnu.org/nongnu/tuareg.html)
 [![MELPA](https://melpa.org/packages/tuareg-badge.svg)](https://melpa.org/#/tuareg)
+[![DebianBadge](https://badges.debian.net/badges/debian/stable/elpa-tuareg/version.svg)](https://packages.debian.org/stable/elpa-tuareg)
 [![LGPL v2](https://img.shields.io/badge/licence-lgpl2-blue.svg)](COPYING)
 [![Build Status](https://travis-ci.org/ocaml/tuareg.svg?branch=master)](https://travis-ci.org/ocaml/tuareg)
 
@@ -26,8 +28,8 @@ Install
 
 The easier way to install Tuareg is though
 the [Emacs package system](https://www.gnu.org/software/emacs/manual/html_node/emacs/Packages.html)
-and [MELPA][] — you first have to
-[configure the latter](https://melpa.org/#/getting-started).
+with [NonGNU ELPA][] or
+[MELPA][] ([configuration](https://melpa.org/#/getting-started)).
 
 You can also install it using [OPAM][]:
 
@@ -126,6 +128,20 @@ Tips & customization
 
   [electric-indent-mode]: https://www.gnu.org/software/emacs/manual/html_node/emacs/Indent-Convenience.html
 
+- Tuareg respects you default commenting style.  However, in OCaml,
+  commenting a region is usually done with a single multi-line comment
+  and without leading stars on each line.  You can have that behavior
+  in OCaml buffers by setting:
+
+        (add-hook 'tuareg-mode-hook
+                  (lambda()
+                    (setq-local comment-style 'multi-line)
+                    (setq-local comment-continue "   ")))
+
+- If you turn on `show-paren-mode`, the delimiters of comments will
+  also be highlighted.  If you do not like this behavior, set
+  `tuareg-comment-show-paren` to `nil`.
+
 - Syntax highlighting has 3 levels.  You can select the one you prefer
   by setting [font-lock-maximum-decoration][] from `0` to `2`.  By
   default, [font-lock-maximum-decoration][] is set to `t` which
@@ -136,7 +152,9 @@ Tips & customization
 - Fontifying all operators (as opposed to only non-standard ones) is a
   costly operation that slows down font-lock.  This is why it is
   disabled by default.  If you nonetheless want it, set
-  `tuareg-highlight-all-operators` to `t` in your [Init File][].
+  `tuareg-highlight-all-operators` to `t` in your [Init File][]
+  (before `tuareg-mode` is initialized; in particular, not in a hook
+  added to `'tuareg-mode-hook`).
 
 - You can turn on and off the rendering of certain sequences of
   characters as symbols (such as `∔` and `∧` instead of `+.`and `&&`),
@@ -218,7 +236,8 @@ location of an identifier with <kbd>C-cC-l</kbd>, to go to the next
 (resp. previous) phrase with <kbd>C-cC-n</kbd>
 (resp. <kbd>C-cC-p</kbd>),...  Highly recommended.
 
-[caml-mode][] (available in [MELPA][]) is used to display types (using
+[caml-mode][] (available in [NonGNU ELPA][] and [MELPA][]) is used to
+display types (using
 the obsolete `*.annot` files), open a module for documentation,...
 
 [Menhir]: http://gallium.inria.fr/~fpottier/menhir/
@@ -226,13 +245,18 @@ the obsolete `*.annot` files), open a module for documentation,...
 [Merlin]: https://github.com/ocaml/merlin
 [OPAM]: http://opam.ocaml.org/
 [caml-mode]: https://github.com/ocaml/caml-mode
+[NonGNU ELPA]: https://elpa.nongnu.org/
 [MELPA]: https://melpa.org/
 
-Bugs
-----
 
-See the [Github project](https://github.com/ocaml/tuareg/issues).
+Reporting
+---------
 
+The official Tuareg home page is located at:
+<https://github.com/ocaml/tuareg>.
+
+Bug reports & patches: use the tracker:
+<https://github.com/ocaml/tuareg/issues>.
 
 Thanks
 ------
@@ -269,12 +293,3 @@ Tuareg mode have been maintained by Albert Cohen until version 1.45.
 
 Jane Street took over maintenance based on Albert Cohen's version 1.46
 (later retracted by him), and released its first version as 2.0.
-
-Reporting
----------
-
-The official Tuareg home page is located at:
-<https://github.com/ocaml/tuareg>.
-
-Bug reports & patches: use the tracker:
-<https://github.com/ocaml/tuareg/issues>.
