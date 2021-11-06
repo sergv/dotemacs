@@ -4,8 +4,8 @@
 [![MELPA Stable](https://stable.melpa.org/packages/nix-mode-badge.svg)](https://stable.melpa.org/#/nix-mode)
 [![Build Status](https://travis-ci.com/NixOS/nix-mode.svg?branch=master)](https://travis-ci.com/NixOS/nix-mode)
 
-An emacs major mode for editing nix expressions. There is also a
-manual available at nix-mode.org.
+An Emacs major mode for editing Nix expressions. There is also a
+manual available at [nix-mode.org](./nix-mode.org).
 
 ## Submodes
 
@@ -42,7 +42,7 @@ Interactive functions include:
 
   Followed by your Nix path & attribute path.
 
-- nix-build - build a Nix derviation.
+- nix-build - build a Nix derivation.
 
   This is meant to work similarly to M-x compile. It will use your
   current directory & build it if there is a default.nix there.
@@ -67,10 +67,27 @@ nix-repl.el has two purposes.
 
 First, it provides an interface for completion, used by nix-company.el.
 
-Second, it provides an interactive function to open an repl. You can
+Second, it provides an interactive function to open a repl. You can
 open this with:
 
 M-x nix-repl<RET>
+
+### nix-store.el
+
+This file provides a command `M-x nix-store-show-path`. The command displays an
+overview of a store path. The information it shows is the realisation status,
+the hash and the size of the store path. Also it shows lists of derivers,
+references, referrers and requisites of the respective path.
+
+You can change the order in which that information is show. See the
+documentation of the function `nix-store-show-path` for more information.
+
+### nix-prettify-mode.el
+
+When nix-prettify-mode is enabled, hash-parts of the Nix store file names are
+prettified, i.e. displayed as `nix-prettify-char` character (`…` by default.).
+
+This is based on a similar mode for Guix: [Prettify Mode (Emacs-Guix Reference Manual)](https://emacs-guix.gitlab.io/website/manual/0.4/html_node/Prettify-Mode.html).
 
 ## Origins
 
