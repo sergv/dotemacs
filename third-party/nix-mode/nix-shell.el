@@ -32,7 +32,8 @@
   "All nix-shell options."
   :group 'nix)
 
-(defcustom nix-shell-inputs '(depsBuildBuild
+(defcustom nix-shell-inputs '(buildInputs
+			      depsBuildBuild
 			      depsBuildBuildPropagated
 			      nativeBuildInputs
 			      propagatedNativeBuildInputs
@@ -59,6 +60,12 @@ Should only be set in dir-locals.el file."
   :type 'stringp
   :group 'nix-shell)
 
+(defcustom nix-flake nil
+  "Nix flake to build expressions from.
+Should only be set in dir-locals.el file."
+  :type 'stringp
+  :group 'nix-shell)
+
 (defcustom nix-attr nil
   "Nix attribute path to use.
 Should only be set in dir-locals.el file."
@@ -78,6 +85,13 @@ ATTR is the attribute to unpack."
 (defun nix-read-attr (_)
   "Get nix attribute from user."
   (read-string "Nix attr: "))
+
+(defun nix-read-flake ()
+  "Get nix flake from user."
+  (cond
+   (nix-flake nix-flake)
+   ((and (nix-has-flakes) (file-exists-p "flake.nix")) ".")
+   (t (read-string "Nix flake: " "nixpkgs"))))
 
 (defun nix-read-file ()
   "Get nix file from user."
@@ -130,7 +144,9 @@ The DRV file to use."
 			 (apply 'append
 				(mapcar (lambda (prop)
 					  (split-string (alist-get prop env)))
-					nix-shell-inputs)))))
+					nix-shell-inputs))))
+	 ;; This attribute is in `mkShell' — ideally, we'd only check this variable in those cases.
+	 (ld-library-path (alist-get 'LD_LIBRARY_PATH env)))
 
     ;; Prevent accidentally rebuilding the world.
     (unless (file-directory-p stdenv)
@@ -151,6 +167,20 @@ The DRV file to use."
 	;; (setq-local process-environment nil)
 	)
 
+      ;; Set the LD_LIBRARY_PATH where applicable
+      (when ld-library-path
+	(make-local-variable 'process-environment)
+	(setq process-environment
+	      (cons
+	       (let*
+		   ((var "LD_LIBRARY_PATH")
+		    (current-path (getenv var)))
+		 (if current-path
+		     ;; LD_LIBRARY_PATH defined in derivation takes precedence
+		     (format "%s=%s:%s" var ld-library-path current-path)
+		   (format "%s=%s" var ld-library-path)))
+		    process-environment)))
+
       (dolist (input inputs)
 	(when (and (not (file-directory-p input))
 		   nix-shell-auto-realise)
@@ -162,11 +192,13 @@ The DRV file to use."
 	  (add-to-list 'exec-path bin)
 	  (setq-local eshell-path-env
 		      (format "%s:%s" bin eshell-path-env))
-	  (add-to-list 'woman-manpath man)
+      (when (boundp 'woman-manpath)
+	    (add-to-list 'woman-manpath man))
 	  (add-to-list 'ffap-c-path include)
 	  (add-to-list 'Man-header-file-path include)
-	  (add-to-list 'irony-additional-clang-options
-		       (format "-I%s" include))))
+      (when (boundp 'irony-additional-clang-options)
+	    (add-to-list 'irony-additional-clang-options
+		       (format "-I%s" include)))))
 
       (when (bound-and-true-p flycheck-mode)
 	(flycheck-buffer))
@@ -196,6 +228,7 @@ PKGS-FILE package set to pull from."
       (insert "} \"\"\n"))
     nix-file))
 
+;;;###autoload
 (defun nix-eshell-with-packages (packages &optional pkgs-file)
   "Create an Eshell buffer that has the shell environment in it.
 PACKAGES a list of packages to pull in.
@@ -205,14 +238,17 @@ PKGS-FILE a file to use to get the packages."
 
     (setq-local nix-shell-clear-environment t)
 
+    ;; We must start this before the callback otherwise the path is cleared
+    (eshell-mode)
+
     (nix-shell--callback
      (current-buffer)
      (nix-instantiate
       (nix-shell--with-packages-file packages pkgs-file) nil t))
 
-    (eshell-mode)
     buffer))
 
+;;;###autoload
 (defun nix-eshell (file &optional attr)
   "Create an Eshell buffer that has the shell environment in it.
 FILE the .nix expression to create a shell for.
@@ -225,11 +261,13 @@ ATTR attribute to instantiate in NIX-FILE."
 
     (setq-local nix-shell-clear-environment t)
 
+    ;; We must start this before the callback otherwise the path is cleared
+    (eshell-mode)
+
     (nix-shell--callback
      (current-buffer)
      (nix-instantiate file attr t))
 
-    (eshell-mode)
     buffer))
 
 ;;;###autoload

@@ -227,6 +227,12 @@ Related issue: https://github.com/NixOS/nix-mode/issues/72"
   "Proper indentation of strings in a multi-line string."
   (with-nix-mode-test ("issue-78.nix" :indent 'smie-indent-line)))
 
+(ert-deftest nix-mode-test-indent-issue-94 ()
+  "Proper indentation of attrsets inside of lists inside of attrsets.
+
+Related issue: https://github.com/NixOS/nix-mode/issues/94"
+  (with-nix-mode-test ("issue-94.nix" :indent 'smie-indent-line)))
+
 (ert-deftest nix-mode-test-indent-lambdas-smie ()
   "Proper indentation of function bodies."
   (with-nix-mode-test ("smie-lambdas.nix" :indent 'smie-indent-line)))
@@ -238,6 +244,10 @@ Related issue: https://github.com/NixOS/nix-mode/issues/72"
 (ert-deftest nix-mode-test-let-smie ()
   "Proper indentation of let expressions."
   (with-nix-mode-test ("smie-let.nix" :indent 'smie-indent-line)))
+
+(ert-deftest nix-mode-test-indent-issue-128 ()
+  "Proper indentation of let expressions."
+  (with-nix-mode-test ("issue-128.nix" :indent 'nix-indent-line)))
 
 (provide 'nix-mode-tests)
 ;;; nix-mode-tests.el ends here
