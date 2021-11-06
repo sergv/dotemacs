@@ -36,11 +36,17 @@
   :group 'lsp-mode
   :link '(url-link "https://github.com/Microsoft/vscode-eslint"))
 
-(defcustom lsp-eslint-unzipped-path (f-join lsp-server-install-dir "eslint-2.1.23/unzipped")
+(defcustom lsp-eslint-unzipped-path (f-join lsp-server-install-dir "eslint/unzipped")
   "The path to the file in which `eslint' will be stored."
   :type 'file
   :group 'lsp-eslint
-  :package-version '(lsp-mode . "7.1"))
+  :package-version '(lsp-mode . "8.0.0"))
+
+(defcustom lsp-eslint-download-url "https://github.com/emacs-lsp/lsp-server-binaries/blob/master/dbaeumer.vscode-eslint-2.1.13.vsix?raw=true"
+  "Eslint language server download url."
+  :type 'string
+  :group 'lsp-eslint
+  :package-version '(lsp-mode . "8.0.1"))
 
 (defcustom lsp-eslint-server-command `("node"
                                        "~/server/out/eslintServer.js"
@@ -76,7 +82,7 @@
 (defcustom lsp-eslint-node "node"
   "Path to nodejs."
   :type 'file
-  :package-version '(lsp-mode . "7.1"))
+  :package-version '(lsp-mode . "8.0.0"))
 
 (defcustom lsp-eslint-options nil
   "The eslint options object to provide args normally passed to
@@ -121,7 +127,7 @@ source.fixAll code action."
 (defcustom lsp-eslint-validate '("svelte")
   "An array of language ids which should always be validated by eslint."
   :type '(repeat string)
-  :package-version '(lsp-mode . "7.1"))
+  :package-version '(lsp-mode . "8.0.0"))
 
 (defcustom lsp-eslint-provide-lint-task nil
   "Controls whether a task for linting the whole workspace will be available."
@@ -158,18 +164,18 @@ Accepts the following values:
   :type '(choice
           (const "separateLine")
           (const "sameLine"))
-  :package-version '(lsp-mode . "7.1"))
+  :package-version '(lsp-mode . "8.0.0"))
 
 (defcustom lsp-eslint-code-action-show-documentation t
   "Controls whether code actions to show documentation for an eslint rule should
 be shown."
   :type 'bool
-  :package-version '(lsp-mode . "7.1"))
+  :package-version '(lsp-mode . "8.0.0"))
 
 (defcustom lsp-eslint-warn-on-ignored-files nil
   "Controls whether a warning should be emitted when a file is ignored."
   :type 'bool
-  :package-version '(lsp-mode . "7.1"))
+  :package-version '(lsp-mode . "8.0.0"))
 
 (defcustom lsp-eslint-rules-customizations []
   "Controls severity overrides for eslint rules.
@@ -195,7 +201,7 @@ The value is a vector of alists, with each alist containing the following keys:
                                       (const "upgrade")
                                       (const "downgrade")
                                       (const "default"))))))
-  :package-version '(lsp-mode . "7.1"))
+  :package-version '(lsp-mode . "8.0.0"))
 
 (defcustom lsp-eslint-experimental-incremental-sync t
   "Controls whether the new incremental text document synchronization should
@@ -207,13 +213,13 @@ be used."
   "Controls whether to remember choices made to permit or deny ESLint libraries
 from running."
   :type 'boolean
-  :package-version '(lsp-mode . "7.1"))
+  :package-version '(lsp-mode . "8.0.0"))
 
 (defcustom lsp-eslint-library-choices-file (expand-file-name (locate-user-emacs-file ".lsp-eslint-choices"))
   "The file where choices to permit or deny ESLint libraries from running is
 stored."
   :type 'string
-  :package-version '(lsp-mode . "7.1"))
+  :package-version '(lsp-mode . "8.0.0"))
 
 (defun lsp--find-eslint ()
   (or
@@ -356,7 +362,8 @@ to allow or deny it.")
                      (or (string-match-p (rx (one-or-more anything) "."
                                              (or "ts" "js" "jsx" "tsx" "html" "vue" "svelte")eos)
                                          filename)
-                         (derived-mode-p 'js-mode 'js2-mode 'typescript-mode 'html-mode 'svelte-mode))))
+                         (and (derived-mode-p 'js-mode 'js2-mode 'typescript-mode 'html-mode 'svelte-mode)
+                           (not (string-match-p "\\.json\\'" filename))))))
   :priority -1
   :completion-in-comments? t
   :add-on? t
@@ -392,7 +399,7 @@ to allow or deny it.")
                                    (funcall callback))
                                (error (funcall error-callback err))))
                            error-callback
-                           :url (lsp-vscode-extension-url "dbaeumer" "vscode-eslint" "2.1.23")
+                           :url lsp-eslint-download-url
                            :store-path tmp-zip)))))
 
 (lsp-consistency-check lsp-eslint)

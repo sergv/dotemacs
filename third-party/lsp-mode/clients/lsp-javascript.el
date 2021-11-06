@@ -48,6 +48,7 @@
       (and (derived-mode-p 'js-mode 'typescript-mode)
            (not (derived-mode-p 'json-mode)))))
 
+;; Unmaintained sourcegraph server
 (lsp-register-client
  (make-lsp-client :new-connection (lsp-stdio-connection (lambda ()
                                                           (cons (lsp-package-path 'javascript-typescript-langserver)
@@ -60,8 +61,10 @@
                                         (lsp-package-ensure
                                          'javascript-typescript-langserver
                                          callback
-                                         error-callback))))
-
+                                         error-callback))
+                  :initialized-fn (lambda (_workspace)
+                                    (warn (concat "The javascript-typescript-langserver (jsts-ls) is unmaintained; "
+                                                  "it is recommended to use ts-ls or deno-ls instead.")))))
 
 (defgroup lsp-typescript nil
   "LSP support for TypeScript, using Theia/Typefox's TypeScript Language Server."
@@ -84,6 +87,12 @@
   "The server log verbosity."
   :group 'lsp-typescript
   :type 'string)
+
+(defcustom lsp-clients-typescript-init-opts nil
+  "Configuration options provided to tsserver.
+See the UserPreferences interface at https://github.com/microsoft/TypeScript/blob/main/lib/protocol.d.ts for the list of options available in the latest version of TypeScript."
+  :group 'lsp-typescript
+  :type 'plist)
 
 (defcustom lsp-clients-typescript-plugins (vector)
   "The list of plugins to load.
@@ -135,7 +144,8 @@ directory containing the package. Example:
                   :initialization-options (lambda ()
                                             (list :plugins lsp-clients-typescript-plugins
                                                   :logVerbosity lsp-clients-typescript-log-verbosity
-                                                  :tsServerPath (lsp-package-path 'typescript)))
+                                                  :tsServerPath (lsp-package-path 'typescript)
+                                                  :preferences lsp-clients-typescript-init-opts))
                   :ignore-messages '("readFile .*? requested by TypeScript but content not available")
                   :server-id 'ts-ls
                   :request-handlers (ht ("_typescript.rename" #'lsp-javascript--rename))
@@ -235,28 +245,28 @@ finding the executable with variable `exec-path'."
   :group 'lsp-deno
   :risky t
   :type 'file
-  :package-version '(lsp-mode . "7.1.0"))
+  :package-version '(lsp-mode . "8.0.0"))
 
 (defcustom lsp-clients-deno-server-args '("lsp")
   "Extra arguments for starting the Deno language server."
   :group 'lsp-deno
   :risky t
   :type '(repeat string)
-  :package-version '(lsp-mode . "7.1.0"))
+  :package-version '(lsp-mode . "8.0.0"))
 
 (defcustom lsp-clients-deno-enable-lint t
   "Controls if linting information will be provided by the Deno Language Server."
   :group 'lsp-deno
   :risky t
   :type 'boolean
-  :package-version '(lsp-mode . "7.1.0"))
+  :package-version '(lsp-mode . "8.0.0"))
 
 (defcustom lsp-clients-deno-enable-code-lens-references t
   "Enables or disables the display of code lens information."
   :group 'lsp-deno
   :risky t
   :type 'boolean
-  :package-version '(lsp-mode . "7.1.0"))
+  :package-version '(lsp-mode . "8.0.0"))
 
 (defcustom lsp-clients-deno-enable-code-lens-references-all-functions t
   "Enables or disables the display of code lens information for all functions.
@@ -265,14 +275,14 @@ Setting this variable to `non-nil' implicitly enables
   :group 'lsp-deno
   :risky t
   :type 'boolean
-  :package-version '(lsp-mode . "7.1.0"))
+  :package-version '(lsp-mode . "8.0.0"))
 
 (defcustom lsp-clients-deno-enable-code-lens-implementations t
   "Enables or disables the display of code lens information for implementations."
   :group 'lsp-deno
   :risky t
   :type 'boolean
-  :package-version '(lsp-mode . "7.1.0"))
+  :package-version '(lsp-mode . "8.0.0"))
 
 (defcustom lsp-clients-deno-config nil
   "The file path to a tsconfig.json file.
@@ -284,7 +294,7 @@ Examples: `./tsconfig.json',
   :group 'lsp-deno
   :risky t
   :type 'file
-  :package-version '(lsp-mode . "7.1.0"))
+  :package-version '(lsp-mode . "8.0.0"))
 
 (defcustom lsp-clients-deno-import-map nil
   "The file path to an import map.
@@ -297,14 +307,14 @@ Examples: `./import-map.json',
   :group 'lsp-deno
   :risky t
   :type 'file
-  :package-version '(lsp-mode . "7.1.0"))
+  :package-version '(lsp-mode . "8.0.0"))
 
 (defcustom lsp-clients-deno-enable-unstable nil
   "Controls if code will be type checked with Deno's unstable APIs."
   :group 'lsp-deno
   :risky t
   :type 'boolean
-  :package-version '(lsp-mode . "7.1.0"))
+  :package-version '(lsp-mode . "8.0.0"))
 
 (defun lsp-clients-deno--make-init-options ()
   "Initialization options for the Deno language server."
