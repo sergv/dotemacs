@@ -7,7 +7,7 @@
 ;; Description:
 
 (defsubst tabbar--at-least-2-elements? (x)
-  (cddr x))
+  (cdr x))
 
 ;;;###autoload
 (defun next-tab-or-frame (arg)
