@@ -1,6 +1,8 @@
 # Lua mode
 
 [![Build Status](https://travis-ci.org/immerrr/lua-mode.svg?branch=master)](https://travis-ci.org/immerrr/lua-mode)
+[![MELPA](https://melpa.org/packages/lua-mode-badge.svg)](https://melpa.org/#/lua-mode)
+[![MELPA Stable](https://stable.melpa.org/packages/lua-mode-badge.svg)](https://stable.melpa.org/#/lua-mode)
 
 **lua-mode** is a major mode for editing Lua sources in Emacs.
 
@@ -9,18 +11,45 @@ If you have a problem or a suggestion about **lua-mode**, please, let me know ab
 
 ## INSTALLATION
 
+### MELPA INSTALLATION
+
+**lua-mode**'s officially supported installation method is from [MELPA](https://melpa.org/#/) archive. 
+
+To get started, enable installing packages from MELPA:
+
+```lisp
+(require 'package)
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+(package-initialize)
+```
+
+To fetch the list of packages you can do
+
+```
+    <M-x> package-refresh-contents
+```
+
+And after that **lua-mode** can be installed with
+
+```
+    <M-x> package-install "lua-mode"
+```
+
+Please, refer to [MELPA documentation](https://melpa.org/#/getting-started) and [Emacs documentation on
+packages](https://www.gnu.org/software/emacs/manual/html_node/emacs/Packages.html) for further information.
+
 ### EL-GET INSTALLATION
 
 [El-get](https://github.com/dimitri/el-get) is a package manager which greatly simplifies adding
-modules to your Emacs and keeping them up-to-date. Once you have **el-get** set up, installing
-**lua-mode** can be done with
+modules to your Emacs and keeping them up-to-date. Once you have **el-get** set up, 
+**lua-mode** can also be installed with
 
     <M-x> el-get-install "lua-mode"
 
 and updating is no more than
 
-    <M-x> el-get-update "lua-mode"`
-    
+    <M-x> el-get-update "lua-mode"
+
 Please, consult with [el-get documentation](https://github.com/dimitri/el-get/blob/master/README.md) for further information.
 
 ### MANUAL INSTALLATION
@@ -53,6 +82,8 @@ The following variables are available for customization (see more via `M-x custo
 
 - Var `lua-indent-level` (default `3`): indentation offset in spaces
 - Var `lua-indent-string-contents` (default `nil`): set to `t` if you like to have contents of multiline strings to be indented like comments
+- Var `lua-indent-nested-block-content-align` (default `t`) set to `nil` to stop aligning the content of nested blocks with the open parenthesis
+- Var `lua-indent-close-paren-align` (default `t`) set to `t` to align close parenthesis with the open parenthesis rather than with the beginning of the line
 - Var `lua-mode-hook`: list of functions to execute when lua-mode is initialized
 - Var `lua-documentation-url` (default `"http://www.lua.org/manual/5.1/manual.html#pdf-"`): base URL for documentation lookup
 - Var `lua-documentation-function` (default `browse-url`): function used to show documentation (`eww` is a viable alternative for Emacs 25)
