@@ -624,17 +624,80 @@ value rather than consuming a list to produce a single value."
 (def-example-group "Predicates"
   "Reductions of one or more lists to a boolean value."
 
+  (defexamples -some
+    (-some #'stringp '(1 "2" 3)) => t
+    (--some (string-match-p "x" it) '("foo" "axe" "xor")) => 1
+    (--some (= it-index 3) '(0 1 2)) => nil
+    (-some (lambda (s) (string-match-p "x" s)) '("foo" "bar" "baz")) => nil
+    (--some (member 'foo it) '((foo bar) (baz))) => '(foo bar)
+    (--some (plist-get it :bar) '((:foo 1 :bar 2) (:baz 3))) => 2
+    (-some #'null '(1 2 3)) => nil
+    (-some #'null '(1)) => nil
+    (-some #'null '()) => nil
+    (--some (not it) '(1 2 3)) => nil
+    (--some (not it) '(1)) => nil
+    (--some (not it) '()) => nil
+    (-some #'identity '(1 2 3)) => 1
+    (-some #'identity '(1)) => 1
+    (-some #'identity '()) => nil
+    (--some it '(1 2 3)) => 1
+    (--some it '(1)) => 1
+    (--some it '()) => nil)
+
+  (defexamples -every
+    (-every #'numberp '(1 2 3)) => t
+    (--every (string-match-p "x" it) '("axe" "xor")) => 0
+    (--every (= it it-index) '(0 1 3)) => nil
+    (-every #'ignore '()) => t
+    (-every #'ignore '(0)) => nil
+    (-every #'ignore '(0 1)) => nil
+    (--every nil '()) => t
+    (--every nil '(0)) => nil
+    (--every nil '(0 1)) => nil
+    (-every #'identity '()) => t
+    (-every #'identity '(0)) => 0
+    (-every #'identity '(0 1)) => 1
+    (--every it '()) => t
+    (--every it '(1)) => 1
+    (--every it '(1 2)) => 2
+    (--every it-index '()) => t
+    (--every it-index '(1)) => 0
+    (--every it-index '(1 2)) => 1
+    (let ((r 'r)) (-every (lambda (x) (setq r x)) '()) r) => 'r
+    (let ((r 'r)) (-every (lambda (x) (setq r x)) '(nil 1)) r) => nil
+    (let (r) (-every (lambda (x) (setq r x)) '(0 1)) r) => 1
+    (let (i) (--every (ignore (setq i it-index)) '()) i) => nil
+    (let (i) (--every (ignore (setq i it-index)) '(a)) i) => 0
+    (let (i) (--every (ignore (setq i it-index)) '(a b)) i) => 0)
+
   (defexamples -any?
-    (-any? 'even? '(1 2 3)) => t
-    (-any? 'even? '(1 3 5)) => nil
-    (-any? 'null '(1 3 5)) => nil
-    (-any? 'null '(1 3 ())) => t
-    (--any? (= 0 (% it 2)) '(1 2 3)) => t)
+    (-any? #'numberp '(nil 0 t)) => t
+    (-any? #'numberp '(nil t t)) => nil
+    (-any? #'null '(1 3 5)) => nil
+    (-any? #'null '(1 3 ())) => t
+    (-any? #'identity '()) => nil
+    (-any? #'identity '(0)) => t
+    (-any? #'identity '(nil)) => nil
+    (--any? (= 0 (% it 2)) '(1 2 3)) => t
+    (--any? (= it it-index) '()) => nil
+    (--any? (= it it-index) '(0)) => t
+    (--any? (= it it-index) '(1)) => nil
+    (--any? (= it it-index) '(1 1)) => t
+    (--any? (= it it-index) '(1 2)) => nil)
 
   (defexamples -all?
-    (-all? 'even? '(1 2 3)) => nil
-    (-all? 'even? '(2 4 6)) => t
-    (--all? (= 0 (% it 2)) '(2 4 6)) => t)
+    (-all? #'numberp '(1 2 3)) => t
+    (-all? #'numberp '(2 t 6)) => nil
+    (--all? (= 0 (% it 2)) '(2 4 6)) => t
+    (-all? #'identity '()) => t
+    (-all? #'identity '(0)) => t
+    (-all? #'identity '(0 1)) => t
+    (-all? #'identity '(nil)) => nil
+    (--all? (= it it-index) '()) => t
+    (--all? (= it it-index) '(0)) => t
+    (--all? (= it it-index) '(1)) => nil
+    (--all? (= it it-index) '(1 1)) => nil
+    (--all? (= it it-index) '(0 1)) => t)
 
   (defexamples -none?
     (-none? 'even? '(1 2 3)) => nil
@@ -695,6 +758,8 @@ value rather than consuming a list to produce a single value."
     (-is-suffix? '(nil) '(nil)) => t
     (-is-suffix? '(nil) '()) => nil
     (-is-suffix? '(1 2) '(1 2 3)) => nil
+    (-is-suffix? '(1 2) '(1 2 1 2)) => t
+    (-is-suffix? '(1 2) '(1 3 1 2)) => t
     (let* ((s (list 1 2)) (l s) (c (copy-sequence s)))
       (and (-is-suffix? s l) (equal s c) (equal l c)))
     => t)
@@ -743,11 +808,11 @@ value rather than consuming a list to produce a single value."
 
   (defexamples -split-on
     (-split-on '| '(Nil | Leaf a | Node [Tree a])) => '((Nil) (Leaf a) (Node [Tree a]))
-    (-split-on ':endgroup '("a" "b" :endgroup "c" :endgroup "d" "e")) => '(("a" "b") ("c") ("d" "e"))
-    (-split-on ':endgroup '("a" "b" :endgroup :endgroup "d" "e")) => '(("a" "b") ("d" "e"))
-    (-split-on ':endgroup '("a" "b" :endgroup "c" :endgroup)) => '(("a" "b") ("c"))
-    (-split-on ':endgroup '("a" "b" :endgroup :endgroup :endgroup "d" "e")) => '(("a" "b") ("d" "e"))
-    (-split-on ':endgroup '(:endgroup "c" :endgroup "d" "e")) => '(("c") ("d" "e"))
+    (-split-on :endgroup '("a" "b" :endgroup "c" :endgroup "d" "e")) => '(("a" "b") ("c") ("d" "e"))
+    (-split-on :endgroup '("a" "b" :endgroup :endgroup "d" "e")) => '(("a" "b") ("d" "e"))
+    (-split-on :endgroup '("a" "b" :endgroup "c" :endgroup)) => '(("a" "b") ("c"))
+    (-split-on :endgroup '("a" "b" :endgroup :endgroup :endgroup "d" "e")) => '(("a" "b") ("d" "e"))
+    (-split-on :endgroup '(:endgroup "c" :endgroup "d" "e")) => '(("c") ("d" "e"))
     (-split-on '| '(Nil | | Node [Tree a])) => '((Nil) (Node [Tree a])))
 
   (defexamples -split-when
@@ -806,7 +871,25 @@ value rather than consuming a list to produce a single value."
     (-partition-after-pred #'booleanp '(t t)) => '((t) (t))
     (-partition-after-pred #'booleanp '(0 0 t t 0 t)) => '((0 0 t) (t) (0 t))
     (-partition-after-pred #'booleanp '(t)) => '((t))
-    (-partition-after-pred #'booleanp '(0 t)) => '((0 t)))
+    (-partition-after-pred #'booleanp '(0 t)) => '((0 t))
+    (--partition-after-pred (= (% it 2) 0) '()) => '()
+    (--partition-after-pred (= (mod it 2) 1) '()) => '()
+    (--partition-after-pred (= (% it 2) 0) '(0)) => '((0))
+    (--partition-after-pred (= (mod it 2) 1) '(0)) => '((0))
+    (--partition-after-pred (= (% it 2) 0) '(0 1)) => '((0) (1))
+    (--partition-after-pred (= (mod it 2) 1) '(0 1)) => '((0 1))
+    (--partition-after-pred (= (% it 2) 0) '(0 1 2)) => '((0) (1 2))
+    (--partition-after-pred (= (mod it 2) 1) '(0 1 2)) => '((0 1) (2))
+    (--partition-after-pred (= (% it 2) 0) '(0 1 2 3)) => '((0) (1 2) (3))
+    (--partition-after-pred (= (mod it 2) 1) '(0 1 2 3)) => '((0 1) (2 3))
+    (--partition-after-pred t '()) => ()
+    (--partition-after-pred t '(0)) => '((0))
+    (--partition-after-pred t '(0 1)) => '((0) (1))
+    (--partition-after-pred t '(0 1 2)) => '((0) (1) (2))
+    (--partition-after-pred nil '()) => '()
+    (--partition-after-pred nil '(0)) => '((0))
+    (--partition-after-pred nil '(0 1)) => '((0 1))
+    (--partition-after-pred nil '(0 1 2)) => '((0 1 2)))
 
   (defexamples -partition-before-pred
     (-partition-before-pred #'booleanp '()) => '()
@@ -925,16 +1008,39 @@ related predicates."
     (-rotate -3 '(1 2 3 4 5 6 7)) => '(4 5 6 7 1 2 3)
     (-rotate 16 '(1 2 3 4 5 6 7)) => '(6 7 1 2 3 4 5)
     (-rotate -16 '(1 2 3 4 5 6 7)) => '(3 4 5 6 7 1 2)
-    (-rotate -1 ()) => ()
-    (-rotate 0 ()) => ()
-    (-rotate 1 ()) => ()
+    (let* ((l (list 1 2)) (r (-rotate -1 l))) (setcdr l 0) r) => '(2 1)
+    (let* ((l (list 1 2)) (r (-rotate 0 l))) (setcdr l 0) r) => '(1 2)
+    (let* ((l (list 1 2)) (r (-rotate 1 l))) (setcdr l 0) r) => '(2 1)
+    (-rotate -1 '()) => '()
+    (-rotate 0 '()) => '()
+    (-rotate 1 '()) => '()
+    (-rotate -2 '(1)) => '(1)
     (-rotate -1 '(1)) => '(1)
     (-rotate 0 '(1)) => '(1)
     (-rotate 1 '(1)) => '(1)
+    (-rotate 2 '(1)) => '(1)
+    (-rotate -4 '(1 2)) => '(1 2)
+    (-rotate -3 '(1 2)) => '(2 1)
+    (-rotate -2 '(1 2)) => '(1 2)
     (-rotate -1 '(1 2)) => '(2 1)
     (-rotate 0 '(1 2)) => '(1 2)
     (-rotate 1 '(1 2)) => '(2 1)
-    (-rotate 2 '(1 2)) => '(1 2))
+    (-rotate 2 '(1 2)) => '(1 2)
+    (-rotate 3 '(1 2)) => '(2 1)
+    (-rotate 4 '(1 2)) => '(1 2)
+    (-rotate -6 '(1 2 3)) => '(1 2 3)
+    (-rotate -5 '(1 2 3)) => '(3 1 2)
+    (-rotate -4 '(1 2 3)) => '(2 3 1)
+    (-rotate -3 '(1 2 3)) => '(1 2 3)
+    (-rotate -2 '(1 2 3)) => '(3 1 2)
+    (-rotate -1 '(1 2 3)) => '(2 3 1)
+    (-rotate 0 '(1 2 3)) => '(1 2 3)
+    (-rotate 1 '(1 2 3)) => '(3 1 2)
+    (-rotate 2 '(1 2 3)) => '(2 3 1)
+    (-rotate 3 '(1 2 3)) => '(1 2 3)
+    (-rotate 4 '(1 2 3)) => '(3 1 2)
+    (-rotate 5 '(1 2 3)) => '(2 3 1)
+    (-rotate 6 '(1 2 3)) => '(1 2 3))
 
   (defexamples -repeat
     (-repeat 3 :a) => '(:a :a :a)
@@ -951,7 +1057,9 @@ related predicates."
     (-cons*) => ()
     (-cons* ()) => ()
     (-cons* 1 ()) => '(1)
-    (-cons* 1 '(2)) => '(1 2))
+    (-cons* 1 '(2)) => '(1 2)
+    ;; Assert that &rest conses a fresh list in case that ever changes.
+    (let ((l (list 1 2))) (apply #'-cons* l) l) => '(1 2))
 
   (defexamples -snoc
     (-snoc '(1 2 3) 4) => '(1 2 3 4)
@@ -1066,24 +1174,6 @@ related predicates."
     (-first #'identity '(1 2 3)) => 1
     (-first #'identity '(1)) => 1
     (-first #'identity '()) => nil)
-
-  (defexamples -some
-    (-some (lambda (s) (string-match-p "x" s)) '("foo" "axe" "xor")) => 1
-    (-some (lambda (s) (string-match-p "x" s)) '("foo" "bar" "baz")) => nil
-    (--some (member 'foo it) '((foo bar) (baz))) => '(foo bar)
-    (--some (plist-get it :bar) '((:foo 1 :bar 2) (:baz 3))) => 2
-    (-some #'null '(1 2 3)) => nil
-    (-some #'null '(1)) => nil
-    (-some #'null '()) => nil
-    (--some (not it) '(1 2 3)) => nil
-    (--some (not it) '(1)) => nil
-    (--some (not it) '()) => nil
-    (-some #'identity '(1 2 3)) => 1
-    (-some #'identity '(1)) => 1
-    (-some #'identity '()) => nil
-    (--some it '(1 2 3)) => 1
-    (--some it '(1)) => 1
-    (--some it '()) => nil)
 
   (defexamples -last
     (-last 'even? '(1 2 3 4 5 6 3 3 3)) => 6
@@ -1683,30 +1773,83 @@ or readability."
     => '((1 (1)) (1 (2)) (5 (5))))
 
   (defexamples -on
-    (-sort (-on '< 'length) '((1 2 3) (1) (1 2))) => '((1) (1 2) (1 2 3))
-    (-min-by (-on '> 'length) '((1 2 3) (4) (1 2))) => '(4)
-    (-min-by (-on 'string-lessp 'number-to-string) '(2 100 22)) => 22
-    (-max-by (-on '> 'car) '((2 2 3) (3) (1 2))) => '(3)
-    (-sort (-on 'string-lessp 'number-to-string) '(10 12 1 2 22)) => '(1 10 12 2 22)
-    (funcall (-on '+ '1+) 1 2) => 5
-    (funcall (-on '+ 'identity) 1 2) => 3
-    (funcall (-on '* 'length) '(1 2 3) '(4 5)) => 6
-    (funcall (-on (-on '+ 'length) 'cdr) '(1 2 3) '(4 5)) => 3
-    (funcall (-on '+ (lambda (x) (length (cdr x)))) '(1 2 3) '(4 5)) => 3
-    (-sort (-on '< 'car) '((3 2 5) (2) (1 2))) => '((1 2) (2) (3 2 5))
-    (-sort (-on '< (lambda (x) (length x))) '((1 2 3) (1) (1 2))) => '((1) (1 2) (1 2 3))
-    (-sort (-on (-on '< 'car) 'cdr) '((0 3) (2 1) (4 2 8))) => '((2 1) (4 2 8) (0 3))
-    (-sort (-on '< 'cadr) '((0 3) (2 1) (4 2 8))) => '((2 1) (4 2 8) (0 3)))
+    (-sort (-on #'< #'length) '((1 2 3) (1) (1 2))) => '((1) (1 2) (1 2 3))
+    (funcall (-on #'min #'string-to-number) "22" "2" "1" "12") => 1
+    (-min-by (-on #'> #'length) '((1 2 3) (4) (1 2))) => '(4)
+    (-min-by (-on #'string< #'number-to-string) '(2 100 22)) => 22
+    (-max-by (-on #'> #'car) '((2 2 3) (3) (1 2))) => '(3)
+    (-sort (-on #'string< #'number-to-string) '(12 1 2 22)) => '(1 12 2 22)
+    (funcall (-on #'+ #'1+) 1 2) => 5
+    (funcall (-on #'+ #'identity) 1 2) => 3
+    (funcall (-on #'* #'length) '(1 2 3) '(4 5)) => 6
+    (funcall (-on (-on #'+ #'length) #'cdr) '(1 2 3) '(4 5)) => 3
+    (funcall (-on #'+ (lambda (x) (length (cdr x)))) '(1 2 3) '(4 5)) => 3
+    (-sort (-on #'< #'car) '((3 2 5) (2) (1 2))) => '((1 2) (2) (3 2 5))
+    (-sort (-on #'< (lambda (x) (length x))) '((1 2 3) (1) (1 2)))
+    => '((1) (1 2) (1 2 3))
+    (-sort (-on (-on #'< #'car) #'cdr) '((0 3) (2 1) (4 2 8)))
+    => '((2 1) (4 2 8) (0 3))
+    (-sort (-on #'< #'cadr) '((0 3) (2 1) (4 2 8))) => '((2 1) (4 2 8) (0 3))
+    (funcall (-on #'not #'not) nil) => nil
+    (funcall (-on #'+ #'1+) 1 10 100 1000) => 1115
+    (funcall (-on #'+ #'1+) 1 10 100) => 114
+    (funcall (-on #'+ #'1+) 1 10) => 13
+    (funcall (-on #'+ #'1+) 1) => 2
+    (funcall (-on #'+ #'1+)) => 0
+    (funcall (-on #'1+ #'1+) 0) => 2
+    (funcall (-on #'+ #'*)) => 0
+    (funcall (-on #'* #'+)) => 1)
 
   (defexamples -flip
-    (funcall (-flip '<) 2 1) => t
-    (funcall (-flip '-) 3 8) => 5
-    (-sort (-flip '<) '(4 3 6 1)) => '(6 4 3 1))
+    (-sort (-flip #'<) '(4 3 6 1)) => '(6 4 3 1)
+    (funcall (-flip #'-) 3 2 1 10) => 4
+    (funcall (-flip #'1+) 1) => 2
+    (funcall (-flip #'<) 2 1) => t
+    (funcall (-flip #'list) 1 2 3) => '(3 2 1)
+    (funcall (-flip #'list) 1 2) => '(2 1)
+    (funcall (-flip #'list) 1) => '(1)
+    (funcall (-flip #'list)) => '()
+    ;; Assert that &rest conses a fresh list in case that ever changes.
+    (let ((a (list 1 2 3 4))) (apply (-flip #'-) a) a) => '(1 2 3 4))
+
+  (defexamples -rotate-args
+    (funcall (-rotate-args -1 #'list) 1 2 3 4) => '(2 3 4 1)
+    (funcall (-rotate-args 1 #'-) 1 10 100) => 89
+    (funcall (-rotate-args 2 #'list) 3 4 5 1 2) => '(1 2 3 4 5)
+    (funcall (-rotate-args -2 #'list) 1 2 3 4) => '(3 4 1 2)
+    (funcall (-rotate-args 0 #'list) 1 2 3 4) => '(1 2 3 4)
+    (funcall (-rotate-args 1 #'list) 1 2 3 4) => '(4 1 2 3)
+    (funcall (-rotate-args 2 #'list) 1 2 3 4) => '(3 4 1 2)
+    (funcall (-rotate-args -2 #'list) 1 2 3) => '(3 1 2)
+    (funcall (-rotate-args -1 #'list) 1 2 3) => '(2 3 1)
+    (funcall (-rotate-args 0 #'list) 1 2 3) => '(1 2 3)
+    (funcall (-rotate-args 1 #'list) 1 2 3) => '(3 1 2)
+    (funcall (-rotate-args 2 #'list) 1 2 3) => '(2 3 1)
+    (funcall (-rotate-args -2 #'list) 1 2) => '(1 2)
+    (funcall (-rotate-args -1 #'list) 1 2) => '(2 1)
+    (funcall (-rotate-args 0 #'list) 1 2) => '(1 2)
+    (funcall (-rotate-args 1 #'list) 1 2) => '(2 1)
+    (funcall (-rotate-args 2 #'list) 1 2) => '(1 2)
+    (funcall (-rotate-args -2 #'list) 1) => '(1)
+    (funcall (-rotate-args -1 #'list) 1) => '(1)
+    (funcall (-rotate-args 0 #'list) 1) => '(1)
+    (funcall (-rotate-args 1 #'list) 1) => '(1)
+    (funcall (-rotate-args 2 #'list) 1) => '(1)
+    (funcall (-rotate-args -2 #'list)) => '()
+    (funcall (-rotate-args -1 #'list)) => '()
+    (funcall (-rotate-args 0 #'list)) => '()
+    (funcall (-rotate-args 1 #'list)) => '()
+    (funcall (-rotate-args 2 #'list)) => '()
+    (let ((a (list 1 2 3))) (apply (-rotate-args 2 #'-) a) a) => '(1 2 3))
 
   (defexamples -const
     (funcall (-const 2) 1 3 "foo") => 2
-    (-map (-const 1) '("a" "b" "c" "d")) => '(1 1 1 1)
-    (-sum (-map (-const 1) '("a" "b" "c" "d"))) => 4)
+    (mapcar (-const 1) '("a" "b" "c" "d")) => '(1 1 1 1)
+    (-sum (mapcar (-const 1) '("a" "b" "c" "d"))) => 4
+    (funcall (-const t)) => t
+    (funcall (-const nil)) => nil
+    (funcall (-const t) nil) => t
+    (funcall (-const nil) nil) => nil)
 
   (defexamples -cut
     (funcall (-cut list 1 <> 3 <> 5) 2 4) => '(1 2 3 4 5)
@@ -1715,17 +1858,57 @@ or readability."
     (-filter (-cut < <> 5) '(1 3 5 7 9)) => '(1 3))
 
   (defexamples -not
-    (funcall (-not 'even?) 5) => t
-    (-filter (-not (-partial '< 4)) '(1 2 3 4 5 6 7 8)) => '(1 2 3 4))
+    (funcall (-not #'numberp) "5") => t
+    (-sort (-not #'<) '(5 2 1 0 6)) => '(6 5 2 1 0)
+    (-filter (-not (-partial #'< 4)) '(1 2 3 4 5 6 7 8)) => '(1 2 3 4)
+    ;; Variadic `<' was introduced in Emacs 24.4.
+    (funcall (-not (lambda (a b c) (and (< a b) (< b c)))) 1 2 3) => nil
+    (funcall (-not (lambda (a b c) (and (< a b) (< b c)))) 3 2 1) => t
+    (funcall (-not #'<) 1 2) => nil
+    (funcall (-not #'<) 2 1) => t
+    (funcall (-not #'+) 1) => nil
+    (funcall (-not #'+)) => nil)
 
   (defexamples -orfn
-    (-filter (-orfn 'even? (-partial (-flip '<) 5)) '(1 2 3 4 5 6 7 8 9 10)) => '(1 2 3 4 6 8 10)
-    (funcall (-orfn 'stringp 'even?) "foo") => t)
+    (-filter (-orfn #'natnump #'booleanp) '(1 nil "a" -4 b c t)) => '(1 nil t)
+    (funcall (-orfn #'symbolp (-cut string-match-p "x" <>)) "axe") => 1
+    (funcall (-orfn #'= #'+) 1 1) => t
+    (funcall (-orfn #'+ #'null)) => 0
+    (funcall (-orfn #'+ #'null) 1) => 1
+    (funcall (-orfn #'+ #'null) 1 2) => 3
+    (funcall (-orfn #'+ #'null) 1 2 3) => 6
+    (funcall (-orfn #'ignore #'+)) => 0
+    (funcall (-orfn #'ignore #'+) 1) => 1
+    (funcall (-orfn #'ignore #'+) 1 2) => 3
+    (funcall (-orfn #'ignore #'+) 1 2 3) => 6
+    (-filter (-orfn #'symbolp) '(a b 1 nil t 2)) => '(a b nil t)
+    (-filter (-orfn #'null) '(a b 1 nil t 2)) => '(nil)
+    (-filter (-orfn) '(nil t)) => '()
+    (-orfn #'null) => #'null
+    (-orfn) => #'ignore)
 
   (defexamples -andfn
-    (funcall (-andfn (-cut < <> 10) 'even?) 6) => t
-    (funcall (-andfn (-cut < <> 10) 'even?) 12) => nil
-    (-filter (-andfn (-not 'even?) (-cut >= 5 <>)) '(1 2 3 4 5 6 7 8 9 10)) => '(1 3 5))
+    (-filter (-andfn #'numberp (-cut < <> 5)) '(a 1 b 6 c 2)) => '(1 2)
+    (mapcar (-andfn #'numberp #'1+) '(a 1 b 6)) => '(nil 2 nil 7)
+    (funcall (-andfn #'= #'+) 1 1) => 2
+    (funcall (-andfn #'ignore #'+)) => nil
+    (funcall (-andfn #'ignore #'+) 1) => nil
+    (funcall (-andfn #'ignore #'+) 1 2) => nil
+    (funcall (-andfn #'+ #'ignore)) => nil
+    (funcall (-andfn #'+ #'ignore) 1) => nil
+    (funcall (-andfn #'+ #'ignore) 1 2) => nil
+    (funcall (-andfn #'+ #'list)) => '()
+    (funcall (-andfn #'+ #'list) 1) => '(1)
+    (funcall (-andfn #'+ #'list) 1 2) => '(1 2)
+    (funcall (-andfn #'list #'+)) => nil
+    (funcall (-andfn #'list #'+) 1) => 1
+    (funcall (-andfn #'list #'+) 1 2) => 3
+    (funcall (-andfn #'* #'+)) => 0
+    (funcall (-andfn #'+ #'*)) => 1
+    (-andfn #'null) => #'null
+    (funcall (-andfn)) => t
+    (funcall (-andfn) nil) => t
+    (funcall (-andfn) t) => t)
 
   (defexamples -iteratefn
     (funcall (-iteratefn (lambda (x) (* x x)) 3) 2) => 256

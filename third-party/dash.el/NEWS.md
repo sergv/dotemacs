@@ -6,6 +6,36 @@ See the end of the file for license conditions.
 
 ## Change log
 
+### From 2.19.0 to 2.19.1
+
+#### Fixes
+
+- Fixed a regression from `2.18` in `-is-suffix-p` which led to false
+  negatives when parts of the suffix appeared multiple times in the
+  list being searched (Bennett Rennier, #384).
+
+### From 2.18.1 to 2.19.0
+
+#### Fixes
+
+- Reverted a breaking change introduced in `2.18.0` that caused the
+  threading macro `-->` to be indented differently from `->` and `->>`
+  (#375).
+- Added and fixed Edebug specifications for many Dash macros (Philipp
+  Stephani, #380, #381).
+
+#### New features
+
+- The combinators `-on`, `-flip`, `-not`, `-andfn`, and `-orfn` now
+  return variadic functions that take any number of arguments (#308).
+- New combinator `-rotate-args` similar to `-flip`, but for arbitrary
+  arglist rotations (suggested by @vapniks, #72).
+- New function `-every` and its anaphoric macro counterpart `--every`.
+  They are like the existing `-every-p` and `--every-p`, respectively,
+  but return the last non-`nil` result instead of just `t`.
+- New macro `--partition-after-pred` which affords
+  `-partition-after-pred` better performance (Per Weijnitz, #362).
+
 ### From 2.18.0 to 2.18.1
 
 - Fixed a regression from `2.17` as well as a long-standing bug in
