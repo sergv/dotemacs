@@ -588,6 +588,13 @@ _cl_: comment lines"
   ("cc" comment-util-comment-region)
   ("cu" comment-util-uncomment-region-simple))
 
+(defhydra-derive hydra-lisp-vim-visual-z-ext hydra-vim-visual-z-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_c_: hide sexps in region
+_o_: show sexps in region"
+  ("c"      hs-hide-sexps-in-region)
+  ("o"      hs-show-sexps-in-region))
+
 ;;;###autoload
 (defun* lisp-setup (&key (use-whitespace nil) (use-fci t))
   (init-common :use-yasnippet nil
@@ -633,9 +640,7 @@ _cl_: comment lines"
   (def-keys-for-map vim:visual-mode-local-keymap
     ("g"        hydra-lisp-vim-visual-g-ext/body)
     ("j"        hydra-lisp-vim-visual-j-ext/body)
-
-    ("z c"      hs-hide-sexps-in-region)
-    ("z o"      hs-show-sexps-in-region)
+    ("z"        hydra-lisp-vim-visual-z-ext/body)
 
     ("'"        sp-backward-up-sexp))
 
