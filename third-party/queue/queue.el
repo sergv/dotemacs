@@ -44,7 +44,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defmacro queue--when-generators (then)
   "Evaluate THEN if `generator' library is available."
@@ -52,13 +52,13 @@
   (if (require 'generator nil 'noerror) then))
 
 
-(defstruct (queue
-            ;; A tagged list is the pre-defstruct representation.
-            ;; (:type list)
-	    :named
-	    (:constructor nil)
-	    (:constructor queue-create ())
-	    (:copier nil))
+(cl-defstruct (queue
+               ;; A tagged list is the pre-defstruct representation.
+               ;; (:type list)
+	       :named
+	       (:constructor nil)
+	       (:constructor queue-create ())
+	       (:copier nil))
   head tail)
 
 
