@@ -4,10 +4,11 @@
 
 ;; Author: Yoshiki Kurihara <clouder@gmail.com>
 ;;         Marshall T. Vandegrift <llasram@gmail.com>
-;; Maintainer: Vasilij Schneidermann <v.schneidermann@gmail.com>
+;; Maintainer: Vasilij Schneidermann <mail@vasilij.de>
+;; URL: https://github.com/yoshiki/yaml-mode
 ;; Package-Requires: ((emacs "24.1"))
 ;; Keywords: data yaml
-;; Version: 0.0.14
+;; Version: 0.0.15
 
 ;; This file is not part of Emacs
 
@@ -117,7 +118,7 @@ that key is pressed to begin a block literal."
 
 ;; Constants
 
-(defconst yaml-mode-version "0.0.14" "Version of `yaml-mode'.")
+(defconst yaml-mode-version "0.0.15" "Version of `yaml-mode'.")
 
 (defconst yaml-blank-line-re "^ *$"
   "Regexp matching a line containing only (valid) whitespace.")
@@ -151,7 +152,7 @@ that key is pressed to begin a block literal."
   "Regexp indicating the beginning of a scalar context.")
 
 (defconst yaml-nested-map-re
-  (concat ".*: *\\(?:&.*\\|{ *\\|" yaml-tag-re " *\\)?$")
+  (concat "[^#\n]*: *\\(?:&.*\\|{ *\\|" yaml-tag-re " *\\)?$")
   "Regexp matching a line beginning a YAML nested structure.")
 
 (defconst yaml-block-literal-base-re " *[>|][-+0-9]* *\\(?:\n\\|\\'\\)"
@@ -258,25 +259,40 @@ that key is pressed to begin a block literal."
           (put-text-property (point) (1+ (point))
                              'syntax-table (string-to-syntax "_"))))))
 
-  ;; If quote is detected as a syntactic string start but appeared
-  ;; after a non-whitespace character, then mark it as syntactic word.
   (save-excursion
     (goto-char beg)
-    (while (re-search-forward "['\"]" end t)
+    (while (and
+            (> end (point))
+            (re-search-forward "['\"]" end t))
       (when (get-text-property (point) 'yaml-block-literal)
         (put-text-property (1- (point)) (point)
                            'syntax-table (string-to-syntax "w")))
-      (when (nth 8 (syntax-ppss))
-        (save-excursion
-          (forward-char -1)
-          (cond ((and (char-equal ?' (char-before (point)))
-                      (char-equal ?' (char-after (point)))
-                      (put-text-property (1- (point)) (1+ (point))
-                                         'syntax-table (string-to-syntax "w"))))
-                ((and (not (bolp))
-                      (char-equal ?w (char-syntax (char-before (point)))))
-                 (put-text-property (point) (1+ (point))
-                                    'syntax-table (string-to-syntax "w")))))))))
+      (let* ((pt (point))
+             (sps (save-excursion (syntax-ppss (1- pt)))))
+        (when (not (nth 8 sps))
+          (cond
+           ((and (char-equal ?' (char-before (1- pt)))
+                 (char-equal ?' (char-before pt)))
+            (put-text-property (- pt 2) pt
+                               'syntax-table (string-to-syntax "w"))
+            ;; Workaround for https://debbugs.gnu.org/41195.
+            (let ((syntax-propertize--done syntax-propertize--done))
+              ;; Carefully invalidate the last cached ppss.
+              (syntax-ppss-flush-cache (- pt 2))))
+           ;; If quote is detected as a syntactic string start but appeared
+           ;; after a non-whitespace character, then mark it as syntactic word.
+           ((and (char-before (1- pt))
+                 (char-equal ?w (char-syntax (char-before (1- pt)))))
+            (put-text-property (1- pt) pt
+                               'syntax-table (string-to-syntax "w")))
+           (t
+            ;; We're right after a quote that opens a string literal.
+            ;; Skip over it (big speedup for long JSON strings).
+            (goto-char (1- pt))
+            (condition-case nil
+                (forward-sexp)
+              (scan-error
+               (goto-char end))))))))))
 
 (defun yaml-font-lock-block-literals (bound)
   "Find lines within block literals.
@@ -307,6 +323,8 @@ artificially limited to the value of
           (unless (looking-at yaml-blank-line-re)
             (setq min-level (min min-level (current-indentation))))
           (forward-line -1))
+        (when (looking-at-p " *- ")
+          (setq min-level (- min-level 2)))
         (cond
          ((and (< (current-indentation) min-level)
                (looking-at yaml-block-literal-re))
@@ -465,6 +483,10 @@ this will do usual adaptive fill behaviors."
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.\\(e?ya?\\|ra\\)ml\\'" . yaml-mode))
+
+;;;###autoload
+(add-to-list 'magic-mode-alist
+             '("^%YAML\\s-+[0-9]+\\.[0-9]+\\(\\s-+#\\|\\s-*$\\)" . yaml-mode))
 
 (provide 'yaml-mode)
 
