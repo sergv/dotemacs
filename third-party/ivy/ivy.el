@@ -786,10 +786,11 @@ key (a string), cmd and doc (a string)."
            "\n")))
 
 (defun ivy-read-action-format-columns (actions)
-  "Create a docstring from ACTIONS, using several columns if needed to preserve `ivy-height'.
+  "Create a potentially multi-column docstring from ACTIONS.
+Several columns are used as needed to preserve `ivy-height'.
 
-ACTIONS is a list.  Each list item is a list of 3 items: key (a
-string), cmd and doc (a string)."
+ACTIONS is a list with elements of the form (KEY COMMAND DOC),
+where KEY and DOC are strings."
   (let ((length (length actions))
         (i 0)
         (max-rows (- ivy-height 1))
@@ -857,7 +858,8 @@ selection, non-nil otherwise."
                                   (cdr actions)))
                 (not (string= key (car (nth action-idx (cdr actions))))))
       (setq key (concat key (key-description (vector (read-key hint))))))
-    (ivy-shrink-after-dispatching)
+    ;; Ignore resize errors with minibuffer-only frames (#2726).
+    (ignore-errors (ivy-shrink-after-dispatching))
     (cond ((member key '("ESC" "C-g" "M-o"))
            nil)
           ((null action-idx)
@@ -1706,6 +1708,8 @@ This string is inserted into the minibuffer."
            (const :tag "Default" ivy-format-function-default)
            (const :tag "Arrow prefix" ivy-format-function-arrow)
            (const :tag "Full line" ivy-format-function-line)
+           (const :tag "Arrow prefix + full line"
+                  ivy-format-function-arrow-line)
            (function :tag "Custom function"))))
 
 (defun ivy-sort-file-function-default (x y)
@@ -2991,8 +2995,11 @@ tries to ensure that it does not change depending on the number of candidates."
 
 (defun ivy--minibuffer-setup ()
   "Setup ivy completion in the minibuffer."
-  (setq-local mwheel-scroll-up-function 'ivy-next-line)
-  (setq-local mwheel-scroll-down-function 'ivy-previous-line)
+  ;; Guard for --without-x builds where `mwheel' is not preloaded.
+  (when (boundp 'mwheel-scroll-up-function)
+    (setq-local mwheel-scroll-up-function 'ivy-next-line))
+  (when (boundp 'mwheel-scroll-down-function)
+    (setq-local mwheel-scroll-down-function 'ivy-previous-line))
   (setq-local completion-show-inline-help nil)
   (setq-local line-spacing nil)
   (setq-local minibuffer-default-add-function
@@ -3333,16 +3340,10 @@ The function was added in Emacs 26.1.")
           "~"
         home)))))
 
-(defvar ivy--minibuffer-metadata nil)
-
 (defun ivy-update-candidates (cands)
-  (let ((ivy--minibuffer-metadata
-         (unless (ivy-state-dynamic-collection ivy-last)
-           (completion-metadata "" minibuffer-completion-table
-                                minibuffer-completion-predicate))))
-    (ivy--insert-minibuffer
-     (ivy--format
-      (setq ivy--all-candidates cands)))))
+  (ivy--insert-minibuffer
+   (ivy--format
+    (setq ivy--all-candidates cands))))
 
 (defun ivy--exhibit ()
   "Insert Ivy completions display.
@@ -4006,7 +4007,8 @@ and SEPARATOR is used to join them."
      separator)))
 
 (defun ivy-format-function-default (cands)
-  "Transform CANDS into a string for minibuffer."
+  "Transform CANDS into a multiline string for the minibuffer.
+Add the face `ivy-current-match' to the selected candidate."
   (ivy--format-function-generic
    (lambda (str)
      (ivy--add-face str 'ivy-current-match))
@@ -4015,7 +4017,9 @@ and SEPARATOR is used to join them."
    "\n"))
 
 (defun ivy-format-function-arrow (cands)
-  "Transform CANDS into a string for minibuffer."
+  "Transform CANDS into a multiline string for the minibuffer.
+Like `ivy-format-function-default', but also prefix the selected
+candidate with an arrow \">\"."
   (ivy--format-function-generic
    (lambda (str)
      (concat "> " (ivy--add-face str 'ivy-current-match)))
@@ -4025,14 +4029,30 @@ and SEPARATOR is used to join them."
    "\n"))
 
 (defun ivy-format-function-line (cands)
-  "Transform CANDS into a string for minibuffer.
-Note that since Emacs 27, `ivy-current-match' needs to have :extend t attribute.
-It has it by default, but the current theme also needs to set it."
+  "Transform CANDS into a multiline string for the minibuffer.
+Like `ivy-format-function-default', but extend highlighting of
+the selected candidate to the window edge.
+
+Note that since Emacs 27, `ivy-current-match' needs to have a
+non-nil :extend attribute.  This is the case by default, but it
+also needs to be preserved by the current theme."
   (ivy--format-function-generic
    (lambda (str)
      (ivy--add-face (concat str "\n") 'ivy-current-match))
    (lambda (str)
      (concat str "\n"))
+   cands
+   ""))
+
+(defun ivy-format-function-arrow-line (cands)
+  "Transform CANDS into a multiline string for the minibuffer.
+This combines the \">\" prefix of `ivy-format-function-arrow'
+with the extended highlighting of `ivy-format-function-line'."
+  (ivy--format-function-generic
+   (lambda (str)
+     (concat "> " (ivy--add-face (concat str "\n") 'ivy-current-match)))
+   (lambda (str)
+     (concat "  " str "\n"))
    cands
    ""))
 
@@ -4119,7 +4139,7 @@ in this case."
               (cl-incf i)))))))
   str)
 
-(defun ivy--format-minibuffer-line (str)
+(defun ivy--format-minibuffer-line (str annot)
   "Format line STR for use in minibuffer."
   (let* ((str (ivy-cleanup-string (copy-sequence str)))
          (str (if (eq ivy-display-style 'fancy)
@@ -4132,9 +4152,7 @@ in this case."
                         (concat file (funcall ivy--highlight-function match)))
                     (funcall ivy--highlight-function str))
                 str))
-         (olen (length str))
-         (annot (or (completion-metadata-get ivy--minibuffer-metadata 'annotation-function)
-                    (plist-get completion-extra-properties :annotation-function))))
+         (olen (length str)))
     (add-text-properties
      0 olen
      '(mouse-face
@@ -4149,7 +4167,7 @@ in this case."
     (when annot
       (setq str (concat str (funcall annot str)))
       (add-face-text-property
-       olen (length str) 'ivy-completions-annotations nil str))
+       olen (length str) 'ivy-completions-annotations t str))
     str))
 
 (defun ivy-read-file-transformer (str)
@@ -4191,13 +4209,18 @@ CANDS is a list of candidates that :display-transformer can turn into strings."
       (ivy--wnd-cands-to-str wnd-cands))))
 
 (defun ivy--wnd-cands-to-str (wnd-cands)
-  (let ((str (concat "\n"
-                     (funcall (ivy-alist-setting ivy-format-functions-alist)
-                              (condition-case nil
-                                  (mapcar
-                                   #'ivy--format-minibuffer-line
-                                   wnd-cands)
-                                (error wnd-cands))))))
+  (let* ((metadata (unless (ivy-state-dynamic-collection ivy-last)
+                     (completion-metadata "" minibuffer-completion-table
+                                          minibuffer-completion-predicate)))
+         (annot (or (completion-metadata-get metadata 'annotation-function)
+                    (plist-get completion-extra-properties :annotation-function)))
+         (str (concat "\n"
+                      (funcall (ivy-alist-setting ivy-format-functions-alist)
+                               (condition-case nil
+                                   (mapcar
+                                    (lambda (cand) (ivy--format-minibuffer-line cand annot))
+                                    wnd-cands)
+                                 (error wnd-cands))))))
     (put-text-property 0 (length str) 'read-only nil str)
     str))
 
@@ -4934,9 +4957,16 @@ You can also delete an element from history with \\[ivy-reverse-i-search-kill]."
   (delete-minibuffer-contents)
   (if (ivy-state-dynamic-collection ivy-last)
       (progn
-        (setf (ivy-state-dynamic-collection ivy-last) nil)
-        (setf (ivy-state-collection ivy-last)
-              (setq ivy--all-candidates ivy--old-cands)))
+        ;; By disabling `ivy-state-dynamic-collection', we lose the ability
+        ;; to clearly differentiate between ternary programmed completion
+        ;; functions and Ivy's unary dynamic collections (short of using
+        ;; `func-arity' or otherwise redesigning things).  So we must also
+        ;; update the dynamic binding of `minibuffer-completion-table' to no
+        ;; longer hold a dynamic collection.
+        (setq minibuffer-completion-table ivy--old-cands)
+        (setq ivy--all-candidates ivy--old-cands)
+        (setf (ivy-state-collection ivy-last) ivy--old-cands)
+        (setf (ivy-state-dynamic-collection ivy-last) nil))
     (setq ivy--all-candidates
           (ivy--filter ivy-text ivy--all-candidates))))
 
@@ -5288,11 +5318,16 @@ EVENT gives the mouse position."
         (delete cand ivy-marked-candidates)))
 
 (defun ivy--mark (cand)
-  (let ((marked-cand (concat ivy-mark-prefix cand)))
+  (let ((marked-cand (copy-sequence (concat ivy-mark-prefix cand))))
+    ;; Primarily for preserving `idx'.  FIXME: the mark
+    ;; prefix shouldn't become part of the candidate!
+    (add-text-properties 0 (length ivy-mark-prefix)
+                         (text-properties-at 0 cand)
+                         marked-cand)
     (setcar (member cand ivy--all-candidates)
             (setcar (member cand ivy--old-cands) marked-cand))
     (setq ivy-marked-candidates
-          (append ivy-marked-candidates (list marked-cand)))))
+          (nconc ivy-marked-candidates (list marked-cand)))))
 
 (defun ivy-mark ()
   "Mark the selected candidate and move to the next one.
