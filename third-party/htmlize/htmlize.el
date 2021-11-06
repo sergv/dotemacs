@@ -1,10 +1,11 @@
 ;;; htmlize.el --- Convert buffer text and decorations to HTML. -*- lexical-binding: t -*-
 
-;; Copyright (C) 1997-2003,2005,2006,2009,2011,2012,2014,2017 Hrvoje Niksic
+;; Copyright (C) 1997-2003,2005,2006,2009,2011,2012,2014,2017,2018,2020 Hrvoje Niksic
 
 ;; Author: Hrvoje Niksic <hniksic@gmail.com>
+;; Homepage: https://github.com/hniksic/emacs-htmlize
 ;; Keywords: hypermedia, extensions
-;; Version: 1.51
+;; Version: 1.57
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -57,17 +58,17 @@
 ;; non-windowing Emacs sessions but the result will be limited to
 ;; colors supported by the terminal.
 
-;; htmlize aims for compatibility with Emacsen version 21 and later.
-;; Please let me know if it doesn't work on the version of XEmacs or
-;; GNU Emacs that you are using.  The package relies on the presence
-;; of CL extensions, especially for cross-emacs compatibility; please
-;; don't try to remove that dependency.  I see no practical problems
-;; with using the full power of the CL extensions, except that one
-;; might learn to like them too much.
+;; htmlize aims for compatibility with older Emacs versions.  Please
+;; let me know if it doesn't work on the version of GNU Emacs that you
+;; are using.  The package relies on the presence of CL extensions;
+;; please don't try to remove that dependency.  I see no practical
+;; problems with using the full power of the CL extensions, except
+;; that one might learn to like them too much.
 
 ;; The latest version is available at:
 ;;
 ;;        <https://github.com/hniksic/emacs-htmlize>
+;;        <https://code.orgmode.org/mirrors/emacs-htmlize>
 ;;
 
 ;; Thanks go to the many people who have sent reports and contributed
@@ -81,17 +82,13 @@
 
 ;;; Code:
 
-(require 'cl)
+(require 'cl-lib)
 (eval-when-compile
-  (defvar unresolved)
-  (if (string-match "XEmacs" emacs-version)
-      (byte-compiler-options
-	(warnings (- unresolved))))
   (defvar font-lock-auto-fontify)
   (defvar font-lock-support-mode)
   (defvar global-font-lock-mode))
 
-(defconst htmlize-version "1.51")
+(defconst htmlize-version "1.57")
 
 (defgroup htmlize nil
   "Convert buffer text and faces to HTML."
@@ -306,12 +303,24 @@ example:
 
 This variable can be also be `let' bound when running `htmlize-buffer'.")
 
+(defcustom htmlize-untabify t
+  "Non-nil means untabify buffer contents during htmlization."
+  :type 'boolean
+  :group 'htmlize)
+
 (defcustom htmlize-html-major-mode nil
   "The mode the newly created HTML buffer will be put in.
 Set this to nil if you prefer the default (fundamental) mode."
   :type '(radio (const :tag "No mode (fundamental)" nil)
 		 (function-item html-mode)
 		 (function :tag "User-defined major mode"))
+  :group 'htmlize)
+
+(defcustom htmlize-pre-style nil
+  "When non-nil, `<pre>' tags will be decorated with style
+information in `font' and `inline-css' modes. This allows a
+consistent background for captures of regions."
+  :type 'boolean
   :group 'htmlize)
 
 (defvar htmlize-before-hook nil
@@ -332,50 +341,36 @@ output.")
 
 ;;; Some cross-Emacs compatibility.
 
-;; I try to conditionalize on features rather than Emacs version, but
-;; in some cases checking against the version *is* necessary.
-(defconst htmlize-running-xemacs (string-match "XEmacs" emacs-version))
-
 ;; We need a function that efficiently finds the next change of a
 ;; property regardless of whether the change occurred because of a
 ;; text property or an extent/overlay.
-(cond
- (htmlize-running-xemacs
-  (defun htmlize-next-change (pos prop &optional limit)
-    (if prop
-        (next-single-char-property-change pos prop nil (or limit (point-max)))
-      (next-property-change pos nil (or limit (point-max)))))
-  (defun htmlize-next-face-change (pos &optional limit)
-    (htmlize-next-change pos 'face limit)))
- (t
-  (defun htmlize-next-change (pos prop &optional limit)
-    (if prop
-        (next-single-char-property-change pos prop nil limit)
-      (next-char-property-change pos limit)))
-  (defun htmlize-overlay-faces-at (pos)
-    (delq nil (mapcar (lambda (o) (overlay-get o 'face)) (overlays-at pos))))
-  (defun htmlize-next-face-change (pos &optional limit)
-    ;; (htmlize-next-change pos 'face limit) would skip over entire
-    ;; overlays that specify the `face' property, even when they
-    ;; contain smaller text properties that also specify `face'.
-    ;; Emacs display engine merges those faces, and so must we.
-    (or limit
-        (setq limit (point-max)))
-    (let ((next-prop (next-single-property-change pos 'face nil limit))
-          (overlay-faces (htmlize-overlay-faces-at pos)))
-      (while (progn
-               (setq pos (next-overlay-change pos))
-               (and (< pos next-prop)
-                    (equal overlay-faces (htmlize-overlay-faces-at pos)))))
-      (setq pos (min pos next-prop))
-      ;; Additionally, we include the entire region that specifies the
-      ;; `display' property.
-      (when (get-char-property pos 'display)
-        (setq pos (next-single-char-property-change pos 'display nil limit)))
-      pos)))
- (t
-  (error "htmlize requires next-single-property-change or \
-next-single-char-property-change")))
+(defun htmlize-next-change (pos prop &optional limit)
+  (if prop
+      (next-single-char-property-change pos prop nil limit)
+    (next-char-property-change pos limit)))
+
+(defun htmlize-overlay-faces-at (pos)
+  (delq nil (mapcar (lambda (o) (overlay-get o 'face)) (overlays-at pos))))
+
+(defun htmlize-next-face-change (pos &optional limit)
+  ;; (htmlize-next-change pos 'face limit) would skip over entire
+  ;; overlays that specify the `face' property, even when they
+  ;; contain smaller text properties that also specify `face'.
+  ;; Emacs display engine merges those faces, and so must we.
+  (or limit
+      (setq limit (point-max)))
+  (let ((next-prop (next-single-property-change pos 'face nil limit))
+        (overlay-faces (htmlize-overlay-faces-at pos)))
+    (while (progn
+             (setq pos (next-overlay-change pos))
+             (and (< pos next-prop)
+                  (equal overlay-faces (htmlize-overlay-faces-at pos)))))
+    (setq pos (min pos next-prop))
+    ;; Additionally, we include the entire region that specifies the
+    ;; `display' property.
+    (when (get-char-property pos 'display)
+      (setq pos (next-single-char-property-change pos 'display nil limit)))
+    pos))
 
 (defmacro htmlize-lexlet (&rest letforms)
   (declare (indent 1) (debug let))
@@ -384,22 +379,6 @@ next-single-char-property-change")))
       `(let ,@letforms)
     ;; cl extensions have a macro implementing lexical let
     `(lexical-let ,@letforms)))
-
-;; Simple overlay emulation for XEmacs
-
-(cond
- (htmlize-running-xemacs
-  (defalias 'htmlize-make-overlay 'make-extent)
-  (defalias 'htmlize-overlay-put 'set-extent-property)
-  (defalias 'htmlize-overlay-get 'extent-property)
-  (defun htmlize-overlays-in (beg end) (extent-list nil beg end))
-  (defalias 'htmlize-delete-overlay 'detach-extent))
- (t
-  (defalias 'htmlize-make-overlay 'make-overlay)
-  (defalias 'htmlize-overlay-put 'overlay-put)
-  (defalias 'htmlize-overlay-get 'overlay-get)
-  (defalias 'htmlize-overlays-in 'overlays-in)
-  (defalias 'htmlize-delete-overlay 'delete-overlay)))
 
 
 ;;; Transformation of buffer text: HTML escapes, untabification, etc.
@@ -571,7 +550,7 @@ list."
     (when (plist-get imgprops :file)
       (let ((location (plist-get (cdr (find-image (list imgprops))) :file)))
         (when location
-          (setq imgprops (plist-put (copy-list imgprops) :file location)))))
+          (setq imgprops (plist-put (cl-copy-list imgprops) :file location)))))
     (if htmlize-force-inline-images
         (let ((location (plist-get imgprops :file))
               data)
@@ -618,9 +597,9 @@ list."
 (put-text-property 0 (length htmlize-ellipsis) 'htmlize-ellipsis t htmlize-ellipsis)
 
 (defun htmlize-match-inv-spec (inv)
-  (member* inv buffer-invisibility-spec
-           :key (lambda (i)
-                  (if (symbolp i) i (car i)))))
+  (cl-member inv buffer-invisibility-spec
+             :key (lambda (i)
+                    (if (symbolp i) i (car i)))))
 
 (defun htmlize-decode-invisibility-spec (invisible)
   ;; Return t, nil, or `ellipsis', depending on how invisible text should be inserted.
@@ -640,7 +619,7 @@ list."
     ;; CDR, replace the invisible text with an ellipsis.
     (let ((match (if (symbolp invisible)
                      (htmlize-match-inv-spec invisible)
-                   (some #'htmlize-match-inv-spec invisible))))
+                   (cl-some #'htmlize-match-inv-spec invisible))))
       (cond ((null match) t)
             ((cdr-safe (car match)) 'ellipsis)
             (t nil)))))
@@ -664,7 +643,7 @@ list."
     (if additions
         (let ((textlist nil)
               (strpos 0))
-          (dolist (add (stable-sort additions #'< :key #'car))
+          (dolist (add (cl-stable-sort additions #'< :key #'car))
             (let ((addpos (car add))
                   (addtext (cdr add)))
               (push (substring text strpos addpos) textlist)
@@ -694,8 +673,7 @@ list."
   (let ((text (buffer-substring-no-properties beg end)))
     (htmlize-copy-prop 'display beg end text)
     (htmlize-copy-prop 'htmlize-link beg end text)
-    (unless htmlize-running-xemacs
-      (setq text (htmlize-add-before-after-strings beg end text)))
+    (setq text (htmlize-add-before-after-strings beg end text))
     text))
 
 (defun htmlize-buffer-substring-no-invisible (beg end)
@@ -738,7 +716,7 @@ list."
       (setf (aref v i) (make-string i ?\ )))
     v))
 
-(defun htmlize-untabify (text start-column)
+(defun htmlize-untabify-string (text start-column)
   "Untabify TEXT, assuming it starts at START-COLUMN."
   (let ((column start-column)
 	(last-match 0)
@@ -753,7 +731,7 @@ list."
 	     ;; Increase COLUMN by the length of the text we've
 	     ;; skipped since last tab or newline.  (Encountering
 	     ;; newline resets it.)
-	     (incf column (- match-pos last-match))
+	     (cl-incf column (- match-pos last-match))
 	     ;; Calculate tab size based on tab-width and COLUMN.
 	     (setq tab-size (- tab-width (% column tab-width)))
 	     ;; Expand the tab, carefully recreating the `display'
@@ -763,7 +741,7 @@ list."
                (when display
                  (put-text-property 0 tab-size 'display display expanded-tab))
                (push expanded-tab chunks))
-	     (incf column tab-size)
+	     (cl-incf column tab-size)
 	     (setq chunk-start (1+ match-pos)))
 	    (t
 	     ;; Reset COLUMN at beginning of line.
@@ -790,9 +768,10 @@ list."
       (setq trailing-ellipsis
             (get-text-property (1- (length text))
                                'htmlize-ellipsis text)))
-    (setq text (htmlize-untabify text (current-column)))
+    (when htmlize-untabify
+      (setq text (htmlize-untabify-string text (current-column))))
     (setq text (htmlize-string-to-html text))
-    (values text trailing-ellipsis)))
+    (cl-values text trailing-ellipsis)))
 
 (defun htmlize-despam-address (string)
   "Replace every occurrence of '@' in STRING with %40.
@@ -803,16 +782,16 @@ This is used to protect mailto links without modifying their meaning."
   string)
 
 (defun htmlize-make-tmp-overlay (beg end props)
-  (let ((overlay (htmlize-make-overlay beg end)))
-    (htmlize-overlay-put overlay 'htmlize-tmp-overlay t)
+  (let ((overlay (make-overlay beg end)))
+    (overlay-put overlay 'htmlize-tmp-overlay t)
     (while props
-      (htmlize-overlay-put overlay (pop props) (pop props)))
+      (overlay-put overlay (pop props) (pop props)))
     overlay))
 
 (defun htmlize-delete-tmp-overlays ()
-  (dolist (overlay (htmlize-overlays-in (point-min) (point-max)))
-    (when (htmlize-overlay-get overlay 'htmlize-tmp-overlay)
-      (htmlize-delete-overlay overlay))))
+  (dolist (overlay (overlays-in (point-min) (point-max)))
+    (when (overlay-get overlay 'htmlize-tmp-overlay)
+      (delete-overlay overlay))))
 
 (defun htmlize-make-link-overlay (beg end uri)
   (htmlize-make-tmp-overlay beg end `(htmlize-link (:uri ,uri))))
@@ -848,7 +827,15 @@ This is used to protect mailto links without modifying their meaning."
     (put-text-property 0 (length s) 'htmlize-literal t s)
     (let ((disp `(display ,s)))
       (while (re-search-forward "\n\^L" nil t)
-        (htmlize-make-tmp-overlay (match-beginning 0) (match-end 0) disp)))))
+        (let* ((beg (match-beginning 0))
+               (end (match-end 0))
+               (form-feed-pos (1+ beg))
+               ;; don't process ^L if invisible or covered by `display'
+               (show (and (htmlize-decode-invisibility-spec
+                           (get-char-property form-feed-pos 'invisible))
+                          (not (get-char-property form-feed-pos 'display)))))
+          (when show
+            (htmlize-make-tmp-overlay beg end disp)))))))
 
 (defun htmlize-defang-local-variables ()
   ;; Juri Linkov reports that an HTML-ized "Local variables" can lead
@@ -931,17 +918,6 @@ If no rgb.txt file is found, return nil."
 
 ;;; Face handling.
 
-(defun htmlize-face-specifies-property (face prop)
-  ;; Return t if face specifies PROP, as opposed to it being inherited
-  ;; from the default face.  The problem with e.g.
-  ;; `face-foreground-instance' is that it returns an instance for
-  ;; EVERY face because every face inherits from the default face.
-  ;; However, we'd like htmlize-face-{fore,back}ground to return nil
-  ;; when called with a face that doesn't specify its own foreground
-  ;; or background.
-  (or (eq face 'default)
-      (assq 'global (specifier-spec-list (face-property face prop)))))
-
 (defun htmlize-face-color-internal (face fg)
   ;; Used only under GNU Emacs.  Return the color of FACE, but don't
   ;; return "unspecified-fg" or "unspecified-bg".  If the face is
@@ -966,24 +942,13 @@ If no rgb.txt file is found, return nil."
 (defun htmlize-face-foreground (face)
   ;; Return the name of the foreground color of FACE.  If FACE does
   ;; not specify a foreground color, return nil.
-  (cond (htmlize-running-xemacs
-	 ;; XEmacs.
-	 (and (htmlize-face-specifies-property face 'foreground)
-	      (color-instance-name (face-foreground-instance face))))
-	(t
-	 ;; GNU Emacs.
-	 (htmlize-face-color-internal face t))))
+  (htmlize-face-color-internal face t))
 
 (defun htmlize-face-background (face)
   ;; Return the name of the background color of FACE.  If FACE does
   ;; not specify a background color, return nil.
-  (cond (htmlize-running-xemacs
-	 ;; XEmacs.
-	 (and (htmlize-face-specifies-property face 'background)
-	      (color-instance-name (face-background-instance face))))
-	(t
-	 ;; GNU Emacs.
-	 (htmlize-face-color-internal face nil))))
+  ;; GNU Emacs.
+  (htmlize-face-color-internal face nil))
 
 ;; Convert COLOR to the #RRGGBB string.  If COLOR is already in that
 ;; format, it's left unchanged.
@@ -1005,15 +970,9 @@ If no rgb.txt file is found, return nil."
 	   (setq rgb-string (gethash (downcase color) htmlize-color-rgb-hash)))
 	  (t
 	   ;; We're getting the RGB components from Emacs.
-	   (let ((rgb
-		  (if (fboundp 'color-instance-rgb-components)
-		      (mapcar (lambda (arg)
-				(/ arg 256))
-			      (color-instance-rgb-components
-			       (make-color-instance color)))
-		    (mapcar (lambda (arg)
-			      (/ arg 256))
-			    (color-values color)))))
+	   (let ((rgb (mapcar (lambda (arg)
+                                (/ arg 256))
+                              (color-values color))))
 	     (when rgb
 	       (setq rgb-string (apply #'format "#%02x%02x%02x" rgb))))))
     ;; If RGB-STRING is still nil, it means the color cannot be found,
@@ -1029,7 +988,7 @@ If no rgb.txt file is found, return nil."
 ;; type `htmlize-fstruct', while the term "face" is reserved for Emacs
 ;; faces.
 
-(defstruct htmlize-fstruct
+(cl-defstruct htmlize-fstruct
   foreground				; foreground color, #rrggbb
   background				; background color, #rrggbb
   size					; size
@@ -1043,7 +1002,7 @@ If no rgb.txt file is found, return nil."
 
 (defun htmlize-face-set-from-keyword-attr (fstruct attr value)
   ;; For ATTR and VALUE, set the equivalent value in FSTRUCT.
-  (case attr
+  (cl-case attr
     (:foreground
      (setf (htmlize-fstruct-foreground fstruct) (htmlize-color-to-rgb value)))
     (:background
@@ -1076,7 +1035,7 @@ If no rgb.txt file is found, return nil."
     (while head
       (let ((inherit (face-attribute (car head) :inherit)))
         (cond ((listp inherit)
-               (setcdr tail (copy-list inherit))
+               (setcdr tail (cl-copy-list inherit))
                (setq tail (last tail)))
               ((eq inherit 'unspecified))
               (t
@@ -1084,11 +1043,11 @@ If no rgb.txt file is found, return nil."
                (setq tail (cdr tail)))))
       (pop head))
     (let ((size-list
-           (loop
+           (cl-loop
             for f in face-list
-            for h = (face-attribute f :height)
+            for h = (and (facep f) (face-attribute f :height))
             collect (if (eq h 'unspecified) nil h))))
-      (reduce 'htmlize-merge-size (cons nil size-list)))))
+      (cl-reduce 'htmlize-merge-size (cons nil size-list)))))
 
 (defun htmlize-face-css-name (face)
   ;; Generate the css-name property for the given face.  Emacs places
@@ -1115,36 +1074,37 @@ If no rgb.txt file is found, return nil."
     ;; Apply the prefix.
     (concat htmlize-css-name-prefix name)))
 
-(defun htmlize-face-to-fstruct (face)
-  "Convert Emacs face FACE to fstruct."
+(defun htmlize-face-to-fstruct-1 (face)
+  "Convert Emacs face FACE to fstruct, internal."
   (let ((fstruct (make-htmlize-fstruct
 		  :foreground (htmlize-color-to-rgb
 			       (htmlize-face-foreground face))
 		  :background (htmlize-color-to-rgb
 			       (htmlize-face-background face)))))
-    (if htmlize-running-xemacs
-        ;; XEmacs doesn't provide a way to detect whether a face is
-        ;; bold or italic, so we need to examine the font instance.
-        (let* ((font-instance (face-font-instance face))
-               (props (font-instance-properties font-instance)))
-          (when (equalp (cdr (assq 'WEIGHT_NAME props)) "bold")
-            (setf (htmlize-fstruct-boldp fstruct) t))
-          (when (or (equalp (cdr (assq 'SLANT props)) "i")
-                    (equalp (cdr (assq 'SLANT props)) "o"))
-            (setf (htmlize-fstruct-italicp fstruct) t))
-          (setf (htmlize-fstruct-strikep fstruct)
-                (face-strikethru-p face))
-          (setf (htmlize-fstruct-underlinep fstruct)
-                (face-underline-p face)))
-      ;; GNU Emacs
-      (dolist (attr '(:weight :slant :underline :overline :strike-through))
-        (let ((value (face-attribute face attr nil t)))
-          (when (and value (not (eq value 'unspecified)))
-            (htmlize-face-set-from-keyword-attr fstruct attr value))))
-      (let ((size (htmlize-face-size face)))
-        (unless (eql size 1.0) 	; ignore non-spec
-          (setf (htmlize-fstruct-size fstruct) size))))
+    ;; GNU Emacs
+    (dolist (attr '(:weight :slant :underline :overline :strike-through))
+      (let ((value (face-attribute face attr nil t)))
+        (when (and value (not (eq value 'unspecified)))
+          (htmlize-face-set-from-keyword-attr fstruct attr value))))
+    (let ((size (htmlize-face-size face)))
+      (unless (eql size 1.0)            ; ignore non-spec
+        (setf (htmlize-fstruct-size fstruct) size)))
     (setf (htmlize-fstruct-css-name fstruct) (htmlize-face-css-name face))
+    fstruct))
+
+(defun htmlize-face-to-fstruct (face)
+  (let* ((face-list (or (and (symbolp face)
+                             (cdr (assq face face-remapping-alist)))
+                        (list face)))
+         (fstruct (htmlize-merge-faces
+                   (mapcar (lambda (face)
+                             (if (symbolp face)
+                                 (or (htmlize-get-override-fstruct face)
+                                     (htmlize-face-to-fstruct-1 face))
+                               (htmlize-attrlist-to-fstruct face)))
+                           (nreverse face-list)))))
+    (when (symbolp face)
+      (setf (htmlize-fstruct-css-name fstruct) (htmlize-face-css-name face)))
     fstruct))
 
 (defmacro htmlize-copy-attr-if-set (attr-list dest source)
@@ -1155,10 +1115,10 @@ If no rgb.txt file is found, return nil."
   ;;   ...)
   ;; for the given list of boolean attributes.
   (cons 'progn
-	(loop for attr in attr-list
-	      for attr-sym = (intern (format "htmlize-fstruct-%s" attr))
-	      collect `(when (,attr-sym ,source)
-                         (setf (,attr-sym ,dest) (,attr-sym ,source))))))
+	(cl-loop for attr in attr-list
+	         for attr-sym = (intern (format "htmlize-fstruct-%s" attr))
+	         collect `(when (,attr-sym ,source)
+                            (setf (,attr-sym ,dest) (,attr-sym ,source))))))
 
 (defun htmlize-merge-size (merged next)
   ;; Calculate the size of the merge of MERGED and NEXT.
@@ -1186,8 +1146,8 @@ If no rgb.txt file is found, return nil."
 	 ;; return it.
 	 (car fstruct-list))
 	(t
-	 (reduce #'htmlize-merge-two-faces
-		 (cons (make-htmlize-fstruct) fstruct-list)))))
+	 (cl-reduce #'htmlize-merge-two-faces
+		    (cons (make-htmlize-fstruct) fstruct-list)))))
 
 ;; GNU Emacs 20+ supports attribute lists in `face' properties.  For
 ;; example, you can use `(:foreground "red" :weight bold)' as an
@@ -1273,10 +1233,7 @@ If no rgb.txt file is found, return nil."
       (unless (gethash face face-map)
 	;; Haven't seen FACE yet; convert it to an fstruct and cache
 	;; it.
-	(let ((fstruct (if (symbolp face)
-                           (or (htmlize-get-override-fstruct face)
-                               (htmlize-face-to-fstruct face))
-			 (htmlize-attrlist-to-fstruct face))))
+	(let ((fstruct (htmlize-face-to-fstruct face)))
 	  (setf (gethash face face-map) fstruct)
 	  (let* ((css-name (htmlize-fstruct-css-name fstruct))
 		 (new-name css-name)
@@ -1284,7 +1241,7 @@ If no rgb.txt file is found, return nil."
 	    ;; Uniquify the face's css-name by using NAME-1, NAME-2,
 	    ;; etc.
 	    (while (member new-name css-names)
-	      (setq new-name (format "%s-%s" css-name (incf i))))
+	      (setq new-name (format "%s-%s" css-name (cl-incf i))))
 	    (unless (equal new-name css-name)
 	      (setf (htmlize-fstruct-css-name fstruct) new-name))
 	    (push new-name css-names)))))
@@ -1298,120 +1255,60 @@ If no rgb.txt file is found, return nil."
 
 (defun htmlize-faces-in-buffer ()
   "Return a list of faces used in the current buffer.
-Under XEmacs, this returns the set of faces specified by the extents
-with the `face' property.  (This covers text properties as well.)  Under
-GNU Emacs, it returns the set of faces specified by the `face' text
-property and by buffer overlays that specify `face'."
+This is the set of faces specified by the `face' text property and by buffer
+overlays that specify `face'."
   (let (faces)
-    ;; Testing for (fboundp 'map-extents) doesn't work because W3
-    ;; defines `map-extents' under FSF.
-    (if htmlize-running-xemacs
-	(let (face-prop)
-	  (map-extents (lambda (extent ignored)
-			 (setq face-prop (extent-face extent)
-			       ;; FACE-PROP can be a face or a list of
-			       ;; faces.
-			       faces (if (listp face-prop)
-					 (union face-prop faces)
-				       (adjoin face-prop faces)))
-			 nil)
-		       nil
-		       ;; Specify endpoints explicitly to respect
-		       ;; narrowing.
-		       (point-min) (point-max) nil nil 'face))
-      ;; FSF Emacs code.
-      ;; Faces used by text properties.
-      (let ((pos (point-min)) face-prop next)
-	(while (< pos (point-max))
-	  (setq face-prop (get-text-property pos 'face)
-		next (or (next-single-property-change pos 'face) (point-max)))
-          (setq faces (nunion (htmlize-decode-face-prop face-prop)
-                              faces :test 'equal))
-	  (setq pos next)))
-      ;; Faces used by overlays.
-      (dolist (overlay (overlays-in (point-min) (point-max)))
-	(let ((face-prop (overlay-get overlay 'face)))
-          (setq faces (nunion (htmlize-decode-face-prop face-prop)
-                              faces :test 'equal)))))
+    ;; Faces used by text properties.
+    (let ((pos (point-min)) face-prop next)
+      (while (< pos (point-max))
+        (setq face-prop (get-text-property pos 'face)
+              next (or (next-single-property-change pos 'face) (point-max)))
+        (setq faces (cl-nunion (htmlize-decode-face-prop face-prop)
+                               faces :test 'equal))
+        (setq pos next)))
+    ;; Faces used by overlays.
+    (dolist (overlay (overlays-in (point-min) (point-max)))
+      (let ((face-prop (overlay-get overlay 'face)))
+        (setq faces (cl-nunion (htmlize-decode-face-prop face-prop)
+                               faces :test 'equal))))
     faces))
 
 ;; htmlize-faces-at-point returns the faces in use at point.  The
 ;; faces are sorted by increasing priority, i.e. the last face takes
 ;; precedence.
 ;;
-;; Under XEmacs, this returns all the faces in all the extents at
-;; point.  Under GNU Emacs, this returns all the faces in the `face'
-;; property and all the faces in the overlays at point.
+;; This returns all the faces in the `face' property and all the faces
+;; in the overlays at point.
 
-(cond (htmlize-running-xemacs
-       (defun htmlize-faces-at-point ()
-	 (let (extent extent-list face-list face-prop)
-	   (while (setq extent (extent-at (point) nil 'face extent))
-	     (push extent extent-list))
-	   ;; extent-list is in reverse display order, meaning that
-	   ;; smallest ones come last.  That is the order we want,
-	   ;; except it can be overridden by the `priority' property.
-	   (setq extent-list (stable-sort extent-list #'<
-					  :key #'extent-priority))
-	   (dolist (extent extent-list)
-	     (setq face-prop (extent-face extent))
-	     ;; extent's face-list is in reverse order from what we
-	     ;; want, but the `nreverse' below will take care of it.
-	     (setq face-list (if (listp face-prop)
-				 (append face-prop face-list)
-			       (cons face-prop face-list))))
-	   (nreverse face-list))))
-      (t
-       (defun htmlize-faces-at-point ()
-	 (let (all-faces)
-	   ;; Faces from text properties.
-	   (let ((face-prop (get-text-property (point) 'face)))
-             ;; we need to reverse the `face' prop because we want
-             ;; more specific faces to come later
-	     (setq all-faces (nreverse (htmlize-decode-face-prop face-prop))))
-	   ;; Faces from overlays.
-	   (let ((overlays
-		  ;; Collect overlays at point that specify `face'.
-		  (delete-if-not (lambda (o)
-				   (overlay-get o 'face))
-				 (overlays-at (point))))
-		 list face-prop)
-	     ;; Sort the overlays so the smaller (more specific) ones
-	     ;; come later.  The number of overlays at each one
-	     ;; position should be very small, so the sort shouldn't
-	     ;; slow things down.
-	     (setq overlays (sort* overlays
-				   ;; Sort by ascending...
-				   #'<
-				   ;; ...overlay size.
-				   :key (lambda (o)
-					  (- (overlay-end o)
-					     (overlay-start o)))))
-	     ;; Overlay priorities, if present, override the above
-	     ;; established order.  Larger overlay priority takes
-	     ;; precedence and therefore comes later in the list.
-	     (setq overlays (stable-sort
-			     overlays
-			     ;; Reorder (stably) by acending...
-			     #'<
-			     ;; ...overlay priority.
-			     :key (lambda (o)
-				    (or (overlay-get o 'priority) 0))))
-	     (dolist (overlay overlays)
-	       (setq face-prop (overlay-get overlay 'face)
-                     list (nconc (htmlize-decode-face-prop face-prop) list)))
-	     ;; Under "Merging Faces" the manual explicitly states
-	     ;; that faces specified by overlays take precedence over
-	     ;; faces specified by text properties.
-	     (setq all-faces (nconc all-faces list)))
-	   all-faces))))
+(defun htmlize-faces-at-point ()
+  (let (all-faces)
+    ;; Faces from text properties.
+    (let ((face-prop (get-text-property (point) 'face)))
+      ;; we need to reverse the `face' prop because we want
+      ;; more specific faces to come later
+      (setq all-faces (nreverse (htmlize-decode-face-prop face-prop))))
+    ;; Faces from overlays.
+    (let ((overlays
+           ;; Collect overlays at point that specify `face'.
+           (cl-delete-if-not (lambda (o)
+                               (overlay-get o 'face))
+                             (nreverse (overlays-at (point) t))))
+          list face-prop)
+      (dolist (overlay overlays)
+        (setq face-prop (overlay-get overlay 'face)
+              list (nconc (htmlize-decode-face-prop face-prop) list)))
+      ;; Under "Merging Faces" the manual explicitly states
+      ;; that faces specified by overlays take precedence over
+      ;; faces specified by text properties.
+      (setq all-faces (nconc all-faces list)))
+    all-faces))
 
 ;; htmlize supports generating HTML in several flavors, some of which
 ;; use CSS, and others the <font> element.  We take an OO approach and
 ;; define "methods" that indirect to the functions that depend on
 ;; `htmlize-output-type'.  The currently used methods are `doctype',
-;; `insert-head', `body-tag', and `text-markup'.  Not all output types
-;; define all methods.
+;; `insert-head', `body-tag', `pre-tag', and `text-markup'.  Not all
+;; output types define all methods.
 ;;
 ;; Methods are called either with (htmlize-method METHOD ARGS...) 
 ;; special form, or by accessing the function with
@@ -1443,7 +1340,7 @@ property and by buffer overlays that specify `face'."
 That means that GENERATOR will be evaluated and returned the first time
 it's called with the same value of KEY.  All other times, the cached
 \(memoized) value will be returned."
-  (let ((value (gensym)))
+  (let ((value (cl-gensym)))
     `(let ((,value (gethash ,key htmlize-memoization-table)))
        (unless ,value
 	 (setq ,value ,generator)
@@ -1463,6 +1360,12 @@ it's called with the same value of KEY.  All other times, the cached
   nil					; no doc-string
   face-map ; shut up the byte-compiler
   "<body>")
+
+(defun htmlize-default-pre-tag (face-map)
+  nil					; no doc-string
+  face-map ; shut up the byte-compiler
+  "<pre>")
+
 
 ;;; CSS based output support.
 
@@ -1501,9 +1404,9 @@ it's called with the same value of KEY.  All other times, the cached
 		     (htmlize-css-specs (gethash 'default face-map))
 		     "\n        ")
 	  "\n      }\n")
-  (dolist (face (sort* (copy-list buffer-faces) #'string-lessp
-		       :key (lambda (f)
-			      (htmlize-fstruct-css-name (gethash f face-map)))))
+  (dolist (face (cl-sort (cl-copy-list buffer-faces) #'string-lessp
+		         :key (lambda (f)
+			        (htmlize-fstruct-css-name (gethash f face-map)))))
     (let* ((fstruct (gethash face face-map))
 	   (cleaned-up-face-name
 	    (let ((s
@@ -1550,6 +1453,13 @@ it's called with the same value of KEY.  All other times, the cached
 	  (mapconcat #'identity (htmlize-css-specs (gethash 'default face-map))
 		     " ")))
 
+(defun htmlize-inline-css-pre-tag (face-map)
+  (if htmlize-pre-style
+      (format "<pre style=\"%s\">"
+              (mapconcat #'identity (htmlize-css-specs (gethash 'default face-map))
+                         " "))
+    (format "<pre>")))
+
 (defun htmlize-inline-css-text-markup (fstruct-list buffer)
   (let* ((merged (htmlize-merge-faces fstruct-list))
 	 (style (htmlize-memoize
@@ -1573,6 +1483,14 @@ it's called with the same value of KEY.  All other times, the cached
     (format "<body text=\"%s\" bgcolor=\"%s\">"
 	    (htmlize-fstruct-foreground fstruct)
 	    (htmlize-fstruct-background fstruct))))
+
+(defun htmlize-font-pre-tag (face-map)
+  (if htmlize-pre-style
+      (let ((fstruct (gethash 'default face-map)))
+        (format "<pre text=\"%s\" bgcolor=\"%s\">"
+                (htmlize-fstruct-foreground fstruct)
+                (htmlize-fstruct-background fstruct)))
+    (format "<pre>")))
        
 (defun htmlize-font-text-markup (fstruct-list buffer)
   ;; In `font' mode, we use the traditional HTML means of altering
@@ -1623,8 +1541,8 @@ it's called with the same value of KEY.  All other times, the cached
           (completed nil))
       (unwind-protect
           (let* ((buffer-faces (htmlize-faces-in-buffer))
-                 (face-map (htmlize-make-face-map (adjoin 'default buffer-faces)))
-                 (places (gensym))
+                 (face-map (htmlize-make-face-map (cl-adjoin 'default buffer-faces)))
+                 (places (cl-gensym))
                  (title (if (buffer-file-name)
                             (file-name-nondirectory (buffer-file-name))
                           (buffer-name))))
@@ -1657,7 +1575,7 @@ it's called with the same value of KEY.  All other times, the cached
               (insert (htmlize-method body-tag face-map)
                       "\n    ")
               (put places 'content-start (point-marker))
-              (insert "<pre>\n"))
+              (insert (htmlize-method pre-tag face-map) "\n"))
             (let ((text-markup
                    ;; Get the inserter method, so we can funcall it inside
                    ;; the loop.  Not calling `htmlize-method' in the loop
@@ -1685,13 +1603,13 @@ it's called with the same value of KEY.  All other times, the cached
                       fstruct-list (delq nil (mapcar (lambda (f)
                                                        (gethash f face-map))
                                                      face-list)))
-                (multiple-value-setq (text trailing-ellipsis)
+                (cl-multiple-value-setq (text trailing-ellipsis)
                   (htmlize-extract-text (point) next-change trailing-ellipsis))
                 ;; Don't bother writing anything if there's no text (this
                 ;; happens in invisible regions).
                 (when (> (length text) 0)
                   ;; Open the new markup if necessary and insert the text.
-                  (when (not (equalp fstruct-list last-fstruct-list))
+                  (when (not (cl-equalp fstruct-list last-fstruct-list))
                     (funcall close-markup)
                     (setq last-fstruct-list fstruct-list
                           close-markup (funcall text-markup fstruct-list htmlbuf)))
@@ -1746,28 +1664,19 @@ it's called with the same value of KEY.  All other times, the cached
   ;; actually fontify the buffer.  If font-lock is not in use, we
   ;; don't care because, except in htmlize-file, we don't force
   ;; font-lock on the user.
-  (when (and (boundp 'font-lock-mode)
-	     font-lock-mode)
+  (when font-lock-mode
     ;; In part taken from ps-print-ensure-fontified in GNU Emacs 21.
-    (cond
-     ((and (boundp 'jit-lock-mode)
-	   (symbol-value 'jit-lock-mode))
+    (when (and (boundp 'jit-lock-mode)
+               (symbol-value 'jit-lock-mode))
       (htmlize-with-fontify-message
        (jit-lock-fontify-now (point-min) (point-max))))
-     ((and (boundp 'lazy-lock-mode)
-	   (symbol-value 'lazy-lock-mode))
-      (htmlize-with-fontify-message
-       (lazy-lock-fontify-region (point-min) (point-max))))
-     ((and (boundp 'lazy-shot-mode)
-	   (symbol-value 'lazy-shot-mode))
-      (htmlize-with-fontify-message
-       ;; lazy-shot is amazing in that it must *refontify* the region,
-       ;; even if the whole buffer has already been fontified.  <sigh>
-       (lazy-shot-fontify-region (point-min) (point-max))))
-     ;; There's also fast-lock, but we don't need to handle specially,
-     ;; I think.  fast-lock doesn't really defer fontification, it
-     ;; just saves it to an external cache so it's not done twice.
-     )))
+
+    (if (fboundp 'font-lock-ensure)
+        (font-lock-ensure)
+      ;; Emacs prior to 25.1
+      (with-no-warnings
+        (font-lock-mode 1)
+        (font-lock-fontify-buffer)))))
 
 
 ;;;###autoload
@@ -1818,6 +1727,16 @@ the text to another HTML buffer."
 	  (buffer-substring (plist-get htmlize-buffer-places 'content-start)
 			    (plist-get htmlize-buffer-places 'content-end)))
       (kill-buffer htmlbuf))))
+
+(defun htmlize-region-save-screenshot (beg end)
+  "Save the htmlized (see `htmlize-region-for-paste') region in
+the kill ring. Uses `inline-css', with style information in
+`<pre>' tags, so that the rendering of the marked up text
+approximates the buffer as closely as possible."
+  (interactive "r")
+  (let ((htmlize-pre-style t))
+    (kill-new (htmlize-region-for-paste beg end)))
+  (deactivate-mark))
 
 (defun htmlize-make-file-name (file)
   "Make an HTML file name from FILE.
@@ -1875,11 +1794,7 @@ does not name a directory, it will be used as output file name."
 	(font-lock-auto-fontify nil)
 	(global-font-lock-mode nil)
 	;; Ignore the size limit for the purposes of htmlization.
-	(font-lock-maximum-size nil)
-	;; Disable font-lock support modes.  This will only work in
-	;; more recent Emacs versions, so htmlize-buffer-1 still needs
-	;; to call htmlize-ensure-fontified.
-	(font-lock-support-mode nil))
+	(font-lock-maximum-size nil))
     (with-temp-buffer
       ;; Insert FILE into the temporary buffer.
       (insert-file-contents file)
@@ -1889,11 +1804,6 @@ does not name a directory, it will be used as output file name."
       (let ((buffer-file-name file))
 	;; Set the major mode for the sake of font-lock.
 	(normal-mode)
-	(font-lock-mode 1)
-	(unless font-lock-mode
-	  ;; In GNU Emacs (font-lock-mode 1) doesn't force font-lock,
-	  ;; contrary to the documentation.  This seems to work.
-	  (font-lock-fontify-buffer))
 	;; htmlize the buffer and save the HTML.
 	(with-current-buffer (htmlize-buffer-1)
 	  (unwind-protect
@@ -1948,7 +1858,7 @@ corresponding source file."
 (provide 'htmlize)
 
 ;; Local Variables:
-;; byte-compile-warnings: (not cl-functions lexical unresolved obsolete)
+;; byte-compile-warnings: (not unresolved obsolete)
 ;; End:
 
 ;;; htmlize.el ends here
