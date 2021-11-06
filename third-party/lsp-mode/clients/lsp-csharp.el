@@ -34,30 +34,37 @@ Version 1.34.3 minimum is required."
   :group 'lsp-mode
   :link '(url-link "https://github.com/OmniSharp/omnisharp-roslyn"))
 
+(defgroup lsp-csharp-omnisharp nil
+  "LSP support for C#, using the Omnisharp Language Server.
+Version 1.34.3 minimum is required."
+  :group 'lsp-mode
+  :link '(url-link "https://github.com/OmniSharp/omnisharp-roslyn")
+  :package-version '(lsp-mode . "8.0.1"))
+
 (defcustom lsp-csharp-server-install-dir
   (f-join lsp-server-install-dir "omnisharp-roslyn/")
   "Installation directory for OmniSharp Roslyn server."
-  :group 'lsp-csharp
+  :group 'lsp-csharp-omnisharp
   :type 'directory)
 
 (defcustom lsp-csharp-server-path
   nil
   "The path to the OmniSharp Roslyn language-server binary.
 Set this if you have the binary installed or have it built yourself."
-  :group 'lsp-csharp
+  :group 'lsp-csharp-omnisharp
   :type '(string :tag "Single string value or nil"))
 
 (defcustom lsp-csharp-test-run-buffer-name
   "*lsp-csharp test run*"
   "The name of buffer used for outputing lsp-csharp test run results."
-  :group 'lsp-csharp
+  :group 'lsp-csharp-omnisharp
   :type 'string)
 
 (defcustom lsp-csharp-solution-file
   nil
   "Solution to load when starting the server.
 Usually this is to be set in your .dir-locals.el on the project root directory."
-  :group 'lsp-csharp
+  :group 'lsp-csharp-omnisharp
   :type 'string)
 
 (defcustom lsp-csharp-omnisharp-roslyn-download-url
@@ -81,19 +88,19 @@ Usually this is to be set in your .dir-locals.el on the project root directory."
 
                 (t "omnisharp-mono.zip")))
   "Automatic download url for omnisharp-roslyn."
-  :group 'lsp-csharp
+  :group 'lsp-csharp-omnisharp
   :type 'string)
 
 (defcustom lsp-csharp-omnisharp-roslyn-store-path
   (f-join lsp-csharp-server-install-dir "latest" "omnisharp-roslyn.zip")
   "The path where omnisharp-roslyn .zip archive will be stored."
-  :group 'lsp-csharp
+  :group 'lsp-csharp-omnisharp
   :type 'file)
 
 (defcustom lsp-csharp-omnisharp-roslyn-server-dir
   (f-join lsp-csharp-server-install-dir "latest" "omnisharp-roslyn")
   "The path where omnisharp-roslyn .zip archive will be extracted."
-  :group 'lsp-csharp
+  :group 'lsp-csharp-omnisharp
   :type 'file)
 
 (lsp-dependency
@@ -130,12 +137,6 @@ Will invoke CALLBACK on success, ERROR-CALLBACK on error."
       (when (f-exists? server-dir)
         (f-join server-dir (cond ((eq system-type 'windows-nt) "OmniSharp.exe")
                                  (t "run")))))))
-
-(defun lsp-csharp--language-server-command ()
-  "Resolves path and arguments to use to start the server."
-  (append
-   (list (lsp-csharp--language-server-path) "-lsp")
-   (when lsp-csharp-solution-file (list "-s" (expand-file-name lsp-csharp-solution-file)))))
 
 (lsp-defun lsp-csharp-open-project-file ()
   "Open corresponding project file  (.csproj) for the current file."
@@ -336,14 +337,19 @@ using the `textDocument/references' request."
     (message "No references found")))
 
 (lsp-register-client
- (make-lsp-client :new-connection (lsp-stdio-connection
-                                   #'lsp-csharp--language-server-command
-                                   (lambda ()
-                                     (when-let ((binary (lsp-csharp--language-server-path)))
-                                       (f-exists? binary))))
-
+ (make-lsp-client :new-connection
+                  (lsp-stdio-connection
+                   #'(lambda ()
+                       (append
+                        (list (lsp-csharp--language-server-path) "-lsp")
+                        (when lsp-csharp-solution-file
+                          (list "-s" (expand-file-name lsp-csharp-solution-file)))))
+                   #'(lambda ()
+                       (when-let ((binary (lsp-csharp--language-server-path)))
+                         (f-exists? binary))))
                   :major-modes '(csharp-mode csharp-tree-sitter-mode)
-                  :server-id 'csharp
+                  :server-id 'omnisharp
+                  :priority -1
                   :action-handlers (ht ("omnisharp/client/findReferences" 'lsp-csharp--action-client-find-references))
                   :notification-handlers (ht ("o#/projectadded" 'ignore)
                                              ("o#/projectchanged" 'ignore)
@@ -358,6 +364,78 @@ using the `textDocument/references' request."
                                              ("o#/projectconfiguration" 'ignore)
                                              ("o#/projectdiagnosticstatus" 'ignore))
                   :download-server-fn #'lsp-csharp--download-server))
+
+;;
+;; Alternative "csharp-ls" language server support
+;; see https://github.com/razzmatazz/csharp-language-server
+;;
+(lsp-defun lsp-csharp--cls-metadata-uri-handler (uri)
+  "Handle `csharp:/(metadata)' uri from csharp-ls server.
+
+'csharp/metadata' request is issued to retrieve metadata from the server.
+A cache file is created on project root dir that stores this metadata and filename
+is returned so lsp-mode can display this file."
+
+  (-when-let* ((metadata-req (lsp-make-csharp-ls-c-sharp-metadata
+                              :text-document (lsp-make-text-document-identifier :uri uri)))
+               (metadata (lsp-request "csharp/metadata" metadata-req))
+               ((&csharp-ls:CSharpMetadataResponse :project-name
+                                                   :assembly-name
+                                                   :symbol-name
+                                                   :source) metadata)
+               (filename (f-join ".cache"
+                                 "lsp-csharp"
+                                 "metadata"
+                                 "projects" project-name
+                                 "assemblies" assembly-name
+                                 (concat symbol-name ".cs")))
+               (file-location (expand-file-name filename (lsp-workspace-root)))
+               (metadata-file-location (concat file-location ".metadata-uri"))
+               (path (f-dirname file-location)))
+
+    (unless (file-exists-p file-location)
+      (unless (file-directory-p path)
+        (make-directory path t))
+
+      (with-temp-file metadata-file-location
+        (insert uri))
+
+      (with-temp-file file-location
+        (insert source)))
+
+    file-location))
+
+(defun lsp-csharp--cls-before-file-open (_workspace)
+  "Set `lsp-buffer-uri' variable after C# file is open from *.metadata-uri file."
+
+  (let ((metadata-file-name (concat buffer-file-name ".metadata-uri")))
+    (setq-local lsp-buffer-uri
+                (when (file-exists-p metadata-file-name)
+                  (with-temp-buffer (insert-file-contents metadata-file-name)
+                                    (buffer-string))))))
+
+(defun lsp-csharp--cls-download-server (_client callback error-callback update?)
+  "Install/update csharp-ls language server using `dotnet tool'.
+
+Will invoke CALLBACK or ERROR-CALLBACK based on result. Will update if UPDATE? is t"
+  (lsp-async-start-process
+   callback
+   error-callback
+   "dotnet" "tool" (if update? "update" "install") "-g" "csharp-ls"))
+
+(lsp-register-client
+ (make-lsp-client :new-connection
+                  (lsp-stdio-connection
+                   #'(lambda ()
+                       (append (list "csharp-ls")
+                               (when lsp-csharp-solution-file
+                                 (list "-s" lsp-csharp-solution-file)))))
+                  :priority -2
+                  :server-id 'csharp-ls
+                  :major-modes '(csharp-mode csharp-tree-sitter-mode)
+                  :before-file-open-fn #'lsp-csharp--cls-before-file-open
+                  :uri-handlers (ht ("csharp" #'lsp-csharp--cls-metadata-uri-handler))
+                  :download-server-fn #'lsp-csharp--cls-download-server))
 
 (lsp-consistency-check lsp-csharp)
 

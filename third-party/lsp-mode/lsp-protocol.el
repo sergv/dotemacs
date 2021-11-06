@@ -41,7 +41,7 @@
     "Convert a KEYWORD to string."
     (substring (symbol-name keyword) 1))
 
-  (defvar lsp-use-plists nil))
+  (defvar lsp-use-plists (getenv "LSP_USE_PLISTS")))
 
 (defmacro lsp-interface (&rest interfaces)
   "Generate LSP bindings from INTERFACES triplet.
@@ -392,6 +392,9 @@ See `-let' for a description of the destructuring mechanism."
                (omnisharp:TestMessageEvent (:MessageLevel :Message))
                (omnisharp:DotNetTestResult (:MethodName :Outcome :ErrorMessage :ErrorStackTrace :StandardOutput :StandardError)))
 
+(lsp-interface (csharp-ls:CSharpMetadata (:textDocument))
+               (csharp-ls:CSharpMetadataResponse (:source :projectName :assemblyName :symbolName)))
+
 (lsp-interface (rls:Cmd (:args :binary :env :cwd) nil))
 
 (defconst lsp/rust-analyzer-inlay-hint-kind-type-hint "TypeHint")
@@ -403,6 +406,7 @@ See `-let' for a description of the destructuring mechanism."
                (rust-analyzer:ExpandedMacro (:name :expansion) nil)
                (rust-analyzer:MatchingBraceParams (:textDocument :positions) nil)
                (rust-analyzer:OpenCargoTomlParams (:textDocument) nil)
+               (rust-analyzer:OpenExternalDocsParams (:textDocument :position) nil)
                (rust-analyzer:ResovedCodeActionParams (:id :codeActionParams) nil)
                (rust-analyzer:JoinLinesParams (:textDocument :ranges) nil)
                (rust-analyzer:MoveItemParams (:textDocument :range :direction) nil)
@@ -600,6 +604,7 @@ See `-let' for a description of the destructuring mechanism."
  (FormattingOptions (:tabSize :insertSpaces) (:trimTrailingWhitespace :insertFinalNewline :trimFinalNewlines))
  (HoverCapabilities nil (:contentFormat :dynamicRegistration))
  (ImplementationCapabilities nil (:dynamicRegistration :linkSupport))
+ (LinkedEditingRanges (:ranges) (:wordPattern))
  (Location (:range :uri) nil)
  (MarkedString (:language :value) nil)
  (MarkupContent (:kind :value) nil)
@@ -732,6 +737,8 @@ See `-let' for a description of the destructuring mechanism."
  (ResourceOperationKind nil nil)
  (SelectionRangeParams (:textDocument :positions) nil)
  (SemanticHighlightingParams (:textDocument :lines) nil)
+ (ShowDocumentParams (:uri) (:external :takeFocus :selection))
+ (ShowDocumentResult (:success) nil)
  (ShowMessageRequestParams (:type :message) (:actions))
  (SignatureHelpParams (:textDocument :position) (:context :uri))
  (SignatureHelpRegistrationOptions nil (:documentSelector :triggerCharacters))

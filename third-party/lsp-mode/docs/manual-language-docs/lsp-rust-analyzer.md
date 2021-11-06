@@ -38,6 +38,8 @@ after:
 
 `lsp-rust-analyzer-inlay-hints-mode` enables displaying of inlay hints
 
+Additionally, `lsp-rust-analyzer-server-display-inlay-hints` must be set to `t` in order for inlay hints to render.
+
 NOTE: the inlay hints interact badly with the lsp-ui sideline, because it doesn't seem to consider the overlays in its width calculation, which often leads to lines wrapping around.
 
 ![](../examples/lsp-rust-analyzer-inlay-hints.png)
@@ -62,15 +64,21 @@ Get a list of possible auto import candidates with `lsp-execute-code-action`
 
 `lsp-rust-analyzer-open-cargo-toml` opens the Cargo.toml closest to the current file. Calling it with a universal argument will open the Cargo.toml in another window.
 
-Corresponds to [the rust-analyzer LSP extension](https://github.com/rust-analyzer/rust-analyzer/blob/master/docs/dev/lsp-extensions.md#open-cargotoml) 
+Corresponds to [the rust-analyzer LSP extension](https://github.com/rust-analyzer/rust-analyzer/blob/master/docs/dev/lsp-extensions.md#open-cargotoml)
 
 ![](../examples/lsp-rust-analyzer-open-cargo-toml.gif)
+
+### Open external documentation
+
+`lsp-rust-analyzer-open-external-docs` opens external documentation related to the current position in a browser.
+
+Corresponds to [the rust-analyzer LSP extension](https://github.com/rust-analyzer/rust-analyzer/blob/master/docs/dev/lsp-extensions.md#open-external-documentation)
 
 ### Find and execute tests related to current position
 
 `lsp-rust-analyzer-related-tests` find all tests related to the current position, asks for user completion and executes the selected test in a compilation buffer.
 
-Corresponds to [the rust-analyzer LSP extension](https://github.com/rust-analyzer/rust-analyzer/blob/master/docs/dev/lsp-extensions.md#related-tests) 
+Corresponds to [the rust-analyzer LSP extension](https://github.com/rust-analyzer/rust-analyzer/blob/master/docs/dev/lsp-extensions.md#related-tests)
 
 In the example below, first you see that:
    + On the left, the function `check_infer` is defined, on the right another
