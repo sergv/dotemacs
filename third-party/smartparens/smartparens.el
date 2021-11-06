@@ -4513,6 +4513,8 @@ Non-nil return value means to skip the result."
          (goto-char mb)
          (sp--looking-back "\\\\" 1 t))))
 
+(defvar sp-report-unmatched-expressions t)
+
 ;; TODO: since this function is used for all the navigation, we should
 ;; optimize it a lot! Get some elisp profiler! Also, we should split
 ;; this into smaller functions (esp. the "first expression search"
@@ -4691,7 +4693,8 @@ The expressions considered are those delimited by pairs on
                                 (sp--skip-match-p ms mb me :global-skip global-skip-fn :pair-skip skip-match-pair-fn)))
                     (when (--any? (equal ms it) opens) (setq depth (1+ depth)))
                     (when (--any? (equal ms it) closes) (setq depth (1- depth))))
-                (unless (minibufferp)
+                (when (and sp-report-unmatched-expressions
+                           (not (minibufferp)))
                   (sp-message :unmatched-expression))
                 (setq depth -1)
                 (setq failure t)))
@@ -4702,7 +4705,8 @@ The expressions considered are those delimited by pairs on
             (if (or failure
                     (/= depth 0))
                 (progn
-                  (unless (minibufferp)
+                  (when (and sp-report-unmatched-expressions
+                             (not (minibufferp)))
                     (sp-message :unmatched-expression))
                   nil)
               (let ((end-in-cos (sp-point-in-string-or-comment (1- e)))) ;; fix the "point on comment" issue
