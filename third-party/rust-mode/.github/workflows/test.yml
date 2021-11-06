@@ -10,13 +10,11 @@ jobs:
       matrix:
         rust_version: [stable]
         emacs_version:
-          - 25.1
-          - 25.2
           - 25.3
-          - 26.1
-          - 26.2
           - 26.3
+          - 27.2
           - snapshot
+
     env:
       EMACS_VERSION: ${{ matrix.emacs_version }}
     steps:
@@ -28,5 +26,7 @@ jobs:
         version: ${{ matrix.emacs_version }}
 
     - uses: actions/checkout@v1
+
     - name: Run tests
-      run: './run_rust_emacs_tests.sh'
+      run: |
+        make test
