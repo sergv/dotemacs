@@ -29,7 +29,7 @@ install: $(ELCS) nix-mode.info nix-mode.html AUTHORS.md
 	cp nix-mode.info $(DESTDIR)$(PREFIX)/share/info/
 
 	mkdir -p $(DESTDIR)$(PREFIX)/share/doc/
-	cp AUTHORS.md $(DESTDIR)$(PREFIX)/share/doc/
+	test -f AUTHORS.md && cp AUTHORS.md $(DESTDIR)$(PREFIX)/share/doc/ || true
 
 AUTHORS.md:
 	@test -e .git \
@@ -42,7 +42,7 @@ clean:
 	rm -f $(ELCS) $(DOCS)
 
 run:
-	emacs -l nix-mode.el
+	emacs -Q -L . -l nix-mode.el
 
 %.elc: %.el
 	emacs -batch -L . --eval "(progn\
@@ -56,7 +56,7 @@ run:
 
 %.texi: %.org
 	emacs   --batch \
-		-l ox-extra -l org-man -l ox-texinfo $< \
+		-l ox-extra -l ox-texinfo $< \
 		-f org-texinfo-export-to-texinfo
 
 %.info: %.texi

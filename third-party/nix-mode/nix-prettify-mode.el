@@ -15,8 +15,8 @@
 
 ;; This package provides minor-mode for prettifying Nix store file
 ;; names — i.e., after enabling `nix-prettify-mode',
-;; '/gnu/store/72f54nfp6g1hz873w8z3gfcah0h4nl9p-foo-0.1' names will be
-;; replaced with '/gnu/store/…-foo-0.1' in the current buffer.  There is
+;; '/nix/store/72f54nfp6g1hz873w8z3gfcah0h4nl9p-foo-0.1' names will be
+;; replaced with '/nix/store/…-foo-0.1' in the current buffer.  There is
 ;; also `global-nix-prettify-mode' for global prettifying.
 
 ;; To install, add the following to your Emacs init file:
@@ -53,28 +53,12 @@
   :type 'character
   :group 'nix-prettify)
 
-(defcustom nix-prettify-decompose-force nil
-  "If non-nil, remove any composition.
-
-By default, after disabling `nix-prettify-mode',
-compositions (prettifying names with `nix-prettify-char') are
-removed only from strings matching `nix-prettify-regexp', so
-that compositions created by other modes are left untouched.
-
-Set this variable to non-nil, if you want to remove any
-composition unconditionally (like variable `prettify-symbols-mode' does).
-Most likely it will do no harm and will make the process of
-disabling `nix-prettify-mode' a little faster."
-  :type 'boolean
-  :group 'nix-prettify)
-
 (defcustom nix-prettify-regexp
   ;; The following file names / URLs should be abbreviated:
 
-  ;; /gnu/store/…-foo-0.1
   ;; /nix/store/…-foo-0.1
-  ;; http://hydra.gnu.org/nar/…-foo-0.1
-  ;; http://hydra.gnu.org/log/…-foo-0.1
+  ;; http://hydra.nixos.org/nar/…-foo-0.1
+  ;; http://hydra.nixos.org/log/…-foo-0.1
 
   (rx "/" (or "store" "nar" "log") "/"
       ;; Hash-parts do not include "e", "o", "u" and "t".  See base32Chars
@@ -91,8 +75,8 @@ Example of a \"deeper\" prettifying:
         nix-prettify-regexp-group 0)
 
 This will transform
-'/gnu/store/72f54nfp6g1hz873w8z3gfcah0h4nl9p-foo-0.1' into
-'/gnu/…-foo-0.1'"
+'/nix/store/72f54nfp6g1hz873w8z3gfcah0h4nl9p-foo-0.1' into
+'/nix/…-foo-0.1'"
   :type 'regexp
   :group 'nix-prettify)
 
@@ -132,15 +116,9 @@ enabling/disabling `nix-prettify-mode'.  If nil, do nothing.")
   "Remove file names compositions from the current buffer."
   (with-silent-modifications
     (let ((inhibit-read-only t))
-      (if nix-prettify-decompose-force
-          (remove-text-properties (point-min)
-                                  (point-max)
-                                  '(composition nil))
-        (nix-while-search nix-prettify-regexp
-          (remove-text-properties
-           (match-beginning nix-prettify-regexp-group)
-           (match-end       nix-prettify-regexp-group)
-           '(composition nil)))))))
+      (remove-text-properties (point-min)
+                              (point-max)
+                              '(composition nil)))))
 
 ;;;###autoload
 (define-minor-mode nix-prettify-mode
@@ -195,7 +173,7 @@ See `nix-prettify-special-modes' for details."
   nix-prettify-mode nix-prettify-turn-on)
 
 ;;;###autoload
-(define-obsolete-function-alias 'global-nix-prettify-mode 'nix-prettify-global-mode)
+(define-obsolete-function-alias 'global-nix-prettify-mode 'nix-prettify-global-mode "v1.2.2")
 
 (provide 'nix-prettify-mode)
 

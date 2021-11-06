@@ -1,5 +1,38 @@
 # Changelog
 
+## Unreleased
+
+* Removed json-mode dependency, using js instead.
+
+## 1.4.5
+
+* Fixed completion support in nix-repl-mode for Nix 2.
+
+## 1.4.4
+
+### Changes
+
+* Fix a bug causing Nix-based completions to throw an error
+
+## 1.4.3
+
+### Changes
+
+* Better documentation for nix-prettify-mode
+* Fixes for nix-eshell.el
+* Use `NIX_GET_COMPLETIONS` if Nix 3.0 is installed
+* Add flake.nix
+
+## 1.4.2
+
+### Changes
+
+* Fixed build scripts to work with newer org-mode.
+* Invoke smie indent function locally, instead of globally.
+* Indent correctly when encountering preceding angle bracket paths.
+* Require Emacs 25.
+* Add json-mode dependency.
+
 ## 1.4.1
 
 ### Changes
