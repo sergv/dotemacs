@@ -19,8 +19,8 @@ Fontification check failed for:
         (buttercup-fail "\
 Fontification check failed on line %d for:
 %S
-  Result faces:   %S
-  Expected faces: %S"
+  Expected faces: %S
+  Actual faces:   %S"
                         lineno text (car expected-faces) (car result-faces)))
       (setq expected-faces (cdr expected-faces)
             result-faces (cdr result-faces)
@@ -56,16 +56,17 @@ E.g. for properly fontified Lua string \"local x = 100\" it should return
     \"x\" font-lock-variable-name-face
     \"100\" font-lock-constant-face)
 "
-  (let ((pos 0)
-        nextpos
-        result prop newprop)
-    (while pos
-      (setq nextpos (next-property-change pos str)
-            newprop (or (get-text-property pos 'face str)
-                        (get-text-property pos 'font-lock-face str)))
+  (let* ((pos 0)
+         (prop (or (get-text-property pos 'face str)
+                   (get-text-property pos 'font-lock-face str)))
+         (nextpos 0)
+         newprop
+         result)
+    (while nextpos
+      (setq nextpos (next-property-change nextpos str))
+      (setq newprop (when nextpos (or (get-text-property nextpos 'face str)
+                                      (get-text-property nextpos 'font-lock-face str))))
       (when (not (equal prop newprop))
-        (setq prop newprop)
-
         (when (listp prop)
           (when (eq (car-safe (last prop)) 'default)
             (setq prop (butlast prop)))
@@ -76,8 +77,9 @@ E.g. for properly fontified Lua string \"local x = 100\" it should return
               (setq prop nil))))
         (when prop
           (push (substring-no-properties str pos nextpos) result)
-          (push prop result)))
-      (setq pos nextpos))
+          (push prop result))
+        (setq prop newprop
+              pos nextpos)))
     (nreverse result)))
 
 (defun lua-fontify-str (str)
@@ -125,10 +127,15 @@ This is a mere typing/reading aid for lua-mode's font-lock tests."
 (defmacro with-lua-buffer (&rest body)
   (declare (debug (&rest form)))
   `(with-temp-buffer
-     (lua-mode)
+     ;; font-lock is not activated if buffer name is temporary (starts with a
+     ;; space) and if `noninteractive' is non-nil. Ensure tests that use
+     ;; font-lock still work.
+     (rename-buffer "temp-buffer.lua" t)
+     (let (noninteractive)
+       (lua-mode)
+       (font-lock-mode 1))
      (set (make-local-variable 'lua-process) nil)
      (set (make-local-variable 'lua-process-buffer) nil)
-     (font-lock-fontify-buffer)
      (pop-to-buffer (current-buffer))
      (unwind-protect
       (progn ,@body)
@@ -136,16 +143,18 @@ This is a mere typing/reading aid for lua-mode's font-lock tests."
         (lua-kill-process)))))
 
 (defun lua-get-indented-strs (strs)
-  (butlast
-   (split-string
-    (with-lua-buffer
-     (let ((inhibit-message t))
-       (insert (replace-regexp-in-string "^\\s *" "" (lua-join-lines strs)))
-       (font-lock-fontify-buffer)
-       (indent-region (point-min) (point-max))
-       (buffer-substring-no-properties
-        (point-min) (point-max))))
-    "\n" nil)))
+  (let ((indent-tabs-mode nil)
+        (font-lock-verbose nil))
+   (butlast
+    (split-string
+     (with-lua-buffer
+      (let ((inhibit-message t))
+        (insert (replace-regexp-in-string "^\\s *" "" (lua-join-lines strs)))
+        (font-lock-fontify-buffer)
+        (indent-region (point-min) (point-max))
+        (buffer-substring-no-properties
+         (point-min) (point-max))))
+     "\n" nil))))
 
 (defun lua-insert-goto-<> (strs)
   "Insert sequence of strings and put point in place of \"<>\"."
@@ -166,7 +175,108 @@ This is a mere typing/reading aid for lua-mode's font-lock tests."
      "\n" nil)))
 
 (defun lua--reindent-like (str)
-  (let ((strs (split-string str "\n"))
-        (indent-tabs-mode nil)
-        (font-lock-verbose nil))
+  (let ((strs (split-string str "\n")))
     (equal strs (lua-get-indented-strs strs))))
+
+(defun with-point-at-matcher (&rest args)
+  (let* (lua-code
+         origin-placeholder
+         (origin-marker (make-marker))
+         target-placeholder
+         (target-marker (make-marker))
+         body
+         last-elt
+         result
+         message
+         )
+    (cl-dolist (elt args)
+      (cond
+       ((eq last-elt :lua-code)
+        (setq lua-code (funcall elt)
+              last-elt nil))
+       ((eq last-elt :with-point-at)
+        (setq origin-placeholder (funcall elt)
+              last-elt nil))
+       ((eq last-elt :to-end-up-at)
+        (setq target-placeholder (funcall elt)
+              last-elt nil))
+       ((eq last-elt :after-executing)
+        ;; No funcall here, funcall when the buffer is set up.
+        (setq body elt
+              last-elt nil))
+       (t
+        (setq last-elt (if (functionp elt) (funcall elt) elt)))))
+
+    (with-lua-buffer
+     (insert lua-code)
+
+     (goto-char (point-min))
+     (set-marker target-marker (search-forward target-placeholder))
+     (replace-match "")
+
+     (goto-char (point-min))
+     (set-marker origin-marker (search-forward origin-placeholder))
+     (replace-match "")
+
+     (funcall body)
+
+     (setq result (equal (point) (marker-position target-marker)))
+     (setq message
+           (if result
+          (format "Expected point not to be here:\n\n%s|%s"
+                  (buffer-substring-no-properties (point-min) (point))
+                  (buffer-substring-no-properties (point) (point-max)))
+        (format "Expected point to be here:\n============\n%s|%s\n============\n\nInstead it was here:\n============\n%s|%s\n============"
+                (buffer-substring-no-properties (point-min) (marker-position target-marker))
+                (buffer-substring-no-properties (marker-position target-marker) (point-max))
+                (buffer-substring-no-properties (point-min) (point))
+                (buffer-substring-no-properties (point) (point-max)))))
+     (cons result message))))
+
+(buttercup-define-matcher :with-point-at (&rest args)
+  (apply #'with-point-at-matcher `(:lua-code ,(car args) :with-point-at ,@(cdr args))))
+
+;;; Shortcut for with-point-at with <1> and <2> placeholders
+(buttercup-define-matcher :to-move-point-from-1-to-2 (code-block lua-code)
+  (with-point-at-matcher
+   :lua-code lua-code
+   :with-point-at (lambda () "<1>")
+   :after-executing code-block
+   :to-end-up-at (lambda () "<2>")))
+
+(defun lua--string-trim (string &optional trim-left trim-right)
+  ;; Backport of string-trim for Emacs 24 that doesn't have subr-x lib.
+  (let ((sub-start 0) sub-end)
+    (or trim-left (setq trim-left "[ \t\n\r]+"))
+    (or trim-right (setq trim-right "[ \t\n\r]+"))
+    (save-match-data
+      (when (string-match (concat "\\`" trim-left) string)
+        (setq sub-start (match-end 0)))
+      (when (string-match (concat trim-right "\\'") string sub-start)
+        (setq sub-end (match-beginning 0))))
+    (if (or sub-start sub-end)
+        (substring string sub-start sub-end)
+      string)))
+
+
+(buttercup-define-matcher :to-be-reindented-the-same-way (str)
+  (let* ((lines (split-string (funcall str) "\n"))
+         (indented-lines (lua-get-indented-strs lines)))
+    (buttercup--test-expectation (equal lines indented-lines)
+      :expect-match-phrase (format "Indentation check failed:\n=========\nExpected:\n---------\n%s\n---------\nActual:\n---------\n%s\n========="
+                                   (lua--string-trim (mapconcat 'identity lines "\n"))
+                                   (lua--string-trim (mapconcat 'identity indented-lines "\n")))
+      :expect-mismatch-phrase (format "Expected `%S' to not be reindented like that"
+                                      lines))))
+
+(defmacro lua--parametrize-tests (variables param-values it description-form &rest body)
+  `(progn
+     ,@(cl-loop
+        for params in param-values
+        for let-bindings = (cl-loop for var in variables
+                                    for param in params
+                                    collect `(,var (quote ,param)))
+        for description = (eval `(let ,let-bindings ,description-form))
+        for test-body = `(let ,let-bindings ,@body)
+        collect
+        (macroexpand `(it ,description ,test-body)))))
