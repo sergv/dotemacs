@@ -48,7 +48,7 @@
   "If non-nil, apply different face on the breadcrumb based on the errors."
   :type 'boolean
   :group 'lsp-headerline
-  :package-version '(lsp-mode . "7.1"))
+  :package-version '(lsp-mode . "8.0.0"))
 
 (defface lsp-headerline-breadcrumb-separator-face '((t :inherit shadow :height 0.8))
   "Face used for breadcrumb separator on headerline."
@@ -259,7 +259,7 @@ PATH is the current folder to be checked."
 
 (defun lsp-headerline--build-file-string ()
   "Build the file-segment string for the breadcrumb."
-  (let* ((file-path (buffer-file-name))
+  (let* ((file-path (or (buffer-file-name) ""))
          (filename (f-filename file-path)))
     (if-let ((file-ext (f-ext file-path)))
         (concat (lsp-icons-get-by-file-ext file-ext 'headerline-breadcrumb)
