@@ -273,6 +273,8 @@ Futher modified by Sergey Vinokurov."
             (lsp-modeline-code-actions-preferred-face
                                           ((t (:foreground ,yellow))))
 
+            (lsp-details-face             ((t (:foreground ,base01))))
+
             (clojure-constant-face        ((t (:foreground ,cyan))))
             (clojure-java-interop-face    ((t (:foreground ,yellow))))
             (clojure-meta-type-annotation-face ((t (:foreground ,green))))
