@@ -281,10 +281,12 @@ Toggle:
 _f_ormatting on typing             %`lsp-enable-on-type-formatting
 _h_ighlight of symbol at point     %`lsp-enable-symbol-highlighting
 _i_nlay hints                      %`lsp-rust-analyzer-inlay-hints-mode
+_l_ens                             %`lsp-lens-mode
 "
   ("f" lsp-toggle-on-type-formatting)
   ("h" lsp-toggle-symbol-highlight)
-  ("i" lsp-rust-analyzer-inlay-hints-mode))
+  ("i" lsp-rust-analyzer-inlay-hints-mode)
+  ("l" lsp-lens-mode))
 
 (defhydra-ext hydra-rust-dash (:exit t :foreign-keys nil :hint nil)
   "
