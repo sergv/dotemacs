@@ -13,7 +13,9 @@
     ("p" nil)
     ("H" xref-revert-buffer)
     ("h" xref-next-line)
-    ("t" xref-prev-line)))
+    ("t" xref-prev-line)
+
+    (("q" "<escape>") quit-window)))
 
 ;;;###autoload
 (add-hook 'xref--xref-buffer-mode-hook #'xref-setup)
