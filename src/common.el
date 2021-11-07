@@ -1660,6 +1660,18 @@ are CHAR1 and CHAR2 repsectively."
               (char= it (aref str j)))))
     res))
 
+;;;
+
+(defun string<-safe (x y)
+  "Like ‘string<’ but allows nils. nil is considered smaller that non-nil."
+  (if (null x)
+      (if (null y)
+          nil
+        t)
+    (if (null y)
+        nil
+      (string< x y))))
+
 ;;
 
 (provide 'common)
