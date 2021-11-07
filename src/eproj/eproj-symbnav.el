@@ -118,11 +118,15 @@ as accepted by `bounds-of-thing-at-point'.")
 
 (defun eproj-symbnav/locate-tag-in-current-buffer (tag-name tag)
   (goto-line-dumb (eproj-tag/line tag))
-  (save-match-data
-    (when (re-search-forward (regexp-quote tag-name)
-                             (line-end-position)
-                             t)
-      (goto-char (match-beginning 0))))
+  (if tag-name
+      (save-match-data
+        (let ((tag-name-re (regexp-quote tag-name)))
+          (when (re-search-forward tag-name-re
+                                   (line-end-position)
+                                   t)
+            (goto-char (match-beginning 0)))))
+    (awhen (eproj-tag/column tag)
+      (move-to-column it)))
   ;; remove annoying "Mark set" message
   (notify ""))
 
@@ -218,6 +222,7 @@ as accepted by `bounds-of-thing-at-point'.")
   "Face to put on line numbers."
   :group 'eproj)
 
+;;;###autoload
 (defun eproj-symbnav/choose-location-to-jump-to
     (identifier
      tag->string
@@ -226,7 +231,7 @@ as accepted by `bounds-of-thing-at-point'.")
      current-proj ;; may be nil
      current-home-entry
      tag-entries ;; list of (tag-name tag-struct tag-proj) triples
-     enable-shortcut?
+     enable-shortcut? ;; Jump to destination if there’s only one tag
      preamble
      )
   (cl-assert (functionp tag->string))
@@ -248,16 +253,16 @@ as accepted by `bounds-of-thing-at-point'.")
                   (file-y (third y))
                   (line-x (fourth x))
                   (line-y (fourth y)))
-              (cl-assert (stringp symbol-x))
-              (cl-assert (stringp symbol-y))
+              (cl-assert (or (null symbol-x) (stringp symbol-x)))
+              (cl-assert (or (null symbol-y) (stringp symbol-y)))
               (cl-assert (or (stringp tag-kind-x) (null tag-kind-x)) nil "Unexpected tag kind: %s" tag-kind-x)
               (cl-assert (or (stringp tag-kind-y) (null tag-kind-y)) nil "Unexpected tag kind: %s" tag-kind-y)
               (cl-assert (stringp file-x))
               (cl-assert (stringp file-y))
               (cl-assert (numberp line-x))
               (cl-assert (numberp line-y))
-              (or (string< symbol-x symbol-y)
-                  (and (string= symbol-x symbol-y)
+              (or (string<-safe symbol-x symbol-y)
+                  (and (equal symbol-x symbol-y)
                        (or (and tag-kind-x
                                 tag-kind-y
                                 (string< tag-kind-x tag-kind-y))
@@ -274,26 +279,28 @@ as accepted by `bounds-of-thing-at-point'.")
                         (expand-file-name
                          (eproj-resolve-to-abs-path (eproj-tag/file tag) tag-proj)))
                        (tag-name-pretty
-                        (cond ((string= current-buffer-file-name
-                                        expanded-tag-file)
-                               (propertize tag-name 'face 'font-lock-negation-char-face))
-                              ((string= (eproj-project/root current-proj)
-                                        (eproj-project/root tag-proj))
-                               ;; use italic instead of underscore
-                               (propertize tag-name 'face 'italic))
-                              (t
-                               tag-name))))
+                        (when tag-name
+                          (cond ((string= current-buffer-file-name
+                                          expanded-tag-file)
+                                 (propertize tag-name 'face 'font-lock-negation-char-face))
+                                ((string= (eproj-project/root current-proj)
+                                          (eproj-project/root tag-proj))
+                                 ;; use italic instead of underscore
+                                 (propertize tag-name 'face 'italic))
+                                (t
+                                 tag-name)))))
                   (funcall tag->string tag-proj tag-name-pretty tag)))
             (lambda (tag-proj tag-name tag)
               (let* ((expanded-tag-file
                       (expand-file-name
                        (eproj-resolve-to-abs-path (eproj-tag/file tag) tag-proj)))
                      (tag-name-pretty
-                      (cond ((string= current-buffer-file-name
-                                      expanded-tag-file)
-                             (propertize tag-name 'face 'font-lock-negation-char-face))
-                            (t
-                             tag-name))))
+                      (when tag-name
+                        (cond ((string= current-buffer-file-name
+                                        expanded-tag-file)
+                               (propertize tag-name 'face 'font-lock-negation-char-face))
+                              (t
+                               tag-name)))))
                 (funcall tag->string tag-proj tag-name-pretty tag)))))
          (entry-sort-token #'first)
          (entry-tag-name #'second)

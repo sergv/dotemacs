@@ -251,6 +251,8 @@ argument jump to type definition."
 ;;;; Symbnav
 
 (defun* setup-lsp-symbnav (&key (bind-keybindings t))
+  (setq-local xref-show-definitions-function #'eproj-xref-symbnav-show-xrefs
+              xref-show-xrefs-function #'eproj-xref-symbnav-show-xrefs)
   (when bind-keybindings
     (awhen (current-local-map)
       (def-keys-for-map it
@@ -272,17 +274,6 @@ argument jump to type definition."
 
 (defalias 'lsp-symbnav/go-back #'eproj-symbnav/go-back)
 
-(defsubst lsp-symbnav--tag->string (tag)
-  (cl-assert (eproj-tag-p tag))
-  (concat (propertize (eproj-tag/file tag) 'face 'eproj-symbnav-file-name)
-          ":"
-          (number->string (eproj-tag/line tag))
-          "\n"
-          (aif (eproj-tag/get-prop 'summary tag)
-              it
-            (eproj/extract-tag-line nil tag))
-          "\n"))
-
 (defsubst lsp-symbnav--tag-kind (tag)
   (awhen (eproj-tag/type tag)
     (cl-assert (stringp it))
@@ -299,7 +290,7 @@ argument jump to type definition."
            (let ((identifier (eproj-symbnav/identifier-at-point nil)))
              (cons identifier
                    (--map (list identifier it nil)
-                          (lsp-symbnav--locations-->eproj-tags
+                          (lsp-symbnav--locations->eproj-tags
                            identifier
                            (lsp-request "textDocument/definition"
                                         (lsp--text-document-position-params)))))))))
@@ -314,7 +305,7 @@ argument jump to type definition."
                    (awhen (eproj-tag/type tag)
                      (concat " [" it "]"))
                    "\n"
-                   (lsp-symbnav--tag->string tag)))
+                   (eproj-xref-symbnav--tag->string tag)))
          #'lsp-symbnav--tag-kind
          (eproj-symbnav-get-file-name)
          proj
@@ -328,7 +319,7 @@ argument jump to type definition."
   (let* ((identifier (eproj-symbnav/identifier-at-point nil))
          (tag-triples
           (--map (list identifier it nil)
-                 (lsp-symbnav--locations-->eproj-tags
+                 (lsp-symbnav--locations->eproj-tags
                   identifier
                   (lsp-request "textDocument/references"
                                (lsp--make-reference-params nil include-declaration?))))))
@@ -337,7 +328,7 @@ argument jump to type definition."
       (eproj-symbnav/choose-location-to-jump-to
        identifier
        (lambda (_proj _tag-name tag)
-         (lsp-symbnav--tag->string tag))
+         (eproj-xref-symbnav--tag->string tag))
        #'lsp-symbnav--tag-kind
        (eproj-symbnav-get-file-name)
        proj
@@ -351,7 +342,7 @@ argument jump to type definition."
   (let* ((identifier (eproj-symbnav/identifier-at-point nil))
          (tag-triples
           (--map (list identifier it nil)
-                 (lsp-symbnav--locations-->eproj-tags
+                 (lsp-symbnav--locations->eproj-tags
                   identifier
                   (lsp-request "textDocument/implementation"
                                (lsp--text-document-position-params))))))
@@ -360,7 +351,7 @@ argument jump to type definition."
       (eproj-symbnav/choose-location-to-jump-to
        identifier
        (lambda (_proj _tag-name tag)
-         (lsp-symbnav--tag->string tag))
+         (eproj-xref-symbnav--tag->string tag))
        #'lsp-symbnav--tag-kind
        (eproj-symbnav-get-file-name)
        proj
@@ -387,15 +378,10 @@ argument jump to type definition."
                           tag-line
                           tag-kind
                           (vector (cons 'column tag-column)))
-          nil))
-  ;; (xref-make (format "[%s] %s" (aref lsp--symbol-kind (- kind 1)) name)
-  ;;            (xref-make-file-location (lsp--uri-to-path uri)
-  ;;                                     line
-  ;;                                     character))
-  )
+          nil)))
 
 ;; sync with `lsp--locations-to-xref-items’
-(lsp-defun lsp-symbnav--locations-->eproj-tags (identifier locations)
+(lsp-defun lsp-symbnav--locations->eproj-tags (identifier locations)
   (setq locations
         (pcase locations
           (`nil
@@ -414,7 +400,7 @@ argument jump to type definition."
                  (let ((visiting (find-buffer-visiting filename))
                        (fn (lambda (loc)
                              (lsp-with-filename filename
-                               (lsp-symbnav--make--eproj-item filename
+                               (lsp-symbnav--range->eproj-tag filename
                                                               (lsp--location-range loc))))))
                    (if visiting
                        (with-current-buffer visiting
@@ -438,7 +424,7 @@ argument jump to type definition."
   "Face to show focused parts."
   :group 'lsp-faces)
 
-(lsp-defun lsp-symbnav--make--eproj-item
+(lsp-defun lsp-symbnav--range->eproj-tag
   (filename (&Range :start (start &as &Position :character start-char :line start-line)
                     :end (end &as &Position :character end-char)))
   "Return a xref-item from a RANGE in FILENAME."

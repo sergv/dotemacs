@@ -61,12 +61,12 @@ or just to bury selection buffer, leaving it's windows inplace (nil).)"
 (defvar select-mode-map
   (let ((kmap (make-sparse-keymap)))
     (def-keys-for-map kmap
-      ("<up>"     select-mode-select-previous-item)
-      ("<down>"   select-mode-select-next-item)
-      ("<return>" select-mode-do-select-same-window)
-      ("SPC"      select-mode-do-select-other-window)
-      ("<escape>" select-mode-hide)
-      ("C-g"      select-mode-exit))
+      ("<up>"                   select-mode-select-previous-item)
+      ("<down>"                 select-mode-select-next-item)
+      ("SPC"                    select-mode-do-select-other-window)
+      ("<escape>"               select-mode-hide)
+      ("C-g"                    select-mode-exit)
+      (("<return>" "<mouse-1>") select-mode-do-select-same-window))
     kmap))
 
 ;;; utilities
