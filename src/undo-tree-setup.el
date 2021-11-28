@@ -18,7 +18,9 @@
       undo-tree-enable-undo-in-region nil
       ;; display absolute timestamps
       undo-tree-visualizer-relative-timestamps nil
-      undo-tree-visualizer-timestamps t)
+      undo-tree-visualizer-timestamps t
+
+      undo-tree-auto-save-history nil)
 
 (eval-after-load "undo-tree"
   '(progn
