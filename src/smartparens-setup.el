@@ -70,10 +70,11 @@ If region is active and `use-region-p' returns true, the region
 is wrapped instead.  This is useful with selection functions in
 `evil-mode' to wrap regions with pairs."
   (let* ((p (point))
-         (active-pair (--first (equal (car it) pair-open) sp-pair-list)))
+         (active-pair (assoc pair-open sp-pair-list)))
     (destructuring-bind (start . end)
         (if (region-active-p)
-            (cons (region-beginning) (region-end))
+            (with-region-bounds start end
+              (cons start end))
           (or (-when-let (sym-bounds (bounds-of-thing-at-point 'symbol))
                 (if (= p (cdr sym-bounds))
                     nil ;; don't wrap if we are at the end of symbol
