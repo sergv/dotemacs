@@ -38,7 +38,7 @@
     (alist->hash-table
      '((#xe100 . 2) ;; "<-"
        (#xe101 . 2) ;; "->"
-       (#xe102 . 2) ;; "<=", left short double arrow, not used much since clashes with less-thannor-equal
+       (#xe102 . 2) ;; "<=", left short double arrow, not used much since clashes with less-than-or-equal
        (#xe103 . 2) ;; "=>"
        (#xe104 . 3) ;; "<->"
        (#xe105 . 3) ;; "<=>"
@@ -83,7 +83,8 @@
        (#xe131 . 2) ;; intersection
        (#xe12b . 2) ;; elem, member
        (#xe12c . 2) ;; notElem, notMember
-       (#xe12f . t) ;; isSubsetOf, 2 but glyph is broken
+       (#xe12f . 2) ;; isSubsetOf
+       ;; (#xe12f . t) ;; isSubsetOf, 2 but glyph is broken
        (#xe12e . 2) ;; isProperSubsetOf
        (#xe12a . 2) ;; empty, mempty
 
@@ -144,6 +145,7 @@
     (let* ((ligs
             '(("<-"  . #xe100)
               ("->"  . #xe101)
+
               ;; ("<="  . #xe102)
               ("=>"  . #xe103)
               ("<->" . #xe104)
