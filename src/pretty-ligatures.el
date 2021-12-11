@@ -361,7 +361,14 @@ into accound and do the replacement only within specific circumstances.")
   (pretty-ligatures--install
    (append pretty-ligatures--symbol-replacements
            pretty-ligatures--word-replacements
-           pretty-ligatures--unsafe-word-replacements)))
+           pretty-ligatures--unsafe-word-replacements))
+
+  ;; ;; This is how proper ligatures may be enabled, left for reference
+  ;; (let ((ligatures `((?-  . ,(rx (or "->"))))))
+  ;;   (dolist (entry ligatures)
+  ;;     (set-char-table-range composition-function-table (car entry)
+  ;;                           `([,(cdr entry) 0 font-shape-gstring]))))
+  )
 
 ;;;###autoload
 (defun pretty-ligatures-install-safe! ()
