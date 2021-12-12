@@ -252,35 +252,7 @@
   '(progn
      (setf org-babel-tangle-lang-exts
            (cons (cons "scheme" "scm")
-                 org-babel-tangle-lang-exts))
-
-     ;; Fix issue when org-bracket-link-analytic-regexp matches ordinary link
-     ;; so that (match-string 5) - which is supposed to be the source name -
-     ;; becomes nil
-     (el-patch-defun org-babel-detangle (&optional source-code-file)
-       "Propagate changes in source file back original to Org file.
-This requires that code blocks were tangled with link comments
-which enable the original code blocks to be found."
-       (interactive)
-       (save-excursion
-         (when source-code-file (find-file source-code-file))
-         (goto-char (point-min))
-         (let ((counter 0) new-body end)
-           (while (re-search-forward org-bracket-link-analytic-regexp nil t)
-             (when (el-patch-wrap 2 0
-                     (and (match-string 5)
-                          (re-search-forward
-                           (concat " " (regexp-quote (match-string 5)) " ends here"))))
-               (setq end (match-end 0))
-               (forward-line -1)
-               (save-excursion
-                 (when (setq new-body (org-babel-tangle-jump-to-org))
-                   (org-babel-update-block-body new-body)))
-               (setq counter (+ 1 counter)))
-             (el-patch-wrap 2 0
-               (and end
-                    (goto-char end))))
-           (prog1 counter (message "Detangled %d code blocks" counter)))))))
+                 org-babel-tangle-lang-exts))))
 
 ;;; other functions
 
