@@ -848,22 +848,6 @@ optimization purposes.")
 
 ;;;
 
-;; (defadvice region-active-p (around
-;;                             region-active-p/take-vim-visual-mode-into-account
-;;                             activate
-;;                             compile)
-;;
-;;   ad-do-it
-;;   (or
-;;       (vim:visual-mode-p)))
-;;
-;; (defadvice use-region-p (around
-;;                          use-region-p/take-vim-visual-mode-into-account
-;;                          activate
-;;                          compile)
-;;   (or ad-do-it
-;;       (vim:visual-mode-p)))
-
 (defun get-region-string-no-properties ()
   "Get string currently selected by a region, or nil
 if there's no region."

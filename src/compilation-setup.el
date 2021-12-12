@@ -64,31 +64,6 @@ in compilation or related buffers.")
 
 ;;; compilation info
 
-;; (cl-defstruct (compilation-caller-info
-;;                (:conc-name compilation-caller-info/))
-;;   mode   ;; Mode from which compilation was started.
-;;   compile-command
-;;   buffer ;; Buffer from where compilation was started.
-;;   )
-;;
-;; (defvar *compile-caller-info* nil
-;;   "Structure containing information about buffer, major mode etc.
-;; from where current compile command was invoked. Should be cleared
-;; up by functions in compilation-finish-functions.")
-;;
-;; (defadvice compilation-start (before
-;;                               compilation-start-store-info
-;;                               activate
-;;                               compile)
-;;   "Record information about caller of compile command into
-;; `*compile-caller-info*'"
-;;   (setf *compile-caller-info*
-;;         (make-compilation-caller-info
-;;          :mode major-mode
-;;          :compile-command compile-command
-;;          :buffer (current-buffer))))
-
-
 (eval-after-load "compile"
   '(progn
      (def-keys-for-map compilation-mode-map
