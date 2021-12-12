@@ -16,6 +16,7 @@
   (require 'set-up-font))
 
 (require 'base-emacs-fixes)
+(require 'base-emacs-opt)
 
 (load-library "foreign-setup")
 
