@@ -61,6 +61,8 @@
     (require 's)
     (require 'v)
 
+    (require 'prev-buffer-tracking)
+
     (require 'browse-kill-ring)
     (require 'company)
     (require 'company-mode-setup)
