@@ -751,39 +751,121 @@ block motions."
   "Sets the mark `mark-char' at point."
   (vim:set-mark mark-char))
 
-(defvar-local vim:current-macro nil
+(defvar vim--current-macro nil
   "The name of the currently recorded macro.")
 
-(vim:defcmd vim:cmd-toggle-macro-recording ((argument:char reg) nonrepeatable)
-  "Toggles recording of a keyboard macro."
-  (if reg
-    (progn
-      (put 'vim:cmd-toggle-macro-recording 'argument nil)
-      (vim:cmd-start-macro reg))
-    (progn
-      (put 'vim:cmd-toggle-macro-recording 'argument 'char)
-      (vim:cmd-stop-macro))))
+(defvar vim--fresh-macro-id 0
+  "Numeric id for a macro name that has not been used yet.")
 
-(defun vim:cmd-start-macro (reg)
-  "Starts recording a macro in register `reg'."
-  (setq vim:current-macro reg)
+(defvar vim--defined-macro-names nil
+  "Linked list of cons cells (<bool> . <name>) macro names in reverse order of definition.
+
+<bool> refers to whether a name was provided by the user (‘t’) or made up (‘nil’).
+If <bool> is ‘t’ then <name> is a string, otherwise it’s an integer obtained from ‘vim:fresh-macro-id’.")
+
+(defvar vim--macro-definitions (make-hash-table :test #'equal)
+  "Hash table mapping string names to macro definitions.")
+
+(defun vim--fresh-macro-name ()
+  "Return macro name that has not been used yet."
+  (prog1 vim--fresh-macro-id
+    (cl-incf vim--fresh-macro-id)))
+
+(defvar vim--macro-names-history nil)
+
+(defun vim:cmd-toggle-macro-recording (ask-for-a-name?)
+  (interactive "P")
+  (if vim--current-macro
+      (progn
+        (vim:cmd-stop-macro (cdr vim--current-macro))
+        (setf vim--defined-macro-names (cons vim--current-macro vim--defined-macro-names)
+              vim--current-macro nil))
+    (let ((name (if ask-for-a-name?
+                    (read-string "Macro name: " nil 'vim--macro-names-history)
+                  (vim--fresh-macro-name))))
+      (when (gethash name vim--macro-definitions nil)
+        (unless (y-or-n-p (format "Macro with name ‘%s’ is already defined. Overwrite?" name))
+          (error "Refusing to overwrite")))
+      (setf vim--current-macro (cons ask-for-a-name? name))
+      (vim:cmd-start-macro name))))
+
+(defun vim:cmd-start-macro (name)
+  "Starts recording a macro with name ‘name’."
   (start-kbd-macro nil)
   (let (message-log-max)
-    (message "Start recording keyboard macro in register '%c'" reg)))
+    (message "Start recording keyboard macro named '%s'" name)))
 
-(defun vim:cmd-stop-macro ()
+(defun vim:cmd-stop-macro (name)
   "Stops recording of a macro."
   (end-kbd-macro)
   (let (message-log-max)
-    (message "Stop recording keyboard macro in register '%c'" vim:current-macro))
-  (set-register vim:current-macro last-kbd-macro))
+    (message "Stop recording keyboard macro"))
+  (puthash name last-kbd-macro vim--macro-definitions))
 
-(vim:defcmd vim:cmd-execute-macro (count (argument:char reg))
+(defun vim--render-macro-names (entries)
+  (let* ((result (cons nil nil))
+         (tmp result)
+         (n 0)
+         (name-mapping nil))
+    (dolist (entry entries)
+      (cl-assert (consp entry))
+      (let ((name
+             (if (car entry)
+                 (progn
+                   (cl-assert (stringp (cdr entry)))
+                   (cdr entry))
+               (progn
+                 (cl-assert (numberp (cdr entry)))
+                 (let* ((real-name (cdr entry))
+                        (user-name (if (= n 0)
+                                       "latest"
+                                     (concat "latest~" (number->string n)))))
+                   (while (gethash user-name vim--macro-definitions)
+                     (setf user-name (concat user-name " (automatic name)")))
+                   (setf name-mapping (cons (cons user-name real-name) name-mapping)
+                         n (+ n 1))
+                   user-name)))))
+        (setf (cdr tmp) (cons name nil)
+              tmp (cdr tmp))))
+    (cons (cdr result) name-mapping)))
+
+(defvar vim--executed-macro-names-history nil)
+
+(defun vim:cmd-execute-macro ()
   "Executes the keyboard-macro in register `reg.'"
-  (vim:reset-key-state)
-  (let ((macro (vim:get-register reg)))
-    (vim:set-register ?\@ macro)
-    (execute-kbd-macro macro count)))
+  (interactive)
+  (unless vim--defined-macro-names
+    (error "Nothing to execute: no macros defined"))
+  (let ((count (cond
+                 ((numberp current-prefix-arg)
+                  current-prefix-arg)
+                 (t
+                  1))))
+    (vim:reset-key-state)
+    (let* ((name-for-user nil)
+           (macro (if vim--current-universal-argument-provided?
+                      (destructuring-bind (rendered . name-mapping) (vim--render-macro-names vim--defined-macro-names)
+                        (let* ((name (completing-read "Macro name: " rendered nil t nil 'vim--executed-macro-names-history))
+                               (real-name (or (cdr (assoc name name-mapping))
+                                              name)))
+                          (cl-assert (not (null name)))
+                          (cl-assert (not (null real-name)))
+                          (setf name-for-user real-name)
+                          (gethash real-name
+                                   vim--macro-definitions
+                                   nil)))
+                    (let ((name (cdar vim--defined-macro-names)))
+                      (cl-assert (not (null name)))
+                      (setf name-for-user name)
+                      (gethash name
+                               vim--macro-definitions
+                               nil)))))
+      (unless macro
+        (error "Macro ‘%s’ is not defined" name-for-user))
+      (execute-kbd-macro macro count))))
+
+(defvar vim--universal-argument-provided? nil)
+(defvar vim--current-universal-argument-provided? nil)
 
 (defun vim:universal-argument-minus (arg)
   "Wrapper around `universal-argument-minus' that does the necessary
