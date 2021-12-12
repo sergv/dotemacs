@@ -8,25 +8,89 @@
 
 ;;;; keeping window's previous buffers and switching to them
 
-(defun record-previous-buffer-for-window (win new-buf &rest _ignored)
-  (let* ((prev-buf (window-buffer win))
-         (entries (cons prev-buf
-                        (-filter #'buffer-live-p
-                                 (window-parameter win 'prev-buffers)))))
-    (set-window-parameter win 'prev-buffers entries)))
+(defun prev-bufs--add-buf (prev-buf new-buf entries)
+  (let ((buf-list (prev-bufs--buffers entries)))
+    (cond
+      ;; Common case of switching between the current and the provious buffers.
+      ((and (equal new-buf (car buf-list))
+            (equal prev-buf (cadr buf-list)))
+       (cl-rotatef (car buf-list) (cadr buf-list))
+       entries)
+      (t
+       (cons t (cons prev-buf buf-list))))))
 
-;; (add-function 'set-window-buffer :before #'record-previous-buffer-for-window)
+(defsubst prev-bufs--has-changes? (x)
+  (car x))
+
+(defsubst prev-bufs--buffers (x)
+  (cdr x))
+
+(defsetf prev-bufs--buffers (x) (value)
+  `(setf (cdr ,x) ,value))
+
+(defun prev-bufs--filter-live-and-dedup! (current-buf x)
+  (let* ((result (cons nil (prev-bufs--buffers x)))
+         (prev result)
+         (tmp (cdr prev))
+         (buffers (make-hash-table :test #'equal)))
+
+    (while tmp
+      (let ((buf (car tmp)))
+        (if (buffer-live-p buf)
+            (if (gethash buf buffers)
+                ;; Already seen this guy before, will newer reach
+                ;; this place if the buffer is alive. If the
+                ;; buffer’s not alive then it won’t be considered
+                ;; anyway.
+                (setf (cdr prev) (cdr tmp))
+              (puthash buf t buffers))
+          ;; Dead buffer, remove it
+          (setf (cdr prev) (cdr tmp))))
+      (setf prev (cdr prev)
+            tmp (cdr prev)))
+
+    ;; Reuse cons with nil to signal that there are no changes
+    result))
+
+(defun record-previous-buffer-for-window (win new-buf &rest _ignored)
+  (let ((prev-buf (window-buffer win)))
+    (when (and (not (minibufferp prev-buf))
+               (not (minibufferp new-buf)))
+      (set-window-parameter win
+                            'prev-buffers
+                            (prev-bufs--add-buf prev-buf
+                                                new-buf
+                                                (window-parameter win 'prev-buffers))))))
+
 (advice-add 'set-window-buffer :before #'record-previous-buffer-for-window)
 
 (defun switch-to-prev-buffer-in-window ()
   "Switch to previous alive buffer for selected window, if there's one."
   (interactive)
   (let* ((win (selected-window))
-         (prev-bufs (-filter #'buffer-live-p
-                             (window-parameter win 'prev-buffers))))
-    (if (null? prev-bufs)
-        (error "no alive previous buffers to switch to")
-      (switch-to-buffer (car prev-bufs)))))
+         (current-buf (window-buffer win))
+         (entry (window-parameter win 'prev-buffers)))
+
+    (if-let ((next-buf (car (prev-bufs--buffers entry))))
+        (progn
+          (when (or (prev-bufs--has-changes? entry)
+                    (not (buffer-live-p next-buf)))
+            (setf entry (prev-bufs--filter-live-and-dedup! current-buf entry))
+            (set-window-parameter win 'prev-buffers entry))
+
+          (if-let ((next-buf (car (prev-bufs--buffers entry))))
+              (progn
+                ;; Cannot proceed further if next buffer is the same as the current one. It’s guaranteed
+                ;; to occur only once in the list though so we can just take the tail.
+                (when (equal next-buf current-buf)
+                  (setf (prev-bufs--buffers entry) (cdr (prev-bufs--buffers entry)))
+                  (set-window-parameter win 'prev-buffers entry))
+
+                (if-let ((prev-bufs (prev-bufs--buffers entry)))
+                    (switch-to-buffer (car prev-bufs))
+                  (error "no alive previous buffers to switch to")))
+            (error "no alive previous buffers to switch to")))
+      (error "no alive previous buffers to switch to"))))
 
 (provide 'prev-buffer-tracking)
 
