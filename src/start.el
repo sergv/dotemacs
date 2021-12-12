@@ -33,6 +33,7 @@
 (require 'local-autoloads)
 (require 'org-mode-autoload)
 
+(require 'prev-buffer-tracking)
 (require 'smartparens-setup)
 
 (setq compilation-auto-jump-to-first-error nil
