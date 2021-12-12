@@ -315,9 +315,6 @@ _<right>_: move tab to the right"
   ("x"         vim:cmd-delete-char)
   ("X"         vim:cmd-delete-char-backward)
 
-  ("<insert>"  vim:scroll-line-up)
-  ("<delete>"  vim:scroll-line-down)
-
   ("D"         vim:delete-current-line)
   ("k"         undo-tree-undo)
   ("K"         undo-tree-redo)
