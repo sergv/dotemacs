@@ -72,7 +72,10 @@
 
   ("C-M-k"    remove-buffer)
 
-  ("<mouse-3>" mouse-open-file-at-point-other-window))
+  ("<mouse-3>" mouse-open-file-at-point-other-window)
+
+  ;; It’s bound to ‘keyboard-escape-quit’ by default which I never use.
+  ("\e\e\e" nil))
 
 (def-keys-for-map universal-argument-map
   ("<f2>" universal-argument-more))
