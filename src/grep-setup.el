@@ -53,7 +53,7 @@
      ;; make use of inlined grep-expand-keywords and set *grep-latest-dir*
      ;; pay attention to rgrep-ignore-case
      (el-patch-defun grep-expand-template (template &optional regexp files dir excl)
-       "Patch grep COMMAND string replacing <C>, <D>, <F>, <R>, and <X>."
+       "Expand grep COMMAND string replacing <C>, <D>, <F>, <R>, and <X>."
        (el-patch-splice 2 0
          ((setf dir (or dir "."))
           (setf *grep-latest-dir* dir)
@@ -89,9 +89,19 @@
        "Read a file-name pattern arg for interactive grep.
 The pattern can include shell wildcards.  As whitespace triggers
 completion when entering a pattern, including it requires
-quoting, e.g. `\\[quoted-insert]<space>'."
-       (let* ((bn (or (buffer-file-name)
-                      (replace-regexp-in-string "<[0-9]+>\\'" "" (buffer-name))))
+quoting, e.g. `\\[quoted-insert]<space>'.
+
+REGEXP is used as a string in the prompt."
+       (let* ((grep-read-files-function (get major-mode 'grep-read-files))
+              (file-name-at-point
+               (run-hook-with-args-until-success 'file-name-at-point-functions))
+              (bn (if grep-read-files-function
+                      (funcall grep-read-files-function)
+                    (or (if (and (stringp file-name-at-point)
+                                 (not (file-directory-p file-name-at-point)))
+                            file-name-at-point)
+                        (buffer-file-name)
+                        (replace-regexp-in-string "<[0-9]+>\\'" "" (buffer-name)))))
               (fn (and bn
                        (stringp bn)
                        (file-name-nondirectory bn)))
