@@ -358,7 +358,7 @@ _O_: show all outlines
 _c_: hide subtree
 _C_: hide everything except current entry and its parents"
   ("O" outline-show-all)
-  ;; ("o" show-subtree)
+  ("o" outline-show-subtree)
   ("c" outline-hide-subtree)
   ("C" outline-hide-other))
 
