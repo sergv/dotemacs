@@ -128,13 +128,44 @@ MSYS-style drives, e.g. \"/c/foo/bar.txt\" -> \"c:/foo/bar.txt\"."
        (modify-syntax-entry #xff1a "w   ") ; FULLWIDTH COLON
        )))
 
+(defun shell-setup--dirtrack-msys-directory-function (dir)
+  "Return a canonical directory for comparison purposes.
+Such a directory is all lowercase, has forward-slashes as delimiters,
+and ends with a forward slash."
+  (file-name-as-directory
+   (replace-regexp-in-string "^/\\([a-z]\\)/" "\\1:"
+                             (downcase
+                              (subst-char-in-string ?\\ ?/ dir)))))
+
+(defun shell-setup--dirtrack-cygwin-directory-function (dir)
+  "Return a canonical directory for comparison purposes.
+Such a directory is all lowercase, has forward-slashes as delimiters,
+and ends with a forward slash."
+  (file-name-as-directory
+   (replace-regexp-in-string "^/\\([a-z]\\)/" "\\1:"
+                             (s-chop-prefix "/cygdrive"
+                                            (downcase
+                                             (subst-char-in-string ?\\ ?/ dir))))))
+
+(when (memq system-type '(ms-dos windows-nt))
+  (setf dirtrack-directory-function #'shell-setup--dirtrack-msys-directory-function))
+
+(when (eq system-type 'cygwin)
+  (setf dirtrack-directory-function #'shell-setup--dirtrack-cygwin-directory-function))
+
 ;;;###autoload
 (defun shell-setup ()
   (init-repl :show-directory t :create-keymaps t)
   (smartparens-mode +1)
   (hl-line-mode +1)
 
-  (setf dirtrack-list '("^[^: \r\n]+:\\([^$\r\n]+\\)[$#]" 1))
+  ;; Simplest config that works with this: PS1="\w$"
+  (setf dirtrack-list (list (rx bol
+                                (? (+ (not (or ?: ?\s ?\r ?\n)))
+                                   ":")
+                                (group (+ (not (or ?$ ?\r ?\n))))
+                                (any ?$ ?#))
+                            1))
   (dirtrack-mode +1)
 
   (setq-local comment-start "#"
