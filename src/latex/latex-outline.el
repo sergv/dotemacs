@@ -254,9 +254,9 @@ _O_: show all
 _c_: hide subtree
 _o_: show subtree"
   ("C" latex-hide-all)
-  ("c" hide-subtree)
-  ("O" show-all)
-  ("o" show-subtree))
+  ("c" outline-hide-subtree)
+  ("O" outline-show-all)
+  ("o" outline-show-subtree))
 
 (defun latex-setup-folding ()
   (interactive)
