@@ -41,7 +41,7 @@ or \"detached head\" will be substituted for %s."
      magit-read-branch-or-commit-prompt-for-previous-commit-first)
    (format prompt (or (magit-get-current-branch) "detached head"))))
 
-(defun magit-read-branch-or-commit-prompt-for-previous-commit-first (prompt &optional secondary-default)
+(defun magit-read-branch-or-commit-prompt-for-previous-commit-first (prompt &optional _secondary-default)
   (or (magit-completing-read prompt (cons "HEAD^" (cons "HEAD" (magit-list-refnames)))
                              nil nil nil 'magit-revision-history
                              nil)
