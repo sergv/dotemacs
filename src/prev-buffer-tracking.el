@@ -36,18 +36,15 @@
 
     (while tmp
       (let ((buf (car tmp)))
-        (if (buffer-live-p buf)
-            (if (gethash buf buffers)
-                ;; Already seen this guy before, will newer reach
-                ;; this place if the buffer is alive. If the
-                ;; buffer’s not alive then it won’t be considered
-                ;; anyway.
-                (setf (cdr prev) (cdr tmp))
-              (puthash buf t buffers))
-          ;; Dead buffer, remove it
-          (setf (cdr prev) (cdr tmp))))
-      (setf prev (cdr prev)
-            tmp (cdr prev)))
+        (if (or (not (buffer-live-p buf))
+                (gethash buf buffers))
+            ;; Don’t move ‘prev’ here in order to be able to delete multiple consecutive elements.
+            (setf (cdr prev) (cdr tmp)
+                  tmp (cdr tmp))
+          (progn
+            (puthash buf t buffers)
+            (setf prev (cdr prev)
+                  tmp (cdr prev))))))
 
     ;; Reuse cons with nil to signal that there are no changes
     result))
