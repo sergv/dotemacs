@@ -94,46 +94,48 @@
                    (gethash lang-mode eproj/languages-table))))
       (with-temp-buffer
         (with-disabled-undo
-          (with-inhibited-modification-hooks
-            (cd root-dir)
-            (dolist (file files)
-              (when (string-match-p ext-re file)
-                (insert file "\n")))
-            (with-temporary-file stderr "eproj-ctags-errors" nil nil
-              (let* ((args
-                      (append
-                       (list "-o"
-                             "-"
-                             "-L"
-                             "-"
-                             "--excmd=number"
-                             "--sort=no")
-                       (aif (cdr-safe (assq lang-mode *ctags-language-flags*))
-                           it
-                         (error "unknown ctags language: %s" lang-mode))))
-                     (exit-status
-                      (apply #'call-process-region
-                             (point-min)
-                             (point-max)
-                             eproj-ctags--exec
-                             nil ;; delete
-                             (list out-buffer stderr)
-                             nil ;; display
-                             args)))
-                (when (or (not (numberp exit-status))
-                          (not (= 0 exit-status)))
-                  (error "Call to ctags failed.\nMode: %s\nExtension regexp: %s\nExit status: %s\nOutput: %s\nCommand: %s"
-                         lang-mode
-                         ext-re
-                         exit-status
-                         (with-current-buffer out-buffer
-                           (buffer-substring-no-properties (point-min) (point-max)))
-                         (cons eproj-ctags--exec args)))
-                (with-temp-buffer
-                  (insert-file-contents stderr nil nil nil t)
-                  (when (not (= 0 (buffer-size)))
-                    (error "ctags reports on stderr:\n%s"
-                           (buffer-substring-no-properties (point-min) (point-max)))))))))))))
+         (with-inhibited-modification-hooks
+          (cd root-dir)
+          (dolist (file files)
+            (when (string-match-p ext-re file)
+              (insert file "\n")))
+          (with-temporary-file stderr "eproj-ctags-errors" nil nil
+            (let* ((args
+                    (append
+                     (list "-o"
+                           "-"
+                           "-L"
+                           "-"
+                           "--excmd=number"
+                           "--sort=no")
+                     (aif (cdr-safe (assq lang-mode *ctags-language-flags*))
+                         it
+                       (error "unknown ctags language: %s" lang-mode))))
+                   (exit-status
+                    (apply #'call-process-region
+                           (point-min)
+                           (point-max)
+                           eproj-ctags--exec
+                           nil ;; delete
+                           (list out-buffer stderr)
+                           nil ;; display
+                           args))
+                   (stderr-contents (with-temp-buffer
+                                      (insert-file-contents stderr nil nil nil t)
+                                      (buffer-substring-no-properties (point-min) (point-max)))))
+              (when (or (not (numberp exit-status))
+                        (not (= 0 exit-status)))
+                (error "Call to ctags failed.\nMode: %s\nExtension regexp: %s\nExit status: %s\nOutput: %s\nStderr: %s\nCommand: %s"
+                       lang-mode
+                       ext-re
+                       exit-status
+                       (with-current-buffer out-buffer
+                         (buffer-substring-no-properties (point-min) (point-max)))
+                       stderr-contents
+
+                       (cons eproj-ctags--exec args)))
+              (unless (= 0 (length stderr-contents))
+                (error "ctags reports on stderr:\n%s" stderr-contents))))))))))
 
 (defvar eproj/ctags-string-cache
   (make-hash-table :test #'equal :size 997 :weakness t))
