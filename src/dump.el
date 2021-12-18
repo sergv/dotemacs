@@ -150,6 +150,9 @@
     (require 'keys)
     (require 'vim-setup)
 
+    (when-windows
+     (require 'fakecygpty-setup))
+
     ;; (require 'persistent-store)
     ;;
     ;; (require 'local-autoloads)

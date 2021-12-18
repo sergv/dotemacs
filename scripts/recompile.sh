@@ -105,6 +105,7 @@ fi
 inform "Generating src/local-autoloads.el"
 update-dir-autoloads \
     "src/local-autoloads.el" \
+    "native/fakecygpty" \
     "src" \
     "src/custom" \
     "src/eproj" \
