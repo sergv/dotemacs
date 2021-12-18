@@ -81,6 +81,8 @@ executable ${filename no ext}
     ${filename no ext}
   ghc-options:
     -rtsopts
+--     -threaded
+--     "-with-rts-opts=-N -A32M"
 --     -main-is ExeMain
 
 test-suite ${filename no ext}-test
