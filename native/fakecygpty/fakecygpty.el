@@ -65,9 +65,6 @@
 (defvar fakecygpty--activated nil
   "If t, fakecygpty is activated.")
 
-(defconst fakecygpty--advice-regexp "^fakecygpty--"
-  "Regexp for advice name of fakecygpty package.")
-
 ;;;###autoload
 (defun fakecygpty-activate ()
   "Activate fakecygpty features."
@@ -81,9 +78,7 @@
     (unless fakecygpty--advice-defined
       (fakecygpty--make-advice)
       (setq fakecygpty--advice-defined t))
-    
-    (ad-enable-regexp fakecygpty--advice-regexp)
-    (ad-activate-regexp fakecygpty--advice-regexp)
+
     (setq fakecygpty--activated t)))
 
 ;;;###autoload
@@ -91,8 +86,23 @@
   "Deactivate fakecygpty features."
   (interactive)
   (when fakecygpty--activated
-    (ad-disable-regexp fakecygpty--advice-regexp)
-    (ad-activate-regexp fakecygpty--advice-regexp)
+
+    (advice-remove 'start-process #'fakecygpty--start-process)
+    (advice-remove 'process-command #'fakecygpty--process-command)
+    (advice-remove 'process-tty-name #'fakecygpty--process-tty-name)
+    (advice-remove 'process-status #'fakecygpty--process-status)
+    (advice-remove 'process-send-eof #'fakecygpty--process-send-eof)
+    (advice-remove 'signal-process #'fakecygpty--signal-process)
+
+    (advice-remove 'interrupt-process #'fakecygpty--interrupt-process)
+    (advice-remove 'quit-process #'fakecygpty--quit-process)
+    (advice-remove 'stop-process #'fakecygpty--stop-process)
+    (advice-remove 'continue-process #'fakecygpty--continue-process)
+    (advice-remove 'kill-process #'fakecygpty--kill-process)
+
+    (advice-remove 'set-process-window-size #'fakecygpty--set-process-window-size)
+    (advice-remove 'gdb-io-interrupt #'fakecygpty--gdb-io-interrupt-workaround)
+
     (setq fakecygpty--activated nil)))
 
 (defun fakecygpty-process-p (process)
@@ -159,7 +169,9 @@ TTY's foreground process group pgid equals PROCESS pid."
 (defun fakecygpty--ignored-program (program)
   "Return non-nil if PROGRAM is run without fakecygpty on `start-process'.
 An ignored pattern is used from `fakecygpty-ignored-program-regexps'"
-  (let ((program (file-name-nondirectory program)))
+  (let ((program (file-name-nondirectory program))
+        ;; Ignore case since this whole module is purely for Windows.
+        (case-fold-search t))
     (delq nil (mapcar (lambda (p)
 			(string-match-p p program))
 		      fakecygpty-ignored-program-regexps))))
@@ -200,122 +212,145 @@ nil means current buffer's process."
 	  (process-send-string process (char-to-string special-char))
 	  t)))))
 
-(defun fakecygpty--make-advice ()
-  "Make advices for fakecygpty and qkill."
-  (defadvice start-process (around fakecygpty--start-process last activate)
-    "If `process-connection-type' is non-nil, invoke PROGRAM by `fakecygpty-program'."
-    (if (and process-connection-type	; if non-nil, required pty.
-	     ;; (ad-get-arg 2)
-	     (or (not (ad-get-arg 2))
-		 (not (fakecygpty--ignored-program (ad-get-arg 2)))))
-	(progn
-	  ;; insert fakecygpty at program file name position.
-	  (when (ad-get-arg 2)
-	    (ad-set-args 3 (cons (ad-get-arg 2) (ad-get-args 3))))
-	  (ad-set-arg 2 fakecygpty-program)
-	  ad-do-it
-	  (when (processp ad-return-value)
-	    (process-put ad-return-value :fakecygpty-p
-			 (if (ad-get-arg 3) t 'pty))))
-      ad-do-it))
+(defun fakecygpty--start-process (old-start-proc name buf program &rest program-args)
+  "If `process-connection-type' is non-nil, invoke PROGRAM by `fakecygpty-program'."
+  (if (and process-connection-type      ; if non-nil, required pty.
+           ;; program
+           (or (not program)
+               (not (fakecygpty--ignored-program program))))
+      (let ((proc (apply old-start-proc
+                         name
+                         buf
+                         fakecygpty-program
+                         ;; insert fakecygpty at program file name position.
+                         (if program
+                             (cons program program-args)
+                           program-args))))
+        (when (processp proc)
+          (process-put proc
+                       :fakecygpty-p
+                       (if program-args t 'pty)))
+        proc)
+    (apply old-start-proc
+           name
+           buf
+           program
+           program-args)))
 
-  (defadvice process-command (after fakecygpty--process-command activate)
-    "Return real command name if PROCESS was invoked by fakecygpty."
-    (when (fakecygpty-process-p (ad-get-arg 0))
-      (setq ad-return-value (cdr ad-return-value))))
+(defun fakecygpty--process-command (old-processs-command proc)
+  "Return real command name if PROCESS was invoked by fakecygpty."
+  (let ((result (funcall old-processs-command proc)))
+    (if (fakecygpty-process-p proc)
+        (cdr result)
+      result)))
 
-  (defadvice process-tty-name (after fakecygpty--process-tty-name activate)
-    "Return tty name if PROCESS was invoked by fakecygpty."
-    (when (fakecygpty-process-p (ad-get-arg 0))
-      (setq ad-return-value
-	    (with-temp-buffer
-	      ;; NTEmacs cannot see cygwin's `/proc' file-system, so using cygwin program.
-	      ;; Finding fakecygpty's tty-name.
-	      (if (zerop (call-process
-			  "cat" nil (current-buffer) nil
-			  (format "/proc/%s/ctty" (fakecygpty-real-process-id (ad-get-arg 0)))))
-		  (replace-regexp-in-string "\r?\n" "" (buffer-string))
-		"?")))))
+(defun fakecygpty--process-tty-name (old-process-tty-name proc)
+  "Return tty name if PROCESS was invoked by fakecygpty."
+  (let ((result (funcall old-process-tty-name proc)))
+    (if (fakecygpty-process-p proc)
+        (with-temp-buffer
+          ;; NTEmacs cannot see cygwin's `/proc' file-system, so using cygwin program.
+          ;; Finding fakecygpty's tty-name.
+          (if (zerop (call-process
+                      "cat" nil (current-buffer) nil
+                      (format "/proc/%s/ctty" (fakecygpty-real-process-id proc))))
+              (replace-regexp-in-string "\r?\n"
+                                        ""
+                                        (buffer-substring-no-properties (point-min) (point-max)))
+            "?"))
+      result)))
 
-  (defadvice process-status (after fakecygpty--process-status activate)
-    "Change return value 'exit to 'failed for pty allocation only mode."
-    (let ((proc (fakecygpty--normalize-process-arg (ad-get-arg 0))))
-      (when (and (eq (fakecygpty-process-p proc) 'pty)
-		 (memq ad-return-value '(exit signal)))
-	(setq ad-return-value 'failed))))
+(defun fakecygpty--process-status (old-process-status proc)
+  "Change return value 'exit to 'failed for pty allocation only mode."
+  (let ((result (funcall old-process-status proc)))
+    (let ((proc (fakecygpty--normalize-process-arg proc)))
+      (if (and (eq (fakecygpty-process-p proc) 'pty)
+               (memq result '(exit signal)))
+          'failed)
+      result)))
 
-  (defadvice process-send-eof (around fakecygpty--send-process-eof activate)
-    "Send raw C-d code if PROCESS was invoked by fakecygpty."
-    (let ((proc (fakecygpty--normalize-process-arg (ad-get-arg 0))))
-      (if (fakecygpty-process-p proc)
-	  (progn
-	    (fakecygpty--process-send-special-char proc "eof")
-	    (setq ad-return-value proc))
-	ad-do-it)))
+(defun fakecygpty--process-send-eof (old-process-send-eof &optional process)
+  "Send raw C-d code if PROCESS was invoked by fakecygpty."
+  (let ((proc (fakecygpty--normalize-process-arg process)))
+    (if (fakecygpty-process-p proc)
+        (progn
+          (fakecygpty--process-send-special-char proc "eof")
+          proc)
+      (funcall old-process-send-eof process))))
 
-  (defadvice signal-process (around fakecygpty--signal-process activate)
-    "Send signal by `fakecygpty-qkill' for cygwin process.
+(defun fakecygpty--signal-process (old-signal-process proc sigcode)
+  "Send signal by `fakecygpty-qkill' for cygwin process.
 So it's able to send any type signal.
 For windows process, Emacs native `signal-process' will be invoked."
-    (if (fakecygpty-qkill (ad-get-arg 0) (ad-get-arg 1) nil t)
-	(setq ad-return-value 0)
-      ad-do-it
-      ))
+  (if (fakecygpty-qkill proc sigcode nil t)
+      0
+    (funcall old-signal-process proc sigcode)))
 
-  (dolist (desc '((interrupt-process 'SIGINT "intr")
-		  (quit-process 'SIGQUIT "quit")
-		  (stop-process 'SIGTSTP "susp")
-		  (continue-process 'SIGCONT nil)
-		  (kill-process 'SIGKILL nil)))
-    (let ((func (nth 0 desc))
-	  (sig (nth 1 desc))
-	  (cc (nth 2 desc)))
-      (eval `(defadvice ,func (around ,(intern (format "fakecygpty--%s" func)) activate)
-	       ,(format "Send %s signal by `fakecygpty-qkill'" (eval sig))
-	       (let* ((proc (fakecygpty--normalize-process-arg (ad-get-arg 0)))
-		      (current-grp (and (fakecygpty-process-p proc) (ad-get-arg 1)))
-		      special-char)
-		 (if (and (eq (process-type proc) 'real)
-			  (cond
-			   ((null current-grp)
-			    (fakecygpty-qkill (- (fakecygpty-real-process-id proc)) ,sig))
-			   ,(if cc
-				`((fakecygpty--process-send-special-char proc ,cc)
-				  t)
-			      '(nil nil))
-			   ((eq current-grp 'lambda)
-			    (fakecygpty-qkill (fakecygpty-real-process-id proc)
-					      ,sig nil nil
-					      (process-tty-name proc) t))
-			   (t
-			    (fakecygpty-qkill (fakecygpty-real-process-id proc)
-					      ,sig nil nil
-					      (process-tty-name proc)))))
-		     (setq ad-return-value proc)
-		   ad-do-it)))
-	    )))
+(defmacro fakecygpty--make-signal-advice (advice-name sig cc)
+  `(defun ,advice-name (old-func &optional process current-group)
+     ,(format "Send %s signal by `fakecygpty-qkill'" (eval sig))
+     (let ((proc (fakecygpty--normalize-process-arg process)))
+       (if (and (eq (process-type proc) 'real)
+                (let ((current-grp (and (fakecygpty-process-p proc) current-group)))
+                  (cond
+                    ((null current-grp)
+                     (fakecygpty-qkill (- (fakecygpty-real-process-id proc)) ,sig))
+                    ,(if cc
+                         `((fakecygpty--process-send-special-char proc ,cc)
+                           t)
+                       '(nil nil))
+                    ((eq current-grp 'lambda)
+                     (fakecygpty-qkill (fakecygpty-real-process-id proc)
+                                       ,sig nil nil
+                                       (process-tty-name proc) t))
+                    (t
+                     (fakecygpty-qkill (fakecygpty-real-process-id proc)
+                                       ,sig nil nil
+                                       (process-tty-name proc))))))
+           proc
+         (funcall old-func process current-group)))))
 
-  (defadvice set-process-window-size (around fakecygpty--set-process-window-size activate)
-    "Send SIGWINCH signal with a window size information when process is invoked by `fakecygpty'.
+(fakecygpty--make-signal-advice fakecygpty--interrupt-process 'SIGINT "intr")
+(fakecygpty--make-signal-advice fakecygpty--quit-process 'SIGQUIT "quit")
+(fakecygpty--make-signal-advice fakecygpty--stop-process 'SIGTSTP "susp")
+(fakecygpty--make-signal-advice fakecygpty--continue-process 'SIGCONT nil)
+(fakecygpty--make-signal-advice fakecygpty--kill-process 'SIGKILL nil)
+
+(defun fakecygpty--set-process-window-size (old-set-process-window-size proc height width)
+  "Send SIGWINCH signal with a window size information when process is invoked by `fakecygpty'.
 The window size information is caluclated by lines * 65536 + columns."
-    (if (fakecygpty-process-p (ad-get-arg 0))
-	(setq ad-return-value
-	      (fakecygpty-qkill (ad-get-arg 0) 'SIGWINCH
-				(+ (* 65536 (ad-get-arg 1))
-				   (ad-get-arg 2))))
-      ad-do-it))
+  (if (fakecygpty-process-p proc)
+      (fakecygpty-qkill proc 'SIGWINCH
+                        (+ (* 65536 height)
+                           width))
+    (funcall old-set-process-window-size proc height width)))
 
-  (eval-after-load "gdb-mi"
-    '(defadvice gdb-io-interrupt (around fakecygpty--gdb-io-interrupt-workaround activate)
-	 "Workaround for gdb-io-interrupt.  This function needs real CTRL-C singal."
-	 (if (not fakecygpty--activated)
-	     ad-do-it
-	   (ad-disable-advice 'interrupt-process 'around 'fakecygpty--interrupt-process)
-	   (ad-activate 'interrupt-process)
-	   ad-do-it
-	   (ad-enable-advice 'interrupt-process 'around 'fakecygpty--interrupt-process)
-	   (ad-activate 'interrupt-process))))
-  )
+(defun fakecygpty--gdb-io-interrupt-workaround (old-gdb-io-interrupt)
+  (if fakecygpty--activated
+      (progn
+        (advice-remove 'interrupt-process #'fakecygpty--interrupt-process)
+        (funcall old-gdb-io-interrupt)
+        (advice-add 'interrupt-process :around #'fakecygpty--interrupt-process))
+    (funcall old-gdb-io-interrupt)))
+
+(defun fakecygpty--make-advice ()
+  "Make advices for fakecygpty and qkill."
+
+  (advice-add 'start-process :around #'fakecygpty--start-process)
+  (advice-add 'process-command :around #'fakecygpty--process-command)
+  (advice-add 'process-tty-name :around #'fakecygpty--process-tty-name)
+  (advice-add 'process-status :around #'fakecygpty--process-status)
+  (advice-add 'process-send-eof :around #'fakecygpty--process-send-eof)
+  (advice-add 'signal-process :around #'fakecygpty--signal-process)
+
+  (advice-add 'interrupt-process :around #'fakecygpty--interrupt-process)
+  (advice-add 'quit-process :around #'fakecygpty--quit-process)
+  (advice-add 'stop-process :around #'fakecygpty--stop-process)
+  (advice-add 'continue-process :around #'fakecygpty--continue-process)
+  (advice-add 'kill-process :around #'fakecygpty--kill-process)
+
+  (advice-add 'set-process-window-size :around #'fakecygpty--set-process-window-size)
+  (advice-add 'gdb-io-interrupt :around #'fakecygpty--gdb-io-interrupt-workaround))
 
 (provide 'fakecygpty)
 
