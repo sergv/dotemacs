@@ -8,9 +8,6 @@
 
 ;;;###autoload (autoload 'get-haskell-language-extensions "haskell-ghc-extension-list" nil t)
 (defun-once get-haskell-language-extensions
-  ;; Make this list from documentation, e.g.
-  ;; http://www.haskell.org/ghc/docs/7.6.3/html/users_guide/flag-reference.html
-  ;; command: '<,'>s/^-X\([^\t]+\)\t\([^\t]+\)\t[^\t]+\t-\(?:X\(.*\)\)?/("\1" "\2" "\3")/
   (if-let (ghc-exec (cached-executable-find "ghc"))
       (with-temp-buffer
         (call-process ghc-exec
@@ -24,7 +21,6 @@
                        t
                        "[ \t]+")
          #'string<))
-    ;; TODO: add default
     '("AllowAmbiguousTypes"
       "AlternativeLayoutRule"
       "AlternativeLayoutRuleTransitional"
