@@ -71,8 +71,11 @@
     (let* ((local-dirs
             (find-elisp-dirs (concat emacs-dir "/src")))
            (third-party-dirs
-            (find-elisp-dirs (concat emacs-dir "/third-party")
-                             set-up-paths--ignored-third-party-el-dirs-re))
+            (append
+             (list
+              (concat emacs-dir "/native/fakecygpty"))
+             (find-elisp-dirs (concat emacs-dir "/third-party")
+                              set-up-paths--ignored-third-party-el-dirs-re)))
            (extra-files (list init-file))
            (dir-el-files
             (lambda (dir)
