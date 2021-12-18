@@ -253,6 +253,9 @@
                 dired-find-alternate-file))
   (put func 'disabled nil))
 
+(when-windows
+ (require 'fakecygpty-setup))
+
 (provide 'start)
 
 (unless (featurep 'custom-variables-defined)
