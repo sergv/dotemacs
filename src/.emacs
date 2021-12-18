@@ -43,9 +43,13 @@
       (emacs-root
        (progn
          (cl-assert (file-directory-p emacs-root))
-         (let ((src-dir (concat emacs-root "/src")))
-           (cl-assert (file-directory-p src-dir))
-           (add-to-list 'load-path src-dir))))
+         (dolist (dir '("/src"
+                        ;; Required for windows-setup.el which gets loaded pretty early and
+                        ;; fixes the HOME environment variable.
+                        "/third-party/s.el"))
+           (let ((src-dir (concat emacs-root dir)))
+             (cl-assert (file-directory-p src-dir))
+             (add-to-list 'load-path src-dir)))))
       ((file-directory-p default-src-dir)
        (add-to-list 'load-path default-src-dir))
       (t
