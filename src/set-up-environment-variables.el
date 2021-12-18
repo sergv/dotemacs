@@ -43,6 +43,9 @@
   (dolist (dir (parse-colon-path (getenv env-var)))
     (add-to-list list dir append)))
 
+(when-windows
+ (setenv "HOME" (cygwin-directory-name-to-emacs (getenv "HOME"))))
+
 (add-env-var-to-list "PATH" 'exec-path :append t)
 
 (when (executable-find "cat")
