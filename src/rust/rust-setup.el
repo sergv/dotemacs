@@ -18,6 +18,7 @@
 (require 'indentation)
 (require 'lsp-rust)
 (require 'lsp-setup)
+(require 'lsp-rust-setup)
 (require 'pretty-ligatures)
 (require 'rust-compilation-commands)
 (require 'smartparens-rust)
