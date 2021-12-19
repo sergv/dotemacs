@@ -573,7 +573,7 @@ commented parts and leave point unchanged."
 
 ;;;###autoload
 (defun haskell-comment-node (&optional count)
-  "Similar to `lisp-comment-sexp' buf for current haskell node."
+  "Similar to `lisp-comment-sexp' buf for current Haskell node."
   (interactive (list current-prefix-arg))
   (let ((comment-format
          (concat (comment-format-one-line *comment-util-current-format*)
