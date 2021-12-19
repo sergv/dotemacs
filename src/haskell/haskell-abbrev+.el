@@ -38,10 +38,12 @@
         t))))
 
 (defun haskell-abbrev+--ensure-debug-trace-available ()
-  (unless (haskell-abbrev+--is-function-available nil (seq symbol-start "Debug.Trace" symbol-end))
+  (unless (haskell-abbrev+--is-function-available nil
+                                                  (or (seq "qualified" (* any) symbol-start "Debug.Trace" symbol-end)
+                                                      (seq symbol-start "Debug.Trace" symbol-end (* any) "qualified")))
     (save-excursion
       (haskell-navigate-imports-go)
-      (insert "import Debug.Trace\n\n"))))
+      (insert "import qualified Debug.Trace\n\n"))))
 
 (defun haskell-insert-general-info-template (arg monadic? trace-func-name)
   (let* ((start-position (point))
@@ -49,9 +51,6 @@
           (not (haskell-insert-followed-by-dollar? start-position)))
          (start
           (if monadic?
-              ;; (if trace-func-name
-              ;;     (lambda ()
-              ;;       (insert trace-func-name " $ \"")))
               (lambda ()
                 (insert
                  (if trace-func-name
@@ -110,12 +109,12 @@
 (defun haskell-insert-trace-template (&optional arg)
   (interactive "P")
   (haskell-abbrev+--ensure-debug-trace-available)
-  (haskell-insert-general-info-template arg nil "trace"))
+  (haskell-insert-general-info-template arg nil "Debug.Trace.trace"))
 
 (defun haskell-insert-tracem-template (&optional arg)
   (interactive "P")
   (haskell-abbrev+--ensure-debug-trace-available)
-  (haskell-insert-general-info-template arg t "traceM"))
+  (haskell-insert-general-info-template arg t "Debug.Trace.traceM"))
 
 (defun haskell-insert-monadic-info-template (&optional arg)
   (interactive "P")
