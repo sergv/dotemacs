@@ -162,7 +162,7 @@
   (interactive)
   (if (search-backward-regexp +dante-prompt-re+ (line-beginning-position) t 1)
       (goto-char (+ 2 (line-beginning-position)))
-    (call-interactively 'move-beginning-of-line)))
+    (call-interactively #'move-beginning-of-line)))
 
 (defun dante-completion-response-to-list (reply)
   "Convert the REPLY from a backend completion to a list."

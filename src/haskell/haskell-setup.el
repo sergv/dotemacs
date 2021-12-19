@@ -232,7 +232,7 @@ _a_lign  _t_: jump to topmost node start
       (when (not non-vanilla-haskell-mode?)
         (flycheck-setup-from-eproj
          proj
-         'haskell-dante
+         'haskell-dante ;; default checker
          (lambda (backend)
            (when (eq backend 'haskell-dante)
              (setq-local company-backends (cons 'dante-company company-backends))
@@ -247,10 +247,6 @@ _a_lign  _t_: jump to topmost node start
            (when (memq backend '(haskell-dante))
              (add-hook 'flycheck-mode-hook #'haskell-misc--configure-dante nil t))))))
 
-    (when dante-mode
-      (add-to-list 'company-backends 'dante-company))
-
-    ;; ghci interaction uses comint - same as shell mode
     (turn-on-font-lock)
 
     ;; The underscore should remain part of word so we never search within
@@ -263,9 +259,9 @@ _a_lign  _t_: jump to topmost node start
                 indent-region-function #'ignore
                 yas-indent-line 'fixed
 
-                ;; fix vim treatment of words for Haskell
-                ;; note: do not include underscore into vim:word as this would cause
-                ;; inefficiencies while navigating haskell identifiers
+                ;; Improve vim treatment of words for Haskell.
+                ;; Note: underscore should not be included since it would prevent
+                ;; navigating inside of some Haskell identifiers, e.g. foo_bar.
                 vim:word "[:word:]'"
 
                 indent-line-function #'ignore

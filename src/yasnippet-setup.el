@@ -159,7 +159,7 @@ Otherwise deletes a character normally by calling `delete-backward-char'."
            (yas--skip-and-clear field)
            (yas-next-field 1))
           (t
-           (call-interactively 'delete-backward-char)))))
+           (call-interactively #'delete-backward-char)))))
 
 (def-keys-for-map yas-keymap
   ("<backspace>"     yas-skip-and-clear-or-delete-backward-char)

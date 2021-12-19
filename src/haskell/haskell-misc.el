@@ -349,8 +349,8 @@ _#-}_: on pragma close"
 
 (defun haskell-misc--fingerprint-re (str)
   "Take current line and come up with a fingerprint
-regexp that will find this line after the indentation was
-applied.
+regexp that will find this line after applying indentation or some
+other form of whitespace normalization.
 
 E.g. given a line like
 
@@ -826,6 +826,7 @@ value section should have if it is to be properly indented."
   (end-of-line))
 
 (defun haskell-qualify-import ()
+  "Turn ‘import X’ -> ‘import qualified X’."
   (interactive "*")
   (save-match-data
     (save-excursion
@@ -854,6 +855,7 @@ value section should have if it is to be properly indented."
    ad-do-it))
 
 (defun haskell-misc--configure-dante ()
+  "Set up vital variables for operation of ‘dante-mode’."
   (let* ((proj (eproj-get-project-for-buf-lax (current-buffer)))
          (vars (and proj
                     (eproj-query/local-variables proj major-mode nil)))
