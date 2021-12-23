@@ -69,6 +69,8 @@
 
 
 (vim:defcmd vim:haskell-dante-restart (nonrepeatable)
+  ;; Don’t use ‘dante-restart’ because it won’t have any effect if there’s no
+  ;; dante buffer.
   (unless dante-mode
     (error "dante is not enabled"))
   (flycheck-clear t)
@@ -79,8 +81,7 @@
 (vim:defcmd vim:haskell-dante-configure (nonrepeatable)
   (unless dante-mode
     (error "dante is not enabled"))
-  (haskell-misc--configure-dante)
-  (vim:haskell-dante-restart))
+  (haskell-misc--configure-dante))
 
 (vim:defcmd vim:dante-clear-buffer-above-prompt (nonrepeatable)
   (dante-repl-clear-buffer-above-prompt))
