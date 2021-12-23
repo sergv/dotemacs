@@ -9,11 +9,18 @@
 (require 'dante)
 
 (defvar-local dante-repl--command-line-to-use nil
-  "Command line used to start current repl session.")
+  "Pair of command lines both of which can be used to start current repl session.
+car element is command line to use for a session that should load all project modules into new repl.
+cdr element is command line to use to get a “fresh” repl with no modules loaded.")
 
-(defun dante-repl--command-line-to-use ()
-  (or dante-repl--command-line-to-use
-      (progn (dante-initialize-method) dante-repl--command-line-to-use)))
+(defun dante-repl--command-line-to-use (load-all-on-start)
+  (let ((dante-repl-cmdline
+         (or dante-repl--command-line-to-use
+             (progn (dante-initialize-method) dante-repl--command-line-to-use))))
+    (cl-assert (dante--repl-cmdline-p dante-repl-cmdline))
+    (if load-all-on-start
+        (dante--repl-cmdline-loading-all-modules dante-repl-cmdline)
+      (dante--repl-cmdline-loading-no-modules dante-repl-cmdline))))
 
 ;;;###autoload
 (defun dante-repl-buffer-name ()
@@ -51,8 +58,10 @@
   (dante-repl--start-with-buffer-name (dante-repl-buffer-name)))
 
 ;;;###autoload
-(defun dante-repl-restart ()
-  (interactive)
+(defun dante-repl-restart (load-all?)
+  "With universal argument the new REPL will load all modules and packages in a project.
+Without universal argument it will be a bare REPL ready to load current project’s modules."
+  (interactive "P")
   (let* ((inside-repl-buffer? (eq major-mode 'dante-repl-mode))
          (buf-name (if inside-repl-buffer?
                        (buffer-name (current-buffer))
@@ -63,15 +72,10 @@
                  (process-live-p proc))
         (kill-process proc)))
 
-    ;; (dante-repl--start-with-buffer-name buf-name)
-    (let ((repl-buf (if inside-repl-buffer?
-                        (get-buffer-create buf-name)
-                      (current-buffer))))
+    (let ((repl-buf (get-buffer-create buf-name)))
       (condition-case err
           (progn
-            (if dante-repl--command-line-to-use
-                (dante-repl--start-in-buffer-with-command-line repl-buf dante-repl--command-line-to-use nil)
-              (dante-repl--start-in-buffer repl-buf nil))
+            (dante-repl--start-in-buffer repl-buf (dante-repl--command-line-to-use load-all?) nil)
             (unless inside-repl-buffer?
               (switch-to-buffer-other-window repl-buf)))
         (error
@@ -82,7 +86,7 @@
   (let ((repl-buf (get-buffer-create buf-name)))
     (condition-case err
         (progn
-          (dante-repl--start-in-buffer repl-buf nil)
+          (dante-repl--start-in-buffer repl-buf nil t)
           (switch-to-buffer-other-window repl-buf))
       (error
        (kill-buffer repl-buf)
@@ -98,11 +102,11 @@
                          ;; ?λ
                          ))))))
 
-(defun dante-repl--start-in-buffer (repl-buf extra-command)
+(defun dante-repl--start-in-buffer (repl-buf extra-command load-all-on-start)
   (let ((dante-buf (dante-buffer-p)))
     (if dante-buf
         (let ((command-line
-               (-non-nil (-map #'eval (dante-repl--command-line-to-use)))))
+               (-non-nil (-map #'eval (dante-repl--command-line-to-use load-all-on-start)))))
           (dante-repl--start-in-buffer-with-command-line repl-buf command-line extra-command))
       (error "Dante not started - don't have command line for GHCI REPL yet."))))
 
@@ -193,9 +197,9 @@
         (let ((proc (get-buffer-process repl-buf)))
           (if (process-live-p proc)
               (comint-simple-send proc cmd)
-            (dante-repl--start-in-buffer repl-buf cmd)))
+            (dante-repl--start-in-buffer repl-buf cmd nil)))
       (let ((buf (get-buffer-create repl-buf-name)))
-        (dante-repl--start-in-buffer buf cmd)))))
+        (dante-repl--start-in-buffer buf cmd nil)))))
 
 (defun dante-repl-clear-buffer-above-prompt ()
   (interactive)
