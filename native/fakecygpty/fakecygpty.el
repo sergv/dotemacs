@@ -194,20 +194,23 @@ nil means current buffer's process."
    (t
     (signal 'wrong-type-argument (list 'processp target)))))
 
-(defun fakecygpty--process-send-special-char (process type)
+(defun fakecygpty--process-send-special-char (process type &optional tty-name)
   "Send PROCESS the special char of TYPE from PROCESS's tty."
-  (let ((tty (process-tty-name process)))
+  (let ((tty (or tty-name (process-tty-name process))))
     (when tty
       (let ((special-char
 		 (with-temp-buffer
 		   (when (zerop (call-process "stty" nil (current-buffer) nil "-a" "-F" tty))
 		     (save-match-data
 		       (goto-char (point-min))
-		       (when (re-search-forward (format "%s = \\(\\^?\\)\\([^;]+\\);" type) nil t)
-			 (unless (equal (match-string 2) "<undef>")
-			   (if (equal (match-string 1) "^")
-			       (logand (aref (match-string 2) 0) #o037)
-			     (aref (match-string 2) 0)))))))))
+                       (let ((re (concat type " = \\(\\^?\\)\\([^;]+\\);")))
+                         (when (re-search-forward re nil t)
+                           (let ((match-1 (match-string 1))
+                                 (match-2 (match-string 2)))
+                             (unless (equal match-2 "<undef>")
+                               (if (equal match-1 "^")
+                                   (logand (aref match-2 0) #o037)
+                                 (aref match-2 0)))))))))))
 	(when special-char
 	  (process-send-string process (char-to-string special-char))
 	  t)))))
@@ -244,21 +247,30 @@ nil means current buffer's process."
         (cdr result)
       result)))
 
+(defun fakecygpty--get-pty-process-tty-name (proc real-proc-id)
+  "Return tty name if PROCESS was invoked by fakecygpty."
+  (with-temp-buffer
+    ;; NTEmacs cannot see cygwin's `/proc' file-system, so using cygwin program.
+    ;; Finding fakecygpty's tty-name.
+    (if (zerop (call-process
+                "cat" nil (current-buffer) nil
+                (format "/proc/%s/ctty" real-proc-id)))
+        (replace-regexp-in-string "\r?\n"
+                                  ""
+                                  (buffer-substring-no-properties (point-min) (point-max)))
+      "?")))
+
+(defun fakecygpty--process-tty-name-impl (proc real-proc-id)
+  "Return tty name if PROCESS was invoked by fakecygpty."
+  (if (fakecygpty-process-p proc)
+      (fakecygpty--get-pty-process-tty-name proc real-proc-id)
+    (funcall old-process-tty-name proc)))
+
 (defun fakecygpty--process-tty-name (old-process-tty-name proc)
   "Return tty name if PROCESS was invoked by fakecygpty."
-  (let ((result (funcall old-process-tty-name proc)))
-    (if (fakecygpty-process-p proc)
-        (with-temp-buffer
-          ;; NTEmacs cannot see cygwin's `/proc' file-system, so using cygwin program.
-          ;; Finding fakecygpty's tty-name.
-          (if (zerop (call-process
-                      "cat" nil (current-buffer) nil
-                      (format "/proc/%s/ctty" (fakecygpty-real-process-id proc))))
-              (replace-regexp-in-string "\r?\n"
-                                        ""
-                                        (buffer-substring-no-properties (point-min) (point-max)))
-            "?"))
-      result)))
+  (if (fakecygpty-process-p proc)
+      (fakecygpty--get-pty-process-tty-name proc (fakecygpty-real-process-id proc))
+    (funcall old-process-tty-name proc)))
 
 (defun fakecygpty--process-status (old-process-status proc)
   "Change return value 'exit to 'failed for pty allocation only mode."
@@ -291,22 +303,21 @@ For windows process, Emacs native `signal-process' will be invoked."
      ,(format "Send %s signal by `fakecygpty-qkill'" (eval sig))
      (let ((proc (fakecygpty--normalize-process-arg process)))
        (if (and (eq (process-type proc) 'real)
-                (let ((current-grp (and (fakecygpty-process-p proc) current-group)))
-                  (cond
-                    ((null current-grp)
-                     (fakecygpty-qkill (- (fakecygpty-real-process-id proc)) ,sig))
-                    ,(if cc
-                         `((fakecygpty--process-send-special-char proc ,cc)
-                           t)
-                       '(nil nil))
-                    ((eq current-grp 'lambda)
-                     (fakecygpty-qkill (fakecygpty-real-process-id proc)
-                                       ,sig nil nil
-                                       (process-tty-name proc) t))
-                    (t
-                     (fakecygpty-qkill (fakecygpty-real-process-id proc)
-                                       ,sig nil nil
-                                       (process-tty-name proc))))))
+                (let ((current-grp (and (fakecygpty-process-p proc) current-group))
+                      (pid (fakecygpty-real-process-id proc)))
+                  (if current-grp
+                      (let ((tty (if (fakecygpty-process-p proc)
+                                     (fakecygpty--get-pty-process-tty-name proc pid)
+                                   (process-tty-name proc))))
+                        (cond
+                          ,@(when cc
+                              `(((fakecygpty--process-send-special-char proc ,cc tty)
+                                 t)))
+                          ((eq current-grp 'lambda)
+                           (fakecygpty-qkill pid ,sig nil nil tty t))
+                          (t
+                           (fakecygpty-qkill pid ,sig nil nil tty))))
+                    (fakecygpty-qkill (- pid) ,sig))))
            proc
          (funcall old-func process current-group)))))
 
