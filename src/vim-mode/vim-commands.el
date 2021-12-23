@@ -885,7 +885,8 @@ maintain `vim:current-key-sequence' in order. That is needed to make
   (vim:remember-this-command-keys))
 
 (define-key universal-argument-map [remap digit-argument] 'vim:digit-argument)
-(define-key universal-argument-map [?-] 'vim:universal-argument-minus)
+(define-key universal-argument-map [?-] nil)
+(define-key universal-argument-map (kbd "C--") 'vim:universal-argument-minus)
 (define-key universal-argument-map [kp-subtract] 'vim:universal-argument-minus)
 
 (provide 'vim-commands)
