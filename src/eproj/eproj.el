@@ -381,7 +381,6 @@ get proper flycheck checker."
   (setf *eproj-projects* (make-hash-table :test #'equal))
   (eproj-get-initial-project-root/reset-cache)
   (eproj--resolve-to-abs-path-cached/reset-cache)
-  (eproj-normalise-file-name-cached/reset-cache)
   (eproj-normalise-file-name-expand-cached/reset-cache)
   ;; do not forget to reset cache
   (eproj/reset-buffer-local-cache)
@@ -1130,9 +1129,6 @@ projects into the mix."
 ;; both conditions don't hold.
 (defun-caching eproj--resolve-to-abs-path-cached (path dir) eproj--resolve-to-abs-path-cached/reset-cache (cons path dir)
   (resolve-to-abs-path path dir))
-
-(defun-caching eproj-normalise-file-name-cached (path) eproj-normalise-file-name-cached/reset-cache path
-  (normalise-file-name path))
 
 (defun-caching eproj-normalise-file-name-expand-cached (path &optional dir) eproj-normalise-file-name-expand-cached/reset-cache (cons path dir)
   (normalise-file-name (expand-file-name path dir)))
