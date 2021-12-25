@@ -221,7 +221,7 @@
           (make-eproj-tag tag-path
                           tag-line
                           tag-kind
-                          (vector (cons 'column tag-column)))
+                          (list (cons 'column tag-column)))
           nil)))
 
 ;; sync with `lsp--locations-to-xref-items’
@@ -280,8 +280,8 @@
     (make-eproj-tag filename
                     (lsp-translate-line (1+ start-line))
                     nil
-                    (vector (cons 'column (lsp-translate-column start-char))
-                            (cons 'summary line)))))
+                    (list (cons 'column (lsp-translate-column start-char))
+                          (cons 'summary line)))))
 
 (provide 'lsp-setup)
 
