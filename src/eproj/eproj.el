@@ -683,7 +683,10 @@ for project at ROOT directory."
                            (string< (eproj-project/root a)
                                     (eproj-project/root b))))))
         (mapc (lambda (proj)
-                (eproj-descibe-proj buf proj nil t)
+                (condition-case err
+                    (eproj-descibe-proj buf proj nil t)
+                  (error
+                   (insert (format "Error while describing project: %s\n" (cdr err)))))
                 (insert (make-string 80 ?\-) "\n"))
               projs))
       (goto-char (point-min)))))
@@ -724,9 +727,9 @@ for project at ROOT directory."
       (insert "number of tags loaded: "
               (let ((tag-count 0))
                 (dolist (tags-entry (eproj--get-tags proj))
-                  (let ((lang-tags (eproj-tag-index-entries (cdr tags-entry))))
+                  (dolist (entry (eproj-tag-index-entries (cdr tags-entry)))
                     (setf tag-count
-                          (+ tag-count (length lang-tags)))))
+                          (+ tag-count (length (cdr entry))))))
                 (number->string tag-count))
               "\n")
       (when describe-tags
