@@ -169,9 +169,22 @@ that returnsn a value to use as a caching key.
 NB does not expect to cache values of ARGS that are nil. Also will recompute
 BODY if it returns nil."
   (declare (indent 4))
+  `(defun-caching-extended ,func ,args ,nil ,(gentemp (format "%s/make-cache" func)) ,reset-cache-func ,mk-cache-key ,@body))
+
+(defmacro defun-caching-extended (func args func-with-explicit-cache make-cache-func reset-cache-func mk-cache-key &rest body)
+  "Defun new function FUNC that automatically caches it's output
+depending of value of MK-CACHE-KEY, which should be an expression
+that returnsn a value to use as a caching key.
+
+NB does not expect to cache values of ARGS that are nil. Also will recompute
+BODY if it returns nil."
+  (declare (indent 6))
   (cl-assert (symbol? func))
+  (cl-assert (or (symbol? func-with-explicit-cache) (null func-with-explicit-cache)))
+  (cl-assert (symbol? make-cache-func))
   (cl-assert (symbol? reset-cache-func))
   (let ((cache-var (gentemp "defun-caching--cache"))
+        (cache-arg '#:cache)
         (query-var '#:query)
         (hash-table-var '#:hash-table)
         (value-var '#:value)
@@ -179,9 +192,22 @@ BODY if it returns nil."
         (uninitialized '#:uninitialized)
         (empty-table-expr '(make-hash-table :test #'equal)))
     `(progn
-       (defvar ,cache-var ,empty-table-expr)
-       (defun ,reset-cache-func ()
-         (setf ,cache-var ,empty-table-expr))
+       (defsubst ,make-cache-func ()
+         ,empty-table-expr)
+       (defvar ,cache-var (,make-cache-func))
+       (defsubst ,reset-cache-func ()
+         (setf ,cache-var (,make-cache-func)))
+       ,@(when func-with-explicit-cache
+           `((defun ,func-with-explicit-cache ,(cons cache-arg args)
+               ,(format "Similar to ‘%s’ but takes cache variable explicitly." func)
+               (let* ((,cache-arg-var ,mk-cache-key)
+                      (,query-var
+                       (gethash ,cache-arg-var ,cache-arg ',uninitialized)))
+                 (if (eq ,query-var ',uninitialized)
+                     (let ((,value-var (progn ,@body)))
+                       (puthash ,cache-arg-var ,value-var ,cache-arg)
+                       ,value-var)
+                   ,query-var)))))
        (defun ,func ,args
          (let* ((,cache-arg-var ,mk-cache-key)
                 (,query-var
