@@ -1130,7 +1130,12 @@ projects into the mix."
 (defun-caching eproj--resolve-to-abs-path-cached (path dir) eproj--resolve-to-abs-path-cached/reset-cache (cons path dir)
   (resolve-to-abs-path path dir))
 
-(defun-caching eproj-normalise-file-name-expand-cached (path &optional dir) eproj-normalise-file-name-expand-cached/reset-cache (cons path dir)
+(defun-caching-extended
+  eproj-normalise-file-name-expand-cached (path &optional dir)
+  eproj-normalise-file-name-expand-cached/with-explicit-cache
+  eproj-normalise-file-name-expand-cached/make-cache
+  eproj-normalise-file-name-expand-cached/reset-cache
+  (cons path dir)
   (normalise-file-name (expand-file-name path dir)))
 
 (defun eproj--get-buffer-directory (buffer)
