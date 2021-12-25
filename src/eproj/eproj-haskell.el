@@ -69,7 +69,8 @@ runtime but rather will be silently relied on)."
                                             1000))))
             (progress-reporter (when eproj-verbose-tag-loading
                                  (let ((total-tags-count (count-lines (point-min) (point-max))))
-                                   (make-standard-progress-reporter total-tags-count "tags")))))
+                                   (make-standard-progress-reporter total-tags-count "tags"))))
+            (file-name-cache (eproj-normalise-file-name-expand-cached/make-cache)))
         (garbage-collect)
         (while (looking-at-p "^!_TAG_")
           (forward-line 1))
@@ -79,7 +80,8 @@ runtime but rather will be silently relied on)."
             (let ((symbol (eproj-ctags--cache-string
                            (match-string-no-properties 1)))
                   (file (eproj-ctags--cache-string
-                         (eproj-normalise-file-name-expand-cached
+                         (eproj-normalise-file-name-expand-cached/with-explicit-cache
+                          file-name-cache
                           (match-string-no-properties 2)
                           proj-root)))
                   (line (string->number (match-string-no-properties 3))))
