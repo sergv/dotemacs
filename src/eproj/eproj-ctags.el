@@ -137,14 +137,14 @@
               (unless (= 0 (length stderr-contents))
                 (error "ctags reports on stderr:\n%s" stderr-contents))))))))))
 
-(defvar eproj/ctags-string-cache
-  (make-hash-table :test #'equal :size 997 :weakness t))
-
-(defsubst eproj-ctags--cache-string (x)
+(defsubst eproj-ctags--cache-string (x cache)
   (assert (stringp x))
-  (if-let (cached-x (gethash x eproj/ctags-string-cache))
+  (if-let (cached-x (gethash x cache))
       cached-x
-    (puthash x x eproj/ctags-string-cache)))
+    (puthash x x cache)))
+
+(defsubst eproj-ctags--make-cache ()
+  (make-hash-table :test #'equal :size 997))
 
 ;; tags parsing
 ;;;###autoload
@@ -164,19 +164,20 @@ BUFFER is expected to contain output of ctags command."
             (progress-reporter (when eproj-verbose-tag-loading
                                  (let ((total-tags-count (count-lines (point-min) (point-max))))
                                    (make-standard-progress-reporter total-tags-count "tags"))))
-            (file-name-cache (eproj-normalise-file-name-expand-cached/make-cache)))
+            (file-name-cache (eproj-normalise-file-name-expand-cached/make-cache))
+            (string-cache (eproj-ctags--make-cache)))
         (garbage-collect)
         (while (looking-at-p "^!_TAG_")
           (forward-line 1))
         (while (not (eobp))
           (when (looking-at eproj-ctags--line-re)
-            (let ((symbol (eproj-ctags--cache-string
-                           (match-string-no-properties 1)))
+            (let ((symbol (match-string-no-properties 1))
                   (file (eproj-ctags--cache-string
                          (eproj-normalise-file-name-expand-cached/with-explicit-cache
                           file-name-cache
                           (match-string-no-properties 2)
-                          proj-root)))
+                          proj-root)
+                         string-cache))
                   (line (string->number (match-string-no-properties 3))))
               (goto-char (match-end 0))
               ;; now we're past ;"
@@ -197,7 +198,7 @@ BUFFER is expected to contain output of ctags command."
                           ;; When value is nonempty
                           (unless (string-equal "" value)
                             (let ((new-field (cons (string->symbol key)
-                                                   (eproj-ctags--cache-string value))))
+                                                   (eproj-ctags--cache-string value string-cache))))
                               (push (aif (gethash new-field field-cache)
                                         it
                                       (puthash new-field new-field field-cache))
