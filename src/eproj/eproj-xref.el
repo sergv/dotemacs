@@ -56,8 +56,8 @@
                  (make-eproj-tag file
                                  line
                                  nil
-                                 (vector (cons 'column column)
-                                         (cons 'summary summary))))))
+                                 (list (cons 'column column)
+                                       (cons 'summary summary))))))
       (list name tag proj))))
 
 (provide 'eproj-xref)

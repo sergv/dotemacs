@@ -24,22 +24,16 @@
 
 
 (defsubst make-eproj-tag (file line type props)
-  (cl-assert (or (null props) (vectorp props)))
-  (vector file line type props)
+  (cl-assert (or (null props) (consp props)))
+  (cons file (cons line (cons type props)))
   ;; (cons file (cons line props))
   )
 
 (defsubst eproj-tag-p (tag-struct)
-  (and (vectorp tag-struct)
-       (stringp (aref tag-struct 0))
-       (integerp (aref tag-struct 1))
-       (or (null (aref tag-struct 2))
-           (characterp (aref tag-struct 2))))
-  ;; (and (consp tag-struct)
-  ;;      (stringp (car tag-struct))
-  ;;      (consp (cdr tag-struct))
-  ;;      (integerp (cadr tag-struct)))
-  )
+  (and (consp tag-struct)
+       (stringp (car tag-struct))
+       (consp (cdr tag-struct))
+       (integerp (cadr tag-struct))))
 
 ;; (defsubst eproj-tag/symbol (tag-struct)
 ;;   (declare (pure t) (side-effect-free t))
@@ -48,15 +42,15 @@
 (defsubst eproj-tag/file (tag-struct)
   "Get the file that current tag came from. Always absolute."
   (declare (pure t) (side-effect-free t))
-  (aref tag-struct 0))
+  (car tag-struct))
 
 (defsubst eproj-tag/line (tag-struct)
   (declare (pure t) (side-effect-free t))
-  (aref tag-struct 1))
+  (cadr tag-struct))
 
 (defsubst eproj-tag/type (tag-struct)
   (declare (pure t) (side-effect-free t))
-  (aref tag-struct 2))
+  (caddr tag-struct))
 
 (defsubst eproj-tag/column (tag-struct)
   (declare (pure t) (side-effect-free t))
@@ -65,12 +59,12 @@
 ;; Return associative array of tag properties.
 (defsubst eproj-tag/properties (tag-struct)
   (declare (pure t) (side-effect-free t))
-  (aref tag-struct 3))
+  (cdddr tag-struct))
 
 (defsubst eproj-tag/get-prop (prop tag-struct)
   (declare (pure t) (side-effect-free t))
   (cl-assert (symbolp prop))
-  (cdr-safe (v-assq prop (aref tag-struct 3))))
+  (cdr-safe (assq prop (cdddr tag-struct))))
 
 (if (and nil use-foreign-libraries?)
     (progn
