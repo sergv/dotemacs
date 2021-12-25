@@ -137,13 +137,12 @@
               (unless (= 0 (length stderr-contents))
                 (error "ctags reports on stderr:\n%s" stderr-contents))))))))))
 
-(defsubst eproj-ctags--cache-string (x cache)
-  (assert (stringp x))
+(defsubst eproj-ctags--share (x cache)
   (if-let (cached-x (gethash x cache))
       cached-x
     (puthash x x cache)))
 
-(defsubst eproj-ctags--make-cache ()
+(defsubst eproj-ctags--make-sharing-cache ()
   (make-hash-table :test #'equal :size 997))
 
 ;; tags parsing
@@ -165,19 +164,19 @@ BUFFER is expected to contain output of ctags command."
                                  (let ((total-tags-count (count-lines (point-min) (point-max))))
                                    (make-standard-progress-reporter total-tags-count "tags"))))
             (file-name-cache (eproj-normalise-file-name-expand-cached/make-cache))
-            (string-cache (eproj-ctags--make-cache)))
+            (sharing-cache (eproj-ctags--make-sharing-cache)))
         (garbage-collect)
         (while (looking-at-p "^!_TAG_")
           (forward-line 1))
         (while (not (eobp))
           (when (looking-at eproj-ctags--line-re)
             (let ((symbol (match-string-no-properties 1))
-                  (file (eproj-ctags--cache-string
+                  (file (eproj-ctags--share
                          (eproj-normalise-file-name-expand-cached/with-explicit-cache
                           file-name-cache
                           (match-string-no-properties 2)
                           proj-root)
-                         string-cache))
+                         sharing-cache))
                   (line (string->number (match-string-no-properties 3))))
               (goto-char (match-end 0))
               ;; now we're past ;"
@@ -198,7 +197,7 @@ BUFFER is expected to contain output of ctags command."
                           ;; When value is nonempty
                           (unless (string-equal "" value)
                             (let ((new-field (cons (string->symbol key)
-                                                   (eproj-ctags--cache-string value string-cache))))
+                                                   (eproj-ctags--share value sharing-cache))))
                               (push (aif (gethash new-field field-cache)
                                         it
                                       (puthash new-field new-field field-cache))
@@ -208,7 +207,7 @@ BUFFER is expected to contain output of ctags command."
                                       file
                                       line
                                       type
-                                      (list->vector fields)
+                                      (eproj-ctags--share fields sharing-cache)
                                       tags-index)))
             (when eproj-verbose-tag-loading
               (funcall progress-reporter 1))))
