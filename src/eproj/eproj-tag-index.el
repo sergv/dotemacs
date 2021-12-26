@@ -22,22 +22,17 @@
 ;;   line   ;; number
 ;;   properties)
 
+(require 'packing)
 
 (defsubst make-eproj-tag (file line type props)
   (cl-assert (or (null props) (consp props)))
-  (cons file (cons line (cons type props)))
-  ;; (cons file (cons line props))
-  )
+  (cons file (cons (packing-pack-pair line (or type -1)) props)))
 
 (defsubst eproj-tag-p (tag-struct)
   (and (consp tag-struct)
        (stringp (car tag-struct))
        (consp (cdr tag-struct))
        (integerp (cadr tag-struct))))
-
-;; (defsubst eproj-tag/symbol (tag-struct)
-;;   (declare (pure t) (side-effect-free t))
-;;   (car tag-struct))
 
 (defsubst eproj-tag/file (tag-struct)
   "Get the file that current tag came from. Always absolute."
@@ -46,11 +41,14 @@
 
 (defsubst eproj-tag/line (tag-struct)
   (declare (pure t) (side-effect-free t))
-  (cadr tag-struct))
+  (packing-unpack-pair-car (cadr tag-struct)))
 
 (defsubst eproj-tag/type (tag-struct)
   (declare (pure t) (side-effect-free t))
-  (caddr tag-struct))
+  (let ((res (packing-unpack-pair-cdr (cadr tag-struct))))
+    (if (= -1 res)
+        nil
+      res)))
 
 (defsubst eproj-tag/column (tag-struct)
   (declare (pure t) (side-effect-free t))
@@ -59,12 +57,12 @@
 ;; Return associative array of tag properties.
 (defsubst eproj-tag/properties (tag-struct)
   (declare (pure t) (side-effect-free t))
-  (cdddr tag-struct))
+  (cddr tag-struct))
 
 (defsubst eproj-tag/get-prop (prop tag-struct)
   (declare (pure t) (side-effect-free t))
   (cl-assert (symbolp prop))
-  (cdr-safe (assq prop (cdddr tag-struct))))
+  (cdr-safe (assq prop (eproj-tag/properties tag-struct))))
 
 (if (and nil use-foreign-libraries?)
     (progn
@@ -96,6 +94,7 @@
 
     (defun eproj-tag-index-add! (symbol file line type props index)
       (cl-assert (stringp symbol))
+      (cl-assert (or (characterp type) (null type)))
       (let ((table (cdr index)))
         (puthash symbol
                  (cons (make-eproj-tag file line type props)
