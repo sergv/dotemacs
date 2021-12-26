@@ -5681,7 +5681,7 @@ A reference is highlighted only if it is visible in a window."
         wins-visible-pos))
      highlights)))
 
-(defconst lsp--symbol-kinds
+(defconst lsp-symbol-kinds
   ["File"
    "Module"
    "Namespace"
@@ -5721,7 +5721,7 @@ namespace SymbolKind.")
                        :location (&Location :uri :range (&Range :start
                                                                 (&Position :line :character)))))
   "Return a `xref-item' from SYMBOL information."
-  (xref-make (format "[%s] %s" (aref lsp--symbol-kinds (- kind 1)) name)
+  (xref-make (format "[%s] %s" (aref lsp-symbol-kinds (- kind 1)) name)
              (xref-make-file-location (lsp--uri-to-path uri)
                                       line
                                       character)))
@@ -6545,7 +6545,7 @@ an alist
 
 (lsp-defun lsp--get-symbol-type ((&SymbolInformation :kind))
   "The string name of the kind of SYM."
-  (if (<= kind (length lsp--symbol-kinds))
+  (if (<= kind (length lsp-symbol-kinds))
       (aref lsp-symbol-kinds (- kind 1))
     "Other"))
 
