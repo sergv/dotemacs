@@ -6,17 +6,49 @@
 ;; Created: 25 December 2021
 ;; Description:
 
+;; most-positive-fixnum
+;; =
+;; #x 1f ff ff ff
+;;    ff ff ff ff
+;;
+;; Divide it evenly into two, 1 bit at the start is lost
+;; #x 1 | f ff ff ff |> f <| f ff ff ff
+;; Now divide the middle f into pair of 2-bit slices, c and 3:
+;; #x 1 | f ff ff ff |> c & 3 <| f ff ff ff
+;;        4 8  8  8     2 | 2    4 8  8  8 = 30 = 1 + 29
+
 (defun packing-pack-pair (a b)
   (declare (pure t) (side-effect-free t))
-  (logior (ash a 32) b))
+  (let ((a-neg? (< a 0))
+        (b-neg? (< b 0)))
+    ;; Store sign bit separately from number payload. I.e. the number is packed not
+    ;; in 2's complement but as payload+sign bit.
+    (logior (ash (logior (if a-neg?
+                             #x20000000
+                           #x00000000)
+                         (logand #x1fffffff (abs a)))
+                 30)
+            (logior (if b-neg?
+                        #x20000000
+                      #x00000000)
+                    (logand #x1fffffff (abs b))))))
 
-(defsubst packing-unpack-pair-car (x)
+(defun packing-unpack-pair-car (x)
   (declare (pure t) (side-effect-free t))
-  (ash x -32))
+  (let ((is-neg? (= #x0800000000000000 (logand #x0800000000000000 x))))
+    (* (logand #x1fffffff (ash x -30))
+       (if is-neg?
+           -1
+         1))))
 
-(defsubst packing-unpack-pair-cdr (x)
+(defun packing-unpack-pair-cdr (x)
   (declare (pure t) (side-effect-free t))
-  (logand #x00000000ffffffff x))
+  (let ((is-neg? (= #x20000000 (logand #x20000000 x))))
+    (* (logand #x1fffffff x)
+       (if is-neg?
+           -1
+         1))))
+
 
 (defun packing-unpack-pair (x)
   (declare (pure t) (side-effect-free t))
