@@ -16,16 +16,24 @@
                       (cons 10000 20000)
                       (cons 100000 200000)
                       (cons 1000000 2000000)
-                      (cons 10000000 20000000)))
-    (packing--reset-caches)
-    (should (equal (packing-unpack-pair (packing-pack-pair (car item) (cdr item)))
-                   item))))
+                      (cons 10000000 20000000)
+                      (cons -1 0)
+                      (cons 0 -1)
+                      (cons -1 -1)
+                      (cons -1 -2)
+                      (cons -10 -20)
+                      (cons 10 -20)
+                      (cons -10 20)))
+    (let ((unpacked (packing-unpack-pair (packing-pack-pair (car item) (cdr item)))))
+      (should (fixnump (car unpacked)))
+      (should (fixnump (cdr unpacked)))
+      (should (equal unpacked
+                     item)))))
 
 (ert-deftest packing-tests/split-join-path ()
   (dolist (item (list "bar/baz"
                       "/foo/bar/baz"
                       "C:/foo/bar/baz"))
-    (packing--reset-caches)
     (should (equal (packing--join-path (packing--split-path item))
                    item))))
 
@@ -37,7 +45,6 @@
                       [1 2 3 4]
                       [1 2 3 4 5]
                       [1 2 3 4 5 6]))
-    (packing--reset-caches)
     (should (equal (packing-unpack-vec (packing-pack-vec item))
                    item))))
 
@@ -49,7 +56,6 @@
                   (1 2 3 4)
                   (1 2 3 4 5)
                   (1 2 3 4 5 6)))
-    (packing--reset-caches)
     (should (equal (packing-unpack-list (packing-pack-list item))
                    item))))
 
