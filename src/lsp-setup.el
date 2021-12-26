@@ -210,7 +210,7 @@
                        :location (&Location :uri :range (&Range :start
                                                                 (&Position :line :character)))))
   "Return a `xref-item' from SYMBOL information."
-  (let ((tag-kind (aref lsp--symbol-kinds (- kind 1)))
+  (let ((tag-kind (aref lsp-symbol-kinds (- kind 1)))
         (tag-name (if deprecated?
                       (propertize name 'face 'lsp-face-semhl-deprecated)
                     name))
