@@ -8608,10 +8608,11 @@ Use matching function MATCHER."
                    (or (setq lang (markdown-code-block-lang))
                        markdown-fontify-code-block-default-mode))
               (markdown-fontify-code-block-natively lang start end)
-            (add-text-properties start end '(face markdown-pre-face)))
-          ;; Set background for block as well as opening and closing lines.
-          (font-lock-append-text-property
-           bol-prev eol-next 'face 'markdown-code-face)
+            (progn
+              (add-text-properties start end '(face markdown-pre-face))
+              ;; Set background for block as well as opening and closing lines.
+              (font-lock-append-text-property
+               bol-prev eol-next 'face 'markdown-code-face)))
           ;; Set invisible property for lines before and after, including newline.
           (add-text-properties bol-prev start '(invisible markdown-markup))
           (add-text-properties end eol-next '(invisible markdown-markup)))))
