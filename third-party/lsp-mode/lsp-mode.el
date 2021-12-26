@@ -4911,7 +4911,8 @@ MODE is the mode used in the parent frame."
   (dolist (mark (alist-get mode lsp-custom-markup-modes))
     (add-to-list 'markdown-code-lang-modes (cons mark mode)))
   (setq-local markdown-fontify-code-blocks-natively t)
-  (setq-local markdown-fontify-code-block-default-mode mode)
+  (unless markdown-fontify-code-block-default-mode
+    (setq-local markdown-fontify-code-block-default-mode mode))
   (setq-local markdown-hide-markup t)
 
   ;; Render some common HTML entities.
