@@ -43,7 +43,7 @@
   (declare (pure t) (side-effect-free t))
   (packing-unpack-pair-car (cadr tag-struct)))
 
-(defsubst eproj-tag/type (tag-struct)
+(defun eproj-tag/type (tag-struct)
   (declare (pure t) (side-effect-free t))
   (let ((res (packing-unpack-pair-cdr (cadr tag-struct))))
     (if (= -1 res)
