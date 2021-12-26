@@ -84,7 +84,7 @@
                       (rust--format-fix-rustfmt-buffer (buffer-name buf))
                       (error "Rustfmt could not format some lines, see %s buffer for details"
                              rust-rustfmt-buffername)))
-                  (t
+                  (progn
                    (erase-buffer)
                    (insert-file-contents tmpf)
                    (rust--format-fix-rustfmt-buffer (buffer-name buf))
