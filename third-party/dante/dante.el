@@ -101,12 +101,14 @@ will be in different GHCi sessions."
 
 (defun dante-cabal-new-nix (d)
   "non-nil iff D contains a nix file and a cabal file."
-  (and (directory-files d t "shell.nix\\|default.nix" t)
+  (and (cached-executable-find "nix-shell")
+       (directory-files d t "shell.nix\\|default.nix" t)
        (directory-files d t "cabal.project\\(?:.local\\)?" t)))
 
 (defun dante-cabal-nix (d)
   "non-nil iff D contains a nix file and a cabal file."
-  (and (directory-files d t "shell.nix\\|default.nix" t)
+  (and (cached-executable-find "nix-shell")
+       (directory-files d t "shell.nix\\|default.nix" t)
        (directory-files d t ".cabal$" t)))
 
 (defsubst dante--mk-repl-cmdline (a b)
