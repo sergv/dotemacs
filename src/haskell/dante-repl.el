@@ -32,12 +32,10 @@ cdr element is command line to use to get a “fresh” repl with no modules loa
 ;;;###autoload
 (defun dante-repl-switch-to-repl-buffer ()
   (interactive)
-  (unless dante-mode
-    (error "dante is not enabled"))
   (let ((repl-buf (get-buffer (dante-repl-buffer-name))))
     (if (buffer-live-p repl-buf)
         (switch-to-buffer-other-window repl-buf))
-    (awhen (dante-buffer-p)
+    (progn
       (dante-repl-start)
       (switch-to-buffer-other-window it))))
 
@@ -103,12 +101,9 @@ Without universal argument it will be a bare REPL ready to load current project�
                          ))))))
 
 (defun dante-repl--start-in-buffer (repl-buf extra-command load-all-on-start)
-  (let ((dante-buf (dante-buffer-p)))
-    (if dante-buf
-        (let ((command-line
-               (-non-nil (-map #'eval (dante-repl--command-line-to-use load-all-on-start)))))
-          (dante-repl--start-in-buffer-with-command-line repl-buf command-line extra-command))
-      (error "Dante not started - don't have command line for GHCI REPL yet."))))
+  (let ((command-line
+         (-non-nil (-map #'eval (dante-repl--command-line-to-use load-all-on-start)))))
+    (dante-repl--start-in-buffer-with-command-line repl-buf command-line extra-command)))
 
 (defun dante-repl--start-in-buffer-with-command-line (repl-buf command-line extra-command)
   (with-current-buffer repl-buf
