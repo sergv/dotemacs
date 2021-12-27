@@ -26,6 +26,7 @@
 (require 'haskell-outline)
 (require 'hydra-setup)
 (require 'lcr)
+(require 'lsp-haskell-setup)
 (require 'shell-setup)
 (require 'smartparens-haskell)
 
@@ -157,17 +158,48 @@
                       nil
                       (vector `(column . ,(1- col)))))))
 
-(defhydra-ext hydra-haskell (:exit t :foreign-keys warn :hint nil)
+(defhydra hydra-haskell-lsp-toggle (:exit nil :foreign-keys nil :hint nil)
   "
-_a_ttrap          _j_: eval
-_i_nfo
-_t_ype
+Toggle:
+_f_ormatting on typing             %`lsp-enable-on-type-formatting
+_h_ighlight of symbol at point     %`lsp-enable-symbol-highlighting
+_l_ens                             %`lsp-lens-mode
+"
+  ("f" lsp-toggle-on-type-formatting)
+  ("h" lsp-toggle-symbol-highlight)
+  ("l" lsp-lens-mode))
+
+(defhydra-ext hydra-haskell-dante (:exit t :foreign-keys warn :hint nil)
+  "
+_i_nfo            _j_: eval
+_t_ype            _-_: attrap
 _q_ualify import"
-  ("t" dante-type-at)
   ("i" dante-info)
-  ("j" dante-eval-block)
+  ("t" dante-type-at)
   ("q" haskell-qualify-import)
-  ("a" attrap-flycheck))
+
+  ("j" dante-eval-block)
+  ("-" attrap-flycheck))
+
+(defhydra-ext hydra-haskell-lsp (:exit t :foreign-keys warn :hint nil)
+  "
+_a_ctions         _-_: attrap  toggle some _o_ptions
+_d_ocumentation
+_i_nfo
+_q_ualify import
+_r_ename
+_t_ype
+"
+  ("a" lsp-execute-code-action)
+  ("d" lsp-doc-other-window)
+  ("i" lsp-doc-other-window)
+  ("q" haskell-qualify-import)
+  ("r" lsp-rename)
+  ("t" lsp-haskell-type-at-point)
+
+  ("-" attrap-flycheck)
+
+  ("o" hydra-haskell-lsp-toggle/body))
 
 (defhydra-derive hydra-cabal-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
   "
@@ -222,11 +254,14 @@ _a_lign  _t_: jump to topmost node start
        :offset (eproj-query/haskell/indent-offset proj))
 
       (company-mode +1)
-      (setq-local company-backends '(company-files
-                                     (company-eproj company-dabbrev-code)
-                                     company-dabbrev)
+      (setq-local company-backends (if proj
+                                       '(company-files
+                                         (company-eproj company-dabbrev-code)
+                                         company-dabbrev)
+                                     '(company-files
+                                       company-dabbrev-code
+                                       company-dabbrev))
                   flycheck-highlighting-mode 'symbols)
-
 
       (eproj-setup-local-variables proj)
 
@@ -238,6 +273,10 @@ _a_lign  _t_: jump to topmost node start
            (when (eq backend 'haskell-dante)
              (setq-local company-backends (cons 'dante-company company-backends))
              (dante-mode +1))
+           (when (eq backend 'lsp)
+             (with-demoted-errors "Failde to start LSP: %s"
+               (lsp-diagnostics-mode)
+               (lsp)))
            (unless (flycheck-may-use-checker backend)
              (flycheck-verify-checker backend)
              (error "Unable to select checker '%s' for buffer '%s'"
@@ -281,7 +320,24 @@ _a_lign  _t_: jump to topmost node start
        (dolist (cmd '("re" "restart"))
          (vim:local-emap cmd #'vim:haskell-dante-restart))
        (dolist (cmd '("conf" "configure"))
-         (vim:local-emap cmd #'vim:haskell-dante-configure)))
+         (vim:local-emap cmd #'vim:haskell-dante-configure))
+
+       (def-keys-for-map vim:normal-mode-local-keymap
+         ("SPC SPC"      dante-repl-switch-to-repl-buffer)
+         (("C-l" "<f6>") vim:haskell-dante-load-file-into-repl)
+         ("-"            hydra-haskell-dante/body)))
+      (lsp-mode
+       (setq-local lsp-ui-sideline-show-code-actions t
+                   lsp-ui-sideline-enable t
+                   lsp-ui-sideline-ignore-duplicate t
+                   lsp-ui-sideline-show-hover nil
+                   ;; Maybe be a good idea to try enabling this one
+                   lsp-ui-sideline-show-diagnostics nil
+                   lsp-ui-sideline-delay 0.05)
+       (lsp-ui-sideline-mode +1)
+       (def-keys-for-map vim:normal-mode-local-keymap
+         ("-"            hydra-haskell-lsp/body)
+         ("C-r"          lsp-rename)))
       ((and flycheck-mode
             (memq flycheck-checker '(haskell-stack-ghc haskell-ghc)))
        (dolist (cmd '("conf" "configure"))
@@ -308,18 +364,11 @@ _a_lign  _t_: jump to topmost node start
 
     (vim:local-emap "core" #'vim:ghc-core-create-core)
 
-    (cond
-      (dante-mode
-       (def-keys-for-map vim:normal-mode-local-keymap
-         ("SPC SPC"      dante-repl-switch-to-repl-buffer)
-         (("C-l" "<f6>") vim:haskell-dante-load-file-into-repl))))
-
     (def-keys-for-map vim:normal-mode-local-keymap
       ("\\"           vim:flycheck-run)
       ("g"            hydra-haskell-vim-normal-g-ext/body)
       ("j"            hydra-haskell-vim-normal-j-ext/body)
-      ("+"            input-unicode)
-      ("-"            hydra-haskell/body))
+      ("+"            input-unicode))
 
     (def-keys-for-map vim:visual-mode-local-keymap
       ("`"            vim:wrap-backticks)
@@ -367,13 +416,16 @@ _a_lign  _t_: jump to topmost node start
       ("q" vim:haskell-up-sexp))
 
     (haskell-setup-folding)
-    (setup-eproj-symbnav :bind-keybindings nil)
-    ;; Override binding introduced by `setup-eproj-symbnav'.
-    (def-keys-for-map vim:normal-mode-local-keymap
-      ("M-." haskell-go-to-symbol-home-via-dante-or-eproj)
-      ("C-." eproj-symbnav/go-to-symbol-home)
-      ("C-," eproj-symbnav/go-back)
-      ("C-?" xref-find-references))))
+    (if lsp-mode
+        (setup-lsp-haskell-symbnav)
+      (progn
+        (setup-eproj-symbnav :bind-keybindings nil)
+        ;; Override binding introduced by `setup-eproj-symbnav'.
+        (def-keys-for-map vim:normal-mode-local-keymap
+          ("M-." haskell-go-to-symbol-home-via-dante-or-eproj)
+          ("C-." eproj-symbnav/go-to-symbol-home)
+          ("C-," eproj-symbnav/go-back)
+          ("C-?" xref-find-references))))))
 
 ;;;###autoload
 (defun haskell-c2hs-setup ()
