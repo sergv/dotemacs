@@ -265,11 +265,12 @@ Futher modified by Sergey Vinokurov."
                                           ((t :foreground ,base01
                                               :inherit flycheck-warning)))
 
-            (lsp-face-highlight-textual   ((t :inherit highlight :underline t)))
-            (lsp-face-highlight-read      ((t :inherit lsp-face-highlight-textual)))
-            (lsp-face-highlight-write     ((t :inherit lsp-face-highlight-textual :bold t)))
+            (lsp-face-highlight-textual   ((t :inherit highlight)))
+            (lsp-face-highlight-read      ((t :inherit lsp-face-highlight-textual :underline (:style wave))))
+            (lsp-face-highlight-write     ((t :inherit lsp-face-highlight-textual :bold t :underline (:style wave :color ,magenta))))
 
 
+            (lsp-ui-sideline-code-action  ((t (:foreground ,cyan))))
             (lsp-modeline-code-actions-preferred-face
                                           ((t (:foreground ,yellow))))
 

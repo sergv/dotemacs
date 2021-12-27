@@ -24,11 +24,24 @@
 
 (require 'packing)
 
-(defsubst make-eproj-tag (file line type props)
+(defconst eproj-tag-complex-type-prop '#:type)
+
+(defun make-eproj-tag (file line type props)
   (cl-assert (or (null props) (consp props)))
-  (if props
-      (cons file (cons (packing-pack-pair line (or type -1)) props))
-    (cons file (packing-pack-pair line (or type -1)))))
+  (cond
+    ((stringp type)
+     (cons file
+           (cons (packing-pack-pair line -1)
+                 (cons (cons eproj-tag-complex-type-prop
+                             type)
+                       props))))
+    (props
+     (cons file
+           (cons (packing-pack-pair line (or type -1))
+                 props)))
+    (t
+     (cons file
+           (packing-pack-pair line (or type -1))))))
 
 (defsubst eproj-tag-p (tag-struct)
   (and (consp tag-struct)
@@ -57,7 +70,7 @@
                                            (car rest)
                                          rest))))
     (if (= -1 res)
-        nil
+        (eproj-tag/get-prop eproj-tag-complex-type-prop tag-struct)
       res)))
 
 (defsubst eproj-tag/column (tag-struct)
@@ -107,7 +120,7 @@
 
     (defun eproj-tag-index-add! (symbol file line type props index)
       (cl-assert (stringp symbol))
-      (cl-assert (or (characterp type) (null type)))
+      (cl-assert (or (characterp type) (stringp type) (null type)))
       (let ((table (cdr index)))
         (puthash symbol
                  (cons (make-eproj-tag file line type props)
