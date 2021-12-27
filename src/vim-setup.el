@@ -245,8 +245,8 @@ _<right>_: move tab to the right"
   ("'" sp-backward-up-sexp)
   ;; ("u" vim:motion-search-next)
   ;; ("U" vim:motion-search-next-reverse)
-  ("]" vim:motion-bwd-paragraph)
-  ("[" vim:motion-fwd-paragraph))
+  (("<up>"   "]") vim:motion-bwd-paragraph)
+  (("<down>" "[") vim:motion-fwd-paragraph))
 
 (defconst +vim-navigation-keys+
   `(("d"         vim:motion-left)
@@ -349,7 +349,7 @@ _<right>_: move tab to the right"
   ("z"       hydra-vim-visual-z-ext/body)
 
   (("(" ")")     vim:wrap-parens)
-  (("C-[" "C-]") vim:wrap-braces)
+  (("[" "C")     vim:wrap-braces)
   (("{" "}")     vim:wrap-brackets)
   (("C-<" "C->") vim:wrap-angles)
 
@@ -359,41 +359,25 @@ _<right>_: move tab to the right"
   ("C-\""    vim:wrap-typographical-double-quotes))
 
 
-(defun vim-wrap-parens-impl ()
+(defun vim:wrap-parens ()
   "Wrap region in (...)."
   (interactive)
   (sp-wrap-or-insert "("))
 
-(defun vim-wrap-braces-impl ()
+(defun vim:wrap-braces ()
   "Wrap region in [...]."
   (interactive)
   (sp-wrap-or-insert "["))
 
-(defun vim-wrap-brackets-impl ()
+(defun vim:wrap-brackets ()
   "Wrap region in {...}."
   (interactive)
   (sp-wrap-or-insert "{"))
 
-(defun vim-wrap-angles-impl ()
+(defun vim:wrap-angles ()
   "Wrap region in <...>."
   (interactive)
   (sp-wrap-or-insert "<"))
-
-(vim:defcmd vim:wrap-parens (nonrepeatable)
-  "Wrap region in (...)."
-  (vim-wrap-parens-impl))
-
-(vim:defcmd vim:wrap-braces (nonrepeatable)
-  "Wrap region in [...]."
-  (vim-wrap-braces-impl))
-
-(vim:defcmd vim:wrap-brackets (nonrepeatable)
-  "Wrap region in {...}."
-  (vim-wrap-brackets-impl))
-
-(vim:defcmd vim:wrap-angles (nonrepeatable)
-  "Wrap region in <...>."
-  (vim-wrap-angles-impl))
 
 (vim:defcmd vim:wrap-typographical-single-quotes (nonrepeatable)
   "Wrap region in ‘...’."
