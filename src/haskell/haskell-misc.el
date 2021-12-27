@@ -854,7 +854,13 @@ value section should have if it is to be properly indented."
   (haskell-misc--with-expanded-invisible-overlays-in-current-function
    ad-do-it))
 
-(defun haskell-misc--configure-dante ()
+(defvar-local haskell-misc--dante-configured? nil)
+
+(defun haskell-misc--configure-dante-if-needed! ()
+  (unless haskell-misc--dante-configured?
+    (haskell-misc--configure-dante!)))
+
+(defun haskell-misc--configure-dante! ()
   "Set up vital variables for operation of ‘dante-mode’."
   (let* ((proj (eproj-get-project-for-buf-lax (current-buffer)))
          (vars (and proj
@@ -882,8 +888,8 @@ value section should have if it is to be properly indented."
                          (buffer-file-name))))
               (cl-assert (stringp package-name) nil
                          "Expected package name to be as tring but got %s" package-name)
-              (setq-local dante-target
-                          (concat package-name ":" component)))))))))
+              (setq-local dante-target (concat package-name ":" component)
+                          haskell-misc--dante-configured? t))))))))
 
 (defun haskell-misc--configure-dante--find-cabal-component-for-file (components filename)
   (when filename
