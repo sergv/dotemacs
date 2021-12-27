@@ -212,6 +212,12 @@ Without universal argument it will be a bare REPL ready to load current project�
     ;; `move-to-column' does and that's why we don't use it here.
     (forward-char col)))
 
+(defun dante-repl-sp-newline ()
+  "Insert newlie at point like ‘sp-newline’ would do. Ignores read-only property of underlying next."
+  (interactive)
+  (with-inhibited-read-only
+   (sp-newline)))
+
 (provide 'dante-repl)
 
 ;; Local Variables:
