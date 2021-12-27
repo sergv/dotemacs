@@ -95,24 +95,30 @@ will be in different GHCi sessions."
 
 (put 'dante-target 'safe-local-variable #'stringp)
 
+(defun dante-nix-available? ()
+  "non-nil iff D contains a nix file and a cabal file."
+  (not (null (cached-executable-find "nix-shell"))))
+
+(defun dante-stack-available? ()
+  "non-nil iff D contains a nix file and a cabal file."
+  (not (null (cached-executable-find "stack"))))
+
 (defun dante-cabal-new (d)
   "non-nil iff D contains a nix file and a cabal file."
   (directory-files d t "cabal.project\\(?:.local\\)?") t)
 
 (defun dante-cabal-new-nix (d)
   "non-nil iff D contains a nix file and a cabal file."
-  (and (cached-executable-find "nix-shell")
-       (directory-files d t "shell.nix\\|default.nix" t)
+  (and (directory-files d t "shell.nix\\|default.nix" t)
        (directory-files d t "cabal.project\\(?:.local\\)?" t)))
 
 (defun dante-cabal-nix (d)
   "non-nil iff D contains a nix file and a cabal file."
-  (and (cached-executable-find "nix-shell")
-       (directory-files d t "shell.nix\\|default.nix" t)
+  (and (directory-files d t "shell.nix\\|default.nix" t)
        (directory-files d t ".cabal$" t)))
 
 (defsubst dante--mk-repl-cmdline (a b)
-  (list 'dante-repl-cmdline a b))
+  (cons 'dante-repl-cmdline (cons a b)))
 
 (defsubst dante--repl-cmdline-p (x)
   (and (consp x)
@@ -122,7 +128,7 @@ will be in different GHCi sessions."
   (cadr x))
 
 (defsubst dante--repl-cmdline-loading-no-modules (x)
-  (caddr x))
+  (cddr x))
 
 (defun dante--make-methods (tmp)
   (let* ((ghci-options
@@ -150,47 +156,58 @@ will be in different GHCi sessions."
                                (awhen (eproj-sha1-of-project-root-for-buf (current-buffer))
                                  (concat "-" it))))))
          (repl-options (--mapcat (list "--repl-option" it) ghci-options))
-         (stack-ghci-options (--mapcat (list "--ghci-options" it) ghci-options)))
+         (stack-ghci-options (--mapcat (list "--ghci-options" it) ghci-options))
+         (mk-opts
+          (lambda (template)
+            (list (funcall template build)
+                  (dante--mk-repl-cmdline
+                   (funcall template (append repl repl-options))
+                   (funcall template (append repl (cons "--repl-no-load" repl-options))))))))
     `((new-impure-nix
-       dante-cabal-new-nix
-       ("nix-shell" "--run" (s-join " " (list "cabal" "new-repl" (or dante-target (dante-package-name) "") ,@build)))
-       ,(dante--mk-repl-cmdline
-         `("nix-shell" "--run" (s-join " " (list "cabal" "new-repl" (or dante-target (dante-package-name) "") ,@repl ,@repl-options)))
-         `("nix-shell" "--run" (s-join " " (list "cabal" "new-repl" (or dante-target (dante-package-name) "") ,@repl "--repl-no-load" ,@repl-options)))))
+       ,#'dante-nix-available?
+       ,#'dante-cabal-new-nix
+       ,@(funcall mk-opts
+                  (lambda (flags)
+                    `("nix-shell" "--run" (s-join " " (list "cabal" "new-repl" (or dante-target (dante-package-name) "") ,@flags))))))
       (new-nix
-       dante-cabal-new-nix
-       ("nix-shell" "--pure" "--run" (s-join " " (list "cabal" "new-repl" (or dante-target (dante-package-name) "") ,@build)))
-       ,(dante--mk-repl-cmdline
-         `("nix-shell" "--pure" "--run" (s-join " " (list "cabal" "new-repl" (or dante-target (dante-package-name) "") ,@repl ,@repl-options)))
-         `("nix-shell" "--pure" "--run" (s-join " " (list "cabal" "new-repl" (or dante-target (dante-package-name) "") ,@repl "--repl-no-load" ,@repl-options)))))
+       ,#'dante-nix-available?
+       ,#'dante-cabal-new-nix
+       ,@(funcall mk-opts
+                  (lambda (flags)
+                    `("nix-shell" "--pure" "--run" (s-join " " (list "cabal" "new-repl" (or dante-target (dante-package-name) "") ,@flags))))))
       (nix
-       dante-cabal-nix
-       ("nix-shell" "--pure" "--run" (s-join " " (list "cabal" "repl " (or dante-target "") ,@build)))
-       ,(dante--mk-repl-cmdline
-         `("nix-shell" "--pure" "--run" (s-join " " (list "cabal" "repl " (or dante-target "") ,@repl ,@repl-options)))
-         `("nix-shell" "--pure" "--run" (s-join " " (list "cabal" "repl " (or dante-target "") ,@repl "--repl-no-load" ,@repl-options)))))
+       ,#'dante-nix-available?
+       ,#'dante-cabal-nix
+       ,@(funcall mk-opts
+                  (lambda (flags)
+                    `("nix-shell" "--pure" "--run" (s-join " " (list "cabal" "repl " (or dante-target "") ,@flags))))))
       (impure-nix
-       dante-cabal-nix
-       ("nix-shell" "--run" (s-join " " (list "cabal" "repl " (or dante-target "") ,@build)))
-       ,(dante--mk-repl-cmdline
-         `("nix-shell" "--run" (s-join " " (list "cabal" "repl " (or dante-target "") ,@repl ,@repl-options)))
-         `("nix-shell" "--run" (s-join " " (list "cabal" "repl " (or dante-target "") ,@repl "--repl-no-load" ,@repl-options)))))
+       ,#'dante-nix-available?
+       ,#'dante-cabal-nix
+       ,@(funcall mk-opts
+                  (lambda (flags)
+                    `("nix-shell" "--run" (s-join " " (list "cabal" "repl " (or dante-target "") ,@flags))))))
       ;; (nix-ghci
       ;;  ,(lambda (d) (directory-files d t "shell.nix\\|default.nix"))
       ;;  ("nix-shell" "--pure" "--run" "ghci"))
       (new-build
-       dante-cabal-new
-       ("cabal" "new-repl" (or dante-target (dante-package-name) nil) ,@build)
-       ,(dante--mk-repl-cmdline
-         `("cabal" "new-repl" (or dante-target (dante-package-name) nil) ,@repl ,@repl-options)
-         `("cabal" "new-repl" (or dante-target (dante-package-name) nil) ,@repl "--repl-no-load" ,@repl-options)))
-      (stack "stack.yaml" ("stack" "repl" dante-target ,@stack-ghci-options))
+       nil
+       ,#'dante-cabal-new
+       ,@(funcall mk-opts
+                  (lambda (flags)
+                    `("cabal" "new-repl" (or dante-target (dante-package-name) nil) ,@flags))))
+      (stack
+       #'dante-stack-available?
+       "stack.yaml"
+       ("stack" "repl" dante-target ,@stack-ghci-options))
+
       (bare-cabal
+       nil
        ,(lambda (d) (directory-files d t ".cabal$"))
-       ("cabal" "repl" dante-target ,@build)
-       ,(dante--mk-repl-cmdline
-         `("cabal" "repl" dante-target ,@repl ,@repl-options)
-         `("cabal" "repl" dante-target ,@repl "--repl-no-load" ,@repl-options)))
+       ,@(funcall mk-opts
+                  (lambda (flags)
+                    `("cabal" "repl" dante-target ,@flags))))
+
       ;; (bare-v1-cabal
       ;;  ,(lambda (d) (directory-files d t "..cabal$"))
       ;;  ("cabal" "v1-repl" dante-target ,@build)
@@ -218,15 +235,17 @@ Consider setting this variable as a directory variable."
 (defun dante-initialize-method ()
   "Initialize `dante-project-root' and `dante-repl-command-line'.
 Do it according to `dante-methods' and previous values of the above variables."
-  (or (--first (let ((root (locate-dominating-file default-directory (nth 0 it))))
-                 (when root
-                   (setq-local dante-project-root (or dante-project-root root))
-                   (setq-local dante-repl-command-line (or dante-repl-command-line (nth 1 it)))
-                   (setq-local dante-repl--command-line-to-use (or (when (boundp 'dante-repl--command-line-to-use)
-                                                                     dante-repl--command-line-to-use)
-                                                                   (caddr it)
-                                                                   ;; Fall back to command used by dante for checking else
-                                                                   (dante--mk-repl-cmdline dante-repl-command-line dante-repl-command-line)))))
+  (or (--first (when (or (null (nth 0 it))
+                         (funcall (nth 0 it)))
+                 (let ((root (locate-dominating-file default-directory (nth 1 it))))
+                   (when root
+                     (setq-local dante-project-root (or dante-project-root root))
+                     (setq-local dante-repl-command-line (or dante-repl-command-line (nth 2 it)))
+                     (setq-local dante-repl--command-line-to-use (or (when (boundp 'dante-repl--command-line-to-use)
+                                                                       dante-repl--command-line-to-use)
+                                                                     (nth 3 it)
+                                                                     ;; Fall back to command used by dante for checking else
+                                                                     (dante--mk-repl-cmdline dante-repl-command-line dante-repl-command-line))))))
                (-non-nil (--map (alist-get it dante-methods-alist)
                                 dante-methods)))
       (error "No GHCi loading method applies.  Customize
