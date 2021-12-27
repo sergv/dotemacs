@@ -504,6 +504,11 @@ _a_lign  _t_: jump to topmost node start
     ("C-SPC"    vim:comint-clear-buffer-above-prompt)
     ("C-S-p"    browse-comint-input-history))
 
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:visual-mode-local-keymap
+                     vim:insert-mode-local-keymap)
+    ("C-<return>" sp-newline))
+
   (haskell-setup-folding :enable-hs-minor-mode t)
   (haskell-abbrev+-setup t))
 
