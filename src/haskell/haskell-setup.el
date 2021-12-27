@@ -62,7 +62,12 @@
             ghc-core-program-args)))
     (ghc-core-create-core current-prefix-arg)))
 
+(vim:defcmd vim:dante-repl-switch-to-repl-buffer (nonrepeatable)
+  (haskell-misc--configure-dante-if-needed!)
+  (dante-repl-switch-to-repl-buffer))
+
 (vim:defcmd vim:haskell-dante-load-file-into-repl (nonrepeatable)
+  (haskell-misc--configure-dante-if-needed!)
   (dante-repl-load-file))
 
 (vim:defcmd vim:haskell-dante-repl-restart (nonrepeatable)
@@ -80,9 +85,7 @@
     (flycheck-buffer)))
 
 (vim:defcmd vim:haskell-dante-configure (nonrepeatable)
-  (unless dante-mode
-    (error "dante is not enabled"))
-  (haskell-misc--configure-dante))
+  (haskell-misc--configure-dante!))
 
 (vim:defcmd vim:dante-clear-buffer-above-prompt (nonrepeatable)
   (dante-repl-clear-buffer-above-prompt))
@@ -285,7 +288,7 @@ _a_lign  _t_: jump to topmost node start
              (error "Selected flycheck haskell checker will likely not work: %s"
                     backend))
            (when (memq backend '(haskell-dante))
-             (add-hook 'flycheck-mode-hook #'haskell-misc--configure-dante nil t))))))
+             (add-hook 'flycheck-mode-hook #'haskell-misc--configure-dante! nil t))))))
 
     (turn-on-font-lock)
 
@@ -323,10 +326,14 @@ _a_lign  _t_: jump to topmost node start
          (vim:local-emap cmd #'vim:haskell-dante-configure))
 
        (def-keys-for-map vim:normal-mode-local-keymap
-         ("SPC SPC"      dante-repl-switch-to-repl-buffer)
+         ("SPC SPC"      vim:dante-repl-switch-to-repl-buffer)
          (("C-l" "<f6>") vim:haskell-dante-load-file-into-repl)
          ("-"            hydra-haskell-dante/body)))
       (lsp-mode
+
+       (dolist (cmd '("conf-repl" "configure-repl"))
+         (vim:local-emap cmd #'vim:haskell-dante-configure))
+
        (setq-local lsp-ui-sideline-show-code-actions t
                    lsp-ui-sideline-enable t
                    lsp-ui-sideline-ignore-duplicate t
@@ -336,6 +343,8 @@ _a_lign  _t_: jump to topmost node start
                    lsp-ui-sideline-delay 0.05)
        (lsp-ui-sideline-mode +1)
        (def-keys-for-map vim:normal-mode-local-keymap
+         ("SPC SPC"      vim:dante-repl-switch-to-repl-buffer)
+         (("C-l" "<f6>") vim:haskell-dante-load-file-into-repl)
          ("-"            hydra-haskell-lsp/body)
          ("C-r"          lsp-rename)))
       ((and flycheck-mode
@@ -359,7 +368,7 @@ _a_lign  _t_: jump to topmost node start
      :install-flycheck flycheck-mode
      :load-func
      (cond
-       (dante-mode
+       ((or dante-mode lsp-mode)
         #'vim:haskell-dante-load-file-into-repl)))
 
     (vim:local-emap "core" #'vim:ghc-core-create-core)
