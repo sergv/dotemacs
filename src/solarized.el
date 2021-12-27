@@ -71,7 +71,15 @@ Futher modified by Sergey Vinokurov."
          (light-violet-background     "#dd00eb")
          (light-cyan-green-background "#006152")
          (light-pink-background       "#e70000")
-         (light-red-background        "#910000"))
+         (light-red-background        "#910000")
+
+         (box-line-width (cond
+                           ((base-emacs-fixes--is-version 28)
+                            '(-1 . -1))
+                           ((base-emacs-fixes--is-version 27)
+                            (fold-platform-os-type '(-1 . -1) -1))
+                           (t
+                            -1))))
     (when (eq 'light mode)
       (rotatef base03 base3)
       (rotatef base02 base2)
@@ -151,10 +159,10 @@ Futher modified by Sergey Vinokurov."
                                            (t :inverse-video t)))
             (menu                         ((t (:foreground ,base0 :background ,base02))))
             (mode-line                    ((t (:foreground ,base1 :background ,base02
-                                                           :box (:line-width 1 :color ,base1)))))
+                                                           :box (:line-width ,box-line-width :color ,base1)))))
             (mode-line-buffer-id          ((t (:foreground ,base1))))
             (mode-line-inactive           ((t (:foreground ,base0  :background ,base02
-                                                           :box (:line-width 1 :color ,base02)))))
+                                                           :box (:line-width ,box-line-width :color ,base02)))))
             (region                       ((t (:background ,base02 :underline t))))
             (tab-bar-tab                  ((((class color) (min-colors 16777216))
                                             (:foreground ,magenta :background ,base03))
@@ -265,10 +273,9 @@ Futher modified by Sergey Vinokurov."
                                           ((t :foreground ,base01
                                               :inherit flycheck-warning)))
 
-            (lsp-face-highlight-textual   ((t :inherit highlight)))
-            (lsp-face-highlight-read      ((t :inherit lsp-face-highlight-textual :underline (:style wave))))
-            (lsp-face-highlight-write     ((t :inherit lsp-face-highlight-textual :bold t :underline (:style wave :color ,magenta))))
-
+            (lsp-face-highlight-textual   ((t :box (:line-width ,box-line-width :color ,cyan))))
+            (lsp-face-highlight-read      ((t :inherit lsp-face-highlight-textual)))
+            (lsp-face-highlight-write     ((t :inherit lsp-face-highlight-textual :bold t :underline (:style wave :color ,cyan))))
 
             (lsp-ui-sideline-code-action  ((t (:foreground ,cyan))))
             (lsp-modeline-code-actions-preferred-face
@@ -367,19 +374,19 @@ Futher modified by Sergey Vinokurov."
             (diff-refine-change                   ((t (:underline ,yellow))))
             (diff-refine-removed                  ((t (:underline ,red))))
 
-            (ediff-even-diff-Ancestor             ((t (:box (:line-width 1 :color ,base02)))))
-            (ediff-even-diff-A                    ((t (:box (:line-width 1 :color ,base02)))))
-            (ediff-even-diff-B                    ((t (:box (:line-width 1 :color ,base02)))))
-            (ediff-even-diff-C                    ((t (:box (:line-width 1 :color ,base02)))))
-            (ediff-odd-diff-Ancestor              ((t (:box (:line-width 1 :color ,base02)))))
-            (ediff-odd-diff-A                     ((t (:box (:line-width 1 :color ,base02)))))
-            (ediff-odd-diff-B                     ((t (:box (:line-width 1 :color ,base02)))))
-            (ediff-odd-diff-C                     ((t (:box (:line-width 1 :color ,base02)))))
+            (ediff-even-diff-Ancestor             ((t (:box (:line-width ,box-line-width :color ,base02)))))
+            (ediff-even-diff-A                    ((t (:box (:line-width ,box-line-width :color ,base02)))))
+            (ediff-even-diff-B                    ((t (:box (:line-width ,box-line-width :color ,base02)))))
+            (ediff-even-diff-C                    ((t (:box (:line-width ,box-line-width :color ,base02)))))
+            (ediff-odd-diff-Ancestor              ((t (:box (:line-width ,box-line-width :color ,base02)))))
+            (ediff-odd-diff-A                     ((t (:box (:line-width ,box-line-width :color ,base02)))))
+            (ediff-odd-diff-B                     ((t (:box (:line-width ,box-line-width :color ,base02)))))
+            (ediff-odd-diff-C                     ((t (:box (:line-width ,box-line-width :color ,base02)))))
 
-            (ediff-current-diff-Ancestor          ((t (:box (:line-width 1 :color ,violet)))))
-            (ediff-current-diff-A                 ((t (:box (:line-width 1 :color ,base1)))))
-            (ediff-current-diff-B                 ((t (:box (:line-width 1 :color ,base1)))))
-            (ediff-current-diff-C                 ((t (:box (:line-width 1 :color ,base1)))))
+            (ediff-current-diff-Ancestor          ((t (:box (:line-width ,box-line-width :color ,violet)))))
+            (ediff-current-diff-A                 ((t (:box (:line-width ,box-line-width :color ,base1)))))
+            (ediff-current-diff-B                 ((t (:box (:line-width ,box-line-width :color ,base1)))))
+            (ediff-current-diff-C                 ((t (:box (:line-width ,box-line-width :color ,base1)))))
             (ediff-fine-diff-Ancestor             ((((supports :underline (:style wave)))
                                                     (:underline (:style wave :color ,violet)))
                                                    (t
@@ -452,7 +459,7 @@ Futher modified by Sergey Vinokurov."
             (mumamo-background-chunk-submode3     ((t (:underline ,light-yellow-background))))
             (mumamo-background-chunk-submode4     ((t (:underline ,light-cyan-background))))
             (nxml-glyph                           ((t (:foreground ,base0 :background ,base03
-                                                                   :box (:line-width 1 :color ,base0)))))
+                                                                   :box (:line-width ,box-line-width :color ,base0)))))
             ;; tags themselves
             (nxml-element-local-name              ((t (:foreground ,orange))))
             ;; tag attributes
@@ -628,7 +635,7 @@ Futher modified by Sergey Vinokurov."
             (smerge-markers                       ((t (:inherit highlight))))
 
             (company-tooltip                      ((t (:foreground ,base1 :background ,base02
-                                                                   :box (:line-width 1 :color ,base1)))))
+                                                                   :box (:line-width ,box-line-width :color ,base1)))))
             (company-tooltip-selection            ((t (:underline (:style wave :color ,orange)))))
             (company-tooltip-common               ((t (:foreground ,violet))))
             (company-tooltip-annotation           ((t (:foreground ,green))))
