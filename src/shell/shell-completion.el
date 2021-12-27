@@ -2201,12 +2201,10 @@ under version-control directories."
         (flags ,@configure-flags)))
       ("build"
        (opts
-        (flags ,@help-verbosity-flags
-               ,@builddir-flags
+        (flags ,@configure-flags
                ,@build-flags
                "-j"
-               "--jobs"
-               ,@program-options-flags)))
+               "--jobs")))
       ("repl"
        (opts
         (flags
