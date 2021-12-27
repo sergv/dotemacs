@@ -157,24 +157,29 @@ as accepted by `bounds-of-thing-at-point'.")
           magit-buffer-file-name)
      (expand-file-name magit-buffer-file-name))))
 
+(defun eproj-symbnav/ensure-tags-loaded! (effective-major-mode proj)
+  ;; Load tags if there're none.
+  (unless (or (eproj--get-tags proj)
+              (assq effective-major-mode (eproj--get-tags proj)))
+    (eproj-reload-project! proj)
+    (unless (eproj--get-tags proj)
+      (error "Project %s loaded no names\nProject: %s"
+             (eproj-project/root proj)
+             proj))
+    (unless (assq effective-major-mode (eproj--get-tags proj))
+      (error "No names in project %s for mode %s"
+             (eproj-project/root proj)
+             effective-major-mode))))
+
 (defun eproj-symbnav/go-to-symbol-home-impl (identifier use-regexp?)
   (let* ((proj (eproj-get-project-for-buf (current-buffer)))
          (case-fold-search (and (not (null current-prefix-arg))
                                 (<= 16 (car current-prefix-arg))))
          (effective-major-mode (eproj/resolve-synonym-modes major-mode))
          (next-home-entry (car-safe eproj-symbnav/next-homes)))
-    ;; Load tags if there're none.
-    (unless (or (eproj--get-tags proj)
-                (assq effective-major-mode (eproj--get-tags proj)))
-      (eproj-reload-project! proj)
-      (unless (eproj--get-tags proj)
-        (error "Project %s loaded no names\nProject: %s"
-               (eproj-project/root proj)
-               proj))
-      (unless (assq effective-major-mode (eproj--get-tags proj))
-        (error "No names in project %s for language %s"
-               (eproj-project/root proj)
-               effective-major-mode)))
+
+    (eproj-symbnav/ensure-tags-loaded! effective-major-mode proj)
+
     (if (and eproj-symbnav-remember-choices
              next-home-entry
              (when-let (next-symbol (eproj-home-entry/symbol next-home-entry))

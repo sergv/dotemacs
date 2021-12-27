@@ -58,7 +58,8 @@
 (require 's)
 (require 'flycheck)
 
-(defcustom attrap-flycheck-checkers-alist '((haskell-dante . attrap-ghc-fixer)
+(defcustom attrap-flycheck-checkers-alist '((lsp . attrap-ghc-fixer)
+                                            (haskell-dante . attrap-ghc-fixer)
                                             (emacs-lisp . attrap-elisp-fixer))
   "An alist from flycheck checker symbol to attrap fixer."
   :type '(alist :key-type symbol :value-type function)
