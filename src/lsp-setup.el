@@ -34,7 +34,7 @@
       '(ccls lsp-ada lsp-angular lsp-bash lsp-clojure
              lsp-crystal lsp-csharp lsp-css lsp-dart lsp-dhall lsp-dockerfile lsp-elm
              lsp-elixir lsp-erlang lsp-eslint lsp-fortran lsp-fsharp lsp-gdscript lsp-go
-             lsp-hack lsp-groovy lsp-haskell lsp-haxe lsp-java lsp-javascript lsp-json
+             lsp-hack lsp-groovy lsp-haxe lsp-java lsp-javascript lsp-json
              lsp-kotlin lsp-lua lsp-nim lsp-nix lsp-metals lsp-ocaml lsp-perl lsp-php lsp-pwsh
              lsp-pyls lsp-python-ms lsp-purescript lsp-r lsp-rf lsp-solargraph lsp-sorbet
              lsp-tex lsp-terraform lsp-vala lsp-verilog lsp-vetur lsp-vhdl lsp-vimscript lsp-xml
@@ -54,10 +54,10 @@
       lsp-auto-execute-action nil
       lsp-enable-relative-indentation t
 
-      lsp-ui-sideline-enable nil
+      lsp-ui-sideline-enable t
       lsp-ui-sideline-show-diagnostics nil
       lsp-ui-sideline-show-hover t
-      lsp-ui-sideline-show-code-actions nil
+      lsp-ui-sideline-show-code-actions t
 
       ;; lsp-progress-via-spinner nil
 
@@ -84,6 +84,75 @@
        (lsp-doc-other-window--callback hover buf))
      :mode 'current ;; 'tick
      :cancel-token :lsp-doc-hover)))
+
+(lsp-defun lsp-doc-other-window--callback ((hover &as &Hover? :contents) buf)
+  (unless contents
+    (error "Empty response from server. Aborting"))
+  (when (equal buf (current-buffer))
+    (let ((doc-buf (get-buffer-create "*doc*"))
+          (markdown-fontify-code-blocks-natively t)
+          (markdown-fontify-code-block-default-mode major-mode))
+      (with-current-buffer doc-buf
+        (lsp-doc-presentation-mode)
+        (awhen lsp-doc-presentation--current-doc
+          (push it lsp-doc-presentation--prev-contents))
+        (lsp-doc-presentation-set-up-buffer
+         (replace-regexp-in-string "\r" "" (lsp-ui-doc--extract contents))))
+      (switch-to-buffer-other-window doc-buf))))
+
+;;;; lsp-doc-presentation-mode
+
+(defvar lsp-doc-presentation-mode-map
+  (let ((map (make-sparse-keymap)))
+    (def-keys-for-map map
+      +vi-keys+
+      +vim-search-keys+
+      +vim-search-extended-keys+
+      +vim-mock:word-motion-keys+
+      +vim-special-keys+
+      ("<up>"   lsp-doc-presentation-go-back)
+      ("<down>" lsp-doc-presentation-go-forward)
+      ("v"      set-mark-command)
+      ("y"      copy-region-as-kill))
+    map)
+  "Keymap for LSP doc mode, ‘lsp-doc-presentation-mode’.")
+
+(define-derived-mode lsp-doc-presentation-mode special-mode "LSP doc"
+  "Major mode to presenting LSP documentation."
+  :group 'lsp-mode
+  (setq-local truncate-lines t)
+  (read-only-mode +1)
+  (hl-line-mode +1))
+
+(defvar lsp-doc-presentation--prev-contents nil)
+(defvar lsp-doc-presentation--next-contents nil)
+(defvar lsp-doc-presentation--current-doc nil)
+
+(defun lsp-doc-presentation-set-up-buffer (contents)
+  (with-inhibited-read-only
+    (erase-buffer)
+    (insert (setf lsp-doc-presentation--current-doc contents))
+    (lsp-ui-doc--make-clickable-link)))
+
+(defun lsp-doc-presentation-go-back ()
+  (interactive)
+  (if (null lsp-doc-presentation--prev-contents)
+      (error "No more previous history items")
+    (let ((new-contents (car lsp-doc-presentation--prev-contents)))
+      (setf lsp-doc-presentation--prev-contents (cdr lsp-doc-presentation--prev-contents))
+      (awhen lsp-doc-presentation--current-doc
+        (push it lsp-doc-presentation--next-contents))
+      (lsp-doc-presentation-set-up-buffer new-contents))))
+
+(defun lsp-doc-presentation-go-forward ()
+  (interactive)
+  (if (null lsp-doc-presentation--next-contents)
+      (error "No more next history items")
+    (let ((new-contents (car lsp-doc-presentation--next-contents)))
+      (setf lsp-doc-presentation--next-contents (cdr lsp-doc-presentation--next-contents))
+      (awhen lsp-doc-presentation--current-doc
+        (push it lsp-doc-presentation--prev-contents))
+      (lsp-doc-presentation-set-up-buffer new-contents))))
 
 ;;;; Define some faces so that they’ll look ok
 
@@ -118,45 +187,49 @@
 
 (defalias 'lsp-symbnav/go-back #'eproj-symbnav/go-back)
 
-(defsubst lsp-symbnav--tag-kind (tag)
+(defun lsp-symbnav--tag-kind (tag)
   (awhen (eproj-tag/type tag)
-    (cl-assert (stringp it))
+    (cl-assert (stringp it) nil "Expected string tag type but got: %s" it)
     it))
 
 (defun lsp-symbnav/go-to-symbol-home (&optional use-regexp?)
   (interactive "P")
-  (let ((ident-and-tags
-         (if use-regexp?
-             (let ((re (read-regexp "enter regexp to search for")))
-               (cons re
-                     (-map #'lsp-symbnav--symbol-information->eproj-tag-triple
-                           (lsp-request "workspace/symbol" `(:query ,re)))))
-           (let ((identifier (eproj-symbnav/identifier-at-point nil)))
-             (cons identifier
-                   (--map (list identifier it nil)
-                          (lsp-symbnav--locations->eproj-tags
-                           identifier
-                           (lsp-request "textDocument/definition"
-                                        (lsp--text-document-position-params)))))))))
-    (destructuring-bind (ident . tags) ident-and-tags
-      (let ((proj nil)
-            (enable-shortcut? t))
-        (eproj-symbnav/choose-location-to-jump-to
-         ident
-         (lambda (_proj tag-name tag)
-           (cl-assert (stringp tag-name))
-           (concat tag-name
-                   (awhen (eproj-tag/type tag)
-                     (concat " [" it "]"))
-                   "\n"
-                   (eproj-xref-symbnav--tag->string tag)))
-         #'lsp-symbnav--tag-kind
-         (eproj-symbnav-get-file-name)
-         proj
-         (eproj-symbnav-current-home-entry)
-         tags
-         enable-shortcut?
-         "Choose symbol\n\n")))))
+  (if use-regexp?
+      (let* ((re (read-regexp "enter regexp to search for"))
+             (lsp-tags
+              (-map #'lsp-symbnav--symbol-information->eproj-tag-triple
+                    (lsp-request "workspace/symbol" `(:query ,re)))))
+        (lsp-symbnav/go-to-symbol-home-impl re lsp-tags))
+    (let* ((identifier (eproj-symbnav/identifier-at-point nil))
+           (lsp-tags
+            (--map (list identifier it nil)
+                   (lsp-symbnav--locations->eproj-tags
+                    identifier
+                    (lsp-request "textDocument/definition"
+                                 (lsp--text-document-position-params))))))
+      (lsp-symbnav/go-to-symbol-home-impl
+       identifier
+       lsp-tags))))
+
+(defun lsp-symbnav/go-to-symbol-home-impl (ident tags)
+  (let ((proj nil)
+        (enable-shortcut? t))
+    (eproj-symbnav/choose-location-to-jump-to
+     ident
+     (lambda (_proj tag-name tag)
+       (cl-assert (stringp tag-name))
+       (concat tag-name
+               (awhen (eproj-tag/type tag)
+                 (concat " [" it "]"))
+               "\n"
+               (eproj-xref-symbnav--tag->string tag)))
+     #'lsp-symbnav--tag-kind
+     (eproj-symbnav-get-file-name)
+     proj
+     (eproj-symbnav-current-home-entry)
+     tags
+     enable-shortcut?
+     "Choose symbol\n\n")))
 
 (defun lsp-symbnav/find-references (&optional include-declaration?)
   (interactive "P")
