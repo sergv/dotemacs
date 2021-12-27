@@ -8,6 +8,10 @@
 
 (eval-when-compile (require 'subr-x))
 
+(eval-when-compile
+  (defvar ghc-core-program)
+  (defvar ghc-core-program-args))
+
 (require 'align)
 (require 'browse-kill-ring-setup)
 (require 'comment-util)
@@ -29,9 +33,6 @@
 (require 'lsp-haskell-setup)
 (require 'shell-setup)
 (require 'smartparens-haskell)
-
-(defvar ghc-core-program)
-(defvar ghc-core-program-args)
 
 (vimmize-motion haskell-backward-up-indentation-or-sexp
                 :name vim:haskell-backward-up-indentation-or-sexp
@@ -104,6 +105,9 @@
 (vim:defcmd vim:haskell-navigate-imports (nonrepeatable)
   (haskell-navigate-imports)
   (vim:save-position haskell-navigate-imports-start-point))
+
+(vim:defcmd vim:haskell-comment-line (count repeatable)
+  (haskell-comment-line count))
 
 (defun haskell-update-eproj-tags-on-save ()
   (ignore-errors
@@ -211,7 +215,7 @@ _TAB_: align and sort subsection"
 
 (defhydra-derive hydra-haskell-vim-normal-j-ext hydra-vim-normal-j-ext (:exit t :foreign-keys nil :hint nil)
   ""
-  ("cc" haskell-comment-node))
+  ("cc" vim:haskell-comment-line))
 
 (defhydra-derive hydra-haskell-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
   "
@@ -507,7 +511,7 @@ _a_lign  _t_: jump to topmost node start
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap
                      vim:insert-mode-local-keymap)
-    ("C-<return>" sp-newline))
+    ("C-<return>" dante-repl-sp-newline))
 
   (haskell-setup-folding :enable-hs-minor-mode t)
   (haskell-abbrev+-setup t))
