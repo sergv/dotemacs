@@ -7,7 +7,10 @@
 ;; Description:
 
 (declare-function rust-get-compilation-buffer-name "rust-setup")
-(defvar compilation-command nil)
+(eval-when-compile
+  (defvar compilation-command))
+
+(require 'persistent-sessions-global-vars)
 
 (require 'configurable-compilation)
 (require 'rust-mode)
