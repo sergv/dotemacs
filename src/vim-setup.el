@@ -320,7 +320,7 @@ _<right>_: move tab to the right"
   ("K"         undo-tree-redo)
   ("J"         vim:cmd-join-lines)
 
-  ("M-p"       browse-kill-ring)
+  ("C-S-p"     browse-kill-ring)
 
   ("g"         hydra-vim-normal-g-ext/body)
   ("j"         hydra-vim-normal-j-ext/body)
@@ -399,7 +399,7 @@ _<right>_: move tab to the right"
   ("C-w"           backward-delete-word)
   ("C-S-w"         backward-delete-word*)
   ("C-r"           nil)
-  ("M-p"           browse-kill-ring)
+  ("C-S-p"         browse-kill-ring)
   ("SPC"           abbrev+-insert-space-or-expand-abbrev)
   ("<insert>"      vim:scroll-line-up)
   ("C-:"           pp-eval-expression)
