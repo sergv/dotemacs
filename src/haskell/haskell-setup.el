@@ -482,6 +482,7 @@ _a_lign  _t_: jump to topmost node start
     (vim:local-emap cmd #'vim:haskell-dante-repl-restart))
 
   (def-keys-for-map vim:normal-mode-local-keymap
+    ("H"        dante-repl-restart)
     ("SPC SPC"  comint-clear-prompt))
 
   (def-keys-for-map vim:insert-mode-local-keymap
