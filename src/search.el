@@ -20,6 +20,7 @@
 ;; where the search was started. While at minibuffer keys S-<up> and S-<down>
 ;; enable to move between matches
 
+(require 'persistent-sessions-global-vars)
 (require 'solarized)
 
 ;;; search faces

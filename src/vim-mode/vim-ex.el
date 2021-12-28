@@ -12,6 +12,8 @@
   (require 'cl-lib)
   (require 'subr-x))
 
+(require 'persistent-sessions-global-vars)
+
 (require 'vim-macs)
 (require 'vim-core)
 (require 'vim-compat)
