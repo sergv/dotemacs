@@ -6,6 +6,8 @@
 ;; Created:  3 January 2021
 ;; Description:
 
+(require 'common)
+
 (defvar *sessions-global-variables*
   (alist->hash-table
    '((log-edit-comment-ring . t)
