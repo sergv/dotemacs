@@ -83,7 +83,7 @@ This variable gets assigned by ‘dante-initialize-method’.")
                     (if dante-repl--last-command-line
                         dante-repl--last-command-line
                       (error "No previous REPL command available"))))))
-            (dante-repl--start-in-buffer-with-command-line repl-buf command-line nil)
+            (dante-repl--start-in-buffer-with-command-line repl-buf command-line nil nil)
             (unless inside-repl-buffer?
               (switch-to-buffer-other-window repl-buf)))
         (error
@@ -113,11 +113,11 @@ This variable gets assigned by ‘dante-initialize-method’.")
 (defun dante-repl--start-in-buffer (repl-buf extra-command load-all-on-start)
   (let ((command-line
          (-non-nil (-map #'eval (dante-repl--command-line-to-use load-all-on-start)))))
-    (dante-repl--start-in-buffer-with-command-line repl-buf command-line extra-command)))
+    (dante-repl--start-in-buffer-with-command-line repl-buf command-line extra-command nil)))
 
-(defun dante-repl--start-in-buffer-with-command-line (repl-buf command-line extra-command)
+(defun dante-repl--start-in-buffer-with-command-line (repl-buf command-line extra-command current-dir)
   (with-current-buffer repl-buf
-    (cd (dante-project-root))
+    (cd (or current-dir (dante-project-root)))
     (dante-repl-mode)
     (setq-local dante-repl--last-command-line command-line)
     (let ((proc
