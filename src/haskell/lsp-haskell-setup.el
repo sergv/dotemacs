@@ -9,7 +9,11 @@
 (require 'lsp-haskell)
 (require 'lsp-setup)
 
-(setf lsp-haskell-formatting-provider "none")
+(setf lsp-haskell-formatting-provider "none"
+
+      ;; lsp-haskell-server-args
+      ;; `("-d" "-l" ,lsp-haskell-server-log-file)
+      lsp-haskell-server-args nil)
 
 (defun lsp-ui-sideline--haskell-margin-width (old-margin-width)
   (if (derived-mode-p 'haskell-mode)
