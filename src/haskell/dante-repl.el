@@ -11,7 +11,12 @@
 (defvar-local dante-repl--command-line-to-use nil
   "Pair of command lines both of which can be used to start current repl session.
 car element is command line to use for a session that should load all project modules into new repl.
-cdr element is command line to use to get a “fresh” repl with no modules loaded.")
+cdr element is command line to use to get a “fresh” repl with no modules loaded.
+
+This variable gets assigned by ‘dante-initialize-method’.")
+
+(defvar-local dante-repl--last-command-line nil
+  "Last command line used to start the REPL session.")
 
 (defun dante-repl--command-line-to-use (load-all-on-start)
   (let ((dante-repl-cmdline
@@ -56,9 +61,7 @@ cdr element is command line to use to get a “fresh” repl with no modules loa
   (dante-repl--start-with-buffer-name (dante-repl-buffer-name)))
 
 ;;;###autoload
-(defun dante-repl-restart (load-all?)
-  "With universal argument the new REPL will load all modules and packages in a project.
-Without universal argument it will be a bare REPL ready to load current project’s modules."
+(defun dante-repl-restart (select-new-command?)
   (interactive "P")
   (let* ((inside-repl-buffer? (eq major-mode 'dante-repl-mode))
          (buf-name (if inside-repl-buffer?
@@ -72,8 +75,15 @@ Without universal argument it will be a bare REPL ready to load current project�
 
     (let ((repl-buf (get-buffer-create buf-name)))
       (condition-case err
-          (progn
-            (dante-repl--start-in-buffer repl-buf (dante-repl--command-line-to-use load-all?) nil)
+          (let ((command-line
+                 (cond
+                   (select-new-command?
+                    (dante-repl--command-line-to-use (y-or-n-p "Load all modules on REPL start?")))
+                   (t
+                    (if dante-repl--last-command-line
+                        dante-repl--last-command-line
+                      (error "No previous REPL command available"))))))
+            (dante-repl--start-in-buffer-with-command-line repl-buf command-line nil)
             (unless inside-repl-buffer?
               (switch-to-buffer-other-window repl-buf)))
         (error
@@ -109,7 +119,7 @@ Without universal argument it will be a bare REPL ready to load current project�
   (with-current-buffer repl-buf
     (cd (dante-project-root))
     (dante-repl-mode)
-    (setq-local dante-repl--command-line-to-use command-line)
+    (setq-local dante-repl--last-command-line command-line)
     (let ((proc
            (get-buffer-process
             (apply #'make-comint-in-buffer
@@ -177,15 +187,15 @@ Without universal argument it will be a bare REPL ready to load current project�
   (let* ((repl-buf-name (dante-repl-buffer-name))
          (repl-buf (get-buffer repl-buf-name)))
     (aif (buffer-file-name)
-        (dante-repl--send-load-command repl-buf-name repl-buf it)
+        (dante-repl-load-file--send-load-command repl-buf-name repl-buf it)
       (with-temporary-file tmp-file
           (shell-quote-argument (file-name-nondirectory (buffer-name)))
           "tmp"
           (buffer-substring-no-properties (point-min) (point-max))
-        (dante-repl--send-load-command repl-buf-name repl-buf tmp-file)))
+        (dante-repl-load-file--send-load-command repl-buf-name repl-buf tmp-file)))
     (switch-to-buffer-other-window (get-buffer repl-buf-name))))
 
-(defun dante-repl--send-load-command (repl-buf-name repl-buf file-to-load)
+(defun dante-repl-load-file--send-load-command (repl-buf-name repl-buf file-to-load)
   (let ((cmd (concat ":load \"" file-to-load "\"")))
     (if (and repl-buf
              (buffer-live-p repl-buf))
