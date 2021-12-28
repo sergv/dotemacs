@@ -75,7 +75,7 @@
       (dolist (frame frames)
         (set-face-attribute 'default frame :height scaling))))
 
-  (defun set-up-font--set-current-font-for-frame (&option frame)
+  (defun set-up-font--set-current-font-for-frame (&optional frame)
     (cl-assert (font-exist? current-font) nil "Font does not exist: %s" current-font)
     (set-frame-font current-font nil (if frame (list frame) nil)))
 
