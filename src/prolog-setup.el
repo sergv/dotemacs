@@ -92,7 +92,7 @@ _<tab>_: reindent predicate"
     ("C-S-w"    backward-delete-word*)
     ("<tab>"    nil)
 
-    ("C-S-p"    browse-comint-input-history)
+    ("M-p"      browse-comint-input-history)
 
     ("<return>" comint-send-input)
 
