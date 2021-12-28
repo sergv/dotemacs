@@ -222,9 +222,6 @@ messages pointing to additional source locations."
   (add-hook 'compilation-filter-hook
             'haskell-compilation-filter-hook nil t))
 
-(defvar haskell-compile--build-presets-history nil)
-(sessions-mark-global-var-for-save 'haskell-compile--build-presets-history)
-
 ;;;###autoload
 (defun haskell-compile (&optional edit-command)
   "Run a compile command for the current Haskell buffer.
