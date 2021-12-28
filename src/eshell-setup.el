@@ -246,7 +246,7 @@
     ("C-w"      backward-delete-word)
     ("C-S-w"    backward-delete-word*)
 
-    ("C-S-p"    browse-eshell-input-history)
+    ("M-p"      browse-eshell-input-history)
     ("C-d"      eshell-send-eof-to-process)
     ("<tab>"    completion-at-point)
     ("C-SPC"    eshell/clear)))

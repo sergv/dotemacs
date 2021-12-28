@@ -457,8 +457,8 @@ _j_: send region"
     ("M-t"      octave-jump-to-prev-error)
     ("M-h"      octave-jump-to-next-error)
 
-    ("M-p"      browse-kill-ring)
-    ("C-S-p"    browse-comint-input-history)))
+    ("C-S-p"    browse-kill-ring)
+    ("M-p"      browse-comint-input-history)))
 
 ;;;###autoload
 (add-hook 'inferior-octave-mode-hook #'inferior-octave-setup)

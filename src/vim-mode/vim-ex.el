@@ -59,7 +59,7 @@
       ("C-h"           ivy-next-line)
       ("C-t"           ivy-previous-line)
       ("C-p"           vim:cmd-paste-behind-no-adjust)
-      ("M-p"           browse-kill-ring)
+      ("C-S-p"         browse-kill-ring)
       ("C-/"           nil)
       ("C-v"           set-mark-command)
       ("C-y"           copy-region-as-kill)
