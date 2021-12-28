@@ -10,7 +10,8 @@
   (require 'cl-lib)
   (require 'subr-x)
 
-  (defvar eshell-history-ring))
+  (defvar eshell-history-ring)
+  (defvar eshell-buffer-name))
 
 (require 'frameset)
 
@@ -19,8 +20,6 @@
 (require 'persistent-sessions-global-vars)
 (require 'persistent-sessions-serializers)
 (require 'pp)
-
-(defvar eshell-buffer-name)
 
 ;; nil - No 'version field in session data structure.
 ;;     - Encode strings and rings as-is via prin1.
@@ -70,10 +69,9 @@ name, for temporary buffers - just the buffer name."
 
 (defconst +sessions-buffer-variables+
   (list
-   (list (lambda (buf)
-           (with-current-buffer buf (memq major-mode +haskell-syntax-modes+)))
-         'haskell-compile-command
-         'haskell-compile-cabal-build-command)
+   ;; (list (lambda (buf)
+   ;;         (with-current-buffer buf (memq major-mode +haskell-syntax-modes+)))
+   ;;       )
    (list (lambda (buf)
            (with-current-buffer buf (memq major-mode +rust-modes+)))
          'rust-compile-command)
@@ -204,7 +202,21 @@ entries."
   "Local variables to store for `compilation-mode' buffers.")
 
 (defvar sessions/special-modes
-  (let ((save-compilation-buffer
+  (let ((mk-save-repl-buffer
+         (lambda (store-extra)
+           (cl-assert (functionp store-extra))
+           (lambda (buf)
+             (save-excursion
+               (with-inhibited-read-only
+                (goto-char (point-max))
+                (forward-line -1)
+                (append
+                 (list (list 'contents (sessions/store-buffer-contents buf))
+                       (list 'current-dir
+                             (sessions/store-string
+                              (expand-file-name default-directory))))
+                 (funcall store-extra)))))))
+        (save-compilation-buffer
          (lambda (buf)
            (with-current-buffer buf
              (save-excursion
@@ -239,17 +251,11 @@ entries."
                         (cadr it))
                      (message "compilation-restore: no 'local-variables")))))))))
     `((eshell-mode
-       (save ,(lambda (buf)
-                (save-excursion
-                  (with-inhibited-read-only
-                   (goto-char (point-max))
-                   (forward-line -1)
-                   (list (list 'contents (sessions/store-buffer-contents buf))
-                         (list 'current-dir
-                               (sessions/store-string
-                                (expand-file-name default-directory)))
-                         (list 'eshell-history-ring
-                               (sessions/store-ring eshell-history-ring)))))))
+       (save ,(funcall mk-save-repl-buffer
+                       (lambda ()
+                         (list
+                          (list 'eshell-history-ring
+                                (sessions/store-ring eshell-history-ring))))))
        (restore ,(lambda (version buffer-name saved-data)
                    (message "Restoring eshell buffer %s" buffer-name)
                    (when-let (contents (assoc 'contents saved-data))
@@ -267,34 +273,29 @@ entries."
                                   buf
                                   (cadr it)
                                   (lambda () (insert "\n\n"))))
-                             (message "shell-restore: no 'contents")))
+                             (message "eshell-restore: no 'contents")))
                          (sessions/report-and-ignore-asserts
                              (format "while restoring current-directory of an eshell buffer '%s'" buffer-name)
                            (if-let (current-dir (cadr-safe (assq 'current-dir saved-data)))
-                               (progn
+                               (with-current-buffer buf
                                  (goto-char (point-max))
                                  (insert "cd \""
                                          (sessions/versioned/restore-string version current-dir)
                                          "\"")
                                  (eshell-send-input))
-                             (message "shell-restore: no 'current-dir")))
+                             (message "eshell-restore: no 'current-dir")))
                          (sessions/report-and-ignore-asserts
-                             (format "while restoring 'comint-input-ring of shell buffer '%s'" buffer-name)
+                             (format "while restoring 'comint-input-ring of eshell buffer '%s'" buffer-name)
                            (aif (cadr-safe (assoc 'eshell-history-ring saved-data))
-                               (setf eshell-history-ring (sessions/versioned/restore-ring version it))
-                             (message "shell-restore: no 'eshell-input-ring")))))))))
+                               (with-current-buffer buf
+                                 (setq-local eshell-history-ring (sessions/versioned/restore-ring version it)))
+                             (message "eshell-restore: no 'eshell-input-ring")))))))))
       (shell-mode
-       (save ,(lambda (buf)
-                (save-excursion
-                  (with-inhibited-read-only
-                   (goto-char (point-max))
-                   (forward-line -1)
-                   (list (list 'contents (sessions/store-buffer-contents buf))
-                         (list 'current-dir
-                               (sessions/store-string
-                                (expand-file-name default-directory)))
-                         (list 'comint-input-ring
-                               (sessions/store-ring comint-input-ring)))))))
+       (save ,(funcall mk-save-repl-buffer
+                       (lambda ()
+                         (list
+                          (list 'comint-input-ring
+                                (sessions/store-ring comint-input-ring))))))
        (restore ,(lambda (version buffer-name saved-data)
                    (let ((buf (get-buffer-create buffer-name)))
                      (sessions/report-and-ignore-asserts
@@ -314,7 +315,7 @@ entries."
                      (sessions/report-and-ignore-asserts
                          (format "while restoring current-directory of shell buffer '%s'" buffer-name)
                        (if-let (current-dir (cadr-safe (assq 'current-dir saved-data)))
-                           (progn
+                           (with-current-buffer buf
                              (goto-char (point-max))
                              (insert "cd \""
                                      (sessions/versioned/restore-string version current-dir)
@@ -324,9 +325,64 @@ entries."
                      (sessions/report-and-ignore-asserts
                          (format "while restoring 'comint-input-ring of shell buffer '%s'" buffer-name)
                        (aif (cadr-safe (assq 'comint-input-ring saved-data))
-                           (setf comint-input-ring
-                                 (sessions/versioned/restore-ring version it))
+                           (with-current-buffer buf
+                             (setq-local comint-input-ring
+                                         (sessions/versioned/restore-ring version it)))
                          (message "shell-restore: no 'comint-input-ring")))))))
+      (dante-repl-mode
+       (save ,(funcall mk-save-repl-buffer
+                       (lambda ()
+                         (list
+                          (list 'comint-input-ring
+                                (sessions/store-ring comint-input-ring))
+                          (list 'dante-repl--last-command-line
+                                (sessions/store-value dante-repl--last-command-line))))))
+       (restore ,(lambda (version buffer-name saved-data)
+                   (let ((buf (get-buffer-create buffer-name)))
+                     (sessions/report-and-ignore-asserts
+                         (format "while restoring contents of a dante-repl buffer '%s'" buffer-name)
+                       (aif (assq 'contents saved-data)
+                           (with-current-buffer buf
+                             (sessions/versioned/restore-buffer-contents
+                              version
+                              buf
+                              (cadr it)
+                              (lambda () (insert "\n\n"))))
+                         (message "dante-repl-restore: no 'contents")))
+
+                     (let ((current-dir
+                            (sessions/report-and-ignore-asserts
+                                (format "while restoring current-directory of dante-repl buffer '%s'" buffer-name)
+                              (if-let (current-dir (cadr-safe (assq 'current-dir saved-data)))
+                                  (sessions/versioned/restore-string version current-dir)
+                                (progn
+                                  (message "dante-repl-restore: no 'current-dir")
+                                  nil))))
+                           (command-line
+                            (aif (cadr-safe (assq 'dante-repl--last-command-line saved-data))
+                                (with-current-buffer buf
+                                  (setq-local dante-repl--last-command-line
+                                              (sessions/versioned/restore-value version it))
+                                  dante-repl--last-command-line)
+                              (progn
+                                (message "dante-repl-restore: no 'dante-repl--last-command-line")
+                                nil))))
+
+                       (dante-repl--start-in-buffer-with-command-line buf command-line nil current-dir)
+
+                       (accept-process-output (get-buffer-process buf)
+                                              5 ;; Time to wait in seconds.
+                                              ))
+
+                     (sessions/report-and-ignore-asserts
+                         (format "while restoring 'comint-input-ring of dante- buffer '%s'" buffer-name)
+                       (aif (cadr-safe (assq 'comint-input-ring saved-data))
+                           (with-current-buffer buf
+                             (setq-local comint-input-ring
+                                         (sessions/versioned/restore-ring version it)))
+                         (message "dante-repl-restore no 'comint-input-ring")))
+
+                     (goto-char (point-max))))))
       (haskell-compilation-mode
        (save ,save-compilation-buffer)
        (restore ,(funcall mk-restore-compilation-buffer #'haskell-compilation-mode)))
@@ -522,9 +578,14 @@ entries."
                         version
                         (second saved-info)))
                       (special-data (third saved-info)))
-                  (when-let ((spec-entry (assq mmode sessions/special-modes))
-                             (restore-func (cadr-safe (assq 'restore spec-entry))))
-                    (funcall restore-func version buf-name special-data))))
+                  (condition-case err
+                      (when-let ((spec-entry (assq mmode sessions/special-modes))
+                                 (restore-func (cadr-safe (assq 'restore spec-entry))))
+                        (funcall restore-func version buf-name special-data))
+                    (err
+                     (message "sessions/load-from-data: failed to restore buffer %s: %s"
+                              buf-name
+                              (cdr err))))))
               (cadr it))
       (message "sessions/load-from-data: no 'special-buffers field"))
 
