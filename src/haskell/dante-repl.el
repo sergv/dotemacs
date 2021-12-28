@@ -202,10 +202,10 @@ Without universal argument it will be a bare REPL ready to load current projectâ
     (forward-line -1)
     (end-of-line)
     (forward-char 1)
-    (let ((inhibit-read-only t))
-      (set-text-properties (point-min) (point) nil))
-    (remove-overlays (point-min) (line-end-position))
-    (delete-region (point-min) (line-end-position))
+    (with-inhibited-read-only
+     (set-text-properties (point-min) (point) nil)
+     (remove-overlays (point-min) (line-end-position))
+     (delete-region (point-min) (line-end-position)))
     ;; Skip prompt.
     (end-of-line)
     ;; `current-column' doesn't count prompt width, but
