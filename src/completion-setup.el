@@ -156,7 +156,7 @@ Prioritize directories unless they're invisible."
   (("C-h" "<C-up>")   ivy-next-history-element)
   (("C-t" "<C-down>") ivy-previous-history-element)
   ("C-p"              vim:cmd-paste-behind-no-adjust)
-  ("M-p"              browse-kill-ring)
+  ("C-S-p"            browse-kill-ring)
   ("C-w"              ivy-backward-kill-word)
   ("C-S-w"            backward-delete-word*)
 

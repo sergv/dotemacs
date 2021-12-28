@@ -693,7 +693,7 @@ _o_: show sexps in region"
     ("C-S-w"    backward-delete-word*)
     ("<tab>"    nil)
 
-    ("C-S-p"    browse-comint-input-history)
+    ("M-p"      browse-comint-input-history)
 
     ("<up>"     comint-previous-input)
     ("<down>"   comint-next-input)

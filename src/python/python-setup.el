@@ -502,7 +502,7 @@ _j_: send region to repl"
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
     ("C-SPC"    vim:comint-clear-buffer-above-prompt)
-    ("C-S-p"    browse-comint-input-history)
+    ("M-p"      browse-comint-input-history)
 
     ("<up>"     comint-previous-input)
     ("<down>"   comint-next-input)

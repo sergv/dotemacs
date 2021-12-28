@@ -507,7 +507,7 @@ _a_lign  _t_: jump to topmost node start
     ("M-)"      sp-emit-sexp)
 
     ("C-SPC"    vim:comint-clear-buffer-above-prompt)
-    ("C-S-p"    browse-comint-input-history))
+    ("M-p"      browse-comint-input-history))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap

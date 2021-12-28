@@ -215,7 +215,7 @@ _a_lign"
     ("C-SPC"            vim:comint-clear-buffer-above-prompt)
     ("C-w"              backward-delete-word)
     ("C-S-w"            backward-delete-word*)
-    ("C-S-p"            browse-comint-input-history)
+    ("M-p"              browse-comint-input-history)
 
     (("C-t" "S-<up>")   comint-previous-prompt)
     (("C-h" "S-<down>") comint-next-prompt)
