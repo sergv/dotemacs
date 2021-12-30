@@ -145,7 +145,12 @@
       ;; LSP may produce pretty large outputs during its work.
       read-process-output-max 32768
 
-      user-mail-address "serg.foo@gmail.com")
+      user-mail-address "serg.foo@gmail.com"
+
+      ;; I’ll compile everything I need ahead of time.
+      native-comp-deferred-compilation nil)
+
+(add-to-list 'native-comp-deferred-compilation-deny-list ".*")
 
 (remove-hook 'find-file-hook #'vc-refresh-state)
 
