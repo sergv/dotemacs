@@ -127,7 +127,7 @@
 
       ;; Always prefer *.elc to *.el.
       load-prefer-newer nil
-      kill-ring-max 512
+      kill-ring-max 1024
       save-interprogram-paste-before-kill nil
       enable-recursive-minibuffers t
       ad-default-compilation-action 'always
