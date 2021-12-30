@@ -1878,11 +1878,13 @@ argument VECP, this copies vectors as well as conses."
   (unless (or (null buffer-undo-list)
 	      (undo-list-found-canary-p buffer-undo-list))
     (garbage-collect))
-  (let (undo-list changeset)
+  (let (undo-list changeset (tries 0))
     (setq undo-tree-gc-flag t)
-    (while undo-tree-gc-flag
+    (while (and undo-tree-gc-flag
+                (< tries 25))
       (setq undo-tree-gc-flag nil
-            undo-list (undo-tree--copy-tree buffer-undo-list)))
+            undo-list (undo-tree--copy-tree buffer-undo-list)
+            tries (+ tries 1)))
     (setq buffer-undo-list (list nil 'undo-tree-canary))
 
     ;; create new node from first changeset in `undo-list', save old
