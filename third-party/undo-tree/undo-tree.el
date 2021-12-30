@@ -1379,9 +1379,9 @@ in visualizer."
 	 n)
     (while (setq n (pop stack))
       (setf (undo-tree-node-undo (cdr n))
-	    (copy-tree (undo-tree-node-undo (car n)) 'copy-vectors))
+	    (undo-tree--copy-tree (undo-tree-node-undo (car n)) t))
       (setf (undo-tree-node-redo (cdr n))
-	    (copy-tree (undo-tree-node-redo (car n)) 'copy-vectors))
+	    (undo-tree--copy-tree (undo-tree-node-redo (car n)) t))
       (setf (undo-tree-node-timestamp (cdr n))
 	    (copy-sequence (undo-tree-node-timestamp (car n))))
       (setf (undo-tree-node-branch (cdr n))
@@ -1825,6 +1825,42 @@ Comparison is done with `eq'."
 (defun undo-tree-post-gc ()
   (setq undo-tree-gc-flag t))
 
+(defun undo-tree--copy-tree (tree &optional vecp)
+  "Make a copy of TREE.
+If TREE is a cons cell, this recursively copies both its car and its cdr.
+Contrast to `copy-sequence', which copies only along the cdrs.  With second
+argument VECP, this copies vectors as well as conses."
+  (cond
+    ((consp tree)
+     (let* ((result (cons nil nil))
+            (tmp result))
+
+       (let ((newcar (car tree)))
+         (when (or (consp newcar)
+                   (and vecp (vectorp newcar)))
+           (setq newcar (undo-tree--copy-tree newcar vecp)))
+         (setf (car tmp) newcar))
+       (setq tree (cdr tree))
+
+       (while (consp tree)
+         (let ((newcar (car tree)))
+           (when (or (consp newcar)
+                     (and vecp (vectorp newcar)))
+             (setq newcar (undo-tree--copy-tree newcar vecp)))
+           (setf (cdr tmp) (cons newcar nil)
+                 tmp       (cdr tmp)))
+         (setq tree (cdr tree)))
+       (setf (cdr tmp) (if (and vecp (vectorp tree))
+                           (undo-tree--copy-tree tree vecp)
+                         tree))
+       result))
+    ((and vecp (vectorp tree))
+     (let ((i (length (setq tree (copy-sequence tree)))))
+       (while (>= (setq i (1- i)) 0)
+	 (aset tree i (undo-tree--copy-tree (aref tree i) vecp)))
+       tree))
+    (t
+     tree)))
 
 (defun undo-list-transfer-to-tree ()
   ;; Transfer entries accumulated in `undo-list' to `buffer-undo-tree'.
@@ -1846,7 +1882,7 @@ Comparison is done with `eq'."
     (setq undo-tree-gc-flag t)
     (while undo-tree-gc-flag
       (setq undo-tree-gc-flag nil
-	    undo-list (copy-tree buffer-undo-list)))
+            undo-list (undo-tree--copy-tree buffer-undo-list)))
     (setq buffer-undo-list (list nil 'undo-tree-canary))
 
     ;; create new node from first changeset in `undo-list', save old
