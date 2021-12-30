@@ -15,7 +15,7 @@
 
 (global-undo-tree-mode t)
 (setf undo-tree-visualizer-diff t
-      undo-tree-enable-undo-in-region nil
+      undo-tree-enable-undo-in-region t
       ;; display absolute timestamps
       undo-tree-visualizer-relative-timestamps nil
       undo-tree-visualizer-timestamps t
