@@ -6,7 +6,8 @@
 ;; Created: Sunday, 21 August 2016
 ;; Description:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib))
 
 (require 'persistent-sessions)
 (require 'persistent-sessions-error-reporting)
@@ -148,7 +149,7 @@
 (defun persistent-sessions-tests/hash-table-contents (tbl)
   "Normalize contents of hash table TBL and return it as an alist of key-value
 pairs."
-  (assert (hash-table-p tbl))
+  (cl-assert (hash-table-p tbl))
   (sort (hash-table->alist tbl)
         (lambda (a b)
           (let ((x (car a))

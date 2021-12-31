@@ -6,7 +6,8 @@
 ;; Created: Tuesday, 23 April 2013
 ;; Description:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib))
 
 (require 'ert)
 (require 'common)
@@ -27,14 +28,14 @@
   (let* ((count 80)
          (items
           (list->vector
-           (loop
+           (cl-loop
              for i from 0 below count
              collect (* i i)))))
-    (loop
+    (cl-loop
       for i from 0 below count do
-      (loop
+      (cl-loop
         for j from (+ i 1) below count do
-        (loop
+        (cl-loop
           for k from i to j do
           (let ((res (bisect (aref items k)
                              items
@@ -133,7 +134,7 @@
 (ert-deftest common-tests/test-delete-if-with-action! ()
   (let ((make-list
          (lambda (n)
-           (loop
+           (cl-loop
              for i from 0 to n
              collecting i))))
     (should (equal nil
@@ -436,7 +437,7 @@
            (9  "x  x "  "x  x " "x  x" "x  x")
            (10 " x  x " "x  x " "x  x" " x  x")
            (11 "\rx  x\r" "x  x\r" "x  x" "\rx  x")))
-  (destructuring-bind (n input expected-left expected-both expected-right)
+  (cl-destructuring-bind (n input expected-left expected-both expected-right)
       entry
     (eval
      `(progn
