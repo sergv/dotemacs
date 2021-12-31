@@ -6,7 +6,10 @@
 ;; Created:  3 June 2018
 ;; Description:
 
-(defvar dumping)
+(eval-when-compile
+  (require 'set-up-platform)
+
+  (defvar dumping))
 
 (defcustom use-foreign-libraries? t
   "Whether to use foreign extensions to Emacs."

@@ -7,6 +7,8 @@
 ;; Description:
 
 (eval-when-compile
+  (require 'set-up-platform)
+
   (defvar lsp-rust-analyzer-cargo-load-out-dirs-from-check)
   (defvar lsp-rust-analyzer-display-chaining-hints)
   (defvar lsp-rust-analyzer-display-parameter-hints)
