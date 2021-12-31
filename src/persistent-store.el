@@ -276,7 +276,7 @@ performed for some field."
     (let ((counter 0))
       (maphash (lambda (key value)
                  (message "#%d: %S:%S" counter key value)
-                 (incf counter))
+                 (cl-incf counter))
                persistent-store-content))))
 
 (defsubst persistent-store-database-size ()

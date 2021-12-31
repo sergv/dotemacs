@@ -10,7 +10,7 @@
 
 (eval-when-compile (require 'cl-lib))
 
-(defmacro* vim:defcmd (name (&rest args) &rest body)
+(cl-defmacro vim:defcmd (name (&rest args) &rest body)
   "Defines a new VIM-command.
 
 Vim-mode commands are defined using the macro vim:defcmd, which has the following form.
@@ -110,8 +110,8 @@ For more information about the vim:motion struct look at vim-core.el."
     (if (and (consp body)
              (cdr body)
              (stringp (car body)))
-      (setq doc (car body)
-            body (cdr body))
+        (setq doc (car body)
+              body (cdr body))
       (setq doc (format "VIM - command (%s %s)" name args)))
 
     ;; collect parameters
@@ -169,7 +169,7 @@ For more information about the vim:motion struct look at vim-core.el."
            (when argument
              (error "%s: only one argument may be specified: %s" 'vim:defcmd arg))
            (let ((arg-type (if (match-beginning 1)
-                             `',(intern (match-string 1 arg-name))
+                               `',(intern (match-string 1 arg-name))
                              ''text)))
              (setq argument arg-type)
              (push 'argument params)
@@ -187,7 +187,7 @@ For more information about the vim:motion struct look at vim-core.el."
        (put ',name 'repeatable ,repeatable)
        (put ',name 'force ,force)
        (put ',name 'function
-            (function*
+            (cl-function
              (lambda
                (,@(when params `(&key ,@params))
                 ,@(when named-params `(&aux ,@named-params)))
@@ -201,10 +201,10 @@ For more information about the vim:motion struct look at vim-core.el."
                   ;; And command may not have it's mock alternative,
                   ;; e.g. vim:cmd-paste-before.
                   (not (null? vim:active-command-function)))
-           (funcall vim:active-command-function ',name)
+             (funcall vim:active-command-function ',name)
            (apply (get ',name 'function) args))))))
 
-(defmacro* vim:defmotion (name (&rest args) &rest body)
+(cl-defmacro vim:defmotion (name (&rest args) &rest body)
   "Vim-mode motions can be defined with the macro vim:defmotion.
 Similar to commands motions have several keyword-like optional
 parameters and a view attributes. The general form is as follows.
@@ -258,8 +258,8 @@ look at vim-core.el."
     (if (and (consp body)
              (cdr body)
              (stringp (car body)))
-      (setq doc (car body)
-            body (cdr body))
+        (setq doc (car body)
+              body (cdr body))
       (setq doc (format "VIM - motion (%s %s)" name args)))
 
     ;; collect parameters
@@ -297,18 +297,18 @@ look at vim-core.el."
        (put ',name 'count ,count)
        (put ',name 'argument ,argument)
        (put ',name 'function
-            (function* (lambda
-                         (,@(when params `(&key ,@params))
-                          ,@(when named-params `(&aux ,@named-params)))
-                         (vim:do-motion ',type (progn ,@body)))))
+            (cl-function (lambda
+                           (,@(when params `(&key ,@params))
+                            ,@(when named-params `(&aux ,@named-params)))
+                           (vim:do-motion ',type (progn ,@body)))))
        (defun* ,name (&rest args)
          ,doc
          (interactive)
          (let ,(if do-not-adjust-point
-                 '((*vim:do-not-adjust-point* t))
+                   '((*vim:do-not-adjust-point* t))
                  '())
            (if (vim:called-interactively-p)
-             (vim:execute-command ',name)
+               (vim:execute-command ',name)
              (apply (get ',name 'function) args)))))))
 
 (provide 'vim-macs)

@@ -3,6 +3,9 @@
 ;; Author: Ethan Schoonover, Solarized; Greg Pfeil, Emacs adaptation
 ;; URL: http://ethanschoonover.com/solarized
 
+(eval-when-compile
+  (require 'cl-lib))
+
 (defconst +solarized-red+     "#dc322f")
 (defconst +solarized-orange+  "#cb4b16")
 (defconst +solarized-yellow+  "#b58900")
@@ -81,11 +84,11 @@ Futher modified by Sergey Vinokurov."
                            (t
                             -1))))
     (when (eq 'light mode)
-      (rotatef base03 base3)
-      (rotatef base02 base2)
-      (rotatef base01 base1)
-      (rotatef base00 base0)
-      (rotatef black white)
+      (cl-rotatef base03 base3)
+      (cl-rotatef base02 base2)
+      (cl-rotatef base01 base1)
+      (cl-rotatef base00 base0)
+      (cl-rotatef black white)
 
       (setf light-orange-background     "#f9ea7c"
             light-yellow-background     "#fbee00"
@@ -114,7 +117,7 @@ Futher modified by Sergey Vinokurov."
             magenta "magenta")
       (if (eq 'light mode)
           (progn
-            (rotatef black white)
+            (cl-rotatef black white)
             (setf base01                      "black"
                   base00                      "black"
                   base0                       "black"

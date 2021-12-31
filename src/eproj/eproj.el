@@ -122,13 +122,19 @@
   (cl-assert (-all? #'stringp extensions))
   (cl-assert (or (null create-tags-procedure)
                  (functionp create-tags-procedure)
-                 (autoloadp create-tags-procedure)))
+                 (autoloadp create-tags-procedure)
+                 (subr-native-elisp-p create-tags-procedure))
+             nil
+             "invalid create-tags-procedure: %s"
+             #'create-tags-procedure)
   (cl-assert (or (null parse-tags-procedure)
                  (functionp parse-tags-procedure)
-                 (autoloadp parse-tags-procedure)))
+                 (autoloadp parse-tags-procedure)
+                 (subr-native-elisp-p parse-tags-procedure)))
   (cl-assert (listp synonym-modes))
   (cl-assert (or (functionp tag->string-func)
-                 (autoloadp tag->string-func))
+                 (autoloadp tag->string-func)
+                 (subr-native-elisp-p tag->string-func))
              nil
              "Invalid tag->string-func: %s"
              tag->string-func)
@@ -136,10 +142,12 @@
   (cl-assert (-all? #'symbolp synonym-modes))
   (cl-assert (or (null normalise-identifier-before-navigation-procedure)
                  (functionp normalise-identifier-before-navigation-procedure)
-                 (autoloadp normalise-identifier-before-navigation-procedure)))
+                 (autoloadp normalise-identifier-before-navigation-procedure)
+                 (subr-native-elisp-p normalise-identifier-before-navigation-procedure)))
   (cl-assert (or (null get-extra-navigation-files-procedure)
                  (functionp get-extra-navigation-files-procedure)
-                 (autoloadp get-extra-navigation-files-procedure)))
+                 (autoloadp get-extra-navigation-files-procedure)
+                 (subr-native-elisp-p get-extra-navigation-files-procedure)))
   (cl-assert (or (null extra-navigation-globs)
                  (-all? #'stringp extra-navigation-globs)))
   (make-eproj-language

@@ -6,7 +6,8 @@
 ;; Created: Tuesday, 26 November 2013
 ;; Description:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib))
 
 (require 'haskell-abbrev+)
 (require 'haskell-block-indent)
@@ -42,7 +43,7 @@
     :initialisation (haskell-mode)
     :buffer-id haskell))
 
-(defmacro* haskell-tests--test-result (&key action expected-value contents)
+(cl-defmacro haskell-tests--test-result (&key action expected-value contents)
   `(haskell-tests--with-temp-buffer
        (should (equal ,action ,expected-value))
      ,contents))
