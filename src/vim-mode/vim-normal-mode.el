@@ -16,7 +16,10 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+
+  (defvar vim:last-undo))
 
 (require 'vim-defs)
 (require 'vim-core)

@@ -6,6 +6,9 @@
 ;; Created:  3 August 2021
 ;; Description:
 
+(eval-when-compile
+  (require 'set-up-platform))
+
 (defconst +build-products-extensions+
   (append
    '(".cmi" ".cmxa" ".cma" ".cmx" ".cmo"

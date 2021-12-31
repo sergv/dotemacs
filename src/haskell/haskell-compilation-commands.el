@@ -6,6 +6,9 @@
 ;; Created: 29 September 2019
 ;; Description:
 
+(eval-when-compile
+  (require 'set-up-platform))
+
 (require 'persistent-sessions-global-vars)
 
 (require 'configurable-compilation)

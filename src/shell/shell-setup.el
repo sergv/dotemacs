@@ -8,6 +8,9 @@
 
 ;; set up shell scripting files and shell interaction mode
 
+(eval-when-compile
+  (require 'set-up-platform))
+
 (require 'common)
 (require 'comint-setup)
 (require 'dirtrack)

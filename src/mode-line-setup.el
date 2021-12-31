@@ -6,6 +6,9 @@
 ;; Created: Monday,  7 November 2016
 ;; Description:
 
+(eval-when-compile
+  (require 'common))
+
 (defvar-local mode-line--buffer-line-count nil)
 
 (defun mode-line-show-line-count ()
