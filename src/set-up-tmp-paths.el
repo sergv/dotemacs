@@ -6,6 +6,9 @@
 ;; Created: 22 March 2021
 ;; Description:
 
+(eval-when-compile
+  (require 'set-up-platform))
+
 (defconst +tmp-path+
   (make-temp-name
    (fold-platform-os-type

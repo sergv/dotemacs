@@ -6,6 +6,9 @@
 ;; Created: Monday, 22 February 2016
 ;; Description:
 
+(eval-when-compile
+  (require 'set-up-platform))
+
 (defvar use-foreign-libraries?)
 
 ;;;###autoload

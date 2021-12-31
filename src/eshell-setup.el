@@ -8,6 +8,9 @@
 
 ;; eshell customization
 
+(eval-when-compile
+  (require 'set-up-platform))
+
 (require 'em-prompt)
 (require 'em-term)
 (require 'em-cmpl)
