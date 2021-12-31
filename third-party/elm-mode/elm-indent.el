@@ -1204,7 +1204,7 @@ TYPE is either 'guard or 'rhs."
     (define-key map [?\C-c ?\C-=] 'elm-indent-insert-equal)
     map))
 
-(define-obsolete-variable-alias 'elm-indent-map 'elm-indent-mode-map)
+(define-obsolete-variable-alias 'elm-indent-map 'elm-indent-mode-map "?")
 
 ;;;###autoload
 (define-minor-mode elm-indent-mode
@@ -1234,7 +1234,7 @@ Invokes `elm-indent-hook' if not nil."
     (kill-local-variable 'indent-region-function)))
 
 ;;;###autoload
-(define-obsolete-function-alias 'turn-on-elm-indent 'elm-indent-mode)
+(define-obsolete-function-alias 'turn-on-elm-indent 'elm-indent-mode "?")
 
 (defun turn-off-elm-indent ()
   "Turn off ``intelligent'' Elm indentation mode."
