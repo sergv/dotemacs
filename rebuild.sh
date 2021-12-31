@@ -12,7 +12,8 @@ set -o pipefail
 
 set -e
 
-./scripts/recompile.sh && ./scripts/dump.sh && ./tests/run-tests.sh
+#./scripts/dump.sh &&
+./scripts/recompile.sh && ./tests/run-tests.sh
 
 exit 0
 

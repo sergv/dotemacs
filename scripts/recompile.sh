@@ -67,7 +67,8 @@ rm -f \
    "third-party/flycheck/flycheck-autoloads.el"
 
 inform "Removing old *.elc files"
-find -O3 . -name '*.elc' -delete
+find -O3 . \( -name '*.elc' -o -name '*.eln' \) -delete
+rm -rv "$emacs_dir/eln-cache"
 
 
 tex_site_el="$emacs_dir/third-party/auctex/tex-site.el"
@@ -193,7 +194,10 @@ fi
 # fi
 
 inform "Recompiling"
-emacs-pristine --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\")"
+emacs-pristine --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" nil nil)"
+
+n="5"
+seq 0 "$n" | xargs --replace=INPUT --max-args=1 -P "$((n + 1))" --verbose emacs-pristine --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" INPUT $((n + 1)))"
 
 exit 0
 
