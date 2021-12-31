@@ -92,7 +92,8 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib))
 
 (require 'macro-util)
 
@@ -413,7 +414,7 @@ and switches to insert-mode."
                  current-line)
           (goto-char (point-max))
           (newline))
-        (incf current-line)
+        (cl-incf current-line)
 
         (unless (and (< (current-column) col)   ; nothing in this line
                      (<= offset 0) (zerop len)) ; and nothing to insert
@@ -844,7 +845,7 @@ If <bool> is ‘t’ then <name> is a string, otherwise it’s an integer obtain
     (vim:reset-key-state)
     (let* ((name-for-user nil)
            (macro (if vim--current-universal-argument-provided?
-                      (destructuring-bind (rendered . name-mapping) (vim--render-macro-names vim--defined-macro-names)
+                      (cl-destructuring-bind (rendered . name-mapping) (vim--render-macro-names vim--defined-macro-names)
                         (let* ((name (completing-read "Macro name: " rendered nil t nil 'vim--executed-macro-names-history))
                                (real-name (or (cdr (assoc name name-mapping))
                                               name)))

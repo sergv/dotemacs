@@ -470,8 +470,8 @@ counted."
     (let ((find-best (lambda (get-object first-better)
                        (let (obj1)
                          (dolist (obj2 (-map get-object boundaries-loc))
-                           (multiple-value-bind (b1 e1) obj1
-                             (multiple-value-bind (b2 e2) obj2
+                           (cl-multiple-value-bind (b1 e1) obj1
+                             (cl-multiple-value-bind (b2 e2) obj2
                                (setq obj1
                                      (cond
                                        ((null obj1) obj2)
@@ -527,7 +527,7 @@ contained in the first text-object before or at point."
         ;; check if this object is really the current one
         (when (< start (or (funcall boundary 'bwd) (point-min)))
           ;; if not, count this object
-          (decf n))
+          (cl-decf n))
         ;; search the end of the next objects
         (dotimes (_ n)
           (if linewise (forward-line) (forward-char))
@@ -589,7 +589,7 @@ contained in the first text-object before or at point."
         ;; check if this object is really the current one
         (when (> start (or (funcall boundary 'fwd) (point-min)))
           ;; if not, count this object
-          (decf n))
+          (cl-decf n))
         (dotimes (_ n)
           (if linewise (forward-line -1) (forward-char -1))
           (let ((next (funcall boundary 'bwd)))
@@ -620,24 +620,24 @@ text-object before or at point."
             (progn
               (dotimes (_ n)
                 (funcall forward -1)
-                (multiple-value-bind (b _) (funcall sel 'bwd)
+                (cl-multiple-value-bind (b _) (funcall sel 'bwd)
                   (goto-char (or b (point-min)))))
               (setq end (mark)
                     pnt (point)))
           ;; extend forward
           (dotimes (_ n)
             (funcall forward +1)
-            (multiple-value-bind (_ e) (funcall sel 'fwd)
+            (cl-multiple-value-bind (_ e) (funcall sel 'fwd)
               (goto-char (or e (1- (point-max))))))
           (setq end (point)
                 pnt (point)))
 
       ;; select current ...
-      (multiple-value-bind (b e) (funcall sel 'fwd)
+      (cl-multiple-value-bind (b e) (funcall sel 'fwd)
         (dotimes (_ (1- n))
           (goto-char (or e (1- (point-max))))
           (funcall forward +1)
-          (multiple-value-bind (_ ne) (funcall sel 'fwd)
+          (cl-multiple-value-bind (_ ne) (funcall sel 'fwd)
             (setq e (or ne (1- (point-max))))))
         (setq beg b
               end e
@@ -675,7 +675,7 @@ text-object before or at point."
             ;; extend backward
             (progn
               (dotimes (_ n)
-                (multiple-value-bind (wsb wse) (save-excursion
+                (cl-multiple-value-bind (wsb wse) (save-excursion
                                                  (funcall forward -1)
                                                  (funcall ws-sel 'bwd))
                   (vim:move-bwd-beg 1 boundary linewise)
@@ -689,7 +689,7 @@ text-object before or at point."
 
           ;; extend forward
           (dotimes (_ n)
-            (multiple-value-bind (wsb wse) (save-excursion
+            (cl-multiple-value-bind (wsb wse) (save-excursion
                                              (funcall forward +1)
                                              (funcall ws-sel 'fwd))
               (vim:move-fwd-end 1 boundary linewise)
@@ -703,12 +703,12 @@ text-object before or at point."
 
       ;; select current ...
       (save-excursion
-        (multiple-value-bind (b e) (funcall sel 'fwd)
+        (cl-multiple-value-bind (b e) (funcall sel 'fwd)
           (unless b (signal 'vim/no-such-object nil))
           (dotimes (_ (1- n))
             (goto-char e)
             (funcall forward +1)
-            (multiple-value-bind (_ ne) (funcall sel 'fwd)
+            (cl-multiple-value-bind (_ ne) (funcall sel 'fwd)
               (when ne (setq e ne))))
           (setq beg b
                 end e)))
@@ -716,7 +716,7 @@ text-object before or at point."
       ;; check whitespace before object
       (cond
         ;; started at white-space
-        ((multiple-value-bind (wsb _) (funcall ws-sel 'fwd)
+        ((cl-multiple-value-bind (wsb _) (funcall ws-sel 'fwd)
            (if (and wsb (<= wsb (point)))
                (setq beg wsb))))
 
@@ -725,7 +725,7 @@ text-object before or at point."
            (when (< end (point-max))
              (goto-char end)
              (funcall forward +1)
-             (multiple-value-bind (wsb wse) (funcall ws-sel 'fwd)
+             (cl-multiple-value-bind (wsb wse) (funcall ws-sel 'fwd)
                (if (and wsb (<= wsb (point)))
                    (setq end wse))))))
 
@@ -733,7 +733,7 @@ text-object before or at point."
         ((> beg (point-min))
          (goto-char beg)
          (funcall forward -1)
-         (multiple-value-bind (wsb wse) (funcall ws-sel 'bwd)
+         (cl-multiple-value-bind (wsb wse) (funcall ws-sel 'bwd)
            (if (and wse (>= wse (point)))
                (setq beg wsb)))))
 
@@ -792,7 +792,7 @@ text-object before or at point."
           (while (> cnt 0)
             (unless (re-search-backward combined-re nil t) (throw 'end nil))
             ;; split match data for open and close regexp
-            (multiple-value-bind (open-md close-md)
+            (cl-multiple-value-bind (open-md close-md)
                 (funcall split-match-data n-open-groups)
               (if (car open-md)
                   ;; match opening regexp
@@ -803,7 +803,7 @@ text-object before or at point."
                         ;; found object does not match
                         (throw 'end nil))
                     ;; found enclosing opening object
-                    (decf cnt)
+                    (cl-decf cnt)
                     (when (zerop cnt)
                       ;; found the opening object we looked for, so
                       ;; store it as the only object in the stack
@@ -819,7 +819,7 @@ text-object before or at point."
           (goto-char (1+ op-end))
           (while found-stack
             (unless (re-search-forward combined-re nil t) (throw 'end nil))
-            (multiple-value-bind (open-md close-md)
+            (cl-multiple-value-bind (open-md close-md)
                 (funcall split-match-data n-open-groups)
               (if (car close-md)
                   ;; match closing regexp
@@ -847,7 +847,7 @@ text-object before or at point."
             close-pos (point)))
 
     ;; check if we the current inner tag is selected completely
-    (multiple-value-bind (op-beg op-end cl-beg _)
+    (cl-multiple-value-bind (op-beg op-end cl-beg _)
         (vim:block-select open-re close-re match-test open-pos close-pos 1)
       (when (and op-beg
                  (or (= (1+ op-end) open-pos)
@@ -860,16 +860,16 @@ text-object before or at point."
                           (save-excursion
                             (goto-char cl-beg)
                             (bolp)))))
-        (incf n)))
+        (cl-incf n)))
 
-    (multiple-value-bind (op-beg op-end cl-beg _)
+    (cl-multiple-value-bind (op-beg op-end cl-beg _)
         (vim:block-select open-re close-re match-test open-pos close-pos n)
       (when op-beg
         (when (save-excursion
                 (goto-char (1+ op-end))
                 (and (eolp) (not (bolp))))
           ;; The opening tag ended right at eol, so skip the newline
-          (incf op-end))
+          (cl-incf op-end))
         ;; bug: mark ofter returns nil and causes problems
         ;; (goto-char (if (< (point) (mark)) (1+ op-end) (1- cl-beg)))
         (goto-char (1- cl-beg))
@@ -888,14 +888,14 @@ text-object before or at point."
             close-pos (point)))
 
     ;; check if we the current inner tag is selected completely
-    (multiple-value-bind (op-beg _ _ cl-end)
+    (cl-multiple-value-bind (op-beg _ _ cl-end)
         (vim:block-select open-re close-re match-test open-pos close-pos 1)
       (when (and op-beg
                  (= op-beg open-pos)
                  (= cl-end close-pos))
-        (incf n)))
+        (cl-incf n)))
 
-    (multiple-value-bind (op-beg _ _ cl-end)
+    (cl-multiple-value-bind (op-beg _ _ cl-end)
         (vim:block-select open-re close-re match-test open-pos close-pos n)
       (when op-beg
         ;; see vim:inner-block for this problem
@@ -1275,7 +1275,7 @@ but only on the current line."
   (let ((bounds (vim:bounds-of-string (point))))
     (if (not bounds)
         (signal 'vim/no-such-object nil)
-      (multiple-value-bind (beg end) bounds
+      (cl-multiple-value-bind (beg end) bounds
         (cond
           ;; point is in visual mode on one of both quotes
           ;; or quoted text is empty
@@ -1332,7 +1332,7 @@ but only on the current line."
                              :type 'inclusive))))
 
     (if-let (bounds (vim:bounds-of-string (point)))
-        (multiple-value-bind (beg end) bounds
+        (cl-multiple-value-bind (beg end) bounds
           (cond
             ;; extend whitespaces to the right
             ((save-excursion
@@ -1477,8 +1477,8 @@ jumps to the corresponding one."
       (while (and (> cnt 0)
                   (re-search-forward re nil t))
         (if (match-beginning 1)
-            (incf cnt)
-          (decf cnt))))
+            (cl-incf cnt)
+          (cl-decf cnt))))
     (if (zerop cnt)
         (goto-char (match-beginning 0))
       (signal 'vim/no-such-object (list "No closing of block found.")))))
@@ -1491,8 +1491,8 @@ jumps to the corresponding one."
       (while (and (> cnt 0)
                   (re-search-backward re nil t))
         (if (match-beginning 1)
-            (decf cnt)
-          (incf cnt))))
+            (cl-decf cnt)
+          (cl-incf cnt))))
     (if (zerop cnt)
         (goto-char (match-beginning 0))
       (signal 'vim/no-such-object (list "No opening of block found.")))))

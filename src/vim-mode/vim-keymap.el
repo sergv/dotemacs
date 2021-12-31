@@ -8,7 +8,8 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib))
 
 (defmacro vim:kbdmacro-to-command (events)
   "Creates a command passing prefix-argument to given keyboard-macro `events'."
@@ -42,10 +43,10 @@ the variable where the keymap is stored. If the variable contains
     (when parent (set-keymap-parent kmap parent))
     kmap))
 
-(defmacro* vim:define-keymap (name
-                              doc
-                              &key
-                              map-command)
+(cl-defmacro vim:define-keymap (name
+                                doc
+                                &key
+                                map-command)
   "Defines global and local keymaps for a mode with name
 vim:`name'-[local-]keymap and a map command vim:`map-command'
 and vim:local-`map-command'."
@@ -82,7 +83,9 @@ and vim:local-`map-command'."
 
 (define-minor-mode vim:intercept-ESC-mode
   "VIM minor mode to capture ESC."
-  nil nil nil)
+  :init-value nil
+  :lighter nil
+  :keymap nil)
 
 ;; This function is defined in vim:compat.el
 ;; (defun vim:intercept-ESC () ...)

@@ -89,18 +89,21 @@ _o_: unfold region
 
   ;; compilation setup
   (when-buffer-has-file
-    (setq-local compile-command
-                (let* ((input-file buffer-file-name)
-                       (result-name (concat
-                                     (file-name-sans-extension
-                                      (file-name-nondirectory input-file))
-                                     ".pdf"))
-                       (tmp-file (concat +tmp-path+ "/" result-name))
-                       (result-file (concat (strip-trailing-slash
-                                             (file-name-directory input-file))
-                                            "/"
-                                            result-name)))
+    (let* ((input-file buffer-file-name)
+           ;; (result-name (concat
+           ;;               (file-name-sans-extension
+           ;;                (file-name-nondirectory input-file))
+           ;;               ".pdf"))
+           ;; (tmp-file (concat +tmp-path+ "/" result-name))
+           ;; (result-file (concat (strip-trailing-slash
+           ;;                       (file-name-directory input-file))
+           ;;                      "/"
+           ;;                      result-name))
+           )
+
+      (setq-local compile-command
                   (format "pdflatex -halt-on-error -shell-escape --file-line-error '%s'" input-file)
+
                   ;; (format
                   ;;  (concat "cd '%s' && pdflatex -halt-on-error -shell-escape --file-line-error "
                   ;;          "-output-directory '%s' '%s' && cp '%s' '%s'")
@@ -109,13 +112,13 @@ _o_: unfold region
                   ;;  input-file
                   ;;  tmp-file
                   ;;  result-file)
-                  )
+                  ))
 
-                ;; don't ask - just compile
-                compilation-read-command nil
-                compilation-auto-jump-to-first-error nil
-                ;; don't skip any messages
-                compilation-skip-threshold 0))
+    (setq-local ;; don't ask - just compile
+     compilation-read-command nil
+     compilation-auto-jump-to-first-error nil
+     ;; don't skip any messages
+     compilation-skip-threshold 0))
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("S-<f9>"       open-buffer-as-pdf)
