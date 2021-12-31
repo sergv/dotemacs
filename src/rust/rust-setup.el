@@ -7,6 +7,8 @@
 ;; Description:
 
 (eval-when-compile
+  (require 'set-up-platform)
+
   (defvar whitespace-line-column)
   (defvar sp-report-unmatched-expressions))
 

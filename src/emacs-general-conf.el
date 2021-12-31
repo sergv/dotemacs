@@ -6,7 +6,10 @@
 ;; Created: long ago
 ;; Description:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+
+  (require 'set-up-platform))
 
 (require 'set-up-paths)
 (require 'common)

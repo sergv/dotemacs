@@ -8,6 +8,9 @@
 
 (eval-when-compile
   (require 'cl-lib)
+
+  (require 'set-up-platform)
+
   (defvar org-element-all-objects)
   (defvar org-element-all-elements))
 

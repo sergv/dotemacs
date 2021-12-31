@@ -11,7 +11,10 @@
 ;; Backup files on saves every hour or so and obligatory
 ;; backup on emacs exit
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+
+  (require 'set-up-platform))
 
 (require 'common)
 

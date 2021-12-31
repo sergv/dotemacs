@@ -7,7 +7,10 @@
 ;; Description:
 
 (declare-function rust-get-compilation-buffer-name "rust-setup")
+
 (eval-when-compile
+  (require 'set-up-platform)
+
   (defvar compilation-command))
 
 (require 'persistent-sessions-global-vars)
