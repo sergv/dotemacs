@@ -6,7 +6,9 @@
 ;; Created: Tuesday,  4 December 2012
 ;; Description:
 
-(eval-when-compile (require 'subr-x))
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'subr-x))
 
 (require 'pcomplete)
 (require 'completion-setup)
@@ -181,7 +183,7 @@ be either singular string or a list of strings."
 ;;;; The pcomplete macro
 
 ;;;###autoload
-(defmacro* defpcmpl (name definition &key (evaluate-definition nil))
+(cl-defmacro defpcmpl (name definition &key (evaluate-definition nil))
   "Define completion function NAME which should start with pcomplete/.
 DEFINITION is described by the following grammar:
 
@@ -288,7 +290,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                                  "Meaningless (args ...) clause without completion action, (args <action>) expected: %s"
                                  args))
                     (when (or flags args)
-                      (multiple-value-bind (single-dash-flags double-dash-flags)
+                      (cl-multiple-value-bind (single-dash-flags double-dash-flags)
                           (--separate (string-match-p "^-[^-]" it)
                                       (-mapcat #'pcmpl-flag/names flags))
                         `(while

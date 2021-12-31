@@ -8,8 +8,9 @@
 ;; Requirements:
 ;; Status:
 
-(eval-when-compile (require 'subr-x))
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'subr-x))
 
 (require 'common-small)
 (require 'common-constants)
@@ -26,7 +27,7 @@
 by any means other than direct referencing via ‘+undef’.")
 
 
-(autoload 'if-let "subr-x" nil nil 'macro)
+;; (autoload 'if-let "subr-x" nil nil 'macro)
 
 (defsubst remap-interval (a b c d x)
   "Remap x from [a, b] into [c, d]"
@@ -124,12 +125,12 @@ current time and"
   "Randoly shuffle vector VECT inplace with supply
 of random numbers from RANDOM-GEN."
   (typep vect 'vector)
-  (loop
+  (cl-loop
     for i downfrom (1- (length vect)) to 1
     ;; may yield i
     for j = (round (* i (funcall random-gen)))
-    do (psetf (aref vect i) (aref vect j)
-              (aref vect j) (aref vect i)))
+    do (cl-psetf (aref vect i) (aref vect j)
+                 (aref vect j) (aref vect i)))
   vect)
 
 (defun shuffle-lines (begin end)
@@ -149,7 +150,7 @@ of random numbers from RANDOM-GEN."
         (delete-char 1))
       (random-shuffle lines *random-gen*)
       (goto-char begin)
-      (loop
+      (cl-loop
         for line across lines
         do
         (insert line)
@@ -274,7 +275,7 @@ combinations"
             (lambda (start end)
               (if (< start 0)
                   (list ())
-                (loop
+                (cl-loop
                   for i from start to end
                   nconcing
                   (-map (lambda (rest)
@@ -1124,7 +1125,7 @@ Save buffer if it has assigned file and this file exists on disk."
           (lines (count-lines start end)))
       (goto-char start)
       (while (< lnum lines)
-        (incf lnum)
+        (cl-incf lnum)
         (indent-for-tab-command)
         (forward-line 1)))))
 
@@ -1610,7 +1611,7 @@ are CHAR1 and CHAR2 repsectively."
   "Check if text before point is equal to STR."
   (let ((res t)
         (p (point)))
-    (loop
+    (cl-loop
       for i from 0
       for j downfrom (1- (length str)) to 0
       while res

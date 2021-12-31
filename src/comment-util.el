@@ -397,7 +397,7 @@ be used only for vim-visual-mode of the vim-mode package."
       (funcall skip-to-column)
       (insert comment-str)
       (forward-line 1)
-      (incf lines -1)
+      (cl-incf lines -1)
       (while (> lines 0)
         (cond
           ((funcall empty-line?)
@@ -408,7 +408,7 @@ be used only for vim-visual-mode of the vim-mode package."
            (funcall skip-to-column)
            (insert comment-str)))
         (forward-line 1)
-        (incf lines -1)))))
+        (cl-incf lines -1)))))
 
 (defun comment-util-delete-comment ()
   "Delete comments (e.g. //, ;) after point if any."
@@ -420,7 +420,7 @@ be used only for vim-visual-mode of the vim-mode package."
         (while (and (char= ?\s (char-after))
                     (< i *comment-util-space-count*))
           (delete-char 1)
-          (incf i))))))
+          (cl-incf i))))))
 
 ;;;;; Some lisp-specific comment functions, inspired by paredit.el
 
@@ -521,7 +521,7 @@ commented parts and leave point unchanged."
 (defun comment-util-delete-commented-part ()
   "Delete all adjacent lines that are commented by line regexps."
   (interactive)
-  (multiple-value-bind (start end)
+  (cl-multiple-value-bind (start end)
       (comment-util--get-commented-region)
     (save-excursion
       (save-match-data
@@ -550,7 +550,7 @@ commented parts and leave point unchanged."
 ;;;###autoload
 (defun lisp-uncomment-sexp ()
   (interactive)
-  (multiple-value-bind (start end)
+  (cl-multiple-value-bind (start end)
       (comment-util--get-commented-region)
     (save-excursion
       ;; now skip all whitespace characters and see if next char

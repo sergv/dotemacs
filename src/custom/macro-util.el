@@ -16,12 +16,12 @@
        (eval ,x)
      ,x))
 
-(defmacro* vimmize-motion (func
-                           &key
-                           (name nil)
-                           (exclusive t)
-                           (doc nil)
-                           (do-not-adjust-point nil))
+(cl-defmacro vimmize-motion (func
+                             &key
+                             (name nil)
+                             (exclusive t)
+                             (doc nil)
+                             (do-not-adjust-point nil))
   "Embed FUNC into vim framework of motions. FUNC may be symbol or
 actual call to function."
   (let* ((func-name
@@ -45,14 +45,14 @@ actual call to function."
             func
           (list func)))))
 
-(defmacro* vimmize-function (func
-                             &key
-                             (name nil)
-                             (doc nil)
-                             (has-count t)
-                             (call-n-times nil)
-                             (repeatable t)
-                             (keep-visual nil))
+(cl-defmacro vimmize-function (func
+                               &key
+                               (name nil)
+                               (doc nil)
+                               (has-count t)
+                               (call-n-times nil)
+                               (repeatable t)
+                               (keep-visual nil))
   "Embed FUNC into vim framework of actions. FUNC may be symbol or
 actual call to function. If FUNC is a symbol and CALL-N-TIMES is nil
 then symbol should name function of one argument - prefix argument count.
@@ -125,7 +125,7 @@ NB does not expect to cache values of ARGS that are nil."
          (let ((,query-var
                 ,(first
                   (foldl (lambda (hash-table-expr-struct x)
-                           (destructuring-bind (hash-table-expr may-be-null?)
+                           (cl-destructuring-bind (hash-table-expr may-be-null?)
                                hash-table-expr-struct
                              (list
                               (if may-be-null?
@@ -292,11 +292,11 @@ another KEY-COMMAND-LIST spliced in place of a variable;
                       (list 'quote command))))))
            (process-key-command-list
             (lambda (map-var key-command-list)
-              (loop
+              (cl-loop
                 for entry in key-command-list
                 appending (if (symbol? entry)
                               (funcall process-key-command-list map-var (eval entry))
-                            (destructuring-bind (key command)
+                            (cl-destructuring-bind (key command)
                                 (if (quoted? entry)
                                     (eval entry)
                                   entry)
@@ -341,10 +341,10 @@ another KEY-COMMAND-LIST spliced in place of a variable;
          (goto-char (match-end 0))
          t))))
 
-(defmacro* define-repeated-function (orig-func
-                                     &key
-                                     (prefix "-n")
-                                     (default-count 1))
+(cl-defmacro define-repeated-function (orig-func
+                                       &key
+                                       (prefix "-n")
+                                       (default-count 1))
   `(defun ,(make-symbol (concat (symbol-name orig-func)
                                 prefix))
        (&optional count)
@@ -355,16 +355,16 @@ another KEY-COMMAND-LIST spliced in place of a variable;
      (dotimes (i count)
        (funcall #',orig-func))))
 
-(defmacro* define-switch-to-interpreter (name
-                                         (&rest buffer-names)
-                                         run-interpreter-command
-                                         &key
-                                         (doc "")
-                                         (test-if-already-running nil)
-                                         (save-buffer t)
-                                         (error-msg nil)
-                                         (sleep-time 1)
-                                         (try-count 10))
+(cl-defmacro define-switch-to-interpreter (name
+                                           (&rest buffer-names)
+                                           run-interpreter-command
+                                           &key
+                                           (doc "")
+                                           (test-if-already-running nil)
+                                           (save-buffer t)
+                                           (error-msg nil)
+                                           (sleep-time 1)
+                                           (try-count 10))
   "NAME - name of the switch procedure.
 
 BUFFER-NAMES - list of symbols/strings/lists. Symbol stands for variable
@@ -388,7 +388,7 @@ of code may be called more than once."
 
            (dotimes (,tries ,try-count)
              (cond
-               ,@(loop
+               ,@(cl-loop
                    for buf in buffer-names
                    collecting
                    (if (listp buf)
@@ -427,12 +427,12 @@ of code may be called more than once."
                                           buffer-names
                                           ", ")))))))))
 
-(defmacro* defalign (func
-                     align-str
-                     &key
-                     (repeat nil)
-                     (require-one-or-more-spaces nil)
-                     (put-align-spaces-after-str nil))
+(cl-defmacro defalign (func
+                       align-str
+                       &key
+                       (repeat nil)
+                       (require-one-or-more-spaces nil)
+                       (put-align-spaces-after-str nil))
   (declare (indent 1))
   (let ((spaces-re (concat "\\([ \t]"
                            (if require-one-or-more-spaces
@@ -567,7 +567,7 @@ return nil otherwise."
   `(let ((inhibit-redisplay t))
      ,@body))
 
-(defmacro* with-marker ((marker-var marker-init) &rest body)
+(cl-defmacro with-marker ((marker-var marker-init) &rest body)
   (declare (indent 1))
   `(let ((,marker-var ,marker-init))
      (unwind-protect
