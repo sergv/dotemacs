@@ -4,7 +4,9 @@
 ;; URL: http://ethanschoonover.com/solarized
 
 (eval-when-compile
-  (require 'cl-lib))
+  (require 'cl-lib)
+
+  (require 'set-up-platform))
 
 (defconst +solarized-red+     "#dc322f")
 (defconst +solarized-orange+  "#cb4b16")

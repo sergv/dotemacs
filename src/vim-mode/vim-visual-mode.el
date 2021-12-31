@@ -23,6 +23,7 @@
 (require 'vim-insert-mode)
 (require 'vim-ex)
 (require 'vim-commands)
+(require 'vim-undo)
 
 (defgroup vim-visual-mode nil
   "Visual mode"

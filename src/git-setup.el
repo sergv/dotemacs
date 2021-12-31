@@ -8,7 +8,9 @@
 
 (eval-when-compile
   (require 'cl-lib)
-  (require 'subr-x))
+  (require 'subr-x)
+
+  (require 'set-up-platform))
 
 (require 'common)
 (require 'common-heavy)

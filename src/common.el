@@ -10,7 +10,9 @@
 
 (eval-when-compile
   (require 'cl-lib)
-  (require 'subr-x))
+  (require 'subr-x)
+
+  (require 'set-up-platform))
 
 (require 'common-small)
 (require 'common-constants)
@@ -1280,9 +1282,10 @@ further than END-POS."
       (let ((end (point)))
         (buffer-substring-no-properties start end)))))
 
-(defsubst count-lines-dumb (begin end)
+(defun count-lines-dumb (begin end)
   "Return line count in region like `count-lines' but don't
 confuse when point is not at the beginning of line"
+  ()
   (+ (count-lines begin end)
      (if (equal (current-column) 0)
          1

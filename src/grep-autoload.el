@@ -6,6 +6,9 @@
 ;; Created: Thursday, 20 August 2015
 ;; Description:
 
+(eval-when-compile
+  (require 'set-up-platform))
+
 (setf find-program
       (fold-platform-os-type
        "find"
