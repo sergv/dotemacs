@@ -35,10 +35,13 @@
 
 ;; undo stuff
 (defun vim:connect-undos (last-undo)
-  (let ((find-mark (lambda (lst)
-                     (while (not (or (null lst)
-                                     (eq lst last-undo)))
+  (let ((find-mark (lambda (mark lst)
+                     (while (and lst
+                                 (not (eq lst last-undo)))
                        (setq lst (cdr lst)))
+                     ;; (while (not (or (null lst)
+                     ;;                 (eq lst last-undo)))
+                     ;;   (setq lst (cdr lst)))
                      (not (null lst)))))
 
     ;; ensure last-undo is still in the undo list
