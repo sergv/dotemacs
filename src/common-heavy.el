@@ -318,7 +318,7 @@ number of spaces equal to `tab-width'."
               (aif buffer-file-name
                   (file-name-directory it)
                 default-directory))))
-    (block 'found
+    (cl-block 'found
       (dolist (exec execs)
         (let ((exec-spec (gethash exec custom--known-executables)))
           (if exec-spec
@@ -332,10 +332,10 @@ number of spaces equal to `tab-width'."
                   (async-shell-command (concat (join-lines (cons path args) " ")
                                                " "
                                                (shell-quote-argument dir)))
-                  (return-from 'found)))
+                  (cl-return-from 'found)))
             (error "No specification found for exec-spec %s" exec))
           (when (cached-executable-find exec)
-            (return-from found
+            (cl-return-from found
               (funcall (gethash (car execs)
                                 custom--known-executables)
                        dir))))))))
@@ -663,7 +663,7 @@ PROJECT. EQ-FUNC will be used as hash-table comparison."
 ;;;###autoload
 (defun nested-hash-tables/add-kv! (key value hash-tables)
   (let ((table (nested-hash-tables/data hash-tables)))
-    (loop
+    (cl-loop
       for spec-entry on (nested-hash-tables/field-specs hash-tables)
       do
       (let* ((spec (car spec-entry))
@@ -740,15 +740,15 @@ around individual arguments."
                           (char= next ?\"))
                      (progn
                        (push next word)
-                       (incf i 2))
+                       (cl-incf i 2))
                    (progn
                      (push c word)
-                     (incf i)))))
+                     (cl-incf i)))))
               (_
                (if (char= c string-start)
                    (setf string-start nil)
                  (push c word))
-               (incf i)))
+               (cl-incf i)))
           (progn
             (pcase c
               (`?\s
@@ -759,7 +759,7 @@ around individual arguments."
                (setf string-start c))
               (_
                (push c word)))
-            (incf i)))))
+            (cl-incf i)))))
     (when word
       (push (list->string (nreverse word)) result))
     (nreverse result)))
@@ -793,7 +793,7 @@ then ON-NEXT-INCREMENT function will be called 20 times with
         (while (<= (* reported-increments increments-to-report) new-done-units)
           (funcall on-next-increment
                    (* reported-increments increments-to-report))
-          (incf reported-increments))
+          (cl-incf reported-increments))
         (setf done-units new-done-units)))))
 
 ;;;###autoload

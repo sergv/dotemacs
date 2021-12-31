@@ -6,6 +6,8 @@
 ;; Created: long ago
 ;; Description:
 
+(eval-when-compile
+  (require 'cl-lib))
 
 (defmacro make-cycle-on-lines-in-region
     (begin end is-forward?
@@ -40,13 +42,13 @@ DIRECTION may have value either 'forward or 'backward"
                   `(<= (- current count) ,begin)))
 
                (if is-forward?
-                   `((incf count (- (- range-end current)))
+                   `((cl-incf count (- (- range-end current)))
 
                      (goto-char (point-min))
                      (funcall ,forward-func ,begin)
                      (dotimes (_ count)
                        (funcall ,forward-func +1)))
-                 `((incf count (- (- current ,begin)))
+                 `((cl-incf count (- (- current ,begin)))
 
                    (goto-char (point-max))
                    (funcall ,backward-func ,(abs end))
@@ -81,8 +83,8 @@ DIRECTION may have value either 'forward or 'backward"
                          (point-min)
                        (point-max)))
           ;; we found nothing so this try doesn't actually counts
-          (incf n)))
-      (incf n -1))))
+          (cl-incf n)))
+      (cl-incf n -1))))
 
 (defun custom-occur-next (&optional n)
   "Move to the Nth (default 1) next match in an Occur mode buffer."

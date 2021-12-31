@@ -8,7 +8,8 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib))
 
 (require 'vim-macs)
 
@@ -73,14 +74,14 @@
 (defun vim:default-command-function (&rest args)
   (error "Default noop command function called with args %s" args))
 
-(defmacro* vim:define-mode (name doc
-                                 &rest body
-                                 &key
-                                 ident
-                                 message
-                                 command-function
-                                 (cursor ''hbar)
-                                 keymaps)
+(cl-defmacro vim:define-mode (name doc
+                                   &rest body
+                                   &key
+                                   ident
+                                   message
+                                   command-function
+                                   (cursor ''hbar)
+                                   keymaps)
   "Defines a new VIM-mode with certain `name', mode-line-identifier `ident',
 activation `message', a `command-function' to be called when a
 vim-command should be executed, a `cursor' shape and a list of `keymaps'."
@@ -103,7 +104,10 @@ vim-command should be executed, a `cursor' shape and a list of `keymaps'."
        (push (cons ',mode-name ,(symbol->string name)) vim:mode-alist)
 
        ;; (add-hook 'find-file-hook 'vim:normal-mode-update-keymaps)
-       (define-minor-mode ,mode-name ,doc nil nil nil
+       (define-minor-mode ,mode-name ,doc
+         :init-value nil
+         :lighter nil
+         :keymap nil
          (when ,mode-name
            ;; ,@(when ident `((vim:update-mode-line ,ident)))
            ,@(when message `((let (message-log-max) (message ,message))))

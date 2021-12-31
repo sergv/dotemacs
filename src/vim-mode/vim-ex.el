@@ -294,7 +294,7 @@ This function should be called whenever the minibuffer is exited."
   "Checks if the command or argument changed and informs the
 argument handler. Gets called on every minibuffer change."
   (let ((cmdline (vim:ex-contents)))
-    (multiple-value-bind (_range cmd _spaces arg beg end _force)
+    (cl-multiple-value-bind (_range cmd _spaces arg beg end _force)
         (vim:ex-split-cmdline cmdline)
       (cond
         ((not (string= vim:ex-cmd cmd))
@@ -346,7 +346,7 @@ beg end force) with the following meanings.
   `beg' is the start line of the range
   `end' is the end line of the range
   `force' is t iff the command was followed by an exclamation mark"
-  (multiple-value-bind (cmd-region beg end force) (vim:ex-parse cmdline)
+  (cl-multiple-value-bind (cmd-region beg end force) (vim:ex-parse cmdline)
     (if (null cmd-region)
       (values cmdline "" cmdline "" beg end nil)
       (let ((range (substring cmdline 0 (car cmd-region)))
@@ -367,7 +367,7 @@ has been pressed."
   (interactive "p")
   (let ((cmdline (vim:ex-contents)))
     (self-insert-command n)
-    (multiple-value-bind (_range cmd spaces arg _beg _end _force) (vim:ex-split-cmdline cmdline)
+    (cl-multiple-value-bind (_range cmd spaces arg _beg _end _force) (vim:ex-split-cmdline cmdline)
       (when (and (= (point) (point-max))
                  (zerop (length spaces))
                  (zerop (length arg)))
@@ -384,7 +384,7 @@ has been pressed."
   ;; has ended
   (when (and (bufferp vim:ex-minibuffer)
              (eq (current-buffer) vim:ex-minibuffer))
-    (multiple-value-bind (range cmd spaces arg _beg _end force) (vim:ex-split-cmdline cmdline)
+    (cl-multiple-value-bind (range cmd spaces arg _beg _end force) (vim:ex-split-cmdline cmdline)
       (setq vim:ex-cmd cmd)
       (cond
         ;; only complete at the end of the command
@@ -412,7 +412,7 @@ has been pressed."
              ;; try-completion, take case of a unique match which
              ;; may take a force argument
              (`nil
-              (case result
+              (cl-case result
                 ((nil) nil)
                 ((t) (if (and (not force)
                               (vim:cmd-force-p (vim:ex-binding cmd)))
@@ -524,7 +524,7 @@ has been pressed."
 (defun vim:ex-execute-command (cmdline)
   "Called to execute the current command."
   (interactive)
-  (multiple-value-bind (_range cmd _spaces arg start-line end-line force)
+  (cl-multiple-value-bind (_range cmd _spaces arg start-line end-line force)
       (vim:ex-split-cmdline cmdline)
     (setq vim:ex-cmd cmd)
     (setf arg (vim:strip-ex-info arg))
@@ -598,11 +598,11 @@ Returns four values: (cmd beg end force) where
           (end-off 0)
           (pos 0)
           (cmd nil))
-      (multiple-value-bind (beg npos) (vim:ex-parse-address text pos)
+      (cl-multiple-value-bind (beg npos) (vim:ex-parse-address text pos)
         (when npos
           (setq begin beg
                 pos npos)))
-      (multiple-value-bind (off npos) (vim:ex-parse-offset text pos)
+      (cl-multiple-value-bind (off npos) (vim:ex-parse-offset text pos)
         (when npos
           (unless begin (setq begin 'current-line))
           (setq begin-off off
@@ -611,12 +611,12 @@ Returns four values: (cmd beg end force) where
                  (or (= (aref text pos) ?\,)
                      (= (aref text pos) ?\;)))
         (setq sep (aref text pos))
-        (incf pos)
-        (multiple-value-bind (e npos) (vim:ex-parse-address text pos)
+        (cl-incf pos)
+        (cl-multiple-value-bind (e npos) (vim:ex-parse-address text pos)
           (when npos
             (setq end e
                   pos npos)))
-        (multiple-value-bind (off npos) (vim:ex-parse-offset text pos)
+        (cl-multiple-value-bind (off npos) (vim:ex-parse-offset text pos)
           (when npos
             (unless end (setq end 'current-line))
             (setq end-off off
@@ -639,7 +639,7 @@ Returns four values: (cmd beg end force) where
                                     pos))
                     -1))
         (setq cmd (cons (match-beginning 1) (match-end 1))))
-      (multiple-value-bind (start end)
+      (cl-multiple-value-bind (start end)
           (vim:ex-get-range (and begin (cons begin begin-off))
                             sep
                             (and end (cons end end-off)))
@@ -676,7 +676,7 @@ the range and the new position."
                (match-end 0))))
     ((and (= (aref text pos) ?\\)
           (< pos (1- (length text))))
-     (case (aref text (1+ pos))
+     (cl-case (aref text (1+ pos))
        (?\/ (values 'next-of-prev-search (1+ pos)))
        (?\? (values 'prev-of-prev-search (1+ pos)))
        (?\& (values 'next-of-prev-subst (1+ pos)))))

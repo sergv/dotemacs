@@ -6,6 +6,9 @@
 ;; Created: 14 September 2018
 ;; Description:
 
+(eval-when-compile
+  (require 'cl-lib))
+
 (require 'common)
 (require 'ert)
 
@@ -15,7 +18,7 @@
 (defvar test-utils--temp-buffers nil
   "Alist from buffer-id (symbol) to actual buffer.")
 
-(defmacro* tests-utils--with-temp-buffer (&key action contents initialisation buffer-id)
+(cl-defmacro tests-utils--with-temp-buffer (&key action contents initialisation buffer-id)
   (declare (indent 1))
   `(save-match-data
      (let ((buf (cdr-safe (assq ',buffer-id test-utils--temp-buffers))))
@@ -35,7 +38,7 @@
          (font-lock-fontify-buffer)
          ,action))))
 
-(defmacro* tests-utils--test-buffer-contents (&key action contents expected-value initialisation buffer-id)
+(cl-defmacro tests-utils--test-buffer-contents (&key action contents expected-value initialisation buffer-id)
   (declare (indent 2))
   `(tests-utils--with-temp-buffer
     :initialisation ,initialisation
@@ -53,7 +56,7 @@
     :contents ,contents
     :buffer-id ,buffer-id))
 
-(defmacro* tests-utils--test-result (&key action expected-value contents)
+(cl-defmacro tests-utils--test-result (&key action expected-value contents)
   `(tests-utils--with-temp-buffer
     :action (should (equal ,action ,expected-value))
     :contents ,contents))
