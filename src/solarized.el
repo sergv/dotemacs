@@ -439,6 +439,28 @@ Futher modified by Sergey Vinokurov."
             (reb-match-2      ((t (:inherit search-yellow-face))))
             (reb-match-3      ((t (:inherit search-cyan-face))))
 
+            (ansi-color-bold      ((t :inherit bold)))
+            (ansi-color-italic    ((t :inherit italic)))
+            (ansi-color-underline ((t :inherit underline)))
+
+            (ansi-color-black   ((t :foreground ,base0)))
+            (ansi-color-red     ((t :foreground ,red)))
+            (ansi-color-green   ((t :foreground ,green)))
+            (ansi-color-yellow  ((t :foreground ,yellow)))
+            (ansi-color-blue    ((t :foreground ,blue)))
+            (ansi-color-magenta ((t :foreground ,magenta)))
+            (ansi-color-cyan    ((t :foreground ,cyan)))
+            (ansi-color-white   ((t :foreground ,base01)))
+
+            (ansi-color-bright-black   ((t :inherit ansi-color-black)))
+            (ansi-color-bright-red     ((t :inherit ansi-color-red)))
+            (ansi-color-bright-green   ((t :inherit ansi-color-green)))
+            (ansi-color-bright-yellow  ((t :inherit ansi-color-yellow)))
+            (ansi-color-bright-blue    ((t :inherit ansi-color-blue)))
+            (ansi-color-bright-magenta ((t :inherit ansi-color-magenta)))
+            (ansi-color-bright-cyan    ((t :inherit ansi-color-cyan)))
+            (ansi-color-bright-white   ((t :inherit ansi-color-white)))
+
             ;; rainbow delimiters
             ;; (rainbow-delimiters-depth-1-face      ((t (:foreground ,magenta))))
             ;; (rainbow-delimiters-depth-2-face      ((t (:foreground ,violet))))
