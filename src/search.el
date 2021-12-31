@@ -20,6 +20,9 @@
 ;; where the search was started. While at minibuffer keys S-<up> and S-<down>
 ;; enable to move between matches
 
+(eval-when-compile
+  (require 'cl-lib))
+
 (require 'persistent-sessions-global-vars)
 (require 'solarized)
 
@@ -394,7 +397,7 @@ Highlighting starts at the beginning of buffer")
             (overlay-put overlay 'is-search-highlighting-overlay t)
             (overlay-put overlay 'search-overlay-face-index search--highlight-face-index)
             (push overlay search--match-overlays)
-            (incf i)))))))
+            (cl-incf i)))))))
 
 (defun search--clean-overlays-with-face-index (idx)
   "Remove all search overlays. Must be called in buffer that initiated search."
@@ -450,7 +453,7 @@ Highlighting starts at the beginning of buffer")
 ;;;###autoload
 (defmacro search-def-autoexpand-advices (expand-command modes)
   `(progn
-     ,@(loop
+     ,@(cl-loop
          for command in '(search--next-from-minibuf
                           search--prev-from-minibuf
                           search-next
@@ -463,15 +466,15 @@ Highlighting starts at the beginning of buffer")
 
 ;;;
 
-(defmacro* search--make-search-for-thing (name
-                                          alt-name
-                                          get-bounds-expr
-                                          action-after
-                                          is-forward?
-                                          &key
-                                          regex-start-func
-                                          regex-end-func
-                                          (error-message nil))
+(cl-defmacro search--make-search-for-thing (name
+                                            alt-name
+                                            get-bounds-expr
+                                            action-after
+                                            is-forward?
+                                            &key
+                                            regex-start-func
+                                            regex-end-func
+                                            (error-message nil))
   "BOUNDS-FUNC should return cons pair (START . END), everything else is
 obvious"
   (let* ((bounds-var '#:bounds)

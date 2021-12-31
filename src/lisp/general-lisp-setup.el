@@ -480,7 +480,9 @@ nor comment."
 
                                               "defadvice"
                                               "defun*"
+                                              "cl-defun"
                                               "defmacro*"
+                                              "cl-defmacro"
                                               "defsubst"
                                               ;; don't really use this
                                               ;; "lambda"

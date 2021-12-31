@@ -39,7 +39,7 @@
                             (substring entry (+ eq-pos 1))))))))))
     (message "Skipping environment configuration because BASHRC_ENV_LOADED variable is set to 1")))
 
-(defun* add-env-var-to-list (env-var list &key (append t))
+(cl-defun add-env-var-to-list (env-var list &key (append t))
   (dolist (dir (parse-colon-path (getenv env-var)))
     (add-to-list list dir append)))
 

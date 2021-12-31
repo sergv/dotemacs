@@ -6,7 +6,9 @@
 ;; Created: Saturday, 24 August 2013
 ;; Description:
 
-(eval-when-compile (require 'subr-x))
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'subr-x))
 
 (require 'macro-util)
 (require 'smart-operators-utils)
@@ -71,7 +73,7 @@ is wrapped instead.  This is useful with selection functions in
 `evil-mode' to wrap regions with pairs."
   (let* ((p (point))
          (active-pair (assoc pair-open sp-pair-list)))
-    (destructuring-bind (start . end)
+    (cl-destructuring-bind (start . end)
         (if (region-active-p)
             (with-region-bounds start end
               (cons start end))
@@ -105,7 +107,7 @@ is wrapped instead.  This is useful with selection functions in
      sp-newline-expand-braced-block
      activate
      compile)
-  (destructuring-bind
+  (cl-destructuring-bind
       (start end _is-before? _is-after? is-surrounded?)
       (smart-operators--point-surrounded-by ?\{ ?\})
     (when is-surrounded?

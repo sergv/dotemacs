@@ -97,7 +97,7 @@ will be case-insensitive."
         recase)
     (while (and (not recase)
                 (string-match "\\\\." re start))
-      (case (aref re (1- (match-end 0)))
+      (cl-case (aref re (1- (match-end 0)))
         (?c (setq recase 'insensitive))
         (?C (setq recase 'sensitive))
         (t (setq start (match-end 0)))))
@@ -367,7 +367,7 @@ e.g. whether regexp is malformed, not matched, etc.")
 
 (defun vim:ex-pattern-argument-update ()
   (when vim:substitute-highlight-all
-    (multiple-value-bind (pattern replacement flag-str)
+    (cl-multiple-value-bind (pattern replacement flag-str)
         (vim:parse-substitute vim:ex-arg)
       (with-selected-window vim:ex-current-window
         (with-current-buffer vim:ex-current-buffer
@@ -418,7 +418,7 @@ Allowed flags are:
 "
   (save-match-data
     (vim:cmd-nohighlight)
-    (multiple-value-bind (pattern replacement flag-str)
+    (cl-multiple-value-bind (pattern replacement flag-str)
         (vim:parse-substitute argument)
       (let* ((flags (string->list flag-str)))
         (when (memq ?g flags)
@@ -493,7 +493,7 @@ pattern and replace matches with REPLACEMENT.
                                    (lambda (x)
                                      (set-match-data x)
                                      (replace-match replacement case-fold-search)
-                                     (incf nreplaced)
+                                     (cl-incf nreplaced)
                                      (setq last-point (point)))
                                    (lambda ()
                                      (let ((end (save-excursion
@@ -517,7 +517,7 @@ pattern and replace matches with REPLACEMENT.
                                                           (goto-line-dumb last-line)
                                                           (line-end-position))
                                                   t nil))
-                     (incf nreplaced)
+                     (cl-incf nreplaced)
                      (replace-match replacement)
                      (setq last-point (point))
                      (forward-line)
@@ -535,7 +535,7 @@ pattern and replace matches with REPLACEMENT.
   "Parse ex command line in TEXT and return triple
 \(<pattern> <replacement> <flags>\)."
   (when (string-match-p "^\\s-*[/|,;:!@#]." text)
-    (multiple-value-bind (pattern replacement flags)
+    (cl-multiple-value-bind (pattern replacement flags)
         (vim--parse-substitute-pattern-repl-flags text)
       (values pattern (vim:substitute-expand-escapes replacement) flags))))
 
@@ -554,33 +554,33 @@ regular expressions."
 
         delimiter
         (delimiters (eval-when-compile (string-to-list "/|,;:!@#"))))
-    (symbol-macrolet ((skip-quoted
-                       (while (and (< i len)
-                                   (not (char= (aref str i) delimiter)))
-                         ;; skip quoted character
-                         (if (char= (aref str i) ?\\)
-                             (incf i 2)
-                           (incf i))))
-                      (skip-flags
-                       (while (and (< i len)
-                                   (memq (aref str i)
-                                         (eval-when-compile (string-to-list "niIcg"))))
-                         (incf i))))
+    (cl-symbol-macrolet ((skip-quoted
+                          (while (and (< i len)
+                                      (not (char= (aref str i) delimiter)))
+                            ;; skip quoted character
+                            (if (char= (aref str i) ?\\)
+                                (cl-incf i 2)
+                              (cl-incf i))))
+                         (skip-flags
+                          (while (and (< i len)
+                                      (memq (aref str i)
+                                            (eval-when-compile (string-to-list "niIcg"))))
+                            (cl-incf i))))
       (while (and (< i len)
                   (not (memq (aref str i) delimiters)))
-        (incf i))
+        (cl-incf i))
       (setf delimiter (aref str i))
-      (incf i)
+      (cl-incf i)
       (setf pattern-start i)
       skip-quoted
       (setf pattern-end i)
 
-      (incf i)
+      (cl-incf i)
       (when (< i len)
         (setf replacement-start i)
         skip-quoted
         (setf replacement-end i)
-        (incf i)
+        (cl-incf i)
 
         (when (< i len)
           (setf flags-start i)
@@ -607,7 +607,7 @@ regular expressions."
         (if (and (= char ?\\)
                  (< (1+ idx) n))
           (let ((next-char (aref replacement (1+ idx))))
-            (case next-char
+            (cl-case next-char
               (?n (push ?\n result))
               (?t (push ?\t result))
               (?r (push ?\r result))
@@ -615,9 +615,9 @@ regular expressions."
                (push ?\\ result)
                (push next-char result))
               (t (push next-char result)))
-            (incf idx 2))
+            (cl-incf idx 2))
           (push char result)
-          (incf idx))))
+          (cl-incf idx))))
     (apply #'string (nreverse result))))
 
 ;; Related commands.
