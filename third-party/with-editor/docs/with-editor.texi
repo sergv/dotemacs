@@ -8,7 +8,7 @@
 
 @copying
 @quotation
-Copyright (C) 2015-2020 Jonas Bernoulli <jonas@@bernoul.li>
+Copyright (C) 2015-2021 Jonas Bernoulli <jonas@@bernoul.li>
 
 You can redistribute this document and/or modify it under the terms
 of the GNU General Public License as published by the Free Software
@@ -31,7 +31,7 @@ General Public License for more details.
 @finalout
 @titlepage
 @title With-Editor User Manual
-@subtitle for version 2.9.1
+@subtitle for version v3.0.5-16-g46de358be6+1
 @author Jonas Bernoulli
 @page
 @vskip 0pt plus 1filll
@@ -60,10 +60,10 @@ additional functionality which makes it useful even for end-users, who
 don't use Magit or another package which uses it internally.
 
 @noindent
-This manual is for With-Editor version 2.9.1.
+This manual is for With-Editor version v3.0.5-16-g46de358be6+1.
 
 @quotation
-Copyright (C) 2015-2020 Jonas Bernoulli <jonas@@bernoul.li>
+Copyright (C) 2015-2021 Jonas Bernoulli <jonas@@bernoul.li>
 
 You can redistribute this document and/or modify it under the terms
 of the GNU General Public License as published by the Free Software
@@ -82,6 +82,8 @@ General Public License for more details.
 * Using the With-Editor package::
 * Using With-Editor as a library::
 * Debugging::
+* Function and Command Index::
+* Variable Index::
 
 @detailmenu
 --- The Detailed Node Listing ---
@@ -121,7 +123,6 @@ Emacs (most likely on macOS) without putting the executable on @code{$PATH},
 and we have to add another kludge to find it anyway.
 
 @defopt with-editor-emacsclient-executable
-
 The @code{emacsclient} executable used as the editor by child process of
 this Emacs instance.  By using this executable, child processes can
 call home to their parent process.
@@ -151,7 +152,6 @@ kludge appropriate for you setup.
 @end defopt
 
 @defun with-editor-locate-emacsclient
-
 The function used to set the initial value of the option
 @code{with-editor-emacsclient-executable}.  There's a lot of voodoo here.
 @end defun
@@ -167,7 +167,6 @@ editor" because it is implemented as a shell script which sleeps until
 it receives a signal.
 
 @defopt with-editor-sleeping-editor
-
 The sleeping editor is a shell script used as the editor of child
 processes when the @code{emacsclient} executable cannot be used.
 
@@ -221,16 +220,12 @@ The commands @code{with-editor-async-shell-command} and
 instance as "the editor".  With a prefix argument these commands
 prompt for an alternative environment variable such as @code{$GIT_EDITOR}.
 
-@cindex with-editor-async-shell-command
 @deffn Command with-editor-async-shell-command
-
 This command is like @code{async-shell-command}, but it runs the shell
 command with the current Emacs instance exported as @code{$EDITOR}.
 @end deffn
 
-@cindex with-editor-shell-command
 @deffn Command with-editor-shell-command
-
 This command is like @code{shell-command}, but if the shell command ends
 with @code{&} and is therefore run asynchronously, then the current Emacs
 instance is exported as @code{$EDITOR}.
@@ -248,24 +243,24 @@ To always use these variants add this to you init file:
 Alternatively use the global @code{shell-command-with-editor-mode}.
 
 @defvar shell-command-with-editor-mode
-
 When this mode is active, then @code{$EDITOR} is exported whenever
 ultimately @code{shell-command} is called to asynchronously run some shell
 command.  This affects most variants of that command, whether they
 are defined in Emacs or in some third-party package.
 @end defvar
 
-The command @code{with-editor-export-editor} exports @code{$EDITOR} or
-another such environment variable in @code{shell-mode}, @code{term-mode} and
-@code{eshell-mode} buffers.  Use this Emacs command before executing a
-shell command which needs the editor set, or always arrange for the
-current Emacs instance to be used as editor by adding it to the
-appropriate mode hooks:
+The command @code{with-editor-export-editor} exports @code{$EDITOR} or another
+such environment variable in @code{shell-mode}, @code{eshell-mode}, @code{term-mode} and
+@code{vterm-mode} buffers.  Use this Emacs command before executing a shell
+command which needs the editor set, or always arrange for the current
+Emacs instance to be used as editor by adding it to the appropriate
+mode hooks:
 
 @lisp
 (add-hook 'shell-mode-hook  'with-editor-export-editor)
-(add-hook 'term-exec-hook   'with-editor-export-editor)
 (add-hook 'eshell-mode-hook 'with-editor-export-editor)
+(add-hook 'term-exec-hook   'with-editor-export-editor)
+(add-hook 'vterm-exec-hook  'with-editor-export-editor)
 @end lisp
 
 Some variants of this function exist; these two forms are equivalent:
@@ -276,24 +271,18 @@ Some variants of this function exist; these two forms are equivalent:
 (add-hook 'shell-mode-hook 'with-editor-export-git-editor)
 @end lisp
 
-@cindex with-editor-export-editor
 @deffn Command with-editor-export-editor
-
-When invoked in a @code{shell-mode}, @code{term-mode}, or @code{eshell-mode} buffer, this
-command teaches shell commands to use the current Emacs instance as
-the editor, by exporting @code{$EDITOR}.
+When invoked in a @code{shell-mode}, @code{eshell-mode}, @code{term-mode} or @code{vterm-mode}
+buffer, this command teaches shell commands to use the current Emacs
+instance as the editor, by exporting @code{$EDITOR}.
 @end deffn
 
-@cindex with-editor-export-git-editor
 @deffn Command with-editor-export-git-editor
-
 This command is like @code{with-editor-export-editor} but exports
 @code{$GIT_EDITOR}.
 @end deffn
 
-@cindex with-editor-export-hg-editor
 @deffn Command with-editor-export-hg-editor
-
 This command is like @code{with-editor-export-editor} but exports
 @code{$HG_EDITOR}.
 @end deffn
@@ -311,7 +300,6 @@ For information about interactive use and options that affect both
 interactive and non-interactive use, see @ref{Using the With-Editor package}.
 
 @defmac with-editor &rest body
-
 This macro arranges for the @code{emacsclient} or the sleeping editor to be
 used as the editor of child processes, effectively teaching them to
 call home to the current Emacs instance when they require that the
@@ -327,18 +315,17 @@ instead of @code{EDITOR}.
 @end defmac
 
 @defmac with-editor envvar &rest body
-
 This macro is like @code{with-editor} instead that the ENVVAR argument is
 required and that it is evaluated at run-time.
 @end defmac
 
 @defun with-editor-set-process-filter process filter
-
 This function is like @code{set-process-filter} but ensures that adding the
 new FILTER does not remove the @code{with-editor-process-filter}.  This is
 done by wrapping the two filter functions using a lambda, which
-becomes the actual filter.  It calls @code{with-editor-process-filter}
-first, passing @code{t} as NO-STANDARD-FILTER@.  Then it calls FILTER@.
+becomes the actual filter.  It calls FILTER first, which may or
+may not insert the text into the PROCESS's buffer.  Then it calls
+@code{with-editor-process-filter}, passing t as NO-STANDARD-FILTER@.
 @end defun
 
 @node Debugging
@@ -356,5 +343,15 @@ in Magit, then please open a new issue at
 @uref{https://github.com/magit/with-editor/issues} and provide information
 about your Emacs installation.  Most importantly how did you install
 Emacs and what is the output of @code{M-x with-editor-debug RET}.
+
+@node Function and Command Index
+@appendix Function and Command Index
+
+@printindex fn
+
+@node Variable Index
+@appendix Variable Index
+
+@printindex vr
 
 @bye
