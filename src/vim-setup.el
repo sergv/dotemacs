@@ -7,6 +7,8 @@
 ;; Description:
 
 (eval-when-compile
+  (require 'macro-util)
+
   (defvar awk-buffer-name)
   (defvar git-repository)
   (defvar magit-blame-mode))

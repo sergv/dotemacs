@@ -9,6 +9,10 @@
 ;; Status:
 
 (eval-when-compile
+  (require 'cl-lib)
+  (require 'el-patch)
+  (require 'macro-util)
+
   (defvar inferior-octave-buffer)
   (defvar inferior-octave-output-list)
   (defvar inferior-octave-output-list)
@@ -18,7 +22,8 @@
   (defvar inferior-octave-receive-in-progress)
   (defvar inferior-octave-receive-in-progress)
   (defvar octave-send-echo-input)
-  (defvar octave-send-show-buffer))
+  (defvar octave-send-show-buffer)
+  (defvar inferior-octave-mode-map))
 
 (declare-function inferior-octave-send-list-and-digest "octave")
 (declare-function octave-beginning-of-defun "octave")
@@ -282,7 +287,7 @@ in GROUP-NUMS."
         (when column
           (line-beginning-position)
           (skip-to-indentation)
-          (loop
+          (cl-loop
             with end = (line-end-position)
             for i below (1+ (read column))
             while (< (point) end)

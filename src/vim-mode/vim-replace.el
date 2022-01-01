@@ -6,14 +6,18 @@
 ;; Created: long ago
 ;; Description:
 
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'macro-util))
+
 (require 'vim-core)
 (require 'vim-ex)
 
-(defun* vim--construct-ex-replace-command (str
-                                           &key
-                                           (word nil)
-                                           (symbol nil)
-                                           (fill-replace nil))
+(cl-defun vim--construct-ex-replace-command (str
+                                             &key
+                                             (word nil)
+                                             (symbol nil)
+                                             (fill-replace nil))
   (unless str
     (error "No string for replace"))
   (let ((separator

@@ -7,17 +7,19 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'set-up-platform))
+  (require 'cl-lib)
+  (require 'set-up-platform)
+  (require 'macro-util))
 
 (defvar use-foreign-libraries?)
 
 ;;;###autoload
-(defun* find-rec-do (path
-                     &key
-                     (filep (lambda (_) t))
-                     do-not-visitp
-                     (file-action #'ignore)
-                     (do-not-sort-directory-files t))
+(cl-defun find-rec-do (path
+                       &key
+                       (filep (lambda (_) t))
+                       do-not-visitp
+                       (file-action #'ignore)
+                       (do-not-sort-directory-files t))
   "Call FILE-ACTION on every matching file."
   (declare (pure nil) (side-effect-free nil))
   (letrec ((go
@@ -36,10 +38,10 @@
     (funcall go path)))
 
 ;;;###autoload
-(defun* find-rec (path
-                  &key
-                  (filep (lambda (_) t))
-                  do-not-visitp)
+(cl-defun find-rec (path
+                    &key
+                    (filep (lambda (_) t))
+                    do-not-visitp)
   "Collect files and/or directories under PATH recursively.
 
 Collect files and directories which satisfy FILEP and
@@ -92,14 +94,14 @@ Valid values are:
          'elisp)))
 
 ;;;###autoload
-(defun* find-rec* (&key
-                   root
-                   globs-to-find
-                   ignored-extensions-globs
-                   ignored-files-globs
-                   ignored-absolute-dirs
-                   ignored-directories
-                   ignored-directory-prefixes)
+(cl-defun find-rec* (&key
+                     root
+                     globs-to-find
+                     ignored-extensions-globs
+                     ignored-files-globs
+                     ignored-absolute-dirs
+                     ignored-directories
+                     ignored-directory-prefixes)
   "Optimized `find-rec' that can use system's find executable to speed up
 search.
 

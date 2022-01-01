@@ -6,6 +6,10 @@
 ;; Created: 21 December 2021
 ;; Description:
 
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'macro-util))
+
 (require 'lsp-haskell)
 (require 'lsp-setup)
 
@@ -29,12 +33,12 @@
            range)
           (start-pos
            (save-excursion
-             (goto-line (lsp-translate-line (1+ start-line)))
+             (goto-line-dumb (lsp-translate-line (1+ start-line)))
              (move-to-character-column (lsp-translate-column start-char))
              (point)))
           (end-pos
            (save-excursion
-             (goto-line (lsp-translate-line (1+ end-line)))
+             (goto-line-dumb (lsp-translate-line (1+ end-line)))
              (move-to-character-column (lsp-translate-column end-char))
              (point))))
     (buffer-substring-no-properties start-pos end-pos)))
@@ -75,7 +79,7 @@
                           (insert (dante-fontify-expression ty) "\n"))
         (message "%s" (dante-fontify-expression ty))))))
 
-(defun* setup-lsp-haskell-symbnav (&key (bind-keybindings t))
+(cl-defun setup-lsp-haskell-symbnav (&key (bind-keybindings t))
   (setq-local xref-show-definitions-function #'eproj-xref-symbnav-show-xrefs
               xref-show-xrefs-function #'eproj-xref-symbnav-show-xrefs)
   (when bind-keybindings

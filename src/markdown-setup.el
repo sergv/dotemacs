@@ -8,7 +8,9 @@
 ;; Requirements:
 ;; Status:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'macro-util))
 
 ;;;###autoload
 (autoload 'markdown-mode "markdown-mode"

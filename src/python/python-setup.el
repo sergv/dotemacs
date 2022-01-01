@@ -8,7 +8,9 @@
 ;; Requirements:
 ;; Status:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'macro-util))
 
 (require 'browse-kill-ring-setup)
 (require 'comint-setup)

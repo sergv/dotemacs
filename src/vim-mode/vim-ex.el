@@ -10,7 +10,8 @@
 
 (eval-when-compile
   (require 'cl-lib)
-  (require 'subr-x))
+  (require 'subr-x)
+  (require 'macro-util))
 
 (require 'persistent-sessions-global-vars)
 
@@ -199,8 +200,8 @@ cancel ex-mode."
     (ivy-done))
   (delete-char (- n)))
 
-(defstruct (vim:arg-handler
-            (:constructor vim:make-arg-handler))
+(cl-defstruct (vim:arg-handler
+               (:constructor vim:make-arg-handler))
   complete   ;; The completion function.
   activate   ;; Called when the argument is activated for the first time.
   deactivate ;; Called when the argument is deactivated.
@@ -213,11 +214,11 @@ cancel ex-mode."
     (buffer . ,(vim:make-arg-handler :complete #'vim:ex-complete-buffer-argument)))
   "An alist that contains for each argument type the appropriate handler.")
 
-(defun* vim:define-arg-handler (arg-type &key
-                                         complete
-                                         activate
-                                         deactivate
-                                         update)
+(cl-defun vim:define-arg-handler (arg-type &key
+                                           complete
+                                           activate
+                                           deactivate
+                                           update)
   "Defines a new argument handler `arg-type'."
   (let ((newah (vim:make-arg-handler :complete complete
                                      :activate activate
@@ -225,7 +226,7 @@ cancel ex-mode."
                                      :update update))
         (ah (assoc arg-type vim:argument-handlers-alist)))
     (if ah
-      (setcdr ah newah)
+        (setcdr ah newah)
       (push (cons arg-type newah) vim:argument-handlers-alist))))
 
 (put 'vim:define-arg-handler 'lisp-indent-function 1)

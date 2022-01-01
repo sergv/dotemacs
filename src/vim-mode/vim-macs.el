@@ -8,7 +8,9 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'macro-util))
 
 (cl-defmacro vim:defcmd (name (&rest args) &rest body)
   "Defines a new VIM-command.
@@ -192,7 +194,7 @@ For more information about the vim:motion struct look at vim-core.el."
                (,@(when params `(&key ,@params))
                 ,@(when named-params `(&aux ,@named-params)))
                ,@body)))
-       (defun* ,name (&rest args)
+       (cl-defun ,name (&rest args)
          ,doc
          (interactive)
          (if (and (vim:called-interactively-p)
@@ -301,7 +303,7 @@ look at vim-core.el."
                            (,@(when params `(&key ,@params))
                             ,@(when named-params `(&aux ,@named-params)))
                            (vim:do-motion ',type (progn ,@body)))))
-       (defun* ,name (&rest args)
+       (cl-defun ,name (&rest args)
          ,doc
          (interactive)
          (let ,(if do-not-adjust-point

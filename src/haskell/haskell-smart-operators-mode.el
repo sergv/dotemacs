@@ -11,13 +11,17 @@
 ;; Special thanks: Chris Done's magnificent `structured-haskell-mode', which
 ;; inspired this work.
 
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'macro-util))
+
 (require 'haskell-completions)
 (require 'haskell-ghc-support)
 (require 'smart-operators-utils)
 
 (defvar haskell-smart-operators--operator-chars
   (let ((tbl (make-hash-table :test #'eq)))
-    (loop
+    (cl-loop
       for c across "!#$%&*+-./:<=>?@\\^|~"
       do (puthash c t tbl))
     tbl)
@@ -229,7 +233,7 @@ stick it to the previous operator on line."
 strings or comments. Expand into {- _|_ -} if inside { *}."
   (interactive)
   (let ((pt (point)))
-    (destructuring-bind
+    (cl-destructuring-bind
         (pt-before pt-after is-before? is-after? is-surrounded?)
         (smart-operators--point-surrounded-by ?\{ ?\})
       (cond
@@ -273,10 +277,10 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
 (defun haskell-smart-operators-hash ()
   "Smart insertion of #."
   (interactive)
-  (destructuring-bind
+  (cl-destructuring-bind
       (pt-pragma-start pt-pragma-end is-surrounded-for-pragma?)
       (smart-operators--point-surrounded-by2 ?\{ ?- ?- ?\})
-    (destructuring-bind
+    (cl-destructuring-bind
         (pt-c2hs-start pt-c2hs-end _is-before? _is-after? is-surrounded-for-c2hs?)
         (smart-operators--point-surrounded-by ?\{ ?\})
       (cond (is-surrounded-for-pragma?
@@ -357,9 +361,9 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
 ;;;###autoload
 (define-minor-mode haskell-smart-operators-mode
   "Toggle haskell-smart-operators-mode."
-  nil ;; init
-  nil ;; modeline
-  nil ;; keymap
+  :init-value nil
+  :lighter nil
+  :keymap nil
   :global nil
   (progn
     (haskell-smart-operators-mode--update-magic-hash)

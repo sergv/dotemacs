@@ -6,7 +6,9 @@
 ;; Created: long ago
 ;; Description:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'macro-util))
 
 (require 'comment-util)
 (require 'common)
@@ -2644,11 +2646,11 @@ in ‘*fortunes*’ shuffled in random order.
 
 Queue is just a list actually."
   (let ((vect (make-vector (length *fortunes*) 0)))
-    (loop
+    (cl-loop
       for i below (length vect)
       do (setf (aref vect i) i))
     (random-shuffle vect *random-gen*)
-    (loop
+    (cl-loop
       for i across vect
       collect (aref vect i))))
 

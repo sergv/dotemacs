@@ -8,6 +8,10 @@
 ;; Requirements:
 ;; Status:
 
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'macro-util))
+
 ;; set up abbrev+ for latex
 
 (defun latex-get-labels-in-buffer ()
@@ -21,7 +25,7 @@ from \\label{...} and \\ref{...} constructs."
       (save-match-data
         (goto-char (point-min))
         (remove-duplicates-hashing
-         (loop
+         (cl-loop
            while (re-search-forward label-re nil t)
            collect (match-string-no-properties 1))
          #'equal)))))

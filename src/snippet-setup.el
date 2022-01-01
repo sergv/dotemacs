@@ -6,6 +6,9 @@
 ;; Created: long ago
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 ;;;###autoload
 (autoload 'snippet-mode "yasnippet" nil t)
 

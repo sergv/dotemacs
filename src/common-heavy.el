@@ -8,8 +8,8 @@
 
 (eval-when-compile
   (require 'cl-lib)
-
   (require 'set-up-platform)
+  (require 'macro-util)
 
   (defvar org-element-all-objects)
   (defvar org-element-all-elements))
@@ -566,13 +566,12 @@ PROJECT. EQ-FUNC will be used as hash-table comparison."
 ;;;
 
 ;;;###autoload
-(defun* insert-info-format-template
-    (&key
-     start
-     end    ;; takes list of variable names in order defined by user
-     format ;; inserts user input and appropriate format specifier
-     (reindent-at-end #'ignore)
-     (quote-message #'identity))
+(cl-defun insert-info-format-template (&key
+                                       start
+                                       end ;; takes list of variable names in order defined by user
+                                       format ;; inserts user input and appropriate format specifier
+                                       (reindent-at-end #'ignore)
+                                       (quote-message #'identity))
   (let* ((beginning (point))
          (var-list nil)
          (insert-message
@@ -596,13 +595,12 @@ PROJECT. EQ-FUNC will be used as hash-table comparison."
      :insert-variable insert-variable)))
 
 ;;;###autoload
-(defun* insert-info-template
-    (&key
-     start
-     end
-     insert-continuation
-     insert-message
-     insert-variable)
+(cl-defun insert-info-template (&key
+                                start
+                                end
+                                insert-continuation
+                                insert-message
+                                insert-variable)
   (cl-assert (functionp start))
   (cl-assert (functionp end))
   (cl-assert (functionp insert-continuation))
@@ -644,9 +642,9 @@ PROJECT. EQ-FUNC will be used as hash-table comparison."
 ;;;;
 
 ;; Nested hash tables that allow to aggregate data differently.
-(defstruct (nested-hash-tables
-            (:constructor make--nested-hash-tables)
-            (:conc-name nested-hash-tables/))
+(cl-defstruct (nested-hash-tables
+               (:constructor make--nested-hash-tables)
+               (:conc-name nested-hash-tables/))
   data        ;; chain of hash-tables
   field-specs ;; list of (<lamda to get key value> <comparison-pred>) entries
   )

@@ -134,9 +134,9 @@ Contains single-line and region comments.")
 ;;;###autoload
 (define-minor-mode comment-util-mode
   "Minor mode to handle comments in various languages."
-  nil
-  nil
-  nil ;; no keymap
+  :init-value nil
+  :lighter nil
+  :keymap nil ;; no keymap
   :group util
   :global nil
   (unless *comment-util-current-format*
@@ -162,7 +162,7 @@ Contains single-line and region comments.")
                                                   nil))
                                  :comment-chars comment-chars)))))
 
-(defstruct comment-format
+(cl-defstruct comment-format
   one-line
   region-begin
   region-end
@@ -228,7 +228,7 @@ be used only for vim-visual-mode of the vim-mode package."
     (skip-to-indentation)
     (when (looking-at-p
            (comment-format-one-line *comment-util-current-format*))
-      (comment-util--uncomment-lines (count-lines begin end)))))
+      (comment-util--uncomment-lines (count-lines-fixed begin end)))))
 
 (defun comment-util--uncomment-lines (lines)
   "Uncomment lines eiter up if N is positive or down if N is negative."
@@ -262,7 +262,7 @@ be used only for vim-visual-mode of the vim-mode package."
 (defsubst comment-util--comment-lined-region (begin end)
   "Comment region between BEGIN and END with one-line comments."
   (goto-char begin)
-  (comment-util-comment-next-n-lines (count-lines begin end)))
+  (comment-util-comment-next-n-lines (count-lines-fixed begin end)))
 
 (defun comment-util-uncomment-lined-region ()
   "Uncomment region that was commented with line comments."
@@ -343,7 +343,7 @@ be used only for vim-visual-mode of the vim-mode package."
 
 ;;;;; Low-level core functions
 
-(defun* comment-util-comment-next-n-lines (lines)
+(cl-defun comment-util-comment-next-n-lines (lines)
   (unless *comment-util-current-format*
     (error "No comment format defined for current mode"))
   (setf lines (or lines 1))
@@ -456,7 +456,7 @@ up and then comment the result."
     (save-excursion
       (comment-util--comment-n-lines-starting-at-col
        ";; " ;; bad hack, hard-coded lisp comment... ;; survived for a long time...
-       (count-lines (point) sexp-end-exclusive)
+       (count-lines-fixed (point) sexp-end-exclusive)
        (current-column)))))
 
 (defun comment-util--on-commented-line? ()
@@ -499,7 +499,7 @@ commented parts and leave point unchanged."
                (cl-assert (comment-util--on-commented-line?)
                           nil
                           "line number: %s;\nline: %s;\nprevious line: %s"
-                          (count-lines-dumb (point-min) (point))
+                          (count-lines-fixed (point-min) (point))
                           (current-line)
                           (save-excursion
                             (forward-line dir)

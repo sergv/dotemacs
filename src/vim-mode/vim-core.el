@@ -63,7 +63,9 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'macro-util))
 
 (require 'register)
 
@@ -207,8 +209,8 @@ of the command handling code the buffer in vim:new-buffer is made current.")
 ;; This structure is passed to operators taking a motion. A motion
 ;; command can also return this structure to create a more advanced
 ;; motion like text object selections.
-(defstruct (vim:motion
-            (:constructor vim:make-motion-struct))
+(cl-defstruct (vim:motion
+               (:constructor vim:make-motion-struct))
   has-begin ;; t iff the motion defined an explicit begin
   begin     ;; first point in this motion
   end       ;; last point in this motion
@@ -216,11 +218,11 @@ of the command handling code the buffer in vim:new-buffer is made current.")
   )
 
 
-(defun* vim:make-motion (&key
-                         has-begin
-                         (begin (point))
-                         (end (point))
-                         type)
+(cl-defun vim:make-motion (&key
+                           has-begin
+                           (begin (point))
+                           (end (point))
+                           type)
   "Creates a new motion with `begin' and `end' always
 positions within (point-min) and (point-max) and not at
  (line-end-position) (if possible)."

@@ -6,6 +6,9 @@
 ;; Created: Sunday,  3 February 2013
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'abbrev+)
 
 (defun clojure-util/quote-format-arguments (x)

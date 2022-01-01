@@ -6,6 +6,9 @@
 ;; Created:  2 September 2021
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'hydra-setup)
 
 (defhydra-ext hydra-j (:exit t :foreign-keys warn :hint nil)

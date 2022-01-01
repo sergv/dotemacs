@@ -6,6 +6,9 @@
 ;; Created:  3 September 2021
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 ;; Indentation of c-style languages via AStyle command-line utility.
 
 (defvar astyle-indent--styles-alist

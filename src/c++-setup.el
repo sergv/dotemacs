@@ -7,6 +7,7 @@
 ;; Description:
 
 (eval-when-compile
+  (require 'macro-util)
   (defvar c-basic-offset)
   (defvar hs-forward-sexp-func))
 

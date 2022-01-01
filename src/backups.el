@@ -14,7 +14,8 @@
 (eval-when-compile
   (require 'cl-lib)
 
-  (require 'set-up-platform))
+  (require 'set-up-platform)
+  (require 'macro-util))
 
 (require 'common)
 

@@ -6,6 +6,9 @@
 ;; Created: 23 February 2020
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'common)
 
 ;;;###autoload (autoload 'rust-target-triples "rust-target-triples-list" nil t)

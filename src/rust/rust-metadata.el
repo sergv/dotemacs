@@ -6,6 +6,9 @@
 ;; Created:  3 April 2020
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'json)
 
 ;;;###autoload

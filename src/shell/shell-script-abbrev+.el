@@ -6,6 +6,9 @@
 ;; Created: Thursday, 19 September 2013
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'macro-util)
 (require 'abbrev+)
 

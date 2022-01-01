@@ -6,6 +6,10 @@
 ;; Created: Aug-Sep 2012
 ;; Description:
 
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'macro-util))
+
 (require 'common)
 (require 'solarized)
 
@@ -63,12 +67,12 @@ pnm utils suite.")
          ))
 
 ;;;###autoload
-(defun* render-formula (str &key
-                            (point-size 10)
-                            (font-size "Large")
-                            (foreground-color nil)
-                            (background-color nil)
-                            (dpi 150))
+(cl-defun render-formula (str &key
+                              (point-size 10)
+                              (font-size "Large")
+                              (foreground-color nil)
+                              (background-color nil)
+                              (dpi 150))
   "Returns latex formula from STR rendered as image."
   (cl-assert (member font-size
                      '("tiny"
@@ -365,9 +369,9 @@ carried out on FORMULA-STR."
 ;;;###autoload
 (define-minor-mode render-formula-mode
   "Minor mode for rendering latex formulas in buffer as images."
-  nil ;; init
-  nil ;; modeline
-  nil ;; keymap
+  :init-value nil
+  :lighter nil
+  :keymap nil
   :group util
   :global nil
   (let ((keywords

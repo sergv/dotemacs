@@ -10,7 +10,7 @@
 
 (eval-when-compile
   (require 'set-up-platform)
-
+  (require 'macro-util)
   (defvar compilation-command))
 
 (require 'persistent-sessions-global-vars)

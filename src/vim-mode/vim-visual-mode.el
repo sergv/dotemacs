@@ -14,7 +14,8 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib))
 
 (require 'common)
 (require 'vim-macs)
@@ -65,8 +66,8 @@
 (defvar-local vim:visual-last-end nil)
 
 ;; Info-struct to save information for visual-insertion.
-(defstruct (vim:visual-insert-info
-            (:constructor vim:make-visual-insert-info))
+(cl-defstruct (vim:visual-insert-info
+               (:constructor vim:make-visual-insert-info))
   first-line
   last-line
   column)
@@ -391,9 +392,9 @@ This function is also responsible for setting the X-selection."
              overlay
              (window-start (max (window-start) start))
              (window-end (min (window-end) end))
-             (nlines (count-lines window-start
-                                  (min (1+ window-end)
-                                       (point-max)))))
+             (nlines (count-lines-fixed window-start
+                                        (min (1+ window-end)
+                                             (point-max)))))
         ;; Iterate over those lines of the rectangle which are visible
         ;; in the currently selected window.
         (goto-char window-start)

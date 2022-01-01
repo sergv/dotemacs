@@ -6,6 +6,9 @@
 ;; Created: 23 August 2018
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'macro-util)
 
 ;;;###autoload

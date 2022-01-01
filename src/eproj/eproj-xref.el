@@ -6,11 +6,14 @@
 ;; Created:  7 November 2021
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'eieio)
 
 (require 'eproj-symbnav)
 
-(defun eproj-xref-symbnav-show-xrefs--impl (fetcher aux-info enable-shortcut?)
+(defun eproj-xref-symbnav-show-xrefs--impl (fetcher _aux-info enable-shortcut?)
   (let ((proj nil)
         (xrefs (funcall fetcher)))
     (eproj-symbnav/choose-location-to-jump-to

@@ -8,6 +8,9 @@
 ;; Requirements:
 ;; Status:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'browse-kill-ring)
 
 (setf browse-kill-ring-display-duplicates nil

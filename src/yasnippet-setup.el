@@ -6,6 +6,10 @@
 ;; Created: Tuesday, 13 March 2012
 ;; Description:
 
+(eval-when-compile
+  (require 'el-patch)
+  (require 'macro-util))
+
 (require 'common)
 (require 'completion-setup)
 (require 'el-patch)

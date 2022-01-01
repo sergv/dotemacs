@@ -8,7 +8,8 @@
 
 (eval-when-compile
   (require 'cl-lib)
-  (require 'subr-x))
+  (require 'subr-x)
+  (require 'macro-util))
 
 (require 'pcomplete)
 (require 'completion-setup)
@@ -133,19 +134,19 @@
                              "\n"
                              t)))))))
 
-(defstruct (pcmpl-flag
-            (:conc-name pcmpl-flag/)
-            (:constructor pcmpl-flag/create))
+(cl-defstruct (pcmpl-flag
+               (:conc-name pcmpl-flag/)
+               (:constructor pcmpl-flag/create))
   names           ;; Nonempty list of strings
   completion-expr ;; Closed expression to generate completions, may be nil
   )
 
-(defun* make-pcmpl-flag (&key names completion-expr)
+(cl-defun make-pcmpl-flag (&key names completion-expr)
   (cl-assert (or (string? names)
                  (-all? #'string? names)))
   (pcmpl-flag/create :names names :completion-expr completion-expr))
 
-(defun pcpmpl/make-name-regex (flag)
+(cl-defun pcpmpl/make-name-regex (flag)
   (cl-assert (pcmpl-flag-p flag))
   (regexp-opt (pcmpl-flag/names flag) 'symbols))
 
@@ -349,7 +350,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                      ;; command name.
                      1))))))
 
-(defun* pcmpl-entries (&key select ignore)
+(cl-defun pcmpl-entries (&key select ignore)
   "Like `pcomplete-entries' but ignores files mathing IGNORE
 regexp and files under version-control directories."
   (let ((pcomplete-file-ignore ignore)

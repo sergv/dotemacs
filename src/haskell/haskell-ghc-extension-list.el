@@ -6,6 +6,10 @@
 ;; Created: 17 January 2020
 ;; Description:
 
+(eval-when-compile
+  (require 'subr-x)
+  (require 'macro-util))
+
 ;;;###autoload (autoload 'get-haskell-language-extensions "haskell-ghc-extension-list" nil t)
 (defun-once get-haskell-language-extensions
   (if-let (ghc-exec (cached-executable-find "ghc"))

@@ -6,7 +6,10 @@
 ;; Created: Saturday,  6 April 2013
 ;; Description:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'el-patch)
+  (require 'macro-util))
 
 (require 'common)
 (require 'el-patch)
@@ -14,68 +17,71 @@
 
 ;;;
 
-(eval-after-load
-    'paredit
-  '(progn
-     (defadvice paredit-forward-slurp-sexp
-         (after
-          paredit-forward-slurp-sexp-remove-initial-whitespace
-          activate
-          compile)
-       (when (and (lisp-pos-is-beginning-of-sexp? (- (point) 1))
-                  (whitespace-char? (char-after)))
-         (delete-whitespace-forward)))
+;;;###autoload
+(el-patch-feature paredit)
 
-     (defadvice paredit-backward-slurp-sexp
-         (after
-          paredit-backward-slurp-sexp-remove-initial-whitespace
-          activate
-          compile)
-       (when (and (lisp-pos-is-end-of-sexp? (point))
-                  (whitespace-char? (char-before)))
-         (delete-whitespace-backward)))
+;; inhibit modification hooks
+(el-patch-defun paredit-insert-pair (n open close forward)
+  (el-patch-wrap 2 0
+    (let ((inhibit-modification-hooks t))
+      (let* ((regionp
+              (and (paredit-region-active-p)
+                   (paredit-region-safe-for-insert-p)))
+             (end
+              (and regionp
+                   (not n)
+                   (prog1 (region-end) (goto-char (region-beginning))))))
+        (let ((spacep (paredit-space-for-delimiter-p nil open)))
+          (if spacep (insert " "))
+          (insert open)
+          (save-excursion
+            ;; Move past the desired region.
+            (cond (n (funcall forward
+                              (paredit-scan-sexps-hack (point)
+                                                       (prefix-numeric-value n))
+                              ;; (el-patch-swap
+                              ;;   (paredit-scan-sexps-hack (point)
+                              ;;                            (prefix-numeric-value n))
+                              ;;   (save-excursion
+                              ;;     (forward-sexp (prefix-numeric-value n))
+                              ;;     (point)))
+                              ))
+                  (regionp (funcall forward (+ end (if spacep 2 1)))))
+            (if (and (not (paredit-in-string-p))
+                     (paredit-in-comment-p))
+                (newline))
+            (insert close)
+            (if (paredit-space-for-delimiter-p t close)
+                (insert " "))))))))
 
-     ;; inhibit modification hooks
-     (el-patch-defun paredit-insert-pair (n open close forward)
-       (el-patch-wrap 2 0
-         (let ((inhibit-modification-hooks t))
-           (let* ((regionp
-                   (and (paredit-region-active-p)
-                        (paredit-region-safe-for-insert-p)))
-                  (end
-                   (and regionp
-                        (not n)
-                        (prog1 (region-end) (goto-char (region-beginning))))))
-             (let ((spacep (paredit-space-for-delimiter-p nil open)))
-               (if spacep (insert " "))
-               (insert open)
-               (save-excursion
-                 ;; Move past the desired region.
-                 (cond (n (funcall forward
-                                   (paredit-scan-sexps-hack (point)
-                                                            (prefix-numeric-value n))
-                                   ;; (el-patch-swap
-                                   ;;   (paredit-scan-sexps-hack (point)
-                                   ;;                            (prefix-numeric-value n))
-                                   ;;   (save-excursion
-                                   ;;     (forward-sexp (prefix-numeric-value n))
-                                   ;;     (point)))
-                                   ))
-                       (regionp (funcall forward (+ end (if spacep 2 1)))))
-                 (if (and (not (paredit-in-string-p))
-                          (paredit-in-comment-p))
-                     (newline))
-                 (insert close)
-                 (if (paredit-space-for-delimiter-p t close)
-                     (insert " "))))))))
+(defun paredit-init ()
+  (defadvice paredit-forward-slurp-sexp
+      (after
+       paredit-forward-slurp-sexp-remove-initial-whitespace
+       activate
+       compile)
+    (when (and (lisp-pos-is-beginning-of-sexp? (- (point) 1))
+               (whitespace-char? (char-after)))
+      (delete-whitespace-forward)))
 
-     (def-keys-for-map paredit-mode-map
-       ("C-k"         nil)
-       ("<return>"    nil)
-       ("C-S-<left>"  paredit-backward-slurp-sexp)
-       ("C-S-<right>" paredit-backward-barf-sexp))
+  (defadvice paredit-backward-slurp-sexp
+      (after
+       paredit-backward-slurp-sexp-remove-initial-whitespace
+       activate
+       compile)
+    (when (and (lisp-pos-is-end-of-sexp? (point))
+               (whitespace-char? (char-before)))
+      (delete-whitespace-backward)))
 
-     (advices/auto-comment paredit-newline)))
+  (def-keys-for-map paredit-mode-map
+    ("C-k"         nil)
+    ("<return>"    nil)
+    ("C-S-<left>"  paredit-backward-slurp-sexp)
+    ("C-S-<right>" paredit-backward-barf-sexp))
+
+  (advices/auto-comment paredit-newline))
+
+(eval-after-load 'paredit '(paredit-init))
 
 ;;; vimmized functions
 

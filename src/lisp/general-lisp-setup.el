@@ -10,7 +10,9 @@
 
 ;;; Generic setups for current module
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'macro-util))
 
 (require 'advices-util)
 (require 'common)
@@ -108,7 +110,7 @@ whose start (including open paren) matches FORM-RE."
           ;; (dotimes (i n)
           ;;   (backward-up-list))
           ;; (looking-at-p form-re)
-          (loop
+          (cl-loop
             for i below n
             for result = (progn
                            (backward-up-list)
@@ -598,7 +600,7 @@ _o_: show sexps in region"
   ("o"      hs-show-sexps-in-region))
 
 ;;;###autoload
-(defun* lisp-setup (&key (use-whitespace nil) (use-fci t))
+(cl-defun lisp-setup (&key (use-whitespace nil) (use-fci t))
   (init-common :use-yasnippet nil
                :use-whitespace 'tabs-only
                :use-render-formula t

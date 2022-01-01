@@ -8,7 +8,10 @@
 ;; Requirements:
 ;; Status:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+
+  (require 'macro-util))
 
 (require 'common)
 (require 'el-patch)
@@ -240,12 +243,12 @@
            (cons (cons "haskell" 'haskell-mode)
                  (cons (cons "scheme" 'scheme-mode)
                        (cons (cons "dot" 'graphviz-dot-mode)
-                             (remove-if (lambda (entry)
-                                          (member (car entry)
-                                                  '("dot"
-                                                    "scheme"
-                                                    "haskell")))
-                                        org-src-lang-modes)))))))
+                             (cl-remove-if (lambda (entry)
+                                             (member (car entry)
+                                                     '("dot"
+                                                       "scheme"
+                                                       "haskell")))
+                                           org-src-lang-modes)))))))
 
 (eval-after-load
     "ob-tangle"

@@ -6,6 +6,9 @@
 ;; Created: Tuesday,  4 February 2014
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (defmacro defconst-set (var val)
   (declare (indent 1))
   `(defconst ,var ,val)

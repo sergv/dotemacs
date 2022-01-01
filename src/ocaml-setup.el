@@ -6,7 +6,9 @@
 ;; Created: Tuesday,  9 April 2013
 ;; Description:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'macro-util))
 
 (require 'common)
 (require 'comint-setup)

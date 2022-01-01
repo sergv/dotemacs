@@ -6,6 +6,9 @@
 ;; Created: 15 April 2017
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'company-eproj)
 (require 'company-mode-setup)
 (require 'flycheck-setup)
@@ -99,14 +102,11 @@
 
 (defun elm-enhancements--compilation-filter-remove-ansi-color ()
   (save-match-data
-    (replace-regexp
-     "\\[[0-9]+m"
-     ""
-     nil
-     (save-excursion
-       (goto-char compilation-filter-start)
-       (line-beginning-position))
-     (point))))
+    (let ((end (point)))
+      (goto-char compilation-filter-start)
+      (beginning-of-line)
+      (while (re-search-forward "\\[[0-9]+m" end t)
+        (replace-match "" nil nil)))))
 
 (add-hook 'compilation-filter-hook
           'elm-enhancements--compilation-filter-remove-ansi-color)

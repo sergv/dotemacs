@@ -6,7 +6,9 @@
 ;; Created: Sunday,  3 February 2013
 ;; Description:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'macro-util))
 
 (require 'general-lisp-setup)
 (require 'clojure-mode)
