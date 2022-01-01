@@ -31,13 +31,6 @@
 (defvar-local vim:emulation-mode-alist nil
   "List of all keymaps used by some modes.")
 
-;; (defun vim:update-mode-line (ident)
-;;   "Updates the mode-line to show the specified identifier `ident'."
-;;   ;; Not used, so avoid unnecessary updates. Still, may come handy someday.
-;;   ;; (setq vim:mode-string (concat "<" (or ident "?") ">"))
-;;   ;; (force-mode-line-update)
-;;   )
-
 (defun vim:mode-name (mode)
   "Converts a mode-name to vim-mode naming conventions, e.g.
 'normal is converted to 'vim:normal-mode."
@@ -109,7 +102,6 @@ vim-command should be executed, a `cursor' shape and a list of `keymaps'."
          :lighter nil
          :keymap nil
          (when ,mode-name
-           ;; ,@(when ident `((vim:update-mode-line ,ident)))
            ,@(when message `((let (message-log-max) (message ,message))))
            (setq vim:active-mode ',mode-name)
            (setq vim:active-command-function
