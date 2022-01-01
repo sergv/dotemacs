@@ -205,7 +205,7 @@ _a_ctions"
   (vim:flycheck-clear)
   (when (and (boundp 'flycheck-checker)
              (eq flycheck-checker 'lsp))
-    (lsp-workspace-restart)))
+    (lsp-workspace-restart (lsp--read-workspace))))
 
 (defhydra-derive hydra-c++-vim-visual-g-ext hydra-c-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
   "

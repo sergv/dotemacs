@@ -51,12 +51,10 @@
   (if overwrite-mode
     (progn
       (let (message-log-max) (message "-- REPLACE --"))
-      (setq cursor-type vim:insert-mode-replace-cursor)
-      (vim:update-mode-line "R"))
+      (setq cursor-type vim:insert-mode-replace-cursor))
     (progn
       (let (message-log-max) (message "-- INSERT --"))
-      (setq cursor-type vim:insert-mode-cursor)
-      (vim:update-mode-line "I"))))
+      (setq cursor-type vim:insert-mode-cursor))))
 
 (defvar-local vim:insert-newline nil)
 
