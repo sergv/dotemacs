@@ -21,8 +21,10 @@ system restars.")
 
 (setf temporary-file-directory +tmp-path+
       small-temporary-file-directory +tmp-path+
-      tramp-auto-save-directory (concat +tmp-path+ "/tramp")
-      ediff-temp-file-prefix (concat +tmp-path+ "/ediff"))
+      tramp-auto-save-directory (concat +tmp-path+ "/tramp"))
+
+(when-emacs-version (and (<= 25 it) (<= it 27))
+  (setf ediff-temp-file-prefix (concat +tmp-path+ "/ediff")))
 
 (defun clean-tmp-path-on-emacs-exit ()
   "Delete `+tmp-path+' directory on emacs exit."
