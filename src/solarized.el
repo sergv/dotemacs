@@ -78,13 +78,11 @@ Futher modified by Sergey Vinokurov."
          (light-pink-background       "#e70000")
          (light-red-background        "#910000")
 
-         (box-line-width (cond
-                           ((base-emacs-fixes--is-version 28)
-                            '(-1 . -1))
-                           ((base-emacs-fixes--is-version 27)
-                            (fold-platform-os-type '(-1 . -1) -1))
-                           (t
-                            -1))))
+         (box-line-width (or (when-emacs-version (= it 28)
+                               '(-1 . -1))
+                             (when-emacs-version (= it 27)
+                               (fold-platform-os-type '(-1 . -1) -1))
+                             -1)))
     (when (eq 'light mode)
       (cl-rotatef base03 base3)
       (cl-rotatef base02 base2)

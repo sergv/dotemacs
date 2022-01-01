@@ -63,12 +63,12 @@
 
 ;; pcomplete
 
-(cond
-  ((eval-when-compile
-     (base-emacs-fixes--is-version 25 26 27))
-   (setf pcomplete-ignore-case t))
-  (t
-   (setf completion-ignore-case t)))
+(when-emacs-version (and (<= 25 it)
+                         (<= it 27))
+  (setf pcomplete-ignore-case t))
+
+(when-emacs-version (<= 28 it)
+  (setf completion-ignore-case t))
 
 (setf pcomplete-dir-ignore (rx bol (or "." "..") "/")
       ;; directory-files-no-dot-files-regexp
