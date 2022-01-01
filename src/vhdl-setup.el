@@ -6,6 +6,8 @@
 ;; Created: Saturday, 12 October 2013
 ;; Description:
 
+(declare-function vhdl-electric-tab "vhdl-mode")
+
 (require 'common)
 
 ;;;###autoload
