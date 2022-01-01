@@ -33,15 +33,20 @@
 (defvar vim:last-undo nil
   "The last item in the undo list.")
 
+(defun vim-prepare-buffer-undo-list! ()
+  "Make sure ‘buffer-undo-list’ is not empty so that ‘vim:connect-undos’
+will always be able to locate tail of the undo list and correctly connect
+undos even when there are no changes and the ‘buffer-undo-list’ is empty after
+a buffer is opened."
+  (unless buffer-undo-list
+    (setq buffer-undo-list (list nil 'undo-tree-canary))))
+
 ;; undo stuff
 (defun vim:connect-undos (last-undo)
-  (let ((find-mark (lambda (mark lst)
+  (let ((find-mark (lambda (lst)
                      (while (and lst
                                  (not (eq lst last-undo)))
                        (setq lst (cdr lst)))
-                     ;; (while (not (or (null lst)
-                     ;;                 (eq lst last-undo)))
-                     ;;   (setq lst (cdr lst)))
                      (not (null lst)))))
 
     ;; ensure last-undo is still in the undo list
