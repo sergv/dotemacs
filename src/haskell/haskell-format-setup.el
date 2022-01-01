@@ -6,6 +6,9 @@
 ;; Created:  2 May 2017
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'common)
 
 (defvar haskell-format-default-width 90)

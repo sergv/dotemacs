@@ -6,7 +6,9 @@
 ;; Created: Tuesday,  5 March 2013
 ;; Description:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'macro-util))
 
 ;;; (prematurely optimized) persistent sorted sets
 
@@ -140,7 +142,7 @@ items and remove any duplicates."
                        len (+ 1 len)))
                (setf items (rest items)))
              (values result len)))))
-    (multiple-value-bind (items len) (funcall remove-duplicates
+    (cl-multiple-value-bind (items len) (funcall remove-duplicates
                                               (sort (seq-copy items) lt-pred))
       (make-sorted-set :items items
                        :lt-pred lt-pred

@@ -6,6 +6,10 @@
 ;; Created: long ago
 ;; Description:
 
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'macro-util))
+
 (defvar dumping nil)
 
 (require 'set-up-platform)
@@ -76,16 +80,16 @@
         vim:motion-mode-local-keymap              (make-sparse-keymap)
         vim:complex-command-override-local-keymap (make-sparse-keymap)))
 
-(defun* init-common (&key (use-yasnippet t)
-                          (use-comment t)
-                          (use-fci t)
-                          (use-whitespace nil) ;; can be t, nil, 'tabs-only
-                          (use-render-formula nil)
-                          (use-hl-line t)
-                          (sp-slurp-sexp-insert-space t)
-                          (enable-backup t)
-                          (hl-parens-backend 'hl-paren) ;; can be 'hl-paren, 'smartparens
-                          (typography t))
+(cl-defun init-common (&key (use-yasnippet t)
+                            (use-comment t)
+                            (use-fci t)
+                            (use-whitespace nil) ;; can be t, nil, 'tabs-only
+                            (use-render-formula nil)
+                            (use-hl-line t)
+                            (sp-slurp-sexp-insert-space t)
+                            (enable-backup t)
+                            (hl-parens-backend 'hl-paren) ;; can be 'hl-paren, 'smartparens
+                            (typography t))
   (hl-line-mode (if use-hl-line +1 -1))
   (when use-comment
     (comment-util-mode 1))
@@ -151,10 +155,10 @@
 
   (electric-quote-local-mode (if typography +1 -1)))
 
-(defun* init-repl (&key (show-directory nil)
-                        (bind-return t)
-                        (create-keymaps nil)
-                        (bind-vim:motion-current-line t))
+(cl-defun init-repl (&key (show-directory nil)
+                          (bind-return t)
+                          (create-keymaps nil)
+                          (bind-vim:motion-current-line t))
   (use-repl-modeline :show-directory show-directory)
   (setq-local *vim:do-not-adjust-point* t
               vim:insert-mode-exit-move-point 'dont-move-at-line-end
@@ -187,11 +191,11 @@
            ("<return>"   comint-send-input)
            ("C-<return>" sp-newline)))))
 
-(defun* bind-tab-keys (tab-binding
-                       backtab-binding
-                       &key
-                       (enable-yasnippet nil)
-                       (yasnippet-fallback nil))
+(cl-defun bind-tab-keys (tab-binding
+                         backtab-binding
+                         &key
+                         (enable-yasnippet nil)
+                         (yasnippet-fallback nil))
   (let ((keymaps (list vim:normal-mode-local-keymap
                        vim:insert-mode-local-keymap)))
     (if enable-yasnippet

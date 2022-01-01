@@ -6,6 +6,9 @@
 ;; Created: Saturday, 28 February 2015
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'common-heavy)
 (require 'eproj)
 (require 'eproj-ctags)
@@ -65,10 +68,10 @@ runtime but rather will be silently relied on)."
             (gc-cons-threshold (min (* 100 1024 1024)
                                     (max gc-cons-threshold
                                          ;; Every 1000 lines takes up 1 mb or so.
-                                         (/ (* (count-lines (point-min) (point-max)) 1024 1024)
+                                         (/ (* (count-lines-fixed (point-min) (point-max)) 1024 1024)
                                             1000))))
             (progress-reporter (when eproj-verbose-tag-loading
-                                 (let ((total-tags-count (count-lines (point-min) (point-max))))
+                                 (let ((total-tags-count (count-lines-fixed (point-min) (point-max))))
                                    (make-standard-progress-reporter total-tags-count "tags"))))
             (file-name-cache (eproj-normalise-file-name-expand-cached/make-cache))
             (sharing-cache (eproj-ctags--make-sharing-cache)))

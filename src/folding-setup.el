@@ -6,6 +6,11 @@
 ;; Created:  1 April 2020
 ;; Description:
 
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'el-patch)
+  (require 'macro-util))
+
 (require 'base-emacs-fixes)
 (require 'comment-util)
 (require 'el-patch)
@@ -230,11 +235,11 @@ function; and adjust-block-beginning function."
   "Regular expression that defines headers")
 
 ;;;###autoload
-(defun* setup-outline-headers (&key
-                               (header-start "^")
-                               (header-symbol nil)
-                               (header-end "\\(?: \\|$\\)")
-                               (length-min 3))
+(cl-defun setup-outline-headers (&key
+                                 (header-start "^")
+                                 (header-symbol nil)
+                                 (header-end "\\(?: \\|$\\)")
+                                 (length-min 3))
   (unless header-symbol
     (setf header-symbol
           (assq 'one-line

@@ -13,7 +13,9 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'macro-util))
 
 (require 'vim-macs)
 (require 'vim-ex)
@@ -58,18 +60,18 @@
   :group 'vim-ex-mode)
 
 ;; A pattern.
-(defstruct (vim:pattern
-            (:constructor nil)
-            (:constructor vim:make-pattern
-                          (&key ((:regex re))
-                                ((:case-fold ca) nil)
-                                (whole-line t)
-                                &aux (regex (vim:regex-without-case re))
-                                (case-fold (vim:regex-case re ca)))))
+(cl-defstruct (vim:pattern
+               (:constructor nil)
+               (:constructor vim:make-pattern
+                             (&key ((:regex re))
+                                   ((:case-fold ca) nil)
+                                   (whole-line t)
+                                   &aux (regex (vim:regex-without-case re))
+                                   (case-fold (vim:regex-case re ca)))))
   regex      ;; The pattern itself.
   case-fold  ;; The case for this pattern.
   whole-line ;; If non-nil the pattern matches the whole line,
-             ;; otherwise only the first occurrence.
+  ;; otherwise only the first occurrence.
   )
 
 (defun vim:regex-without-case (re)
@@ -112,8 +114,8 @@ will be case-insensitive."
   "An alist of currently active highlights.")
 
 
-(defstruct (vim:hl
-            (:constructor vim:make-highlight))
+(cl-defstruct (vim:hl
+               (:constructor vim:make-highlight))
   name        ;; The name of this highlight.
   pattern     ;; The search pattern.
   face        ;; The face for this highlights.
@@ -125,14 +127,13 @@ will be case-insensitive."
   overlays    ;; The currently active overlays.
   )
 
-(defun* vim--new-highlight
-    (name &key
-          (face 'vim:lazy-highlight)
-          (win (selected-window))
-          (beg nil)
-          (end nil)
-          (update-hook nil)
-          (match-hook nil))
+(cl-defun vim--new-highlight (name &key
+                                   (face 'vim:lazy-highlight)
+                                   (win (selected-window))
+                                   (beg nil)
+                                   (end nil)
+                                   (update-hook nil)
+                                   (match-hook nil))
   "Creates new highlighting object with a certain `name'."
   (declare (indent 1))
   (cl-assert (symbolp name) nil "Excepted symbol as name of highlight")

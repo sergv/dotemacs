@@ -6,6 +6,9 @@
 ;; Created: Sunday, 14 September 2014
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'abbrev+)
 
 (defun-once agda-abbrev+-make-abbrevs

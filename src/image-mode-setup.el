@@ -6,6 +6,9 @@
 ;; Created: Thursday,  6 September 2012
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 ;;;###autoload
 (defun image-mode-setup ()
   (def-keys-for-map image-mode-map

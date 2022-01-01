@@ -6,6 +6,9 @@
 ;; Created: Saturday, 24 November 2012
 ;; Description:
 
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'macro-util))
 
 ;;;###autoload
 (defun ediff-keymap-setup ()
@@ -24,12 +27,12 @@
     ("<escape>" ediff-quit)))
 
 ;;;###autoload
-(defun* ediff-diff-texts-recursive-edit (text-a
-                                         text-b
-                                         &key
-                                         (read-only t)
-                                         (a-buf-name "text A")
-                                         (b-buf-name "text B"))
+(cl-defun ediff-diff-texts-recursive-edit (text-a
+                                           text-b
+                                           &key
+                                           (read-only t)
+                                           (a-buf-name "text A")
+                                           (b-buf-name "text B"))
   "Quickly show difference between two texts TEXT-A and TEXT-B using ediff.
 Register quick exit function and show difference in recursive edit."
   (let ((buf-a    (get-buffer-create a-buf-name))
@@ -41,7 +44,7 @@ Register quick exit function and show difference in recursive edit."
     (with-current-buffer buf-b
       (erase-buffer)
       (insert text-b))
-    (let ( ;; (ediff-quit-hook
+    (let (;; (ediff-quit-hook
           ;;   (append ediff-quit-hook
           ;;           (list (lambda ()
           ;;                   (exit-recursive-edit)))))
@@ -65,14 +68,14 @@ Register quick exit function and show difference in recursive edit."
         (fset 'ediff-quit orig-ediff-quit)))))
 
 ;;;###autoload
-(defun* ediff-diff-files-recursive-edit (file-a
-                                         file-b
-                                         &key
-                                         (read-only t))
+(cl-defun ediff-diff-files-recursive-edit (file-a
+                                           file-b
+                                           &key
+                                           (read-only t))
   "Run `ediff' on a pair of files. Also register quick exit function and restore
 window configuration on end of ediff session."
   (let ((win-conf (current-window-configuration)))
-    (let ( ;; (ediff-quit-hook
+    (let (;; (ediff-quit-hook
           ;;   (append ediff-quit-hook
           ;;           (list (lambda ()
           ;;                   (exit-recursive-edit)))))
@@ -97,7 +100,7 @@ window configuration on end of ediff session."
 (defun ediff/line-in-buffer? (buffer line-num)
   (with-current-buffer buffer
     (let ((line-min 1)
-          (line-max (count-lines (point-min) (point-max))))
+          (line-max (count-lines-fixed (point-min) (point-max))))
       (values (and (<= line-min line-num)
                    (<= line-num line-max))
               line-min
@@ -108,7 +111,7 @@ window configuration on end of ediff session."
                                   buffer
                                   error-func)
   (let ((num (read-number prompt)))
-    (multiple-value-bind (in-buf? line-min line-max)
+    (cl-multiple-value-bind (in-buf? line-min line-max)
         (ediff/line-in-buffer? buffer num)
       (unless in-buf?
         (funcall error-func num line-min line-max)))

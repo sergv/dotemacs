@@ -6,11 +6,15 @@
 ;; Created: long ago
 ;; Description:
 
-(eval-when-compile (require 'subr-x))
-
 (eval-when-compile
+  (require 'subr-x)
+  (require 'macro-util)
+
+
   (defvar ghc-core-program)
   (defvar ghc-core-program-args))
+
+(declare-function lsp-ui-sideline-mode "lsp-ui-sideline")
 
 (require 'align)
 (require 'browse-kill-ring-setup)
@@ -72,7 +76,7 @@
   (dante-repl-load-file))
 
 (vim:defcmd vim:haskell-dante-repl-restart (nonrepeatable)
-  (dante-repl-restart))
+  (dante-repl-restart nil))
 
 
 (vim:defcmd vim:haskell-dante-restart (nonrepeatable)

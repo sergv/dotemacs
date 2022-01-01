@@ -381,10 +381,10 @@ newline character of the last line."
 beginning or end of the object (except empty lines) is not
 counted."
   (save-excursion
-    (catch 'end
+    (cl-block end
       (pcase direction
         (`fwd (while (let ((pos (vim:boundary-chars 'fwd " \t\r\n")))
-                       (unless pos (throw 'end nil))
+                       (unless pos (cl-return-from end nil))
                        (goto-char pos)
                        (when (and (not (bolp))
                                   (looking-at-p "\n")
@@ -392,7 +392,7 @@ counted."
                          (forward-char) t))))
         (`bwd (let ((start (point)))
                 (while (let ((pos (vim:boundary-chars 'bwd " \t\r\n")))
-                         (unless pos (throw 'end nil))
+                         (unless pos (cl-return-from end nil))
                          (goto-char pos)
                          (when (and (not (bolp))
                                     (looking-at-p "\n"))
@@ -511,7 +511,7 @@ paramter is 'fwd the function should return the last position
 contained in the first text-object after or at point. If the
 parameter is 'bwd the function should return the first position
 contained in the first text-object before or at point."
-  (catch 'end
+  (cl-block end
     (when (> n 0)
       (let ((start (point)))
         ;; can't move further if already at the end of buffer
@@ -523,7 +523,7 @@ contained in the first text-object before or at point."
           (if pos (goto-char pos)
             ;; no such object
             (goto-char (point-max))
-            (throw 'end nil)))
+            (cl-return-from end nil)))
         ;; check if this object is really the current one
         (when (< start (or (funcall boundary 'bwd) (point-min)))
           ;; if not, count this object
@@ -532,7 +532,7 @@ contained in the first text-object before or at point."
         (dotimes (_ n)
           (if linewise (forward-line) (forward-char))
           (let ((next (funcall boundary 'fwd)))
-            (unless next (goto-char (point-max)) (throw 'end nil))
+            (unless next (goto-char (point-max)) (cl-return-from end nil))
             (goto-char next)))
         ;; found the end of the object, go to its beginning
         (goto-char (or (funcall boundary 'bwd) (point-min)))))))
@@ -575,7 +575,7 @@ paramter is 'fwd the function should return the last position
 contained in the first text-object after or at point. If the
 parameter is 'bwd the function should return the first position
 contained in the first text-object before or at point."
-  (catch 'end
+  (cl-block end
     (when (> n 0)
       (let ((start (point)))
         ;; can't move further if already at the beginning of buffer
@@ -585,7 +585,7 @@ contained in the first text-object before or at point."
           (if pos (goto-char pos)
             ;; no such object
             (goto-char (point-min))
-            (throw 'end nil)))
+            (cl-return-from end nil)))
         ;; check if this object is really the current one
         (when (> start (or (funcall boundary 'fwd) (point-min)))
           ;; if not, count this object
@@ -593,7 +593,7 @@ contained in the first text-object before or at point."
         (dotimes (_ n)
           (if linewise (forward-line -1) (forward-char -1))
           (let ((next (funcall boundary 'bwd)))
-            (unless next (goto-char (point-min)) (throw 'end nil))
+            (unless next (goto-char (point-min)) (cl-return-from end nil))
             (goto-char next)))
         (goto-char (or (funcall boundary 'fwd) (point-min)))))))
 
@@ -774,7 +774,7 @@ text-object before or at point."
                                    (close-md (cdr split-cdr)))
                               (setcdr split-cdr nil)
                               (values open-md close-md)))))
-    (catch 'end
+    (cl-block end
       (save-excursion
         (let ((combined-re (concat "\\("
                                    open-re
@@ -790,7 +790,7 @@ text-object before or at point."
           ;; search the opening object
           (funcall find-at-point open-re open-pos nil)
           (while (> cnt 0)
-            (unless (re-search-backward combined-re nil t) (throw 'end nil))
+            (unless (re-search-backward combined-re nil t) (cl-return-from end nil))
             ;; split match data for open and close regexp
             (cl-multiple-value-bind (open-md close-md)
                 (funcall split-match-data n-open-groups)
@@ -801,7 +801,7 @@ text-object before or at point."
                           ;; found matching opening object
                           (pop found-stack)
                         ;; found object does not match
-                        (throw 'end nil))
+                        (cl-return-from end nil))
                     ;; found enclosing opening object
                     (cl-decf cnt)
                     (when (zerop cnt)
@@ -818,7 +818,7 @@ text-object before or at point."
           ;; search the closing object
           (goto-char (1+ op-end))
           (while found-stack
-            (unless (re-search-forward combined-re nil t) (throw 'end nil))
+            (unless (re-search-forward combined-re nil t) (cl-return-from end nil))
             (cl-multiple-value-bind (open-md close-md)
                 (funcall split-match-data n-open-groups)
               (if (car close-md)
@@ -827,7 +827,7 @@ text-object before or at point."
                       ;; found matching closing object
                       (pop found-stack)
                     ;; found object does not match
-                    (throw 'end nil))
+                    (cl-return-from end nil))
                 ;; found opening object
                 (push open-md found-stack))))
 

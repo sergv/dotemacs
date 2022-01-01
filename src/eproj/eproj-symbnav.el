@@ -6,7 +6,10 @@
 ;; Created: Saturday, 28 February 2015
 ;; Description:
 
-(eval-when-compile (require 'subr-x))
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'subr-x)
+  (require 'macro-util))
 
 (declare-function eproj-reload-project! "eproj")
 
@@ -25,8 +28,8 @@
 (defvar eproj-symbnav/next-homes nil
   "Next locations that were visited but now obscured by going back.")
 
-(defstruct (eproj-home-entry
-            (:conc-name eproj-home-entry/))
+(cl-defstruct (eproj-home-entry
+               (:conc-name eproj-home-entry/))
   buffer
   position ;; marker, not number
   symbol ;; == name - string, or nil if this entry was not selected explicitly
@@ -250,14 +253,14 @@ as accepted by `bounds-of-thing-at-point'.")
                   (eproj-tag/line tag))))
          (sort-tokens<
           (lambda (x y)
-            (let ((symbol-x (first x))
-                  (symbol-y (first y))
-                  (tag-kind-x (second x))
-                  (tag-kind-y (second y))
-                  (file-x (third x))
-                  (file-y (third y))
-                  (line-x (fourth x))
-                  (line-y (fourth y)))
+            (let ((symbol-x (cl-first x))
+                  (symbol-y (cl-first y))
+                  (tag-kind-x (cl-second x))
+                  (tag-kind-y (cl-second y))
+                  (file-x (cl-third x))
+                  (file-y (cl-third y))
+                  (line-x (cl-fourth x))
+                  (line-y (cl-fourth y)))
               (cl-assert (or (null symbol-x) (stringp symbol-x)))
               (cl-assert (or (null symbol-y) (stringp symbol-y)))
               (cl-assert (or (stringp tag-kind-x) (null tag-kind-x)) nil "Unexpected tag kind: %s" tag-kind-x)
@@ -307,11 +310,11 @@ as accepted by `bounds-of-thing-at-point'.")
                               (t
                                tag-name)))))
                 (funcall tag->string tag-proj tag-name-pretty tag)))))
-         (entry-sort-token #'first)
-         (entry-tag-name #'second)
-         (entry-tag #'third)
-         (entry-string #'fourth)
-         (entry-proj #'fifth)
+         (entry-sort-token #'cl-first)
+         (entry-tag-name #'cl-second)
+         (entry-tag #'cl-third)
+         (entry-string #'cl-fourth)
+         (entry-proj #'cl-fifth)
          (entries
           ;; I'm not entirely sure where duplicates come from, but it's cheap
           ;; to remove them and at the same time I'm reluctant to tweak my
@@ -322,7 +325,7 @@ as accepted by `bounds-of-thing-at-point'.")
              entry-sort-token
              #'equal
              (-map (lambda (tag-entry)
-                     (destructuring-bind (tag-name tag tag-proj)
+                     (cl-destructuring-bind (tag-name tag tag-proj)
                          tag-entry
                        (list (funcall tag->sort-token tag-name tag)
                              tag-name
@@ -401,7 +404,7 @@ as accepted by `bounds-of-thing-at-point'.")
         (eproj-symbnav/on-back)))))
 
 ;;;###autoload
-(defun* setup-eproj-symbnav (&key (bind-keybindings t))
+(cl-defun setup-eproj-symbnav (&key (bind-keybindings t))
   (when bind-keybindings
     (awhen (current-local-map)
       (def-keys-for-map it

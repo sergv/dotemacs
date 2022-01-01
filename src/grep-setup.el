@@ -11,6 +11,11 @@
 ;; Some enchances to standard grep.el by redefining
 ;; some of its functions
 
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'el-patch)
+  (require 'macro-util))
+
 (require 'el-patch)
 (require 'grep)
 (require 'keys-def)
@@ -206,56 +211,57 @@ REGEXP is used as a string in the prompt."
 	    (or (cdr (assoc files grep-files-aliases))
 	        files))))))
 
+(defun grep-init-after-load ()
+  (def-keys-for-map grep-mode-map
+    +vi-keys+
+    +vim-search-keys+
+    +vim-special-keys+
+    +vim-mock:word-motion-keys+
+    ("h"        compilation-jump-to-next-error)
+    ("t"        compilation-jump-to-prev-error)
+    ("<up>"     compilation-jump-to-prev-error)
+    ("<down>"   compilation-jump-to-next-error)
+
+    ("<escape>" kill-grep)
+    ("C-c C-c"  kill-grep)
+    ("q"        remove-buffer)
+
+    ("C-v"      set-mark-command)
+    ("C-y"      copy-region-as-kill)
+    ("v"        set-mark-command)
+    ("y"        copy-region-as-kill)
+
+    ("<return>" compilation/goto-error)
+    ("SPC"      compilation/goto-error-other-window)
+    ("o"        compilation/goto-error-other-window))
+
+  (defvar *grep-latest-dir* nil
+    "Latest directory used for `rgrep', `rzgrep' or alike.")
+
+  (setf grep-expand-keywords
+        (cons '("<E>" . (if (funcall fixed-string? regexp) "-F" "-E"))
+              grep-expand-keywords))
+
+  (defadvice grep-filter (before grep-filter-make-relative-filename-advice
+                                 activate
+                                 compile)
+    "This advice is simply AWESOME! It replaces common long filename prefixes with \".\"."
+    (save-match-data
+      (save-excursion
+        (let ((end (line-beginning-position))
+              (beg (progn
+                     (goto-char compilation-filter-start)
+                     (line-beginning-position)))
+              (dir (awhen *grep-latest-dir* (strip-trailing-slash it))))
+          (when dir
+            (let ((re (concat "^" (regexp-quote dir))))
+              (goto-char beg)
+              (while (re-search-forward re end t)
+                (replace-match ".")))))))))
 
 (eval-after-load
     "grep"
-  '(progn
-     (def-keys-for-map grep-mode-map
-       +vi-keys+
-       +vim-search-keys+
-       +vim-special-keys+
-       +vim-mock:word-motion-keys+
-       ("h"        compilation-jump-to-next-error)
-       ("t"        compilation-jump-to-prev-error)
-       ("<up>"     compilation-jump-to-prev-error)
-       ("<down>"   compilation-jump-to-next-error)
-
-       ("<escape>" kill-grep)
-       ("C-c C-c"  kill-grep)
-       ("q"        remove-buffer)
-
-       ("C-v"      set-mark-command)
-       ("C-y"      copy-region-as-kill)
-       ("v"        set-mark-command)
-       ("y"        copy-region-as-kill)
-
-       ("<return>" compilation/goto-error)
-       ("SPC"      compilation/goto-error-other-window)
-       ("o"        compilation/goto-error-other-window))
-
-     (defvar *grep-latest-dir* nil
-       "Latest directory used for `rgrep', `rzgrep' or alike.")
-
-     (setf grep-expand-keywords
-           (cons '("<E>" . (if (funcall fixed-string? regexp) "-F" "-E"))
-                 grep-expand-keywords))
-
-     (defadvice grep-filter (before grep-filter-make-relative-filename-advice
-                                    activate
-                                    compile)
-       "This advice is simply AWESOME! It replaces common long filename prefixes with \".\"."
-       (save-match-data
-         (save-excursion
-           (let ((end (line-beginning-position))
-                 (beg (progn
-                        (goto-char compilation-filter-start)
-                        (line-beginning-position)))
-                 (dir (awhen *grep-latest-dir* (strip-trailing-slash it))))
-             (when dir
-               (let ((re (concat "^" (regexp-quote dir))))
-                 (goto-char beg)
-                 (while (re-search-forward re end t)
-                   (replace-match "."))))))))))
+  '(grep-init-after-load))
 
 (defun grep-set-up-error-regexp (buffer _msg)
   "Set up `*compilation-jump-error-regexp*' from `compilation-error-regexp-alist'."

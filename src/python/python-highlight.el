@@ -6,6 +6,9 @@
 ;; Created: Saturday,  4 February 2012
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'common)
 (require 'solarized)
 

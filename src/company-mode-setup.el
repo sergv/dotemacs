@@ -6,6 +6,9 @@
 ;; Created: Monday, 15 February 2016
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'company-posframe)
 (require 'company-statistics)
 (require 'persistent-store)

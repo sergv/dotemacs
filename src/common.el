@@ -11,8 +11,8 @@
 (eval-when-compile
   (require 'cl-lib)
   (require 'subr-x)
-
-  (require 'set-up-platform))
+  (require 'set-up-platform)
+  (require 'macro-util))
 
 (require 'common-small)
 (require 'common-constants)
@@ -585,7 +585,7 @@ START is inclusive and END is exclusive in ITEMS."
                               string2 (- (length string2) (length string1)) nil
                               ignore-case))))
 
-(defun* strip-string-prefix (prefix str &key (starting-at 0))
+(cl-defun strip-string-prefix (prefix str &key (starting-at 0))
   "Remove (+ (length PREFIX) STARTING-AT) characters from start of STR."
   (declare (pure t) (side-effect-free t))
   (substring str (+ starting-at (length prefix))))
@@ -637,7 +637,7 @@ faster than byte-by-byte comparison of respecfive file contents."
 
 ;;;
 
-(defun* map-files (f file-list &key dont-write)
+(cl-defun map-files (f file-list &key dont-write)
   "For every file in FILE-LIST insert it's content into
 buffer, call function f with that buffer as argument and
 write buffer contents back into file if flag DONT-WRITE is nil."
@@ -820,7 +820,7 @@ optimization purposes.")
 
 ;;;
 
-(defun* pp-to-string* (obj &key (length nil) (depth nil))
+(cl-defun pp-to-string* (obj &key (length nil) (depth nil))
   (let ((print-length length)
         (print-level depth))
     (pp-to-string obj)))
@@ -1119,12 +1119,19 @@ Save buffer if it has assigned file and this file exists on disk."
        (message
         (concat "Saved as script: " buffer-file-name))))
 
+(defun count-lines-fixed (begin end)
+  "Return line count in region like `count-lines' but don't
+confuse when point is not at the beginning of line"
+  (save-restriction
+    (narrow-to-region begin end)
+    (line-number-at-pos (point-max))))
+
 (defun reindent-region (start end)
   "custom function that reindents region, differs from indent-region
  with silent behavior( i.e. no messages)"
   (save-excursion
     (let ((lnum 0)
-          (lines (count-lines start end)))
+          (lines (count-lines-fixed start end)))
       (goto-char start)
       (while (< lnum lines)
         (cl-incf lnum)
@@ -1281,15 +1288,6 @@ further than END-POS."
       (skip-indentation-forward end-pos)
       (let ((end (point)))
         (buffer-substring-no-properties start end)))))
-
-(defun count-lines-dumb (begin end)
-  "Return line count in region like `count-lines' but don't
-confuse when point is not at the beginning of line"
-  ()
-  (+ (count-lines begin end)
-     (if (equal (current-column) 0)
-         1
-       0)))
 
 (defun backward-line (&optional count)
   "Call `forward-line' in the opposite direction"

@@ -8,6 +8,9 @@
 ;; Requirements:
 ;; Status:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'common)
 
 (declare-function c-awk-beginning-of-defun "cc-awk")

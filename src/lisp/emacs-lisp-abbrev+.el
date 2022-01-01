@@ -8,6 +8,9 @@
 ;; Requirements:
 ;; Status:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'general-lisp-setup)
 (require 'abbrev+)
 (require 'common)

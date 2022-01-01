@@ -15,6 +15,10 @@
 ;; file and forget about it until You lose too much time
 ;; tinkering with it.
 
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'macro-util))
+
 (require 'vim-setup)
 
 (defmacro latex:save-ex-save-re (&rest body)
@@ -47,7 +51,7 @@
      (if (< (point) (marker-position latex:document-start))
          1
        (let* ((line (current-line))
-              (type-of-section (or (case (latex-type-of-section-at-point)
+              (type-of-section (or (cl-case (latex-type-of-section-at-point)
                                      (part 0)
                                      (chapter 1)
                                      (section 2)
@@ -60,7 +64,7 @@
                                    0))
               (sect-start (or (latex-begin-of-section-at-point)
                               (marker-position latex:document-start)))
-              (whitespace-offset (loop
+              (whitespace-offset (cl-loop
                                    for i = 0 then (1+ i)
                                    while (char= ?\s (aref line i))
                                    count t)))
@@ -97,7 +101,7 @@ List will be in order of appearance of environments in region."
          (puthash env-name
                   entry
                   table)
-         (incf number)))
+         (cl-incf number)))
 
      (goto-char begin)
      (while (re-search-forward latex-end-environment end t)
@@ -203,22 +207,22 @@ for use in utility functions."
   "Hide all sections in latex file."
   (interactive)
   (latex:save-ex-save-re
-   (let ((type-re (reduce (lambda (re x)
-                            (if re
-                                re
-                              (when x
-                                (goto-char (marker-position
-                                            latex:document-start))
-                                (when (re-search-forward x nil t)
-                                  x))))
-                          (list latex-part-regexp
-                                latex-chapter-regexp
-                                latex-section-regexp
-                                latex-subsection-regexp
-                                latex-subsubsection-regexp
-                                latex-paragraph-regexp
-                                latex-subparagraph-regexp)
-                          :initial-value nil)))
+   (let ((type-re (cl-reduce (lambda (re x)
+                               (if re
+                                   re
+                                 (when x
+                                   (goto-char (marker-position
+                                               latex:document-start))
+                                   (when (re-search-forward x nil t)
+                                     x))))
+                             (list latex-part-regexp
+                                   latex-chapter-regexp
+                                   latex-section-regexp
+                                   latex-subsection-regexp
+                                   latex-subsubsection-regexp
+                                   latex-paragraph-regexp
+                                   latex-subparagraph-regexp)
+                             :initial-value nil)))
 
      (goto-char (marker-position latex:document-start))
      (while (search-forward-regexp type-re nil t)

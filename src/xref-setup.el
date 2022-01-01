@@ -6,6 +6,9 @@
 ;; Created:  7 January 2021
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 ;;;###autoload
 (defun xref-setup ()
   (def-keys-for-map xref--xref-buffer-mode-map

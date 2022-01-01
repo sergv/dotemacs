@@ -13,6 +13,9 @@
 ;; gnuplot file by 1998 Phil Type and Bruce Ravel, 1999-2002 Bruce Ravel
 ;; version 0.6.0
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'compile)
 
 (defconst gnuplot-program "gnuplot")

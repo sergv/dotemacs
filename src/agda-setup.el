@@ -6,6 +6,10 @@
 ;; Created: Wednesday, 14 May 2014
 ;; Description:
 
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'macro-util))
+
 (require 'agda-abbrev+)
 (require 'common)
 (require 'hydra-setup)

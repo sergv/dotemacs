@@ -6,6 +6,9 @@
 ;; Created: Monday,  8 October 2012
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'common)
 
 (defun c++-print-info-template ()

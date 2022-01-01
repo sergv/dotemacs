@@ -24,14 +24,17 @@
 ;;
 ;;; Code
 
+(eval-when-compile
+  (require 'cl-lib))
+
 ;; for find-tag-marker-ring
 (require 'etags)
 
 (defun elisp-slime-nav--all-navigable-symbol-names ()
   "Return a list of strings for the symbols to which navigation is possible."
-  (loop for x being the symbols
-        if (or (fboundp x) (boundp x) (symbol-plist x) (facep x))
-        collect (symbol-name x)))
+  (cl-loop for x being the symbols
+           if (or (fboundp x) (boundp x) (symbol-plist x) (facep x))
+           collect (symbol-name x)))
 
 ;;;###autoload
 (defun elisp-slime-nav-find-elisp-thing-at-point (sym-name)

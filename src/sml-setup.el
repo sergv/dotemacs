@@ -6,6 +6,9 @@
 ;; Created: Tuesday, 26 April 2016
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'common)
 (require 'indentation)
 

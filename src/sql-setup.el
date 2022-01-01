@@ -6,6 +6,9 @@
 ;; Created: Friday, 20 January 2012
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 ;;;###autoload
 (eval-after-load "sql"
   '(progn

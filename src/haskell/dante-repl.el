@@ -6,6 +6,9 @@
 ;; Created:  2 August 2019
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'dante)
 
 (defvar-local dante-repl--command-line-to-use nil
@@ -37,12 +40,13 @@ This variable gets assigned by ‘dante-initialize-method’.")
 ;;;###autoload
 (defun dante-repl-switch-to-repl-buffer ()
   (interactive)
-  (let ((repl-buf (get-buffer (dante-repl-buffer-name))))
+  (let* ((buf-name (dante-repl-buffer-name))
+         (repl-buf (get-buffer buf-name)))
     (if (buffer-live-p repl-buf)
-        (switch-to-buffer-other-window repl-buf))
-    (progn
-      (dante-repl-start)
-      (switch-to-buffer-other-window it))))
+        (switch-to-buffer-other-window repl-buf)
+      (progn
+        (dante-repl--start-with-buffer-name buf-name)
+        (switch-to-buffer-other-window (get-buffer buf-name))))))
 
 (defconst +dante-prompt-re+ "^\4 ")
 

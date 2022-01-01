@@ -6,15 +6,17 @@
 ;; Created: Tuesday,  1 November 2011
 ;; Description:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'macro-util))
 
 (require 'common)
 
 (declare-function org-self-insert-command "org")
 (declare-function yas-expand-snippet "yasnipet")
 
-(defstruct (abbrev+-abbreviation
-            (:constructor make--abbrev+-abbreviation))
+(cl-defstruct (abbrev+-abbreviation
+               (:constructor make--abbrev+-abbreviation))
   ;; Regular expression that should be matched in order for
   ;; this abbreviation to activate.
   (trigger nil :read-only t)
@@ -44,7 +46,7 @@
   ;; Optional.
   (on-successful-expansion nil :read-only t))
 
-(defun* make-abbrev+-abbreviation (&key trigger trigger-is-case-sensitive action-type action-data predicate on-successful-expansion)
+(cl-defun make-abbrev+-abbreviation (&key trigger trigger-is-case-sensitive action-type action-data predicate on-successful-expansion)
   (cl-assert (stringp trigger))
   (cl-assert (or (null predicate) (functionp predicate)))
   (cl-assert (or (null on-successful-expansion)
@@ -140,7 +142,7 @@ expansion was performed."
   (let ((start (point))
         entry
         str)
-    (loop
+    (cl-loop
       for syntax across abbrev+-skip-syntax
       until entry
       do
@@ -151,7 +153,7 @@ expansion was performed."
           ((stringp syntax)
            (skip-syntax-backward syntax))
           ((vectorp syntax)
-           (loop
+           (cl-loop
              for s across syntax
              do (skip-syntax-backward s)))
           (t

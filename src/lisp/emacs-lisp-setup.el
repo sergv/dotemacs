@@ -8,6 +8,10 @@
 ;; Requirements:
 ;; Status:
 
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'macro-util))
+
 (require 'company-mode-setup)
 (require 'elisp-slime-nav)
 (require 'emacs-lisp-abbrev+)
@@ -59,7 +63,7 @@
   "Indentation specifications for emacs lisp.")
 
 (dolist (entry *emacs-lisp-indent-specs*)
-  (destructuring-bind (symb indent-spec) entry
+  (cl-destructuring-bind (symb indent-spec) entry
     (put symb 'lisp-indent-function indent-spec)))
 
 ;;;;

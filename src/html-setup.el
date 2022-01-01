@@ -8,6 +8,27 @@
 ;; Requirements:
 ;; Status:
 
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'el-patch)
+  (require 'macro-util)
+
+  (defvar web-mode-markup-indent-offset)
+  (defvar web-mode-css-indent-offset)
+  (defvar web-mode-code-indent-offset)
+  (defvar web-mode-enable-css-colorization)
+  (defvar web-mode-enable-comment-keywords)
+  (defvar web-mode-enable-current-element-highlight)
+  (defvar web-mode-enable-auto-indentation)
+  (defvar web-mode-enable-auto-closing)
+  (defvar web-mode-enable-auto-pairing)
+  (defvar web-mode-enable-auto-quoting)
+  (defvar web-mode-auto-close-style)
+  (defvar web-mode-script-padding)
+  (defvar web-mode-style-padding)
+  (defvar web-mode-css-indent-offset)
+  (defvar web-mode-code-indent-offset))
+
 (require 'el-patch)
 (require 'indentation)
 (require 'nxml-mode)
@@ -70,7 +91,7 @@ if such tag can be found."
     (let ((test-var '#:test))
       `(let ((,test-var (funcall *markup-tags-context-func*)))
          (if ,test-var
-             (destructuring-bind ((,bb . ,be) . (,eb . ,ee))
+             (cl-destructuring-bind ((,bb . ,be) . (,eb . ,ee))
                  ,test-var
                ,on-found)
            ,on-not-found)))))
@@ -79,8 +100,8 @@ if such tag can be found."
 (vim:defmotion vim:motion-jump-tag (inclusive)
   "If point is positioned inside tag then jump to the beginning
 of the matching tag, else fallback to `vim:motion-jump-item'."
-  (macrolet ((inside? (x low high)
-                      `(and (<= ,low ,x) (< ,x ,high))))
+  (cl-macrolet ((inside? (x low high)
+                         `(and (<= ,low ,x) (< ,x ,high))))
     (if (let ((synt (char-syntax (char-after))))
           (or (char=? synt ?\()
               (char=? synt ?\))))
@@ -155,25 +176,30 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
                        (error "No matching item found")))))
           (vim:motion-jump-item))))))
 
+;;;###autoload
+(el-patch-feature rng-valid)
+
+(defun rng-init ()
+  ;; propertize Invalid message with distinctive face
+  (el-patch-defun rng-compute-mode-line-string ()
+    (cond (rng-validate-timer
+           (format " Validated:%d%%"
+                   (if (= 0 (buffer-size))
+                       0
+                     (floor (- rng-validate-up-to-date-end (point-min))
+                            (- (point-max) (point-min))))))
+          ((> rng-error-count 0)
+           (concat " "
+                   (propertize "Invalid"
+                               (el-patch-add 'face 'error)
+                               'help-echo "mouse-1: go to first error"
+                               'local-map (make-mode-line-mouse-map
+                                           'mouse-1
+                                           'rng-mouse-first-error))))
+          (t " Valid"))))
+
 (eval-after-load "rng-valid"
-  '(progn
-     ;; propertize Invalid message with distinctive face
-     (el-patch-defun rng-compute-mode-line-string ()
-       (cond (rng-validate-timer
-              (format " Validated:%d%%"
-                      (if (= 0 (buffer-size))
-                          0
-                        (floor (- rng-validate-up-to-date-end (point-min))
-                               (- (point-max) (point-min))))))
-             ((> rng-error-count 0)
-              (concat " "
-                      (propertize "Invalid"
-                                  (el-patch-add 'face 'error)
-                                  'help-echo "mouse-1: go to first error"
-                                  'local-map (make-mode-line-mouse-map
-                                              'mouse-1
-                                              'rng-mouse-first-error))))
-             (t " Valid")))))
+  '(rng-init))
 
 ;;;###autoload (autoload 'vim:nxml-backward-up-element "html-setup" "" t)
 (vimmize-motion nxml-backward-up-element
@@ -251,7 +277,7 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
   (let ((p (point-marker))
         (context (hl-tags-context-nxml-mode))
         (pnt (point)))
-    (destructuring-bind ((start1 . end1) start2 . end2)
+    (cl-destructuring-bind ((start1 . end1) start2 . end2)
         context
       ;; if we're inside tag
       (when (or (and (<= start1 pnt)
@@ -260,7 +286,7 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
                      (<= pnt end2)))
         (nxml-backward-up-element 2)
         (setf context (hl-tags-context-nxml-mode)))
-      (destructuring-bind ((start1 . _) _ . end2)
+      (cl-destructuring-bind ((start1 . _e1) _ . end2)
           context
         (reindent-region start1 end2)))
     (goto-char p)

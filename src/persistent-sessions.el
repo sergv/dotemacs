@@ -9,7 +9,7 @@
 (eval-when-compile
   (require 'cl-lib)
   (require 'subr-x)
-
+  (require 'macro-util)
   (defvar eshell-history-ring)
   (defvar eshell-buffer-name))
 

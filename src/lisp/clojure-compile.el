@@ -6,7 +6,10 @@
 ;; Created: Sunday, 31 March 2013
 ;; Description:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'macro-util))
+
 (require 'common)
 (require 'clojure-util)
 (require 'keys-def)

@@ -6,6 +6,9 @@
 ;; Created: Saturday, 15 September 2012
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'common)
 
 (defun-once c-abbrev+-make-abbrevs

@@ -6,6 +6,10 @@
 ;; Created: Thursday, 18 February 2016
 ;; Description:
 
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'macro-util))
+
 (require 'f)
 
 (require 'common)
@@ -141,7 +145,7 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
             (when should-report-progress?
               (make-standard-progress-reporter files-length "files")))
            (matches
-            (loop
+            (cl-loop
               for filename in (sort files #'string<)
               nconc
               (for-buffer-with-file filename

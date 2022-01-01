@@ -6,6 +6,10 @@
 ;; Created: long ago
 ;; Description:
 
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'macro-util))
+
 (require 'haskell-misc)
 (require 'search)
 (require 'yafolding)
@@ -48,7 +52,7 @@ _c_: yafolding hide region"
   ("c" yafolding-hide-region))
 
 ;;;###autoload
-(defun* haskell-setup-folding (&key (enable-hs-minor-mode t))
+(cl-defun haskell-setup-folding (&key (enable-hs-minor-mode t))
   "Configure folding for Haskell. ENABLE-HS-MINOR-MODE controls whether
 to enable folding of balanced S-expressions."
   (setup-folding enable-hs-minor-mode '(:header-symbol "-" :length-min 3))

@@ -6,6 +6,9 @@
 ;; Created: 15 April 2017
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 ;;;###autoload
 (defun setup-indent-size (width)
   (declare (pure nil) (side-effect-free nil))
