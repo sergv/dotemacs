@@ -6,6 +6,9 @@
 ;; Created: Thursday, 19 November 2015
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'haskell-outline)
 (require 'solarized)
 

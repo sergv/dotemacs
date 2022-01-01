@@ -8,6 +8,7 @@
 
 (eval-when-compile
   (require 'cl-lib)
+  (require 'macro-util)
   (defvar whitespace-line-column))
 
 (require 'common)
@@ -198,7 +199,7 @@ _o_: show c sexps in region"
   "Flag for buffers that have c-like mode enabled.")
 
 ;;;###autoload
-(defun* cc-setup (&key (define-special-keys t))
+(cl-defun cc-setup (&key (define-special-keys t))
   (init-common :use-render-formula t
                :sp-slurp-sexp-insert-space nil
                :use-yasnippet t

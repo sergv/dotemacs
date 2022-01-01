@@ -43,10 +43,10 @@
 
 (defvar-local lsp-rust--has-experimental-hover-range-cap +undef+)
 
-(defun lsp-rust-type-of-thing-at-point (&optional goto-def)
+(defun lsp-rust-type-of-thing-at-point ()
   "Display the type of the thing at point. With universal
 argument jump to type definition."
-  (interactive "P")
+  (interactive)
   (lsp--check-capability "experimental/hoverRange"
     lsp-rust--has-experimental-hover-range-cap)
   (let* ((bounds (if (region-active-p)

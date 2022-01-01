@@ -6,6 +6,10 @@
 ;; Created: Thursday, 25 August 2016
 ;; Description:
 
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'macro-util))
+
 (require 'common)
 (require 'persistent-sessions-error-reporting)
 
@@ -225,7 +229,7 @@ can allows value to be decoded back fully.)"
       (let ((change-pos (or (next-property-change pos string) end)))
         (let ((start pos)
               (end change-pos))
-          (loop
+          (cl-loop
             for (key value) on props by #'cddr
             do
             (unless (memq key ignored-text-properties)

@@ -8,6 +8,14 @@
 ;; Requirements:
 ;; Status:
 
+(eval-when-compile
+  (require 'macro-util))
+
+(declare-function TeX-fold-clearout-region "tex-fold")
+(declare-function TeX-fold-region "tex-fold")
+(declare-function TeX-fold-comment "tex-fold")
+(declare-function TeX-fold-item "tex-fold")
+
 (require 'custom)
 (require 'preview)
 (require 'latex-abbrev+)

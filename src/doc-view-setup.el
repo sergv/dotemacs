@@ -6,6 +6,9 @@
 ;; Created: Saturday, 25 August 2012
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'persistent-store)
 
 (eval-after-load

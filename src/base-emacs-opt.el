@@ -6,6 +6,11 @@
 ;; Created: 11 December 2021
 ;; Description:
 
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'el-patch)
+  (require 'macro-util))
+
 (require 'base-emacs-fixes)
 
 (defvar vim--current-universal-argument-provided?)

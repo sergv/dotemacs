@@ -6,6 +6,8 @@
 ;; Created: long ago
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
 
 (require 'macro-util)
 

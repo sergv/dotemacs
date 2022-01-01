@@ -112,7 +112,7 @@ NB does not expect to cache values of ARGS that are nil."
                      (intersection args cache-args :test #'equal?))
              nil
              "defun-caching: CACHE-ARGS must be a subset of ARGS")
-  (let ((cache-var (gentemp "cache"))
+  (let ((cache-var (cl-gentemp "cache"))
         (query-var '#:query)
         (hash-table-var '#:hash-table)
         (value-var '#:value)
@@ -155,7 +155,7 @@ NB does not expect to cache values of ARGS that are nil."
                                          ;; so it may be accessed one level
                                          ;; above current one
                                          ,table-var))))
-                                (lambda (unused-table)
+                                (lambda (_)
                                   value-var)
                                 cache-args)
                          cache-var)
@@ -169,7 +169,7 @@ that returnsn a value to use as a caching key.
 NB does not expect to cache values of ARGS that are nil. Also will recompute
 BODY if it returns nil."
   (declare (indent 4))
-  `(defun-caching-extended ,func ,args ,nil ,(gentemp (format "%s/make-cache" func)) ,reset-cache-func ,mk-cache-key ,@body))
+  `(defun-caching-extended ,func ,args ,nil ,(cl-gentemp (format "%s/make-cache" func)) ,reset-cache-func ,mk-cache-key ,@body))
 
 (defmacro defun-caching-extended (func args func-with-explicit-cache make-cache-func reset-cache-func mk-cache-key &rest body)
   "Defun new function FUNC that automatically caches it's output
@@ -183,10 +183,9 @@ BODY if it returns nil."
   (cl-assert (or (symbol? func-with-explicit-cache) (null func-with-explicit-cache)))
   (cl-assert (symbol? make-cache-func))
   (cl-assert (symbol? reset-cache-func))
-  (let ((cache-var (gentemp "defun-caching--cache"))
+  (let ((cache-var (cl-gentemp "defun-caching--cache"))
         (cache-arg '#:cache)
         (query-var '#:query)
-        (hash-table-var '#:hash-table)
         (value-var '#:value)
         (cache-arg-var '#:cache-key)
         (uninitialized '#:uninitialized)
@@ -222,7 +221,7 @@ BODY if it returns nil."
   "Define function NAME with body BODY that will call BODY only once and return it's original
 value on all subsequent invokations."
   (declare (indent 1))
-  (let ((value (gentemp "value"))
+  (let ((value (cl-gentemp "value"))
         (uninitialized '#:uninitialized))
     `(defalias ',name
        (let ((,value ',uninitialized))
@@ -384,7 +383,7 @@ of code may be called more than once."
        ,(when save-buffer
           '(save-buffer-if-modified))
        (let ((,runned nil))
-         (block ,done-block
+         (cl-block ,done-block
 
            (dotimes (,tries ,try-count)
              (cond
@@ -396,10 +395,10 @@ of code may be called more than once."
                            (and ,tmp
                                 (buffer-live-p (get-buffer ,tmp))))
                          (pop-to-buffer (get-buffer ,buf) t)
-                         (return-from ,done-block))
+                         (cl-return-from ,done-block))
                      `((buffer-live-p (get-buffer ,buf))
                        (pop-to-buffer (get-buffer ,buf) t)
-                       (return-from ,done-block))))
+                       (cl-return-from ,done-block))))
 
                ((not ,runned)
                 (save-window-excursion
@@ -478,7 +477,7 @@ of code may be called more than once."
   "Save current line (but not column), execute BODY and go to saved line."
   (declare (indent 0))
   (let ((line-var '#:line))
-    `(let ((,line-var (count-lines-dumb (point-min) (point))))
+    `(let ((,line-var (count-lines-fixed (point-min) (point))))
        (unwind-protect
            (progn ,@body)
          (goto-line-dumb ,line-var)))))

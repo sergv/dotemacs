@@ -7,6 +7,8 @@
 ;; Description:
 
 (eval-when-compile
+  (require 'cl-lib)
+  (require 'macro-util)
   (defvar lsp-diagnostics-attributes)
   (defvar lsp-modeline-code-actions-segments)
   (defvar lsp-modeline-diagnostics-scope)
@@ -163,7 +165,7 @@
 
 ;;;; Symbnav
 
-(defun* setup-lsp-symbnav (&key (bind-keybindings t))
+(cl-defun setup-lsp-symbnav (&key (bind-keybindings t))
   (setq-local xref-show-definitions-function #'eproj-xref-symbnav-show-xrefs
               xref-show-xrefs-function #'eproj-xref-symbnav-show-xrefs)
   (when bind-keybindings

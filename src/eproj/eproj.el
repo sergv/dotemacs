@@ -53,7 +53,8 @@
 
 (eval-when-compile
   (require 'cl-lib)
-  (require 'subr-x))
+  (require 'subr-x)
+  (require 'macro-util))
 
 (require 'eproj-customization)
 ;; Provide here to resolve load cycles.
@@ -107,16 +108,16 @@
   ;; List of strings - globs for files to consider during quick navigation.
   extra-navigation-globs)
 
-(defun* mk-eproj-lang (&key mode
-                            extensions
-                            create-tags-procedure
-                            parse-tags-procedure
-                            show-tag-kind-procedure
-                            tag->string-func
-                            synonym-modes
-                            normalise-identifier-before-navigation-procedure
-                            get-extra-navigation-files-procedure
-                            extra-navigation-globs)
+(cl-defun mk-eproj-lang (&key mode
+                              extensions
+                              create-tags-procedure
+                              parse-tags-procedure
+                              show-tag-kind-procedure
+                              tag->string-func
+                              synonym-modes
+                              normalise-identifier-before-navigation-procedure
+                              get-extra-navigation-files-procedure
+                              extra-navigation-globs)
   (cl-assert (symbolp mode))
   (cl-assert (listp extensions))
   (cl-assert (-all? #'stringp extensions))
@@ -469,7 +470,7 @@ cache tags in."
           "-"
           (format "%s" mode)))
 
-(defun* eproj/load-tags-for-mode (proj mode project-files-thunk &key (consider-tag-files t))
+(cl-defun eproj/load-tags-for-mode (proj mode project-files-thunk &key (consider-tag-files t))
   (if-let ((lang (gethash mode eproj/languages-table)))
       (if-let ((create-tags-procedure (eproj-language/create-tags-procedure lang)))
           (if-let ((parse-tags-procedure (eproj-language/parse-tags-procedure lang)))

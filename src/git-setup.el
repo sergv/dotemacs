@@ -9,8 +9,9 @@
 (eval-when-compile
   (require 'cl-lib)
   (require 'subr-x)
-
-  (require 'set-up-platform))
+  (require 'el-patch)
+  (require 'set-up-platform)
+  (require 'macro-util))
 
 (require 'common)
 (require 'common-heavy)

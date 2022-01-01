@@ -6,15 +6,19 @@
 ;; Created: 29 November 2019
 ;; Description:
 
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'macro-util))
+
 (require 'comment-util)
 (require 'smart-operators-utils)
 
 (defconst rust-smart-operators--operator-chars
-  (coerce "+-*/%^&|<>=" 'list) ;; ! - too special, used for macro calls
+  (cl-coerce "+-*/%^&|<>=" 'list) ;; ! - too special, used for macro calls
   "Characters that may constitute operators.")
 
 (defconst rust-smart-operators--numeric-literal-chars
-  (coerce "+-" 'list)
+  (cl-coerce "+-" 'list)
   "Characters that are used in numeric literals, e.g. +5, -2.")
 
 (defun rust-smart-operators--insert-char-surrounding-with-spaces (char)
@@ -40,13 +44,12 @@ stick it to the previous operator on line."
   (when (symbolp specs)
     (setq specs (eval specs)))
   (if specs
-      (let ((entries (make-hash-table :test #'eq))
-            (trimmed-specs nil))
+      (let ((entries (make-hash-table :test #'eq)))
         (dolist (entry specs)
           (when (not (string= entry ""))
             (let ((last-idx (1- (length entry))))
               (when-let ((last (aref entry last-idx)))
-                (puthash last (cons (subseq entry 0 last-idx)
+                (puthash last (cons (cl-subseq entry 0 last-idx)
                                     (gethash last entries))
                          entries)))))
         `(pcase ,(funcall get-char idx)

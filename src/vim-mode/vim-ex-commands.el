@@ -8,9 +8,13 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'macro-util))
+
 (require 'vim-ex)
 
-(defun* vim:save-buffer (file-name &key begin end force append)
+(cl-defun vim:save-buffer (file-name &key begin end force append)
   "Saves the lines from `begin' to `end' to file `file-name'."
   (with-current-buffer vim:ex-current-buffer
     (when (null file-name)

@@ -272,6 +272,7 @@
 
 (eval-when-compile
   (require 'cl)
+  (require 'cl-lib)
   (require 'derived))
 
 (defun browse-kill-ring-start-for-variable (variable buffer-name)
@@ -657,8 +658,8 @@ of the *Kill Ring*."
     (when (get-text-property (point) 'browse-kill-ring-extra)
       (let ((prev (previous-single-property-change (point) 'browse-kill-ring-extra))
             (next (next-single-property-change (point) 'browse-kill-ring-extra)))
-        (when prev (incf prev))
-        (when next (incf next))
+        (when prev (cl-incf prev))
+        (when next (cl-incf next))
         (delete-region (or prev (point-min)) (or next (point-max))))))
   (browse-kill-ring-resize-window)
   (browse-kill-ring-forward 0))
@@ -710,7 +711,7 @@ If no such overlay, raise an error."
     (while (not (zerop arg))
       (if (< arg 0)
           (progn
-            (incf arg)
+            (cl-incf arg)
             (if all-overlays
                 (progn
                   (goto-char (overlay-start (car all-overlays)))
@@ -721,7 +722,7 @@ If no such overlay, raise an error."
                 (unless (bobp)
                   (goto-char (overlay-start (car (overlays-at (point)))))))))
         (progn
-          (decf arg)
+          (cl-decf arg)
           (if all-overlays
               (progn
                 (goto-char (overlay-end (car all-overlays)))
@@ -853,7 +854,7 @@ entry."
     (delete-overlay browse-kill-ring-preview-overlay))
   ;; clean after ourselves
   (setf browse-kill-ring--ring-var nil)
-  (case browse-kill-ring-quit-action
+  (cl-case browse-kill-ring-quit-action
     (save-and-restore
       (if (< emacs-major-version 24)
         (let (buf (current-buffer))
@@ -1028,7 +1029,7 @@ directly; use `browse-kill-ring' instead.
   (interactive
    (list
     (browse-kill-ring-read-regexp "Display kill ring entries matching")))
-  (assert (eq major-mode 'browse-kill-ring-mode))
+  (cl-assert (eq major-mode 'browse-kill-ring-mode))
   (browse-kill-ring-setup (current-buffer)
                           browse-kill-ring-original-buffer
                           browse-kill-ring-original-window
@@ -1061,7 +1062,7 @@ directly; use `browse-kill-ring' instead.
 (defun browse-kill-ring-update ()
   "Update the buffer to reflect outside changes to `browse-kill-ring--ring-var'."
   (interactive)
-  (assert (eq major-mode 'browse-kill-ring-mode))
+  (cl-assert (eq major-mode 'browse-kill-ring-mode))
   (browse-kill-ring-setup (current-buffer)
                           browse-kill-ring-original-buffer
                           browse-kill-ring-original-window)
