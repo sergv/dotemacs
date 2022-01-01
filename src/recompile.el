@@ -13,18 +13,33 @@
 (require 'comp)
 
 (defconst +ignored-files-re+
-  (rx bol
-      (or "third-party/yafolding.el/features/support/env.el"
-          "third-party/yafolding.el/features/step-definitions/yafolding-steps.el"
-          "third-party/dtrt-indent/dtrt-indent-test.el"
-          "third-party/hydra/hydra-test.el"
-          "third-party/ivy/ivy-test.el"
-          "third-party/rainbow-delimiters/rainbow-delimiters-test.el"
-          "third-party/paredit/test.el"
+  (rx (or "yafolding.el/features/support/env.el"
+          "yafolding.el/features/step-definitions/yafolding-steps.el"
+          "dtrt-indent/dtrt-indent-test.el"
+          "hydra/hydra-test.el"
+          "ivy/ivy-test.el"
+          "rainbow-delimiters/rainbow-delimiters-test.el"
+          "paredit/test.el"
+          "company-statistics/company-statistics-tests.el"
+          "company-mode/company-tests.el"
+          "csv-mode/csv-mode-tests.el"
+          "flx/misc/flx-test-list.el"
+          "flycheck-elm/flycheck-elm-tests.el"
+          "prop-menu-el/prop-menu-tests.el"
+          "rust-mode/rust-mode-tests.el"
+          "tuareg/tuareg-tests.el"
+          "v.el/v-tests.el"
+          "yasnippet/yasnippet-tests.el"
+
+          "ivy/targets/.*"
+          "org-mode/testing/.*"
+
           (seq (* any) "/tests/" (* any))
           (seq "third-party/"
-               (or "epl"
+               (or "clojure-mode"
+                   "epl"
                    "flx"
+                   "ivy"
                    "lsp-mode"
                    "lsp-ui"
                    "pkg-info"
@@ -37,9 +52,8 @@
                (or "dump.el"
                    "huffman.el"
                    "rb-tree.el"
-                   "recompile.el"))
-          )
-      eol))
+                   "recompile.el")))
+      eos))
 
 (defun recompile-disable-hooks ()
   (message "[recompile.el] disabling unsafe hooks")
@@ -103,7 +117,6 @@
               (let ((fname (file-name-nondirectory x))
                     (rel-name (file-relative-name x emacs-dir)))
                 (or (string-match-p +ignored-files-re+ rel-name)
-                    ;; (string-match-p "^ob-.*\\.el$" fname)
                     (string-match-p "^\\..*el$" fname)))))
            (local-files
             (cl-remove-if should-not-recompile-p
