@@ -171,6 +171,7 @@ If the old motion type was already characterwise exclusive/inclusive will be tog
     (setf vim:current-cmd-count (prefix-numeric-value current-prefix-arg)))
   (when (vim:cmd-char-arg-p command)
     (setf vim:current-cmd-arg (read-char-exclusive)))
+  (vim-prepare-buffer-undo-list!)
   (let* ((parameters nil)
          (vim:last-undo buffer-undo-list)
          (repeatable? (vim:cmd-repeatable-p command))
@@ -220,6 +221,7 @@ If the old motion type was already characterwise exclusive/inclusive will be tog
   (when (vim:cmd-char-arg-p motion-command)
     (setf vim:current-motion-arg (read-char-exclusive)))
 
+  (vim-prepare-buffer-undo-list!)
   (let* ((vim:last-undo buffer-undo-list)
          (entry (when vim:complex-command-override-local-keymap
                   (let ((key (concat vim:current-key-sequence (this-command-keys-vector))))
