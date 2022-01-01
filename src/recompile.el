@@ -14,6 +14,7 @@
   (rx bol
       (or "third-party/yafolding.el/features/support/env.el"
           (seq (* any) "tests" (* any))
+          (seq "third-party/lsp-mode/test/" (* any))
           (seq "src/"
                (or "dump.el"
                    "huffman.el"

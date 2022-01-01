@@ -8,7 +8,8 @@
 
 (eval-when-compile
   (require 'cl-lib)
-  (require 'subr-x))
+  (require 'subr-x)
+  (require 'macro-util))
 
 (require 'macro-util)
 (require 'smart-operators-utils)

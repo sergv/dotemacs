@@ -17,6 +17,10 @@
 ;; #x 1 | f ff ff ff |> c & 3 <| f ff ff ff
 ;;        4 8  8  8     2 | 2    4 8  8  8 = 30 = 1 + 29
 
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'macro-util))
+
 (defun packing-pack-pair (a b)
   (declare (pure t) (side-effect-free t))
   (let ((a-neg? (< a 0))
@@ -72,12 +76,12 @@
            (len (/ (+ orig-len 1) 2))
            (res (make-vector len 0))
            (butlast (- len 1)))
-        (loop
+        (cl-loop
           for i from 0 below butlast
           for j from 0 by 2
           do
           (setf (aref res i) (packing-pack-pair (aref xs j) (aref xs (+ j 1)))))
-        (if (evenp orig-len)
+        (if (cl-evenp orig-len)
             (setf (aref res butlast) (packing-pack-pair (aref xs (- orig-len 2)) (aref xs (- orig-len 1))))
           (setf (aref res butlast) (packing-pack-pair (aref xs (- orig-len 1)) 0)))
         res))))
@@ -89,7 +93,7 @@
         []
       (let* ((len (* 2 orig-len))
              (res (make-vector len 0)))
-        (loop
+        (cl-loop
           for i from 0 below orig-len
           for j from 0 by 2
           do
@@ -97,7 +101,7 @@
             (setf (aref res j)       (packing-unpack-pair-car packed)
                   (aref res (+ j 1)) (packing-unpack-pair-cdr packed))))
         (if (= 0 (aref res (- len 1)))
-            (subseq res 0 (- len 1))
+            (cl-subseq res 0 (- len 1))
           res)))))
 
 (defun packing-pack-list (xs)
@@ -146,7 +150,7 @@
   (aif (gethash component packing--file-path-component->idx-cache)
       it
     (let ((idx packing--file-path-free-idx))
-      (incf packing--file-path-free-idx)
+      (cl-incf packing--file-path-free-idx)
       (puthash component idx packing--file-path-component->idx-cache)
 
       (let ((j (- idx 1)))

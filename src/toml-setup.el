@@ -6,6 +6,9 @@
 ;; Created: 22 March 2018
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'common)
 (require 'git-setup)
 

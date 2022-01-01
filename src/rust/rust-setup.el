@@ -8,6 +8,7 @@
 
 (eval-when-compile
   (require 'set-up-platform)
+  (require 'macro-util)
 
   (defvar whitespace-line-column)
   (defvar sp-report-unmatched-expressions))

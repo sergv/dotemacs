@@ -6,6 +6,9 @@
 ;; Created: Monday, 15 February 2016
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'company-mode-setup)
 
 (defvar company-eproj-ignore-case nil)

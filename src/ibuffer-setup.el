@@ -8,6 +8,11 @@
 ;; Requirements:
 ;; Status:
 
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'el-patch)
+  (require 'macro-util))
+
 (require 'el-patch)
 (require 'ibuffer)
 

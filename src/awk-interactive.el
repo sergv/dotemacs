@@ -12,6 +12,8 @@
 
 (eval-when-compile
   (require 'cl-lib)
+  (require 'macro-util)
+
   (defvar awk-mode-map))
 
 (require 'common)

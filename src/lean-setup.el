@@ -6,6 +6,9 @@
 ;; Created: 21 June 2019
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (declare-function lean-find-definition "lean-info")
 (declare-function lean-find-definition-cont "lean-info")
 (declare-function lean-server-send-synchronous-command "lean-server")

@@ -7,7 +7,9 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'let-alist))
+  (require 'cl-lib)
+  (require 'let-alist)
+  (require 'macro-util))
 
 (provide 'flycheck-setup)
 
@@ -94,7 +96,7 @@
   (flycheck-list-errors))
 
 ;;;###autoload
-(defun* flycheck-install-ex-commands! (&key install-flycheck load-func reset-func)
+(cl-defun flycheck-install-ex-commands! (&key install-flycheck load-func reset-func)
   (when install-flycheck
     (vim:local-emap "ff" #'vim:flycheck-compile)
     (dolist (cmd '("check" "ch"))

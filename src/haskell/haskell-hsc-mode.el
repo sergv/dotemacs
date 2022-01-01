@@ -6,6 +6,9 @@
 ;; Created: 15 May 2018
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'haskell-mode)
 (require 'haskell-font-lock)
 (require 'haskell-utils)
