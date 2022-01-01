@@ -2264,22 +2264,23 @@ which is defined in the `warnings' library.\n")
   ;; Return non-nil if NODE corresponds to a buffer state that once upon a
   ;; time was unmodified. If a file modification time MTIME is specified,
   ;; return non-nil if the corresponding buffer state really is unmodified.
-  (let* ((changeset
-	  (or (undo-tree-node-redo node)
-	      (and (setq changeset (car (undo-tree-node-next node)))
-		   (undo-tree-node-undo changeset))))
-	 (ntime
-	  (let ((elt (car (last changeset))))
-	    (and (consp elt) (eq (car elt) t) (consp (cdr elt))
-		 (cdr elt)))))
-    (and ntime
-	 (or (null mtime)
-	     ;; high-precision timestamps
-	     (if (listp (cdr ntime))
-		 (equal ntime mtime)
-	       ;; old-style timestamps
-	       (and (= (car ntime) (car mtime))
-		    (= (cdr ntime) (cadr mtime))))))))
+  (let ((changeset nil))
+    (setq changeset
+          (or (undo-tree-node-redo node)
+              (and (setq changeset (car (undo-tree-node-next node)))
+                   (undo-tree-node-undo changeset))))
+    (let ((ntime
+           (let ((elt (car (last changeset))))
+             (and (consp elt) (eq (car elt) t) (consp (cdr elt))
+                  (cdr elt)))))
+      (and ntime
+           (or (null mtime)
+               ;; high-precision timestamps
+               (if (listp (cdr ntime))
+                   (equal ntime mtime)
+                 ;; old-style timestamps
+                 (and (= (car ntime) (car mtime))
+                      (= (cdr ntime) (cadr mtime)))))))))
 
 
 
