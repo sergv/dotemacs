@@ -11,7 +11,9 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+  (defvar vim:last-undo))
 
 (require 'vim-macs)
 (require 'vim-core)
@@ -40,6 +42,7 @@
   :keymaps '(vim:insert-mode-keymap)
   :command-function 'vim:insert-mode-command
   :cursor 'bar)
+
 (add-hook 'vim:insert-mode-on-hook 'vim:insert-mode-activated)
 (add-hook 'vim:insert-mode-off-hook 'vim:insert-mode-deactivated)
 
