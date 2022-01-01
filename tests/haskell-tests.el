@@ -424,6 +424,13 @@
     "x = x +  _|_y"
     "x = x +@ _|_y"))
 
+(ert-deftest haskell-tests/haskell-smart-operators--inserting-@-avoid-spaces-5 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?@)
+    ;; If @ was appended to an operator then do insert a space after it!
+    "x = x +  _|_  y"
+    "x = x +@_|_  y"))
+
 (ert-deftest haskell-tests/haskell-smart-operators--inserting-within-backtics-avoids-spaces-1 ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
