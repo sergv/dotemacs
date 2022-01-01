@@ -10,11 +10,18 @@
   (require 'cl)
   (require 'cl-lib))
 
+(require 'comp)
+
 (defconst +ignored-files-re+
   (rx bol
       (or "third-party/yafolding.el/features/support/env.el"
           (seq (* any) "tests" (* any))
-          (seq "third-party/lsp-mode/test/" (* any))
+          (seq "third-party/"
+               (or "lsp-mode"
+                   "pkg-info")
+               "/test/"
+               (* any))
+
           (seq "src/"
                (or "dump.el"
                    "huffman.el"
@@ -122,9 +129,11 @@
                               (byte-native-compiling t)
                               (byte-native-qualities nil)
                               ;; Batch compilation has memory leak thanks to libgccjit.
-                              (comp-running-batch-compilation nil))
+                              (comp-running-batch-compilation nil)
+                              (native-comp-compiler-options '("-O2"))
+                              (native-comp-driver-options '("-march=native")))
                           (native-compile file
-                                          (concat file "n")))
+                                          (comp-el-to-eln-filename file)))
                       (error
                        (message "[recompile.el] %s failed to native-compile %s: %s" k file (cdr err)))))
 
