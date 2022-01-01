@@ -15,11 +15,22 @@
 (defconst +ignored-files-re+
   (rx bol
       (or "third-party/yafolding.el/features/support/env.el"
-          (seq (* any) "tests" (* any))
+          "third-party/yafolding.el/features/step-definitions/yafolding-steps.el"
+          "third-party/dtrt-indent/dtrt-indent-test.el"
+          "third-party/hydra/hydra-test.el"
+          "third-party/ivy/ivy-test.el"
+          "third-party/rainbow-delimiters/rainbow-delimiters-test.el"
+          "third-party/paredit/test.el"
+          (seq (* any) "/tests/" (* any))
           (seq "third-party/"
-               (or "lsp-mode"
-                   "pkg-info")
-               "/test/"
+               (or "epl"
+                   "flx"
+                   "lsp-mode"
+                   "lsp-ui"
+                   "pkg-info"
+                   "treepy.el")
+               (or "/test/"
+                   "/tests/")
                (* any))
 
           (seq "src/"
