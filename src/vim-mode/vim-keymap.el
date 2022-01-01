@@ -9,7 +9,8 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl-lib))
+  (require 'cl-lib)
+  (require 'macro-util))
 
 (defmacro vim:kbdmacro-to-command (events)
   "Creates a command passing prefix-argument to given keyboard-macro `events'."
@@ -22,7 +23,7 @@
                    ,events)
           ,events)))))
 
-(defun* vim:map (keys command &key (keymap nil))
+(cl-defun vim:map (keys command &key (keymap nil))
   "Maps the sequence of events `keys' to a `command' in a certain
 keymap. `keymap' may be the keymap itself or a symbol denoting
 the variable where the keymap is stored. If the variable contains

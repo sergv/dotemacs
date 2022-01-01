@@ -7,9 +7,11 @@
 ;; Description:
 ;; Common information as to how classify buffers based on ther name, major mode etc
 
+(eval-when-compile
+  (require 'cl-lib))
 
 (defvar +buffer-groups+
-  (symbol-macrolet
+  (cl-symbol-macrolet
       ((haskell-filter `(or (mode . haskell-mode)
                             (mode . literate-haskell-mode)
                             (mode . haskell-c-mode)

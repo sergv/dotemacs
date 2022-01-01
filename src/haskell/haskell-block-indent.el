@@ -6,6 +6,10 @@
 ;; Created: 30 March 2018
 ;; Description:
 
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'macro-util))
+
 (require 'common)
 (require 'haskell-regexen)
 
@@ -14,10 +18,10 @@
   (interactive "*p")
   (setf count (or count 1))
   (let ((col (current-column))
-        (line (count-lines-dumb (point-min) (point))))
+        (line (count-lines-fixed (point-min) (point))))
     (if (= 0 col)
         (backward-delete-char count)
-      (destructuring-bind (function-applied? . at-indentation?)
+      (cl-destructuring-bind (function-applied? . at-indentation?)
           (let ((inhibit-modification-hooks t))
             (haskell--apply-to-block
              (lambda (start)
@@ -38,8 +42,8 @@
   (interactive "*p")
   (setf count (or count 1))
   (let ((col (current-column))
-        (line (count-lines-dumb (point-min) (point))))
-    (destructuring-bind
+        (line (count-lines-fixed (point-min) (point))))
+    (cl-destructuring-bind
         (function-applied? . at-indentation?)
         (let ((inhibit-modification-hooks t))
           (haskell--apply-to-block

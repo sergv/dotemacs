@@ -6,6 +6,9 @@
 ;; Created:  1 January 2017
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'common)
 
 (defun java-print-info-template ()

@@ -6,6 +6,9 @@
 ;; Created: Tuesday, 13 May 2014
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'common)
 (require 'haskell-misc)
 (require 'haskell-outline)

@@ -93,7 +93,8 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl-lib))
+  (require 'cl-lib)
+  (require 'macro-util))
 
 (require 'macro-util)
 
@@ -428,8 +429,8 @@ and switches to insert-mode."
     (goto-char last-pos)
     (exchange-point-and-mark)))
 
-(defstruct (vim:paste-info
-            (:constructor vim:make-paste-info))
+(cl-defstruct (vim:paste-info
+               (:constructor vim:make-paste-info))
   point   ;; point where command took place
   begin   ;; beginning of inserted region
   end     ;; end of inserted region

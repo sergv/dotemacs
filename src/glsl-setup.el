@@ -6,6 +6,9 @@
 ;; Created: Sunday, 14 October 2012
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'cc-setup)
 
 ;;;###autoload

@@ -43,7 +43,8 @@
       (emacs-root
        (progn
          (cl-assert (file-directory-p emacs-root))
-         (dolist (dir '("/src"))
+         (dolist (dir '("/src"
+                        "/src/custom"))
            (let ((src-dir (concat emacs-root dir)))
              (cl-assert (file-directory-p src-dir))
              (add-to-list 'load-path src-dir)))))

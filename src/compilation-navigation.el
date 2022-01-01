@@ -6,6 +6,9 @@
 ;; Created: 25 November 2019
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'common)
 (require 'compile)
 
@@ -87,7 +90,7 @@ will searched for."
                 (string-suffix-p filename (buffer-file-name buf)))
               (visible-buffers))
       it
-    (catch 'done
+    (cl-block done
       (dolist (resolved-filename
                ;; If filename did not resolve in immediate root then try all the parents,
                ;; perhaps compilation was actually executed/reported its errors from the
@@ -96,10 +99,10 @@ will searched for."
                       (file-name-all-parents root)))
         (when (and resolved-filename
                    (file-exists-p resolved-filename))
-          (throw 'done
-                 (aif (get-file-buffer resolved-filename)
-                     it
-                   (find-file-noselect resolved-filename))))))))
+          (cl-return-from done
+            (aif (get-file-buffer resolved-filename)
+                it
+              (find-file-noselect resolved-filename))))))))
 
 (defun compilation/jump-to-error (err &optional other-window)
   "Jump to source of compilation error. ERR should be structure describing

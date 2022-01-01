@@ -6,6 +6,9 @@
 ;; Created: Tuesday, 11 September 2012
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 ;;;###autoload
 (setf calendar-date-style 'iso)
 
