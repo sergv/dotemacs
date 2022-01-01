@@ -80,6 +80,18 @@ binaries."
       (t
        final-name))))
 
+(defmacro when-emacs-version (version-expr &rest body)
+  (declare (indent 1))
+  (let ((version
+         (save-match-data
+           (if (string-match "^\\([0-9]+\\)\\(?:\\.[0-9]+\\)*$"
+                             emacs-version)
+               (string-to-number (match-string 1 emacs-version))
+             (error "Cannot extract Emacs version from %s"
+                    emacsa-version)))))
+    (when (eval `(let ((it ,version)) ,version-expr))
+      `(progn ,@body))))
+
 (provide 'set-up-platform)
 
 ;; Local Variables:
