@@ -1,5 +1,7 @@
 #!/bin/bash
 
+dir="$(dirname "$0")"
+
 if [[ ! -z "${EMACS_ROOT+x}" ]]; then
     dump_file="$EMACS_ROOT/emacs.dmp"
 else
@@ -8,7 +10,7 @@ fi
 
 if [[ ! -f "$dump_file" || ! -z "${EMACS_FORCE_PRISTINE+x}" ]]; then
     echo "Starting pristine Emacs"
-    emacs-pristine "${@}"
+    "$dir/emacs-pristine" "${@}"
 else
-    emacs-pristine --dump-file "$dump_file" "${@}"
+    "$dir/emacs-pristine" --dump-file "$dump_file" "${@}"
 fi
