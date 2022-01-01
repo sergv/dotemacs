@@ -15,7 +15,9 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl-lib))
+  (require 'cl-lib)
+
+  (defvar vim:last-undo))
 
 (require 'common)
 (require 'vim-macs)
@@ -249,24 +251,26 @@
     (setq vim:current-cmd-arg (read-char-exclusive)))
 
   (if (vim:cmd-motion-p command)
-      (let ((vim:last-undo buffer-undo-list)
-            (repeatable? (vim:cmd-repeatable-p command))
-            parameters)
-        (push (vim:visual-current-motion) parameters)
-        (push :motion parameters)
-        (when (vim:cmd-register-p command)
-          (push vim:current-register parameters)
-          (push :register parameters))
-        (when (vim:cmd-char-arg-p command)
-          (push vim:current-cmd-arg parameters)
-          (push :argument parameters))
-        (vim:apply-save-buffer (vim:cmd-function command) parameters)
-        (when repeatable?
-          (setf vim:repeat-events (vconcat vim:current-key-sequence)))
-        (vim:connect-undos vim:last-undo)
-        (vim:reset-key-state)
-        (vim:clear-key-sequence)
-        (vim:adjust-point))
+      (progn
+        (vim-prepare-buffer-undo-list!)
+        (let ((vim:last-undo buffer-undo-list)
+              (repeatable? (vim:cmd-repeatable-p command))
+              parameters)
+          (push (vim:visual-current-motion) parameters)
+          (push :motion parameters)
+          (when (vim:cmd-register-p command)
+            (push vim:current-register parameters)
+            (push :register parameters))
+          (when (vim:cmd-char-arg-p command)
+            (push vim:current-cmd-arg parameters)
+            (push :argument parameters))
+          (vim:apply-save-buffer (vim:cmd-function command) parameters)
+          (when repeatable?
+            (setf vim:repeat-events (vconcat vim:current-key-sequence)))
+          (vim:connect-undos vim:last-undo)
+          (vim:reset-key-state)
+          (vim:clear-key-sequence)
+          (vim:adjust-point)))
     (vim:normal-execute-simple-command command))
   ;; deactivate visual mode unless the command should keep it
   (when (and vim:visual-mode
@@ -513,9 +517,9 @@ This function is also responsible for setting the X-selection."
   (move-to-column (vim:visual-insert-info-column insert-info) t)
   (pcase vim:visual-mode-type
     (`block
-        ;; TODO: ensure the right command is run on repetition.
-        ;; this is really a dirty hack
-        (setq vim:current-key-sequence "i")
+      ;; TODO: ensure the right command is run on repetition.
+      ;; this is really a dirty hack
+      (setq vim:current-key-sequence "i")
       (vim:cmd-insert :count 1)
       (add-hook 'vim:normal-mode-on-hook 'vim:insert-block-copies nil t))
     (`linewise
