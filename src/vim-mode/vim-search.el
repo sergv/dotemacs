@@ -199,7 +199,7 @@ name `name' to `new-regex'."
       (vim:hl-idle-update))))
 
 
-(defun* vim:hl-update-highlights ()
+(cl-defun vim:hl-update-highlights ()
   "Updates the overlays of all active highlights."
   (dolist (hl (-map #'cdr vim:active-highlights-alist))
     (let ((old-ovs (vim:hl-overlays hl))
@@ -290,7 +290,7 @@ name `name' to `new-regex'."
     (vim:hl-update-highlights))
   (setq vim:hl-update-timer nil))
 
-(defun vim:hl-update-highlights-scroll (win begin)
+(defun vim:hl-update-highlights-scroll (_win _begin)
   "Update highlights after scrolling in some window."
   (with-current-buffer (window-buffer)
     (vim:hl-idle-update)))
@@ -302,7 +302,7 @@ name `name' to `new-regex'."
       (with-current-buffer buf
         (vim:hl-idle-update)))))
 
-(defun* vim:search-find-next-pattern (pattern is-forward?)
+(cl-defun vim:search-find-next-pattern (pattern is-forward?)
   "Looks for the next occurrence of pattern in a certain direction."
   (let ((case-fold-search (eq (vim:pattern-case-fold pattern) 'insensitive)))
     (if is-forward?
@@ -434,7 +434,7 @@ Allowed flags are:
 (defun vim:do-substitute (motion
                           pattern
                           replacement
-                          flags
+                          _flags
                           confirm)
   "Do the actual substitution in current buffer. Search for regexp
 pattern and replace matches with REPLACEMENT.
