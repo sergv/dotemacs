@@ -6,6 +6,8 @@
 ;; Created: Saturday, 12 October 2013
 ;; Description:
 
+(declare-function electric-verilog-tab "verilog-mode")
+
 (require 'common)
 
 (setf verilog-indent-level             4
