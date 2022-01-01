@@ -7,6 +7,7 @@
 ;; Description:
 
 (eval-when-compile
+  (require 'cl-lib)
   (require 'common))
 
 (defvar-local mode-line--buffer-line-count nil)
@@ -23,8 +24,7 @@
         (mode-line-show-line-count-uncached)))
 
 (defun mode-line-show-line-count-uncached ()
-  (int-to-string
-   (count-lines (point-min) (point-max))))
+  (int-to-string (line-number-at-pos (point-max) t)))
 
 (add-hook 'find-file-hook 'mode-line--count-lines)
 (add-hook 'after-save-hook 'mode-line--count-lines)
@@ -36,10 +36,9 @@
   (when (region-active-p)
     (with-region-bounds start end
       (format " [%s]"
-              (count-lines start end)))))
+              (count-lines-fixed start end)))))
 
-
-(defun* use-repl-modeline (&key (show-directory nil))
+(cl-defun use-repl-modeline (&key (show-directory nil))
   "Set up `mode-line' for use in vairous repl."
   (setf mode-line-format
         `(" %[%b%] "

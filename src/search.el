@@ -21,7 +21,8 @@
 ;; enable to move between matches
 
 (eval-when-compile
-  (require 'cl-lib))
+  (require 'cl-lib)
+  (require 'macro-util))
 
 (require 'persistent-sessions-global-vars)
 (require 'solarized)
@@ -210,11 +211,11 @@ Highlighting starts at the beginning of buffer")
                           nil
                           '*search-minibuffer-history*)))
 
-(defun* search--setup-search-for (regex
-                                  is-forward?
-                                  &key
-                                  (save-position t)
-                                  (case-sensetive t))
+(cl-defun search--setup-search-for (regex
+                                    is-forward?
+                                    &key
+                                    (save-position t)
+                                    (case-sensetive t))
   "Set up internal search variables for use of `search--next-impl',
 `search--prev-impl' etc for REGEX."
   (setf search--current-regexp regex
@@ -339,7 +340,7 @@ Highlighting starts at the beginning of buffer")
 (defun search--lookup-prev ()
   (search-search-in-direction search--direction-forward? t))
 
-(defun* search-search-in-direction (forward? reversed)
+(cl-defun search-search-in-direction (forward? reversed)
   (if forward?
       (if reversed
           (search--prev-impl)

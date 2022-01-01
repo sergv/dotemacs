@@ -10,7 +10,8 @@
 
 (eval-when-compile
   (require 'cl-lib)
-  (require 'subr-x))
+  (require 'subr-x)
+  (require 'macro-util))
 
 (require 'macro-util)
 (require 'advices-util)
@@ -34,7 +35,7 @@
   "Haskell indentation amount used by functions written as part
 of my home config.")
 
-(defun* haskell-setup-indentation (&key offset simpler-indentation-by-default)
+(cl-defun haskell-setup-indentation (&key offset simpler-indentation-by-default)
   "Set up bindings and indentation parameters using OFFSET as a
 single indentation unit."
   (if simpler-indentation-by-default
@@ -659,7 +660,7 @@ both unicode and ascii characters.")
         (self-insert-command prefix)
       (haskell-smart-operators-self-insert prefix))))
 
-(defun* install-haskell-smart-operators! (keymap &key bind-colon bind-hyphen)
+(cl-defun install-haskell-smart-operators! (keymap &key bind-colon bind-hyphen)
   (declare (indent 1))
   (haskell-smart-operators-mode +1)
   (when bind-colon

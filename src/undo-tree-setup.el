@@ -6,6 +6,9 @@
 ;; Created: Saturday,  6 April 2013
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'common)
 (require 'undo-tree)
 
@@ -43,7 +46,6 @@
        ("q"         undo-tree-visualizer-quit)
        ("<escape>"  undo-tree-visualizer-quit)
        ("<return>"  undo-tree-visualizer-quit))))
-
 
 (provide 'undo-tree-setup)
 

@@ -6,6 +6,9 @@
 ;; Created: Friday, 20 April 2012
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 ;;;###autoload
 (autoload 'yaml-mode "yaml-mode.el" "Simple mode to edit YAML." t)
 

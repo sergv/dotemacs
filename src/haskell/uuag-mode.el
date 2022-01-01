@@ -6,6 +6,9 @@
 ;; Created: 17 March 2018
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'haskell-mode)
 
 (require 'common)

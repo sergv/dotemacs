@@ -28,7 +28,7 @@
 (defsetf prev-bufs--buffers (x) (value)
   `(setf (cdr ,x) ,value))
 
-(defun prev-bufs--filter-live-and-dedup! (current-buf x)
+(defun prev-bufs--filter-live-and-dedup! (x)
   (let* ((result (cons nil (prev-bufs--buffers x)))
          (prev result)
          (tmp (cdr prev))
@@ -72,7 +72,7 @@
         (progn
           (when (or (prev-bufs--has-changes? entry)
                     (not (buffer-live-p next-buf)))
-            (setf entry (prev-bufs--filter-live-and-dedup! current-buf entry))
+            (setf entry (prev-bufs--filter-live-and-dedup! entry))
             (set-window-parameter win 'prev-buffers entry))
 
           (if-let ((next-buf (car (prev-bufs--buffers entry))))

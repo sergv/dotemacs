@@ -9,7 +9,9 @@
 ;; Utility mode that provides convenient interface for selecting among
 ;; multiple candidates
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'macro-util))
 
 ;; Config variables
 
@@ -35,7 +37,7 @@ or just to bury selection buffer, leaving it's windows inplace (nil).)"
 (defvar select-mode-bold-separator (select-make-bold-separator "--------\n"))
 
 
-(defstruct select-mode--state
+(cl-defstruct select-mode--state
   (init-buffer           nil                    :read-only t) ;; Buffer that was active when selection was initiated.
   (init-window           nil                    :read-only t) ;; Window that was active when selection was initiated.
   (init-window-config    nil                    :read-only t) ;; Window configuration before selection buffer was shown.
@@ -106,19 +108,18 @@ or just to bury selection buffer, leaving it's windows inplace (nil).)"
 ;; API for user
 
 ;;;###autoload
-(defun* select-mode-start-selection
-    (items
-     &key
-     (buffer-name "Selection")
-     after-init
-     (on-selection #'ignore)
-     item-show-function
-     (preamble "")
-     (epilogue "")
-     (separator select-mode-bold-separator)
-     (working-directory nil)
-     (read-only t)
-     (enable-undo nil))
+(cl-defun select-mode-start-selection (items
+                                       &key
+                                       (buffer-name "Selection")
+                                       after-init
+                                       (on-selection #'ignore)
+                                       item-show-function
+                                       (preamble "")
+                                       (epilogue "")
+                                       (separator select-mode-bold-separator)
+                                       (working-directory nil)
+                                       (read-only t)
+                                       (enable-undo nil))
   "Initiate select session.
 
 ON-SELECTION - function of 2 arguments, index of selected item inside ITEMS collection
@@ -196,7 +197,7 @@ case `default-directory' will be used.
   (cl-assert (and (<= 0 idx)
                   (< idx (select-mode--state-items-count state))))
   (setf (select-mode--state-selected-item state) idx)
-  (destructuring-bind (start . end)
+  (cl-destructuring-bind (start . end)
       (aref (select-mode--state-item-positions state) idx)
     (when move-point
       (goto-char start))
@@ -213,7 +214,7 @@ take 2 arguments: item which was provided to
 it via `select-mode--state-item-show-function' (possibly modified
 by the user)."
   (let ((items
-         (loop
+         (cl-loop
            for item being the elements of (select-mode--state-items select-mode--current-state)
            for positions being the elements of (select-mode--state-item-positions select-mode--current-state)
            collect
@@ -230,7 +231,7 @@ by the user)."
   (insert (select-mode--state-preamble state))
   (let ((sep (or (select-mode--state-separator state)
                  "")))
-    (loop
+    (cl-loop
       for item across (select-mode--state-items state)
       for i from 0
       do

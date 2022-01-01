@@ -6,6 +6,10 @@
 ;; Created: Thursday, 12 July 2012
 ;; Description:
 
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'macro-util))
+
 (require 'abbrev+)
 (require 'common)
 (require 'haskell-completions)
@@ -45,7 +49,7 @@
       (haskell-navigate-imports-go)
       (insert "import qualified Debug.Trace\n\n"))))
 
-(defun haskell-insert-general-info-template (arg monadic? trace-func-name)
+(defun haskell-insert-general-info-template (_arg monadic? trace-func-name)
   (let* ((start-position (point))
          (insert-dollar?
           (not (haskell-insert-followed-by-dollar? start-position)))
@@ -85,10 +89,10 @@
          (insert-continuation
           (lambda (should-merge-messages?)
             (if should-merge-messages?
-                (delete-backward-char 1)
+                (delete-char -1)
               (insert " ++ \""))))
          (insert-message
-          (lambda (is-initial-insertion? user-input)
+          (lambda (_is-initial-insertion? user-input)
             (insert (format "%s\"" (funcall quote-input user-input)))))
          (insert-variable
           (lambda (is-initial-insertion? user-input)
@@ -120,10 +124,9 @@
   (interactive "P")
   (haskell-insert-general-info-template arg t nil))
 
-(defun* haskell-insert-pp-dict-info-template--helper
-    (&key function-name
-          make-print-entry
-          realign)
+(cl-defun haskell-insert-pp-dict-info-template--helper (&key function-name
+                                                             make-print-entry
+                                                             realign)
   (let ((start-column (indentation-size))
         (user-input nil)
         (make-str
@@ -232,14 +235,13 @@ then Bar would be the result."
 (defun haskell-insert-language-pragmas ()
   (let ((start (point))
         (ext nil))
-    (unwind-protect
-        (while (and
-                (setf ext (ivy-yas-completing-prompt "Extension: " (get-haskell-language-extensions)))
+    (while (and (setf ext
+                      (ivy-yas-completing-prompt "Extension: "
+                                                 (get-haskell-language-extensions)))
                 (not (string= "" ext)))
-          (setf something-inserted? t)
-          (insert "{-# LANGUAGE " ext " #-}")
-          (haskell-align-language-pragmas start)
-          (insert "\n")))))
+      (insert "{-# LANGUAGE " ext " #-}")
+      (haskell-align-language-pragmas start)
+      (insert "\n"))))
 
 (defun-once haskell-abbrev+-make-abbrevs
   (let* ((import-expand-pred (lambda () (let ((c (char-before (point))))
@@ -402,7 +404,7 @@ then Bar would be the result."
               :action-data #'haskell-insert-monadic-info-template
               :predicate #'point-not-inside-string-or-comment?))
             (v--map
-             (destructuring-bind (suffix module-name type-name alias full-match?) it
+             (cl-destructuring-bind (suffix module-name type-name alias full-match?) it
                (make-abbrev+-abbreviation
                 :trigger (concat (if full-match? "import" (abbrev+--make-re-with-optional-suffix "import" 2)) suffix)
                 :action-type 'literal-string

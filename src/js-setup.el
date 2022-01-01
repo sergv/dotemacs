@@ -6,6 +6,9 @@
 ;; Created: Saturday, 25 April 2015
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'indentation)
 
 ;;;###autoload

@@ -6,6 +6,9 @@
 ;; Created: Wednesday, 14 January 2015
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'common)
 (require 'keys-def)
 

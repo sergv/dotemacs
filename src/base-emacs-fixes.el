@@ -7,7 +7,9 @@
 ;; Description:
 ;; Fixes for errors in standard emacs files
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'el-patch))
 
 (require 'el-patch)
 

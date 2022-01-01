@@ -9,7 +9,10 @@
 ;; eshell customization
 
 (eval-when-compile
-  (require 'set-up-platform))
+  (require 'cl-lib)
+  (require 'el-patch)
+  (require 'set-up-platform)
+  (require 'macro-util))
 
 (require 'em-prompt)
 (require 'em-term)
@@ -87,14 +90,14 @@
 (push "iotop" eshell-visual-commands)
 ;; (add-to-list 'eshell-visual-commands "tail")
 
-(macrolet ((define-programs (programs regexp)
-             `(list ,@(loop
-                        for p in programs
-                        appending (list `(cons ,p ,regexp)
-                                        `(cons ,(concat (char->string
-                                                         eshell-explicit-command-char)
-                                                        p)
-                                               ,regexp))))))
+(cl-macrolet ((define-programs (programs regexp)
+                `(list ,@(loop
+                           for p in programs
+                           appending (list `(cons ,p ,regexp)
+                                           `(cons ,(concat (char->string
+                                                            eshell-explicit-command-char)
+                                                           p)
+                                                  ,regexp))))))
   (setf eshell-command-completions-alist
         (append (define-programs
                   ("acroread" "pdf")

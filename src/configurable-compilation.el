@@ -6,6 +6,9 @@
 ;; Created: 27 December 2019
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (declare-function flycheck-rust-find-manifest "flycheck-rust")
 
 (defvar-local configurable-compilation-command-presets nil

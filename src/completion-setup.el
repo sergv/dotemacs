@@ -6,7 +6,9 @@
 ;; Created: long ago (since august inception)
 ;; Description:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'macro-util))
 
 (require 'common)
 
@@ -61,9 +63,15 @@
 
 ;; pcomplete
 
+(cond
+  ((eval-when-compile
+     (base-emacs-fixes--is-version 25 26 27))
+   (setf pcomplete-ignore-case t))
+  (t
+   (setf completion-ignore-case t)))
+
 (setf pcomplete-dir-ignore (rx bol (or "." "..") "/")
       ;; directory-files-no-dot-files-regexp
-      pcomplete-ignore-case t
       pcomplete-autolist nil
       pcomplete-recexact nil
       pcomplete-cycle-completions t

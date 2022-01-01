@@ -6,6 +6,9 @@
 ;; Created: 21 June 2018
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'indentation)
 
 (require 'nix-company)
