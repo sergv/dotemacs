@@ -194,6 +194,7 @@ BODY if it returns nil."
          (make-hash-table :test #'equal))
        (defvar ,cache-var (,make-cache-func))
        (defun ,reset-cache-func ()
+         ,(format "Reset cache used by ‘%s’" func)
          (clrhash ,cache-var))
        ,@(when func-with-explicit-cache
            `((defun ,func-with-explicit-cache ,(cons cache-arg args)
@@ -207,11 +208,15 @@ BODY if it returns nil."
                        ,value-var)
                    ,query-var)))))
        (defun ,func ,args
+         ,@(when (stringp (car body))
+             (list (car body)))
          (let* ((,cache-arg-var ,mk-cache-key)
                 (,query-var
                  (gethash ,cache-arg-var ,cache-var ',uninitialized)))
            (if (eq ,query-var ',uninitialized)
-               (let ((,value-var (progn ,@body)))
+               (let ((,value-var (progn ,@(if (stringp (car body))
+                                              (cdr body)
+                                            body))))
                  (puthash ,cache-arg-var ,value-var ,cache-var)
                  ,value-var)
              ,query-var))))))
