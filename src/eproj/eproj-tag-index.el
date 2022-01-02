@@ -43,7 +43,7 @@
      (cons file
            (packing-pack-pair line (or type -1))))))
 
-(defsubst eproj-tag-p (tag-struct)
+(defun eproj-tag-p (tag-struct)
   (and (consp tag-struct)
        (stringp (car tag-struct))
        (or (and (consp (cdr tag-struct))
@@ -78,7 +78,7 @@
   (eproj-tag/get-prop 'column tag-struct))
 
 ;; Return associative array of tag properties.
-(defsubst eproj-tag/properties (tag-struct)
+(defun eproj-tag/properties (tag-struct)
   (declare (pure t) (side-effect-free t))
   (let ((rest (cdr tag-struct)))
     (if (consp rest)
@@ -101,7 +101,7 @@
        (eq 'eproj-tag-index (car index))
        (hash-table-p (cdr index))))
 
-(defun eproj-tag-index-size (index)
+(defsubst eproj-tag-index-size (index)
   (hash-table-count (cdr index)))
 
 (defun eproj-tag-index-add! (symbol file line type props index)
@@ -113,7 +113,7 @@
                    (gethash symbol table))
              table)))
 
-(defun eproj-tag-index-get (key index &optional default)
+(defsubst eproj-tag-index-get (key index &optional default)
   (cl-assert (stringp key))
   (gethash key (cdr index) default))
 
@@ -123,10 +123,10 @@
   (let ((case-fold-search ignore-case))
     (hash-table-entries-matching-re (cdr index) re)))
 
-(defun eproj-tag-index-keys (index)
+(defsubst eproj-tag-index-keys (index)
   (hash-table-keys (cdr index)))
 
-(defun eproj-tag-index-entries (index)
+(defsubst eproj-tag-index-entries (index)
   (hash-table->alist (cdr index)))
 
 (defun eproj-tag-index-drop-tags-from-file! (fname proj-root index)
@@ -169,7 +169,7 @@ equal keys using `append'."
    (cdr index-a)
    (cdr index-b)))
 
-(defun eproj-tag-index-all-completions (s index)
+(defsubst eproj-tag-index-all-completions (s index)
   (all-completions s (cdr index)))
 
 (provide 'eproj-tag-index)
