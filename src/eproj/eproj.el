@@ -191,7 +191,7 @@
     #'eproj/get-fast-tags-tags-from-buffer
     :show-tag-kind-procedure #'eproj/haskell-tag-kind
     :tag->string-func #'eproj/haskell-tag->string
-    :synonym-modes '(literate-haskell-mode
+    :synonym-modes '(haskell-literate-mode
                      haskell-c-mode
                      haskell-hsc-mode
                      haskell-c2hs-mode
