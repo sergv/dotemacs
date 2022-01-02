@@ -427,8 +427,9 @@ get proper flycheck checker."
                  (eproj-project/root proj)
                  mode))
         (unless (eproj-project/cached-files-for-navigation proj)
-          (setf (eproj-project/cached-files-for-navigation proj)
-                (make-hash-table :test #'equal)))
+          ;; Force refresh of all navigation files so that later
+          ;; they’ll all be available for the user.
+          (eproj-get-all-project-files-for-navigation))
         (eproj--add-cached-file-for-navigation
          (eproj-project/root proj)
          fname
