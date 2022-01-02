@@ -120,7 +120,7 @@ NB does not expect to cache values of ARGS that are nil."
     `(progn
        (defvar ,cache-var ,empty-table-expr)
        (defun ,reset-cache-func ()
-         (setf ,cache-var ,empty-table-expr))
+         (clrhash ,cache-var))
        (defun ,func ,args
          (let ((,query-var
                 ,(first
@@ -183,19 +183,18 @@ BODY if it returns nil."
   (cl-assert (or (symbol? func-with-explicit-cache) (null func-with-explicit-cache)))
   (cl-assert (symbol? make-cache-func))
   (cl-assert (symbol? reset-cache-func))
-  (let ((cache-var (cl-gentemp "defun-caching--cache"))
+  (let ((cache-var (cl-gentemp (concat (symbol->string func) "--internal--cache")))
         (cache-arg '#:cache)
         (query-var '#:query)
         (value-var '#:value)
         (cache-arg-var '#:cache-key)
-        (uninitialized '#:uninitialized)
-        (empty-table-expr '(make-hash-table :test #'equal)))
+        (uninitialized '#:uninitialized))
     `(progn
-       (defsubst ,make-cache-func ()
-         ,empty-table-expr)
+       (defun ,make-cache-func ()
+         (make-hash-table :test #'equal))
        (defvar ,cache-var (,make-cache-func))
-       (defsubst ,reset-cache-func ()
-         (setf ,cache-var (,make-cache-func)))
+       (defun ,reset-cache-func ()
+         (clrhash ,cache-var))
        ,@(when func-with-explicit-cache
            `((defun ,func-with-explicit-cache ,(cons cache-arg args)
                ,(format "Similar to ‘%s’ but takes cache variable explicitly." func)
