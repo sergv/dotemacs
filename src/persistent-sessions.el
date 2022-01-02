@@ -646,7 +646,7 @@ entries."
   "Truncate overly long sequences."
   (let ((max-size 2000))
     (cond
-      ((ring? val)
+      ((ring-p val)
        (if (< max-size (ring-size val))
            (foldr (lambda (r item)
                     (ring-insert r item)
@@ -654,10 +654,17 @@ entries."
                   (make-ring max-size)
                   (seq-subseq (ring-elements val) 0 (min max-size (ring-length val))))
          val))
-      ((and (or (list? val)
-                (vector? val))
+      ((and (or (listp val)
+                (vectorp val))
             (< max-size (length val)))
        (seq-subseq val 0 (min max-size (length val))))
+      ((hash-table-p val)
+       (let ((result (copy-hash-tabel val)))
+         (clrhash result)
+         (maphash (lambda (k v)
+                    (puthash k (sessions/truncate-long-sequences v) result))
+                  val)
+         result))
       (t
        val))))
 
