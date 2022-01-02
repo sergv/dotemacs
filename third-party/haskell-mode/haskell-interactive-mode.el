@@ -264,8 +264,8 @@ do the
           (lines (split-string expr "\n")))
       (cl-loop for elt on (cdr lines) do
                (setcar elt (replace-regexp-in-string pre "" (car elt))))
-      ;; Temporarily set prompt2 to be empty to avoid unwanted output
-      (concat ":set prompt2 \"\"\n"
+      ;; Temporarily set prompt-cont to be empty to avoid unwanted output
+      (concat ":set prompt-cont \"\"\n"
               ":{\n"
               (mapconcat #'identity lines "\n")
               "\n:}\n"
@@ -574,11 +574,11 @@ Cabal file is selected using SESSION's name, module matching is done in MSG."
     (haskell-mode-toggle-interactive-prompt-state)
     (unwind-protect
         (when (y-or-n-p
-               (format "Add `%s' to %s?"
+               (format "Add `%s' to %s? "
                        package-name
                        cabal-file))
           (haskell-cabal-add-dependency package-name version nil t)
-          (when (y-or-n-p (format "Enable -package %s in the GHCi session?" package-name))
+          (when (y-or-n-p (format "Enable -package %s in the GHCi session? " package-name))
             (haskell-process-queue-without-filters
              (haskell-session-process session)
              (format ":set -package %s" package-name))))
@@ -650,7 +650,7 @@ wrapped in compiler directive at the top of FILE."
   (haskell-interactive-mode-prompt))
 
 (defun haskell-interactive-popup-error (response)
-  "Popup an error."
+  "Pop up an error."
   (if haskell-interactive-popup-errors
       (let ((buf (get-buffer-create "*HS-Error*")))
         (pop-to-buffer buf nil t)
@@ -664,12 +664,13 @@ wrapped in compiler directive at the top of FILE."
                                 'haskell-interactive-face-compile-error))
             (goto-char (point-min))
             (delete-blank-lines)
-            (insert (propertize "-- Hit `q' to close this window.\n\n"
-                                'font-lock-face 'font-lock-comment-face))
-            (save-excursion
-              (goto-char (point-max))
-              (insert (propertize "\n-- To disable popups, customize `haskell-interactive-popup-errors'.\n\n"
-                                  'font-lock-face 'font-lock-comment-face))))))
+            (let ((start-comment (propertize "-- " 'font-lock-face 'font-lock-comment-delimiter-face)))
+              (insert start-comment (propertize "Hit `q' to close this window.\n\n" 'font-lock-face 'font-lock-comment-face))
+              (save-excursion
+                (goto-char (point-max))
+                (insert "\n" start-comment
+                        (propertize "To disable popups, customize `haskell-interactive-popup-errors'.\n\n"
+                                    'font-lock-face 'font-lock-comment-face)))))))
     (haskell-interactive-mode-insert-error response)))
 
 (defun haskell-interactive-next-error-function (&optional n reset)
@@ -783,7 +784,7 @@ Will automatically import it qualified as Present."
                           (mapconcat 'identity (mapcar 'number-to-string id) ",")
                           hash)))
            (reply
-            (if (string-match "^*** " text)
+            (if (string-prefix-p "*** " text)
                 '((rep nil))
               (read text))))
       ;; Not necessary, but nice to restore it to the expression that
