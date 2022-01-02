@@ -307,16 +307,16 @@ _a_lign  _t_: jump to topmost node start
     (modify-syntax-entry ?\@ "'")
 
     (setq-local eproj-symbnav/identifier-type 'haskell-symbol
+
+                indent-line-function #'ignore
                 indent-region-function #'ignore
                 yas-indent-line 'fixed
+                abbrev+-fallback-function #'haskell-abbrev+-fallback-space
 
                 ;; Improve vim treatment of words for Haskell.
                 ;; Note: underscore should not be included since it would prevent
                 ;; navigating inside of some Haskell identifiers, e.g. foo_bar.
                 vim:word "[:word:]'"
-
-                indent-line-function #'ignore
-                abbrev+-fallback-function #'haskell-abbrev+-fallback-space
 
                 compilation-read-command nil
                 compilation-auto-jump-to-first-error nil
@@ -338,7 +338,6 @@ _a_lign  _t_: jump to topmost node start
          (("C-l" "<f6>") vim:haskell-dante-load-file-into-repl)
          ("-"            hydra-haskell-dante/body)))
       (lsp-mode
-
        (dolist (cmd '("conf-repl" "configure-repl"))
          (vim:local-emap cmd #'vim:haskell-dante-configure))
 
