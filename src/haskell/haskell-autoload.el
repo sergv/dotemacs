@@ -46,6 +46,10 @@
 (defconst +haskell-extensions+
   '("hs" "hsig" "lhs" "hsc" "chs" "hs-boot" "lhs-boot" "alex" "x" "lx" "happy" "y" "ly" "ag" "lag"))
 
+(defconst +haskell-syntax-modes+
+  '(haskell-mode haskell-literate-mode haskell-c-mode haskell-c2hs-mode alex-mode happy-mode uuag-mode)
+  "List of modes that use haskell syntax.")
+
 (mmm-add-classes
  '((literate-haskell-latex
     :submode haskell-mode
@@ -68,7 +72,7 @@
 (add-to-list 'auto-mode-alist '("\\.cabal\\(?:[./\\]config.*\\)?\\'" . haskell-cabal-mode))
 (add-to-list 'auto-mode-alist '("\\.hs\\(?:-boot\\|ig\\|c\\)?\\'" . haskell-mode))
 
-(add-to-list 'auto-mode-alist '("\\.lhs\\(?:-boot\\)?\\'" . literate-haskell-mode))
+(add-to-list 'auto-mode-alist '("\\.lhs\\(?:-boot\\)?\\'" . haskell-literate-mode))
 
 ;; (add-to-list 'auto-mode-alist '("\\.lhs\\(?:-boot\\)?\\'" . latex-mode))
 
@@ -90,7 +94,7 @@
 (add-hook 'haskell-compilation-mode-hook #'haskell-compilation-setup)
 (add-hook 'haskell-mode-hook #'haskell-setup)
 (add-hook 'dante-repl-mode-hook #'dante-repl-mode-setup)
-(add-hook 'literate-haskell-mode-hook #'haskell-setup)
+(add-hook 'haskell-literate-mode-hook #'haskell-setup)
 
 (add-hook 'haskell-c2hs-mode #'haskell-c2hs-setup)
 (add-hook 'haskell-hsc-mode #'haskell-hsc-setup)
