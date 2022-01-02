@@ -9,6 +9,8 @@
 (eval-when-compile
   (require 'macro-util))
 
+(require 'persistent-sessions-global-vars)
+
 (declare-function flycheck-rust-find-manifest "flycheck-rust")
 
 (defvar-local configurable-compilation-command-presets nil
@@ -18,6 +20,8 @@ execute.")
 
 (defvar configurable-compilation-last-command (make-hash-table :test #'eq)
   "Mapping between major modes and last chosen compilation command.")
+
+(sessions-mark-global-var-for-save 'configurable-compilation-last-command)
 
 (defvar-local configurable-compilation-mode nil
   "Symbol - mode to enable in the compilation buffer.")
