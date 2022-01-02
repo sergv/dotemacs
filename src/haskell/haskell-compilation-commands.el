@@ -39,6 +39,7 @@
   (haskell-compilation--make-cabal-build-command-presets (fold-platform-os-type "/tmp/dist" nil)))
 
 (defvar haskell-compile--build-presets-history nil)
+
 (sessions-mark-global-var-for-save 'haskell-compile--build-presets-history)
 
 (defun haskell-compilation-commands-install! (proj)
