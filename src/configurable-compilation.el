@@ -9,6 +9,7 @@
 (eval-when-compile
   (require 'macro-util))
 
+(require 'eproj)
 (require 'persistent-sessions-global-vars)
 
 (declare-function flycheck-rust-find-manifest "flycheck-rust")
@@ -35,6 +36,15 @@ execute.")
 (defvar-local compilation-command nil
   "Either literal string or symbol naming a variable that contains command to use.")
 
+(defvar configurable-compilation--synonym-modes
+  (let ((tbl (copy-hash-table eproj/synonym-modes-table)))
+    (puthash 'haskell-cabal-mode 'haskell-mode tbl)
+    tbl))
+
+(defun configurable-compilation--resolve-synonym-modes (mode)
+  "Resolve similar modes into the same mode so that cached compilation command will be the
+same for a set of buffers rather than being different."
+  (gethash mode configurable-compilation--synonym-modes mode))
 
 (defun configurable-compilation--get-presets ()
   (aif (or (and (stringp compilation-command)
@@ -56,13 +66,15 @@ execute.")
   (cl-assert (symbolp history-var))
   (cl-assert (symbolp compilation-mode))
   (setq-local configurable-compilation-command-presets presets)
-  (unless (gethash major-mode configurable-compilation-last-command)
-    (puthash major-mode
-             (let ((presets (configurable-compilation--get-presets)))
-               (or (cdr-safe (assq 'build presets))
-                   (cdar-safe presets)
-                   (error "Failed to get default build preset from %s" configurable-compilation-command-presets)))
-             configurable-compilation-last-command))
+  (let ((effective-major-mode
+         (configurable-compilation--resolve-synonym-modes major-mode)))
+    (unless (gethash effective-major-mode configurable-compilation-last-command)
+      (puthash effective-major-mode
+               (let ((presets (configurable-compilation--get-presets)))
+                 (or (cdr-safe (assq 'build presets))
+                     (cdar-safe presets)
+                     (error "Failed to get default build preset from %s" configurable-compilation-command-presets)))
+               configurable-compilation-last-command)))
   (setq-local configurable-compilation-history-var history-var
               configurable-compilation-mode compilation-mode
               configurable-compilation-make-buffer-name make-buffer-name))
@@ -86,6 +98,8 @@ execute.")
                        (when-let ((epr (eproj-get-project-for-buf-lax (current-buffer))))
                          (eproj-project/root epr))
                        default-directory))
+         (effective-major-mode
+          (configurable-compilation--resolve-synonym-modes major-mode))
          (raw-command
           (if edit-command
               (let* ((preset
@@ -100,9 +114,9 @@ execute.")
                       (cdr
                        (assq preset (configurable-compilation--get-presets)))))
                 ;; Remember command so it will be called again in the future.
-                (puthash major-mode command configurable-compilation-last-command)
+                (puthash effective-major-mode command configurable-compilation-last-command)
                 command)
-            (gethash major-mode configurable-compilation-last-command)))
+            (gethash effective-major-mode configurable-compilation-last-command)))
          (command (if proj-dir
                       (format raw-command (expand-file-name proj-dir))
                     raw-command)))
