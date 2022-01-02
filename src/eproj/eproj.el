@@ -347,6 +347,11 @@ get proper flycheck checker."
   ;; This field is initialised lazily when file list is first
   ;; constructed or user does a search.
   (cached-files-for-navigation nil)
+  ;; Similar to ‘cached-files-for-navigation’ field but get’s populated
+  ;; with project’s files that are saved. This way new files may end
+  ;; up here whereas ‘cached-files-for-navigation’ could contain
+  ;; stale snapshot of navigation files taken previously.
+  (transient-files-for-navigation nil)
 
   ;; Regexp that matches any files that should be ignored
   (cached-ignored-files-re nil :read-only t))
@@ -426,14 +431,13 @@ get proper flycheck checker."
           (error "Project %s does not manage %s files"
                  (eproj-project/root proj)
                  mode))
-        (unless (eproj-project/cached-files-for-navigation proj)
-          ;; Force refresh of all navigation files so that later
-          ;; they’ll all be available for the user.
-          (eproj-get-all-project-files-for-navigation))
+        (unless (eproj-project/transient-files-for-navigation proj)
+          (setf (eproj-project/transient-files-for-navigation proj)
+                (make-hash-table :test #'equal)))
         (eproj--add-cached-file-for-navigation
          (eproj-project/root proj)
          fname
-         (eproj-project/cached-files-for-navigation proj))
+         (eproj-project/transient-files-for-navigation proj))
         (let ((tags-thunk (eproj-project/tags proj)))
           (cl-assert (not (null tags-thunk)) nil
                      "Got nil tags thunk for project %s"
@@ -675,6 +679,7 @@ for project at ROOT directory."
                                            (eproj--resolve-to-abs-path-cached it root))
                                :extra-navigation-globs extra-navigation-globs
                                :cached-files-for-navigation nil
+                               :transient-files-for-navigation nil
                                :cached-ignored-files-re cached-ignored-files-re)))
       (eproj--prepare-to-load-fresh-tags-lazily-on-demand! proj)
       proj)))
@@ -882,16 +887,20 @@ project for PATH."
                 files)
     files))
 
-(defun eproj-get-all-project-files-for-navigation (proj)
-  "Obtain all files related to project PROJ that user might want to quickly
-jump to."
+(defun eproj-with-all-project-files-for-navigation (proj func)
+  "Preapre all files related to project PROJ that user might want to quickly
+jump to. Call FUNC with be called with 2 arguments: absolute path and path relative to the
+current project’s root."
   (aif (eproj-project/cached-files-for-navigation proj)
-      it
+      (maphash func it)
     (progn
       (notify "Constructing file navigation list for %s"
               (eproj-project/root proj))
       (eproj--get-all-files proj)
-      (eproj-project/cached-files-for-navigation proj))))
+      (maphash func
+               (eproj-project/cached-files-for-navigation proj))))
+  (awhen (eproj-project/transient-files-for-navigation proj)
+    (maphash func it)))
 
 (defun eproj--navigation-globs (proj)
   "Get globs for files to consider during quick navigation."
@@ -1236,9 +1245,7 @@ Returns list of (tag-name tag project) lists."
       (let ((eproj-file (concat root "/.eproj-info")))
         (funcall add-file eproj-file ".epoj-info"))
       (dolist (related-proj all-related-projects)
-        (maphash (lambda (key value)
-                   (funcall add-file key value))
-                 (eproj-get-all-project-files-for-navigation related-proj))
+        (eproj-with-all-project-files-for-navigation related-proj add-file)
         (let ((eproj-file (concat (eproj-project/root related-proj) "/.eproj-info")))
           (funcall add-file eproj-file eproj-file)))
       (dolist (mode (eproj-project/languages proj))
