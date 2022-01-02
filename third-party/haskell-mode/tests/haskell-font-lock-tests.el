@@ -553,7 +553,7 @@
      ("Comment2" t haskell-literate-comment-face)
      ("code3" t haskell-definition-face)
      ("Comment3" t haskell-literate-comment-face))
-   'literate-haskell-mode))
+   'haskell-literate-mode))
 
 (ert-deftest haskell-literate-bird-2 ()
   ;; Haskell Report requires empty line before bird code block. So it
@@ -575,7 +575,7 @@
      ("Comment2" t haskell-literate-comment-face)
      ("code3" t haskell-definition-face)
      ("Comment3" t haskell-literate-comment-face))
-   'literate-haskell-mode))
+   'haskell-literate-mode))
 
 (ert-deftest haskell-literate-latex-1 ()
   (check-properties
@@ -597,7 +597,7 @@
      ("Comment2" t haskell-literate-comment-face)
      ("code3" t haskell-definition-face)
      ("Comment3" t haskell-literate-comment-face))
-   'literate-haskell-mode))
+   'haskell-literate-mode))
 
 (ert-deftest haskell-literate-mixed-1 ()
   ;; Although Haskell Report does not advice mixing modes, it is a
@@ -620,7 +620,7 @@
      ("Comment2" t haskell-literate-comment-face)
      ("code3" t haskell-definition-face)
      ("Comment3" t haskell-literate-comment-face))
-   'literate-haskell-mode))
+   'haskell-literate-mode))
 
 (ert-deftest haskell-type-instance ()
   "Fontify \"instance\" after \"type\""
@@ -986,6 +986,14 @@
    '(("Opt_WarnPartialTypeSignatures" t haskell-constructor-face)
      ("Cons2" t haskell-constructor-face)
      ("Cons3" t haskell-constructor-face))))
+
+(ert-deftest haskell-type-colors-33 ()
+  (check-properties
+   "import X qualified as Y"
+   '(("X" t haskell-constructor-face)
+     ("qualified" t haskell-keyword-face)
+     ("as" t haskell-keyword-face)
+     ("Y" t haskell-constructor-face))))
 
 (ert-deftest haskell-pattern-1 ()
   "Fontify the \"pattern\" keyword in contexts related to pattern synonyms."
