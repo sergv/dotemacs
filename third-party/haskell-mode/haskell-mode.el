@@ -180,7 +180,7 @@ With prefix argument HERE, insert it at point."
   "If not nil, the current buffer contains a literate Haskell script.
 Possible values are: `bird' and `tex', for Bird-style and LaTeX-style
 literate scripts respectively.  Set by `haskell-mode' and
-`literate-haskell-mode'.  For an ambiguous literate buffer -- i.e. does
+`haskell-literate-mode'.  For an ambiguous literate buffer -- i.e. does
 not contain either \"\\begin{code}\" or \"\\end{code}\" on a line on
 its own, nor does it contain \">\" at the start of a line -- the value
 of `haskell-literate-default' is used.")
@@ -742,7 +742,7 @@ Prefix ARG is handled as per `delete-indentation'."
 
 \\<haskell-mode-map>
 
-Literate Haskell scripts are supported via `literate-haskell-mode'.
+Literate Haskell scripts are supported via `haskell-literate-mode'.
 The variable `haskell-literate' indicates the style of the script in the
 current buffer.  See the documentation on this variable for more details.
 
@@ -972,7 +972,7 @@ list marker of some kind), and end of the obstacle."
 
 
 ;;;###autoload
-(define-derived-mode literate-haskell-mode haskell-mode "LitHaskell"
+(define-derived-mode haskell-literate-mode haskell-mode "LitHaskell"
   "As `haskell-mode' but for literate scripts."
   (setq haskell-literate
         (save-excursion
@@ -987,6 +987,9 @@ list marker of some kind), and end of the obstacle."
       ;; of each line as a comment-starter.
       (setq-local fill-paragraph-handle-comment nil))
   (setq-local mode-line-process '("/" (:eval (symbol-name haskell-literate)))))
+
+;;;###autoload
+(define-obsolete-function-alias 'literate-haskell-mode 'haskell-literate-mode "2020-04")
 
 ;;;###autoload
 (add-to-list 'interpreter-mode-alist '("runghc" . haskell-mode))
@@ -1034,12 +1037,12 @@ See `haskell-check-command' for the default."
 
 (defun haskell-flymake-init ()
   "Flymake init function for Haskell."
-  (let ((checker-elts (and haskell-saved-check-command
-                           (split-string haskell-saved-check-command))))
-    (list (car checker-elts)
-          (append (cdr checker-elts)
-                  (list (haskell-flymake-create-temp-buffer-copy
-                         'flymake-create-temp-inplace))))))
+  (when haskell-saved-check-command
+    (let ((checker-elts (split-string haskell-saved-check-command)))
+      (list (car checker-elts)
+            (append (cdr checker-elts)
+                    (list (haskell-flymake-create-temp-buffer-copy
+                           'flymake-create-temp-inplace)))))))
 
 (add-to-list 'flymake-allowed-file-name-masks '("\\.l?hs\\'" haskell-flymake-init))
 
@@ -1182,8 +1185,8 @@ generated."
          (command (haskell-cabal--compose-hasktags-command dir)))
     (if (not command)
         (error "Unable to compose hasktags command")
-      (shell-command command)
-      (haskell-mode-message-line "Tags generated.")
+      (when (zerop (shell-command command))
+        (haskell-mode-message-line "Tags generated."))
       (when and-then-find-this-tag
         (let ((tags-file-name dir))
           (xref-find-definitions and-then-find-this-tag))))))
