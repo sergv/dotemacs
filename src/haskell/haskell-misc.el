@@ -81,11 +81,6 @@ single indentation unit."
   "Return a string for single indentation amount for Haskell."
   (make-string vim:shift-width ?\s))
 
-;;;###autoload
-(defconst +haskell-syntax-modes+
-  '(haskell-mode literate-haskell-mode haskell-c-mode haskell-c2hs-mode alex-mode happy-mode uuag-mode)
-  "List of modes that use haskell syntax.")
-
 (defun cleanup-stg ()
   "Remove useless srt:SRT annotations of lambdas, keep only relevant arguments
 and indent them as singe line."

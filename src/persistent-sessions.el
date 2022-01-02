@@ -16,6 +16,7 @@
 (require 'frameset)
 
 (require 'common)
+(require 'haskell-autoload)
 (require 'persistent-sessions-error-reporting)
 (require 'persistent-sessions-global-vars)
 (require 'persistent-sessions-serializers)
