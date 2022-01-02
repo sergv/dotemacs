@@ -1249,8 +1249,7 @@ Returns list of (tag-name tag project) lists."
         (let ((eproj-file (concat (eproj-project/root related-proj) "/.eproj-info")))
           (funcall add-file eproj-file eproj-file)))
       (dolist (mode (eproj-project/languages proj))
-        (let ((lang (gethash (eproj/resolve-synonym-modes mode)
-                             eproj/languages-table)))
+        (let ((lang (gethash mode eproj/languages-table)))
           (unless lang
             (error "Project %s specifies unrecognised language: %s" root mode))
           (awhen (eproj-language/get-extra-navigation-files-procedure lang)
