@@ -8,7 +8,9 @@
 
 (eval-when-compile
   (require 'cl-lib)
-  (require 'macro-util))
+  (require 'macro-util)
+
+  (defvar yas-expand-fallback))
 
 (defvar dumping nil)
 
