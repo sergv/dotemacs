@@ -294,14 +294,13 @@
     table)
   "Used by eproj-symbnav facility.")
 
+;;;###autoload
 (defun eproj/resolve-synonym-modes (mode)
   "Replace modes that are similar to some other known modes.
 
-g. resolves synonyms so that literate haskell mode & others will
+e.g. resolves synonyms so that literate haskell mode & others will
 get proper flycheck checker."
-  (aif (gethash mode eproj/synonym-modes-table)
-      it
-    mode))
+  (gethash mode eproj/synonym-modes-table mode))
 
 ;;; eproj-project
 
