@@ -231,7 +231,7 @@ foo {
 
 
 (sp-with-modes '(haskell-mode
-                 literate-haskell-mode
+                 haskell-literate-mode
                  haskell-c-mode
                  haskell-cabal-mode
                  dante-repl-mode)

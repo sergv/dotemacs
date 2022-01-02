@@ -66,7 +66,7 @@
    (haskell-c-mode           (one-line "--") (line-regexp "--+") (comment-chars ?-))
    (haskell-c2hs-mode        (one-line "--") (line-regexp "--+") (comment-chars ?-))
    (haskell-hsc-mode         (one-line "--") (line-regexp "--+") (comment-chars ?-))
-   (literate-haskell-mode    (one-line "--") (line-regexp "--+") (comment-chars ?-))
+   (haskell-literate-mode    (one-line "--") (line-regexp "--+") (comment-chars ?-))
    (ghc-core-mode            (one-line "--") (line-regexp "--+") (comment-chars ?-))
    (haskell-cabal-mode       (one-line "--") (line-regexp "--+") (comment-chars ?-))
    (alex-mode                (one-line "--") (line-regexp "--+") (comment-chars ?-))
