@@ -1298,32 +1298,23 @@ further than END-POS."
 
 (defun trim-whitespace (str)
   "Trim leading and tailing whitespace from STR."
-  (when str
-    (save-match-data
-      (let ((s (if (symbolp str) (symbol-name str) str)))
-        (replace-regexp-in-string "\\(?:\\`[ \t\v\f\r\n]*\\|[ \t\v\f\r\n]*\\'\\)" "" s)))))
+  (cl-assert (stringp str))
+  (replace-regexp-in-string "\\(?:\\`[ \t\v\f\r\n]*\\|[ \t\v\f\r\n]*\\'\\)" "" str))
 
 (defun remove-whitespace (str)
   "Remove all occurences of various whitespace characters from string."
-  (save-match-data
-    (let ((s (if (symbolp str)
-                 (symbol-name str)
-               str)))
-      (replace-regexp-in-string "[ \t\v\f\r\n]+" "" s))))
+  (cl-assert (stringp str))
+  (replace-regexp-in-string "[ \t\v\f\r\n]+" "" str))
 
 (defun trim-whitespace-left (str)
   "Trim leading whitespace from STR."
-  (when str
-    (save-match-data
-      (let ((s (if (symbolp str) (symbol-name str) str)))
-        (replace-regexp-in-string "\\`[ \t\v\f\r\n]*" "" s)))))
+  (cl-assert (stringp str))
+  (replace-regexp-in-string "\\`[ \t\v\f\r\n]*" "" str))
 
 (defun trim-whitespace-right (str)
   "Trim trailing whitespace from STR."
-  (when str
-    (save-match-data
-      (let ((s (if (symbolp str) (symbol-name str) str)))
-        (replace-regexp-in-string "[ \t\v\f\n\r]*\\'" "" s)))))
+  (cl-assert (stringp str))
+  (replace-regexp-in-string "[ \t\v\f\n\r]*\\'" "" str))
 
 
 (defsubst goto-line-dumb (line)
@@ -1481,7 +1472,7 @@ are CHAR1 and CHAR2 repsectively."
     (char-equal c (downcase c))))
 
 (defun notify (&rest args)
-  "Like `message' but is silence in noninteractive mode."
+  "Like `message' but is quiet in noninteractive mode."
   (unless noninteractive
     (apply #'message args)))
 
