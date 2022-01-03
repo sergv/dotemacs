@@ -104,8 +104,14 @@ will be in different GHCi sessions."
   (not (null (cached-executable-find "stack"))))
 
 (defun dante-cabal-new (d)
-  "non-nil iff D contains a nix file and a cabal file."
-  (directory-files d t "cabal.project\\(?:.local\\)?") t)
+  "non-nil iff D contains a cabal project file or a cabal file."
+  (directory-files d
+                   t
+                   (rx (or "cabal.project"
+                           "cabal.project.local"
+                           ".cabal")
+                       eos)
+                   t))
 
 (defun dante-cabal-new-nix (d)
   "non-nil iff D contains a nix file and a cabal file."
