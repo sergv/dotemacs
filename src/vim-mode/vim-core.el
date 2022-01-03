@@ -538,6 +538,12 @@ command-specific transformations."
          #'vim:exit-to-normal-mode
          :keymap vim:override-keymap)
 
+(defun vim:notify (&rest args)
+  "Like `message' but is quiet in noninteractive mode."
+  (unless noninteractive
+    (let (message-log-max)
+      (apply #'message args))))
+
 (provide 'vim-core)
 
 ;; Local Variables:
