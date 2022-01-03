@@ -145,17 +145,17 @@ will be in different GHCi sessions."
             "-fshow-loaded-modules"
             "-fprint-potential-instances"))
          (build (when tmp
-                  (list "--builddir"
-                        (concat tmp
-                                "/dante"
-                                (awhen (eproj-sha1-of-project-root-for-buf (current-buffer))
-                                  (concat "-" it))))))
+                  `("--builddir"
+                    (concat ,tmp
+                            "/dante"
+                            (awhen (eproj-sha1-of-project-root-for-buf (current-buffer))
+                              (concat "-" it))))))
          (repl (when tmp
-                 (list "--builddir"
-                       (concat tmp
-                               "/dante-repl"
-                               (awhen (eproj-sha1-of-project-root-for-buf (current-buffer))
-                                 (concat "-" it))))))
+                 `("--builddir"
+                   (concat ,tmp
+                           "/dante-repl"
+                           (awhen (eproj-sha1-of-project-root-for-buf (current-buffer))
+                             (concat "-" it))))))
          (repl-options (--mapcat (list "--repl-option" it) ghci-options))
          (stack-ghci-options (--mapcat (list "--ghci-options" it) ghci-options))
          (mk-opts
