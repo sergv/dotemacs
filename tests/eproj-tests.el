@@ -93,6 +93,9 @@ under ROOT directory."
 (defconst eproj-tests/implicit-haskel-project-archive
   (expand-file-name (concat eproj-tests/project-dir "/haskell-implicit-project.zip")))
 
+(defconst eproj-tests/implicit-haskel-project2-archive
+  (expand-file-name (concat eproj-tests/project-dir "/haskell-implicit-project-alt-cabal.project.zip")))
+
 (eproj-tests--define-tests
     "eproj-tests/%s/eproj-get-all-related-projects"
   (let* ((path (concat eproj-tests/folder-with-related-projects "/project-main"))
@@ -370,6 +373,51 @@ under ROOT directory."
                  (list (concat tmp-dir "/haskell-implicit-project/dep1")
                        (concat tmp-dir "/haskell-implicit-project/dep2")
                        (concat tmp-dir "/haskell-implicit-project/main"))))
+
+            (let ((run-check
+                   (lambda ()
+                     (let ((proj (eproj-get-project-for-path path)))
+
+                       (should (not (null proj)))
+                       (should (eproj-tests/paths=? path (eproj-project/root proj)))
+
+                       (should (not (null (eproj-project/related-projects proj))))
+                       (should (equal
+                                (eproj-tests/normalize-file-list
+                                 (-map #'eproj-project/root
+                                       (eproj-get-all-related-projects proj)))
+                                related-roots))
+
+                       (dolist (name '("dep1" "dep2" "mainFunc" "subdepFoo"))
+                         (should (eproj-get-matching-tags proj 'haskell-mode name nil)))))))
+
+              (funcall run-check)
+              (eproj-update-projects)
+              (funcall run-check)
+              (eproj-reset-projects)
+              (funcall run-check))))
+      (delete-directory tmp-dir t))))
+
+(eproj-tests--define-tests
+    "eproj-tests/%s/implicit-haskell-project-alt-cabal.project"
+
+  (let ((tmp-dir (make-temp-file "temp" t))
+        (unzip (cached-executable-find "unzip")))
+
+    (unless unzip
+      (ert-skip "unzip not available"))
+
+    (unwind-protect
+        (progn
+          (call-process unzip nil nil nil
+                        eproj-tests/implicit-haskel-project2-archive
+                        "-d" tmp-dir)
+
+          (let ((path (concat tmp-dir "/haskell-implicit-project-alt-cabal.project/main"))
+                (related-roots
+                 (list (concat tmp-dir "/haskell-implicit-project-alt-cabal.project/dep1")
+                       (concat tmp-dir "/haskell-implicit-project-alt-cabal.project/dep2")
+                       (concat tmp-dir "/haskell-implicit-project-alt-cabal.project/main"))))
 
             (let ((run-check
                    (lambda ()
