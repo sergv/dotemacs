@@ -487,19 +487,24 @@ existing file. If PATH is relative then try resolving it against DIR."
 (defun resolve-to-abs-path-lax (path &optional dir on-err)
   "Try to come up with an absolute filename that refers to
 existing file. If PATH is relative then try resolving it against DIR."
-  (let ((on-err (or on-err #'ignore)))
-    (if (or (file-exists-p path)
-            (file-directory-p path))
-        (if (file-name-absolute-p path)
-            path
-          (expand-file-name path))
-      (if (file-name-absolute-p path)
-          (funcall on-err "Non-existing absolute file name: %s, probably something went wrong" path)
-        (let ((abs-path (normalise-file-name (expand-file-name path dir))))
-          (if (or (file-exists-p abs-path)
-                  (file-directory-p abs-path))
-              abs-path
-            (funcall on-err "File/directory does not exist: %s" abs-path)))))))
+  (cond
+    ((or (file-exists-p path)
+         (file-directory-p path))
+     (if (file-name-absolute-p path)
+         path
+       (expand-file-name path dir)))
+    ((file-name-absolute-p path)
+     (funcall (or on-err #'ignore)
+              "Non-existing absolute file name: %s, probably something went wrong"
+              path))
+    (t
+     (let ((abs-path (normalise-file-name (expand-file-name path dir))))
+       (if (or (file-exists-p abs-path)
+               (file-directory-p abs-path))
+           abs-path
+         (funcall (or on-err #'ignore)
+                  "File/directory does not exist: %s"
+                  abs-path))))))
 
 ;;;###autoload
 (defun file-name-all-parents (path)
