@@ -33,52 +33,34 @@
     lisp-mode)
   "List of modes that are considered to be lisp.")
 
-(eval-after-load
-    'lisp-mode
-  '(progn
-     ;; this function contained what I'm considering a bug - and it turned out to
-     ;; be so - it treated single-semicolon comments as special and tried to
-     ;; indent them as comment lines (i.e. to the fill-column) which turned out
-     ;; to lead to infinite loop as delegate functions would end up
-     ;; calling lisp-indent-line again and again
-     ;; So the single-semicolon comments are treated just as double-semicolon ones
-     (defun lisp-indent-line (&optional whole-exp)
-       "Indent current line as Lisp code.
-With argument, indent any additional lines of the same expression
-rigidly along with this one."
-       (interactive "P")
-       (let ((indent (calculate-lisp-indent)) shift-amt end
-             (pos (- (point-max) (point)))
-             (beg (progn (beginning-of-line) (point))))
-         (skip-chars-forward " \t")
-         (if (or (null indent) (looking-at-p "\\s<\\s<\\s<"))
-             ;; Don't alter indentation of a ;;; comment line
-             ;; or a line that starts in a string.
-             (goto-char (- (point-max) pos))
-           ;; Single-semicolon comment lines should *not* be indented
-           ;; as comment lines, but should be indented as code
-           (progn
-             (when (listp indent)
-               (setq indent (car indent)))
-             (setq shift-amt (- indent (current-column)))
-             (unless (zerop shift-amt)
-               (delete-region beg (point))
-               (indent-to indent))
-             ;; If initial point was within line's indentation,
-             ;; position after the indentation.  Else stay at same point in text.
-             (when (> (- (point-max) pos) (point))
-               (goto-char (- (point-max) pos)))
-             ;; If desired, shift remaining lines of expression the same amount.
-             (and whole-exp (not (zerop shift-amt))
-                  (save-excursion
-                    (goto-char beg)
-                    (forward-sexp 1)
-                    (setq end (point))
-                    (goto-char beg)
-                    (forward-line 1)
-                    (setq beg (point))
-                    (> end beg))
-                  (indent-code-rigidly beg end shift-amt))))))))
+;;;###autoload
+(el-patch-feature lisp-mode)
+
+(el-patch-defun lisp-indent-line (&optional indent)
+  "Indent current line as Lisp code."
+  (interactive)
+  (let ((pos (- (point-max) (point)))
+        (indent (progn (beginning-of-line)
+                       (or indent (calculate-lisp-indent (lisp-ppss))))))
+    (skip-chars-forward " \t")
+    (if (or (null indent)
+            ((el-patch-swap looking-at looking-at-p) "\\s<\\s<\\s<"))
+	;; Don't alter indentation of a ;;; comment line
+	;; or a line that starts in a string.
+        ;; FIXME: inconsistency: comment-indent moves ;;; to column 0.
+	(goto-char (- (point-max) pos))
+      (el-patch-splice 3 0
+        (if (and (looking-at "\\s<")
+                 (not (looking-at "\\s<\\s<")))
+	    ;; Single-semicolon comment lines should be indented
+	    ;; as comment lines, not as code.
+	    (progn (indent-for-comment) (forward-char -1))
+	  (if (listp indent) (setq indent (car indent)))
+          (indent-line-to indent)))
+      ;; If initial point was within line's indentation,
+      ;; position after the indentation.  Else stay at same point in text.
+      (if (> (- (point-max) pos) (point))
+	  (goto-char (- (point-max) pos))))))
 
 (defalign lisp-align-on-comments ";+")
 
