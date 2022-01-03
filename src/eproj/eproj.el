@@ -801,20 +801,25 @@ variable or symbol 'unresolved.")
 (defun-caching eproj-get-initial-project-root (path) eproj-get-initial-project-root/reset-cache path
   "Find closest directory parent of PATH that contains .eproj-info file or .git directory."
   (cl-assert (stringp path))
-  (let ((path-dir (if (file-directory-p path)
-                      path
-                    (file-name-directory path))))
-    (awhen (locate-dominating-file path-dir
-                                   (lambda (dir)
-                                     (directory-files dir
-                                                      nil ;; absolute names
-                                                      (rx bos
-                                                          (or ".eproj-info"
-                                                              ".git"
-                                                              "cabal.project")
-                                                          eos)
-                                                      t ;; nosort
-                                                      )))
+  (let* ((is-directory? (file-directory-p path))
+         (path-dir (if is-directory?
+                       path
+                     (file-name-directory path)))
+         (exists? (if is-directory?
+                      t
+                    (file-directory-p path-dir))))
+    (awhen (and exists?
+                (locate-dominating-file path-dir
+                                        (lambda (dir)
+                                          (directory-files dir
+                                                           nil ;; absolute names
+                                                           (rx bos
+                                                               (or ".eproj-info"
+                                                                   ".git"
+                                                                   "cabal.project")
+                                                               eos)
+                                                           t ;; nosort
+                                                           ))))
       (eproj-normalise-file-name-expand-cached it))))
 
 (defvar eproj--inferrable-project-infos
