@@ -153,7 +153,8 @@
       ;; I’ll compile everything I need ahead of time.
       native-comp-deferred-compilation nil)
 
-(add-to-list 'native-comp-deferred-compilation-deny-list ".*")
+(when-emacs-version (<= 28 it)
+  (add-to-list 'native-comp-deferred-compilation-deny-list ".*"))
 
 (remove-hook 'find-file-hook #'vc-refresh-state)
 
