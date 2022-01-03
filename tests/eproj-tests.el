@@ -90,34 +90,48 @@ under ROOT directory."
 (defconst eproj-tests/project-with-ignored-files
   (expand-file-name (concat eproj-tests/project-dir "/haskell-project-with-ignored-files")))
 
+(defconst eproj-tests/implicit-haskel-project-archive
+  (expand-file-name (concat eproj-tests/project-dir "/haskell-implicit-project.zip")))
+
 (eproj-tests--define-tests
     "eproj-tests/%s/eproj-get-all-related-projects"
   (let* ((path (concat eproj-tests/folder-with-related-projects "/project-main"))
-         (proj (eproj-get-project-for-path path)))
 
-    (should (eproj-tests/paths=? path (eproj-project/root proj)))
-    (should (not (null? (eproj-project/related-projects proj))))
+         (expected-related-basenames
+          '("project-main"
+            "subproject1"
+            "subproject2"
+            "subsubproject1"
+            "subsubproject2"))
+         (expected-related-full
+          (eproj-tests/normalize-file-list
+           (-filter #'file-directory?
+                    (directory-files
+                     eproj-tests/folder-with-related-projects
+                     t
+                     directory-files-no-dot-files-regexp)))))
 
-    (let ((related-roots-norm
-           (eproj-tests/normalize-file-list
-            (-map #'eproj-project/root
-                  (cons proj
-                        (eproj-get-all-related-projects proj))))))
-      (should (equal
-               (sort (-map #'file-name-base related-roots-norm) #'string<)
-               '("project-main"
-                 "subproject1"
-                 "subproject2"
-                 "subsubproject1"
-                 "subsubproject2")))
+    (let ((run-check
+           (lambda ()
+             (let ((proj (eproj-get-project-for-path path)))
 
-      (should (equal related-roots-norm
-                     (eproj-tests/normalize-file-list
-                      (-filter #'file-directory?
-                               (directory-files
-                                eproj-tests/folder-with-related-projects
-                                t
-                                directory-files-no-dot-files-regexp))))))))
+               (should (eproj-tests/paths=? path (eproj-project/root proj)))
+               (should (not (null (eproj-project/related-projects proj))))
+
+               (let ((related-roots-norm
+                      (eproj-tests/normalize-file-list
+                       (-map #'eproj-project/root
+                             (eproj-get-all-related-projects proj)))))
+                 (should (equal
+                          (sort (-map #'file-name-base related-roots-norm) #'string<)
+                          expected-related-basenames))
+
+                 (should (equal related-roots-norm expected-related-full)))))))
+      (funcall run-check)
+      (eproj-update-projects)
+      (funcall run-check)
+      (eproj-reset-projects)
+      (funcall run-check))))
 
 (eproj-tests--define-tests
     "eproj-tests/%s/aux-files"
@@ -143,15 +157,15 @@ under ROOT directory."
 
       (should (-all? #'stringp navigation-files))
       (should (-all? #'file-name-absolute-p navigation-files))
-      (dolist (file '("README.md"
-                      "foo.extra"
-                      "bar.extra"
-                      "file1.txt"
-                      "1.quux"
-                      "2.quux"))
-        (should (member file
-                        (-map #'file-name-nondirectory
-                              navigation-files)))))))
+
+      (let ((navigation-files-basenames (-map #'file-name-nondirectory navigation-files)))
+        (dolist (file '("README.md"
+                        "foo.extra"
+                        "bar.extra"
+                        "file1.txt"
+                        "1.quux"
+                        "2.quux"))
+          (should (member file navigation-files-basenames)))))))
 
 (eproj-tests--define-tests
     "eproj-tests/%s/tags-of-c-files"
@@ -195,53 +209,57 @@ under ROOT directory."
 
 (eproj-tests--define-tests
     "eproj-tests/%s/project-with-eproj-file-and-tags-file"
-  (let* ((path eproj-tests/project-with-eproj-file-and-tags-file)
-         (proj (eproj-get-project-for-path path)))
-    (should (not (null? (eproj/find-eproj-file-location path))))
-    (should (not (null? (eproj/find-eproj-file-location (concat path "/Foo")))))
-    (should (not (null? (eproj/find-eproj-file-location (concat path "/Foo/Bar")))))
-    (should (not (null? proj)))
-    (should (eproj-tests/paths=? path (eproj-project/root proj)))
+  (let ((path eproj-tests/project-with-eproj-file-and-tags-file))
+    (eproj-reset-projects)
+    (should (not (null? (eproj-get-initial-project-root path))))
+    (eproj-reset-projects)
+    (should (not (null? (eproj-get-initial-project-root (concat path "/Foo")))))
+    (eproj-reset-projects)
+    (should (not (null? (eproj-get-initial-project-root (concat path "/Foo/Bar")))))
+    (eproj-reset-projects)
+    (let ((proj (eproj-get-project-for-path path)))
+      (should (not (null? proj)))
+      (should (eproj-tests/paths=? path (eproj-project/root proj)))
 
-    (should (equal (eproj-tests/normalize-file-list
-                    (find-rec path
-                              :filep (lambda (path) (string-match-p "\\.hs$" path))))
-                   (eproj-tests/normalize-file-list (eproj-get-project-files proj))))
+      (should (equal (eproj-tests/normalize-file-list
+                      (find-rec path
+                                :filep (lambda (path) (string-match-p "\\.hs$" path))))
+                     (eproj-tests/normalize-file-list (eproj-get-project-files proj))))
 
-    (let ((identity-monad-test-path (concat path "/Foo/Bar/IdentityMonad.hs"))
-          (nonexistent-test-path (concat path "/Foo/Bar/Nonexistent.hs")))
+      (let ((identity-monad-test-path (concat path "/Foo/Bar/IdentityMonad.hs"))
+            (nonexistent-test-path (concat path "/Foo/Bar/Nonexistent.hs")))
 
-      ;; IdentityM is there but not in the tags file. The file should override
-      ;; the reality...
-      (should-not (eproj-get-matching-tags proj
-                                           'haskell-mode
-                                           "IdentityM"
-                                           nil))
+        ;; IdentityM is there but not in the tags file. The file should override
+        ;; the reality...
+        (should-not (eproj-get-matching-tags proj
+                                             'haskell-mode
+                                             "IdentityM"
+                                             nil))
 
-      (should (equal
-               (list (list ">>>="
-                           (make-eproj-tag identity-monad-test-path
-                                           13
-                                           ?o
-                                           nil)))
-               (-map (lambda (x) (list (first x) (second x)))
-                     (eproj-get-matching-tags proj
-                                              'haskell-mode
-                                              ">>>="
-                                              nil))))
+        (should (equal
+                 (list (list ">>>="
+                             (make-eproj-tag identity-monad-test-path
+                                             13
+                                             ?o
+                                             nil)))
+                 (-map (lambda (x) (list (first x) (second x)))
+                       (eproj-get-matching-tags proj
+                                                'haskell-mode
+                                                ">>>="
+                                                nil))))
 
-      ;; This is only present in the tags file
-      (should (equal
-               (list (list "outdated"
-                           (make-eproj-tag nonexistent-test-path
-                                           100000
-                                           ?f
-                                           nil)))
-               (-map (lambda (x) (list (first x) (second x)))
-                     (eproj-get-matching-tags proj
-                                              'haskell-mode
-                                              "outdated"
-                                              nil)))))))
+        ;; This is only present in the tags file
+        (should (equal
+                 (list (list "outdated"
+                             (make-eproj-tag nonexistent-test-path
+                                             100000
+                                             ?f
+                                             nil)))
+                 (-map (lambda (x) (list (first x) (second x)))
+                       (eproj-get-matching-tags proj
+                                                'haskell-mode
+                                                "outdated"
+                                                nil))))))))
 
 (eproj-tests--define-tests
     "eproj-tests/%s/project-with-file-list"
@@ -309,8 +327,7 @@ under ROOT directory."
     (let ((related-roots-norm
            (eproj-tests/normalize-file-list
             (-map #'eproj-project/root
-                  (cons proj
-                        (eproj-get-all-related-projects proj))))))
+                  (eproj-get-all-related-projects proj)))))
       (should (equal
                (sort (-map #'file-name-base related-roots-norm) #'string<)
                '("main-project"
@@ -332,6 +349,51 @@ under ROOT directory."
                      (--map (file-relative-name it path)
                             (eproj-tests/normalize-file-list
                              (eproj-project/aux-files proj))))))))
+
+(eproj-tests--define-tests
+    "eproj-tests/%s/implicit-haskell-project"
+
+  (let ((tmp-dir (make-temp-file "temp" t))
+        (unzip (cached-executable-find "unzip")))
+
+    (unless unzip
+      (ert-skip "unzip not available"))
+
+    (unwind-protect
+        (progn
+          (call-process unzip nil nil nil
+                        eproj-tests/implicit-haskel-project-archive
+                        "-d" tmp-dir)
+
+          (let ((path (concat tmp-dir "/haskell-implicit-project/main"))
+                (related-roots
+                 (list (concat tmp-dir "/haskell-implicit-project/dep1")
+                       (concat tmp-dir "/haskell-implicit-project/dep2")
+                       (concat tmp-dir "/haskell-implicit-project/main"))))
+
+            (let ((run-check
+                   (lambda ()
+                     (let ((proj (eproj-get-project-for-path path)))
+
+                       (should (not (null proj)))
+                       (should (eproj-tests/paths=? path (eproj-project/root proj)))
+
+                       (should (not (null (eproj-project/related-projects proj))))
+                       (should (equal
+                                (eproj-tests/normalize-file-list
+                                 (-map #'eproj-project/root
+                                       (eproj-get-all-related-projects proj)))
+                                related-roots))
+
+                       (dolist (name '("dep1" "dep2" "mainFunc" "subdepFoo"))
+                         (should (eproj-get-matching-tags proj 'haskell-mode name nil)))))))
+
+              (funcall run-check)
+              (eproj-update-projects)
+              (funcall run-check)
+              (eproj-reset-projects)
+              (funcall run-check))))
+      (delete-directory tmp-dir t))))
 
 ;;;; eproj/ctags-get-tags-from-buffer
 

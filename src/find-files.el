@@ -9,9 +9,9 @@
 (eval-when-compile
   (require 'cl-lib)
   (require 'set-up-platform)
-  (require 'macro-util))
+  (require 'macro-util)
 
-(defvar use-foreign-libraries?)
+  (defvar use-foreign-libraries?))
 
 ;;;###autoload
 (cl-defun find-rec-do (path
@@ -80,18 +80,16 @@ Valid values are:
     ((or `find `cygwin-find) "find")
     (`busybox "busybox")))
 
-(defvar find-rec-backend nil
+(defvar find-rec-backend
+  (cond
+    (use-foreign-libraries?
+     'native)
+    (find-files/find-program-type
+     'executable)
+    (t
+     'elisp))
   "Control implementation of `find-rec*'. Valid values: 'native,
   'executable and 'elisp.")
-
-(setf find-rec-backend
-      (cond
-        (use-foreign-libraries?
-         'native)
-        (find-files/find-program-type
-         'executable)
-        (t
-         'elisp)))
 
 ;;;###autoload
 (cl-defun find-rec* (&key
