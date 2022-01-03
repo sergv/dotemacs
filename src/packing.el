@@ -21,37 +21,49 @@
   (require 'cl-lib)
   (require 'macro-util))
 
-(defun packing-pack-pair (a b)
-  (declare (pure t) (side-effect-free t))
-  (let ((a-neg? (< a 0))
-        (b-neg? (< b 0)))
-    ;; Store sign bit separately from number payload. I.e. the number is packed not
-    ;; in 2's complement but as payload+sign bit.
-    (logior (ash (logior (if a-neg?
-                             #x20000000
-                           #x00000000)
-                         (logand #x1fffffff (abs a)))
-                 30)
-            (logior (if b-neg?
-                        #x20000000
-                      #x00000000)
-                    (logand #x1fffffff (abs b))))))
+(if (eval-when-compile
+      (or ;; If we’re not little-endian...
+          (not (equal (byteorder) ?l))
+          ;; ...or not at least 64 bit
+          (<= (log most-positive-fixnum 2) 60)))
 
-(defun packing-unpack-pair-car (x)
-  (declare (pure t) (side-effect-free t))
-  (let ((is-neg? (= #x0800000000000000 (logand #x0800000000000000 x))))
-    (* (logand #x1fffffff (ash x -30))
-       (if is-neg?
-           -1
-         1))))
+    (progn
+      (defalias 'packing-pack-pair #'cons)
+      (defalias 'packing-unpack-pair-car #'car)
+      (defalias 'packing-unpack-pair-cdr #'cdr))
 
-(defun packing-unpack-pair-cdr (x)
-  (declare (pure t) (side-effect-free t))
-  (let ((is-neg? (= #x20000000 (logand #x20000000 x))))
-    (* (logand #x1fffffff x)
-       (if is-neg?
-           -1
-         1))))
+  (progn
+    (defun packing-pack-pair (a b)
+      (declare (pure t) (side-effect-free t))
+      (let ((a-neg? (< a 0))
+            (b-neg? (< b 0)))
+        ;; Store sign bit separately from number payload. I.e. the number is packed not
+        ;; in 2's complement but as payload+sign bit.
+        (logior (ash (logior (if a-neg?
+                                 #x20000000
+                               #x00000000)
+                             (logand #x1fffffff (abs a)))
+                     30)
+                (logior (if b-neg?
+                            #x20000000
+                          #x00000000)
+                        (logand #x1fffffff (abs b))))))
+
+    (defun packing-unpack-pair-car (x)
+      (declare (pure t) (side-effect-free t))
+      (let ((is-neg? (= #x0800000000000000 (logand #x0800000000000000 x))))
+        (* (logand #x1fffffff (ash x -30))
+           (if is-neg?
+               -1
+             1))))
+
+    (defun packing-unpack-pair-cdr (x)
+      (declare (pure t) (side-effect-free t))
+      (let ((is-neg? (= #x20000000 (logand #x20000000 x))))
+        (* (logand #x1fffffff x)
+           (if is-neg?
+               -1
+             1))))))
 
 
 (defun packing-unpack-pair (x)
