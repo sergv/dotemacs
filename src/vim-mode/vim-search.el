@@ -526,8 +526,8 @@ pattern and replace matches with REPLACEMENT.
 
                (goto-char last-point)
                (if (= nreplaced 1)
-                   (message "Replaced 1 occurence")
-                 (message "Replaced %d occurences" nreplaced)))))
+                   (vim:notify "Replaced 1 occurence")
+                 (vim:notify "Replaced %d occurences" nreplaced)))))
 
         ;; clean-up the overlay
         (delete-overlay overlay)))))

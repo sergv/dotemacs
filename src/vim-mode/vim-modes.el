@@ -102,7 +102,7 @@ vim-command should be executed, a `cursor' shape and a list of `keymaps'."
          :lighter nil
          :keymap nil
          (when ,mode-name
-           ,@(when message `((let (message-log-max) (message ,message))))
+           ,@(when message `((vim:notify ,message)))
            (setq vim:active-mode ',mode-name)
            (setq vim:active-command-function
                  ,(if command-function
