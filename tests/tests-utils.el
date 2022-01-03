@@ -21,22 +21,31 @@
 (cl-defmacro tests-utils--with-temp-buffer (&key action contents initialisation buffer-id)
   (declare (indent 1))
   `(save-match-data
-     (let ((buf (cdr-safe (assq ',buffer-id test-utils--temp-buffers))))
-       (unless buf
-         (setf buf
-               (get-buffer-create ,(concat " tests-utils-temp-buffer-" (symbol-name buffer-id)))
-               test-utils--temp-buffers (cons (cons ',buffer-id  buf) test-utils--temp-buffers))
-         (with-current-buffer buf
-           ,initialisation))
-       (with-current-buffer buf
-         (erase-buffer)
-         (insert ,contents)
-         (goto-char (point-min))
-         (if (re-search-forward "_|_" nil t)
-             (replace-match "")
-           (error "No _|_ marker for point position within contents:\n%s" ,contents))
-         (font-lock-fontify-buffer)
-         ,action))))
+     (let ((buf ,@(when buffer-id
+                    (list `(cdr-safe (assq ',buffer-id test-utils--temp-buffers))))))
+       ,@(when buffer-id
+           (list
+            `(unless buf
+               (setf buf
+                     (get-buffer-create ,(concat " tests-utils-temp-buffer-" (symbol-name buffer-id)))
+                     test-utils--temp-buffers (cons (cons ',buffer-id  buf) test-utils--temp-buffers))
+               (with-current-buffer buf
+                 ,initialisation))))
+       (,@(if buffer-id
+              '(with-current-buffer buf)
+            `(with-temp-buffer
+               ,initialisation))
+        ;; This is required for functions like ‘execute-kbd-macro’ that will
+        ;; take action only in the buffer of currently selected window.
+        (set-window-buffer (selected-window) (current-buffer))
+        (erase-buffer)
+        (insert ,contents)
+        (goto-char (point-min))
+        (if (re-search-forward "_|_" nil t)
+            (replace-match "")
+          (error "No _|_ marker for point position within contents:\n%s" ,contents))
+        (font-lock-fontify-buffer)
+        ,action))))
 
 (cl-defmacro tests-utils--test-buffer-contents (&key action contents expected-value initialisation buffer-id)
   (declare (indent 2))
