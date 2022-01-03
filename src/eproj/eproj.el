@@ -33,12 +33,12 @@
 ;;       [(indent-offset <integer>)])])]
 ;;
 ;; [(flycheck-checker
-;;    [(haskell-mode <nil|haskell-stack-ghc|haskell-ghc|haskell-dante|...>)])]
+;;    [(haskell-mode <nil|haskell-stack-ghc|haskell-ghc|haskell-dante|lsp|...>)])]
 ;;
 ;; [(flycheck-disabled-checkers
 ;;    [(haskell-mode
-;;        [<haskell-stack-ghc|haskell-ghc|haskell-dante|...>]
-;;        [<haskell-stack-ghc|haskell-ghc|haskell-dante|...>]
+;;        [<haskell-stack-ghc|haskell-ghc|haskell-dante|lsp|...>]
+;;        [<haskell-stack-ghc|haskell-ghc|haskell-dante|lsp|...>]
 ;;        ...)])]
 ;;
 ;; [...] - optional directive
@@ -402,8 +402,7 @@ get proper flycheck checker."
 (defun eproj-update-projects ()
   "Update projects in database `*eproj-projects*'."
   (interactive)
-  (let ((roots (-map #'eproj-project/root
-                     (hash-table-keys *eproj-projects*))))
+  (let ((roots (hash-table-keys *eproj-projects*)))
     (clrhash *eproj-projects*)
     (dolist (root roots)
       (eproj--make-project-and-register! root))))
@@ -569,12 +568,11 @@ cache tags in."
                  (eproj-project/languages proj)))))
   nil)
 
-(defun eproj--get-eproj-info-from-dir (dir)
+(defun eproj--get-eproj-info-from-dir (root)
   "Get filename of .eproj-info file from directory DIR if it exists, else return nil."
-  (let ((eproj-info-file (concat (eproj-normalise-file-name-expand-cached dir)
-                                 "/.eproj-info")))
-    (when (file-exists-p eproj-info-file)
-      eproj-info-file)))
+  (let ((path (concat root "/.eproj-info")))
+    (when (file-exists-p path)
+      path)))
 
 (defconst eproj--known-eproj-info-entries
   '(languages
@@ -616,11 +614,9 @@ cache tags in."
 (defun eproj--make-project-and-register! (root)
   "Create fresh project for ROOT directory and register it within
 `*eproj-projects*'."
+  (cl-assert (file-directory-p root))
   (puthash root
-           (eproj-make-project root
-                               (eproj-read-eproj-info-file
-                                root
-                                (eproj--get-eproj-info-from-dir root)))
+           (eproj-make-project root (eproj--get-info-from-root root))
            *eproj-projects*))
 
 (defun eproj-make-project (root aux-info)
@@ -802,9 +798,46 @@ for project at ROOT directory."
   "Is set to initial project root (i.e. string) for buffer containing this
 variable or symbol 'unresolved.")
 
-;; Get <initial-project-root> for project governing PATH.
 (defun-caching eproj-get-initial-project-root (path) eproj-get-initial-project-root/reset-cache path
-  (eproj/find-eproj-file-location path))
+  "Find closest directory parent of PATH that contains .eproj-info file or .git directory."
+  (cl-assert (stringp path))
+  (let ((path-dir (if (file-directory-p path)
+                      path
+                    (file-name-directory path))))
+    (awhen (locate-dominating-file path-dir
+                                   (lambda (dir)
+                                     (directory-files dir
+                                                      nil ;; absolute names
+                                                      (rx bos
+                                                          (or ".eproj-info"
+                                                              ".git"
+                                                              "cabal.project")
+                                                          eos)
+                                                      t ;; nosort
+                                                      )))
+      (eproj-normalise-file-name-expand-cached it))))
+
+(defvar eproj--inferrable-project-infos
+  (list #'eproj--infer-haskell-project
+        #'eproj--infer-rust-project))
+
+(defun eproj--infer-rust-project (root)
+  (when (file-exists-p (concat root "/Cargo.toml"))
+    '((languages 'rust-mode))))
+
+(defun eproj--get-info-from-root (root)
+  "Either read existing .eproj-info file ot try to make up its contents if we can."
+  (if-let (eproj-info-file (eproj--get-eproj-info-from-dir root))
+      (eproj-read-eproj-info-file root eproj-info-file)
+    (let ((fs eproj--inferrable-project-infos)
+          (result nil))
+      (while (and (not result)
+                  fs)
+        (setf result (funcall (car fs) root)
+              fs (cdr fs)))
+      (unless result
+        (error "Filed to infer project info for root %s" root))
+      result)))
 
 (defvar-local eproj/buffer-directory nil
   "Caches value computed by `eproj--get-buffer-directory'.
@@ -845,14 +878,13 @@ symbol 'unresolved.")
   "Retrieve project that contains PATH as its part. Similar to
 `eproj-get-project-for-path' but returns nil if there's no
 project for PATH."
-  (if-let (path-proj (gethash path *eproj-projects* nil))
-      path-proj
+  (if-let (proj (gethash path *eproj-projects* nil))
+      proj
     (if-let (proj-root (eproj-get-initial-project-root path))
         (if-let (proj (gethash proj-root *eproj-projects* nil))
             proj
-          (if-let (eproj-info-file (eproj--get-eproj-info-from-dir proj-root))
-              (let ((proj (eproj-make-project proj-root
-                                              (eproj-read-eproj-info-file proj-root eproj-info-file))))
+          (if-let ((info (eproj--get-info-from-root proj-root)))
+              (let ((proj (eproj-make-project proj-root info)))
                 (puthash (eproj-project/root proj)
                          proj
                          *eproj-projects*)
@@ -870,13 +902,13 @@ project for PATH."
   ;; Try looking for project with PATH root, if there's none then construct
   ;; proper initial project root by looking for .eproj-info file and try with
   ;; those.
-  (if-let (path-proj (gethash path *eproj-projects* nil))
-      path-proj
+  (if-let (proj (gethash path *eproj-projects* nil))
+      proj
     (if-let (proj-root (eproj-get-initial-project-root path))
         (if-let (proj (gethash proj-root *eproj-projects* nil))
             proj
           (eproj--make-project-and-register! proj-root))
-      (error "File .eproj-info not found when looking from %s directory"
+      (error "Could not infer eproj project when looking from %s directory (no .eproj-info file, cabal.project file or .git directory found)"
              path))))
 
 (defun eproj--filter-ignored-files-from-file-list (proj files)
@@ -1083,15 +1115,6 @@ Returns nil if no relevant entry found in AUX-INFO."
         (t
          (error "Invalid 'aux-files entry: 'tree clause not found"))))
 
-(defun eproj/find-eproj-file-location (path)
-  "Find closest directory parent of PATH that contains .eproj-info file."
-  (cl-assert (stringp path))
-  (let ((dir (if (file-directory-p path)
-                 path
-               (file-name-directory path))))
-    (awhen (locate-dominating-file dir ".eproj-info")
-      (eproj-normalise-file-name-expand-cached it))))
-
 (defvar eproj/default-projects (make-hash-table :test #'eq)
   "Hash table mapping major mode symbols to lists of project roots, that should
 be regarded as related projects when looking for tags in said major mode from any
@@ -1145,10 +1168,10 @@ projects into the mix."
         `(error "Path is not absolute and no project available to resolve it: %s"
                 ,path))))
 
-;; If PATH is existing absoute file then return it, otherwise try to check
-;; whether it's existing file relative to DIR and return that. Report error if
-;; both conditions don't hold.
 (defun-caching eproj--resolve-to-abs-path-cached (path dir) eproj--resolve-to-abs-path-cached/reset-cache (cons path dir)
+  "If PATH is existing absoute file then return it, otherwise try
+to check whether it’s an existing file relative to DIR and return
+that. Report error if both conditions don’t hold."
   (resolve-to-abs-path path dir))
 
 (defun-caching-extended

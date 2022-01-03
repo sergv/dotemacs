@@ -27,6 +27,7 @@ emacs -Q --batch \
       -L "$EMACS_ROOT/src" \
       -L "$EMACS_ROOT/tests" \
       --eval "(progn (require 'cl))" \
+      --eval "(progn (require 'cl-lib))" \
       -l start \
       $tests \
       -f ert-run-tests-batch-and-exit
