@@ -261,10 +261,14 @@ runtime but rather will be silently relied on)."
   (let ((cabal-proj-file (concat root "/cabal.project")))
     (cond
       ((file-exists-p cabal-proj-file)
-       `((languages haskell-mode)
-         (related ,@(eproj-haskell--get-related-projects-from-cabal-proj root cabal-proj-file))
-         (flycheck-checker
-          (haskell-mode lsp))))
+       (let ((related (eproj-haskell--get-related-projects-from-cabal-proj root cabal-proj-file)))
+         (awhen (--filter (and (file-name-absolute-p it) (not (file-exists-p it))) related)
+           (error "Some related projects inferred from cabal.project do not exist: %s"
+                  (s-join ", " it)))
+         `((languages haskell-mode)
+           (related ,@related)
+           (flycheck-checker
+            (haskell-mode lsp)))))
       ((file-exists-p (concat root "/package.yaml"))
        '((languages haskell-mode)
          (flycheck-checker
