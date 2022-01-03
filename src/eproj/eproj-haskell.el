@@ -261,16 +261,22 @@ runtime but rather will be silently relied on)."
     (cond
       ((file-exists-p cabal-proj-file)
        `((languages haskell-mode)
-         (related ,@(eproj-haskell--get-related-projects-from-cabal-proj root cabal-proj-file))))
+         (related ,@(eproj-haskell--get-related-projects-from-cabal-proj root cabal-proj-file))
+         (flycheck-checker
+          (haskell-mode lsp))))
       ((file-exists-p (concat root "/package.yaml"))
-       '((languages haskell-mode)))
+       '((languages haskell-mode)
+         (flycheck-checker
+          (haskell-mode lsp))))
       ((directory-files root
                         nil
                         (rx (or ".cabal"
                                 (seq "stack" (* any) "." (or "yml" "yaml")))
                             eos)
                         t)
-       '((languages haskell-mode)))
+       '((languages haskell-mode)
+         (flycheck-checker
+          (haskell-mode lsp))))
       (t
        nil))))
 
