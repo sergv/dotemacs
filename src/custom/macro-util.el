@@ -653,6 +653,55 @@ MSG which should have one %s or %f place."
            (message ,msg (float-time (time-subtract ,end ,start)))
            ,res)))))
 
+(defmacro with-region-bounds (start end &rest body)
+  "Call BODY with variables START and END bound to current region bounds. Does include final
+newline in vim’s linewise visual mode."
+  (declare (indent 2))
+  (cl-assert (symbolp start))
+  (cl-assert (symbolp end))
+  `(progn
+     (unless (region-active-p)
+       (error "Region not active"))
+     (let ((,start nil)
+           (,end nil))
+       (if (and (vim:visual-mode-p)
+                (eq vim:visual-mode-type 'linewise))
+           (setf ,start (save-excursion
+                          (goto-char (region-beginning))
+                          (line-beginning-position))
+                 ,end (save-excursion
+                        (goto-char (region-end))
+                        ;; Include newline and the end of line.
+                        (+ 1 (line-end-position))))
+         (setf ,start (region-beginning)
+               ,end (region-end)))
+       (setf end (min end (point-max)))
+       ,@body)))
+
+(defmacro with-region-bounds-unadj (start end &rest body)
+  "Call BODY with variables START and END bound to current region bounds. Does not include
+final newline in vim’s linewise visual mode."
+  (declare (indent 2))
+  (cl-assert (symbolp start))
+  (cl-assert (symbolp end))
+  `(progn
+     (unless (region-active-p)
+       (error "Region not active"))
+     (let ((,start nil)
+           (,end nil))
+       (if (and (vim:visual-mode-p)
+                (eq vim:visual-mode-type 'linewise))
+           (setf ,start (save-excursion
+                          (goto-char (region-beginning))
+                          (line-beginning-position))
+                 ,end (save-excursion
+                        (goto-char (region-end))
+                        (line-end-position)))
+         (setf ,start (region-beginning)
+               ,end (region-end)))
+       (setf ,end (min ,end (point-max)))
+       ,@body)))
+
 ;;; end
 
 (provide 'macro-util)
