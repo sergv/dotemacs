@@ -837,38 +837,6 @@ if there's no region."
        (region-end))
     (error "Region not active")))
 
-(defmacro with-region-bounds (start end &rest body)
-  "Call BODY with variables START and END bound to current region bounds."
-  (declare (indent 2))
-  (cl-assert (symbolp start))
-  (cl-assert (symbolp end))
-  `(progn
-     (unless (region-active-p)
-       (error "Region not active"))
-     (let ((,start nil)
-           (,end nil))
-       (if (and (vim:visual-mode-p)
-                (eq? vim:visual-mode-type 'linewise))
-           (setf ,start (save-excursion
-                          (goto-char (region-beginning))
-                          (line-beginning-position))
-                 ,end (save-excursion
-                        (goto-char (region-end))
-                        (min (point-max)
-                             ;; Include newline and the end of line.
-                             (+ 1 (line-end-position)))))
-         (setf ,start (region-beginning)
-               ,end (region-end)))
-       (setf end (min end (point-max)))
-       ,@body)))
-
-(defun get-region-bounds ()
-  "Return pair of region bounds, (begin . end), depending
-on currently active vim highlight mode."
-  (declare (pure nil) (side-effect-free t))
-  (with-region-bounds start end
-    (cons start end)))
-
 ;;;
 
 (defun find-first-matching (f xs)
