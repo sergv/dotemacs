@@ -199,26 +199,27 @@ runtime but rather will be silently relied on)."
   "Try to read value of field with NAME from current buffer."
   (save-match-data
     (save-excursion
-      (let ((case-fold-search t))
+      (let ((case-fold-search t)
+            (res nil))
         (goto-char (point-min))
-        (when (re-search-forward
-               (concat "^[ \t]*" (regexp-quote name)
-                       (rx-let ((nl (any ?\n ?\r))
-                                (ws (any ?\s ?\t))
-                                (wsnl (any ?\s ?\t ?\n ?\r)))
-                         (rx ":"
-                             (* ws)
-                             (group-n 1
-                                      (* any)
-                                      (* (group-n 2
-                                                  nl
-                                                  (+ wsnl)
-                                                  wsnl
-                                                  (* any)))))))
-               nil t)
-          (let ((val (match-string 1))
+        (while (re-search-forward
+                (concat "^[ \t]*" (regexp-quote name)
+                        (rx-let ((nl (any ?\n ?\r))
+                                 (ws (any ?\s ?\t))
+                                 (wsnl (any ?\s ?\t ?\n ?\r)))
+                          (rx ":"
+                              (* ws)
+                              (group-n 1
+                                       (* any)
+                                       (* (group-n 2
+                                                   nl
+                                                   (+ wsnl)
+                                                   wsnl
+                                                   (* any)))))))
+                nil t)
+          (let ((val (match-string-no-properties 1))
                 (start 1))
-            (when (match-end 2)           ;Multiple lines.
+            (when (match-end 2) ;; Multiple lines.
               ;; The documentation is not very precise about what to do about
               ;; the \n and the indentation: are they part of the value or
               ;; the encoding?  I take the point of view that \n is part of
@@ -229,7 +230,8 @@ runtime but rather will be silently relied on)."
               (while (string-match "^[ \t]\\(?:\\.$\\)?" val start)
                 (setq start (1+ (match-beginning 0)))
                 (setq val (replace-match "" t t val))))
-            val))))))
+            (push val res)))
+        res))))
 
 (defun eproj-haskell--get-related-projects-from-cabal-proj (root cabal-proj-file)
   (cl-assert (file-regular-p cabal-proj-file))
@@ -242,13 +244,12 @@ runtime but rather will be silently relied on)."
       (--remove (or (string= root it)
                     (string= root (eproj-get-initial-project-root it)))
                 (--map (if (file-regular-p it) (file-name-directory it) it)
-                       ; foobar
                        (--map (eproj-normalise-file-name-expand-cached (eproj-haskell--trim-quotes it)
                                                                        root)
                               (--remove (string-prefix-p "--" it)
                                         (-map #'trim-whitespace
-                                              (split-into-lines
-                                               (eproj-haskell--cabal--get-field "packages"))))))))))
+                                              (mapcan #'split-into-lines
+                                                      (eproj-haskell--cabal--get-field "packages"))))))))))
 
 (defun eproj-haskell--trim-quotes (str)
   "Trim leading and tailing \" from STR."
