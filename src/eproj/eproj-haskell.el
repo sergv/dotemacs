@@ -14,6 +14,8 @@
 (require 'eproj-ctags)
 (require 'eproj-tag-index)
 
+(require 'haskell-cabal)
+
 ;;;###autoload
 (defun eproj/create-haskell-tags (proj project-files-thunk parse-tags-proc)
   (with-temp-buffer
@@ -192,6 +194,85 @@ runtime but rather will be silently relied on)."
                           t ;; nosort
                           )))
     cabal-project-files))
+
+(defun eproj-haskell--cabal--get-field (name)
+  "Try to read value of field with NAME from current buffer."
+  (save-match-data
+    (save-excursion
+      (let ((case-fold-search t))
+        (goto-char (point-min))
+        (when (re-search-forward
+               (concat "^[ \t]*" (regexp-quote name)
+                       (rx-let ((nl (any ?\n ?\r))
+                                (ws (any ?\s ?\t))
+                                (wsnl (any ?\s ?\t ?\n ?\r)))
+                         (rx ":"
+                             (* ws)
+                             (group-n 1
+                                      (* any)
+                                      (* (group-n 2
+                                                  nl
+                                                  (+ wsnl)
+                                                  wsnl
+                                                  (* any)))))))
+               nil t)
+          (let ((val (match-string 1))
+                (start 1))
+            (when (match-end 2)           ;Multiple lines.
+              ;; The documentation is not very precise about what to do about
+              ;; the \n and the indentation: are they part of the value or
+              ;; the encoding?  I take the point of view that \n is part of
+              ;; the value (so that values can span multiple lines as well),
+              ;; and that only the first char in the indentation is part of
+              ;; the encoding, the rest is part of the value (otherwise, lines
+              ;; in the value cannot start with spaces or tabs).
+              (while (string-match "^[ \t]\\(?:\\.$\\)?" val start)
+                (setq start (1+ (match-beginning 0)))
+                (setq val (replace-match "" t t val))))
+            val))))))
+
+(defun eproj-haskell--get-related-projects-from-cabal-proj (root cabal-proj-file)
+  (cl-assert (file-regular-p cabal-proj-file))
+  (let* ((dir (file-name-directory cabal-proj-file))
+         (dir-norm (eproj-normalise-file-name-expand-cached dir nil)))
+    (with-temp-buffer
+      (insert-file-contents cabal-proj-file)
+
+      ;; Make sure current directory is removed so that we won’t have infinite loop here.
+      (--remove (or (string= root it)
+                    (string= root (eproj-get-initial-project-root it)))
+                (--map (if (file-regular-p it) (file-name-directory it) it)
+                       ; foobar
+                       (--map (eproj-normalise-file-name-expand-cached (eproj-haskell--trim-quotes it)
+                                                                       root)
+                              (--remove (string-prefix-p "--" it)
+                                        (-map #'trim-whitespace
+                                              (split-into-lines
+                                               (eproj-haskell--cabal--get-field "packages"))))))))))
+
+(defun eproj-haskell--trim-quotes (str)
+  "Trim leading and tailing \" from STR."
+  (cl-assert (stringp str))
+  (delete ?\" str))
+
+;;;###autoload
+(defun eproj--infer-haskell-project (root)
+  (let ((cabal-proj-file (concat root "/cabal.project")))
+    (cond
+      ((file-exists-p cabal-proj-file)
+       `((languages haskell-mode)
+         (related ,@(eproj-haskell--get-related-projects-from-cabal-proj root cabal-proj-file))))
+      ((file-exists-p (concat root "/package.yaml"))
+       '((languages haskell-mode)))
+      ((directory-files root
+                        nil
+                        (rx (or ".cabal"
+                                (seq "stack" (* any) "." (or "yml" "yaml")))
+                            eos)
+                        t)
+       '((languages haskell-mode)))
+      (t
+       nil))))
 
 (provide 'eproj-haskell)
 
