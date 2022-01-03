@@ -225,7 +225,6 @@
 (require 'yasnippet-autoload)
 (require 'git-autoload)
 (require 'ediff-autoload)
-(require 'recentf-setup)
 (require 'misc-autoloads)
 (require 'flycheck-setup)
 (require 'typography-setup)
