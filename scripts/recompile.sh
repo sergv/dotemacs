@@ -196,8 +196,12 @@ fi
 inform "Recompiling"
 emacs-pristine --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" nil nil)"
 
-n="5"
-seq 0 "$n" | xargs --replace=INPUT --max-args=1 -P "$((n + 1))" --verbose emacs-pristine --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" INPUT $((n + 1)))"
+n="1"
+if [[ -e /proc/cpuinfo ]]; then
+    n="$(awk '/processor/' /proc/cpuinfo | wc -l)"
+fi
+
+seq 0 "$((n - 1))" | xargs --replace=INPUT --max-args=1 -P "$n" --verbose emacs-pristine --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" INPUT $n)"
 
 exit 0
 
