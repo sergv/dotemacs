@@ -10,7 +10,7 @@
   (require 'cl)
   (require 'cl-lib))
 
-(require 'comp)
+(require 'comp nil t)
 
 (defconst +ignored-files-re+
   (rx (or "yafolding.el/features/support/env.el"
