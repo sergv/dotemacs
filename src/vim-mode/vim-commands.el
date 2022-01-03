@@ -725,7 +725,7 @@ block motions."
      (funcall func (vim:motion-begin-pos motion) (vim:motion-end-pos motion))
      (goto-char (vim:motion-end-pos motion)))))
 
-(vim:defcmd vim:cmd-repeat (nonrepeatable)
+(vim:defcmd vim:cmd-repeat (count nonrepeatable)
   "Repeats the last command."
   (unless vim:repeat-events
     (error "Nothing to repeat"))
@@ -733,7 +733,7 @@ block motions."
   (let ((repeat-events vim:repeat-events)
         vim:repeat-events
         vim:current-key-sequence)
-    (execute-kbd-macro repeat-events)))
+    (execute-kbd-macro repeat-events count)))
 
 (vim:defcmd vim:cmd-emacs (nonrepeatable)
   "Switches to Emacs for the next command."
