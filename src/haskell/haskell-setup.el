@@ -285,7 +285,7 @@ _a_lign  _t_: jump to topmost node start
              (setq-local company-backends (cons 'dante-company company-backends))
              (dante-mode +1))
            (when (eq backend 'lsp)
-             (with-demoted-errors "Failde to start LSP: %s"
+             (with-demoted-errors "Failed to start LSP: %s"
                (lsp-diagnostics-mode)
                (lsp)))
            (unless (flycheck-may-use-checker backend)
