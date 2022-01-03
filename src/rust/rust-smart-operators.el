@@ -24,7 +24,8 @@
 (defun rust-smart-operators--insert-char-surrounding-with-spaces (char)
   "Insert CHARacter while trying to surround it with spaces and
 stick it to the previous operator on line."
-  (rust-smart-operators--insert-char-optionally-surrounding-with-spaces char t))
+  (let ((sp-report-unmatched-expressions nil))
+    (rust-smart-operators--insert-char-optionally-surrounding-with-spaces char t)))
 
 (defconst rust-smart-operators--chars-to-separate-from-ampersand
   '(?= ?> ?| ?^ ?% ?/ ?- ?+ ?*))
