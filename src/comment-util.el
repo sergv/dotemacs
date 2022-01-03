@@ -180,7 +180,7 @@ Contains single-line and region comments.")
 or down if LINES is negative or comment whole region if region is active."
   (interactive "p")
   (if (region-active-p)
-      (with-region-bounds start end
+      (with-region-bounds-unadj start end
         (comment-util-comment-region start end))
     (comment-util-comment-next-n-lines lines)))
 
@@ -189,7 +189,7 @@ or down if LINES is negative or comment whole region if region is active."
   "Comment region between BEGIN and END position inserting region comments if
 they are defined for current mode or one-line comments otherwise."
   (interactive "*r")
-  (with-region-bounds begin end
+  (with-region-bounds-unadj begin end
     (save-excursion
       (if (comment-util-region-comments-defined?)
           (comment-util-comment-chunk-region begin end)

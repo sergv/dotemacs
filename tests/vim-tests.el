@@ -15,16 +15,24 @@
 (require 'vim-search)
 (require 'ert)
 
-(defmacro vim-tests--test-fresh-buffer-contents (action contents expected-value)
-  (declare (indent 1))
+(defmacro vim-tests--test-fresh-buffer-contents-init (init action contents expected-value)
+  (declare (indent 2))
   `(tests-utils--test-buffer-contents
     :action ,action
     :contents ,contents
     :expected-value ,expected-value
-    :initialisation (text-mode)
+    :initialisation ,init
     ;; Don’t reuse buffer to start out in fresh environment each time and don’t
     ;; share things like last cmd events, etc.
     :buffer-id nil))
+
+(defmacro vim-tests--test-fresh-buffer-contents (action contents expected-value)
+  (declare (indent 1))
+  `(vim-tests--test-fresh-buffer-contents-init
+       (text-mode)
+       ,action
+     ,contents
+     ,expected-value))
 
 (ert-deftest vim-tests/test-vim--parse-substitute-pattern-repl-flags ()
   (should (equal (vim--parse-substitute-pattern-repl-flags "/foo/bar")
@@ -198,6 +206,25 @@
      "_|_123quux"
      "fizz"
      "frobnicate")))
+
+(ert-deftest vim-tests/comment-linewise-region-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (emacs-lisp-mode)
+      (execute-kbd-macro (kbd "V h j c c"))
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " b_|_ar"
+     " baz"
+     " quux)"
+     "")
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " ;; bar"
+     " ;; b_|_az"
+     " quux)"
+     "")))
 
 ;; (ert "vim-tests/.*")
 
