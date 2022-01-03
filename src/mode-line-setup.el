@@ -34,7 +34,7 @@
 (defun mode-line-show-region-size ()
   "Format region size for `mode-line-format'."
   (when (region-active-p)
-    (with-region-bounds start end
+    (with-region-bounds-unadj start end
       (format " [%s]"
               (count-lines-fixed start end)))))
 
