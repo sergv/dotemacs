@@ -737,7 +737,7 @@ block motions."
 
 (vim:defcmd vim:cmd-emacs (nonrepeatable)
   "Switches to Emacs for the next command."
-  (let (message-log-max) (message "Switch to Emacs for the next command."))
+  (vim:notify "Switch to Emacs for the next command.")
   (vim:escape-to-emacs nil))
 
 (vim:defcmd vim:cmd-write-and-close (nonrepeatable)
@@ -794,14 +794,12 @@ If <bool> is ‘t’ then <name> is a string, otherwise it’s an integer obtain
 (defun vim:cmd-start-macro (name)
   "Starts recording a macro with name ‘name’."
   (start-kbd-macro nil)
-  (let (message-log-max)
-    (message "Start recording keyboard macro named '%s'" name)))
+  (vim:notify "Start recording keyboard macro named '%s'" name))
 
 (defun vim:cmd-stop-macro (name)
   "Stops recording of a macro."
   (end-kbd-macro)
-  (let (message-log-max)
-    (message "Stop recording keyboard macro"))
+  (vim:notify "Stop recording keyboard macro")
   (puthash name last-kbd-macro vim--macro-definitions))
 
 (defun vim--render-macro-names (entries)

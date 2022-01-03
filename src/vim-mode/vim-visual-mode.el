@@ -108,13 +108,12 @@
       (unless (eq vim:visual-mode-type type)
         (setq vim:visual-mode-type type)
         (vim:visual-highlight-region)
-        (let (message-log-max)
-          (pcase vim:visual-mode-type
-            (`normal   (message "-- VISUAL --"))
-            (`linewise (message "-- VISUAL LINE --"))
-            (`block    (message "-- VISUAL BLOCK --"))
-            (_         (error "Unknown visual mode type: %s"
-                              vim:visual-mode-type)))))
+        (vim:notify
+         (pcase vim:visual-mode-type
+           (`normal   "-- VISUAL --")
+           (`linewise "-- VISUAL LINE --")
+           (`block    "-- VISUAL BLOCK --")
+           (_         (error "Unknown visual mode type: %s" vim:visual-mode-type)))))
     (progn
       (setq vim:visual-mode-type type)
       (vim:activate-visual-mode))))
@@ -181,13 +180,12 @@
         (setq vim:visual-reactivate-last-region nil))
     (set-mark (point)))
 
-  (let (message-log-max)
-    (pcase vim:visual-mode-type
-      (`normal (message "-- VISUAL --"))
-      (`linewise (message "-- VISUAL LINE --"))
-      (`block (message "-- VISUAL BLOCK --"))
-      (_ (error "Unknown visual mode type: %s"
-                vim:visual-mode-type))))
+  (vim:notify
+   (pcase vim:visual-mode-type
+     (`normal   "-- VISUAL --")
+     (`linewise "-- VISUAL LINE --")
+     (`block    "-- VISUAL BLOCK --")
+     (_         (error "Unknown visual mode type: %s" vim:visual-mode-type))))
 
   (setq vim:visual-overlays nil
         vim:visual-old-transient-mark-mode (and (boundp 'transient-mark-mode)
