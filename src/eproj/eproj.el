@@ -809,17 +809,17 @@ variable or symbol 'unresolved.")
                       t
                     (file-directory-p path-dir))))
     (awhen (and exists?
-                (locate-dominating-file path-dir
-                                        (lambda (dir)
-                                          (directory-files dir
-                                                           nil ;; absolute names
-                                                           (rx bos
-                                                               (or ".eproj-info"
-                                                                   ".git"
-                                                                   "cabal.project")
-                                                               eos)
-                                                           t ;; nosort
-                                                           ))))
+                (or (locate-dominating-file path-dir ".eproj-info")
+                    (locate-dominating-file path-dir
+                                            (lambda (dir)
+                                              (directory-files dir
+                                                               nil ;; absolute names
+                                                               (rx bos
+                                                                   (or ".git"
+                                                                       "cabal.project")
+                                                                   eos)
+                                                               t ;; nosort
+                                                               )))))
       (eproj-normalise-file-name-expand-cached it))))
 
 (defvar eproj--inferrable-project-infos
