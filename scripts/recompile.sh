@@ -106,66 +106,7 @@ fi
 inform "Generating src/local-autoloads.el"
 update-dir-autoloads \
     "src/local-autoloads.el" \
-    "native/fakecygpty" \
-    "src" \
-    "src/custom" \
-    "src/eproj" \
-    "src/haskell" \
-    "src/latex" \
-    "src/lisp" \
-    "src/python" \
-    "src/rust" \
-    "src/shell" \
-    "src/vim-mode" \
-    "third-party/async" \
-    "third-party/attrap" \
-    "third-party/auctex" \
-    "third-party/bison-mode" \
-    "third-party/clojure-mode" \
-    "third-party/company-posframe" \
-    "third-party/company-statistics" \
-    "third-party/cuda-mode" \
-    "third-party/dante" \
-    "third-party/dtrt-indent" \
-    "third-party/el-patch" \
-    "third-party/elm-mode" \
-    "third-party/flycheck" \
-    "third-party/flycheck-elm" \
-    "third-party/flycheck-rust" \
-    "third-party/flx" \
-    "third-party/ghub" \
-    "third-party/git-modes" \
-    "third-party/glsl-mode" \
-    "third-party/groovy-mode" \
-    "third-party/haskell-mode" \
-    "third-party/hydra" \
-    "third-party/ivy" \
-    "third-party/ivy-posframe" \
-    "third-party/ivy-smex" \
-    "third-party/j-mode" \
-    "third-party/lcr" \
-    "third-party/lean-mode" \
-    "third-party/lsp-mode" \
-    "third-party/lsp-mode/clients" \
-    "third-party/lsp-ui" \
-    "third-party/magit" \
-    "third-party/magit/lisp" \
-    "third-party/magit-popup" \
-    "third-party/misc-modes" \
-    "third-party/nix-mode" \
-    "third-party/pkg-info" \
-    "third-party/popup-el" \
-    "third-party/posframe" \
-    "third-party/ptx-mode" \
-    "third-party/rust-mode" \
-    "third-party/smartparens" \
-    "third-party/sml-mode" \
-    "third-party/spinner.el" \
-    "third-party/toml-mode" \
-    "third-party/tuareg" \
-    "third-party/with-editor" \
-    "third-party/xterm-color" \
-    "third-party/yafolding.el"
+    $(find . \( -path '*/tests' -o -path '*/testing' -o -path '*/test' -o -name 'scripts' -o -name '.cask' -o -name '.git' \) -prune -o -type f -name '*.el' -print0 | xargs -0 grep -l ';;;###autoload' | xargs dirname | sort | uniq | sed 's,^\./,,')
 
 if which make >/dev/null; then
     inform "Building autoloads in third-party/org-mode"
