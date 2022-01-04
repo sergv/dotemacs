@@ -616,7 +616,7 @@ cache tags in."
 `*eproj-projects*'."
   (cl-assert (file-directory-p root))
   (puthash root
-           (eproj-make-project root (eproj--get-info-from-root root))
+           (eproj-make-project root (eproj--get-info-from-root root t))
            *eproj-projects*))
 
 (defun eproj-make-project (root aux-info)
@@ -830,7 +830,7 @@ variable or symbol 'unresolved.")
   (when (file-exists-p (concat root "/Cargo.toml"))
     '((languages 'rust-mode))))
 
-(defun eproj--get-info-from-root (root)
+(defun eproj--get-info-from-root (root strict)
   "Either read existing .eproj-info file ot try to make up its contents if we can."
   (if-let (eproj-info-file (eproj--get-eproj-info-from-dir root))
       (eproj-read-eproj-info-file root eproj-info-file)
@@ -840,7 +840,8 @@ variable or symbol 'unresolved.")
                   fs)
         (setf result (funcall (car fs) root)
               fs (cdr fs)))
-      (unless result
+      (when (and strict
+                 (not result))
         (error "Filed to infer project info for root %s" root))
       result)))
 
@@ -888,7 +889,7 @@ project for PATH."
     (if-let (proj-root (eproj-get-initial-project-root path))
         (if-let (proj (gethash proj-root *eproj-projects* nil))
             proj
-          (if-let ((info (eproj--get-info-from-root proj-root)))
+          (if-let ((info (eproj--get-info-from-root proj-root nil)))
               (let ((proj (eproj-make-project proj-root info)))
                 (puthash (eproj-project/root proj)
                          proj
