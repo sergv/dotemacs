@@ -154,6 +154,7 @@
                               (byte-native-qualities nil)
                               ;; Batch compilation has memory leak thanks to libgccjit.
                               (comp-running-batch-compilation nil)
+                              (native-comp-debug 0)
                               (native-comp-compiler-options '("-O2"))
                               (native-comp-driver-options '("-march=native")))
                           (native-compile file
