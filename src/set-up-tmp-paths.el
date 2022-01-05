@@ -7,13 +7,17 @@
 ;; Description:
 
 (eval-when-compile
+  (require 'subr-x)
   (require 'set-up-platform))
 
 (defconst +tmp-path+
   (make-temp-name
    (fold-platform-os-type
     "/tmp/emacs-tmp-"
-    (concat +prog-data-path+ "/tmp")))
+    (or (when-let (tmpdir (or (getenv "TMPDIR")
+                              (getenv "TEMP")))
+          (concat tmpdir "\\emacs-tmp-"))
+        (concat +prog-data-path+ "/tmp"))))
   "Path to temporary directory, contents of which may be removed on
 system restars.")
 
