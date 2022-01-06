@@ -151,8 +151,14 @@ can allows value to be decoded back fully.)"
             nil
           (sessions/get-all-text-properties-in-string
            str
-           (append '(yank-handler vim:yank-handler)
-                   ignored-text-properties)))
+           (append
+            ;; These properties typicaly arise during copying and pasting and generally
+            ;; contain unpleasant data...
+            '(yank-handler
+              vim:yank-handler
+              ;; ... in particular this fellow contains structure with markers.
+              magit-section)
+            ignored-text-properties)))
         (multibyte-string-p str)))
 
 (defun sessions/versioned/restore-string (_version encoded-data)
@@ -179,7 +185,6 @@ can allows value to be decoded back fully.)"
                (buffer-substring-no-properties (point-min) (point-max)))))))
       (sessions/apply-properties-to-string props str)
       str)))
-
 
 (cl-defstruct (sessions/position-ranges
                (:conc-name sessions/position-ranges/))
@@ -325,7 +330,6 @@ can allows value to be decoded back fully.)"
   (while (and x (consp x))
     (setf x (cdr x)))
   (null x))
-
 
 (provide 'persistent-sessions-serializers)
 
