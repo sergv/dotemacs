@@ -291,11 +291,19 @@ renderSexp (SList xs)  =
     rparen = builderFromChar ')'
     space  = builderFromChar ' '
 
+newtype Path = Path { unPath :: C8.ByteString }
+
+mkPath :: FilePath -> Path
+mkPath = Path . C8.pack
+
 class ToSexp a  where
     toSexp :: a -> Sexp
 
 instance ToSexp C8.ByteString where
     toSexp = SString
+
+instance ToSexp Path where
+    toSexp = toSexp . unPath
 
 instance ToSexp UnixFilepath where
     toSexp = SString . unUnixFilepath
@@ -330,6 +338,9 @@ instance ToSexp ModuleName where
 
 instance (ToSexp a, ToSexp b, ToSexp c, ToSexp d) => ToSexp (a, b, c, d) where
     toSexp (a, b, c, d) = SList [toSexp a, toSexp b, toSexp c, toSexp d]
+
+instance (ToSexp a, ToSexp b, ToSexp c, ToSexp d, ToSexp e) => ToSexp (a, b, c, d, e) where
+    toSexp (a, b, c, d, e) = SList [toSexp a, toSexp b, toSexp c, toSexp d, toSexp e]
 
 cons :: (ToSexp a, ToSexp b) => a -> [b] -> Sexp
 cons h t = SList (toSexp h : map toSexp t)
@@ -558,25 +569,28 @@ componentTypePrefix x = case x of
 instance ToSexp ComponentType where
     toSexp = toSexp . componentTypePrefix
 
+hsSourceDirs' :: BuildInfo -> [Path]
+hsSourceDirs' = map mkPath . hsSourceDirs
+
 -- | Gather files and modules that constitute each component.
-getComponents :: C8.ByteString -> PackageDescription -> [(ComponentType, C8.ByteString, Maybe C8.ByteString, [ModuleName])]
+getComponents :: C8.ByteString -> PackageDescription -> [(ComponentType, C8.ByteString, Maybe C8.ByteString, [ModuleName], [Path])]
 getComponents packageName pkgDescr =
-    [ (CTLibrary, name, Nothing, exposedModules lib ++ biMods bi)
+    [ (CTLibrary, name, Nothing, exposedModules lib ++ biMods bi, hsSourceDirs' bi)
     | lib <- allLibraries' pkgDescr
     , let bi = libBuildInfo lib
     , let name = maybe packageName C8.pack $ libName' lib
     ] ++
 #if defined(Cabal20OrLater)
-    [ (CTForeignLibrary, C8.pack (foreignLibName' flib), Nothing, biMods bi)
+    [ (CTForeignLibrary, C8.pack (foreignLibName' flib), Nothing, biMods bi, hsSourceDirs' bi)
     | flib <- foreignLibs pkgDescr
     , let bi = foreignLibBuildInfo flib
     ] ++
 #endif
-    [ (CTExecutable, C8.pack (exeName' exe), Just (C8.pack (modulePath exe)), biMods bi)
+    [ (CTExecutable, C8.pack (exeName' exe), Just (C8.pack (modulePath exe)), biMods bi, hsSourceDirs' bi)
     | exe <- executables pkgDescr
     , let bi = buildInfo exe
     ] ++
-    [ (CTTestSuite, C8.pack (testName' tst), exeFile, maybeToList extraMod ++ biMods bi)
+    [ (CTTestSuite, C8.pack (testName' tst), exeFile, maybeToList extraMod ++ biMods bi, hsSourceDirs' bi)
     | tst <- testSuites pkgDescr
     , let bi = testBuildInfo tst
     , let (exeFile, extraMod) = case testInterface tst of
@@ -586,7 +600,7 @@ getComponents packageName pkgDescr =
     ]
 #ifdef Cabal114OrMore
     ++
-    [ (CTBenchmark, C8.pack (benchmarkName' tst), exeFile, biMods bi)
+    [ (CTBenchmark, C8.pack (benchmarkName' tst), exeFile, biMods bi, hsSourceDirs' bi)
     | tst <- benchmarks pkgDescr
     , let bi = benchmarkBuildInfo tst
     , let exeFile = case benchmarkInterface tst of
