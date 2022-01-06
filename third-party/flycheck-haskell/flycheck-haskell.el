@@ -208,7 +208,7 @@ list unchanged."
 
 
 ;;; Cabal configuration caching
-(defconst flycheck-haskell-config-cache (make-hash-table :test 'equal)
+(defvar flycheck-haskell-config-cache (make-hash-table :test 'equal)
   "Cache of Cabal configuration.
 
 A hash table, mapping the name of a cabal file to a
