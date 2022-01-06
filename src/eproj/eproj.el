@@ -397,6 +397,8 @@ get proper flycheck checker."
   (eproj-normalise-file-name-expand-cached/reset-cache)
   ;; do not forget to reset cache
   (eproj/reset-buffer-local-cache)
+  (when (fboundp #'flycheck-haskell-clear-config-cache)
+    (flycheck-haskell-clear-config-cache))
   (garbage-collect))
 
 (defun eproj-update-projects ()
