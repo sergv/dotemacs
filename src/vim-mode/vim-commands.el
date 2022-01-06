@@ -469,11 +469,10 @@ and switches to insert-mode."
       (dotimes (_ (or count 1))
         (if register
             (insert-for-yank text)
-          (progn
-            (set-mark (point))
+          (let ((p (point)))
             (insert-for-yank text)
-            (setq beg (min (point) (mark t) (or beg (point)))
-                  end (max (point) (mark t) (or end (point))))))))
+            (setq beg (min (point) p (or beg (point)))
+                  end (max (point) p (or end (point))))))))
     (let ((yhandler (get-text-property 0 'vim:yank-handler text)))
       (when (eq yhandler 'vim:yank-line-handler)
         ;; place cursor at for non-blank of first inserted line
