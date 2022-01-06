@@ -892,7 +892,8 @@ value section should have if it is to be properly indented."
     (let ((entry
            (-find (lambda (component-descr)
                     (let ((main-file (cl-third component-descr))
-                          (modules (cl-fourth component-descr)))
+                          (modules (cl-fourth component-descr))
+                          (src-dirs (cl-fifth component-descr)))
                       (when (or main-file modules)
                         (let* ((mod-regexps
                                 (when modules
@@ -904,7 +905,14 @@ value section should have if it is to be properly indented."
                                              "\\|")))
                                (re
                                 (concat (when main-file
-                                          (concat "\\(?:" main-file "\\)"))
+                                          (concat (when src-dirs
+                                                    (concat "\\(?:"
+                                                            (mapconcat (lambda (x)
+                                                                         (regexp-quote x))
+                                                                       src-dirs
+                                                                       "\\|")
+                                                            "\\)/"))
+                                                  "\\(?:" main-file "\\)"))
                                         (when (and main-file mod-regexps)
                                           "\\|")
                                         (when mod-regexps
