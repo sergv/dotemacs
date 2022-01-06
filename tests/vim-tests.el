@@ -226,7 +226,29 @@
      " quux)"
      "")))
 
-;; (ert "vim-tests/.*")
+(ert-deftest vim-tests/paste-before-1 ()
+  (vim-tests--test-fresh-buffer-contents
+      (execute-kbd-macro (kbd "y s P"))
+    (tests-utils--multiline
+     ""
+     "foo _|_bar baz"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo _|_barbar baz"
+     "")))
+
+(ert-deftest vim-tests/paste-after-1 ()
+  (vim-tests--test-fresh-buffer-contents
+      (execute-kbd-macro (kbd "y s p"))
+    (tests-utils--multiline
+     ""
+     "foo _|_bar baz"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo bba_|_rar baz"
+     "")))
 
 (provide 'vim-tests)
 
