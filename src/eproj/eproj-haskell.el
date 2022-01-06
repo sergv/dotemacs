@@ -258,15 +258,19 @@ runtime but rather will be silently relied on)."
 
 ;;;###autoload
 (defun eproj--infer-haskell-project (root)
-  (let ((cabal-proj-file (concat root "/cabal.project")))
+  (let ((cabal-proj-file (concat root "/cabal.project"))
+        (cabal-proj-local-file (concat root "/cabal.project.local")))
     (cond
       ((file-exists-p cabal-proj-file)
-       (let ((related (eproj-haskell--get-related-projects-from-cabal-proj root cabal-proj-file)))
-         (awhen (--filter (and (file-name-absolute-p it) (not (file-exists-p it))) related)
+       (let* ((related (eproj-haskell--get-related-projects-from-cabal-proj root cabal-proj-file))
+              (related-local (when (file-exists-p cabal-proj-local-file)
+                               (eproj-haskell--get-related-projects-from-cabal-proj root cabal-proj-local-file)))
+              (all-related (nconc related related-local)))
+         (awhen (--filter (and (file-name-absolute-p it) (not (file-exists-p it))) all-related)
            (error "Some related projects inferred from cabal.project do not exist: %s"
                   (s-join ", " it)))
          `((languages haskell-mode)
-           (related ,@related)
+           (related ,@all-related)
            (flycheck-checker
             (haskell-mode lsp)))))
       ((file-exists-p (concat root "/package.yaml"))
