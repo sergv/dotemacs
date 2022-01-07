@@ -3170,7 +3170,7 @@ Get a syntax checker for the current buffer with
         (run-hooks 'flycheck-before-syntax-check-hook)
         (flycheck-clear-errors)
         (flycheck-mark-all-overlays-for-deletion)
-        (condition-case err
+        (condition-case-unless-debug err
             (let* ((checker (flycheck-get-checker-for-buffer)))
               (if checker
                   (flycheck-start-current-syntax-check checker)
