@@ -421,15 +421,16 @@ and over."
          (fname (dante-temp-file-name (current-buffer)))
          (buffer (lcr-call dante-session))
          (same-target (and (or dante-interpreted (not interpret))
-                       (s-equals? (buffer-local-value 'dante-loaded-file buffer) src-fname))))
+                           (s-equals? (buffer-local-value 'dante-loaded-file buffer) src-fname))))
     (if (and unchanged same-target) ; see #52
         (buffer-local-value 'dante-load-message buffer)
       (setq dante-temp-epoch epoch)
       (setq dante-interpreted interpret)
       (puthash (dante-local-name fname) src-fname dante-original-buffer-map)
-      ;; Set `noninteractive' to suppress messages from `write-region'.
-      (let ((noninteractive t))
-        (write-region nil nil fname nil 0))
+      (unless (s-equals? src-fname fname)
+        ;; Set `noninteractive' to suppress messages from `write-region'.
+        (let ((noninteractive t))
+          (write-region nil nil fname nil 0)))
       ;; GHCi will interpret the buffer iff. both -fbyte-code and :l * are used.
       (lcr-call dante-async-call (if interpret ":set -fbyte-code" ":set -fobject-code"))
       (with-current-buffer buffer
@@ -498,16 +499,19 @@ CHECKER and BUFFER are added if the error is in TEMP-FILE."
              (location (dante-parse-error-location location-raw)))
         ;; FIXME: sometimes the "error type" contains the actual error too.
         (when type
-          (flycheck-error-new-at (car location) (cadr location) type
-                                 (replace-regexp-in-string (regexp-quote temp-file)
-                                                           (dante-buffer-file-name buffer)
-                                                           (concat fixed-err-type "\n" (s-trim-right msg)))
-                                 :checker checker
-                                 :buffer buffer
-                                 :filename (if (string= (dante-canonicalize-path temp-file)
-                                                        (dante-canonicalize-path file))
-                                               (dante-buffer-file-name buffer)
-                                             file)))))))
+          (let ((buf-name (dante-buffer-file-name buffer)))
+            (flycheck-error-new-at (car location) (cadr location) type
+                                   (replace-regexp-in-string (regexp-quote temp-file)
+                                                             buf-name
+                                                             (concat fixed-err-type
+                                                                     "\n"
+                                                                     (s-trim-right msg)))
+                                   :checker checker
+                                   :buffer buffer
+                                   :filename (if (string= (dante-canonicalize-path temp-file)
+                                                          (dante-canonicalize-path file))
+                                                 buf-name
+                                               file))))))))
 
 (defun dante-parse-error-location (string)
   "Parse the line/col numbers from the error in STRING."
@@ -683,11 +687,11 @@ The path returned is canonicalized and stripped of any text properties."
               (setq result (concat (make-temp-name prefix) suffix))
               (if (file-exists-p result)
                   (setq result nil)))
-                ;; This creates the file by side effect.
+            ;; This creates the file by side effect.
             (set-file-times result)
             (set-file-modes result #o700)
             result))
-      (make-temp-file "dante" nil suffix))))
+      fname)))
 
 (defun dante-temp-file-name (buffer)
   "Return a (possibly remote) filename suitable to store BUFFER's contents."
@@ -699,7 +703,7 @@ The path returned is canonicalized and stripped of any text properties."
 On Windows, forward slashes are changed to backslashes and the
 drive letter is capitalized."
   (let ((standard-path (convert-standard-filename path)))
-    (if (eq system-type 'windows-nt)
+    (if (eval-when-compile (eq system-type 'windows-nt))
         (dante-capitalize-drive-letter (s-replace "/" "\\" standard-path))
       standard-path)))
 
