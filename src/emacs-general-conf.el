@@ -90,6 +90,9 @@
 ;; rather than perpetuate this lunacy.
 (setq-default require-final-newline nil)
 
+;; Ignore case during general searches.
+(setq-default case-fold-search t)
+
 (setf select-enable-clipboard t
       interprogram-paste-function
       (fold-platform-os-type
@@ -105,9 +108,6 @@
       inhibit-startup-screen t
       frame-title-format '("%f")
       scroll-step 1
-      ;; Do not ignore case during search, except under special
-      ;; conditions.
-      case-fold-search nil
       ;; Make uppercase characters during search not disable
       ;; ignore-case mode.
       search-upper-case nil
