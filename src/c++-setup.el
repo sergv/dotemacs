@@ -198,10 +198,6 @@ _a_ctions"
   ("a" lsp-execute-code-action))
 
 (vim:defcmd vim:c++-flycheck-reset (nonrepeatable)
-  (c++-flycheck-reset))
-
-(defun c++-flycheck-reset ()
-  (interactive)
   (vim:flycheck-clear)
   (when (and (boundp 'flycheck-checker)
              (eq flycheck-checker 'lsp))
