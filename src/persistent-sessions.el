@@ -660,7 +660,7 @@ entries."
             (< max-size (length val)))
        (seq-subseq val 0 (min max-size (length val))))
       ((hash-table-p val)
-       (let ((result (copy-hash-tabel val)))
+       (let ((result (copy-hash-table val)))
          (clrhash result)
          (maphash (lambda (k v)
                     (puthash k (sessions/truncate-long-sequences v) result))
