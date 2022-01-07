@@ -76,15 +76,23 @@
   (dante-repl-load-file))
 
 (vim:defcmd vim:haskell-dante-repl-restart (nonrepeatable)
+  "Restart dante repl."
   (dante-repl-restart nil))
 
+(vim:defcmd vim:haskell-lsp-flycheck-reset (nonrepeatable)
+  "Restart lsp checker session."
+  (vim:flycheck-clear)
+  (when (and (boundp 'flycheck-checker)
+             (eq flycheck-checker 'lsp))
+    (lsp-workspace-restart (lsp--read-workspace))))
 
-(vim:defcmd vim:haskell-dante-restart (nonrepeatable)
+(vim:defcmd vim:haskell-dante-reset (nonrepeatable)
+  "Destroy dante checker session and attempt to create a new one."
   ;; Don’t use ‘dante-restart’ because it won’t have any effect if there’s no
   ;; dante buffer.
   (unless dante-mode
     (error "dante is not enabled"))
-  (flycheck-clear t)
+  (vim:flycheck-clear)
   (dante-destroy)
   (lcr-cps-let ((_ (dante-session)))
     (flycheck-buffer)))
@@ -93,6 +101,7 @@
   (haskell-misc--configure-dante!))
 
 (vim:defcmd vim:dante-clear-buffer-above-prompt (nonrepeatable)
+  "Clear text above ghci prompt."
   (dante-repl-clear-buffer-above-prompt))
 
 (vim:defcmd vim:haskell-flycheck-configure (nonrepeatable)
@@ -122,7 +131,7 @@
   (if (or (not dante-mode) use-regexp?)
       (eproj-symbnav/go-to-symbol-home use-regexp?)
     (let* ((dante-ident-bounds (dante-thing-at-point))
-           (dante-identifier
+           (identifier
             (when dante-ident-bounds
               (buffer-substring-no-properties (car dante-ident-bounds)
                                               (cdr dante-ident-bounds)))))
@@ -132,42 +141,74 @@
         (let ((ghci-tags (delq nil
                                (-map #'haskell-misc--ghc-src-span-to-eproj-tag
                                      (s-lines targets)))))
-          (if ghci-tags
-              (let* ((proj (eproj-get-project-for-buf (current-buffer)))
-                     (effective-major-mode
-                      (eproj/resolve-synonym-modes major-mode))
-                     (lang (aif (gethash effective-major-mode eproj/languages-table)
-                               it
-                             (error "unsupported language %s" effective-major-mode)))
-                     (tag->string (eproj-language/tag->string-func lang))
-                     (tag->kind (eproj-language/show-tag-kind-procedure lang)))
-                (eproj-symbnav/choose-location-to-jump-to
-                 dante-identifier
-                 tag->string
-                 tag->kind
-                 (eproj-symbnav-get-file-name)
-                 proj
-                 (eproj-symbnav-current-home-entry)
-                 (--map (list dante-identifier it proj) ghci-tags)
-                 t
-                 "Choose symbol\n\n"))
-            (eproj-symbnav/go-to-symbol-home use-regexp?)))))))
+          (cond
+            (ghci-tags
+             (let* ((proj (eproj-get-project-for-buf (current-buffer)))
+                    (effective-major-mode (eproj/resolve-synonym-modes major-mode))
+                    (lang (aif (gethash effective-major-mode eproj/languages-table)
+                              it
+                            (error "unsupported language %s" effective-major-mode)))
+                    (tag->string (eproj-language/tag->string-func lang))
+                    (tag->kind (eproj-language/show-tag-kind-procedure lang)))
+               (eproj-symbnav/choose-location-to-jump-to
+                identifier
+                tag->string
+                tag->kind
+                (eproj-symbnav-get-file-name)
+                proj
+                (eproj-symbnav-current-home-entry)
+                (--map (list identifier it proj) ghci-tags)
+                t
+                "Choose symbol\n\n")))
+            (t
+             (lcr-cps-let ((_load-message (dante-async-load-current-buffer t nil))
+                           (info (dante-async-call (concat ":i " identifier)))
+                           (packages (dante-async-call ":show packages")))
+               ;; Parse ghci responses, they may narrow down the result.
+               (let* ((mod-name (save-match-data
+                                  (if (string-match "-- Defined in ‘\\([^’\n ]+\\)’" info)
+                                      (match-string 1 info)
+                                    (error "Failed to extract mod name from ghci result:\n%s" info))))
+                      ;; Packages is e.g.:
+                      ;; "active package flags:\n  -package-id base-4.15.1.0\n  -package-id aeson-2.0.3.0-e91573e5a9f0a74731f7cb1fe08486dfa1990213df0c4f864e51b791370cc73d"
+                      (lines (s-lines packages))
+                      (lines2 (if (string= (car lines) "active package flags:")
+                                  (cdr lines)
+                                lines))
+                      (pkgs-without-versions (--map (replace-regexp-in-string
+                                                     (rx ?- (+ (any (?0 . ?9) ?.))
+                                                         ;; Unique hash that ghci may print
+                                                         (? ?- (+ (any (?a . ?z) (?0 . ?9))))
+                                                         eos)
+                                                     ""
+                                                     (strip-string-prefix "  -package-id " it))
+                                                    lines2)))
+                 (haskell-symbnav--jump-to-filtered-tags
+                  identifier
+                  (concat "/"
+                          "\\(:?" (regexp-opt pkgs-without-versions) "\\)"
+                          ".*"
+                          "/"
+                          (replace-regexp-in-string "\\." "/" mod-name)
+                          "."
+                          (regexp-opt +haskell-extensions+))))))))))))
 
 (defun haskell-misc--ghc-src-span-to-eproj-tag (string)
   "Extract a location from a ghc span STRING."
   ;; On external symbols, GHC may return a location such as integer-gmp-1.0.0.1:integer-gmp-1.0.0.1:GHC.Integer.Type
-  (when (string-match "\\(.*?\\):(\\([0-9]+\\),\\([0-9]+\\))-(\\([0-9]+\\),\\([0-9]+\\))$" string)
-    (let* ((file (match-string 1 string))
-           (resolved-file
-            (or (gethash file dante-original-buffer-map)
-                (gethash (dante-local-name file) dante-original-buffer-map)
-                file))
-           (line (string-to-number (match-string 2 string)))
-           (col (string-to-number (match-string 3 string))))
-      (make-eproj-tag (expand-file-name resolved-file dante-project-root)
-                      line
-                      nil
-                      (vector `(column . ,(1- col)))))))
+  (save-match-data
+    (when (string-match "\\(.*?\\):(\\([0-9]+\\),\\([0-9]+\\))-(\\([0-9]+\\),\\([0-9]+\\))\\'" string)
+      (let* ((file (match-string 1 string))
+             (resolved-file
+              (or (gethash file dante-original-buffer-map)
+                  (gethash (dante-local-name file) dante-original-buffer-map)
+                  file))
+             (line (string-to-number (match-string 2 string)))
+             (col (string-to-number (match-string 3 string))))
+        (make-eproj-tag (expand-file-name resolved-file dante-project-root)
+                        line
+                        nil
+                        (list `(column . ,(1- col))))))))
 
 (defhydra hydra-haskell-lsp-toggle (:exit nil :foreign-keys nil :hint nil)
   "
@@ -323,20 +364,25 @@ _a_lign  _t_: jump to topmost node start
                 ;; Don't skip any messages.
                 compilation-skip-threshold 0)
 
+    (def-keys-for-map vim:normal-mode-local-keymap
+      ("SPC SPC"      vim:dante-repl-switch-to-repl-buffer)
+      (("C-l" "<f6>") vim:haskell-dante-load-file-into-repl))
+
     ;; Dante doesn't play well with idle-change checks.
     (cond
       (dante-mode
        (setq-local flycheck-check-syntax-automatically '(save mode-enabled))
 
-       (dolist (cmd '("re" "restart"))
-         (vim:local-emap cmd #'vim:haskell-dante-restart))
        (dolist (cmd '("conf" "configure"))
          (vim:local-emap cmd #'vim:haskell-dante-configure))
 
        (def-keys-for-map vim:normal-mode-local-keymap
-         ("SPC SPC"      vim:dante-repl-switch-to-repl-buffer)
-         (("C-l" "<f6>") vim:haskell-dante-load-file-into-repl)
-         ("-"            hydra-haskell-dante/body)))
+         ("-"            hydra-haskell-dante/body))
+
+       (flycheck-install-ex-commands!
+        :install-flycheck flycheck-mode
+        :load-func #'vim:haskell-dante-load-file-into-repl
+        :reset-func #'vim:haskell-dante-reset))
       (lsp-mode
        (dolist (cmd '("conf-repl" "configure-repl"))
          (vim:local-emap cmd #'vim:haskell-dante-configure))
@@ -350,14 +396,21 @@ _a_lign  _t_: jump to topmost node start
                    lsp-ui-sideline-delay 0.05)
        (lsp-ui-sideline-mode +1)
        (def-keys-for-map vim:normal-mode-local-keymap
-         ("SPC SPC"      vim:dante-repl-switch-to-repl-buffer)
-         (("C-l" "<f6>") vim:haskell-dante-load-file-into-repl)
          ("-"            hydra-haskell-lsp/body)
-         ("C-r"          lsp-rename)))
+         ("C-r"          lsp-rename))
+
+       (flycheck-install-ex-commands!
+        :install-flycheck flycheck-mode
+        :load-func #'vim:haskell-dante-load-file-into-repl
+        :reset-func #'vim:haskell-lsp-flycheck-reset))
       ((and flycheck-mode
             (memq flycheck-checker '(haskell-stack-ghc haskell-ghc)))
        (dolist (cmd '("conf" "configure"))
-         (vim:local-emap cmd #'vim:haskell-flycheck-configure))))
+         (vim:local-emap cmd #'vim:haskell-flycheck-configure))
+
+       (flycheck-install-ex-commands!
+        :install-flycheck flycheck-mode
+        :load-func #'vim:haskell-dante-load-file-into-repl)))
 
     (setq-local mode-line-format
                 (apply #'default-mode-line-format
@@ -370,13 +423,6 @@ _a_lign  _t_: jump to topmost node start
                           (list
                            " "
                            '(:eval (flycheck-pretty-mode-line)))))))
-
-    (flycheck-install-ex-commands!
-     :install-flycheck flycheck-mode
-     :load-func
-     (cond
-       ((or dante-mode lsp-mode)
-        #'vim:haskell-dante-load-file-into-repl)))
 
     (vim:local-emap "core" #'vim:ghc-core-create-core)
 
@@ -438,10 +484,10 @@ _a_lign  _t_: jump to topmost node start
         (setup-eproj-symbnav :bind-keybindings nil)
         ;; Override binding introduced by `setup-eproj-symbnav'.
         (def-keys-for-map vim:normal-mode-local-keymap
-          ("M-." haskell-go-to-symbol-home-via-dante-or-eproj)
-          ("C-." eproj-symbnav/go-to-symbol-home)
-          ("C-," eproj-symbnav/go-back)
-          ("C-?" xref-find-references))))))
+          ("M-."         eproj-symbnav/go-to-symbol-home)
+          ("C-."         haskell-go-to-symbol-home-via-dante-or-eproj)
+          (("M-," "C-,") eproj-symbnav/go-back)
+          ("C-?"         xref-find-references))))))
 
 ;;;###autoload
 (defun haskell-c2hs-setup ()

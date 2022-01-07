@@ -181,49 +181,52 @@
         (let* ((module (match-string 1 response-markdown))
                (package (match-string 2 response-markdown))
                (package-without-version
-                (replace-regexp-in-string (rx ?- (+ (any (?0 . ?9) ?.)) eos) "" package))
+                (replace-regexp-in-string (rx ?- (+ (any (?0 . ?9) ?.)) eos) "" package)))
 
-               (proj (eproj-get-project-for-buf (current-buffer)))
-               (effective-major-mode (eproj/resolve-synonym-modes major-mode)))
 
-          (eproj-symbnav/ensure-tags-loaded! effective-major-mode proj)
+          (haskell-symbnav--jump-to-filtered-tags
+           identifier
+           (concat "/"
+                   "\\(:?" (regexp-quote package-without-version) "\\)"
+                   ".*"
+                   "/"
+                   (replace-regexp-in-string "\\." "/" module)
+                   "."
+                   (regexp-opt +haskell-extensions+))))))))
 
-          ;; triples of (identifier eproj-tag eproj-proj)
-          (let* ((filter-re (concat "/"
-                                    "\\(:?" (regexp-quote package-without-version) "\\)"
-                                    ".*"
-                                    "/"
-                                    (replace-regexp-in-string "[.]" "/" module)
-                                    "."
-                                    (regexp-opt +haskell-extensions+)))
-                 (candidate-tags
-                  (eproj-get-matching-tags proj
-                                           effective-major-mode
-                                           identifier
-                                           nil))
-                 (filtered-tags
-                  (--filter (and (not (equal ?m (eproj-tag/type (cadr it))))
-                                 (string-match-p filter-re (eproj-tag/file (cadr it))))
-                            candidate-tags))
+(defun haskell-symbnav--jump-to-filtered-tags (identifier filter-re)
+  (let* ((proj (eproj-get-project-for-buf (current-buffer)))
+         (effective-major-mode (eproj/resolve-synonym-modes major-mode)))
 
-                 (lang (aif (gethash effective-major-mode eproj/languages-table)
-                           it
-                         (error "unsupported language %s" effective-major-mode)))
-                 (tag->string (eproj-language/tag->string-func lang))
-                 (tag->kind (eproj-language/show-tag-kind-procedure lang)))
+    (eproj-symbnav/ensure-tags-loaded! effective-major-mode proj)
 
-            (eproj-symbnav/choose-location-to-jump-to
-             identifier
-             tag->string
-             tag->kind
-             (eproj-symbnav-get-file-name)
-             proj
-             (eproj-symbnav-current-home-entry)
-             (or filtered-tags
-                 candidate-tags)
-             t
-             "Choose symbol\n\n")))))))
+    (let* ((candidate-tags
+            (eproj-get-matching-tags proj
+                                     effective-major-mode
+                                     identifier
+                                     nil))
+           (filtered-tags
+            (--filter (and (not (equal ?m (eproj-tag/type (cadr it))))
+                           (string-match-p filter-re (eproj-tag/file (cadr it))))
+                      candidate-tags))
 
+           (lang (aif (gethash effective-major-mode eproj/languages-table)
+                     it
+                   (error "unsupported language %s" effective-major-mode)))
+           (tag->string (eproj-language/tag->string-func lang))
+           (tag->kind (eproj-language/show-tag-kind-procedure lang)))
+
+      (eproj-symbnav/choose-location-to-jump-to
+       identifier
+       tag->string
+       tag->kind
+       (eproj-symbnav-get-file-name)
+       proj
+       (eproj-symbnav-current-home-entry)
+       (or filtered-tags
+           candidate-tags)
+       t
+       "Choose symbol\n\n"))))
 
 (provide 'lsp-haskell-setup)
 

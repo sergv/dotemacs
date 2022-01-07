@@ -850,14 +850,19 @@ value section should have if it is to be properly indented."
   (haskell-misc--with-expanded-invisible-overlays-in-current-function
    ad-do-it))
 
-(defvar-local haskell-misc--dante-configured? nil)
+(defvar-local haskell-misc--dante-configured? nil
+  "Whether ‘haskell-misc--configure-dante!’ was called once.")
 
 (defun haskell-misc--configure-dante-if-needed! ()
+  "Call ‘haskell-misc--configure-dante!’ if it has not been called before."
   (unless haskell-misc--dante-configured?
-    (haskell-misc--configure-dante!)))
+    (setf haskell-misc--dante-configured?
+          (haskell-misc--configure-dante!))))
 
 (defun haskell-misc--configure-dante! ()
-  "Set up vital variables for operation of ‘dante-mode’."
+  "Set up vital variables for operation of ‘dante-mode’.
+
+Returns ‘t’ on success, otherwise returns ‘nil’."
   (let* ((proj (eproj-get-project-for-buf-lax (current-buffer)))
          (vars (and proj
                     (eproj-query/local-variables proj major-mode nil)))
@@ -884,10 +889,12 @@ value section should have if it is to be properly indented."
                          (buffer-file-name))))
               (cl-assert (stringp package-name) nil
                          "Expected package name to be as tring but got %s" package-name)
-              (setq-local dante-target (concat package-name ":" component)
-                          haskell-misc--dante-configured? t))))))))
+              (setq-local dante-target (concat package-name ":" component))
+              t)))))))
 
 (defun haskell-misc--configure-dante--find-cabal-component-for-file (components filename)
+  "Get components dumped by get-cabal-configuration.hs for current package and attempt
+to find which component the FILENAME belongs to."
   (when filename
     (let ((entry
            (-find (lambda (component-descr)
