@@ -8,9 +8,6 @@
 
 (require 'fakecygpty)
 
-(push (rx bos "git" (? "-core") (? ".exe") eos)
-      fakecygpty-ignored-program-regexps)
-
 (when-windows
  (fakecygpty-activate))
 
