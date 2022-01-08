@@ -1022,7 +1022,7 @@ the current buffer."
 
 (defun kill-new-ignoring-duplicates (text)
   "Similar to `kill-new', but does not append TEXT to `kill-ring' if
-topmost `kill-ring' item is equal to text."
+topmost `kill-ring' item is equal to text (text properties are ignored)."
   (when (or (null kill-ring)
             (not (string= text (car kill-ring))))
     (kill-new text nil)))
