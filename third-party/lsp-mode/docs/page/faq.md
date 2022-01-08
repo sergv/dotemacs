@@ -16,7 +16,7 @@ Add `lsp` server call to `hack-local-variables-hook` which runs right after the 
 ---
 ### :grey_question: I have multiple language servers registered for language FOO. Which one will be used when opening a project?
 
-The one with highest priority wins. `lsp-clients.el` predefined servers have priority -1, lower than external packages (priority 0 if unspecified). If a server is registered with `:add-on?` flag set to `t` it will be started in parallel to the other servers that are registered for the current mode.
+The one with highest priority wins. Servers defined in `lsp-mode` tend to have lower priority than the external packages (priority 0 if unspecified). If a server is registered with `:add-on?` flag set to `t` it will be started in parallel to the other servers that are registered for the current mode. If the server that you want to use is not with the highest priority you may use `lsp-disabled-clients` to disable the server with higher `priority` or use `lsp-enabled-clients` to enable only the servers you want to use. In order to find the server ids you may check `*lsp-log*` buffer.
 
 ---
 ### :grey_question: I have multiple language servers for language `FOO` and I want to select the server per project, what can I do?
@@ -64,17 +64,8 @@ The issue is caused by `clojure-lsp` server being more aggressive with formattin
 
 
 ---
-### :grey_question: How do I disable automatic installation for particular language server?
+### :grey_question: How do I disable automatic installation?
 
-Solution:
-    Disable for one client:
     ``` elisp
-    (with-eval-after-load 'lsp-bash
-       (setf (lsp-client-download-server-fn (gethash 'bash-ls lsp-clients)) nil))
-    ```
-    Disable for all clients:
-    ``` elisp
-    (add-hook 'lsp-mode-hook
-       (lambda () (mapc (lambda (client) (setf (lsp-client-download-server-fn client) nil))
-                        (ht-values lsp-clients))))
+    (setq lsp-enable-suggest-server-download nil)
     ```
