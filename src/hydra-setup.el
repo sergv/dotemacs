@@ -7,7 +7,7 @@
 ;; Description:
 
 (require 'hydra)
-(require 'posframe)
+;; (require 'posframe)
 (require 'simple)
 
 ;; (setf hydra-hint-display-type (if (posframe-workable-p)
