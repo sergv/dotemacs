@@ -87,7 +87,7 @@ completing function calls."
   intended to affect the behavior of commands invoked by `gopls'
   on the user's behalf. This variable takes a hash table of env
   var names to desired values."
-  :type '(alist :key-type (string :tag "env var name") :value-type (string :tag "value"))
+  :type '(alist :key-type (symbol :tag "env var name") :value-type (string :tag "value"))
   :group 'lsp-go
   :risky t
   :package-version '(lsp-mode "6.2"))
@@ -229,10 +229,9 @@ $GOPATH/pkg/mod along with the value of
         (mapcar (lambda (path) (concat (file-remote-p default-directory) path)) library-dirs)
       library-dirs)))
 
-(defcustom lsp-go-link-target "godoc.org"
+(defcustom lsp-go-link-target "pkg.go.dev"
   "Which website to use for displaying Go documentation."
-  :type '(choice (const "godoc.org")
-		 (const "pkg.go.dev")
+  :type '(choice (const "pkg.go.dev")
 		 (string :tag "A custom website"))
   :group 'lsp-go
   :package-version '(lsp-mode "7.0.1"))
