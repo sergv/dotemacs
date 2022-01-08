@@ -25,7 +25,22 @@ Benchmarks show that Emacs 27 is `~15 times` faster than Emacs when using Elisp 
 ``` elisp
 (setq read-process-output-max (* 1024 1024)) ;; 1mb
 ```
+- Use `plists` for deserialization. `lsp-mode` can be compiled in 2 modes `plist` and `hash-table` based `lsp-use-plists` flag. `plist`s provide better performance in serialization and also put less presure than `hash-table`s. To switch to `plist` you have to perform 2 steps:
 
+1. Put the following in your config:
+``` elisp
+(setq lsp-use-plists t)
+```
+2. Recompile `lsp-mode` and related packages. One way to achieve that is to perform the following steps:
+* Delete `elc` files.
+``` bash
+find ~/.emacs.d/elpa -name "*.elc" -delete
+```
+* Restart emacs and do:
+``` elisp
+(byte-recompile-directory (expand-file-name "~/.emacs.d/elpa/") 0)
+```
+_NB:_ make sure that `lsp-use-plist` is `t` when you are performing the compilation.
 - Optional: Disable `lsp-ui`. Normally, `lsp-ui` is very fast but in some systems (especially when using `Windows`) `lsp-ui` overlays and popups might slow down emacs.
 - Optional: fine-tune `lsp-idle-delay`. This variable determines how often lsp-mode will refresh the highlights, lenses, links, etc while you type.
 
@@ -41,7 +56,7 @@ Benchmarks show that Emacs 27 is `~15 times` faster than Emacs when using Elisp 
 If the server supports watch files, by default `lsp-mode` tries to watch all files and folders of the project ignoring the regexp from `lsp-file-watch-ignored`. If you don't want some file or folder
 to be watched for performance reasons, you can add a regexp to that variable excluding the file or folder.
 
-Check the [file watchers section](../file-watchers) for details.
+Check the [file watchers section](file-watchers.md) for details.
 
 ## Check if logging is switched off.
 
