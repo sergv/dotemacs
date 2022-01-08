@@ -192,8 +192,8 @@
 (vim:omap "it" #'vim:motion-inner-xml-tags)
 (vim:omap "at" #'vim:motion-outer-xml-tags)
 
-(vim:omap "i#'" #'vim:motion-inner-single-quote)
-(vim:omap "a#'" #'vim:motion-outer-single-quote)
+(vim:omap "i'" #'vim:motion-inner-single-quote)
+(vim:omap "a'" #'vim:motion-outer-single-quote)
 (vim:omap "i\"" #'vim:motion-inner-double-quote)
 (vim:omap "a\"" #'vim:motion-outer-double-quote)
 (vim:omap "i`" #'vim:motion-inner-back-quote)
