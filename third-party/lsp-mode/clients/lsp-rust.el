@@ -411,6 +411,12 @@ The command should include `--message=format=json` or similar option."
   :group 'lsp-rust-analyzer
   :package-version '(lsp-mode . "6.2.2"))
 
+(defcustom lsp-rust-analyzer-cargo-unset-test []
+  "force rust-analyzer to unset `#[cfg(test)]` for the specified crates."
+  :type 'lsp-string-vector
+  :group 'lsp-rust-analyzer
+  :package-version '(lsp-mode . "8.0.1"))
+
 (defcustom lsp-rust-analyzer-use-client-watching t
   "Use client watching"
   :type 'boolean
@@ -653,7 +659,8 @@ https://rust-analyzer.github.io/manual.html#auto-import.
             ; Obsolete, but used by old Rust-Analyzer versions
             :loadOutDirsFromCheck ,(lsp-json-bool lsp-rust-analyzer-cargo-run-build-scripts)
             :autoreload ,(lsp-json-bool lsp-rust-analyzer-cargo-auto-reload)
-            :useRustcWrapperForBuildScripts ,(lsp-json-bool lsp-rust-analyzer-use-rustc-wrapper-for-build-scripts))
+            :useRustcWrapperForBuildScripts ,(lsp-json-bool lsp-rust-analyzer-use-rustc-wrapper-for-build-scripts)
+            :unsetTest ,lsp-rust-analyzer-cargo-unset-test)
     :rustfmt (:extraArgs ,lsp-rust-analyzer-rustfmt-extra-args
               :overrideCommand ,lsp-rust-analyzer-rustfmt-override-command)
     :inlayHints (:typeHints ,(lsp-json-bool lsp-rust-analyzer-server-display-inlay-hints)
@@ -965,9 +972,10 @@ meaning."
   (-if-let* ((params (lsp-make-rust-analyzer-expand-macro-params
                       :text-document (lsp--text-document-identifier)
                       :position (lsp--cur-position)))
-             ((&rust-analyzer:ExpandedMacro :expansion) (lsp-request
-                                                         "rust-analyzer/expandMacro"
-                                                         params)))
+             (response (lsp-request
+                        "rust-analyzer/expandMacro"
+                        params))
+             ((&rust-analyzer:ExpandedMacro :expansion) response))
       (funcall lsp-rust-analyzer-macro-expansion-method expansion)
     (lsp--error "No macro found at point, or it could not be expanded.")))
 
