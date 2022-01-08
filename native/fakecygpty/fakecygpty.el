@@ -52,10 +52,9 @@
   :group 'fakecygpty
   :type 'file)
 
-(defcustom fakecygpty-ignored-program-regexps
-  '("[cC][mM][dD]"
-    "[cC][mM][dD][pP][rR][oO][xX][yY]")
-  "Regexp list for program that run without fakecygpty."
+(defcustom fakecygpty-whitelist-program-regexps
+  (list (rx bos (or "bash" "sh" "dash" "zsh") (? ".exe") eos))
+  "Regexp list for program that run with fakecygpty."
   :group 'fakecygpty
   :type '(repeat regexp))
 
@@ -166,15 +165,19 @@ TTY's foreground process group pgid equals PROCESS pid."
 	)
     (process-id process)))
 
-(defun fakecygpty--ignored-program (program)
+(defun fakecygpty--whitelisted-program (program)
   "Return non-nil if PROGRAM is run without fakecygpty on `start-process'.
 An ignored pattern is used from `fakecygpty-ignored-program-regexps'"
-  (let ((program (file-name-nondirectory program))
+  (let ((prog (file-name-nondirectory program))
         ;; Ignore case since this whole module is purely for Windows.
-        (case-fold-search t))
-    (delq nil (mapcar (lambda (p)
-			(string-match-p p program))
-		      fakecygpty-ignored-program-regexps))))
+        (case-fold-search t)
+        (all-match? t)
+        (regexps fakecygpty-whitelist-program-regexps))
+    (while (and all-match?
+                regexps)
+      (setf all-match (string-match-p (car regexps) prog)
+            regexps (cdr regexps)))
+    all-match?))
 
 (defun fakecygpty--normalize-process-arg (target)
   "Return process object of TARGET.
@@ -220,7 +223,7 @@ nil means current buffer's process."
   (if (and process-connection-type      ; if non-nil, required pty.
            ;; program
            (or (not program)
-               (not (fakecygpty--ignored-program program))))
+               (fakecygpty--whitelisted-program program)))
       (let ((proc (apply old-start-proc
                          name
                          buf
