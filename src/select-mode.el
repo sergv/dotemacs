@@ -309,6 +309,7 @@ by the user)."
 
 
 (defun select-mode-hide ()
+  "Stop showing select mode’s buffer but don’t kill it."
   (interactive)
   (cl-assert select-mode--current-state)
   (if select-mode-restore-windows-configuration-on-hide
@@ -329,6 +330,7 @@ by the user)."
     (set-window-configuration win-config)))
 
 (defun select-mode-exit ()
+  "Kill select mode’s buffer."
   (interactive)
   (let ((buf (current-buffer)))
     (select-mode--finish-selection)
@@ -342,6 +344,7 @@ by the user)."
    (make-composed-keymap new-keymap select-mode-map)))
 
 (defsubst select-mode-get-selected-index ()
+  "Get index of currently selected item."
   (select-mode--state-selected-item select-mode--current-state))
 
 (defun select-mode-update-items (items new-selection-index)
