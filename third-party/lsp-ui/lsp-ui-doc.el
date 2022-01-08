@@ -72,7 +72,7 @@
   :type 'boolean
   :group 'lsp-ui-doc)
 
-(defcustom lsp-ui-doc-show-with-cursor t
+(defcustom lsp-ui-doc-show-with-cursor nil
   "Move the cursor over a symbol to show its documentation."
   :type 'boolean
   :group 'lsp-ui-doc)
@@ -1081,7 +1081,7 @@ Argument WIN is current applying window."
       (when same-win
         (setq lsp-ui-doc--last-event point
               lsp-ui-doc--timer-mouse-movement
-              (run-with-idle-timer 0.5 nil 'lsp-ui-doc--mouse-display))))))
+              (run-with-idle-timer lsp-ui-doc-delay nil 'lsp-ui-doc--mouse-display))))))
 
 (defun lsp-ui-doc--disable-mouse-on-prefix nil
   (and (bound-and-true-p lsp-ui-doc-mode)
