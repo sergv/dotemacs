@@ -186,6 +186,15 @@ expand _m_acro  _M_: fully expand macro"
 
 (add-hook 'debugger-mode-hook #'debugger-setup)
 
+(defun emacs-lisp-setup--save-mark-around-eval-last-sexp (old-func &rest args)
+  ;; Keep in sync with ‘save-mark-and-excursion’.
+  (let ((saved-mark (save-mark-and-excursion--save)))
+    (unwind-protect
+        (apply old-func args)
+      (save-mark-and-excursion--restore saved-mark))))
+
+(advice-add 'eval-last-sexp :around #'emacs-lisp-setup--save-mark-around-eval-last-sexp)
+
 (provide 'emacs-lisp-setup)
 
 ;; Local Variables:
