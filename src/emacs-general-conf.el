@@ -151,7 +151,10 @@
       user-mail-address "serg.foo@gmail.com"
 
       ;; I’ll compile everything I need ahead of time.
-      native-comp-deferred-compilation nil)
+      native-comp-deferred-compilation nil
+
+      ;; Whether to save existing clipboard value in kill-ring when doing a kill/yank operation.
+      save-interprogram-paste-before-kill nil)
 
 (when-emacs-version (<= 28 it)
   (add-to-list 'native-comp-deferred-compilation-deny-list ".*"))
