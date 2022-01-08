@@ -10,6 +10,10 @@
   (require 'cl-lib)
   (require 'common))
 
+;; Display line numbers in mode line even in buffers that have lines
+;; below this length, on average.
+(setf line-number-display-limit-width 512)
+
 (defvar-local mode-line--buffer-line-count nil)
 
 (defun mode-line-show-line-count ()
