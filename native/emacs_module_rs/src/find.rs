@@ -26,9 +26,9 @@ use crossbeam;
 use crossbeam::thread::ScopedJoinHandle;
 use globset::{Glob, GlobSet, GlobBuilder, GlobSetBuilder};
 
-fn mk_glob(pat: &str) -> result::Result<Glob, globset::Error> {
+fn mk_glob(pat: &str, case_insens: bool) -> result::Result<Glob, globset::Error> {
     let mut b = GlobBuilder::new(pat);
-    b.case_insensitive(true);
+    b.case_insensitive(case_insens);
     b.literal_separator(false);
     b.backslash_escape(false);
     b.build()
@@ -158,7 +158,7 @@ impl Ignores {
         for x in globs {
             let y = x?;
             let z = y.as_ref();
-            let g = mk_glob(z)?;
+            let g = mk_glob(z, true)?;
             if glob_should_test_against_abs(z) {
                 wanted_file_abs_builder.add(g);
             } else {
@@ -168,7 +168,7 @@ impl Ignores {
         for x in ignored_file_globs {
             let y = x?;
             let z = y.as_ref();
-            let g = mk_glob(z)?;
+            let g = mk_glob(z, false)?;
             if glob_should_test_against_abs(z) {
                 ignored_file_abs_builder.add(g);
             } else {
@@ -180,7 +180,7 @@ impl Ignores {
             let mut tmp = String::new();
             for x in ignored_abs_dirs {
                 let y = x?;
-                ignored_dir_abs_builder.add(mk_glob(strip_trailing_slash(y.as_ref()))?);
+                ignored_dir_abs_builder.add(mk_glob(strip_trailing_slash(y.as_ref()), false)?);
                 tmp.clear();
             }
             for x in ignored_dir_globs {
@@ -188,7 +188,7 @@ impl Ignores {
                 let z = strip_trailing_slash(y.as_ref());
                 tmp.push_str("**/");
                 tmp.push_str(z);
-                let g = mk_glob(&tmp)?;
+                let g = mk_glob(&tmp, false)?;
                 if glob_should_test_against_abs(z) {
                     ignored_dir_abs_builder.add(g);
                 } else {
@@ -202,7 +202,7 @@ impl Ignores {
                 tmp.push_str("**/");
                 tmp.push_str(z);
                 tmp.push('*');
-                let g = mk_glob(&tmp)?;
+                let g = mk_glob(&tmp, false)?;
                 if glob_should_test_against_abs(z) {
                     ignored_dir_abs_builder.add(g);
                 } else {
@@ -250,6 +250,7 @@ impl Root for Arc<PathBuf> {
 // Define a function callable by Lisp.
 pub fn find_rec<'a, Str, Iter, Consume, OrigRoot, Res, HandleFile, InitThread, State>(
     roots: Iter,
+    roots_count: usize,
     ignores: &Ignores,
     init_thread: InitThread,
     handle_file: HandleFile,
@@ -257,7 +258,7 @@ pub fn find_rec<'a, Str, Iter, Consume, OrigRoot, Res, HandleFile, InitThread, S
 ) -> Result<()>
     where
     Str: AsRef<str>,
-    Iter: Iterator<Item = Result<Str>> + ExactSizeIterator,
+    Iter: Iterator<Item = Result<Str>>,
     Consume: FnMut(Res) -> Result<()>,
     OrigRoot: Root + std::fmt::Debug,
     Res: Send + 'static,
@@ -265,14 +266,13 @@ pub fn find_rec<'a, Str, Iter, Consume, OrigRoot, Res, HandleFile, InitThread, S
     InitThread: FnMut() -> Result<State> + Send + Clone,
 {
     let (report_result, receive_result) = mpsc::sync_channel(2 * THREADS);
-    let roots_count = roots.len();
 
     let tasks_queue = ArrayQueue::new((10 * THREADS).max(roots_count));
 
     for r in roots {
         let path = std::path::PathBuf::from(std::ffi::OsString::from(r?.as_ref()));
         if !ignores.ignored_dirs.abs.is_match(&path) && !ignores.ignored_dirs.rel.is_match(&path) {
-            tasks_queue.push((Root::from_path(&path), path.clone())).expect("Task queue should have enough size to hold initial set of roots");
+            tasks_queue.push((Root::from_path(&path), path)).expect("Task queue should have enough size to hold initial set of roots");
         }
     }
 

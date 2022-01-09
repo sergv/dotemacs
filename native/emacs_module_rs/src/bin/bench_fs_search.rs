@@ -19,6 +19,7 @@ use emacs_native_rs::find;
 
 fn main() {
     let roots = vec!["/home/sergey/projects/rust"];
+    let roots_count = roots.len();
 
     let globs = vec!["*.toml"];
     let ignored_file_globs = vec!["*.so", "/home/sergey/projects/rust/projects/ripgrep/Cross.toml"];
@@ -39,6 +40,7 @@ fn main() {
 
     let res: anyhow::Result<()> = find::find_rec(
         roots.into_iter().map(Ok),
+        roots_count,
         &ignores,
         || Ok(()),
         |_, _orig_root: (), path, chan| chan.send(path).map_err(anyhow::Error::new),
