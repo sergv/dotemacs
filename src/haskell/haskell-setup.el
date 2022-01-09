@@ -377,7 +377,7 @@ _a_lign  _t_: jump to topmost node start
          (vim:local-emap cmd #'vim:haskell-dante-configure))
 
        (def-keys-for-map vim:normal-mode-local-keymap
-         ("-"            hydra-haskell-dante/body))
+         ("-" hydra-haskell-dante/body))
 
        (flycheck-install-ex-commands!
         :install-flycheck flycheck-mode
@@ -396,8 +396,8 @@ _a_lign  _t_: jump to topmost node start
                    lsp-ui-sideline-delay 0.05)
        (lsp-ui-sideline-mode +1)
        (def-keys-for-map vim:normal-mode-local-keymap
-         ("-"            hydra-haskell-lsp/body)
-         ("C-r"          lsp-rename))
+         ("-"   hydra-haskell-lsp/body)
+         ("C-r" lsp-rename))
 
        (flycheck-install-ex-commands!
         :install-flycheck flycheck-mode
