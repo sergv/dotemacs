@@ -47,4 +47,4 @@ library
   hs-source-dirs:
     src
   build-depends:
-    base >= 4.9, subdep1
+    base >= 4.9, subdep1, prefix
