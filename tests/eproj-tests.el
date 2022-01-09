@@ -6,7 +6,8 @@
 ;; Created: Tuesday, 14 May 2013
 ;; Description:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib))
 
 (require 'common)
 (require 'ert)
@@ -21,14 +22,22 @@ under ROOT directory."
             (--filter (not (file-directory? it))
                       (directory-files path t directory-files-no-dot-files-regexp))))
 
-(defun eproj-tests/normalize-file-list (items)
+(defun eproj-tests/sort-file-list (items &optional root)
   (cl-assert (-all? #'stringp items)
              nil
              "Expected a list of strings but got: %s"
              items)
   (remove-duplicates-sorted
-   (sort (--map (strip-trailing-slash (expand-file-name it)) items) #'string<)
+   (sort (--map (strip-trailing-slash it) items) #'string<)
    #'string=))
+
+(defun eproj-tests/normalize-file-list (items &optional root)
+  (cl-assert (-all? #'stringp items)
+             nil
+             "Expected a list of strings but got: %s"
+             items)
+  (eproj-tests/sort-file-list
+   (--map (expand-file-name it root) items)))
 
 (defun eproj-tests/normalize-string-list (items)
   (sort (copy-list items) #'string<))
@@ -39,14 +48,14 @@ under ROOT directory."
 
 (defmacro eproj-tests--define-tests (test-name-template &rest body)
   (declare (indent 1))
-  (let ((test-name-default-file-search
-         (string->symbol (format test-name-template "default-file-search")))
+  (let ((test-name-elisp-file-search
+         (string->symbol (format test-name-template "elisp-file-search")))
         (test-name-executable-file-search
          (string->symbol (format test-name-template "executable-file-search")))
         (test-name-foreign-file-search
          (string->symbol (format test-name-template "foreign-file-search"))))
     `(progn
-       (ert-deftest ,test-name-default-file-search ()
+       (ert-deftest ,test-name-elisp-file-search ()
          (let ((eproj/default-projects (make-hash-table :test #'eq))
                ;; don't want verbose messages in the output
                (eproj-verbose-tag-loading nil)
@@ -146,9 +155,9 @@ under ROOT directory."
     "eproj-tests/%s/aux-files"
   (let* ((path eproj-tests/project-with-aux-files)
          (proj (eproj-get-project-for-path path)))
-    (should (not (null? proj)))
+    (should (not (null proj)))
     (should (eproj-tests/paths=? path (eproj-project/root proj)))
-    (should (not (null? (eproj-project/aux-files proj))))
+    (should (not (null (eproj-project/aux-files proj))))
     (should (equal (eproj-tests/normalize-file-list
                     (eproj-project/aux-files proj))
                    (eproj-tests/normalize-file-list
@@ -520,8 +529,8 @@ under ROOT directory."
      (eproj-with-all-project-files-for-navigation proj
                                                   (lambda (_abs-path rel-path)
                                                     (push rel-path actual-navigation-files)))
-     (should (equal (eproj-tests/normalize-file-list actual-navigation-files)
-                    (eproj-tests/normalize-file-list expected-navigation-files))))
+     (should (equal (eproj-tests/sort-file-list actual-navigation-files)
+                    (eproj-tests/sort-file-list expected-navigation-files))))
 
    (dolist (name '("foobar" "subfoo" "subbar"))
      (should (eproj-get-matching-tags proj 'haskell-mode name nil)))))
