@@ -49,6 +49,7 @@
 (require 'seq)
 (require 'json)
 
+;;;###autoload
 (defun flycheck-rust-find-manifest (file-name)
   "Get the Cargo.toml manifest for FILE-NAME.
 
