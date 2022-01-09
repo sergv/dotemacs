@@ -204,7 +204,6 @@
 (vim:omap (kbd "C-v") #'vim:cmd-force-blockwise)
 
 ;(vim:nmap "x" "dl")
-;; (vim:nmap "m" #'vim:cmd-set-mark)
 (vim:nmap "x" #'vim:cmd-delete-char)
 (vim:nmap "D" "d$")
 (vim:nmap "d" #'vim:cmd-delete)
