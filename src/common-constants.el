@@ -39,16 +39,16 @@
   "List of file name endings to generally ignore.")
 
 (defconst +version-control-directories+
-  [".svn" ".git" ".hg" "_darcs" ".pijul"]
+  '(".svn" ".git" ".hg" "_darcs" ".pijul")
   "List of directory names used by version-control systems.")
 
 (defconst +ignored-directories+
-  (vconcat +version-control-directories+
-           ["dist" "node_modules" ".HTF" ".idea"])
+  (append +version-control-directories+
+          '("dist" "node_modules" ".HTF" ".idea"))
   "List of directory names to generally ignore.")
 
 (defconst +ignored-directory-prefixes+
-  [".cabal-sandbox" ".stack-work" "dist-"]
+  '(".cabal-sandbox" ".stack-work" "dist-")
   "List of directory names to generally ignore as a prefixes.")
 
 (defconst +tar-regexp+
