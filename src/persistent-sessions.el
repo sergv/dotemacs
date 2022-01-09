@@ -455,7 +455,7 @@ entries."
           (list 'special-buffers special-buffer-data)
           (list 'global-variables (sessions/get-global-variables))
           frames-entry
-          (list 'tab-bar-mode (if tab-bar-mode 1 -1)))))
+          (list 'tab-bar-mode (if tab-bar-mode t nil)))))
 
 ;;;###autoload
 (defun sessions/save-buffers (file)
@@ -591,7 +591,9 @@ entries."
       (message "sessions/load-from-data: no 'special-buffers field"))
 
     (aif (assq 'tab-bar-mode session-entries)
-        (tab-bar-mode (cadr it))
+        (when (cadr it)
+          (sessions--enable-tab-bar-mode)
+          (add-hook 'after-init-hook #'sessions--enable-tab-bar-mode))
       (message "sessions/load-from-data: no 'tab-bar-mode field"))
 
     (aif (assq 'frameset session-entries)
@@ -603,6 +605,9 @@ entries."
     (aif (assq 'global-variables session-entries)
         (sessions/restore-global-variables version (cadr it))
       (message "sessions/load-from-data: no 'global-variables field"))))
+
+(defun sessions--enable-tab-bar-mode ()
+  (tab-bar-mode 1))
 
 (defvar sessions/load-buffers-hook nil
   "Hook run after restoring session in `sessions/load-buffers'.")
