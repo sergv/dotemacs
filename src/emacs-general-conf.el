@@ -157,7 +157,8 @@
       save-interprogram-paste-before-kill nil)
 
 (when-emacs-version (<= 28 it)
-  (add-to-list 'native-comp-deferred-compilation-deny-list ".*"))
+  (when (boundp 'native-comp-deferred-compilation-deny-list)
+    (add-to-list 'native-comp-deferred-compilation-deny-list ".*")))
 
 (remove-hook 'find-file-hook #'vc-refresh-state)
 
