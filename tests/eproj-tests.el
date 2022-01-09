@@ -99,6 +99,9 @@ under ROOT directory."
 (defconst eproj-tests/implicit-haskell-project-with-local-archive
   (expand-file-name (concat eproj-tests/project-dir "/haskell-implicit-project-with-local.zip")))
 
+(defconst eproj-tests/haskell-project-with-aux-files
+  (expand-file-name (concat eproj-tests/project-dir "/haskell-project-with-aux-files")))
+
 (eproj-tests--define-tests
     "eproj-tests/%s/eproj-get-all-related-projects"
   (let* ((path (concat eproj-tests/folder-with-related-projects "/project-main"))
@@ -490,6 +493,38 @@ under ROOT directory."
               (eproj-reset-projects)
               (funcall run-check))))
       (delete-directory tmp-dir t))))
+
+(eproj-tests--define-tests
+ "eproj-tests/%s/haskell-project-with-aux-files"
+ (let* ((path eproj-tests/haskell-project-with-aux-files)
+        (proj (eproj-get-project-for-path path))
+
+        (expected-navigation-files
+         '("foo.cabal"
+           "src/Foo.hs"
+           "cabal.project"
+           "dep/cabal.project"
+           "dep/subdep1/subdep1.cabal"
+           "dep/subdep1/src/Subdep1/Foo.hs"
+           "dep/subdep1/test2.extra"
+           "dep/subdep2/src/Subdep2/Bar.hs"
+           "dep/subdep2/subdep2.cabal"
+           "dep/subdep2/test3.foobar"
+           "test.foobar"
+           "test.extra")))
+   (should (not (null proj)))
+   (should (eproj-tests/paths=? path (eproj-project/root proj)))
+   (should (not (null (eproj-project/aux-files proj))))
+
+   (let ((actual-navigation-files nil))
+     (eproj-with-all-project-files-for-navigation proj
+                                                  (lambda (_abs-path rel-path)
+                                                    (push rel-path actual-navigation-files)))
+     (should (equal (eproj-tests/normalize-file-list actual-navigation-files)
+                    (eproj-tests/normalize-file-list expected-navigation-files))))
+
+   (dolist (name '("foobar" "subfoo" "subbar"))
+     (should (eproj-get-matching-tags proj 'haskell-mode name nil)))))
 
 ;;;; eproj/ctags-get-tags-from-buffer
 
