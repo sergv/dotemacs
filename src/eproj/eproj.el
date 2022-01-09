@@ -1091,8 +1091,9 @@ Returns nil if no relevant entry found in AUX-INFO."
                                      :globs-to-find globs
                                      :ignored-files-globs (eproj-project/ignored-files-globs proj)
                                      :ignored-absolute-dirs (eproj-project/related-projects proj)
-                                     :ignored-directories []
-                                     :ignored-directory-prefixes [])))
+                                     ;; Allow aux files to look into ignored paths if needed.
+                                     :ignored-directories nil
+                                     :ignored-directory-prefixes nil)))
                      (setf result
                            (nconc (eproj--filter-ignored-files-from-file-list proj raw-files)
                                   result))))

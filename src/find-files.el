@@ -107,8 +107,8 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
   (declare (pure nil) (side-effect-free nil))
   (when (null globs-to-find)
     (error "No globs to search for under %s" root))
-  (cl-assert (vectorp ignored-directories))
-  (cl-assert (vectorp ignored-directory-prefixes))
+  (cl-assert (listp ignored-directories))
+  (cl-assert (listp ignored-directory-prefixes))
   (funcall (pcase find-rec-backend
              (`native
               #'find-rec--rust-native-impl)
@@ -141,12 +141,12 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
     (cl-assert (fboundp #'rust-native-find-rec))
     (let* ((results
            (rust-native-find-rec
-            (vector root)
-            (list->vector globs-to-find)
-            (list->vector ignored-files)
+            (list root)
+            globs-to-find
+            ignored-files
             ignored-directories
             ignored-directory-prefixes
-            (list->vector ignored-absolute-dirs)))
+            ignored-absolute-dirs))
            (errs (cdr results)))
       (when (< 0 (length errs))
         (dolist (err errs)

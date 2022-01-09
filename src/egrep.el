@@ -114,16 +114,15 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
   (let* ((globs-to-find exts-globs)
          (ignored-files ignored-files-globs)
          (matches
-          (rust-native-grep
-           (vector root)
-           regexp
-           (list->vector globs-to-find)
-           (list->vector ignored-files)
-           +ignored-directories+
-           +ignored-directory-prefixes+
-           []
-           ignore-case)))
-    (cl-assert (vectorp matches))
+          (rust-native-grep (list root)
+                            regexp
+                            globs-to-find
+                            ignored-files
+                            +ignored-directories+
+                            +ignored-directory-prefixes+
+                            nil
+                            ignore-case)))
+    (cl-assert (listp matches))
     (when (or (null matches)
               (= (length matches) 0))
       (error "No matches for regexp \"%s\" across files %s"
@@ -195,7 +194,7 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
       (when should-report-progress?
         (message "Finished looking in files")
         (redisplay t))
-      (list->vector matches))))
+      matches)))
 
 (defun egrep-commit-changed-entries ()
   (interactive)
