@@ -255,13 +255,7 @@ as a fallback if those are not available."
     (error "No globs to search for under %s" root))
   (let* ((re-to-find (globs-to-regexp globs-to-find))
          (ignored-files-re (globs-to-regexp ignored-extensions-globs))
-         (ignored-files-absolute-re
-          (globs-to-regexp ignored-files-globs))
-         (ignored-files-all-re
-          (mk-regexp-from-alts
-           (remq nil
-                 (list ignored-files-re
-                       ignored-files-absolute-re))))
+         (ignored-files-abs-re (globs-to-regexp ignored-files-globs))
          (ignored-dirs-re
           (globs-to-regexp
            (append (-map #'strip-trailing-slash ignored-directories)
@@ -270,27 +264,57 @@ as a fallback if those are not available."
           (mk-regexp-from-alts ignored-absolute-dirs)))
     (find-rec root
               :filep
-              (if ignored-files-all-re
-                  (lambda (path)
-                    (and (let ((case-fold-search t))
-                           (string-match-p re-to-find path))
-                         (let ((case-fold-search nil))
-                           (not (string-match-p ignored-files-all-re path)))))
-                (lambda (path)
-                  (let ((case-fold-search t))
-                    (string-match-p re-to-find path))))
+              (cond
+                ((and ignored-files-re
+                      ignored-files-abs-re)
+                 (lambda (abs-path)
+                   (let ((fname (file-name-nondirectory abs-path)))
+                     (and (let ((case-fold-search t))
+                            (string-match-p re-to-find fname))
+                          (let ((case-fold-search nil))
+                            (and (not (string-match-p ignored-files-re fname))
+                                 (not (string-match-p ignored-files-abs-re abs-path))))))))
+                (ignored-files-abs-re
+                 (lambda (abs-path)
+                   (let ((fname (file-name-nondirectory abs-path)))
+                     (and (let ((case-fold-search t))
+                            (string-match-p re-to-find fname))
+                          (let ((case-fold-search nil))
+                            (not (string-match-p ignored-files-abs-re abs-path)))))))
+                (ignored-files-re
+                 (lambda (abs-path)
+                   (let ((fname (file-name-nondirectory abs-path)))
+                     (and (let ((case-fold-search t))
+                            (string-match-p re-to-find fname))
+                          (let ((case-fold-search nil))
+                            (not (string-match-p ignored-files-re fname)))))))
+                (t
+                 (lambda (abs-path)
+                   (let ((fname (file-name-nondirectory abs-path)))
+                     (let ((case-fold-search t))
+                       (string-match-p re-to-find fname))))))
               :do-not-visitp
-              (if ignored-absolute-dirs-re
-                  (lambda (path)
-                    (let ((case-fold-search nil))
-                      (or (string-match-p ignored-dirs-re
-                                          (file-name-nondirectory path))
-                          (string-match-p ignored-absolute-dirs-re
-                                          path))))
-                (lambda (path)
-                  (let ((case-fold-search nil))
-                    (string-match-p ignored-dirs-re
-                                    (file-name-nondirectory path))))))))
+              (cond
+                ((and ignored-absolute-dirs-re
+                      ignored-dirs-re)
+                 (lambda (path)
+                   (let ((case-fold-search nil))
+                     (or (string-match-p ignored-dirs-re
+                                         (file-name-nondirectory path))
+                         (string-match-p ignored-absolute-dirs-re
+                                         path)))))
+                (ignored-absolute-dirs-re
+                 (lambda (path)
+                   (let ((case-fold-search nil))
+                     (string-match-p ignored-absolute-dirs-re
+                                     path))))
+                (ignored-dirs-re
+                 (lambda (path)
+                   (let ((case-fold-search nil))
+                     (string-match-p ignored-dirs-re
+                                     (file-name-nondirectory path)))))
+                (t
+                 #'ignore)))))
 
 (provide 'find-files)
 
