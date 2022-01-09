@@ -1,14 +1,12 @@
 ----------------------------------------------------------------------------
 -- |
--- Module      :  Foo
+-- Module      :  PrefixFoo
 -- Copyright   :  (c) Sergey Vinokurov 2022
 -- License     :  Apache-2.0 (see LICENSE)
 -- Maintainer  :  serg.foo@gmail.com
 ----------------------------------------------------------------------------
 
-module Foo (foobar) where
+module PrefixFoo where
 
-import Subdep1.Foo
-
-foobar :: Int -> Int
-foobar = subfoo . (+42)
+prefixFoo :: Int -> Int
+prefixFoo x = if x > 0 then x else - x

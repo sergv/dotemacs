@@ -490,9 +490,10 @@ existing file. If PATH is relative then try resolving it against DIR."
   (cond
     ((or (file-exists-p path)
          (file-directory-p path))
-     (if (file-name-absolute-p path)
-         path
-       (expand-file-name path dir)))
+     (normalise-file-name
+      (if (file-name-absolute-p path)
+          path
+        (expand-file-name path dir))))
     ((file-name-absolute-p path)
      (funcall (or on-err #'ignore)
               "Non-existing absolute file name: %s, probably something went wrong"
