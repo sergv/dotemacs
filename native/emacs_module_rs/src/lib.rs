@@ -22,7 +22,7 @@ pub mod path;
 use emacs_conv::*;
 use path::EmacsPath;
 
-emacs::use_symbols!(nil make_egrep_match);
+emacs::use_symbols!(nil make_egrep_match length);
 
 // Emacs won't load the module without this.
 emacs::plugin_is_GPL_compatible!();
@@ -111,14 +111,15 @@ fn score_single_match<'a>(
 #[defun]
 fn find_rec<'a>(
     env: &'a Env,
-    input_roots: Vector,
-    input_globs: Vector,
-    input_ignored_file_globs: Vector,
-    input_ignored_dir_globs: Vector,
-    input_ignored_dir_prefixes_globs: Vector,
-    input_ignored_abs_dirs: Vector,
+    input_roots: Value,
+    input_globs: Value,
+    input_ignored_file_globs: Value,
+    input_ignored_dir_globs: Value,
+    input_ignored_dir_prefixes_globs: Value,
+    input_ignored_abs_dirs: Value,
 ) -> Result<Value<'a>>
 {
+    let roots_count: usize = env.call(length, (input_roots,))?.into_rust()?;
     let roots = to_strings_iter(input_roots);
 
     let globs = to_strings_iter(input_globs);
@@ -133,6 +134,7 @@ fn find_rec<'a>(
 
     find::find_rec(
         roots,
+        roots_count,
         &ignores,
         || Ok(()),
         |_state, _orig_root: (), x, chan| {
@@ -149,12 +151,12 @@ fn find_rec<'a>(
 #[defun]
 fn find_rec_serial<'a>(
     env: &'a Env,
-    input_roots: Vector,
-    input_globs: Vector,
-    input_ignored_file_globs: Vector,
-    input_ignored_dir_globs: Vector,
-    input_ignored_dir_prefixes_globs: Vector,
-    input_ignored_abs_dirs: Vector,
+    input_roots: Value,
+    input_globs: Value,
+    input_ignored_file_globs: Value,
+    input_ignored_dir_globs: Value,
+    input_ignored_dir_prefixes_globs: Value,
+    input_ignored_abs_dirs: Value,
 ) -> Result<Value<'a>>
 {
     let roots = to_strings_iter(input_roots);
@@ -174,7 +176,7 @@ fn find_rec_serial<'a>(
         }
     }
 
-    let mut s = IncrementalResErrVec::new(env)?;
+    let mut s = IncrementalResErrList::new(env)?;
 
     loop {
         let root: PathBuf =
@@ -197,16 +199,17 @@ fn find_rec_serial<'a>(
 #[defun]
 fn grep<'a>(
     env: &'a Env,
-    input_roots: Vector,
+    input_roots: Value,
     regexp: String,
-    input_globs: Vector,
-    input_ignored_file_globs: Vector,
-    input_ignored_dir_globs: Vector,
-    input_ignored_dir_prefixes_globs: Vector,
-    input_ignored_abs_dirs: Vector,
+    input_globs: Value,
+    input_ignored_file_globs: Value,
+    input_ignored_dir_globs: Value,
+    input_ignored_dir_prefixes_globs: Value,
+    input_ignored_abs_dirs: Value,
     input_case_insensitive: Value,
 ) -> Result<Value<'a>>
 {
+    let roots_count: usize = env.call(length, (input_roots,))?.into_rust()?;
     let roots = to_strings_iter(input_roots);
 
     let globs = to_strings_iter(input_globs);
@@ -219,10 +222,11 @@ fn grep<'a>(
 
     let ignores = find::Ignores::new(globs, ignored_file_globs, ignored_dir_globs, ignored_dir_prefixes_globs, ignored_abs_dirs)?;
 
-    let mut results = IncrementalResVec::new(env)?;
+    let mut results = IncrementalResList::new(env)?;
 
     find::find_rec(
         roots,
+        roots_count,
         &ignores,
         || {
             let searcher = SearcherBuilder::new()
@@ -369,4 +373,3 @@ impl<'a, 'b, 'c> grep_searcher::Sink for GrepSink<'a, 'b, 'c> {
         Ok(true)
     }
 }
-
