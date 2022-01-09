@@ -138,7 +138,7 @@ Use like this to pick changes that will go into CURR-CONFIG-DIR:
            (concat "^.*" (regexp-opt +ignored-file-extensions+) "\\'")))
         (ignored-dirs-re (eval-when-compile
                            (concat "\\(?:^\\|/\\)"
-                                   (regexp-opt (vector->list +ignored-directories+))
+                                   (regexp-opt +ignored-directories+)
                                    "/.*$"))))
     (dolist (p (--map (file-relative-name it new-config-dir)
                       (find-rec new-config-dir

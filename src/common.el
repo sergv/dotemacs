@@ -173,8 +173,7 @@ of random numbers from RANDOM-GEN."
   (declare (pure nil) (side-effect-free t))
   (string-match-p (eval-when-compile
                     (concat "\\(?:/\\|^\\)\\(?:"
-                            (regexp-opt
-                             (vector->list +version-control-directories+))
+                            (regexp-opt +version-control-directories+)
                             "\\)\\(?:/\\|$\\)"))
                   filepath))
 

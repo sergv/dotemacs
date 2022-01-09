@@ -357,7 +357,7 @@ regexp and files under version-control directories."
         (pcomplete-dir-ignore
          (eval-when-compile
            (concat "\\`"
-                   (regexp-opt (vector->list +version-control-directories+))
+                   (regexp-opt +version-control-directories+)
                    "\\'"))))
     (pcomplete-entries select)))
 
@@ -365,7 +365,7 @@ regexp and files under version-control directories."
   (let ((pcomplete-dir-ignore
          (eval-when-compile
            (concat "\\`"
-                   (regexp-opt (vector->list +version-control-directories+))
+                   (regexp-opt +version-control-directories+)
                    "\\'"))))
     (pcomplete-dirs)))
 
