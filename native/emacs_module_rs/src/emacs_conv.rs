@@ -28,12 +28,10 @@ pub fn path_to_string(path: PathBuf) -> result::Result<String, String> {
 }
 
 pub fn to_strings_iter<'a>(
-    input: Vector<'a>
-) -> std::iter::Map<<Vector as IntoIterator>::IntoIter, fn(Value<'a>) -> emacs::Result<String>>
+    input: Value<'a>
+) -> DecodingListIter<'a, String>
 {
-    input
-        .into_iter()
-        .map(String::from_lisp)
+    DecodingListIter::new(input)
 }
 
 pub fn resize<'a>(v: Vector<'a>) -> Result<Vector<'a>> {
