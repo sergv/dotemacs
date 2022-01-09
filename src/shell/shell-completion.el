@@ -432,7 +432,7 @@ under version-control directories."
         ("replay")
         ("log")
         ("run")))
-      ("branch"
+      (("branch" "br")
        (opts
         (flags "-v"
                "--verbose"
