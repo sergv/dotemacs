@@ -181,20 +181,6 @@ runtime but rather will be silently relied on)."
         (let ((previous-line-end (line-end-position 0)))
           (buffer-substring-no-properties start previous-line-end))))))
 
-;;;###autoload
-(defun eproj/haskell-get-extra-navigation-files (proj)
-  (let ((cabal-project-files
-         (directory-files (eproj-project/root proj)
-                          t ;; full
-                          (rx bos
-                              (or (seq "cabal" (* nonl) ".project" (? ".local"))
-                                  (seq "stack" (* nonl) ".yaml")
-                                  (seq (+ nonl) ".cabal"))
-                              eos)
-                          t ;; nosort
-                          )))
-    cabal-project-files))
-
 (defun eproj-haskell--cabal--get-field (name)
   "Try to read value of field with NAME from current buffer."
   (save-match-data
