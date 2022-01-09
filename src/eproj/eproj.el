@@ -104,10 +104,6 @@
 
   ;; Possibly strip unneeded information before performing navigation
   normalise-identifier-before-navigation-procedure
-  ;; Procedure of single argument - current eproj project. Should return
-  ;; a list of absolute paths of files that should be included into
-  ;; navigation candidates of `eproj-switch-to-file-or-buffer'.
-  get-extra-navigation-files-procedure
   ;; List of strings - globs for files to consider during quick navigation.
   extra-navigation-globs)
 
@@ -119,7 +115,6 @@
                               tag->string-func
                               synonym-modes
                               normalise-identifier-before-navigation-procedure
-                              get-extra-navigation-files-procedure
                               extra-navigation-globs)
   (cl-assert (symbolp mode))
   (cl-assert (listp extensions))
@@ -148,10 +143,6 @@
                  (functionp normalise-identifier-before-navigation-procedure)
                  (autoloadp normalise-identifier-before-navigation-procedure)
                  (subr-native-elisp-p normalise-identifier-before-navigation-procedure)))
-  (cl-assert (or (null get-extra-navigation-files-procedure)
-                 (functionp get-extra-navigation-files-procedure)
-                 (autoloadp get-extra-navigation-files-procedure)
-                 (subr-native-elisp-p get-extra-navigation-files-procedure)))
   (cl-assert (or (null extra-navigation-globs)
                  (-all? #'stringp extra-navigation-globs)))
   (make-eproj-language
@@ -167,8 +158,6 @@
    :synonym-modes synonym-modes
    :normalise-identifier-before-navigation-procedure
    normalise-identifier-before-navigation-procedure
-   :get-extra-navigation-files-procedure
-   get-extra-navigation-files-procedure
    :extra-navigation-globs
    extra-navigation-globs))
 
@@ -203,11 +192,15 @@
                      uuag-mode)
     :normalise-identifier-before-navigation-procedure
     #'haskell-remove-module-qualification
-    :get-extra-navigation-files-procedure
-    #'eproj/haskell-get-extra-navigation-files
     :extra-navigation-globs
     (eval-when-compile
-      (append '("*.cabal" "package.yaml" "stack*.yaml")
+      (append '("*.cabal"
+                "cabal.project"
+                "cabal.project.*"
+                "cabal.project.local"
+                "cabal.project.*.local"
+                "package.yaml"
+                "stack*.yaml")
               (--map (concat "*." it) +cpp-extensions+))))
    (mk-eproj-lang
     :mode 'rust-mode
@@ -720,7 +713,7 @@ for project at ROOT directory."
 
 (defun eproj-descibe-proj (buf proj &optional describe-tags describe-buffers)
   "Insert description of PROJ in current buffer BUF."
-  (let ((indent "    "))
+  (let ((indent "  "))
     (with-current-buffer buf
       (insert "root: " (eproj-project/root proj) "\n")
       (insert (format "languages: %s\n" (eproj-project/languages proj)))
@@ -747,20 +740,29 @@ for project at ROOT directory."
                           (+ tag-count (length (cdr entry))))))
                 (number->string tag-count))
               "\n")
+      (insert "\nnavigation globs: "
+              (mapconcat #'identity (eproj--navigation-globs proj) " "))
+      (insert "\n")
+
+      (insert "\nnavigation files:\n")
+      (eproj-with-all-project-files-for-navigation proj
+                                                   (lambda (_abs-path rel-path)
+                                                     (insert rel-path "\n")))
+      (insert "\n")
       (when describe-tags
         (insert "tags:\n")
         (dolist (tags-entry (eproj--get-tags proj))
           (let ((lang-tags (-sort (lambda (a b) (string< (car a) (car b)))
                                   (eproj-tag-index-entries (cdr tags-entry)))))
-            (insert indent "lang: "
+            (insert "lang: "
                     (pp-to-string (car tags-entry))
                     ", total amount = "
                     (number->string (length lang-tags))
                     "\n")
             (dolist (entry lang-tags)
-              (insert indent indent (pp-to-string (car entry)) "\n")
+              (insert indent (pp-to-string (car entry)) "\n")
               (dolist (subentry (cdr entry))
-                (insert indent indent indent
+                (insert indent indent
                         (format "%s:%s\n"
                                 (file-relative-name
                                  (expand-file-name
@@ -925,8 +927,7 @@ project for PATH."
 (defun eproj--filter-ignored-files-from-file-list (proj files)
   "Filter list of FILES using ignored-files-globs of project PROJ."
   (if-let ((regexp (eproj-project/cached-ignored-files-re proj)))
-      (--filter (not (string-match-p regexp it))
-                files)
+      (cl-delete-if (lambda (x) (string-match-p regexp x)) files)
     files))
 
 (defun eproj-with-all-project-files-for-navigation (proj func)
@@ -959,7 +960,7 @@ current project’s root."
                       globs))))
     globs))
 
-(defun eproj--generic-navigation-files (proj)
+(defun eproj--navigation-files (proj)
   "Get language-independent files that are useful to have when
 doing `eproj-switch-to-file-or-buffer'."
   (let ((files
@@ -974,45 +975,37 @@ doing `eproj-switch-to-file-or-buffer'."
 
 (defun eproj--get-all-files (proj)
   "Get all files that are managed by a project PROJ."
-  (let ((files
-         (aif (eproj-project/aux-files proj)
-             (append
-              (eproj-get-project-files proj)
-              it)
-           (eproj-get-project-files proj)))
-        (generic-navigation-files
-         (eproj--generic-navigation-files proj))
-        (files-cache (eproj-project/cached-files-for-navigation proj))
-        (proj-root (eproj-project/root proj)))
+  (let* ((files (eproj-get-project-files proj))
+         (aux (eproj-project/aux-files proj))
+         (all-files (nconc aux files))
+         (extra (eproj--navigation-files proj))
+         (files-cache (eproj-project/cached-files-for-navigation proj))
+         (proj-root (eproj-project/root proj)))
     ;; Cache files
     (if files-cache
         (clrhash files-cache)
-      (setf files-cache (make-hash-table :test #'equal :size (length files))
+      (setf files-cache (make-hash-table :test #'equal :size (length all-files))
             (eproj-project/cached-files-for-navigation proj) files-cache))
-    (dolist (file files)
-      (eproj--add-cached-file-for-navigation
-       proj-root
-       file
-       files-cache))
-    (dolist (file generic-navigation-files)
-      (eproj--add-cached-file-for-navigation
-       proj-root
-       file
-       files-cache))
-    files))
+    (dolist (file all-files)
+      (eproj--add-cached-file-for-navigation proj-root file files-cache))
+    (dolist (file extra)
+      (eproj--add-cached-file-for-navigation proj-root file files-cache))
+    all-files))
 
 (defun eproj--read-file-list (file)
-  (let ((result nil))
+  (let* ((result (cons nil nil))
+         (tmp result))
     (with-temp-buffer
       (insert-file-contents-literally file)
       (goto-char (point-min))
       (while (not (eobp))
-        (push (trim-whitespace
-               (buffer-substring-no-properties (line-beginning-position)
-                                               (line-end-position)))
-              result)
+        (let ((path (trim-whitespace
+                     (buffer-substring-no-properties (line-beginning-position)
+                                                     (line-end-position)))))
+          (setf tmp
+                (setf (cdr tmp) (cons path nil))))
         (forward-line 1)))
-    (nreverse result)))
+    (cdr result)))
 
 (defun eproj-get-project-files (proj)
   "Retrieve project files for PROJ depending on it's type. Returns absolute
@@ -1022,7 +1015,7 @@ paths."
   (if-let (cached-files (eproj-project/cached-file-list proj))
       cached-files
     (let ((related-projects-roots (eproj-project/related-projects proj)))
-      ;; if there's file-list then read it and store to cache
+      ;; If there's a file-list then read it and store to cache.
       (if-let (file-list-filename (eproj-project/file-list-filename proj))
           (let ((list-of-files (eproj--read-file-list file-list-filename)))
             (cl-assert (listp list-of-files))
@@ -1037,33 +1030,31 @@ paths."
                                  resolved-files))
               (setf (eproj-project/cached-file-list proj) resolved-files)
               resolved-files))
-        (let ((globs
-               (-mapcat (lambda (lang)
-                          (cl-assert (and lang (symbolp lang)) nil
-                                     "Expected a symbor for language but got: %s"
-                                     lang)
-                          (aif (gethash lang eproj/languages-table)
-                              (--map (concat "*." it)
-                                     (eproj-language/extensions it))
-                            (error "Unknown language: %s" lang)))
-                        (eproj-project/languages proj))))
-          (if globs
-              (find-rec*
-               :root (eproj-project/root proj)
-               :globs-to-find (-mapcat (lambda (lang)
-                                         (cl-assert (and lang (symbolp lang)) nil
-                                                    "Expected a symbor for language but got: %s"
-                                                    lang)
-                                         (aif (gethash lang eproj/languages-table)
-                                             (--map (concat "*." it)
-                                                    (eproj-language/extensions it))
-                                           (error "Unknown language: %s" lang)))
-                                       (eproj-project/languages proj))
-               :ignored-files-globs (eproj-project/ignored-files-globs proj)
-               :ignored-absolute-dirs related-projects-roots
-               :ignored-directories +ignored-directories+
-               :ignored-directory-prefixes +ignored-directory-prefixes+)
-            nil))))))
+        (when-let (globs
+                   (-mapcat (lambda (lang)
+                              (cl-assert (and lang (symbolp lang)) nil
+                                         "Expected a symbol for language but got: %s"
+                                         lang)
+                              (aif (gethash lang eproj/languages-table)
+                                  (--map (concat "*." it)
+                                         (eproj-language/extensions it))
+                                (error "Unknown language: %s" lang)))
+                            (eproj-project/languages proj)))
+          (find-rec*
+           :root (eproj-project/root proj)
+           :globs-to-find (-mapcat (lambda (lang)
+                                     (cl-assert (and lang (symbolp lang)) nil
+                                                "Expected a symbor for language but got: %s"
+                                                lang)
+                                     (aif (gethash lang eproj/languages-table)
+                                         (--map (concat "*." it)
+                                                (eproj-language/extensions it))
+                                       (error "Unknown language: %s" lang)))
+                                   (eproj-project/languages proj))
+           :ignored-files-globs (eproj-project/ignored-files-globs proj)
+           :ignored-absolute-dirs related-projects-roots
+           :ignored-directories +ignored-directories+
+           :ignored-directory-prefixes +ignored-directory-prefixes+))))))
 
 (defun eproj-get-related-projects (root aux-info)
   "Return list of roots of related project for folder ROOT and AUX-INFO.
@@ -1084,16 +1075,31 @@ Returns nil if no relevant entry found in AUX-INFO."
           it)))
 
 (defun eproj-project/aux-files (proj)
+  "Get aux files, mainly for navigation."
   (when-let (aux-files-entry (eproj-project/aux-files-entries proj))
-    (let ((project-root (eproj-project/root proj)))
+    (let ((project-root (eproj-project/root proj))
+          (aux-trees (make-hash-table :test #'equal)))
       (with-temp-buffer
         (cd project-root)
-        (eproj--filter-ignored-files-from-file-list
-         proj
-         (--mapcat (eproj--interpret-aux-files-entry project-root it)
-                   aux-files-entry))))))
+        (mapc (lambda (entry) (eproj--interpret-aux-files-entry project-root entry aux-trees))
+              aux-files-entry))
 
-(defun eproj--interpret-aux-files-entry (project-root item)
+      (let ((result nil))
+        (maphash (lambda (root globs)
+                   (let ((raw-files (find-rec*
+                                     :root root
+                                     :globs-to-find globs
+                                     :ignored-files-globs (eproj-project/ignored-files-globs proj)
+                                     :ignored-absolute-dirs (eproj-project/related-projects proj)
+                                     :ignored-directories []
+                                     :ignored-directory-prefixes [])))
+                     (setf result
+                           (nconc (eproj--filter-ignored-files-from-file-list proj raw-files)
+                                  result))))
+                 aux-trees)
+        result))))
+
+(defun eproj--interpret-aux-files-entry (project-root item aux-trees)
   (cl-assert (listp item) nil
              "invalid entry under aux-files clause, list expected: %s"
              item)
@@ -1112,17 +1118,15 @@ Returns nil if no relevant entry found in AUX-INFO."
                       "Invalid patterns under aux-files/tree clause: %s"
                       patterns)
            (let ((resolved-tree-root
-                  (eproj--resolve-to-abs-path-cached tree-root
-                                                     project-root)))
+                  (eproj--resolve-to-abs-path-cached tree-root project-root)))
              (cl-assert (file-name-absolute-p resolved-tree-root)
                         nil
                         "Resolved aux tree root is not absolute: %s"
                         resolved-tree-root)
-             (let ((globs (globs-to-regexp patterns)))
-               (find-rec resolved-tree-root
-                         :filep
-                         (lambda (path)
-                           (string-match-p globs path)))))))
+             (puthash resolved-tree-root
+                      (append patterns
+                              (gethash resolved-tree-root aux-trees nil))
+                      aux-trees))))
         (t
          (error "Invalid 'aux-files entry: 'tree clause not found"))))
 
@@ -1248,7 +1252,10 @@ Returns list of (tag-name tag project) lists."
             (if include-related-projects?
                 (eproj-get-all-related-projects proj)
               (list proj)))
-           (related-roots (list->vector (-map #'eproj-project/root all-related-projects)))
+           (related-roots (let ((tbl (make-hash-table :test #'equal)))
+                            (dolist (pr all-related-projects)
+                              (puthash (eproj-project/root pr) t tbl))
+                            tbl))
            ;; List of (<display-name> . <absolute-file-name>).
            ;; <display-name> will be shown to the user anad used for completion.
            ;; <absolute-file-name> will be used to actually locate the file.
@@ -1269,36 +1276,25 @@ Returns list of (tag-name tag project) lists."
               (let ((buf (get-file-buffer abs-path)))
                 (when (or (not buf)
                           (invisible-buffer? buf))
-                  (dolist (p (if (string= abs-path rel-path)
-                                 (list abs-path)
-                               (list abs-path rel-path)))
+                  (dolist (p (if rel-path
+                                 (list abs-path rel-path)
+                               (list abs-path)))
                     (unless (gethash p collected-entries nil)
                       (puthash p t collected-entries)
                       (push (cons p abs-path) files))))))))
       (let ((eproj-file (concat root "/.eproj-info")))
-        (funcall add-file eproj-file ".epoj-info"))
+        (when (file-exists-p eproj-file)
+          (funcall add-file eproj-file nil)))
       (dolist (related-proj all-related-projects)
         (eproj-with-all-project-files-for-navigation related-proj add-file)
         (let ((eproj-file (concat (eproj-project/root related-proj) "/.eproj-info")))
-          (funcall add-file eproj-file eproj-file)))
-      (dolist (mode (eproj-project/languages proj))
-        (let ((lang (gethash mode eproj/languages-table)))
-          (unless lang
-            (error "Project %s specifies unrecognised language: %s" root mode))
-          (awhen (eproj-language/get-extra-navigation-files-procedure lang)
-            (let ((extra-files (funcall it proj)))
-              (cl-assert (and (listp extra-files) (-all? #'file-name-absolute-p extra-files)) nil
-                         "The get-extra-navigation-files-procedure '%s' did not return a list of absolute file paths: %s"
-                         it
-                         extra-files)
-              (dolist (path extra-files)
-                (funcall add-file path (file-relative-name path root)))))))
+          (when (file-exists-p eproj-file)
+            (funcall add-file eproj-file nil))))
       (dolist (buf (nreverse (if include-all-buffers?
                                  (buffer-list)
                                (--filter (or (null (buffer-file-name it))
-                                             (if-let ((pr (eproj-get-project-for-buf-lax it)))
-                                                 (v-member (eproj-project/root pr)
-                                                           related-roots)))
+                                             (when-let (pr (eproj-get-project-for-buf-lax it))
+                                               (gethash (eproj-project/root pr) related-roots)))
                                          (visible-buffers)))))
         (let* ((buffer-abs-file (buffer-file-name buf))
                (names
