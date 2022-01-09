@@ -261,7 +261,10 @@ as a fallback if those are not available."
            (append (-map #'strip-trailing-slash ignored-directories)
                    (--map (concat it "*") ignored-directory-prefixes))))
          (ignored-absolute-dirs-re
-          (mk-regexp-from-alts ignored-absolute-dirs)))
+          (when ignored-absolute-dirs
+            (concat "\\`\\(?:"
+                    (mk-regexp-from-alts ignored-absolute-dirs)
+                    "\\)\\(?:/.*\\)?\\'"))))
     (find-rec root
               :filep
               (cond

@@ -652,7 +652,7 @@ for project at ROOT directory."
           (eproj-get-related-projects root aux-info))
          (cached-ignored-files-re
           (let ((related-projs-globs
-                 (--map (concat it "*") related-projects)))
+                 (--map (concat it "/*") related-projects)))
             (globs-to-regexp (append ignored-files-globs related-projs-globs)))))
     (cl-assert (sequencep languages) nil "Project languages is not a sequence: %s" languages)
     (cl-assert (listp extra-navigation-globs))
@@ -1065,13 +1065,7 @@ Returns nil if no relevant entry found in AUX-INFO."
             (cl-assert (stringp path) nil
                        "invalid entry under related clause, string expected %s"
                        path)
-            (progn ;; condition-case err
-              (eproj--resolve-to-abs-path-cached path root)
-              ;; (error
-              ;;  (error "invalid related-project entry: non-existing absolute/relative directory: %s\n%s"
-              ;;         path
-              ;;         err))
-              ))
+            (eproj--resolve-to-abs-path-cached path root))
           it)))
 
 (defun eproj-project/aux-files (proj)
