@@ -10,6 +10,9 @@
 ;; [(languages <langs>)] - it's not a good practice to omit this; if it's empty
 ;;                         then no attempt will be made to infer languages used
 ;; [(related <abs-or-rel-dir>*])
+;;
+;; These are different from ‘extra-navigation-files’: these are included in all files
+;; and return together with e.g. *.hs and *.c files.
 ;; [(aux-files
 ;;   [(tree <tree-root> <glob>*)])]
 ;; [(ignored-files <glob>+)] - ignored filenames, <glob>
