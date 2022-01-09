@@ -12,6 +12,7 @@
 (require 'common)
 (require 'ert)
 
+(require 'find-files)
 (require 'eproj)
 (require 'eproj-haskell)
 
@@ -109,7 +110,7 @@ under ROOT directory."
   (expand-file-name (concat eproj-tests/project-dir "/haskell-implicit-project-with-local.zip")))
 
 (defconst eproj-tests/haskell-project-with-aux-files
-  (expand-file-name (concat eproj-tests/project-dir "/haskell-project-with-aux-files")))
+  (expand-file-name (concat eproj-tests/project-dir "/haskell-project-with-aux-files/prefix-long")))
 
 (eproj-tests--define-tests
     "eproj-tests/%s/eproj-get-all-related-projects"
@@ -507,7 +508,6 @@ under ROOT directory."
  "eproj-tests/%s/haskell-project-with-aux-files"
  (let* ((path eproj-tests/haskell-project-with-aux-files)
         (proj (eproj-get-project-for-path path))
-
         (expected-navigation-files
          '("foo.cabal"
            "src/Foo.hs"
@@ -532,7 +532,7 @@ under ROOT directory."
      (should (equal (eproj-tests/sort-file-list actual-navigation-files)
                     (eproj-tests/sort-file-list expected-navigation-files))))
 
-   (dolist (name '("foobar" "subfoo" "subbar"))
+   (dolist (name '("foobar" "subfoo" "subbar" "prefixFoo"))
      (should (eproj-get-matching-tags proj 'haskell-mode name nil)))))
 
 ;;;; eproj/ctags-get-tags-from-buffer
