@@ -108,8 +108,8 @@
                                               path))
                                         (and (file-directory-p path)
                                              (or (string= "src" path)
-                                                 (v-member path
-                                                           +version-control-directories+)
+                                                 (member path
+                                                         +version-control-directories+)
                                                  ;; this is somewhat vacuous
                                                  ;; (not (string-match-p
                                                  ;;       "[A-Z][a-zA-Z]*"

@@ -113,11 +113,10 @@
                                       (concat
                                        ".*"
                                        (regexp-opt
-                                        (append
-                                         (list ".#" ".cask")
-                                         +ignored-file-extensions+))))
+                                        (append (list ".#" ".cask")
+                                                +ignored-file-extensions+))))
                              (funcall re-group
-                                      (regexp-opt (vector->list +version-control-directories+)))))
+                                      (regexp-opt +version-control-directories+))))
            "\\'")))
 
       ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-frame-center))
