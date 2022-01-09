@@ -748,10 +748,6 @@ block motions."
                (delete-frame)
              (error (save-buffers-kill-emacs))))))
 
-(vim:defcmd vim:cmd-set-mark ((argument:char mark-char) nonrepeatable)
-  "Sets the mark `mark-char' at point."
-  (vim:set-mark mark-char))
-
 (defvar vim--current-macro nil
   "The name of the currently recorded macro.")
 
