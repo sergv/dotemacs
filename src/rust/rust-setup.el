@@ -493,7 +493,14 @@ sexps and indentation levels."
                      (when flycheck-mode
                        (list
                         " "
-                        '(:eval (flycheck-pretty-mode-line))))))
+                        '(:eval (flycheck-pretty-mode-line)))))
+
+              lsp-ui-sideline-show-code-actions t
+              lsp-ui-sideline-enable t
+              lsp-ui-sideline-ignore-duplicate t
+              lsp-ui-sideline-show-hover nil
+              lsp-ui-sideline-show-diagnostics nil
+              lsp-ui-sideline-delay 0.05)
 
   (dolist (cmd '("conf" "configure"))
     (vim:local-emap cmd #'vim:rust-flycheck-configure))
