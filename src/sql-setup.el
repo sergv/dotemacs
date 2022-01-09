@@ -18,7 +18,7 @@
   "
 _t_: beginning of statement
 _h_: end of statement"
-  ("t" csql-beginning-of-statement)
+  ("t" sql-beginning-of-statement)
   ("h" sql-end-of-statement))
 
 ;;;###autoload
