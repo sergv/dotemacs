@@ -1,0 +1,4 @@
+packages:
+  foo.cabal
+  dep/subdep1/
+  dep/subdep2/
