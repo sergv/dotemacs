@@ -44,7 +44,7 @@
                                 (generic/length (browse-kill-ring--get-ring-value))))
                  ")")
                 (:eval
-                 (when (buffer-narrowed?)
+                 (when (buffer-narrowed-p)
                    "(Narrowed)"))))
   (def-keys-for-map browse-kill-ring-mode-map
     +vim-special-keys+
