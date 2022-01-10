@@ -75,11 +75,6 @@
         ;; (message "(defalias %s %s)" new-command command)
         (defalias new-command command)))))
 
-(defun buffer-narrowed? ()
-  (/= (buffer-size)
-      (- (point-max)
-         (point-min))))
-
 (provide 'custom-predicates)
 
 ;; Local Variables:

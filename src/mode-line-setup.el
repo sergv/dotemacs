@@ -50,7 +50,7 @@
            mode-line-process
            ")")
           (:eval
-           (when (buffer-narrowed?)
+           (when (buffer-narrowed-p)
              "(Narrowed)"))
           " "
           (line-number-mode
@@ -87,7 +87,7 @@
        (1 "(dos)")
        (2 "(mac)")))
     (:eval
-     (when (buffer-narrowed?)
+     (when (buffer-narrowed-p)
        "(Narrowed)"))
     ,@checkers-specs
     " "

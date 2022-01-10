@@ -98,7 +98,7 @@ or just to bury selection buffer, leaving it's windows inplace (nil).)"
                                 (select-mode--state-items-count select-mode--current-state)))
                  ")")
                 (:eval
-                 (when (buffer-narrowed?)
+                 (when (buffer-narrowed-p)
                    "(Narrowed)"))))
   (add-hook 'post-command-hook #'select-mode--update-selected-item nil t)
   ;; (add-hook 'kill-buffer-hook #'select-mode--finish-selection nil t)
