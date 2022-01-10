@@ -15,6 +15,7 @@
 
 (defvar vim--current-universal-argument-provided?)
 (defvar vim--universal-argument-provided?)
+(defvar thing-at-point-beginning-of-url-regexp)
 
 (when-emacs-version (<= 28 it)
   (el-patch-defun kill-new (string &optional replace)
@@ -181,6 +182,54 @@ don't clear it."
                  (put cmd 'command-execute-obsolete-warned t)
                  (message "%s" (macroexp--obsolete-warning
                                 cmd (get cmd 'byte-obsolete-info) "command")))))))))))
+
+;;;###autoload
+(el-patch-feature thingatpt)
+
+(when-emacs-version (<= 28 it)
+  (el-patch-defun thing-at-point--bounds-of-well-formed-url (beg end pt)
+    (save-excursion
+      (goto-char beg)
+      (let (url-beg paren-end regexp)
+        (save-restriction
+	  (narrow-to-region beg end)
+	  ;; The scheme component must either match at BEG, or have no
+	  ;; other alphanumerical ASCII characters before it.
+	  (setq regexp (el-patch-swap
+                         (concat "\\(?:\\`\\|[^a-zA-Z0-9]\\)\\("
+			         (or thing-at-point-beginning-of-url-regexp
+				     (regexp-opt thing-at-point-uri-schemes))
+			         "\\)")
+                         (if thing-at-point-beginning-of-url-regexp
+                             (concat "\\(?:\\`\\|[^a-zA-Z0-9]\\)\\("
+                                     thing-at-point-beginning-of-url-regexp
+			             "\\)")
+                           (eval-when-compile
+                             (concat "\\(?:\\`\\|[^a-zA-Z0-9]\\)\\("
+			             (regexp-opt thing-at-point-uri-schemes)
+			             "\\)")))))
+	  (and (re-search-forward regexp end t)
+	       ;; URI must have non-empty contents.
+	       (< (point) end)
+	       (setq url-beg (match-beginning 1))))
+        (when url-beg
+	  ;; If there is an open paren before the URI, truncate to the
+	  ;; matching close paren.
+	  (and (> url-beg (point-min))
+	       (eq (car-safe (syntax-after (1- url-beg))) 4)
+	       (save-restriction
+	         (narrow-to-region (1- url-beg) (min end (point-max)))
+	         (setq paren-end (ignore-errors
+                                   ;; Make the scan work inside comments.
+                                   (let ((parse-sexp-ignore-comments nil))
+                                     (scan-lists (1- url-beg) 1 0)))))
+	       (not (blink-matching-check-mismatch (1- url-beg) paren-end))
+	       (setq end (1- paren-end)))
+	  ;; Ensure PT is actually within BOUNDARY. Check the following
+	  ;; example with point on the beginning of the line:
+	  ;;
+	  ;; 3,1406710489,https://gnu.org,0,"0"
+	  (and (<= url-beg pt end) (cons url-beg end)))))))
 
 (el-patch-defun universal-argument--description ()
   (when prefix-arg
