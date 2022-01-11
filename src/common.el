@@ -28,7 +28,6 @@
   "Undefined value not equal to anything but itself and not creatable
 by any means other than direct referencing via ‘+undef’.")
 
-
 ;; (autoload 'if-let "subr-x" nil nil 'macro)
 
 (defsubst remap-interval (a b c d x)
@@ -161,7 +160,8 @@ of random numbers from RANDOM-GEN."
 
 ;;;; file utilities
 
-(defalias 'strip-trailing-slash 'directory-file-name)
+(defsubst strip-trailing-slash (x)
+  (directory-file-name x))
 
 (defun path-concat (&rest args)
   "Connect paths with standard delimiter"
@@ -841,17 +841,18 @@ if there's no region."
 (defun find-first-matching (f xs)
   "Find first x among XS such that (F x) is non-nil, and
 return pair (x (F x))."
-  ;; imperative and ugly but efficient
+  (cl-assert (listp xs))
+  ;; Imperative and ugly but efficient.
   (let ((done nil)
         (y nil)
         (fy nil))
-    (while (and (not done)
-                (not (null? xs)))
-      (when-let (tmp (funcall f (car xs)))
-        (setf done t
-              y (car xs)
-              fy tmp))
-      (setf xs (cdr xs)))
+    (while (and (not done) xs)
+      (let ((x (car-sure xs)))
+        (when-let (tmp (funcall f x))
+          (setf done t
+                y x
+                fy tmp)))
+      (setf xs (cdr-sure xs)))
     (if done
         (values y fy)
       nil)))

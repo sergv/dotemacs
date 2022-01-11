@@ -798,8 +798,8 @@ If <bool> is ‘t’ then <name> is a string, otherwise it’s an integer obtain
   (puthash name last-kbd-macro vim--macro-definitions))
 
 (defun vim--render-macro-names (entries)
-  (let* ((result (cons nil nil))
-         (tmp result)
+  (let* ((res (cons nil nil))
+         (tmp res)
          (n 0)
          (name-mapping nil))
     (dolist (entry entries)
@@ -820,9 +820,8 @@ If <bool> is ‘t’ then <name> is a string, otherwise it’s an integer obtain
                    (setf name-mapping (cons (cons user-name real-name) name-mapping)
                          n (+ n 1))
                    user-name)))))
-        (setf (cdr tmp) (cons name nil)
-              tmp (cdr tmp))))
-    (cons (cdr result) name-mapping)))
+        (setf tmp (setcdr-sure tmp (cons name nil)))))
+    (cons (cdr res) name-mapping)))
 
 (defvar vim--executed-macro-names-history nil)
 

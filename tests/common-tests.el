@@ -219,29 +219,29 @@
 
 (ert-deftest common-tests/remove-duplicates-sorted ()
   (should (equal
-           (remove-duplicates-sorted nil #'string=)
+           (remove-duplicates-sorted! nil #'string=)
            nil))
   (should (equal
-           (remove-duplicates-sorted '("a") #'string=)
+           (remove-duplicates-sorted! '("a") #'string=)
            '("a")))
   (should (equal
-           (remove-duplicates-sorted '("a" "a") #'string=)
+           (remove-duplicates-sorted! '("a" "a") #'string=)
            '("a")))
   (should (equal
-           (remove-duplicates-sorted '("a" "b") #'string=)
+           (remove-duplicates-sorted! '("a" "b") #'string=)
            '("a" "b")))
   (should (equal
-           (remove-duplicates-sorted '("a" "a" "b") #'string=)
+           (remove-duplicates-sorted! '("a" "a" "b") #'string=)
            '("a" "b")))
   (should (equal
-           (remove-duplicates-sorted '("a" "b" "a") #'string=)
+           (remove-duplicates-sorted! '("a" "b" "a") #'string=)
            '("a" "b" "a")))
 
   (should (equal
-           (remove-duplicates-sorted '("a" "b" "c") #'string=)
+           (remove-duplicates-sorted! '("a" "b" "c") #'string=)
            '("a" "b" "c")))
   (should (equal
-           (remove-duplicates-sorted '("b" "c" "a") #'string=)
+           (remove-duplicates-sorted! '("b" "c" "a") #'string=)
            '("b" "c" "a"))))
 
 (ert-deftest common-tests/remove-duplicates-sorting ()
@@ -277,6 +277,28 @@
   (should (equal
            (remove-duplicates-hashing (copy-list '("a" "a" "b" "b" "c" "c"))
                                       #'equal)
+           '("a" "b" "c"))))
+
+(ert-deftest common-tests/remove-duplicates-by-hashing-projections ()
+  (should (equal
+           (remove-duplicates-by-hashing-projections #'identity
+                                                     (copy-list '("a" "b" "c"))
+                                                     #'equal)
+           '("a" "b" "c")))
+  (should (equal
+           (remove-duplicates-by-hashing-projections #'identity
+                                                     (copy-list '("b" "c" "a"))
+                                                     #'equal)
+           '("b" "c" "a")))
+  (should (equal
+           (remove-duplicates-by-hashing-projections #'identity
+                                                     (copy-list '("b" "c" "a" "b" "c"))
+                                                     #'equal)
+           '("b" "c" "a")))
+  (should (equal
+           (remove-duplicates-by-hashing-projections #'identity
+                                                     (copy-list '("a" "a" "b" "b" "c" "c"))
+                                                     #'equal)
            '("a" "b" "c"))))
 
 (ert-deftest common-tests/nested-hash-tables-1 ()
@@ -585,6 +607,30 @@
 (ert-deftest common-tests/count-chars-in-string-4 ()
   (should (equal (count-chars-in-string ?f "foobar")
                  1)))
+
+(ert-deftest common-tests/remove-duplicates-from-sorted-list-by-1 ()
+  (should (equal (remove-duplicates-from-sorted-list-by nil #'equal)
+                 nil)))
+
+(ert-deftest common-tests/remove-duplicates-from-sorted-list-by-2 ()
+  (should (equal (remove-duplicates-from-sorted-list-by '(1 1 2 3 4 4 5 5 5) #'equal)
+                 '(1 2 3 4 5))))
+
+(ert-deftest common-tests/remove-duplicates-from-sorted-list-by-3 ()
+  (should (equal (remove-duplicates-from-sorted-list-by '(1 2 3 4 5) #'equal)
+                 '(1 2 3 4 5))))
+
+(ert-deftest common-tests/remove-duplicates-from-sorted-list-by-4 ()
+  (should (equal (remove-duplicates-from-sorted-list-by '(1 1 2 3 4 5) #'equal)
+                 '(1 2 3 4 5))))
+
+(ert-deftest common-tests/remove-duplicates-from-sorted-list-by-5 ()
+  (should (equal (remove-duplicates-from-sorted-list-by '(1 2 3 3 4 5) #'equal)
+                 '(1 2 3 4 5))))
+
+(ert-deftest common-tests/remove-duplicates-from-sorted-list-by-6 ()
+  (should (equal (remove-duplicates-from-sorted-list-by '(1 2 3 4 5 5) #'equal)
+                 '(1 2 3 4 5))))
 
 ;; (progn
 ;;   (ert "common-tests/.*")
