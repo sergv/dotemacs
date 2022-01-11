@@ -121,29 +121,33 @@
   (let* ((res (cons nil nil))
          (tmp res))
     (while xs
-      (setf (cdr tmp) (cons (packing-pack-pair (car xs) (or (cadr xs) 0)) nil)
-            tmp (cdr tmp)
+      (setf tmp (setcdr-sure tmp
+                             (cons (packing-pack-pair (car xs)
+                                                      (or (cadr xs) 0))
+                                   nil))
             xs (cddr xs)))
     (cdr res)))
 
 (defun packing-unpack-list (xs)
   (declare (pure t) (side-effect-free t))
+  (cl-assert (listp xs))
   (let* ((res (cons nil nil))
          (prev nil)
          (tmp res))
     (while xs
-      (let* ((packed (car xs))
+      (let* ((packed (car-sure xs))
              (last (cons (packing-unpack-pair-cdr packed)
                          nil))
              (butlast (cons (packing-unpack-pair-car packed)
                             last)))
-        (setf (cdr tmp) butlast
-              prev butlast
-              tmp last
-              xs (cdr xs))))
-    (when (and (car tmp)
-               (= 0 (car tmp)))
-      (setf (cdr prev) nil))
+        (setf prev butlast)
+        (setcdr-sure tmp butlast)
+        (setf tmp last
+              xs (cdr-sure xs))))
+    (let ((first (car-sure tmp)))
+      (when (and first
+                 (= 0 first))
+        (setcdr-sure prev nil)))
     (cdr res)))
 
 (defvar packing--file-path-free-idx 1)

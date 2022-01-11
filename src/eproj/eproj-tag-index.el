@@ -22,6 +22,9 @@
 ;;   line   ;; number
 ;;   properties)
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'packing)
 
 (defconst eproj-tag-complex-type-prop '#:type)
@@ -30,6 +33,7 @@
   (cl-assert (or (null props) (consp props)))
   (cond
     ((stringp type)
+     ;; Put complex type into props.
      (cons file
            (cons (packing-pack-pair line -1)
                  (cons (cons eproj-tag-complex-type-prop
@@ -40,6 +44,7 @@
            (cons (packing-pack-pair line (or type -1))
                  props)))
     (t
+     ;; Compact representation when there are no props.
      (cons file
            (packing-pack-pair line (or type -1))))))
 
@@ -53,11 +58,11 @@
 (defsubst eproj-tag/file (tag-struct)
   "Get the file that current tag came from. Always absolute."
   (declare (pure t) (side-effect-free t))
-  (car tag-struct))
+  (car-sure tag-struct))
 
 (defsubst eproj-tag/line (tag-struct)
   (declare (pure t) (side-effect-free t))
-  (let ((rest (cdr tag-struct)))
+  (let ((rest (cdr-sure tag-struct)))
     (packing-unpack-pair-car
      (if (consp rest)
          (car rest)
@@ -65,7 +70,7 @@
 
 (defun eproj-tag/type (tag-struct)
   (declare (pure t) (side-effect-free t))
-  (let* ((rest (cdr tag-struct))
+  (let* ((rest (cdr-sure tag-struct))
          (res (packing-unpack-pair-cdr (if (consp rest)
                                            (car rest)
                                          rest))))
@@ -80,7 +85,7 @@
 ;; Return associative array of tag properties.
 (defun eproj-tag/properties (tag-struct)
   (declare (pure t) (side-effect-free t))
-  (let ((rest (cdr tag-struct)))
+  (let ((rest (cdr-sure tag-struct)))
     (if (consp rest)
         (cdr rest)
       nil)))
@@ -102,12 +107,12 @@
        (hash-table-p (cdr index))))
 
 (defsubst eproj-tag-index-size (index)
-  (hash-table-count (cdr index)))
+  (hash-table-count (cdr-sure index)))
 
 (defun eproj-tag-index-add! (symbol file line type props index)
   (cl-assert (stringp symbol))
   (cl-assert (or (characterp type) (stringp type) (null type)))
-  (let ((table (cdr index)))
+  (let ((table (cdr-sure index)))
     (puthash symbol
              (cons (make-eproj-tag file line type props)
                    (gethash symbol table))
@@ -115,25 +120,25 @@
 
 (defsubst eproj-tag-index-get (key index &optional default)
   (cl-assert (stringp key))
-  (gethash key (cdr index) default))
+  (gethash key (cdr-sure index) default))
 
 (defun eproj-tag-index-values-where-key-matches-regexp (re index &optional ignore-case)
   (cl-assert (eproj-tag-index-p index) nil "Invalid index: %s" index)
   (cl-assert (stringp re) nil "Invalid regexp: %s" re)
   (let ((case-fold-search ignore-case))
-    (hash-table-entries-matching-re (cdr index) re)))
+    (hash-table-entries-matching-re (cdr-sure index) re)))
 
 (defsubst eproj-tag-index-keys (index)
-  (hash-table-keys (cdr index)))
+  (hash-table-keys (cdr-sure index)))
 
 (defsubst eproj-tag-index-entries (index)
-  (hash-table->alist (cdr index)))
+  (hash-table->alist (cdr-sure index)))
 
 (defun eproj-tag-index-drop-tags-from-file! (fname proj-root index)
   "Remove all tags that come from FNAME file. Tag file names will be expanded
 relative to project root."
   (cl-assert (eproj-tag-index-p index))
-  (let* ((old-tbl (cdr index))
+  (let* ((old-tbl (cdr-sure index))
          (new-tbl (make-hash-table :test #'equal
                                    :size (hash-table-size old-tbl))))
     (maphash (lambda (key tags)
@@ -145,18 +150,18 @@ relative to project root."
                                   tags)
                         new-tbl))
              old-tbl)
-    (setcdr index new-tbl)))
+    (setcdr-sure index new-tbl)))
 
 (defun eproj-tag-index-map-values! (f index)
   "Destructively rewrite values in INDEX index by mapping function F."
   (cl-assert (eproj-tag-index-p index))
-  (let* ((old-tbl (cdr index))
+  (let* ((old-tbl (cdr-sure index))
          (new-tbl (make-hash-table :test #'equal
                                    :size (hash-table-size old-tbl))))
     (maphash (lambda (key value)
                (puthash key (funcall f value) new-tbl))
              old-tbl)
-    (setcdr index new-tbl)))
+    (setcdr-sure index new-tbl)))
 
 (defun eproj-tag-index-merge! (index-a index-b)
   "Add all entries of INDEX-B to INDEX-A while combining values for
@@ -166,11 +171,11 @@ equal keys using `append'."
   (hash-table-merge-with!
    (lambda (_sym tags-a tags-b)
      (append tags-a tags-b))
-   (cdr index-a)
-   (cdr index-b)))
+   (cdr-sure index-a)
+   (cdr-sure index-b)))
 
 (defsubst eproj-tag-index-all-completions (s index)
-  (all-completions s (cdr index)))
+  (all-completions s (cdr-sure index)))
 
 (provide 'eproj-tag-index)
 
