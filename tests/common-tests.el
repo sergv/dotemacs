@@ -570,6 +570,22 @@
                        "c:/foo/"
                        "c:/"))))
 
+(ert-deftest common-tests/count-chars-in-string-1 ()
+  (should (equal (count-chars-in-string ?\n "foobar")
+                 0)))
+
+(ert-deftest common-tests/count-chars-in-string-2 ()
+  (should (equal (count-chars-in-string ?o "foobar")
+                 2)))
+
+(ert-deftest common-tests/count-chars-in-string-3 ()
+  (should (equal (count-chars-in-string ?r "foobar")
+                 1)))
+
+(ert-deftest common-tests/count-chars-in-string-4 ()
+  (should (equal (count-chars-in-string ?f "foobar")
+                 1)))
+
 ;; (progn
 ;;   (ert "common-tests/.*")
 ;;   nil)
