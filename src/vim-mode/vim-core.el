@@ -408,29 +408,30 @@ but with nil, point will be repositioned at r:
 If an error occures, this function switches back to normal-mode.
 Since all vim-mode commands go through this function, this is
 the perfect point to do some house-keeping."
-  ;; note: this is for brief debugging only since vim's visual mode
-  ;; depends on the version with condition-case (if you dare to figure
-  ;; that out then you may change this function whatever you like)
+  (let ((err t))
+    (unwind-protect
+        (prog1
+            (funcall vim:active-command-function cmd)
+          (setq err nil))
+      (when err
+        (vim:reset-key-state)
+        (vim:clear-key-sequence)
+        (vim:adjust-point)
+        (vim:activate-normal-mode))))
 
-  ;; (unwind-protect
+  ;; (condition-case err
   ;;     (funcall vim:active-command-function cmd)
-  ;;   (vim:reset-key-state)
-  ;;   (vim:clear-key-sequence)
-  ;;   (vim:adjust-point)
-  ;;   (vim:activate-normal-mode))
-
-  (condition-case err
-      (funcall vim:active-command-function cmd)
-    (error
-     (vim:reset-key-state)
-     (vim:clear-key-sequence)
-     (vim:adjust-point)
-     (vim:activate-normal-mode)
-     (message "vim:execute-command: error: %s\nvim:active-command-function: %s\ncmd: %s"
-              err
-              vim:active-command-function
-              cmd)
-     (signal (car err) (cdr err)))))
+  ;;   (error
+  ;;    (vim:reset-key-state)
+  ;;    (vim:clear-key-sequence)
+  ;;    (vim:adjust-point)
+  ;;    (vim:activate-normal-mode)
+  ;;    (message "vim:execute-command: error: %s\nvim:active-command-function: %s\ncmd: %s"
+  ;;             err
+  ;;             vim:active-command-function
+  ;;             cmd)
+  ;;    (signal (car err) (cdr err))))
+  )
 
 (defun vim:execute-current-motion ()
   "Executes the current motion and returns the representing
