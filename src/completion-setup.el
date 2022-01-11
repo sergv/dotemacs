@@ -13,7 +13,7 @@
 (require 'common)
 
 (require 'ivy)
-(require 'ivy-posframe)
+;; (require 'ivy-posframe)
 (require 'ivy-smex)
 (require 'flx)
 
