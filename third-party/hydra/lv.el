@@ -33,7 +33,10 @@
 
 ;;; Code:
 
-(require 'cl-lib)
+(eval-when-compile
+  (require 'cl-lib))
+
+(require 'common)
 
 (defgroup lv nil
   "The other echo area."
@@ -97,8 +100,6 @@ Only the background color is significant."
           (run-hooks 'lv-window-hook))
         (select-window ori 'norecord)))))
 
-(defvar golden-ratio-mode)
-
 (defvar lv-force-update nil
   "When non-nil, `lv-message' will refresh even for the same string.")
 
@@ -112,28 +113,36 @@ Only the background color is significant."
 
 (defun lv-message (format-string &rest args)
   "Set LV window contents to (`format' FORMAT-STRING ARGS)."
-  (let* ((str (apply #'format format-string args))
-         (n-lines (cl-count ?\n str))
-         deactivate-mark
-         golden-ratio-mode)
+  (let ((str (if args
+                 (apply #'format format-string args)
+               format-string))
+        deactivate-mark)
     (with-selected-window (lv-window)
       (when lv-use-padding
         (setq str (lv--pad-to-center str (window-width))))
-      (unless (and (string= (buffer-string) str)
-                   (null lv-force-update))
-        (delete-region (point-min) (point-max))
-        (insert str)
-        (when (and (window-system) lv-use-separator)
-          (unless (looking-back "\n" nil)
-            (insert "\n"))
-          (insert
-           (propertize "__" 'face 'lv-separator 'display '(space :height (1)))
-           (propertize "\n" 'face 'lv-separator 'line-height t)))
-        (set (make-local-variable 'window-min-height) n-lines)
-        (setq truncate-lines (> n-lines 1))
-        (let ((window-resize-pixelwise t)
-              (window-size-fixed nil))
-          (fit-window-to-buffer nil nil 1)))
+      (let* ((max (point-max))
+             (min (point-min))
+             (content-length (- max min)))
+        (when (or (not (eq content-length (length str)))
+                  (not (string= (buffer-string) str))
+                  lv-force-update)
+          (delete-region min max)
+          (insert str)
+          (when (and (window-system) lv-use-separator)
+            (unless (looking-back "\n" nil)
+              (insert "\n"))
+            (insert
+             (propertize "__" 'face 'lv-separator 'display '(space :height (1)))
+             (propertize "\n" 'face 'lv-separator 'line-height t)))
+          (let ((n-lines (count-chars-in-string ?\n str)))
+            (set (if (local-variable-p 'window-min-height)
+                     'window-min-height
+                   (make-local-variable 'window-min-height))
+                 n-lines)
+            (setq truncate-lines (> n-lines 1))
+            (let ((window-resize-pixelwise t)
+                  (window-size-fixed nil))
+              (fit-window-to-buffer nil nil 1)))))
       (goto-char (point-min)))))
 
 (defun lv-delete-window ()
