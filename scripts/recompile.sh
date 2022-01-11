@@ -108,15 +108,6 @@ update-dir-autoloads \
     "src/local-autoloads.el" \
     $(find . \( -path '*/tests' -o -path '*/testing' -o -path '*/test' -o -name 'scripts' -o -name '.cask' -o -name '.git' \) -prune -o -type f -name '*.el' -print0 | xargs -0 grep -l ';;;###autoload' | xargs dirname | sort | uniq | sed 's,^\./,,')
 
-if which make >/dev/null; then
-    inform "Building autoloads in third-party/org-mode"
-    pushd "third-party/org-mode"
-    make autoloads
-    popd
-else
-    inform "warning: 'make' not found, not updating autoloads" >&2
-fi
-
 mkdir -p "${emacs_dir}/prog-data"
 mkdir -p "${emacs_dir}/resources"
 # for fresh emacsen
