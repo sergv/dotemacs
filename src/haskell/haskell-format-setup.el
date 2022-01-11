@@ -33,8 +33,8 @@
       (save-match-data
         (goto-char (point-min))
         (let* ((case-fold-search t) ;; Ignore case when matching regexps.
-               (result (cons t nil))
-               (extensions result)
+               (res (cons nil nil))
+               (exts res)
                (get-match-string (if without-properties
                                      #'match-string-no-properties
                                    #'match-string))
@@ -55,14 +55,13 @@
                   module-header-position ;; bound
                   t                      ;; no error
                   )
-            (let ((exts (split-string (funcall get-match-string 1)
-                                      "[, \v\f\r\n]+"
-                                      t ;; omit nulls
-                                      )))
-              (dolist (e exts)
-                (setf (cdr extensions) (cons e nil)
-                      extensions (cdr extensions)))))
-          (cdr result))))))
+            (let ((new-exts (split-string (funcall get-match-string 1)
+                                          "[, \v\f\r\n]+"
+                                          t ;; omit nulls
+                                          )))
+              (dolist (e new-exts)
+                (setf exts (setcdr-sure exts (cons e nil))))))
+          (cdr res))))))
 
 (defun haskell-format--format-with-brittany (indent width start end)
   "Format region using brittany haskell formatter."

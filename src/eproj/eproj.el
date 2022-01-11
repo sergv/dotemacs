@@ -993,8 +993,8 @@ doing `eproj-switch-to-file-or-buffer'."
     all-files))
 
 (defun eproj--read-file-list (file)
-  (let* ((result (cons nil nil))
-         (tmp result))
+  (let* ((res (cons nil nil))
+         (tmp res))
     (with-temp-buffer
       (insert-file-contents-literally file)
       (goto-char (point-min))
@@ -1002,10 +1002,9 @@ doing `eproj-switch-to-file-or-buffer'."
         (let ((path (trim-whitespace
                      (buffer-substring-no-properties (line-beginning-position)
                                                      (line-end-position)))))
-          (setf tmp
-                (setf (cdr tmp) (cons path nil))))
+          (setf tmp (setcdr-sure tmp (cons path nil))))
         (forward-line 1)))
-    (cdr result)))
+    (cdr res)))
 
 (defun eproj-get-project-files (proj)
   "Retrieve project files for PROJ depending on it's type. Returns absolute
