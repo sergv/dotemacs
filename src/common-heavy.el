@@ -248,20 +248,21 @@ number of spaces equal to `tab-width'."
       (string=? old new))))
 
 ;;;###autoload
-(defun remove-duplicates-from-sorted-list-by (eq-pred xs)
-  "Remove consecutive elements of xs for which eq-pred returns t."
-  (when (not (null? xs))
+(defun remove-duplicates-from-sorted-list-by (xs eq-pred)
+  "Remove consecutive elements of xs for which eq-pred returns t. Produce new list without duplicates."
+  (when xs
     (let* ((prev (car xs))
            (ys (cdr xs))
-           (result (list prev)))
+           (res (cons prev nil))
+           (tmp res))
       ;; prev is assumed to always be added to result
-      (while (not (null? ys))
-        (let ((y (car ys)))
-          (unless (funcall eq-pred prev y)
-            (setf prev y)
-            (push prev result))
+      (while ys
+        (let ((curr (car ys)))
+          (unless (funcall eq-pred prev curr)
+            (setf prev curr)
+            (setf tmp (setcdr-sure tmp (cons prev nil))))
           (setf ys (cdr ys))))
-      (nreverse result))))
+      res)))
 
 ;;;
 
@@ -509,66 +510,66 @@ existing file. If PATH is relative then try resolving it against DIR."
 
 ;;;###autoload
 (defun file-name-all-parents (path)
-  (let* ((prev "")
-         (results (cons nil nil))
-         (tmp results))
-    (while (and path
-                (not (string= prev path))
-                (not (string= path "")))
-      (setf tmp (setf (cdr tmp) (cons path nil))
-            prev path
-            path (file-name-directory (strip-trailing-slash path))))
-    (cdr results)))
+    (let* ((prev "")
+           (res (cons nil nil))
+           (tmp res))
+      (while (and path
+                  (not (string= prev path))
+                  (not (string= path "")))
+        (setf tmp (setcdr-sure tmp (cons path nil))
+              prev path
+              path (file-name-directory (strip-trailing-slash path))))
+      (cdr res)))
 
 ;;;###autoload
-(defun remove-duplicates-sorted (xs eq-func)
+(defun remove-duplicates-sorted! (xs eq-func)
   "Remove duplicates from sorted list in linear time."
-  (cl-assert (consp xs))
-  (let ((ys xs))
-    (while ys
-      (if (and (cdr ys)
-               (funcall eq-func (car ys) (cadr ys)))
-          (setf (cdr ys) (cddr ys))
-        (setf ys (cdr ys)))))
-  xs)
+  (when xs
+    (cl-assert (consp xs))
+    (let ((ys (comp-hint-cons xs)))
+      (while ys
+        (let ((rest (cdr-sure ys)))
+          (if (and rest
+                   (funcall eq-func
+                            (car-sure ys)
+                            (car-sure rest)))
+              (setcdr-sure ys (cdr-sure rest))
+            (setf ys rest)))))
+    xs))
 
 ;;;###autoload
 (defun remove-duplicates-sorting (xs eq-func comparison)
   "Sort XS using COMPARISON function and remove duplicates from the result
 using EQ-FUNC to determine equal elements."
   (cl-assert (list? xs))
-  (remove-duplicates-sorted (sort xs comparison) eq-func))
+  (remove-duplicates-sorted! (sort xs comparison) eq-func))
 
 ;;;###autoload
 (defun remove-duplicates-hashing (xs eq-func)
   "Remove duplicates from the XS using EQ-FUNC to determine equal elements."
   (cl-assert (consp xs))
   (let* ((tbl (make-hash-table :test eq-func))
-         (tmp (cons nil nil))
-         (result tmp))
+         (res (cons nil nil))
+         (tmp res))
     (dolist (x xs)
       (unless (gethash x tbl)
-        (let ((new-link (cons x nil)))
-          (puthash x t tbl)
-          (setf (cdr tmp) new-link
-                tmp new-link))))
-    (cdr result)))
+        (puthash x t tbl)
+        (setf tmp (setcdr-sure tmp (cons x nil)))))
+    (cdr res)))
 
 (defun remove-duplicates-by-hashing-projections (project eq-func xs)
   "Remove duplicates from the XS by hashing results of applying
 PROJECT. EQ-FUNC will be used as hash-table comparison."
   (cl-assert (consp xs))
   (let* ((tbl (make-hash-table :test eq-func))
-         (tmp (cons nil nil))
-         (result tmp))
+         (res (cons nil nil))
+         (tmp res))
     (dolist (x xs)
       (let ((proj (funcall project x)))
         (unless (gethash proj tbl)
-          (let ((new-link (cons x nil)))
-            (puthash proj t tbl)
-            (setf (cdr tmp) new-link
-                  tmp new-link)))))
-    (cdr result)))
+          (puthash proj t tbl)
+          (setf tmp (setcdr-sure tmp (cons x nil))))))
+    (cdr res)))
 
 ;;;
 

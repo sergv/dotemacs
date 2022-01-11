@@ -20,34 +20,34 @@
        (cons t (cons prev-buf buf-list))))))
 
 (defsubst prev-bufs--has-changes? (x)
-  (car x))
+  (car-sure x))
 
 (defsubst prev-bufs--buffers (x)
-  (cdr x))
+  (cdr-sure x))
 
 (defsetf prev-bufs--buffers (x) (value)
-  `(setf (cdr ,x) ,value))
+  `(setcdr-sure ,x ,value))
 
 (defun prev-bufs--filter-live-and-dedup! (x)
-  (let* ((result (cons nil (prev-bufs--buffers x)))
-         (prev result)
+  (let* ((res (cons nil (prev-bufs--buffers x)))
+         (prev res)
          (tmp (cdr prev))
          (buffers (make-hash-table :test #'equal)))
 
     (while tmp
-      (let ((buf (car tmp)))
+      (let ((buf (car-sure tmp)))
         (if (or (not (buffer-live-p buf))
                 (gethash buf buffers))
             ;; Don’t move ‘prev’ here in order to be able to delete multiple consecutive elements.
-            (setf (cdr prev) (cdr tmp)
-                  tmp (cdr tmp))
+            (setf tmp (setcdr-sure prev (cdr-sure tmp)))
           (progn
             (puthash buf t buffers)
-            (setf prev (cdr prev)
-                  tmp (cdr prev))))))
+            (setf prev (cdr-sure prev)
+                  ;; Move to the next thing after prev.
+                  tmp (cdr-sure prev))))))
 
     ;; Reuse cons with nil to signal that there are no changes
-    result))
+    res))
 
 (defun record-previous-buffer-for-window (win new-buf &rest _ignored)
   (let ((prev-buf (window-buffer win)))

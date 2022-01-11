@@ -10,6 +10,16 @@
   (require 'cl-lib)
   (require 'subr-x))
 
+(defmacro car-sure (x)
+  `(car (comp-hint-cons ,x)))
+
+(defmacro cdr-sure (x)
+  `(cdr (comp-hint-cons ,x)))
+
+(defmacro setcdr-sure (x y)
+  `(setcdr (comp-hint-cons ,x) ,y))
+
+
 (defmacro util/eval-if-symbol (x)
   "Evaluate x if it's symbos. Intended to be used inside defmacro."
   `(if (symbolp ,x)
