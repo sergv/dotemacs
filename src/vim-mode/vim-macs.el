@@ -194,7 +194,7 @@ For more information about the vim:motion struct look at vim-core.el."
                (,@(when params `(&key ,@params))
                 ,@(when named-params `(&aux ,@named-params)))
                ,@body)))
-       (cl-defun ,name (&rest args)
+       (defun ,name (&rest args)
          ,doc
          (interactive)
          (if (and (vim:called-interactively-p)
@@ -202,7 +202,7 @@ For more information about the vim:motion struct look at vim-core.el."
                   ;; we may still want to execute the desired command.
                   ;; And command may not have it's mock alternative,
                   ;; e.g. vim:cmd-paste-before.
-                  (not (null? vim:active-command-function)))
+                  vim:active-command-function)
              (funcall vim:active-command-function ',name)
            (apply (get ',name 'function) args))))))
 
@@ -303,7 +303,7 @@ look at vim-core.el."
                            (,@(when params `(&key ,@params))
                             ,@(when named-params `(&aux ,@named-params)))
                            (vim:do-motion ',type (progn ,@body)))))
-       (cl-defun ,name (&rest args)
+       (defun ,name (&rest args)
          ,doc
          (interactive)
          (let ,(if do-not-adjust-point
