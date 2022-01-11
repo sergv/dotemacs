@@ -1635,8 +1635,9 @@ Also see `paredit-skip-forward-for-kill'."
 (defun paredit-kill-word-state (parse-state adjacent-char-fn)
   (cond ((paredit-in-comment-p parse-state) 'comment)
         ((paredit-in-string-p  parse-state) 'string)
-        ((memq (char-syntax (funcall adjacent-char-fn))
-               '(?\( ?\)))
+        ((when-let (c (funcall adjacent-char-fn))
+           (memq (char-syntax c)
+                 '(?\( ?\))))
          'delimiter)
         (t 'other)))
 
