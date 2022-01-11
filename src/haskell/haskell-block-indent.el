@@ -97,10 +97,8 @@ Returns t if operation commenced and nil otherwise."
          (indentation-performed?
           (if at-indentation?
               (let* ((current-line-type nil)
-                     (this-line-cons (cons (cons 'line-to-indent start) nil))
-                     (collected-lines this-line-cons)
-                     ;; (collected-lines-iterator collected-lines)
-                     )
+                     (collected-lines (cons (cons 'line-to-indent start) nil))
+                     (this-line-cons collected-lines))
                 (with-marker (first-line-marker (copy-marker start))
                   (with-marker (last-line-marker (copy-marker start))
                     (when (/= start-indent 0)
@@ -109,11 +107,11 @@ Returns t if operation commenced and nil otherwise."
                                   (setf current-line-type
                                         (funcall classify-current-line)))
                         (beginning-of-line)
-                        ;; Add to the end of list.
-                        (setcdr this-line-cons
-                                (cons (cons current-line-type (point))
-                                      nil))
-                        (setf this-line-cons (cdr this-line-cons))
+                        (setf this-line-cons
+                              ;; Add to the end of list.
+                              (setcdr-sure this-line-cons
+                                           (cons (cons current-line-type (point))
+                                                 nil)))
                         ;; (set-marker first-line-marker (point))
                         (forward-line -1))
                       (goto-char start))
