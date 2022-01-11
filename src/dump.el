@@ -85,7 +85,7 @@
     (require 'grep)
     (require 'ibuffer)
     (require 'ivy)
-    (require 'ivy-posframe)
+    ;; (require 'ivy-posframe)
     (require 'ivy-smex)
     (require 'lsp-mode)
     (require 'magit)
@@ -93,7 +93,7 @@
     (require 'org)
     (require 'org-faces)
     (require 'org-indent)
-    (require 'posframe)
+    ;; (require 'posframe)
     (require 'ptx-mode)
     (require 'rainbow-delimiters)
     (require 'rust-mode)
@@ -155,99 +155,6 @@
     (when-windows
      (require 'fakecygpty-setup))
 
-    ;; (require 'persistent-store)
-    ;;
-    ;; (require 'local-autoloads)
-    ;; (require 'persistent-sessions-autoloads)
-    ;;
-    ;; (require 'smartparens-setup)
-    ;;
-    ;; (require 'browse-kill-ring)
-    ;; (require 'company)
-    ;; (require 'el-patch)
-    ;; (require 'eshell)
-    ;; (require 'ivy)
-    ;; (require 'ivy-posframe)
-    ;; (require 'ivy-smex)
-    ;; (require 'flycheck)
-    ;; (require 'flycheck-rust)
-    ;; (require 'magit)
-    ;; (require 'org)
-    ;; (require 'org-faces)
-    ;; (require 'org-indent)
-    ;; (require 'posframe)
-    ;; (require 'rust-mode)
-    ;; (require 'smartparens)
-    ;; (require 'yasnippet)
-    ;;
-    ;; (require 'search)
-    ;; (require 'vim-setup)
-    ;;
-    ;; (require 'c-like-setup)
-    ;; (require 'haskell-autoload)
-    ;; (require 'latex-autoloads)
-    ;; (require 'rust-autoloads)
-    ;;
-    ;; (require 'compilation-setup)
-    ;; (require 'completion-setup)
-    ;; (require 'hl-paren)
-    ;; (require 'grep-autoload)
-    ;; (require 'yasnippet-autoload)
-    ;; (message "Requiring git-autoload")
-    ;; (require 'git-autoload)
-    ;; (require 'ediff-autoload)
-    ;; (require 'undo-tree-setup)
-    ;; (require 'misc-autoloads)
-    ;; (require 'flycheck-setup)
-    ;; (require 'typography-setup)
-    ;;
-    ;; (require 'haskell-setup)
-    ;; (require 'markdown-setup)
-    ;; (require 'rst-setup)
-    ;; (require 'rust-setup)
-    ;; (require 'yasnippet-setup)
-
-    ;; ;; ;; load init file to get path detection from set-up-paths.el
-    ;; ;; (load-library init-file)
-    ;; (require 'set-up-environment)
-    ;; (require 'base-emacs-fixes)
-    ;;
-    ;; (require 'foreign-setup)
-    ;; (require 'cycle-on-lines)
-    ;; (require 'common)
-    ;; (require 'persistent-store)
-    ;;
-    ;; (require 'backups)
-    ;; (require 'mode-line-setup)
-    ;; (require 'emacs-general-conf)
-    ;;
-    ;; (require 'local-autoloads)
-    ;; (require 'org-mode-autoload)
-    ;; (require 'persistent-sessions-autoloads)
-    ;;
-    ;; (require 'smartparens-setup)
-    ;;
-    ;; (require 'c-like-setup)
-    ;; (require 'haskell-autoload)
-    ;; (require 'latex-autoloads)
-    ;; (require 'rust-autoloads)
-    ;;
-    ;; (require 'compilation-setup)
-    ;; (require 'completion-setup)
-    ;; (require 'hl-paren)
-    ;; (require 'grep-autoload)
-    ;; (require 'yasnippet-autoload)
-    ;; (require 'git-autoload)
-    ;; (require 'ediff-autoload)
-    ;; (require 'undo-tree-setup)
-    ;; (require 'misc-autoloads)
-    ;; (require 'flycheck-setup)
-    ;; (require 'typography-setup)
-    ;;
-    ;; ;; load keys after everything to ensure that nothing will be rebond
-    ;; ;; after it finishes
-    ;; (require 'keys)
-    ;; (require 'vim-setup)
 
     (provide 'already-dumped)
 

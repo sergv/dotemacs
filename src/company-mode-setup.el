@@ -9,7 +9,7 @@
 (eval-when-compile
   (require 'macro-util))
 
-(require 'company-posframe)
+;; (require 'company-posframe)
 (require 'company-statistics)
 (require 'persistent-store)
 
