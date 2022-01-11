@@ -523,6 +523,7 @@ existing file. If PATH is relative then try resolving it against DIR."
 ;;;###autoload
 (defun remove-duplicates-sorted (xs eq-func)
   "Remove duplicates from sorted list in linear time."
+  (cl-assert (consp xs))
   (let ((ys xs))
     (while ys
       (if (and (cdr ys)
@@ -541,32 +542,32 @@ using EQ-FUNC to determine equal elements."
 ;;;###autoload
 (defun remove-duplicates-hashing (xs eq-func)
   "Remove duplicates from the XS using EQ-FUNC to determine equal elements."
+  (cl-assert (consp xs))
   (let* ((tbl (make-hash-table :test eq-func))
          (tmp (cons nil nil))
          (result tmp))
-    (mapc (lambda (x)
-            (unless (gethash x tbl)
-              (let ((new-link (cons x nil)))
-                (puthash x t tbl)
-                (setf (cdr tmp) new-link
-                      tmp new-link))))
-          xs)
+    (dolist (x xs)
+      (unless (gethash x tbl)
+        (let ((new-link (cons x nil)))
+          (puthash x t tbl)
+          (setf (cdr tmp) new-link
+                tmp new-link))))
     (cdr result)))
 
 (defun remove-duplicates-by-hashing-projections (project eq-func xs)
   "Remove duplicates from the XS by hashing results of applying
 PROJECT. EQ-FUNC will be used as hash-table comparison."
+  (cl-assert (consp xs))
   (let* ((tbl (make-hash-table :test eq-func))
          (tmp (cons nil nil))
          (result tmp))
-    (mapc (lambda (x)
-            (let ((proj (funcall project x)))
-              (unless (gethash proj tbl)
-                (let ((new-link (cons x nil)))
-                  (puthash proj t tbl)
-                  (setf (cdr tmp) new-link
-                        tmp new-link)))))
-          xs)
+    (dolist (x xs)
+      (let ((proj (funcall project x)))
+        (unless (gethash proj tbl)
+          (let ((new-link (cons x nil)))
+            (puthash proj t tbl)
+            (setf (cdr tmp) new-link
+                  tmp new-link)))))
     (cdr result)))
 
 ;;;
