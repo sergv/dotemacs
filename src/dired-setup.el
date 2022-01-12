@@ -95,12 +95,12 @@ them."
   (dolist (filename (dired-get-marked-files nil nil 'dired-nondirectory-p))
     (find-file filename)
     (for-buffer-with-file filename
-      (let ((vim:ex-current-buffer (current-buffer))
-            (vim:ex-current-window (or (get-buffer-window (current-buffer))
+      (let ((vim-ex--current-buffer (current-buffer))
+            (vim-ex--current-window (or (get-buffer-window (current-buffer))
                                        (selected-window))))
-        (vim:ex-execute-command substitute-command)))))
+        (vim-ex-execute-command substitute-command)))))
 
-(vim:defcmd vim:dired-do-substitute ((argument:text command) nonrepeatable)
+(vim-defcmd vim:dired-do-substitute ((argument:text command) nonrepeatable)
   (dired-do-substitute command))
 
 (defun dired-single-buffer-other-window (&optional file-to-visit)
@@ -141,8 +141,8 @@ current one."
 
 ;;;###autoload
 (defun dired-setup ()
-  (vim:local-emap "ss" #'vim:dired-do-substitute)
-  (vim:local-emap "sub" #'vim:dired-do-substitute))
+  (vim-local-emap "ss" #'vim:dired-do-substitute)
+  (vim-local-emap "sub" #'vim:dired-do-substitute))
 
 ;;;###autoload
 (add-hook 'dired-mode-hook #'dired-setup)

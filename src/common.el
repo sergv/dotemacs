@@ -24,6 +24,11 @@
 (require 'dash)
 (require 'v)
 
+(defsubst comp-hint-cons (x)
+  x)
+(defsubst comp-hint-fixnum (x)
+  x)
+
 (defconst +undef+ '#:undef
   "Undefined value not equal to anything but itself and not creatable
 by any means other than direct referencing via ‘+undef’.")
@@ -1141,7 +1146,7 @@ With argument COUNT, do this that many times."
   (interactive "p")
   (delete-region (point)
                  (progn
-                   ;; (vim-mock:motion-fwd-word count)
+                   ;; (pseudovim-motion-fwd-word count)
                    (forward-word count)
                    (point))))
 
@@ -1151,7 +1156,7 @@ With argument COUNT, do this that many times."
   (interactive "p")
   (delete-region (point)
                  (progn
-                   (vim-mock:motion-fwd-WORD count)
+                   (pseudovim-motion-fwd-WORD count)
                    (point))))
 
 (defun backward-delete-word (count)
@@ -1160,7 +1165,7 @@ With argument COUNT, do this that many times."
   (interactive "p")
   (delete-region (point)
                  (progn
-                   ;; (vim-mock:motion-bwd-word count)
+                   ;; (pseudovim-motion-bwd-word count)
                    (backward-word count)
                    (point))))
 
@@ -1170,7 +1175,7 @@ With argument COUNT, do this that many times."
   (interactive "p")
   (delete-region (point)
                  (progn
-                   (vim-mock:motion-bwd-WORD count)
+                   (pseudovim-motion-bwd-WORD count)
                    (point))))
 
 (defsubst whitespace-char? (char)

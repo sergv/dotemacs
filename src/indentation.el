@@ -12,7 +12,7 @@
 ;;;###autoload
 (defun setup-indent-size (width)
   (declare (pure nil) (side-effect-free nil))
-  (setq-local vim:shift-width width
+  (setq-local vim-shift-width width
               standard-indent width
               ;; Affects only tab display.
               tab-width width

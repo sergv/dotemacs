@@ -18,8 +18,8 @@
   (defvar lsp-ui-sideline-show-hover))
 
 (require 'common)
-(require 'eproj-ctags)
 
+(require 'eproj-tag-index)
 (require 'lsp)
 (require 'lsp-ui-doc)
 (require 's)
@@ -110,7 +110,7 @@
       +vi-keys+
       +vim-search-keys+
       +vim-search-extended-keys+
-      +vim-mock:word-motion-keys+
+      +vim-word-motion-keys+
       +vim-special-keys+
       ("<up>"   lsp-doc-presentation-go-back)
       ("<down>" lsp-doc-presentation-go-forward)
@@ -178,7 +178,7 @@
         ("M-." eproj-symbnav/go-to-symbol-home)
         ("M-," eproj-symbnav/go-back)
         ("M-?" xref-find-references)))
-    (def-keys-for-map vim:normal-mode-local-keymap
+    (def-keys-for-map vim-normal-mode-local-keymap
       ("C-." lsp-symbnav/go-to-symbol-home)
       ("C-," lsp-symbnav/go-back)
       ("C-?" lsp-symbnav/find-references)

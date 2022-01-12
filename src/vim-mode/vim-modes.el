@@ -17,41 +17,39 @@
   "Cursor types for modes."
   :group 'vim-mode)
 
-(defvar-local vim:mode-string nil)
-
-(defvar-local vim:active-mode nil
+(defvar-local vim-active-mode nil
   "The currently active vim-mode.")
 
-(defvar-local vim:active-command-function nil
+(defvar-local vim-active-command-function nil
   "The command function of the currently active vim-mode.")
 
-(defvar vim:mode-alist nil
+(defvar vim--mode-alist nil
   "Assocative list of all registered submodes, (mode-symbol . mode-text).")
 
-(defvar-local vim:emulation-mode-alist nil
+(defvar-local vim-emulation-mode-alist nil
   "List of all keymaps used by some modes.")
 
-(defun vim:mode-name (mode)
+(defun vim--mode-name (mode)
   "Converts a mode-name to vim-mode naming conventions, e.g.
-'normal is converted to 'vim:normal-mode."
-  (string->symbol (concat "vim:" (symbol->string mode) "-mode")))
+'normal is converted to 'vim-normal-mode."
+  (string->symbol (concat "vim-" (symbol->string mode) "-mode")))
 
-(defun vim:activate-mode (mode)
+(defun vim-activate-mode (mode)
   "Activates a certain vim-mode, disabling the currently active one."
-  (when vim:active-mode
-    (funcall vim:active-mode -1))
+  (when vim-active-mode
+    (funcall vim-active-mode -1))
   (when mode
-    (funcall (vim:mode-name mode) 1)))
+    (funcall (vim--mode-name mode) 1)))
 
-(defmacro vim:set-keymaps (vim-mode-name keymaps)
+(defmacro vim--set-keymaps (vim-mode-name keymaps)
   "Does setting up of keymaps for the current mode."
   (when (eq (car-safe vim-mode-name) 'quote)
     (setq vim-mode-name (cadr vim-mode-name)))
   (when (eq (car-safe keymaps) 'quote)
     (setq keymaps (cadr keymaps)))
-  `(setq vim:emulation-mode-alist
+  `(setq vim-emulation-mode-alist
          (list
-          ,@(cons '(cons 'vim:intercept-ESC-mode vim:intercept-ESC-keymap)
+          ,@(cons '(cons 'vim-intercept-ESC-mode vim-intercept-ESC-keymap)
                   (-mapcat (lambda (keym)
                              (let ((localname
                                     (string->symbol
@@ -64,10 +62,10 @@
                                        `(cons ',vim-mode-name ,keym)))))
                            keymaps)))))
 
-(defun vim:default-command-function (&rest args)
+(defun vim-default-command-function (&rest args)
   (error "Default noop command function called with args %s" args))
 
-(cl-defmacro vim:define-mode (name doc
+(cl-defmacro vim-define-mode (name doc
                                    &rest body
                                    &key
                                    ident
@@ -79,39 +77,42 @@
 activation `message', a `command-function' to be called when a
 vim-command should be executed, a `cursor' shape and a list of `keymaps'."
   (declare (indent 2))
-  (let* ((mode-name (vim:mode-name name))
+  (let* ((mode-name (vim--mode-name name))
          (_ ident)
          (pred-name (string->symbol (concat (symbol->string mode-name) "-p")))
-         (on-name (string->symbol (concat "vim:activate-" (symbol->string name) "-mode")))
+         (on-name (string->symbol (concat "vim-activate-" (symbol->string name) "-mode")))
          (cursor-name (string->symbol (concat (symbol->string mode-name)
                                               "-cursor")))
          (update-keymaps-func-name (string->symbol
                                     (concat (symbol->string mode-name)
                                             "-update-keymaps"))))
+
+    (unless command-function
+      (error "Command function not provided for mode %s" mode-name))
+
     `(progn
        (defcustom ,cursor-name ,cursor
          ,(concat "The cursor-type for vim-mode " (symbol->string name) ".")
          :group 'vim-cursors
          :type 'symbol)
 
-       (push (cons ',mode-name ,(symbol->string name)) vim:mode-alist)
+       (push (cons ',mode-name ,(symbol->string name)) vim--mode-alist)
 
-       ;; (add-hook 'find-file-hook 'vim:normal-mode-update-keymaps)
        (define-minor-mode ,mode-name ,doc
          :init-value nil
          :lighter nil
          :keymap nil
          (when ,mode-name
-           ,@(when message `((vim:notify ,message)))
-           (setq vim:active-mode ',mode-name)
-           (setq vim:active-command-function
-                 ,(if command-function
-                      command-function
-                    '#'vim:default-command-function))
-           (vim:set-cursor ,cursor-name)
+           ,@(when message
+               `((vim-notify ,message)))
+           (setq vim-active-mode ',mode-name
+                 vim-active-command-function ,command-function
+                 cursor-type ,cursor-name)
            (,update-keymaps-func-name))
          ,@(progn
-             (while (keywordp (car body)) (pop body) (pop body))
+             (while (keywordp (car body))
+               (pop body)
+               (pop body))
              body))
 
        (defun ,pred-name ()
@@ -121,11 +122,11 @@ vim-command should be executed, a `cursor' shape and a list of `keymaps'."
        (defun ,on-name ()
          ,(concat "Activates " (symbol->string name) " mode.")
          (interactive)
-         (vim:activate-mode ',name))
+         (vim-activate-mode ',name))
 
        (defun ,update-keymaps-func-name ()
          "This function should be called after setting up local keymaps."
-         (vim:set-keymaps ',mode-name ,keymaps)))))
+         (vim--set-keymaps ',mode-name ,keymaps)))))
 
 (provide 'vim-modes)
 

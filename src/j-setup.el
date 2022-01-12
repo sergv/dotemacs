@@ -40,11 +40,11 @@ execute _r_egion
                :use-yasnippet t
                :use-whitespace t
                :hl-parens-backend 'smartparens)
-  (def-keys-for-map vim:normal-mode-local-keymap
+  (def-keys-for-map vim-normal-mode-local-keymap
     ("SPC SPC"      j-console)
     (("C-l" "<f6>") j-console-execute-buffer)
     ("-"            hydra-j/body))
-  (def-keys-for-map vim:visual-mode-local-keymap
+  (def-keys-for-map vim-visual-mode-local-keymap
     ("-"            hydra-j-visual/body)))
 
 ;;;###autoload

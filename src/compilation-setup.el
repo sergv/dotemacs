@@ -72,7 +72,7 @@ in compilation or related buffers.")
        +vi-keys+
        +vim-special-keys+
        +vim-search-keys+
-       +vim-mock:word-motion-keys+
+       +vim-word-motion-keys+
        ("<up>"             compilation-jump-to-prev-error)
        ("<down>"           compilation-jump-to-next-error)
        ("t"                compilation-jump-to-prev-error)
@@ -80,10 +80,10 @@ in compilation or related buffers.")
        ("M-p"              nil)
        ("q"                remove-buffer)
        ("C-c C-c"          kill-compilation)
-       ("m"                vim-mock:motion-jump-item)
-       ("0"                vim-mock:motion-beginning-of-line-or-digit-argument)
-       ("^"                vim-mock:motion-first-non-blank)
-       ("$"                vim-mock:motion-end-of-line)
+       ("m"                pseudovim-motion-jump-item)
+       ("0"                pseudovim-motion-beginning-of-line-or-digit-argument)
+       ("^"                pseudovim-motion-first-non-blank)
+       ("$"                pseudovim-motion-end-of-line)
 
        ("C-v"              set-mark-command)
        ("C-y"              copy-region-as-kill)
@@ -102,7 +102,7 @@ in compilation or related buffers.")
 
 (add-hook 'compilation-mode-hook #'compilation-mode-setup)
 
-(vim:defcmd vim:recompile (nonrepeatable)
+(vim-defcmd vim:recompile (nonrepeatable)
   (recompile))
 
 (provide 'compilation-setup)

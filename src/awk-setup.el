@@ -31,7 +31,7 @@ _h_: end of defun"
   (modify-syntax-entry ?\/ "\"")
   (add-hook 'after-save-hook #'make-script-file-exec)
 
-  (def-keys-for-map vim:normal-mode-local-keymap
+  (def-keys-for-map vim-normal-mode-local-keymap
     ("g" hydra-awk-vim-normal-g-ext/body)))
 
 ;;;###autoload

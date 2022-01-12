@@ -45,7 +45,7 @@
                                           fname)
                                     " ")))))
 
-  (def-keys-for-map vim:visual-mode-local-keymap
+  (def-keys-for-map vim-visual-mode-local-keymap
     ("- m" c-macro-expand))
   (c-abbrev+-setup)
   (setup-eproj-symbnav))

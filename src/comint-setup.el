@@ -11,6 +11,7 @@
 (eval-when-compile
   (require 'cl-lib)
   (require 'el-patch)
+  (require 'set-up-platform)
   (require 'macro-util))
 
 (provide 'comint-setup)

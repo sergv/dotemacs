@@ -289,24 +289,24 @@
   (org-toggle-inline-images)
   (render-formula-toggle-formulae))
 
-(vim:defcmd vim:org-mode-make-revealjs-presentation (nonrepeatable)
+(vim-defcmd vim:org-mode-make-revealjs-presentation (nonrepeatable)
   (save-buffer)
   (org-reveal-export-to-html)
   (message "Done"))
 
-(vim:defcmd vim:org-mode-export (nonrepeatable)
+(vim-defcmd vim:org-mode-export (nonrepeatable)
   (save-buffer)
   (org-export-dispatch))
 
-(vim:defcmd vim:org-mode-tangle (nonrepeatable)
+(vim-defcmd vim:org-mode-tangle (nonrepeatable)
   (save-buffer)
   (org-babel-tangle))
 
-(vim:defcmd vim:org-mode-make-beamer-presentation (nonrepeatable)
+(vim-defcmd vim:org-mode-make-beamer-presentation (nonrepeatable)
   (save-buffer)
   (org-beamer-export-to-pdf))
 
-(vim:defcmd vim:org-latex-export-to-pdf (nonrepeatable)
+(vim-defcmd vim:org-latex-export-to-pdf (nonrepeatable)
   (save-buffer)
   (org-latex-export-to-pdf))
 
@@ -375,12 +375,12 @@ _C_: hide everything except current entry and its parents"
   (bind-tab-keys #'org-cycle
                  #'org-shifttab
                  :enable-yasnippet t)
-  (vim:local-emap "beamer" #'vim:org-mode-make-beamer-presentation)
-  (vim:local-emap "reveal" #'vim:org-mode-make-revealjs-presentation)
-  (vim:local-emap "export" #'vim:org-mode-export)
-  (vim:local-emap "tangle" #'vim:org-mode-tangle)
-  (vim:local-emap "pdf"    #'vim:org-latex-export-to-pdf)
-  (def-keys-for-map vim:normal-mode-local-keymap
+  (vim-local-emap "beamer" #'vim:org-mode-make-beamer-presentation)
+  (vim-local-emap "reveal" #'vim:org-mode-make-revealjs-presentation)
+  (vim-local-emap "export" #'vim:org-mode-export)
+  (vim-local-emap "tangle" #'vim:org-mode-tangle)
+  (vim-local-emap "pdf"    #'vim:org-latex-export-to-pdf)
+  (def-keys-for-map vim-normal-mode-local-keymap
     ("<print>" org-toggle-inline-images-and-formulae)
     ("C-."     org-open-at-point)
     ("C-,"     org-mark-ring-goto)
@@ -400,13 +400,13 @@ _C_: hide everything except current entry and its parents"
     ("C-8"     org-mode-show-level-8)
     ("C-9"     org-mode-show-level-9))
 
-  (def-keys-for-map vim:visual-mode-local-keymap
+  (def-keys-for-map vim-visual-mode-local-keymap
     ("<tab>"   org-indent-region))
 
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:insert-mode-local-keymap)
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-insert-mode-local-keymap)
     ("<f6>"         org-toggle-display-style)
-    (("C-m" "<f9>") vim:org-latex-export-to-pdf)
+    (("C-m" "<f9>") vim:org-latex-export-to-pdf:interactive)
     ("S-<f9>"       open-buffer-as-pdf)
     ("C-SPC"        pcomplete)
     ("<C-return>"   org-meta-return)
@@ -416,14 +416,14 @@ _C_: hide everything except current entry and its parents"
     ("<C-right>"    org-metaright)
     ("C-="          input-unicode))
 
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:visual-mode-local-keymap
-                     vim:operator-pending-mode-local-keymap
-                     vim:motion-mode-local-keymap)
-    ("0" vim:org-beginning-of-line)
-    ("$" vim:org-end-of-line))
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-visual-mode-local-keymap
+                     vim-operator-pending-mode-local-keymap
+                     vim-motion-mode-local-keymap)
+    ("0" vim:org-beginning-of-line:interactive)
+    ("$" vim:org-end-of-line:interactive))
 
-  (def-keys-for-map vim:insert-mode-local-keymap
+  (def-keys-for-map vim-insert-mode-local-keymap
     ("SPC"  abbrev+-org-self-insert-or-expand-abbrev))
 
   (def-keys-for-map org-mode-map

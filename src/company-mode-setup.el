@@ -46,8 +46,8 @@
        company-statistics--log
        company-statistics--index))
 
-(def-keys-for-map company-posframe-active-map
-  ("<escape>" company-abort))
+;; (def-keys-for-map company-posframe-active-map
+;;   ("<escape>" company-abort))
 
 (provide 'company-mode-setup)
 

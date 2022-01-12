@@ -25,12 +25,12 @@
   (def-keys-for-map select-mode-map
     +vi-essential-keys+
     +vim-search-keys+
-    +vim-mock:word-motion-keys+
+    +vim-word-motion-keys+
     +vim-special-keys+
 
     ("h" select-mode-select-next-item)
     ("t" select-mode-select-previous-item))
-  (vim:activate-emacs-mode))
+  (vim-activate-emacs-mode))
 
 (provide 'select-mode-setup)
 
