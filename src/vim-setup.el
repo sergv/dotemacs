@@ -17,7 +17,7 @@
 (declare-function magit-blame-quit "magit-blame")
 (declare-function magit-refresh-all "magit-mode")
 (declare-function server-edit "server")
-(declare-function vim:activate-blame-mode "git-setup")
+(declare-function vim-activate-blame-mode "git-setup")
 
 (require 'common)
 (require 'completion-setup)
@@ -35,12 +35,6 @@
 move point to next/previous line."
   :type 'boolean
   :group 'vim-mode-general)
-
-;;; overriding keymap
-
-(defvar-local vim:complex-command-override-local-keymap nil
-  "Keymap for buffer-local overriding of commands that take motions,
-like \"d w\".")
 
 ;;; keybindings
 
@@ -68,29 +62,29 @@ _J_oin sexp:      (a) | (b)       -> (a |  b)"
   ("cu"  comment-util-uncomment-region)
   ("cd"  comment-util-delete-commented-part)
 
-  ("sw"  vim-replace-word)
-  ("sW"  vim-replace-WORD)
-  ("ss"  vim-replace-symbol-at-point)
+  ("sw"  vim:replace-word:interactive)
+  ("sW"  vim:replace-WORD:interactive)
+  ("ss"  vim:replace-symbol-at-point:interactive)
 
-  ("(d"  vim:sp-splice-sexp-killing-backward)
-  (")d"  vim:sp-splice-sexp-killing-forward)
-  ("(a"  vim:sp-splice-sexp-killing-around)
-  (")a"  vim:sp-splice-sexp-killing-around)
+  ("(d"  vim:sp-splice-sexp-killing-backward:interactive)
+  (")d"  vim:sp-splice-sexp-killing-forward:interactive)
+  ("(a"  vim:sp-splice-sexp-killing-around:interactive)
+  (")a"  vim:sp-splice-sexp-killing-around:interactive)
   ("a"   sp-absorb-sexp)
   ("e"   sp-emit-sexp)
   ("?"   sp-convolute-sexp)
-  ("S"   vim:sp-split-sexp)
-  ("J"   vim:sp-join-sexp)
+  ("S"   vim:sp-split-sexp:interactive)
+  ("J"   vim:sp-join-sexp:interactive)
 
-  ("(("  vim:sp-backward-slurp-sexp)
-  ("()"  vim:sp-backward-barf-sexp)
-  (")("  vim:sp-forward-barf-sexp)
-  ("))"  vim:sp-forward-slurp-sexp)
+  ("(("  vim:sp-backward-slurp-sexp:interactive)
+  ("()"  vim:sp-backward-barf-sexp:interactive)
+  (")("  vim:sp-forward-barf-sexp:interactive)
+  ("))"  vim:sp-forward-slurp-sexp:interactive)
 
-  ("( <left>"  vim:sp-backward-slurp-sexp)
-  ("( <right>" vim:sp-backward-barf-sexp)
-  (") <left>"  vim:sp-forward-barf-sexp)
-  (") <right>" vim:sp-forward-slurp-sexp))
+  ("( <left>"  vim:sp-backward-slurp-sexp:interactive)
+  ("( <right>" vim:sp-backward-barf-sexp:interactive)
+  (") <left>"  vim:sp-forward-barf-sexp:interactive)
+  (") <right>" vim:sp-forward-slurp-sexp:interactive))
 
 (defhydra-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
   "
@@ -102,36 +96,36 @@ reactivate _v_isual mode
 M-_x_
 "
   ("f" make-frame)
-  ("g" vim-mock:motion-go-to-first-non-blank-beg)
+  ("g" pseudovim-motion-go-to-first-non-blank-beg)
   ("r" egrep)
   ("u" undo-tree-visualize)
-  ("v" vim:visual-mode-reactivate)
+  ("v" vim:visual-mode-reactivate:interactive)
   ("x" ivy-smex)
 
   ("#" server-edit)
   ("k" remove-buffer)
   ("K" remove-buffer-and-window)
 
-  ("e" vim-mock:motion-bwd-word-end)
-  ("E" vim-mock:motion-bwd-WORD-end))
+  ("e" pseudovim-motion-bwd-word-end)
+  ("E" pseudovim-motion-bwd-WORD-end))
 
 (defhydra-ext hydra-vim-normal-z-ext (:exit t :foreign-keys nil :hint nil)
   "
 scroll to _b_ottom
 scroll to _t_op
 _z_: scroll to center"
-  ("b" vim:scroll-line-to-bottom)
-  ("t" vim:scroll-line-to-top)
-  ("z" vim:scroll-line-to-center))
+  ("b" vim:scroll-line-to-bottom:interactive)
+  ("t" vim:scroll-line-to-top:interactive)
+  ("z" vim:scroll-line-to-center:interactive))
 
 (defhydra-ext hydra-vim-visual-z-ext (:exit t :foreign-keys nil :hint nil)
   "
 scroll to _b_ottom
 scroll to _t_op
 _z_: scroll to center"
-  ("b" vim:scroll-line-to-bottom)
-  ("t" vim:scroll-line-to-top)
-  ("z" vim:scroll-line-to-center))
+  ("b" vim:scroll-line-to-bottom:interactive)
+  ("t" vim:scroll-line-to-top:interactive)
+  ("z" vim:scroll-line-to-center:interactive))
 
 (defhydra-ext hydra-vim-visual-j-ext (:exit t :foreign-keys nil :hint nil)
   "
@@ -141,14 +135,14 @@ _cu_: uncomment
 replace _s_elected"
   ("cc" comment-util-comment-region)
   ("cu" comment-util-uncomment-region-simple)
-  ("s" vim-replace-selected))
+  ("s"  vim:replace-selected:interactive))
 
 (defhydra-ext hydra-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
   "
 _g_o to start of file
 g_r_ep
 M-_x_"
-  ("g" vim-mock:motion-go-to-first-non-blank-beg)
+  ("g" pseudovim-motion-go-to-first-non-blank-beg)
   ("r" egrep-region)
   ("x" ivy-smex))
 
@@ -217,73 +211,73 @@ _<right>_: move tab to the right"
 
 ;; redefine motions
 
-(def-keys-for-map (vim:normal-mode-keymap
-                   vim:visual-mode-keymap
-                   vim:operator-pending-mode-keymap
-                   vim:motion-mode-keymap)
-  ("0"         vim:motion-beginning-of-line-or-digit-argument)
+(def-keys-for-map (vim-normal-mode-keymap
+                   vim-visual-mode-keymap
+                   vim-operator-pending-mode-keymap
+                   vim-motion-mode-keymap)
+  ("0"         vim-motion-beginning-of-line-or-digit-argument)
   (("1" "2" "3" "4" "5" "6" "7" "8" "9")
-   vim:digit-argument)
-  ("-"   vim:universal-argument-minus)
+   vim-digit-argument)
+  ("-"   vim-universal-argument-minus)
 
-  ("G"   vim:motion-go-to-first-non-blank-end)
+  ("G"   vim:motion-go-to-first-non-blank-end:interactive)
   ("j"   nil)
 
   ("%"   nil)
   ;; short for matching
-  ("m"   vim:motion-jump-item)
+  ("m"   vim:motion-jump-item:interactive)
 
   ("q"   sp-up-sexp))
 
-(def-keys-for-map (vim:operator-pending-mode-keymap
-                   vim:motion-mode-keymap)
-  ("g g" vim:motion-go-to-first-non-blank-beg))
+(def-keys-for-map (vim-operator-pending-mode-keymap
+                   vim-motion-mode-keymap)
+  ("g g" vim:motion-go-to-first-non-blank-beg:interactive))
 
-(def-keys-for-map vim:operator-pending-mode-keymap
-  (("is" "s") vim:motion-inner-symbol)
-  ("as"       vim:motion-outer-symbol))
+(def-keys-for-map vim-operator-pending-mode-keymap
+  (("is" "s") vim:motion-inner-symbol:interactive)
+  ("as"       vim:motion-outer-symbol:interactive))
 
-(def-keys-for-map (vim:operator-pending-mode-keymap
-                   vim:motion-mode-keymap)
+(def-keys-for-map (vim-operator-pending-mode-keymap
+                   vim-motion-mode-keymap)
   ("'" sp-backward-up-sexp)
   ;; ("u" vim:motion-search-next)
   ;; ("U" vim:motion-search-next-reverse)
-  (("<up>"   "]") vim:motion-bwd-paragraph)
-  (("<down>" "[") vim:motion-fwd-paragraph))
+  (("<up>"   "]") vim:motion-bwd-paragraph:interactive)
+  (("<down>" "[") vim:motion-fwd-paragraph:interactive))
 
 (defconst +vim-navigation-keys+
-  `(("d"         vim:motion-left)
-    ("h"         vim:motion-down)
-    ("t"         vim:motion-up)
-    ("n"         vim:motion-right)
+  `(("d"         vim:motion-left:interactive)
+    ("h"         vim:motion-down:interactive)
+    ("t"         vim:motion-up:interactive)
+    ("n"         vim:motion-right:interactive)
 
-    (";"         vim:motion-repeat-last-find)
-    (":"         vim:motion-repeat-last-find-opposite)
+    (";"         vim:motion-repeat-last-find:interactive)
+    (":"         vim:motion-repeat-last-find-opposite:interactive)
 
     ("C-:"       pp-eval-expression)
-    ("<down>"    vim:motion-fwd-paragraph)
-    ("<up>"      vim:motion-bwd-paragraph)
+    ("<down>"    vim:motion-fwd-paragraph:interactive)
+    ("<up>"      vim:motion-bwd-paragraph:interactive)
 
     ,@+vim-interbuffer-navigation-keys+
     ,@+vim-character-navigation-keys+))
 
 (defconst +vim-normal-mode-navigation-keys+
-  '(("'"   sp-backward-up-sexp)
-    ("]"   vim:motion-bwd-paragraph)
-    ("["   vim:motion-fwd-paragraph)
-    ("s"   vim:ex-read-command)))
+  '(("'" sp-backward-up-sexp)
+    ("]" vim:motion-bwd-paragraph:interactive)
+    ("[" vim:motion-fwd-paragraph:interactive)
+    ("s" vim-ex-read-command)))
 
-(def-keys-for-map (vim:normal-mode-keymap
-                   vim:visual-mode-keymap)
+(def-keys-for-map (vim-normal-mode-keymap
+                   vim-visual-mode-keymap)
   +vim-navigation-keys+
   +vim-search-keys+
   +vim-search-extended-keys+
 
-  (","       vim:cmd-delete)
-  ("l"       vim:cmd-change-char)
+  (","       vim:cmd-delete:interactive)
+  ("l"       vim:cmd-change-char:interactive)
 
-  ("X"       vim:cmd-delete-char-backward)
-  ("M"       vim:jump-to-prev-saved-position)
+  ("X"       vim:cmd-delete-char-backward:interactive)
+  ("M"       vim:jump-to-prev-saved-position:interactive)
 
   ("S-<backspace>" delete-whitespace-backward)
   ("S-<delete>"    delete-whitespace-forward)
@@ -292,111 +286,126 @@ _<right>_: move tab to the right"
 
   ("Z"       nil)
 
-  ("Q"       vim:cmd-toggle-macro-recording))
+  ("Q"       vim-cmd-toggle-macro-recording))
 
-(def-keys-for-map (vim:normal-mode-keymap
-                   vim:insert-mode-keymap)
-  ("C-p"  vim:cmd-paste-behind-no-adjust)
-  ("<f4>" vim:render-latex))
+(def-keys-for-map (vim-normal-mode-keymap
+                   vim-insert-mode-keymap)
+  ("C-p"  vim-cmd-paste-after-no-adjust)
+  ("<f4>" vim:render-latex:interactive))
 
 ;;; normal mode keybindigs
 
-(def-keys-for-map vim:normal-mode-keymap
+(def-keys-for-map vim-normal-mode-keymap
   +vim-normal-mode-navigation-keys+
+
+  ("p"         vim:cmd-paste-after:interactive)
+  ("P"         vim:cmd-paste-before:interactive)
+
   ("C-y"       nil)
   ;; names of these two functions are swapped for unknown reason
   ;; anyway, so don't change order
-  ("{"         scroll-up)
-  ("}"         scroll-down)
-  ("!"         shell-command+)
-  ("~"         vim:cmd-toggle-case-one-char)
+  ("{"          scroll-up)
+  ("}"          scroll-down)
+  ("!"          shell-command+)
+  ("~"          vim:cmd-toggle-case-one-char:interactive)
 
-  ("M-?"       sp-convolute-sexp)
-  ("M-<left>"  sp-absorb-sexp)
-  ("M-<right>" sp-emit-sexp)
+  ("M-?"        sp-convolute-sexp)
+  ("M-<left>"   sp-absorb-sexp)
+  ("M-<right>"  sp-emit-sexp)
 
-  ("x"         vim:cmd-delete-char)
-  ("X"         vim:cmd-delete-char-backward)
+  ("x"          vim:cmd-delete-char:interactive)
+  ("X"          vim:cmd-delete-char-backward:interactive)
 
-  ("D"         vim:delete-current-line)
-  ("k"         undo-tree-undo)
-  ("K"         undo-tree-redo)
-  ("J"         vim:cmd-join-lines)
+  ("y"          vim:cmd-yank:interactive)
+  ("D"          vim:delete-current-line:interactive)
+  ("Y"          vim:yank-current-line:interactive)
 
-  ("C-S-p"     browse-kill-ring)
+  ("k"          undo-tree-undo)
+  ("K"          undo-tree-redo)
+  ("J"          vim:cmd-join-lines:interactive)
 
-  ("g"         hydra-vim-normal-g-ext/body)
-  ("j"         hydra-vim-normal-j-ext/body)
-  ("z"         hydra-vim-normal-z-ext/body)
+  ("C-S-p"      browse-kill-ring)
 
-  ("<f5>"      vim:revert-buffer)
-  ("H"         vim:revert-buffer))
+  ("g"          hydra-vim-normal-g-ext/body)
+  ("j"          hydra-vim-normal-j-ext/body)
+  ("z"          hydra-vim-normal-z-ext/body)
+
+  (("H" "<f5>") vim:revert-buffer:interactive))
 
 ;;; visual keybindings
 
-(def-keys-for-map vim:visual-mode-keymap
-  ("'"       self-insert-command)
+(def-keys-for-map vim-visual-mode-keymap
+  ("'"       sp-backward-up-sexp)
+
+  ("p"       vim:visual-paste-after:interactive)
+  ("P"       vim:visual-paste-before:interactive)
+
+  ("I"       vim:visual-insert:interactive)
+  ("A"       vim:visual-append:interactive)
 
   ("!"       shell-command-on-region)
   ("|"       shell-command-on-region-and-replace)
-  ("TAB"     indent-region)
-  ("<tab>"   indent-region)
-  ("s"       vim:visual-ex-read-command)
-  ("k"       vim:cmd-make-downcase)
-  ("K"       vim:cmd-make-upcase)
+  ("s"       vim:visual-ex-read-command:interactive)
+  ("k"       vim:cmd-make-downcase:interactive)
+  ("K"       vim:cmd-make-upcase:interactive)
 
-  ("SPC SPC" vim:visual-exchange-point-and-mark)
+  ("SPC SPC" vim:visual-exchange-point-and-mark:interactive)
 
   ("j"       hydra-vim-visual-j-ext/body)
   ("g"       hydra-vim-visual-g-ext/body)
   ("z"       hydra-vim-visual-z-ext/body)
 
-  (("(" ")")     vim:wrap-parens)
-  (("[" "C")     vim:wrap-braces)
-  (("{" "}")     vim:wrap-brackets)
-  (("C-<" "C->") vim:wrap-angles)
+  (("(" ")")     vim-wrap-parens)
+  (("[" "C")     vim-wrap-braces)
+  (("{" "}")     vim-wrap-brackets)
+  (("C-<" "C->") vim-wrap-angles)
 
-  ("J"       vim:cmd-join)
+  ("J"       vim:cmd-join:interactive)
 
-  ("C-'"     vim:wrap-typographical-single-quotes)
-  ("C-\""    vim:wrap-typographical-double-quotes))
+  ("C-'"     vim-wrap-typographical-single-quotes)
+  ("C-\""    vim-wrap-typographical-double-quotes)
+
+  (("TAB" "<tab>") indent-region))
 
 
-(defun vim:wrap-parens ()
+(defun vim-wrap-parens ()
   "Wrap region in (...)."
   (interactive)
   (sp-wrap-or-insert "("))
 
-(defun vim:wrap-braces ()
+(defun vim-wrap-braces ()
   "Wrap region in [...]."
   (interactive)
   (sp-wrap-or-insert "["))
 
-(defun vim:wrap-brackets ()
+(defun vim-wrap-brackets ()
   "Wrap region in {...}."
   (interactive)
   (sp-wrap-or-insert "{"))
 
-(defun vim:wrap-angles ()
+(defun vim-wrap-angles ()
   "Wrap region in <...>."
   (interactive)
   (sp-wrap-or-insert "<"))
 
-(vim:defcmd vim:wrap-typographical-single-quotes (nonrepeatable)
+(defun vim-wrap-typographical-single-quotes ()
   "Wrap region in ‘...’."
+  (interactive)
   (sp-wrap-or-insert "‘"))
 
-(vim:defcmd vim:wrap-typographical-double-quotes (nonrepeatable)
+(defun vim-wrap-typographical-double-quotes ()
   "Wrap region in “...”."
+  (interactive)
   (sp-wrap-or-insert "“"))
 
-(vim:defcmd vim:wrap-backticks (nonrepeatable)
+(defun vim-wrap-backticks ()
   "Wrap region in `...`."
+  (interactive)
   (sp-wrap-or-insert "`"))
 
 ;;; insert mode keybindings
 
-(def-keys-for-map vim:insert-mode-keymap
+(def-keys-for-map vim-insert-mode-keymap
   ("S-<backspace>" delete-whitespace-backward)
   ("S-<delete>"    delete-whitespace-forward)
   ("C-w"           backward-delete-word)
@@ -404,7 +413,7 @@ _<right>_: move tab to the right"
   ("C-r"           nil)
   ("C-S-p"         browse-kill-ring)
   ("SPC"           abbrev+-insert-space-or-expand-abbrev)
-  ("<insert>"      vim:scroll-line-up)
+  ("<insert>"      vim:scroll-line-up:interactive)
   ("C-:"           pp-eval-expression)
 
   ("C-'"           typopunct-insert-single-quotation-mark)
@@ -413,18 +422,18 @@ _<right>_: move tab to the right"
 
 ;;; ex bindings and commands
 
-(def-keys-for-map vim:ex-keymap
+(def-keys-for-map vim-ex-keymap
   ("C-v"     set-mark-command)
   ("C-y"     copy-region-as-kill)
   ("<prior>" nil)
   ("<next>"  nil))
 
-(vim:defcmd vim:jump-to-prev-saved-position (nonrepeatable keep-visual)
+(vim-defcmd vim:jump-to-prev-saved-position (nonrepeatable keep-visual)
   "Jump to position pointed to by ' mark.
 Basically swap current point with previous one."
   (vim:motion-mark :argument ?\'))
 
-(vim:defcmd vim:start-awk (motion nonrepeatable)
+(vim-defcmd vim:start-awk (motion nonrepeatable)
   (when (get-buffer awk-buffer-name)
     (with-current-buffer (get-buffer awk-buffer-name)
       (awk-exit)))
@@ -433,23 +442,23 @@ Basically swap current point with previous one."
     (deactivate-mark)
     (vim:visual-mode-exit))
   (awk-on-region (if motion
-                     (vim:motion-begin-pos motion)
+                     (vim-motion-begin-pos motion)
                    (line-beginning-position))
                  (if motion
-                     (vim:motion-end-pos motion)
+                     (vim-motion-end-pos motion)
                    (line-end-position))))
 
-(vim:emap "awk" #'vim:start-awk)
+(vim-emap "awk" #'vim:start-awk)
 
 ;; this is absolutely necessary to make vim recognize local keymaps
 ;; on it's first entrance into some mode
-(add-hook 'after-change-major-mode-hook 'vim:normal-mode-update-keymaps t)
+(add-hook 'after-change-major-mode-hook 'vim-normal-mode-update-keymaps t)
 
 
 
 ;; apply given ex command to all ibuffer-selected buffers
 
-(vim:defcmd vim:apply-to-selected-buffers
+(vim-defcmd vim:apply-to-selected-buffers
   ((argument:text command) nonrepeatable)
   (cl-assert command)
   (let* ((cmd (trim-whitespace-left command))
@@ -459,62 +468,62 @@ Basically swap current point with previous one."
                               (selected-window))))
               (with-current-buffer buf
                 (with-selected-window window
-                  ;; adapted from vim:ex-read-command
-                  (let ((vim:ex-current-buffer buf)
-                        (vim:ex-current-window window))
-                    (vim:ex-execute-command cmd))))))))
+                  ;; adapted from vim-ex-read-command
+                  (let ((vim-ex--current-buffer buf)
+                        (vim-ex--current-window window))
+                    (vim-ex-execute-command cmd))))))))
     (cond ((eq? major-mode 'ibuffer-mode)
            (mapc exec-command
                  (ibuffer-get-marked-buffers)))
           (t
            (error "command works in ibuffer-mode only")))))
 
-(vim:emap "in-bufs" #'vim:apply-to-selected-buffers)
+(vim-emap "in-bufs" #'vim:apply-to-selected-buffers)
 
 
 (autoload 'render-formula-toggle-formulae "render-formula" "" t)
 
-(vim:defcmd vim:render-latex (nonrepeatable)
+(vim-defcmd vim:render-latex (nonrepeatable)
   (if (memq major-mode '(latex-mode tex-mode LaTeX-mode))
       (latex-toggle-preview)
     (render-formula-toggle-formulae)))
 
-(vim:emap "latex" #'vim:render-latex)
+(vim-emap "latex" #'vim:render-latex)
 
 
 
-(vim:defcmd vim:remove-tabs (motion nonrepeatable)
+(vim-defcmd vim:remove-tabs (motion nonrepeatable)
   (remove-tabs (if motion
-                   (vim:motion-begin-pos motion)
+                   (vim-motion-begin-pos motion)
                  (line-beginning-position))
                (if motion
-                   (vim:motion-end-pos motion)
+                   (vim-motion-end-pos motion)
                  (line-end-position))))
 
-(vim:emap "no-tabs" #'vim:remove-tabs)
+(vim-emap "no-tabs" #'vim:remove-tabs)
 
-(vim:defcmd vim:narrow-to-region-indirect (motion nonrepeatable)
+(vim-defcmd vim:narrow-to-region-indirect (motion nonrepeatable)
   (narrow-to-region-indirect
    (if motion
-       (vim:motion-begin-pos motion)
+       (vim-motion-begin-pos motion)
      (point-min))
    (if motion
-       (vim:motion-end-pos motion)
+       (vim-motion-end-pos motion)
      (point-max))))
 
-(vim:emap "narrow-indirect" #'vim:narrow-to-region-indirect)
-(vim:emap "ni" #'vim:narrow-to-region-indirect)
+(vim-emap "narrow-indirect" #'vim:narrow-to-region-indirect)
+(vim-emap "ni" #'vim:narrow-to-region-indirect)
 
 
-(vim:defcmd vim:indent (nonrepeatable)
+(vim-defcmd vim:indent (nonrepeatable)
   (aif (gethash major-mode *mode-indent-functions-table*)
       (save-current-line-column
         (funcall it))
     (error "No indentation function defined for %s" major-mode)))
 
-(vim:emap "indent" #'vim:indent)
+(vim-emap "indent" #'vim:indent)
 
-(vim:defcmd vim:magit (nonrepeatable)
+(vim-defcmd vim:magit (nonrepeatable)
   "Show git status for current file's repository."
   (aif buffer-file-name
       (if *have-git?*
@@ -530,35 +539,35 @@ Basically swap current point with previous one."
       (message "Warning: current buffer has no associated file")
       (magit-status))))
 
-(vim:emap "magit" #'vim:magit)
-(vim:emap "g" #'vim:magit)
+(vim-emap "magit" #'vim:magit)
+(vim-emap "g" #'vim:magit)
 
 
-(vim:defcmd vim:blame (nonrepeatable)
+(vim-defcmd vim:blame (nonrepeatable)
   "Run `magit-blame-mode'."
   (call-interactively #'magit-blame-addition)
-  (vim:activate-blame-mode))
+  (vim-activate-blame-mode))
 
-(vim:emap "blame" #'vim:blame)
+(vim-emap "blame" #'vim:blame)
 
-(vim:defcmd vim:blame-quit (nonrepeatable)
+(vim-defcmd vim:blame-quit (nonrepeatable)
   "Stop `magit-blame-mode'."
   (unwind-protect
       (call-interactively #'magit-blame-quit)
     (unless magit-blame-mode
-      (vim:activate-normal-mode))))
+      (vim-activate-normal-mode))))
 
-(vim:emap "blame-quit" #'vim:blame-quit)
+(vim-emap "blame-quit" #'vim:blame-quit)
 
-(vim:defcmd vim:git-add (nonrepeatable)
+(vim-defcmd vim:git-add (nonrepeatable)
   "Run 'git add' on current file."
   (save-some-buffers)
   (git-add)
   (git-update-file-repository))
 
-(vim:emap "add" #'vim:git-add)
+(vim-emap "add" #'vim:git-add)
 
-(vim:defcmd vim:git-amend (nonrepeatable)
+(vim-defcmd vim:git-amend (nonrepeatable)
   "Amend topmost git commit with all staged changes."
   (save-window-excursion
     (call-process
@@ -572,47 +581,47 @@ Basically swap current point with previous one."
      "--reuse-message=HEAD")
     (magit-refresh-all)))
 
-(vim:emap "amend" #'vim:git-amend)
+(vim-emap "amend" #'vim:git-amend)
 
-(vim:defcmd vim:git-rm (nonrepeatable)
+(vim-defcmd vim:git-rm (nonrepeatable)
   "Run 'git rm' on current file."
   (save-some-buffers)
   (git-rm)
   (git-update-file-repository))
 
-(vim:emap "rm" #'vim:git-rm)
+(vim-emap "rm" #'vim:git-rm)
 
 
-(vim:defcmd vim:ibuffer (nonrepeatable)
+(vim-defcmd vim:ibuffer (nonrepeatable)
   "Open ibuffer buffer."
   (ibuffer))
 
-(vim:emap "ibuffer" #'vim:ibuffer)
-(vim:emap "ib" #'vim:ibuffer)
+(vim-emap "ibuffer" #'vim:ibuffer)
+(vim-emap "ib" #'vim:ibuffer)
 
-(vim:defcmd vim:do-commands
+(vim-defcmd vim:do-commands
   ((argument:text command) nonrepeatable)
-  (mapc #'vim:ex-execute-command
+  (mapc #'vim-ex-execute-command
         (split-string command
                       "[ ,]\\|&&"
                       t)))
 
-(vim:emap "do" #'vim:do-commands)
+(vim-emap "do" #'vim:do-commands)
 
-(vim:defcmd vim:revert-buffer (nonrepeatable)
+(vim-defcmd vim:revert-buffer (nonrepeatable)
   (revert-buffer))
 
-(vim:defcmd vim:comint-clear-buffer-above-prompt (nonrepeatable)
+(vim-defcmd vim:comint-clear-buffer-above-prompt (nonrepeatable)
   (comint-clear-buffer-above-prompt))
 
-(vim:defcmd vim:shell-command-on-region (motion nonrepeatable (argument:text command))
+(vim-defcmd vim:shell-command-on-region (motion nonrepeatable (argument:text command))
   (let ((buf (current-buffer)))
     (shell-command-on-region
      (if motion
-         (vim:motion-begin-pos motion)
+         (vim-motion-begin-pos motion)
        (line-beginning-position))
      (if motion
-         (vim:motion-end-pos motion)
+         (vim-motion-end-pos motion)
        (line-end-position))
      command
      nil ;; output buffer
@@ -623,7 +632,7 @@ Basically swap current point with previous one."
                  (y-or-n? (format "Kill buffer %s?" (buffer-name buf))))
         (kill-buffer buf)))))
 
-(vim:emap "!" #'vim:shell-command-on-region)
+(vim-emap "!" #'vim:shell-command-on-region)
 
 (provide 'vim-setup)
 

@@ -6,6 +6,7 @@
 ;; Created: 15 November 2017
 ;; Description:
 
+(require 'common-heavy)
 (require 'mmm-auto)
 
 (setf mmm-global-mode 'maybe

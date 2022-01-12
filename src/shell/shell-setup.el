@@ -58,8 +58,8 @@
                  nil
                  :enable-yasnippet t)
 
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:insert-mode-local-keymap)
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-insert-mode-local-keymap)
     (("C-m" "<f9>") shell-run-file))
   (shell-script-abbrev+-setup))
 
@@ -168,12 +168,12 @@ MSYS-style drives, e.g. \"/c/foo/bar.txt\" -> \"c:/foo/bar.txt\"."
   (ansi-color-for-comint-mode-on)
   (setq-local comint-scroll-to-bottom-on-input t)
 
-  (vim:local-emap "clear" #'vim:comint-clear-buffer-above-prompt)
+  (vim-local-emap "clear" #'vim:comint-clear-buffer-above-prompt)
 
-  (def-keys-for-map vim:normal-mode-local-keymap
+  (def-keys-for-map vim-normal-mode-local-keymap
     ("SPC SPC" comint-clear-prompt))
 
-  (def-keys-for-map vim:insert-mode-local-keymap
+  (def-keys-for-map vim-insert-mode-local-keymap
     ;; Override vim-mode's "insert-or-wrap" bindings because they're annoying
     ;; in the prompt.
     ("(" self-insert-command)
@@ -181,10 +181,10 @@ MSYS-style drives, e.g. \"/c/foo/bar.txt\" -> \"c:/foo/bar.txt\"."
     ("{" self-insert-command)
     ("`" self-insert-command))
 
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:insert-mode-local-keymap
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-insert-mode-local-keymap
                      shell-mode-map)
-    ("C-SPC"     vim:comint-clear-buffer-above-prompt)
+    ("C-SPC"     vim:comint-clear-buffer-above-prompt:interactive)
     ("<tab>"     completion-at-point)
 
     ("M-p"       browse-comint-input-history)
@@ -201,8 +201,8 @@ MSYS-style drives, e.g. \"/c/foo/bar.txt\" -> \"c:/foo/bar.txt\"."
 
     ;; ("C-c C-k"   comint-kill-subjob)
 
-    ("C-("       vim:sp-backward-slurp-sexp)
-    ("C-)"       vim:sp-forward-slurp-sexp)
+    ("C-("       vim:sp-backward-slurp-sexp:interactive)
+    ("C-)"       vim:sp-forward-slurp-sexp:interactive)
     ("M-("       sp-absorb-sexp)
     ("M-)"       sp-emit-sexp)))
 

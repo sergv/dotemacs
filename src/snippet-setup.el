@@ -32,8 +32,8 @@ otherwise."
   (init-common :use-yasnippet nil
                :use-whitespace 'tabs-only)
 
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:insert-mode-local-keymap
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-insert-mode-local-keymap
                      snippet-mode-map)
     (("C-m" "<f9>") yas-load-snippet-buffer-no-kill)
     ("S-<f9>"       yas-tryout-snippet))

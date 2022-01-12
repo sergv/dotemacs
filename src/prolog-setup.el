@@ -53,7 +53,7 @@ _<tab>_: reindent predicate"
                :use-render-formula t
                :use-whitespace 'tabs-only)
 
-  (def-keys-for-map vim:normal-mode-local-keymap
+  (def-keys-for-map vim-normal-mode-local-keymap
     ("g"       hydra-prolog-vim-normal-g-ext/body)
     ("-"       hydra-prolog-dash/body)
 
@@ -80,17 +80,17 @@ _<tab>_: reindent predicate"
   ;; changed in prolog.el itself
   ;; (modify-syntax-entry ?_ "_" prolog-mode-syntax-table)
 
-  (vim:local-emap "clear" #'vim:comint-clear-buffer-above-prompt)
+  (vim-local-emap "clear" #'vim:comint-clear-buffer-above-prompt)
 
-  (def-keys-for-map vim:normal-mode-local-keymap
+  (def-keys-for-map vim-normal-mode-local-keymap
     ("SPC SPC"  comint-clear-prompt)
     ("C-t"      comint-previous-prompt)
     ("C-h"      comint-next-prompt))
 
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:insert-mode-local-keymap
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-insert-mode-local-keymap
                      prolog-inferior-mode-map)
-    ("C-SPC"    vim:comint-clear-buffer-above-prompt)
+    ("C-SPC"    vim:comint-clear-buffer-above-prompt:interactive)
     ("C-w"      backward-delete-word)
     ("C-S-w"    backward-delete-word*)
     ("<tab>"    nil)

@@ -48,7 +48,7 @@
      (push '("top" "⊤") agda-input-translations)
      (agda-input-setup)))
 
-(vim:defcmd vim:agda-load-file (nonrepeatable)
+(vim-defcmd vim:agda-load-file (nonrepeatable)
   (agda2-load))
 
 (defhydra-ext hydra-agda-align (:exit t :foreign-keys nil :hint nil :base-map (make-sparse-keymap))
@@ -119,8 +119,8 @@ _f_: next goal"
                  #'eri-indent-reverse
                  :enable-yasnippet t)
   (dolist (cmd '("load" "lo" "l"))
-    (vim:local-emap cmd #'vim:agda-load-file))
-  (def-keys-for-map vim:normal-mode-local-keymap
+    (vim-local-emap cmd #'vim:agda-load-file))
+  (def-keys-for-map vim-normal-mode-local-keymap
     ("C-l"             agda2-load)
     ("<f6>"            agda2-load)
     ("<tab>"           eri-indent)
@@ -133,7 +133,7 @@ _f_: next goal"
     ("-"               hydra-agda/body)
     ("C-t"             agda2-previous-goal)
     ("C-h"             agda2-next-goal))
-  (def-keys-for-map vim:visual-mode-local-keymap
+  (def-keys-for-map vim-visual-mode-local-keymap
     ("- e" agda2-compute-normalised-region)
     ("g"   hydra-agda-vim-visual-g-ext/body))
   (agda-abbrev+-setup))

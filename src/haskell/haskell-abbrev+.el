@@ -446,7 +446,7 @@ then Bar would be the result."
                                 (if repl
                                     (car abbrevs)
                                   (cdr abbrevs))))
-  (def-keys-for-map vim:insert-mode-local-keymap
+  (def-keys-for-map vim-insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))
 
 (provide 'haskell-abbrev+)

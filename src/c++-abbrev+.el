@@ -77,7 +77,7 @@ while interactively prompting for variables/messages."
 (defun c++-abbrev+-setup ()
   (setf abbrev+-skip-syntax ["w" "w_" "^ >"]
         abbrev+-abbreviations (c++-abbrev+-make-abbrevs))
-  (def-keys-for-map vim:insert-mode-local-keymap
+  (def-keys-for-map vim-insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))
 
 (provide 'c++-abbrev+)

@@ -43,8 +43,8 @@ single indentation unit."
         (bind-tab-keys #'indent-relative-forward
                        #'indent-relative-backward
                        :enable-yasnippet t)
-        (def-keys-for-map (vim:normal-mode-local-keymap
-                           vim:insert-mode-local-keymap)
+        (def-keys-for-map (vim-normal-mode-local-keymap
+                           vim-insert-mode-local-keymap)
           ("C-<tab>"           haskell-indentation-indent-line)
           ("C-S-<tab>"         haskell-indentation-indent-backwards)
           ("C-S-<iso-lefttab>" haskell-indentation-indent-backwards)))
@@ -52,14 +52,14 @@ single indentation unit."
       (bind-tab-keys #'haskell-indentation-indent-line
                      #'haskell-indentation-indent-backwards
                      :enable-yasnippet t)
-      (def-keys-for-map (vim:normal-mode-local-keymap
-                         vim:insert-mode-local-keymap)
+      (def-keys-for-map (vim-normal-mode-local-keymap
+                         vim-insert-mode-local-keymap)
         ("C-<tab>"           indent-relative-forward)
         ("C-S-<tab>"         indent-relative-backward)
         ("C-S-<iso-lefttab>" indent-relative-backward))))
 
   (let ((real-offset (or offset 2)))
-    (setq-local vim:shift-width                    real-offset
+    (setq-local vim-shift-width                    real-offset
                 tab-width                          real-offset
                 haskell-indent-offset              real-offset
                 haskell-indentation-layout-offset  real-offset
@@ -79,7 +79,7 @@ single indentation unit."
 
 (defun haskell-misc--single-indent ()
   "Return a string for single indentation amount for Haskell."
-  (make-string vim:shift-width ?\s))
+  (make-string vim-shift-width ?\s))
 
 (defun cleanup-stg ()
   "Remove useless srt:SRT annotations of lambdas, keep only relevant arguments
@@ -793,7 +793,7 @@ value section should have if it is to be properly indented."
 (defun haskell-move-to-topmost-start ()
   "Move to start of the topmost node, similar to `glisp/beginning-of-defun'."
   (interactive)
-  (vim:save-position)
+  (vim-save-position)
   (save-match-data
    (re-search-backward "^[^ \t\v\f\n\r#]" nil t))
   ;; (beginning-of-line)
@@ -806,7 +806,7 @@ value section should have if it is to be properly indented."
 (defun haskell-move-to-topmost-end ()
   "Move to end of the topmost node, similar to `glisp/end-of-defun'."
   (interactive)
-  (vim:save-position)
+  (vim-save-position)
   (beginning-of-line)
   (while (and (not (eobp))
               (= 0 (indentation-size)))

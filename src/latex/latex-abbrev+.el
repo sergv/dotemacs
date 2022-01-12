@@ -56,7 +56,7 @@ from \\label{...} and \\ref{...} constructs."
           :action-type 'function-with-side-effects
           :action-data #'latex-insert-reference-template)))
 
-  (def-keys-for-map vim:insert-mode-local-keymap
+  (def-keys-for-map vim-insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))
 
 (provide 'latex-abbrev+)

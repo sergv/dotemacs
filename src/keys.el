@@ -88,7 +88,7 @@
        +vi-keys+
        +vim-search-keys+
        +vim-search-extended-keys+
-       +vim-mock:word-motion-keys+
+       +vim-word-motion-keys+
        +vim-special-keys+
        ("SPC"      help-follow)
        ("<up>"     help-go-back)
@@ -109,11 +109,11 @@
      (def-keys-for-map custom-mode-map
        +vi-keys+
        +vim-special-keys+
-       +vim-mock:word-motion-keys+
+       +vim-word-motion-keys+
        ("- w"      customize-save-customized)
-       ("w"        vim:motion-fwd-word)
-       ("b"        vim:motion-bwd-word)
-       ("e"        vim:motion-fwd-word-end)
+       ("w"        vim:motion-fwd-word:interactive)
+       ("b"        vim:motion-bwd-word:interactive)
+       ("e"        vim:motion-fwd-word-end:interactive)
 
        ("<down>"   widget-forward)
        ("<up>"     widget-backward))
@@ -121,11 +121,11 @@
      (def-keys-for-map Custom-mode-map
        +vi-keys+
        +vim-special-keys+
-       +vim-mock:word-motion-keys+
+       +vim-word-motion-keys+
        ("- w"      customize-save-customized)
-       ("w"        vim:motion-fwd-word)
-       ("b"        vim:motion-bwd-word)
-       ("e"        vim:motion-fwd-word-end)
+       ("w"        vim:motion-fwd-word:interactive)
+       ("b"        vim:motion-bwd-word:interactive)
+       ("e"        vim:motion-fwd-word-end:interactive)
 
        ("<down>"   widget-forward)
        ("<up>"     widget-backward))))
@@ -191,7 +191,7 @@
 
   ("C-w"               backward-delete-word)
   ("C-S-w"             backward-delete-word*)
-  ("C-p"               vim:cmd-paste-behind-no-adjust)
+  ("C-p"               vim-cmd-paste-after-no-adjust)
   ("C-S-p"             browse-kill-ring)
 
   ("C-/"               nil)

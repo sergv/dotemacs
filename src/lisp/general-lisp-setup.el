@@ -17,7 +17,6 @@
 (require 'advices-util)
 (require 'common)
 (require 'el-patch)
-(require 'eldoc)
 (require 'folding-setup)
 (require 'hydra-setup)
 (require 'indentation)
@@ -487,12 +486,12 @@ nor comment."
 
 (defun glisp/beginning-of-defun ()
   (interactive)
-  (vim:save-position)
+  (vim-save-position)
   (glisp/find-beginning-of-defun #'backward-sexp))
 
 (defun glisp/end-of-defun ()
   (interactive)
-  (vim:save-position)
+  (vim-save-position)
   (glisp/find-beginning-of-defun #'ignore)
   (forward-sexp))
 
@@ -611,47 +610,47 @@ _o_: show sexps in region"
 
   (add-hook 'after-save-hook #'make-script-file-exec nil t)
 
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:visual-mode-local-keymap)
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-visual-mode-local-keymap)
     ("*"   search-for-symbol-at-point-forward)
     ("M-*" search-for-symbol-at-point-forward-new-color)
     ("#"   search-for-symbol-at-point-backward)
     ("M-#" search-for-symbol-at-point-backward-new-color))
 
-  (def-keys-for-map vim:normal-mode-local-keymap
+  (def-keys-for-map vim-normal-mode-local-keymap
     ("+"        input-unicode)
     ("g"        hydra-lisp-vim-normal-g-ext/body)
     ("j"        hydra-lisp-vim-normal-j-ext/body))
 
-  (def-keys-for-map vim:visual-mode-local-keymap
+  (def-keys-for-map vim-visual-mode-local-keymap
     ("g"        hydra-lisp-vim-visual-g-ext/body)
     ("j"        hydra-lisp-vim-visual-j-ext/body)
     ("z"        hydra-lisp-vim-visual-z-ext/body)
 
     ("'"        sp-backward-up-sexp))
 
-  (def-keys-for-map vim:insert-mode-local-keymap
+  (def-keys-for-map vim-insert-mode-local-keymap
     (";"        paredit-semicolon)
     ("C-="      input-unicode)
     (")"        paredit-close-round))
 
-  (def-keys-for-map (vim:operator-pending-mode-local-keymap
-                     vim:motion-mode-local-keymap)
+  (def-keys-for-map (vim-operator-pending-mode-local-keymap
+                     vim-motion-mode-local-keymap)
     ("g t"     glisp/beginning-of-defun)
     ("g h"     glisp/end-of-defun))
 
-  (def-keys-for-map (vim:motion-mode-local-keymap
-                     vim:operator-pending-mode-local-keymap)
-    ("w"   vim:paredit-forward-word)
-    ("e"   vim:paredit-forward-word-end)
-    ("b"   vim:paredit-backward-word)
-    ("W"   vim:paredit-forward-WORD)
-    ("E"   vim:paredit-forward-WORD-end)
-    ("B"   vim:paredit-backward-WORD)
-    ("s"   vim:paredit-inner-symbol)
-    ("i s" vim:paredit-inner-symbol)
-    ("a s" vim:paredit-outer-symbol)
-    ("S"   vim:paredit-backward-symbol)))
+  (def-keys-for-map (vim-motion-mode-local-keymap
+                     vim-operator-pending-mode-local-keymap)
+    ("w"   vim:paredit-forward-word:interactive)
+    ("e"   vim:paredit-forward-word-end:interactive)
+    ("b"   vim:paredit-backward-word:interactive)
+    ("W"   vim:paredit-forward-WORD:interactive)
+    ("E"   vim:paredit-forward-WORD-end:interactive)
+    ("B"   vim:paredit-backward-WORD:interactive)
+    ("s"   vim:paredit-inner-symbol:interactive)
+    ("i s" vim:paredit-inner-symbol:interactive)
+    ("a s" vim:paredit-outer-symbol:interactive)
+    ("S"   vim:paredit-backward-symbol:interactive)))
 
 ;;;###autoload
 (add-hook 'lisp-mode-hook #'lisp-setup)
@@ -667,14 +666,14 @@ _o_: show sexps in region"
   (setq-local comint-use-prompt-regexp nil
               comint-prompt-regexp "^[^> \n\t\r\f\v]*\\(>+:?\\|[*?]+\\) *")
 
-  (vim:local-emap "clear" #'vim:comint-clear-buffer-above-prompt)
+  (vim-local-emap "clear" #'vim:comint-clear-buffer-above-prompt)
 
-  (def-keys-for-map vim:normal-mode-local-keymap
+  (def-keys-for-map vim-normal-mode-local-keymap
     ("SPC SPC"  comint-clear-prompt))
 
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:insert-mode-local-keymap)
-    ("C-SPC"    vim:comint-clear-buffer-above-prompt)
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-insert-mode-local-keymap)
+    ("C-SPC"    vim:comint-clear-buffer-above-prompt:interactive)
     ("C-w"      backward-delete-word)
     ("C-S-w"    backward-delete-word*)
     ("<tab>"    nil)

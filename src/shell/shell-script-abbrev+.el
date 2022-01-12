@@ -44,7 +44,7 @@
                              ;;"^ >"
                              ]
         abbrev+-abbreviations (shell-script-abbrev+-make-abbrevs))
-  (def-keys-for-map vim:insert-mode-local-keymap
+  (def-keys-for-map vim-insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))
 
 (provide 'shell-script-abbrev+)

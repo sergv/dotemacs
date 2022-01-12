@@ -224,19 +224,19 @@
   (hl-line-mode +1)
   (setup-folding t nil)
 
-  (def-keys-for-map vim:normal-mode-local-keymap
+  (def-keys-for-map vim-normal-mode-local-keymap
     ;; clear all previous output
     ("SPC SPC"  eshell-clear-prompt))
 
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:insert-mode-local-keymap)
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-insert-mode-local-keymap)
     ("<return>"   eshell-send-input)
     ("C-<return>" sp-newline)
     ("<up>"       eshell-previous-matching-input-from-input)
     ("<down>"     eshell-next-matching-input-from-input))
 
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:insert-mode-local-keymap
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-insert-mode-local-keymap
                      eshell-mode-map)
 
     ("C-t"      eshell-jump-to-prev-prompt)
@@ -244,8 +244,8 @@
     ("C-<up>"   eshell-jump-to-prev-prompt)
     ("C-<down>" eshell-jump-to-next-prompt)
 
-    ("C-("      vim:sp-backward-slurp-sexp)
-    ("C-)"      vim:sp-forward-slurp-sexp)
+    ("C-("      vim:sp-backward-slurp-sexp:interactive)
+    ("C-)"      vim:sp-forward-slurp-sexp:interactive)
     ("M-("      sp-absorb-sexp)
     ("M-)"      sp-emit-sexp)
 

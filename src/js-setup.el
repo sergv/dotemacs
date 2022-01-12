@@ -41,7 +41,7 @@
 (defun js2-setup ()
   (init-common :use-whitespace 'tabs-only)
   (setup-folding t nil)
-  (def-keys-for-map (vim:normal-mode-local-keymap)
+  (def-keys-for-map (vim-normal-mode-local-keymap)
     ("z c" js2-hide-indented-or-sexp)
     ("z o" js2-show-indented-or-sexp)
     ("z O" js2-mode-show-all)))
@@ -73,7 +73,7 @@
                :use-yasnippet t
                :use-comment t)
   (setup-folding t nil)
-  (def-keys-for-map vim:normal-mode-local-keymap
+  (def-keys-for-map vim-normal-mode-local-keymap
     ("- p" json-mode-show-path)))
 
 ;;;###autoload

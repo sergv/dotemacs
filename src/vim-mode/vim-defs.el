@@ -8,41 +8,40 @@
 
 ;;; Code:
 
-(defvar vim:repeat-events nil
+(defvar vim--repeat-events nil
   "The sequence of events for the repeat command.")
 
-(defvar-local vim:current-register nil
+(defvar-local vim--current-register nil
   "The register of the current command.")
 
-(defvar-local vim:current-cmd-count nil
+(defvar-local vim--current-cmd-count nil
   "The count of the current command.")
 
-(defvar-local vim:current-cmd nil
+(defvar-local vim--current-cmd nil
   "The node of the current command.")
 
-(defvar-local vim:current-cmd-arg nil
+(defvar-local vim--current-cmd-arg nil
   "The argument of the current command.")
 
-(defvar-local vim:current-motion-count nil
+(defvar-local vim--current-motion-count nil
   "The count of the current motion.")
 
-(defvar-local vim:current-motion nil
+(defvar-local vim--current-motion nil
   "The node of the current motion.")
 
-(defvar-local vim:current-motion-arg nil
+(defvar-local vim--current-motion-arg nil
   "The argument of the current motion.")
 
-(defvar-local vim:current-motion-type nil
+(defvar-local vim--current-motion-type nil
   "The type of the current motion (inclusive, exclusive,
   linewise).")
 
-(defvar-local vim:current-force-motion-type nil
+(defvar-local vim--current-force-motion-type nil
   "The forced type of the motion of current command (inclusive,
   exclusive, linewise).")
 
-(defvar-local vim:current-key-sequence nil
+(defvar-local vim--current-key-sequence nil
   "The key-sequence of the current command.")
-
 
 (provide 'vim-defs)
 

@@ -18,7 +18,7 @@
 (require 'dash)
 (require 'el-patch)
 (require 'hydra-setup)
-(require 'vim-mock)
+(require 'pseudovim)
 (require 'magit)
 (require 'magit-blame)
 (require 'search)
@@ -154,13 +154,13 @@ _a_lign"
                :use-comment   t
                :use-fci       t)
   (setq-local indent-tabs-mode nil)
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:insert-mode-local-keymap)
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-insert-mode-local-keymap)
     ("<tab>"       tab-to-tab-stop)
     ("<backtab>"   tab-to-tab-stop-backward)
     ("S-<tab>"     tab-to-tab-stop-backward)
     ("S-<iso-tab>" tab-to-tab-stop-backward))
-  (def-keys-for-map vim:visual-mode-local-keymap
+  (def-keys-for-map vim-visual-mode-local-keymap
     ("g" hydra-gitconfig-vim-visual-g-ext/body)))
 
 ;;; magit
@@ -308,7 +308,7 @@ ta_b_s"
                      magit-mode-map
                      map)
     ("u" nil)
-    ("s" vim:ex-read-command))
+    ("s" vim-ex-read-command))
   (def-keys-for-map map
     +vim-special-keys+
     +vim-search-keys+
@@ -329,7 +329,7 @@ ta_b_s"
     ("-"               hydra-magit/body)
     ("j"               hydra-magit-j/body)
     ("\\"              magit-discard)
-    ("M"               vim:jump-to-prev-saved-position)
+    ("M"               vim:jump-to-prev-saved-position:interactive)
     ("O"               magit-remote-popup)
 
     ("k"               magit-unstage)
@@ -366,8 +366,8 @@ ta_b_s"
 (defun magit-log-mode-setup ()
   (magit-bind-common-vimless-mode-keymap magit-log-mode-map)
   (def-keys-for-map magit-log-mode-map
-    ("h" vim-mock:motion-down)
-    ("t" vim-mock:motion-up)))
+    ("h" pseudovim-motion-down)
+    ("t" pseudovim-motion-up)))
 
 ;;;###autoload
 (defun magit-popup-setup ()
@@ -408,8 +408,8 @@ ta_b_s"
                :use-fci t
                :enable-backup nil)
 
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:insert-mode-local-keymap
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-insert-mode-local-keymap
                      git-commit-mode-map)
     ("C-c C-q" magit-log-edit-cancel-log-message)
     ("<up>"    git-commit-prev-message ;; log-edit-previous-comment
@@ -448,7 +448,7 @@ e_x_ec"
   (def-keys-for-map git-rebase-mode-map
     +vi-keys+
     +vim-search-keys+
-    +vim-mock:word-motion-keys+
+    +vim-word-motion-keys+
     +vim-special-keys+
     ("C-k"      nil) ;; its kill buffer in global map
     ("<down>"   git-rebase-move-line-down)
@@ -631,21 +631,21 @@ under git version control."
        (lambda (path) (shell-command (concat "git rm " (shell-quote-argument path)))))
     (error "Current buffer has no file")))
 
-(vim:define-keymap blame-mode "blame mode")
+(vim-define-keymap blame-mode "blame mode")
 
-;;;###autoload (autoload 'vim:activate-blame-mode "git-setup" nil t)
-(vim:define-mode blame "VIM git blame mode\n\nBlame mode keymap:\n\\{vim:blame-mode-keymap}"
+;;;###autoload (autoload 'vim-activate-blame-mode "git-setup" nil t)
+(vim-define-mode blame "VIM git blame mode\n\nBlame mode keymap:\n\\{vim-blame-mode-keymap}"
   :ident "B"
   ;; :message "-- BLAME --"
-  :keymaps '(vim:blame-mode-keymap
-             vim:operator-pending-mode-keymap
-             vim:motion-mode-keymap
-             ;; vim:override-keymap
+  :keymaps '(vim-blame-mode-keymap
+             vim-operator-pending-mode-keymap
+             vim-motion-mode-keymap
+             ;; vim-override-keymap
              )
-  :command-function #'vim:normal-mode-command
+  :command-function #'vim--normal-mode-command
   :cursor 'hbar)
 
-(def-keys-for-map vim:blame-mode-keymap
+(def-keys-for-map vim-blame-mode-keymap
   +vim-normal-mode-navigation-keys+
   +vim-search-keys+
   +vim-search-extended-keys+
@@ -660,11 +660,11 @@ under git version control."
   ("<return>" magit-show-commit)
 
   ;; ("C-h"      magit-blame-next-chunk)
-  ("<down>"   vim:motion-down)
+  ("<down>"   vim:motion-down:interactive)
   ;; ("C-t"      magit-blame-previous-chunk)
-  ("<up>"     vim:motion-up)
-  ("<escape>" vim:blame-quit)
-  ("q"        vim:blame-quit))
+  ("<up>"     vim:motion-up:interactive)
+  ("<escape>" vim:blame-quit:interactive)
+  ("q"        vim:blame-quit:interactive))
 
 (provide 'git-setup)
 
