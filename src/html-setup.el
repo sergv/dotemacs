@@ -34,9 +34,6 @@
 (require 'nxml-mode)
 
 ;;;###autoload
-(el-patch-feature rng-valid)
-
-;;;###autoload
 (autoload 'web-mode "web-mode" nil t)
 ;;;###autoload
 (autoload 'nxml-tokenize-forward "nxml-mode" nil nil)
@@ -97,7 +94,7 @@ if such tag can be found."
            ,on-not-found)))))
 
 ;;;###autoload (autoload 'vim:motion-jump-tag "html-setup" "" t)
-(vim:defmotion vim:motion-jump-tag (inclusive)
+(vim-defmotion vim:motion-jump-tag (inclusive)
   "If point is positioned inside tag then jump to the beginning
 of the matching tag, else fallback to `vim:motion-jump-item'."
   (cl-macrolet ((inside? (x low high)
@@ -242,26 +239,26 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
   (font-lock-add-keywords nil *hexcolour-keywords*)
 
 
-  (def-keys-for-map vim:normal-mode-local-keymap
+  (def-keys-for-map vim-normal-mode-local-keymap
     ("<up>"   sgml-skip-tag-backward)
     ("<down>" sgml-skip-tag-forward)
     ;; ("q"      markup-forward-up-element)
     )
 
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:visual-mode-local-keymap
-                     vim:motion-mode-local-keymap
-                     vim:operator-pending-mode-local-keymap)
-    ("m" vim:motion-jump-tag)
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-visual-mode-local-keymap
+                     vim-motion-mode-local-keymap
+                     vim-operator-pending-mode-local-keymap)
+    ("m" vim:motion-jump-tag:interactive)
 
-    ("'" vim:nxml-backward-up-element)
-    ("q" vim:markup-forward-up-element)))
+    ("'" vim:nxml-backward-up-element:interactive)
+    ("q" vim:markup-forward-up-element:interactive)))
 
 ;;;###autoload
 (defun html-setup ()
   (markup-setup #'hl-tags-context-sgml-mode)
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:insert-mode-local-keymap)
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-insert-mode-local-keymap)
     (("C-m" "<f9>")  browse-url-of-buffer)))
 
 ;;;###autoload
@@ -333,14 +330,14 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
         web-mode-css-indent-offset 2
         web-mode-code-indent-offset 2)
 
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:visual-mode-local-keymap
-                     vim:motion-mode-local-keymap
-                     vim:operator-pending-mode-local-keymap)
-    ("m" vim:motion-jump-tag)
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-visual-mode-local-keymap
+                     vim-motion-mode-local-keymap
+                     vim-operator-pending-mode-local-keymap)
+    ("m" vim:motion-jump-tag:interactive)
 
-    ("'" vim:nxml-backward-up-element)
-    ("q" vim:markup-forward-up-element)))
+    ("'" vim:nxml-backward-up-element:interactive)
+    ("q" vim:markup-forward-up-element:interactive)))
 
 ;;;###autoload
 (add-hook 'web-mode-hook #'web-mode-setup)

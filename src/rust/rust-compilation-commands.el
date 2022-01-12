@@ -78,18 +78,18 @@
     (setq-local lsp-rust-target-dir target-dir
                 flycheck-cargo-check-args check-args))
 
-  (vim:local-emap "compile"  'vim:rust-compile)
-  (vim:local-emap "c"        'vim:rust-compile)
-  (vim:local-emap "ccompile" 'vim:rust-compile-choosing-command)
-  (vim:local-emap "cc"       'vim:rust-compile-choosing-command)
+  (vim-local-emap "compile"  'vim:rust-compile)
+  (vim-local-emap "c"        'vim:rust-compile)
+  (vim-local-emap "ccompile" 'vim:rust-compile-choosing-command)
+  (vim-local-emap "cc"       'vim:rust-compile-choosing-command)
 
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:insert-mode-local-keymap)
-    (("C-m" "<f9>") vim:rust-compile)))
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-insert-mode-local-keymap)
+    (("C-m" "<f9>") vim:rust-compile:interactive)))
 
-(vim:defcmd vim:rust-compile (nonrepeatable)
+(vim-defcmd vim:rust-compile (nonrepeatable)
   (configurable-compilation-start nil))
-(vim:defcmd vim:rust-compile-choosing-command (nonrepeatable)
+(vim-defcmd vim:rust-compile-choosing-command (nonrepeatable)
   (configurable-compilation-start t))
 
 (provide 'rust-compilation-commands)

@@ -31,8 +31,8 @@
   (company-mode +1)
   (setq-local company-backends '(company-nix))
 
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:insert-mode-local-keymap)
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-insert-mode-local-keymap)
     ("C-SPC" company-complete)))
 
 ;;;###autoload

@@ -155,7 +155,7 @@ can allows value to be decoded back fully.)"
             ;; These properties typicaly arise during copying and pasting and generally
             ;; contain unpleasant data...
             '(yank-handler
-              vim:yank-handler
+              vim--yank-handler
               ;; ... in particular this fellow contains structure with markers.
               magit-section)
             ignored-text-properties)))

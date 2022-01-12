@@ -21,7 +21,7 @@
   (cc-setup :define-special-keys nil)
   (setup-folding t '(:header-symbol "/" :length-min 3))
   (setq-local c-basic-offset 4
-              vim:shift-width 4
+              vim-shift-width 4
               c-indentation-indent-style "java-standard"
               ;; "java-clojure"
               whitespace-style '(face tabs space-after-tab space-before-tab))

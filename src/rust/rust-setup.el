@@ -153,7 +153,7 @@ which is suitable for most programming languages such as C or Lisp."
       (not ?=))
   :require-one-or-more-spaces t)
 
-(vim:defcmd vim:rust-flycheck-configure (nonrepeatable)
+(vim-defcmd vim:rust-flycheck-configure (nonrepeatable)
   (unless rust-flycheck-configure
     (error "Don’t know how to configure %s checker"
            flycheck-cherker)))
@@ -164,7 +164,7 @@ which is suitable for most programming languages such as C or Lisp."
     (flycheck-rust-setup)
     t))
 
-(vim:defcmd vim:rust-flycheck-reset (nonrepeatable)
+(vim-defcmd vim:rust-flycheck-reset (nonrepeatable)
   (rust-flycheck-reset))
 
 (defun rust-flycheck-reset ()
@@ -231,7 +231,7 @@ which is suitable for most programming languages such as C or Lisp."
 
               compilation-environment '("TERM=xterm-256color"))
 
-  (vim:local-emap "c" 'vim:recompile)
+  (vim-local-emap "c" 'vim:recompile)
 
   (add-hook 'compilation-filter-hook #'rust-compilation-filter-hook nil t))
 
@@ -342,16 +342,16 @@ _h_: end of defun"
   ("t" rust-beginning-of-defun)
   ("h" rust-end-of-defun))
 
-(defun vim:rust-beginning-of-defun (&optional arg)
+(defun vim-rust-beginning-of-defun (&optional arg)
   "Vim wrapper around `rust-beginning-of-defun'."
   (interactive "p")
-  (vim:save-position)
+  (vim-save-position)
   (rust-beginning-of-defun arg))
 
-(defun vim:rust-end-of-defun ()
+(defun vim-rust-end-of-defun ()
   "Vim wrapper around `rust-end-of-defun'."
   (interactive)
-  (vim:save-position)
+  (vim-save-position)
   (rust-end-of-defun))
 
 (defhydra-derive hydra-rust-vim-visual-g-ext hydra-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
@@ -361,8 +361,8 @@ _<tab>_: format region _h_: end of defun"
   ("a"     hydra-rust-align/body)
   ("<tab>" rust-format-region)
 
-  ("t"     vim:rust-beginning-of-defun)
-  ("h"     vim:rust-end-of-defun))
+  ("t"     vim-rust-beginning-of-defun)
+  ("h"     vim-rust-end-of-defun:interactive))
 
 (defun rust-insert-unimplemented ()
   "Insert unimplemented!()."
@@ -466,7 +466,7 @@ sexps and indentation levels."
                  #'tab-to-tab-stop-backward
                  :enable-yasnippet t)
 
-  (setf vim:shift-width rust-indent-offset
+  (setf vim-shift-width rust-indent-offset
         tab-width rust-indent-offset)
 
   (let (;; NB may be nil.
@@ -503,27 +503,27 @@ sexps and indentation levels."
               lsp-ui-sideline-delay 0.05)
 
   (dolist (cmd '("conf" "configure"))
-    (vim:local-emap cmd #'vim:rust-flycheck-configure))
+    (vim-local-emap cmd #'vim:rust-flycheck-configure))
 
   (flycheck-install-ex-commands!
    :install-flycheck flycheck-mode
-   :reset-func #'vim:rust-flycheck-reset)
+   :reset-func #'vim:rust-flycheck-reset:interactive)
 
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:visual-mode-local-keymap
-                     vim:operator-pending-mode-keymap
-                     vim:motion-mode-keymap)
-    ("'" vim:rust-backward-up-indentation-or-sexp))
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-visual-mode-local-keymap
+                     vim-operator-pending-mode-keymap
+                     vim-motion-mode-keymap)
+    ("'" vim:rust-backward-up-indentation-or-sexp:interactive))
 
-  (def-keys-for-map vim:normal-mode-local-keymap
+  (def-keys-for-map vim-normal-mode-local-keymap
     ("-"   hydra-rust-dash/body)
     ("g"   hydra-rust-vim-normal-g-ext/body))
 
-  (def-keys-for-map vim:visual-mode-local-keymap
+  (def-keys-for-map vim-visual-mode-local-keymap
     ("-"   hydra-rust-visual-dash/body)
     ("g"   hydra-rust-vim-visual-g-ext/body))
 
-  (def-keys-for-map vim:insert-mode-local-keymap
+  (def-keys-for-map vim-insert-mode-local-keymap
     ("," smart-operators-comma)
     ("+" rust-smart-operators-self-insert)
     ("-" rust-smart-operators-self-insert)
@@ -539,8 +539,8 @@ sexps and indentation levels."
     (">" rust-smart-operators-self-insert)
     ("=" rust-smart-operators-self-insert))
 
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:insert-mode-local-keymap)
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-insert-mode-local-keymap)
     ("C-u"   rust-insert-unimplemented)
     ("C-t"   flycheck-enhancements-previous-error-with-wraparound)
     ("C-h"   flycheck-enhancements-next-error-with-wraparound)
@@ -554,7 +554,7 @@ sexps and indentation levels."
   (lsp)
 
   (when lsp-mode
-    (def-keys-for-map vim:normal-mode-local-keymap
+    (def-keys-for-map vim-normal-mode-local-keymap
       ("C-r" lsp-rename))))
 
 

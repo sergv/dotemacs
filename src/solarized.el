@@ -5,7 +5,6 @@
 
 (eval-when-compile
   (require 'cl-lib)
-
   (require 'set-up-platform))
 
 (defconst +solarized-red+     "#dc322f")
@@ -713,9 +712,9 @@ Futher modified by Sergey Vinokurov."
             (undo-tree-visualizer-active-branch-face ((t (:weight bold))))
             (undo-tree-visualizer-current-face    ((t (:foreground ,red))))
             (undo-tree-visualizer-register-face   ((t (:foreground ,yellow))))
-            (vim:lazy-highlight                   ((t (:inherit lazy-highlight))))
-            (vim:search                           ((t (:background ,light-cyan-green-background))))
-            (vim:substitute                       ((t (:underline ,magenta))))
+            (vim-lazy-highlight-face              ((t (:inherit lazy-highlight))))
+            (vim-search-face                      ((t (:background ,light-cyan-green-background))))
+            (vim-substitute-face                  ((t (:underline ,magenta))))
             (warning                              ((t (:foreground ,orange :bold t))))
             (whitespace-line                      ((t (:underline ,red))))
             (whitespace-space-after-tab           ((t (:underline ,red))))

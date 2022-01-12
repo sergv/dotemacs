@@ -14,9 +14,9 @@
 
 (require 'vim-ex)
 
-(cl-defun vim:save-buffer (file-name &key begin end force append)
+(cl-defun vim--save-buffer (file-name &key begin end force append)
   "Saves the lines from `begin' to `end' to file `file-name'."
-  (with-current-buffer vim:ex-current-buffer
+  (with-current-buffer vim-ex--current-buffer
     (when (null file-name)
       (setq file-name buffer-file-name)
       (unless file-name
@@ -43,16 +43,7 @@
         (t
          (write-region beg-pos end-pos file-name append nil nil (not force)))))))
 
-(vim:defcmd vim:cmd-delete-buffer ((argument:buffer buffer) force nonrepeatable)
-  "Deletes a buffer."
-  (when force
-    (if buffer
-        (with-current-buffer buffer
-          (set-buffer-modified-p nil))
-      (set-buffer-modified-p nil)))
-  (kill-buffer buffer))
-
-(vim:defcmd vim:cmd-quit (force nonrepeatable)
+(vim-defcmd vim:cmd-quit (force nonrepeatable noninteractive)
   "Closes the current window, exits Emacs if this is the last window."
   (condition-case nil
       (delete-window)
@@ -64,23 +55,23 @@
             (kill-emacs)
           (save-buffers-kill-emacs)))))))
 
-(vim:defcmd vim:cmd-save-and-close ((argument:file file) force nonrepeatable)
+(vim-defcmd vim:cmd-save-and-close ((argument:file file) force nonrepeatable noninteractive)
   "Saves the current buffer and closes the window."
   (vim:cmd-write :argument file :force force)
   (vim:cmd-quit))
 
-(defun vim:ex-complete-mode-argument (mode predicate flag)
+(defun vim--ex-complete-mode-argument (mode predicate flag)
   "Completes a registered vim-mode submode."
   (when mode
-    (let ((modes (-map #'cdr vim:mode-alist)))
-      (with-current-buffer vim:ex-current-buffer
+    (let ((modes (-map #'cdr vim--mode-alist)))
+      (with-current-buffer vim-ex--current-buffer
         (pcase flag
           (`nil    (try-completion mode modes predicate))
           (`t      (all-completions mode modes predicate))
           (`lambda (test-completion mode modes predicate)))))))
 
-(vim:define-arg-handler 'mode
-  :complete 'vim:ex-complete-mode-argument)
+(vim--define-arg-handler 'mode
+  :complete 'vim--ex-complete-mode-argument)
 
 (provide 'vim-ex-commands)
 

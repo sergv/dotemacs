@@ -25,8 +25,8 @@ _h_: end of statement"
 (defun sql-setup ()
   (init-common :use-whitespace 'tabs-only)
 
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:visual-mode-local-keymap)
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-visual-mode-local-keymap)
     (("C-m" "<f9>") sql-send-region)
     ("g" hydra-sql-vim-normal-g-ext/body)))
 

@@ -299,13 +299,13 @@ greater indenation as current line."
   (save-excursion
     (indent-rigidly (line-beginning-position)
                     (line-end-position)
-                    vim:shift-width)
+                    vim-shift-width)
     (forward-line -1)
     (indent-rigidly (line-beginning-position)
                     (line-end-position)
-                    (- vim:shift-width))))
+                    (- vim-shift-width))))
 
-(vim:defcmd vim:python-shell-send-buffer (nonrepeatable)
+(vim-defcmd vim:python-shell-send-buffer (nonrepeatable)
   (python-shell-send-buffer))
 
 ;;; run scripts compilation mode
@@ -404,21 +404,21 @@ _j_: send region to repl"
   (setq-local forward-sexp-function nil)
 
   (dolist (cmd '("load" "lo" "l"))
-    (vim:local-emap cmd #'vim:python-shell-send-buffer))
+    (vim-local-emap cmd #'vim:python-shell-send-buffer))
 
-  (def-keys-for-map vim:normal-mode-local-keymap
+  (def-keys-for-map vim-normal-mode-local-keymap
     ("j"       hydra-python-vim-normal-j-ext/body)
     ("C-l"     python-shell-send-buffer)
 
     ("SPC SPC" switch-to-python))
 
-  (def-keys-for-map vim:visual-mode-local-keymap
+  (def-keys-for-map vim-visual-mode-local-keymap
     ("<f6>"  python-shell-send-region)
     ("j"     hydra-python-vim-visual-j-ext/body)
     ("g"     hydra-python-vim-visual-g-ext/body))
 
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:visual-mode-local-keymap)
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-visual-mode-local-keymap)
     ("<f6>"         python-shell-send-buffer)
     (("C-m" "<f9>") python-run-script)
     ("S-<f9>"       python-check)
@@ -445,8 +445,8 @@ _j_: send region to repl"
 
   ;; pabbrev isn't powerful enough
   ;; (pabbrev-mode 1)
-  ;; (def-keys-for-map (vim:normal-mode-local-keymap
-  ;;                     vim:insert-mode-local-keymap)
+  ;; (def-keys-for-map (vim-normal-mode-local-keymap
+  ;;                     vim-insert-mode-local-keymap)
   ;;   ("M-/"     pabbrev-show-menu ;; pabbrev-expand-maybe
   ;;              ))
   ;; (when pabbrev-mode
@@ -496,14 +496,14 @@ _j_: send region to repl"
   (setf tab-width 4)
   (setq-local forward-sexp-function nil)
 
-  (vim:local-emap "clear" #'vim:comint-clear-buffer-above-prompt)
+  (vim-local-emap "clear" #'vim:comint-clear-buffer-above-prompt)
 
-  (def-keys-for-map vim:normal-mode-local-keymap
+  (def-keys-for-map vim-normal-mode-local-keymap
     ("SPC SPC"  comint-clear-prompt))
 
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:insert-mode-local-keymap)
-    ("C-SPC"    vim:comint-clear-buffer-above-prompt)
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-insert-mode-local-keymap)
+    ("C-SPC"    vim:comint-clear-buffer-above-prompt:interactive)
     ("M-p"      browse-comint-input-history)
 
     ("<up>"     comint-previous-input)

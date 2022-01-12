@@ -149,7 +149,7 @@
 (defun cc-setup/set-up-c-basic-offset ()
   "Try to guess offset (`c-basic-offset') for current buffer or use value
 dictated by code standard at work if use-work-code-style is non-nil.
-Also propagate new offset to `vim:shift-width'."
+Also propagate new offset to `vim-shift-width'."
   (let ((dtrt-indent-verbosity 0))
     (unless (dtrt-indent-try-set-offset)
       (awhen (eproj-query/any-mode/indent-offset (eproj-get-project-for-buf-lax (current-buffer))
@@ -222,15 +222,15 @@ _o_: show c sexps in region"
   (c-toggle-electric-state -1)
   (c-toggle-auto-newline -1)
 
-  (def-keys-for-map vim:normal-mode-local-keymap
+  (def-keys-for-map vim-normal-mode-local-keymap
     ("g" hydra-c-vim-normal-g-ext/body))
 
-  (def-keys-for-map vim:visual-mode-local-keymap
+  (def-keys-for-map vim-visual-mode-local-keymap
     ("z" hydra-c-vim-visual-z-ext/body)
     ("g" hydra-c-vim-visual-g-ext/body))
 
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:insert-mode-local-keymap)
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-insert-mode-local-keymap)
     ("C-SPC"       company-complete)
     ("<backspace>" backward-delete-char))
 
@@ -239,7 +239,7 @@ _o_: show c sexps in region"
                  :enable-yasnippet t)
 
   (when define-special-keys
-    (def-keys-for-map vim:normal-mode-local-keymap
+    (def-keys-for-map vim-normal-mode-local-keymap
       ("SPC SPC" ff-find-related-file))))
 
 (defun c-format-buffer ()

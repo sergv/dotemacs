@@ -46,8 +46,8 @@ special characters are introduced via backlash only."
 
 (defsubst vim--get-str-covered-by-motion (motion)
   (buffer-substring-no-properties
-   (vim:motion-begin-pos motion)
-   (vim:motion-end-pos motion)))
+   (vim-motion-begin-pos motion)
+   (vim-motion-end-pos motion)))
 
 (defun vim-replace--minibuffer-setup-jump-before-last-separator ()
   "Hook function to properly position cursor in the %s command, e.g.
@@ -59,22 +59,22 @@ special characters are introduced via backlash only."
 
 (defun vim--start-ex-with-customized-substitute-command (str)
   (interactive)
-  (let ((vim:ex-current-buffer (current-buffer))
-        (vim:ex-current-window (selected-window)))
-    (let ((minibuffer-local-completion-map vim:ex-keymap))
-      (add-hook 'minibuffer-setup-hook #'vim:ex-start-session)
+  (let ((vim-ex--current-buffer (current-buffer))
+        (vim-ex--current-window (selected-window)))
+    (let ((minibuffer-local-completion-map vim-ex-keymap))
+      (add-hook 'minibuffer-setup-hook #'vim-ex--start-session)
       (add-hook 'minibuffer-setup-hook #'vim-replace--minibuffer-setup-jump-before-last-separator)
-      (let ((result (completing-read vim--ex-propmt
-                                     'vim:ex-complete
+      (let ((result (completing-read vim-ex--propmt
+                                     'vim-ex--complete
                                      nil
                                      nil
                                      str
-                                     'vim:ex-history)))
+                                     'vim-ex--history)))
         (when (and result
                    (not (zerop (length result))))
-          (vim:ex-execute-command result))))))
+          (vim-ex-execute-command result))))))
 
-(vim:defcmd vim-replace-word (nonrepeatable)
+(vim-defcmd vim:replace-word (nonrepeatable)
   "Partially construct vim ex-replace command from word at point."
   (vim--start-ex-with-customized-substitute-command
    (vim--construct-ex-replace-command
@@ -84,7 +84,7 @@ special characters are introduced via backlash only."
     :word t
     :fill-replace (not current-prefix-arg))))
 
-(vim:defcmd vim-replace-WORD (nonrepeatable)
+(vim-defcmd vim:replace-WORD (nonrepeatable)
   "Partially construct vim ex-replace command from WORD at point."
   (vim--start-ex-with-customized-substitute-command
    (vim--construct-ex-replace-command
@@ -93,14 +93,14 @@ special characters are introduced via backlash only."
        (vim:motion-inner-WORD)))
     :fill-replace (not current-prefix-arg))))
 
-(vim:defcmd vim-replace-selected (nonrepeatable)
+(vim-defcmd vim:replace-selected (nonrepeatable)
   "Partially construct vim ex-replace command from selected region."
   (vim--start-ex-with-customized-substitute-command
    (vim--construct-ex-replace-command
     (get-region-string-no-properties)
     :fill-replace (not current-prefix-arg))))
 
-(vim:defcmd vim-replace-symbol-at-point (nonrepeatable)
+(vim-defcmd vim:replace-symbol-at-point (nonrepeatable)
   "Partially construct vim ex-replace command from symbol at point.
 With prefix argument puts symbol at point also in substitute part"
   (vim--start-ex-with-customized-substitute-command
