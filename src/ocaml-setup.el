@@ -48,7 +48,7 @@
                  nil
                  :enable-yasnippet t)
   (pretty-ligatures-install-safe!)
-  (def-keys-for-map (vim:normal-mode-local-keymap)
+  (def-keys-for-map (vim-normal-mode-local-keymap)
     ("SPC SPC" switch-to-ocaml-repl)
     ("<f6>"    tuareg-eval-buffer)))
 
@@ -72,9 +72,9 @@
   (init-repl :bind-return nil
              :sp-slurp-sexp-insert-space nil)
   (pretty-ligatures-install-safe!)
-  (vim:local-emap "clear" #'vim:comint-clear-buffer-above-prompt)
+  (vim-local-emap "clear" #'vim:comint-clear-buffer-above-prompt)
   (def-keys-for-map tuareg-interactive-mode-map
-    ("C-SPC"      vim:comint-clear-buffer-above-prompt)
+    ("C-SPC"      vim:comint-clear-buffer-above-prompt:interactive)
     ("<return>"   ocaml-interactive-send-input)
     ("C-<return>" sp-newline)
     ("SPC SPC"    comint-clear-prompt)

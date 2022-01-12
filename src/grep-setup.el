@@ -14,6 +14,7 @@
 (eval-when-compile
   (require 'cl-lib)
   (require 'el-patch)
+  (require 'set-up-platform)
   (require 'macro-util))
 
 (require 'el-patch)
@@ -211,7 +212,7 @@ REGEXP is used as a string in the prompt."
     +vi-keys+
     +vim-search-keys+
     +vim-special-keys+
-    +vim-mock:word-motion-keys+
+    +vim-word-motion-keys+
     ("h"        compilation-jump-to-next-error)
     ("t"        compilation-jump-to-prev-error)
     ("<up>"     compilation-jump-to-prev-error)

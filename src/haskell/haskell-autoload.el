@@ -43,6 +43,18 @@
 (autoload 'vim:haskell-flycheck-list-errors "haskell-setup" nil t)
 (autoload 'vim:haskell-navigate-imports "haskell-setup" nil t)
 
+(autoload 'vim:ghc-core-create-core:interactive "haskell-setup" nil t)
+(autoload 'vim:haskell-compile:interactive "haskell-setup" nil t)
+(autoload 'vim:haskell-compile-choosing-command:interactive "haskell-setup" nil t)
+(autoload 'vim:haskell-load-file-into-repl:interactive "haskell-setup" nil t)
+(autoload 'vim:haskell-set-target:interactive "haskell-setup" nil t)
+(autoload 'vim:haskell-flycheck-run:interactive "haskell-setup" nil t)
+(autoload 'vim:haskell-flycheck-compile:interactive "haskell-setup" nil t)
+(autoload 'vim:haskell-flycheck-configure:interactive "haskell-setup" nil t)
+(autoload 'vim:haskell-flycheck-clear:interactive "haskell-setup" nil t)
+(autoload 'vim:haskell-flycheck-list-errors:interactive "haskell-setup" nil t)
+(autoload 'vim:haskell-navigate-imports:interactive "haskell-setup" nil t)
+
 (defconst +haskell-extensions+
   '("hs" "hsig" "lhs" "hsc" "chs" "hs-boot" "lhs-boot" "alex" "x" "lx" "happy" "y" "ly" "ag" "lag"))
 

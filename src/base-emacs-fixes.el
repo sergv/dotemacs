@@ -9,6 +9,7 @@
 
 (eval-when-compile
   (require 'cl-lib)
+  (require 'set-up-platform)
   (require 'el-patch))
 
 (require 'el-patch)
@@ -974,7 +975,7 @@ characters."
         (delete-file error-file))
       exit-status)))
 
-(advice-add 'end-of-defun :before #'vim:save-position)
+(advice-add 'end-of-defun :before #'vim-save-position)
 
 (provide 'base-emacs-fixes)
 

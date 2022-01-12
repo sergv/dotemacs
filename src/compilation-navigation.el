@@ -115,7 +115,7 @@ error location - value of compilation-error structure."
                #'switch-to-buffer)
              it)
     (error "Could not find buffer for file %s" (compilation-error/filename err)))
-  (vim:save-position)
+  (vim-save-position)
   (goto-line-dumb (compilation-error/line-number err))
   (awhen (compilation-error/column-number err)
     (move-to-character-column it)))

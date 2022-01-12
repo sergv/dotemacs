@@ -50,7 +50,7 @@
 
 (autoload 'flycheck--locate-dominating-file-matching "flycheck")
 
-(vim:defcmd vim:ghc-core-create-core (nonrepeatable)
+(vim-defcmd vim:ghc-core-create-core (nonrepeatable)
   (let* ((is-stack-project?
           (flycheck--locate-dominating-file-matching
            default-directory
@@ -67,26 +67,26 @@
             ghc-core-program-args)))
     (ghc-core-create-core current-prefix-arg)))
 
-(vim:defcmd vim:dante-repl-switch-to-repl-buffer (nonrepeatable)
+(vim-defcmd vim:dante-repl-switch-to-repl-buffer (nonrepeatable)
   (haskell-misc--configure-dante-if-needed!)
   (dante-repl-switch-to-repl-buffer))
 
-(vim:defcmd vim:haskell-dante-load-file-into-repl (nonrepeatable)
+(vim-defcmd vim:haskell-dante-load-file-into-repl (nonrepeatable)
   (haskell-misc--configure-dante-if-needed!)
   (dante-repl-load-file))
 
-(vim:defcmd vim:haskell-dante-repl-restart (nonrepeatable)
+(vim-defcmd vim:haskell-dante-repl-restart (nonrepeatable)
   "Restart dante repl."
   (dante-repl-restart nil))
 
-(vim:defcmd vim:haskell-lsp-flycheck-reset (nonrepeatable)
+(vim-defcmd vim:haskell-lsp-flycheck-reset (nonrepeatable)
   "Restart lsp checker session."
   (vim:flycheck-clear)
   (when (and (boundp 'flycheck-checker)
              (eq flycheck-checker 'lsp))
     (lsp-workspace-restart (lsp--read-workspace))))
 
-(vim:defcmd vim:haskell-dante-reset (nonrepeatable)
+(vim-defcmd vim:haskell-dante-reset (nonrepeatable)
   "Destroy dante checker session and attempt to create a new one."
   ;; Don’t use ‘dante-restart’ because it won’t have any effect if there’s no
   ;; dante buffer.
@@ -97,14 +97,14 @@
   (lcr-cps-let ((_ (dante-session)))
     (flycheck-buffer)))
 
-(vim:defcmd vim:haskell-dante-configure (nonrepeatable)
+(vim-defcmd vim:haskell-dante-configure (nonrepeatable)
   (haskell-misc--configure-dante!))
 
-(vim:defcmd vim:dante-clear-buffer-above-prompt (nonrepeatable)
+(vim-defcmd vim:dante-clear-buffer-above-prompt (nonrepeatable)
   "Clear text above ghci prompt."
   (dante-repl-clear-buffer-above-prompt))
 
-(vim:defcmd vim:haskell-flycheck-configure (nonrepeatable)
+(vim-defcmd vim:haskell-flycheck-configure (nonrepeatable)
   (flycheck-haskell-clear-config-cache)
   (setf flycheck-ghc-package-databases nil
         flycheck-haskell-ghc-executable nil
@@ -115,11 +115,11 @@
   (flycheck-haskell-configure)
   (vim:flycheck-run))
 
-(vim:defcmd vim:haskell-navigate-imports (nonrepeatable)
+(vim-defcmd vim:haskell-navigate-imports (nonrepeatable)
   (haskell-navigate-imports)
-  (vim:save-position haskell-navigate-imports-start-point))
+  (vim-save-position haskell-navigate-imports-start-point))
 
-(vim:defcmd vim:haskell-comment-line (count repeatable)
+(vim-defcmd vim:haskell-comment-line (count repeatable)
   (haskell-comment-line count))
 
 (defun haskell-update-eproj-tags-on-save ()
@@ -260,14 +260,14 @@ _TAB_: align and sort subsection"
 
 (defhydra-derive hydra-haskell-vim-normal-j-ext hydra-vim-normal-j-ext (:exit t :foreign-keys nil :hint nil)
   ""
-  ("cc" vim:haskell-comment-line))
+  ("cc" vim:haskell-comment-line:interactive))
 
 (defhydra-derive hydra-haskell-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
   "
 _i_:     jump to imports  _t_: jump to topmost node start
 _I_:     jump back        _h_: jump to topmont node end
 _<tab>_: reindent"
-  ("i"     vim:haskell-navigate-imports)
+  ("i"     vim:haskell-navigate-imports:interactive)
   ("I"     haskell-navigate-imports-return)
   ("<tab>" haskell-reindent-at-point)
 
@@ -357,16 +357,16 @@ _a_lign  _t_: jump to topmost node start
                 ;; Improve vim treatment of words for Haskell.
                 ;; Note: underscore should not be included since it would prevent
                 ;; navigating inside of some Haskell identifiers, e.g. foo_bar.
-                vim:word "[:word:]'"
+                vim-word "[:word:]'"
 
                 compilation-read-command nil
                 compilation-auto-jump-to-first-error nil
                 ;; Don't skip any messages.
                 compilation-skip-threshold 0)
 
-    (def-keys-for-map vim:normal-mode-local-keymap
-      ("SPC SPC"      vim:dante-repl-switch-to-repl-buffer)
-      (("C-l" "<f6>") vim:haskell-dante-load-file-into-repl))
+    (def-keys-for-map vim-normal-mode-local-keymap
+      ("SPC SPC"      vim:dante-repl-switch-to-repl-buffer:interactive)
+      (("C-l" "<f6>") vim:haskell-dante-load-file-into-repl:interactive))
 
     ;; Dante doesn't play well with idle-change checks.
     (cond
@@ -374,9 +374,9 @@ _a_lign  _t_: jump to topmost node start
        (setq-local flycheck-check-syntax-automatically '(save mode-enabled))
 
        (dolist (cmd '("conf" "configure"))
-         (vim:local-emap cmd #'vim:haskell-dante-configure))
+         (vim-local-emap cmd #'vim:haskell-dante-configure))
 
-       (def-keys-for-map vim:normal-mode-local-keymap
+       (def-keys-for-map vim-normal-mode-local-keymap
          ("-" hydra-haskell-dante/body))
 
        (flycheck-install-ex-commands!
@@ -385,7 +385,7 @@ _a_lign  _t_: jump to topmost node start
         :reset-func #'vim:haskell-dante-reset))
       (lsp-mode
        (dolist (cmd '("conf-repl" "configure-repl"))
-         (vim:local-emap cmd #'vim:haskell-dante-configure))
+         (vim-local-emap cmd #'vim:haskell-dante-configure))
 
        (setq-local lsp-ui-sideline-show-code-actions t
                    lsp-ui-sideline-enable t
@@ -395,22 +395,22 @@ _a_lign  _t_: jump to topmost node start
                    lsp-ui-sideline-show-diagnostics nil
                    lsp-ui-sideline-delay 0.05)
        (lsp-ui-sideline-mode +1)
-       (def-keys-for-map vim:normal-mode-local-keymap
+       (def-keys-for-map vim-normal-mode-local-keymap
          ("-"   hydra-haskell-lsp/body)
          ("C-r" lsp-rename))
 
        (flycheck-install-ex-commands!
         :install-flycheck flycheck-mode
-        :load-func #'vim:haskell-dante-load-file-into-repl
-        :reset-func #'vim:haskell-lsp-flycheck-reset))
+        :load-func #'vim:haskell-dante-load-file-into-repl:interactive
+        :reset-func #'vim:haskell-lsp-flycheck-reset:interactive))
       ((and flycheck-mode
             (memq flycheck-checker '(haskell-stack-ghc haskell-ghc)))
        (dolist (cmd '("conf" "configure"))
-         (vim:local-emap cmd #'vim:haskell-flycheck-configure))
+         (vim-local-emap cmd #'vim:haskell-flycheck-configure))
 
        (flycheck-install-ex-commands!
         :install-flycheck flycheck-mode
-        :load-func #'vim:haskell-dante-load-file-into-repl)))
+        :load-func #'vim:haskell-dante-load-file-into-repl:interactive)))
 
     (setq-local mode-line-format
                 (apply #'default-mode-line-format
@@ -424,37 +424,37 @@ _a_lign  _t_: jump to topmost node start
                            " "
                            '(:eval (flycheck-pretty-mode-line)))))))
 
-    (vim:local-emap "core" #'vim:ghc-core-create-core)
+    (vim-local-emap "core" #'vim:ghc-core-create-core)
 
-    (def-keys-for-map vim:normal-mode-local-keymap
-      ("\\"           vim:flycheck-run)
+    (def-keys-for-map vim-normal-mode-local-keymap
+      ("\\"           vim:flycheck-run:interactive)
       ("g"            hydra-haskell-vim-normal-g-ext/body)
       ("j"            hydra-haskell-vim-normal-j-ext/body)
       ("+"            input-unicode))
 
-    (def-keys-for-map vim:visual-mode-local-keymap
-      ("`"            vim:wrap-backticks)
+    (def-keys-for-map vim-visual-mode-local-keymap
+      ("`"            vim-wrap-backticks)
       ("g"            hydra-haskell-vim-visual-g-ext/body))
 
-    (def-keys-for-map (vim:normal-mode-local-keymap
-                       vim:visual-mode-local-keymap)
+    (def-keys-for-map (vim-normal-mode-local-keymap
+                       vim-visual-mode-local-keymap)
       ("*"            search-for-haskell-symbol-at-point-forward)
       ("C-*"          search-for-haskell-symbol-at-point-forward-new-color)
       ("#"            search-for-haskell-symbol-at-point-backward)
       ("C-#"          search-for-haskell-symbol-at-point-backward-new-color)
-      ("'"            vim:haskell-backward-up-indentation-or-sexp))
+      ("'"            vim:haskell-backward-up-indentation-or-sexp:interactive))
 
-    (def-keys-for-map vim:insert-mode-local-keymap
-      ("`"            vim:wrap-backticks)
+    (def-keys-for-map vim-insert-mode-local-keymap
+      ("`"            vim-wrap-backticks)
       (","            haskell-smart-operators-comma))
 
     (install-haskell-smart-operators!
-        vim:insert-mode-local-keymap
+        vim-insert-mode-local-keymap
       :bind-colon t
       :bind-hyphen t)
 
-    (def-keys-for-map (vim:normal-mode-local-keymap
-                       vim:insert-mode-local-keymap)
+    (def-keys-for-map (vim-normal-mode-local-keymap
+                       vim-insert-mode-local-keymap)
       ("DEL"             haskell-backspace-with-block-dedent)
       ("<backspace>"     haskell-backspace-with-block-dedent)
 
@@ -470,12 +470,12 @@ _a_lign  _t_: jump to topmost node start
 
       (("S-<tab>" "<S-iso-lefttab>" "<backtab>") nil))
 
-    (def-keys-for-map (vim:normal-mode-local-keymap
-                       vim:visual-mode-local-keymap
-                       vim:motion-mode-local-keymap
-                       vim:operator-pending-mode-local-keymap)
-      ("'" vim:haskell-backward-up-indentation-or-sexp)
-      ("q" vim:haskell-up-sexp))
+    (def-keys-for-map (vim-normal-mode-local-keymap
+                       vim-visual-mode-local-keymap
+                       vim-motion-mode-local-keymap
+                       vim-operator-pending-mode-local-keymap)
+      ("'" vim:haskell-backward-up-indentation-or-sexp:interactive)
+      ("q" vim:haskell-up-sexp:interactive))
 
     (haskell-setup-folding)
     (if lsp-mode
@@ -483,7 +483,7 @@ _a_lign  _t_: jump to topmost node start
       (progn
         (setup-eproj-symbnav :bind-keybindings nil)
         ;; Override binding introduced by `setup-eproj-symbnav'.
-        (def-keys-for-map vim:normal-mode-local-keymap
+        (def-keys-for-map vim-normal-mode-local-keymap
           ("M-."         eproj-symbnav/go-to-symbol-home)
           ("C-."         haskell-go-to-symbol-home-via-dante-or-eproj)
           (("M-," "C-,") eproj-symbnav/go-back)
@@ -519,28 +519,28 @@ _a_lign  _t_: jump to topmost node start
              :bind-return nil
              :bind-vim:motion-current-line nil)
   ;; very useful to automatically surround with spaces inserted operators
-  (install-haskell-smart-operators! vim:insert-mode-local-keymap
+  (install-haskell-smart-operators! vim-insert-mode-local-keymap
     :bind-colon nil
     :bind-hyphen nil)
 
   (pretty-ligatures-install-safe!)
   (pretty-ligatures-install-special-haskell-ligatures!)
 
-  (vim:local-emap "clear" 'vim:comint-clear-buffer-above-prompt)
+  (vim-local-emap "clear" #'vim:comint-clear-buffer-above-prompt)
   (dolist (cmd '("re" "restart"))
-    (vim:local-emap cmd #'vim:haskell-dante-repl-restart))
+    (vim-local-emap cmd #'vim:haskell-dante-repl-restart))
 
-  (def-keys-for-map vim:normal-mode-local-keymap
+  (def-keys-for-map vim-normal-mode-local-keymap
     ("H"        dante-repl-restart)
     ("SPC SPC"  comint-clear-prompt))
 
-  (def-keys-for-map vim:insert-mode-local-keymap
+  (def-keys-for-map vim-insert-mode-local-keymap
     ("-"        haskell--ghci-hyphen)
     (":"        haskell--ghci-colon)
-    ("`"        vim:wrap-backticks))
+    ("`"        vim-wrap-backticks))
 
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:insert-mode-local-keymap)
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-insert-mode-local-keymap)
     ("<tab>"    completion-at-point)
     ("<up>"     comint-previous-input)
     ("<down>"   comint-next-input)
@@ -550,17 +550,17 @@ _a_lign  _t_: jump to topmost node start
     ("S-<up>"   comint-previous-prompt)
     ("S-<down>" comint-next-prompt)
 
-    ("C-("      vim:sp-backward-slurp-sexp)
-    ("C-)"      vim:sp-forward-slurp-sexp)
+    ("C-("      vim:sp-backward-slurp-sexp:interactive)
+    ("C-)"      vim:sp-forward-slurp-sexp:interactive)
     ("M-("      sp-absorb-sexp)
     ("M-)"      sp-emit-sexp)
 
-    ("C-SPC"    vim:comint-clear-buffer-above-prompt)
+    ("C-SPC"    vim:comint-clear-buffer-above-prompt:interactive)
     ("M-p"      browse-comint-input-history))
 
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:visual-mode-local-keymap
-                     vim:insert-mode-local-keymap)
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-visual-mode-local-keymap
+                     vim-insert-mode-local-keymap)
     ("C-<return>" dante-repl-sp-newline))
 
   (haskell-setup-folding :enable-hs-minor-mode t)
@@ -574,7 +574,7 @@ _a_lign  _t_: jump to topmost node start
   (pretty-ligatures-install-safe!)
   (pretty-ligatures-install-special-haskell-ligatures!)
 
-  (vim:local-emap "c" 'vim:recompile)
+  (vim-local-emap "c" #'vim:recompile)
   (def-keys-for-map haskell-compilation-mode-map
     +vim-special-keys+
     ("<return>" compilation/goto-error)
@@ -598,13 +598,13 @@ _a_lign  _t_: jump to topmost node start
                  #'tab-to-tab-stop-backward
                  :enable-yasnippet t)
 
-  (def-keys-for-map vim:normal-mode-local-keymap
+  (def-keys-for-map vim-normal-mode-local-keymap
     ("SPC SPC" haskell-cabal-find-related-file)
     ("g"       hydra-cabal-vim-normal-g-ext/body)
     ("'"       yafolding-go-parent-element))
 
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:insert-mode-local-keymap)
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-insert-mode-local-keymap)
     ("<return>"     haskell--simple-indent-newline-same-col)
     ("C-<return>"   haskell--simple-indent-newline-indent)))
 

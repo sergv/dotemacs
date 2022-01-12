@@ -92,7 +92,7 @@
         ("M-." eproj-symbnav/go-to-symbol-home)
         ("M-," eproj-symbnav/go-back)
         ("M-?" xref-find-references)))
-    (def-keys-for-map vim:normal-mode-local-keymap
+    (def-keys-for-map vim-normal-mode-local-keymap
       ("C-." lsp-haskell-symbnav/go-to-symbol-home)
       ("C-," lsp-haskell-symbnav/go-back)
       ("C-?" lsp-symbnav/find-references)

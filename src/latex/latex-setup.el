@@ -54,11 +54,11 @@
   (if latex:russian-spellcheck
       (progn
         (flyspell-mode-off)
-        (def-keys-for-map vim:normal-mode-local-keymap
+        (def-keys-for-map vim-normal-mode-local-keymap
           ("'"  nil)
           ("\"" nil)))
     (progn
-      (def-keys-for-map vim:normal-mode-local-keymap
+      (def-keys-for-map vim-normal-mode-local-keymap
         ("'"  ispell-word)
         ("\"" flyspell-goto-next-error))
       (flyspell-russian)
@@ -128,7 +128,7 @@ _o_: unfold region
      ;; don't skip any messages
      compilation-skip-threshold 0))
 
-  (def-keys-for-map vim:normal-mode-local-keymap
+  (def-keys-for-map vim-normal-mode-local-keymap
     ("S-<f9>"       open-buffer-as-pdf)
     (("C-m" "<f9>") latex-compile)
     ("<f6>"         latex-toggle-preview-or-russian-spellcheck)
@@ -136,16 +136,10 @@ _o_: unfold region
     ("<left>"       prev-w)
     ("<right>"      next-w))
 
-  ;; (define-key vim:insert-mode-local-keymap (kbd "<f3>") LaTeX-math-keymap)
+  ;; (define-key vim-insert-mode-local-keymap (kbd "<f3>") LaTeX-math-keymap)
 
-  (def-keys-for-map vim:visual-mode-local-keymap
+  (def-keys-for-map vim-visual-mode-local-keymap
     ("z" hydra-latex-vim-visual-z-ext/body))
-
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:visual-mode-local-keymap
-                     vim:motion-mode-local-keymap
-                     vim:operator-pending-mode-local-keymap)
-    ("%" vim:motion-end-of-line))
 
   (latex-set-up-document-start-marker)
   (latex-setup-folding)

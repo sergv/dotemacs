@@ -46,7 +46,7 @@ _,_: kill hunk"
                :use-whitespace 'tabs-only)
   (setup-folding t nil)
 
-  (def-keys-for-map vim:normal-mode-local-keymap
+  (def-keys-for-map vim-normal-mode-local-keymap
     ("<up>"     diff-hunk-prev)
     ("<down>"   diff-hunk-next)
     ("C-<up>"   diff-file-prev)

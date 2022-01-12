@@ -23,8 +23,8 @@
   (setq-local whitespace-line-column 80
               whitespace-style '(face tabs lines-tail))
 
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:visual-mode-local-keymap)
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-visual-mode-local-keymap)
     ("g" hydra-gitconfig-align/body)))
 
 (add-hook 'toml-mode-hook #'toml-setup)
