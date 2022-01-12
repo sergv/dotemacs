@@ -359,15 +359,25 @@ BUFFER is expected to contain output of ctags command."
         (current-line-with-properties)))))
 
 (defun eproj/format-tag-path-and-line (proj tag)
-  (concat
-   (propertize (eproj-resolve-to-abs-path (eproj-tag/file tag) proj)
-               'face 'eproj-symbnav-file-name)
-   ":"
-   (propertize (number->string (eproj-tag/line tag))
-               'face 'eproj-symbnav-line-number)
-   (awhen (eproj-tag/column tag)
-     (propertize (concat ":" (number->string it))
-                 'face 'eproj-symbnav-column-number))))
+  (let* ((tag-file (eproj-tag/file tag))
+         (root (eproj-project/root proj))
+         (filename
+          (if (string-prefix-p root
+                               tag-file
+                               (fold-platform-os-type nil t) ;; case insensitivity
+                               )
+              ;; Add 1 to remove leading slash.
+              (subseq tag-file (1+ (length root)))
+            (abbreviate-file-name tag-file
+             (eproj-resolve-to-abs-path tag-file proj)))))
+    (concat
+     (propertize filename 'face 'eproj-symbnav-file-name)
+     ":"
+     (propertize (number->string (eproj-tag/line tag))
+                 'face 'eproj-symbnav-line-number)
+     (awhen (eproj-tag/column tag)
+       (propertize (concat ":" (number->string it))
+                   'face 'eproj-symbnav-column-number)))))
 
 (provide 'eproj-ctags)
 
