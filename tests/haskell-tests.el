@@ -2320,6 +2320,32 @@
      "bar2 x = x"
      "")))
 
+(ert-deftest haskell-tests/haskell-newline-with-signature-expansion-ws-1 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-newline-with-signature-expansion))
+    (tests-utils--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo :: Int -> Int_|_"
+     "    "
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")
+    (tests-utils--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo :: Int -> Int"
+     "foo _|_"
+     "    "
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")))
+
 (ert-deftest haskell-tests/haskell-newline-with-signature-expansion-2 ()
   (haskell-tests--test-buffer-contents
       (progn
@@ -2342,6 +2368,32 @@
      "foo :: Int -> Int"
      "foo _|_"
      ""
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")))
+
+(ert-deftest haskell-tests/haskell-newline-with-signature-expansion-ws-2 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-newline-with-signature-expansion))
+    (tests-utils--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo :: Int -> Int    _|_"
+     "    "
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")
+    (tests-utils--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo :: Int -> Int"
+     "foo _|_"
+     "    "
      "bar2 :: a -> x"
      "bar2 x = x"
      "")))
@@ -2374,6 +2426,34 @@
      "bar2 x = x"
      "")))
 
+(ert-deftest haskell-tests/haskell-newline-with-signature-expansion-ws-3 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-newline-with-signature-expansion))
+    (tests-utils--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo"
+     "  :: Int -> Int_|_"
+     "    "
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")
+    (tests-utils--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo"
+     "  :: Int -> Int"
+     "foo _|_"
+     "    "
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")))
+
 (ert-deftest haskell-tests/haskell-newline-with-signature-expansion-4 ()
   (haskell-tests--test-buffer-contents
       (progn
@@ -2398,6 +2478,34 @@
      "  :: Int -> Int"
      "foo _|_"
      ""
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")))
+
+(ert-deftest haskell-tests/haskell-newline-with-signature-expansion-ws-4 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-newline-with-signature-expansion))
+    (tests-utils--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo"
+     "  :: Int -> Int   _|_"
+     "    "
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")
+    (tests-utils--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo"
+     "  :: Int -> Int"
+     "foo _|_"
+     "    "
      "bar2 :: a -> x"
      "bar2 x = x"
      "")))
@@ -2430,6 +2538,34 @@
      "bar2 x = x"
      "")))
 
+(ert-deftest haskell-tests/haskell-newline-with-signature-expansion-ws-5 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-newline-with-signature-expansion))
+    (tests-utils--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo ::"
+     "  Int -> Int_|_"
+     "    "
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")
+    (tests-utils--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo ::"
+     "  Int -> Int"
+     "foo _|_"
+     "    "
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")))
+
 (ert-deftest haskell-tests/haskell-newline-with-signature-expansion-6 ()
   (haskell-tests--test-buffer-contents
       (progn
@@ -2454,6 +2590,34 @@
      "  Int -> Int"
      "foo _|_"
      ""
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")))
+
+(ert-deftest haskell-tests/haskell-newline-with-signature-expansion-ws-6 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-newline-with-signature-expansion))
+    (tests-utils--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo ::"
+     "  Int -> Int   _|_"
+     "    "
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")
+    (tests-utils--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo ::"
+     "  Int -> Int"
+     "foo _|_"
+     "    "
      "bar2 :: a -> x"
      "bar2 x = x"
      "")))
@@ -2488,6 +2652,36 @@
      "bar2 x = x"
      "")))
 
+(ert-deftest haskell-tests/haskell-newline-with-signature-expansion-ws-7 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-newline-with-signature-expansion))
+    (tests-utils--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo"
+     "  :: Int"
+     "  -> Int_|_"
+     "    "
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")
+    (tests-utils--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo"
+     "  :: Int"
+     "  -> Int"
+     "foo _|_"
+     "    "
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")))
+
 (ert-deftest haskell-tests/haskell-newline-with-signature-expansion-8 ()
   (haskell-tests--test-buffer-contents
       (progn
@@ -2518,6 +2712,36 @@
      "bar2 x = x"
      "")))
 
+(ert-deftest haskell-tests/haskell-newline-with-signature-expansion-ws-8 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-newline-with-signature-expansion))
+    (tests-utils--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo"
+     "  :: Int"
+     "  -> Int   _|_"
+     "    "
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")
+    (tests-utils--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo"
+     "  :: Int"
+     "  -> Int"
+     "foo _|_"
+     "    "
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")))
+
 (ert-deftest haskell-tests/haskell-newline-with-signature-expansion-9 ()
   (haskell-tests--test-buffer-contents
       (progn
@@ -2531,6 +2755,23 @@
      ""
      "(.!=) :: Functor m => m (Maybe a) -> a -> m a"
      "(.!=) _|_"
+     ""
+     "")))
+
+(ert-deftest haskell-tests/haskell-newline-with-signature-expansion-ws-9 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-newline-with-signature-expansion))
+    (tests-utils--multiline
+     ""
+     "(.!=) :: Functor m => m (Maybe a) -> a -> m a_|_"
+     "    "
+     "")
+    (tests-utils--multiline
+     ""
+     "(.!=) :: Functor m => m (Maybe a) -> a -> m a"
+     "(.!=) _|_"
+     "    "
      ""
      "")))
 
