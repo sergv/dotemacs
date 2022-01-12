@@ -551,7 +551,7 @@ both unicode and ascii characters.")
                                                          "\\)")))
                                            (concat "\\(?:\\_<\\(?:let\\|where\\)\\_>" ws "+\\)?"
                                                    "\\(?1:"
-                                                   (concat "\\(?2:" name-re "\\)"
+                                                   (concat "\\(?:" name-re "\\)"
                                                            "\\(?:," ws "*" name-re "\\)*")
                                                    "\\)"
                                                    ws "*"
@@ -563,22 +563,22 @@ both unicode and ascii characters.")
                      (setf function-name-column (current-column))
                      (let ((indented-section-end (line-end-position)))
                        (forward-line 1)
+                       (beginning-of-line)
                        (while (and (not (eobp))
                                    (< function-name-column (indentation-size)))
-                         (setf indented-section-end (line-end-position))
+                         (unless (looking-at-p haskell-regexen/preprocessor-or-empty-line)
+                           (setf indented-section-end (line-end-position)))
                          (forward-line 1))
                        ;; Do not expand if we're not located at the
                        ;; type signature's end.
                        (setf point-at-end-of-function-signature?
                              (= start-pos indented-section-end))
-                       (when (and
-                              point-at-end-of-function-signature?
-                              (not
-                               (save-excursion
-                                 (goto-char indented-section-end)
-                                 (skip-syntax-forward "->")
-                                 (looking-at-p (concat (regexp-quote func-name)
-                                                       "\\_>")))))
+                       (when (and point-at-end-of-function-signature?
+                                  (not (save-excursion
+                                         (goto-char indented-section-end)
+                                         (skip-syntax-forward "->")
+                                         (looking-at-p (concat (regexp-quote func-name)
+                                                               "\\_>")))))
                          (goto-char start-pos)
                          (delete-horizontal-space t)
                          (insert "\n")
