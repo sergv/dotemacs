@@ -305,7 +305,7 @@ get proper flycheck checker."
 ;; Thunk below is a function of 0 arguments.
 (cl-defstruct (eproj-project
                (:conc-name eproj-project/))
-  ;; normalized directory name
+  ;; Normalized directory name, without trailing slash.
   (root                  nil :read-only t)
   ;; alist of (<symbol> . <symbol-dependent-info>) entries for eproj-query.el
   (aux-info              nil :read-only t)
