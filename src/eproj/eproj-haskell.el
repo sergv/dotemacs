@@ -221,21 +221,19 @@ runtime but rather will be silently relied on)."
 
 (defun eproj-haskell--get-related-projects-from-cabal-proj (root cabal-proj-file)
   (cl-assert (file-regular-p cabal-proj-file))
-  (let* ((dir (file-name-directory cabal-proj-file))
-         (dir-norm (eproj-normalise-file-name-expand-cached dir nil)))
-    (with-temp-buffer
-      (insert-file-contents cabal-proj-file)
+  (with-temp-buffer
+    (insert-file-contents cabal-proj-file)
 
-      ;; Make sure current directory is removed so that we won’t have infinite loop here.
-      (--remove (or (string= root it)
-                    (string= root (eproj-get-initial-project-root it)))
-                (--map (if (file-regular-p it) (file-name-directory it) it)
-                       (--map (eproj-normalise-file-name-expand-cached (eproj-haskell--trim-quotes it)
-                                                                       root)
-                              (--remove (string-prefix-p "--" it)
-                                        (-map #'trim-whitespace
-                                              (mapcan #'split-into-lines
-                                                      (eproj-haskell--cabal--get-field "packages"))))))))))
+    ;; Make sure current directory is removed so that we won’t have infinite loop here.
+    (--remove (or (string= root it)
+                  (string= root (eproj-get-initial-project-root it)))
+              (--map (if (file-regular-p it) (file-name-directory it) it)
+                     (--map (eproj-normalise-file-name-expand-cached (eproj-haskell--trim-quotes it)
+                                                                     root)
+                            (--remove (string-prefix-p "--" it)
+                                      (-map #'trim-whitespace
+                                            (mapcan #'split-into-lines
+                                                    (eproj-haskell--cabal--get-field "packages")))))))))
 
 (defun eproj-haskell--trim-quotes (str)
   "Trim leading and tailing \" from STR."
