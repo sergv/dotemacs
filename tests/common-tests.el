@@ -217,7 +217,7 @@
                     (funcall make-list 5)
                     #'ignore)))))
 
-(ert-deftest common-tests/remove-duplicates-sorted ()
+(ert-deftest common-tests/remove-duplicates-sorted! ()
   (should (equal
            (remove-duplicates-sorted! nil #'string=)
            nil))
@@ -282,23 +282,23 @@
 (ert-deftest common-tests/remove-duplicates-by-hashing-projections ()
   (should (equal
            (remove-duplicates-by-hashing-projections #'identity
-                                                     (copy-list '("a" "b" "c"))
-                                                     #'equal)
+                                                     #'equal
+                                                     (copy-list '("a" "b" "c")))
            '("a" "b" "c")))
   (should (equal
            (remove-duplicates-by-hashing-projections #'identity
-                                                     (copy-list '("b" "c" "a"))
-                                                     #'equal)
+                                                     #'equal
+                                                     (copy-list '("b" "c" "a")))
            '("b" "c" "a")))
   (should (equal
            (remove-duplicates-by-hashing-projections #'identity
-                                                     (copy-list '("b" "c" "a" "b" "c"))
-                                                     #'equal)
+                                                     #'equal
+                                                     (copy-list '("b" "c" "a" "b" "c")))
            '("b" "c" "a")))
   (should (equal
            (remove-duplicates-by-hashing-projections #'identity
-                                                     (copy-list '("a" "a" "b" "b" "c" "c"))
-                                                     #'equal)
+                                                     #'equal
+                                                     (copy-list '("a" "a" "b" "b" "c" "c")))
            '("a" "b" "c"))))
 
 (ert-deftest common-tests/nested-hash-tables-1 ()

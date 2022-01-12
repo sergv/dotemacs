@@ -93,7 +93,7 @@ string on error"
 (defun python-abbrev+-setup ()
   (setf abbrev+-skip-syntax ["w" "w_" "^ >"]
         abbrev+-abbreviations (python-abbrev+-make-abbrevs))
-  (def-keys-for-map vim:insert-mode-local-keymap
+  (def-keys-for-map vim-insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))
 
 (provide 'python-abbrev+)

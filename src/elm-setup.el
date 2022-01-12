@@ -23,7 +23,7 @@
 
 (elm-oracle-setup-completion)
 
-(vim:defcmd vim:elm-load-file (nonrepeatable)
+(vim-defcmd vim:elm-load-file (nonrepeatable)
   (elm-repl-load))
 
 (puthash 'elm-mode
@@ -57,7 +57,7 @@
 (defalign elm-align-on-colons
   "\\(?::[^:]\\)")
 
-(vim:defcmd vim:elm-compile (nonrepeatable)
+(vim-defcmd vim:elm-compile (nonrepeatable)
   (elm-compile-buffer))
 
 (defun elm-oracle-extended-doc-at-point ()
@@ -169,21 +169,21 @@ _a_lign"
 
   (flycheck-install-ex-commands!
    :install-flycheck t
-   :load-func #'vim:elm-load-file)
+   :load-func #'vim:elm-load-file:interactive)
   (dolist (cmd '("c" "compile"))
-    (vim:local-emap cmd #'vim:elm-compile))
+    (vim-local-emap cmd #'vim:elm-compile))
   (haskell-setup-folding)
 
-  (def-keys-for-map vim:normal-mode-local-keymap
+  (def-keys-for-map vim-normal-mode-local-keymap
     (("<f6>" "SPC SPC") elm-repl-load)
     (("C-m" "<f9>")     elm-compile-buffer)
     ("-"                hydra-elm-dash/body))
 
- (def-keys-for-map vim:visual-mode-local-keymap
+ (def-keys-for-map vim-visual-mode-local-keymap
     ("g" hydra-elm-vim-visual-g-ext/body))
 
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:insert-mode-local-keymap)
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-insert-mode-local-keymap)
     ("C-t"              flycheck-enhancements-previous-error-with-wraparound)
     ("C-h"              flycheck-enhancements-next-error-with-wraparound)
     ("C-SPC"            company-complete)))
@@ -204,15 +204,15 @@ _a_lign"
   (haskell-smart-operators-mode +1)
   (setq-local indent-region-function #'ignore)
 
-  (vim:local-emap "clear" 'vim:comint-clear-buffer-above-prompt)
+  (vim-local-emap "clear" 'vim:comint-clear-buffer-above-prompt)
 
-  (def-keys-for-map vim:normal-mode-local-keymap
+  (def-keys-for-map vim-normal-mode-local-keymap
     ("SPC SPC"  comint-clear-prompt))
 
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:insert-mode-local-keymap
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-insert-mode-local-keymap
                      elm-interactive-mode-map)
-    ("C-SPC"            vim:comint-clear-buffer-above-prompt)
+    ("C-SPC"            vim:comint-clear-buffer-above-prompt:interactive)
     ("C-w"              backward-delete-word)
     ("C-S-w"            backward-delete-word*)
     ("M-p"              browse-comint-input-history)

@@ -308,9 +308,9 @@ FILE-GLOBS and don't match IGNORED-FILE-GLOBS."
      :after-init (lambda ()
                    (use-local-map (make-sparse-keymap))
                    (undo-tree-mode +1)
-                   (setf vim:normal-mode-local-keymap kmap
-                         vim:insert-mode-local-keymap (make-sparse-keymap))
-                   (def-keys-for-map vim:normal-mode-local-keymap
+                   (setf vim-normal-mode-local-keymap kmap
+                         vim-insert-mode-local-keymap (make-sparse-keymap))
+                   (def-keys-for-map vim-normal-mode-local-keymap
                      ("<up>"     select-mode-select-previous-item)
                      ("<down>"   select-mode-select-next-item)
                      ("<return>" select-mode-do-select-same-window)
@@ -318,12 +318,12 @@ FILE-GLOBS and don't match IGNORED-FILE-GLOBS."
                      ("h"        select-mode-select-next-item)
                      ("t"        select-mode-select-previous-item)
                      ("<escape>" select-mode-exit))
-                   (def-keys-for-map (vim:normal-mode-local-keymap
-                                      vim:insert-mode-local-keymap)
+                   (def-keys-for-map (vim-normal-mode-local-keymap
+                                      vim-insert-mode-local-keymap)
                      ("C-g" select-mode-exit))
-                   ;; Required to make additions made to `vim:normal-mode-local-keymap'
+                   ;; Required to make additions made to `vim-normal-mode-local-keymap'
                    ;; effective immediately.
-                   (vim:activate-normal-mode))
+                   (vim-activate-normal-mode))
      :on-selection
      (lambda (_idx match selection-type)
        ;; NB Don't call `select-mode-exit' here since we may return to *grep* buffer

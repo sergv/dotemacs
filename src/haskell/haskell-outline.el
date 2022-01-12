@@ -62,9 +62,9 @@ to enable folding of balanced S-expressions."
                           'selective-display
                           (string-to-vector " ..."))
 
-  (def-keys-for-map vim:normal-mode-local-keymap
+  (def-keys-for-map vim-normal-mode-local-keymap
     ("z" hydra-haskell-vim-normal-z/body))
-  (def-keys-for-map vim:visual-mode-local-keymap
+  (def-keys-for-map vim-visual-mode-local-keymap
     ("z" hydra-haskell-vim-visual-z/body)))
 
 ;;;###autoload

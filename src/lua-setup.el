@@ -40,7 +40,7 @@ _a_lign"
   (setup-folding t nil)
   (setup-indent-size 2)
 
-  (def-keys-for-map vim:visual-mode-local-keymap
+  (def-keys-for-map vim-visual-mode-local-keymap
     ("g" hydra-lua-vim-visual-g-ext/body)))
 
 ;;;###autoload

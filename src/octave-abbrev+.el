@@ -88,7 +88,7 @@ while interactively prompting for variables/messages."
   (setf abbrev+-skip-syntax ["w" "w_" "^ >"]
         abbrev+-abbreviations (octave-abbrev+-make-abbrevs))
 
-  (def-keys-for-map vim:insert-mode-local-keymap
+  (def-keys-for-map vim-insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))
 
 

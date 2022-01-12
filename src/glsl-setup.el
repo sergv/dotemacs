@@ -41,7 +41,7 @@
   (setup-folding t nil)
   (setup-indent-size 4)
 
-  (def-keys-for-map vim:normal-mode-local-keymap
+  (def-keys-for-map vim-normal-mode-local-keymap
     ("- ?" glsl-find-man-page)))
 
 ;;;###autoload

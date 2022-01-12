@@ -23,7 +23,7 @@ _a_lign
 _i_: jump to imports
 _I_: jump back"
   ("a"     hydra-haskell-align/body)
-  ("i"     vim:haskell-navigate-imports)
+  ("i"     vim:haskell-navigate-imports:interactive)
   ("I"     haskell-navigate-imports-return))
 
 ;;;###autoload
@@ -41,21 +41,21 @@ _I_: jump back"
   (haskell-setup-folding :enable-hs-minor-mode t)
 
   (install-haskell-smart-operators!
-      vim:insert-mode-local-keymap
+      vim-insert-mode-local-keymap
     :bind-colon t
     :bind-hyphen t)
   (setup-eproj-symbnav)
 
   (dolist (cmd '("c" "compile"))
-    (vim:local-emap cmd  #'vim:haskell-compile))
+    (vim-local-emap cmd  #'vim:haskell-compile))
   (dolist (cmd '("cc" "ccompile"))
-    (vim:local-emap cmd  #'vim:haskell-compile-choosing-command))
-  (def-keys-for-map vim:normal-mode-local-keymap
+    (vim-local-emap cmd  #'vim:haskell-compile-choosing-command))
+  (def-keys-for-map vim-normal-mode-local-keymap
     ("g" hydra-haskell-grammar-tools-vim-normal-g-ext/body))
-  (def-keys-for-map vim:visual-mode-local-keymap
+  (def-keys-for-map vim-visual-mode-local-keymap
     ("g" hydra-haskell-vim-visual-g-ext/body))
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:insert-mode-local-keymap)
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-insert-mode-local-keymap)
     ("M-t"             haskell-compilation-prev-error-other-window)
     ("M-h"             haskell-compilation-next-error-other-window)
     ("C-SPC"           company-complete)

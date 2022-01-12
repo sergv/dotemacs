@@ -21,29 +21,7 @@
 (require 'lsp-setup)
 (require 'select-mode)
 
-(defvar *c++-related-file-cache*
-  (make-hash-table :test 'equal))
-
-;;;###autoload
-(defconst +c-header-exts+ '("h"))
-;;;###autoload
-(defconst +c-source-exts+ '("c"))
-
-;;;###autoload
-(defconst +cpp-header-exts+
-  (append +c-header-exts+
-          '("hh" "hxx" "hpp" "h++" "inl" "inc" "incl" "ino")))
-;;;###autoload
-(defconst +cpp-source-exts+
-  (append +c-source-exts+
-          '("cc" "cxx" "cpp" "c++")))
-
-;;;###autoload
-(defconst +c-extensions+
-  (append +c-header-exts+ +c-source-exts+))
-;;;###autoload
-(defconst +cpp-extensions+
-  (append +cpp-header-exts+ +cpp-source-exts+))
+(defvar *c++-related-file-cache* (make-hash-table :test 'equal))
 
 (defun c++-find-related-file (&optional new-window)
   (interactive)
@@ -149,9 +127,6 @@
   (with-region-bounds start end
     (c++-indent-region start end)))
 
-;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.in\\(?:l\\|c\\|cl\\)\\'" . c++-mode))
-
 (puthash 'c++-mode
          #'c++-format-buffer
          *mode-indent-functions-table*)
@@ -197,7 +172,7 @@ _u_sages"
 _a_ctions"
   ("a" lsp-execute-code-action))
 
-(vim:defcmd vim:c++-flycheck-reset (nonrepeatable)
+(vim-defcmd vim:c++-flycheck-reset (nonrepeatable)
   (vim:flycheck-clear)
   (when (and (boundp 'flycheck-checker)
              (eq flycheck-checker 'lsp))
@@ -243,24 +218,24 @@ _<tab>_: format region
 
   (flycheck-install-ex-commands!
    :install-flycheck flycheck-mode
-   :reset-func #'vim:c++-flycheck-reset)
+   :reset-func #'vim:c++-flycheck-reset:interactive)
 
-  (vim:local-emap "compile"  'vim:c++-compile)
-  (vim:local-emap "c"        'vim:c++-compile)
-  (vim:local-emap "ccompile" 'vim:c++-compile-choosing-command)
-  (vim:local-emap "cc"       'vim:c++-compile-choosing-command)
+  (vim-local-emap "compile"  'vim:c++-compile)
+  (vim-local-emap "c"        'vim:c++-compile)
+  (vim-local-emap "ccompile" 'vim:c++-compile-choosing-command)
+  (vim-local-emap "cc"       'vim:c++-compile-choosing-command)
 
-  (def-keys-for-map vim:normal-mode-local-keymap
+  (def-keys-for-map vim-normal-mode-local-keymap
     ("SPC SPC" c++-find-related-file)
     ("-"       hydra-c++-dash/body))
 
-  (def-keys-for-map vim:visual-mode-local-keymap
+  (def-keys-for-map vim-visual-mode-local-keymap
     ("-"       hydra-c++-visual-dash/body)
     ("g"       hydra-c++-vim-visual-g-ext/body))
 
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:insert-mode-local-keymap)
-    (("C-m" "<f9>") vim:c++-compile)
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-insert-mode-local-keymap)
+    (("C-m" "<f9>") vim:c++-compile:interactive)
     ("C-t"          flycheck-enhancements-previous-error-with-wraparound)
     ("C-h"          flycheck-enhancements-next-error-with-wraparound)
     ("M-t"          c++-compilation-prev-error-other-window)
@@ -285,12 +260,12 @@ _<tab>_: format region
   (lsp)
   (setq-local indent-region-function #'c++-indent-region)
   (when lsp-mode
-    (def-keys-for-map vim:normal-mode-local-keymap
+    (def-keys-for-map vim-normal-mode-local-keymap
       ("C-r" lsp-rename))))
 
-(vim:defcmd vim:c++-compile (nonrepeatable)
+(vim-defcmd vim:c++-compile (nonrepeatable)
   (configurable-compilation-start nil))
-(vim:defcmd vim:c++-compile-choosing-command (nonrepeatable)
+(vim-defcmd vim:c++-compile-choosing-command (nonrepeatable)
   (configurable-compilation-start t))
 
 (defun c++-compilation-next-error ()
@@ -344,34 +319,6 @@ it's position in current window."
                                 :line-number line
                                 :column-number col))
     (error "No compilation error at point")))
-
-;;;###autoload
-(add-hook 'c++-mode-hook #'c++-setup)
-
-;;;###autoload
-(defun c++-file-magic-function ()
-  (when-buffer-has-file
-    (let ((ext (file-name-extension buffer-file-name)))
-      ;; check for null since .emacs doesn't have extension
-      (when (and ext
-                 (member ext +cpp-header-exts+))
-        (save-excursion
-          (save-match-data
-            (re-search-forward (rx
-                                (or "class"
-                                    "namespace"
-                                    "::"
-                                    ;; it's quite rare to see other template
-                                    ;; open brace styles so lets accomodate
-                                    ;; only for frequently used ones
-                                    (regex "template[[:space:]]*<")
-                                    (regex "\\(?:public\\|protected\\|private\\)[[:space:]]*:")))
-                               nil
-                               t)))))))
-
-;; this will make sure that *.h c++ header will be correctly handled
-;;;###autoload
-(add-to-list 'magic-mode-alist (cons #'c++-file-magic-function #'c++-mode))
 
 (provide 'c++-setup)
 

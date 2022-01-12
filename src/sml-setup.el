@@ -44,9 +44,9 @@
   (bind-tab-keys #'indent-for-tab-command
                  nil
                  :enable-yasnippet t)
-  (def-keys-for-map vim:normal-mode-local-keymap
+  (def-keys-for-map vim-normal-mode-local-keymap
     ("SPC SPC" switch-to-sml-repl))
-  (def-keys-for-map vim:visual-mode-local-keymap
+  (def-keys-for-map vim-visual-mode-local-keymap
     ("j" sml-send-region)))
 
 ;;;###autoload
@@ -56,7 +56,7 @@
 (defun inferior-sml-mode-setup ()
   (init-repl :bind-return nil
              :sp-slurp-sexp-insert-space nil)
-  (vim:local-emap "clear" #'vim:comint-clear-buffer-above-prompt))
+  (vim-local-emap "clear" #'vim:comint-clear-buffer-above-prompt))
 
 ;;;###autoload
 (add-hook 'inferior-sml-mode-hook #'inferior-sml-mode-setup)

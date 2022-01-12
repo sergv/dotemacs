@@ -61,18 +61,18 @@
     (setq-local dante-methods-alist dante-check-and-repl-methods
                 dante-methods (-map 'car dante-methods-alist)))
 
-  (vim:local-emap "compile"  'vim:haskell-compile)
-  (vim:local-emap "c"        'vim:haskell-compile)
-  (vim:local-emap "ccompile" 'vim:haskell-compile-choosing-command)
-  (vim:local-emap "cc"       'vim:haskell-compile-choosing-command)
+  (dolist (cmd '("c" "compile"))
+    (vim-local-emap  cmd 'vim:haskell-compile))
+  (dolist (cmd '("cc" "ccompile"))
+    (vim-local-emap cmd 'vim:haskell-compile-choosing-command))
 
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:insert-mode-local-keymap)
-    (("C-m" "<f9>") vim:haskell-compile)))
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-insert-mode-local-keymap)
+    (("C-m" "<f9>") vim:haskell-compile:interactive)))
 
-(vim:defcmd vim:haskell-compile (nonrepeatable)
+(vim-defcmd vim:haskell-compile (nonrepeatable)
   (configurable-compilation-start nil))
-(vim:defcmd vim:haskell-compile-choosing-command (nonrepeatable)
+(vim-defcmd vim:haskell-compile-choosing-command (nonrepeatable)
   (configurable-compilation-start t))
 
 (provide 'haskell-compilation-commands)

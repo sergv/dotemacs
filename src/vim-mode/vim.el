@@ -96,7 +96,7 @@
 ;; version 0.5
 ;;     * add ]p and ]P commands
 ;;     * paste-pop works for all mixes of block/linewise/char and for
-;;       paste-before and paste-behind
+;;       paste-before and paste-after
 ;;     * add :setmode ex-command for setting vim-mode's start-mode
 ;;       for the current major-mode
 ;;     * enable search commands /, ?, *, #, g*, g# in motion-mode,
@@ -131,13 +131,12 @@
   "General options for Vim-Mode"
   :group 'vim-mode)
 
-(defcustom vim:default-initial-mode
-  'normal
+(defcustom vim-default-initial-mode 'normal
   "The default initial vim sub-mode."
   :type '(symbol :tag "vim-mode start mode")
   :group 'vim-mode-general)
 
-(defcustom vim:initial-modes
+(defcustom vim-initial-modes
   (alist->hash-table
    '((Custom-mode . nil)
      (browse-kill-ring-mode . nil)
@@ -202,22 +201,22 @@ given major-mode is created."
   :global nil
   (if vim-local-mode
     (progn
-      (vim:initialize-keymaps t))
+      (vim-initialize-keymaps t))
     (progn
-      (vim:initialize-keymaps nil)
-      (vim:activate-mode nil))))
+      (vim-initialize-keymaps nil)
+      (vim-activate-mode nil))))
 
-(define-globalized-minor-mode vim-mode vim-local-mode vim:initialize)
+(define-globalized-minor-mode vim-mode vim-local-mode vim-initialize)
 
-(defun vim:initialize ()
+(defun vim-initialize ()
   (unless (minibufferp)
-    (awhen (if (hash-table-member-p major-mode vim:initial-modes)
-             (gethash major-mode vim:initial-modes nil)
-             vim:default-initial-mode)
-      (setq vim:active-mode nil)
+    (awhen (if (hash-table-member-p major-mode vim-initial-modes)
+               (gethash major-mode vim-initial-modes nil)
+             vim-default-initial-mode)
+      (setq vim-active-mode nil)
       (vim-local-mode 1)
-      ;; (vim:intercept-ESC-mode 1)
-      (vim:activate-mode it))))
+      ;; (vim-intercept-ESC-mode 1)
+      (vim-activate-mode it))))
 
 (provide 'vim)
 

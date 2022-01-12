@@ -67,24 +67,24 @@
                  '("hello" "world\\/g" nil))))
 
 (ert-deftest vim-tests/vim:regex-without-case ()
-  (should (equal (vim:regex-without-case "foobar")
+  (should (equal (vim--regex-without-case "foobar")
                  "foobar"))
-  (should (equal (vim:regex-without-case "foo\\bar")
+  (should (equal (vim--regex-without-case "foo\\bar")
                  "foo\\bar"))
-  (should (equal (vim:regex-without-case "foo\\.bar")
+  (should (equal (vim--regex-without-case "foo\\.bar")
                  "foo\\.bar"))
-  (should (equal (vim:regex-without-case "foobar\\")
+  (should (equal (vim--regex-without-case "foobar\\")
                  "foobar\\"))
-  (should (equal (vim:regex-without-case "foobar\\x")
+  (should (equal (vim--regex-without-case "foobar\\x")
                  "foobar\\x"))
-  (should (equal (vim:regex-without-case "foobar\\c")
+  (should (equal (vim--regex-without-case "foobar\\c")
                  "foobar"))
-  (should (equal (vim:regex-without-case "\\Cfoobar\\c")
+  (should (equal (vim--regex-without-case "\\Cfoobar\\c")
                  "foobar")))
 
 (ert-deftest vim-tests/dd-1 ()
   (vim-tests--test-fresh-buffer-contents
-      (execute-kbd-macro (kbd ",,"))
+      (execute-kbd-macro (kbd ", ,"))
     (tests-utils--multiline
      ""
      ""
@@ -149,7 +149,7 @@
      "_|_quux"
      "")))
 
-(ert-deftest vim-tests/rectangular-insert-1 ()
+(ert-deftest vim-tests/block-insert-1 ()
   (vim-tests--test-fresh-buffer-contents
       (execute-kbd-macro (kbd "d d C-v h h h I 1 2 3 <escape>"))
     (tests-utils--multiline
@@ -167,11 +167,9 @@
      "fizz"
      "frobnicate")))
 
-(ert-deftest vim-tests/rectangular-insert-undo-1 ()
+(ert-deftest vim-tests/block-insert-2 ()
   (vim-tests--test-fresh-buffer-contents
-      ;; Enable undo tracking.
-      (let ((buffer-undo-list nil))
-        (execute-kbd-macro (kbd "d d C-v h h h I 1 2 3 <escape> k")))
+      (execute-kbd-macro (kbd "d d C-v h h h I f o o - b a r C-w b a z <escape>"))
     (tests-utils--multiline
      "fo_|_o"
      "bar"
@@ -180,6 +178,28 @@
      "fizz"
      "frobnicate")
     (tests-utils--multiline
+     "foo-ba_|_zfoo"
+     "foo-bazbar"
+     "foo-bazbaz"
+     "foo-bazquux"
+     "fizz"
+     "frobnicate")))
+
+(ert-deftest vim-tests/block-insert-undo-1 ()
+  (vim-tests--test-fresh-buffer-contents
+      ;; Enable undo tracking.
+      (let ((buffer-undo-list nil))
+        (execute-kbd-macro (kbd "d d C-v h h h I 1 2 3 <escape> k")))
+    (tests-utils--multiline
+     ""
+     "fo_|_o"
+     "bar"
+     "baz"
+     "quux"
+     "fizz"
+     "frobnicate")
+    (tests-utils--multiline
+     ""
      "_|_foo"
      "bar"
      "baz"
@@ -187,12 +207,35 @@
      "fizz"
      "frobnicate")))
 
-(ert-deftest vim-tests/rectangular-insert-undo-redo-1 ()
+(ert-deftest vim-tests/block-insert-undo-2 ()
+  (vim-tests--test-fresh-buffer-contents
+   ;; Enable undo tracking.
+   (let ((buffer-undo-list nil))
+     (execute-kbd-macro (kbd "d d C-v h h h I f o o - b a r C-w b a z <escape> k")))
+   (tests-utils--multiline
+    ""
+    "fo_|_o"
+    "bar"
+    "baz"
+    "quux"
+    "fizz"
+    "frobnicate")
+   (tests-utils--multiline
+    ""
+    "_|_foo"
+    "bar"
+    "baz"
+    "quux"
+    "fizz"
+    "frobnicate")))
+
+(ert-deftest vim-tests/block-insert-undo-redo-1 ()
   (vim-tests--test-fresh-buffer-contents
       ;; Enable undo tracking.
       (let ((buffer-undo-list nil))
         (execute-kbd-macro (kbd "d d C-v h h h I 1 2 3 <escape> k K")))
     (tests-utils--multiline
+     ""
      "fo_|_o"
      "bar"
      "baz"
@@ -200,10 +243,83 @@
      "fizz"
      "frobnicate")
     (tests-utils--multiline
+     ""
      "123foo"
-     "123bar"
+     "_|_123bar"
      "123baz"
-     "_|_123quux"
+     "123quux"
+     "fizz"
+     "frobnicate")))
+
+(ert-deftest vim-tests/block-insert-newline-1 ()
+  (vim-tests--test-fresh-buffer-contents
+      (execute-kbd-macro (kbd "d d C-v h h h I 1 2 3 <return> <escape>"))
+    (tests-utils--multiline
+     ""
+     "fo_|_o"
+     "bar"
+     "baz"
+     "quux"
+     "fizz"
+     "frobnicate")
+    (tests-utils--multiline
+     ""
+     "123"
+     "_|_foo"
+     "123"
+     "bar"
+     "123"
+     "baz"
+     "123"
+     "quux"
+     "fizz"
+     "frobnicate")))
+
+(ert-deftest vim-tests/linewise-append-newline-1 ()
+  (vim-tests--test-fresh-buffer-contents
+      (execute-kbd-macro (kbd "d d V h h h A 1 2 3 <return> <escape>"))
+    (tests-utils--multiline
+     ""
+     "fo_|_o"
+     "bar"
+     "baz"
+     "quux"
+     "fizz"
+     "frobnicate")
+    (tests-utils--multiline
+     ""
+     "foo123"
+     "_|_"
+     "bar123"
+     ""
+     "baz123"
+     ""
+     "quux123"
+     ""
+     "fizz"
+     "frobnicate")))
+
+(ert-deftest vim-tests/block-append-newline-1 ()
+  (vim-tests--test-fresh-buffer-contents
+      (execute-kbd-macro (kbd "d d C-v h h h A 1 2 3 <return> <escape>"))
+    (tests-utils--multiline
+     ""
+     "fo_|_o"
+     "bar"
+     "baz"
+     "quux"
+     "fizz"
+     "frobnicate")
+    (tests-utils--multiline
+     ""
+     "f123"
+     "_|_oo"
+     "b123"
+     "ar"
+     "b123"
+     "az"
+     "q123"
+     "uux"
      "fizz"
      "frobnicate")))
 
@@ -223,6 +339,48 @@
      "(foo"
      " ;; bar"
      " ;; b_|_az"
+     " quux)"
+     "")))
+
+(ert-deftest vim-tests/copy-paste-linewise-region-after-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (emacs-lisp-mode)
+      (execute-kbd-macro (kbd "V h y p"))
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " b_|_ar"
+     " baz"
+     " quux)"
+     "")
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " bar"
+     " _|_bar"
+     " baz"
+     " baz"
+     " quux)"
+     "")))
+
+(ert-deftest vim-tests/copy-paste-linewise-region-before-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (emacs-lisp-mode)
+      (execute-kbd-macro (kbd "V h y P"))
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " b_|_ar"
+     " baz"
+     " quux)"
+     "")
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " _|_bar"
+     " baz"
+     " bar"
+     " baz"
      " quux)"
      "")))
 
@@ -248,6 +406,551 @@
     (tests-utils--multiline
      ""
      "foo bba_|_rar baz"
+     "")))
+
+(ert-deftest vim-tests/paste-before-visual-block-region-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (emacs-lisp-mode)
+      (execute-kbd-macro (kbd "y w C-v h P"))
+    (tests-utils--multiline
+     ""
+     "_|_abc"
+     "def"
+     "")
+    (tests-utils--multiline
+     ""
+     "_|_abcabc"
+     "abcdef"
+     "")))
+
+(ert-deftest vim-tests/paste-before-visual-block-region-2 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (emacs-lisp-mode)
+      (execute-kbd-macro (kbd "y s C-v h P"))
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " b_|_ar"
+     " baz"
+     " quux)"
+     "")
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " b_|_barar"
+     " bbaraz"
+     " quux)"
+     "")))
+
+(ert-deftest vim-tests/paste-before-visual-block-region-3 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (emacs-lisp-mode)
+      (execute-kbd-macro (kbd "y s C-v h h h P"))
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " a_|_bc"
+     " def"
+     " ghi"
+     " jkl"
+     " quux)"
+     "")
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " a_|_abcbc"
+     " dabcef"
+     " gabchi"
+     " jabckl"
+     " quux)"
+     "")))
+
+(ert-deftest vim-tests/paste-before-visual-block-region-undo-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (emacs-lisp-mode)
+      ;; Enable undo tracking.
+      (let ((buffer-undo-list nil))
+        (execute-kbd-macro (kbd "y s C-v h P k")))
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " b_|_ar"
+     " baz"
+     " quux)"
+     "")
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " b_|_ar"
+     " baz"
+     " quux)"
+     "")))
+
+(ert-deftest vim-tests/paste-before-visual-block-region-undo-2 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (emacs-lisp-mode)
+      ;; Enable undo tracking.
+      (let ((buffer-undo-list nil))
+        (execute-kbd-macro (kbd "y s C-v h h h P k")))
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " a_|_bc"
+     " def"
+     " ghi"
+     " jkl"
+     " quux)"
+     "")
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " a_|_bc"
+     " def"
+     " ghi"
+     " jkl"
+     " quux)"
+     "")))
+
+(ert-deftest vim-tests/paste-after-visual-block-region-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (emacs-lisp-mode)
+      (execute-kbd-macro (kbd "y w C-v h p"))
+    (tests-utils--multiline
+     ""
+     "_|_abc"
+     "def"
+     "")
+    (tests-utils--multiline
+     ""
+     "aab_|_cbc"
+     "dabcef"
+     "")))
+
+(ert-deftest vim-tests/paste-after-visual-block-region-2 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (emacs-lisp-mode)
+      (execute-kbd-macro (kbd "y s C-v h p"))
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " b_|_ar"
+     " baz"
+     " quux)"
+     "")
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " baba_|_rr"
+     " babarz"
+     " quux)"
+     "")))
+
+(ert-deftest vim-tests/paste-after-visual-block-region-3 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (emacs-lisp-mode)
+      (execute-kbd-macro (kbd "y s C-v h h h p"))
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " a_|_bc"
+     " def"
+     " ghi"
+     " jkl"
+     " quux)"
+     "")
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " abab_|_cc"
+     " deabcf"
+     " ghabci"
+     " jkabcl"
+     " quux)"
+     "")))
+
+(ert-deftest vim-tests/paste-before-visual-block-region-4 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (emacs-lisp-mode)
+      (execute-kbd-macro (kbd "y s C-v h h h I C-p <escape>"))
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " a_|_bc"
+     " def"
+     " ghi"
+     " jkl"
+     " quux)"
+     "")
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " aab_|_cbc"
+     " dabcef"
+     " gabchi"
+     " jabckl"
+     " quux)"
+     "")))
+
+(ert-deftest vim-tests/paste-after-visual-block-region-undo-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (emacs-lisp-mode)
+      ;; Enable undo tracking.
+      (let ((buffer-undo-list nil))
+        (execute-kbd-macro (kbd "y s C-v h p k")))
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " b_|_ar"
+     " baz"
+     " quux)"
+     "")
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " b_|_ar"
+     " baz"
+     " quux)"
+     "")))
+
+(ert-deftest vim-tests/paste-after-visual-block-region-undo-2 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (emacs-lisp-mode)
+      ;; Enable undo tracking.
+      (let ((buffer-undo-list nil))
+        (execute-kbd-macro (kbd "y s C-v h h h p k")))
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " a_|_bc"
+     " def"
+     " ghi"
+     " jkl"
+     " quux)"
+     "")
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " a_|_bc"
+     " def"
+     " ghi"
+     " jkl"
+     " quux)"
+     "")))
+
+(ert-deftest vim-tests/copy-line-and-paste-after-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (emacs-lisp-mode)
+      (execute-kbd-macro (kbd "y y p"))
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " b_|_ar"
+     " baz"
+     " quux)"
+     "")
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " bar"
+     " _|_bar"
+     " baz"
+     " quux)"
+     "")))
+
+(ert-deftest vim-tests/copy-line-and-paste-before-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (emacs-lisp-mode)
+      (execute-kbd-macro (kbd "y y P"))
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " b_|_ar"
+     " baz"
+     " quux)"
+     "")
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " _|_bar"
+     " bar"
+     " baz"
+     " quux)"
+     "")))
+
+(ert-deftest vim-tests/navigation-insertion-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (emacs-lisp-mode)
+      (execute-kbd-macro (kbd "h h h o <escape> <tab>"))
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " _|_abc"
+     " def"
+     " ghi"
+     " jkl"
+     " quux)"
+     "")
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " abc"
+     " def"
+     " ghi"
+     " jkl"
+     " _|_"
+     " quux)"
+     "")))
+
+(ert-deftest vim-tests/paste-cycle-after-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (emacs-lisp-mode)
+      (execute-kbd-macro (kbd "y w h y w h y w h y w o <escape> p p p"))
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " _|_abc"
+     " def"
+     " ghi"
+     " jkl"
+     " quux)"
+     "")
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " abc"
+     " def"
+     " ghi"
+     " jkl"
+     " de_|_f"
+     " quux)"
+     "")))
+
+(ert-deftest vim-tests/paste-cycle-after-2 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (emacs-lisp-mode)
+      (execute-kbd-macro (kbd "y w h y w h y w h y w o <escape> <tab> p p p"))
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " _|_abc"
+     " def"
+     " ghi"
+     " jkl"
+     " quux)"
+     "")
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " abc"
+     " def"
+     " ghi"
+     " jkl"
+     " "
+     "de_|_f quux)"
+     "")))
+
+(ert-deftest vim-tests/tab-on-newly-created-empty-line-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (emacs-lisp-mode)
+      (execute-kbd-macro (kbd "h h h o <escape> <tab>"))
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " _|_abc"
+     " def"
+     " ghi"
+     " jkl"
+     " quux)"
+     "")
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " abc"
+     " def"
+     " ghi"
+     " jkl"
+     " _|_"
+     " quux)"
+     "")))
+
+(ert-deftest vim-tests/paste-cycle-before-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (emacs-lisp-mode)
+      (execute-kbd-macro (kbd "y w h y w h y w h y w o <escape> <tab> P P P"))
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " _|_abc"
+     " def"
+     " ghi"
+     " jkl"
+     " quux)"
+     "")
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " abc"
+     " def"
+     " ghi"
+     " jkl"
+     " _|_def"
+     " quux)"
+     "")))
+
+(ert-deftest vim-tests/block-select-delete-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (emacs-lisp-mode)
+      (execute-kbd-macro (kbd "C-v h h h 0 ,"))
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " _|_abc"
+     " def"
+     " ghi"
+     " jkl"
+     " quux)"
+     "")
+    (tests-utils--multiline
+     ""
+     "(foo"
+     "_|_bc"
+     "ef"
+     "hi"
+     "kl"
+     " quux)"
+     "")))
+
+(ert-deftest vim-tests/block-select-delete-then-paste-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (emacs-lisp-mode)
+      (execute-kbd-macro (kbd "C-v h h h 0 , 2 P"))
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " _|_abc"
+     " def"
+     " ghi"
+     " jkl"
+     " quux)"
+     "")
+    (tests-utils--multiline
+     ""
+     "(foo"
+     "_|_ a abc"
+     " d def"
+     " g ghi"
+     " j jkl"
+     " quux)"
+     "")))
+
+(ert-deftest vim-tests/interleave-search-and-repeat-last-find-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (emacs-lisp-mode)
+      (execute-kbd-macro (kbd "$ a SPC <escape> , F : / : f o o <return> . u ."))
+    (tests-utils--multiline
+     ""
+     "abc:foo"
+     "d_|_ef:foo"
+     "ghi:foo"
+     "jkl:foo"
+     "mno:foo"
+     "pqr:foo"
+     "stu:foo"
+     "")
+    (tests-utils--multiline
+     ""
+     "abc:foo"
+     "def "
+     "ghi"
+     "jk_|_l"
+     "mno:foo"
+     "pqr:foo"
+     "stu:foo"
+     "")))
+
+(ert-deftest vim-tests/interleave-search-and-repeat-last-find-2 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (emacs-lisp-mode)
+      (execute-kbd-macro (kbd "$ F : , e / : f o o <return> ; . u ; ."))
+    (tests-utils--multiline
+     ""
+     "abc:foo"
+     "d_|_ef:foo"
+     "ghi:foo"
+     "jkl:foo"
+     "mno:foo"
+     "pqr:foo"
+     "stu:foo"
+     "")
+    (tests-utils--multiline
+     ""
+     "abc:foo"
+     "def"
+     "ghi"
+     "jk_|_l"
+     "mno:foo"
+     "pqr:foo"
+     "stu:foo"
+     "")))
+
+(ert-deftest vim-tests/visual-reactivate-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (emacs-lisp-mode)
+      ;; Enable undo tracking.
+      (let ((buffer-undo-list nil))
+        (execute-kbd-macro (kbd "v e h <escape> d t g v ,")))
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " _|_bar"
+     " baz"
+     " quux)"
+     "")
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " _|_"
+     " quux)"
+     "")))
+
+(ert-deftest vim-tests/insert-linewise-region-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (emacs-lisp-mode)
+      (execute-kbd-macro (kbd "V h I x y z <escape>"))
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " b_|_ar"
+     " baz"
+     " quux)"
+     "")
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " xy_|_zbar"
+     " xyzbaz"
+     " quux)"
+     "")))
+
+(ert-deftest vim-tests/insert-linewise-region-newline-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (emacs-lisp-mode)
+      (execute-kbd-macro (kbd "V h I x y z <return> <escape>"))
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " b_|_ar"
+     " baz"
+     " quux)"
+     "")
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " xyz"
+     "_|_ bar"
+     " xyz"
+     " baz"
+     " quux)"
      "")))
 
 (provide 'vim-tests)

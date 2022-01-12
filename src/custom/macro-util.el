@@ -11,14 +11,50 @@
   (require 'subr-x))
 
 (defmacro car-sure (x)
-  `(car (comp-hint-cons ,x)))
+  (if (fboundp #'comp-hint-cons)
+      `(car (comp-hint-cons ,x))
+    `(car ,x)))
 
 (defmacro cdr-sure (x)
-  `(cdr (comp-hint-cons ,x)))
+  (if (fboundp #'comp-hint-cons)
+      `(cdr (comp-hint-cons ,x))
+    `(cdr ,x)))
+
+(defmacro cddr-sure (x)
+  `(cdr-sure (cdr-sure ,x)))
+
+(defmacro setcar-sure (x y)
+  (if (fboundp #'comp-hint-cons)
+      `(setcar (comp-hint-cons ,x) ,y)
+    `(setcar ,x ,y)))
 
 (defmacro setcdr-sure (x y)
-  `(setcdr (comp-hint-cons ,x) ,y))
+  (if (fboundp #'comp-hint-cons)
+      `(setcdr (comp-hint-cons ,x) ,y)
+    `(setcdr ,x ,y)))
 
+;; TODO: test and use, add -nfilter
+(defmacro --nfilter (form list)
+  (let ((res '#:res)
+        (tmp '#:tmp)
+        (lst '#:lst))
+    `(let (,res
+           ,tmp
+           (,lst ,list))
+       ;; Find first cell for res
+       (while (and ,lst
+                   (not ,res))
+         (let ((it (car ,lst)))
+           (when ,form
+             (setf ,tmp (setf ,res ,lst))))
+         (setf ,lst (cdr lst)))
+       ;; Continue filtetring, now we have a cons cell to modify
+       (while ,lst
+         (let ((it (car ,lst)))
+           (when ,form
+             (setf tmp (setcdr-sure tmp lst))))
+         (setf ,lst (cdr lst)))
+       ,res)))
 
 (defmacro util/eval-if-symbol (x)
   "Evaluate x if it's symbos. Intended to be used inside defmacro."
@@ -46,7 +82,7 @@ actual call to function."
          (motion-name (if name
                           name
                         (intern (concat "vim:" func-name)))))
-    `(vim:defmotion ,motion-name (,(if exclusive 'exclusive 'inclusive)
+    `(vim-defmotion ,motion-name (,(if exclusive 'exclusive 'inclusive)
                                   ,@(if do-not-adjust-point
                                         '(do-not-adjust-point)
                                       '()))
@@ -82,7 +118,7 @@ CALL-N-TIMES should be non nil to cause this call to be applied n times."
              (error "FUNC should be call to function (list) or symbol: %s"
                     func))))
          (action-name (if name name (intern (concat "vim:" func-name)))))
-    `(vim:defcmd ,action-name ,(append (if has-count
+    `(vim-defcmd ,action-name ,(append (if has-count
                                            '(count)
                                          '())
                                        (if repeatable
@@ -114,15 +150,15 @@ CALL-N-TIMES should be non nil to cause this call to be applied n times."
 CACHE-ARGS, which should be a list.
 
 NB does not expect to cache values of ARGS that are nil."
-  (cl-assert (symbol? func))
-  (cl-assert (symbol? reset-cache-func))
+  (cl-assert (symbolp func))
+  (cl-assert (symbolp reset-cache-func))
   (cl-assert (list? cache-args))
-  (cl-assert (-all? #'symbol? cache-args))
+  (cl-assert (-all? #'symbolp cache-args))
   (cl-assert (equal? cache-args
                      (intersection args cache-args :test #'equal?))
              nil
              "defun-caching: CACHE-ARGS must be a subset of ARGS")
-  (let ((cache-var (cl-gentemp "cache"))
+  (let ((cache-var (string->symbol (concat (symbol->string func) "--internal--cache")))
         (query-var '#:query)
         (hash-table-var '#:hash-table)
         (value-var '#:value)
@@ -179,7 +215,7 @@ that returnsn a value to use as a caching key.
 NB does not expect to cache values of ARGS that are nil. Also will recompute
 BODY if it returns nil."
   (declare (indent 4))
-  `(defun-caching-extended ,func ,args ,nil ,(cl-gentemp (format "%s/make-cache" func)) ,reset-cache-func ,mk-cache-key ,@body))
+  `(defun-caching-extended ,func ,args ,nil ,(string->symbol (format "%s/make-cache" func)) ,reset-cache-func ,mk-cache-key ,@body))
 
 (defmacro defun-caching-extended (func args func-with-explicit-cache make-cache-func reset-cache-func mk-cache-key &rest body)
   "Defun new function FUNC that automatically caches it's output
@@ -189,11 +225,11 @@ that returnsn a value to use as a caching key.
 NB does not expect to cache values of ARGS that are nil. Also will recompute
 BODY if it returns nil."
   (declare (indent 6))
-  (cl-assert (symbol? func))
-  (cl-assert (or (symbol? func-with-explicit-cache) (null func-with-explicit-cache)))
-  (cl-assert (symbol? make-cache-func))
-  (cl-assert (symbol? reset-cache-func))
-  (let ((cache-var (cl-gentemp (concat (symbol->string func) "--internal--cache")))
+  (cl-assert (symbolp func))
+  (cl-assert (or (symbolp func-with-explicit-cache) (null func-with-explicit-cache)))
+  (cl-assert (symbolp make-cache-func))
+  (cl-assert (symbolp reset-cache-func))
+  (let ((cache-var (string->symbol (concat (symbol->string func) "--internal--cache")))
         (cache-arg '#:cache)
         (query-var '#:query)
         (value-var '#:value)
@@ -287,7 +323,7 @@ another KEY-COMMAND-LIST spliced in place of a variable;
              (lambda (map key command)
                (cl-assert (or (string? key)
                               (vector? key)
-                              (symbol? key))
+                              (symbolp key))
                           nil
                           "Invalid key: %s"
                           key)
@@ -307,7 +343,7 @@ another KEY-COMMAND-LIST spliced in place of a variable;
             (lambda (map-var key-command-list)
               (cl-loop
                 for entry in key-command-list
-                appending (if (symbol? entry)
+                appending (if (symbolp entry)
                               (funcall process-key-command-list map-var (eval entry))
                             (cl-destructuring-bind (key command)
                                 (if (quoted? entry)
@@ -674,8 +710,8 @@ newline in vim’s linewise visual mode."
        (error "Region not active"))
      (let ((,start nil)
            (,end nil))
-       (if (and (vim:visual-mode-p)
-                (eq vim:visual-mode-type 'linewise))
+       (if (and (vim-visual-mode-p)
+                (eq vim-visual--mode-type 'linewise))
            (setf ,start (save-excursion
                           (goto-char (region-beginning))
                           (line-beginning-position))
@@ -699,8 +735,8 @@ final newline in vim’s linewise visual mode."
        (error "Region not active"))
      (let ((,start nil)
            (,end nil))
-       (if (and (vim:visual-mode-p)
-                (eq vim:visual-mode-type 'linewise))
+       (if (and (vim-visual-mode-p)
+                (eq vim-visual--mode-type 'linewise))
            (setf ,start (save-excursion
                           (goto-char (region-beginning))
                           (line-beginning-position))

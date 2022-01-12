@@ -28,7 +28,7 @@ under ROOT directory."
              nil
              "Expected a list of strings but got: %s"
              items)
-  (remove-duplicates-sorted
+  (remove-duplicates-sorted!
    (sort (--map (strip-trailing-slash it) items) #'string<)
    #'string=))
 

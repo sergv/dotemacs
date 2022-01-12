@@ -8,6 +8,7 @@
 
 (eval-when-compile
   (require 'cl-lib)
+  (require 'set-up-platform)
   (require 'macro-util))
 
 (require 'common)
@@ -162,7 +163,7 @@ Prioritize directories unless they're invisible."
 (def-keys-for-map ivy-minibuffer-map
   (("C-h" "<C-up>")   ivy-next-history-element)
   (("C-t" "<C-down>") ivy-previous-history-element)
-  ("C-p"              vim:cmd-paste-behind-no-adjust)
+  ("C-p"              vim-cmd-paste-after-no-adjust)
   ("C-S-p"            browse-kill-ring)
   ("C-w"              ivy-backward-kill-word)
   ("C-S-w"            backward-delete-word*)
