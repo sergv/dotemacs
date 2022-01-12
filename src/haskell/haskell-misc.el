@@ -967,6 +967,25 @@ to find which component the FILENAME belongs to."
                                                             (file-name-directory buffer-file-name))
                                                        default-directory)))))
 
+(defun haskell-cabal-find-related-file (&optional other-window)
+  "Quickly switch to e.g. ‘cabal.project.local’ if currently visiting ‘cabal.project’ and back."
+  (interactive "P")
+  (save-match-data
+    (let ((curr-file buffer-file-truename))
+      (when (and curr-file
+                 (string-match "cabal.*\\.project\\(?:\\..*?\\)?\\(?1:\\.local\\)?\\'"
+                               curr-file))
+        (let ((related-file
+               (if (match-beginning 1)
+                   (substring curr-file 0 (- (length curr-file)
+                                             (eval-when-compile (length ".local"))))
+                 (concat curr-file ".local"))))
+          (if (file-exists-p related-file)
+              (if other-window
+                  (find-file-other-window related-file)
+                (find-file related-file))
+            (error "Related file doesn’t exist: %s" related-file)))))))
+
 (provide 'haskell-misc)
 
 ;; Local Variables:
