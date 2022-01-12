@@ -281,7 +281,7 @@ in GROUP-NUMS."
               column (bounds->string (octave-error-column-number-bounds)))))
     (when (and jump filename)
       (find-file-other-window filename)
-      (vim:save-position)
+      (vim-save-position)
       (when line
         (goto-line-dumb (read line))
         (when column
@@ -340,7 +340,7 @@ in GROUP-NUMS."
 
 (defun octave-beginning-of-defun-interactive ()
   (interactive)
-  (vim:save-position)
+  (vim-save-position)
   (octave-beginning-of-defun))
 
 ;;;
@@ -406,13 +406,13 @@ _j_: send region"
                  #'tab-to-tab-stop-backward
                  :enable-yasnippet t)
 
-  (def-keys-for-map vim:normal-mode-local-keymap
+  (def-keys-for-map vim-normal-mode-local-keymap
     ("<f6>"    octave-load-current-file)
     ("SPC SPC" switch-to-octave)
     ("g"       hydra-octave-vim-normal-g-ext/body)
     ("j"       hydra-octave-vim-normal-j-ext/body))
 
-  (def-keys-for-map vim:visual-mode-local-keymap
+  (def-keys-for-map vim-visual-mode-local-keymap
     ("g" hydra-octave-vim-visual-g-ext/body)
     ("j" hydra-octave-vim-visual-j-ext/body))
 
@@ -429,8 +429,8 @@ _j_: send region"
                :use-comment nil
                :sp-slurp-sexp-insert-space nil
                :use-fci nil)
-  (init-repl :bind-return (list vim:normal-mode-local-keymap
-                                vim:insert-mode-local-keymap
+  (init-repl :bind-return (list vim-normal-mode-local-keymap
+                                vim-insert-mode-local-keymap
                                 inferior-octave-mode-map))
   ;; (enable-octave-interpreter-error-detection)
 
@@ -445,15 +445,15 @@ _j_: send region"
             (+ ">")
             " "))
 
-  (vim:local-emap "clear" #'vim:comint-clear-buffer-above-prompt)
+  (vim-local-emap "clear" #'vim:comint-clear-buffer-above-prompt)
 
-  (def-keys-for-map vim:normal-mode-local-keymap
+  (def-keys-for-map vim-normal-mode-local-keymap
     ("SPC SPC"  comint-clear-prompt))
 
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:insert-mode-local-keymap
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-insert-mode-local-keymap
                      inferior-octave-mode-map)
-    ("C-SPC"    vim:comint-clear-buffer-above-prompt)
+    ("C-SPC"    vim:comint-clear-buffer-above-prompt:interactive)
     ("M-/"      comint-dynamic-complete)
     ("<up>"     comint-previous-input)
     ("<down>"   comint-next-input)

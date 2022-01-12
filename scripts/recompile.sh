@@ -5,6 +5,8 @@
 # Created: Tuesday, 11 September 2012
 #
 
+set -eu
+
 emacs_dir=${1:-"${EMACS_ROOT}"}
 
 if [[ ! -d "$emacs_dir" ]]; then
@@ -23,6 +25,10 @@ function fatal {
     exit 1
 }
 
+function define() {
+    IFS='\n' read -r -d '' ${1} || true
+}
+
 function update-dir-autoloads {
     local name="$1"
     shift 1
@@ -38,7 +44,7 @@ function update-dir-autoloads {
             dirs="\"$emacs_dir/$dir\" $dirs"
         fi
     done
-    read -r -d '' emacs_cmd <<EOF
+    define emacs_cmd <<EOF
 (progn
   ;; Completely disable local variables because they cause much
   ;; trouble when files have invalid local variable entries.
@@ -68,7 +74,7 @@ rm -f \
 
 inform "Removing old *.elc files"
 find -O3 . \( -name '*.elc' -o -name '*.eln' \) -delete
-rm -rv "$emacs_dir/eln-cache"
+rm -frv "$emacs_dir/eln-cache"
 
 
 tex_site_el="$emacs_dir/third-party/auctex/tex-site.el"

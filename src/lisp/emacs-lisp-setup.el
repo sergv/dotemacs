@@ -101,11 +101,7 @@ expand _m_acro  _M_: fully expand macro"
 
   (emacs-lisp-highlight-keywords)
 
-  (eldoc-mode 1)
-  (eldoc-add-command 'paredit-backward-delete
-                     'paredit-close-round)
-
-  (def-keys-for-map vim:normal-mode-local-keymap
+  (def-keys-for-map vim-normal-mode-local-keymap
     ("j"       hydra-emacs-lisp-vim-normal-j-ext/body)
     ("-"       hydra-emacs-lisp-dash/body)
 
@@ -117,10 +113,7 @@ expand _m_acro  _M_: fully expand macro"
     ("<tab>"        indent-for-tab-command)
     (("C-m" "<f9>") elisp-compile-and-move))
 
-  ;; (def-keys-for-map vim:visual-mode-local-keymap
-  ;;   ("j"       eval-region))
-
-  (def-keys-for-map vim:insert-mode-local-keymap
+  (def-keys-for-map vim-insert-mode-local-keymap
     ("<tab>"   indent-for-tab-command)
     ;; ("("     paredit-open-round)
     ;; (")"     paredit-close-round)
@@ -129,8 +122,8 @@ expand _m_acro  _M_: fully expand macro"
     ;; ("\""    paredit-doublequote)
     )
 
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:insert-mode-local-keymap)
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-insert-mode-local-keymap)
     ("C-SPC" company-complete))
 
   ;; should use global after-save-hook because of
@@ -180,9 +173,9 @@ expand _m_acro  _M_: fully expand macro"
   (def-keys-for-map debugger-mode-map
     +vi-essential-keys+
     +vim-special-keys+
-    +vim-mock:word-motion-keys+
+    +vim-word-motion-keys+
     ("<escape>" exit-recursive-edit)
-    ("m"        vim:motion-jump-item)))
+    ("m"        vim:motion-jump-item:interactive)))
 
 (add-hook 'debugger-mode-hook #'debugger-setup)
 

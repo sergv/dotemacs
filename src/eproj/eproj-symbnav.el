@@ -410,7 +410,7 @@ as accepted by `bounds-of-thing-at-point'.")
       (def-keys-for-map it
         ("C-." eproj-symbnav/go-to-symbol-home)
         ("C-," eproj-symbnav/go-back)))
-    (def-keys-for-map vim:normal-mode-local-keymap
+    (def-keys-for-map vim-normal-mode-local-keymap
       ("C-." eproj-symbnav/go-to-symbol-home)
       ("C-," eproj-symbnav/go-back))))
 

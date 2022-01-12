@@ -9,7 +9,7 @@
 (eval-when-compile (require 'cl-lib))
 
 (require 'hydra-setup)
-(require 'vim-mock)
+(require 'pseudovim)
 
 (declaim (special +vi-essential-keys+
                   +vi-keys+))
@@ -20,9 +20,9 @@
     ("t" previous-line)
     ("n" forward-char)
 
-    ("0" vim-mock:motion-beginning-of-line-or-digit-argument)
-    ("^" vim-mock:motion-first-non-blank)
-    ("$" vim-mock:motion-end-of-line)
+    ("0" pseudovim-motion-beginning-of-line-or-digit-argument)
+    ("^" pseudovim-motion-first-non-blank)
+    ("$" pseudovim-motion-end-of-line)
 
     ("[" forward-paragraph)
     ("]" backward-paragraph))
@@ -52,13 +52,13 @@
     ("#"   search-for-symbol-at-point-backward)
     ("C-#" search-for-symbol-at-point-backward-new-color)))
 
-(defconst +vim-mock:word-motion-keys+
-  '(("w" vim-mock:motion-fwd-word)
-    ("b" vim-mock:motion-bwd-word)
-    ("W" vim-mock:motion-fwd-WORD)
-    ("B" vim-mock:motion-bwd-WORD)
-    ("e" vim-mock:motion-fwd-word-end)
-    ("E" vim-mock:motion-fwd-WORD-end)))
+(defconst +vim-word-motion-keys+
+  '(("w" pseudovim-motion-fwd-word)
+    ("b" pseudovim-motion-bwd-word)
+    ("W" pseudovim-motion-fwd-WORD)
+    ("B" pseudovim-motion-bwd-WORD)
+    ("e" pseudovim-motion-fwd-word-end)
+    ("E" pseudovim-motion-fwd-WORD-end)))
 
 (defconst +vim-interbuffer-navigation-keys+
   '(("<home>"     next-tab-or-frame)
@@ -79,7 +79,7 @@
     ("C-<right>" forward-char)
     ("C-<left>"  backward-char)))
 
-(defhydra-ext hydra-vim-mock-z-ext (:exit t :foreign-keys nil :hint nil)
+(defhydra-ext hydra-pseudovim-z-ext (:exit t :foreign-keys nil :hint nil)
   "
 scroll to _b_ottom
 scroll to _t_op
@@ -87,24 +87,24 @@ _z_: scroll to center
 "
   ;; we do not always have vim mode enabled
   ;; and these scrolling commands are completely independent of vim mode
-  ("b" vim-mock:scroll-line-to-bottom)
-  ("t" vim-mock:scroll-line-to-top)
-  ("z" vim-mock:scroll-line-to-center))
+  ("b" pseudovim-scroll-line-to-bottom)
+  ("t" pseudovim-scroll-line-to-top)
+  ("z" pseudovim-scroll-line-to-center))
 
 (defconst +vim-special-keys+
-  `(("s"     vim:ex-read-command)
+  `(("s"     vim-ex-read-command)
     ("C-M-k" remove-buffer)
 
     ("g"     hydra-vim-normal-g-ext/body)
     ("j"     hydra-vim-normal-j-ext/body)
     ("M-x"   ivy-smex)
 
-    ("G"     vim-mock:motion-go-to-first-non-blank-end)
+    ("G"     pseudovim-motion-go-to-first-non-blank-end)
 
-    ("z"     hydra-vim-mock-z-ext/body)
+    ("z"     hydra-pseudovim-z-ext/body)
 
-    ("<insert>" vim-mock:scroll-line-up)
-    ("<delete>" vim-mock:scroll-line-down)
+    ("<insert>" pseudovim-scroll-line-up)
+    ("<delete>" pseudovim-scroll-line-down)
 
     ,@+vim-interbuffer-navigation-keys+
     ,@+vim-character-navigation-keys+

@@ -9,6 +9,7 @@
 (eval-when-compile
   (require 'cl-lib)
   (require 'el-patch)
+  (require 'set-up-platform)
   (require 'macro-util))
 
 (require 'base-emacs-fixes)
@@ -338,13 +339,13 @@ _O_: show all blocks  _U_: show all outline blocks"
         (if outline-params
             (progn
               (apply #'setup-outline-headers outline-params)
-              (def-keys-for-map vim:normal-mode-local-keymap
+              (def-keys-for-map vim-normal-mode-local-keymap
                 ("z" hydra-vim-normal-z-hideshow-and-outline/body)))
-          (def-keys-for-map vim:normal-mode-local-keymap
+          (def-keys-for-map vim-normal-mode-local-keymap
             ("z" hydra-vim-normal-z-hideshow/body))))
     (when outline-params
       (apply #'setup-outline-headers outline-params)
-      (def-keys-for-map vim:normal-mode-local-keymap
+      (def-keys-for-map vim-normal-mode-local-keymap
         ("z" hydra-vim-normal-z-outline/body)))))
 
 (provide 'folding-setup)
