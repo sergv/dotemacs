@@ -12,7 +12,7 @@
 
 ;; Display line numbers in mode line even in buffers that have lines
 ;; below this length, on average.
-(setf line-number-display-limit-width 512)
+(setf line-number-display-limit-width 4096)
 
 (defvar-local mode-line--buffer-line-count nil)
 
