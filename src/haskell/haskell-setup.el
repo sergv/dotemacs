@@ -597,9 +597,11 @@ _a_lign  _t_: jump to topmost node start
   (bind-tab-keys #'tab-to-tab-stop
                  #'tab-to-tab-stop-backward
                  :enable-yasnippet t)
+
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("g" hydra-cabal-vim-normal-g-ext/body)
-    ("'" yafolding-go-parent-element))
+    ("SPC SPC" haskell-cabal-find-related-file)
+    ("g"       hydra-cabal-vim-normal-g-ext/body)
+    ("'"       yafolding-go-parent-element))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
