@@ -81,35 +81,35 @@
        (flycheck-checker-supports-major-mode-p checker)
        (flycheck-may-enable-checker checker)))
 
-(vim:defcmd vim:flycheck-run (nonrepeatable)
+(vim-defcmd vim:flycheck-run (nonrepeatable)
   (flycheck-buffer))
 
-(vim:defcmd vim:flycheck-compile (nonrepeatable)
+(vim-defcmd vim:flycheck-compile (nonrepeatable)
   (call-interactively #'flycheck-compile))
 
-(vim:defcmd vim:flycheck-clear (nonrepeatable)
+(vim-defcmd vim:flycheck-clear (nonrepeatable)
   (flycheck-clear
    t ;; interrupt running process
    ))
 
-(vim:defcmd vim:flycheck-list-errors (nonrepeatable)
+(vim-defcmd vim:flycheck-list-errors (nonrepeatable)
   (flycheck-list-errors))
 
 ;;;###autoload
 (cl-defun flycheck-install-ex-commands! (&key install-flycheck load-func reset-func)
   (when install-flycheck
-    (vim:local-emap "ff" #'vim:flycheck-compile)
+    (vim-local-emap "ff" #'vim:flycheck-compile)
     (dolist (cmd '("check" "ch"))
-      (vim:local-emap cmd #'vim:flycheck-run))
+      (vim-local-emap cmd #'vim:flycheck-run))
     (dolist (cmd '("re" "reset"))
-      (vim:local-emap cmd
+      (vim-local-emap cmd
                       (or reset-func
                           #'vim:flycheck-clear)))
     (dolist (cmd '("errors" "errs"))
-      (vim:local-emap cmd #'vim:flycheck-list-errors)))
+      (vim-local-emap cmd #'vim:flycheck-list-errors)))
   (when load-func
     (dolist (cmd '("load" "lo" "l"))
-      (vim:local-emap cmd load-func))))
+      (vim-local-emap cmd load-func))))
 
 (defun flycheck-error< (a b)
   (let ((filename-a (expand-file-name (flycheck-error-filename a)))

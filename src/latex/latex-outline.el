@@ -281,7 +281,7 @@ _o_: show subtree"
   ;; initially hide all but the headers
   ;;(hide-body)
 
-  (def-keys-for-map vim:normal-mode-local-keymap
+  (def-keys-for-map vim-normal-mode-local-keymap
     ("'" outline-up-heading)
     ("z" hydra-latex-vim-normal-z-ext/body)))
 

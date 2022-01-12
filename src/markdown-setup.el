@@ -46,7 +46,7 @@
   (typography-setup)
   (flyspell-english)
   (setup-indent-size 4)
-  (def-keys-for-map vim:normal-mode-local-keymap
+  (def-keys-for-map vim-normal-mode-local-keymap
     ("<f6>"       markdown-toggle-inline-images)
     ("C-h"        markdown-forward-paragraph)
     ("C-t"        markdown-backward-paragraph)
@@ -55,8 +55,8 @@
     ("'"          markdown-up-heading)
     ("C-<down>"   flyspell-goto-next-error)
     ("C-<return>" ispell-word))
-  (def-keys-for-map vim:visual-mode-local-keymap
-    ("`"   vim:wrap-backticks)
+  (def-keys-for-map vim-visual-mode-local-keymap
+    ("`"   vim-wrap-backticks)
     (("<tab>" "TAB") markdown-indent-region)))
 
 ;;;###autoload

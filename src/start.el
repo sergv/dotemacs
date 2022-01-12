@@ -74,13 +74,12 @@
    #'eq))
 
 (defun vim:bind-local-keymaps ()
-  (setf vim:normal-mode-local-keymap              (make-sparse-keymap)
+  (setf vim-normal-mode-local-keymap              (make-sparse-keymap)
 
-        vim:visual-mode-local-keymap              (make-sparse-keymap)
-        vim:insert-mode-local-keymap              (make-sparse-keymap)
-        vim:operator-pending-mode-local-keymap    (make-sparse-keymap)
-        vim:motion-mode-local-keymap              (make-sparse-keymap)
-        vim:complex-command-override-local-keymap (make-sparse-keymap)))
+        vim-visual-mode-local-keymap              (make-sparse-keymap)
+        vim-insert-mode-local-keymap              (make-sparse-keymap)
+        vim-operator-pending-mode-local-keymap    (make-sparse-keymap)
+        vim-motion-mode-local-keymap              (make-sparse-keymap)))
 
 (cl-defun init-common (&key (use-yasnippet t)
                             (use-comment t)
@@ -126,17 +125,17 @@
                       sp-forward-slurp-sexp-insert-space))
          (setq-local sp-forward-slurp-sexp-insert-space ,sp-slurp-sexp-insert-space))))
 
-  ;; bind in vim:normal-mode-local-keymap since
-  ;; it will not be bound in vim:normal-mode-keymap because
+  ;; bind in vim-normal-mode-local-keymap since
+  ;; it will not be bound in vim-normal-mode-keymap because
   ;; everyone needs different versions, e.g. repls, shells
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:insert-mode-local-keymap)
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-insert-mode-local-keymap)
     ("<return>"  sp-newline)
     ("C-("       sp-backward-slurp-sexp)
     ("C-)"       sp-forward-slurp-sexp)
     ("M-("       sp-forward-barf-sexp)
     ("M-)"       sp-backward-barf-sexp))
-  (def-keys-for-map vim:insert-mode-local-keymap
+  (def-keys-for-map vim-insert-mode-local-keymap
     ("M-?"       sp-convolute-sexp)
     ("M-<up>"    sp-splice-sexp-killing-backward)
     ("M-<down>"  sp-splice-sexp-killing-forward))
@@ -162,18 +161,18 @@
                           (create-keymaps nil)
                           (bind-vim:motion-current-line t))
   (use-repl-modeline :show-directory show-directory)
-  (setq-local *vim:do-not-adjust-point* t
-              vim:insert-mode-exit-move-point 'dont-move-at-line-end
+  (setq-local vim-do-not-adjust-point t
+              vim--insert-mode-exit-move-point 'dont-move-at-line-end
               global-auto-revert-ignore-buffer t)
   (emacs-forget-buffer-process)
 
   (when create-keymaps
     (vim:bind-local-keymaps))
   (when bind-vim:motion-current-line
-    (if (not (null? vim:operator-pending-mode-local-keymap))
-        (def-keys-for-map vim:operator-pending-mode-local-keymap
-          ("c" vim:motion-current-line))
-      (message "init-repl warning: vim:operator-pending-mode-local-keymap is nil, \"c\" not bound in buffer %s"
+    (if vim-operator-pending-mode-local-keymap
+        (def-keys-for-map vim-operator-pending-mode-local-keymap
+          ("c" vim:motion-current-line:interactive))
+      (message "init-repl warning: vim-operator-pending-mode-local-keymap is nil, \"c\" not bound in buffer %s"
                (current-buffer))))
 
   (cond ((keymapp bind-return)
@@ -188,8 +187,8 @@
              ("<return>"   comint-send-input)
              ("C-<return>" sp-newline))))
         ((not (null? bind-return))
-         (def-keys-for-map (vim:normal-mode-local-keymap
-                            vim:insert-mode-local-keymap)
+         (def-keys-for-map (vim-normal-mode-local-keymap
+                            vim-insert-mode-local-keymap)
            ("<return>"   comint-send-input)
            ("C-<return>" sp-newline)))))
 
@@ -198,8 +197,8 @@
                          &key
                          (enable-yasnippet nil)
                          (yasnippet-fallback nil))
-  (let ((keymaps (list vim:normal-mode-local-keymap
-                       vim:insert-mode-local-keymap)))
+  (let ((keymaps (list vim-normal-mode-local-keymap
+                       vim-insert-mode-local-keymap)))
     (if enable-yasnippet
         (progn
           (setq-local yas-expand-fallback (or yasnippet-fallback tab-binding))
@@ -217,6 +216,7 @@
 (require 'haskell-autoload)
 (require 'latex-autoloads)
 (require 'rust-autoloads)
+(require 'c++-autoload)
 
 (require 'compilation-setup)
 (require 'completion-setup)

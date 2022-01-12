@@ -126,7 +126,7 @@ highlighting searches.")
       ("<escape>"  search-abort)
 
       ("<f6>"      search-return-to-start)
-      ("C-p"       vim:cmd-paste-behind-no-adjust)
+      ("C-p"       vim-cmd-paste-after-no-adjust)
       ("C-w"       backward-delete-word)
       ("C-S-w"     backward-delete-word*)
 
@@ -225,7 +225,7 @@ Highlighting starts at the beginning of buffer")
         *search-init-buffer*  (current-buffer)
         *search-init-window*  (selected-window))
   (when save-position
-    (vim:save-position))
+    (vim-save-position))
   (when regex
     (search--with-initiated-buffer
      (search--highlight-matches regex))))
@@ -491,7 +491,7 @@ obvious"
                    (let ((,substr-var (buffer-substring-no-properties
                                        (car ,bounds-var)
                                        (cdr ,bounds-var))))
-                     (vim:save-position)
+                     (vim-save-position)
                      (goto-char (cdr ,bounds-var))
                      ,(unless reset
                         '(search--increment-search-highlight-face-index))
@@ -576,8 +576,8 @@ obvious"
 (defsubst util:get-bounds-covered-by-vim-motion (motion)
   (let ((m (save-excursion
              (funcall motion))))
-    (cons (vim:motion-begin-pos m)
-          (vim:motion-end-pos m))))
+    (cons (vim-motion-begin-pos m)
+          (vim-motion-end-pos m))))
 
 ;;;###autoload (autoload 'search-for-word-at-point-forward "search" nil t)
 ;;;###autoload (autoload 'search-for-word-at-point-forward-new-color "search" nil t)
