@@ -9,7 +9,9 @@
 (eval-when-compile
   (require 'cl-lib)
   (require 'set-up-platform)
-  (require 'macro-util))
+  (require 'macro-util)
+
+  (defvar lv-wnd))
 
 (require 'set-up-paths)
 (require 'common)
@@ -265,24 +267,37 @@
 
 ;;;; tab bar
 
+(defvar-local tab-bar--truncated-buf-name nil
+  "Cached truncated buffer name to show in tab bar.")
+
+(defun tab-bar--get-truncated-buf-name (buf)
+  (aif (buffer-local-value 'tab-bar--truncated-buf-name buf)
+      it
+    (with-current-buffer buf
+      (setf tab-bar--truncated-buf-name
+            (let ((name (buffer-name buf)))
+              (if (< (length name) tab-bar-tab-name-truncated-max)
+                  name
+                (truncate-string-to-width name
+                                          tab-bar-tab-name-truncated-max
+                                          nil
+                                          nil
+                                          (if (char-displayable-p ?…) "…" "..."))))))))
+
 (defun tab-bar-tab-name-current-truncated-with-count ()
-  "Like `tab-bar-tab-name-current-with-count' but truncates name if its tool long."
-  (let* ((count (length (window-list-1 nil 'nomini)))
-         (name (buffer-name (window-buffer (minibuffer-selected-window))))
-         (ellipsis (if (char-displayable-p ?…) "…" "..."))
-         (name-trunc
-          (if (< (length name) tab-bar-tab-name-truncated-max)
-              name
-            (propertize (truncate-string-to-width
-                         name
-                         tab-bar-tab-name-truncated-max
-                         nil
-                         nil
-                         ellipsis)
-                        'help-echo name))))
-    (if (> count 1)
-        (format "%s (%d)" name-trunc count)
-      (format "%s" name-trunc))))
+  "Like ‘tab-bar-tab-name-current-with-count’ but truncates name if its tool long."
+  (let* (;; (count
+         ;;  (length
+         ;;   (if (window-live-p lv-wnd)
+         ;;       (delq lv-wnd (window-list-1 nil 'nomini))
+         ;;     (window-list-1 nil 'nomini))))
+         (buf (window-buffer (minibuffer-selected-window)))
+         (name (tab-bar--get-truncated-buf-name buf)))
+    name
+    ;; (if (> count 1)
+    ;;     (format "%s (%d)" name count)
+    ;;   name)
+    ))
 
 ;; hide tab bar if there's only one tab
 (setf tab-bar-show 1
