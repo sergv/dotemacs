@@ -113,6 +113,7 @@ directories whose absolute path matches IGNORED-DIR-RE."
        (seq "f.el/" (or "bin" "test"))
        "flycheck-haskell/test"
        (seq "flycheck/" (or ".cask" "test"))
+       "ivy/targets"
        "groovy-mode/test"
        (seq "haskell-mode/" (or "doc/gifcasts" "tests" "tests/compat"))
        "ht/test"
