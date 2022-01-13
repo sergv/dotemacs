@@ -57,7 +57,7 @@
       (push (concat it "/toolchains") lsp-rust-library-directories))))
 
 (puthash 'rust-mode
-         #'rust-format-buffer
+         #'rust-format-region
          *mode-indent-functions-table*)
 
 (setf sp-sexp-prefix

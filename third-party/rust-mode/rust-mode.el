@@ -200,7 +200,7 @@ Use idomenu (imenu with `ido-mode') for best mileage.")
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c C-d") 'rust-dbg-wrap-or-unwrap)
     (when rust-load-optional-libraries
-      (define-key map (kbd "C-c C-f") 'rust-format-buffer)
+      (define-key map (kbd "C-c C-f") 'rust-format-region)
       (define-key map (kbd "C-c C-n") 'rust-goto-format-problem))
     map)
   "Keymap for Rust major mode.")
