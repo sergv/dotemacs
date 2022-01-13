@@ -113,7 +113,7 @@ on values of said variables.")
 (defvar *sessions-special-variables*
   (remove nil
           (list
-           (when (fboundp #'structured-haskell-mode)
+           (when (eval-when-compile (fboundp #'structured-haskell-mode))
              (list 'structured-haskell-mode
                    (lambda (buffer)
                      (with-current-buffer buffer
