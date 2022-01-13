@@ -31,8 +31,8 @@
           "v.el/v-tests.el"
           "yasnippet/yasnippet-tests.el"
 
-          "ivy/targets/.*"
-          "org-mode/testing/.*"
+          (seq "ivy/targets/" (* any))
+          (seq "org-mode/testing/" (* any))
 
           (seq (* any) "/tests/" (* any))
           (seq "third-party/"
