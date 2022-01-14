@@ -1195,7 +1195,7 @@ character found"
   (let ((start (point)))
     (while (and (not (eobp))
                 (whitespace-char? (char-after))
-                (not (get-char-property (1- (point)) 'read-only)))
+                (not (get-char-property (1+ (point)) 'read-only)))
       (forward-char 1))
     (delete-region start (point))))
 
