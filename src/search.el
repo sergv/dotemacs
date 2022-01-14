@@ -22,7 +22,9 @@
 
 (eval-when-compile
   (require 'cl-lib)
-  (require 'macro-util))
+  (require 'macro-util)
+
+  (defvar vim--current-universal-argument-provided?))
 
 (require 'persistent-sessions-global-vars)
 (require 'solarized)
@@ -143,7 +145,7 @@ highlighting searches.")
 
 (defconst +search-highlight-limit+ 1000
   "Number of matches that should be highlighted.
-Highlighting starts at the beginning of buffer")
+Highlighting starts at the beginning of buffer.")
 
 ;; Matches longer than approximately 10 lines are probably an error.
 (defconst +search-maximum-highlight-length+ 1000
@@ -154,7 +156,7 @@ Highlighting starts at the beginning of buffer")
     (dolist (re '(".*" ".+" ".**" ".*+" ".+*" ".++"
                   "\\(.*\\)*" "\\(.+\\)*" "\\(.*\\)+" "\\(.+\\)+"
                   "\\(?:.*\\)*" "\\(?:.+\\)*" "\\(?:.*\\)+" "\\(?:.+\\)+"))
-      (puthash re re tbl))
+      (puthash re t tbl))
     tbl)
   "Regexps for which neither highlighting nor searching should occur.")
 
@@ -275,13 +277,13 @@ Highlighting starts at the beginning of buffer")
   (search--with-initiated-buffer
    (goto-char search--start-marker)))
 
-(defun search--next-from-minibuf ()
-  (interactive)
-  (search--with-initiated-buffer (search--lookup-next)))
+(defun search--next-from-minibuf (count)
+  (interactive "p")
+  (search--with-initiated-buffer (search--lookup-next count)))
 
-(defun search--prev-from-minibuf ()
-  (interactive)
-  (search--with-initiated-buffer (search--lookup-prev)))
+(defun search--prev-from-minibuf (count)
+  (interactive "p")
+  (search--with-initiated-buffer (search--lookup-prev count)))
 
 ;;;; Rest of search engine
 
@@ -295,10 +297,10 @@ Highlighting starts at the beginning of buffer")
   "Update search for REGEXP in current buffer."
   (when (search--regex-valid? regexp)
     (search--highlight-matches regexp)
-    ;; this forgets current location and jums to first match of
-    ;; updated regexp
+    ;; This forgets current location and jumps to the first match of
+    ;; updated regexp.
     (goto-char search--start-marker)
-    (search--lookup-next)))
+    (search--lookup-next 1)))
 
 (defun search--get-current-regexp ()
   "Retrieve entered regexp from minibuffer. Must be called from minibuffer only."
@@ -311,10 +313,10 @@ Highlighting starts at the beginning of buffer")
 
 (defun search--optionally-use-info-from-last-search ()
   "Refresh search information if necessary and omit cluttering vim position."
-  ;; We could be in buffer that is different from where we initiated search,
-  ;; in which case regexp being searched for and search direction from the
-  ;; previous search are used to set up new search session in the current
-  ;; buffer.
+  ;; We could be in buffer that is different from where we initiated
+  ;; search, in which case regexp being searched for and the search
+  ;; direction from the previous search session are used to set up new
+  ;; search session in the current buffer.
   (unless (eq? (current-buffer) *search-init-buffer*)
     (search--setup-search-for
      (buffer-local-value 'search--current-regexp *search-init-buffer*)
@@ -323,51 +325,53 @@ Highlighting starts at the beginning of buffer")
      :case-sensetive (buffer-local-value 'search--case-sensetive *search-init-buffer*))))
 
 ;;;###autoload
-(defun search-next ()
-  (interactive)
+(defun search-next (count)
+  (interactive "p")
   (search--optionally-use-info-from-last-search)
-  (search--lookup-next))
+  (search--lookup-next count))
 
 ;;;###autoload
-(defun search-prev ()
-  (interactive)
+(defun search-prev (count)
+  (interactive "p")
   (search--optionally-use-info-from-last-search)
-  (search--lookup-prev))
+  (search--lookup-prev count))
 
-(defun search--lookup-next ()
-  (search-search-in-direction search--direction-forward? nil))
+(defun search--lookup-next (count)
+  (search-search-in-direction search--direction-forward? nil count))
 
-(defun search--lookup-prev ()
-  (search-search-in-direction search--direction-forward? t))
+(defun search--lookup-prev (count)
+  (search-search-in-direction search--direction-forward? t count))
 
-(cl-defun search-search-in-direction (forward? reversed)
+(cl-defun search-search-in-direction (forward? reversed count)
   (if forward?
       (if reversed
-          (search--prev-impl)
-        (search--next-impl))
+          (search--prev-impl count)
+        (search--next-impl count))
     (if reversed
-        (search--next-impl)
-      (search--prev-impl))))
+        (search--next-impl count)
+      (search--prev-impl count))))
 
-(defun search--next-impl ()
+(defun search--next-impl (count)
   "Move to the next match for `search--current-regexp' in current-buffer."
   (unless (gethash search--current-regexp +search-ignore-regexps+)
-    (let ((minibuffer-message-timeout 1)
-          (case-fold-search (not search--case-sensetive)))
+    (let ((case-fold-search (not search--case-sensetive)))
       (wrap-search-around
-       'forward
-       (lambda () (re-search-forward search--current-regexp nil t))
-       (concat "Nothing found for regexp " search--current-regexp)))))
+          forward
+        (re-search-forward search--current-regexp nil t)
+        :not-found-message
+        (concat "Nothing found for regexp " search--current-regexp)
+        :count count))))
 
-(defun search--prev-impl ()
+(defun search--prev-impl (count)
   "Move to the previous match for `search--current-regexp' in current-buffer."
   (unless (gethash search--current-regexp +search-ignore-regexps+)
-    (let ((minibuffer-message-timeout 1)
-          (case-fold-search (not search--case-sensetive)))
+    (let ((case-fold-search (not search--case-sensetive)))
       (wrap-search-around
-       'backward
-       (lambda () (re-search-backward search--current-regexp nil t))
-       (concat "Nothing found for regexp " search--current-regexp)))))
+          backward
+        (re-search-backward search--current-regexp nil t)
+        :not-found-message
+        (concat "Nothing found for regexp " search--current-regexp)
+        :count count))))
 
 ;; Some highlight-specific parameters
 
@@ -483,9 +487,10 @@ obvious"
          (non-strict-var '#:non-strict)
          (make-search-func
           (lambda (name reset)
-            `(defun ,name (&optional ,non-strict-var)
-               (interactive (list current-prefix-arg))
-               (let ((,bounds-var ,get-bounds-expr))
+            `(defun ,name (count)
+               (interactive "p")
+               (let ((,bounds-var ,get-bounds-expr)
+                     (,non-strict-var vim--current-universal-argument-provided?))
                  (if (null ,bounds-var)
                      ,(when error-message `(error ,error-message))
                    (let ((,substr-var (buffer-substring-no-properties
@@ -503,7 +508,7 @@ obvious"
                                 (funcall ,regex-end-func ,substr-var)))
                       ,is-forward?
                       :case-sensetive t)
-                     (,action-after))))))))
+                     (,action-after count))))))))
     `(progn
        ,(funcall make-search-func name t)
        ,(funcall make-search-func alt-name nil))))
