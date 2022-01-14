@@ -120,6 +120,7 @@
    (sml-mode                 (region-begin "(*") (region-end "*)") (line-regexp "(\\*"))
    (comint-mode              (one-line nil))
 
+   (vim-edmacro-mode         (one-line ";;" (line-regexp ";+") (comment-chars ?\;)))
    (dos-mode                 (one-line "rem ")     (line-regexp "rem ?"))
    (texinfo-mode             (one-line "@comment") (line-regexp "@c\\(?:o\\(?:m\\(?:m\\(?:e\\(?:n\\(?:t?\\)?\\)?\\)?\\)?\\)?\\)?"))
 
@@ -154,9 +155,9 @@ Contains single-line and region comments.")
                                  :region-begin region-begin
                                  :region-end   region-end
                                  :line-regexp  (cond
-                                                 ((not (null line-regexp))
+                                                 (line-regexp
                                                   line-regexp)
-                                                 ((not (null one-line))
+                                                 (one-line
                                                   (regexp-quote one-line))
                                                  (t
                                                   nil))
