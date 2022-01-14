@@ -140,7 +140,7 @@ of random numbers from RANDOM-GEN."
   vect)
 
 (defun shuffle-lines (begin end)
-  (interactive "r")
+  (interactive "r*")
   (save-excursion
     (goto-char begin)
     (setf begin (line-beginning-position))
@@ -631,12 +631,12 @@ faster than byte-by-byte comparison of respecfive file contents."
 
 (defun to-linux-line-endings ()
   "Convert line endings in current buffer to linux ones (\\n)."
-  (interactive)
+  (interactive "*")
   (set-buffer-file-coding-system 'utf-8-unix nil))
 
 (defun to-windows-line-endings ()
   "Convert line endings in current buffer to windows ones (\\r\\n)."
-  (interactive)
+  (interactive "*")
   (set-buffer-file-coding-system 'utf-8-dos nil))
 
 ;;;
@@ -759,7 +759,7 @@ end of END-LINE in current buffer."
 
 (defun insert-current-date ()
   "Insert today's date as \"<Day Name>, <day> <Month name> <Year>\""
-  (interactive)
+  (interactive "*")
   (insert (format-time-string "%A, %e %B %Y")))
 
 ;;;
@@ -1114,27 +1114,27 @@ confuse when point is not at the beginning of line"
 (defun yank-and-reindent ()
   "Function pastes most recently yanked or killed text
 ant reindents it."
-  (interactive)
+  (interactive "*")
   (yank)
   (reindent-region (region-beginning) (region-end))
   (goto-char (region-end)))
 
 (defun yank-previous ()
-  (interactive)
+  (interactive "*")
   (yank-pop))
 
 (defun yank-next ()
-  (interactive)
+  (interactive "*")
   (yank-pop 1))
 
 (defun yank-previous-and-reindent ()
-  (interactive)
+  (interactive "*")
   (yank-previous)
   (reindent-region (region-beginning) (region-end))
   (goto-char (region-end)))
 
 (defun yank-next-and-reindent ()
-  (interactive)
+  (interactive "*")
   (yank-next)
   (reindent-region (region-beginning) (region-end))
   (goto-char (region-end)))
@@ -1143,7 +1143,7 @@ ant reindents it."
 (defun delete-word (count)
   "Delete characters forward until encountering the end of a word.
 With argument COUNT, do this that many times."
-  (interactive "p")
+  (interactive "*p")
   (delete-region (point)
                  (progn
                    ;; (pseudovim-motion-fwd-word count)
@@ -1153,7 +1153,7 @@ With argument COUNT, do this that many times."
 (defun delete-word* (count)
   "Delete characters backard until encountering the end of a word.
 With argument COUNT, do this that many times."
-  (interactive "p")
+  (interactive "*p")
   (delete-region (point)
                  (progn
                    (pseudovim-motion-fwd-WORD count)
@@ -1162,7 +1162,7 @@ With argument COUNT, do this that many times."
 (defun backward-delete-word (count)
   "Delete characters backward until encountering the beginning of a word.
 With argument COUNT, do this that many times."
-  (interactive "p")
+  (interactive "*p")
   (delete-region (point)
                  (progn
                    ;; (pseudovim-motion-bwd-word count)
@@ -1172,7 +1172,7 @@ With argument COUNT, do this that many times."
 (defun backward-delete-word* (count)
   "Delete characters backward until encountering the beginning of a word.
 With argument COUNT, do this that many times."
-  (interactive "p")
+  (interactive "*p")
   (delete-region (point)
                  (progn
                    (pseudovim-motion-bwd-WORD count)
@@ -1191,7 +1191,7 @@ With argument COUNT, do this that many times."
 (defun delete-whitespace-forward ()
   "Delete whitespaces forward until non-whitespace
 character found"
-  (interactive)
+  (interactive "*")
   (let ((start (point)))
     (while (and (not (eobp))
                 (whitespace-char? (char-after))
@@ -1202,7 +1202,7 @@ character found"
 (defun delete-whitespace-backward ()
   "Delete whitespaces backward until non-whitespace
 character found. Returns t if any whitespace was actually deleted."
-  (interactive)
+  (interactive "*")
   (let ((any-deleted? nil)
         (start (point)))
     (while (and (not (bobp))
