@@ -813,11 +813,12 @@ print progress on each 5% of units processed."
    total-units
    5
    (lambda (number-of-units-processed)
-     (message "Processed %.0f%% of %s - %s out of %s"
-              (* 100 (/ (float number-of-units-processed) total-units))
-              unit-name
-              (truncate number-of-units-processed)
-              total-units))))
+     (let ((message-log-max nil))
+       (message "Processed %.0f%% of %s - %s out of %s"
+                (* 100 (/ (float number-of-units-processed) total-units))
+                unit-name
+                (truncate number-of-units-processed)
+                total-units)))))
 
 ;;;
 
@@ -827,7 +828,7 @@ print progress on each 5% of units processed."
 `re-search-backward' depending on DIRECTION until PREDICATE
 returns t."
   (let ((search-func
-         (fold-direction direction
+         (fold-direction-at-runtime direction
            #'re-search-forward
            #'re-search-backward))
         (done nil)
