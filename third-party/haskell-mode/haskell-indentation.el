@@ -81,7 +81,6 @@ If the variable `electric-indent-mode' is non-nil then this variable is
 overridden."
   :type 'symbol
   :group 'haskell-indentation)
-(make-variable-buffer-local 'haskell-indentation-electric-flag)
 
 (defvar haskell-indentation-mode-map
   (let ((map (make-sparse-keymap)))
@@ -203,7 +202,7 @@ negative ARG.  Handles bird style literate Haskell too."
           (insert "> "))
         (haskell-indentation-reindent-to
          (haskell-indentation-next-indentation (- ci 1) indentations 'nofail)
-         'move)))))
+         t)))))
 
 (defun haskell-indentation-next-indentation (col indentations &optional nofail)
   "Find the leftmost indentation which is greater than COL.
