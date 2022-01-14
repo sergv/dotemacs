@@ -67,11 +67,12 @@ runtime but rather will be silently relied on)."
     (save-match-data
       (goto-char (point-min))
       (let ((tags-index (empty-eproj-tag-index))
-            (gc-cons-threshold (min (* 100 1024 1024)
-                                    (max gc-cons-threshold
-                                         ;; Every 1000 lines takes up 1 mb or so.
-                                         (/ (* (count-lines-fixed (point-min) (point-max)) 1024 1024)
-                                            1000))))
+            (gc-cons-threshold (cap-floor
+                                   (* 100 1024 1024)
+                                   gc-cons-threshold
+                                 ;; Every 1000 lines takes up 1 mb or so.
+                                 (/ (* (count-lines-fixed (point-min) (point-max)) 1024 1024)
+                                    1000)))
             (progress-reporter (when eproj-verbose-tag-loading
                                  (let ((total-tags-count (count-lines-fixed (point-min) (point-max))))
                                    (make-standard-progress-reporter total-tags-count "tags"))))

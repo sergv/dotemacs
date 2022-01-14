@@ -349,8 +349,8 @@
   "Return a xref-item from a RANGE in FILENAME."
   (let* ((line (lsp--extract-line-from-buffer start))
          (len (length line)))
-    (add-face-text-property (max (min start-char len) 0)
-                            (max (min end-char len) 0)
+    (add-face-text-property (cap-floor len 0 start-char)
+                            (cap-floor len 0 end-char)
                             'lsp-symbnav-focus t line)
     (make-eproj-tag filename
                     (lsp-translate-line (1+ start-line))
