@@ -1581,6 +1581,11 @@ Implementation is very straightforward and because of that fast and reliable."
       res))
 ;;
 
+(defsubst cap-floor (cap floor value)
+  "Ensure VALUE stays between CAP and FLOOR."
+  (declare (indent 2))
+  (min cap (max floor value)))
+
 (provide 'common)
 
 ;; Local Variables:
