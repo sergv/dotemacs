@@ -262,6 +262,8 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
         (t
          (haskell-smart-operators--insert-char-surrounding-with-spaces ?-))))))
 
+;; TODO consider merging ‘haskell-indentation-common-electric-command’
+;; and ‘smart-operators-comma’ to define ‘haskell-smart-operators-comma’
 ;;;###autoload
 (defalias 'haskell-smart-operators-comma #'smart-operators-comma)
 
