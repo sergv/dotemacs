@@ -187,6 +187,7 @@ don't clear it."
 (el-patch-feature thingatpt)
 
 (when-emacs-version (<= 28 it)
+  (require 'thingatpt)
   (el-patch-defun thing-at-point--bounds-of-well-formed-url (beg end pt)
     (save-excursion
       (goto-char beg)
