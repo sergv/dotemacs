@@ -1,0 +1,247 @@
+;; vim-macro.el --- -*- lexical-binding: t; -*-
+
+;; Copyright (C) Sergey Vinokurov
+;;
+;; Author: Sergey Vinokurov <serg.foo@gmail.com>
+;; Created: 14 January 2022
+;; Description:
+;;
+;; Working with macro definitions from vim: define new, execute and
+;; edit existing.
+
+(eval-when-compile
+  (require 'macro-util))
+
+(require 'edmacro)
+
+;;;; vim-edmacro-mode
+
+(defvar vim-edmacro--macro-name nil
+  "Name of the macro we’re currently editing.")
+
+(defvar vim-edmacro--macro-pretty-name nil
+  "Name of the macro suitable for showing to the user.")
+
+(defvar vim-edmacro-mode-map
+  (let ((keymap (make-sparse-keymap)))
+    (def-keys-for-map keymap
+      ("C-c C-c" vim-edmacro-finish)
+      ("C-c C-q" edmacro-insert-key)
+      ("C-c C-k" vim-edmacro-cancel))
+    keymap))
+
+(defvar vim-edmacro-mode-syntax-table
+  (let ((tbl (make-syntax-table emacs-lisp-mode-syntax-table)))
+    (modify-syntax-entry ?\n ">" tbl)
+    (modify-syntax-entry ?\; "<" tbl)
+    tbl))
+
+;;;###autoload
+(define-derived-mode vim-edmacro-mode text-mode "Edit macro"
+  "Major mode for editing macro definitions."
+  ;; Fringe line tracking.
+  (linum-mode -1)
+  (font-lock-mode 1)
+
+  (setq-local comment-start ";; "
+              comment-start-skip ";+ *"
+              indent-tabs-mode nil
+              font-lock-defaults '(nil
+                                   nil ;; perform syntactic fontification (e.g. strings, comments)
+                                   )))
+
+(defun vim-edmacro-start (macro-name macro-pretty-name macro-def)
+  "Initiate macro editing session."
+  (let ((formatted (edmacro-format-keys macro-def t)))
+    (with-current-buffer (switch-to-buffer (get-buffer-create (concat "macro-editing:" macro-pretty-name)))
+      (setq-local vim-edmacro--macro-name macro-name
+                  vim-edmacro--macro-pretty-name macro-pretty-name)
+      (read-only-mode -1)
+      (erase-buffer)
+      (insert ";; Editing macro ‘" macro-pretty-name "’\n"
+              ";; Finish editing with "
+              (propertize "C-c C-c" 'face 'help-key-binding)
+              ", insert current key with "
+              (propertize "C-c C-q" 'face 'help-key-binding)
+              ", cancel with "
+              (propertize "C-c C-k" 'face 'help-key-binding)
+              "\n\n"
+              formatted)
+      (set-buffer-modified-p nil)
+      (vim-edmacro-mode))))
+
+(defun vim-edmacro-cancel ()
+  "Cancel editing current macro."
+  (interactive)
+  (kill-buffer (current-buffer)))
+
+(defun vim-edmacro-finish ()
+  "Finish editing current macro."
+  (interactive)
+  (let ((new-def (edmacro-parse-keys (buffer-substring-no-properties (point-min) (point-max)))))
+    (puthash vim-edmacro--macro-name new-def vim--macro-definitions)
+    (message "Updated macro ‘%s’" vim-edmacro--macro-pretty-name)
+    (kill-buffer (current-buffer))))
+
+;;;; Define new macros and execute existing ones
+
+(defvar vim--current-macro nil
+  "The name of the currently recorded macro.")
+
+(defvar vim--fresh-macro-id 0
+  "Numeric id for a macro name that has not been used yet.")
+
+(defvar vim--defined-macro-names nil
+  "Linked list of cons cells (<bool> . <name>) macro names in reverse order of definition.
+
+<bool> refers to whether a name was provided by the user (‘t’) or made up (‘nil’).
+If <bool> is ‘t’ then <name> is a string, otherwise it’s an integer obtained from ‘vim:fresh-macro-id’.")
+
+(defvar vim--macro-definitions (make-hash-table :test #'equal)
+  "Hash table mapping string names to macro definitions.")
+
+(defun vim--fresh-macro-name ()
+  "Return macro name that has not been used yet."
+  (prog1 vim--fresh-macro-id
+    (cl-incf vim--fresh-macro-id)))
+
+(defvar vim--macro-names-history nil)
+
+(defun vim-cmd-toggle-macro-recording (ask-for-a-name?)
+  (interactive "P")
+  (if vim--current-macro
+      (progn
+        (vim--cmd-stop-macro (cdr vim--current-macro))
+        (setf vim--defined-macro-names (cons vim--current-macro vim--defined-macro-names)
+              vim--current-macro nil))
+    (let ((name (if ask-for-a-name?
+                    (read-string "Macro name: " nil 'vim--macro-names-history)
+                  (vim--fresh-macro-name))))
+      (when (gethash name vim--macro-definitions nil)
+        (unless (y-or-n-p (format "Macro with name ‘%s’ is already defined. Overwrite?" name))
+          (error "Refusing to overwrite")))
+      (setf vim--current-macro (cons ask-for-a-name? name))
+      (vim--cmd-start-macro name))))
+
+(defun vim--cmd-start-macro (name)
+  "Starts recording a macro with name ‘name’."
+  (start-kbd-macro nil)
+  (vim-notify "Start recording keyboard macro named '%s'" name))
+
+(defun vim--cmd-stop-macro (name)
+  "Stops recording of a macro."
+  (end-kbd-macro)
+  (vim-notify "Stop recording keyboard macro")
+  (puthash name last-kbd-macro vim--macro-definitions))
+
+(defun vim--render-macro-names (entries)
+  (let* ((res (cons nil nil))
+         (tmp res)
+         (n 0)
+         (name-mapping nil))
+    (dolist (entry entries)
+      (cl-assert (consp entry))
+      (let ((name
+             (if (car entry)
+                 (progn
+                   (cl-assert (stringp (cdr entry)))
+                   (cdr entry))
+               (progn
+                 (cl-assert (numberp (cdr entry)))
+                 (let* ((real-name (cdr entry))
+                        (user-name (if (= n 0)
+                                       "latest"
+                                     (concat "latest~" (number->string n)))))
+                   (while (gethash user-name vim--macro-definitions)
+                     (setf user-name (concat user-name " (automatic name)")))
+                   (setf name-mapping (cons (cons user-name real-name) name-mapping)
+                         n (+ n 1))
+                   user-name)))))
+        (setf tmp (setcdr-sure tmp (cons name nil)))))
+    (cons (cdr res) name-mapping)))
+
+(defvar vim--executed-macro-names-history nil)
+
+(defun vim-cmd-execute-macro ()
+  "Executes either the last defined keyboard macro or asks user to pick one if universal
+argument was *explicitly* provided."
+  (interactive)
+  (unless vim--defined-macro-names
+    (error "Nothing to execute: no macros defined"))
+  (let ((count (cond
+                 ((numberp current-prefix-arg)
+                  current-prefix-arg)
+                 (t
+                  1))))
+    (vim--reset-key-state!)
+    (let* ((name-for-user nil)
+           (macro (if vim--current-universal-argument-provided?
+                      (cl-destructuring-bind (rendered . name-mapping) (vim--render-macro-names vim--defined-macro-names)
+                        (let* ((name (completing-read "Macro name: " rendered nil t nil 'vim--executed-macro-names-history))
+                               (real-name (or (cdr (assoc name name-mapping))
+                                              name)))
+                          (cl-assert name)
+                          (cl-assert real-name)
+                          (setf name-for-user real-name)
+                          (gethash real-name
+                                   vim--macro-definitions
+                                   nil)))
+                    (let ((name (cdar vim--defined-macro-names)))
+                      (cl-assert (not (null name)))
+                      (setf name-for-user name)
+                      (gethash name
+                               vim--macro-definitions
+                               nil)))))
+      (unless macro
+        (error "Macro not defined: %s" name-for-user))
+      (execute-kbd-macro macro count))))
+
+(defun vim-cmd-edit-macro ()
+  "Executes either the last defined keyboard macro or asks user to pick one if universal
+argument was *explicitly* provided."
+  (interactive)
+  (unless vim--defined-macro-names
+    (error "Nothing to edit: no macros defined"))
+  (cl-destructuring-bind (rendered . name-mapping) (vim--render-macro-names vim--defined-macro-names)
+    (let* ((name (completing-read "Macro name: " rendered nil t nil 'vim--executed-macro-names-history))
+           (real-name (or (cdr (assoc name name-mapping))
+                          name)))
+      (cl-assert name)
+      (cl-assert real-name)
+      (let ((def (gethash real-name vim--macro-definitions nil)))
+        (unless def
+          (error "Macro not defined: %s" real-name))
+
+        (vim-edmacro-start real-name name def)))))
+
+(defvar vim--universal-argument-provided? nil)
+(defvar vim--current-universal-argument-provided? nil)
+
+(defun vim-universal-argument-minus (arg)
+  "Wrapper around `universal-argument-minus' that does the necessary
+bookkeeping to maintain `vim--current-key-sequence' in order. That is needed
+to make `vim:cmd-repeat' and visual block mode work as expected."
+  (interactive "P")
+  ;; (call-interactively #'universal-argument-minus arg)
+  (call-interactively #'negative-argument arg)
+  (vim--remember-this-command-keys!))
+
+(defun vim-digit-argument (arg)
+  "Wrapper around `digit-argument' that does the necessary bookkeeping to
+maintain `vim--current-key-sequence' in order. That is needed to make
+`vim:cmd-repeat' and visual block mode work as expected."
+  (interactive "P")
+  (call-interactively #'digit-argument arg)
+  (vim--remember-this-command-keys!))
+
+(define-key universal-argument-map [remap digit-argument] 'vim-digit-argument)
+(define-key universal-argument-map [?-] nil)
+(define-key universal-argument-map (kbd "C--") 'vim-universal-argument-minus)
+(define-key universal-argument-map [kp-subtract] 'vim-universal-argument-minus)
+
+(provide 'vim-macro)
+
+;; Local Variables:
+;; End:
+
+;; vim-macro.el ends here
