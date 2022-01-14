@@ -748,6 +748,54 @@ final newline in vim’s linewise visual mode."
        (setf ,end (min ,end (point-max)))
        ,@body)))
 
+;;; wrap-search-around
+
+(defmacro fold-direction (direction if-forward if-backward)
+  (declare (indent 1))
+  (pcase direction
+    (`forward  if-forward)
+    (`backward if-backward)
+    (invalid   (error "Invalid direction: %s" invalid))))
+
+(defmacro fold-direction-at-runtime (direction if-forward if-backward)
+  (declare (indent 1))
+  `(pcase ,direction
+     (`forward  ,if-forward)
+     (`backward ,if-backward)
+     (invalid   (error "Invalid direction: %s" invalid))))
+
+(cl-defmacro wrap-search-around
+    (direction do-search &key not-found-message count)
+  "Wrap DO-SEARCH action in current buffer buffer. DO-SEARCH should be
+an expression that performs the search, moves the point
+and returns a boolean, t when something was found and nil
+otherwise. An example DO_SEARCH is `re-search-forward' with
+some regexp.
+
+DIRECTION must be a symbol, either 'forward or 'backward (don’t
+quote it for macro’s sake).
+"
+  (declare (indent 1))
+  (cl-assert (memq direction '(forward backward)))
+  (let ((pt '#:pt))
+    `(let ((,pt (point))
+           (message-log-max nil))
+       (dotimes (_ ,(or count 1))
+         (or ,do-search
+             (progn
+               ;; Go to boundary and redo the search.
+               (goto-char
+                (fold-direction ,direction (point-min) (point-max)))
+               (if ,do-search
+                   (progn
+                     (message ,(format "Wrapped at %s"
+                                       (fold-direction-at-runtime direction "bottom" "top")))
+                     t)
+                 (progn
+                   (message ,(or not-found-message "Nothing found"))
+                   (goto-char ,pt)
+                   nil))))))))
+
 ;;; end
 
 (provide 'macro-util)
