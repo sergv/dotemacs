@@ -349,8 +349,6 @@ _a_lign  _t_: jump to topmost node start
 
     (setq-local eproj-symbnav/identifier-type 'haskell-symbol
 
-                indent-line-function #'ignore
-                indent-region-function #'ignore
                 yas-indent-line 'fixed
                 abbrev+-fallback-function #'haskell-abbrev+-fallback-space
 
@@ -445,8 +443,7 @@ _a_lign  _t_: jump to topmost node start
       ("'"            vim:haskell-backward-up-indentation-or-sexp:interactive))
 
     (def-keys-for-map vim-insert-mode-local-keymap
-      ("`"            vim-wrap-backticks)
-      (","            haskell-smart-operators-comma))
+      ("`"            vim-wrap-backticks))
 
     (install-haskell-smart-operators!
         vim-insert-mode-local-keymap
@@ -465,6 +462,7 @@ _a_lign  _t_: jump to topmost node start
       ("M-h"             haskell-compilation-next-error-other-window)
       ("C-SPC"           company-complete)
 
+      ;; Consider using haskell-indentation-newline-and-indent.
       ("<return>"        haskell-newline-with-signature-expansion)
       ("C-<return>"      haskell--simple-indent-newline-indent)
 
