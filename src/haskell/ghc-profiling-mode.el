@@ -42,13 +42,13 @@ cpu time or allocations that the value of this variable.")
         (+ ws)
         float ;; individual %alloc
         (+ ws)
-        (group float) ;; inherited %time
+        (group-n 1 float) ;; inherited %time
         (+ ws)
-        (group float) ;; inherited %alloc
+        (group-n 2 float) ;; inherited %alloc
         (* ws)
         eol)))
 
-(defun ghc-profiling-mode--matched-expersive-entry? ()
+(defun ghc-profiling-mode--matched-expensive-entry? ()
   (let ((inherited-time (string->number (match-string 1)))
         (inherited-alloc (string->number (match-string 2))))
     (<= ghc-profiling-mode-expensive-cumulative-threshold
@@ -57,37 +57,37 @@ cpu time or allocations that the value of this variable.")
 (defvar ghc-profiling-mode-font-lock-keywords
   `((,ghc-profiling-mode-entry-re
      (0
-      (when (ghc-profiling-mode--matched-expersive-entry?)
+      (when (ghc-profiling-mode--matched-expensive-entry?)
         'ghc-profiling-expensive-face)))))
 
 (defun ghc-profiling-mode--generic-searh-for-expensive-entry (direction)
   (save-match-data
     (re-search-generic-matching
      direction
-     #'ghc-profiling-mode--matched-expersive-entry?
+     #'ghc-profiling-mode--matched-expensive-entry?
      ghc-profiling-mode-entry-re
      nil
      t)))
 
-(defun ghc-profiling-mode--search-for-expensive-entry (direction)
-  (let ((start-point (point))
-        (column (current-column)))
-    (fold-direction direction
-      (end-of-line)
-      (beginning-of-line))
-    (if (wrap-search-around
-         direction
-         (lambda () (ghc-profiling-mode--generic-searh-for-expensive-entry direction)))
-        (move-to-column column)
-      (goto-char start-point))))
+(defmacro ghc-profiling-mode--search-for-expensive-entry (direction)
+  `(let ((start-point (point))
+         (column (current-column)))
+     (fold-direction ,direction
+       (end-of-line)
+       (beginning-of-line))
+     (if (wrap-search-around
+             ,direction
+           (ghc-profiling-mode--generic-searh-for-expensive-entry ',direction))
+         (move-to-column column)
+       (goto-char start-point))))
 
-(defun ghc-profiling-mode--search-for-expensive-entry-forward ()
+(defun ghc-profiling-mode-search-for-expensive-entry-forward ()
   (interactive)
-  (ghc-profiling-mode--search-for-expensive-entry 'forward))
+  (ghc-profiling-mode--search-for-expensive-entry forward))
 
-(defun ghc-profiling-mode--search-for-expensive-entry-backward ()
+(defun ghc-profiling-mode-search-for-expensive-entry-backward ()
   (interactive)
-  (ghc-profiling-mode--search-for-expensive-entry 'backward))
+  (ghc-profiling-mode--search-for-expensive-entry backward))
 
 ;;;###autoload
 (define-derived-mode ghc-profiling-mode prog-mode "GHC-Prof"
@@ -105,8 +105,8 @@ cpu time or allocations that the value of this variable.")
   (setq-local truncate-lines t)
   (haskell-setup-folding :enable-hs-minor-mode nil)
   (def-keys-for-map vim-normal-mode-local-keymap
-    ("C-h" ghc-profiling-mode--search-for-expensive-entry-forward)
-    ("C-t" ghc-profiling-mode--search-for-expensive-entry-backward)))
+    ("C-h" ghc-profiling-mode-search-for-expensive-entry-forward)
+    ("C-t" ghc-profiling-mode-search-for-expensive-entry-backward)))
 
 (provide 'ghc-profiling-mode)
 
