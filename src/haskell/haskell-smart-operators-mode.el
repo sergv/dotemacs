@@ -360,7 +360,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
   "Whether MagicHash extension is enabled in current buffer.")
 
 
-(defun haskell-smart-operators-mode--update-magic-hash ()
+(defun haskell-smart-operators-mode--update-magic-hash! ()
   (setf haskell-smart-operators-mode--magic-hash-updated t)
   (save-excursion
     (save-match-data
@@ -378,13 +378,13 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
   :keymap nil
   :global nil
   (progn
-    (haskell-smart-operators-mode--update-magic-hash)
+    (haskell-smart-operators-mode--update-magic-hash!)
     (if haskell-smart-operators-mode
         (progn
           (dolist (hook '(after-save-hook after-revert-hook))
             (add-hook
              hook
-             #'haskell-smart-operators-mode--update-magic-hash
+             #'haskell-smart-operators-mode--update-magic-hash!
              nil     ;; append
              t       ;; local
              )))
@@ -392,7 +392,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
         (dolist (hook '(after-save-hook after-revert-hook))
           (remove-hook
            hook
-           #'haskell-smart-operators-mode--update-magic-hash
+           #'haskell-smart-operators-mode--update-magic-hash!
            t ;; local
            ))))))
 
