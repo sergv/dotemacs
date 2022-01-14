@@ -156,6 +156,7 @@ Futher modified by Sergey Vinokurov."
             (ivy-posframe-cursor          ((t (:foreground ,cyan :bold t))))
             (escape-glyph-face            ((t (:foreground ,red))))
             (fringe                       ((t (:foreground ,base01 :background ,base02))))
+            (help-key-binding             ((t (:box (:line-width ,box-line-width :color ,base1)))))
             (highlight                    ((((class color) (min-colors 16777216))
                                             (:background ,base02))
                                            (t :inverse-video t)))
