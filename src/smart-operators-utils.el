@@ -97,7 +97,7 @@ that next 2 characters are AFTER1 and AFTER2."
 ;;;###autoload
 (defun smart-operators-comma ()
   "Insert comma followed by space."
-  (interactive)
+  (interactive "*")
   (let ((next-char (char-after)))
     (insert-char ?\,)
     (when (or (not next-char)
