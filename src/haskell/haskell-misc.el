@@ -38,6 +38,9 @@ of my home config.")
 (cl-defun haskell-setup-indentation (&key offset simpler-indentation-by-default)
   "Set up bindings and indentation parameters using OFFSET as a
 single indentation unit."
+
+  (haskell-indentation-mode +1)
+
   (if simpler-indentation-by-default
       (progn
         (bind-tab-keys #'indent-relative-forward
@@ -135,6 +138,8 @@ and indent them as singe line."
         "-O0"
         "-fdefer-typed-holes"
         "-fdefer-type-errors"))
+
+(setf haskell-indentation-electric-flag t)
 
 (defconst +haskell-compile-error-or-warning-navigation-regexp+
   (mk-regexp-from-alts
@@ -624,6 +629,8 @@ both unicode and ascii characters.")
             (haskell--simple-indent-newline-same-col))))))))
 
 (defsubst haskell-abbrev+-fallback-space ()
+  "Insert space character and potentially indent to the right
+haskell block at current indentation level."
   (interactive "*")
   (haskell-space-with-block-indent))
 
