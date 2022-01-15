@@ -96,6 +96,7 @@ expand _m_acro  _M_: fully expand macro"
 ;;;###autoload
 (defun emacs-lisp-setup ()
   (lisp-setup)
+  (eldoc-mode -1)
   (company-mode +1)
   (setq-local company-backends '(company-elisp))
 
@@ -177,6 +178,7 @@ expand _m_acro  _M_: fully expand macro"
     ("<escape>" exit-recursive-edit)
     ("m"        vim:motion-jump-item:interactive)))
 
+;;;###autoload
 (add-hook 'debugger-mode-hook #'debugger-setup)
 
 (defun emacs-lisp-setup--save-mark-around-eval-last-sexp (old-func &rest args)
