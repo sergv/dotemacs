@@ -72,30 +72,30 @@ If region is active and `use-region-p' returns true, the region
 is wrapped instead.  This is useful with selection functions in
 `evil-mode' to wrap regions with pairs."
   (let* ((p (point))
-         (active-pair (assoc pair-open sp-pair-list)))
-    (cl-destructuring-bind (start . end)
-        (if (region-active-p)
-            (with-region-bounds start end
-              (cons start end))
-          (or (-when-let (sym-bounds (bounds-of-thing-at-point 'symbol))
-                (if (= p (cdr sym-bounds))
-                    nil ;; don't wrap if we are at the end of symbol
-                  sym-bounds))
-              (cons p p)))
-      (with-marker (start-marker (copy-marker start))
-        (with-marker (end-marker (copy-marker end))
-          ;; If point is not in the symbol then don't wrap the next symbol, but
-          ;; insert pair at point instead.
-          (if (< p start)
-              (progn
-                (goto-char p)
-                (sp-insert-pair pair-open))
-            (progn
-              (goto-char end)
-              (insert (cdr active-pair))
-              (goto-char start)
-              (insert (car active-pair))
-              (sp--indent-region start end))))))))
+         (active-pair (assoc pair-open sp-pair-list))
+         (start p)
+         (end p))
+    (if (region-active-p)
+        (with-region-bounds-unadj start2 end2
+          (setf start start2
+                end end2))
+      (when-let (sym-bounds (bounds-of-thing-at-point 'symbol))
+        ;; don't wrap if we are at the end of symbol
+        (unless (= p (cdr sym-bounds))
+          (setf start (car sym-bounds)
+                end (cdr sym-bounds)))))
+    ;; If point is not in the symbol then don't wrap the next symbol, but
+    ;; insert pair at point instead.
+    (if (< p start)
+        (progn
+          (goto-char p)
+          (sp-insert-pair pair-open))
+      (with-marker (end-marker (copy-marker end))
+        (goto-char end)
+        (insert (cdr active-pair))
+        (goto-char start)
+        (insert (car active-pair))
+        (sp--indent-region start end-marker)))))
 
 (defun sp-newline--expand-braced-block (old-sp-newline)
   "
