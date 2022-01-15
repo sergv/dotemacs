@@ -21,6 +21,7 @@
   ("<f6>"     nil)
 
   ("<f9>"     compile)
+  ("<f12>"    start-profiler-or-report)
 
   ("C-<prior>" scroll-down-command-fast)
   ("C-<next>"  scroll-up-command-fast)
