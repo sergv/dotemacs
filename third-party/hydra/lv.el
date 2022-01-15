@@ -64,6 +64,15 @@ Only the background color is significant."
 (defvar lv-wnd nil
   "Holds the current LV window.")
 
+(defvar lv--buf nil
+  "Buffer currently shown in ‘lv-wnd’.")
+
+(defvar lv--buf-contents nil
+  "Text currently shown in ‘lv--buf’.")
+
+(defvar lv--buf-contents-newlines-count nil
+  "Number of newlines in ‘lv--buf-contents’.")
+
 (defvar display-line-numbers)
 (defvar display-fill-column-indicator)
 (defvar tab-line-format)
@@ -75,29 +84,42 @@ Only the background color is significant."
   "Ensure that LV window is live and return it."
   (if (window-live-p lv-wnd)
       lv-wnd
-    (let ((ori (selected-window))
-          buf)
+    (let ((ori (selected-window)))
       (prog1 (setq lv-wnd
                    (select-window
-                    (let ((ignore-window-parameters t))
+                    (let ((ignore-window-parameters t)
+                          (source-win
+                           ;; Show in space just above minibuffer.
+                           (frame-root-window)
+                           ;; ;; Show as part of currently selected window.
+                           ;; ;; BUT consider that M-x will definitely happen
+                           ;; ;; in the minibuffer while this window may be
+                           ;; ;; arbitrarily far away.
+                           ;; (selected-window)
+                           ))
                       (split-window
-                       (frame-root-window) -1 'below))
+                       source-win
+                       -1
+                       'below))
                     'norecord))
-        (if (setq buf (get-buffer " *LV*"))
-            (switch-to-buffer buf 'norecord)
-          (switch-to-buffer " *LV*" 'norecord)
+        (unless (buffer-live-p lv--buf)
+          (set-buffer (setq lv--buf-contents nil
+                            lv--buf-contents-newlines-count nil
+                            lv--buf (get-buffer-create " *LV*")))
           (fundamental-mode)
-          (set-window-hscroll lv-wnd 0)
-          (setq window-size-fixed t)
-          (setq mode-line-format nil)
-          (setq header-line-format nil)
-          (setq tab-line-format nil)
-          (setq cursor-type nil)
-          (setq display-line-numbers nil)
-          (setq display-fill-column-indicator nil)
-          (set-window-dedicated-p lv-wnd t)
-          (set-window-parameter lv-wnd 'no-other-window t)
-          (run-hooks 'lv-window-hook))
+          (setq window-size-fixed t
+                mode-line-format nil
+                header-line-format nil
+                tab-line-format nil
+                cursor-type nil
+                display-line-numbers nil
+                display-fill-column-indicator nil
+                buffer-undo-list nil))
+        (pop-to-buffer-same-window lv--buf 'norecord)
+        (set-window-hscroll lv-wnd 0)
+        (set-window-dedicated-p lv-wnd t)
+        (set-window-parameter lv-wnd 'no-other-window t)
+        (run-hooks 'lv-window-hook)
         (select-window ori 'norecord)))))
 
 (defvar lv-force-update nil
@@ -120,37 +142,33 @@ Only the background color is significant."
     (with-selected-window (lv-window)
       (when lv-use-padding
         (setq str (lv--pad-to-center str (window-width))))
-      (let* ((max (point-max))
-             (min (point-min))
-             (content-length (- max min)))
-        (when (or (not (eq content-length (length str)))
-                  (not (string= (buffer-string) str))
-                  lv-force-update)
-          (delete-region min max)
-          (insert str)
-          (when (and (window-system) lv-use-separator)
-            (unless (looking-back "\n" nil)
-              (insert "\n"))
-            (insert
-             (propertize "__" 'face 'lv-separator 'display '(space :height (1)))
-             (propertize "\n" 'face 'lv-separator 'line-height t)))
-          (let ((n-lines (count-chars-in-string ?\n str)))
-            (set (if (local-variable-p 'window-min-height)
-                     'window-min-height
-                   (make-local-variable 'window-min-height))
-                 n-lines)
-            (setq truncate-lines (> n-lines 1))
-            (let ((window-resize-pixelwise t)
-                  (window-size-fixed nil))
-              (fit-window-to-buffer nil nil 1)))))
+      (when (or lv-force-update
+                (not lv--buf-contents)
+                (not (string= lv--buf-contents str)))
+        (delete-region (point-min) (point-max))
+        (setq lv--buf-contents str
+              lv--buf-contents-newlines-count (count-chars-in-string ?\n str))
+        (insert str)
+        (when (and (window-system) lv-use-separator)
+          (unless (looking-back "\n" nil)
+            (insert "\n"))
+          (insert
+           (propertize "__" 'face 'lv-separator 'display '(space :height (1)))
+           (propertize "\n" 'face 'lv-separator 'line-height t))))
+      (set (if (local-variable-p 'window-min-height)
+               'window-min-height
+             (make-local-variable 'window-min-height))
+           lv--buf-contents-newlines-count)
+      (setq truncate-lines (> lv--buf-contents-newlines-count 1))
+      (let ((window-resize-pixelwise t)
+            (window-size-fixed nil))
+        (fit-window-to-buffer nil nil 1))
       (goto-char (point-min)))))
 
 (defun lv-delete-window ()
   "Delete LV window and kill its buffer."
   (when (window-live-p lv-wnd)
-    (let ((buf (window-buffer lv-wnd)))
-      (delete-window lv-wnd)
-      (kill-buffer buf))))
+    (delete-window lv-wnd)))
 
 (provide 'lv)
 
