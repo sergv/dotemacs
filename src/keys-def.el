@@ -11,9 +11,6 @@
 (require 'hydra-setup)
 (require 'pseudovim)
 
-(declaim (special +vi-essential-keys+
-                  +vi-keys+))
-
 (defconst +vi-essential-keys+
   '(("d" backward-char)
     ("h" next-line)
