@@ -87,7 +87,8 @@
                             (use-whitespace nil) ;; can be t, nil, 'tabs-only
                             (use-render-formula nil)
                             (use-hl-line t)
-                            (sp-escape "\\")
+                            (smartparens-escape-char "\\")
+                            (smartparens-comment-char nil)
                             (sp-slurp-sexp-insert-space t)
                             (enable-backup t)
                             (hl-parens-backend 'hl-paren) ;; can be 'hl-paren, 'smartparens
@@ -100,7 +101,14 @@ sp-escape:
   autoconfigure it (but it may fail and leave it unconfigured and
   escaping won’t work).
 "
+
+  (cl-assert (or (null smartparens-comment-char)
+                 (stringp smartparens-comment-char)))
+  (cl-assert (or (null smartparens-escape-char)
+                 (stringp smartparens-escape-char)))
+
   (hl-line-mode (if use-hl-line +1 -1))
+
   (when use-comment
     (comment-util-mode 1)
 
@@ -108,7 +116,11 @@ sp-escape:
       (when (= 1 (length it))
         (setf sp-comment-char (string (car it))))))
 
-  (setf sp-escape-char sp-escape)
+  (when (and (not sp-comment-char)
+             smartparens-comment-char)
+    (setf sp-comment-char smartparens-comment-char))
+
+  (setf sp-escape-char smartparens-escape-char)
   (smartparens-mode +1)
 
   (unless enable-backup
@@ -173,15 +185,31 @@ sp-escape:
 (cl-defun init-repl (&key (show-directory nil)
                           (bind-return t)
                           (create-keymaps nil)
-                          (bind-vim:motion-current-line t))
+                          (bind-vim:motion-current-line t)
+                          smartparens-comment-char)
+  (cl-assert (or (null smartparens-comment-char)
+                 (stringp smartparens-comment-char)))
+
   (use-repl-modeline :show-directory show-directory)
+
   (setq-local vim-do-not-adjust-point t
               vim--insert-mode-exit-move-point 'dont-move-at-line-end
               global-auto-revert-ignore-buffer t)
   (emacs-forget-buffer-process)
 
+  (unless sp-escape-char
+    (setf sp-escape-char "\\"))
+
+  (when (and (not sp-comment-char)
+             smartparens-comment-char)
+    (setf sp-comment-char smartparens-comment-char))
+
+  (unless smartparens-mode
+    (smartparens-mode +1))
+
   (when create-keymaps
     (vim:bind-local-keymaps))
+
   (when bind-vim:motion-current-line
     (if vim-operator-pending-mode-local-keymap
         (def-keys-for-map vim-operator-pending-mode-local-keymap

@@ -497,14 +497,11 @@ _a_lign  _t_: jump to topmost node start
 
 ;;;###autoload
 (defun dante-repl-mode-setup ()
-  ;; undo-tree is useless for ghci interaction
-  ;; well I'm not sure now, I hope it's useful since it proved itself useful
-  ;; for other repls
-  ;; (undo-tree-mode -1)
   (init-common :use-comment nil
                :use-yasnippet nil
                :use-whitespace nil
-               :use-fci nil)
+               :use-fci nil
+               :smartparens-comment-char "-")
 
   ;; To make hideshow work
   (setq-local comment-start "--"
@@ -516,6 +513,7 @@ _a_lign  _t_: jump to topmost node start
   (init-repl :create-keymaps t
              :bind-return nil
              :bind-vim:motion-current-line nil)
+
   ;; very useful to automatically surround with spaces inserted operators
   (install-haskell-smart-operators! vim-insert-mode-local-keymap
     :bind-colon nil
