@@ -48,7 +48,8 @@
         shell-mode
         special-mode
         undo-tree-visualizer-mode
-        xref--xref-buffer-mode))
+        xref--xref-buffer-mode
+        debugger-mode))
 
 (global-auto-revert-mode 1)
 

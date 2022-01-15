@@ -796,6 +796,18 @@ quote it for macro’s sake).
                    (goto-char ,pt)
                    nil))))))))
 
+;;;
+
+(defmacro with-buffer (buf &rest body)
+  (declare (indent 1))
+  (let ((buf-var '#:buf))
+    `(let ((,buf-var ,buf))
+       (if (eq ,buf-var (current-buffer))
+           (progn
+             ,@body)
+         (with-current-buffer ,buf-var
+           ,@body)))))
+
 ;;; end
 
 (provide 'macro-util)

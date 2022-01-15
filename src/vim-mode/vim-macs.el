@@ -208,16 +208,23 @@ For more information about the vim:motion struct look at vim-core.el."
 
        ,@(when interactive
            (list
-            `(defun ,name-interactive (&rest args)
-               ,(format "Interactive version of ‘%s’" name)
-               (interactive)
-               (if ;; Since in minibuffer vim-mode may be inactive but
-                   ;; we may still want to execute the desired command.
-                   ;; And command may not have a mock alternative,
-                   ;; e.g. ‘vim:cmd-paste-before’.
-                   vim-active-command-function
-                   (funcall vim-active-command-function ',name)
-                 (apply #',name args))))))))
+            `(progn
+               (put ',name-interactive 'vim--is-cmd? t)
+               (defun ,name-interactive (&rest args)
+                 ,(format "Interactive version of ‘%s’" name)
+                 (interactive)
+                 (if vim-active-mode
+                     (vim-execute-command #',name)
+                   (apply #',name args))
+
+                 ;; (if ;; Since in minibuffer vim-mode may be inactive but
+                 ;;     ;; we may still want to execute the desired command.
+                 ;;     ;; And command may not have a mock alternative,
+                 ;;     ;; e.g. ‘vim:cmd-paste-before’.
+                 ;;     vim-active-command-function
+                 ;;     (vim-active-mode vim-active-command-function #',name)
+                 ;;   (apply #',name args))
+                 )))))))
 
 (cl-defmacro vim-defmotion (name (&rest args) &rest body)
   "Vim-mode motions can be defined with the macro vim-defmotion.
@@ -231,6 +238,8 @@ parameters and a view attributes. The general form is as follows.
                              | linewise
                              | block
                              | do-not-adjust-point
+                             | motion-result
+                             | raw-result
                              }*)
     body ...)
 
@@ -264,14 +273,18 @@ returns *always* a vim:motion object.
 For more information about the vim:motion struct and motion types
 look at vim-core.el."
   (declare (indent defun))
-  (let ((name-interactive (string->symbol (concat (symbol->string name) ":interactive")))
+  (let ((name-interactive (string->symbol (concat (symbol->string name) ":interactive")))a
+        (name-raw (string->symbol (concat (symbol->string name) "/raw")))
         (type nil)
         (count nil)
         (argument nil)
         (params nil)
         (named-params nil)
         (doc nil)
-        (do-not-adjust-point nil))
+        (do-not-adjust-point nil)
+        (raw-result nil)
+        (motion-result nil)
+        (ret '#:ret))
 
     ;; extract documentation string
     (if (and (consp body)
@@ -289,6 +302,12 @@ look at vim-core.el."
 
         (`do-not-adjust-point
          (setf do-not-adjust-point t))
+
+        (`raw-result
+         (setf raw-result t))
+
+        (`motion-result
+         (setf motion-result t))
 
         (`count
          (setq count t)
@@ -311,22 +330,48 @@ look at vim-core.el."
     (unless type
       (error "vim-defmotion: Motion type must be specified"))
 
+    (when (and raw-result
+               motion-result)
+      (error "Only one fo raw-result or motion-result may be specified"))
+
     `(progn
        (put ',name 'type ',type)
        (put ',name 'count ,count)
        (put ',name 'argument ,argument)
+
+       ,@(when raw-result
+           (list
+            `(cl-defun ,name-raw (,@(when params `(&key ,@params))
+                                  ,@(when named-params `(&aux ,@named-params)))
+               ,doc
+               ,@body)))
+
        (cl-defun ,name (,@(when params `(&key ,@params))
                         ,@(when named-params `(&aux ,@named-params)))
          ,doc
-         (vim-do-motion ',type
-           (progn ,@body)))
+         ,(cond
+            (raw-result
+             `(vim-wrap-motion ,type
+                ,@body))
+            (motion-result
+             (let ((,ret (progn ,@body)))
+               (cl-assert (equal (vim-motion-type ,ret)
+                                 ',type))
+               ,ret))
+            (t
+             `(vim-do-motion ,type
+                ,@body))))
        (defun ,name-interactive ()
          ,(format "Interactive version of ‘%s’" name)
          (interactive)
          (let ,(if do-not-adjust-point
                    '((vim-do-not-adjust-point t))
                  '())
-           (vim-execute-command ',name))))))
+           (if vim-active-mode
+               (vim-execute-command #',name)
+             (,(if raw-result
+                   name-raw
+                 name))))))))
 
 (provide 'vim-macs)
 

@@ -96,7 +96,7 @@ reactivate _v_isual mode
 M-_x_
 "
   ("f" make-frame)
-  ("g" pseudovim-motion-go-to-first-non-blank-beg)
+  ("g" vim:motion-go-to-first-non-blank-beg:interactive)
   ("r" egrep)
   ("u" undo-tree-visualize)
   ("v" vim:visual-mode-reactivate:interactive)
@@ -142,7 +142,7 @@ replace _s_elected"
 _g_o to start of file
 g_r_ep
 M-_x_"
-  ("g" pseudovim-motion-go-to-first-non-blank-beg)
+  ("g" vim:motion-go-to-first-non-blank-beg:interactive)
   ("r" egrep-region)
   ("x" ivy-smex))
 

@@ -268,18 +268,14 @@ e.g. shell prompt.."
        (max (line-beginning-position)
             (1- (match-beginning 0)))))))
 
-(defun pseudovim-motion-go-to-first-non-blank-beg (&optional count)
-  (interactive "p")
+(vim-defmotion vim:motion-go-to-first-non-blank-beg (exclusive count raw-result)
+  "Moves the cursor to the first non-blank character of line count."
   (vim-save-position)
   (if (and current-prefix-arg
            count)
       (goto-line-dumb count)
     (goto-char (point-min)))
   (skip-to-indentation))
-
-(vim-defmotion vim:motion-go-to-first-non-blank-beg (linewise count)
-  "Moves the cursor to the first non-blank character of line count."
-  (pseudovim-motion-go-to-first-non-blank-beg count))
 
 (defun pseudovim-motion-go-to-first-non-blank-end (&optional count)
   (interactive "p")
@@ -1245,9 +1241,8 @@ but only on the current line."
 (defun vim--bounds-of-string (p)
   "Return beginning and end of string at poith P."
   (save-excursion
-    (let* ((beg (point-min))
-           (end p)
-           (state (parse-partial-sexp beg end))
+    (let* ((end p)
+           (state (parse-partial-sexp (point-min) end))
            (inside-stringp (elt state 3))
            (string-start (elt state 8)))
       (if inside-stringp
