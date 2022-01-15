@@ -1486,20 +1486,20 @@
      "")
     (tests-utils--multiline
      ""
-     "foo x = y \"bar\"_|_ x"
+     "foo x = y \"_|_bar\" x"
      "")))
 
 (ert-deftest vim-tests/wrap-dquotes-2/haskell-mode ()
   (vim-tests--test-fresh-buffer-contents-init
       (haskell-mode)
-      (execute-kbd-macro (kbd "v E E E\""))
+      (execute-kbd-macro (kbd "v E E E \""))
     (tests-utils--multiline
      ""
      "foo x = baz _|_\"bar x\" quux"
      "")
     (tests-utils--multiline
      ""
-     "foo x = baz \"\\\"bar x\\\" quux\"_|_"
+     "foo x = baz \"_|_\\\"bar x\\\" quux\""
      "")))
 
 (provide 'vim-tests)
