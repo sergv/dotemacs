@@ -88,7 +88,7 @@
 ;; (vim-nmap (kbd "C-z") #'vim-activate-emacs-mode)
 ;; (vim--def-key (kbd "C-z") #'vim-activate-normal-mode :keymap vim-emacs-keymap)
 
-(vim-omap [escape] #'vim--operator-pending-mode-exit)
+(vim-omap [escape] #'vim-operator-pending-mode-exit)
 ;; (vim-omap "0" #'vim-motion-beginning-of-line-or-digit-argument)
 ;; (vim-omap "1" #'digit-argument)
 ;; (vim-omap "2" #'digit-argument)
@@ -150,7 +150,7 @@
 ;; (vim-omap ":" #'vim:motion-repeat-last-find)
 ;; (vim-omap "," #'vim:motion-repeat-last-find-opposite)
 
-(vim-omap "%" #'vim:motion-jump-item:interactive)
+;; (vim-omap "%" #'vim:motion-jump-item:interactive)
 
 ;; (vim-omap [tab] #'indent-for-tab-command)
 
@@ -220,8 +220,6 @@
 ;; (vim-mmap "#" #'vim:search-word-backward)
 ;; (vim-mmap (kbd "C-n") #'vim:motion-search-next)
 ;; (vim-mmap (kbd "C-S-N") #'vim:motion-search-next-reverse)
-;; (vim-nmap "n" #'vim:motion-search-next)
-;; (vim-nmap "N" #'vim:motion-search-next-reverse)
 
 (vim-nmap "i" #'vim:cmd-insert:interactive)
 (vim-nmap "a" #'vim:cmd-append:interactive)

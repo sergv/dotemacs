@@ -127,56 +127,60 @@ of the command handling code the buffer in vim--new-buffer is made current.")
         (vconcat vim--current-key-sequence (this-command-keys-vector))))
 
 (defsubst vim--cmd-count-p (cmd)
-  "Returns non-nil iff command cmd takes a count."
+  "Returns non-nil iff command CMD takes a count."
   (get cmd 'count))
 
 (defsubst vim--cmd-register-p (cmd)
-  "Returns non-nil iff command may take a register."
+  "Returns non-nil iff command CMD may take a register."
   (get cmd 'register))
 
 (defsubst vim--cmd-motion-p (cmd)
-  "Returns non-nil iff command `cmd' takes a motion parameter."
+  "Returns non-nil iff command CMD takes a motion parameter."
   (get cmd 'motion))
 
 (defsubst vim--cmd-arg (cmd)
-  "Returns the type of command's argument."
+  "Returns the type of command CMD argument."
   (get cmd 'argument))
 
 (defsubst vim--cmd-arg-p (cmd)
-  "Returns non-nil iff command cmd takes an argument of arbitrary type."
+  "Returns non-nil iff command CMD takes an argument of arbitrary type."
   (and (get cmd 'argument) t))
 
 (defsubst vim--cmd-text-arg-p (cmd)
-  "Returns non-nil iff command cmd takes a text argument."
+  "Returns non-nil iff command CMD takes a text argument."
   (eq (vim--cmd-arg cmd) t))
 
 (defsubst vim--cmd-char-arg-p (cmd)
-  "Returns non-nil iff command cmd takes a char argument."
+  "Returns non-nil iff command CMD takes a char argument."
   (eq (vim--cmd-arg cmd) 'char))
 
 (defsubst vim--cmd-file-arg-p (cmd)
-  "Returns non-nil iff command cmd takes a file argument."
+  "Returns non-nil iff command CMD takes a file argument."
   (eq (vim--cmd-arg cmd) 'file))
 
 (defsubst vim--cmd-buffer-arg-p (cmd)
-  "Returns non-nil iff command cmd takes a buffer argument."
+  "Returns non-nil iff command CMD takes a buffer argument."
   (eq (vim--cmd-arg cmd) 'buffer))
 
 (defsubst vim--cmd-repeatable-p (cmd)
-  "Returns non-nil iff command cmd is repeatable."
+  "Returns non-nil iff command CMD is repeatable."
   (get cmd 'repeatable))
 
 (defsubst vim--cmd-keep-visual-p (cmd)
-  "Returns non-nil iff command cmd should stay in visual mode."
+  "Returns non-nil iff command CMD should stay in visual mode."
   (get cmd 'keep-visual))
 
 (defsubst vim--cmd-force-p (cmd)
-  "Returns non-nil iff command cmd takes a force argument."
+  "Returns non-nil iff command CMD takes a force argument."
   (and (get cmd 'force) t))
 
 (defsubst vim--cmd-type (cmd)
-  "Returns the type of command cmd."
+  "Returns the type of command CMD."
   (get cmd 'type))
+
+(defsubst vim--is-cmd-p (cmd)
+  "Returns non-nil iff command CMD is defined via vim’s defcmd."
+  (and (get cmd 'vim--is-cmd?) t))
 
 
 (defmacro vim--apply-save-buffer (func &rest args)
@@ -225,20 +229,16 @@ positions within (point-min) and (point-max) and not at
   (unless type
     (setq type (if (<= begin end) 'inclusive 'exclusive)))
 
-  (let* ((shrink-to (lambda (pos lower upper)
-                      (max lower (min upper pos))))
-
-         (normalize-pos (lambda (pos)
-                          (let ((pos (funcall shrink-to pos (point-min) (point-max))))
-                            (funcall shrink-to
-                                     pos
-                                     (save-excursion
-                                       (goto-char pos)
-                                       (line-beginning-position))
-                                     (save-excursion
-                                       (goto-char pos)
-                                       (- (line-end-position)
-                                          (if (eq type 'inclusive) 1 0))))))))
+  (let ((normalize-pos (lambda (pos)
+                         (let* ((pos2 (cap-floor (point-max) (point-min) pos))
+                                (b (save-excursion
+                                     (goto-char pos2)
+                                     (line-beginning-position)))
+                                (e (save-excursion
+                                     (goto-char pos2)
+                                     (- (line-end-position)
+                                        (if (eq type 'inclusive) 1 0)))))
+                           (cap-floor e b pos2)))))
 
     (vim-make-motion-struct :has-begin has-begin
                             :begin (funcall normalize-pos begin)
@@ -358,7 +358,23 @@ return the correct end-position of emacs-ranges, i.e.
      (1+ (max (vim-motion-begin motion) (vim-motion-end motion))))
     (_ (max (vim-motion-begin motion) (vim-motion-end motion)))))
 
-(defmacro vim-do-motion (type expression)
+(defmacro vim-wrap-motion (type &rest body)
+  "Turn BODY, which should do some navigation and result in point movement into ‘vim-motion’ structure.
+
+Similar to ‘vim-do-motion’ but assumes that BODY will not return a motion object."
+  (declare (indent 1))
+  (let ((start-pos '#:start-pos)
+        (motion '#:motion))
+    `(let ((,start-pos (point)))
+       ,@body
+       (when vim--this-column
+         (move-to-column vim--this-column))
+       (vim-make-motion :has-begin nil
+                        :begin ,start-pos
+                        :end (point)
+                        :type ',type))))
+
+(defmacro vim-do-motion (type &rest body)
   "Executes a motion body, ensuring the return of a valid vim:motion object.
 This function is called to execute a motion function. When the
 motion command returns a vim:motion struct, this struct is just
@@ -369,7 +385,7 @@ and the (default) type of the motion."
   (let ((start-pos '#:start-pos)
         (motion '#:motion))
     `(let ((,start-pos (point))
-           (,motion ,expression))
+           (,motion (progn ,@body)))
        (if (vim-motion-p ,motion)
            ,motion
          (progn
@@ -378,7 +394,7 @@ and the (default) type of the motion."
            (vim-make-motion :has-begin nil
                             :begin ,start-pos
                             :end (point)
-                            :type ,type))))))
+                            :type ',type))))))
 
 (defun vim--adjust-end-of-line-position (pos)
   "If pos is an end-of-line returns pos - 1 and pos otherwise."
@@ -424,16 +440,18 @@ but with nil, point will be repositioned at r:
 If an error occures, this function switches back to normal-mode.
 Since all vim-mode commands go through this function, this is
 the perfect point to do some house-keeping."
-  (let ((err t))
+  (let ((err t)
+        (buf (current-buffer)))
     (unwind-protect
         (prog1
             (funcall vim-active-command-function cmd)
           (setq err nil))
       (when err
-        (vim--reset-key-state!)
-        (vim--clear-key-sequence!)
-        (vim--adjust-point)
-        (vim-activate-normal-mode))))
+        (with-buffer buf
+          (vim--reset-key-state!)
+          (vim--clear-key-sequence!)
+          (vim--adjust-point)
+          (vim-activate-normal-mode)))))
 
   ;; (condition-case err
   ;;     (funcall vim-active-command-function cmd)
