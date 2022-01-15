@@ -28,7 +28,7 @@
 
 (defmacro vim-tests--test-fresh-buffer-contents-init-all (name inits action contents expected-value)
   (declare (indent 3))
-  (cl-assert (stringp name) "invalid name: %s" name)
+  (cl-assert (symbolp name) "invalid name: %s" name)
   `(progn
      ,@(cl-loop
          for init in inits
@@ -36,7 +36,7 @@
          (let ((subname (car init))
                (expr (cdr init)))
            (cl-assert (symbolp subname))
-           `(ert-deftest ,(string->symbol (format name subname)) ()
+           `(ert-deftest ,(string->symbol (format "%s//%s" name subname)) ()
               (tests-utils--test-buffer-contents
                :action ,action
                :contents ,contents
@@ -449,7 +449,7 @@
      "")))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    "vim-tests/copy-paste-linewise-region-after-%s-1"
+    vim-tests/copy-paste-linewise-region-after-1
     (execute-kbd-macro (kbd "V h y p"))
   (tests-utils--multiline
    ""
@@ -469,7 +469,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    "vim-tests/copy-paste-linewise-region-before-%s-1"
+    vim-tests/copy-paste-linewise-region-before-1
     (execute-kbd-macro (kbd "V h y P"))
   (tests-utils--multiline
    ""
@@ -513,7 +513,7 @@
      "")))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    "vim-tests/paste-before-visual-block-region-%s-1"
+    vim-tests/paste-before-visual-block-region-1
     (execute-kbd-macro (kbd "y w C-v h P"))
   (tests-utils--multiline
    ""
@@ -527,7 +527,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    "vim-tests/paste-before-visual-block-region-%s-2"
+    vim-tests/paste-before-visual-block-region-2
     (execute-kbd-macro (kbd "y s C-v h P"))
   (tests-utils--multiline
    ""
@@ -545,7 +545,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    "vim-tests/paste-before-visual-block-region-%s-3"
+    vim-tests/paste-before-visual-block-region-3
     (execute-kbd-macro (kbd "y s C-v h h h P"))
   (tests-utils--multiline
    ""
@@ -567,7 +567,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    "vim-tests/paste-before-visual-block-region-undo-%s-1"
+    vim-tests/paste-before-visual-block-region-undo-1
     ;; Enable undo tracking.
     (let ((buffer-undo-list nil))
       (execute-kbd-macro (kbd "y s C-v h P k")))
@@ -587,7 +587,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    "vim-tests/paste-before-visual-block-region-undo-%s-2"
+    vim-tests/paste-before-visual-block-region-undo-2
     ;; Enable undo tracking.
     (let ((buffer-undo-list nil))
       (execute-kbd-macro (kbd "y s C-v h h h P k")))
@@ -611,7 +611,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    "vim-tests/paste-before-insert-mode-visual-block-region-%s-1"
+    vim-tests/paste-before-insert-mode-visual-block-region-1
     (execute-kbd-macro (kbd "y s C-v h h h I C-p <escape>"))
   (tests-utils--multiline
    ""
@@ -633,7 +633,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    "vim-tests/paste-after-visual-block-region-%s-1"
+    vim-tests/paste-after-visual-block-region-1
     (execute-kbd-macro (kbd "y w C-v h p"))
   (tests-utils--multiline
    ""
@@ -647,7 +647,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    "vim-tests/paste-after-visual-block-region-%s-2"
+    vim-tests/paste-after-visual-block-region-2
     (execute-kbd-macro (kbd "y s C-v h p"))
   (tests-utils--multiline
    ""
@@ -665,7 +665,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    "vim-tests/paste-after-visual-block-region-%s-3"
+    vim-tests/paste-after-visual-block-region-3
     (execute-kbd-macro (kbd "y s C-v h h h p"))
   (tests-utils--multiline
    ""
@@ -687,7 +687,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    "vim-tests/paste-after-visual-block-region-%s-4"
+    vim-tests/paste-after-visual-block-region-4
     (execute-kbd-macro (kbd "y s C-v h h h n p"))
   (tests-utils--multiline
    ""
@@ -709,7 +709,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    "vim-tests/paste-after-visual-block-region-undo-%s-1"
+    vim-tests/paste-after-visual-block-region-undo-1
     ;; Enable undo tracking.
     (let ((buffer-undo-list nil))
       (execute-kbd-macro (kbd "y s C-v h p k")))
@@ -729,7 +729,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    "vim-tests/paste-after-visual-block-region-undo-%s-2"
+    vim-tests/paste-after-visual-block-region-undo-2
     ;; Enable undo tracking.
     (let ((buffer-undo-list nil))
       (execute-kbd-macro (kbd "y s C-v h h h p k")))
@@ -753,7 +753,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    "vim-tests/copy-line-and-paste-after-%s-1"
+    vim-tests/copy-line-and-paste-after-1
     (execute-kbd-macro (kbd "y y p"))
   (tests-utils--multiline
    ""
@@ -772,7 +772,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    "vim-tests/copy-line-and-paste-before-%s-1"
+    vim-tests/copy-line-and-paste-before-1
     (execute-kbd-macro (kbd "y y P"))
   (tests-utils--multiline
    ""
@@ -791,7 +791,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    "vim-tests/navigation-insertion-%s-1"
+    vim-tests/navigation-insertion-1
     (execute-kbd-macro (kbd "h h h o <escape>"))
   (tests-utils--multiline
    ""
@@ -814,7 +814,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    "vim-tests/paste-cycle-after-%s-1"
+    vim-tests/paste-cycle-after-1
     (execute-kbd-macro (kbd "y w h y w h y w h y w o <escape> p p p"))
   (tests-utils--multiline
    ""
@@ -838,7 +838,7 @@
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-except
     (text-mode)
-    "vim-tests/paste-cycle-after-%s-2"
+    vim-tests/paste-cycle-after-2
     (execute-kbd-macro (kbd "y w h y w h y w h y w o <escape> <tab> p p p"))
   (tests-utils--multiline
    ""
@@ -861,7 +861,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    "vim-tests/tab-on-newly-created-empty-line-%s-1"
+    vim-tests/tab-on-newly-created-empty-line-1
     (progn
       (execute-kbd-macro (kbd "h h h o <escape> <tab>"))
       (when (eq major-mode 'text-mode)
@@ -890,7 +890,7 @@
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-except
     (text-mode)
-    "vim-tests/paste-cycle-before-%s-1"
+    vim-tests/paste-cycle-before-1
     (execute-kbd-macro (kbd "y w h y w h y w h y w o <escape> <tab> P P P"))
   (tests-utils--multiline
    ""
@@ -913,7 +913,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    "vim-tests/block-select-delete-%s-1"
+    vim-tests/block-select-delete-1
     (execute-kbd-macro (kbd "C-v h h h 0 ,"))
   (tests-utils--multiline
    ""
@@ -935,7 +935,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    "vim-tests/block-select-delete-then-paste-%s-1"
+    vim-tests/block-select-delete-then-paste-1
     (execute-kbd-macro (kbd "C-v h h h 0 , 2 P"))
   (tests-utils--multiline
    ""
@@ -957,7 +957,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    "vim-tests/interleave-search-and-repeat-last-find-%s-1"
+    vim-tests/interleave-search-and-repeat-last-find-1
     (execute-kbd-macro (kbd "$ a SPC <escape> , F : / : f o o <return> . u ."))
   (tests-utils--multiline
    ""
@@ -981,7 +981,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    "vim-tests/interleave-search-and-repeat-last-find-%s-2"
+    vim-tests/interleave-search-and-repeat-last-find-2
     (execute-kbd-macro (kbd "$ F : , e / : f o o <return> ; . u ; ."))
   (tests-utils--multiline
    ""
@@ -1005,7 +1005,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    "vim-tests/visual-reactivate-%s-1"
+    vim-tests/visual-reactivate-1
     ;; Enable undo tracking.
     (let ((buffer-undo-list nil))
       (execute-kbd-macro (kbd "v e h <escape> d t g v ,")))
@@ -1024,7 +1024,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    "vim-tests/insert-linewise-region-%s-1"
+    vim-tests/insert-linewise-region-1
     (execute-kbd-macro (kbd "V h I x y z <escape>"))
   (tests-utils--multiline
    ""
@@ -1042,7 +1042,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    "vim-tests/insert-linewise-region-newline-%s-1"
+    vim-tests/insert-linewise-region-newline-1
     (execute-kbd-macro (kbd "V h I x y z <return> <escape>"))
   (tests-utils--multiline
    ""
@@ -1063,7 +1063,7 @@
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-except
     (c-mode)
-    "vim-tests/motion-inner-single-quote-%s-1"
+    vim-tests/motion-inner-single-quote-1
     (execute-kbd-macro (kbd ", i '"))
   (tests-utils--multiline
    ""
@@ -1076,7 +1076,7 @@
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-except
     (c-mode)
-    "vim-tests/motion-outer-single-quote-%s-1"
+    vim-tests/motion-outer-single-quote-1
     (execute-kbd-macro (kbd ", a '"))
   (tests-utils--multiline
    ""
@@ -1088,7 +1088,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    "vim-tests/motion-inner-double-quote-%s-1"
+    vim-tests/motion-inner-double-quote-1
     (execute-kbd-macro (kbd ", i \""))
   (tests-utils--multiline
    ""
@@ -1100,7 +1100,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    "vim-tests/motion-outer-double-quote-%s-1"
+    vim-tests/motion-outer-double-quote-1
     (execute-kbd-macro (kbd ", a \""))
   (tests-utils--multiline
    ""
@@ -1112,7 +1112,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    "vim-tests/repeated-search-%s-1"
+    vim-tests/repeated-search-1
     (execute-kbd-macro (kbd "/ f o o <return>"))
   (tests-utils--multiline
    ""
@@ -1140,7 +1140,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    "vim-tests/repeated-search-%s-2"
+    vim-tests/repeated-search-2
     (execute-kbd-macro (kbd "/ f o o <return> u"))
   (tests-utils--multiline
    ""
@@ -1168,7 +1168,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    "vim-tests/repeated-search-%s-3"
+    vim-tests/repeated-search-3
     (execute-kbd-macro (kbd "/ f o o <return> u u"))
   (tests-utils--multiline
    ""
@@ -1196,7 +1196,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    "vim-tests/repeated-search-%s-4"
+    vim-tests/repeated-search-4
     (execute-kbd-macro (kbd "/ f o o <return> 2 u"))
   (tests-utils--multiline
    ""
@@ -1224,7 +1224,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    "vim-tests/repeated-search-%s-5"
+    vim-tests/repeated-search-5
     (execute-kbd-macro (kbd "/ f o o <return> u u U"))
   (tests-utils--multiline
    ""
@@ -1252,7 +1252,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    "vim-tests/delete-to-beginning-of-buffer-%s-1"
+    vim-tests/delete-to-beginning-of-buffer-1
     (execute-kbd-macro (kbd ", g g"))
   (tests-utils--multiline
    ""
@@ -1272,7 +1272,7 @@
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-except
     (rust-mode)
-    "vim-tests/record-and-execute-macro-%s-1"
+    vim-tests/record-and-execute-macro-1
     (let ((vim--macro-definitions (make-hash-table :test #'equal))
           (name (cons nil 0)))
       (vim-macro--add-new-definition! name
