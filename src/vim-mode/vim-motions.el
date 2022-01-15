@@ -112,6 +112,8 @@
   "Save position to ' mark register."
   (vim-set-mark ?' pos))
 
+(advice-add 'end-of-defun :before #'vim-save-position)
+
 (defun vim-set-mark (mark-char &optional pos)
   "Sets the mark `mark-char' to `pos' or (point)."
   (let (m)
