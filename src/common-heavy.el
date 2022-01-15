@@ -1123,6 +1123,23 @@ to deleted items. ITEMS will be mutated in order to obtain result."
     (delete-region (overlay-start o)
                    (overlay-end o))))
 
+;;; start-profiler-or-report
+
+(autoload 'profiler-running-p "profiler")
+(autoload 'profiler-report "profiler" nil t)
+(autoload 'profiler-stop "profiler" nil t)
+
+;;;###autoload
+(defun start-profiler-or-report ()
+  "Either start new profiling session or terminate an existing one with a report."
+  (interactive)
+  (if (profiler-running-p)
+      (progn
+        (profiler-report)
+        (profiler-stop))
+    (progn
+      (profiler-start 'cpu+mem))))
+
 (provide 'common-heavy)
 
 ;; Local Variables:
