@@ -84,6 +84,8 @@
 (require 'lv)
 (require 'ring)
 
+(require 'dash)
+
 (defvar hydra-curr-map nil
   "The keymap of the current Hydra called.")
 
@@ -537,7 +539,7 @@ Remove :color key. And sort the plist alphabetically."
   (unless (and hydra--ignore
                (null hydra--work-around-dedicated))
     (funcall
-     (nth 2 (assoc hydra-hint-display-type hydra-hint-display-alist))))
+     (nth 2 (assq hydra-hint-display-type hydra-hint-display-alist))))
   nil)
 
 (defvar hydra-head-format "[%s]: "
@@ -804,7 +806,11 @@ The expressions can be auto-expanded according to NAME."
      `(concat (format ,(replace-regexp-in-string "\\`\n" "" docstring) ,@(nreverse varlist))
               ,@(cdr rest)))
     ((eq ?\n (aref docstring 0))
-     `(format ,(concat (substring docstring 1) rest) ,@(nreverse varlist)))
+     (let ((vars (nreverse varlist))
+           (s (concat (substring docstring 1) rest)))
+       (if (-all? #'stringp vars)
+           (apply #'format s vars)
+         `(format ,s ,@vars))))
     (t
      (let ((r `(replace-regexp-in-string
                 " +$" ""
@@ -962,12 +968,12 @@ KEY is forwarded to `plist-get'."
                               :verbosity)))
     (cond ((eq verbosity 0))
           ((eq verbosity 1)
-           (message (eval hint)))
+           (message (hydra--to-string hint)))
           (t
            (when hydra-is-helpful
              (funcall
-              (nth 1 (assoc hydra-hint-display-type hydra-hint-display-alist))
-              (eval hint)))))))
+              (nth 1 (assq hydra-hint-display-type hydra-hint-display-alist))
+              (hydra--to-string hint)))))))
 
 (defmacro hydra--make-funcall (sym)
   "Transform SYM into a `funcall' to call it."
