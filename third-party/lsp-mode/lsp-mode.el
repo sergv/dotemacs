@@ -5219,7 +5219,9 @@ RENDER-ALL - nil if only the signature should be rendered."
       (progn
         (setq lsp--signature-last-buffer (current-buffer))
         (let ((lv-force-update t))
-          (lv-message "%s" message)))
+          (if (stringp message)
+              (lv-message message)
+            (lv-message "%s" message))))
     (lv-delete-window)
     (remove-hook 'lv-window-hook #'lsp--setup-page-break-mode-if-present)))
 
