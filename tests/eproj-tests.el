@@ -47,14 +47,14 @@ under ROOT directory."
   (string=? (expand-file-name (strip-trailing-slash path-a))
             (expand-file-name (strip-trailing-slash path-b))))
 
-(defmacro eproj-tests--define-tests (test-name-template &rest body)
+(defmacro eproj-tests--define-tests (test-name &rest body)
   (declare (indent 1))
   (let ((test-name-elisp-file-search
-         (string->symbol (format test-name-template "elisp-file-search")))
+         (string->symbol (format "%s//elisp-file-search" test-name)))
         (test-name-executable-file-search
-         (string->symbol (format test-name-template "executable-file-search")))
+         (string->symbol (format "%s//executable-file-search" test-name)))
         (test-name-foreign-file-search
-         (string->symbol (format test-name-template "foreign-file-search"))))
+         (string->symbol (format "%s//foreign-file-search" test-name))))
     `(progn
        (ert-deftest ,test-name-elisp-file-search ()
          (let ((eproj/default-projects (make-hash-table :test #'eq))
@@ -113,7 +113,7 @@ under ROOT directory."
   (expand-file-name (concat eproj-tests/project-dir "/haskell-project-with-aux-files/prefix-long")))
 
 (eproj-tests--define-tests
-    "eproj-tests/%s/eproj-get-all-related-projects"
+    "eproj-tests/eproj-get-all-related-projects"
   (let* ((path (concat eproj-tests/folder-with-related-projects "/project-main"))
 
          (expected-related-basenames
@@ -187,7 +187,7 @@ under ROOT directory."
           (should (member file navigation-files-basenames)))))))
 
 (eproj-tests--define-tests
-    "eproj-tests/%s/tags-of-c-files"
+    "eproj-tests/tags-of-c-files"
   (let* ((path eproj-tests/project-with-c-files)
          (proj (eproj-get-project-for-path path))
          (tags-index
@@ -227,7 +227,7 @@ under ROOT directory."
        ,@body)))
 
 (eproj-tests--define-tests
-    "eproj-tests/%s/project-with-eproj-file-and-tags-file"
+    "eproj-tests/project-with-eproj-file-and-tags-file"
   (let ((path eproj-tests/project-with-eproj-file-and-tags-file))
     (eproj-reset-projects)
     (should (not (null? (eproj-get-initial-project-root path))))
@@ -281,7 +281,7 @@ under ROOT directory."
                                                 nil))))))))
 
 (eproj-tests--define-tests
-    "eproj-tests/%s/project-with-file-list"
+    "eproj-tests/project-with-file-list"
   (let* ((path eproj-tests/project-with-file-list)
          (proj (eproj-get-project-for-path path)))
     (should (not (null? proj)))
@@ -292,7 +292,7 @@ under ROOT directory."
                    (eproj-tests/normalize-file-list (eproj-get-project-files proj))))))
 
 (eproj-tests--define-tests
- "eproj-tests/%s/project-with-ignored-files"
+ "eproj-tests/project-with-ignored-files"
  (let* ((path eproj-tests/project-with-ignored-files)
         (proj (eproj-get-project-for-path path)))
    (should (not (null? proj)))
@@ -336,7 +336,7 @@ under ROOT directory."
                                           nil)))))
 
 (eproj-tests--define-tests
-    "eproj-tests/%s/eproj-related-project-files-are-not-included-into-main-project"
+    "eproj-tests/eproj-related-project-files-are-not-included-into-main-project"
   (let* ((path (concat eproj-tests/project-with-related-projects-as-subdirs
                        "/main-project"))
          (proj (eproj-get-project-for-path path)))
@@ -370,7 +370,7 @@ under ROOT directory."
                              (eproj-project/aux-files proj))))))))
 
 (eproj-tests--define-tests
-    "eproj-tests/%s/implicit-haskell-project"
+    "eproj-tests/implicit-haskell-project"
 
   (let ((tmp-dir (make-temp-file "temp" t))
         (unzip (cached-executable-find "unzip")))
@@ -415,7 +415,7 @@ under ROOT directory."
       (delete-directory tmp-dir t))))
 
 (eproj-tests--define-tests
-    "eproj-tests/%s/implicit-haskell-project-alt-cabal.project"
+    "eproj-tests/implicit-haskell-project-alt-cabal.project"
 
   (let ((tmp-dir (make-temp-file "temp" t))
         (unzip (cached-executable-find "unzip")))
@@ -460,7 +460,7 @@ under ROOT directory."
       (delete-directory tmp-dir t))))
 
 (eproj-tests--define-tests
-    "eproj-tests/%s/implicit-haskell-project-with-local"
+    "eproj-tests/implicit-haskell-project-with-local"
 
   (let ((tmp-dir (make-temp-file "temp" t))
         (unzip (cached-executable-find "unzip")))
@@ -505,7 +505,7 @@ under ROOT directory."
       (delete-directory tmp-dir t))))
 
 (eproj-tests--define-tests
- "eproj-tests/%s/haskell-project-with-aux-files"
+ "eproj-tests/haskell-project-with-aux-files"
  (let* ((path eproj-tests/haskell-project-with-aux-files)
         (proj (eproj-get-project-for-path path))
         (expected-navigation-files
@@ -538,7 +538,7 @@ under ROOT directory."
 ;;;; eproj/ctags-get-tags-from-buffer
 
 (eproj-tests--define-tests
-    "eproj-tests/%s/eproj/get-ctags-from-buffer"
+    "eproj-tests/eproj/get-ctags-from-buffer"
   (let* ((test-root (fold-platform-os-type "/home/test/whatever"
                                            "c:/home/test/whatever"))
          (test-filename "foo.bar")
@@ -578,7 +578,7 @@ foo3	%s	102	;\"	z
 ;;;; eproj/get-fast-tags-tags-from-buffer
 
 (eproj-tests--define-tests
-    "eproj-tests/%s/eproj/get-fast-tags-from-buffer"
+    "eproj-tests/eproj/get-fast-tags-from-buffer"
   (let* ((test-root (fold-platform-os-type "/home/test/whatever"
                                            "c:/home/test/whatever"))
          (test-filename "foo.bar")
@@ -616,7 +616,7 @@ foo3	%s	102	;\"	z
        (should (equal ?z (eproj-tag/type tag3)))))))
 
 (eproj-tests--define-tests
-    "eproj-tests/%s/eproj/get-fast-tags-from-buffer/filenames-with-spaces"
+    "eproj-tests/eproj/get-fast-tags-from-buffer/filenames-with-spaces"
   (let ((test-filename (fold-platform-os-type
                         "/home/admin/my projects/test project/hello.c"
                         "c:/home/admin/my projects/test project/hello.c")))
@@ -653,7 +653,7 @@ foo3	%s	102	;\"	z
        (should (equal ?z (eproj-tag/type tag3)))))))
 
 (eproj-tests--define-tests
-    "eproj-tests/%s/eproj/get-fast-tags-from-buffer/ignore-constructor-tags-that-repeat-type-tags"
+    "eproj-tests/eproj/get-fast-tags-from-buffer/ignore-constructor-tags-that-repeat-type-tags"
   (let ((test-filename (fold-platform-os-type "/home/sergey/Test.hs"
                                               "c:/home/sergey/Test.hs")))
     (eproj-tests/test-ctags-get-tags-from-buffer
