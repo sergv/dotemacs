@@ -3141,10 +3141,10 @@ this value during execution of the handler."
 (defun sp--post-command-hook-handler ()
   "Handle the situation after some command has executed."
   (sp--with-case-sensitive
-    (when (sp--special-self-insert-command-p)
-      (sp--post-self-insert-hook-handler))
     (ignore-errors
       (when smartparens-mode
+        (when (sp--special-self-insert-command-p)
+          (sp--post-self-insert-hook-handler))
         ;; handle the wrap overlays
         (when sp-wrap-overlays
           (let* ((overlay (car sp-wrap-overlays))
