@@ -108,42 +108,25 @@ many times as was specified by the prefix argument.
 
 Therefore, if FUNC is a call to some function (e.g. (foo bar baz)) then
 CALL-N-TIMES should be non nil to cause this call to be applied n times."
-  (let* ((func-name
-          (cond
-            ((listp func)
-             (symbol-name (car func)))
-            ((symbolp func)
-             (symbol-name func))
-            (t
-             (error "FUNC should be call to function (list) or symbol: %s"
-                    func))))
+  (cl-assert (symbolp func))
+  (let* ((func-name (symbol-name func))
          (action-name (if name name (intern (concat "vim:" func-name)))))
-    `(vim-defcmd ,action-name ,(append (if has-count
-                                           '(count)
-                                         '())
+    `(vim-defcmd ,action-name ,(append (when has-count
+                                           '(count))
                                        (if repeatable
                                            '()
                                          '(nonrepeatable))
-                                       (if keep-visual
-                                           '(keep-visual)
-                                         '()))
+                                       (when keep-visual
+                                           '(keep-visual)))
        ,(if doc doc (format "Vimmized version of `%s'." func-name))
        ,(cond
           ((and has-count
-                (not (null? call-n-times)))
+                call-n-times)
            (let ((counter '#:counter))
              `(dotimes (,counter (or count 1))
-                ,(if (symbolp func)
-                     `(funcall #',func)
-                   func))))
-          ((symbolp func)
-           `(funcall #',func
-                     ,@(append
-                        (if has-count
-                            '(count)
-                          '()))))
+                (,func))))
           (t
-           func)))))
+           `(,func ,@(if has-count '(count) '())))))))
 
 (defmacro defun-nested-caching (func args reset-cache-func cache-args &rest body)
   "Defun new function FUNC that automatically caches it's output depending of values of
