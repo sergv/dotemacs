@@ -821,13 +821,15 @@ that depend on the active `major-mode'."
   ;; setup local pair replacements
   (sp--update-local-pairs)
   ;; set the escape char
-  (dotimes (char 256)
-    (unless sp-escape-char
-      (when (= ?\\ (char-syntax char))
-        (setq sp-escape-char (string char))))
-    (unless sp-comment-char
-      (when (= ?< (char-syntax char))
-        (setq sp-comment-char (string char))))))
+  (when (or (null sp-escape-char)
+            (null sp-comment-char))
+    (dotimes (char 256)
+      (unless sp-escape-char
+        (when (= ?\\ (char-syntax char))
+          (setq sp-escape-char (string char))))
+      (unless sp-comment-char
+        (when (= ?< (char-syntax char))
+          (setq sp-comment-char (string char)))))))
 
 (defun sp--maybe-init ()
   "Initialize the buffer if it is not already initialized.
