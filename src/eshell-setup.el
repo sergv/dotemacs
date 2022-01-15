@@ -218,9 +218,9 @@
 (defun eshell-setup ()
   (init-repl :show-directory t
              :bind-return nil
-             :create-keymaps t)
+             :create-keymaps t
+             :smartparens-comment-char "#")
 
-  (smartparens-mode +1)
   (hl-line-mode +1)
   (setup-folding t nil)
 

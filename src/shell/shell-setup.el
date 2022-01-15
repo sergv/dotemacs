@@ -145,8 +145,9 @@ MSYS-style drives, e.g. \"/c/foo/bar.txt\" -> \"c:/foo/bar.txt\"."
 
 ;;;###autoload
 (defun shell-setup ()
-  (init-repl :show-directory t :create-keymaps t)
-  (smartparens-mode +1)
+  (init-repl :show-directory t
+             :create-keymaps t
+             :smartparens-comment-char "#")
   (hl-line-mode +1)
 
   ;; Simplest config that works with this: PS1="\w$"
