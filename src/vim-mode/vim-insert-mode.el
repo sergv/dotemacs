@@ -84,10 +84,9 @@ where to insert a newline."
   (when (eq vim--insert-newline 'above)
     (setq vim--insert-newline 'below))
   (if (eobp)
-    (setq vim--insert-marker 'eob)
+      (setq vim--insert-marker 'eob)
     (progn
-      (setq vim--insert-marker (make-marker))
-      (move-marker vim--insert-marker (1+ (point)))))
+      (setq vim--insert-marker (copy-marker (1+ (point))))))
   (vim-activate-insert-mode))
 
 (defun vim-insert-mode-command (command)
@@ -121,8 +120,7 @@ where to insert a newline."
                  (1- vim--insert-marker)))
     (vim--insert-mode-insert-newline)
     (execute-kbd-macro vim--current-key-sequence))
-  (when (and vim--insert-marker
-             (not (eq vim--insert-marker 'eob)))
+  (when (markerp vim--insert-marker)
     (move-marker vim--insert-marker nil))
   (setq vim--insert-marker nil
         vim--insert-count nil))
