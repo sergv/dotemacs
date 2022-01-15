@@ -170,12 +170,8 @@ With negative argument move forward, still one level out."
 ;; automatically.  If you want to call sp-local-pair outside this
 ;; macro, you MUST supply the major mode argument.
 
-(eval-after-load "latex"    '(require 'smartparens-latex))
-(eval-after-load "tex-mode" '(require 'smartparens-latex))
-(eval-after-load "org-mode" '(require 'smartparens-latex))
-
-
-(sp-local-pair 'awk-mode "/" "/")
+(sp-with-modes '(awk-mode)
+  (sp-local-pair "/" "/"))
 
 (sp-with-modes '(c-mode
                  c++-mode
