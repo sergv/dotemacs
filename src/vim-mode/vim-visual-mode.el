@@ -594,7 +594,7 @@ This function is also responsible for setting the X-selection."
     (`block
      (let ((beg (vim-motion-first-line motion))
            (end (vim-motion-last-line motion))
-           (col (vim-motion-first-col motion))
+           (col (vim-motion-last-col motion))
            (p   (vim-motion-begin motion))
            ;; This is needed so that undo and visual block pastes
            ;; play nicely and after undo the point will return to
@@ -604,6 +604,7 @@ This function is also responsible for setting the X-selection."
            (undo-inhibit-record-point t))
        (vim-visual--record-undo-pos! p)
        (goto-char p)
+       (move-to-column col t)
        (vim--cmd-paste-after 1 t)
        (save-excursion
          (dotimes (_ (- end beg))
