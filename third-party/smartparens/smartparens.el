@@ -3271,7 +3271,7 @@ last form; otherwise do nothing."
                  (catch 'done
                    (-each open-pairs
                      (-lambda ((&keys :open open :close close))
-                       (--when-let (sp--wrap-repeat-last (cons open close))
+                       (--when-let (sp--wrap-repeat-last open close)
                          (throw 'done it)))))))
               (unless overwrite-mode (sp--setaction action (sp-insert-pair)))
               (sp--setaction action (sp-skip-closing-pair))
@@ -3976,7 +3976,7 @@ default."
             (setf (sp-state-delayed-hook sp-state) (cons :next open-pair))
             (setq sp-last-operation 'sp-insert-pair)))))))
 
-(defun sp--wrap-repeat-last (active-pair)
+(defun sp--wrap-repeat-last (open close)
   "If the last operation was a wrap and `sp-wrap-repeat-last' is
 non-nil, repeat the wrapping with this pair around the last
 active region."
@@ -3987,11 +3987,11 @@ active region."
              (op (sp-get sp-last-wrapped-region :op))
              (oplen (length op))
              (cllen (sp-get sp-last-wrapped-region :cl-l))
-             (acolen (length (car active-pair))))
+             (acolen (length open)))
         (when (and
                (cond
                 ((= 1 sp-wrap-repeat-last)
-                 (equal (car active-pair) op))
+                 (equal open op))
                 ((= 2 sp-wrap-repeat-last)))
                (memq sp-last-operation '(sp-self-insert sp-wrap-region))
                (or (= (point) (+ b oplen acolen))
@@ -3999,23 +3999,23 @@ active region."
           (delete-char (- acolen))
           (if (< (point) e)
               (progn (goto-char (+ b oplen))
-                     (insert (car active-pair))
+                     (insert open)
                      (goto-char (- e cllen))
-                     (insert (cdr active-pair))
+                     (insert open)
                      (setq sp-last-wrapped-region
                            (sp--get-last-wraped-region
                             (+ b oplen) (point)
-                            (car active-pair) (cdr active-pair)))
+                            open close))
                      (goto-char (+ b oplen acolen)))
             (goto-char b)
-            (insert (car active-pair))
+            (insert open)
             (goto-char e)
-            (insert (cdr active-pair))
+            (insert close)
             (setq sp-last-wrapped-region
                   (sp--get-last-wraped-region
-                   b e (car active-pair) (cdr active-pair))))
+                   b e open close)))
           (setq sp-last-operation 'sp-wrap-region)
-          (sp--run-hook-with-args (car active-pair) :post-handlers 'wrap)
+          (sp--run-hook-with-args open :post-handlers 'wrap)
           sp-last-operation)))))
 
 (defun sp--char-is-part-of-stringlike (char)
