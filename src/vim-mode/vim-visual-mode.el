@@ -77,7 +77,12 @@
   column)
 
 (defun vim--free-visual-insert-info! ()
-  (set-marker (vim-visual-insert-info-end vim-visual--last-insert-info) nil))
+  (cl-assert vim-visual--last-insert-info)
+  (set-marker (vim-visual-insert-info-end vim-visual--last-insert-info) nil)
+  (setf (vim-visual-insert-info-begin      vim-visual--last-insert-info) nil
+        (vim-visual-insert-info-end        vim-visual--last-insert-info) nil
+        (vim-visual-insert-info-line-count vim-visual--last-insert-info) nil
+        (vim-visual-insert-info-column     vim-visual--last-insert-info) nil))
 
 (defun vim--init--vim-visual-insert-info-end! (begin end line-count column)
   (if vim-visual--last-insert-info
