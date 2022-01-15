@@ -39,7 +39,7 @@
   (when vim-active-mode
     (funcall vim-active-mode -1))
   (when mode
-    (funcall (vim--mode-name mode) 1)))
+    (funcall mode 1)))
 
 (defmacro vim--set-keymaps (vim-mode-name keymaps)
   "Does setting up of keymaps for the current mode."
@@ -105,7 +105,7 @@ vim-command should be executed, a `cursor' shape and a list of `keymaps'."
          (when ,mode-name
            ,@(when message
                `((vim-notify ,message)))
-           (setq vim-active-mode ',mode-name
+           (setq vim-active-mode #',mode-name
                  vim-active-command-function ,command-function
                  cursor-type ,cursor-name)
            (,update-keymaps-func-name))
@@ -115,14 +115,14 @@ vim-command should be executed, a `cursor' shape and a list of `keymaps'."
                (pop body))
              body))
 
-       (defun ,pred-name ()
+       (defsubst ,pred-name ()
          ,(concat "Returns t iff vim-mode is in " (symbol->string name) " mode.")
          (and ,mode-name t))
 
-       (defun ,on-name ()
+       (defsubst ,on-name ()
          ,(concat "Activates " (symbol->string name) " mode.")
          (interactive)
-         (vim-activate-mode ',name))
+         (vim-activate-mode #',mode-name))
 
        (defun ,update-keymaps-func-name ()
          "This function should be called after setting up local keymaps."
