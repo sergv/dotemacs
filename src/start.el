@@ -87,13 +87,29 @@
                             (use-whitespace nil) ;; can be t, nil, 'tabs-only
                             (use-render-formula nil)
                             (use-hl-line t)
+                            (sp-escape "\\")
                             (sp-slurp-sexp-insert-space t)
                             (enable-backup t)
                             (hl-parens-backend 'hl-paren) ;; can be 'hl-paren, 'smartparens
                             (typography t))
+  "General set up for editing.Arguments meaning:
+
+sp-escape:
+  String of length 1 with character to use for escaping within
+  strings for smartparens. Pass nil for smartparens to try to
+  autoconfigure it (but it may fail and leave it unconfigured and
+  escaping won’t work).
+"
   (hl-line-mode (if use-hl-line +1 -1))
   (when use-comment
-    (comment-util-mode 1))
+    (comment-util-mode 1)
+
+    (awhen (comment-format-comment-chars *comment-util-current-format*)
+      (when (= 1 (length it))
+        (setf sp-comment-char (string (car it))))))
+
+  (setf sp-escape-char sp-escape)
+  (smartparens-mode +1)
 
   (unless enable-backup
     (backups-ignore-current-buffer!))
@@ -119,11 +135,9 @@
   (vim:bind-local-keymaps)
 
   ;; I should figure what's going on here someday.
-  (eval-after-load "smartparens"
-    `(progn
-       (when (not (eq ,sp-slurp-sexp-insert-space
-                      sp-forward-slurp-sexp-insert-space))
-         (setq-local sp-forward-slurp-sexp-insert-space ,sp-slurp-sexp-insert-space))))
+  (unless (eq sp-slurp-sexp-insert-space
+              sp-forward-slurp-sexp-insert-space)
+    (setq-local sp-forward-slurp-sexp-insert-space sp-slurp-sexp-insert-space))
 
   ;; bind in vim-normal-mode-local-keymap since
   ;; it will not be bound in vim-normal-mode-keymap because
