@@ -177,23 +177,12 @@ With negative argument move forward, still one level out."
 
 (sp-local-pair 'awk-mode "/" "/")
 
-(defun cc-mode-open-block (_id action _context)
-  (when (eq action 'insert)
-    (newline)
-    (newline)
-    (indent-according-to-mode)
-    (forward-line -1)
-    (indent-according-to-mode)))
-
 (sp-with-modes '(c-mode
                  c++-mode
                  java-mode
                  awk-mode
                  rust-mode)
-  (sp-local-pair "/*" "*/" :actions '(insert wrap))
-  (sp-local-pair "{" "}"
-                 :actions '(insert wrap)
-                 :post-handlers '(:add cc-mode-open-block)))
+  (sp-local-pair "/*" "*/" :actions '(insert wrap)))
 
 (add-hook 'dante-repl-mode-hook #'sp--setup-inferior-haskell-mode-search-bounds)
 
