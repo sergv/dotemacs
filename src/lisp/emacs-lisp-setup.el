@@ -170,6 +170,7 @@ expand _m_acro  _M_: fully expand macro"
 
 ;;; elisp debugger
 
+;;;###autoload
 (defun debugger-setup ()
   (def-keys-for-map debugger-mode-map
     +vi-essential-keys+
