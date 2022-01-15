@@ -1502,6 +1502,153 @@
      "foo x = baz \"_|_\\\"bar x\\\" quux\""
      "")))
 
+(ert-deftest vim-tests/haskell-mode-backward-up-indentation-or-sexp-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "'"))
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  bar (x + 1) y"
+     "  baz (f y (x + 1))"
+     "  where"
+     "    baz y = quux (g (h y \"hello \\(Haskell _|_world\\)\" y))"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  bar (x + 1) y"
+     "  baz (f y (x + 1))"
+     "  where"
+     "    baz y = quux (g (h y \"hello _|_\\(Haskell world\\)\" y))"
+     "")))
+
+(ert-deftest vim-tests/haskell-mode-backward-up-indentation-or-sexp-2 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "' '"))
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  bar (x + 1) y"
+     "  baz (f y (x + 1))"
+     "  where"
+     "    baz y = quux (g (h y \"hello \\(Haskell _|_world\\)\" y))"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  bar (x + 1) y"
+     "  baz (f y (x + 1))"
+     "  where"
+     "    baz y = quux (g (h y _|_\"hello \\(Haskell world\\)\" y))"
+     "")))
+
+(ert-deftest vim-tests/haskell-mode-backward-up-indentation-or-sexp-3 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "' ' '"))
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  bar (x + 1) y"
+     "  baz (f y (x + 1))"
+     "  where"
+     "    baz y = quux (g (h y \"hello \\(Haskell _|_world\\)\" y))"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  bar (x + 1) y"
+     "  baz (f y (x + 1))"
+     "  where"
+     "    baz y = quux (g _|_(h y \"hello \\(Haskell world\\)\" y))"
+     "")))
+
+(ert-deftest vim-tests/haskell-mode-backward-up-indentation-or-sexp-4 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "' ' ' '"))
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  bar (x + 1) y"
+     "  baz (f y (x + 1))"
+     "  where"
+     "    baz y = quux (g (h y \"hello \\(Haskell _|_world\\)\" y))"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  bar (x + 1) y"
+     "  baz (f y (x + 1))"
+     "  where"
+     "    baz y = quux _|_(g (h y \"hello \\(Haskell world\\)\" y))"
+     "")))
+
+(ert-deftest vim-tests/haskell-mode-backward-up-indentation-or-sexp-5 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "' ' ' ' '"))
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  bar (x + 1) y"
+     "  baz (f y (x + 1))"
+     "  where"
+     "    baz y = quux (g (h y \"hello \\(Haskell _|_world\\)\" y))"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  bar (x + 1) y"
+     "  baz (f y (x + 1))"
+     "  where"
+     "    _|_baz y = quux (g (h y \"hello \\(Haskell world\\)\" y))"
+     "")))
+
+(ert-deftest vim-tests/haskell-mode-backward-up-indentation-or-sexp-6 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "' ' ' ' ' '"))
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  bar (x + 1) y"
+     "  baz (f y (x + 1))"
+     "  where"
+     "    baz y = quux (g (h y \"hello \\(Haskell _|_world\\)\" y))"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  bar (x + 1) y"
+     "  baz (f y (x + 1))"
+     "  _|_where"
+     "    baz y = quux (g (h y \"hello \\(Haskell world\\)\" y))"
+     "")))
+
+(ert-deftest vim-tests/haskell-mode-backward-up-indentation-or-sexp-7 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "' ' ' ' ' ' '"))
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  bar (x + 1) y"
+     "  baz (f y (x + 1))"
+     "  where"
+     "    baz y = quux (g (h y \"hello \\(Haskell _|_world\\)\" y))"
+     "")
+    (tests-utils--multiline
+     ""
+     "_|_foo x = do"
+     "  bar (x + 1) y"
+     "  baz (f y (x + 1))"
+     "  where"
+     "    baz y = quux (g (h y \"hello \\(Haskell world\\)\" y))"
+     "")))
+
 (provide 'vim-tests)
 
 ;; Local Variables:
