@@ -3171,7 +3171,9 @@ this value during execution of the handler."
                 (when (or (--any? (eq this-command it) conds)
                           (--any? (equal (single-key-description last-command-event) it) conds))
                   (sp--run-function-or-insertion
-                   fun pair 'insert
+                   fun
+                   pair
+                   'insert
                    (sp--get-handler-context :post-handlers)))))
             (setf (sp-state-delayed-hook sp-state) nil)
             (setq sp-last-inserted-pair nil))))
@@ -3191,7 +3193,12 @@ this value during execution of the handler."
                                  (eq this-command it))
                                 ((stringp it)
                                  (equal (single-key-description last-command-event) it))
-                                ((ignore-errors (funcall it pair 'insert (sp--get-handler-context :post-handlers))))) conds))
+                                ((ignore-errors
+                                   (funcall it
+                                            pair
+                                            'insert
+                                            (sp--get-handler-context :post-handlers)))))
+                               conds))
               ;; TODO: refactor this and the same code in
               ;; `sp-insert-pair' to a separate function
               (sp--run-hook-with-args open-pair :pre-handlers 'insert)
@@ -3239,47 +3246,53 @@ last form; otherwise do nothing."
 ;; TODO: this introduces a regression, where doing C-4 [ inserts [[[[]
 ;; figure out how to detect the argument to self-insert-command that
 ;; resulted to this insertion
+
 (defun sp--post-self-insert-hook-handler ()
   "Handler for `post-self-insert-hook'."
   (with-demoted-errors "sp--post-self-insert-hook-handler: %S"
     (when smartparens-mode
       (sp--with-case-sensitive
-        (catch 'done
-          (let (action)
-            (when (region-active-p)
-              (condition-case err
-                  (sp-wrap--initialize)
-                (user-error
-                 (message (error-message-string err))
-                 ;; we need to remove the undo record of the insertion
-                 (unless (eq buffer-undo-list t)
-                   ;; pop all undo info until we hit an insertion node
-                   (sp--undo-pop-to-last-insertion-node)
-                   ;; get rid of it and insert an undo boundary marker
-                   (pop buffer-undo-list)
-                   (undo-boundary))
-                 (restore-buffer-modified-p sp-buffer-modified-p)
-                 (throw 'done nil))))
+        (let (action
+              error-during-rewrap)
+          (when (region-active-p)
+            (condition-case err
+                (sp-wrap--initialize)
+              (user-error
+               (message (error-message-string err))
+               ;; we need to remove the undo record of the insertion
+               (unless (eq buffer-undo-list t)
+                 ;; pop all undo info until we hit an insertion node
+                 (sp--undo-pop-to-last-insertion-node)
+                 ;; get rid of it and insert an undo boundary marker
+                 (pop buffer-undo-list)
+                 (undo-boundary))
+               (restore-buffer-modified-p sp-buffer-modified-p)
+               (setf error-during-rewrap t))))
+          (unless error-during-rewrap
             (cond
-             (sp-wrap-overlays
-              (sp-wrap))
-             (t
-              ;; TODO: this does not pick correct pair!! it uses insert and not wrapping code
-              (sp--setaction
-               action
-               (-when-let ((_ . open-pairs) (sp--all-pairs-to-insert nil 'wrap))
-                 (catch 'done
-                   (-each open-pairs
-                     (-lambda ((&keys :open open :close close))
-                       (--when-let (sp--wrap-repeat-last open close)
-                         (throw 'done it)))))))
-              (unless overwrite-mode (sp--setaction action (sp-insert-pair)))
-              (sp--setaction action (sp-skip-closing-pair))
-              (unless action (sp-escape-open-delimiter))
-              ;; if nothing happened, we just inserted a character, so
-              ;; set the apropriate operation.
-              (unless action
-                (setq sp-last-operation 'sp-self-insert))))))))))
+              (sp-wrap-overlays
+               (sp-wrap))
+              (t
+               ;; TODO: this does not pick correct pair!! it uses insert and not wrapping code
+               (sp--setaction
+                action
+                (-when-let ((_ . open-pairs) (sp--all-pairs-to-insert nil 'wrap))
+                  (let ((done nil))
+                    (while (and (not done)
+                                open-pairs)
+                      (let* ((pair (car open-pairs))
+                             (open (plist-get pair :open))
+                             (close (plist-get pair :close)))
+                        (when (sp--wrap-repeat-last open close)
+                          (setf done t)))
+                      (setf open-pairs (cdr open-pairs))))))
+               (unless overwrite-mode (sp--setaction action (sp-insert-pair)))
+               (sp--setaction action (sp-skip-closing-pair))
+               (unless action (sp-escape-open-delimiter))
+               ;; if nothing happened, we just inserted a character, so
+               ;; set the apropriate operation.
+               (unless action
+                 (setq sp-last-operation 'sp-self-insert))))))))))
 
 ;; Unfortunately, some modes rebind "inserting" keys to their own
 ;; handlers but do not hand over the insertion back to
