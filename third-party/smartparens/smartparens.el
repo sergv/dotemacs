@@ -1789,9 +1789,7 @@ sp--looking-* functions more than once should wrap them all in
 `sp--with-case-sensitive'."
   (declare (indent 0)
            (debug (body)))
-  `(if case-fold-search
-       (let ((case-fold-search nil))
-         ,@body)
+  `(let ((case-fold-search nil))
      ,@body))
 
 (defun sp--evil-normal-state-p ()
