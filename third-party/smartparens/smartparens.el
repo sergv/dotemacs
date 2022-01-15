@@ -2171,7 +2171,7 @@ If this pair is not defined yet for this major mode, add it.  If
 this pair is already defined, replace all the properties in the
 old definition with values from PAIR."
   ;; get the structure relevant to mode.  t means global setting
-  (let ((struct (--first (eq mode (car it)) sp-pairs)))
+  (let ((struct (assq mode sp-pairs)))
     (if (not struct)
         (!cons (cons mode (list pair)) sp-pairs)
       ;; this does NOT merge changes, only replace the values at
@@ -2293,7 +2293,7 @@ is wrapped instead.  This is useful with selection functions in
                      ((and sp-wrap-from-point
                            (not (sp-point-in-symbol)))
                       (point))))))
-         (active-pair (--first (equal (car it) pair) sp-pair-list))
+         (active-pair (assoc pair sp-pair-list))
          (rb (region-beginning))
          (re (region-end)))
     (goto-char re)
@@ -2922,10 +2922,11 @@ On escape action use the value of CONTEXT."
          (--when-let (car (sp-get-quoted-string-bounds))
            (goto-char it)
            (ignore-errors (backward-sexp 3))
-           (looking-at-p (regexp-opt '("defun" "defmacro"
-                                       "cl-defun" "cl-defmacro"
-                                       "defun*" "defmacro*"
-                                       "lambda" "-lambda")))))))
+           (looking-at-p (eval-when-compile
+                           (regexp-opt '("defun" "defmacro"
+                                         "cl-defun" "cl-defmacro"
+                                         "defun*" "defmacro*"
+                                         "lambda" "-lambda"))))))))
 
 (defun sp-in-code-p (_id _action context)
   "Return t if point is inside code, nil otherwise."
@@ -3322,8 +3323,9 @@ have same opening and closing delimiter."
 Return all pairs that are recognized in this `major-mode', do not
 have same opening and closing delimiter and are allowed in the
 current context.  See also `sp--get-pair-list'."
-  (--filter (and (sp--do-action-p (car it) 'navigate)
-                 (not (equal (car it) (cdr it)))) sp-pair-list))
+  (--filter (and (not (equal (car it) (cdr it)))
+                 (sp--do-action-p (car it) 'navigate))
+            sp-pair-list))
 
 (defun sp--get-allowed-stringlike-list ()
   "Get all allowed string-like pairs.
@@ -3331,8 +3333,9 @@ current context.  See also `sp--get-pair-list'."
 Return all pairs that are recognized in this `major-mode',
 have the same opening and closing delimiter and are allowed in
 the current context."
-  (--filter (and (sp--do-action-p (car it) 'navigate)
-                 (equal (car it) (cdr it))) sp-pair-list))
+  (--filter (and (equal (car it) (cdr it))
+                 (sp--do-action-p (car it) 'navigate))
+            sp-pair-list))
 
 (defun sp--get-pair-list-context (&optional action)
   "Return all pairs that are recognized in this `major-mode' and
@@ -4066,8 +4069,9 @@ achieve this by using `sp-pair' or `sp-local-pair' with
       ;; and thread it through the entire computation
       (cl-letf (((symbol-function 'sp--get-allowed-stringlike-list)
                  (lambda ()
-                   (--filter (and (sp--do-action-p (car it) 'autoskip)
-                                  (equal (car it) (cdr it))) sp-pair-list))))
+                   (--filter (and (equal (car it) (cdr it))
+                                  (sp--do-action-p (car it) 'autoskip))
+                             sp-pair-list))))
         ;; these two are pretty hackish ~_~
         (cl-labels ((get-sexp
                      (last)
