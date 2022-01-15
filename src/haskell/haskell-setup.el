@@ -41,12 +41,14 @@
 (vimmize-motion haskell-backward-up-indentation-or-sexp
                 :name vim:haskell-backward-up-indentation-or-sexp
                 :exclusive t
-                :do-not-adjust-point t)
+                :do-not-adjust-point t
+                :raw-result t)
 
 (vimmize-motion haskell-up-sexp
                 :name vim:haskell-up-sexp
                 :exclusive t
-                :do-not-adjust-point t)
+                :do-not-adjust-point t
+                :raw-result t)
 
 (autoload 'flycheck--locate-dominating-file-matching "flycheck")
 
