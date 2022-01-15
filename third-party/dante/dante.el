@@ -204,7 +204,7 @@ will be in different GHCi sessions."
                   (lambda (flags)
                     `("cabal" "new-repl" (or dante-target (dante-package-name) nil) ,@flags))))
       (stack
-       #'dante-stack-available?
+       ,#'dante-stack-available?
        "stack.yaml"
        ("stack" "repl" dante-target ,@stack-ghci-options))
 
