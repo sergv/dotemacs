@@ -58,19 +58,7 @@
                              clojure-compilation-mode))
 
 (defun sp-wrap-or-insert (pair-open)
-  "Wrap the following expression with PAIR.
-
-This function is a non-interactive helper.  To use this function
-interactively, bind the following lambda to a key:
-
- (lambda (&optional arg) (interactive \"P\") (sp-wrap-with-pair \"(\"))
-
-This lambda accepts the same prefix arguments as
-`sp-select-next-thing'.
-
-If region is active and `use-region-p' returns true, the region
-is wrapped instead.  This is useful with selection functions in
-`evil-mode' to wrap regions with pairs."
+  "Wrap the following expression with PAIR."
   (let* ((p (point))
          (active-pair (assoc pair-open sp-pair-list))
          (start p)
@@ -90,12 +78,21 @@ is wrapped instead.  This is useful with selection functions in
         (progn
           (goto-char p)
           (sp-insert-pair pair-open))
-      (with-marker (end-marker (copy-marker end))
-        (goto-char end)
-        (insert (cdr active-pair))
-        (goto-char start)
-        (insert (car active-pair))
-        (sp--indent-region start end-marker)))))
+      (let ((open (car active-pair))
+            (close (cdr active-pair)))
+        (with-marker (end-marker (copy-marker end))
+          (goto-char end)
+          (insert close)
+          (goto-char start)
+          (insert open)
+          (sp--indent-region start end-marker)
+          (setq sp-last-wrapped-region
+                (sp--get-last-wraped-region
+                 (point)
+                 end
+                 open
+                 close))
+          (sp--run-hook-with-args pair-open :post-handlers 'wrap))))))
 
 (defun sp-newline--expand-braced-block (old-sp-newline)
   "
