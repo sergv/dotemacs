@@ -219,9 +219,11 @@ will be in different GHCi sessions."
       ;;  ,(lambda (d) (directory-files d t "..cabal$"))
       ;;  ("cabal" "v1-repl" dante-target ,@build)
       ;;  ("cabal" "v1-repl" dante-target ,@repl ,@repl-options))
-      ;; (bare-ghci
-      ;;  ,(lambda (_) t) ("ghci"))
-      )))
+
+      (bare-ghci
+       nil
+       ,(lambda (_) t)
+       ("ghci")))))
 
 (defvar dante--default-methods
   (dante--make-methods (fold-platform-os-type "/tmp/dist/dante" "dist/dante")))
