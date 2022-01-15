@@ -4017,10 +4017,10 @@ active region."
 
 (defun sp--char-is-part-of-stringlike (char)
   "Return non-nil if CHAR is part of a string-like delimiter of length 1."
-  (->> (sp--get-stringlike-list)
-    (--filter (= 1 (length (cdr it))))
-    (-map 'car)
-    (--any? (string-match-p (regexp-quote char) it))))
+  (let ((char-re (regexp-quote char)))
+    (--any? (and (= 1 (length (cdr it)))
+                 (string-match-p char-re (car it)))
+            (sp--get-stringlike-list))))
 
 (defun sp--char-is-part-of-closing (char &optional pair-list)
   "Return non-nil if CHAR is part of a pair delimiter of length 1.
