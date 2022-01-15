@@ -336,6 +336,7 @@ _<right>_: move tab to the right"
 
 (def-keys-for-map vim-visual-mode-keymap
   ("'"       sp-backward-up-sexp)
+  ("\""      vim-wrap-dquotes)
 
   ("p"       vim:visual-paste-after:interactive)
   ("P"       vim:visual-paste-before:interactive)
@@ -366,42 +367,6 @@ _<right>_: move tab to the right"
   ("C-\""    vim-wrap-typographical-double-quotes)
 
   (("TAB" "<tab>") indent-region))
-
-
-(defun vim-wrap-parens ()
-  "Wrap region in (...)."
-  (interactive)
-  (sp-wrap-or-insert "("))
-
-(defun vim-wrap-braces ()
-  "Wrap region in [...]."
-  (interactive)
-  (sp-wrap-or-insert "["))
-
-(defun vim-wrap-brackets ()
-  "Wrap region in {...}."
-  (interactive)
-  (sp-wrap-or-insert "{"))
-
-(defun vim-wrap-angles ()
-  "Wrap region in <...>."
-  (interactive)
-  (sp-wrap-or-insert "<"))
-
-(defun vim-wrap-typographical-single-quotes ()
-  "Wrap region in ‘...’."
-  (interactive)
-  (sp-wrap-or-insert "‘"))
-
-(defun vim-wrap-typographical-double-quotes ()
-  "Wrap region in “...”."
-  (interactive)
-  (sp-wrap-or-insert "“"))
-
-(defun vim-wrap-backticks ()
-  "Wrap region in `...`."
-  (interactive)
-  (sp-wrap-or-insert "`"))
 
 ;;; insert mode keybindings
 
