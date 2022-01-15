@@ -13,8 +13,7 @@
 
 (require 'macro-util)
 (require 'smart-operators-utils)
-
-(smartparens-global-mode 1)
+(require 'smartparens)
 
 (setq-default sp-autoskip-closing-pair 'always)
 ;; do not autoinsert new pairs when in stringlike expression
@@ -98,22 +97,20 @@ is wrapped instead.  This is useful with selection functions in
               (insert (car active-pair))
               (sp--indent-region start end))))))))
 
-;; Expand foo {_|_} into
-;;
-;; foo {
-;;     _|_
-;; }
-(defadvice sp-newline
-    (around
-     sp-newline-expand-braced-block
-     activate
-     compile)
+(defun sp-newline--expand-braced-block (old-sp-newline)
+  "
+Expand foo {_|_} into
+
+foo {
+    _|_
+}
+"
   (cl-destructuring-bind
       (start end _is-before? _is-after? is-surrounded?)
       (smart-operators--point-surrounded-by ?\{ ?\})
     (when is-surrounded?
       (delete-region start end))
-    ad-do-it
+    (funcall old-sp-newline)
     (when is-surrounded?
       (let ((indent (if indent-tabs-mode
                         "\t"
@@ -123,24 +120,15 @@ is wrapped instead.  This is useful with selection functions in
           (forward-line -1)
           (insert line-indent indent))))))
 
-;; these two are the same ones used for paredit
-(defadvice sp-forward-slurp-sexp
-    (after
-     sp-forward-slurp-sexp-remove-initial-whitespace
-     activate
-     compile)
+(advice-add 'sp-newline :around #'sp-newline--expand-braced-block)
+
+;; These two are the same ones used for paredit.
+(defun sp-forward-slurp-sexp--remove-initial-whitespace (_)
   (when (and (lisp-pos-is-beginning-of-sexp? (- (point) 1))
              (whitespace-char? (char-after)))
     (delete-whitespace-forward)))
 
-(defadvice sp-backward-slurp-sexp
-    (after
-     sp-backward-slurp-sexp-remove-initial-whitespace
-     activate
-     compile)
-  (when (and (lisp-pos-is-end-of-sexp? (point))
-             (whitespace-char? (char-before)))
-    (delete-whitespace-backward)))
+(advice-add 'sp-forward-slurp-sexp :after #'sp-forward-slurp-sexp--remove-initial-whitespace)
 
 (defun sp-backward-up-sexp (&optional arg interactive)
   "Move backward one level of parenthesis.
@@ -189,12 +177,6 @@ With negative argument move forward, still one level out."
 
 (sp-local-pair 'awk-mode "/" "/")
 
-(sp-pair "‘" nil :actions :rem)
-(sp-pair "“" nil :actions :rem)
-
-(sp-pair "‘" "’" :actions '(insert wrap))
-(sp-pair "“" "”" :actions '(insert wrap))
-
 ;; /* */ is needed by c mode (and related ones) only
 (sp-pair "/*" "*/" :actions nil)
 
@@ -215,27 +197,12 @@ With negative argument move forward, still one level out."
                  :actions '(insert wrap)
                  :post-handlers '(:add cc-mode-open-block)))
 
-(defun rust-create-braced-block (_id action _context)
-  "Open a new brace or bracket expression, with relevant newlines and indent.
-
-E.g. make a following structure
-
-foo {
-    _|_
-}"
-  (when (eq action 'insert)
-    (newline)
-    (indent-according-to-mode)
-    (forward-line -1)
-    (indent-according-to-mode)))
-
-
 (sp-with-modes '(haskell-mode
                  haskell-literate-mode
                  haskell-c-mode
                  haskell-cabal-mode
                  dante-repl-mode)
-  (sp-local-pair "{-#" "#-}")
+
   (sp-local-pair "'" nil
                  :actions '(insert)
                  :unless '(sp-point-after-word-p
