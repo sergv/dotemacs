@@ -55,8 +55,9 @@ like 'dd', 'yy',... .")
     "operator pending mode"
   :map-command omap)
 
+
 (vim-define-mode operator-pending
-    "VIM operator-pending mode\n\nOperator pending mode keymap:\n\\{vim-operator-pending-mode-keymap}\n\nMotion mode keymap:\n\\{vim-motion-mode-keymap}\n\nOperator repeat keymap:\n\\{vim-operator-repeat-keymap}\n\nOverride keymap:\n\\{vim-override-keymap}"
+    "A mode for reading arguments for vim’s complex commands.\nVIM operator-pending mode\n\nOperator pending mode keymap:\n\\{vim-operator-pending-mode-keymap}\n\nMotion mode keymap:\n\\{vim-motion-mode-keymap}\n\nOperator repeat keymap:\n\\{vim-operator-repeat-keymap}\n\nOverride keymap:\n\\{vim-override-keymap}"
   :ident "O"
   :keymaps '(vim-operator-pending-mode-keymap
              vim-motion-mode-keymap
@@ -64,8 +65,8 @@ like 'dd', 'yy',... .")
              vim-override-keymap)
   :command-function #'vim--operator-pending-mode-command)
 
-(add-hook 'vim-operator-pending-mode-hook 'vim--operator-pending-activate)
-(add-hook 'vim-operator-pending-mode-off-hook 'vim--operator-pending-deactivate)
+(add-hook 'vim-operator-pending-mode-hook #'vim--operator-pending-activate)
+(add-hook 'vim-operator-pending-mode-off-hook #'vim--operator-pending-deactivate)
 
 (defun vim--operator-pending-activate ()
   (cond
@@ -73,19 +74,27 @@ like 'dd', 'yy',... .")
      (setf vim--operator-repeat-last-event (vector last-command-event))
      (vim--def-key vim--operator-repeat-last-event #'vim:motion-lines:interactive
                    :keymap vim-operator-repeat-keymap)
-     (add-hook 'post-command-hook 'vim--operator-pending-mode-exit))
+     ;; Add hook locally so that if an error occurs and a debugger pops up
+     ;; we won’t execute in there and only have effect in the buffer
+     ;; the error occured in.
+     (add-hook 'post-command-hook #'vim--operator-pending-mode-exit nil t))
 
     (vim--operator-repeat-last-event
      (vim--def-key vim--operator-repeat-last-event nil :keymap vim-operator-repeat-keymap))))
 
 
 (defun vim--operator-pending-deactivate ()
-  (remove-hook 'post-command-hook 'vim--operator-pending-mode-exit))
+  ;; See comment in ‘vim--operator-pending-activate’ about touching local hook value.
+  (remove-hook 'post-command-hook #'vim--operator-pending-mode-exit t))
+
+(defun vim-operator-pending-mode-exit ()
+  "Exits operator-pending-mode and returns to normal-mode."
+  (interactive)
+  (vim--operator-pending-mode-exit))
 
 (defun vim--operator-pending-mode-exit ()
   "Exits operator-pending-mode and returns to normal-mode."
-  (interactive)
-  (unless (or this-command
+  (unless (or (vim--is-cmd-p this-command)
               (memq this-command '(vim-digit-argument
                                    universal-argument-other-key
                                    vim-universal-argument-minus
@@ -106,8 +115,8 @@ like 'dd', 'yy',... .")
           (`simple  (error "No simple commands allowed in operator-pending mode"))
           (`complex (error "No complex commands allowed in operator-pending mode"))
           (`special (error "No special commands allowed in operator-pending mode"))
+          ;; Command type omitted - it’s a motion.
           (_        (vim--normal-execute-complex-command command)))
-
       (when (vim-operator-pending-mode-p)
         (vim-activate-normal-mode)))))
 
@@ -231,13 +240,8 @@ If the old motion type was already characterwise exclusive/inclusive will be tog
                               (this-command-keys-vector))
                    nil)))
 
-    (if (and (vim--cmd-register-p vim--current-cmd)
-             vim--current-register)
-        (vim--funcall-save-buffer vim--current-cmd
-                                  :motion (vim--get-current-cmd-motion)
-                                  :register vim--current-register)
-      (vim--funcall-save-buffer vim--current-cmd
-                                :motion (vim--get-current-cmd-motion)))
+    (vim--funcall-save-buffer vim--current-cmd
+                              :motion (vim--get-current-cmd-motion))
     (when repeatable?
       (setf vim--repeat-events events))
     (vim--connect-undos! vim--last-undo))
