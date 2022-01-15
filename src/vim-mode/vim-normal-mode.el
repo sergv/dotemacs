@@ -85,9 +85,11 @@ like 'dd', 'yy',... .")
 (defun vim--operator-pending-mode-exit ()
   "Exits operator-pending-mode and returns to normal-mode."
   (interactive)
-  (unless (or (eq this-command 'digit-argument)
-              (eq this-command 'universal-argument-other-key)
-              this-command)
+  (unless (or this-command
+              (memq this-command '(vim-digit-argument
+                                   universal-argument-other-key
+                                   vim-universal-argument-minus
+                                   digit-argument)))
     (vim-activate-normal-mode)))
 
 
