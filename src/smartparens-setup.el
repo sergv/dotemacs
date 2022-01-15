@@ -220,6 +220,16 @@ With negative argument move forward, still one level out."
                  shell-mode)
   (sp-local-pair "\"" "\"" :actions '(insert wrap)))
 
+;; After starting emacs the first input via minibuffer does not have
+;; smartparens-mode enabled. This forces minibuffer to always have
+;; smartparens enabled.
+(defun smartparens-minibuffer-setup ()
+  (smartparens-mode +1))
+
+(add-hook 'minibuffer-setup-hook #'smartparens-minibuffer-setup)
+
+;;;; vimmized versions of many sexp-manipulating functions
+
 (vimmize-function sp-backward-slurp-sexp
                   :name vim:sp-backward-slurp-sexp)
 (vimmize-function sp-backward-barf-sexp
@@ -247,14 +257,49 @@ With negative argument move forward, still one level out."
 (vimmize-function sp-join-sexp
                   :name vim:sp-join-sexp)
 
+;;;; vim-wrap-*
 
-;; After starting emacs the first input via minibuffer does not have
-;; smartparens-mode enabled. This forces minibuffer to always have
-;; smartparens enabled.
-(defun smartparens-minibuffer-setup ()
-  (smartparens-mode +1))
+(defun vim-wrap-parens ()
+  "Wrap region in (...)."
+  (interactive)
+  (sp-wrap-or-insert "("))
 
-(add-hook 'minibuffer-setup-hook #'smartparens-minibuffer-setup)
+(defun vim-wrap-braces ()
+  "Wrap region in [...]."
+  (interactive)
+  (sp-wrap-or-insert "["))
+
+(defun vim-wrap-brackets ()
+  "Wrap region in {...}."
+  (interactive)
+  (sp-wrap-or-insert "{"))
+
+(defun vim-wrap-angles ()
+  "Wrap region in <...>."
+  (interactive)
+  (sp-wrap-or-insert "<"))
+
+(defun vim-wrap-dquotes ()
+  "Wrap region in \"...\"."
+  (interactive)
+  (sp-wrap-or-insert "\""))
+
+(defun vim-wrap-typographical-single-quotes ()
+  "Wrap region in ‘...’."
+  (interactive)
+  (sp-wrap-or-insert "‘"))
+
+(defun vim-wrap-typographical-double-quotes ()
+  "Wrap region in “...”."
+  (interactive)
+  (sp-wrap-or-insert "“"))
+
+(defun vim-wrap-backticks ()
+  "Wrap region in `...`."
+  (interactive)
+  (sp-wrap-or-insert "`"))
+
+;;;; end
 
 (provide 'smartparens-setup)
 
