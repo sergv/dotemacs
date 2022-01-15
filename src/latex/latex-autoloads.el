@@ -15,9 +15,6 @@
 
 (add-to-list 'auto-mode-alist '("\\.[tT][eE][xX]\\'" . LaTeX-mode))
 
-
-(autoload 'latex-setup "latex-setup")
-
 (autoload 'latex-compile
           "latex-compilation"
           "Start compilation of LaTeX file."
