@@ -321,21 +321,21 @@
   '(progn
      (require 'term-setup)))
 
-(defadvice scroll-up (around
-                      scroll-up-preserve-column
-                      compile
-                      activate)
+(defun scroll-up--preserve-column (old-scroll-up &rest args)
   (let ((col (current-column)))
-    ad-do-it
-    (move-to-column col)))
+    (apply old-scroll-up args)
+    (unless (bobp)
+      (move-to-column col))))
 
-(defadvice scroll-down (around
-                        scroll-down-preserve-column
-                        compile
-                        activate)
+(advice-add 'scroll-up :around #'scroll-up--preserve-column)
+
+(defun scroll-down--preserve-column (old-scroll-up &rest args)
   (let ((col (current-column)))
-    ad-do-it
-    (move-to-column col)))
+    (apply old-scroll-up args)
+    (unless (eobp)
+      (move-to-column col))))
+
+(advice-add 'scroll-down :around #'scroll-down--preserve-column)
 
 (def-keys-for-map read-passwd-map
   ("C-p" yank))
