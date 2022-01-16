@@ -21,6 +21,11 @@
 ;; Description:
 ;; A modern library for manipulating vectors.
 
+(defmacro v--hint-fixnum (x)
+  (if (fboundp #'comp-hint-fixnum)
+      `(comp-hint-fixnum ,x)
+    x))
+
 (defmacro v--find (predicate xs)
   "Anaphoric form of `v-find'."
   (let ((res-var '#:res)
@@ -29,20 +34,43 @@
         (i-var '#:i)
         (elem-var '#:elem))
     `(let* ((,in-var ,xs)
-            (,i-var 0)
-            (,len-var (length ,in-var))
+            (,i-var (v--hint-fixnum 0))
+            (,len-var (v--hint-fixnum (length ,in-var)))
             (,res-var nil))
-       (while (and (< ,i-var ,len-var)
+       (while (and (< (v--hint-fixnum ,i-var) (v--hint-fixnum ,len-var))
                    (not ,res-var))
-         (let ((,elem-var (aref ,in-var ,i-var)))
+         (let ((,elem-var (aref ,in-var (v--hint-fixnum ,i-var))))
            (when (let ((it ,elem-var)) ,predicate)
              (setf ,res-var ,elem-var)))
-         (setf ,i-var (1+ ,i-var)))
+         (setf ,i-var (1+ (v--hint-fixnum ,i-var))))
+       ,res-var)))
+
+(defmacro v--find-idx (predicate xs)
+  "Anaphoric form of `v-find-idx'."
+  (let ((res-var '#:res)
+        (in-var '#:in)
+        (len-var '#:len)
+        (i-var '#:i)
+        (elem-var '#:elem))
+    `(let* ((,in-var ,xs)
+            (,i-var (v--hint-fixnum 0))
+            (,len-var (v--hint-fixnum (length ,in-var)))
+            (,res-var nil))
+       (while (and (< (v--hint-fixnum ,i-var) (v--hint-fixnum ,len-var))
+                   (not ,res-var))
+         (let ((,elem-var (aref ,in-var (v--hint-fixnum ,i-var))))
+           (when (let ((it ,elem-var)) ,predicate)
+             (setf ,res-var ,i-var)))
+         (setf ,i-var (1+ (v--hint-fixnum ,i-var))))
        ,res-var)))
 
 (defun v-find (f xs)
   "Find first element in vector XS where (f x) returns non-nil."
   (v--find (funcall f it) xs))
+
+(defun v-find-idx (f xs)
+  "Find index of first element in vector XS where (f x) returns non-nil."
+  (v--find-idx (funcall f it) xs))
 
 (defmacro v--map (f xs)
   "Anaphoric form of `v-map'."
