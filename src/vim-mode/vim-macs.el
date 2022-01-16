@@ -191,40 +191,44 @@ For more information about the vim:motion struct look at vim-core.el."
                         (not (eq (cadr arg) 'argument)))
                (push `(,(cadr arg) argument) named-params)))))))
 
-    `(progn
-       (put ',name 'type ',(if motion 'complex 'simple))
-       (put ',name 'count ,count)
-       (put ',name 'motion ,motion)
-       (put ',name 'argument ,argument)
-       (put ',name 'register ,register)
-       (put ',name 'keep-visual ,keep-visual)
-       (put ',name 'repeatable ,repeatable)
-       (put ',name 'force ,force)
+    (let* ((args `(,@(when params `(&key ,@params))
+                   ,@(when named-params `(&aux ,@named-params))))
+           (has-args? (and args t)))
+      `(progn
+         (put ',name 'type ',(if motion 'complex 'simple))
+         (put ',name 'count ,count)
+         (put ',name 'motion ,motion)
+         (put ',name 'argument ,argument)
+         (put ',name 'register ,register)
+         (put ',name 'keep-visual ,keep-visual)
+         (put ',name 'repeatable ,repeatable)
+         (put ',name 'force ,force)
 
-       (cl-defun ,name (,@(when params `(&key ,@params))
-                        ,@(when named-params `(&aux ,@named-params)))
-         ,doc
-         ,@body)
+         (cl-defun ,name (,@args)
+           ,doc
+           ,@body)
 
-       ,@(when interactive
-           (list
-            `(progn
-               (put ',name-interactive 'vim--is-cmd? t)
-               (defun ,name-interactive (&rest args)
-                 ,(format "Interactive version of ‘%s’" name)
-                 (interactive)
-                 (if vim-active-mode
-                     (vim-execute-command #',name)
-                   (apply #',name args))
+         ,@(when interactive
+             (list
+              `(progn
+                 (put ',name-interactive 'vim--is-cmd? t)
+                 (defun ,name-interactive ,(if has-args? '(&rest args) '())
+                   ,(format "Interactive version of ‘%s’" name)
+                   (interactive)
+                   (if vim-active-mode
+                       (vim-execute-command #',name)
+                     ,(if has-args?
+                          `(apply #',name args)
+                        `(,name)))
 
-                 ;; (if ;; Since in minibuffer vim-mode may be inactive but
-                 ;;     ;; we may still want to execute the desired command.
-                 ;;     ;; And command may not have a mock alternative,
-                 ;;     ;; e.g. ‘vim:cmd-paste-before’.
-                 ;;     vim-active-command-function
-                 ;;     (vim-active-mode vim-active-command-function #',name)
-                 ;;   (apply #',name args))
-                 )))))))
+                   ;; (if ;; Since in minibuffer vim-mode may be inactive but
+                   ;;     ;; we may still want to execute the desired command.
+                   ;;     ;; And command may not have a mock alternative,
+                   ;;     ;; e.g. ‘vim:cmd-paste-before’.
+                   ;;     vim-active-command-function
+                   ;;     (vim-active-mode vim-active-command-function #',name)
+                   ;;   (apply #',name args))
+                   ))))))))
 
 (cl-defmacro vim-defmotion (name (&rest args) &rest body)
   "Vim-mode motions can be defined with the macro vim-defmotion.
