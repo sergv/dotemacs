@@ -17,6 +17,17 @@
     (should (equal nil
                    (v--find (= 6 it) xs)))))
 
+(ert-deftest v/v-find-idx ()
+  (let ((xs [1 2 3 4 5]))
+    (should (equal 3
+                   (v--find-idx (> it 3) xs)))
+    (should (equal 2
+                   (v--find-idx (< 2 it) xs)))
+    (should (equal 4
+                   (v--find-idx (= 5 it) xs)))
+    (should (equal nil
+                   (v--find-idx (= 6 it) xs)))))
+
 (ert-deftest v/v-assq ()
   (let ((xs (vector (cons 'x 1) (cons 'y "foo") (cons 'z nil))))
     (should (equal (cons 'x 1)
