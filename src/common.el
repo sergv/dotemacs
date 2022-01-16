@@ -1399,11 +1399,27 @@ are CHAR1 and CHAR2 repsectively."
 
 (defun scroll-down-command-fast ()
   (interactive)
-  (scroll-down 500))
+  (let ((completed nil))
+    (unwind-protect
+        (progn
+          ;; Silence end of buffer message.
+          (let ((noninteractive t))
+            (scroll-down 500))
+          (setf completed t))
+      (unless completed
+        (goto-char (point-min))))))
 
 (defun scroll-up-command-fast ()
   (interactive)
-  (scroll-up 500))
+  (let ((completed nil))
+    (unwind-protect
+        (progn
+          ;; Silence beginning of buffer message.
+          (let ((noninteractive t))
+            (scroll-up 500))
+          (setf completed t))
+      (unless completed
+        (goto-char (point-max))))))
 
 ;;
 
