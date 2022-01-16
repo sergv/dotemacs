@@ -347,26 +347,21 @@ by the user)."
   "Get index of currently selected item."
   (select-mode--state-selected-item select-mode--current-state))
 
-(defun select-mode-update-items (items new-selection-index)
+(defun select-mode-update-items (new-items new-selection-index)
   (cl-assert select-mode--current-state)
-  (let ((read-only buffer-read-only)
-        (inhibit-read-only t))
-    (when read-only
-      (read-only-mode -1))
+  (with-inhibited-read-only
     (unwind-protect
-        (let* ((items-vector (if (listp items)
-                                 (select-mode--list->vector items)
-                               items))
-               (items-count (length items-vector)))
-          (cl-assert (vectorp items-vector))
+        (let* ((new-items-vec (if (listp new-items)
+                                  (select-mode--list->vector new-items)
+                                new-items))
+               (items-count (length new-items-vec)))
+          (cl-assert (vectorp new-items-vec))
           (setf (select-mode--state-selected-item select-mode--current-state)  new-selection-index
-                (select-mode--state-items select-mode--current-state)          items-vector
+                (select-mode--state-items select-mode--current-state)          new-items-vec
                 (select-mode--state-item-positions select-mode--current-state) (make-vector items-count nil)
                 (select-mode--state-items-count select-mode--current-state)    items-count)
           (select-mode--render-state select-mode--current-state))
-      (set-buffer-modified-p nil)
-      (when read-only
-        (read-only-mode +1)))))
+      (set-buffer-modified-p nil))))
 
 (provide 'select-mode)
 

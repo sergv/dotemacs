@@ -288,18 +288,24 @@ FILE-GLOBS and don't match IGNORED-FILE-GLOBS."
           (lambda ()
             (let ((matches
                    (egrep--find-matches regexp exts-globs ignored-files-globs dir ignore-case)))
-              (remove-duplicates-by-hashing-projections
-               (lambda (match)
-                 (cons (egrep-match-line match) (egrep-match-file match)))
-               #'equal
-               matches))))
+              (list->vector
+               (remove-duplicates-by-hashing-projections
+                (lambda (match)
+                  (cons (egrep-match-line match) (egrep-match-file match)))
+                #'equal
+                matches)))))
          (matches
           (funcall get-matches))
          (kmap (make-sparse-keymap)))
     (def-keys-for-map kmap
       ("H"   (lambda ()
                (interactive)
-               (select-mode-update-items (funcall get-matches) 0)))
+               (let* ((selected-item (aref
+                                      (select-mode--state-items select-mode--current-state)
+                                      (select-mode--state-selected-item select-mode--current-state)))
+                      (new-items (funcall get-matches))
+                      (new-idx (v--find-idx (equal it selected-item) new-items)))
+                 (select-mode-update-items new-items (or new-idx 0)))))
       ("C-S" #'egrep-commit-changed-entries))
     (select-mode-start-selection
      matches
