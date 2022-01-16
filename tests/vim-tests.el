@@ -1667,6 +1667,208 @@
      "    baz y = quux (g (h y \"hello \\(Haskell world\\)\" y))"
      "")))
 
+(ert-deftest vim-tests/haskell-abbrev-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "i i m SPC"))
+    (tests-utils--multiline
+     ""
+     "_|_"
+     "")
+    (tests-utils--multiline
+     ""
+     "import _|_"
+     "")))
+
+(ert-deftest vim-tests/haskell-abbrev-2 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      ;; Aborting pragma prompt with <escape> causes 'quit signal to be raised.
+      ;; If we don’t catch it then ert will not proceed to compare buffer contents.
+      (condition-case nil
+          (execute-kbd-macro (kbd "i # # SPC <escape> <escape>"))
+        (quit t))
+    (tests-utils--multiline
+     ""
+     "_|_"
+     "")
+    (tests-utils--multiline
+     ""
+     "{-# _|_  #-}"
+     "")))
+
+(ert-deftest vim-tests/haskell-abbrev-3 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      ;; Aborting pragma prompt with <escape> causes 'quit signal to be raised.
+      ;; If we don’t catch it then ert will not proceed to compare buffer contents.
+      (condition-case nil
+          (execute-kbd-macro (kbd "i SPC <escape> <escape>"))
+        (quit t))
+    (tests-utils--multiline
+     ""
+     "##    _|_"
+     "")
+    (tests-utils--multiline
+     ""
+     "{-# _|_  #-}"
+     "")))
+
+(ert-deftest vim-tests/haskell-abbrev-4 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "i # s c c SPC 1 2 3 <tab> <escape>"))
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  bar (_|_ x + 1) y \"foo\""
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  bar ({-# SCC \"123\" #-}_|_ x + 1) y \"foo\""
+     "")))
+
+(ert-deftest vim-tests/haskell-abbrev-5 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "i h p l n SPC"))
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  bar (_|_ x + 1) y \"foo\""
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  bar (hPutStrLn_|_ x + 1) y \"foo\""
+     "")))
+
+(ert-deftest vim-tests/haskell-abbrev-6 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "i h p l n SPC"))
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  bar ( x + 1) y \"foo\""
+     "  _|_"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  bar (x + 1) y \"foo\""
+     "  hPutStrLn _|_"
+     "")))
+
+(ert-deftest vim-tests/haskell-abbrev-7 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "i p n SPC $"))
+    (tests-utils--multiline
+     ""
+     "foo x = _|_do"
+     "  bar ( x + 1) y \"foo\""
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = putStrLn $_|_ do"
+     "  bar (x + 1) y \"foo\""
+     "")))
+
+(ert-deftest vim-tests/haskell-abbrev-8 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "i imports SPC"))
+    (tests-utils--multiline
+     ""
+     "_|_"
+     "foo x = _|_do"
+     "  bar ( x + 1) y \"foo\""
+     "")
+    (tests-utils--multiline
+     ""
+     "import Data.Set (Set)"
+     "import qualified Data.Set as S _|_"
+     "foo x = _|_do"
+     "  bar ( x + 1) y \"foo\""
+     "")))
+
+(ert-deftest vim-tests/haskell-newline-auto-comment-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "i <return> o k <escape>"))
+    (tests-utils--multiline
+     ""
+     "-- foobar_|_"
+     "foo x = do"
+     "  bar ( x + 1) y \"foo\""
+     "")
+    (tests-utils--multiline
+     ""
+     "-- foobar"
+     "-- o_|_k"
+     "foo x = do"
+     "  bar ( x + 1) y \"foo\""
+     "")))
+
+(ert-deftest vim-tests/haskell-newline-auto-comment-2 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "i <return> o k <escape>"))
+    (tests-utils--multiline
+     ""
+     "-- foobar_|_"
+     "foo x = do"
+     "  bar ( x + 1) y \"foo\""
+     "")
+    (tests-utils--multiline
+     ""
+     "-- foobar"
+     "-- o_|_k"
+     "foo x = do"
+     "  bar ( x + 1) y \"foo\""
+     "")))
+
+(ert-deftest vim-tests/haskell-delete-commented-part-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "j c d"))
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  -- important"
+     "  -- comment"
+     "  -- fo_|_o"
+     "  -- bar"
+     "  bar (x + 1) y \"foo\""
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  _|_bar (x + 1) y \"foo\""
+     "")))
+
+(ert-deftest vim-tests/haskell-delete-commented-part-2 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "j c d"))
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  baz x -- should’ve deleted but couldn’t!"
+     "        -- comment"
+     "        -- fo_|_o"
+     "        -- bar"
+     "  bar (x + 1) y \"foo\""
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  baz x -- should’ve deleted but couldn’t!"
+     "  _|_bar (x + 1) y \"foo\""
+     "")))
+
 (provide 'vim-tests)
 
 ;; Local Variables:
