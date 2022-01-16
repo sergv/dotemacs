@@ -77,6 +77,9 @@
 
   ("<mouse-3>" mouse-open-file-at-point-other-window)
 
+  ("C-<home>"          nil)
+  ("C-<end>"           nil)
+
   ;; It’s bound to ‘keyboard-escape-quit’ by default which I never use.
   ("\e\e\e" nil))
 
