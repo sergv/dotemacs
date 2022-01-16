@@ -233,12 +233,11 @@ and switches to insert-mode."
      (vim:cmd-change-line :count (vim-motion-line-count motion)))
 
     (`block
-        (let ((insert-info (vim-make-visual-insert-info
-                            :first-line (vim-motion-first-line motion)
-                            :last-line (vim-motion-last-line motion)
-                            :column (vim-motion-first-col motion))))
-          (vim:cmd-delete :motion motion)
-          (vim-visual--start-insert insert-info)))
+     (vim--init--vim-visual-insert-info-end! (vim-motion-begin motion)
+                                             (vim-motion-end motion)
+                                             (vim-motion-first-col motion))
+     (vim:cmd-delete :motion motion)
+     (vim-visual--start-insert))
 
     (_
      ;; deal with cw and cW
