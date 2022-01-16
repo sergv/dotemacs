@@ -176,7 +176,7 @@ as accepted by `bounds-of-thing-at-point'.")
 
 (defun eproj-symbnav/go-to-symbol-home-impl (identifier use-regexp?)
   (let* ((proj (eproj-get-project-for-buf (current-buffer)))
-         (case-fold-search (and (not (null current-prefix-arg))
+         (case-fold-search (and current-prefix-arg
                                 (<= 16 (car current-prefix-arg))))
          (effective-major-mode (eproj/resolve-synonym-modes major-mode))
          (next-home-entry (car-safe eproj-symbnav/next-homes)))

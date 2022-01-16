@@ -39,8 +39,7 @@
            (increment (if forward -1 1))
            (search-function (if forward 're-search-forward 're-search-backward))
            (target-depth 0)
-           new
-           (case-fold-search nil))
+           new)
       (save-excursion
         (while (/= count 0)
           (let ((depth 0)
@@ -116,7 +115,8 @@
   "Special version of `forward-sexp' for hideshow in c-mode."
   (if (char=? (char-after) ?\{)
       (forward-sexp arg)
-    (let ((start (point)))
+    (let ((start (point))
+          (case-fold-search nil))
       (save-match-data
         (c-forward-preprocessor-conditional (or arg 1))
         (re-search-backward +c-preprocessor-directives-re+ start t)))))
