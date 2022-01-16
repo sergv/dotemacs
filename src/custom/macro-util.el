@@ -111,6 +111,8 @@ many times as was specified by the prefix argument.
 Therefore, if FUNC is a call to some function (e.g. (foo bar baz)) then
 CALL-N-TIMES should be non nil to cause this call to be applied n times."
   (cl-assert (symbolp func))
+  (when (eq func name)
+    (error "Function to be vimmized and it’s vim name should be different: %s" func))
   (let* ((func-name (symbol-name func))
          (action-name (if name name (intern (concat "vim:" func-name)))))
     `(vim-defcmd ,action-name ,(append (when has-count

@@ -298,10 +298,10 @@ _c_: hide block
 _o_: show block
 _C_: hide all blocks
 _O_: show all blocks"
-  ("o" hs-show-block)
-  ("c" hs-hide-block)
-  ("C" hs-hide-all)
-  ("O" hs-show-all))
+  ("o" vim:hs-show-block:interactive)
+  ("c" vim:hs-hide-block:interactive)
+  ("C" vim:hs-hide-all:interactive)
+  ("O" vim:hs-show-all:interactive))
 
 (defhydra-derive hydra-vim-normal-z-outline hydra-vim-normal-z-ext (:exit t :foreign-keys nil :hint nil)
   "
@@ -309,10 +309,10 @@ _f_: hide outline block
 _u_: show outline block
 _F_: hide all outline blocks leaving all headings visible
 _U_: show all outline blocks"
-  ("F" outline-hide-body)
-  ("f" outline-hide-subtree)
-  ("U" outline-show-all)
-  ("u" outline-show-subtree))
+  ("F" vim:outline-hide-body:interactive)
+  ("f" vim:outline-hide-subtree:interactive)
+  ("U" vim:outline-show-all:interactive)
+  ("u" vim:outline-show-subtree:interactive))
 
 (defhydra-derive hydra-vim-normal-z-hideshow-and-outline hydra-vim-normal-z-ext (:exit t :foreign-keys nil :hint nil)
   "
@@ -320,15 +320,15 @@ _c_: hide block       _f_: hide outline block
 _o_: show block       _u_: show outline block
 _C_: hide all blocks  _F_: hide all outline blocks leaving all headings visible
 _O_: show all blocks  _U_: show all outline blocks"
-  ("o" hs-show-block)
-  ("c" hs-hide-block)
-  ("C" hs-hide-all)
-  ("O" hs-show-all)
+  ("o" vim:hs-show-block:interactive)
+  ("c" vim:hs-hide-block:interactive)
+  ("C" vim:hs-hide-all:interactive)
+  ("O" vim:hs-show-all:interactive)
 
-  ("F" outline-hide-body)
-  ("f" outline-hide-subtree)
-  ("U" outline-show-all)
-  ("u" outline-show-subtree))
+  ("F" vim:outline-hide-body:interactive)
+  ("f" vim:outline-hide-subtree:interactive)
+  ("U" vim:outline-show-all:interactive)
+  ("u" vim:outline-show-subtree:interactive))
 
 ;;;###autoload
 (defun setup-folding (enable-hideshow? outline-params)
@@ -346,6 +346,16 @@ _O_: show all blocks  _U_: show all outline blocks"
       (apply #'setup-outline-headers outline-params)
       (def-keys-for-map vim-normal-mode-local-keymap
         ("z" hydra-vim-normal-z-outline/body)))))
+
+(vimmize-function hs-hide-block :name vim:hs-hide-block :has-count nil)
+(vimmize-function hs-show-block :name vim:hs-show-block :has-count nil)
+(vimmize-function hs-hide-all   :name vim:hs-hide-all   :has-count nil)
+(vimmize-function hs-show-all   :name vim:hs-show-all   :has-count nil)
+
+(vimmize-function outline-hide-body    :name vim:outline-hide-body    :has-count nil)
+(vimmize-function outline-hide-subtree :name vim:outline-hide-subtree :has-count nil)
+(vimmize-function outline-show-all     :name vim:outline-show-all     :has-count nil)
+(vimmize-function outline-show-subtree :name vim:outline-show-subtree :has-count nil)
 
 (provide 'folding-setup)
 
