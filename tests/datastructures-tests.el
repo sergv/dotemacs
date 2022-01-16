@@ -10,7 +10,9 @@
 
 (require 'common)
 (require 'ert)
-(require 'datastructures)
+
+(require 'bimap)
+(require 'sorted-set)
 
 (ert-deftest datastructures-tests/sorted-set-creation ()
   (let ((lt #'<))
@@ -136,6 +138,7 @@
 ;;   nil)
 
 ;; Local Variables:
+;; no-byte-compile: t
 ;; End:
 
 ;; datastructures-tests.el ends here
