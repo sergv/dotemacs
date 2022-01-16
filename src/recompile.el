@@ -39,6 +39,7 @@
                (or "clojure-mode"
                    "epl"
                    "flx"
+                   "haskell-mode"
                    "ivy"
                    "lsp-mode"
                    "lsp-ui"
