@@ -83,7 +83,7 @@ highlighting searches.")
   "Whether we're searching in the forward direction right now. Either t or nil.")
 
 (defvar-local search--case-sensetive nil
-  "Becomes set to te during case-sensetive matches.")
+  "Becomes set to t during case-sensetive matches.")
 
 (defconst +search-highlight-faces+
   [search-highlight-face

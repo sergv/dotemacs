@@ -186,11 +186,10 @@ runtime but rather will be silently relied on)."
   "Try to read value of field with NAME from current buffer."
   (save-match-data
     (save-excursion
-      (let ((case-fold-search t)
-            (res nil))
+      (let ((res nil))
         (goto-char (point-min))
         (while (re-search-forward
-                (concat "^[ \t]*" (regexp-quote name)
+                (concat "^[ \t]*" (ci-re-for-literal name)
                         (rx-let ((nl (any ?\n ?\r))
                                  (ws (any ?\s ?\t))
                                  (wsnl (any ?\s ?\t ?\n ?\r)))
