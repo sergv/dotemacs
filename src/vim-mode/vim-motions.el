@@ -1396,7 +1396,7 @@ but only on the current line."
     (vim--outer-doubled-quote count)))
 
 (vim-defmotion vim:motion-find (inclusive count (argument:char arg))
-  "Move the cursor to the next count'th occurrence of arg."
+  "Move the cursor to the next count’th occurrence of arg."
   (forward-char)
   (let ((case-fold-search nil))
     (unless (search-forward (char-to-string arg)

@@ -105,7 +105,7 @@ are always :count, :motion, :register or :argument no matter which
 parameter names are used to define the command.
 
 For more information about the vim:motion struct look at vim-core.el."
-  (declare (indent defun))
+  (declare (indent defun) (docstring 3))
   (let ((name-interactive (string->symbol (concat (symbol->string name) ":interactive")))
         (count nil)
         (register nil)
@@ -272,7 +272,7 @@ returns *always* a vim:motion object.
 
 For more information about the vim:motion struct and motion types
 look at vim-core.el."
-  (declare (indent defun))
+  (declare (indent defun) (docstring 3))
   (let ((name-interactive (string->symbol (concat (symbol->string name) ":interactive")))a
         (name-raw (string->symbol (concat (symbol->string name) "/raw")))
         (type nil)
