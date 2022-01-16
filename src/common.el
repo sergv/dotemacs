@@ -1409,6 +1409,15 @@ are CHAR1 and CHAR2 repsectively."
   (let ((case-fold-search nil))
     (char-equal c (downcase c))))
 
+(defun ci-re-for-literal (str)
+  "Make regexp that case-insensitively matches STR, eg for \"foo\" produce \"[Ff][Oo][Oo]\"."
+  (with-temp-buffer
+    (cl-loop
+     for c across str
+     do
+     (insert "[" (upcase c) (downcase c) "]"))
+    (buffer-substring-no-properties (point-min) (point-max))))
+
 (defun notify (&rest args)
   "Like `message' but is quiet in noninteractive mode."
   (unless noninteractive
