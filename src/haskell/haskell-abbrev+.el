@@ -296,7 +296,7 @@ then Bar would be the result."
              :action-data pragma-snippet
              :predicate #'point-not-inside-string-or-comment?)
             (make-abbrev+-abbreviation
-             :trigger "##?scc *"
+             :trigger "##? ?scc *"
              :action-type 'yas-snippet
              :action-data "{-# SCC \"${1:cost center name}\" #-}$0"
              :predicate #'point-not-inside-string-or-comment?)
@@ -309,8 +309,7 @@ then Bar would be the result."
             (make-abbrev+-abbreviation
              :trigger "##?ll\\(?:ang\\)? *"
              :action-type 'function-with-side-effects
-             :action-data #'haskell-insert-language-pragmas
-             :predicate #'point-not-inside-string-or-comment?)
+             :action-data #'haskell-insert-language-pragmas             :predicate #'point-not-inside-string-or-comment?)
             (make-abbrev+-abbreviation
              :trigger "##?o\\(?:pts?\\)? *"
              :action-type 'yas-snippet
@@ -335,7 +334,7 @@ then Bar would be the result."
               :action-data "printf"
               :predicate #'point-not-inside-string-or-comment?)
              (make-abbrev+-abbreviation
-              :trigger "\\(?:ps\\|p\\)l?n"
+              :trigger "ps?l?n"
               :action-type 'literal-string
               :action-data "putStrLn"
               :predicate #'point-not-inside-string-or-comment?)
@@ -345,7 +344,7 @@ then Bar would be the result."
               :action-data "hPutStrLn"
               :predicate #'point-not-inside-string-or-comment?)
              (make-abbrev+-abbreviation
-              :trigger "hp\\(?:s\\|l\\)\\{1,2\\}"
+              :trigger "hps"
               :action-type 'literal-string
               :action-data "hPutStr"
               :predicate #'point-not-inside-string-or-comment?)
@@ -403,7 +402,7 @@ then Bar would be the result."
               :action-type 'function-with-side-effects
               :action-data #'haskell-insert-monadic-info-template
               :predicate #'point-not-inside-string-or-comment?))
-            (v--map
+            (--map
              (cl-destructuring-bind (suffix module-name type-name alias full-match?) it
                (make-abbrev+-abbreviation
                 :trigger (concat (if full-match? "import" (abbrev+--make-re-with-optional-suffix "import" 2)) suffix)
@@ -413,7 +412,7 @@ then Bar would be the result."
                                        "")
                                      "import qualified " module-name " as " alias)
                 :predicate import-expand-pred))
-             '[("m"   "Data.Map.Strict"               "Map"          "M"   nil)
+             '(("m"   "Data.Map.Strict"               "Map"          "M"   nil)
                ("s"   "Data.Set"                      "Set"          "S"   nil)
                ("v"   "Data.Vector"                   "Vector"       "V"   nil)
                ("vp"  "Data.Vector.Primitive"         nil            "VP"  nil)
@@ -437,7 +436,7 @@ then Bar would be the result."
                ("bl"  "Data.ByteString.Lazy"          nil            "BSL" nil)
                ("bsl" "Data.ByteString.Lazy"          nil            "BSL" nil)
                ("c8"  "Data.ByteString.Char8"         "ByteString"   "C8"  nil)
-               ("cl8" "Data.ByteString.Lazy.Char8"    nil            "CL8" nil)]))))
+               ("cl8" "Data.ByteString.Lazy.Char8"    nil            "CL8" nil))))))
       (cons plain-abbrevs (vconcat non-repl-abbrevs plain-abbrevs)))))
 
 (defun haskell-abbrev+-setup (repl)
