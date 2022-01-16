@@ -975,6 +975,24 @@ characters."
         (delete-file error-file))
       exit-status)))
 
+;;;###autoload
+(el-patch-feature memory-report)
+
+;; TODO remove this when this get fixed in upstream
+(when-emacs-version (<= 28 it)
+  (el-patch-defun memory-report-object-size (object)
+    "Return the size of OBJECT in bytes."
+    (el-patch-swap
+      (unless memory-report--type-size
+        (memory-report--garbage-collect))
+      (progn
+        (require 'memory-report)
+        (unless memory-report--type-size
+          (setf memory-report--type-size (make-hash-table)))
+        (when (zerop (hash-table-count memory-report--type-size))
+          (memory-report--garbage-collect))))
+    (memory-report--object-size (make-hash-table :test #'eq) object)))
+
 (provide 'base-emacs-fixes)
 
 ;; Local Variables:
