@@ -44,6 +44,10 @@
         (if (re-search-forward "_|_" nil t)
             (replace-match "")
           (error "No _|_ marker for point position within contents:\n%s" ,contents))
+        (when (save-excursion
+                (goto-char (point-min))
+                (re-search-forward "_|_" nil t))
+          (error "More than one occurrence of _|_ in source"))
         (font-lock-fontify-buffer)
         ,action))))
 
