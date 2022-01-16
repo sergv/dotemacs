@@ -1872,6 +1872,7 @@
 (provide 'vim-tests)
 
 ;; Local Variables:
+;; no-byte-compile: t
 ;; End:
 
 ;; vim-tests.el ends here
