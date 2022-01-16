@@ -1179,14 +1179,10 @@ With argument COUNT, do this that many times."
                    (point))))
 
 (defsubst whitespace-char? (char)
-  (or (= char ?\n)
-      (= char ?\r)
-      (= ?\s (char-syntax char))))
-
-(defsubst whitespace-char-p (char)
-  (or (char= char ?\s)
-      (char= char ?\n)
-      (char= char ?\t)))
+  (or (eq char ?\s)
+      (eq char ?\n)
+      (eq char ?\r)
+      (eq char ?\t)))
 
 (defun delete-whitespace-forward ()
   "Delete whitespaces forward until non-whitespace
