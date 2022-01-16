@@ -84,17 +84,20 @@
         (vim-visual-insert-info-line-count vim-visual--last-insert-info) nil
         (vim-visual-insert-info-column     vim-visual--last-insert-info) nil))
 
-(defun vim--init--vim-visual-insert-info-end! (begin end line-count column)
-  (if vim-visual--last-insert-info
-      (setf (vim-visual-insert-info-begin      vim-visual--last-insert-info) begin
-            (vim-visual-insert-info-end        vim-visual--last-insert-info) end
-            (vim-visual-insert-info-line-count vim-visual--last-insert-info) line-count
-            (vim-visual-insert-info-column     vim-visual--last-insert-info) column)
-    (setf vim-visual--last-insert-info
-          (vim-make-visual-insert-info :begin begin
-                                       :end end
-                                       :line-count line-count
-                                       :column column))))
+(defun vim--init--vim-visual-insert-info-end! (first last column)
+  (let* ((begin (min first last))
+         (end (max first last))
+         (line-count (1- (count-lines-fixed begin end))))
+    (if vim-visual--last-insert-info
+        (setf (vim-visual-insert-info-begin      vim-visual--last-insert-info) begin
+              (vim-visual-insert-info-end        vim-visual--last-insert-info) (copy-marker end)
+              (vim-visual-insert-info-line-count vim-visual--last-insert-info) line-count
+              (vim-visual-insert-info-column     vim-visual--last-insert-info) column)
+      (setf vim-visual--last-insert-info
+            (vim-make-visual-insert-info :begin begin
+                                         :end (copy-marker end)
+                                         :line-count line-count
+                                         :column column)))))
 
 ;; The last motion used to insert something in visual mode.
 (defvar-local vim-visual--last-insert-info nil)
@@ -518,9 +521,8 @@ This function is also responsible for setting the X-selection."
   "Starts insertion at the left column of a visual region."
   (let ((begin (vim-motion-begin motion))
         (end (vim-motion-end motion)))
-    (vim--init--vim-visual-insert-info-end! (min begin end)
-                                            (copy-marker (max begin end))
-                                            (1- (count-lines-fixed begin end))
+    (vim--init--vim-visual-insert-info-end! (vim-motion-begin motion)
+                                            (vim-motion-end motion)
                                             (vim-motion-first-col motion))
     (vim-visual--start-insert)))
 
@@ -643,9 +645,8 @@ This function is also responsible for setting the X-selection."
   "Starts insertion at the right column of a visual block."
   (let ((begin (vim-motion-begin motion))
         (end (vim-motion-end motion)))
-    (vim--init--vim-visual-insert-info-end! (min begin end)
-                                            (copy-marker (max begin end))
-                                            (1- (count-lines-fixed begin end))
+    (vim--init--vim-visual-insert-info-end! (vim-motion-begin motion)
+                                            (vim-motion-end motion)
                                             (vim-motion-last-col motion))
     (vim-visual--start-append)))
 
