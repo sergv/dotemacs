@@ -16,7 +16,7 @@
 (defvar-local *comment-util-current-format* nil
   "Comment format for current buffer.")
 
-(defvar *comment-util-space-count* 1
+(defconst comment-util--spaces-after-comment " "
   "Amount of spaces to put after comment markers.")
 
 (advices/auto-comment sp-newline)
@@ -25,111 +25,111 @@
 (advices/auto-comment haskell-newline-with-signature-expansion)
 
 (defvar +comment-util-comment-format-alist+
-  [(haskell-mode             (one-line "--") (line-regexp "--+") (comment-chars ?-))
-   (haskell-c-mode           (one-line "--") (line-regexp "--+") (comment-chars ?-))
-   (haskell-c2hs-mode        (one-line "--") (line-regexp "--+") (comment-chars ?-))
-   (haskell-hsc-mode         (one-line "--") (line-regexp "--+") (comment-chars ?-))
-   (haskell-literate-mode    (one-line "--") (line-regexp "--+") (comment-chars ?-))
-   (ghc-core-mode            (one-line "--") (line-regexp "--+") (comment-chars ?-))
-   (haskell-cabal-mode       (one-line "--") (line-regexp "--+") (comment-chars ?-))
-   (alex-mode                (one-line "--") (line-regexp "--+") (comment-chars ?-))
-   (uuag-mode                (one-line "--") (line-regexp "--+") (comment-chars ?-))
-   (happy-mode               (one-line "--") (line-regexp "--+") (comment-chars ?-))
-   (agda2-mode               (one-line "--") (line-regexp "--+") (comment-chars ?-))
-   (elm-mode                 (one-line "--") (line-regexp "--+") (comment-chars ?-))
-   (nix-mode                 (one-line "#")  (line-regexp "#+")  (comment-chars ?#))
+  '((haskell-mode             (one-line "--") (line-re "--+") (comment-chars ?-))
+    (haskell-c-mode           (one-line "--") (line-re "--+") (comment-chars ?-))
+    (haskell-c2hs-mode        (one-line "--") (line-re "--+") (comment-chars ?-))
+    (haskell-hsc-mode         (one-line "--") (line-re "--+") (comment-chars ?-))
+    (haskell-literate-mode    (one-line "--") (line-re "--+") (comment-chars ?-))
+    (ghc-core-mode            (one-line "--") (line-re "--+") (comment-chars ?-))
+    (haskell-cabal-mode       (one-line "--") (line-re "--+") (comment-chars ?-))
+    (alex-mode                (one-line "--") (line-re "--+") (comment-chars ?-))
+    (uuag-mode                (one-line "--") (line-re "--+") (comment-chars ?-))
+    (happy-mode               (one-line "--") (line-re "--+") (comment-chars ?-))
+    (agda2-mode               (one-line "--") (line-re "--+") (comment-chars ?-))
+    (elm-mode                 (one-line "--") (line-re "--+") (comment-chars ?-))
+    (nix-mode                 (one-line "#")  (line-re "#+")  (comment-chars ?#))
 
-   (rust-mode                (one-line "//") (line-regexp "//+") (comment-chars ?/))
-   (toml-mode                (one-line "#")  (line-regexp "#+")  (comment-chars ?#))
-   (cargo-toml-mode          (one-line "#")  (line-regexp "#+")  (comment-chars ?#))
-   (cuda-mode                (one-line "//") (line-regexp "//+") (comment-chars ?/))
-   (ptx-mode                 (one-line "//") (line-regexp "//+") (comment-chars ?/))
-   (c-mode                   (one-line "//") (line-regexp "//+") (comment-chars ?/))
-   (c++-mode                 (one-line "//") (line-regexp "//+") (comment-chars ?/))
-   (glsl-mode                (one-line "//") (line-regexp "//+") (comment-chars ?/))
-   (asm-mode                 (one-line ";")  (line-regexp ";+")  (comment-chars ?\;))
-   (nasm-mode                (one-line ";")  (line-regexp ";+")  (comment-chars ?\;))
-   (llvm-mode                (one-line ";")  (line-regexp ";+")  (comment-chars ?\;))
-   (tablegen-mode            (one-line "//") (line-regexp "//+") (comment-chars ?/))
-   (makefile-mode            (one-line "#")  (line-regexp "#+")  (comment-chars ?#))
-   (makefile-gmake-mode      (one-line "#")  (line-regexp "#+")  (comment-chars ?#))
-   (makefile-automake-mode   (one-line "#")  (line-regexp "#+")  (comment-chars ?#))
-   (makefile-bsdmake-mode    (one-line "#")  (line-regexp "#+")  (comment-chars ?#))
-   (cmake-mode               (one-line "#")  (line-regexp "#+")  (comment-chars ?#))
-   (j-mode                   (one-line "NB.")                    (comment-chars ?N ?B ?.))
-   (lean-mode                (one-line "--") (line-regexp "--+") (comment-chars ?-))
-   (latex-mode               (one-line "%")  (line-regexp "%+")  (comment-chars ?%))
-   (octave-mode              (one-line "%")  (line-regexp "\\(?:%+\\|#+\\)") (comment-chars ?% ?#))
-   (graphviz-dot-mode        (one-line "//") (line-regexp "//+") (comment-chars ?/))
-   (org-mode                 (one-line "#")  (line-regexp "#+")  (comment-chars ?#))
+    (rust-mode                (one-line "//") (line-re "//+") (comment-chars ?/))
+    (toml-mode                (one-line "#")  (line-re "#+")  (comment-chars ?#))
+    (cargo-toml-mode          (one-line "#")  (line-re "#+")  (comment-chars ?#))
+    (cuda-mode                (one-line "//") (line-re "//+") (comment-chars ?/))
+    (ptx-mode                 (one-line "//") (line-re "//+") (comment-chars ?/))
+    (c-mode                   (one-line "//") (line-re "//+") (comment-chars ?/))
+    (c++-mode                 (one-line "//") (line-re "//+") (comment-chars ?/))
+    (glsl-mode                (one-line "//") (line-re "//+") (comment-chars ?/))
+    (asm-mode                 (one-line ";")  (line-re ";+")  (comment-chars ?\;))
+    (nasm-mode                (one-line ";")  (line-re ";+")  (comment-chars ?\;))
+    (llvm-mode                (one-line ";")  (line-re ";+")  (comment-chars ?\;))
+    (tablegen-mode            (one-line "//") (line-re "//+") (comment-chars ?/))
+    (makefile-mode            (one-line "#")  (line-re "#+")  (comment-chars ?#))
+    (makefile-gmake-mode      (one-line "#")  (line-re "#+")  (comment-chars ?#))
+    (makefile-automake-mode   (one-line "#")  (line-re "#+")  (comment-chars ?#))
+    (makefile-bsdmake-mode    (one-line "#")  (line-re "#+")  (comment-chars ?#))
+    (cmake-mode               (one-line "#")  (line-re "#+")  (comment-chars ?#))
+    (j-mode                   (one-line "NB.")                    (comment-chars ?N ?B ?.))
+    (lean-mode                (one-line "--") (line-re "--+") (comment-chars ?-))
+    (latex-mode               (one-line "%")  (line-re "%+")  (comment-chars ?%))
+    (octave-mode              (one-line "%")  (line-re "\\(?:%+\\|#+\\)") (comment-chars ?% ?#))
+    (graphviz-dot-mode        (one-line "//") (line-re "//+") (comment-chars ?/))
+    (org-mode                 (one-line "#")  (line-re "#+")  (comment-chars ?#))
 
-   (markdown-mode            (region-begin "<!--") (region-end "-->") (line-regexp "<!--"))
-   (rst-mode                 (one-line ".. ") (line-regexp ".. "))
-   (bison-mode               (region-begin "/*") (region-end "*/") (line-regexp "/[/*]"))
-   (flex-mode                (region-begin "/*") (region-end "*/") (line-regexp "/[/*]"))
+    (markdown-mode            (region-begin "<!--") (region-end "-->") (line-re "<!--"))
+    (rst-mode                 (one-line ".. ") (line-re ".. "))
+    (bison-mode               (region-begin "/*") (region-end "*/") (line-re "/[/*]"))
+    (flex-mode                (region-begin "/*") (region-end "*/") (line-re "/[/*]"))
 
-   (emacs-lisp-mode          (one-line ";;") (line-regexp ";+")  (comment-chars ?\;))
-   (elisp-byte-code-mode     (one-line ";;") (line-regexp ";+")  (comment-chars ?\;))
-   (inferior-emacs-lisp-mode (one-line ";;") (line-regexp ";+")  (comment-chars ?\;))
-   (lisp-interaction-mode    (one-line ";;") (line-regexp ";+")  (comment-chars ?\;))
-   (cl-mode                  (one-line ";;") (line-regexp ";+")  (comment-chars ?\;))
-   (lisp-mode                (one-line ";;") (line-regexp ";+")  (comment-chars ?\;))
-   (clojure-mode             (one-line ";;") (line-regexp ";+")  (comment-chars ?\;))
-   (blueprint-mode           (one-line ";;") (line-regexp ";+")  (comment-chars ?\;))
+    (emacs-lisp-mode          (one-line ";;") (line-re ";+")  (comment-chars ?\;))
+    (elisp-byte-code-mode     (one-line ";;") (line-re ";+")  (comment-chars ?\;))
+    (inferior-emacs-lisp-mode (one-line ";;") (line-re ";+")  (comment-chars ?\;))
+    (lisp-interaction-mode    (one-line ";;") (line-re ";+")  (comment-chars ?\;))
+    (cl-mode                  (one-line ";;") (line-re ";+")  (comment-chars ?\;))
+    (lisp-mode                (one-line ";;") (line-re ";+")  (comment-chars ?\;))
+    (clojure-mode             (one-line ";;") (line-re ";+")  (comment-chars ?\;))
+    (blueprint-mode           (one-line ";;") (line-re ";+")  (comment-chars ?\;))
 
-   (python-mode              (one-line "#")  (line-regexp "#+")  (comment-chars ?#))
-   (prolog-mode              (one-line "%")  (line-regexp "%+")  (comment-chars ?%))
-   (prolog-inferior-mode     (one-line "%")  (line-regexp "%+")  (comment-chars ?%))
-   (erlang-mode              (one-line "%")  (line-regexp "%+")  (comment-chars ?%))
-   (gnuplot-mode             (one-line "#")  (line-regexp "#+")  (comment-chars ?#))
-   (debsources-mode          (one-line "#")  (line-regexp "#+")  (comment-chars ?#))
-   (shell-script-mode        (one-line "#")  (line-regexp "#+")  (comment-chars ?#))
-   (awk-mode                 (one-line "#")  (line-regexp "#+")  (comment-chars ?#))
-   (sh-mode                  (one-line "#")  (line-regexp "#+")  (comment-chars ?#))
-   (sh-script-mode           (one-line "#")  (line-regexp "#+")  (comment-chars ?#))
-   (conf-space-mode          (one-line "#")  (line-regexp "#+")  (comment-chars ?#))
-   (conf-unix-mode           (one-line "#")  (line-regexp "#+")  (comment-chars ?#))
-   (conf-colon-mode          (one-line "#")  (line-regexp "#+")  (comment-chars ?#))
-   (conf-xdefaults-mode      (one-line "#")  (line-regexp "#+")  (comment-chars ?#))
-   (conf-mode                (one-line "#")  (line-regexp "#+")  (comment-chars ?#))
-   (conf-javaprop-mode       (one-line "#")  (line-regexp "#+")  (comment-chars ?#))
-   (conf-windows-mode        (one-line ";")  (line-regexp ";+")  (comment-chars ?\;))
-   (wisent-grammar-mode      (one-line ";;") (line-regexp ";;+") (comment-chars ?\;))
-   (bovine-grammar-mode      (one-line ";;") (line-regexp ";;+") (comment-chars ?\;))
-   (antlr-mode               (one-line "//") (line-regexp "//+") (comment-chars ?/))
-   (snippet-mode             (one-line "#")  (line-regexp "#+")  (comment-chars ?#))
-   (sql-mode                 (one-line "--") (line-regexp "--+") (comment-chars ?-))
-   (idl-mode                 (one-line "//") (line-regexp "//+") (comment-chars ?/))
-   (java-mode                (one-line "//") (line-regexp "//+") (comment-chars ?/))
-   (groovy-mode              (one-line "//") (line-regexp "//+") (comment-chars ?/))
-   (js2-mode                 (one-line "//") (line-regexp "//+") (comment-chars ?/))
-   (js-mode                  (one-line "//") (line-regexp "//+") (comment-chars ?/))
-   (json-mode                (one-line "//") (line-regexp "//+") (comment-chars ?/))
-   (css-mode                 (one-line "//") (line-regexp "//+") (comment-chars ?/))
-   (rnc-mode                 (one-line "#")  (line-regexp "#+")  (comment-chars ?#))
-   (gitignore-mode           (one-line "#")  (line-regexp "#+")  (comment-chars ?#))
-   (gitconfig-mode           (one-line "#")  (line-regexp "#+")  (comment-chars ?#))
-   (lua-mode                 (one-line "--") (line-regexp "--+") (comment-chars ?-))
-   (xmodmap-mode             (one-line "!")  (line-regexp "!+")  (comment-chars ?!))
-   (verilog-mode             (one-line "//") (line-regexp "//+") (comment-chars ?/))
-   (vhdl-mode                (one-line "--") (line-regexp "--+") (comment-chars ?-))
-   (tcl-mode                 (one-line "#")  (line-regexp "#+")  (comment-chars ?#))
-   (ucf-mode                 (one-line "#")  (line-regexp "#+")  (comment-chars ?#))
-   (yaml-mode                (one-line "#")  (line-regexp "#+")  (comment-chars ?#))
+    (python-mode              (one-line "#")  (line-re "#+")  (comment-chars ?#))
+    (prolog-mode              (one-line "%")  (line-re "%+")  (comment-chars ?%))
+    (prolog-inferior-mode     (one-line "%")  (line-re "%+")  (comment-chars ?%))
+    (erlang-mode              (one-line "%")  (line-re "%+")  (comment-chars ?%))
+    (gnuplot-mode             (one-line "#")  (line-re "#+")  (comment-chars ?#))
+    (debsources-mode          (one-line "#")  (line-re "#+")  (comment-chars ?#))
+    (shell-script-mode        (one-line "#")  (line-re "#+")  (comment-chars ?#))
+    (awk-mode                 (one-line "#")  (line-re "#+")  (comment-chars ?#))
+    (sh-mode                  (one-line "#")  (line-re "#+")  (comment-chars ?#))
+    (sh-script-mode           (one-line "#")  (line-re "#+")  (comment-chars ?#))
+    (conf-space-mode          (one-line "#")  (line-re "#+")  (comment-chars ?#))
+    (conf-unix-mode           (one-line "#")  (line-re "#+")  (comment-chars ?#))
+    (conf-colon-mode          (one-line "#")  (line-re "#+")  (comment-chars ?#))
+    (conf-xdefaults-mode      (one-line "#")  (line-re "#+")  (comment-chars ?#))
+    (conf-mode                (one-line "#")  (line-re "#+")  (comment-chars ?#))
+    (conf-javaprop-mode       (one-line "#")  (line-re "#+")  (comment-chars ?#))
+    (conf-windows-mode        (one-line ";")  (line-re ";+")  (comment-chars ?\;))
+    (wisent-grammar-mode      (one-line ";;") (line-re ";;+") (comment-chars ?\;))
+    (bovine-grammar-mode      (one-line ";;") (line-re ";;+") (comment-chars ?\;))
+    (antlr-mode               (one-line "//") (line-re "//+") (comment-chars ?/))
+    (snippet-mode             (one-line "#")  (line-re "#+")  (comment-chars ?#))
+    (sql-mode                 (one-line "--") (line-re "--+") (comment-chars ?-))
+    (idl-mode                 (one-line "//") (line-re "//+") (comment-chars ?/))
+    (java-mode                (one-line "//") (line-re "//+") (comment-chars ?/))
+    (groovy-mode              (one-line "//") (line-re "//+") (comment-chars ?/))
+    (js2-mode                 (one-line "//") (line-re "//+") (comment-chars ?/))
+    (js-mode                  (one-line "//") (line-re "//+") (comment-chars ?/))
+    (json-mode                (one-line "//") (line-re "//+") (comment-chars ?/))
+    (css-mode                 (one-line "//") (line-re "//+") (comment-chars ?/))
+    (rnc-mode                 (one-line "#")  (line-re "#+")  (comment-chars ?#))
+    (gitignore-mode           (one-line "#")  (line-re "#+")  (comment-chars ?#))
+    (gitconfig-mode           (one-line "#")  (line-re "#+")  (comment-chars ?#))
+    (lua-mode                 (one-line "--") (line-re "--+") (comment-chars ?-))
+    (xmodmap-mode             (one-line "!")  (line-re "!+")  (comment-chars ?!))
+    (verilog-mode             (one-line "//") (line-re "//+") (comment-chars ?/))
+    (vhdl-mode                (one-line "--") (line-re "--+") (comment-chars ?-))
+    (tcl-mode                 (one-line "#")  (line-re "#+")  (comment-chars ?#))
+    (ucf-mode                 (one-line "#")  (line-re "#+")  (comment-chars ?#))
+    (yaml-mode                (one-line "#")  (line-re "#+")  (comment-chars ?#))
+    (vim-edmacro-mode         (one-line ";;") (line-re ";+")  (comment-chars ?\;))
 
-   (tuareg-mode              (region-begin "(*") (region-end "*)") (line-regexp "(\\*"))
-   (sml-mode                 (region-begin "(*") (region-end "*)") (line-regexp "(\\*"))
-   (comint-mode              (one-line nil))
+    (tuareg-mode              (region-begin "(*") (region-end "*)") (line-re "(\\*"))
+    (sml-mode                 (region-begin "(*") (region-end "*)") (line-re "(\\*"))
+    (comint-mode              (one-line nil))
 
-   (vim-edmacro-mode         (one-line ";;" (line-regexp ";+") (comment-chars ?\;)))
-   (dos-mode                 (one-line "rem ")     (line-regexp "rem ?"))
-   (texinfo-mode             (one-line "@comment") (line-regexp "@c\\(?:o\\(?:m\\(?:m\\(?:e\\(?:n\\(?:t?\\)?\\)?\\)?\\)?\\)?\\)?"))
+    (dos-mode                 (one-line "rem ")     (line-re "rem ?"))
+    (texinfo-mode             (one-line "@comment") (line-re "@c\\(?:o\\(?:m\\(?:m\\(?:e\\(?:n\\(?:t?\\)?\\)?\\)?\\)?\\)?\\)?"))
 
-   (nxhtml-mode              (region-begin "<!--") (region-end "-->") (line-regexp "<!--"))
-   (nxml-mode                (region-begin "<!--") (region-end "-->") (line-regexp "<!--"))
-   (html-mode                (region-begin "<!--") (region-end "-->") (line-regexp "<!--"))
-   (sgml-mode                (region-begin "<!--") (region-end "-->") (line-regexp "<!--"))
-   (web-mode                 (region-begin "<!--") (region-end "-->") (line-regexp "<!--"))]
+    (nxhtml-mode              (region-begin "<!--") (region-end "-->") (line-re "<!--"))
+    (nxml-mode                (region-begin "<!--") (region-end "-->") (line-re "<!--"))
+    (html-mode                (region-begin "<!--") (region-end "-->") (line-re "<!--"))
+    (sgml-mode                (region-begin "<!--") (region-end "-->") (line-re "<!--"))
+    (web-mode                 (region-begin "<!--") (region-end "-->") (line-re "<!--")))
   "List of per-mode specifications of comments.
 Contains single-line and region comments.")
 
@@ -142,12 +142,17 @@ Contains single-line and region comments.")
   :group util
   :global nil
   (unless *comment-util-current-format*
-    (let* ((cformat-list  (v-assq major-mode +comment-util-comment-format-alist+))
+    (let* ((cformat-list  (assq major-mode +comment-util-comment-format-alist+))
            (one-line      (cadr (assq 'one-line      cformat-list)))
            (region-begin  (cadr (assq 'region-begin  cformat-list)))
            (region-end    (cadr (assq 'region-end    cformat-list)))
-           (line-regexp   (cadr (assq 'line-regexp   cformat-list)))
-           (comment-chars (cdr  (assq 'comment-chars cformat-list))))
+           (line-regexp   (cadr (assq 'line-re       cformat-list)))
+           (comment-chars (cdr  (assq 'comment-chars cformat-list)))
+           (line-re       (cond (line-regexp line-regexp)
+                                (one-line (regexp-quote one-line))
+                                (t nil)))
+           (line-re-with-prefix-indent
+            (concat "^\\(?1:\\s-*" line-re "\\)")))
       (unless cformat-list
         (error "Comment util mode error: no comment format defined for mode %s"
                major-mode))
@@ -155,13 +160,9 @@ Contains single-line and region comments.")
             (make-comment-format :one-line     one-line
                                  :region-begin region-begin
                                  :region-end   region-end
-                                 :line-regexp  (cond
-                                                 (line-regexp
-                                                  line-regexp)
-                                                 (one-line
-                                                  (regexp-quote one-line))
-                                                 (t
-                                                  nil))
+                                 :line-regexp  line-re
+                                 :line-regexp-with-prefix-indent
+                                 line-re-with-prefix-indent
                                  :comment-chars comment-chars)))))
 
 (cl-defstruct comment-format
@@ -171,6 +172,7 @@ Contains single-line and region comments.")
   ;; line regexp is special regexp that should match all types of line comments,
   ;; i.e. ;+ for lisp, used to insert comment automatically
   line-regexp
+  line-regexp-with-prefix-indent
   ;; Characters that when inserted together may make commented line as recognized by
   ;; line-regexp.
   comment-chars)
@@ -309,18 +311,18 @@ be used only for vim-visual-mode of the vim-mode package."
         (has-close
          (error "Specified region already contains close comment")))))
   (goto-char end)
-  (insert (make-string *comment-util-space-count* ?\s)
+  (insert comment-util--spaces-after-comment
           (comment-format-region-end *comment-util-current-format*))
   (goto-char begin)
   (insert (comment-format-region-begin *comment-util-current-format*)
-          (make-string *comment-util-space-count* ?\s)))
+          comment-util--spaces-after-comment))
 
 (defun comment-util-uncomment-chunk-region ()
   "Uncomment region around point surrounded by region begin and end markers."
   (let* ((begin-str (concat (comment-format-region-begin
                              *comment-util-current-format*)
-                            (make-string *comment-util-space-count* ?\s)))
-         (end-str   (concat (make-string *comment-util-space-count* ?\s)
+                            comment-util--spaces-after-comment))
+         (end-str   (concat comment-util--spaces-after-comment
                             (comment-format-region-end
                              *comment-util-current-format*)))
          (curr-pos  (point))
@@ -354,7 +356,7 @@ be used only for vim-visual-mode of the vim-mode package."
     ((comment-format-one-line *comment-util-current-format*)
      (comment-util--comment-n-lines-starting-at-col
       (concat (comment-format-one-line *comment-util-current-format*)
-              (make-string *comment-util-space-count* ?\s))
+              comment-util--spaces-after-comment)
       lines
       (end-of-whitespace-prefix)))
     ((comment-util-region-comments-defined?)
@@ -378,9 +380,9 @@ be used only for vim-visual-mode of the vim-mode package."
   (let ((skip-to-column (lambda ()
                           (beginning-of-line)
                           (while (and (< (current-column) column)
-                                      (not (or (char=? ?\n (char-after))
-                                               (char=? ?\r (char-after))
-                                               (eob?))))
+                                      (not (or (eq ?\n (char-after))
+                                               (eq ?\r (char-after))
+                                               (eobp))))
                             (forward-char 1))))
         (update-column (lambda ()
                          (let ((new-col (end-of-whitespace-prefix)))
@@ -418,9 +420,10 @@ be used only for vim-visual-mode of the vim-mode package."
          (n (length comment)))
     (when (looking-at-p comment)
       (delete-char n)
-      (let ((i 0))
-        (while (and (char= ?\s (char-after))
-                    (< i *comment-util-space-count*))
+      (let ((i 0)
+            (spaces-size (eval-when-compile (length comment-util--spaces-after-comment))))
+        (while (and (eq ?\s (char-after))
+                    (< i spaces-size))
           (delete-char 1)
           (cl-incf i))))))
 
@@ -527,18 +530,19 @@ commented parts and leave point unchanged."
       (comment-util--get-commented-region)
     (save-excursion
       (save-match-data
-        (let* ((line-regexp
+        (let* ((line-re
                 (comment-format-line-regexp *comment-util-current-format*))
                (full-line-re
-                (concat "^\\s-*" line-regexp))
+                (comment-format-line-regexp-with-prefix-indent *comment-util-current-format*))
                (clear-comment (lambda ()
                                 (cond
                                   ((looking-at-p full-line-re)
                                    (delete-current-line))
+                                  ;; TODO: what’s this? How should it work, what does ‘>’ mean below?
                                   ;; for cases like
                                   ;; > (let (( ;; (foo 1)
                                   ;;          (bar 2))))
-                                  ((re-search-forward line-regexp (line-end-position) t)
+                                  ((re-search-forward line-re (line-end-position) t)
                                    (delete-region (match-beginning 0) (line-end-position)))))))
           (goto-char end)
           (while (and (<= start (point))
@@ -547,7 +551,8 @@ commented parts and leave point unchanged."
             (funcall clear-comment)
             (forward-line -1))
           (when (bobp)
-            (funcall clear-comment)))))))
+            (funcall clear-comment)))))
+    (skip-to-indentation)))
 
 ;;;###autoload
 (defun lisp-uncomment-sexp ()
@@ -579,7 +584,7 @@ commented parts and leave point unchanged."
   (interactive (list current-prefix-arg))
   (let ((comment-format
          (concat (comment-format-one-line *comment-util-current-format*)
-                 (make-string *comment-util-space-count* ?\s))))
+                 comment-util--spaces-after-comment)))
     (if count
         (save-excursion
           (skip-to-indentation)

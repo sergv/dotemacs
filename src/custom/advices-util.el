@@ -52,7 +52,7 @@ with locking over LOCK-VAR"
 (defmacro make-advice-expand-on-search (func expand-func &optional modes)
   "Define expand-on-search advice that will call EXPAND-FUNC after FUNC
 returns in major modes from list MODES. Do nothing if MODES is empty.
-Also perform synchronization such that no retursive calls of EXPAND-FUNC
+Also perform synchronization such that no recursive calls of EXPAND-FUNC
 will be possible."
   (let ((adv-name (string->symbol (concat (symbol->string func) "-expand-on-search")))
         (mode-list (-flatten
@@ -71,38 +71,32 @@ will be possible."
   "Define advice around FUNC that will insert comments at
 beginning of line if previous line was commented out.
 
-But in case of non-nil prefix-arg no comment will be inserted.
+In case of non-nil prefix-arg no comment will be inserted.
 
 Intended to be used with comment-util-mode."
-  `(defadvice ,func (around
-                     ,(string->symbol (concat (symbol->string func) "-auto-comment"))
-                     activate
-                     compile)
-     (let* ((comment-line-regexp (when *comment-util-current-format*
-                                   (comment-format-line-regexp
-                                    *comment-util-current-format*)))
-            (enable-advice? (and (not current-prefix-arg)
-                                 comment-line-regexp))
+  (let ((advice-name (string->symbol (format "%s--auto-comment" func))))
+    `(progn
+       (defun ,advice-name (old-func &rest args)
+         "Insert comments at beginning of line if previous line was commented out."
+         (let* ((full-line-re (and
+                               ;; Disable advice if prefix argument is supplied.
+                               (not current-prefix-arg)
+                               *comment-util-current-format*
+                               (comment-format-line-regexp-with-prefix-indent *comment-util-current-format*)))
+                (prev-line (when full-line-re
+                             (buffer-substring-no-properties
+                              (line-beginning-position)
+                              (point)))))
+           (apply old-func args)
+           (when full-line-re
+             (save-match-data
+               (when (string-match full-line-re prev-line)
+                 (skip-to-indentation)
+                 (delete-region (line-beginning-position) (point))
+                 (insert (concat (match-string 1 prev-line)
+                                 comment-util--spaces-after-comment)))))))
 
-            (prev-line (when enable-advice?
-                         (buffer-substring-no-properties
-                          (line-beginning-position)
-                          (point)))
-                       ;; (current-line)
-                       ))
-       ad-do-it
-       (when enable-advice?
-         (save-match-data
-           (when (string-match (concat "\\`\\(\\s-*"
-                                       comment-line-regexp
-                                       "\\)")
-                               prev-line)
-             (skip-to-indentation)
-             (delete-region (line-beginning-position)
-                            (point))
-             (insert (concat (match-string 1 prev-line)
-                             (make-string *comment-util-space-count*
-                                          ?\s)))))))))
+       (advice-add ',func :around #',advice-name))))
 
 (provide 'advices-util)
 
