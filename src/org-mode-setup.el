@@ -355,6 +355,12 @@
   (outline-hide-subtree)
   (outline-show-children 9))
 
+(defun org-mode-space-abbrev+ (&optional dont-expand)
+  (interactive "P")
+  (when (or dont-expand
+            (not (abbrev+-expand)))
+    (org-self-insert-command 1)))
+
 (defhydra-derive org-mode-vim-normal-z-outline hydra-vim-normal-z-ext (:exit t :foreign-keys nil :hint nil)
   "
 _O_: show all outlines
