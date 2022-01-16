@@ -75,14 +75,13 @@
 
 (defun vim--regex-without-case (re)
   "Returns the regular expression without all occurrences of \\c and \\C."
-  (let ((case-fold-search nil))
-    (replace-regexp-in-string
-     "\\\\[cC]"
-     ""
-     re
-     t ;; fixed case
-     t ;; literal
-     )))
+  (replace-regexp-in-string
+   "\\\\[cC]"
+   ""
+   re
+   t ;; fixed case
+   t ;; literal
+   ))
 
 (defun vim--regex-case (re default-case)
   "Returns the case as implied by \\c or \\C in regular expression `re'.
