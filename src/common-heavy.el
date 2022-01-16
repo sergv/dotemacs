@@ -560,16 +560,19 @@ using EQ-FUNC to determine equal elements."
 (defun remove-duplicates-by-hashing-projections (project eq-func xs)
   "Remove duplicates from the XS by hashing results of applying
 PROJECT. EQ-FUNC will be used as hash-table comparison."
-  (cl-assert (consp xs))
-  (let* ((tbl (make-hash-table :test eq-func))
-         (res (cons nil nil))
-         (tmp res))
-    (dolist (x xs)
-      (let ((proj (funcall project x)))
-        (unless (gethash proj tbl)
-          (puthash proj t tbl)
-          (setf tmp (setcdr-sure tmp (cons x nil))))))
-    (cdr res)))
+  (cl-assert (or (consp xs) (null xs)))
+  (when xs
+    (let* ((tbl (make-hash-table :test eq-func))
+           (first (car xs))
+           (res (cons first nil))
+           (tmp res))
+      (puthash (funcall project first) t tbl)
+      (dolist (x (cdr xs))
+        (let ((proj (funcall project x)))
+          (unless (gethash proj tbl)
+            (puthash proj t tbl)
+            (setf tmp (setcdr-sure tmp (cons x nil))))))
+      res)))
 
 ;;;
 
