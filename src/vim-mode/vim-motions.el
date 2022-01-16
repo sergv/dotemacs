@@ -1240,11 +1240,27 @@ but only on the current line."
                           :end (cdr bounds)
                           :type 'inclusive))))))
 
+(defun vim--go-to-start-of-enclosing-entity ()
+  (move-to-column 0)
+  (let ((c (char-after)))
+    (while (and (not (bobp))
+                c
+                (whitespace-char? c))
+      (forward-line -1)
+      (setf c (char-after)))))
+
 (defun vim--bounds-of-string (p)
   "Return beginning and end of string at poith P."
   (save-excursion
-    (let* ((end p)
-           (state (parse-partial-sexp (point-min) end))
+    (let* ((start
+            ;; Find beginning current “function” to limit parsing
+            ;; scope. The “function” here is defined as any
+            ;; non-whitespace entity which starts at column 0.
+            (save-excursion
+              (vim--go-to-start-of-enclosing-entity)
+              (point)))
+           (end p)
+           (state (parse-partial-sexp start end))
            (inside-stringp (elt state 3))
            (string-start (elt state 8)))
       (if inside-stringp
