@@ -139,7 +139,10 @@ argument was *explicitly* provided."
                          nil)))))
       (unless macro-def
         (error "Macro not defined: %s" name-for-user))
-      (execute-kbd-macro (vim-macro-def-keys macro-def) count))))
+      (vim--prepare-buffer-undo-list!)
+      (let ((last-undo buffer-undo-list))
+        (execute-kbd-macro (vim-macro-def-keys macro-def) count)
+        (vim--connect-undos! last-undo)))))
 
 (defun vim-cmd-edit-macro ()
   "Executes either the last defined keyboard macro or asks user to pick one if universal
