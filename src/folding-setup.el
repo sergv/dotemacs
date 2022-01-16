@@ -29,12 +29,11 @@
 ;;;###autoload
 (eval-after-load "hideshow" '(require 'folding-setup))
 
-(defadvice byte-compile-file (around
-                              byte-compile-file-hideshow-off
-                              activate
-                              compile)
+(defun byte-compile-file--file-hideshow-off (old-byte-compile-file &rest args)
   (let ((hs-minor-mode-hook nil))
-    ad-do-it))
+    (apply old-byte-compile-file args)))
+
+(advice-add 'byte-compile-file :around #'byte-compile-file--file-hideshow-off)
 
 ;; hideshow works badly with these
 (add-hook 'ediff-prepare-buffer-hook 'turn-off-hideshow)
