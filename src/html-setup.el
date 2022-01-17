@@ -214,7 +214,7 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
 (vimmize-motion markup-forward-up-element
                 :name vim:markup-forward-up-element
                 :exclusive t
-                :do-not-adjust-point t)
+                :unadjusted t)
 
 (defvar *hexcolour-keywords*
   '(("#[[:xdigit:]]\\{6\\}"

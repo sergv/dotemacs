@@ -137,12 +137,12 @@ With negative argument move forward, still one level out."
 (vimmize-motion sp-backward-up-sexp
                 :name vim:backward-up-sexp
                 :exclusive t
-                :do-not-adjust-point t)
+                :unadjusted t)
 
 (vimmize-motion sp-up-sexp
                 :name vim:up-sexp
                 :exclusive t
-                :do-not-adjust-point t)
+                :unadjusted t)
 
 (defun sp-in-minibuffer? (_id _action _context)
   (minibufferp))
