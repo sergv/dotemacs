@@ -228,34 +228,23 @@
     ;; clear all previous output
     ("SPC SPC"  eshell-clear-prompt))
 
-  (def-keys-for-map (vim-normal-mode-local-keymap
-                     vim-insert-mode-local-keymap)
-    ("<return>"   eshell-send-input)
-    ("C-<return>" sp-newline)
-    ("<up>"       eshell-previous-matching-input-from-input)
-    ("<down>"     eshell-next-matching-input-from-input))
+  (def-keys-for-map (vim-normal-mode-local-keymap vim-insert-mode-local-keymap)
+    ("<return>"         eshell-send-input)
+    ("C-<return>"       sp-newline)
+    ("<up>"             eshell-previous-matching-input-from-input)
+    ("<down>"           eshell-next-matching-input-from-input))
 
-  (def-keys-for-map (vim-normal-mode-local-keymap
-                     vim-insert-mode-local-keymap
-                     eshell-mode-map)
+  (def-keys-for-map (vim-normal-mode-local-keymap vim-insert-mode-local-keymap eshell-mode-map)
+    (("C-t" "C-<up>")   eshell-jump-to-prev-prompt)
+    (("C-h" "C-<down>") eshell-jump-to-next-prompt)
 
-    ("C-t"      eshell-jump-to-prev-prompt)
-    ("C-h"      eshell-jump-to-next-prompt)
-    ("C-<up>"   eshell-jump-to-prev-prompt)
-    ("C-<down>" eshell-jump-to-next-prompt)
+    ("C-w"              backward-delete-word)
+    ("C-S-w"            backward-delete-word*)
 
-    ("C-("      vim:sp-backward-slurp-sexp:interactive)
-    ("C-)"      vim:sp-forward-slurp-sexp:interactive)
-    ("M-("      sp-absorb-sexp)
-    ("M-)"      sp-emit-sexp)
-
-    ("C-w"      backward-delete-word)
-    ("C-S-w"    backward-delete-word*)
-
-    ("M-p"      browse-eshell-input-history)
-    ("C-d"      eshell-send-eof-to-process)
-    ("<tab>"    completion-at-point)
-    ("C-SPC"    eshell/clear)))
+    ("M-p"              browse-eshell-input-history)
+    ("C-d"              eshell-send-eof-to-process)
+    ("<tab>"            completion-at-point)
+    ("C-SPC"            eshell/clear)))
 
 (provide 'eshell-setup)
 
