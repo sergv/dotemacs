@@ -156,15 +156,7 @@ sp-escape:
   ;; everyone needs different versions, e.g. repls, shells
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-insert-mode-local-keymap)
-    ("<return>"  sp-newline)
-    ("C-("       sp-backward-slurp-sexp)
-    ("C-)"       sp-forward-slurp-sexp)
-    ("M-("       sp-forward-barf-sexp)
-    ("M-)"       sp-backward-barf-sexp))
-  (def-keys-for-map vim-insert-mode-local-keymap
-    ("M-?"       sp-convolute-sexp)
-    ("M-<up>"    sp-splice-sexp-killing-backward)
-    ("M-<down>"  sp-splice-sexp-killing-forward))
+    ("<return>"  sp-newline))
 
   (when use-fci
     (setf display-fill-column-indicator-column 100)
