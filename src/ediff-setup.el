@@ -8,23 +8,17 @@
 
 (eval-when-compile
   (require 'cl-lib)
-  (require 'macro-util))
+  (require 'macro-util)
+  (require 'keys-def))
 
 ;;;###autoload
 (defun ediff-keymap-setup ()
   (def-keys-for-map ediff-mode-map
-    ("H"        ediff-update-diffs)
-    ("h"        ediff-next-difference)
-    ("t"        ediff-previous-difference)
-    ("<home>"   next-f)
-    ("<end>"    prev-f)
-    ("S-<home>" swap-buffers-forward-through-frames)
-    ("S-<end>"  swap-buffers-backward-through-frames)
-    ("<left>"   prev-w)
-    ("<right>"  next-w)
-    ("<down>"   ediff-next-difference)
-    ("<up>"     ediff-previous-difference)
-    ("<escape>" ediff-quit)))
+    +vim-interbuffer-navigation-keys+
+    ("H"            ediff-update-diffs)
+    (("h" "<down>") ediff-next-difference)
+    (("t" "<up>")   ediff-previous-difference)
+    ("<escape>"     ediff-quit)))
 
 ;;;###autoload
 (cl-defun ediff-diff-texts-recursive-edit (text-a
