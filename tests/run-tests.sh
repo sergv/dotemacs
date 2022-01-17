@@ -13,9 +13,15 @@ set -o pipefail
 cd "$(dirname "$0")"
 
 tests=""
+matcher=""
+
 if [[ "$#" -gt 0 ]]; then
     for x in "${@}"; do
-        tests="$tests -l $x"
+        if [[ -f "$x" ]]; then
+            tests="$tests -l $x"
+        else
+            matcher="$x"
+        fi
     done
 else
     for x in *.el; do
@@ -30,7 +36,9 @@ emacs -Q --batch \
       --eval "(progn (require 'cl-lib))" \
       -l start \
       $tests \
-      -f ert-run-tests-batch-and-exit
+       --eval "(ert-run-tests-batch-and-exit $matcher)"
+
+      #-f ert-run-tests-batch-and-exit
 
 exit 0
 

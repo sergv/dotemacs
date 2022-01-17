@@ -12,16 +12,21 @@
 (require 'common)
 
 (defun-once c-abbrev+-make-abbrevs
-  (vector
-   (make-abbrev+-abbreviation
-    :trigger "\\<pr\\(?:i\\(?:nt?\\)?\\)?f?\\>"
-    :action-type 'yas-snippet
-    :action-data "printf(\"$1\\n\"$2);$0"
-    :predicate #'point-not-inside-string-or-comment?)))
+  (abbrev+-compile-abbreviations
+   (list
+    (cons (list "pr"
+                "pri"
+                "prf"
+                "prif"
+                "print"
+                "printf")
+          (make-abbrev+-abbreviation
+           :action-type 'yas-snippet
+           :action-data "printf(\"$1\\n\"$2);$0")))))
 
 (defun c-abbrev+-setup ()
-  (setf abbrev+-skip-syntax ["w" "w_" "^ >"]
-        abbrev+-abbreviations (c-abbrev+-make-abbrevs))
+  (setf abbrev+-abbreviations (c-abbrev+-make-abbrevs)
+        abbrev+-do-not-expand-predicate #'point-inside-string-or-comment?)
 
   (def-keys-for-map vim-insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))
