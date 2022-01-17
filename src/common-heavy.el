@@ -475,7 +475,8 @@ If MODE is nil - fontify in current buffer."
                         ">>>>>>>")
                     " "
                     (* any)))
-           eol)
+           (? ?\r)
+           ?\n)
       0 'warning t))))
 
 ;;;###autoload
