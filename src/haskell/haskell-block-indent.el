@@ -39,6 +39,8 @@
 
 ;;;###autoload
 (defun haskell-space-with-block-indent (&optional count)
+  "Insert space character and potentially indent to the right
+haskell block at current indentation level."
   (interactive "*p")
   (setf count (or count 1))
   (let ((col (current-column))

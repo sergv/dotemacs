@@ -41,20 +41,30 @@ from \\label{...} and \\ref{...} constructs."
                               nil)))
     (insert "\\ref{" label "}")))
 
+(defun-once latex-abbrev+-make-abbrevs
+  (abbrev+-compile-abbreviations
+   (list
+    (cons (list "\\i"
+                "\\п"
+                "\\и")
+          (make-abbrev+-abbreviation
+           :action-type 'literal-string
+           :action-data "\\item"))
+    (cons (list "\\ref"
+                "\\re"
+                "\\r"
+                "\\щвн"
+                "\\щв"
+                "\\щ"
+                "\\реф"
+                "\\ре"
+                "\\р")
+          (make-abbrev+-abbreviation
+           :action-type 'function-with-side-effects
+           :action-data #'latex-insert-reference-template)))))
+
 (defun latex-setup-abbrev+ ()
-  (setf abbrev+-skip-syntax ["^ >"]
-        abbrev+-abbreviations
-        (vector
-         (make-abbrev+-abbreviation
-          :trigger (rx "\\" (or "i" "п" "и"))
-          :action-type 'literal-string
-          :action-data "\\item")
-         (make-abbrev+-abbreviation
-          :trigger (rx "\\" (or (seq "r" (? "e" (? "f")))
-                                (seq "щ" (? "в" (? "н")))
-                                (seq "р" (? "е" (? "ф")))))
-          :action-type 'function-with-side-effects
-          :action-data #'latex-insert-reference-template)))
+  (setf abbrev+-abbreviations (latex-abbrev+-make-abbrevs))
 
   (def-keys-for-map vim-insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))

@@ -100,7 +100,8 @@ actual call to function."
                                (has-count t)
                                (call-n-times nil)
                                (repeatable t)
-                               (keep-visual nil))
+                               (keep-visual nil)
+                               (unadjusted nil))
   "Embed FUNC into vim framework of actions. FUNC may be symbol or
 actual call to function. If FUNC is a symbol and CALL-N-TIMES is nil
 then symbol should name function of one argument - prefix argument count.
@@ -121,7 +122,9 @@ CALL-N-TIMES should be non nil to cause this call to be applied n times."
                                            '()
                                          '(nonrepeatable))
                                        (when keep-visual
-                                           '(keep-visual)))
+                                         '(keep-visual))
+                                       (when unadjusted
+                                         '(unadjusted)))
        ,(if doc doc (format "Vimmized version of `%s'." func-name))
        ,(cond
           ((and has-count
