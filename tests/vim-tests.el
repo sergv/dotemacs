@@ -1667,133 +1667,6 @@
      "    baz y = quux (g (h y \"hello \\(Haskell world\\)\" y))"
      "")))
 
-(ert-deftest vim-tests/haskell-abbrev-1 ()
-  (vim-tests--test-fresh-buffer-contents-init
-      (haskell-mode)
-      (execute-kbd-macro (kbd "i i m SPC"))
-    (tests-utils--multiline
-     ""
-     "_|_"
-     "")
-    (tests-utils--multiline
-     ""
-     "import _|_"
-     "")))
-
-(ert-deftest vim-tests/haskell-abbrev-2 ()
-  (vim-tests--test-fresh-buffer-contents-init
-      (haskell-mode)
-      ;; Aborting pragma prompt with <escape> causes 'quit signal to be raised.
-      ;; If we don’t catch it then ert will not proceed to compare buffer contents.
-      (condition-case nil
-          (execute-kbd-macro (kbd "i # # SPC <escape> <escape>"))
-        (quit t))
-    (tests-utils--multiline
-     ""
-     "_|_"
-     "")
-    (tests-utils--multiline
-     ""
-     "{-# _|_  #-}"
-     "")))
-
-(ert-deftest vim-tests/haskell-abbrev-3 ()
-  (vim-tests--test-fresh-buffer-contents-init
-      (haskell-mode)
-      ;; Aborting pragma prompt with <escape> causes 'quit signal to be raised.
-      ;; If we don’t catch it then ert will not proceed to compare buffer contents.
-      (condition-case nil
-          (execute-kbd-macro (kbd "i SPC <escape> <escape>"))
-        (quit t))
-    (tests-utils--multiline
-     ""
-     "##    _|_"
-     "")
-    (tests-utils--multiline
-     ""
-     "{-# _|_  #-}"
-     "")))
-
-(ert-deftest vim-tests/haskell-abbrev-4 ()
-  (vim-tests--test-fresh-buffer-contents-init
-      (haskell-mode)
-      (execute-kbd-macro (kbd "i # s c c SPC 1 2 3 <tab> <escape>"))
-    (tests-utils--multiline
-     ""
-     "foo x = do"
-     "  bar (_|_ x + 1) y \"foo\""
-     "")
-    (tests-utils--multiline
-     ""
-     "foo x = do"
-     "  bar ({-# SCC \"123\" #-}_|_ x + 1) y \"foo\""
-     "")))
-
-(ert-deftest vim-tests/haskell-abbrev-5 ()
-  (vim-tests--test-fresh-buffer-contents-init
-      (haskell-mode)
-      (execute-kbd-macro (kbd "i h p l n SPC"))
-    (tests-utils--multiline
-     ""
-     "foo x = do"
-     "  bar (_|_ x + 1) y \"foo\""
-     "")
-    (tests-utils--multiline
-     ""
-     "foo x = do"
-     "  bar (hPutStrLn_|_ x + 1) y \"foo\""
-     "")))
-
-(ert-deftest vim-tests/haskell-abbrev-6 ()
-  (vim-tests--test-fresh-buffer-contents-init
-      (haskell-mode)
-      (execute-kbd-macro (kbd "i h p l n SPC"))
-    (tests-utils--multiline
-     ""
-     "foo x = do"
-     "  bar ( x + 1) y \"foo\""
-     "  _|_"
-     "")
-    (tests-utils--multiline
-     ""
-     "foo x = do"
-     "  bar (x + 1) y \"foo\""
-     "  hPutStrLn _|_"
-     "")))
-
-(ert-deftest vim-tests/haskell-abbrev-7 ()
-  (vim-tests--test-fresh-buffer-contents-init
-      (haskell-mode)
-      (execute-kbd-macro (kbd "i p n SPC $"))
-    (tests-utils--multiline
-     ""
-     "foo x = _|_do"
-     "  bar ( x + 1) y \"foo\""
-     "")
-    (tests-utils--multiline
-     ""
-     "foo x = putStrLn $_|_ do"
-     "  bar (x + 1) y \"foo\""
-     "")))
-
-(ert-deftest vim-tests/haskell-abbrev-8 ()
-  (vim-tests--test-fresh-buffer-contents-init
-      (haskell-mode)
-      (execute-kbd-macro (kbd "i imports SPC"))
-    (tests-utils--multiline
-     ""
-     "_|_"
-     "foo x = _|_do"
-     "  bar ( x + 1) y \"foo\""
-     "")
-    (tests-utils--multiline
-     ""
-     "import Data.Set (Set)"
-     "import qualified Data.Set as S _|_"
-     "foo x = _|_do"
-     "  bar ( x + 1) y \"foo\""
-     "")))
-
 (ert-deftest vim-tests/haskell-newline-auto-comment-1 ()
   (vim-tests--test-fresh-buffer-contents-init
       (haskell-mode)
@@ -1867,6 +1740,250 @@
      "foo x = do"
      "  baz x -- should’ve deleted but couldn’t!"
      "  _|_bar (x + 1) y \"foo\""
+     "")))
+
+(ert-deftest vim-tests/emacs-lisp-abbrev-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (emacs-lisp-mode)
+      (execute-kbd-macro (kbd "i ( d k f m SPC"))
+    (tests-utils--multiline
+     ""
+     "_|_"
+     "")
+    (tests-utils--multiline
+     ""
+     "(def-keys-for-map _|_)"
+     "")))
+
+(ert-deftest vim-tests/python-abbrev-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (python-mode)
+      (execute-kbd-macro (kbd "i p r SPC foo <tab> <escape>"))
+    (tests-utils--multiline
+     ""
+     "_|_"
+     "")
+    (tests-utils--multiline
+     ""
+     "print(\"foo\"_|_)"
+     "")))
+
+(ert-deftest vim-tests/shell-script-abbrev-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (shell-script-mode)
+      (execute-kbd-macro (kbd "i i n f o SPC foo <return> bar <return> <return> <escape>"))
+    (tests-utils--multiline
+     ""
+     "_|_"
+     "")
+    (tests-utils--multiline
+     ""
+     "echo \"foo = ${foo}, bar = ${bar}_|_\""
+     "")))
+
+(ert-deftest vim-tests/c-abbrev-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (c-mode)
+      (execute-kbd-macro (kbd "i p r f SPC foo <tab> , SPC bar <tab> <escape>"))
+    (tests-utils--multiline
+     ""
+     "_|_"
+     "")
+    (tests-utils--multiline
+     ""
+     "printf(\"foo\\n\", bar)_|_;"
+     "")))
+
+(ert-deftest vim-tests/haskell-abbrev-import-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "i i m SPC"))
+    (tests-utils--multiline
+     ""
+     "_|_"
+     "")
+    (tests-utils--multiline
+     ""
+     "import _|_"
+     "")))
+
+(ert-deftest vim-tests/haskell-abbrev-import-2 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "i i SPC"))
+    (tests-utils--multiline
+     ""
+     "_|_"
+     "")
+    (tests-utils--multiline
+     ""
+     "import _|_"
+     "")))
+
+(ert-deftest vim-tests/haskell-abbrev-import-3 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "i SPC i SPC = i SPC + i <escape>"))
+    (tests-utils--multiline
+     ""
+     "foo_|_"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo i = i + _|_i"
+     "")))
+
+(ert-deftest vim-tests/haskell-abbrev-import-4 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "i SPC i m SPC = i m SPC + i m <escape>"))
+    (tests-utils--multiline
+     ""
+     "foo_|_"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo im = im + i_|_m"
+     "")))
+
+(ert-deftest vim-tests/haskell-abbrev-import-5 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "i SPC i m p SPC = b a r SPC i m p SPC 1 <escape>"))
+    (tests-utils--multiline
+     ""
+     "foo_|_"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo imp = bar imp _|_1"
+     "")))
+
+(ert-deftest vim-tests/haskell-abbrev-import-6 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "i i q SPC F o o <tab> <escape>"))
+    (tests-utils--multiline
+     ""
+     "_|_"
+     "")
+    (tests-utils--multiline
+     ""
+     "import qualified Foo as _|_F"
+     "")))
+
+(ert-deftest vim-tests/haskell-abbrev-2 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      ;; Aborting pragma prompt with <escape> causes 'quit signal to be raised.
+      ;; If we don’t catch it then ert will not proceed to compare buffer contents.
+      (condition-case nil
+          (execute-kbd-macro (kbd "i # # SPC <escape> <escape>"))
+        (quit t))
+    (tests-utils--multiline
+     ""
+     "_|_"
+     "")
+    (tests-utils--multiline
+     ""
+     "{-# _|_  #-}"
+     "")))
+
+(ert-deftest vim-tests/haskell-abbrev-3 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      ;; Aborting pragma prompt with <escape> causes 'quit signal to be raised.
+      ;; If we don’t catch it then ert will not proceed to compare buffer contents.
+      (condition-case nil
+          (execute-kbd-macro (kbd "i SPC <escape> <escape>"))
+        (quit t))
+    (tests-utils--multiline
+     ""
+     "##    _|_"
+     "")
+    (tests-utils--multiline
+     ""
+     "{-# _|_  #-}"
+     "")))
+
+(ert-deftest vim-tests/haskell-abbrev-4 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "i # s c c SPC 1 2 3 <tab> <escape>"))
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  bar (_|_ x + 1) y \"foo\""
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  bar ({-# SCC \"123\" #-_|_} x + 1) y \"foo\""
+     "")))
+
+(ert-deftest vim-tests/haskell-abbrev-5 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "i h p l n SPC"))
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  bar (_|_ x + 1) y \"foo\""
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  bar (hPutStrLn_|_ x + 1) y \"foo\""
+     "")))
+
+(ert-deftest vim-tests/haskell-abbrev-6 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "i h p l n SPC"))
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  bar (x + 1) y \"foo\""
+     "  _|_"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  bar (x + 1) y \"foo\""
+     "  hPutStrLn _|_"
+     "")))
+
+(ert-deftest vim-tests/haskell-abbrev-7 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "i p n SPC $"))
+    (tests-utils--multiline
+     ""
+     "foo x = _|_do"
+     "  bar (x + 1) y \"foo\""
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = putStrLn $ _|_do"
+     "  bar (x + 1) y \"foo\""
+     "")))
+
+(ert-deftest vim-tests/haskell-abbrev-8 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "i imports SPC"))
+    (tests-utils--multiline
+     ""
+     "_|_"
+     "foo x = do"
+     "  bar (x + 1) y \"foo\""
+     "")
+    (tests-utils--multiline
+     ""
+     "import Data.Set (Set)"
+     "import qualified Data.Set as S _|_"
+     "foo x = do"
+     "  bar (x + 1) y \"foo\""
      "")))
 
 (provide 'vim-tests)

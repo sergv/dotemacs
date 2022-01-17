@@ -423,7 +423,7 @@ but with nil, point will be repositioned at r:
     (when vim--this-column
       (move-to-column vim--this-column))
 
-    ;; always stop at the last character (not the newline)
+    ;; Always stop at the last character (not the newline).
     (when (and (not (vim-visual-mode-p))
                (not vim-do-not-adjust-point)
                (eolp)
