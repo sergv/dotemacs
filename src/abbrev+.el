@@ -11,17 +11,21 @@
   (require 'macro-util))
 
 (require 'common)
+(require 'dash)
+(require 'trie)
 
 (declare-function org-self-insert-command "org")
 (declare-function yas-expand-snippet "yasnipet")
 
 (cl-defstruct (abbrev+-abbreviation
                (:constructor make--abbrev+-abbreviation))
-  ;; Regular expression that should be matched in order for
-  ;; this abbreviation to activate.
-  (trigger nil :read-only t)
-  ;; Whether to ignore case when matching the trigger.
-  (trigger-is-case-sensitive nil :read-only t)
+  ;; Whether to expand even if there’re whitespace characters between current point
+  ;; and trigger string.
+  ;; E.g. with _|_ denoting point:
+  ;;
+  ;; foobar   _|_
+  ;;       ^^^
+  (followed-by-space nil :read-only t)
   ;; Symbol, one of 'literal-string, 'literal-string-no-space-at-end ,
   ;; 'function-result, 'function-with-side-effects or 'yas-snippet.
   (action-type nil :read-only t)
@@ -37,6 +41,8 @@
   ;; will be called before performing ACTION and should return nil or t.
   ;; If t is returned then ACTION would be performed.
   ;;
+  ;; It’s called at a position whene match was found.
+  ;;
   ;; Optional.
   (predicate nil :read-only t)
 
@@ -46,8 +52,8 @@
   ;; Optional.
   (on-successful-expansion nil :read-only t))
 
-(cl-defun make-abbrev+-abbreviation (&key trigger trigger-is-case-sensitive action-type action-data predicate on-successful-expansion)
-  (cl-assert (stringp trigger))
+(cl-defun make-abbrev+-abbreviation (&key followed-by-space action-type action-data predicate on-successful-expansion)
+  (cl-assert (memq followed-by-space '(nil t)))
   (cl-assert (or (null predicate) (functionp predicate)))
   (cl-assert (or (null on-successful-expansion)
                  (functionp on-successful-expansion)))
@@ -64,39 +70,11 @@
       t)
      (typ nil)))
   (make--abbrev+-abbreviation
-   :trigger (concat "\\`" trigger "\\'")
-   :trigger-is-case-sensitive trigger-is-case-sensitive
+   :followed-by-space followed-by-space
    :action-type action-type
    :action-data action-data
    :predicate predicate
    :on-successful-expansion on-successful-expansion))
-
-(defvar-local abbrev+-abbreviations
-  (vector
-   (make-abbrev+-abbreviation
-    :trigger "^pwd"
-    :action-type 'function-result
-    :action-data (lambda () (expand-file-name default-directory))))
-  "A list of `abbrev+-abbreviation' structures.")
-
-(defvar-local abbrev+-skip-syntax
-  ["w" "w_" "w_." "^->"]
-  "List of syntaxes that will be tried one after the other
-to find match for car-element in `abbrev+-abbreviations'")
-
-(defvar abbrev+-after-expand-and-space-hook nil
-  "Hook to be run after expansion was carried out and trailing space was
-inserted. Space is important - if conditions to insert space were not
-met then this hook would not run.")
-
-
-(defun abbrev+--get-substitution (str)
-  "Return substitution for STR obtained by matching STR against
-trigger of `abbrev+-abbreviations' and returning corresponding element in cdr."
-  (v--find
-   (let ((case-fold-search (not (abbrev+-abbreviation-trigger-is-case-sensitive it))))
-     (string-match-p (abbrev+-abbreviation-trigger it) str))
-   abbrev+-abbreviations))
 
 (defun abbrev+-perform-substitution (abbrev)
   "Perform actual substitution. Return two arguments: first being
@@ -135,69 +113,126 @@ second being actual substituted text."
       (awhen (abbrev+-abbreviation-on-successful-expansion abbrev)
         (funcall it)))))
 
+
+
+(defun abbrev+-compile-abbreviations (abbrevs)
+  (let ((space-followed (make-empty-trie))
+        (regular (make-empty-trie)))
+    (dolist (entry abbrevs)
+      (cl-assert (consp entry))
+      (let ((triggers (car entry))
+            (abbrev   (cdr entry)))
+        (dolist (key triggers)
+          (cl-assert (stringp key))
+          ;;(cl-assert (abbrev+-abbreviation-p abbrev))
+          (let ((rk (reverse key)))
+            (trie-insert-with! rk
+                               abbrev
+                               regular
+                               (lambda (old _new)
+                                 (error "Key %s already has abbreviation defined: %s" key old)))
+            (when (abbrev+-abbreviation-followed-by-space abbrev)
+              (trie-insert-with! rk
+                                 abbrev
+                                 space-followed
+                                 (lambda (old _new)
+                                   (error "Key %s already has abbreviation defined: %s" key old))))))))
+    (cons (trie-opt-recover-sharing! space-followed)
+          (trie-opt-recover-sharing! regular))))
+
+(defvar-local abbrev+-abbreviations nil
+  "Pair of tries produced by ‘abbrev+-compile-abbreviations’. car
+is for matching abbrevs that could be delimited by a space (but
+it’s not mandatory) and second ones that only should be expanded
+if point is just after the trigger.")
+
+(defvar-local abbrev+-do-not-expand-predicate nil
+  "Global predicate, if it returns t then no expansions will be attempted.
+
+nil value stands for no predicate and hence no such check.")
+
 (defun abbrev+-expand ()
   "Expand text before point that matches against one of triggers
 of `abbrev-abbreviations'. Returns boolean indicating whether
 expansion was performed."
-  (let ((start (point))
-        entry
-        str)
-    (cl-loop
-      for syntax across abbrev+-skip-syntax
-      until entry
-      do
-      (goto-char start)
-      (skip-syntax-backward " " (line-beginning-position))
-      (let ((beginning (point)))
-        (cond
-          ((stringp syntax)
-           (skip-syntax-backward syntax))
-          ((vectorp syntax)
-           (cl-loop
-             for s across syntax
-             do (skip-syntax-backward s)))
-          (t
-           (error "Invalid abbrev+ skip syntax: %s" syntax)))
-        (setf str (buffer-substring-no-properties (point) beginning)
-              entry (abbrev+--get-substitution str))))
-    (let ((result
-           (when (and entry
-                      (aif (abbrev+-abbreviation-predicate entry)
-                          (save-excursion (funcall it))
-                        ;; do substitution if no predicate supplied
-                        t))
-             (delete-region (point) start)
-             (let* ((point-before-substitution (point))
-                    (insert-spacep (abbrev+-perform-substitution entry))
-                    (new-text (buffer-substring-no-properties point-before-substitution (point))))
-               (unless (string-equal str new-text)
-                 (when (and insert-spacep
-                            (or (eobp)
-                                (not (char-equal (char-after) ?\s))))
-                   (insert " "))
-                 ;; substitution was succesfull
-                 t)))))
-      (unless result
-        (goto-char start))
-      result)))
+  (when (or (not abbrev+-do-not-expand-predicate)
+            (not (funcall abbrev+-do-not-expand-predicate)))
+    (let* ((line-start (line-beginning-position))
+           (start (point))
+           (p-vanilla start)
+           p-followed
+           (followed-trie (car abbrev+-abbreviations))
+           (vanilla-trie (cdr abbrev+-abbreviations))
+           found
+           found-pt)
+      (skip-syntax-backward " " line-start)
+      (setf p-followed (point))
+      (cl-assert (<= p-followed p-vanilla))
 
-(defvar-local abbrev+-fallback-function (lambda () (insert-char ?\s))
-  "Fallback function called by `abbrev+-insert-space-or-expand-abbrev'
-if no expansion was produced.")
+      (while (and
+              ;; Don’t stop at first find, we want longest match. So continue while
+              ;; we have tries that could match something at hand. Once tries
+              ;; become nil we wouldn’t find anything an at that point we’ll use
+              ;; whatever we found last - that’s the longest match.
+              ;; (not found)
+              (or followed-trie
+                  vanilla-trie)
+              (<= line-start p-followed))
+
+        (let ((c-vanilla (char-before p-vanilla))
+              (c-followed (char-before p-followed)))
+
+          (setf followed-trie (and followed-trie
+                                   (trie-lookup-node-char c-followed followed-trie))
+                vanilla-trie (and vanilla-trie
+                                  (trie-lookup-node-char c-vanilla vanilla-trie))))
+
+        (let ((vanilla-value (trie-node-value-get vanilla-trie nil))
+              (followed-value (trie-node-value-get followed-trie nil)))
+          (when (and vanilla-value
+                     followed-value
+                     (not (eq vanilla-value followed-value)))
+            (error "Conflict: two abbrevs matched at the same time module space following:\n----\n%s\n----\n%s"
+                   vanilla-value
+                   followed-value))
+          (when vanilla-value
+            (setf found vanilla-value
+                  found-pt p-vanilla))
+          (when followed-value
+            (setf found followed-value
+                  found-pt p-followed)))
+
+        ;; Move 1 character back.
+        (setf p-vanilla (1- p-vanilla)
+              p-followed (1- p-followed)))
+
+      (let ((res (when found
+                   (cl-assert (<= line-start found-pt))
+
+                   (when (aif (abbrev+-abbreviation-predicate found)
+                             (save-excursion
+                               (goto-char (1- found-pt))
+                               (funcall it))
+                           ;; do substitution if no predicate supplied
+                           t)
+                     (delete-region (1- found-pt) start)
+                     (let* ((insert-space? (abbrev+-perform-substitution found)))
+                       (when (and insert-space?
+                                  (or (eobp)
+                                      (not (eq (char-after) ?\s))))
+                         (insert ?\s))
+                       ;; substitution was succesfull
+                       t)))))
+        (unless res
+          (goto-char start))
+        res))))
 
 ;;;###autoload
 (defun abbrev+-insert-space-or-expand-abbrev (&optional dont-expand)
   (interactive (list current-prefix-arg))
   (when (or dont-expand
             (not (abbrev+-expand)))
-    (funcall abbrev+-fallback-function)))
-
-;;;###autoload
-(defun abbrev+-org-self-insert-or-expand-abbrev (&optional dont-expand)
-  (interactive (list current-prefix-arg))
-  (when (or dont-expand
-            (not (abbrev+-expand)))
-    (org-self-insert-command 1)))
+    (insert-char ?\s)))
 
 (defun abbrev+--make-re-with-optional-suffix (str suffix-len)
   (declare (pure t) (side-effect-free t))
@@ -231,6 +266,55 @@ recognition."
           (mapconcat (lambda (x) (abbrev+--make-re-with-optional-suffix (car x) (cadr x)))
                      name-parts
                      "-?")))
+
+(defun abbrev+--expand-name-part (x)
+  (let ((name (car x))
+        (count (cadr x))
+        (limit (caddr x)))
+    (cl-assert (stringp name))
+    (cl-assert (or (null count) (numberp count)))
+    (if count
+        (let* ((prefix (substring name 0 count))
+               (res nil))
+          (cl-loop
+           for i from count to (or limit (length name))
+           do
+           (push (concat prefix (substring name count i))
+                 res))
+          res)
+      (list name))))
+
+(defun abbrev+--list-product (xss)
+  (if xss
+      (let ((items (car xss)))
+        (mapcan (lambda (rest)
+                  (mapcar (lambda (x)
+                            (concat x rest))
+                          items))
+                (abbrev+--list-product (cdr xss))))
+    '(())))
+
+(defun make-abbrev+-triggers-for-func-name (delims name-parts)
+  "Return list of triggers matches emacs lisp function name, NAME-PARTS is
+a list of the (str [start [end]]) elements, resulting re would
+match part1-part2-...-partN with optional dashes and suffix
+recognition."
+  (declare (pure t) (side-effect-free t))
+  (abbrev+--list-product
+   (-interpose delims
+               (-map #'abbrev+--expand-name-part
+                     name-parts))))
+
+(defun make-abbrev+-prefixes (s start &optional limit)
+  (cl-assert (stringp s))
+  (cl-assert (fixnump start))
+  (cl-assert (< start (length s)))
+  (let ((res nil))
+    (cl-loop
+     for i from start to (or limit (length s))
+     do
+     (push (substring s 0 i) res))
+    res))
 
 (provide 'abbrev+)
 

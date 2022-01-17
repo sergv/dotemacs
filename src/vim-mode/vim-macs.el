@@ -23,7 +23,8 @@ Vim-mode commands are defined using the macro vim-defcmd, which has the followin
                             (argument[:{char,text,file,buffer,...}] [arg-name])
                             [nonrepeatable]
                             [noninteractive]
-                            [keep-visual])
+                            [keep-visual]
+                            [unadjusted])
     body ...)
 
 The first three arguments are keyword arguments similar to
@@ -91,6 +92,9 @@ keep-visual:
   window commands. Note that most editing commands do disable
   visual-mode.
 
+unadjusted:
+  Do not adjust point after interactive command finishes.
+
 As described above vim-defcmd can be used to define commands for
 both normal-mode and ex-mode. Each command should place (point) at
 the correct position after the operation.
@@ -117,7 +121,8 @@ For more information about the vim:motion struct look at vim-core.el."
         (params nil)
         (named-params nil)
         (doc nil)
-        (interactive t))
+        (interactive t)
+        (unadjusted nil))
 
     ;; extract documentation string
     (if (and (consp body)
@@ -162,6 +167,7 @@ For more information about the vim:motion struct look at vim-core.el."
                     (not (eq (cadr arg) 'motion)))
            (push `(,(cadr arg) motion) named-params)))
 
+        (`unadjusted (setq unadjusted t))
         (`keep-visual (setq keep-visual t))
         (`do-not-keep-visual (setq keep-visual nil))
         (`repeatable (setq repeatable t))
@@ -215,11 +221,15 @@ For more information about the vim:motion struct look at vim-core.el."
                  (defun ,name-interactive ,(if has-args? '(&rest args) '())
                    ,(format "Interactive version of ‘%s’" name)
                    (interactive)
-                   (if vim-active-mode
-                       (vim-execute-command #',name)
-                     ,(if has-args?
-                          `(apply #',name args)
-                        `(,name)))
+
+                   (let ,(if unadjusted
+                             '((vim-do-not-adjust-point t))
+                           '())
+                     (if vim-active-mode
+                         (vim-execute-command #',name)
+                       ,(if has-args?
+                            `(apply #',name args)
+                          `(,name))))
 
                    ;; (if ;; Since in minibuffer vim-mode may be inactive but
                    ;;     ;; we may still want to execute the desired command.

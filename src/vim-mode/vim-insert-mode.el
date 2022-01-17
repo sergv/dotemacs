@@ -107,13 +107,13 @@ where to insert a newline."
   (overwrite-mode -1)
   (vim-set-mark ?^)
   (remove-hook 'pre-command-hook 'vim--insert-save-key-sequence)
-  ;; the command that has just ended insert-mode should NOT be repeatable
+  ;; The command that has just ended insert-mode should NOT be repeatable
   ;; and will therefore NOT override repeat-sequence.
   (setq vim--repeat-events (vconcat vim--repeat-events
-                                   vim--current-key-sequence))
+                                    vim--current-key-sequence))
   (setq vim--last-undo vim--last-insert-undo)
 
-  ;; repeat insertion
+  ;; Repeat insertion.
   (dotimes (_ (1- (or vim--insert-count 1)))
     (goto-char (if (eq vim--insert-marker 'eob)
                    (point-max)

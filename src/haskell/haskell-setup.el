@@ -352,7 +352,6 @@ _a_lign  _t_: jump to topmost node start
     (setq-local eproj-symbnav/identifier-type 'haskell-symbol
 
                 yas-indent-line 'fixed
-                abbrev+-fallback-function #'haskell-abbrev+-fallback-space
 
                 ;; Improve vim treatment of words for Haskell.
                 ;; Note: underscore should not be included since it would prevent

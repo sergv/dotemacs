@@ -628,12 +628,6 @@ both unicode and ascii characters.")
            (t
             (haskell--simple-indent-newline-same-col))))))))
 
-(defsubst haskell-abbrev+-fallback-space ()
-  "Insert space character and potentially indent to the right
-haskell block at current indentation level."
-  (interactive "*")
-  (haskell-space-with-block-indent))
-
 (defun haskell--ghci-hyphen (&optional prefix)
   "Version of `haskell-smart-operators-hyphen' for ghci."
   (interactive "*p")
