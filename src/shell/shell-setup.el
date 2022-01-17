@@ -201,11 +201,7 @@ MSYS-style drives, e.g. \"/c/foo/bar.txt\" -> \"c:/foo/bar.txt\"."
     ("C-<down>"  comint-next-prompt)
 
     ;; ("C-c C-k"   comint-kill-subjob)
-
-    ("C-("       vim:sp-backward-slurp-sexp:interactive)
-    ("C-)"       vim:sp-forward-slurp-sexp:interactive)
-    ("M-("       sp-absorb-sexp)
-    ("M-)"       sp-emit-sexp)))
+    ))
 
 ;;;###autoload
 (add-hook 'shell-mode-hook #'shell-setup)
