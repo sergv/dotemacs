@@ -148,9 +148,9 @@ M-_x_"
 
 (defhydra-ext hydra-window-management (:exit t :foreign-keys warn :hint nil)
   "
-_c_lose      _h_orizontal split
-_o_nly       _v_ertical split
-_t_ranspose  _b_alance
+_c_lose      _h_orizontal split  _b_alance
+_o_nly       _v_ertical split    _B_alance other windows
+_t_ranspose
 
 _<left>_:    shrink horizontally
 _<right>_:   enlarge horizontally
@@ -166,6 +166,7 @@ _S-<up>_:    fast enlarge vertically
   ("o" delete-other-windows)
   ("t" transpose-windows)
   ("b" balance-windows)
+  ("B" balance-other-windows)
 
   ("h" split-window-vertically)
   ("v" split-window-horizontally)
