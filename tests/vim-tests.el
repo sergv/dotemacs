@@ -1351,6 +1351,22 @@
    "_|_"
    ""))
 
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/vim:yank-current-line-1
+    (execute-kbd-macro (kbd "Y h P"))
+  (tests-utils--multiline
+   ""
+   "a_|_bc"
+   "def"
+   "xyz"
+   "")
+  (tests-utils--multiline
+   ""
+   "abc"
+   "d_|_bcef"
+   "xyz"
+   ""))
+
 (ert-deftest vim-tests/sp-expand-pragma-pair-1/haskell-mode ()
   (vim-tests--test-fresh-buffer-contents-init
       (haskell-mode)
