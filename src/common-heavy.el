@@ -1143,6 +1143,22 @@ to deleted items. ITEMS will be mutated in order to obtain result."
     (progn
       (profiler-start 'cpu+mem))))
 
+;;; balance-other-windows
+
+;;;###autoload
+(defun balance-other-windows ()
+  (interactive)
+  (let ((is-bound? (local-variable-p 'window-size-fixed))
+        (old-val window-size-fixed))
+    (unwind-protect
+        (progn
+          (setq window-size-fixed t)
+          (balance-windows))
+      (progn
+        (if is-bound?
+            (setq window-size-fixed old-val)
+          (kill-local-variable 'window-size-fixed))))))
+
 (provide 'common-heavy)
 
 ;; Local Variables:
