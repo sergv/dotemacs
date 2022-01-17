@@ -67,7 +67,7 @@
                              (name nil)
                              (exclusive t)
                              (doc nil)
-                             (do-not-adjust-point nil)
+                             (unadjusted nil)
                              (raw-result nil))
   "Embed FUNC into vim framework of motions. FUNC may be symbol or
 actual call to function."
@@ -84,8 +84,8 @@ actual call to function."
                           name
                         (intern (concat "vim:" func-name)))))
     `(vim-defmotion ,motion-name (,(if exclusive 'exclusive 'inclusive)
-                                  ,@(when do-not-adjust-point
-                                        '(do-not-adjust-point))
+                                  ,@(when unadjusted
+                                        '(unadjusted))
                                   ,@(when raw-result
                                         '(raw-result)))
        ,(if doc doc (concat "See `" func-name "'."))
