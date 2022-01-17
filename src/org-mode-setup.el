@@ -430,12 +430,12 @@ _C_: hide everything except current entry and its parents"
     ("$" vim:org-end-of-line:interactive))
 
   (def-keys-for-map vim-insert-mode-local-keymap
-    ("SPC"  abbrev+-org-self-insert-or-expand-abbrev))
+    ("SPC"  org-mode-space-abbrev+))
 
   (def-keys-for-map org-mode-map
     ("C-k"   nil)
     ("C-t"   org-todo)
-    ("SPC"   abbrev+-org-self-insert-or-expand-abbrev)))
+    ("SPC"   org-mode-space-abbrev+)))
 
 (defun org-agenda-mode-setup ()
   (def-keys-for-map org-agenda-mode-map

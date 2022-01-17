@@ -30,20 +30,16 @@
      :format format)))
 
 (defun-once shell-script-abbrev+-make-abbrevs
-  (vector
-   (make-abbrev+-abbreviation
-    :trigger "info"
-    :action-type 'function-with-side-effects
-    :action-data #'shell-script-info-message-template
-    :predicate (lambda () (and (not (lisp-point-inside-string-or-comment?))
-                          (not (lisp-prev-pos-is-beginning-of-list? (point))))))))
+  (abbrev+-compile-abbreviations
+   (list
+    (cons (list "info")
+          (make-abbrev+-abbreviation
+           :action-type 'function-with-side-effects
+           :action-data #'shell-script-info-message-template)))))
 
 (defun shell-script-abbrev+-setup ()
-  (setf abbrev+-skip-syntax ["w_"
-                             "w_("
-                             ;;"^ >"
-                             ]
-        abbrev+-abbreviations (shell-script-abbrev+-make-abbrevs))
+  (setf abbrev+-abbreviations (shell-script-abbrev+-make-abbrevs)
+        abbrev+-do-not-expand-predicate #'point-inside-string-or-comment?)
   (def-keys-for-map vim-insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))
 
