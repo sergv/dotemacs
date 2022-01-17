@@ -71,10 +71,17 @@
     ("S-<right>"  swap-buffers-forward)))
 
 (defconst +vim-character-navigation-keys+
-  '(("C-<down>"  forward-line)
-    ("C-<up>"    backward-line)
-    ("C-<right>" forward-char)
-    ("C-<left>"  backward-char)))
+  '(("C-<down>"   forward-line)
+    ("C-<up>"     backward-line)
+    ("C-<right>"  forward-char)
+    ("C-<left>"   backward-char)))
+
+(defconst +vim-parens-keys+
+  '(("C-("        vim:sp-backward-slurp-sexp:interactive)
+    ("C-)"        vim:sp-forward-slurp-sexp:interactive)
+    ("M-("        vim:sp-splice-sexp-killing-backward:interactive)
+    ("M-)"        vim:sp-splice-sexp-killing-forward:interactive)
+    ("M-?"        vim:sp-convolute-sexp:interactive)))
 
 (defhydra-ext hydra-pseudovim-z-ext (:exit t :foreign-keys nil :hint nil)
   "

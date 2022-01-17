@@ -547,11 +547,6 @@ _a_lign  _t_: jump to topmost node start
     ("S-<up>"   comint-previous-prompt)
     ("S-<down>" comint-next-prompt)
 
-    ("C-("      vim:sp-backward-slurp-sexp:interactive)
-    ("C-)"      vim:sp-forward-slurp-sexp:interactive)
-    ("M-("      sp-absorb-sexp)
-    ("M-)"      sp-emit-sexp)
-
     ("C-SPC"    vim:comint-clear-buffer-above-prompt:interactive)
     ("M-p"      browse-comint-input-history))
 
