@@ -241,7 +241,7 @@ parameters and a view attributes. The general form is as follows.
                              | exclusive
                              | linewise
                              | block
-                             | do-not-adjust-point
+                             | unadjusted
                              | motion-result
                              | raw-result
                              }*)
@@ -262,7 +262,7 @@ argument:
 inclusive, exclusive, linewise, block:
   This is the default motion type of this motion command.
 
-do-not-adjust-point:
+unadjusted:
   if specified then after executing this motion point located at
   the end of line would not be adjusted, see also
   `vim--adjust-point'
@@ -285,7 +285,7 @@ look at vim-core.el."
         (params nil)
         (named-params nil)
         (doc nil)
-        (do-not-adjust-point nil)
+        (unadjusted nil)
         (raw-result nil)
         (motion-result nil)
         (ret '#:ret))
@@ -304,8 +304,8 @@ look at vim-core.el."
         ((or `inclusive `exclusive `linewise `block)
          (setq type arg))
 
-        (`do-not-adjust-point
-         (setf do-not-adjust-point t))
+        (`unadjusted
+         (setf unadjusted t))
 
         (`raw-result
          (setf raw-result t))
@@ -368,7 +368,7 @@ look at vim-core.el."
        (defun ,name-interactive ()
          ,(format "Interactive version of ‘%s’" name)
          (interactive)
-         (let ,(if do-not-adjust-point
+         (let ,(if unadjusted
                    '((vim-do-not-adjust-point t))
                  '())
            (if vim-active-mode
