@@ -440,7 +440,7 @@ sexps and indentation levels."
 (vimmize-motion rust-backward-up-indentation-or-sexp
                 :name vim:rust-backward-up-indentation-or-sexp
                 :exclusive t
-                :do-not-adjust-point t)
+                :unadjusted t)
 
 ;;;; Setup
 

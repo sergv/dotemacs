@@ -404,7 +404,7 @@ and the (default) type of the motion."
          (min (1- (line-end-position)) pos))))
 
 
-(defvar-local vim-do-not-adjust-point nil
+(defvar vim-do-not-adjust-point nil
   "If equals to t then no adjustment of point at end of line would
 take place. I.e. this enables to position point at the \\n character
 at the end of line, whereas in Vim this is prohibited. This probably
