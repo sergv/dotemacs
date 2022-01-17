@@ -326,7 +326,7 @@ and switches to insert-mode."
 
 (vim-defcmd vim:yank-current-line ()
   "Function that does what \"y$\" does in vanilla vim."
-  (vim:cmd-yank :motion (vim:motion-end-of-line)))
+  (vim:cmd-yank :motion (save-excursion (vim:motion-end-of-line))))
 
 (vim-defcmd vim:cmd-yank-line (count nonrepeatable)
   "Saves the next count lines into the kill-ring."
