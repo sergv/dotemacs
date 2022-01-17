@@ -291,6 +291,7 @@ _<right>_: move tab to the right"
 
 (def-keys-for-map (vim-normal-mode-keymap
                    vim-insert-mode-keymap)
+  +vim-parens-keys+
   ("C-p"  vim-cmd-paste-after-no-adjust)
   ("<f4>" vim:render-latex:interactive))
 

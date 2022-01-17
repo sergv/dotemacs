@@ -227,13 +227,10 @@
 
 (def-keys-for-map minibuffer-local-map
   ;; in sexp-related situations "''" is quite rare pair
+  +vim-parens-keys+
   ("'"         self-insert-command)
   ("M-<up>"    sp-splice-sexp-killing-backward)
-  ("M-<down>"  sp-splice-sexp-killing-forward)
-  ("C-("       sp-backward-slurp-sexp)
-  ("C-)"       sp-forward-slurp-sexp)
-  ("M-("       sp-backward-slurp-sexp)
-  ("M-)"       sp-backward-barf-sexp))
+  ("M-<down>"  sp-splice-sexp-killing-forward))
 
 (def-keys-for-map completion-list-mode-map
   ("<up>"   previous-completion)
