@@ -17,16 +17,16 @@
 (defun make-trie-node (value subtrees)
   (cons value subtrees))
 
-(defsubst trie-node-value (x)
+(defsubst trie-node--value (x)
   (car x))
 
-(defsetf trie-node-value (x) (value)
+(defsetf trie-node--value (x) (value)
   `(setf (car ,x) ,value))
 
-(defsubst trie-node-subtrees (x)
+(defsubst trie-node--subtrees (x)
   (cdr x))
 
-(defsetf trie-node-subtrees (x) (value)
+(defsetf trie-node--subtrees (x) (value)
   `(setf (cdr ,x) ,value))
 
 (defsubst trie-node-p (x)
@@ -35,7 +35,7 @@
 ;; NB returns alist entry (<char> . <subnode>), not <subnode>.
 (defsubst trie-node--find-subtree (key node)
   (cl-assert (trie-node-p node))
-  (assq key (trie-node-subtrees node)))
+  (assq key (trie-node--subtrees node)))
 
 (defun make-empty-trie ()
   (make-trie-node trie--unbound nil))
@@ -57,18 +57,24 @@ call (MERGE old-val VALUE) to produce a new value."
        (aif subtree-entry
            (setf node (cdr it))
          (let ((new-node (make-empty-trie)))
-           (setf (trie-node-subtrees node) (cons (cons c new-node)
-                                                 (trie-node-subtrees node))
+           (setf (trie-node--subtrees node) (cons (cons c new-node)
+                                                 (trie-node--subtrees node))
                  node new-node)))))
 
-    (let ((val (trie-node-value node)))
-      (setf (trie-node-value node)
+    (let ((val (trie-node--value node)))
+      (setf (trie-node--value node)
             (if (eq val trie--unbound)
                 value
               (funcall merge val value))))))
 
+(defsubst trie-node-value-get (trie &optional def)
+  (let ((val (trie-node--value trie)))
+    (if (eq val trie--unbound)
+        def
+      val)))
+
 (defsubst trie-lookup-node-char (c trie)
-  "Produce subtrie with character ‘C’ being stripped from TRIE."
+  "Produce subtrie with character C being stripped from TRIE as a prefix."
   (cdr (trie-node--find-subtree c trie)))
 
 (defun trie-lookup (key trie &optional def)
@@ -82,11 +88,65 @@ call (MERGE old-val VALUE) to produce a new value."
         (setf node (trie-lookup-node-char c node)
               i (1+ i))))
     (if node
-        (let ((val (trie-node-value node)))
+        (let ((val (trie-node--value node)))
           (if (eq val trie--unbound)
               def
             val))
       def)))
+
+;;;; Optimization
+
+(defun trie-opt-normalize-subtrees! (trie)
+  (dolist (subtree (trie-node--subtrees trie))
+    (trie-opt-normalize-subtrees! (cdr subtree)))
+
+  (setf (trie-node--subtrees trie)
+        (sort (trie-node--subtrees trie)
+              (lambda (x y) (< (car x) (car y))))))
+
+(defun trie-opt-recover-sharing! (trie)
+  (let ((cache (make-hash-table :test #'equal)))
+    (trie-opt-normalize-subtrees! trie)
+    (trie-opt--recover-sharing-worker trie cache)))
+
+(defun trie-opt--recover-sharing-worker (trie cache)
+  (aif (gethash trie cache)
+      it
+    (let* ((value (trie-node--value trie))
+           (subtrees (trie-node--subtrees trie))
+           (shared-val (aif (gethash value cache)
+                           it
+                         (puthash value value cache)))
+           (shared-subtrees
+            ;; (trie-opt--recover-sharing-worker--subtrees subtrees cache)
+            (trie-opt--recover-sharing-worker--subtrees
+             (--map (cons (car it)
+                          (trie-opt--recover-sharing-worker (cdr it) cache))
+                    (trie-node--subtrees trie))
+             cache))
+           (shared (make-trie-node shared-val shared-subtrees)))
+      (puthash trie shared cache)
+      shared)))
+
+(defun trie-opt--recover-sharing-worker--subtrees (subtrees cache)
+  (aif (gethash subtrees cache)
+      it
+    (when subtrees
+      (let* ((head (car subtrees))
+             (rest (cdr subtrees))
+             (cached-car (aif (gethash head cache)
+                             it
+                           (puthash head head cache)))
+             (cached-cdr (aif (gethash rest cache)
+                             it
+                           (puthash rest
+                                    (trie-opt--recover-sharing-worker--subtrees rest cache)
+                                    cache)))
+             (res (cons cached-car cached-cdr)))
+        (puthash subtrees res cache)
+        res))))
+
+;;;; End
 
 (provide 'trie)
 
