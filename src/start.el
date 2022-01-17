@@ -209,22 +209,20 @@ sp-escape:
       (message "init-repl warning: vim-operator-pending-mode-local-keymap is nil, \"c\" not bound in buffer %s"
                (current-buffer))))
 
-  (cond ((keymapp bind-return)
-         (def-keys-for-map bind-return
-           ("<return>"   comint-send-input)
-           ("C-<return>" sp-newline)))
-        ((and (not (null? bind-return))
-              (cons? bind-return)
-              (keymapp (car bind-return)))
-         (dolist (keymap bind-return)
-           (def-keys-for-map keymap
-             ("<return>"   comint-send-input)
-             ("C-<return>" sp-newline))))
-        ((not (null? bind-return))
-         (def-keys-for-map (vim-normal-mode-local-keymap
-                            vim-insert-mode-local-keymap)
-           ("<return>"   comint-send-input)
-           ("C-<return>" sp-newline)))))
+  (let ((keymaps
+         (cond ((keymapp bind-return)
+                (list bind-return))
+               ((and bind-return
+                     (consp bind-return)
+                     (keymapp (car bind-return)))
+                bind-return)
+               (bind-return
+                (vim-normal-mode-local-keymap
+                 vim-insert-mode-local-keymap)))))
+    (dolist (km keymaps)
+      (def-keys-for-map km
+        ("<return>"   comint-send-input)
+        ("C-<return>" sp-newline)))))
 
 (cl-defun bind-tab-keys (tab-binding
                          backtab-binding
