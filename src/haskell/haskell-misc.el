@@ -790,19 +790,26 @@ value section should have if it is to be properly indented."
     (evaporate-region start (point))
     (goto-char start)))
 
-
-(defun haskell-move-to-topmost-start ()
+(defun haskell-move-to-topmost-start-impl (&optional _count)
   "Move to start of the topmost node, similar to `glisp/beginning-of-defun'."
-  (interactive)
-  (vim-save-position)
   (save-match-data
-   (re-search-backward "^[^ \t\v\f\n\r#]" nil t))
+    ;; Count ignored since we’re already jumping to the most enclosing definition.
+    (re-search-backward "^[^ \t\v\f\n\r#]" nil t 1))
   ;; (beginning-of-line)
-  ;; (while (and (not (bobp))
-  ;;             (or (/= 0 (indentation-size))
-  ;;                 (looking-at-p haskell-regexen/preprocessor-or-empty-line)))
-  ;;   (forward-line -1))
+  ;; (let ((c (char-after)))
+  ;;   (while (and (not (bobp))
+  ;;               (or (and c
+  ;;                        (whitespace-char? c))
+  ;;                   (looking-at-p haskell-regexen/preprocessor-or-empty-line)))
+  ;;     (forward-line -1)
+  ;;     (setf c (char-after))))
   )
+
+(defun haskell-move-to-topmost-start (&optional count)
+  "Move to start of the topmost node, similar to `glisp/beginning-of-defun'."
+  (interactive "p")
+  (vim-save-position)
+  (haskell-move-to-topmost-start-impl count))
 
 (defun haskell-move-to-topmost-end ()
   "Move to end of the topmost node, similar to `glisp/end-of-defun'."
