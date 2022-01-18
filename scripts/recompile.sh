@@ -14,12 +14,12 @@ if [[ ! -d "$emacs_dir" ]]; then
     exit 1
 fi
 
-function inform {
+function inform() {
     local msg="$1"
     echo "[$msg]"
 }
 
-function fatal {
+function fatal() {
     local msg="$1"
     echo "[$msg]" >&2
     exit 1
@@ -29,7 +29,12 @@ function define() {
     IFS='\n' read -r -d '' ${1} || true
 }
 
-function update-dir-autoloads {
+function native-comp-available() {
+    emacs -Q --batch \
+          --eval "(message \"%s\" (and (fboundp #'native-comp-available-p) (native-comp-available-p)))"
+}
+
+function update-dir-autoloads() {
     local name="$1"
     shift 1
     local dirs=""
@@ -132,13 +137,20 @@ fi
 # fi
 
 inform "Recompiling"
-# emacs-pristine --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" 0 1 nil)"
 
 n="1"
 if [[ -e /proc/cpuinfo ]]; then
     n="$(awk '/processor/' /proc/cpuinfo | wc -l)"
 fi
-seq 0 "$((n - 1))" | xargs --replace=INPUT --max-args=1 -P "$n" --verbose emacs-pristine --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" INPUT $n nil)"
+
+if [[ "$(native-comp-available)" = "t" ]]; then
+    # With native compilation is enabled all loaded .elc files will automatically
+    # get compiled into .eln. When multiple processes do this, race condition may
+    # occur and all recompilation fails.
+    emacs-pristine -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" 0 1 nil)"
+else
+    seq 0 "$((n - 1))" | xargs --replace=INPUT --max-args=1 -P "$n" --verbose emacs-pristine -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" INPUT $n nil)"
+fi
 
 seq 0 "$((n - 1))" | xargs --replace=INPUT --max-args=1 -P "$n" --verbose emacs-pristine --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" INPUT $n t)"
 
