@@ -15,7 +15,8 @@
 
 ;;;###autoload
 (defun dos-setup ()
-  (init-common :use-yasnippet nil :use-whitespace t))
+  (init-common :use-yasnippet nil
+               :use-whitespace t))
 
 ;;;###autoload
 (add-hook 'dos-mode-hook #'dos-setup)

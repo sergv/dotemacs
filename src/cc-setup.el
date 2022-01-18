@@ -204,7 +204,6 @@ _o_: show c sexps in region"
                :sp-slurp-sexp-insert-space nil
                :use-yasnippet t
                :use-whitespace 'tabs-only)
-  (fontify-conflict-markers!)
   (which-function-mode -1)
   (company-mode +1)
   (setq-local c-like-mode t)
