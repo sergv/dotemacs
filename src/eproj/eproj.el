@@ -116,6 +116,7 @@
                               synonym-modes
                               normalise-identifier-before-navigation-procedure
                               extra-navigation-globs)
+  (declare (pure t) (side-effect-free t))
   (cl-assert (symbolp mode))
   (cl-assert (listp extensions))
   (cl-assert (-all? #'stringp extensions))
