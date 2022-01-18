@@ -43,7 +43,8 @@ _,_: kill hunk"
   (init-common :use-yasnippet nil
                :use-comment nil
                :use-hl-line t
-               :use-whitespace 'tabs-only)
+               :use-whitespace 'tabs-only
+               :smerge nil)
   (setup-folding t nil)
 
   (def-keys-for-map vim-normal-mode-local-keymap

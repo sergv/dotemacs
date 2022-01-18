@@ -747,6 +747,19 @@
       (markdown-code-face :foreground ,cyan)
       (markdown-inline-code-face :inherit markdown-code-face)
 
+      (smerge-refined-added :inherit diff-refine-added)
+      (smerge-refined-changed :inherit diff-refine-change)
+      (smerge-refined-removed :inherit diff-refine-removed)
+      (smerge-base :background ,highlight-yellow-background
+                   :extend t)
+      ;; Also known as ‘mine’.
+      (smerge-upper :background ,highlight-red-background
+                    :extend t)
+      ;; Also known as ‘other’.
+      (smerge-lower :background ,highlight-green-background
+                    :extend t)
+      (smerge-markers :foreground ,orange :bold t)
+
       (company-tooltip :foreground ,emphasized-content
                        :background ,background-highlights
                        :box (:line-width ,box-line-width :color ,emphasized-content))
