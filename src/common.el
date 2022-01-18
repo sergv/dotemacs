@@ -109,9 +109,9 @@ by any means other than direct referencing via ‘+undef’.")
 by seeding `make-tausworthe-random-gen' with
 current time and"
   (let* ((time (current-time))
-         (a (first time))
-         (b (second time))
-         (microsec (third time))
+         (a (car time))
+         (b (cadr time))
+         (microsec (caddr time))
          (c (+ (* 65536 a) b)))
     (make-tausworthe-random-gen
      (+ (min c microsec) 2)
