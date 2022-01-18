@@ -18,7 +18,6 @@
                :sp-slurp-sexp-insert-space nil
                :use-yasnippet t
                :use-whitespace 'tabs-only)
-  (fontify-conflict-markers!)
 
   (setq-local whitespace-line-column 80
               whitespace-style '(face tabs lines-tail))

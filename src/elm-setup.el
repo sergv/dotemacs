@@ -196,7 +196,8 @@ _a_lign"
   (init-common :use-comment nil
                :use-yasnippet nil
                :use-whitespace nil
-               :use-fci nil)
+               :use-fci nil
+               :smerge nil)
   (init-repl :create-keymaps t
              :bind-return nil
              :bind-vim:motion-current-line nil)

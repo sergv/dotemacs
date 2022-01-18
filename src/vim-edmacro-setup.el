@@ -18,7 +18,8 @@
 
 ;;;###autoload
 (defun vim-edmacro-setup ()
-  (init-common :use-whitespace 'tabs-only)
+  (init-common :use-whitespace 'tabs-only
+               :smerge nil)
 
   (def-keys-for-map vim-normal-mode-local-keymap
     ("g" hydra-git-rebase-from-vim-normal/body)))
