@@ -254,6 +254,331 @@
    "fizz"
    "frobnicate"))
 
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/block-insert-1a
+    (execute-kbd-macro (kbd "d d C-v h h h n I 1 2 3 <escape>"))
+  (tests-utils--multiline
+   "fo_|_o"
+   "bar"
+   "baz"
+   "quux"
+   "fizz"
+   "frobnicate")
+  (tests-utils--multiline
+   "12_|_3foo"
+   "123bar"
+   "123baz"
+   "123quux"
+   "fizz"
+   "frobnicate"))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/block-insert-1aa
+    (execute-kbd-macro (kbd "d d C-v h h h n n I 1 2 3 <escape>"))
+  (tests-utils--multiline
+   "fo_|_o"
+   "bar"
+   "baz"
+   "quux"
+   "fizz"
+   "frobnicate")
+  (tests-utils--multiline
+   "12_|_3foo"
+   "123bar"
+   "123baz"
+   "123quux"
+   "fizz"
+   "frobnicate"))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/block-insert-1aaa
+    (execute-kbd-macro (kbd "d d C-v h h h n n n I 1 2 3 <escape>"))
+  (tests-utils--multiline
+   "fo_|_o"
+   "bar"
+   "baz"
+   "quux"
+   "fizz"
+   "frobnicate")
+  (tests-utils--multiline
+   "12_|_3foo"
+   "123bar"
+   "123baz"
+   "123quux"
+   "fizz"
+   "frobnicate"))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/block-insert-1aaaa
+    (execute-kbd-macro (kbd "d d C-v h h h n n n n I 1 2 3 <escape>"))
+  (tests-utils--multiline
+   "fo_|_o"
+   "bar"
+   "baz"
+   "quux"
+   "fizz"
+   "frobnicate")
+  (tests-utils--multiline
+   "12_|_3foo"
+   "123bar"
+   "123baz"
+   "123quux"
+   "fizz"
+   "frobnicate"))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/block-insert-1aaaaa
+    (execute-kbd-macro (kbd "d d C-v h h h n n n n n I 1 2 3 <escape>"))
+  (tests-utils--multiline
+   "fo_|_o"
+   "bar"
+   "baz"
+   "quux"
+   "fizz"
+   "frobnicate")
+  (tests-utils--multiline
+   "12_|_3foo"
+   "123bar"
+   "123baz"
+   "123quux"
+   "fizz"
+   "frobnicate"))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/block-insert-1b
+    (execute-kbd-macro (kbd "C-v h h h d d I 1 2 3 <escape>"))
+  (tests-utils--multiline
+   "fo_|_o"
+   "bar"
+   "baz"
+   "quux"
+   "fizz"
+   "frobnicate")
+  (tests-utils--multiline
+   "12_|_3foo"
+   "123bar"
+   "123baz"
+   "123quux"
+   "fizz"
+   "frobnicate"))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/block-insert-1bb
+    (execute-kbd-macro (kbd "C-v h h h d d d I 1 2 3 <escape>"))
+  (tests-utils--multiline
+   "fo_|_o"
+   "bar"
+   "baz"
+   "quux"
+   "fizz"
+   "frobnicate")
+  (tests-utils--multiline
+   "12_|_3foo"
+   "123bar"
+   "123baz"
+   "123quux"
+   "fizz"
+   "frobnicate"))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/block-insert-1b
+    (execute-kbd-macro (kbd "C-v t t t I 1 2 3 <escape>"))
+  (tests-utils--multiline
+   "foo"
+   "bar"
+   "baz"
+   "_|_quux"
+   "fizz"
+   "frobnicate")
+  (tests-utils--multiline
+   "12_|_3foo"
+   "123bar"
+   "123baz"
+   "123quux"
+   "fizz"
+   "frobnicate"))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/block-insert-1bb
+    (execute-kbd-macro (kbd "C-v t t t $ I 1 2 3 <escape>"))
+  (tests-utils--multiline
+   "foo"
+   "bar"
+   "baz"
+   "_|_quux"
+   "fizz"
+   "frobnicate")
+  (tests-utils--multiline
+   "12_|_3foo"
+   "123bar"
+   "123baz"
+   "123quux"
+   "fizz"
+   "frobnicate"))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/block-insert-1bbb
+    (execute-kbd-macro (kbd "C-v t t t $ n I 1 2 3 <escape>"))
+  (tests-utils--multiline
+   "foo"
+   "bar"
+   "baz"
+   "_|_quux"
+   "fizz"
+   "frobnicate")
+  (tests-utils--multiline
+   "12_|_3foo"
+   "123bar"
+   "123baz"
+   "123quux"
+   "fizz"
+   "frobnicate"))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/block-insert-1c
+    (execute-kbd-macro (kbd "$ C-v t t t 0 I 1 2 3 <escape>"))
+  (tests-utils--multiline
+   "foo"
+   "bar"
+   "baz"
+   "_|_quux"
+   "fizz"
+   "frobnicate")
+  (tests-utils--multiline
+   "12_|_3foo"
+   "123bar"
+   "123baz"
+   "123quux"
+   "fizz"
+   "frobnicate"))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/block-insert-1cc
+    (execute-kbd-macro (kbd "$ C-v t t t 0 d I 1 2 3 <escape>"))
+  (tests-utils--multiline
+   "foo"
+   "bar"
+   "baz"
+   "_|_quux"
+   "fizz"
+   "frobnicate")
+  (tests-utils--multiline
+   "12_|_3foo"
+   "123bar"
+   "123baz"
+   "123quux"
+   "fizz"
+   "frobnicate"))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/block-insert-1ca
+    (execute-kbd-macro (kbd "$ C-v 3 t ^ I 1 2 3 <escape>"))
+  (tests-utils--multiline
+   "foo"
+   "bar"
+   "baz"
+   "_|_quux"
+   "fizz"
+   "frobnicate")
+  (tests-utils--multiline
+   "12_|_3foo"
+   "123bar"
+   "123baz"
+   "123quux"
+   "fizz"
+   "frobnicate"))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/block-insert-1ca
+    (execute-kbd-macro (kbd "$ C-v 3 t ^ d I 1 2 3 <escape>"))
+  (tests-utils--multiline
+   "foo"
+   "bar"
+   "baz"
+   "_|_quux"
+   "fizz"
+   "frobnicate")
+  (tests-utils--multiline
+   "12_|_3foo"
+   "123bar"
+   "123baz"
+   "123quux"
+   "fizz"
+   "frobnicate"))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/block-insert-1d
+    (execute-kbd-macro (kbd "C-v t t t 0 I 1 2 3 <escape>"))
+  (tests-utils--multiline
+   "foo"
+   "bar"
+   "baz"
+   "quu_|_x"
+   "fizz"
+   "frobnicate")
+  (tests-utils--multiline
+   "12_|_3foo"
+   "123bar"
+   "123baz"
+   "123quux"
+   "fizz"
+   "frobnicate"))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/block-insert-1dd
+    (execute-kbd-macro (kbd "C-v t t t 0 d I 1 2 3 <escape>"))
+  (tests-utils--multiline
+   "foo"
+   "bar"
+   "baz"
+   "quu_|_x"
+   "fizz"
+   "frobnicate")
+  (tests-utils--multiline
+   "12_|_3foo"
+   "123bar"
+   "123baz"
+   "123quux"
+   "fizz"
+   "frobnicate"))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/block-insert-1d
+    (execute-kbd-macro (kbd "C-v 3 t ^ I 1 2 3 <escape>"))
+  (tests-utils--multiline
+   "foo"
+   "bar"
+   "baz"
+   "quu_|_x"
+   "fizz"
+   "frobnicate")
+  (tests-utils--multiline
+   "12_|_3foo"
+   "123bar"
+   "123baz"
+   "123quux"
+   "fizz"
+   "frobnicate"))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/block-insert-1dd
+    (execute-kbd-macro (kbd "C-v 3 t ^ d I 1 2 3 <escape>"))
+  (tests-utils--multiline
+   "foo"
+   "bar"
+   "baz"
+   "quu_|_x"
+   "fizz"
+   "frobnicate")
+  (tests-utils--multiline
+   "12_|_3foo"
+   "123bar"
+   "123baz"
+   "123quux"
+   "fizz"
+   "frobnicate"))
+
+
 (vim-tests--test-fresh-buffer-contents-init-all
     vim-tests/block-insert-2
     ((emacs-lisp-mode (emacs-lisp-mode))

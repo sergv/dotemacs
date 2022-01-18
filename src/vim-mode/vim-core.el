@@ -268,6 +268,17 @@ positions within (point-min) and (point-max) and not at
   (1+ (- (vim-motion-last-line motion)
          (vim-motion-first-line motion))))
 
+(defun vim-count-lines-with-correction (begin end)
+  "Return line count in region like `count-lines' but don't
+confuse when point is not at the beginning of line."
+  (save-restriction
+    (cl-assert (<= begin end))
+    (narrow-to-region begin
+                      (if (= ?\n (char-before end))
+                          (1- end)
+                        end))
+    (line-number-at-pos (point-max))))
+
 (defun vim-motion-first-line (motion)
   "Returns the first line covered by `motion'."
   (line-number-at-pos (min (vim-motion-begin motion)

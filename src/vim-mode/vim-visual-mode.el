@@ -403,9 +403,10 @@ This function is also responsible for setting the X-selection."
              overlay
              (window-start (max (window-start) start))
              (window-end (min (window-end) end))
-             (nlines (count-lines-fixed window-start
-                                        (min (1+ window-end)
-                                             (point-max)))))
+             (nlines (vim-count-lines-with-correction
+                      window-start
+                      (min (1+ window-end)
+                           (point-max)))))
         ;; Iterate over those lines of the rectangle which are visible
         ;; in the currently selected window.
         (goto-char window-start)
@@ -613,7 +614,7 @@ This function is also responsible for setting the X-selection."
        (move-to-column col t)
        (save-excursion
          (goto-char end)
-         (dotimes (_ (1+ (vim-motion-line-count motion)))
+         (dotimes (_ (1+ (vim-count-lines-with-correction beg end)))
            (move-to-column col t)
            (save-excursion
              (vim:cmd-repeat))
@@ -628,22 +629,21 @@ This function is also responsible for setting the X-selection."
      (vim--cmd-delete-impl motion nil)
      (vim--cmd-paste-after 1 t))
     (`block
-     (let ((beg (vim-motion-first-line motion))
-           (end (vim-motion-last-line motion))
+     (let ((beg (vim-motion-begin motion))
+           (end (vim-motion-end motion))
            (col (vim-motion-last-col motion))
-           (p   (vim-motion-begin motion))
            ;; This is needed so that undo and visual block pastes
            ;; play nicely and after undo the point will return to
            ;; the expected place at the first line of the visual block.
            ;;
            ;; We’ll record the point ourselves.
            (undo-inhibit-record-point t))
-       (vim-visual--record-undo-pos! p)
-       (goto-char p)
+       (vim-visual--record-undo-pos! beg)
+       (goto-char beg)
        (move-to-column col t)
        (vim--cmd-paste-after 1 t)
        (save-excursion
-         (dotimes (_ (- end beg))
+         (dotimes (_ (vim-count-lines-with-correction beg end))
            (forward-line 1)
            (move-to-column col t)
            (vim--cmd-paste-after 1 t)))))))
@@ -656,16 +656,15 @@ This function is also responsible for setting the X-selection."
      (vim--cmd-delete-impl motion nil)
      (vim--cmd-paste-before 1))
     (`block
-     (let ((beg (vim-motion-first-line motion))
-           (end (vim-motion-last-line motion))
+     (let ((beg (vim-motion-begin motion))
+           (end (vim-motion-end motion))
            (col (vim-motion-first-col motion))
-           (p   (vim-motion-begin motion))
            (undo-inhibit-record-point t))
-       (vim-visual--record-undo-pos! p)
-       (goto-char p)
+       (vim-visual--record-undo-pos! beg)
+       (goto-char beg)
        (vim--cmd-paste-before 1)
        (save-excursion
-         (dotimes (_ (- end beg))
+         (dotimes (_ (vim-count-lines-with-correction beg end))
            (forward-line 1)
            (move-to-column col t)
            (vim--cmd-paste-before 1)))))))
