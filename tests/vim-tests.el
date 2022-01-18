@@ -1172,6 +1172,130 @@
    "foo _|_baz"
    ""))
 
+(ert-deftest vim-tests/haskell-motion-inner-symbol-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd ", i s"))
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  ba_|_r_baz_Quux''' (x + 1) y \"foo\""
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  _|_ (x + 1) y \"foo\""
+     "")))
+
+(ert-deftest vim-tests/haskell-motion-inner-symbol-2 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd ", i s"))
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  Bar_baz_Quux''_|_' (x + 1) y \"foo\""
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  _|_ (x + 1) y \"foo\""
+     "")))
+
+(ert-deftest vim-tests/haskell-motion-outer-symbol-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd ", a s"))
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  ba_|_r_baz_Quux''' (x + 1) y \"foo\""
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  _|_(x + 1) y \"foo\""
+     "")))
+
+(ert-deftest vim-tests/haskell-motion-outer-symbol-2 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd ", a s"))
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  Bar_baz_Quux''_|_' (x + 1) y \"foo\""
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  _|_(x + 1) y \"foo\""
+     "")))
+
+(ert-deftest vim-tests/c-motion-inner-symbol-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (c-mode)
+      (execute-kbd-macro (kbd ", i s"))
+    (tests-utils--multiline
+     ""
+     "int foo(int x) {"
+     "    int foo_b_|_ar_Baz__ = x + 1;"
+     "}"
+     "")
+    (tests-utils--multiline
+     ""
+     "int foo(int x) {"
+     "    int _|_ = x + 1;"
+     "}"
+     "")))
+
+(ert-deftest vim-tests/c-motion-outer-symbol-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (c-mode)
+      (execute-kbd-macro (kbd ", a s"))
+    (tests-utils--multiline
+     ""
+     "int foo(int x) {"
+     "    int foo_b_|_ar_Baz__ = x + 1;"
+     "}"
+     "")
+    (tests-utils--multiline
+     ""
+     "int foo(int x) {"
+     "    int _|_= x + 1;"
+     "}"
+     "")))
+
+(ert-deftest vim-tests/emacs-lisp-motion-inner-symbol-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (emacs-lisp-mode)
+      (execute-kbd-macro (kbd ", i s"))
+    (tests-utils--multiline
+     ""
+     "(defun foo (x)"
+     "  (+ foo-_|_bar-baz-quux+1 x))"
+     "")
+    (tests-utils--multiline
+     ""
+     "(defun foo (x)"
+     "  (+ _|_ x))"
+     "")))
+
+(ert-deftest vim-tests/emacs-lisp-motion-outer-symbol-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (emacs-lisp-mode)
+      (execute-kbd-macro (kbd ", a s"))
+    (tests-utils--multiline
+     ""
+     "(defun foo (x)"
+     "  (+ foo-_|_bar-baz-quux+1 x))"
+     "")
+    (tests-utils--multiline
+     ""
+     "(defun foo (x)"
+     "  (+ _|_x))"
+     "")))
+
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
     vim-tests/repeated-search-1
     (execute-kbd-macro (kbd "/ f o o <return>"))
