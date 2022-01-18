@@ -19,10 +19,9 @@
 
 ;;;###autoload
 (defun ptx-mode-setup ()
-  (init-common
-   :use-yasnippet nil
-   :use-comment t
-   :use-fci t)
+  (init-common :use-yasnippet nil
+               :use-comment t
+               :use-fci t)
 
   (setq-local indent-tabs-mode t)
 

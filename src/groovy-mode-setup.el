@@ -8,7 +8,8 @@
 
 ;;;###autoload
 (defun groovy-mode-setup ()
-  (init-common :use-comment t :sp-slurp-sexp-insert-space nil)
+  (init-common :use-comment t
+               :sp-slurp-sexp-insert-space nil)
   (setup-folding t nil))
 
 ;;;###autoload

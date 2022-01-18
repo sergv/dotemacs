@@ -100,7 +100,8 @@ cpu time or allocations that the value of this variable.")
   (init-common :use-yasnippet nil
                :use-comment nil
                :use-fci nil
-               :use-hl-line t)
+               :use-hl-line t
+               :smerge nil)
   ;; Display every line as a single screen line.
   (setq-local truncate-lines t)
   (haskell-setup-folding :enable-hs-minor-mode nil)

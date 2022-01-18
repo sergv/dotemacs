@@ -92,7 +92,8 @@
                             (sp-slurp-sexp-insert-space t)
                             (enable-backup t)
                             (hl-parens-backend 'hl-paren) ;; can be 'hl-paren, 'smartparens
-                            (typography t))
+                            (typography t)
+                            (smerge t))
   "General set up for editing.Arguments meaning:
 
 sp-escape:
@@ -108,6 +109,9 @@ sp-escape:
                  (stringp smartparens-escape-char)))
 
   (hl-line-mode (if use-hl-line +1 -1))
+
+  (when smerge
+    (smerge-mode +1))
 
   (when use-comment
     (comment-util-mode 1)

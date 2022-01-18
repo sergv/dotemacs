@@ -428,7 +428,8 @@ _j_: send region"
   (init-common :use-yasnippet nil
                :use-comment nil
                :sp-slurp-sexp-insert-space nil
-               :use-fci nil)
+               :use-fci nil
+               :smerge nil)
   (init-repl :bind-return (list vim-normal-mode-local-keymap
                                 vim-insert-mode-local-keymap
                                 inferior-octave-mode-map))
