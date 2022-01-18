@@ -993,6 +993,26 @@ characters."
           (memory-report--garbage-collect))))
     (memory-report--object-size (make-hash-table :test #'eq) object)))
 
+;;;###autoload
+(el-patch-feature indent)
+
+(when-emacs-version (<= 28 it)
+  (el-patch-defun indent-region-line-by-line (start end)
+    (save-excursion
+      (setq end (copy-marker end))
+      (goto-char start)
+      (let ((pr (el-patch-swap
+                  (unless (minibufferp)
+                    (make-progress-reporter "Indenting region..." (point) end))
+                  nil)))
+        (while (< (point) end)
+          (or (and (bolp) (eolp))
+              (indent-according-to-mode))
+          (forward-line 1)
+          (and pr (progress-reporter-update pr (point))))
+        (and pr (progress-reporter-done pr))
+        (move-marker end nil)))))
+
 (provide 'base-emacs-fixes)
 
 ;; Local Variables:
