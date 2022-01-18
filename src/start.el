@@ -221,8 +221,8 @@ sp-escape:
                      (keymapp (car bind-return)))
                 bind-return)
                (bind-return
-                (vim-normal-mode-local-keymap
-                 vim-insert-mode-local-keymap)))))
+                (list vim-normal-mode-local-keymap
+                      vim-insert-mode-local-keymap)))))
     (dolist (km keymaps)
       (def-keys-for-map km
         ("<return>"   comint-send-input)
