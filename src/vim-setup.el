@@ -337,6 +337,7 @@ _<right>_: move tab to the right"
 ;;; visual keybindings
 
 (def-keys-for-map vim-visual-mode-keymap
+  ("."       vim:visual-repeat:interactive)
   ("'"       sp-backward-up-sexp)
   ("\""      vim-wrap-dquotes)
 
@@ -447,8 +448,6 @@ Basically swap current point with previous one."
 
 (vim-emap "in-bufs" #'vim:apply-to-selected-buffers)
 
-
-(autoload 'render-formula-toggle-formulae "render-formula" "" t)
 
 (vim-defcmd vim:render-latex (nonrepeatable)
   (if (memq major-mode '(latex-mode tex-mode LaTeX-mode))

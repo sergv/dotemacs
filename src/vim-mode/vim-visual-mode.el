@@ -591,6 +591,35 @@ This function is also responsible for setting the X-selection."
       (push nil buffer-undo-list))
     (push pos buffer-undo-list)))
 
+(vim-defcmd vim:visual-repeat (motion)
+  "Repeat last command over selected region."
+  (pcase vim-visual--mode-type
+    (`normal
+     (error "Normal visual mode is not supported"))
+    (`linewise
+     (error "Linewise visual mode is not supported"))
+    (`block
+     (let ((beg (vim-motion-begin motion))
+           (end (vim-motion-end motion))
+           (col (vim-motion-last-col motion))
+           ;; This is needed so that undo and visual block pastes
+           ;; play nicely and after undo the point will return to
+           ;; the expected place at the first line of the visual block.
+           ;;
+           ;; We’ll record the point ourselves.
+           (undo-inhibit-record-point t))
+       (vim-visual--record-undo-pos! beg)
+       (goto-char beg)
+       (move-to-column col t)
+       (save-excursion
+         (goto-char end)
+         (dotimes (_ (1+ (vim-motion-line-count motion)))
+           (move-to-column col t)
+           (save-excursion
+             (vim:cmd-repeat))
+           (vim--cmd-paste-after 1 t)
+           (forward-line 1)))))))
+
 (vim-defcmd vim:visual-paste-after (motion)
   "‘vim:cmd-paste-after’ extended to visual region."
   (setf vim--cmd-paste-after-counter 0)
