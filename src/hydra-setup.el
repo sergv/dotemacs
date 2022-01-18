@@ -44,7 +44,7 @@ all hydras in my setup."
 (defhydra-ext hydra-toggle (:exit nil :foreign-keys nil :hint nil)
   "
 Toggle:
-_c_olour theme       %(identity *color-theme-solarized-type*)
+_c_olour theme       %(identity *current-color-theme*)
 _d_ebug on error     %`debug-on-error
 auto _f_ill          %(if auto-fill-function t nil)
 searh _h_ighlighting %(not (null (search-highlighting-is-enabled?)))
