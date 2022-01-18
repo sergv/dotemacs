@@ -260,6 +260,11 @@ positions within (point-min) and (point-max) and not at
   "Returns the number of lines the `motion' covers."
   ;; TODO: replace with
   ;; (count-lines-fixed (vim-motion-begin motion) (vim-motion-end motion))
+  ;; Also it could be:
+  ;; (count-lines-fixed (vim-motion-begin-pos motion) (vim-motion-end-pos motion))
+  ;;
+  ;; Bot versions have nasty edge cases when end of block is exactly at \n character at
+  ;; line end.
   (1+ (- (vim-motion-last-line motion)
          (vim-motion-first-line motion))))
 
