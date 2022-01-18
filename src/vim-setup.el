@@ -46,14 +46,15 @@ ta_b_s     _cd_: delete comment  _ss_: replace symbol
 
 _(d_: (a | b)         -> |b               _((_: a (b | …) -> (a b | …)
 _)d_: (a | b)         -> a|               _()_: a (b | …) -> a b (| …)
-_(a_: (a | (b c) d)   -> |(b c)           _))_: (… | a) b -> (… |) a b
-_)a_: (a | (b c) d)   -> |(b c)           _)(_: (… | a) b -> (… | a b)
+                                          _))_: (… | a) b -> (… |) a b
+                                          _)(_: (… | a) b -> (… | a b)
 
+_r_aise:          (a | (b c) d)   -> |(b c)
 _a_bsorb:         a (b | c)       -> (b a | c)
 _e_mit:           (a b c | d)     -> b c (a | d)
 _?_ (convolute):  (a b (c d | e)) -> (c d (a b | e))
 _S_plit sexp:     (a | b)         -> (a) |(b)
-_J_oin sexp:      (a) | (b)       -> (a |  b)"
+_J_oin sexp:      (a) | (b)       -> (a | b)"
   ("w"   hydra-window-management/body)
   ("t"   toggle)
   ("b"   hydra-tab-management/body)
@@ -68,8 +69,7 @@ _J_oin sexp:      (a) | (b)       -> (a |  b)"
 
   ("(d"  vim:sp-splice-sexp-killing-backward:interactive)
   (")d"  vim:sp-splice-sexp-killing-forward:interactive)
-  ("(a"  vim:sp-splice-sexp-killing-around:interactive)
-  (")a"  vim:sp-splice-sexp-killing-around:interactive)
+  ("r"   vim:sp-raise-sexp:interactive)
   ("a"   sp-absorb-sexp)
   ("e"   sp-emit-sexp)
   ("?"   sp-convolute-sexp)
