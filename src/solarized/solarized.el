@@ -230,7 +230,6 @@
          (violet-aux-aux-aux-bg     (num->color (solarized-palette-violet-aux-aux-aux-bg     palette)))
          (magenta-aux-aux-aux-bg    (num->color (solarized-palette-magenta-aux-aux-aux-bg    palette)))
 
-
          ;; highlight backgrounds
          (highlight-red-background        red-aux-aux-aux-bg)
          (highlight-orange-background     orange-aux-aux-aux-bg)
@@ -386,7 +385,9 @@
 
       (lsp-face-highlight-textual :box (:line-width ,box-line-width :color ,cyan))
       (lsp-face-highlight-read :inherit lsp-face-highlight-textual)
-      (lsp-face-highlight-write :inherit lsp-face-highlight-textual :bold t :underline (:style wave :color ,cyan))
+      (lsp-face-highlight-write :inherit lsp-face-highlight-textual
+                                :bold t
+                                :underline (:style wave :color ,cyan))
 
       (lsp-ui-sideline-code-action :foreground ,cyan)
       (lsp-modeline-code-actions-preferred-face :foreground ,yellow)
@@ -618,6 +619,7 @@
       (tuareg-font-lock-operator-face :foreground ,cyan)
       (tuareg-font-lock-multistage-face :foreground ,blue :bold t)
 
+      (search-highlight-face :box (:line-width ,box-line-width :color ,magenta))
       (search-red-face :foreground ,background :background ,highlight-red-background)
       (search-orange-face :foreground ,background :background ,highlight-orange-background)
       (search-yellow-face :foreground ,background :background ,highlight-yellow-background)
@@ -672,7 +674,7 @@
       (help-argument-name :inherit default)
       (hexl-address-region :inherit header-line)
       (hexl-ascii-region :background ,background)
-      (isearch :inherit lazy-highlight)
+      (isearch :inherit search-highlight-face)
       (ispell-highlight-face :inherit flyspell-incorrect)
       (italic :underline t :italic t)
 
@@ -687,7 +689,7 @@
 
       (ivy-posframe-border :foreground ,cyan :background ,cyan)
 
-      (lazy-highlight :background ,highlight-cyan-background)
+      (lazy-highlight :inherit search-highlight-face)
       (link :foreground ,violet :underline t)
       (match :background ,highlight-cyan-background)
 
@@ -768,7 +770,7 @@
       (company-tooltip-annotation :foreground ,green)
       (company-scrollbar-fg :background ,emphasized-content)
       (company-scrollbar-bg :foreground ,emphasized-content :background ,background-highlights)
-      (company-preview-search :inherit lazy-highlight)
+      (company-preview-search :inherit search-highlight-face)
       (company-preview :foreground ,yellow)
       (company-preview-common :foreground ,orange)
 
@@ -812,8 +814,8 @@
       (undo-tree-visualizer-active-branch-face :weight bold)
       (undo-tree-visualizer-current-face :foreground ,red)
       (undo-tree-visualizer-register-face :foreground ,yellow)
-      (vim-lazy-highlight-face :inherit lazy-highlight)
-      (vim-search-face :background ,highlight-cyan-background)
+      (vim-lazy-highlight-face :inherit search-highlight-face)
+      (vim-search-face :inherit search-highlight-face)
       (vim-substitute-face :underline ,magenta)
       (warning :foreground ,orange :bold t)
       (whitespace-line :underline ,red)
@@ -854,8 +856,6 @@
     (run-hooks 'solarized-theme-mode-changed-hook))
   (when window-system
     (update-font-scaling)))
-
-
 
 (defun solarized--uniquify-alist (old-list)
   "Reduce OLD-LIST.
