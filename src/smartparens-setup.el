@@ -212,32 +212,25 @@ With negative argument move forward, still one level out."
 
 ;;;; vimmized versions of many sexp-manipulating functions
 
-(vimmize-function sp-backward-slurp-sexp
-                  :name vim:sp-backward-slurp-sexp)
-(vimmize-function sp-backward-barf-sexp
-                  :name vim:sp-backward-barf-sexp)
+(vimmize-function sp-backward-slurp-sexp :name vim:sp-backward-slurp-sexp)
+(vimmize-function sp-backward-barf-sexp :name vim:sp-backward-barf-sexp)
 
-(vimmize-function sp-forward-slurp-sexp
-                  :name vim:sp-forward-slurp-sexp)
-(vimmize-function sp-forward-barf-sexp
-                  :name vim:sp-forward-barf-sexp)
+(vimmize-function sp-forward-slurp-sexp :name vim:sp-forward-slurp-sexp)
+(vimmize-function sp-forward-barf-sexp :name vim:sp-forward-barf-sexp)
 
-(vimmize-function sp-splice-sexp-killing-backward
-                  :name vim:sp-splice-sexp-killing-backward)
-(vimmize-function sp-splice-sexp-killing-forward
-                  :name vim:sp-splice-sexp-killing-forward)
-(vimmize-function sp-splice-sexp-killing-around
-                  :name vim:sp-splice-sexp-killing-around)
+(vimmize-function sp-splice-sexp-killing-backward :name vim:sp-splice-sexp-killing-backward)
+(vimmize-function sp-splice-sexp-killing-forward :name vim:sp-splice-sexp-killing-forward)
+(vimmize-function sp-raise-sexp :name vim:sp-raise-sexp)
 
-(vimmize-function sp-kill-char
-                  :name vim:sp-kill-char)
-(vimmize-function sp-backward-kill-char
-                  :name vim:sp-backward-kill-char)
+;; (vimmize-function sp-kill-char :name vim:sp-kill-char)
+;; (vimmize-function sp-backward-kill-char :name vim:sp-backward-kill-char)
 
-(vimmize-function sp-split-sexp
-                  :name vim:sp-split-sexp)
-(vimmize-function sp-join-sexp
-                  :name vim:sp-join-sexp)
+(vimmize-function sp-split-sexp :name vim:sp-split-sexp)
+(vimmize-function sp-join-sexp :name vim:sp-join-sexp)
+
+(vimmize-function sp-convolute-sexp :name vim:sp-convolute-sexp)
+
+(vimmize-function sp-wrap-round :name vim:sp-wrap-round)
 
 ;;;; vim-wrap-*
 
