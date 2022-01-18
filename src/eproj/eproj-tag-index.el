@@ -30,6 +30,7 @@
 (defconst eproj-tag-complex-type-prop '#:type)
 
 (defun make-eproj-tag (file line type props)
+  (declare (pure t) (side-effect-free t))
   (cl-assert (or (null props) (consp props)))
   (cond
     ((stringp type)
@@ -49,6 +50,7 @@
            (packing-pack-pair line (or type -1))))))
 
 (defun eproj-tag-p (tag-struct)
+  (declare (pure t) (side-effect-free t))
   (and (consp tag-struct)
        (stringp (car tag-struct))
        (or (and (consp (cdr tag-struct))
@@ -96,17 +98,22 @@
   (cdr-safe (assq prop (eproj-tag/properties tag-struct))))
 
 (defsubst eproj-tag-index--create (tbl)
+  (declare (pure t) (side-effect-free t))
   (cons 'eproj-tag-index tbl))
 
 (defun empty-eproj-tag-index ()
+  ;; Not pure because each invocation should get its own hash table.
+  (declare (pure nil) (side-effect-free t))
   (eproj-tag-index--create (make-hash-table :test #'equal :size 997)))
 
 (defun eproj-tag-index-p (index)
+  (declare (pure t) (side-effect-free t))
   (and (consp index)
        (eq 'eproj-tag-index (car index))
        (hash-table-p (cdr index))))
 
 (defsubst eproj-tag-index-size (index)
+  (declare (pure t) (side-effect-free t))
   (hash-table-count (cdr-sure index)))
 
 (defun eproj-tag-index-add! (symbol file line type props index)
@@ -120,6 +127,7 @@
              table)))
 
 (defsubst eproj-tag-index-get (key index &optional default)
+  (declare (pure t))
   (cl-assert (stringp key))
   (gethash key (cdr-sure index) default))
 
@@ -130,9 +138,11 @@
     (hash-table-entries-matching-re (cdr-sure index) re)))
 
 (defsubst eproj-tag-index-keys (index)
+  (declare (pure t))
   (hash-table-keys (cdr-sure index)))
 
 (defsubst eproj-tag-index-entries (index)
+  (declare (pure t))
   (hash-table->alist (cdr-sure index)))
 
 (defun eproj-tag-index-drop-tags-from-file! (fname proj-root index)
