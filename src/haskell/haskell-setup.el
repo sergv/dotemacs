@@ -352,6 +352,8 @@ _a_lign  _t_: jump to topmost node start
 
                 yas-indent-line 'fixed
 
+                beginning-of-defun-function #'haskell-move-to-topmost-start-impl
+
                 ;; Improve vim treatment of words for Haskell.
                 ;; Note: underscore should not be included since it would prevent
                 ;; navigating inside of some Haskell identifiers, e.g. foo_bar.
@@ -605,7 +607,9 @@ _a_lign  _t_: jump to topmost node start
 (defun ghc-core-setup ()
   (pretty-ligatures-install!)
   (pretty-ligatures-install-special-haskell-ligatures!)
-  (hl-line-mode +1))
+  (hl-line-mode +1)
+
+  (setq-local beginning-of-defun-function #'haskell-move-to-topmost-start-impl))
 
 (provide 'haskell-setup)
 
