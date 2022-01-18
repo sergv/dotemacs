@@ -1585,11 +1585,11 @@ word-syntaxes - list of characters denoting syntaxes."
             (setq beginning (point))))))
     beginning))
 
-(defun* paredit-skip-backward-for-kill (beginning
-                                        word-syntaxes
-                                        &key
-                                        (forward-word #'forward-word)
-                                        (backward-word #'backward-word))
+(cl-defun paredit-skip-backward-for-kill (beginning
+                                          word-syntaxes
+                                          &key
+                                          (forward-word #'forward-word)
+                                          (backward-word #'backward-word))
   "Calculates skip backward past various lisp delimiters.
 Also see `paredit-skip-forward-for-kill'."
   (save-excursion
@@ -1601,8 +1601,7 @@ Also see `paredit-skip-forward-for-kill'."
           (funcall forward-word 1)
           (goto-char (min end (point)))
           (let* ((parse-state (paredit-current-parse-state))
-                 (state
-                  (paredit-kill-word-state parse-state 'char-before)))
+                 (state (paredit-kill-word-state parse-state 'char-before)))
             (while (and (< (point) end)
                         (progn
                           (setq parse-state
