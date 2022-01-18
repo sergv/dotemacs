@@ -40,6 +40,8 @@ _I_: jump back"
                   (indent-to standard-indent))))
   (haskell-setup-folding :enable-hs-minor-mode t)
 
+  (setq-local beginning-of-defun-function #'haskell-move-to-topmost-start-impl)
+
   (install-haskell-smart-operators!
       vim-insert-mode-local-keymap
     :bind-colon t
