@@ -26,7 +26,6 @@
 ;;;###autoload
 (defun nix-setup ()
   (init-common :use-whitespace t)
-  (fontify-conflict-markers!)
 
   (company-mode +1)
   (setq-local company-backends '(company-nix))

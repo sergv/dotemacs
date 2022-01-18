@@ -154,12 +154,9 @@ _a_lign"
                :use-comment   t
                :use-fci       t)
   (setq-local indent-tabs-mode nil)
-  (def-keys-for-map (vim-normal-mode-local-keymap
-                     vim-insert-mode-local-keymap)
-    ("<tab>"       tab-to-tab-stop)
-    ("<backtab>"   tab-to-tab-stop-backward)
-    ("S-<tab>"     tab-to-tab-stop-backward)
-    ("S-<iso-tab>" tab-to-tab-stop-backward))
+  (def-keys-for-map (vim-normal-mode-local-keymap vim-insert-mode-local-keymap)
+    ("<tab>"                               tab-to-tab-stop)
+    (("<backtab>" "S-<tab>" "S-<iso-tab>") tab-to-tab-stop-backward))
   (def-keys-for-map vim-visual-mode-local-keymap
     ("g" hydra-gitconfig-vim-visual-g-ext/body)))
 
@@ -401,12 +398,12 @@ ta_b_s"
 
 ;;;###autoload
 (defun git-commit-mode-setup ()
-
   "Mode for editing commit message."
   (init-common :use-yasnippet nil
                :use-comment nil
                :use-fci t
-               :enable-backup nil)
+               :enable-backup nil
+               :smerge nil)
 
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-insert-mode-local-keymap
@@ -450,31 +447,28 @@ e_x_ec"
     +vim-search-keys+
     +vim-word-motion-keys+
     +vim-special-keys+
-    ("C-k"      nil) ;; its kill buffer in global map
-    ("<down>"   git-rebase-move-line-down)
-    ("<up>"     git-rebase-move-line-up)
-    ("C-h"      git-rebase-move-line-down)
-    ("C-t"      git-rebase-move-line-up)
-    ("SPC"      git-rebase-show-commit)
-    ("<return>" with-editor-finish)
+    (("C-h" "<down>") git-rebase-move-line-down)
+    (("C-t" "<up>")   git-rebase-move-line-up)
+    ("SPC"            git-rebase-show-commit)
+    ("<return>"       with-editor-finish)
 
-    ("g"        hydra-git-rebase-from-vim-normal/body)
-    ("-"        hydra-git-rebase/body)
+    ("g"              hydra-git-rebase-from-vim-normal/body)
+    ("-"              hydra-git-rebase/body)
 
-    ("n"        nil)
-    ("q"        with-editor-cancel)
-    ("a"        git-rebase-abort)
+    ("n"              nil)
+    ("q"              with-editor-cancel)
+    ("a"              git-rebase-abort)
 
-    ("s"        git-rebase-squash)
-    ("p"        git-rebase-pick)
-    ("k"        git-rebase-undo)
-    ("x"        git-rebase-exec)
-    ("r"        git-rebase-reword)
-    ("w"        git-rebase-reword)
-    ("e"        git-rebase-edit)
-    ("s"        git-rebase-squash)
-    ("f"        git-rebase-fixup)
-    ("d"        git-rebase-kill-line)))
+    ("s"              git-rebase-squash)
+    ("p"              git-rebase-pick)
+    ("k"              git-rebase-undo)
+    ("x"              git-rebase-exec)
+    ("r"              git-rebase-reword)
+    ("w"              git-rebase-reword)
+    ("e"              git-rebase-edit)
+    ("s"              git-rebase-squash)
+    ("f"              git-rebase-fixup)
+    ("d"              git-rebase-kill-line)))
 
 
 (defvar-local git-repository nil
@@ -645,26 +639,40 @@ under git version control."
   :command-function #'vim--normal-mode-command
   :cursor 'hbar)
 
+(defhydra-ext hydra-blame (:exit t :foreign-keys nil :hint nil)
+  "
+_b_lame popup  _h_: next chunk
+cop_y_ hash    _t_: prev chunk
+               _C-h_: next chunk same commit
+               _C-t_: prev chunk same commit
+"
+  ("b"   magit-blame-popup)
+  ("y"   magit-blame-copy-hash)
+
+  ("h"   magit-blame-next-chunk)
+  ("C-h" magit-blame-next-chunk-same-commit)
+  ("t"   magit-blame-previous-chunk)
+  ("C-t" magit-blame-previous-chunk-same-commit))
+
 (def-keys-for-map vim-blame-mode-keymap
   +vim-normal-mode-navigation-keys+
   +vim-search-keys+
   +vim-search-extended-keys+
   +vim-special-keys+
-  ("b"        magit-blame-popup)
-  ("h"        magit-blame-next-chunk)
-  ("H"        magit-blame-next-chunk-same-commit)
-  ("t"        magit-blame-previous-chunk)
-  ("T"        magit-blame-previous-chunk-same-commit)
-  ("y"        magit-blame-copy-hash)
+  ("b"              magit-blame-popup)
+  ("h"              magit-blame-next-chunk)
+  ("C-h"            magit-blame-next-chunk-same-commit)
+  ("t"              magit-blame-previous-chunk)
+  ("C-t"            magit-blame-previous-chunk-same-commit)
+  ("y"              magit-blame-copy-hash)
 
-  ("<return>" magit-show-commit)
+  ("-"              hydra-blame/body)
 
-  ;; ("C-h"      magit-blame-next-chunk)
-  ("<down>"   vim:motion-down:interactive)
-  ;; ("C-t"      magit-blame-previous-chunk)
-  ("<up>"     vim:motion-up:interactive)
-  ("<escape>" vim:blame-quit:interactive)
-  ("q"        vim:blame-quit:interactive))
+  ("<return>"       magit-show-commit)
+
+  ("<down>"         vim:motion-down:interactive)
+  ("<up>"           vim:motion-up:interactive)
+  (("q" "<escape>") vim:blame-quit:interactive))
 
 (provide 'git-setup)
 

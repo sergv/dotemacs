@@ -483,7 +483,8 @@ _j_: send region to repl"
                :use-comment nil
                :sp-slurp-sexp-insert-space nil
                :use-whitespace nil
-               :use-fci nil)
+               :use-fci nil
+               :smerge nil)
   (init-repl :create-keymaps nil)
   (comint-setup)
   (comint-read-input-ring t)

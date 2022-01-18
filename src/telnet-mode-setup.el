@@ -8,7 +8,8 @@
 
 ;;;###autoload
 (defun telnet-mode-setup ()
-  (init-common :use-yasnippet nil :use-comment nil))
+  (init-common :use-yasnippet nil
+               :use-comment nil))
 
 ;;;###autoload
 (add-hook 'telnet-mode-hook #'telnet-mode-setup)
