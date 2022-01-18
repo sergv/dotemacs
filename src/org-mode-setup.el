@@ -387,24 +387,27 @@ _C_: hide everything except current entry and its parents"
   (vim-local-emap "tangle" #'vim:org-mode-tangle)
   (vim-local-emap "pdf"    #'vim:org-latex-export-to-pdf)
   (def-keys-for-map vim-normal-mode-local-keymap
-    ("<print>" org-toggle-inline-images-and-formulae)
-    ("C-."     org-open-at-point)
-    ("C-,"     org-mark-ring-goto)
-    ("C-o"     org-open-at-point)
+    ("M-<up>"   org-metaup)
+    ("M-<down>" org-metadown)
 
-    ("'"       org-mode-up-heading)
+    ("<print>"  org-toggle-inline-images-and-formulae)
+    ("C-."      org-open-at-point)
+    ("C-,"      org-mark-ring-goto)
+    ("C-o"      org-open-at-point)
 
-    ("z"       org-mode-vim-normal-z-outline/body)
+    ("'"        org-mode-up-heading)
 
-    ("C-1"     org-mode-show-level-1)
-    ("C-2"     org-mode-show-level-2)
-    ("C-3"     org-mode-show-level-3)
-    ("C-4"     org-mode-show-level-4)
-    ("C-5"     org-mode-show-level-5)
-    ("C-6"     org-mode-show-level-6)
-    ("C-7"     org-mode-show-level-7)
-    ("C-8"     org-mode-show-level-8)
-    ("C-9"     org-mode-show-level-9))
+    ("z"        org-mode-vim-normal-z-outline/body)
+
+    ("C-1"      org-mode-show-level-1)
+    ("C-2"      org-mode-show-level-2)
+    ("C-3"      org-mode-show-level-3)
+    ("C-4"      org-mode-show-level-4)
+    ("C-5"      org-mode-show-level-5)
+    ("C-6"      org-mode-show-level-6)
+    ("C-7"      org-mode-show-level-7)
+    ("C-8"      org-mode-show-level-8)
+    ("C-9"      org-mode-show-level-9))
 
   (def-keys-for-map vim-visual-mode-local-keymap
     ("<tab>"   org-indent-region))
