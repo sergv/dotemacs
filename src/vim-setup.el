@@ -489,6 +489,7 @@ Basically swap current point with previous one."
 
 (vim-emap "indent" #'vim:indent)
 
+
 (vim-defcmd vim:magit (nonrepeatable)
   "Show git status for current file's repository."
   (aif buffer-file-name
@@ -516,6 +517,7 @@ Basically swap current point with previous one."
 
 (vim-emap "blame" #'vim:blame)
 
+
 (vim-defcmd vim:blame-quit (nonrepeatable)
   "Stop `magit-blame-mode'."
   (unwind-protect
@@ -524,6 +526,18 @@ Basically swap current point with previous one."
       (vim-activate-normal-mode))))
 
 (vim-emap "blame-quit" #'vim:blame-quit)
+
+
+(vim-defcmd vim:smerge (nonrepeatable)
+  "Run `smerge-mode'."
+  (unless smerge-mode
+    (error "SMerge for this mode is not intended (run ‘M-x smerge-start-session’ to override)"))
+  (unless (looking-at-p smerge-begin-re)
+    (smerge-next))
+  (vim-activate-smerge-mode))
+
+(vim-emap "sm" #'vim:smerge)
+
 
 (vim-defcmd vim:git-add (nonrepeatable)
   "Run 'git add' on current file."

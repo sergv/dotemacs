@@ -288,7 +288,6 @@ _a_lign  _t_: jump to topmost node start
 (defun haskell-setup ()
   (let ((non-vanilla-haskell-mode? (-any? #'derived-mode-p '(ghc-core-mode haskell-c2hs-mode haskell-hsc-mode))))
     (init-common :use-whitespace 'tabs-only)
-    (fontify-conflict-markers!)
     (add-hook 'after-save-hook #'haskell-update-eproj-tags-on-save nil t)
 
     (pretty-ligatures-install!)
@@ -502,7 +501,8 @@ _a_lign  _t_: jump to topmost node start
                :use-yasnippet nil
                :use-whitespace nil
                :use-fci nil
-               :smartparens-comment-char "-")
+               :smartparens-comment-char "-"
+               :smerge nil)
 
   ;; To make hideshow work
   (setq-local comment-start "--"
@@ -574,7 +574,8 @@ _a_lign  _t_: jump to topmost node start
 
 ;;;###autoload
 (defun haskell-cabal-setup ()
-  (init-common :use-comment t :use-yasnippet t)
+  (init-common :use-comment t
+               :use-yasnippet t)
   (haskell-setup-folding)
   (let ((proj (eproj-get-project-for-buf-lax (current-buffer))))
     (haskell-compilation-commands-install! proj))

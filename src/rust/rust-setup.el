@@ -451,7 +451,6 @@ sexps and indentation levels."
                :use-yasnippet t
                :use-whitespace t
                :hl-parens-backend 'smartparens)
-  (fontify-conflict-markers!)
   (setup-folding t '(:header-symbol "/" :length-min 3))
   (company-mode +1)
   (setq-local ;; Don't skip any messages.
