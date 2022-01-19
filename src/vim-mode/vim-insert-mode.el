@@ -52,9 +52,9 @@
     (error "Toggling overwrite-mode only allowed in insert-mode"))
   (overwrite-mode nil)
   (if overwrite-mode
-    (progn
-      (vim-notify "-- REPLACE --")
-      (setq cursor-type vim-insert-mode-replace-cursor))
+      (progn
+        (vim-notify "-- REPLACE --")
+        (setq cursor-type vim-insert-mode-replace-cursor))
     (progn
       (vim-notify "-- INSERT --")
       (setq cursor-type vim-insert-mode-cursor))))
@@ -83,10 +83,8 @@ where to insert a newline."
   (vim--insert-mode-insert-newline)
   (when (eq vim--insert-newline 'above)
     (setq vim--insert-newline 'below))
-  (if (eobp)
-      (setq vim--insert-marker 'eob)
-    (progn
-      (setq vim--insert-marker (copy-marker (1+ (point))))))
+  (when vim--insert-count
+    (setq vim--insert-marker (if (eobp) 'eob (copy-marker (1+ (point))))))
   (vim-activate-insert-mode))
 
 (defun vim-insert-mode-command (command)
@@ -114,16 +112,17 @@ where to insert a newline."
   (setq vim--last-undo vim--last-insert-undo)
 
   ;; Repeat insertion.
-  (dotimes (_ (1- (or vim--insert-count 1)))
-    (goto-char (if (eq vim--insert-marker 'eob)
-                   (point-max)
-                 (1- vim--insert-marker)))
-    (vim--insert-mode-insert-newline)
-    (execute-kbd-macro vim--current-key-sequence))
-  (when (markerp vim--insert-marker)
-    (move-marker vim--insert-marker nil))
-  (setq vim--insert-marker nil
-        vim--insert-count nil))
+  (when vim--insert-count
+    (dotimes (_ (1- vim--insert-count))
+      (goto-char (if (eq vim--insert-marker 'eob)
+                     (point-max)
+                   (1- vim--insert-marker)))
+      (vim--insert-mode-insert-newline)
+      (execute-kbd-macro vim--current-key-sequence))
+    (when (markerp vim--insert-marker)
+      (move-marker vim--insert-marker nil))
+    (setq vim--insert-marker nil
+          vim--insert-count nil)))
 
 (defun vim--insert-save-key-sequence ()
   "Called in insert-mode to save key-events."
