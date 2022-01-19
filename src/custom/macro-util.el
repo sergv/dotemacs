@@ -125,15 +125,11 @@ CALL-N-TIMES should be non nil to cause this call to be applied n times."
                                          '(keep-visual))
                                        (when unadjusted
                                          '(unadjusted)))
-       ,(if doc doc (format "Vimmized version of `%s'." func-name))
-       ,(cond
-          ((and has-count
-                call-n-times)
-           (let ((counter '#:counter))
-             `(dotimes (,counter (or count 1))
-                (,func))))
-          (t
-           `(,func ,@(if has-count '(count) '())))))))
+       ,(or doc (format "Vimmized version of ‘%s’." func-name))
+       ,(if (and has-count call-n-times)
+            `(dotimes (_ (or count 1))
+               (,func))
+          `(,func ,@(if has-count '(count) '()))))))
 
 (defmacro defun-nested-caching (func args reset-cache-func cache-args &rest body)
   "Defun new function FUNC that automatically caches it's output depending of values of
