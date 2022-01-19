@@ -497,11 +497,9 @@ be set to the preferred literate style."
                    (while (looking-at-p "^[\t ]*$")
                      (unless (= (forward-line -1) 0)
                        (throw 'return nil)))
-                   (or
-                    (and
-                     (not (equal (string-to-syntax "<") (syntax-after (point))))
-                     (not (looking-at-p "^>")))
-                    (looking-at-p "^\\\\begin{code}[\t ]*$")))))))
+                   (or (and (not (equal (string-to-syntax "<") (syntax-after (point))))
+                            (not (looking-at-p "^>")))
+                       (looking-at-p "^\\\\begin{code}[\t ]*$")))))))
         (while (< (point) end)
           (unless (looking-at-p "^[\t ]*$")
             (if previous-line-latex-code
@@ -523,16 +521,18 @@ be set to the preferred literate style."
 
     (goto-char begin)
     (let ((ppss (syntax-ppss)))
+      ;; If inside a comment
       (when (nth 4 ppss)
         ;; go to the end of a comment, there is nothing to see inside
         ;; a comment so we might as well just skip over it
         ;; immediatelly
         (setq ppss (parse-partial-sexp (point) (point-max) nil nil ppss
                                        'syntax-table)))
+      ;; character address of start of comment or string
       (when (nth 8 ppss)
         ;; go to the beginning of a comment or string
         (goto-char (nth 8 ppss))
-        (when (equal ?| (nth 3 ppss))
+        (when (eq ?| (nth 3 ppss))
           ;; if this is a quasi quote we need to backtrack even more
           ;; to the opening bracket
           (skip-chars-backward "^[")
@@ -543,15 +543,15 @@ be set to the preferred literate style."
             ((token-kind (haskell-lexeme-looking-at-token)))
 
           (cond
-           ((equal token-kind 'qsymid)
+           ((eq token-kind 'qsymid)
             (when (member
                    (haskell-lexeme-classify-by-first-char (char-after (match-beginning 1)))
                    '(varsym consym))
               ;; we have to neutralize potential comments here
               (put-text-property (match-beginning 1) (match-end 1) 'syntax-table (string-to-syntax "."))))
-           ((equal token-kind 'number)
+           ((eq token-kind 'number)
             (put-text-property (match-beginning 0) (match-end 0) 'syntax-table (string-to-syntax "w")))
-           ((equal token-kind 'char)
+           ((eq token-kind 'char)
             (save-excursion
               (goto-char (match-beginning 2))
               (let ((limit (match-end 2)))
@@ -564,14 +564,14 @@ be set to the preferred literate style."
               ;; string ends at the end of the buffer we will use
               ;; plain string
               (if (and (not (match-beginning 3))
-                       (not (equal (match-end 2) (point-max))))
+                       (not (eq (match-end 2) (point-max))))
                   (progn
                     (put-text-property (match-beginning 1) (match-end 1) 'syntax-table (string-to-syntax "|"))
                     (put-text-property (match-end 2 ) (1+ (match-end 2)) 'syntax-table (string-to-syntax "|")))
                 (put-text-property (match-beginning 1) (match-end 1) 'syntax-table (string-to-syntax "\""))
-                (when (not (equal (match-end 2) (point-max)))
+                (unless (eq (match-end 2) (point-max))
                   (put-text-property (match-end 2 ) (1+ (match-end 2)) 'syntax-table (string-to-syntax "\""))))))
-           ((equal token-kind 'string)
+           ((eq token-kind 'string)
             (save-excursion
               (goto-char (match-beginning 2))
               (let ((limit (match-end 2)))
@@ -583,11 +583,11 @@ be set to the preferred literate style."
               ;; when a generic delimiter is not closed so in case
               ;; string ends at the end of the buffer we will use
               ;; plain string
-              (when (and (not (match-beginning 3))
-                         (not (equal (match-end 2) (point-max))))
+              (unless (or (match-beginning 3)
+                          (eq (match-end 2) (point-max)))
                 (put-text-property (match-beginning 1) (match-end 1) 'syntax-table (string-to-syntax "|"))
                 (put-text-property (match-end 2 ) (1+ (match-end 2)) 'syntax-table (string-to-syntax "|")))))
-           ((equal token-kind 'template-haskell-quasi-quote)
+           ((eq token-kind 'template-haskell-quasi-quote)
             (put-text-property (match-beginning 2) (match-end 2) 'syntax-table (string-to-syntax "\""))
             (when (match-beginning 4)
               (put-text-property (match-beginning 4) (match-end 4) 'syntax-table (string-to-syntax "\"")))
@@ -623,7 +623,7 @@ May return a qualified name."
   "Return the span of the identifier near point going backward.
 Returns nil if no identifier found or point is inside string or
 comment.  May return a qualified name."
-  (when (not (nth 8 (syntax-ppss)))
+  (unless (nth 8 (syntax-ppss))
     ;; Do not handle comments and strings
     (let (start end)
       ;; Initial point position is non-deterministic, it may occur anywhere
@@ -678,9 +678,8 @@ comment.  May return a qualified name."
           (goto-char start)
           (when (looking-at-p (rx "."))
             (forward-char))
-          (let ((pos (haskell-mode--skip-qualification-backward)))
-            (when pos
-              (setq start pos))))
+          (if-let (pos (haskell-mode--skip-qualification-backward))
+              (setq start pos)))
         ;; Finally, let's try to go right.
         (save-excursion
           ;; Try to slurp qualification part first.
@@ -695,12 +694,12 @@ comment.  May return a qualified name."
           (while (haskell-mode--looking-at-varsym)
             (forward-char)
             (setq end (point))))
-        (when (not (= start end))
+        (unless (= start end)
           (cons start end))))))
 
 (defun haskell-mode--looking-at-varsym ()
   "Return t when point stands at operator symbol."
-  (when (not (eobp))
+  (unless (eobp)
     (let ((lex (haskell-lexeme-classify-by-first-char (char-after))))
       (or (eq lex 'varsym)
           (eq lex 'consym)))))
@@ -709,15 +708,15 @@ comment.  May return a qualified name."
   "Skip qualified part of identifier backward.
 Expects point stands *after* delimiting dot.
 Returns beginning position of qualified part or nil if no qualified part found."
-  (when (not (and (bobp)
-                  (looking-at (rx bol))))
+  (unless (and (bobp)
+               (looking-at-p (rx bol)))
     (let ((case-fold-search nil)
           pos)
       (while (and (eq (char-before) ?.)
                   (progn (backward-char)
                          (not (zerop (skip-syntax-backward "w'"))))
                   (skip-syntax-forward "'")
-                  (looking-at "[[:upper:]]"))
+                  (looking-at-p "[[:upper:]]"))
         (setq pos (point)))
       pos)))
 
@@ -1087,8 +1086,8 @@ successful, nil otherwise."
 (defun haskell-mode-insert-scc-at-point ()
   "Insert an SCC annotation at point."
   (interactive)
-  (if (not (haskell-mode-try-insert-scc-at-point))
-      (error "Not over an area of whitespace")))
+  (unless (haskell-mode-try-insert-scc-at-point)
+    (error "Not over an area of whitespace")))
 
 (make-obsolete
  'haskell-mode-insert-scc-at-point
@@ -1113,8 +1112,8 @@ successful, nil otherwise."
 (defun haskell-mode-kill-scc-at-point ()
   "Kill the SCC annotation at point."
   (interactive)
-  (if (not (haskell-mode-try-kill-scc-at-point))
-      (error "No SCC at point")))
+  (unless (haskell-mode-try-kill-scc-at-point)
+    (error "No SCC at point")))
 
 (make-obsolete
  'haskell-mode-kill-scc-at-point
@@ -1124,9 +1123,9 @@ successful, nil otherwise."
 (defun haskell-mode-toggle-scc-at-point ()
   "If point is in an SCC annotation, kill the annotation.  Otherwise, try to insert a new annotation."
   (interactive)
-  (if (not (haskell-mode-try-kill-scc-at-point))
-      (if (not (haskell-mode-try-insert-scc-at-point))
-          (error "Could not insert or remove SCC"))))
+  (unless (haskell-mode-try-kill-scc-at-point)
+    (unless (haskell-mode-try-insert-scc-at-point)
+      (error "Could not insert or remove SCC"))))
 
 (defun haskell-guess-module-name-from-file-name (file-name)
   "Guess the module name from FILE-NAME.
