@@ -32,6 +32,14 @@
 (dolist (x '(magit-reset-soft magit-reset-hard magit-reset-head magit-reset magit-reset-index))
   (push (cons x nil) ivy-sort-functions-alist))
 
+(defun magit-rebase-arguments--author-dates-as-commiter-dates (args)
+  "Pass ‘--committer-date-is-author-date’ to ‘git rebase’ no matter what."
+  (if (member "--committer-date-is-author-date" args)
+      args
+    (cons "--committer-date-is-author-date" args)))
+
+(advice-add 'magit-rebase-arguments :filter-return #'magit-rebase-arguments--author-dates-as-commiter-dates)
+
 ;;; Magit redefinitions
 
 (el-patch-defun magit-reset-read-branch-or-commit (prompt)
