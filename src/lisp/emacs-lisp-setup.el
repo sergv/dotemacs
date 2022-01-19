@@ -87,11 +87,16 @@ _j_: eval"
 
 (defhydra-ext hydra-emacs-lisp-dash (:exit t :foreign-keys nil :hint nil)
   "
+expand _m_acro  _M_: fully expand macro
+
 _e_val
-expand _m_acro  _M_: fully expand macro"
-  ("e" eval-last-sexp)
+realign _l_et
+"
   ("m" expand-last-macro)
-  ("M" expand-last-macro-all))
+  ("M" expand-last-macro-all)
+
+  ("e" eval-last-sexp)
+  ("l" realign-let))
 
 ;;;###autoload
 (defun emacs-lisp-setup ()
