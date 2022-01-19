@@ -18,10 +18,19 @@
 ;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with paredit.  If not, see <http://www.gnu.org/licenses/>.
+
+(require 'comment-util)
+
 
-(defun paredit-test-failure-default (command before after expected)
-  (error "%S failed test: after %S, got %S but expected %S."
-         command before after expected))
+(defun paredit-test-failure-default (command before after expected err)
+  (error "‘%S’ test failed\nInitial:\n%S\nActual:\n%S\nExpected:\n%S%s"
+         command
+         before
+         after
+         expected
+         (if err
+             (format "\nReason:\n%s" (cdr err))
+           "")))
 
 (defvar paredit-test-failure-function 'paredit-test-failure-default
   "Function to call when `paredit-test' fails.
@@ -29,64 +38,109 @@ Four arguments: the paredit command, the text of the buffer
   before, the text of the buffer after, and the expected text of
   the buffer after.")
 
-(defun paredit-test-failed (command before after expected)
-  (funcall paredit-test-failure-function command before after expected))
+(defun paredit-test-failed (command before after expected err)
+  (funcall paredit-test-failure-function command before after expected err))
 
 (defun paredit-test (command examples)
+  (declare (indent 1))
   (message "Testing %S..." command)
-  (dolist (example examples)
-    (let ((before (car example)))
-      (dolist (expected (cdr example))
-        (with-temp-buffer
-          (paredit-test-buffer-setup)
-          (insert before)
-          (goto-char (point-min))
-          (if (search-forward "_" nil t)
-              (progn (delete-char -1) (set-mark (point))))
-          (goto-char (point-min))
-          (search-forward "|")
-          (delete-char -1)
-          (if (cond ((eq expected 'error)
-                     ;++ Check that there are no more expected states.
-                     (condition-case condition
-                         (progn (call-interactively command) t)
-                       (error nil)))
-                    ((stringp expected)
-                     (call-interactively command)
-                     (insert ?\|)
-                     (not (string= expected (buffer-string))))
-                    (t (error "Bad test expectation: %S" expected)))
-              (paredit-test-failed command before (buffer-string) expected)))
-        (setq before expected)))))
+  (condition-case err
+      (dolist (example examples)
+        (setq example (mapcar #'paredit-fix-comments example))
+        (let ((before (car example)))
+          (dolist (expected (cdr example))
+            (message "‘%s’ -> ‘%s’" before expected)
+            (with-temp-buffer
+              (condition-case err
+                  (progn
+                    (paredit-test-buffer-setup)
+                    (insert before)
+                    (goto-char (point-min))
+                    (when (search-forward "_" nil t)
+                      (delete-char -1)
+                      (set-mark (point)))
+                    (goto-char (point-min))
+                    (search-forward "|")
+                    (delete-char -1)
+                    (when (cond ((eq expected 'error)
+                                 ;;++ Check that there are no more expected states.
+                                 (condition-case condition
+                                     (progn (call-interactively command) t)
+                                   (error nil)))
+                                ((stringp expected)
+                                 (call-interactively command)
+                                 (insert ?\|)
+                                 (not (string= expected
+                                               (buffer-substring-no-properties (point-min)
+                                                                               (point-max)))))
+                                (t (error "Bad test expectation: %S" expected)))
+                      (paredit-test-failed command
+                                           before
+                                           (buffer-substring-no-properties (point-min)
+                                                                           (point-max))
+                                           expected err)))
+                (error
+                 (paredit-test-failed command
+                                      before
+                                      (buffer-substring-no-properties (point-min)
+                                                                      (point-max))
+                                      expected err))))
+            (setq before expected))))
+    (error
+     (message (concat "Test failed:\n" (cadr err)))
+     (signal (car err) (cdr err)))))
+
+(defvar paredit-test-mode-is-lisp? nil
+  "Set to t for lisp-syntax modes with ; as comment character.")
+(defvar paredit-test-mode #'c-mode)
+(defvar paredit-test-line-comment
+  (or (cadr (assq 'one-line
+                  (cdr (assq paredit-test-mode
+                             +comment-util-comment-format-alist+))))
+      (error "No one-line comment defined for %s"
+             paredit-test-mode)))
 
 (defun paredit-test-buffer-setup ()
-  (scheme-mode)
-  (set (make-local-variable 'indent-tabs-mode) nil)
-  (set (make-local-variable 'comment-column) 40)
-  (set (make-local-variable 'show-trailing-whitespace) nil)
-  (set (make-local-variable 'minibuffer-message-timeout) 0))
+  ;; (scheme-mode)
+  (funcall paredit-test-mode)
+  (setq-local indent-tabs-mode nil
+              comment-column 40
+              show-trailing-whitespace nil
+              minibuffer-message-timeout 0))
 
-(paredit-do-commands (spec keys command examples)
-    nil                                 ;string case
-  ;; `paredit-backslash' has a funny example.
-  (if (not (eq command 'paredit-backslash))
-      (paredit-test command examples)))
-
+(defun paredit-fix-comments (str)
+  (replace-regexp-in-string ";" paredit-test-line-comment str))
+
 (defun paredit-test-bracketed (entries examples)
   (dolist (entry entries)
     (let ((command (car entry))
-          (left (car (cdr entry)))
-          (right (car (cdr (cdr entry)))))
+          (left    (string (cadr entry)))
+          (right   (string (caddr entry))))
       (paredit-test command
-        (mapcar
-         (lambda (example)
-           (mapcar (lambda (step)
-                     (if (stringp step)
-                         (replace-regexp-in-string "(" (string left)
-                           (replace-regexp-in-string ")" (string right) step))
-                         step))
-                   example))
-         examples)))))
+                    (mapcar (lambda (example)
+                              (mapcar (lambda (step)
+                                        (if (stringp step)
+                                            (replace-regexp-in-string
+                                             "("
+                                             left
+                                             (replace-regexp-in-string
+                                              ")"
+                                              right
+                                              step))
+                                          step))
+                                      example))
+                            examples)))))
+
+(paredit-do-commands (spec keys command examples)
+    nil ;; string case
+  ;; `paredit-backslash' has a funny example.
+  (let ((ignored (unless paredit-test-mode-is-lisp?
+                   '(paredit-semicolon
+                     paredit-comment-dwim
+                     paredit-newline))))
+    (unless (memq command (cons 'paredit-backslash ignored))
+      (paredit-test command examples))))
+
 
 ;++ Test `paredit-open-...' with the region active.
 
@@ -204,13 +258,14 @@ Four arguments: the paredit command, the text of the buffer
   (paredit-test 'paredit-wrap-sexp
     '(("(foo |bar baz)" "(foo (|bar baz))"))))
 
-(paredit-test 'paredit-newline
-  '(("\"foo|bar\"" "\"foo\n|bar\"")
-    ("(frob grovel ;full |(lexical)\n      mumble)"
-     "(frob grovel ;full\n      |(lexical)\n      mumble)")
-    ("(frob grovel ;full (|lexical)\n      mumble)"
-     "(frob grovel ;full (\n             ;|lexical)\n      mumble)")
-    ("#\\|(" "#\\(\n|")))
+(when paredit-test-mode-is-lisp?
+  (paredit-test 'paredit-newline
+    '(("\"foo|bar\"" "\"foo\n|bar\"")
+      ("(frob grovel ;full |(lexical)\n      mumble)"
+       "(frob grovel ;full\n      |(lexical)\n      mumble)")
+      ("(frob grovel ;full (|lexical)\n      mumble)"
+       "(frob grovel ;full (\n             ;|lexical)\n      mumble)")
+      ("#\\|(" "#\\(\n|"))))
 
 (paredit-test 'paredit-reindent-defun
   ;++ Test filling paragraphs in comments and strings.
@@ -229,46 +284,48 @@ Four arguments: the paredit command, the text of the buffer
     ("(define (square x)\n     (* |x x))"
      "(define (square x)\n  (* |x x))")))
 
-(paredit-test 'paredit-semicolon
-  '(("|" ";|")
-    ("|foo" ";|foo")
-    ("f|oo" "f;|oo")
-    ("fo|o" "fo;|o")
-    ("foo|" "foo;|")
-    ("|(foo bar)" ";|(foo bar)")
-    ("(|foo bar)" "(;|foo bar\n )")
-    ("(f|oo bar)" "(f;|oo bar\n )")
-    ("(fo|o bar)" "(fo;|o bar\n )")
-    ("(foo| bar)" "(foo;| bar\n )")
-    ("(foo |bar)" "(foo ;|bar\n )")
-    ("(foo b|ar)" "(foo b;|ar\n     )")
-    ("(foo ba|r)" "(foo ba;|r\n     )")
-    ("(foo bar|)" "(foo bar;|\n     )")
-    ("(foo bar)|" "(foo bar);|")
-    ("|(foo\n bar)" ";|\n(foo\n bar)")
-    ("(|foo\n bar)" "(;|foo\n bar)")
-    ("(f|oo\n bar)" "(f;|oo\n bar)")
-    ("(fo|o\n bar)" "(fo;|o\n bar)")
-    ("(foo|\n bar)" "(foo;|\n bar)")
-    ("(foo\n| bar)" "(foo\n;| bar\n )")
-    ("(foo\n |bar)" "(foo\n ;|bar\n )")
-    ("(foo\n b|ar)" "(foo\n b;|ar\n )")
-    ("(foo\n ba|r)" "(foo\n ba;|r\n )")
-    ("(foo\n bar|)" "(foo\n bar;|\n )")
-    ("(foo\n bar)|" "(foo\n bar);|")
-    ("#\\|(" ";|#\\(")))
+(when paredit-test-mode-is-lisp?
+  (paredit-test 'paredit-semicolon
+    '(("|" ";|")
+      ("|foo" ";|foo")
+      ("f|oo" "f;|oo")
+      ("fo|o" "fo;|o")
+      ("foo|" "foo;|")
+      ("|(foo bar)" ";|(foo bar)")
+      ("(|foo bar)" "(;|foo bar\n )")
+      ("(f|oo bar)" "(f;|oo bar\n )")
+      ("(fo|o bar)" "(fo;|o bar\n )")
+      ("(foo| bar)" "(foo;| bar\n )")
+      ("(foo |bar)" "(foo ;|bar\n )")
+      ("(foo b|ar)" "(foo b;|ar\n     )")
+      ("(foo ba|r)" "(foo ba;|r\n     )")
+      ("(foo bar|)" "(foo bar;|\n     )")
+      ("(foo bar)|" "(foo bar);|")
+      ("|(foo\n bar)" ";|\n(foo\n bar)")
+      ("(|foo\n bar)" "(;|foo\n bar)")
+      ("(f|oo\n bar)" "(f;|oo\n bar)")
+      ("(fo|o\n bar)" "(fo;|o\n bar)")
+      ("(foo|\n bar)" "(foo;|\n bar)")
+      ("(foo\n| bar)" "(foo\n;| bar\n )")
+      ("(foo\n |bar)" "(foo\n ;|bar\n )")
+      ("(foo\n b|ar)" "(foo\n b;|ar\n )")
+      ("(foo\n ba|r)" "(foo\n ba;|r\n )")
+      ("(foo\n bar|)" "(foo\n bar;|\n )")
+      ("(foo\n bar)|" "(foo\n bar);|")
+      ("#\\|(" ";|#\\("))))
 
-(paredit-test 'paredit-comment-dwim
-  '(("\"foo|bar;baz\"    ;quux"
-     "\"foobar;baz\"                            ;|quux")
-    ;; Uh oh!  Bug in `comment-indent'...
-    ;; ("\"foo\nbar|baz;quux\"         ;zot"
-    ;;  "\"foo\nbarbaz;quux\"                            ;|zot")
-    ;; I think the loop in `paredit-comment-on-line' is bogus.  Can you
-    ;; elicit more than one iteration of it?  That is, can you cause
-    ;; `comment-search-forward' to wind up inside a character or a
-    ;; string?
-    ))
+(when paredit-test-mode-is-lisp?
+  (paredit-test 'paredit-comment-dwim
+    '(("\"foo|bar;baz\"    ;quux"
+       "\"foobar;baz\"                            ;|quux")
+      ;; Uh oh!  Bug in `comment-indent'...
+      ;; ("\"foo\nbar|baz;quux\"         ;zot"
+      ;;  "\"foo\nbarbaz;quux\"                            ;|zot")
+      ;; I think the loop in `paredit-comment-on-line' is bogus.  Can you
+      ;; elicit more than one iteration of it?  That is, can you cause
+      ;; `comment-search-forward' to wind up inside a character or a
+      ;; string?
+      )))
 
 (paredit-test 'paredit-doublequote
   '(("\"foo \\|x bar\"" "\"foo \\x\\\"| bar\"")))
@@ -1387,6 +1444,7 @@ Four arguments: the paredit command, the text of the buffer
   nil)
 
 (put 'paredit-canary 'scheme-indent-function 'paredit-canary-indent-method)
+(put 'paredit-canary 'lisp-indent-function 'paredit-canary-indent-method)
 
 ;;; Check for regressions the indentation behaviour of forward slurping
 ;;; and barfing.
