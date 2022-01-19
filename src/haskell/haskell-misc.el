@@ -448,7 +448,7 @@ extensions as a list of strings. Leaves point at the end of pragma"
           (goto-char pragma-end)
           exts)))))
 
-;;; define forward-haskell-symbol
+;;; define ‘bounds-of-haskell-symbol’
 
 (defvar haskell-symbol--identifier-syntax-table
   (let ((tbl (copy-syntax-table haskell-mode-syntax-table)))
