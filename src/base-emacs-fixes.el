@@ -980,6 +980,7 @@ characters."
 
 ;; TODO remove this when this get fixed in upstream
 (when-emacs-version (<= 28 it)
+  (defvar memory-report--type-size)
   (el-patch-defun memory-report-object-size (object)
     "Return the size of OBJECT in bytes."
     (el-patch-swap
