@@ -556,7 +556,7 @@ _<tab>_: reindent defun  _t_: jump to function start
   "
 _a_lign  _t_: jump to topmost node start
        _h_: jump to topmont node end"
-  ("a"  hydra-lisp-align/body)
+  ("a"     hydra-lisp-align/body)
 
   ("t"     glisp/beginning-of-defun)
   ("h"     glisp/end-of-defun))
