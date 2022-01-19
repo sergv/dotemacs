@@ -12,7 +12,6 @@
   (defvar whitespace-line-column))
 
 (require 'common)
-(require 'ctypes)
 (require 'indentation)
 (require 'find-file)
 (require 'company-eproj)
