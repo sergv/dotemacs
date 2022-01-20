@@ -156,6 +156,11 @@ command has finished execution."
   (setf vim--repeat-events events
         vim--reified-repeat-events nil))
 
+(defsubst vim--overwrite-repeat-events-with-keys-vector! (keys)
+  (cl-assert (vectorp keys))
+  (setf vim--repeat-events (append-list-singleton keys)
+        vim--reified-repeat-events keys))
+
 (defun vim--append-repeat-events! (events)
   (when events
     (cl-assert (append-list-p events))
