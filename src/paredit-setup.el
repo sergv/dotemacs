@@ -124,17 +124,17 @@ This macro is similar to `vim:do-motion'."
 ;; note: plain lowercase *-word functions are doing fine without
 ;; vim--do-motion-with-amended-begin corrections
 ;;;###autoload (autoload 'vim:paredit-forward-word "paredit-setup" "" t)
-(vim-defmotion vim:paredit-forward-word (inclusive count)
+(vim-defmotion vim:paredit-forward-word (inclusive count motion-result)
   (goto-char (paredit-skip-forward-for-kill (point) '(?\w)))
   (vim:motion-fwd-word :count count))
 
 ;;;###autoload (autoload 'vim:paredit-forward-word-end "paredit-setup" "" t)
-(vim-defmotion vim:paredit-forward-word-end (inclusive count)
+(vim-defmotion vim:paredit-forward-word-end (inclusive count motion-result)
   (goto-char (paredit-skip-forward-for-kill (point) '(?\w)))
   (vim:motion-fwd-word-end :count count))
 
 ;;;###autoload (autoload 'vim:paredit-backward-word "paredit-setup" "" t)
-(vim-defmotion vim:paredit-backward-word (inclusive count)
+(vim-defmotion vim:paredit-backward-word (inclusive count motion-result)
   (goto-char (paredit-skip-backward-for-kill
               (point)
               '(?\w)
@@ -146,21 +146,21 @@ This macro is similar to `vim:do-motion'."
 
 
 ;;;###autoload (autoload 'vim:paredit-forward-WORD "paredit-setup" "" t)
-(vim-defmotion vim:paredit-forward-WORD (inclusive count)
+(vim-defmotion vim:paredit-forward-WORD (inclusive count motion-result)
   (vim--do-motion-with-amended-begin
       #'vim-change-motion-begin
     (goto-char (paredit-skip-forward-for-kill (point) '(?\w ?\_)))
     (vim:motion-fwd-WORD :count count)))
 
 ;;;###autoload (autoload 'vim:paredit-forward-WORD-end "paredit-setup" "" t)
-(vim-defmotion vim:paredit-forward-WORD-end (inclusive count)
+(vim-defmotion vim:paredit-forward-WORD-end (inclusive count motion-result)
   (vim--do-motion-with-amended-begin
       #'vim-change-motion-begin
     (goto-char (paredit-skip-forward-for-kill (point) '(?\w ?\_)))
     (vim:motion-fwd-WORD-end :count count)))
 
 ;;;###autoload (autoload 'vim:paredit-backward-WORD "paredit-setup" "" t)
-(vim-defmotion vim:paredit-backward-WORD (inclusive count)
+(vim-defmotion vim:paredit-backward-WORD (inclusive count motion-result)
   (vim--do-motion-with-amended-begin
       #'vim-change-motion-begin
     (goto-char (paredit-skip-backward-for-kill
@@ -175,29 +175,29 @@ This macro is similar to `vim:do-motion'."
 ;; note: symbol-oriented functions are also working fine without
 ;; vim--do-motion-with-amended-begin corrections
 ;;;###autoload (autoload 'vim:paredit-inner-symbol "paredit-setup" "" t)
-(vim-defmotion vim:paredit-inner-symbol (inclusive count)
+(vim-defmotion vim:paredit-inner-symbol (inclusive count motion-result)
   (goto-char (paredit-skip-forward-for-kill (point) '(?\w ?\_)))
   (vim:motion-inner-symbol :count count))
 
 ;;;###autoload (autoload 'vim:paredit-outer-symbol "paredit-setup" "" t)
-(vim-defmotion vim:paredit-outer-symbol (inclusive count)
+(vim-defmotion vim:paredit-outer-symbol (inclusive count motion-result)
   (goto-char (paredit-skip-forward-for-kill (point) '(?\w ?\_)))
   (vim:motion-outer-symbol :count count))
 
 
 ;;;###autoload (autoload 'vim:paredit-forward-symbol "paredit-setup" "" t)
-(vim-defmotion vim:paredit-forward-symbol (inclusive count)
+(vim-defmotion vim:paredit-forward-symbol (inclusive count motion-result)
   (goto-char (paredit-skip-forward-for-kill (point) '(?\w ?\_)))
   (vim:motion-fwd-symbol :count count))
 
 ;;;###autoload (autoload 'vim:paredit-forward-symbol-end "paredit-setup" "" t)
-(vim-defmotion vim:paredit-forward-symbol-end (inclusive count)
+(vim-defmotion vim:paredit-forward-symbol-end (inclusive count motion-result)
   (goto-char (paredit-skip-forward-for-kill (point)
                                             '(?\w ?\_)))
   (vim:motion-fwd-symbol-end :count count))
 
 ;;;###autoload (autoload 'vim:paredit-backward-symbol "paredit-setup" "" t)
-(vim-defmotion vim:paredit-backward-symbol (inclusive count)
+(vim-defmotion vim:paredit-backward-symbol (inclusive count motion-result)
   (goto-char (paredit-skip-backward-for-kill
               (point)
               '(?\w ?\_)
