@@ -14,6 +14,9 @@
 
 (require 'edmacro)
 
+(require 'append-list)
+(require 'vim-core)
+
 ;;;; Define new macros and execute existing ones
 
 (defvar vim--current-macro nil
@@ -119,8 +122,9 @@ argument was *explicitly* provided."
                   1))))
     (vim--reset-key-state!)
     (let* ((name-for-user nil)
+           (ask-for-name? vim--current-universal-argument-provided?)
            (macro-def
-            (if vim--current-universal-argument-provided?
+            (if ask-for-name?
                 (cl-destructuring-bind (rendered . name-mapping) (vim--render-macro-names vim--defined-macro-names)
                   (let* ((name (completing-read "Macro name: " rendered nil t nil 'vim--executed-macro-names-history))
                          (real-name (or (cdr (assoc name name-mapping))
@@ -140,8 +144,11 @@ argument was *explicitly* provided."
       (unless macro-def
         (error "Macro not defined: %s" name-for-user))
       (vim--prepare-buffer-undo-list!)
-      (let ((last-undo buffer-undo-list))
-        (execute-kbd-macro (vim-macro-def-keys macro-def) count)
+      (let ((last-undo buffer-undo-list)
+            (keys (vim-macro-def-keys macro-def)))
+        (execute-kbd-macro keys count)
+        (when ask-for-name?
+          (vim--overwrite-repeat-events-with-keys-vector! keys))
         (vim--connect-undos! last-undo)))))
 
 (defun vim-cmd-edit-macro ()
