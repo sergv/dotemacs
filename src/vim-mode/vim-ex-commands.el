@@ -55,11 +55,6 @@
             (kill-emacs)
           (save-buffers-kill-emacs)))))))
 
-(vim-defcmd vim:cmd-save-and-close ((argument:file file) force nonrepeatable noninteractive)
-  "Saves the current buffer and closes the window."
-  (vim:cmd-write :argument file :force force)
-  (vim:cmd-quit))
-
 (defun vim--ex-complete-mode-argument (mode predicate flag)
   "Completes a registered vim-mode submode."
   (when mode
