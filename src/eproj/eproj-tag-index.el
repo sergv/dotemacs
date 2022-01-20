@@ -119,7 +119,7 @@
 (defun eproj-tag-index-add! (symbol file line type props index)
   (cl-assert (stringp symbol))
   (cl-assert (or (characterp type) (stringp type) (null type)))
-  (cl-assert (file-absolute-p file))
+  (cl-assert (file-name-absolute-p file))
   (let ((table (cdr-sure index)))
     (puthash symbol
              (cons (make-eproj-tag file line type props)
