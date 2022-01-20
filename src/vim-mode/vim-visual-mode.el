@@ -579,7 +579,7 @@ This function is also responsible for setting the X-selection."
                       col)
               (move-to-column col t)
               (save-excursion
-                (vim--cmd-repeat-impl 1 events)))
+                (vim--cmd-repeat-impl 1 events nil)))
             (forward-line -1))
           (vim--finalize-copy-inserts!))
       (vim--free-visual-insert-info!))))
@@ -595,7 +595,7 @@ This function is also responsible for setting the X-selection."
           (goto-char (vim-visual-insert-info-end vim-visual--last-insert-info))
           (dotimes (_ count)
             (save-excursion
-              (vim--cmd-repeat-impl 1 events))
+              (vim--cmd-repeat-impl 1 events nil))
             (forward-line -1))
           (vim--finalize-copy-inserts!))
       (vim--free-visual-insert-info!))))
@@ -735,7 +735,7 @@ This function is also responsible for setting the X-selection."
               (move-to-column col-past t) ;; extend the newline at the end
               (move-to-column col)        ;; no need to force again
               (save-excursion
-                (vim--cmd-repeat-impl 1 events))
+                (vim--cmd-repeat-impl 1 events nil))
               (forward-line -1))
             (vim--finalize-copy-inserts!)))
       (vim--free-visual-insert-info!))))
