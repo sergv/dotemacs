@@ -936,14 +936,11 @@ project for PATH."
   "Preapre all files related to project PROJ that user might want to quickly
 jump to. Call FUNC with be called with 2 arguments: absolute path and path relative to the
 current project’s root."
-  (aif (eproj-project/cached-files-for-navigation proj)
-      (maphash func it)
-    (progn
-      (notify "Constructing file navigation list for %s"
-              (eproj-project/root proj))
-      (eproj--get-all-files proj)
-      (maphash func
-               (eproj-project/cached-files-for-navigation proj))))
+  (unless (eproj-project/cached-files-for-navigation proj)
+    (notify "Constructing file navigation list for %s"
+            (eproj-project/root proj))
+    (eproj--get-all-files proj))
+  (maphash func (eproj-project/cached-files-for-navigation proj))
   (awhen (eproj-project/transient-files-for-navigation proj)
     (maphash func it)))
 
@@ -986,8 +983,8 @@ doing `eproj-switch-to-file-or-buffer'."
     ;; Cache files
     (if files-cache
         (clrhash files-cache)
-      (setf files-cache (make-hash-table :test #'equal :size (length all-files))
-            (eproj-project/cached-files-for-navigation proj) files-cache))
+      (setf (eproj-project/cached-files-for-navigation proj)
+            (setf files-cache (make-hash-table :test #'equal))))
     (dolist (file all-files)
       (eproj--add-cached-file-for-navigation proj-root file files-cache))
     (dolist (file extra)
@@ -1267,17 +1264,25 @@ Returns list of (tag-name tag project) lists."
                   (if (bufferp target)
                       (switch-to-buffer-create-if-missing target)
                     (find-file target))))))
+           (buffers-cache (let ((tbl (make-hash-table :test #'equal)))
+                            (dolist (buf (buffer-list))
+                              (awhen (buffer-file-name buf)
+                                (puthash (eproj-normalise-file-name-expand-cached it) buf tbl)))
+                            tbl))
+           (bufs-to-add (make-hash-table :test #'equal))
            (add-file
             (lambda (abs-path rel-path)
-              (let ((buf (get-file-buffer abs-path)))
-                (when (or (not buf)
-                          (invisible-buffer? buf))
-                  (dolist (p (if rel-path
-                                 (list abs-path rel-path)
-                               (list abs-path)))
-                    (unless (gethash p collected-entries nil)
-                      (puthash p t collected-entries)
-                      (push (cons p abs-path) files))))))))
+              (let ((buf (gethash abs-path buffers-cache)))
+                (if (and buf
+                         (not (invisible-buffer? buf)))
+                    (puthash buf buf bufs-to-add)
+                  (progn
+                    (dolist (p (if rel-path
+                                   (list abs-path rel-path)
+                                 (list abs-path)))
+                      (unless (gethash p collected-entries nil)
+                        (puthash p t collected-entries)
+                        (push (cons p abs-path) files)))))))))
       (let ((eproj-file (concat root "/.eproj-info")))
         (when (file-exists-p eproj-file)
           (funcall add-file eproj-file nil)))
@@ -1289,6 +1294,7 @@ Returns list of (tag-name tag project) lists."
       (dolist (buf (nreverse (if include-all-buffers?
                                  (buffer-list)
                                (--filter (or (null (buffer-file-name it))
+                                             (gethash it bufs-to-add)
                                              (when-let (pr (eproj-get-project-for-buf-lax it))
                                                (gethash (eproj-project/root pr) related-roots)))
                                          (visible-buffers)))))
