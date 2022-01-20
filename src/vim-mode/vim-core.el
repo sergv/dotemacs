@@ -76,6 +76,7 @@
 (require 'vim-modes)
 (require 'vim-keymap)
 (require 'vim-compat)
+(require 'vim-undo)
 
 (defvar-local vim--new-buffer nil
   "The buffer the be made current at the end of the execution of
@@ -640,6 +641,13 @@ command-specific transformations."
   (unless noninteractive
     (let (message-log-max)
       (apply #'message args))))
+
+(defun vim--command-finalize! (undo-mark forget-keys?)
+  "Common cleanup after executing a command in most modes."
+  (vim--connect-undos! vim--last-undo)
+  (vim--reset-key-state!)
+  (when forget-keys?
+    (vim--forget-command-keys!)))
 
 (provide 'vim-core)
 

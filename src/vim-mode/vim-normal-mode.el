@@ -210,10 +210,7 @@ If the old motion type was already characterwise exclusive/inclusive will be tog
     (vim--apply-save-buffer command parameters)
     (when record-repeat?
       (vim--overwrite-repeat-events! events))
-    (vim--connect-undos! vim--last-undo))
-  (vim--reset-key-state!)
-  (when atomic-command-for-keys?
-    (vim--forget-command-keys!)))
+    (vim--command-finalize! vim--last-undo atomic-command-for-keys?)))
 
 (defun vim--normal-prepare-complex-command (command)
   "Prepares a complex command, switching to operator-pending mode."
@@ -249,10 +246,8 @@ If the old motion type was already characterwise exclusive/inclusive will be tog
                               :motion (vim--get-current-cmd-motion))
     (when repeatable?
       (vim--overwrite-repeat-events! events))
-    (vim--connect-undos! vim--last-undo))
+    (vim--command-finalize! vim--last-undo t))
 
-  (vim--reset-key-state!)
-  (vim--forget-command-keys!)
   (vim--adjust-point))
 
 (provide 'vim-normal-mode)
