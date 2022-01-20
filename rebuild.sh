@@ -13,7 +13,7 @@ set -o pipefail
 set -e
 
 #./scripts/dump.sh &&
-./scripts/recompile.sh && ./tests/run-tests.sh
+./scripts/recompile.sh && ./tests/run-tests.sh "${@}"
 
 exit 0
 
