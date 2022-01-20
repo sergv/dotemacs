@@ -57,12 +57,13 @@
 (defun pseudovim-motion-fwd-WORD (count)
   "Moves the cursor to beginning of the next WORD."
   (interactive "p")
-  (let ((line (line-number-at-pos (point))))
+  (let ((line (when (vim-operator-pending-mode-p)
+                (line-number-at-pos (point)))))
     (vim--move-fwd-beg (or count 1) #'vim-boundary--WORD)
 
     ;; in operator-pending mode, if we reached the beginning of a new
     ;; line, go back to the end of the previous line
-    (when (and (vim-operator-pending-mode-p)
+    (when (and line
                (< line (line-number-at-pos (point))) ; only if we skipped a newline
                (vim--looking-back "^[ \t]*")
                (not (save-excursion
