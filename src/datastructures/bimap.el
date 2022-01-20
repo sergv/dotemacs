@@ -10,8 +10,6 @@
   (require 'cl-lib)
   (require 'macro-util))
 
-(require 'sorted-set)
-
 (cl-defstruct (bimap
                (:conc-name bimap/))
   forward-map   ;; hash table with #'equal comparison
