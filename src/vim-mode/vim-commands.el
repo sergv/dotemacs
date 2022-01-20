@@ -149,20 +149,6 @@ and switches to insert-mode."
   "Whether to move point backwards on `vim:insert-mode-exit'. Can be t, nil or
 'dont-move-at-line-end.")
 
-(vim-defcmd vim:insert-mode-exit (nonrepeatable)
-  "Deactivates insert-mode, returning to normal-mode."
-  (vim-activate-normal-mode)
-  (goto-char (max (line-beginning-position)
-                  (cond ((eq? vim--insert-mode-exit-move-point
-                              'dont-move-at-line-end)
-                         (if (= (point) (line-end-position))
-                           (point)
-                           (1- (point))))
-                        (vim--insert-mode-exit-move-point
-                         (1- (point)))
-                        (t
-                         (point))))))
-
 (vim-defcmd vim:cmd-delete-line (count)
   "Deletes the next count lines."
   (vim--cmd-delete-line-impl count t))
@@ -727,13 +713,17 @@ block motions."
 
 (vim-defcmd vim:cmd-repeat (count nonrepeatable)
   "Repeats the last command."
-  (unless vim--repeat-events
+  (let ((events (vim--reify-events vim--repeat-events)))
+    (vim--cmd-repeat-impl count events)))
+
+(defun vim--cmd-repeat-impl (count events)
+  "Repeats the last command."
+  (unless events
     (error "Nothing to repeat"))
   (vim--reset-key-state!)
-  (let ((repeat-events vim--repeat-events)
-        vim--repeat-events
-        vim--current-key-sequence)
-    (execute-kbd-macro repeat-events count)))
+  (let ((vim--repeat-events nil))
+    (vim--with-clear-command-keys
+      (execute-kbd-macro events count))))
 
 (vim-defcmd vim:cmd-emacs (nonrepeatable)
   "Switches to Emacs for the next command."
