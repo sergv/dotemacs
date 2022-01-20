@@ -283,12 +283,12 @@ nor comment."
 ;;;###autoload
 (defun lisp-pos-is-beginning-of-sexp? (&optional pos)
   "Check if there's sexp starting at POS."
-  (char= ?\( (char-syntax (char-after pos))))
+  (eq ?\( (char-syntax (char-after pos))))
 
 ;;;###autoload
 (defun lisp-pos-is-end-of-sexp? (&optional pos)
   "Check if there's sexp ending at POS."
-  (char= ?\) (char-syntax (char-after pos))))
+  (eq ?\) (char-syntax (char-after pos))))
 
 (defun lisp-beginning-of-sexp-at-pos (pos)
   (when (lisp-pos-is-end-of-sexp? pos)
@@ -327,10 +327,10 @@ nor comment."
   (lisp-pos-is-beginning-of-list? (max (1- pos) (point-min))))
 
 (defsubst lisp-pos-is-beginning-of-list? (pos)
-  (char= ?\( (char-after pos)))
+  (eq ?\( (char-after pos)))
 
 (defsubst lisp-pos-is-end-of-list? (pos)
-  (char= ?\) (char-after pos)))
+  (eq ?\) (char-after pos)))
 
 (defun lisp-beginning-of-list-at-pos (pos)
   "Return position of \( which corresponds to \) at position POS."
@@ -350,14 +350,14 @@ nor comment."
 
 
 (defun lisp-pos-is-beginning-of-string? (pos)
-  (and (char= ?\" (char-syntax (char-after pos)))
+  (and (eq ?\" (char-syntax (char-after pos)))
        (save-excursion
          (goto-char pos)
          (forward-char 1)
          (lisp-point-inside-string?))))
 
 (defun lisp-pos-is-end-of-string? (pos)
-  (and (char= ?\" (char-syntax (char-after pos)))
+  (and (eq ?\" (char-syntax (char-after pos)))
        (not
         (save-excursion
           (goto-char pos)
