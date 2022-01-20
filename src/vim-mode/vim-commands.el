@@ -714,16 +714,19 @@ block motions."
 (vim-defcmd vim:cmd-repeat (count nonrepeatable)
   "Repeats the last command."
   (let ((events (vim--reify-events vim--repeat-events)))
-    (vim--cmd-repeat-impl count events)))
+    (vim--cmd-repeat-impl count events t)))
 
-(defun vim--cmd-repeat-impl (count events)
+(defun vim--cmd-repeat-impl (count events handle-undo?)
   "Repeats the last command."
   (unless events
     (error "Nothing to repeat"))
   (vim--reset-key-state!)
-  (let ((vim--repeat-events nil))
+  (let ((vim--repeat-events nil)
+        (last-undo buffer-undo-list))
     (vim--with-clear-command-keys
-      (execute-kbd-macro events count))))
+      (execute-kbd-macro events count))
+    (when handle-undo?
+      (vim--connect-undos! last-undo))))
 
 (vim-defcmd vim:cmd-emacs (nonrepeatable)
   "Switches to Emacs for the next command."
