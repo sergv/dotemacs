@@ -282,9 +282,7 @@ popuated (in this case mostly by insert mode).")
           (vim--apply-save-buffer command parameters)
           (when repeatable?
             (vim--overwrite-repeat-events! vim--current-key-sequence))
-          (vim--connect-undos! vim--last-undo)
-          (vim--reset-key-state!)
-          (vim--forget-command-keys!)
+          (vim--command-finalize! vim--last-undo t)
           (vim--adjust-point)))
     (vim--normal-execute-simple-command command))
   ;; deactivate visual mode unless the command should keep it
@@ -564,9 +562,7 @@ This function is also responsible for setting the X-selection."
   (setq vim-visual--last-insert-undo vim--last-insert-undo))
 
 (defun vim--finalize-copy-inserts! ()
-  (vim--connect-undos! (setq vim--last-undo vim-visual--last-insert-undo))
-  (vim--reset-key-state!)
-  (vim--forget-command-keys!))
+  (vim--command-finalize! (setq vim--last-undo vim-visual--last-insert-undo) t))
 
 (defun vim--insert-block-copies ()
   "Called to repeat the last block-insert."
