@@ -31,6 +31,7 @@ fi
 
 emacs -Q --batch \
       -L "$EMACS_ROOT/src" \
+      -L "$EMACS_ROOT/src/custom" \
       -L "$EMACS_ROOT/tests" \
       --eval "(progn (require 'cl))" \
       --eval "(progn (require 'cl-lib))" \
