@@ -778,7 +778,7 @@ quote it for macro’s sake).
                                        (fold-direction-at-runtime direction "bottom" "top")))
                      t)
                  (progn
-                   (message ,(or not-found-message "Nothing found"))
+                   (princ ,(or not-found-message "Nothing found") t)
                    (goto-char ,pt)
                    nil))))))))
 
