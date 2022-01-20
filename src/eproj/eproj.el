@@ -700,15 +700,15 @@ for project at ROOT directory."
               projs))
       (goto-char (point-min)))))
 
-(defun eproj-describe-buffer-project ()
-  (interactive)
+(defun eproj-describe-buffer-project (&optional omit-tags)
+  (interactive "P")
   (if-let (proj (eproj-get-project-for-buf (current-buffer)))
       (let ((buf (get-buffer-create (format "*%s description*" (eproj-project/root proj)))))
         (switch-to-buffer-other-window buf)
         (with-current-buffer buf
           (erase-buffer)
           (text-mode)
-          (eproj-descibe-proj buf proj t nil)
+          (eproj-descibe-proj buf proj (not omit-tags) nil)
           (goto-char (point-min))))
     (error "no project for buffer %s" (buffer-name (current-buffer)))))
 
@@ -733,14 +733,15 @@ for project at ROOT directory."
                                   (error nil)))
                               (visible-buffers)))
           (insert indent (buffer-name buf) "\n")))
-      (insert "number of tags loaded: "
-              (let ((tag-count 0))
-                (dolist (tags-entry (eproj--get-tags proj))
-                  (dolist (entry (eproj-tag-index-entries (cdr tags-entry)))
-                    (setf tag-count
-                          (+ tag-count (length (cdr entry))))))
-                (number->string tag-count))
-              "\n")
+      (when describe-tags
+        (insert "number of tags loaded: "
+                (let ((tag-count 0))
+                  (dolist (tags-entry (eproj--get-tags proj))
+                    (dolist (entry (eproj-tag-index-entries (cdr tags-entry)))
+                      (setf tag-count
+                            (+ tag-count (length (cdr entry))))))
+                  (number->string tag-count))
+                "\n"))
       (insert "\nnavigation globs: "
               (mapconcat #'identity (eproj--navigation-globs proj) " "))
       (insert "\n")
