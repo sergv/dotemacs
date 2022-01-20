@@ -610,14 +610,12 @@ _o_: show sexps in region"
 
   (add-hook 'after-save-hook #'make-script-file-exec nil t)
 
-  (def-keys-for-map (vim-normal-mode-local-keymap
-                     vim-visual-mode-local-keymap)
-    ("*"   search-for-symbol-at-point-forward)
-    ("M-*" search-for-symbol-at-point-forward-new-color)
-    ("#"   search-for-symbol-at-point-backward)
-    ("M-#" search-for-symbol-at-point-backward-new-color))
-
   (def-keys-for-map vim-normal-mode-local-keymap
+    ("*"        search-for-symbol-at-point-forward)
+    ("M-*"      search-for-symbol-at-point-forward-new-color)
+    ("#"        search-for-symbol-at-point-backward)
+    ("M-#"      search-for-symbol-at-point-backward-new-color)
+
     ("+"        input-unicode)
     ("g"        hydra-lisp-vim-normal-g-ext/body)
     ("j"        hydra-lisp-vim-normal-j-ext/body))

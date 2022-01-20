@@ -407,15 +407,20 @@ _j_: send region to repl"
     (vim-local-emap cmd #'vim:python-shell-send-buffer))
 
   (def-keys-for-map vim-normal-mode-local-keymap
-    ("j"       hydra-python-vim-normal-j-ext/body)
-    ("C-l"     python-shell-send-buffer)
+    ("j"            hydra-python-vim-normal-j-ext/body)
+    ("C-l"          python-shell-send-buffer)
 
-    ("SPC SPC" switch-to-python))
+    ("SPC SPC"      switch-to-python)
+
+    ("*"            search-for-symbol-at-point-forward)
+    ("M-*"          search-for-symbol-at-point-forward-new-color)
+    ("#"            search-for-symbol-at-point-backward)
+    ("M-#"          search-for-symbol-at-point-backward-new-color))
 
   (def-keys-for-map vim-visual-mode-local-keymap
-    ("<f6>"  python-shell-send-region)
-    ("j"     hydra-python-vim-visual-j-ext/body)
-    ("g"     hydra-python-vim-visual-g-ext/body))
+    ("<f6>"         python-shell-send-region)
+    ("j"            hydra-python-vim-visual-j-ext/body)
+    ("g"            hydra-python-vim-visual-g-ext/body))
 
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-visual-mode-local-keymap)
@@ -423,20 +428,15 @@ _j_: send region to repl"
     (("C-m" "<f9>") python-run-script)
     ("S-<f9>"       python-check)
 
-    ("M-?"      python-convolute-lines)
+    ("M-?"          python-convolute-lines)
 
-    ("g"        hydra-python-vim-normal-g-ext/body)
+    ("g"            hydra-python-vim-normal-g-ext/body)
 
-    ("C-<up>"   python-nav-backward-block)
-    ("C-<down>" python-nav-forward-block)
+    ("C-<up>"       python-nav-backward-block)
+    ("C-<down>"     python-nav-forward-block)
 
-    ("="        python-nav-backward-up-list)
-    ("q"        python-nav-up-list)
-
-    ("*"        search-for-symbol-at-point-forward)
-    ("M-*"      search-for-symbol-at-point-forward-new-color)
-    ("#"        search-for-symbol-at-point-backward)
-    ("M-#"      search-for-symbol-at-point-backward-new-color))
+    ("="            python-nav-backward-up-list)
+    ("q"            python-nav-up-list))
 
   (bind-tab-keys #'tab-to-tab-stop
                  #'tab-to-tab-stop-backward
