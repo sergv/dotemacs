@@ -12,14 +12,18 @@
 ;;     s.t. the emacs command uses the correct region for block-mode
 ;;   - check interaction with region (deactivate-mark-hook and others)
 
-;;; Code:
+;;; Init:
 
 (eval-when-compile
   (require 'cl-lib)
+  (require 'macro-util)
+  (require 'search)
 
   (defvar vim--last-undo))
 
 (require 'common)
+(require 'search)
+
 (require 'vim-macs)
 (require 'vim-modes)
 (require 'vim-normal-mode)
@@ -27,6 +31,8 @@
 (require 'vim-ex)
 (require 'vim-commands)
 (require 'vim-undo)
+
+;;; Code:
 
 (defgroup vim-visual-mode nil
   "Visual mode"
@@ -828,6 +834,55 @@ current line."
     region-end))
 
 (advice-add 'region-end :filter-return #'region-end--fix-end-for-vim)
+
+;;; Search currently selected text
+
+(defun vim-visual--get-normal-or-linewise-region-bounds ()
+  (pcase vim-visual--mode-type
+    (`normal)
+    (`linewise)
+    (`block    (error "Block region is not supported")))
+  (with-region-bounds-unadj beg end
+      (cons beg end)))
+
+(search--make-search-for-thing
+    search-for-selected-region-forward
+    search-for-selected-region-forward-new-color
+    (vim-visual--get-normal-or-linewise-region-bounds)
+    (lambda (x)
+      `(progn
+         (vim:visual-mode-exit)
+         (search--next-impl (or ,x 1))))
+  :is-forward t
+  :error-message "No symbol at point"
+  :force-include-bounds-to nil)
+
+(search--make-search-for-thing
+    search-for-selected-region-backward
+    search-for-selected-region-backward-new-color
+    (vim-visual--get-normal-or-linewise-region-bounds)
+    (lambda (x)
+      `(progn
+         (vim:visual-mode-exit)
+         (search--prev-impl (or ,x 1))))
+  :is-forward nil
+  :error-message "No region selected"
+  :force-include-bounds-to nil)
+
+(vimmize-function search-for-selected-region-forward
+                  :name vim:search-for-selected-region-forward
+                  :repeatable nil)
+(vimmize-function search-for-selected-region-forward-new-color
+                  :name vim:search-for-selected-region-forward-new-color
+                  :repeatable nil)
+(vimmize-function search-for-selected-region-backward
+                  :name vim:search-for-selected-region-backward
+                  :repeatable nil)
+(vimmize-function search-for-selected-region-backward-new-color
+                  :name vim:search-for-selected-region-backward-new-color
+                  :repeatable nil)
+
+;;; End
 
 (provide 'vim-visual-mode)
 

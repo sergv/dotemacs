@@ -272,7 +272,6 @@ _<right>_: move tab to the right"
                    vim-visual-mode-keymap)
   +vim-navigation-keys+
   +vim-search-keys+
-  +vim-search-extended-keys+
 
   (","       vim:cmd-delete:interactive)
   ("l"       vim:cmd-change-char:interactive)
@@ -299,6 +298,7 @@ _<right>_: move tab to the right"
 
 (def-keys-for-map vim-normal-mode-keymap
   +vim-normal-mode-navigation-keys+
+  +vim-search-extended-keys+
 
   ("p"         vim:cmd-paste-after:interactive)
   ("P"         vim:cmd-paste-before:interactive)
@@ -337,6 +337,11 @@ _<right>_: move tab to the right"
 ;;; visual keybindings
 
 (def-keys-for-map vim-visual-mode-keymap
+  ("*"       vim:search-for-selected-region-forward:interactive)
+  ("C-*"     vim:search-for-selected-region-forward-new-color:interactive)
+  ("#"       vim:search-for-selected-region-backward:interactive)
+  ("C-#"     vim:search-for-selected-region-backward-new-color:interactive)
+
   ("."       vim:visual-repeat:interactive)
   ("'"       sp-backward-up-sexp)
   ("\""      vim-wrap-dquotes)
