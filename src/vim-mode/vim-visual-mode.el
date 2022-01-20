@@ -73,6 +73,9 @@
 ;; The last end position of the region.
 (defvar-local vim-visual--last-end-pos nil)
 
+(defvar-local vim-visual--key-sequence-for-repeat nil
+  "Pointer to a prefix of a sequence of key presses that will be mutably
+popuated (in this case mostly by insert mode).")
 
 ;; Info-struct to save information for visual-insertion.
 (cl-defstruct (vim-visual-insert-info
@@ -278,10 +281,10 @@
             (push :argument parameters))
           (vim--apply-save-buffer command parameters)
           (when repeatable?
-            (setf vim--repeat-events (vconcat vim--current-key-sequence)))
+            (vim--overwrite-repeat-events! vim--current-key-sequence))
           (vim--connect-undos! vim--last-undo)
           (vim--reset-key-state!)
-          (vim--clear-key-sequence!)
+          (vim--forget-command-keys!)
           (vim--adjust-point)))
     (vim--normal-execute-simple-command command))
   ;; deactivate visual mode unless the command should keep it
@@ -300,7 +303,7 @@
       (vim--visual-adjust-region (vim-execute-current-motion))
     (error (beep)))
   (vim--adjust-point)
-  (vim--clear-key-sequence!)
+  (vim--forget-command-keys!)
   (vim--reset-key-state!))
 
 (defun vim-visual--post-command ()
@@ -543,51 +546,64 @@ This function is also responsible for setting the X-selection."
       (`block
        ;; TODO: ensure the right command is run on repetition.
        ;; this is really a dirty hack
-       (setq vim--current-key-sequence "i")
+       (append-list-prepend!
+        (setf vim-visual--key-sequence-for-repeat (vim--fork-command-keys!))
+        [?i])
        (vim:cmd-insert :count 1)
-       (add-hook 'vim-normal-mode-on-hook #'vim--insert-block-copies nil t))
+       (setq-local vim-insert-mode-on-exit #'vim--insert-block-copies))
       (`linewise
        ;; TODO: ensure the right command is run on repetition.
        ;; this is really a dirty hack
-       (setq vim--current-key-sequence "I")
+       (append-list-prepend!
+        (setf vim-visual--key-sequence-for-repeat (vim--fork-command-keys!))
+        [?I])
        (vim:cmd-Insert :count 1)
-       (add-hook 'vim-normal-mode-on-hook #'vim--insert-linewise-copies nil t))
+       (setq-local vim-insert-mode-on-exit #'vim--insert-linewise-copies))
       (`normal
        (error "visual insert is not supported in normal visual mode"))))
   (setq vim-visual--last-insert-undo vim--last-insert-undo))
 
+(defun vim--finalize-copy-inserts! ()
+  (vim--connect-undos! (setq vim--last-undo vim-visual--last-insert-undo))
+  (vim--reset-key-state!)
+  (vim--forget-command-keys!))
+
 (defun vim--insert-block-copies ()
   "Called to repeat the last block-insert."
-  (remove-hook 'vim-normal-mode-on-hook #'vim--insert-block-copies t)
+  (setq-local vim-insert-mode-on-exit nil)
   (let ((col (vim-visual-insert-info-column vim-visual--last-insert-info))
         (count (vim-visual-insert-info-line-count vim-visual--last-insert-info))
-        (undo-inhibit-record-point t))
-    (save-excursion
-      (goto-char (vim-visual-insert-info-end vim-visual--last-insert-info))
-      (dotimes (_ count)
-        (when (>= (save-excursion
-                    (end-of-line)
-                    (current-column))
-                  col)
-          (move-to-column col t)
-          (save-excursion
-            (vim:cmd-repeat)))
-        (forward-line -1))
-      (setq vim--last-undo vim-visual--last-insert-undo)
+        (undo-inhibit-record-point t)
+        (events (vim--reify-events vim-visual--key-sequence-for-repeat)))
+    (unwind-protect
+        (save-excursion
+          (goto-char (vim-visual-insert-info-end vim-visual--last-insert-info))
+          (dotimes (_ count)
+            (when (>= (save-excursion
+                        (end-of-line)
+                        (current-column))
+                      col)
+              (move-to-column col t)
+              (save-excursion
+                (vim--cmd-repeat-impl 1 events)))
+            (forward-line -1))
+          (vim--finalize-copy-inserts!))
       (vim--free-visual-insert-info!))))
 
 (defun vim--insert-linewise-copies ()
   "Called to repeat the last linewise-insert."
-  (remove-hook 'vim-normal-mode-on-hook #'vim--insert-linewise-copies t)
+  (setq-local vim-insert-mode-on-exit nil)
   (let ((count (vim-visual-insert-info-line-count vim-visual--last-insert-info))
-        (undo-inhibit-record-point t))
-    (save-excursion
-      (goto-char (vim-visual-insert-info-end vim-visual--last-insert-info))
-      (dotimes (_ count)
+        (undo-inhibit-record-point t)
+        (events (vim--reify-events vim-visual--key-sequence-for-repeat)))
+    (unwind-protect
         (save-excursion
-          (vim:cmd-repeat))
-        (forward-line -1))
-      (setq vim--last-undo vim-visual--last-insert-undo)
+          (goto-char (vim-visual-insert-info-end vim-visual--last-insert-info))
+          (dotimes (_ count)
+            (save-excursion
+              (vim--cmd-repeat-impl 1 events))
+            (forward-line -1))
+          (vim--finalize-copy-inserts!))
       (vim--free-visual-insert-info!))))
 
 (defun vim-visual--record-undo-pos! (pos)
@@ -690,41 +706,47 @@ This function is also responsible for setting the X-selection."
   (move-to-column (vim-visual-insert-info-column vim-visual--last-insert-info) t)
   (vim-visual--record-undo-pos! (point))
   (let ((undo-inhibit-record-point t))
-   (pcase vim-visual--mode-type
-     (`block
-      ;; TODO: ensure the right command is run on repeat.
-      ;; this is really a dirty hack
-      (setq vim--current-key-sequence "a")
-      (vim:cmd-append :count 1)
-      (add-hook 'vim-normal-mode-on-hook #'vim--append-block-copies nil t))
-     (`linewise
-      ;; TODO: ensure the right command is run on repeat
-      ;; this is really a dirty hack
-      (setq vim--current-key-sequence "A")
-      (vim:cmd-Append :count 1)
-      (add-hook 'vim-normal-mode-on-hook #'vim--insert-linewise-copies nil t))
-     (_
-      (error "visual append is not supported in normal visual mode"))))
+    (pcase vim-visual--mode-type
+      (`block
+       ;; TODO: ensure the right command is run on repeat.
+       ;; this is really a dirty hack
+       (append-list-prepend!
+        (setf vim-visual--key-sequence-for-repeat (vim--fork-command-keys!))
+        [?a])
+       (vim:cmd-append :count 1)
+       (setq-local vim-insert-mode-on-exit #'vim--append-block-copies))
+      (`linewise
+       ;; TODO: ensure the right command is run on repeat
+       ;; this is really a dirty hack
+       (append-list-prepend!
+        (setf vim-visual--key-sequence-for-repeat (vim--fork-command-keys!))
+        [?A])
+       (vim:cmd-Append :count 1)
+       (setq-local vim-insert-mode-on-exit #'vim--insert-linewise-copies))
+      (_
+       (error "visual append is not supported in normal visual mode"))))
   (setq vim-visual--last-insert-undo vim--last-insert-undo))
 
 (defun vim--append-block-copies ()
   "Called to repeat the last block-insert."
-  (remove-hook 'vim-normal-mode-on-hook #'vim--append-block-copies t)
+  (setq-local vim-insert-mode-on-exit nil)
   (let ((col (vim-visual-insert-info-column vim-visual--last-insert-info))
         (count (vim-visual-insert-info-line-count vim-visual--last-insert-info))
-        (undo-inhibit-record-point t))
+        (undo-inhibit-record-point t)
+        (events (vim--reify-events vim-visual--key-sequence-for-repeat)))
     (vim-visual--record-undo-pos! (vim-visual-insert-info-begin vim-visual--last-insert-info))
-    (save-excursion
-      (let ((col-past (1+ col)))
-        (goto-char (vim-visual-insert-info-end vim-visual--last-insert-info))
-        (dotimes (_ count)
-          (move-to-column col-past t) ;; extend the newline at the end
-          (move-to-column col)        ;; no need to force again
-          (save-excursion
-            (vim:cmd-repeat))
-          (forward-line -1))
-        (setq vim--last-undo vim-visual--last-insert-undo)
-        (vim--free-visual-insert-info!)))))
+    (unwind-protect
+        (save-excursion
+          (let ((col-past (1+ col)))
+            (goto-char (vim-visual-insert-info-end vim-visual--last-insert-info))
+            (dotimes (_ count)
+              (move-to-column col-past t) ;; extend the newline at the end
+              (move-to-column col)        ;; no need to force again
+              (save-excursion
+                (vim--cmd-repeat-impl 1 events))
+              (forward-line -1))
+            (vim--finalize-copy-inserts!)))
+      (vim--free-visual-insert-info!))))
 
 (vim-defcmd vim:visual-exchange-point-and-mark (nonrepeatable keep-visual)
   "Exchanges point and mark."
