@@ -47,8 +47,7 @@
 (defun pseudovim-motion-fwd-word (count)
   "Moves the cursor to the beginning of the next word."
   (interactive "p")
-  (let ((line (line-number-at-pos (point))))
-    (vim--move-fwd-beg (or count 1) #'vim-boundary--word)))
+  (vim--move-fwd-beg (or count 1) #'vim-boundary--word))
 
 (defun pseudovim-motion-bwd-word (count)
   "Moves the cursor beginning of the previous word."
