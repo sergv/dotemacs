@@ -20,6 +20,9 @@
       `(cdr (comp-hint-cons ,x))
     `(cdr ,x)))
 
+(defmacro cdar-sure (x)
+  `(cdr-sure (car-sure ,x)))
+
 (defmacro cddr-sure (x)
   `(cdr-sure (cdr-sure ,x)))
 

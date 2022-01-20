@@ -245,7 +245,7 @@
 (vim-nmap "@" #'vim-cmd-execute-macro)
 
 
-(vim-imap (vector vim--ESC-event) #'vim:insert-mode-exit:interactive)
+(vim-imap (vector vim--ESC-event) #'vim-insert-mode-exit)
 (vim-imap [insert] #'vim:insert-mode-toggle-replace:interactive)
 (vim-imap [kp-insert] [insert])
 (vim-imap [insertchar] [insert])
