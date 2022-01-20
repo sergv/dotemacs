@@ -69,6 +69,8 @@
 
 (require 'register)
 
+(require 'append-list)
+
 (require 'vim-macs)
 (require 'vim-defs)
 (require 'vim-modes)
@@ -117,14 +119,61 @@ of the command handling code the buffer in vim--new-buffer is made current.")
         vim--current-motion-type nil
         vim--current-force-motion-type nil))
 
-(defsubst vim--clear-key-sequence! ()
-  "Clears the internal log of key-sequences."
+
+(defmacro vim--with-clear-command-keys (&rest body)
+  "Make sure BODY doesn’t affect ‘vim--current-key-sequence’ after this macro finishes."
+  (declare (indent 0))
+  `(let ((vim--current-key-sequence nil))
+     ,@body))
+
+(defun vim--remember-command-keys! (keys-vector)
+  "Adds keys that invoked current command to `vim--current-key-sequence'."
+  (cl-assert (vectorp keys-vector))
+  (if vim--current-key-sequence
+      (append-list-append! vim--current-key-sequence keys-vector)
+    (setf vim--current-key-sequence (append-list-singleton keys-vector))))
+
+(defsubst vim--forget-command-keys! ()
+  "Clears the internal log of key-sequences. Do this when single
+command has finished execution."
   (setq vim--current-key-sequence nil))
 
 (defsubst vim--remember-this-command-keys! ()
   "Adds keys that invoked current command to `vim--current-key-sequence'."
-  (setf vim--current-key-sequence
-        (vconcat vim--current-key-sequence (this-command-keys-vector))))
+  (vim--remember-command-keys! (this-command-keys-vector)))
+
+(defsubst vim--fork-command-keys! ()
+  "Clears the internal log of key-sequences. Do this when single
+command has finished execution."
+  (if vim--current-key-sequence
+      (append-list-append! vim--current-key-sequence [])
+    (setf vim--current-key-sequence (append-list-singleton [])))
+  (append-list-fork-tail vim--current-key-sequence))
+
+(defsubst vim--overwrite-repeat-events! (events)
+  (cl-assert (or (null events) (append-list-p events)))
+  (setf vim--repeat-events events
+        vim--reified-repeat-events nil))
+
+(defun vim--append-repeat-events! (events)
+  (when events
+    (cl-assert (append-list-p events))
+    (if vim--repeat-events
+        (progn
+          (append-list-extend-with! vim--repeat-events events)
+          (setf vim--reified-repeat-events nil))
+      (vim--overwrite-repeat-events! events))))
+
+(defun vim--reify-repeat-events ()
+  (aif vim--reified-repeat-events
+      it
+    (setf vim--reified-repeat-events
+          (vim--reify-events vim--repeat-events))))
+
+(defsubst vim--reify-events (events)
+  (if events
+      (apply #'vconcat (append-list-reify events))
+    []))
 
 (defsubst vim--cmd-count-p (cmd)
   "Returns non-nil iff command CMD takes a count."
@@ -465,7 +514,7 @@ the perfect point to do some house-keeping."
       (when err
         (with-buffer buf
           (vim--reset-key-state!)
-          (vim--clear-key-sequence!)
+          (vim--forget-command-keys!)
           (vim--adjust-point)
           (vim-activate-normal-mode)))))
 
@@ -473,7 +522,7 @@ the perfect point to do some house-keeping."
   ;;     (funcall vim-active-command-function cmd)
   ;;   (error
   ;;    (vim--reset-key-state!)
-  ;;    (vim--clear-key-sequence!)
+  ;;    (vim--forget-command-keys!)
   ;;    (vim--adjust-point)
   ;;    (vim-activate-normal-mode)
   ;;    (message "vim-execute-command: error: %s\nvim-active-command-function: %s\ncmd: %s"
