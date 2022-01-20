@@ -66,7 +66,6 @@
   (error "Default noop command function called with args %s" args))
 
 (cl-defmacro vim-define-mode (name doc
-                                   &rest body
                                    &key
                                    ident
                                    message
@@ -108,12 +107,7 @@ vim-command should be executed, a `cursor' shape and a list of `keymaps'."
            (setq vim-active-mode #',mode-name
                  vim-active-command-function ,command-function
                  cursor-type ,cursor-name)
-           (,update-keymaps-func-name))
-         ,@(progn
-             (while (keywordp (car body))
-               (pop body)
-               (pop body))
-             body))
+           (,update-keymaps-func-name)))
 
        (defsubst ,pred-name ()
          ,(concat "Returns t iff vim-mode is in " (symbol->string name) " mode.")
