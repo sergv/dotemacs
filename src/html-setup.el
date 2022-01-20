@@ -94,7 +94,7 @@ if such tag can be found."
            ,on-not-found)))))
 
 ;;;###autoload (autoload 'vim:motion-jump-tag "html-setup" "" t)
-(vim-defmotion vim:motion-jump-tag (inclusive)
+(vim-defmotion vim:motion-jump-tag (inclusive raw-result)
   "If point is positioned inside tag then jump to the beginning
 of the matching tag, else fallback to `vim:motion-jump-item'."
   (cl-macrolet ((inside? (x low high)

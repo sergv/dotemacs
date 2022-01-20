@@ -168,18 +168,18 @@
 (add-hook 'vim-mode-on-hook #'vim--register-set-change-mark-function)
 (add-hook 'vim-mode-off-hook #'vim--unregister-set-change-mark-function)
 
-(vim-defmotion vim:motion-left (exclusive count)
+(vim-defmotion vim:motion-left (exclusive count raw-result)
   "Move the cursor count characters left."
   (goto-char (max (line-beginning-position)
                   (- (point) (or count 1)))))
 
-(vim-defmotion vim:motion-right (exclusive count)
+(vim-defmotion vim:motion-right (exclusive count raw-result)
   "Move the cursor count characters right."
   (goto-char
    (min (line-end-position)
         (+ (point) (or count 1)))))
 
-(vim-defmotion vim:motion-up (linewise count)
+(vim-defmotion vim:motion-up (linewise count raw-result)
   "Move the cursor count lines up."
   (vim--use-last-column!)
   (let ((line-move-visual nil))
@@ -187,7 +187,7 @@
     ;; of buffer while `forward-line' doesn't
     (forward-line (- (or count 1)))))
 
-(vim-defmotion vim:motion-down (linewise count)
+(vim-defmotion vim:motion-down (linewise count raw-result)
   "Move the cursor count lines down."
   (vim--use-last-column!)
   (let ((line-move-visual nil))
@@ -195,7 +195,7 @@
     ;; of buffer while `forward-line' doesn't
     (forward-line (or count 1))))
 
-(vim-defmotion vim:motion-lines (linewise count)
+(vim-defmotion vim:motion-lines (linewise count raw-result)
   "Moves count - 1 lines down."
   (vim--use-last-column!)
   (let (line-move-visual
@@ -207,7 +207,7 @@
                        :end (line-end-position)
                        :type 'linewise))))
 
-(vim-defmotion vim:motion-current-line (linewise count)
+(vim-defmotion vim:motion-current-line (linewise count raw-result)
   "Moves count - 1 lines down, properly considering the case when point is at
 e.g. shell prompt.."
   (vim--use-last-column!)
@@ -219,19 +219,19 @@ e.g. shell prompt.."
                      ;; anything but linewise or block
                      :type 'exclusive)))
 
-(vim-defmotion vim:motion-window-first-line (linewise count)
+(vim-defmotion vim:motion-window-first-line (linewise count raw-result)
   "Moves the cursor to the first line of the window, plus count lines, default zero."
   (vim-save-position)
   (move-to-window-line (or count 0))
   (back-to-indentation))
 
-(vim-defmotion vim:motion-window-middle-line (linewise)
+(vim-defmotion vim:motion-window-middle-line (linewise raw-result)
   "Moves the cursor to the beginning of the middle line of the window.  Ignores count."
   (vim-save-position)
   (move-to-window-line (/ (window-body-height) 2))
   (back-to-indentation))
 
-(vim-defmotion vim:motion-window-last-line (linewise count)
+(vim-defmotion vim:motion-window-last-line (linewise count raw-result)
   "Moves the cursor to the last line of the window, minus count lines, default zero."
   (vim-save-position)
   (move-to-window-line (- (window-body-height) (or count 0) 1))
@@ -248,19 +248,19 @@ e.g. shell prompt.."
   (interactive)
   (vim--motion-beginning-of-line-or-digit-argument-impl 'vim:motion-beginning-of-line:interactive))
 
-(vim-defmotion vim:motion-beginning-of-line (exclusive)
+(vim-defmotion vim:motion-beginning-of-line (exclusive raw-result)
   "Move the cursor to the beginning of the current line."
   (beginning-of-line))
 
-(vim-defmotion vim:motion-first-non-blank (exclusive)
+(vim-defmotion vim:motion-first-non-blank (exclusive raw-result)
   "Move the cursor to the first non-blank character of the current line."
   (back-to-indentation))
 
-(vim-defmotion vim:motion-end-of-line (inclusive)
+(vim-defmotion vim:motion-end-of-line (inclusive raw-result)
   "Move the cursor to the end of the current line."
   (end-of-line))
 
-(vim-defmotion vim:motion-last-non-blank (inclusive count)
+(vim-defmotion vim:motion-last-non-blank (inclusive count raw-result)
   "Move the cursor to the last non-blank charactor of the current line."
   (save-match-data
     (goto-char
@@ -290,7 +290,7 @@ e.g. shell prompt.."
                 (point-min))))
   (skip-to-indentation))
 
-(vim-defmotion vim:motion-go-to-first-non-blank-end (linewise count)
+(vim-defmotion vim:motion-go-to-first-non-blank-end (linewise count raw-result)
   "Moves the cursor to the first non-blank character of line count."
   (pseudovim-motion-go-to-first-non-blank-end count))
 
@@ -899,7 +899,7 @@ text-object before or at point."
 
 ;;; motion word
 
-(vim-defmotion vim:motion-fwd-word (exclusive count)
+(vim-defmotion vim:motion-fwd-word (exclusive count raw-result)
   "Moves the cursor beginning of the next word."
   (let ((line (line-number-at-pos (point))))
     (vim--move-fwd-beg (or count 1) #'vim-boundary--word)
@@ -915,29 +915,29 @@ text-object before or at point."
       (forward-visible-line -1)
       (end-of-line))))
 
-(vim-defmotion vim:motion-bwd-word (exclusive count)
+(vim-defmotion vim:motion-bwd-word (exclusive count raw-result)
   "Moves the cursor beginning of the previous word."
   (vim--move-bwd-beg (or count 1) #'vim-boundary--word))
 
-(vim-defmotion vim:motion-fwd-word-end (inclusive count)
+(vim-defmotion vim:motion-fwd-word-end (inclusive count raw-result)
   "Moves the cursor to the end of the next word."
   (vim--move-fwd-end (or count 1) #'vim-boundary--word))
 
-(vim-defmotion vim:motion-bwd-word-end (inclusive count)
+(vim-defmotion vim:motion-bwd-word-end (inclusive count raw-result)
   "Moves the cursor to the end of the previous word."
   (vim--move-bwd-end (or count 1) #'vim-boundary--word))
 
-(vim-defmotion vim:motion-inner-word (inclusive count)
+(vim-defmotion vim:motion-inner-word (inclusive count motion-result)
   "Select `count' inner words."
   (vim--inner-motion (or count 1) #'vim-boundary--word #'vim-boundary--ws 'inclusive))
 
-(vim-defmotion vim:motion-outer-word (inclusive count)
+(vim-defmotion vim:motion-outer-word (inclusive count motion-result)
   "Select `count' outer words."
   (vim--outer-motion (or count 1) #'vim-boundary--word #'vim-boundary--ws 'inclusive))
 
 ;;; motion WORD
 
-(vim-defmotion vim:motion-fwd-WORD (exclusive count)
+(vim-defmotion vim:motion-fwd-WORD (exclusive count raw-result)
   "Moves the cursor to beginning of the next WORD."
   (let ((line (line-number-at-pos (point))))
     (vim--move-fwd-beg (or count 1) #'vim-boundary--WORD)
@@ -953,45 +953,45 @@ text-object before or at point."
       (forward-visible-line -1)
       (end-of-line))))
 
-(vim-defmotion vim:motion-bwd-WORD (exclusive count)
+(vim-defmotion vim:motion-bwd-WORD (exclusive count raw-result)
   "Moves the cursor to beginning of the previous WORD."
   (vim--move-bwd-beg (or count 1) #'vim-boundary--WORD))
 
-(vim-defmotion vim:motion-fwd-WORD-end (inclusive count)
+(vim-defmotion vim:motion-fwd-WORD-end (inclusive count raw-result)
   "Moves the cursor to the end of the next WORD."
   (vim--move-fwd-end (or count 1) #'vim-boundary--WORD))
 
-(vim-defmotion vim:motion-bwd-WORD-end (inclusive count)
+(vim-defmotion vim:motion-bwd-WORD-end (inclusive count raw-result)
   "Moves the cursor to the end of the next WORD."
   (vim--move-bwd-end (or count 1) #'vim-boundary--WORD))
 
-(vim-defmotion vim:motion-inner-WORD (inclusive count)
+(vim-defmotion vim:motion-inner-WORD (inclusive count motion-result)
   "Select `count' inner WORDs."
   (vim--inner-motion (or count 1) #'vim-boundary--WORD #'vim-boundary--ws 'inclusive))
 
-(vim-defmotion vim:motion-outer-WORD (inclusive count)
+(vim-defmotion vim:motion-outer-WORD (inclusive count motion-result)
   "Select `count' outer WORDs."
   (vim--outer-motion (or count 1) #'vim-boundary--WORD #'vim-boundary--ws 'inclusive))
 
 ;;; motion symbol
 
-(vim-defmotion vim:motion-fwd-symbol (inclusive count)
+(vim-defmotion vim:motion-fwd-symbol (inclusive count raw-result)
   (vim--move-fwd-beg (or count 1) #'vim-boundary--symbol))
 
-(vim-defmotion vim:motion-fwd-symbol-end (inclusive count)
+(vim-defmotion vim:motion-fwd-symbol-end (inclusive count raw-result)
   (vim--move-fwd-end (or count 1) #'vim-boundary--symbol))
 
-(vim-defmotion vim:motion-bwd-symbol (inclusive count)
+(vim-defmotion vim:motion-bwd-symbol (inclusive count raw-result)
   (vim--move-bwd-beg (or count 1) #'vim-boundary--symbol))
 
-(vim-defmotion vim:motion-inner-symbol (inclusive count)
+(vim-defmotion vim:motion-inner-symbol (inclusive count motion-result)
   "Select `count' inner symbol."
   (vim--inner-motion (or count 1)
                     #'vim-boundary--symbol
                     #'vim-boundary--ws
                     'inclusive))
 
-(vim-defmotion vim:motion-outer-symbol (inclusive count)
+(vim-defmotion vim:motion-outer-symbol (inclusive count motion-result)
   "Select `count' outer symbols."
   (vim--outer-motion (or count 1)
                     #'vim-boundary--symbol
@@ -1000,7 +1000,7 @@ text-object before or at point."
 
 ;;; motion sentence
 
-(vim-defmotion vim:motion-fwd-sentence (exclusive count)
+(vim-defmotion vim:motion-fwd-sentence (exclusive count raw-result)
   "Move the cursor `count' sentences forward."
   (dotimes (_ (or count 1))
     (goto-char (min (save-excursion
@@ -1010,18 +1010,18 @@ text-object before or at point."
                       (vim:motion-fwd-paragraph)
                       (point))))))
 
-(vim-defmotion vim:motion-bwd-sentence (exclusive count)
+(vim-defmotion vim:motion-bwd-sentence (exclusive count raw-result)
   "Move the cursor `count' sentences backward."
   (vim--move-bwd-beg (or count 1)
                     (vim--union-boundary #'vim-boundary--sentence #'vim-boundary--paragraph)))
 
-(vim-defmotion vim:motion-inner-sentence (inclusive count)
+(vim-defmotion vim:motion-inner-sentence (inclusive count motion-result)
   "Select `count' inner words."
   (vim--inner-motion (or count 1)
                     (vim--union-boundary #'vim-boundary--sentence #'vim-boundary--paragraph)
                     #'vim-boundary--wsnl 'inclusive))
 
-(vim-defmotion vim:motion-outer-sentence (inclusive count)
+(vim-defmotion vim:motion-outer-sentence (inclusive count motion-result)
   "Select `count' outer words."
   (vim--outer-motion (or count 1)
                     (vim--union-boundary #'vim-boundary--sentence #'vim-boundary--paragraph)
@@ -1029,65 +1029,65 @@ text-object before or at point."
 
 ;;; motion paragraph
 
-(vim-defmotion vim:motion-fwd-paragraph (exclusive count)
+(vim-defmotion vim:motion-fwd-paragraph (exclusive count raw-result)
   "Move the cursor `count' paragraphs forward."
   (if (eobp) (signal 'vim/end-of-buffer nil)
     (dotimes (_ (or count 1))
       (goto-char (or (vim-boundary--paragraph 'fwd) (point-max)))
       (forward-line))))
 
-(vim-defmotion vim:motion-bwd-paragraph (exclusive count)
+(vim-defmotion vim:motion-bwd-paragraph (exclusive count raw-result)
   "Move the cursor `count' paragraphs backward."
   (if (bobp) (signal 'vim/beginning-of-buffer nil)
     (dotimes (_ (or count 1))
       (goto-char (or (vim-boundary--paragraph 'bwd) (point-min)))
       (forward-line -1))))
 
-(vim-defmotion vim:motion-inner-paragraph (inclusive count)
+(vim-defmotion vim:motion-inner-paragraph (inclusive count motion-result)
   "Select `count' inner words."
   (vim--inner-motion (or count 1) #'vim-boundary--paragraph #'vim-boundary--wl 'linewise))
 
-(vim-defmotion vim:motion-outer-paragraph (inclusive count)
+(vim-defmotion vim:motion-outer-paragraph (inclusive count motion-result)
   "Select `count' outer words."
   (vim--outer-motion (or count 1) #'vim-boundary--paragraph #'vim-boundary--wl 'linewise))
 
 ;;; motion parentheses
 
-(vim-defmotion vim:motion-inner-parentheses (inclusive count)
+(vim-defmotion vim:motion-inner-parentheses (inclusive count motion-result)
   "Select `count' enclosing pairs of () exclusive."
   (vim--inner-block "(" ")" nil (or count 1)))
 
-(vim-defmotion vim:motion-outer-parentheses (inclusive count)
+(vim-defmotion vim:motion-outer-parentheses (inclusive count motion-result)
   "Select `count' enclosing pairs of () inclusive."
   (vim--outer-block "(" ")" nil (or count 1)))
 
 ;;; motion brackets
 
-(vim-defmotion vim:motion-inner-brackets (inclusive count)
+(vim-defmotion vim:motion-inner-brackets (inclusive count motion-result)
   "Select `count' enclosing pairs of [] exclusive."
   (vim--inner-block "\\[" "\\]" nil (or count 1)))
 
-(vim-defmotion vim:motion-outer-brackets (inclusive count)
+(vim-defmotion vim:motion-outer-brackets (inclusive count motion-result)
   "Select `count' enclosing pairs of [] inclusive."
   (vim--outer-block "\\[" "\\]" nil (or count 1)))
 
 ;;; motion braces
 
-(vim-defmotion vim:motion-inner-braces (inclusive count)
+(vim-defmotion vim:motion-inner-braces (inclusive count motion-result)
   "Select `count' enclosing pairs of {} exclusive."
   (vim--inner-block "{" "}" nil (or count 1)))
 
-(vim-defmotion vim:motion-outer-braces (inclusive count)
+(vim-defmotion vim:motion-outer-braces (inclusive count motion-result)
   "Select `count' enclosing pairs of {} inclusive."
   (vim--outer-block "{" "}" nil (or count 1)))
 
 ;;; motion angles
 
-(vim-defmotion vim:motion-inner-angles (inclusive count)
+(vim-defmotion vim:motion-inner-angles (inclusive count motion-result)
   "Select `count' enclosing pairs of <> exclusive."
   (vim--inner-block "<" ">" nil (or count 1)))
 
-(vim-defmotion vim:motion-outer-angles (inclusive count)
+(vim-defmotion vim:motion-outer-angles (inclusive count motion-result)
   "Select `count' enclosing pairs of <> inclusive."
   (vim--outer-block "<" ">" nil (or count 1)))
 
@@ -1109,11 +1109,11 @@ matching xml tags. `block-function' should be either
            #'vim--compare-blocks-match1
            (or count 1)))
 
-(vim-defmotion vim:motion-inner-xml-tags (inclusive count)
+(vim-defmotion vim:motion-inner-xml-tags (inclusive count raw-result)
   "Select `count' enclosing pairs of <tag> </tag> exclusive."
   (vim--generic-motion-xml-blocks #'vim--inner-block count))
 
-(vim-defmotion vim:motion-outer-xml-tags (inclusive count)
+(vim-defmotion vim:motion-outer-xml-tags (inclusive count raw-result)
   "Select `count' enclosing pairs of <tag> </tag> inclusive."
   (vim--generic-motion-xml-blocks #'vim--outer-block count))
 
@@ -1362,12 +1362,12 @@ but only on the current line."
     (modify-syntax-entry ?\' "\"" tbl)
     tbl))
 
-(vim-defmotion vim:motion-inner-single-quote (inclusive count)
+(vim-defmotion vim:motion-inner-single-quote (inclusive count motion-result)
   "Select text between two single quotes without the quotes."
   (with-syntax-table vim--motion-single-quote-syntax-table
     (vim--inner-doubled-quote count)))
 
-(vim-defmotion vim:motion-outer-single-quote (inclusive count)
+(vim-defmotion vim:motion-outer-single-quote (inclusive count motion-result)
   "Select text between two single quotes including the quotes."
   (with-syntax-table vim--motion-single-quote-syntax-table
     (vim--outer-doubled-quote count)))
@@ -1377,12 +1377,12 @@ but only on the current line."
     (modify-syntax-entry ?\" "\"" tbl)
     tbl))
 
-(vim-defmotion vim:motion-inner-double-quote (inclusive count)
+(vim-defmotion vim:motion-inner-double-quote (inclusive count motion-result)
   "Select text between two double quotes without the quotes."
   (with-syntax-table vim--motion-double-quote-syntax-table
     (vim--inner-doubled-quote count)))
 
-(vim-defmotion vim:motion-outer-double-quote (inclusive count)
+(vim-defmotion vim:motion-outer-double-quote (inclusive count motion-result)
   "Select text between two double quotes including the quotes."
   (with-syntax-table vim--motion-double-quote-syntax-table
     (vim--outer-doubled-quote count)))
@@ -1392,17 +1392,17 @@ but only on the current line."
     (modify-syntax-entry ?\" "\"" tbl)
     tbl))
 
-(vim-defmotion vim:motion-inner-back-quote (inclusive count)
+(vim-defmotion vim:motion-inner-back-quote (inclusive count motion-result)
   "Select text between two back quotes without the quotes."
   (with-syntax-table vim--motion-back-quote-syntax-table
     (vim--inner-doubled-quote count)))
 
-(vim-defmotion vim:motion-outer-back-quote (inclusive count)
+(vim-defmotion vim:motion-outer-back-quote (inclusive count motion-result)
   "Select text between two back quotes including the quotes."
   (with-syntax-table vim--motion-back-quote-syntax-table
     (vim--outer-doubled-quote count)))
 
-(vim-defmotion vim:motion-find (inclusive count (argument:char arg))
+(vim-defmotion vim:motion-find (inclusive count (argument:char arg) raw-result)
   "Move the cursor to the next count’th occurrence of arg."
   (forward-char)
   (let ((case-fold-search nil))
@@ -1414,7 +1414,7 @@ but only on the current line."
     (setq vim--last-find (cons #'vim:motion-find arg))
     (backward-char)))
 
-(vim-defmotion vim:motion-find-back (exclusive count (argument:char arg))
+(vim-defmotion vim:motion-find-back (exclusive count (argument:char arg) raw-result)
   "Move the cursor to the previous count'th occurrence of arg."
   (let ((case-fold-search nil))
     (unless (search-backward (char-to-string arg)
@@ -1423,21 +1423,21 @@ but only on the current line."
       (error (format "Can't find %c" arg)))
     (setq vim--last-find (cons #'vim:motion-find-back arg))))
 
-(vim-defmotion vim:motion-find-to (inclusive count (argument:char arg))
+(vim-defmotion vim:motion-find-to (inclusive count (argument:char arg) raw-result)
   "Move the cursor to the character before the next count'th\
    occurence of arg."
   (vim:motion-find :count count :argument arg)
   (backward-char)
   (setq vim--last-find (cons #'vim:motion-find-to arg)))
 
-(vim-defmotion vim:motion-find-back-to (exclusive count (argument:char arg))
+(vim-defmotion vim:motion-find-back-to (exclusive count (argument:char arg) raw-result)
   "Move the cursor to the character after the previous count'th\
    occurence of arg."
   (vim:motion-find-back :count count :argument arg)
   (forward-char)
   (setq vim--last-find (cons #'vim:motion-find-to arg)))
 
-(vim-defmotion vim:motion-repeat-last-find (inclusive count)
+(vim-defmotion vim:motion-repeat-last-find (inclusive count raw-result)
   "Repeats the last find command."
   (unless vim--last-find
     (error "No previous find command"))
@@ -1445,7 +1445,7 @@ but only on the current line."
            :count count
            :argument (cdr vim--last-find)))
 
-(vim-defmotion vim:motion-repeat-last-find-opposite (inclusive count)
+(vim-defmotion vim:motion-repeat-last-find-opposite (inclusive count raw-result)
   "Repeats the last find command."
   (unless vim--last-find
     (error "No previous find command"))
@@ -1461,7 +1461,7 @@ but only on the current line."
     (let ((vim--last-find nil))
       (funcall func :count count :argument arg))))
 
-(vim-defmotion vim:motion-jump-item (inclusive)
+(vim-defmotion vim:motion-jump-item (inclusive raw-result)
   "Find the next item in this line after or under the cursor and
 jumps to the corresponding one."
   (pseudovim-motion-jump-item))
@@ -1494,51 +1494,51 @@ jumps to the corresponding one."
           (goto-char (match-beginning 0))
         (signal 'vim/no-such-object (list "No opening of block found."))))))
 
-(vim-defmotion vim:motion-forward-closing-parenthesis (exclusive count)
+(vim-defmotion vim:motion-forward-closing-parenthesis (exclusive count raw-result)
   "Go to the `count'-th next unmatched closing )."
   (vim:forward-end-of-block (rx (or (group-n 1 "(") ")")) count))
 
-(vim-defmotion vim:motion-backward-opening-parenthesis (exclusive count)
+(vim-defmotion vim:motion-backward-opening-parenthesis (exclusive count raw-result)
   "Go to the `count'-th previous unmatched opening (."
   (vim:backward-beginning-of-block (rx (or (group-n 1 "(") ")")) count))
 
-(vim-defmotion vim:motion-forward-closing-bracket (exclusive count)
+(vim-defmotion vim:motion-forward-closing-bracket (exclusive count raw-result)
   "Go to the `count'-th next unmatched closing ]."
   (vim:forward-end-of-block (rx (or (group-n 1 "[") "]")) count))
 
-(vim-defmotion vim:motion-backward-opening-bracket (exclusive count)
+(vim-defmotion vim:motion-backward-opening-bracket (exclusive count raw-result)
   "Go to the `count'-th previous unmatched opening [."
   (vim:backward-beginning-of-block (rx (or (group-n 1 "[") "]")) count))
 
-(vim-defmotion vim:motion-forward-closing-brace (exclusive count)
+(vim-defmotion vim:motion-forward-closing-brace (exclusive count raw-result)
   "Go to the `count'-th next unmatched closing }."
   (vim:forward-end-of-block (rx (or (group-n 1 "{") "}")) count))
 
-(vim-defmotion vim:motion-backward-opening-brace (exclusive count)
+(vim-defmotion vim:motion-backward-opening-brace (exclusive count raw-result)
   "Go to the `count'-th previous unmatched opening {."
   (vim:backward-beginning-of-block (rx (or (group-n 1 "{") "}")) count))
 
-(vim-defmotion vim:motion-backward-opening-comment (exclusive count)
+(vim-defmotion vim:motion-backward-opening-comment (exclusive count raw-result)
   "Go to the `count'-th previous unmatched opening /*."
   (save-match-data
     (when (save-excursion
             (re-search-backward "/\\*" nil t count))
       (goto-char (match-beginning 0)))))
 
-(vim-defmotion vim:motion-forward-closing-comment (exclusive count)
+(vim-defmotion vim:motion-forward-closing-comment (exclusive count raw-result)
   "Go to the `count'-th next unmatched closing ]."
   (save-match-data
     (when (save-excursion
             (re-search-forward "\\*/" nil t count))
       (goto-char (match-beginning 0)))))
 
-(vim-defmotion vim:motion-mark (exclusive (argument:char mark-char))
+(vim-defmotion vim:motion-mark (exclusive (argument:char mark-char) raw-result)
   "Moves to the position of `mark-char'."
   (let ((pos (point)))
     (goto-char (vim-get-local-mark mark-char))
     (vim-save-position pos)))
 
-(vim-defmotion vim:motion-mark-line (linewise (argument:char mark-char))
+(vim-defmotion vim:motion-mark-line (linewise (argument:char mark-char) raw-result)
   "Moves to the first non-blank char in the line of `mark-char'."
   (let ((pos (point)))
     (goto-char (vim-get-local-mark mark-char))
