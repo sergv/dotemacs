@@ -293,7 +293,6 @@
 ;; (vim-emap "only" #'vim:window-only)
 ;; (vim-emap "on" "only")
 (vim-emap "q" #'vim:cmd-quit)
-(vim-emap "wq" #'vim:cmd-save-and-close)
 ;; (vim-emap "quitall" #'vim:cmd-quit-all)
 ;; (vim-emap "quita" "quitall")
 ;; (vim-emap "qall" "quitall")
