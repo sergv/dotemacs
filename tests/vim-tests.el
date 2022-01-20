@@ -1019,6 +1019,28 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/paste-before-insert-mode-visual-block-region-preserves-correct-command-for-repeat-1
+    (execute-kbd-macro (kbd "y s C-v h h h I C-p <escape> h ."))
+  (tests-utils--multiline
+   ""
+   "(foo"
+   " a_|_bc"
+   " def"
+   " ghi"
+   " jkl"
+   " quux)"
+   "")
+  (tests-utils--multiline
+   ""
+   "(foo"
+   " aabcbc"
+   " dababc_|_cef"
+   " gabchi"
+   " jabckl"
+   " quux)"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
     vim-tests/paste-after-visual-block-region-1
     (execute-kbd-macro (kbd "y w C-v h p"))
   (tests-utils--multiline
@@ -1815,6 +1837,77 @@
    "d_|_bcef"
    "xyz"
    ""))
+
+(ert-deftest vim-tests/vim:cmd-insert-line-below-repeat-complex-insert-command-1/emacs-lisp-mode ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (emacs-lisp-mode)
+      (execute-kbd-macro (kbd "o \( f o o C-\) <escape>"))
+    (tests-utils--multiline
+     ""
+     "a_|_bc"
+     "def"
+     "xyz"
+     "")
+    (tests-utils--multiline
+     ""
+     "abc"
+     "(fo_|_o"
+     " def)"
+     "xyz"
+     "")))
+
+(ert-deftest vim-tests/vim:cmd-insert-line-below-repeat-complex-insert-command-2/emacs-lisp-mode ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (emacs-lisp-mode)
+      (execute-kbd-macro (kbd "o \( f o o C-\) <escape> h ."))
+    (tests-utils--multiline
+     ""
+     "a_|_bc"
+     "def"
+     "xyz"
+     "")
+    (tests-utils--multiline
+     ""
+     "abc"
+     "(foo"
+     " def)"
+     "(fo_|_o"
+     " xyz)"
+     "")))
+
+;; Check that ` prefix is not stripped.
+(ert-deftest vim-tests/vim-backward-slurp-sexp-1/emacs-lisp-mode ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (emacs-lisp-mode)
+      (execute-kbd-macro (kbd "j ( d"))
+    (tests-utils--multiline
+     ""
+     "(let ((counter '#:counter))"
+     " _|_ `(dotimes (_ (or count 1))"
+     "     (,func)))"
+     "")
+    (tests-utils--multiline
+     ""
+     "_|_`(dotimes (_ (or count 1))"
+     "   (,func))"
+     "")))
+
+;; Check that ` prefix is not stripped.
+(ert-deftest vim-tests/vim-raise-sexp-1/emacs-lisp-mode ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (emacs-lisp-mode)
+      (execute-kbd-macro (kbd "M-<up>"))
+    (tests-utils--multiline
+     ""
+     "(let ((counter '#:counter))"
+     " _|_ `(dotimes (_ (or count 1))"
+     "     (,func)))"
+     "")
+    (tests-utils--multiline
+     ""
+     "_|_`(dotimes (_ (or count 1))"
+     "   (,func))"
+     "")))
 
 (ert-deftest vim-tests/sp-expand-pragma-pair-1/haskell-mode ()
   (vim-tests--test-fresh-buffer-contents-init
