@@ -367,10 +367,10 @@ look at vim-core.el."
              `(vim-wrap-motion ,type
                 ,@body))
             (motion-result
-             (let ((,ret (progn ,@body)))
-               (cl-assert (equal (vim-motion-type ,ret)
-                                 ',type))
-               ,ret))
+             `(let ((,ret (progn ,@body)))
+                (cl-assert (equal (vim-motion-type ,ret)
+                                  ',type))
+                ,ret))
             (t
              `(vim-do-motion ,type
                 ,@body))))
