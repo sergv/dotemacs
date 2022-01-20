@@ -527,12 +527,10 @@ This function is also responsible for setting the X-selection."
 
 (vim-defcmd vim:visual-insert (motion)
   "Starts insertion at the left column of a visual region."
-  (let ((begin (vim-motion-begin motion))
-        (end (vim-motion-end motion)))
-    (vim--init--vim-visual-insert-info-end! (vim-motion-begin motion)
-                                            (vim-motion-end motion)
-                                            (vim-motion-first-col motion))
-    (vim-visual--start-insert)))
+  (vim--init--vim-visual-insert-info-end! (vim-motion-begin motion)
+                                          (vim-motion-end motion)
+                                          (vim-motion-first-col motion))
+  (vim-visual--start-insert))
 
 (defun vim-visual--start-insert ()
   "Starts a new multi-line insert operation with `vim-visual--last-insert-info'."
@@ -689,12 +687,10 @@ This function is also responsible for setting the X-selection."
 
 (vim-defcmd vim:visual-append (motion)
   "Starts insertion at the right column of a visual block."
-  (let ((begin (vim-motion-begin motion))
-        (end (vim-motion-end motion)))
-    (vim--init--vim-visual-insert-info-end! (vim-motion-begin motion)
-                                            (vim-motion-end motion)
-                                            (vim-motion-last-col motion))
-    (vim-visual--start-append)))
+  (vim--init--vim-visual-insert-info-end! (vim-motion-begin motion)
+                                          (vim-motion-end motion)
+                                          (vim-motion-last-col motion))
+  (vim-visual--start-append))
 
 (defun vim-visual--start-append ()
   "Starts a new multi-line append operation with `vim-visual--last-insert-info'."
