@@ -8,8 +8,6 @@
 
 ;;; Code:
 
-(defvar vim--repeat-events nil
-  "The sequence of events for the repeat command.")
 
 (defvar-local vim--current-register nil
   "The register of the current command.")
@@ -40,8 +38,16 @@
   "The forced type of the motion of current command (inclusive,
   exclusive, linewise).")
 
+
+(defvar vim--repeat-events nil
+  "List of vectors each denoting part of key sequence for the repeat command.")
+
+(defvar vim--reified-repeat-events nil
+  "Cache for reification of ‘vim--repeat-events’ to speed up successive ‘vim:cmd-repeat’.")
+
 (defvar-local vim--current-key-sequence nil
-  "The key-sequence of the current command.")
+  "The key-sequence of the current command. Mostly filled in by the
+insert mode from ‘pre-command-hook’.")
 
 (provide 'vim-defs)
 
