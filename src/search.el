@@ -117,6 +117,11 @@ highlighting searches.")
 (defvar *search-init-buffer* nil
   "Buffer being searched in.")
 
+(defmacro search--with-initiated-buffer (&rest body)
+  `(with-selected-window *search-init-window*
+     (with-current-buffer *search-init-buffer*
+       ,@body)))
+
 ;;; constants
 
 (defvar *search-minibuffer-keymap*
@@ -306,11 +311,6 @@ Highlighting starts at the beginning of buffer.")
   "Retrieve entered regexp from minibuffer. Must be called from minibuffer only."
   (minibuffer-contents-no-properties))
 
-(defmacro search--with-initiated-buffer (&rest body)
-  `(with-selected-window *search-init-window*
-     (with-current-buffer *search-init-buffer*
-       ,@body)))
-
 (defun search--optionally-use-info-from-last-search ()
   "Refresh search information if necessary and omit cluttering vim position."
   ;; We could be in buffer that is different from where we initiated
@@ -474,46 +474,57 @@ Highlighting starts at the beginning of buffer.")
 (cl-defmacro search--make-search-for-thing (name
                                             alt-name
                                             get-bounds-expr
-                                            action-after
-                                            is-forward?
+                                            mk-action-after
                                             &key
+                                            is-forward
                                             regex-start-func
                                             regex-end-func
-                                            (error-message nil))
+                                            (error-message nil)
+                                            (force-include-bounds-to 'not-provided))
   "BOUNDS-FUNC should return cons pair (START . END), everything else is
 obvious"
-  (let* ((bounds-var '#:bounds)
+  (declare (indent 4))
+  (let* ((include-bounds?-var '#:non-strict)
+         (bounds-var '#:bounds)
          (substr-var '#:substr)
-         (non-strict-var '#:non-strict)
+         (count-var '#:count)
          (make-search-func
-          (lambda (name reset)
-            `(defun ,name (count)
+          (lambda (name create-reset?)
+            `(defun ,name (,count-var)
+               "Do search in the specified direction of a text at point (or from currently selected region"
                (interactive "p")
-               (let ((,bounds-var ,get-bounds-expr)
-                     (,non-strict-var vim--current-universal-argument-provided?))
-                 (if (null ,bounds-var)
-                     ,(when error-message `(error ,error-message))
-                   (let ((,substr-var (buffer-substring-no-properties
-                                       (car ,bounds-var)
-                                       (cdr ,bounds-var))))
-                     (vim-save-position)
-                     (goto-char (cdr ,bounds-var))
-                     ,(unless reset
-                        '(search--increment-search-highlight-face-index))
-                     (search--setup-search-for
-                      (if ,non-strict-var
-                          (regexp-quote ,substr-var)
-                        (concat (funcall ,regex-start-func ,substr-var)
-                                (regexp-quote ,substr-var)
-                                (funcall ,regex-end-func ,substr-var)))
-                      ,is-forward?
-                      :case-sensetive t)
-                     (,action-after count))))))))
+               (let* ((,include-bounds?-var ,(if (eq force-include-bounds-to 'not-provided)
+                                                 '(not vim--current-universal-argument-provided?)
+                                               force-include-bounds-to))
+                      (,bounds-var ,get-bounds-expr)
+                      (,substr-var (progn
+                                     ,@(when error-message
+                                         (cl-assert (stringp error-message))
+                                         (list
+                                          `(unless ,bounds-var
+                                             (error ,error-message))))
+                                     (buffer-substring-no-properties
+                                      (car ,bounds-var)
+                                      (cdr ,bounds-var)))))
+                 (vim-save-position)
+                 (goto-char
+                  ,(if is-forward
+                       `(cdr ,bounds-var)
+                     `(car ,bounds-var)))
+                 ,(unless create-reset?
+                    '(search--increment-search-highlight-face-index))
+                 (search--setup-search-for
+                  (if ,include-bounds?-var
+                      (concat (funcall ,regex-start-func ,substr-var)
+                              (regexp-quote ,substr-var)
+                              (funcall ,regex-end-func ,substr-var))
+                    (regexp-quote ,substr-var))
+                  ,is-forward
+                  :case-sensetive t)
+                 ,(funcall mk-action-after count-var))))))
     `(progn
        ,(funcall make-search-func name t)
        ,(funcall make-search-func alt-name nil))))
-
-;; (autoload 'forward-haskell-symbol "haskell-misc" t)
 
 ;; Haskell search
 
@@ -533,52 +544,56 @@ obvious"
 
 ;;;###autoload (autoload 'search-for-haskell-symbol-at-point-forward "search" nil t)
 ;;;###autoload (autoload 'search-for-haskell-symbol-at-point-forward-new-color "search" nil t)
-(search--make-search-for-thing search-for-haskell-symbol-at-point-forward
-                               search-for-haskell-symbol-at-point-forward-new-color
-                               (bounds-of-thing-at-point 'haskell-symbol)
-                               search--next-impl
-                               t
-                               :regex-start-func #'search-for-haskell-symbol-at-point-regex-start-func
-                               :regex-end-func #'search-for-haskell-symbol-at-point-regex-end-func
-                               :error-message "No symbol at point")
+(search--make-search-for-thing
+    search-for-haskell-symbol-at-point-forward
+    search-for-haskell-symbol-at-point-forward-new-color
+    (bounds-of-thing-at-point 'haskell-symbol)
+    (lambda (x) `(search--next-impl ,x))
+  :is-forward t
+  :regex-start-func #'search-for-haskell-symbol-at-point-regex-start-func
+  :regex-end-func #'search-for-haskell-symbol-at-point-regex-end-func
+  :error-message "No symbol at point")
 
 ;;;###autoload (autoload 'search-for-haskell-symbol-at-point-backward "search" nil t)
 ;;;###autoload (autoload 'search-for-haskell-symbol-at-point-backward-new-color "search" nil t)
-(search--make-search-for-thing search-for-haskell-symbol-at-point-backward
-                               search-for-haskell-symbol-at-point-backward-new-color
-                               (bounds-of-thing-at-point 'haskell-symbol)
-                               search--prev-impl
-                               nil
-                               :regex-start-func #'search-for-haskell-symbol-at-point-regex-start-func
-                               :regex-end-func #'search-for-haskell-symbol-at-point-regex-end-func
-                               :error-message "No symbol at point")
+(search--make-search-for-thing
+    search-for-haskell-symbol-at-point-backward
+    search-for-haskell-symbol-at-point-backward-new-color
+    (bounds-of-thing-at-point 'haskell-symbol)
+    (lambda (x) `(search--prev-impl ,x))
+  :is-forward nil
+  :regex-start-func #'search-for-haskell-symbol-at-point-regex-start-func
+  :regex-end-func #'search-for-haskell-symbol-at-point-regex-end-func
+  :error-message "No symbol at point")
 
 ;; Lispocentric searches
 ;;;###autoload (autoload 'search-for-symbol-at-point-forward "search" nil t)
 ;;;###autoload (autoload 'search-for-symbol-at-point-forward-new-color "search" nil t)
-(search--make-search-for-thing search-for-symbol-at-point-forward
-                               search-for-symbol-at-point-forward-new-color
-                               (bounds-of-thing-at-point 'symbol)
-                               search--next-impl
-                               t
-                               :regex-start-func (constantly "\\_<")
-                               :regex-end-func (constantly "\\_>")
-                               :error-message "No symbol at point")
+(search--make-search-for-thing
+    search-for-symbol-at-point-forward
+    search-for-symbol-at-point-forward-new-color
+    (bounds-of-thing-at-point 'symbol)
+    (lambda (x) `(search--next-impl ,x))
+  :is-forward t
+  :regex-start-func (constantly "\\_<")
+  :regex-end-func (constantly "\\_>")
+  :error-message "No symbol at point")
 
 ;;;###autoload (autoload 'search-for-symbol-at-point-backward "search" nil t)
 ;;;###autoload (autoload 'search-for-symbol-at-point-backward-new-color "search" nil t)
-(search--make-search-for-thing search-for-symbol-at-point-backward
-                               search-for-symbol-at-point-backward-new-color
-                               (bounds-of-thing-at-point 'symbol)
-                               search--prev-impl
-                               nil
-                               :regex-start-func (constantly "\\_<")
-                               :regex-end-func (constantly "\\_>")
-                               :error-message "No symbol at point")
+(search--make-search-for-thing
+    search-for-symbol-at-point-backward
+    search-for-symbol-at-point-backward-new-color
+    (bounds-of-thing-at-point 'symbol)
+    (lambda (x) `(search--prev-impl ,x))
+  :is-forward nil
+  :regex-start-func (constantly "\\_<")
+  :regex-end-func (constantly "\\_>")
+  :error-message "No symbol at point")
 
 ;;;
 
-(defsubst util:get-bounds-covered-by-vim-motion (motion)
+(defsubst search--get-bounds-covered-by-vim-motion (motion)
   (let ((m (save-excursion
              (funcall motion))))
     (cons (vim-motion-begin-pos m)
@@ -586,30 +601,31 @@ obvious"
 
 ;;;###autoload (autoload 'search-for-word-at-point-forward "search" nil t)
 ;;;###autoload (autoload 'search-for-word-at-point-forward-new-color "search" nil t)
-(search--make-search-for-thing search-for-word-at-point-forward
-                               search-for-word-at-point-forward-new-color
-                               (util:get-bounds-covered-by-vim-motion
-                                #'vim:motion-inner-word)
-                               search--next-impl
-                               t
-                               :regex-start-func (constantly "\\<")
-                               :regex-end-func (constantly "\\>")
-                               :error-message "No word at point")
+(search--make-search-for-thing
+    search-for-word-at-point-forward
+    search-for-word-at-point-forward-new-color
+    (search--get-bounds-covered-by-vim-motion
+     #'vim:motion-inner-word)
+    (lambda (x) `(search--next-impl ,x))
+  :is-forward t
+  :regex-start-func (constantly "\\<")
+  :regex-end-func (constantly "\\>")
+  :error-message "No word at point")
 
 ;;;###autoload (autoload 'search-for-word-at-point-backward "search" nil t)
 ;;;###autoload (autoload 'search-for-word-at-point-backward-new-color "search" nil t)
-(search--make-search-for-thing search-for-word-at-point-backward
-                               search-for-word-at-point-backward-new-color
-                               (util:get-bounds-covered-by-vim-motion
-                                #'vim:motion-inner-word)
-                               search--prev-impl
-                               nil
-                               :regex-start-func (constantly "\\<")
-                               :regex-end-func (constantly "\\>")
-                               :error-message "No word at point")
+(search--make-search-for-thing
+    search-for-word-at-point-backward
+    search-for-word-at-point-backward-new-color
+    (search--get-bounds-covered-by-vim-motion
+     #'vim:motion-inner-word)
+    (lambda (x) `(search--prev-impl ,x))
+  :is-forward nil
+  :regex-start-func (constantly "\\<")
+  :regex-end-func (constantly "\\>")
+  :error-message "No word at point")
 
 (add-to-list 'debug-ignored-errors "\\`No \\(?:symbol\\|word\\) at point\\'")
-
 
 (provide 'search)
 
