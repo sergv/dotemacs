@@ -123,9 +123,7 @@ directories whose absolute path matches IGNORED-DIR-RE."
        "markdown-mode/tests"
        "mmm-mode/tests"
        (seq "org-mode/" (or "mk" "testing"))
-       "s.el/dev"
-       "smartparens/test"
-       "smartparens/tests")))
+       "s.el/dev")))
 
 (add-to-load-path-recursively "/src")
 

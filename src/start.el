@@ -42,7 +42,6 @@
 (require 'org-mode-autoload)
 
 (require 'prev-buffer-tracking)
-(require 'smartparens-setup)
 
 (setq compilation-auto-jump-to-first-error nil
       whitespace-style '(face tabs)
@@ -87,45 +86,21 @@
                             (use-whitespace nil) ;; can be t, nil, 'tabs-only
                             (use-render-formula nil)
                             (use-hl-line t)
-                            (smartparens-escape-char "\\")
-                            (smartparens-comment-char nil)
-                            (sp-slurp-sexp-insert-space t)
                             (enable-backup t)
-                            (hl-parens-backend 'hl-paren) ;; can be 'hl-paren, 'smartparens
+                            (hl-parens-backend 'hl-paren) ;; can be 'hl-paren
                             (typography t)
                             (smerge t))
-  "General set up for editing.Arguments meaning:
-
-sp-escape:
-  String of length 1 with character to use for escaping within
-  strings for smartparens. Pass nil for smartparens to try to
-  autoconfigure it (but it may fail and leave it unconfigured and
-  escaping won’t work).
+  "General set up for editing. Arguments meaning:
 "
-
-  (cl-assert (or (null smartparens-comment-char)
-                 (stringp smartparens-comment-char)))
-  (cl-assert (or (null smartparens-escape-char)
-                 (stringp smartparens-escape-char)))
-
   (hl-line-mode (if use-hl-line +1 -1))
 
   (when smerge
     (smerge-mode +1))
 
   (when use-comment
-    (comment-util-mode 1)
+    (comment-util-mode 1))
 
-    (awhen (comment-format-comment-chars *comment-util-current-format*)
-      (when (= 1 (length it))
-        (setf sp-comment-char (string (car it))))))
-
-  (when (and (not sp-comment-char)
-             smartparens-comment-char)
-    (setf sp-comment-char smartparens-comment-char))
-
-  (setf sp-escape-char smartparens-escape-char)
-  (smartparens-mode +1)
+  (set-up-paredit)
 
   (unless enable-backup
     (backups-ignore-current-buffer!))
@@ -150,18 +125,6 @@ sp-escape:
 
   (vim:bind-local-keymaps)
 
-  ;; I should figure what's going on here someday.
-  (unless (eq sp-slurp-sexp-insert-space
-              sp-forward-slurp-sexp-insert-space)
-    (setq-local sp-forward-slurp-sexp-insert-space sp-slurp-sexp-insert-space))
-
-  ;; bind in vim-normal-mode-local-keymap since
-  ;; it will not be bound in vim-normal-mode-keymap because
-  ;; everyone needs different versions, e.g. repls, shells
-  (def-keys-for-map (vim-normal-mode-local-keymap
-                     vim-insert-mode-local-keymap)
-    ("<return>"  sp-newline))
-
   (when use-fci
     (setf display-fill-column-indicator-column 100)
     (display-fill-column-indicator-mode
@@ -171,8 +134,6 @@ sp-escape:
   (pcase hl-parens-backend
     (`hl-paren
      (setup-hl-paren))
-    (`smartparens
-     (show-smartparens-mode 1))
     (_
      (error "Invalid values for :hl-parens-backend argument: %s" hl-parens-backend)))
 
@@ -181,11 +142,7 @@ sp-escape:
 (cl-defun init-repl (&key (show-directory nil)
                           (bind-return t)
                           (create-keymaps nil)
-                          (bind-vim:motion-current-line t)
-                          smartparens-comment-char)
-  (cl-assert (or (null smartparens-comment-char)
-                 (stringp smartparens-comment-char)))
-
+                          (bind-vim:motion-current-line t))
   (use-repl-modeline :show-directory show-directory)
 
   (setq-local vim-do-not-adjust-point t
@@ -193,15 +150,7 @@ sp-escape:
               global-auto-revert-ignore-buffer t)
   (emacs-forget-buffer-process)
 
-  (unless sp-escape-char
-    (setf sp-escape-char "\\"))
-
-  (when (and (not sp-comment-char)
-             smartparens-comment-char)
-    (setf sp-comment-char smartparens-comment-char))
-
-  (unless smartparens-mode
-    (smartparens-mode +1))
+  (set-up-paredit)
 
   (when create-keymaps
     (vim:bind-local-keymaps))
@@ -226,7 +175,7 @@ sp-escape:
     (dolist (km keymaps)
       (def-keys-for-map km
         ("<return>"   comint-send-input)
-        ("C-<return>" sp-newline)))))
+        ("C-<return>" newline-and-indent)))))
 
 (cl-defun bind-tab-keys (tab-binding
                          backtab-binding

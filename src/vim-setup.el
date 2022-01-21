@@ -24,7 +24,6 @@
 (require 'hydra-setup)
 (require 'keys-def)
 (require 'search)
-(require 'smartparens-setup)
 (require 'vim-ex)
 (require 'vim-replace)
 
@@ -50,8 +49,6 @@ _)d_: (a | b)         -> a|               _()_: a (b | …) -> a b (| …)
                                           _)(_: (… | a) b -> (… | a b)
 
 _r_aise:          (a | (b c) d)   -> |(b c)
-_a_bsorb:         a (b | c)       -> (b a | c)
-_e_mit:           (a b c | d)     -> b c (a | d)
 _?_ (convolute):  (a b (c d | e)) -> (c d (a b | e))
 _S_plit sexp:     (a | b)         -> (a) |(b)
 _J_oin sexp:      (a) | (b)       -> (a | b)"
@@ -67,24 +64,22 @@ _J_oin sexp:      (a) | (b)       -> (a | b)"
   ("sW"  vim:replace-WORD:interactive)
   ("ss"  vim:replace-symbol-at-point:interactive)
 
-  ("(d"  vim:sp-splice-sexp-killing-backward:interactive)
-  (")d"  vim:sp-splice-sexp-killing-forward:interactive)
-  ("r"   vim:sp-raise-sexp:interactive)
-  ("a"   sp-absorb-sexp)
-  ("e"   sp-emit-sexp)
-  ("?"   sp-convolute-sexp)
-  ("S"   vim:sp-split-sexp:interactive)
-  ("J"   vim:sp-join-sexp:interactive)
+  ("(d"  vim:splice-sexp-killing-backward:interactive)
+  (")d"  vim:splice-sexp-killing-forward:interactive)
+  ("r"   vim:raise-sexp:interactive)
+  ("?"   vim:convolute-sexp:interactive)
+  ("S"   vim:split-sexp:interactive)
+  ("J"   vim:join-sexps:interactive)
 
-  ("(("  vim:sp-backward-slurp-sexp:interactive)
-  ("()"  vim:sp-backward-barf-sexp:interactive)
-  (")("  vim:sp-forward-barf-sexp:interactive)
-  ("))"  vim:sp-forward-slurp-sexp:interactive)
+  ("(("  vim:backward-slurp-sexp:interactive)
+  ("()"  vim:backward-barf-sexp:interactive)
+  (")("  vim:forward-barf-sexp:interactive)
+  ("))"  vim:forward-slurp-sexp:interactive)
 
-  ("( <left>"  vim:sp-backward-slurp-sexp:interactive)
-  ("( <right>" vim:sp-backward-barf-sexp:interactive)
-  (") <left>"  vim:sp-forward-barf-sexp:interactive)
-  (") <right>" vim:sp-forward-slurp-sexp:interactive))
+  ("( <left>"  vim:backward-slurp-sexp:interactive)
+  ("( <right>" vim:backward-barf-sexp:interactive)
+  (") <left>"  vim:forward-barf-sexp:interactive)
+  (") <right>" vim:forward-slurp-sexp:interactive))
 
 (defhydra-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
   "
@@ -212,13 +207,17 @@ _<right>_: move tab to the right"
 
 ;; redefine motions
 
+(def-keys-for-map vim-motion-mode-keymap
+  ("'"   paredit-backward-up)
+  ("q"   paredit-forward-up))
+
 (def-keys-for-map (vim-normal-mode-keymap
                    vim-visual-mode-keymap
                    vim-operator-pending-mode-keymap
                    vim-motion-mode-keymap)
-  ("0"         vim-motion-beginning-of-line-or-digit-argument)
+  ("0"   vim-motion-beginning-of-line-or-digit-argument)
   (("1" "2" "3" "4" "5" "6" "7" "8" "9")
-   vim-digit-argument)
+         vim-digit-argument)
   ("-"   vim-universal-argument-minus)
 
   ("G"   vim:motion-go-to-first-non-blank-end:interactive)
@@ -226,9 +225,7 @@ _<right>_: move tab to the right"
 
   ("%"   nil)
   ;; short for matching
-  ("m"   vim:motion-jump-item:interactive)
-
-  ("q"   sp-up-sexp))
+  ("m"   vim:motion-jump-item:interactive))
 
 (def-keys-for-map (vim-operator-pending-mode-keymap
                    vim-motion-mode-keymap)
@@ -240,7 +237,6 @@ _<right>_: move tab to the right"
 
 (def-keys-for-map (vim-operator-pending-mode-keymap
                    vim-motion-mode-keymap)
-  ("'" sp-backward-up-sexp)
   ;; ("u" vim:motion-search-next)
   ;; ("U" vim:motion-search-next-reverse)
   (("<up>"   "]") vim:motion-bwd-paragraph:interactive)
@@ -263,7 +259,7 @@ _<right>_: move tab to the right"
     ,@+vim-character-navigation-keys+))
 
 (defconst +vim-normal-mode-navigation-keys+
-  '(("'" sp-backward-up-sexp)
+  '(("'" paredit-backward-up)
     ("]" vim:motion-bwd-paragraph:interactive)
     ("[" vim:motion-fwd-paragraph:interactive)
     ("s" vim-ex-read-command)))
@@ -311,10 +307,6 @@ _<right>_: move tab to the right"
   ("!"          shell-command+)
   ("~"          vim:cmd-toggle-case-one-char:interactive)
 
-  ("M-?"        sp-convolute-sexp)
-  ("M-<left>"   sp-absorb-sexp)
-  ("M-<right>"  sp-emit-sexp)
-
   ("x"          vim:cmd-delete-char:interactive)
   ("X"          vim:cmd-delete-char-backward:interactive)
 
@@ -343,7 +335,6 @@ _<right>_: move tab to the right"
   ("C-#"     vim:search-for-selected-region-backward-new-color:interactive)
 
   ("."       vim:visual-repeat:interactive)
-  ("'"       sp-backward-up-sexp)
   ("\""      vim-wrap-dquotes)
 
   ("p"       vim:visual-paste-after:interactive)
@@ -391,7 +382,15 @@ _<right>_: move tab to the right"
 
   ("C-'"           typopunct-insert-single-quotation-mark)
   ("C-\""          typopunct-insert-quotation-mark)
-  ("C--"           typopunct-insert-typographical-dashes))
+  ("C--"           typopunct-insert-typographical-dashes)
+
+  ("\""            paredit-doublequote)
+  ("\("            paredit-open-round)
+  ("\)"            paredit-close-round)
+  ("\["            paredit-open-square)
+  ("\]"            paredit-close-square)
+  ("\{"            paredit-open-curly)
+  ("\}"            paredit-close-curly))
 
 ;;; ex bindings and commands
 

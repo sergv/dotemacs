@@ -55,21 +55,25 @@ that next 2 characters are AFTER1 and AFTER2."
 ;;;###autoload
 (defun smart-operators--in-string-or-comment? (&optional disable-comment-check?)
   "Are we in string or comment?"
-  (let* ((state (parse-partial-sexp (line-beginning-position)
-                                    (point)))
-         (inside-string? (elt state 3))
-         (inside-comment? (if disable-comment-check?
-                              nil
-                            (elt state 4))))
-    (or inside-string?
-        inside-comment?
-        (and (eq 'font-lock-string-face
-                 (get-text-property (point) 'face))
-             (if (and (char-equal (char-after) ?\")
-                      (/= (point-min) (point)))
-                 (eq 'font-lock-string-face
-                     (get-text-property (- (point) 1) 'face))
-               t)))))
+  (if (and disable-comment-check?
+           ;; Is in string? E.g. reaps fruits of haskell-mode lexing work.
+           (eq (syntax-class (syntax-after (point))) 7))
+      t
+    (let* ((state (parse-partial-sexp (line-beginning-position)
+                                      (point)))
+           (inside-string? (elt state 3))
+           (inside-comment? (if disable-comment-check?
+                                nil
+                              (elt state 4))))
+      (or inside-string?
+          inside-comment?
+          (and (eq 'font-lock-string-face
+                   (get-text-property (point) 'face))
+               (if (and (char-equal (char-after) ?\")
+                        (/= (point-min) (point)))
+                   (eq 'font-lock-string-face
+                       (get-text-property (- (point) 1) 'face))
+                 t))))))
 
 ;;;###autoload
 (defun smart-operators--literal-insertion? (&optional disable-comment-check?)
@@ -81,11 +85,13 @@ that next 2 characters are AFTER1 and AFTER2."
              after
              (or
               ;; Test for positions: '_|_', \\_|_'
-              (and (memq before '(?\' ?\\))
-                   (char-equal after ?\'))
+              (and (or (eq before ?\')
+                       (eq before ?\\))
+                   (eq after ?\'))
               ;; Test for positions: "_|_", \\_|_"
-              (and (memq before '(?\" ?\\))
-                   (char-equal after ?\")))))))
+              (and (or (eq before ?\")
+                       (eq before ?\\))
+                   (eq after ?\")))))))
 
 (defun smart-operators--on-empty-string? ()
   (let ((start (line-beginning-position)))

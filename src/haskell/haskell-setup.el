@@ -36,7 +36,6 @@
 (require 'lcr)
 (require 'lsp-haskell-setup)
 (require 'shell-setup)
-(require 'smartparens-haskell)
 
 (vimmize-motion haskell-backward-up-indentation-or-sexp
                 :name vim:haskell-backward-up-indentation-or-sexp
@@ -445,6 +444,7 @@ _a_lign  _t_: jump to topmost node start
       ("'"            vim:haskell-backward-up-indentation-or-sexp:interactive))
 
     (def-keys-for-map vim-insert-mode-local-keymap
+      ("'"            haskell-smart-operators-quote)
       ("`"            vim-wrap-backticks))
 
     (install-haskell-smart-operators!
@@ -503,7 +503,6 @@ _a_lign  _t_: jump to topmost node start
                :use-yasnippet nil
                :use-whitespace nil
                :use-fci nil
-               :smartparens-comment-char "-"
                :smerge nil)
 
   ;; To make hideshow work
@@ -534,6 +533,7 @@ _a_lign  _t_: jump to topmost node start
     ("SPC SPC"  comint-clear-prompt))
 
   (def-keys-for-map vim-insert-mode-local-keymap
+    ("'"        haskell--quote)
     ("-"        haskell--ghci-hyphen)
     (":"        haskell--ghci-colon)
     ("`"        vim-wrap-backticks))
@@ -555,7 +555,7 @@ _a_lign  _t_: jump to topmost node start
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-visual-mode-local-keymap
                      vim-insert-mode-local-keymap)
-    ("C-<return>" dante-repl-sp-newline))
+    ("C-<return>" dante-repl-newline))
 
   (haskell-setup-folding :enable-hs-minor-mode t)
   (haskell-abbrev+-setup t))
