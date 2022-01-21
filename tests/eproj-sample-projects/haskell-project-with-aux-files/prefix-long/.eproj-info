@@ -1,0 +1,6 @@
+((languages haskell-mode)
+ (aux-files
+  (tree "." "*.foobar"))
+ (extra-navigation-files
+  "*.extra")
+ (related "../prefix"))
