@@ -9,7 +9,7 @@
 ;; Status:
 
 (eval-when-compile
-  (require 'cl-lib)
+  (require 'cl)
   (require 'subr-x)
   (require 'set-up-platform)
   (require 'macro-util))

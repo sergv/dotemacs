@@ -7,7 +7,7 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'cl-lib))
+  (require 'cl))
 
 (defmacro make-cycle-on-lines-in-region
     (begin end is-forward?

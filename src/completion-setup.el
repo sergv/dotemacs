@@ -7,7 +7,7 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'cl-lib)
+  (require 'cl)
   (require 'set-up-platform)
   (require 'macro-util))
 

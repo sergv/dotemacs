@@ -9,7 +9,7 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl-lib)
+  (require 'cl)
   (require 'macro-util))
 
 (cl-defmacro vim-defcmd (name (&rest args) &rest body)

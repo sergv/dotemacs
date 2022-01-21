@@ -9,7 +9,7 @@
 ;; eshell customization
 
 (eval-when-compile
-  (require 'cl-lib)
+  (require 'cl)
   (require 'el-patch)
   (require 'set-up-platform)
   (require 'macro-util))
@@ -26,8 +26,6 @@
 (require 'completion-setup)
 
 (require 'eshell-autoload)
-
-(eval-when-compile (require 'cl-lib))
 
 (declare-function eshell/echo "em-basic")
 (declare-function eshell/rm "em-unix")

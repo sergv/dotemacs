@@ -21,7 +21,7 @@
 ;; enable to move between matches
 
 (eval-when-compile
-  (require 'cl-lib)
+  (require 'cl)
   (require 'macro-util)
 
   (defvar vim--current-universal-argument-provided?))

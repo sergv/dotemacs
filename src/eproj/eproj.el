@@ -55,7 +55,7 @@
 ;; <arg> - emacs strings, arguments to the command
 
 (eval-when-compile
-  (require 'cl-lib)
+  (require 'cl)
   (require 'subr-x)
   (require 'macro-util))
 

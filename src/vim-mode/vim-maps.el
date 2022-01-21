@@ -69,7 +69,8 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl))
 
 (require 'vim-keymap)
 (require 'vim-motions)
