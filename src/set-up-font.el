@@ -7,7 +7,7 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'cl-lib))
+  (require 'cl))
 
 (when dump-mode
   (error "Should not be reached when dumping"))

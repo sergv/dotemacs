@@ -11,7 +11,7 @@
 ;; Use awk or sed on current region in interactive manner
 
 (eval-when-compile
-  (require 'cl-lib)
+  (require 'cl)
   (require 'macro-util)
 
   (defvar awk-mode-map))
