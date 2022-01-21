@@ -49,7 +49,7 @@
 ;;     all motions have to be valid even in case of erros
 
 (eval-when-compile
-  (require 'cl-lib)
+  (require 'cl)
   (require 'subr-x))
 
 (require 'vim-defs)
