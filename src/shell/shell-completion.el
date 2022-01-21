@@ -2287,7 +2287,13 @@ under version-control directories."
     "--uniform-scale=time"
     "--uniform-scale=memory"
     "--uniform-scale=both")
-   (args (pcmpl-entries :select "\\.hp\\'"))))
+   (args (pcmpl-entries :select (rx ".hp" eos)))))
+
+;;;###autoload (autoload 'pcomplete/profiterole "shell-completion" nil t)
+(defpcmpl pcomplete/profiterole
+  (opts
+   (args (pcmpl-entries :select (rx ".prof" eos)))))
+
 
 ;;;###autoload (autoload 'pcomplete/hp2svg "shell-completion" nil nil)
 (defalias 'pcomplete/hp2svg 'pcomplete/hp2pretty)
