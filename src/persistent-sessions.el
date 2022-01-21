@@ -74,10 +74,10 @@ name, for temporary buffers - just the buffer name."
    ;;         (with-current-buffer buf (memq major-mode +haskell-syntax-modes+)))
    ;;       )
    (list (lambda (buf)
-           (with-current-buffer buf (memq major-mode +rust-modes+)))
+           (memq (buffer-local-value 'major-mode buf) +rust-modes+))
          'rust-compile-command)
    (list (lambda (buf)
-           (buffer-local-value 'c-like-mode buf))
+           (memq (buffer-local-value 'major-mode buf) +c-like-modes+))
          'c-indentation-style
          'c-basic-offset))
   "List of buffer-local variables to save in session file.

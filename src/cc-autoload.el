@@ -1,10 +1,12 @@
-;; c++-autoload.el --- -*- lexical-binding: t; -*-
+;; cc-autoload.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
 ;; Author: Sergey Vinokurov <serg.foo@gmail.com>
 ;; Created: 12 January 2022
 ;; Description:
+
+(defconst +c-like-modes+ '(c-mode c++-mode cuda-mode glsl-mode idl-mode java-mode))
 
 (defconst +c-header-exts+ '("h"))
 (defconst +c-source-exts+ '("c"))
@@ -48,9 +50,9 @@
 
 (add-to-list 'auto-mode-alist '("\\.in\\(?:l\\|c\\|cl\\)\\'" . c++-mode))
 
-(provide 'c++-autoload)
+(provide 'cc-autoload)
 
 ;; Local Variables:
 ;; End:
 
-;; c++-autoload.el ends here
+;; cc-autoload.el ends here
