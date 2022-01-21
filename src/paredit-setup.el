@@ -20,40 +20,6 @@
 ;;;###autoload
 (el-patch-feature paredit)
 
-;; inhibit modification hooks
-(el-patch-defun paredit-insert-pair (n open close forward)
-  (el-patch-wrap 1 0
-    (with-inhibited-modification-hooks
-     (let* ((regionp
-             (and (paredit-region-active-p)
-                  (paredit-region-safe-for-insert-p)))
-            (end
-             (and regionp
-                  (not n)
-                  (prog1 (region-end) (goto-char (region-beginning))))))
-       (let ((spacep (paredit-space-for-delimiter-p nil open)))
-         (if spacep (insert " "))
-         (insert open)
-         (save-excursion
-           ;; Move past the desired region.
-           (cond (n (funcall forward
-                             (paredit-scan-sexps-hack (point)
-                                                      (prefix-numeric-value n))
-                             ;; (el-patch-swap
-                             ;;   (paredit-scan-sexps-hack (point)
-                             ;;                            (prefix-numeric-value n))
-                             ;;   (save-excursion
-                             ;;     (forward-sexp (prefix-numeric-value n))
-                             ;;     (point)))
-                             ))
-                 (regionp (funcall forward (+ end (if spacep 2 1)))))
-           (if (and (not (paredit-in-string-p))
-                    (paredit-in-comment-p))
-               (newline))
-           (insert close)
-           (if (paredit-space-for-delimiter-p t close)
-               (insert " "))))))))
-
 (defun paredit-forward-slurp-sexp--remove-initial-whitespace ()
   (when (and (lisp-pos-is-beginning-of-sexp? (- (point) 1))
              (whitespace-char? (char-after)))
