@@ -120,7 +120,7 @@ foo {
 (advice-add 'sp-newline :around #'sp-newline--expand-braced-block)
 
 ;; These two are the same ones used for paredit.
-(defun sp-forward-slurp-sexp--remove-initial-whitespace (_)
+(defun sp-forward-slurp-sexp--remove-initial-whitespace (&optional _)
   (when (and (lisp-pos-is-beginning-of-sexp? (- (point) 1))
              (whitespace-char? (char-after)))
     (delete-whitespace-forward)))
@@ -212,25 +212,25 @@ With negative argument move forward, still one level out."
 
 ;;;; vimmized versions of many sexp-manipulating functions
 
-(vimmize-function sp-backward-slurp-sexp :name vim:sp-backward-slurp-sexp)
-(vimmize-function sp-backward-barf-sexp :name vim:sp-backward-barf-sexp)
+(vimmize-function sp-backward-slurp-sexp :name vim:sp-backward-slurp-sexp :call-n-times t)
+(vimmize-function sp-backward-barf-sexp :name vim:sp-backward-barf-sexp :call-n-times t)
 
-(vimmize-function sp-forward-slurp-sexp :name vim:sp-forward-slurp-sexp)
-(vimmize-function sp-forward-barf-sexp :name vim:sp-forward-barf-sexp)
+(vimmize-function sp-forward-slurp-sexp :name vim:sp-forward-slurp-sexp :call-n-times t)
+(vimmize-function sp-forward-barf-sexp :name vim:sp-forward-barf-sexp :call-n-times t)
 
-(vimmize-function sp-splice-sexp-killing-backward :name vim:sp-splice-sexp-killing-backward)
-(vimmize-function sp-splice-sexp-killing-forward :name vim:sp-splice-sexp-killing-forward)
-(vimmize-function sp-raise-sexp :name vim:sp-raise-sexp)
+(vimmize-function sp-splice-sexp-killing-backward :name vim:sp-splice-sexp-killing-backward :call-n-times t)
+(vimmize-function sp-splice-sexp-killing-forward :name vim:sp-splice-sexp-killing-forward :call-n-times t)
+(vimmize-function sp-raise-sexp :name vim:sp-raise-sexp :call-n-times t)
 
 ;; (vimmize-function sp-kill-char :name vim:sp-kill-char)
 ;; (vimmize-function sp-backward-kill-char :name vim:sp-backward-kill-char)
 
-(vimmize-function sp-split-sexp :name vim:sp-split-sexp)
-(vimmize-function sp-join-sexp :name vim:sp-join-sexp)
+(vimmize-function sp-split-sexp :name vim:sp-split-sexp :call-n-times t)
+(vimmize-function sp-join-sexp :name vim:sp-join-sexp :call-n-times t)
 
-(vimmize-function sp-convolute-sexp :name vim:sp-convolute-sexp)
+(vimmize-function sp-convolute-sexp :name vim:sp-convolute-sexp :call-n-times t)
 
-(vimmize-function sp-wrap-round :name vim:sp-wrap-round)
+(vimmize-function sp-wrap-round :name vim:sp-wrap-round :call-n-times t)
 
 ;;;; vim-wrap-*
 
