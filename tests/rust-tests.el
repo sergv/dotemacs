@@ -12,7 +12,6 @@
 
 (require 'rust-setup)
 (require 'rust-smart-operators)
-(require 'smartparens-setup)
 
 (defmacro rust-tests--test-buffer-contents (action contents expected-value)
   (declare (indent 1))
@@ -23,10 +22,9 @@
     :initialisation (rust-mode)
     :buffer-id rust))
 
-(ert-deftest rust-tests/sp-newline--expand-braced-block-1 ()
+(ert-deftest rust-tests/rust-newline--expand-braced-block-1 ()
   (rust-tests--test-buffer-contents
-   (progn
-     (sp-newline))
+   (rust-newline)
    (tests-utils--multiline
     ""
     "fn foo() {_|_}"
@@ -38,10 +36,9 @@
     "}"
     "")))
 
-(ert-deftest rust-tests/sp-newline--expand-braced-block-2 ()
+(ert-deftest rust-tests/rust-newline--expand-braced-block-2 ()
   (rust-tests--test-buffer-contents
-   (progn
-     (sp-newline))
+   (rust-newline)
    (tests-utils--multiline
     ""
     "fn foo() {_|_     }"
@@ -53,10 +50,9 @@
     "}"
     "")))
 
-(ert-deftest rust-tests/sp-newline--expand-braced-block-3 ()
+(ert-deftest rust-tests/rust-newline--expand-braced-block-3 ()
   (rust-tests--test-buffer-contents
-   (progn
-     (sp-newline))
+   (rust-newline)
    (tests-utils--multiline
     ""
     "fn foo() {             _|_}"
@@ -68,10 +64,9 @@
     "}"
     "")))
 
-(ert-deftest rust-tests/sp-newline--expand-braced-block-4 ()
+(ert-deftest rust-tests/rust-newline--expand-braced-block-4 ()
   (rust-tests--test-buffer-contents
-   (progn
-     (sp-newline))
+   (rust-newline)
    (tests-utils--multiline
     ""
     "fn foo() {             _|_           }"
@@ -84,10 +79,9 @@
     "")))
 
 
-(ert-deftest rust-tests/sp-newline--duplication-of-commented-line-1 ()
+(ert-deftest rust-tests/rust-newline--duplication-of-commented-line-1 ()
   (rust-tests--test-buffer-contents
-   (progn
-     (sp-newline))
+   (rust-newline)
    (tests-utils--multiline
     ""
     "// foobar _|_"
@@ -108,10 +102,9 @@
     "}"
     "")))
 
-(ert-deftest rust-tests/sp-newline--duplication-of-commented-line-2 ()
+(ert-deftest rust-tests/rust-newline--duplication-of-commented-line-2 ()
   (rust-tests--test-buffer-contents
-   (progn
-     (sp-newline))
+   (rust-newline)
    (tests-utils--multiline
     ""
     "// foobar _|_ quux"
@@ -132,10 +125,9 @@
     "}"
     "")))
 
-(ert-deftest rust-tests/sp-newline--duplication-of-commented-line-3 ()
+(ert-deftest rust-tests/rust-newline--duplication-of-commented-line-3 ()
   (rust-tests--test-buffer-contents
-   (progn
-     (sp-newline))
+   (rust-newline)
    (tests-utils--multiline
     ""
     "// foobar _|_ quux"
@@ -389,11 +381,11 @@
     "f(|x| -_|_g(x))"
     "f(|x| -> _|_g(x))"))
 
-(ert-deftest rust-tests/rust-smart-operators--equals-1 ()
-  (rust-tests--test-buffer-contents
-      (rust-smart-operators--insert-char-surrounding-with-spaces ?=)
-    "let bands: Vec<&mut [u8]>_|_"
-    "let bands: Vec<&mut [u8]> = _|_"))
+;; (ert-deftest rust-tests/rust-smart-operators--equals-1 ()
+;;   (rust-tests--test-buffer-contents
+;;    (rust-smart-operators--insert-char-surrounding-with-spaces ?=)
+;;    "let bands: Vec<&mut [u8]>_|_"
+;;    "let bands: Vec<&mut [u8]> = _|_"))
 
 (ert-deftest rust-tests/rust-smart-operators--equals-2 ()
   (rust-tests--test-buffer-contents
@@ -755,15 +747,15 @@
 ;;     "{"
 ;;     "")))
 
-(ert-deftest rust-tests/sp-splice-sexp-killing-backward-1 ()
+(ert-deftest rust-tests/paredit-splice-sexp-killing-backward-1 ()
   (rust-tests--test-buffer-contents
-      (sp-splice-sexp-killing-backward)
+      (paredit-splice-sexp-killing-backward)
     "foo = ({ foo: _|_ a, b})"
     "foo = (_|_a, b)"))
 
-(ert-deftest rust-tests/sp-splice-sexp-killing-backward-2 ()
+(ert-deftest rust-tests/paredit-splice-sexp-killing-backward-2 ()
   (rust-tests--test-buffer-contents
-      (sp-splice-sexp-killing-backward)
+      (paredit-splice-sexp-killing-backward)
     (tests-utils--multiline
      ""
      "if ulen <= rest1.len() {"
@@ -781,9 +773,9 @@
      "}"
      "")))
 
-;; (ert-deftest rust-tests/sp-splice-sexp-killing-backward-3 ()
+;; (ert-deftest rust-tests/paredit-splice-sexp-killing-backward-3 ()
 ;;   (rust-tests--test-buffer-contents
-;;       (sp-splice-sexp-killing-backward)
+;;       (paredit-splice-sexp-killing-backward)
 ;;     (tests-utils--multiline
 ;;      ""
 ;;      "if ulen <= rest1.len() {"

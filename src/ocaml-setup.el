@@ -42,8 +42,7 @@
 
 ;;;###autoload
 (defun ocaml-setup ()
-  (init-common :use-render-formula t
-               :sp-slurp-sexp-insert-space nil)
+  (init-common :use-render-formula t)
   (bind-tab-keys #'indent-for-tab-command
                  nil
                  :enable-yasnippet t)
@@ -69,14 +68,12 @@
 
 ;;;###autoload
 (defun ocaml-interactive-setup ()
-  (init-repl :bind-return nil
-             :sp-slurp-sexp-insert-space nil)
+  (init-repl :bind-return nil)
   (pretty-ligatures-install-safe!)
   (vim-local-emap "clear" #'vim:comint-clear-buffer-above-prompt)
   (def-keys-for-map tuareg-interactive-mode-map
     ("C-SPC"      vim:comint-clear-buffer-above-prompt:interactive)
     ("<return>"   ocaml-interactive-send-input)
-    ("C-<return>" sp-newline)
     ("SPC SPC"    comint-clear-prompt)
     ("<f6>"       tuareg-interrupt-ocaml)))
 

@@ -547,7 +547,7 @@ _;_: comments"
   "
 _<tab>_: reindent defun  _t_: jump to function start
                        _h_: jump to function end"
-  ("<tab>" sp-indent-defun)
+  ("<tab>" paredit-reindent-defun)
 
   ("t"     glisp/beginning-of-defun)
   ("h"     glisp/end-of-defun))
@@ -625,7 +625,7 @@ _o_: show sexps in region"
     ("j"        hydra-lisp-vim-visual-j-ext/body)
     ("z"        hydra-lisp-vim-visual-z-ext/body)
 
-    ("'"        sp-backward-up-sexp))
+    ("'"        paredit-backward-up))
 
   (def-keys-for-map vim-insert-mode-local-keymap
     (";"        paredit-semicolon)

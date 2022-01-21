@@ -19,7 +19,6 @@
 (defconst comment-util--spaces-after-comment " "
   "Amount of spaces to put after comment markers.")
 
-(advices/auto-comment sp-newline)
 (advices/auto-comment vim:cmd-insert-line-below)
 (advices/auto-comment vim:cmd-insert-line-above)
 (advices/auto-comment haskell-newline-with-signature-expansion)

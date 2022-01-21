@@ -10,8 +10,7 @@
   (require 'set-up-platform)
   (require 'macro-util)
 
-  (defvar whitespace-line-column)
-  (defvar sp-report-unmatched-expressions))
+  (defvar whitespace-line-column))
 
 (declare-function server-edit "server")
 
@@ -24,8 +23,6 @@
 (require 'lsp-rust-setup)
 (require 'pretty-ligatures)
 (require 'rust-compilation-commands)
-(require 'smartparens-rust)
-(require 'smartparens-setup)
 
 (require 'rust-autoloads)
 
@@ -59,11 +56,6 @@
 (puthash 'rust-mode
          #'rust-format-region
          *mode-indent-functions-table*)
-
-(setf sp-sexp-prefix
-      (cons '(rust-mode regexp "[&]")
-            (--remove (eq (car it) 'rust-mode)
-                      sp-sexp-prefix)))
 
 ;;;; Utilities
 
@@ -410,11 +402,10 @@ Returns t if indentation occured."
 
 ;;;###autoload
 (defun rust-backward-up-indentation-or-sexp ()
-  "Rust brother of `sp-backward-up-sexp' that considers both
+  "Rust brother of ‘paredit-backward-up-sexp’ that considers both
 sexps and indentation levels."
   (interactive)
   (let* ((start (point))
-         (sp-report-unmatched-expressions nil)
          (with-indentation
           (with-demoted-errors
               (save-excursion
@@ -426,7 +417,7 @@ sexps and indentation levels."
           (when (/= 0 (syntax-ppss-depth (syntax-ppss start)))
             (with-demoted-errors
                 (save-excursion
-                  (sp-backward-up-sexp)
+                  (paredit-backward-up)
                   (let ((p (point)))
                     (when (/= p start)
                       p)))))))
@@ -442,15 +433,40 @@ sexps and indentation levels."
                 :exclusive t
                 :unadjusted t)
 
+(defun rust-newline ()
+  "
+Regular newline insertion that also expands foo {_|_} into
+
+foo {
+    _|_
+}
+"
+  (interactive)
+  (cl-destructuring-bind
+      (start end _is-before? _is-after? is-surrounded?)
+      (smart-operators--point-surrounded-by ?\{ ?\})
+    (when is-surrounded?
+      (delete-region start end))
+    (newline-and-indent)
+    (when is-surrounded?
+      (let ((indent (if indent-tabs-mode
+                        "\t"
+                      (make-string tab-width ?\s))))
+        (newline-and-indent)
+        (let ((line-indent (current-line-indentation-str)))
+          (forward-line -1)
+          (insert line-indent indent)))))
+  (newline-and-indent))
+
+(advices/auto-comment rust-newline)
+
 ;;;; Setup
 
 ;;;###autoload
 (defun rust-setup ()
   (init-common :use-render-formula nil
-               :sp-slurp-sexp-insert-space nil
                :use-yasnippet t
-               :use-whitespace t
-               :hl-parens-backend 'smartparens)
+               :use-whitespace t)
   (setup-folding t '(:header-symbol "/" :length-min 3))
   (company-mode +1)
   (setq-local ;; Don't skip any messages.
@@ -540,12 +556,13 @@ sexps and indentation levels."
 
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-insert-mode-local-keymap)
-    ("C-u"   rust-insert-unimplemented)
-    ("C-t"   flycheck-enhancements-previous-error-with-wraparound)
-    ("C-h"   flycheck-enhancements-next-error-with-wraparound)
-    ("M-t"   rust-compilation-prev-error-other-window)
-    ("M-h"   rust-compilation-next-error-other-window)
-    ("C-SPC" company-complete))
+    ("C-u"      rust-insert-unimplemented)
+    ("C-t"      flycheck-enhancements-previous-error-with-wraparound)
+    ("C-h"      flycheck-enhancements-next-error-with-wraparound)
+    ("M-t"      rust-compilation-prev-error-other-window)
+    ("M-h"      rust-compilation-next-error-other-window)
+    ("C-SPC"    company-complete)
+    ("<return>" rust-newline))
 
   ;; (setup-eproj-symbnav)
   (setup-lsp-symbnav)

@@ -15,7 +15,6 @@
 ;;;###autoload
 (defun toml-setup ()
   (init-common :use-render-formula nil
-               :sp-slurp-sexp-insert-space nil
                :use-yasnippet t
                :use-whitespace 'tabs-only)
 

@@ -11,9 +11,12 @@
   (require 'el-patch)
   (require 'macro-util))
 
-(require 'common)
 (require 'el-patch)
 (require 'paredit)
+
+(require 'common)
+
+(require 'comment-util)
 
 ;;;
 
@@ -30,16 +33,59 @@
              (whitespace-char? (char-before)))
     (delete-whitespace-backward)))
 
+
+(defun paredit-dummy-indent (_pos)
+  0)
+
+;; Configure global paredit without surprises which other modes could
+;; override if needed.
+(setf paredit-indent-sexp-function #'ignore
+      paredit-indent-line-function #'ignore
+      paredit-calculate-indent #'paredit-dummy-indent
+      paredit-indent-region-function nil)
+
+(cl-defun prepare-paredit (&key indent-sexp indent-line calc-indent indent-region)
+  (when indent-sexp
+    (cl-assert (functionp indent-sexp))
+    (setq-local paredit-indent-sexp-function indent-sexp))
+  (when indent-line
+    (cl-assert (functionp indent-line))
+    (setq-local paredit-indent-line-function indent-line))
+  (when calc-indent
+    (cl-assert (functionp calc-indent))
+    (setq-local paredit-calculate-indent calc-indent))
+  (when indent-region
+    (cl-assert (functionp indent-region))
+    (setq-local paredit-indent-region-function indent-region)))
+
+;;;###autoload
+(defun set-up-paredit ()
+  (when comment-util-mode
+    (awhen (comment-format-one-line *comment-util-current-format*)
+      (let ((one-line (concat it " ")))
+        (setq-local paredit-comment-prefix-toplevel one-line
+                    paredit-comment-prefix-code one-line
+                    paredit-comment-prefix-margin one-line))))
+
+  (paredit-mode +1))
+
+
 (defun paredit-init ()
   (advice-add 'paredit-forward-slurp-sexp :after #'paredit-forward-slurp-sexp--remove-initial-whitespace)
 
   (advice-add 'paredit-backward-slurp-sexp :after #'paredit-backward-slurp-sexp--remove-initial-whitespace)
 
   (def-keys-for-map paredit-mode-map
-    ("C-k"         nil)
-    ("<return>"    nil)
-    ("C-S-<left>"  paredit-backward-slurp-sexp)
-    ("C-S-<right>" paredit-backward-barf-sexp))
+    ;; ‘fill-paragraph’ is so much better
+    ("M-q"       nil)
+    ("C-k"       nil)
+    ("<return>"  nil)
+    (";"         nil)
+    ("\\"        nil)
+    ("C-<left>"  nil)
+    ("C-<right>" nil)
+    ("M-<left>"  paredit-backward-slurp-sexp)
+    ("M-<right>" paredit-backward-barf-sexp))
 
   (advices/auto-comment paredit-newline))
 
@@ -61,6 +107,19 @@
 (vimmize-function paredit-forward-slurp-sexp :name vim:forward-slurp-sexp :call-n-times t)
 ;;;###autoload (autoload 'vim:forward-barf-sexp "paredit-setup" "" t)
 (vimmize-function paredit-forward-barf-sexp :name vim:forward-barf-sexp :call-n-times t)
+
+;;;###autoload (autoload 'vim:splice-sexp "paredit-setup" "" t)
+(vimmize-function paredit-splice-sexp :name vim:splice-sexp :call-n-times t)
+;;;###autoload (autoload 'vim:split-sexp "paredit-setup" "" t)
+(vimmize-function paredit-split-sexp :name vim:split-sexp :call-n-times t)
+;;;###autoload (autoload 'vim:join-sexps "paredit-setup" "" t)
+(vimmize-function paredit-join-sexps :name vim:join-sexps :call-n-times t)
+;;;###autoload (autoload 'vim:raise-sexp "paredit-setup" "" t)
+(vimmize-function paredit-raise-sexp :name vim:raise-sexp :call-n-times t)
+;;;###autoload (autoload 'vim:wrap-sexp "paredit-setup" "" t)
+(vimmize-function paredit-wrap-sexp :name vim:wrap-sexp :call-n-times t)
+;;;###autoload (autoload 'vim:convolute-sexp "paredit-setup" "" t)
+(vimmize-function paredit-convolute-sexp :name vim:convolute-sexp :call-n-times t)
 
 ;; :call-n-times nil because these two handle numeric arguments themselves
 ;;;###autoload (autoload 'vim:paredit-forward-kill "paredit-setup" "" t)
@@ -173,6 +232,84 @@ This macro is similar to `vim:do-motion'."
                                (vim:motion-bwd-symbol :count count))))
   (vim:motion-bwd-symbol :count count))
 
+(defun paredit-setup--wrap-or-insert (open close escape?)
+  "Wrap the following expression with PAIR."
+  (let* ((p (point))
+         (start p)
+         (end p))
+    (if (region-active-p)
+        (with-region-bounds-unadj start2 end2
+          (setf start start2
+                end end2))
+      (when-let (sym-bounds (bounds-of-thing-at-point 'symbol))
+        ;; don't wrap if we are at the end of symbol
+        (unless (= p (cdr sym-bounds))
+          (setf start (car sym-bounds)
+                end (cdr sym-bounds)))))
+    ;; If point is not in the symbol then don't wrap the next symbol, but
+    ;; insert pair at point instead.
+    (if (< p start)
+        (progn
+          (goto-char p)
+          (insert open close))
+      (progn
+        (goto-char end)
+        (insert-char close)
+        (goto-char start)
+        (insert-char open)
+
+        (setq end (+ end 2))
+
+        (if escape?
+            (progn
+              (setf end (paredit-setup--escape-region (+ start 1) (- end 1)))
+              (paredit-indent-region start end ))
+          (paredit-indent-region start end))))))
+
+(defun paredit-setup--escape-region (start end)
+  (save-excursion
+    (goto-char start)
+    (paredit-forward-for-quote end)))
+
+(defun vim-wrap-parens ()
+  "Wrap region in (...)."
+  (interactive)
+  (paredit-setup--wrap-or-insert ?\( ?\) nil))
+
+(defun vim-wrap-braces ()
+  "Wrap region in [...]."
+  (interactive)
+  (paredit-setup--wrap-or-insert ?\[ ?\] nil))
+
+(defun vim-wrap-brackets ()
+  "Wrap region in {...}."
+  (interactive)
+  (paredit-setup--wrap-or-insert ?\{ ?\} nil))
+
+(defun vim-wrap-angles ()
+  "Wrap region in <...>."
+  (interactive)
+  (paredit-setup--wrap-or-insert ?\< ?\> nil))
+
+(defun vim-wrap-dquotes ()
+  "Wrap region in \"...\"."
+  (interactive)
+  (paredit-setup--wrap-or-insert ?\" ?\" t))
+
+(defun vim-wrap-typographical-single-quotes ()
+  "Wrap region in ‘...’."
+  (interactive)
+  (paredit-setup--wrap-or-insert ?\‘ ?\’ nil))
+
+(defun vim-wrap-typographical-double-quotes ()
+  "Wrap region in “...”."
+  (interactive)
+  (paredit-setup--wrap-or-insert ?\“ ?\” nil))
+
+(defun vim-wrap-backticks ()
+  "Wrap region in `...`."
+  (interactive)
+  (paredit-setup--wrap-or-insert ?\` ?\` nil))
 
 ;; (defun paredit-forward-kill-symbol ()
 ;;   "Kill a word forward, skipping over intervening delimiters."
