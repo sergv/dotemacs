@@ -103,6 +103,10 @@ realign _l_et
   (lisp-setup)
   (eldoc-mode -1)
   (company-mode +1)
+  (prepare-paredit :indent-sexp #'indent-sexp
+                   :indent-line #'lisp-indent-line
+                   :calc-indent #'calculate-lisp-indent
+                   :indent-region #'indent-region)
   (setq-local company-backends '(company-elisp))
 
   (emacs-lisp-highlight-keywords)
@@ -120,13 +124,7 @@ realign _l_et
     (("C-m" "<f9>") elisp-compile-and-move))
 
   (def-keys-for-map vim-insert-mode-local-keymap
-    ("<tab>"   indent-for-tab-command)
-    ;; ("("     paredit-open-round)
-    ;; (")"     paredit-close-round)
-    ;; ("["     paredit-open-square)
-    ;; ("]"     paredit-close-square)
-    ;; ("\""    paredit-doublequote)
-    )
+    ("<tab>"   indent-for-tab-command))
 
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-insert-mode-local-keymap)

@@ -203,7 +203,7 @@ stick it to the previous operator on line."
 ;;;###autoload
 (defun haskell-smart-operators-self-insert (n)
   "Insert charater and take care to surround it with spaces."
-  (interactive "p")
+  (interactive "*p")
   (cl-assert (characterp last-command-event) nil
              "Last event is not a character: %s" last-command-event)
   (dotimes (_ n)
@@ -212,7 +212,7 @@ stick it to the previous operator on line."
 ;;;###autoload
 (defun haskell-smart-operators-$ ()
   "Swap parens with a dollar."
-  (interactive)
+  (interactive "*")
   (let ((start (point))
         (strip-next-parens?
          (save-excursion
@@ -241,7 +241,7 @@ stick it to the previous operator on line."
 (defun haskell-smart-operators-hyphen ()
   "Insert hyphen surrounding with spaces. No surrounding within
 strings or comments. Expand into {- _|_ -} if inside { *}."
-  (interactive)
+  (interactive "*")
   (let ((pt (point)))
     (cl-destructuring-bind
         (pt-before pt-after is-before? is-after? is-surrounded?)
@@ -270,7 +270,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
 ;;;###autoload
 (defun haskell-smart-operators-dot ()
   "Insert comma followed by space."
-  (interactive)
+  (interactive "*")
   (let* ((pos-before-spaces
           (save-excursion
             (skip-syntax-backward " ")
@@ -288,7 +288,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
 ;;;###autoload
 (defun haskell-smart-operators-hash ()
   "Smart insertion of #."
-  (interactive)
+  (interactive "*")
   (cl-destructuring-bind
       (pt-pragma-start pt-pragma-end is-surrounded-for-pragma?)
       (smart-operators--point-surrounded-by2 ?\{ ?- ?- ?\})
@@ -322,7 +322,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
 ;;;###autoload
 (defun haskell-smart-operators-exclamation-mark ()
   "Smart insertion for ! aimed at placing bangs within records."
-  (interactive)
+  (interactive "*")
   (let ((preceded-by-double-colon?
          (save-excursion
            (skip-syntax-backward " ")
@@ -334,6 +334,19 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
             (insert-char ?\s))
           (insert-char ?!))
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?!))))
+
+;;;###autoload
+(defun haskell-smart-operators-quote ()
+  (interactive "*")
+  (if (smart-operators--literal-insertion?)
+      (insert-char ?\')
+    (let ((prev-char (char-before)))
+      (insert-char ?\')
+      (when (or (not prev-char)
+                (not (or (eq (char-syntax prev-char) ?w)
+                         (eq (char-syntax prev-char) ?_))))
+        (insert-char ?\')
+        (forward-char -1)))))
 
 (defun haskell-smart-operators-exclamation-mark--impl (insert-space-after)
   (haskell-smart-operators--insert-char-optionally-surrounding-with-spaces ?! insert-space-after))
