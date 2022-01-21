@@ -11,7 +11,6 @@
   (init-common :use-yasnippet nil
                :use-comment nil
                :use-render-formula t
-               :sp-slurp-sexp-insert-space nil
                :use-whitespace 'tabs-only
                :use-fci t)
   (setup-folding t nil))

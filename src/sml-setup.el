@@ -39,8 +39,7 @@
   (init-common :use-yasnippet t
                :use-comment t
                :use-render-formula t
-               :use-fci t
-               :sp-slurp-sexp-insert-space nil)
+               :use-fci t)
   (bind-tab-keys #'indent-for-tab-command
                  nil
                  :enable-yasnippet t)
@@ -54,8 +53,7 @@
 
 ;;;###autoload
 (defun inferior-sml-mode-setup ()
-  (init-repl :bind-return nil
-             :sp-slurp-sexp-insert-space nil)
+  (init-repl :bind-return nil)
   (vim-local-emap "clear" #'vim:comint-clear-buffer-above-prompt))
 
 ;;;###autoload

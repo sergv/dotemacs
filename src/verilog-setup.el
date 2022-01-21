@@ -31,8 +31,7 @@
                :use-comment t
                :use-render-formula t
                :use-whitespace 'tabs-only
-               :use-fci t
-               :sp-slurp-sexp-insert-space nil)
+               :use-fci t)
   (bind-tab-keys #'electric-verilog-tab
                  nil
                  :enable-yasnippet t))

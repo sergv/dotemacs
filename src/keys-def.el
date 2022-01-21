@@ -77,13 +77,13 @@
     ("C-<left>"   backward-char)))
 
 (defconst +vim-parens-keys+
-  '(("C-("              vim:sp-backward-slurp-sexp:interactive)
-    ("C-)"              vim:sp-forward-slurp-sexp:interactive)
-    ("M-("              vim:sp-splice-sexp-killing-backward:interactive)
-    ("M-)"              vim:sp-splice-sexp-killing-forward:interactive)
-    ("M-<up>"           vim:sp-raise-sexp:interactive)
-    ("M-<down>"         vim:sp-wrap-round:interactive)
-    ("M-?"              vim:sp-convolute-sexp:interactive)))
+  '(("C-("        vim:backward-slurp-sexp:interactive)
+    ("C-)"        vim:forward-slurp-sexp:interactive)
+    ("M-("        vim:splice-sexp-killing-backward:interactive)
+    ("M-)"        vim:splice-sexp-killing-forward:interactive)
+    ("M-<up>"     vim:raise-sexp:interactive)
+    ("M-<down>"   vim:wrap-sexp:interactive)
+    ("M-?"        vim:convolute-sexp:interactive)))
 
 (defhydra-ext hydra-pseudovim-z-ext (:exit t :foreign-keys nil :hint nil)
   "

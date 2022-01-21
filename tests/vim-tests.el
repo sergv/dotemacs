@@ -150,7 +150,7 @@
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-except
     (text-mode haskell-mode)
-    vim-tests/repeat-vim:sp-splice-sexp-killing-backward-1
+    vim-tests/repeat-vim:splice-sexp-killing-backward-1
     (execute-kbd-macro (kbd "j ( d"))
   (tests-utils--multiline
    ""
@@ -163,12 +163,12 @@
    ""
    ""
    "(foo"
-   " (bar _|_quux))"
+   "   (bar _|_quux  ))"
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-except
     (text-mode haskell-mode)
-    vim-tests/repeat-vim:sp-splice-sexp-killing-backward-2
+    vim-tests/repeat-vim:splice-sexp-killing-backward-2
     (execute-kbd-macro (kbd "j ( d ."))
   (tests-utils--multiline
    ""
@@ -181,10 +181,10 @@
    ""
    ""
    "(foo"
-   " _|_quux)"
+   "   _|_quux  )"
    ""))
 
-(ert-deftest vim-tests/repeat-vim:sp-splice-sexp-killing-backward-2/haskell-mode ()
+(ert-deftest vim-tests/repeat-vim:splice-sexp-killing-backward-2/haskell-mode ()
   (vim-tests--test-fresh-buffer-contents-init
       (haskell-mode)
       (execute-kbd-macro (kbd "j ( d"))
@@ -199,10 +199,10 @@
      ""
      ""
      "(foo"
-     " (bar _|_quux))"
+     "   (bar _|_quux  ))"
      "")))
 
-(ert-deftest vim-tests/repeat-vim:sp-splice-sexp-killing-backward-2/haskell-mode ()
+(ert-deftest vim-tests/repeat-vim:splice-sexp-killing-backward-3/haskell-mode ()
   (vim-tests--test-fresh-buffer-contents-init
       (haskell-mode)
       (execute-kbd-macro (kbd "j ( d ."))
@@ -217,11 +217,11 @@
      ""
      ""
      "(foo"
-     "   _|_quux)"
+     "   _|_quux  )"
      "")))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    vim-tests/repeat-vim:sp-splice-sexp-killing-backward-3
+    vim-tests/repeat-vim:splice-sexp-killing-backward-3
     (execute-kbd-macro (kbd "j ( d 2 ."))
   (tests-utils--multiline
    ""
@@ -233,7 +233,7 @@
   (tests-utils--multiline
    ""
    ""
-   "_|_quux"
+   "_|_quux  "
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
@@ -1879,7 +1879,9 @@
 (ert-deftest vim-tests/vim-backward-slurp-sexp-1/emacs-lisp-mode ()
   (vim-tests--test-fresh-buffer-contents-init
       (emacs-lisp-mode)
-      (execute-kbd-macro (kbd "j ( d"))
+      (progn
+        (should (equal paredit-indent-sexp-function #'indent-sexp))
+        (execute-kbd-macro (kbd "j ( d")))
     (tests-utils--multiline
      ""
      "(let ((counter '#:counter))"
@@ -1909,7 +1911,7 @@
      "   (,func))"
      "")))
 
-(ert-deftest vim-tests/sp-expand-pragma-pair-1/haskell-mode ()
+(ert-deftest vim-tests/haskell-newline-with-signature-expansion-expand-pragma-pair-1/haskell-mode ()
   (vim-tests--test-fresh-buffer-contents-init
       (haskell-mode)
       (execute-kbd-macro (kbd "i { - # <return> <escape>"))
@@ -2096,7 +2098,7 @@
      "  bar (x + 1) y"
      "  baz (f y (x + 1))"
      "  where"
-     "    baz y = quux (g (h y \"hello _|_\\(Haskell world\\)\" y))"
+     "    baz y = quux (g (h y _|_\"hello \\(Haskell world\\)\" y))"
      "")))
 
 (ert-deftest vim-tests/haskell-mode-backward-up-indentation-or-sexp-2 ()
@@ -2117,7 +2119,7 @@
      "  bar (x + 1) y"
      "  baz (f y (x + 1))"
      "  where"
-     "    baz y = quux (g (h y _|_\"hello \\(Haskell world\\)\" y))"
+     "    baz y = quux (g _|_(h y \"hello \\(Haskell world\\)\" y))"
      "")))
 
 (ert-deftest vim-tests/haskell-mode-backward-up-indentation-or-sexp-3 ()
@@ -2138,7 +2140,7 @@
      "  bar (x + 1) y"
      "  baz (f y (x + 1))"
      "  where"
-     "    baz y = quux (g _|_(h y \"hello \\(Haskell world\\)\" y))"
+     "    baz y = quux _|_(g (h y \"hello \\(Haskell world\\)\" y))"
      "")))
 
 (ert-deftest vim-tests/haskell-mode-backward-up-indentation-or-sexp-4 ()
@@ -2159,7 +2161,7 @@
      "  bar (x + 1) y"
      "  baz (f y (x + 1))"
      "  where"
-     "    baz y = quux _|_(g (h y \"hello \\(Haskell world\\)\" y))"
+     "    _|_baz y = quux (g (h y \"hello \\(Haskell world\\)\" y))"
      "")))
 
 (ert-deftest vim-tests/haskell-mode-backward-up-indentation-or-sexp-5 ()
@@ -2179,8 +2181,8 @@
      "foo x = do"
      "  bar (x + 1) y"
      "  baz (f y (x + 1))"
-     "  where"
-     "    _|_baz y = quux (g (h y \"hello \\(Haskell world\\)\" y))"
+     "  _|_where"
+     "    baz y = quux (g (h y \"hello \\(Haskell world\\)\" y))"
      "")))
 
 (ert-deftest vim-tests/haskell-mode-backward-up-indentation-or-sexp-6 ()
@@ -2197,17 +2199,19 @@
      "")
     (tests-utils--multiline
      ""
-     "foo x = do"
+     "_|_foo x = do"
      "  bar (x + 1) y"
      "  baz (f y (x + 1))"
-     "  _|_where"
+     "  where"
      "    baz y = quux (g (h y \"hello \\(Haskell world\\)\" y))"
      "")))
 
 (ert-deftest vim-tests/haskell-mode-backward-up-indentation-or-sexp-7 ()
   (vim-tests--test-fresh-buffer-contents-init
       (haskell-mode)
-      (execute-kbd-macro (kbd "' ' ' ' ' ' '"))
+      (progn
+        (execute-kbd-macro (kbd "' ' ' ' ' '"))
+        (should-error (execute-kbd-macro (kbd "'"))))
     (tests-utils--multiline
      ""
      "foo x = do"
@@ -2540,6 +2544,85 @@
      ""
      "import Data.Set (Set)"
      "import qualified Data.Set as S _|_"
+     "foo x = do"
+     "  bar (x + 1) y \"foo\""
+     "")))
+
+(ert-deftest vim-tests/haskell-insert-quote-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "i '"))
+    (tests-utils--multiline
+     ""
+     "foo x_|_ = do"
+     "  bar (x + 1) y"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x'_|_ = do"
+     "  bar (x + 1) y"
+     "")))
+
+(ert-deftest vim-tests/haskell-insert-quote-2 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "i '"))
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  bar (x + 1) y _|_"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  bar (x + 1) y '_|_'"
+     "")))
+
+(ert-deftest vim-tests/haskell-insert-quote-3 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "i '"))
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  bar (x + 1) y \"_|_\""
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  bar (x + 1) y \"'_|_\""
+     "")))
+
+(ert-deftest vim-tests/haskell-insert-quote-4 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "i '"))
+    (tests-utils--multiline
+     ""
+     "-- _|_"
+     "foo x = do"
+     "  bar (x + 1) y \"foo\""
+     "")
+    (tests-utils--multiline
+     ""
+     "-- '_|_"
+     "foo x = do"
+     "  bar (x + 1) y \"foo\""
+     "")))
+
+(ert-deftest vim-tests/haskell-insert-quote-5 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "i ' foo ' SPC b a r <escape>"))
+    (tests-utils--multiline
+     ""
+     "-- _|_"
+     "foo x = do"
+     "  bar (x + 1) y \"foo\""
+     "")
+    (tests-utils--multiline
+     ""
+     "-- 'foo' ba_|_r"
      "foo x = do"
      "  bar (x + 1) y \"foo\""
      "")))
