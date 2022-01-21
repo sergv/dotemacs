@@ -389,7 +389,6 @@ _j_: send region"
 (defun octave-setup ()
   (init-common :use-yasnippet t
                :use-render-formula t
-               :sp-slurp-sexp-insert-space nil
                :use-fci t
                :use-whitespace 'tabs-only)
   (setup-folding t nil)
@@ -427,7 +426,6 @@ _j_: send region"
 (defun inferior-octave-setup ()
   (init-common :use-yasnippet nil
                :use-comment nil
-               :sp-slurp-sexp-insert-space nil
                :use-fci nil
                :smerge nil)
   (init-repl :bind-return (list vim-normal-mode-local-keymap

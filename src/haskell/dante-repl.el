@@ -226,11 +226,12 @@ This variable gets assigned by ‘dante-initialize-method’.")
     ;; `move-to-column' does and that's why we don't use it here.
     (forward-char col)))
 
-(defun dante-repl-sp-newline ()
-  "Insert newlie at point like ‘sp-newline’ would do. Ignores read-only property of underlying next."
+(defun dante-repl-newline ()
+  "Insert newlie at point like ‘newline-and-indent’ would do.
+Ignores read-only property of underlying next."
   (interactive)
   (with-inhibited-read-only
-   (sp-newline)))
+   (newline-and-indent)))
 
 (provide 'dante-repl)
 

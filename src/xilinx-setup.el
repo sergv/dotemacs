@@ -21,8 +21,7 @@
                :use-comment t
                :use-render-formula nil
                :use-whitespace 'tabs-only
-               :use-fci t
-               :sp-slurp-sexp-insert-space nil)
+               :use-fci t)
   (bind-tab-keys #'tab-to-tab-stop
                  #'tab-to-tab-stop-backward
                  :enable-yasnippet t))

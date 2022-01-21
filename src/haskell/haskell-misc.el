@@ -181,7 +181,7 @@ Returns t if indentation occured."
 
 ;;;###autoload
 (defun haskell-backward-up-indentation-or-sexp ()
-  "Haskell brother of `sp-backward-up-sexp' that considers both
+  "Haskell brother of ‘paredit-backward-up’ that considers both
 sexps and indentation levels."
   (interactive)
   (let* ((start (point))
@@ -196,7 +196,7 @@ sexps and indentation levels."
           (when (/= 0 (syntax-ppss-depth (syntax-ppss start)))
             (with-demoted-errors
                 (save-excursion
-                  (sp-backward-up-sexp)
+                  (paredit-backward-up)
                   (let ((p (point)))
                     (when (/= p start)
                       p)))))))
@@ -209,9 +209,9 @@ sexps and indentation levels."
 
 ;;;###autoload
 (defun haskell-up-sexp ()
-  "Haskell brother of `sp-up-sexp' that considers only sexps for now."
+  "Haskell brother of ‘paredit-forward-up’ that considers only sexps for now."
   (interactive)
-  (sp-up-sexp))
+  (paredit-forward-up))
 
 ;;;; align functions
 
@@ -517,7 +517,7 @@ both unicode and ascii characters.")
   (insert (make-string haskell-indent-offset ?\s)))
 
 (defun haskell-newline-with-signature-expansion ()
-  "Similar to `sp-newline' but autoexpands haskell signatures."
+  "Similar to ‘paredit-newline’ but autoexpands haskell signatures."
   (interactive "*")
   (haskell-misc--with-expanded-invisible-overlays-in-current-function
    (let* ((start-pos (point))

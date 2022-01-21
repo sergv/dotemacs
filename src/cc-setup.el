@@ -200,7 +200,6 @@ _o_: show c sexps in region"
 ;;;###autoload
 (cl-defun cc-setup (&key (define-special-keys t))
   (init-common :use-render-formula t
-               :sp-slurp-sexp-insert-space nil
                :use-yasnippet t
                :use-whitespace 'tabs-only)
   (which-function-mode -1)

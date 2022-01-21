@@ -19,7 +19,6 @@
 (require 'custom)
 (require 'preview)
 (require 'latex-abbrev+)
-(require 'smartparens-latex)
 
 (setq TeX-auto-save t
       TeX-parse-self t

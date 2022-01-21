@@ -518,8 +518,6 @@
       (eshell-prompt :foreground ,violet :bold t)
 
       (hl-paren-selection-face :underline ,magenta)
-      (sp-show-pair-match-face :underline ,magenta)
-      (sp-show-pair-mismatch-face :background ,red)
       (show-paren-mismatch :background ,red)
 
       (rainbow-delimiters-depth-1-face :foreground ,primary-content)

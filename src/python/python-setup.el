@@ -380,7 +380,6 @@ _j_: send region to repl"
 (defun python-setup ()
   (init-common :use-yasnippet t
                :use-render-formula t
-               :sp-slurp-sexp-insert-space nil
                :use-whitespace 'tabs-only
                :use-fci t)
   (setup-folding t '(:header-start "^[ \t]*" :header-symbol "#" :length-min 3))
@@ -481,7 +480,6 @@ _j_: send region to repl"
 (defun inferior-python-setup ()
   (init-common :use-yasnippet nil
                :use-comment nil
-               :sp-slurp-sexp-insert-space nil
                :use-whitespace nil
                :use-fci nil
                :smerge nil)

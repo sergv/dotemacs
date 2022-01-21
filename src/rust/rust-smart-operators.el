@@ -24,8 +24,7 @@
 (defun rust-smart-operators--insert-char-surrounding-with-spaces (char)
   "Insert CHARacter while trying to surround it with spaces and
 stick it to the previous operator on line."
-  (let ((sp-report-unmatched-expressions nil))
-    (rust-smart-operators--insert-char-optionally-surrounding-with-spaces char t)))
+  (rust-smart-operators--insert-char-optionally-surrounding-with-spaces char t))
 
 (defconst rust-smart-operators--chars-to-separate-from-ampersand
   '(?= ?> ?| ?^ ?% ?/ ?- ?+ ?*))
@@ -105,15 +104,19 @@ stick it to the previous operator on line."
                                      ((char= char-before-spaces ?>)
                                       (if (char= char ?>)
                                           t ;; either it’s operator >> or generic type
-                                        (save-excursion
-                                          (goto-char pt-before-ws)
-                                          (forward-char -1)
-                                          (aif (sp-get-enclosing-sexp)
-                                              (if (= (plist-get it :end) (+ 1 (point)))
-                                                  (not (string-equal (plist-get it :op) "<"))
-                                                t)
-                                            t ;; No sexp - ok to delete.
-                                            ))))
+                                        nil
+                                        ;; Cannot really tell without analyzing balanced sexp
+                                        ;; in here but this get’s complicated without smartparens.
+                                        ;; (save-excursion
+                                        ;;   (goto-char pt-before-ws)
+                                        ;;   (forward-char -1)
+                                        ;;   (aif (sp-get-enclosing-sexp)
+                                        ;;       (if (= (plist-get it :end) (+ 1 (point)))
+                                        ;;           (not (string-equal (plist-get it :op) "<"))
+                                        ;;         t)
+                                        ;;     t ;; No sexp - ok to delete.
+                                        ;;     ))
+                                        ))
                                      (t
                                       t) ;; Not a > before spaces - ok to delete.
                                      )
@@ -210,13 +213,16 @@ stick it to the previous operator on line."
                                 (if (char= char ?=)
                                     (not (char= before ?!))
                                   t))
-                           ;; Do break with a space after balanced >.
-                           (and (char= before ?\>)
-                                (save-excursion
-                                  (forward-char -1)
-                                  (awhen (sp-get-enclosing-sexp)
-                                    (and (string-equal (plist-get it :op) "<")
-                                         (= (plist-get it :end) (+ 1 (point)))))))
+                           ;; Cannot really tell without analyzing balanced sexp
+                           ;; in here but this get’s complicated without smartparens.
+
+                           ;; ;; Do break with a space after balanced >.
+                           ;; (and (char= before ?\>)
+                           ;;      (save-excursion
+                           ;;        (forward-char -1)
+                           ;;        (awhen (sp-get-enclosing-sexp)
+                           ;;          (and (string-equal (plist-get it :op) "<")
+                           ;;               (= (plist-get it :end) (+ 1 (point)))))))
                            ;; =& and >& are not operators so add a space
                            (and (char= char ?*)
                                 (memq before rust-smart-operators--chars-to-separate-from-asterisk))
