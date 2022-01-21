@@ -20,6 +20,8 @@
 ;; along with paredit.  If not, see <http://www.gnu.org/licenses/>.
 
 (require 'comment-util)
+(require 'haskell-mode)
+;; (require 'haskell-setup)
 
 
 (defun paredit-test-failure-default (command before after expected err)
@@ -32,67 +34,110 @@
              (format "\nReason:\n%s" (cdr err))
            "")))
 
-(defvar paredit-test-failure-function 'paredit-test-failure-default
-  "Function to call when `paredit-test' fails.
-Four arguments: the paredit command, the text of the buffer
-  before, the text of the buffer after, and the expected text of
-  the buffer after.")
-
 (defun paredit-test-failed (command before after expected err)
-  (funcall paredit-test-failure-function command before after expected err))
+  (paredit-test-failure-default command before after expected err))
+
+;; (toggle-debug-on-error)
 
 (defun paredit-test (command examples)
   (declare (indent 1))
   (message "Testing %S..." command)
-  (condition-case err
+  (condition-case-unless-debug err
       (dolist (example examples)
+        (when (eq (car example) 'cond)
+          (setf example
+                (eval `(let ((in-lisp? ,paredit-test-mode-is-lisp?)
+                             (no-indent? ,paredit-test-indent-disabled?)
+                             (error 'error))
+                         (cond
+                           ,@(mapcar (lambda (x) `(,(car x) (list ,@(cdr x))))
+                                     (cdr example)))))))
         (setq example (mapcar #'paredit-fix-comments example))
-        (let ((before (car example)))
-          (dolist (expected (cdr example))
-            (message "‘%s’ -> ‘%s’" before expected)
-            (with-temp-buffer
-              (condition-case err
-                  (progn
-                    (paredit-test-buffer-setup)
-                    (insert before)
-                    (goto-char (point-min))
-                    (when (search-forward "_" nil t)
+        (when example
+          (let ((before (car example)))
+            (dolist (expected (cdr example))
+              (message "%s\n-->\n%s" before expected)
+              (with-temp-buffer
+                (condition-case-unless-debug err
+                    (progn
+                      (paredit-test-buffer-setup)
+                      (insert before)
+                      (goto-char (point-min))
+                      (when (search-forward "_" nil t)
+                        (delete-char -1)
+                        (set-mark (point)))
+                      (goto-char (point-min))
+                      (search-forward "|")
                       (delete-char -1)
-                      (set-mark (point)))
-                    (goto-char (point-min))
-                    (search-forward "|")
-                    (delete-char -1)
-                    (when (cond ((eq expected 'error)
-                                 ;;++ Check that there are no more expected states.
-                                 (condition-case condition
-                                     (progn (call-interactively command) t)
-                                   (error nil)))
-                                ((stringp expected)
-                                 (call-interactively command)
-                                 (insert ?\|)
-                                 (not (string= expected
-                                               (buffer-substring-no-properties (point-min)
-                                                                               (point-max)))))
-                                (t (error "Bad test expectation: %S" expected)))
-                      (paredit-test-failed command
-                                           before
-                                           (buffer-substring-no-properties (point-min)
-                                                                           (point-max))
-                                           expected err)))
-                (error
-                 (paredit-test-failed command
-                                      before
-                                      (buffer-substring-no-properties (point-min)
-                                                                      (point-max))
-                                      expected err))))
-            (setq before expected))))
-    (error
-     (message (concat "Test failed:\n" (cadr err)))
-     (signal (car err) (cdr err)))))
+                      (when (cond ((eq expected 'error)
+                                   ;;++ Check that there are no more expected states.
+                                   (condition-case condition
+                                       (progn (call-interactively command) t)
+                                     (error nil)))
+                                  ((stringp expected)
+                                   (call-interactively command)
+                                   (insert ?\|)
+                                   (not (string= expected
+                                                 (buffer-substring-no-properties (point-min)
+                                                                                 (point-max)))))
+                                  (t (error "Bad test expectation: %S" expected)))
+                        (paredit-test-failed command
+                                             before
+                                             (buffer-substring-no-properties (point-min)
+                                                                             (point-max))
+                                             expected err)))
+                  (error
+                   (paredit-test-failed command
+                                        before
+                                        (buffer-substring-no-properties (point-min)
+                                                                        (point-max))
+                                        expected err))))
+              (setq before expected)))))
+      (error
+       (message (concat "Test failed:\n"
+                        (if (stringp (cadr err))
+                            (cadr err)
+                          (format "%s" err))))
+       (signal (car err) (cdr err)))))
+
 
 (defvar paredit-test-mode-is-lisp? nil
   "Set to t for lisp-syntax modes with ; as comment character.")
-(defvar paredit-test-mode #'c-mode)
+
+;; ;; This indentation treats curly braces {} specially but paredit expects
+;; ;; them to work just the same as () and [].
+;; (defvar paredit-test-indent-disabled? nil)
+;; (setf paredit-indent-sexp-function #'prog-indent-sexp)
+;; (setf paredit-indent-line-function #'c-indent-line)
+;; (setf paredit-indent-region-function #'indent-regino)
+
+;; (setf paredit-indent-line-function #'indent-according-to-mode)
+
+(defvar paredit-test-indent-disabled? t)
+(setf paredit-indent-sexp-function #'ignore)
+(setf paredit-indent-line-function #'ignore)
+(setf paredit-calculate-indent (lambda (_pos) 0))
+(setf paredit-indent-region-function nil)
+
+;; (defvar paredit-test-mode #'c-mode)
+;; (setf paredit-comment-prefix-toplevel "////// ")
+;; (setf paredit-comment-prefix-code "//// ")
+;; (setf paredit-comment-prefix-margin "//")
+
+(defvar paredit-test-mode #'haskell-mode)
+(setf paredit-comment-prefix-toplevel "---- ")
+(setf paredit-comment-prefix-code "-- ")
+(setf paredit-comment-prefix-margin "-- ")
+
+(setf paredit-comment-start-at-function
+      (lambda (pt)
+        (save-match-data
+          (save-excursion
+            (goto-char pt)
+            (and (looking-at paredit-test-line-comment)
+                 (match-end 0))))))
+
+
 (defvar paredit-test-line-comment
   (or (cadr (assq 'one-line
                   (cdr (assq paredit-test-mode
@@ -103,35 +148,42 @@ Four arguments: the paredit command, the text of the buffer
 (defun paredit-test-buffer-setup ()
   ;; (scheme-mode)
   (funcall paredit-test-mode)
+  ;; (haskell-mode-setup)
   (setq-local indent-tabs-mode nil
               comment-column 40
               show-trailing-whitespace nil
               minibuffer-message-timeout 0))
 
 (defun paredit-fix-comments (str)
-  (replace-regexp-in-string ";" paredit-test-line-comment str))
+  (if (stringp str)
+      (replace-regexp-in-string ";" paredit-test-line-comment str)
+    str))
 
 (defun paredit-test-bracketed (entries examples)
   (dolist (entry entries)
-    (let ((command (car entry))
-          (left    (string (cadr entry)))
-          (right   (string (caddr entry))))
+    (let* ((command (car entry))
+           (left    (string (cadr entry)))
+           (right   (string (caddr entry)))
+           (fix-delims
+            (lambda (x)
+              (cl-assert (stringp x))
+              (replace-regexp-in-string "(" left (replace-regexp-in-string ")" right x)))))
       (paredit-test command
-                    (mapcar (lambda (example)
-                              (mapcar (lambda (step)
-                                        (if (stringp step)
-                                            (replace-regexp-in-string
-                                             "("
-                                             left
-                                             (replace-regexp-in-string
-                                              ")"
-                                              right
-                                              step))
-                                          step))
-                                      example))
-                            examples)))))
+        (mapcar (lambda (example)
+                  (if (eq 'cond (car-safe example))
+                      (cons 'cond
+                            (mapcar (lambda (alt)
+                                      (cons (car alt)
+                                            (mapcar fix-delims (cdr alt))))
+                                    (cdr example)))
+                    (mapcar (lambda (step)
+                              (if (stringp step)
+                                  (funcall fix-delims step)
+                                step))
+                            example)))
+                examples)))))
 
-(paredit-do-commands (spec keys command examples)
+(paredit-do-commands (_spec _keys command examples)
     nil ;; string case
   ;; `paredit-backslash' has a funny example.
   (let ((ignored (unless paredit-test-mode-is-lisp?
@@ -168,8 +220,16 @@ Four arguments: the paredit command, the text of the buffer
                             ;; (paredit-open-angled ?\< ?\>)
                             )
     '(("(foo |bar baz)" "(foo (|bar) baz)")
-      ("(x |;y\n z\n w)"
-       "(x (|                                    ;y\n    z)\n w)"))))
+      (cond
+        (in-lisp?
+         "(x |;y\n z\n w)"
+         "(x (|                                    ;y\n    z)\n w)")
+        (no-indent?
+         "(x |;y\n z\n w)"
+         "(x (|;y\n z)\n w)")
+        (t
+         "(x |;y\n z\n w)"
+         "(x (|;y\n    z)\n w)")))))
 
 (let ((current-prefix-arg '(4)))
   ;++ Oops -- `C-u (' is like `M-4 (', not like `C-u M-('.
@@ -179,13 +239,33 @@ Four arguments: the paredit command, the text of the buffer
                             ;; (paredit-open-angled ?\< ?\>)
                             )
     '(("(foo |bar baz)" "(foo (|bar baz))")
-      ("(x |;y\n z\n w)"
-       "(x (|                                    ;y\n    z\n    w))")
+      (cond
+        (in-lisp?
+         "(x |;y\n z\n w)"
+         "(x (|                                    ;y\n    z\n    w))")
+        (no-indent?
+         "(x |;y\n z\n w)"
+         "(x (|;y\n z\n w))")
+        (t
+         "(x |;y\n z\n w)"
+         "(x (|;y\n    z\n    w))"))
       ("foo |bar baz" "foo (|bar baz)")
       ;++ These tests are kinda bunk.  It's not immediately clear to me
       ;++ which is right: including or excluding the trailing comment.
-      ("foo\n|bar\nbaz\n;quux\n" "foo\n(|bar\n baz)\n;quux\n")
-      ("foo\n|bar\nbaz\n;; quux" "foo\n(|bar\n baz\n ;; quux\n )"))))
+      (cond
+        (in-lisp?
+         "foo\n|bar\nbaz\n;quux\n"
+         "foo\n(|bar\n baz)\n;quux\n")
+        (no-indent?
+         "foo\n|bar\nbaz\n;quux\n"
+         "foo\n(|bar\nbaz)\n;quux\n"))
+      (cond
+        (in-lisp?
+         "foo\n|bar\nbaz\n;; quux"
+         "foo\n(|bar\n baz\n ;; quux\n )")
+        (no-indent?
+         "foo\n|bar\nbaz\n;; quux"
+         "foo\n(|bar\nbaz\n;; quux\n)")))))
 
 (paredit-test-bracketed '((paredit-close-round ?\( ?\))
                           (paredit-close-square ?\[ ?\])
@@ -206,7 +286,13 @@ Four arguments: the paredit command, the text of the buffer
                           )
   '(("(|" "()|")
     ("foo|" error)
-    ("(foo|  ;\n   )" "(foo  ;\n )|")
+    (cond
+      (in-lisp?
+       "(foo|  ;\n   )"
+       "(foo  ;\n )|")
+      (no-indent?
+       "(foo|  ;\n   )"
+       "(foo  ;\n   )|"))
     ("(foo|  ;\n   bar)" "(foo  ;\n   bar)|")
     ("(foo|  ;\n   bar )" "(foo  ;\n   bar)|")))
 
@@ -217,7 +303,13 @@ Four arguments: the paredit command, the text of the buffer
                           )
   '(("(foo #\\|(  )" "(foo #\\()\n|")
     ("(foo|\n )   ;bar" "(foo)   ;bar\n|")
-    ("((foo|\n)    (bar))" "((foo)\n |(bar))")))
+    (cond
+      (in-lisp?
+       "((foo|\n)    (bar))"
+       "((foo)\n |(bar))")
+      (no-indent?
+       "((foo|\n)    (bar))"
+       "((foo)\n|    (bar))"))))
 
 (paredit-test-bracketed '((paredit-wrap-round ?\( ?\))
                           (paredit-wrap-square ?\[ ?\])
@@ -258,31 +350,36 @@ Four arguments: the paredit command, the text of the buffer
   (paredit-test 'paredit-wrap-sexp
     '(("(foo |bar baz)" "(foo (|bar baz))"))))
 
-(when paredit-test-mode-is-lisp?
-  (paredit-test 'paredit-newline
-    '(("\"foo|bar\"" "\"foo\n|bar\"")
-      ("(frob grovel ;full |(lexical)\n      mumble)"
+(paredit-test 'paredit-newline
+  '(("\"foo|bar\"" "\"foo\n|bar\"")
+    (cond
+      (in-lisp?
+       "(frob grovel ;full |(lexical)\n      mumble)"
        "(frob grovel ;full\n      |(lexical)\n      mumble)")
-      ("(frob grovel ;full (|lexical)\n      mumble)"
-       "(frob grovel ;full (\n             ;|lexical)\n      mumble)")
-      ("#\\|(" "#\\(\n|"))))
+      (no-indent?
+       "(frob grovel ;full |(lexical)\n      mumble)"
+       "(frob grovel ;full\n |(lexical)\n      mumble)"))
+    ("(frob grovel ;full (|lexical)\n      mumble)"
+     "(frob grovel ;full (\n             ;|lexical)\n      mumble)")
+    ("#\\|(" "#\\(\n|")))
 
-(paredit-test 'paredit-reindent-defun
-  ;++ Test filling paragraphs in comments and strings.
-  '(("|(define (square x)\n     (* x x))"
-     "|(define (square x)\n  (* x x))")
-    ("(define (square x)\n     (* x x))|"
-     "(define (square x)\n  (* x x))|")
-    ("(define (square x)\n     (* x x))|\n(frob\n    wotz)"
-     "(define (square x)\n  (* x x))|\n(frob\n    wotz)")
-    ("(define (square x)\n     (* x x))\n|(frob\n    wotz)"
-     "(define (square x)\n     (* x x))\n|(frob\n wotz)")
-    ("(define (square x)\n |  (* x x))"
-     "(define (square x)\n | (* x x))")
-    ("(define (square x)\n    | (* x x))"
-     "(define (square x)\n  |(* x x))")
-    ("(define (square x)\n     (* |x x))"
-     "(define (square x)\n  (* |x x))")))
+(when paredit-test-mode-is-lisp?
+  (paredit-test 'paredit-reindent-defun
+    ;++ Test filling paragraphs in comments and strings.
+    '(("|(define (square x)\n     (* x x))"
+       "|(define (square x)\n  (* x x))")
+      ("(define (square x)\n     (* x x))|"
+       "(define (square x)\n  (* x x))|")
+      ("(define (square x)\n     (* x x))|\n(frob\n    wotz)"
+       "(define (square x)\n  (* x x))|\n(frob\n    wotz)")
+      ("(define (square x)\n     (* x x))\n|(frob\n    wotz)"
+       "(define (square x)\n     (* x x))\n|(frob\n wotz)")
+      ("(define (square x)\n |  (* x x))"
+       "(define (square x)\n | (* x x))")
+      ("(define (square x)\n    | (* x x))"
+       "(define (square x)\n  |(* x x))")
+      ("(define (square x)\n     (* |x x))"
+       "(define (square x)\n  (* |x x))"))))
 
 (when paredit-test-mode-is-lisp?
   (paredit-test 'paredit-semicolon
@@ -333,7 +430,8 @@ Four arguments: the paredit command, the text of the buffer
 (paredit-test 'paredit-forward-delete
   '(("f|oo" "f|o")
     (";f|(oo" ";f|oo")
-    (";|;(foo)" ";|(foo)")
+    (cond
+      (in-lisp? ";|;(foo)" ";|(foo)"))
     ("|;;(foo)" "|;(foo)" "|(foo)")
     (";foo|\n(bar)\n(baz\n quux)" ";foo|(bar)\n(baz\n quux)")
     (";foo|\n(bar\n baz)" error)
@@ -352,11 +450,14 @@ Four arguments: the paredit command, the text of the buffer
 (paredit-test 'paredit-backward-delete
   '(("fo|o" "f|o")
     (";fo(|o" ";fo|o")
-    (";|;(foo)" "|;(foo)")
-    (";;|(foo)" ";|(foo)" "|(foo)")
+    (cond
+      (in-lisp? ";|;(foo)" "|;(foo)"))
+    (cond
+      (in-lisp? ";;|(foo)" ";|(foo)" "|(foo)"))
     (";foo\n|(bar)\n(baz\n quux)" ";foo|(bar)\n(baz\n quux)")
     (";foo\n|(bar\n baz)" error)
-    (";;|foo(" ";|foo(" error)
+    (cond
+      (in-lisp? ";;|foo(" ";|foo(" error))
     (";foo\n|(bar);baz\n" ";foo|(bar);baz\n")
     (";foo\n|(bar);baz" ";foo|(bar);baz")
     (";foo\n|(bar ;baz\n quux)\n" error)
@@ -593,42 +694,56 @@ Four arguments: the paredit command, the text of the buffer
     ("(a ((b) (c)\n    (d) (e)) (f)|)" "(a ((b) (c)\n    (d) (e)) (f)|)")
     ("(a ((b) (c)\n    (d) (e)) (f))|" error)
 
-    ("|(a \"(b) (c)\n )  { ;;;; \n\n\n(d)( (e);\" (f))" "|" error)
-    ("(|a \"(b) (c)\n )  { ;;;; \n\n\n(d)( (e);\" (f))" "(| (f))" "(|)" "(|)")
-    ("(a| \"(b) (c)\n )  { ;;;; \n\n\n(d)( (e);\" (f))"
-     "(a| (f))"
-     "(a|)"
-     "(a|)")
-    ("(a |\"(b) (c)\n )  { ;;;; \n\n\n(d)( (e);\" (f))"
-     "(a | (f))"
-     "(a |)"
-     "(a |)")
-    ("(a \"|(b) (c)\n )  { ;;;; \n\n\n(d)( (e);\" (f))"
-     "(a \"|\n )  { ;;;; \n\n\n(d)( (e);\" (f))"
-     "(a \"| )  { ;;;; \n\n\n(d)( (e);\" (f))"
-     "(a \"|\n\n\n(d)( (e);\" (f))"
-     "(a \"|\n\n(d)( (e);\" (f))"
-     "(a \"|\n(d)( (e);\" (f))"
-     "(a \"|(d)( (e);\" (f))"
-     "(a \"|\" (f))"
-     "(a \"|\" (f))")
-    ("(a \"(b) (c)|\n )  { ;;;; \n\n\n(d)( (e);\" (f))"
-     "(a \"(b) (c)| )  { ;;;; \n\n\n(d)( (e);\" (f))"
-     "(a \"(b) (c)|\n\n\n(d)( (e);\" (f))"
-     "(a \"(b) (c)|\n\n(d)( (e);\" (f))"
-     "(a \"(b) (c)|\n(d)( (e);\" (f))"
-     "(a \"(b) (c)|(d)( (e);\" (f))"
-     "(a \"(b) (c)|\" (f))"
-     "(a \"(b) (c)|\" (f))")
-    ("(a \"(b) (c)\n )  { ;;;; |\n\n\n(d)( (e);\" (f))"
-     "(a \"(b) (c)\n )  { ;;;; |\n\n(d)( (e);\" (f))"
-     "(a \"(b) (c)\n )  { ;;;; |\n(d)( (e);\" (f))"
-     "(a \"(b) (c)\n )  { ;;;; |(d)( (e);\" (f))"
-     "(a \"(b) (c)\n )  { ;;;; |\" (f))"
-     "(a \"(b) (c)\n )  { ;;;; |\" (f))")
-    ("(a \"(b) (c)\n )  { ;;;; \n\n\n|(d)( (e);\" (f))"
-     "(a \"(b) (c)\n )  { ;;;; \n\n\n|\" (f))"
-     "(a \"(b) (c)\n )  { ;;;; \n\n\n|\" (f))")
+    (cond
+      (in-lisp? "|(a \"(b) (c)\n )  { ;;;; \n\n\n(d)( (e);\" (f))" "|" error))
+    (cond
+      (in-lisp? "(|a \"(b) (c)\n )  { ;;;; \n\n\n(d)( (e);\" (f))" "(| (f))" "(|)" "(|)"))
+    (cond
+      (in-lisp?
+       "(a| \"(b) (c)\n )  { ;;;; \n\n\n(d)( (e);\" (f))"
+       "(a| (f))"
+       "(a|)"
+       "(a|)"))
+    (cond
+      (in-lisp?
+       "(a |\"(b) (c)\n )  { ;;;; \n\n\n(d)( (e);\" (f))"
+       "(a | (f))"
+       "(a |)"
+       "(a |)"))
+    (cond
+      (in-lisp?
+       "(a \"|(b) (c)\n )  { ;;;; \n\n\n(d)( (e);\" (f))"
+       "(a \"|\n )  { ;;;; \n\n\n(d)( (e);\" (f))"
+       "(a \"| )  { ;;;; \n\n\n(d)( (e);\" (f))"
+       "(a \"|\n\n\n(d)( (e);\" (f))"
+       "(a \"|\n\n(d)( (e);\" (f))"
+       "(a \"|\n(d)( (e);\" (f))"
+       "(a \"|(d)( (e);\" (f))"
+       "(a \"|\" (f))"
+       "(a \"|\" (f))"))
+    (cond
+      (in-lisp?
+       "(a \"(b) (c)|\n )  { ;;;; \n\n\n(d)( (e);\" (f))"
+       "(a \"(b) (c)| )  { ;;;; \n\n\n(d)( (e);\" (f))"
+       "(a \"(b) (c)|\n\n\n(d)( (e);\" (f))"
+       "(a \"(b) (c)|\n\n(d)( (e);\" (f))"
+       "(a \"(b) (c)|\n(d)( (e);\" (f))"
+       "(a \"(b) (c)|(d)( (e);\" (f))"
+       "(a \"(b) (c)|\" (f))"
+       "(a \"(b) (c)|\" (f))"))
+    (cond
+      (in-lisp?
+       "(a \"(b) (c)\n )  { ;;;; |\n\n\n(d)( (e);\" (f))"
+       "(a \"(b) (c)\n )  { ;;;; |\n\n(d)( (e);\" (f))"
+       "(a \"(b) (c)\n )  { ;;;; |\n(d)( (e);\" (f))"
+       "(a \"(b) (c)\n )  { ;;;; |(d)( (e);\" (f))"
+       "(a \"(b) (c)\n )  { ;;;; |\" (f))"
+       "(a \"(b) (c)\n )  { ;;;; |\" (f))"))
+    (cond
+      (in-lisp?
+       "(a \"(b) (c)\n )  { ;;;; \n\n\n|(d)( (e);\" (f))"
+       "(a \"(b) (c)\n )  { ;;;; \n\n\n|\" (f))"
+       "(a \"(b) (c)\n )  { ;;;; \n\n\n|\" (f))"))
 
     ("|x(\n)(z)" "|(z)" "|" error)
     ("x|(\n)(z)" "x|(z)" "x|" error)
@@ -893,10 +1008,14 @@ Four arguments: the paredit command, the text of the buffer
     ("#\\|\\" "#\\\\|" "#\\\\|")
     ("#\\\\|" "#\\\\|")
 
-    ("|#\\;" "#\\;|" "#\\;|")
-    ("#|\\;" "#\\;|" "#\\;|")
-    ("#\\|;" "#\\;|" "#\\;|")
-    ("#\\;|" "#\\;|")))
+    (cond
+      (in-lisp? "|#\\;" "#\\;|" "#\\;|"))
+    (cond
+      (in-lisp? "#|\\;" "#\\;|" "#\\;|"))
+    (cond
+      (in-lisp? "#\\|;" "#\\;|" "#\\;|"))
+    (cond
+      (in-lisp? "#\\;|" "#\\;|"))))
 
 (paredit-test 'paredit-backward
   '(("|" "|")
@@ -939,25 +1058,41 @@ Four arguments: the paredit command, the text of the buffer
      "|(\"x\" \"y\")" "|(\"x\" \"y\")")
     ("(\"x\" \"y\")|" "|(\"x\" \"y\")" "|(\"x\" \"y\")")
 
-    ("|#\\(" "|#\\(")
-    ("#|\\(" "|#\\(" "|#\\(")
-    ("#\\|(" "|#\\(" "|#\\(")
-    ("#\\(|" "|#\\(" "|#\\(")
+    (cond
+      (in-lisp? "|#\\(" "|#\\("))
+    (cond
+      (in-lisp? "#|\\(" "|#\\(" "|#\\("))
+    (cond
+      (in-lisp? "#\\|(" "|#\\(" "|#\\("))
+    (cond
+      (in-lisp? "#\\(|" "|#\\(" "|#\\("))
 
-    ("|#\\)" "|#\\)")
-    ("#|\\)" "|#\\)" "|#\\)")
-    ("#\\|)" "|#\\)" "|#\\)")
-    ("#\\)|" "|#\\)" "|#\\)")
+    (cond
+      (in-lisp? "|#\\)" "|#\\)"))
+    (cond
+      (in-lisp? "#|\\)" "|#\\)" "|#\\)"))
+    (cond
+      (in-lisp? "#\\|)" "|#\\)" "|#\\)"))
+    (cond
+      (in-lisp? "#\\)|" "|#\\)" "|#\\)"))
 
-    ("|#\\\\" "|#\\\\")
-    ("#|\\\\" "|#\\\\" "|#\\\\")
-    ("#\\|\\" "|#\\\\" "|#\\\\")
-    ("#\\\\|" "|#\\\\" "|#\\\\")
+    (cond
+      (in-lisp? "|#\\\\" "|#\\\\"))
+    (cond
+      (in-lisp? "#|\\\\" "|#\\\\" "|#\\\\"))
+    (cond
+      (in-lisp? "#\\|\\" "|#\\\\" "|#\\\\"))
+    (cond
+      (in-lisp? "#\\\\|" "|#\\\\" "|#\\\\"))
 
-    ("|#\\;" "|#\\;")
-    ("#|\\;" "|#\\;" "|#\\;")
-    ("#\\|;" "|#\\;" "|#\\;")
-    ("#\\;|" "|#\\;" "|#\\;")))
+    (cond
+      (in-lisp? "|#\\;" "|#\\;"))
+    (cond
+      (in-lisp? "#|\\;" "|#\\;" "|#\\;"))
+    (cond
+      (in-lisp? "#\\|;" "|#\\;" "|#\\;"))
+    (cond
+      (in-lisp? "#\\;|" "|#\\;" "|#\\;"))))
 
 (paredit-test 'paredit-join-sexps
   '(("|ab cd" error)
@@ -980,13 +1115,25 @@ Four arguments: the paredit command, the text of the buffer
     ("(x |((y)\n    (z)))" error)
     ("(x (|(y)\n    (z)))" error)
     ("(x ((|y)\n    (z)))" error)
-    ("(x ((y)|\n    (z)))" "(x ((y|\n     z)))")
-    ("(x ((y)\n|    (z)))" "(x ((y\n|     z)))")
-    ("(x ((y)\n |   (z)))" "(x ((y\n |    z)))")
-    ("(x ((y)\n  |  (z)))" "(x ((y\n  |   z)))")
-    ("(x ((y)\n   | (z)))" "(x ((y\n   |  z)))")
+    (cond
+      (in-lisp?   "(x ((y)|\n    (z)))" "(x ((y|\n     z)))")
+      (no-indent? "(x ((y)|\n    (z)))" "(x ((y|\n    z)))"))
+    (cond
+      (in-lisp?   "(x ((y)\n|    (z)))" "(x ((y\n|     z)))")
+      (no-indent? "(x ((y)\n|    (z)))" "(x ((y\n|    z)))"))
+    (cond
+      (in-lisp?   "(x ((y)\n |   (z)))" "(x ((y\n |    z)))")
+      (no-indent? "(x ((y)\n |   (z)))" "(x ((y\n |   z)))"))
+    (cond
+      (in-lisp?   "(x ((y)\n  |  (z)))" "(x ((y\n  |   z)))")
+      (no-indent? "(x ((y)\n  |  (z)))" "(x ((y\n  |  z)))"))
+    (cond
+      (in-lisp?   "(x ((y)\n   | (z)))" "(x ((y\n   |  z)))")
+      (no-indent? "(x ((y)\n   | (z)))" "(x ((y\n   | z)))"))
     ;++ I don't think this is right.  The point shouldn't move right.
-    ("(x ((y)\n    |(z)))" "(x ((y\n     |z)))")
+    (cond
+      (in-lisp?   "(x ((y)\n    |(z)))" "(x ((y\n     |z)))")
+      (no-indent? "(x ((y)\n    |(z)))" "(x ((y\n    |z)))"))
     ("(x ((y)\n    (|z)))" error)
     ("(x ((y)\n    (z|)))" error)
     ("(x ((y)\n    (z)|))" error)
@@ -1059,12 +1206,24 @@ Four arguments: the paredit command, the text of the buffer
     ("(x| ((y)\n    (z)))" error)
     ("(x |((y)\n    (z)))" error)
     ("(x ((|y)\n    (z)))" error)
-    ("(x ((y)|\n    (z)))" "(x ((y|\n     z)))" "(x ((y|z)))" error)
-    ("(x ((y)\n|    (z)))" "(x ((y\n|     z)))" "(x ((y|z)))" error)
-    ("(x ((y)\n |   (z)))" "(x ((y\n |    z)))" "(x ((y|z)))" error)
-    ("(x ((y)\n  |  (z)))" "(x ((y\n  |   z)))" "(x ((y|z)))" error)
-    ("(x ((y)\n   | (z)))" "(x ((y\n   |  z)))" "(x ((y|z)))" error)
-    ("(x ((y)\n    |(z)))" "(x ((y\n     |z)))" "(x ((y|z)))" error)
+    (cond
+      (in-lisp?   "(x ((y)|\n    (z)))" "(x ((y|\n     z)))" "(x ((y|z)))" error)
+      (no-indent? "(x ((y)|\n    (z)))" "(x ((y|\n    z)))" "(x ((y|z)))" error))
+    (cond
+      (in-lisp?   "(x ((y)\n|    (z)))" "(x ((y\n|     z)))" "(x ((y|z)))" error)
+      (no-indent? "(x ((y)\n|    (z)))" "(x ((y\n|    z)))" "(x ((y|z)))" error))
+    (cond
+      (in-lisp?   "(x ((y)\n |   (z)))" "(x ((y\n |    z)))" "(x ((y|z)))" error)
+      (no-indent? "(x ((y)\n |   (z)))" "(x ((y\n |   z)))" "(x ((y|z)))" error))
+    (cond
+      (in-lisp?   "(x ((y)\n  |  (z)))" "(x ((y\n  |   z)))" "(x ((y|z)))" error)
+      (no-indent? "(x ((y)\n  |  (z)))" "(x ((y\n  |  z)))" "(x ((y|z)))" error))
+    (cond
+      (in-lisp?   "(x ((y)\n   | (z)))" "(x ((y\n   |  z)))" "(x ((y|z)))" error)
+      (no-indent? "(x ((y)\n   | (z)))" "(x ((y\n   | z)))" "(x ((y|z)))" error))
+    (cond
+      (in-lisp?   "(x ((y)\n    |(z)))" "(x ((y\n     |z)))" "(x ((y|z)))" error)
+      (no-indent? "(x ((y)\n    |(z)))" "(x ((y\n    |z)))" "(x ((y|z)))" error))
     ("(x ((y)\n    (|z)))" error)
     ("(x ((y)\n    (z|)))" error)
     ("(x ((y)\n    (z)|))" error)
@@ -1076,22 +1235,57 @@ Four arguments: the paredit command, the text of the buffer
     ("(|(x)                                    ;c\n (y))" error)
     ("((|x)                                    ;c\n (y))" error)
     ("((x|)                                    ;c\n (y))" error)
-    ("((x)|                                    ;c\n (y))"
-     "((x|                                     ;c\n  y))")
-    ("((x) |                                   ;c\n (y))"
-     "((x  |                                   ;c\n  y))")
-    ("((x)                 |                   ;c\n (y))"
-     "((x                  |                   ;c\n  y))")
-    ("((x)                                   | ;c\n (y))"
-     "((x                                    | ;c\n  y))")
-    ("((x)                                    |;c\n (y))"
-     "((x                                     |;c\n  y))")
+    (cond
+      (in-lisp?
+       "((x)|                                    ;c\n (y))"
+       "((x|                                     ;c\n  y))")
+      (no-indent?
+       "((x)|                                    ;c\n (y))"
+       "((x|                                     ;c\n y))"))
+    (cond
+      (in-lisp?
+       "((x) |                                   ;c\n (y))"
+       "((x  |                                   ;c\n  y))")
+      (no-indent?
+       "((x) |                                   ;c\n (y))"
+       "((x  |                                   ;c\n y))"))
+    (cond
+      (in-lisp?
+       "((x)                 |                   ;c\n (y))"
+       "((x                  |                   ;c\n  y))")
+      (no-indent?
+       "((x)                 |                   ;c\n (y))"
+       "((x                  |                   ;c\n y))"))
+    (cond
+      (in-lisp?
+       "((x)                                   | ;c\n (y))"
+       "((x                                    | ;c\n  y))")
+      (no-indent?
+       "((x)                                   | ;c\n (y))"
+       "((x                                    | ;c\n y))"))
+    (cond
+      (in-lisp?
+       "((x)                                    |;c\n (y))"
+       "((x                                     |;c\n  y))")
+      (no-indent?
+       "((x)                                    |;c\n (y))"
+       "((x                                     |;c\n y))"))
     ("((x)                                    ;|c\n (y))" error)
     ("((x)                                    ;c|\n (y))" error)
-    ("((x)                                    ;c\n| (y))"
-     "((x                                     ;c\n|  y))")
-    ("((x)                                    ;c\n |(y))"
-     "((x                                     ;c\n  |y))")
+    (cond
+      (in-lisp?
+       "((x)                                    ;c\n| (y))"
+       "((x                                     ;c\n|  y))")
+      (no-indent?
+       "((x)                                    ;c\n| (y))"
+       "((x                                     ;c\n| y))"))
+    (cond
+      (in-lisp?
+       "((x)                                    ;c\n |(y))"
+       "((x                                     ;c\n  |y))")
+      (no-indent?
+       "((x)                                    ;c\n |(y))"
+       "((x                                     ;c\n |y))"))
     ("((x)                                    ;c\n (|y))" error)
     ("((x)                                    ;c\n (y|))" error)
     ("((x)                                    ;c\n (y)|)" error)
@@ -1126,32 +1320,68 @@ Four arguments: the paredit command, the text of the buffer
 ;++ Copy tests from `paredit-meta-doublequote'...
 
 (paredit-test 'paredit-meta-doublequote-and-newline
-  '(("(foo \"bar |baz\" quux)"
-     "(foo \"bar baz\"\n     |quux)")
+  '(
+    (cond
+      (in-lisp?
+       "(foo \"bar |baz\" quux)"
+       "(foo \"bar baz\"\n     |quux)")
+      (no-indent?
+       "(foo \"bar |baz\" quux)"
+       "(foo \"bar baz\"\n| quux)"))
     ("(foo |(bar #\\x \"baz \\\\ quux\") zot)"
      "(foo \"|(bar #\\\\x \\\"baz \\\\\\\\ quux\\\")\" zot)")))
 
 (paredit-test 'paredit-splice-sexp
   '(("|(f (g\n    h))" error)
-    ("(|f (g\n    h))" "|f (g\n   h)")
-    ("(f| (g\n    h))" "f| (g\n   h)")
-    ("(f |(g\n    h))" "f |(g\n   h)")
-    ("(f (|g\n    h))" "(f |g\n   h)")
-    ("(f (g|\n    h))" "(f g|\n   h)")
-    ("(f (g\n|    h))" "(f g\n|   h)")
-    ("(f (g\n |   h))" "(f g\n |  h)")
-    ("(f (g\n  |  h))" "(f g\n  | h)")
-    ("(f (g\n   | h))" "(f g\n   |h)")
-    ("(f (g\n    |h))" "(f g\n   |h)")
-    ("(f (g\n    h|))" "(f g\n   h|)")
-    ("(f (g\n    h)|)" "f (g\n   h)|")
+    (cond
+      (in-lisp?   "(|f (g\n    h))" "|f (g\n   h)")
+      (no-indent? "(|f (g\n    h))" "|f (g\n    h)"))
+    (cond
+      (in-lisp?   "(f| (g\n    h))" "f| (g\n   h)")
+      (no-indent? "(f| (g\n    h))" "f| (g\n    h)"))
+    (cond
+      (in-lisp?   "(f |(g\n    h))" "f |(g\n   h)")
+      (no-indent? "(f |(g\n    h))" "f |(g\n    h)"))
+    (cond
+      (in-lisp?   "(f (|g\n    h))" "(f |g\n   h)")
+      (no-indent? "(f (|g\n    h))" "(f |g\n    h)"))
+    (cond
+      (in-lisp?   "(f (g|\n    h))" "(f g|\n   h)")
+      (no-indent? "(f (g|\n    h))" "(f g|\n    h)"))
+    (cond
+      (in-lisp?   "(f (g\n|    h))" "(f g\n|   h)")
+      (no-indent? "(f (g\n|    h))" "(f g\n|    h)"))
+    (cond
+      (in-lisp?   "(f (g\n |   h))" "(f g\n |  h)")
+      (no-indent? "(f (g\n |   h))" "(f g\n |   h)"))
+    (cond
+      (in-lisp?   "(f (g\n  |  h))" "(f g\n  | h)")
+      (no-indent? "(f (g\n  |  h))" "(f g\n  |  h)"))
+    (cond
+      (in-lisp?   "(f (g\n   | h))" "(f g\n   |h)")
+      (no-indent? "(f (g\n   | h))" "(f g\n   | h)"))
+    (cond
+      (in-lisp?   "(f (g\n    |h))" "(f g\n   |h)")
+      (no-indent? "(f (g\n    |h))" "(f g\n    |h)"))
+    (cond
+      (in-lisp?   "(f (g\n    h|))" "(f g\n   h|)")
+      (no-indent? "(f (g\n    h|))" "(f g\n    h|)"))
+    (cond
+      (in-lisp?   "(f (g\n    h)|)" "f (g\n   h)|")
+      (no-indent? "(f (g\n    h)|)" "f (g\n    h)|"))
     ("(f (g\n    h))|" error)
 
     ;; Omit whitespace if appropriate.
     ("|(f (\n    h))" error)
-    ("(|f (\n    h))" "|f (\n   h)")
-    ("(f| (\n    h))" "f| (\n   h)")
-    ("(f |(\n    h))" "f |(\n   h)")
+    (cond
+      (in-lisp?   "(|f (\n    h))" "|f (\n   h)")
+      (no-indent? "(|f (\n    h))" "|f (\n    h)"))
+    (cond
+      (in-lisp?   "(f| (\n    h))" "f| (\n   h)")
+      (no-indent? "(f| (\n    h))" "f| (\n    h)"))
+    (cond
+      (in-lisp?   "(f |(\n    h))" "f |(\n   h)")
+      (no-indent? "(f |(\n    h))" "f |(\n    h)"))
     ("(f (|\n    h))" "(f |h)")
     ("(f (\n|    h))" "(f |h)")
     ("(f (\n |   h))" "(f |h)")
@@ -1159,23 +1389,45 @@ Four arguments: the paredit command, the text of the buffer
     ("(f (\n   | h))" "(f |h)")
     ("(f (\n    |h))" "(f |h)")
     ("(f (\n    h|))" "(f h|)")
-    ("(f (\n    h)|)" "f (\n   h)|")
+    (cond
+      (in-lisp?   "(f (\n    h)|)" "f (\n   h)|")
+      (no-indent? "(f (\n    h)|)" "f (\n    h)|"))
     ("(f (\n    h))|" error)
 
     ;; But leave comments intact.
-    ("(f (|   ;xy\n    h))" "(f |;xy\n h)")
-    ("(f ( |  ;xy\n    h))" "(f |;xy\n h)")
-    ("(f (  | ;xy\n    h))" "(f |;xy\n h)")
-    ("(f (   |;xy\n    h))" "(f |;xy\n h)")
+    (cond
+      (in-lisp?   "(f (|   ;xy\n    h))" "(f |;xy\n h)")
+      (no-indent? "(f (|   ;xy\n    h))" "(f |;xy\n    h)"))
+    (cond
+      (in-lisp?   "(f ( |  ;xy\n    h))" "(f |;xy\n h)")
+      (no-indent? "(f ( |  ;xy\n    h))" "(f |;xy\n    h)"))
+    (cond
+      (in-lisp?   "(f (  | ;xy\n    h))" "(f |;xy\n h)")
+      (no-indent? "(f (  | ;xy\n    h))" "(f |;xy\n    h)"))
+    (cond
+      (in-lisp?   "(f (   |;xy\n    h))" "(f |;xy\n h)")
+      (no-indent? "(f (   |;xy\n    h))" "(f |;xy\n    h)"))
     ("(f (   ;|xy\n    h))" error)
     ("(f (   ;x|y\n    h))" error)
     ("(f (   ;xy|\n    h))" error)
-    ("(f (   ;xy\n|    h))" "(f ;xy\n| h)")
-    ("(f (   ;xy\n |   h))" "(f ;xy\n |h)")
-    ("(f (   ;xy\n  |  h))" "(f ;xy\n |h)")
-    ("(f (   ;xy\n   | h))" "(f ;xy\n |h)")
-    ("(f (   ;xy\n    |h))" "(f ;xy\n |h)")
-    ("(f (   ;xy\n    h|))" "(f ;xy\n h|)")
+    (cond
+      (in-lisp?   "(f (   ;xy\n|    h))" "(f ;xy\n| h)")
+      (no-indent? "(f (   ;xy\n|    h))" "(f ;xy\n|    h)"))
+    (cond
+      (in-lisp?   "(f (   ;xy\n |   h))" "(f ;xy\n |h)")
+      (no-indent? "(f (   ;xy\n |   h))" "(f ;xy\n |   h)"))
+    (cond
+      (in-lisp?   "(f (   ;xy\n  |  h))" "(f ;xy\n |h)")
+      (no-indent? "(f (   ;xy\n  |  h))" "(f ;xy\n  |  h)"))
+    (cond
+      (in-lisp?   "(f (   ;xy\n   | h))" "(f ;xy\n |h)")
+      (no-indent? "(f (   ;xy\n   | h))" "(f ;xy\n   | h)"))
+    (cond
+      (in-lisp?   "(f (   ;xy\n    |h))" "(f ;xy\n |h)")
+      (no-indent? "(f (   ;xy\n    |h))" "(f ;xy\n    |h)"))
+    (cond
+      (in-lisp?   "(f (   ;xy\n    h|))" "(f ;xy\n h|)")
+      (no-indent? "(f (   ;xy\n    h|))" "(f ;xy\n    h|)"))
 
     ;; Don't touch indentation outside a limited scope.
     ("(foo (|bar)\n          baz)" "(foo |bar\n          baz)")
@@ -1190,79 +1442,247 @@ Four arguments: the paredit command, the text of the buffer
     ("  (foo\n  (bar b|az))" "  (foo\n  bar b|az)")
     ("  (foo\n  (bar ba|z))" "  (foo\n  bar ba|z)")
     ("  (foo\n  (bar baz|))" "  (foo\n  bar baz|)")
-    ("  (foo (|(bar\n         baz)\n        quux)\n zot)"
-     "  (foo |(bar\n        baz)\n       quux\n zot)")
-    ("  (foo ((|bar\n         baz)\n        quux)\n zot)"
-     "  (foo (|bar\n        baz\n        quux)\n zot)")
-    ("  (foo ((b|ar\n         baz)\n        quux)\n zot)"
-     "  (foo (b|ar\n        baz\n        quux)\n zot)")
-    ("  (foo ((ba|r\n         baz)\n        quux)\n zot)"
-     "  (foo (ba|r\n        baz\n        quux)\n zot)")
-    ("  (foo ((ba|r\n         baz)\n        quux)\n zot)"
-     "  (foo (ba|r\n        baz\n        quux)\n zot)")
-    ("  (foo ((bar|\n         baz)\n        quux)\n zot)"
-     "  (foo (bar|\n        baz\n        quux)\n zot)")
-    ("  (foo ((bar\n|         baz)\n        quux)\n zot)"
-     "  (foo (bar\n|        baz\n        quux)\n zot)")
-    ("  (foo ((bar\n |        baz)\n        quux)\n zot)"
-     "  (foo (bar\n |       baz\n        quux)\n zot)")
-    ("  (foo ((bar\n  |       baz)\n        quux)\n zot)"
-     "  (foo (bar\n  |      baz\n        quux)\n zot)")
-    ("  (foo ((bar\n   |      baz)\n        quux)\n zot)"
-     "  (foo (bar\n   |     baz\n        quux)\n zot)")
-    ("  (foo ((bar\n    |     baz)\n        quux)\n zot)"
-     "  (foo (bar\n    |    baz\n        quux)\n zot)")
-    ("  (foo ((bar\n     |    baz)\n        quux)\n zot)"
-     "  (foo (bar\n     |   baz\n        quux)\n zot)")
-    ("  (foo ((bar\n      |   baz)\n        quux)\n zot)"
-     "  (foo (bar\n      |  baz\n        quux)\n zot)")
-    ("  (foo ((bar\n       |  baz)\n        quux)\n zot)"
-     "  (foo (bar\n       | baz\n        quux)\n zot)")
-    ("  (foo ((bar\n        | baz)\n        quux)\n zot)"
-     "  (foo (bar\n        |baz\n        quux)\n zot)")
-    ("  (foo ((bar\n         |baz)\n        quux)\n zot)"
-     "  (foo (bar\n        |baz\n        quux)\n zot)")
+    (cond
+      (in-lisp?
+       "  (foo (|(bar\n         baz)\n        quux)\n zot)"
+       "  (foo |(bar\n        baz)\n       quux\n zot)")
+      (no-indent?
+       "  (foo (|(bar\n         baz)\n        quux)\n zot)"
+       "  (foo |(bar\n         baz)\n        quux\n zot)"))
+    (cond
+      (in-lisp?
+       "  (foo ((|bar\n         baz)\n        quux)\n zot)"
+       "  (foo (|bar\n        baz\n        quux)\n zot)")
+      (no-indent?
+       "  (foo ((|bar\n         baz)\n        quux)\n zot)"
+       "  (foo (|bar\n         baz\n        quux)\n zot)"))
+    (cond
+      (in-lisp?
+       "  (foo ((b|ar\n         baz)\n        quux)\n zot)"
+       "  (foo (b|ar\n        baz\n        quux)\n zot)")
+      (no-indent?
+       "  (foo ((b|ar\n         baz)\n        quux)\n zot)"
+       "  (foo (b|ar\n         baz\n        quux)\n zot)"))
+    (cond
+      (in-lisp?
+       "  (foo ((ba|r\n         baz)\n        quux)\n zot)"
+       "  (foo (ba|r\n        baz\n        quux)\n zot)")
+      (no-indent?
+       "  (foo ((ba|r\n         baz)\n        quux)\n zot)"
+       "  (foo (ba|r\n         baz\n        quux)\n zot)"))
+    (cond
+      (in-lisp?
+       "  (foo ((bar|\n         baz)\n        quux)\n zot)"
+       "  (foo (bar|\n        baz\n        quux)\n zot)")
+      (no-indent?
+       "  (foo ((bar|\n         baz)\n        quux)\n zot)"
+       "  (foo (bar|\n         baz\n        quux)\n zot)"))
+    (cond
+      (in-lisp?
+       "  (foo ((bar\n|         baz)\n        quux)\n zot)"
+       "  (foo (bar\n|        baz\n        quux)\n zot)")
+      (no-indent?
+       "  (foo ((bar\n|         baz)\n        quux)\n zot)"
+       "  (foo (bar\n|         baz\n        quux)\n zot)"))
+
+    (cond
+      (in-lisp?
+       "  (foo ((bar\n |        baz)\n        quux)\n zot)"
+       "  (foo (bar\n |        baz\n        quux)\n zot)")
+      (no-indent?
+       "  (foo ((bar\n |        baz)\n        quux)\n zot)"
+       "  (foo (bar\n |        baz\n        quux)\n zot)"))
+    (cond
+      (in-lisp?
+       "  (foo ((bar\n  |       baz)\n        quux)\n zot)"
+       "  (foo (bar\n  |      baz\n        quux)\n zot)")
+      (no-indent?
+       "  (foo ((bar\n  |       baz)\n        quux)\n zot)"
+       "  (foo (bar\n  |       baz\n        quux)\n zot)"))
+    (cond
+      (in-lisp?
+       "  (foo ((bar\n   |      baz)\n        quux)\n zot)"
+       "  (foo (bar\n   |     baz\n        quux)\n zot)")
+      (no-indent?
+       "  (foo ((bar\n   |      baz)\n        quux)\n zot)"
+       "  (foo (bar\n   |      baz\n        quux)\n zot)"))
+    (cond
+      (in-lisp?
+       "  (foo ((bar\n    |     baz)\n        quux)\n zot)"
+       "  (foo (bar\n    |    baz\n        quux)\n zot)")
+      (no-indent?
+       "  (foo ((bar\n    |     baz)\n        quux)\n zot)"
+       "  (foo (bar\n    |     baz\n        quux)\n zot)"))
+    (cond
+      (in-lisp?
+       "  (foo ((bar\n     |    baz)\n        quux)\n zot)"
+       "  (foo (bar\n     |   baz\n        quux)\n zot)")
+      (no-indent?
+       "  (foo ((bar\n     |    baz)\n        quux)\n zot)"
+       "  (foo (bar\n     |    baz\n        quux)\n zot)"))
+    (cond
+      (in-lisp?
+       "  (foo ((bar\n      |   baz)\n        quux)\n zot)"
+       "  (foo (bar\n      |  baz\n        quux)\n zot)")
+      (no-indent?
+       "  (foo ((bar\n      |   baz)\n        quux)\n zot)"
+       "  (foo (bar\n      |   baz\n        quux)\n zot)"))
+    (cond
+      (in-lisp?
+       "  (foo ((bar\n       |  baz)\n        quux)\n zot)"
+       "  (foo (bar\n       | baz\n        quux)\n zot)")
+      (no-indent?
+       "  (foo ((bar\n       |  baz)\n        quux)\n zot)"
+       "  (foo (bar\n       |  baz\n        quux)\n zot)"))
+    (cond
+      (in-lisp?
+       "  (foo ((bar\n        | baz)\n        quux)\n zot)"
+       "  (foo (bar\n        |baz\n        quux)\n zot)")
+      (no-indent?
+       "  (foo ((bar\n        | baz)\n        quux)\n zot)"
+       "  (foo (bar\n        | baz\n        quux)\n zot)"))
+    (cond
+      (in-lisp?
+       "  (foo ((bar\n          |baz)\n        quux)\n zot)"
+       "  (foo (bar\n        |baz\n        quux)\n zot)")
+      (no-indent?
+       "  (foo ((bar\n          |baz)\n        quux)\n zot)"
+       "  (foo (bar\n          |baz\n        quux)\n zot)"))
 
-    ("  (foo ((bar\n         b|az)\n        quux)\n zot)"
-     "  (foo (bar\n        b|az\n        quux)\n zot)")
-    ("  (foo ((bar\n         ba|z)\n        quux)\n zot)"
-     "  (foo (bar\n        ba|z\n        quux)\n zot)")
-    ("  (foo ((bar\n         baz|)\n        quux)\n zot)"
-     "  (foo (bar\n        baz|\n        quux)\n zot)")
-    ("  (foo ((bar\n         baz)|\n        quux)\n zot)"
-     "  (foo (bar\n        baz)|\n       quux\n zot)")
-    ("  (foo ((bar\n         baz)\n|        quux)\n zot)"
-     "  (foo (bar\n        baz)\n|       quux\n zot)")
-    ("  (foo ((bar\n         baz)\n |       quux)\n zot)"
-     "  (foo (bar\n        baz)\n |      quux\n zot)")
-    ("  (foo ((bar\n         baz)\n  |      quux)\n zot)"
-     "  (foo (bar\n        baz)\n  |     quux\n zot)")
-    ("  (foo ((bar\n         baz)\n   |     quux)\n zot)"
-     "  (foo (bar\n        baz)\n   |    quux\n zot)")
-    ("  (foo ((bar\n         baz)\n    |    quux)\n zot)"
-     "  (foo (bar\n        baz)\n    |   quux\n zot)")
-    ("  (foo ((bar\n         baz)\n     |   quux)\n zot)"
-     "  (foo (bar\n        baz)\n     |  quux\n zot)")
-    ("  (foo ((bar\n         baz)\n      |  quux)\n zot)"
-     "  (foo (bar\n        baz)\n      | quux\n zot)")
-    ("  (foo ((bar\n         baz)\n       | quux)\n zot)"
-     "  (foo (bar\n        baz)\n       |quux\n zot)")
-    ("  (foo ((bar\n         baz)\n        |quux)\n zot)"
-     "  (foo (bar\n        baz)\n       |quux\n zot)")
-    ("  (foo ((bar\n         baz)\n        q|uux)\n zot)"
-     "  (foo (bar\n        baz)\n       q|uux\n zot)")
-    ("  (foo ((bar\n         baz)\n        qu|ux)\n zot)"
-     "  (foo (bar\n        baz)\n       qu|ux\n zot)")
-    ("  (foo ((bar\n         baz)\n        quu|x)\n zot)"
-     "  (foo (bar\n        baz)\n       quu|x\n zot)")
-    ("  (foo ((bar\n         baz)\n        quux|)\n zot)"
-     "  (foo (bar\n        baz)\n       quux|\n zot)")
+    (cond
+      (in-lisp?
+       "  (foo ((bar\n         b|az)\n        quux)\n zot)"
+       "  (foo (bar\n        b|az\n        quux)\n zot)")
+      (no-indent?
+       "  (foo ((bar\n         b|az)\n        quux)\n zot)"
+       "  (foo (bar\n         b|az\n        quux)\n zot)"))
+    (cond
+      (in-lisp?
+       "  (foo ((bar\n         ba|z)\n        quux)\n zot)"
+       "  (foo (bar\n        ba|z\n        quux)\n zot)")
+      (no-indent?
+       "  (foo ((bar\n         ba|z)\n        quux)\n zot)"
+       "  (foo (bar\n         ba|z\n        quux)\n zot)"))
+    (cond
+      (in-lisp?
+       "  (foo ((bar\n         baz|)\n        quux)\n zot)"
+       "  (foo (bar\n        baz|\n        quux)\n zot)")
+      (no-indent?
+       "  (foo ((bar\n         baz|)\n        quux)\n zot)"
+       "  (foo (bar\n         baz|\n        quux)\n zot)"))
+    (cond
+      (in-lisp?
+       "  (foo ((bar\n         baz)|\n        quux)\n zot)"
+       "  (foo (bar\n        baz)|\n       quux\n zot)")
+      (no-indent?
+       "  (foo ((bar\n         baz)|\n        quux)\n zot)"
+       "  (foo (bar\n         baz)|\n        quux\n zot)"))
+    (cond
+      (in-lisp?
+       "  (foo ((bar\n         baz)\n|        quux)\n zot)"
+       "  (foo (bar\n        baz)\n|       quux\n zot)")
+      (no-indent?
+       "  (foo ((bar\n         baz)\n|        quux)\n zot)"
+       "  (foo (bar\n         baz)\n|        quux\n zot)"))
+    (cond
+      (in-lisp?
+       "  (foo ((bar\n         baz)\n |       quux)\n zot)"
+       "  (foo (bar\n        baz)\n |      quux\n zot)")
+      (no-indent?
+       "  (foo ((bar\n         baz)\n |       quux)\n zot)"
+       "  (foo (bar\n         baz)\n |       quux\n zot)"))
+    (cond
+      (in-lisp?
+       "  (foo ((bar\n         baz)\n  |      quux)\n zot)"
+       "  (foo (bar\n        baz)\n  |     quux\n zot)")
+      (no-indent?
+       "  (foo ((bar\n         baz)\n  |      quux)\n zot)"
+       "  (foo (bar\n         baz)\n  |      quux\n zot)"))
+    (cond
+      (in-lisp?
+       "  (foo ((bar\n         baz)\n   |     quux)\n zot)"
+       "  (foo (bar\n        baz)\n   |    quux\n zot)")
+      (no-indent?
+       "  (foo ((bar\n         baz)\n   |     quux)\n zot)"
+       "  (foo (bar\n         baz)\n   |     quux\n zot)"))
+    (cond
+      (in-lisp?
+       "  (foo ((bar\n         baz)\n    |    quux)\n zot)"
+       "  (foo (bar\n        baz)\n    |   quux\n zot)")
+      (no-indent?
+       "  (foo ((bar\n         baz)\n    |    quux)\n zot)"
+       "  (foo (bar\n         baz)\n    |    quux\n zot)"))
+    (cond
+      (in-lisp?
+       "  (foo ((bar\n         baz)\n     |   quux)\n zot)"
+       "  (foo (bar\n        baz)\n     |  quux\n zot)")
+      (no-indent?
+       "  (foo ((bar\n         baz)\n     |   quux)\n zot)"
+       "  (foo (bar\n         baz)\n     |   quux\n zot)"))
+    (cond
+      (in-lisp?
+       "  (foo ((bar\n         baz)\n      |  quux)\n zot)"
+       "  (foo (bar\n        baz)\n      | quux\n zot)")
+      (no-indent?
+       "  (foo ((bar\n         baz)\n      |  quux)\n zot)"
+       "  (foo (bar\n         baz)\n      |  quux\n zot)"))
+    (cond
+      (in-lisp?
+       "  (foo ((bar\n         baz)\n       | quux)\n zot)"
+       "  (foo (bar\n        baz)\n       |quux\n zot)")
+      (no-indent?
+       "  (foo ((bar\n         baz)\n       | quux)\n zot)"
+       "  (foo (bar\n         baz)\n       | quux\n zot)"))
+    (cond
+      (in-lisp?
+       "  (foo ((bar\n         baz)\n        |quux)\n zot)"
+       "  (foo (bar\n        baz)\n       |quux\n zot)")
+      (no-indent?
+       "  (foo ((bar\n         baz)\n        |quux)\n zot)"
+       "  (foo (bar\n         baz)\n        |quux\n zot)"))
+    (cond
+      (in-lisp?
+       "  (foo ((bar\n         baz)\n        q|uux)\n zot)"
+       "  (foo (bar\n        baz)\n       q|uux\n zot)")
+      (no-indent?
+       "  (foo ((bar\n         baz)\n        q|uux)\n zot)"
+       "  (foo (bar\n         baz)\n        q|uux\n zot)"))
+    (cond
+      (in-lisp?
+       "  (foo ((bar\n         baz)\n        qu|ux)\n zot)"
+       "  (foo (bar\n        baz)\n       qu|ux\n zot)")
+      (no-indent?
+       "  (foo ((bar\n         baz)\n        qu|ux)\n zot)"
+       "  (foo (bar\n         baz)\n        qu|ux\n zot)"))
+    (cond
+      (in-lisp?
+       "  (foo ((bar\n         baz)\n        quu|x)\n zot)"
+       "  (foo (bar\n        baz)\n       quu|x\n zot)")
+      (no-indent?
+       "  (foo ((bar\n         baz)\n        quu|x)\n zot)"
+       "  (foo (bar\n         baz)\n        quu|x\n zot)"))
+    (cond
+      (in-lisp?
+       "  (foo ((bar\n         baz)\n        quux|)\n zot)"
+       "  (foo (bar\n        baz)\n       quux|\n zot)")
+      (no-indent?
+       "  (foo ((bar\n         baz)\n        quux|)\n zot)"
+       "  (foo (bar\n         baz)\n        quux|\n zot)"))
 
     ;; But adjust the whole form's indentation if we change the operator.
-    ("((|let) ((a b))\n       c)" "(|let ((a b))\n  c)")
-    ("((l|et) ((a b))\n       c)" "(l|et ((a b))\n  c)")
-    ("((le|t) ((a b))\n       c)" "(le|t ((a b))\n  c)")
-    ("((let|) ((a b))\n       c)" "(let| ((a b))\n  c)")
+
+    (cond
+      (in-lisp?   "((|let) ((a b))\n       c)" "(|let ((a b))\n  c)")
+      (no-indent? "((|let) ((a b))\n       c)" "(|let ((a b))\n       c)"))
+    (cond
+      (in-lisp?   "((l|et) ((a b))\n       c)" "(l|et ((a b))\n  c)")
+      (no-indent? "((l|et) ((a b))\n       c)" "(l|et ((a b))\n       c)"))
+    (cond
+      (in-lisp?   "((le|t) ((a b))\n       c)" "(le|t ((a b))\n  c)")
+      (no-indent? "((le|t) ((a b))\n       c)" "(le|t ((a b))\n       c)"))
+    (cond
+      (in-lisp?   "((let|) ((a b))\n       c)" "(let| ((a b))\n  c)")
+      (no-indent? "((let|) ((a b))\n       c)" "(let| ((a b))\n       c)"))
 
     ;; Uh oh -- you can really lose here.
     ("\"|foo\\\"bar\"" error)
