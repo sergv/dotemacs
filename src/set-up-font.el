@@ -44,7 +44,7 @@
       "-monotype-Courier New-normal-normal-normal-*-17-*-*-*-m-0-iso10646-1")))
   "List of fonts from best to worst availabse on the system.")
 
-(defvar current-font (car +emacs-fonts+))
+(defconst current-font (car +emacs-fonts+))
 
 (defvar current-font-scaling nil)
 
@@ -96,11 +96,8 @@ use that, otherwise either use past specified value or a reasonable default."
       (set-face-attribute 'default frame :height effective-scaling))))
 
 ;; Set default font for all unicode characters.
-
-(defconst +dejavu-sans-mono-font+ "DejaVu Sans Mono")
-
-(when (member +dejavu-sans-mono-font+ (font-family-list))
-  (set-fontset-font t 'unicode +dejavu-sans-mono-font+ nil nil))
+(unless noninteractive
+  (set-fontset-font t 'unicode current-font nil nil))
 
 (provide 'set-up-font)
 
