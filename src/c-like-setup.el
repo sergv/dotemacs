@@ -8,7 +8,8 @@
 ;; Requirements:
 ;; Status:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl))
 
 (require 'custom-predicates)
 

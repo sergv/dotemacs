@@ -14,7 +14,7 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl-lib)
+  (require 'cl)
   (require 'macro-util))
 
 (require 'vim-macs)
