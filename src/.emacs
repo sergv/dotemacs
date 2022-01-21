@@ -6,7 +6,8 @@
 ;; You may delete these explanatory comments.
 ;; (package-initialize)
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl))
 
 (require 'cl)
 

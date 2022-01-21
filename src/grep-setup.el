@@ -12,7 +12,7 @@
 ;; some of its functions
 
 (eval-when-compile
-  (require 'cl-lib)
+  (require 'cl)
   (require 'el-patch)
   (require 'set-up-platform)
   (require 'macro-util))
