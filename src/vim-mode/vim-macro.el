@@ -146,7 +146,9 @@ argument was *explicitly* provided."
       (vim--prepare-buffer-undo-list!)
       (let ((last-undo buffer-undo-list)
             (keys (vim-macro-def-keys macro-def)))
-        (execute-kbd-macro keys count)
+        ;; Protect against overwrites by the macro.
+        (let ((vim--repeat-events nil))
+          (execute-kbd-macro keys count))
         (when ask-for-name?
           (vim--overwrite-repeat-events-with-keys-vector! keys))
         (vim--connect-undos! last-undo)))))
