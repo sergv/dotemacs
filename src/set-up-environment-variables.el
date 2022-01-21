@@ -6,7 +6,7 @@
 ;; Created: Friday, 27 July 2012
 ;; Description:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile (require 'cl))
 
 (require 'set-up-platform)
 

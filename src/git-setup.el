@@ -7,7 +7,7 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'cl-lib)
+  (require 'cl)
   (require 'subr-x)
   (require 'el-patch)
   (require 'set-up-platform)

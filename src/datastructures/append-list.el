@@ -8,7 +8,7 @@
 
 
 (eval-when-compile
-  (require 'cl-lib)
+  (require 'cl)
   (require 'macro-util))
 
 (defvar append-list-tag '#:append-list)

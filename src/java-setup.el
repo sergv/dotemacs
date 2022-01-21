@@ -6,7 +6,8 @@
 ;; Created: Thursday, 17 January 2013
 ;; Description:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl))
 
 (require 'cc-setup)
 (require 'common)

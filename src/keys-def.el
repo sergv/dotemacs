@@ -6,7 +6,8 @@
 ;; Created: long ago (almost since the august inception)
 ;; Description:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl))
 
 (require 'hydra-setup)
 (require 'pseudovim)

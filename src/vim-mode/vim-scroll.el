@@ -15,7 +15,7 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl-lib)
+  (require 'cl)
 
   (defvar vim-scroll-move-point))
 

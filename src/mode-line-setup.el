@@ -7,7 +7,7 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'cl-lib)
+  (require 'cl)
   (require 'common))
 
 ;; Display line numbers in mode line even in buffers that have lines

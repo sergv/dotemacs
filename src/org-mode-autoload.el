@@ -6,7 +6,8 @@
 ;; Created: Saturday, 18 May 2013
 ;; Description:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl))
 
 (require 'set-up-paths)
 (require 'org-loaddefs)
