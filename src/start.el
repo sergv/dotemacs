@@ -201,7 +201,7 @@
 (require 'haskell-autoload)
 (require 'latex-autoloads)
 (require 'rust-autoloads)
-(require 'c++-autoload)
+(require 'cc-autoload)
 
 (require 'compilation-setup)
 (require 'completion-setup)
