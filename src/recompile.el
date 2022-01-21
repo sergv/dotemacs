@@ -7,8 +7,7 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'cl)
-  (require 'cl-lib))
+  (require 'cl))
 
 (require 'comp nil t)
 
