@@ -149,7 +149,9 @@ will be in different GHCi sessions."
             "-fdiagnostics-color=always"
             "-dsuppress-module-prefixes"
             "-fshow-loaded-modules"
-            "-fprint-potential-instances"))
+            "-fprint-potential-instances"
+            "-fdefer-typed-holes"
+            "-fdefer-type-errors"))
          (build (when tmp
                   `("--builddir"
                     (concat ,tmp
