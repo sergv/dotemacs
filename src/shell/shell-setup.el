@@ -146,8 +146,7 @@ MSYS-style drives, e.g. \"/c/foo/bar.txt\" -> \"c:/foo/bar.txt\"."
 ;;;###autoload
 (defun shell-setup ()
   (init-repl :show-directory t
-             :create-keymaps t
-             :smartparens-comment-char "#")
+             :create-keymaps t)
   (hl-line-mode +1)
 
   ;; Simplest config that works with this: PS1="\w$"
@@ -173,14 +172,6 @@ MSYS-style drives, e.g. \"/c/foo/bar.txt\" -> \"c:/foo/bar.txt\"."
 
   (def-keys-for-map vim-normal-mode-local-keymap
     ("SPC SPC" comint-clear-prompt))
-
-  (def-keys-for-map vim-insert-mode-local-keymap
-    ;; Override vim-mode's "insert-or-wrap" bindings because they're annoying
-    ;; in the prompt.
-    ("(" self-insert-command)
-    ("[" self-insert-command)
-    ("{" self-insert-command)
-    ("`" self-insert-command))
 
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-insert-mode-local-keymap

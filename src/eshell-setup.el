@@ -218,19 +218,18 @@
 (defun eshell-setup ()
   (init-repl :show-directory t
              :bind-return nil
-             :create-keymaps t
-             :smartparens-comment-char "#")
+             :create-keymaps t)
 
   (hl-line-mode +1)
   (setup-folding t nil)
 
   (def-keys-for-map vim-normal-mode-local-keymap
     ;; clear all previous output
-    ("SPC SPC"  eshell-clear-prompt))
+    ("SPC SPC"          eshell-clear-prompt))
 
   (def-keys-for-map (vim-normal-mode-local-keymap vim-insert-mode-local-keymap)
     ("<return>"         eshell-send-input)
-    ("C-<return>"       sp-newline)
+    ("C-<return>"       newline-and-indent)
     ("<up>"             eshell-previous-matching-input-from-input)
     ("<down>"           eshell-next-matching-input-from-input))
 
