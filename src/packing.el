@@ -18,7 +18,7 @@
 ;;        4 8  8  8     2 | 2    4 8  8  8 = 30 = 1 + 29
 
 (eval-when-compile
-  (require 'cl-lib)
+  (require 'cl)
   (require 'macro-util))
 
 (if (eval-when-compile

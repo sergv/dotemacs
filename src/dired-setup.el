@@ -9,7 +9,7 @@
 ;; Status:
 
 (eval-when-compile
-  (require 'cl-lib)
+  (require 'cl)
   (require 'macro-util))
 
 (require 'set-up-paths)
