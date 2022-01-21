@@ -36,10 +36,8 @@ execute _r_egion
 ;;;###autoload
 (defun j-setup ()
   (init-common :use-render-formula nil
-               :sp-slurp-sexp-insert-space nil
                :use-yasnippet t
-               :use-whitespace t
-               :hl-parens-backend 'smartparens)
+               :use-whitespace t)
   (def-keys-for-map vim-normal-mode-local-keymap
     ("SPC SPC"      j-console)
     (("C-l" "<f6>") j-console-execute-buffer)

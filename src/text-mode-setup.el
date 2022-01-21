@@ -11,8 +11,7 @@
   (init-common :use-yasnippet nil
                :use-comment nil
                :use-render-formula nil
-               :use-whitespace nil
-               :sp-slurp-sexp-insert-space nil)
+               :use-whitespace nil)
   (setq-local hs-allow-nesting t)
   (setup-folding t nil))
 
