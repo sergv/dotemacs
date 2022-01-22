@@ -323,6 +323,7 @@ Remove DEF from `counsel-M-x' list."
     (ivy-define-key map [remap previous-line] 'ivy-previous-line)
     (ivy-define-key map (kbd "C-r") 'ivy-reverse-i-search)
     (define-key map (kbd "SPC") 'self-insert-command)
+    (ivy-define-key map (kbd "<backspace>") 'ivy-backward-delete-char)
     (ivy-define-key map [remap delete-backward-char] 'ivy-backward-delete-char)
     (ivy-define-key map [remap backward-delete-char-untabify] 'ivy-backward-delete-char)
     (ivy-define-key map [remap backward-kill-word] 'ivy-backward-kill-word)
