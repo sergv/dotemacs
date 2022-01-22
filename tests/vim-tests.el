@@ -15,6 +15,10 @@
 (require 'vim-search)
 (require 'ert)
 
+(defmacro vim-tests--enable-undo (&rest body)
+  `(let ((buffer-undo-list nil))
+     ,@body))
+
 (defmacro vim-tests--test-fresh-buffer-contents-init (init action contents expected-value)
   (declare (indent 2))
   `(tests-utils--test-buffer-contents
@@ -601,9 +605,8 @@
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
     vim-tests/block-insert-undo-1
-    ;; Enable undo tracking.
-    (let ((buffer-undo-list nil))
-      (execute-kbd-macro (kbd "d d C-v h h h I 1 2 3 <escape> k")))
+    (vim-tests--enable-undo
+     (execute-kbd-macro (kbd "d d C-v h h h I 1 2 3 <escape> k")))
   (tests-utils--multiline
    ""
    "fo_|_o"
@@ -623,9 +626,8 @@
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
     vim-tests/block-insert-undo-2
-    ;; Enable undo tracking.
-    (let ((buffer-undo-list nil))
-      (execute-kbd-macro (kbd "d d C-v h h h I f o o - b a r C-w b a z <escape> k")))
+    (vim-tests--enable-undo
+     (execute-kbd-macro (kbd "d d C-v h h h I f o o - b a r C-w b a z <escape> k")))
   (tests-utils--multiline
    ""
    "fo_|_o"
@@ -646,8 +648,8 @@
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
     vim-tests/block-insert-undo-redo-1
     ;; Enable undo tracking.
-    (let ((buffer-undo-list nil))
-      (execute-kbd-macro (kbd "d d C-v h h h I 1 2 3 <escape> k K")))
+    (vim-tests--enable-undo
+     (execute-kbd-macro (kbd "d d C-v h h h I 1 2 3 <escape> k K")))
   (tests-utils--multiline
    ""
    "fo_|_o"
@@ -955,8 +957,8 @@
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
     vim-tests/paste-before-visual-block-region-undo-1
     ;; Enable undo tracking.
-    (let ((buffer-undo-list nil))
-      (execute-kbd-macro (kbd "y s C-v h P k")))
+    (vim-tests--enable-undo
+     (execute-kbd-macro (kbd "y s C-v h P k")))
   (tests-utils--multiline
    ""
    "(foo"
@@ -975,8 +977,8 @@
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
     vim-tests/paste-before-visual-block-region-undo-2
     ;; Enable undo tracking.
-    (let ((buffer-undo-list nil))
-      (execute-kbd-macro (kbd "y s C-v h h h P k")))
+    (vim-tests--enable-undo
+     (execute-kbd-macro (kbd "y s C-v h h h P k")))
   (tests-utils--multiline
    ""
    "(foo"
@@ -1119,8 +1121,8 @@
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
     vim-tests/paste-after-visual-block-region-undo-1
     ;; Enable undo tracking.
-    (let ((buffer-undo-list nil))
-      (execute-kbd-macro (kbd "y s C-v h p k")))
+    (vim-tests--enable-undo
+     (execute-kbd-macro (kbd "y s C-v h p k")))
   (tests-utils--multiline
    ""
    "(foo"
@@ -1139,8 +1141,8 @@
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
     vim-tests/paste-after-visual-block-region-undo-2
     ;; Enable undo tracking.
-    (let ((buffer-undo-list nil))
-      (execute-kbd-macro (kbd "y s C-v h h h p k")))
+    (vim-tests--enable-undo
+     (execute-kbd-macro (kbd "y s C-v h h h p k")))
   (tests-utils--multiline
    ""
    "(foo"
@@ -1415,8 +1417,8 @@
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
     vim-tests/visual-reactivate-1
     ;; Enable undo tracking.
-    (let ((buffer-undo-list nil))
-      (execute-kbd-macro (kbd "v e h <escape> d t g v ,")))
+    (vim-tests--enable-undo
+     (execute-kbd-macro (kbd "v e h <escape> d t g v ,")))
   (tests-utils--multiline
    ""
    "(foo"
@@ -1838,6 +1840,74 @@
    "xyz"
    ""))
 
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/paste-cycle-with-region-block-paste-1
+    (vim-tests--enable-undo
+     (execute-kbd-macro (kbd "Y C-v h y P P")))
+  (tests-utils--multiline
+   ""
+   "_|_abc"
+   "def"
+   "xyz"
+   "")
+  (tests-utils--multiline
+   ""
+   "_|_abcabc"
+   "def"
+   "xyz"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/paste-cycle-with-region-block-paste-2
+    (vim-tests--enable-undo
+     (execute-kbd-macro (kbd "Y C-v h y Y P P P")))
+  (tests-utils--multiline
+   ""
+   "_|_abc"
+   "def"
+   "xyz"
+   "")
+  (tests-utils--multiline
+   ""
+   "_|_abcabc"
+   "def"
+   "xyz"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/paste-cycle-with-region-block-paste-3
+    (vim-tests--enable-undo
+     (execute-kbd-macro (kbd "Y C-v h y Y P P P k")))
+  (tests-utils--multiline
+   ""
+   "_|_abc"
+   "def"
+   "xyz"
+   "")
+  (tests-utils--multiline
+   ""
+   "_|_aabc"
+   "ddef"
+   "xyz"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/paste-cycle-with-region-block-paste-4
+    (vim-tests--enable-undo
+     (execute-kbd-macro (kbd "Y C-v h y Y P P P k K")))
+  (tests-utils--multiline
+   ""
+   "_|_abc"
+   "def"
+   "xyz"
+   "")
+  (tests-utils--multiline
+   ""
+   "_|_abcabc"
+   "def"
+   "xyz"
+   ""))
+
 (ert-deftest vim-tests/vim:cmd-insert-line-below-repeat-complex-insert-command-1/emacs-lisp-mode ()
   (vim-tests--test-fresh-buffer-contents-init
       (emacs-lisp-mode)
@@ -1876,11 +1946,11 @@
      "")))
 
 ;; Check that ` prefix is not stripped.
-(ert-deftest vim-tests/vim-backward-slurp-sexp-1/emacs-lisp-mode ()
+(ert-deftest vim-tests/vim-splice-sexp-killing-backward-1/emacs-lisp-mode ()
   (vim-tests--test-fresh-buffer-contents-init
       (emacs-lisp-mode)
       (progn
-        (should (equal paredit-indent-sexp-function #'indent-sexp))
+        (should (eq paredit-indent-sexp-function #'indent-sexp))
         (execute-kbd-macro (kbd "j ( d")))
     (tests-utils--multiline
      ""
