@@ -177,6 +177,7 @@ _a_lign"
   (def-keys-for-map vim-normal-mode-local-keymap
     (("<f6>" "SPC SPC") elm-repl-load)
     (("C-m" "<f9>")     elm-compile-buffer)
+    ("<return>"         newline-and-indent)
     ("-"                hydra-elm-dash/body))
 
  (def-keys-for-map vim-visual-mode-local-keymap
