@@ -40,8 +40,25 @@
 will always be able to locate tail of the undo list and correctly connect
 undos even when there are no changes and the ‘buffer-undo-list’ is empty after
 a buffer is opened."
-  (unless buffer-undo-list
+  (when (and (not buffer-undo-list)
+             (not (eq buffer-undo-list t)))
     (setq buffer-undo-list (list nil 'undo-tree-canary))))
+
+(defun vim--copy-list-until (lst end)
+  (let ((res nil)
+        (tmp nil))
+    (when (and lst
+               (not (eq lst end)))
+      (setf res (cons (car lst) nil)
+            tmp res
+            lst (cdr lst))
+      (while (and lst
+                  (not (eq lst end)))
+        (setf tmp
+              (setcdr-sure tmp
+                           (cons (car lst) nil))
+              lst (cdr lst)))
+      res)))
 
 ;; undo stuff
 (defun vim--connect-undos! (last-undo)
