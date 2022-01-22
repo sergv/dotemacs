@@ -639,12 +639,13 @@ _o_: show sexps in region"
 
   (def-keys-for-map (vim-motion-mode-local-keymap
                      vim-operator-pending-mode-local-keymap)
-    ("w"   vim:paredit-forward-word:interactive)
-    ("e"   vim:paredit-forward-word-end:interactive)
-    ("b"   vim:paredit-backward-word:interactive)
-    ("W"   vim:paredit-forward-WORD:interactive)
-    ("E"   vim:paredit-forward-WORD-end:interactive)
-    ("B"   vim:paredit-backward-WORD:interactive)
+    ;; ("w"   vim:paredit-forward-word:interactive)
+    ;; ("e"   vim:paredit-forward-word-end:interactive)
+    ;; ("b"   vim:paredit-backward-word:interactive)
+    ;; ("W"   vim:paredit-forward-WORD:interactive)
+    ;; ("E"   vim:paredit-forward-WORD-end:interactive)
+    ;; ("B"   vim:paredit-backward-WORD:interactive)
+
     ("s"   vim:paredit-inner-symbol:interactive)
     ("i s" vim:paredit-inner-symbol:interactive)
     ("a s" vim:paredit-outer-symbol:interactive)
