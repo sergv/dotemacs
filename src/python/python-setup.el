@@ -425,6 +425,7 @@ _j_: send region to repl"
                      vim-visual-mode-local-keymap)
     ("<f6>"         python-shell-send-buffer)
     (("C-m" "<f9>") python-run-script)
+    ("<return>"     newline-and-indent)
     ("S-<f9>"       python-check)
 
     ("M-?"          python-convolute-lines)

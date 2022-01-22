@@ -121,7 +121,8 @@ realign _l_et
     ("C-,"     pop-tag-mark)
 
     ("<tab>"        indent-for-tab-command)
-    (("C-m" "<f9>") elisp-compile-and-move))
+    (("C-m" "<f9>") elisp-compile-and-move)
+    ("<return>"     newline-and-indent))
 
   (def-keys-for-map vim-insert-mode-local-keymap
     ("<tab>"   indent-for-tab-command))
