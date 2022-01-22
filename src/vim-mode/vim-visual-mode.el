@@ -542,17 +542,13 @@ This function is also responsible for setting the X-selection."
       (`block
        ;; TODO: ensure the right command is run on repetition.
        ;; this is really a dirty hack
-       (append-list-prepend!
-        (setf vim-visual--key-sequence-for-repeat (vim--fork-command-keys!))
-        [?i])
+       (setf vim-visual--key-sequence-for-repeat (cons [?i] (vim--obtain-intermediate-handle!)))
        (vim:cmd-insert :count 1)
        (setq-local vim-insert-mode-on-exit #'vim--insert-block-copies))
       (`linewise
        ;; TODO: ensure the right command is run on repetition.
        ;; this is really a dirty hack
-       (append-list-prepend!
-        (setf vim-visual--key-sequence-for-repeat (vim--fork-command-keys!))
-        [?I])
+       (setf vim-visual--key-sequence-for-repeat (cons [?I] (vim--obtain-intermediate-handle!)))
        (vim:cmd-Insert :count 1)
        (setq-local vim-insert-mode-on-exit #'vim--insert-linewise-copies))
       (`normal
@@ -568,7 +564,7 @@ This function is also responsible for setting the X-selection."
   (let ((col (vim-visual-insert-info-column vim-visual--last-insert-info))
         (count (vim-visual-insert-info-line-count vim-visual--last-insert-info))
         (undo-inhibit-record-point t)
-        (events (vim--reify-events vim-visual--key-sequence-for-repeat)))
+        (events (apply #'vconcat vim-visual--key-sequence-for-repeat)))
     (unwind-protect
         (save-excursion
           (goto-char (vim-visual-insert-info-end vim-visual--last-insert-info))
@@ -589,7 +585,7 @@ This function is also responsible for setting the X-selection."
   (setq-local vim-insert-mode-on-exit nil)
   (let ((count (vim-visual-insert-info-line-count vim-visual--last-insert-info))
         (undo-inhibit-record-point t)
-        (events (vim--reify-events vim-visual--key-sequence-for-repeat)))
+        (events (apply #'vconcat vim-visual--key-sequence-for-repeat)))
     (unwind-protect
         (save-excursion
           (goto-char (vim-visual-insert-info-end vim-visual--last-insert-info))
@@ -702,17 +698,13 @@ This function is also responsible for setting the X-selection."
       (`block
        ;; TODO: ensure the right command is run on repeat.
        ;; this is really a dirty hack
-       (append-list-prepend!
-        (setf vim-visual--key-sequence-for-repeat (vim--fork-command-keys!))
-        [?a])
+       (setf vim-visual--key-sequence-for-repeat (cons [?a] (vim--obtain-intermediate-handle!)))
        (vim:cmd-append :count 1)
        (setq-local vim-insert-mode-on-exit #'vim--append-block-copies))
       (`linewise
        ;; TODO: ensure the right command is run on repeat
        ;; this is really a dirty hack
-       (append-list-prepend!
-        (setf vim-visual--key-sequence-for-repeat (vim--fork-command-keys!))
-        [?A])
+       (setf vim-visual--key-sequence-for-repeat (cons [?A] (vim--obtain-intermediate-handle!)))
        (vim:cmd-Append :count 1)
        (setq-local vim-insert-mode-on-exit #'vim--insert-linewise-copies))
       (_
@@ -725,7 +717,7 @@ This function is also responsible for setting the X-selection."
   (let ((col (vim-visual-insert-info-column vim-visual--last-insert-info))
         (count (vim-visual-insert-info-line-count vim-visual--last-insert-info))
         (undo-inhibit-record-point t)
-        (events (vim--reify-events vim-visual--key-sequence-for-repeat)))
+        (events (apply #'vconcat vim-visual--key-sequence-for-repeat)))
     (vim-visual--record-undo-pos! (vim-visual-insert-info-begin vim-visual--last-insert-info))
     (unwind-protect
         (save-excursion
