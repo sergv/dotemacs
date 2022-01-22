@@ -441,8 +441,8 @@ be used only for vim-visual-mode of the vim-mode package."
       (while (> lines 0)
         (cond
           ((funcall empty-line?)
-           (insert (make-string column ?\s)
-                   (concat comment-str)))
+           (insert-char ?\s column)
+           (insert comment-str))
           (t
            (funcall update-column)
            (funcall skip-to-column)

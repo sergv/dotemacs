@@ -486,8 +486,7 @@ URL `http://user42.tuxfamily.org/align-let/index.html'"
                     (delete-region beg (point))))
                  ((< this-width width)
                   ;; increase space
-                  (insert (make-string (- width this-width)
-                                       ? ))))))))))
+                  (insert-char ?\s (- width this-width))))))))))
 
 ;;;###autoload
 (defun align-let-keybinding ()
