@@ -236,6 +236,7 @@ _<tab>_: format region
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-insert-mode-local-keymap)
     (("C-m" "<f9>") vim:c++-compile:interactive)
+    ("<return>"     newline-and-indent)
     ("C-t"          flycheck-enhancements-previous-error-with-wraparound)
     ("C-h"          flycheck-enhancements-next-error-with-wraparound)
     ("M-t"          c++-compilation-prev-error-other-window)

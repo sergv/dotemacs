@@ -18,6 +18,7 @@
   (init-common :use-whitespace 'tabs-only)
   (def-keys-for-map graphviz-dot-mode-map
     (("C-m" "<f9>") compile)
+    ("<return>"     newline-and-indent)
     ("S-<f9>"       graphviz-dot-preview)))
 
 ;;;###autoload

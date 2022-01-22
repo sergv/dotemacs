@@ -28,7 +28,8 @@ _h_: end of statement"
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-visual-mode-local-keymap)
     (("C-m" "<f9>") sql-send-region)
-    ("g" hydra-sql-vim-normal-g-ext/body)))
+    ("<return>"     newline-and-indent)
+    ("g"            hydra-sql-vim-normal-g-ext/body)))
 
 ;;;###autoload
 (add-hook 'sql-mode-hook #'sql-setup)

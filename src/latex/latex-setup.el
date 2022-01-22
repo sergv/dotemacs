@@ -131,6 +131,7 @@ _o_: unfold region
   (def-keys-for-map vim-normal-mode-local-keymap
     ("S-<f9>"       open-buffer-as-pdf)
     (("C-m" "<f9>") latex-compile)
+    ("<return>"     newline-and-indent)
     ("<f6>"         latex-toggle-preview-or-russian-spellcheck)
 
     ("<left>"       prev-w)
