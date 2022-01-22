@@ -84,24 +84,24 @@ stick it to the previous operator on line."
             (when-let ((delete-whitespace?
                         (when (and char-before-spaces ;; not at beginning of buffer
                                    (not (zerop ws-size)))
-                          (or (and (char= char-before-spaces ?|)
-                                   (char= char ?-))
-                              (and (char= char-before-spaces ?-)
-                                   (char= char ?>))
+                          (or (and (eq char-before-spaces ?|)
+                                   (eq char ?-))
+                              (and (eq char-before-spaces ?-)
+                                   (eq char ?>))
                               (and (cond
-                                     ((and (char= char ?*)
+                                     ((and (eq char ?*)
                                            (memq char-before-spaces
                                                  rust-smart-operators--chars-to-separate-from-asterisk))
                                       nil)
-                                     ((and (char= char ?&)
+                                     ((and (eq char ?&)
                                            (memq char-before-spaces
                                                  rust-smart-operators--chars-to-separate-from-ampersand))
                                       nil)
-                                     ((and (char= char-before-spaces ?=)
+                                     ((and (eq char-before-spaces ?=)
                                            (not (memq char '(?> ?=))) ;; for =>
                                            char-is-smart-op?)
                                       nil)
-                                     ((char= char-before-spaces ?>)
+                                     ((eq char-before-spaces ?>)
                                       (if (char= char ?>)
                                           t ;; either it’s operator >> or generic type
                                         nil
@@ -122,18 +122,18 @@ stick it to the previous operator on line."
                                      )
                                    (let ((char-before-spaces2 (char-before (- pt-before-ws 1))))
                                      (and (not (rust-smart-operators--char-before-matches
-                                                   +rust-smart-operators--composite-operators+
-                                                   0
-                                                 (lambda (n) `(char-before (- pt-before-ws ,n)))))
-                                          (or (if (char= char ?=)
+                                                +rust-smart-operators--composite-operators+
+                                                0
+                                                (lambda (n) `(char-before (- pt-before-ws ,n)))))
+                                          (or (if (eq char ?=)
                                                   ;; So that we create arithmetic increments, e.g. +=
                                                   (memq char-before-spaces '(?+ ?- ?* ?/ ?% ?=))
                                                 (memq char-before-spaces rust-smart-operators--operator-chars))
-                                              (char= char-before-spaces ?\()
-                                              (and (char= char ?=)
-                                                   (or (char= char-before-spaces ?!)
-                                                       (and (char= char-before-spaces ?.)
-                                                            (char= char-before-spaces2 ?.))))))))))))
+                                              (eq char-before-spaces ?\()
+                                              (and (eq char ?=)
+                                                   (or (eq char-before-spaces ?!)
+                                                       (and (eq char-before-spaces ?.)
+                                                            (eq char-before-spaces2 ?.))))))))))))
               (setf whitespace-deleted? (delete-whitespace-backward)))
 
             (let* ((pt (point))
@@ -141,14 +141,14 @@ stick it to the previous operator on line."
                    (after (char-after pt))
                    (at-beginning-of-buffer? (null before))
                    (at-beginning-of-line? (or at-beginning-of-buffer?
-                                              (char= before ?\n)))
+                                              (eq before ?\n)))
                    (before2 (and (not at-beginning-of-buffer?)
                                  (char-before (1- pt)))))
 
               (let ((insert-space-before-char?
                      (and (not (smart-operators--on-empty-string?))
                           (not (memq char '(?\< ?\>)))
-                          (if (char= char ?\|)
+                          (if (eq char ?\|)
                               ;; Check if we're preceded by '...( *(move +)?|..._|_'.
                               (save-excursion
                                 (skip-chars-backward "^|(" (line-beginning-position))
@@ -167,39 +167,39 @@ stick it to the previous operator on line."
                                    (cond
                                      ((bobp)
                                       nil)
-                                     ((char= (char-before) ?\()
+                                     ((eq (char-before) ?\()
                                       nil)
                                      (t
                                       t)))))
                             t)
                           ;; ::*
-                          (if (and (char= char ?*)
-                                   (or (and (char= before ?:)
-                                            (char= before2 ?:))
-                                       (and (char= before ?&)
-                                            (not (char= before2 ?&)))
-                                       (char= before ?\[)))
+                          (if (and (eq char ?*)
+                                   (or (and (eq before ?:)
+                                            (eq before2 ?:))
+                                       (and (eq before ?&)
+                                            (not (eq before2 ?&)))
+                                       (eq before ?\[)))
                               nil
                             t)
                           ;; ..=
-                          (if (and (char= char ?=)
-                                   (char= before ?.)
-                                   (char= before2 ?.))
+                          (if (and (eq char ?=)
+                                   (eq before ?.)
+                                   (eq before2 ?.))
                               (progn
                                 (setf insert-space-after nil)
                                 nil)
                             t)
-                          (if (and (char= char ?&)
-                                   (char= before ?\[))
+                          (if (and (eq char ?&)
+                                   (eq before ?\[))
                               nil
                             t)
-                          (if (and (char= char ?=)
-                                   (not (char= before ?>)) ;; > may be close of type signature, e.g. let foo: Vec<i32> _|_= bar;
+                          (if (and (eq char ?=)
+                                   (not (eq before ?>)) ;; > may be close of type signature, e.g. let foo: Vec<i32> _|_= bar;
                                    (memq before rust-smart-operators--operator-chars))
                               nil
                             t)
-                          (if (and (char= char ?/)
-                                   (char= after ?/)
+                          (if (and (eq char ?/)
+                                   (eq after ?/)
                                    at-beginning-of-line?)
                               (progn
                                 (setf insert-space-after nil)
@@ -210,12 +210,11 @@ stick it to the previous operator on line."
                            at-beginning-of-buffer?
                            (and (not (memq before '(?\s ?\()))
                                 (not (memq before rust-smart-operators--operator-chars))
-                                (if (char= char ?=)
-                                    (not (char= before ?!))
+                                (if (eq char ?=)
+                                    (not (eq before ?!))
                                   t))
                            ;; Cannot really tell without analyzing balanced sexp
                            ;; in here but this get’s complicated without smartparens.
-
                            ;; ;; Do break with a space after balanced >.
                            ;; (and (char= before ?\>)
                            ;;      (save-excursion
@@ -224,17 +223,17 @@ stick it to the previous operator on line."
                            ;;          (and (string-equal (plist-get it :op) "<")
                            ;;               (= (plist-get it :end) (+ 1 (point)))))))
                            ;; =& and >& are not operators so add a space
-                           (and (char= char ?*)
+                           (and (eq char ?*)
                                 (memq before rust-smart-operators--chars-to-separate-from-asterisk))
-                           (and (char= char ?&)
+                           (and (eq char ?&)
                                 (memq before rust-smart-operators--chars-to-separate-from-ampersand))
-                           (and (char= char ?+)
-                                (not (char= before ?=))
+                           (and (eq char ?+)
+                                (not (eq before ?=))
                                 (memq before rust-smart-operators--operator-chars))
-                           (and (char= char ?-)
-                                (char= char-before-spaces ?|))
+                           (and (eq char ?-)
+                                (eq char-before-spaces ?|))
                            (and (memq char rust-smart-operators--numeric-literal-chars)
-                                (char= before ?=))))))
+                                (eq before ?=))))))
 
                 ;; Decide whether to insert space before the operator.
                 (when insert-space-before-char?
@@ -245,47 +244,47 @@ stick it to the previous operator on line."
 
                 (when (and insert-space-after
 
-                           (not (char= char ?\<))
+                           (not (eq char ?\<))
 
-                           (if (char= char ?\>)
+                           (if (eq char ?\>)
                                (if (memq before-insert '(?= ?-))
                                    t ;; Insert space after operators '->', '=>'
                                  nil)
                              t)
 
                            (or at-beginning-of-buffer?
-                               (not (char= before-insert ?\()))
+                               (not (eq before-insert ?\()))
 
-                           (if (char= char ?*)
+                           (if (eq char ?*)
                                (if (memq before rust-smart-operators--chars-to-separate-from-asterisk)
                                    ;; We don’t want '= * _|_',
                                    ;; we want '= *_|_' respectively
                                    nil
                                  whitespace-deleted?)
                              t)
-                           (if (char= char ?\>)
+                           (if (eq char ?\>)
                                (if (memq before-insert '(?= ?-))
                                    t ;; Insert space after operators '->', '=>'
                                  nil)
                              t)
-                           (if (char= char ?\&)
+                           (if (eq char ?\&)
                                (if (memq before rust-smart-operators--chars-to-separate-from-ampersand)
                                    ;; We don’t want '= & _|_' or '-> & _|_'
                                    ;; we want '= &_|_' or '-> &_|_' respectively
                                    nil
                                  (or whitespace-deleted?
-                                     (char= before-insert ?\&) ;; Insert space after operator '&&'
+                                     (eq before-insert ?\&) ;; Insert space after operator '&&'
                                      ))
                              t)
 
-                           (if (and (char= char-before-spaces ?=)
+                           (if (and (eq char-before-spaces ?=)
                                     (memq char rust-smart-operators--numeric-literal-chars))
                                nil
                              t)
 
                            (or (not after) ;; at end of buffer
-                               (and (not (char= after ?\s))
-                                    (not (char= after ?\))))))
+                               (and (not (eq after ?\s))
+                                    (not (eq after ?\))))))
                   (insert-char ?\s))))))))))
 
 ;;;###autoload
