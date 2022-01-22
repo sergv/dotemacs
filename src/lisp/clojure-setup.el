@@ -29,6 +29,7 @@
                      vim-normal-mode-local-keymap)
     ("M-/"          complete-symbol)
     (("C-m" "<f9>") clojure-compile)
+    ("<return>"     newline-and-indent)
     ("S-<f9>"       kibit))
 
   (setup-eproj-symbnav)

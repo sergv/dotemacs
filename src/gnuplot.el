@@ -171,7 +171,8 @@ lines."
   :syntax-table gnuplot-mode-syntax-table
 
   (def-keys-for-map gnuplot-mode-map
-    (("C-m" "<f9>") gnuplot-run))
+    (("C-m" "<f9>") gnuplot-run)
+    ("<return>"     newline-and-indent))
 
   (set (make-local-variable 'comment-start) "# ")
   (set (make-local-variable 'comment-end) "")

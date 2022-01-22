@@ -102,6 +102,7 @@ Identifiers point to the global storage of programs `awk-programs'.")
   (let ((map (copy-keymap awk-mode-map)))
     (def-keys-for-map map
       (("C-m" "<f9>") awk-send-input)
+      ("<return>"     newline-and-indent)
       ("S-<f9>"       awk-restore-original-input)
       ("<f6>"         awk-exit)
       ("<up>"         awk-previous-program)
