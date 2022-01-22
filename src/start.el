@@ -197,6 +197,7 @@
                              (kbd "S-<iso-lefttab>")))
         (define-key kmap binding backtab-binding)))))
 
+(require 'minibuffer-setup)
 (require 'c-like-setup)
 (require 'haskell-autoload)
 (require 'latex-autoloads)
