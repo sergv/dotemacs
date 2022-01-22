@@ -406,7 +406,7 @@ and switches to insert-mode."
           (insert txt)
           (unless (eolp)
             ;; text follows, so we have to insert spaces
-            (insert (make-string (- ncols len) ? ))))
+            (insert-char ?\s (- ncols len))))
         (setq last-pos (point))
         (forward-line 1)))
     (goto-char last-pos)

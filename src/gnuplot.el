@@ -157,11 +157,10 @@ lines."
                 (backward-char 1)
                 (if (looking-at (regexp-quote "\\"))
                     (setq indent  (+ plus indent)))))))
-      (if (= (current-indentation) indent)
-          ()
+      (unless (= (current-indentation) indent)
         (beginning-of-line)
         (delete-horizontal-space)
-        (insert (make-string indent ? ))))
+        (insert-char ?\s indent)))
     (if (looking-at "[ \t]+$")
         (end-of-line))))
 
