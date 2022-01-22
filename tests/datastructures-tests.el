@@ -12,11 +12,11 @@
 (require 'common)
 (require 'ert)
 
+(require 'append-list)
 (require 'bimap)
 (require 'bisect)
 (require 'sorted-set)
 (require 'trie)
-
 
 (defconst datastructures-tests/pairs-test-array
   [(1 . b) (1 . c) (1 . a) (2 . x) (2 . y)])
@@ -435,6 +435,24 @@
     (should (eq (trie-lookup "foobar" trie 'not-found)
                 300))))
 
+(ert-deftest datastructures-tests/append-list-null-1 ()
+  (should (append-list-null (append-list-empty))))
+
+(ert-deftest datastructures-tests/append-list-null-2 ()
+  (should-not (append-list-null (append-list-singleton 1))))
+
+(ert-deftest datastructures-tests/append-list-null-3 ()
+  (let ((lst (append-list-empty)))
+    (append-list-append! lst 'a)
+    (should-not (append-list-null (append-list-singleton 1)))))
+
+(ert-deftest datastructures-tests/append-list-null-4 ()
+  (let ((lst (append-list-empty)))
+    (append-list-prepend! lst 'a)
+    (should-not (append-list-null (append-list-singleton 1)))
+    (append-list-append! lst 'b)
+    (should-not (append-list-null (append-list-singleton 1)))))
+
 (ert-deftest datastructures-tests/append-list-1 ()
   (let ((lst (append-list-empty)))
     (should (append-list-p lst))
@@ -537,102 +555,34 @@
     (append-list-append! lst 'bar)
     (should (append-list-p lst))
 
-    (let ((lst2 (append-list-fork-tail lst)))
-      (should (append-list-p lst2))
+    (let ((tl (append-list-get-last-cons lst)))
 
       (should (equal (append-list-reify lst)
                      '(foo bar)))
-      (should (equal (append-list-reify lst2)
+      (should (equal tl
                      '(bar)))
 
       (append-list-prepend! lst 'baz)
       (should (append-list-p lst))
-      (should (append-list-p lst2))
 
       (should (equal (append-list-reify lst)
                      '(baz foo bar)))
-      (should (equal (append-list-reify lst2)
+      (should (equal tl
                      '(bar)))
 
       (append-list-append! lst 'quux)
       (should (append-list-p lst))
-      (should (append-list-p lst2))
 
       (should (equal (append-list-reify lst)
                      '(baz foo bar quux)))
-      (should (equal (append-list-reify lst2)
+      (should (equal tl
                      '(bar quux)))
 
-      (append-list-append! lst2 'frobnicate)
-      (should (append-list-p lst))
-      (should (append-list-p lst2))
-
-      (should (equal (append-list-reify lst)
-                     '(baz foo bar quux frobnicate)))
-      (should (equal (append-list-reify lst2)
-                     '(bar quux frobnicate)))
-
-      (should (append-list-p lst))
-      (should (append-list-p lst2))
-
-      (append-list-prepend! lst2 'frobulate)
-      (should (append-list-p lst))
-      (should (append-list-p lst2))
-
-      (should (equal (append-list-reify lst)
-                     '(baz foo bar quux frobnicate)))
-      (should (equal (append-list-reify lst2)
-                     '(frobulate bar quux frobnicate)))
-
       (should (eq (cddr (append-list-reify lst))
-                  (cdr (append-list-reify lst2)))))))
+                  tl)))))
 
 (ert-deftest datastructures-tests/append-list-12 ()
-  (let* ((lst (append-list-empty))
-         (lst2 (append-list-fork-tail lst)))
-    (should (append-list-p lst))
-    (should (append-list-p lst2))
-
-    (should (equal (append-list-reify lst)
-                   '()))
-    (should (equal (append-list-reify lst2)
-                   '()))
-
-    (append-list-append! lst 'foo)
-    (should (append-list-p lst))
-    (should (append-list-p lst2))
-
-    (should (equal (append-list-reify lst)
-                   '(foo)))
-    (should (equal (append-list-reify lst2)
-                   '(foo)))
-
-    (append-list-append! lst2 'bar)
-    (should (append-list-p lst))
-    (should (append-list-p lst2))
-
-    (should (equal (append-list-reify lst)
-                   '(foo bar)))
-    (should (equal (append-list-reify lst2)
-                   '(foo bar)))
-
-    (append-list-append! lst 'baz)
-    (should (append-list-p lst))
-    (should (append-list-p lst2))
-
-    (should (equal (append-list-reify lst)
-                   '(foo bar baz)))
-    (should (equal (append-list-reify lst2)
-                   '(foo bar baz)))
-
-    (append-list-append! lst2 'quux)
-    (should (append-list-p lst))
-    (should (append-list-p lst2))
-
-    (should (equal (append-list-reify lst)
-                   '(foo bar baz quux)))
-    (should (equal (append-list-reify lst2)
-                   '(foo bar baz quux)))))
+  (should-error (append-list-get-last-cons (append-list-empty))))
 
 (ert-deftest datastructures-tests/append-list-connect-1 ()
   (let* ((lst (append-list-singleton 'foo))
@@ -660,30 +610,7 @@
 
     (append-list-append! lst2 'quux)
     (should (append-list-p lst))
-    (should (append-list-p lst2))
-
-    (should (equal (append-list-reify lst)
-                   '(foo bar baz quux)))
-    (should (equal (append-list-reify lst2)
-                   '(bar baz quux)))
-
-    (append-list-append! lst 'a)
-    (should (append-list-p lst))
-    (should (append-list-p lst2))
-
-    (should (equal (append-list-reify lst)
-                   '(foo bar baz quux a)))
-    (should (equal (append-list-reify lst2)
-                   '(bar baz quux a)))
-
-    (append-list-append! lst2 'b)
-    (should (append-list-p lst))
-    (should (append-list-p lst2))
-
-    (should (equal (append-list-reify lst)
-                   '(foo bar baz quux a b)))
-    (should (equal (append-list-reify lst2)
-                   '(bar baz quux a b)))))
+    (should (append-list-p lst2))))
 
 (ert-deftest datastructures-tests/append-list-connect-2 ()
   (let* ((lst (append-list-empty))
@@ -707,34 +634,7 @@
     (should (equal (append-list-reify lst)
                    '(bar baz)))
     (should (equal (append-list-reify lst2)
-                   '(bar baz)))
-
-    (append-list-append! lst2 'quux)
-    (should (append-list-p lst))
-    (should (append-list-p lst2))
-
-    (should (equal (append-list-reify lst)
-                   '(bar baz quux)))
-    (should (equal (append-list-reify lst2)
-                   '(bar baz quux)))
-
-    (append-list-append! lst 'a)
-    (should (append-list-p lst))
-    (should (append-list-p lst2))
-
-    (should (equal (append-list-reify lst)
-                   '(bar baz quux a)))
-    (should (equal (append-list-reify lst2)
-                   '(bar baz quux a)))
-
-    (append-list-append! lst2 'b)
-    (should (append-list-p lst))
-    (should (append-list-p lst2))
-
-    (should (equal (append-list-reify lst)
-                   '(bar baz quux a b)))
-    (should (equal (append-list-reify lst2)
-                   '(bar baz quux a b)))))
+                   '(bar baz)))))
 
 ;; Test for connecting non-empty list with empty list which
 ;; we don’t support since it’s an edge case we don’t really exercise.
@@ -789,7 +689,9 @@
 ;;     (should (equal (append-list-reify lst2)
 ;;                    '(baz quux a b)))))
 
-;; (and (ert "datastructures-tests/append-list.*") t)
+
+
+;; (and (ert "datastructures-tests/.*") t)
 
 ;; (let ((ert-debug-on-error nil))
 ;;   (eproj-reset-projects)
