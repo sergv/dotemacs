@@ -442,23 +442,22 @@ foo {
 }
 "
   (interactive)
-  (cl-destructuring-bind
-      (start end _is-before? _is-after? is-surrounded?)
-      (smart-operators--point-surrounded-by ?\{ ?\})
-    (when is-surrounded?
-      (delete-region start end))
-    (newline-and-indent)
-    (when is-surrounded?
-      (let ((indent (if indent-tabs-mode
-                        "\t"
-                      (make-string tab-width ?\s))))
-        (newline-and-indent)
-        (let ((line-indent (current-line-indentation-str)))
-          (forward-line -1)
-          (insert line-indent indent)))))
-  (newline-and-indent))
-
-(advices/auto-comment rust-newline)
+  (comment-util--auto-commenting-action
+   (cl-destructuring-bind
+       (start end _is-before? _is-after? is-surrounded?)
+       (smart-operators--point-surrounded-by ?\{ ?\})
+     (when is-surrounded?
+       (delete-region start end))
+     (newline-and-indent)
+     (when is-surrounded?
+       (let ((indent (if indent-tabs-mode
+                         "\t"
+                       (make-string tab-width ?\s))))
+         (newline-and-indent)
+         (let ((line-indent (current-line-indentation-str)))
+           (forward-line -1)
+           (insert line-indent indent)))))
+   (newline-and-indent)))
 
 ;;;; Setup
 
