@@ -423,7 +423,8 @@ _C_: hide everything except current entry and its parents"
     ("<C-up>"       org-metaup)
     ("<C-left>"     org-metaleft)
     ("<C-right>"    org-metaright)
-    ("C-="          input-unicode))
+    ("C-="          input-unicode)
+    ("<return>"     newline-and-indent))
 
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-visual-mode-local-keymap

@@ -71,7 +71,8 @@
 
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-insert-mode-local-keymap)
-    (("C-m" "<f9>") vim:haskell-compile:interactive)))
+    (("C-m" "<f9>") vim:haskell-compile:interactive)
+    ("<return>"     newline-and-indent)))
 
 (vim-defcmd vim:haskell-compile (nonrepeatable)
   (configurable-compilation-start nil))
