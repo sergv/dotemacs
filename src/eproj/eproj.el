@@ -696,7 +696,8 @@ for project at ROOT directory."
                     (eproj-descibe-proj buf proj nil t)
                   (error
                    (insert (format "Error while describing project: %s\n" (cdr err)))))
-                (insert (make-string 80 ?\-) "\n"))
+                (insert-char ?\- 80)
+                (insert-char ?\n))
               projs))
       (goto-char (point-min)))))
 

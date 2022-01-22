@@ -450,13 +450,13 @@ foo {
        (delete-region start end))
      (newline-and-indent)
      (when is-surrounded?
-       (let ((indent (if indent-tabs-mode
-                         "\t"
-                       (make-string tab-width ?\s))))
-         (newline-and-indent)
-         (let ((line-indent (current-line-indentation-str)))
-           (forward-line -1)
-           (insert line-indent indent)))))
+       (newline-and-indent)
+       (let ((line-indent (current-line-indentation-str)))
+         (forward-line -1)
+         (insert line-indent)
+         (if indent-tabs-mode
+             (insert-char ?\t)
+           (insert-char ?\s tab-width)))))
    (newline-and-indent)))
 
 ;;;; Setup
