@@ -143,13 +143,13 @@ command has finished execution."
   "Adds keys that invoked current command to `vim--current-key-sequence'."
   (vim--remember-command-keys! (this-command-keys-vector)))
 
-(defsubst vim--fork-command-keys! ()
+(defsubst vim--obtain-intermediate-handle! ()
   "Clears the internal log of key-sequences. Do this when single
 command has finished execution."
   (if vim--current-key-sequence
       (append-list-append! vim--current-key-sequence [])
     (setf vim--current-key-sequence (append-list-singleton [])))
-  (append-list-fork-tail vim--current-key-sequence))
+  (append-list-get-last-cons vim--current-key-sequence))
 
 (defsubst vim--overwrite-repeat-events! (events)
   (cl-assert (or (null events) (append-list-p events)))
