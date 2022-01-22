@@ -102,21 +102,13 @@ stick it to the previous operator on line."
                                            char-is-smart-op?)
                                       nil)
                                      ((eq char-before-spaces ?>)
-                                      (if (char= char ?>)
-                                          t ;; either it’s operator >> or generic type
-                                        nil
-                                        ;; Cannot really tell without analyzing balanced sexp
-                                        ;; in here but this get’s complicated without smartparens.
-                                        ;; (save-excursion
-                                        ;;   (goto-char pt-before-ws)
-                                        ;;   (forward-char -1)
-                                        ;;   (aif (sp-get-enclosing-sexp)
-                                        ;;       (if (= (plist-get it :end) (+ 1 (point)))
-                                        ;;           (not (string-equal (plist-get it :op) "<"))
-                                        ;;         t)
-                                        ;;     t ;; No sexp - ok to delete.
-                                        ;;     ))
-                                        ))
+                                      (if (eq char ?>)
+                                          ;; Either it’s operator >> or generic type.
+                                          t
+                                        ;; If char before-before is a space then we consider
+                                        ;; that ?\> before spaces is an operator.
+                                        (let ((before2 (char-before (1- pt-before-ws))))
+                                          (not (eq before2 ?\s)))))
                                      (t
                                       t) ;; Not a > before spaces - ok to delete.
                                      )
@@ -213,15 +205,8 @@ stick it to the previous operator on line."
                                 (if (eq char ?=)
                                     (not (eq before ?!))
                                   t))
-                           ;; Cannot really tell without analyzing balanced sexp
-                           ;; in here but this get’s complicated without smartparens.
-                           ;; ;; Do break with a space after balanced >.
-                           ;; (and (char= before ?\>)
-                           ;;      (save-excursion
-                           ;;        (forward-char -1)
-                           ;;        (awhen (sp-get-enclosing-sexp)
-                           ;;          (and (string-equal (plist-get it :op) "<")
-                           ;;               (= (plist-get it :end) (+ 1 (point)))))))
+                           (and (eq before ?\>)
+                                (not (eq before2 ?\s)))
                            ;; =& and >& are not operators so add a space
                            (and (eq char ?*)
                                 (memq before rust-smart-operators--chars-to-separate-from-asterisk))
