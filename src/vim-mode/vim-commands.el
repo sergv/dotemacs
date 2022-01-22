@@ -325,11 +325,6 @@ and switches to insert-mode."
                            'yank-handler
                            (list #'vim--yank-line-handler txt)
                            txt)
-        (put-text-property 0
-                           (length txt)
-                           'vim--yank-handler
-                           #'vim--yank-line-handler
-                           txt)
         (kill-new-ignoring-duplicates txt)))))
 
 (vim-defcmd vim:cmd-yank-rectangle (motion nonrepeatable)
@@ -356,13 +351,7 @@ and switches to insert-mode."
       (put-text-property 0 (length txt)
                          'yank-handler
                          (list #'vim--yank-block-handler
-                               (cons (- endcol begcol -1) parts)
-                               nil
-                               #'delete-rectangle)
-                         txt)
-      (put-text-property 0 (length txt)
-                         'vim--yank-handler
-                         #'vim--yank-block-handler
+                               (cons (- endcol begcol -1) parts))
                          txt)
       (kill-new-ignoring-duplicates txt))
     (goto-line-dumb begrow)
@@ -380,11 +369,17 @@ and switches to insert-mode."
   ;; TODO: yank-pop with count will not work for blocks, because
   ;; it's difficult to place (point) (or (mark)) at the correct
   ;; position since they may no exist.
+
+  ;; We may need to undo what we did here, so prepare yourself!
+  (vim--prepare-buffer-undo-list!)
+
   (let ((ncols (car text))
         (parts (cdr text))
         (col (current-column))
         (current-line (line-number-at-pos (point)))
-        (last-pos (point)))
+        insert-newlines?
+        (last-pos (point))
+        (undo-at-start buffer-undo-list))
 
     (set-mark (point))
     (dolist (part parts)
@@ -394,14 +389,19 @@ and switches to insert-mode."
              (len (length txt)))
 
         ;; maybe we have to insert a new line at eob
-        (when (< (line-number-at-pos (point))
-                 current-line)
+        (when (or insert-newlines?
+                  (< (line-number-at-pos (point))
+                     current-line))
+          ;; Cache it
+          (setf insert-newlines? t)
           (goto-char (point-max))
           (newline))
         (cl-incf current-line)
 
-        (unless (and (< (current-column) col)   ; nothing in this line
-                     (<= offset 0) (zerop len)) ; and nothing to insert
+        (unless (and (< (current-column) col) ;; nothing in this line
+                     (<= offset 0)
+                     (zerop len) ;; and nothing to insert
+                     )
           (move-to-column (+ col (max 0 offset)) t)
           (insert txt)
           (unless (eolp)
@@ -410,15 +410,26 @@ and switches to insert-mode."
         (setq last-pos (point))
         (forward-line 1)))
     (goto-char last-pos)
-    (exchange-point-and-mark)))
+    (exchange-point-and-mark)
+    (setq yank-undo-function
+          (lambda (start end)
+            (when (eq buffer-undo-list t)
+              (user-error "No undo information in this buffer"))
+            (let ((pending (vim--copy-list-until buffer-undo-list undo-at-start)))
+              (let ((undo-in-progress t))
+                (while pending
+                  ;; Note: The following, while pulling elements off
+                  ;; `pending-undo-list' will call primitive change functions which
+                  ;; will push more elements onto `buffer-undo-list'.
+                  (setq pending (primitive-undo 1 pending)))))))))
 
 (cl-defstruct (vim-paste-info
                (:constructor vim--make-paste-info))
-  point   ;; point where command took place
-  begin   ;; beginning of inserted region
-  end     ;; end of inserted region
-  count   ;; repeat count of insertion
-  at-eob  ;; t iff last paste-after took place at eob
+  point  ;; point where command took place
+  begin  ;; beginning of inserted region
+  end    ;; end of inserted region
+  count  ;; repeat count of insertion
+  at-eob ;; t iff last paste-after took place at eob
   )
 
 (defvar vim--last-paste nil
@@ -432,20 +443,20 @@ and switches to insert-mode."
       (error "Kill-ring empty"))))
 
 (defun vim--cmd-paste-undo! ()
-  (when vim--last-paste
+  (awhen vim--last-paste
     (funcall (or yank-undo-function #'delete-region)
-             (vim-paste-info-begin vim--last-paste)
-             (vim-paste-info-end vim--last-paste))
-    (goto-char (vim-paste-info-point vim--last-paste))))
+             (vim-paste-info-begin it)
+             (vim-paste-info-end it))
+    (goto-char (vim-paste-info-point it))))
 
-(defvar vim--cmd-paste-before-counter nil)
+(defvar vim--cmd-paste-before-impl-counter nil)
 
-(defun vim--cmd-paste-before (count)
+(defun vim--cmd-paste-before-impl (count)
   "Implementation of the vim’s paste before command."
   (let ((pos (point))
         beg
         end
-        (text (vim--cmd-paste-get-text vim--cmd-paste-before-counter)))
+        (text (vim--cmd-paste-get-text vim--cmd-paste-before-impl-counter)))
     (save-excursion
       (dotimes (_ (or count 1))
         (let ((start (point)))
@@ -453,8 +464,8 @@ and switches to insert-mode."
           (let ((finish (point)))
             (setq beg (min start finish (or beg finish))
                   end (max start finish (or end finish)))))))
-    (let ((yhandler (get-text-property 0 'vim--yank-handler text)))
-      (when (eq yhandler 'vim--yank-line-handler)
+    (let ((yhandler (get-text-property 0 'yank-handler text)))
+      (when (eq (car yhandler) 'vim--yank-line-handler)
         ;; Place cursor at for non-blank of first inserted line.
         (goto-char pos)
         (vim:motion-first-non-blank)))
@@ -475,33 +486,33 @@ and switches to insert-mode."
   "Pastes the latest yanked text before the cursor position."
   (if (eq last-command 'vim:cmd-paste-before:interactive)
       (progn
-        (setf vim--cmd-paste-before-counter
-              (if vim--cmd-paste-before-counter
-                  (1+ vim--cmd-paste-before-counter)
+        (setf vim--cmd-paste-before-impl-counter
+              (if vim--cmd-paste-before-impl-counter
+                  (1+ vim--cmd-paste-before-impl-counter)
                 1))
         (vim--cmd-paste-undo!)
-        (vim--cmd-paste-before (vim-paste-info-count vim--last-paste)))
+        (vim--cmd-paste-before-impl (vim-paste-info-count vim--last-paste)))
     (progn
-      (setf vim--cmd-paste-before-counter 0)
-      (vim--cmd-paste-before count))))
+      (setf vim--cmd-paste-before-impl-counter 0)
+      (vim--cmd-paste-before-impl count))))
 
 (defvar vim--cmd-paste-after-counter nil)
 
 (defun vim--cmd-paste-after (count adjust?)
   "Implementation of the vim’s paste behind command."
   (let ((yhandler (get-text-property 0
-                                     'vim--yank-handler
+                                     'yank-handler
                                      (vim--cmd-paste-get-text vim--cmd-paste-after-counter)))
         (pos (point)))
-    (setf vim--cmd-paste-before-counter vim--cmd-paste-after-counter)
-    (pcase yhandler
+    (setf vim--cmd-paste-before-impl-counter vim--cmd-paste-after-counter)
+    (pcase (car yhandler)
       (`vim--yank-line-handler
        (let ((at-eob? (= (line-end-position) (point-max))))
          ;; We have to take care of the special case where we cannot
          ;; go to the next line because we reached eob.
          (forward-line)
          (when at-eob? (newline))
-         (vim--cmd-paste-before count)
+         (vim--cmd-paste-before-impl count)
          (when at-eob?
            ;; we have to remove the final newline and update paste-info
            (goto-char (vim-paste-info-begin vim--last-paste))
@@ -514,13 +525,13 @@ and switches to insert-mode."
 
       (`vim--yank-block-handler
        (forward-char)
-       (vim--cmd-paste-before count))
+       (vim--cmd-paste-before-impl count))
 
       (_
        (when (and adjust?
                   (not (eob?)))
          (forward-char))
-       (vim--cmd-paste-before count)
+       (vim--cmd-paste-before-impl count)
        ;; goto end of paste
        (goto-char (if adjust?
                       (1- (vim-paste-info-end vim--last-paste))
@@ -575,8 +586,8 @@ If the inserted text consists of full lines those lines are
 indented according to the current mode."
   (vim:cmd-paste-before :count count)
   (let* ((txt (current-kill 0))
-         (yhandler (get-text-property 0 'vim--yank-handler txt)))
-    (when (eq (car-safe yhandler) 'vim--yank-line-handler)
+         (yhandler (get-text-property 0 'yank-handler txt)))
+    (when (eq (car yhandler) #'vim--yank-line-handler)
       ;; We have to reindent the lines and update the paste-data.
       (let ((endln (line-number-at-pos (vim-paste-info-end vim--last-paste))))
         (indent-region (vim-paste-info-begin vim--last-paste)
@@ -593,8 +604,8 @@ If the inserted text consists of full lines those lines are
 indented according to the current mode."
   (vim:cmd-paste-after :count count)
   (let* ((txt (current-kill 0))
-         (yhandler (get-text-property 0 'vim--yank-handler txt)))
-    (when (eq yhandler 'vim--yank-line-handler)
+         (yhandler (get-text-property 0 'yank-handler txt)))
+    (when (eq (car yhandler) #'vim--yank-line-handler)
       ;; We have to reindent the lines and update the paste-data.
       (let ((endln (line-number-at-pos (vim-paste-info-end vim--last-paste))))
         (if (vim-paste-info-at-eob vim--last-paste)
