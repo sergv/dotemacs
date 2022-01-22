@@ -311,13 +311,6 @@ This macro is similar to `vim:do-motion'."
   (interactive)
   (paredit-setup--wrap-or-insert ?\` ?\` nil))
 
-(defun paredit-minibuffer-setup ()
-  (unless vim-ex--minibuffer
-    (paredit-mode +1)))
-
-(add-hook 'minibuffer-setup-hook #'paredit-minibuffer-setup)
-
-
 ;; (defun paredit-forward-kill-symbol ()
 ;;   "Kill a word forward, skipping over intervening delimiters."
 ;;   (interactive)
