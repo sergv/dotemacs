@@ -86,21 +86,23 @@
 (def-keys-for-map universal-argument-map
   ("<f2>" universal-argument-more))
 
+(defun help-mode-init ()
+  (def-keys-for-map help-mode-map
+    +vi-keys+
+    +vim-search-keys+
+    +vim-search-extended-keys+
+    +vim-word-motion-keys+
+    +vim-special-keys+
+    ("SPC"      help-follow)
+    ("<up>"     help-go-back)
+    ("<down>"   help-go-forward)
+    ("C-."      elisp-slime-nav-find-elisp-thing-at-point)
+    ("C-,"      pop-tag-mark)
+    ("v"        set-mark-command)
+    ("y"        copy-region-as-kill)))
+
 (eval-after-load "help-mode"
-  '(progn
-     (def-keys-for-map help-mode-map
-       +vi-keys+
-       +vim-search-keys+
-       +vim-search-extended-keys+
-       +vim-word-motion-keys+
-       +vim-special-keys+
-       ("SPC"      help-follow)
-       ("<up>"     help-go-back)
-       ("<down>"   help-go-forward)
-       ("C-."      elisp-slime-nav-find-elisp-thing-at-point)
-       ("C-,"      pop-tag-mark)
-       ("v"        set-mark-command)
-       ("y"        copy-region-as-kill))))
+  '(help-mode-init))
 
 ;; view-mode
 (eval-after-load "view"
@@ -138,18 +140,15 @@
   ("<escape>" quit-window))
 
 (def-keys-for-map occur-mode-map
-  ("<up>"   custom-occur-prev)
-  ("<down>" custom-occur-next)
-  ("t"      custom-occur-prev)
-  ("h"      custom-occur-next)
-  ("q"      remove-buffer))
+  (("t" "<up>")   custom-occur-prev)
+  (("h" "<down>") custom-occur-next)
+  ("q"            remove-buffer))
 
 (eval-after-load "doc-view"
   '(progn
      (def-keys-for-map doc-view-mode-map
        ("S-<up>"   doc-view-previous-page)
        ("S-<down>" doc-view-next-page))))
-
 
 (defun define-cyrillic-keys ()
   ;; just all choices from set, 2**n, n - sets' power
@@ -182,53 +181,6 @@
        ))))
 
 (define-cyrillic-keys)
-
-(def-keys-for-map (minibuffer-local-completion-map
-                   minibuffer-local-must-match-map
-                   minibuffer-local-filename-completion-map
-                   minibuffer-local-filename-must-match-map
-                   minibuffer-local-map
-                   minibuffer-local-isearch-map
-                   minibuffer-inactive-mode-map)
-  ("<escape>"          abort-recursive-edit)
-  ;; ("?"                 self-insert-command)
-
-  ("C-w"               backward-delete-word)
-  ("C-S-w"             backward-delete-word*)
-  ("C-p"               vim-cmd-paste-after-no-adjust)
-  ("C-S-p"             browse-kill-ring)
-
-  ("C-/"               nil)
-  ("C-v"               set-mark-command)
-  ("C-y"               copy-region-as-kill)
-  ("C-d"               kill-region)
-  ("C-f"               read-and-insert-filename)
-
-  ("<delete>"          delete-char)
-  ("<home>"            beginning-of-line)
-  ("<end>"             end-of-line)
-
-  ("C-SPC"             delete-minibuffer-contents)
-  ;; ("SPC"               self-insert-command)
-
-  ("S-<delete>"        delete-whitespace-forward)
-  ("S-<backspace>"     delete-whitespace-backward)
-  ("<backspace>"       delete-backward-char))
-
-;; (def-keys-for-map minibuffer-inactive-mode-map
-;;   ("?" self-insert-command))
-
-(def-keys-for-map (minibuffer-local-completion-map
-                   minibuffer-local-must-match-map
-                   minibuffer-local-filename-completion-map
-                   minibuffer-local-filename-must-match-map)
-  ("SPC" self-insert-command)
-  ("?"   self-insert-command))
-
-(def-keys-for-map minibuffer-local-map
-  +vim-parens-keys+
-  ;; In sexp-related situations the "''" is quite rare.
-  ("'" self-insert-command))
 
 (def-keys-for-map completion-list-mode-map
   ("<up>"   previous-completion)
