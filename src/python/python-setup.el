@@ -434,7 +434,9 @@ _j_: send region to repl"
     ("C-<up>"       python-nav-backward-block)
     ("C-<down>"     python-nav-forward-block)
 
-    ("="            python-nav-backward-up-list)
+    ("="            python-nav-backward-up-list))
+
+  (def-keys-for-map vim-motion-mode-local-keymap
     ("q"            python-nav-up-list))
 
   (bind-tab-keys #'tab-to-tab-stop
