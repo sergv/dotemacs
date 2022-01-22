@@ -74,7 +74,6 @@
       ("SPC"           self-insert-command)
       ("S-<delete>"    delete-whitespace-forward)
       ("S-<backspace>" delete-whitespace-backward)
-      ("<backspace>"   delete-backward-char)
 
       ("?"             self-insert-command)
       ("<tab>"         minibuffer-complete)
@@ -83,9 +82,56 @@
       ("C-j"           vim-ex-mode-exit)
       ("C-g"           vim-ex-mode-abort)
       ("<up>"          ivy-previous-history-element)
-      ("<down>"        ivy-next-history-element))
+      ("<down>"        ivy-next-history-element)
+
+      ("("             vim-ex-insert-round)
+      ("["             vim-ex-insert-square)
+      ("{"             vim-ex-insert-curly)
+      ("<backspace>"   vim-ex-backspace))
     map)
   "Keymap used in ex-mode.")
+
+(defun vim-ex-insert-round ()
+  "Smart insertion of paired () delimiters."
+  (interactive)
+  (let ((before (char-before)))
+    (cond
+      ((eq before ?\\)
+       (insert-char ?\()
+       (insert-char ?\\)
+       (insert-char ?\))
+       (forward-char -2))
+      (t
+       (insert-char ?\()
+       (insert-char ?\))
+       (forward-char -1)))))
+
+(defun vim-ex-insert-square ()
+  "Smart insertion of paired [] delimiters."
+  (interactive)
+  (insert-char ?\[)
+  (insert-char ?\])
+  (forward-char -1))
+
+(defun vim-ex-insert-curly ()
+  "Smart insertion of paired { delimiters."
+  (interactive)
+  (insert-char ?\{)
+  (insert-char ?\})
+  (forward-char -1))
+
+(defun vim-ex-backspace ()
+  (interactive)
+  (let* ((before (char-before))
+         (start (1- (point)))
+         (end nil)
+         (after (save-excursion
+                  (skip-chars-forward " \t\n\r")
+                  (setq end (1+ (point)))
+                  (char-after))))
+    (if (eq after (cdr (assq before '((?\( . ?\)) (?\[ . ?\]) (?\{ . ?\})))))
+        (delete-region start end)
+      (delete-char-backward))))
 
 (defun vim-ex--contents ()
   "Returns the contents of the ex buffer.
@@ -244,6 +290,7 @@ cancel ex-mode."
 This function should be called as minibuffer-setup-hook when an
 ex-mode starts."
   (remove-hook 'minibuffer-setup-hook #'vim-ex--setup) ; Just for the case.
+  (paredit-mode -1)
   (setq vim-ex--cmd nil
         vim-ex--arg nil
         vim-ex--arg-handler nil
