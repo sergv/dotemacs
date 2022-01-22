@@ -609,7 +609,7 @@ If in a character literal, do nothing.  This prevents changing what was
                   (save-excursion (backward-up-list) (paredit-indent-sexp))))))
        (defun ,(paredit-conc-name "paredit-close-" name) ()
          ,(concat "Move past one closing delimiter and reindent.
-\(Agnostic to the specific closing delimiter.)
+\(Agnostic to the specific closing delimiter.\)
 If in a string or comment, insert a single closing " name ".
 If in a character literal, do nothing.  This prevents changing what was
   in the character literal to a meaningful delimiter unintentionally.")
