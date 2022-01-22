@@ -17,8 +17,7 @@
 (defsubst append-list-p (x)
   (and (consp x)
        (eq append-list-tag (caar x))
-       (eq append-list-shared-tail-tag (cadr x))
-       ))
+       (eq append-list-shared-tail-tag (cadr x))))
 
 (defsubst append-list-null (xs)
   (cl-assert (append-list-p xs) "Invalid append list: %s" xs)

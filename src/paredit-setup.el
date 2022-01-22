@@ -87,7 +87,7 @@
     ("M-<left>"  paredit-backward-slurp-sexp)
     ("M-<right>" paredit-backward-barf-sexp))
 
-  (advices/auto-comment paredit-newline))
+  (comment-util-auto-comment-advice paredit-newline))
 
 (eval-after-load 'paredit '(paredit-init))
 

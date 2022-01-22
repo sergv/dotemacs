@@ -65,39 +65,6 @@ will be possible."
         (memq major-mode ',mode-list)
         ,expand-func))))
 
-;;;
-
-(defmacro advices/auto-comment (func)
-  "Define advice around FUNC that will insert comments at
-beginning of line if previous line was commented out.
-
-In case of non-nil prefix-arg no comment will be inserted.
-
-Intended to be used with comment-util-mode."
-  (let ((advice-name (string->symbol (format "%s--auto-comment" func))))
-    `(progn
-       (defun ,advice-name (old-func &rest args)
-         "Insert comments at beginning of line if previous line was commented out."
-         (let* ((full-line-re (and
-                               ;; Disable advice if prefix argument is supplied.
-                               (not current-prefix-arg)
-                               *comment-util-current-format*
-                               (comment-format-line-regexp-with-prefix-indent *comment-util-current-format*)))
-                (prev-line (when full-line-re
-                             (buffer-substring-no-properties
-                              (line-beginning-position)
-                              (point)))))
-           (apply old-func args)
-           (when full-line-re
-             (save-match-data
-               (when (string-match full-line-re prev-line)
-                 (skip-to-indentation)
-                 (delete-region (line-beginning-position) (point))
-                 (insert (concat (match-string 1 prev-line)
-                                 comment-util--spaces-after-comment)))))))
-
-       (advice-add ',func :around #',advice-name))))
-
 (provide 'advices-util)
 
 ;; Local Variables:
