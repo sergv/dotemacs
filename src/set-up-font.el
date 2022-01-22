@@ -95,10 +95,6 @@ use that, otherwise either use past specified value or a reasonable default."
     (dolist (frame (frame-list))
       (set-face-attribute 'default frame :height effective-scaling))))
 
-;; Set default font for all unicode characters.
-(unless noninteractive
-  (set-fontset-font t 'unicode current-font nil nil))
-
 (provide 'set-up-font)
 
 ;; Local Variables:
