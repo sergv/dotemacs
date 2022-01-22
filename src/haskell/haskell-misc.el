@@ -80,10 +80,6 @@ single indentation unit."
          (point))
      ,@body))
 
-(defun haskell-misc--single-indent ()
-  "Return a string for single indentation amount for Haskell."
-  (make-string vim-shift-width ?\s))
-
 (defun cleanup-stg ()
   "Remove useless srt:SRT annotations of lambdas, keep only relevant arguments
 and indent them as singe line."
@@ -504,17 +500,18 @@ both unicode and ascii characters.")
                          ;;  "[^ ]" (line-end-position) t 1)
                          (skip-to-indentation)
                          (point))))
-             (when (or (eobp) (/= ?\s (char-after)))
+             (when (or (eobp)
+                       (not (eq ?\s (char-after))))
                (- end start))))))
-    (insert "\n")
+    (insert-char ?\n)
     (when indentation-size
-      (insert (make-string indentation-size ?\s)))))
+      (insert-char ?\s indentation-size))))
 
 (defun haskell--simple-indent-newline-indent ()
   "Make a newline on the current column and indent on step."
   (interactive "*")
   (haskell--simple-indent-newline-same-col)
-  (insert (make-string haskell-indent-offset ?\s)))
+  (insert-char ?\s haskell-indent-offset))
 
 (defun haskell-newline-with-signature-expansion ()
   "Similar to ‘paredit-newline’ but autoexpands haskell signatures."
@@ -586,10 +583,10 @@ both unicode and ascii characters.")
                                                                "\\_>")))))
                          (goto-char start-pos)
                          (delete-horizontal-space t)
-                         (insert "\n")
-                         (insert (make-string function-name-column ?\s)
-                                 func-name
-                                 " ")
+                         (insert-char ?\n)
+                         (insert-char ?\s function-name-column)
+                         (insert func-name)
+                         (insert-char ?\s)
                          t)))))))))
      (when (null expanded-function-name?)
        (goto-char start-pos)
@@ -601,11 +598,15 @@ both unicode and ascii characters.")
                                          (goto-char (nth 8 syn))
                                          (current-column))))
               (delete-horizontal-space t)
-              (insert "\\\n" (make-string string-start-column ?\s) "\\")))
+              (insert-char ?\\)
+              (insert-char ?\n)
+              (insert-char ?\s string-start-column)
+              (insert-char ?\\)))
            ((and function-name-column
                  point-at-end-of-function-signature?)
             (delete-horizontal-space t)
-            (insert "\n" (make-string function-name-column ?\s)))
+            (insert-char ?\n)
+            (insert-char ?\s function-name-column))
            ((save-excursion
               (skip-syntax-backward " ")
               (skip-syntax-backward "w_.")
@@ -624,7 +625,7 @@ both unicode and ascii characters.")
               (skip-to-indentation)
               (looking-at-p "let\\_>"))
             (haskell--simple-indent-newline-same-col)
-            (insert (make-string 4 ?\s)))
+            (insert-char ?\s 4))
            (t
             (haskell--simple-indent-newline-same-col))))))))
 
