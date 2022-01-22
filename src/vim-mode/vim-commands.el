@@ -598,13 +598,13 @@ indented according to the current mode."
       ;; We have to reindent the lines and update the paste-data.
       (let ((endln (line-number-at-pos (vim-paste-info-end vim--last-paste))))
         (if (vim-paste-info-at-eob vim--last-paste)
-          (progn
-            (indent-region (1+ (vim-paste-info-begin vim--last-paste))
-                           (1+ (vim-paste-info-end vim--last-paste)))
-            (setf (vim-paste-info-end vim--last-paste)
-                  (save-excursion
-                    (goto-line-dumb endln)
-                    (line-end-position))))
+            (progn
+              (indent-region (1+ (vim-paste-info-begin vim--last-paste))
+                             (1+ (vim-paste-info-end vim--last-paste)))
+              (setf (vim-paste-info-end vim--last-paste)
+                    (save-excursion
+                      (goto-line-dumb endln)
+                      (line-end-position))))
           (progn
             (indent-region (vim-paste-info-begin vim--last-paste)
                            (vim-paste-info-end vim--last-paste))
