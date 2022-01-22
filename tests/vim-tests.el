@@ -1451,7 +1451,8 @@
    " quux)"
    ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-except
+    (c-mode)
     vim-tests/insert-linewise-region-newline-1
     (execute-kbd-macro (kbd "V h I x y z <return> <escape>"))
   (tests-utils--multiline
