@@ -662,11 +662,11 @@ This function is also responsible for setting the X-selection."
 
 (vim-defcmd vim:visual-paste-before (motion)
   "‘vim:cmd-paste-before’ extended to visual region."
-  (setf vim--cmd-paste-before-counter 0)
+  (setf vim--cmd-paste-before-impl-counter 0)
   (pcase vim-visual--mode-type
     ((or `normal `linewise)
      (vim--cmd-delete-impl motion nil)
-     (vim--cmd-paste-before 1))
+     (vim--cmd-paste-before-impl 1))
     (`block
      (let ((beg (vim-motion-begin motion))
            (end (vim-motion-end motion))
@@ -674,12 +674,12 @@ This function is also responsible for setting the X-selection."
            (undo-inhibit-record-point t))
        (vim-visual--record-undo-pos! beg)
        (goto-char beg)
-       (vim--cmd-paste-before 1)
+       (vim--cmd-paste-before-impl 1)
        (save-excursion
          (dotimes (_ (vim-count-lines-with-correction beg end))
            (forward-line 1)
            (move-to-column col t)
-           (vim--cmd-paste-before 1)))))))
+           (vim--cmd-paste-before-impl 1)))))))
 
 (vim-defcmd vim:visual-append (motion)
   "Starts insertion at the right column of a visual block."
