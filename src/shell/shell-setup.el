@@ -60,7 +60,8 @@
 
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-insert-mode-local-keymap)
-    (("C-m" "<f9>") shell-run-file))
+    (("C-m" "<f9>") shell-run-file)
+    ("<return>"     newline-and-indent))
   (shell-script-abbrev+-setup))
 
 ;;;###autoload
