@@ -36,6 +36,7 @@ otherwise."
                      vim-insert-mode-local-keymap
                      snippet-mode-map)
     (("C-m" "<f9>") yas-load-snippet-buffer-no-kill)
+    ("<return>"     newline-and-indent)
     ("S-<f9>"       yas-tryout-snippet))
 
   (def-keys-for-map snippet-mode-map
