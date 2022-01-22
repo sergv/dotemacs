@@ -19,9 +19,46 @@
 (defconst comment-util--spaces-after-comment " "
   "Amount of spaces to put after comment markers.")
 
-(advices/auto-comment vim:cmd-insert-line-below)
-(advices/auto-comment vim:cmd-insert-line-above)
-(advices/auto-comment haskell-newline-with-signature-expansion)
+(defmacro comment-util--auto-commenting-action (&rest body)
+  (let ((full-line-re-var '#:full-line-re)
+        (prev-line-var '#:prev-line))
+    `(let* ((,full-line-re-var (and
+                                ;; Disable advice if prefix argument is supplied.
+                                (not current-prefix-arg)
+                                *comment-util-current-format*
+                                (comment-format-line-regexp-with-prefix-indent *comment-util-current-format*)))
+            (,prev-line-var (when ,full-line-re-var
+                              (buffer-substring-no-properties
+                               (line-beginning-position)
+                               (point)))))
+       ,@body
+       (when ,full-line-re-var
+         (save-match-data
+           (when (string-match ,full-line-re-var ,prev-line-var)
+             (skip-to-indentation)
+             (delete-region (line-beginning-position) (point))
+             (insert (concat (match-string 1 ,prev-line-var)
+                             comment-util--spaces-after-comment))))))))
+
+(defmacro comment-util-auto-comment-advice (func)
+  "Define advice around FUNC that will insert comments at
+beginning of line if previous line was commented out.
+
+In case of non-nil prefix-arg no comment will be inserted.
+
+Intended to be used with comment-util-mode."
+  (let ((advice-name (string->symbol (format "%s--auto-comment" func))))
+    `(progn
+       (defun ,advice-name (old-func &rest args)
+         "Insert comments at beginning of line if previous line was commented out."
+         (comment-util--auto-commenting-action
+          (apply old-func args)))
+
+       (advice-add ',func :around #',advice-name))))
+
+(comment-util-auto-comment-advice vim:cmd-insert-line-below)
+(comment-util-auto-comment-advice vim:cmd-insert-line-above)
+(comment-util-auto-comment-advice haskell-newline-with-signature-expansion)
 
 (defvar +comment-util-comment-format-alist+
   '((haskell-mode             (one-line "--") (line-re "--+") (comment-chars ?-))
