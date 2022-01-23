@@ -503,10 +503,10 @@ CHECKER and BUFFER are added if the error is in TEMP-FILE."
              (location (dante-parse-error-location location-raw)))
         ;; FIXME: sometimes the "error type" contains the actual error too.
         (when type
-          (let ((buf-name (dante-buffer-file-name buffer)))
+          (let ((buf-name (dante-buffer-file-name-for-error-message buffer)))
             (flycheck-error-new-at (car location) (cadr location) type
                                    (replace-regexp-in-string (regexp-quote temp-file)
-                                                             buf-name
+                                                             (car buf-name)
                                                              (concat fixed-err-type
                                                                      "\n"
                                                                      (s-trim-right msg)))
@@ -514,7 +514,7 @@ CHECKER and BUFFER are added if the error is in TEMP-FILE."
                                    :buffer buffer
                                    :filename (if (string= (dante-canonicalize-path temp-file)
                                                           (dante-canonicalize-path file))
-                                                 buf-name
+                                                 (cdr buf-name)
                                                file))))))))
 
 (defun dante-parse-error-location (string)
@@ -666,41 +666,45 @@ uppercase or lowercase names)."
           (setf end (point))
           (cons start end))))))
 
-(defun dante-buffer-file-name (&optional buffer)
+(defun dante-buffer-file-name-for-error-message (&optional buffer)
   "Call function `buffer-file-name' for BUFFER and clean its result.
 The path returned is canonicalized and stripped of any text properties."
-  (let ((name (buffer-file-name buffer)))
-    (when name
-      (dante-canonicalize-path (substring-no-properties name)))))
+  (if-let (name (buffer-file-name buffer))
+      (let ((path (dante-canonicalize-path (substring-no-properties name))))
+        (cons path path))
+    (cons (buffer-name buffer) nil)))
 
 (defvar-local dante-temp-file-name nil
   "The name of a temporary file to which the current buffer's content is copied.")
 
 (defun dante-tramp-make-tramp-temp-file (buffer)
   "Create a temporary file for BUFFER, perhaps on a remote host."
-  (let* ((fname (buffer-file-name buffer))
-         (suffix (file-name-extension fname t)))
-    (if (file-remote-p fname)
-        (with-parsed-tramp-file-name (buffer-file-name buffer) vec
-          (let ((prefix (concat
-                         (expand-file-name
-                          tramp-temp-name-prefix (tramp-get-remote-tmpdir vec))
-                         "dante"))
-                result)
-            (while (not result)
-              (setq result (concat (make-temp-name prefix) suffix))
-              (if (file-exists-p result)
-                  (setq result nil)))
-            ;; This creates the file by side effect.
-            (set-file-times result)
-            (set-file-modes result #o700)
-            result))
-      fname)))
+  (if-let (fname (buffer-file-name buffer))
+      (let ((suffix (file-name-extension fname t)))
+        (if (file-remote-p fname)
+            (with-parsed-tramp-file-name (buffer-file-name buffer) vec
+              (let ((prefix (concat
+                             (expand-file-name
+                              tramp-temp-name-prefix (tramp-get-remote-tmpdir vec))
+                             "dante"))
+                    result)
+                (while (not result)
+                  (setq result (concat (make-temp-name prefix) suffix))
+                  (if (file-exists-p result)
+                      (setq result nil)))
+                ;; This creates the file by side effect.
+                (set-file-times result)
+                (set-file-modes result #o700)
+                result))
+          fname))
+    (make-temp-file "dante" nil ".hs")))
 
 (defun dante-temp-file-name (buffer)
   "Return a (possibly remote) filename suitable to store BUFFER's contents."
   (with-current-buffer buffer
-    (or dante-temp-file-name (setq dante-temp-file-name (dante-tramp-make-tramp-temp-file buffer)))))
+    (or dante-temp-file-name
+        (setq dante-temp-file-name
+              (dante-tramp-make-tramp-temp-file buffer)))))
 
 (defun dante-canonicalize-path (path)
   "Return a standardized version of PATH.
