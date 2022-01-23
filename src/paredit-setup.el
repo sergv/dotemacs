@@ -23,12 +23,12 @@
 ;;;###autoload
 (el-patch-feature paredit)
 
-(defun paredit-forward-slurp-sexp--remove-initial-whitespace ()
+(defun paredit-forward-slurp-sexp--remove-initial-whitespace (&optional _)
   (when (and (lisp-pos-is-beginning-of-sexp? (- (point) 1))
              (whitespace-char? (char-after)))
     (delete-whitespace-forward)))
 
-(defun paredit-backward-slurp-sexp--remove-initial-whitespace ()
+(defun paredit-backward-slurp-sexp--remove-initial-whitespace (&optional _)
   (when (and (lisp-pos-is-end-of-sexp? (point))
              (whitespace-char? (char-before)))
     (delete-whitespace-backward)))
