@@ -112,8 +112,8 @@
       (vim-local-emap cmd load-func))))
 
 (defun flycheck-error< (a b)
-  (let ((filename-a (expand-file-name (flycheck-error-filename a)))
-        (filename-b (expand-file-name (flycheck-error-filename b)))
+  (let ((filename-a (awhen (flycheck-error-filename a) (expand-file-name it)))
+        (filename-b (awhen (flycheck-error-filename b) (expand-file-name it)))
         (line-a     (flycheck-error-line a))
         (line-b     (flycheck-error-line b))
         (column-a   (flycheck-error-column a))
@@ -126,13 +126,20 @@
                       (extended< column-a column-b)))))))
 
 (defun flycheck-enhancements--navigate-errors-with-wraparound (forward? errs)
-  (let* ((expanded-buffer-file-name (expand-file-name buffer-file-name))
+  (let* ((expanded-buffer-file-name (aif buffer-file-name
+                                        (expand-file-name it)
+                                      (buffer-name)))
+         (curr-buf (current-buffer))
          (all-errors (--separate
-                      (string= expanded-buffer-file-name
-                               (expand-file-name (flycheck-error-filename it)))
+                      (if-let (fname (flycheck-error-filename it))
+                          (string= expanded-buffer-file-name
+                                   (expand-file-name fname))
+                        (if-let (buf (flycheck-error-buffer it))
+                            (eq buf curr-buf)
+                          nil))
                       (-sort #'flycheck-error< errs)))
-         (current-file-errors (first all-errors))
-         (other-all (second all-errors))
+         (current-file-errors (car all-errors))
+         (other-all (cadr all-errors))
          (other-errors
           (--filter (eq (flycheck-error-level it) 'error) other-all)))
     (let ((next-error
@@ -177,19 +184,25 @@
               (car other-all))
              (t nil))))
       (if next-error
-          (if-let ((filename (flycheck-error-filename next-error)))
-              (progn
-                (if (file-exists-p (flycheck-error-filename next-error))
-                    (find-file (flycheck-error-filename next-error))
-                  (awhen (compilation/find-buffer (flycheck-error-filename next-error)
+          (progn
+            (if-let (filename (flycheck-error-filename next-error))
+                (progn
+                  (if (file-exists-p (flycheck-error-filename next-error))
+                      (find-file (flycheck-error-filename next-error))
+                    (aif (compilation/find-buffer (flycheck-error-filename next-error)
                                                   (funcall flycheck-enhancements--get-project-root-for-current-buffer))
-                    (switch-to-buffer it)))
-                (goto-line-dumb (flycheck-error-line next-error))
-                (awhen (flycheck-error-column next-error)
-                  ;; Flycheck columns are 1-based .
-                  (move-to-character-column (- it 1)))
-                (flycheck-display-error-at-point))
-            (error "Error does not refer to any file: %s" next-error))
+                        (switch-to-buffer it)
+                      (error "Failed to find path the error refers to: %s. file does not exist an no matching buffer is opened"
+                             (flycheck-error-filename next-error)))))
+              ;; No filename - got to the bufer in the error message
+              (if-let (buf (flycheck-error-buffer next-error))
+                  (switch-to-buffer buf)
+                (error "Error does not refer to any file or buffer: %s" next-error)))
+            (goto-line-dumb (flycheck-error-line next-error))
+            (awhen (flycheck-error-column next-error)
+              ;; Flycheck columns are 1-based .
+              (move-to-character-column (- it 1)))
+            (flycheck-display-error-at-point))
         (message "No more flycheck errors")))))
 
 (defun flycheck-enhancements-previous-error-with-wraparound ()
