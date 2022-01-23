@@ -97,31 +97,52 @@ will be in different GHCi sessions."
 
 (defun dante-nix-available? ()
   "non-nil iff D contains a nix file and a cabal file."
-  (not (null (cached-executable-find "nix-shell"))))
+  (and (cached-executable-find "nix-shell")
+       t))
 
 (defun dante-stack-available? ()
   "non-nil iff D contains a nix file and a cabal file."
-  (not (null (cached-executable-find "stack"))))
+  (and (cached-executable-find "stack")
+       t))
+
+(defun dante-directory-regular-files (dir re)
+  (--map (car it)
+         (--filter (eq nil (cadr it))
+                   (directory-files-and-attributes dir nil re t))))
 
 (defun dante-cabal-new (d)
   "non-nil iff D contains a cabal project file or a cabal file."
-  (directory-files d
-                   t
-                   (rx (or "cabal.project"
-                           "cabal.project.local"
-                           ".cabal")
-                       eos)
-                   t))
+  (and (dante-directory-regular-files d
+                                     (rx (or "cabal.project"
+                                             "cabal.project.local"
+                                             ".cabal")
+                                         eos))
+       t))
+
+(defun dante-cabal-vanilla (d)
+  "non-nil iff D contains a cabal project file or a cabal file."
+  (and (dante-directory-regular-files d (rx ".cabal" eos))
+       t))
 
 (defun dante-cabal-new-nix (d)
   "non-nil iff D contains a nix file and a cabal file."
-  (and (directory-files d t "shell.nix\\|default.nix" t)
-       (directory-files d t "cabal.project\\(?:.local\\)?" t)))
+  (rx-let ((nix (or "shell.nix" "default.nix"))
+           (cabal (or "cabal.project" "cabal.project.local" ".cabal")))
+    (let ((files (dante-directory-regular-files d (rx (or nix cabal)))))
+      ;; Both files must be present.
+      (and (--any? (string-match-p (rx nix eos) it) files)
+           (--any? (string-match-p (rx cabal eos) it) files)
+           t))))
 
 (defun dante-cabal-nix (d)
   "non-nil iff D contains a nix file and a cabal file."
-  (and (directory-files d t "shell.nix\\|default.nix" t)
-       (directory-files d t ".cabal$" t)))
+  (rx-let ((nix (or "shell.nix" "default.nix"))
+           (cabal (or ".cabal")))
+    (let ((files (dante-directory-regular-files d (rx (or nix cabal) eos))))
+      ;; Both files must be present.
+      (and (--any? (string-match-p (rx nix eos) it) files)
+           (--any? (string-match-p (rx cabal eos) it) files)
+           t))))
 
 (defsubst dante--mk-repl-cmdline (a b)
   (cons 'dante-repl-cmdline (cons a b)))
@@ -196,9 +217,13 @@ will be in different GHCi sessions."
        ,@(funcall mk-opts
                   (lambda (flags)
                     `("nix-shell" "--run" (s-join " " (list "cabal" "repl " (or dante-target "") ,@flags))))))
-      ;; (nix-ghci
-      ;;  ,(lambda (d) (directory-files d t "shell.nix\\|default.nix"))
-      ;;  ("nix-shell" "--pure" "--run" "ghci"))
+      (nix-ghci
+       ,#'dante-nix-available?
+       ,(lambda (d)
+          (and (directory-files d t (rx (or "shell.nix" "default.nix") eos))
+               t))
+       ("nix-shell" "--pure" "--run" "ghci"))
+
       (new-build
        nil
        ,#'dante-cabal-new
@@ -207,12 +232,12 @@ will be in different GHCi sessions."
                     `("cabal" "new-repl" (or dante-target (dante-package-name) nil) ,@flags))))
       (stack
        ,#'dante-stack-available?
-       "stack.yaml"
+       ,(lambda (d) (directory-files d t (rx "stack" (* any) ".yaml" eos)))
        ("stack" "repl" dante-target ,@stack-ghci-options))
 
       (bare-cabal
        nil
-       ,(lambda (d) (directory-files d t ".cabal$"))
+       ,#'dante-cabal-vanilla
        ,@(funcall mk-opts
                   (lambda (flags)
                     `("cabal" "repl" dante-target ,@flags))))
