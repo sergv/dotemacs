@@ -370,7 +370,11 @@ _a_lign  _t_: jump to topmost node start
     ;; Dante doesn't play well with idle-change checks.
     (cond
       (dante-mode
-       (setq-local flycheck-check-syntax-automatically '(save mode-enabled))
+       (setq-local flycheck-check-syntax-automatically
+                   (if buffer-file-name
+                       '(save mode-enabled)
+                     ;; There may be no save step for a temporary buffer.
+                     '(save mode-enabled new-line)))
 
        (dolist (cmd '("conf" "configure"))
          (vim-local-emap cmd #'vim:haskell-dante-configure))
