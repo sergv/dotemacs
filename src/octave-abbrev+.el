@@ -67,7 +67,7 @@ while interactively prompting for variables/messages."
                            (* whitespace)
                            "(")))
                 (concat
-                 (upcase (match-string 1))
+                 (upcase (match-string-no-properties 1))
                  ": ")))
           (error ""))))))
 

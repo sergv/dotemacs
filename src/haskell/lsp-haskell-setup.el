@@ -178,8 +178,8 @@
           (error "Response does not contain hint about where ‘%s’ is defined"
                  identifier))
 
-        (let* ((module (match-string 1 response-markdown))
-               (package (match-string 2 response-markdown))
+        (let* ((module (match-string-no-properties 1 response-markdown))
+               (package (match-string-no-properties 2 response-markdown))
                (package-without-version
                 (replace-regexp-in-string (rx ?- (+ (any (?0 . ?9) ?.)) eos) "" package)))
 
@@ -192,7 +192,7 @@
                    "/"
                    (replace-regexp-in-string "\\." "/" module)
                    "."
-                   (regexp-opt +haskell-extensions+))))))))
+                   (eval-when-compile (regexp-opt +haskell-extensions+)))))))))
 
 (defun haskell-symbnav--jump-to-filtered-tags (identifier filter-re)
   (let* ((proj (eproj-get-project-for-buf (current-buffer)))

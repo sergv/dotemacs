@@ -59,7 +59,7 @@
                 ;; Now verify it is really a preproc line.
                 (if (looking-at "^[ \t]*#[ \t]*\\(if\\|elif\\|endif\\|else\\)")
                     (let ((dchange nil)
-                          (directive (match-string 1)))
+                          (directive (match-string-no-properties 1)))
                       (cond ((or (string= directive "if")
                                  (string= directive "ifdef")
                                  (string= directive "ifndef"))
