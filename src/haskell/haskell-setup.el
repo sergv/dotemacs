@@ -168,7 +168,7 @@
                ;; Parse ghci responses, they may narrow down the result.
                (let* ((mod-name (save-match-data
                                   (if (string-match "-- Defined in ‘\\([^’\n ]+\\)’" info)
-                                      (match-string 1 info)
+                                      (match-string-no-properties 1 info)
                                     (error "Failed to extract mod name from ghci result:\n%s" info))))
                       ;; Packages is e.g.:
                       ;; "active package flags:\n  -package-id base-4.15.1.0\n  -package-id aeson-2.0.3.0-e91573e5a9f0a74731f7cb1fe08486dfa1990213df0c4f864e51b791370cc73d"
@@ -199,13 +199,13 @@
   ;; On external symbols, GHC may return a location such as integer-gmp-1.0.0.1:integer-gmp-1.0.0.1:GHC.Integer.Type
   (save-match-data
     (when (string-match "\\(.*?\\):(\\([0-9]+\\),\\([0-9]+\\))-(\\([0-9]+\\),\\([0-9]+\\))\\'" string)
-      (let* ((file (match-string 1 string))
+      (let* ((file (match-string-no-properties 1 string))
              (resolved-file
               (or (gethash file dante-original-buffer-map)
                   (gethash (dante-local-name file) dante-original-buffer-map)
                   file))
-             (line (string-to-number (match-string 2 string)))
-             (col (string-to-number (match-string 3 string))))
+             (line (string-to-number (match-string-no-properties 2 string)))
+             (col (string-to-number (match-string-no-properties 3 string))))
         (make-eproj-tag (expand-file-name resolved-file dante-project-root)
                         line
                         nil

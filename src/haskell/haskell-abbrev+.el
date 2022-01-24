@@ -203,7 +203,7 @@ then Bar would be the result."
   (save-match-data
     (if (string-match "\\`\\(?:[A-Z][a-zA-Z0-9_']*\\.\\)+\\([A-Z][a-zA-Z0-9_']*\\)\\'"
                       qualified-name)
-        (match-string 1 qualified-name)
+        (match-string-no-properties 1 qualified-name)
       qualified-name)))
 
 (defconst haskell-abbrev+/language-pragma-prefix
