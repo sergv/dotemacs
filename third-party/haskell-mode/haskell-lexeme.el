@@ -25,11 +25,11 @@
   (define-category ?P "Haskell symbol constituent characters")
   (map-char-table
    #'(lambda (key val)
-       (if (or
-            (and (consp key) (> (car key) 128))
-            (and (numberp key) (> key 128)))
-           (if (member val '(Pc Pd Po Sm Sc Sk So))
-               (modify-category-entry key ?P))))
+       (when (and (or
+                   (and (consp key) (> (car key) 128))
+                   (and (numberp key) (> key 128)))
+                  (memq val '(Pc Pd Po Sm Sc Sk So)))
+         (modify-category-entry key ?P)))
    unicode-category-table)
 
   (dolist (key (string-to-list "!#$%&*+./<=>?@^|~\\-:"))
@@ -121,7 +121,7 @@ the unqualified part (if any)."
           (list begin (match-end 0)
                 (match-beginning 0) (match-end 0)))
         'qsym)
-       ((equal begin (point))
+       ((eq begin (point))
         (set-match-data match-data-old)
         nil)
        (t
@@ -325,27 +325,29 @@ After successful match:
         (let (finish)
           (while (and (not finish)
                       (re-search-forward "[\"\n\\]" nil 'goto-eob))
-            (cond
-             ((equal (match-string 0) "\\")
-              (if (looking-at "[ \t\n\r\v\f]+\\\\?")
-                  (goto-char (match-end 0))
-                (goto-char (1+ (point)))))
+            (let ((str (match-string 0)))
+              (cond
+                ((equal str "\\")
+                 (goto-char
+                  (if (looking-at "[ \t\n\r\v\f]+\\\\?")
+                      (match-end 0)
+                    (1+ (point)))))
 
-             ((equal (match-string 0) "\"")
-              (set-match-data
-               (list begin (match-end 0)
-                     begin (1+ begin)
-                     (1+ begin) (match-beginning 0)
-                     (match-beginning 0) (match-end 0)))
-              (setq finish t))
+                ((equal str "\"")
+                 (set-match-data
+                  (list begin (match-end 0)
+                        begin (1+ begin)
+                        (1+ begin) (match-beginning 0)
+                        (match-beginning 0) (match-end 0)))
+                 (setq finish t))
 
-             ((equal (match-string 0) "\n")
-              (set-match-data
-               (list begin (match-beginning 0)
-                     begin (1+ begin)
-                     (1+ begin) (match-beginning 0)
-                     nil nil))
-              (setq finish t))))
+                ((equal str "\n")
+                 (set-match-data
+                  (list begin (match-beginning 0)
+                        begin (1+ begin)
+                        (1+ begin) (match-beginning 0)
+                        nil nil))
+                 (setq finish t)))))
           (unless finish
             ;; string closed by end of buffer
             (set-match-data
@@ -379,8 +381,8 @@ names according to Template Haskell specification."
                                        (regexp ,haskell-lexeme-modid-opt-prefix)
                                        (group (regexp ,haskell-lexeme-id))
                                        (group "|"))))
-         (equal (haskell-lexeme-classify-by-first-char (char-after (match-beginning 1)))
-                'varid)
+         (eq (haskell-lexeme-classify-by-first-char (char-after (match-beginning 1)))
+             'varid)
          (not (member (match-string 1) '("e" "t" "d" "p"))))
       (save-excursion
         ;; note that quasi quote syntax does not have any escaping
@@ -419,24 +421,24 @@ of a token."
   (let ((category (get-char-code-property (or char ?\ ) 'general-category)))
 
     (cond
-     ((or (member char '(?! ?# ?$ ?% ?& ?* ?+ ?. ?/ ?< ?= ?> ?? ?@ ?^ ?| ?~ ?\\ ?-))
+     ((or (memq char '(?! ?# ?$ ?% ?& ?* ?+ ?. ?/ ?< ?= ?> ?? ?@ ?^ ?| ?~ ?\\ ?-))
           (and (> char 127)
-               (member category '(Pc Pd Po Sm Sc Sk So))))
+               (memq category '(Pc Pd Po Sm Sc Sk So))))
       'varsym)
-     ((equal char ?:)
+     ((eq char ?:)
       'consym)
-     ((equal char ?\')
+     ((eq char ?\')
       'char)
-     ((equal char ?\")
+     ((eq char ?\")
       'string)
-     ((member category '(Lu Lt))
+     ((memq category '(Lu Lt))
       'conid)
-     ((or (equal char ?_)
-          (member category '(Ll Lo)))
+     ((or (eq char ?_)
+          (memq category '(Ll Lo)))
       'varid)
      ((and (>= char ?0) (<= char ?9))
       'number)
-     ((member char '(?\] ?\[ ?\( ?\) ?\{ ?\} ?\` ?\, ?\;))
+     ((memq char '(?\] ?\[ ?\( ?\) ?\{ ?\} ?\` ?\, ?\;))
       'special))))
 
 (defun haskell-lexeme-looking-at-token (&rest flags)
@@ -471,7 +473,7 @@ See `haskell-lexeme-classify-by-first-char' for details."
       ;; those to be treated as whitespace anyway
       (or
        (> (skip-syntax-forward "-") 0)
-       (and (not (member 'newline flags))
+       (and (not (memq 'newline flags))
             (> (skip-chars-forward "\n") 0))))
   (let
       ((case-fold-search nil)
@@ -502,7 +504,7 @@ See `haskell-lexeme-classify-by-first-char' for details."
           (if (save-match-data
                 (string-match "\\`---*\\'" (match-string-no-properties 0)))
               (progn
-                (set-match-data (list point (set-marker (make-marker) (line-end-position))))
+                (set-match-data (list point (copy-marker (line-end-position))))
                 'comment)
             'qsymid))
      (and (looking-at haskell-lexeme-number)
