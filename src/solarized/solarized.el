@@ -617,7 +617,7 @@
       (tuareg-font-lock-operator-face :foreground ,cyan)
       (tuareg-font-lock-multistage-face :foreground ,blue :bold t)
 
-      (search-highlight-face :box (:line-width ,box-line-width :color ,magenta))
+      (search-highlight-face :box (:line-width ,box-line-width :color ,magenta :extend nil))
       (search-red-face :foreground ,background :background ,highlight-red-background)
       (search-orange-face :foreground ,background :background ,highlight-orange-background)
       (search-yellow-face :foreground ,background :background ,highlight-yellow-background)
