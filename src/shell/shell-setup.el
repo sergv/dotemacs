@@ -83,7 +83,7 @@ MSYS-style drives, e.g. \"/c/foo/bar.txt\" -> \"c:/foo/bar.txt\"."
       (funcall
        internal-func
        (if (string-match "^\\(/\\([a-zA-Z]\\)\\)/.*$" dir)
-           (let ((drive (match-string 2 dir)))
+           (let ((drive (match-string-no-properties 2 dir)))
              (replace-match (concat drive ":") nil t dir 1))
          dir)))))
 
