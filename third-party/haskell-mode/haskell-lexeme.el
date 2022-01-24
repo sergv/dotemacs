@@ -69,16 +69,18 @@ identifier or symbol.
 Useful for `re-search-forward'.")
 
 (defconst haskell-lexeme-modid-opt-prefix
-  (concat "\\(?:" haskell-lexeme-modid "\\.\\)*")
+  (eval-when-compile
+    (concat "\\(?:" haskell-lexeme-modid "\\.\\)*"))
   "Regexp matching a valid Haskell module prefix, potentially empty.
 
 Module path prefix is separated by dots and finishes with a
 dot. For path component syntax see `haskell-lexeme-modid'.")
 
 (defconst haskell-lexeme-qid-or-qsym
-  (rx-to-string `(: (regexp ,haskell-lexeme-modid-opt-prefix)
-                    (group (| (regexp ,haskell-lexeme-id) (regexp ,haskell-lexeme-sym)
-                              ))))
+  (eval-when-compile
+    (rx-to-string `(: (regexp ,haskell-lexeme-modid-opt-prefix)
+                      (group (| (regexp ,haskell-lexeme-id) (regexp ,haskell-lexeme-sym)
+                                )))))
   "Regexp matching a valid qualified identifier or symbol.
 
 Note that (match-string 1) returns the unqualified part.")
@@ -174,17 +176,19 @@ When match is successful, match-data will contain:
     result))
 
 (defconst haskell-lexeme-qid
-  (rx-to-string `(: (regexp "'*")
-                    (regexp ,haskell-lexeme-modid-opt-prefix)
-                    (group (regexp ,haskell-lexeme-id))))
+  (eval-when-compile
+    (rx-to-string `(: (regexp "'*")
+                      (regexp ,haskell-lexeme-modid-opt-prefix)
+                      (group (regexp ,haskell-lexeme-id)))))
   "Regexp matching a valid qualified identifier.
 
 Note that (match-string 1) returns the unqualified part.")
 
 (defconst haskell-lexeme-qsym
-  (rx-to-string `(: (regexp "'*")
-                    (regexp ,haskell-lexeme-modid-opt-prefix)
-                    (group (regexp ,haskell-lexeme-id))))
+  (eval-when-compile
+    (rx-to-string `(: (regexp "'*")
+                      (regexp ,haskell-lexeme-modid-opt-prefix)
+                      (group (regexp ,haskell-lexeme-id)))))
   "Regexp matching a valid qualified symbol.
 
 Note that (match-string 1) returns the unqualified part.")
@@ -217,14 +221,15 @@ Note that `haskell-lexeme-char-literal-inside' matches strictly
 only escape sequences defined in Haskell Report.")
 
 (defconst haskell-lexeme--char-literal-rx
-  (rx-to-string '(seq (group-n 1 "'")
-                      (or (group-n 2
-                                   (not (any ?' ?\n ?\r ?\f ?\t ?\v ?\a ?\b))) ; exactly one char
-                          (group-n 2 (regexp "\\\\[^\n][^'\r\n]*"))) ; allow quote just after first backslash
-                      (or (group-n 3 "'")
-                          (seq (? "\r") "\n")
-                          eol
-                          eos)))
+  (eval-when-compile
+    (rx-to-string '(seq (group-n 1 "'")
+                        (or (group-n 2
+                                     (not (any ?' ?\n ?\r ?\f ?\t ?\v ?\a ?\b))) ; exactly one char
+                            (group-n 2 (regexp "\\\\[^\n][^'\r\n]*"))) ; allow quote just after first backslash
+                        (or (group-n 3 "'")
+                            (seq (? "\r") "\n")
+                            eol
+                            eos))))
   "Regexp matching a character literal lookalike.
 
 Note that `haskell-lexeme--char-literal-rx' matches more than
@@ -377,10 +382,12 @@ Note that this function excludes 'e', 't', 'd', 'p' as quoter
 names according to Template Haskell specification."
   (let ((match-data-old (match-data)))
     (if (and
-         (looking-at (rx-to-string `(: "[" (optional "$")
-                                       (regexp ,haskell-lexeme-modid-opt-prefix)
-                                       (group (regexp ,haskell-lexeme-id))
-                                       (group "|"))))
+         (looking-at
+          (eval-when-compile
+            (rx-to-string `(: "[" (optional "$")
+                              (regexp ,haskell-lexeme-modid-opt-prefix)
+                              (group (regexp ,haskell-lexeme-id))
+                              (group "|")))))
          (eq (haskell-lexeme-classify-by-first-char (char-after (match-beginning 1)))
              'varid)
          (not (member (match-string 1) '("e" "t" "d" "p"))))
