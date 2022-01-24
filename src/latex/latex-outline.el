@@ -175,7 +175,7 @@ possible values are 'part, 'chapter, 'section, 'subsection, 'subsubsection,
 of section."
   (save-match-data
     (when (string-match latex-sectioning-regexp str)
-      (intern (match-string 1 str)))))
+      (string->symbol (match-string-no-properties 1 str)))))
 
 
 (defvar latex:document-start nil
@@ -190,9 +190,8 @@ for use in utility functions."
   (interactive)
   (latex:save-ex-save-re
    (goto-char (point-min))
-   (let ((start (re-search-forward latex-document-start nil t)))
-     (when start
-       (setq latex:document-start (copy-marker start))))))
+   (when-let (start (re-search-forward latex-document-start nil t))
+     (setq latex:document-start (copy-marker start)))))
 
 
 (defconst latex-part-regexp          "\\\\part\\*?{\\(?:.\\|\n\\)*?}")

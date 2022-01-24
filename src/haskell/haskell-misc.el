@@ -559,7 +559,7 @@ both unicode and ascii characters.")
                                                    ws "*"
                                                    haskell-regexen/function-signature-colons))))
                        (setf found? t
-                             func-name (match-string 1))))
+                             func-name (match-string-no-properties 1))))
                    (when found?
                      (goto-char (match-beginning 1))
                      (setf function-name-column (current-column))
@@ -745,7 +745,7 @@ value section should have if it is to be properly indented."
        (haskell-cabal-each-line
         (beginning-of-line)
         (when (looking-at "^[ \t]*\\([^ \t\r\n]\\(?:.*[^ \t\r\n]\\)?\\)[ \t]*$")
-          (replace-match (match-string 1) nil t)))
+          (replace-match (match-string-no-properties 1) nil t)))
        (sort-subr nil
                   'forward-line
                   'end-of-line

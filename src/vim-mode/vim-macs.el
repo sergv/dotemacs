@@ -189,7 +189,7 @@ For more information about the vim:motion struct look at vim-core.el."
            (when argument
              (error "%s: only one argument may be specified: %s" 'vim-defcmd arg))
            (let ((arg-type (if (match-beginning 1)
-                               `',(intern (match-string 1 arg-name))
+                               `',(string->symbol (match-string-no-properties 1 arg-name))
                              ''text)))
              (setq argument arg-type)
              (push 'argument params)

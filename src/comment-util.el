@@ -37,8 +37,8 @@
            (when (string-match ,full-line-re-var ,prev-line-var)
              (skip-to-indentation)
              (delete-region (line-beginning-position) (point))
-             (insert (concat (match-string 1 ,prev-line-var)
-                             comment-util--spaces-after-comment))))))))
+             (insert (match-string-no-properties 1 ,prev-line-var)
+                     comment-util--spaces-after-comment)))))))
 
 (defmacro comment-util-auto-comment-advice (func)
   "Define advice around FUNC that will insert comments at

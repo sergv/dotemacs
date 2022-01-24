@@ -588,9 +588,9 @@ under git version control."
                   (lambda (x)
                     (save-match-data
                       (if (string-match "^/\\([a-zA-Z]\\)\\(.*\\)$" x)
-                          (concat (match-string 1 x)
+                          (concat (match-string-no-properties 1 x)
                                   ":"
-                                  (match-string 2 x))
+                                  (match-string-no-properties 2 x))
                         x))))))
             (funcall fix-cygwin-paths
                      (strip-trailing-slash

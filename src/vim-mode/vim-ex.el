@@ -362,7 +362,7 @@ beg end force) with the following meanings.
                                       (cdr cmd-region)))))
         ;; skip whitespaces
         (when (string-match "\\`\\s-*" arg)
-          (setq spaces (match-string 0 arg)
+          (setq spaces (match-string-no-properties 0 arg)
                 arg (substring arg (match-end 0))))
         (values range cmd spaces arg beg end force)))))
 
@@ -657,7 +657,7 @@ the range and the new position."
   (cond
     ((>= pos (length text)) nil)
     ((= pos (or (string-match "[0-9]+" text pos) -1))
-     (values (cons 'abs (string-to-number (match-string 0 text)))
+     (values (cons 'abs (string-to-number (match-string-no-properties 0 text)))
              (match-end 0)))
     ((= (aref text pos) ?\$)
      (values 'last-line (1+ pos)))
@@ -672,12 +672,12 @@ the range and the new position."
     ((= (aref text pos) ?\/)
      (when (string-match "\\([^/]+\\|\\\\.\\)\\(?:/\\|$\\)"
                          text (1+ pos))
-       (values (cons 're-fwd (match-string 1 text))
+       (values (cons 're-fwd (match-string-no-properties 1 text))
                (match-end 0))))
     ((= (aref text pos) ?\?)
      (when (string-match "\\([^?]+\\|\\\\.\\)\\(?:?\\|$\\)"
                          text (1+ pos))
-       (values (cons 're-bwd (match-string 1 text))
+       (values (cons 're-bwd (match-string-no-properties 1 text))
                (match-end 0))))
     ((and (= (aref text pos) ?\\)
           (< pos (1- (length text))))
@@ -692,13 +692,13 @@ the range and the new position."
 the offset and the new position."
   (let ((off nil))
     (while (= pos (or (string-match "\\([-+]\\)\\([0-9]+\\)?" text pos) -1))
-      (if (string= (match-string 1 text) "+")
-        (setq off (+ (or off 0) (if (match-beginning 2)
-                                  (string-to-number (match-string 2 text))
-                                  1)))
+      (if (string= (match-string-no-properties 1 text) "+")
+          (setq off (+ (or off 0) (if (match-beginning 2)
+                                      (string-to-number (match-string-no-properties 2 text))
+                                    1)))
 
         (setq off (- (or off 0) (if (match-beginning 2)
-                                  (string-to-number (match-string 2 text))
+                                    (string-to-number (match-string-no-properties 2 text))
                                   1))))
       (setq pos (match-end 0)))
     (and off (values off pos))))
