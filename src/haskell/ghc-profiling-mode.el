@@ -49,8 +49,8 @@ cpu time or allocations that the value of this variable.")
         eol)))
 
 (defun ghc-profiling-mode--matched-expensive-entry? ()
-  (let ((inherited-time (string->number (match-string 1)))
-        (inherited-alloc (string->number (match-string 2))))
+  (let ((inherited-time (string->number (match-string-no-properties 1)))
+        (inherited-alloc (string->number (match-string-no-properties 2))))
     (<= ghc-profiling-mode-expensive-cumulative-threshold
         (max inherited-time inherited-alloc))))
 
