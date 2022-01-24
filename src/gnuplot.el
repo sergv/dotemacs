@@ -147,22 +147,22 @@ lines."
     (save-excursion
       (save-excursion
         (end-of-line 0)
-        (if (bobp) ()
+        (unless (bobp)
           (re-search-backward "^[ \t]*." (point-min) "to_limit")
           (back-to-indentation)
           (setq indent (current-column))
-          (if (looking-at "s?pl\\(o?\\|\\(ot\\)?\\)[ \t]+.?")
-              (let ((plus (1- (length (match-string 0)))))
-                (end-of-line)
-                (backward-char 1)
-                (if (looking-at (regexp-quote "\\"))
-                    (setq indent  (+ plus indent)))))))
-      (unless (= (current-indentation) indent)
+          (when (looking-at "s?pl\\(o?\\|\\(ot\\)?\\)[ \t]+.?")
+            (let ((offset (- (match-end 0) (match-beginning 0) 1)))
+              (end-of-line)
+              (backward-char 1)
+              (when (looking-at-p (regexp-quote "\\"))
+                (setq indent (+ offset indent)))))))
+      (unless (eq (current-indentation) indent)
         (beginning-of-line)
         (delete-horizontal-space)
         (insert-char ?\s indent)))
-    (if (looking-at "[ \t]+$")
-        (end-of-line))))
+    (when (looking-at "[ \t]+$")
+      (end-of-line))))
 
 
 ;;;###autoload

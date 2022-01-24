@@ -479,7 +479,7 @@ pattern and replace matches with REPLACEMENT.
                                      (set-match-data x)
                                      (move-overlay overlay (match-beginning 0) (match-end 0))
                                      (concat "Query replacing "
-                                             (match-string 0)
+                                             (match-string-no-properties 0)
                                              " with "
                                              (match-substitute-replacement replacement
                                                                            case-fold-search)
