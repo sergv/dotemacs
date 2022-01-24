@@ -56,7 +56,7 @@ string on error"
               (beginning-of-defun)
               (when (looking-at "def[ \t]+\\([a-zA-Z_][a-zA-Z0-9_]*\\)")
                 (concat
-                 (upcase (match-string 1))
+                 (upcase (match-string-no-properties 1))
                  ": ")))
           (error ""))))))
 
