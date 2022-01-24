@@ -45,6 +45,11 @@ UppercaseLetter, LowercaseLetter, OtherLetter, TitlecaseLetter,
 ModifierLetter, DecimalNumber, OtherNumber, backslash or
 underscore.")
 
+(defconst haskell-lexeme-modid-with-dot
+  (eval-when-compile
+    (concat haskell-lexeme-modid "\\."))
+  "‘haskell-lexeme-modid’ endind with a dot.")
+
 (defconst haskell-lexeme-id
   "[[:alpha:]_][[:alnum:]'_]*"
   "Regexp matching a valid Haskell identifier.
@@ -102,7 +107,7 @@ the unqualified part (if any)."
   (let ((begin (point))
         (match-data-old (match-data)))
     (save-excursion
-      (while (looking-at (concat haskell-lexeme-modid "\\."))
+      (while (looking-at haskell-lexeme-modid-with-dot)
         (goto-char (match-end 0)))
       (cond
        ((looking-at haskell-lexeme-id)
@@ -327,33 +332,33 @@ After successful match:
     (save-excursion
       (let ((begin (point)))
         (goto-char (match-end 0))
-        (let (finish)
-          (while (and (not finish)
-                      (re-search-forward "[\"\n\\]" nil 'goto-eob))
-            (let ((str (match-string 0)))
+        (let ((continue t))
+          (while (and continue
+                      (re-search-forward (rx (or ?\" ?\n ?\\)) nil 'goto-eob))
+            (let ((c (char-after (match-beginning 0))))
               (cond
-                ((equal str "\\")
+                ((eq c ?\\)
                  (goto-char
                   (if (looking-at "[ \t\n\r\v\f]+\\\\?")
                       (match-end 0)
                     (1+ (point)))))
 
-                ((equal str "\"")
+                ((eq c ?\")
                  (set-match-data
                   (list begin (match-end 0)
                         begin (1+ begin)
                         (1+ begin) (match-beginning 0)
                         (match-beginning 0) (match-end 0)))
-                 (setq finish t))
+                 (setq continue nil))
 
-                ((equal str "\n")
+                ((eq c ?\n)
                  (set-match-data
                   (list begin (match-beginning 0)
                         begin (1+ begin)
                         (1+ begin) (match-beginning 0)
                         nil nil))
-                 (setq finish t)))))
-          (unless finish
+                 (setq continue nil)))))
+          (when continue
             ;; string closed by end of buffer
             (set-match-data
              (list begin (point)
@@ -420,33 +425,40 @@ names according to Template Haskell specification."
       (set-match-data match-data-old)
       nil)))
 
+(defun haskell-lexeme--get-char-category (char)
+  (get-char-code-property (or char ?\s) 'general-category))
+
 (defun haskell-lexeme-classify-by-first-char (char)
   "Classify token by CHAR.
 
 CHAR is a chararacter that is assumed to be the first character
 of a token."
-  (let ((category (get-char-code-property (or char ?\ ) 'general-category)))
-
-    (cond
-     ((or (memq char '(?! ?# ?$ ?% ?& ?* ?+ ?. ?/ ?< ?= ?> ?? ?@ ?^ ?| ?~ ?\\ ?-))
-          (and (> char 127)
-               (memq category '(Pc Pd Po Sm Sc Sk So))))
-      'varsym)
-     ((eq char ?:)
-      'consym)
-     ((eq char ?\')
-      'char)
-     ((eq char ?\")
-      'string)
-     ((memq category '(Lu Lt))
-      'conid)
-     ((or (eq char ?_)
-          (memq category '(Ll Lo)))
-      'varid)
-     ((and (>= char ?0) (<= char ?9))
-      'number)
-     ((memq char '(?\] ?\[ ?\( ?\) ?\{ ?\} ?\` ?\, ?\;))
-      'special))))
+  (when char
+    (let ((category nil))
+      (cond
+        ((or (memq char '(?! ?# ?$ ?% ?& ?* ?+ ?. ?/ ?< ?= ?> ?? ?@ ?^ ?| ?~ ?\\ ?-))
+             (and (> char 127)
+                  (memq (setq category
+                              (haskell-lexeme--get-char-category char))
+                        '(Pc Pd Po Sm Sc Sk So))))
+         'varsym)
+        ((eq char ?:)
+         'consym)
+        ((eq char ?\')
+         'char)
+        ((eq char ?\")
+         'string)
+        ((memq (or category
+                   (setq category (haskell-lexeme--get-char-category char)))
+               '(Lu Lt))
+         'conid)
+        ((or (eq char ?_)
+             (memq category '(Ll Lo)))
+         'varid)
+        ((and (>= char ?0) (<= char ?9))
+         'number)
+        ((memq char '(?\] ?\[ ?\( ?\) ?\{ ?\} ?\` ?\, ?\;))
+         'special)))))
 
 (defun haskell-lexeme-looking-at-token (&rest flags)
   "Like `looking-at' but understands Haskell lexemes.
