@@ -592,6 +592,7 @@ moves over sexps."
   (message-stderr "Something wrong"))
 
 (ert-deftest haskell-stylish-on-save-add-first-line ()
+  (haskell-stylish--skip-if-no-stylish-available)
   (with-temp-dir-structure
    (("T.hs" . "main :: IO ()\n"))
     (with-script-path
@@ -613,6 +614,7 @@ moves over sexps."
   :expected-result (if (equal system-type 'windows-nt)
                        :failed
                      :passed)
+  (haskell-stylish--skip-if-no-stylish-available)
   (with-temp-dir-structure
    (("T.hs" . "main :: IO ()\n"))
     (with-script-path
@@ -628,6 +630,7 @@ moves over sexps."
          (should (looking-at-p "main = return")))))))
 
 (ert-deftest haskell-stylish-on-save-no-change ()
+  (haskell-stylish--skip-if-no-stylish-available)
   (with-temp-dir-structure
    (("T.hs" . "main :: IO ()"))
     (with-script-path
@@ -641,6 +644,7 @@ moves over sexps."
          (should (looking-at-p "main = return")))))))
 
 (ert-deftest haskell-stylish-on-save-bad-exit-code ()
+  (haskell-stylish--skip-if-no-stylish-available)
   (with-temp-dir-structure
    (("T.hs" . "main :: IO ()"))
     (with-script-path
@@ -654,6 +658,7 @@ moves over sexps."
          (should (looking-at-p "main = return ()")))))))
 
 (ert-deftest haskell-stylish-on-save-error-message ()
+  (haskell-stylish--skip-if-no-stylish-available)
   (with-temp-dir-structure
    (("T.hs" . "main :: IO ()"))
     (with-script-path
