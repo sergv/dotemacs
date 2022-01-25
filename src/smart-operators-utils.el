@@ -55,9 +55,7 @@ that next 2 characters are AFTER1 and AFTER2."
 ;;;###autoload
 (defun smart-operators--in-string-or-comment? (&optional disable-comment-check?)
   "Are we in string or comment?"
-  (if (and disable-comment-check?
-           ;; Is in string? E.g. reaps fruits of haskell-mode lexing work.
-           (eq (syntax-class (syntax-after (point))) 7))
+  (if (eq (syntax-class (syntax-after (point))) 7)
       t
     (let* ((state (parse-partial-sexp (line-beginning-position)
                                       (point)))
@@ -107,7 +105,7 @@ that next 2 characters are AFTER1 and AFTER2."
   (let ((next-char (char-after)))
     (insert-char ?\,)
     (when (or (not next-char)
-              (not (member next-char '(?\s ?\t ?\'))))
+              (not (memq next-char '(?\s ?\t ?\'))))
       (insert-char ?\s))))
 
 (provide 'smart-operators-utils)
