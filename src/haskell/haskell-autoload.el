@@ -9,6 +9,7 @@
 (eval-when-compile
   (defvar attrap-flycheck-checkers-alist))
 
+(require 'haskell-constants)
 (require 'happy-mode-autoload)
 (require 'mmm-setup)
 
@@ -54,13 +55,6 @@
 (autoload 'vim:haskell-flycheck-clear:interactive "haskell-setup" nil t)
 (autoload 'vim:haskell-flycheck-list-errors:interactive "haskell-setup" nil t)
 (autoload 'vim:haskell-navigate-imports:interactive "haskell-setup" nil t)
-
-(defconst +haskell-extensions+
-  '("hs" "hsig" "lhs" "hsc" "chs" "hs-boot" "lhs-boot" "alex" "x" "lx" "happy" "y" "ly" "ag" "lag"))
-
-(defconst +haskell-syntax-modes+
-  '(haskell-mode haskell-literate-mode haskell-c-mode haskell-c2hs-mode alex-mode happy-mode uuag-mode)
-  "List of modes that use haskell syntax.")
 
 (mmm-add-classes
  '((literate-haskell-latex
