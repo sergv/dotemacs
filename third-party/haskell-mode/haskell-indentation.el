@@ -104,9 +104,6 @@ set and deleted as if they were real tabs."
   (kill-local-variable 'indent-region-function)
 
   (when haskell-indentation-mode
-    (when (and (bound-and-true-p haskell-indent-mode)
-               (fboundp 'turn-off-haskell-indent))
-      (turn-off-haskell-indent))
     (setq-local indent-line-function #'haskell-indentation-indent-line)
     (setq-local indent-region-function #'haskell-indentation-indent-region)))
 
