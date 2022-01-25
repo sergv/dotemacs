@@ -261,13 +261,17 @@ hierarchy created.
 Whole hierarchy is removed after BODY finishes and value of
 `default-directory' is restored."
   (declare (indent 2) (debug t))
-  `(let ((tmpdir (make-temp-name "haskell-mode-test-dir")))
+  `(let ((tmpdir (make-temp-name (concat (or small-temporary-file-directory
+                                             temporary-file-directory)
+                                         "/haskell-mode-test-dir"))))
      (make-directory tmpdir)
-     (unwind-protect
-         (let ((default-directory (file-name-as-directory (concat default-directory tmpdir))))
-           (create-directory-structure ',entries)
-           ,@body)
-       (delete-directory tmpdir t))))
+     (with-temp-buffer
+       (unwind-protect
+           (progn
+             (cd tmpdir)
+             (create-directory-structure ',entries)
+             ,@body)
+         (delete-directory tmpdir t)))))
 
 (defun haskell-bypass-confirmation (function &rest args)
   "Call FUNCTION with ARGS, bypassing all prompts.
