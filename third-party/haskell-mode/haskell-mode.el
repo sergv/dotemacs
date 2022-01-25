@@ -497,7 +497,7 @@ be set to the preferred literate style."
                    (while (looking-at-p "^[\t ]*$")
                      (unless (= (forward-line -1) 0)
                        (throw 'return nil)))
-                   (or (and (not (equal (string-to-syntax "<") (syntax-after (point))))
+                   (or (and (not (equal (eval-when-compile (string-to-syntax "<")) (syntax-after (point))))
                             (not (looking-at-p "^>")))
                        (looking-at-p "^\\\\begin{code}[\t ]*$")))))))
         (while (< (point) end)
@@ -505,16 +505,16 @@ be set to the preferred literate style."
             (if previous-line-latex-code
                 (if (looking-at-p "^\\\\end{code}[\t ]*$")
                     (progn
-                      (put-text-property (point) (1+ (point)) 'syntax-table (string-to-syntax "<"))
+                      (put-text-property (point) (1+ (point)) 'syntax-table (eval-when-compile (string-to-syntax "<")))
                       (setq previous-line-latex-code nil))
                   ;; continue latex-code
                   )
               (if (looking-at-p "^>")
                   ;; this is a whitespace
-                  (put-text-property (point) (1+ (point)) 'syntax-table (string-to-syntax "-"))
+                  (put-text-property (point) (1+ (point)) 'syntax-table (eval-when-compile (string-to-syntax "-")))
                 ;; this is a literate comment
                 (progn
-                  (put-text-property (point) (1+ (point)) 'syntax-table (string-to-syntax "<"))
+                  (put-text-property (point) (1+ (point)) 'syntax-table (eval-when-compile (string-to-syntax "<")))
                   (when (looking-at-p "^\\\\begin{code}[\t ]*$")
                     (setq previous-line-latex-code t))))))
           (forward-line 1))))
@@ -548,16 +548,16 @@ be set to the preferred literate style."
                    (haskell-lexeme-classify-by-first-char (char-after (match-beginning 1)))
                    '(varsym consym))
               ;; we have to neutralize potential comments here
-              (put-text-property (match-beginning 1) (match-end 1) 'syntax-table (string-to-syntax "."))))
+              (put-text-property (match-beginning 1) (match-end 1) 'syntax-table (eval-when-compile (string-to-syntax ".")))))
            ((eq token-kind 'number)
-            (put-text-property (match-beginning 0) (match-end 0) 'syntax-table (string-to-syntax "w")))
+            (put-text-property (match-beginning 0) (match-end 0) 'syntax-table (eval-when-compile (string-to-syntax "w"))))
            ((eq token-kind 'char)
             (save-excursion
               (goto-char (match-beginning 2))
               (let ((limit (match-end 2)))
                 (save-match-data
                   (while (re-search-forward "\"" limit t)
-                    (put-text-property (match-beginning 0) (match-end 0) 'syntax-table (string-to-syntax ".")))))
+                    (put-text-property (match-beginning 0) (match-end 0) 'syntax-table (eval-when-compile (string-to-syntax "."))))))
               ;; Place a generic string delimeter only when an open
               ;; quote is closed by end-of-line Emacs acts strangely
               ;; when a generic delimiter is not closed so in case
@@ -566,18 +566,18 @@ be set to the preferred literate style."
               (if (and (not (match-beginning 3))
                        (not (eq (match-end 2) (point-max))))
                   (progn
-                    (put-text-property (match-beginning 1) (match-end 1) 'syntax-table (string-to-syntax "|"))
-                    (put-text-property (match-end 2 ) (1+ (match-end 2)) 'syntax-table (string-to-syntax "|")))
-                (put-text-property (match-beginning 1) (match-end 1) 'syntax-table (string-to-syntax "\""))
+                    (put-text-property (match-beginning 1) (match-end 1) 'syntax-table (eval-when-compile (string-to-syntax "|")))
+                    (put-text-property (match-end 2 ) (1+ (match-end 2)) 'syntax-table (eval-when-compile (string-to-syntax "|"))))
+                (put-text-property (match-beginning 1) (match-end 1) 'syntax-table (eval-when-compile (string-to-syntax "\"")))
                 (unless (eq (match-end 2) (point-max))
-                  (put-text-property (match-end 2 ) (1+ (match-end 2)) 'syntax-table (string-to-syntax "\""))))))
+                  (put-text-property (match-end 2 ) (1+ (match-end 2)) 'syntax-table (eval-when-compile (string-to-syntax "\"")))))))
            ((eq token-kind 'string)
             (save-excursion
               (goto-char (match-beginning 2))
               (let ((limit (match-end 2)))
                 (save-match-data
                   (while (re-search-forward "\"" limit t)
-                    (put-text-property (match-beginning 0) (match-end 0) 'syntax-table (string-to-syntax ".")))))
+                    (put-text-property (match-beginning 0) (match-end 0) 'syntax-table (eval-when-compile (string-to-syntax "."))))))
               ;; Place a generic string delimeter only when an open
               ;; quote is closed by end-of-line Emacs acts strangely
               ;; when a generic delimiter is not closed so in case
@@ -585,18 +585,18 @@ be set to the preferred literate style."
               ;; plain string
               (unless (or (match-beginning 3)
                           (eq (match-end 2) (point-max)))
-                (put-text-property (match-beginning 1) (match-end 1) 'syntax-table (string-to-syntax "|"))
-                (put-text-property (match-end 2 ) (1+ (match-end 2)) 'syntax-table (string-to-syntax "|")))))
+                (put-text-property (match-beginning 1) (match-end 1) 'syntax-table (eval-when-compile (string-to-syntax "|")))
+                (put-text-property (match-end 2 ) (1+ (match-end 2)) 'syntax-table (eval-when-compile (string-to-syntax "|"))))))
            ((eq token-kind 'template-haskell-quasi-quote)
-            (put-text-property (match-beginning 2) (match-end 2) 'syntax-table (string-to-syntax "\""))
+            (put-text-property (match-beginning 2) (match-end 2) 'syntax-table (eval-when-compile (string-to-syntax "\"")))
             (when (match-beginning 4)
-              (put-text-property (match-beginning 4) (match-end 4) 'syntax-table (string-to-syntax "\"")))
+              (put-text-property (match-beginning 4) (match-end 4) 'syntax-table (eval-when-compile (string-to-syntax "\""))))
             (save-excursion
               (goto-char (match-beginning 3))
               (let ((limit (match-end 3)))
                 (save-match-data
                   (while (re-search-forward "\"" limit t)
-                    (put-text-property (match-beginning 0) (match-end 0) 'syntax-table (string-to-syntax "."))))))))
+                    (put-text-property (match-beginning 0) (match-end 0) 'syntax-table (eval-when-compile (string-to-syntax ".")))))))))
           (if token-kind
               (goto-char (match-end 0))
             (goto-char end)))))))
