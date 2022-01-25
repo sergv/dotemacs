@@ -306,5 +306,10 @@ event of an error or nonlocal exit."
   (when (buffer-live-p (get-buffer buffer))
     (haskell-bypass-confirmation #'kill-buffer buffer)))
 
+(defun haskell-stylish--skip-if-no-stylish-available ()
+  (when (not (or (file-executable-p haskell-mode-stylish-haskell-path)
+                 (executable-find haskell-mode-stylish-haskell-path)))
+    (ert-skip "no stylish-haskell")))
+
 (provide 'haskell-test-utils)
 ;;; haskell-test-utils.el ends here
