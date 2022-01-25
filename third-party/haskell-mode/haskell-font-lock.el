@@ -282,7 +282,7 @@ like ::, class, instance, data, newtype, type."
        ((and (member (match-string-no-properties 0)
                      '("," ";" "|"))
              (not (member (match-string-no-properties 0) ignore)))
-        (if (equal 0 open-parens)
+        (if (eq 0 open-parens)
             (setq cont nil)
           (setq last-token-was-operator t)
           (setq end (match-end 0))
@@ -350,7 +350,7 @@ on an uppercase identifier."
                'haskell-type-face
              'haskell-constructor-face))
     (varsym (unless (and (member (match-string 0) '("-" "+" "."))
-                         (equal (string-to-syntax "w") (syntax-after (match-beginning 0))))
+                         (equal (eval-when-compile (string-to-syntax "w")) (syntax-after (match-beginning 0))))
               ;; We need to protect against the case of
               ;; plus, minus or dot inside a floating
               ;; point number.
@@ -522,7 +522,7 @@ on an uppercase identifier."
          (+ start (1- pos)) (1- (+ start next)) 'face
          (or (get-text-property pos 'face) 'default) org-buffer)
         (setq pos next))
-      (unless (equal pos (point-max))
+      (unless (eq pos (point-max))
         (put-text-property
          (+ start (1- pos)) (1- (+ start (point-max))) 'face
          'default org-buffer)))
@@ -535,7 +535,7 @@ on an uppercase identifier."
   "`font-lock-syntactic-face-function' for Haskell."
   (cond
    ((nth 3 state)
-    (if (equal ?| (nth 3 state))
+    (if (eq ?| (nth 3 state))
         ;; find out what kind of QuasiQuote is this
         (let* ((qqname (save-excursion
                         (goto-char (nth 8 state))
@@ -566,7 +566,7 @@ on an uppercase identifier."
                              'face 'font-lock-string-face)
 
 
-          (if (or (equal t (nth 3 state)) (nth 3 state2))
+          (if (or (eq t (nth 3 state)) (nth 3 state2))
               ;; This is an unterminated string constant, use warning
               ;; face for the opening quote.
               (put-text-property (nth 8 state) (1+ (nth 8 state))
@@ -590,7 +590,7 @@ on an uppercase identifier."
    ;; Detect literate comment lines starting with syntax class '<'
    ((save-excursion
       (goto-char (nth 8 state))
-      (equal (string-to-syntax "<") (syntax-after (point))))
+      (equal (eval-when-compile (string-to-syntax "<")) (syntax-after (point))))
     'haskell-literate-comment-face)
    ;; Detect pragmas. A pragma is enclosed in special comment
    ;; delimiters {-# .. #-}.
