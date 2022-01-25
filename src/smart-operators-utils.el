@@ -52,10 +52,13 @@ that next 2 characters are AFTER1 and AFTER2."
           (and is-before?
                is-after?))))
 
+(defun smart-operators--in-string-syntax? ()
+  (eq (syntax-class (syntax-after (point))) 7))
+
 ;;;###autoload
 (defun smart-operators--in-string-or-comment? (&optional disable-comment-check?)
   "Are we in string or comment?"
-  (if (eq (syntax-class (syntax-after (point))) 7)
+  (if (smart-operators--in-string-syntax?)
       t
     (let* ((state (parse-partial-sexp (line-beginning-position)
                                       (point)))
