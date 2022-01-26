@@ -399,6 +399,11 @@ and indent when all of the following are true:
 (defvar indentation-point)      ;; where to stop parsing
 (defvar implicit-layout-active) ;; is "off-side" rule active?
 
+(defun haskell-indentation-goto-zero-column ()
+  (save-match-data
+    ;; Count ignored since we’re already jumping to the most enclosing definition.
+    (re-search-backward "^[^ \t\v\f\n\r#]" nil t 1)))
+
 (defun haskell-indentation-goto-least-indentation ()
   "" ; FIXME
   (beginning-of-line)
@@ -429,21 +434,20 @@ and indent when all of the following are true:
           ;; string constants and does not move point anywhere. We fix
           ;; that case with (forward-line -1)
           (forward-comment (- (buffer-size)))
-          (if (equal (point) point)
+          (if (eq (point) point)
               (forward-line -1)
             (beginning-of-line)))
         (let* ((ps (syntax-ppss))
-              (start-of-comment-or-string (nth 8 ps))
-              (start-of-list-expression (nth 1 ps)))
+               (start-of-comment-or-string (nth 8 ps))
+               (start-of-list-expression (nth 1 ps)))
           (cond
            (start-of-comment-or-string
             ;; inside comment or string
             (goto-char start-of-comment-or-string))
            (start-of-list-expression
             (let ((zero-column-start (save-excursion
-                                       (save-match-data
-                                         (re-search-backward "^[^ \t\v\f\n\r#]" nil t)
-                                         (point)))))
+                                       (haskell-indentation-goto-zero-column)
+                                       (point))))
               (if (< zero-column-start start-of-list-expression)
                   ;; inside a parenthesized expression
                   (goto-char start-of-list-expression)
