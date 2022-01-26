@@ -267,8 +267,6 @@
          (box-line-width (eval-when-compile
                            (or (when-emacs-version (= it 28)
                                  '(-1 . -1))
-                               (when-emacs-version (= it 27)
-                                 (fold-platform-os-type '(-1 . -1) -1))
                                -1)))
 
          faces)
