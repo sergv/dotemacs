@@ -724,9 +724,9 @@ foo = ()
 
 (hindent-test "34 beginning of line inside parentheses" "
 data T = T {
-  foo :: String
-, bar :: String
-}
+    foo :: String
+  , bar :: String
+  }
 
 "
               (5 0 2 7 9))
