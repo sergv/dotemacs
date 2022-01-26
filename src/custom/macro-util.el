@@ -198,7 +198,7 @@ NB does not expect to cache values of ARGS that are nil."
 
 (defmacro defun-caching (func args reset-cache-func mk-cache-key &rest body)
   "Defun new function FUNC that automatically caches it's output
-depending of value of MK-CACHE-KEY, which should be an expression
+depending of value of MK-CACHE-KEY expression, which should be an expression
 that returnsn a value to use as a caching key.
 
 NB does not expect to cache values of ARGS that are nil. Also will recompute
