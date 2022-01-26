@@ -40,8 +40,14 @@
 ;; TODO `haskell-indentation-find-indentation' — fix it, get rid of "safe"
 ;; version
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'cl-lib)
 (require 'haskell-lexeme)
+
+(require 'macro-util)
+(require 'smart-operators-utils)
 
 ;;;###autoload
 (defgroup haskell-indentation nil
@@ -480,33 +486,35 @@ and indent when all of the following are true:
 
 (defun haskell-indentation-find-indentations ()
   "Return list of indentation positions corresponding to actual cursor position."
-  (let ((ppss (syntax-ppss)))
+  (let ((ppss nil))
     (cond
-     ((nth 3 ppss)
-      (if (save-excursion
-            (and (forward-line -1)
-                 (< (nth 8 ppss) (point))))
-          ;; if this string goes over more than one line we want to
-          ;; sync with the last line, not the first one
-          (list (save-excursion
-                  (forward-line -1)
-                  (current-indentation)))
+      ((or (smart-operators--in-string-syntax?)
+           (nth 3 (syntax-ppss-update! ppss)))
+       (if (save-excursion
+             (and (forward-line -1)
+                  (< (nth 8 (syntax-ppss-cached ppss)) (point))))
+           ;; if this string goes over more than one line we want to
+           ;; sync with the last line, not the first one
+           (list (save-excursion
+                   (forward-line -1)
+                   (current-indentation)))
 
-        (append
-         (haskell-indentation-first-indentation)
-         (list (save-excursion
-                 (goto-char (nth 8 ppss))
-                 (current-column))))))
-     ((nth 4 ppss)
-      (if (save-excursion
-            (and (skip-syntax-forward "-")
-                 (eolp)
-                 (not (> (forward-line 1) 0))
-                 (not (nth 4 (syntax-ppss)))))
-          (haskell-indentation-parse-to-indentations)
-        (haskell-indentation-first-indentation)))
-     (t
-      (haskell-indentation-parse-to-indentations)))))
+         (append
+          (haskell-indentation-first-indentation)
+          (list (save-excursion
+                  (goto-char (nth 8 (syntax-ppss-cached ppss)))
+                  (current-column))))))
+      ;; Is inside comment
+      ((nth 4 (syntax-ppss-cached ppss))
+       (if (save-excursion
+             (and (skip-syntax-forward "-")
+                  (eolp)
+                  (not (> (forward-line 1) 0))
+                  (not (nth 4 (syntax-ppss)))))
+           (haskell-indentation-parse-to-indentations)
+         (haskell-indentation-first-indentation)))
+      (t
+       (haskell-indentation-parse-to-indentations)))))
 
 (defconst haskell-indentation-unicode-tokens
   '(("→" . "->")     ;; #x2192 RIGHTWARDS ARROW
