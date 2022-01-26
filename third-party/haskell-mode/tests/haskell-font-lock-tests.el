@@ -364,6 +364,14 @@
      ("." t haskell-operator-face)
      )))
 
+(ert-deftest haskell-syntactic-test-quoted-colon ()
+  "Syntax for haddock comments"
+  ;; Note: all of these are prefixed with space so that
+  ;; top-level definition detection does not kick in.
+  (check-properties
+   '(" foo ': bar")
+   '((":" "." haskell-constructor-face))))
+
 (ert-deftest haskell-syntactic-preprocessor-01 ()
   (check-properties
    '("  # NoPreproc"
