@@ -27,9 +27,12 @@
 
 ;;; Code:
 
-(require 'cl-lib)
+(eval-when-compile
+  (require 'cl-lib))
 
-(defun haskell-string-trim (string)
+(require 'common-whitespace)
+
+(defsubst haskell-string-trim (string)
   "Remove whitespace around STRING.
 
 A Whitespace character is defined in the Haskell Report as follows
@@ -41,13 +44,11 @@ A Whitespace character is defined in the Haskell Report as follows
 Note: The implementation currently only supports ASCII
       white-space characters, i.e. the implemention doesn't
       consider uniWhite."
+  (trim-whitespace string))
 
-  (let ((s1 (if (string-match "[\t\n\v\f\r ]+\\'" string) (replace-match "" t t string) string)))
-    (if (string-match "\\`[\t\n\v\f\r ]+" s1) (replace-match "" t t s1) s1)))
-
-(defun haskell-string-only-spaces-p (string)
+(defsubst haskell-string-only-spaces-p (string)
   "Return t if STRING contains only whitespace (or is empty)."
-  (string= "" (haskell-string-trim string)))
+  (string-contains-only-whitespace? string))
 
 (defun haskell-string-take (string n)
   "Return (up to) N character length prefix of STRING."

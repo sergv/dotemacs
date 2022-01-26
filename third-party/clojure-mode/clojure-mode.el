@@ -70,6 +70,8 @@
 (require 'align)
 (require 'subr-x)
 
+(require 'common-whitespace)
+
 (declare-function lisp-fill-paragraph  "lisp-mode" (&optional justify))
 
 (defgroup clojure nil
@@ -2348,7 +2350,7 @@ Return a list: odd elements are bound names, even elements init expressions."
     (while (/= sexp-start end)
       (forward-sexp)
       (push
-       (string-trim (buffer-substring-no-properties sexp-start (point)))
+       (trim-whitespace (buffer-substring-no-properties sexp-start (point)))
        bindings)
       (skip-chars-forward "\r\n\t[:blank:]")
       (setq sexp-start (point)))
@@ -2398,7 +2400,7 @@ lists up."
   "Slurp the s-expression before the let form into the let form."
   (clojure--goto-let)
   (backward-sexp)
-  (let ((sexp (string-trim (clojure-delete-and-extract-sexp))))
+  (let ((sexp (trim-whitespace (clojure-delete-and-extract-sexp))))
     (delete-blank-lines)
     (down-list)
     (forward-sexp 2)
@@ -2419,7 +2421,7 @@ With a numberic prefix argument slurp the previous N s-expression into the let f
   "Slurp the next s-expression after the let form into the let form."
   (clojure--goto-let)
   (forward-sexp)
-  (let ((sexp (string-trim (clojure-delete-and-extract-sexp))))
+  (let ((sexp (trim-whitespace (clojure-delete-and-extract-sexp))))
     (down-list -1)
     (newline-and-indent)
     (insert sexp)

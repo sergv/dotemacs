@@ -19,6 +19,8 @@
 (require 'pcomplete)
 (require 'json)
 
+(require 'common-whitespace)
+
 (defgroup nix nil
   "Nix-related customizations"
   :group 'languages)
@@ -339,10 +341,10 @@ OPTIONS a list of options to accept."
 
 (defun nix--process-string (&rest args)
   (cl-multiple-value-bind (stdout stderr exitcode) (apply #'nix--process args)
-    (if (not (eq exitcode 0))
+    (unless (eq exitcode 0)
       (error stderr))
     ;; cut-off the trailing newline
-    (string-trim-right stdout)))
+    (trim-whitespace-right stdout)))
 
 (defun nix--process-json (&rest args)
   (json-read-from-string

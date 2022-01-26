@@ -27,6 +27,8 @@
 
 ;;; Code:
 
+(require 'common-whitespace)
+
 (require 'cl-generic)
 (require 'cl-lib)
 (require 'compile)
@@ -1527,7 +1529,7 @@ etc."
                (with-temp-buffer
                  (when (zerop (apply 'call-process find-command-path nil t nil args))
                    (buffer-substring-no-properties (point-min) (point-max))))))
-    (string-trim executable-path)))
+    (trim-whitespace executable-path)))
 
 (defvar lsp--already-widened nil)
 
@@ -2673,11 +2675,11 @@ comma-separated globs within the top-level braces."
 (defun lsp-glob-convert-to-wrapped-regexp (glob-pattern)
   "Convert GLOB-PATTERN to a regexp wrapped with the beginning-
 and end-of-string meta-characters."
-  (concat "\\`" (lsp--glob-to-regexp (string-trim glob-pattern)) "\\'"))
+  (concat "\\`" (lsp--glob-to-regexp (trim-whitespace glob-pattern)) "\\'"))
 
 (defun lsp-glob-to-regexps (glob-pattern)
   "Convert a GLOB-PATTERN to a list of Elisp regexps."
-  (let* ((trimmed-pattern (string-trim glob-pattern))
+  (let* ((trimmed-pattern (trim-whitespace glob-pattern))
          (top-level-unbraced-patterns (lsp-glob-unbrace-at-top-level trimmed-pattern)))
     (seq-map #'lsp-glob-convert-to-wrapped-regexp
              top-level-unbraced-patterns)))
@@ -4917,7 +4919,7 @@ point."
         (let ((lsp-help-buf-name "*lsp-help*"))
           (with-current-buffer (get-buffer-create lsp-help-buf-name)
             (with-help-window lsp-help-buf-name
-              (insert (string-trim-right (lsp--render-on-hover-content contents t))))))
+              (insert (trim-whitespace-right (lsp--render-on-hover-content contents t))))))
       (lsp--info "No content at point."))))
 
 (defun lsp--point-in-bounds-p (bounds)
@@ -7147,7 +7149,7 @@ returns the command to execute."
 
       (lsp--warn "%s has exited (%s)"
                  (process-name (lsp--workspace-proc workspace))
-                 (string-trim-right exit-str))
+                 (trim-whitespace-right exit-str))
 
       (with-lsp-workspace workspace
         ;; Clean workspace related data in each of the buffers

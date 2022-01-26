@@ -58,6 +58,8 @@
 (require 's)
 (require 'flycheck)
 
+(require 'common-whitespace)
+
 (defcustom attrap-flycheck-checkers-alist '((lsp . attrap-ghc-fixer)
                                             (haskell-dante . attrap-ghc-fixer)
                                             (emacs-lisp . attrap-elisp-fixer))
@@ -320,7 +322,12 @@ usage: (attrap-alternatives CLAUSES...)"
         (insert "'"))))
    ((string-match "Patterns not matched:" msg)
     (attrap-one-option 'add-missing-patterns
-      (let ((patterns (mapcar #'string-trim (split-string (substring msg (match-end 0)) "\n" t " ")))) ;; patterns to match
+      (let ((patterns (mapcar #'trim-whitespace
+                              ;; patterns to match
+                              (split-string (substring msg (match-end 0))
+                                            "\n"
+                                            t
+                                            " "))))
         (if (string-match "In an equation for ‘\\(.*\\)’:" msg)
             (let ((function-name (match-string 1 msg)))
               (end-of-line)

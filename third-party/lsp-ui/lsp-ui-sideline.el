@@ -290,7 +290,7 @@ MARKED-STRING is the string returned by `lsp-ui-sideline--extract-info'."
     (add-face-text-property 0 (length marked-string) 'lsp-ui-sideline-symbol-info nil marked-string)
     (add-face-text-property 0 (length marked-string) 'default t marked-string)
     (->> (if (> (length marked-string) (/ win-width 2))
-             (car (split-string (string-trim-left marked-string) "[\r\n]+"))
+             (car (split-string (trim-whitespace-left marked-string) "[\r\n]+"))
            marked-string)
          (replace-regexp-in-string "[\n\r\t ]+" " "))))
 
@@ -463,7 +463,7 @@ Push sideline overlays on `lsp-ui-sideline--ovs'."
              (display-lines (butlast lines (- (length lines) lsp-ui-sideline-diagnostic-max-lines)))
              (offset 1))
         (dolist (line (nreverse display-lines))
-          (let* ((msg (string-trim (replace-regexp-in-string "[\t ]+" " " line)))
+          (let* ((msg (trim-whitespace (replace-regexp-in-string "[\t ]+" " " line)))
                  (msg (replace-regexp-in-string " " " " msg))
                  (len (length msg))
                  (level (flycheck-error-level e))

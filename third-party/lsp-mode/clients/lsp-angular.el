@@ -27,6 +27,8 @@
 (require 'lsp-mode)
 (require 'f)
 
+(require 'common-whitespace)
+
 
 ;;; Angular
 (defgroup lsp-angular nil
@@ -66,7 +68,7 @@ Has no effects when `lsp-clients-angular-language-server-command' is set."
          lsp-clients-angular-language-server-command
        (let ((node-modules-path
               (f-join
-               (string-trim
+               (trim-whitespace
                 (shell-command-to-string lsp-clients-angular-node-get-prefix-command))
                "lib/node_modules")))
          ;; The shell command takes a significant time to run,
