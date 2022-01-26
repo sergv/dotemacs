@@ -1169,9 +1169,21 @@ layout starts."
 
 Add INDENT to `possible-indentations' if it is not there
 yet. Keep the list in ascending order."
-  (unless (member indent possible-indentations)
-    (setq possible-indentations
-          (sort (cons indent possible-indentations) #'<))))
+  (setq possible-indentations
+        (haskel-indentation--add-to-sorted-list possible-indentations
+                                                indent)))
+
+(defun haskel-indentation--add-to-sorted-list (list num)
+  "Add NUM into sorted LIST by side effect."
+  (cl-assert (or (null list) (consp list)))
+  (let* ((top (cons nil list))
+	 (prev top))
+    (while (and list (< (car list) num))
+      (setq prev list
+	    list (cdr list)))
+    (unless (eq (car list) num)
+      (setcdr prev (cons num list)))
+    (cdr top)))
 
 (defun haskell-indentation-read-next-token ()
   "Go to the next token and set current-token to the next token.
