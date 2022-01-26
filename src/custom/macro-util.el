@@ -203,7 +203,7 @@ that returnsn a value to use as a caching key.
 
 NB does not expect to cache values of ARGS that are nil. Also will recompute
 BODY if it returns nil."
-  (declare (indent 4))
+  (declare (indent 4) (doc-string 5))
   `(defun-caching-extended ,func ,args ,nil ,(string->symbol (format "%s/make-cache" func)) ,reset-cache-func ,mk-cache-key ,@body))
 
 (defmacro defun-caching-extended (func args func-with-explicit-cache make-cache-func reset-cache-func mk-cache-key &rest body)
@@ -213,7 +213,7 @@ that returnsn a value to use as a caching key.
 
 NB does not expect to cache values of ARGS that are nil. Also will recompute
 BODY if it returns nil."
-  (declare (indent 6))
+  (declare (indent 6) (doc-string 7))
   (cl-assert (symbolp func))
   (cl-assert (or (symbolp func-with-explicit-cache) (null func-with-explicit-cache)))
   (cl-assert (symbolp make-cache-func))
