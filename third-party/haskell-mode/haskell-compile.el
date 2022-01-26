@@ -34,7 +34,8 @@
 (require 'ansi-color)
 (eval-when-compile (require 'subr-x))
 
-(require 'haskell-autoload)
+(require 'haskell-constants)
+(require 'persistent-sessions-global-vars)
 
 ;;;###autoload
 (defgroup haskell-compile nil
