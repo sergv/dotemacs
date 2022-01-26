@@ -11,12 +11,15 @@
   (require 'subr-x)
   (require 'macro-util)
   (defvar eshell-history-ring)
-  (defvar eshell-buffer-name))
+  (defvar eshell-buffer-name)
+  (defvar haskell-compilation-mode)
+  (defvar rust-compilation-mode)
+  (defvar dante-repl-mode))
 
 (require 'frameset)
 
 (require 'common)
-(require 'haskell-autoload)
+(require 'haskell-constants)
 (require 'persistent-sessions-error-reporting)
 (require 'persistent-sessions-global-vars)
 (require 'persistent-sessions-serializers)
