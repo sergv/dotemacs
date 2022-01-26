@@ -24,6 +24,8 @@
 
 ;;; Code:
 
+(require 'common-whitespace)
+
 (require 'lsp-mode)
 (require 'lsp-completion)
 
@@ -223,7 +225,7 @@ $GOPATH/pkg/mod along with the value of
                  library-dirs
                  (list
                   (concat
-                   (string-trim-right (buffer-substring (point-min) (point-max)))
+                   (trim-whitespace-right (buffer-substring (point-min) (point-max)))
                    "/pkg/mod")))))))
     (if (file-remote-p default-directory)
         (mapcar (lambda (path) (concat (file-remote-p default-directory) path)) library-dirs)
@@ -267,7 +269,7 @@ $GOPATH/pkg/mod along with the value of
   :package-version '(lsp-mode "8.0.0"))
 
 (defcustom lsp-go-import-shortcut "Both"
-  "Specifies whether import statements should link to documentation or go to 
+  "Specifies whether import statements should link to documentation or go to
   definitions."
   :type '(choice (const "Both")
                  (const "Link")

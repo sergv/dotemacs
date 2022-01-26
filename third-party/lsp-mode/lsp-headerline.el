@@ -21,6 +21,8 @@
 ;;
 ;;; Code:
 
+(require 'common-whitespace)
+
 (require 'lsp-icons)
 (require 'lsp-mode)
 
@@ -374,7 +376,7 @@ PATH is the current folder to be checked."
 
 (defun lsp-headerline--build-string ()
   "Build the header-line string."
-  (string-trim-right
+  (trim-whitespace-right
    (mapconcat
     (lambda (segment)
       (let ((segment-string
