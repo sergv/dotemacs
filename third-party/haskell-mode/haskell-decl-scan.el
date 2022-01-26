@@ -335,11 +335,11 @@ then point does not move if already at the start of a declaration."
         (let ((at-start-decl (looking-at-p start-decl-re)))
           ;; If we are at the beginning of a line, move over
           ;; line-prefix, if present at point.
-          (if (bolp)
-              (re-search-forward (concat "\\=" line-prefix) (point-max) t))
+          (when (bolp)
+            (re-search-forward (concat "\\=" line-prefix) (point-max) t))
           ;; Return point if at the start of a declaration and nil
           ;; otherwise.
-          (if at-start-decl (point) nil))))))
+          (when at-start-decl (point)))))))
 
 (defun haskell-ds-bird-p ()
   (and (boundp 'haskell-literate) (eq haskell-literate 'bird)))
