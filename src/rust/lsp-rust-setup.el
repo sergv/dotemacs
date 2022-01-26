@@ -22,6 +22,8 @@
   (defvar lsp-rust-server)
   (defvar lsp-rust-target-dir))
 
+(require 'common-whitespace)
+
 (require 'lsp-setup)
 
 (setf lsp-rust-server 'rust-analyzer
@@ -66,7 +68,7 @@ argument jump to type definition."
   (let ((contents (lsp:hover-contents response)))
     (if (and contents
              (not (equal contents "")))
-        (message "%s" (string-trim-right (lsp--render-on-hover-content contents t)))
+        (message "%s" (trim-whitespace-right (lsp--render-on-hover-content contents t)))
       (lsp--info "No content at point."))))
 
 (defun lsp-rust-type-at-point-dumb ()
