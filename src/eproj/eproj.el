@@ -809,7 +809,7 @@ for project at ROOT directory."
 variable or symbol 'unresolved.")
 
 (defun-caching eproj-get-initial-project-root (path) eproj-get-initial-project-root/reset-cache path
-  "Find closest directory parent of PATH that contains .eproj-info file or .git directory."
+  "Find closest directory parent of PATH that contains .eproj-info file, cabal.project file, or .git directory."
   (cl-assert (stringp path))
   (let* ((is-directory? (file-directory-p path))
          (path-dir (if is-directory?
