@@ -30,7 +30,7 @@ function define() {
 }
 
 function native-comp-available() {
-    emacs -Q --batch \
+    emacs-pristine -Q --batch \
           --eval "(message \"%s\" (and (fboundp #'native-comp-available-p) (native-comp-available-p)))" 2>&1
 }
 
