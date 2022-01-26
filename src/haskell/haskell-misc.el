@@ -793,9 +793,8 @@ value section should have if it is to be properly indented."
 
 (defun haskell-move-to-topmost-start-impl (&optional _count)
   "Move to start of the topmost node, similar to `glisp/beginning-of-defun'."
-  (save-match-data
-    ;; Count ignored since we’re already jumping to the most enclosing definition.
-    (re-search-backward "^[^ \t\v\f\n\r#]" nil t 1))
+  (haskell-indentation-goto-zero-column)
+
   ;; (beginning-of-line)
   ;; (let ((c (char-after)))
   ;;   (while (and (not (bobp))
