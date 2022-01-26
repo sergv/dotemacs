@@ -30,7 +30,10 @@
 
 ;;; Code:
 
-(require 'cl-lib)
+(eval-when-compile
+  (require 'cl))
+
+(require 'common-heavy)
 
 (defconst haskell-sort-imports-regexp
   (rx (seq bol
