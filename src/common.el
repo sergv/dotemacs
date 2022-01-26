@@ -16,6 +16,7 @@
 
 (require 'common-small)
 (require 'common-constants)
+(require 'common-whitespace)
 (require 'macro-util)
 (require 'custom-predicates)
 
@@ -1134,38 +1135,6 @@ With argument COUNT, do this that many times."
                    (pseudovim-motion-bwd-WORD count)
                    (point))))
 
-(defsubst whitespace-char? (char)
-  (or (eq char ?\s)
-      (eq char ?\n)
-      (eq char ?\r)
-      (eq char ?\t)))
-
-(defun delete-whitespace-forward ()
-  "Delete whitespaces forward until non-whitespace
-character found"
-  (interactive "*")
-  (let ((start (point)))
-    (while (and (not (eobp))
-                (whitespace-char? (char-after))
-                (not (get-char-property (1+ (point)) 'read-only)))
-      (forward-char 1))
-    (delete-region start (point))))
-
-(defun delete-whitespace-backward ()
-  "Delete whitespaces backward until non-whitespace
-character found. Returns t if any whitespace was actually deleted."
-  (interactive "*")
-  (let ((any-deleted? nil)
-        (start (point)))
-    (while (and (not (bobp))
-                (whitespace-char? (char-before))
-                (not (get-char-property (1- (point)) 'read-only)))
-      (forward-char -1)
-      (setf any-deleted? t))
-    (when any-deleted?
-      (delete-region (point) start))
-    any-deleted?))
-
 (defun delete-current-line ()
   "Delete line where point is currently positioned including
 trailing newline"
@@ -1218,28 +1187,6 @@ further than END-POS."
   "Call `forward-line' in the opposite direction"
   (interactive)
   (forward-line (- (or count 1))))
-
-
-
-(defun trim-whitespace (str)
-  "Trim leading and tailing whitespace from STR."
-  (cl-assert (stringp str))
-  (replace-regexp-in-string "\\(?:\\`[ \t\v\f\r\n]*\\|[ \t\v\f\r\n]*\\'\\)" "" str))
-
-(defun remove-whitespace (str)
-  "Remove all occurences of various whitespace characters from string."
-  (cl-assert (stringp str))
-  (replace-regexp-in-string "[ \t\v\f\r\n]+" "" str))
-
-(defun trim-whitespace-left (str)
-  "Trim leading whitespace from STR."
-  (cl-assert (stringp str))
-  (replace-regexp-in-string "\\`[ \t\v\f\r\n]*" "" str))
-
-(defun trim-whitespace-right (str)
-  "Trim trailing whitespace from STR."
-  (cl-assert (stringp str))
-  (replace-regexp-in-string "[ \t\v\f\n\r]*\\'" "" str))
 
 
 (defsubst goto-line-dumb (line)

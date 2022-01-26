@@ -337,7 +337,7 @@ Give optional NEXT-P parameter to override value of
         (tags-file-dir (haskell-cabal--find-tags-dir))
         (tags-revert-without-query t))
     (when (and ident
-               (not (string= "" (haskell-string-trim ident)))
+               (not (haskell-string-only-spaces-p ident))
                tags-file-dir)
       (let ((tags-file-name (concat tags-file-dir "TAGS")))
         (cond ((file-exists-p tags-file-name)
