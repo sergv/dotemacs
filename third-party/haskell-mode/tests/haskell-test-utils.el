@@ -64,20 +64,20 @@ syntax set to SYNTAX and face set to FACE.
 
 If SYNTAX or FACE are set to t then any syntex respective face is
 not checked."
-  (let (all-syntaxes
-        all-faces
+  (let (actual-syntaxes
+        actual-faces
         (syntax-classes "-.w_()'\"$\\/<>@!|")
         (text (buffer-substring-no-properties beg end)))
     (while (< beg end)
-      (cl-pushnew (char-to-string (aref syntax-classes (syntax-class (syntax-after beg)))) all-syntaxes :test #'equal)
-      (cl-pushnew (get-text-property beg 'face) all-faces :test #'equal)
+      (cl-pushnew (char-to-string (aref syntax-classes (syntax-class (syntax-after beg)))) actual-syntaxes :test #'equal)
+      (cl-pushnew (get-text-property beg 'face) actual-faces :test #'equal)
       (setq beg (1+ beg)))
     (unless (eq syntax t)
       (should (equal (list text (mapconcat #'identity (sort (mapcar (lambda (syn) (char-to-string syn)) syntax) #'string<) ""))
-                     (list text (mapconcat #'identity (sort all-syntaxes #'string<) "")))))
+                     (list text (mapconcat #'identity (sort actual-syntaxes #'string<) "")))))
     (unless (eq face t)
       (should (equal (list text (list face))
-                     (list text all-faces))))))
+                     (list text actual-faces))))))
 
 (defun check-face-match-range (face n)
   (let ((beg (match-beginning n))
