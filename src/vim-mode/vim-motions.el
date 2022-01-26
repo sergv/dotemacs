@@ -1043,11 +1043,11 @@ text-object before or at point."
       (goto-char (or (vim-boundary--paragraph 'bwd) (point-min)))
       (forward-line -1))))
 
-(vim-defmotion vim:motion-inner-paragraph (inclusive count motion-result)
+(vim-defmotion vim:motion-inner-paragraph (linewise count motion-result)
   "Select `count' inner words."
   (vim--inner-motion (or count 1) #'vim-boundary--paragraph #'vim-boundary--wl 'linewise))
 
-(vim-defmotion vim:motion-outer-paragraph (inclusive count motion-result)
+(vim-defmotion vim:motion-outer-paragraph (linewise count motion-result)
   "Select `count' outer words."
   (vim--outer-motion (or count 1) #'vim-boundary--paragraph #'vim-boundary--wl 'linewise))
 
