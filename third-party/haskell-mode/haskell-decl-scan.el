@@ -265,7 +265,7 @@ then point does not move if already at the start of a declaration."
                      ;; Checking the face to ensure a declaration starts
                      ;; here seems to be the only addition to make this
                      ;; module support LaTeX-style literate scripts.
-                     (if (and (looking-at-p start-decl-re)
+                     (if (and (looking-at start-decl-re)
                               (not (elt (syntax-ppss) 4)))
                          (match-beginning 1)))))
         (if (and start
