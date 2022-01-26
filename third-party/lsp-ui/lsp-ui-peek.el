@@ -34,6 +34,8 @@
 
 ;;; Code:
 
+(require 'common-whitespace)
+
 (require 'lsp-protocol)
 (require 'lsp-mode)
 (require 'xref)
@@ -395,7 +397,7 @@ XREFS is a list of references/definitions."
           (string (format "%-3s %s"
                           (propertize (number-to-string (1+ line))
                                       'face 'lsp-ui-peek-line-number)
-                          (string-trim summary))))
+                          (trim-whitespace summary))))
     (lsp-ui-peek--add-prop `(lsp-ui-peek ,xref file ,file) string)))
 
 (defun lsp-ui-peek--insert-xrefs (xrefs filename index)

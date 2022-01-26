@@ -30,6 +30,8 @@
 
 ;;; Code:
 
+(require 'common-whitespace)
+
 (require 'lsp-ui-util)
 
 (require 'lsp-protocol)
@@ -297,13 +299,13 @@ Because some variables are buffer local.")
 (defun lsp-ui-doc--inline-formatted-string (string)
   "Formats STRING for inline rendering."
   (mapconcat (lambda (line)
-               (lsp-ui-doc--inline-wrapped-line (string-trim-right line)))
+               (lsp-ui-doc--inline-wrapped-line (trim-whitespace-right line)))
              (split-string string "[\n\v\f\r]")
              "\n"))
 
 (defun lsp-ui-doc--extract-marked-string (marked-string &optional language)
   "Render the MARKED-STRING with LANGUAGE."
-  (string-trim-right
+  (trim-whitespace-right
    (let* ((string (if (stringp marked-string)
                       marked-string
                     (lsp:markup-content-value marked-string)))

@@ -352,6 +352,26 @@
         (ert-deftest ,(string->symbol (format "common-tests/trim-whitespace-right-%d" n)) ()
           (should (equal (trim-whitespace-right ,input) ,expected-right)))))))
 
+(ert-deftest common-tests/string-contains-only-whitespace?-1 ()
+  (should (equal (string-contains-only-whitespace? "")
+                 t)))
+
+(ert-deftest common-tests/string-contains-only-whitespace?-2 ()
+  (should (equal (string-contains-only-whitespace? "abc")
+                 nil)))
+
+(ert-deftest common-tests/string-contains-only-whitespace?-3 ()
+  (should (equal (string-contains-only-whitespace? "  abc")
+                 nil)))
+
+(ert-deftest common-tests/string-contains-only-whitespace?-4 ()
+  (should (equal (string-contains-only-whitespace? "  abc       ")
+                 nil)))
+
+(ert-deftest common-tests/string-contains-only-whitespace?-5 ()
+  (should (equal (string-contains-only-whitespace? "  \t \t    \n \r  ")
+                 t)))
+
 (ert-deftest common-tests/expand-escape-sequences-1 ()
   (should (equal (expand-escape-sequences "abc")
                  "abc")))
