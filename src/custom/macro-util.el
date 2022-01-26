@@ -217,7 +217,7 @@ BODY if it returns nil."
   (cl-assert (symbolp func))
   (cl-assert (or (symbolp func-with-explicit-cache) (null func-with-explicit-cache)))
   (cl-assert (symbolp make-cache-func))
-  (cl-assert (symbolp reset-cache-func))
+  (cl-assert (or (symbolp reset-cache-func) (null reset-cache-func)))
   (let ((cache-var (string->symbol (concat (symbol->string func) "--internal--cache")))
         (cache-arg '#:cache)
         (query-var '#:query)
@@ -228,11 +228,13 @@ BODY if it returns nil."
        (defun ,make-cache-func ()
          (make-hash-table :test #'equal))
        (defvar ,cache-var (,make-cache-func))
-       (defun ,reset-cache-func ()
-         ,(format "Reset cache used by ‘%s’" func)
-         (clrhash ,cache-var))
-       ,@(when func-with-explicit-cache
-           `((defun ,func-with-explicit-cache ,(cons cache-arg args)
+       ,@(awhen reset-cache-func
+           (list
+            `(defun ,it ()
+               ,(format "Reset cache used by ‘%s’" func)
+               (clrhash ,cache-var))))
+       ,@(awhen func-with-explicit-cache
+           `((defun ,it ,(cons cache-arg args)
                ,(format "Similar to ‘%s’ but takes cache variable explicitly." func)
                (let* ((,cache-arg-var ,mk-cache-key)
                       (,query-var
