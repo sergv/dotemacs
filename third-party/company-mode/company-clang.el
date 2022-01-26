@@ -25,6 +25,12 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'macro-util))
+
+(require 'macro-util)
+(require 'common)
+
 (require 'company)
 (require 'company-template)
 (require 'cl-lib)
@@ -341,19 +347,24 @@ or automatically through a custom `company-clang-prefix-guesser'."
     (`(normal . ,ver) (>= ver min))
     (_ (error "pcase-exhaustive is not in Emacs 24.3!"))))
 
+(defun-caching company-clang--get-version (clang-exe) nil clang-exe
+  "Return the version of `company-clang-executable'."
+  (save-match-data
+    (with-temp-buffer
+      (call-process clang-exe nil t nil "--version")
+      (goto-char (point-min))
+      (if (re-search-forward
+           "\\(clang\\|Apple LLVM\\|bcc32x\\|bcc64\\) version \\([0-9.]+\\)" nil t)
+          (cons
+           (if (equal (match-string-no-properties 1) "Apple LLVM")
+               'apple
+             'normal)
+           (string-to-number (match-string-no-properties 2)))
+        0))))
+
 (defsubst company-clang-version ()
   "Return the version of `company-clang-executable'."
-  (with-temp-buffer
-    (call-process company-clang-executable nil t nil "--version")
-    (goto-char (point-min))
-    (if (re-search-forward
-         "\\(clang\\|Apple LLVM\\|bcc32x\\|bcc64\\) version \\([0-9.]+\\)" nil t)
-        (cons
-         (if (equal (match-string-no-properties 1) "Apple LLVM")
-             'apple
-           'normal)
-         (string-to-number (match-string-no-properties 2)))
-      0)))
+  (company-clang--get-version (cached-executable-find company-clang-executable)))
 
 (defun company-clang (command &optional arg &rest ignored)
   "`company-mode' completion backend for Clang.
