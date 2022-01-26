@@ -797,6 +797,17 @@ quote it for macro’s sake).
          (with-current-buffer ,buf-var
            ,@body)))))
 
+;;;
+
+(defmacro syntax-ppss-update! (var)
+  "Reuse result of previous call to ‘syntax-ppss’ if it’s stored in the variable VAR."
+  `(setq ,var (syntax-ppss)))
+
+(defmacro syntax-ppss-cached (var)
+  "Reuse result of previous call to ‘syntax-ppss’ if it’s stored in the variable VAR."
+  `(or ,var
+       (syntax-ppss-update! ,var)))
+
 ;;; end
 
 (provide 'macro-util)
