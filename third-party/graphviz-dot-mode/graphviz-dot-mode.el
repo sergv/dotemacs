@@ -148,6 +148,8 @@
 (require 'compile)
 (require 'subr-x)
 
+(require 'common-whitespace)
+
 (defconst graphviz-dot-mode-version "0.4.2"
   "Version of `graphviz-dot-mode.el'.")
 
@@ -766,7 +768,7 @@ then indent this and each subgraph in it."
   (save-buffer)
   (let ((windows (window-list))
         (f-name (graphviz-output-file-name (buffer-file-name)))
-        (command-result (string-trim (shell-command-to-string compile-command))))
+        (command-result (trim-whitespace (shell-command-to-string compile-command))))
     (if (string-prefix-p "Error:" command-result)
         (message command-result)
       (progn

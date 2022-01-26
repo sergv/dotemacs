@@ -30,13 +30,9 @@
 (require 'haskell-font-lock)
 (require 'haskell-indentation)
 
-;;; Code:
+(require 'common-whitespace)
 
-(defsubst string-trim-left (string)
-  "Remove leading whitespace from STRING."
-  (if (string-match "\\`[ \t\n\r]+" string)
-      (replace-match "" t t string)
-    string))
+;;; Code:
 
 (defun haskell-indentation-check (source &rest test-cases)
   "Check if `haskell-indentation-find-indentations' returns expected results.
@@ -114,7 +110,7 @@ macro quotes them for you."
          :expected-result
          ,(if allow-failure :failed :passed)
          (haskell-indentation-check
-          ,(string-trim-left source)
+          ,(trim-whitespace-left source)
           ,@(mapcar (lambda (x)
                       (list 'quote x))
                     test-cases))))))
