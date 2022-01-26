@@ -311,5 +311,9 @@ event of an error or nonlocal exit."
                  (executable-find haskell-mode-stylish-haskell-path)))
     (ert-skip "no stylish-haskell")))
 
+(defun haskell-stylish--skip-if-no-stack-available ()
+  (unless (executable-find "stack")
+    (ert-skip "no tack")))
+
 (provide 'haskell-test-utils)
 ;;; haskell-test-utils.el ends here

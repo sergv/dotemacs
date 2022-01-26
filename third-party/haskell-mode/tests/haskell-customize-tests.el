@@ -24,6 +24,7 @@
 (defvar dir-structure nil)
 
 (ert-deftest haskell-process-type-test-1 ()
+  (haskell-stylish--skip-if-no-stack-available)
   (with-temp-dir-structure
    (("README.md" . "Hello world")
     ("Main.hs" . "-- Empty file")
@@ -38,6 +39,7 @@
      (should (eq 'stack-ghci (haskell-process-type))))))
 
 (ert-deftest haskell-process-type-test-2 ()
+  (haskell-stylish--skip-if-no-stack-available)
   (with-temp-dir-structure
    (("README.md" . "Hello world")
     ("Main.hs" . "-- Empty file")
