@@ -83,6 +83,8 @@
 (require 'tuareg-opam)
 (require 'tuareg-compat)
 
+(require 'common-whitespace)
+
 (defconst tuareg-mode-revision
   (eval-when-compile
     (with-temp-buffer
@@ -2997,7 +2999,7 @@ or indent all lines in the current phrase."
           (if (cddr data)
               (setq sig (merlin--type-enclosing-text data))))))
     (when (and sig (string-match "\\`sig\\>" sig) (>= (length sig) 9))
-      (setq sig (string-trim (substring sig 3 -3)))
+      (setq sig (trim-whitespace (substring sig 3 -3)))
       (replace-regexp-in-string "\n  " "\n" sig))))
 
 (defun tuareg--ff-file-created-hook ()

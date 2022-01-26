@@ -82,6 +82,7 @@
 (require 'json)                  ; `flycheck-parse-tslint'
 (require 'ansi-color)            ; `flycheck-parse-with-patterns-without-color'
 
+(require 'common-whitespace)
 
 ;; Declare a bunch of dynamic variables that we need from other modes
 (defvar sh-shell)                       ; For shell script checker predicates
@@ -116,22 +117,6 @@ attention to case differences."
     (defsubst string-join (strings &optional separator)
       "Join all STRINGS using SEPARATOR."
       (mapconcat 'identity strings separator))
-
-    (defsubst string-trim-left (string)
-      "Remove leading whitespace from STRING."
-      (if (string-match "\\`[ \t\n\r]+" string)
-          (replace-match "" t t string)
-        string))
-
-    (defsubst string-trim-right (string)
-      "Remove trailing whitespace from STRING."
-      (if (string-match "[ \t\n\r]+\\'" string)
-          (replace-match "" t t string)
-        string))
-
-    (defsubst string-trim (string)
-      "Remove leading and trailing whitespace from STRING."
-      (string-trim-left (string-trim-right string)))
 
     (defsubst string-empty-p (string)
       "Check whether STRING is empty."
@@ -4441,7 +4426,7 @@ Returns sanitized ERRORS."
       (let ((message (flycheck-error-message err))
             (id (flycheck-error-id err)))
         (when message
-          (setq message (string-trim message))
+          (setq message (trim-whitespace message))
           (setf (flycheck-error-message err)
                 (if (string-empty-p message) nil message)))
         (when (and id (string-empty-p id))
@@ -6937,7 +6922,7 @@ See URL `http://phpmd.org/' for more information about phpmd."
                       (flycheck-error-new-at
                        (flycheck-string-to-number-safe .beginline)
                        nil
-                       'warning (string-trim message)
+                       'warning (trim-whitespace message)
                        ;; Ignore .endline (phpmd marks giant spans as errors)
                        ;; :end-line (flycheck-string-to-number-safe .endline)
                        :id .rule
@@ -10403,7 +10388,7 @@ See URL `http://puppet-lint.com/'."
 CHECKER's executable is assumed to be a Python REPL."
   (-when-let (output (flycheck-call-checker-process-for-output
                       checker nil nil "-c" snippet))
-    (string-trim output)))
+    (trim-whitespace output)))
 
 (defun flycheck-python-get-path (checker)
   "Compute the current Python path (CHECKER is a Python REPL) ."
@@ -11431,7 +11416,7 @@ versions inferior to 1.25)."
 
 Execute `cargo --list' to find out whether COMMAND is present."
   (let ((cargo (funcall flycheck-executable-find "cargo")))
-    (member command (mapcar #'string-trim-left
+    (member command (mapcar #'trim-whitespace-left
                             (ignore-errors (process-lines cargo "--list"))))))
 
 (defun flycheck-rust-valid-crate-type-p (crate-type)
