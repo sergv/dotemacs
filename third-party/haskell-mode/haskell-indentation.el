@@ -1247,7 +1247,30 @@ line."
 
 (defun haskell-indentation-peek-token ()
   "Return token starting at point."
-  (cond ((looking-at "\\(if\\|then\\|else\\|let\\|in\\|mdo\\|rec\\|do\\|proc\\|case\\|of\\|where\\|module\\|signature\\|deriving\\|import\\|data\\|type\\|newtype\\|class\\|instance\\)\\([^[:alnum:]'_]\\|$\\)")
+  (cond ((looking-at
+          (rx (group
+               (or "if"
+                   "then"
+                   "else"
+                   "let"
+                   "in"
+                   "mdo"
+                   "rec"
+                   "do"
+                   "proc"
+                   "case"
+                   "of"
+                   "where"
+                   "module"
+                   "signature"
+                   "deriving"
+                   "import"
+                   "data"
+                   "type"
+                   "newtype"
+                   "class"
+                   "instance"))
+              (regexp "\\([^[:alnum:]'_]\\|$\\)")))
          (match-string-no-properties 1))
         ((looking-at "[][(){}[,;]")
          (match-string-no-properties 0))
