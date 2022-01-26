@@ -2684,7 +2684,7 @@
 (ert-deftest vim-tests/haskell-insert-quote-5 ()
   (vim-tests--test-fresh-buffer-contents-init
       (haskell-mode)
-      (execute-kbd-macro (kbd "i ' foo ' SPC b a r <escape>"))
+      (execute-kbd-macro (kbd "i ' f o o ' SPC b a r <escape>"))
     (tests-utils--multiline
      ""
      "-- _|_"
