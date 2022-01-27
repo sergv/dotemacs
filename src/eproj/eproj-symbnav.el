@@ -119,8 +119,8 @@ as accepted by `bounds-of-thing-at-point'.")
       (error "file %s does not exist" file))
     file))
 
-(defun eproj-symbnav/locate-tag-in-current-buffer (tag-name tag)
-  (goto-line-dumb (eproj-tag/line tag))
+(defun eproj-symbnav/locate-tag-in-current-buffer (tag-name line column)
+  (goto-line-dumb line)
   (if tag-name
       (save-match-data
         (let ((tag-name-re (regexp-quote tag-name)))
@@ -128,7 +128,7 @@ as accepted by `bounds-of-thing-at-point'.")
                                    (line-end-position)
                                    t)
             (goto-char (match-beginning 0)))))
-    (awhen (eproj-tag/column tag)
+    (awhen column
       (move-to-column it)))
   ;; remove annoying "Mark set" message
   (notify ""))
@@ -137,7 +137,25 @@ as accepted by `bounds-of-thing-at-point'.")
   (find-file-other-window
    (eproj-symbnav/resolve-tag-file-in-project tag
                                               entry-proj))
-  (eproj-symbnav/locate-tag-in-current-buffer tag-name tag))
+  (eproj-symbnav/locate-tag-in-current-buffer tag-name
+                                              (eproj-tag/line tag)
+                                              (eproj-tag/column tag)))
+
+(defun eproj-symbnav--jump-to-location (file line column current-home-entry tag-name)
+  (cl-assert (stringp file))
+  (cl-assert (fixnump line))
+  (cl-assert (or (fixnump column) (null column)))
+  (cl-assert (stringp tag-name))
+  (when current-home-entry
+    (push current-home-entry eproj-symbnav/previous-homes))
+  (setf eproj-symbnav/next-homes nil)
+  (find-file file)
+  (eproj-symbnav/locate-tag-in-current-buffer tag-name line column)
+  (eproj-symbnav/on-switch)
+  (setf eproj-symbnav/selected-loc
+        (make-eproj-home-entry :buffer (current-buffer)
+                               :position (point-marker)
+                               :symbol tag-name)))
 
 ;;;###autoload
 (defun eproj-symbnav/go-to-symbol-home (&optional use-regexp?)
@@ -341,17 +359,12 @@ as accepted by `bounds-of-thing-at-point'.")
 
          (jump-to-home
           (lambda (tag-name tag entry-proj)
-            (let ((file
-                   (eproj-symbnav/resolve-tag-file-in-project tag entry-proj)))
-              (push current-home-entry eproj-symbnav/previous-homes)
-              (setf eproj-symbnav/next-homes nil)
-              (find-file file)
-              (eproj-symbnav/locate-tag-in-current-buffer tag-name tag)
-              (eproj-symbnav/on-switch)
-              (setf eproj-symbnav/selected-loc
-                    (make-eproj-home-entry :buffer (current-buffer)
-                                           :position (point-marker)
-                                           :symbol tag-name))))))
+            (eproj-symbnav--jump-to-location
+             (eproj-symbnav/resolve-tag-file-in-project tag entry-proj)
+             (eproj-tag/line tag)
+             (eproj-tag/column tag)
+             current-home-entry
+             tag-name))))
     (pcase (length entries)
       (`0
        (error "No entries for %s" identifier))
