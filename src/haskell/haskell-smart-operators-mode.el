@@ -73,31 +73,31 @@ stick it to the previous operator on line."
                 (when (and before-ws
                            (let ((before-ws2 (char-before pt-before-ws2)))
                              (and before-ws2
-                                  (char-equal before-ws before-ws2)
-                                  (char-equal before-ws ?-))))
+                                  (eq before-ws before-ws2)
+                                  (eq before-ws ?-))))
                   (setf pt-preceded-by-two-dashes? t)
                   (= pt-before-ws2 (1+ line-start-pos)))))))
          (insert-trailing-space
           (lambda (whitespace-deleted? before after)
             ;; Decide whether to insert a space after the operator.
             (when (and insert-space-after
-                       (not (and (char-equal char ?\\)
+                       (not (and (eq char ?\\)
                                  (not at-beginning-of-buffer?)
-                                 (char-equal before ?\())))
+                                 (eq before ?\())))
               (when (or (not after) ;; at end of buffer
                         ;; If the next thing is lambda then we don't want to merge
                         ;; with its \.
-                        (char-equal after ?\\)
-                        (and (not (char-equal after ?\s))
-                             (not (char-equal after ?\)))
+                        (eq after ?\\)
+                        (and (not (eq after ?\s))
+                             (not (eq after ?\)))
                              ;; Don't insert space before backtick.
-                             (not (char-equal after ?\`))
+                             (not (eq after ?\`))
                              ;; Do not split '|]' token when we're inserting the '|'.
-                             (not (and (char-equal char ?|)
-                                       (char-equal after ?\])))
+                             (not (and (eq char ?|)
+                                       (eq after ?\])))
                              ;; Special case for @ since it's part of as-patterns.
                              (not (gethash after haskell-smart-operators--operator-chars))
-                             (if (char-equal char ?@)
+                             (if (eq char ?@)
                                  (or whitespace-deleted?
                                      (gethash before haskell-smart-operators--operator-chars))
                                t)))
@@ -134,7 +134,7 @@ stick it to the previous operator on line."
          (if (and (not (smart-operators--on-empty-string?))
                   ;; If inserting hash then we should not add a space
                   ;; if MagicHash is enabled.
-                  (if (and (char-equal char ?#)
+                  (if (and (eq char ?#)
                            haskell-smart-operators-mode--have-magic-hash)
                       nil ;; Stop considering whether to inser space.
                     t)
@@ -142,30 +142,29 @@ stick it to the previous operator on line."
                    ;; At beginning of buffer.
                    at-beginning-of-buffer?
                    ;; After | that is a potential guard.
-                   (when (char-equal prev-char ?|)
+                   (when (eq prev-char ?|)
                      (awhen (haskell-smart-operators--on-a-line-with-guard?)
                        (equal it (- pt 1))))
                    (and
                     ;; Do not insert spaces before @ since it's mostly used
                     ;; as as-patterns.
-                    (not (char-equal char ?@))
-                    (not (char-equal prev-char ?\s))
-                    (not (char-equal prev-char ?\())
-                    (and (not (char-equal prev-char ?\`))
+                    (not (eq char ?@))
+                    (not (eq prev-char ?\s))
+                    (not (eq prev-char ?\())
+                    (and (not (eq prev-char ?\`))
                          (or (null after)
-                             (not (char-equal after ?\`))))
-                    (not (and (char-equal char ?|)
+                             (not (eq after ?\`))))
+                    (not (and (eq char ?|)
                               (or
                                ;; Do not split '[|' token when we're inserting the '['.
-                               (char-equal prev-char ?\[)
+                               (eq prev-char ?\[)
                                ;; Do not split '[foo|' quasiquoter
                                ;; when we're inserting the '['.
                                (save-excursion
                                  (with-syntax-table haskell-quasiquoter-name-syntax-table
                                    (skip-syntax-backward "w" (line-beginning-position))
                                    (let ((before-far (char-before)))
-                                     (and before-far
-                                          (char-equal before-far ?\[))))))))
+                                     (eq before-far ?\[)))))))
                     (not (gethash prev-char haskell-smart-operators--operator-chars)))))
              (progn
                (setq before (char-before))
@@ -179,14 +178,14 @@ stick it to the previous operator on line."
                            (char-before-spaces (char-before pt-before-ws)))
                       (and char-before-spaces ;; not at beginning of buffer
                            (or (gethash char-before-spaces haskell-smart-operators--operator-chars)
-                               (char-equal char-before-spaces ?\()
+                               (eq char-before-spaces ?\()
                                ;; If inserting # in MagicHash mode
                                ;; then make it stick to the previous
                                ;; word as well as to operators.
-                               (and (char-equal char ?#)
+                               (and (eq char ?#)
                                     haskell-smart-operators-mode--have-magic-hash
                                     (memq (char-syntax char-before-spaces) '(?w ?_))))
-                           (if (char-equal char-before-spaces ?|)
+                           (if (eq char-before-spaces ?|)
                                ;; Check that it's not a guard.
                                (not (haskell-smart-operators--on-a-line-with-guard?))
                              t))))))
@@ -217,17 +216,14 @@ stick it to the previous operator on line."
         (strip-next-parens?
          (save-excursion
            (skip-syntax-backward " ")
-           (awhen (char-before)
-             (not (char-equal it ?\<)))))
+           (not (eq (char-before) ?\<))))
         (paren-start-pos nil))
     (when (and strip-next-parens?
                (save-excursion
                  (skip-syntax-forward " ")
-                 (let ((next-char (char-after)))
-                   (when (and next-char
-                              (char= next-char ?\())
-                     (setf paren-start-pos (point))
-                     t))))
+                 (when (eq (char-after) ?\()
+                   (setf paren-start-pos (point))
+                   t)))
       (goto-char paren-start-pos)
       ;; delete parenthesized sexp
       (save-excursion
@@ -328,9 +324,8 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
            (skip-syntax-backward " ")
            (preceded-by2 ?: ?:))))
     (if preceded-by-double-colon?
-        (let ((before (char-before)))
-          (when (and before
-                     (not (eq before ?\s)))
+        (progn
+          (unless (eq (char-before) ?\s)
             (insert-char ?\s))
           (insert-char ?!))
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?!))))
