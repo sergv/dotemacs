@@ -53,7 +53,10 @@ that next 2 characters are AFTER1 and AFTER2."
                is-after?))))
 
 (defun smart-operators--in-string-syntax? ()
-  (eq (syntax-class (syntax-after (point))) 7))
+  (if (bobp)
+      nil
+    (and (eq (syntax-class (syntax-after (1- (point)))) 7)
+         (eq (syntax-class (syntax-after (point))) 7))))
 
 ;;;###autoload
 (defun smart-operators--in-string-or-comment? (&optional disable-comment-check?)
