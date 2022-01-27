@@ -23,6 +23,7 @@
   (defvar lsp-rust-target-dir))
 
 (require 'common-whitespace)
+(require 'common)
 
 (require 'lsp-setup)
 

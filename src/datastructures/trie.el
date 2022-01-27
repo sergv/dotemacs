@@ -10,7 +10,9 @@
   (require 'cl)
   (require 'macro-util))
 
-(defconst trie--unbound '#:unbound)
+;; Really, don’t create this symbol yourself, only reference it via
+;; ‘trie--unbound’. Too bad reader doesn’t know about this rule...
+(defconst trie--unbound 'trie--unbound)
 
 ;; Trie where keys are literal case-sensitive (regardless of ‘case-fold-search’ bullshit) strings.
 

@@ -11,7 +11,7 @@
   (require 'cl)
   (require 'macro-util))
 
-(defvar append-list-tag '#:append-list-tag)
+(defvar append-list-tag 'append-list--tag)
 
 (defsubst append-list-p (x)
   (and (consp x)
