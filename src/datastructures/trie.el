@@ -94,6 +94,12 @@ call (MERGE old-val VALUE) to produce a new value."
             val))
       def)))
 
+(defun trie-from-list (entries)
+  (let ((tr (make-empty-trie)))
+    (dolist (entry entries)
+      (trie-insert! (car entry) (cdr entry) tr))
+    tr))
+
 ;;;; Optimization
 
 (defun trie-opt-normalize-subtrees! (trie)
@@ -145,6 +151,22 @@ call (MERGE old-val VALUE) to produce a new value."
              (res (cons cached-car cached-cdr)))
         (puthash subtrees res cache)
         res))))
+
+;;;; Matching
+
+(defun trie-matches-backwards? (tr &optional def)
+  (let ((continue t)
+        (res def))
+    (while (and tr
+                continue)
+      (let ((c (char-before)))
+        (setf tr (trie-lookup-node-char c tr))
+        (forward-char -1)
+        (let ((val (trie-node--value tr)))
+          (unless (eq val trie--unbound)
+           (setf continue nil
+                 res val)))))
+    res))
 
 ;;;; End
 
