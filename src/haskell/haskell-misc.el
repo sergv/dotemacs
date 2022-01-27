@@ -11,12 +11,14 @@
 (eval-when-compile
   (require 'cl)
   (require 'subr-x)
-  (require 'macro-util))
+  (require 'macro-util)
+  (require 'trie))
 
 (require 'macro-util)
 (require 'advices-util)
 (require 'common)
 (require 'search)
+(require 'trie)
 
 (require 'abbrev+)
 (require 'haskell-compile)
@@ -590,12 +592,13 @@ both unicode and ascii characters.")
                          t)))))))))
      (when (null expanded-function-name?)
        (goto-char start-pos)
-       (let* ((syn (syntax-ppss))
-              (in-string? (nth 3 syn)))
+       (let* ((syn nil)
+              (in-string? (or (smart-operators--in-string-syntax?)
+                              (nth 3 (syntax-ppss-update! syn)))))
          (cond
            (in-string?
             (let ((string-start-column (save-excursion
-                                         (goto-char (nth 8 syn))
+                                         (goto-char (nth 8 (syntax-ppss-cached syn)))
                                          (current-column))))
               (delete-horizontal-space t)
               (insert-char ?\\)
@@ -609,17 +612,22 @@ both unicode and ascii characters.")
             (insert-char ?\s function-name-column))
            ((save-excursion
               (skip-syntax-backward " ")
-              (skip-syntax-backward "w_.")
-              (looking-at-p
-               (rx (or (seq
-                        symbol-start
-                        (or "where"
-                            "of"
-                            "do")
-                        symbol-end)
-                       (or "="
-                           "->"
-                           "<-")))))
+              (and (trie-matches-backwards?
+                    (eval-when-compile
+                      (trie-opt-recover-sharing!
+                       (trie-from-list
+                        (--map (cons (reverse it) t)
+                               '("where"
+                                 "of"
+                                 "do"
+                                 "="
+                                 "->"
+                                 "<-")))))
+                    nil)
+                   (let ((before (char-before)))
+                     (or (eq before ?\s)
+                         (eq before ?\n)
+                         (eq before ?\t)))))
             (haskell--simple-indent-newline-indent))
            ((save-excursion
               (skip-to-indentation)
