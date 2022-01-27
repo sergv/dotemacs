@@ -13,6 +13,8 @@
   (require 'cl)
   (require 'macro-util))
 
+(require 'bisect)
+
 ;; Config variables
 
 (defgroup select-mode nil
