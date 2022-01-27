@@ -24,7 +24,11 @@ if [[ "$#" -gt 0 ]]; then
         fi
     done
 else
-    for x in *.el; do
+    for x in "$EMACS_ROOT/tests"/*.el; do
+        tests="$tests -l $x"
+    done
+
+    for x in "$EMACS_ROOT/third-party/haskell-mode/tests"/*.el; do
         tests="$tests -l $x"
     done
 fi
@@ -33,6 +37,7 @@ emacs -Q --batch \
       -L "$EMACS_ROOT/src" \
       -L "$EMACS_ROOT/src/custom" \
       -L "$EMACS_ROOT/tests" \
+      -L "$EMACS_ROOT/third-party/haskell-mode/tests" \
       --eval "(progn (require 'cl))" \
       --eval "(progn (require 'cl-lib))" \
       -l start \
