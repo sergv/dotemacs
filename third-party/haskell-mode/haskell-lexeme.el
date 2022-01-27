@@ -114,10 +114,11 @@ the unqualified part (if any)."
         (let ((beg (match-beginning 0))
               (end (match-end 0)))
 
-          ;; check is MagicHash is present at the end of the token
+          ;; Check is MagicHash is present at the end of the token.
           (goto-char end)
-          (when (looking-at "#+")
-            (setq end (match-end 0)))
+          (while (eq (char-after) ?#)
+            (forward-char 1))
+          (setq end (point))
 
           (set-match-data
            (list begin end
