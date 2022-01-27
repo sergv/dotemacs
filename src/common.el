@@ -30,7 +30,7 @@
 (defsubst comp-hint-fixnum (x)
   x)
 
-(defconst +undef+ '#:undef
+(defconst +undef+ 'common--undef
   "Undefined value not equal to anything but itself and not creatable
 by any means other than direct referencing via ‘+undef’.")
 
