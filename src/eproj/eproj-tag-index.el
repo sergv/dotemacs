@@ -27,7 +27,7 @@
 
 (require 'packing)
 
-(defconst eproj-tag-complex-type-prop '#:type)
+(defconst eproj-tag-complex-type-prop 'eproj--type)
 
 (defun make-eproj-tag (file line type props)
   (declare (pure t) (side-effect-free t))
