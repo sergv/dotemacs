@@ -247,29 +247,27 @@ by the user)."
   (insert (select-mode--state-epilogue state))
   (select-mode--move-selection-to state (select-mode--state-selected-item state) t))
 
+(defun select-mode--pos-inside-pos-pair (pos pos-pair)
+  (cl-assert (< (car pos-pair) (cdr pos-pair)))
+  (and (<= (car pos-pair) pos)
+       (< pos (cdr pos-pair))))
+
 (defun select-mode--update-selected-item ()
   "Set selected item based on the point position inside buffer."
   (let* ((pos (point))
-         (pos-inside-pos-pair
-          (lambda (pos pos-pair)
-            (cl-assert (< (car pos-pair) (cdr pos-pair)))
-            (and (<= (car pos-pair) pos)
-                 (< pos (cdr pos-pair)))))
          (positions (select-mode--state-item-positions select-mode--current-state))
          (selection-idx
           (bisect pos
                   positions
                   0
                   (select-mode--state-items-count select-mode--current-state)
-                  pos-inside-pos-pair
+                  #'select-mode--pos-inside-pos-pair
                   (lambda (pos pos-pair)
                     (cl-assert (< (car pos-pair) (cdr pos-pair)))
                     (< pos (car pos-pair))))))
     (if (and selection-idx
              (< selection-idx (length positions))
-             (funcall pos-inside-pos-pair
-                      pos
-                      (aref positions selection-idx)))
+             (select-mode--pos-inside-pos-pair pos (aref positions selection-idx)))
         (select-mode--move-selection-to select-mode--current-state selection-idx nil)
       (move-overlay (select-mode--state-selection-overlay select-mode--current-state)
                     (point-min)
