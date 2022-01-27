@@ -1000,7 +1000,8 @@ import javascript unsafe
    (haskell-mode)
    (insert "main = do")
 
-   (execute-kbd-macro (kbd "<RET>"))
+   (execute-kbd-macro (kbd "<return>"))
+
    (should (equal 2 (- (point) (line-beginning-position))))))
 
 (ert-deftest haskell-indentation-tab-and-backtab ()
