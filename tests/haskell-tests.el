@@ -461,9 +461,15 @@
     "x = \(_|_\)"
     "x = \(\\_|_\)"))
 
-(ert-deftest haskell-tests/haskell-smart-operators--space-after--lambdas-2 ()
+(ert-deftest haskell-tests/haskell-smart-operators--space-after--lambdas-2a ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?$)
+    "x = f _|_\\ x -> x"
+    "x = f $ _|_\\ x -> x"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--space-after--lambdas-2b ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators-$)
     "x = f _|_\\ x -> x"
     "x = f $ _|_\\ x -> x"))
 
@@ -723,6 +729,29 @@
     "x = f<_|_(xs ++ ys)"
     "x = f<$ _|_(xs ++ ys)"))
 
+(ert-deftest haskell-tests/haskell-smart-operators--operator-$-before-double-quotes-1 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators-$)
+    "x = error _|_\"foobar\" ++ show baz"
+    "x = error $ _|_\"foobar\" ++ show baz"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--operator-$-within-double-quotes-1 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators-$)
+    "x = error \"_|_foobar\""
+    "x = error \"$_|_foobar\""))
+
+(ert-deftest haskell-tests/haskell-smart-operators--operator-$-within-double-quotes-2 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators-$)
+    "x = error \"foobar_|_\""
+    "x = error \"foobar$_|_\""))
+
+(ert-deftest haskell-tests/haskell-smart-operators--operator-$-within-double-quotes-3 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators-$)
+    "x = error \"foobar_|_baz\""
+    "x = error \"foobar$_|_baz\""))
 
 (ert-deftest haskell-tests/haskell-smart-operators--guard-1 ()
   (haskell-tests--test-buffer-contents
