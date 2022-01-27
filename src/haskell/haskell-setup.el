@@ -27,6 +27,7 @@
 (require 'dante)
 (require 'dante-repl)
 (require 'eproj)
+(require 'eproj-symbnav)
 (require 'flycheck-setup)
 (require 'haskell-abbrev+)
 (require 'haskell-compilation-commands)
@@ -163,36 +164,61 @@
                 "Choose symbol\n\n")))
             (t
              (lcr-cps-let ((_load-message (dante-async-load-current-buffer t nil))
-                           (info (dante-async-call (concat ":i " identifier)))
-                           (packages (dante-async-call ":show packages")))
+                           (info (dante-async-call (concat ":i " identifier))))
                ;; Parse ghci responses, they may narrow down the result.
-               (let* ((mod-name (save-match-data
-                                  (if (string-match "-- Defined in ‘\\([^’\n ]+\\)’" info)
-                                      (match-string-no-properties 1 info)
-                                    (error "Failed to extract mod name from ghci result:\n%s" info))))
-                      ;; Packages is e.g.:
-                      ;; "active package flags:\n  -package-id base-4.15.1.0\n  -package-id aeson-2.0.3.0-e91573e5a9f0a74731f7cb1fe08486dfa1990213df0c4f864e51b791370cc73d"
-                      (lines (s-lines packages))
-                      (lines2 (if (string= (car lines) "active package flags:")
-                                  (cdr lines)
-                                lines))
-                      (pkgs-without-versions (--map (replace-regexp-in-string
-                                                     (rx ?- (+ (any (?0 . ?9) ?.))
-                                                         ;; Unique hash that ghci may print
-                                                         (? ?- (+ (any (?a . ?z) (?0 . ?9))))
-                                                         eos)
-                                                     ""
-                                                     (strip-string-prefix "  -package-id " it))
-                                                    lines2)))
-                 (haskell-symbnav--jump-to-filtered-tags
-                  identifier
-                  (concat "/"
-                          "\\(:?" (regexp-opt pkgs-without-versions) "\\)"
-                          ".*"
-                          "/"
-                          (replace-regexp-in-string "\\." "/" mod-name)
-                          "."
-                          (regexp-opt +haskell-extensions+))))))))))))
+               (save-match-data
+                 (cond
+                   ;; Sometimes :loc-at couldn’t produce anything useful but :i pinpoints
+                   ;; the result perfectly.
+                   ((string-match (rx "-- Defined at "
+                                      (group-n 1 (+ (not (any ?\r ?\n ?\t))))
+                                      ":"
+                                      (group-n 2 (+ (any (?0 . ?9))))
+                                      ":"
+                                      (group-n 3 (+ (any (?0 . ?9))))
+                                      eol)
+                                  info)
+                    (let ((file (match-string 1 info))
+                          (line (string->number (match-string 2 info)))
+                          (column (string->number (match-string 3 info))))
+                      (unless (file-name-absolute-p file)
+                        (setq file (expand-file-name file (dante-project-root))))
+                      (eproj-symbnav--jump-to-location file line column (eproj-symbnav-current-home-entry) identifier)))
+                   ;; Other times :i only provides us with a module name which is still
+                   ;; usefull to narrow down tag search.
+                   ((string-match (rx "-- Defined in"
+                                      ?\‘
+                                      (group-n 1 (+ (not (any ?\n ?\r ?\t))))
+                                      ?\’
+                                      eol)
+                                  info)
+                    (lcr-cps-let ((packages (dante-async-call ":show packages")))
+                      (let* ((mod-name (match-string-no-properties 1 info))
+                             ;; Sample ‘packages’ content:
+                             ;; "active package flags:\n  -package-id base-4.15.1.0\n  -package-id aeson-2.0.3.0-e91573e5a9f0a74731f7cb1fe08486dfa1990213df0c4f864e51b791370cc73d"
+                             (lines (s-lines packages))
+                             (lines2 (if (string= (car lines) "active package flags:")
+                                         (cdr lines)
+                                       lines))
+                             (pkgs-without-versions (--map (replace-regexp-in-string
+                                                            (rx ?- (+ (any (?0 . ?9) ?.))
+                                                                ;; Unique hash that ghci may print
+                                                                (? ?- (+ (any (?a . ?z) (?0 . ?9))))
+                                                                eos)
+                                                            ""
+                                                            (strip-string-prefix "  -package-id " it))
+                                                           lines2)))
+                        (haskell-symbnav--jump-to-filtered-tags
+                         identifier
+                         (concat "/"
+                                 "\\(:?" (regexp-opt pkgs-without-versions) "\\)"
+                                 ".*"
+                                 "/"
+                                 (replace-regexp-in-string "\\." "/" mod-name)
+                                 "."
+                                 (regexp-opt +haskell-extensions+))))))
+                   (t
+                    (error "Failed to extract mod name from ghci result:\n%s" info))))))))))))
 
 (defun haskell-misc--ghc-src-span-to-eproj-tag (string)
   "Extract a location from a ghc span STRING."
