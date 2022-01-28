@@ -104,30 +104,46 @@
 (defvar paredit-test-mode-is-lisp? nil
   "Set to t for lisp-syntax modes with ; as comment character.")
 
+(defvar paredit-test-indent-disabled? nil
+  "Whether indentation functions don’t do anything.")
+
+(defvar paredit-test-mode nil)
+
+(setf paredit-test-mode #'haskell-mode
+      paredit-test-indent-disabled? t
+      paredit-indent-sexp-function #'ignore
+      paredit-indent-line-function #'ignore
+      paredit-calculate-indent (lambda (_pos) 0)
+      paredit-indent-region-function nil
+      paredit-in-char-p-function #'paredit-never-in-char-p
+      paredit-comment-prefix-toplevel "---- "
+      paredit-comment-prefix-code "-- "
+      paredit-comment-prefix-margin "-- ")
+
 ;; ;; This indentation treats curly braces {} specially but paredit expects
 ;; ;; them to work just the same as () and [].
-;; (defvar paredit-test-indent-disabled? nil)
-;; (setf paredit-indent-sexp-function #'prog-indent-sexp)
-;; (setf paredit-indent-line-function #'c-indent-line)
-;; (setf paredit-indent-region-function #'indent-regino)
+;; (setf paredit-test-mode #'c-mode
+;;       paredit-test-indent-disabled? t
+;;       paredit-indent-sexp-function #'prog-indent-sexp
+;;       paredit-indent-line-function #'c-indent-line
+;;         ;; paredit-indent-line-function #'indent-according-to-mode
+;;       paredit-indent-region-function #'indent-region
+;;
+;;       ;; ;; todo
+;;       ;; paredit-calculate-indent (lambda (_pos) 0)
+;;       paredit-in-char-p-function #'paredit-never-in-char-p
+;;       paredit-comment-prefix-toplevel "//// "
+;;       paredit-comment-prefix-code "// "
+;;       paredit-comment-prefix-margin "// ")
 
-;; (setf paredit-indent-line-function #'indent-according-to-mode)
-
-(defvar paredit-test-indent-disabled? t)
-(setf paredit-indent-sexp-function #'ignore)
-(setf paredit-indent-line-function #'ignore)
-(setf paredit-calculate-indent (lambda (_pos) 0))
-(setf paredit-indent-region-function nil)
-
-;; (defvar paredit-test-mode #'c-mode)
-;; (setf paredit-comment-prefix-toplevel "////// ")
-;; (setf paredit-comment-prefix-code "//// ")
-;; (setf paredit-comment-prefix-margin "//")
-
-(defvar paredit-test-mode #'haskell-mode)
-(setf paredit-comment-prefix-toplevel "---- ")
-(setf paredit-comment-prefix-code "-- ")
-(setf paredit-comment-prefix-margin "-- ")
+;; (setf paredit-test-mode #'emacs-lisp-mode
+;;       paredit-test-indent-disabled? nil
+;;       paredit-test-mode-is-lisp? t
+;;       paredit-indent-sexp-function #'indent-sexp
+;;       paredit-indent-line-function #'lisp-indent-line
+;;       paredit-calculate-indent #'calculate-lisp-indent
+;;       paredit-indent-region-function #'indent-region
+;;       paredit-in-char-p-function #'paredit-in-lisp-char-p)
 
 (setf paredit-comment-start-at-function
       (lambda (pt)
