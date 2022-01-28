@@ -106,7 +106,8 @@ realign _l_et
   (prepare-paredit :indent-sexp #'indent-sexp
                    :indent-line #'lisp-indent-line
                    :calc-indent #'calculate-lisp-indent
-                   :indent-region #'indent-region)
+                   :indent-region #'indent-region
+                   :in-char-p #'paredit-in-lisp-char-p)
   (setq-local company-backends '(company-elisp))
 
   (emacs-lisp-highlight-keywords)

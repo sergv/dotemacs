@@ -128,6 +128,8 @@
 (eval-when-compile
   (require 'cl-lib))
 
+(require 'smart-operators-utils)
+
 (eval-and-compile
   (defconst paredit-sexp-error-type
     (eval-when-compile
@@ -601,12 +603,13 @@ If in a character literal, do nothing.  This prevents changing what was
   in the character literal to a meaningful delimiter unintentionally.")
          (interactive "P")
          (let ((state (paredit-current-parse-state)))
-           (cond ((or (paredit-in-string-p state)
-                      (paredit-in-comment-p state))
-                  (insert-char ,open))
-                 ((not (paredit-in-char-p))
-                  (paredit-insert-pair n ,open ,close 'goto-char)
-                  (save-excursion (backward-up-list) (paredit-indent-sexp))))))
+           (if (or (paredit-in-string-p state)
+                   (paredit-in-comment-p state)
+                   (paredit-in-char-p))
+               (insert-char ,open)
+             (progn
+               (paredit-insert-pair n ,open ,close 'goto-char)
+               (save-excursion (backward-up-list) (paredit-indent-sexp))))))
        (defun ,(paredit-conc-name "paredit-close-" name) ()
          ,(concat "Move past one closing delimiter and reindent.
 \(Agnostic to the specific closing delimiter.\)
@@ -763,7 +766,7 @@ If such a comment exists, delete the comment (including all leading
       (let* ((beginning-state (paredit-current-parse-state))
              (end-state
               (parse-partial-sexp beginning end nil nil beginning-state)))
-        (and (=  (nth 0 beginning-state)   ; 0. depth in parens
+        (and (eq (nth 0 beginning-state)   ; 0. depth in parens
                  (nth 0 end-state))
              (eq (nth 3 beginning-state)   ; 3. non-nil if inside a
                  (nth 3 end-state))        ;    string
@@ -795,8 +798,8 @@ Each predicate should examine only text before/after the point if ENDP is
   (and (not (if endp (eobp) (bobp)))
        (memq (char-syntax (if endp (char-after) (char-before)))
              (list ?w ?_ ?\"
-                   (let ((matching (matching-paren delimiter)))
-                     (and matching (char-syntax matching)))
+                   (when-let (matching (matching-paren delimiter))
+                     (char-syntax matching))
                    (and (not endp)
                         (eq ?\" (char-syntax delimiter))
                         ?\) )))
@@ -1209,10 +1212,8 @@ This is expected to be called only in `paredit-comment-dwim'; do not
              (while (> argument 0)
                (paredit-forward-delete-operator nil kill-flag)
                (setq argument (- argument 1)))))
-          ((progn
-             ;; Initialize state, order of conds is important.
-             (setq state (paredit-current-parse-state))
-             (paredit-in-string-p state))
+          ;; Initialize state here, order of conds is important.
+          ((paredit-in-string-p (setq state (paredit-current-parse-state)))
            (paredit-forward-delete-in-string kill-flag))
           ((paredit-in-comment-p state)
            (paredit-forward-delete-in-comment kill-flag))
@@ -1326,10 +1327,8 @@ without regard for delimiter balancing."
              (while (> argument 0)
                (paredit-backward-delete-operator nil kill-flag)
                (setq argument (- argument 1)))))
-          ((progn
-             ;; Initialize state, order of conds is important.
-             (setq state (paredit-current-parse-state))
-             (paredit-in-string-p state))
+          ;; Initialize state, order of conds is important.
+          ((paredit-in-string-p (setq state (paredit-current-parse-state)))
            (paredit-backward-delete-in-string kill-flag))
           ((paredit-in-comment-p state)
            (paredit-backward-delete-in-comment kill-flag))
@@ -1455,10 +1454,8 @@ With a numeric prefix argument N, do `kill-line' that many times."
   (let ((state nil))
     (cond (argument
            (kill-line (if (integerp argument) argument 1)))
-          ((progn
-             ;; Initialize state, order of conds is important.
-             (setq state (paredit-current-parse-state))
-             (paredit-in-string-p state))
+          ;; Initialize state, order of conds is important.
+          ((paredit-in-string-p (setq state (paredit-current-parse-state)))
            (paredit-kill-line-in-string))
           ((paredit-in-comment-p state)
            (paredit-kill-line-in-comment))
@@ -2751,9 +2748,18 @@ This assumes that `paredit-in-string-p' has already returned true."
             p (1- p)))
     oddp))
 
-(defun paredit-in-char-p (&optional position)
+(defun paredit-in-lisp-char-p (&optional position)
   "True if point is on a character escape outside a string."
   (paredit-in-string-escape-p (or position (point))))
+
+(defun paredit-never-in-char-p (&optional position)
+  nil)
+
+(defvar paredit-in-char-p-function #'paredit-never-in-char-p)
+
+(defun paredit-in-char-p (&optional position)
+  "True if point is on a character escape outside a string."
+  (funcall paredit-in-char-p-function position))
 
 (defun paredit-skip-whitespace (trailing-p &optional limit)
   "Skip past any whitespace, or until the point LIMIT is reached.
@@ -2857,8 +2863,10 @@ Don't reindent the line starting at START, however."
 If no parse state is supplied, compute one from the beginning of the
   defun to the point."
   ;; 3. non-nil if inside a string (the terminator character, really)
-  (and (nth 3 (or state (paredit-current-parse-state)))
-       t))
+  (if (or (smart-operators--in-string-syntax?)
+          (nth 3 (or state (paredit-current-parse-state))))
+      t
+    nil))
 
 (defun paredit-string-start+end-points (&optional state noadjust)
   "Return a cons of the points of open and close quotes of the string.
@@ -2896,8 +2904,9 @@ If no parse state is supplied, compute one from the beginning of the
   defun to the point."
   ;; 4. nil if outside a comment, t if inside a non-nestable comment,
   ;;    else an integer (the current comment nesting)
-  (and (nth 4 (or state (paredit-current-parse-state)))
-       t))
+  (if (nth 4 (or state (paredit-current-parse-state)))
+      t
+    nil))
 
 (defun paredit-prefix-numeric-value (argument)
   ;++ Kludgerific.
