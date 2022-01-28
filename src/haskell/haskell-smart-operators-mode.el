@@ -28,15 +28,23 @@
   "Characters that may constitute operators.")
 
 (defun haskell-smart-operators--on-a-line-with-guard? ()
-  (save-excursion
-    ;; Old version...
-    ;; (not (string-match-p "^[ \t]*|"
-    ;;                      (buffer-substring-no-properties
-    ;;                       (line-beginning-position)
-    ;;                       (- (point) 1))))
-    (beginning-of-line)
-    (and (looking-at-p "^[ \t]+|")
-         (point))))
+  ;; Same as but should be leaner without regexen.
+  ;; (save-excursion
+  ;;   (beginning-of-line)
+  ;;   (and (looking-at-p "^[ \t]+|")
+  ;;        (point)))
+  (let* ((p0 (point-at-bol))
+         (p p0)
+         (c (char-after p)))
+    (while (or (eq c ?\s)
+               (eq c ?\t))
+      (cl-incf p)
+      (setq c (char-after p)))
+    (when (and
+           ;; Check that there was at least one space.
+           (not (eq p p0))
+           (eq (char-after p) ?|))
+      p0)))
 
 (defvar haskell-quasiquoter-name-syntax-table
   (let ((tbl (copy-syntax-table haskell-mode-syntax-table)))
