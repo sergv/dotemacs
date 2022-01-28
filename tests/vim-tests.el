@@ -2698,6 +2698,19 @@
      "  bar (x + 1) y \"foo\""
      "")))
 
+(ert-deftest vim-tests/haskell-insert-paren-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "i ( x , y ) - > z <escape>"))
+    (tests-utils--multiline
+     ""
+     "foo | any (\\_|_) = _"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo | any (\\(x, y) -> _|_z) = _"
+     "")))
+
 (provide 'vim-tests)
 
 ;; Local Variables:
