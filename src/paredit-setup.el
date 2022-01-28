@@ -42,9 +42,10 @@
 (setf paredit-indent-sexp-function #'ignore
       paredit-indent-line-function #'ignore
       paredit-calculate-indent #'paredit-dummy-indent
-      paredit-indent-region-function nil)
+      paredit-indent-region-function nil
+      paredit-in-char-p-function #'paredit-never-in-char-p)
 
-(cl-defun prepare-paredit (&key indent-sexp indent-line calc-indent indent-region)
+(cl-defun prepare-paredit (&key indent-sexp indent-line calc-indent indent-region in-char-p)
   (when indent-sexp
     (cl-assert (functionp indent-sexp))
     (setq-local paredit-indent-sexp-function indent-sexp))
@@ -56,7 +57,10 @@
     (setq-local paredit-calculate-indent calc-indent))
   (when indent-region
     (cl-assert (functionp indent-region))
-    (setq-local paredit-indent-region-function indent-region)))
+    (setq-local paredit-indent-region-function indent-region))
+  (when in-char-p
+    (cl-assert (functionp in-char-p))
+    (setq-local paredit-in-char-p-function in-char-p)))
 
 ;;;###autoload
 (defun set-up-paredit ()
