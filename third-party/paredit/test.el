@@ -48,6 +48,7 @@
           (setf example
                 (eval `(let ((in-lisp? ,paredit-test-mode-is-lisp?)
                              (no-indent? ,paredit-test-indent-disabled?)
+                             (lisp-chars? ,paredit-test-lisp-chars-enabled?)
                              (error 'error))
                          (cond
                            ,@(mapcar (lambda (x) `(,(car x) (list ,@(cdr x))))
@@ -107,10 +108,14 @@
 (defvar paredit-test-indent-disabled? nil
   "Whether indentation functions don’t do anything.")
 
+(defvar paredit-test-lisp-chars-enabled? nil
+  "Whether indentation functions don’t do anything.")
+
 (defvar paredit-test-mode nil)
 
 (setf paredit-test-mode #'haskell-mode
       paredit-test-indent-disabled? t
+      paredit-test-lisp-chars-enabled? nil
       paredit-indent-sexp-function #'ignore
       paredit-indent-line-function #'ignore
       paredit-calculate-indent (lambda (_pos) 0)
@@ -124,6 +129,7 @@
 ;; ;; them to work just the same as () and [].
 ;; (setf paredit-test-mode #'c-mode
 ;;       paredit-test-indent-disabled? t
+;;       paredit-test-lisp-chars-enabled? nil
 ;;       paredit-indent-sexp-function #'prog-indent-sexp
 ;;       paredit-indent-line-function #'c-indent-line
 ;;         ;; paredit-indent-line-function #'indent-according-to-mode
@@ -138,6 +144,7 @@
 
 ;; (setf paredit-test-mode #'emacs-lisp-mode
 ;;       paredit-test-indent-disabled? nil
+;;       paredit-test-lisp-chars-enabled? t
 ;;       paredit-test-mode-is-lisp? t
 ;;       paredit-indent-sexp-function #'indent-sexp
 ;;       paredit-indent-line-function #'lisp-indent-line
@@ -227,7 +234,9 @@
     ("(foo \"bar\"| baz)" "(foo \"bar\" (|) baz)")
     ("foo|" "foo (|)")
     ("|foo" "(|) foo")
-    ("\\|(" "\\|(")))
+    (cond
+      (lisp-chars? "\\|(" "\\|(")
+      (t           "\\|(" "\\(|) ("))))
 
 (let ((current-prefix-arg 1))
   (paredit-test-bracketed '((paredit-open-round ?\( ?\))
