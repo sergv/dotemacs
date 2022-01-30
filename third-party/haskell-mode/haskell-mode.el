@@ -127,6 +127,9 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'cl))
+
 (require 'haskell-customize)
 (require 'ansi-color)
 (require 'dabbrev)
@@ -955,20 +958,33 @@ list marker of some kind), and end of the obstacle."
               (haskell-forward-sexp)
               (skip-syntax-forward "->"))
             (goto-char cur)))
-        (setf arg (1+ arg)))
+        (cl-incf arg))
     (save-match-data
-      (while (> arg 0)
-        (when (haskell-lexeme-looking-at-token)
-          (cond ((member (match-string 0) (list "(" "[" "{"))
-                 (goto-char (or (scan-sexps (point) 1) (buffer-end 1))))
-                ((member (match-string 0) (list ")" "]" "}"))
-                 (signal 'scan-error (list "Containing expression ends prematurely."
-                                           (match-beginning 0)
-                                           (match-end 0))))
-                (t (goto-char (match-end 0)))))
-        (setf arg (1- arg))))))
-
-
+      (let ((continue t))
+        (while (and (> arg 0)
+                    continue)
+          (if-let (token-kind (haskell-lexeme-looking-at-token))
+              (cond
+                ((or (eq token-kind 'comment)
+                     (eq token-kind 'nested-comment))
+                 (goto-char (match-end 0))
+                 (unless parse-sexp-ignore-comments
+                   (cl-decf arg)))
+                ((eq token-kind 'special)
+                 (let ((str (char-after (match-beginning 0))))
+                   (cond ((memq str '(?\( ?\[ ?\{))
+                          (goto-char (or (scan-sexps (point) 1)
+                                         (buffer-end 1))))
+                         ((memq str '(?\) ?\] ?\}))
+                          (signal 'scan-error (list "Containing expression ends prematurely."
+                                                    (match-beginning 0)
+                                                    (match-end 0))))
+                         (t (goto-char (match-end 0)))))
+                 (cl-decf arg))
+                (t
+                 (goto-char (match-end 0))
+                 (cl-decf arg)))
+            (setf continue nil)))))))
 
 ;;;###autoload
 (define-derived-mode haskell-literate-mode haskell-mode "LitHaskell"
