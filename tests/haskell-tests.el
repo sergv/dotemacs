@@ -43,6 +43,18 @@
     :initialisation (haskell-mode)
     :buffer-id haskell))
 
+(defmacro haskell-tests--make-multiple-test-buffer-contents (initial entries)
+  (declare (indent 1))
+  `(progn
+     ,@(cl-loop
+        for entry in entries
+        collect
+        `(ert-deftest ,(cl-first entry) ()
+             (haskell-tests--test-buffer-contents
+                 ,(cl-second entry)
+               ,initial
+               ,(cl-third entry))))))
+
 (cl-defmacro haskell-tests--test-result (&key action expected-value contents)
   `(haskell-tests--with-temp-buffer
        (should (equal ,action ,expected-value))
@@ -3476,6 +3488,159 @@
      "        baz x"
      "        quux x"
      "  bar 10 ")))
+
+(haskell-tests--make-multiple-test-buffer-contents
+    (tests-utils--multiline
+     "_|_foo :: Int -> Int"
+     "foo = do -- a comment"
+     "  let bar x = do"
+     "        baz x"
+     "        quux x"
+     "  bar 10 ")
+  ((haskell-tests/haskell-forward-sexp-1a
+    (haskell-forward-sexp)
+    (tests-utils--multiline
+     "foo_|_ :: Int -> Int"
+     "foo = do -- a comment"
+     "  let bar x = do"
+     "        baz x"
+     "        quux x"
+     "  bar 10 "))
+   (haskell-tests/haskell-forward-sexp-1b
+    (haskell-forward-sexp 1)
+    (tests-utils--multiline
+     "foo_|_ :: Int -> Int"
+     "foo = do -- a comment"
+     "  let bar x = do"
+     "        baz x"
+     "        quux x"
+     "  bar 10 "))
+   (haskell-tests/haskell-forward-sexp-2
+    (haskell-forward-sexp 2)
+    (tests-utils--multiline
+     "foo ::_|_ Int -> Int"
+     "foo = do -- a comment"
+     "  let bar x = do"
+     "        baz x"
+     "        quux x"
+     "  bar 10 "))
+   (haskell-tests/haskell-forward-sexp-3
+    (haskell-forward-sexp 3)
+    (tests-utils--multiline
+     "foo :: Int_|_ -> Int"
+     "foo = do -- a comment"
+     "  let bar x = do"
+     "        baz x"
+     "        quux x"
+     "  bar 10 "))
+   (haskell-tests/haskell-forward-sexp-4
+    (haskell-forward-sexp 4)
+    (tests-utils--multiline
+     "foo :: Int ->_|_ Int"
+     "foo = do -- a comment"
+     "  let bar x = do"
+     "        baz x"
+     "        quux x"
+     "  bar 10 "))
+   (haskell-tests/haskell-forward-sexp-5
+    (haskell-forward-sexp 5)
+    (tests-utils--multiline
+     "foo :: Int -> Int_|_"
+     "foo = do -- a comment"
+     "  let bar x = do"
+     "        baz x"
+     "        quux x"
+     "  bar 10 "))
+   (haskell-tests/haskell-forward-sexp-6
+    (haskell-forward-sexp 6)
+    (tests-utils--multiline
+     "foo :: Int -> Int"
+     "foo_|_ = do -- a comment"
+     "  let bar x = do"
+     "        baz x"
+     "        quux x"
+     "  bar 10 "))
+   (haskell-tests/haskell-forward-sexp-7
+    (haskell-forward-sexp 7)
+    (tests-utils--multiline
+     "foo :: Int -> Int"
+     "foo =_|_ do -- a comment"
+     "  let bar x = do"
+     "        baz x"
+     "        quux x"
+     "  bar 10 "))
+   (haskell-tests/haskell-forward-sexp-8
+    (haskell-forward-sexp 8)
+    (tests-utils--multiline
+     "foo :: Int -> Int"
+     "foo = do_|_ -- a comment"
+     "  let bar x = do"
+     "        baz x"
+     "        quux x"
+     "  bar 10 "))
+   (haskell-tests/haskell-forward-sexp-9a
+    (let ((parse-sexp-ignore-comments t))
+      (haskell-forward-sexp 9))
+    (tests-utils--multiline
+     "foo :: Int -> Int"
+     "foo = do -- a comment"
+     "  let_|_ bar x = do"
+     "        baz x"
+     "        quux x"
+     "  bar 10 "))
+   (haskell-tests/haskell-forward-sexp-9b
+    (let ((parse-sexp-ignore-comments nil))
+      (haskell-forward-sexp 9))
+    (tests-utils--multiline
+     "foo :: Int -> Int"
+     "foo = do -- a comment_|_"
+     "  let bar x = do"
+     "        baz x"
+     "        quux x"
+     "  bar 10 "))
+   (haskell-tests/haskell-forward-sexp-10a
+    (let ((parse-sexp-ignore-comments t))
+      (haskell-forward-sexp 10))
+    (tests-utils--multiline
+     "foo :: Int -> Int"
+     "foo = do -- a comment"
+     "  let bar_|_ x = do"
+     "        baz x"
+     "        quux x"
+     "  bar 10 "))
+   (haskell-tests/haskell-forward-sexp-10b
+    (let ((parse-sexp-ignore-comments nil))
+      (haskell-forward-sexp 10))
+    (tests-utils--multiline
+     "foo :: Int -> Int"
+     "foo = do -- a comment"
+     "  let_|_ bar x = do"
+     "        baz x"
+     "        quux x"
+     "  bar 10 "))))
+
+(haskell-tests--make-multiple-test-buffer-contents
+    " (foo + _|_((*) bar $ f baz) - g [quux, fizz, frob] `min` xxx)"
+  ((haskell-tests/haskell-forward-nested-sexp-1
+    (haskell-forward-sexp)
+    " (foo + ((*) bar $ f baz)_|_ - g [quux, fizz, frob] `min` xxx)")
+   (haskell-tests/haskell-forward-nested-sexp-2
+    (haskell-forward-sexp 2)
+    " (foo + ((*) bar $ f baz) -_|_ g [quux, fizz, frob] `min` xxx)")
+   (haskell-tests/haskell-forward-nested-sexp-3
+    (haskell-forward-sexp 3)
+    " (foo + ((*) bar $ f baz) - g_|_ [quux, fizz, frob] `min` xxx)")
+   (haskell-tests/haskell-forward-nested-sexp-4
+    (haskell-forward-sexp 4)
+    " (foo + ((*) bar $ f baz) - g [quux, fizz, frob]_|_ `min` xxx)")
+   ;; This one is not quite what I’d like it to be but ok, let’s fix the behaviour.
+   (haskell-tests/haskell-forward-nested-sexp-5
+    (haskell-forward-sexp 5)
+    " (foo + ((*) bar $ f baz) - g [quux, fizz, frob] `_|_min` xxx)")
+   ;; This one is not quite what I’d like it to be but ok, let’s fix the behaviour.
+   (haskell-tests/haskell-forward-nested-sexp-6
+    (haskell-forward-sexp 6)
+    " (foo + ((*) bar $ f baz) - g [quux, fizz, frob] `min_|_` xxx)")))
 
 ;; (ert "haskell-tests/.*")
 
