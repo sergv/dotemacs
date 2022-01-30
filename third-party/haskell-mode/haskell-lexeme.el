@@ -487,48 +487,44 @@ See `haskell-lexeme-classify-by-first-char' for details."
       ;; Due to how unterminated strings terminate at newline, some
       ;; newlines have syntax set to generic string delimeter. We want
       ;; those to be treated as whitespace anyway
-      (or
-       (> (skip-syntax-forward "-") 0)
-       (and (not (memq 'newline flags))
-            (> (skip-chars-forward "\n") 0))))
-  (let
-      ((case-fold-search nil)
-       (point (point-marker)))
-    (or
-     (and
-      (equal (string-to-syntax "<")
-             (get-char-property (point) 'syntax-table))
-      (progn
-        (set-match-data (list point (set-marker (make-marker) (line-end-position))))
-        'literate-comment))
-     (and (looking-at "\n")
-          'newline)
-     (and (looking-at "{-")
-          (save-excursion
-            (forward-comment 1)
-            (set-match-data (list point (point-marker)))
-            'nested-comment))
-     (and (haskell-lexeme-looking-at-char-literal)
-          'char)
-     (and (haskell-lexeme-looking-at-string-literal)
-          'string)
-     (and (looking-at "[][(){}`,;]")
-          (if (haskell-lexeme-looking-at-quasi-quote-literal)
-              'template-haskell-quasi-quote
-            'special))
-     (and (haskell-lexeme-looking-at-qidsym)
-          (if (save-match-data
-                (string-match "\\`---*\\'" (match-string-no-properties 0)))
-              (progn
-                (set-match-data (list point (copy-marker (line-end-position))))
-                'comment)
-            'qsymid))
-     (and (looking-at haskell-lexeme-number)
-          'number)
-     (and (looking-at "'+")
-          'template-haskell-quote)
-     (and (looking-at ".")
-          'illegal))))
+      (or (> (skip-syntax-forward "-") 0)
+          (and (not (memq 'newline flags))
+               (> (skip-chars-forward "\n") 0))))
+  (let ((case-fold-search nil)
+        (point (point-marker)))
+    (cond
+      ((equal (string-to-syntax "<")
+              (get-char-property (point) 'syntax-table))
+       (set-match-data (list point (set-marker (make-marker) (line-end-position))))
+       'literate-comment)
+      ((looking-at "\n")
+       'newline)
+      ((looking-at "{-")
+       (save-excursion
+         (forward-comment 1)
+         (set-match-data (list point (point-marker)))
+         'nested-comment))
+      ((haskell-lexeme-looking-at-char-literal)
+       'char)
+      ((haskell-lexeme-looking-at-string-literal)
+       'string)
+      ((looking-at "[][(){}`,;]")
+       (if (haskell-lexeme-looking-at-quasi-quote-literal)
+           'template-haskell-quasi-quote
+         'special))
+      ((haskell-lexeme-looking-at-qidsym)
+       (if (save-match-data
+             (string-match "\\`---*\\'" (match-string-no-properties 0)))
+           (progn
+             (set-match-data (list point (copy-marker (line-end-position))))
+             'comment)
+         'qsymid))
+      ((looking-at haskell-lexeme-number)
+       'number)
+      ((looking-at "'+")
+       'template-haskell-quote)
+      ((looking-at ".")
+       'illegal))))
 
 (provide 'haskell-lexeme)
 
