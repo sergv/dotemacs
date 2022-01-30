@@ -755,27 +755,27 @@
 
 (ert-deftest haskell-tests/haskell-smart-operators--guard-1 ()
   (haskell-tests--test-buffer-contents
-   (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
-   (tests-utils--multiline
-    "foo x xs"
-    "  | _|_x `elem` xs = xs"
-    "  | otherwise   = []")
-   (tests-utils--multiline
-    "foo x xs"
-    "  | | _|_x `elem` xs = xs"
-    "  | otherwise   = []")))
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
+    (tests-utils--multiline
+     "foo x xs"
+     "  | _|_x `elem` xs = xs"
+     "  | otherwise   = []")
+    (tests-utils--multiline
+     "foo x xs"
+     "  | | _|_x `elem` xs = xs"
+     "  | otherwise   = []")))
 
 (ert-deftest haskell-tests/haskell-smart-operators--guard-2 ()
   (haskell-tests--test-buffer-contents
-   (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
-   (tests-utils--multiline
-    "foo x xs"
-    "  | x `elem` xs |_|_= xs"
-    "  | otherwise   = []")
-   (tests-utils--multiline
-    "foo x xs"
-    "  | x `elem` xs ||_|_= xs"
-    "  | otherwise   = []")))
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
+    (tests-utils--multiline
+     "foo x xs"
+     "  | x `elem` xs |_|_= xs"
+     "  | otherwise   = []")
+    (tests-utils--multiline
+     "foo x xs"
+     "  | x `elem` xs ||_|_= xs"
+     "  | otherwise   = []")))
 
 (ert-deftest haskell-tests/haskell-smart-operators--magic-hash-1 ()
   (haskell-tests--test-buffer-contents
@@ -1028,161 +1028,157 @@
 
 (ert-deftest haskell-tests/haskell-smart-operators--arrows-in-haddock-comment-1 ()
   (haskell-tests--test-buffer-contents
-   (progn
-     (haskell-smart-operators--insert-char-surrounding-with-spaces ?>)
-     (insert "test"))
-   (tests-utils--multiline
-    "-- _|_")
-   (tests-utils--multiline
-    "-- >test_|_")))
+      (progn
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?>)
+        (insert "test"))
+    (tests-utils--multiline
+     "-- _|_")
+    (tests-utils--multiline
+     "-- >test_|_")))
 
 
 (ert-deftest haskell-tests/haskell-smart-operators-hyphen--1 ()
   (haskell-tests--test-buffer-contents
-   (progn
-     (haskell-smart-operators-hyphen)
-     (insert "test"))
-   (tests-utils--multiline
-    ""
-    "foo x = do"
-    "  {_|_}bar x"
-    "")
-   (tests-utils--multiline
-    ""
-    "foo x = do"
-    "  {- test_|_ -}bar x"
-    "")))
+      (progn
+        (haskell-smart-operators-hyphen)
+        (insert "test"))
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  {_|_}bar x"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  {- test_|_ -}bar x"
+     "")))
 
 (ert-deftest haskell-tests/haskell-smart-operators-hyphen--2 ()
   (haskell-tests--test-buffer-contents
-   (progn
-     (haskell-smart-operators-hyphen)
-     (insert "test"))
-   (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  { _|_}bar x"
-   "")
-   (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  {- test_|_ -}bar x"
-   "")))
+      (progn
+        (haskell-smart-operators-hyphen)
+        (insert "test"))
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  { _|_}bar x"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  {- test_|_ -}bar x"
+     "")))
 
 (ert-deftest haskell-tests/haskell-smart-operators-hyphen--3 ()
   (haskell-tests--test-buffer-contents
-   (progn
-     (haskell-smart-operators-hyphen)
-     (insert "test"))
-   (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  {_|_ }bar x"
-   "")
-   (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  {- test_|_ -}bar x"
-   "")))
+      (progn
+        (haskell-smart-operators-hyphen)
+        (insert "test"))
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  {_|_ }bar x"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  {- test_|_ -}bar x"
+     "")))
 
 (ert-deftest haskell-tests/haskell-smart-operators-hyphen--4 ()
   (haskell-tests--test-buffer-contents
-   (progn
-     (haskell-smart-operators-hyphen)
-     (insert "test"))
-   (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  { _|_ }bar x"
-   "")
-   (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  {- test_|_ -}bar x"
-   "")))
+      (progn
+        (haskell-smart-operators-hyphen)
+        (insert "test"))
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  { _|_ }bar x"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  {- test_|_ -}bar x"
+     "")))
 
 (ert-deftest haskell-tests/haskell-smart-operators-hyphen--5 ()
   (haskell-tests--test-buffer-contents
-   (progn
-     (haskell-smart-operators-hyphen)
-     (insert "test"))
-   (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  { _|_ bar} x"
-   "")
-   (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  {- test_|_ bar} x"
-   "")))
+      (progn
+        (haskell-smart-operators-hyphen)
+        (insert "test"))
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  { _|_ bar} x"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  {- test_|_ bar} x"
+     "")))
 
 (ert-deftest haskell-tests/haskell-smart-operators-hyphen--6 ()
   (haskell-tests--test-buffer-contents
-   (progn
-     (haskell-smart-operators-hyphen)
-     (insert "test"))
-   (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  {_|_ bar} x"
-   "")
-   (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  {- test_|_ bar} x"
-   "")))
+      (progn
+        (haskell-smart-operators-hyphen)
+        (insert "test"))
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  {_|_ bar} x"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  {- test_|_ bar} x"
+     "")))
 
 (ert-deftest haskell-tests/haskell-smart-operators-hyphen--7 ()
   (haskell-tests--test-buffer-contents
-   (progn
-     (haskell-smart-operators-hyphen))
-   (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  {- test bar_|_} x"
-   "")
-   (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  {- test bar_|_ -} x"
-   "")))
+      (haskell-smart-operators-hyphen)
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  {- test bar_|_} x"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  {- test bar_|_ -} x"
+     "")))
 
 (ert-deftest haskell-tests/haskell-smart-operators-hyphen--8 ()
   (haskell-tests--test-buffer-contents
-   (progn
-     (haskell-smart-operators-hyphen))
-   (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  {- test bar _|_} x"
-   "")
-   (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  {- test bar _|_ -} x"
-   "")))
+      (haskell-smart-operators-hyphen)
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  {- test bar _|_} x"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  {- test bar _|_ -} x"
+     "")))
 
 (ert-deftest haskell-tests/haskell-smart-operators-hyphen--9 ()
   (haskell-tests--test-buffer-contents
-   (progn
-     (haskell-smart-operators-hyphen))
-   (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  {- test bar  _|_} x"
-   "")
-   (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  {- test bar  _|_ -} x"
-   "")))
+      (haskell-smart-operators-hyphen)
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  {- test bar  _|_} x"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  {- test bar  _|_ -} x"
+     "")))
 
 
 (ert-deftest haskell-tests/haskell-backspace-with-block-dedent-1 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-backspace-with-block-dedent))
+      (haskell-backspace-with-block-dedent)
     (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
@@ -1256,8 +1252,7 @@
 
 (ert-deftest haskell-tests/haskell-backspace-with-block-dedent-not-at-exact-indentation-1 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-backspace-with-block-dedent))
+      (haskell-backspace-with-block-dedent)
     (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
@@ -1331,8 +1326,7 @@
 
 (ert-deftest haskell-tests/haskell-backspace-with-block-dedent-not-at-exact-indentation-2 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-backspace-with-block-dedent))
+      (haskell-backspace-with-block-dedent)
     (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
@@ -1406,8 +1400,7 @@
 
 (ert-deftest haskell-tests/haskell-backspace-with-block-dedent-2 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-backspace-with-block-dedent 2))
+      (haskell-backspace-with-block-dedent 2)
     (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
@@ -1481,8 +1474,7 @@
 
 (ert-deftest haskell-tests/haskell-backspace-with-block-dedent-3 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-backspace-with-block-dedent 3))
+      (haskell-backspace-with-block-dedent 3)
     (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
@@ -1633,8 +1625,7 @@
 
 (ert-deftest haskell-tests/haskell-backspace-with-block-dedent-not-at-indentation-1 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-backspace-with-block-dedent))
+      (haskell-backspace-with-block-dedent)
     (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
@@ -1708,8 +1699,7 @@
 
 (ert-deftest haskell-tests/haskell-space-with-block-indent-1 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-space-with-block-indent))
+      (haskell-space-with-block-indent)
     (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
@@ -1783,8 +1773,7 @@
 
 (ert-deftest haskell-tests/haskell-space-with-block-indent-not-at-exact-indentation-1 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-space-with-block-indent))
+      (haskell-space-with-block-indent)
     (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
@@ -1858,8 +1847,7 @@
 
 (ert-deftest haskell-tests/haskell-space-with-block-indent-not-at-exact-indentation-2 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-space-with-block-indent))
+      (haskell-space-with-block-indent)
     (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
@@ -1933,8 +1921,7 @@
 
 (ert-deftest haskell-tests/haskell-space-with-block-indent-not-at-exact-indentation-affects-where-block-1 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-space-with-block-indent))
+      (haskell-space-with-block-indent)
     (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
@@ -2008,8 +1995,7 @@
 
 (ert-deftest haskell-tests/haskell-space-with-block-indent-2 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-space-with-block-indent 2))
+      (haskell-space-with-block-indent 2)
     (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
@@ -2083,8 +2069,7 @@
 
 (ert-deftest haskell-tests/haskell-space-with-block-indent-not-at-indentation-1 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-space-with-block-indent))
+      (haskell-space-with-block-indent)
     (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
@@ -2158,8 +2143,7 @@
 
 (ert-deftest haskell-tests/haskell-space-with-block-indent-from-zeroth-column-1 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-space-with-block-indent))
+      (haskell-space-with-block-indent)
     (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
@@ -2233,8 +2217,7 @@
 
 (ert-deftest haskell-tests/haskell-space-with-block-indent-from-zeroth-column-2 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-space-with-block-indent))
+      (haskell-space-with-block-indent)
     (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
@@ -2308,8 +2291,7 @@
 
 (ert-deftest haskell-tests/haskell-space-with-block-indent--inside-module-export-list-1 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-space-with-block-indent))
+      (haskell-space-with-block-indent)
     (tests-utils--multiline
      ""
      "module Foo"
@@ -2325,8 +2307,7 @@
 
 (ert-deftest haskell-tests/haskell-newline-with-signature-expansion-1 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-newline-with-signature-expansion))
+      (haskell-newline-with-signature-expansion)
     (tests-utils--multiline
      ""
      "bar1 :: a -> x"
@@ -2351,8 +2332,7 @@
 
 (ert-deftest haskell-tests/haskell-newline-with-signature-expansion-ws-1 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-newline-with-signature-expansion))
+      (haskell-newline-with-signature-expansion)
     (tests-utils--multiline
      ""
      "bar1 :: a -> x"
@@ -2377,8 +2357,7 @@
 
 (ert-deftest haskell-tests/haskell-newline-with-signature-expansion-2 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-newline-with-signature-expansion))
+      (haskell-newline-with-signature-expansion)
     (tests-utils--multiline
      ""
      "bar1 :: a -> x"
@@ -2403,8 +2382,7 @@
 
 (ert-deftest haskell-tests/haskell-newline-with-signature-expansion-ws-2 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-newline-with-signature-expansion))
+      (haskell-newline-with-signature-expansion)
     (tests-utils--multiline
      ""
      "bar1 :: a -> x"
@@ -2429,8 +2407,7 @@
 
 (ert-deftest haskell-tests/haskell-newline-with-signature-expansion-3 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-newline-with-signature-expansion))
+      (haskell-newline-with-signature-expansion)
     (tests-utils--multiline
      ""
      "bar1 :: a -> x"
@@ -2457,8 +2434,7 @@
 
 (ert-deftest haskell-tests/haskell-newline-with-signature-expansion-ws-3 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-newline-with-signature-expansion))
+      (haskell-newline-with-signature-expansion)
     (tests-utils--multiline
      ""
      "bar1 :: a -> x"
@@ -2485,8 +2461,7 @@
 
 (ert-deftest haskell-tests/haskell-newline-with-signature-expansion-4 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-newline-with-signature-expansion))
+      (haskell-newline-with-signature-expansion)
     (tests-utils--multiline
      ""
      "bar1 :: a -> x"
@@ -2513,8 +2488,7 @@
 
 (ert-deftest haskell-tests/haskell-newline-with-signature-expansion-ws-4 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-newline-with-signature-expansion))
+      (haskell-newline-with-signature-expansion)
     (tests-utils--multiline
      ""
      "bar1 :: a -> x"
@@ -2541,8 +2515,7 @@
 
 (ert-deftest haskell-tests/haskell-newline-with-signature-expansion-5 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-newline-with-signature-expansion))
+      (haskell-newline-with-signature-expansion)
     (tests-utils--multiline
      ""
      "bar1 :: a -> x"
@@ -2569,8 +2542,7 @@
 
 (ert-deftest haskell-tests/haskell-newline-with-signature-expansion-ws-5 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-newline-with-signature-expansion))
+      (haskell-newline-with-signature-expansion)
     (tests-utils--multiline
      ""
      "bar1 :: a -> x"
@@ -2597,8 +2569,7 @@
 
 (ert-deftest haskell-tests/haskell-newline-with-signature-expansion-6 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-newline-with-signature-expansion))
+      (haskell-newline-with-signature-expansion)
     (tests-utils--multiline
      ""
      "bar1 :: a -> x"
@@ -2625,8 +2596,7 @@
 
 (ert-deftest haskell-tests/haskell-newline-with-signature-expansion-ws-6 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-newline-with-signature-expansion))
+      (haskell-newline-with-signature-expansion)
     (tests-utils--multiline
      ""
      "bar1 :: a -> x"
@@ -2653,8 +2623,7 @@
 
 (ert-deftest haskell-tests/haskell-newline-with-signature-expansion-7 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-newline-with-signature-expansion))
+      (haskell-newline-with-signature-expansion)
     (tests-utils--multiline
      ""
      "bar1 :: a -> x"
@@ -2683,8 +2652,7 @@
 
 (ert-deftest haskell-tests/haskell-newline-with-signature-expansion-ws-7 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-newline-with-signature-expansion))
+      (haskell-newline-with-signature-expansion)
     (tests-utils--multiline
      ""
      "bar1 :: a -> x"
@@ -2713,8 +2681,7 @@
 
 (ert-deftest haskell-tests/haskell-newline-with-signature-expansion-8 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-newline-with-signature-expansion))
+      (haskell-newline-with-signature-expansion)
     (tests-utils--multiline
      ""
      "bar1 :: a -> x"
@@ -2743,8 +2710,7 @@
 
 (ert-deftest haskell-tests/haskell-newline-with-signature-expansion-ws-8 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-newline-with-signature-expansion))
+      (haskell-newline-with-signature-expansion)
     (tests-utils--multiline
      ""
      "bar1 :: a -> x"
@@ -2773,8 +2739,7 @@
 
 (ert-deftest haskell-tests/haskell-newline-with-signature-expansion-9 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-newline-with-signature-expansion))
+      (haskell-newline-with-signature-expansion)
     (tests-utils--multiline
      ""
      "(.!=) :: Functor m => m (Maybe a) -> a -> m a_|_"
@@ -2789,8 +2754,7 @@
 
 (ert-deftest haskell-tests/haskell-newline-with-signature-expansion-ws-9 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-newline-with-signature-expansion))
+      (haskell-newline-with-signature-expansion)
     (tests-utils--multiline
      ""
      "(.!=) :: Functor m => m (Maybe a) -> a -> m a_|_"
@@ -2806,40 +2770,38 @@
 
 (ert-deftest haskell-tests/haskell-newline-with-signature-expansion--within-where-block-1 ()
   (haskell-tests--test-buffer-contents
-   (progn
-     (haskell-newline-with-signature-expansion))
-   (tests-utils--multiline
-    ""
-    "bar1 :: a -> x"
-    "bar1 x = x"
-    ""
-    "foo :: Int -> Int"
-    "foo = go"
-    "  where"
-    "    go :: a -> a_|_"
-    ""
-    "bar2 :: a -> x"
-    "bar2 x = x"
-    "")
-   (tests-utils--multiline
-    ""
-    "bar1 :: a -> x"
-    "bar1 x = x"
-    ""
-    "foo :: Int -> Int"
-    "foo = go"
-    "  where"
-    "    go :: a -> a"
-    "    go _|_"
-    ""
-    "bar2 :: a -> x"
-    "bar2 x = x"
-    "")))
+      (haskell-newline-with-signature-expansion)
+    (tests-utils--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo :: Int -> Int"
+     "foo = go"
+     "  where"
+     "    go :: a -> a_|_"
+     ""
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")
+    (tests-utils--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo :: Int -> Int"
+     "foo = go"
+     "  where"
+     "    go :: a -> a"
+     "    go _|_"
+     ""
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")))
 
 (ert-deftest haskell-tests/haskell-newline-with-signature-expansion--within-where-block-2 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-newline-with-signature-expansion))
+      (haskell-newline-with-signature-expansion)
     (tests-utils--multiline
      ""
      "bar1 :: a -> x"
@@ -2870,8 +2832,7 @@
 
 (ert-deftest haskell-tests/haskell-newline-with-signature-expansion--does-not-expand-if-not-at-the-end-1 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-newline-with-signature-expansion))
+      (haskell-newline-with-signature-expansion)
     (tests-utils--multiline
      ""
      "bar1 :: a -> x"
@@ -2900,8 +2861,7 @@
 
 (ert-deftest haskell-tests/haskell-newline-with-signature-expansion--does-not-expand-if-not-at-the-end-2 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-newline-with-signature-expansion))
+      (haskell-newline-with-signature-expansion)
     (tests-utils--multiline
      ""
      "bar1 :: a -> x"
@@ -2930,8 +2890,7 @@
 
 (ert-deftest haskell-tests/haskell-newline-with-signature-expansion--does-not-expand-if-not-at-the-end-3 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-newline-with-signature-expansion))
+      (haskell-newline-with-signature-expansion)
     (tests-utils--multiline
      ""
      "bar1 :: a -> x"
@@ -2958,8 +2917,7 @@
 
 (ert-deftest haskell-tests/haskell-newline-with-signature-expansion--does-not-expand-if-not-at-the-end-4 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-newline-with-signature-expansion))
+      (haskell-newline-with-signature-expansion)
     (tests-utils--multiline
      ""
      "bar1 :: a -> x"
@@ -2986,8 +2944,7 @@
 
 (ert-deftest haskell-tests/haskell-newline-with-signature-expansion--does-not-expand-if-not-at-the-end-5 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-newline-with-signature-expansion))
+      (haskell-newline-with-signature-expansion)
     (tests-utils--multiline
      ""
      "bar1 :: a -> x"
@@ -3014,8 +2971,7 @@
 
 (ert-deftest haskell-tests/haskell-newline-with-signature-expansion--deep-within-do-block-1 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-newline-with-signature-expansion))
+      (haskell-newline-with-signature-expansion)
     (tests-utils--multiline
      ""
      "generateGrafts :: HasCallStack => GenerateGraftsConfig -> IO ()"
@@ -3140,8 +3096,7 @@
 
 (ert-deftest haskell-tests/haskell-newline-with-signature-expansion--inside-string-1 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-newline-with-signature-expansion))
+      (haskell-newline-with-signature-expansion)
     (tests-utils--multiline
      "quux = "
      "  [ foobar"
@@ -3158,8 +3113,7 @@
 
 (ert-deftest haskell-tests/haskell-newline-with-signature-expansion--at-end-of-buffer-1 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-newline-with-signature-expansion))
+      (haskell-newline-with-signature-expansion)
     (tests-utils--multiline
      "makeFunction"
      "  :: MonadBase IO m _|_=> Env -> CPtrdiff -> CPtrDiff")
@@ -3170,8 +3124,7 @@
 
 (ert-deftest haskell-tests/haskell-newline-with-signature-expansion--does-not-insert-redundant-function-name-1 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-newline-with-signature-expansion))
+      (haskell-newline-with-signature-expansion)
     (tests-utils--multiline
      "makeFunction"
      "  :: MonadBase IO m"
@@ -3192,83 +3145,81 @@
 
 (ert-deftest haskell-tests/haskell-move-to-topmost-start-1 ()
   (haskell-tests--test-buffer-contents
-   (progn
-     (haskell-move-to-topmost-start))
-   (tests-utils--multiline
-    "foo :: a -> x"
-    "foo x = x"
-    ""
-    "docExt"
-    "  :: (ExactPrint.Annotate.Annotate ast)"
-    "  => Located ast"
-    "  -> ExactPrint.Types.Anns"
-    "  -> Bool"
-    "  -> ToBriDocM BriDocNumbered"
-    "docExt x anns shouldAddComment = allocateNode $ BDFExternal"
-    "    (ExactPrint.Types.mkAnnKey x)"
-    "    (foldedAnnKeys x)"
-    "    (let foo y = bar . baz"
-    "           where"
-    "             bar = (+1)"
-    "             baz = (+y) . _|_(*2)"
-    "     in foo 100)"
-    "    shouldAddComment"
-    "    (Text.pack $ ExactPrint.exactPrint x anns)"
-    ""
-    "    foo"
-    "    bar"
-    "#wat"
-    ""
-    "    baz"
-    "#are"
-    "    you"
-    "    doing"
-    "  where"
-    "    hello = world"
-    ""
-    "bar :: a -> x"
-    "bar x = x"
-    "")
-   (tests-utils--multiline
-    "foo :: a -> x"
-    "foo x = x"
-    ""
-    "docExt"
-    "  :: (ExactPrint.Annotate.Annotate ast)"
-    "  => Located ast"
-    "  -> ExactPrint.Types.Anns"
-    "  -> Bool"
-    "  -> ToBriDocM BriDocNumbered"
-    "_|_docExt x anns shouldAddComment = allocateNode $ BDFExternal"
-    "    (ExactPrint.Types.mkAnnKey x)"
-    "    (foldedAnnKeys x)"
-    "    (let foo y = bar . baz"
-    "           where"
-    "             bar = (+1)"
-    "             baz = (+y) . (*2)"
-    "     in foo 100)"
-    "    shouldAddComment"
-    "    (Text.pack $ ExactPrint.exactPrint x anns)"
-    ""
-    "    foo"
-    "    bar"
-    "#wat"
-    ""
-    "    baz"
-    "#are"
-    "    you"
-    "    doing"
-    "  where"
-    "    hello = world"
-    ""
-    "bar :: a -> x"
-    "bar x = x"
-    "")))
+      (haskell-move-to-topmost-start)
+    (tests-utils--multiline
+     "foo :: a -> x"
+     "foo x = x"
+     ""
+     "docExt"
+     "  :: (ExactPrint.Annotate.Annotate ast)"
+     "  => Located ast"
+     "  -> ExactPrint.Types.Anns"
+     "  -> Bool"
+     "  -> ToBriDocM BriDocNumbered"
+     "docExt x anns shouldAddComment = allocateNode $ BDFExternal"
+     "    (ExactPrint.Types.mkAnnKey x)"
+     "    (foldedAnnKeys x)"
+     "    (let foo y = bar . baz"
+     "           where"
+     "             bar = (+1)"
+     "             baz = (+y) . _|_(*2)"
+     "     in foo 100)"
+     "    shouldAddComment"
+     "    (Text.pack $ ExactPrint.exactPrint x anns)"
+     ""
+     "    foo"
+     "    bar"
+     "#wat"
+     ""
+     "    baz"
+     "#are"
+     "    you"
+     "    doing"
+     "  where"
+     "    hello = world"
+     ""
+     "bar :: a -> x"
+     "bar x = x"
+     "")
+    (tests-utils--multiline
+     "foo :: a -> x"
+     "foo x = x"
+     ""
+     "docExt"
+     "  :: (ExactPrint.Annotate.Annotate ast)"
+     "  => Located ast"
+     "  -> ExactPrint.Types.Anns"
+     "  -> Bool"
+     "  -> ToBriDocM BriDocNumbered"
+     "_|_docExt x anns shouldAddComment = allocateNode $ BDFExternal"
+     "    (ExactPrint.Types.mkAnnKey x)"
+     "    (foldedAnnKeys x)"
+     "    (let foo y = bar . baz"
+     "           where"
+     "             bar = (+1)"
+     "             baz = (+y) . (*2)"
+     "     in foo 100)"
+     "    shouldAddComment"
+     "    (Text.pack $ ExactPrint.exactPrint x anns)"
+     ""
+     "    foo"
+     "    bar"
+     "#wat"
+     ""
+     "    baz"
+     "#are"
+     "    you"
+     "    doing"
+     "  where"
+     "    hello = world"
+     ""
+     "bar :: a -> x"
+     "bar x = x"
+     "")))
 
 (ert-deftest haskell-tests/haskell-move-to-topmost-end-1 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-move-to-topmost-end))
+      (haskell-move-to-topmost-end)
     (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
@@ -3342,8 +3293,7 @@
 
 (ert-deftest haskell-tests/haskell-qualify-import-1 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-qualify-import))
+      (haskell-qualify-import)
     (tests-utils--multiline
      "import Data.List"
      "import Data.Ord_|_"
@@ -3355,8 +3305,7 @@
 
 (ert-deftest haskell-tests/haskell-qualify-import-2 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-qualify-import))
+      (haskell-qualify-import)
     (tests-utils--multiline
      "import Data.List"
      "import      Data.Ord_|_"
@@ -3368,8 +3317,7 @@
 
 (ert-deftest haskell-tests/haskell-qualify-import-3 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-qualify-import))
+      (haskell-qualify-import)
     (tests-utils--multiline
      "import Data.List"
      "import \"foo\"     Data.Ord_|_"
@@ -3381,8 +3329,7 @@
 
 (ert-deftest haskell-tests/haskell-qualify-import-4 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-qualify-import))
+      (haskell-qualify-import)
     (tests-utils--multiline
      "import Data.List"
      "import   qualified   Data.Ord_|_"
@@ -3394,8 +3341,7 @@
 
 (ert-deftest haskell-tests/haskell-qualify-import-5 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-qualify-import))
+      (haskell-qualify-import)
     (tests-utils--multiline
      "import Data.List"
      "import  \"foo\"  qualified   Data.Ord_|_"
@@ -3407,8 +3353,7 @@
 
 (ert-deftest haskell-tests/haskell-back-up-indent-level-1 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (should (haskell-back-up-indent-level)))
+      (should (haskell-back-up-indent-level))
     (tests-utils--multiline
      "foo :: Int -> Int"
      "foo = do"
@@ -3426,8 +3371,7 @@
 
 (ert-deftest haskell-tests/haskell-back-up-indent-level-2 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (should (haskell-back-up-indent-level)))
+      (should (haskell-back-up-indent-level))
     (tests-utils--multiline
      "foo :: Int -> Int"
      "foo = do"
@@ -3445,8 +3389,7 @@
 
 (ert-deftest haskell-tests/haskell-back-up-indent-level-3 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (should (haskell-back-up-indent-level)))
+      (should (haskell-back-up-indent-level))
     (tests-utils--multiline
      "foo :: Int -> Int"
      "foo = do"
@@ -3464,8 +3407,7 @@
 
 (ert-deftest haskell-tests/haskell-back-up-indent-level-4 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (should-not (haskell-back-up-indent-level)))
+      (should-not (haskell-back-up-indent-level))
     (tests-utils--multiline
      "foo :: Int -> Int"
      "_|_foo = do"
@@ -3483,8 +3425,7 @@
 
 (ert-deftest haskell-tests/haskell-back-up-indent-level-5 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (should (haskell-back-up-indent-level)))
+      (should (haskell-back-up-indent-level))
     (tests-utils--multiline
      "foo :: Int -> Int"
      "foo = do"
@@ -3502,8 +3443,7 @@
 
 (ert-deftest haskell-tests/haskell-back-up-indent-level-6 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (should (haskell-back-up-indent-level)))
+      (should (haskell-back-up-indent-level))
     (tests-utils--multiline
      "foo :: Int -> Int"
      "foo = do"
@@ -3519,11 +3459,9 @@
      "        quux x"
      "  bar 10 ")))
 
-
 (ert-deftest haskell-tests/haskell-back-up-indent-level-6 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (should (haskell-back-up-indent-level)))
+      (should (haskell-back-up-indent-level))
     (tests-utils--multiline
      "foo :: Int -> Int"
      "foo = do"
