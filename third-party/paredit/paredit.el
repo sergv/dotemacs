@@ -1,4 +1,4 @@
-;;; paredit.el --- minor mode for editing parentheses  -*- Mode: Emacs-Lisp -*-
+;;; paredit.el --- minor mode for editing parentheses  -*- Mode: Emacs-Lisp; lexical-binding: t; -*-
 
 ;; Copyright (C) 2005--2019 Taylor R. Campbell
 
@@ -300,31 +300,51 @@ Paredit behaves badly if parentheses are unbalanced, so exercise
                 ("\"foo|bar\"\n  ; Character to escape: \""
                  "\"foo\\\"|bar\""))
    (";"         paredit-semicolon
-                ("|(frob grovel)"
-                 ";|(frob grovel)")
-                ("(frob |grovel)"
-                 "(frob ;|grovel\n )")
-                ("(frob |grovel (bloit\n               zargh))"
-                 "(frob ;|grovel\n (bloit\n  zargh))")
-                ("(frob grovel)          |"
-                 "(frob grovel)          ;|"))
+                (cond
+                  (in-lisp?
+                   "|(frob grovel)"
+                   ";|(frob grovel)"))
+                (cond
+                  (in-lisp?
+                   "(frob |grovel)"
+                   "(frob ;|grovel\n )"))
+                (cond
+                  (in-lisp?
+                   "(frob |grovel (bloit\n               zargh))"
+                   "(frob ;|grovel\n (bloit\n  zargh))"))
+                (cond
+                  (in-lisp?
+                   "(frob grovel)          |"
+                   "(frob grovel)          ;|")))
    ("M-;"       paredit-comment-dwim
-                ("(foo |bar)   ; baz"
-                 "(foo bar)                               ; |baz")
-                ("(frob grovel)|"
-                 "(frob grovel)                           ;|")
-                ("(zot (foo bar)\n|\n     (baz quux))"
-                 "(zot (foo bar)\n     ;; |\n     (baz quux))")
-                ("(zot (foo bar) |(baz quux))"
-                 "(zot (foo bar)\n     ;; |\n     (baz quux))")
-                ("|(defun hello-world ...)"
-                 ";;; |\n(defun hello-world ...)"))
+                (cond
+                  (in-lisp?
+                   "(foo |bar)   ; baz"
+                   "(foo bar)                               ; |baz"))
+                (cond
+                  (in-lisp?
+                   "(frob grovel)|"
+                   "(frob grovel)                           ;|"))
+                (cond
+                  (in-lisp?
+                   "(zot (foo bar)\n|\n     (baz quux))"
+                   "(zot (foo bar)\n     ;; |\n     (baz quux))"))
+                (cond
+                  (in-lisp?
+                   "(zot (foo bar) |(baz quux))"
+                   "(zot (foo bar)\n     ;; |\n     (baz quux))"))
+                (cond
+                  (in-lisp?
+                   "|(defun hello-world ...)"
+                   ";;; |\n(defun hello-world ...)")))
 
    ("C-j"       paredit-newline
-                ("(let ((n (frobbotz))) |(display (+ n 1)\nport))"
-                 ,(concat "(let ((n (frobbotz)))"
-                          "\n  |(display (+ n 1)"
-                          "\n           port))")))
+                (cond
+                  (in-lisp?
+                   "(let ((n (frobbotz))) |(display (+ n 1)\nport))"
+                   ,(concat "(let ((n (frobbotz)))"
+                            "\n  |(display (+ n 1)"
+                            "\n           port))"))))
 
    "Deleting & Killing"
    (("C-d" ,@paredit-forward-delete-keys)
@@ -603,13 +623,15 @@ If in a character literal, do nothing.  This prevents changing what was
   in the character literal to a meaningful delimiter unintentionally.")
          (interactive "P")
          (let ((state (paredit-current-parse-state)))
-           (if (or (paredit-in-string-p state)
-                   (paredit-in-comment-p state)
-                   (paredit-in-char-p))
-               (insert-char ,open)
-             (progn
-               (paredit-insert-pair n ,open ,close 'goto-char)
-               (save-excursion (backward-up-list) (paredit-indent-sexp))))))
+           (cond
+             ((or (paredit-in-string-p state)
+                  (paredit-in-comment-p state))
+              (insert-char ,open))
+             ((paredit-in-char-p)
+              nil)
+             (t
+              (paredit-insert-pair n ,open ,close 'goto-char)
+              (save-excursion (backward-up-list) (paredit-indent-sexp))))))
        (defun ,(paredit-conc-name "paredit-close-" name) ()
          ,(concat "Move past one closing delimiter and reindent.
 \(Agnostic to the specific closing delimiter.\)
