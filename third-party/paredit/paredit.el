@@ -707,7 +707,7 @@ If such a comment exists, delete the comment (including all leading
   and whose cdr is the point of the comment's initial semicolon,
   relative to the start of the line."
   (save-excursion
-    (paredit-skip-whitespace t (point-at-eol))
+    (paredit-skip-trailing-whitespace (point-at-eol))
     (and (paredit-comment-start-at? (point))
          (not (or (paredit-in-string-p)
                   (paredit-in-char-p)))
@@ -715,7 +715,7 @@ If such a comment exists, delete the comment (including all leading
                  (progn (backward-char) (point)))
                 (comment
                  (buffer-substring start (point-at-eol))))
-           (paredit-skip-whitespace nil (point-at-bol))
+           (paredit-skip-leading-whitespace (point-at-bol))
            (delete-region (point) (point-at-eol))
            (cons comment (- start (point-at-bol)))))))
 
@@ -1083,7 +1083,7 @@ If a list begins on the line after the point but ends on a different
                            ((eobp)
                             (throw 'exit nil))))
                     ((save-excursion
-                       (paredit-skip-whitespace t (point-at-eol))
+                       (paredit-skip-trailing-whitespace (point-at-eol))
                        (or (eolp) (eobp) (eq (char-after) ?\;)))
                      ;; Can't move further, but there's no closing
                      ;; delimiter we're about to clobber -- either
@@ -1190,10 +1190,10 @@ This is expected to be called only in `paredit-comment-dwim'; do not
 
 (defun paredit-insert-comment ()
   (let ((code-after-p
-         (save-excursion (paredit-skip-whitespace t (point-at-eol))
+         (save-excursion (paredit-skip-trailing-whitespace (point-at-eol))
                          (not (eolp))))
         (code-before-p
-         (save-excursion (paredit-skip-whitespace nil (point-at-bol))
+         (save-excursion (paredit-skip-leading-whitespace (point-at-bol))
                          (not (bolp)))))
     (cond ((and (bolp)
                 (let ((indent
@@ -1481,7 +1481,7 @@ With a numeric prefix argument N, do `kill-line' that many times."
            (paredit-kill-line-in-string))
           ((paredit-in-comment-p state)
            (paredit-kill-line-in-comment))
-          ((save-excursion (paredit-skip-whitespace t (point-at-eol))
+          ((save-excursion (paredit-skip-trailing-whitespace (point-at-eol))
                            (or (eolp)
                                (paredit-comment-start-at? (point))))
            ;** Be careful about trailing backslashes.
@@ -1491,7 +1491,7 @@ With a numeric prefix argument N, do `kill-line' that many times."
           (t (paredit-kill-sexps-on-line)))))
 
 (defun paredit-kill-line-in-string ()
-  (if (save-excursion (paredit-skip-whitespace t (point-at-eol))
+  (if (save-excursion (paredit-skip-trailing-whitespace (point-at-eol))
                       (eolp))
       (kill-line)
     (save-excursion
@@ -1574,13 +1574,13 @@ With a numeric prefix argument N, do `kill-line' that many times."
 (defun paredit-kill-sexps-on-whole-line (beginning)
   (kill-region beginning
                (or (save-excursion     ; Delete trailing indentation...
-                     (paredit-skip-whitespace t)
+                     (paredit-skip-trailing-whitespace)
                      (and (not (paredit-comment-start-at? (point)))
                           (point)))
                    ;; ...or just use the point past the newline, if
                    ;; we encounter a comment.
                    (point-at-eol)))
-  (cond ((save-excursion (paredit-skip-whitespace nil (point-at-bol))
+  (cond ((save-excursion (paredit-skip-leading-whitespace (point-at-bol))
                          (bolp))
          ;; Nothing but indentation before the point, so indent it.
          (paredit-indent-line))
@@ -1727,7 +1727,7 @@ Also see `paredit-skip-forward-for-kill'."
            (paredit-copy-as-kill-in-string))
           ((paredit-in-comment-p state)
            (copy-region-as-kill (point) (point-at-eol)))
-          ((save-excursion (paredit-skip-whitespace t (point-at-eol))
+          ((save-excursion (paredit-skip-trailing-whitespace (point-at-eol))
                            (or (eolp)
                                (paredit-comment-start-at? (point))))
            ;** Be careful about trailing backslashes.
@@ -1756,7 +1756,7 @@ Also see `paredit-skip-forward-for-kill'."
         (copy-region-as-kill beginning
                              (cond (kill-whole-line
                                     (or (save-excursion
-                                          (paredit-skip-whitespace t)
+                                          (paredit-skip-trailing-whitespace)
                                           (and (not (paredit-comment-start-at? (point)))
                                                (point)))
                                         (point-at-eol)))
@@ -2152,7 +2152,7 @@ Inside a string, unescape all backslashes, or signal an error if doing
                (save-excursion
                  (backward-up-list)
                  (forward-char +1)
-                 (paredit-skip-whitespace t limit)
+                 (paredit-skip-trailing-whitespace limit)
                  (point)))))
         (let ((end-marker (make-marker)))
           (save-excursion
@@ -2404,12 +2404,12 @@ If in a string, move the opening double-quote forward by one
           (insert-char close)                ;  to insert that delimiter.
           (indent-region start (point) nil))))
     (when (and (not nestedp)
-               (eq (save-excursion (paredit-skip-whitespace nil) (point))
+               (eq (save-excursion (paredit-skip-leading-whitespace) (point))
                    (save-excursion (backward-up-list) (forward-char) (point)))
                (eq (save-excursion (forward-sexp) (backward-sexp) (point))
-                   (save-excursion (paredit-skip-whitespace t) (point))))
-      (delete-region (save-excursion (paredit-skip-whitespace nil) (point))
-                     (save-excursion (paredit-skip-whitespace t) (point))))))
+                   (save-excursion (paredit-skip-trailing-whitespace) (point))))
+      (delete-region (save-excursion (paredit-skip-leading-whitespace) (point))
+                     (save-excursion (paredit-skip-trailing-whitespace) (point))))))
 
 (defun paredit-forward-slurp-into-string (&optional argument)
   (let* ((start+end (paredit-string-start+end-points nil t))
@@ -2423,10 +2423,10 @@ If in a string, move the opening double-quote forward by one
       ;; Skip intervening whitespace if we're slurping into an empty
       ;; string.  XXX What about nonempty strings?
       (if (and (= (+ start 2) end)
-               (eq (save-excursion (paredit-skip-whitespace t) (point))
+               (eq (save-excursion (paredit-skip-trailing-whitespace) (point))
                    (save-excursion (forward-sexp) (backward-sexp) (point))))
           (delete-region (- (point) 1)
-                         (save-excursion (paredit-skip-whitespace t) (point)))
+                         (save-excursion (paredit-skip-trailing-whitespace) (point)))
         (delete-char -1))
       (paredit-forward-for-quote
        (save-excursion
@@ -2459,7 +2459,7 @@ Automatically reindent the newly barfed S-expression with respect to
                          (save-excursion (backward-sexp) (<= start (point)))
                        nil)
                 (backward-sexp))))
-          (paredit-skip-whitespace nil) ; Skip leading whitespace.
+          (paredit-skip-leading-whitespace)
           (cond ((bobp)
                  ;++ We'll have deleted the close, but there's no open.
                  ;++ Is that OK?
@@ -2538,12 +2538,12 @@ If in a string, move the opening double-quote backward by one
     ;; If we slurped into an empty list, don't leave dangling space:
     ;; (foo |).
     (when (and (not nestedp)
-               (eq (save-excursion (paredit-skip-whitespace nil) (point))
+               (eq (save-excursion (paredit-skip-leading-whitespace) (point))
                    (save-excursion (backward-sexp) (forward-sexp) (point)))
                (eq (save-excursion (up-list) (backward-char) (point))
-                   (save-excursion (paredit-skip-whitespace t) (point))))
-      (delete-region (save-excursion (paredit-skip-whitespace nil) (point))
-                     (save-excursion (paredit-skip-whitespace t) (point))))))
+                   (save-excursion (paredit-skip-trailing-whitespace) (point))))
+      (delete-region (save-excursion (paredit-skip-leading-whitespace) (point))
+                     (save-excursion (paredit-skip-trailing-whitespace) (point))))))
 
 (defun paredit-backward-slurp-into-string (&optional argument)
   (let* ((start+end (paredit-string-start+end-points nil t))
@@ -2558,9 +2558,9 @@ If in a string, move the opening double-quote backward by one
       ;; Skip intervening whitespace if we're slurping into an empty
       ;; string.  XXX What about nonempty strings?
       (if (and (= (+ start 2) end)
-               (eq (save-excursion (paredit-skip-whitespace nil) (point))
+               (eq (save-excursion (paredit-skip-leading-whitespace) (point))
                    (save-excursion (backward-sexp) (forward-sexp) (point))))
-          (delete-region (save-excursion (paredit-skip-whitespace nil) (point))
+          (delete-region (save-excursion (paredit-skip-leading-whitespace) (point))
                          (+ (point) 1))
         (delete-char +1))
       (backward-sexp)
@@ -2600,7 +2600,7 @@ Automatically reindent the barfed S-expression and the form from which
                      (forward-sexp)
                      (setq n (+ n 1))))
                  n))))
-          (while (progn (paredit-skip-whitespace t)
+          (while (progn (paredit-skip-trailing-whitespace)
                         (paredit-comment-start-at? (point)))
             (forward-line 1))
           (when (eobp)
@@ -2685,7 +2685,7 @@ Both must be lists, strings, or atoms; error if there is a mismatch."
          ;; (foo)| ;x\n(bar) => (foo | ;x\nbar), not (foo|  ;x\nbar).
          (and (not (eolp))
               (save-excursion
-                (paredit-skip-whitespace t (point-at-eol))
+                (paredit-skip-trailing-whitespace (point-at-eol))
                 (paredit-comment-start-at? (point))))
          ;; (foo)|(bar) => (foo| bar), not (foo|bar).
          (and (= left-point right-point)
@@ -2783,13 +2783,15 @@ This assumes that `paredit-in-string-p' has already returned true."
   "True if point is on a character escape outside a string."
   (funcall paredit-in-char-p-function position))
 
-(defun paredit-skip-whitespace (trailing-p &optional limit)
-  "Skip past any whitespace, or until the point LIMIT is reached.
-If TRAILING-P is nil, skip leading whitespace; otherwise, skip trailing
-  whitespace."
-  (funcall (if trailing-p 'skip-chars-forward 'skip-chars-backward)
-           " \t\n"  ; This should skip using the syntax table, but LF
-           limit))    ; is a comment end, not newline, in Lisp mode.
+(defsubst paredit-skip-leading-whitespace (&optional limit)
+  ;; This should skip using the syntax table, but LF
+  ;; is a comment end, not newline, in Lisp mode.
+  (skip-chars-backward " \t\r\n" limit))
+
+(defsubst paredit-skip-trailing-whitespace (&optional limit)
+  ;; This should skip using the syntax table, but LF
+  ;; is a comment end, not newline, in Lisp mode.
+  (skip-chars-forward " \t\r\n" limit))
 
 (defun paredit-hack-kill-region (start end)
   "Kill the region between START and END.
