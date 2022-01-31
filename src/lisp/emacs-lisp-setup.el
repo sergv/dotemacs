@@ -10,7 +10,8 @@
 
 (eval-when-compile
   (require 'cl)
-  (require 'macro-util))
+  (require 'macro-util)
+  (require 'comment-util))
 
 (require 'company-mode-setup)
 (require 'elisp-slime-nav)
@@ -80,6 +81,11 @@
   ;; taken from pp.el
   (insert (pp-to-string (macroexpand-all (pp-last-sexp)))))
 
+(defun emacs-lisp-newline-and-indent ()
+  (interactive)
+  (newline-and-indent))
+(comment-util-auto-comment-advice emacs-lisp-newline-and-indent)
+
 (defhydra-derive hydra-emacs-lisp-vim-normal-j-ext hydra-lisp-vim-normal-j-ext (:exit t :foreign-keys nil :hint nil)
   "
 _j_: eval"
@@ -122,15 +128,15 @@ realign _l_et
     ("C-,"     pop-tag-mark)
 
     ("<tab>"        indent-for-tab-command)
-    (("C-m" "<f9>") elisp-compile-and-move)
-    ("<return>"     newline-and-indent))
+    (("C-m" "<f9>") elisp-compile-and-move))
 
   (def-keys-for-map vim-insert-mode-local-keymap
     ("<tab>"   indent-for-tab-command))
 
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-insert-mode-local-keymap)
-    ("C-SPC" company-complete))
+    ("C-SPC"    company-complete)
+    ("<return>" emacs-lisp-newline-and-indent))
 
   ;; should use global after-save-hook because of
   ;; backups
