@@ -818,13 +818,15 @@ Each predicate should examine only text before/after the point if ENDP is
   ;; close when want an open the string or an open when we want to
   ;; close the string), do insert a space.
   (and (not (if endp (eobp) (bobp)))
-       (memq (char-syntax (if endp (char-after) (char-before)))
-             (list ?w ?_ ?\"
-                   (when-let (matching (matching-paren delimiter))
-                     (char-syntax matching))
-                   (and (not endp)
-                        (eq ?\" (char-syntax delimiter))
-                        ?\) )))
+       (let ((c (char-syntax (if endp (char-after) (char-before)))))
+         (or (eq c ?w)
+             (eq c ?_)
+             (eq c ?\")
+             (when-let (matching (matching-paren delimiter))
+               (eq c (char-syntax matching)))
+             (when (and (not endp)
+                        (eq ?\" (char-syntax delimiter)))
+               (eq c ?\)))))
        (let ((preds paredit-space-for-delimiter-predicates)
              (continue t))
          (while (and preds
