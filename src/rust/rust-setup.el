@@ -456,8 +456,7 @@ foo {
          (insert line-indent)
          (if indent-tabs-mode
              (insert-char ?\t)
-           (insert-char ?\s tab-width)))))
-   (newline-and-indent)))
+           (insert-char ?\s tab-width)))))))
 
 ;;;; Setup
 
