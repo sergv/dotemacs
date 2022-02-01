@@ -2711,6 +2711,45 @@
      "foo | any (\\(x, y) -> _|_z) = _"
      "")))
 
+(ert-deftest vim-tests/c-open-paren-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (c-mode)
+      (execute-kbd-macro (kbd "i ( f o o + 1 ) ; <escape>"))
+    (tests-utils--multiline
+     ""
+     "int main() {"
+     "    int foo = 1;"
+     "    int bar = baz_|_"
+     "}"
+     "")
+    (tests-utils--multiline
+     ""
+     "int main() {"
+     "    int foo = 1;"
+     "    int bar = baz(foo+1)_|_;"
+     "}"
+     "")))
+
+(ert-deftest vim-tests/rust-open-paren-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (rust-mode)
+      (execute-kbd-macro (kbd "i ( f o o + 1 ) ; <escape>"))
+    (tests-utils--multiline
+     ""
+     "fn main() {"
+     "    let foo = 1;"
+     "    let bar = baz_|_"
+     "}"
+     "")
+    (tests-utils--multiline
+     ""
+     "fn main() {"
+     "    let foo = 1;"
+     "    let bar = baz(foo + 1)_|_;"
+     "}"
+     "")
+    ))
+
 (provide 'vim-tests)
 
 ;; Local Variables:
