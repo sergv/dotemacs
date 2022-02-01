@@ -203,7 +203,8 @@
               ;; Flycheck columns are 1-based .
               (move-to-character-column (- it 1)))
             (flycheck-display-error-at-point))
-        (message "No more flycheck errors")))))
+        (let ((message-log-max nil))
+          (message "No more flycheck errors"))))))
 
 (defun flycheck-enhancements-previous-error-with-wraparound ()
   (interactive)
