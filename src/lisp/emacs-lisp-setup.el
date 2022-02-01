@@ -113,7 +113,8 @@ realign _l_et
                    :indent-line #'lisp-indent-line
                    :calc-indent #'calculate-lisp-indent
                    :indent-region #'indent-region
-                   :in-char-p #'paredit-in-lisp-char-p)
+                   :in-char-p #'paredit-in-lisp-char-p
+                   :space-before-open-paren t)
   (setq-local company-backends '(company-elisp))
 
   (emacs-lisp-highlight-keywords)
