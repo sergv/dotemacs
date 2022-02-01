@@ -43,9 +43,17 @@
       paredit-indent-line-function #'ignore
       paredit-calculate-indent #'paredit-dummy-indent
       paredit-indent-region-function nil
-      paredit-in-char-p-function #'paredit-never-in-char-p)
+      paredit-in-char-p-function #'paredit-never-in-char-p
+      paredit-space-for-delimiter-predicates (list #'paredit-setup--put-space-before-open-paren?))
 
-(cl-defun prepare-paredit (&key indent-sexp indent-line calc-indent indent-region in-char-p)
+(defvar paredit--put-space-before-open-paren? nil)
+
+(defun paredit-setup--put-space-before-open-paren? (endp delim)
+  (if (eq delim ?\()
+      paredit--put-space-before-open-paren?
+    t))
+
+(cl-defun prepare-paredit (&key indent-sexp indent-line calc-indent indent-region in-char-p (space-before-open-paren 'not-specified))
   (when indent-sexp
     (cl-assert (functionp indent-sexp))
     (setq-local paredit-indent-sexp-function indent-sexp))
@@ -60,7 +68,9 @@
     (setq-local paredit-indent-region-function indent-region))
   (when in-char-p
     (cl-assert (functionp in-char-p))
-    (setq-local paredit-in-char-p-function in-char-p)))
+    (setq-local paredit-in-char-p-function in-char-p))
+  (unless (eq space-before-open-paren 'not-specified)
+    (setq-local paredit--put-space-before-open-paren? space-before-open-paren)))
 
 ;;;###autoload
 (defun set-up-paredit ()

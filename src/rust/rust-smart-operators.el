@@ -263,7 +263,12 @@ stick it to the previous operator on line."
 
                            (or (not after) ;; at end of buffer
                                (and (not (eq after ?\s))
-                                    (not (eq after ?\))))))
+                                    ;; TODO: what’s the deal with pipe here? Test don’t look
+                                    ;; too bright, I’m just working it around for the time being,
+                                    ;; feel free to remove this special casing of pipe.
+                                    (if (eq char ?|)
+                                        (not (eq after ?\)))
+                                      t))))
                   (insert-char ?\s))))))))))
 
 ;;;###autoload
