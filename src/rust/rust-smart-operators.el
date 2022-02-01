@@ -231,12 +231,6 @@ stick it to the previous operator on line."
 
                            (not (eq char ?\<))
 
-                           (if (eq char ?\>)
-                               (if (memq before-insert '(?= ?-))
-                                   t ;; Insert space after operators '->', '=>'
-                                 nil)
-                             t)
-
                            (or at-beginning-of-buffer?
                                (not (eq before-insert ?\()))
 
