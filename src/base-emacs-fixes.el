@@ -995,7 +995,12 @@ characters."
     (memory-report--object-size (make-hash-table :test #'eq) object)))
 
 ;;;###autoload
-(el-patch-feature indent)
+(defun el-patch--load-indent ()
+  ;; The ‘indent.el’ in standard Emacs doesn’t have ‘provide’ so it must be ‘load’ed.
+  (load "indent"))
+
+;;;###autoload
+(add-hook 'el-patch-pre-validate-hook #'el-patch--load-indent)
 
 (when-emacs-version (<= 28 it)
   (el-patch-defun indent-region-line-by-line (start end)
