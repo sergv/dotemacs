@@ -457,7 +457,7 @@ of a token."
         ((memq char '(?\] ?\[ ?\( ?\) ?\{ ?\} ?\` ?\, ?\;))
          'special)))))
 
-(defun haskell-lexeme-looking-at-token (&rest flags)
+(defun haskell-lexeme-looking-at-token (&optional skip-newline)
   "Like `looking-at' but understands Haskell lexemes.
 
 Moves point forward over whitespace.  Returns a symbol describing
@@ -488,7 +488,7 @@ See `haskell-lexeme-classify-by-first-char' for details."
       ;; newlines have syntax set to generic string delimeter. We want
       ;; those to be treated as whitespace anyway
       (or (> (skip-syntax-forward "-") 0)
-          (and (not (memq 'newline flags))
+          (and (not skip-newline)
                (> (skip-chars-forward "\n") 0))))
   (let ((case-fold-search nil)
         (point (point-marker)))
