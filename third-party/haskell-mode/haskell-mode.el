@@ -506,10 +506,9 @@ be set to the preferred literate style."
         (while (< (point) end)
           (unless (looking-at-p "^[\t ]*$")
             (if previous-line-latex-code
-                (if (looking-at-p "^\\\\end{code}[\t ]*$")
-                    (progn
-                      (put-text-property (point) (1+ (point)) 'syntax-table (eval-when-compile (string-to-syntax "<")))
-                      (setq previous-line-latex-code nil))
+                (when (looking-at-p "^\\\\end{code}[\t ]*$")
+                  (put-text-property (point) (1+ (point)) 'syntax-table (eval-when-compile (string-to-syntax "<")))
+                  (setq previous-line-latex-code nil)
                   ;; continue latex-code
                   )
               (if (looking-at-p "^>")
