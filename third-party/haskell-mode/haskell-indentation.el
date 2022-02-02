@@ -97,6 +97,9 @@ overridden."
     map)
   "Keymap for `haskell-indentation-mode'.")
 
+(when-emacs-version (<= 28 it)
+  (add-to-list 'indent-line-ignored-functions #'haskell-indentation-indent-line))
+
 ;;;###autoload
 (define-minor-mode haskell-indentation-mode
   "Haskell indentation mode that deals with the layout rule.
