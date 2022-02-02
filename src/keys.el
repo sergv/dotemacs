@@ -80,6 +80,8 @@
   ("C-<home>"          nil)
   ("C-<end>"           nil)
 
+  (("DEL" "<backspace>") pseudoparedit-backspace)
+
   ;; It’s bound to ‘keyboard-escape-quit’ by default which I never use.
   ("\e\e\e" nil))
 
