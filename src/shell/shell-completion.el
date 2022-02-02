@@ -2249,7 +2249,9 @@ under version-control directories."
                "--test-option"
                "-j"
                "--jobs")))
-      ("bench")
+      ("bench"
+       (opts
+        (flags ,@builddir-flags)))
       ("help")))
   :evaluate-definition t)
 
