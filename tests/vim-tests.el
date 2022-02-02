@@ -2750,6 +2750,38 @@
      "")
     ))
 
+(ert-deftest vim-tests/haskell-cmd-insert-line-below-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "o f o o <escape>"))
+    (tests-utils--multiline
+     ""
+     "import Control.Monad"
+     "import Data._|_List"
+     "")
+    (tests-utils--multiline
+     ""
+     "import Control.Monad"
+     "import Data.List"
+     "fo_|_o"
+     "")))
+
+(ert-deftest vim-tests/haskell-cmd-insert-line-above-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "O f o o <escape>"))
+    (tests-utils--multiline
+     ""
+     "import Control.Monad"
+     "import Data._|_List"
+     "")
+    (tests-utils--multiline
+     ""
+     "import Control.Monad"
+     "fo_|_o"
+     "import Data.List"
+     "")))
+
 (provide 'vim-tests)
 
 ;; Local Variables:
