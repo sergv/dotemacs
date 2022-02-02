@@ -224,9 +224,11 @@ Paredit behaves badly if parentheses are unbalanced, so exercise
   (interactive)
   (paredit-mode -1))
 
-(defconst paredit-backward-delete-key "DEL")
+;; (defconst paredit-backward-delete-key "DEL")
+;; (defconst paredit-forward-delete-keys '("<delete>" "<deletechar>"))
 
-(defconst paredit-forward-delete-keys '("<delete>" "<deletechar>"))
+(defconst paredit-backward-delete-key nil)
+(defconst paredit-forward-delete-keys nil)
 
 ;;;; Paredit Keys
 
@@ -380,7 +382,7 @@ Paredit behaves badly if parentheses are unbalanced, so exercise
                 (";;;| Frobnicate\n(defun frobnicate ...)"
                  ";;;|\n(defun frobnicate ...)"
                  ";;;\n(| frobnicate ...)"))
-   (,(concat "M-" paredit-backward-delete-key)
+   (,(when paredit-backward-delete-key (concat "M-" paredit-backward-delete-key))
                 paredit-backward-kill-word
                 ("(foo bar)    ; baz\n(quux)|"
                  "(foo bar)    ; baz\n(|)"
