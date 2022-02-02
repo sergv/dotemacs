@@ -513,8 +513,7 @@ See `haskell-lexeme-classify-by-first-char' for details."
            'template-haskell-quasi-quote
          'special))
       ((haskell-lexeme-looking-at-qidsym)
-       (if (save-match-data
-             (string-match "\\`---*\\'" (match-string-no-properties 0)))
+       (if (string-match-p "\\`--+\\'" (match-string-no-properties 0))
            (progn
              (set-match-data (list point (copy-marker (line-end-position))))
              'comment)
