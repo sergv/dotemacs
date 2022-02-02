@@ -545,16 +545,16 @@ be set to the preferred literate style."
         (let
             ((token-kind (haskell-lexeme-looking-at-token)))
 
-          (cond
-           ((eq token-kind 'qsymid)
+          (pcase token-kind
+           (`qsymid
             (when (member
                    (haskell-lexeme-classify-by-first-char (char-after (match-beginning 1)))
                    '(varsym consym))
               ;; we have to neutralize potential comments here
               (put-text-property (match-beginning 1) (match-end 1) 'syntax-table (eval-when-compile (string-to-syntax ".")))))
-           ((eq token-kind 'number)
+           (`number
             (put-text-property (match-beginning 0) (match-end 0) 'syntax-table (eval-when-compile (string-to-syntax "w"))))
-           ((eq token-kind 'char)
+           (`char
             (save-excursion
               (goto-char (match-beginning 2))
               (let ((limit (match-end 2)))
@@ -574,7 +574,7 @@ be set to the preferred literate style."
                 (put-text-property (match-beginning 1) (match-end 1) 'syntax-table (eval-when-compile (string-to-syntax "\"")))
                 (unless (eq (match-end 2) (point-max))
                   (put-text-property (match-end 2 ) (1+ (match-end 2)) 'syntax-table (eval-when-compile (string-to-syntax "\"")))))))
-           ((eq token-kind 'string)
+           (`string
             (save-excursion
               (goto-char (match-beginning 2))
               (let ((limit (match-end 2)))
@@ -590,7 +590,7 @@ be set to the preferred literate style."
                           (eq (match-end 2) (point-max)))
                 (put-text-property (match-beginning 1) (match-end 1) 'syntax-table (eval-when-compile (string-to-syntax "|")))
                 (put-text-property (match-end 2 ) (1+ (match-end 2)) 'syntax-table (eval-when-compile (string-to-syntax "|"))))))
-           ((eq token-kind 'template-haskell-quasi-quote)
+           (`template-haskell-quasi-quote
             (put-text-property (match-beginning 2) (match-end 2) 'syntax-table (eval-when-compile (string-to-syntax "\"")))
             (when (match-beginning 4)
               (put-text-property (match-beginning 4) (match-end 4) 'syntax-table (eval-when-compile (string-to-syntax "\""))))
