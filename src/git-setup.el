@@ -32,60 +32,14 @@
 (dolist (x '(magit-reset-soft magit-reset-hard magit-reset-head magit-reset magit-reset-index))
   (push (cons x nil) ivy-sort-functions-alist))
 
-(defun magit-rebase-arguments--author-dates-as-commiter-dates (args)
-  "Pass ‘--committer-date-is-author-date’ to ‘git rebase’ no matter what."
-  (if (member "--committer-date-is-author-date" args)
-      args
-    (cons "--committer-date-is-author-date" args)))
+(defun magit-rebase-interactive-1--preserve-commiter-date
+    (old-magit-rebase-interactive-1 commit args message &optional editor delay-edit-confirm noassert confirm)
+  (let ((amended-args (if (member "--committer-date-is-author-date" args)
+                          args
+                        (cons "--committer-date-is-author-date" args))))
+    (funcall old-magit-rebase-interactive-1 commit amended-args message editor delay-edit-confirm noassert confirm)))
 
-(advice-add 'magit-rebase-arguments :filter-return #'magit-rebase-arguments--author-dates-as-commiter-dates)
-
-(el-patch-defun magit-commit-squash-internal
-    (option commit &optional args rebase edit confirmed)
-  (when-let ((args (magit-commit-assert args t)))
-    (when commit
-      (when (and rebase (not (magit-rev-ancestor-p commit "HEAD")))
-        (magit-read-char-case
-            (format "%s isn't an ancestor of HEAD.  " commit) nil
-          (?c "[c]reate without rebasing" (setq rebase nil))
-          (?s "[s]elect other"            (setq commit nil))
-          (?a "[a]bort"                   (user-error "Quit")))))
-    (when commit
-      (setq commit (magit-rebase-interactive-assert commit t)))
-    (if (and commit
-             (or confirmed
-                 (not (or rebase
-                          current-prefix-arg
-                          magit-commit-squash-confirm))))
-        (let ((magit-commit-show-diff nil))
-          (push (concat option "=" commit) args)
-          (unless edit
-            (push "--no-edit" args))
-          (if rebase
-              (magit-with-editor
-                (magit-call-git
-                 "commit" "--no-gpg-sign"
-                 (-remove-first
-                  (apply-partially #'string-match-p "\\`--gpg-sign=")
-                  args)))
-            (magit-run-git-with-editor "commit" args))
-          t) ; The commit was created; used by below lambda.
-      (magit-log-select
-        (lambda (commit)
-          (when (and (magit-commit-squash-internal option commit args
-                                                   rebase edit t)
-                     rebase)
-            (magit-commit-amend-assert commit)
-            (magit-rebase-interactive-1 commit
-                (list (el-patch-add "--committer-date-is-author-date")
-                      "--autosquash"
-                      "--autostash")
-              "" "true" nil t)))
-        (format "Type %%p on a commit to %s into it,"
-                (substring option 2)))
-      (when magit-commit-show-diff
-        (let ((magit-display-buffer-noselect t))
-          (apply #'magit-diff-staged nil (magit-diff-arguments)))))))
+(advice-add 'magit-rebase-interactive-1 :around #'magit-rebase-interactive-1--preserve-commiter-date)
 
 ;;; Magit redefinitions
 
