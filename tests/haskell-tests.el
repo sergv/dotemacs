@@ -845,6 +845,25 @@
      "foo x xs = foo ## _|_bar"
      "")))
 
+(ert-deftest haskell-tests/haskell-smart-operators--magic-hash-and-equals-space-1 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-smart-operators-mode +1)
+        (haskell-smart-operators-hash)
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?=))
+    (tests-utils--multiline
+     "{-# LANGUAGE MagicHash #-}"
+     ""
+     "  where"
+     "    ptr_|_"
+     "")
+    (tests-utils--multiline
+     "{-# LANGUAGE MagicHash #-}"
+     ""
+     "  where"
+     "    ptr# = _|_"
+     "")))
+
 (ert-deftest haskell-tests/haskell-smart-operators--dot-1 ()
   (haskell-tests--test-buffer-contents
       (progn
