@@ -153,7 +153,7 @@ under ROOT directory."
       (funcall run-check))))
 
 (eproj-tests--define-tests
-    "eproj-tests/%s/aux-files"
+    "eproj-tests/aux-files"
   (let* ((path eproj-tests/project-with-aux-files)
          (proj (eproj-get-project-for-path path)))
     (should (not (null proj)))
