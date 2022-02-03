@@ -432,8 +432,7 @@ _a_lign  _t_: jump to topmost node start
         :install-flycheck flycheck-mode
         :load-func #'vim:haskell-dante-load-file-into-repl
         :reset-func #'vim:haskell-lsp-flycheck-reset))
-      ((and flycheck-mode
-            (memq flycheck-checker '(haskell-stack-ghc haskell-ghc)))
+      (flycheck-mode
        (dolist (cmd '("conf" "configure"))
          (vim-local-emap cmd #'vim:haskell-flycheck-configure))
 
