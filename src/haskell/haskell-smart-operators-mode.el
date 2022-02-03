@@ -162,36 +162,40 @@ stick it to the previous operator on line."
                   ;; if MagicHash is enabled.
                   (if (and (eq char ?#)
                            haskell-smart-operators-mode--have-magic-hash)
-                      nil ;; Stop considering whether to inser space.
+                      nil ;; Stop considering whether to insert space.
                     t)
-                  (or
-                   ;; At beginning of buffer.
-                   at-beginning-of-buffer?
-                   ;; After | that is a potential guard.
-                   (when (eq prev-char ?|)
-                     (awhen (haskell-smart-operators--on-a-line-with-guard?)
-                       (equal it (- pt 1))))
-                   (and
-                    ;; Do not insert spaces before @ since it's mostly used
-                    ;; as as-patterns.
-                    (not (eq char ?@))
-                    (not (eq prev-char ?\s))
-                    (not (eq prev-char ?\())
-                    (and (not (eq prev-char ?\`))
-                         (or (null after)
-                             (not (eq after ?\`))))
-                    (not (and (eq char ?|)
-                              (or
-                               ;; Do not split '[|' token when we're inserting the '['.
-                               (eq prev-char ?\[)
-                               ;; Do not split '[foo|' quasiquoter
-                               ;; when we're inserting the '['.
-                               (save-excursion
-                                 (with-syntax-table haskell-quasiquoter-name-syntax-table
-                                   (skip-syntax-backward "w" (line-beginning-position))
-                                   (let ((before-far (char-before)))
-                                     (eq before-far ?\[)))))))
-                    (not (gethash prev-char haskell-smart-operators--operator-chars)))))
+                  (or at-beginning-of-buffer?
+                      ;; After | that is a potential guard.
+                      (when (eq prev-char ?|)
+                        (awhen (haskell-smart-operators--on-a-line-with-guard?)
+                          (equal it (- pt 1))))
+                      ;; Insert space between us and previous # if the char before # is
+                      ;; not a space itself, which means that # ends identifier name.
+                      (when (eq prev-char ?#)
+                        (let ((prev-prev-char (char-before (1- pt))))
+                          (not (or (null prev-prev-char)
+                                   (eq prev-prev-char ?\n)
+                                   (haskell-smart-operators--is-whitespace-char? prev-prev-char)))))
+                      (and (not (eq prev-char ?\s))
+                           (not (eq prev-char ?\())
+                           ;; Do not insert spaces before @ since it's mostly used
+                           ;; as as-patterns.
+                           (not (eq char ?@))
+                           (and (not (eq prev-char ?\`))
+                                (or (null after)
+                                    (not (eq after ?\`))))
+                           (not (and (eq char ?|)
+                                     (or
+                                      ;; Do not split '[|' token when we're inserting the '['.
+                                      (eq prev-char ?\[)
+                                      ;; Do not split '[foo|' quasiquoter
+                                      ;; when we're inserting the '['.
+                                      (save-excursion
+                                        (with-syntax-table haskell-quasiquoter-name-syntax-table
+                                          (skip-syntax-backward "w" (line-beginning-position))
+                                          (let ((before-far (char-before)))
+                                            (eq before-far ?\[)))))))
+                           (not (gethash prev-char haskell-smart-operators--operator-chars)))))
              (progn
                (setq before-pt (point)
                      before (char-before))
