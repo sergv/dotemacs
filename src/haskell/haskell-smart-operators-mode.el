@@ -19,10 +19,12 @@
 (require 'haskell-ghc-support)
 (require 'smart-operators-utils)
 
-(defvar haskell-smart-operators--operator-chars
+(defconst haskell-smart-operators--operator-chars-str "!#$%&*+-./:<=>?@\\^|~")
+
+(defconst haskell-smart-operators--operator-chars
   (let ((tbl (make-hash-table :test #'eq)))
     (cl-loop
-      for c across "!#$%&*+-./:<=>?@\\^|~"
+      for c across haskell-smart-operators--operator-chars-str
       do (puthash c t tbl))
     tbl)
   "Characters that may constitute operators.")
@@ -60,7 +62,7 @@ both unicode and ascii characters.")
 stick it to the previous operator on line."
   (haskell-smart-operators--insert-char-optionally-surrounding-with-spaces char t))
 
-(defun haskell-smart-operators--is-whitespace-char? (c)
+(defsubst haskell-smart-operators--is-whitespace-char? (c)
   (or (eq c ?\s)
       (eq c ?\t)))
 
@@ -111,17 +113,12 @@ stick it to the previous operator on line."
                                       (gethash after haskell-smart-operators--operator-chars)))
                              (cond
                                ((eq after ?\))
-                                (let ((p before-pt)
-                                      (c nil))
-                                  (while (gethash (setq c (char-before p))
-                                                  haskell-smart-operators--operator-chars)
-                                    (cl-decf p))
+                                (let ((c (save-excursion
+                                           (goto-char before-pt)
+                                           (skip-chars-backward haskell-smart-operators--operator-chars-str)
+                                           (char-before))))
                                   (or (null c)
-                                      (haskell-smart-operators--is-whitespace-char? c)))
-                                ;; (save-excursion
-                                ;;   (goto-char before-pt))
-                                ;; nil
-                                )
+                                      (haskell-smart-operators--is-whitespace-char? c))))
                                ;; Special case for @ since it's part of as-patterns.
                                ((eq char ?@)
                                 (or whitespace-deleted?
@@ -207,6 +204,16 @@ stick it to the previous operator on line."
                     (let* ((pt-before-ws (point))
                            (char-before-spaces (char-before pt-before-ws)))
                       (and char-before-spaces ;; not at beginning of buffer
+                           (if (eq char-before-spaces ?#)
+                               (if-let ((char-before-char-before-spaces (char-before (1- pt-before-ws))))
+                                   ;; If there’s space before previous # then it’s an operator so
+                                   ;; delete whitespace backwards.
+                                   (haskell-smart-operators--is-whitespace-char? char-before-char-before-spaces)
+                                 ;; Beginning of buffer, and we’re
+                                 ;; here "#_|_", hash is definitely
+                                 ;; not part of a name.
+                                 t)
+                             t)
                            (or (gethash char-before-spaces haskell-smart-operators--operator-chars)
                                (eq char-before-spaces ?\()
                                ;; If inserting # in MagicHash mode
