@@ -79,6 +79,21 @@
      ,contents
      ,expected-value))
 
+(defmacro vim-tests--test-fresh-buffer-contents-init-standard-modes-equivalent-commands (names-and-actions contents expected-value)
+  (declare (indent 1))
+  `(progn
+     ,@(cl-loop
+        for entry in names-and-actions
+        collect
+        (let ((name (car entry))
+              (action (cadr entry)))
+          `(vim-tests--test-fresh-buffer-contents-init-all
+            ,name
+            ,vim-tests--modes-and-init
+            ,action
+            ,contents
+            ,expected-value)))))
+
 (defmacro vim-tests--test-fresh-buffer-contents (action contents expected-value)
   (declare (indent 1))
   `(vim-tests--test-fresh-buffer-contents-init
@@ -1907,6 +1922,71 @@
    "_|_abcabc"
    "def"
    "xyz"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-equivalent-commands
+    ((vim-tests/splice-sexp-killing-backward-binding-1 (execute-kbd-macro (kbd "M-(")))
+     (vim-tests/splice-sexp-killing-backward-binding-2 (execute-kbd-macro (kbd "j M-(")))
+     (vim-tests/splice-sexp-killing-backward-binding-3 (execute-kbd-macro (kbd "j ( d"))))
+  (tests-utils--multiline
+   ""
+   "(a _|_(b c) d)"
+   "")
+  (tests-utils--multiline
+   ""
+   "_|_(b c) d"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-equivalent-commands
+    ((vim-tests/splice-sexp-killing-forward-binding-1 (execute-kbd-macro (kbd "M-)")))
+     (vim-tests/splice-sexp-killing-forward-binding-2 (execute-kbd-macro (kbd "j M-)")))
+     (vim-tests/splice-sexp-killing-forward-binding-3 (execute-kbd-macro (kbd "j ) d"))))
+  (tests-utils--multiline
+   ""
+   "(a _|_(b c) d)"
+   "")
+  (tests-utils--multiline
+   ""
+   "a_|_ "
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-equivalent-commands
+    ((vim-tests/raise-binding-1 (execute-kbd-macro (kbd "M-<up>")))
+     (vim-tests/raise-binding-2 (execute-kbd-macro (kbd "j M-<up>")))
+     (vim-tests/raise-binding-3 (execute-kbd-macro (kbd "j r"))))
+  (tests-utils--multiline
+   ""
+   "(a _|_(b c) d)"
+   "")
+  (tests-utils--multiline
+   ""
+   "_|_(b c)"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-equivalent-commands
+    ((vim-tests/backward-slurp-sexp-binding-1 (execute-kbd-macro (kbd "C-(")))
+     (vim-tests/backward-slurp-sexp-binding-2 (execute-kbd-macro (kbd "j C-(")))
+     (vim-tests/backward-slurp-sexp-binding-3 (execute-kbd-macro (kbd "j ( ("))))
+  (tests-utils--multiline
+   ""
+   "(a (b_|_ c) d)"
+   "")
+  (tests-utils--multiline
+   ""
+   "((a b_|_ c) d)"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-equivalent-commands
+    ((vim-tests/forward-slurp-sexp-binding-1 (execute-kbd-macro (kbd "C-)")))
+     (vim-tests/forward-slurp-sexp-binding-2 (execute-kbd-macro (kbd "j C-)")))
+     (vim-tests/forward-slurp-sexp-binding-3 (execute-kbd-macro (kbd "j ) )"))))
+  (tests-utils--multiline
+   ""
+   "(a (b_|_ c) d)"
+   "")
+  (tests-utils--multiline
+   ""
+   "(a (b_|_ c d))"
    ""))
 
 (ert-deftest vim-tests/vim:cmd-insert-line-below-repeat-complex-insert-command-1/emacs-lisp-mode ()
