@@ -31,6 +31,9 @@ _I_: jump back"
   (init-common :use-whitespace 'tabs-only)
   (fontify-merge-markers)
   (let ((proj (eproj-get-project-for-buf-lax (current-buffer))))
+
+    (haskell-compilation-commands-install! proj)
+
     (haskell-setup-indentation
      :offset (eproj-query/haskell/indent-offset proj)
      :simpler-indentation-by-default t)
