@@ -2604,7 +2604,7 @@
 (ert-deftest vim-tests/haskell-abbrev-8 ()
   (vim-tests--test-fresh-buffer-contents-init
       (haskell-mode)
-      (execute-kbd-macro (kbd "i imports SPC"))
+      (execute-kbd-macro (kbd "i i m p o r t s SPC"))
     (tests-utils--multiline
      ""
      "_|_"
@@ -2617,6 +2617,23 @@
      "import qualified Data.Set as S _|_"
      "foo x = do"
      "  bar (x + 1) y \"foo\""
+     "")))
+
+(ert-deftest vim-tests/haskell-abbrev-9 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "i # # SPC i n l i n <tab> ( + + + <tab> <escape>"))
+    (tests-utils--multiline
+     ""
+     "_|_"
+     "(+++) :: Int -> Int"
+     "(+++) x y = x + y"
+     "")
+    (tests-utils--multiline
+     ""
+     "{-# INLINE (+++) #-_|_}"
+     "(+++) :: Int -> Int"
+     "(+++) x y = x + y"
      "")))
 
 (ert-deftest vim-tests/haskell-insert-quote-1 ()
