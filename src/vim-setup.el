@@ -43,43 +43,57 @@ _t_oggle   _cc_: comment         _sw_: replace word
 _w_indows  _cu_: uncomment       _sW_: relpace WORD
 ta_b_s     _cd_: delete comment  _ss_: replace symbol
 
-_(d_: (a | b)         -> |b               _((_: a (b | …) -> (a b | …)
-_)d_: (a | b)         -> a|               _()_: a (b | …) -> a b (| …)
-                                          _))_: (… | a) b -> (… |) a b
-                                          _)(_: (… | a) b -> (… | a b)
+_C-(_: a (b | …) -> (a b | …)            _M-(_:    (a | b)         -> |b
+_C-)_: (… | a) b -> (… |) a b            _M-)_:    (a | b)         -> a|
+                                           _M-<up>_: (a | (b c) d)   -> |(b c)
 
 _r_aise:          (a | (b c) d)   -> |(b c)
 _?_ (convolute):  (a b (c d | e)) -> (c d (a b | e))
 _S_plit sexp:     (a | b)         -> (a) |(b)
-_J_oin sexp:      (a) | (b)       -> (a | b)"
-  ("w"   hydra-window-management/body)
-  ("t"   toggle)
-  ("b"   hydra-tab-management/body)
+_J_oin sexp:      (a) | (b)       -> (a | b)
 
-  ("cc"  comment-util-comment-lines)
-  ("cu"  comment-util-uncomment-region)
-  ("cd"  comment-util-delete-commented-part)
+Full operation table:
+_((_: a (b | …) -> (a b | …)             _(d_: (a | b)         -> |b
+_()_: (a b | …) -> a (b | …)             _)d_: (a | b)         -> a|
+_))_: (… | a) b -> (… | a b)
+_)(_: (… | a b) -> (… | a) b
+"
+  ("w"          hydra-window-management/body)
+  ("t"          toggle)
+  ("b"          hydra-tab-management/body)
 
-  ("sw"  vim:replace-word:interactive)
-  ("sW"  vim:replace-WORD:interactive)
-  ("ss"  vim:replace-symbol-at-point:interactive)
+  ("cc"         comment-util-comment-lines)
+  ("cu"         comment-util-uncomment-region)
+  ("cd"         comment-util-delete-commented-part)
 
-  ("(d"  vim:splice-sexp-killing-backward:interactive)
-  (")d"  vim:splice-sexp-killing-forward:interactive)
-  ("r"   vim:raise-sexp:interactive)
-  ("?"   vim:convolute-sexp:interactive)
-  ("S"   vim:split-sexp:interactive)
-  ("J"   vim:join-sexps:interactive)
+  ("sw"         vim:replace-word:interactive)
+  ("sW"         vim:replace-WORD:interactive)
+  ("ss"         vim:replace-symbol-at-point:interactive)
 
-  ("(("  vim:backward-slurp-sexp:interactive)
-  ("()"  vim:backward-barf-sexp:interactive)
-  (")("  vim:forward-barf-sexp:interactive)
-  ("))"  vim:forward-slurp-sexp:interactive)
+  ("M-\("       vim:splice-sexp-killing-backward:interactive)
+  ("M-\)"       vim:splice-sexp-killing-forward:interactive)
+  ("M-<up>"     vim:raise-sexp:interactive)
 
-  ("( <left>"  vim:backward-slurp-sexp:interactive)
-  ("( <right>" vim:backward-barf-sexp:interactive)
-  (") <left>"  vim:forward-barf-sexp:interactive)
-  (") <right>" vim:forward-slurp-sexp:interactive))
+  ("C-\("       vim:backward-slurp-sexp:interactive)
+  ("C-\)"       vim:forward-slurp-sexp:interactive)
+
+  ("r"          vim:raise-sexp:interactive)
+  ("?"          vim:convolute-sexp:interactive)
+  ("S"          vim:split-sexp:interactive)
+  ("J"          vim:join-sexps:interactive)
+
+  ("\(d"        vim:splice-sexp-killing-backward:interactive)
+  ("\)d"        vim:splice-sexp-killing-forward:interactive)
+
+  ("\(\("       vim:backward-slurp-sexp:interactive)
+  ("\(\)"       vim:backward-barf-sexp:interactive)
+  ("\)\("       vim:forward-barf-sexp:interactive)
+  ("\)\)"       vim:forward-slurp-sexp:interactive)
+
+  ("\( <left>"  vim:backward-slurp-sexp:interactive)
+  ("\( <right>" vim:backward-barf-sexp:interactive)
+  ("\) <left>"  vim:forward-barf-sexp:interactive)
+  ("\) <right>" vim:forward-slurp-sexp:interactive))
 
 (defhydra-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
   "
