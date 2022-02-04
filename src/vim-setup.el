@@ -232,7 +232,7 @@ _<right>_: move tab to the right"
   ("0"   vim-motion-beginning-of-line-or-digit-argument)
   (("1" "2" "3" "4" "5" "6" "7" "8" "9")
          vim-digit-argument)
-  ("-"   vim-universal-argument-minus)
+  ("C--" vim-universal-argument-minus)
 
   ("G"   vim:motion-go-to-first-non-blank-end:interactive)
   ("j"   nil)
@@ -247,7 +247,8 @@ _<right>_: move tab to the right"
 
 (def-keys-for-map vim-operator-pending-mode-keymap
   (("is" "s") vim:motion-inner-symbol:interactive)
-  ("as"       vim:motion-outer-symbol:interactive))
+  ("as"       vim:motion-outer-symbol:interactive)
+  ("-"        vim-universal-argument-minus))
 
 (def-keys-for-map (vim-operator-pending-mode-keymap
                    vim-motion-mode-keymap)
