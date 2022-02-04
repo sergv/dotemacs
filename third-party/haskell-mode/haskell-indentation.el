@@ -1170,10 +1170,10 @@ layout starts."
 Add INDENT to `possible-indentations' if it is not there
 yet. Keep the list in ascending order."
   (setq possible-indentations
-        (haskel-indentation--add-to-sorted-list possible-indentations
+        (haskell-indentation--add-to-sorted-list possible-indentations
                                                 indent)))
 
-(defun haskel-indentation--add-to-sorted-list (list num)
+(defun haskell-indentation--add-to-sorted-list (list num)
   "Add NUM into sorted LIST by side effect."
   (cl-assert (or (null list) (consp list)))
   (let* ((top (cons nil list))
