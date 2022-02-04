@@ -385,12 +385,12 @@ _<right>_: move tab to the right"
   ("C--"           typopunct-insert-typographical-dashes)
 
   ("\""            paredit-doublequote)
-  ("\("            paredit-open-round)
-  ("\)"            paredit-close-round)
-  ("\["            paredit-open-square)
-  ("\]"            paredit-close-square)
-  ("\{"            paredit-open-curly)
-  ("\}"            paredit-close-curly))
+  ("\("            paredit-open-round-comments)
+  ("\)"            paredit-close-round-comments)
+  ("\["            paredit-open-square-comments)
+  ("\]"            paredit-close-square-comments)
+  ("\{"            paredit-open-curly-comments)
+  ("\}"            paredit-close-curly-comments))
 
 ;;; ex bindings and commands
 
