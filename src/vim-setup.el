@@ -395,7 +395,6 @@ _<right>_: move tab to the right"
   ("<insert>"      vim:scroll-line-up:interactive)
   ("C-:"           pp-eval-expression)
 
-  ("C-'"           typopunct-insert-single-quotation-mark)
   ("C-\""          typopunct-insert-quotation-mark)
   ("C--"           typopunct-insert-typographical-dashes)
 
@@ -406,6 +405,10 @@ _<right>_: move tab to the right"
   ("\]"            paredit-close-square-comments)
   ("\{"            paredit-open-curly-comments)
   ("\}"            paredit-close-curly-comments))
+
+(def-keys-for-map (vim-insert-mode-keymap
+                   vim-ex-keymap)
+  ("C-'"           typopunct-insert-single-quotation-mark))
 
 ;;; ex bindings and commands
 
