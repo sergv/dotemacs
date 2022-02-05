@@ -17,7 +17,7 @@
                                              &key
                                              (word nil)
                                              (symbol nil)
-                                             (fill-replace nil))
+                                             (fill-replacement nil))
   (unless str
     (error "No string for replace"))
   (let ((separator
@@ -31,7 +31,7 @@
             (regexp-quote str)
             (cond (word "\\>") (symbol "\\_>"))
             separator
-            (when fill-replace
+            (when fill-replacement
               (vim--substitute-quote str))
             separator)))
 
@@ -82,7 +82,7 @@ special characters are introduced via backlash only."
      (save-excursion
        (vim:motion-inner-word)))
     :word t
-    :fill-replace (not current-prefix-arg))))
+    :fill-replacement (not current-prefix-arg))))
 
 (vim-defcmd vim:replace-WORD (nonrepeatable)
   "Partially construct vim ex-replace command from WORD at point."
@@ -91,14 +91,14 @@ special characters are introduced via backlash only."
     (vim--get-str-covered-by-motion
      (save-excursion
        (vim:motion-inner-WORD)))
-    :fill-replace (not current-prefix-arg))))
+    :fill-replacement (not current-prefix-arg))))
 
 (vim-defcmd vim:replace-selected (nonrepeatable)
   "Partially construct vim ex-replace command from selected region."
   (vim--start-ex-with-customized-substitute-command
    (vim--construct-ex-replace-command
     (get-region-string-no-properties)
-    :fill-replace (not current-prefix-arg))))
+    :fill-replacement (not current-prefix-arg))))
 
 (vim-defcmd vim:replace-symbol-at-point (nonrepeatable)
   "Partially construct vim ex-replace command from symbol at point.
@@ -107,7 +107,7 @@ With prefix argument puts symbol at point also in substitute part"
    (vim--construct-ex-replace-command
     (thing-at-point 'symbol)
     :symbol t
-    :fill-replace (not current-prefix-arg))))
+    :fill-replacement (not current-prefix-arg))))
 
 (provide 'vim-replace)
 
