@@ -99,8 +99,8 @@ _)(_: (… | a b) -> (… | a) b
   "
 new _f_rame               _#_: finish server edit              previous word _e_nd
 _g_o to start of file     _k_ill buffer                        previous WORD _E_nd
-g_r_ep                    _K_ill buffer and delete window
-_u_ndo tree
+g_r_ep                    _K_ill buffer and delete window      _<_: keep upper merge
+_u_ndo tree                                                  _>_: keep lower merge
 reactivate _v_isual mode
 M-_x_
 "
@@ -116,7 +116,9 @@ M-_x_
   ("K" remove-buffer-and-window)
 
   ("e" pseudovim-motion-bwd-word-end)
-  ("E" pseudovim-motion-bwd-WORD-end))
+  ("E" pseudovim-motion-bwd-WORD-end)
+  ("<" vim:smerge-keep-upper:interactive)
+  (">" vim:smerge-keep-lower:interactive))
 
 (defhydra-ext hydra-vim-normal-z-ext (:exit t :foreign-keys nil :hint nil)
   "
