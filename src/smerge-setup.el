@@ -17,6 +17,7 @@
 
 (vim-define-keymap smerge-mode "smerge mode")
 
+;;;###autoload (autoload 'vim-smerge-mode "smerge-setup" nil t)
 ;;;###autoload (autoload 'vim-activate-smerge-mode "smerge-setup" nil t)
 (vim-define-mode smerge "VIM smerge mode for resolving merge conflicts\n\nsmerge mode keymap:\n\\{vim-smerge-mode-keymap}"
   :ident "S"
@@ -43,12 +44,16 @@ _,_: kill current
   (">" vim:smerge-keep-lower:interactive)
   ("b" vim:smerge-keep-base:interactive)
   ("c" vim:smerge-keep-current:interactive)
-  (","              vim:smerge-kill-current:interactive)
+  ("," vim:smerge-kill-current:interactive)
 
   ("e" smerge-ediff)
   ("r" smerge-refine))
 
+;;;###autoload (autoload 'vim:smerge-keep-upper "smerge-setup")
+;;;###autoload (autoload 'vim:smerge-keep-upper:interactive "smerge-setup" nil t)
 (vimmize-function smerge-keep-upper   :name vim:smerge-keep-upper :has-count nil)
+;;;###autoload (autoload 'vim:smerge-keep-lower "smerge-setup")
+;;;###autoload (autoload 'vim:smerge-keep-lower:interactive "smerge-setup" nil t)
 (vimmize-function smerge-keep-lower   :name vim:smerge-keep-lower :has-count nil)
 (vimmize-function smerge-keep-base    :name vim:smerge-keep-base :has-count nil)
 (vimmize-function smerge-keep-current :name vim:smerge-keep-current :has-count nil)
