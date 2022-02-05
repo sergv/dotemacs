@@ -240,6 +240,26 @@
      "")))
 
 
+(ert-deftest haskell-tests/haskell-indentation--add-to-sorted-list!-1 ()
+  (dolist (entry '((0 ()        (0))
+                   (0 (2 4 6 8) (0 2 4 6 8))
+                   (1 (2 4 6 8) (1 2 4 6 8))
+                   (2 (2 4 6 8) (2 4 6 8))
+                   (3 (2 4 6 8) (2 3 4 6 8))
+                   (4 (2 4 6 8) (2 4 6 8))
+                   (5 (2 4 6 8) (2 4 5 6 8))
+                   (6 (2 4 6 8) (2 4 6 8))
+                   (7 (2 4 6 8) (2 4 6 7 8))
+                   (8 (2 4 6 8) (2 4 6 8))
+                   (9 (2 4 6 8) (2 4 6 8 9))
+                   (10 (2 4 6 8) (2 4 6 8 10))))
+    (let ((elem (car entry))
+          (input (copy-list (cadr entry)))
+          (expected (caddr entry)))
+      (should (equal (haskell-indentation--add-to-sorted-list! input elem)
+                     expected)))))
+
+
 (ert-deftest haskell-tests/forward-haskell-symbol-1 ()
   (haskell-tests--test-result
     :action
