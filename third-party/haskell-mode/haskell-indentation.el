@@ -950,7 +950,7 @@ parser.  If parsing ends here, set indentation to left-indent."
   "Parse \"guard\" statement."
   (let ((haskell-indentation-in-guard? (haskell-indentation-current-indentation)))
     (setq left-indent (current-column))
-    (haskell-indentation-separated #'haskell-indentation-expression '(",") nil)))
+    (haskell-indentation-separated #'haskell-indentation-expression '("," "=") nil)))
 
 (defun haskell-indentation-declaration ()
   "Parse function or type declaration."
