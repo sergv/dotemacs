@@ -62,8 +62,8 @@ equal to (0 7).
 
 It's recommended to specify several test-cases per one snippet
 because it helps increase coverage."
-  (dolist (current test-cases)
-    (cl-destructuring-bind (line . result) current
+  (dolist (expected test-cases)
+    (cl-destructuring-bind (line . result) expected
       (with-temp-buffer
         (haskell-mode)
         (haskell-indentation-mode 1)
@@ -72,16 +72,16 @@ because it helps increase coverage."
         (font-lock-fontify-buffer)
         (goto-char (point-min))
         (forward-line (1- line))
-        (should
-         (equal current
-                (cons (line-number-at-pos)
-                      (condition-case condition
-                          (haskell-indentation-find-indentations)
-                        (error
-                         ;; for unknown reason Emacs 24.4 ERT does not
-                         ;; catch overrun recursion, so we have to
-                         ;; catch it here, and throw it again
-                         (signal (car condition) (cdr condition)))))))))))
+        (let ((actual
+               (cons (line-number-at-pos)
+                     (condition-case condition
+                         (haskell-indentation-find-indentations)
+                       (error
+                        ;; for unknown reason Emacs 24.4 ERT does not
+                        ;; catch overrun recursion, so we have to
+                        ;; catch it here, and throw it again
+                        (signal (car condition) (cdr condition)))))))
+          (should (equal actual expected)))))))
 
 (defmacro hindent-test (name source &rest test-cases)
   "Define ert test using `haskell-indentation-check'.
@@ -234,7 +234,7 @@ fact n = do
               (1 0)
               (2 2)
               (3 2 6 8 10)
-              (4 4 7)
+              (4 7)
               (5 0 2 4 10))
 
 
@@ -502,7 +502,7 @@ x = let y
     in
       z"
               (1 0)
-              (2 2 4)
+              (2 4)
               (3 2 6))
 
 (hindent-test "19c \"let\" in a \"do\"""
@@ -938,6 +938,77 @@ foo x
               (1 0)
               (2 2)
               (3 2))
+
+(hindent-test "54a equal after guards on separate line" "
+foo x
+  | let foo = 1
+        bar = 2
+  = X"
+              (1 0)
+              (2 2)
+              (4 2))
+
+(hindent-test "54aa equal after guards on separate line" "
+foo x
+  | let foo = 1
+  = X"
+              (1 0)
+              (2 2)
+              (3 2))
+
+(hindent-test "54ab equal after guards on separate line" "
+foo x
+  | let foo1 = 1
+        foo2 = 1
+        foo3 = 1
+  = X"
+              (1 0)
+              (2 2)
+              (5 2))
+
+(hindent-test "54b equal after guards on separate line" "
+foo x
+  | let foo = 1
+        bar = 2
+  , baz
+  = X"
+              (1 0)
+              (2 2)
+              (4 2)
+              (5 2))
+
+(hindent-test "54ba equal after guards on separate line" "
+foo x
+  | let foo = 1
+        bar = 2
+  , Just baz <- quux
+  = X"
+              (1 0)
+              (2 2)
+              (4 2)
+              (5 2))
+
+(hindent-test "54c equal after guards on separate line" "
+foo x
+  | baz
+  , let foo = 1
+        bar = 2
+  = X"
+              (1 0)
+              (2 2)
+              (3 2)
+              (5 2))
+
+(hindent-test "54ca equal after guards on separate line" "
+foo x
+  | Just baz <- quux
+  , let foo = 1
+        bar = 2
+  = X"
+              (1 0)
+              (2 2)
+              (3 2)
+              (5 2))
 
 (hindent-test "55 data constructor on separate line" "
 data Foo = Bar
