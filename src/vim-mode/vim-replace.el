@@ -64,12 +64,14 @@ special characters are introduced via backlash only."
     (let ((minibuffer-local-completion-map vim-ex-keymap))
       (add-hook 'minibuffer-setup-hook #'vim-ex--start-session)
       (add-hook 'minibuffer-setup-hook #'vim-replace--minibuffer-setup-jump-before-last-separator)
-      (let ((result (completing-read vim-ex--propmt
-                                     'vim-ex--complete
-                                     nil
-                                     nil
-                                     str
-                                     'vim-ex--history)))
+      (let ((result (ivy-read vim-ex--propmt
+                              nil
+                              :predicate nil
+                              :require-match nil
+                              :initial-input str
+                              :history 'vim-ex--history
+                              :keymap vim-ex-keymap
+                              :caller 'vim--start-ex-with-customized-substitute-command)))
         (when (and result
                    (not (zerop (length result))))
           (vim-ex-execute-command result))))))
