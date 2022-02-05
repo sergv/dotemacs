@@ -93,7 +93,7 @@ this test is allowed to fail.  It trims empty lines from the
 beginning of SOURCE.  TEST-CASES don't need to be quoted, the
 macro quotes them for you."
   (declare (indent defun))
-  (let ((split-pos (cl-position ?  name)))
+  (let ((split-pos (cl-position ?\s name)))
     (cl-destructuring-bind (test-name allow-failure doc-string)
         (if split-pos
             (let ((raw-prefix (substring name 0 split-pos)))
@@ -1065,6 +1065,38 @@ import javascript unsafe
   \"$2[$1]\" js_getProp :: S.JSString -> O.Object -> T.JSVal"
               (1 0)
               (2 0 2 7))
+
+(hindent-test "guard-with-malformed-let guard with malformed let" "
+quux :: Int -> Int
+quux x
+  | Just source <- srcOpt
+  , let foo = 1
+        bar = 2
+  = [x + foo + bar]
+  | otherwise = []
+  where
+    -- we get the last export and the closing bracket and check for comma in that range
+    needsComma :: Int -> Int
+    needsComma x =
+      case lastExport of
+        Just lastExport ->
+          test
+        _ -> False"
+              (1 0)
+              (2 0 2 8)
+              (3 2)
+              (4 2)
+
+              (6 2)
+              (7 2)
+              (8 2)
+              (9 4)
+              (10 4)
+              (11 0 4 6 18)
+              (12 6)
+              (13 8)
+              (14 10))
+
 
 (ert-deftest haskell-indentation-ret-indents ()
   (with-temp-switch-to-buffer
