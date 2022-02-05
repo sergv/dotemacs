@@ -23,7 +23,9 @@ if [[ "$#" -gt 0 ]]; then
             matcher="$x"
         fi
     done
-else
+fi
+
+if [[ -z "$tests" ]]; then
     for x in "$EMACS_ROOT/tests"/*.el; do
         tests="$tests -l $x"
     done
