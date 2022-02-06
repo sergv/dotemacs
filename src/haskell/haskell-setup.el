@@ -128,6 +128,23 @@
   (ignore-errors
     (eproj-update-current-buffer-within-its-project!)))
 
+
+;; Sample ‘packages’ content:
+;; "active package flags:\n  -package-id base-4.15.1.0\n  -package-id aeson-2.0.3.0-e91573e5a9f0a74731f7cb1fe08486dfa1990213df0c4f864e51b791370cc73d"
+(defun haskell-go-to-symbol-home--strip-ghci-packages-of-versions (packages)
+  (let* ((lines (s-lines packages))
+         (lines2 (if (string= (car lines) "active package flags:")
+                     (cdr lines)
+                   lines)))
+    (--map (replace-regexp-in-string
+            (rx ?- (+ (any (?0 . ?9) ?.))
+                ;; Unique hash that ghci may print
+                (? ?- (+ (any (?a . ?z) (?0 . ?9))))
+                eos)
+            ""
+            (strip-string-prefix "  -package-id " it))
+           lines2)))
+
 (defun haskell-go-to-symbol-home-via-dante-or-eproj (&optional use-regexp?)
   (interactive "P")
   (if (or (not dante-mode) use-regexp?)
@@ -170,14 +187,7 @@
                  (cond
                    ;; Sometimes :loc-at couldn’t produce anything useful but :i pinpoints
                    ;; the result perfectly.
-                   ((string-match (rx "-- Defined at "
-                                      (group-n 1 (+ (not (any ?\r ?\n ?\t))))
-                                      ":"
-                                      (group-n 2 (+ (any (?0 . ?9))))
-                                      ":"
-                                      (group-n 3 (+ (any (?0 . ?9))))
-                                      eol)
-                                  info)
+                   ((string-match haskell-regexen/ghci-info-definition-site-in-curr-project-for-old-ghci info)
                     (let ((file (match-string 1 info))
                           (line (string->number (match-string 2 info)))
                           (column (string->number (match-string 3 info))))
@@ -186,28 +196,10 @@
                       (eproj-symbnav--jump-to-location file line column (eproj-symbnav-current-home-entry) identifier)))
                    ;; Other times :i only provides us with a module name which is still
                    ;; usefull to narrow down tag search.
-                   ((string-match (rx "-- Defined in"
-                                      ?\‘
-                                      (group-n 1 (+ (not (any ?\n ?\r ?\t))))
-                                      ?\’
-                                      eol)
-                                  info)
+                   ((string-match haskell-regexen/ghci-info-definition-site info)
                     (lcr-cps-let ((packages (dante-async-call ":show packages")))
                       (let* ((mod-name (match-string-no-properties 1 info))
-                             ;; Sample ‘packages’ content:
-                             ;; "active package flags:\n  -package-id base-4.15.1.0\n  -package-id aeson-2.0.3.0-e91573e5a9f0a74731f7cb1fe08486dfa1990213df0c4f864e51b791370cc73d"
-                             (lines (s-lines packages))
-                             (lines2 (if (string= (car lines) "active package flags:")
-                                         (cdr lines)
-                                       lines))
-                             (pkgs-without-versions (--map (replace-regexp-in-string
-                                                            (rx ?- (+ (any (?0 . ?9) ?.))
-                                                                ;; Unique hash that ghci may print
-                                                                (? ?- (+ (any (?a . ?z) (?0 . ?9))))
-                                                                eos)
-                                                            ""
-                                                            (strip-string-prefix "  -package-id " it))
-                                                           lines2)))
+                             (pkgs-without-versions (haskell-go-to-symbol-home--strip-ghci-packages-of-versions packages) ))
                         (haskell-symbnav--jump-to-filtered-tags
                          identifier
                          (concat "/"
