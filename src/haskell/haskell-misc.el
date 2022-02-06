@@ -137,7 +137,10 @@ and indent them as singe line."
          "-ferror-spans"
         "-O0"
         "-fdefer-typed-holes"
-        "-fdefer-type-errors"))
+        "-fdefer-type-errors")
+
+      ;; dante-debug '(inputs outputs responses command-line)
+      )
 
 (setf haskell-indentation-electric-flag t)
 
