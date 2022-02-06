@@ -206,7 +206,7 @@
                                      identifier
                                      nil))
            (filtered-tags
-            (--filter (and (not (equal ?m (eproj-tag/type (cadr it))))
+            (--filter (and (not (eq ?m (eproj-tag/type (cadr it))))
                            (string-match-p filter-re (eproj-tag/file (cadr it))))
                       candidate-tags))
 
