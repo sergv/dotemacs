@@ -9,9 +9,10 @@
 (eval-when-compile
   (require 'cl-lib))
 
-(require 'ert)
 (require 'common)
 (require 'common-heavy)
+
+(require 'ert)
 
 (ert-deftest common-tests/test-delete-if-with-action! ()
   (let ((make-list
@@ -493,22 +494,6 @@
                        "c:/foo/bar/"
                        "c:/foo/"
                        "c:/"))))
-
-(ert-deftest common-tests/count-chars-in-string-1 ()
-  (should (equal (count-chars-in-string ?\n "foobar")
-                 0)))
-
-(ert-deftest common-tests/count-chars-in-string-2 ()
-  (should (equal (count-chars-in-string ?o "foobar")
-                 2)))
-
-(ert-deftest common-tests/count-chars-in-string-3 ()
-  (should (equal (count-chars-in-string ?r "foobar")
-                 1)))
-
-(ert-deftest common-tests/count-chars-in-string-4 ()
-  (should (equal (count-chars-in-string ?f "foobar")
-                 1)))
 
 (ert-deftest common-tests/remove-duplicates-from-sorted-list-by-1 ()
   (should (equal (remove-duplicates-from-sorted-list-by nil #'equal)
