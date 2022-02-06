@@ -9,9 +9,9 @@
 (eval-when-compile
   (require 'macro-util))
 
-(defmacro defconst-set (var val)
-  (declare (indent 1))
-  `(defconst ,var ,val)
+(defmacro defconst-set (var val &optional doc)
+  (declare (indent 1) (docstring 3))
+  `(defconst ,var ,val ,doc)
   ;; `(setq ,var ,val)
   )
 
@@ -124,6 +124,26 @@
                       name)
         (replace-match "" t t name 1)
       name)))
+
+(defconst-set haskell-regexen/ghci-info-definition-site-in-curr-project-for-old-ghci
+  (rx "-- Defined at "
+      (group-n 1 (+ (not (any ?\r ?\n ?\t))))
+      ":"
+      (group-n 2 (+ (any (?0 . ?9))))
+      ":"
+      (group-n 3 (+ (any (?0 . ?9))))
+      eol)
+  "Similar to ‘haskell-regexen/ghci-info-definition-site’ but for older GHCs (8.6-ish).")
+
+(defconst-set haskell-regexen/ghci-info-definition-site
+  (rx "-- Defined in "
+      ?\‘
+      (group-n 1 (+ (not (any ?\n ?\r ?\t))))
+      ?\’
+      eol)
+  "Regex used to extract location of where a name is defined out of result of ghci’s :i command.
+
+This regexps is for newer ghc (8.10+-ish).")
 
 (provide 'haskell-regexen)
 
