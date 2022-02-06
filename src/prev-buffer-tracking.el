@@ -6,6 +6,9 @@
 ;; Created: 12 December 2021
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 ;;;; keeping window's previous buffers and switching to them
 
 (defun prev-bufs--add-buf (prev-buf new-buf entries)
@@ -20,10 +23,10 @@
        (cons t (cons prev-buf buf-list))))))
 
 (defsubst prev-bufs--has-changes? (x)
-  (car-sure x))
+  (car x))
 
 (defsubst prev-bufs--buffers (x)
-  (cdr-sure x))
+  (cdr x))
 
 (defsetf prev-bufs--buffers (x) (value)
   `(setcdr-sure ,x ,value))
