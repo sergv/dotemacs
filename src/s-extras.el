@@ -27,6 +27,19 @@ Implementation is very straightforward and because of that fast and reliable."
         (cl-incf i))
       res))
 
+(defun s-extras-replace-char! (old new s)
+  "Replace all OLD characters with NEW in the S string by mutation."
+  (cl-assert (stringp s))
+  (cl-assert (characterp old))
+  (cl-assert (characterp new))
+  (let ((end (comp-hint-fixnum (length s)))
+        (i (comp-hint-fixnum 0)))
+    (while (< (comp-hint-fixnum i) (comp-hint-fixnum end))
+      (when (eq (aref s (comp-hint-fixnum i)) old)
+        (setf (aref s (comp-hint-fixnum i)) new))
+      (cl-incf i))
+    s))
+
 (provide 's-extras)
 
 ;; Local Variables:
