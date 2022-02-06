@@ -197,18 +197,18 @@
                    ;; Other times :i only provides us with a module name which is still
                    ;; usefull to narrow down tag search.
                    ((string-match haskell-regexen/ghci-info-definition-site info)
-                    (lcr-cps-let ((packages (dante-async-call ":show packages")))
-                      (let* ((mod-name (match-string-no-properties 1 info))
-                             (pkgs-without-versions (haskell-go-to-symbol-home--strip-ghci-packages-of-versions packages) ))
-                        (haskell-symbnav--jump-to-filtered-tags
-                         identifier
-                         (concat "/"
-                                 "\\(:?" (regexp-opt pkgs-without-versions) "\\)"
-                                 ".*"
-                                 "/"
-                                 (replace-regexp-in-string "\\." "/" mod-name)
-                                 "."
-                                 (regexp-opt +haskell-extensions+))))))
+                    (let ((mod-name (match-string-no-properties 1 info)))
+                      (lcr-cps-let ((packages (dante-async-call ":show packages")))
+                        (let* ((pkgs-without-versions (haskell-go-to-symbol-home--strip-ghci-packages-of-versions packages) ))
+                          (haskell-symbnav--jump-to-filtered-tags
+                           identifier
+                           (concat "/"
+                                   "\\(:?" (regexp-opt pkgs-without-versions) "\\)"
+                                   ".*"
+                                   "/"
+                                   (replace-regexp-in-string "\\." "/" mod-name)
+                                   "."
+                                   (regexp-opt +haskell-extensions+)))))))
                    (t
                     (error "Failed to extract mod name from ghci result:\n%s" info))))))))))))
 
