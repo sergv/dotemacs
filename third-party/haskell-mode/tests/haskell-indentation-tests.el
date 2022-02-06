@@ -23,7 +23,9 @@
 ;; These are tests for `haskell-indentation-mode'.  It's easy to add new
 ;; tests, just...
 
-(require 'cl-lib)
+(eval-when-compile
+  (require 'cl))
+
 (require 'ert)
 (require 'haskell-test-utils)
 (require 'haskell-mode)
