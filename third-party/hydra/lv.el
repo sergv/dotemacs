@@ -37,6 +37,7 @@
   (require 'cl-lib))
 
 (require 'common)
+(require 's-extras)
 
 (defgroup lv nil
   "The other echo area."
@@ -147,7 +148,7 @@ Only the background color is significant."
                 (not (string= lv--buf-contents str)))
         (delete-region (point-min) (point-max))
         (setq lv--buf-contents str
-              lv--buf-contents-newlines-count (count-chars-in-string ?\n str))
+              lv--buf-contents-newlines-count (s-extras-count-chars-in-string ?\n str))
         (insert str)
         (when (and (window-system) lv-use-separator)
           (unless (looking-back "\n" nil)
