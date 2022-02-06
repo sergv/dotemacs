@@ -1097,6 +1097,14 @@ quux x
               (13 8)
               (14 10))
 
+(hindent-test "case-empty-list case empty list" "
+exportSep _ =
+  case foo of
+    [] ->
+      Nothing"
+              (2 2)
+              (3 4)
+              (4 6))
 
 (ert-deftest haskell-indentation-ret-indents ()
   (with-temp-switch-to-buffer
