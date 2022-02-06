@@ -55,12 +55,15 @@
 (eval-when-compile
   (require 'company))
 
+(require 'haskell-regexen)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Configuration
 
 (defgroup dante nil
   "Interactive development mode for Haskell"
   :group 'haskell)
+
 
 (defcustom dante-debug nil
   "Show debug output."
@@ -806,7 +809,7 @@ Note that sub-sessions are not interleaved."
       (let ((req (pop dante-queue)))
         (when req (funcall req buffer))))))
 
-(defcustom dante-load-flags '("+c" "-fdiagnostics-color=never" "-fno-diagnostics-show-caret" "-Wwarn=missing-home-modules" "-ferror-spans" )
+(defcustom dante-load-flags '("+c" "-fdiagnostics-color=never" "-fno-diagnostics-show-caret" "-Wwarn=missing-home-modules" "-ferror-spans")
   "Flags to set whenever GHCi is started."
   :type (cons 'set (--map (list 'const :tag (concat (car it) ": " (cadr it)) (car it))
                           '(("+c" "Gather type information (necessary for `dante-type-at')")
@@ -1029,7 +1032,7 @@ CABAL-FILE rather than trying to locate one."
 (defun dante--match-src-span (string)
   "Extract a location from a ghc span STRING."
   ;; On external symbols, GHC may return a location such as integer-gmp-1.0.0.1:integer-gmp-1.0.0.1:GHC.Integer.Type
-  (when (string-match "\\(.*?\\):(\\([0-9]+\\),\\([0-9]+\\))-(\\([0-9]+\\),\\([0-9]+\\))$" string)
+  (when (string-match haskell-regexen/ghci-src-span string)
     (let ((file (match-string 1 string))
           (line (string-to-number (match-string 2 string)))
           (col (string-to-number (match-string 3 string))))

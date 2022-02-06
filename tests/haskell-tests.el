@@ -241,7 +241,7 @@
      "")))
 
 
-(ert-deftest haskell-tests/haskell-indentation--add-to-sorted-list!-1 ()
+(ert-deftest haskell-tests/haskell-indentation--add-to-sorted-list! ()
   (dolist (entry '((0 ()        (0))
                    (0 (2 4 6 8) (0 2 4 6 8))
                    (1 (2 4 6 8) (1 2 4 6 8))
@@ -260,17 +260,36 @@
       (should (equal (haskell-indentation--add-to-sorted-list! input elem)
                      expected)))))
 
-(ert-deftest haskell-tests/haskell-regexen/ghci-info-definition-site-1 ()
+(ert-deftest haskell-tests/haskell-regexen/ghci-info-definition-site ()
   (save-match-data
     (let ((str "type Range :: *\ndata Range = Range \{..., _end :: !Position}\n  	-- Defined in ‘lsp-types-1.4.0.1:Language.LSP.Types.Location’"))
       (should (string-match haskell-regexen/ghci-info-definition-site str))
       (should (equal (match-string 1 str)
                      "lsp-types-1.4.0.1:Language.LSP.Types.Location")))))
 
-(ert-deftest haskell-tests/haskell-go-to-symbol-home--strip-ghci-packages-of-versions-1 ()
+(ert-deftest haskell-tests/haskell-go-to-symbol-home--strip-ghci-packages-of-versions ()
   (let ((sample-input "active package flags:\n  -package-id base-4.15.1.0\n  -package-id aeson-2.0.3.0-e91573e5a9f0a74731f7cb1fe08486dfa1990213df0c4f864e51b791370cc73d"))
     (should (equal (haskell-go-to-symbol-home--strip-ghci-packages-of-versions sample-input)
                    '("base" "aeson")))))
+
+(ert-deftest haskell-tests/haskell-regexen/ghci-name-not-in-scope-error ()
+  (let ((sample-input "<interactive>:1:1: error: Not in scope: ‘locStart’"))
+    (should (string-match-p haskell-regexen/ghci-name-not-in-scope-error
+                            sample-input))))
+
+(ert-deftest haskell-tests/haskell-regexen/ghci-src-span ()
+  (let ((sample-input "X.hs:(8,7)-(8,9)")
+        (sample-input2 "hls-plugin-api-1.3.0.0:hls-plugin-api-1.3.0.0:Ide.Types"))
+    (should (string-match-p haskell-regexen/ghci-src-span sample-input))
+    (should-not (string-match-p haskell-regexen/ghci-src-span sample-input2))))
+
+(ert-deftest haskell-tests/haskell-regexen/ghci-loc-at-external-symbol ()
+  (let ((sample-input "hls-plugin-api-1.3.0.0:hls-plugin-api-api-1.3.0.0:Ide.Types"))
+    (save-match-data
+      (should (string-match haskell-regexen/ghci-loc-at-external-symbol sample-input))
+      (should (equal "hls-plugin-api" (match-string 1 sample-input)))
+      (should (equal "hls-plugin-api-api" (match-string 2 sample-input)))
+      (should (equal "Ide.Types" (match-string 3 sample-input))))))
 
 
 (ert-deftest haskell-tests/forward-haskell-symbol-1 ()

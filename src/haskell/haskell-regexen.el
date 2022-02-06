@@ -145,6 +145,34 @@
 
 This regexps is for newer ghc (8.10+-ish).")
 
+(defconst-set haskell-regexen/ghci-name-not-in-scope-error
+  (rx "error: Not in scope: ‘"
+      (+ (not (any ?\r ?\n ?\t)))
+      "’"
+      eol))
+
+;; On external symbols, GHC may return a location such as integer-gmp-1.0.0.1:integer-gmp-1.0.0.1:GHC.Integer.Type
+(defconst-set haskell-regexen/ghci-src-span
+  "\\(.*?\\):(\\([0-9]+\\),\\([0-9]+\\))-(\\([0-9]+\\),\\([0-9]+\\))\\'")
+
+(defconst-set haskell-regexen/package-version
+  (rx ?-
+      (+ (any (?0 . ?9) ?.))
+      ;; Unique hash that ghci may print
+      (? ?- (+ (any (?a . ?z) (?0 . ?9))))
+      eos))
+
+(defconst-set haskell-regexen/ghci-loc-at-external-symbol
+  (rx-let ((version (seq ?-
+                         (+ (any (?0 . ?9) ?.)))))
+    (rx bos
+        (seq (group-n 1 (+? (not ?:))) version)
+        ?:
+        (seq (group-n 2 (+? (not ?:))) version)
+        ?:
+        (seq (group-n 3 (+? (not ?:))))
+        eos)))
+
 (provide 'haskell-regexen)
 
 ;; Local Variables:
