@@ -25,11 +25,6 @@
 (require 'dash)
 (require 'v)
 
-(defsubst comp-hint-cons (x)
-  x)
-(defsubst comp-hint-fixnum (x)
-  x)
-
 (defconst +undef+ 'common--undef
   "Undefined value not equal to anything but itself and not creatable
 by any means other than direct referencing via ‘+undef’.")
