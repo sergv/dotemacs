@@ -131,8 +131,10 @@ and indent them as singe line."
 
       dante-load-flags
       '("+c"
+        "-fdiagnostics-color=never"
         "-fno-diagnostics-show-caret"
         "-Wwarn=missing-home-modules"
+         "-ferror-spans"
         "-O0"
         "-fdefer-typed-holes"
         "-fdefer-type-errors"))
