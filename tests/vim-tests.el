@@ -2808,6 +2808,180 @@
      "foo | any (\\(x, y) -> _|_z) = _"
      "")))
 
+(ert-deftest vim-tests/haskell-move-to-topmost-end-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "g h"))
+    (tests-utils--multiline
+     ""
+     "foo _|_x ="
+     "  bar + 1 +"
+     "    baz (quux x)"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x ="
+     "  bar + 1 +"
+     "    baz (quux x)_|_"
+     "")))
+
+(ert-deftest vim-tests/haskell-move-to-topmost-end-2 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "g h"))
+    (tests-utils--multiline
+     ""
+     "foo :: Int -> _|_Int"
+     "foo x ="
+     "  bar + 1 +"
+     "    baz (quux x)"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo :: Int -> Int"
+     "foo x ="
+     "  bar + 1 +"
+     "    baz (quux x)_|_"
+     "")))
+
+(ert-deftest vim-tests/haskell-move-to-topmost-end-3 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "g h"))
+    (tests-utils--multiline
+     ""
+     "foo :: Int -> _|_Int"
+     ""
+     "foo x ="
+     ""
+     "  bar + 1 +"
+     ""
+     "    baz (quux x)"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo :: Int -> Int"
+     ""
+     "foo x ="
+     ""
+     "  bar + 1 +"
+     ""
+     "    baz (quux x)_|_"
+     "")))
+
+(ert-deftest vim-tests/haskell-move-to-topmost-end-4 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "g h"))
+    (tests-utils--multiline
+     ""
+     "foo :: Int -> _|_Int"
+     "foo x ="
+     "#if FOO"
+     "  bar + 1 +"
+     "#else"
+     "  bar + 2 +"
+     "#endif"
+     "    baz (quux x)"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo :: Int -> Int"
+     "foo x ="
+     "#if FOO"
+     "  bar + 1 +"
+     "#else"
+     "  bar + 2 +"
+     "#endif"
+     "    baz (quux x)_|_"
+     "")))
+
+(ert-deftest vim-tests/haskell-move-to-topmost-start-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "g t"))
+    (tests-utils--multiline
+     ""
+     "foo :: Int -> Int"
+     "foo x ="
+     "#if FOO"
+     "  bar + 1 +"
+     "#else"
+     "  bar + 2 +_|_"
+     "#endif"
+     "    baz (quux x)"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo :: Int -> Int"
+     "_|_foo x ="
+     "#if FOO"
+     "  bar + 1 +"
+     "#else"
+     "  bar + 2 +"
+     "#endif"
+     "    baz (quux x)"
+     "")))
+
+(ert-deftest vim-tests/haskell-move-to-topmost-start-2 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "g t"))
+    (tests-utils--multiline
+     ""
+     "foo :: Int -> Int"
+     ""
+     "foo x ="
+     ""
+     "  bar + 1 +"
+     ""
+     "    baz (quux _|_x)"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo :: Int -> Int"
+     ""
+     "_|_foo x ="
+     ""
+     "  bar + 1 +"
+     ""
+     "    baz (quux x)"
+     "")))
+
+(ert-deftest vim-tests/haskell-move-to-topmost-end-position-saving-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "g h M"))
+    (tests-utils--multiline
+     ""
+     "foo _|_x ="
+     "  bar + 1 +"
+     "    baz (quux x)"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo _|_x ="
+     "  bar + 1 +"
+     "    baz (quux x)"
+     "")))
+
+(ert-deftest vim-tests/haskell-move-to-topmost-start-position-saving-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "g t M"))
+    (tests-utils--multiline
+     ""
+     "foo x ="
+     "  bar + 1 +"
+     "    baz (quux _|_x)"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x ="
+     "  bar + 1 +"
+     "    baz (quux _|_x)"
+     "")))
+
 (ert-deftest vim-tests/c-open-paren-1 ()
   (vim-tests--test-fresh-buffer-contents-init
       (c-mode)

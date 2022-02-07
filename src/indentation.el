@@ -102,7 +102,7 @@ See also `indent-relative-maybe'."
                 (forward-line -1)
                 (beginning-of-line)
                 (while (and (not (bobp))
-                            (or (looking-at-p haskell-regexen/preprocessor-or-empty-line)
+                            (or (haskell-on-blank-line-p)
                                 (if (or forward?
                                         ;; If we start at column 0
                                         ;; then we do not want to iterate
