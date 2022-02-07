@@ -3,6 +3,8 @@
 ;; FIX: make sure `comment-region' supports `comment-continue' made
 ;; only of spaces (and in a consistent fashion even for older Emacs).
 
+(require 'current-column-fixed)
+
 (require 'newcomment)
 
 ;; Emacs < 26
@@ -408,7 +410,7 @@ This function is the default value of `uncomment-region-function'."
                    (> tab-width 0))
           (save-excursion
             (goto-char spt)
-            (let* ((fcol (current-column))
+            (let* ((fcol (current-column-fixed-uncached))
                    (slim (- (point) (mod fcol tab-width))))
               (delete-char (- (skip-chars-backward " " slim)))))))))
   (set-marker end nil))

@@ -17,6 +17,7 @@
   (require 'macro-util))
 
 (require 'compile)
+(require 'current-column-fixed)
 
 (defconst gnuplot-program "gnuplot")
 
@@ -150,7 +151,7 @@ lines."
         (unless (bobp)
           (re-search-backward "^[ \t]*." (point-min) "to_limit")
           (skip-to-indentation)
-          (setq indent (current-column))
+          (setq indent (current-column-fixed-uncached))
           (when (looking-at "s?pl\\(o?\\|\\(ot\\)?\\)[ \t]+.?")
             (let ((offset (- (match-end 0) (match-beginning 0) 1)))
               (end-of-line)

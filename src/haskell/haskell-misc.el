@@ -14,9 +14,10 @@
   (require 'macro-util)
   (require 'trie))
 
-(require 'macro-util)
 (require 'advices-util)
+(require 'macro-util)
 (require 'common)
+(require 'current-column-fixed)
 (require 'search)
 (require 'trie)
 
@@ -161,7 +162,7 @@ in haskell compilation buffer.")
 
 Returns t if indentation occured."
   (let ((start-indent (indentation-size))
-        (col (current-column)))
+        (col (current-column-fixed)))
     (cond
       ((> col start-indent)
        (skip-to-indentation)
@@ -569,7 +570,7 @@ both unicode and ascii characters.")
                              func-name (match-string-no-properties 1))))
                    (when found?
                      (goto-char (match-beginning 1))
-                     (setf function-name-column (current-column))
+                     (setf function-name-column (current-column-fixed-uncached))
                      (let ((indented-section-end (line-end-position)))
                        (forward-line 1)
                        (beginning-of-line)
@@ -604,7 +605,7 @@ both unicode and ascii characters.")
            (in-string?
             (let ((string-start-column (save-excursion
                                          (goto-char (nth 8 (syntax-ppss-cached syn)))
-                                         (current-column))))
+                                         (current-column-fixed-uncached))))
               (delete-horizontal-space t)
               (insert-char ?\\)
               (insert-char ?\n)
@@ -744,7 +745,7 @@ value section should have if it is to be properly indented."
         (list :name (match-string-no-properties 2)
               :beginning (match-end 0)
               :end (save-match-data (haskell-cabal-subsection-end))
-              :data-start-column (+ 2 (current-column)))))))
+              :data-start-column (+ 2 (current-column-fixed-uncached)))))))
 
 (defun haskell-misc-cabal-align-and-sort-subsection ()
   "Sort lines of the Cabal subsection at point."

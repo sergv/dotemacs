@@ -56,6 +56,8 @@
 
 ;;; Code:
 
+(require 'current-column-fixed)
+
 (require 'sgml-mode)
 (require 'cl-lib)
 (require 'mmm-vars)
@@ -100,7 +102,7 @@
 (defun mmm-erb-indent-line ()
   "Indent the current line intelligently."
   (interactive)
-  (let ((offset (- (current-column) (current-indentation))))
+  (let ((offset (- (current-column-fixed) (current-indentation))))
     (back-to-indentation)
     (mmm-update-submode-region)
     (if (and mmm-current-overlay mmm-current-submode
@@ -129,7 +131,7 @@
           (when (not (looking-at "^\\|\\s-*$"))
             ;; Submode region has text on the same line as the opening tag,
             ;; pad it with whitespace to make the following lines line up.
-            (setq added-whitespace (current-column))
+            (setq added-whitespace (current-column-fixed))
             (insert-char ?\s added-whitespace)))
         (narrow-to-region (overlay-start mmm-current-overlay)
                           (overlay-end mmm-current-overlay))

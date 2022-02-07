@@ -15,6 +15,8 @@
 
 ;;; Code:
 
+(require 'current-column-fixed)
+
 (require 'nix)
 (require 'nix-format)
 (require 'nix-shebang)
@@ -454,17 +456,17 @@ STRING-TYPE type of string based off of Emacs syntax table types"
          (:before
           (if (smie-rule-hanging-p)
               (nix-smie--indent-anchor 0)
-            `(column . ,(current-column))))
+            `(column . ,(current-column-fixed))))
          (:after
           (cond
            ((bolp) '(column . 0))
            ((<= bol (point))
-            `(column . ,(current-column))))))))
+            `(column . ,(current-column-fixed))))))))
     (`(:after . "nonsep-;")
      (forward-char)
      (backward-sexp)
      (if (smie-rule-bolp)
-         `(column . ,(current-column))
+         `(column . ,(current-column-fixed))
        (nix-smie--indent-anchor)))
     (`(:after . ":")
      (or (nix-smie--indent-args-line)
@@ -481,7 +483,7 @@ STRING-TYPE type of string based off of Emacs syntax table types"
          (and
           (equal (nix-smie--backward-token) "else")
           (<= bol (point))
-          `(column . ,(current-column))))))
+          `(column . ,(current-column-fixed))))))
     (`(:before . ,(guard (string-match-p nix-smie--infix-symbols-re token)))
      (forward-comment (- (point)))
      (let ((bol (line-beginning-position)))
@@ -498,7 +500,7 @@ STRING-TYPE type of string based off of Emacs syntax table types"
           tok)
       (forward-comment (point-max))
       (unless (or (eobp) (< eol (point)))
-        (setq anchor (current-column))
+        (setq anchor (current-column-fixed))
         (catch 'break
           (while (and (not (eobp))
                       (progn
@@ -507,7 +509,7 @@ STRING-TYPE type of string based off of Emacs syntax table types"
             (when (equal "=" tok)
               (backward-char)
               (smie-backward-sexp " -bseqskip- ")
-              (setq anchor (current-column))
+              (setq anchor (current-column-fixed))
               (throw 'break nil))))
         anchor))))
 
@@ -526,7 +528,7 @@ STRING-TYPE type of string based off of Emacs syntax table types"
         (while (equal tok ":")
           (setq tok (nth 2 (smie-backward-sexp t)))
           (when (smie-rule-bolp)
-            (throw 'break `(column . ,(current-column)))))))))
+            (throw 'break `(column . ,(current-column-fixed)))))))))
 
 (defconst nix-smie--path-chars "a-zA-Z0-9-+_.:/~")
 
@@ -659,7 +661,7 @@ STRING-TYPE type of string based off of Emacs syntax table types"
             ;; position. Otherwise, align its line's anchor.
             (if (and (memq (char-after) '(?\[ ?{))
                      (not (save-excursion (forward-char) (nix-smie--eol-p))))
-                (current-column)
+                (current-column-fixed)
               (nix-smie--anchor)))
         (scan-error nil)))))
 
@@ -680,11 +682,11 @@ not to any other arguments."
           nil)
          ((equal parent "[")
           ;; It's a list, align with the first expression.
-          (current-column))
+          (current-column-fixed))
          ;; We're an argument.
          (t
-          ;; We can use (current-column) or (current-indentation) here.
-          ;; (current-column) will indent relative to the first expression
+          ;; We can use (current-column-fixed) or (current-indentation) here.
+          ;; (current-column-fixed) will indent relative to the first expression
           ;; in the sequence, and (current-indentation) will indent relative
           ;; to the indentation of the line on which the first expression
           ;; begins. I'm not sure which one is better.

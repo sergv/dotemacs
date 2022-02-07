@@ -61,6 +61,8 @@
 
 ;;; Code:
 
+(require 'current-column-fixed)
+
 (require 'cl-lib)
 (require 'newcomment)
 (require 'pcase)
@@ -2304,7 +2306,7 @@ character, stripping the modifiers.  That character must be a digit."
               (progn
                 (move-to-column to)
                 (concat (buffer-substring beg (point))
-                        (let ((padding (- to (current-column))))
+                        (let ((padding (- to (current-column-fixed-uncached))))
                           (when (> padding 0)
                             (company-space-string padding)))))
             (buffer-substring beg (point-max))))))))

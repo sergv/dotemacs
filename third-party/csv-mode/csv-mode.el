@@ -121,6 +121,8 @@
 
 (eval-when-compile (require 'cl-lib))
 
+(require 'current-column-fixed)
+
 (defgroup CSV nil
   "Major mode for editing files of comma-separated value type."
   :group 'convenience)
@@ -1036,12 +1038,12 @@ point."
     (while (< (point) end)              ; for each record...
       (or (csv-not-looking-at-record)
           (let ((w column-widths)
-                (col (current-column))
+                (col (current-column-fixed))
                 (beg (point))
                 field-width)
             (while (not (eolp))
               (csv-end-of-field)
-              (setq field-width (- (current-column) col))
+              (setq field-width (- (current-column-fixed-uncached) col))
               (push field-width field-widths)
               (if w
                   (if (> field-width (caar w))
@@ -1049,7 +1051,7 @@ point."
                 (setq w (list (list field-width beg (point)))
                       column-widths (nconc column-widths w)))
               (or (eolp) (forward-char)) ; Skip separator.
-              (setq w (cdr w) col (current-column) beg (point)))))
+              (setq w (cdr w) col (current-column-fixed-uncached) beg (point)))))
       (forward-line))
     (list column-widths (nreverse field-widths))))
 

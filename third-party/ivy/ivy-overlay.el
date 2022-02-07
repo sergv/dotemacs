@@ -29,6 +29,8 @@
 (eval-when-compile
   (require 'subr-x))
 
+(require 'current-column-fixed)
+
 (defface ivy-cursor
   '((((class color) (background light))
      :background "black" :foreground "white")
@@ -103,7 +105,7 @@ Then attach the overlay to the character before point."
         (plist-get (text-properties-at (point)) 'src-block))
    (<= (window-height) (+ ivy-height 2))
    (= (point) (point-min))
-   (< (- (+ (window-width) (window-hscroll)) (current-column))
+   (< (- (+ (window-width) (window-hscroll)) (current-column-fixed))
       30)))
 
 (defun ivy-display-function-overlay (str)
@@ -144,7 +146,7 @@ Hide the minibuffer contents and cursor."
                            (save-excursion
                              (when ivy-completion-beg
                                (goto-char ivy-completion-beg))
-                             (current-column)))))))))
+                             (current-column-fixed)))))))))
         (let ((cursor-offset (1+ (length ivy-text))))
           (add-face-text-property cursor-offset (1+ cursor-offset)
                                   'ivy-cursor t overlay-str))

@@ -28,6 +28,8 @@
 (unless (version<= "25" emacs-version)
   (user-error "Emacs 25 required for formatting"))
 
+(require 'current-column-fixed)
+
 (require 'seq)
 (require 'rx)
 (require 'f)
@@ -91,7 +93,7 @@ long lines or not."
       (when (search-forward ";;; Commentary:" nil t)
         (while (not (eobp))
           (end-of-line)
-          (when (> (current-column) max-length)
+          (when (> (current-column-fixed) max-length)
             (message "%s:%d: line is over %d characters"
                      filename
                      (line-number-at-pos (point))
