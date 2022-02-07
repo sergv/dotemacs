@@ -382,7 +382,7 @@ Returns t if indentation occured."
         (col (current-column)))
     (cond
       ((> col start-indent)
-       (back-to-indentation)
+       (skip-to-indentation)
        t)
       ;; Do not move past 0th column in order to not skip to the
       ;; beginning of file.
@@ -395,7 +395,7 @@ Returns t if indentation occured."
          (forward-line -1)
          (while (looking-at-p rust-regexen/empty-line)
            (forward-line -1)))
-       (back-to-indentation)
+       (skip-to-indentation)
        t)
       (t
        nil))))
