@@ -26,6 +26,22 @@
 (defmacro cddr-sure (x)
   `(cdr-sure (cdr-sure ,x)))
 
+(defmacro cadr-sure (x)
+  "Extract second list element."
+  `(car-sure (cdr-sure ,x)))
+
+(defmacro caddr-sure (x)
+  "Extract third list element."
+  `(car-sure (cdr-sure (cdr-sure ,x))))
+
+(defmacro cadddr-sure (x)
+  "Extract fourth list element."
+  `(car-sure (cdr-sure (cdr-sure (cdr-sure ,x)))))
+
+(defmacro caddddr-sure (x)
+  "Extract fourth list element."
+  `(car-sure (cdr-sure (cdr-sure (cdr-sure (cdr-sure ,x))))))
+
 (defmacro setcar-sure (x y)
   (if (fboundp #'comp-hint-cons)
       `(setcar (comp-hint-cons ,x) ,y)
