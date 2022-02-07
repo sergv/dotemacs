@@ -11,13 +11,14 @@
   (require 'macro-util))
 
 (require 'common)
+(require 'current-column-fixed)
 (require 'haskell-regexen)
 
 ;;;###autoload
 (defun haskell-backspace-with-block-dedent (&optional count)
   (interactive "*p")
   (setf count (or count 1))
-  (let ((col (current-column))
+  (let ((col (current-column-fixed))
         (line (count-lines-fixed (point-min) (point))))
     (if (= 0 col)
         (backward-delete-char count)
@@ -43,7 +44,7 @@
 haskell block at current indentation level."
   (interactive "*p")
   (setf count (or count 1))
-  (let ((col (current-column))
+  (let ((col (current-column-fixed))
         (line (count-lines-fixed (point-min) (point))))
     (cl-destructuring-bind
         (function-applied? . at-indentation?)
@@ -69,11 +70,11 @@ as defined by ‘haskell-on-blank-line-p’ will be ignored.
 
 Returns t if operation commenced and nil otherwise."
   (let* ((start (line-beginning-position))
-         (start-indent (current-column))
+         (start-indent (current-column-fixed))
          (at-indentation-entry
           (save-excursion
             (skip-to-indentation)
-            (let ((col (current-column)))
+            (let ((col (current-column-fixed-uncached)))
               (cons (<= start-indent col)
                     (= start-indent col)))))
          (at-indentation? (car at-indentation-entry))
@@ -90,7 +91,7 @@ Returns t if operation commenced and nil otherwise."
                  'skip)
                 ((let ((indent (progn
                                  (skip-indentation-forward)
-                                 (current-column))))
+                                 (current-column-fixed-uncached))))
                    (< start-indent indent))
                  'line-to-indent)
                 (t

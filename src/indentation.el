@@ -9,6 +9,8 @@
 (eval-when-compile
   (require 'macro-util))
 
+(require 'current-column-fixed)
+
 ;;;###autoload
 (defun setup-indent-size (width)
   (declare (pure nil) (side-effect-free nil))
@@ -51,7 +53,7 @@ to mode and write new contents back to FILENAME."
     (goto-char (line-beginning-position))
     (save-excursion
       (while (< (point) current-point)
-        (setf prev-indent (current-column))
+        (setf prev-indent (current-column-fixed-uncached))
         (indent-relative)))
     (move-to-column prev-indent)))
 
@@ -86,7 +88,7 @@ does nothing.
 
 See also `indent-relative-maybe'."
   (save-match-data
-    (let ((start-column (current-column))
+    (let ((start-column (current-column-fixed))
           indent)
       (with-disabled-undo
        (with-inhibited-modification-hooks
@@ -123,7 +125,7 @@ See also `indent-relative-maybe'."
                                (line-beginning-position))))
                     (move-to-column start-column)
                     ;; Is start-column inside a tab on this line?
-                    (when (> (current-column) start-column)
+                    (when (> (current-column-fixed-uncached) start-column)
                       (backward-char 1))
                     (if forward?
                         (if (= reference-line-indent start-column)
@@ -135,14 +137,14 @@ See also `indent-relative-maybe'."
                       (progn
                         (skip-chars-backward " \t" end)
                         (skip-chars-backward "^ \t" end)
-                        (when (= reference-line-indent (current-column))
-                          (let ((indent-after-one-tabstop
-                                 (indent-next-tab-stop (current-column))))
-                            (when (/= indent-after-one-tabstop start-column)
-                              (move-to-column indent-after-one-tabstop))))))
+                        (let ((col (current-column-fixed-uncached)))
+                          (when (= reference-line-indent col)
+                            (let ((indent-after-one-tabstop (indent-next-tab-stop col)))
+                              (when (/= indent-after-one-tabstop start-column)
+                                (move-to-column indent-after-one-tabstop)))))))
                     (when (or (not forward?)
                               (/= (point) end))
-                      (setf indent (current-column)))))))))))
+                      (setf indent (current-column-fixed-uncached)))))))))))
       (cond
         (indent
          (indent-to! indent)
@@ -156,7 +158,7 @@ See also `indent-relative-maybe'."
 (defun tab-to-tab-stop-backward ()
   "Like `tab-to-tab-stop' but backwards."
   (interactive)
-  (let ((nexttab (indent-next-tab-stop (current-column) t)))
+  (let ((nexttab (indent-next-tab-stop (current-column-fixed) t)))
     (delete-horizontal-space t)
     (indent-to nexttab)))
 

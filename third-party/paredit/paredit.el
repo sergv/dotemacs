@@ -128,6 +128,8 @@
 (eval-when-compile
   (require 'cl-lib))
 
+(require 'common)
+(require 'current-column-fixed)
 (require 'smart-operators-utils)
 
 (eval-and-compile
@@ -165,7 +167,7 @@ If point was on indentation, it stays in indentation."
     (declare (indent 0))
     (let ((column '#:column)
           (indentation '#:indentation))
-      `(let ((,column (current-column))
+      `(let ((,column (current-column-fixed-uncached))
              (,indentation (paredit-current-indentation)))
          (let ((value (progn ,@body)))
            (paredit-restore-column ,column ,indentation)
@@ -3030,10 +3032,8 @@ This is independent of context -- it doesn't check what state the
           t)
       nil)))
 
-(defun paredit-current-indentation ()
-  (save-excursion
-    (back-to-indentation)
-    (current-column)))
+(defsubst paredit-current-indentation ()
+  (indentation-size))
 
 (defun paredit-restore-column (column indentation)
   ;; Preserve the point's position either in the indentation or in the

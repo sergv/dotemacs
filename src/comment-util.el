@@ -13,6 +13,7 @@
   (require 'macro-util))
 
 (require 'common)
+(require 'current-column-fixed)
 (require 'advices-util)
 
 (defconst comment-util--spaces-after-comment " "
@@ -507,19 +508,21 @@ be used only for vim-visual-mode of the vim-mode package."
   "Comment next LINES with COMMENT-STR, but insert them at COLUMN."
   (let ((skip-to-column (lambda ()
                           (beginning-of-line)
-                          (while (and (< (current-column) column)
-                                      (not (or (eq ?\n (char-after))
-                                               (eq ?\r (char-after))
-                                               (eobp))))
-                            (forward-char 1)))))
-    (when (> lines 0)
+                          (let ((i 0))
+                            (while (and (< i column)
+                                        (not (or (eq ?\n (char-after))
+                                                 (eq ?\r (char-after))
+                                                 (eobp))))
+                              (forward-char 1)
+                              (cl-incf i))))))
+    (when (< 0 lines)
       ;; this is the zeroth iteration at which we shouldn't
       ;; update column and use supplied one
       (funcall skip-to-column)
       (insert comment-str)
       (forward-line 1)
       (cl-incf lines -1)
-      (while (> lines 0)
+      (while (< 0 lines)
         ;; Is on empty line?
         (if (and (eq (char-before) ?\n)
                  (eq (char-after) ?\n))
@@ -582,7 +585,7 @@ up and then comment the result."
       (comment-util--comment-n-lines-starting-at-col
        ";; " ;; bad hack, hard-coded lisp comment... ;; survived for a long time...
        (count-lines-fixed (point) sexp-end-exclusive)
-       (current-column)))))
+       (current-column-fixed-uncached)))))
 
 (defun comment-util--on-commented-line? (fmt)
   "Return t if current line is commented out."
@@ -711,7 +714,7 @@ commented parts and leave point unchanged."
           (comment-util--comment-n-lines-starting-at-col
            comment-format
            count
-           (current-column)))
+           (current-column-fixed)))
       (comment-util-comment-lines 1))))
 
 (provide 'comment-util)

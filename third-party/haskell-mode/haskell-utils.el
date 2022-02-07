@@ -44,6 +44,8 @@
 
 (eval-when-compile (require 'cl-lib))
 
+(require 'current-column-fixed)
+
 (defvar-local haskell-utils-async-post-command-flag nil
   "Non-nil means some commands were triggered during async function execution.")
 
@@ -162,10 +164,10 @@ expression bounds."
           value)
       (goto-char start-p)
       (setq start-l (line-number-at-pos))
-      (setq start-c (1+ (current-column)))
+      (setq start-c (1+ (current-column-fixed-uncached)))
       (goto-char end-p)
       (setq end-l (line-number-at-pos))
-      (setq end-c (1+ (current-column)))
+      (setq end-c (1+ (current-column-fixed-uncached)))
       (setq value (buffer-substring-no-properties start-p end-p))
       ;; suppress multiline expressions
       (let ((lines (split-string value "\n" t)))
