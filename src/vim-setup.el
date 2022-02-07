@@ -21,6 +21,7 @@
 
 (require 'common)
 (require 'completion-setup)
+(require 'current-column-fixed)
 (require 'hydra-setup)
 (require 'keys-def)
 (require 'search)
