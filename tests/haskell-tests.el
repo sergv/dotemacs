@@ -3736,6 +3736,8 @@
 (setf haskell-tests/tests
       '(haskell-tests/abbrev+-extract-module-name))
 
+(provide 'haskell-tests)
+
 ;; (let ((ert-debug-on-error nil))
 ;;   (eproj-reset-projects)
 ;;   (ert
