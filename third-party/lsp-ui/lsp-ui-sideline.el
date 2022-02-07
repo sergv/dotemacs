@@ -30,6 +30,8 @@
 
 ;;; Code:
 
+(require 'current-column-fixed)
+
 (require 'lsp-ui-util)
 (require 'lsp-protocol)
 (require 'lsp-mode)
@@ -226,7 +228,7 @@ INDEX is the line number (relative to the current line)."
       (save-excursion
         (goto-char eol)
         (end-of-line)
-        (when (>= (- win-width (current-column)) str-len)
+        (when (>= (- win-width (current-column-fixed-uncached)) str-len)
           eol)))))
 
 (defun lsp-ui-sideline--find-line (str-len bol eol &optional up offset)

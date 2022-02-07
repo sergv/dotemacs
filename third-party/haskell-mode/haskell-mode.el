@@ -130,6 +130,8 @@
 (eval-when-compile
   (require 'cl))
 
+(require 'current-column-fixed)
+
 (require 'haskell-customize)
 (require 'ansi-color)
 (require 'dabbrev)
@@ -1063,11 +1065,10 @@ See `haskell-check-command' for the default."
 (defun haskell-mode-format-imports ()
   "Format the imports by aligning and sorting them."
   (interactive)
-  (let ((col (current-column)))
+  (let ((col (current-column-fixed)))
     (haskell-sort-imports)
     (haskell-align-imports)
-    (goto-char (+ (line-beginning-position)
-                  col))))
+    (move-to-column col)))
 
 (declare-function haskell-mode-stylish-buffer "haskell-commands")
 
