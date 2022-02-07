@@ -498,7 +498,7 @@ both unicode and ascii characters.")
   "Make a newline and go to the same column as the current line."
   (interactive "*")
   (delete-horizontal-space t)
-  (let ((indentation-size
+  (let ((indent-size
          (save-excursion
            (let* ((start (line-beginning-position))
                   (end (progn
@@ -511,8 +511,8 @@ both unicode and ascii characters.")
                        (not (eq ?\s (char-after))))
                (- end start))))))
     (insert-char ?\n)
-    (when indentation-size
-      (insert-char ?\s indentation-size))))
+    (when indent-size
+      (insert-char ?\s indent-size))))
 
 (defun haskell--simple-indent-newline-indent ()
   "Make a newline on the current column and indent on step."
