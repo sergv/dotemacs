@@ -10,11 +10,13 @@
   (require 'cl-lib))
 
 (require 'common)
-(require 'ert)
 
 (require 'find-files)
 (require 'eproj)
 (require 'eproj-haskell)
+
+(require 'ert)
+(require 'haskell-tests)
 
 (defun eproj-tests/non-special-files (path)
   "Construct list of non-special files (i.e. that typically would be under version control)
@@ -682,7 +684,34 @@ test	%s	102	;\"	f
        (should (= 102 (eproj-tag/line function-tag)))
        (should (equal ?f (eproj-tag/type function-tag)))))))
 
+(ert-deftest eproj-tests/haskell-extract-block-1 ()
+  (haskell-tests--with-temp-buffer
+      (progn
+        (goto-line 2)
+        (should (equal (eproj/haskell-extract-block)
+                       "toText :: Builder -> T.Text"))
 
+        (goto-line 3)
+        (should (equal (eproj/haskell-extract-block)
+                       "toText (Builder size f) = T.Text arr 0 size\n  where\n    arr = TA.run $ do\n      marr <- TA.new size\n      f 0 marr\n      pure marr\n\n    foo = 1"))
+
+        (goto-line 4)
+        (should (equal (eproj/haskell-extract-block)
+                       "  where\n    arr = TA.run $ do\n      marr <- TA.new size\n      f 0 marr\n      pure marr\n\n    foo = 1"))
+
+        (goto-line 5)
+        (should (equal (eproj/haskell-extract-block)
+                       "    arr = TA.run $ do\n      marr <- TA.new size\n      f 0 marr\n      pure marr")))
+    "_|_
+toText :: Builder -> T.Text
+toText (Builder size f) = T.Text arr 0 size
+  where
+    arr = TA.run $ do
+      marr <- TA.new size
+      f 0 marr
+      pure marr
+
+    foo = 1"))
 
 ;; (let ((ert-debug-on-error nil))
 ;;   (eproj-reset-projects)
