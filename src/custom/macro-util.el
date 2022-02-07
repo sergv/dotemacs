@@ -514,6 +514,13 @@ of code may be called more than once."
              (when prettify-symbols-mode
                (font-lock-flush start end))))))))
 
+(defmacro save-position-unsafe (&rest body)
+  (let ((start-var '#:satrt))
+    `(let ((,start-var (point)))
+       (prog1
+           (progn ,@body)
+         (goto-char ,start-var)))))
+
 (defmacro save-current-line (&rest body)
   "Save current line (but not column), execute BODY and go to saved line."
   (declare (indent 0))

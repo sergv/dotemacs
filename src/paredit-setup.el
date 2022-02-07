@@ -75,8 +75,8 @@
 ;;;###autoload
 (defun set-up-paredit ()
   (when comment-util-mode
-    (awhen (comment-format-one-line *comment-util-current-format*)
-      (let ((one-line (concat it " ")))
+    (awhen (comment-format-one-line (comment-util-current-format))
+      (let ((one-line (concat it comment-util--spaces-after-comment)))
         (setq-local paredit-comment-prefix-toplevel one-line
                     paredit-comment-prefix-code one-line
                     paredit-comment-prefix-margin one-line))))
