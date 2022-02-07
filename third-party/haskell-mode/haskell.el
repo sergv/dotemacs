@@ -41,7 +41,6 @@
     (define-key map (kbd "C-c C-r") 'haskell-process-reload)
     (define-key map (kbd "C-c C-t") 'haskell-process-do-type)
     (define-key map (kbd "C-c C-i") 'haskell-process-do-info)
-    (define-key map (kbd "M-.") 'haskell-mode-jump-to-def-or-tag)
     (define-key map (kbd "C-c C-k") 'haskell-interactive-mode-clear)
     (define-key map (kbd "C-c C-c") 'haskell-process-cabal-build)
     (define-key map (kbd "C-c C-v") 'haskell-cabal-visit-file)
@@ -325,40 +324,6 @@ If `haskell-process-load-or-reload-prompt' is nil, accept `default'."
              (haskell-interactive-jump-to-error-line)))))
 
 (defvar xref-prompt-for-identifier nil)
-
-;;;###autoload
-(defun haskell-mode-jump-to-tag (&optional next-p)
-  "Jump to the tag of the given identifier.
-
-Give optional NEXT-P parameter to override value of
-`xref-prompt-for-identifier' during definition search."
-  (interactive "P")
-  (let ((ident (haskell-string-drop-qualifier (haskell-ident-at-point)))
-        (tags-file-dir (haskell-cabal--find-tags-dir))
-        (tags-revert-without-query t))
-    (when (and ident
-               (not (haskell-string-only-spaces-p ident))
-               tags-file-dir)
-      (let ((tags-file-name (concat tags-file-dir "TAGS")))
-        (cond ((file-exists-p tags-file-name)
-               (let ((xref-prompt-for-identifier next-p))
-                 (xref-find-definitions ident)))
-              (t (haskell-mode-generate-tags ident)))))))
-
-;;;###autoload
-(defun haskell-mode-after-save-handler ()
-  "Function that will be called after buffer's saving."
-  (when haskell-tags-on-save
-    (ignore-errors (haskell-mode-generate-tags))))
-
-;;;###autoload
-(defun haskell-mode-tag-find (&optional _next-p)
-  "The tag find function, specific for the particular session."
-  (interactive "P")
-  (cond
-   ((elt (syntax-ppss) 3) ;; Inside a string
-    (haskell-mode-jump-to-filename-in-string))
-   (t (call-interactively 'haskell-mode-jump-to-tag))))
 
 (defun haskell-mode-jump-to-filename-in-string ()
   "Jump to the filename in the current string."

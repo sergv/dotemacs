@@ -316,9 +316,7 @@ PREFIX should be a list such one returned by
                ('haskell-completions-language-extension-prefix
                 haskell-ghc-supported-extensions)
                (otherwise
-                (append (when (bound-and-true-p haskell-tags-on-save)
-                          tags-completion-table)
-                        haskell-completions--keywords)))))
+                haskell-completions--keywords))))
         (list beg end candidates)))))
 
 ;;;###autoload
