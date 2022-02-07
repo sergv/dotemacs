@@ -13,7 +13,7 @@ set -o pipefail
 cd "$(dirname "$0")"
 
 tests=""
-matcher=""
+matcher="t"
 
 if [[ "$#" -gt 0 ]]; then
     for x in "${@}"; do
@@ -34,6 +34,17 @@ if [[ -z "$tests" ]]; then
         tests="$tests -l $x"
     done
 fi
+
+# emacs -Q \
+#       -L "$EMACS_ROOT/src" \
+#       -L "$EMACS_ROOT/src/custom" \
+#       -L "$EMACS_ROOT/tests" \
+#       -L "$EMACS_ROOT/third-party/haskell-mode/tests" \
+#       --eval "(progn (require 'cl))" \
+#       --eval "(progn (require 'cl-lib))" \
+#       -l start \
+#       $tests \
+#        --eval "(ert $matcher)"
 
 emacs -Q --batch \
       -L "$EMACS_ROOT/src" \
