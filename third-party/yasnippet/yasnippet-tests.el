@@ -29,6 +29,8 @@
 
 ;;; Code:
 
+(require 'current-column-fixed)
+
 (require 'yasnippet)
 (require 'ert)
 (require 'ert-x)
@@ -464,10 +466,10 @@ end" (buffer-string)))
     (ert-simulate-command '(yas-next-field))
     (should (string= "def method(args)
   class << self
-    
+
   end
 end" (buffer-string)))
-    (should (= 4 (current-column)))))
+    (should (= 4 (current-column-fixed)))))
 
 (ert-deftest yas-also-indent-empty-lines ()
   "Respect `yas-also-indent-empty-lines' setting."

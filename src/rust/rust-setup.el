@@ -15,6 +15,7 @@
 (declare-function server-edit "server")
 
 (require 'common)
+(require 'current-column-fixed)
 (require 'flycheck)
 (require 'haskell-compile)
 (require 'indentation)
@@ -379,7 +380,7 @@ _<tab>_: format region _h_: end of defun"
 
 Returns t if indentation occured."
   (let ((start-indent (indentation-size))
-        (col (current-column)))
+        (col (current-column-fixed)))
     (cond
       ((> col start-indent)
        (skip-to-indentation)

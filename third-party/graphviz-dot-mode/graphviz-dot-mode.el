@@ -145,6 +145,8 @@
 
 ;;; Code:
 
+(require 'current-column-fixed)
+
 (require 'compile)
 (require 'subr-x)
 
@@ -710,7 +712,7 @@ Variables specific to this mode:
                         ;; previous line started filling
                         ;; attributes, intend to that start
                         (search-forward "[")
-                        (current-column))
+                        (current-column-fixed-uncached))
                        ((and (not (looking-at ".*\\[.*\\].*"))
                              (looking-at ".*\\].*")) ; TODO:PP : "
                         ;; previous line stopped filling

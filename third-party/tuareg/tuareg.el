@@ -74,6 +74,8 @@
 
 ;;; Code:
 
+(require 'current-column-fixed)
+
 (eval-when-compile (require 'cl-lib))
 (require 'easymenu)
 (require 'find-file)
@@ -2206,7 +2208,7 @@ Return values can be
         (goto-char (cadr smie--parent))
         (smie-indent-forward-token)
         (tuareg-skip-blank-and-comments)
-        `(column . ,(- (current-column) 2))))
+        `(column . ,(- (current-column-fixed-uncached) 2))))
      (t (smie-rule-separator kind))))
    (t
     (pcase kind
@@ -2243,7 +2245,7 @@ Return values can be
          (save-excursion
            (smie-backward-sexp token)
            (goto-char (nth 1 (smie-backward-sexp 'halfsexp)))
-           (cons 'column (+ 2 (current-column)))))
+           (cons 'column (+ 2 (current-column-fixed-uncached)))))
         ;; Treat purely syntactic block-constructs as being part of their
         ;; parent, when the opening statement is hanging.
         ((member token '("let" "(" "[" "{" "sig" "struct" "begin"))
@@ -2340,7 +2342,7 @@ Return values can be
            (skip-chars-forward " \t")
            (unless (eolp)
              `(column
-               . ,(min (current-column)
+               . ,(min (current-column-fixed-uncached)
                        (+ tuareg-default-indent vi))))))
         (t tuareg-default-indent)))))))
 
@@ -2353,7 +2355,7 @@ Return values can be
     (smie-backward-sexp 'halfsexp)
     (when (looking-at "\\(?:\\sw\\|\\s_\\)+\\.[ \t]*$")
       (smie-backward-sexp 'halfsexp)
-      (cons 'column (current-column)))))
+      (cons 'column (current-column-fixed-uncached)))))
 
 (defconst tuareg-smie--monadic-operators '(">>|" ">>=" ">>>" ">|=")
   "Monadic infix operators")
@@ -2389,7 +2391,7 @@ Return values can be
                ;; FIXME: Should we use the same loop as above?
                (and (equal prev ">…") (looking-at tuareg-smie--monadic-op-re)
                     (progn (smie-backward-sexp prev)
-                           (cons 'column (current-column)))))))))
+                           (cons 'column (current-column-fixed-uncached)))))))))
 
 (defun tuareg-smie--object-hanging-rule (token)
   ;; If we're looking at the first class-field-spec
@@ -2428,14 +2430,14 @@ Return values can be
        ((and (equal token "|") (equal (nth 2 pd) "with")
              (not (smie-rule-bolp)))
         (goto-char (nth 1 pd))
-        (cons 'column (+ 3 (current-column))))
-       (t (cons 'column (current-column)))))))
+        (cons 'column (+ 3 (current-column-fixed-uncached))))
+       (t (cons 'column (current-column-fixed-uncached)))))))
 
 (defun tuareg-smie--inside-string ()
   (when (nth 3 (syntax-ppss))
     (save-excursion
       (goto-char (1+ (nth 8 (syntax-ppss))))
-      (current-column))))
+      (current-column-fixed-uncached))))
 
 (defcustom tuareg-indent-align-with-first-arg nil
   "Non-nil if indentation should try to align arguments on the first one.
@@ -2483,7 +2485,7 @@ whereas with a nil value you get
           (goto-char (car positions))
           (if (fboundp 'smie-indent--current-column)
               (smie-indent--current-column)
-            (current-column)))
+            (current-column-fixed-uncached)))
          (t
           ;; There's no previous arg at BOL.  Align with the function.
           (goto-char (car positions))
@@ -2493,7 +2495,7 @@ whereas with a nil value you get
              ;; the function itself.
              (if (fboundp 'smie-indent--current-column)
                  (smie-indent--current-column)
-               (current-column)))))))))
+               (current-column-fixed-uncached)))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                 Phrase movements and indentation
@@ -2861,7 +2863,7 @@ This function moves the point."
     ;; a preceding space that serve to cut a long word.
     (goto-char (marker-position start))
     ;;(indent-according-to-mode)
-    (setq fill-prefix (make-string (1+ (current-column)) ?\ ))
+    (setq fill-prefix (make-string (1+ (current-column-fixed-uncached)) ?\ ))
     (if (looking-at "\"\\\\ *[\n\r] *")
         (replace-match "\""))
     (while (re-search-forward " +\\\\ *[\n\r] *" (marker-position end) t)
@@ -2890,7 +2892,7 @@ This function moves the point."
          (use-hard-newlines t))
     (goto-char (marker-position start))
     (indent-according-to-mode)
-    (setq fill-prefix (make-string (+ 3 (current-column)) ?\ ))
+    (setq fill-prefix (make-string (+ 3 (current-column-fixed-uncached)) ?\ ))
     (forward-comment 1)
     (set-marker end (point))
     (goto-char (marker-position start))

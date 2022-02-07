@@ -69,6 +69,8 @@
   (require 'pcase)          ; `pcase-dolist' (`pcase' itself is autoloaded)
   )
 
+(require 'current-column-fixed)
+
 (require 'dash)
 
 (require 'seq)                   ; Sequence functions
@@ -2531,7 +2533,7 @@ When WITH-SELECT is non-nil, add a button to select this checker."
         (princ "    - ")
         (princ (flycheck-verification-result-label result))
         (princ ": ")
-        (princ (make-string (- message-column (current-column)) ?\ ))
+        (princ (make-string (- message-column (current-column-fixed)) ?\ ))
         (let ((message (flycheck-verification-result-message result))
               (face (flycheck-verification-result-face result)))
           ;; If face is nil, using propertize erases the face already contained

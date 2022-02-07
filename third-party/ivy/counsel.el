@@ -40,6 +40,8 @@
 
 ;;; Code:
 
+(require 'current-column-fixed)
+
 (require 'ivy)
 (require 'swiper)
 
@@ -3542,7 +3544,7 @@ INITIAL-INPUT can be given as the initial minibuffer input."
 (defun counsel-org-change-tags (tags)
   "Change tags of current org headline to TAGS."
   (let ((current (counsel--org-make-tag-string))
-        (col (current-column))
+        (col (current-column-fixed))
         level)
     ;; Insert new tags at the correct column
     (beginning-of-line 1)
@@ -3559,7 +3561,7 @@ INITIAL-INPUT can be given as the initial minibuffer input."
             (match-beginning 0)
             (match-end 0))
          (goto-char (match-beginning 0))
-         (let* ((c0 (current-column))
+         (let* ((c0 (current-column-fixed))
                 ;; compute offset for the case of org-indent-mode active
                 (di (if (bound-and-true-p org-indent-mode)
                         (* (1- org-indent-indentation-per-level) (1- level))

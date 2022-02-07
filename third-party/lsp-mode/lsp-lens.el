@@ -21,6 +21,8 @@
 ;;
 ;;; Code:
 
+(require 'current-column-fixed)
+
 (require 'lsp-mode)
 
 (defgroup lsp-lens nil
@@ -77,8 +79,8 @@
   "Measure the width of the text between FROM and TO.
 Results are meaningful only if FROM and TO are on the same line."
   ;; `current-column' takes prettification into account
-  (- (save-excursion (goto-char to) (current-column))
-     (save-excursion (goto-char from) (current-column))))
+  (- (save-excursion (goto-char to) (current-column-fixed-uncached))
+     (save-excursion (goto-char from) (current-column-fixed-uncached))))
 
 (defun lsp-lens--update (ov)
   "Redraw quick-peek overlay OV."

@@ -32,6 +32,8 @@
 
 ;;; Code:
 
+(require 'current-column-fixed)
+
 (require 'face-remap)
 
 (defun lsp-ui-util-safe-kill-timer (timer)
@@ -61,7 +63,7 @@
 (defun lsp-ui-util-column (&optional pos)
   "Return column at POS."
   (setq pos (or pos (point)))
-  (save-excursion (goto-char pos) (current-column)))
+  (save-excursion (goto-char pos) (current-column-fixed-uncached)))
 
 (defun lsp-ui-util-text-scale-factor ()
   "Return the factor effect by `text-scale-mode'."
