@@ -13,9 +13,10 @@
 
   (defvar lv-wnd))
 
-(require 'set-up-paths)
 (require 'common)
+(require 'current-column-fixed)
 (require 'persistent-sessions-global-vars)
+(require 'set-up-paths)
 
 (require 'vim)
 (vim-mode 1)
@@ -318,7 +319,7 @@
      (require 'term-setup)))
 
 (defun scroll-up--preserve-column (old-scroll-up &rest args)
-  (let ((col (current-column)))
+  (let ((col (current-column-fixed)))
     (apply old-scroll-up args)
     (unless (bobp)
       (move-to-column col))))
@@ -326,7 +327,7 @@
 (advice-add 'scroll-up :around #'scroll-up--preserve-column)
 
 (defun scroll-down--preserve-column (old-scroll-up &rest args)
-  (let ((col (current-column)))
+  (let ((col (current-column-fixed)))
     (apply old-scroll-up args)
     (unless (eobp)
       (move-to-column col))))

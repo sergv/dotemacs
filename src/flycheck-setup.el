@@ -11,6 +11,7 @@
   (require 'let-alist)
   (require 'macro-util))
 
+(require 'current-column-fixed)
 (provide 'flycheck-setup)
 
 (defvar-local flycheck-enhancements--get-project-root-for-current-buffer (lambda () nil)
@@ -151,7 +152,7 @@
              (current-file-errors
               ;; Search in current file.
               (let* ((current-line (line-number-at-pos))
-                     (current-col (1+ (current-column)))
+                     (current-col (1+ (current-column-fixed)))
                      (current-pos (cons current-line current-col))
                      ;; Make sure that current error will go to the
                      ;; end of the candidate list regardless of the

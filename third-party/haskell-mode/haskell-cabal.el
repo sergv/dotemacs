@@ -48,6 +48,8 @@
 ;;          (fields (mapcar (lambda (sym) (substring-no-properties sym 0 -1)) syms)))
 ;;     fields))
 
+(require 'current-column-fixed)
+
 (require 'cl-lib)
 (require 'haskell-utils)
 
@@ -474,10 +476,10 @@ OTHER-WINDOW use `find-file-other-window'."
             :beginning (match-end 0)
             :end (save-match-data (haskell-cabal-subsection-end))
             :data-start-column (save-excursion (goto-char (match-end 0))
-                                               (current-column))
+                                               (current-column-fixed-uncached))
             :data-indent-column (save-excursion (goto-char (match-end 0))
                                                 (when (looking-at "\n  +\\(\\w*\\)") (goto-char (match-beginning 1)))
-                                                (current-column)
+                                                (current-column-fixed-uncached)
                                                 )))))
 
 
@@ -1040,14 +1042,14 @@ Source names from main-is and c-sources sections are left untouched
       (section-data (beginning-of-line)
                     (when (looking-at "[ ]*\\(?:,[ ]*\\)?")
                       (goto-char (match-end 0))
-                      (current-column)))
+                      (current-column-fixed-uncached)))
       (subsection-header
        (haskell-cabal-section-data-start-column (haskell-cabal-subsection))))))
 
 (defun haskell-cabal-forward-to-line-entry ()
   "go forward to the beginning of the line entry (but never move backwards)"
   (let ((col (haskell-cabal-line-entry-column)))
-    (when (and col (< (current-column) col))
+    (when (and col (< (current-column-fixed) col))
       (beginning-of-line)
       (forward-char col))))
 

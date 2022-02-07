@@ -12,6 +12,7 @@
 
 (require 'abbrev+)
 (require 'common)
+(require 'current-column-fixed)
 (require 'haskell-completions)
 (require 'haskell-misc)
 (require 'v)
@@ -135,7 +136,7 @@
                    (haskell--quote-string-for-template-insertion x)
                    "\""))))
     (insert function-name)
-    (let ((column-after-pp-dict (current-column))
+    (let ((column-after-pp-dict (current-column-fixed-uncached))
           (header-message (funcall make-str
                                    (read-string-no-default "Message header: "
                                                            nil

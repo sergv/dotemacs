@@ -17,6 +17,8 @@
 
 (eval-when-compile (require 'rx))
 
+(require 'current-column-fixed)
+
 (defvar rust-load-optional-libraries t
   "Whether loading `rust-mode' also loads optional libraries.
 This variable might soon be remove again.")
@@ -624,7 +626,7 @@ buffer."
       (when (looking-at "[[:space:]]")
         (forward-word 1)
         (backward-word 1))
-      (current-column))))
+      (current-column-fixed-uncached))))
 
 (defun rust-rewind-to-beginning-of-current-level-expr ()
   (let ((current-level (rust-paren-level)))
@@ -706,7 +708,7 @@ buffer."
                            (= ?. (char-before))))
                 (forward-thing 'symbol -1)
                 (backward-char)
-                (- (current-column) rust-indent-offset)))))
+                (- (current-column-fixed-uncached) rust-indent-offset)))))
         (cond
          ;; foo.bar(...)
          ((looking-back "[)?]" (1- (point)))
@@ -740,7 +742,7 @@ buffer."
                         (rust-rewind-irrelevant)
                         (backward-up-list)
                         (rust-rewind-to-beginning-of-current-level-expr)
-                        (+ (current-column) rust-indent-offset))))))
+                        (+ (current-column-fixed-uncached) rust-indent-offset))))))
              (cond
               ;; Indent inside a non-raw string only if the previous line
               ;; ends with a backslash that is inside the same string
@@ -777,7 +779,7 @@ buffer."
                        (if (> (- end-of-prev-line-pos string-begin-pos) 2)
                            (save-excursion
                              (goto-char (+ 1 string-begin-pos))
-                             (current-column))
+                             (current-column-fixed-uncached))
                          baseline)
 
                      ;; The previous line is not the start of the string, so
@@ -785,7 +787,7 @@ buffer."
                      (save-excursion
                        (goto-char end-of-prev-line-pos)
                        (back-to-indentation)
-                       (current-column))))))
+                       (current-column-fixed-uncached))))))
 
               ;; A function return type is indented to the corresponding
               ;; function arguments, if -to-arguments is selected.
@@ -864,7 +866,7 @@ buffer."
                         (skip-chars-forward "[:space:]")
                         ;; get the column of the type parameter and use that
                         ;; as indentation offset
-                        (current-column)))))
+                        (current-column-fixed-uncached)))))
 
                 (progn
                   (back-to-indentation)
@@ -909,7 +911,7 @@ buffer."
       ;; indentation), jump with the indentation change.  Otherwise, save the
       ;; excursion so that adding the indentations will leave us at the
       ;; equivalent position within the line to where we were before.
-      (if (<= (current-column) (current-indentation))
+      (if (<= (current-column-fixed-uncached) (current-indentation))
           (indent-line-to indent)
         (save-excursion (indent-line-to indent))))))
 
