@@ -539,6 +539,7 @@ be used only for vim-visual-mode of the vim-mode package."
 (defun comment-util--delete-comment (format)
   "Delete comments (e.g. //, ;) after point if any."
   (save-position-unsafe
+   (skip-indentation-forward)
    (let ((before-comment (point)))
      (when (comment-util-detect-line-comment format)
        (delete-region before-comment (point))
