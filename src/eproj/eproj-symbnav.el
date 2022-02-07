@@ -36,12 +36,12 @@
   )
 
 (defun eproj-home-entry=? (entry-a entry-b)
-  (and (eq? (eproj-home-entry/buffer entry-a)
-            (eproj-home-entry/buffer entry-b))
-       (= (eproj-home-entry/position entry-a)
-          (eproj-home-entry/position entry-b))
-       (eq? (eproj-home-entry/symbol entry-a)
-            (eproj-home-entry/symbol entry-b))))
+  (and (eq (eproj-home-entry/buffer entry-a)
+           (eproj-home-entry/buffer entry-b))
+       (eq (eproj-home-entry/position entry-a)
+           (eproj-home-entry/position entry-b))
+       (eq (eproj-home-entry/symbol entry-a)
+           (eproj-home-entry/symbol entry-b))))
 
 (defvar-local eproj-symbnav/identifier-type 'symbol
   "Type of identifiers to look for when retrieving name at point to
@@ -269,35 +269,35 @@ as accepted by `bounds-of-thing-at-point'.")
                   (funcall tag->kind tag)
                   (eproj-tag/file tag)
                   (eproj-tag/line tag))))
-         (sort-tokens<
+         (sort-token<
           (lambda (x y)
-            (let ((symbol-x (cl-first x))
-                  (symbol-y (cl-first y))
-                  (tag-kind-x (cl-second x))
-                  (tag-kind-y (cl-second y))
-                  (file-x (cl-third x))
-                  (file-y (cl-third y))
-                  (line-x (cl-fourth x))
-                  (line-y (cl-fourth y)))
+            (let ((symbol-x (first-sure x))
+                  (symbol-y (first-sure y)))
               (cl-assert (or (null symbol-x) (stringp symbol-x)))
               (cl-assert (or (null symbol-y) (stringp symbol-y)))
-              (cl-assert (or (stringp tag-kind-x) (null tag-kind-x)) nil "Unexpected tag kind: %s" tag-kind-x)
-              (cl-assert (or (stringp tag-kind-y) (null tag-kind-y)) nil "Unexpected tag kind: %s" tag-kind-y)
-              (cl-assert (stringp file-x))
-              (cl-assert (stringp file-y))
-              (cl-assert (numberp line-x))
-              (cl-assert (numberp line-y))
               (or (string<-safe symbol-x symbol-y)
                   (and (equal symbol-x symbol-y)
-                       (or (and tag-kind-x
-                                tag-kind-y
-                                (string< tag-kind-x tag-kind-y))
-                           (and (or (not tag-kind-x)
-                                    (not tag-kind-y)
-                                    (string= tag-kind-x tag-kind-y))
-                                (or (string< file-x file-y)
-                                    (and (string= file-x file-y)
-                                         (< line-x line-y))))))))))
+                       (let ((tag-kind-x (second-sure x))
+                             (tag-kind-y (second-sure y)))
+                         (cl-assert (or (stringp tag-kind-x) (null tag-kind-x)) nil "Unexpected tag kind: %s" tag-kind-x)
+                         (cl-assert (or (stringp tag-kind-y) (null tag-kind-y)) nil "Unexpected tag kind: %s" tag-kind-y)
+                         (or (and tag-kind-x
+                                  tag-kind-y
+                                  (string< tag-kind-x tag-kind-y))
+                             (and (or (not tag-kind-x)
+                                      (not tag-kind-y)
+                                      (string= tag-kind-x tag-kind-y))
+                                  (let ((file-x (third-sure x))
+                                        (file-y (third-sure y)))
+                                    (cl-assert (stringp file-x))
+                                    (cl-assert (stringp file-y))
+                                    (or (string< file-x file-y)
+                                        (and (string= file-x file-y)
+                                             (let ((line-x (fourth-sure x))
+                                                   (line-y (fourth-sure y)))
+                                               (cl-assert (numberp line-x))
+                                               (cl-assert (numberp line-y))
+                                               (< line-x line-y)))))))))))))
          (tag->string
           (if current-proj
               (lambda (tag-proj tag-name tag)
@@ -328,11 +328,11 @@ as accepted by `bounds-of-thing-at-point'.")
                               (t
                                tag-name)))))
                 (funcall tag->string tag-proj tag-name-pretty tag)))))
-         (entry-sort-token #'cl-first)
-         (entry-tag-name #'cl-second)
-         (entry-tag #'cl-third)
-         (entry-string #'cl-fourth)
-         (entry-proj #'cl-fifth)
+         (entry-sort-token #'first-sure)
+         (entry-tag-name #'second-sure)
+         (entry-tag #'third-sure)
+         (entry-string #'fourth-sure)
+         (entry-proj #'fifth-sure)
          (entries
           ;; I'm not entirely sure where duplicates come from, but it's cheap
           ;; to remove them and at the same time I'm reluctant to tweak my
@@ -353,7 +353,7 @@ as accepted by `bounds-of-thing-at-point'.")
                    tag-entries))
             (lambda (a b)
               ;; compare results of tag->sort-token
-              (funcall sort-tokens<
+              (funcall sort-token<
                        (funcall entry-sort-token a)
                        (funcall entry-sort-token b))))))
 
