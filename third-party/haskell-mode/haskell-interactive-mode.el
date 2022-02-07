@@ -28,6 +28,8 @@
 
 ;;; Code:
 
+(require 'current-column-fixed)
+
 (require 'haskell-mode)
 (require 'haskell-compile)
 (require 'haskell-process)
@@ -428,7 +430,7 @@ SESSION, otherwise operate on the current buffer."
    ((haskell-interactive-at-prompt)
     (completion-at-point))
    ((get-text-property (point) 'collapsible)
-    (let ((column (current-column)))
+    (let ((column (current-column-fixed)))
       (search-backward-regexp "^[^ ]")
       (haskell-interactive-mode-tab-expand)
       (goto-char (+ column (line-beginning-position)))))
@@ -869,7 +871,7 @@ Will automatically import it qualified as Present."
         (let ((i 0))
           (unless continuation
             (insert "["))
-          (let ((start-column (current-column)))
+          (let ((start-column (current-column-fixed)))
             (cl-loop for slot in slots
                      do (haskell-interactive-mode-presentation-slot
                          hash
@@ -895,7 +897,7 @@ Will automatically import it qualified as Present."
                  (not nullary)
                  (not (string= "list" parent-rep)))
         (insert "("))
-      (let ((start-column (current-column)))
+      (let ((start-column (current-column-fixed)))
         (insert (propertize text 'font-lock-face 'font-lock-type-face))
         (cl-loop for slot in slots
                  do (insert "\n")
@@ -906,7 +908,7 @@ Will automatically import it qualified as Present."
                  (not (string= "list" parent-rep)))
         (insert ")")))
      ((string= "record" rep)
-      (let ((start-column (current-column)))
+      (let ((start-column (current-column-fixed)))
         (insert (propertize text 'font-lock-face 'font-lock-type-face)
                 " { ")
         (cl-loop for field in slots

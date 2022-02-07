@@ -27,6 +27,8 @@
 
 ;;; Code:
 
+(require 'current-column-fixed)
+
 (require 'cl-lib)
 (require 'haskell-session)
 (require 'haskell-process)
@@ -70,7 +72,7 @@ Letters do not insert themselves; instead, they are commands."
   "Function to refresh the display."
   (let ((buffer-read-only nil)
         (orig-line (line-number-at-pos))
-        (orig-col (current-column)))
+        (orig-col (current-column-fixed)))
     (or (eq buffer-undo-list t)
         (setq buffer-undo-list nil))
     (erase-buffer)
