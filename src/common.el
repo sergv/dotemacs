@@ -1485,6 +1485,16 @@ are CHAR1 and CHAR2 repsectively."
         nil
       (string< x y))))
 
+(defun fixnum-<-safe (x y)
+  "Like ‘<’ but allows nils. nil is considered smaller that non-nil."
+  (if (null x)
+      (if (null y)
+          nil
+        t)
+    (if (null y)
+        nil
+      (< x y))))
+
 ;;
 
 (defsubst cap-floor (cap floor value)
