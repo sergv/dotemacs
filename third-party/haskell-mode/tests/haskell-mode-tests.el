@@ -546,33 +546,6 @@ moves over sexps."
   (should (equal "Mod'X.Mod" (haskell-guess-module-name-from-file-name "c:/Mod'X/Mod.lhs")))
   (should (equal "Mod" (haskell-guess-module-name-from-file-name "Mod.xx/Mod.hs"))))
 
-(defun haskell-generate-tags-test-helper ()
-  (with-current-buffer (find-file-noselect "TAGS-test-format")
-    (erase-buffer)
-    (dolist (arg (sort argv #'string<))
-      (insert arg "\n"))
-    (save-buffer)
-    (kill-buffer)))
-
-(ert-deftest haskell-generate-tags ()
-  ;; this test is special for Unix because under Windows the
-  ;; invocation is different
-  :expected-result (if (equal system-type 'windows-nt)
-                       :failed
-                     :passed)
-  (with-temp-dir-structure
-   (("xxx.cabal" . "")
-    ("T1.hs" . "i1 :: Int")
-    ("src" . (("T2.hs" . "i2 :: Int")))
-    (".git" . (("Tx.hs" . "should_not_see_me :: Int"))))
-    (with-script-path
-     haskell-hasktags-path
-     haskell-generate-tags-test-helper
-     (haskell-mode-generate-tags)
-     (with-current-buffer (find-file-noselect "TAGS-test-format")
-       (should (equal "-e\n-x\n./T1.hs\n./src/T2.hs\n"
-                      (buffer-substring (point-min) (point-max))))))))
-
 (defun haskell-stylish-haskell-add-first-line ()
   (message-stdout "-- HEADER")
   (let (line)

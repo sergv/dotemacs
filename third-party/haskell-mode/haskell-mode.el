@@ -840,7 +840,6 @@ Minor modes that work well with `haskell-mode':
   (setq-local dabbrev-abbrev-char-regexp "\\sw\\|[.]")
   (setq haskell-literate nil)
   (add-hook 'before-save-hook 'haskell-mode-before-save-handler nil t)
-  (add-hook 'after-save-hook 'haskell-mode-after-save-handler nil t)
   ;; provide non-interactive completion function
   (add-hook 'completion-at-point-functions
             'haskell-completions-completion-at-point
@@ -1020,11 +1019,6 @@ list marker of some kind), and end of the obstacle."
                  (const "ghc -fno-code")
                  (string :tag "Other command")))
 
-(defcustom haskell-tags-on-save nil
-  "Generate tags via hasktags after saving."
-  :group 'haskell
-  :type 'boolean)
-
 (defvar haskell-saved-check-command nil
   "Internal use.")
 
@@ -1187,24 +1181,6 @@ Uses `haskell-guess-module-name-from-file-name'."
     (insert (format haskell-auto-insert-module-format-string (haskell-guess-module-name-from-file-name (buffer-file-name))))
     (goto-char (point-min))
     (end-of-line)))
-
-;;;###autoload
-(defun haskell-mode-generate-tags (&optional and-then-find-this-tag)
-  "Generate tags using Hasktags.  This is synchronous function.
-
-If optional AND-THEN-FIND-THIS-TAG argument is present it is used
-with function `xref-find-definitions' after new table was
-generated."
-  (interactive)
-  (let* ((dir (haskell-cabal--find-tags-dir))
-         (command (haskell-cabal--compose-hasktags-command dir)))
-    (if (not command)
-        (error "Unable to compose hasktags command")
-      (when (zerop (shell-command command))
-        (haskell-mode-message-line "Tags generated."))
-      (when and-then-find-this-tag
-        (let ((tags-file-name dir))
-          (xref-find-definitions and-then-find-this-tag))))))
 
 ;; Provide ourselves:
 (provide 'haskell-mode)
