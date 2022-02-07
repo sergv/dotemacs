@@ -3204,6 +3204,29 @@
      "bar"
      "")))
 
+(ert-deftest vim-tests/haskell-uncomment-region-2 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "j c u"))
+    (tests-utils--multiline
+     ""
+     "  -- abc"
+     ""
+     "  -- def"
+     "  --  xyz"
+     "  -- fo_|_o"
+     "  -- bar"
+     "")
+    (tests-utils--multiline
+     ""
+     "  -- abc"
+     ""
+     "  def"
+     "   xyz"
+     "  fo_|_o"
+     "  bar"
+     "")))
+
 (ert-deftest vim-tests/haskell-uncomment-selected-region-1 ()
   (vim-tests--test-fresh-buffer-contents-init
       (haskell-mode)
@@ -3223,6 +3246,27 @@
      "xyz"
      "_|_foo"
      "-- bar"
+     "")))
+
+(ert-deftest vim-tests/haskell-uncomment-selected-region-2 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "h V h h j c u"))
+    (tests-utils--multiline
+     ""
+     "  -- _|_abc"
+     "  --  def"
+     "  -- xyz"
+     "  -- foo"
+     "  -- bar"
+     "")
+    (tests-utils--multiline
+     ""
+     "  -- abc"
+     "   def"
+     "  xyz"
+     "_|_  foo"
+     "  -- bar"
      "")))
 
 (provide 'vim-tests)
