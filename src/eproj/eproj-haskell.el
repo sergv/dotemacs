@@ -153,7 +153,7 @@ runtime but rather will be silently relied on)."
           (eproj-resolve-to-abs-path (eproj-tag/file tag) proj)
         (save-excursion
           (goto-line-dumb (eproj-tag/line tag))
-          (eproj/haskel-extract-block)
+          (eproj/haskell-extract-block)
           ;; alternative implementation with regexps
           ;; (save-match-data
           ;;   (goto-line-dumb (eproj-tag/line tag))
@@ -162,8 +162,7 @@ runtime but rather will be silently relied on)."
           ;;     (current-line)))
           )))))
 
-;;;###autoload
-(defun eproj/haskel-extract-block ()
+(defun eproj/haskell-extract-block ()
   "Extract indented Haskell block that starts on the current line."
   (beginning-of-line)
   (let ((start (point)))
