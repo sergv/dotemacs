@@ -65,7 +65,7 @@ haskell block at current indentation level."
 (defun haskell--apply-to-block (f)
   "Call function F on start of every non-trivial line within
 block at current indentation. Preprocessor lines and empty lines
-will be ignored.
+as defined by ‘haskell-on-blank-line-p’ will be ignored.
 
 Returns t if operation commenced and nil otherwise."
   (let* ((start (line-beginning-position))
@@ -86,7 +86,7 @@ Returns t if operation commenced and nil otherwise."
                 ((looking-at-p (format "^[ ]\\{,%d\\}where\\_>" start-indent))
                  nil ;; stop classification
                  )
-                ((looking-at-p haskell-regexen/preprocessor-or-empty-line)
+                ((haskell-on-blank-line-p)
                  'skip)
                 ((let ((indent (progn
                                  (skip-indentation-forward)

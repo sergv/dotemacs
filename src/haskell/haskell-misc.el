@@ -175,7 +175,7 @@ Returns t if indentation occured."
                      (or (>= curr-indent start-indent)
                          (> curr-indent col))))
          (forward-line -1)
-         (while (looking-at-p haskell-regexen/preprocessor-or-empty-line)
+         (while (haskell-on-blank-line-p)
            (forward-line -1)))
        (back-to-indentation)
        t)
@@ -575,7 +575,7 @@ both unicode and ascii characters.")
                        (beginning-of-line)
                        (while (and (not (eobp))
                                    (< function-name-column (indentation-size)))
-                         (unless (looking-at-p haskell-regexen/preprocessor-or-empty-line)
+                         (unless (haskell-on-blank-line-p)
                            (setf indented-section-end (line-end-position)))
                          (forward-line 1))
                        ;; Do not expand if we're not located at the
@@ -813,10 +813,22 @@ value section should have if it is to be properly indented."
   ;;   (while (and (not (bobp))
   ;;               (or (and c
   ;;                        (whitespace-char? c))
-  ;;                   (looking-at-p haskell-regexen/preprocessor-or-empty-line)))
+  ;;                   (haskell-on-blank-line-p)))
   ;;     (forward-line -1)
   ;;     (setf c (char-after))))
   )
+
+(defun haskell-on-blank-line-p ()
+  "Assumes point is at 0th column."
+  (looking-at-p haskell-regexen/preprocessor-or-empty-line))
+
+(defun haskell-on-nonindented-line-p ()
+  "Assumes point is at 0th column."
+  (= 0 (indentation-size)))
+
+(defun haskell-on-indented-line-p ()
+  "Assumes point is at 0th column."
+  (/= 0 (indentation-size)))
 
 (defun haskell-move-to-topmost-start (&optional count)
   "Move to start of the topmost node, similar to `glisp/beginning-of-defun'."
@@ -830,15 +842,15 @@ value section should have if it is to be properly indented."
   (vim-save-position)
   (beginning-of-line)
   (while (and (not (eobp))
-              (= 0 (indentation-size)))
+              (haskell-on-nonindented-line-p))
     (forward-line 1))
   (while (and (not (eobp))
-              (or (/= 0 (indentation-size))
-                  (looking-at-p haskell-regexen/preprocessor-or-empty-line)))
+              (or (haskell-on-indented-line-p)
+                  (haskell-on-blank-line-p)))
     (forward-line 1))
   (forward-line -1)
   (while (and (not (bobp))
-              (looking-at-p haskell-regexen/preprocessor-or-empty-line))
+              (haskell-on-blank-line-p))
     (forward-line -1))
   (end-of-line))
 
