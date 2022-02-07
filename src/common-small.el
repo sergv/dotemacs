@@ -6,6 +6,10 @@
 ;; Created:  3 August 2021
 ;; Description:
 
+(eval-when-compile
+  (require 'cl)
+  (require 'macro-util))
+
 (when-emacs-version (or (< it 28)
                         (not (and (fboundp #'native-comp-available-p)
                                   (native-comp-available-p))))
@@ -19,6 +23,22 @@
 (when-emacs-version (<= 28 it )
   ;; For comp-hint-cons and comp-hint-fixnum.
   (require 'comp))
+
+(defsubst first-sure (x)
+  (car-sure x))
+
+(defsubst second-sure (x)
+  (cadr-sure x))
+
+(defsubst third-sure (x)
+  (caddr-sure x))
+
+(defsubst fourth-sure (x)
+  (cadddr-sure x))
+
+(defsubst fifth-sure (x)
+  (caddddr-sure x))
+
 
 (defsubst char= (a b)
   (declare (pure t) (side-effect-free t))
