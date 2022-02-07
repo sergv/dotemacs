@@ -149,7 +149,7 @@ lines."
         (end-of-line 0)
         (unless (bobp)
           (re-search-backward "^[ \t]*." (point-min) "to_limit")
-          (back-to-indentation)
+          (skip-to-indentation)
           (setq indent (current-column))
           (when (looking-at "s?pl\\(o?\\|\\(ot\\)?\\)[ \t]+.?")
             (let ((offset (- (match-end 0) (match-beginning 0) 1)))
