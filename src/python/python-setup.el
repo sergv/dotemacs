@@ -268,7 +268,7 @@ greater indenation as current line."
            (save-excursion
              (beginning-of-line)
              (skip-syntax-forward "-")
-             (current-column)))))
+             (current-column-fixed)))))
     (let ((c (funcall start-column)))
       (forward-line)
       (while (and (not (eob?))

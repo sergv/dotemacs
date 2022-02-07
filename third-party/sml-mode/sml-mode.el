@@ -120,6 +120,8 @@
 
 ;;; Code:
 
+(require 'current-column-fixed)
+
 (eval-when-compile (require 'cl-lib))
 (require 'smie nil 'noerror)
 (require 'electric)
@@ -510,15 +512,15 @@ Regexp match data 0 points to the chars."
             (_data (smie-backward-sexp "and"))
             (startcol (save-excursion
                         (forward-comment (- (point)))
-                        (current-column)))
-            (mincol (current-column)))
+                        (current-column-fixed-uncached)))
+            (mincol (current-column-fixed-uncached)))
         (save-excursion
           (search-forward "=" max t)
           (forward-line 1)
           (if (< (point) max) (setq max (point))))
         (while (and (<= (point) max) (not (eobp)))
           (skip-chars-forward " \t")
-          (setq mincol (current-column))
+          (setq mincol (current-column-fixed-uncached))
           (forward-line 1))
         (>= mincol startcol)))))
 
@@ -701,7 +703,7 @@ Takes the form (DIR POS . TOKENS).")
     (while (re-search-backward sml-imenu-regexp nil t)
       (save-excursion
 	(let ((kind (match-string 2))
-	      (column (progn (goto-char (match-beginning 2)) (current-column)))
+	      (column (progn (goto-char (match-beginning 2)) (current-column-fixed-uncached)))
 	      (location
 	       (progn (goto-char (match-end 0))
 		      (forward-comment (point-max))
@@ -1439,7 +1441,7 @@ Depending on the context insert the name of function, a \"=>\" etc."
             (move-to-column start-column)
             (when (re-search-backward " \\([^ \t\n]\\)" pos t)
               (goto-char (match-beginning 1))
-              (setq indent (current-column)))))
+              (setq indent (current-column-fixed-uncached)))))
         (indent-line-to indent)))))
 
 (defun sml-find-matching-starter (syms)
@@ -1804,7 +1806,7 @@ If nil, align it with previous cases."
 
 (defun sml-yacc-indent-line ()
   "Indent current line of ML-Yacc code."
-  (let ((savep (> (current-column) (current-indentation)))
+  (let ((savep (> (current-column-fixed) (current-indentation)))
 	(indent (max (or (ignore-errors (sml-yacc-indentation)) 0) 0)))
     (if savep
 	(save-excursion (indent-line-to indent))
@@ -1829,7 +1831,7 @@ If nil, align it with previous cases."
 		(forward-line -1)
 		(looking-at "\\s-*\\(%\\sw*\\||\\)?\\s-*")
 		(goto-char (match-end 0))
-		(+ offset (current-column)))))
+		(+ offset (current-column-fixed-uncached)))))
 	   ((looking-at "(") sml-yacc-indent-action)
 	   ((looking-at "|")
 	    (if (numberp sml-yacc-indent-pipe) sml-yacc-indent-pipe
@@ -1838,9 +1840,9 @@ If nil, align it with previous cases."
 			    (/= 0 (skip-syntax-backward "w_"))))
 	      (forward-comment (- (point)))
 	      (if (not (looking-at "\\s-$"))
-		  (1- (current-column))
+		  (1- (current-column-fixed-uncached))
 		(skip-syntax-forward " ")
-		(- (current-column) 2))))))
+		(- (current-column-fixed-uncached) 2))))))
 	;; default to SML rules
         (smie-indent-calculate))))
 

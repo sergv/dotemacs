@@ -9,6 +9,7 @@
 (eval-when-compile
   (require 'macro-util))
 
+(require 'current-column-fixed)
 (require 'dante)
 
 (defvar-local dante-repl--command-line-to-use nil
@@ -212,7 +213,7 @@ This variable gets assigned by ‘dante-initialize-method’.")
 
 (defun dante-repl-clear-buffer-above-prompt ()
   (interactive)
-  (let ((col (current-column)))
+  (let ((col (current-column-fixed)))
     (forward-line -1)
     (end-of-line)
     (forward-char 1)
@@ -222,9 +223,7 @@ This variable gets assigned by ‘dante-initialize-method’.")
      (delete-region (point-min) (line-end-position)))
     ;; Skip prompt.
     (end-of-line)
-    ;; `current-column' doesn't count prompt width, but
-    ;; `move-to-column' does and that's why we don't use it here.
-    (forward-char col)))
+    (move-to-column col)))
 
 (defun dante-repl-newline ()
   "Insert newlie at point like ‘newline-and-indent’ would do.

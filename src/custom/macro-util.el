@@ -551,7 +551,7 @@ of code may be called more than once."
   (declare (indent 0))
   (let ((column-var '#:column))
     `(save-current-line
-      (let ((,column-var (current-column)))
+      (let ((,column-var (current-column-fixed)))
         (unwind-protect
             (progn ,@body)
           (move-to-column ,column-var))))))

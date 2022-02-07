@@ -9,8 +9,9 @@
 (eval-when-compile
   (require 'macro-util))
 
-(require 'macro-util)
 (require 'common)
+(require 'current-column-fixed)
+(require 'macro-util)
 
 (defun octave-print-info-template ()
   "Insert call to printf statement to print some variables and messages
@@ -44,7 +45,7 @@ while interactively prompting for variables/messages."
   (save-excursion
     (save-match-data
       (goto-char position)
-      (if (= 0 (current-column))
+      (if (= 0 (current-column-fixed-uncached))
           ""
         (condition-case nil
             (progn

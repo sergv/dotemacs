@@ -24,6 +24,8 @@
 
 ;;; Code:
 
+(require 'current-column-fixed)
+
 (require 'cl-lib)
 (require 'etags)
 (require 'haskell-mode)
@@ -493,10 +495,10 @@ Requires the :loc-at command from GHCi."
                               (buffer-file-name)
                               (progn (goto-char (car pos))
                                      (line-number-at-pos))
-                              (1+ (current-column)) ;; GHC uses 1-based columns.
+                              (1+ (current-column-fixed)) ;; GHC uses 1-based columns.
                               (progn (goto-char (cdr pos))
                                      (line-number-at-pos))
-                              (1+ (current-column)) ;; GHC uses 1-based columns.
+                              (1+ (current-column-fixed)) ;; GHC uses 1-based columns.
                               (buffer-substring-no-properties (car pos)
                                                               (cdr pos)))))))
         (if reply
@@ -871,10 +873,10 @@ Requires the :uses command from GHCi."
                               (buffer-file-name)
                               (progn (goto-char (car pos))
                                      (line-number-at-pos))
-                              (1+ (current-column)) ;; GHC uses 1-based columns.
+                              (1+ (current-column-fixed)) ;; GHC uses 1-based columns.
                               (progn (goto-char (cdr pos))
                                      (line-number-at-pos))
-                              (1+ (current-column)) ;; GHC uses 1-based columns.
+                              (1+ (current-column-fixed)) ;; GHC uses 1-based columns.
                               (buffer-substring-no-properties (car pos)
                                                               (cdr pos)))))))
         (if reply
@@ -931,7 +933,7 @@ newlines and extra whitespace in signature before insertion."
          (sig (haskell-utils-reduce-string signature)))
     (save-excursion
       (goto-char min-pos)
-      (let ((col (current-column)))
+      (let ((col (current-column-fixed)))
         (insert sig "\n")
         (indent-to col)))))
 

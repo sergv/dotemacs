@@ -24,6 +24,8 @@
 
 ;;; Code:
 
+(require 'current-column-fixed)
+
 (require 'lsp-mode)
 (require 'lsp-protocol)
 (require 'cl-lib)
@@ -110,7 +112,7 @@ If there are more arguments expected after the line and column numbers."
   (lsp--cur-workspace-check)
   (lsp-clojure--execute-command refactor-name (cl-list* (lsp--buffer-uri)
                                                         (- (line-number-at-pos) 1) ;; clojure-lsp expects line numbers to start at 0
-                                                        (current-column)
+                                                        (current-column-fixed)
                                                         additional-args)))
 
 (defun lsp-clojure-add-import-to-namespace (import-name)
@@ -223,7 +225,7 @@ If there are more arguments expected after the line and column numbers."
               (lsp-make-clojure-cursor-info-params
                :textDocument (lsp-make-text-document-identifier :uri (lsp--buffer-uri))
                :position (lsp-make-position :line (- (line-number-at-pos) 1)
-                                            :character (current-column)))))
+                                            :character (current-column-fixed)))))
 
 (defun lsp-clojure--ask-macro-to-resolve ()
   "Ask to user the macro to resolve."
@@ -257,7 +259,7 @@ If there are more arguments expected after the line and column numbers."
   (lsp-clojure--execute-command "resolve-macro-as"
                                 (list (lsp--buffer-uri)
                                       (- (line-number-at-pos) 1) ;; clojure-lsp expects line numbers to start at 0
-                                      (current-column)
+                                      (current-column-fixed)
                                       (lsp-clojure--ask-macro-to-resolve)
                                       (lsp-clojure--ask-clj-kondo-config-dir))))
 

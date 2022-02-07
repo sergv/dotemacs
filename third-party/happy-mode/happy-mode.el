@@ -51,6 +51,8 @@
 
 (eval-when-compile (require 'cl-lib))
 
+(require 'current-column-fixed)
+
 (require 'happy-mode-autoload)
 (require 'haskell-mode)
 (require 'cc-mode)
@@ -344,7 +346,7 @@ The relative indentation among the lines of the expression are preserved."
 
 (defun happy-dedent-command ()
   (interactive)
-  (happy-mode-indent-to! (max 0 (- (current-column) 4))))
+  (happy-mode-indent-to! (max 0 (- (current-column-fixed) 4))))
 
 (defun happy-indent-line ()
   "Indent current line as Happy (Bison) code.
@@ -389,7 +391,7 @@ Return the amount the indentation changed by."
                (forward-line -1))
              (skip-chars-forward "^:|")
              ;; (skip-chars-forward ":| \t")
-             (setq indent (current-column)))))))
+             (setq indent (current-column-fixed-uncached)))))))
     (when indent
       (happy-mode-indent-to! indent)
       (skip-chars-forward " \t"))

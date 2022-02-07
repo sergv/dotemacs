@@ -1,3 +1,5 @@
+(require 'current-column-fixed)
+
 (require 'ert)
 
 (require 'popup)
@@ -8,7 +10,7 @@
 (defun popup-test-helper-posn-col-row (dummy)
   "This function is workaround. Because `posn-col-row' and `posn-at-point'
 can not work well in batch mode."
-  (cons (current-column) (line-number-at-pos (point))))
+  (cons (current-column-fixed) (line-number-at-pos (point))))
 
 (defmacro popup-test-with-common-setup (&rest body)
   (declare (indent 0) (debug t))
@@ -27,10 +29,10 @@ can not work well in batch mode."
   "This function is workaround. Because `line-move-visual' can not work well in
 batch mode."
   (let ((cur-col
-         (- (current-column)
-            (save-excursion (vertical-motion 0) (current-column)))))
+         (- (current-column-fixed)
+            (save-excursion (vertical-motion 0) (current-column-fixed)))))
     (vertical-motion arg)
-    (move-to-column (+ (current-column) cur-col))))
+    (move-to-column (+ (current-column-fixed) cur-col))))
 
 (defun popup-test-helper-rectangle-match (str)
   (let ((buffer-contents (popup-test-helper-buffer-contents)))
@@ -118,7 +120,7 @@ batch mode."
           (goto-char (or (next-single-property-change (point) 'face)
                          (point-max))))
         (if (popup-test-helper-in-popup-p)
-            (current-column) nil)
+            (current-column-fixed) nil)
         ))))
 
 (defun popup-test-helper-popup-end-line ()
@@ -150,7 +152,7 @@ batch mode."
                          (point-min))))
         (when (popup-test-helper-in-popup-p)
           (goto-char end)
-          (current-column))
+          (current-column-fixed))
         ))))
 
 (defun popup-test-helper-debug ()

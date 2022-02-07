@@ -11,8 +11,9 @@
 (eval-when-compile
   (require 'macro-util))
 
-(require 'macro-util)
 (require 'common)
+(require 'current-column-fixed)
+(require 'macro-util)
 
 (defun python-print-info-template ()
   "Insert call to print statement to print some variables and messages while
@@ -49,7 +50,7 @@ string on error"
   (save-excursion
     (save-match-data
       (goto-char position)
-      (if (= 0 (current-column))
+      (if (= 0 (current-column-fixed))
         ""
         (condition-case nil
             (progn
