@@ -153,15 +153,9 @@ runtime but rather will be silently relied on)."
           (eproj-resolve-to-abs-path (eproj-tag/file tag) proj)
         (save-excursion
           (goto-line-dumb (eproj-tag/line tag))
-          (eproj/haskell-extract-block)
-          ;; alternative implementation with regexps
-          ;; (save-match-data
-          ;;   (goto-line-dumb (eproj-tag/line tag))
-          ;;   (if (looking-at "^\\([^ \t\n\r\f\v].* ::\\(?: .*\n\\|\n\\)\\(?:^[ \t]+.+\n\\)*\\)")
-          ;;     (match-string-no-properties 1)
-          ;;     (current-line)))
-          )))))
+          (eproj/haskell-extract-block))))))
 
+;;;###autoload
 (defun eproj/haskell-extract-block ()
   "Extract indented Haskell block that starts on the current line."
   (beginning-of-line)
@@ -170,16 +164,18 @@ runtime but rather will be silently relied on)."
         ((advance
           (progn
             (forward-line 1)
-            (beginning-of-line)
-            (skip-chars-forward " \t"))))
-      (skip-chars-forward " \t")
-      (let ((col (current-column)))
-        ;; actualy this is a loop with postcondition
-        advance
-        (while (< col (current-column))
-          advance)
-        (let ((previous-line-end (line-end-position 0)))
-          (buffer-substring-no-properties start previous-line-end))))))
+            (when (setq continue (not (eobp)))
+              (skip-to-indentation)))))
+      (let ((start-col (skip-indentation-forward))
+            (indent-size 0)
+            (continue t))
+        (setq indent-size advance)
+        (while (and continue
+                    (or (< start-col indent-size)
+                        (haskell-on-blank-line-p)))
+          (setq indent-size advance))
+        (skip-chars-backward " \t\n\r\f")
+        (buffer-substring-no-properties start (point))))))
 
 (defun eproj-haskell--cabal--get-field (name)
   "Try to read value of field with NAME from current buffer."
