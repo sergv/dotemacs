@@ -31,6 +31,7 @@
 ;; (define-key haskell-mode-map (kbd "C-.") 'haskell-move-nested-right)
 
 ;;; Code:
+(require 'current-column-fixed)
 
 ;;;###autoload
 (defun haskell-move-nested (cols)
@@ -75,7 +76,7 @@ of the region instead."
 Used by `haskell-move-nested'.
 "
   (save-excursion
-    (let ((starting-level (current-column)))
+    (let ((starting-level (current-column-fixed)))
       (forward-line)
       (let ((current-level (haskell-move-nested-indent-level)))
         (let ((start-point (line-beginning-position))

@@ -29,6 +29,8 @@
 
 ;;; Code:
 
+(require 'current-column-fixed)
+
 (require 'cl-lib)
 
 (defconst popup-version "0.5.3")
@@ -153,7 +155,7 @@ untouched."
   (if (>= emacs-major-version 23)
       (vertical-motion (cons column direction))
     (vertical-motion direction)
-    (move-to-column (+ (current-column) column))))
+    (move-to-column (+ (current-column-fixed) column))))
 
 (defun popup-last-line-of-buffer-p ()
   "Return non-nil if the cursor is at the last line of the

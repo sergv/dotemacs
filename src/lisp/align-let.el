@@ -96,6 +96,8 @@
 
 ;;; Code:
 
+(require 'current-column-fixed)
+
 ;;;###autoload
 (defgroup align-let nil
   "Align values in `let' forms."
@@ -356,7 +358,7 @@ same line."
                  (align-let-forward-comments)
 
                  (let ((var-point (point)) ;; after "(" of the element
-                       (var-col   (current-column)))
+                       (var-col   (current-column-fixed)))
 
                    (and (condition-case nil
                             (progn (forward-sexp) t)
@@ -472,11 +474,11 @@ URL `http://user42.tuxfamily.org/align-let/index.html'"
          ;; into the value (zero), nor to delete part of the variable name
          ;; (negative)
          (setq width (max width (+ (max 1 align-let-spaces)
-                                   (- (current-column) var-col))))))
+                                   (- (current-column-fixed) var-col))))))
       (align-let-doelems
        type
        (lambda (var-point var-col)
-         (let ((this-width (- (current-column) var-col)))
+         (let ((this-width (- (current-column-fixed) var-col)))
            (cond ((> this-width width)
                   ;; reduce space
                   (move-to-column (+ var-col width) t)

@@ -57,6 +57,8 @@
 
 ;;; Code:
 
+(require 'current-column-fixed)
+
 (require 'compile) ; compilation-error-regexp-alist
 (require 'comint) ; comint-check-proc
 (require 'dired) ; dired-get-filename
@@ -3317,7 +3319,7 @@ is NIL, otherwise return NIL."
       (p4-reopen (list "-t" type (match-string 2))))))
 
 (defun p4-opened-list-change (change)
-  (interactive 
+  (interactive
    (list (p4-completing-read 'pending "New change: ")))
   (save-excursion
     (beginning-of-line)
@@ -3525,7 +3527,7 @@ is NIL, otherwise return NIL."
 (defun p4-goto-next-change ()
   "Next change"
   (interactive)
-  (let ((c (current-column)))
+  (let ((c (current-column-fixed)))
     (forward-line 1)
     (while (get-char-property (point) 'invisible)
       (forward-line 1))
@@ -3534,7 +3536,7 @@ is NIL, otherwise return NIL."
 (defun p4-goto-prev-change ()
   "Previous change"
   (interactive)
-  (let ((c (current-column)))
+  (let ((c (current-column-fixed)))
     (forward-line -1)
     (while (get-char-property (point) 'invisible)
       (forward-line -1))
@@ -3666,17 +3668,17 @@ file, but a prefix argument reverses this."
                  (if (looking-at "[^:\n]*:")
                      (progn
                        (goto-char (match-end 0))
-                       (current-column))
+                       (current-column-fixed-uncached))
                    0))))
     (move-to-column old-column)
-    (if (and (< (current-column) colon)
+    (if (and (< (current-column-fixed-uncached) colon)
              (re-search-forward "[^ \n][ :]" nil t))
         (goto-char (match-beginning 0)))))
 
 (defun p4-next-change-rev-line ()
   "Next change/revision line"
   (interactive)
-  (let ((c (current-column)))
+  (let ((c (current-column-fixed)))
     (move-to-column 1)
     (re-search-forward "^ *[0-9]+ +[0-9]+[^:\n]+:" nil "")
     (p4-moveto-print-rev-column c)))
@@ -3684,7 +3686,7 @@ file, but a prefix argument reverses this."
 (defun p4-prev-change-rev-line ()
   "Previous change/revision line"
   (interactive)
-  (let ((c (current-column)))
+  (let ((c (current-column-fixed)))
     (forward-line -1)
     (move-to-column 32)
     (re-search-backward "^ *[0-9]+ +[0-9]+[^:\n]*:" nil "")

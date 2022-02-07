@@ -7,6 +7,8 @@
 ;;; Code:
 ;;; Options
 
+(require 'current-column-fixed)
+
 (defcustom rust-format-on-save nil
   "Format future rust buffers before saving using rustfmt."
   :type 'boolean
@@ -199,10 +201,10 @@ match\\|struct\\|union\\|unsafe\\|while\\)\\b")
                 (setq columns -1)
               (forward-char 1)
               (goto-char pos)
-              (setq columns (current-column)))
-          (let ((initial-column (current-column)))
+              (setq columns (current-column-fixed-uncached)))
+          (let ((initial-column (current-column-fixed)))
             (goto-char pos)
-            (setq columns (- (current-column) initial-column))))
+            (setq columns (- (current-column-fixed-uncached) initial-column))))
         (list words lines columns)))))
 
 ;; Moves the point forward by count matches of regex up to max-pos,
@@ -231,10 +233,10 @@ match\\|struct\\|union\\|unsafe\\|while\\)\\b")
         (setq max-pos (rust--format-forward rust--format-word words max-pos))
         (setq max-pos (rust--format-forward rust--format-line lines max-pos))
         (when (> lines 0) (forward-char))
-        (let ((initial-column (current-column))
+        (let ((initial-column (current-column-fixed))
               (save-point (point)))
           (move-end-of-line nil)
-          (when (> (current-column) (+ initial-column columns))
+          (when (> (current-column-fixed-uncached) (+ initial-column columns))
             (goto-char save-point)
             (forward-char columns)))
         (min (point) max-pos)))))

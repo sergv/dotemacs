@@ -29,6 +29,8 @@
 
 ;;; Code:
 
+(require 'current-column-fixed)
+
 (defun flycheck-run-check-selector (selector)
   "Check SELECTOR if it fails loading."
   (with-temp-buffer
@@ -40,7 +42,7 @@
           (message "Invalid selector: %S" selector))
       (error
        (message "Unbalanced parenthesis in selector %S at %s"
-                selector (1+ (current-column)))))))
+                selector (1+ (current-column-fixed)))))))
 
 (defun flycheck-transform-selector (selector)
   "Transform SELECTOR to implement some custom selectors.

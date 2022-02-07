@@ -1,5 +1,7 @@
 ;;; rust-mode-tests.el --- ERT tests for rust-mode.el  -*- lexical-binding: t; -*-
 
+(require 'current-column-fixed)
+
 (require 'rust-mode)
 (require 'ert)
 (require 'cl-lib)
@@ -1888,7 +1890,7 @@ could leave it inside parens if a fn appears inside them.
 Having said that, as I write this I don't understand fully what
 internal state was corrupted and how.  There wasn't an obvious
 pattern to what did and did not trip it."
-  
+
   ;; When bug #36 was present, the following test would pass, but running it
   ;; caused some unknown emacs state to be corrupted such that the following
   ;; test failed.  Both the "blank_line" and "indented_closing_brace" functions
@@ -1915,7 +1917,7 @@ fn indented_already() {
     (forward-line 10)
     (move-to-column 0)
     (indent-for-tab-command)
-    (should (equal (current-column) 4))
+    (should (equal (current-column-fixed-uncached) 4))
     )
 
   ;; This is the test that would fail only after running the previous one.  The
@@ -1926,7 +1928,7 @@ fn indented_already() {
   (test-indent
    "
 impl Foo for Bar {
-    
+
     /// Modifies the bucket pointer in place to make it point to the next slot.
     pub fn next(&mut self) {
         // Branchless bucket
@@ -1941,14 +1943,14 @@ impl Foo for Bar {
         let maybe_wraparound_dist = (self.idx ^ (self.idx + 1)) & self.table.capacity();
         // Finally, we obtain the offset 1 or the offset -cap + 1.
         let dist = 1 - (maybe_wraparound_dist as isize);
-        
+
         self.idx += 1;
-        
+
         unsafe {
             self.raw = self.raw.offset(dist);
         }
     }
-    
+
     /// Reads a bucket at a given index, returning an enum indicating whether
     /// the appropriate types to call most of the other functions in
     /// this module.
@@ -1967,7 +1969,7 @@ impl Foo for Bar {
                     table: self.table
                 })
         }
-    }    
+    }
 }
 "
    ))
@@ -2190,7 +2192,7 @@ fn main() {
     (should (equal 'font-lock-string-face (get-text-property 7 'face)))
     (should (equal nil (get-text-property 9 'face)))
     (should (equal 'font-lock-keyword-face (get-text-property 12 'face)))
-    )  
+    )
   )
 
 (ert-deftest single-quote-null-char ()
@@ -2494,7 +2496,7 @@ fn foo<A>() -> bool {
      (11 12) ;; Parens
      (22 34) ;; Curly braces
      )
-   
+
    '(15 ;; The ">" in "->" is not an angle bracket
      )))
 
@@ -2515,7 +2517,7 @@ fn foo() {
      (63 123) ;; curly braces of match
      (77 79) ;; parens of Some(_)
      )
-   
+
    '(82 ;; > in first =>
      112 ;; > in second =>
      )))
@@ -2751,13 +2753,13 @@ fn ampersand_check(a: &Option<i32>, b:bool) -> &Option<u32> {
    "
 fn if_check(a:i32,b:i32,c:i32) {
     if a + b < c {
-        
+
     }
     if a < b {
-        
+
     }
     if (c < a) {
-        
+
     }
 }
 
@@ -2910,7 +2912,7 @@ const BLUB = 2 < 4;"
    "
 enum CLikeEnum {
     Two = 1 << 1,
-    Four = 1 << 2 
+    Four = 1 << 2
 }"
    '((17 56 ;; The { } of the enum
          ))

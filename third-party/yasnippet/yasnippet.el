@@ -131,6 +131,8 @@
 
 ;;; Code:
 
+(require 'current-column-fixed)
+
 (require 'cl-lib)
 (require 'eldoc) ; Needed for 24.
 (declare-function cl-progv-after "cl-extra") ; Needed for 23.4.
@@ -4078,7 +4080,7 @@ for normal snippets, and a list for command snippets)."
                       (not clear-field))
                  to-delete))))
     (goto-char start)
-    (setq yas--indent-original-column (current-column))
+    (setq yas--indent-original-column (current-column-fixed))
     ;; Delete the region to delete, this *does* get undo-recorded.
     (when to-delete
       (delete-region start end))
@@ -4093,7 +4095,7 @@ for normal snippets, and a list for command snippets)."
              (yas--eval-for-effect content))
             (t
              ;; x) This is a snippet-snippet :-)
-             (setq yas--start-column (current-column))
+             (setq yas--start-column (current-column-fixed))
              ;; Stacked expansion: also shoosh the overlay modification hooks.
              (let ((yas--inhibit-overlay-hooks t))
                (setq snippet
