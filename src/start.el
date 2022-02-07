@@ -50,27 +50,25 @@
       whitespace-global-modes nil)
 
 (defconst +do-not-track-long-lines-modes+
-  (alist->hash-table
-   '((lisp-interaction-mode . t)
-     (inferior-scheme-mode . t)
-     (prolog-inferior-mode . t)
-     (comint-mode . t)
-     (inferior-octave-mode . t)
-     (python-repl-mode . t)
-     (dante-repl-mode . t)
+  '(lisp-interaction-mode
+    inferior-scheme-mode
+    prolog-inferior-mode
+    comint-mode
+    inferior-octave-mode
+    python-repl-mode
+    dante-repl-mode
 
-     (makefile-automake-mode . t)
-     (makefile-bsdmake-mode . t)
-     (makefile-gmake-mode . t)
-     (makefile-imake-mode . t)
-     (makefile-mode . t)
-     (makefile-makepp-mode . t)
+    makefile-automake-mode
+    makefile-bsdmake-mode
+    makefile-gmake-mode
+    makefile-imake-mode
+    makefile-mode
+    makefile-makepp-mode
 
-     (magit-revision-mode . t)
-     (magit-reflog-mode . t)
-     (magit-refs-mode . t)
-     (magit-status-mode . t))
-   #'eq))
+    magit-revision-mode
+    magit-reflog-mode
+    magit-refs-mode
+    magit-status-mode ))
 
 (defun vim:bind-local-keymaps ()
   (setf vim-normal-mode-local-keymap              (make-sparse-keymap)
@@ -111,12 +109,10 @@
     (yas-minor-mode-on))
 
   (when use-whitespace
-    (when (and (not (eq? use-whitespace 'tabs-only))
-               (gethash major-mode
-                        +do-not-track-long-lines-modes+
-                        nil))
+    (when (and (not (eq use-whitespace 'tabs-only))
+               (memq major-mode +do-not-track-long-lines-modes+))
       (error "Shouldn't have enabled whitespace-mode in %s" major-mode))
-    (when (eq? use-whitespace 'tabs-only)
+    (when (eq use-whitespace 'tabs-only)
       (setq-local whitespace-style '(face tabs)))
     (whitespace-mode 1))
 
@@ -128,7 +124,7 @@
   (when use-fci
     (setf display-fill-column-indicator-column 100)
     (display-fill-column-indicator-mode
-     (if (gethash major-mode +do-not-track-long-lines-modes+ nil)
+     (if (memq major-mode +do-not-track-long-lines-modes+)
          -1
        +1)))
   (pcase hl-parens-backend
