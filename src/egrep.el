@@ -64,22 +64,33 @@
   (declare (pure t) (side-effect-free t))
   (cddr (cddddr x)))
 
+(defun egrep-match< (a b)
+  (let ((file-a (egrep-match-short-file-name a))
+        (file-b (egrep-match-short-file-name b)))
+    (or (string< file-a file-b)
+        (and (string= file-a file-b)
+             (let ((line-a (egrep-match-line a))
+                   (line-b (egrep-match-line b)))
+               (or (< line-a line-b)
+                   (and (eq line-a line-b)
+                        (let ((column-a (egrep-match-column a))
+                              (column-b (egrep-match-column b)))
+                          (< column-a column-b)))))))))
 
 (defun egrep--format-match-entry (match-entry)
   "Make text entry for current match that can be shown to the user.
 
 MATCH-START and MATCH-END are match bounds in the current buffer"
   (let ((header
-         (concat
-          (propertize (egrep-match-short-file-name match-entry)
-                      'face 'compilation-info)
-          ":"
-          (propertize (number->string (egrep-match-line match-entry))
-                      'face 'compilation-line-number)
-          ":"
-          (propertize (number->string (egrep-match-column match-entry))
-                      'face 'compilation-column-number)
-          ":"))
+         (concat (propertize (egrep-match-short-file-name match-entry)
+                             'face 'compilation-info)
+                 ":"
+                 (propertize (number->string (egrep-match-line match-entry))
+                             'face 'compilation-line-number)
+                 ":"
+                 (propertize (number->string (egrep-match-column match-entry))
+                             'face 'compilation-column-number)
+                 ":"))
         (matched-text
          (concat
           (egrep-match-matched-prefix match-entry)
@@ -288,12 +299,13 @@ FILE-GLOBS and don't match IGNORED-FILE-GLOBS."
           (lambda ()
             (let ((matches
                    (egrep--find-matches regexp exts-globs ignored-files-globs dir ignore-case)))
-              (list->vector
-               (remove-duplicates-by-hashing-projections
-                (lambda (match)
-                  (cons (egrep-match-line match) (egrep-match-file match)))
-                #'equal
-                matches)))))
+              (sort (list->vector
+                     (remove-duplicates-by-hashing-projections
+                      (lambda (match)
+                        (cons (egrep-match-line match) (egrep-match-file match)))
+                      #'equal
+                      matches))
+                    #'egrep-match<))))
          (matches
           (funcall get-matches))
          (kmap (make-sparse-keymap)))
