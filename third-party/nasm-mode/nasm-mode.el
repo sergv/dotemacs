@@ -37,6 +37,8 @@
 
 ;;; Code:
 
+(require 'current-column-fixed)
+
 (require 'imenu)
 
 (defgroup nasm-mode ()
@@ -732,7 +734,7 @@ With a prefix arg, kill the comment on the current line with
   (interactive "*P")
   (join-line join-following-p)
   (if (looking-back nasm-label-regexp (line-beginning-position))
-      (let ((column (current-column)))
+      (let ((column (current-column-fixed)))
         (cond ((< column nasm-basic-offset)
                (delete-char 1)
                (insert-char ?\t))

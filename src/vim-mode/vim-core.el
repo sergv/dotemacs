@@ -368,17 +368,17 @@ confuse when point is not at the beginning of line."
   "Returns the first column covered by `motion'."
   (save-excursion
     (goto-char (vim-motion-begin motion))
-    (let ((c (current-column)))
+    (let ((c (current-column-fixed-uncached)))
       (goto-char (vim-motion-end motion))
-      (min c (current-column)))))
+      (min c (current-column-fixed)))))
 
 (defun vim-motion-last-col (motion)
   "Returns the last column covered by `motion'."
   (save-excursion
     (goto-char (vim-motion-begin motion))
-    (let ((c (current-column)))
+    (let ((c (current-column-fixed-uncached)))
       (goto-char (vim-motion-end motion))
-      (max c (current-column)))))
+      (max c (current-column-fixed)))))
 
 (defun vim-motion-begin-pos (motion)
   "Returns the smaller position covered by `motion'.
@@ -396,8 +396,8 @@ return the correct start-position of emacs-ranges, i.e.
     (`block
         (let ((b (min (vim-motion-begin motion) (vim-motion-end motion)))
               (e (max (vim-motion-begin motion) (vim-motion-end motion))))
-          (if (> (save-excursion (goto-char b) (current-column))
-                 (save-excursion (goto-char e) (current-column)))
+          (if (> (save-excursion (goto-char b) (current-column-fixed-uncached))
+                 (save-excursion (goto-char e) (current-column-fixed-uncached)))
               (1+ b)
             b)))
     (_ (min (vim-motion-begin motion) (vim-motion-end motion)))))
@@ -420,8 +420,8 @@ return the correct end-position of emacs-ranges, i.e.
     (`block
         (let ((b (min (vim-motion-begin motion) (vim-motion-end motion)))
               (e (max (vim-motion-begin motion) (vim-motion-end motion))))
-          (if (and (>= (save-excursion (goto-char e) (current-column))
-                       (save-excursion (goto-char b) (current-column)))
+          (if (and (>= (save-excursion (goto-char e) (current-column-fixed-uncached))
+                       (save-excursion (goto-char b) (current-column-fixed-uncached)))
                    (not (char=? (char-after e) ?\n)))
               (1+ e)
             e)))
@@ -502,7 +502,7 @@ but with nil, point will be repositioned at r:
       (backward-char)))
 
   (setq vim--last-column (or vim--this-column
-                            (current-column)))
+                            (current-column-fixed)))
   (setq vim--this-column nil))
 
 

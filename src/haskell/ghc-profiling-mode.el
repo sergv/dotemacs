@@ -9,6 +9,7 @@
 (eval-when-compile
   (require 'macro-util))
 
+(require 'current-column-fixed)
 (require 'haskell-outline)
 (require 'solarized)
 
@@ -71,7 +72,7 @@ cpu time or allocations that the value of this variable.")
 
 (defmacro ghc-profiling-mode--search-for-expensive-entry (direction)
   `(let ((start-point (point))
-         (column (current-column)))
+         (column (current-column-fixed)))
      (fold-direction ,direction
        (end-of-line)
        (beginning-of-line))

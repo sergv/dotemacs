@@ -755,6 +755,8 @@
 
 ;;; Code:
 
+(require 'current-column-fixed)
+
 (require 'cl-lib)
 (require 'queue)
 (require 'diff)
@@ -4066,7 +4068,7 @@ Note this will overwrite any existing undo history."
 (defun undo-tree-move-down (&optional arg)
   ;; Move down, extending buffer if necessary.
   (let ((row (line-number-at-pos))
-        (col (current-column))
+        (col (current-column-fixed))
         line)
     (unless arg (setq arg 1))
     (forward-line arg)
@@ -4074,10 +4076,11 @@ Note this will overwrite any existing undo history."
     ;; if buffer doesn't have enough lines, add some
     (when (/= line (+ row arg))
       (cond
-       ((< arg 0)
-	(insert (make-string (- line row arg) ?\n))
-	(forward-line (+ arg (- row line))))
-       (t (insert (make-string (- arg (- line row)) ?\n)))))
+        ((< arg 0)
+         (insert-char ?\n (- line row arg))
+	 (forward-line (+ arg (- row line))))
+        (t
+         (insert-char ?\n (- arg (- line row))))))
     (undo-tree-move-forward col)))
 
 

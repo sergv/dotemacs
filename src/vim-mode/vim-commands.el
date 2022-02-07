@@ -93,6 +93,7 @@
   (require 'cl)
   (require 'macro-util))
 
+(require 'current-column-fixed)
 (require 'macro-util)
 
 (require 'vim-defs)
@@ -342,7 +343,7 @@ and switches to insert-mode."
       (let ((beg (save-excursion (move-to-column begcol) (point)))
             (end (save-excursion (move-to-column (1+ endcol)) (point))))
         (push (cons (save-excursion (goto-char beg)
-                                    (- (current-column) begcol))
+                                    (- (current-column-fixed) begcol))
                     (buffer-substring beg end))
               parts)
         (forward-line -1)))
@@ -375,7 +376,7 @@ and switches to insert-mode."
 
   (let ((ncols (car text))
         (parts (cdr text))
-        (col (current-column))
+        (col (current-column-fixed))
         (current-line (line-number-at-pos (point)))
         insert-newlines?
         (last-pos (point))
@@ -398,7 +399,7 @@ and switches to insert-mode."
           (newline))
         (cl-incf current-line)
 
-        (unless (and (< (current-column) col) ;; nothing in this line
+        (unless (and (< (current-column-fixed) col) ;; nothing in this line
                      (<= offset 0)
                      (zerop len) ;; and nothing to insert
                      )

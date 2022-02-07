@@ -22,6 +22,7 @@
   (defvar vim--last-undo))
 
 (require 'common)
+(require 'current-column-fixed)
 (require 'search)
 
 (require 'vim-macs)
@@ -388,10 +389,10 @@ This function is also responsible for setting the X-selection."
     ;; south-east corner.
     (let ((start-col (save-excursion
                        (goto-char start)
-                       (current-column)))
+                       (current-column-fixed-uncached)))
           (end-col (save-excursion
                      (goto-char end)
-                     (current-column))))
+                     (current-column-fixed-uncached))))
       (when (> start-col end-col)
         (cl-rotatef start-col end-col)
         (setq start (save-excursion
@@ -571,7 +572,7 @@ This function is also responsible for setting the X-selection."
           (dotimes (_ count)
             (when (>= (save-excursion
                         (end-of-line)
-                        (current-column))
+                        (current-column-fixed-uncached))
                       col)
               (move-to-column col t)
               (save-excursion
@@ -747,8 +748,8 @@ current line."
     (`block
      (let ((mark-col (save-excursion
                        (goto-char (mark t))
-                       (current-column)))
-           (point-col (current-column)))
+                       (current-column-fixed-uncached)))
+           (point-col (current-column-fixed-uncached)))
        (set-mark (save-excursion
                    (goto-char (mark t))
                    (move-to-column point-col t)
