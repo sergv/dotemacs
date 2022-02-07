@@ -2519,9 +2519,7 @@ Gandhi: I think it would be a good idea."
    "Whatever you do will be insignificant, but it is very important that you do it.
 - Gandhi"
 
-   "Life is a sexually transmitted disease with 100"
-
-   "mortality."
+   "Life is a sexually transmitted disease with 100% mortality."
 
    "Reality must take precedence over public relations,
 for Mother Nature cannot be fooled.
