@@ -1153,51 +1153,5 @@ buffer not visiting a file returns nil."
       (when buffer-file-name
         (file-name-directory buffer-file-name))))
 
-(defun haskell-cabal--compose-hasktags-command (dir)
-  "Prepare command to execute `hasktags` command in DIR folder.
-
-To customise the command executed, see `haskell-hasktags-path'
-and `haskell-hasktags-arguments'.
-
-This function takes into account the user's operating system: in case
-of Windows it generates a simple command, relying on Hasktags
-itself to find source files:
-
-hasktags --output=DIR\TAGS -x -e DIR
-
-In other cases it uses `find` command to find all source files
-recursively avoiding visiting unnecessary heavy directories like
-.git, .svn, _darcs and build directories created by
-cabal-install, stack, etc and passes list of found files to Hasktags."
-  (if (eq system-type 'windows-nt)
-      (format "%s --output=%s %s %s"
-              haskell-hasktags-path
-              (shell-quote-argument (expand-file-name "TAGS" dir))
-              (mapconcat #'identity haskell-hasktags-arguments " ")
-              (shell-quote-argument dir))
-    (format "cd %s && %s | %s"
-            (shell-quote-argument dir)
-            (concat "find . "
-                    "-type d \\( "
-                    "-name .git "
-                    "-o -name .svn "
-                    "-o -name _darcs "
-                    "-o -name .stack-work "
-                    "-o -name dist "
-                    "-o -name dist-newstyle "
-                    "-o -name .cabal-sandbox "
-                    "\\) -prune "
-                    "-o -type f \\( "
-                    "-name '*.hs' "
-                    "-or -name '*.lhs' "
-                    "-or -name '*.hsc' "
-                    "\\) -not \\( "
-                    "-name '#*' "
-                    "-or -name '.*' "
-                    "\\) -print0")
-            (format "xargs -0 %s %s"
-                    (shell-quote-argument haskell-hasktags-path)
-                    (mapconcat #'identity haskell-hasktags-arguments " ")))))
-
 (provide 'haskell-cabal)
 ;;; haskell-cabal.el ends here
