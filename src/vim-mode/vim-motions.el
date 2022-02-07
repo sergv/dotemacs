@@ -223,19 +223,19 @@ e.g. shell prompt.."
   "Moves the cursor to the first line of the window, plus count lines, default zero."
   (vim-save-position)
   (move-to-window-line (or count 0))
-  (back-to-indentation))
+  (skip-to-indentation))
 
 (vim-defmotion vim:motion-window-middle-line (linewise raw-result)
   "Moves the cursor to the beginning of the middle line of the window.  Ignores count."
   (vim-save-position)
   (move-to-window-line (/ (window-body-height) 2))
-  (back-to-indentation))
+  (skip-to-indentation))
 
 (vim-defmotion vim:motion-window-last-line (linewise count raw-result)
   "Moves the cursor to the last line of the window, minus count lines, default zero."
   (vim-save-position)
   (move-to-window-line (- (window-body-height) (or count 0) 1))
-  (back-to-indentation))
+  (skip-to-indentation))
 
 (defsubst vim--motion-beginning-of-line-or-digit-argument-impl (beginning-of-line-func)
   (if (and current-prefix-arg
@@ -254,7 +254,7 @@ e.g. shell prompt.."
 
 (vim-defmotion vim:motion-first-non-blank (exclusive raw-result)
   "Move the cursor to the first non-blank character of the current line."
-  (back-to-indentation))
+  (skip-to-indentation))
 
 (vim-defmotion vim:motion-end-of-line (inclusive raw-result)
   "Move the cursor to the end of the current line."
