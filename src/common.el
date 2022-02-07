@@ -1154,25 +1154,28 @@ trailing newline"
 
 (defsubst skip-indentation-forward (&optional end-pos)
   "Skip whitespace that looks like indentation, but don't go
-further that END-POS."
-  (skip-syntax-forward " " (or end-pos (line-end-position)))
-  (backward-prefix-chars))
+further that END-POS.
+
+Returns the number of characters skipped."
+  ;; (skip-chars-forward "[:blank:" end-pos)
+  (skip-chars-forward " \t" end-pos))
 
 (defsubst skip-to-indentation (&optional end-pos)
   "Move point to first non-whitespace character of line, but no
-further than END-POS."
-  (beginning-of-line nil)
+further than END-POS.
+
+Return indentation size in number of characters (i.e. tabs count as 1)."
+  (beginning-of-line)
   (skip-indentation-forward end-pos))
 
 (defun indentation-size ()
-  "Return indentation size for current line."
+  "Return indentation size for current line without moving point."
   (save-excursion
-    (skip-to-indentation)
-    (current-column)))
+    (skip-to-indentation)))
 
 (defun current-line-indentation-str (&optional end-pos)
   (save-excursion
-    (beginning-of-line nil)
+    (beginning-of-line)
     (let ((start (point)))
       (skip-indentation-forward end-pos)
       (let ((end (point)))
