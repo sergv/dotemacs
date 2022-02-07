@@ -257,6 +257,14 @@ _l_ens                             %`lsp-lens-mode
   ("h" lsp-toggle-symbol-highlight)
   ("l" lsp-lens-mode))
 
+(defhydra-ext hydra-haskell-minus (:exit t :foreign-keys warn :hint nil)
+  "
+_q_ualify import  _-_: attrap
+"
+  ("q" haskell-qualify-import)
+
+  ("-" attrap-flycheck))
+
 (defhydra-ext hydra-haskell-dante (:exit t :foreign-keys warn :hint nil)
   "
 _i_nfo            _j_: eval
@@ -444,6 +452,9 @@ _a_lign  _t_: jump to topmost node start
       (flycheck-mode
        (dolist (cmd '("conf" "configure"))
          (vim-local-emap cmd #'vim:haskell-flycheck-configure))
+
+       (def-keys-for-map vim-normal-mode-local-keymap
+         ("-" hydra-haskell-minus/body))
 
        (flycheck-install-ex-commands!
         :install-flycheck flycheck-mode
