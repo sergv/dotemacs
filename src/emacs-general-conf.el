@@ -157,7 +157,9 @@
       native-comp-deferred-compilation nil
 
       ;; Whether to save existing clipboard value in kill-ring when doing a kill/yank operation.
-      save-interprogram-paste-before-kill nil)
+      save-interprogram-paste-before-kill nil
+
+      fill-colunm 80)
 
 (when-emacs-version (<= 28 it)
   (when (boundp 'native-comp-deferred-compilation-deny-list)
@@ -259,12 +261,6 @@
 ;;;; key definitions
 
 (require 'keys-def)
-
-;;;; fill-column-indicator
-
-(setf fci-handle-truncate-lines t
-      fci-rule-column 80
-      fill-colunm 80)
 
 ;;;; tab bar
 
