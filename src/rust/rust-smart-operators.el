@@ -73,9 +73,8 @@ stick it to the previous operator on line."
                              (setf ws-size (skip-syntax-backward " "))
                              (point)))
              (char-before-spaces (char-before pt-before-ws)))
-        (if (smart-operators--literal-insertion? (awhen *comment-util-current-format*
-                                                   (and (memq char (comment-format-comment-chars it))
-                                                        (memq char-before-spaces (comment-format-comment-chars it)))))
+        (if (smart-operators--literal-insertion? (and (eq char ?/)
+                                                      (eq char-before-spaces ?/)))
             (insert-char char)
           (let ((whitespace-deleted? nil)
                 (after (char-after (point))))

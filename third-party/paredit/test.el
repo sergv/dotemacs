@@ -89,9 +89,8 @@
 (defun paredit-test-buffer-c-mode-setup ()
   (c-mode)
   (setq-local paredit-test-line-comment
-              (or (cadr (assq 'one-line
-                              (cdr (assq major-mode
-                                         +comment-util-comment-format-alist+))))
+              (or (comment-format-one-line
+                   (cdr (assq major-mode comment-util-comment-format-alist)))
                   (error "No one-line comment defined for %s"
                          major-mode)))
   (setq-local indent-tabs-mode nil
@@ -132,9 +131,8 @@
   (haskell-mode)
   ;; (haskell-mode-setup)
   (setq-local paredit-test-line-comment
-              (or (cadr (assq 'one-line
-                              (cdr (assq major-mode
-                                         +comment-util-comment-format-alist+))))
+              (or (comment-format-one-line
+                   (cdr (assq major-mode comment-util-comment-format-alist)))
                   (error "No one-line comment defined for %s"
                          major-mode)))
   (setq-local indent-tabs-mode nil

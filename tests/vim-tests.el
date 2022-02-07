@@ -3037,6 +3037,70 @@
      "fo_|_o"
      "")))
 
+(ert-deftest vim-tests/haskell-cmd-insert-line-below-2 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "o f o o <escape>"))
+    (tests-utils--multiline
+     ""
+     "import Control.Monad"
+     "-- import Data._|_List"
+     "")
+    (tests-utils--multiline
+     ""
+     "import Control.Monad"
+     "-- import Data.List"
+     "-- fo_|_o"
+     "")))
+
+(ert-deftest vim-tests/haskell-cmd-insert-line-below-3 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "o f o o <escape>"))
+    (tests-utils--multiline
+     ""
+     "import Control.Monad"
+     "--_|_ import Data.List"
+     "")
+    (tests-utils--multiline
+     ""
+     "import Control.Monad"
+     "-- import Data.List"
+     "-- fo_|_o"
+     "")))
+
+(ert-deftest vim-tests/haskell-cmd-insert-line-below-4 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "o f o o <escape>"))
+    (tests-utils--multiline
+     ""
+     "import Control.Monad"
+     "-_|_- import Data.List"
+     "")
+    (tests-utils--multiline
+     ""
+     "import Control.Monad"
+     "-- import Data.List"
+     "-- fo_|_o"
+     "")))
+
+(ert-deftest vim-tests/haskell-cmd-insert-line-below-5 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "o f o o <escape>"))
+    (tests-utils--multiline
+     ""
+     "import Control.Monad"
+     "_|_-- import Data.List"
+     "")
+    (tests-utils--multiline
+     ""
+     "import Control.Monad"
+     "-- import Data.List"
+     "-- fo_|_o"
+     "")))
+
 (ert-deftest vim-tests/haskell-cmd-insert-line-above-1 ()
   (vim-tests--test-fresh-buffer-contents-init
       (haskell-mode)
@@ -3051,6 +3115,114 @@
      "import Control.Monad"
      "fo_|_o"
      "import Data.List"
+     "")))
+
+(ert-deftest vim-tests/haskell-cmd-insert-line-above-2 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "O f o o <escape>"))
+    (tests-utils--multiline
+     ""
+     "import Control.Monad"
+     "-- import Data._|_List"
+     "")
+    (tests-utils--multiline
+     ""
+     "import Control.Monad"
+     "-- fo_|_o"
+     "-- import Data.List"
+     "")))
+
+(ert-deftest vim-tests/haskell-cmd-insert-line-above-3 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "O f o o <escape>"))
+    (tests-utils--multiline
+     ""
+     "import Control.Monad"
+     "--_|_ import Data.List"
+     "")
+    (tests-utils--multiline
+     ""
+     "import Control.Monad"
+     "-- fo_|_o"
+     "-- import Data.List"
+     "")))
+
+(ert-deftest vim-tests/haskell-cmd-insert-line-above-4 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "O f o o <escape>"))
+    (tests-utils--multiline
+     ""
+     "import Control.Monad"
+     "-_|_- import Data.List"
+     "")
+    (tests-utils--multiline
+     ""
+     "import Control.Monad"
+     "-- fo_|_o"
+     "-- import Data.List"
+     "")))
+
+(ert-deftest vim-tests/haskell-cmd-insert-line-above-5 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "O f o o <escape>"))
+    (tests-utils--multiline
+     ""
+     "import Control.Monad"
+     "_|_-- import Data.List"
+     "")
+    (tests-utils--multiline
+     ""
+     "import Control.Monad"
+     "-- fo_|_o"
+     "-- import Data.List"
+     "")))
+
+(ert-deftest vim-tests/haskell-uncomment-region-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "j c u"))
+    (tests-utils--multiline
+     ""
+     "-- abc"
+     ""
+     "-- def"
+     "--  xyz"
+     "-- fo_|_o"
+     "-- bar"
+     "")
+    (tests-utils--multiline
+     ""
+     "-- abc"
+     ""
+     "def"
+     " xyz"
+     "fo_|_o"
+     "bar"
+     "")))
+
+(ert-deftest vim-tests/haskell-uncomment-selected-region-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "h V h h j c u"))
+    (tests-utils--multiline
+     ""
+     "-- _|_abc"
+     "--  def"
+     "-- xyz"
+     "-- foo"
+     "-- bar"
+     "")
+    (tests-utils--multiline
+     ""
+     "-- abc"
+     " def"
+     "xyz"
+     "_|_foo"
+     "-- bar"
      "")))
 
 (provide 'vim-tests)
