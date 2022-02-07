@@ -98,7 +98,6 @@
 
 (defconst-set haskell-regexen/function-signature-colons "\\(?:::[^:]\\|∷\\)")
 
-(defconst-set haskell-regexen/preprocessor-or-empty-line "^\\(?:#\\|[ \t]*$\\)")
 (defconst-set haskell-regexen/empty-line "^[ \t]*$")
 
 (defconst-set haskell-regexen/import-line

@@ -820,7 +820,14 @@ value section should have if it is to be properly indented."
 
 (defun haskell-on-blank-line-p ()
   "Assumes point is at 0th column."
-  (looking-at-p haskell-regexen/preprocessor-or-empty-line))
+  (save-excursion
+    (or (eq (char-after) ?#)
+        (progn
+          (skip-indentation-forward)
+          (let ((c (char-after)))
+            ;; Check that we’re at line end.
+            (or (eq c ?\r)
+                (eq c ?\n)))))))
 
 (defun haskell-on-nonindented-line-p ()
   "Assumes point is at 0th column."
