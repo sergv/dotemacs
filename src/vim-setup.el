@@ -246,12 +246,12 @@ _<right>_: move tab to the right"
 
 (def-keys-for-map (vim-operator-pending-mode-keymap
                    vim-motion-mode-keymap)
-  ("g g" vim:motion-go-to-first-non-blank-beg:interactive))
+  ("g g" vim:motion-go-to-first-non-blank-beg:interactive)
+  ("-"   vim-universal-argument-minus))
 
 (def-keys-for-map vim-operator-pending-mode-keymap
   (("is" "s") vim:motion-inner-symbol:interactive)
-  ("as"       vim:motion-outer-symbol:interactive)
-  ("-"        vim-universal-argument-minus))
+  ("as"       vim:motion-outer-symbol:interactive))
 
 (def-keys-for-map (vim-operator-pending-mode-keymap
                    vim-motion-mode-keymap)
