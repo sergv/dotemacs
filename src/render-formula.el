@@ -272,10 +272,10 @@ displayed as images.")
 as emacs lisp program that should return list of command cells to be
 carried out on FORMULA-STR."
   (if command
-    (let* ((comment (if *comment-util-current-format*
-                      (concat "^\\s-*\\(?:"
-                              (comment-format-line-regexp
-                               *comment-util-current-format*)
+    (let* ((comment (aif (comment-util-current-format)
+                        (concat "^\\s-*\\(?:"
+                                (comment-format-line-regexp
+                                 it)
                               "\\)")
                       (progn
                         (message "no comment format defined for %s"
