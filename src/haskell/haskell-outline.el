@@ -10,46 +10,15 @@
   (require 'cl)
   (require 'macro-util))
 
+(require 'folding-setup)
 (require 'haskell-misc)
 (require 'search)
-(require 'yafolding)
 (require 'vim-setup)
-
-(defadvice yafolding-go-parent-element
-    (after
-     yafolding-go-parent-element/skip-whitespace
-     activate
-     compile)
-  (skip-to-indentation))
-
-(setf yafolding-show-fringe-marks nil)
+(require 'yafolding)
 
 (search-def-autoexpand-advices
  (yafolding-show-element)
  (haskell-mode))
-
-(defhydra-derive hydra-haskell-vim-normal-z hydra-vim-normal-z-ext (:exit t :foreign-keys nil :hint nil)
-  "
-_c_: hide indented or sexp  _f_: hide outline block
-_o_: show indented or sexp  _u_: show outline block
-_C_: hide all indented      _F_: hide all outline blocks leaving all headings visible
-_O_: show all indented      _U_: show all outline blocks
-_T_: toggle all indented"
-  ("c" haskell-hide-indented-or-sexp)
-  ("o" haskell-show-indented-or-sexp)
-  ("C" yafolding-hide-all)
-  ("O" yafolding-show-all)
-  ("T" yafolding-toggle-all)
-
-  ("F" outline-hide-body)
-  ("f" outline-hide-subtree)
-  ("U" outline-show-all)
-  ("u" outline-show-subtree))
-
-(defhydra-derive hydra-haskell-vim-visual-z hydra-vim-visual-z-ext (:exit t :foreign-keys nil :hint nil)
-  "
-_c_: yafolding hide region"
-  ("c" yafolding-hide-region))
 
 ;;;###autoload
 (cl-defun haskell-setup-folding (&key (enable-hs-minor-mode t))
@@ -63,33 +32,9 @@ to enable folding of balanced S-expressions."
                           (string-to-vector " ..."))
 
   (def-keys-for-map vim-normal-mode-local-keymap
-    ("z" hydra-haskell-vim-normal-z/body))
+    ("z" hydra-vim-normal-z-hideshow-yafolding-and-outline/body))
   (def-keys-for-map vim-visual-mode-local-keymap
-    ("z" hydra-haskell-vim-visual-z/body)))
-
-;;;###autoload
-(defun haskell-hide-indented-or-sexp ()
-  (interactive)
-  (if (and hs-minor-mode
-           (haskell-outline-on-sexp?))
-      (hs-hide-block)
-    (yafolding-hide-element)))
-
-;;;###autoload
-(defun haskell-show-indented-or-sexp ()
-  (interactive)
-  (if (and hs-minor-mode
-           (haskell-outline-on-sexp?))
-      (hs-show-block)
-    (yafolding-show-element)))
-
-;;;###autoload
-(defun haskell-outline-on-sexp? ()
-  (let ((next-char (char-after)))
-    (and next-char
-         (let ((synt (char-syntax next-char)))
-           (or (char-equal synt ?\()
-               (char-equal synt ?\)))))))
+    ("z" hydra-vim-visual-z-yafolding/body)))
 
 (provide 'haskell-outline)
 
