@@ -6,6 +6,8 @@
 ;; Created: 25 June 2020
 ;; Description:
 
+(require 'folding-setup)
+
 ;;;###autoload
 (defun text-mode-setup ()
   (init-common :use-yasnippet nil
@@ -13,7 +15,7 @@
                :use-render-formula nil
                :use-whitespace nil)
   (setq-local hs-allow-nesting t)
-  (setup-folding t nil))
+  (setup-hideshow-yafolding))
 
 ;;;###autoload
 (add-hook 'text-mode-hook #'text-mode-setup)
