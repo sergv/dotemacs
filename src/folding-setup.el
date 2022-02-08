@@ -16,9 +16,21 @@
 (require 'comment-util)
 (require 'el-patch)
 (require 'hideshow)
+(require 'yafolding)
 (require 'vim-setup)
 
 (provide 'folding-setup)
+
+;;;; Yafolding
+
+(defadvice yafolding-go-parent-element
+    (after
+     yafolding-go-parent-element/skip-whitespace
+     activate
+     compile)
+  (skip-to-indentation))
+
+(setf yafolding-show-fringe-marks nil)
 
 ;;;; Hideshow
 
@@ -290,7 +302,27 @@ function; and adjust-block-beginning function."
 
   (outline-minor-mode +1))
 
-;;;; Combined
+;;;; Combined hideshow and yafolding
+
+(vim-defcmd vim:folding-hide-indented-or-sexp ()
+  (if (and hs-minor-mode
+           (folding-outline-on-sexp?))
+      (hs-hide-block)
+    (yafolding-hide-element)))
+
+(vim-defcmd vim:folding-show-indented-or-sexp ()
+  (if (and hs-minor-mode
+           (folding-outline-on-sexp?))
+      (hs-show-block)
+    (yafolding-show-element)))
+
+(defun folding-outline-on-sexp? ()
+  (when-let (next (char-after))
+    (let ((syn (char-syntax next)))
+      (or (eq syn ?\()
+          (eq syn ?\))))))
+
+;;;; Hydras and setups
 
 (defhydra-derive hydra-vim-normal-z-hideshow hydra-vim-normal-z-ext (:exit t :foreign-keys nil :hint nil)
   "
@@ -330,6 +362,42 @@ _O_: show all blocks  _U_: show all outline blocks"
   ("U" vim:outline-show-all:interactive)
   ("u" vim:outline-show-subtree:interactive))
 
+(defhydra-derive hydra-vim-normal-z-hideshow-yafolding hydra-vim-normal-z-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_c_: hide indented or sexp
+_o_: show indented or sexp
+_C_: hide all indented
+_O_: show all indented
+_T_: toggle all indented"
+  ("c" vim:folding-hide-indented-or-sexp:interactive)
+  ("o" vim:folding-show-indented-or-sexp:interactive)
+  ("C" vim:yafolding-hide-all:interactive)
+  ("O" vim:yafolding-show-all:interactive)
+  ("T" vim:yafolding-toggle-all:interactive))
+
+(defhydra-derive hydra-vim-visual-z-yafolding hydra-vim-visual-z-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_c_: yafolding hide region"
+  ("c" yafolding-hide-region))
+
+(defhydra-derive hydra-vim-normal-z-hideshow-yafolding-and-outline hydra-vim-normal-z-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_c_: hide indented or sexp  _f_: hide outline block
+_o_: show indented or sexp  _u_: show outline block
+_C_: hide all indented      _F_: hide all outline blocks leaving all headings visible
+_O_: show all indented      _U_: show all outline blocks
+_T_: toggle all indented"
+  ("c" vim:folding-hide-indented-or-sexp:interactive)
+  ("o" vim:folding-show-indented-or-sexp:interactive)
+  ("C" vim:yafolding-hide-all:interactive)
+  ("O" vim:yafolding-show-all:interactive)
+  ("T" vim:yafolding-toggle-all:interactive)
+
+  ("F" vim:outline-hide-body:interactive)
+  ("f" vim:outline-hide-subtree:interactive)
+  ("U" vim:outline-show-all:interactive)
+  ("u" vim:outline-show-subtree:interactive))
+
 ;;;###autoload
 (defun setup-folding (enable-hideshow? outline-params)
   (if enable-hideshow?
@@ -347,15 +415,39 @@ _O_: show all blocks  _U_: show all outline blocks"
       (def-keys-for-map vim-normal-mode-local-keymap
         ("z" hydra-vim-normal-z-outline/body)))))
 
+;;;###autoload
+(defun setup-hideshow-yafolding ()
+  (setup-folding t nil)
+  (yafolding-mode +1)
+  (setq buffer-display-table (make-display-table))
+  (set-display-table-slot buffer-display-table
+                          'selective-display
+                          (string-to-vector " ..."))
+  (def-keys-for-map vim-normal-mode-local-keymap
+    ("z" hydra-vim-normal-z-hideshow-yafolding/body))
+  (def-keys-for-map vim-visual-mode-local-keymap
+    ("z" hydra-vim-visual-z-yafolding/body)))
+
+;;;; Vimmized functions
+
 (vimmize-function hs-hide-block :name vim:hs-hide-block :has-count nil)
 (vimmize-function hs-show-block :name vim:hs-show-block :has-count nil)
 (vimmize-function hs-hide-all   :name vim:hs-hide-all   :has-count nil)
 (vimmize-function hs-show-all   :name vim:hs-show-all   :has-count nil)
 
+(vimmize-function hs-hide-block :name vim:hs-hide-block :has-count nil)
+(vimmize-function hs-show-block :name vim:hs-show-block :has-count nil)
+
+(vimmize-function yafolding-toggle-all :name vim:yafolding-toggle-all :has-count nil)
+(vimmize-function yafolding-hide-all   :name vim:yafolding-hide-all   :has-count nil)
+(vimmize-function yafolding-show-all   :name vim:yafolding-show-all   :has-count nil)
+
 (vimmize-function outline-hide-body    :name vim:outline-hide-body    :has-count nil)
 (vimmize-function outline-hide-subtree :name vim:outline-hide-subtree :has-count nil)
 (vimmize-function outline-show-all     :name vim:outline-show-all     :has-count nil)
 (vimmize-function outline-show-subtree :name vim:outline-show-subtree :has-count nil)
+
+;;;; End
 
 (provide 'folding-setup)
 
