@@ -25,14 +25,14 @@
 ;;;###autoload
 (defun js2-hide-indented-or-sexp ()
   (interactive)
-  (if (haskell-outline-on-sexp?)
+  (if (folding-outline-on-sexp?)
       (hs-hide-block)
     (js2-mode-hide-element)))
 
 ;;;###autoload
 (defun js2-show-indented-or-sexp ()
   (interactive)
-  (if (haskell-outline-on-sexp?)
+  (if (folding-outline-on-sexp?)
       (hs-show-block)
     (js2-mode-show-element)))
 
