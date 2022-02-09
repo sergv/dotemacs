@@ -1108,6 +1108,18 @@ exportSep _ =
               (3 4)
               (4 6))
 
+(hindent-test "guard-does-not-break-where-clause guard does not break where clause" "
+foo :: Int -> Int
+foo x
+  | otherwise = []
+  where
+    distance :: (Position, Position) -> Int
+    distance (prevEnd, nextStart)
+      ="
+              (3 2)
+              (4 2)
+              (7 6))
+
 (ert-deftest haskell-indentation-ret-indents ()
   (with-temp-switch-to-buffer
    (haskell-mode)
