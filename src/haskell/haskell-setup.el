@@ -582,7 +582,7 @@ _a_lign  _t_: jump to topmost node start
     ("SPC SPC"  comint-clear-prompt))
 
   (def-keys-for-map vim-insert-mode-local-keymap
-    ("'"        haskell--quote)
+    ("'"        haskell-smart-operators-quote)
     ("-"        haskell--ghci-hyphen)
     (":"        haskell--ghci-colon)
     ("`"        vim-wrap-backticks))
