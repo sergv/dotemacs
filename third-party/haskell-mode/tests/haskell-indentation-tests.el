@@ -177,7 +177,7 @@ import Control.Concurrent
 fun = [ x | y
           , z ]"
               (1 0)
-              (2 8 10)
+              (2 10)
               (3 0 2 6))
 
 (hindent-test "5a* List comprehension""
@@ -186,6 +186,16 @@ fun = [ x | y,
               (1 0)
               (2 12)
               (3 0 6))
+
+(hindent-test "5b List comprehension""
+fun = [ x
+      | y
+      , z
+      ]"
+              (1 0)
+              (2 6)
+              (3 6)
+              (4 6))
 
 (hindent-test "6a* \"let\" in list comprehension""
 fun = [ f | x <- xs
@@ -238,6 +248,21 @@ fact n = do
               (3 2 6 8 10)
               (4 7)
               (5 0 2 4 10))
+
+
+(hindent-test "6aa \"let\" in list comprehension""
+fun = [ x
+      | y <- xs
+      , z <- ys
+      , let z = foo x y
+      , pred z
+      ]"
+              (1 0)
+              (2 6)
+              (3 6)
+              (4 6)
+              (5 6)
+              (6 6))
 
 
 (hindent-test "7a \"data\" after \"data\"""
@@ -302,7 +327,7 @@ fun = do { putStrLn \"X\";
          }"
               (1 0)
               (2 9 11)
-              (3 0 2))
+              (3 0))
 
 (hindent-test "13a Deriving on new line""
 data X = X | Y
@@ -931,7 +956,7 @@ fun = if | guard1 -> expr1
          | guardN -> exprN"
               (1 0)
               (2 9)
-              (3 0 2 9 11 21))
+              (3 0 9 11 21))
 
 (hindent-test "54 equal after guards on separate line" "
 foo x
