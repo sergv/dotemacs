@@ -181,14 +181,14 @@
 (defun haskell-insert-pp-info-template ()
   (interactive)
   (haskell-abbrev+--ensure-debug-trace-available)
-  (insert "trace (displayDocString $ ")
+  (insert "Debug.Trace.trace (displayDocString $ ")
   (haskell-insert-pp-dict-info-template)
   (insert ") $"))
 
 (defun haskell-insert-monadic-pp-info-template ()
   (interactive)
   (haskell-abbrev+--ensure-debug-trace-available)
-  (insert "traceM $ displayDocString $ ")
+  (insert "Debug.Trace.traceM $ displayDocString $ ")
   (haskell-insert-pp-dict-info-template))
 
 (defun haskell-abbrev+-extract-first-capital-char (qualified-name)
@@ -415,8 +415,12 @@ then Bar would be the result."
                               "pptraceM"
                               "infompp"
                               "infoMpp"
+                              "infoppm"
+                              "infoppM"
                               "tracempp"
-                              "traceMpp")
+                              "traceMpp"
+                              "traceppm"
+                              "traceppM")
                         (make-abbrev+-abbreviation
                          :action-type 'function-with-side-effects
                          :action-data #'haskell-insert-monadic-pp-info-template))
