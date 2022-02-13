@@ -56,40 +56,47 @@
 (defvar vim-ex-keymap
   (let ((map (make-sparse-keymap)))
     (def-keys-for-map map
-      ("<escape>"      abort-recursive-edit)
-      ("C-w"           backward-delete-word)
-      ("C-S-w"         backward-delete-word*)
-      ("C-h"           ivy-next-line)
-      ("C-t"           ivy-previous-line)
-      ("C-p"           vim-cmd-paste-after-no-adjust)
-      ("C-S-p"         browse-kill-ring)
-      ("C-/"           nil)
-      ("C-v"           set-mark-command)
-      ("C-y"           copy-region-as-kill)
-      ("C-d"           kill-region)
-      ("C-f"           read-and-insert-filename)
-      ("<delete>"      delete-char)
-      ("<home>"        beginning-of-line)
-      ("<end>"         end-of-line)
-      ("SPC"           self-insert-command)
-      ("S-<delete>"    delete-whitespace-forward)
-      ("S-<backspace>" delete-whitespace-backward)
+      ("<escape>"               abort-recursive-edit)
+      ("C-w"                    backward-delete-word)
+      ("C-S-w"                  backward-delete-word*)
+      ("C-h"                    next-line)
+      ("C-t"                    previous-line)
+      ("C-p"                    vim-cmd-paste-after-no-adjust)
+      ("C-S-p"                  browse-kill-ring)
+      ("C-/"                    nil)
+      ("C-v"                    set-mark-command)
+      ("C-y"                    copy-region-as-kill)
+      ("C-d"                    kill-region)
+      ("C-f"                    read-and-insert-filename)
+      ("<delete>"               delete-char)
+      ("<home>"                 beginning-of-line)
+      ("<end>"                  end-of-line)
+      ("SPC"                    self-insert-command)
+      ("S-<delete>"             delete-whitespace-forward)
+      ("S-<backspace>"          delete-whitespace-backward)
 
-      ("?"             self-insert-command)
-      ("<tab>"         minibuffer-complete)
-      ("<return>"      vim-ex-mode-exit)
-      ("RET"           vim-ex-mode-exit)
-      ("C-j"           vim-ex-mode-exit)
-      ("C-g"           vim-ex-mode-abort)
-      ("<up>"          ivy-previous-history-element)
-      ("<down>"        ivy-next-history-element)
+      ("?"                      self-insert-command)
+      ("<tab>"                  minibuffer-complete)
+      (("<return>" "RET" "C-j") vim-ex-mode-exit)
+      ("C-g"                    vim-ex-mode-abort)
+      ("<up>"                   previous-history-element)
+      ("<down>"                 next-history-element)
 
-      ("("             pseudoparedit-insert-round)
-      ("["             pseudoparedit-insert-square)
-      ("{"             pseudoparedit-insert-curly)
-      ("<backspace>"   pseudoparedit-backspace))
+      ("\("                     pseudoparedit-insert-round)
+      ("\["                     pseudoparedit-insert-square)
+      ("\{"                     pseudoparedit-insert-curly)
+      ("<backspace>"            vim-ex-backspace))
     map)
   "Keymap used in ex-mode.")
+
+(defun vim-ex-backspace ()
+  (interactive)
+  (if (minibufferp)
+      (progn
+        (if (zerop (- (point-max) (minibuffer-prompt-end)))
+            ;; (zerop (length (minibuffer-contents)))
+            (exit-minibuffer)
+          (pseudoparedit-backspace)))))
 
 (defun vim-ex--contents ()
   "Returns the contents of the ex buffer.
@@ -237,11 +244,12 @@ cancel ex-mode."
 (defun vim-ex--get-arg-handler (cmd)
   "Returns the argument handler of command `cmd'."
   (let ((cmd (vim-ex--binding cmd)))
-    (if (not (vim-ex--binding-p cmd))
-      (ding)
-      (let* ((arg-type (vim--cmd-arg cmd))
-             (arg-handler (assoc arg-type vim--argument-handlers-alist)))
-        (if arg-handler (cdr arg-handler))))))
+    (if (vim-ex--binding-p cmd)
+        (let* ((arg-type (vim--cmd-arg cmd))
+               (arg-handler (assoc arg-type vim--argument-handlers-alist)))
+          (if arg-handler (cdr arg-handler)))
+      (ding))))
+
 
 (defun vim-ex--setup ()
   "Initializes the minibuffer for an ex-like mode.
@@ -281,7 +289,7 @@ This function should be called whenever the minibuffer is exited."
   "Calls `minibuffer-complete-and-exit' and cleanup."
   (interactive)
   (vim-ex--stop-session)
-  (ivy-done))
+  (exit-minibuffer))
 
 (defun vim-ex-mode-abort ()
   "Calls `abort-recursive-edit' and cleanup."
@@ -637,9 +645,9 @@ Returns four values: (cmd beg end force) where
               sep ?,))
       (when (= pos (or
                     (if vim-ex--local-commands-re-cache
-                      (string-match vim-ex--local-commands-re-cache
-                                    text
-                                    pos)
+                        (string-match vim-ex--local-commands-re-cache
+                                      text
+                                      pos)
                       (string-match vim-ex--global-commands-re-cache
                                     ;; "\\([a-zA-Z0-9_]+\\)\\(!\\)?"
                                     text
@@ -648,8 +656,8 @@ Returns four values: (cmd beg end force) where
         (setq cmd (cons (match-beginning 1) (match-end 1))))
       (cl-multiple-value-bind (start end)
           (vim-ex--get-range (and begin (cons begin begin-off))
-                            sep
-                            (and end (cons end end-off)))
+                             sep
+                             (and end (cons end end-off)))
         (values cmd start end (match-beginning 2))))))
 
 
@@ -706,12 +714,14 @@ the offset and the new position."
     (and off (values off pos))))
 
 (defun vim-ex--get-range (start sep end)
+  "Must be called from within ex buffer."
   (with-current-buffer vim-ex--current-buffer
     (when start
       (setq start (vim-ex--get-line start)))
     (when (and sep end)
       (save-excursion
-        (when (= sep ?\;) (goto-line-dumb start))
+        (when (= sep ?\;)
+          (goto-line-dumb start))
         (setq end (vim-ex--get-line end))))
     (values start end)))
 
@@ -749,7 +759,7 @@ the offset and the new position."
             (`next-of-prev-subst  (error "Next-of-prev-subst not yet implemented"))
             (_                    (error "Invalid address: %s" address))))))))
 
-(defconst vim-ex--propmt ">"
+(defconst vim-ex--prompt ">"
   "Prompt shape for ex mode.")
 
 (defun vim-ex-read-command (&optional initial-input)
@@ -759,25 +769,20 @@ the offset and the new position."
         (vim-ex--current-window (selected-window)))
     (let ((minibuffer-local-completion-map vim-ex-keymap)
           ;; We will add user input to history ourselves, if it's long enough.
-          (history-add-new-input nil)
-          (ivy-height 4)
-          (ivy-count-format ""))
+          (history-add-new-input nil))
       (add-hook 'minibuffer-setup-hook #'vim-ex--start-session)
       (let ((result
-             (ivy-read vim-ex--propmt
-                       (or vim-ex--all-known-local-and-global-ex-commands
-                           vim-ex--all-known-global-ex-commands)
-                       :predicate nil
-                       :require-match nil
-                       :initial-input initial-input
-                       :history 'vim-ex--history
-                       :keymap vim-ex-keymap
-                       :caller 'vim-ex-read-command)))
+             (completing-read-default vim-ex--prompt
+                                      (or vim-ex--all-known-local-and-global-ex-commands
+                                          vim-ex--all-known-global-ex-commands)
+                                      nil
+                                      nil
+                                      initial-input
+                                      'vim-ex--history)))
         (when result
           ;; Filter out commands like "w" and "hs"
-          (when (and vim-ex--history
-                     (<= (length (car vim-ex--history)) 2))
-            (pop vim-ex--history))
+          (when (< 2 (length result))
+            (push result vim-ex--history))
           (vim-ex-execute-command result))))))
 
 (provide 'vim-ex)
