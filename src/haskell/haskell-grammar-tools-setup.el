@@ -59,9 +59,7 @@ _I_: jump back"
   (def-keys-for-map vim-visual-mode-local-keymap
     ("g" hydra-haskell-vim-visual-g-ext/body))
 
-  (def-keys-for-map vim-insert-mode-local-keymap
-    ("'"               haskell-smart-operators-quote)
-    ("`"               vim-wrap-backticks))
+  (haskell-setup-common-editing)
 
   (def-keys-for-map (vim-normal-mode-local-keymap vim-insert-mode-local-keymap)
     ("M-t"             haskell-compilation-prev-error-other-window)

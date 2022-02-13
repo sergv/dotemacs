@@ -81,7 +81,8 @@
                     paredit-comment-prefix-code one-line
                     paredit-comment-prefix-margin one-line))))
 
-  (paredit-mode +1))
+  ;; REALLY don’t want paredit keybindings. I make my own bindings.
+  (paredit-mode -1))
 
 
 (defun paredit-init ()
@@ -94,8 +95,6 @@
     ("M-q"       nil)
     ("C-k"       nil)
     ("<return>"  nil)
-    (";"         nil)
-    ("\\"        nil)
     ("C-<left>"  nil)
     ("C-<right>" nil)
     ("M-<left>"  paredit-backward-slurp-sexp)

@@ -327,9 +327,20 @@ _a_lign  _t_: jump to topmost node start
   ("h" haskell-move-to-topmost-end))
 
 ;;;###autoload
+(defun haskell-setup-common-editing ()
+  (def-keys-for-map vim-insert-mode-local-keymap
+    ("'"        haskell-smart-operators-quote)
+    ("`"        vim-wrap-backticks)
+
+    ("\""       smart-operators-double-quote)
+    ("\("       smart-operators-open-paren)
+    ("\["       smart-operators-open-bracket)))
+
+;;;###autoload
 (defun haskell-setup ()
   (let ((non-vanilla-haskell-mode? (-any? #'derived-mode-p '(ghc-core-mode haskell-c2hs-mode haskell-hsc-mode))))
     (init-common :use-whitespace 'tabs-only)
+    (haskell-setup-common-editing)
     (add-hook 'after-save-hook #'haskell-update-eproj-tags-on-save nil t)
 
     (pretty-ligatures-install!)
@@ -492,9 +503,7 @@ _a_lign  _t_: jump to topmost node start
       ("C-#"          search-for-haskell-symbol-at-point-backward-new-color)
       ("'"            vim:haskell-backward-up-indentation-or-sexp:interactive))
 
-    (def-keys-for-map vim-insert-mode-local-keymap
-      ("'"            haskell-smart-operators-quote)
-      ("`"            vim-wrap-backticks))
+    (haskell-setup-common-editing)
 
     (install-haskell-smart-operators!
         vim-insert-mode-local-keymap
@@ -581,11 +590,11 @@ _a_lign  _t_: jump to topmost node start
     ("H"        dante-repl-restart)
     ("SPC SPC"  comint-clear-prompt))
 
+  (haskell-setup-common-editing)
+
   (def-keys-for-map vim-insert-mode-local-keymap
-    ("'"        haskell-smart-operators-quote)
     ("-"        haskell--ghci-hyphen)
-    (":"        haskell--ghci-colon)
-    ("`"        vim-wrap-backticks))
+    (":"        haskell--ghci-colon))
 
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-insert-mode-local-keymap)

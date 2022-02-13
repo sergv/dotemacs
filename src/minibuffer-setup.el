@@ -16,13 +16,7 @@
                    minibuffer-local-map
                    minibuffer-local-isearch-map
                    minibuffer-inactive-mode-map)
-  ("("                 pseudoparedit-insert-round)
-  ("["                 pseudoparedit-insert-square)
-  ("{"                 pseudoparedit-insert-curly)
-  ("<backspace>"       pseudoparedit-backspace)
-
   ("<escape>"          abort-recursive-edit)
-  ;; ("?"                 self-insert-command)
 
   ("C-w"               backward-delete-word)
   ("C-S-w"             backward-delete-word*)
