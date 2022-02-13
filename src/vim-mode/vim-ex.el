@@ -585,7 +585,9 @@ has been pressed."
             (start-line
              (vim:motion-go-to-first-non-blank-beg :count (or end-line start-line)))
             (t
-             (error "Unknown command: %s" vim-ex--cmd))))))))
+             (error "Unknown command: %s" (if (zerop (length vim-ex--cmd))
+                                              cmdline
+                                            vim-ex--cmd)))))))))
 
 ;; parser for ex-commands
 (defun vim-ex--parse (text)
@@ -602,7 +604,7 @@ Returns four values: (cmd beg end force) where
           end
           (end-off 0)
           (pos 0)
-          (cmd nil))
+          cmd)
       (cl-multiple-value-bind (beg npos) (vim-ex--parse-address text pos)
         (when npos
           (setq begin beg
