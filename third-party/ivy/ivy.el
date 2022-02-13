@@ -1637,7 +1637,7 @@ minibuffer."
         (ivy--exhibit))
     (setq prefix-arg current-prefix-arg)
     (condition-case nil
-        (call-interactively #'delete-backward-char)
+        (call-interactively #'pseudoparedit-backspace)
       (error
        (when ivy-on-del-error-function
          (funcall ivy-on-del-error-function))))))

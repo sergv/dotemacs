@@ -81,6 +81,13 @@
   ("C-<end>"           nil)
 
   (("DEL" "<backspace>") pseudoparedit-backspace)
+  ("\""                  pseudoparedit-insert-double-quote)
+  ("\("                  pseudoparedit-insert-paren)
+  ("\)"                  smart-operators-close-paren)
+  ("\["                  pseudoparedit-insert-bracket)
+  ("\]"                  smart-operators-close-bracket)
+  ("\{"                  pseudoparedit-insert-brace)
+  ("\}"                  smart-operators-close-brace)
 
   ;; It’s bound to ‘keyboard-escape-quit’ by default which I never use.
   ("\e\e\e" nil))
