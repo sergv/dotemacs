@@ -49,8 +49,8 @@ If <bool> is ‘t’ then <name> is a string, otherwise it’s an integer obtain
 (defun vim-cmd-toggle-macro-recording (ask-for-a-name?)
   (interactive "P")
   (if vim--current-macro
-      (progn
-        (vim--cmd-stop-macro vim--current-macro)
+      (unwind-protect
+          (vim--cmd-stop-macro vim--current-macro)
         (setf vim--current-macro nil))
     (let ((name (if ask-for-a-name?
                     (read-string "Macro name: " nil 'vim--macro-names-history)
