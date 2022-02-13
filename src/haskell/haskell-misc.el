@@ -628,7 +628,8 @@ both unicode and ascii characters.")
                                  "do"
                                  "="
                                  "->"
-                                 "<-")))))
+                                 "<-"
+                                 "\\case")))))
                     nil)
                    (let ((before (char-before)))
                      (or (eq before ?\s)
