@@ -18,6 +18,7 @@
 (require 'common)
 (require 'el-patch)
 (require 'folding-setup)
+(require 'smart-operators-utils)
 (require 'hydra-setup)
 (require 'indentation)
 (require 'macro-util)
@@ -586,6 +587,7 @@ _o_: show sexps in region"
                :use-whitespace 'tabs-only
                :use-render-formula t
                :use-fci use-fci)
+  (paredit-mode +1)
   (rainbow-delimiters-mode 1)
   (setup-folding t '(:header-symbol ";" :length-min 3))
   ;; hiding of comments is rather annoying feature when working with lisps
@@ -668,23 +670,26 @@ _o_: show sexps in region"
   (vim-local-emap "clear" #'vim:comint-clear-buffer-above-prompt)
 
   (def-keys-for-map vim-normal-mode-local-keymap
-    ("SPC SPC"  comint-clear-prompt))
+    ("SPC SPC"     comint-clear-prompt))
 
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-insert-mode-local-keymap)
-    ("C-SPC"    vim:comint-clear-buffer-above-prompt:interactive)
-    ("C-w"      backward-delete-word)
-    ("C-S-w"    backward-delete-word*)
-    ("<tab>"    nil)
+    ("<backspace>" paredit-backward-delete)
+    ("M-;"         paredit-comment-dwim)
 
-    ("M-p"      browse-comint-input-history)
+    ("C-SPC"       vim:comint-clear-buffer-above-prompt:interactive)
+    ("C-w"         backward-delete-word)
+    ("C-S-w"       backward-delete-word*)
+    ("<tab>"       nil)
 
-    ("<up>"     comint-previous-input)
-    ("<down>"   comint-next-input)
-    ("C-<up>"   comint-previous-prompt)
-    ("C-<down>" comint-next-prompt)
-    ("S-<up>"   comint-previous-prompt)
-    ("S-<down>" comint-next-prompt)))
+    ("M-p"         browse-comint-input-history)
+
+    ("<up>"        comint-previous-input)
+    ("<down>"      comint-next-input)
+    ("C-<up>"      comint-previous-prompt)
+    ("C-<down>"    comint-next-prompt)
+    ("S-<up>"      comint-previous-prompt)
+    ("S-<down>"    comint-next-prompt)))
 
 (provide 'general-lisp-setup)
 

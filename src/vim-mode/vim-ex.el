@@ -82,9 +82,7 @@
       ("<up>"                   previous-history-element)
       ("<down>"                 next-history-element)
 
-      ("\("                     pseudoparedit-insert-round)
-      ("\["                     pseudoparedit-insert-square)
-      ("\{"                     pseudoparedit-insert-curly)
+      ("C-<return>"             newline)
       ("<backspace>"            vim-ex-backspace))
     map)
   "Keymap used in ex-mode.")
@@ -201,15 +199,6 @@ the symbol 'incomplete is returned."
 (defsubst vim-ex--binding-p (binding)
   "Returns t iff the given binding non-nil and not 'incomplete."
   (and binding (not (eq binding 'incomplete))))
-
-(defun vim-ex-delete-backward-char (n)
-  "Delete the previous `n' characters. If ex-buffer is empty,
-cancel ex-mode."
-  (interactive "p")
-  (if (and (>= n 1)
-           (zerop (length (minibuffer-contents))))
-    (ivy-done))
-  (delete-char (- n)))
 
 (cl-defstruct (vim-arg-handler
                (:constructor vim-make-arg-handler))
