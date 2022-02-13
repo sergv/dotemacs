@@ -1161,19 +1161,56 @@ layout starts."
       (haskell-indentation-read-next-token))))
 
 (defun haskell-indentation-if ()
-  "" ; FIXME
-  (haskell-indentation-with-starter
-   (lambda ()
-     (if (equal current-token "|")
-         (haskell-indentation-with-starter
-          (lambda ()
-            (haskell-indentation-separated #'haskell-indentation-case-alternative '("|") nil))
-          nil)
-       (haskell-indentation-phrase-rest
-        '(haskell-indentation-expression
-          "then" haskell-indentation-expression
-          "else" haskell-indentation-expression))))
-   nil))
+  ""                                    ; FIXME
+  (let ((start-column (current-column-fixed)))
+    (haskell-indentation-with-starter
+     (lambda ()
+       (if (equal current-token "|")
+           (haskell-indentation-with-starter
+            (lambda ()
+              (haskell-indentation-separated #'haskell-indentation-case-alternative '("|") nil))
+            nil)
+         (progn
+           ;; Condition
+           (haskell-indentation-expression)
+
+           (when (equal current-token 'layout-item)
+             (haskell-indentation-read-next-token))
+
+           ;; Then
+           (when (and (eq current-token 'end-tokens)
+                      (equal following-token "then"))
+             (haskell-indentation-push-indentation start-column)
+             (throw 'parse-end nil))
+
+           (when (equal current-token "then")
+
+             (haskell-indentation-read-next-token))
+
+           (when (and (eq current-token 'end-tokens))
+             (haskell-indentation-push-indentation (+ start-column haskell-indentation-layout-offset))
+             (throw 'parse-end nil))
+
+           (haskell-indentation-expression)
+
+           (when (equal current-token 'layout-item)
+             (haskell-indentation-read-next-token))
+
+           ;; Else
+           (when (and (eq current-token 'end-tokens)
+                      (equal following-token "else"))
+             (haskell-indentation-push-indentation start-column)
+             (throw 'parse-end nil))
+
+           (when (equal current-token "else")
+             (haskell-indentation-read-next-token))
+
+           (when (and (eq current-token 'end-tokens))
+             (haskell-indentation-push-indentation (+ start-column haskell-indentation-layout-offset))
+             (throw 'parse-end nil))
+
+           (haskell-indentation-expression))))
+     nil)))
 
 (defun haskell-indentation-phrase (phrase)
   "" ; FIXME
