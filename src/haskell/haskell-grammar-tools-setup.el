@@ -29,7 +29,6 @@ _I_: jump back"
 ;;;###autoload
 (defun haskell-grammar-tools-setup ()
   (init-common :use-whitespace 'tabs-only)
-  (fontify-merge-markers)
   (let ((proj (eproj-get-project-for-buf-lax (current-buffer))))
 
     (haskell-compilation-commands-install! proj)
