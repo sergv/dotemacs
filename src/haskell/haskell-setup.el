@@ -630,7 +630,6 @@ _a_lign  _t_: jump to topmost node start
   (haskell-setup-folding)
   (let ((proj (eproj-get-project-for-buf-lax (current-buffer))))
     (haskell-compilation-commands-install! proj))
-  (fontify-merge-markers)
   (modify-syntax-entry ?. "_")
   (setup-indent-size 2)
   (setq-local yas-indent-line 'fixed
