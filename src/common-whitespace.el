@@ -91,8 +91,6 @@ character found. Returns t if any whitespace was actually deleted."
       (delete-region (point) start))
     any-deleted?))
 
-
-
 (provide 'common-whitespace)
 
 ;; Local Variables:
