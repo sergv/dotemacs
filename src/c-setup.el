@@ -17,6 +17,12 @@
          #'c-format-buffer
          *mode-indent-functions-table*)
 
+(defun c-init ()
+  (def-keys-for-map c-mode-map
+    (("\(" "\)" "\[" "\]" "\{" "\}") nil)))
+
+(eval-after-load 'cc-mode '(c-init))
+
 ;;;###autoload
 (defun c-setup ()
   (cc-setup :define-special-keys t)

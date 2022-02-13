@@ -114,6 +114,84 @@ that next 2 characters are AFTER1 and AFTER2."
               (not (memq next-char '(?\s ?\t ?\'))))
       (insert-char ?\s))))
 
+(defun smart-operators--insert-pair (open close insert-space-before? insert-space-after?)
+  (let ((before (char-before)))
+    (when (and (funcall insert-space-before? before)
+               (not (whitespace-char? before)))
+      (insert-char ?\s))
+    (insert-char open)
+    (insert-char close)
+    (let ((after (char-after)))
+      (if (or (not (funcall insert-space-after? after))
+              (whitespace-char? after))
+          (forward-char -1)
+        (progn
+          (insert-char ?\s)
+          (forward-char -2))))))
+
+;;;###autoload
+(defun smart-operators-double-quote ()
+  (interactive)
+  (smart-operators--insert-pair ?\"
+                                ?\"
+                                (lambda (before)
+                                  (not (or (eq before ?\()
+                                           (eq before ?\[)
+                                           (eq before ?\\))))
+                                (lambda (after)
+                                  (not (or (eq after ?\))
+                                           (eq after ?\]))))))
+
+;;;###autoload
+(defun smart-operators-open-paren ()
+  (interactive)
+  (smart-operators--insert-pair ?\(
+                                ?\)
+                                (lambda (before)
+                                  (not (or (eq before ?\()
+                                           (eq before ?\[)
+                                           (eq before ?\\))))
+                                (lambda (after)
+                                  (not (or (eq after ?\))
+                                           (eq after ?\]))))))
+
+;;;###autoload
+(defun smart-operators-open-bracket ()
+  (interactive)
+  (smart-operators--insert-pair ?\[
+                                ?\]
+                                (lambda (before)
+                                  (not (or (eq before ?\()
+                                           (eq before ?\[)
+                                           (eq before ?\\))))
+                                (lambda (after)
+                                  (not (or (eq after ?\))
+                                           (eq after ?\]))))))
+
+;;;###autoload
+(defun smart-operators-close-paren (literal-insertion?)
+  (interactive "P")
+  (if (and (not literal-insertion?)
+           (eq (char-after) ?\)))
+      (forward-char 1)
+    (insert-char ?\))))
+
+;;;###autoload
+(defun smart-operators-close-bracket (literal-insertion?)
+  (interactive "P")
+  (if (and (not literal-insertion?)
+           (eq (char-after) ?\]))
+      (forward-char 1)
+    (insert-char ?\])))
+
+;;;###autoload
+(defun smart-operators-close-brace (literal-insertion?)
+  (interactive "P")
+  (if (and (not literal-insertion?)
+           (eq (char-after) ?\}))
+      (forward-char 1)
+    (insert-char ?\})))
+
 (provide 'smart-operators-utils)
 
 ;; Local Variables:
