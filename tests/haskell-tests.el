@@ -3244,6 +3244,101 @@
      "_|_"
      "makeFunction")))
 
+(ert-deftest haskell-tests/haskell-newline-with-signature-expansion-indent-1 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-newline-with-signature-expansion)
+    (tests-utils--multiline
+     ""
+     "foo x = do_|_"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  _|_"
+     "")))
+
+(ert-deftest haskell-tests/haskell-newline-with-signature-expansion-indent-2 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-newline-with-signature-expansion)
+    (tests-utils--multiline
+     ""
+     "foo x = case x of_|_"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = case x of"
+     "  _|_"
+     "")))
+
+(ert-deftest haskell-tests/haskell-newline-with-signature-expansion-indent-3 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-newline-with-signature-expansion)
+    (tests-utils--multiline
+     ""
+     "foo x =_|_"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x ="
+     "  _|_"
+     "")))
+
+(ert-deftest haskell-tests/haskell-newline-with-signature-expansion-indent-4 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-newline-with-signature-expansion)
+    (tests-utils--multiline
+     ""
+     "foo x = \\y -> _|_"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = \\y ->"
+     "  _|_"
+     "")))
+
+(ert-deftest haskell-tests/haskell-newline-with-signature-expansion-indent-5 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-newline-with-signature-expansion)
+    (tests-utils--multiline
+     ""
+     "foo x = \\case_|_"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = \\case"
+     "  _|_"
+     "")))
+
+(ert-deftest haskell-tests/haskell-newline-with-signature-expansion-indent-6 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-newline-with-signature-expansion)
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  let y = bar x_|_"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = do"
+     "  let y = bar x"
+     "      _|_"
+     "")))
+
+(ert-deftest haskell-tests/haskell-newline-with-signature-expansion-indent-7 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-newline-with-signature-expansion)
+    (tests-utils--multiline
+     ""
+     "foo x = bar y"
+     "  where_|_"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = bar y"
+     "  where"
+     "    _|_"
+     "")))
+
 (ert-deftest haskell-tests/haskell-move-to-topmost-start-1 ()
   (haskell-tests--test-buffer-contents
       (haskell-move-to-topmost-start)
