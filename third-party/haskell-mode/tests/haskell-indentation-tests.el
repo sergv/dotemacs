@@ -197,7 +197,7 @@ fun = [ x
               (3 6)
               (4 6))
 
-(hindent-test "6a* \"let\" in list comprehension""
+(hindent-test "6a \"let\" in list comprehension""
 fun = [ f | x <- xs
           , y <- ys
           , let c = 123
@@ -206,9 +206,9 @@ fun = [ f | x <- xs
               (2 10)
               (3 10)
               (4 10)
-              (5 0 6))
+              (5 0 2 6))
 
-(hindent-test "6b* \"let\" in list comprehension""
+(hindent-test "6b \"let\" in list comprehension""
 fun = [ f | x <- [1]
           , y <- [2]
           , let c, d :: Int
@@ -221,13 +221,13 @@ fun = [ f | x <- [1]
               (1 0)
               (2 10)
               (3 10)
-              (4 16)
-              (5 16)
+              (4 16 18 24)
+              (5 16 18 20)
               (6 10)
-              (7 0 6))
+              (7 0 2 6))
 
 
-(hindent-test "6u* \"let\" in list comprehension""
+(hindent-test "6u \"let\" in list comprehension""
 fun = [ f | x ← xs
           , y ← ys
           , let c = 123
@@ -236,7 +236,7 @@ fun = [ f | x ← xs
               (2 10)
               (3 10)
               (4 10)
-              (5 0))
+              (5 0 2 6))
 
 (hindent-test "6bx \"let\" in do""
 fact n = do
@@ -355,17 +355,17 @@ data X a b
               (1 0)
               (2 2))
 
-(hindent-test "14* Line starting with operator inside \"do\" needs to be indented""
+(hindent-test "14 Line starting with operator inside \"do\" needs to be indented""
 fun = do
   pure X
   something
     <*> marg"
               (1 0)
               (2 2)
-              (3 0 2)
+              (3 0 2 4)
               (4 4))
 
-(hindent-test "15* An \"if..then\" inside a \"do\" block""
+(hindent-test "15 An \"if..then\" inside a \"do\" block""
 fun = do
   if x
   then do
@@ -374,7 +374,21 @@ fun = do
               (2 2)
               (3 2)
               (4 4)
-              (5 2 4))
+              (5 4 6))
+
+(hindent-test "15a An \"if..then\" inside a \"do\" block""
+fun = do
+  if x
+  then
+    putStrLn \"True\"
+  else
+    putStrLn \"False\""
+              (1 0)
+              (2 2)
+              (3 2)
+              (4 4)
+              (5 2)
+              (6 4))
 
 (hindent-test "16 Lambda and a \"do\" block""
 fun = \\x -> do"
@@ -468,8 +482,8 @@ x = if flag
     then 1
     else 0"
               (1 0)
-              (2 2 4)
-              (3 2 4)
+              (2 4)
+              (3 4)
               (4 0 2 9))
 
 (hindent-test "18c* \"do\" and \"if-then-else\" indentation: \"then\"""
@@ -481,7 +495,7 @@ x = do
               (3 2)
               (4 2))
 
-(hindent-test "18d* \"do\" and \"if-then-else\" indentation: \"else\"""
+(hindent-test "18d \"do\" and \"if-then-else\" indentation: \"else\"""
 x = do
   if flag
   then 1
