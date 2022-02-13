@@ -613,7 +613,7 @@ Paredit behaves badly if parentheses are unbalanced, so exercise
   (defun paredit-conc-name (&rest strings)
     (intern (apply 'concat strings)))
 
-  (cl-defmacro define-paredit-pair (open close name &key enable-in-comment)
+  (defmacro define-paredit-pair (open close name)
     `(progn
        (defun ,(paredit-conc-name "paredit-open-" name) (&optional n)
          ,(concat "Insert a balanced " name " pair.
@@ -628,12 +628,8 @@ If in a character literal, do nothing.  This prevents changing what was
          (interactive "P")
          (let ((state (paredit-current-parse-state)))
            (cond
-             (,(cond
-                 (enable-in-comment
-                  '(paredit-in-string-p state))
-                 (t
-                  '(or (paredit-in-string-p state)
-                       (paredit-in-comment-p state))))
+             ((or (paredit-in-string-p state)
+                  (paredit-in-comment-p state))
               (insert-char ,open))
              ((paredit-in-char-p)
               nil)
@@ -672,11 +668,6 @@ Used by `paredit-yank-pop'; for internal paredit use only.")
 (define-paredit-pair ?\[ ?\] "square")
 (define-paredit-pair ?\{ ?\} "curly")
 (define-paredit-pair ?\< ?\> "angled")
-
-(define-paredit-pair ?\( ?\) "round-comments" :enable-in-comment t)
-(define-paredit-pair ?\[ ?\] "square-comments" :enable-in-comment t)
-(define-paredit-pair ?\{ ?\} "curly-comments" :enable-in-comment t)
-(define-paredit-pair ?\< ?\> "angled-comments" :enable-in-comment t)
 
 
 (defun paredit-move-past-close (close)
