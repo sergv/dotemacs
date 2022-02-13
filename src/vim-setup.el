@@ -401,13 +401,7 @@ _<right>_: move tab to the right"
   ("C-\""          typopunct-insert-quotation-mark)
   ("C--"           typopunct-insert-typographical-dashes)
 
-  ("\""            paredit-doublequote)
-  ("\("            paredit-open-round-comments)
-  ("\)"            paredit-close-round-comments)
-  ("\["            paredit-open-square-comments)
-  ("\]"            paredit-close-square-comments)
-  ("\{"            paredit-open-curly-comments)
-  ("\}"            paredit-close-curly-comments))
+  ("\{"            pseudoparedit-insert-brace-spaces))
 
 (def-keys-for-map (vim-insert-mode-keymap
                    vim-ex-keymap)
