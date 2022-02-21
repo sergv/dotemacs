@@ -64,7 +64,7 @@ special characters are introduced via backlash only."
     (let ((minibuffer-local-completion-map vim-ex-keymap))
       (add-hook 'minibuffer-setup-hook #'vim-ex--start-session)
       (add-hook 'minibuffer-setup-hook #'vim-replace--minibuffer-setup-jump-before-last-separator)
-      (let ((result (ivy-read vim-ex--propmt
+      (let ((result (ivy-read vim-ex--prompt
                               nil
                               :predicate nil
                               :require-match nil
