@@ -17,7 +17,7 @@
 
 (defun yas-load-snippet-buffer-no-kill (&optional prompt-table)
   "Load snippet from current buffer. If PROMPT-TABLE is non-nil then
-propmt user for snippet table to load into and try to infer one
+prompt user for snippet table to load into and try to infer one
 otherwise."
   (interactive "P")
   (save-excursion
