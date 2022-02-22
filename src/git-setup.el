@@ -162,7 +162,9 @@ _a_lign"
   (init-common :use-yasnippet nil
                :use-comment   t
                :use-fci       t)
+
   (setq-local indent-tabs-mode nil)
+
   (def-keys-for-map (vim-normal-mode-local-keymap vim-insert-mode-local-keymap)
     ("<tab>"                               tab-to-tab-stop)
     (("<backtab>" "S-<tab>" "S-<iso-tab>") tab-to-tab-stop-backward))
