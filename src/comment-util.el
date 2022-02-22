@@ -165,7 +165,7 @@ Intended to be used with comment-util-mode."
              ,(make-comment-format :one-line "#"
                                    :line-regexp "#+"
                                    :comment-chars-str "#"
-                                   :detect-line-comment #'comment-util--detect-line-comment-with-at-least-2-chars))
+                                   :detect-line-comment #'comment-util--detect-line-comment-with-at-least-1-char))
 
             ((rust-mode
               cuda-mode
@@ -285,7 +285,7 @@ Intended to be used with comment-util-mode."
              ,(make-comment-format :one-line "!"
                                    :line-regexp "!+"
                                    :comment-chars-str "!"
-                                   :detect-line-comment #'comment-util--detect-line-comment-with-at-least-2-chars))
+                                   :detect-line-comment #'comment-util--detect-line-comment-with-at-least-1-char))
 
             (texinfo-mode
              .
