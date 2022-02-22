@@ -388,7 +388,7 @@ get proper flycheck checker."
 (defun eproj-reset-projects ()
   "Clear project database `*eproj-projects*'."
   (interactive)
-  (setf *eproj-projects* (make-hash-table :test #'equal))
+  (clrhash *eproj-projects*)
   (eproj-get-initial-project-root/reset-cache)
   (eproj--resolve-to-abs-path-cached/reset-cache)
   (eproj-normalise-file-name-expand-cached/reset-cache)
@@ -863,14 +863,7 @@ symbol 'unresolved.")
 
 (defun eproj-get-project-for-buf (buffer)
   "Get project for BUFFER. Throw error if there's no project for it."
-  (eproj-get-project-for-path
-   (eproj/evaluate-with-caching-buffer-local-var
-    ;; Take directory since file visited by buffer may not be
-    ;; under version control per se.
-    (eproj--get-buffer-directory buffer)
-    buffer
-    eproj/buffer-directory
-    #'stringp)))
+  (eproj-get-project-for-path (eproj--get-buffer-directory buffer)))
 
 ;;;###autoload
 (defun eproj-sha1-of-project-root-for-buf (buffer)
@@ -880,14 +873,7 @@ symbol 'unresolved.")
 ;;;###autoload
 (defun eproj-get-project-for-buf-lax (buffer)
   "Get project for BUFFER. Return nil if there's no project for it."
-  (eproj-get-project-for-path-lax
-   (eproj/evaluate-with-caching-buffer-local-var
-    ;; Take directory since file visited by buffer may not be
-    ;; under version control per se.
-    (eproj--get-buffer-directory buffer)
-    buffer
-    eproj/buffer-directory
-    #'stringp)))
+  (eproj-get-project-for-path-lax (eproj--get-buffer-directory buffer)))
 
 ;;;###autoload
 (defun eproj-get-project-for-path-lax (path)
@@ -1191,13 +1177,19 @@ that. Report error if both conditions don’t hold."
   (cons path dir)
   (normalise-file-name (expand-file-name path dir)))
 
-(defun eproj--get-buffer-directory (buffer)
+(defun eproj--get-buffer-directory (buf)
   "Get directory associated with BUFFER, either through visited file
 or `default-directory', if no file is visited."
-  (with-current-buffer buffer
-    (or (and buffer-file-truename
-             (file-name-directory buffer-file-truename))
-        default-directory)))
+  (with-current-buffer buf
+    (eproj/evaluate-with-caching-buffer-local-var
+     ;; Take directory since the file visited by buf may not be
+     ;; under version control per se.
+     (or (and buffer-file-truename
+              (file-name-directory buffer-file-truename))
+         default-directory)
+     buf
+     eproj/buffer-directory
+     #'stringp)))
 
 (defun eproj-get-matching-tags (proj tag-major-mode identifier search-with-regexp?)
   "Get all tags from PROJ and its related projects from mode TAG-MAJOR-MODE
