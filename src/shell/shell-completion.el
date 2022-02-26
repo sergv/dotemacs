@@ -1262,7 +1262,10 @@ under version-control directories."
   (pcmpl-entries
    :select
    (eval-when-compile
-     "\\.project\\(?:\\.local\)?\\'")))
+     (rx ".project"
+         (* "." (+ any))
+         (? ".local")
+         (* "." (+ any))))))
 
 ;;;###autoload (autoload 'pcomplete/runghc "shell-completion" nil t)
 (defpcmpl pcomplete/runghc
