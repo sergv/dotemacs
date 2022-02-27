@@ -69,9 +69,9 @@ while interactively prompting for variables/messages."
            :action-type 'yas-snippet
            :action-data "std::cerr << $1 << std::endl;$2"))
     (cons (make-abbrev+-triggers-for-func-name
+           '("_" "")
            '(("static" 1)
-             ("cast"))
-           '("_" ""))
+             ("cast")))
           (make-abbrev+-abbreviation
            :action-type 'yas-snippet
            :action-data "static_cast<${1:target}>($2)$3")))))
