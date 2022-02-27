@@ -25,6 +25,8 @@
 
 ;;; Code:
 
+(require 'ert-async)
+
 
 ;;;; f-mkdir
 
