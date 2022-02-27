@@ -2,7 +2,7 @@
 (require 'ert)
 (require 'nix-mode)
 
-(defun check-syntax-and-face-match-range (beg end syntax face)
+(defun nix-font-lock-tests--check-syntax-and-face-match-range (beg end syntax face)
   "Check if all charaters between positions BEG and END have
 syntax set to SYNTAX and face set to FACE.
 If SYNTAX or FACE are set to t then any syntex respective face is
@@ -37,13 +37,13 @@ after a test as this aids interactive debugging."
        (funcall ,mode)
        ,@body)))
 
-(defun check-properties (lines-or-contents props &optional mode)
+(defun nix-font-lock-tests--check-properties (lines-or-contents props &optional mode)
   "Check if syntax properties and font-lock properties as set properly.
 LINES is a list of strings that will be inserted to a new
 buffer. Then PROPS is a list of triples of (string syntax
 face). String is searched for in the buffer and then is checked
 if all of its characters have syntax and face. See
-`check-syntax-and-face-match-range`."
+`nix-font-lock-tests--check-syntax-and-face-match-range`."
   (with-nix-test-buffer (or mode #'nix-mode)
                         (if (consp lines-or-contents)
                             (dolist (line lines-or-contents)
@@ -62,20 +62,20 @@ if all of its characters have syntax and face. See
                           (cl-destructuring-bind (string syntax face) prop
                             (let ((case-fold-search nil))
                               (search-forward string))
-                            (check-syntax-and-face-match-range (match-beginning 0) (match-end 0) syntax face)))))
+                            (nix-font-lock-tests--check-syntax-and-face-match-range (match-beginning 0) (match-end 0) syntax face)))))
 
 (ert-deftest nix-equals-1 ()
-  (check-properties
+  (nix-font-lock-tests--check-properties
    '("pattern = 3")
    '(("pattern" t nix-attribute-face))))
 
 (ert-deftest nix-equals-2 ()
-  (check-properties
+  (nix-font-lock-tests--check-properties
    '("pattern == 3")
    '(("pattern" t nil))))
 
 (ert-deftest nix-issue-84 ()
-  (check-properties
+  (nix-font-lock-tests--check-properties
    '("{ with-a ? {let-in=1; } , ... }:with with-a; { foo = \"bar\"; }")
    '(("let-in" t nix-attribute-face)
      ("with" t nix-keyword-face)
