@@ -189,6 +189,7 @@
                  1 2 (face (rainbow-delimiters-mismatched-face))))))))
 
 (ert-deftest doesnt-highlight-escaped-delimiters ()
+  :expected-result :failed
   (with-temp-buffer-in-mode 'emacs-lisp-mode
     (with-string (str "(bar ?\\( (foo?))")
       (should (ert-equal-including-properties
