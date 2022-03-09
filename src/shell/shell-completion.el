@@ -1096,7 +1096,8 @@ under version-control directories."
           (flags
            "-v"
            "--verbose"
-           "-n")
+           "-n"
+           "--format=fuller")
           (args
            (pcmpl-git-get-remotes))))
         ("prune"
