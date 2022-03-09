@@ -308,19 +308,20 @@ For windows process, Emacs native `signal-process' will be invoked."
        (if (and (eq (process-type proc) 'real)
                 (let ((current-grp (and (fakecygpty-process-p proc) current-group))
                       (pid (fakecygpty-real-process-id proc)))
-                  (if current-grp
-                      (let ((tty (if (fakecygpty-process-p proc)
-                                     (fakecygpty--get-pty-process-tty-name proc pid)
-                                   (process-tty-name proc))))
-                        (cond
-                          ,@(when cc
-                              `(((fakecygpty--process-send-special-char proc ,cc tty)
-                                 t)))
-                          ((eq current-grp 'lambda)
-                           (fakecygpty-qkill pid ,sig nil nil tty t))
-                          (t
-                           (fakecygpty-qkill pid ,sig nil nil tty))))
-                    (fakecygpty-qkill (- pid) ,sig))))
+                  (when pid
+                    (if current-grp
+                        (let ((tty (if (fakecygpty-process-p proc)
+                                       (fakecygpty--get-pty-process-tty-name proc pid)
+                                     (process-tty-name proc))))
+                          (cond
+                            ,@(when cc
+                                `(((fakecygpty--process-send-special-char proc ,cc tty)
+                                   t)))
+                            ((eq current-grp 'lambda)
+                             (fakecygpty-qkill pid ,sig nil nil tty t))
+                            (t
+                             (fakecygpty-qkill pid ,sig nil nil tty))))
+                      (fakecygpty-qkill (- pid) ,sig)))))
            proc
          (funcall old-func process current-group)))))
 
