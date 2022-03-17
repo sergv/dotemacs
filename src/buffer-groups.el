@@ -23,21 +23,25 @@
                             (mode . alex-mode)
                             (mode . happy-mode)
                             (mode . uuag-mode)
-                            (name . ,(rx "*"
+                            (name . ,(rx bos
+                                         "*"
                                          (or "haskell" "ghci")
                                          "*"
-                                         (? "<" (+ digit) ">")))))
+                                         (? "<" (+ digit) ">")
+                                         eos))))
        (proof-assistants-filter `(or (mode . agda2-mode)
                                      (mode . coq-mode)
                                      (mode . lean-mode)
-                                     (name . ,(rx (or "*Agda information*"
+                                     (name . ,(rx bos
+                                                  (or "*Agda information*"
                                                       (seq "*"
                                                            (or (seq "agda"
                                                                     (? "2"))
                                                                "lean"
                                                                "coq")
                                                            "*"
-                                                           (? "<" (+ digit) ">")))))))
+                                                           (? "<" (+ digit) ">")))
+                                                  eos))))
        (nix-filter `(or (mode . nix-mode)))
        (hdl-filter `(or (mode . verilog-mode)
                         (mode . vhdl-mode)
@@ -63,45 +67,53 @@
        (ml-filter `(or (mode . sml-mode)
                        (mode . tuareg-mode)
                        (mode . tuareg-interactive-mode)
-                       (name . ,(rx "*\\(?:ocaml\\|sml\\)-repl*"
-                                    (? "<" (+ digit) ">")))))
+                       (name . ,(rx bos
+                                    "*\\(?:ocaml\\|sml\\)-repl*"
+                                    (? "<" (+ digit) ">")
+                                    eos))))
        (array-filter `(or (mode . j-mode)
                           (mode . inferior-j-mode)))
        (octave-filter `(or (mode . octave-mode)
                            (mode . inferior-octave-mode)
-                           (name . ,(rx "*Octave*"
+                           (name . ,(rx bos
+                                        "*Octave*"
                                         (? "<"
                                            (+ digit)
-                                           ">")))))
+                                           ">")
+                                        eos))))
        (python-filter `(or (mode . python-mode)
                            (mode . python-repl-mode)
                            (mode . inferior-python-mode)
                            (mode . python-run-mode)
-                           (name . ,(rx (or "*Python*"
+                           (name . ,(rx bos
+                                        (or "*Python*"
                                             "*IPython*"
                                             "*Python Output*")
                                         (? "<"
                                            (+ digit)
-                                           ">")))))
+                                           ">")
+                                        eos))))
        (ptx-filter `(or (mode . ptx-mode)))
 
        (prolog-filter `(or (mode . prolog-mode)
-                           (name . ,(rx "*prolog*"
+                           (name . ,(rx bos
+                                        "*prolog*"
                                         (? "<"
                                            (+ digit)
-                                           ">")))))
+                                           ">")
+                                        eos))))
        (org-filter     `(or (mode . org-mode)
                             (mode . org-agenda-mode)
                             (mode . diary-mode)
                             (mode . calendar-mode)))
        (book-filter    `(or (mode . doc-view-mode)
-                            (name . ,(rx bol
+                            (name . ,(rx bos
                                          (+ anything)
                                          (or ".pdf"
                                              ".djvu"
                                              ".ps"
                                              ".dvi")
-                                         eol))))
+                                         eos))))
        (latex-filter   `(or (mode . latex-mode)
                             (mode . tex-mode)
                             (mode . LaTeX-mode)))
@@ -128,11 +140,11 @@
                                   (mode . nasm-mode)
                                   (mode . llvm-mode)
                                   (mode . tablegen-mode)))
-       (other-prog-filter `(or (name . ,(rx bol
+       (other-prog-filter `(or (name . ,(rx bos
                                             (or "makefile"
                                                 "Makefile"
                                                 "GNUMakefile")
-                                            eol))
+                                            eos))
                                (mode . autoconf-mode)
                                (mode . cmake-mode)
                                (mode . conf-colon-mode)
@@ -191,8 +203,8 @@
                         (mode . magit-submodule-list-mode)
                         (mode . magit-submodule-list-mode)
                         (mode . magit-wazzup-mode)
-                        (name . ,(rx bol "*magit" (* nonl) (? "*") eol))))
-       (utility-filter `(or (name . ,(rx bol (or "*Tags List*") eol))
+                        (name . ,(rx bos "*magit" (* nonl) (? "*") eos))))
+       (utility-filter `(or (name . ,(rx bos (or "*Tags List*") eos))
                             (predicate . (get-buffer-process (current-buffer)))
                             (mode . comint-mode)
                             (mode . compilation-mode)
@@ -205,14 +217,14 @@
                             (mode . hs-scan-mode)
                             (mode . gnuplot-run-mode)
                             (mode . eshell-mode)
-                            (predicate . (and (or (not (null? (get-buffer-process (current-buffer))))
-                                                  (eq? major-mode 'shell-mode))
+                            (predicate . (and (or (get-buffer-process (current-buffer))
+                                                  (eq major-mode 'shell-mode))
                                               (not (string-match-p "Async Shell Command"
                                                                    (buffer-name)))))))
        (dired-filter `(or (mode . dired-mode)))
-       (other-filter `(or (name . ,(rx "*scratch*"))
-                          (name . ,(rx "*Messages*"))
-                          (name . ,(rx "*Pp Eval Output*"))
+       (other-filter `(or (name . ,(rx (or "*scratch*"
+                                           "*Messages*"
+                                           "*Pp Eval Output*")))
                           (mode . help-mode)
                           (mode . apropos-mode)
                           (mode . Info-mode)
