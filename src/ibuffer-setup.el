@@ -207,8 +207,8 @@ _,_: mark for delete
     (:description "eproj root"
                   :reader (read-from-minibuffer "Filter by eproj project root: "))
     (ignore-errors
-      (string=? (eproj-project/root (eproj-get-project-for-buf buf))
-                qualifier)))
+      (string= (eproj-project/root (eproj-get-project-for-buf buf))
+               qualifier)))
 
   (define-ibuffer-filter git-repository-root
       "Toggle current view to buffers with git repository equal to QUALIFIER."
@@ -217,7 +217,7 @@ _,_: mark for delete
     (with-current-buffer buf
       (git-update-file-repository)
       (when git-repository
-        (string=? qualifier git-repository))))
+        (string= qualifier git-repository))))
 
   (define-ibuffer-sorter major-mode-and-buffer-name
     "Sort the buffers by major modes and buffer names.
