@@ -63,9 +63,9 @@ _)(_: (… | a b) -> (… | a) b
   ("t"          toggle)
   ("b"          hydra-tab-management/body)
 
-  ("cc"         comment-util-comment-lines)
-  ("cu"         comment-util-uncomment-region)
-  ("cd"         comment-util-delete-commented-part)
+  ("cc"         vim:comment-util-comment-lines:interactive)
+  ("cu"         vim:comment-util-uncomment-region:interactive)
+  ("cd"         vim:comment-util-delete-commented-part:interactive)
 
   ("sw"         vim:replace-word:interactive)
   ("sW"         vim:replace-WORD:interactive)
