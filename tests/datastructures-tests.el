@@ -201,6 +201,70 @@
       (should (= res 3))
       (should (equal (aref items 3) (aref items res))))))
 
+
+(ert-deftest datastructures-tests/test-bisect-find-exhaustive ()
+  (let* ((count 80)
+         (items
+          (list->vector
+           (cl-loop
+            for i from 0 below count
+            collect (* i i)))))
+    (cl-loop
+     for i from 0 below count do
+     (cl-loop
+      for j from (+ i 1) below count do
+      (cl-loop
+       for k from i to j do
+       (let* ((target-item (aref items k))
+              (res (bisect-find items
+                                i
+                                j
+                                (lambda (x) (= target-item x))
+                                (lambda (x) (< target-item x)))))
+         (should res)
+         (should (= res k))
+         (should (= (aref items k) (aref items res)))))))))
+
+(ert-deftest datastructures-tests/test-bisect-find-exhaustive-1 ()
+  (let ((items (vector (cons 0 'foo)
+                       (cons 1 'bar)
+                       (cons 2 'baz)
+                       (cons 4 'quux)
+                       (cons 5 'wat)
+                       (cons 6 'ok))))
+    (dotimes (i (length items))
+      (let* ((target-item (aref items i))
+             (res (bisect-find items
+                               0
+                               (length items)
+                               (lambda (x)
+                                 (datastructures-tests/pair= target-item x))
+                               (lambda (x)
+                                 (datastructures-tests/pair< target-item x)))))
+        (should res)
+        (should (= i res))
+        (should (equal (aref items i) (aref items res)))))))
+
+(ert-deftest datastructures-tests/test-bisect-find-singular-1 ()
+  (let ((items (vector (cons 0 'foo)
+                       (cons 1 'bar)
+                       (cons 2 'baz)
+                       (cons 4 'quux)
+                       (cons 5 'wat)
+                       (cons 6 'ok))))
+    (let* ((target-item (cons 3 'whatever))
+           (res (bisect-find items
+                             0
+                             (length items)
+                             (lambda (x)
+                               (datastructures-tests/pair= target-item x))
+                             (lambda (x)
+                               (datastructures-tests/pair< target-item x)))))
+      (should res)
+      (should (= res 3))
+      (should (equal (aref items 3) (aref items res))))))
+
+
 (ert-deftest datastructures-tests/test-bisect-fixnum-exhaustive-1 ()
   (let ((items [0 1 2 4 5 6]))
     (dotimes (i (length items))
