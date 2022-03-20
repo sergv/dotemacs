@@ -12,7 +12,7 @@
 
 (defun bisect (item items start end eq? less?)
   "Binary search. Returns index into vector ITEMS.
-LESS? is predicate on items and elements of ITEMS.
+LESS? and EQ? are predicates taking item and an element of ITEMS.
 
 START is inclusive and END is exclusive in ITEMS."
   (declare (pure t) (side-effect-free t))
@@ -25,6 +25,31 @@ START is inclusive and END is exclusive in ITEMS."
       (cond ((funcall less? item mid-item)
              (setf end mid))
             ((funcall eq? item mid-item)
+             (setf start mid
+                   end mid))
+            (t
+             (setf start (+ mid 1))))))
+  start)
+
+(defun bisect-find (items start end eq? less?)
+  "Binary search. Returns index into vector ITEMS.
+LESS? and EQ? are predicates on elements of ITEMS.
+
+EQ? should return non-nil on an item we want the search to stop on.
+LESS? should return non-nil if item we’re looking for is *smaller* than the
+provided item.
+
+START is inclusive and END is exclusive in ITEMS."
+  (declare (pure t) (side-effect-free t))
+  ;; if you doubt the implementation and want to improve it make sure
+  ;; tests do pass
+  (cl-assert (< start end))
+  (while (< start end)
+    (let* ((mid (/ (+ end start) 2))
+           (mid-item (aref items mid)))
+      (cond ((funcall less? mid-item)
+             (setf end mid))
+            ((funcall eq? mid-item)
              (setf start mid
                    end mid))
             (t
