@@ -60,7 +60,7 @@ Intended to be used with comment-util-mode."
 (comment-util-auto-comment-advice vim:cmd-insert-line-above)
 (comment-util-auto-comment-advice haskell-newline-with-signature-expansion)
 
-(vimmize-function comment-util-comment-lines :has-count nil)
+(vimmize-function comment-util-comment-lines :has-count t)
 (vimmize-function comment-util-uncomment-region :has-count nil)
 (vimmize-function comment-util-delete-commented-part :has-count nil)
 
