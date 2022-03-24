@@ -401,6 +401,14 @@
       (js2-function-param :inherit default)
       (js2-external-variable :foreground ,orange)
 
+      ;; ebuf
+      (ebuf-group-1-face :inherit default :bold t)
+      (ebuf-group-2-face :inherit default :bold t)
+      (ebuf-marked-buffer-face :foreground ,orange :bold t)
+      (ebuf-regular-buffer-face :foreground ,orange)
+      (ebuf-read-only-buffer-face :foreground ,cyan)
+      (ebuf-invisible-buffer-face :foreground ,violet)
+
       ;; info
       (info-xref :foreground ,blue :underline t)
       (info-xref-visited :inherit info-xref :foreground ,magenta)
