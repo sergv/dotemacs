@@ -149,6 +149,7 @@
         (cons 'debugger-mode nil)
         (cons 'dired-mode nil)
         (cons 'doc-view-mode nil)
+        (cons 'ebuf-mode nil)
         (cons 'ediff-mode nil)
         (cons 'emms-playlist-mode nil)
         (cons 'flycheck-error-list-mode nil)
