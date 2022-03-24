@@ -531,6 +531,8 @@ of code may be called more than once."
                (font-lock-flush start end))))))))
 
 (defmacro save-position-unsafe (&rest body)
+  "Remember position of point and restore it after BODY finishes normally. If body
+exits via signal then no restoration will take place, hence the unsafety."
   (let ((start-var '#:satrt))
     `(let ((,start-var (point)))
        (prog1
@@ -546,15 +548,27 @@ of code may be called more than once."
            (progn ,@body)
          (goto-line-dumb ,line-var)))))
 
+(defmacro save-current-column (&rest body)
+  "Save and column, execute BODY and go to saved column."
+  (declare (indent 0))
+  (let ((column-var '#:column))
+    `(let ((,column-var (current-column-fixed)))
+       (unwind-protect
+           (progn ,@body)
+         (move-to-column ,column-var)))))
+
 (defmacro save-current-line-column (&rest body)
   "Save current line and column, execute BODY and go to saved line and column."
   (declare (indent 0))
-  (let ((column-var '#:column))
-    `(save-current-line
-      (let ((,column-var (current-column-fixed)))
-        (unwind-protect
-            (progn ,@body)
-          (move-to-column ,column-var))))))
+  (let ((line-var '#:line)
+        (column-var '#:column))
+    `(let ((,line-var (count-lines-fixed (point-min) (point)))
+           (,column-var (current-column-fixed)))
+       (unwind-protect
+           (progn ,@body)
+         (progn
+           (goto-line-dumb ,line-var)
+           (move-to-column ,column-var))))))
 
 (defmacro for-buffer-with-file (filename &rest body)
   "Execute BODY in buffer with contents of FILENAME. If FILENAME is already
