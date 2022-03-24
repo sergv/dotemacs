@@ -36,6 +36,7 @@
           haskell-lint-mode
           help-mode
           ibuffer-mode
+          ebuf-mode
           image-mode
           isearch-mode
           latex-compilation-mode
