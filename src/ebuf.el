@@ -194,6 +194,9 @@
           (string< (buffer-local-value 'buffer-file-truename x)
                    (buffer-local-value 'buffer-file-truename y)))))
 
+(defun ebuf--add-face (str face)
+  (propertize str 'face face 'font-lock-face face))
+
 (defun ebuf--render-buffers! (marked-bufs buffers)
   (cl-assert (hash-table-p marked-bufs))
   (let ((hidden-sections (make-hash-table :test #'equal)))
@@ -218,9 +221,8 @@
                (proj-caption-end nil)
                (proj-end nil)
                (proj-children nil)
-               (proj-caption (propertize (concat "[" proj-name "]")
-                                         'face
-                                         'ebuf-group-1-face)))
+               (proj-caption (ebuf--add-face (concat "[" proj-name "]")
+                                             'ebuf-group-1-face)))
           (insert proj-caption)
           (setf proj-caption-end (point))
           (insert-char ?\n)
@@ -231,9 +233,8 @@
                    (group-caption-end nil)
                    (group-end nil)
                    (group-children nil)
-                   (group-caption (propertize (concat "[" group-name "]")
-                                              'face
-                                              'ebuf-group-2-face))
+                   (group-caption (ebuf--add-face (concat "[" group-name "]")
+                                                  'ebuf-group-2-face))
                    (bufs (cdr subgroup)))
               (insert-char ?\s (* ebuf--depth-mult group-depth))
               (insert group-caption)
@@ -279,17 +280,15 @@
                                                           ?\s)
                                              (cond
                                                (buf-ro?
-                                                (propertize buf-caption
-                                                            'face
-                                                            'ebuf-read-only-buffer-face))
+                                                (ebuf--add-face buf-caption
+                                                                'ebuf-read-only-buffer-face))
                                                ((invisible-buffer? buf)
-                                                (propertize buf-caption
-                                                            'face
-                                                            'ebuf-invisible-buffer-face))
+                                                (ebuf--add-face buf-caption
+                                                                'ebuf-invisible-buffer-face))
                                                (t
                                                 buf-caption)))))
                           (if is-marked?
-                              (propertize line 'face 'ebuf-marked-buffer-face)
+                              (ebuf--add-face line 'ebuf-marked-buffer-face)
                             line))))
                   (insert buf-line)
                   (setf buf-end (point)
