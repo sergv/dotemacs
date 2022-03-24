@@ -335,7 +335,7 @@ structure like this (:arg1 value1 :arg2 value2 ... :argN valueN)"
 ;;;
 
 (defvar *invisible-buffers* '()
-  "List of buffer name regexps than should not be visible in e.g. ibuffer,
+  "List of buffer name regexps than should not be visible in e.g. ebuf, ibuffer,
 tabbar, etc")
 
 (defvar invisible-buffers-re nil
