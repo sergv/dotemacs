@@ -219,11 +219,6 @@
 (require 'keys)
 (require 'vim-setup)
 
-;; this is quick-and-dirty autoloading mechanism
-(eval-after-load "ibuffer"
-  '(progn
-     (require 'ibuffer-setup)))
-
 (fortunes-init-scratch-buffer)
 
 (require 'solarized)
