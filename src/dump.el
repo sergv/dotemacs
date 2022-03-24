@@ -83,7 +83,6 @@
     (require 'flycheck)
     (require 'flycheck-rust)
     (require 'grep)
-    (require 'ibuffer)
     (require 'ivy)
     ;; (require 'ivy-posframe)
     (require 'ivy-smex)
@@ -101,6 +100,8 @@
     (require 'smex)
     (require 'toml-mode)
     (require 'yasnippet)
+
+    (require 'ebuf)
 
     (require 'pcomplete)
     (require 'pcmpl-gnu)
@@ -124,7 +125,6 @@
     (require 'fortunes)
     (require 'git-setup)
     (require 'grep-setup)
-    (require 'ibuffer-setup)
     (require 'ptx-mode-setup)
     (require 'org-mode-setup)
     (require 'render-formula)

@@ -13,7 +13,6 @@
   (defvar git-repository)
   (defvar magit-blame-mode))
 
-(declare-function ibuffer-get-marked-buffers "ibuffer")
 (declare-function magit-blame-quit "magit-blame")
 (declare-function magit-refresh-all "magit-mode")
 (declare-function server-edit "server")
@@ -442,32 +441,6 @@ Basically swap current point with previous one."
 (add-hook 'after-change-major-mode-hook 'vim-normal-mode-update-keymaps t)
 
 
-
-;; apply given ex command to all ibuffer-selected buffers
-
-(vim-defcmd vim:apply-to-selected-buffers
-  ((argument:text command) nonrepeatable)
-  (cl-assert command)
-  (let* ((cmd (trim-whitespace-left command))
-         (exec-command
-          (lambda (buf)
-            (let ((window (or (get-buffer-window buf)
-                              (selected-window))))
-              (with-current-buffer buf
-                (with-selected-window window
-                  ;; adapted from vim-ex-read-command
-                  (let ((vim-ex--current-buffer buf)
-                        (vim-ex--current-window window))
-                    (vim-ex-execute-command cmd))))))))
-    (cond ((eq? major-mode 'ibuffer-mode)
-           (mapc exec-command
-                 (ibuffer-get-marked-buffers)))
-          (t
-           (error "command works in ibuffer-mode only")))))
-
-(vim-emap "in-bufs" #'vim:apply-to-selected-buffers)
-
-
 (vim-defcmd vim:render-latex (nonrepeatable)
   (if (memq major-mode '(latex-mode tex-mode LaTeX-mode))
       (latex-toggle-preview)
@@ -591,12 +564,11 @@ Basically swap current point with previous one."
 (vim-emap "rm" #'vim:git-rm)
 
 
-(vim-defcmd vim:ibuffer (nonrepeatable)
-  "Open ibuffer buffer."
-  (ibuffer))
+(vim-defcmd vim:ebuf (nonrepeatable)
+  "Open ebuf buffer."
+  (ebuf-start))
 
-(vim-emap "ibuffer" #'vim:ibuffer)
-(vim-emap "ib" #'vim:ibuffer)
+(vim-emap "b" #'vim:ebuf)
 
 (vim-defcmd vim:do-commands
   ((argument:text command) nonrepeatable)
