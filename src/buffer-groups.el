@@ -230,6 +230,7 @@
                           (mode . Info-mode)
                           (mode . Man-mode)
                           (mode . ibuffer-mode)
+                          (mode . ebuf-mode)
                           ;; handle everything
                           (predicate . t))))
     `(("haskell"    ,haskell-filter)
