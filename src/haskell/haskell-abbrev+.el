@@ -30,7 +30,7 @@
            (char=? c ?$)))))
 
 (defun haskell--quote-string-for-template-insertion (str)
-  (replace-regexp-in-string "\"" "\\\"" str))
+  (replace-regexp-in-string "\"" "\\\\\"" str))
 
 (defmacro haskell-abbrev+--is-function-available (function-name module-name)
   `(save-excursion
