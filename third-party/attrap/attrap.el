@@ -166,6 +166,7 @@
     "FunctionalDependencies"
     "GADTs"
     "GeneralizedNewtypeDeriving"
+    "ImportQualifiedPost"
     "InstanceSigs"
     "KindSignatures"
     "LambdaCase"
