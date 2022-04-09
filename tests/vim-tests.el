@@ -3354,21 +3354,21 @@
     vim-tests/pseudoparedit-3
     (execute-kbd-macro (kbd "i \{"))
   (tests-utils--multiline "" "foo_|_bar" "")
-  (tests-utils--multiline "" "foo {_|_} bar" ""))
+  (tests-utils--multiline "" "foo{_|_}bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-mode text-mode c-mode rust-mode emacs-lisp-mode)
     vim-tests/pseudoparedit-3a
     (execute-kbd-macro (kbd "i \{"))
   (tests-utils--multiline "" "foo _|_bar" "")
-  (tests-utils--multiline "" "foo {_|_} bar" ""))
+  (tests-utils--multiline "" "foo {_|_}bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-mode text-mode c-mode rust-mode emacs-lisp-mode)
     vim-tests/pseudoparedit-3b
     (execute-kbd-macro (kbd "i \{"))
   (tests-utils--multiline "" "foo_|_ bar" "")
-  (tests-utils--multiline "" "foo {_|_} bar" ""))
+  (tests-utils--multiline "" "foo{_|_} bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-mode text-mode c-mode rust-mode emacs-lisp-mode)
