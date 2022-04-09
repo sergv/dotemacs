@@ -440,7 +440,14 @@
                        (ebuf--locate-with-trail ebuf--toplevel-sections
                                                 selected-trail))
                   (and idx
-                       (aref ebuf--all-sections idx)))))
+                       (aref ebuf--all-sections
+                             ;; After update some sections may have gone missing so index
+                             ;; may be too large now - select the last section since it
+                             ;; will be closest to the original index.
+                             (let ((len (length ebuf--all-sections)))
+                               (if (< idx len)
+                                   idx
+                                 (1- len))))))))
 
          (if previously-selected-section
              (progn
@@ -544,13 +551,21 @@
 
 (defun ebuf-mark-buffers-at-point ()
   (interactive)
-  (let* ((idx (ebuf--section-idx-at-point))
+  (let* ((start (point))
+         (idx (ebuf--section-idx-at-point))
          (section (aref ebuf--all-sections idx)))
     (ebuf--for-section-buffers section
                                (lambda (buf)
                                  (puthash buf t ebuf--marked-buffers)))
     (goto-char (ebuf-section-end section))
     (skip-chars-forward "\n")
+    (if (eobp)
+        (goto-char start)
+      ;; [Redisplay to preserve selected window line]
+      ;; Redisplay to make sure new position is visible since we
+      ;; preserve offset from window start (i.e. selected window line)
+      ;; when refreshing.
+      (redisplay t))
     (ebuf-refresh)))
 
 (defun ebuf-select-parent ()
@@ -561,12 +576,17 @@
 
 (defun ebuf-unmark-buffers-at-point ()
   (interactive)
-  (let ((section (ebuf--section-at-point)))
+  (let ((start (point))
+        (section (ebuf--section-at-point)))
     (ebuf--for-section-buffers section
                                (lambda (buf)
                                  (remhash buf ebuf--marked-buffers)))
     (goto-char (ebuf-section-end section))
     (skip-chars-forward "\n")
+    (if (eobp)
+        (goto-char start)
+      ;; See [Redisplay to preserve selected window line]
+      (redisplay t))
     (ebuf-refresh)))
 
 (defun ebuf-unmark-all ()
