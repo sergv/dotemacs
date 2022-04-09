@@ -68,7 +68,7 @@
 (defun pseudoparedit-insert-brace-spaces ()
   "Smart insertion of paired \{\} delimiters."
   (interactive)
-  (pseudoparedit--insert-pair ?\{ ?\} t nil t t))
+  (pseudoparedit--insert-pair ?\{ ?\} t nil nil nil))
 
 ;;;###autoload
 (defun pseudoparedit-backspace ()
