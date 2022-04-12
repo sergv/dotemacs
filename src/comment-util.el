@@ -64,12 +64,12 @@ Intended to be used with comment-util-mode."
 (vimmize-function comment-util-uncomment-region :has-count nil)
 (vimmize-function comment-util-delete-commented-part :has-count nil)
 
-(defun comment-util--detect-line-comment-with-regex (format)
+(defun comment-util--detect-line-comment-with-regexp (format)
   (let ((start (point)))
     (skip-indentation-forward)
     (save-match-data
-      (cl-assert (stringp (comment-format-line-regex format)))
-      (if (looking-at (comment-format-line-regex format))
+      (cl-assert (stringp (comment-format-line-regexp format)))
+      (if (looking-at (comment-format-line-regexp format))
           (progn
             (goto-char (match-end 0))
             t)
@@ -276,13 +276,13 @@ Intended to be used with comment-util-mode."
              .
              ,(make-comment-format :one-line ".. "
                                    :line-regexp "\\.\\. "
-                                   :detect-line-comment #'comment-util--detect-line-comment-with-regex))
+                                   :detect-line-comment #'comment-util--detect-line-comment-with-regexp))
 
             (j-mode
              .
              ,(make-comment-format :one-line "NB. "
                                    :line-regexp "NB\\. "
-                                   :detect-line-comment #'comment-util--detect-line-comment-with-regex))
+                                   :detect-line-comment #'comment-util--detect-line-comment-with-regexp))
 
             (xmodmap-mode
              .
@@ -295,13 +295,13 @@ Intended to be used with comment-util-mode."
              .
              ,(make-comment-format :one-line "@comment"
                                    :line-regexp "@c\\(?:o\\(?:m\\(?:m\\(?:e\\(?:n\\(?:t?\\)?\\)?\\)?\\)?\\)?\\)?"
-                                   :detect-line-comment #'comment-util--detect-line-comment-with-regex))
+                                   :detect-line-comment #'comment-util--detect-line-comment-with-regexp))
 
             (dos-mode
              .
              ,(make-comment-format :one-line "rem "
                                    :line-regexp "rem ?"
-                                   :detect-line-comment #'comment-util--detect-line-comment-with-regex))
+                                   :detect-line-comment #'comment-util--detect-line-comment-with-regexp))
 
             (comint-mode
              .
