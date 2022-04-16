@@ -658,7 +658,10 @@ _a_lign  _t_: jump to topmost node start
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-insert-mode-local-keymap)
     ("<return>"     haskell--simple-indent-newline-same-col)
-    ("C-<return>"   haskell--simple-indent-newline-indent)))
+    ("C-<return>"   haskell--simple-indent-newline-indent))
+
+  (def-keys-for-map vim-insert-mode-local-keymap
+    ("," haskell-cabal-smart-operators-comma)))
 
 ;;;###autoload
 (defun ghc-core-setup ()
