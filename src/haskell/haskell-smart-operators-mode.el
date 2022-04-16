@@ -305,6 +305,8 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
 ;;;###autoload
 (defalias 'haskell-smart-operators-comma #'smart-operators-comma)
 
+(defalias 'haskell-cabal-smart-operators-comma #'smart-operators-comma)
+
 ;;;###autoload
 (defun haskell-smart-operators-dot ()
   "Insert comma followed by space."
