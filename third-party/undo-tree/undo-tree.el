@@ -1827,6 +1827,80 @@ Comparison is done with `eq'."
 (defun undo-tree-post-gc ()
   (setq undo-tree-gc-flag t))
 
+(defun undo-tree--prepare-conses (tree)
+  "Make a list of conses that have enough storage to copy the TREE without incurring GC."
+  (undo-tree--make-conses-store (undo-tree--prepare-conses--impl tree nil)))
+
+(defun undo-tree--prepare-conses--impl (tree conses)
+  (cond
+    ((consp tree)
+     (while (consp tree)
+       (setf conses (undo-tree--prepare-conses--impl (car tree) (cons nil conses))
+             tree (cdr tree)))
+     (undo-tree--prepare-conses--impl tree conses))
+    ((vectorp tree)
+     (let ((i 0)
+           (len (length tree)))
+       (while (< i len)
+         (setf conses (undo-tree--prepare-conses--impl (aref tree i) conses))
+         (setq i (1+ i)))
+       conses))
+    (t
+     conses)))
+
+(defconst undo-tree--cons-store-tag 'undo-tree--cons-store)
+
+(defun undo-tree--make-conses-store (conses)
+  (cons undo-tree--cons-store-tag conses))
+
+(defun undo-tree--conses-store-p (conses)
+  (and (consp conses)
+       (eq (car conses) undo-tree--cons-store-tag)))
+
+(defun undo-tree--push-cons-cell! (cell conses)
+  (cl-assert (undo-tree--conses-store-p conses))
+  (setcar cell nil)
+  (setcdr cell (cdr conses))
+  (setcdr conses cell))
+
+(defun undo-tree--pop-cons-cell! (conses)
+  (cl-assert (undo-tree--conses-store-p conses))
+  (let ((cell (cdr conses)))
+    (unless cell
+      (error "Not enough conses to pop another cell"))
+    (setcdr conses (cdr cell))
+    (setcdr cell nil)
+    cell))
+
+(defun undo-tree--conses-store-size (conses)
+  (cl-assert (undo-tree--conses-store-p conses))
+  (length (cdr conses)))
+
+(defun undo-tree--copy-tree-no-alloc (tree conses)
+  "Make a copy of TREE.
+If TREE is a cons cell, this recursively copies both its car and its cdr.
+Contrast to `copy-sequence', which copies only along the cdrs.  With second
+argument VECP, this copies vectors as well as conses."
+  (cond
+    ((consp tree)
+     (let* ((result (undo-tree--pop-cons-cell! conses))
+            (tmp result))
+
+       (setf (car tmp) (undo-tree--copy-tree-no-alloc (car-sure tree) conses))
+       (setq tree (cdr-sure tree))
+
+       (while (consp tree)
+
+         (let ((cell (undo-tree--pop-cons-cell! conses)))
+           (setf (car cell) (undo-tree--copy-tree-no-alloc (car-sure tree) conses)
+                 (cdr tmp) cell
+                 tmp (cdr tmp)))
+         (setq tree (cdr tree)))
+       (setf (cdr tmp) (undo-tree--copy-tree-no-alloc tree conses))
+       result))
+    (t
+     tree)))
+
 (defun undo-tree--copy-tree (tree &optional vecp)
   "Make a copy of TREE.
 If TREE is a cons cell, this recursively copies both its car and its cdr.
@@ -1878,50 +1952,65 @@ argument VECP, this copies vectors as well as conses."
   ;; we succeed without GC running, in an attempt to mitigate race conditions
   ;; with garbage collector corrupting undo history (is this even a thing?!)
   (unless (or (null buffer-undo-list)
-	      (undo-list-found-canary-p buffer-undo-list))
+              (undo-list-found-canary-p buffer-undo-list))
     (garbage-collect))
-  (let (undo-list changeset (tries 0))
-    (setq undo-tree-gc-flag t)
-    (while (and undo-tree-gc-flag
-                (< tries 25))
-      (setq undo-tree-gc-flag nil
-            undo-list (undo-tree--copy-tree buffer-undo-list)
-            tries (+ tries 1)))
-    (setq buffer-undo-list (list nil 'undo-tree-canary))
 
-    ;; create new node from first changeset in `undo-list', save old
-    ;; `buffer-undo-tree' current node, and make new node the current node
-    (when (setq changeset (undo-list-pop-changeset undo-list))
-      (let* ((node (undo-tree-make-node nil changeset))
-	     (splice (undo-tree-current buffer-undo-tree))
-	     (size (undo-list-byte-size (undo-tree-node-undo node)))
-	     (count 1))
-	(setf (undo-tree-current buffer-undo-tree) node)
-	;; grow tree fragment backwards using `undo-list' changesets
-	(while (setq changeset (undo-list-pop-changeset undo-list))
-	  (setq node (undo-tree-grow-backwards node changeset))
-	  (cl-incf size (undo-list-byte-size (undo-tree-node-undo node)))
-	  (cl-incf count))
+ (let ((conses (undo-tree--prepare-conses buffer-undo-list)))
 
-	;; if no undo history has been discarded from `undo-list' since last
-	;; transfer, splice new tree fragment onto end of old
-	;; `buffer-undo-tree' current node
-	(if (undo-list-found-canary-p undo-list)
-	    (progn
-	      (setf (undo-tree-node-previous node) splice)
-	      (push node (undo-tree-node-next splice))
-	      (setf (undo-tree-node-branch splice) 0)
-	      (cl-incf (undo-tree-size buffer-undo-tree) size)
-	      (cl-incf (undo-tree-count buffer-undo-tree) count))
+   ;; Prepare some free cons cells, garbage-collect then try to
+   ;; deep-copy `buffer-undo-list' without GC running, in an attempt
+   ;; to mitigate race conditions with garbage collector corrupting
+   ;; undo history (is this even a thing?!)
+   (unless (or (null buffer-undo-list)
+               (undo-list-found-canary-p buffer-undo-list))
+     (garbage-collect))
+   (let (undo-list
+         changeset)
 
-	  ;; if undo history has been discarded, replace entire
-	  ;; `buffer-undo-tree' with new tree fragment
-	  (unless (= (undo-tree-size buffer-undo-tree) 0)
-	    (message "Undo history discarded by Emacs (see `undo-limit') - rebuilding undo-tree"))
-	  (setq node (undo-tree-grow-backwards node nil))
-	  (setf (undo-tree-root buffer-undo-tree) node)
-	  (setf (undo-tree-size buffer-undo-tree) size)
-	  (setf (undo-tree-count buffer-undo-tree) count)))))
+     (setq undo-tree-gc-flag nil)
+     (setf undo-list (undo-tree--copy-tree-no-alloc buffer-undo-list conses))
+
+     (when undo-tree-gc-flag
+       ;; NB evaluated definitions of ‘undo-tree--copy-tree-no-alloc’ and ‘undo-tree--pop-cons-cell!’
+       ;; will not be able to finish copy without incurring GC. Try byte-compiling them if
+       ;; this check seems to fail for no reason.
+       (error "GC-less copy of ‘buffer-undo-list’ failed"))
+
+     (setq buffer-undo-list (list nil 'undo-tree-canary))
+
+     ;; create new node from first changeset in `undo-list', save old
+     ;; `buffer-undo-tree' current node, and make new node the current node
+     (when (setq changeset (undo-list-pop-changeset undo-list))
+       (let* ((node (undo-tree-make-node nil changeset))
+              (splice (undo-tree-current buffer-undo-tree))
+              (size (undo-list-byte-size (undo-tree-node-undo node)))
+              (count 1))
+         (setf (undo-tree-current buffer-undo-tree) node)
+         ;; grow tree fragment backwards using `undo-list' changesets
+         (while (setq changeset (undo-list-pop-changeset undo-list))
+           (setq node (undo-tree-grow-backwards node changeset))
+           (cl-incf size (undo-list-byte-size (undo-tree-node-undo node)))
+           (cl-incf count))
+
+         ;; if no undo history has been discarded from `undo-list' since last
+         ;; transfer, splice new tree fragment onto end of old
+         ;; `buffer-undo-tree' current node
+         (if (undo-list-found-canary-p undo-list)
+             (progn
+               (setf (undo-tree-node-previous node) splice)
+               (push node (undo-tree-node-next splice))
+               (setf (undo-tree-node-branch splice) 0)
+               (cl-incf (undo-tree-size buffer-undo-tree) size)
+               (cl-incf (undo-tree-count buffer-undo-tree) count))
+
+           ;; if undo history has been discarded, replace entire
+           ;; `buffer-undo-tree' with new tree fragment
+           (unless (= (undo-tree-size buffer-undo-tree) 0)
+             (message "Undo history discarded by Emacs (see `undo-limit') - rebuilding undo-tree"))
+           (setq node (undo-tree-grow-backwards node nil))
+           (setf (undo-tree-root buffer-undo-tree) node)
+           (setf (undo-tree-size buffer-undo-tree) size)
+           (setf (undo-tree-count buffer-undo-tree) count))))))
 
   ;; discard undo history if necessary
   (undo-tree-discard-history))
