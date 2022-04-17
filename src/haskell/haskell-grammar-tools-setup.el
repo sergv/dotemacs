@@ -71,8 +71,7 @@ _I_: jump back"
 
     ("S-<tab>"         nil)
     ("<S-iso-lefttab>" nil)
-    ("<return>"        haskell-newline-with-signature-expansion)
-    (("C-m" "<f9>")    haskell-compile)))
+    ("<return>"        haskell-newline-with-signature-expansion)))
 
 (provide 'haskell-grammar-tools-setup)
 
