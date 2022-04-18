@@ -841,6 +841,20 @@
      "  | x `elem` xs ||_|_= xs"
      "  | otherwise   = []")))
 
+(ert-deftest haskell-tests/haskell-smart-operators--magic-hash-0 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-smart-operators-mode +1)
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
+   (tests-utils--multiline
+    "{-# LANGUAGE MagicHash #-}"
+    "foo x xs = (bar_|_, baz)"
+    "")
+   (tests-utils--multiline
+    "{-# LANGUAGE MagicHash #-}"
+    "foo x xs = (bar#_|_, baz)"
+    "")))
+
 (ert-deftest haskell-tests/haskell-smart-operators--magic-hash-1 ()
   (haskell-tests--test-buffer-contents
       (progn
