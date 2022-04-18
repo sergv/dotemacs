@@ -97,7 +97,11 @@ stick it to the previous operator on line."
             (when (and insert-space-after
                        (not (and (eq char ?\\)
                                  (not at-beginning-of-buffer?)
-                                 (eq before ?\())))
+                                 (eq before ?\()))
+                       (if (and haskell-smart-operators-mode--have-magic-hash
+                                (eq char ?#))
+                           (not (eq after ?,))
+                         t))
               (when (or (not after) ;; at end of buffer
                         ;; If the next thing is lambda then we don't want to merge
                         ;; with its \.
