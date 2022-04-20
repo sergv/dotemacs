@@ -434,7 +434,7 @@
        (delete-region (point-min) (point-max))
        (ebuf-mode)
        (ebuf--render-buffers! ebuf--marked-buffers
-                              (buffer-list))
+                              (ebuf--interesting-buffers))
        (let ((previously-selected-section
               (or (and selected-trail
                        (ebuf--locate-with-trail ebuf--toplevel-sections
@@ -454,6 +454,33 @@
                (set-window-start win start)
                (goto-char (ebuf-section-beg previously-selected-section)))
            (goto-char (point-min))))))))
+
+(defconst ebuf--invisible-buffer-re
+  (rx bos
+      (or (or "*buffers*"
+              "*Ibuffer*"
+              "*Kill Ring*"
+              "*Pp Eval Output*"
+              "*Async Shell Command*"
+              "*Completions*"
+              "*magit-process*"
+              "*Help*"
+              "*P4 update status*")
+          (seq (or " *Minibuf"
+                   " *Echo Area "
+                   " *LV*"
+                   " *code-conversion-work*"
+                   " *server*"
+                   " *eldoc for ")
+               (* anything))
+          (seq "#" (+ anything) "#"))
+      eos))
+
+(defun ebuf--interesting-buffers ()
+  "Return a list of buffers that we care about and want to see rendered."
+  (--filter (not (string-match-p ebuf--invisible-buffer-re
+                                 (buffer-name it)))
+            (buffer-list)))
 
 (defun ebuf--section-part-of-hidden-parent? (section)
   (setf section (ebuf-section-parent section))
