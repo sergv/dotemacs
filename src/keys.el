@@ -12,6 +12,9 @@
 (require 'common)
 (require 'keys-def)
 
+(def-keys-for-map help-map
+  ("h" nil))
+
 (def-keys-for-map global-map
   ("<f1>"     help-command)
   ("<f1> t"   nil)
