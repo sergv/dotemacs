@@ -9,7 +9,10 @@
 (eval-when-compile
   (require 'macro-util))
 
+(require 'align-util)
+(require 'hydra-setup)
 (require 'indentation)
+(require 'vim-setup)
 
 (require 'nix-company)
 (require 'nix-shebang)
@@ -22,6 +25,22 @@
 
 ;;;###autoload
 (nix-prettify-global-mode +1)
+
+(defun nix-align-generic ()
+  (interactive)
+  (align-util-align-on-equals))
+
+(defhydra-ext hydra-nix-align (:exit t :foreign-keys nil :hint nil)
+  "
+_a_: generic
+_=_: on equals"
+  ("a" nix-align-generic)
+  ("=" generic-align-on-equals))
+
+(defhydra-derive hydra-nix-vim-visual-g-ext hydra-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_a_lign"
+  ("a" hydra-nix-align/body))
 
 ;;;###autoload
 (defun nix-setup ()
