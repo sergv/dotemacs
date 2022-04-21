@@ -30,6 +30,7 @@
 (declare-function octave-send-line "octave")
 (declare-function octave-send-defun "octave")
 
+(require 'align-util)
 (require 'browse-kill-ring-setup)
 (require 'common)
 (require 'el-patch)
@@ -124,7 +125,6 @@
   :repeat t
   :require-one-or-more-spaces t
   :put-align-spaces-after-str t)
-(defalign octave-align-on-equals "=")
 
 (define-switch-to-interpreter
   switch-to-octave
@@ -349,7 +349,7 @@ in GROUP-NUMS."
   "
 _=_:  on equals
 _,_:  on commas"
-  ("=" octave-align-on-equals)
+  ("=" generic-align-on-equals)
   ("," octave-align-on-commas))
 
 (defhydra-derive hydra-octave-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
