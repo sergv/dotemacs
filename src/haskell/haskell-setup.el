@@ -279,21 +279,20 @@ _q_ualify import"
 
 (defhydra-ext hydra-haskell-lsp (:exit t :foreign-keys warn :hint nil)
   "
-_a_ctions         _-_: attrap  toggle some _o_ptions
-_d_ocumentation
-_i_nfo
-_q_ualify import
-_r_ename
-_t_ype
+_-_: attrap       _d_ocumentation           toggle some _o_ptions
+_a_ctions         _i_nfo
+_q_ualify import  _t_ype
+_r_ename          _u_ses of thing at point
 "
+  ("-" attrap-flycheck)
   ("a" lsp-execute-code-action)
-  ("d" lsp-doc-other-window)
-  ("i" lsp-doc-other-window)
   ("q" haskell-qualify-import)
   ("r" lsp-rename)
-  ("t" lsp-haskell-type-at-point)
 
-  ("-" attrap-flycheck)
+  ("d" lsp-doc-other-window)
+  ("i" lsp-doc-other-window)
+  ("t" lsp-haskell-type-at-point)
+  ("u" lsp-symbnav/find-references)
 
   ("o" hydra-haskell-lsp-toggle/body))
 
