@@ -483,53 +483,6 @@ of code may be called more than once."
                                           buffer-names
                                           ", ")))))))))
 
-(cl-defmacro defalign (func
-                       align-str
-                       &key
-                       (repeat nil)
-                       (require-one-or-more-spaces nil)
-                       (put-align-spaces-after-str nil))
-  (declare (indent 1))
-  (let ((spaces-re (concat "\\([ \t]"
-                           (if require-one-or-more-spaces
-                               "+"
-                             "*")
-                           "\\)"))
-        (align-re (cond
-                    ((stringp align-str)
-                     (concat "\\(?:"
-                             align-str
-                             "\\)"))
-                    ((symbolp align-str)
-                     align-str)
-                    (t
-                     (macroexpand-all align-str))))
-        (indent-region-func (string->symbol (format "%s-indent-region" func))))
-    `(progn
-       (defun ,indent-region-func (start end)
-         (align-regexp start
-                       end
-                       (eval-when-compile
-                         ,(if put-align-spaces-after-str
-                              `(concat ,align-re ,spaces-re)
-                            `(concat ,spaces-re ,align-re)))
-                       1
-                       1
-                       ,repeat))
-       (defun ,func ()
-         (interactive "*")
-         (when (region-active-p)
-           (with-region-bounds start end
-             (when prettify-symbols-mode
-               (with-silent-modifications
-                 (remove-text-properties start end
-                                         '(composition
-                                           prettify-symbols-start
-                                           prettify-symbols-end))))
-             (,indent-region-func start end)
-             (when prettify-symbols-mode
-               (font-lock-flush start end))))))))
-
 (defmacro save-position-unsafe (&rest body)
   "Remember position of point and restore it after BODY finishes normally. If body
 exits via signal then no restoration will take place, hence the unsafety."
