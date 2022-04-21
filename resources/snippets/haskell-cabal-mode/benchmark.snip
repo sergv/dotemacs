@@ -13,9 +13,9 @@ ${3:  other-modules:
 }${5:  hs-source-dirs:
     . bench
 }  build-depends:
-    base >= 4.9,
-    gauge >= 0.2.3,
-    ${6:my-package}
+      base ^>= 4.14
+    , gauge ^>= 0.2.3
+    , ${6:my-package}
   ghc-options:
     -rtsopts
 --     -threaded
