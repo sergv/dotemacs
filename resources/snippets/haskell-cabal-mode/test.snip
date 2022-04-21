@@ -12,12 +12,12 @@ ${3:  other-modules:
 }${5:  hs-source-dirs:
     . test
 }  build-depends:
-    QuickCheck,
-    base >= 4.9,
-    tasty,
-    tasty-hunit,
-    tasty-quickcheck,
-    ${6:my-package}
+      QuickCheck
+    , base ^>= 4.14
+    , tasty
+    , tasty-hunit
+    , tasty-quickcheck
+    , ${6:my-package}
   ghc-options:
     -rtsopts
     -main-is ${2:$(haskell-cabal--yasnippet--main-module-from-main-file yas-text)}
