@@ -11,6 +11,7 @@
   (require 'macro-util)
   (defvar whitespace-line-column))
 
+(require 'align-util)
 (require 'common)
 (require 'indentation)
 (require 'find-file)
