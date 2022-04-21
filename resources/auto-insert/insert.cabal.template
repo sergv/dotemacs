@@ -1,4 +1,4 @@
-cabal-version: 3.0
+cabal-version: 3.6
 
 -- Created : ${date}
 
@@ -26,8 +26,8 @@ build-type:
 --
 -- custom-setup
 --   setup-depends:
---     base >= 4.9,
---     Cabal >= 1.16
+--       base ^>= 4.9
+--     , Cabal ^>= 1.16
 
 common ghc-options
   default-language:
@@ -49,6 +49,10 @@ common ghc-options
     ghc-options:
       -Wno-missing-deriving-strategies
 
+  -- if impl(ghc >= 8.10)
+  --   ghc-options:
+  --     -Wno-prepositive-qualified-module
+
   if impl(ghc >= 9.2)
     ghc-options:
       -Wno-missing-kind-signatures
@@ -62,9 +66,12 @@ library
   hs-source-dirs:
     src
   build-depends:
-    base >= 4.9
---   build-tools:
---     alex happy c2hs
+      base ^>= 4.14
+    , text ^>= { 1.2.5, 2.0 }
+  build-tool-depends:
+      alex:alex
+    , happy:happy
+    , hsc2hs:hsc2hs
 
 executable ${filename no ext}
   import: ghc-options
@@ -75,8 +82,8 @@ executable ${filename no ext}
 --   hs-source-dirs:
 --     . exe
   build-depends:
-    base >= 4.9,
-    ${filename no ext}
+      base ^>= 4.14
+    , ${filename no ext}
   ghc-options:
     -rtsopts
 --     -threaded
@@ -94,13 +101,13 @@ test-suite ${filename no ext}-test
 --   hs-source-dirs:
 --     . test
   build-depends:
-    HUnit,
-    QuickCheck,
-    base,
-    tasty,
-    tasty-hunit,
-    tasty-quickcheck,
-    ${filename no ext}
+      HUnit
+    , QuickCheck
+    , base ^>= 4.14
+    , tasty
+    , tasty-hunit
+    , tasty-quickcheck
+    , ${filename no ext}
   ghc-options:
     -rtsopts
     -main-is TestMain

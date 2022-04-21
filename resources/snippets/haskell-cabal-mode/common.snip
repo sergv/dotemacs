@@ -22,6 +22,10 @@ common ghc-options
     ghc-options:
       -Wno-missing-deriving-strategies
 
+  -- if impl(ghc >= 8.10)
+  --   ghc-options:
+  --     -Wno-prepositive-qualified-module
+
   if impl(ghc >= 9.2)
     ghc-options:
       -Wno-missing-kind-signatures
