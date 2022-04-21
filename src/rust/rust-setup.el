@@ -14,6 +14,7 @@
 
 (declare-function server-edit "server")
 
+(require 'align-util)
 (require 'common)
 (require 'current-column-fixed)
 (require 'flycheck)
