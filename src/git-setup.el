@@ -13,6 +13,7 @@
   (require 'set-up-platform)
   (require 'macro-util))
 
+(require 'align-util)
 (require 'common)
 (require 'common-heavy)
 (require 'dash)
@@ -143,14 +144,14 @@ directory computed by git.")
 ;;;###autoload
 (defun gitconfig-align-generic ()
   (interactive)
-  (gitconfig-align-on-equals))
+  (generic-align-on-equals))
 
 (defhydra-ext hydra-gitconfig-align (:exit t :foreign-keys nil :hint nil)
   "
 _a_: generic
 _=_: on equals"
   ("a" gitconfig-align-generic)
-  ("=" gitconfig-align-on-equals))
+  ("=" generic-align-on-equals))
 
 (defhydra-derive hydra-gitconfig-vim-visual-g-ext hydra-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
   "
