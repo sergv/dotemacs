@@ -14,6 +14,7 @@
   (require 'cl)
   (require 'macro-util))
 
+(require 'align-util)
 (require 'advices-util)
 (require 'common)
 (require 'el-patch)
