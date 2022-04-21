@@ -96,6 +96,18 @@
 (defconst-set haskell-regexen/pragma-start "{-#")
 (defconst-set haskell-regexen/pragma-end "#-}")
 
+(defconst haskell-regexen/language-pragma-prefix
+  (rx "{-#"
+      (* (any ?\s ?\t ?\n ?\r))
+      (char ?l ?L)
+      (char ?a ?A)
+      (char ?n ?N)
+      (char ?g ?G)
+      (char ?u ?U)
+      (char ?a ?A)
+      (char ?g ?G)
+      (char ?e ?E)))
+
 (defconst-set haskell-regexen/function-signature-colons "\\(?:::[^:]\\|∷\\)")
 
 (defconst-set haskell-regexen/empty-line "^[ \t]*$")

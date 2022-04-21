@@ -308,13 +308,13 @@ _#-}_: on pragma close"
     (cond
       ((save-excursion
          (beginning-of-line)
-         (looking-at-p haskell-abbrev+/language-pragma-prefix))
+         (looking-at-p haskell-regexen/language-pragma-prefix))
        (save-current-line-column
          (haskell-align-language-pragmas (point))))
       ((and (eq (get-char-property (point) 'face) 'haskell-pragma-face)
             (save-excursion
               (re-search-backward haskell-regexen/pragma-start nil t)
-              (looking-at-p haskell-abbrev+/language-pragma-prefix)))
+              (looking-at-p haskell-regexen/language-pragma-prefix)))
        (save-current-line-column
          (haskell-align-language-pragmas (point))))
       ((save-excursion
@@ -390,11 +390,11 @@ where \\w matches any whitespace including newlines"
 (defun haskell-align-language-pragmas (start)
   (save-match-data
     (goto-char start)
-    ;; (cl-assert (looking-at-p haskell-abbrev+/language-pragma-prefix))
+    ;; (cl-assert (looking-at-p haskell-regexen/language-pragma-prefix))
     ;; Navigate up while we're still getting LANGUAGE pragmas.
     (beginning-of-line)
     (while (and (not (bob?))
-                (or (looking-at-p haskell-abbrev+/language-pragma-prefix)
+                (or (looking-at-p haskell-regexen/language-pragma-prefix)
                     (haskell-align-language-pragmas--point-inside-pragma (point))))
       ;; Go to beginning of the previous line.
       (backward-line))
@@ -432,7 +432,7 @@ where \\w matches any whitespace including newlines"
   "Parse single LANGUAGE pragma within START-END region and return its
 extensions as a list of strings. Leaves point at the end of pragma"
   (goto-char start)
-  (when (looking-at haskell-abbrev+/language-pragma-prefix)
+  (when (looking-at haskell-regexen/language-pragma-prefix)
     (let ((pragma-end (min
                        end
                        (save-excursion
