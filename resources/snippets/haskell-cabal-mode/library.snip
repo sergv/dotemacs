@@ -2,16 +2,19 @@
 # key: lib
 # name: library section
 # --
-library
+library${1: ${2:name}}
   import: ghc-options
   exposed-modules:
-    ${1:Foo}
-${2:  other-modules:
-    ${3:Other.Module}
-}${4:  hs-source-dirs:
+    ${3:Foo}
+${4:  other-modules:
+    ${5:Other.Module}
+}${6:  hs-source-dirs:
     src
 }  build-depends:
-    base >= 4.9
-${5:  build-tool-depends:
-    ${6:alex:alex happy:happy hsc2hs:hsc2hs}
+      base ^>= 4.9
+    , text
+${7:  build-tool-depends:
+    ${8:  alex:alex
+    , happy:happy
+    , hsc2hs:hsc2hs}
 }
