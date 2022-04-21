@@ -14,6 +14,7 @@
   (require 'macro-util)
   (require 'trie))
 
+(require 'align-util)
 (require 'advices-util)
 (require 'macro-util)
 (require 'common)

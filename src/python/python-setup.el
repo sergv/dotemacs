@@ -12,6 +12,7 @@
   (require 'cl)
   (require 'macro-util))
 
+(require 'align-util)
 (require 'browse-kill-ring-setup)
 (require 'comint-setup)
 (require 'common)

@@ -9,6 +9,7 @@
 (eval-when-compile
   (require 'macro-util))
 
+(require 'align-util)
 (require 'company-eproj)
 (require 'company-mode-setup)
 (require 'flycheck-setup)
