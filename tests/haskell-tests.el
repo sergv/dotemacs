@@ -845,6 +845,8 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-smart-operators-mode +1)
+        (haskell-ext-tracking-mode +1)
+        (should (haskell-ext-tracking-have-magic-hash?))
         (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
    (tests-utils--multiline
     "{-# LANGUAGE MagicHash #-}"
@@ -859,6 +861,8 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-smart-operators-mode +1)
+        (haskell-ext-tracking-mode +1)
+        (should (haskell-ext-tracking-have-magic-hash?))
         (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
    (tests-utils--multiline
     "{-# LANGUAGE MagicHash #-}"
@@ -873,6 +877,8 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-smart-operators-mode +1)
+        (haskell-ext-tracking-mode +1)
+        (should (haskell-ext-tracking-have-magic-hash?))
         (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
     (tests-utils--multiline
      "{-# LANGUAGE MagicHash #-}"
@@ -887,6 +893,8 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-smart-operators-mode +1)
+        (haskell-ext-tracking-mode +1)
+        (should (haskell-ext-tracking-have-magic-hash?))
         (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
     (tests-utils--multiline
      "{-# LANGUAGE MagicHash #-}"
@@ -901,6 +909,8 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-smart-operators-mode +1)
+        (haskell-ext-tracking-mode +1)
+        (should (haskell-ext-tracking-have-magic-hash?))
         (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
     (tests-utils--multiline
      "{-# LANGUAGE MagicHash #-}"
@@ -915,7 +925,9 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-smart-operators-mode +1)
+        (haskell-ext-tracking-mode +1)
         (haskell-smart-operators-hash)
+        (should (haskell-ext-tracking-have-magic-hash?))
         (haskell-smart-operators--insert-char-surrounding-with-spaces ?=))
     (tests-utils--multiline
      "{-# LANGUAGE MagicHash #-}"
@@ -934,6 +946,8 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-smart-operators-mode +1)
+        (haskell-ext-tracking-mode +1)
+        (should (haskell-ext-tracking-have-magic-hash?))
         (haskell-smart-operators--insert-char-surrounding-with-spaces ?=))
     (tests-utils--multiline
      "{-# LANGUAGE MagicHash #-}"
@@ -952,6 +966,7 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-smart-operators-mode +1)
+        (haskell-ext-tracking-mode +1)
         (haskell-smart-operators-dot))
     (tests-utils--multiline
      ""
@@ -966,6 +981,7 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-smart-operators-mode +1)
+        (haskell-ext-tracking-mode +1)
         (haskell-smart-operators-dot))
     (tests-utils--multiline
      ""
@@ -3503,7 +3519,10 @@
 
 (ert-deftest haskell-tests/haskell-qualify-import-1 ()
   (haskell-tests--test-buffer-contents
-      (haskell-qualify-import)
+      (progn
+        (haskell-ext-tracking-mode +1)
+        (should-not (haskell-ext-tracking-have-import-qualified-post?))
+        (haskell-qualify-import))
     (tests-utils--multiline
      "import Data.List"
      "import Data.Ord_|_"
@@ -3513,9 +3532,29 @@
      "import qualified Data.Ord_|_"
      "import Data.Set (Set)")))
 
+(ert-deftest haskell-tests/haskell-qualify-import-1a ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-ext-tracking-mode +1)
+        (should (haskell-ext-tracking-have-import-qualified-post?))
+        (haskell-qualify-import))
+    (tests-utils--multiline
+     "{-# LANGUAGE ImportQualifiedPost #-}"
+     "import Data.List"
+     "import Data.Ord_|_"
+     "import Data.Set (Set)")
+    (tests-utils--multiline
+     "{-# LANGUAGE ImportQualifiedPost #-}"
+     "import Data.List"
+     "import Data.Ord_|_ qualified"
+     "import Data.Set (Set)")))
+
 (ert-deftest haskell-tests/haskell-qualify-import-2 ()
   (haskell-tests--test-buffer-contents
-      (haskell-qualify-import)
+      (progn
+        (haskell-ext-tracking-mode +1)
+        (should-not (haskell-ext-tracking-have-import-qualified-post?))
+        (haskell-qualify-import))
     (tests-utils--multiline
      "import Data.List"
      "import      Data.Ord_|_"
@@ -3525,9 +3564,29 @@
      "import qualified Data.Ord_|_"
      "import Data.Set (Set)")))
 
+(ert-deftest haskell-tests/haskell-qualify-import-2a ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-ext-tracking-mode +1)
+        (should (haskell-ext-tracking-have-import-qualified-post?))
+        (haskell-qualify-import))
+    (tests-utils--multiline
+     "{-# LANGUAGE ImportQualifiedPost #-}"
+     "import Data.List"
+     "import      Data.Ord_|_"
+     "import Data.Set (Set)")
+    (tests-utils--multiline
+     "{-# LANGUAGE ImportQualifiedPost #-}"
+     "import Data.List"
+     "import      Data.Ord_|_ qualified"
+     "import Data.Set (Set)")))
+
 (ert-deftest haskell-tests/haskell-qualify-import-3 ()
   (haskell-tests--test-buffer-contents
-      (haskell-qualify-import)
+      (progn
+        (haskell-ext-tracking-mode +1)
+        (should-not (haskell-ext-tracking-have-import-qualified-post?))
+        (haskell-qualify-import))
     (tests-utils--multiline
      "import Data.List"
      "import \"foo\"     Data.Ord_|_"
@@ -3537,28 +3596,257 @@
      "import \"foo\" qualified Data.Ord_|_"
      "import Data.Set (Set)")))
 
+(ert-deftest haskell-tests/haskell-qualify-import-3a ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-ext-tracking-mode +1)
+        (should (haskell-ext-tracking-have-import-qualified-post?))
+        (haskell-qualify-import))
+    (tests-utils--multiline
+     "{-# LANGUAGE ImportQualifiedPost #-}"
+     "import Data.List"
+     "import \"foo\"     Data.Ord_|_"
+     "import Data.Set (Set)")
+    (tests-utils--multiline
+     "{-# LANGUAGE ImportQualifiedPost #-}"
+     "import Data.List"
+     "import \"foo\"     Data.Ord_|_ qualified"
+     "import Data.Set (Set)")))
+
 (ert-deftest haskell-tests/haskell-qualify-import-4 ()
   (haskell-tests--test-buffer-contents
-      (haskell-qualify-import)
+      (progn
+        (haskell-ext-tracking-mode +1)
+        (should-not (haskell-ext-tracking-have-import-qualified-post?))
+        (haskell-qualify-import))
     (tests-utils--multiline
      "import Data.List"
      "import   qualified   Data.Ord_|_"
      "import Data.Set (Set)")
     (tests-utils--multiline
      "import Data.List"
+     "import   Data.Ord_|_"
+     "import Data.Set (Set)")))
+
+(ert-deftest haskell-tests/haskell-qualify-import-4a ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-ext-tracking-mode +1)
+        (should (haskell-ext-tracking-have-import-qualified-post?))
+        (haskell-qualify-import))
+    (tests-utils--multiline
+     "{-# LANGUAGE ImportQualifiedPost #-}"
+     "import Data.List"
+     "import   qualified   Data.Ord_|_"
+     "import Data.Set (Set)")
+    (tests-utils--multiline
+     "{-# LANGUAGE ImportQualifiedPost #-}"
+     "import Data.List"
+     "import   Data.Ord_|_"
+     "import Data.Set (Set)")))
+
+(ert-deftest haskell-tests/haskell-qualify-import-4b ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-ext-tracking-mode +1)
+        (should (haskell-ext-tracking-have-import-qualified-post?))
+        (haskell-qualify-import))
+    (tests-utils--multiline
+     "{-# LANGUAGE ImportQualifiedPost #-}"
+     "import Data.List"
+     "import Data.Ord qualified_|_"
+     "import Data.Set (Set)")
+    (tests-utils--multiline
+     "{-# LANGUAGE ImportQualifiedPost #-}"
+     "import Data.List"
      "import Data.Ord_|_"
+     "import Data.Set (Set)")))
+
+(ert-deftest haskell-tests/haskell-qualify-import-4c ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-ext-tracking-mode +1)
+        (should (haskell-ext-tracking-have-import-qualified-post?))
+        (haskell-qualify-import))
+    (tests-utils--multiline
+     "{-# LANGUAGE ImportQualifiedPost #-}"
+     "import Data.List"
+     "import Data.Ord      qualified   _|_"
+     "import Data.Set (Set)")
+    (tests-utils--multiline
+     "{-# LANGUAGE ImportQualifiedPost #-}"
+     "import Data.List"
+     "import Data.Ord   _|_"
+     "import Data.Set (Set)")))
+
+(ert-deftest haskell-tests/haskell-qualify-import-4d ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-ext-tracking-mode +1)
+        (should (haskell-ext-tracking-have-import-qualified-post?))
+        (haskell-qualify-import)
+        (haskell-qualify-import))
+    (tests-utils--multiline
+     "{-# LANGUAGE ImportQualifiedPost #-}"
+     "import Data.List"
+     "import Data.Ord      qualified   _|_"
+     "import Data.Set (Set)")
+    (tests-utils--multiline
+     "{-# LANGUAGE ImportQualifiedPost #-}"
+     "import Data.List"
+     "import Data.Ord qualified   _|_"
      "import Data.Set (Set)")))
 
 (ert-deftest haskell-tests/haskell-qualify-import-5 ()
   (haskell-tests--test-buffer-contents
-      (haskell-qualify-import)
+      (progn
+        (haskell-ext-tracking-mode +1)
+        (should-not (haskell-ext-tracking-have-import-qualified-post?))
+        (haskell-qualify-import))
     (tests-utils--multiline
      "import Data.List"
      "import  \"foo\"  qualified   Data.Ord_|_"
      "import Data.Set (Set)")
     (tests-utils--multiline
      "import Data.List"
-     "import  \"foo\" Data.Ord_|_"
+     "import  \"foo\"  Data.Ord_|_"
+     "import Data.Set (Set)")))
+
+(ert-deftest haskell-tests/haskell-qualify-import-5a ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-ext-tracking-mode +1)
+        (should (haskell-ext-tracking-have-import-qualified-post?))
+        (haskell-qualify-import))
+    (tests-utils--multiline
+     "{-# LANGUAGE ImportQualifiedPost #-}"
+     "import Data.List"
+     "import  \"foo\"  qualified   Data.Ord_|_"
+     "import Data.Set (Set)")
+    (tests-utils--multiline
+     "{-# LANGUAGE ImportQualifiedPost #-}"
+     "import Data.List"
+     "import  \"foo\"  Data.Ord_|_"
+     "import Data.Set (Set)")))
+
+(ert-deftest haskell-tests/haskell-qualify-import-5b ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-ext-tracking-mode +1)
+        (should (haskell-ext-tracking-have-import-qualified-post?))
+        (haskell-qualify-import))
+    (tests-utils--multiline
+     "{-# LANGUAGE ImportQualifiedPost #-}"
+     "import Data.List"
+     "import  \"foo\"  Data.Ord   qualified   _|_"
+     "import Data.Set (Set)")
+    (tests-utils--multiline
+     "{-# LANGUAGE ImportQualifiedPost #-}"
+     "import Data.List"
+     "import  \"foo\"  Data.Ord   _|_"
+     "import Data.Set (Set)")))
+
+(ert-deftest haskell-tests/haskell-qualify-import-6 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-ext-tracking-mode +1)
+        (should-not (haskell-ext-tracking-have-import-qualified-post?))
+        (haskell-qualify-import))
+    (tests-utils--multiline
+     "import Data.List"
+     "import qualified Data.Ord as Ord (Down_|_)"
+     "import Data.Set (Set)")
+    (tests-utils--multiline
+     "import Data.List"
+     "import Data.Ord as Ord (Down_|_)"
+     "import Data.Set (Set)")))
+
+(ert-deftest haskell-tests/haskell-qualify-import-6a ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-ext-tracking-mode +1)
+        (should-not (haskell-ext-tracking-have-import-qualified-post?))
+        (haskell-qualify-import)
+        (haskell-qualify-import))
+    (tests-utils--multiline
+     "import Data.List"
+     "import    qualified    Data.Ord as Ord (Down_|_)"
+     "import Data.Set (Set)")
+    (tests-utils--multiline
+     "import Data.List"
+     "import qualified Data.Ord as Ord (Down_|_)"
+     "import Data.Set (Set)")))
+
+(ert-deftest haskell-tests/haskell-qualify-import-6b ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-ext-tracking-mode +1)
+        (should (haskell-ext-tracking-have-import-qualified-post?))
+        (haskell-qualify-import))
+    (tests-utils--multiline
+     "{-# LANGUAGE ImportQualifiedPost #-}"
+     "import Data.List"
+     "import qualified Data.Ord as Ord (Down_|_)"
+     "import Data.Set (Set)")
+    (tests-utils--multiline
+     "{-# LANGUAGE ImportQualifiedPost #-}"
+     "import Data.List"
+     "import Data.Ord as Ord (Down_|_)"
+     "import Data.Set (Set)")))
+
+(ert-deftest haskell-tests/haskell-qualify-import-6c ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-ext-tracking-mode +1)
+        (should (haskell-ext-tracking-have-import-qualified-post?))
+        (haskell-qualify-import)
+        (haskell-qualify-import))
+    (tests-utils--multiline
+     "{-# LANGUAGE ImportQualifiedPost #-}"
+     "import Data.List"
+     "import qualified Data.Ord as Ord (Down_|_)"
+     "import Data.Set (Set)")
+    (tests-utils--multiline
+     "{-# LANGUAGE ImportQualifiedPost #-}"
+     "import Data.List"
+     "import Data.Ord qualified as Ord (Down_|_)"
+     "import Data.Set (Set)")))
+
+(ert-deftest haskell-tests/haskell-qualify-import-6d ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-ext-tracking-mode +1)
+        (should (haskell-ext-tracking-have-import-qualified-post?))
+        (haskell-qualify-import)
+        (haskell-qualify-import)
+        (haskell-qualify-import))
+    (tests-utils--multiline
+     "{-# LANGUAGE ImportQualifiedPost #-}"
+     "import Data.List"
+     "import qualified Data.Ord as Ord (Down_|_)"
+     "import Data.Set (Set)")
+    (tests-utils--multiline
+     "{-# LANGUAGE ImportQualifiedPost #-}"
+     "import Data.List"
+     "import Data.Ord as Ord (Down_|_)"
+     "import Data.Set (Set)")))
+
+(ert-deftest haskell-tests/haskell-qualify-import-6e ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-ext-tracking-mode +1)
+        (should (haskell-ext-tracking-have-import-qualified-post?))
+        (haskell-qualify-import)
+        (haskell-qualify-import))
+    (tests-utils--multiline
+     "{-# LANGUAGE ImportQualifiedPost #-}"
+     "import Data.List"
+     "import Data.Ord   qualified   as Ord (Down_|_)"
+     "import Data.Set (Set)")
+    (tests-utils--multiline
+     "{-# LANGUAGE ImportQualifiedPost #-}"
+     "import Data.List"
+     "import Data.Ord qualified   as Ord (Down_|_)"
      "import Data.Set (Set)")))
 
 (ert-deftest haskell-tests/haskell-back-up-indent-level-1 ()
