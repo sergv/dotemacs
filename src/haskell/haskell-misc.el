@@ -873,14 +873,34 @@ value section should have if it is to be properly indented."
   (save-match-data
     (save-excursion
       (beginning-of-line)
-      (if (looking-at haskell-regexen/import-line)
-          (progn
-            (goto-char (match-end 0))
-            (delete-whitespace-backward)
-            (if (looking-at "qualified[ \t\r\n]+")
-                (replace-match " ")
-              (insert " qualified ")))
-        (error "Not on a line with import")))))
+      (let ((qstr "qualified"))
+        (if (looking-at haskell-regexen/pre-post-qualified-import-line)
+            (if (haskell-ext-tracking-have-import-qualified-post?)
+                (cond
+                  ((match-beginning 2)
+                   (replace-match "" nil nil nil 2))
+                  ((match-beginning 3)
+                   (replace-match "" nil nil nil 3))
+                  ((match-beginning 4)
+                   (let ((start (match-beginning 5)))
+                     (replace-match " " nil nil nil 5)
+                     (goto-char start)
+                     (insert-char ?\s)
+                     (insert qstr)))
+                  (t
+                   (goto-char (match-end 0))
+                   (insert-char ?\s)
+                   (insert qstr)))
+              (cond
+                ((match-beginning 3)
+                 (replace-match "" nil nil nil 3))
+                ((match-beginning 2)
+                 (replace-match "" nil nil nil 2))
+                (t
+                 (goto-char (match-end 1))
+                 (delete-whitespace-backward)
+                 (insert " qualified "))))
+          (error "Not on a line with import"))))))
 
 (defadvice haskell-indentation-indent-line (around
                                             haskell-indentation-indent-line-expand-yafolding
