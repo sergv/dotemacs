@@ -25,6 +25,7 @@
 (require 'abbrev+)
 (require 'haskell-compile)
 (require 'haskell-compilation-commands)
+(require 'haskell-ext-tracking)
 (require 'haskell-format-setup)
 (require 'haskell-mode)
 (require 'haskell-regexen)
@@ -673,9 +674,11 @@ both unicode and ascii characters.")
         (self-insert-command prefix)
       (haskell-smart-operators-self-insert prefix))))
 
-(cl-defun install-haskell-smart-operators! (keymap &key bind-colon bind-hyphen)
+(cl-defun install-haskell-smart-operators! (keymap &key bind-colon bind-hyphen track-extensions?)
   (declare (indent 1))
   (haskell-smart-operators-mode +1)
+  (when track-extensions?
+    (haskell-ext-tracking-mode +1))
   (when bind-colon
     (define-key keymap
       (kbd ":")
@@ -921,8 +924,8 @@ Returns ‘t’ on success, otherwise returns ‘nil’."
                (file-directory-p default-directory))
       (when-let ((config-file (flycheck-haskell--find-config-file))
                  (config (flycheck-haskell-get-configuration config-file)))
-        (let ((package-name (cadr-safe (assq 'package-name config)))
-              (components (cdr-safe (assq 'components config))))
+        (let-alist-static config (package-name components)
+          (setf package-name (car package-name))
           (when (not val-dante-package-name)
             (setq-local dante-package-name package-name))
           (when (not val-dante-target)
@@ -931,7 +934,7 @@ Returns ‘t’ on success, otherwise returns ‘nil’."
                          components
                          (buffer-file-name))))
               (cl-assert (stringp package-name) nil
-                         "Expected package name to be as tring but got %s" package-name)
+                         "Expected package name to be a string but got %s" package-name)
               (setq-local dante-target (concat package-name ":" component))
               t)))))))
 

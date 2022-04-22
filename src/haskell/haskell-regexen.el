@@ -116,12 +116,33 @@
   "import[ \t\r\n]+\\(?:\"[^\"]+\"[ \t\r\n]+\\)?")
 
 (defconst-set haskell-regexen/qualified-import-line
-  "import[ \t\r\n]+\\(?:\"[^\"]+\"[ \t\r\n]+\\)?qualified[ \t\r\n]+")
+  (eval-when-compile
+    (concat haskell-regexen/import-line "qualified[ \t\r\n]+"))
+
+  ;; "import[ \t\r\n]+\\(?:\"[^\"]+\"[ \t\r\n]+\\)?qualified[ \t\r\n]+"
+  )
 
 
-(defconst-set haskell-module-quantification-regexp
-  (let ((conid "\\b[[:upper:]][[:alnum:]'_]*\\b"))
-    (concat "\\b\\(?:" conid "\\.\\)+")))
+(defconst-set haskell-regexen/module-name-section
+  "[[:upper:]][[:alnum:]'_]*")
+
+(defconst-set haskell-regexen/module-name
+  (eval-when-compile
+    (let ((conid "[[:upper:]][[:alnum:]'_]*"))
+      (concat "\\b" haskell-regexen/module-name-section
+              "\\(?:\\." haskell-regexen/module-name-section "\\)*\\b"))))
+
+(defconst-set haskell-regexen/pre-post-qualified-import-line
+  (eval-when-compile
+    (concat "\\(?1:" haskell-regexen/import-line "\\)"
+            "\\(?2:qualified[ \t\r\n]+\\)?"
+            haskell-regexen/module-name
+            "\\(?3:[ \t\r\n]+qualified\\)?"
+            "\\(?4:\\(5:[ \t\r\n]+\\)as\\)?")))
+
+(defconst-set haskell-regexen/module-quantification
+  (eval-when-compile
+    (concat "\\b\\(?:" haskell-regexen/module-name-section "\\.\\)+")))
 
 ;;;###autoload
 (defun haskell-remove-module-qualification (name)
@@ -130,7 +151,7 @@
   (save-match-data
     (if (string-match (eval-when-compile
                         (concat "^\\("
-                                haskell-module-quantification-regexp
+                                haskell-regexen/module-quantification
                                 "\\)"))
                       name)
         (replace-match "" t t name 1)
