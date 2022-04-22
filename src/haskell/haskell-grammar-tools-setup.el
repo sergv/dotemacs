@@ -47,7 +47,8 @@ _I_: jump back"
   (install-haskell-smart-operators!
       vim-insert-mode-local-keymap
     :bind-colon t
-    :bind-hyphen t)
+    :bind-hyphen t
+    :track-extensions? t)
   (setup-eproj-symbnav)
 
   (dolist (cmd '("c" "compile"))

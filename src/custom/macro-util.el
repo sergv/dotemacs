@@ -802,6 +802,19 @@ quote it for macro’s sake).
 
 ;;; end
 
+(defmacro let-alist-static (val names &rest body)
+  (declare (indent 2))
+  (cl-assert (-all? #'symbolp names))
+  (let ((tmp '#:tmp))
+    `(let ,names
+       (dolist (,tmp ,val)
+         (cl-case (car ,tmp)
+           ,@(-map (lambda (x)
+                     `((,x)
+                       (setf ,x (cdr ,tmp))))
+                   names)))
+       ,@body)))
+
 (provide 'macro-util)
 
 ;; Local Variables:
