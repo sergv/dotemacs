@@ -71,21 +71,21 @@
 
 (defun elm-documentation--show-extended (documentation)
   "Show DOCUMENTATION in a help buffer."
-  (let-alist documentation
+  (let-alist-static documentation (fullName signature args cases type comment)
     (help-setup-xref (list #'elm-documentation--show documentation) nil)
     (save-excursion
       (with-help-window (help-buffer)
         (with-current-buffer (help-buffer)
           (point-min)
-          (let ((full-name (propertize .fullName 'face 'font-lock-function-name-face)))
+          (let ((full-name (propertize fullName 'face 'font-lock-function-name-face)))
             (insert full-name)
-            (when .signature
-              (insert (concat " : " .signature))
-              (when .args
+            (when signature
+              (insert (concat " : " signature))
+              (when args
                 (insert "\n")))
-            (when .args
-              (insert (concat " " (s-join " " .args))))
-            (when .cases
+            (when args
+              (insert (concat " " (s-join " " args))))
+            (when cases
               (let ((first t))
                 (mapc
                  (lambda (case)
@@ -95,11 +95,11 @@
                    (insert (propertize (elt case 0) 'face 'font-lock-function-name-face))
                    (insert (concat " " (s-join " " (elt case 1))))
                    (setq first nil))
-                 .cases)))
-            (when .type
+                 cases)))
+            (when type
               (insert " : ")
-              (insert (propertize .type 'face 'font-lock-type-face)))
-            (insert (concat "\n\n" (s-trim-left .comment))))))))  )
+              (insert (propertize type 'face 'font-lock-type-face)))
+            (insert (concat "\n\n" (s-trim-left comment))))))))  )
 
 (defun elm-enhancements--compilation-filter-remove-ansi-color ()
   (save-match-data

@@ -16,6 +16,7 @@
   (require 'macro-util))
 
 (require 'haskell-completions)
+(require 'haskell-ext-tracking)
 (require 'haskell-ghc-support)
 (require 'smart-operators-utils)
 
@@ -91,6 +92,10 @@ stick it to the previous operator on line."
                                   (eq before-ws ?-))))
                   (setf pt-preceded-by-two-dashes? t)
                   (= pt-before-ws2 (1+ line-start-pos)))))))
+
+         (magic-hash? (and (eq char ?#)
+                           (haskell-ext-tracking-have-magic-hash?)))
+
          (insert-trailing-space
           (lambda (whitespace-deleted? before-pt before after)
             ;; Decide whether to insert a space after the operator.
@@ -98,8 +103,7 @@ stick it to the previous operator on line."
                        (not (and (eq char ?\\)
                                  (not at-beginning-of-buffer?)
                                  (eq before ?\()))
-                       (if (and haskell-smart-operators-mode--have-magic-hash
-                                (eq char ?#))
+                       (if magic-hash?
                            (not (eq after ?,))
                          t))
               (when (or (not after) ;; at end of buffer
@@ -164,8 +168,7 @@ stick it to the previous operator on line."
          (if (and (not (smart-operators--on-empty-string?))
                   ;; If inserting hash then we should not add a space
                   ;; if MagicHash is enabled.
-                  (if (and (eq char ?#)
-                           haskell-smart-operators-mode--have-magic-hash)
+                  (if magic-hash?
                       nil ;; Stop considering whether to insert space.
                     t)
                   (or at-beginning-of-buffer?
@@ -227,8 +230,7 @@ stick it to the previous operator on line."
                                ;; If inserting # in MagicHash mode
                                ;; then make it stick to the previous
                                ;; word as well as to operators.
-                               (and (eq char ?#)
-                                    haskell-smart-operators-mode--have-magic-hash
+                               (and magic-hash?
                                     (memq (char-syntax char-before-spaces) '(?w ?_))))
                            (if (eq char-before-spaces ?|)
                                ;; Check that it's not a guard.
@@ -409,22 +411,6 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
     (define-key keymap (kbd "$") #'haskell-smart-operators-$)
     keymap))
 
-(defvar-local haskell-smart-operators-mode--have-magic-hash nil
-  "Whether MagicHash extension is enabled in current buffer.")
-
-(defvar-local haskell-smart-operators-mode--magic-hash-updated nil
-  "Whether MagicHash extension is enabled in current buffer.")
-
-
-(defun haskell-smart-operators-mode--update-magic-hash! ()
-  (setf haskell-smart-operators-mode--magic-hash-updated t)
-  (save-excursion
-    (save-match-data
-      (goto-char (point-min))
-      (setf haskell-smart-operators-mode--have-magic-hash
-            (if (re-search-forward "\\_<MagicHash\\_>" nil t)
-                t
-              nil)))))
 
 ;;;###autoload
 (define-minor-mode haskell-smart-operators-mode
@@ -432,25 +418,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
   :init-value nil
   :lighter nil
   :keymap nil
-  :global nil
-  (progn
-    (haskell-smart-operators-mode--update-magic-hash!)
-    (if haskell-smart-operators-mode
-        (progn
-          (dolist (hook '(after-save-hook after-revert-hook))
-            (add-hook
-             hook
-             #'haskell-smart-operators-mode--update-magic-hash!
-             nil     ;; append
-             t       ;; local
-             )))
-      (progn
-        (dolist (hook '(after-save-hook after-revert-hook))
-          (remove-hook
-           hook
-           #'haskell-smart-operators-mode--update-magic-hash!
-           t ;; local
-           ))))))
+  :global nil)
 
 (provide 'haskell-smart-operators-mode)
 
