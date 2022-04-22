@@ -507,7 +507,8 @@ _a_lign  _t_: jump to topmost node start
     (install-haskell-smart-operators!
         vim-insert-mode-local-keymap
       :bind-colon t
-      :bind-hyphen t)
+      :bind-hyphen t
+      :track-extensions? t)
 
     (def-keys-for-map (vim-normal-mode-local-keymap
                        vim-insert-mode-local-keymap)
@@ -576,7 +577,8 @@ _a_lign  _t_: jump to topmost node start
   ;; very useful to automatically surround with spaces inserted operators
   (install-haskell-smart-operators! vim-insert-mode-local-keymap
     :bind-colon nil
-    :bind-hyphen nil)
+    :bind-hyphen nil
+    :track-extensions? nil)
 
   (pretty-ligatures-install-safe!)
   (pretty-ligatures-install-special-haskell-ligatures!)
