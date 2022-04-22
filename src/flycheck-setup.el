@@ -8,7 +8,6 @@
 
 (eval-when-compile
   (require 'cl)
-  (require 'let-alist)
   (require 'macro-util))
 
 (require 'current-column-fixed)
@@ -43,12 +42,12 @@
       (`running     (flycheck-mode-line--propertise-as-comments "flycheck:running"))
       (`errored     "flycheck:error while checking")
       (`finished
-       (let-alist (flycheck-count-errors flycheck-current-errors)
-         (when (or .error .warning .info)
+       (let-alist-static (flycheck-count-errors flycheck-current-errors) (info warning error)
+         (when (or error warning info)
            (format "%s/%s/%s"
-                   (propertize (format "%d" (or .error 0)) 'face 'compilation-error)
-                   (propertize (format "%d" (or .warning 0)) 'face 'compilation-warning)
-                   (propertize (format "%d" (or .info 0)) 'face 'compilation-info)))))
+                   (propertize (format "%d" (or error 0)) 'face 'compilation-error)
+                   (propertize (format "%d" (or warning 0)) 'face 'compilation-warning)
+                   (propertize (format "%d" (or info 0)) 'face 'compilation-info)))))
       (`interrupted (flycheck-mode-line--propertise-as-comments "flycheck:interrupted"))
       (`suspicious  "flycheck:suspicious output from checker")
       (_ (propertize "flycheck:unknown" 'face 'error)))))
