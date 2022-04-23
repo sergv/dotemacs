@@ -1,3 +1,8 @@
+---
+author: yyoncho
+disqus: emacs-lsp
+root_file: docs/manual-language-docs/lsp-rust-analyzer.md
+---
 ## Server note
 
 NOTE: If you are using `rustic-mode`, you have to change `rustic-lsp-server` instead of `lsp-rust-server`, since it also supports eglot as a lightweight alternative to lsp-mode.
@@ -59,6 +64,19 @@ Formatted and highlighted result with the default function of rustic.
 Get a list of possible auto import candidates with `lsp-execute-code-action`
 
 ![](../examples/lsp-rust-analyzer-auto-import.png)
+
+### Snippet insertion/refactor
+
+To support refactorings that require snippet insertion(eg. generating
+derive clause etc), make sure that you have enabled `yasnippet` and
+`yas-minor-mode`. If you are using `use-package`, you can do something
+like this:
+
+``` emacs-lisp
+(use-package yasnippet
+  :ensure t
+  :hook ((lsp-mode . yas-minor-mode)))
+```
 
 ### Open Cargo.toml
 
