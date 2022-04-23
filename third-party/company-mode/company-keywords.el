@@ -1,6 +1,6 @@
 ;;; company-keywords.el --- A company backend for programming language keywords
 
-;; Copyright (C) 2009-2011, 2016  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011, 2013-2018, 2020-2021  Free Software Foundation, Inc.
 
 ;; Author: Nikolaj Schumacher
 
@@ -27,6 +27,15 @@
 
 (require 'company)
 (require 'cl-lib)
+(eval-when-compile (require 'make-mode))
+
+(defgroup company-keywords nil
+  "Completion backend for keywords."
+  :group 'company)
+
+(defcustom company-keywords-ignore-case nil
+  "Non-nil to ignore case in completion candidates."
+  :type 'boolean)
 
 (defun company-keywords-upper-lower (&rest lst)
   ;; Upcase order is different for _.
@@ -180,6 +189,10 @@
      "internal" "is" "lateinit" "nested" "null" "object" "open" "out" "override"
      "package" "private" "protected" "public" "return" "super" "this" "throw"
      "trait" "true" "try" "typealias" "val" "var" "when" "while")
+    (lua-mode
+     ;; https://www.lua.org/manual/5.3/manual.html
+     "and" "break" "do" "else" "elseif" "end" "false" "for" "function" "goto" "if"
+     "in" "local" "nil" "not" "or" "repeat" "return" "then" "true" "until" "while")
     (objc-mode
      "@catch" "@class" "@encode" "@end" "@finally" "@implementation"
      "@interface" "@private" "@protected" "@protocol" "@public"
@@ -218,17 +231,20 @@
      "ucfirst" "umask" "undef" "unless" "unlink" "unpack" "unshift" "untie"
      "until" "use" "utime" "values" "vec" "wait" "waitpid"
      "wantarray" "warn" "while" "write" "x" "xor" "y")
-    (php-mode
+    (php-mode ;; https://www.php.net/manual/reserved.php
+     "Closure" "Error" "Exception" "Generator" "Throwable"
      "__CLASS__" "__DIR__" "__FILE__" "__FUNCTION__" "__LINE__" "__METHOD__"
-     "__NAMESPACE__" "_once" "abstract" "and" "array" "as" "break" "case"
-     "catch" "cfunction" "class" "clone" "const" "continue" "declare"
-     "default" "die" "do" "echo" "else" "elseif" "empty" "enddeclare"
-     "endfor" "endforeach" "endif" "endswitch" "endwhile" "eval" "exception"
-     "exit" "extends" "final" "for" "foreach" "function" "global"
-     "goto" "if" "implements" "include" "instanceof" "interface"
-     "isset" "list" "namespace" "new" "old_function" "or" "php_user_filter"
-     "print" "private" "protected" "public" "require" "require_once" "return"
-     "static" "switch" "this" "throw" "try" "unset" "use" "var" "while" "xor")
+     "__NAMESPACE__" "__TRAIT__"
+     "abstract" "and" "array" "as" "bool" "break" "callable" "case" "catch"
+     "class" "clone" "const" "continue" "declare" "default" "die" "do" "echo"
+     "else" "elseif" "empty" "enddeclare" "endfor" "endforeach" "endif"
+     "endswitch" "endwhile" "enum" "eval" "exit" "extends" "false" "final" "finally"
+     "float" "fn" "for" "foreach" "function" "global" "goto" "if"
+     "implements" "include" "include_once" "instanceof" "insteadof" "interface"
+     "isset" "iterable" "list" "match" "namespace" "new" "null" "object" "or"
+     "print" "private" "protected" "public" "readonly" "require" "require_once"
+     "return" "self" "static" "string" "switch" "this" "throw" "trait" "true"
+     "try" "unset" "use" "var" "void" "while" "xor" "yield" "yield from")
     (python-mode
      ;; https://docs.python.org/3/reference/lexical_analysis.html#keywords
      "False" "None" "True" "and" "as" "assert" "break" "class" "continue" "def"
@@ -290,8 +306,30 @@
     (cperl-mode . perl-mode)
     (jde-mode . java-mode)
     (ess-julia-mode . julia-mode)
+    (phps-mode . php-mode)
     (enh-ruby-mode . ruby-mode))
   "Alist mapping major-modes to sorted keywords for `company-keywords'.")
+
+(with-eval-after-load 'make-mode
+  (mapc
+   (lambda (mode-stmnts)
+     (setf (alist-get (car mode-stmnts) company-keywords-alist)
+           (cl-remove-duplicates
+            (sort (append makefile-special-targets-list
+                          (cl-mapcan #'identity
+                                     (mapcar
+                                      #'split-string
+                                      (cl-remove-if-not
+                                       #'stringp
+                                       (symbol-value (cdr mode-stmnts))))))
+                  #'string<)
+            :test #'string=)))
+   '((makefile-automake-mode . makefile-automake-statements)
+     (makefile-gmake-mode    . makefile-gmake-statements)
+     (makefile-makepp-mode   . makefile-makepp-statements)
+     (makefile-bsdmake-mode  . makefile-bsdmake-statements)
+     (makefile-imake-mode    . makefile-statements)
+     (makefile-mode          . makefile-statements))))
 
 ;;;###autoload
 (defun company-keywords (command &optional arg &rest ignored)
@@ -303,12 +341,14 @@
                  (not (company-in-string-or-comment))
                  (or (company-grab-symbol) 'stop)))
     (candidates
-     (let ((completion-ignore-case nil)
+     (let ((completion-ignore-case company-keywords-ignore-case)
            (symbols (cdr (assq major-mode company-keywords-alist))))
        (all-completions arg (if (consp symbols)
                                 symbols
                               (cdr (assq symbols company-keywords-alist))))))
-    (sorted t)))
+    (kind 'keyword)
+    (sorted t)
+    (ignore-case company-keywords-ignore-case)))
 
 (provide 'company-keywords)
 ;;; company-keywords.el ends here

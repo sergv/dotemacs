@@ -1,6 +1,6 @@
 ;;; frontends-tests.el --- company-mode tests  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015, 2016  Free Software Foundation, Inc.
+;; Copyright (C) 2015-2017, 2020-2021  Free Software Foundation, Inc.
 
 ;; Author: Dmitry Gutov
 
@@ -83,7 +83,8 @@
     (save-window-excursion
       (set-window-buffer nil (current-buffer))
       (save-excursion (insert "\n"))
-      (let ((company-backend #'ignore))
+      (let ((company-backend #'ignore)
+            (company-prefix ""))
         (company-preview-show-at-point (point) "123")
         (let* ((ov company-preview-overlay)
                (str (overlay-get ov 'after-string)))
@@ -131,21 +132,31 @@
           (should (string= (overlay-get ov 'company-display)
                            " 123     (4) \n 45          \n 67 (891011) \n")))))))
 
-(ert-deftest company-create-lines-shows-numbers ()
-  (let ((company-show-numbers t)
+(ert-deftest company-create-lines-shows-quick-access ()
+  (let ((company-show-quick-access t)
         (company-candidates '("x" "y" "z"))
         (company-candidates-length 3)
         (company-backend 'ignore))
     (should (equal '(" x 1 " " y 2 " " z 3 ")
-                   (company--create-lines 0 999)))))
+                   (cdr (company--create-lines 0 999))))))
 
-(ert-deftest company-create-lines-shows-numbers-on-the-left ()
-  (let ((company-show-numbers 'left)
+(ert-deftest company-create-lines-shows-quick-access-on-the-left ()
+  (let ((company-show-quick-access 'left)
         (company-candidates '("x" "y" "z"))
         (company-candidates-length 3)
         (company-backend 'ignore))
     (should (equal '(" 1 x " " 2 y " " 3 z ")
-                   (company--create-lines 0 999)))))
+                   (cdr (company--create-lines 0 999))))))
+
+(ert-deftest company-create-lines-combines-quick-access-on-the-left-and-icons ()
+  (let ((company-show-quick-access 'left)
+        (company-candidates '("x" "y" "z"))
+        (company-format-margin-function (lambda (_candidate _selected)
+                                          "X"))
+        (company-candidates-length 3)
+        (company-backend (lambda (c &rest _) (pcase c (`kind 'class)))))
+    (should (equal '(" 1Xx " " 2Xy " " 3Xz ")
+                   (cdr (company--create-lines 0 999))))))
 
 (ert-deftest company-create-lines-truncates-annotations ()
   (let* ((ww (company--window-width))
@@ -164,13 +175,13 @@
                          (format " 2%s " (company-space-string (- ww 3)))
                          (format " 3(444%s " (make-string (- ww 7) ?4))
                          (format " %s " (make-string (- ww 2) ?4)))
-                   (company--create-lines 0 999)))
+                   (cdr (company--create-lines 0 999))))
     (let ((company-tooltip-align-annotations t))
       (should (equal (list (format " 1%s(123) " (company-space-string (- ww 8)))
                            (format " 2%s " (company-space-string (- ww 3)))
                            (format " 3 (444%s " (make-string (- ww 8) ?4))
                            (format " %s " (make-string (- ww 2) ?4)))
-                     (company--create-lines 0 999))))))
+                     (cdr (company--create-lines 0 999)))))))
 
 (ert-deftest company-create-lines-truncates-common-part ()
   (let* ((ww (company--window-width))
@@ -182,17 +193,17 @@
                                  ,(concat company-common "3"))))
       (should (equal (list (format " %s2 " (make-string (- ww 3) ?1))
                            (format " %s3 " (make-string (- ww 3) ?1)))
-                     (company--create-lines 0 999))))
+                     (cdr (company--create-lines 0 999)))))
     (let* ((company-common (make-string (- ww 2) ?1))
            (company-candidates `(,(concat company-common "2")
                                  ,(concat company-common "3"))))
       (should (equal (list (format " %s " company-common)
                            (format " %s " company-common))
-                     (company--create-lines 0 999))))
+                     (cdr (company--create-lines 0 999)))))
     (let* ((company-common (make-string ww ?1))
            (company-candidates `(,(concat company-common "2")
                                  ,(concat company-common "3")))
-           (res (company--create-lines 0 999)))
+           (res (cdr (company--create-lines 0 999))))
       (should (equal (list (format " %s " (make-string (- ww 2) ?1))
                            (format " %s " (make-string (- ww 2) ?1)))
                      res))
@@ -209,7 +220,7 @@
 
 (ert-deftest company-create-lines-clears-out-non-printables ()
   :tags '(interactive)
-  (let (company-show-numbers
+  (let (company-show-quick-access
         (company-candidates (list
                              (decode-coding-string "avalis\351e" 'utf-8)
                              "avatar"))
@@ -217,20 +228,20 @@
         (company-backend 'ignore))
     (should (equal '(" avalis?e "
                      " avatar   ")
-                   (company--create-lines 0 999)))))
+                   (cdr (company--create-lines 0 999))))))
 
 (ert-deftest company-create-lines-handles-multiple-width ()
   :tags '(interactive)
-  (let (company-show-numbers
+  (let (company-show-quick-access
         (company-candidates '("蛙蛙蛙蛙" "蛙abc"))
         (company-candidates-length 2)
         (company-backend 'ignore))
     (should (equal '(" ﻿蛙﻿蛙﻿蛙﻿蛙 "
                      " ﻿蛙abc    ")
-                   (company--create-lines 0 999)))))
+                   (cdr (company--create-lines 0 999))))))
 
 (ert-deftest company-create-lines-handles-multiple-width-in-annotation ()
-  (let* (company-show-numbers
+  (let* (company-show-quick-access
          (alist '(("a" . " ︸") ("b" . " ︸︸")))
          (company-candidates (mapcar #'car alist))
          (company-candidates-length 2)
@@ -239,11 +250,11 @@
                               (assoc-default a alist)))))
     (should (equal '(" a ﻿︸   "
                      " b ﻿︸﻿︸ ")
-                   (company--create-lines 0 999)))))
+                   (cdr (company--create-lines 0 999))))))
 
 (ert-deftest company-create-lines-with-multiple-width-and-keep-prefix ()
   :tags '(interactive)
-  (let* (company-show-numbers
+  (let* (company-show-quick-access
          (company-candidates '("MIRAI発売1カ月"
                                "MIRAI発売2カ月"))
          (company-candidates-length 2)
@@ -253,37 +264,86 @@
                               (`ignore-case 'keep-prefix)))))
     (should (equal '(" MIRAI﻿発﻿売1﻿カ﻿月 "
                      " MIRAI﻿発﻿売2﻿カ﻿月 ")
-                   (company--create-lines 0 999)))))
+                   (cdr (company--create-lines 0 999))))))
+
+(ert-deftest company-create-lines-with-format-function ()
+  (let* (company-show-quick-access
+         (company-candidates '("ArrayList"))
+         (company-candidates-length 1)
+         (company-tooltip-maximum-width 7)
+         (company-format-margin-function (lambda (_candidate _selected)
+                                           "X"))
+         (company-backend (lambda (c &rest _) (pcase c (`kind 'class)))))
+    (should (company--equal-including-properties
+             (cadr (company--create-lines 0 999))
+             #("XArrayLi " 0 9
+               (face (company-tooltip-selection company-tooltip)
+                     mouse-face (company-tooltip-mouse)))))))
+
+(ert-deftest company-create-lines-with-icons-format-function ()
+  :tags '(gui)
+  (let* (company-show-quick-access
+         (company-icon-size 15)
+         (company-candidates '("ArrayList"))
+         (company-candidates-length 1)
+         (default-directory company-icons-root)
+         (company-tooltip-maximum-width 20)
+         (company-tooltip-minimum-width 20)
+         (company-format-margin-function
+          'company-vscode-light-icons-margin)
+         (company-backend (lambda (c &rest _) (pcase c (`kind 'class)))))
+    (let ((tooltip-line (cadr (company--create-lines 0 999))))
+      (should (equal tooltip-line "  ArrayList            "))
+      (should (equal
+               (car (get-text-property 1 'display tooltip-line))
+               'space))
+      (should (equal
+               (get-text-property 0 'display tooltip-line)
+               `(image :file ,(expand-file-name "vscode-light/symbol-class.svg")
+                       :type svg :width 15 :height 15 :ascent center
+                       :background ,(face-attribute 'company-tooltip-selection
+                                                    :background)))))))
 
 (ert-deftest company-fill-propertize-truncates-search-highlight ()
   (let ((company-search-string "foo")
         (company-backend #'ignore)
         (company-prefix ""))
-    (should (ert-equal-including-properties
+    (should (company--equal-including-properties
              (company-fill-propertize "barfoo" nil 6 t nil nil)
              #("barfoo"
                0 3 (face (company-tooltip-selection company-tooltip) mouse-face (company-tooltip-mouse))
                3 6 (face (company-tooltip-search-selection company-tooltip-selection company-tooltip) mouse-face (company-tooltip-mouse)))))
-    (should (ert-equal-including-properties
+    (should (company--equal-including-properties
              (company-fill-propertize "barfoo" nil 5 t "" " ")
              #("barfo "
                0 3 (face (company-tooltip-selection company-tooltip) mouse-face (company-tooltip-mouse))
                3 5 (face (company-tooltip-search-selection company-tooltip-selection company-tooltip) mouse-face (company-tooltip-mouse))
                5 6 (face (company-tooltip-selection company-tooltip) mouse-face (company-tooltip-mouse)))))
-    (should (ert-equal-including-properties
+    (should (company--equal-including-properties
              (company-fill-propertize "barfoo" nil 3 t " " " ")
              #(" bar "
                0 5 (face (company-tooltip-selection company-tooltip) mouse-face (company-tooltip-mouse)))))))
+
+(ert-deftest company-fill-propertize-deprecated ()
+  (let ((company-search-string "foo")
+        (company-backend (lambda (c &rest _) (pcase c (`deprecated t))))
+        (company-prefix ""))
+    (should (company--equal-including-properties
+             (company-fill-propertize "barfoo" nil 5 t "" " ")
+             #("barfo "
+               0 3 (face (company-tooltip-selection company-tooltip-deprecated company-tooltip) mouse-face (company-tooltip-mouse))
+               3 5 (face (company-tooltip-search-selection company-tooltip-selection company-tooltip-deprecated company-tooltip) mouse-face (company-tooltip-mouse))
+               5 6 (face (company-tooltip-selection company-tooltip) mouse-face (company-tooltip-mouse)))))))
 
 (ert-deftest company-fill-propertize-overrides-face-property ()
   (let ((company-backend #'ignore)
         (company-prefix "")
         (str1 (propertize "str1" 'face 'foo))
         (str2 (propertize "str2" 'face 'foo)))
-    (should (ert-equal-including-properties
+    (should (company--equal-including-properties
              (company-fill-propertize str1 str2 8 nil nil nil)
              #("str1str2"
-               0 4 (face (company-tooltip) mouse-face (company-tooltip-mouse))
+               0 4 (face company-tooltip mouse-face (company-tooltip-mouse))
                4 8 (face (company-tooltip-annotation company-tooltip)
                          mouse-face (company-tooltip-mouse)))))))
 
@@ -307,15 +367,6 @@
                      '(value company-tooltip)))
       (should (equal (get-text-property 4 'face res)
                      '(annotation company-tooltip-annotation company-tooltip))))))
-
-(ert-deftest company-column-with-composition ()
-  :tags '(interactive)
-  (with-temp-buffer
-    (save-window-excursion
-      (set-window-buffer nil (current-buffer))
-      (insert "lambda ()")
-      (compose-region 1 (1+ (length "lambda")) "\\")
-      (should (= (company--column) 4)))))
 
 (ert-deftest company-plainify ()
   (let ((tab-width 8))

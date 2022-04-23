@@ -1,6 +1,6 @@
 ;;; company-clang.el --- company-mode completion backend for Clang  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2009, 2011, 2013-2019  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011, 2013-2021  Free Software Foundation, Inc.
 
 ;; Author: Nikolaj Schumacher
 
@@ -45,9 +45,10 @@
   :type 'file)
 
 (defcustom company-clang-begin-after-member-access t
-  "When non-nil, automatic completion will start whenever the current
-symbol is preceded by \".\", \"->\" or \"::\", ignoring
-`company-minimum-prefix-length'.
+  "When non-nil, start automatic completion after member access operators.
+
+Automatic completion starts whenever the current symbol is preceded by
+\".\", \"->\" or \"::\", ignoring `company-minimum-prefix-length'.
 
 If `company-begin-commands' is a list, it should include `c-electric-lt-gt'
 and `c-electric-colon', for automatic completion right after \">\" and
@@ -65,7 +66,7 @@ it.  That allows the flags use relative file names within the project."
   :safe 'booleanp)
 
 (defcustom company-clang-arguments nil
-  "Additional arguments to pass to clang when completing.
+  "A list of additional arguments to pass to clang when completing.
 Prefix files (-include ...) can be selected with `company-clang-set-prefix'
 or automatically through a custom `company-clang-prefix-guesser'."
   :type '(repeat (string :tag "Argument")))
@@ -236,6 +237,8 @@ or automatically through a custom `company-clang-prefix-guesser'."
   (let* ((objc (derived-mode-p 'objc-mode))
          (buf (get-buffer-create "*clang-output*"))
          ;; Looks unnecessary in Emacs 25.1 and later.
+         ;; (Inconclusive, needs more testing):
+         ;; https://github.com/company-mode/company-mode/pull/288#issuecomment-72491808
          (process-adaptive-read-buffering nil)
          (existing-process (get-buffer-process buf)))
     (when existing-process
@@ -342,10 +345,9 @@ or automatically through a custom `company-clang-prefix-guesser'."
    (company-clang--check-version 2.9 3.1)))
 
 (defun company-clang--check-version (min apple-min)
-  (pcase company-clang--version
+  (pcase-exhaustive company-clang--version
     (`(apple . ,ver) (>= ver apple-min))
-    (`(normal . ,ver) (>= ver min))
-    (_ (error "pcase-exhaustive is not in Emacs 24.3!"))))
+    (`(normal . ,ver) (>= ver min))))
 
 (defun-caching company-clang--get-version (clang-exe) nil clang-exe
   "Return the version of `company-clang-executable'."
@@ -398,6 +400,7 @@ passed via standard input."
     (candidates (cons :async
                       (lambda (cb) (company-clang--candidates arg cb))))
     (meta       (company-clang--meta arg))
+    (kind (company-clang--kind arg))
     (annotation (company-clang--annotation arg))
     (post-completion (let ((anno (company-clang--annotation arg)))
                        (when (and company-clang-insert-arguments anno)
@@ -406,6 +409,23 @@ passed via standard input."
                              (company-template-objc-templatify anno)
                            (company-template-c-like-templatify
                             (concat arg anno))))))))
+
+(defun company-clang--kind (arg)
+  ;; XXX: Not very precise.
+  ;; E.g. it will say that an arg-less ObjC method is a variable (perhaps we
+  ;; could look around for brackets, etc, if there any actual users who's
+  ;; bothered by it).
+  ;; And we can't distinguish between local vars and struct fields.
+  ;; Or between keywords and macros.
+  (let ((meta (company-clang--meta arg)))
+    (cond
+     ((null meta) 'keyword)
+     ((string-match "(" meta)
+      (if (string-match-p (format "\\`%s *\\'" (regexp-quote arg))
+                          (substring meta 0 (match-beginning 0)))
+          'keyword ; Also macro, actually (no return type).
+        'function))
+     (t 'variable))))
 
 (provide 'company-clang)
 ;;; company-clang.el ends here

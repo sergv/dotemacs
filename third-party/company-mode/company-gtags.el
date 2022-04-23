@@ -1,6 +1,6 @@
 ;;; company-gtags.el --- company-mode completion backend for GNU Global
 
-;; Copyright (C) 2009-2011, 2014-2020  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011, 2013-2021  Free Software Foundation, Inc.
 
 ;; Author: Nikolaj Schumacher
 
@@ -63,6 +63,11 @@ completion."
             (locate-dominating-file buffer-file-name "GTAGS"))
     company-gtags--tags-available-p))
 
+;; Avoid byte-compilation warnings on Emacs < 27.
+(declare-function with-connection-local-variables "files-x")
+(declare-function connection-local-set-profile-variables "files-x")
+(declare-function connection-local-set-profiles "files-x")
+
 (defun company-gtags--executable ()
   (cond
    ((not (eq company-gtags--executable 'unknown)) ;; the value is already cached
@@ -76,7 +81,8 @@ completion."
                      company-gtags--executable-connection)
 
        ;; Else search and set as connection local for next uses.
-       (setq-local company-gtags--executable (executable-find "global" t))
+       (setq-local company-gtags--executable
+                   (with-no-warnings (executable-find "global" t)))
        (let* ((host (file-remote-p default-directory 'host))
               (symvars (intern (concat host "-vars")))) ;; profile name
 
@@ -94,7 +100,7 @@ completion."
     (let (tags)
       ;; For some reason Global v 6.6.3 is prone to returning exit status 1
       ;; even on successful searches when '-T' is used.
-      (when (/= 3 (process-file company-gtags-executable nil
+      (when (/= 3 (process-file (company-gtags--executable) nil
                                ;; "-T" goes through all the tag files listed in GTAGSLIBPATH
                                (list (current-buffer) nil) nil "-xGqT" (concat "^" prefix)))
         (goto-char (point-min))
@@ -116,8 +122,17 @@ completion."
 
 (defun company-gtags--annotation (arg)
   (let ((meta (get-text-property 0 'meta arg)))
-    (when (string-match (concat (regexp-quote arg) "\\((.*)\\).*") meta)
-      (match-string 1 meta))))
+    (when (string-match (concat (regexp-quote arg) " *(") meta)
+      (with-temp-buffer
+        (let ((start (match-end 0)))
+          (insert meta)
+          (goto-char start)
+          (condition-case nil
+              (forward-sexp)
+            (scan-error
+             (goto-char (point-max))))
+          (buffer-substring-no-properties
+           start (point)))))))
 
 ;;;###autoload
 (defun company-gtags (command &optional arg &rest ignored)
