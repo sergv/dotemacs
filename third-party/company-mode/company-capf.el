@@ -1,6 +1,6 @@
 ;;; company-capf.el --- company-mode completion-at-point-functions backend -*- lexical-binding: t -*-
 
-;; Copyright (C) 2013-2019  Free Software Foundation, Inc.
+;; Copyright (C) 2013-2021  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 
@@ -57,18 +57,42 @@ so we can't just use the preceding variable instead.")
               (list (current-buffer) (point) (buffer-chars-modified-tick) data))
         data))))
 
+(defun company--contains (elt lst)
+  (when-let ((cur (car lst)))
+    (cond
+     ((symbolp cur)
+      (or (eq elt cur)
+          (company--contains elt (cdr lst))))
+     ((listp cur)
+      (or (company--contains elt cur)
+          (company--contains elt (cdr lst)))))))
+
 (defun company--capf-data-real ()
   (cl-letf* (((default-value 'completion-at-point-functions)
-              ;; Ignore tags-completion-at-point-function because it subverts
-              ;; company-etags in the default value of company-backends, where
-              ;; the latter comes later.
-              (remove 'tags-completion-at-point-function
-                      (default-value 'completion-at-point-functions)))
+              (if (company--contains 'company-etags company-backends)
+                  ;; Ignore tags-completion-at-point-function because it subverts
+                  ;; company-etags in the default value of company-backends, where
+                  ;; the latter comes later.
+                  (remove 'tags-completion-at-point-function
+                          (default-value 'completion-at-point-functions))
+                (default-value 'completion-at-point-functions)))
              (completion-at-point-functions (company--capf-workaround))
              (data (run-hook-wrapped 'completion-at-point-functions
                                      ;; Ignore misbehaving functions.
-                                     #'completion--capf-wrapper 'optimist)))
+                                     #'company--capf-wrapper 'optimist)))
     (when (and (consp (cdr data)) (integer-or-marker-p (nth 1 data))) data)))
+
+(defun company--capf-wrapper (fun which)
+  (let ((buffer-read-only t)
+        (inhibit-read-only nil)
+        (completion-in-region-function
+         (lambda (beg end coll pred)
+           (throw 'company--illegal-completion-in-region
+                  (list fun beg end coll :predicate pred)))))
+    (catch 'company--illegal-completion-in-region
+      (condition-case nil
+          (completion--capf-wrapper fun which)
+        (buffer-read-only nil)))))
 
 (declare-function python-shell-get-process "python")
 
@@ -148,8 +172,14 @@ so we can't just use the preceding variable instead.")
                          :company-location)))
        (when f (funcall f arg))))
     (`annotation
+     (company-capf--annotation arg))
+    (`kind
      (let ((f (plist-get (nthcdr 4 company-capf--current-completion-data)
-                         :annotation-function)))
+                         :company-kind)))
+       (when f (funcall f arg))))
+    (`deprecated
+     (let ((f (plist-get (nthcdr 4 company-capf--current-completion-data)
+                         :company-deprecated)))
        (when f (funcall f arg))))
     (`require-match
      (plist-get (nthcdr 4 (company--capf-data)) :company-require-match))
@@ -157,6 +187,25 @@ so we can't just use the preceding variable instead.")
     (`post-completion
      (company--capf-post-completion arg))
     ))
+
+(defun company-capf--annotation (arg)
+  (let* ((f (or (plist-get (nthcdr 4 company-capf--current-completion-data)
+                           :annotation-function)
+                ;; FIXME: Add a test.
+                (cdr (assq 'annotation-function
+                           (completion-metadata
+                            (buffer-substring (nth 1 company-capf--current-completion-data)
+                                              (nth 2 company-capf--current-completion-data))
+                            (nth 3 company-capf--current-completion-data)
+                            (plist-get (nthcdr 4 company-capf--current-completion-data)
+                                       :predicate))))))
+         (annotation (when f (funcall f arg))))
+    (if (and company-format-margin-function
+             (equal annotation " <f>") ; elisp-completion-at-point, pre-icons
+             (plist-get (nthcdr 4 company-capf--current-completion-data)
+                        :company-kind))
+        nil
+      annotation)))
 
 (defun company-capf--candidates (input)
   (let ((res (company--capf-data)))

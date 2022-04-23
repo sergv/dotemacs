@@ -1,6 +1,6 @@
 ;;; company-abbrev.el --- company-mode completion backend for abbrev
 
-;; Copyright (C) 2009-2011, 2015  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011, 2013-2015, 2021  Free Software Foundation, Inc.
 
 ;; Author: Nikolaj Schumacher
 
@@ -44,7 +44,9 @@
     (candidates (nconc
                  (delete "" (all-completions arg global-abbrev-table))
                  (delete "" (all-completions arg local-abbrev-table))))
-    (meta (abbrev-expansion arg))))
+    (kind 'snippet)
+    (meta (abbrev-expansion arg))
+    (post-completion (expand-abbrev))))
 
 (provide 'company-abbrev)
 ;;; company-abbrev.el ends here

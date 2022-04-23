@@ -1,6 +1,6 @@
 ;;; filtes-tests.el --- company-mode tests  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016  Free Software Foundation, Inc.
+;; Copyright (C) 2016, 2021  Free Software Foundation, Inc.
 
 ;; Author: Dmitry Gutov
 
@@ -46,3 +46,12 @@
     (should-not (member (expand-file-name "company.el" company-dir)
                         (company-files 'candidates
                                        company-dir)))))
+
+(ert-deftest company-files-candidates-excluding-dir-and-files ()
+  (let* ((company-files-exclusions '("test/" ".el"))
+         company-files--completion-cache
+         (files-candidates (company-files 'candidates company-dir)))
+    (should-not (member (expand-file-name "test/" company-dir)
+                        files-candidates))
+    (should-not (member (expand-file-name "company.el" company-dir)
+                        files-candidates))))
