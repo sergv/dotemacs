@@ -2,6 +2,79 @@
 
 ## Next
 
+* `company-auto-commit` and `company-auto-commit-chars` have been renamed to
+  `company-insertion-on-trigger` and `company-insertion-triggers` respectively
+  ([#1270](https://github.com/company-mode/company-mode/pull/1270)).
+* New command `company-complete-common-or-show-delayed-tooltip`
+  ([#1214](https://github.com/company-mode/company-mode/discussions/1214)).
+* Faces `company-scrollbar-fg` and `company-scrollbar-bg` have been renamed to
+  `company-tooltip-scrollbar-thumb` and `company-tooltip-scrollbar-track`
+  respectively.
+* Better compatibility with `visual-line-mode`
+  ([#1257](https://github.com/company-mode/company-mode/issues/1257)).
+* Better compatibility with `org-indent-mode`
+  ([#1252](https://github.com/company-mode/company-mode/issues/1252)).
+* New backend command, `deprecated`. It returns whether the completion item is
+  deprecated or not.
+* `company-tooltip-common` highlightings with non-prefix and prefix matching
+  backends are more compatible: if the non-prefix matching backend's completions
+  all have a common part, and so the current prefix can be expanded with
+  `company-complete-common`, that part is now also highlighted with that face
+  ([#519](https://github.com/company-mode/company-mode/issues/519)).
+* `company-yasnippet` respects the `condition` directive in snippets
+  ([#1179](https://github.com/company-mode/company-mode/issues/1179)).
+* New user option `company-icon-margin`.
+* `company-show-numbers` has been renamed to `company-show-quick-access`
+  ([#1115](https://github.com/company-mode/company-mode/pull/1115)).
+  New user options `company-quick-access-keys` and
+  `company-quick-access-modifier`.
+  New command `company-complete-quick-access`.
+  `company-show-numbers-function` has been deprecated and its default
+  value changed to `nil`. Use `company-quick-access-hint-function`
+  instead. `company--show-numbers` has been deprecated.
+* `company-complete-number` has been renamed to
+  `company-complete-tooltip-row`
+  ([#1118](https://github.com/company-mode/company-mode/pull/1118)).
+* New faces `company-tooltip-quick-access` and
+  `company-tooltip-quick-access-selection`
+  ([#303](https://github.com/company-mode/company-mode/issues/303)).
+* Default colors for dark themes have been changed
+  ([#949](https://github.com/company-mode/company-mode/issues/949)).
+* Default key bindings have been changed, moving `company-select-next` and
+  `company-select-previous` from `M-n` and `M-p` to `C-n` and `C-p`
+  ([#1098](https://github.com/company-mode/company-mode/pull/1098)). The bound
+  commands are also changed: `company-select-next-or-abort` and
+  `company-select-previous-or-abort`, to match the `<up>` and `<down>`
+  bindings. The previous bindings still work, but show a warning and will be
+  disabled soon. To undo that change locally, do:
+
+```el
+(with-eval-after-load 'company
+  (dolist (map (list company-active-map company-search-map))
+    (define-key map (kbd "C-n") nil)
+    (define-key map (kbd "C-p") nil)
+    (define-key map (kbd "M-n") #'company-select-next)
+    (define-key map (kbd "M-p") #'company-select-previous)))
+```
+
+* New user option `company-files-chop-trailing-slash`
+  ([#1042](https://github.com/company-mode/company-mode/issues/1042)).
+* Improved visual responsiveness with (but not limited to) async backends
+  ([#1073](https://github.com/company-mode/company-mode/issues/1073)). New user
+  option `company-async-redisplay-delay`.
+* `company-idle-delay` default reduced to 0.2 (seconds).
+* The minimum required version of Emacs is now 25.1.
+* Added support for icons
+  ([#1070](https://github.com/company-mode/company-mode/pull/1070)).
+  New user option `company-format-margin-function`. New backend command
+  `kind`. There are two built-in SVG icon sets, one for light and another for
+  dark icons. The default behavior is to choose the best one for the current
+  theme automatically, or if the current frame is non-graphical or simply does
+  not support rendering SVG images, fall back to text-based "icons".
+* User options `company-text-icons-mapping` and
+  `company-text-icons-add-background` control the looks and additional
+  decoration for the latter
+  ([#1088](https://github.com/company-mode/company-mode/issues/1088)).
 * New user option `company-abort-on-unique-match`
   ([#1046](https://github.com/company-mode/company-mode/issues/1046)).
 * `company-select-mouse` is a new frontend action
@@ -75,7 +148,7 @@
 * `company-idle-delay` now accepts a function which generates the idle time or
   nil indicating no idle completion.
 * Add custom variable `company-show-numbers-function` to make numbers of
-  candidates customizable. 
+  candidates customizable.
 * When a symbol is already typed in full, calling `M-x company-complete` will
   now run its post-completion action (e.g. inserting method parameters
   template). Calling `M-x company-manual-begin` or invoking a backend command
