@@ -205,11 +205,56 @@ If there are more arguments expected after the line and column numbers."
   (interactive)
   (lsp-clojure--refactoring-call "create-test"))
 
+(defun lsp-clojure-sort-map ()
+  "Apply sort-map refactoring at point."
+  (interactive)
+  (lsp-clojure--refactoring-call "sort-map"))
+
+(defun lsp-clojure-move-coll-entry-up ()
+  "Apply move coll entry up refactoring at point."
+  (interactive)
+  (lsp-clojure--refactoring-call "move-coll-entry-up"))
+
+(defun lsp-clojure-move-coll-entry-down ()
+  "Apply move coll entry down refactoring at point."
+  (interactive)
+  (lsp-clojure--refactoring-call "move-coll-entry-down"))
+
+(defun lsp-clojure-move-form ()
+  "Apply move-form refactoring at point."
+  (interactive)
+  (lsp-clojure--refactoring-call "move-form" "/home/greg/dev/clojure-lsp/lib/src/clojure_lsp/shared.clj"))
+
 (defun lsp-clojure-server-info ()
   "Request server info."
   (interactive)
   (lsp--cur-workspace-check)
   (lsp-notify "clojure/serverInfo/log" nil))
+
+(defvar lsp-clojure-server-buffer-name "*lsp-clojure-server-log*")
+
+(defun lsp-clojure--server-log-revert-function (original-file-log-buffer &rest _)
+  "Spit contents to ORIGINAL-FILE-LOG-BUFFER."
+  (with-current-buffer (get-buffer-create lsp-clojure-server-buffer-name)
+    (erase-buffer)
+    (insert (with-current-buffer original-file-log-buffer (buffer-string)))
+    (goto-char (point-max))
+    (read-only-mode)))
+
+(defun lsp-clojure-server-log ()
+  "Open a buffer with the server logs."
+  (interactive)
+  (lsp--cur-workspace-check)
+  (let* ((log-path (-> (lsp--json-serialize (lsp-request "clojure/serverInfo/raw" nil))
+                       (lsp--read-json)
+                       (lsp-get :log-path)))
+         (original-file-log-buffer (find-file-noselect log-path)))
+    (with-current-buffer original-file-log-buffer
+      (add-hook 'after-revert-hook (-partial #'lsp-clojure--server-log-revert-function original-file-log-buffer) nil t)
+      (auto-revert-tail-mode)
+      (read-only-mode))
+    (lsp-clojure--server-log-revert-function original-file-log-buffer)
+    (switch-to-buffer lsp-clojure-server-buffer-name)))
 
 (defun lsp-clojure-server-info-raw ()
   "Request server info raw data."
@@ -227,31 +272,6 @@ If there are more arguments expected after the line and column numbers."
                :position (lsp-make-position :line (- (line-number-at-pos) 1)
                                             :character (current-column-fixed)))))
 
-(defun lsp-clojure--ask-macro-to-resolve ()
-  "Ask to user the macro to resolve."
-  (lsp--completing-read
-   "Select how LSP should resolve this macro:"
-   '("clojure.core/def"
-     "clojure.core/defn"
-     "clojure.core/let"
-     "clojure.core/for"
-     "clojure.core/->"
-     "clojure.core/->>"
-     "clj-kondo.lint-as/def-catch-all")
-   #'identity
-   nil
-   t))
-
-(defun lsp-clojure--ask-clj-kondo-config-dir ()
-  "Ask to user the clj-kondo config dir path."
-  (lsp--completing-read
-   "Select where LSP should save this setting:"
-   (list (f-join (expand-file-name "~/") ".config/clj-kondo/config.edn")
-         (f-join (or (lsp-workspace-root) "project") ".clj-kondo/config.edn"))
-   #'identity
-   nil
-   t))
-
 (defun lsp-clojure-resolve-macro-as ()
   "Ask to user how the unresolved macro should be resolved."
   (interactive)
@@ -259,15 +279,7 @@ If there are more arguments expected after the line and column numbers."
   (lsp-clojure--execute-command "resolve-macro-as"
                                 (list (lsp--buffer-uri)
                                       (- (line-number-at-pos) 1) ;; clojure-lsp expects line numbers to start at 0
-                                      (current-column-fixed)
-                                      (lsp-clojure--ask-macro-to-resolve)
-                                      (lsp-clojure--ask-clj-kondo-config-dir))))
-
-(lsp-defun lsp-clojure--resolve-macro-as ((&Command :command :arguments?))
-  "Intercept resolve-macro-as command and send all necessary data."
-  (let ((chosen-macro (lsp-clojure--ask-macro-to-resolve))
-        (clj-kondo-config-path (lsp-clojure--ask-clj-kondo-config-dir)))
-    (lsp-clojure--execute-command command (append arguments? (list chosen-macro clj-kondo-config-path)))))
+                                      (current-column-fixed))))
 
 (defun lsp-clojure--ensure-dir (path)
   "Ensure that directory PATH exists."
@@ -393,7 +405,7 @@ It updates the test tree view data."
   (interactive "P")
   (if (require 'lsp-treemacs nil t)
       (lsp-clojure--show-test-tree ignore-focus?)
-    (error "lsp-treemacs not installed.")))
+    (error "The package lsp-treemacs is not installed")))
 
 (lsp-register-client
  (make-lsp-client
@@ -412,8 +424,7 @@ It updates the test tree view data."
   :major-modes '(clojure-mode clojurec-mode clojurescript-mode)
   :library-folders-fn (lambda (_workspace) (list lsp-clojure-workspace-cache-dir))
   :uri-handlers (lsp-ht ("jar" #'lsp-clojure--file-in-jar))
-  :action-handlers (lsp-ht ("resolve-macro-as" #'lsp-clojure--resolve-macro-as)
-                           ("code-lens-references" #'lsp-clojure--show-references))
+  :action-handlers (lsp-ht ("code-lens-references" #'lsp-clojure--show-references))
   :notification-handlers (lsp-ht ("clojure/textDocument/testTree" #'lsp-clojure--handle-test-tree))
   :initialization-options '(:dependency-scheme "jar"
                             :show-docs-arity-on-same-line? t)
