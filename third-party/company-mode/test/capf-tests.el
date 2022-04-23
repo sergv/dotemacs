@@ -1,9 +1,9 @@
 ;;; capf-tests.el --- company tests for the company-capf backend  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018  Free Software Foundation, Inc.
+;; Copyright (C) 2018-2019, 2021  Free Software Foundation, Inc.
 
 ;; Author: João Távora <joaotavora@gmail.com>
-;; Keywords: 
+;; Keywords:
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -19,8 +19,6 @@
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-
-;; 
 
 ;;; Code:
 
@@ -83,12 +81,11 @@
       ;; remove text properties that aren't relevant to our test
       (company--remove-but-these-properties render '(face))
       (should
-       (ert-equal-including-properties
+       (company--equal-including-properties
         render
         #("with-current-buffer"
-          0 4 (face (company-tooltip-common company-tooltip))   ; "with"
-          4 19 (face (company-tooltip))))))))
-
+          0 5 (face (company-tooltip-common company-tooltip))   ; "with"
+          5 19 (face company-tooltip)))))))
 
 
 ;; Re. "perfect" highlighting of the non-prefix in company-capf matches, it is
@@ -114,15 +111,15 @@
       ;; remove text properties that aren't relevant to our test
       (company--remove-but-these-properties render '(face))
       (should
-       (ert-equal-including-properties
+       (company--equal-including-properties
         render
         #("with-current-buffer"
           0 1 (face (company-tooltip-common company-tooltip))   ; "w"
-          1 4 (face (company-tooltip))                          ; "ith"
+          1 4 (face company-tooltip)                          ; "ith"
           4 6 (face (company-tooltip-common company-tooltip))   ; "-c"
-          6 12 (face (company-tooltip))                         ; "urrent"
+          6 12 (face company-tooltip)                         ; "urrent"
           12 14 (face (company-tooltip-common company-tooltip)) ; "-b"
-          14 19 (face (company-tooltip))))))))                  ; "uffer"
+          14 19 (face company-tooltip)))))))                  ; "uffer"
 
 (ert-deftest company-non-prefix-modest-capf-highlighting ()
   "Test highlighting for non-prefix `company-capf' in elisp"
@@ -138,11 +135,11 @@
       ;; remove text properties that aren't relevant to our test
       (company--remove-but-these-properties render '(face))
       (should
-       (ert-equal-including-properties
+       (company--equal-including-properties
         render
         #("with-current-buffer"
           0 14 (face (company-tooltip-common company-tooltip)); "with-current-b"
-          14 19 (face (company-tooltip))))))))                ; "uffer"
+          14 19 (face company-tooltip)))))))                ; "uffer"
 
 (provide 'capf-tests)
 ;;; capf-tests.el ends here

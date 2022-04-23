@@ -1,6 +1,6 @@
 ;;; core-tests.el --- company-mode tests  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015, 2016, 2017  Free Software Foundation, Inc.
+;; Copyright (C) 2015-2018, 2020-2021  Free Software Foundation, Inc.
 
 ;; Author: Dmitry Gutov
 
@@ -273,7 +273,7 @@
     (insert "ab")
     (company-mode)
     (let (company-frontends
-          company-auto-commit
+          company-insertion-on-trigger
           (company-require-match t)
           (company-backends
            (list (lambda (command &optional _)
@@ -373,13 +373,13 @@
       (should (string= "a" (buffer-string)))
       (should (null company-candidates)))))
 
-(ert-deftest company-auto-commit-explicit ()
+(ert-deftest company-insertion-on-trigger-explicit ()
   (with-temp-buffer
     (insert "ab")
     (company-mode)
     (let (company-frontends
-          (company-auto-commit 'company-explicit-action-p)
-          (company-auto-commit-chars '(? ))
+          (company-insertion-on-trigger 'company-explicit-action-p)
+          (company-insertion-triggers '(? ))
           (company-backends
            (list (lambda (command &optional _)
                    (cl-case command
@@ -391,14 +391,14 @@
         (company-call 'self-insert-command 1))
       (should (string= "abcd " (buffer-string))))))
 
-(ert-deftest company-auto-commit-with-electric-pair ()
+(ert-deftest company-insertion-on-trigger-with-electric-pair ()
   (with-temp-buffer
     (insert "foo(ab)")
     (forward-char -1)
     (company-mode)
     (let (company-frontends
-          (company-auto-commit t)
-          (company-auto-commit-chars '(? ?\)))
+          (company-insertion-on-trigger t)
+          (company-insertion-triggers '(? ?\)))
           (company-backends
            (list (lambda (command &optional _)
                    (cl-case command
@@ -416,13 +416,13 @@
           (electric-pair-mode -1)))
       (should (string= "foo(abcd)" (buffer-string))))))
 
-(ert-deftest company-no-auto-commit-when-idle ()
+(ert-deftest company-no-insertion-on-trigger-when-idle ()
   (with-temp-buffer
     (insert "ab")
     (company-mode)
     (let (company-frontends
-          (company-auto-commit 'company-explicit-action-p)
-          (company-auto-commit-chars '(? ))
+          (company-insertion-on-trigger 'company-explicit-action-p)
+          (company-insertion-triggers '(? ))
           (company-minimum-prefix-length 2)
           (company-backends
            (list (lambda (command &optional _)
@@ -497,9 +497,10 @@
 
 (defvar ct-sorted nil)
 
+;; FIXME: When Emacs 29+ only: just replace with equal-including-properties.
 (defun ct-equal-including-properties (list1 list2)
   (or (and (not list1) (not list2))
-      (and (ert-equal-including-properties (car list1) (car list2))
+      (and (company--equal-including-properties (car list1) (car list2))
            (ct-equal-including-properties (cdr list1) (cdr list2)))))
 
 (ert-deftest company-strips-duplicates-returns-nil ()
@@ -585,6 +586,10 @@
       (should (= (company--row) 0))
       (setq header-line-format "aaaaaaa")
       (should (= (company--row) 0)))))
+
+;; Avoid compilation warnings on Emacs 25.
+(declare-function display-line-numbers-mode "display-line-numbers")
+(declare-function line-number-display-width "indent.c")
 
 (ert-deftest company-column-with-line-numbers-display ()
   :tags '(interactive)
