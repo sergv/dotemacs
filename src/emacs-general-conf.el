@@ -253,11 +253,24 @@
 
 (global-font-lock-mode 1)
 
+(defun shoud-enable-so-long-mode? ()
+  "Check whether current buffer should be put into ‘so-long-mode’."
+  (and (if (eval-when-compile (fboundp #'buffer-line-statistics))
+           (so-long-statistics-excessive-p)
+         (so-long-detected-long-line-p))
+       ;; cabal-install’s plan.json is formatted as a single line but is
+       ;; typicaly never too long to cause significant issues for Emacs.
+       ;; Any working with the file will involve pretty printing it anyway.
+       (not (s-suffix-p "/cache/plan.json"
+                        (buffer-file-name (current-buffer))))))
+
 ;; Give user a chance to close file with very long lines without freezing Emacs.
 (global-so-long-mode)
 (setf so-long-variable-overrides
       (append so-long-variable-overrides
-              '((show-trailing-whitespace . nil))))
+              '((show-trailing-whitespace . nil)))
+      so-long-predicate
+      #'shoud-enable-so-long-mode?)
 
 ;;;; key definitions
 
