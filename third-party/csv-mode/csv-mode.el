@@ -4,7 +4,7 @@
 
 ;; Author: "Francis J. Wright" <F.J.Wright@qmul.ac.uk>
 ;; Maintainer: emacs-devel@gnu.org
-;; Version: 1.16
+;; Version: 1.19
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; Keywords: convenience
 
@@ -148,7 +148,10 @@ Set by customizing `csv-separators' -- do not set directly!")
 For example: (\",\"), the default, or (\",\" \";\" \":\").
 Neighbouring fields may be separated by any one of these characters.
 The first is used when inserting a field separator into the buffer.
-All must be different from the field quote characters, `csv-field-quotes'."
+All must be different from the field quote characters, `csv-field-quotes'.
+
+Changing this variable with `setq' won't affect the current Emacs
+session.  Use `customize-set-variable' instead if that is required."
   ;; Suggested by Eckhard Neber <neber@mwt.e-technik.uni-ulm.de>
   :type '(repeat string)
   ;; FIXME: Character would be better, but in Emacs 21.3 does not display
@@ -237,7 +240,8 @@ Auto-alignment means left align text and right align numbers."
 
 (defcustom csv-align-padding 1
   "Aligned field spacing: must be a positive integer.
-Number of spaces used by `csv-align-mode' and `csv-align-fields' after separators."
+Number of spaces used by `csv-align-mode' and `csv-align-fields'
+after separators."
   :type 'integer)
 
 (defcustom csv-header-lines 0
@@ -672,9 +676,11 @@ point or marker arguments, BEG and END, delimiting the region."
       (while (not ended)
 	(cond ((not (eq (char-syntax (following-char)) ?\"))
 	       (forward-char 1))
-	      ;; Quotes inside quoted strings are quoted by doubling
-	      ;; the quote char: a,"b""c,",d
-	      ((eq (char-syntax (char-after (1+ (point)))) ?\")
+	      ;; According to RFC-4180 (sec 2.7), quotes inside quoted strings
+	      ;; are quoted by doubling the quote char: a,"b""c,",d
+	      ;; FIXME: Maybe we should handle this via syntax-propertize?
+              ((let ((c (char-after (1+ (point)))))
+                 (and c (eq (char-syntax c) ?\")))
 	       (forward-char 2))
 	      (t
 	       (setq ended t))))))
@@ -835,7 +841,8 @@ the mode line after `csv-field-index-delay' seconds of Emacs idle time."
     (let ((start (point))
 	  (field 0))
       (beginning-of-line)
-      (while (< (point) start)
+      (while (and (<= (point) start)
+                  (not (eolp)))
 	(csv-end-of-field)
 	(unless (eolp)
 	  (forward-char 1))
@@ -1317,7 +1324,10 @@ point is assumed to be at the beginning of the line."
 	(split-string row-text csv-separator-regexp)
       (save-excursion
 	(while (< (setq field-start (point)) row-end-position)
-	  (csv-forward-field 1)
+          ;; csv-forward-field will skip a separator if point is on
+          ;; it, and we'll miss an empty field
+          (unless (memq (following-char) csv-separator-chars)
+	    (csv-forward-field 1))
 	  (push
 	   (buffer-substring-no-properties field-start (point))
 	   fields)
