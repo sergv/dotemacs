@@ -73,11 +73,7 @@
                                                 orig-text)
                                               " ::")
                                       (s-join "\n" lines))))
-
-      (if insert
-          (save-excursion (goto-char (line-beginning-position))
-                          (insert (dante-fontify-expression ty) "\n"))
-        (message "%s" (dante-fontify-expression ty))))))
+      (dante--insert-or-show-fontified ty insert))))
 
 (cl-defun setup-lsp-haskell-symbnav (&key (bind-keybindings t))
   (setq-local xref-show-definitions-function #'eproj-xref-symbnav-show-xrefs
