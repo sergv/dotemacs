@@ -9,7 +9,7 @@
 ;;             fmdkdd <fmdkdd@gmail.com>
 ;; URL: http://www.flycheck.org
 ;; Keywords: convenience, languages, tools
-;; Version: 32-cvs
+;; Version: 33-cvs
 ;; Package-Requires: ((dash "2.12.1") (pkg-info "0.4") (let-alist "1.0.4") (seq "1.11") (emacs "24.3"))
 
 ;; This file is not part of GNU Emacs.
@@ -10766,14 +10766,14 @@ expression, which selects linters for lintr."
   "Whether CHECKER (R) has installed the `lintr' library."
   (eql 0 (flycheck-call-checker-process
           checker nil nil nil
-          "--slave" "--restore" "--no-save" "-e"
+          "--slave" "--no-restore" "--no-save" "-e"
           "library('lintr')")))
 
 (flycheck-define-checker r-lintr
   "An R style and syntax checker using the lintr package.
 
 See URL `https://github.com/jimhester/lintr'."
-  :command ("R" "--slave" "--restore" "--no-save" "-e"
+  :command ("R" "--slave" "--no-restore" "--no-save" "-e"
             (eval (concat
                    "library(lintr);"
                    "try(lint(commandArgs(TRUE)"
