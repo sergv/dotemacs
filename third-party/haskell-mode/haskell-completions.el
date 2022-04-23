@@ -31,7 +31,7 @@
 ;;
 ;; For major use function `haskell-completions-grab-prefix' is supposed, and
 ;; other prefix grabbing functions are used internally by it.  So, only this
-;; funciton have prefix minimal length functionality and invokes predicate
+;; function have prefix minimal length functionality and invokes predicate
 ;; function `haskell-completions-can-grab-prefix'.
 
 ;;; Code:
@@ -40,7 +40,6 @@
 (require 'haskell-process)
 (require 'haskell-interactive-mode)
 
-;;;###autoload
 (defgroup haskell-completions nil
   "Settings for completions provided by `haskell-mode'"
   :link '(custom-manual "(haskell-mode)Completion support")
@@ -227,7 +226,7 @@ identifier at point depending on result of function
              (type 'haskell-completions-identifier-prefix)
              (case-fold-search nil)
              value)
-        ;; we need end position of result, becase of
+        ;; we need end position of result, because of
         ;; `haskell-ident-pos-at-point' ignores trailing whitespace, e.g. the
         ;; result will be same for `map|` and `map  |` invocations.
         (when (<= p end)

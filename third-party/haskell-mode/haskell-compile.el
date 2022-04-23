@@ -37,7 +37,6 @@
 (require 'haskell-constants)
 (require 'persistent-sessions-global-vars)
 
-;;;###autoload
 (defgroup haskell-compile nil
   "Settings for Haskell compilation mode"
   :link '(custom-manual "(haskell-mode)compilation")
