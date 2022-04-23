@@ -36,6 +36,12 @@
   :group 'lsp-mode
   :link '(url-link "https://github.com/sourcegraph/javascript-typescript-langserver"))
 
+;; Original name can be confused with initializationOptions. Preferences is just one option of initializationOptions.
+(define-obsolete-variable-alias
+  'lsp-clients-typescript-init-opts
+  'lsp-clients-typescript-preferences
+  "lsp-mode 8.0.1")
+
 (defcustom lsp-clients-typescript-javascript-server-args '()
   "Extra arguments for the typescript-language-server language server."
   :group 'lsp-typescript-javascript
@@ -83,16 +89,35 @@
   :risky t
   :type '(repeat string))
 
+(defcustom lsp-clients-typescript-disable-automatic-typing-acquisition nil
+  "Disables tsserver from automatically fetching missing type
+definitions (@types packages) for external modules."
+  :group 'lsp-typescript
+  :type 'boolean)
+
 (defcustom lsp-clients-typescript-log-verbosity "info"
-  "The server log verbosity."
+  "The verbosity level of the information printed in the log by tsserver."
+  :group 'lsp-typescript
+  :type '(choice
+          (const "off")
+          (const "terse")
+          (const "normal")
+          (const "requesttime")
+          (const "verbose")))
+
+(defcustom lsp-clients-typescript-max-ts-server-memory nil
+  "The maximum size of the V8's old memory section in megabytes (for
+example 4096 means 4GB). The default value is dynamically configured
+by Node so can differ per system. Increase for very big projects that
+exceed allowed memory usage."
+  :group 'lsp-typescript
+  :type 'integer)
+
+(defcustom lsp-clients-typescript-npm-location nil
+  "Specifies the path to the NPM executable used for Automatic Type
+Acquisition."
   :group 'lsp-typescript
   :type 'string)
-
-(defcustom lsp-clients-typescript-init-opts nil
-  "Configuration options provided to tsserver.
-See the UserPreferences interface at https://github.com/microsoft/TypeScript/blob/main/lib/protocol.d.ts for the list of options available in the latest version of TypeScript."
-  :group 'lsp-typescript
-  :type 'plist)
 
 (defcustom lsp-clients-typescript-plugins (vector)
   "The list of plugins to load.
@@ -111,6 +136,639 @@ directory containing the package. Example:
                                                 (-lambda ((&plist :name :location))
                                                   (and name location))
                                                 xs)))))
+
+(defcustom lsp-clients-typescript-preferences nil
+  "Preferences passed to the Typescript (tsserver) process.
+See https://github.com/typescript-language-server/typescript-language-server#initializationoptions for the list of preferences available in the latest version of TypeScript."
+  :group 'lsp-typescript
+  :type 'plist)
+
+(defcustom lsp-typescript-tsdk nil
+  "Specifies the folder path containing the tsserver and
+lib*.d.ts files to use."
+  :type '(repeat string)
+  :group 'lsp-vetur
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-disable-automatic-type-acquisition nil
+  "Disables automatic type acquisition. Automatic type
+acquisition fetches `@types` packages from npm to improve
+IntelliSense for external libraries."
+  :type 'boolean
+  :group 'lsp-vetur
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-npm nil
+  "Specifies the path to the NPM executable used for Automatic
+Type Acquisition. Requires using TypeScript 2.3.4 or newer in the
+workspace."
+  :type '(repeat string)
+  :group 'lsp-vetur
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-check-npm-is-installed t
+  "Check if NPM is installed for Automatic Type Acquisition."
+  :type 'boolean
+  :group 'lsp-vetur
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-javascript-references-code-lens-enabled nil
+  "Enable/disable references CodeLens in JavaScript files."
+  :type 'boolean
+  :group 'lsp-vetur
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-references-code-lens-enabled nil
+  "Enable/disable references CodeLens in TypeScript files."
+  :type 'boolean
+  :group 'lsp-vetur
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-implementations-code-lens-enabled nil
+  "Enable/disable implementations CodeLens. This CodeLens shows
+the implementers of an interface."
+  :type 'boolean
+  :group 'lsp-vetur
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-tsserver-log "off"
+  "Enables logging of the TS server to a file. This log can be
+used to diagnose TS Server issues. The log may contain file
+paths, source code, and other potentially sensitive information
+from your project."
+  :type '(choice
+          (const "off")
+          (const "terse")
+          (const "normal")
+          (const "verbose"))
+  :group 'lsp-vetur
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-tsserver-plugin-paths nil
+  "Additional paths to discover Typescript Language Service
+plugins. Requires using TypeScript 2.3.0 or newer in the
+workspace."
+  :type '(repeat string)
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-tsserver-trace "off"
+  "Enables tracing of messages sent to the TS server. This trace
+can be used to diagnose TS Server issues. The trace may contain
+file paths, source code, and other potentially sensitive
+information from your project."
+  :type '(choice
+          (const "off")
+          (const "messages")
+          (const "verbose"))
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-javascript-suggest-complete-function-calls nil
+  "Complete functions with their parameter signature."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-suggest-complete-function-calls nil
+  "Complete functions with their parameter signature."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-report-style-checks-as-warnings t
+  "Report style checks as warnings."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-validate-enable t
+  "Enable/disable TypeScript validation."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-format-enable t
+  "Enable/disable default TypeScript formatter."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-format-insert-space-after-comma-delimiter t
+  "Defines space handling after a comma delimiter."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-format-insert-space-after-constructor nil
+  "Defines space handling after the constructor keyword. Requires
+using TypeScript 2.3.0 or newer in the workspace."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-format-insert-space-after-semicolon-in-for-statements t
+  "Defines space handling after a semicolon in a for statement."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-format-insert-space-before-and-after-binary-operators t
+  "Defines space handling after a binary operator."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-format-insert-space-after-keywords-in-control-flow-statements t
+  "Defines space handling after keywords in a control flow
+statement."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-format-insert-space-after-function-keyword-for-anonymous-functions t
+  "Defines space handling after function keyword for anonymous
+functions."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-format-insert-space-before-function-parenthesis nil
+  "Defines space handling before function argument parentheses."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-format-insert-space-after-opening-and-before-closing-nonempty-parenthesis nil
+  "Defines space handling after opening and before closing
+non-empty parenthesis."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-format-insert-space-after-opening-and-before-closing-nonempty-brackets nil
+  "Defines space handling after opening and before closing
+non-empty brackets."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-format-insert-space-after-opening-and-before-closing-nonempty-braces t
+  "Defines space handling after opening and before closing
+non-empty braces. Requires using TypeScript 2.3.0 or newer in the
+workspace."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-format-insert-space-after-opening-and-before-closing-template-string-braces nil
+  "Defines space handling after opening and before closing
+template string braces."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-format-insert-space-after-opening-and-before-closing-jsx-expression-braces nil
+  "Defines space handling after opening and before closing JSX
+expression braces."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-format-insert-space-after-type-assertion nil
+  "Defines space handling after type assertions in TypeScript.
+Requires using TypeScript 2.4 or newer in the workspace."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-format-place-open-brace-on-new-line-for-functions nil
+  "Defines whether an open brace is put onto a new line for
+functions or not."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-format-place-open-brace-on-new-line-for-control-blocks nil
+  "Defines whether an open brace is put onto a new line for
+control blocks or not."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-javascript-validate-enable t
+  "Enable/disable JavaScript validation."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-javascript-format-enable t
+  "Enable/disable default JavaScript formatter."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-javascript-format-insert-space-after-comma-delimiter t
+  "Defines space handling after a comma delimiter."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-javascript-format-insert-space-after-constructor nil
+  "Defines space handling after the constructor keyword. Requires
+using TypeScript 2.3.0 or newer in the workspace."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-javascript-format-insert-space-after-semicolon-in-for-statements t
+  "Defines space handling after a semicolon in a for statement."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-javascript-format-insert-space-before-and-after-binary-operators t
+  "Defines space handling after a binary operator."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-javascript-format-insert-space-after-keywords-in-control-flow-statements t
+  "Defines space handling after keywords in a control flow
+statement."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-javascript-format-insert-space-after-function-keyword-for-anonymous-functions t
+  "Defines space handling after function keyword for anonymous
+functions."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-javascript-format-insert-space-before-function-parenthesis nil
+  "Defines space handling before function argument parentheses."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-javascript-format-insert-space-after-opening-and-before-closing-nonempty-parenthesis nil
+  "Defines space handling after opening and before closing
+non-empty parenthesis."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-javascript-format-insert-space-after-opening-and-before-closing-nonempty-brackets nil
+  "Defines space handling after opening and before closing
+non-empty brackets."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-javascript-format-insert-space-after-opening-and-before-closing-nonempty-braces t
+  "Defines space handling after opening and before closing
+non-empty braces. Requires using TypeScript 2.3.0 or newer in the
+workspace."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-javascript-format-insert-space-after-opening-and-before-closing-template-string-braces nil
+  "Defines space handling after opening and before closing
+template string braces."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-javascript-format-insert-space-after-opening-and-before-closing-jsx-expression-braces nil
+  "Defines space handling after opening and before closing JSX
+expression braces."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-javascript-format-place-open-brace-on-new-line-for-functions nil
+  "Defines whether an open brace is put onto a new line for
+functions or not."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-javascript-format-place-open-brace-on-new-line-for-control-blocks nil
+  "Defines whether an open brace is put onto a new line for
+control blocks or not."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-javascript-implicit-project-config-check-js nil
+  "Enable/disable semantic checking of JavaScript files. Existing
+jsconfig.json or tsconfig.json files override this setting.
+Requires using TypeScript 2.3.1 or newer in the workspace."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-javascript-implicit-project-config-experimental-decorators nil
+  nil
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-javascript-suggest-names t
+  "Enable/disable including unique names from the file in
+JavaScript suggestions."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-tsc-auto-detect "on"
+  "Controls auto detection of tsc tasks."
+  :type '(choice
+          (const "on")
+          (const "off")
+          (const "build")
+          (const "watch"))
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-javascript-suggest-paths t
+  "Enable/disable suggestions for paths in import statements and
+require calls."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-suggest-paths t
+  "Enable/disable suggestions for paths in import statements and
+require calls."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-javascript-suggest-auto-imports t
+  "Enable/disable auto import suggestions. Requires using
+TypeScript 2.6.1 or newer in the workspace."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-suggest-auto-imports t
+  "Enable/disable auto import suggestions. Requires using
+TypeScript 2.6.1 or newer in the workspace."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-javascript-suggest-complete-js-docs t
+  "Enable/disable suggestion to complete JSDoc comments."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-suggest-complete-js-docs t
+  "Enable/disable suggestion to complete JSDoc comments."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-locale nil
+  nil
+  :type '(choice
+          (const "de")
+          (const "es")
+          (const "en")
+          (const "fr")
+          (const "it")
+          (const "ja")
+          (const "ko")
+          (const "ru")
+          (const "zh-CN")
+          (const "zh-TW")
+          nil)
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-javascript-suggestion-actions-enabled t
+  "Enable/disable suggestion diagnostics for JavaScript files in
+the editor. Requires using TypeScript 2.8 or newer in the
+workspace."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-suggestion-actions-enabled t
+  "Enable/disable suggestion diagnostics for TypeScript files in
+the editor. Requires using TypeScript 2.8 or newer in the
+workspace."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-javascript-preferences-quote-style "auto" nil
+  :type '(choice
+          (const "auto")
+          (const "single")
+          (const "double"))
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-preferences-quote-style "auto" nil
+  :type '(choice
+          (const "auto")
+          (const "single")
+          (const "double"))
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-javascript-preferences-import-module-specifier "auto"
+  "Preferred path style for auto imports."
+  :type '(choice
+          (const "auto")
+          (const "relative")
+          (const "non-relative"))
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-preferences-import-module-specifier "auto"
+  "Infer the shortest path type."
+  :type '(choice
+          (const "auto")
+          (const "relative")
+          (const "non-relative"))
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-javascript-preferences-rename-shorthand-properties t
+  "Enable/disable introducing aliases for object shorthand
+properties during renames. Requires using TypeScript 3.4 or newer
+in the workspace."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-preferences-rename-shorthand-properties t
+  "Enable/disable introducing aliases for object shorthand
+properties during renames. Requires using TypeScript 3.4 or newer
+in the workspace."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-update-imports-on-file-move-enabled "prompt"
+  "Enable/disable automatic updating of import paths when you
+rename or move a file in VS Code. Requires using TypeScript 2.9
+or newer in the workspace."
+  :type '(choice
+          (const "prompt")
+          (const "always")
+          (const "never"))
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-javascript-update-imports-on-file-move-enabled "prompt"
+  "Prompt on each rename."
+  :type '(choice
+          (const "prompt")
+          (const "always")
+          (const "never"))
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-auto-closing-tags t
+  "Enable/disable automatic closing of JSX tags. Requires using
+TypeScript 3.0 or newer in the workspace."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-javascript-auto-closing-tags t
+  "Enable/disable automatic closing of JSX tags. Requires using
+TypeScript 3.0 or newer in the workspace."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-javascript-suggest-enabled t
+  "Enabled/disable autocomplete suggestions."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-typescript-suggest-enabled t
+  "Enabled/disable autocomplete suggestions."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+;; inlay hints
+
+(defface lsp-javascript-inlay-face
+  '((t :inherit font-lock-comment-face))
+  "The face to use for the JavaScript inlays."
+  :group 'lsp-javascript
+  :package-version '(lsp-mode . "8.0.1"))
+
+(defface lsp-javascript-inlay-type-face
+  '((t :inherit lsp-javascript-inlay-face))
+  "Face for inlay type hints (e.g. inferred variable types)."
+  :group 'lsp-javascript
+  :package-version '(lsp-mode . "8.0.1"))
+
+(defcustom lsp-javascript-inlay-type-format ": %s"
+  "Format string for variable inlays (part of the inlay face)."
+  :type '(string :tag "String")
+  :group 'lsp-javascript
+  :package-version '(lsp-mode . "8.0.1"))
+
+(defface lsp-javascript-inlay-parameter-face
+  '((t :inherit lsp-javascript-inlay-face))
+  "Face for inlay parameter hints (e.g. function parameter names at
+call-site)."
+  :group 'lsp-javascript
+  :package-version '(lsp-mode . "8.0.1"))
+
+(defcustom lsp-javascript-inlay-param-format "%s:"
+  "Format string for parameter inlays (part of the inlay face)."
+  :type '(string :tag "String")
+  :group 'lsp-javascript
+  :package-version '(lsp-mode . "8.0.1"))
+
+(defcustom lsp-typescript-surveys-enabled t
+  "Enabled/disable occasional surveys that help us improve VS
+Code's JavaScript and TypeScript support."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
+(defcustom lsp-javascript-display-inlay-hints nil
+  "Whether to display inlay hints."
+  :type 'boolean
+  :package-version '(lsp-mode . "8.0.1"))
+
+(defcustom lsp-javascript-display-enum-member-value-hints nil
+  "Show inlay hints for enum member values."
+  :type 'boolean
+  :package-version '(lsp-mode . "8.0.1"))
+
+(defcustom lsp-javascript-display-return-type-hints nil
+  "Show inlay hints for function return types."
+  :type 'boolean
+  :package-version '(lsp-mode . "8.0.1"))
+
+(defcustom lsp-javascript-display-parameter-type-hints nil
+  "Show inlay hints for function parameters."
+  :type 'boolean
+  :package-version '(lsp-mode . "8.0.1"))
+
+(defcustom lsp-javascript-display-parameter-name-hints "none"
+  "Level of hinting for parameter types."
+  :type '(choice (const :tag "none" "none")
+                 (const :tag "literals" "literals")
+                 (const :tag "all" "all"))
+  :package-version '(lsp-mode . "8.0.1"))
+
+(defcustom lsp-javascript-display-parameter-name-hints-when-argument-matches-name nil
+  "Show inlay hints for function parameters even when argument matches
+name (e.g. `data' variable passed as `data' parameter)."
+  :type 'boolean
+  :package-version '(lsp-mode . "8.0.1"))
+
+(defcustom lsp-javascript-display-property-declaration-type-hints nil
+  "Show inlay hints for property declaration types."
+  :type 'boolean
+  :package-version '(lsp-mode . "8.0.1"))
+
+(defcustom lsp-javascript-display-variable-type-hints nil
+  "Show inlay hints for variable types."
+  :type 'boolean
+  :package-version '(lsp-mode . "8.0.1"))
+
+(lsp-register-custom-settings
+ '(("javascript.autoClosingTags" lsp-javascript-auto-closing-tags t)
+   ("javascript.implicitProjectConfig.checkJs" lsp-javascript-implicit-project-config-check-js t)
+   ("javascript.implicitProjectConfig.experimentalDecorators" lsp-javascript-implicit-project-config-experimental-decorators t)
+   ("javascript.preferences.importModuleSpecifier" lsp-javascript-preferences-import-module-specifier)
+   ("javascript.preferences.quoteStyle" lsp-javascript-preferences-quote-style)
+   ("javascript.preferences.renameShorthandProperties" lsp-javascript-preferences-rename-shorthand-properties t)
+   ("javascript.referencesCodeLens.enabled" lsp-javascript-references-code-lens-enabled t)
+   ("javascript.suggest.autoImports" lsp-javascript-suggest-auto-imports t)
+   ("javascript.suggest.completeFunctionCalls" lsp-javascript-suggest-complete-function-calls t)
+   ("javascript.suggest.completeJSDocs" lsp-javascript-suggest-complete-js-docs t)
+   ("javascript.suggest.enabled" lsp-javascript-suggest-enabled t)
+   ("javascript.suggest.names" lsp-javascript-suggest-names t)
+   ("javascript.suggest.paths" lsp-javascript-suggest-paths t)
+   ("javascript.suggestionActions.enabled" lsp-javascript-suggestion-actions-enabled t)
+   ("javascript.updateImportsOnFileMove.enabled" lsp-javascript-update-imports-on-file-move-enabled)
+   ("javascript.validate.enable" lsp-javascript-validate-enable t)
+   ("javascript.format.enable" lsp-javascript-format-enable t)
+   ("javascript.format.insertSpaceAfterCommaDelimiter" lsp-javascript-format-insert-space-after-comma-delimiter t)
+   ("javascript.format.insertSpaceAfterConstructor" lsp-javascript-format-insert-space-after-constructor t)
+   ("javascript.format.insertSpaceAfterFunctionKeywordForAnonymousFunctions" lsp-javascript-format-insert-space-after-function-keyword-for-anonymous-functions t)
+   ("javascript.format.insertSpaceAfterKeywordsInControlFlowStatements" lsp-javascript-format-insert-space-after-keywords-in-control-flow-statements t)
+   ("javascript.format.insertSpaceAfterOpeningAndBeforeClosingJsxExpressionBraces" lsp-javascript-format-insert-space-after-opening-and-before-closing-jsx-expression-braces t)
+   ("javascript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces" lsp-javascript-format-insert-space-after-opening-and-before-closing-nonempty-braces t)
+   ("javascript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets" lsp-javascript-format-insert-space-after-opening-and-before-closing-nonempty-brackets t)
+   ("javascript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis" lsp-javascript-format-insert-space-after-opening-and-before-closing-nonempty-parenthesis t)
+   ("javascript.format.insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces" lsp-javascript-format-insert-space-after-opening-and-before-closing-template-string-braces t)
+   ("javascript.format.insertSpaceAfterSemicolonInForStatements" lsp-javascript-format-insert-space-after-semicolon-in-for-statements t)
+   ("javascript.format.insertSpaceBeforeAndAfterBinaryOperators" lsp-javascript-format-insert-space-before-and-after-binary-operators t)
+   ("javascript.format.insertSpaceBeforeFunctionParenthesis" lsp-javascript-format-insert-space-before-function-parenthesis t)
+   ("javascript.format.placeOpenBraceOnNewLineForControlBlocks" lsp-javascript-format-place-open-brace-on-new-line-for-control-blocks t)
+   ("javascript.format.placeOpenBraceOnNewLineForFunctions" lsp-javascript-format-place-open-brace-on-new-line-for-functions t)
+   ("typescript.autoClosingTags" lsp-typescript-auto-closing-tags t)
+   ("typescript.check.npmIsInstalled" lsp-typescript-check-npm-is-installed t)
+   ("typescript.disableAutomaticTypeAcquisition" lsp-typescript-disable-automatic-type-acquisition t)
+   ("typescript.implementationsCodeLens.enabled" lsp-typescript-implementations-code-lens-enabled t)
+   ("typescript.locale" lsp-typescript-locale)
+   ("typescript.npm" lsp-typescript-npm)
+   ("typescript.preferences.importModuleSpecifier" lsp-typescript-preferences-import-module-specifier)
+   ("typescript.preferences.quoteStyle" lsp-typescript-preferences-quote-style)
+   ("typescript.preferences.renameShorthandProperties" lsp-typescript-preferences-rename-shorthand-properties t)
+   ("typescript.referencesCodeLens.enabled" lsp-typescript-references-code-lens-enabled t)
+   ("typescript.reportStyleChecksAsWarnings" lsp-typescript-report-style-checks-as-warnings t)
+   ("typescript.suggest.autoImports" lsp-typescript-suggest-auto-imports t)
+   ("typescript.suggest.completeFunctionCalls" lsp-typescript-suggest-complete-function-calls t)
+   ("typescript.suggest.completeJSDocs" lsp-typescript-suggest-complete-js-docs t)
+   ("typescript.suggest.enabled" lsp-typescript-suggest-enabled t)
+   ("typescript.suggest.paths" lsp-typescript-suggest-paths t)
+   ("typescript.suggestionActions.enabled" lsp-typescript-suggestion-actions-enabled t)
+   ("typescript.surveys.enabled" lsp-typescript-surveys-enabled t)
+   ("typescript.tsc.autoDetect" lsp-typescript-tsc-auto-detect)
+   ("typescript.tsdk" lsp-typescript-tsdk)
+   ("typescript.tsserver.log" lsp-typescript-tsserver-log)
+   ("typescript.tsserver.pluginPaths" lsp-typescript-tsserver-plugin-paths)
+   ("typescript.tsserver.trace" lsp-typescript-tsserver-trace)
+   ("typescript.updateImportsOnFileMove.enabled" lsp-typescript-update-imports-on-file-move-enabled)
+   ("typescript.validate.enable" lsp-typescript-validate-enable t)
+   ("typescript.format.enable" lsp-typescript-format-enable t)
+   ("typescript.format.insertSpaceAfterCommaDelimiter" lsp-typescript-format-insert-space-after-comma-delimiter t)
+   ("typescript.format.insertSpaceAfterConstructor" lsp-typescript-format-insert-space-after-constructor t)
+   ("typescript.format.insertSpaceAfterFunctionKeywordForAnonymousFunctions" lsp-typescript-format-insert-space-after-function-keyword-for-anonymous-functions t)
+   ("typescript.format.insertSpaceAfterKeywordsInControlFlowStatements" lsp-typescript-format-insert-space-after-keywords-in-control-flow-statements t)
+   ("typescript.format.insertSpaceAfterOpeningAndBeforeClosingJsxExpressionBraces" lsp-typescript-format-insert-space-after-opening-and-before-closing-jsx-expression-braces t)
+   ("typescript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces" lsp-typescript-format-insert-space-after-opening-and-before-closing-nonempty-braces t)
+   ("typescript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets" lsp-typescript-format-insert-space-after-opening-and-before-closing-nonempty-brackets t)
+   ("typescript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis" lsp-typescript-format-insert-space-after-opening-and-before-closing-nonempty-parenthesis t)
+   ("typescript.format.insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces" lsp-typescript-format-insert-space-after-opening-and-before-closing-template-string-braces t)
+   ("typescript.format.insertSpaceAfterSemicolonInForStatements" lsp-typescript-format-insert-space-after-semicolon-in-for-statements t)
+   ("typescript.format.insertSpaceAfterTypeAssertion" lsp-typescript-format-insert-space-after-type-assertion t)
+   ("typescript.format.insertSpaceBeforeAndAfterBinaryOperators" lsp-typescript-format-insert-space-before-and-after-binary-operators t)
+   ("typescript.format.insertSpaceBeforeFunctionParenthesis" lsp-typescript-format-insert-space-before-function-parenthesis t)
+   ("typescript.format.placeOpenBraceOnNewLineForControlBlocks" lsp-typescript-format-place-open-brace-on-new-line-for-control-blocks t)
+   ("typescript.format.placeOpenBraceOnNewLineForFunctions" lsp-typescript-format-place-open-brace-on-new-line-for-functions t)
+   ("typescript.inlayHints.includeInlayEnumMemberValueHints" lsp-javascript-display-enum-member-value-hints t)
+   ("typescript.inlayHints.includeInlayFunctionLikeReturnTypeHints" lsp-javascript-display-return-type-hints t)
+   ("typescript.inlayHints.includeInlayFunctionParameterTypeHints" lsp-javascript-display-parameter-type-hints t)
+   ("typescript.inlayHints.includeInlayParameterNameHints" lsp-javascript-display-parameter-name-hints nil)
+   ("typescript.inlayHints.includeInlayParameterNameHintsWhenArgumentMatchesName" lsp-javascript-display-parameter-name-hints-when-argument-matches-name t)
+   ("typescript.inlayHints.includeInlayPropertyDeclarationTypeHints" lsp-javascript-display-property-declaration-type-hints t)
+   ("typescript.inlayHints.includeInlayVariableTypeHints" lsp-javascript-display-variable-type-hints t)
+   ("javascript.inlayHints.includeInlayEnumMemberValueHints" lsp-javascript-display-enum-member-value-hints t)
+   ("javascript.inlayHints.includeInlayFunctionLikeReturnTypeHints" lsp-javascript-display-return-type-hints t)
+   ("javascript.inlayHints.includeInlayFunctionParameterTypeHints" lsp-javascript-display-parameter-type-hints t)
+   ("javascript.inlayHints.includeInlayParameterNameHints" lsp-javascript-display-parameter-name-hints nil)
+   ("javascript.inlayHints.includeInlayParameterNameHintsWhenArgumentMatchesName" lsp-javascript-display-parameter-name-hints-when-argument-matches-name t)
+   ("javascript.inlayHints.includeInlayPropertyDeclarationTypeHints" lsp-javascript-display-property-declaration-type-hints t)
+   ("javascript.inlayHints.includeInlayVariableTypeHints" lsp-javascript-display-variable-type-hints t)))
 
 (lsp-dependency 'typescript-language-server
                 '(:system lsp-clients-typescript-tls-path)
@@ -132,6 +790,83 @@ directory containing the package. Example:
   (call-interactively #'lsp-rename)
   nil)
 
+(defun lsp-javascript-rename-file ()
+  "Rename current file and all it's references in other files."
+  (interactive)
+  (let* ((name (buffer-name))
+         (old (buffer-file-name))
+         (basename (file-name-nondirectory old)))
+    (unless (and old (file-exists-p old))
+      (error "Buffer '%s' is not visiting a file." name))
+    (let ((new (read-file-name "New name: " (file-name-directory old) basename nil basename)))
+      (when (get-file-buffer new)
+        (error "A buffer named '%s' already exists." new))
+      (when (file-exists-p new)
+        (error "A file named '%s' already exists." new))
+      (lsp--send-execute-command
+       "_typescript.applyRenameFile"
+       (vector (list :sourceUri (lsp--buffer-uri)
+                     :targetUri (lsp--path-to-uri new))))
+      (mkdir (file-name-directory new) t)
+      (rename-file old new)
+      (rename-buffer new)
+      (set-visited-file-name new)
+      (set-buffer-modified-p nil)
+      (lsp-disconnect)
+      (setq-local lsp-buffer-uri nil)
+      (lsp)
+      (lsp--info "Renamed '%s' to '%s'." name (file-name-nondirectory new)))))
+
+(defun lsp-javascript-update-inlay-hints ()
+  (if (lsp-javascript-initialized?)
+      (lsp-request-async
+       "typescript/inlayHints"
+       (lsp-make-javascript-inlay-hints-params
+        :text-document (lsp--text-document-identifier))
+       (lambda (res)
+         (lsp--remove-overlays 'lsp-javascript-inlay-hint)
+         (-each (gethash "inlayHints" res)
+           #'(lambda (hint)
+               (-let* (((&javascript:InlayHint :text :position :kind :whitespace-before? :whitespace-after?) hint)
+                       (pos (lsp--position-to-point position))
+                       (overlay (make-overlay pos pos nil 'front-advance 'end-advance)))
+                 (overlay-put overlay 'lsp-javascript-inlay-hint t)
+                 (overlay-put overlay 'before-string
+                              (format "%s%s%s"
+                                      (if (and whitespace-before? (not (string= kind lsp/javascript-inlay-hint-kind-type-hint))) " " "")
+                                      (propertize (lsp-javascript-format-inlay text kind)
+                                                  'font-lock-face (lsp-javascript-face-for-inlay kind))
+                                      (if whitespace-after? " " ""))))))))
+    :mode 'tick))
+
+(defun lsp-javascript-format-inlay (text kind)
+  (cond
+   ((eql kind lsp/javascript-inlay-hint-kind-type-hint) (format lsp-javascript-inlay-type-format text))
+   ((eql kind lsp/javascript-inlay-hint-kind-parameter-hint) (format lsp-javascript-inlay-param-format text))
+   ;; ((eql kind lsp/javascript-inlay-hint-kind-enum-hint) (format lsp-javascript-inlay-enum-format text))
+   (t text)))
+
+(defun lsp-javascript-face-for-inlay (kind)
+  (cond
+   ((eql kind lsp/javascript-inlay-hint-kind-type-hint) 'lsp-javascript-inlay-type-face)
+   ((eql kind lsp/javascript-inlay-hint-kind-parameter-hint) 'lsp-javascript-inlay-parameter-face)
+   (t 'lsp-javascript-inlay-face)))
+
+(defun lsp-javascript-initialized? ()
+  (when-let ((workspace (lsp-find-workspace 'ts-ls (buffer-file-name))))
+    (eq 'initialized (lsp--workspace-status workspace))))
+
+(define-minor-mode lsp-javascript-inlay-hints-mode
+  "Mode for displaying inlay hints."
+  :lighter nil
+  (cond
+   (lsp-javascript-inlay-hints-mode
+    (lsp-javascript-update-inlay-hints)
+    (add-hook 'lsp-on-idle-hook #'lsp-javascript-update-inlay-hints nil t))
+   (t
+    (lsp--remove-overlays 'lsp-javascript-inlay-hint)
+    (remove-hook 'lsp-on-idle-hook #'lsp-javascript-update-inlay-hints t))))
+
 (lsp-register-client
  (make-lsp-client :new-connection (lsp-stdio-connection (lambda ()
                                                           `(,(lsp-package-path 'typescript-language-server)
@@ -142,10 +877,20 @@ directory containing the package. Example:
                   :priority -2
                   :completion-in-comments? t
                   :initialization-options (lambda ()
-                                            (list :plugins lsp-clients-typescript-plugins
+                                            (list :disableAutomaticTypingAcquisition lsp-clients-typescript-disable-automatic-typing-acquisition
                                                   :logVerbosity lsp-clients-typescript-log-verbosity
-                                                  :tsServerPath (lsp-package-path 'typescript)
-                                                  :preferences lsp-clients-typescript-init-opts))
+                                                  :maxTsServerMemory lsp-clients-typescript-max-ts-server-memory
+                                                  :npmLocation lsp-clients-typescript-npm-location
+                                                  :plugins lsp-clients-typescript-plugins
+                                                  :preferences lsp-clients-typescript-preferences))
+                  :initialized-fn (lambda (workspace)
+                                    (with-lsp-workspace workspace
+                                      (lsp--set-configuration
+                                       (ht-merge (lsp-configuration-section "javascript")
+                                                 (lsp-configuration-section "typescript")))))
+                  :after-open-fn (lambda ()
+                                   (when lsp-javascript-display-inlay-hints
+                                     (lsp-javascript-inlay-hints-mode)))
                   :ignore-messages '("readFile .*? requested by TypeScript but content not available")
                   :server-id 'ts-ls
                   :request-handlers (ht ("_typescript.rename" #'lsp-javascript--rename))

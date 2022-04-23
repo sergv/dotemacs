@@ -190,12 +190,6 @@ the latest build duration."
   :group 'lsp-rust-rls
   :package-version '(lsp-mode . "6.1"))
 
-(defcustom lsp-rust-analyzer-cargo-target nil
-  "Compilation target (target triple)."
-  :type 'string
-  :group 'lsp-rust-rls
-  :package-version '(lsp-mode . "8.0.0"))
-
 (defcustom lsp-rust-no-default-features nil
   "Do not enable default Cargo features."
   :type 'boolean
@@ -350,6 +344,13 @@ PARAMS progress report notification data."
   :group 'lsp-rust-analyzer
   :package-version '(lsp-mode . "6.2"))
 
+(defcustom lsp-rust-analyzer-server-format-inlay-hints t
+  "Whether to ask rust-analyzer to format inlay hints itself.  If
+active, the various inlay format settings are not used."
+  :type 'boolean
+  :group 'lsp-rust-analyzer
+  :package-version '(lsp-mode . "8.0.1"))
+
 (defcustom lsp-rust-analyzer-server-display-inlay-hints nil
   "Show inlay hints."
   :type 'boolean
@@ -362,23 +363,62 @@ PARAMS progress report notification data."
   :group 'lsp-rust-analyzer
   :package-version '(lsp-mode . "6.2.2"))
 
+(defcustom lsp-rust-analyzer-display-chaining-hints nil
+  "Whether to show inlay type hints for method chains.  These
+hints will be formatted with the type hint formatting options, if
+the mode is not configured to ask the server to format them."
+  :type 'boolean
+  :group 'lsp-rust-analyzer
+  :package-version '(lsp-mode . "6.2.2"))
+
+(defcustom lsp-rust-analyzer-display-lifetime-elision-hints-enable "never"
+  "Whether to show elided lifetime inlay hints."
+  :type '(choice
+          (const "never")
+          (const "always")
+          (const "skip_trivial"))
+  :group 'lsp-rust-analyzer
+  :package-version '(lsp-mode . "8.0.1"))
+
+(defcustom lsp-rust-analyzer-display-lifetime-elision-hints-use-parameter-names nil
+  "When showing elided lifetime inlay hints, whether to use
+parameter names or numeric placeholder names for the lifetimes."
+  :type 'boolean
+  :group 'lsp-rust-analyzer
+  :package-version '(lsp-mode . "8.0.1"))
+
+(defcustom lsp-rust-analyzer-display-closure-return-type-hints nil
+  "Whether to show closure return type inlay hints for closures
+with block bodies."
+  :type 'boolean
+  :group 'lsp-rust-analyzer
+  :package-version '(lsp-mode . "8.0.1"))
+
 (defcustom lsp-rust-analyzer-display-parameter-hints nil
   "Whether to show function parameter name inlay hints at the call site."
   :type 'boolean
   :group 'lsp-rust-analyzer
   :package-version '(lsp-mode . "6.2.2"))
 
-(defcustom lsp-rust-analyzer-display-chaining-hints nil
-  "Whether to show inlay type hints for method chains."
+(defcustom lsp-rust-analyzer-display-reborrow-hints nil
+  "Whether to show reborrowing inlay hints."
   :type 'boolean
   :group 'lsp-rust-analyzer
-  :package-version '(lsp-mode . "6.2.2"))
+  :package-version '(lsp-mode . "8.0.1"))
 
 (defcustom lsp-rust-analyzer-lru-capacity nil
   "Number of syntax trees rust-analyzer keeps in memory."
   :type 'integer
   :group 'lsp-rust-analyzer
   :package-version '(lsp-mode . "6.2.2"))
+
+(defcustom lsp-rust-analyzer-cargo-target nil
+  "Compilation target (target triple)."
+  :type '(choice
+          (string :tag "Target")
+          (const :tag "None" nil))
+  :group 'lsp-rust-analyzer
+  :package-version '(lsp-mode . "8.0.0"))
 
 (defcustom lsp-rust-analyzer-cargo-watch-enable t
   "Enable Cargo watch."
@@ -448,7 +488,7 @@ syntax highlighting."
   :group 'lsp-rust-analyzer
   :package-version '(lsp-mode . "6.3.2"))
 
-(defcustom lsp-rust-analyzer-diagnostics-enable-experimental t
+(defcustom lsp-rust-analyzer-diagnostics-enable-experimental nil
   "Whether to show native rust-analyzer diagnostics that are still experimental
 \(might have more false positives than usual)."
   :type 'boolean
@@ -521,7 +561,7 @@ for formatting."
   :group 'lsp-rust-analyzer
   :package-version '(lsp-mode . "6.3.2"))
 
-(defcustom lsp-rust-analyzer-proc-macro-enable nil
+(defcustom lsp-rust-analyzer-proc-macro-enable t
   "Enable Proc macro support.
 Implies `lsp-rust-analyzer-cargo-run-build-scripts'"
   :type 'boolean
@@ -618,11 +658,21 @@ https://rust-analyzer.github.io/manual.html#auto-import.
 
 (defcustom lsp-rust-analyzer-rustc-source nil
   "Path to the Cargo.toml of the rust compiler workspace."
-  :type 'string
+  :type '(choice
+          (file :tag "Path")
+          (const :tag "None" nil))
   :group 'lsp-rust-analyzer
   :package-version '(lsp-mode . "8.0.0"))
 
-(defcustom lsp-rust-analyzer-experimental-proc-attr-macros nil
+(defcustom lsp-rust-analyzer-linked-projects []
+  "Disable project auto-discovery in favor of explicitly specified set of
+projects. Elements must be paths pointing to `Cargo.toml`, `rust-project.json`,
+or JSON objects in `rust-project.json` format."
+  :type 'lsp-string-vector
+  :group 'lsp-rust-analyzer
+  :package-version '(lsp-mode . "8.0.1"))
+
+(defcustom lsp-rust-analyzer-experimental-proc-attr-macros t
   "Whether to enable experimental support for expanding proc macro attributes."
   :type 'boolean
   :group 'lsp-rust-analyzer
@@ -663,9 +713,14 @@ https://rust-analyzer.github.io/manual.html#auto-import.
             :unsetTest ,lsp-rust-analyzer-cargo-unset-test)
     :rustfmt (:extraArgs ,lsp-rust-analyzer-rustfmt-extra-args
               :overrideCommand ,lsp-rust-analyzer-rustfmt-override-command)
-    :inlayHints (:typeHints ,(lsp-json-bool lsp-rust-analyzer-server-display-inlay-hints)
+    :inlayHints (:renderColons ,(lsp-json-bool lsp-rust-analyzer-server-format-inlay-hints)
+                 :typeHints ,(lsp-json-bool lsp-rust-analyzer-server-display-inlay-hints)
                  :chainingHints ,(lsp-json-bool lsp-rust-analyzer-display-chaining-hints)
+                 :closureReturnTypeHints ,(lsp-json-bool lsp-rust-analyzer-display-closure-return-type-hints)
+                 :lifetimeElisionHints (:enable ,lsp-rust-analyzer-display-lifetime-elision-hints-enable
+                                        :useParameterNames ,(lsp-json-bool lsp-rust-analyzer-display-lifetime-elision-hints-use-parameter-names))
                  :parameterHints ,(lsp-json-bool lsp-rust-analyzer-display-parameter-hints)
+                 :reborrowHints ,(lsp-json-bool lsp-rust-analyzer-display-reborrow-hints)
                  :maxLength ,lsp-rust-analyzer-max-inlay-hint-length)
     :completion (:addCallParenthesis ,(lsp-json-bool lsp-rust-analyzer-completion-add-call-parenthesis)
                  :addCallArgumentSnippets ,(lsp-json-bool lsp-rust-analyzer-completion-add-call-argument-snippets)
@@ -675,6 +730,7 @@ https://rust-analyzer.github.io/manual.html#auto-import.
     :callInfo (:full ,(lsp-json-bool lsp-rust-analyzer-call-info-full))
     :procMacro (:enable ,(lsp-json-bool lsp-rust-analyzer-proc-macro-enable))
     :rustcSource ,lsp-rust-analyzer-rustc-source
+    :linkedProjects ,lsp-rust-analyzer-linked-projects
     :highlighting (:strings ,(lsp-json-bool lsp-rust-analyzer-highlighting-strings))
     :experimental (:procAttrMacros ,(lsp-json-bool lsp-rust-analyzer-experimental-proc-attr-macros))))
 
@@ -846,15 +902,10 @@ https://rust-analyzer.github.io/manual.html#auto-import.
   :group 'lsp-rust-analyzer
   :package-version '(lsp-mode . "8.0.0"))
 
-(defcustom lsp-rust-analyzer-inlay-type-space-format "%s"
-  "Format string for spacing around variable inlays
-\(not part of the inlay face)."
-  :type '(string :tag "String")
-  :group 'lsp-rust-analyzer
-  :package-version '(lsp-mode . "8.0.0"))
-
 (defcustom lsp-rust-analyzer-inlay-type-format ": %s"
-  "Format string for variable inlays (part of the inlay face)."
+  "Format string for variable inlays (part of the inlay face,
+used only if lsp-rust-analyzer-server-format-inlay-hints is
+non-nil)."
   :type '(string :tag "String")
   :group 'lsp-rust-analyzer
   :package-version '(lsp-mode . "8.0.0"))
@@ -865,33 +916,10 @@ https://rust-analyzer.github.io/manual.html#auto-import.
   :group 'lsp-rust-analyzer
   :package-version '(lsp-mode . "8.0.0"))
 
-(defcustom lsp-rust-analyzer-inlay-param-space-format "%s "
-  "Format string for spacing around parameter inlays
-\(not part of the inlay face)."
-  :type '(string :tag "String")
-  :group 'lsp-rust-analyzer
-  :package-version '(lsp-mode . "8.0.0"))
-
 (defcustom lsp-rust-analyzer-inlay-param-format "%s:"
-  "Format string for parameter inlays (part of the inlay face)."
-  :type '(string :tag "String")
-  :group 'lsp-rust-analyzer
-  :package-version '(lsp-mode . "8.0.0"))
-
-(defface lsp-rust-analyzer-inlay-chain-face
-  '((t :inherit lsp-rust-analyzer-inlay-face))
-  "Face for inlay chaining hints (e.g. inferred chain intermediate types)."
-  :group 'lsp-rust-analyzer
-  :package-version '(lsp-mode . "8.0.0"))
-
-(defcustom lsp-rust-analyzer-inlay-chain-space-format "%s"
-  "Format string for spacing around chain inlays (not part of the inlay face)."
-  :type '(string :tag "String")
-  :group 'lsp-rust-analyzer
-  :package-version '(lsp-mode . "8.0.0"))
-
-(defcustom lsp-rust-analyzer-inlay-chain-format ": %s"
-  "Format string for chain inlays (part of the inlay face)."
+  "Format string for parameter inlays (part of the inlay face,
+used only if lsp-rust-analyzer-server-format-inlay-hints is
+non-nil)."
   :type '(string :tag "String")
   :group 'lsp-rust-analyzer
   :package-version '(lsp-mode . "8.0.0"))
@@ -913,37 +941,41 @@ meaning."
   (if (and (lsp-rust-analyzer-initialized?)
            (eq buffer (current-buffer)))
       (lsp-request-async
-       "rust-analyzer/inlayHints"
+       "textDocument/inlayHint"
        (lsp-make-rust-analyzer-inlay-hints-params
-        :text-document (lsp--text-document-identifier))
+        :text-document (lsp--text-document-identifier)
+        :range (if (use-region-p)
+                   (lsp--region-to-range (region-beginning) (region-end))
+                 (lsp--region-to-range (point-min) (point-max))))
        (lambda (res)
          (remove-overlays (point-min) (point-max) 'lsp-rust-analyzer-inlay-hint t)
          (dolist (hint res)
-           (-let* (((&rust-analyzer:InlayHint :range :label :kind) hint)
-                   ((&RangeToPoint :start :end) range)
-                   (overlay (make-overlay start end nil 'front-advance 'end-advance)))
+           (-let* (((&rust-analyzer:InlayHint :position :label :kind :padding-left :padding-right) hint)
+                   (pos (lsp--position-to-point position))
+                   (overlay (make-overlay pos pos nil 'front-advance 'end-advance)))
              (overlay-put overlay 'lsp-rust-analyzer-inlay-hint t)
-             (overlay-put overlay 'evaporate t)
-             (cond
-              ((equal kind lsp/rust-analyzer-inlay-hint-kind-type-hint)
-               (overlay-put overlay 'after-string
-                            (format lsp-rust-analyzer-inlay-type-space-format
-                                    (propertize (format lsp-rust-analyzer-inlay-type-format label)
-                                                'font-lock-face 'lsp-rust-analyzer-inlay-type-face))))
-
-              ((equal kind lsp/rust-analyzer-inlay-hint-kind-param-hint)
-               (overlay-put overlay 'before-string
-                            (format lsp-rust-analyzer-inlay-param-space-format
-                                    (propertize (format lsp-rust-analyzer-inlay-param-format label)
-                                                'font-lock-face 'lsp-rust-analyzer-inlay-param-face))))
-
-              ((equal kind lsp/rust-analyzer-inlay-hint-kind-chaining-hint)
-               (overlay-put overlay 'after-string
-                            (format lsp-rust-analyzer-inlay-chain-space-format
-                                    (propertize (format lsp-rust-analyzer-inlay-chain-format label)
-                                                'font-lock-face 'lsp-rust-analyzer-inlay-chain-face))))))))
+             (overlay-put overlay 'before-string
+                          (format "%s%s%s"
+                                  (if padding-left " " "")
+                                  (propertize (lsp-rust-analyzer-format-inlay label kind)
+                                              'font-lock-face (lsp-rust-analyzer-face-for-inlay kind))
+                                  (if padding-right " " ""))))))
        :mode 'tick))
   nil)
+
+(defun lsp-rust-analyzer-format-inlay (label kind)
+  (if lsp-rust-analyzer-server-format-inlay-hints
+      label
+    (cond
+     ((eql kind lsp/rust-analyzer-inlay-hint-kind-type-hint) (format lsp-rust-analyzer-inlay-type-format label))
+     ((eql kind lsp/rust-analyzer-inlay-hint-kind-type-hint) (format lsp-rust-analyzer-inlay-param-format label))
+     (t label))))
+
+(defun lsp-rust-analyzer-face-for-inlay (kind)
+  (cond
+   ((eql kind lsp/rust-analyzer-inlay-hint-kind-type-hint) 'lsp-rust-analyzer-inlay-type-face)
+   ((eql kind lsp/rust-analyzer-inlay-hint-kind-type-hint) 'lsp-rust-analyzer-inlay-param-face)
+   (t 'lsp-rust-analyzer-inlay-face)))
 
 (defun lsp-rust-analyzer-initialized? ()
   (when-let ((workspace (lsp-find-workspace 'rust-analyzer (buffer-file-name))))
@@ -1043,7 +1075,7 @@ and run a compilation"
   (-let (((&rust-analyzer:Runnable
            :args (&rust-analyzer:RunnableArgs :cargo-args :workspace-root? :executable-args)
            :label) runnable))
-    (cl-case (aref cargo-args 0)
+    (pcase (aref cargo-args 0)
       ("run" (aset cargo-args 0 "build"))
       ("test" (when (-contains? (append cargo-args ()) "--no-run")
                 (cl-callf append cargo-args (list "--no-run")))))
@@ -1100,7 +1132,7 @@ open in a new window."
   (interactive "P")
   (lsp--check-capability "experimental/openCargoToml"
     lsp-rust--has-experimental-open-cargo-toml-cap)
-  (-if-let (workspace (lsp-find-workspace 'rust-analyzer))
+  (-if-let (workspace (lsp-find-workspace 'rust-analyzer (buffer-file-name)))
       (-if-let* ((response (with-lsp-workspace workspace
                              (lsp-send-request (lsp-make-request
                                                 "experimental/openCargoToml"
