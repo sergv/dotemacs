@@ -2,6 +2,7 @@ site_name: LSP Mode - LSP support for Emacs
 site_description: Language Server Protocol Support for Emacs
 site_url: https://emacs-lsp.github.io/lsp-mode
 site_author: ercdll1337@gmail.com
+base_url: https://github.com/emacs-lsp/lsp-mode
 
 nav:
   - Home:
@@ -47,6 +48,7 @@ nav:
     - ActionScript: page/lsp-actionscript.md
     - Ada: page/lsp-ada.md
     - Angular: page/lsp-angular.md
+    - Ansible: page/lsp-ansible.md
     - Bash: page/lsp-bash.md
     - Beancount: page/lsp-beancount.md
     - C++ (ccls): page/lsp-ccls.md
@@ -63,18 +65,20 @@ nav:
     - Dockerfile: page/lsp-dockerfile.md
     - Elixir: page/lsp-elixir.md
     - Elm: page/lsp-elm.md
+    - Emmet: page/lsp-emmet.md
     - Erlang: page/lsp-erlang.md
     - Eslint: page/lsp-eslint.md
     - F#: page/lsp-fsharp.md
     - Fortran: page/lsp-fortran.md
     - GDScript: page/lsp-gdscript.md
-    - Go (gopls): page/lsp-gopls.md
+    - Go (gopls): manual-language-docs/lsp-gopls.md
     - Grammarly: page/lsp-grammarly.md
     - GraphQL: page/lsp-graphql.md
     - Groovy: page/lsp-groovy.md
     - Hack: page/lsp-hack.md
     - HTML: page/lsp-html.md
     - Haskell: https://emacs-lsp.github.io/lsp-haskell
+    - Idris: page/lsp-idris.md
     - Java: https://emacs-lsp.github.io/lsp-java
     - Javascript/Typescript (deno): page/lsp-deno.md
     - JavaScript/TypeScript (sourcegraph): page/lsp-typescript-javascript.md
@@ -87,14 +91,17 @@ nav:
     - Lua (EmmyLua): page/lsp-emmy-lua.md
     - Lua (Lua Language Server): page/lsp-lua-language-server.md
     - Lua (Lua-Lsp): page/lsp-lua-lsp.md
+    - Magik: page/lsp-magik.md
     - Markdown: page/lsp-markdown.md
     - MSSQL: https://emacs-lsp.github.io/lsp-mssql
     - Nginx: page/lsp-nginx.md
     - Nim: page/lsp-nim.md
     - Nix: page/lsp-nix.md
     - OCaml (ocaml-lsp): page/lsp-ocaml-lsp-server.md
+    - OpenSCAD: page/lsp-openscad.md
     - Pascal/Object Pascal: page/lsp-pascal.md
-    - Perl: page/lsp-perl.md
+    - Perl (Perl::LanguageServer): page/lsp-perl.md
+    - Perl (Navigator): page/lsp-perlnavigator.md
     - PHP (intelephense): page/lsp-intelephense.md
     - PHP (Serenata): page/lsp-serenata.md
     - PHP (felixbecker): page/lsp-php.md
@@ -110,7 +117,10 @@ nav:
     - R: page/lsp-r.md
     - Racket (jeapostrophe): page/lsp-racket-langserver.md
     - Racket (Theia): page/lsp-racket-language-server.md
-    - Ruby: page/lsp-solargraph.md
+    - Ruby (Solargraph): page/lsp-solargraph.md
+    - Ruby (Sorbet): page/lsp-sorbet.md
+    - Ruby (Steep): page/lsp-steep.md
+    - Ruby (TypeProf): page/lsp-typeprof.md
     - Rust (rust-analyzer): page/lsp-rust-analyzer.md
     - Rust (rls): page/lsp-rust-rls.md
     - Scala: https://emacs-lsp.github.io/lsp-metals
@@ -122,13 +132,15 @@ nav:
     - TeX, LaTeX, etc (texlab): page/lsp-texlab.md
     - TeX, LaTeX, etc (texlab, external): page/lsp-latex.md
     - TOML: page/lsp-toml.md
+    - TTCN3: page/lsp-ttcn3.md
     - V: page/lsp-v.md
     - Vala: page/lsp-vala.md
     - Verilog/SystemVerilog (hdl-checker): page/lsp-verilog.md
     - Verilog/SystemVerilog (svlangserver): page/lsp-svlangserver.md
     - VHDL: page/lsp-vhdl.md
-    - Vimscript: page/lsp-vim.md
-    - Vue: page/lsp-vetur.md
+    - Vimscript: page/lsp-vimscript.md
+    - Vue 2: page/lsp-vetur.md
+    - Vue 3: page/lsp-volar.md
     - XML: page/lsp-xml.md
     - YAML: page/lsp-yaml.md
     - Zig: page/lsp-zig.md
@@ -140,6 +152,7 @@ nav:
       - page/CHANGELOG.md
   - Tutorials:
       - 'Configuring Emacs as a C/C++ IDE': tutorials/CPP-guide.md
+      - 'Configuring Emacs as a PHP IDE': tutorials/php-guide.md
       - 'A guide on disabling/enabling lsp-mode features': tutorials/how-to-turn-off.md
       - 'React JavaScript Tutorial in Emacs': tutorials/reactjs-tutorial.md
       - 'Configuring Emacs as a Clojure IDE': tutorials/clojure-guide.md
@@ -159,6 +172,7 @@ extra_javascript:
 
 theme:
   name: material
+  custom_dir: overrides
   logo: examples/logo-mini.png
   favicon: examples/logo-mini.png
   icon:
