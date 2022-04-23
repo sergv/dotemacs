@@ -409,9 +409,14 @@ When the universal argument INSERT is non-nil, insert the type in the buffer."
   (let ((tap (dante--ghc-subexp (dante-thing-at-point t))))
     (lcr-cps-let ((_load_messages (dante-async-load-current-buffer nil nil))
                     (ty (dante-async-call (concat ":type-at " tap))))
-      (if insert (save-excursion (goto-char (line-beginning-position))
-                                 (insert (dante-fontify-expression ty) "\n"))
-                 (message "%s" (dante-fontify-expression ty))))))
+      (dante--insert-or-show-fontified ty insert))))
+
+(defun dante--insert-or-show-fontified (expr insert?)
+  (if insert?
+      (save-excursion (goto-char (line-beginning-position))
+                      (insert-char ?\s (current-indentation))
+                      (insert (dante-fontify-expression expr) "\n"))
+    (message "%s" (dante-fontify-expression expr))))
 
 (defun dante-info (ident)
   "Get the info about the IDENT at point."
