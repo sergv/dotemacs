@@ -26,7 +26,7 @@ build-type:
 --
 -- custom-setup
 --   setup-depends:
---       base ^>= 4.9
+--     , base ^>= 4.9
 --     , Cabal ^>= 1.16
 
 common ghc-options
@@ -66,10 +66,10 @@ library
   hs-source-dirs:
     src
   build-depends:
-      base ^>= 4.14
+    , base ^>= 4.14
     , text ^>= { 1.2.5, 2.0 }
   build-tool-depends:
-      alex:alex
+    , alex:alex
     , happy:happy
     , hsc2hs:hsc2hs
 
@@ -77,12 +77,13 @@ executable ${filename no ext}
   import: ghc-options
   main-is:
     exe/Main.hs
---   other-modules:
---     Other.Module
---   hs-source-dirs:
---     . exe
+  -- other-modules:
+  --   Other.Module
+  -- hs-source-dirs:
+  --   .
+  --   exe
   build-depends:
-      base ^>= 4.14
+    , base ^>= 4.14
     , ${filename no ext}
   ghc-options:
     -rtsopts
@@ -96,12 +97,13 @@ test-suite ${filename no ext}-test
     exitcode-stdio-1.0
   main-is:
     test/TestMain.hs
---   other-modules:
---     Other.Module
---   hs-source-dirs:
---     . test
+  -- other-modules:
+  --   Other.Module
+  -- hs-source-dirs:
+  --   .
+  --   test
   build-depends:
-      HUnit
+    , HUnit
     , QuickCheck
     , base ^>= 4.14
     , tasty

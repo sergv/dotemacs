@@ -6,10 +6,11 @@ packages:
 --optional-packages: */
 
 allow-newer:
-  some-package:base
+  , foo:base
+  , bar:text
 
 constraints:
-    foo >= 0.2
+  , foo >= 0.2
   , bar +assertions
 
 -- optimization: 2
