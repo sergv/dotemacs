@@ -11,9 +11,10 @@ benchmark ${1:benchmark-name}
 ${3:  other-modules:
     ${4:Other.Module}
 }${5:  hs-source-dirs:
-    . bench
+    .
+    bench
 }  build-depends:
-      base ^>= 4.14
+    , base ^>= 4.14
     , gauge ^>= 0.2.3
     , ${6:my-package}
   ghc-options:
