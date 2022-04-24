@@ -10,9 +10,10 @@ executable ${1:test}
 ${3:  other-modules:
     ${4:Other.Module}
 }${5:  hs-source-dirs:
-    . exe
+    .
+    exe
 }  build-depends:
-      base ^>= 4.9
+    , base ^>= 4.9
     , ${6:my-module}
   ghc-options:
     -rtsopts
