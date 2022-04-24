@@ -869,7 +869,6 @@ value section should have if it is to be properly indented."
 
 (defun haskell-qualify-import ()
   "Turn ‘import X’ -> ‘import qualified X’."
-  (interactive "*")
   (save-match-data
     (save-excursion
       (beginning-of-line)
