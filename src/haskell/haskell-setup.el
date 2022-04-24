@@ -129,6 +129,8 @@
   (ignore-errors
     (eproj-update-current-buffer-within-its-project!)))
 
+(vim-defcmd vim:haskell-qualify-import (repeatable)
+  (haskell-qualify-import))
 
 ;; Sample ‘packages’ content:
 ;; "active package flags:\n  -package-id base-4.15.1.0\n  -package-id aeson-2.0.3.0-e91573e5a9f0a74731f7cb1fe08486dfa1990213df0c4f864e51b791370cc73d"
@@ -261,7 +263,7 @@ _l_ens                             %`lsp-lens-mode
   "
 _q_ualify import  _-_: attrap
 "
-  ("q" haskell-qualify-import)
+  ("q" vim:haskell-qualify-import:interactive)
 
   ("-" attrap-flycheck))
 
@@ -272,7 +274,7 @@ _t_ype            _-_: attrap
 _q_ualify import"
   ("i" dante-info)
   ("t" dante-type-at)
-  ("q" haskell-qualify-import)
+  ("q" vim:haskell-qualify-import:interactive)
 
   ("j" dante-eval-block)
   ("-" attrap-flycheck))
@@ -286,7 +288,7 @@ _r_ename          _u_ses of thing at point
 "
   ("-" attrap-flycheck)
   ("a" lsp-execute-code-action)
-  ("q" haskell-qualify-import)
+  ("q" vim:haskell-qualify-import:interactive)
   ("r" lsp-rename)
 
   ("d" lsp-doc-other-window)
