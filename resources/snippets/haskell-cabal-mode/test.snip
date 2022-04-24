@@ -10,9 +10,10 @@ test-suite ${1:test-name}
 ${3:  other-modules:
     ${4:Other.Module}
 }${5:  hs-source-dirs:
-    . test
+    .
+    test
 }  build-depends:
-      QuickCheck
+    , QuickCheck
     , base ^>= 4.14
     , tasty
     , tasty-hunit
