@@ -332,12 +332,12 @@ _a_lign  _t_: jump to topmost node start
 ;;;###autoload
 (defun haskell-setup-common-editing ()
   (def-keys-for-map vim-insert-mode-local-keymap
-    ("'"        haskell-smart-operators-quote)
-    ("`"        vim-wrap-backticks)
+    ("'"  haskell-smart-operators-quote)
+    ("`"  vim-wrap-backticks)
 
-    ("\""       smart-operators-double-quote)
-    ("\("       smart-operators-open-paren)
-    ("\["       smart-operators-open-bracket)))
+    ("\"" smart-operators-double-quote)
+    ("\(" smart-operators-open-paren)
+    ("\[" smart-operators-open-bracket)))
 
 ;;;###autoload
 (defun haskell-setup ()
