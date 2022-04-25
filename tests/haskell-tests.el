@@ -4128,6 +4128,97 @@
     (haskell-forward-sexp 6)
     " (foo + ((*) bar $ f baz) - g [quux, fizz, frob] `min_|_` xxx)")))
 
+(ert-deftest haskell-tests/haskell-format--get-language-extensions-1 ()
+  (should
+   (null
+    (haskell-tests--with-temp-buffer
+        (haskell-format--get-language-extensions (current-buffer) t)
+      (tests-utils--multiline
+       "_|_")))))
+
+(ert-deftest haskell-tests/haskell-format--get-language-extensions-2 ()
+  (should
+   (null
+    (haskell-tests--with-temp-buffer
+        (haskell-format--get-language-extensions (current-buffer) t)
+      (tests-utils--multiline
+       "module Foo where"
+       "_|_")))))
+
+(ert-deftest haskell-tests/haskell-format--get-language-extensions-3 ()
+  (should
+   (equal '("RankNTypes")
+          (haskell-tests--with-temp-buffer
+              (haskell-format--get-language-extensions (current-buffer) t)
+            (tests-utils--multiline
+             "{-#language RankNTypes#-}"
+             "module Foo where"
+             "_|_")))))
+
+(ert-deftest haskell-tests/haskell-format--get-language-extensions-4 ()
+  (should
+   (equal '("RankNTypes")
+          (haskell-tests--with-temp-buffer
+              (haskell-format--get-language-extensions (current-buffer) t)
+            (tests-utils--multiline
+             "{-#lAnGuAgE RankNTypes#-}"
+             "module Foo where"
+             "_|_")))))
+
+(ert-deftest haskell-tests/haskell-format--get-language-extensions-5 ()
+  (should
+   (equal '("RankNTypes")
+          (haskell-tests--with-temp-buffer
+              (haskell-format--get-language-extensions (current-buffer) t)
+            (tests-utils--multiline
+             "{-#      lAnGuAgE   "
+             "RankNTypes"
+             "#-}"
+             "module Foo where"
+             "_|_")))))
+
+(ert-deftest haskell-tests/haskell-format--get-language-extensions-6 ()
+  (should
+   (equal '("RankNTypes" "UndecidableInstances")
+          (haskell-tests--with-temp-buffer
+              (haskell-format--get-language-extensions (current-buffer) t)
+            (tests-utils--multiline
+             "{-#      lAnGuAgE   "
+             "RankNTypes, UndecidableInstances"
+             "#-}"
+             "module Foo where"
+             "_|_")))))
+
+(ert-deftest haskell-tests/haskell-format--get-language-extensions-7 ()
+  (should
+   (equal '("RankNTypes" "UndecidableInstances")
+          (haskell-tests--with-temp-buffer
+              (haskell-format--get-language-extensions (current-buffer) t)
+            (tests-utils--multiline
+             "{-#      lAnGuAgE   "
+             "\tRankNTypes \t "
+             " , \t\t  "
+             "  UndecidableInstances\t"
+             "#-}"
+             "module Foo where"
+             "_|_")))))
+
+(ert-deftest haskell-tests/haskell-format--get-language-extensions-8 ()
+  (should
+   (equal '("LambdaCase" "RankNTypes" "UndecidableInstances")
+          (haskell-tests--with-temp-buffer
+              (haskell-format--get-language-extensions (current-buffer) t)
+            (tests-utils--multiline
+             ""
+             "{-#      lAnGuAgE   "
+             "\tRankNTypes \t "
+             " , \t\t  "
+             "  Undecidabl_|_eInstances\t"
+             "#-}"
+             "{-# LANGUAGE LambdaCase #-}"
+             "module Foo where"
+             "")))))
+
 ;; (ert "haskell-tests/.*")
 
 (setf haskell-tests/tests
