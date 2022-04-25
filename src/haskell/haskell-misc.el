@@ -302,6 +302,17 @@ _#-}_: on pragma close"
   ("::"  haskell-align-on-double-colons)
   ("#-}" haskell-align-on-pragma-close))
 
+;;;###autoload
+(defun haskell-reindent-region (&optional width)
+  "Format selected region with brittany formatter."
+  (interactive "p*")
+  (with-region-bounds start end
+    (haskell-format--format-region-preserving-position haskell-indent-offset
+                                                       width
+                                                       start
+                                                       end)))
+
+;;;###autoload
 (defun haskell-reindent-at-point (&optional width)
   "Do some sensible reindentation depending on the current position in file."
   (interactive "p*")
@@ -326,57 +337,30 @@ _#-}_: on pragma close"
       ((save-excursion
          (beginning-of-line)
          (not (looking-at-p "^[ \t]*$")))
-       (let* ((p (point))
-              (fingerprint-re (haskell-misc--fingerprint-re (current-line)))
-              (end-mark nil)
-              (end (save-excursion
-                     (haskell-move-to-topmost-end)
-                     (skip-chars-forward "\r\n")
-                     (prog1 (point)
-                       (unless (eobp)
-                         (save-excursion
-                           (forward-line 1)
-                           (setf end-mark (point-marker)))))))
+       (let* ((is-module-export-list? nil)
               (start (save-excursion
                        (haskell-move-to-topmost-start)
-                       (point))))
-         (haskell-format--format-with-brittany haskell-indent-offset
-                                               (if (and width
-                                                        (< 1 width))
-                                                   width
-                                                 haskell-format-default-width)
-                                               start
-                                               end)
-         (goto-char start)
-         (if (re-search-forward fingerprint-re end-mark t)
-             (goto-char (match-beginning 0))
-           (goto-char p))))
+                       (setf is-module-export-list?
+                             (looking-at-p haskell-regexen/module-header-start))
+                       (point)))
+              (end (or (and is-module-export-list?
+                            (save-excursion
+                              (goto-char start)
+                              (re-search-forward "\\_<where\\_>" nil t)))
+                       (save-excursion
+                         (haskell-move-to-topmost-end)
+                         (skip-chars-forward "\r\n")
+                         (prog1 (point)
+                           (unless (eobp)
+                             (save-excursion
+                               (forward-line 1)
+                               (setf end-mark (point-marker)))))))))
+         (haskell-format--format-region-preserving-position haskell-indent-offset
+                                                            width
+                                                            start
+                                                            end)))
       (t
        (error "Don't know how to reindent construct at point")))))
-
-(defun haskell-misc--fingerprint-re (str)
-  "Take current line and come up with a fingerprint
-regexp that will find this line after applying indentation or some
-other form of whitespace normalization.
-
-E.g. given a line like
-
->      foo = bar $ baz (quux fizz) frob
-
-the regex should look like
-
-foo\\w*=\\w*bar\\w*[$]\\w*baz\\w*[(]\\w*quux\\w*fizz\\w*[)]\\w*frob
-
-where \\w matches any whitespace including newlines"
-  (s-join "[ \t\r\n]*"
-          (--map (regexp-quote it)
-                 (--filter (not (s-blank-str? it))
-                           (--map (list->string it)
-                                  (-partition-by #'char-syntax
-                                                 (string->list
-                                                  (s-collapse-whitespace
-                                                   (s-trim
-                                                    str)))))))))
 
 (defun haskell-align-language-pragmas--point-inside-pragma (point)
   (save-excursion
