@@ -12,20 +12,50 @@
 (require 'common)
 (require 'haskell-regexen)
 
-(defvar haskell-format-default-width 90)
+(defvar haskell-format-default-width 100)
 
-;;;###autoload
-(defun haskell-format-pp-region-with-brittany (width)
-  "Format selected region using brittany haskell formatter."
-  (interactive "p*")
-  (with-region-bounds start end
-    (haskell-format--format-with-brittany
-     haskell-indent-offset
-     (if (< 1 width)
-         width
-       haskell-format-default-width)
-     start
-     end)))
+(defun haskell-format--format-region-preserving-position (indent-offset width start end)
+  (let ((p (point))
+        (col (current-column))
+        (end-mark (copy-marker end))
+        (fingerprint-re (haskell-format--fingerprint-re (current-line))))
+    (haskell-format--format-with-brittany indent-offset
+                                          (if (and width
+                                                   (< 1 width))
+                                              width
+                                            haskell-format-default-width)
+                                          start
+                                          end)
+    (goto-char start)
+    (if (re-search-forward fingerprint-re end-mark t)
+        (progn
+          (goto-char (match-beginning 0))
+          (move-to-column col))
+      (goto-char p))))
+
+(defun haskell-format--fingerprint-re (str)
+  "Take current line and come up with a fingerprint
+regexp that will find this line after applying indentation or some
+other form of whitespace normalization.
+
+E.g. given a line like
+
+>      foo = bar $ baz (quux fizz) frob
+
+the regex should look like
+
+foo\\w*=\\w*bar\\w*[$]\\w*baz\\w*[(]\\w*quux\\w*fizz\\w*[)]\\w*frob
+
+where \\w matches any whitespace including newlines"
+  (s-join "[ \t\r\n]*"
+          (--map (regexp-quote it)
+                 (--filter (not (s-blank-str? it))
+                           (--map (list->string it)
+                                  (-partition-by #'char-syntax
+                                                 (string->list
+                                                  (s-collapse-whitespace
+                                                   (s-trim
+                                                    str)))))))))
 
 (defun haskell-format--get-language-extensions (buf &optional without-properties)
   "Get all LANGUAGE pragma extensions from buffer BUF as a list of strings."
@@ -42,7 +72,7 @@
                 (save-excursion
                   ;; Do case-sensitive search for "module" declaration.
                   (let ((case-fold-search nil))
-                    (when (re-search-forward "\\_<module\\_>[ \t\r\n]" nil t)
+                    (when (re-search-forward haskell-regexen/module-header-start nil t)
                       (match-beginning 0))))))
           (while (re-search-forward
                   (eval-when-compile
@@ -66,8 +96,16 @@
     (error "Indentation must be an integer: %s" indent))
   (unless (integerp width)
     (error "Width must be an integer: %s" width))
-  (let* ((language-extensions
-          (haskell-format--get-language-extensions (current-buffer) t))
+  (let* ((buffer-exts (haskell-format--get-language-extensions (current-buffer) t))
+         (cabal-exts
+          (when-let ((config-file (flycheck-haskell--find-config-file))
+                     (config (flycheck-haskell-get-configuration config-file)))
+            (cdr (assq 'extensions config))))
+         (language-extensions
+          (remove-duplicates-sorting (nconc buffer-exts
+                                            cabal-exts)
+                                     #'string=
+                                     #'string<))
          (opts (mapconcat (lambda (x) (concat "-X" x))
                           (--filter (not (string= "CPP" it)) language-extensions)
                           " ")))
@@ -75,7 +113,8 @@
     (call-process-region
      start
      end
-     (cached-executable-find "brittany")
+     (or (cached-executable-find "brittany")
+         (error "Formatting failed: brittany executable not found"))
      ;;"/home/sergey/projects/haskell/projects/dev-tools/brittany/.stack-work-master/install/x86_64-linux-tinfo6/lts-12.14/8.4.3/bin/brittany"
      t ;; delete
      t ;; insert into current buffer before point
