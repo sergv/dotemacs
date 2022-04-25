@@ -10,6 +10,7 @@
   (require 'macro-util))
 
 (require 'common)
+(require 'haskell-regexen)
 
 (defvar haskell-format-default-width 90)
 
@@ -33,8 +34,7 @@
       (save-match-data
         (goto-char (point-min))
         (let* ((case-fold-search t) ;; Ignore case when matching regexps.
-               (res (cons nil nil))
-               (exts res)
+               (exts nil)
                (get-match-string (if without-properties
                                      #'match-string-no-properties
                                    #'match-string))
@@ -42,26 +42,23 @@
                 (save-excursion
                   ;; Do case-sensitive search for "module" declaration.
                   (let ((case-fold-search nil))
-                    (when (re-search-forward "\\_<module\\_>[ \r\n]" nil t)
+                    (when (re-search-forward "\\_<module\\_>[ \t\r\n]" nil t)
                       (match-beginning 0))))))
           (while (re-search-forward
-                  (rx-let ((wh (* (regexp "[ \v\f\r\n]"))))
-                    (rx "{-#"
-                        wh
-                        "LANGUAGE"
-                        (group (regexp "\\(?:.\\|[\r\n]\\)*?"))
-                        wh
-                        "#-}"))
+                  (eval-when-compile
+                    (concat haskell-regexen/language-pragma-prefix
+                            (rx (group-n 1 (*? anything))
+                                (* (regexp "[ \t\r\n]"))
+                                "#-}")))
                   module-header-position ;; bound
                   t                      ;; no error
                   )
             (let ((new-exts (split-string (funcall get-match-string 1)
-                                          "[, \v\f\r\n]+"
+                                          "[, \t\r\n]+"
                                           t ;; omit nulls
                                           )))
-              (dolist (e new-exts)
-                (setf exts (setcdr-sure exts (cons e nil))))))
-          (cdr res))))))
+              (setf exts (nconc new-exts exts))))
+          exts)))))
 
 (defun haskell-format--format-with-brittany (indent width start end)
   "Format region using brittany haskell formatter."
