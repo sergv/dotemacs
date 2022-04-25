@@ -323,9 +323,11 @@ _<tab>_: reindent"
   "
 _a_lign  _t_: jump to topmost node start
        _h_: jump to topmont node end"
-  ("a" hydra-haskell-align/body)
-  ("t" haskell-move-to-topmost-start)
-  ("h" haskell-move-to-topmost-end))
+  ("a"     hydra-haskell-align/body)
+  ("<tab>" haskell-reindent-region)
+
+  ("t"     haskell-move-to-topmost-start)
+  ("h"     haskell-move-to-topmost-end))
 
 ;;;###autoload
 (defun haskell-setup-common-editing ()

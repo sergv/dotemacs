@@ -112,6 +112,9 @@
 
 (defconst-set haskell-regexen/empty-line "^[ \t]*$")
 
+(defconst-set haskell-regexen/module-header-start
+  "\\_<module\\_>[ \t\r\n]" )
+
 (defconst-set haskell-regexen/import-line
   "import[ \t\r\n]+\\(?:\"[^\"]+\"[ \t\r\n]+\\)?")
 
@@ -121,7 +124,6 @@
 
   ;; "import[ \t\r\n]+\\(?:\"[^\"]+\"[ \t\r\n]+\\)?qualified[ \t\r\n]+"
   )
-
 
 (defconst-set haskell-regexen/module-name-section
   "[[:upper:]][[:alnum:]'_]*")
