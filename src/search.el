@@ -93,8 +93,7 @@ highlighting searches.")
    search-green-face
    search-cyan-face
    search-blue-face
-   search-violet-face
-   search-magenta-face])
+   search-violet-face])
 
 (defsubst search--reset-search-highlight-face-index ()
   (setf search--highlight-face-index 0))
