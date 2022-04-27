@@ -19,7 +19,8 @@
 
 ;;;###autoload
 (defun yaml-setup ()
-  (init-common :use-render-formula nil)
+  (init-common :use-render-formula nil
+               :typography nil)
   (bind-tab-keys #'indent-relative-forward
                  #'indent-relative-backward
                  :enable-yasnippet t)
