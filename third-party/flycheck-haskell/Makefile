@@ -63,6 +63,7 @@ clean-deps :
 
 %: %.hs
 	$(GHC) $(GHCFLAGS) -outputdir $(HS_BUILDDIR) -o $@ $<
+	strip $@
 
 check: $(EL_OBJS)
 	$(GHC) $(GHCFLAGS) -fno-code get-cabal-configuration.hs
