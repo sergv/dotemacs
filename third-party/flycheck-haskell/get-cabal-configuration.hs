@@ -128,10 +128,12 @@ import Control.Monad (when)
 #if defined(Cabal22OrLater)
 import qualified Data.ByteString as BS
 #endif
-import Data.Char (isSpace)
+import Data.Bits (unsafeShiftL, unsafeShiftR, xor)
+import Data.Char (isSpace, ord)
 #if defined(HAVE_DATA_FUNCTOR_IDENTITY)
 import Data.Functor.Identity
 #endif
+import Data.Function (on)
 import Data.List (nub, foldl', intersperse)
 import Data.Maybe (maybeToList)
 #if __GLASGOW_HASKELL__ < 710
@@ -254,15 +256,46 @@ import Distribution.Types.LibraryName (libraryNameString)
 import Distribution.Utils.Path (getSymbolicPath)
 #endif
 
-newtype UnixFilepath = UnixFilepath { unUnixFilepath :: C8.ByteString }
+newtype Hash = Hash Int
   deriving (Eq, Ord)
 
+mkHash :: C8.ByteString -> Hash
+-- getHash = C8.foldl' (\hash c -> hash * 33 + ord c) 5381
+mkHash = Hash . C8.foldl' (\hash c -> (hash `unsafeShiftL` 5 + hash) + ord c) 5381
+
+instance Semigroup Hash where
+  Hash x <> Hash y = Hash $
+    x `xor` (y + 0x9e3779b9 + x `unsafeShiftL` 6 + x `unsafeShiftR` 2)
+
+data UnixFilepath = UnixFilepath
+  { ufContents :: Builder
+  , ufHash     :: {-# UNPACK #-} !Hash
+  }
+
+instance Eq UnixFilepath where
+  (==) = (==) `on` ufHash
+
+instance Ord UnixFilepath where
+  compare = compare `on` ufHash
+
 mkUnixFilepath :: FilePath -> UnixFilepath
-mkUnixFilepath = UnixFilepath . C8.map (\c -> if isPathSeparator c then '/' else c) . C8.pack . normalise
+mkUnixFilepath x = UnixFilepath
+  { ufContents = builderFromByteString x'
+  , ufHash     = mkHash x'
+  }
+  where
+    x' = C8.map (\c -> if isPathSeparator c then '/' else c) $ C8.pack $ normalise x
+
+joinPaths :: UnixFilepath -> UnixFilepath -> UnixFilepath
+joinPaths (UnixFilepath x xh) (UnixFilepath y yh) = UnixFilepath
+  { ufContents = x <> builderFromChar '/' <> y
+  , ufHash     = xh <> yh
+  }
 
 data Sexp
     = SList [Sexp]
     | SString C8.ByteString
+    | SStringBuilder Builder
     | SSymbol C8.ByteString
 
 data TargetTool = Cabal | Stack
@@ -305,6 +338,9 @@ renderSexp (SSymbol s) = builderFromByteString s
 renderSexp (SString s) = dquote `mappend` builderFromByteString s `mappend` dquote
   where
     dquote = builderFromChar '"'
+renderSexp (SStringBuilder s) = dquote `mappend` s `mappend` dquote
+  where
+    dquote = builderFromChar '"'
 renderSexp (SList xs)  =
     lparen `mappend` mconcat (intersperse space (map renderSexp xs)) `mappend` rparen
   where
@@ -312,22 +348,14 @@ renderSexp (SList xs)  =
     rparen = builderFromChar ')'
     space  = builderFromChar ' '
 
-newtype Path = Path { unPath :: C8.ByteString }
-
-mkPath :: FilePath -> Path
-mkPath = Path . C8.pack
-
 class ToSexp a  where
     toSexp :: a -> Sexp
 
 instance ToSexp C8.ByteString where
     toSexp = SString
 
-instance ToSexp Path where
-    toSexp = toSexp . unPath
-
 instance ToSexp UnixFilepath where
-    toSexp = SString . unUnixFilepath
+    toSexp = SStringBuilder . ufContents
 
 instance ToSexp Extension where
     toSexp (EnableExtension ext) = toSexp (C8.pack (show ext))
@@ -439,12 +467,13 @@ getAutogenDirs buildDir componentNames =
     autogenDir :: FilePath
     autogenDir = buildDir </> "autogen"
 
-getSourceDirectories :: [BuildInfo] -> FilePath -> [String]
+getSourceDirectories :: [BuildInfo] -> UnixFilepath -> [UnixFilepath]
 getSourceDirectories buildInfo cabalDir =
-    map (cabalDir </>) (concatMap hsSourceDirs' buildInfo)
+    map (cabalDir `joinPaths`) (concatMap hsSourceDirs' buildInfo)
 
-hsSourceDirs' :: BuildInfo -> [FilePath]
+hsSourceDirs' :: BuildInfo -> [UnixFilepath]
 hsSourceDirs' =
+    map mkUnixFilepath .
 #if defined(Cabal36OrLater)
     map getSymbolicPath . hsSourceDirs
 #else
@@ -518,7 +547,7 @@ dumpPackageDescription pkgDesc projectDir = do
     return $
         SList
             [ cons (sym "build-directories") (ordNub (buildDirs :: [UnixFilepath]))
-            , cons (sym "source-directories") (sourceDirs :: [UnixFilepath])
+            , cons (sym "source-directories") sourceDirs
             , cons (sym "extensions") exts
             , cons (sym "languages") langs
             , cons (sym "dependencies") deps
@@ -535,8 +564,11 @@ dumpPackageDescription pkgDesc projectDir = do
     buildInfo :: [BuildInfo]
     buildInfo = allBuildInfo pkgDesc
 
+    projectDir' :: UnixFilepath
+    projectDir' = mkUnixFilepath projectDir
+
     sourceDirs :: [UnixFilepath]
-    sourceDirs = ordNub (map mkUnixFilepath (getSourceDirectories buildInfo projectDir))
+    sourceDirs = ordNub (getSourceDirectories buildInfo projectDir')
 
     exts :: [Extension]
     exts = nub (concatMap usedExtensions buildInfo)
@@ -598,11 +630,8 @@ componentTypePrefix x = case x of
 instance ToSexp ComponentType where
     toSexp = toSexp . componentTypePrefix
 
-hsSourceDirs' :: BuildInfo -> [Path]
-hsSourceDirs' = map mkPath . hsSourceDirs
-
 -- | Gather files and modules that constitute each component.
-getComponents :: C8.ByteString -> PackageDescription -> [(ComponentType, C8.ByteString, Maybe C8.ByteString, [ModuleName], [Path])]
+getComponents :: C8.ByteString -> PackageDescription -> [(ComponentType, C8.ByteString, Maybe C8.ByteString, [ModuleName], [UnixFilepath])]
 getComponents packageName pkgDescr =
     [ (CTLibrary, name, Nothing, exposedModules lib ++ biMods bi, hsSourceDirs' bi)
     | lib <- allLibraries' pkgDescr
