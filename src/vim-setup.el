@@ -373,7 +373,7 @@ _<right>_: move tab to the right"
   ("z"       hydra-vim-visual-z-ext/body)
 
   (("(" ")")     vim-wrap-parens)
-  (("[" "C")     vim-wrap-braces)
+  (("[" "]")     vim-wrap-braces)
   (("{" "}")     vim-wrap-brackets)
   (("C-<" "C->") vim-wrap-angles)
 
