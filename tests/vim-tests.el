@@ -736,6 +736,24 @@
    "fizz"
    "frobnicate"))
 
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/block-change-char-1
+    (execute-kbd-macro (kbd "d d C-v h h h n l 1 2 3 <escape>"))
+  (tests-utils--multiline
+   "fo_|_o"
+   "bar"
+   "baz"
+   "quux"
+   "fizz"
+   "frobnicate")
+  (tests-utils--multiline
+   "12_|_3o"
+   "123r"
+   "123z"
+   "123ux"
+   "fizz"
+   "frobnicate"))
+
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-except
     (rust-mode)
     vim-tests/linewise-append-newline-1
