@@ -123,13 +123,12 @@ import Distribution.PackageDescription (library)
 
 
 import qualified Control.Applicative as A
-import Control.Exception (SomeException, try)
 import Control.Monad (when)
 #if defined(Cabal22OrLater)
 import qualified Data.ByteString as BS
 #endif
 import Data.Bits (unsafeShiftL, unsafeShiftR, xor)
-import Data.Char (isSpace, ord)
+import Data.Char (ord)
 #if defined(HAVE_DATA_FUNCTOR_IDENTITY)
 import Data.Functor.Identity
 #endif
@@ -159,33 +158,19 @@ import Distribution.PackageDescription
         TestSuiteInterface(..), BuildInfo(..), Library, Executable,
         allBuildInfo, usedExtensions, allLanguages, hcOptions, exeName,
         buildInfo, modulePath, libBuildInfo, exposedModules)
-import Distribution.Simple.BuildPaths (defaultDistPref)
-import Distribution.Simple.Utils (cabalVersion)
 import Distribution.System (buildPlatform)
-#if defined(Cabal20OrLater)
-import Distribution.System (OS(OSX), buildArch, buildOS)
-#endif
-import Distribution.Text (display)
-#if defined(Cabal20OrLater)
-import Distribution.Types.PackageId (PackageId)
-#endif
 import Distribution.Verbosity (silent)
 import Language.Haskell.Extension (Extension(..),Language(..))
 import System.Console.GetOpt
 import System.Environment (getArgs)
 import System.Exit (ExitCode(..), exitFailure, exitSuccess)
-import System.FilePath ((</>), dropFileName, normalise, isPathSeparator)
+import System.FilePath (dropFileName, normalise, isPathSeparator)
 import System.Info (compilerVersion)
 import System.IO (Handle, hGetContents, hPutStrLn, stderr, stdout)
-import System.Process (readProcessWithExitCode)
 import qualified System.Process as Process
 
 #if __GLASGOW_HASKELL__ >= 710 && !defined(Cabal20OrLater) && !defined(Cabal22OrLater)
 import Data.Version (Version)
-#endif
-
-#if defined(Cabal24OrLater)
-import Distribution.PackageDescription (allBuildDepends)
 #endif
 
 #if defined(Cabal114OrMore)
@@ -193,7 +178,6 @@ import Distribution.PackageDescription (BenchmarkInterface(..),)
 #endif
 
 #if defined(Cabal20OrLater)
-import Control.Monad (filterM)
 import Distribution.Package (unPackageName, depPkgName, PackageName)
 import Distribution.PackageDescription.Configuration (finalizePD)
 import Distribution.Types.ComponentRequestedSpec (ComponentRequestedSpec(..))
@@ -202,7 +186,6 @@ import Distribution.Types.UnqualComponentName (unUnqualComponentName)
 import qualified Distribution.Version as CabalVersion
 import Distribution.Types.Benchmark (Benchmark(benchmarkName))
 import Distribution.Types.TestSuite (TestSuite(testName))
-import System.Directory (doesDirectoryExist, doesFileExist)
 #else
 import Control.Arrow (second)
 import Data.Version (showVersion)
@@ -218,10 +201,6 @@ import Distribution.PackageDescription
 import Distribution.PackageDescription
        (TestSuite(..), condTestSuites, testEnabled)
 # endif
-#endif
-
-#if defined(Cabal22OrLater)
-import Distribution.Pretty (prettyShow)
 #endif
 
 #if defined(Cabal32OrLater)
@@ -297,13 +276,6 @@ data Sexp
     | SString C8.ByteString
     | SStringBuilder Builder
     | SSymbol C8.ByteString
-
-data TargetTool = Cabal | Stack
-#if defined(Cabal20OrLater)
-                        | CabalNew PackageId GhcVersion
-
-type GhcVersion = String
-#endif
 
 #if defined(bytestring_10_0_or_later)
 type Builder = BS.Builder.Builder
@@ -394,79 +366,6 @@ instance (ToSexp a, ToSexp b, ToSexp c, ToSexp d, ToSexp e) => ToSexp (a, b, c, 
 cons :: (ToSexp a, ToSexp b) => a -> [b] -> Sexp
 cons h t = SList (toSexp h : map toSexp t)
 
--- | Get possible dist directory
-distDir :: TargetTool -> IO FilePath
-distDir Cabal = return defaultDistPref
-distDir Stack = do
-    res <- try $ readProcessWithExitCode "stack" ["path", "--dist-dir"] []
-    return $ case res of
-        Left (_ :: SomeException)      -> defaultDistDir
-        Right (ExitSuccess, stdOut, _) -> stripWhitespace stdOut
-        Right (ExitFailure _, _, _)    -> defaultDistDir
-  where
-    defaultDistDir :: FilePath
-    defaultDistDir =
-        ".stack-work" </> defaultDistPref
-                      </> display buildPlatform
-                      </> "Cabal-" ++ cabalVersion'
-#if defined(Cabal20OrLater)
-distDir (CabalNew packageId ghcVersion) =
-    return $ "dist-newstyle/build" </> display buildPlatform
-                                   </> "ghc-" ++ ghcVersion
-                                   </> display packageId
-#endif
-
-getBuildDirectories
-    :: TargetTool
-    -> PackageDescription
-    -> FilePath
-    -> IO ([UnixFilepath], [UnixFilepath])
-getBuildDirectories tool pkgDesc cabalDir = do
-    distDir' <- distDir tool
-    let buildDir   :: FilePath
-        buildDir   = cabalDir </> distDir' </> "build"
-
-        componentNames :: [String]
-        componentNames =
-            getExeNames pkgDesc ++
-            getTestNames pkgDesc ++
-            getBenchmarkNames pkgDesc ++
-            getForeignLibNames pkgDesc
-
-    autogenDirs <- getAutogenDirs buildDir componentNames
-
-    let componentBuildDir :: String -> FilePath
-        componentBuildDir componentName =
-#if defined(Cabal20OrLater)
-          case tool of
-            CabalNew _ _ -> cabalDir </> distDir'
-                                     </> "build"
-                                     </> componentName
-                                     </> (componentName ++ "-tmp")
-            _ -> buildDir </> componentName </> (componentName ++ "-tmp")
-#else
-          buildDir </> componentName </> (componentName ++ "-tmp")
-#endif
-
-        buildDirs :: [FilePath]
-        buildDirs =
-            autogenDirs ++ map componentBuildDir componentNames
-
-        buildDirs' = case library pkgDesc of
-            Just _  -> buildDir : buildDirs
-            Nothing -> buildDirs
-    return (map mkUnixFilepath buildDirs', map mkUnixFilepath autogenDirs)
-
-getAutogenDirs :: FilePath -> [String] -> IO [FilePath]
-getAutogenDirs buildDir componentNames =
-    (autogenDir :) A.<$> componentsAutogenDirs buildDir componentNames
-  where
-    -- 'dist/bulid/autogen' OR
-    -- '.stack-work/dist/x86_64-linux/Cabal-1.24.2.0/build/autogen' OR
-    -- ./dist-newstyle/build/x86_64-linux/ghc-8.4.3/lens-4.17/build/autogen
-    autogenDir :: FilePath
-    autogenDir = buildDir </> "autogen"
-
 getSourceDirectories :: [BuildInfo] -> UnixFilepath -> [UnixFilepath]
 getSourceDirectories buildInfo cabalDir =
     map (cabalDir `joinPaths`) (concatMap hsSourceDirs' buildInfo)
@@ -478,19 +377,6 @@ hsSourceDirs' =
     map getSymbolicPath . hsSourceDirs
 #else
     hsSourceDirs
-#endif
-
-#if defined(Cabal20OrLater)
-doesPackageEnvExist :: GhcVersion -> FilePath -> IO Bool
-doesPackageEnvExist ghcVersion projectDir = doesFileExist $ projectDir </> packageEnvFn
-  where
-    packageEnvFn =
-      -- The filename for package environments in MacOS uses the synonym "darwin
-      -- "instead of the "official" buildPlatform, "osx".
-      case buildOS of
-        OSX -> ".ghc.environment." ++ display buildArch ++ "-" ++ "darwin" ++ "-" ++ ghcVersion
-        _   -> ".ghc.environment." ++ display buildPlatform ++ "-" ++ ghcVersion
-
 #endif
 
 allowedOptions :: Set C8.ByteString
@@ -531,32 +417,14 @@ isAllowedOption opt =
 
 dumpPackageDescription :: PackageDescription -> FilePath -> IO Sexp
 dumpPackageDescription pkgDesc projectDir = do
-    (cabalDirs, cabalAutogen) <- getBuildDirectories Cabal pkgDesc projectDir
-    (stackDirs, stackAutogen) <- getBuildDirectories Stack pkgDesc projectDir
-#if defined(Cabal20OrLater)
-    ghcVersion <- getGhcVersion
-    (cabalNewDirs, cabalNewAutogen) <- getBuildDirectories (CabalNew (package pkgDesc) ghcVersion) pkgDesc projectDir
-    packageEnvExists <- doesPackageEnvExist ghcVersion projectDir
-    let buildDirs   = cabalDirs ++ stackDirs ++ cabalNewDirs
-        autogenDirs = cabalAutogen ++ stackAutogen ++ cabalNewAutogen
-#else
-    let buildDirs   = cabalDirs ++ stackDirs
-        autogenDirs = cabalAutogen ++ stackAutogen
-#endif
     let packageName = C8.pack $ unPackageName' $ pkgName $ package pkgDesc
     return $
         SList
-            [ cons (sym "build-directories") (ordNub (buildDirs :: [UnixFilepath]))
-            , cons (sym "source-directories") sourceDirs
+            [ cons (sym "source-directories") sourceDirs
             , cons (sym "extensions") exts
             , cons (sym "languages") langs
-            , cons (sym "dependencies") deps
             , cons (sym "other-options") (cppOpts ++ ghcOpts)
-            , cons (sym "autogen-directories") (autogenDirs :: [UnixFilepath])
             , cons (sym "should-include-version-header") [not ghcIncludesVersionMacro]
-#if defined(Cabal20OrLater)
-            , cons (sym "package-env-exists") [packageEnvExists]
-#endif
             , cons (sym "package-name") [packageName]
             , cons (sym "components") $ getComponents packageName pkgDesc
             ]
@@ -571,17 +439,14 @@ dumpPackageDescription pkgDesc projectDir = do
     sourceDirs = ordNub (getSourceDirectories buildInfo projectDir')
 
     exts :: [Extension]
+#if MIN_VERSION_Cabal(1, 22, 0)
+    exts = ordNub (concatMap usedExtensions buildInfo)
+#else
     exts = nub (concatMap usedExtensions buildInfo)
+#endif
 
     langs :: [Language]
     langs = nub (concatMap allLanguages buildInfo)
-
-    thisPackage :: PackageName
-    thisPackage = pkgName (package pkgDesc)
-
-    deps :: [Dependency]
-    deps =
-        nub (filter ((/= thisPackage) . depPkgName') (buildDepends' pkgDesc))
 
     -- The "cpp-options" configuration field.
     cppOpts :: [C8.ByteString]
@@ -592,24 +457,6 @@ dumpPackageDescription pkgDesc projectDir = do
     ghcOpts :: [C8.ByteString]
     ghcOpts =
         ordNub (filter isAllowedOption (map C8.pack (concatMap (hcOptions GHC) buildInfo)))
-
-#if defined(Cabal20OrLater)
-    -- We don't care about the stack ghc compiler because we don't need it for
-    -- the stack checker
-    getGhcVersion :: IO String
-    getGhcVersion =
-        go "cabal"
-           ["new-exec", "ghc", "--", "--numeric-version"]
-           (go "ghc" ["--numeric-version"] A.empty)
-      where
-        go :: String -> [String] -> IO String -> IO String
-        go comm opts cont = do
-          res <- try $ readProcessWithExitCode comm opts []
-          case res of
-              Left (_ :: SomeException)      -> cont
-              Right (ExitSuccess, stdOut, _) -> return $ stripWhitespace stdOut
-              Right (ExitFailure _, _, _)    -> cont
-#endif
 
 data ComponentType
     = CTLibrary
@@ -713,14 +560,6 @@ readHPackPkgDescr exe configFile projectDir = do
         , Process.std_err = Process.CreatePipe
         , Process.cwd     = Just projectDir
         }
-
-buildDepends' :: PackageDescription -> [Dependency]
-buildDepends' =
-#if defined(Cabal24OrLater)
-    allBuildDepends
-#else
-    buildDepends
-#endif
 
 readGenericPkgDescr :: FilePath -> IO GenericPackageDescription
 readGenericPkgDescr =
@@ -851,15 +690,6 @@ getConcretePackageDescription genericDesc = do
          genericDesc'
 #endif
 
-componentsAutogenDirs :: FilePath -> [String] -> IO [FilePath]
-#if defined(Cabal20OrLater)
-componentsAutogenDirs buildDir componentNames =
-        filterM doesDirectoryExist $
-            map (\path -> buildDir </> path </> "autogen") componentNames
-#else
-componentsAutogenDirs _ _ = return []
-#endif
-
 #if defined(Cabal118OrLess)
 buildCompilerId :: CompilerId
 buildCompilerId = CompilerId buildCompilerFlavor compilerVersion
@@ -929,30 +759,6 @@ benchmarkName' =
 #endif
 
 
-getExeNames :: PackageDescription -> [String]
-getExeNames =
-    map exeName' . executables
-
-getForeignLibNames :: PackageDescription -> [String]
-getForeignLibNames =
-#if defined(Cabal20OrLater)
-    map foreignLibName' . foreignLibs
-#else
-    const []
-#endif
-
-getTestNames :: PackageDescription -> [String]
-getTestNames =
-    map testName' . testSuites
-
-getBenchmarkNames :: PackageDescription -> [String]
-getBenchmarkNames =
-#if defined(Cabal114OrMore)
-    map benchmarkName' . benchmarks
-#else
-    const []
-#endif
-
 depPkgName' :: Dependency -> PackageName
 depPkgName' =
 #if defined(Cabal20OrLater)
@@ -970,17 +776,6 @@ unPackageName' =
 #endif
 
 
--- Textual representation of cabal version
-cabalVersion' :: String
-cabalVersion' =
-#if defined(Cabal22OrLater)
-    prettyShow cabalVersion
-#elif defined(Cabal20OrLater)
-    CabalVersion.showVersion cabalVersion
-#else
-    showVersion cabalVersion
-#endif
-
 ghcIncludesVersionMacro :: Bool
 ghcIncludesVersionMacro =
 #if defined(GHC_INCLUDES_VERSION_MACRO)
@@ -997,9 +792,6 @@ ordNub = go S.empty
     go !acc (x:xs)
         | S.member x acc = go acc xs
         | otherwise      = x : go (S.insert x acc) xs
-
-stripWhitespace :: String -> String
-stripWhitespace = reverse . dropWhile isSpace . reverse . dropWhile isSpace
 
 die' :: String -> IO a
 die' msg = do
