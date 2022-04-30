@@ -37,7 +37,7 @@
                    (haskell-cabal-get-field "build-type")))))
 
 (ert-deftest haskell-cabal-compute-checksum-1 ()
-  (should (equal "263e67082326a27585639420f4d42c8b"
+  (should (equal "0b38ee6f06a95388c9e95b15dcfe1dc0"
                  (haskell-cabal-compute-checksum haskell-cabal-test-data-dir))))
 
 (ert-deftest haskell-cabal-compute-next-prev-section-1 ()
