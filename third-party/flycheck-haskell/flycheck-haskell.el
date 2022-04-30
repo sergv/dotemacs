@@ -55,6 +55,7 @@
 (require 'haskell-cabal)
 (require 'flycheck)
 (require 'dash)
+(require 'dante)
 
 
 ;;; Customization
@@ -244,12 +245,13 @@ Return the configuration."
 ;;; Buffer setup
 
 (defun flycheck-haskell--find-config-file (buf)
-  (if-let ((cabal-file (haskell-cabal-find-file)))
-      cabal-file
-    (when-let ((hpack-dir
-                (and flycheck-haskell-hpack-executable
-                     (locate-dominating-file default-directory "package.yaml"))))
-      (concat hpack-dir "/package.yaml"))))
+  (unless (dante-cabal-script-buf? buf)
+    (if-let ((cabal-file (haskell-cabal-find-file)))
+        cabal-file
+      (when-let ((hpack-dir
+                  (and flycheck-haskell-hpack-executable
+                       (locate-dominating-file default-directory "package.yaml"))))
+        (concat hpack-dir "/package.yaml")))))
 
 (provide 'flycheck-haskell)
 
