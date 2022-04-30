@@ -308,17 +308,24 @@ _#-}_: on pragma close"
   (interactive "p*")
   (save-match-data
     (cond
-      ((save-excursion
-         (beginning-of-line)
-         (looking-at-p haskell-regexen/language-pragma-prefix))
+      ((or (save-excursion
+             (beginning-of-line)
+             (looking-at-p haskell-regexen/language-pragma-prefix))
+           (and (eq (get-char-property (point) 'face) 'haskell-pragma-face)
+                (save-excursion
+                  (re-search-backward haskell-regexen/pragma-start nil t)
+                  (looking-at-p haskell-regexen/language-pragma-prefix))))
        (save-current-line-column
          (haskell-align-language-pragmas (point))))
-      ((and (eq (get-char-property (point) 'face) 'haskell-pragma-face)
-            (save-excursion
-              (re-search-backward haskell-regexen/pragma-start nil t)
-              (looking-at-p haskell-regexen/language-pragma-prefix)))
+      ((or (save-excursion
+             (beginning-of-line)
+             (looking-at-p haskell-regexen/options-ghc-pragma-prefix))
+           (and (eq (get-char-property (point) 'face) 'haskell-pragma-face)
+                (save-excursion
+                  (re-search-backward haskell-regexen/pragma-start nil t)
+                  (looking-at-p haskell-regexen/options-ghc-pragma-prefix))))
        (save-current-line-column
-         (haskell-align-language-pragmas (point))))
+         (haskell-align-options-ghc-pragmas (point))))
       ((save-excursion
          (beginning-of-line)
          (looking-at-p "import "))
@@ -352,7 +359,7 @@ _#-}_: on pragma close"
       (t
        (error "Don't know how to reindent construct at point")))))
 
-(defun haskell-align-language-pragmas--point-inside-pragma (point)
+(defun haskell-misc--point-inside-pragma? (point)
   (save-excursion
     (save-match-data
       (when (re-search-forward haskell-regexen/pragma-end nil t)
@@ -363,51 +370,20 @@ _#-}_: on pragma close"
                  (<= point end))))))))
 
 (defun haskell-align-language-pragmas (start)
-  (save-match-data
-    (goto-char start)
-    ;; (cl-assert (looking-at-p haskell-regexen/language-pragma-prefix))
-    ;; Navigate up while we're still getting LANGUAGE pragmas.
-    (beginning-of-line)
-    (while (and (not (bob?))
-                (or (looking-at-p haskell-regexen/language-pragma-prefix)
-                    (haskell-align-language-pragmas--point-inside-pragma (point))))
-      ;; Go to beginning of the previous line.
-      (backward-line))
-    ;; Skip whitespace and possible comments to the beginning of pragma.
-    (re-search-forward haskell-regexen/pragma-start)
-    (goto-char (match-beginning 0))
-    (let ((pragma-block-start (point))
-          (pragma-block-end nil)
-          (exts nil)
-          (done nil))
-      ;; Collect all extensions from all pragmas
-      (while (not done)
-        (aif (haskell--parse-language-pragma (point) (point-max))
-            (progn
-              (setf exts (append it exts)
-                    pragma-block-end (point))
-              (forward-line 1)
-              (if (eob?)
-                  (setf done t)
-                (beginning-of-line))
-              ;; (skip-syntax-forward " >")
-              )
-          (setf done t)))
-      (goto-char pragma-block-start)
-      (delete-region pragma-block-start pragma-block-end)
-      (setf exts (sort exts #'string<))
-      (when exts
-        (insert (format "{-# LANGUAGE %s #-}" (first exts)))
-        (dolist (e (cdr exts))
-          (insert "\n")
-          (insert (format "{-# LANGUAGE %s #-}" e))))
-      (haskell-align-on-pragma-close-indent-region pragma-block-start (point)))))
+  (haskell-align--pragmas-impl haskell-regexen/language-pragma-prefix
+                               "{-# LANGUAGE %s #-}"
+                               start))
 
-(defun haskell--parse-language-pragma (start end)
+(defun haskell-align-options-ghc-pragmas (start)
+  (haskell-align--pragmas-impl haskell-regexen/options-ghc-pragma-prefix
+                               "{-# OPTIONS_GHC %s #-}"
+                               start))
+
+(defun haskell--parse-pragma (pragma-prefix-re start end)
   "Parse single LANGUAGE pragma within START-END region and return its
 extensions as a list of strings. Leaves point at the end of pragma"
   (goto-char start)
-  (when (looking-at haskell-regexen/language-pragma-prefix)
+  (when (looking-at pragma-prefix-re)
     (let ((pragma-end (min
                        end
                        (save-excursion
@@ -427,6 +403,54 @@ extensions as a list of strings. Leaves point at the end of pragma"
                               )))
           (goto-char pragma-end)
           exts)))))
+
+(defun haskell-align--pragmas-impl (pragma-prefix-re template start)
+  (cl-assert (stringp pragma-prefix-re))
+  (cl-assert (stringp template))
+  (cl-assert (integer-or-marker-p start))
+  (save-match-data
+    (let ((p (point)))
+      (goto-char start)
+      ;; (cl-assert (looking-at-p haskell-regexen/language-pragma-prefix))
+      ;; Navigate up while we're still getting LANGUAGE pragmas.
+      (beginning-of-line)
+      (while (and (not (bob?))
+                  (or (looking-at-p pragma-prefix-re)
+                      (haskell-misc--point-inside-pragma? (point))))
+        ;; Go to beginning of the previous line.
+        (backward-line))
+      ;; Skip whitespace and possible comments to the beginning of pragma.
+      (re-search-forward haskell-regexen/pragma-start)
+      (goto-char (match-beginning 0))
+      (let ((pragma-block-start (point))
+            (pragma-block-end nil)
+            (exts nil)
+            (done nil))
+        ;; Collect all extensions from all pragmas
+        (while (not done)
+          (aif (haskell--parse-pragma pragma-prefix-re (point) (point-max))
+              (progn
+                (setf exts (append it exts)
+                      pragma-block-end (point))
+                (forward-line 1)
+                (if (eob?)
+                    (setf done t)
+                  (beginning-of-line))
+                ;; (skip-syntax-forward " >")
+                )
+            (setf done t)))
+        (if pragma-block-end
+            (progn
+              (goto-char pragma-block-start)
+              (delete-region pragma-block-start pragma-block-end)
+              (setf exts (sort exts #'string<))
+              (when exts
+                (insert (format template (first exts)))
+                (dolist (e (cdr exts))
+                  (insert "\n")
+                  (insert (format template e))))
+              (haskell-align-on-pragma-close-indent-region pragma-block-start (point)))
+          (goto-char p))))))
 
 ;;; define ‘bounds-of-haskell-symbol’
 
