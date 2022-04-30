@@ -29,7 +29,7 @@ Library
         Build-Depends:     base == 4.*,
                            containers,
                            process,
-                           directory,
+                           directory
         Exposed-Modules:   Some.Module
         Other-Modules:     Some.Other.Module
         Ghc-Options: -Wall
