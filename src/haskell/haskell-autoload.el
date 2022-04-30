@@ -6,21 +6,9 @@
 ;; Created: Thursday, 12 July 2012
 ;; Description:
 
-(eval-when-compile
-  (defvar attrap-flycheck-checkers-alist))
-
 (require 'haskell-constants)
 (require 'happy-mode-autoload)
 (require 'mmm-setup)
-
-(defun attrap-init ()
-  (setf attrap-flycheck-checkers-alist
-        (append
-         '((haskell-ghc . attrap-ghc-fixer)
-           (haskell-stack-ghc . attrap-ghc-fixer))
-         attrap-flycheck-checkers-alist)))
-
-(eval-after-load "attrap" '(attrap-init))
 
 (add-hook 'ghc-profiling-mode-hook #'ghc-profiling-mode-setup)
 (add-to-list 'auto-mode-alist '("\\.prof\\'" . ghc-profiling-mode))

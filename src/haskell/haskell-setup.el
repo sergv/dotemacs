@@ -107,17 +107,6 @@
   "Clear text above ghci prompt."
   (dante-repl-clear-buffer-above-prompt))
 
-(vim-defcmd vim:haskell-flycheck-configure (nonrepeatable)
-  (flycheck-haskell-clear-config-cache)
-  (setf flycheck-ghc-package-databases nil
-        flycheck-haskell-ghc-executable nil
-        flycheck-ghc-search-path nil
-        flycheck-ghc-language-extensions nil
-        flycheck-ghc-args nil
-        flycheck-hlint-args nil)
-  (flycheck-haskell-configure)
-  (vim:flycheck-run))
-
 (vim-defcmd vim:haskell-navigate-imports (nonrepeatable)
   (haskell-navigate-imports)
   (vim-save-position haskell-navigate-imports-start-point))
@@ -379,20 +368,18 @@ _a_lign  _t_: jump to topmost node start
          proj
          'haskell-dante ;; default checker
          (lambda (backend)
-           (when (eq backend 'haskell-dante)
-             (setq-local company-backends (cons 'dante-company company-backends))
-             (dante-mode +1))
-           (when (eq backend 'lsp)
-             (with-demoted-errors "Failed to start LSP: %s"
-               (lsp-diagnostics-mode)
-               (lsp)))
+           (pcase backend
+             (`haskell-dante
+              (setq-local company-backends (cons 'dante-company company-backends))
+              (dante-mode +1))
+             (`lsp
+              (with-demoted-errors "Failed to start LSP: %s"
+                (lsp-diagnostics-mode)
+                (lsp))))
            (unless (flycheck-may-use-checker backend)
              (flycheck-verify-checker backend)
              (error "Unable to select checker '%s' for buffer '%s'"
                     backend (current-buffer)))
-           (when (memq backend '(haskell-stack-ghc haskell-ghc))
-             (error "Selected flycheck haskell checker will likely not work: %s"
-                    backend))
            (when (memq backend '(haskell-dante))
              (add-hook 'flycheck-mode-hook #'haskell-misc--configure-dante! nil t))))))
 
@@ -464,9 +451,7 @@ _a_lign  _t_: jump to topmost node start
         :load-func #'vim:haskell-dante-load-file-into-repl
         :reset-func #'vim:haskell-lsp-flycheck-reset))
       (flycheck-mode
-       (dolist (cmd '("conf" "configure"))
-         (vim-local-emap cmd #'vim:haskell-flycheck-configure))
-
+       ;; Fallback, should rarely be reached since dante should handle most of the cases.
        (def-keys-for-map vim-normal-mode-local-keymap
          ("-" hydra-haskell-minus/body))
 
