@@ -110,19 +110,6 @@ value will make this library ignore `package.yaml' file, even if it's present."
   :risky t
   :group 'flycheck-haskell)
 
-(defcustom flycheck-haskell-hpack-preference 'prefer-hpack
-  "How to handle projects with both `.cabal' and `package.yaml' files present.
-
-This option controls which configuration file this library will pick for
-a project that has both `.cabal' and `package.yaml' files present.
-The default, 'prefer-hpack, will make it pick `package.yaml' file as the source
-of configuration parameters.  Another possible value, 'prefer-cabal will
-make it pick `.cabal' file in such a case."
-  :group 'flycheck-haskell
-  :type '(set (const :tag "Prefer hpack's \"package.yaml\" file" prefer-hpack)
-              (const :tag "Prefer cabal's \".cabal\" file" prefer-cabal))
-  :safe #'symbolp)
-
 
 ;;; Cabal support
 (defconst flycheck-haskell-directory
@@ -249,26 +236,20 @@ Return the configuration."
   (or (flycheck-haskell-get-cached-configuration config-file)
       (flycheck-haskell-read-and-cache-configuration config-file)))
 
+(defun flycheck-haskell-get-configuration-for-buf (buf)
+  (when-let ((config-file (flycheck-haskell--find-config-file buf)))
+    (flycheck-haskell-get-configuration config-file)))
+
 
 ;;; Buffer setup
 
-(defun flycheck-haskell--find-config-file ()
-  (let* ((cabal-file (haskell-cabal-find-file))
-         (hpack-dir
-          (and flycheck-haskell-hpack-executable
-               (locate-dominating-file default-directory "package.yaml")))
-         (hpack-file
-          (when hpack-dir
-            (concat hpack-dir "/package.yaml"))))
-    (if cabal-file
-        (if hpack-file
-            (cond
-              ((eq 'prefer-hpack flycheck-haskell-hpack-preference)
-               hpack-file)
-              (t
-               cabal-file))
-          cabal-file)
-      hpack-file)))
+(defun flycheck-haskell--find-config-file (buf)
+  (if-let ((cabal-file (haskell-cabal-find-file)))
+      cabal-file
+    (when-let ((hpack-dir
+                (and flycheck-haskell-hpack-executable
+                     (locate-dominating-file default-directory "package.yaml"))))
+      (concat hpack-dir "/package.yaml"))))
 
 (provide 'flycheck-haskell)
 

@@ -98,8 +98,7 @@ where \\w matches any whitespace including newlines"
     (error "Width must be an integer: %s" width))
   (let* ((buffer-exts (haskell-format--get-language-extensions (current-buffer) t))
          (cabal-exts
-          (when-let ((config-file (flycheck-haskell--find-config-file))
-                     (config (flycheck-haskell-get-configuration config-file)))
+          (when-let ((config (flycheck-haskell-get-configuration-for-buf (current-buffer))))
             (cdr (assq 'extensions config))))
          (language-extensions
           (remove-duplicates-sorting (nconc buffer-exts
