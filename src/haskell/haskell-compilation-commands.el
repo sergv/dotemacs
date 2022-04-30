@@ -62,7 +62,7 @@
      nil ;; Make buffer name.
      )
     (setq-local dante-methods-alist dante-check-and-repl-methods
-                dante-methods (-map 'car dante-methods-alist)))
+                dante-methods (dante--methods-names dante-check-and-repl-methods)))
 
   (dolist (cmd '("c" "compile"))
     (vim-local-emap  cmd 'vim:haskell-compile))
