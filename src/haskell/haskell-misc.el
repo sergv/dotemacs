@@ -122,16 +122,6 @@ and indent them as singe line."
         "-hidir" ,small-temporary-file-directory
         "-odir" ,small-temporary-file-directory)
 
-      ;; Flycheck
-      flycheck-ghc-args
-      '("-O0"
-        "-fno-warn-name-shadowing"
-        "-fno-warn-type-defaults"
-        "-Wincomplete-uni-patterns"
-        "-Wincomplete-record-updates"
-        "-Wcompat")
-      flycheck-ghc-no-user-package-database t
-
       dante-load-flags
       '("+c"
         "-fdiagnostics-color=never"
