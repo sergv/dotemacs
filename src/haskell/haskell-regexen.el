@@ -108,6 +108,21 @@
       (char ?g ?G)
       (char ?e ?E)))
 
+(defconst haskell-regexen/options-ghc-pragma-prefix
+  (rx "{-#"
+      (* (any ?\s ?\t ?\n ?\r))
+      (char ?o ?O)
+      (char ?p ?P)
+      (char ?t ?T)
+      (char ?i ?I)
+      (char ?o ?O)
+      (char ?n ?N)
+      (char ?s ?S)
+      "_"
+      (char ?g ?G)
+      (char ?h ?H)
+      (char ?c ?C)))
+
 (defconst-set haskell-regexen/function-signature-colons "\\(?:::[^:]\\|∷\\)")
 
 (defconst-set haskell-regexen/empty-line "^[ \t]*$")
