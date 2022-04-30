@@ -144,7 +144,7 @@
                      (car entry))))))
 
 (ert-deftest datastructures-tests/test-bisect-exhaustive ()
-  (let* ((count 80)
+  (let* ((count 70)
          (items
           (list->vector
            (cl-loop
@@ -203,7 +203,7 @@
 
 
 (ert-deftest datastructures-tests/test-bisect-find-exhaustive ()
-  (let* ((count 80)
+  (let* ((count 50)
          (items
           (list->vector
            (cl-loop
