@@ -71,16 +71,6 @@ using directory separator."
                     flycheck-haskell-hpack-test-dir)
   "package.yaml file for our test suite.")
 
-(defconst flycheck-haskell-test-sandbox-file
-  (expand-file-name "cabal.sandbox.config"
-                    flycheck-haskell-cabal-test-dir)
-  "Sandbox configuration file for our test suite.")
-
-(defconst flycheck-haskell-test-config-file
-  (expand-file-name "cabal.config"
-                    flycheck-haskell-cabal-test-dir)
-  "Cabal configuration file for our test suite.")
-
 
 ;;; Helpers
 
@@ -318,126 +308,6 @@ using directory separator."
         (flycheck-haskell-clear-config-cache)
         (should (eq (flycheck-haskell-get-configuration cabal-file)
                     'dummy))))))
-
-
-;;; Cabal sandbox support
-(ert-deftest flycheck-haskell-get-config-value/returns-value ()
-  (with-temp-buffer
-    (insert "spam: with eggs\n")
-    (goto-char (point-min))
-    (should (equal (flycheck-haskell-get-config-value 'spam)
-                   '(spam . "with eggs")))))
-
-(ert-deftest flycheck-haskell-get-config-value/no-text-properties ()
-  (with-temp-buffer
-    (insert "spam: with eggs\n")
-    (goto-char (point-min))
-    (add-text-properties 6 (line-end-position) '(face 'bold))
-    (let ((value (cdr (flycheck-haskell-get-config-value 'spam))))
-      (should-not (text-properties-at 0 value)))))
-
-(ert-deftest flycheck-haskell-get-config-value/no-such-key ()
-  (with-temp-buffer
-    (insert "spam: with eggs\n")
-    (goto-char (point-min))
-    (should-not (flycheck-haskell-get-config-value 'foo))))
-
-(ert-deftest flycheck-haskell-get-cabal-config ()
-  (flycheck-haskell-test-with-fake-file
-    (let ((config (flycheck-haskell-get-cabal-config)))
-      (should (equal config '((with-compiler . "/foo/bar/ghc-7.10")))))))
-
-(ert-deftest flycheck-haskell-get-sandbox-config ()
-  (flycheck-haskell-test-with-fake-file
-    (let ((config (flycheck-haskell-get-sandbox-config))
-          (db "/foo/bar/.cabal-sandbox/foo-packages.conf.d"))
-      (should (equal config `((package-db . ,db)))))))
-
-
-;;; Buffer setup
-(ert-deftest flycheck-haskell-process-configuration/cabal-language-extensions ()
-  (with-temp-buffer                     ; To scope the variables
-    (flycheck-haskell-process-configuration (flycheck-haskell-read-test-cabal-config))
-    (should-not (seq-difference flycheck-ghc-language-extensions
-                                '("OverloadedStrings"
-                                  "YouDontKnowThisOne"
-                                  "GeneralizedNewtypeDeriving"
-                                  "Haskell98"
-                                  "SpamLanguage"
-                                  "Haskell2010")))
-    (should (local-variable-p 'flycheck-ghc-language-extensions))))
-
-(ert-deftest flycheck-haskell-process-configuration/hpack-language-extensions ()
-  (skip-unless flycheck-haskell-hpack-executable)
-  (with-temp-buffer                     ; To scope the variables
-    (flycheck-haskell-process-configuration (flycheck-haskell-read-test-hpack-config))
-    (should-not (seq-difference flycheck-ghc-language-extensions
-                                '("OverloadedStrings"
-                                  "YouDontKnowThisOne"
-                                  "GeneralizedNewtypeDeriving"
-                                  "Haskell98"
-                                  "SpamLanguage"
-                                  "Haskell2010")))
-    (should (local-variable-p 'flycheck-ghc-language-extensions))))
-
-(ert-deftest flycheck-haskell-process-configuration/cabal-search-path ()
-  (let* ((config (flycheck-haskell-read-test-cabal-config))
-         (sourcedirs (seq-map
-                      (lambda (d)
-                        (file-name-as-directory
-                         (expand-file-name d flycheck-haskell-cabal-test-dir)))
-                      '("lib/" "." "src/"))))
-    (let-alist config
-      (with-temp-buffer
-        (flycheck-haskell-process-configuration config)
-        (should (local-variable-p 'flycheck-ghc-search-path))
-        (should (cl-subsetp sourcedirs flycheck-ghc-search-path :test #'equal))
-        (should (cl-subsetp .build-directories flycheck-ghc-search-path
-                            :test #'equal))))))
-
-(ert-deftest flycheck-haskell-process-configuration/hpack-search-path ()
-  (skip-unless flycheck-haskell-hpack-executable)
-  (let* ((config (flycheck-haskell-read-test-hpack-config))
-         (sourcedirs (seq-map
-                      (lambda (d)
-                        (file-name-as-directory
-                         (expand-file-name d flycheck-haskell-hpack-test-dir)))
-                      '("lib/" "." "src/"))))
-    (let-alist config
-      (with-temp-buffer
-        (flycheck-haskell-process-configuration config)
-        (should (local-variable-p 'flycheck-ghc-search-path))
-        (should (cl-subsetp sourcedirs flycheck-ghc-search-path :test #'equal))
-        (should (cl-subsetp .build-directories flycheck-ghc-search-path
-                            :test #'equal))))))
-
-(ert-deftest flycheck-haskell-process-configuration/hides-all-packages ()
-  (with-temp-buffer
-    (flycheck-haskell-process-configuration (flycheck-haskell-read-test-cabal-config))
-    (should (member "-hide-all-packages" flycheck-ghc-args))
-    (should (local-variable-p 'flycheck-ghc-args))))
-
-(ert-deftest flycheck-haskell-process-configuration/includes-dependenty-packages ()
-  (with-temp-buffer
-    (flycheck-haskell-process-configuration (flycheck-haskell-read-test-cabal-config))
-    (should (member "-package=bytestring" flycheck-ghc-args))
-    (should (member "-package=base" flycheck-ghc-args))
-    (should (local-variable-p 'flycheck-ghc-args))))
-
-(ert-deftest flycheck-haskell-configure/ghc-executable ()
-  (flycheck-haskell-test-with-fake-file
-    (flycheck-haskell-configure)
-    (should (equal flycheck-haskell-ghc-executable "/foo/bar/ghc-7.10"))
-    (should (local-variable-p 'flycheck-haskell-ghc-executable))))
-
-(ert-deftest flycheck-haskell-configure/package-database ()
-  (flycheck-haskell-test-with-fake-file
-    (flycheck-haskell-configure)
-    (should (equal flycheck-ghc-package-databases
-                   '("/foo/bar/.cabal-sandbox/foo-packages.conf.d")))
-    (should (local-variable-p 'flycheck-ghc-package-databases))
-    (should (equal flycheck-ghc-no-user-package-database t))
-    (should (local-variable-p 'flycheck-ghc-no-user-package-database))))
 
 (provide 'flycheck-haskell-test)
 
