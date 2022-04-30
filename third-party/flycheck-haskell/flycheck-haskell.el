@@ -38,20 +38,12 @@
 ;; Try to find a Cabal file for the current Haskell buffer, and configure syntax
 ;; checking according to the Cabal project settings.
 
-;;;; Cabal sandboxes
-
-;; Try to find a Cabal sandbox configuration for this project, and configure the
-;; Haskell syntax checkers in Flycheck to use the package database from the
-;; Sandbox.
-
 ;;;; Stack support
 
 ;; Try to find a stack.yaml file for current project and configure stack projct
 ;; according to the Stack project settings.
 
 ;;;; Setup
-
-;; (add-hook 'flycheck-mode-hook #'flycheck-haskell-setup)
 
 ;;; Code:
 
@@ -258,128 +250,7 @@ Return the configuration."
       (flycheck-haskell-read-and-cache-configuration config-file)))
 
 
-;;; Cabal sandbox support
-(defconst flycheck-haskell-cabal-config "cabal.config"
-  "The file name of a Cabal configuration.")
-
-(defconst flycheck-haskell-cabal-config-keys '(with-compiler)
-  "Keys to parse from a Cabal configuration file.")
-
-(defconst flycheck-haskell-sandbox-config "cabal.sandbox.config"
-  "The file name of a Cabal sandbox configuration.")
-
-(defconst flycheck-haskell-sandbox-config-keys '(package-db)
-  "Keys to parse from a Cabal sandbox configuration.")
-
-(defmacro flycheck-haskell-with-config-file-buffer (file-name &rest body)
-  "Eval BODY in a buffer with the contents of FILE-NAME."
-  (declare (indent 1))
-  `(with-temp-buffer
-     (insert-file-contents ,file-name)
-     (goto-char (point-min))
-     ,@body))
-
-(defun flycheck-haskell-get-config-value (key)
-  "Get the value of a configuration KEY from this buffer.
-
-KEY is a symbol denoting the key whose value to get.  Return
-a `(KEY . VALUE)' cons cell."
-  (save-excursion
-    (goto-char (point-min))
-    (let ((setting (haskell-cabal--get-field (symbol-name key))))
-      (when setting
-        (cons key (substring-no-properties setting))))))
-
-(defun flycheck-haskell-parse-config-file (keys config-file)
-  "Parse KEYS from CONFIG-FILE.
-
-KEYS is a list of symbols.  Return an alist with all parsed
-KEYS."
-  (flycheck-haskell-with-config-file-buffer config-file
-    (mapcar #'flycheck-haskell-get-config-value keys)))
-
-(defun flycheck-haskell-find-config (config-file)
-  "Find a CONFIG-FILE for the current buffer.
-
-Return the absolute path of CONFIG-FILE as string, or nil if
-CONFIG-FILE was not found."
-  (let ((root-dir (locate-dominating-file (buffer-file-name) config-file)))
-    (when root-dir
-      (expand-file-name config-file root-dir))))
-
-(defun flycheck-haskell-get-cabal-config ()
-  "Get Cabal configuration for the current buffer.
-
-Return an alist with the Cabal configuration for the current
-buffer."
-  (let ((file-name (flycheck-haskell-find-config
-                    flycheck-haskell-cabal-config)))
-    (when file-name
-      (flycheck-haskell-parse-config-file flycheck-haskell-cabal-config-keys
-                                          file-name))))
-
-(defun flycheck-haskell-get-sandbox-config ()
-  "Get sandbox configuration for the current buffer.
-
-Return an alist with the sandbox configuration for the current
-buffer."
-  (let ((file-name (flycheck-haskell-find-config
-                    flycheck-haskell-sandbox-config)))
-    (when file-name
-      (flycheck-haskell-parse-config-file flycheck-haskell-sandbox-config-keys
-                                          file-name))))
-
-
 ;;; Buffer setup
-(defun flycheck-haskell-process-configuration (config)
-  "Process the a Cabal CONFIG."
-  (let-alist config
-    (setq-local flycheck-ghc-search-path
-                (flycheck-haskell--delete-dups
-                 (append .build-directories .source-directories
-                         flycheck-ghc-search-path)))
-    (setq-local flycheck-ghc-language-extensions
-                (flycheck-haskell--delete-dups
-                 (append .extensions .languages
-                         flycheck-ghc-language-extensions)))
-    (setq-local flycheck-ghc-args
-                (flycheck-haskell--delete-dups
-                 (append .other-options
-                         (seq-map (apply-partially #'concat "-I")
-                                  .autogen-directories)
-                         (when (car .should-include-version-header)
-                           '("-optP-include" "-optPcabal_macros.h"))
-                         (when (not (car .package-env-exists))
-                           (cons "-hide-all-packages"
-                               (seq-map (apply-partially #'concat "-package=")
-                                        .dependencies)))
-                         flycheck-ghc-args)))
-    (setq-local flycheck-hlint-args
-                (flycheck-haskell--delete-dups
-                 (append (seq-map (apply-partially #'concat "--cpp-include=")
-                                  .autogen-directories)
-                         '("--cpp-file=cabal_macros.h"))))))
-
-(defun flycheck-haskell-configure ()
-  "Set paths and package database for the current project."
-  (interactive)
-  (when (and (buffer-file-name) (file-directory-p default-directory))
-    (let ((config-file (flycheck-haskell--find-config-file)))
-      (when config-file
-        (let ((config (flycheck-haskell-get-configuration config-file)))
-          (when config
-            (flycheck-haskell-process-configuration config)))))
-
-    (let-alist (flycheck-haskell-get-cabal-config)
-      (when .with-compiler
-        (setq-local flycheck-haskell-ghc-executable .with-compiler)))
-
-    (let-alist (flycheck-haskell-get-sandbox-config)
-      (when .package-db
-        (setq-local flycheck-ghc-package-databases
-                    (flycheck-haskell--delete-dups
-                     (cons .package-db flycheck-ghc-package-databases)))
-        (setq-local flycheck-ghc-no-user-package-database t)))))
 
 (defun flycheck-haskell--find-config-file ()
   (let* ((cabal-file (haskell-cabal-find-file))
@@ -398,19 +269,6 @@ buffer."
                cabal-file))
           cabal-file)
       hpack-file)))
-
-;;;###autoload
-(defun flycheck-haskell-setup ()
-  "Setup Haskell support for Flycheck.
-
-If the current file is part of a Cabal project, configure
-Flycheck to take the module paths of the Cabal projects into
-account.
-
-Also search for Cabal sandboxes and add them to the module search
-path as well."
-  (flycheck-haskell-configure)
-  (add-hook 'hack-local-variables-hook #'flycheck-haskell-configure))
 
 (provide 'flycheck-haskell)
 

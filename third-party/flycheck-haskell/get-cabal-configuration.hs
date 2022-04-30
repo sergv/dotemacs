@@ -517,9 +517,9 @@ getComponents packageName pkgDescr =
 #if defined(Cabal20OrLater)
       biMods bi =
           otherModules bi
-#if defined(Cabal22OrLater)
+# if defined(Cabal22OrLater)
           ++ virtualModules bi
-#endif
+# endif
           ++ autogenModules bi
 #else
       biMods = otherModules
