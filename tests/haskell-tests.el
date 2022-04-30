@@ -148,6 +148,30 @@
      "{-# LANGUAGE AlternativeLayoutRule #-}"
      "{-# LANGUAGE Safe                  #-}_|_")))
 
+;; Nothing should happen, no errors and point should not move.
+(ert-deftest haskell-tests/haskell-align-options-ghc-pragmas-0 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-align-language-pragmas (point))
+    (tests-utils--multiline
+     "{-# OPTIONS_GHC -Wno-orphans #-}"
+     "{-# OPTIONS_GHC -Wno-implicit-prelude_|_ #-}"
+     "{-# OPTIONS_GHC -O0   #-}")
+    (tests-utils--multiline
+     "{-# OPTIONS_GHC -Wno-orphans #-}"
+     "{-# OPTIONS_GHC -Wno-implicit-prelude_|_ #-}"
+     "{-# OPTIONS_GHC -O0   #-}")))
+
+(ert-deftest haskell-tests/haskell-align-options-ghc-pragmas-1 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-align-options-ghc-pragmas (point))
+    (tests-utils--multiline
+     "{-# OPTIONS_GHC -Wno-orphans #-}"
+     "{-# OPTIONS_GHC -Wno-implicit-prelude_|_ #-}"
+     "{-# OPTIONS_GHC -O0   #-}")
+    (tests-utils--multiline
+     "{-# OPTIONS_GHC -O0                   #-}"
+     "{-# OPTIONS_GHC -Wno-implicit-prelude #-}"
+     "{-# OPTIONS_GHC -Wno-orphans          #-}_|_")))
 
 (ert-deftest haskell-tests/haskell-format--get-language-extensions-1 ()
   (haskell-tests--test-result
