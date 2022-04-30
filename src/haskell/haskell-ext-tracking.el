@@ -62,8 +62,7 @@
         (progn
           (set (make-local-variable 'haskell-ext-tracking-known-exts--store)
                (haskell-ext-tracking-known-exts--default))
-          (when-let ((config-file (flycheck-haskell--find-config-file))
-                     (config (flycheck-haskell-get-configuration config-file)))
+          (when-let ((config (flycheck-haskell-get-configuration-for-buf (current-buffer))))
             (let-alist-static config (extensions)
               (setf (haskell-ext-tracking-known-exts-magic-hash haskell-ext-tracking-known-exts--store)
                     (member "MagicHash" extensions)
