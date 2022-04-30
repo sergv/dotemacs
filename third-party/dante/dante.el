@@ -108,6 +108,7 @@ will be in different GHCi sessions."
   (and (cached-executable-find "stack")
        t))
 
+;;;###autoload
 (defun dante-cabal-script-buf? (buf)
   "Non-nil if BUF is a cabal-style script which has no extra configuration."
   (and (cached-executable-find "cabal")
