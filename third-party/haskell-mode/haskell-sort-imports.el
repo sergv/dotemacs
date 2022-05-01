@@ -102,7 +102,7 @@ within that region."
               (goto-char (1+ (line-end-position))))
             (goto-char (point-min)))
     (beginning-of-line)
-    (while (looking-at-p "^[ \t]*--")
+    (while (looking-at-p "^[ \t]*\\(?:--\\|$\\)")
       (forward-line))
     t))
 
