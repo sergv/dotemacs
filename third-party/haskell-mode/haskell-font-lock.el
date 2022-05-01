@@ -31,6 +31,8 @@
 (require 'haskell-string)
 (require 'font-lock)
 
+(require 'haskell-regexen)
+
 (defgroup haskell-appearance nil
   "Haskell Appearance."
   :group 'haskell)
@@ -416,44 +418,7 @@ on an uppercase identifier."
 
             ;; Special case for `as', `hiding', `safe' and `qualified', which are
             ;; keywords in import statements but are not otherwise reserved.
-            (,(rx-let ((ws (any ?\s ?\t))
-                       (constituent (not (any ?\s ?\t ?\r ?\n ?\( ?\)))))
-                (rx bow
-                    "import"
-                    (* ws)
-                    (or (seq "{-#"
-                             (* (any ?\s ?\t ?\n ?\r))
-                             (char ?s ?S)
-                             (char ?o ?O)
-                             (char ?u ?U)
-                             (char ?r ?R)
-                             (char ?c ?C)
-                             (char ?e ?E)
-                             (* (any ?\s ?\t ?\n ?\r))
-                             "#-}"
-                             (* ws))
-                        (+ ws))
-                    (? (group-n 1 "safe" eow)
-                       (+ ws))
-                    (? (group-n 2 "qualified" eow)
-                       (+ ws))
-                    (? ?\"
-                       (* (any (?A . ?Z) (?a . ?z) (?0 . ?9) ?_ ?-))
-                       ?\"
-                       (* ws))
-
-                    ;; Package name
-                    (+ constituent)
-                    (* ws)
-                    (? (group-n 3 "qualified" eow)
-                       (+ ws))
-                    (? (group-n 4 bow "as" eow)
-                       (+ ws)
-                       (+ constituent)
-                       (* ws))
-                    (? (group-n 5 bow "hiding" eow))))
-
-             ;;"\\<import[ \t]+\\(?:\\(safe\\>\\)[ \t]*\\)?\\(?:\\(qualified\\>\\)[ \t]*\\)?\\(?:\"[^\"]*\"[\t ]*\\)?[^ \t\n()]+[ \t]*\\(?:\\(qualified\\>\\)[ \t]*\\)?\\(?:\\(\\<as\\>\\)[ \t]*[^ \t\n()]+[ \t]*\\)?\\(\\<hiding\\>\\)?"
+            (,haskell-regexen/pre-post-qualified-import-line
              (1 'haskell-keyword-face nil lax)
              (2 'haskell-keyword-face nil lax)
              (3 'haskell-keyword-face nil lax)
