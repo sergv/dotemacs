@@ -130,16 +130,6 @@
 (defconst-set haskell-regexen/module-header-start
   "\\_<module\\_>[ \t\r\n]" )
 
-(defconst-set haskell-regexen/import-line
-  "import[ \t\r\n]+\\(?:\"[^\"]+\"[ \t\r\n]+\\)?")
-
-(defconst-set haskell-regexen/qualified-import-line
-  (eval-when-compile
-    (concat haskell-regexen/import-line "qualified[ \t\r\n]+"))
-
-  ;; "import[ \t\r\n]+\\(?:\"[^\"]+\"[ \t\r\n]+\\)?qualified[ \t\r\n]+"
-  )
-
 (defconst-set haskell-regexen/module-name-section
   "[[:upper:]][[:alnum:]'_]*")
 
@@ -150,12 +140,55 @@
               "\\(?:\\." haskell-regexen/module-name-section "\\)*\\b"))))
 
 (defconst-set haskell-regexen/pre-post-qualified-import-line
-  (eval-when-compile
-    (concat "\\(?1:" haskell-regexen/import-line "\\)"
-            "\\(?2:qualified[ \t\r\n]+\\)?"
-            haskell-regexen/module-name
-            "\\(?3:[ \t\r\n]+qualified\\)?"
-            "\\(?4:\\(5:[ \t\r\n]+\\)as\\)?")))
+  (rx-let ((ws (any ?\s ?\t ?\r ?\n))
+           (constituent
+            (any (?A . ?Z) (?a . ?z) (?0 . ?9) ?_ ?- ?.)))
+    (rx (group-n 7
+                 bow
+                 "import"
+                 eow
+                 (* ws)
+                 (? (seq "{-#"
+                         (* (any ?\s ?\t ?\n ?\r))
+                         (char ?s ?S)
+                         (char ?o ?O)
+                         (char ?u ?U)
+                         (char ?r ?R)
+                         (char ?c ?C)
+                         (char ?e ?E)
+                         (* (any ?\s ?\t ?\n ?\r))
+                         "#-}"
+                         (* ws)))
+                 (? (group-n 1 bow "safe" eow)
+                    (* ws)))
+        (? (+ ws)
+           (group-n 8
+                    (group-n 2 bow "qualified" eow)
+                    (* ws)))
+
+        (? (* ws)
+           ?\"
+           (* (any (?A . ?Z) (?a . ?z) (?0 . ?9) ?_ ?- ?.))
+           ?\"
+           (* ws))
+
+        ;; Module name
+        (group-n 10 (+ constituent))
+
+        (? (group-n 9
+                    (+ ws)
+                    (group-n 3 bow "qualified" eow)))
+        (? (group-n 6 (+ ws))
+           (group-n 4 bow "as" eow)
+           (+ ws)
+           (+ constituent))
+        (? (+ ws)
+           (group-n 5 bow "hiding" eow))
+        (* ws)
+        (? "("
+           (* nonl))
+
+        eol)))
 
 (defconst-set haskell-regexen/module-quantification
   (eval-when-compile
