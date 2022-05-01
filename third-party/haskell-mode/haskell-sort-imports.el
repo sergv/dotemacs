@@ -38,7 +38,19 @@
 (defconst haskell-sort-imports-regexp
   (rx (seq bol
            "import"
-           (+ space)
+           (* space)
+           (or (seq "{-#"
+                    (* (any ?\s ?\t ?\n ?\r))
+                    (char ?s ?S)
+                    (char ?o ?O)
+                    (char ?u ?U)
+                    (char ?r ?R)
+                    (char ?c ?C)
+                    (char ?e ?E)
+                    (* (any ?\s ?\t ?\n ?\r))
+                    "#-}"
+                    (* space))
+               (+ space))
            (optional (group-n 1 "qualified" space))
            (optional (seq (* space) (group-n 2 (char ?\") (+ (not (any ?\"))) (char ?\") space)))
            (* space)
