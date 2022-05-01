@@ -39,10 +39,10 @@
   (rx (seq bol
            "import"
            (+ space)
-           (optional (group "qualified" space))
-           (optional (seq (* space) (group (char ?\") (+ (not (any ?\"))) (char ?\") space)))
+           (optional (group-n 1 "qualified" space))
+           (optional (seq (* space) (group-n 2 (char ?\") (+ (not (any ?\"))) (char ?\") space)))
            (* space)
-           (group (+? (or (syntax word) (syntax symbol))) (* nonl)))))
+           (group-n 3 (+? (or (syntax word) (syntax symbol))) (* nonl)))))
 
 ;;;###autoload
 (defun haskell-sort-imports ()
