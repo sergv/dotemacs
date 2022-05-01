@@ -3609,6 +3609,11 @@
      "bar x = x"
      "")))
 
+(ert-deftest haskell-tests/haskell-regexen/pre-post-qualified-import-line-1 ()
+  (should (string-match-p haskell-regexen/pre-post-qualified-import-line "import qualified Data.Ord  "))
+  (should (string-match-p haskell-regexen/pre-post-qualified-import-line "import Data.Ord  qualified   ")))
+
+
 (ert-deftest haskell-tests/haskell-qualify-import-1 ()
   (haskell-tests--test-buffer-contents
       (progn
@@ -3685,7 +3690,7 @@
      "import Data.Set (Set)")
     (tests-utils--multiline
      "import Data.List"
-     "import \"foo\" qualified Data.Ord_|_"
+     "import qualified \"foo\"     Data.Ord_|_"
      "import Data.Set (Set)")))
 
 (ert-deftest haskell-tests/haskell-qualify-import-3a ()
@@ -3797,7 +3802,7 @@
         (haskell-qualify-import))
     (tests-utils--multiline
      "import Data.List"
-     "import  \"foo\"  qualified   Data.Ord_|_"
+     "import  qualified   \"foo\"  Data.Ord_|_"
      "import Data.Set (Set)")
     (tests-utils--multiline
      "import Data.List"
@@ -3813,12 +3818,12 @@
     (tests-utils--multiline
      "{-# LANGUAGE ImportQualifiedPost #-}"
      "import Data.List"
-     "import  \"foo\"  qualified   Data.Ord_|_"
+     "import  qualified   \"foo\"    Data.Ord_|_"
      "import Data.Set (Set)")
     (tests-utils--multiline
      "{-# LANGUAGE ImportQualifiedPost #-}"
      "import Data.List"
-     "import  \"foo\"  Data.Ord_|_"
+     "import  \"foo\"    Data.Ord_|_"
      "import Data.Set (Set)")))
 
 (ert-deftest haskell-tests/haskell-qualify-import-5b ()
@@ -3938,7 +3943,37 @@
     (tests-utils--multiline
      "{-# LANGUAGE ImportQualifiedPost #-}"
      "import Data.List"
-     "import Data.Ord qualified   as Ord (Down_|_)"
+     "import Data.Ord qualified as Ord (Down_|_)"
+     "import Data.Set (Set)")))
+
+(ert-deftest haskell-tests/haskell-qualify-import-7 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-ext-tracking-mode +1)
+        (should-not (haskell-ext-tracking-have-import-qualified-post?))
+        (haskell-qualify-import))
+    (tests-utils--multiline
+     "import Data.List"
+     "import {-# SOURCE #-} qualified Data.Ord as Ord (Down_|_)"
+     "import Data.Set (Set)")
+    (tests-utils--multiline
+     "import Data.List"
+     "import {-# SOURCE #-} Data.Ord as Ord (Down_|_)"
+     "import Data.Set (Set)")))
+
+(ert-deftest haskell-tests/haskell-qualify-import-7a ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-ext-tracking-mode +1)
+        (should-not (haskell-ext-tracking-have-import-qualified-post?))
+        (haskell-qualify-import))
+    (tests-utils--multiline
+     "import Data.List"
+     "import {-# SOURCE #-} Data.Ord as Ord (Down_|_)"
+     "import Data.Set (Set)")
+    (tests-utils--multiline
+     "import Data.List"
+     "import {-# SOURCE #-} qualified Data.Ord as Ord (Down_|_)"
      "import Data.Set (Set)")))
 
 (ert-deftest haskell-tests/haskell-back-up-indent-level-1 ()
