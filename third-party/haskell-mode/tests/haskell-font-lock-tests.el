@@ -1037,6 +1037,19 @@
      ("as" t haskell-keyword-face)
      ("Y" t haskell-constructor-face))))
 
+(ert-deftest haskell-type-colors-33b ()
+  (check-properties
+   "import           Data.Generics                         (listify)
+    import qualified Data.Map.Strict                       as Map"
+   '(("import" t haskell-keyword-face)
+     ("Data.Generics" t haskell-constructor-face)
+
+     ("import" t haskell-keyword-face)
+     ("qualified" t haskell-keyword-face)
+     ("Data.Map.Strict" t haskell-constructor-face)
+     ("as" t haskell-keyword-face)
+     ("Map" t haskell-constructor-face))))
+
 (ert-deftest haskell-pattern-1 ()
   "Fontify the \"pattern\" keyword in contexts related to pattern synonyms."
   (check-properties
