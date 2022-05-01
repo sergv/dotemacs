@@ -974,6 +974,31 @@
      ("Z" t haskell-type-face)
      ("C" t haskell-constructor-face))))
 
+(ert-deftest haskell-type-colors-30a ()
+  :expected-result :failed
+  (check-properties
+   "import {-# SOURCE #-} qualified X as Y hiding(a,Z(C))"
+   '(("X"         t haskell-constructor-face)
+     ("Y"         t haskell-constructor-face)
+     ("Z"         t haskell-type-face)
+     ("C"         t haskell-constructor-face)
+     ("SOURCE"    t haskell-pragma-face)
+     ("qualified" t haskell-keyword-face)
+     ("as"        t haskell-keyword-face)
+     ("hiding"    t haskell-keyword-face))))
+
+(ert-deftest haskell-type-colors-30b ()
+  :expected-result :failed
+  (check-properties
+   "import qualified \"this\" X as Y hiding(a,Z(C))"
+   '(("X"         t haskell-constructor-face)
+     ("Y"         t haskell-constructor-face)
+     ("Z"         t haskell-type-face)
+     ("C"         t haskell-constructor-face)
+     ("qualified" t haskell-keyword-face)
+     ("as"        t haskell-keyword-face)
+     ("hiding"    t haskell-keyword-face))))
+
 (ert-deftest haskell-type-colors-31 ()
   (check-properties
    ;; open parentheses do not keep type decl open because there might
@@ -999,6 +1024,15 @@
   (check-properties
    "import X qualified as Y"
    '(("X" t haskell-constructor-face)
+     ("qualified" t haskell-keyword-face)
+     ("as" t haskell-keyword-face)
+     ("Y" t haskell-constructor-face))))
+
+(ert-deftest haskell-type-colors-33a ()
+  (check-properties
+   "import {-# source #-} \"this\" X qualified as Y"
+   '(("source" t haskell-pragma-face)
+     ("X" t haskell-constructor-face)
      ("qualified" t haskell-keyword-face)
      ("as" t haskell-keyword-face)
      ("Y" t haskell-constructor-face))))

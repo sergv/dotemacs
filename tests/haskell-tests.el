@@ -223,6 +223,24 @@
      "import Data.Text qualified as T"
      "")))
 
+(ert-deftest haskell-tests/haskell-reindent-at-point-4 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-reindent-at-point)
+    (tests-utils--multiline
+     ""
+     "import{-#source#-}Data.Text qualified as T"
+     "import Data_|_.Bimap (Bimap)"
+     "import {-# SOURCE #-} Data.Bifunctors"
+     "import qualified \"bimap\" Data.Bimap as BM"
+     "")
+    (tests-utils--multiline
+     ""
+     "import {-# SOURCE #-} Data.Bifunctors"
+     "import Data_|_.Bimap (Bimap)"
+     "import qualified \"bimap\" Data.Bimap as BM"
+     "import{-#source#-}Data.Text qualified as T"
+     "")))
+
 (ert-deftest haskell-tests/haskell-format--get-language-extensions-1 ()
   (haskell-tests--test-result
     :action
