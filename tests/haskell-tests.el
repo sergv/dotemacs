@@ -173,6 +173,56 @@
      "{-# OPTIONS_GHC -Wno-implicit-prelude #-}"
      "{-# OPTIONS_GHC -Wno-orphans          #-}_|_")))
 
+(ert-deftest haskell-tests/haskell-reindent-at-point-1 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-reindent-at-point)
+    (tests-utils--multiline
+     ""
+     "{-# LANGUAGE Safe #-}"
+     "{-# LANGUAGE AlternativeLayoutRule_|_  #-}"
+     "{-# LANGUAGE AllowAmbiguousTypes   #-}"
+     "")
+    (tests-utils--multiline
+     ""
+     "{-# LANGUAGE AllowAmbiguousTypes   #-}"
+     "{-# LANGUAGE AlternativeLayoutRule_|_ #-}"
+     "{-# LANGUAGE Safe                  #-}"
+     "")))
+
+(ert-deftest haskell-tests/haskell-reindent-at-point-2 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-reindent-at-point)
+    (tests-utils--multiline
+     ""
+     "{-# OPTIONS_GHC -Wno-orphans #-}"
+     "{-# OPTIONS_GHC -Wno-implicit-prelude_|_ #-}"
+     "{-# OPTIONS_GHC -O0   #-}"
+     "")
+    (tests-utils--multiline
+     ""
+     "{-# OPTIONS_GHC -O0                   #-}"
+     "{-# OPTIONS_GHC -Wno-implicit-prelude_|_ #-}"
+     "{-# OPTIONS_GHC -Wno-orphans          #-}"
+     "")))
+
+(ert-deftest haskell-tests/haskell-reindent-at-point-3 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-reindent-at-point)
+    (tests-utils--multiline
+     ""
+     "import Data.Text qualified as T"
+     "import Data_|_.Bimap (Bimap)"
+     "import Data.Bifunctors"
+     "import qualified Data.Bimap as BM"
+     "")
+    (tests-utils--multiline
+     ""
+     "import Data.Bifunctors"
+     "import Data_|_.Bimap (Bimap)"
+     "import qualified Data.Bimap as BM"
+     "import Data.Text qualified as T"
+     "")))
+
 (ert-deftest haskell-tests/haskell-format--get-language-extensions-1 ()
   (haskell-tests--test-result
     :action
