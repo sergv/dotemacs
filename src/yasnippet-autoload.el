@@ -27,7 +27,7 @@
   ;; If there’s vim around and there’s some vim mode active
   (when (and vim-active-mode
              (eval vim-active-mode)
-             (not (eq vim-active-mode 'vim-insert-mode)))
+             (not (eq vim-active-mode #'vim-insert-mode)))
     (vim-insert-mode)))
 
 (add-hook 'yas-after-exit-snippet-hook

@@ -30,7 +30,7 @@
 (add-to-list 'ivy-re-builders-alist
              '(ivy-yas-completing-prompt . ivy--regex-fuzzy))
 
-(defun yas--parse-templates (&optional file)
+(defun yas--parse-multiple-templates (&optional file)
   "Parse the templates in the current buffer. For every mention of
 key variable a snippet definition would be returned.
 
@@ -118,7 +118,7 @@ simlifying encoding of several keys for one snippet."
                         (not (file-directory-p file)))))
                 (directory-files directory t (el-patch-add nil t))))
 
-;; Use yas--parse-templates instead of yas--parse-template.
+;; Use ‘yas--parse-multiple-templates’ instead of yas--parse-template.
 (el-patch-defun yas--load-directory-2 (directory mode-sym)
   ;; Load .yas-setup.el files wherever we find them
   ;;
@@ -137,13 +137,12 @@ simlifying encoding of several keys for one snippet."
           (el-patch-swap
             (push (yas--parse-template file)
                   snippet-defs)
-            (dolist (template (yas--parse-templates file))
+            (dolist (template (yas--parse-multiple-templates file))
               (push template snippet-defs))))))
     (when snippet-defs
       (yas-define-snippets mode-sym
                            snippet-defs))
-    ;; now recurse to a lower level
-    ;;
+    ;; Now recurse to a lower level
     (dolist (subdir (yas--subdirs directory))
       (yas--load-directory-2 subdir
                             mode-sym))))
