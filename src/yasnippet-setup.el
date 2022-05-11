@@ -13,6 +13,7 @@
 (require 'common)
 (require 'completion-setup)
 (require 'el-patch)
+(require 'yasnippet)
 
 ;;;###autoload
 (el-patch-feature yasnippet)
