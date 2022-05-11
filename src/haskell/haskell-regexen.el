@@ -96,6 +96,53 @@
 (defconst-set haskell-regexen/pragma-start "{-#")
 (defconst-set haskell-regexen/pragma-end "#-}")
 
+;; Generated with
+;; (dolist (x
+;;          '("INCOHERENT"
+;;            "OVERLAPPABLE"
+;;            "OVERLAPPING"
+;;            "OVERLAPS"
+;;            "SOURCE"
+;;            "UNPACK"
+;;            "NOUNPACK"))
+;;   (insert "(seq")
+;;   (cl-loop
+;;    for c across x
+;;    do
+;;    (insert (format " (char ?%c ?%c)" (downcase c) (upcase c))))
+;;   (insert ")\n"))
+(defconst haskell-regexen/pragma-without-args-re
+  (rx bos
+      (or (seq (char ?i ?I) (char ?n ?N) (char ?c ?C) (char ?o ?O) (char ?h ?H) (char ?e ?E) (char ?r ?R) (char ?e ?E) (char ?n ?N) (char ?t ?T))
+          (seq (char ?s ?S) (char ?o ?O) (char ?u ?U) (char ?r ?R) (char ?c ?C) (char ?e ?E))
+          (seq (char ?u ?U) (char ?n ?N) (char ?p ?P) (char ?a ?A) (char ?c ?C) (char ?k ?K))
+          (seq (char ?n ?N) (char ?o ?O) (char ?u ?U) (char ?n ?N) (char ?p ?P) (char ?a ?A) (char ?c ?C) (char ?k ?K))
+          (seq (char ?o ?O) (char ?v ?V) (char ?e ?E) (char ?r ?R) (char ?l ?L) (char ?a ?A) (char ?p ?P)
+               (or (seq (char ?p ?P)
+                        (or (seq (char ?a ?A) (char ?b ?B) (char ?l ?L) (char ?e ?E))
+                            (seq (char ?i ?I) (char ?n ?N) (char ?g ?G))))
+                   (seq (char ?s ?S)))))
+      eos))
+
+(defconst haskell-regexen/scc-pragma-name
+  (rx bos
+      (char ?s ?S)
+      (char ?c ?C)
+      (char ?c ?C)
+      eos))
+
+(defconst haskell-regexen/language-pragma-name
+  (rx bos
+      (char ?l ?L)
+      (char ?a ?A)
+      (char ?n ?N)
+      (char ?g ?G)
+      (char ?u ?U)
+      (char ?a ?A)
+      (char ?g ?G)
+      (char ?e ?E)
+      eos))
+
 (defconst haskell-regexen/language-pragma-prefix
   (rx "{-#"
       (* (any ?\s ?\t ?\n ?\r))

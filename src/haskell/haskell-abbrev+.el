@@ -15,6 +15,7 @@
 (require 'current-column-fixed)
 (require 'haskell-completions)
 (require 'haskell-misc)
+(require 'haskell-snippets)
 (require 'v)
 
 ;; for ghc flags to OPTIONS_GHC
@@ -233,29 +234,46 @@ then Bar would be the result."
       (insert "\n"))))
 
 (defun haskell-abbrev++--import-expand-pred ()
+  "Check that the point is at the start of the line."
   (let ((c (char-before (point))))
     ;; By this point we’re assured that we’re
     ;; not in a string or comment via
     ;; ‘abbrev+-do-not-expand-predicate’.
-    (or (null c)
+    (or (null c) ;; beginning of buffer
         ;; Expand only in 0th column, i.e. after a newline.
         (eq c ?\n)
         (eq c ?\r) ;; Old Mac newlines, anyone?
         )))
 
+(add-to-list 'ivy-re-builders-alist
+             '(haskell-abbrev+--insert-pragma . ivy--regex-fuzzy))
+
+(defun haskell-abbrev+--insert-pragma ()
+  (insert "{-# ")
+  (let ((pragma (ivy-read "Pragma: "
+                          haskell-completions--pragma-names
+                          :predicate nil
+                          :require-match t
+                          :initial-input nil
+                          :history nil
+                          :caller 'haskell-abbrev+--insert-pragma)))
+    (insert pragma)
+    (cond
+      ((string-match-p haskell-regexen/pragma-without-args-re pragma)
+       (insert " #-}"))
+      ((string-match-p haskell-regexen/language-pragma-name pragma)
+       (yas-expand-snippet " $\{1:\$\$\(yas-choose-value \(get-haskell-language-extensions\)\)\} #-}\$0"))
+      ((string-match-p haskell-regexen/scc-pragma-name pragma)
+       (yas-expand-snippet " \"${1:cost center name}\" #-}\$0"))
+      (t
+       (yas-expand-snippet " $1 #-}$0")))))
+
 (defun-once haskell-abbrev+-make-abbrevs
-  (let* ((extensions (get-haskell-language-extensions))
-         (expand-qualified-import-snippet
+  (let* ((expand-qualified-import-snippet
           "import qualified $1 as ${1:$(haskell-abbrev+-extract-first-capital-char (haskell-abbrev+-extract-mod-name yas-text))}$0")
          (expand-qualified-import-snippet-action
           (lambda () (yas-expand-snippet "import qualified $1 as ${1:$(haskell-abbrev+-extract-first-capital-char (haskell-abbrev+-extract-mod-name yas-text))}$0")))
-         (language-snippet (format "{-# LANGUAGE ${1:$\$(yas-choose-value '%S)} #-}$0"
-                                   extensions))
-         (pragma-snippet (format "{-# ${1:$\$(yas-choose-value '%S)} $2 #-}$0"
-                                 (remove-duplicates-sorting
-                                  (cons "SCC" haskell-completions--pragma-names)
-                                  #'string=
-                                  #'string<)))
+         (language-snippet "\{-# LANGUAGE $\{1:\$\$\(yas-choose-value \(get-haskell-language-extensions\)\)\} #-\}$0")
          (ghc-flags (-mapcat (lambda (x)
                                (cond
                                  ((string? x)
@@ -286,11 +304,17 @@ then Bar would be the result."
     (cl-assert (-all? #'stringp ghc-flags))
     (let ((non-repl-abbrevs
            (list
-            (cons (list "##")
+            (cons (list "#!")
                   (make-abbrev+-abbreviation
                    :followed-by-space t
                    :action-type 'yas-snippet
-                   :action-data pragma-snippet))
+                   :action-data haskell-snippets--cabal-run-header--body
+                   :predicate #'bobp))
+            (cons (list "##")
+                  (make-abbrev+-abbreviation
+                   :followed-by-space t
+                   :action-type 'function-with-side-effects
+                   :action-data #'haskell-abbrev+--insert-pragma))
             (cons (list "#scc"
                         "##scc"
                         "# scc"
@@ -483,6 +507,8 @@ then Bar would be the result."
                                     (car abbrevs)
                                   (cdr abbrevs)))
         abbrev+-do-not-expand-predicate #'point-inside-string-or-comment?)
+  (unless repl
+    (haskell-snippets-install! major-mode))
   (def-keys-for-map vim-insert-mode-local-keymap
     ("SPC" haskell-space-abbrev+)))
 

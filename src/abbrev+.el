@@ -41,8 +41,6 @@
   ;; will be called before performing ACTION and should return nil or t.
   ;; If t is returned then ACTION would be performed.
   ;;
-  ;; It’s called at a position whene match was found.
-  ;;
   ;; Optional.
   (predicate nil :read-only t)
 
