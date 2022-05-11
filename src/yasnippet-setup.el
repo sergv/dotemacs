@@ -176,20 +176,14 @@ Otherwise deletes a character normally by calling `delete-backward-char'."
 ;; now load snippets using enhanced functions (re)defined above
 (mapc #'yas-load-directory yas-snippet-dirs)
 
-(eval-after-load
-    "org"
-  '(progn
-     (defadvice org-fix-tags-on-the-fly (around
-                                         org-fix-tags-on-the-fly-yasnippet-field-fix
-                                         activate
-                                         compile
-                                         preactivate
-                                         protect)
-       "Solution to problem of `org-fix-tags-on-the-fly' being called after
-every org-self-insert-command when yasnippet's field happens to be located
-in org's headline."
-       (let ((yas--inhibit-overlay-hooks t))
-         ad-do-it))))
+(defun org-fix-tags-on-the-fly-yasnippet-field-fix (old-org-fix-tags-on-the-fly &rest args)
+  "Solution to problem of `org-fix-tags-on-the-fly' being called
+after every org-self-insert-command when yasnippet's field
+happens to be located in org's headline."
+  (let ((yas--inhibit-overlay-hooks t))
+    (apply old-org-fix-tags-on-the-fly args)))
+
+(advice-add 'org-fix-tags-on-the-fly :around #'org-fix-tags-on-the-fly-yasnippet-field-fix)
 
 (defvar-local yas-expand-fallback
   (lambda () (error "yas-expand-fallback not set to proper callback")))
