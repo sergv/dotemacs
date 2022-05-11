@@ -342,17 +342,8 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
         (pt-c2hs-start pt-c2hs-end _is-before? _is-after? is-surrounded-for-c2hs?)
         (smart-operators--point-surrounded-by ?\{ ?\})
       (cond (is-surrounded-for-pragma?
-             (delete-region pt-pragma-start pt-pragma-end)
-             (insert "#  #")
-             (forward-char -2)
-             (let ((pragma (ivy-completing-read "Pragma: "
-                                                haskell-completions--pragma-names)))
-               (insert pragma " ")
-               (when (string= pragma "LANGUAGE")
-                 (insert
-                  (ivy-completing-read
-                   "Language: "
-                   haskell-ghc-supported-extensions)))))
+             (delete-region (- pt-pragma-start 2) (+ pt-pragma-end 2))
+             (haskell-abbrev+--insert-pragma))
             ;; for c2hs
             (is-surrounded-for-c2hs?
              (delete-region pt-c2hs-start pt-c2hs-end)
