@@ -2091,16 +2091,16 @@
      "   (,func))"
      "")))
 
-(ert-deftest vim-tests/haskell-newline-with-signature-expansion-expand-pragma-pair-1/haskell-mode ()
+(ert-deftest vim-tests/haskell-smart-operators-expand-pragma-pair-1/haskell-mode ()
   (vim-tests--test-fresh-buffer-contents-init
       (haskell-mode)
-      (execute-kbd-macro (kbd "i { - # <return> <escape>"))
+      (execute-kbd-macro (kbd "i { - # <return> ok <tab> <escape>"))
     (tests-utils--multiline
      ""
      "_|_"
      "")
     (tests-utils--multiline
-     "{-# DEPRECATED_|_  #-}"
+     "{-# SCC \"ok\" #-_|_}"
      ""
      "")))
 
@@ -2614,7 +2614,7 @@
      "import qualified Foo as _|_F"
      "")))
 
-(ert-deftest vim-tests/haskell-abbrev-2 ()
+(ert-deftest vim-tests/haskell-abbrev-1 ()
   (vim-tests--test-fresh-buffer-contents-init
       (haskell-mode)
       ;; Aborting pragma prompt with <escape> causes 'quit signal to be raised.
@@ -2628,10 +2628,10 @@
      "")
     (tests-utils--multiline
      ""
-     "{-# _|_  #-}"
+     "{-# _|_"
      "")))
 
-(ert-deftest vim-tests/haskell-abbrev-3 ()
+(ert-deftest vim-tests/haskell-abbrev-2 ()
   (vim-tests--test-fresh-buffer-contents-init
       (haskell-mode)
       ;; Aborting pragma prompt with <escape> causes 'quit signal to be raised.
@@ -2645,10 +2645,10 @@
      "")
     (tests-utils--multiline
      ""
-     "{-# _|_  #-}"
+     "{-# _|_"
      "")))
 
-(ert-deftest vim-tests/haskell-abbrev-4 ()
+(ert-deftest vim-tests/haskell-abbrev-3 ()
   (vim-tests--test-fresh-buffer-contents-init
       (haskell-mode)
       (execute-kbd-macro (kbd "i # s c c SPC 1 2 3 <tab> <escape>"))
@@ -2663,7 +2663,7 @@
      "  bar ({-# SCC \"123\" #-_|_} x + 1) y \"foo\""
      "")))
 
-(ert-deftest vim-tests/haskell-abbrev-5 ()
+(ert-deftest vim-tests/haskell-abbrev-4 ()
   (vim-tests--test-fresh-buffer-contents-init
       (haskell-mode)
       (execute-kbd-macro (kbd "i h p l n SPC"))
@@ -2678,7 +2678,7 @@
      "  bar (hPutStrLn_|_ x + 1) y \"foo\""
      "")))
 
-(ert-deftest vim-tests/haskell-abbrev-6 ()
+(ert-deftest vim-tests/haskell-abbrev-5 ()
   (vim-tests--test-fresh-buffer-contents-init
       (haskell-mode)
       (execute-kbd-macro (kbd "i h p l n SPC"))
@@ -2695,7 +2695,7 @@
      "  hPutStrLn _|_"
      "")))
 
-(ert-deftest vim-tests/haskell-abbrev-7 ()
+(ert-deftest vim-tests/haskell-abbrev-6 ()
   (vim-tests--test-fresh-buffer-contents-init
       (haskell-mode)
       (execute-kbd-macro (kbd "i p n SPC $"))
@@ -2710,7 +2710,7 @@
      "  bar (x + 1) y \"foo\""
      "")))
 
-(ert-deftest vim-tests/haskell-abbrev-8 ()
+(ert-deftest vim-tests/haskell-abbrev-7 ()
   (vim-tests--test-fresh-buffer-contents-init
       (haskell-mode)
       (execute-kbd-macro (kbd "i i m p o r t s SPC"))
@@ -2728,10 +2728,10 @@
      "  bar (x + 1) y \"foo\""
      "")))
 
-(ert-deftest vim-tests/haskell-abbrev-9 ()
+(ert-deftest vim-tests/haskell-abbrev-8 ()
   (vim-tests--test-fresh-buffer-contents-init
       (haskell-mode)
-      (execute-kbd-macro (kbd "i # # SPC i n l i n <return> <tab> ( + + + <tab> <escape>"))
+      (execute-kbd-macro (kbd "i # # SPC i n l i n <return> ( + + + <tab> <escape>"))
     (tests-utils--multiline
      ""
      "_|_"
@@ -2744,6 +2744,60 @@
      "(+++) :: Int -> Int"
      "(+++) x y = x + y"
      "")))
+
+(ert-deftest vim-tests/haskell-abbrev-pragma-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "i SPC S C C <return> f o o b a r <tab>"))
+    (tests-utils--multiline
+     ""
+     "##_|_"
+     "")
+    (tests-utils--multiline
+     ""
+     "{-# SCC \"foobar\" #-}_|_"
+     "")))
+
+(ert-deftest vim-tests/haskell-abbrev-pragma-2 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "i SPC unpack <return>"))
+    (tests-utils--multiline
+     ""
+     "##_|_"
+     "")
+    (tests-utils--multiline
+     ""
+     "{-# UNPACK #-}_|_"
+     "")))
+
+(ert-deftest vim-tests/haskell-abbrev-pragma-3 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "i SPC inline <return> foobar <tab>"))
+    (tests-utils--multiline
+     ""
+     "##_|_"
+     "")
+    (tests-utils--multiline
+     ""
+     "{-# INLINE foobar #-}_|_"
+     "")))
+
+(ert-deftest vim-tests/haskell-abbrev-pragma-4 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "i SPC language <return> overstr <return> <tab>"))
+    (tests-utils--multiline
+     ""
+     "##_|_"
+     "")
+    (tests-utils--multiline
+     ""
+     "{-# LANGUAGE OverloadedStrings #-}_|_"
+     "")))
+
+
 
 (ert-deftest vim-tests/haskell-insert-quote-1 ()
   (vim-tests--test-fresh-buffer-contents-init
