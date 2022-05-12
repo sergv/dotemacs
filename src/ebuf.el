@@ -470,8 +470,10 @@
                    " *Echo Area "
                    " *LV*"
                    " *code-conversion-work*"
+                   " *code-converting-work*"
                    " *server*"
-                   " *eldoc for ")
+                   " *eldoc for "
+                   " markdown-mode-fontification:")
                (* anything))
           (seq "#" (+ anything) "#"))
       eos))
