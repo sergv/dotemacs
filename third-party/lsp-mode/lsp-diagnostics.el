@@ -158,25 +158,37 @@ CALLBACK is the status callback passed by Flycheck."
 
   (remove-hook 'lsp-on-idle-hook #'lsp-diagnostics--flycheck-buffer t)
 
-  (->> (lsp--get-buffer-diagnostics)
-       (-map (-lambda ((&Diagnostic :message :severity? :tags? :code? :source?
-                                    :range (&Range :start (&Position :line      start-line
-                                                                     :character start-character)
-                                                   :end   (&Position :line      end-line
-                                                                     :character end-character))))
-               (flycheck-error-new
-                :buffer (current-buffer)
-                :checker checker
-                :filename buffer-file-name
-                :message message
-                :level (lsp-diagnostics--flycheck-calculate-level severity? tags?)
-                :id code?
-                :group source?
-                :line (lsp-translate-line (1+ start-line))
-                :column (1+ (lsp-translate-column start-character))
-                :end-line (lsp-translate-line (1+ end-line))
-                :end-column (1+ (lsp-translate-column end-character)))))
-       (funcall callback 'finished)))
+  (funcall callback 'finished
+           (remove-duplicates-by-hashing-projections
+            (lambda (err)
+              (vector (flycheck-error-filename err)
+                      (flycheck-error-level err)
+                      (flycheck-error-line err)
+                      (flycheck-error-column err)
+                      (flycheck-error-end-line err)
+                      (flycheck-error-end-column err)
+                      (flycheck-error-message err)
+                      (flycheck-error-id err)
+                      (flycheck-error-group err)))
+            #'equal
+            (-map (-lambda ((&Diagnostic :message :severity? :tags? :code? :source?
+                                         :range (&Range :start (&Position :line      start-line
+                                                                          :character start-character)
+                                                        :end   (&Position :line      end-line
+                                                                          :character end-character))))
+                    (flycheck-error-new
+                     :buffer (current-buffer)
+                     :checker checker
+                     :filename buffer-file-name
+                     :message message
+                     :level (lsp-diagnostics--flycheck-calculate-level severity? tags?)
+                     :id code?
+                     :group source?
+                     :line (lsp-translate-line (1+ start-line))
+                     :column (1+ (lsp-translate-column start-character))
+                     :end-line (lsp-translate-line (1+ end-line))
+                     :end-column (1+ (lsp-translate-column end-character))))
+                  (lsp--get-buffer-diagnostics)))))
 
 (defun lsp-diagnostics--flycheck-buffer ()
   "Trigger flyckeck on buffer."
