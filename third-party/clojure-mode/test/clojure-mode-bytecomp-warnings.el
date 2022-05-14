@@ -1,6 +1,6 @@
-;;; clojure-mode-bytecomp-warnings.el --- Check for byte-compilation problems
+;;; clojure-mode-bytecomp-warnings.el --- Check for byte-compilation problems  -*- lexical-binding: t; -*-
 
-;; Copyright © 2012-2018 Bozhidar Batsov and contributors
+;; Copyright © 2012-2021 Bozhidar Batsov and contributors
 ;;
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
