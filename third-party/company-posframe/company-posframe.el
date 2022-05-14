@@ -5,9 +5,9 @@
 ;; Author: Clément Pit-Claudel, Feng Shu, Lars Andersen <expez@expez.com>
 ;; Maintainer: Feng Shu <tumashu@163.com>
 ;; URL: https://github.com/tumashu/company-posframe
-;; Version: 0.5.0
+;; Version: 0.6.0
 ;; Keywords: abbrev, convenience, matching
-;; Package-Requires: ((emacs "26.0")(company "0.9.0")(posframe "0.1.0"))
+;; Package-Requires: ((emacs "26.0")(company "0.9.0")(posframe "0.9.0"))
 
 ;; This file is not part of GNU Emacs.
 
@@ -45,8 +45,20 @@
 ;; #+END_EXAMPLE
 
 ;; ** Tips
+
+;; *** How to reduce flicker when scroll up and down?
+;; In windows or MacOS system, company candidates menu may flicker
+;; when scroll up and down, the reason is that the size of posframe
+;; changing rapid, user can set the minimum width of menu to limit
+;; flicker, for example:
+
+;; #+BEGIN_EXAMPLE
+;; (setq company-tooltip-minimum-width 40)
+;; #+END_EXAMPLE
+
 ;; *** Work better with desktop.el
 ;; The below code let desktop.el not record the company-posframe-mode
+
 ;; #+BEGIN_EXAMPLE
 ;; (require 'desktop) ;this line is needed.
 ;; (push '(company-posframe-mode . nil)
@@ -165,9 +177,9 @@ be triggered manually using `company-posframe-quickhelp-show'."
 
 (defvar company-posframe-quickhelp-show-params
   (list :poshandler #'company-posframe-quickhelp-right-poshandler
-        :internal-border-width 1
+        :border-width 1
+        :border-color "gray50"
         :timeout 60
-        :internal-border-color "gray50"
         :no-properties nil)
   "List of parameters passed to `posframe-show'.")
 
@@ -244,19 +256,32 @@ be triggered manually using `company-posframe-quickhelp-show'."
   "Poshandler showing `company-posframe' at `company-prefix'."
   (let* ((parent-window (plist-get info :parent-window))
          (point (with-current-buffer (window-buffer parent-window)
-                  (max (line-beginning-position)
-                       (- (plist-get info :position)
-                          (length company-prefix)
-                          company-tooltip-margin))))
-         (info (plist-put info :position-info (posn-at-point point parent-window))))
-    (posframe-poshandler-point-bottom-left-corner info)))
+                  (- (plist-get info :position)
+                     (plist-get info :company-prefix-length))))
+         (posn (posn-at-point point parent-window))
+         ;; TODO: Strictly speaking, if company-posframe-font is not nil, that
+         ;; should be used to find the default width...
+         (expected-margin-width (* (plist-get info :company-margin) (default-font-width)))
+         (xy (posn-x-y posn)))
+    (setcar xy (- (car xy) expected-margin-width))
+    (posframe-poshandler-point-bottom-left-corner (plist-put info :position posn))))
 
 (defun company-posframe-show ()
   "Show company-posframe candidate menu."
   (let* ((height (min company-tooltip-limit company-candidates-length))
          (meta (when company-posframe-show-metadata
                  (company-fetch-metadata)))
-         (lines (company--create-lines company-selection height))
+         (company-lines (company--create-lines company-selection height))
+         (margin
+          (if (numberp (car company-lines))
+              (car company-lines)
+            company-tooltip-margin))
+         (lines
+          ;; Please see: company--create-lines return value changed #52
+          ;; https://github.com/tumashu/company-posframe/issues/52
+          (if (numberp (car company-lines))
+              (cdr company-lines)
+            company-lines))
          (backend-names (when company-posframe-show-indicator
                           (funcall company-posframe-backend-format-function company-backends company-posframe-backend-separator)))
          (width (max (min (length (car lines)) company-tooltip-maximum-width) company-tooltip-minimum-width))
@@ -285,6 +310,9 @@ be triggered manually using `company-posframe-quickhelp-show'."
            :background-color (face-attribute 'company-tooltip :background)
            :lines-truncate t
            :poshandler company-posframe-poshandler
+           :poshandler-extra-info
+           (list :company-margin margin
+                 :company-prefix-length (length company-prefix))
            company-posframe-show-params)))
 
 (defun company-posframe-hide ()
@@ -408,7 +436,7 @@ just grab the first candidate and press forward."
 (defun company-posframe-quickhelp-show ()
   (company-posframe-quickhelp-cancel-timer)
   (while-no-input
-    (let* ((selected (nth company-selection company-candidates))
+    (let* ((selected (nth (or company-selection 0) company-candidates))
            (doc (let ((inhibit-message t))
                   (company-posframe-quickhelp-doc selected))))
       (when doc
