@@ -6,3 +6,6 @@
 # Emacs byte-compiled files
 *.elc
 .cask
+elpa*
+/clojure-mode-autoloads.el
+/clojure-mode-pkg.el
