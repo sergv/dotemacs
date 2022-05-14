@@ -1306,6 +1306,56 @@ list of substrings of `STR' each followed by its face."
    '("/* " font-lock-comment-delimiter-face
      "#[foo] */" font-lock-comment-face)))
 
+(ert-deftest font-lock-number-with-type ()
+  (rust-test-font-lock
+   "-123i32"
+   '("i32" font-lock-type-face))
+  (rust-test-font-lock
+   "123u32"
+   '("u32" font-lock-type-face))
+  (rust-test-font-lock
+   "123_123_u32"
+   '("u32" font-lock-type-face))
+  (rust-test-font-lock
+   "0xff_u8"
+   '("u8" font-lock-type-face))
+  (rust-test-font-lock
+   "0b1111_1111_1001_0000i64"
+   '("i64" font-lock-type-face))
+  (rust-test-font-lock
+   "0usize"
+   '("usize" font-lock-type-face))
+  (rust-test-font-lock
+   "123.0f64 + 1."
+   '("f64" font-lock-type-face))
+  (rust-test-font-lock
+   "0.1f32"
+   '("f32" font-lock-type-face))
+  (rust-test-font-lock
+   "12E+99_f64"
+   '("f64" font-lock-type-face))
+  (rust-test-font-lock
+   "5f32"
+   '("f32" font-lock-type-face))
+  (rust-test-font-lock
+   "0x5i32"
+   '("i32" font-lock-type-face))
+  (rust-test-font-lock
+   "1x5i32"
+   '())
+  (rust-test-font-lock
+   "0x5i321"
+   '())
+  (rust-test-font-lock
+   "fname5f32"
+   '())
+  (rust-test-font-lock
+   "0x5i32+1"
+   '("i32" font-lock-type-face))
+  (rust-test-font-lock
+   "f(0xFFi32)"
+   '("i32" font-lock-type-face)))
+
 (ert-deftest font-lock-double-quote-character-literal ()
   (rust-test-font-lock
    "'\"'; let"
@@ -1355,6 +1405,92 @@ list of substrings of `STR' each followed by its face."
      "let" font-lock-keyword-face
      "mut" font-lock-keyword-face
      "bar" font-lock-variable-name-face)))
+
+(ert-deftest font-lock-ampersand ()
+  (rust-test-font-lock
+   "f(&a)"
+   '("&" rust-ampersand-face))
+  (rust-test-font-lock
+   "a && b &&& c"
+   nil)
+  (rust-test-font-lock
+   "&'a v"
+   '("&" rust-ampersand-face
+     "a" font-lock-variable-name-face))
+  (rust-test-font-lock
+   "&'static v"
+   '("&" rust-ampersand-face
+     "static" font-lock-keyword-face))
+  (rust-test-font-lock
+   "&mut v"
+   '("&" rust-ampersand-face
+     "mut" font-lock-keyword-face))
+  (rust-test-font-lock
+   "&f(&x)"
+   '("&" rust-ampersand-face
+     "&" rust-ampersand-face))
+  (rust-test-font-lock
+   "fn f(x: &X)"
+   '("fn" font-lock-keyword-face
+     "f" font-lock-function-name-face
+     "x" font-lock-variable-name-face
+     "&" rust-ampersand-face
+     "X" font-lock-type-face))
+  (rust-test-font-lock
+   "f(&X{x})"
+   '("&" rust-ampersand-face
+     "X" font-lock-type-face))
+  (rust-test-font-lock
+   "let x: &'_ f64 = &1.;"
+   '("let" font-lock-keyword-face
+     "x" font-lock-variable-name-face
+     "&" rust-ampersand-face
+     "_" font-lock-variable-name-face
+     "f64" font-lock-type-face
+     "&" rust-ampersand-face))
+  (rust-test-font-lock
+   "let x = &&1;"
+   '("let" font-lock-keyword-face
+     "x" font-lock-variable-name-face
+     "&&" rust-ampersand-face))
+  (rust-test-font-lock
+   "let x = &*y;"
+   '("let" font-lock-keyword-face
+     "x" font-lock-variable-name-face
+     "&" rust-ampersand-face))
+  (rust-test-font-lock
+   "let x = &::std::f64::consts::PI;"
+   '("let" font-lock-keyword-face
+     "x" font-lock-variable-name-face
+     "&" rust-ampersand-face
+     "std" font-lock-constant-face
+     "f64" font-lock-type-face
+     "consts" font-lock-constant-face
+     "PI" font-lock-type-face))
+  (rust-test-font-lock
+   "let x = &(1, 2);"
+   '("let" font-lock-keyword-face
+     "x" font-lock-variable-name-face
+     "&" rust-ampersand-face))
+  (rust-test-font-lock
+   "let x = &{1};"
+   '("let" font-lock-keyword-face
+     "x" font-lock-variable-name-face
+     "&" rust-ampersand-face))
+  (rust-test-font-lock
+   "let f = &|x| {x + 1};"
+   '("let" font-lock-keyword-face
+     "f" font-lock-variable-name-face
+     "&" rust-ampersand-face))
+  (rust-test-font-lock
+   "let x: &_ = &1;"
+   '("let" font-lock-keyword-face
+     "x" font-lock-variable-name-face
+     "&" rust-ampersand-face
+     "&" rust-ampersand-face))
+  (rust-test-font-lock
+   "&[1,2]"
+   '("&" rust-ampersand-face)))
 
 (ert-deftest font-lock-if-let-binding ()
   (rust-test-font-lock
@@ -1701,6 +1837,7 @@ this_is_not_a_string();)"
      "foo" font-lock-type-face
      "x" font-lock-variable-name-face
      ;; This union is the name of a lifetime.
+     "&" rust-ampersand-face
      "union" font-lock-variable-name-face
      "bar" font-lock-type-face)))
 
