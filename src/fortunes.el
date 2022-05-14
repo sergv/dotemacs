@@ -2074,13 +2074,6 @@ Then Justice came.  His Honor cried:
 I never saw your face before!”
 - Ambrose Bierce, “The Devil’s Dictionary”"
 
-   "“What the hell are you getting so upset about?  I thought you
-didn’t believe in God.”
-	“I don’t,” she sobbed, bursting violently into tears, “but the
-God I don’t believe in is a good God, a just God, a merciful God.  He’s
-not the mean and stupid God you make Him out to be.”
-- Joseph Heller, “Catch-22”"
-
    "The temperature of Heaven can be rather accurately computed.  Our
 authority is Isaiah 30:26, “Moreover, the light of the Moon shall be as
 the light of the Sun and the light of the Sun shall be sevenfold, as
