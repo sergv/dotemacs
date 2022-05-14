@@ -1,6 +1,6 @@
 ;;; graphviz-dot-mode.el --- Mode for the dot-language used by graphviz (att).
 
-;; Copyright (C) 2002 - 2020 Pieter Pareit <pieter.pareit@gmail.com>
+;; Copyright (C) 2002 - 2020, 2022 Pieter Pareit <pieter.pareit@gmail.com>
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -600,10 +600,12 @@ be changed with `graphviz-dot-preview-extension'."
     (setq compile-command
           (concat graphviz-dot-dot-program
                   " -T" graphviz-dot-preview-extension " "
-                  (shell-quote-argument f-name)
+                  (shell-quote-argument
+                   (file-name-unquote (file-local-name f-name)))
                   " -o "
                   (shell-quote-argument
-                   (graphviz-output-file-name f-name))))))
+                   (file-name-unquote
+                    (file-local-name (graphviz-output-file-name f-name))))))))
 
 (defvar dot-menu nil
   "Menu for Graphviz Dot Mode.
@@ -642,7 +644,6 @@ Variables specific to this mode:
   (when (buffer-file-name)
     (setq-local compile-command
                 (graphviz-compile-command (buffer-file-name))))
-  (when dot-menu (easy-menu-add dot-menu))
   (add-to-list 'compilation-error-regexp-alist 'dot)
   (add-to-list 'compilation-error-regexp-alist-alist
 	       '(dot "^Error: \\(.+\\): .*error in line \\([0-9]+\\).*" 1 2))
