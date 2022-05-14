@@ -1,8 +1,8 @@
-;;; clojure-mode-extra-font-locking.el --- Extra font-locking for Clojure mode
+;;; clojure-mode-extra-font-locking.el --- Extra font-locking for Clojure mode  -*- lexical-binding: t; -*-
 
-;; Copyright © 2014-2018 Bozhidar Batsov
+;; Copyright © 2014-2021 Bozhidar Batsov
 ;;
-;; Author: Bozhidar Batsov <bozhidar@batsov.com>
+;; Author: Bozhidar Batsov <bozhidar@batsov.dev>
 ;; URL: http://github.com/clojure-emacs/clojure-mode
 ;; Version: 3.0.0
 ;; Keywords: languages, lisp
@@ -12,7 +12,12 @@
 
 ;;; Commentary:
 
-;; Provides additional font-locking for clojure-mode.
+;; Provides additional font-locking for clojure-mode.  This font-locking
+;; used to be part of clojure-mode up to version 3.0, but it was removed
+;; due to its unreliable nature (the implementation is quite primitive
+;; and font-locks symbols without any regard for what they resolve to).
+;; CIDER provides much more reliable font-locking, that's based on the runtime
+;; state of your Clojure application.
 
 ;;; License:
 
