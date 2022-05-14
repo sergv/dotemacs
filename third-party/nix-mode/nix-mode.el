@@ -4,7 +4,7 @@
 ;; Homepage: https://github.com/NixOS/nix-mode
 ;; Version: 1.4.4
 ;; Keywords: nix, languages, tools, unix
-;; Package-Requires: ((emacs "25.1") magit-section)
+;; Package-Requires: ((emacs "25.1") magit-section (transient "0.3"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -27,7 +27,7 @@
 (eval-when-compile (require 'subr-x))
 
 (defgroup nix-mode nil
-  "Nix mode customizations"
+  "Nix mode customizations."
   :group 'nix)
 
 (defcustom nix-indent-function 'smie-indent-line
@@ -533,7 +533,7 @@ STRING-TYPE type of string based off of Emacs syntax table types"
 (defconst nix-smie--path-chars "a-zA-Z0-9-+_.:/~")
 
 (defun nix-smie--skip-angle-path-forward ()
-  "Skip forward a path enclosed in angle brackets, e.g <nixpkgs>"
+  "Skip forward a path enclosed in angle brackets, e.g <nixpkgs>."
   (let ((start (point)))
     (when (eq (char-after) ?<)
       (forward-char)
@@ -545,7 +545,7 @@ STRING-TYPE type of string based off of Emacs syntax table types"
         (ignore (goto-char start))))))
 
 (defun nix-smie--skip-angle-path-backward ()
-  "Skip backward a path enclosed in angle brackets, e.g <nixpkgs>"
+  "Skip backward a path enclosed in angle brackets, e.g <nixpkgs>."
   (let ((start (point)))
     (when (eq (char-before) ?>)
       (backward-char)
@@ -960,8 +960,7 @@ The following commands may be useful:
 
 The hook `nix-mode-hook' is run when Nix mode is started.
 
-\\{nix-mode-map}
-"
+\\{nix-mode-map}"
   :group 'nix-mode
   :syntax-table nix-mode-syntax-table
   :abbrev-table nix-mode-abbrev-table
