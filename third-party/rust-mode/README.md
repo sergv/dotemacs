@@ -1,5 +1,6 @@
 # rust-mode
 
+[![NonGNU ELPA](https://elpa.nongnu.org/nongnu/rust-mode.svg)](https://elpa.nongnu.org/nongnu/rust-mode.html)
 [![MELPA](https://melpa.org/packages/rust-mode-badge.svg)](https://melpa.org/#/rust-mode)
 [![](https://github.com/rust-lang/rust-mode/workflows/CI/badge.svg)](https://github.com/rust-lang/rust-mode/actions?query=workflow%3ACI)
 
@@ -15,9 +16,11 @@
     - [Feature guide](#feature-guide)
         - [Indentation](#indentation)
         - [Code formatting](#code-formatting)
+        - [Prettifying](#prettifying)
         - [Running / testing / compiling code](#running--testing--compiling-code)
         - [Clippy](#clippy)
         - [Easy insertion of dbg!](#easy-insertion-of-dbg)
+        - [More commands](#more-commands)
     - [LSP](#lsp)
         - [eglot](#eglot)
         - [lsp-mode](#lsp-mode)
@@ -27,6 +30,7 @@
         - [cargo.el](#cargoel)
         - [cargo-mode](#cargo-mode)
         - [rustic](#rustic)
+    - [Optional features](#optional-features)
     - [For package maintainers](#for-package-maintainers)
         - [Tests](#tests)
     - [Contributing](#contributing)
@@ -49,6 +53,12 @@ This mode does _not_ provide autocompletion, or jumping to function /
 trait definitions. See [Auto-completion / code
 navigation](#auto-completion--code-navigation) below for tips on how
 to enable this.
+
+If you are missing features in rust-mode, please check out
+[rustic](https://github.com/brotzeit/rustic) before you open a feature
+request. It depends on rust-mode and provides additional features. This
+allows us to keep rust-mode light-weight for users that are happy with
+basic functionality.
 
 ## Known issues
 
@@ -97,6 +107,7 @@ Clone this repository locally, and add this to your init.el:
 ``` elisp
 (add-to-list 'load-path "/path/to/rust-mode/")
 (autoload 'rust-mode "rust-mode" nil t)
+(add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-mode))
 ```
 
 ## Feature guide
@@ -114,6 +125,12 @@ which forces indentation to always use spaces.
           (lambda () (setq indent-tabs-mode nil)))
 ```
 
+Since Emacs ≥ 24.4, [`electric-indent-mode`][] is turned on by
+default. If you do not like it, call `(electric-indent-mode 0)` in
+`rust-mode-hook`.
+
+[`electric-indent-mode`]: https://www.gnu.org/software/emacs/manual/html_node/emacs/Indent-Convenience.html
+
 ### Code formatting
 
 The `rust-format-buffer` function will format your code with
@@ -127,6 +144,21 @@ on save:
 ``` elisp
 (setq rust-format-on-save t)
 ```
+
+### Prettifying
+
+You can toggle prettification of your code by running `M-x
+prettify-symbols-mode`.  If you'd like to automatically enable this
+for all rust files, add the following to your init.el.
+
+```elisp
+(add-hook 'rust-mode-hook
+          (lambda () (prettify-symbols-mode)))
+```
+
+You can add your own prettifications to `rust-prettify-symbols-alist`.
+For example, to display `x.add(y)` as `x∔(y)`, simply add to your init
+file `(push '(".add" . ?∔) rust-prettify-symbols-alist)`.
 
 ### Running / testing / compiling code
 
@@ -153,6 +185,10 @@ in `dbg!`. This can be useful for easily adding debug lines to your
 program.
 
 This is bound to <kbd>C-c C-d</kbd> by default.
+
+### More commands
+
+- `rustic-toggle-mutability` toggle mut for var defined at current line
 
 ## LSP
 
@@ -204,6 +240,21 @@ post](https://www.badykov.com/emacs/2021/05/29/emacs-cargo-mode/).
 extending it with other features such as integration with LSP and with
 flycheck.
 
+## Optional features
+
+The features of the following files can be disabled with `rust-load-optional-libraries`.
+
+- rust-cargo.el
+- rust-compile.el
+- rust-playpen.el
+- rust-rustfmt.el
+
+They are disabled by default when you use rustic as it has its own implementations
+for those features.
+
+## Customization
+
+`rust-cargo-default-arguments` set additional cargo args used for check,compile,run,test
 
 ## For package maintainers
 
