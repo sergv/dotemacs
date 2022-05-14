@@ -53,6 +53,12 @@
 (ert-deftest f-split-test/single-path-absolute ()
   (should (equal (f-split "/path") '("/" "path"))))
 
+(ert-deftest f-split-test/tilde-path-absolute ()
+  (should (equal (f-split "~/path") '("~" "path"))))
+
+(ert-deftest f-split-test/windows-path-absolute ()
+  (should (equal (f-split "C:/path") '("C:" "path"))))
+
 (ert-deftest f-split-test/multiple-paths-relative ()
   (should (equal (f-split "path/to/file") '("path" "to" "file"))))
 
@@ -390,18 +396,18 @@
 
 ;;;; f-uniquify-alist
 
-(ert-deftest f-uniquify/no-conflict ()
-  (should (equal (f-uniquify-alist '("/foo/bar" "/foo/baz" "/foo/quux")) '(("/foo/bar" . "bar") ("/foo/baz" . "baz") ("/foo/quux" . "quux")) )))
+(ert-deftest f-uniquify-alist/no-conflict ()
+  (should (equal (f-uniquify-alist '("/foo/bar" "/foo/baz" "/foo/quux")) '(("/foo/bar" . "bar") ("/foo/baz" . "baz") ("/foo/quux" . "quux")))))
 
 (ert-deftest f-uniquify-alist/single-conflict ()
-  (should (equal (f-uniquify-alist '("/foo/bar" "/www/bar" "/foo/quux")) '(("/foo/bar" . "foo/bar") ("/www/bar" . "www/bar") ("/foo/quux" . "quux")) )))
+  (should (equal (f-uniquify-alist '("/foo/bar" "/www/bar" "/foo/quux")) '(("/foo/bar" . "foo/bar") ("/www/bar" . "www/bar") ("/foo/quux" . "quux")))))
 
 (ert-deftest f-uniquify-alist/single-conflict-shared-subpath ()
   (should (equal (f-uniquify-alist '("/foo/bar" "/www/bar" "/www/bar/quux")) '(("/foo/bar" . "foo/bar") ("/www/bar" . "www/bar") ("/www/bar/quux" . "quux")))))
 
 (ert-deftest f-uniquify-alist/recursive-conflict ()
   (should (equal (f-uniquify-alist '("/foo/bar" "/foo/baz" "/home/www/bar" "/home/www/baz" "/var/foo" "/opt/foo/www/baz"))
-                 '(("/foo/bar" . "foo/bar") ("/home/www/bar" . "www/bar") ("/foo/baz" . "foo/baz") ("/home/www/baz" . "home/www/baz") ("/opt/foo/www/baz" . "foo/www/baz") ("/var/foo" . "foo")) )))
+                 '(("/foo/bar" . "foo/bar") ("/home/www/bar" . "www/bar") ("/foo/baz" . "foo/baz") ("/home/www/baz" . "home/www/baz") ("/opt/foo/www/baz" . "foo/www/baz") ("/var/foo" . "foo")))))
 
 (provide 'f-paths-test)
 
