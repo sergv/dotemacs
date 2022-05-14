@@ -1,4 +1,6 @@
-# f.el [![Build Status](https://api.travis-ci.org/rejeep/f.el.png?branch=master)](http://travis-ci.org/rejeep/f.el) [![Coverage Status](https://img.shields.io/coveralls/rejeep/f.el.svg)](https://coveralls.io/r/rejeep/f.el)
+# f.el
+[![CI](https://github.com/rejeep/f.el/actions/workflows/workflow.yml/badge.svg)](https://github.com/rejeep/f.el/actions/workflows/workflow.yml)
+[![Coverage Status](https://img.shields.io/coveralls/rejeep/f.el.svg)](https://coveralls.io/r/rejeep/f.el)
 
 Much inspired by [@magnars](https://github.com/magnars)'s excellent
 [s.el](https://github.com/magnars/s.el) and
@@ -53,7 +55,7 @@ Or you can just dump `f.el` in your load path somewhere.
 * [f-symlink](#f-symlink-source-path) `(source path)`
 * [f-move](#f-move-from-to) `(from to)`
 * [f-copy](#f-copy-from-to) `(from to)`
-* [f-copy-contenst](#f-copy-contents-from-to) `(from to)`
+* [f-copy-contents](#f-copy-contents-from-to) `(from to)`
 * [f-touch](#f-touch-path) `(path)`
 
 ### Predicates
@@ -334,8 +336,11 @@ Alias: `f-append`
 {{f-mkdir}}
 
 ```lisp
-(f-mkdir "dir") ;; => /default/directory/dir
-(f-mkdir "other" "dir") ;; => /default/directory/other/dir
+(f-mkdir "dir") ;; creates /default/directory/dir
+(f-mkdir "other" "dir") ;; creates /default/directory/other/dir
+(f-mkdir "/" "some" "path") ;; creates /some/path
+(f-mkdir "~" "yet" "another" "dir") ;; creates ~/yet/another/dir
+(f-mkdir "~/some/dir") ;; creates "dir" if "~/some" already exists
 ```
 
 ### f-delete `(path &optional force)`
