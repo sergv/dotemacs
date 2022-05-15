@@ -2745,6 +2745,32 @@
      "(+++) x y = x + y"
      "")))
 
+(ert-deftest vim-tests/haskell-abbrev-should-expand-only-on-full-abbrev-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "i SPC = b a r <escape>"))
+    (tests-utils--multiline
+     ""
+     "foo pinfo_|_"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo pinfo = ba_|_r"
+     "")))
+
+(ert-deftest vim-tests/haskell-abbrev-should-expand-only-on-full-abbrev-2 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "i SPC = b a r <escape>"))
+    (tests-utils--multiline
+     ""
+     "foo myppinfo_|_"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo myppinfo = ba_|_r"
+     "")))
+
 (ert-deftest vim-tests/haskell-abbrev-pragma-1 ()
   (vim-tests--test-fresh-buffer-contents-init
       (haskell-mode)
