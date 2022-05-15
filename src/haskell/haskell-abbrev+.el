@@ -268,28 +268,31 @@ then Bar would be the result."
       (t
        (yas-expand-snippet " $1 #-}$0")))))
 
+(defun haskell-abbrev+--get-ghc-flags ()
+  (let ((flags (-mapcat (lambda (x)
+                          (cond
+                            ((stringp x)
+                             (list x))
+                            ((and (listp x)
+                                  (not (null x)))
+                             (let ((head (car x)))
+                               (if (listp head)
+                                   head
+                                 (list head))))
+                            (t
+                             (error "invalid ghc flag specification, string or list with first string element expected but got: %s"
+                                    x))))
+                        pcomplete-ghc-flags)))
+    (cl-assert (-all? #'stringp flags))
+    flags))
+
 (defun-once haskell-abbrev+-make-abbrevs
   (let* ((expand-qualified-import-snippet
           "import qualified $1 as ${1:$(haskell-abbrev+-extract-first-capital-char (haskell-abbrev+-extract-mod-name yas-text))}$0")
          (expand-qualified-import-snippet-action
           (lambda () (yas-expand-snippet "import qualified $1 as ${1:$(haskell-abbrev+-extract-first-capital-char (haskell-abbrev+-extract-mod-name yas-text))}$0")))
-         (language-snippet "\{-# LANGUAGE $\{1:\$\$\(yas-choose-value \(get-haskell-language-extensions\)\)\} #-\}$0")
-         (ghc-flags (-mapcat (lambda (x)
-                               (cond
-                                 ((string? x)
-                                  (list x))
-                                 ((and (list? x)
-                                       (not (null? x)))
-                                  (let ((head (first x)))
-                                    (if (list? head)
-                                        head
-                                      (list head))))
-                                 (t
-                                  (error "invalid ghc flag specification, string or list with first string element expected but got: %s"
-                                         x))))
-                             pcomplete-ghc-flags))
-         (options-snippet (format "{-# OPTIONS_GHC ${1:$\$(yas-choose-value '%S)} #-}$0"
-                                  ghc-flags))
+         (language-snippet "{-# LANGUAGE ${1:\$\$(yas-choose-value (get-haskell-language-extensions))} #-}$0")
+         (options-snippet "{-# OPTIONS_GHC ${1:\$\$(yas-choose-value (haskell-abbrev+--get-ghc-flags))} #-}$0")
          (dump-core-snippet
           (concat
            "{-# OPTIONS_GHC "
@@ -301,7 +304,6 @@ then Bar would be the result."
                       " ")
            " ${1:-dsuppress-type-signatures }${2:-ddump-to-file }#-}")))
     (cl-assert (-all? #'stringp haskell-completions--pragma-names))
-    (cl-assert (-all? #'stringp ghc-flags))
     (let ((non-repl-abbrevs
            (list
             (cons (list "#!")
