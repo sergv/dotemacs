@@ -162,7 +162,11 @@ expansion was performed."
            (followed-trie (car abbrev+-abbreviations))
            (vanilla-trie (cdr abbrev+-abbreviations))
            found
-           found-pt)
+           found-pt
+           found-vanilla
+           found-vanilla-pt
+           found-followed
+           found-followed-pt)
       (skip-syntax-backward " " line-start)
       (setf p-followed (point))
       (cl-assert (<= p-followed p-vanilla))
@@ -185,6 +189,13 @@ expansion was performed."
                 vanilla-trie (and vanilla-trie
                                   (trie-lookup-node-char c-vanilla vanilla-trie))))
 
+        (when vanilla-trie
+          (setf found-vanilla nil
+                found-vanilla-pt nil))
+        (when followed-trie
+          (setf found-followed nil
+                found-followed-pt nil))
+
         (let ((vanilla-value (trie-node-value-get vanilla-trie nil))
               (followed-value (trie-node-value-get followed-trie nil)))
           (when (and vanilla-value
@@ -194,15 +205,30 @@ expansion was performed."
                    vanilla-value
                    followed-value))
           (when vanilla-value
-            (setf found vanilla-value
-                  found-pt p-vanilla))
+            (setf found-vanilla vanilla-value
+                  found-vanilla-pt p-vanilla))
           (when followed-value
-            (setf found followed-value
-                  found-pt p-followed)))
+            (setf found-followed followed-value
+                  found-followed-pt p-followed)))
 
         ;; Move 1 character back.
         (setf p-vanilla (1- p-vanilla)
               p-followed (1- p-followed)))
+
+      (cond
+        ((and found-vanilla-pt found-followed-pt)
+         ;; Take the closest one to where we started
+         (if (> found-vanilla-pt found-followed-pt)
+             (setf found found-vanilla
+                   found-pt found-vanilla-pt)
+           (setf found found-followed
+                 found-pt found-followed-pt)))
+        (found-vanilla-pt
+         (setf found found-vanilla
+               found-pt found-vanilla-pt))
+        (found-followed-pt
+         (setf found found-followed
+               found-pt found-followed-pt)))
 
       (let ((res (when found
                    (cl-assert (<= line-start found-pt))
