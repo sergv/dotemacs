@@ -149,6 +149,19 @@ if point is just after the trigger.")
 
 nil value stands for no predicate and hence no such check.")
 
+(defun abbrev+--syntax-changes-between? (pos1 pos2)
+  "Check whether characters at POS1 and POS2 have different syntax."
+  (let ((c1 (char-before pos1))
+        (c2 (char-before pos2)))
+    (cond
+      (c1
+       (if c2
+           (not (eq (char-syntax c1)
+                    (char-syntax c2)))
+         t))
+      (c2 t)
+      (t nil))))
+
 (defun abbrev+-expand ()
   "Expand text before point that matches against one of triggers
 of `abbrev-abbreviations'. Returns boolean indicating whether
@@ -197,23 +210,28 @@ expansion was performed."
                 found-followed-pt nil))
 
         (let ((vanilla-value (trie-node-value-get vanilla-trie nil))
-              (followed-value (trie-node-value-get followed-trie nil)))
+              (followed-value (trie-node-value-get followed-trie nil))
+              (p-vanilla-prev (1- p-vanilla))
+              (p-followed-prev (1- p-followed)))
+
           (when (and vanilla-value
                      followed-value
                      (not (eq vanilla-value followed-value)))
             (error "Conflict: two abbrevs matched at the same time module space following:\n----\n%s\n----\n%s"
                    vanilla-value
                    followed-value))
-          (when vanilla-value
+          (when (and vanilla-value
+                     (abbrev+--syntax-changes-between? p-vanilla p-vanilla-prev))
             (setf found-vanilla vanilla-value
                   found-vanilla-pt p-vanilla))
-          (when followed-value
+          (when (and followed-value
+                     (abbrev+--syntax-changes-between? p-followed p-followed-prev))
             (setf found-followed followed-value
-                  found-followed-pt p-followed)))
+                  found-followed-pt p-followed))
 
-        ;; Move 1 character back.
-        (setf p-vanilla (1- p-vanilla)
-              p-followed (1- p-followed)))
+          ;; Move 1 character back.
+          (setf p-vanilla p-vanilla-prev
+                p-followed p-followed-prev)))
 
       (cond
         ((and found-vanilla-pt found-followed-pt)
