@@ -182,14 +182,14 @@
 (defun haskell-insert-pp-info-template ()
   (interactive)
   (haskell-abbrev+--ensure-debug-trace-available)
-  (insert "Debug.Trace.trace (displayDocString $ ")
+  (insert "Debug.Trace.trace (renderString $ ")
   (haskell-insert-pp-dict-info-template)
   (insert ") $"))
 
 (defun haskell-insert-monadic-pp-info-template ()
   (interactive)
   (haskell-abbrev+--ensure-debug-trace-available)
-  (insert "Debug.Trace.traceM $ displayDocString $ ")
+  (insert "Debug.Trace.traceM $ renderString $ ")
   (haskell-insert-pp-dict-info-template))
 
 (defun haskell-abbrev+-extract-first-capital-char (qualified-name)
