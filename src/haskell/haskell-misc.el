@@ -215,10 +215,13 @@ sexps and indentation levels."
 (defalign haskell-align-on-dollars
   "[$][^$]"
   :require-one-or-more-spaces t)
+
 ;;;###autoload (autoload 'haskell-align-on-equals "haskell-misc" nil t)
 (defalign haskell-align-on-equals
-  "=[^=]"
+  (rx ?=
+      (or eol (not (char ?= ?< ?>))))
   :require-one-or-more-spaces t)
+
 ;;;###autoload (autoload 'haskell-align-on-arrows "haskell-misc" nil t)
 (defalign haskell-align-on-arrows
   (rx
