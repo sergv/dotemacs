@@ -331,6 +331,8 @@ into accound and do the replacement only within specific circumstances.")
   (and (bound-and-true-p current-font)
        (string-match-p "Iosevka Slab Lig" current-font)))
 
+(setq-default prettify-symbols-unprettify-at-point t)
+
 (defun pretty-ligatures--install (ligatures)
   "Add hasklig ligatures for use with prettify-symbols-mode."
   (when (pretty-ligatures-supported?)
