@@ -619,7 +619,7 @@ _o_: show sexps in region"
     ("#"        search-for-symbol-at-point-backward)
     ("M-#"      search-for-symbol-at-point-backward-new-color)
 
-    ("+"        input-unicode)
+    ("C-="      input-unicode)
     ("g"        hydra-lisp-vim-normal-g-ext/body)
     ("j"        hydra-lisp-vim-normal-j-ext/body))
 
