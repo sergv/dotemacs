@@ -745,6 +745,45 @@ block motions."
   (vim-notify "Switch to Emacs for the next command.")
   (vim-escape-to-emacs nil))
 
+(defconst vim:cmd-increment-at-point--numbers "0-9+\\-")
+
+(defun vim-cmd-increment-region (increment start end)
+  (cl-assert (numberp increment))
+  (cl-assert (< start end))
+  (let* ((sign-char (char-after start))
+         (sign (pcase sign-char
+                 (?+ "+")
+                 (_  "")))
+         (n (string->number (buffer-substring-no-properties start end))))
+    (delete-region start end)
+    (insert sign (number->string (+ increment n)))))
+
+(vim-defcmd vim:cmd-increment-at-point (count)
+  (let ((mid (point))
+        start
+        end)
+    (skip-chars-backward vim:cmd-increment-at-point--numbers)
+    (setf start (point))
+    (goto-char mid)
+    (skip-chars-forward vim:cmd-increment-at-point--numbers)
+    (setf end (point))
+    (if (eq start end)
+        (error "No number at point")
+      (vim-cmd-increment-region (or count 1) start end))))
+
+(vim-defcmd vim:cmd-increment (count motion)
+  (let ((start (vim-motion-begin-pos motion))
+        (end   (vim-motion-end-pos motion)))
+    (if (eq start end)
+        (error "No number at point")
+      (progn
+        (goto-char start)
+        (skip-chars-forward vim:cmd-increment-at-point--numbers end)
+        (if (eq (point) end)
+            (vim-cmd-increment-region (or count 1) start end)
+          (error "Region contains something beside number: ‘%s’"
+                 (buffer-substring-no-properties start end)))))))
+
 (provide 'vim-commands)
 
 ;; Local Variables:
