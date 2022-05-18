@@ -127,7 +127,7 @@ _f_: next goal"
     ("S-<tab>"         eri-indent-reverse)
     ("S-<lefttab>"     eri-indent-reverse)
     ("S-<iso-lefttab>" eri-indent-reverse)
-    ("+"               input-unicode)
+    ("C-="             input-unicode)
     ("C-."             agda2-goto-definition-keyboard)
     ("C-,"             agda2-go-back)
     ("-"               hydra-agda/body)
