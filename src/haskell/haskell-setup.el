@@ -477,7 +477,7 @@ _<tab>_: reindent  _h_: jump to topmont node end"
       ("\\"           vim:flycheck-run:interactive)
       ("g"            hydra-haskell-vim-normal-g-ext/body)
       ("j"            hydra-haskell-vim-normal-j-ext/body)
-      ("+"            input-unicode))
+      ("C-="          input-unicode))
 
     (def-keys-for-map vim-visual-mode-local-keymap
       ("`"            vim-wrap-backticks)
