@@ -342,7 +342,9 @@ _<right>_: move tab to the right"
   ("j"          hydra-vim-normal-j-ext/body)
   ("z"          hydra-vim-normal-z-ext/body)
 
-  (("H" "<f5>") vim:revert-buffer:interactive))
+  (("H" "<f5>") vim:revert-buffer:interactive)
+
+  ("+"          vim:cmd-increment-at-point:interactive))
 
 ;;; visual keybindings
 
@@ -385,7 +387,9 @@ _<right>_: move tab to the right"
   ("C-'"     vim-wrap-typographical-single-quotes)
   ("C-\""    vim-wrap-typographical-double-quotes)
 
-  (("TAB" "<tab>") indent-region))
+  (("TAB" "<tab>") indent-region)
+
+  ("+"       vim:cmd-increment:interactive))
 
 ;;; insert mode keybindings
 
