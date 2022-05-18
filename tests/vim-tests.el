@@ -3609,6 +3609,168 @@
   (tests-utils--multiline "" "foo _|_ bar" "")
   (tests-utils--multiline "" "foo \"_|_\" bar" ""))
 
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (text-mode)
+    vim-tests/increment-at-point-1
+    (execute-kbd-macro (kbd "+"))
+  (tests-utils--multiline "" "foo = _|_0 + bar" "")
+  (tests-utils--multiline "" "foo = 1_|_ + bar"  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (text-mode)
+    vim-tests/increment-at-point-2
+    (execute-kbd-macro (kbd "+"))
+  (tests-utils--multiline "" "foo = _|_0 + bar" "")
+  (tests-utils--multiline "" "foo = 1_|_ + bar"  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (text-mode)
+    vim-tests/increment-at-point-3
+    (execute-kbd-macro (kbd "+"))
+  (tests-utils--multiline "" "foo = 0_|_0 + bar" "")
+  (tests-utils--multiline "" "foo = 1_|_ + bar"  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (text-mode)
+    vim-tests/increment-at-point-4
+    (execute-kbd-macro (kbd "+"))
+  (tests-utils--multiline "" "foo = 0_|_1 + bar" "")
+  (tests-utils--multiline "" "foo = 2_|_ + bar"  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (text-mode)
+    vim-tests/increment-at-point-5
+    (execute-kbd-macro (kbd "+"))
+  (tests-utils--multiline "" "foo = _|_11 + bar" "")
+  (tests-utils--multiline "" "foo = 12_|_ + bar"  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (text-mode)
+    vim-tests/increment-at-point-6
+    (execute-kbd-macro (kbd "+"))
+  (tests-utils--multiline "" "foo = 1_|_1 + bar" "")
+  (tests-utils--multiline "" "foo = 12_|_ + bar"  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (text-mode)
+    vim-tests/increment-at-point-7
+    (execute-kbd-macro (kbd "+"))
+  (tests-utils--multiline "" "foo = 11_|_ + bar" "")
+  (tests-utils--multiline "" "foo = 12_|_ + bar"  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (text-mode)
+    vim-tests/increment-at-point-8
+    (execute-kbd-macro (kbd "+"))
+  (tests-utils--multiline "" "foo = -11_|_ + bar" "")
+  (tests-utils--multiline "" "foo = -10_|_ + bar"  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (text-mode)
+    vim-tests/increment-at-point-9
+    (execute-kbd-macro (kbd "+"))
+  (tests-utils--multiline "" "foo = -1_|_1 + bar" "")
+  (tests-utils--multiline "" "foo = -10_|_ + bar"  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (text-mode)
+    vim-tests/increment-at-point-10
+    (execute-kbd-macro (kbd "+"))
+  (tests-utils--multiline "" "foo = -_|_11 + bar" "")
+  (tests-utils--multiline "" "foo = -10_|_ + bar"  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (text-mode)
+    vim-tests/increment-at-point-11
+    (execute-kbd-macro (kbd "+"))
+  (tests-utils--multiline "" "foo = _|_-11 + bar" "")
+  (tests-utils--multiline "" "foo = -10_|_ + bar"  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (text-mode)
+    vim-tests/increment-at-point-12
+    (execute-kbd-macro (kbd "+"))
+  (tests-utils--multiline "" "foo = +11_|_ + bar" "")
+  (tests-utils--multiline "" "foo = +12_|_ + bar"  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (text-mode)
+    vim-tests/increment-at-point-13
+    (execute-kbd-macro (kbd "+"))
+  (tests-utils--multiline "" "foo = +1_|_1 + bar" "")
+  (tests-utils--multiline "" "foo = +12_|_ + bar"  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (text-mode)
+    vim-tests/increment-at-point-14
+    (execute-kbd-macro (kbd "+"))
+  (tests-utils--multiline "" "foo = +_|_11 + bar" "")
+  (tests-utils--multiline "" "foo = +12_|_ + bar"  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (text-mode)
+    vim-tests/increment-at-point-15
+    (execute-kbd-macro (kbd "+"))
+  (tests-utils--multiline "" "foo = _|_+11 + bar" "")
+  (tests-utils--multiline "" "foo = +12_|_ + bar"  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (text-mode)
+    vim-tests/increment-at-point-16
+    (execute-kbd-macro (kbd "+"))
+  (tests-utils--multiline "" "foo = _|_+11.2e-5 + bar" "")
+  (tests-utils--multiline "" "foo = +12_|_.2e-5 + bar"  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (text-mode)
+    vim-tests/increment-at-point-17
+    (execute-kbd-macro (kbd "+"))
+  (tests-utils--multiline "" "foo = +11_|_.2e-5 + bar" "")
+  (tests-utils--multiline "" "foo = +12_|_.2e-5 + bar"  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (text-mode)
+    vim-tests/increment-at-point-is-repeatable-1
+    (execute-kbd-macro (kbd "+ ."))
+  (tests-utils--multiline "" "foo = 1_|_1 + bar" "")
+  (tests-utils--multiline "" "foo = 13_|_ + bar"  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (text-mode)
+    vim-tests/increment-at-point-takes-numeric-arg-1
+    (execute-kbd-macro (kbd "5 +"))
+  (tests-utils--multiline "" "foo = 1_|_1 + bar" "")
+  (tests-utils--multiline "" "foo = 16_|_ + bar"  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (text-mode)
+    vim-tests/increment-at-point-takes-numeric-arg-2
+    (execute-kbd-macro (kbd "5 + ."))
+  (tests-utils--multiline "" "foo = 1_|_1 + bar" "")
+  (tests-utils--multiline "" "foo = 21_|_ + bar"  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (text-mode)
+    vim-tests/increment-at-point-takes-numeric-arg-2
+    (execute-kbd-macro (kbd "5 + 4 ."))
+  (tests-utils--multiline "" "foo = 1_|_1 + bar" "")
+  (tests-utils--multiline "" "foo = 36_|_ + bar"  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (text-mode)
+    vim-tests/increment-region-1
+    (execute-kbd-macro (kbd "v +"))
+  (tests-utils--multiline "" "foo = 1_|_9 + bar" "")
+  (tests-utils--multiline "" "foo = 110_|_ + bar"  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (text-mode)
+    vim-tests/increment-region-2
+    (execute-kbd-macro (kbd "v n +"))
+  (tests-utils--multiline "" "foo = foo-_|_19 + bar" "")
+  (tests-utils--multiline "" "foo = foo-20_|_ + bar"  ""))
+
 (provide 'vim-tests)
 
 ;; Local Variables:
