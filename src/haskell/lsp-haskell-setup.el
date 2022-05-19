@@ -28,6 +28,7 @@
 (advice-add 'lsp-ui-sideline--margin-width :around #'lsp-ui-sideline--haskell-margin-width)
 
 (defun lsp-haskell-get-range-text (range)
+  (cl-assert range)
   (-let* (((&Range :start (&Position :character start-char :line start-line)
                    :end (&Position :character end-char :line end-line))
            range)
@@ -49,14 +50,21 @@
            (lsp-request "textDocument/hover"
                         (lsp--text-document-position-params)))
           (response-markdown
-           (if (and (lsp-markup-content? contents)
-                    (string= (lsp:markup-content-kind contents) lsp/markup-kind-markdown))
-               (lsp:markup-content-value contents)
-             (error "Expected markdown MarkupContent but got something else: %s" contents))))
+           (cond
+             ((and (lsp-markup-content? contents)
+                   (string= (lsp:markup-content-kind contents) lsp/markup-kind-markdown))
+              (lsp:markup-content-value contents))
+             (contents
+              (error "Expected markdown MarkupContent but got something else: %s" contents))
+             (t
+              (error "LSP didn’t provide any result")))))
 
     ;; Don’t do any processing if lsp didn’t identify any identifiers at point.
     (when (string= "" response-markdown)
       (error "No identifier at point"))
+
+    (unless range?
+      (error "LSP returned stale result, please retry"))
 
     (let* ((lines
             (reverse
