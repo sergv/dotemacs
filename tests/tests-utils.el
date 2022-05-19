@@ -80,7 +80,6 @@
     :action ,action
     :contents ,contents))
 
-
 (provide 'tests-utils)
 
 ;; Local Variables:
