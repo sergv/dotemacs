@@ -160,7 +160,9 @@
       ;; Whether to save existing clipboard value in kill-ring when doing a kill/yank operation.
       save-interprogram-paste-before-kill nil
 
-      fill-colunm 80)
+      fill-colunm 80
+
+      message-log-max 8192)
 
 (when-emacs-version (<= 28 it)
   (when (boundp 'native-comp-deferred-compilation-deny-list)

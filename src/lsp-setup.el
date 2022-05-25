@@ -68,6 +68,10 @@
       lsp-signature-render-documentation nil
       lsp-eldoc-enable-hover nil
 
+      ;; The ‘message-log-max’ got updated while loading our config so
+      ;; propagate updated value here.
+      lsp-log-max message-log-max
+
       ;; ;; For debugging
       ;; lsp-response-timeout 10000
 
