@@ -175,12 +175,12 @@
       (save-match-data
         (unless (string-match (rx "*Defined in ‘"
                                   (group (+ (not (any ?\n ?\s ?\’)))) "’*"
-                                  (? ?\r)
-                                  ?\n
+                                  (? (? ?\r) ?\n)
                                   " *(" (group (+ (not (any ?\n ?\))))) ")*")
                               response-markdown)
-          (error "Response does not contain hint about where ‘%s’ is defined"
-                 identifier))
+          (error "Response does not contain hint about where ‘%s’ is defined:\n%s"
+                 identifier
+                 response-markdown))
 
         (let* ((module (match-string-no-properties 1 response-markdown))
                (package (match-string-no-properties 2 response-markdown))
