@@ -11,15 +11,14 @@
   (interactive)
   (let* ((win (selected-window))
          (current-buf (window-buffer win))
-         (prev-bufs (window-prev-buffers win)))
-
-    (while (let ((buf (caar prev-bufs)))
-             (or (not (buffer-live-p buf))
-                 (equal buf current-buf)))
-      (pop prev-bufs))
+         (prev-bufs (--drop-while (let ((buf (car it)))
+                                    (or (not (buffer-live-p buf))
+                                        (equal buf current-buf)))
+                                  (window-prev-buffers win))))
 
     (if-let ((next-buf-entry (car prev-bufs)))
         (progn
+          (set-window-prev-buffers win prev-bufs)
           (switch-to-buffer (car next-buf-entry))
           (set-window-start win (cadr next-buf-entry))
           (goto-char (caddr next-buf-entry)))
