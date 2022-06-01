@@ -2130,6 +2130,45 @@
      "foo x = [_|_]"
      "")))
 
+(ert-deftest vim-tests/dquote-insert-1/haskell-mode ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "i \""))
+    (tests-utils--multiline
+     ""
+     "foo x = _|_"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = \"_|_\""
+     "")))
+
+(ert-deftest vim-tests/dquote-insert-2/haskell-mode ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "i \""))
+    (tests-utils--multiline
+     ""
+     "foo x = bar \"_|_\" baz"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = bar \"\"_|_ baz"
+     "")))
+
+(ert-deftest vim-tests/dquote-insert-3/haskell-mode ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "i \""))
+    (tests-utils--multiline
+     ""
+     "foo x = bar \"xxx_|_\" baz"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = bar \"xxx\"_|_ baz"
+     "")))
+
 (ert-deftest vim-tests/brace-insert-1/haskell-mode ()
   (vim-tests--test-fresh-buffer-contents-init
       (haskell-mode)
