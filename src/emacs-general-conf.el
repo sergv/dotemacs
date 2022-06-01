@@ -148,6 +148,10 @@
       sentence-end-double-space nil
 
       vc-display-status nil
+      ;; Don’t want vc to do anything by default. Could enable
+      ;; depending on circumstances and whether I need it. But not by
+      ;; default!
+      vc-handled-backends nil
 
       ;; LSP may produce pretty large outputs during its work.
       read-process-output-max 32768
