@@ -130,17 +130,23 @@ that next 2 characters are AFTER1 and AFTER2."
           (forward-char -2))))))
 
 ;;;###autoload
-(defun smart-operators-double-quote ()
-  (interactive)
-  (smart-operators--insert-pair ?\"
-                                ?\"
-                                (lambda (before)
-                                  (not (or (eq before ?\()
-                                           (eq before ?\[)
-                                           (eq before ?\\))))
-                                (lambda (after)
-                                  (not (or (eq after ?\))
-                                           (eq after ?\]))))))
+(defun smart-operators-double-quote (literal-insertion?)
+  (interactive "P")
+  (cond
+    ((eq (char-after) ?\")
+     (if literal-insertion?
+         (insert-char ?\")
+       (forward-char)))
+    (t
+     (smart-operators--insert-pair ?\"
+                                   ?\"
+                                   (lambda (before)
+                                     (not (or (eq before ?\()
+                                              (eq before ?\[)
+                                              (eq before ?\\))))
+                                   (lambda (after)
+                                     (not (or (eq after ?\))
+                                              (eq after ?\]))))))))
 
 ;;;###autoload
 (defun smart-operators-open-paren ()
