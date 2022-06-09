@@ -288,9 +288,7 @@ then Bar would be the result."
 
 (defun-once haskell-abbrev+-make-abbrevs
   (let* ((expand-qualified-import-snippet
-          "import qualified $1 as ${1:$(haskell-abbrev+-extract-first-capital-char (haskell-abbrev+-extract-mod-name yas-text))}$0")
-         (expand-qualified-import-snippet-action
-          (lambda () (yas-expand-snippet "import qualified $1 as ${1:$(haskell-abbrev+-extract-first-capital-char (haskell-abbrev+-extract-mod-name yas-text))}$0")))
+          "import $1 qualified as ${1:$(haskell-abbrev+-extract-first-capital-char (haskell-abbrev+-extract-mod-name yas-text))}$0")
          (language-snippet "{-# LANGUAGE ${1:\$\$(yas-choose-value (get-haskell-language-extensions))} #-}$0")
          (options-snippet "{-# OPTIONS_GHC ${1:\$\$(yas-choose-value (haskell-abbrev+--get-ghc-flags))} #-}$0")
          (dump-core-snippet
