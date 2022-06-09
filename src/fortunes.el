@@ -531,7 +531,9 @@ They are a superb high-level documentation.”
   "Quotes and epigrams by Alan J. Perlis")
 
 (defvar *good-fortunes*
-  ["“γνωθι σεαUτόυ \(Познай себя\)”
+  ["Where there’s a will, there’s a way"
+
+	 "“γνωθι σεαUτόυ \(Познай себя\)”
 - Inscription at Temple of Apollo at Delphi"
 
    "“Non est salvatori salvator,
