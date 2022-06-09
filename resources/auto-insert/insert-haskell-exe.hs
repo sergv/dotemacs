@@ -15,8 +15,8 @@ module ${haskell path to module name} (main) where
 import Options.Applicative
 
 -- import Data.Bimap (Bimap)
--- import qualified Data.Bimap as BM
--- import qualified Data.List as L
+-- import Data.Bimap qualified as BM
+-- import Data.List qualified as L
 --
 -- data Verbosity = Debug | Info | Warning | Error | None
 --   deriving (Eq, Ord, Show, Enum, Bounded)
