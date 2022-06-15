@@ -2762,7 +2762,30 @@
     (tests-utils--multiline
      ""
      "import Data.Set (Set)"
-     "import qualified Data.Set as S _|_"
+     "import qualified Data.Set as S_|_"
+     "foo x = do"
+     "  bar (x + 1) y \"foo\""
+     "")))
+
+(ert-deftest vim-tests/haskell-abbrev-7a ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (progn
+        (haskell-ext-tracking-mode +1)
+        (should (haskell-ext-tracking-have-import-qualified-post?))
+        (execute-kbd-macro (kbd "i i m p o r t s SPC")))
+    (tests-utils--multiline
+     ""
+     "{-# LANGUAGE ImportQualifiedPost #-}"
+     "_|_"
+     "foo x = do"
+     "  bar (x + 1) y \"foo\""
+     "")
+    (tests-utils--multiline
+     ""
+     "{-# LANGUAGE ImportQualifiedPost #-}"
+     "import Data.Set (Set)"
+     "import Data.Set qualified as S_|_"
      "foo x = do"
      "  bar (x + 1) y \"foo\""
      "")))
