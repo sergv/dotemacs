@@ -49,7 +49,9 @@
                                                       (seq symbol-start "Debug.Trace" symbol-end (* any) "qualified")))
     (save-excursion
       (haskell-navigate-imports-go)
-      (insert "import qualified Debug.Trace\n\n"))))
+      (if (haskell-ext-tracking-have-import-qualified-post?)
+          (insert "import Debug.Trace qualified\n\n")
+        (insert "import qualified Debug.Trace\n\n")))))
 
 (defun haskell-insert-general-info-template (_arg monadic? trace-func-name)
   (let* ((start-position (point))
@@ -286,10 +288,22 @@ then Bar would be the result."
     (cl-assert (-all? #'stringp flags))
     flags))
 
+(defun haskell-insert-qualified-import ()
+  (yas-expand-snippet
+   (if (haskell-ext-tracking-have-import-qualified-post?)
+       "import $1 qualified as ${1:$(haskell-abbrev+-extract-first-capital-char (haskell-abbrev+-extract-mod-name yas-text))}$0"
+     "import qualified $1 as ${1:$(haskell-abbrev+-extract-first-capital-char (haskell-abbrev+-extract-mod-name yas-text))}$0")))
+
+(defun haskell-insert-import-block (type-name module-name alias)
+  (insert (concat (if type-name
+                      (concat "import " module-name " (" type-name ")\n")
+                    "")
+                  (if (haskell-ext-tracking-have-import-qualified-post?)
+                      (concat "import " module-name " qualified as " alias)
+                    (concat "import qualified " module-name " as " alias)))))
+
 (defun-once haskell-abbrev+-make-abbrevs
-  (let* ((expand-qualified-import-snippet
-          "import $1 qualified as ${1:$(haskell-abbrev+-extract-first-capital-char (haskell-abbrev+-extract-mod-name yas-text))}$0")
-         (language-snippet "{-# LANGUAGE ${1:\$\$(yas-choose-value (get-haskell-language-extensions))} #-}$0")
+  (let* ((language-snippet "{-# LANGUAGE ${1:\$\$(yas-choose-value (get-haskell-language-extensions))} #-}$0")
          (options-snippet "{-# OPTIONS_GHC ${1:\$\$(yas-choose-value (haskell-abbrev+--get-ghc-flags))} #-}$0")
          (dump-core-snippet
           (concat
@@ -399,8 +413,8 @@ then Bar would be the result."
                   (cons (--mapcat (list (concat it "q") (concat "q" it))
                                   (make-abbrev+-prefixes "import" 1))
                         (make-abbrev+-abbreviation
-                         :action-type 'yas-snippet
-                         :action-data expand-qualified-import-snippet
+                         :action-type 'function-with-side-effects
+                         :action-data #'haskell-insert-qualified-import
                          :predicate #'haskell-abbrev++--import-expand-pred))
 
                   (cons (list "pp"
@@ -458,11 +472,8 @@ then Bar would be the result."
                                 (list "import")
                               (make-abbrev+-prefixes "import" 2)))
                      (make-abbrev+-abbreviation
-                      :action-type 'literal-string
-                      :action-data (concat (if type-name
-                                               (concat "import " module-name " (" type-name ")\n")
-                                             "")
-                                           "import qualified " module-name " as " alias)
+                      :action-type 'function-with-side-effects-and-args
+                      :action-data (list #'haskell-insert-import-block type-name module-name alias)
                       :predicate #'haskell-abbrev++--import-expand-pred)))
              '(("m"   "Data.Map.Strict"               "Map"          "M"   nil)
                ("s"   "Data.Set"                      "Set"          "S"   nil)
