@@ -27,14 +27,16 @@
   ;;       ^^^
   (followed-by-space nil :read-only t)
   ;; Symbol, one of 'literal-string, 'literal-string-no-space-at-end ,
-  ;; 'function-result, 'function-with-side-effects or 'yas-snippet.
+  ;; 'function-with-side-effects, 'function-with-side-effects-and-args
+  ;; or 'yas-snippet.
   (action-type nil :read-only t)
   ;; Action, type depends on value of action-type field.
   ;; For 'literal-string it's a string.
   ;; For 'literal-string-no-space-at-end it's a string.
-  ;; For 'function-result it's a function that returns a string.
   ;; For 'function-with-side-effects it's a function that inserts the
   ;; necessary content itself.
+  ;; For 'function-with-side-effects-and-args it's a function that inserts the
+  ;; necessary content itself and takes some args.
   ;; For 'yas-snippet it's a string that will be passed to `yas-expand-snippet'.
   (action-data nil :read-only t)
   ;; Function of no arguments, either symbol or lambda, that
@@ -61,10 +63,16 @@
      ((or `literal-string `literal-string-no-space-at-end `yas-snippet)
       (cl-assert (stringp action-data))
       t)
-     ((or `function-result `function-with-side-effects)
+     (`function-with-side-effects
       (cl-assert (or (symbolp action-data)
                      (functionp action-data)
                      (byte-code-function-p action-data)))
+      t)
+     (`function-with-side-effects-and-args
+      (cl-assert (and (listp action-data)
+                      (or (symbolp (car action-data))
+                          (functionp (car action-data))
+                          (byte-code-function-p (car action-data)))))
       t)
      (typ nil)))
   (make--abbrev+-abbreviation
@@ -87,20 +95,16 @@ second being actual substituted text."
            (cl-assert (stringp data))
            (insert data)
            (eq action-type 'literal-string))
-          (`function-result
-           (cl-assert (or (symbolp data) (functionp data) (byte-code-function-p data)))
-           (let ((res (funcall data)))
-             (unless (stringp res)
-               (error "Action %s didn't return string"
-                      (substring-no-properties
-                       (pp-to-string data)
-                       0
-                       80)))
-             (insert res))
-           t)
           (`function-with-side-effects
            (cl-assert (or (symbolp data) (functionp data) (byte-code-function-p data)))
            (funcall data)
+           nil)
+          (`function-with-side-effects-and-args
+           (cl-assert (listp data))
+           (let ((func-name (car data))
+                 (args (cdr data)))
+             (cl-assert (or (symbolp func-name) (functionp func-name) (byte-code-function-p func-name)))
+             (apply func-name args))
            nil)
           (`yas-snippet
            (cl-assert (stringp data))
@@ -110,8 +114,6 @@ second being actual substituted text."
            (error "Unknown action type %s of abbreviation %s" typ abbrev)))
       (awhen (abbrev+-abbreviation-on-successful-expansion abbrev)
         (funcall it)))))
-
-
 
 (defun abbrev+-compile-abbreviations (abbrevs)
   (let ((space-followed (make-empty-trie))
