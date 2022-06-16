@@ -26,6 +26,7 @@
                 ("LICENSE\\'"       "insert.license-apache-2.0")
 
                 ("tests?[/\\].*Test[^/\\]*\\.hs\\'"              "insert-haskell-test.hs")
+                ("TestMain\\.hs\\'"                              "insert-haskell-test.hs")
                 ("\\(?:exes?[/\\][^/\\]+\\|[/\\]Main\\)\\.hs\\'" "insert-haskell-exe.hs")
                 ("\\.\\(?:hs\\(c\\|ig\\)?\\|chs\\)\\'"           "insert.hs.template")
                 ("\\.cabal\\'"                                   "insert.cabal.template")
