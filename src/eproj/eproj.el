@@ -826,7 +826,8 @@ variable or symbol 'unresolved.")
                                                                nil ;; absolute names
                                                                (rx bos
                                                                    (or ".git"
-                                                                       "cabal.project")
+                                                                       "cabal.project"
+                                                                       "cabal.project.local")
                                                                    eos)
                                                                t ;; nosort
                                                                )))))
