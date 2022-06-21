@@ -8,7 +8,8 @@
 
 (eval-when-compile
   (require 'cl)
-  (require 'macro-util))
+  (require 'macro-util)
+  (require 'set-up-platform))
 
 (when-emacs-version (or (< it 28)
                         (not (and (fboundp #'native-comp-available-p)
