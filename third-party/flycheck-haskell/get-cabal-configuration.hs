@@ -235,12 +235,14 @@ import Distribution.Types.LibraryName (libraryNameString)
 import Distribution.Utils.Path (getSymbolicPath)
 #endif
 
-newtype Hash = Hash Int
+import Data.Int
+
+newtype Hash = Hash Int64
   deriving (Eq, Ord)
 
 mkHash :: C8.ByteString -> Hash
 -- getHash = C8.foldl' (\hash c -> hash * 33 + ord c) 5381
-mkHash = Hash . C8.foldl' (\hash c -> (hash `unsafeShiftL` 5 + hash) + ord c) 5381
+mkHash = Hash . C8.foldl' (\hash c -> (hash `unsafeShiftL` 5 + hash) + fromIntegral (ord c)) 5381
 
 instance Semigroup Hash where
   Hash x <> Hash y = Hash $
