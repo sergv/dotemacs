@@ -29,108 +29,14 @@
   "Undefined value not equal to anything but itself and not creatable
 by any means other than direct referencing via ‘+undef’.")
 
-;; (autoload 'if-let "subr-x" nil nil 'macro)
-
-(defsubst remap-interval (a b c d x)
-  "Remap x from [a, b] into [c, d]"
-  (declare (pure t) (side-effect-free error-free))
-  (+ c
-     (* (- x a)
-        (/ (cl-coerce (- d c) 'float)
-           (cl-coerce (- b a) 'float)))))
-
-(defun make-random-gen (init)
-  (declare (pure t) (side-effect-free error-free))
-  (let ((a 0)
-        (b #x7fff)
-        (seed init))
-    (lambda (begin end)
-      (setf seed (logand (1+ (* seed 69069))
-                         b))
-      (remap-interval a b begin end seed))))
-
-(defun make-simple-random-generator ()
-  (declare (pure t) (side-effect-free error-free))
-  (let* ((time (current-time))
-         (a (first time))
-         (b (second time))
-         (microsec (third time))
-         (gen (make-random-gen
-               ;; make an obscure seed
-               (+ (logxor a b)
-                  ;; this is wery much like random noise
-                  microsec
-                  (emacs-pid)))
-              ))
-    (lambda ()
-      (funcall gen 0.0 1.0))))
-
-;; yeilds values in range [0..1)
-(defun make-tausworthe-random-gen (seed1 seed2 seed3)
-  (declare (pure t) (side-effect-free error-free))
-  (let ((2-to-32 (expt 2 32)))
-    (let ((tausworthe
-           (lambda (s a b c d)
-             (mod (logxor (ash (logand s c) (- d))
-                          (ash (logxor s
-                                       (ash s (- a)))
-                               b))
-                  2-to-32)))
-          (a seed1)
-          (b seed2)
-          (c seed3))
-      (lambda ()
-        (setf a (funcall tausworthe
-                         a
-                         13
-                         19
-                         4294967294
-                         12)
-              b (funcall tausworthe
-                         b
-                         2
-                         25
-                         4294967288
-                         4)
-              c (funcall tausworthe
-                         c
-                         3
-                         11
-                         4294967280
-                         17))
-        (/ (logxor a b c) (float 2-to-32))))))
-
-(defun make-tausworthe-random-generator ()
-  "Return tausworthe random generator obtained
-by seeding `make-tausworthe-random-gen' with
-current time and"
-  (let* ((time (current-time))
-         (a (car time))
-         (b (cadr time))
-         (microsec (caddr time))
-         (c (+ (* 65536 a) b)))
-    (make-tausworthe-random-gen
-     (+ (min c microsec) 2)
-     (+ (emacs-pid) 8)
-     (+ (max c microsec) 16))))
-
-(defvar *random-gen*
-  ;; NB on x32 systems hightest three bits will be zero
-  ;; and (expt 2 32)/(ash 1 32) will be 0, so use
-  ;; simpler generator that has no overflows
-  (if (= 0 (ash 1 31))
-      (make-simple-random-generator)
-    (make-tausworthe-random-generator))
-  "Global random generator")
-
-(defun random-shuffle (vect random-gen)
+(defun random-shuffle (vect)
   "Randoly shuffle vector VECT inplace with supply
 of random numbers from RANDOM-GEN."
   (typep vect 'vector)
   (cl-loop
     for i downfrom (1- (length vect)) to 1
     ;; may yield i
-    for j = (round (* i (funcall random-gen)))
+    for j = (random (1+ i))
     do (cl-psetf (aref vect i) (aref vect j)
                  (aref vect j) (aref vect i)))
   vect)
@@ -157,7 +63,6 @@ of random numbers from RANDOM-GEN."
         do
         (insert line)
         (insert "\n")))))
-
 
 ;;;; file utilities
 
