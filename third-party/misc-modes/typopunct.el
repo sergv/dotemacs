@@ -52,7 +52,7 @@
 
 (defvar typopunct-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [?-] 'typopunct-insert-typographical-dashes)
+    (define-key map [?-]  'typopunct-insert-typographical-dashes)
     (define-key map [?\"] 'typopunct-insert-quotation-mark)
     (define-key map [?\'] 'typopunct-insert-single-quotation-mark)
     map)
@@ -231,12 +231,11 @@ convention is used depends on either the value of the text property
 `typopunct-change-language' for conveniently changing the
 typographical convention.
 
-Note that you may always type `C-q C-\"', `C-q C-\' or `C-q C--' to
+Note that you may always type `C-q \"', `C-q \' or `C-q -' to
 insert the default ASCII characters."
   :init-value nil
   :lighter " Typo"
   :keymap typopunct-map)
-
 
 (defun typopunct-change-language (language &optional default)
   "Change language assumed by `typopunct-mode' to LANGUAGE.
