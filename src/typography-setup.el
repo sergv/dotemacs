@@ -23,10 +23,28 @@
       electric-quote-string nil
       electric-quote-context-sensitive t)
 
+(defun typography-insert-vanilla-dash (n)
+  (interactive "P")
+  (insert-char ?- n))
+
+(defun typography-insert-vanilla-quotation-mark (n)
+  (interactive "P")
+  (insert-char ?\" n))
+
+(defun typography-insert-vanilla-single-quotation-mark (n)
+  (interactive "P")
+  (insert-char ?\' n))
+
 ;;;###autoload
 (defun typography-setup ()
   (typopunct-mode 1)
-  (electric-quote-local-mode 1))
+  (electric-quote-local-mode 1)
+
+  (when vim-mode
+    (def-keys-for-map vim-insert-mode-local-keymap
+      ("C--"  typography-insert-vanilla-dash)
+      ("C-\"" typography-insert-vanilla-quotation-mark)
+      ("C-\'" typography-insert-vanilla-single-quotation-mark))))
 
 ;; Local Variables:
 ;; End:
