@@ -56,6 +56,32 @@ _a_lign"
 ;;;###autoload
 (add-hook 'nix-mode-hook #'nix-setup)
 
+;;;###autoload
+(defun nix-repl-setup ()
+  (init-repl :use-whitespace t
+             :bind-return t
+             :create-keymaps t)
+
+  (def-keys-for-map vim-normal-mode-local-keymap
+    ("SPC SPC"  comint-clear-prompt))
+
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-insert-mode-local-keymap)
+    ("<tab>"    completion-at-point)
+    ("<up>"     comint-previous-input)
+    ("<down>"   comint-next-input)
+
+    ("C-t"      comint-previous-prompt)
+    ("C-h"      comint-next-prompt)
+    ("S-<up>"   comint-previous-prompt)
+    ("S-<down>" comint-next-prompt)
+
+    ("C-SPC"    vim:comint-clear-buffer-above-prompt:interactive)
+    ("M-p"      browse-comint-input-history)))
+
+;;;###autoload
+(add-hook 'nix-repl-mode-hook #'nix-repl-setup)
+
 (provide 'nix-setup)
 
 ;; Local Variables:
