@@ -187,7 +187,8 @@ Intended to be used with comment-util-mode."
               js-mode
               json-mode
               css-mode
-              verilog-mode)
+              verilog-mode
+              nix-drv-mode)
              .
              ,(make-comment-format :one-line "//"
                                    :line-regexp "//+"
