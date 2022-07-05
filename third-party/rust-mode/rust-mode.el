@@ -260,8 +260,8 @@ See `prettify-symbols-compose-predicate'."
 
   (rust-mode--set-up-local-vars)
 
-  (add-hook 'before-save-hook 'rust-before-save-hook nil t)
-  (add-hook 'after-save-hook 'rust-after-save-hook nil t)
+  (add-hook 'before-save-hook rust-before-save-hook nil t)
+  (add-hook 'after-save-hook rust-after-save-hook nil t)
 
 
   ;; (setq-local rust-buffer-project nil)
