@@ -3223,8 +3223,7 @@
      "    let foo = 1;"
      "    let bar = baz(foo + 1)_|_;"
      "}"
-     "")
-    ))
+     "")))
 
 (ert-deftest vim-tests/haskell-cmd-insert-line-below-1 ()
   (vim-tests--test-fresh-buffer-contents-init
