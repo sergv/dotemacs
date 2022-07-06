@@ -10,11 +10,14 @@ set -u
 # propagate errors from all parts of pipes
 set -o pipefail
 
-# ~/projects/emacs/installed/local-27.1-debug/bin/emacs \
-# /home/sergey/projects/emacs/emacs/src/emacs \
-emacs-pristine \
-    --batch --quick --no-window-system --load src/dump.el --eval '(progn (dump-main "/home/sergey/.emacs.d"))'
-# emacs
+source "$(dirname "$(readlink -f "$0")")/utils.sh"
+
+native_comp="$(native-comp-available)"
+
+if [[ "$native_comp" = "nil" ]]; then
+    emacs-pristine \
+        --batch --quick --no-window-system --load src/dump.el --eval '(progn (dump-main "/home/sergey/.emacs.d"))'
+fi
 
 exit 0
 

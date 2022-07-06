@@ -66,7 +66,10 @@
 (require 'common)
 (require 'eproj-symbnav)
 (require 'eproj-tag-index)
+
+(require 'cc-autoload)
 (require 'haskell-autoload)
+(require 'rust-autoloads)
 
 ;;; eproj languages
 

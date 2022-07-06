@@ -9,6 +9,8 @@ set -eu
 
 emacs_dir=${1:-"${EMACS_ROOT}"}
 
+source "$(dirname "$(readlink -f "$0")")/utils.sh"
+
 if [[ ! -d "$emacs_dir" ]]; then
     echo "Emacs directory is not configured properly: either set EMACS_ROOT environment variable or pass directory to this script"
     exit 1
@@ -27,11 +29,6 @@ function fatal() {
 
 function define() {
     IFS='\n' read -r -d '' ${1} || true
-}
-
-function native-comp-available() {
-    emacs-pristine -Q --batch \
-          --eval "(message \"%s\" (and (fboundp #'native-comp-available-p) (native-comp-available-p)))" 2>&1
 }
 
 function update-dir-autoloads() {
