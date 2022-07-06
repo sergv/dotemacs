@@ -51,12 +51,19 @@
     (require 'cycle-on-lines)
     (require 'common)
     (require 'common-heavy)
-    (require 'datastructures)
+
+    (require 'append-list)
+    (require 'bimap)
+    (require 'bisect)
+    (require 'sorted-set)
+    (require 'trie)
 
     (require 'backups)
     (require 'emacs-general-conf)
     (require 'hl-paren)
     (require 'mode-line-setup)
+
+    (require 'local-autoloads)
 
     (require 'dash)
     (require 'f)
@@ -64,6 +71,8 @@
     (require 'v)
 
     (require 'prev-buffer-tracking)
+
+    (require 'messages-buffer-setup)
 
     (require 'browse-kill-ring)
     (require 'company)
