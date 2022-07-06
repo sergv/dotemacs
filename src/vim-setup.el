@@ -407,7 +407,7 @@ _<right>_: move tab to the right"
   ("C-\""          typopunct-insert-quotation-mark)
   ("C--"           typopunct-insert-typographical-dashes)
 
-  ("\{"            pseudoparedit-insert-brace-spaces))
+  ("\{"            pseudoparedit-insert-brace))
 
 (def-keys-for-map (vim-insert-mode-keymap
                    vim-ex-keymap)
