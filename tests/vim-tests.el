@@ -3670,6 +3670,12 @@
   (tests-utils--multiline "" "foo _|_ bar" "")
   (tests-utils--multiline "" "foo \"_|_\" bar" ""))
 
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (text-mode c-mode rust-mode)
+    vim-tests/pseudoparedit-8d
+    (execute-kbd-macro (kbd "i \" x \""))
+  (tests-utils--multiline "" "foo _|_ bar" "")
+  (tests-utils--multiline "" "foo \"x\"_|_ bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (text-mode)
