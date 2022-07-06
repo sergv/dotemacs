@@ -28,17 +28,22 @@
            (insert-char close)
            (forward-char -2))))
       (t
-       (when (and insert-space-before?
+       (when (and (if (functionp insert-space-before?)
+                      (funcall insert-space-before? before)
+                    insert-space-before?)
                   (not (whitespace-char? before)))
          (insert-char ?\s))
        (insert-char open)
        (insert-char close)
-       (if (or (not insert-space-after?)
-               (whitespace-char? (char-after)))
-           (forward-char -1)
-         (progn
-           (insert-char ?\s)
-           (forward-char -2)))))))
+       (let ((after (char-after)))
+         (if (or (not (if (functionp insert-space-after?)
+                          (funcall insert-space-after? after)
+                        insert-space-after?))
+                 (whitespace-char? after))
+             (forward-char -1)
+           (progn
+             (insert-char ?\s)
+             (forward-char -2))))))))
 
 ;;;###autoload
 (defun pseudoparedit-insert-paren ()
@@ -59,16 +64,16 @@
   (pseudoparedit--insert-pair ?\{ ?\} nil nil nil nil))
 
 ;;;###autoload
-(defun pseudoparedit-insert-double-quote ()
-  "Smart insertion of paired \"\"delimiters."
-  (interactive)
-  (pseudoparedit--insert-pair ?\" ?\" t nil nil nil))
-
-;;;###autoload
-(defun pseudoparedit-insert-brace-spaces ()
-  "Smart insertion of paired \{\} delimiters."
-  (interactive)
-  (pseudoparedit--insert-pair ?\{ ?\} t nil nil nil))
+(defun pseudoparedit-insert-double-quote (&optional literal-insertion?)
+  "Smart insertion of paired \"\" delimiters."
+  (interactive "P")
+  (cond
+    (literal-insertion?
+     (insert-char ?\"))
+    ((eq (char-after) ?\")
+     (forward-char))
+    (t
+     (pseudoparedit--insert-pair ?\" ?\" t nil nil nil))))
 
 ;;;###autoload
 (defun pseudoparedit-backspace ()
