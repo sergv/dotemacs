@@ -133,10 +133,10 @@ that next 2 characters are AFTER1 and AFTER2."
 (defun smart-operators-double-quote (literal-insertion?)
   (interactive "P")
   (cond
+    (literal-insertion?
+     (insert-char ?\"))
     ((eq (char-after) ?\")
-     (if literal-insertion?
-         (insert-char ?\")
-       (forward-char)))
+     (forward-char))
     (t
      (smart-operators--insert-pair ?\"
                                    ?\"
