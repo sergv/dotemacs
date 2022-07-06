@@ -19,7 +19,7 @@ which ghc >/dev/null && \
           ( [[ -f get-cabal-configuration.exe ]] && strip get-cabal-configuration.exe || strip get-cabal-configuration)
     )
 
-./scripts/recompile.sh && ./tests/run-tests.sh "${@}"
+./scripts/recompile.sh && ./scripts/dump.sh && ./tests/run-tests.sh "${@}"
 
 exit 0
 
