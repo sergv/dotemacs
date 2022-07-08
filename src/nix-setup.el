@@ -7,7 +7,8 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'macro-util))
+  (require 'macro-util)
+  (require 'hydra-setup))
 
 (require 'align-util)
 (require 'hydra-setup)
@@ -28,7 +29,7 @@
 
 (defun nix-align-generic ()
   (interactive)
-  (align-util-align-on-equals))
+  (generic-align-on-equals))
 
 (defhydra-ext hydra-nix-align (:exit t :foreign-keys nil :hint nil)
   "
@@ -48,6 +49,9 @@ _a_lign"
 
   (company-mode +1)
   (setq-local company-backends '(company-nix))
+
+  (def-keys-for-map vim-visual-mode-local-keymap
+    ("g"        hydra-nix-vim-visual-g-ext/body))
 
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-insert-mode-local-keymap)
