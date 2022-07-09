@@ -466,12 +466,13 @@
               "*magit-process*"
               "*Help*"
               "*P4 update status*")
+          (or " *code-conversion-work*"
+              " *code-converting-work*"
+              " *LV*"
+              " *nix-repl completions redirect*"
+              " *server*")
           (seq (or " *Minibuf"
                    " *Echo Area "
-                   " *LV*"
-                   " *code-conversion-work*"
-                   " *code-converting-work*"
-                   " *server*"
                    " *eldoc for "
                    " markdown-mode-fontification:")
                (* anything))
