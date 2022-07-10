@@ -43,6 +43,11 @@ _=_: on equals"
 _a_lign"
   ("a" hydra-nix-align/body))
 
+(defhydra-derive hydra-nix-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
+  "
+<tab>: format buffer"
+  ("<tab>" nix-format-buffer))
+
 ;;;###autoload
 (defun nix-setup ()
   (init-common :use-whitespace t)
@@ -50,8 +55,11 @@ _a_lign"
   (company-mode +1)
   (setq-local company-backends '(company-nix))
 
+  (def-keys-for-map vim-normal-mode-local-keymap
+    ("g" hydra-nix-vim-normal-g-ext/body))
+
   (def-keys-for-map vim-visual-mode-local-keymap
-    ("g"        hydra-nix-vim-visual-g-ext/body))
+    ("g" hydra-nix-vim-visual-g-ext/body))
 
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-insert-mode-local-keymap)
