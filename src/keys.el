@@ -80,8 +80,9 @@
 
   ("<mouse-3>" mouse-open-file-at-point-other-window)
 
-  ("C-<home>"          nil)
-  ("C-<end>"           nil)
+  ("C-<home>" nil)
+  ("C-<end>"  nil)
+  ("C-<tab>"  nil)
 
   (("DEL" "<backspace>") pseudoparedit-backspace)
   ("\""                  pseudoparedit-insert-double-quote)
