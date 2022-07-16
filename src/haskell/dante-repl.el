@@ -13,9 +13,12 @@
 (require 'dante)
 
 (defvar-local dante-repl--command-line-to-use nil
-  "Pair of command lines both of which can be used to start current repl session.
-car element is command line to use for a session that should load all project modules into new repl.
-cdr element is command line to use to get a “fresh” repl with no modules loaded.
+  "Pair of command lines both of which can be used to start current
+repl session, created with the help of ‘dante--mk-repl-cmdline’.
+
+One command shoudl be used for a session that should load all
+project modules into new repl. Another command should be used to
+get a “fresh” repl with no modules loaded.
 
 This variable gets assigned by ‘dante-initialize-method’.")
 
@@ -46,7 +49,7 @@ This variable gets assigned by ‘dante-initialize-method’.")
     (if (buffer-live-p repl-buf)
         (switch-to-buffer-other-window repl-buf)
       (progn
-        (dante-repl--start-with-buffer-name buf-name)
+        (dante-repl--start-with-buffer-name buf-name nil nil)
         (switch-to-buffer-other-window (get-buffer buf-name))))))
 
 (defconst +dante-prompt-re+ "^\4 ")
@@ -60,10 +63,18 @@ This variable gets assigned by ‘dante-initialize-method’.")
   (add-hook 'completion-at-point-functions 'dante-repl-completion-at-point nil t)
   (company-mode +1))
 
+(defvar dante-repl-start--command-history nil)
+(sessions-mark-global-var-for-save 'dante-repl-start--command-history)
+
 ;;;###autoload
-(defun dante-repl-start ()
-  (interactive)
-  (dante-repl--start-with-buffer-name (dante-repl-buffer-name)))
+(defun dante-repl-start (&optional custom-command)
+  (interactive "P")
+  (let ((command-line (when custom-command
+                        (split-shell-command-into-arguments
+                         (read-string-no-default "Shell command to start repl: "
+                                                 "cabal repl"
+                                                 dante-repl-start--command-history)))))
+    (dante-repl--start-with-buffer-name (dante-repl-buffer-name) command-line default-directory)))
 
 ;;;###autoload
 (defun dante-repl-restart (select-new-command?)
@@ -95,11 +106,11 @@ This variable gets assigned by ‘dante-initialize-method’.")
          (kill-buffer repl-buf)
          (signal (car err) (cdr err)))))))
 
-(defun dante-repl--start-with-buffer-name (buf-name)
+(defun dante-repl--start-with-buffer-name (buf-name command current-dir)
   (let ((repl-buf (get-buffer-create buf-name)))
     (condition-case err
         (progn
-          (dante-repl--start-in-buffer repl-buf nil t)
+          (dante-repl--start-in-buffer repl-buf nil t command current-dir)
           (switch-to-buffer-other-window repl-buf))
       (error
        (kill-buffer repl-buf)
@@ -111,16 +122,15 @@ This variable gets assigned by ‘dante-initialize-method’.")
     (0 (prog1 ()
          (compose-region (match-beginning 1)
                          (match-end 1)
-                         ?>
-                         ;; ?λ
-                         ))))))
+                         ?>))))))
 
-(defun dante-repl--start-in-buffer (repl-buf extra-command load-all-on-start)
+(defun dante-repl--start-in-buffer (repl-buf initial-repl-command load-all-on-start command current-dir)
   (let ((command-line
-         (-non-nil (-map #'eval (dante-repl--command-line-to-use load-all-on-start)))))
-    (dante-repl--start-in-buffer-with-command-line repl-buf command-line extra-command nil)))
+         (or command
+             (-non-nil (-map #'eval (dante-repl--command-line-to-use load-all-on-start))))))
+    (dante-repl--start-in-buffer-with-command-line repl-buf command-line initial-repl-command current-dir)))
 
-(defun dante-repl--start-in-buffer-with-command-line (repl-buf command-line extra-command current-dir)
+(defun dante-repl--start-in-buffer-with-command-line (repl-buf command-line initial-repl-command current-dir)
   (with-current-buffer repl-buf
     (cd (or current-dir (dante-project-root)))
     (dante-repl-mode)
@@ -142,8 +152,8 @@ This variable gets assigned by ‘dante-initialize-method’.")
 ;; :set -fdiagnostics-color=always -Wno-missing-home-modules -dsuppress-modules-prefixes -fshow-loaded-modules
 ;; :set -XOverloadedStrings
                ":set prompt \"\\4 \""))
-          (comint-simple-send proc (if extra-command
-                                       (concat cmd "\n" extra-command)
+          (comint-simple-send proc (if initial-repl-command
+                                       (concat cmd "\n" initial-repl-command)
                                      cmd)))
         (message "Started REPL with %s" (s-join " " command-line))
         t))))
@@ -207,9 +217,9 @@ This variable gets assigned by ‘dante-initialize-method’.")
         (let ((proc (get-buffer-process repl-buf)))
           (if (process-live-p proc)
               (comint-simple-send proc cmd)
-            (dante-repl--start-in-buffer repl-buf cmd nil)))
+            (dante-repl--start-in-buffer repl-buf cmd nil nil nil)))
       (let ((buf (get-buffer-create repl-buf-name)))
-        (dante-repl--start-in-buffer buf cmd nil)))))
+        (dante-repl--start-in-buffer buf cmd nil nil nil)))))
 
 (defun dante-repl-clear-buffer-above-prompt ()
   (interactive)
