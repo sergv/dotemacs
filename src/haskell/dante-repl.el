@@ -68,6 +68,8 @@ This variable gets assigned by ‘dante-initialize-method’.")
 
 ;;;###autoload
 (defun dante-repl-start (&optional custom-command)
+  "Start dante repl session. Provide universal argument to start with custom command line,
+otherwise the command for starting repl will be inferred."
   (interactive "P")
   (let ((command-line (when custom-command
                         (split-shell-command-into-arguments
