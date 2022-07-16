@@ -162,7 +162,7 @@ import Control.Concurrent
               (1 0)
               (2 0 2 7)
               (3 9)
-              (4 0 2 7))
+              (4 0 7))
 
 (hindent-test "4 Import statememnt symbol list 2""
 import Control.Concurrent
@@ -171,7 +171,7 @@ import Control.Concurrent
               (1 0)
               (2 0 2 7)
               (3 7)
-              (4 0 2 7))
+              (4 0 7))
 
 (hindent-test "5 List comprehension""
 fun = [ x | y
@@ -415,14 +415,14 @@ fun :: Int
     -> Int"
               (1 0)
               (2 2 4)
-              (3 0 2 4))
+              (3 0 4))
 
 (hindent-test "17au A type for a function""
 fun :: Int
     → Int"
               (1 0)
               (2 2 4)
-              (3 0 2 4))
+              (3 0 4))
 
 (hindent-test "17b* A type for a function with context""
 fun :: Monad m
@@ -484,7 +484,7 @@ x = if flag
               (1 0)
               (2 4)
               (3 4)
-              (4 0 2 9))
+              (4 0 4 9))
 
 (hindent-test "18c* \"do\" and \"if-then-else\" indentation: \"then\"""
 x = do
@@ -681,12 +681,12 @@ f = a (a 'A)
 (hindent-test "28g continue expression after value" "
 f = a
        a"
-              (3 0 2 7))
+              (3 0 7))
 
 (hindent-test "28h continue expression after parentheses" "
 f = a
        (a)"
-              (3 0 2 7))
+              (3 0 7))
 
 (hindent-test "28b character literal (escape sequence)" "
 f = '\\\\'
@@ -820,7 +820,7 @@ servePost = do
 a = ( 1
 , "
               (2 4)
-              (3 6))
+              (3 2 6))
 
 (hindent-test "41 open do inside a list" "
 x = asum [ withX $ do
@@ -849,7 +849,7 @@ x = asum [ mzero
 function = abc
        def
        xyz"
-              (3 0 2 7))
+              (3 0 7))
 
 (hindent-test "46 case expression with paths on their own lines" "
 fact n =
@@ -1101,11 +1101,59 @@ func = \"unterminated
               (1 0)
               (2 2))
 
-(hindent-test "62 foreign import""
+(hindent-test "62 foreign import" "
 import javascript unsafe
   \"$2[$1]\" js_getProp :: S.JSString -> O.Object -> T.JSVal"
               (1 0)
               (2 0 2 7))
+
+(hindent-test "63 if within do 1" "
+foo = do
+  hash <- if size < 10 * 1024 * 1024
+          then
+            foo
+          else
+            foo
+  pure $ hash + 1"
+              (1 0)
+              (2 2)
+              (3 10)
+              (4 12)
+              (5 10)
+              (6 12)
+              (7 0 2 12))
+
+(hindent-test "64 if within do 2" "
+foo = do
+  hash <- if size < 10 * 1024 * 1024
+    then
+      foo
+    else
+      foo
+  pure $ hash + 1"
+              (1 0)
+              (2 2)
+              (4 6)
+              (5 4)
+              (6 6)
+              (7 0 2 6))
+
+(hindent-test "65 if within do 3" "
+foo = do
+  hash <- if size < 10 * 1024 * 1024
+    then do
+      foo
+      bar
+    else do
+      foo
+  pure $ hash + 1"
+              (1 0)
+              (2 2)
+              (4 6)
+              (5 6 8)
+              (6 4)
+              (7 6)
+              (8 0 2 6 8))
 
 (hindent-test "guard-with-malformed-let guard with malformed let" "
 quux :: Int -> Int
