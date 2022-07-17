@@ -35,14 +35,14 @@ common ghc-options
 
   ghc-options:
     -Weverything
-    -Wno-type-defaults
-    -Wno-implicit-prelude
-    -Wno-missing-local-signatures
-    -Wno-missing-import-lists
-    -Wno-missed-specialisations
     -Wno-all-missed-specialisations
-    -Wno-safe
+    -Wno-implicit-prelude
+    -Wno-missed-specialisations
+    -Wno-missing-import-lists
+    -Wno-missing-local-signatures
     -Wno-missing-safe-haskell-mode
+    -Wno-safe
+    -Wno-type-defaults
     -Wno-unsafe
 
   if impl(ghc >= 8.8)
