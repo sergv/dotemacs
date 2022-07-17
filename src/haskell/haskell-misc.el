@@ -85,6 +85,10 @@ single indentation unit."
          (point))
      ,@body))
 
+(defun haskell-misc--single-indent ()
+  "Return a string for single indentation amount for Haskell."
+-  (make-string vim-shift-width ?\s))
+
 (defun cleanup-stg ()
   "Remove useless srt:SRT annotations of lambdas, keep only relevant arguments
 and indent them as singe line."
