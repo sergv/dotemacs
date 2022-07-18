@@ -124,6 +124,33 @@ Executable bin-1
     Ghc-Options: -O -Wall
 "))))
 
+(ert-deftest haskell-cabal-subsection-arrange-lines-keep-commas-before-with-leading ()
+  (with-temp-buffer
+    (insert "
+Executable bin-1
+    Main-Is:          TestParsing.hs
+    Build-Depends:  , base
+                    , bytestring
+                    , filepath
+                    , directory
+                    , text
+    Ghc-Options: -O -Wall
+")
+    (haskell-cabal-mode)
+    (goto-char (point-min))
+    (search-forward "Build-Depends:")
+    (haskell-cabal-subsection-arrange-lines)
+    (should (string= (buffer-string) "
+Executable bin-1
+    Main-Is:          TestParsing.hs
+    Build-Depends:  , base
+                    , bytestring
+                    , directory
+                    , filepath
+                    , text
+    Ghc-Options: -O -Wall
+"))))
+
 (ert-deftest haskell-cabal-subsection-arrange-lines-no-commas ()
   (with-temp-buffer
     (insert "
@@ -163,6 +190,31 @@ Executable bin-1
 Executable bin-1
     Main-Is:          TestParsing.hs
     Build-Depends:    base
+                    , bytestring
+                    , directory
+                    , filepath
+                    , text
+    Ghc-Options: -O -Wall
+"))))
+
+(ert-deftest haskell-cabal-subsection-arrange-lines-mixed-styles-with-leading ()
+  (with-temp-buffer
+    (insert "
+Executable bin-1
+    Main-Is:          TestParsing.hs
+    Build-Depends:  , base
+                    , bytestring,
+                      filepath, directory, text
+    Ghc-Options: -O -Wall
+")
+    (haskell-cabal-mode)
+    (goto-char (point-min))
+    (search-forward "Build-Depends:")
+    (haskell-cabal-subsection-arrange-lines)
+    (should (string= (buffer-string) "
+Executable bin-1
+    Main-Is:          TestParsing.hs
+    Build-Depends:  , base
                     , bytestring
                     , directory
                     , filepath
@@ -412,6 +464,24 @@ Executable bin-1
 Executable bin-1
     Main-Is:          TestParsing.hs
     Build-Depends:    bytestring
+                    , base
+                    , mtl
+"))))
+
+(ert-deftest haskell-cabal-add-dependency-04-with-leading ()
+  (with-temp-buffer
+    (insert "
+Executable bin-1
+    Main-Is:          TestParsing.hs
+    Build-Depends:  , base
+                    , mtl
+")
+    (haskell-cabal-mode)
+    (haskell-cabal-add-build-dependency "bytestring" nil t)
+    (should (string= (buffer-string) "
+Executable bin-1
+    Main-Is:          TestParsing.hs
+    Build-Depends:  , bytestring
                     , base
                     , mtl
 "))))
