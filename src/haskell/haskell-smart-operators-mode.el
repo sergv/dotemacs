@@ -311,6 +311,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
 ;;;###autoload
 (defalias 'haskell-smart-operators-comma #'smart-operators-comma)
 
+;;;###autoload
 (defalias 'haskell-cabal-smart-operators-comma #'smart-operators-comma)
 
 ;;;###autoload
