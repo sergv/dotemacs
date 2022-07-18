@@ -660,6 +660,10 @@ before: a comma at the start of each line (except the first), e.g.
     Foo
   , Bar
 
+before-with-leading: a comma at the start of each line (except the first), e.g.
+  , Foo
+  , Bar
+
 after: a comma at the end of each line (except the last), e.g.
     Foo,
     Bar
@@ -673,9 +677,14 @@ nil: no commas, e.g.
 If the styles are mixed, the position of the first comma
 determines the style. If there is only one element then `after'
 style is assumed."
-  (let (comma-style)
+  (let (comma-style
+        have-leading-comma
+        (before-comma-re "^\\([ \t]*\\),\\([ \t]*\\)"))
     ;; split list items on single line
     (goto-char (point-min))
+    (when (looking-at before-comma-re)
+      (setq have-leading-comma t)
+      (replace-match "" nil nil))
     (while (re-search-forward
             "\\([^ \t,\n]\\)[ \t]*\\(,\\)[ \t]*\\([^ \t,\n]\\)" nil t)
       (when (haskell-cabal-comma-separatorp (match-beginning 2))
@@ -683,7 +692,7 @@ style is assumed."
         (replace-match "\\1\n\\3" nil nil)))
     ;; remove commas before
     (goto-char (point-min))
-    (while (re-search-forward "^\\([ \t]*\\),\\([ \t]*\\)" nil t)
+    (while (re-search-forward before-comma-re nil t)
       (setq comma-style 'before)
       (replace-match "" nil nil))
     ;; remove trailing commas
@@ -702,7 +711,10 @@ style is assumed."
     (goto-char (point-min))
 
     (haskell-cabal-each-line (haskell-cabal-chomp-line))
-    comma-style))
+    (if (and (eq comma-style 'before)
+             have-leading-comma)
+        'before-with-leading
+      comma-style)))
 
 (defun haskell-cabal-listify (comma-style)
   "Add commas so that the buffer contains a comma-separated list.
@@ -715,6 +727,12 @@ styles."
      (while (haskell-cabal-ignore-line-p) (forward-line))
      (indent-to 2)
      (forward-line)
+     (haskell-cabal-each-line
+      (unless (haskell-cabal-ignore-line-p)
+        (insert ", "))))
+    ('before-with-leading
+     (goto-char (point-min))
+     (while (haskell-cabal-ignore-line-p) (forward-line))
      (haskell-cabal-each-line
       (unless (haskell-cabal-ignore-line-p)
         (insert ", "))))
@@ -743,7 +761,6 @@ Respect the comma style."
               (haskell-cabal-strip-list-and-detect-style))))
        (unwind-protect (progn ,@funs)
          (haskell-cabal-listify ,comma-style)))))
-
 
 (defun haskell-cabal-sort-lines-key-fun ()
   (when (looking-at "[ \t]*--[ \t,]*")
