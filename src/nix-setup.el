@@ -52,6 +52,8 @@ _a_lign"
 (defun nix-setup ()
   (init-common :use-whitespace t)
 
+  (setup-folding t '(:header-symbol "#" :length-min 3))
+
   (company-mode +1)
   (setq-local company-backends '(company-nix))
 
