@@ -40,7 +40,7 @@ _I_: jump back"
                 indent-line-function
                 (lambda ()
                   (indent-to standard-indent))))
-  (haskell-setup-folding :enable-hs-minor-mode t)
+  (haskell-setup-folding :enable-hideshow t)
 
   (setq-local beginning-of-defun-function #'haskell-move-to-topmost-start-impl)
 
