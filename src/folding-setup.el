@@ -304,23 +304,24 @@ function; and adjust-block-beginning function."
 
 ;;;; Combined hideshow and yafolding
 
-(vim-defcmd vim:folding-hide-indented-or-sexp ()
+(vim-defcmd vim:folding-hide-indented-or-sexp-or-commented ()
   (if (and hs-minor-mode
-           (folding-outline-on-sexp?))
+           (folding-outline-on-sexp-or-commented?))
       (hs-hide-block)
     (yafolding-hide-element)))
 
-(vim-defcmd vim:folding-show-indented-or-sexp ()
+(vim-defcmd vim:folding-show-indented-or-sexp-or-commented ()
   (if (and hs-minor-mode
-           (folding-outline-on-sexp?))
+           (folding-outline-on-sexp-or-commented?))
       (hs-show-block)
     (yafolding-show-element)))
 
-(defun folding-outline-on-sexp? ()
+(defun folding-outline-on-sexp-or-commented? ()
   (when-let (next (char-after))
     (let ((syn (char-syntax next)))
       (or (eq syn ?\()
-          (eq syn ?\))))))
+          (eq syn ?\))
+          (eq syn ?\<)))))
 
 ;;;; Hydras and setups
 
@@ -369,8 +370,8 @@ _o_: show indented or sexp
 _C_: hide all indented
 _O_: show all indented
 _T_: toggle all indented"
-  ("c" vim:folding-hide-indented-or-sexp:interactive)
-  ("o" vim:folding-show-indented-or-sexp:interactive)
+  ("c" vim:folding-hide-indented-or-sexp-or-commented:interactive)
+  ("o" vim:folding-show-indented-or-sexp-or-commented:interactive)
   ("C" vim:yafolding-hide-all:interactive)
   ("O" vim:yafolding-show-all:interactive)
   ("T" vim:yafolding-toggle-all:interactive))
@@ -387,8 +388,8 @@ _o_: show indented or sexp  _u_: show outline block
 _C_: hide all indented      _F_: hide all outline blocks leaving all headings visible
 _O_: show all indented      _U_: show all outline blocks
 _T_: toggle all indented"
-  ("c" vim:folding-hide-indented-or-sexp:interactive)
-  ("o" vim:folding-show-indented-or-sexp:interactive)
+  ("c" vim:folding-hide-indented-or-sexp-or-commented:interactive)
+  ("o" vim:folding-show-indented-or-sexp-or-commented:interactive)
   ("C" vim:yafolding-hide-all:interactive)
   ("O" vim:yafolding-show-all:interactive)
   ("T" vim:yafolding-toggle-all:interactive)
