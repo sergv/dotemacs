@@ -416,15 +416,18 @@ _T_: toggle all indented"
         ("z" hydra-vim-normal-z-outline/body)))))
 
 ;;;###autoload
-(defun setup-hideshow-yafolding ()
-  (setup-folding t nil)
+(defun setup-hideshow-yafolding (enable-hideshow outline-params)
+  (setup-folding enable-hideshow nil)
   (yafolding-mode +1)
   (setq buffer-display-table (make-display-table))
   (set-display-table-slot buffer-display-table
                           'selective-display
                           (string-to-vector " ..."))
-  (def-keys-for-map vim-normal-mode-local-keymap
-    ("z" hydra-vim-normal-z-hideshow-yafolding/body))
+  (if outline-params
+      (def-keys-for-map vim-normal-mode-local-keymap
+        ("z" hydra-vim-normal-z-hideshow-yafolding-and-outline/body))
+    (def-keys-for-map vim-normal-mode-local-keymap
+      ("z" hydra-vim-normal-z-hideshow-yafolding/body)))
   (def-keys-for-map vim-visual-mode-local-keymap
     ("z" hydra-vim-visual-z-yafolding/body)))
 
