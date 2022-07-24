@@ -605,7 +605,7 @@ _<tab>_: reindent  _h_: jump to topmont node end"
                      vim-insert-mode-local-keymap)
     ("C-<return>" dante-repl-newline))
 
-  (haskell-setup-folding :enable-hs-minor-mode t)
+  (haskell-setup-folding :enable-hideshow t)
   (haskell-abbrev+-setup t))
 
 ;;;###autoload
