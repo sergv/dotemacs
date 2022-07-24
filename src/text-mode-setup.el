@@ -15,7 +15,7 @@
                :use-render-formula nil
                :use-whitespace nil)
   (setq-local hs-allow-nesting t)
-  (setup-hideshow-yafolding))
+  (setup-hideshow-yafolding t nil))
 
 ;;;###autoload
 (add-hook 'text-mode-hook #'text-mode-setup)
