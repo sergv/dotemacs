@@ -21,20 +21,10 @@
  (haskell-mode))
 
 ;;;###autoload
-(cl-defun haskell-setup-folding (&key (enable-hs-minor-mode t))
+(cl-defun haskell-setup-folding (&key (enable-hideshow t))
   "Configure folding for Haskell. ENABLE-HS-MINOR-MODE controls whether
 to enable folding of balanced S-expressions."
-  (setup-folding enable-hs-minor-mode '(:header-symbol "-" :length-min 3))
-  (yafolding-mode +1)
-  (setq buffer-display-table (make-display-table))
-  (set-display-table-slot buffer-display-table
-                          'selective-display
-                          (string-to-vector " ..."))
-
-  (def-keys-for-map vim-normal-mode-local-keymap
-    ("z" hydra-vim-normal-z-hideshow-yafolding-and-outline/body))
-  (def-keys-for-map vim-visual-mode-local-keymap
-    ("z" hydra-vim-visual-z-yafolding/body)))
+  (setup-hideshow-yafolding enable-hideshow '(:header-symbol "-" :length-min 3)))
 
 (provide 'haskell-outline)
 
