@@ -87,7 +87,7 @@
                     (setq end (1+ (point))))
                   (char-after))))
     (if (and end
-             (eq after (cdr (assq before '((?\( . ?\)) (?\[ . ?\]) (?\{ . ?\}))))))
+             (eq after (cdr (assq before '((?\( . ?\)) (?\[ . ?\]) (?\{ . ?\}) (?\" . ?\"))))))
         (delete-region start end)
       (delete-char -1))))
 
