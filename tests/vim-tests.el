@@ -3679,6 +3679,41 @@
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (text-mode)
+    vim-tests/pseudoparedit-backspace-deletes-pairs-1
+    (pseudoparedit-backspace)
+  (tests-utils--multiline "" "foo (_|_) bar" "")
+  (tests-utils--multiline "" "foo _|_ bar" ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (text-mode)
+    vim-tests/pseudoparedit-backspace-deletes-pairs-2
+    (pseudoparedit-backspace)
+  (tests-utils--multiline "" "foo (_|_ ) bar" "")
+  (tests-utils--multiline "" "foo _|_ bar" ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (text-mode)
+    vim-tests/pseudoparedit-backspace-deletes-pairs-3
+    (pseudoparedit-backspace)
+  (tests-utils--multiline "" "foo [_|_] bar" "")
+  (tests-utils--multiline "" "foo _|_ bar" ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (text-mode)
+    vim-tests/pseudoparedit-backspace-deletes-pairs-4
+    (pseudoparedit-backspace)
+  (tests-utils--multiline "" "foo {_|_} bar" "")
+  (tests-utils--multiline "" "foo _|_ bar" ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (text-mode)
+    vim-tests/pseudoparedit-backspace-deletes-pairs-5
+    (pseudoparedit-backspace)
+  (tests-utils--multiline "" "foo \"_|_\" bar" "")
+  (tests-utils--multiline "" "foo _|_ bar" ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (text-mode)
     vim-tests/increment-at-point-1
     (execute-kbd-macro (kbd "+"))
   (tests-utils--multiline "" "foo = _|_0 + bar" "")
