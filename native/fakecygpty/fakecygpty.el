@@ -36,6 +36,8 @@
 ;;   (require 'fakecygpty)
 ;;   (fakecygpty-activate)
 
+(require 'dash)
+
 ;;; Code:
 
 (defgroup fakecygpty nil
@@ -52,9 +54,24 @@
   :group 'fakecygpty
   :type 'file)
 
-(defcustom fakecygpty-whitelist-program-regexps
-  (list (rx bos (or "bash" "sh" "dash" "zsh") (? ".exe") eos))
-  "Regexp list for program that run with fakecygpty."
+(defcustom fakecygpty-wrap-predicates
+  (list
+   (lambda (prog _args)
+     (string-match-p "\\(?:\\(?:[Bb][Aa]\\|[Dd][Aa]\\|[Zz]\\)?[Ss][Hh]\\)\\(?:\\.[Ee][Xx][Ee]\\)?\\'"
+                     prog)))
+  "Predicates taking program name and list of arguments. If any of them returns ‘t’ then
+the program will be wrapped."
+  :group 'fakecygpty
+  :type '(repeat regexp))
+
+(defcustom fakecygpty-do-not-wrap-predicates
+  (list
+   (lambda (prog args)
+     (and (string-match-p "[Bb][Aa][Ss][Hh]\\(?:\\.[Ee][Xx][Ee]\\)?\\'" prog)
+          (member "-c" args))))
+
+  "Predicates taking program name and list of arguments. If any of them returns ‘t’ then
+the program will *NOT* be wrapped."
   :group 'fakecygpty
   :type '(repeat regexp))
 
@@ -165,19 +182,12 @@ TTY's foreground process group pgid equals PROCESS pid."
 	)
     (process-id process)))
 
-(defun fakecygpty--whitelisted-program (program)
+(defun fakecygpty--should-wrap-program? (program args)
   "Return non-nil if PROGRAM is run without fakecygpty on `start-process'.
 An ignored pattern is used from `fakecygpty-ignored-program-regexps'"
-  (let ((prog (file-name-nondirectory program))
-        ;; Ignore case since this whole module is purely for Windows.
-        (case-fold-search t)
-        (all-match? t)
-        (regexps fakecygpty-whitelist-program-regexps))
-    (while (and all-match?
-                regexps)
-      (setf all-match (string-match-p (car regexps) prog)
-            regexps (cdr regexps)))
-    all-match?))
+  (and
+   (--any? (funcall it program args) fakecygpty-wrap-predicates)
+   (--all? (not (funcall it program args)) fakecygpty-do-not-wrap-predicates)))
 
 (defun fakecygpty--normalize-process-arg (target)
   "Return process object of TARGET.
@@ -223,7 +233,7 @@ nil means current buffer's process."
   (if (and process-connection-type      ; if non-nil, required pty.
            ;; program
            (or (not program)
-               (fakecygpty--whitelisted-program program)))
+               (fakecygpty--should-wrap-program? program program-args)))
       (let ((proc (apply old-start-proc
                          name
                          buf
