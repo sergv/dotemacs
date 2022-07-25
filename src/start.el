@@ -180,18 +180,20 @@
                          (yasnippet-fallback nil))
   (let ((keymaps (list vim-normal-mode-local-keymap
                        vim-insert-mode-local-keymap)))
-    (if enable-yasnippet
-        (progn
-          (setq-local yas-expand-fallback (or yasnippet-fallback tab-binding))
-          (dolist (kmap keymaps)
-            (define-key kmap (kbd "<tab>") #'yas-expand-or-fallback)))
+    (when tab-binding
+      (if enable-yasnippet
+          (progn
+            (setq-local yas-expand-fallback (or yasnippet-fallback tab-binding))
+            (dolist (kmap keymaps)
+              (define-key kmap (kbd "<tab>") #'yas-expand-or-fallback)))
+        (dolist (kmap keymaps)
+          (define-key kmap (kbd "<tab>") tab-binding))))
+    (when backtab-binding
       (dolist (kmap keymaps)
-        (define-key kmap (kbd "<tab>") tab-binding)))
-    (dolist (kmap keymaps)
-      (dolist (binding (list (kbd "<backtab>")
-                             (kbd "S-<tab>")
-                             (kbd "S-<iso-lefttab>")))
-        (define-key kmap binding backtab-binding)))))
+        (dolist (binding (list (kbd "<backtab>")
+                               (kbd "S-<tab>")
+                               (kbd "S-<iso-lefttab>")))
+          (define-key kmap binding backtab-binding))))))
 
 (require 'minibuffer-setup)
 (require 'c-like-setup)
