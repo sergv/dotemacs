@@ -190,31 +190,35 @@ under ROOT directory."
 
 (eproj-tests--define-tests
     "eproj-tests/tags-of-c-files"
-  (let* ((path eproj-tests/project-with-c-files)
-         (proj (eproj-get-project-for-path path))
-         (tags-index
-          (cdr-safe (assq 'c-mode
-                          (eproj--get-tags proj))))
-         (project-names
-          '("bigint"
-            "bigint_list_s"
-            "bigint_list_s::item"
-            "bigint_list_s::next"
-            "bigint_list_t"
-            "factorial"
-            "FACTORIAL_H_"
-            "item"
-            "next")))
-    (should-not (null? proj))
-    (should (eproj-tests/paths=? path (eproj-project/root proj)))
-    (should-not (null? tags-index))
-    (should-not (= 0 (length (eproj--get-tags proj))))
-    (should (eproj-tag-index-p tags-index))
-    (should-not (= 0 (eproj-tag-index-size tags-index)))
-    (should-not (= 0 (length (eproj-tag-index-keys tags-index))))
-    (should (equal (eproj-tests/normalize-string-list project-names)
-                   (eproj-tests/normalize-string-list
-                    (eproj-tag-index-keys tags-index))))))
+  (progn
+    (unless (executable-find eproj-ctags--exec)
+      (ert-skip "ctags not available"))
+
+    (let* ((path eproj-tests/project-with-c-files)
+           (proj (eproj-get-project-for-path path))
+           (tags-index
+            (cdr-safe (assq 'c-mode
+                            (eproj--get-tags proj))))
+           (project-names
+            '("bigint"
+              "bigint_list_s"
+              "bigint_list_s::item"
+              "bigint_list_s::next"
+              "bigint_list_t"
+              "factorial"
+              "FACTORIAL_H_"
+              "item"
+              "next")))
+      (should-not (null? proj))
+      (should (eproj-tests/paths=? path (eproj-project/root proj)))
+      (should-not (null? tags-index))
+      (should-not (= 0 (length (eproj--get-tags proj))))
+      (should (eproj-tag-index-p tags-index))
+      (should-not (= 0 (eproj-tag-index-size tags-index)))
+      (should-not (= 0 (length (eproj-tag-index-keys tags-index))))
+      (should (equal (eproj-tests/normalize-string-list project-names)
+                     (eproj-tests/normalize-string-list
+                      (eproj-tag-index-keys tags-index)))))))
 
 (defmacro eproj-tests/test-ctags-get-tags-from-buffer
   (input

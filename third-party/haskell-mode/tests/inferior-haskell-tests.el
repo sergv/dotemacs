@@ -17,6 +17,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+(require 'common)
 
 (require 'ert)
 (require 'inf-haskell)
@@ -24,6 +25,9 @@
 (require 'haskell-test-utils)
 
 (ert-deftest test-run-haskell ()
+  (unless (or (cached-executable-find "cabal")
+              (cached-executable-find "ghc"))
+    (ert-skip "cabal or ghc not available"))
   (haskell-unconditional-kill-buffer "*haskell*")
   (run-haskell)
   (let* ((times 5)
@@ -38,6 +42,9 @@
 
 (ert-deftest test-inferior-haskell-buffer ()
   "Check if the inferior haskell buffer has been started"
+  (unless (or (cached-executable-find "cabal")
+              (cached-executable-find "ghc"))
+    (ert-skip "cabal or ghc not available"))
   (haskell-unconditional-kill-buffer "*haskell*")
   (run-haskell)
   (should (buffer-live-p inferior-haskell-buffer)))
@@ -45,6 +52,9 @@
 (ert-deftest test-inferior-haskell-root-dir ()
   "Check if the root dir of the loaded file/project is not nil
 This way we test is the file is loaded or not"
+  (unless (or (cached-executable-find "cabal")
+              (cached-executable-find "ghc"))
+    (ert-skip "cabal or ghc not available"))
   (haskell-unconditional-kill-buffer "*haskell*")
   (run-haskell)
   (should (file-directory-p inferior-haskell-root-dir)))
