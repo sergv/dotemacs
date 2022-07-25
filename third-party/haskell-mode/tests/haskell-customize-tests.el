@@ -17,6 +17,8 @@
 
 ;;; Code:
 
+(require 'common)
+
 (require 'ert)
 (require 'haskell-customize)
 (require 'haskell-test-utils)
@@ -65,6 +67,9 @@
      (should (eq 'cabal-repl (haskell-process-type))))))
 
 (ert-deftest haskell-process-type-test-4 ()
+  (unless (or (cached-executable-find "cabal")
+              (cached-executable-find "ghc"))
+    (ert-skip "cabal or ghc not available"))
   (with-temp-dir-structure
    (("README.md" . "Hello world")
     ("Main.hs" . "-- Empty file")
