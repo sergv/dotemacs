@@ -59,6 +59,10 @@ _a_lign"
   (company-mode +1)
   (setq-local company-backends '(company-nix))
 
+  (bind-tab-keys nil
+                 #'tab-to-tab-stop-backward
+                 :enable-yasnippet nil)
+
   (def-keys-for-map vim-normal-mode-local-keymap
     ("g" hydra-nix-vim-normal-g-ext/body))
 
