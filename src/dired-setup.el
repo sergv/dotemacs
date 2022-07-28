@@ -141,6 +141,7 @@ current one."
 
 ;;;###autoload
 (defun dired-setup ()
+  (hl-line-mode +1)
   (vim-local-emap "ss" #'vim:dired-do-substitute)
   (vim-local-emap "sub" #'vim:dired-do-substitute))
 
