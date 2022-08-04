@@ -32,6 +32,8 @@
       ;; lsp-log-io t
       ;; lsp-print-performance t
 
+      lsp-enable-suggest-server-download nil
+
       lsp-disabled-clients
       '(ccls lsp-ada lsp-angular lsp-bash lsp-clojure
              lsp-crystal lsp-csharp lsp-css lsp-dart lsp-dhall lsp-dockerfile lsp-elm
