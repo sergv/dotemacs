@@ -83,30 +83,6 @@
                                       (s-join "\n" lines))))
       (dante--insert-or-show-fontified ty insert))))
 
-(cl-defun setup-lsp-haskell-symbnav (&key (bind-keybindings t))
-  (setq-local xref-show-definitions-function #'eproj-xref-symbnav-show-xrefs
-              xref-show-xrefs-function #'eproj-xref-symbnav-show-xrefs)
-  (when bind-keybindings
-    (awhen (current-local-map)
-      (def-keys-for-map it
-        ("C-." lsp-haskell-symbnav/go-to-symbol-home)
-        ("C-," lsp-haskell-symbnav/go-back)
-        ("C-?" lsp-symbnav/find-references)
-
-        ("M-." eproj-symbnav/go-to-symbol-home)
-        ("M-," eproj-symbnav/go-back)
-        ("M-?" xref-find-references)))
-    (def-keys-for-map vim-normal-mode-local-keymap
-      ("C-." lsp-haskell-symbnav/go-to-symbol-home)
-      ("C-," lsp-haskell-symbnav/go-back)
-      ("C-?" lsp-symbnav/find-references)
-
-      ("M-." eproj-symbnav/go-to-symbol-home)
-      ("M-," eproj-symbnav/go-back)
-      ("M-?" xref-find-references))))
-
-(defalias 'lsp-haskell-symbnav/go-back #'eproj-symbnav/go-back)
-
 (defun lsp-haskell-symbnav/go-to-symbol-home (&optional use-regexp?)
   (interactive "P")
   (if use-regexp?

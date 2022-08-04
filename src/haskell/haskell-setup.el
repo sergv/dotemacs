@@ -145,82 +145,97 @@
            "."
            (eval-when-compile (regexp-opt +haskell-extensions+)))))
 
-(defun haskell-go-to-symbol-home-via-dante-or-eproj (&optional use-regexp?)
+(defun haskell-dante-symbnav/go-to-symbol-home ()
+  (let* ((dante-ident-bounds (dante-thing-at-point))
+         (identifier
+          (when dante-ident-bounds
+            (buffer-substring-no-properties (car dante-ident-bounds)
+                                            (cdr dante-ident-bounds)))))
+    (lcr-cps-let ((_load_messages (dante-async-load-current-buffer nil nil))
+                  (locations (dante-async-call
+                              (concat ":loc-at " (dante--ghc-subexp dante-ident-bounds)))))
+      (if-let (ghci-tags
+               (save-match-data
+                 (delq nil
+                       (-map #'haskell-go-to-symbol-home--ghc-src-span-to-eproj-tag
+                             (s-lines locations)))))
+          (let* ((proj (eproj-get-project-for-buf (current-buffer)))
+                 (effective-major-mode (eproj/resolve-synonym-modes major-mode))
+                 (lang (aif (gethash effective-major-mode eproj/languages-table)
+                           it
+                         (error "unsupported language %s" effective-major-mode)))
+                 (tag->string (eproj-language/tag->string-func lang))
+                 (tag->kind (eproj-language/show-tag-kind-procedure lang)))
+            (eproj-symbnav/choose-location-to-jump-to
+             identifier
+             tag->string
+             tag->kind
+             (eproj-symbnav-get-file-name)
+             proj
+             (eproj-symbnav-current-home-entry)
+             (--map (list identifier it proj) ghci-tags)
+             t
+             "Choose symbol\n\n"))
+        (lcr-cps-let ((_load-message (dante-async-load-current-buffer t nil))
+                      (info (dante-async-call (concat ":i " identifier))))
+          ;; Parse ghci responses, they may narrow down the result.
+          (save-match-data
+            (cond
+              ;; Sometimes :loc-at couldn’t produce anything useful but :i pinpoints
+              ;; the result perfectly.
+              ((string-match haskell-regexen/ghci-info-definition-site-in-curr-project-for-old-ghci info)
+               (let ((file (match-string 1 info))
+                     (line (string->number (match-string 2 info)))
+                     (column (string->number (match-string 3 info))))
+                 (unless (file-name-absolute-p file)
+                   (setq file (expand-file-name file (dante-project-root))))
+                 (eproj-symbnav--jump-to-location file line column (eproj-symbnav-current-home-entry) identifier)))
+              ;; Now try to check whether :loc-at produce module name we could use. The same module
+              ;; name is available in the output of :i command but :loc-at also includes
+              ;; specific package name we could use whereas :i doesn’t and we’ll have to
+              ;; use set of currently loaded packages as an approximation.
+              ((string-match haskell-regexen/ghci-loc-at-external-symbol locations)
+               (let* ((mod-name (match-string-no-properties 3 locations))
+                      (pkg1 (match-string-no-properties 1 locations))
+                      (pkg2 (match-string-no-properties 2 locations))
+                      (pkgs-without-versions
+                       (if (equal pkg1 pkg2)
+                           (list pkg1)
+                         (list pkg1 pkg2))))
+                 (haskell-go-to-symbol-home--jump-to-filtered-tags identifier
+                                                                   mod-name
+                                                                   pkgs-without-versions)))
+              ;; Other times :i only provides us with a module name which is still
+              ;; usefull to narrow down tag search.
+              ((string-match haskell-regexen/ghci-info-definition-site info)
+               (let ((mod-name (match-string-no-properties 1 info)))
+                 (lcr-cps-let ((packages (dante-async-call ":show packages")))
+                   (let* ((pkgs-without-versions (haskell-go-to-symbol-home--strip-ghci-packages-of-versions packages) ))
+                     (haskell-go-to-symbol-home--jump-to-filtered-tags identifier
+                                                                       mod-name
+                                                                       pkgs-without-versions)))))
+              ((string-match-p haskell-regexen/ghci-name-not-in-scope-error info)
+               (error "Name not in scope, invoke eproj tags via M-."))
+              (t
+               (error "Failed to extract mod name from ghci result:\n%s" info)))))))))
+
+(defun haskell-go-to-symbol-home-smart (&optional use-regexp?)
   (interactive "P")
-  (if (or (not dante-mode) use-regexp?)
-      (eproj-symbnav/go-to-symbol-home use-regexp?)
-    (let* ((dante-ident-bounds (dante-thing-at-point))
-           (identifier
-            (when dante-ident-bounds
-              (buffer-substring-no-properties (car dante-ident-bounds)
-                                              (cdr dante-ident-bounds)))))
-      (lcr-cps-let ((_load_messages (dante-async-load-current-buffer nil nil))
-                    (locations (dante-async-call
-                                (concat ":loc-at " (dante--ghc-subexp dante-ident-bounds)))))
-        (if-let (ghci-tags
-                 (save-match-data
-                   (delq nil
-                         (-map #'haskell-go-to-symbol-home--ghc-src-span-to-eproj-tag
-                               (s-lines locations)))))
-            (let* ((proj (eproj-get-project-for-buf (current-buffer)))
-                   (effective-major-mode (eproj/resolve-synonym-modes major-mode))
-                   (lang (aif (gethash effective-major-mode eproj/languages-table)
-                             it
-                           (error "unsupported language %s" effective-major-mode)))
-                   (tag->string (eproj-language/tag->string-func lang))
-                   (tag->kind (eproj-language/show-tag-kind-procedure lang)))
-              (eproj-symbnav/choose-location-to-jump-to
-               identifier
-               tag->string
-               tag->kind
-               (eproj-symbnav-get-file-name)
-               proj
-               (eproj-symbnav-current-home-entry)
-               (--map (list identifier it proj) ghci-tags)
-               t
-               "Choose symbol\n\n"))
-          (lcr-cps-let ((_load-message (dante-async-load-current-buffer t nil))
-                        (info (dante-async-call (concat ":i " identifier))))
-            ;; Parse ghci responses, they may narrow down the result.
-            (save-match-data
-              (cond
-                ;; Sometimes :loc-at couldn’t produce anything useful but :i pinpoints
-                ;; the result perfectly.
-                ((string-match haskell-regexen/ghci-info-definition-site-in-curr-project-for-old-ghci info)
-                 (let ((file (match-string 1 info))
-                       (line (string->number (match-string 2 info)))
-                       (column (string->number (match-string 3 info))))
-                   (unless (file-name-absolute-p file)
-                     (setq file (expand-file-name file (dante-project-root))))
-                   (eproj-symbnav--jump-to-location file line column (eproj-symbnav-current-home-entry) identifier)))
-                ;; Now try to check whether :loc-at produce module name we could use. The same module
-                ;; name is available in the output of :i command but :loc-at also includes
-                ;; specific package name we could use whereas :i doesn’t and we’ll have to
-                ;; use set of currently loaded packages as an approximation.
-                ((string-match haskell-regexen/ghci-loc-at-external-symbol locations)
-                 (let* ((mod-name (match-string-no-properties 3 locations))
-                        (pkg1 (match-string-no-properties 1 locations))
-                        (pkg2 (match-string-no-properties 2 locations))
-                        (pkgs-without-versions
-                         (if (equal pkg1 pkg2)
-                             (list pkg1)
-                           (list pkg1 pkg2))))
-                   (haskell-go-to-symbol-home--jump-to-filtered-tags identifier
-                                                                     mod-name
-                                                                     pkgs-without-versions)))
-                ;; Other times :i only provides us with a module name which is still
-                ;; usefull to narrow down tag search.
-                ((string-match haskell-regexen/ghci-info-definition-site info)
-                 (let ((mod-name (match-string-no-properties 1 info)))
-                   (lcr-cps-let ((packages (dante-async-call ":show packages")))
-                     (let* ((pkgs-without-versions (haskell-go-to-symbol-home--strip-ghci-packages-of-versions packages) ))
-                       (haskell-go-to-symbol-home--jump-to-filtered-tags identifier
-                                                                         mod-name
-                                                                         pkgs-without-versions)))))
-                ((string-match-p haskell-regexen/ghci-name-not-in-scope-error info)
-                 (error "Name not in scope, invoke eproj tags via M-."))
-                (t
-                 (error "Failed to extract mod name from ghci result:\n%s" info))))))))))
+  (cond
+    ((dante-mode
+      (if use-regexp?
+          (eproj-symbnav/go-to-symbol-home use-regexp?)
+        (haskell-dante-symbnav/go-to-symbol-home)))
+     (lsp-mode
+      (lsp-haskell-symbnav/go-to-symbol-home use-regexp?))
+     (t
+      (eproj-symbnav/go-to-symbol-home use-regexp?)))))
+
+(defun haskell-find-references-smart ()
+  (interactive)
+  (if lsp-mode
+      (lsp-symbnav/find-references)
+    (xref-find-references)))
 
 (defun haskell-go-to-symbol-home--ghc-src-span-to-eproj-tag (string)
   "Extract a location from a ghc span STRING."
@@ -373,9 +388,10 @@ _<tab>_: reindent  _h_: jump to topmont node end"
               (setq-local company-backends (cons 'dante-company company-backends))
               (dante-mode +1))
              (`lsp
-              (with-demoted-errors "Failed to start LSP: %s"
-                (lsp-diagnostics-mode)
-                (lsp))))
+              ;; todo: check that lsp executable is around
+              (lsp)
+              (when lsp-mode
+                (lsp-diagnostics-mode))))
            (unless (flycheck-may-use-checker backend)
              (flycheck-verify-checker backend)
              (error "Unable to select checker '%s' for buffer '%s'"
@@ -525,16 +541,13 @@ _<tab>_: reindent  _h_: jump to topmont node end"
       ("q" vim:haskell-up-sexp:interactive))
 
     (haskell-setup-folding)
-    (if lsp-mode
-        (setup-lsp-haskell-symbnav)
-      (progn
-        (setup-eproj-symbnav :bind-keybindings nil)
-        ;; Override binding introduced by `setup-eproj-symbnav'.
-        (def-keys-for-map vim-normal-mode-local-keymap
-          ("M-."         eproj-symbnav/go-to-symbol-home)
-          ("C-."         haskell-go-to-symbol-home-via-dante-or-eproj)
-          (("M-," "C-,") eproj-symbnav/go-back)
-          ("C-?"         xref-find-references))))))
+    (setup-eproj-symbnav :bind-keybindings t)
+    (setq-local xref-show-definitions-function #'eproj-xref-symbnav-show-xrefs
+                xref-show-xrefs-function #'eproj-xref-symbnav-show-xrefs)
+    (def-keys-for-map vim-normal-mode-local-keymap
+      ("M-." haskell-go-to-symbol-home-smart)
+      ("M-," eproj-symbnav/go-back)
+      ("M-?" haskell-find-references-smart))))
 
 ;;;###autoload
 (defun haskell-c2hs-setup ()
