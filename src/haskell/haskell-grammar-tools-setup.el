@@ -20,11 +20,9 @@
 (defhydra-derive hydra-haskell-grammar-tools-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
   "
 _a_lign
-_i_: jump to imports
-_I_: jump back"
+_i_: jump to imports"
   ("a"     hydra-haskell-align/body)
-  ("i"     vim:haskell-navigate-imports:interactive)
-  ("I"     haskell-navigate-imports-return))
+  ("i"     vim:haskell-navigate-imports:interactive))
 
 ;;;###autoload
 (defun haskell-grammar-tools-setup ()

@@ -443,11 +443,11 @@ for various things, but is optional."
   (interactive)
   (unless (> (save-excursion
                (goto-char (point-min))
-               (haskell-navigate-imports-go)
+               (haskell-navigate-imports)
                (point))
              (point))
     (goto-char (point-min))
-    (haskell-navigate-imports-go))
+    (haskell-navigate-imports))
   (haskell-process-queue-sync-request (haskell-process)
                                       ":set -ddump-minimal-imports")
   (haskell-process-load-file)
