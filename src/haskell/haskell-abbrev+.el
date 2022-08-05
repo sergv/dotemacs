@@ -48,7 +48,7 @@
                                                   (or (seq "qualified" (* any) symbol-start "Debug.Trace" symbol-end)
                                                       (seq symbol-start "Debug.Trace" symbol-end (* any) "qualified")))
     (save-excursion
-      (haskell-navigate-imports-go)
+      (haskell-navigate-imports)
       (if (haskell-ext-tracking-have-import-qualified-post?)
           (insert "import Debug.Trace qualified\n\n")
         (insert "import qualified Debug.Trace\n\n")))))
