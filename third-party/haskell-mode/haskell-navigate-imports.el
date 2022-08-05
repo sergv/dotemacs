@@ -28,11 +28,6 @@
 ;; This module works completely independently of any libraries
 ;; (including haskell-mode).
 
-;; Exports three interactive functions:
-;; 1. haskell-navigate-imports
-;; 2. haskell-navigate-imports-go
-;; 3. haskell-navigate-imports-return
-
 ;; Example usage:
 
 ;; (require 'haskell-navigate-imports)
@@ -45,31 +40,11 @@
 (defvar haskell-literate) ; defined in haskell-mode.el
 
 ;;;###autoload
-(defun haskell-navigate-imports (&optional return)
-  "Cycle the Haskell import lines or return to point (with prefix arg)."
-  (interactive "P")
-  (if return
-      (haskell-navigate-imports-return)
-    (haskell-navigate-imports-go)))
-
-;;;###autoload
-(defun haskell-navigate-imports-go ()
-  "Go to the first line of a list of consecutive import lines. Cycles."
+(defun haskell-navigate-imports ()
+  "Cycle the Haskell import lines."
   (interactive)
-  (unless (or (haskell-navigate-imports-line)
-              (equal (line-beginning-position) (point-min))
-              (save-excursion (forward-line -1)
-                              (haskell-navigate-imports-line)))
-    (setq haskell-navigate-imports-start-point (point)))
-  (haskell-navigate-imports-go-internal))
-
-;;;###autoload
-(defun haskell-navigate-imports-return ()
-  "Return to the non-import point we were at before going to the module list.
-   If we were originally at an import list, we can just cycle through easily."
-  (interactive)
-  (when haskell-navigate-imports-start-point
-    (goto-char haskell-navigate-imports-start-point)))
+  (save-match-data
+    (haskell-navigate-imports-go-internal)))
 
 (defun haskell-navigate-imports-go-internal ()
   "Go to the first line of a list of consecutive import lines. Cycle."
