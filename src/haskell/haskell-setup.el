@@ -108,8 +108,9 @@
   (dante-repl-clear-buffer-above-prompt))
 
 (vim-defcmd vim:haskell-navigate-imports (nonrepeatable)
-  (haskell-navigate-imports)
-  (vim-save-position haskell-navigate-imports-start-point))
+  "Jump to the imports section."
+  (vim-save-position)
+  (haskell-navigate-imports))
 
 (vim-defcmd vim:haskell-comment-line (count repeatable)
   (haskell-comment-line count))
@@ -314,10 +315,8 @@ _TAB_: align and sort subsection"
 (defhydra-derive hydra-haskell-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
   "
 _i_:     jump to imports  _t_: jump to topmost node start
-_I_:     jump back        _h_: jump to topmont node end
-_<tab>_: reindent"
+_<tab>_: reindent         _h_: jump to topmont node end"
   ("i"     vim:haskell-navigate-imports:interactive)
-  ("I"     haskell-navigate-imports-return)
   ("<tab>" haskell-reindent-at-point)
 
   ("t"     haskell-move-to-topmost-start)
