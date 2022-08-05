@@ -9,7 +9,10 @@
 (eval-when-compile
   (require 'cl))
 
-(when dump-mode
+(defvar dumping)
+
+(when (or dumping
+          dump-mode)
   (error "Should not be reached when dumping"))
 
 (require 'set-up-platform)
