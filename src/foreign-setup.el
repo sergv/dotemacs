@@ -7,9 +7,9 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'set-up-platform)
+  (require 'set-up-platform))
 
-  (defvar dumping))
+(defvar dumping)
 
 (defcustom use-foreign-libraries? t
   "Whether to use foreign extensions to Emacs."
