@@ -8,6 +8,8 @@
 
 (require 'cl)
 
+(defvar trie-opt--global-cache)
+
 (defvar dumping t)
 
 (defun dump-main (emacs-dir)
@@ -162,6 +164,31 @@
     (when-windows
      (require 'fakecygpty-setup))
 
+    ;; So that all tries will be shared among themselves during dumping.
+    (let ((trie-opt--global-cache (make-hash-table :test #'equal)))
+      (require 'agda-abbrev+)
+      (require 'c++-abbrev+)
+      (require 'c-abbrev+)
+      (require 'clojure-abbrev+)
+      (require 'emacs-lisp-abbrev+)
+      (require 'haskell-abbrev+)
+      (require 'java-abbrev+)
+      (require 'latex-abbrev+)
+      (require 'octave-abbrev+)
+      (require 'python-abbrev+)
+      (require 'shell-script-abbrev+)
+
+      (agda-abbrev+-make-abbrevs)
+      (c++-abbrev+-make-abbrevs)
+      (c-abbrev+-make-abbrevs)
+      (clojure-abbrev+-make-abbrevs)
+      (emacs-lisp-abbrev+-make-abbrevs)
+      (haskell-abbrev+-make-abbrevs)
+      (java-abbrev+-make-abbrevs)
+      (latex-abbrev+-make-abbrevs)
+      (octave-abbrev+-make-abbrevs)
+      (python-abbrev+-make-abbrevs)
+      (shell-script-abbrev+-make-abbrevs))
 
     (provide 'already-dumped)
 
