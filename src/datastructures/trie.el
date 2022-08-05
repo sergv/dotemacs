@@ -104,6 +104,8 @@ call (MERGE old-val VALUE) to produce a new value."
 
 ;;;; Optimization
 
+(defvar trie-opt--global-cache nil)
+
 (defun trie-opt-normalize-subtrees! (trie)
   (dolist (subtree (trie-node--subtrees trie))
     (trie-opt-normalize-subtrees! (cdr subtree)))
@@ -113,7 +115,8 @@ call (MERGE old-val VALUE) to produce a new value."
               (lambda (x y) (< (car x) (car y))))))
 
 (defun trie-opt-recover-sharing! (trie)
-  (let ((cache (make-hash-table :test #'equal)))
+  (let ((cache (or trie-opt--global-cache
+                   (make-hash-table :test #'equal))))
     (trie-opt-normalize-subtrees! trie)
     (trie-opt--recover-sharing-worker trie cache)))
 
