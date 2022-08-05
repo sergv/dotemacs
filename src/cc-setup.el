@@ -157,7 +157,7 @@ Also propagate new offset to `vim-shift-width'."
                                                  nil)
         (setq-local c-basic-offset it)))
     (setup-indent-size
-     (if (integer? c-basic-offset)
+     (if (integerp c-basic-offset)
          c-basic-offset
        4))))
 
