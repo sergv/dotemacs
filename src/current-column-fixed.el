@@ -48,7 +48,9 @@ column numbers for elisp that executes. This function is immune to that deficien
     (save-excursion
       (unless (and (forward-comment -1) (>= (point) lbp))
         (goto-char pos))
-      (current-column-fixed-uncached))))
+      (el-patch-swap
+        (current-column)
+        current-column-fixed-uncached))))
 
 (provide 'current-column-fixed)
 
