@@ -38,7 +38,7 @@
 ;;;###autoload
 (defun glsl-setup ()
   (cc-setup :define-special-keys nil)
-  (setup-folding t nil)
+  (setup-folding 'enable-cpp nil)
   (setup-indent-size 4)
 
   (def-keys-for-map vim-normal-mode-local-keymap

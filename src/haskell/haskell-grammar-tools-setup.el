@@ -38,7 +38,7 @@ _i_: jump to imports"
                 indent-line-function
                 (lambda ()
                   (indent-to standard-indent))))
-  (haskell-setup-folding :enable-hideshow t)
+  (haskell-setup-folding)
 
   (setq-local beginning-of-defun-function #'haskell-move-to-topmost-start-impl)
 
