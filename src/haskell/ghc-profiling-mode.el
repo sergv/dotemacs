@@ -105,7 +105,8 @@ cpu time or allocations that the value of this variable.")
                :smerge nil)
   ;; Display every line as a single screen line.
   (setq-local truncate-lines t)
-  (haskell-setup-folding :enable-hideshow nil)
+  (haskell-setup-folding :enable-hideshow nil
+                         :enable-cpp nil)
   (def-keys-for-map vim-normal-mode-local-keymap
     ("C-h" ghc-profiling-mode-search-for-expensive-entry-forward)
     ("C-t" ghc-profiling-mode-search-for-expensive-entry-backward)))

@@ -17,6 +17,7 @@
 (require 'comint-setup)
 (require 'common)
 (require 'compile)
+(require 'folding-setup)
 (require 'hydra-setup)
 (require 'macro-util)
 
@@ -40,8 +41,8 @@
 
 (defvar python-exec "python3"
   "Python executable to use for script running.")
-(put 'python-exec 'safe-local-variable #'string?)
-(put 'python-shell-interpreter 'safe-local-variable #'string?)
+(put 'python-exec 'safe-local-variable #'stringp)
+(put 'python-shell-interpreter 'safe-local-variable #'stringp)
 
 ;; (setf python-shell-buffer-name "python repl"
 ;;       python-shell-interpreter "python3.3" ;; "python2.7"
@@ -186,7 +187,7 @@ in the current *Python* session."
         (cond
           ((null completions)
            (error "Can't find completion for \"%s\"" pattern))
-          ((null? (cdr completions))
+          ((null (cdr completions))
            ;; got only one completion
            (setf completion (car completions)))
           (t
@@ -208,28 +209,6 @@ in the current *Python* session."
          (list "/home/sergey/projects/python/modules/")
          ":"))
 (setenv "IPYTHONDIR" (concat +prog-data-path+ "/ipython"))
-
-(setf hs-special-modes-alist
-      (cons `(python-mode ,(rx line-start
-                               (* (syntax whitespace))
-                               symbol-start
-                               (or "def"
-                                   "class"
-                                   "for"
-                                   "if"
-                                   "elif"
-                                   "else"
-                                   "while"
-                                   "try"
-                                   "except"
-                                   "finally")
-                               symbol-end)
-                          nil
-                          "#"
-                          ,(lambda (_)
-                             (python-forward-indentation-level))
-                          nil)
-            (assq-delete-all 'python hs-special-modes-alist)))
 
 ;;; helper functions
 
@@ -272,7 +251,7 @@ greater indenation as current line."
              (current-column-fixed)))))
     (let ((c (funcall start-column)))
       (forward-line)
-      (while (and (not (eob?))
+      (while (and (not (eobp))
                   (< c (funcall start-column)))
         (forward-line))
       (backward-line)
@@ -383,6 +362,26 @@ _j_: send region to repl"
                :use-render-formula t
                :use-whitespace 'tabs-only
                :use-fci t)
+
+  (hs-minor-mode-initialize
+   :start (rx line-start
+              (* (syntax whitespace))
+              symbol-start
+              (or "def"
+                  "class"
+                  "for"
+                  "if"
+                  "elif"
+                  "else"
+                  "while"
+                  "try"
+                  "except"
+                  "finally")
+              symbol-end)
+   :comment-start-re "#"
+   :forward-sexp (lambda (_)
+                   (python-forward-indentation-level)))
+
   (setup-folding t '(:header-start "^[ \t]*" :header-symbol "#" :length-min 3))
 
   (setup-indent-size 4)
