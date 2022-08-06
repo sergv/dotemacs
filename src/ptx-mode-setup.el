@@ -25,7 +25,7 @@
 
   (setq-local indent-tabs-mode t)
 
-  (setup-folding t '(:header-symbol "/" :length-min 3))
+  (setup-folding 'enable-cpp '(:header-symbol "/" :length-min 3))
 
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-insert-mode-local-keymap)
