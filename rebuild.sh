@@ -12,14 +12,16 @@ set -o pipefail
 
 set -e
 
-#./scripts/dump.sh &&
-which ghc >/dev/null && \
-    ( cd third-party/flycheck-haskell;
-      ghc -Wall -Werror -O2 -o get-cabal-configuration get-cabal-configuration.hs && \
-          ( [[ -f get-cabal-configuration.exe ]] && strip get-cabal-configuration.exe || strip get-cabal-configuration)
-    )
+export EMACS_FORCE_PRISTINE=1
 
-./scripts/recompile.sh && ./scripts/dump.sh && ./tests/run-tests.sh "${@}"
+# ./scripts/dump.sh &&
+which ghc >/dev/null && \
+   ( cd third-party/flycheck-haskell;
+     ghc -Wall -Werror -O2 -o get-cabal-configuration get-cabal-configuration.hs && \
+         ( [[ -f get-cabal-configuration.exe ]] && strip get-cabal-configuration.exe || strip get-cabal-configuration)
+   )
+
+bash ./scripts/recompile.sh && bash ./scripts/dump.sh && bash ./tests/run-tests.sh "${@}"
 
 exit 0
 
