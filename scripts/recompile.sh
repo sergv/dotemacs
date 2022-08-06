@@ -9,6 +9,8 @@ set -eu
 
 emacs_dir=${1:-"${EMACS_ROOT}"}
 
+export EMACS_FORCE_PRISTINE=1
+
 source "$(dirname "$(readlink -f "$0")")/utils.sh"
 
 if [[ ! -d "$emacs_dir" ]]; then
@@ -61,7 +63,7 @@ function update-dir-autoloads() {
             (mapconcat #'identity (list $dirs) ", "
             ))))
 EOF
-    emacs-pristine --batch --eval "$emacs_cmd"
+    emacs --batch --eval "$emacs_cmd"
 }
 
 inform "Removing generated autoload el files"
@@ -147,10 +149,10 @@ if [[ "$native_comp" = "t" ]]; then
     # With native compilation is enabled all loaded .elc files will automatically
     # get compiled into .eln. When multiple processes do this, race condition may
     # occur and all recompilation fails.
-    emacs-pristine -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" 0 1 nil)"
+    emacs -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" 0 1 nil)"
 fi
 
-seq 0 "$((n - 1))" | xargs --replace=INPUT --max-args=1 -P "$n" --verbose emacs-pristine -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" INPUT $n $native_comp)"
+seq 0 "$((n - 1))" | xargs --replace=INPUT --max-args=1 -P "$n" --verbose emacs -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" INPUT $n $native_comp)"
 
 exit 0
 
