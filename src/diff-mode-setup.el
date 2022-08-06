@@ -16,23 +16,6 @@
 (require 'folding-setup)
 (require 'hydra-setup)
 
-;;;###autoload
-(add-to-list
- 'hs-special-modes-alist
- (list 'diff-mode
-       ;; start regex
-       (rx (or "[" "(" "{"))
-       ;; end regex
-       nil
-       ;; comment-start regex
-       (rx bol
-           (repeat 3 (or "-" "+"))
-           " ")
-       ;; forward-sexp function
-       nil
-       ;; adjust beg function
-       nil))
-
 (defhydra-derive hydra-diff-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
   "
 _,_: kill hunk"
@@ -45,6 +28,11 @@ _,_: kill hunk"
                :use-hl-line t
                :use-whitespace 'tabs-only
                :smerge nil)
+  (hs-minor-mode-initialize
+   :start (rx (or "[" "(" "{"))
+   :comment-start-re (rx bol
+                         (repeat 3 (or "-" "+"))
+                         " "))
   (setup-folding t nil)
 
   (def-keys-for-map vim-normal-mode-local-keymap
