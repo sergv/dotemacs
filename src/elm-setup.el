@@ -173,7 +173,8 @@ _a_lign"
    :load-func #'vim:elm-load-file:interactive)
   (dolist (cmd '("c" "compile"))
     (vim-local-emap cmd #'vim:elm-compile))
-  (haskell-setup-folding)
+  (haskell-setup-folding :enable-hideshow t
+                         :enable-cpp nil)
 
   (def-keys-for-map vim-normal-mode-local-keymap
     (("<f6>" "SPC SPC") elm-repl-load)
