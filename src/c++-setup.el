@@ -7,9 +7,9 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'macro-util)
-  (defvar c-basic-offset)
-  (defvar hs-forward-sexp-func))
+  (require 'macro-util))
+
+(defvar c-basic-offset)
 
 (require 'c++-abbrev+)
 (require 'cc-setup)
@@ -193,9 +193,8 @@ _<tab>_: format region
                 company-files
                 (company-eproj company-dabbrev-code company-keywords)
                 company-dabbrev)
-              hs-forward-sexp-func #'c-hideshow-forward-sexp
               indent-tabs-mode nil)
-  (setup-folding t '(:header-symbol "/" :length-min 3))
+  (setup-folding 'enable-cpp '(:header-symbol "/" :length-min 3))
 
   (configurable-compilation-install-command-presets!
    +c++-compilation-presets+

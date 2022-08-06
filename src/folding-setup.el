@@ -13,6 +13,7 @@
   (require 'macro-util))
 
 (require 'base-emacs-fixes)
+(require 'c-preprocessor)
 (require 'comment-util)
 (require 'el-patch)
 (require 'hideshow)
@@ -37,7 +38,6 @@
 ;;;###autoload
 (el-patch-feature hideshow)
 
-
 ;;;###autoload
 (eval-after-load "hideshow" '(require 'folding-setup))
 
@@ -48,8 +48,8 @@
 (advice-add 'byte-compile-file :around #'byte-compile-file--file-hideshow-off)
 
 ;; hideshow works badly with these
-(add-hook 'ediff-prepare-buffer-hook 'turn-off-hideshow)
-(add-hook 'vc-before-checkin-hook 'turn-off-hideshow)
+(add-hook 'ediff-prepare-buffer-hook #'turn-off-hideshow)
+(add-hook 'vc-before-checkin-hook #'turn-off-hideshow)
 
 ;;;###autoload
 (defun hs-show-sexps-in-region (begin end)
@@ -139,48 +139,55 @@ Original match data is restored upon return."
         (goto-char (match-beginning hs-block-start-mdata-select))))
     (funcall hs-forward-sexp-func arg)))
 
-(when-emacs-version (or (= it 25) (= it 26))
-  (el-patch-defun hs-grok-mode-type ()
-    "Set up hideshow variables for new buffers.
-If `hs-special-modes-alist' has information associated with the
-current buffer's major mode, use that.
-Otherwise, guess start, end and `comment-start' regexps; `forward-sexp'
-function; and adjust-block-beginning function."
-    (el-patch-splice 2 2
-      (if (and (boundp 'comment-start)
-               (boundp 'comment-end)
-               comment-start comment-end)
-          (let* ((lookup (assoc major-mode hs-special-modes-alist))
-                 (start-elem (or (nth 1 lookup) "\\s(")))
-            (if (listp start-elem)
-                ;; handle (START-REGEXP MDATA-SELECT)
-                (setq hs-block-start-regexp (car start-elem)
-                      hs-block-start-mdata-select (cadr start-elem))
-              ;; backwards compatibility: handle simple START-REGEXP
-              (setq hs-block-start-regexp start-elem
-                    hs-block-start-mdata-select 0))
-            (setq hs-block-end-regexp (or (nth 2 lookup) "\\s)")
-                  hs-c-start-regexp (or (nth 3 lookup)
-                                        (el-patch-wrap 2 1
-                                          (if comment-start
-                                              (let ((c-start-regexp
-                                                     (regexp-quote comment-start)))
-                                                (if (string-match " +$" c-start-regexp)
-                                                    (substring c-start-regexp
-                                                               0 (1- (match-end 0)))
-                                                  c-start-regexp))
-                                            (el-patch-wrap 3 0
-                                              (if (memq major-mode '(select-mode text-mode flycheck-error-message-mode))
-                                                  "\\(?:#\\|//\\)"
-                                                (progn
-                                                  (setq hs-minor-mode nil)
-                                                  (error "%s Mode doesn't support Hideshow Minor Mode"
-                                                         (format-mode-line mode-name))))))))
-                  hs-forward-sexp-func (or (nth 4 lookup) 'forward-sexp)
-                  hs-adjust-block-beginning (nth 5 lookup)))
-        (setq hs-minor-mode nil)
-        (error "%s Mode doesn't support Hideshow Minor Mode"
-               (format-mode-line mode-name))))))
+;;;###autoload
+(cl-defun hs-minor-mode-initialize (&key
+                                    start
+                                    selector
+                                    end
+                                    comment-start-re
+                                    forward-sexp)
+  (let ((comment-start-regexp
+         (cond
+           (comment-start-re
+            comment-start-re)
+           ((awhen (comment-util-current-format-lax)
+              (comment-format-line-regexp it)))
+           (comment-start
+            (trim-whitespace-right (regexp-quote comment-start)))
+           ((memq major-mode '(select-mode text-mode flycheck-error-message-mode))
+            "\\(?:#\\|//\\)")
+           (t
+            (error "Mode %s has no comment format defined for hideshow to use"
+                   mode-name)))))
+    (setq-local hs-block-start-regexp start
+                hs-block-start-mdata-select (or selector 0)
+                hs-block-end-regexp (or end "\\s)")
+                hs-c-start-regexp comment-start-regexp
+                hs-forward-sexp-func (or forward-sexp #'forward-sexp)
+                ;; Has good enough default
+                ;; hs-adjust-block-beginning #'identity
+                ))
+  (cl-assert (stringp hs-block-start-regexp))
+  (cl-assert (integerp hs-block-start-mdata-select))
+  (cl-assert (stringp hs-block-end-regexp))
+  (cl-assert (stringp hs-c-start-regexp))
+  (cl-assert (functionp hs-forward-sexp-func))
+  (cl-assert (functionp hs-adjust-block-beginning)))
+
+(defun hs-minor-mode--initialize-preproc (fold-preprocessor?)
+  "Must be called before enabling ‘hs-minor-mode’."
+  (if fold-preprocessor?
+      (hs-minor-mode-initialize
+       :start +c-preprocessor-open-hideshow-re+
+       :end +c-preprocessor-close-hideshow-re+
+       :forward-sexp #'c-preprocessor-hideshow-forward-sexp)
+    (hs-minor-mode-initialize
+     :start "\\s("
+     :end "\\s)")))
+
+(defun hs-minor-mode-ensure-initialized ()
+  (unless (stringp hs-block-start-regexp)
+    (error "‘hs-minor-mode-initialize’ was not called!")))
 
 (when-emacs-version (<= 27 it)
   (el-patch-defun hs-grok-mode-type ()
@@ -189,7 +196,7 @@ If `hs-special-modes-alist' has information associated with the
 current buffer's major mode, use that.
 Otherwise, guess start, end and `comment-start' regexps; `forward-sexp'
 function; and adjust-block-beginning function."
-    (el-patch-splice 2 2
+    (el-patch-swap
       (if (and (bound-and-true-p comment-start)
                (bound-and-true-p comment-end))
           (let* ((lookup (assoc major-mode hs-special-modes-alist))
@@ -203,25 +210,18 @@ function; and adjust-block-beginning function."
                     hs-block-start-mdata-select 0))
             (setq hs-block-end-regexp (or (nth 2 lookup) "\\s)")
                   hs-c-start-regexp (or (nth 3 lookup)
-                                        (el-patch-wrap 2 1
-                                          (if comment-start
-                                              (let ((c-start-regexp
-                                                     (regexp-quote comment-start)))
-                                                (if (string-match " +$" c-start-regexp)
-                                                    (substring c-start-regexp
-                                                               0 (1- (match-end 0)))
-                                                  c-start-regexp))
-                                            (if (memq major-mode '(select-mode text-mode flycheck-error-message-mode))
-                                                "\\(?:#\\|//\\)"
-                                              (progn
-                                                (setq hs-minor-mode nil)
-                                                (error "%s Mode doesn't support Hideshow Minor Mode"
-                                                       (format-mode-line mode-name)))))))
+                                        (let ((c-start-regexp
+                                               (regexp-quote comment-start)))
+                                          (if (string-match " +$" c-start-regexp)
+                                              (substring c-start-regexp
+                                                         0 (1- (match-end 0)))
+                                            c-start-regexp)))
                   hs-forward-sexp-func (or (nth 4 lookup) #'forward-sexp)
                   hs-adjust-block-beginning (or (nth 5 lookup) #'identity)))
         (setq hs-minor-mode nil)
         (error "%s Mode doesn't support Hideshow Minor Mode"
-               (format-mode-line mode-name))))))
+               (format-mode-line mode-name)))
+      (hs-minor-mode-ensure-initialized))))
 
 ;;;; Outline
 
@@ -317,11 +317,19 @@ function; and adjust-block-beginning function."
     (yafolding-show-element)))
 
 (defun folding-outline-on-sexp-or-commented? ()
-  (when-let (next (char-after))
-    (let ((syn (char-syntax next)))
-      (or (eq syn ?\()
-          (eq syn ?\))
-          (eq syn ?\<)))))
+  (or (when-let (next (char-after))
+        (let ((syn (char-syntax next)))
+          (or (eq syn ?\()
+              (eq syn ?\))
+              (eq syn ?\<))))
+      (save-excursion
+        (skip-to-indentation)
+        (or (looking-at-p hs-block-start-regexp)
+            (when-let (next (char-after))
+              (let ((syn (char-syntax next)))
+                (or (eq syn ?\()
+                    (eq syn ?\))
+                    (eq syn ?\<))))))))
 
 ;;;; Hydras and setups
 
@@ -401,8 +409,11 @@ _T_: toggle all indented"
 
 ;;;###autoload
 (defun setup-folding (enable-hideshow? outline-params)
+  (cl-assert (memq enable-hideshow? '(t nil enable-cpp)))
   (if enable-hideshow?
       (progn
+        (unless hs-block-start-regexp
+          (hs-minor-mode--initialize-preproc (eq enable-hideshow? 'enable-cpp)))
         (hs-minor-mode +1)
         (if outline-params
             (progn

@@ -17,7 +17,7 @@
   (init-common :use-yasnippet nil
                :use-render-formula nil
                :use-whitespace 'tabs-only)
-  (setup-folding t nil))
+  (setup-folding 'enable-cpp nil))
 
 ;;;###autoload
 (add-hook 'bison-mode-hook #'bison-setup)
