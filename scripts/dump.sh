@@ -10,12 +10,14 @@ set -u
 # propagate errors from all parts of pipes
 set -o pipefail
 
+export EMACS_FORCE_PRISTINE=1
+
 source "$(dirname "$(readlink -f "$0")")/utils.sh"
 
 native_comp="$(native-comp-available)"
 
 if [[ "$native_comp" = "nil" ]]; then
-    emacs-pristine \
+    emacs \
         --batch --quick --no-window-system --load src/dump.el --eval '(progn (dump-main "/home/sergey/.emacs.d"))'
 fi
 
