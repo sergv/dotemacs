@@ -954,6 +954,14 @@ under version-control directories."
                "--gpg-sign"
                "--overwrite-ignore")
         (args (pcmpl-git-commits))))
+      ("merge-base"
+       (opts
+        (flags "--all"
+               "--octopus"
+               "--is-ancestor"
+               "--independentn"
+               "--fork-point")
+        (args (pcmpl-git-commits))))
       ("mv"
        (opts
         (flags "-v"
