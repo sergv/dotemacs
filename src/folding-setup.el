@@ -316,6 +316,12 @@ function; and adjust-block-beginning function."
       (hs-show-block)
     (yafolding-show-element)))
 
+(vim-defcmd vim:folding-show-all-indented-or-sexp-or-commented ()
+  (if (and hs-minor-mode
+           (folding-outline-on-sexp-or-commented?))
+      (hs-show-all)
+    (yafolding-show-all)))
+
 (defun folding-outline-on-sexp-or-commented? ()
   (or (when-let (next (char-after))
         (let ((syn (char-syntax next)))
@@ -376,12 +382,12 @@ _O_: show all blocks  _U_: show all outline blocks"
 _c_: hide indented or sexp
 _o_: show indented or sexp
 _C_: hide all indented
-_O_: show all indented
+_O_: show all indented or sexp
 _T_: toggle all indented"
   ("c" vim:folding-hide-indented-or-sexp-or-commented:interactive)
   ("o" vim:folding-show-indented-or-sexp-or-commented:interactive)
   ("C" vim:yafolding-hide-all:interactive)
-  ("O" vim:yafolding-show-all:interactive)
+  ("O" vim:folding-show-all-indented-or-sexp-or-commented:interactive)
   ("T" vim:yafolding-toggle-all:interactive))
 
 (defhydra-derive hydra-vim-visual-z-yafolding hydra-vim-visual-z-ext (:exit t :foreign-keys nil :hint nil)
@@ -391,15 +397,15 @@ _c_: yafolding hide region"
 
 (defhydra-derive hydra-vim-normal-z-hideshow-yafolding-and-outline hydra-vim-normal-z-ext (:exit t :foreign-keys nil :hint nil)
   "
-_c_: hide indented or sexp  _f_: hide outline block
-_o_: show indented or sexp  _u_: show outline block
-_C_: hide all indented      _F_: hide all outline blocks leaving all headings visible
-_O_: show all indented      _U_: show all outline blocks
+_c_: hide indented or sexp      _f_: hide outline block
+_o_: show indented or sexp      _u_: show outline block
+_C_: hide all indented          _F_: hide all outline blocks leaving all headings visible
+_O_: show all indented or sexp  _U_: show all outline blocks
 _T_: toggle all indented"
   ("c" vim:folding-hide-indented-or-sexp-or-commented:interactive)
   ("o" vim:folding-show-indented-or-sexp-or-commented:interactive)
   ("C" vim:yafolding-hide-all:interactive)
-  ("O" vim:yafolding-show-all:interactive)
+  ("O" vim:folding-show-all-indented-or-sexp-or-commented:interactive)
   ("T" vim:yafolding-toggle-all:interactive)
 
   ("F" vim:outline-hide-body:interactive)
@@ -455,7 +461,6 @@ _T_: toggle all indented"
 
 (vimmize-function yafolding-toggle-all :name vim:yafolding-toggle-all :has-count nil)
 (vimmize-function yafolding-hide-all   :name vim:yafolding-hide-all   :has-count nil)
-(vimmize-function yafolding-show-all   :name vim:yafolding-show-all   :has-count nil)
 
 (vimmize-function outline-hide-body    :name vim:outline-hide-body    :has-count nil)
 (vimmize-function outline-hide-subtree :name vim:outline-hide-subtree :has-count nil)
