@@ -26,15 +26,13 @@
 ;;;###autoload
 (defun c-setup ()
   (cc-setup :define-special-keys t)
-  (setup-folding t '(:header-symbol "/" :length-min 3))
+  (setup-folding 'enable-cpp '(:header-symbol "/" :length-min 3))
   (cc-setup/set-up-c-basic-offset)
   (setq-local company-backends
               '(company-clang
                 company-files
                 (company-eproj company-dabbrev-code company-keywords)
                 company-dabbrev))
-
-  (setf hs-forward-sexp-func #'c-hideshow-forward-sexp)
 
   (when-buffer-has-file
     (setq-local compile-command
