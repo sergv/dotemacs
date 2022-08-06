@@ -21,10 +21,11 @@
  (haskell-mode))
 
 ;;;###autoload
-(cl-defun haskell-setup-folding (&key (enable-hideshow t))
+(cl-defun haskell-setup-folding (&key (enable-hideshow t) (enable-cpp t))
   "Configure folding for Haskell. ENABLE-HS-MINOR-MODE controls whether
 to enable folding of balanced S-expressions."
-  (setup-hideshow-yafolding enable-hideshow '(:header-symbol "-" :length-min 3)))
+  (setup-hideshow-yafolding (and enable-hideshow enable-cpp 'enable-cpp)
+                            '(:header-symbol "-" :length-min 3)))
 
 (provide 'haskell-outline)
 

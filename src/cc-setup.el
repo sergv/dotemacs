@@ -12,6 +12,7 @@
   (defvar whitespace-line-column))
 
 (require 'align-util)
+(require 'c-preprocessor)
 (require 'common)
 (require 'indentation)
 (require 'find-file)
@@ -30,121 +31,6 @@
       "="
       (not ?=))
   :require-one-or-more-spaces t)
-
-(defun c-forward-preprocessor-conditional (count)
-  "Clone of `c-scan-conditionals' with interface of `forward-sexp' for matching
-#if with #else and #else with #endif."
-  (save-match-data
-    (let* ((forward (> count 0))
-           (increment (if forward -1 1))
-           (search-function (if forward 're-search-forward 're-search-backward))
-           (target-depth 0)
-           new)
-      (save-excursion
-        (while (/= count 0)
-          (let ((depth 0)
-                (found nil))
-            (save-excursion
-              ;; Find the "next" significant line in the proper direction.
-              (while (and (not found)
-                          ;; Rather than searching for a # sign that
-                          ;; comes at the beginning of a line aside from
-                          ;; whitespace, search first for a string
-                          ;; starting with # sign.  Then verify what
-                          ;; precedes it.  This is faster on account of
-                          ;; the fastmap feature of the regexp matcher.
-                          (funcall search-function
-                                   "#[ \t]*\\(if\\|elif\\|endif\\|else\\)"
-                                   nil t))
-                (beginning-of-line)
-                ;; Now verify it is really a preproc line.
-                (if (looking-at "^[ \t]*#[ \t]*\\(if\\|elif\\|endif\\|else\\)")
-                    (let ((dchange nil)
-                          (directive (match-string-no-properties 1)))
-                      (cond ((or (string= directive "if")
-                                 (string= directive "ifdef")
-                                 (string= directive "ifndef"))
-                             (setq dchange (- increment)))
-                            ((string= directive "endif")
-                             (setq dchange increment))
-                            ((= depth 0)
-                             (setq dchange +1))
-                            ((= depth +1)
-                             (setq dchange -1)))
-                      (when dchange
-                        (setq depth (+ depth dchange))
-                        ;; If we are trying to move across, and we find an
-                        ;; end before we find a beginning, get an error.
-                        (if (and (< depth target-depth) (< dchange 0))
-                            (error (concat (if forward
-                                               "No following conditional at this level"
-                                             "No previous conditional at this level")
-                                           ", depth = %s, target-depth = %s")
-                                   depth
-                                   target-depth)))
-                      ;; When searching forward, start from next line so
-                      ;; that we don't find the same line again.
-                      (if forward (forward-line 1))
-                      ;; We found something if we've arrived at the
-                      ;; target depth.
-                      (if (and dchange (= depth target-depth))
-                          (setq found (point))))
-                  ;; else
-                  (if forward (forward-line 1)))))
-            (or found
-                (error "No containing preprocessor conditional"))
-            (goto-char (setq new found)))
-          (setq count (+ count increment))))
-      (c-keep-region-active)
-      (goto-char new))))
-
-(defconst +c-preprocessor-directives-re+
-  (rx (seq bol
-           "#"
-           (* (syntax whitespace))
-           symbol-start
-           (or "ifdef"
-               "ifndef"
-               "if"
-               "elif"
-               "endif"
-               "else")
-           symbol-end)))
-
-(defun c-hideshow-forward-sexp (&optional arg)
-  "Special version of `forward-sexp' for hideshow in c-mode."
-  (if (char=? (char-after) ?\{)
-      (forward-sexp arg)
-    (let ((start (point))
-          (case-fold-search nil))
-      (save-match-data
-        (c-forward-preprocessor-conditional (or arg 1))
-        (re-search-backward +c-preprocessor-directives-re+ start t)))))
-
-(let ((hs-spec (list
-                ;; This is like `+c-preprocessor-directives-re+' but does not
-                ;; include ending directives like endif.
-                (rx (or (seq bol
-                             "#"
-                             (* (syntax whitespace))
-                             symbol-start
-                             (or "ifdef"
-                                 "ifndef"
-                                 "if"
-                                 "elif"
-                                 "else")
-                             symbol-end)
-                        "{"))
-                nil
-                "/[*/]"
-                #'c-hideshow-forward-sexp
-                nil)))
-  (setf hs-special-modes-alist
-        (cons (cons 'c-mode hs-spec)
-              (cons (cons 'c++-mode hs-spec)
-                    (assq-delete-all 'c-mode
-                                     (assq-delete-all 'c++-mode
-                                                      hs-special-modes-alist))))))
 
 (defun cc-setup/set-up-c-basic-offset ()
   "Try to guess offset (`c-basic-offset') for current buffer or use value
