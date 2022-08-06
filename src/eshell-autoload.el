@@ -44,21 +44,6 @@
       ;; eshell-ls-exclude-regexp nil
       )
 
-(add-to-list
- 'hs-special-modes-alist
- (list 'eshell-mode
-       ;; start regex
-       (rx (or "[" "(" "{"))
-       ;; end regex
-       nil
-       ;; comment-start regex
-       (rx (or (+ "#")
-               (>= 2 "/")))
-       ;; forward-sexp function
-       nil
-       ;; adjust beg function
-       nil))
-
 (add-hook 'eshell-mode-hook #'eshell-setup)
 
 ;; Local Variables:

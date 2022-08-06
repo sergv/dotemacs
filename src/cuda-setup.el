@@ -6,9 +6,6 @@
 ;; Created: Sunday, 21 July 2013
 ;; Description:
 
-(eval-when-compile
-  (defvar hs-forward-sexp-func))
-
 (require 'common)
 (require 'cc-setup)
 
@@ -18,8 +15,7 @@
 ;;;###autoload
 (defun cuda-setup ()
   (cc-setup :define-special-keys nil)
-  (setf hs-forward-sexp-func #'c-hideshow-forward-sexp)
-  (setup-folding t '(:header-symbol "/" :length-min 3))
+  (setup-folding 'enable-cpp '(:header-symbol "/" :length-min 3))
   (cc-setup/set-up-c-basic-offset)
   (setup-eproj-symbnav))
 

@@ -34,48 +34,12 @@
 (require 'browse-kill-ring-setup)
 (require 'common)
 (require 'el-patch)
+(require 'folding-setup)
 (require 'hydra-setup)
 (require 'octave-abbrev+)
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.\\(?:m\\|octaverc\\)$" . octave-mode))
-
-;; (vimmize-motion octave-beginning-of-line)
-;; (vimmize-motion octave-end-of-line)
-
-;; set up hideshow
-(add-to-list 'hs-special-modes-alist
-             (list 'octave-mode
-                   ;; start regex
-                   (rx (or "do"
-                           "for"
-                           "parfor"
-                           "function"
-                           "if"
-                           "switch"
-                           "try"
-                           "unwind_protect"
-                           "while"))
-                   ;; end regex
-                   (rx (or "end"
-                           "endfor"
-                           "endfunction"
-                           "endif"
-                           "endswitch"
-                           "end_try_catch"
-                           "end_unwind_protect"
-                           "endwhile"
-                           "until"))
-                   ;; comment-start regex
-                   "\\(?:%+\\|#+\\)"
-                   ;; forward-sexp function
-                   nil
-                   ;; adjust beg function
-                   nil
-                   ;; (lambda (arg)
-                   ;;   (py-goto-beyond-block)
-                   ;;   (skip-chars-backward " \t\n"))
-                   ))
 
 ;;;###autoload
 (el-patch-feature octave)
@@ -391,6 +355,33 @@ _j_: send region"
                :use-render-formula t
                :use-fci t
                :use-whitespace 'tabs-only)
+  (hs-minor-mode-initialize
+   :start (rx (or "do"
+                  "for"
+                  "parfor"
+                  "function"
+                  "if"
+                  "switch"
+                  "try"
+                  "unwind_protect"
+                  "while"))
+   :end (rx (or "end"
+                "endfor"
+                "endfunction"
+                "endif"
+                "endswitch"
+                "end_try_catch"
+                "end_unwind_protect"
+                "endwhile"
+                "until"))
+   :comment-start-re "\\(?:%+\\|#+\\)"
+
+   ;; :adjust-arg
+   ;; (lambda (arg)
+   ;;   (py-goto-beyond-block)
+   ;;   (skip-chars-backward " \t\n"))
+   )
+
   (setup-folding t nil)
 
   (setq-local yas-indent-line 'fixed
