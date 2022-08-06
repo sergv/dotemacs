@@ -20,10 +20,11 @@
 (require 'esh-ext)
 (require 'search-prop)
 
-(require 'common)
-(require 'el-patch)
 (require 'browse-kill-ring-setup)
+(require 'common)
 (require 'completion-setup)
+(require 'el-patch)
+(require 'folding-setup)
 
 (require 'eshell-autoload)
 
@@ -219,6 +220,10 @@
              :create-keymaps t)
 
   (hl-line-mode +1)
+  (hs-minor-mode-initialize
+   :start (rx (or "[" "(" "{"))
+   :comment-start-re (rx (or (+ "#")
+                             (>= 2 "/"))))
   (setup-folding t nil)
 
   (def-keys-for-map vim-normal-mode-local-keymap

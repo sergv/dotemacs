@@ -30,6 +30,7 @@
   (defvar web-mode-code-indent-offset))
 
 (require 'el-patch)
+(require 'folding-setup)
 (require 'indentation)
 (require 'nxml-mode)
 
@@ -47,16 +48,6 @@
 
 ;;;###autoload
 (add-to-list 'magic-mode-alist '("<[ ?]*xml " . nxml-mode))
-
-(dolist (mode '(nxml-mode web-mode))
-  (setf hs-special-modes-alist
-        (cons `(,mode
-                "<!--\\|<[^/>]*[^/]\\|[\(\[\{]" ;; start
-                "-->\\|</[^/>]*[^/]\\|[\)\]\}]" ;; end
-                "<!--"                          ;; commend-start, won't work on its own; uses syntax table
-                my-nxml-forward-element
-                nil)
-              (assq-delete-all mode hs-special-modes-alist))))
 
 (defvar-local *markup-tags-context-func*
   (lambda ()
@@ -226,6 +217,7 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
 ;;;###autoload
 (defun markup-setup (tags-context-func)
   (init-common :use-whitespace 'tabs-only)
+  (markup-setup-hideshow)
   (setup-folding t nil)
   (hl-tags-mode t)
 
@@ -298,6 +290,13 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
          #'nxml-format-buffer
          *mode-indent-functions-table*)
 
+(defun markup-setup-hideshow ()
+  (hs-minor-mode-initialize
+   :start            "<!--\\|<[^/>]*[^/]\\|[\(\[\{]"
+   :end              "-->\\|</[^/>]*[^/]\\|[\)\]\}]"
+   :comment-start-re "<!--" ;; won't work on its own; uses syntax table
+   :forward-sexp     #'my-nxml-forward-element))
+
 ;;;###autoload
 (defun nxml-setup ()
   (markup-setup #'hl-tags-context-nxml-mode)
@@ -309,6 +308,7 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
 ;;;###autoload
 (defun web-mode-setup ()
   (init-common :use-whitespace 'tabs-only)
+  (markup-setup-hideshow)
   (setup-folding t nil)
 
   (put 'hs-set-up-overlay 'permanent-local t)
