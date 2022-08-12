@@ -458,22 +458,26 @@
 (defconst ebuf--invisible-buffer-re
   (rx bos
       (or (or "*buffers*"
+              "*magit-process*"
               "*Ibuffer*"
               "*Kill Ring*"
               "*Pp Eval Output*"
               "*Async Shell Command*"
               "*Completions*"
-              "*magit-process*"
               "*Help*"
               "*P4 update status*")
           (or " *code-conversion-work*"
               " *code-converting-work*"
-              " *LV*"
               " *nix-repl completions redirect*"
-              " *server*")
-          (seq (or " *Minibuf"
+              " *server*"
+              " *Compiler Input*"
+              " *Compiler Output*"
+              " *DOC*"
+              " *LV*"
+              " *RNC Input*")
+          (seq (or " *eldoc for "
                    " *Echo Area "
-                   " *eldoc for "
+                   " *Minibuf"
                    " markdown-mode-fontification:")
                (* anything))
           (seq "#" (+ anything) "#"))
