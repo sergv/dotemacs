@@ -52,6 +52,8 @@ _a_lign"
 (defun nix-setup ()
   (init-common :use-whitespace t)
 
+  (setq-local vim-shift-width 2)
+
   (setup-hideshow-yafolding t '(:header-symbol "#" :length-min 3))
 
   (yafolding-mode +1)
