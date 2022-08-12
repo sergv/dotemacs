@@ -174,24 +174,17 @@
 (cl-defun setup-lsp-symbnav (&key (bind-keybindings t))
   (setq-local xref-show-definitions-function #'eproj-xref-symbnav-show-xrefs
               xref-show-xrefs-function #'eproj-xref-symbnav-show-xrefs)
+  (setup-eproj-symbnav :bind-keybindings bind-keybindings)
   (when bind-keybindings
     (awhen (current-local-map)
       (def-keys-for-map it
-        ("C-." lsp-symbnav/go-to-symbol-home)
-        ("C-," lsp-symbnav/go-back)
-        ("C-?" lsp-symbnav/find-references)
-
-        ("M-." eproj-symbnav/go-to-symbol-home)
-        ("M-," eproj-symbnav/go-back)
-        ("M-?" xref-find-references)))
+        ("M-." lsp-symbnav/go-to-symbol-home)
+        ("M-," lsp-symbnav/go-back)
+        ("M-?" lsp-symbnav/find-references)))
     (def-keys-for-map vim-normal-mode-local-keymap
-      ("C-." lsp-symbnav/go-to-symbol-home)
-      ("C-," lsp-symbnav/go-back)
-      ("C-?" lsp-symbnav/find-references)
-
-      ("M-." eproj-symbnav/go-to-symbol-home)
-      ("M-," eproj-symbnav/go-back)
-      ("M-?" xref-find-references))))
+      ("M-." lsp-symbnav/go-to-symbol-home)
+      ("M-," lsp-symbnav/go-back)
+      ("M-?" lsp-symbnav/find-references))))
 
 (defalias 'lsp-symbnav/go-back #'eproj-symbnav/go-back)
 
