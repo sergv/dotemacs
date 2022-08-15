@@ -29,24 +29,23 @@
       grep-files-aliases
       (eval-when-compile
         (let ((haskell-exts
-               (join-lines (cons
-                            "cabal.project"
-                            (cons
-                             "cabal.project.local"
-                             (--map (concat "*." it)
-                                    (cons "cabal" +haskell-extensions+))))
-                           " "))
-              (c++-exts
-               (join-lines (--map (concat "*." it) +cpp-extensions+)
-                           " ")))
+               (string-join (cons
+                             "cabal.project"
+                             (cons
+                              "cabal.project.local"
+                              (--map (concat "*." it)
+                                     (cons "cabal" +haskell-extensions+))))
+                            " "))
+              (mk-globs (lambda (xs)
+                          (string-join (--map (concat "*." it) xs) " "))))
           `(("all"      . "*")
-            ("el"       . "*.el")
-            ("c"        . "*.c")
-            ("h"        . "*.h")
-            ("ch"       . "*.c *.h")
-            ("hh"       . "*.hh *.hxx *.hpp *.h *.h++")
-            ("cc"       . "*.cc *.cxx *.cpp *.c *.c++")
-            ("cchh"     . ,c++-exts)
+            ("el"       . "*.el .emacs")
+            ("c"        . ,(funcall mk-globs +c-source-exts+))
+            ("h"        . ,(funcall mk-globs +c-header-exts+))
+            ("ch"       . ,(funcall mk-globs (append +c-header-exts+ +c-source-exts+)))
+            ("hh"       . ,(funcall mk-globs +cpp-header-exts+))
+            ("cc"       . ,(funcall mk-globs +cpp-source-exts+))
+            ("cchh"     . ,(funcall mk-globs (append +cpp-header-exts+ +cpp-source-exts+)))
             ("clj"      . "*.clj")
             ("clojure"  . "*.clj")
             ("java"     . "*.java")
