@@ -1904,6 +1904,15 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/vim:yank-current-line-2
+    (execute-kbd-macro (kbd "y y p"))
+  "foo
+_|_bar"
+  "foo
+bar
+_|_bar")
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
     vim-tests/paste-cycle-with-region-block-paste-1
     (vim-tests--enable-undo
      (execute-kbd-macro (kbd "Y C-v h y P P")))
