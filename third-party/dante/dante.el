@@ -55,6 +55,7 @@
 (eval-when-compile
   (require 'company))
 
+(require 'common)
 (require 'haskell-regexen)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -841,9 +842,9 @@ This applies to paths of the form x:\\foo\\bar"
 ;;;;;;;;;;;;;;;;;;;;
 ;; GHCi formatting
 
-(defun dante--ghc-column-number-at-pos (pos)
+(defsubst dante--ghc-column-number-at-pos (pos)
   "Format the point POS as a column number as expected by GHCi."
-  (1+ (save-excursion (goto-char pos) (current-character-column))))
+  (1+ (character-column-at-pos pos)))
 
 (defun dante--ghc-subexp (reg)
   "Format the subexpression denoted by REG for GHCi commands."
