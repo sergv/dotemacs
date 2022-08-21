@@ -20,7 +20,7 @@
   (or (let ((universal-ctags-exec
              (platform-dependent-executable (concat +execs-path+ "/universal-ctags")))
             (ctags-universal-exec
-             (platform-dependent-executable (concat +execs-path+ "/universal-ctags")))
+             (platform-dependent-executable (concat +execs-path+ "/ctags-universal")))
             (ctags-exec
              (platform-dependent-executable (concat +execs-path+ "/ctags"))))
         (or
