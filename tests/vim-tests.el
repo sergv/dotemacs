@@ -754,6 +754,24 @@
    "fizz"
    "frobnicate"))
 
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/block-change-2
+    (execute-kbd-macro (kbd "C-v b h h h c f o o . <escape>"))
+  (tests-utils--multiline
+   "        devShell = project (with haskellPackages; [ # [4]"
+   "          haskellPackages_|_.cabal-fmt"
+   "          haskellPackages.cabal-install"
+   "          haskellPackages.haskell-language-server"
+   "          haskellPackages.hlint"
+   "        ]);")
+  (tests-utils--multiline
+   "        devShell = project (with haskellPackages; [ # [4]"
+   "          foo_|_.cabal-fmt"
+   "          foo.cabal-install"
+   "          foo.haskell-language-server"
+   "          foo.hlint"
+   "        ]);"))
+
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-except
     (rust-mode)
     vim-tests/linewise-append-newline-1
