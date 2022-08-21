@@ -898,6 +898,13 @@ topmost `kill-ring' item is equal to text (text properties are ignored)."
 
 ;;;;
 
+(defun character-column-at-pos (pos)
+  (declare (pure nil) (side-effect-free nil))
+  (cl-assert (number-or-marker-p pos))
+  (save-excursion
+    (goto-char pos)
+    (- pos (line-beginning-position))))
+
 (defun current-character-column ()
   "Return current column in number of characters since the beginning of line.
 Does well against `prettify-symbols-mode' and `compose-region'."
