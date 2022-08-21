@@ -31,6 +31,30 @@
   (interactive)
   (generic-align-on-equals))
 
+(defun nix--simple-indent-newline-same-col ()
+  "Make a newline and go to the same column as the current line."
+  (interactive "*")
+  (delete-horizontal-space t)
+  (let ((indent-size
+         (save-excursion
+           (let* ((start (line-beginning-position))
+                  (end (progn
+                         (goto-char start)
+                         (skip-to-indentation)
+                         (point))))
+             (when (or (eobp)
+                       (not (eq ?\s (char-after))))
+               (- end start))))))
+    (insert-char ?\n)
+    (when indent-size
+      (insert-char ?\s indent-size))))
+
+(defun nix--simple-indent-newline-indent ()
+  "Make a newline on the current column and indent on step."
+  (interactive "*")
+  (nix--simple-indent-newline-same-col)
+  (insert-char ?\s vim-shift-width))
+
 (defhydra-ext hydra-nix-align (:exit t :foreign-keys nil :hint nil)
   "
 _a_: generic
@@ -73,7 +97,8 @@ _a_lign"
 
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-insert-mode-local-keymap)
-    ("C-SPC" company-complete)))
+    ("C-SPC"      company-complete)
+    ("C-<return>" nix--simple-indent-newline-indent)))
 
 ;;;###autoload
 (add-hook 'nix-mode-hook #'nix-setup)
