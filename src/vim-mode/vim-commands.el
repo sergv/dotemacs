@@ -258,7 +258,7 @@ and switches to insert-mode."
         (forward-line -1)))
     (indent-according-to-mode)
     (if (eolp)
-      (vim:cmd-append :count 1)
+        (vim:cmd-append :count 1)
       (vim:cmd-insert :count 1))))
 
 (vim-defcmd vim:cmd-change-rest-of-line ()
@@ -516,7 +516,7 @@ and switches to insert-mode."
          (vim--cmd-paste-before-impl count)
          (when at-eob?
            ;; we have to remove the final newline and update paste-info
-           (goto-char (vim-paste-info-begin vim--last-paste))
+           (goto-char (vim-paste-info-end vim--last-paste))
            (delete-char -1)
            (setf (vim-paste-info-begin vim--last-paste)  (max (point-min)
                                                               (1- (vim-paste-info-begin vim--last-paste)))
