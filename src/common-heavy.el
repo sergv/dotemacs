@@ -1149,16 +1149,13 @@ to deleted items. ITEMS will be mutated in order to obtain result."
 ;;;###autoload
 (defun balance-other-windows ()
   (interactive)
-  (let ((is-bound? (local-variable-p 'window-size-fixed))
-        (old-val window-size-fixed))
+  (let ((win (selected-window)))
     (unwind-protect
         (progn
-          (setq window-size-fixed t)
-          (balance-windows))
+          (window-preserve-size win t t)
+          (balane-windows))
       (progn
-        (if is-bound?
-            (setq window-size-fixed old-val)
-          (kill-local-variable 'window-size-fixed))))))
+        (window-preserve-size win t nil)))))
 
 (provide 'common-heavy)
 
