@@ -230,9 +230,9 @@ scheme and it’s view of current buffer is malformed."
 (defun flycheck-setup-from-eproj (proj default-checker &optional preprocess-checker)
   (when (not noninteractive)
     (let* ((flycheck-backend
-            (eproj-query/flycheck-checker proj major-mode default-checker)))
+            (eproj-query/checker proj major-mode default-checker)))
       (setq-local flycheck-disabled-checkers
-                  (eproj-query/flycheck-disabled-checkers
+                  (eproj-query/disabled-checkers
                    proj
                    major-mode
                    flycheck-disabled-checkers))
