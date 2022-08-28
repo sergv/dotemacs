@@ -118,29 +118,6 @@ By default these are:
     ("\\<\\(?:[Tt]rue\\|[Ff]alse\\)\\>"
      (0 font-lock-constant-face))))
 
-(defvar haskell-cabal-buffers nil
-  "List of Cabal buffers.")
-
-(defun haskell-cabal-buffers-clean (&optional buffer)
-  "Refresh list of known cabal buffers.
-
-Check each buffer in variable `haskell-cabal-buffers' and remove
-it from list if one of the following conditions are hold:
-+ buffer is killed;
-+ buffer's mode is not derived from `haskell-cabal-mode';
-+ buffer is a BUFFER (if given)."
-  (let ((bufs ()))
-    (dolist (buf haskell-cabal-buffers)
-      (if (and (buffer-live-p buf)
-               (not (eq buf buffer))
-               (with-current-buffer buf (derived-mode-p 'haskell-cabal-mode)))
-          (push buf bufs)))
-    (setq haskell-cabal-buffers bufs)))
-
-(defun haskell-cabal-unregister-buffer ()
-  "Exclude current buffer from global list of known cabal buffers."
-  (haskell-cabal-buffers-clean (current-buffer)))
-
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.cabal\\'\\|/cabal\\.project\\|/\\.cabal/config\\'" . haskell-cabal-mode))
 
@@ -166,16 +143,12 @@ it from list if one of the following conditions are hold:
   "Major mode for Cabal package description files."
   (setq-local font-lock-defaults
               '(haskell-cabal-font-lock-keywords t t nil nil))
-  (add-to-list 'haskell-cabal-buffers (current-buffer))
-  (add-hook 'change-major-mode-hook 'haskell-cabal-unregister-buffer nil 'local)
-  (add-hook 'kill-buffer-hook 'haskell-cabal-unregister-buffer nil 'local)
   (setq-local comment-start "-- ")
   (setq-local comment-start-skip "\\(^[ \t]*\\)--[ \t]*")
   (setq-local comment-end "")
   (setq-local comment-end-skip "[ \t]*\\(\\s>\\|\n\\)")
   (setq-local indent-line-function 'haskell-cabal-indent-line)
-  (setq indent-tabs-mode nil)
-  )
+  (setq indent-tabs-mode nil))
 
 (make-obsolete 'haskell-cabal-get-setting
                'haskell-cabal--get-field
