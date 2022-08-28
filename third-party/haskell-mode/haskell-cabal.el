@@ -89,7 +89,7 @@ By default these are:
     "install-includes" "include-dirs" "c-sources" "extra-libraries"
     "extra-lib-dirs" "cc-options" "ld-options" "frameworks"))
 
-(defvar haskell-cabal-mode-syntax-table
+(defconst haskell-cabal-mode-syntax-table
   (let ((st (make-syntax-table)))
     ;; The comment syntax can't be described simply in syntax-table.
     ;; We could use font-lock-syntactic-keywords, but is it worth it?
@@ -98,24 +98,24 @@ By default these are:
     (modify-syntax-entry ?- "w" st)
     st))
 
-(defvar haskell-cabal-font-lock-keywords
+(defconst haskell-cabal-font-lock-keywords
   ;; The comment syntax can't be described simply in syntax-table.
   ;; We could use font-lock-syntactic-keywords, but is it worth it?
   '(("^[ \t]*--.*" . font-lock-comment-face)
-    ("^ *\\([^ \t:]+\\):" (1 font-lock-keyword-face))
-    ("^\\(Library\\)[ \t]*\\({\\|$\\)" (1 font-lock-keyword-face))
-    ("^\\(Executable\\|Test-Suite\\|Benchmark\\|Common\\|package\\)[ \t]+\\([^\n \t]*\\)"
+    ("^[ \t]*\\(?:,[ \t]*\\)?\\([^ \t\n\r:]+\\):" (1 font-lock-keyword-face))
+    ("^\\([Ll]ibrary\\)[ \t]*\\({\\|$\\)" (1 font-lock-keyword-face))
+    ("^\\([Ee]xecutable\\|[Tt]est-[Ss]uite\\|[Bb]enchmark\\|[Cc]ommon\\|[Pp]ackage\\)[ \t]+\\([^ \t\n\r]*\\)"
      (1 font-lock-keyword-face) (2 font-lock-function-name-face))
-    ("^\\(Flag\\|install-dirs\\|repository\\)[ \t]+\\([^\n \t]*\\)"
+    ("^\\([Ff]lag\\|[Ii]nstall-[Dd]irs\\|[Rr]epository\\)[ \t]+\\([^ \t\n\r]*\\)"
      (1 font-lock-keyword-face) (2 font-lock-constant-face))
-    ("^\\(Source-Repository\\)[ \t]+\\(head\\|this\\)"
+    ("^\\([Ss]ource-[Rr]epository\\)[ \t]+\\(head\\|this\\)"
      (1 font-lock-keyword-face) (2 font-lock-constant-face))
     ("^\\(haddock\\|source-repository-package\\|program-locations\\|program-default-options\\)\\([ \t]\\|$\\)"
      (1 font-lock-keyword-face))
-    ("^ *\\(if\\)[ \t]+.*\\({\\|$\\)" (1 font-lock-keyword-face))
-    ("^ *\\(}[ \t]*\\)?\\(else\\)[ \t]*\\({\\|$\\)"
+    ("^[ \t]*\\(if\\)[ \t]+.*\\({\\|$\\)" (1 font-lock-keyword-face))
+    ("^[ \t]*\\(}[ \t]*\\)?\\(else\\)[ \t]*\\({\\|$\\)"
      (2 font-lock-keyword-face))
-    ("\\<\\(?:True\\|False\\)\\>"
+    ("\\<\\(?:[Tt]rue\\|[Ff]alse\\)\\>"
      (0 font-lock-constant-face))))
 
 (defvar haskell-cabal-buffers nil
