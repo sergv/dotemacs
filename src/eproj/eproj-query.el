@@ -82,17 +82,17 @@
     default))
 
 ;;;###autoload
-(defun eproj-query/flycheck-checker (proj mode default)
+(defun eproj-query/checker (proj mode default)
   (declare (pure t) (side-effect-free nil))
   (cl-assert (symbolp mode))
   (let ((effective-mode (eproj/resolve-synonym-modes mode)))
     (if-let ((p proj)
              (entry (eproj-project/query-aux-info-entry (eproj-project/aux-info p)
-                      'flycheck-checker
+                      'checker
                       effective-mode)))
         (let ((res (car entry)))
           (unless (symbolp res)
-            (error "flycheck-checker.%s entry in .eproj-info of %s must be a boolean, but got %s"
+            (error "checker.%s entry in .eproj-info of %s must be a symbol, but got %s"
                    effective-mode
                    (eproj-project/root proj)
                    res))
@@ -100,18 +100,18 @@
       default)))
 
 ;;;###autoload
-(defun eproj-query/flycheck-disabled-checkers (proj mode default)
+(defun eproj-query/disabled-checkers (proj mode default)
   (declare (pure t) (side-effect-free nil))
   (cl-assert (symbolp mode))
   (let ((effective-mode (eproj/resolve-synonym-modes mode)))
     (if-let ((p proj)
              (entry (eproj-project/query-aux-info-entry (eproj-project/aux-info p)
-                      'flycheck-disabled-checkers
+                      'disabled-checkers
                       effective-mode)))
         (let ((res entry))
           (unless (and (listp res)
                        (-all-p #'symbolp res))
-            (error "flycheck-disabled-checkers.%s entry in .eproj-info of %s must be a list of symbols, but got %s"
+            (error "disabled-checkers.%s entry in .eproj-info of %s must be a list of symbols, but got %s"
                    effective-mode
                    (eproj-project/root proj)
                    res))
