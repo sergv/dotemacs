@@ -91,18 +91,17 @@ By default these are:
 
 (defconst haskell-cabal-mode-syntax-table
   (let ((st (make-syntax-table)))
-    ;; The comment syntax can't be described simply in syntax-table.
-    ;; We could use font-lock-syntactic-keywords, but is it worth it?
-    ;; (modify-syntax-entry ?- ". 12" st)
     (modify-syntax-entry ?\n ">" st)
     (modify-syntax-entry ?- "w" st)
+    (modify-syntax-entry ?: "." st)
+    (modify-syntax-entry ?\{ "\(\}" st)
+    (modify-syntax-entry ?\} "\)\{" st)
     st))
 
 (defconst haskell-cabal-font-lock-keywords
   ;; The comment syntax can't be described simply in syntax-table.
   ;; We could use font-lock-syntactic-keywords, but is it worth it?
-  '(("^[ \t]*--.*" . font-lock-comment-face)
-    ("^[ \t]*\\(?:,[ \t]*\\)?\\([^ \t\n\r:]+\\):" (1 font-lock-keyword-face))
+  '(("^[ \t]*\\(?:,[ \t]*\\)?\\([^ \t\n\r:]+\\):" (1 font-lock-keyword-face))
     ("^\\([Ll]ibrary\\)[ \t]*\\({\\|$\\)" (1 font-lock-keyword-face))
     ("^\\([Ee]xecutable\\|[Tt]est-[Ss]uite\\|[Bb]enchmark\\|[Cc]ommon\\|[Pp]ackage\\)[ \t]+\\([^ \t\n\r]*\\)"
      (1 font-lock-keyword-face) (2 font-lock-function-name-face))
@@ -142,7 +141,11 @@ By default these are:
 (define-derived-mode haskell-cabal-mode fundamental-mode "Haskell-Cabal"
   "Major mode for Cabal package description files."
   (setq-local font-lock-defaults
-              '(haskell-cabal-font-lock-keywords t t nil nil))
+              (list haskell-cabal-font-lock-keywords nil nil nil nil)
+              font-lock-syntactic-keywords
+              '(("\\(-\\)\\(-\\)"
+                 (1 "<1")
+                 (1 "<2"))))
   (setq-local comment-start "-- ")
   (setq-local comment-start-skip "\\(^[ \t]*\\)--[ \t]*")
   (setq-local comment-end "")
