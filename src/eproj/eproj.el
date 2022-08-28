@@ -35,10 +35,10 @@
 ;;    [(haskell-mode
 ;;       [(indent-offset <integer>)])])]
 ;;
-;; [(flycheck-checker
+;; [(checker
 ;;    [(haskell-mode <nil|haskell-stack-ghc|haskell-ghc|haskell-dante|lsp|...>)])]
 ;;
-;; [(flycheck-disabled-checkers
+;; [(disabled-checkers
 ;;    [(haskell-mode
 ;;        [<haskell-stack-ghc|haskell-ghc|haskell-dante|lsp|...>]
 ;;        [<haskell-stack-ghc|haskell-ghc|haskell-dante|lsp|...>]
