@@ -250,11 +250,11 @@ runtime but rather will be silently relied on)."
                   (s-join ", " it)))
          `((languages haskell-mode)
            (related ,@all-related)
-           (flycheck-checker
+           (checker
             (haskell-mode lsp)))))
       ((file-exists-p (concat root "/package.yaml"))
        '((languages haskell-mode)
-         (flycheck-checker
+         (checker
           (haskell-mode lsp))))
       ((directory-files root
                         nil
@@ -263,7 +263,7 @@ runtime but rather will be silently relied on)."
                             eos)
                         t)
        '((languages haskell-mode)
-         (flycheck-checker
+         (checker
           (haskell-mode lsp))))
       (t
        nil))))
