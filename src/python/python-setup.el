@@ -316,8 +316,6 @@ greater indenation as current line."
                      nil ;; TYPE - error
                      ))
 
-              *compilation-jump-error-regexp* +python-run-error-regexp+
-
               compilation-first-column t
               compilation-disable-input t
               compilation-scroll-output t)
