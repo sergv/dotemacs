@@ -33,7 +33,8 @@
       (insert-file-contents (concat compilation-tests--resources-root
                                     "/haskell-compilation-log-stack.txt"))
       (goto-char (point-min))
-      (haskell-compilation-mode)
+      (normal-mode)
+      (compilation--ensure-parse (point-max))
       (let ((errors nil)
             (last-pos (point))
             (done nil))
@@ -41,7 +42,7 @@
                     (compilation-jump-to-next-error))
           (if (< (point) last-pos)
               (setf done t)
-            (let ((err (compilation/get-selected-error)))
+            (let ((err (compilation--error-at-point)))
               (setf (compilation-error/compilation-root-directory err) nil)
               (push err errors)
               (setf last-pos (point)))))
