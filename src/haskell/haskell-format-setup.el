@@ -10,6 +10,7 @@
   (require 'macro-util))
 
 (require 'common)
+(require 'flycheck-haskell)
 (require 'haskell-regexen)
 
 (defvar haskell-format-default-width 100)

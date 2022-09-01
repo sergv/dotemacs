@@ -100,6 +100,11 @@ will be in different GHCi sessions."
 (put 'dante-target 'safe-local-variable #'stringp)
 
 (defun dante-nix-available? (_buf)
+  "Non-nil iff ‘nix’ executable is avaliable."
+  (and (cached-executable-find "nix")
+       t))
+
+(defun dante-nix-shell-available? (_buf)
   "Non-nil iff ‘nix-shell’ executable is avaliable."
   (and (cached-executable-find "nix-shell")
        t))
@@ -109,11 +114,20 @@ will be in different GHCi sessions."
   (and (cached-executable-find "stack")
        t))
 
+(defun dante-nix-cabal-script-buf? (buf)
+  "Non-nil if BUF is a cabal-style script which has no extra configuration."
+  (and (dante-nix-available? buf)
+       (dante-cabal-script-buf? buf)))
+
+(defun dante-vanilla-cabal-script-buf? (buf)
+  "Non-nil if BUF is a cabal-style script which has no extra configuration."
+  (and (cached-executable-find "cabal")
+       (dante-cabal-script-buf? buf)))
+
 ;;;###autoload
 (defun dante-cabal-script-buf? (buf)
   "Non-nil if BUF is a cabal-style script which has no extra configuration."
-  (and (cached-executable-find "cabal")
-       (with-current-buffer buf
+  (and (with-current-buffer buf
          (save-excursion
            (save-match-data
              (goto-char (point-min))
@@ -150,6 +164,16 @@ will be in different GHCi sessions."
   "non-nil iff D contains a cabal project file or a cabal file."
   (and (dante-directory-regular-files d (rx ".cabal" eos))
        t))
+
+(defun dante-cabal-flake-nix (d)
+  "non-nil iff D contains a nix flake file and a cabal file."
+  (rx-let ((nix "flake.nix")
+           (cabal (or "cabal.project" "cabal.project.local" ".cabal")))
+    (let ((files (dante-directory-regular-files d (rx (or nix cabal)))))
+      ;; Both files must be present.
+      (and (--any? (string-match-p (rx nix eos) it) files)
+           (--any? (string-match-p (rx cabal eos) it) files)
+           t))))
 
 (defun dante-cabal-new-nix (d)
   "non-nil iff D contains a nix file and a cabal file."
@@ -248,14 +272,6 @@ will be in different GHCi sessions."
                            (awhen (eproj-sha1-of-project-root-for-buf (current-buffer))
                              (concat "-" it))))))
          (repl-options (--mapcat (list "--repl-option" it) ghci-options))
-         (stack-ghci-options (--mapcat (list "--ghci-options" it) ghci-options))
-         ;; (mk-opts
-         ;;  (lambda (template)
-         ;;    (list :check-command-line (funcall template build)
-         ;;          :repl-command-line
-         ;;          (dante--mk-repl-cmdline
-         ;;           (funcall template (append repl repl-options))
-         ;;           (funcall template (append repl (cons "--repl-no-load" repl-options)))))))
          (mk-dante-method
           (lambda (name is-enabled-pred find-root-pred template)
             (make-dante-method
@@ -270,65 +286,32 @@ will be in different GHCi sessions."
     (dante--mk-methods
      (list
       (funcall mk-dante-method
-               'new-impure-nix
-               #'dante-nix-available?
-               #'dante-cabal-new-nix
+               'nix-flakes-build-script      ;; name
+               #'dante-nix-cabal-script-buf? ;; is enabled predicate
+               nil                           ;; find root predicate
                (lambda (flags)
-                 `("nix-shell" "--run" (s-join " " (list "cabal" "new-repl" (or dante-target (dante-package-name) "") ,@flags)))))
-      (funcall mk-dante-method
-               'new-nix
-               #'dante-nix-available?
-               #'dante-cabal-new-nix
-               (lambda (flags)
-                 `("nix-shell" "--pure" "--run" (s-join " " (list "cabal" "new-repl" (or dante-target (dante-package-name) "") ,@flags)))))
-      (funcall mk-dante-method
-               'nix
-               #'dante-nix-available?
-               #'dante-cabal-nix
-               (lambda (flags)
-                 `("nix-shell" "--pure" "--run" (s-join " " (list "cabal" "repl " (or dante-target "") ,@flags)))))
-      (funcall mk-dante-method
-               'impure-nix
-               #'dante-nix-available?
-               #'dante-cabal-nix
-               (lambda (flags)
-                 `("nix-shell" "--run" (s-join " " (list "cabal" "repl " (or dante-target "") ,@flags)))))
-      (funcall mk-dante-method
-               'nix-ghci
-               #'dante-nix-available?
-               (lambda (d)
-                 (and (directory-files d t (rx (or "shell.nix" "default.nix") eos))
-                      t))
-               (lambda (_flags)
-                 '("nix-shell" "--pure" "--run" "ghci")))
+                 (nix-call-via-flakes `("cabal" "repl" buffer-file-name ,@flags))))
 
       (funcall mk-dante-method
-               'new-build-script
-               #'dante-cabal-script-buf?
+               'nix-flakes-build ;; name
+               #'dante-nix-available?               ;; is enabled predicate
+               #'dante-cabal-new ;; find root predicate
+               (lambda (flags)
+                 (nix-call-via-flakes `("cabal" "repl" (or dante-target (dante-package-name) nil) ,@flags))))
+
+      (funcall mk-dante-method
+               'build-script
+               #'dante-vanilla-cabal-script-buf?
                nil
                (lambda (flags)
-                 `("cabal" "new-repl" buffer-file-name ,@flags)))
+                 `("cabal" "repl" buffer-file-name ,@flags)))
 
       (funcall mk-dante-method
-               'new-build
+               'build
                nil
                #'dante-cabal-new
                (lambda (flags)
-                 `("cabal" "new-repl" (or dante-target (dante-package-name) nil) ,@flags)))
-
-      (funcall mk-dante-method
-               'stack
-               #'dante-stack-available?
-               (lambda (d) (directory-files d t (rx "stack" (* any) ".yaml" eos)))
-               (lambda (_flags)
-                 '("stack" "repl" dante-target ,@stack-ghci-options)))
-
-      (funcall mk-dante-method
-               'bare-cabal
-               nil
-               #'dante-cabal-vanilla
-               (lambda (flags)
-                 `("cabal" "repl" dante-target ,@flags)))
+                 `("cabal" "repl" (or dante-target (dante-package-name) nil) ,@flags)))
 
       (funcall mk-dante-method
                'bare-ghci
