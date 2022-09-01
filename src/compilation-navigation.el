@@ -11,6 +11,8 @@
 
 (require 'common)
 (require 'compile)
+(require 'configurable-compilation)
+(require 'flycheck-setup)
 
 (cl-defstruct (compilation-error
                (:conc-name compilation-error/))
@@ -20,66 +22,16 @@
   column-number)
 
 ;;;###autoload
-(defun compilation/get-selected-error ()
-  "Return filename, line and column for error or warning on current line
-\(i.e. the selected one), depending on `compilation-error-regexp-alist'."
-  (save-excursion
-    (save-match-data
-      (when-let (err-entry (-find (lambda (entry)
-                                    (save-excursion
-                                      (let ((regexp (car entry)))
-                                        (when (< 0 (length regexp))
-                                          (or (looking-at regexp)
-                                              (progn
-                                                (beginning-of-line)
-                                                (looking-at regexp)))))))
-                                  (-map (lambda (entry)
-                                          (if (symbolp entry)
-                                              (cdr-safe
-                                               (assq
-                                                entry
-                                                compilation-error-regexp-alist-alist))
-                                            entry))
-                                        compilation-error-regexp-alist)))
-        (compilation/parse-matched-error-entry err-entry)))))
-
-
-(defun compilation/parse-matched-error-entry (entry)
-  "Parse ENTRY and return `compilation-error' structure for
-previously matched error message.
-
-ENTRY should be of format used by `compilation-error-regexp-alist'."
-  (let* ((file-group (cadr entry))
-         (strip-cons (lambda (x)
-                       (if (consp x)
-                           (car x)
-                         x)))
-         (line-group
-          (funcall strip-cons (cadr-safe (cdr entry))))
-         (column-group
-          (funcall strip-cons (cadr-safe (cdr-safe (cdr entry))))))
-    (make-compilation-error
-     :compilation-root-directory default-directory
-     :filename
-     (normalise-file-name
-      (trim-whitespace
-       (match-string-no-properties file-group)))
-     :line-number
-     (when (and line-group
-                ;; it turns out that someone may put lambdas here,
-                ;; e.g. grep...
-                (integerp line-group))
-       (awhen (match-string-no-properties line-group)
-         (string->number it)))
-     :column-number
-     (when (and column-group
-                ;; it turns out that someone may put lambdas here,
-                ;; e.g. grep...
-                (integerp column-group))
-       (awhen (match-string-no-properties column-group)
-         (- (string->number it)
-            compilation-first-column))))))
-
+(defun compilation--error-at-point ()
+  (awhen (plist-get (text-properties-at (point)) 'compilation-message)
+    (let* ((loc (compilation--message->loc it))
+           (file (caar (compilation--loc->file-struct loc)))
+           (line (compilation--loc->line loc))
+           (col (awhen (compilation--loc->col loc) (1- it))))
+      (make-compilation-error :compilation-root-directory default-directory
+                              :filename file
+                              :line-number line
+                              :column-number col))))
 
 (defun compilation/find-buffer (filename &optional root)
   "Get buffer that corresponds to FILENAME, which may be neither full nor
@@ -91,22 +43,22 @@ will searched for."
               (visible-buffers))
       it
     (cl-block done
-      (dolist (resolved-filename
-               ;; If filename did not resolve in immediate root then try all the parents,
-               ;; perhaps compilation was actually executed/reported its errors from the
-               ;; directory above?
-               (--map (resolve-to-abs-path-lax filename it)
-                      (file-name-all-parents root)))
-        (when (and resolved-filename
-                   (file-exists-p resolved-filename))
-          (cl-return-from done
-            (aif (get-file-buffer resolved-filename)
-                it
-              (find-file-noselect resolved-filename))))))))
+      ;; If filename did not resolve in immediate root then try all the parents,
+      ;; perhaps compilation was actually executed/reported its errors from the
+      ;; directory above?
+      (dolist (parent (file-name-all-parents root))
+        (let ((resolved-filename (resolve-to-abs-path-lax filename parent)))
+          (when (and resolved-filename
+                     (file-exists-p resolved-filename))
+            (cl-return-from done
+              (aif (get-file-buffer resolved-filename)
+                  it
+                (find-file-noselect resolved-filename)))))))))
 
 (defun compilation/jump-to-error (err &optional other-window)
   "Jump to source of compilation error. ERR should be structure describing
 error location - value of compilation-error structure."
+  (cl-assert (compilation-error-p err))
   (aif (compilation/find-buffer
         (compilation-error/filename err)
         (compilation-error/compilation-root-directory err))
@@ -123,15 +75,14 @@ error location - value of compilation-error structure."
 (defun compilation/goto-error ()
   "Jump to location of error or warning (file, line and column) in current window."
   (interactive)
-  (when-let (err (compilation/get-selected-error))
+  (when-let (err (compilation--error-at-point))
     (compilation/jump-to-error err nil)))
 
 (defun compilation/goto-error-other-window ()
   "Jump to location of error or warning (file, line and column) in other window."
   (interactive)
-  (when-let (err (compilation/get-selected-error))
+  (when-let (err (compilation--error-at-point))
     (compilation/jump-to-error err t)))
-
 
 (defun compilation-navigation--use-selected-error-or-jump-to-next (win buf jump-to-next-err-func)
   "Either return error currently selected in the compilation buffer BUF, if
@@ -142,7 +93,7 @@ with the position of the selected error."
     (with-selected-window win
       (with-current-buffer buf
         (prog1
-            (if-let ((selected-err (compilation/get-selected-error)))
+            (if-let ((selected-err (compilation--error-at-point)))
                 (if (and
                      (eq (compilation/find-buffer
                           (compilation-error/filename selected-err)
@@ -153,26 +104,26 @@ with the position of the selected error."
                     ;; If we're already on the selected error then jump to next error.
                     (progn
                       (funcall jump-to-next-err-func)
-                      (compilation/get-selected-error))
+                      (compilation--error-at-point))
                   selected-err)
               (progn
                 (funcall jump-to-next-err-func)
-                (compilation/get-selected-error)))
+                (compilation--error-at-point)))
           (when hl-line-mode
             (hl-line-highlight)))))))
 
-(defun compilation-navigation--go-navigate-errors (buf jump-to-next-err-func fallback)
+(defun compilation-navigation--go-navigate-errors (comp-buf jump-to-next-err-func fallback)
   "Navigate errors in compilation buffer BUF."
-  (cl-assert (bufferp buf))
-  (if (buffer-live-p buf)
-      (let ((win (get-buffer-window buf
+  (cl-assert (bufferp comp-buf))
+  (if (buffer-live-p comp-buf)
+      (let ((win (get-buffer-window comp-buf
                                     t ;; all-frames
                                     )))
         (if (and win
                  (window-live-p win))
             (if-let (err (compilation-navigation--use-selected-error-or-jump-to-next
                           win
-                          buf
+                          comp-buf
                           jump-to-next-err-func))
                 (compilation/jump-to-error err nil)
               (funcall fallback))
@@ -186,7 +137,7 @@ it's position in current window."
   (compilation-navigation--go-navigate-errors
    buf
    #'compilation-jump-to-next-error
-   #'flycheck-next-error))
+   #'flycheck-enhancements-next-error-with-wraparound))
 
 ;;;###autoload
 (defun compilation-navigation-prev-error-in-buffer-other-window (buf)
@@ -195,7 +146,39 @@ it's position in current window."
   (compilation-navigation--go-navigate-errors
    buf
    #'compilation-jump-to-prev-error
-   #'flycheck-previous-error))
+   #'flycheck-enhancements-previous-error-with-wraparound))
+
+(defun compilation-navigation-next-or-prev-error-other-window (is-next?)
+  "Select another error in suitable compilation buffer (resolved
+via ‘configurable-compilation-buffer-name’ and
+‘configurable-compilation-proj-dir’) and jump to it's position in
+current window."
+  (let ((bufname (configurable-compilation-buffer-name (configurable-compilation-proj-dir))))
+    (aif (get-buffer bufname)
+        (let ((err (with-selected-window (get-buffer-window it t)
+                     (with-current-buffer it
+                       (if is-next?
+                           (compilation-jump-to-next-error)
+                         (compilation-jump-to-prev-error))
+                       (when hl-line-mode
+                         (hl-line-highlight))
+                       (compilation--error-at-point)))))
+          (compilation/jump-to-error err nil))
+      (error "No compilation buffer: %s" bufname))))
+
+;;;###autoload
+(defun compilation-navigation-next-error-other-window ()
+  "Select next error in suitable compilation buffer and jump to
+it's position in current window."
+  (interactive)
+  (compilation-navigation-next-or-prev-error-other-window t))
+
+;;;###autoload
+(defun compilation-navigation-prev-error-other-window ()
+  "Select previous error in suitable compilation buffer and jump to
+it's position in current window."
+  (interactive)
+  (compilation-navigation-next-or-prev-error-other-window nil))
 
 ;; Local Variables:
 ;; End:
