@@ -949,7 +949,7 @@ to find which component the FILENAME belongs to."
            (-find (lambda (component-descr)
                     (let ((main-file (cl-third component-descr))
                           (modules (cl-fourth component-descr))
-                          (src-dirs (cl-fifth component-descr)))
+                          (src-dirs (--filter (not (equal it ".")) (cl-fifth component-descr))))
                       (when (or main-file modules)
                         (let* ((mod-regexps
                                 (when modules
@@ -963,21 +963,17 @@ to find which component the FILENAME belongs to."
                                 (concat (when main-file
                                           (concat (when src-dirs
                                                     (concat "\\(?:"
-                                                            (mapconcat (lambda (x)
-                                                                         (regexp-quote x))
-                                                                       src-dirs
-                                                                       "\\|")
+                                                            (mapconcat #'regexp-quote src-dirs "\\|")
                                                             "\\)/"))
-                                                  "\\(?:" main-file "\\)"))
+                                                  "\\(?:" (regexp-quote main-file) "\\)"))
                                         (when (and main-file mod-regexps)
                                           "\\|")
                                         (when mod-regexps
                                           (concat
                                            "\\(?:"
                                            mod-regexps
-                                           "\\)"
-                                           "[.]"
-                                           (regexp-opt +haskell-extensions+)))
+                                           "\\)\\."
+                                           (eval-when-compile (regexp-opt +haskell-extensions+))))
                                         "\\'")))
                           (and re
                                (string-match-p re filename))))))
