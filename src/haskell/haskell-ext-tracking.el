@@ -10,6 +10,8 @@
   (require 'cl)
   (require 'haskell-regexen))
 
+(require 'flycheck-haskell)
+
 (cl-defstruct haskell-ext-tracking-known-exts
   magic-hash
   import-qualified-post)
