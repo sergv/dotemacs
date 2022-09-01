@@ -22,23 +22,20 @@
 (defun rust-compilation--make-cargo-build-command-presets (target-dir)
   (let ((cargo-command
          (lambda (env cmd &rest args)
-           (format "cd \"%%s\" &&%s %s %s%s %s"
-                   (if env
-                       (concat " " env)
-                     "")
-                   rust-cargo-bin
-                   cmd
-                   (if target-dir
-                       (concat " --target-dir=" target-dir)
-                     "")
-                   (s-join " " args)))))
-    (-mapcat (lambda (entry)                 ;
+           (when target-dir
+             (setf args (cons "--target-dir" (cons target-dir args))))
+
+           (setf args (cons rust-cargo-bin (cons cmd args)))
+
+           (lambda (proj-dir)
+             (make-cc-command args env proj-dir)))))
+    (-mapcat (lambda (entry)
                (let ((target (car entry)))
                  (if (listp target)
                      (--map (cons it (cdr entry)) target)
                    (list entry))))
              `((build . ,(funcall cargo-command nil "build" "--color=always"))
-               (test .  ,(funcall cargo-command "RUST_BACKTRACE=1" "test" "--color=always"))))))
+               (test .  ,(funcall cargo-command '("RUST_BACKTRACE=1") "test" "--color=always"))))))
 
 (defvar rust-compilation-cargo-build-command-default-presets
   (rust-compilation--make-cargo-build-command-presets (fold-platform-os-type "/tmp/target" nil)))
@@ -73,8 +70,7 @@
     (configurable-compilation-install-command-presets!
      presets
      'rust-compile--build-presets-history
-     'rust-compilation-mode
-     #'rust-get-compilation-buffer-name)
+     'rust-compilation-mode)
     (setq-local lsp-rust-target-dir target-dir
                 flycheck-cargo-check-args check-args))
 

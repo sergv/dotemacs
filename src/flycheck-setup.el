@@ -125,17 +125,23 @@ scheme and it’s view of current buffer is malformed."
 
 (defun flycheck-error< (a b)
   (let ((filename-a (awhen (flycheck-error-filename a) (expand-file-name it)))
-        (filename-b (awhen (flycheck-error-filename b) (expand-file-name it)))
-        (line-a     (flycheck-error-line a))
-        (line-b     (flycheck-error-line b))
-        (column-a   (flycheck-error-column a))
-        (column-b   (flycheck-error-column b)))
+        (filename-b (awhen (flycheck-error-filename b) (expand-file-name it))))
+    (cl-assert (stringp filename-a))
+    (cl-assert (stringp filename-b))
     (or (string< filename-a filename-b)
         (and (string= filename-a filename-b)
-             (or (extended< line-a line-b)
-                 (and (or (and (null line-a) (null line-b))
-                          (= line-a line-b))
-                      (extended< column-a column-b)))))))
+             (let ((line-a     (flycheck-error-line a))
+                   (line-b     (flycheck-error-line b)))
+               (cl-assert (or (integerp line-a) (null line-a)))
+               (cl-assert (or (integerp line-b) (null line-b)))
+               (or (extended< line-a line-b)
+                   (and (or (and (null line-a) (null line-b))
+                            (= line-a line-b))
+                        (let ((column-a   (flycheck-error-column a))
+                              (column-b   (flycheck-error-column b)))
+                          (cl-assert (or (integerp column-a) (null colunm-a)))
+                          (cl-assert (or (integerp column-b) (null colunm-b)))
+                          (extended< column-a column-b)))))))))
 
 (defun flycheck-enhancements--navigate-errors-with-wraparound (forward? errs)
   (let* ((expanded-buffer-file-name (aif buffer-file-name
@@ -220,11 +226,15 @@ scheme and it’s view of current buffer is malformed."
 
 (defun flycheck-enhancements-previous-error-with-wraparound ()
   (interactive)
-  (flycheck-enhancements--navigate-errors-with-wraparound nil flycheck-current-errors))
+  (if flycheck-mode
+      (flycheck-enhancements--navigate-errors-with-wraparound nil flycheck-current-errors)
+    (error "Flycheck not enabled")))
 
 (defun flycheck-enhancements-next-error-with-wraparound ()
   (interactive)
-  (flycheck-enhancements--navigate-errors-with-wraparound t flycheck-current-errors))
+  (if flycheck-mode
+      (flycheck-enhancements--navigate-errors-with-wraparound t flycheck-current-errors)
+    (error "Flycheck not enabled")))
 
 ;;;###autoload
 (defun flycheck-setup-from-eproj (proj default-checker &optional preprocess-checker)
