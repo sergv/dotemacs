@@ -66,6 +66,7 @@
 (require 'common)
 (require 'eproj-symbnav)
 (require 'eproj-tag-index)
+(require 'ivy)
 
 (require 'cc-autoload)
 (require 'haskell-autoload)
@@ -586,8 +587,8 @@ cache tags in."
     create-tag-files
     tag-file
     language-specific
-    flycheck-checker
-    flycheck-disabled-checkers
+    checker
+    disabled-checkers
     build-dir)
   "List .eproj-info keys that are currently supported.")
 
@@ -829,8 +830,9 @@ variable or symbol 'unresolved.")
                                                                nil ;; absolute names
                                                                (rx bos
                                                                    (or ".git"
-                                                                       "cabal.project"
-                                                                       "cabal.project.local")
+                                                                       (seq "cabal.project"
+                                                                            (? "." (* any))
+                                                                            (? ".local")))
                                                                    eos)
                                                                t ;; nosort
                                                                )))))

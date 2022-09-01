@@ -997,29 +997,33 @@ to deleted items. ITEMS will be mutated in order to obtain result."
 
 (defun text-property-jump-forward (property value cycle? jump-to-end)
   "Jump forward between text property PROPERTY with value VALUE with wraparound."
-  (when (and (search-property 'forward cycle? property value)
+  (let ((p (search-property 'forward cycle? property value)))
+    (if (and p
              ;; Only do jump to end if we have moved on initial search.
              jump-to-end)
-    (goto-char (if-let (change-pos (next-single-property-change
-                                    (point)
-                                    property
-                                    (current-buffer)
-                                    (point-max)))
-                   change-pos
-                 (point-max)))))
+        (goto-char (if-let (change-pos (next-single-property-change
+                                        (point)
+                                        property
+                                        (current-buffer)
+                                        (point-max)))
+                       change-pos
+                     (point-max)))
+      p)))
 
 (defun text-property-jump-backward (property value cycle? jump-to-end)
   "Jump backward between text property PROPERTY with value VALUE with wraparound."
-  (when (and (search-property 'backward cycle? property value)
+  (let ((p (search-property 'backward cycle? property value)))
+    (if (and p
              ;; Only do jump to end if we have moved on initial search.
              jump-to-end)
-    (goto-char (if-let (change-pos (next-single-property-change
-                                    (point)
-                                    property
-                                    (current-buffer)
-                                    (point-max)))
-                   change-pos
-                 (point-max)))))
+        (goto-char (if-let (change-pos (next-single-property-change
+                                        (point)
+                                        property
+                                        (current-buffer)
+                                        (point-max)))
+                       change-pos
+                     (point-max)))
+      p)))
 
 ;;;
 
