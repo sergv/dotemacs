@@ -23,9 +23,6 @@
                      0   ;; type - 0 - info
                      ))
 
-              *compilation-jump-error-regexp*
-              +kibit-error-regexp+
-
               compilation-disable-input t
               compilation-scroll-output nil))
 

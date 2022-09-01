@@ -18,11 +18,13 @@
 (require 'advices-util)
 (require 'macro-util)
 (require 'common)
+(require 'configurable-compilation)
 (require 'current-column-fixed)
 (require 'search)
 (require 'trie)
 
 (require 'abbrev+)
+(require 'compilation-setup)
 (require 'haskell-compile)
 (require 'haskell-compilation-commands)
 (require 'haskell-ext-tracking)
@@ -30,7 +32,7 @@
 (require 'haskell-mode)
 (require 'haskell-regexen)
 (require 'hydra-setup)
-(require 'compilation-setup)
+(require 'nix-integration)
 
 (require 'flycheck)
 (require 'flycheck-haskell)
@@ -140,16 +142,6 @@ and indent them as singe line."
       )
 
 (setf haskell-indentation-electric-flag t)
-
-(defconst +haskell-compile-error-or-warning-navigation-regexp+
-  (mk-regexp-from-alts
-   (list
-    (default-value '*compilation-jump-error-regexp*)
-    ;; Tasty errors.
-    "\\<error, called at \\(.*\\.hs\\):\\([0-9]+\\):\\([0-9]+\\) in\\>"
-    ))
-  "Regexp matching both errors and warnings. Used to navigate between errors
-in haskell compilation buffer.")
 
 ;;; up level navigation
 
@@ -726,24 +718,6 @@ both unicode and ascii characters.")
    (lambda (x)
      (and (string-match-p "[0-9.]+" x)
           (< minimum-fraction (string->number x))))))
-
-(defconst haskell-compilation-buffer "*haskell-compilation*")
-
-(defun haskell-compilation-next-error-other-window ()
-  "Select next error in `haskell-compilation-buffer' buffer and jump to
-it's position in current window."
-  (interactive)
-  (aif (get-buffer haskell-compilation-buffer)
-      (compilation-navigation-next-error-in-buffer-other-window it)
-    (error "No Haskell compilation started")))
-
-(defun haskell-compilation-prev-error-other-window ()
-  "Select previous error in `haskell-compilation-buffer' buffer and jump to
-it's position in current window."
-  (interactive)
-  (aif (get-buffer haskell-compilation-buffer)
-      (compilation-navigation-prev-error-in-buffer-other-window it)
-    (error "No Haskell compilation started")))
 
 (defun haskell-misc--cabal-indented-subsection ()
   "Similar to `haskell-cabal-subsection' but sets `:data-start-column' to the

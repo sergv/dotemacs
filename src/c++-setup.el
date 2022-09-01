@@ -15,6 +15,7 @@
 (require 'cc-setup)
 (require 'clang-format)
 (require 'common)
+(require 'compilation-setup)
 (require 'configurable-compilation)
 (require 'flycheck)
 (require 'indentation)
@@ -131,15 +132,10 @@
          #'c++-format-buffer
          *mode-indent-functions-table*)
 
-(defconst c++-compilation-buffer-name "*c++-compilation*")
-
-(defun c++-get-compilation-buffer-name (&rest _args)
-  c++-compilation-buffer-name)
-
 (defvar c++-compile--build-presets-history nil)
 
 (defconst +c++-compilation-presets+
-  `((make . "make")))
+  `((make . ,(lambda (proj-dir) (make-cc-command '("make") nil proj-dir)))))
 
 (defhydra hydra-c++-toggle (:exit nil :foreign-keys nil :hint nil)
   "
@@ -199,8 +195,7 @@ _<tab>_: format region
   (configurable-compilation-install-command-presets!
    +c++-compilation-presets+
    'c++-compile--build-presets-history
-   'compilation-mode
-   #'c++-get-compilation-buffer-name)
+   'c++-cc-mode)
 
   (let (;; NB may be nil.
         (proj (eproj-get-project-for-buf-lax (current-buffer))))
@@ -236,10 +231,10 @@ _<tab>_: format region
                      vim-insert-mode-local-keymap)
     (("C-m" "<f9>") vim:c++-compile:interactive)
     ("<return>"     newline-and-indent)
-    ("C-t"          flycheck-enhancements-previous-error-with-wraparound)
     ("C-h"          flycheck-enhancements-next-error-with-wraparound)
-    ("M-t"          c++-compilation-prev-error-other-window)
-    ("M-h"          c++-compilation-next-error-other-window)
+    ("C-t"          flycheck-enhancements-previous-error-with-wraparound)
+    ("M-h"          compilation-navigation-next-error-other-window)
+    ("M-t"          compilation-navigation-prev-error-other-window)
     ;; ("C-SPC" company-complete)
     )
 
@@ -267,58 +262,6 @@ _<tab>_: format region
   (configurable-compilation-start nil))
 (vim-defcmd vim:c++-compile-choosing-command (nonrepeatable)
   (configurable-compilation-start t))
-
-(defun c++-compilation-next-error ()
-  "Select next error in `c++-compilation-buffer-name' buffer and jump to
-it's position in current window."
-  (interactive)
-  (text-property-jump-forward 'compilation-message nil t nil))
-
-(defun c++-compilation-prev-error ()
-  "Select previous error in `c++-compilation-buffer-name' buffer and jump to
-it's position in current window."
-  (interactive)
-  (text-property-jump-backward 'compilation-message nil t nil))
-
-(defun c++-compilation-next-error-other-window ()
-  "Select next error in `c++-compilation-buffer-name' buffer and jump to
-it's position in current window."
-  (interactive)
-  (aif (get-buffer c++-compilation-buffer-name)
-      (let ((err (with-selected-window (get-buffer-window it t)
-                   (with-current-buffer it
-                     (c++-compilation-next-error)
-                     (when hl-line-mode
-                       (hl-line-highlight))
-                     (c++-compilation--error-at-point)))))
-        (compilation/jump-to-error err nil))
-    (error "No Rust compilation buffer")))
-
-(defun c++-compilation-prev-error-other-window ()
-  "Select previous error in `c++-compilation-buffer-name' buffer and jump to
-it's position in current window."
-  (interactive)
-  (aif (get-buffer c++-compilation-buffer-name)
-      (let ((err (with-selected-window (get-buffer-window it t)
-                   (with-current-buffer it
-                     (c++-compilation-prev-error)
-                     (when hl-line-mode
-                       (hl-line-highlight)))
-                   (c++-compilation--error-at-point))))
-        (compilation/jump-to-error err nil))
-    (error "No Rust compilation buffer")))
-
-(defun c++-compilation--error-at-point ()
-  (aif (plist-get (text-properties-at (point)) 'compilation-message)
-      (let* ((loc (compilation--message->loc it))
-             (file (caar (compilation--loc->file-struct loc)))
-             (line (compilation--loc->line loc))
-             (col (awhen (compilation--loc->col loc) (1- it))))
-        (make-compilation-error :compilation-root-directory default-directory
-                                :filename file
-                                :line-number line
-                                :column-number col))
-    (error "No compilation error at point")))
 
 (provide 'c++-setup)
 

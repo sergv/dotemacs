@@ -23,24 +23,6 @@
       ;; don't ask - just save
       compilation-ask-about-save nil)
 
-(defvar-local *compilation-jump-error-regexp*
-  (rx-let ((delim (or "/"
-                      "\\"))
-           (filename (+ (not (any ?/ ?\\ ?\n ?\t)))))
-    (rx bol
-        (group (? delim)
-               (* filename
-                  delim)
-               filename)
-        ":"
-        (group (+ (any (?0 . ?9))))
-        ":"
-        (group (+ (any (?0 . ?9))))
-        ":"))
-  "Regexp which is used by `compilation-jump-to-next-error'
-and `compilation-jump-to-prev-error' to detect errors
-in compilation or related buffers.")
-
 
 (defun compilation--apply-ansi-colours-filter (f proc string)
   "Turn ANSI colour codes into colourful text!"
@@ -52,17 +34,17 @@ in compilation or related buffers.")
 (defun compilation-jump-to-next-error ()
   "Jump to next error in the compilation buffer."
   (interactive)
-  (unless (compilation-buffer-p (current-buffer))
-    (error "Not in a compilation buffer"))
-  (circular-jump-forward *compilation-jump-error-regexp* nil))
+  (if (compilation-buffer-p (current-buffer))
+      (text-property-jump-forward 'compilation-message nil t nil)
+    (error "Not in a compilation buffer")))
 
 ;;;###autoload
 (defun compilation-jump-to-prev-error ()
   "Jump to previous error in the compilation buffer."
   (interactive)
-  (unless (compilation-buffer-p (current-buffer))
-    (error "Not in a compilation buffer"))
-  (circular-jump-backward *compilation-jump-error-regexp* nil))
+  (if (compilation-buffer-p (current-buffer))
+      (text-property-jump-backward 'compilation-message nil t nil)
+    (error "Not in a compilation buffer")))
 
 ;;; compilation info
 
@@ -73,10 +55,8 @@ in compilation or related buffers.")
        +vim-special-keys+
        +vim-search-keys+
        +vim-word-motion-keys+
-       ("<up>"             compilation-jump-to-prev-error)
-       ("<down>"           compilation-jump-to-next-error)
-       ("t"                compilation-jump-to-prev-error)
-       ("h"                compilation-jump-to-next-error)
+       (("<up>"   "t")     compilation-jump-to-prev-error)
+       (("<down>" "h")     compilation-jump-to-next-error)
        ("M-p"              nil)
        ("q"                remove-buffer)
        ("C-c C-c"          kill-compilation)
@@ -85,10 +65,8 @@ in compilation or related buffers.")
        ("^"                pseudovim-motion-first-non-blank)
        ("$"                pseudovim-motion-end-of-line)
 
-       ("C-v"              set-mark-command)
-       ("C-y"              copy-region-as-kill)
-       ("v"                set-mark-command)
-       ("y"                copy-region-as-kill)
+       (("C-v" "v")        set-mark-command)
+       (("C-y" "y")        copy-region-as-kill)
 
        (("C-m" "<f9>" "H") recompile)
        ("<return>"         compilation/goto-error)
