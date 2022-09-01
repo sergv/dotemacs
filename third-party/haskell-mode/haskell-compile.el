@@ -211,6 +211,7 @@ This is a child of `compilation-mode-map'.")
   "Extra modes from `compilation-error-regexp-alist-alist' whose warnings
 will be colorized in `haskell-compilation-mode'.")
 
+;;;###autoload
 (define-compilation-mode haskell-compilation-mode "Haskell Compilation"
   "Haskell/GHC specific `compilation-mode' derivative.
 This mode provides support for GHC 7.[46]'s compile
