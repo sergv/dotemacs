@@ -87,8 +87,6 @@
                      2 ;; type - 2 - real error
                      ))
 
-              *compilation-jump-error-regexp* +clojure-compile-error-regexp+
-
               compilation-first-column 1 ;; clojure counts from 1
               compilation-disable-input t
               compilation-scroll-output nil))

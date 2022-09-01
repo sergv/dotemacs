@@ -27,9 +27,7 @@
               compilation-error-regexp-alist
               (list
                (list latex-compile-warning-regexp nil)
-               (list latex-compile-error-regexp 1 2))
-
-              *compilation-jump-error-regexp* latex-compile-error-regexp))
+               (list latex-compile-error-regexp 1 2))))
 
 (provide 'latex-compilation)
 

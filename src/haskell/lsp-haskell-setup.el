@@ -13,11 +13,18 @@
 (require 'lsp-haskell)
 (require 'lsp-setup)
 
+(require 'haskell-misc)
+
 (setf lsp-haskell-formatting-provider "none"
+
+      lsp-haskell-plugin-import-lens-code-actions-on t
+      lsp-haskell-plugin-import-lens-code-lens-on nil
 
       ;; lsp-haskell-server-args
       ;; `("-d" "-l" ,lsp-haskell-server-log-file)
-      lsp-haskell-server-args nil)
+      lsp-haskell-server-args nil
+
+      lsp-haskell-server-wrapper-function #'nix-maybe-call-via-flakes)
 
 (defun lsp-ui-sideline--haskell-margin-width (old-margin-width)
   (if (derived-mode-p 'haskell-mode)
