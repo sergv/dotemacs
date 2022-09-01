@@ -57,6 +57,8 @@
 (require 'dash)
 (require 'dante)
 
+(require 'nix-integration)
+
 
 ;;; Customization
 
@@ -134,7 +136,8 @@ value will make this library ignore `package.yaml' file, even if it's present."
   "Create a runghc command with ARGS.
 
 Take the base command from `flycheck-haskell-runghc-command'."
-  (append flycheck-haskell-runghc-command args nil))
+  (nix-maybe-call-via-flakes
+   (append flycheck-haskell-runghc-command args)))
 
 (defun flycheck-haskell--read-configuration-with-helper (args)
   (with-temp-buffer
@@ -143,9 +146,9 @@ Take the base command from `flycheck-haskell-runghc-command'."
           (cmd
            (if flycheck-haskell--compiled-haskell-helper
                (cons flycheck-haskell--compiled-haskell-helper args)
-             (append flycheck-haskell-runghc-command
-                     (cons flycheck-haskell-helper
-                           args)))))
+             (flycheck-haskell-runghc-command
+              (cons flycheck-haskell-helper
+                    args)))))
       (pcase (apply 'call-process (car cmd) nil (list t error-file) nil (cdr cmd))
         (0 (delete-file error-file)
            (goto-char (point-min))
@@ -159,13 +162,6 @@ Take the base command from `flycheck-haskell-runghc-command'."
 (defun flycheck-haskell-read-cabal-configuration (cabal-file)
   "Read the Cabal configuration from CABAL-FILE."
   (let ((args (list "--cabal-file" (expand-file-name cabal-file))))
-    (flycheck-haskell--read-configuration-with-helper args)))
-
-(defun flycheck-haskell-read-hpack-configuration (hpack-file)
-  "Read the hpack configuration from HPACK-FILE."
-  (cl-assert flycheck-haskell-hpack-executable)
-  (let ((args (list "--hpack-exe" flycheck-haskell-hpack-executable
-                    "--hpack-file" (expand-file-name hpack-file))))
     (flycheck-haskell--read-configuration-with-helper args)))
 
 (defun flycheck-haskell-read-cabal-configuration-compiled (cabal-file)
@@ -221,9 +217,7 @@ entry, or if the cache entry is outdated."
 
 Return the configuration."
   (let ((modtime (nth 5 (file-attributes config-file)))
-        (config (if (equal "yaml" (file-name-extension config-file))
-                    (flycheck-haskell-read-hpack-configuration config-file)
-                  (flycheck-haskell-read-cabal-configuration config-file))))
+        (config (flycheck-haskell-read-cabal-configuration config-file)))
     (puthash config-file (cons modtime config) flycheck-haskell-config-cache)
     config))
 
@@ -246,12 +240,7 @@ Return the configuration."
 
 (defun flycheck-haskell--find-config-file (buf)
   (unless (dante-cabal-script-buf? buf)
-    (if-let ((cabal-file (haskell-cabal-find-file)))
-        cabal-file
-      (when-let ((hpack-dir
-                  (and flycheck-haskell-hpack-executable
-                       (locate-dominating-file default-directory "package.yaml"))))
-        (concat hpack-dir "/package.yaml")))))
+    (haskell-cabal-find-file)))
 
 (provide 'flycheck-haskell)
 

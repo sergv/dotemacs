@@ -13,18 +13,24 @@
 (require 'persistent-sessions-global-vars)
 
 (require 'configurable-compilation)
+(require 'nix-integration)
 (require 's)
 
 (defun haskell-compilation--make-cabal-build-command-presets (tmp)
   (let ((cabal-command
          (lambda (cmd &rest args)
-           (format "cd \"%%s\" && cabal %s%s %s"
-                   cmd
-                   (if tmp
-                       (concat " --builddir=" tmp)
-                     "")
-                   (s-join " " args)))))
-    (-mapcat (lambda (entry)                 ;
+           (when tmp
+             (setf args (cons "--builddir" (cons tmp args))))
+
+           (setf args (cons "cabal" (cons cmd args)))
+
+           (lambda (proj-dir)
+             (let ((cmd-args args))
+               (when proj-dir
+                 (setf cmd-args
+                       (nix-maybe-call-via-flakes args proj-dir)))
+               (make-cc-command cmd-args nil proj-dir))))))
+    (-mapcat (lambda (entry)
                (let ((target (car entry)))
                  (if (listp target)
                      (--map (cons it (cdr entry)) target)
@@ -48,8 +54,11 @@
 (defun haskell-compilation-commands-install! (proj)
   (let* ((presets (eproj-query/fold-build-dir
                    proj
-                   (constantly (cons haskell-compilation--default-cabal-build-command-presets
-                                     dante--default-methods))
+                   ;; if not defined
+                   (lambda ()
+                     (cons haskell-compilation--default-cabal-build-command-presets
+                           dante--default-methods))
+                   ;; if defined
                    (lambda (dir)
                      (cons (haskell-compilation--make-cabal-build-command-presets dir)
                            (dante--make-methods dir)))))
@@ -58,9 +67,7 @@
     (configurable-compilation-install-command-presets!
      comp-commands
      'haskell-compile--build-presets-history
-     'haskell-compilation-mode
-     nil ;; Make buffer name.
-     )
+     'haskell-compilation-mode)
     (setq-local dante-methods-alist dante-check-and-repl-methods
                 dante-methods (dante--methods-names dante-check-and-repl-methods)))
 

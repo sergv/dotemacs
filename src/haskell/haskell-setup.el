@@ -388,13 +388,14 @@ _<tab>_: reindent  _h_: jump to topmont node end"
               (dante-mode +1))
              (`lsp
               ;; todo: check that lsp executable is around
-              (lsp)
+              ;; (lsp)
+              (lsp-deferred)
               (when lsp-mode
                 (lsp-diagnostics-mode))))
-           (unless (flycheck-may-use-checker backend)
-             (flycheck-verify-checker backend)
-             (error "Unable to select checker '%s' for buffer '%s'"
-                    backend (current-buffer)))
+           ;; (unless (flycheck-may-use-checker backend)
+           ;;   (flycheck-verify-checker backend)
+           ;;   (error "Unable to select checker '%s' for buffer '%s'"
+           ;;          backend (current-buffer)))
            (when (memq backend '(haskell-dante))
              (add-hook 'flycheck-mode-hook #'haskell-misc--configure-dante! nil t))))))
 
@@ -516,19 +517,19 @@ _<tab>_: reindent  _h_: jump to topmont node end"
 
     (def-keys-for-map (vim-normal-mode-local-keymap
                        vim-insert-mode-local-keymap)
-      ("DEL"             haskell-backspace-with-block-dedent)
-      ("<backspace>"     haskell-backspace-with-block-dedent)
+      ("DEL"         haskell-backspace-with-block-dedent)
+      ("<backspace>" haskell-backspace-with-block-dedent)
 
-      ("C-u"             haskell-insert-undefined)
-      ("C-t"             flycheck-enhancements-previous-error-with-wraparound)
-      ("C-h"             flycheck-enhancements-next-error-with-wraparound)
-      ("M-t"             haskell-compilation-prev-error-other-window)
-      ("M-h"             haskell-compilation-next-error-other-window)
-      ("C-SPC"           company-complete)
+      ("C-u"         haskell-insert-undefined)
+      ("C-h"         flycheck-enhancements-next-error-with-wraparound)
+      ("C-t"         flycheck-enhancements-previous-error-with-wraparound)
+      ("M-h"         compilation-navigation-next-error-other-window)
+      ("M-t"         compilation-navigation-prev-error-other-window)
+      ("C-SPC"       company-complete)
 
       ;; Consider using haskell-indentation-newline-and-indent.
-      ("<return>"        haskell-newline-with-signature-expansion)
-      ("C-<return>"      haskell--simple-indent-newline-indent)
+      ("<return>"    haskell-newline-with-signature-expansion)
+      ("C-<return>"  haskell--simple-indent-newline-indent)
 
       (("S-<tab>" "<S-iso-lefttab>" "<backtab>") nil))
 
@@ -622,17 +623,10 @@ _<tab>_: reindent  _h_: jump to topmont node end"
 
 ;;;###autoload
 (defun haskell-compilation-setup ()
-  (setq-local *compilation-jump-error-regexp*
-              +haskell-compile-error-or-warning-navigation-regexp+)
-
   (pretty-ligatures-install-safe!)
   (pretty-ligatures-install-special-haskell-ligatures!)
 
-  (vim-local-emap "c" #'vim:recompile)
-  (def-keys-for-map haskell-compilation-mode-map
-    +vim-special-keys+
-    ("<return>" compilation/goto-error)
-    ("SPC"      compilation/goto-error-other-window)))
+  (vim-local-emap "c" #'vim:recompile))
 
 ;;;###autoload
 (defun haskell-cabal-setup ()

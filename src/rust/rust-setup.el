@@ -16,6 +16,7 @@
 
 (require 'align-util)
 (require 'common)
+(require 'compilation-setup)
 (require 'current-column-fixed)
 (require 'flycheck)
 (require 'haskell-compile)
@@ -60,51 +61,6 @@
          *mode-indent-functions-table*)
 
 ;;;; Utilities
-
-(defconst rust-compilation-buffer-name "*rust-compilation*")
-
-(defun rust-get-compilation-buffer-name (&rest _args)
-  rust-compilation-buffer-name)
-
-(defun rust-compilation-next-error ()
-  "Select next error in `rust-compilation-buffer-name' buffer and jump to
-it's position in current window."
-  (interactive)
-  (text-property-jump-forward 'compilation-message nil t nil))
-
-(defun rust-compilation-prev-error ()
-  "Select previous error in `rust-compilation-buffer-name' buffer and jump to
-it's position in current window."
-  (interactive)
-  (text-property-jump-backward 'compilation-message nil t nil))
-
-(defun rust-compilation-next-error-other-window ()
-  "Select next error in `rust-compilation-buffer-name' buffer and jump to
-it's position in current window."
-  (interactive)
-  (aif (get-buffer rust-compilation-buffer-name)
-      (let ((err (with-selected-window (get-buffer-window it t)
-                   (with-current-buffer it
-                     (rust-compilation-next-error)
-                     (when hl-line-mode
-                       (hl-line-highlight))
-                     (rust-compilation--error-at-point)))))
-        (compilation/jump-to-error err nil))
-    (error "No Rust compilation buffer")))
-
-(defun rust-compilation-prev-error-other-window ()
-  "Select previous error in `rust-compilation-buffer-name' buffer and jump to
-it's position in current window."
-  (interactive)
-  (aif (get-buffer rust-compilation-buffer-name)
-      (let ((err (with-selected-window (get-buffer-window it t)
-                   (with-current-buffer it
-                     (rust-compilation-prev-error)
-                     (when hl-line-mode
-                       (hl-line-highlight)))
-                   (rust-compilation--error-at-point))))
-        (compilation/jump-to-error err nil))
-    (error "No Rust compilation buffer")))
 
 (defvar rust-compilation-extra-error-modes '(gnu)
   "Extra modes from `compilation-error-regexp-alist-alist' whose
@@ -218,50 +174,11 @@ which is suitable for most programming languages such as C or Lisp."
                             cargo-compilation-regexps)
                       cargo-test-regexps
                       rust-compilation-extra-error-modes)
-              *compilation-jump-error-regexp*
-              (mapconcat (lambda (x) (concat "\\(?:" (car x) "\\)"))
-                         (-filter #'listp compilation-error-regexp-alist)
-                         "\\|")
-
               compilation-environment '("TERM=xterm-256color"))
 
   (vim-local-emap "c" 'vim:recompile)
 
   (add-hook 'compilation-filter-hook #'rust-compilation-filter-hook nil t))
-
-(defun rust-compilation--error-at-point ()
-  (aif (plist-get (text-properties-at (point)) 'compilation-message)
-      (let* ((loc (compilation--message->loc it))
-             (file (caar (compilation--loc->file-struct loc)))
-             (line (compilation--loc->line loc))
-             (col (awhen (compilation--loc->col loc) (1- it))))
-        (make-compilation-error :compilation-root-directory default-directory
-                                :filename file
-                                :line-number line
-                                :column-number col))
-    (error "No compilation error at point")))
-
-(defun rust-compilation-jump-to-error (other-window)
-  (compilation/jump-to-error (rust-compilation--error-at-point) other-window))
-
-(defun rust-compilation-goto-error ()
-  "Jump to location of error or warning (file, line and column) in current window."
-  (interactive)
-  (rust-compilation-jump-to-error nil))
-
-(defun rust-compilation-goto-error-other-window ()
-  "Jump to location of error or warning (file, line and column) in other window."
-  (interactive)
-  (rust-compilation-jump-to-error t))
-
-
-(def-keys-for-map rust-compilation-mode-map
-  ("<up>"     rust-compilation-prev-error)
-  ("<down>"   rust-compilation-next-error)
-  ("t"        rust-compilation-prev-error)
-  ("h"        rust-compilation-next-error)
-  ("<return>" rust-compilation-goto-error)
-  ("SPC"      rust-compilation-goto-error-other-window))
 
 ;;;;; rust-syntax-mode
 
@@ -279,8 +196,7 @@ Toggle:
 _f_ormatting on typing             %`lsp-enable-on-type-formatting
 _h_ighlight of symbol at point     %`lsp-enable-symbol-highlighting
 _i_nlay hints                      %`lsp-rust-analyzer-inlay-hints-mode
-_l_ens                             %`lsp-lens-mode
-"
+_l_ens                             %`lsp-lens-mode"
   ("f" lsp-toggle-on-type-formatting)
   ("h" lsp-toggle-symbol-highlight)
   ("i" lsp-rust-analyzer-inlay-hints-mode)
@@ -470,8 +386,7 @@ foo {
   (setup-folding t '(:header-symbol "/" :length-min 3))
   (company-mode +1)
   (setq-local ;; Don't skip any messages.
-   compilation-skip-threshold 0
-   compilation-buffer-name-function #'rust-get-compilation-buffer-name)
+   compilation-skip-threshold 0)
 
   (pretty-ligatures--install (append pretty-ligatures-c-like-symbols
                                      pretty-ligatures-python-like-words))
@@ -557,10 +472,10 @@ foo {
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-insert-mode-local-keymap)
     ("C-u"      rust-insert-unimplemented)
-    ("C-t"      flycheck-enhancements-previous-error-with-wraparound)
     ("C-h"      flycheck-enhancements-next-error-with-wraparound)
-    ("M-t"      rust-compilation-prev-error-other-window)
-    ("M-h"      rust-compilation-next-error-other-window)
+    ("C-t"      flycheck-enhancements-previous-error-with-wraparound)
+    ("M-h"      compilation-navigation-next-error-other-window)
+    ("M-t"      compilation-navigation-prev-error-other-window)
     ("C-SPC"    company-complete)
     ("<return>" rust-newline))
 

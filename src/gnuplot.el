@@ -50,8 +50,6 @@
               (list
                (list gnuplot-error-regexp 1 2 nil 2))
 
-              *compilation-jump-error-regexp* gnuplot-error-regexp
-
               compilation-disable-input t
               compilation-scroll-output nil)
 

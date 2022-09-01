@@ -259,17 +259,6 @@ REGEXP is used as a string in the prompt."
     "grep"
   '(grep-init-after-load))
 
-(defun grep-set-up-error-regexp (buffer _msg)
-  "Set up `*compilation-jump-error-regexp*' from `compilation-error-regexp-alist'."
-  (with-current-buffer buffer
-    (when (eq? major-mode 'grep-mode)
-      (setf *compilation-jump-error-regexp*
-            "^./\\(?:[^/]+/\\)*[^/:]+\.[a-zA-Z0-9_]+:[0-9]+:"
-            ;; (join-lines (-map #'car compilation-error-regexp-alist)
-            ;;             "\\|")
-            ))))
-
-
 (defvar rgrep-ignore-case nil
   "Dynamically-bound variable that controls whether current
 rgrep invocation should be case-insensetive.")
@@ -296,8 +285,6 @@ more than once"
           (-filter (lambda (x) (not (member x user-supplied-files)))
                    grep-find-ignored-files)))
     (rgrep regexp files dir current-prefix-arg)))
-
-(add-to-list 'compilation-finish-functions #'grep-set-up-error-regexp)
 
 (defun rgrep-region (str ignore-case)
   (interactive (list (get-region-string-no-properties)
