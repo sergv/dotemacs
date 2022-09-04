@@ -14,7 +14,7 @@
     (if-let ((root (or proj-dir (configurable-compilation-proj-dir))))
         (let ((flake (concat root "/flake.nix")))
           (if (file-exists-p flake)
-              (nix-call-via-flakes args)
+              (nix-call-via-flakes args root)
             args))
       args)))
 
@@ -23,7 +23,9 @@
   "If current project has flake.nix then return ‘nix develop
 --command ARGS’, otherwise just return ARGS."
   (if-let ((nix-exe (cached-executable-find "nix")))
-      (cons nix-exe (cons "develop" (cons "--no-warn-dirty" (cons "--command" args))))
+      (if proj-dir
+          (cons nix-exe (cons "develop" (cons "--no-warn-dirty" (cons proj-dir (cons "--command" args)))))
+        (cons nix-exe (cons "develop" (cons "--no-warn-dirty" (cons "--command" args)))))
     args))
 
 (provide 'nix-integration)
