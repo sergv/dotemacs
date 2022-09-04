@@ -35,7 +35,8 @@
   "Jump to next error in the compilation buffer."
   (interactive)
   (if (compilation-buffer-p (current-buffer))
-      (text-property-jump-forward 'compilation-message nil t nil)
+      (unless (text-property-jump-forward 'compilation-message nil t nil)
+        (error "No compilation errors"))
     (error "Not in a compilation buffer")))
 
 ;;;###autoload
@@ -43,7 +44,8 @@
   "Jump to previous error in the compilation buffer."
   (interactive)
   (if (compilation-buffer-p (current-buffer))
-      (text-property-jump-backward 'compilation-message nil t nil)
+      (unless (text-property-jump-backward 'compilation-message nil t nil)
+        (error "No compilation errors"))
     (error "Not in a compilation buffer")))
 
 ;;; compilation info
