@@ -278,46 +278,49 @@ will be in different GHCi sessions."
              :name name
              :is-enabled-pred is-enabled-pred
              :find-root-pred find-root-pred
-             :check-command-line (funcall template build)
+             :check-command-line
+             (lambda (flake-root)
+               (funcall template flake-root build))
              :repl-command-line
-             (dante--mk-repl-cmdline
-              (funcall template (append repl repl-options))
-              (funcall template (append repl (cons "--repl-no-load" repl-options))))))))
+             (lambda (flake-root)
+               (dante--mk-repl-cmdline
+                (funcall template flake-root (append repl repl-options))
+                (funcall template flake-root (append repl (cons "--repl-no-load" repl-options)))))))))
     (dante--mk-methods
      (list
       (funcall mk-dante-method
                'nix-flakes-build-script      ;; name
                #'dante-nix-cabal-script-buf? ;; is enabled predicate
                nil                           ;; find root predicate
-               (lambda (flags)
-                 (nix-call-via-flakes `("cabal" "repl" buffer-file-name ,@flags))))
+               (lambda (flake-root flags)
+                 (nix-call-via-flakes `("cabal" "repl" buffer-file-name ,@flags) flake-root)))
 
       (funcall mk-dante-method
-               'nix-flakes-build ;; name
-               #'dante-nix-available?               ;; is enabled predicate
-               #'dante-cabal-new ;; find root predicate
-               (lambda (flags)
-                 (nix-call-via-flakes `("cabal" "repl" (or dante-target (dante-package-name) nil) ,@flags))))
+               'nix-flakes-build      ;; name
+               #'dante-nix-available? ;; is enabled predicate
+               #'dante-cabal-new      ;; find root predicate
+               (lambda (flake-root flags)
+                 (nix-call-via-flakes `("cabal" "repl" (or dante-target (dante-package-name) nil) ,@flags) flake-root)))
 
       (funcall mk-dante-method
                'build-script
                #'dante-vanilla-cabal-script-buf?
                nil
-               (lambda (flags)
+               (lambda (_flake-root flags)
                  `("cabal" "repl" buffer-file-name ,@flags)))
 
       (funcall mk-dante-method
                'build
                nil
                #'dante-cabal-new
-               (lambda (flags)
+               (lambda (_flake-root flags)
                  `("cabal" "repl" (or dante-target (dante-package-name) nil) ,@flags)))
 
       (funcall mk-dante-method
                'bare-ghci
                nil
                (lambda (_) t)
-               (lambda (_flags)
+               (lambda (_flake_root _flags)
                  '("ghci")))))))
 
 (defvar dante--default-methods
@@ -342,19 +345,31 @@ Do it according to `dante-methods' and previous values of the above variables."
                     (when-let ((root (if-let ((pred (dante-method-find-root-pred method)))
                                          (locate-dominating-file default-directory pred)
                                        default-directory)))
-                      (setq-local dante-project-root (or dante-project-root root))
-                      (setq-local dante-repl-command-line (or dante-repl-command-line
-                                                              (dante-method-check-command-line method)))
-                      (setq-local dante-repl--command-line-to-use (or (when (boundp 'dante-repl--command-line-to-use)
-                                                                        dante-repl--command-line-to-use)
-                                                                      (dante-method-repl-command-line method)
-                                                                      ;; Fall back to command used by dante for checking else
-                                                                      (dante--mk-repl-cmdline dante-repl-command-line dante-repl-command-line)))))))
+                      (setf root (expand-file-name root))
+                      (let ((flake-root
+                             (when (dante-nix-available? (current-buffer))
+                               (let ((eproj (eproj-get-project-for-buf-lax (current-buffer))))
+                                 (cond
+                                   ((file-exists-p (concat root "/flake.nix"))
+                                    root)
+                                   (eproj
+                                    (let ((eproj-root (eproj-project/root eproj)))
+                                      (when (file-exists-p (concat eproj-root "/flake.nix"))
+                                        eproj-root)))
+                                   (t
+                                    nil))))))
+
+                        (setq-local dante-project-root (or dante-project-root root))
+                        (setq-local dante-repl-command-line (or dante-repl-command-line
+                                                                (funcall (dante-method-check-command-line method) flake-root)))
+                        (setq-local dante-repl--command-line-to-use (or (when (boundp 'dante-repl--command-line-to-use)
+                                                                          dante-repl--command-line-to-use)
+                                                                        (funcall (dante-method-repl-command-line method) flake-root)
+                                                                        ;; Fall back to command used by dante for checking else
+                                                                        (dante--mk-repl-cmdline dante-repl-command-line dante-repl-command-line))))))))
               (-non-nil (--map (dante--methods-lookup it dante-methods-defs)
                                dante-methods)))
-      (error "No GHCi loading method applies.  Customize
-      `dante-methods' or
-      (`dante-repl-command-line' and `dante-project-root')")))
+      (error "No GHCi loading method applies.  Customize `dante-methods' or (`dante-repl-command-line' and `dante-project-root')")))
 
 (defun dante-repl-command-line ()
   "Return the command line for running GHCi.

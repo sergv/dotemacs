@@ -132,37 +132,39 @@ value will make this library ignore `package.yaml' file, even if it's present."
                   exec-suffixes)))
   "The helper to dump the Cabal configuration.")
 
-(defun flycheck-haskell-runghc-command (args)
+(defun flycheck-haskell-runghc-command (proj args)
   "Create a runghc command with ARGS.
 
 Take the base command from `flycheck-haskell-runghc-command'."
   (nix-maybe-call-via-flakes
-   (append flycheck-haskell-runghc-command args)))
+   (append flycheck-haskell-runghc-command args)
+   (when proj
+     (eproj-project/root proj))))
 
-(defun flycheck-haskell--read-configuration-with-helper (args)
+(defun flycheck-haskell--read-configuration-with-helper (args proj)
   (with-temp-buffer
     ;; Hack around call-process' limitation handling standard error
     (let ((error-file (make-temp-file "flycheck-haskell-errors"))
           (cmd
            (if flycheck-haskell--compiled-haskell-helper
                (cons flycheck-haskell--compiled-haskell-helper args)
-             (flycheck-haskell-runghc-command
-              (cons flycheck-haskell-helper
-                    args)))))
+             (flycheck-haskell-runghc-command proj (cons flycheck-haskell-helper args)))))
       (pcase (apply 'call-process (car cmd) nil (list t error-file) nil (cdr cmd))
         (0 (delete-file error-file)
            (goto-char (point-min))
            (read (current-buffer)))
         (retcode (insert-file-contents error-file)
                  (delete-file error-file)
-                 (message "Reading Haskell configuration failed with exit code %s and output:\n%s"
-                          retcode (buffer-string))
+                 (message "Reading Haskell configuration failed:\ncommand: %s\nexit code: %s\noutput:\n%s"
+                          cmd
+                          retcode
+                          (buffer-string))
                  nil)))))
 
-(defun flycheck-haskell-read-cabal-configuration (cabal-file)
+(defun flycheck-haskell-read-cabal-configuration (cabal-file proj)
   "Read the Cabal configuration from CABAL-FILE."
   (let ((args (list "--cabal-file" (expand-file-name cabal-file))))
-    (flycheck-haskell--read-configuration-with-helper args)))
+    (flycheck-haskell--read-configuration-with-helper args proj)))
 
 
 ;;; Cabal configuration caching
@@ -194,16 +196,16 @@ entry, or if the cache entry is outdated."
           ;; The configuration is up to date, use it
           config)))))
 
-(defun flycheck-haskell-read-and-cache-configuration (config-file)
+(defun flycheck-haskell-read-and-cache-configuration (config-file proj)
   "Read and cache configuration from CABAL-FILE.
 
 Return the configuration."
   (let ((modtime (nth 5 (file-attributes config-file)))
-        (config (flycheck-haskell-read-cabal-configuration config-file)))
+        (config (flycheck-haskell-read-cabal-configuration config-file proj)))
     (puthash config-file (cons modtime config) flycheck-haskell-config-cache)
     config))
 
-(defun flycheck-haskell-get-configuration (config-file)
+(defun flycheck-haskell-get-configuration (config-file proj)
   "Get the Cabal configuration from CABAL-FILE.
 
 Get the configuration either from our cache, or by reading the
@@ -211,11 +213,11 @@ CABAL-FILE.
 
 Return the configuration."
   (or (flycheck-haskell-get-cached-configuration config-file)
-      (flycheck-haskell-read-and-cache-configuration config-file)))
+      (flycheck-haskell-read-and-cache-configuration config-file proj)))
 
-(defun flycheck-haskell-get-configuration-for-buf (buf)
+(defun flycheck-haskell-get-configuration-for-buf (buf proj)
   (when-let ((config-file (flycheck-haskell--find-config-file buf)))
-    (flycheck-haskell-get-configuration config-file)))
+    (flycheck-haskell-get-configuration config-file proj)))
 
 
 ;;; Buffer setup

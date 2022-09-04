@@ -926,7 +926,7 @@ Returns ‘t’ on success, otherwise returns ‘nil’."
                    (not val-dante-target))
                (buffer-file-name)
                (file-directory-p default-directory))
-      (when-let ((config (flycheck-haskell-get-configuration-for-buf (current-buffer))))
+      (when-let ((config (flycheck-haskell-get-configuration-for-buf (current-buffer) proj)))
         (let-alist-static config (package-name components)
           (setf package-name (car package-name))
           (when (not val-dante-package-name)
