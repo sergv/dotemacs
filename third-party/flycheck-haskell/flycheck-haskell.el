@@ -164,24 +164,6 @@ Take the base command from `flycheck-haskell-runghc-command'."
   (let ((args (list "--cabal-file" (expand-file-name cabal-file))))
     (flycheck-haskell--read-configuration-with-helper args)))
 
-(defun flycheck-haskell-read-cabal-configuration-compiled (cabal-file)
-  (with-temp-buffer
-    (pcase (call-process flycheck-compiled-haskell-helper
-                         nil
-                         t
-                         nil
-                         cabal-file)
-      (0 (goto-char (point-min))
-         (read (current-buffer)))
-      (retcode (message "Reading Haskell configuration failed with exit code %s and output:\n%s"
-                        retcode (buffer-string))
-               nil))))
-
-(defun flycheck-haskell--delete-dups (xs)
-  "Remove duplicates from a list XS using `equal'. Leaves initial
-list unchanged."
-  (copy-sequence (delete-dups xs)))
-
 
 ;;; Cabal configuration caching
 (defvar flycheck-haskell-config-cache (make-hash-table :test 'equal)
