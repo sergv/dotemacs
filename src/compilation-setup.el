@@ -48,35 +48,25 @@
 
 ;;; compilation info
 
+(defun compilation-init-after-load ()
+  (def-keys-for-map compilation-button-map
+    ("C-m" nil)))
+
 (eval-after-load "compile"
-  '(progn
-     (def-keys-for-map compilation-mode-map
-       +vi-keys+
-       +vim-special-keys+
-       +vim-search-keys+
-       +vim-word-motion-keys+
-       (("<up>"   "t")     compilation-jump-to-prev-error)
-       (("<down>" "h")     compilation-jump-to-next-error)
-       ("M-p"              nil)
-       ("q"                remove-buffer)
-       ("C-c C-c"          kill-compilation)
-       ("m"                pseudovim-motion-jump-item)
-       ("0"                pseudovim-motion-beginning-of-line-or-digit-argument)
-       ("^"                pseudovim-motion-first-non-blank)
-       ("$"                pseudovim-motion-end-of-line)
-
-       (("C-v" "v")        set-mark-command)
-       (("C-y" "y")        copy-region-as-kill)
-
-       (("C-m" "<f9>" "H") recompile)
-       ("<return>"         compilation/goto-error)
-       ("SPC"              compilation/goto-error-other-window))
-
-     (def-keys-for-map compilation-button-map
-       ("C-m" nil))))
+  '(compilation-init-after-load))
 
 (defun compilation-mode-setup ()
-  (hl-line-mode +1))
+  (vim:bind-local-keymaps)
+  (setup-hl-paren)
+  (hl-line-mode +1)
+
+  (def-keys-for-map vim-normal-mode-local-keymap
+    (("<up>"   "C-t")   compilation-jump-to-prev-error)
+    (("<down>" "C-h")   compilation-jump-to-next-error)
+    ("q"                remove-buffer)
+    (("C-m" "<f9>" "H") recompile)
+    ("<return>"         compilation/goto-error)
+    ("SPC"              compilation/goto-error-other-window)))
 
 (add-hook 'compilation-mode-hook #'compilation-mode-setup)
 
