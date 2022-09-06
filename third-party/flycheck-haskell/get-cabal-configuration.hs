@@ -35,7 +35,15 @@ module Main (main) where
 
 #if defined(GHC_INCLUDES_VERSION_MACRO)
 
-# if MIN_VERSION_Cabal(3, 6, 0)
+# if MIN_VERSION_Cabal(3, 8, 0)
+#  define Cabal38OrLater 1
+#  define Cabal36OrLater 1
+#  define Cabal32OrLater 1
+#  define Cabal30OrLater 1
+#  define Cabal24OrLater 1
+#  define Cabal22OrLater 1
+#  define Cabal20OrLater 1
+# elif MIN_VERSION_Cabal(3, 6, 0)
 #  define Cabal36OrLater 1
 #  define Cabal32OrLater 1
 #  define Cabal30OrLater 1
@@ -191,15 +199,15 @@ import Control.Arrow (second)
 import Data.Version (showVersion)
 import Distribution.Package (PackageName(..))
 import Distribution.PackageDescription.Configuration
-       (finalizePackageDescription, mapTreeData)
+  (finalizePackageDescription, mapTreeData)
 
 # if defined(Cabal114OrMore)
 import Distribution.PackageDescription
-       (TestSuite(..), Benchmark(..),
-        condTestSuites, condBenchmarks, benchmarkEnabled, testEnabled)
+  (TestSuite(..), Benchmark(..),
+   condTestSuites, condBenchmarks, benchmarkEnabled, testEnabled)
 # else
 import Distribution.PackageDescription
-       (TestSuite(..), condTestSuites, testEnabled)
+  (TestSuite(..), condTestSuites, testEnabled)
 # endif
 #endif
 
@@ -209,21 +217,32 @@ import Distribution.PackageDescription (mkFlagAssignment)
 import Distribution.Types.GenericPackageDescription (mkFlagAssignment)
 #endif
 
+#if defined(Cabal38OrLater)
+import Distribution.Simple.PackageDescription
+  (readGenericPackageDescription)
+#elif defined(Cabal22OrLater)
+import Distribution.PackageDescription.Parsec
+  (readGenericPackageDescription)
+#elif defined(Cabal20OrLater)
+import Distribution.PackageDescription.Parse
+  (readGenericPackageDescription)
+#endif
+
 #if defined(Cabal22OrLater)
 import Distribution.PackageDescription.Parsec
-       (runParseResult, readGenericPackageDescription, parseGenericPackageDescription)
+  (runParseResult, parseGenericPackageDescription)
 # if defined(Cabal30OrLater)
 import Distribution.Parsec.Error (showPError)
-#else
+# else
 import Distribution.Parsec.Common (showPError)
 # endif
 #elif defined(Cabal20OrLater)
 import Distribution.PackageDescription.Parse
-       (ParseResult(..), readGenericPackageDescription, parseGenericPackageDescription)
+  (ParseResult(..), parseGenericPackageDescription)
 import Distribution.ParseUtils (locatedErrorMsg)
 #else
 import Distribution.PackageDescription.Parse
-       (ParseResult(..), parsePackageDescription, readPackageDescription)
+  (ParseResult(..), parsePackageDescription, readPackageDescription)
 import Distribution.ParseUtils (locatedErrorMsg)
 #endif
 
