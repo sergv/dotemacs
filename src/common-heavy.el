@@ -1075,6 +1075,7 @@ to deleted items. ITEMS will be mutated in order to obtain result."
   ;; If the file isn't saved yet, skip the file rename, but still update the
   ;; buffer name and visited file.
   (when (file-exists-p buffer-file-name)
+    (make-directory (file-name-directory new-name) t)
     (copy-file buffer-file-name new-name 1 nil t t)
     (find-file new-name)
     (message "Copied to %s" new-name)))
