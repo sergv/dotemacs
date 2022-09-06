@@ -1066,7 +1066,7 @@ to deleted items. ITEMS will be mutated in order to obtain result."
      (list (read-file-name (format "Copy %s to: " (file-name-nondirectory
                                                    buffer-file-name))))))
   (when (equal new-name "")
-    (error "Aborted copy"))
+    (error "No name provided, aborting"))
   (setf new-name (if (file-directory-p new-name)
                      (expand-file-name (file-name-nondirectory
                                         buffer-file-name)
