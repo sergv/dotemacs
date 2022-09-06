@@ -1001,13 +1001,11 @@ to deleted items. ITEMS will be mutated in order to obtain result."
     (if (and p
              ;; Only do jump to end if we have moved on initial search.
              jump-to-end)
-        (goto-char (if-let (change-pos (next-single-property-change
-                                        (point)
-                                        property
-                                        (current-buffer)
-                                        (point-max)))
-                       change-pos
-                     (point-max)))
+        (goto-char (or (next-single-property-change (point)
+                                                    property
+                                                    (current-buffer)
+                                                    (point-max))
+                       (point-max)))
       p)))
 
 (defun text-property-jump-backward (property value cycle? jump-to-end)
@@ -1016,13 +1014,11 @@ to deleted items. ITEMS will be mutated in order to obtain result."
     (if (and p
              ;; Only do jump to end if we have moved on initial search.
              jump-to-end)
-        (goto-char (if-let (change-pos (next-single-property-change
-                                        (point)
-                                        property
-                                        (current-buffer)
-                                        (point-max)))
-                       change-pos
-                     (point-max)))
+        (goto-char (or (next-single-property-change (point)
+                                                    property
+                                                    (current-buffer)
+                                                    (point-max))
+                       (point-max)))
       p)))
 
 ;;;
