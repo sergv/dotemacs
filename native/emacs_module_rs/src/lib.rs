@@ -289,9 +289,9 @@ impl<'a> emacs::IntoLisp<'a> for Match {
 }
 
 struct GrepSink<'a, 'b, 'c> {
-    // Cached relative path of currently processedfile.
+    // Cached relative path of currently processed file.
     rel_path_cache: Option<Arc<EmacsPath>>,
-    // Cached absolute path of currently processedfile.
+    // Cached absolute path of currently processed file.
     abs_path_cache: Option<Arc<EmacsPath>>,
     abs_path: &'a Path,
     orig_root: &'a Path,
