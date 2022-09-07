@@ -11,7 +11,7 @@ path = "src/lib.rs"
 
 [[bench]]
 name = "bench-fs-search"
-path = "src/bin/bench_fs_search.rs"
+path = "src/bench/bench_fs_search.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -27,9 +27,9 @@ pathdiff = ">= 0.1"
 
 # grep = ">= 0.2.8"
 
-grep-matcher = "0.1.5"
-grep-regex = "0.1.9"
-grep-searcher = "0.1.8"
+grep-matcher = ">= 0.1.5"
+grep-regex = ">= 0.1.9"
+grep-searcher = ">= 0.1.8"
 
 [features]
 # Requires nigthly
