@@ -23,6 +23,34 @@ const INIT_SCORE: Heat = -35;
 const LEADING_PENALTY: Heat = -45;
 const WORD_START: Heat = 85;
 
+#[inline]
+#[cfg(debug)]
+fn read_arr<A>(xs: &[A], idx: i16) -> &A {
+    xs.get(idx as usize)
+}
+
+#[inline]
+#[cfg(not(debug))]
+fn read_arr<A>(xs: &[A], idx: i16) -> &A {
+    unsafe {
+        xs.get_unchecked(idx as usize)
+    }
+}
+
+#[inline]
+#[cfg(debug)]
+fn read_arr_mut<A>(xs: &mut [A], idx: i16) -> &mut A {
+    xs.get_mut(idx as usize)
+}
+
+#[inline]
+#[cfg(not(debug))]
+fn read_arr_mut<A>(xs: &mut [A], idx: i16) -> &mut A {
+    unsafe {
+        xs.get_unchecked_mut(idx as usize)
+    }
+}
+
 #[derive(PartialEq, Eq, Debug)]
 pub struct Match<PS> {
     pub score: Heat,
@@ -47,7 +75,7 @@ impl Positions for Vec<StrIdx> {
     fn infer_positions(mut idx: SubmatchIdx, submatches: &Vec<Submatch>) -> Self {
         let mut positions = Vec::new();
         while idx >= 0 {
-            let m = &submatches[idx as usize];
+            let m = read_arr(submatches, idx);
             positions.push(m.position);
             idx = m.prev;
         }
@@ -131,7 +159,7 @@ mod occurs {
             f(&mut r.vec)
         }
 
-        // Take care since vec can be mutated  while original PositionsState is still being retained.
+        // Take care since vec can be mutated while original PositionsState is still being retained.
         unsafe fn as_vec<'a>(&mut self) -> Vec<Positions<'a>>
         {
             // Not much need to zero everything out if we require user to check that by hand!!
@@ -267,7 +295,7 @@ pub fn fuzzy_match<'a, 'b, 'c, 'd, PS>(
     heatmap(haystack, group_seps, &mut reuse_state.heatmap);
 
     fuzzy_match_impl(
-       &mut reuse_state.occurs,
+        &mut reuse_state.occurs,
         needle,
         haystack,
         &mut reuse_state.cache,
@@ -276,7 +304,7 @@ pub fn fuzzy_match<'a, 'b, 'c, 'd, PS>(
     )
 }
 
-pub fn fuzzy_match_impl<'a, 'b, 'c, 'd, 'e, 'f, PS>(
+fn fuzzy_match_impl<'a, 'b, 'c, 'd, 'e, 'f, PS>(
     occurs_reuse: &'a mut occurs::ReuseState,
     needle: &'b str,
     haystack: &'c str,
@@ -323,7 +351,7 @@ where
             match submatch {
                 None => return no_match(),
                 Some(sub_idx) => {
-                    let score = submatches[sub_idx as usize].score;
+                    let score = read_arr(submatches, sub_idx).score;
                     Match {
                         score,
                         positions: Positions::infer_positions(sub_idx, submatches),
@@ -344,7 +372,7 @@ fn is_score_better(new: i16, old: i16) -> bool {
 }
 
 // Terminal submatch, doesn’t get filled.
-const TERMIAL_SUBMATCH: SubmatchIdx = -1;
+const TERMINAL_SUBMATCH: SubmatchIdx = -1;
 
 fn match_singleton_needle<'a, 'b>(
     heatmap: &'a [Heat],
@@ -352,17 +380,17 @@ fn match_singleton_needle<'a, 'b>(
 ) -> Option<Submatch> {
     let mut remaining_occurs = occurrences.iter();
     if let Some(idx) = remaining_occurs.next() {
-        let score = heatmap[*idx as usize];
+        let score = *read_arr(heatmap, *idx);
 
         let mut max_submatch = Submatch {
             score,
             position: *idx,
             contiguous_count: 0,
-            prev: TERMIAL_SUBMATCH
+            prev: TERMINAL_SUBMATCH
         };
 
         for idx in remaining_occurs {
-            let score = heatmap[*idx as usize];
+            let score = *read_arr(heatmap, *idx);
             if score >= max_submatch.score {
                 max_submatch.score = score;
                 max_submatch.position = *idx;
@@ -381,22 +409,20 @@ fn top_down_match<'a, 'b, 'c, 'd, 'e>(
     heatmap: &'c [Heat],
     positions: &'d Vec<&'e [StrIdx]>,
     needle_idx: StrIdx,
-    cutoff_idx: StrIdx,
+    haystack_idx: StrIdx,
     end_idx: StrIdx,
 ) -> Option<SubmatchIdx>
 {
-    let key = (needle_idx, cutoff_idx);
+    let key = (needle_idx, haystack_idx);
     match cache.get(&key) {
         Some(res) => return *res,
         None => (),
     }
 
-    let remaining_occurs =
-        bigger(cutoff_idx, positions[needle_idx as usize])
-        .iter();
+    let remaining_occurs = bigger(haystack_idx, *read_arr(positions, needle_idx));
 
     let mut max_submatch = None;
-    let mut max_score = -1;
+    let mut max_score = 0;
 
     for idx in remaining_occurs {
         let submatch = top_down_submatch_at(
@@ -411,14 +437,13 @@ fn top_down_match<'a, 'b, 'c, 'd, 'e>(
         );
 
         match (max_submatch, submatch) {
-            (None, None) => (),
-            (Some(_), None) => (),
+            (_, None) => (),
             (None, Some(sub_idx)) => {
                 max_submatch = submatch;
-                max_score = submatches[sub_idx as usize].score;
+                max_score = read_arr(submatches, sub_idx).score;
             }
             (Some(_), Some(sub_idx)) => {
-                let new_score = submatches[sub_idx as usize].score;
+                let new_score = read_arr(submatches, sub_idx).score;
                 if is_score_better(new_score, max_score) {
                     max_score = new_score;
                     max_submatch = submatch;
@@ -451,29 +476,29 @@ fn top_down_submatch_at<'a, 'b, 'c, 'd, 'e>(
     submatches: &'b mut Vec<Submatch>,
     heatmap: &'c [Heat],
     positions: &'d Vec<&'e [StrIdx]>,
+    needle_idx: StrIdx,
     haystack_idx: StrIdx,
-    cutoff_idx: StrIdx,
     end_idx: StrIdx,
 ) -> Option<SubmatchIdx>
 {
-    let key = (haystack_idx, cutoff_idx);
+    let key = (needle_idx, haystack_idx);
     match cache.get(&key) {
         Some(res) => return *res,
         None => (),
     }
 
-    let mut remaining_occurs =
-        bigger(cutoff_idx, positions[haystack_idx as usize])
-        .iter();
     let res;
 
-    if haystack_idx == end_idx {
+    if needle_idx == end_idx {
+        let mut remaining_occurs =
+            bigger(haystack_idx, *read_arr(positions, needle_idx))
+            .iter();
         // Fuse single-character submatches with submatch for penultimate character in order to
         // not allocate list of submatches for single characters.
         if let Some(idx2) = remaining_occurs.next() {
             let is_contiguous2 = idx1 + 1 == *idx2;
-            let score1 = heatmap[idx1 as usize];
-            let score2 = heatmap[*idx2 as usize];
+            let score1 = *read_arr(heatmap, idx1);
+            let score2 = *read_arr(heatmap, *idx2);
             let mut max_submatch = Submatch {
                 score: score1 + score2 + contiguous_bonus(is_contiguous2, 0),
                 position: idx1,
@@ -484,12 +509,12 @@ fn top_down_submatch_at<'a, 'b, 'c, 'd, 'e>(
                 score: score2,
                 position: *idx2,
                 contiguous_count: 0,
-                prev: TERMIAL_SUBMATCH, // Does not get filled out - terminal submatch.
+                prev: TERMINAL_SUBMATCH, // Does not get filled out - terminal submatch.
             };
 
             for idx3 in remaining_occurs {
                 let is_contiguous3 = idx1 + 1 == *idx3;
-                let score3 = heatmap[*idx3 as usize];
+                let score3 = *read_arr(heatmap, *idx3);
                 let new_score = score1 + score3 + contiguous_bonus(is_contiguous3, 0);
                 if is_score_better(new_score, max_submatch.score) {
                     max_submatch.score = new_score;
@@ -506,11 +531,11 @@ fn top_down_submatch_at<'a, 'b, 'c, 'd, 'e>(
             res = None;
         }
     } else {
-        match top_down_match(cache, submatches, heatmap, positions, haystack_idx, cutoff_idx, end_idx) {
+        match top_down_match(cache, submatches, heatmap, positions, needle_idx, haystack_idx, end_idx) {
             None => res = None,
             Some(idx) => {
-                let score1 = heatmap[idx1 as usize];
-                let submatch = &submatches[idx as usize];
+                let score1 = read_arr(heatmap, idx1);
+                let submatch = read_arr(submatches, idx);
                 let is_contiguous = idx1 + 1 == submatch.position;
                 let m = Submatch {
                     score: score1 + submatch.score + contiguous_bonus(is_contiguous, submatch.contiguous_count),
@@ -539,8 +564,8 @@ pub fn heatmap<'a>(
     let mut group_idx = 0;
 
     let mut is_base_path = false;
-    let mut group_start: isize = 0;
-    let mut group_end: isize = -1; // to account for fake separator
+    let mut group_start: i16 = 0;
+    let mut group_end: i16 = -1; // to account for fake separator
     let mut group_score = 0;
     let mut group_non_base_score = 0;
 
@@ -611,12 +636,12 @@ pub fn heatmap<'a>(
     heatmap
 }
 
-fn apply_group_score(score: Heat, heatmap: &mut [Heat], start: isize, end: isize) {
+fn apply_group_score(score: Heat, heatmap: &mut [Heat], start: i16, end: i16) {
     for i in start..end {
-        heatmap[i as usize] += score;
+        *read_arr_mut(heatmap, i) += score;
     }
-    if end < heatmap.len() as isize {
-        heatmap[end as usize] += score;
+    if (end as usize) < heatmap.len()  {
+        *read_arr_mut(heatmap, end) += score;
     }
 }
 
@@ -627,8 +652,8 @@ fn analyze_group(
     is_base_path: &mut bool,
     group_idx: &mut i16,
     groups_count: i16,
-    group_start: &mut isize,
-    group_end: &mut isize,
+    group_start: &mut i16,
+    group_end: &mut i16,
     group_score: &mut Heat,
     group_non_base_score: &mut Heat,
 ) {
@@ -641,7 +666,7 @@ fn analyze_group(
     let mut chars_count = 0;
 
     for (i, c) in text.chars().enumerate() {
-        let j = *group_start as usize + i;
+        let j = *group_start + i as i16;
         let is_word = !is_word(prev) && is_word(c);
         if is_word {
             word_count += 1;
@@ -651,18 +676,18 @@ fn analyze_group(
         if is_boundary {
             word_idx += 1;
             word_char_idx = 0;
-            heatmap[j] += WORD_START;
+            *read_arr_mut(heatmap, j) += WORD_START;
         }
 
         if word_idx >= 0 {
-            heatmap[j] += (-3) * word_idx - word_char_idx;
+            *read_arr_mut(heatmap, j) += (-3) * word_idx - word_char_idx;
         }
 
         word_char_idx += 1;
         if penalizes_if_leading(c) {
             let k = j + 1;
-            if k < heatmap.len() {
-                heatmap[k] += LEADING_PENALTY;
+            if (k as usize) < heatmap.len() {
+                *read_arr_mut(heatmap, k) += LEADING_PENALTY;
             }
         }
         prev = c;
@@ -672,9 +697,9 @@ fn analyze_group(
     *group_end = *group_start + chars_count;
 
     // Update score for trailing separator of a group.
-    let k = *group_end as usize;
-    if k < heatmap.len() && word_idx >= 0 {
-        heatmap[k] += (-3) * word_idx - word_char_idx;
+    let k = *group_end;
+    if (k as usize) < heatmap.len() && word_idx >= 0 {
+        *read_arr_mut(heatmap, k) += (-3) * word_idx - word_char_idx;
     }
 
     let base_path = word_count != 0;
