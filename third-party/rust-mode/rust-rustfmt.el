@@ -160,7 +160,7 @@ rustfmt complain in the echo area."
 (defconst rust--format-word "\
 \\b\\(else\\|enum\\|fn\\|for\\|if\\|let\\|loop\\|\
 match\\|struct\\|union\\|unsafe\\|while\\)\\b")
-(defconst rust--format-line "\\([\n]\\)")
+(defconst rust--format-line "\\(\n\\)")
 
 ;; Counts number of matches of regex beginning up to max-beginning,
 ;; leaving the point at the beginning of the last match.
@@ -247,7 +247,7 @@ match\\|struct\\|union\\|unsafe\\|while\\)\\b")
 Return the created process."
   (interactive)
   (unless (executable-find rust-rustfmt-bin)
-    (error "Could not locate executable \%s\"" rust-rustfmt-bin))
+    (error "Could not locate executable %S" rust-rustfmt-bin))
   (let* ((buffer
           (with-current-buffer
               (get-buffer-create "*rustfmt-diff*")
@@ -255,14 +255,14 @@ Return the created process."
               (erase-buffer))
             (current-buffer)))
          (proc
-          (apply 'start-process
+          (apply #'start-process
                  "rustfmt-diff"
                  buffer
                  rust-rustfmt-bin
                  "--check"
                  (cons (buffer-file-name)
                        rust-rustfmt-switches))))
-    (set-process-sentinel proc 'rust-format-diff-buffer-sentinel)
+    (set-process-sentinel proc #'rust-format-diff-buffer-sentinel)
     proc))
 
 (defun rust-format-diff-buffer-sentinel (process _e)
