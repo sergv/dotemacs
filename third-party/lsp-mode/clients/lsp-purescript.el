@@ -51,7 +51,8 @@
         lsp-purescript-server-args))
 
 (defcustom-lsp lsp-purescript-add-spago-sources t
-  "Whether to add spago sources to the globs passed to the IDE server for source locations."
+  "Whether to add spago sources to the globs.
+Passed to the IDE server for source locations."
   :type 'boolean
   :group 'lsp-purescript
   :package-version '(lsp-mode . "8.0.1")
@@ -63,6 +64,14 @@
   :group 'lsp-purescript
   :package-version '(lsp-mode . "8.0.1")
   :lsp-path "purescript.addNpmPath")
+
+(defcustom-lsp lsp-purescript-formatter "purty"
+  "Tool to use to for formatting.
+Must be installed and on PATH (or npm installed with addNpmPath set)"
+  :type '(choice (:tag none purty purs-tidy pose))
+  :group 'lsp-purescript
+  :package-version '(lsp-mode . "8.0.1")
+  :lsp-path "purescript.formatter")
 
 (lsp-dependency 'purescript-language-server
                 '(:system "purescript-language-server")
