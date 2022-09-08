@@ -61,13 +61,23 @@
      "xor" "xor_eq")
     (c-mode
      ;; from https://en.cppreference.com/w/c/keyword
-     "_Alignas" "_Alignof" "_Atomic" "_Bool" "_Complex" "_Generic" "_Imaginary"
-     "_Noreturn" "_Static_assert" "_Thread_local"
+     "_Alignas" "_Alignof" "_Atomic" "_Bool" "_Complex"
+     "_Decimal128" "_Decimal32" "_Decimal64" "_Generic" "_Imaginary"
+     "_Noreturn" "_Static_assert" "_Thread_local" "__asm__" "asm"
      "auto" "break" "case" "char" "const" "continue" "default" "do"
      "double" "else" "enum" "extern" "float" "for" "goto" "if" "inline"
      "int" "long" "register" "restrict" "return" "short" "signed" "sizeof"
      "static" "struct" "switch" "typedef" "union" "unsigned" "void" "volatile"
      "while")
+    (crystal-mode
+     ;; from https://github.com/crystal-lang/crystal-book/issues/124#issuecomment-1008311227
+    "abstract" "alias" "annotation" "as" "as?" "asm" "begin" "break" "case" "class"
+    "def" "do" "else" "elsif" "end" "ensure" "enum" "extend" "false" "for" "fun"
+    "if" "in" "include" "instance_sizeof" "is_a?" "lib" "macro" "module" "next"
+    "nil" "nil?" "of" "offsetof" "out" "pointerof" "private" "protected" "require"
+    "rescue" "responds_to?" "return" "select" "self" "sizeof" "struct" "super"
+    "then" "true" "type" "typeof" "uninitialized" "union" "unless" "until" "verbatim"
+    "when" "while" "with" "yield")
     (csharp-mode
      "abstract" "add" "alias" "as" "base" "bool" "break" "byte" "case"
      "catch" "char" "checked" "class" "const" "continue" "decimal" "default"
@@ -95,6 +105,11 @@
      "super" "switch" "synchronized" "template" "this" "throw" "true" "try"
      "typedef" "typeid" "typeof" "ubyte" "ucent" "uint" "ulong" "union"
      "unittest" "ushort" "version" "void" "volatile" "wchar" "while" "with")
+    (erlang-mode
+     ;; from https://www.erlang.org/docs/20/reference_manual/introduction.html#id63536
+     "after" "and" "andalso" "band" "begin" "bnot" "bor" "bsl" "bsr" "bxor"
+     "case" "catch" "cond" "div" "end" "fun" "if" "let" "not" "of" "or" "orelse"
+     "receive" "rem" "try" "when" "xor")
     (f90-mode .
      ;; from f90.el
      ;; ".AND." ".GE." ".GT." ".LT." ".LE." ".NE." ".OR." ".TRUE." ".FALSE."
@@ -193,6 +208,14 @@
      ;; https://www.lua.org/manual/5.3/manual.html
      "and" "break" "do" "else" "elseif" "end" "false" "for" "function" "goto" "if"
      "in" "local" "nil" "not" "or" "repeat" "return" "then" "true" "until" "while")
+    (nim-mode
+     ;; https://nim-lang.org/docs/manual.html#lexical-analysis-identifiers-amp-keywords
+     "addr" "and" "as" "asm" "bind" "block" "break" "case" "cast" "concept" "const" "continue"
+     "converter" "defer" "discard" "distinct" "div" "do" "elif" "else" "end" "enum" "except"
+     "export" "finally" "for" "from" "func" "if" "import" "in" "include" "interface" "is" "isnot"
+     "iterator" "let" "macro" "method" "mixin" "mod" "nil" "not" "notin" "object" "of" "or" "out"
+     "proc" "ptr" "raise" "ref" "return" "shl" "shr" "static" "template" "try" "tuple" "type"
+     "using" "var" "when" "while" "xor" "yield")
     (objc-mode
      "@catch" "@class" "@encode" "@end" "@finally" "@implementation"
      "@interface" "@private" "@protected" "@protocol" "@public"
@@ -264,6 +287,68 @@
      "false" "fn" "for" "if" "impl" "in" "let" "loop" "macro" "match" "mod"
      "move" "mut" "pub" "ref" "return" "self" "static" "struct" "super"
      "trait" "true" "type" "unsafe" "use" "where" "while")
+    ; Extract from R7RS-small Tex: https://small.r7rs.org/
+    (scheme-mode
+     "abs" "acos" "angle" "append" "apply" "asin" "assoc" "assq" "assv"
+     "atan" "binary-port?" "body" "boolean=?" "boolean?" "bytevector"
+     "bytevector-append" "bytevector-copy" "bytevector-copy!"
+     "bytevector-length" "bytevector-u8-ref" "bytevector-u8-set!"
+     "bytevector?" "caaaar" "caaadr" "caaar" "caadar" "caaddr" "caadr"
+     "caar" "cadaar" "cadadr" "cadar" "caddar" "cadddr" "caddr" "cadr"
+     "call-with-port" "call-with-values" "car" "car-internal" "cdaaar"
+     "cdaadr" "cdaar" "cdadar" "cdaddr" "cdadr" "cdar" "cddaar" "cddadr"
+     "cddar" "cdddar" "cddddr" "cdddr" "cddr" "cdr" "ceiling"
+     "char->integer" "char-alphabetic?" "char-ci<=?" "char-ci<?"
+     "char-ci=?" "char-ci>=?" "char-ci>?" "char-downcase" "char-foldcase"
+     "char-lower-case?" "char-numeric?" "char-ready?" "char-upcase"
+     "char-upper-case?" "char-whitespace?" "char<=?" "char<?" "char=?"
+     "char>=?" "char>?" "char?" "close-input-port" "close-output-port"
+     "close-port" "command-line" "complex?" "cons" "cos"
+     "current-error-port" "current-input-port" "current-jiffy"
+     "current-output-port" "current-second" "delete-file" "denominator"
+     "digit-value" "display" "dynamic-wind" "emergency-exit" "environment"
+     "eof-object" "eof-object?" "eq?" "equal?" "eqv?" "error"
+     "error-object-irritants" "error-object-message" "error-object?" "eval"
+     "even?" "exact" "exact-integer-sqrt" "exact-integer?" "exact?" "exit"
+     "exp" "expt" "features" "file-error?" "file-exists?" "finite?" "floor"
+     "floor-quotient" "floor-remainder" "floor/" "flush-output-port" "gcd"
+     "get-environment-variable" "get-environment-variables"
+     "get-output-bytevector" "get-output-string" "imag-part" "inexact"
+     "inexact?" "infinite?" "input-port-open?" "input-port?"
+     "integer->char" "integer?" "interaction-environment"
+     "jiffies-per-second" "lcm" "length" "list" "list->string"
+     "list->vector" "list-copy" "list-ref" "list-set!" "list-tail" "list?"
+     "load" "log" "magnitude" "make-bytevector" "make-list"
+     "make-parameter" "make-polar" "make-promise" "make-rectangular"
+     "make-string" "make-vector" "max" "member" "memq" "memv" "min"
+     "modulo" "nan?" "negative?" "newline" "nil" "not" "null-environment"
+     "null?" "number->string" "number?" "numerator" "odd?"
+     "open-binary-input-file" "open-binary-output-file"
+     "open-input-bytevector" "open-input-file" "open-input-string"
+     "open-output-bytevector" "open-output-file" "open-output-string"
+     "output-port-open?" "output-port?" "pair?" "peek-char" "peek-u8"
+     "port?" "positive?" "procedure?" "promise?" "quasiquote" "quote"
+     "quotient" "raise" "raise-continuable" "rational?" "rationalize"
+     "read" "read-bytevector" "read-bytevector!" "read-char" "read-error?"
+     "read-line" "read-string" "read-u8" "real-part" "real?" "remainder"
+     "reverse" "round" "scheme-report-environment" "set!" "set-car!"
+     "set-cdr!" "setcar" "sin" "sqrt" "square" "string" "string->list"
+     "string->number" "string->symbol" "string->utf" "string->vector"
+     "string-append" "string-ci<=?" "string-ci<?" "string-ci=?"
+     "string-ci>=?" "string-ci>?" "string-copy" "string-copy!"
+     "string-downcase" "string-fill!" "string-foldcase" "string-for-each"
+     "string-length" "string-map" "string-ref" "string-set!"
+     "string-upcase" "string<=?" "string<?" "string=?" "string>=?"
+     "string>?" "string?" "substring" "symbol->string" "symbol=?" "symbol?"
+     "tan" "textual-port?" "truncate" "truncate-quotient"
+     "truncate-remainder" "truncate/" "u8-ready?" "unquote"
+     "unquote-splicing" "utf->string" "values" "vector" "vector->list"
+     "vector->string" "vector-append" "vector-copy" "vector-copy!"
+     "vector-fill!" "vector-for-each" "vector-length" "vector-map"
+     "vector-ref" "vector-set!" "vector?" "with-exception-handler"
+     "with-input-from-file" "with-output-to-file" "write"
+     "write-bytevector" "write-char" "write-shared" "write-simple"
+     "write-string" "write-u8" "zero?")
     (scala-mode
      "abstract" "case" "catch" "class" "def" "do" "else" "extends" "false"
      "final" "finally" "for" "forSome" "if" "implicit" "import" "lazy" "match"
