@@ -49,7 +49,7 @@
   :type '(repeat string))
 
 (defun lsp-typescript-javascript-tsx-jsx-activate-p (filename &optional _)
-  "Check if the javascript-typescript language server should be enabled based on FILENAME."
+  "Check if the js-ts lsp server should be enabled based on FILENAME."
   (or (string-match-p "\\.mjs\\|\\.[jt]sx?\\'" filename)
       (and (derived-mode-p 'js-mode 'typescript-mode)
            (not (derived-mode-p 'json-mode)))))
@@ -90,8 +90,8 @@
   :type '(repeat string))
 
 (defcustom lsp-clients-typescript-disable-automatic-typing-acquisition nil
-  "Disables tsserver from automatically fetching missing type
-definitions (@types packages) for external modules."
+  "Disable tsserver from automatically fetching missing type definitions.
+\(@types packages) for external modules."
   :group 'lsp-typescript
   :type 'boolean)
 
@@ -106,16 +106,15 @@ definitions (@types packages) for external modules."
           (const "verbose")))
 
 (defcustom lsp-clients-typescript-max-ts-server-memory nil
-  "The maximum size of the V8's old memory section in megabytes (for
-example 4096 means 4GB). The default value is dynamically configured
+  "The maximum size of the V8's old memory section in megabytes.
+\(for example 4096 means 4GB). The default value is dynamically configured
 by Node so can differ per system. Increase for very big projects that
 exceed allowed memory usage."
   :group 'lsp-typescript
   :type 'integer)
 
 (defcustom lsp-clients-typescript-npm-location nil
-  "Specifies the path to the NPM executable used for Automatic Type
-Acquisition."
+  "Specifies the path to the NPM exec used for Automatic Type Acquisition."
   :group 'lsp-typescript
   :type 'string)
 
@@ -144,23 +143,22 @@ See https://github.com/typescript-language-server/typescript-language-server#ini
   :type 'plist)
 
 (defcustom lsp-typescript-tsdk nil
-  "Specifies the folder path containing the tsserver and
-lib*.d.ts files to use."
+  "Specifies the folder path containing tsserver and lib*.d.ts files to use."
   :type '(repeat string)
   :group 'lsp-vetur
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-typescript-disable-automatic-type-acquisition nil
-  "Disables automatic type acquisition. Automatic type
-acquisition fetches `@types` packages from npm to improve
+  "Disables automatic type acquisition.
+Automatic type acquisition fetches `@types` packages from npm to improve
 IntelliSense for external libraries."
   :type 'boolean
   :group 'lsp-vetur
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-typescript-npm nil
-  "Specifies the path to the NPM executable used for Automatic
-Type Acquisition. Requires using TypeScript 2.3.4 or newer in the
+  "Specifies the path to the NPM exec used for Automatic Type Acquisition.
+Requires using TypeScript 2.3.4 or newer in the
 workspace."
   :type '(repeat string)
   :group 'lsp-vetur
@@ -185,15 +183,15 @@ workspace."
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-typescript-implementations-code-lens-enabled nil
-  "Enable/disable implementations CodeLens. This CodeLens shows
-the implementers of an interface."
+  "Enable/disable implementations CodeLens.
+This CodeLens shows the implementers of an interface."
   :type 'boolean
   :group 'lsp-vetur
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-typescript-tsserver-log "off"
-  "Enables logging of the TS server to a file. This log can be
-used to diagnose TS Server issues. The log may contain file
+  "Enables logging of the TS server to a file.
+This log can be used to diagnose TS Server issues. The log may contain file
 paths, source code, and other potentially sensitive information
 from your project."
   :type '(choice
@@ -205,15 +203,15 @@ from your project."
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-typescript-tsserver-plugin-paths nil
-  "Additional paths to discover Typescript Language Service
-plugins. Requires using TypeScript 2.3.0 or newer in the
+  "Additional paths to discover Typescript Language Service plugins.
+Requires using TypeScript 2.3.0 or newer in the
 workspace."
   :type '(repeat string)
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-typescript-tsserver-trace "off"
-  "Enables tracing of messages sent to the TS server. This trace
-can be used to diagnose TS Server issues. The trace may contain
+  "Enables tracing of messages sent to the TS server.
+This trace can be used to diagnose TS Server issues. The trace may contain
 file paths, source code, and other potentially sensitive
 information from your project."
   :type '(choice
@@ -253,8 +251,8 @@ information from your project."
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-typescript-format-insert-space-after-constructor nil
-  "Defines space handling after the constructor keyword. Requires
-using TypeScript 2.3.0 or newer in the workspace."
+  "Defines space handling after the constructor keyword.
+Requires using TypeScript 2.3.0 or newer in the workspace."
   :type 'boolean
   :package-version '(lsp-mode . "6.1"))
 
@@ -269,14 +267,12 @@ using TypeScript 2.3.0 or newer in the workspace."
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-typescript-format-insert-space-after-keywords-in-control-flow-statements t
-  "Defines space handling after keywords in a control flow
-statement."
+  "Defines space handling after keywords in a control flow statement."
   :type 'boolean
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-typescript-format-insert-space-after-function-keyword-for-anonymous-functions t
-  "Defines space handling after function keyword for anonymous
-functions."
+  "Defines space handling after function keyword for anonymous functions."
   :type 'boolean
   :package-version '(lsp-mode . "6.1"))
 
@@ -285,34 +281,34 @@ functions."
   :type 'boolean
   :package-version '(lsp-mode . "6.1"))
 
+(defcustom lsp-typescript-format-insert-space-after-opening-and-before-closing-empty-braces nil
+  "Defines space handling after opening/before closing empty braces."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
 (defcustom lsp-typescript-format-insert-space-after-opening-and-before-closing-nonempty-parenthesis nil
-  "Defines space handling after opening and before closing
-non-empty parenthesis."
+  "Defines space handling after opening/before closing non-empty parenthesis."
   :type 'boolean
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-typescript-format-insert-space-after-opening-and-before-closing-nonempty-brackets nil
-  "Defines space handling after opening and before closing
-non-empty brackets."
+  "Defines space handling after opening and before closing non-empty brackets."
   :type 'boolean
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-typescript-format-insert-space-after-opening-and-before-closing-nonempty-braces t
-  "Defines space handling after opening and before closing
-non-empty braces. Requires using TypeScript 2.3.0 or newer in the
-workspace."
+  "Defines space handling after opening and before closing non-empty braces.
+Requires using TypeScript 2.3.0 or newer in the workspace."
   :type 'boolean
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-typescript-format-insert-space-after-opening-and-before-closing-template-string-braces nil
-  "Defines space handling after opening and before closing
-template string braces."
+  "Defines space handling after opening/before closing template string braces."
   :type 'boolean
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-typescript-format-insert-space-after-opening-and-before-closing-jsx-expression-braces nil
-  "Defines space handling after opening and before closing JSX
-expression braces."
+  "Defines space handling after opening/before closing JSX expression braces."
   :type 'boolean
   :package-version '(lsp-mode . "6.1"))
 
@@ -323,14 +319,12 @@ Requires using TypeScript 2.4 or newer in the workspace."
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-typescript-format-place-open-brace-on-new-line-for-functions nil
-  "Defines whether an open brace is put onto a new line for
-functions or not."
+  "Defines whether an open brace is put onto a new line for functions or not."
   :type 'boolean
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-typescript-format-place-open-brace-on-new-line-for-control-blocks nil
-  "Defines whether an open brace is put onto a new line for
-control blocks or not."
+  "Defines whether an open brace is put onto a newline for control blocks."
   :type 'boolean
   :package-version '(lsp-mode . "6.1"))
 
@@ -350,8 +344,8 @@ control blocks or not."
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-javascript-format-insert-space-after-constructor nil
-  "Defines space handling after the constructor keyword. Requires
-using TypeScript 2.3.0 or newer in the workspace."
+  "Defines space handling after the constructor keyword.
+Requires using TypeScript 2.3.0 or newer in the workspace."
   :type 'boolean
   :package-version '(lsp-mode . "6.1"))
 
@@ -366,14 +360,12 @@ using TypeScript 2.3.0 or newer in the workspace."
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-javascript-format-insert-space-after-keywords-in-control-flow-statements t
-  "Defines space handling after keywords in a control flow
-statement."
+  "Defines space handling after keywords in a control flow statement."
   :type 'boolean
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-javascript-format-insert-space-after-function-keyword-for-anonymous-functions t
-  "Defines space handling after function keyword for anonymous
-functions."
+  "Defines space handling after function keyword for anonymous functions."
   :type 'boolean
   :package-version '(lsp-mode . "6.1"))
 
@@ -382,52 +374,50 @@ functions."
   :type 'boolean
   :package-version '(lsp-mode . "6.1"))
 
+(defcustom lsp-javascript-format-insert-space-after-opening-and-before-closing-empty-braces nil
+  "Defines space handling after opening/before closing empty braces."
+  :type 'boolean
+  :package-version '(lsp-mode . "6.1"))
+
 (defcustom lsp-javascript-format-insert-space-after-opening-and-before-closing-nonempty-parenthesis nil
-  "Defines space handling after opening and before closing
-non-empty parenthesis."
+  "Defines space handling after opening and before closing non-empty parenthesis."
   :type 'boolean
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-javascript-format-insert-space-after-opening-and-before-closing-nonempty-brackets nil
-  "Defines space handling after opening and before closing
-non-empty brackets."
+  "Defines space handling after opening and before closing non-empty brackets."
   :type 'boolean
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-javascript-format-insert-space-after-opening-and-before-closing-nonempty-braces t
-  "Defines space handling after opening and before closing
-non-empty braces. Requires using TypeScript 2.3.0 or newer in the
-workspace."
+  "Defines space handling after opening and before closing non-empty braces.
+Requires using TypeScript 2.3.0 or newer in the workspace."
   :type 'boolean
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-javascript-format-insert-space-after-opening-and-before-closing-template-string-braces nil
-  "Defines space handling after opening and before closing
-template string braces."
+  "Defines space handling after opening/before closing template string braces."
   :type 'boolean
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-javascript-format-insert-space-after-opening-and-before-closing-jsx-expression-braces nil
-  "Defines space handling after opening and before closing JSX
-expression braces."
+  "Defines space handling after opening/before closing JSX expression braces."
   :type 'boolean
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-javascript-format-place-open-brace-on-new-line-for-functions nil
-  "Defines whether an open brace is put onto a new line for
-functions or not."
+  "Defines whether an open brace is put onto a new line for functions or not."
   :type 'boolean
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-javascript-format-place-open-brace-on-new-line-for-control-blocks nil
-  "Defines whether an open brace is put onto a new line for
-control blocks or not."
+  "Defines whether an open brace is put onto a new line for control blocks or not."
   :type 'boolean
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-javascript-implicit-project-config-check-js nil
-  "Enable/disable semantic checking of JavaScript files. Existing
-jsconfig.json or tsconfig.json files override this setting.
+  "Enable/disable semantic checking of JavaScript files.
+Existing jsconfig.json or tsconfig.json files override this setting.
 Requires using TypeScript 2.3.1 or newer in the workspace."
   :type 'boolean
   :package-version '(lsp-mode . "6.1"))
@@ -438,8 +428,7 @@ Requires using TypeScript 2.3.1 or newer in the workspace."
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-javascript-suggest-names t
-  "Enable/disable including unique names from the file in
-JavaScript suggestions."
+  "Enable/disable including unique names from the file in JavaScript suggestions."
   :type 'boolean
   :package-version '(lsp-mode . "6.1"))
 
@@ -453,20 +442,18 @@ JavaScript suggestions."
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-javascript-suggest-paths t
-  "Enable/disable suggestions for paths in import statements and
-require calls."
+  "Enable/disable suggestions for paths in import statements and require calls."
   :type 'boolean
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-typescript-suggest-paths t
-  "Enable/disable suggestions for paths in import statements and
-require calls."
+  "Enable/disable suggestions for paths in import statements and require calls."
   :type 'boolean
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-javascript-suggest-auto-imports t
-  "Enable/disable auto import suggestions. Requires using
-TypeScript 2.6.1 or newer in the workspace."
+  "Enable/disable auto import suggestions.
+Requires using TypeScript 2.6.1 or newer in the workspace."
   :type 'boolean
   :package-version '(lsp-mode . "6.1"))
 
@@ -710,6 +697,7 @@ name (e.g. `data' variable passed as `data' parameter)."
    ("javascript.format.insertSpaceAfterFunctionKeywordForAnonymousFunctions" lsp-javascript-format-insert-space-after-function-keyword-for-anonymous-functions t)
    ("javascript.format.insertSpaceAfterKeywordsInControlFlowStatements" lsp-javascript-format-insert-space-after-keywords-in-control-flow-statements t)
    ("javascript.format.insertSpaceAfterOpeningAndBeforeClosingJsxExpressionBraces" lsp-javascript-format-insert-space-after-opening-and-before-closing-jsx-expression-braces t)
+   ("javascript.format.insertSpaceAfterOpeningAndBeforeClosingEmptyBraces" lsp-javascript-format-insert-space-after-opening-and-before-closing-empty-braces t)
    ("javascript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces" lsp-javascript-format-insert-space-after-opening-and-before-closing-nonempty-braces t)
    ("javascript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets" lsp-javascript-format-insert-space-after-opening-and-before-closing-nonempty-brackets t)
    ("javascript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis" lsp-javascript-format-insert-space-after-opening-and-before-closing-nonempty-parenthesis t)
@@ -750,6 +738,7 @@ name (e.g. `data' variable passed as `data' parameter)."
    ("typescript.format.insertSpaceAfterFunctionKeywordForAnonymousFunctions" lsp-typescript-format-insert-space-after-function-keyword-for-anonymous-functions t)
    ("typescript.format.insertSpaceAfterKeywordsInControlFlowStatements" lsp-typescript-format-insert-space-after-keywords-in-control-flow-statements t)
    ("typescript.format.insertSpaceAfterOpeningAndBeforeClosingJsxExpressionBraces" lsp-typescript-format-insert-space-after-opening-and-before-closing-jsx-expression-braces t)
+   ("typescript.format.insertSpaceAfterOpeningAndBeforeClosingEmptyBraces" lsp-typescript-format-insert-space-after-opening-and-before-closing-empty-braces t)
    ("typescript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces" lsp-typescript-format-insert-space-after-opening-and-before-closing-nonempty-braces t)
    ("typescript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets" lsp-typescript-format-insert-space-after-opening-and-before-closing-nonempty-brackets t)
    ("typescript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis" lsp-typescript-format-insert-space-after-opening-and-before-closing-nonempty-parenthesis t)

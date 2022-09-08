@@ -344,9 +344,30 @@ PARAMS progress report notification data."
   :group 'lsp-rust-analyzer
   :package-version '(lsp-mode . "6.2"))
 
+(defcustom lsp-rust-analyzer-library-directories '("~/.cargo/registry/src" "~/.rustup/toolchains")
+  "List of directories which will be considered to be libraries."
+  :risky t
+  :type '(repeat string)
+  :group 'lsp-rust-analyzer
+  :package-version '(lsp-mode . "8.0.1"))
+
 (defcustom lsp-rust-analyzer-server-format-inlay-hints t
   "Whether to ask rust-analyzer to format inlay hints itself.  If
 active, the various inlay format settings are not used."
+  :type 'boolean
+  :group 'lsp-rust-analyzer
+  :package-version '(lsp-mode . "8.0.1"))
+
+(defcustom lsp-rust-analyzer-hide-closure-initialization nil
+  "Whether to hide inlay type hints for `let` statements that initialize
+to a closure.ppOnly applies to closures with blocks, same as
+`#rust-analyzer.inlayHints.closureReturnTypeHints.enable#`."
+  :type 'boolean
+  :group 'lsp-rust-analyzer
+  :package-version '(lsp-mode . "8.0.1"))
+
+(defcustom lsp-rust-analyzer-hide-named-constructor nil
+  "Whether to hide inlay type hints for constructors."
   :type 'boolean
   :group 'lsp-rust-analyzer
   :package-version '(lsp-mode . "8.0.1"))
@@ -400,9 +421,32 @@ with block bodies."
   :group 'lsp-rust-analyzer
   :package-version '(lsp-mode . "6.2.2"))
 
-(defcustom lsp-rust-analyzer-display-reborrow-hints nil
-  "Whether to show reborrowing inlay hints."
+(defcustom lsp-rust-analyzer-display-reborrow-hints "never"
+  "Whether to show inlay type hints for compiler inserted reborrows."
+  :type '(choice
+          (const "always")
+          (const "never")
+          (const "mutable"))
+  :group 'lsp-rust-analyzer
+  :package-version '(lsp-mode . "8.0.1"))
+
+(defcustom lsp-rust-analyzer-binding-mode-hints nil
+  "Whether to show inlay type hints for binding modes."
   :type 'boolean
+  :group 'lsp-rust-analyzer
+  :package-version '(lsp-mode . "8.0.1"))
+
+(defcustom lsp-rust-analyzer-closing-brace-hints t
+  "Whether to show inlay hints after a closing `}` to indicate what item it
+belongs to."
+  :type 'boolean
+  :group 'lsp-rust-analyzer
+  :package-version '(lsp-mode . "8.0.1"))
+
+(defcustom lsp-rust-analyzer-closing-brace-hints-min-lines 25
+  "Minimum number of lines required before the `}` until the hint is shown
+\(set to 0 or 1 to always show them)."
+  :type 'integer
   :group 'lsp-rust-analyzer
   :package-version '(lsp-mode . "8.0.1"))
 
@@ -537,6 +581,14 @@ for formatting."
   :group 'lsp-rust-analyzer
   :package-version '(lsp-mode . "6.3.2"))
 
+(defcustom lsp-rust-analyzer-rustfmt-rangeformatting-enable nil
+  "Enables the use of rustfmt's unstable range formatting command for the
+`textDocument/rangeFormatting` request. The rustfmt option is unstable and only
+available on a nightly build."
+  :type 'boolean
+  :group 'lsp-rust-analyzer
+  :package-version '(lsp-mode . "8.0.1"))
+
 (defcustom lsp-rust-analyzer-completion-add-call-parenthesis t
   "Whether to add parenthesis when completing functions."
   :type 'boolean
@@ -567,19 +619,6 @@ Implies `lsp-rust-analyzer-cargo-run-build-scripts'"
   :type 'boolean
   :group 'lsp-rust-analyzer
   :package-version '(lsp-mode . "6.3.2"))
-
-(defcustom lsp-rust-analyzer-import-merge-behaviour "full"
-  "The strategy to use when inserting new imports or merging imports.
-Valid values are:
- - \"none\": No merging
- - \"full\": Merge all layers of the import trees
- - \"last\": Only merge the last layer of the import trees"
-  :type '(choice
-          (const "none")
-          (const "full")
-          (const "last"))
-  :group 'lsp-rust-analyzer
-  :package-version '(lsp-mode . "8.0.0"))
 
 (defcustom lsp-rust-analyzer-import-prefix "plain"
   "The path structure for newly inserted paths to use.
@@ -642,6 +681,13 @@ and field accesses with self prefixed to them when inside a method."
   :group 'lsp-rust-analyzer
   :package-version '(lsp-mode . "8.0.0"))
 
+(defcustom lsp-rust-analyzer-imports-merge-glob t
+  "Whether to allow import insertion to merge new imports into single path
+glob imports like `use std::fmt::*;`."
+  :type 'boolean
+  :group 'lsp-rust-analyzer
+  :package-version '(lsp-mode . "8.0.1"))
+
 (defcustom lsp-rust-analyzer-import-group t
   "Group inserted imports by the following order:
 https://rust-analyzer.github.io/manual.html#auto-import.
@@ -685,11 +731,11 @@ or JSON objects in `rust-project.json` format."
                   :disabled ,lsp-rust-analyzer-diagnostics-disabled
                   :warningsAsHint ,lsp-rust-analyzer-diagnostics-warnings-as-hint
                   :warningsAsInfo ,lsp-rust-analyzer-diagnostics-warnings-as-info)
-    :assist (:importMergeBehaviour ,lsp-rust-analyzer-import-merge-behaviour
-             :importPrefix ,lsp-rust-analyzer-import-prefix
-             :importGranularity ,lsp-rust-analyzer-import-granularity
-             :importEnforceGranularity ,(lsp-json-bool lsp-rust-analyzer-import-enforce-granularity)
-             :importGroup ,(lsp-json-bool lsp-rust-analyzer-import-group))
+    :imports (:granularity (:enforce ,(lsp-json-bool lsp-rust-analyzer-import-enforce-granularity)
+                            :group ,lsp-rust-analyzer-import-granularity)
+             :group ,(lsp-json-bool lsp-rust-analyzer-import-group)
+             :merge (:glob ,(lsp-json-bool lsp-rust-analyzer-imports-merge-glob))
+             :prefix ,lsp-rust-analyzer-import-prefix)
     :lruCapacity ,lsp-rust-analyzer-lru-capacity
     :checkOnSave (:enable ,(lsp-json-bool lsp-rust-analyzer-cargo-watch-enable)
                   :command ,lsp-rust-analyzer-cargo-watch-command
@@ -710,16 +756,22 @@ or JSON objects in `rust-project.json` format."
             :useRustcWrapperForBuildScripts ,(lsp-json-bool lsp-rust-analyzer-use-rustc-wrapper-for-build-scripts)
             :unsetTest ,lsp-rust-analyzer-cargo-unset-test)
     :rustfmt (:extraArgs ,lsp-rust-analyzer-rustfmt-extra-args
-              :overrideCommand ,lsp-rust-analyzer-rustfmt-override-command)
-    :inlayHints (:renderColons ,(lsp-json-bool lsp-rust-analyzer-server-format-inlay-hints)
-                 :typeHints ,(lsp-json-bool lsp-rust-analyzer-server-display-inlay-hints)
+              :overrideCommand ,lsp-rust-analyzer-rustfmt-override-command
+              :rangeFormatting (:enable ,(lsp-json-bool lsp-rust-analyzer-rustfmt-rangeformatting-enable)))
+    :inlayHints (:bindingModeHints ,(lsp-json-bool lsp-rust-analyzer-binding-mode-hints)
                  :chainingHints ,(lsp-json-bool lsp-rust-analyzer-display-chaining-hints)
+                 :closingBraceHints (:enable ,(lsp-json-bool lsp-rust-analyzer-closing-brace-hints)
+                                     :minLines ,lsp-rust-analyzer-closing-brace-hints-min-lines)
                  :closureReturnTypeHints ,(lsp-json-bool lsp-rust-analyzer-display-closure-return-type-hints)
                  :lifetimeElisionHints (:enable ,lsp-rust-analyzer-display-lifetime-elision-hints-enable
                                         :useParameterNames ,(lsp-json-bool lsp-rust-analyzer-display-lifetime-elision-hints-use-parameter-names))
+                 :maxLength ,lsp-rust-analyzer-max-inlay-hint-length
                  :parameterHints ,(lsp-json-bool lsp-rust-analyzer-display-parameter-hints)
                  :reborrowHints ,(lsp-json-bool lsp-rust-analyzer-display-reborrow-hints)
-                 :maxLength ,lsp-rust-analyzer-max-inlay-hint-length)
+                 :renderColons ,(lsp-json-bool lsp-rust-analyzer-server-format-inlay-hints)
+                 :typeHints (:enable ,(lsp-json-bool lsp-rust-analyzer-server-display-inlay-hints)
+                             :hideClosureInitialization ,(lsp-json-bool lsp-rust-analyzer-hide-closure-initialization)
+                             :hideNamedConstructor ,(lsp-json-bool lsp-rust-analyzer-hide-named-constructor)))
     :completion (:addCallParenthesis ,(lsp-json-bool lsp-rust-analyzer-completion-add-call-parenthesis)
                  :addCallArgumentSnippets ,(lsp-json-bool lsp-rust-analyzer-completion-add-call-argument-snippets)
                  :postfix (:enable ,(lsp-json-bool lsp-rust-analyzer-completion-postfix-enable))
@@ -782,6 +834,39 @@ or JSON objects in `rust-project.json` format."
         (insert results)
         (pop-to-buffer buf)))))
 
+(defun lsp-rust-analyzer-view-item-tree ()
+  "Show item tree of rust file."
+  (interactive)
+  (-let* ((params (lsp-make-rust-analyzer-view-item-tree
+                   :text-document (lsp--text-document-identifier)))
+          (results (lsp-send-request (lsp-make-request
+                                      "rust-analyzer/viewItemTree"
+                                      params))))
+    (let ((buf (get-buffer-create "*rust-analyzer item tree*"))
+          (inhibit-read-only t))
+      (with-current-buffer buf
+        (special-mode)
+        (erase-buffer)
+        (insert (lsp--render-string results "rust"))
+        (pop-to-buffer buf)))))
+
+(defun lsp-rust-analyzer-view-hir ()
+  "View Hir of function at point."
+  (interactive)
+  (-let* ((params (lsp-make-rust-analyzer-expand-macro-params
+                   :text-document (lsp--text-document-identifier)
+                   :position (lsp--cur-position)))
+          (results (lsp-send-request (lsp-make-request
+                                      "rust-analyzer/viewHir"
+                                      params))))
+    (let ((buf (get-buffer-create "*rust-analyzer hir*"))
+          (inhibit-read-only t))
+      (with-current-buffer buf
+        (special-mode)
+        (erase-buffer)
+        (insert results)
+        (pop-to-buffer buf)))))
+
 (defun lsp-rust-analyzer-join-lines ()
   "Join selected lines into one, smartly fixing up whitespace and trailing commas."
   (interactive)
@@ -803,7 +888,9 @@ or JSON objects in `rust-project.json` format."
   (format "https://github.com/rust-analyzer/rust-analyzer/releases/latest/download/%s"
           (pcase system-type
             ('gnu/linux "rust-analyzer-x86_64-unknown-linux-gnu.gz")
-            ('darwin "rust-analyzer-x86_64-apple-darwin.gz")
+            ('darwin (if (string-match "^aarch64-.*" system-configuration)
+                         "rust-analyzer-aarch64-apple-darwin.gz"
+                       "rust-analyzer-x86_64-apple-darwin.gz"))
             ('windows-nt "rust-analyzer-x86_64-pc-windows-msvc.gz")))
   "Automatic download url for Rust Analyzer"
   :type 'string
@@ -862,7 +949,7 @@ or JSON objects in `rust-project.json` format."
   :action-handlers (ht ("rust-analyzer.runSingle" #'lsp-rust--analyzer-run-single)
                        ("rust-analyzer.debugSingle" #'lsp-rust--analyzer-debug-lens)
                        ("rust-analyzer.showReferences" #'lsp-rust--analyzer-show-references))
-  :library-folders-fn (lambda (_workspace) lsp-rust-library-directories)
+  :library-folders-fn (lambda (_workspace) lsp-rust-analyzer-library-directories)
   :after-open-fn (lambda ()
                    (when lsp-rust-analyzer-server-display-inlay-hints
                      (lsp-rust-analyzer-inlay-hints-mode)))
@@ -966,13 +1053,13 @@ meaning."
       label
     (cond
      ((eql kind lsp/rust-analyzer-inlay-hint-kind-type-hint) (format lsp-rust-analyzer-inlay-type-format label))
-     ((eql kind lsp/rust-analyzer-inlay-hint-kind-type-hint) (format lsp-rust-analyzer-inlay-param-format label))
+     ((eql kind lsp/rust-analyzer-inlay-hint-kind-param-hint) (format lsp-rust-analyzer-inlay-param-format label))
      (t label))))
 
 (defun lsp-rust-analyzer-face-for-inlay (kind)
   (cond
    ((eql kind lsp/rust-analyzer-inlay-hint-kind-type-hint) 'lsp-rust-analyzer-inlay-type-face)
-   ((eql kind lsp/rust-analyzer-inlay-hint-kind-type-hint) 'lsp-rust-analyzer-inlay-param-face)
+   ((eql kind lsp/rust-analyzer-inlay-hint-kind-param-hint) 'lsp-rust-analyzer-inlay-param-face)
    (t 'lsp-rust-analyzer-inlay-face)))
 
 (defun lsp-rust-analyzer-initialized? ()
@@ -1048,12 +1135,15 @@ meaning."
 Extract the arguments, prepare the minor mode (cargo-process-mode if possible)
 and run a compilation"
   (-let* (((&rust-analyzer:Runnable :kind :label :args) runnable)
-          ((&rust-analyzer:RunnableArgs :cargo-args :executable-args :workspace-root?) args)
+          ((&rust-analyzer:RunnableArgs :cargo-args :executable-args :workspace-root? :expect-test?) args)
           (default-directory (or workspace-root? default-directory)))
     (if (not (string-equal kind "cargo"))
         (lsp--error "'%s' runnable is not supported" kind)
       (compilation-start
-       (string-join (append (list "cargo") cargo-args (when executable-args '("--")) executable-args '()) " ")
+       (string-join (append (when expect-test? '("env" "UPDATE_EXPECT=1"))
+                            (list "cargo") cargo-args
+                            (when executable-args '("--")) executable-args '()) " ")
+
        ;; cargo-process-mode is nice, but try to work without it...
        (if (functionp 'cargo-process-mode) 'cargo-process-mode nil)
        (lambda (_) (concat "*" label "*"))))))
@@ -1157,7 +1247,8 @@ https://github.com/rust-analyzer/rust-analyzer/blob/master/docs/dev/lsp-extensio
 
 (defun lsp-rust-analyzer--related-tests ()
   "Get runnable test items related to the current TextDocumentPosition.
-Calls a rust-analyzer LSP extension endpoint that returns a wrapper over Runnable[]"
+Calls a rust-analyzer LSP extension endpoint that returns a wrapper over
+Runnable[]."
   (lsp-send-request (lsp-make-request
                      "rust-analyzer/relatedTests"
                      (lsp--text-document-position-params))))
@@ -1166,8 +1257,9 @@ Calls a rust-analyzer LSP extension endpoint that returns a wrapper over Runnabl
   "Call the endpoint and ask for user selection.
 
 Cannot reuse `lsp-rust-analyzer--select-runnable' because the runnables endpoint
-responds with Runnable[], while relatedTests responds with TestInfo[], which is a wrapper
-over runnable. Also, this method doesn't set the `lsp-rust-analyzer--last-runnable' variable"
+responds with Runnable[], while relatedTests responds with TestInfo[],
+which is a wrapper over runnable. Also, this method doesn't set
+the `lsp-rust-analyzer--last-runnable' variable."
   (-if-let* ((resp (lsp-rust-analyzer--related-tests))
              (runnables (seq-map
                          #'lsp:rust-analyzer-related-tests-runnable

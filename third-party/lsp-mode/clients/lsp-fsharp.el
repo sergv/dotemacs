@@ -160,23 +160,37 @@ with test projects are not autoloaded by FSharpAutoComplete."
 
 (defun lsp-fsharp--fsac-install (_client callback error-callback update?)
   "Install/update fsautocomplete language server using `dotnet tool'.
-
-Will invoke CALLBACK or ERROR-CALLBACK based on result. Will update if UPDATE? is t"
+Will invoke CALLBACK or ERROR-CALLBACK based on result. Will update if
+UPDATE? is t."
   (lsp-async-start-process
    callback
    error-callback
    "dotnet" "tool" (if update? "update" "install") "-g" "fsautocomplete"))
 
+(defcustom lsp-fsharp-use-dotnet-tool-for-fsac t
+  "Run FsAutoComplete as a dotnet tool.
+
+The binary will be invoked via \"dotnet fsautocomplete\" in the
+project's root directory, which will run a project-local tool if
+available, else the globally installed tool."
+  :group 'lsp-fsharp
+  :type 'boolean
+  :risky t)
+
+(defun lsp-fsharp--fsac-cmd ()
+  "The location of fsautocomplete executable."
+  (expand-file-name "fsautocomplete.dll" lsp-fsharp-server-install-dir))
+
 (defun lsp-fsharp--make-launch-cmd ()
   "Build the command required to launch fsautocomplete."
 
-  ;; latest emacs-28 (on macOS) and master (as of Sat Feb 12 2022) has an issue
+  ;; emacs-28.1 on macOS has an issue
   ;; that it launches processes using posix_spawn but does not reset sigmask properly
   ;; thus causing dotnet runtime to lockup awaiting a SIGCHLD signal that never comes
   ;; from subprocesses that quit
   ;;
-  ;; as a workaround we will wrap fsautocomplete invocation in "/usr/bin/env --default-signal"
-  ;; (on linux) and "/bin/ksh -c" (on macos) so it launches with proper sigmask
+  ;; as a workaround we will wrap fsautocomplete invocation in "/bin/ksh -c" (on macos)
+  ;; so it launches with proper sigmask
   ;;
   ;; see https://lists.gnu.org/archive/html/emacs-devel/2022-02/msg00461.html
   ;; --
@@ -185,14 +199,11 @@ Will invoke CALLBACK or ERROR-CALLBACK based on result. Will update if UPDATE? i
   ;; and we want to actually use `exec-path' here
 
   (let ((startup-wrapper (cond ((and (eq 'darwin system-type)
-                                     (version<= "28.0" emacs-version))
+                                     (version= "28.1" emacs-version))
                                 (list "/bin/ksh" "-c"))
 
-                               ((and (eq 'gnu/linux system-type)
-                                     (version<= "29.0" emacs-version))
-                                (list "/usr/bin/env" "--default-signal"))
-
                                (t nil)))
+
         (fsautocomplete-exec (or (executable-find "fsautocomplete")
                                  (f-join (or (getenv "USERPROFILE") (getenv "HOME"))
                                          ".dotnet" "tools" "fsautocomplete"))))
@@ -202,8 +213,10 @@ Will invoke CALLBACK or ERROR-CALLBACK based on result. Will update if UPDATE? i
 
 (defun lsp-fsharp--test-fsautocomplete-present ()
   "Return non-nil if dotnet tool fsautocomplete is installed globally."
-  (string-match-p "fsautocomplete"
-                  (shell-command-to-string "dotnet tool list -g")))
+  (if lsp-fsharp-use-dotnet-tool-for-fsac
+      (string-match-p "fsautocomplete"
+                      (shell-command-to-string "dotnet tool list -g"))
+    (f-exists? (lsp-fsharp--fsac-cmd))))
 
 (defun lsp-fsharp--project-list ()
   "Get the list of files we need to send to fsharp/workspaceLoad."
