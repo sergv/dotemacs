@@ -1,27 +1,33 @@
 EMACS ?= emacs
-CASK ?= cask
-EMACS23=emacs23
+EASK ?= eask
 
-ELPA_DIR = $(shell EMACS=$(EMACS) $(CASK) package-directory)
+.PHONY: clean checkdoc lint package install compile test
 
-.PHONY: test test-nw test-emacs23 test-emacs23-nw travis-ci
+ci: clean package install compile
+
+package:
+	@echo "Packaging..."
+	$(EASK) package
+
+install:
+	@echo "Installing..."
+	$(EASK) install
+
+compile:
+	@echo "Compiling..."
+	$(EASK) compile
 
 test:
-	$(CASK) exec $(EMACS) -Q -L . -l tests/run-test.el
+	@echo "Testing..."
+	$(EASK) test ert ./test/*.el
 
-test-nw:
-	$(CASK) exec $(EMACS) -Q -nw -L . -l tests/run-test.el
+checkdoc:
+	@echo "Run checkdoc..."
+	$(EASK) lint checkdoc
 
-test-emacs23: tests/ert.el
-	${EMACS23} -Q -L . -l test/ert.el -l tests/run-test.el
+lint:
+	@echo "Run package-lint..."
+	$(EASK) lint package
 
-test-emacs23-nw: tests/ert.el
-	$(EMACS23) -Q -nw -L . -l test/ert.el -l tests/run-test.el
-
-travis-ci: elpa
-	$(CASK) exec $(EMACS) -batch -Q -l tests/run-test.el
-
-elpa: $(ELPA_DIR)
-$(ELPA_DIR): Cask
-	$(CASK) install
-	touch $@
+clean:
+	$(EASK) clean-all
