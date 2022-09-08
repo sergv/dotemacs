@@ -1,6 +1,6 @@
 ;;; flycheck.el --- On-the-fly syntax checking -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017-2020 Flycheck contributors
+;; Copyright (C) 2017-2022 Flycheck contributors
 ;; Copyright (C) 2012-2016 Sebastian Wiesner and Flycheck contributors
 ;; Copyright (C) 2013, 2014 Free Software Foundation, Inc.
 ;;
@@ -158,7 +158,10 @@ attention to case differences."
     asciidoctor
     asciidoc
     awk-gawk
-    bazel-buildifier
+    bazel-build-buildifier
+    bazel-module-buildifier
+    bazel-starlark-buildifier
+    bazel-workspace-buildifier
     c/c++-clang
     c/c++-gcc
     c/c++-cppcheck
@@ -3561,13 +3564,7 @@ Command `flycheck-mode' is only enabled if
 (define-globalized-minor-mode global-flycheck-mode flycheck-mode
   flycheck-mode-on-safe
   :init-value nil
-  ;; Do not expose Global Flycheck Mode on customize interface, because the
-  ;; interaction between package.el and customize is currently broken.  See
-  ;; https://github.com/flycheck/flycheck/issues/595
-
-  ;; :require 'flycheck :group
-  ;; 'flycheck
-  )
+  :group 'flycheck)
 
 (defun flycheck-global-teardown (&optional ignore-local)
   "Teardown Flycheck in all buffers.
@@ -4310,7 +4307,17 @@ show the indicator."
    #b00110110
    #b01101100
    #b11011000]
-  "Bitmaps used to indicate errors in the fringes.")
+  "Bitmaps used to indicate errors in the left fringes.")
+
+(defconst flycheck-fringe-bitmap-double-left-arrow
+  [#b00011011
+   #b00110110
+   #b01101100
+   #b11011000
+   #b01101100
+   #b00110110
+   #b00011011]
+  "Bitmaps used to indicate errors in the right fringes.")
 
 (defconst flycheck-fringe-bitmap-double-arrow-hi-res
   [#b1111001111000000
@@ -4325,7 +4332,22 @@ show the indicator."
    #b0011110011110000
    #b0111100111100000
    #b1111001111000000]
-  "High-resolution bitmap used to indicate errors in the fringes.")
+  "High-resolution bitmap used to indicate errors in the left fringes.")
+
+(defconst flycheck-fringe-bitmap-double-left-arrow-hi-res
+  [#b0000001111001111
+   #b0000011110011110
+   #b0000111100111100
+   #b0001111001111000
+   #b0011110011110000
+   #b0111100111100000
+   #b0111100111100000
+   #b0011110011110000
+   #b0001111001111000
+   #b0000111100111100
+   #b0000011110011110
+   #b0000001111001111]
+  "High-resolution bitmap used to indicate errors in the right fringes.")
 
 (defconst flycheck-fringe-bitmap-continuation
   [#b1000000010000000
@@ -4341,6 +4363,13 @@ show the indicator."
   (define-fringe-bitmap
     'flycheck-fringe-bitmap-double-arrow-hi-res
     flycheck-fringe-bitmap-double-arrow-hi-res
+    nil 16)
+  (define-fringe-bitmap
+    'flycheck-fringe-bitmap-double-left-arrow
+    flycheck-fringe-bitmap-double-left-arrow)
+  (define-fringe-bitmap
+    'flycheck-fringe-bitmap-double-left-arrow-hi-res
+    flycheck-fringe-bitmap-double-left-arrow-hi-res
     nil 16)
   (define-fringe-bitmap
     'flycheck-fringe-bitmap-continuation
@@ -7267,7 +7296,7 @@ Split the output into error tokens, using all regular expressions
 from the error PATTERNS.  An error token is simply a string
 containing a single error from OUTPUT.  Such a token can then be
 parsed into a structured error by applying the PATTERNS again,
-see `flycheck-parse-errors-with-patterns'.
+see `flycheck-parse-error-with-patterns'.
 
 Return a list of error tokens."
   (let ((regexp (flycheck-get-regexp patterns))
@@ -7535,11 +7564,11 @@ See URL `http://asciidoctor.org'."
   :error-filter flycheck-awk-gawk-error-filter
   :modes awk-mode)
 
-(flycheck-define-checker bazel-buildifier
-  "An Bazel checker using the buildifier.
+(flycheck-define-checker bazel-build-buildifier
+  "A checker for Bazel BUILD and BUILD.bazel files using buildifier.
 
 See URL `https://github.com/bazelbuild/buildtools/blob/master/buildifier'."
-  :command ("buildifier" "-lint=warn")
+  :command ("buildifier" "-lint=warn" "--type=build")
   :standard-input t
   :error-patterns
   ((error line-start
@@ -7548,7 +7577,52 @@ See URL `https://github.com/bazelbuild/buildtools/blob/master/buildifier'."
    (warning line-start
             "<stdin>:" line ": " (id (one-or-more (in word "-"))) ": " (message)
             line-end))
-  :modes bazel-mode)
+  :modes bazel-build-mode)
+
+(flycheck-define-checker bazel-module-buildifier
+  "A checker for Bazel MODULE.bazel files using buildifier.
+
+See URL `https://github.com/bazelbuild/buildtools/blob/master/buildifier'."
+  :command ("buildifier" "-lint=warn" "--type=default")
+  :standard-input t
+  :error-patterns
+  ((error line-start
+          "<stdin>:" line ":" column ": " (message)
+          line-end)
+   (warning line-start
+            "<stdin>:" line ": " (id (one-or-more (in word "-"))) ": " (message)
+            line-end))
+  :modes bazel-module-mode)
+
+(flycheck-define-checker bazel-starlark-buildifier
+  "A checker for Starlark bzl files using buildifier.
+
+See URL `https://github.com/bazelbuild/buildtools/blob/master/buildifier'."
+  :command ("buildifier" "-lint=warn" "--type=bzl")
+  :standard-input t
+  :error-patterns
+  ((error line-start
+          "<stdin>:" line ":" column ": " (message)
+          line-end)
+   (warning line-start
+            "<stdin>:" line ": " (id (one-or-more (in word "-"))) ": " (message)
+            line-end))
+  :modes bazel-starlark-mode)
+
+(flycheck-define-checker bazel-workspace-buildifier
+  "A checker for Bazel WORKSPACE and WORKSPACE.bazel files using buildifier.
+
+See URL `https://github.com/bazelbuild/buildtools/blob/master/buildifier'."
+  :command ("buildifier" "-lint=warn" "--type=workspace")
+  :standard-input t
+  :error-patterns
+  ((error line-start
+          "<stdin>:" line ":" column ": " (message)
+          line-end)
+   (warning line-start
+            "<stdin>:" line ": " (id (one-or-more (in word "-"))) ": " (message)
+            line-end))
+  :modes bazel-workspace-mode)
 
 (flycheck-def-args-var flycheck-clang-args c/c++-clang
   :package-version '(flycheck . "0.22"))
@@ -8255,6 +8329,12 @@ See URL `http://stylelint.io/'."
   :package-version '(flycheck . "32"))
 (make-variable-buffer-local 'flycheck-cuda-language-standard)
 
+(flycheck-def-option-var flycheck-cuda-gencodes nil cuda-nvcc
+  "Our real and virtual GPU architectures to pass to nvcc."
+  :type '(repeat (file :tag "GPU architecture"))
+  :safe #'flycheck-string-list-p
+  :package-version '(flycheck . "32"))
+
 (flycheck-def-option-var flycheck-cuda-includes nil cuda-nvcc
   "Our include directories to pass to nvcc."
   :type '(repeat (file :tag "Include file"))
@@ -8282,8 +8362,10 @@ See URL `https://developer.nvidia.com/cuda-llvm-compiler'."
             "-c" ;; Compile Only
             "--output-file" "/dev/null" ;; avoid creating output .o
             "--x=cu" ;; explicitly specify it's a CUDA language file
+            "-rdc=true" ;; Allow linking with external cuda funcions
             (option "-std=" flycheck-cuda-language-standard concat)
             (option-list "-include" flycheck-cuda-includes)
+            (option-list "-gencode" flycheck-cuda-gencodes)
             (option-list "-D" flycheck-cuda-definitions concat)
             (option-list "-I" flycheck-cuda-include-path)
             source)
@@ -8707,7 +8789,7 @@ See Info Node `(elisp)Byte Compilation'."
             (kill-buffer)))))))
 
 (defconst flycheck-emacs-lisp-checkdoc-variables
-  '(checkdoc-symbol-words
+  `(checkdoc-symbol-words
     checkdoc-arguments-in-order-flag
     checkdoc-force-history-flag
     checkdoc-permit-comma-termination-flag
@@ -8716,7 +8798,9 @@ See Info Node `(elisp)Byte Compilation'."
     checkdoc-spellcheck-documentation-flag
     checkdoc-verb-check-experimental-flag
     checkdoc-max-keyref-before-warn
-    sentence-end-double-space)
+    sentence-end-double-space
+    ,@(and (>= emacs-major-version 28)
+           '(checkdoc-column-zero-backslash-before-paren)))
   "Variables inherited by the checkdoc subprocess.")
 
 (defun flycheck-emacs-lisp-checkdoc-variables-form ()
@@ -8817,8 +8901,10 @@ See URL `http://www.erlang.org/'."
             "-Wall"
             source)
   :error-patterns
-  ((warning line-start (file-name) ":" line ": Warning:" (message) line-end)
-   (error line-start (file-name) ":" line ": " (message) line-end))
+  ((warning line-start (file-name) ":" line ":" (optional column ":")
+            " Warning:" (message) line-end)
+   (error line-start (file-name) ":" line ":" (optional column ":") " "
+          (message) line-end))
   :modes erlang-mode
   :enabled (lambda () (string-suffix-p ".erl" (buffer-file-name))))
 
@@ -8888,10 +8974,10 @@ directory name is \"test\" or \"eqc\", or else \"default\"."
   :command ("rebar3" "as" (eval (flycheck-erlang-rebar3-get-profile)) "compile")
   :error-parser flycheck-parse-with-patterns-without-color
   :error-patterns
-  ((warning line-start
-            (file-name) ":" line ": Warning:" (message) line-end)
-   (error line-start
-          (file-name) ":" line ": " (message) line-end))
+  ((warning line-start (file-name) ":" line ":" (optional column ":")
+            " Warning:" (message) line-end)
+   (error line-start (file-name) ":" line ":" (optional column ":") " "
+          (message) line-end))
   :modes erlang-mode
   :enabled flycheck-rebar3-project-root
   :predicate flycheck-buffer-saved-p
@@ -9387,20 +9473,23 @@ See URL `https://github.com/ndmitchell/hlint'."
             source-inplace)
   :error-patterns
   ((info line-start
-         (file-name) ":" (or (seq line ":" column (optional "-" end-column))
-                             (seq "(" line "," column ")-(" end-line "," end-column ")"))
+         (file-name) ":"
+         (or (seq line ":" column (optional "-" end-column))
+             (seq "(" line "," column ")-(" end-line "," end-column ")"))
          ": Suggestion: "
          (message (one-or-more (and (one-or-more (not (any ?\n))) ?\n)))
          line-end)
    (warning line-start
-            (file-name) ":" (or (seq line ":" column (optional "-" end-column))
-                                (seq "(" line "," column ")-(" end-line "," end-column ")"))
+            (file-name) ":"
+            (or (seq line ":" column (optional "-" end-column))
+                (seq "(" line "," column ")-(" end-line "," end-column ")"))
             ": Warning: "
             (message (one-or-more (and (one-or-more (not (any ?\n))) ?\n)))
             line-end)
    (error line-start
-          (file-name) ":" (or (seq line ":" column (optional "-" end-column))
-                              (seq "(" line "," column ")-(" end-line "," end-column ")"))
+          (file-name) ":"
+          (or (seq line ":" column (optional "-" end-column))
+              (seq "(" line "," column ")-(" end-line "," end-column ")"))
           ": Error: "
           (message (one-or-more (and (one-or-more (not (any ?\n))) ?\n)))
           line-end))
@@ -10189,7 +10278,7 @@ CHECKER's executable is assumed to be a Python REPL."
                    (format "import %s; print(%s.__file__)" module module))))
 
 (defun flycheck-python-needs-module-p (checker)
-  "Determines whether CHECKER needs to be invoked through Python.
+  "Determine whether CHECKER needs to be invoked through Python.
 
 Previous versions of Flycheck called pylint and flake8 directly,
 while new version call them through `python -c'.  This check
@@ -10222,7 +10311,7 @@ Otherwise, return a list starting with -c (-m is not enough
 because it adds the current directory to Python's path)."
   (when (flycheck-python-needs-module-p checker)
     `("-c" ,(concat "import sys;sys.path.pop(0);import runpy;"
-                    (format "runpy.run_module(%S)" module-name)))))
+                    (format "runpy.run_module(%S, run_name='__main__')" module-name )))))
 
 (defcustom flycheck-python-project-files
   '("pyproject.toml" "setup.cfg" "mypy.ini" "pyrightconfig.json")
@@ -10253,7 +10342,8 @@ parent directory that doesn't have a __init__.py file."
          start (lambda (dir)
                  (not (file-exists-p (expand-file-name "__init__.py" dir))))))))
 
-(flycheck-def-config-file-var flycheck-flake8rc python-flake8  ".flake8rc")
+(flycheck-def-config-file-var flycheck-flake8rc python-flake8
+                              '(".flake8" "setup.cfg" "tox.ini"))
 
 (flycheck-def-option-var flycheck-flake8-error-level-alist
     '(("^E9.*$"  . error)               ; Syntax errors from pep8
@@ -12069,14 +12159,18 @@ Relative paths are relative to the file being checked."
   "A Verilog syntax checker using the Verilator Verilog HDL simulator.
 
 See URL `https://www.veripool.org/wiki/verilator'."
-  :command ("verilator" "--lint-only" "-Wall"
+  :command ("verilator" "--lint-only" "-Wall" "--quiet-exit"
             (option-list "-I" flycheck-verilator-include-path concat)
             source)
   :error-patterns
-  ((warning line-start "%Warning-" (zero-or-more not-newline) ": "
-            (file-name) ":" line ": " (message) line-end)
-   (error line-start "%Error: " (file-name) ":"
-          line ": " (message) line-end))
+  ((warning line-start "%Warning"
+            (? "-" (id (+ (any "0-9A-Z_")))) ": "
+            (? (file-name) ":" line ":" (? column ":") " ")
+            (message) line-end)
+   (error line-start "%Error"
+          (? "-" (id (+ (any "0-9A-Z_")))) ": "
+          (? (file-name) ":" line ":" (? column ":") " ")
+          (message) line-end))
   :modes verilog-mode)
 
 (flycheck-def-option-var flycheck-ghdl-language-standard nil vhdl-ghdl
