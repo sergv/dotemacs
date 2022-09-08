@@ -82,26 +82,26 @@ if all of its characters have syntax and face. See
      ("foo" t nix-attribute-face))))
 
 (ert-deftest nix-issue-157 ()
-  (check-properties
+  (nix-font-lock-tests--check-properties
    '("\"''$${x}")
    '(("\"''$${x}" t font-lock-string-face)))
-  (check-properties
+  (nix-font-lock-tests--check-properties
    '("''''$${x}''")
    '(("''''$" t font-lock-string-face)
      ("${" t nix-antiquote-face)
      ("}" t nix-antiquote-face)))
-  (check-properties
+  (nix-font-lock-tests--check-properties
    '("\"$${x}\"")
    '(("\"$${x}\"" t font-lock-string-face)))
-  (check-properties
+  (nix-font-lock-tests--check-properties
    '("''$${x}''")
    '(("''$${x}''" t font-lock-string-face)))
-  (check-properties
+  (nix-font-lock-tests--check-properties
    '("\"\\$${x}\"")
    '(("\"\\$" t font-lock-string-face)
      ("${" t nix-antiquote-face)
      ("}" t nix-antiquote-face)))
-  (check-properties
+  (nix-font-lock-tests--check-properties
    '("''\\$${x}''")
    '(("''\\$${x}''" t font-lock-string-face))))
 
