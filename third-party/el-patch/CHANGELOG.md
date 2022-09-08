@@ -4,6 +4,47 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog].
 
 ## Unreleased
+### Breaking changes
+* The arguments to `el-patch-feature` after the feature name are no
+  longer quoted by `el-patch-feature` before being passed to
+  `el-patch-require-function`. This means you can write them as normal
+  function arguments instead as unquoted symbols.
+* The default value of `el-patch-require-function` has changed from
+  `require` to `el-patch-default-require-function`, which ignores all
+  arguments to `el-patch-feature` aside from the feature name, and
+  converts `require` errors to warnings ([#47]).
+
+### Enhancements
+* All `el-patch` forms are now fontified the same way as their
+  built-in counterparts, e.g. the function name in an `el-patch-defun`
+  is fontified the same as the function name in a `defun` would be.
+  See [#35].
+
+### Internal changes
+* The autoloading mechanism used by `el-patch` has changed, reducing
+  the amount of work that is done at startup and simplifying the
+  implementation ([#56]). The user-facing impact is as follows:
+    * `el-patch--patches` and `el-patch-deftype-alist` are no longer
+      autoloaded. If you use a compiled init-file, you may need to
+      recompile it with the new version of `el-patch`; the code
+      compiled with the old version of `el-patch` will not work at
+      runtime with the new version of `el-patch`. However, evaluating
+      patches in a compiled init-file, even one that uses
+      `el-patch-deftype`, still does not load `el-patch`.
+    * `el-patch-defun` and analogous functions are now autoloaded,
+      rather than fully defined at init time. This should not matter
+      since a compiled init-file would have macroexpanded these into
+      smaller components that do not have runtime dependencies on
+      `el-patch`.
+    * There is a new file `el-patch-stub.el` that needs to be on the
+      `load-path` for autoloads to work. This should be taken care of
+      automatically by any of the popular Emacs package managers.
+
+[#35]: https://github.com/raxod502/el-patch/issues/35
+[#47]: https://github.com/raxod502/el-patch/issues/47
+[#56]: https://github.com/raxod502/el-patch/pull/56
+
+## 2.4 (released 2021-12-27)
 ### New features
 * New way to patch elisp objects based on a partial template and the
   original definition the object ([#50]). See the documentation on
