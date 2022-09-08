@@ -38,6 +38,7 @@ function add_grafts_file_entry () {
     local subtree_hash_to_merge="$4"
 
     cat >>"${grafts_file}" <<EOF
+
 #-------------------------------------------------------------------------------
 # ${path}
 # <commit-hash> - <explanation>
