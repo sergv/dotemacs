@@ -2,7 +2,7 @@
 
 ;; Copyright 2011-2022 François-Xavier Bois
 
-;; Version: 17.2.0
+;; Version: 17.3.1
 ;; Author: François-Xavier Bois
 ;; Maintainer: François-Xavier Bois <fxbois@gmail.com>
 ;; Package-Requires: ((emacs "23.1"))
@@ -23,7 +23,7 @@
 
 ;;---- CONSTS ------------------------------------------------------------------
 
-(defconst web-mode-version "17.1.4"
+(defconst web-mode-version "17.3.1"
   "Web Mode version.")
 
 ;;---- GROUPS ------------------------------------------------------------------
@@ -329,8 +329,8 @@ See web-mode-block-face."
   :group 'web-mode)
 
 (defcustom web-mode-commands-like-expand-region
-  '(web-mode-mark-and-expand er/expand-region mc/mark-next-like-this)
-  "Add it to here if you have some wrapper function for er/expand-region"
+  '(web-mode-mark-and-expand er/expand-region mc/mark-next-like-this mc/mark-previous-like-this)
+  "Add commmand here if you have some wrapper function for er/expand-region"
   :type '(repeat function)
   :group 'web-mode)
 
@@ -354,6 +354,57 @@ See web-mode-block-face."
     "text/mustache"
     "text/x-dust-template")
   "<script> block types that are interpreted as HTML."
+  :type '(repeat string)
+  :group 'web-mode)
+
+;; https://developer.mozilla.org/en-US/docs/Web/HTML/Element
+(defcustom web-mode-tag-list
+  '("html" "base" "head" "link" "meta" "style" "title" "body" "address"
+    "article" "aside" "footer" "header" "h1" "h2" "h3" "h4" "h5" "h6" "main"
+    "nav" "section" "blockquote" "dd" "div" "dl" "dt" "figcaption" "figure"
+    "hr" "li" "menu" "ol" "p" "pre" "ula" "a" "abbr" "b" "bdi" "bdo" "br"
+    "cite" "code" "data" "dfn" "em" "i" "kbdmark" "q" "rp" "rt" "ruby" "s"
+    "samp" "small" "span" "strong" "sub" "sup" "time" "u" "var" "wbr" "area"
+    "audio" "img" "map" "track" "video" "embed" "iframe" "object" "picture"
+    "portal" "source" "svg" "math" "canvas" "noscript" "script" "del" "ins"
+    "caption" "col" "colgroup" "table" "tbody" "td" "tfoot" "th" "thead" "tr"
+    "button" "datalist" "fieldset" "form" "input" "label" "legend" "meter"
+    "optgroup" "option" "output" "progress" "select" "textarea" "details"
+    "dialog" "summary" "slot" "template")
+  "HTML tags used for completion."
+  :type '(repeat string)
+  :group 'web-mode)
+
+
+;; https://www.w3schools.com/tags/ref_attributes.asp
+;; Attributes marked as deprecated in HTML 5 are not added.
+(defcustom web-mode-attribute-list
+  '("accept" "accesskey" "action" "alt" "async" "autocomplete" "autofocus"
+    "autoplay" "charset" "checked" "cite" "class" "cols" "colspan" "content"
+    "contenteditable" "controls" "coords" "data" "datetime" "default" "defer"
+    "dir" "dirname" "disabled" "download" "draggable" "enctype" "for" "form"
+    "formaction" "headers" "height" "hidden" "high" "href" "hreflang" "http"
+    "id" "ismap" "kind" "label" "lang" "list" "loop" "low" "max" "maxlength"
+    "media" "method" "min" "multiple" "muted" "name" "novalidate" "onabort"
+    "onafterprint" "onbeforeprint" "onbeforeunload" "onblur" "oncanplay"
+    "oncanplaythrough" "onchange" "onclick" "oncontextmenu" "oncopy"
+    "oncuechange" "oncut" "ondblclick" "ondrag" "ondragend" "ondragenter"
+    "ondragleave" "ondragover" "ondragstart" "ondrop" "ondurationchange"
+    "onemptied" "onended" "onerror" "onfocus" "onhashchange" "oninput"
+    "oninvalid" "onkeydown" "onkeypress" "onkeyup" "onload" "onloadeddata"
+    "onloadedmetadata" "onloadstart" "onmousedown" "onmousemove" "onmouseout"
+    "onmouseover" "onmouseup" "onmousewheel" "onoffline" "ononline"
+    "onpagehide" "onpageshow" "onpaste" "onpause" "onplay" "onplaying"
+    "onpopstate" "onprogress" "onratechange" "onreset" "onresize" "onscroll"
+    "onsearch" "onseeked" "onseeking" "onselect" "onstalled" "onstorage"
+    "onsubmit" "onsuspend" "ontimeupdate" "ontoggle" "onunload"
+    "onvolumechange" "onwaiting" "onwheel" "open" "optimum" "pattern"
+    "placeholder" "poster" "preload" "readonly" "rel" "required" "reversed"
+    "rows" "rowspan" "sandbox" "scope" "selected" "shape" "size" "sizes"
+    "span" "spellcheck" "src" "srcdoc" "srclang" "srcset" "start" "step"
+    "style" "tabindex" "target" "title" "translate" "type" "usemap" "value"
+    "width" "wrap")
+  "HTML attributes used for completion."
   :type '(repeat string)
   :group 'web-mode)
 
@@ -490,6 +541,16 @@ See web-mode-block-face."
 (defface web-mode-css-selector-face
   '((t :inherit font-lock-keyword-face))
   "Face for CSS rules."
+  :group 'web-mode-faces)
+
+(defface web-mode-css-selector-class-face
+  '((t :inherit font-lock-keyword-face))
+  "Face for CSS class rules."
+  :group 'web-mode-faces)
+
+(defface web-mode-css-selector-tag-face
+  '((t :inherit font-lock-keyword-face))
+  "Face for CSS tag rules."
   :group 'web-mode-faces)
 
 (defface web-mode-css-pseudo-class-face
@@ -877,8 +938,13 @@ Must be used in conjunction with web-mode-enable-block-face."
     ("case-extra-offset" . t)
     ))
 
+(defvar web-mode-tag-history nil)
+(defvar web-mode-attribute-history nil)
+(defvar web-mode-attribute-value-history nil)
+
 (defvar web-mode-engines
   '(("angular"          . ("angularjs"))
+    ("anki"             . ())
     ("archibus"         . ())
     ("artanis"          . ())
     ("asp"              . ())
@@ -894,7 +960,7 @@ Must be used in conjunction with web-mode-enable-block-face."
     ("dust"             . ("dustjs"))
     ("ejs"              . ())
     ("elixir"           . ("phoenix"))
-    ("erb"              . ("eruby" "erubis"))
+    ("erb"              . ("eruby" "erubis" "crystal"))
     ("expressionengine" . ("ee"))
     ("freemarker"       . ())
     ("go"               . ("gtl" "hugo"))
@@ -915,6 +981,7 @@ Must be used in conjunction with web-mode-enable-block-face."
     ("svelte"           . ("svelte"))
     ("template-toolkit" . ())
     ("thymeleaf"        . ())
+    ("perl"             . ())
     ("underscore"       . ("underscore.js"))
     ("velocity"         . ("vtl" "cheetah" "ssp"))
     ("vue"              . ("vuejs" "vue.js"))
@@ -958,6 +1025,7 @@ Must be used in conjunction with web-mode-enable-block-face."
 
 (defvar web-mode-engine-file-regexps
   '(("angular"          . "\\.component.html\\'")
+    ("anki"             . "\\.anki\\'")
     ("archibus"         . "\\.axvw\\'")
     ("artanis"          . "\\.html\\.tpl\\'")
     ("asp"              . "\\.asp\\'")
@@ -971,19 +1039,20 @@ Must be used in conjunction with web-mode-enable-block-face."
     ("dust"             . "\\.dust\\'")
     ("elixir"           . "\\.[hl]?eex\\'")
     ("ejs"              . "\\.ejs\\'")
-    ("erb"              . "\\.\\(erb\\|rhtml\\|erb\\.html\\)\\'")
+    ("erb"              . "\\.\\(erb\\|rhtml\\|erb\\.html\\|ecr\\)\\'")
     ("expressionengine" . "\\.ee\\'")
     ("freemarker"       . "\\.ftl\\'")
     ("go"               . "\\.go\\(html\\|tmpl\\)\\'")
     ("handlebars"       . "\\.\\(hb\\.html\\|hbs\\)\\'")
     ("hero"             . "\\.hero\\'")
-    ("jinja"            . "\\.jinja\\'")
+    ("jinja"            . "\\.\\(jinja\\|nwt\\)\\'")
     ("jsp"              . "\\.[gj]sp\\'")
     ("lsp"              . "\\.lsp\\'")
     ("mako"             . "\\.mako?\\'")
     ("marko"            . "\\.marko\\'")
     ("mason"            . "\\.mas\\'")
     ("mojolicious"      . "\\.epl?\\'")
+    ("perl"             . "\\.\\(ptmpl\\|perl\\.html\\)\\'")
     ("php"              . "\\.\\(p[hs]p\\|ctp\\|inc\\)\\'")
     ("python"           . "\\.pml\\'")
     ("razor"            . "\\.\\(cs\\|vb\\)html\\|\\.razor\\'")
@@ -1146,6 +1215,7 @@ Must be used in conjunction with web-mode-enable-block-face."
 
 (defvar web-mode-engines-auto-pairs
   '(("angular"          . (("{{ " . " }}")))
+    ("anki"             . (("{{ " . " }}")))
     ("artanis"          . (("<% "       . " %>")
                            ("<%="       . " | %>")
                            ("<@css"     . " | %>")
@@ -1169,9 +1239,10 @@ Must be used in conjunction with web-mode-enable-block-face."
                            ("<%=" . " | %>")
                            ("<%#" . " | %>")))
     ("ctemplate"        . (("{{ " . "| }}")
+                           ("{{~ " . "| }}")
                            ("{{{" . " | }}}")
                            ("{~{" . " | }}")
-                           ("{{~" . "{ | }}}")
+                           ("{{~{" . " | }}}")
                            ("{{!" . "-- | --}}")
                            ("{{^" . "}}")
                            ("{{/" . "}}")
@@ -1305,6 +1376,7 @@ Must be used in conjunction with web-mode-enable-block-face."
 (defvar web-mode-engine-open-delimiter-regexps
   (list
    '("angular"          . "{{")
+   '("anki"             . "{{")
    '("artanis"          . "<%\\|<@\\(css\\|icon\\|include\\|js\\)")
    '("asp"              . "<%\\|</?[[:alpha:]]+:[[:alpha:]]+\\|</?[[:alpha:]]+Template")
    '("aspx"             . "<%.")
@@ -1315,7 +1387,7 @@ Must be used in conjunction with web-mode-enable-block-face."
    '("ctemplate"        . "[$]?{[{~].")
    '("django"           . "{[#{%]\\|^#")
    '("dust"             . "{.")
-   '("elixir"           . "<%")
+   '("elixir"           . "<%\\|</?[.:]")
    '("ejs"              . "<%")
    '("erb"              . "<%\\|^%.")
    '("expressionengine" . "{.")
@@ -1328,6 +1400,7 @@ Must be used in conjunction with web-mode-enable-block-face."
    '("marko"            . "${")
    '("mason"            . "</?[&%]\\|^%.")
    '("mojolicious"      . "<%\\|^[ \t]*%.")
+   '("perl"             . "</?TMPL_[[:alpha:]]+")
    '("php"              . "<\\?")
    '("python"           . "<\\?")
    '("razor"            . "@.\\|^[ \t]*}")
@@ -1883,7 +1956,8 @@ shouldn't be moved back.)")
          '(0 'web-mode-css-at-rule-face))
    '("\\_<\\(all\|braille\\|embossed\\|handheld\\|print\\|projection\\|screen\\|speech\\|tty\\|tv\\|and\\|or\\)\\_>"
      1 'web-mode-keyword-face)
-   '("[^,]+" 0 'web-mode-css-selector-face)
+   '("\\.[^ ,]+" 0 'web-mode-css-selector-class-face)
+   '("[^,]+" 0 'web-mode-css-selector-tag-face)
    (cons (concat ":\\([ ]*[[:alpha:]][^,{]*\\)") '(0 'web-mode-css-pseudo-class-face t t))
    ))
 
@@ -1976,6 +2050,15 @@ shouldn't be moved back.)")
    '("\\([[:alnum:]]+\\)" 1 'web-mode-html-attr-name-face)
    '("/?>" 0 'web-mode-html-tag-bracket-face)
   ))
+
+(defvar web-mode-anki-font-lock-keywords
+  (list
+   '("{{[#/^]\\([[:alnum:]_.]+\\)" 1 'web-mode-block-control-face)
+   ;;'("\\_<\\([[:alnum:]_]+=\\)\\(\"[^\"]*\"\\|[[:alnum:]_.: ]*\\)"
+   ;;  (1 'web-mode-block-attr-name-face)
+   ;;  (2 'web-mode-block-attr-value-face))
+   '("{{\\(.+\\)}}" 1 'web-mode-variable-name-face)
+   ))
 
 (defvar web-mode-dust-font-lock-keywords
   (list
@@ -2169,7 +2252,7 @@ shouldn't be moved back.)")
 
 (defvar web-mode-engine-tag-font-lock-keywords
   (list
-   '("</?\\([[:alpha:]]+\\(?:Template\\|[:.][[:alpha:]-]+\\)\\)" 1 'web-mode-block-control-face)
+   '("</?\\([[:alpha:]]+\\(?:Template\\|[:.][[:alpha:]-]+\\)\\|TMPL_[[:alpha:]]+\\)" 1 'web-mode-block-control-face)
    '("\\_<\\([[:alpha:]-]+=\\)\\(\"[^\"]*\"\\)"
      (1 'web-mode-block-attr-name-face t t)
      (2 'web-mode-block-attr-value-face t t))
@@ -2279,11 +2362,11 @@ shouldn't be moved back.)")
 
 (defvar web-mode-elixir-font-lock-keywords
   (list
-   (cons (concat "\\_<\\(" web-mode-elixir-keywords "\\)\\_>") '(0 'web-mode-builtin-face))
-   (cons (concat "\\_<\\(" web-mode-elixir-constants "\\)\\_>") '(0 'web-mode-constant-face))
-   '("def[ ]+\\([[:alnum:]_]+\\)" 1 'web-mode-function-name-face)
    '("@\\([[:alnum:]_]+\\)" 0 'web-mode-variable-name-face)
    '("[ ]\\(:[[:alnum:]-_]+\\)" 1 'web-mode-symbol-face)
+   '("def[ ]+\\([[:alnum:]_]+\\)" 1 'web-mode-function-name-face)
+   (cons (concat "\\_<\\(" web-mode-elixir-keywords "\\)\\_>") '(0 'web-mode-builtin-face))
+   (cons (concat "\\_<\\(" web-mode-elixir-constants "\\)\\_>") '(0 'web-mode-constant-face))
    ))
 
 (defvar web-mode-erlang-font-lock-keywords
@@ -2384,6 +2467,7 @@ shouldn't be moved back.)")
 
 (defvar web-mode-engines-font-lock-keywords
   '(("angular"          . web-mode-angular-font-lock-keywords)
+    ("anki"             . web-mode-anki-font-lock-keywords)
     ("artanis"          . web-mode-artanis-font-lock-keywords)
     ("blade"            . web-mode-blade-font-lock-keywords)
     ("cl-emb"           . web-mode-cl-emb-font-lock-keywords)
@@ -3330,6 +3414,12 @@ Also return non-nil if it is the command `self-insert-command' is remapped to."
            )
           ) ;django
 
+         ((string= web-mode-engine "anki")
+          (setq closing-string "}}"
+                delim-open "{{[#/^]?"
+                delim-close "}}")
+          ) ;anki
+
          ((string= web-mode-engine "ejs")
           (setq closing-string "%>"
                 delim-open "<%[=-]?"
@@ -3483,6 +3573,12 @@ Also return non-nil if it is the command `self-insert-command' is remapped to."
                 delim-open "</?"
                 delim-close "/?>")
           ) ;clip
+
+         ((string= web-mode-engine "perl")
+          (setq closing-string ">"
+                delim-open "</?"
+                delim-close "/?>")
+          ) ;perl
 
          ((string= web-mode-engine "blade")
           (cond
@@ -4184,9 +4280,10 @@ Also return non-nil if it is the command `self-insert-command' is remapped to."
   "Set text-property 'block-token to 'delimiter-(beg|end) on block delimiters (e.g. <?php and ?>)"
   ;;(message "reg-beg(%S) reg-end(%S) delim-open(%S) delim-close(%S)" reg-beg reg-end delim-open delim-close)
   (when (member web-mode-engine
-                '("artanis" "asp" "aspx" "cl-emb" "clip" "closure" "ctemplate" "django" "dust"
+                '("artanis" "anki" "asp" "aspx" "cl-emb" "clip" "closure" "ctemplate" "django" "dust"
                   "elixir" "ejs" "erb" "expressionengine" "freemarker" "go" "hero" "jsp" "lsp"
                   "mako" "mason" "mojolicious"
+                  "perl"
                   "smarty" "template-toolkit" "web2py" "xoops" "svelte"))
     (save-excursion
       (when delim-open
@@ -4387,6 +4484,10 @@ Also return non-nil if it is the command `self-insert-command' is remapped to."
      ((string= web-mode-engine "clip")
       (setq regexp nil)
       ) ;clip
+
+     ((string= web-mode-engine "perl")
+      (setq regexp nil)
+      ) ;perl
 
      ((and (string= web-mode-engine "asp")
            (string= sub2 "<%"))
@@ -4862,6 +4963,15 @@ Also return non-nil if it is the command `self-insert-command' is remapped to."
          )
         ) ;dust
 
+       ((string= web-mode-engine "anki")
+        (cond
+         ((looking-at "{{[#^]\\([[:alpha:].]+\\)")
+          (setq controls (append controls (list (cons 'open (match-string-no-properties 1))))))
+         ((looking-at "{{/\\([[:alpha:].]+\\)")
+          (setq controls (append controls (list (cons 'close (match-string-no-properties 1))))))
+         )
+        ) ;anki
+
        ((member web-mode-engine '("mojolicious"))
         (cond
          ((web-mode-block-ends-with "begin" reg-beg)
@@ -4889,23 +4999,25 @@ Also return non-nil if it is the command `self-insert-command' is remapped to."
          )
         ) ;aspx underscore
 
-       ((member web-mode-engine '("jsp" "asp" "clip"))
+       ((member web-mode-engine '("jsp" "asp" "clip" "perl"))
         (cond
-         ((eq (char-after (1- reg-end)) ?\/)
+          ((eq (char-after (1- reg-end)) ?\/)
+           )
+          ((looking-at "<TMPL_ELSE")
+           (setq controls (append controls (list (cons 'inside "TMPL_IF")))))
+          ((looking-at "</?\\([[:alpha:]]+\\(?:[:.][[:alpha:]]+\\)\\|[[:alpha:]]+Template\\|TMPL_[[:alpha:]]+\\)")
+           (setq control (match-string-no-properties 1)
+                 type (if (eq (aref (match-string-no-properties 0) 1) ?\/) 'close 'open))
+           (when (not (member control '("h:inputtext" "jsp:usebean" "jsp:forward" "struts:property")))
+             (setq controls (append controls (list (cons type control)))))
+           )
+          (t
+           (when (web-mode-block-starts-with "}" reg-beg)
+             (setq controls (append controls (list (cons 'close "{")))))
+           (when (web-mode-block-ends-with "{" reg-beg)
+             (setq controls (append controls (list (cons 'open "{")))))
+           )
           )
-         ((looking-at "</?\\([[:alpha:]]+\\(?:[:.][[:alpha:]]+\\)\\|[[:alpha:]]+Template\\)")
-          (setq control (match-string-no-properties 1)
-                type (if (eq (aref (match-string-no-properties 0) 1) ?\/) 'close 'open))
-          (when (not (member control '("h:inputtext" "jsp:usebean" "jsp:forward" "struts:property")))
-            (setq controls (append controls (list (cons type control)))))
-          )
-         (t
-          (when (web-mode-block-starts-with "}" reg-beg)
-            (setq controls (append controls (list (cons 'close "{")))))
-          (when (web-mode-block-ends-with "{" reg-beg)
-            (setq controls (append controls (list (cons 'open "{")))))
-          )
-         )
         ) ;jsp asp
 
        ((string= web-mode-engine "mako")
@@ -5363,7 +5475,7 @@ Also return non-nil if it is the command `self-insert-command' is remapped to."
 
 ;; FLAGS: attr
 ;; (1)custom-attr (2)engine-attr (4)spread-attr[jsx] (8)code-value
-;; SPECS: https://www.w3.org/TR/2012/WD-html-markup-20120329/syntax.html#attr-value-unquoted
+;; https://www.w3.org/TR/2012/WD-html-markup-20120329/syntax.html#attr-value-unquoted
 
 ;; STATES: attr
 ;; (0)nil (1)space (2)name (3)space-before (4)equal (5)space-after
@@ -5374,15 +5486,16 @@ Also return non-nil if it is the command `self-insert-command' is remapped to."
   (let ((tag-flags 0) (attr-flags 0) (continue t) (attrs 0) (counter 0) (brace-depth 0)
         (pos-ori (point)) (state 0) (equal-offset 0) (go-back nil)
         (is-jsx (or (string= web-mode-content-type "jsx") (eq (get-text-property (point) 'part-type) 'jsx)))
-        attr name-beg name-end val-beg char pos escaped spaced quoted)
+        attr name-beg name-end val-beg char pos escaped spaced quoted mem step)
 
     (while continue
 
       (setq pos (point)
             char (char-after)
+            mem state
             ;;spaced (eq char ?\s)
             spaced (member char '(?\s ?\n))
-            )
+            step nil)
 
       (when quoted (setq quoted (1+ quoted)))
 
@@ -5405,10 +5518,11 @@ Also return non-nil if it is the command `self-insert-command' is remapped to."
        ((and (= state 9) (eq char ?\}) (> brace-depth 1))
         (setq brace-depth (1- brace-depth)))
 
-       ((get-text-property pos 'block-side)
-        (when (= state 2)
-          (setq name-end pos))
-        )
+       ;; #1233
+       ;;((get-text-property pos 'block-side)
+       ;; (when (= state 2)
+       ;;   (setq name-end pos))
+       ;; )
 
        ((and (= state 2) is-jsx (eq char ?\}) (eq attr-flags 4))
         (setq name-end pos)
@@ -5425,8 +5539,6 @@ Also return non-nil if it is the command `self-insert-command' is remapped to."
             (and (= state 7) (eq ?\' char) (not escaped))
             (and (= state 9) (eq ?\} char) (= brace-depth 1))
             )
-
-        ;;(message "%S %S" (point) attr-flags)
         (setq attrs (+ attrs (web-mode-attr-scan pos state char name-beg name-end val-beg attr-flags equal-offset tag-flags)))
         (setq state 0
               attr-flags 0
@@ -5442,8 +5554,8 @@ Also return non-nil if it is the command `self-insert-command' is remapped to."
         (setq state (cond ((eq ?\' char) 7)
                           ((eq ?\" char) 8)
                           (t             9)))
-        (when (= state 9)
-          (setq brace-depth 1))
+        (setq step 100)
+        (when (= state 9) (setq brace-depth 1))
         )
 
        ((and (eq ?\= char) (member state '(2 3)))
@@ -5452,7 +5564,6 @@ Also return non-nil if it is the command `self-insert-command' is remapped to."
         (setq state 4)
         (setq attr (buffer-substring-no-properties name-beg (1+ name-end)))
         (when (and web-mode-indentless-attributes (member (downcase attr) web-mode-indentless-attributes))
-          ;;(message "onclick")
           (setq attr-flags (logior attr-flags 8)))
         )
 
@@ -5573,10 +5684,6 @@ Also return non-nil if it is the command `self-insert-command' is remapped to."
              ((member attr '("http-equiv"))
               (setq attr-flags (1- attr-flags))
               )
-             ;;((and web-mode-engine-attr-regexp
-             ;;      (string-match-p web-mode-engine-attr-regexp attr))
-             ;; (setq attr-flags (logior attr-flags 2))
-             ;; )
              ((and (eq char ?\-) (not (string= attr "http-")))
               (setq attr-flags (logior attr-flags 1)))
              ) ;cond
@@ -5595,6 +5702,8 @@ Also return non-nil if it is the command `self-insert-command' is remapped to."
       (when (null go-back)
         (forward-char))
 
+      ;;(when (not (= mem state)) (message "pos=%S before=%S after=%S step=%S" pos mem state step))
+
       ) ;while
 
     (when (> attrs 0) (setq tag-flags (logior tag-flags 1)))
@@ -5602,13 +5711,11 @@ Also return non-nil if it is the command `self-insert-command' is remapped to."
     tag-flags))
 
 (defun web-mode-attr-scan (pos state char name-beg name-end val-beg attr-flags equal-offset tag-flags)
-  ;;(message "point(%S) state(%S) c(%c) name-beg(%S) name-end(%S) val-beg(%S) attr-flags(%S) equal-offset(%S) tag-flags(%S)"
-  ;;         pos state char name-beg name-end val-beg attr-flags equal-offset tag-flags)
+  ;;(message "point(%S) state(%S) c(%c) name-beg(%S) name-end(%S) val-beg(%S) attr-flags(%S) equal-offset(%S) tag-flags(%S)" pos state char name-beg name-end val-beg attr-flags equal-offset tag-flags)
   (when (null attr-flags) (setq attr-flags 0))
   (when (and name-beg name-end web-mode-engine-attr-regexp)
     (let (name)
       (setq name (buffer-substring-no-properties name-beg (1+ name-end)))
-      ;;(message "%S" name)
       (cond
        ((string-match-p "^data[-]" name)
         (setq attr-flags (logior attr-flags 1))
@@ -6643,6 +6750,10 @@ Also return non-nil if it is the command `self-insert-command' is remapped to."
       (setq keywords web-mode-engine-tag-font-lock-keywords)
       ) ;clip
 
+     ((string= web-mode-engine "perl")
+      (setq keywords web-mode-engine-tag-font-lock-keywords)
+      ) ;perl
+
      ((string= web-mode-engine "aspx")
       (cond
        ((string= sub3 "<%@")
@@ -6838,12 +6949,12 @@ Also return non-nil if it is the command `self-insert-command' is remapped to."
               (cond
                ((and (eq (char-after beg) ?\`)
                      web-mode-enable-literal-interpolation
-                     (member content-type '("javascript" "jsx")))
+                     (member content-type '("javascript" "jsx" "typescript")))
                 (web-mode-interpolate-javascript-literal beg end)
                 )
                ((and (eq (char-after beg) ?\")
                      web-mode-enable-string-interpolation
-                     (member content-type '("javascript" "jsx")))
+                     (member content-type '("javascript" "jsx" "typescript")))
                 (web-mode-interpolate-javascript-string beg end))
                ) ;cond
               ) ;case string
@@ -6983,10 +7094,11 @@ Also return non-nil if it is the command `self-insert-command' is remapped to."
     (when (and dec-beg dec-end)
       (goto-char dec-beg)
       (while (and web-mode-enable-css-colorization
-                  (re-search-forward "#[0-9a-fA-F]\\{6\\}\\|#[0-9a-fA-F]\\{3\\}\\|rgba?([ ]*\\([[:digit:]]\\{1,3\\}\\)[ ]*,[ ]*\\([[:digit:]]\\{1,3\\}\\)[ ]*,[ ]*\\([[:digit:]]\\{1,3\\}\\)\\(.*?\\))" dec-end t)
+                  (re-search-forward "\\(?1:#[0-9a-fA-F]\\{6\\}\\)\\|\\(?1:#[0-9a-fA-F]\\{3\\}\\)\\|\\(?1:rgba?([ ]*\\(?2:[[:digit:]]\\{1,3\\}\\)[ ]*,[ ]*\\(?3:[[:digit:]]\\{1,3\\}\\)[ ]*,[ ]*\\(?4:[[:digit:]]\\{1,3\\}\\)\\(.*?\\))\\)\\|[: ]\\(?1:black\\|silver\\|gray\\|white\\|maroon\\|red\\|purple\\|fuchsia\\|green\\|lime\\|olive\\|yellow\\|navy\\|blue\\|teal\\|aqua\\|orange\\|aliceblue\\|antiquewhite\\|aquamarine\\|azure\\|beige\\|bisque\\|blanchedalmond\\|blueviolet\\|brown\\|burlywood\\|cadetblue\\|chartreuse\\|chocolate\\|coral\\|cornflowerblue\\|cornsilk\\|crimson\\|cyan\\|darkblue\\|darkcyan\\|darkgoldenrod\\|darkgray\\|darkgreen\\|darkgrey\\|darkkhaki\\|darkmagenta\\|darkolivegreen\\|darkorange\\|darkorchid\\|darkred\\|darksalmon\\|darkseagreen\\|darkslateblue\\|darkslategray\\|darkslategrey\\|darkturquoise\\|darkviolet\\|deeppink\\|deepskyblue\\|dimgray\\|dimgrey\\|dodgerblue\\|firebrick\\|floralwhite\\|forestgreen\\|gainsboro\\|ghostwhite\\|gold\\|goldenrod\\|greenyellow\\|grey\\|honeydew\\|hotpink\\|indianred\\|indigo\\|ivory\\|khaki\\|lavender\\|lavenderblush\\|lawngreen\\|lemonchiffon\\|lightblue\\|lightcoral\\|lightcyan\\|lightgoldenrodyellow\\|lightgray\\|lightgreen\\|lightgrey\\|lightpink\\|lightsalmon\\|lightseagreen\\|lightskyblue\\|lightslategray\\|lightslategrey\\|lightsteelblue\\|lightyellow\\|limegreen\\|linen\\|magenta\\|mediumaquamarine\\|mediumblue\\|mediumorchid\\|mediumpurple\\|mediumseagreen\\|mediumslateblue\\|mediumspringgreen\\|mediumturquoise\\|mediumvioletred\\|midnightblue\\|mintcream\\|mistyrose\\|moccasin\\|navajowhite\\|oldlace\\|olivedrab\\|orangered\\|orchid\\|palegoldenrod\\|palegreen\\|paleturquoise\\|palevioletred\\|papayawhip\\|peachpuff\\|peru\\|pink\\|plum\\|powderblue\\|rosybrown\\|royalblue\\|saddlebrown\\|salmon\\|sandybrown\\|seagreen\\|seashell\\|sienna\\|skyblue\\|slateblue\\|slategray\\|slategrey\\|snow\\|springgreen\\|steelblue\\|tan\\|thistle\\|tomato\\|turquoise\\|violet\\|wheat\\|whitesmoke\\|yellowgreen\\)[ ;]" dec-end t)
                   ;;(progn (message "%S %S" end (point)) t)
                   (<= (point) dec-end))
-        (web-mode-colorize (match-beginning 0) (match-end 0))
+        ;;(message "web-mode-colorize beg=%S end=%S match=%S" (match-beginning 0) (match-end 0) (buffer-substring-no-properties (match-beginning 0) (match-end 0)))
+        (web-mode-colorize (match-beginning 1) (match-end 1))
         ) ;while
       ) ;when
     ;;) ;let
@@ -7001,23 +7113,173 @@ Also return non-nil if it is the command `self-insert-command' is remapped to."
         "white" "black")))
 
 (defun web-mode-colorize (beg end)
-  (let (str plist len)
+  (let (str str1 plist)
     (setq str (buffer-substring-no-properties beg end))
-    (setq len (length str))
+    ;;(setq str1 (match-string-no-properties 1))
+    ;;(message "str=%S" str str1)
     (cond
+     ;;(t
+     ;; (message "%S %S %S %S %S" (match-string-no-properties 0) (match-string-no-properties 1) (match-string-no-properties 2) (match-string-no-properties 3) (match-string-no-properties 4))
+     ;; )
      ((string= (substring str 0 1) "#")
       (setq plist (list :background str
-                        :foreground (web-mode-colorize-foreground str)))
-      (put-text-property beg end 'face plist))
-     ((or (string= (substring str 0 4) "rgb(") (string= (substring str 0 5) "rgba("))
+                        :foreground (web-mode-colorize-foreground str))))
+     ((and (>= (length str) 3) (string= (substring str 0 3) "rgb"))
       (setq str (format "#%02X%02X%02X"
-                        (string-to-number (match-string-no-properties 1))
                         (string-to-number (match-string-no-properties 2))
-                        (string-to-number (match-string-no-properties 3))))
+                        (string-to-number (match-string-no-properties 3))
+                        (string-to-number (match-string-no-properties 4))))
       (setq plist (list :background str
-                        :foreground (web-mode-colorize-foreground str)))
-      (put-text-property beg end 'face plist))
+                        :foreground (web-mode-colorize-foreground str))))
+     ((string= str "black") (setq plist (list :background "#000000" :foreground (web-mode-colorize-foreground "#000000"))))
+     ((string= str "silver") (setq plist (list :background "#c0c0c0" :foreground (web-mode-colorize-foreground "#c0c0c0"))))
+     ((string= str "gray") (setq plist (list :background "#808080" :foreground (web-mode-colorize-foreground "#808080"))))
+     ((string= str "white") (setq plist (list :background "#ffffff" :foreground (web-mode-colorize-foreground "#ffffff"))))
+     ((string= str "maroon") (setq plist (list :background "#800000" :foreground (web-mode-colorize-foreground "#800000"))))
+     ((string= str "red") (setq plist (list :background "#ff0000" :foreground (web-mode-colorize-foreground "#ff0000"))))
+     ((string= str "purple") (setq plist (list :background "#800080" :foreground (web-mode-colorize-foreground "#800080"))))
+     ((string= str "fuchsia") (setq plist (list :background "#ff00ff" :foreground (web-mode-colorize-foreground "#ff00ff"))))
+     ((string= str "green") (setq plist (list :background "#008000" :foreground (web-mode-colorize-foreground "#008000"))))
+     ((string= str "lime") (setq plist (list :background "#00ff00" :foreground (web-mode-colorize-foreground "#00ff00"))))
+     ((string= str "olive") (setq plist (list :background "#808000" :foreground (web-mode-colorize-foreground "#808000"))))
+     ((string= str "yellow") (setq plist (list :background "#ffff00" :foreground (web-mode-colorize-foreground "#ffff00"))))
+     ((string= str "navy") (setq plist (list :background "#000080" :foreground (web-mode-colorize-foreground "#000080"))))
+     ((string= str "blue") (setq plist (list :background "#0000ff" :foreground (web-mode-colorize-foreground "#0000ff"))))
+     ((string= str "teal") (setq plist (list :background "#008080" :foreground (web-mode-colorize-foreground "#008080"))))
+     ((string= str "aqua") (setq plist (list :background "#00ffff" :foreground (web-mode-colorize-foreground "#00ffff"))))
+     ((string= str "orange") (setq plist (list :background "#ffa500" :foreground (web-mode-colorize-foreground "#ffa500"))))
+     ((string= str "aliceblue") (setq plist (list :background "#f0f8ff" :foreground (web-mode-colorize-foreground "#f0f8ff"))))
+     ((string= str "antiquewhite") (setq plist (list :background "#faebd7" :foreground (web-mode-colorize-foreground "#faebd7"))))
+     ((string= str "aquamarine") (setq plist (list :background "#7fffd4" :foreground (web-mode-colorize-foreground "#7fffd4"))))
+     ((string= str "azure") (setq plist (list :background "#f0ffff" :foreground (web-mode-colorize-foreground "#f0ffff"))))
+     ((string= str "beige") (setq plist (list :background "#f5f5dc" :foreground (web-mode-colorize-foreground "#f5f5dc"))))
+     ((string= str "bisque") (setq plist (list :background "#ffe4c4" :foreground (web-mode-colorize-foreground "#ffe4c4"))))
+     ((string= str "blanchedalmond") (setq plist (list :background "#ffebcd" :foreground (web-mode-colorize-foreground "#ffebcd"))))
+     ((string= str "blueviolet") (setq plist (list :background "#8a2be2" :foreground (web-mode-colorize-foreground "#8a2be2"))))
+     ((string= str "brown") (setq plist (list :background "#a52a2a" :foreground (web-mode-colorize-foreground "#a52a2a"))))
+     ((string= str "burlywood") (setq plist (list :background "#deb887" :foreground (web-mode-colorize-foreground "#deb887"))))
+     ((string= str "cadetblue") (setq plist (list :background "#5f9ea0" :foreground (web-mode-colorize-foreground "#5f9ea0"))))
+     ((string= str "chartreuse") (setq plist (list :background "#7fff00" :foreground (web-mode-colorize-foreground "#7fff00"))))
+     ((string= str "chocolate") (setq plist (list :background "#d2691e" :foreground (web-mode-colorize-foreground "#d2691e"))))
+     ((string= str "coral") (setq plist (list :background "#ff7f50" :foreground (web-mode-colorize-foreground "#ff7f50"))))
+     ((string= str "cornflowerblue") (setq plist (list :background "#6495ed" :foreground (web-mode-colorize-foreground "#6495ed"))))
+     ((string= str "cornsilk") (setq plist (list :background "#fff8dc" :foreground (web-mode-colorize-foreground "#fff8dc"))))
+     ((string= str "crimson") (setq plist (list :background "#dc143c" :foreground (web-mode-colorize-foreground "#dc143c"))))
+     ((string= str "cyan") (setq plist (list :background "#00ffff" :foreground (web-mode-colorize-foreground "#00ffff"))))
+     ((string= str "darkblue") (setq plist (list :background "#00008b" :foreground (web-mode-colorize-foreground "#00008b"))))
+     ((string= str "darkcyan") (setq plist (list :background "#008b8b" :foreground (web-mode-colorize-foreground "#008b8b"))))
+     ((string= str "darkgoldenrod") (setq plist (list :background "#b8860b" :foreground (web-mode-colorize-foreground "#b8860b"))))
+     ((string= str "darkgray") (setq plist (list :background "#a9a9a9" :foreground (web-mode-colorize-foreground "#a9a9a9"))))
+     ((string= str "darkgreen") (setq plist (list :background "#006400" :foreground (web-mode-colorize-foreground "#006400"))))
+     ((string= str "darkgrey") (setq plist (list :background "#a9a9a9" :foreground (web-mode-colorize-foreground "#a9a9a9"))))
+     ((string= str "darkkhaki") (setq plist (list :background "#bdb76b" :foreground (web-mode-colorize-foreground "#bdb76b"))))
+     ((string= str "darkmagenta") (setq plist (list :background "#8b008b" :foreground (web-mode-colorize-foreground "#8b008b"))))
+     ((string= str "darkolivegreen") (setq plist (list :background "#556b2f" :foreground (web-mode-colorize-foreground "#556b2f"))))
+     ((string= str "darkorange") (setq plist (list :background "#ff8c00" :foreground (web-mode-colorize-foreground "#ff8c00"))))
+     ((string= str "darkorchid") (setq plist (list :background "#9932cc" :foreground (web-mode-colorize-foreground "#9932cc"))))
+     ((string= str "darkred") (setq plist (list :background "#8b0000" :foreground (web-mode-colorize-foreground "#8b0000"))))
+     ((string= str "darksalmon") (setq plist (list :background "#e9967a" :foreground (web-mode-colorize-foreground "#e9967a"))))
+     ((string= str "darkseagreen") (setq plist (list :background "#8fbc8f" :foreground (web-mode-colorize-foreground "#8fbc8f"))))
+     ((string= str "darkslateblue") (setq plist (list :background "#483d8b" :foreground (web-mode-colorize-foreground "#483d8b"))))
+     ((string= str "darkslategray") (setq plist (list :background "#2f4f4f" :foreground (web-mode-colorize-foreground "#2f4f4f"))))
+     ((string= str "darkslategrey") (setq plist (list :background "#2f4f4f" :foreground (web-mode-colorize-foreground "#2f4f4f"))))
+     ((string= str "darkturquoise") (setq plist (list :background "#00ced1" :foreground (web-mode-colorize-foreground "#00ced1"))))
+     ((string= str "darkviolet") (setq plist (list :background "#9400d3" :foreground (web-mode-colorize-foreground "#9400d3"))))
+     ((string= str "deeppink") (setq plist (list :background "#ff1493" :foreground (web-mode-colorize-foreground "#ff1493"))))
+     ((string= str "deepskyblue") (setq plist (list :background "#00bfff" :foreground (web-mode-colorize-foreground "#00bfff"))))
+     ((string= str "dimgray") (setq plist (list :background "#696969" :foreground (web-mode-colorize-foreground "#696969"))))
+     ((string= str "dimgrey") (setq plist (list :background "#696969" :foreground (web-mode-colorize-foreground "#696969"))))
+     ((string= str "dodgerblue") (setq plist (list :background "#1e90ff" :foreground (web-mode-colorize-foreground "#1e90ff"))))
+     ((string= str "firebrick") (setq plist (list :background "#b22222" :foreground (web-mode-colorize-foreground "#b22222"))))
+     ((string= str "floralwhite") (setq plist (list :background "#fffaf0" :foreground (web-mode-colorize-foreground "#fffaf0"))))
+     ((string= str "forestgreen") (setq plist (list :background "#228b22" :foreground (web-mode-colorize-foreground "#228b22"))))
+     ((string= str "gainsboro") (setq plist (list :background "#dcdcdc" :foreground (web-mode-colorize-foreground "#dcdcdc"))))
+     ((string= str "ghostwhite") (setq plist (list :background "#f8f8ff" :foreground (web-mode-colorize-foreground "#f8f8ff"))))
+     ((string= str "gold") (setq plist (list :background "#ffd700" :foreground (web-mode-colorize-foreground "#ffd700"))))
+     ((string= str "goldenrod") (setq plist (list :background "#daa520" :foreground (web-mode-colorize-foreground "#daa520"))))
+     ((string= str "greenyellow") (setq plist (list :background "#adff2f" :foreground (web-mode-colorize-foreground "#adff2f"))))
+     ((string= str "grey") (setq plist (list :background "#808080" :foreground (web-mode-colorize-foreground "#808080"))))
+     ((string= str "honeydew") (setq plist (list :background "#f0fff0" :foreground (web-mode-colorize-foreground "#f0fff0"))))
+     ((string= str "hotpink") (setq plist (list :background "#ff69b4" :foreground (web-mode-colorize-foreground "#ff69b4"))))
+     ((string= str "indianred") (setq plist (list :background "#cd5c5c" :foreground (web-mode-colorize-foreground "#cd5c5c"))))
+     ((string= str "indigo") (setq plist (list :background "#4b0082" :foreground (web-mode-colorize-foreground "#4b0082"))))
+     ((string= str "ivory") (setq plist (list :background "#fffff0" :foreground (web-mode-colorize-foreground "#fffff0"))))
+     ((string= str "khaki") (setq plist (list :background "#f0e68c" :foreground (web-mode-colorize-foreground "#f0e68c"))))
+     ((string= str "lavender") (setq plist (list :background "#e6e6fa" :foreground (web-mode-colorize-foreground "#e6e6fa"))))
+     ((string= str "lavenderblush") (setq plist (list :background "#fff0f5" :foreground (web-mode-colorize-foreground "#fff0f5"))))
+     ((string= str "lawngreen") (setq plist (list :background "#7cfc00" :foreground (web-mode-colorize-foreground "#7cfc00"))))
+     ((string= str "lemonchiffon") (setq plist (list :background "#fffacd" :foreground (web-mode-colorize-foreground "#fffacd"))))
+     ((string= str "lightblue") (setq plist (list :background "#add8e6" :foreground (web-mode-colorize-foreground "#add8e6"))))
+     ((string= str "lightcoral") (setq plist (list :background "#f08080" :foreground (web-mode-colorize-foreground "#f08080"))))
+     ((string= str "lightcyan") (setq plist (list :background "#e0ffff" :foreground (web-mode-colorize-foreground "#e0ffff"))))
+     ((string= str "lightgoldenrodyellow") (setq plist (list :background "#fafad2" :foreground (web-mode-colorize-foreground "#fafad2"))))
+     ((string= str "lightgray") (setq plist (list :background "#d3d3d3" :foreground (web-mode-colorize-foreground "#d3d3d3"))))
+     ((string= str "lightgreen") (setq plist (list :background "#90ee90" :foreground (web-mode-colorize-foreground "#90ee90"))))
+     ((string= str "lightgrey") (setq plist (list :background "#d3d3d3" :foreground (web-mode-colorize-foreground "#d3d3d3"))))
+     ((string= str "lightpink") (setq plist (list :background "#ffb6c1" :foreground (web-mode-colorize-foreground "#ffb6c1"))))
+     ((string= str "lightsalmon") (setq plist (list :background "#ffa07a" :foreground (web-mode-colorize-foreground "#ffa07a"))))
+     ((string= str "lightseagreen") (setq plist (list :background "#20b2aa" :foreground (web-mode-colorize-foreground "#20b2aa"))))
+     ((string= str "lightskyblue") (setq plist (list :background "#87cefa" :foreground (web-mode-colorize-foreground "#87cefa"))))
+     ((string= str "lightslategray") (setq plist (list :background "#778899" :foreground (web-mode-colorize-foreground "#778899"))))
+     ((string= str "lightslategrey") (setq plist (list :background "#778899" :foreground (web-mode-colorize-foreground "#778899"))))
+     ((string= str "lightsteelblue") (setq plist (list :background "#b0c4de" :foreground (web-mode-colorize-foreground "#b0c4de"))))
+     ((string= str "lightyellow") (setq plist (list :background "#ffffe0" :foreground (web-mode-colorize-foreground "#ffffe0"))))
+     ((string= str "limegreen") (setq plist (list :background "#32cd32" :foreground (web-mode-colorize-foreground "#32cd32"))))
+     ((string= str "linen") (setq plist (list :background "#faf0e6" :foreground (web-mode-colorize-foreground "#faf0e6"))))
+     ((string= str "magenta") (setq plist (list :background "#ff00ff" :foreground (web-mode-colorize-foreground "#ff00ff"))))
+     ((string= str "mediumaquamarine") (setq plist (list :background "#66cdaa" :foreground (web-mode-colorize-foreground "#66cdaa"))))
+     ((string= str "mediumblue") (setq plist (list :background "#0000cd" :foreground (web-mode-colorize-foreground "#0000cd"))))
+     ((string= str "mediumorchid") (setq plist (list :background "#ba55d3" :foreground (web-mode-colorize-foreground "#ba55d3"))))
+     ((string= str "mediumpurple") (setq plist (list :background "#9370db" :foreground (web-mode-colorize-foreground "#9370db"))))
+     ((string= str "mediumseagreen") (setq plist (list :background "#3cb371" :foreground (web-mode-colorize-foreground "#3cb371"))))
+     ((string= str "mediumslateblue") (setq plist (list :background "#7b68ee" :foreground (web-mode-colorize-foreground "#7b68ee"))))
+     ((string= str "mediumspringgreen") (setq plist (list :background "#00fa9a" :foreground (web-mode-colorize-foreground "#00fa9a"))))
+     ((string= str "mediumturquoise") (setq plist (list :background "#48d1cc" :foreground (web-mode-colorize-foreground "#48d1cc"))))
+     ((string= str "mediumvioletred") (setq plist (list :background "#c71585" :foreground (web-mode-colorize-foreground "#c71585"))))
+     ((string= str "midnightblue") (setq plist (list :background "#191970" :foreground (web-mode-colorize-foreground "#191970"))))
+     ((string= str "mintcream") (setq plist (list :background "#f5fffa" :foreground (web-mode-colorize-foreground "#f5fffa"))))
+     ((string= str "mistyrose") (setq plist (list :background "#ffe4e1" :foreground (web-mode-colorize-foreground "#ffe4e1"))))
+     ((string= str "moccasin") (setq plist (list :background "#ffe4b5" :foreground (web-mode-colorize-foreground "#ffe4b5"))))
+     ((string= str "navajowhite") (setq plist (list :background "#ffdead" :foreground (web-mode-colorize-foreground "#ffdead"))))
+     ((string= str "oldlace") (setq plist (list :background "#fdf5e6" :foreground (web-mode-colorize-foreground "#fdf5e6"))))
+     ((string= str "olivedrab") (setq plist (list :background "#6b8e23" :foreground (web-mode-colorize-foreground "#6b8e23"))))
+     ((string= str "orangered") (setq plist (list :background "#ff4500" :foreground (web-mode-colorize-foreground "#ff4500"))))
+     ((string= str "orchid") (setq plist (list :background "#da70d6" :foreground (web-mode-colorize-foreground "#da70d6"))))
+     ((string= str "palegoldenrod") (setq plist (list :background "#eee8aa" :foreground (web-mode-colorize-foreground "#eee8aa"))))
+     ((string= str "palegreen") (setq plist (list :background "#98fb98" :foreground (web-mode-colorize-foreground "#98fb98"))))
+     ((string= str "paleturquoise") (setq plist (list :background "#afeeee" :foreground (web-mode-colorize-foreground "#afeeee"))))
+     ((string= str "palevioletred") (setq plist (list :background "#db7093" :foreground (web-mode-colorize-foreground "#db7093"))))
+     ((string= str "papayawhip") (setq plist (list :background "#ffefd5" :foreground (web-mode-colorize-foreground "#ffefd5"))))
+     ((string= str "peachpuff") (setq plist (list :background "#ffdab9" :foreground (web-mode-colorize-foreground "#ffdab9"))))
+     ((string= str "peru") (setq plist (list :background "#cd853f" :foreground (web-mode-colorize-foreground "#cd853f"))))
+     ((string= str "pink") (setq plist (list :background "#ffc0cb" :foreground (web-mode-colorize-foreground "#ffc0cb"))))
+     ((string= str "plum") (setq plist (list :background "#dda0dd" :foreground (web-mode-colorize-foreground "#dda0dd"))))
+     ((string= str "powderblue") (setq plist (list :background "#b0e0e6" :foreground (web-mode-colorize-foreground "#b0e0e6"))))
+     ((string= str "rosybrown") (setq plist (list :background "#bc8f8f" :foreground (web-mode-colorize-foreground "#bc8f8f"))))
+     ((string= str "royalblue") (setq plist (list :background "#4169e1" :foreground (web-mode-colorize-foreground "#4169e1"))))
+     ((string= str "saddlebrown") (setq plist (list :background "#8b4513" :foreground (web-mode-colorize-foreground "#8b4513"))))
+     ((string= str "salmon") (setq plist (list :background "#fa8072" :foreground (web-mode-colorize-foreground "#fa8072"))))
+     ((string= str "sandybrown") (setq plist (list :background "#f4a460" :foreground (web-mode-colorize-foreground "#f4a460"))))
+     ((string= str "seagreen") (setq plist (list :background "#2e8b57" :foreground (web-mode-colorize-foreground "#2e8b57"))))
+     ((string= str "seashell") (setq plist (list :background "#fff5ee" :foreground (web-mode-colorize-foreground "#fff5ee"))))
+     ((string= str "sienna") (setq plist (list :background "#a0522d" :foreground (web-mode-colorize-foreground "#a0522d"))))
+     ((string= str "skyblue") (setq plist (list :background "#87ceeb" :foreground (web-mode-colorize-foreground "#87ceeb"))))
+     ((string= str "slateblue") (setq plist (list :background "#6a5acd" :foreground (web-mode-colorize-foreground "#6a5acd"))))
+     ((string= str "slategray") (setq plist (list :background "#708090" :foreground (web-mode-colorize-foreground "#708090"))))
+     ((string= str "slategrey") (setq plist (list :background "#708090" :foreground (web-mode-colorize-foreground "#708090"))))
+     ((string= str "snow") (setq plist (list :background "#fffafa" :foreground (web-mode-colorize-foreground "#fffafa"))))
+     ((string= str "springgreen") (setq plist (list :background "#00ff7f" :foreground (web-mode-colorize-foreground "#00ff7f"))))
+     ((string= str "steelblue") (setq plist (list :background "#4682b4" :foreground (web-mode-colorize-foreground "#4682b4"))))
+     ((string= str "tan") (setq plist (list :background "#d2b48c" :foreground (web-mode-colorize-foreground "#d2b48c"))))
+     ((string= str "thistle") (setq plist (list :background "#d8bfd8" :foreground (web-mode-colorize-foreground "#d8bfd8"))))
+     ((string= str "tomato") (setq plist (list :background "#ff6347" :foreground (web-mode-colorize-foreground "#ff6347"))))
+     ((string= str "turquoise") (setq plist (list :background "#40e0d0" :foreground (web-mode-colorize-foreground "#40e0d0"))))
+     ((string= str "violet") (setq plist (list :background "#ee82ee" :foreground (web-mode-colorize-foreground "#ee82ee"))))
+     ((string= str "wheat") (setq plist (list :background "#f5deb3" :foreground (web-mode-colorize-foreground "#f5deb3"))))
+     ((string= str "whitesmoke") (setq plist (list :background "#f5f5f5" :foreground (web-mode-colorize-foreground "#f5f5f5"))))
+     ((string= str "yellowgreen") (setq plist (list :background "#9acd32" :foreground (web-mode-colorize-foreground "#9acd32"))))
      ) ;cond
+    (put-text-property beg end 'face plist)
     ))
 
 (defun web-mode-interpolate-block-tag (beg end)
@@ -7067,7 +7329,7 @@ Also return non-nil if it is the command `self-insert-command' is remapped to."
                            'web-mode-interpolate-color1-face)
         )
       (goto-char (1+ beg))
-      (while (re-search-forward "</?\\|/?>\\| [[:alnum:]]+=" end t)
+      (while (re-search-forward "</?\\|/?>\\| [.@?]?[[:alnum:]]+=" end t)
         (cond
          ((member (char-after (match-beginning 0)) '(?\< ?\/ ?\>))
           (put-text-property (match-beginning 0) (match-end 0)
@@ -10369,7 +10631,7 @@ Pos should be in a tag."
     (let (beg end line-beg line-end pos tag tag-start tag-end)
       (save-excursion
         (combine-after-change-calls
-          (setq tag (read-from-minibuffer "Tag name? ")
+          (setq tag (web-mode-element-complete)
                 tag-start (concat "<" tag ">")
                 tag-end (concat "</" tag ">")
                 pos (point)
@@ -10420,13 +10682,22 @@ Pos should be in a tag."
     ) ;let
   )
 
+(defun web-mode-element-complete (&optional prompt)
+  "Completes for an element tag."
+  (completing-read
+   (or prompt "Tag name: ")
+   (append
+    web-mode-tag-list
+    web-mode-tag-history)
+   nil nil nil 'web-mode-tag-history))
+
 (defun web-mode-element-wrap (&optional tag-name)
   "Wrap current REGION with start and end tags.
 Prompt user if TAG-NAME isn't provided."
   (interactive)
   (let (beg end pos tag sep)
     (save-excursion
-      (setq tag (or tag-name (read-from-minibuffer "Tag name? ")))
+      (setq tag (or tag-name (web-mode-element-complete)))
       (setq pos (point))
       (cond
        (mark-active
@@ -10536,7 +10807,7 @@ Prompt user if TAG-NAME isn't provided."
      ((and (get-text-property (point) 'tag-type)
            (not (get-text-property (point) 'tag-beg)))
       (message "element-insert ** invalid context **"))
-     ((not (and (setq tag-name (read-from-minibuffer "Tag name? "))
+     ((not (and (setq tag-name (web-mode-element-complete))
                 (> (length tag-name) 0)))
       (message "element-insert ** failure **"))
      ((web-mode-element-is-void tag-name)
@@ -10586,7 +10857,7 @@ Prompt user if TAG-NAME isn't provided."
   (interactive)
   (save-excursion
     (let (pos)
-      (unless tag-name (setq tag-name (read-from-minibuffer "New tag name? ")))
+      (unless tag-name (setq tag-name (web-mode-element-complete "New tag name: ")))
       (when (and (> (length tag-name) 0)
                  (web-mode-element-beginning)
                  (looking-at "<\\([[:alnum:]]+\\(:?[[:alpha:]_-]+\\)?\\)"))
@@ -10789,7 +11060,14 @@ Prompt user if TAG-NAME isn't provided."
      (t
       (newline 1)
       (indent-line-to (plist-get ctx :col))
-      (insert (concat (plist-get ctx :prefix) "")))
+      (let ((prefix (plist-get ctx :prefix)))
+        (insert
+         (concat prefix
+                 ;; Check if the comment ends with a space, and if not, insert one.
+                 (if
+                     (string-equal (substring prefix -1 (length prefix)) " ")
+                     ""
+                   " ")))))
      ) ;cond
     ))
 
@@ -11677,7 +11955,7 @@ Prompt user if TAG-NAME isn't provided."
                         (not (get-text-property (1- pos) 'part-side))))
                (not (get-text-property (1- pos) 'block-side))
                )
-      (setq expanders (append web-mode-expanders web-mode-extra-expanders))
+      (setq expanders (append web-mode-extra-expanders web-mode-expanders))
       (let ((i 0) pair (l (length expanders)))
         (setq chunk (buffer-substring-no-properties (- pos 2) pos))
         ;;(message "%S" chunk)
@@ -11907,19 +12185,27 @@ Prompt user if TAG-NAME isn't provided."
       ;;(message "attrs=%S" attrs)
       )))
 
-(defun web-mode-attribute-insert ()
+(defun web-mode-attribute-insert (&optional attr-name attr-value)
   "Insert an attribute inside current tag."
   (interactive)
   (let (attr attr-name attr-value)
     (cond
      ((not (member (get-text-property (point) 'tag-type) '(start void)))
       (message "attribute-insert ** invalid context **"))
-     ((not (and (setq attr-name (read-from-minibuffer "Attribute name? "))
+     ((not (and (setq attr-name (or attr-name (completing-read
+                                               "Attribute name: "
+                                               (append
+                                                web-mode-attribute-list
+                                                web-mode-attribute-history)
+                                               nil nil nil 'web-mode-attribute-history)))
                 (> (length attr-name) 0)))
       (message "attribute-insert ** failure **"))
      (t
       (setq attr (concat " " attr-name))
-      (when (setq attr-value (read-from-minibuffer "Attribute value? "))
+      (when (setq attr-value (or attr-value (completing-read
+                                             "Attribute value: "
+                                             web-mode-attribute-value-history
+                                             nil nil nil 'web-mode-attribute-value-history)))
         (setq attr (concat attr "=\"" attr-value "\"")))
       (web-mode-tag-end)
       (if (looking-back "/>" (point-min))
