@@ -105,20 +105,19 @@ g. `error', `warning') and list of LSP TAGS."
                       flycheck-level
                       (mapconcat #'symbol-name tags "-"))))
     (or (intern-soft name)
-        (let* ((face
-                (let ((face-name (intern (format "lsp-%s-face" name))))
-                  (if (facep face-name)
-                      face-name
-                    (--doto (intern (format "lsp-%s-face" name))
-                      (copy-face (-> flycheck-level
-                                     (get 'flycheck-overlay-category)
-                                     (get 'face))
-                                 it)
-                      (mapc (lambda (tag)
-                              (apply #'set-face-attribute it nil
-                                     (cl-rest (assoc tag lsp-diagnostics-attributes))))
-                            tags)))))
-               (category (--doto (intern (format "lsp-%s-category" name))
+        (let* ((face (let ((face-name (intern (format "%s-face" name))))
+                       (if (facep face-name)
+                           face-name
+                         (--doto face-name
+                           (copy-face (-> flycheck-level
+                                          (get 'flycheck-overlay-category)
+                                          (get 'face))
+                                      it)
+                           (mapc (lambda (tag)
+                                   (apply #'set-face-attribute it nil
+                                          (cl-rest (assoc tag lsp-diagnostics-attributes))))
+                                 tags)))))
+               (category (--doto (intern (format "%s-category" name))
                            (setf (get it 'face) face
                                  (get it 'priority) 100)))
                (new-level (intern name))
