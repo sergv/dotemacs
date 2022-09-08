@@ -55,6 +55,10 @@
      (should (eq 'stack-ghci (haskell-process-type))))))
 
 (ert-deftest haskell-process-type-test-3 ()
+  (unless (or (cached-executable-find "cabal")
+              (cached-executable-find "ghc")
+              (cached-executable-find "runghc"))
+    (ert-skip "cabal or ghc or runghc not available"))
   (with-temp-dir-structure
    (("README.md" . "Hello world")
     ("Main.hs" . "-- Empty file")
