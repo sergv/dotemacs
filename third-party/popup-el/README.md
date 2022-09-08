@@ -1,17 +1,17 @@
-popup.el
-========
+[![melpa badge][melpa-badge]][melpa-link] 
+[![melpa stable badge][melpa-stable-badge]][melpa-stable-link]
 
-[![Build Status](https://secure.travis-ci.org/auto-complete/popup-el.svg)](http://travis-ci.org/auto-complete/popup-el) [![melpa badge][melpa-badge]][melpa-link] [![melpa stable badge][melpa-stable-badge]][melpa-stable-link]
+# popup.el
 
-Overview
---------
+[![CI](https://github.com/auto-complete/popup-el/actions/workflows/test.yml/badge.svg)](https://github.com/auto-complete/popup-el/actions/workflows/test.yml)
+
+## Overview
 
 popup.el is a visual popup user interface library for Emacs. This
 provides a basic API and common UI widgets such as popup tooltips and
 popup menus.
 
-Screenshots
------------
+## Screenshots
 
 **Tooltip**
 
@@ -25,8 +25,7 @@ Screenshots
 
 ![](https://raw.githubusercontent.com/auto-complete/popup-el/master/etc/images/popup3.png)
 
-Installation
-------------
+## Installation
 
 You can install `popup.el` from [MELPA](https://melpa.org/) with package.el.
 popwin is tested under GNU Emacs 24 or later.
@@ -34,8 +33,7 @@ popwin is tested under GNU Emacs 24 or later.
 Alternatively, users of Debian 9 or later or Ubuntu 16.04 or later may
 simply `apt-get install elpa-popup`.
 
-Popup Items
------------
+## Popup Items
 
 Elements of `popup-list` have to be popup items. A popup item is
 substantially a string but it may involve some text-properties. There
@@ -74,8 +72,7 @@ with `nil` property.
 
 The utility function of `popup-item-propertize`.
 
-Popups
-------
+## Popups
 
 This section describes the basic data structures and operations of
 popups.
@@ -92,20 +89,17 @@ unimportant fields are not listed):
 * `height` -- Max height of `popup` instance.
 * `min-height`
 * `current-height`
-* `direction` -- Positive number means forward, negative number means
-  backward.
+* `direction` -- Positive number means forward, negative number means backward.
 * `parent` -- The parent of `popup` instance.
 * `face` -- The background face.
 * `selection-face`
 * `margin-left`
 * `margin-right`
 * `scroll-bar` -- Non-nil means `popup` instance has a scroll bar.
-* `symbol` -- Non-nil means `popup` instance has a space for
-  displaying symbols of item.
+* `symbol` -- Non-nil means `popup` instance has a space for displaying symbols of item.
 * `cursor` -- The current position of `list`.
 * `scroll-top` -- The offset of scrolling.
-* `list` -- The contents of `popup` instance in a list of items
-  (strings).
+* `list` -- The contents of `popup` instance in a list of items (strings).
 * `original-list` -- Same as `list` except that this is not filtered.
 
 All of these fields can be accessed by `popup-<field>` function.
@@ -235,8 +229,7 @@ Scroll up `N` items of the `POPUP`. This won't wrap.
 
 Enter incremental search event loop of `POPUP`.
 
-Tooltips
---------
+## Tooltips
 
 A tooltip is an useful visual UI widget for displaying information
 something about what cursor points to.
@@ -266,8 +259,7 @@ Here is an example:
     (popup-tip "Hello, World!")
     ;; reach here after the tooltip disappeared
 
-Popup Menus
------------
+## Popup Menus
 
 Popup menu is an useful visual UI widget for prompting users to
 select an item of a list.
@@ -348,7 +340,8 @@ of completion. Default value is `#'regexp-quote`.
 
 ----
 
-Copyright (C) 2011-2015  Tomohiro Matsuyama <<m2ym.pub@gmail.com>>
+Copyright (C) 2011-2015  Tomohiro Matsuyama <<m2ym.pub@gmail.com>><br/>
+Copyright (C) 2020-2022  Jen-Chieh Shen <<jcs090218@gmail.com>>
 
 [melpa-link]: https://melpa.org/#/popup
 [melpa-stable-link]: https://stable.melpa.org/#/popup
