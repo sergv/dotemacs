@@ -21,6 +21,7 @@
         - [Clippy](#clippy)
         - [Easy insertion of dbg!](#easy-insertion-of-dbg)
         - [More commands](#more-commands)
+    - [highlighting with tree-sitter](#highlighting-with-tree-sitter)
     - [LSP](#lsp)
         - [eglot](#eglot)
         - [lsp-mode](#lsp-mode)
@@ -190,6 +191,18 @@ This is bound to <kbd>C-c C-d</kbd> by default.
 
 - `rustic-toggle-mutability` toggle mut for var defined at current line
 
+## highlighting with tree-sitter
+
+You should take a look at [tree-sitter](https://github.com/emacs-tree-sitter/elisp-tree-sitter). When the dependencies are installed you can activate the feature with:
+
+```elisp
+(use-package tree-sitter
+  :config
+  (require 'tree-sitter-langs)
+  (global-tree-sitter-mode)
+  (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
+```
+
 ## LSP
 
 ### eglot
@@ -214,6 +227,9 @@ by using additional packages. You can find more information in the
 
 You can either use a lsp client or [racer](https://github.com/racer-rust/racer)
 with [emacs-racer](https://github.com/racer-rust/emacs-racer#installation).
+
+Note that racer and rls are considered deprecated. You should try rust-analyzer
+instead.
 
 ## Other recommended packages
 
