@@ -6,6 +6,33 @@ See the end of the file for license conditions.
 
 ## Change log
 
+### From 2.19.1 to 2.20.0
+
+#### Fixes
+
+- Fixed a regression from `2.18` in `-take` that caused it to
+  prematurely signal an error on improper lists (#393).
+- The function `-pad` can now be called with zero lists as arguments.
+- The functions `-union`, `-intersection`, and `-difference` now
+  return proper sets, without duplicate elements (#397).
+- The functions `-same-items?` and `-permutations` now work on
+  multisets (lists with duplicate elements) (#390, #397, #399).
+
+  For example:
+
+  ```el
+  (-same-items? '(1 1 2 3) '(3 1 2)) ; => t
+  (-permutations '(1 1 2)) ; => '((1 1 2) (1 2 1) (2 1 1))
+  ```
+
+#### New features
+
+- The function `-contains?` now returns the matching tail of the list
+  instead of just `t`, similarly to `member` (#397).
+- New function `-frequencies` that takes a list and counts how many
+  times each distinct element occurs in it (suggested by @ebpa, #209,
+  #214, #399).
+
 ### From 2.19.0 to 2.19.1
 
 #### Fixes
