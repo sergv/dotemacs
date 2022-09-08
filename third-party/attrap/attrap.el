@@ -184,6 +184,7 @@
     "RecordWildCards"
     "ScopedTypeVariables"
     "StandaloneDeriving"
+    "StandaloneKindSignatures"
     ; "StarIsType" ; not a 'cool' extension
     "TemplateHaskell"
     "TransformListComp"
@@ -196,6 +197,7 @@
     "TypeSynonymInstances"
     "UndecidableSuperClasses"
     "UndecidableInstances"
+    "UnliftedNewtypes"
     "ViewPatterns")
   "Language extensions that Attrap can use to fix errors."
   :type '(repeat string)
