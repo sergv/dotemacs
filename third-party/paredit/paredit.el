@@ -1,6 +1,6 @@
 ;;; paredit.el --- minor mode for editing parentheses  -*- Mode: Emacs-Lisp; lexical-binding: t; -*-
 
-;; Copyright (C) 2005--2019 Taylor R. Campbell
+;; Copyright (C) 2005--2022 Taylor R. Campbell
 
 ;; Author: Taylor R. Campbell <campbell+paredit@mumble.net>
 ;; Version: 25beta
@@ -1037,12 +1037,14 @@ If the point is in a string or a comment, fill the paragraph instead,
   (let ((state (paredit-current-parse-state)))
     (if (or (paredit-in-string-p state)
             (paredit-in-comment-p state))
-        (lisp-fill-paragraph argument)
+        (if (memq fill-paragraph-function '(t nil))
+            (lisp-fill-paragraph argument)
+          (funcall fill-paragraph-function argument))
       (paredit-preserving-column
         (save-excursion
           (end-of-defun)
           (beginning-of-defun)
-          (paredit-indent-sexp))))))
+          (indent-sexp))))))
 
 ;;;; Comment Insertion
 
