@@ -1,4 +1,4 @@
-# s.el [![Build Status](https://secure.travis-ci.org/magnars/s.el.png)](http://travis-ci.org/magnars/s.el) [![Coverage Status](https://coveralls.io/repos/magnars/s.el/badge.svg?branch=master)](https://coveralls.io/r/magnars/s.el?branch=master)
+# s.el [![s.el testing](https://github.com/magnars/s.el/actions/workflows/test.yml/badge.svg)](https://github.com/magnars/s.el/actions/workflows/test.yml) [![Coverage Status](https://coveralls.io/repos/magnars/s.el/badge.svg?branch=master)](https://coveralls.io/r/magnars/s.el?branch=master)
 
 The long lost Emacs string manipulation library.
 
@@ -30,6 +30,8 @@ Or you can just dump `s.el` in your load path somewhere.
 * [s-truncate](#s-truncate-len-s) `(len s)`
 * [s-left](#s-left-len-s) `(len s)`
 * [s-right](#s-right-len-s) `(len s)`
+* [s-chop-left](#s-chop-left-len-s) `(len s)`
+* [s-chop-right](#s-chop-right-len-s) `(len s)`
 * [s-chop-suffix](#s-chop-suffix-suffix-s) `(suffix s)`
 * [s-chop-suffixes](#s-chop-suffixes-suffixes-s) `(suffixes s)`
 * [s-chop-prefix](#s-chop-prefix-prefix-s) `(prefix s)`
@@ -43,6 +45,7 @@ Or you can just dump `s.el` in your load path somewhere.
 * [s-concat](#s-concat-rest-strings) `(&rest strings)`
 * [s-prepend](#s-prepend-prefix-s) `(prefix s)`
 * [s-append](#s-append-suffix-s) `(suffix s)`
+* [s-splice](#s-splice-needle-n-s) `(needle n s)`
 
 ### To and from lists
 
@@ -98,6 +101,7 @@ Or you can just dump `s.el` in your load path somewhere.
 * [s-capitalized-words](#s-capitalized-words-s) `(s)`
 * [s-titleized-words](#s-titleized-words-s) `(s)`
 * [s-word-initials](#s-word-initials-s) `(s)`
+* [s-blank-str?](#s-blank-str-s) `(s)`
 
 ## Documentation and examples
 
@@ -218,6 +222,24 @@ Returns up to the `len` last chars of `s`.
 (s-right 3 "li") ;; => "li"
 ```
 
+### s-chop-left `(len s)`
+
+Remove the first `len` chars from `s`.
+
+```cl
+(s-chop-left 3 "lib/file.js") ;; => "/file.js"
+(s-chop-left 3 "li") ;; => ""
+```
+
+### s-chop-right `(len s)`
+
+Remove the last `len` chars from `s`.
+
+```cl
+(s-chop-right 3 "lib/file.js") ;; => "lib/file"
+(s-chop-right 3 "li") ;; => ""
+```
+
 ### s-chop-suffix `(suffix s)`
 
 Remove `suffix` if it is at end of `s`.
@@ -308,6 +330,17 @@ Concatenate `s` and `suffix`.
 
 ```cl
 (s-append "abc" "def") ;; => "defabc"
+```
+
+### s-splice `(needle n s)`
+
+Splice `needle` into `s` at position `n`.
+0 is the beginning of the string, -1 is the end.
+
+```cl
+(s-splice "abc" 0 "def") ;; => "abcdef"
+(s-splice "abc" -1 "def") ;; => "defabc"
+(s-splice "needle" 2 "A  in a haystack.") ;; => "A needle in a haystack."
 ```
 
 ### s-lines `(s)`
@@ -813,6 +846,16 @@ Convert `s` to its initials.
 (s-word-initials "camelCasedWords") ;; => "cCW"
 ```
 
+### s-blank-str? `(s)`
+
+Is `s` nil or the empty string or string only contains whitespace?
+
+```cl
+(s-blank-str? "  \t \r   ") ;; => t
+(s-blank-str? "    ") ;; => t
+(s-blank-str? "\t\r") ;; => t
+```
+
 
 ## What's with the built-in wrappers?
 
@@ -944,9 +987,10 @@ Change `readme-template.md` or `examples-to-docs.el` instead.
 
 ## License
 
-Copyright (C) 2012-2015 Magnar Sveen
+Copyright (C) 2012-2022 Magnar Sveen
 
 Authors: Magnar Sveen <magnars@gmail.com>
+Maintainer: Jason Milkins <jasonm23@gmail.com>
 Keywords: strings
 
 This program is free software; you can redistribute it and/or modify
