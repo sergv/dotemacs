@@ -79,12 +79,14 @@ Usually this is to be set in your .dir-locals.el on the project root directory."
                    "omnisharp-win-x86.zip"))
 
                 ((eq system-type 'darwin)
-                 "omnisharp-osx.zip")
+                 (if (string-match "aarch64-.*" system-configuration)
+                     "omnisharp-osx-arm64-net6.0.zip"
+                   "omnisharp-osx-x64-net6.0.zip"))
 
                 ((and (eq system-type 'gnu/linux)
                       (or (eq (string-match "^x86_64" system-configuration) 0)
                           (eq (string-match "^i[3-6]86" system-configuration) 0)))
-                 "omnisharp-linux-x64.zip")
+                 "omnisharp-linux-x64-net6.0.zip")
 
                 (t "omnisharp-mono.zip")))
   "Automatic download url for omnisharp-roslyn."
@@ -108,7 +110,7 @@ Usually this is to be set in your .dir-locals.el on the project root directory."
  `(:download :url lsp-csharp-omnisharp-roslyn-download-url
              :store-path lsp-csharp-omnisharp-roslyn-store-path))
 
-(defun lsp-csharp--download-server (_client callback error-callback _update?)
+(defun lsp-csharp--omnisharp-download-server (_client callback error-callback _update?)
   "Download zip package for omnisharp-roslyn and install it.
 Will invoke CALLBACK on success, ERROR-CALLBACK on error."
   (lsp-package-ensure
@@ -117,28 +119,21 @@ Will invoke CALLBACK on success, ERROR-CALLBACK on error."
      (lsp-unzip lsp-csharp-omnisharp-roslyn-store-path
                 lsp-csharp-omnisharp-roslyn-server-dir)
      (unless (eq system-type 'windows-nt)
-       (let ((run-script (f-join lsp-csharp-omnisharp-roslyn-server-dir "run")))
-         (when (not (f-exists-p run-script))
-           ; create the `run' script when missing (e.g. when server binaries are extracted from omnisharp-mono.zip)
-           ; NOTE: we do not check for presence or version of mono in the system
-           (with-temp-file run-script
-             (insert "#!/bin/bash\n")
-             (insert "BASEDIR=$(dirname \"$0\")\n")
-             (insert "exec mono $BASEDIR/OmniSharp.exe $@\n")))
-         (set-file-modes run-script #o755)))
+       (let ((omnisharp-executable (f-join lsp-csharp-omnisharp-roslyn-server-dir "OmniSharp")))
+         (set-file-modes omnisharp-executable #o755)))
      (funcall callback))
    error-callback))
 
 (defun lsp-csharp--language-server-path ()
   "Resolve path to use to start the server."
   (if lsp-csharp-server-path
-      lsp-csharp-server-path
+      (executable-find lsp-csharp-server-path)
     (let ((server-dir lsp-csharp-omnisharp-roslyn-server-dir))
       (when (f-exists? server-dir)
         (f-join server-dir (cond ((eq system-type 'windows-nt) "OmniSharp.exe")
-                                 (t "run")))))))
+                                 (t "OmniSharp")))))))
 
-(lsp-defun lsp-csharp-open-project-file ()
+(defun lsp-csharp-open-project-file ()
   "Open corresponding project file  (.csproj) for the current file."
   (interactive)
   (-let* ((project-info-req (lsp-make-omnisharp-project-information-request :file-name (buffer-file-name)))
@@ -285,12 +280,11 @@ PRESENT-BUFFER will make the buffer be presented to the user."
     (message "lsp-csharp: No test method(s) found to be ran previously on this workspace")))
 
 (lsp-defun lsp-csharp--handle-os-error (_workspace (&omnisharp:ErrorMessage :file-name :text))
-  "Handle the 'o#/error' (interop) notification by displaying a message with lsp-warn."
+  "Handle the 'o#/error' (interop) notification displaying a message."
   (lsp-warn "%s: %s" file-name text))
 
 (lsp-defun lsp-csharp--handle-os-testmessage (_workspace (&omnisharp:TestMessageEvent :message))
-  "Handle the 'o#/testmessage and display test message on lsp-csharp
-test output buffer."
+  "Handle the 'o#/testmessage and display test message on test output buffer."
   (lsp-csharp--test-message message))
 
 (lsp-defun lsp-csharp--handle-os-testcompleted (_workspace (&omnisharp:DotNetTestResult
@@ -363,7 +357,7 @@ using the `textDocument/references' request."
                                              ("o#/testcompleted" 'lsp-csharp--handle-os-testcompleted)
                                              ("o#/projectconfiguration" 'ignore)
                                              ("o#/projectdiagnosticstatus" 'ignore))
-                  :download-server-fn #'lsp-csharp--download-server))
+                  :download-server-fn #'lsp-csharp--omnisharp-download-server))
 
 ;;
 ;; Alternative "csharp-ls" language server support
@@ -373,8 +367,8 @@ using the `textDocument/references' request."
   "Handle `csharp:/(metadata)' uri from csharp-ls server.
 
 'csharp/metadata' request is issued to retrieve metadata from the server.
-A cache file is created on project root dir that stores this metadata and filename
-is returned so lsp-mode can display this file."
+A cache file is created on project root dir that stores this metadata and
+filename is returned so lsp-mode can display this file."
 
   (-when-let* ((metadata-req (lsp-make-csharp-ls-c-sharp-metadata
                               :text-document (lsp-make-text-document-identifier :uri uri)))
@@ -417,29 +411,30 @@ is returned so lsp-mode can display this file."
 (defun lsp-csharp--cls-make-launch-cmd ()
   "Return command line to invoke csharp-ls."
 
-  ;; latest emacs-28 (on macOS) and master (as of Sat Feb 12 EET 2022) has an issue
+  ;; emacs-28.1 on macOS has an issue
   ;; that it launches processes using posix_spawn but does not reset sigmask properly
   ;; thus causing dotnet runtime to lockup awaiting a SIGCHLD signal that never comes
   ;; from subprocesses that quit
   ;;
-  ;; as a workaround we will wrap csharp-ls invocation in "/usr/bin/env --default-signal"
-  ;; (on linux) and "/bin/ksh -c" (on macos) so it launches with proper sigmask
+  ;; as a workaround we will wrap csharp-ls invocation in "/bin/ksh -c" on macos
+  ;; so it launches with proper sigmask
   ;;
   ;; see https://lists.gnu.org/archive/html/emacs-devel/2022-02/msg00461.html
 
   (let ((startup-wrapper (cond ((and (eq 'darwin system-type)
-                                     (version<= "28.0" emacs-version))
+                                     (version= "28.1" emacs-version))
                                 (list "/bin/ksh" "-c"))
 
-                               ((and (eq 'gnu/linux system-type)
-                                     (version<= "29.0" emacs-version))
-                                (list "/usr/bin/env" "--default-signal"))
-
                                (t nil)))
+
+        (csharp-ls-exec (or (executable-find "csharp-ls")
+                                 (f-join (or (getenv "USERPROFILE") (getenv "HOME"))
+                                         ".dotnet" "tools" "csharp-ls")))
+
         (solution-file-params (when lsp-csharp-solution-file
                                 (list "-s" lsp-csharp-solution-file))))
     (append startup-wrapper
-            (list "csharp-ls")
+            (list csharp-ls-exec)
             solution-file-params)))
 
 (defun lsp-csharp--cls-test-csharp-ls-present ()
@@ -450,7 +445,8 @@ is returned so lsp-mode can display this file."
 (defun lsp-csharp--cls-download-server (_client callback error-callback update?)
   "Install/update csharp-ls language server using `dotnet tool'.
 
-Will invoke CALLBACK or ERROR-CALLBACK based on result. Will update if UPDATE? is t"
+Will invoke CALLBACK or ERROR-CALLBACK based on result.
+Will update if UPDATE? is t"
   (lsp-async-start-process
    callback
    error-callback

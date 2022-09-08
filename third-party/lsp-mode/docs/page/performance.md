@@ -43,7 +43,7 @@ export LSP_USE_PLISTS=true
 3. Make sure that `lsp-use-plists` is non-nil.
 4. Restart `Emacs` and install again `lsp-mode` related packages.
 
-_NB:_ make sure that `lsp-use-plists` does not change after you compile the file.
+_NB:_ make sure that `lsp-use-plists` does not change after you compile the file. Furthermore, if you are using something like `exec-path-from-shell` you'll need to make sure to add `LSP_USE_PLISTS` to `exec-path-from-shell-variables`.
 
 ### Optional steps
 
@@ -53,9 +53,9 @@ _NB:_ make sure that `lsp-use-plists` does not change after you compile the file
 ``` elisp
 (setq lsp-idle-delay 0.500)
 ```
-### gccemacs
+### Using Emacs 28.1 or later
 
-[gccemacs](https://akrl.sdf.org/gccemacs.html) is a bleeding-edge version of `Emacs` that compiles elisp to native code, resulting in more than 200% speedup. For everyone looking for optimal performance, `gccemacs` is the way to go.
+Emacs 28.1 includes "native compilation" of elisp code ([changelog](https://www.gnu.org/software/emacs/news/NEWS.28.1)). For optimal performance, using Emacs 28.1 or later (with native compilation enabled) is recommended.
 
 ## Ignore watch folders/files
 

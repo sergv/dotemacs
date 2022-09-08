@@ -24,7 +24,7 @@
 (require 'lsp-mode)
 
 (defgroup lsp-completion nil
-  "LSP support for completion"
+  "LSP support for completion."
   :prefix "lsp-completion-"
   :group 'lsp-mode
   :tag "LSP Completion")
@@ -141,6 +141,7 @@ This will help minimize popup flickering issue in `company-mode'."
 (declare-function yas-expand-snippet "ext:yasnippet")
 
 (defun lsp-doc-buffer (&optional string)
+  "Return doc for STRING."
   (with-current-buffer (get-buffer-create "*lsp-documentation*")
     (erase-buffer)
     (fundamental-mode)
@@ -182,7 +183,7 @@ This will help minimize popup flickering issue in `company-mode'."
                 (format " (%s)" kind-name))))))
 
 (defun lsp-completion--looking-back-trigger-characterp (trigger-characters)
-  "Return trigger character if text before point match any of the TRIGGER-CHARACTERS."
+  "Return character if text before point match any of the TRIGGER-CHARACTERS."
   (unless (= (point) (point-at-bol))
     (seq-some
      (lambda (trigger-char)
@@ -427,18 +428,9 @@ The MARKERS and PREFIX value will be attached to each candidate."
   (when (or (--some (lsp--client-completion-in-comments? (lsp--workspace-client it))
                     (lsp-workspaces))
             (not (nth 4 (syntax-ppss))))
-    (let* ((trigger-chars (->> (lsp--server-capabilities)
-                               (lsp:server-capabilities-completion-provider?)
-                               (lsp:completion-options-trigger-characters?)))
-           (bounds-start (or (-some--> (cl-first (bounds-of-thing-at-point 'symbol))
-                               (save-excursion
-                                 (ignore-errors
-                                   (goto-char (+ it 1))
-                                   (while (lsp-completion--looking-back-trigger-characterp
-                                           trigger-chars)
-                                     (cl-incf it)
-                                     (forward-char))
-                                   it)))
+    (let* ((trigger-chars (-> (lsp--capability-for-method "textDocument/completion")
+                              (lsp:completion-options-trigger-characters?)))
+           (bounds-start (or (cl-first (bounds-of-thing-at-point 'symbol))
                              (point)))
            result done?
            (candidates
@@ -511,24 +503,11 @@ The MARKERS and PREFIX value will be attached to each candidate."
        bounds-start
        (point)
        (lambda (probe pred action)
-         (cond
-          ;; metadata
-          ((equal action 'metadata)
-           `(metadata (category . lsp-capf)
-                      (display-sort-function . identity)
-                      (cycle-sort-function . identity)))
-          ;; boundaries
-          ((equal (car-safe action) 'boundaries) nil)
-          ;; try-completion
-          ((null action)
-           (when-let ((cands (funcall candidates)))
-             (if (cl-rest cands) probe (cl-first cands))))
-          ;; test-completion: not return exact match so that the selection will
-          ;; always be shown
-          ((equal action 'lambda) nil)
-          ;; retrieve candidates
-          ((equal action t)
-           (all-completions probe (funcall candidates) pred))))
+         (if (eq action 'metadata)
+             '(metadata (category . lsp-capf)
+                        (display-sort-function . identity)
+                        (cycle-sort-function . identity))
+           (complete-with-action action (funcall candidates) probe pred)))
        :annotation-function #'lsp-completion--annotate
        :company-kind #'lsp-completion--candidate-kind
        :company-deprecated #'lsp-completion--candidate-deprecated
@@ -696,8 +675,8 @@ The return is nil or in range of (0, inf)."
       (/ score-numerator (1+ score-denominator) 1.0))))
 
 (defun lsp-completion--fix-resolve-data (item)
-  ;; patch `CompletionItem' for rust-analyzer otherwise resolve will fail
-  ;; see #2675
+  "Patch `CompletionItem' ITEM for rust-analyzer otherwise resolve will fail.
+See #2675"
   (let ((data (lsp:completion-item-data? item)))
     (when (lsp-member? data :import_for_trait_assoc_item)
       (unless (lsp-get data :import_for_trait_assoc_item)
@@ -744,7 +723,8 @@ The CLEANUP-FN will be called to cleanup."
   (lsp-completion-mode -1))
 
 (defun lsp-completion-passthrough-all-completions (_string table pred _point)
-  "Like `completion-basic-all-completions' but have prefix ignored."
+  "Like `completion-basic-all-completions' but have prefix ignored.
+TABLE PRED"
   (completion-basic-all-completions "" table pred 0))
 
 ;;;###autoload
@@ -761,8 +741,10 @@ The CLEANUP-FN will be called to cleanup."
                                (setq-local lsp-inhibit-lsp-hooks nil))))
     (cond
      (lsp-completion-mode
-      (setq-local completion-at-point-functions nil)
-      (add-hook 'completion-at-point-functions #'lsp-completion-at-point nil t)
+      (make-local-variable 'completion-at-point-functions)
+      ;; Ensure that `lsp-completion-at-point' the first CAPF to be tried,
+      ;; unless user has put it elsewhere in the list by their own
+      (add-to-list 'completion-at-point-functions #'lsp-completion-at-point)
       (make-local-variable 'completion-category-defaults)
       (setf (alist-get 'lsp-capf completion-category-defaults) '((styles . (lsp-passthrough))))
       (make-local-variable 'completion-styles-alist)
