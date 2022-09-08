@@ -68,7 +68,7 @@ If value is `\"\"` then defaults to the workspace rootUri."
   :group 'lsp-elixir
   :package-version '(lsp-mode . "8.0.0"))
 
-(defcustom lsp-elixir-fetch-deps t
+(defcustom lsp-elixir-fetch-deps nil
   "Automatically fetch project dependencies when compiling."
   :type 'boolean
   :group 'lsp-elixir
@@ -105,7 +105,7 @@ Leave as default to let `executable-find' search for it."
   :type '(repeat string)
   :package-version '(lsp-mode . "8.0.0"))
 
-(defcustom lsp-elixir-ls-version "v0.9.0"
+(defcustom lsp-elixir-ls-version "v0.11.0"
   "Elixir-Ls version to download.
 It has to be set before `lsp-elixir.el' is loaded and it has to
 be available here: https://github.com/elixir-lsp/elixir-ls/releases/"
@@ -191,7 +191,7 @@ be available here: https://github.com/elixir-lsp/elixir-ls/releases/"
                                                 (lsp-package-path 'elixir-ls))
                                             "language_server.bat")
                                        ,@(cl-rest lsp-elixir-server-command))))
-                  :major-modes '(elixir-mode)
+                  :activation-fn (lsp-activate-on "elixir")
                   :priority -1
                   :server-id 'elixir-ls
                   :action-handlers (ht ("elixir.lens.test.run" 'lsp-elixir--run-test))
@@ -201,11 +201,12 @@ be available here: https://github.com/elixir-lsp/elixir-ls/releases/"
                                     (with-lsp-workspace workspace
                                       (lsp--set-configuration
                                        (lsp-configuration-section "elixirLS")))
-                                    (puthash
-                                     "textDocumentSync"
-                                     (ht ("save" t)
-                                         ("change" 2))
-                                     (lsp--workspace-server-capabilities workspace)))))
+                                    (lsp-put
+                                     (lsp--workspace-server-capabilities workspace)
+                                     :textDocumentSync
+                                     (lsp-make-text-document-sync-options
+                                      :save t
+                                      :change 2)))))
 
 (lsp-consistency-check lsp-elixir)
 

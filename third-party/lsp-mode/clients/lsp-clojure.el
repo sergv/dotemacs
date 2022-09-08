@@ -47,11 +47,13 @@
   :type '(repeat string))
 
 (defcustom lsp-clojure-server-download-url
-  (format "https://github.com/clojure-lsp/clojure-lsp/releases/latest/download/clojure-lsp-native-%s-amd64.zip"
+  (format "https://github.com/clojure-lsp/clojure-lsp/releases/latest/download/clojure-lsp-native-%s.zip"
           (pcase system-type
-            ('gnu/linux "linux")
-            ('darwin "macos")
-            ('windows-nt "windows")))
+            ('gnu/linux "linux-amd64")
+            ('darwin (if (string-match "^aarch64-.*" system-configuration)
+                         "macos-aarch64"
+                       "macos-amd64"))
+            ('windows-nt "windows-amd64")))
   "Automatic download url for lsp-clojure."
   :type 'string
   :group 'lsp-clojure
@@ -220,10 +222,12 @@ If there are more arguments expected after the line and column numbers."
   (interactive)
   (lsp-clojure--refactoring-call "move-coll-entry-down"))
 
-(defun lsp-clojure-move-form ()
-  "Apply move-form refactoring at point."
-  (interactive)
-  (lsp-clojure--refactoring-call "move-form" "/home/greg/dev/clojure-lsp/lib/src/clojure_lsp/shared.clj"))
+(defun lsp-clojure-move-form (dest-filename)
+  "Apply move-form refactoring at point to DEST-FILENAME."
+  (interactive
+   (list (or (read-file-name "Move form to: ")
+             (user-error "No filename selected. Aborting"))))
+  (lsp-clojure--refactoring-call "move-form" (expand-file-name dest-filename)))
 
 (defun lsp-clojure-server-info ()
   "Request server info."
@@ -325,7 +329,7 @@ and the third the column."
                    (list :uri (seq-elt args 0))
                    (list :line (1- (seq-elt args 1))
                          :character (1- (seq-elt args 2)))))))
-   t
+   nil
    t))
 
 (defvar-local lsp-clojure--test-tree-data nil)

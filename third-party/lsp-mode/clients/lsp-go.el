@@ -134,7 +134,7 @@ completing function calls."
     (gc_details . "Toggle the calculation of gc annotations")
     (generate . "Run `go generate` for a directory")
     (regenerate_cgo . "Regenerate cgo definitions")
-    (test . "Run `go test` for a specific set of test or benchmark functions (lgeacy)")
+    (test . "Run `go test` for a specific set of test or benchmark functions (legacy)")
     (tidy . "Run `go mod tidy` for a module")
     (upgrade_dependency . "Upgrade a dependency")
     (vendor . "Runs `go mod vendor' for a module"))
@@ -142,15 +142,14 @@ completing function calls."
   through `lsp-go-codelenses'.")
 
 (defun lsp-go--defcustom-available-as-alist-type (alist)
-  "Returns a list suitable for the `:type' field in a `defcustom' used to populate an alist.
+  "Return a list for the `:type' field in `defcustom' used to populate an alist.
 
 The input ALIST has the form `((\"name\" . \"documentation sentence\") [...])'
 
 The returned type provides a tri-state that either:
   - does not include the element in the alist
   - sets element to false (actually, :json-false)
-  - sets element to true (actually, t)
-"
+  - sets element to true \(actually, t)"
   (let ((list '()))
 	(dolist (v alist)
 	  (push `(cons
