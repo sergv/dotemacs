@@ -1,6 +1,6 @@
 ;;; flycheck-test.el --- Flycheck: Unit test suite   -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017-2020 Flycheck contributors
+;; Copyright (C) 2017-2020, 2022 Flycheck contributors
 ;; Copyright (C) 2013-2016 Sebastian Wiesner and Flycheck contributors
 
 ;; Author: Sebastian Wiesner <swiesner@lunaryorn.com>
@@ -3121,15 +3121,45 @@ evaluating BODY."
    "language/awk/syntax-error.awk" 'awk-mode
    '(2 nil warning "x=|\n  ^ syntax error" :checker awk-gawk)))
 
-(flycheck-ert-def-checker-test bazel-buildifier bazel error
+(flycheck-ert-def-checker-test bazel-build-buildifier bazel error
   (flycheck-ert-should-syntax-check
-   "language/bazel/syntax-error.bazel" 'bazel-mode
-   '(1 11 error "syntax error near !" :checker bazel-buildifier)))
+   "language/bazel/BUILD.bazel-error" 'bazel-build-mode
+   '(1 11 error "syntax error near !" :checker bazel-build-buildifier)))
 
-(flycheck-ert-def-checker-test bazel-buildifier bazel nil
+(flycheck-ert-def-checker-test bazel-build-buildifier bazel nil
   (flycheck-ert-should-syntax-check
-   "language/bazel/warnings.bazel" 'bazel-mode
-   '(1 nil warning "The file has no module docstring. (https://github.com/bazelbuild/buildtools/blob/master/WARNINGS.md#module-docstring)" :id "module-docstring" :checker bazel-buildifier)))
+   "language/bazel/BUILD.bazel-warning" 'bazel-build-mode
+   '(1 nil warning "Variable \"foo\" is unused. Please remove it. (https://github.com/bazelbuild/buildtools/blob/master/WARNINGS.md#unused-variable)" :id "unused-variable" :checker bazel-build-buildifier)))
+
+(flycheck-ert-def-checker-test bazel-module-buildifier bazel error
+  (flycheck-ert-should-syntax-check
+   "language/bazel/MODULE.bazel-error" 'bazel-module-mode
+   '(1 11 error "syntax error near !" :checker bazel-module-buildifier)))
+
+(flycheck-ert-def-checker-test bazel-module-buildifier bazel nil
+  (flycheck-ert-should-syntax-check
+   "language/bazel/MODULE.bazel-warning" 'bazel-module-mode
+   '(1 nil warning "The file has no module docstring." :id "module-docstring" :checker bazel-module-buildifier)))
+
+(flycheck-ert-def-checker-test bazel-starlark-buildifier bazel error
+  (flycheck-ert-should-syntax-check
+   "language/bazel/rules.bzl-error" 'bazel-starlark-mode
+   '(1 11 error "syntax error near !" :checker bazel-starlark-buildifier)))
+
+(flycheck-ert-def-checker-test bazel-starlark-buildifier bazel nil
+  (flycheck-ert-should-syntax-check
+   "language/bazel/rules.bzl-warning" 'bazel-starlark-mode
+   '(1 nil warning "The file has no module docstring." :id "module-docstring" :checker bazel-starlark-buildifier)))
+
+(flycheck-ert-def-checker-test bazel-workspace-buildifier bazel error
+  (flycheck-ert-should-syntax-check
+   "language/bazel/WORKSPACE.bazel-error" 'bazel-workspace-mode
+   '(1 11 error "syntax error near !" :checker bazel-workspace-buildifier)))
+
+(flycheck-ert-def-checker-test bazel-workspace-buildifier bazel nil
+  (flycheck-ert-should-syntax-check
+   "language/bazel/WORKSPACE.bazel-warning" 'bazel-workspace-mode
+   '(1 nil warning "Variable \"foo\" is unused. Please remove it. (https://github.com/bazelbuild/buildtools/blob/master/WARNINGS.md#unused-variable)" :id "unused-variable" :checker bazel-workspace-buildifier)))
 
 (flycheck-ert-def-checker-test c/c++-clang (c c++) error
   (let ((flycheck-disabled-checkers '(c/c++-gcc)))
@@ -3589,36 +3619,56 @@ See https://github.com/flycheck/flycheck/issues/531 and Emacs bug #19206"))
    "language/ember-template-lint/ember-template-lint/warning.hbs" 'web-mode
    '(1 nil warning "Non-translated string used" :id "no-bare-strings" :checker ember-template)))
 
+(defun flycheck-ert-erlang-shows-column (mode-sym)
+  "Return whether Erlang error messages contain columns.
+MODE-SYM is the Erlang mode name, one of ‘erlang’ and
+‘erlang-rebar3’."
+  ;; erl -version shows the version of the "erts" application in the current otp
+  ;; release. This is the "Erlang RunTime System" and has nothing to do with
+  ;; flycheck-ert!
+  (let* ((cmd (cond ((eq mode-sym 'erlang) "erl -version")
+                    ((eq mode-sym 'erlang-rebar3) "rebar3 version")
+                    (t (error "Unknown erlang mode symbol"))))
+         (erts-version (string-trim (shell-command-to-string cmd)))
+         (version-string (car (last (split-string erts-version)))))
+    ;; The version of erts released with OTP 24 is 12.0. This is the first
+    ;; time columns were added to compile warnings/errors.
+    (version<= "12" version-string)))
+
 (flycheck-ert-def-checker-test erlang erlang error
-  (shut-up
-    (flycheck-ert-should-syntax-check
-     "language/erlang/erlang/error.erl" 'erlang-mode
-     '(3 nil warning "export_all flag enabled - all functions will be exported" :checker erlang)
-     '(7 nil error "head mismatch" :checker erlang))))
+  (let ((col (flycheck-ert-erlang-shows-column 'erlang)))
+    (shut-up
+      (flycheck-ert-should-syntax-check
+       "language/erlang/erlang/error.erl" 'erlang-mode
+       '(3 (when col 2) warning "export_all flag enabled - all functions will be exported" :checker erlang)
+       '(7 (when col 1) error "head mismatch" :checker erlang)))))
 
 (flycheck-ert-def-checker-test erlang erlang warning
-  (flycheck-ert-should-syntax-check
-   "language/erlang/erlang/warning.erl" 'erlang-mode
-   '(3 nil warning "export_all flag enabled - all functions will be exported" :checker erlang)
-   '(6 nil warning "wrong number of arguments in format call" :checker erlang)))
+  (let ((col (flycheck-ert-erlang-shows-column 'erlang)))
+    (flycheck-ert-should-syntax-check
+     "language/erlang/erlang/warning.erl" 'erlang-mode
+     '(3 (when col 2) warning "export_all flag enabled - all functions will be exported" :checker erlang)
+     '(6 (when col 37) warning "wrong number of arguments in format call" :checker erlang))))
 
 (flycheck-ert-def-checker-test erlang-rebar3 erlang error
-  (flycheck-ert-should-syntax-check
-   "language/erlang/rebar3/src/erlang-error.erl" 'erlang-mode
-   '(3 nil warning "export_all flag enabled - all functions will be exported" :checker erlang-rebar3)
-   '(7 nil error "head mismatch" :checker erlang-rebar3)))
+  (let ((col (flycheck-ert-erlang-shows-column 'erlang-rebar3)))
+    (flycheck-ert-should-syntax-check
+     "language/erlang/rebar3/src/erlang-error.erl" 'erlang-mode
+     '(3 (when col 2) warning "export_all flag enabled - all functions will be exported" :checker erlang-rebar3)
+     '(7 (when col 1) error "head mismatch" :checker erlang-rebar3))))
 
 (flycheck-ert-def-checker-test erlang-rebar3 erlang build
-  (shut-up
-    (flycheck-ert-should-syntax-check
-     "language/erlang/rebar3/_checkouts/dependency/src/dependency.erl" 'erlang-mode
-     `(7 nil error "head mismatch" :checker erlang-rebar3
-         :filename ,(flycheck-ert-resource-filename "language/erlang/rebar3/src/erlang-error.erl"))))
-  ;; Ensure that the dependency file wasn't built as standalone
-  ;; project which would create a separate _build directory
-  (should (not (file-exists-p
-                (flycheck-ert-resource-filename
-                 "language/erlang/rebar3/_build/default/lib/dependency/_build")))))
+  (let ((col (flycheck-ert-erlang-shows-column 'erlang-rebar3)))
+    (shut-up
+      (flycheck-ert-should-syntax-check
+       "language/erlang/rebar3/_checkouts/dependency/src/dependency.erl" 'erlang-mode
+       `(7 (when col 1) error "head mismatch" :checker erlang-rebar3
+           :filename ,(flycheck-ert-resource-filename "language/erlang/rebar3/src/erlang-error.erl"))))
+    ;; Ensure that the dependency file wasn't built as standalone
+    ;; project which would create a separate _build directory
+    (should (not (file-exists-p
+                  (flycheck-ert-resource-filename
+                   "language/erlang/rebar3/_build/default/lib/dependency/_build"))))))
 
 (flycheck-ert-def-checker-test eruby-erubis eruby nil
   (let ((flycheck-disabled-checkers '(eruby-ruumba)))
@@ -5136,7 +5186,7 @@ The manifest path is relative to
   (flycheck-ert-should-syntax-check
    "language/verilog/verilator_warning.v" 'verilog-mode
    '(2 nil warning "Signal is not driven, nor used: 'val'"
-       :checker verilog-verilator)))
+       :checker verilog-verilator :id "UNUSED")))
 
 (flycheck-ert-def-checker-test vhdl-ghdl vhdl error
   (flycheck-ert-should-syntax-check
