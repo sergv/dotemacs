@@ -2,7 +2,7 @@
 
 ;;; Rudimentary, kludgey test suite for paredit -- work in progress!
 
-;; Copyright (C) 2005--2019 Taylor R. Campbell
+;; Copyright (C) 2005--2022 Taylor R. Campbell
 
 ;; This file is part of paredit.
 ;;
@@ -1034,7 +1034,13 @@
     ("\"|\"" error)
     ("\"|xy\"" error)                   ;++ Could be done.  Why not?
     ("\"x|y\"" error)
-    ("\"xy|\"" error)))
+    ("\"xy|\"" error)
+
+    ("|x(y)" error)
+    ("x|(y)" error)
+    (xfail "x(|y)" "x |y ()" error)
+    (xfail "x(y|)" "x y (|)" error)
+    ("x(y)|" error)))
 
 (paredit-test 'paredit-forward
   '(("|" "|")
@@ -1821,6 +1827,7 @@
     ("\"\" |\"\"" error)
     ;; ("\"\" \"|\"" error)             ;++ Urk...
     ("\"\" \"\"|" error)
+
     ("|(#\\x) y" error)
     ("(|#\\x) y" "(|#\\x y)")
     ("(#|\\x) y" "(#|\\x y)")
@@ -1836,7 +1843,26 @@
     ("(\"x\"|) y" "(\"x\"| y)")
     ("(\"x\")| y" error)
     ("(\"x\") |y" error)
-    ("(\"x\") y|" error)))
+    ("(\"x\") y|" error)
+    ("|()y" error)
+    ("(|)y" "(|y)")
+    (xfail "(|y)" error)
+    ("()|y" error)
+    ("()y|" error)
+    ("|(x)y" error)
+    (xfail "(|x)y" "(|x y)" error)
+    (xfail"(x|)y" "(x| y)" error)
+    ("(x)|y" error)
+    ("(x)y|" error)
+    ("|(x) ;c\ny" error)
+    (xfail "(|x) ;c\ny" "(|x  ;c\n y)" error)
+    (xfail "(x|) ;c\ny" "(x|  ;c\n y)" error)
+    ("(x)| ;c\ny" error)
+    ("(x) |;c\ny" error)
+    ("(x) ;|c\ny" error)
+    ("(x) ;c|\ny" error)
+    ("(x) ;c\n|y" error)
+    ("(x) ;c\ny|" error)))
 
 (paredit-test 'paredit-backward-slurp-sexp
   '(("|" error)
@@ -1886,6 +1912,7 @@
     ("\"\" |\"\"" error)
     ("\"\" \"|\"" "\"\\\"\\\"|\"")
     ("\"\" \"\"|" error)
+
     ("|x (#\\y)" error)
     ("x| (#\\y)" error)
     ("x |(#\\y)" error)
@@ -1901,7 +1928,27 @@
     ("x (\"|y\")" "(x \"|y\")" "(\"x |y\")")
     ("x (\"y|\")" "(x \"y|\")" "(\"x y|\")")
     ("x (\"y\"|)" "(x \"y\"|)")
-    ("x (\"y\")|" error)))
+    ("x (\"y\")|" error)
+    ("|x()" error)
+    ("x|()" error)
+    ("x(|)" "(x|)")
+    (xfail "(x|)" error)
+    ("x()|" error)
+    ("|x(y)" error)
+    ("x|(y)" error)
+    (xfail "x(|y)" "(x |y)" error)
+    (xfail "x(y|)" "(x y|)" error)
+    ("x(y)|" error)
+    ("|x  ;c\n(y)" error)
+    ("x|  ;c\n(y)" error)
+    ("x | ;c\n(y)" error)
+    ("x  |;c\n(y)" error)
+    ("x  ;|c\n(y)" error)
+    ("x  ;c|\n(y)" error)
+    ("x  ;c\n|(y)" error)
+    (xfail "x  ;c\n(|y)" "(x ;c\n |y)" error)
+    (xfail "x  ;c\n(y|)" "(x ;c\n y|)" error)
+    ("x  ;c\n(y)|" error)))
 
 (let ((current-prefix-arg 2))
   (paredit-test 'paredit-forward-slurp-sexp
@@ -2063,3 +2110,6 @@
        "\n(f xy\n   z\n   w)\n;;;T |"
        "\n(f xy\n   z\n   w)\n;;;|T "
        "\n(f xy\n   z\n   w)\n;;;|T "))))
+
+(if (> paredit-test-nfailures 0)
+    (error "%S paredit tests failed" paredit-test-nfailures))
