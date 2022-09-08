@@ -94,6 +94,28 @@
      (--map (f-relative it "foo") (f-entries "foo" nil t))
      '("bar.el" "bar" "bar/qux" "bar/baz.el" "bar/qux/hey.el")))))
 
+(ert-deftest f-entries-test/safe-recursion ()
+  (with-playground
+   (f-mkdir "foo")
+   (f-touch "foo/bar.el")
+   (f-mkdir "foo/bar")
+   (f-touch "foo/bar/baz.el")
+   (f-mkdir "foo/bar/qux")
+   (f-touch "foo/quux.el")
+   (f-mkdir "foo/quuz")
+   (f-touch "foo/quuz/corge.el")
+   (unwind-protect
+       (progn
+         (chmod "foo/quux.el" "000")
+         (chmod "foo/quuz" "000")
+         (should
+          (equal
+           (--map (f-relative it "foo") (f-entries "foo" nil t))
+           '("quuz" "quux.el" "bar.el" "bar" "bar/qux" "bar/baz.el"))))
+     (progn
+       (chmod "foo/quuz" "700")
+       (chmod "foo/quuz/corge.el" "700")))))
+
 (ert-deftest f-entries-test/anaphoric ()
   (with-playground
    (f-mkdir "foo")
@@ -269,7 +291,7 @@
        f-test/playground-path
        (f-traverse-upwards
         (lambda (path)
-          (f-file? (f-expand "foo" path)))))))))
+          (f-file-p (f-expand "foo" path)))))))))
 
 (ert-deftest f-traverse-upwards-test/specified-path-is-file ()
   (with-playground
@@ -281,7 +303,7 @@
      f-test/playground-path
      (f-traverse-upwards
       (lambda (path)
-        (f-file? (f-expand "foo" path)))
+        (f-file-p (f-expand "foo" path)))
       (f-join "bar" "baz" "qux"))))))
 
 (ert-deftest f-traverse-upwards-test/specified-path-is-directory ()
@@ -293,7 +315,7 @@
      f-test/playground-path
      (f-traverse-upwards
       (lambda (path)
-        (f-file? (f-expand "foo" path)))
+        (f-file-p (f-expand "foo" path)))
       (f-join f-test/playground-path "bar" "baz"))))))
 
 (ert-deftest f-traverse-upwards-test/specified-path-is-relative ()
@@ -305,7 +327,7 @@
      f-test/playground-path
      (f-traverse-upwards
       (lambda (path)
-        (f-file? (f-expand "foo" path)))
+        (f-file-p (f-expand "foo" path)))
       (f-join "bar" "baz"))))))
 
 (ert-deftest f-traverse-upwards-test/specified-path-matches-fn ()
@@ -321,7 +343,7 @@
       (f-join f-test/playground-path "bar" "baz"))))))
 
 (ert-deftest f-traverse-upwards-test/searching-for-root ()
-  (should (f-root? (f-traverse-upwards 'f-root?))))
+  (should (f-root-p (f-traverse-upwards 'f-root-p))))
 
 (ert-deftest f-traverse-upwards-test/no-path-in-traversal-matches ()
   (with-playground
@@ -341,7 +363,7 @@
     (equal
      f-test/playground-path
      (f--traverse-upwards
-      (f-file? (f-expand "foo" it))
+      (f-file-p (f-expand "foo" it))
       (f-join f-test/playground-path "bar" "baz"))))))
 
 (provide 'f-misc-test)
