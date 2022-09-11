@@ -91,7 +91,7 @@
 
     (cons emacs-dir init-file)))
 
-(defun recompile-main (emacs-dir k n compile-native?)
+(defun recompile-main (emacs-dir k n compile-native? config)
   (cl-assert (numberp k))
   (cl-assert (numberp n))
   (cl-destructuring-bind
@@ -137,6 +137,22 @@
            (proceed? (or (not compile-native?)
                          native-comp-available?)))
 
+      (when config
+        (with-temp-buffer
+
+          (dolist (entry '((no-native-compile nil)
+                           (byte-native-compiling t)
+                           (byte-native-qualities nil)
+                           ;; Batch compilation has memory leak thanks to libgccjit.
+                           (comp-running-batch-compilation nil)
+                           (native-comp-debug 0)
+                           (native-comp-compiler-options '("-O2"))
+                           (native-comp-driver-options '("-march=native"))))
+            (insert (format "(setf %s %S)\n" (car entry) (cadr entry))))
+          (insert (format "(setf load-path '%S)" load-path))
+
+          (write-file config)
+          (message "WRITTEN CONFIG TO %S" config)))
 
       (if proceed?
           (progn

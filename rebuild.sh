@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 #
-# File: rebuild.sh
+# File: rebuild-no-nix.sh
 #
 # Created: 13 January 2021
 #
@@ -12,7 +12,11 @@ set -o pipefail
 
 set -e
 
-export EMACS_FORCE_PRISTINE=1
+if which nix 2>/dev/null && [[ "${RUNNING_UNDER_NIX:-0}" != 1 ]]; then
+    echo "Building via nix"
+    export RUNNING_UNDER_NIX=1
+    exec nix develop --command "$0"
+fi
 
 # ./scripts/dump.sh &&
 which ghc >/dev/null && \
@@ -21,7 +25,9 @@ which ghc >/dev/null && \
          ( [[ -f get-cabal-configuration.exe ]] && strip get-cabal-configuration.exe || strip get-cabal-configuration)
    )
 
-bash ./scripts/recompile.sh && bash ./scripts/dump.sh && bash ./tests/run-tests.sh "${@}"
+EMACS_FORCE_PRISTINE=1 bash ./scripts/recompile.sh
+EMACS_FORCE_PRISTINE=1 bash ./scripts/dump.sh
+bash ./tests/run-tests.sh "${@}"
 
 exit 0
 
