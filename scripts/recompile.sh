@@ -1,4 +1,4 @@
-#!/bin/bash
+#! /usr/bin/env bash
 #
 # File: recompile.sh
 #
@@ -149,10 +149,18 @@ if [[ "$native_comp" = "t" ]]; then
     # With native compilation is enabled all loaded .elc files will automatically
     # get compiled into .eln. When multiple processes do this, race condition may
     # occur and all recompilation fails.
-    emacs -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" 0 1 nil)"
-fi
+    cfg="$(mktemp "$TMPDIR/config.elXXXXX")"
 
-seq 0 "$((n - 1))" | xargs --replace=INPUT --max-args=1 -P "$n" --verbose emacs -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" INPUT $n $native_comp)"
+    echo "CONFIG = $cfg"
+
+    emacs -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" 0 1 nil \"$cfg\")"
+
+    find . -type f -name '*.elc' -print | xargs -n 1 -P "$n" emacs --batch -l "$cfg" -f batch-native-compile
+
+    # seq 0 "$((n - 1))" | xargs --replace=INPUT --max-args=1 -P "$n" --verbose emacs -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" INPUT $n t)"
+else
+    seq 0 "$((n - 1))" | xargs --replace=INPUT --max-args=1 -P "$n" --verbose emacs -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" INPUT $n nil nil)"
+fi
 
 exit 0
 
