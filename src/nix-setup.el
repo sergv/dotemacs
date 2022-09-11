@@ -97,8 +97,10 @@ _a_lign"
 
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-insert-mode-local-keymap)
-    ("C-SPC"      company-complete)
-    ("C-<return>" nix--simple-indent-newline-indent)))
+    ("C-SPC"                           company-complete)
+    ("C-<return>"                      nix--simple-indent-newline-indent)
+    ("C-<tab>"                         indent-relative-forward)
+    (("C-S-<tab>" "C-S-<iso-lefttab>") indent-relative-backward)))
 
 ;;;###autoload
 (add-hook 'nix-mode-hook #'nix-setup)
