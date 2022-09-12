@@ -189,18 +189,18 @@ global value of `compilation-highlight-regexp'.
 Returns the compilation buffer created."
     (or mode (setq mode 'compilation-mode))
     (let* ((name-of-mode
-	    (if (eq mode t)
-	        "compilation"
-	      (replace-regexp-in-string "-mode\\'" "" (symbol-name mode))))
-	   (thisdir default-directory)
-	   (thisenv compilation-environment)
+            (if (eq mode t)
+                "compilation"
+              (replace-regexp-in-string "-mode\\'" "" (symbol-name mode))))
+           (thisdir default-directory)
+           (thisenv compilation-environment)
            (buffer-path (and (local-variable-p 'exec-path) exec-path))
            (buffer-env (and (local-variable-p 'process-environment)
                             process-environment))
-	   outwin outbuf)
+           outwin outbuf)
       (with-current-buffer
-	  (setq outbuf
-	        (get-buffer-create
+          (setq outbuf
+                (get-buffer-create
                  (compilation-buffer-name name-of-mode mode name-function)))
         (let ((comp-proc (get-buffer-process (current-buffer))))
           (if comp-proc
@@ -224,10 +224,10 @@ Returns the compilation buffer created."
         ;; Make compilation buffer read-only.  The filter can still write it.
         ;; Clear out the compilation buffer.
         (let ((inhibit-read-only t)
-	      (default-directory thisdir))
-	  ;; Then evaluate a cd command if any, but don't perform it yet, else
-	  ;; start-command would do it again through the shell: (cd "..") AND
-	  ;; sh -c "cd ..; make"
+              (default-directory thisdir))
+          ;; Then evaluate a cd command if any, but don't perform it yet, else
+          ;; start-command would do it again through the shell: (cd "..") AND
+          ;; sh -c "cd ..; make"
           (el-patch-let ((orig (cd (cond
                                      ((not (string-match "\\`\\s *cd\\(?:\\s +\\(\\S +?\\|'[^']*'\\|\"\\(?:[^\"`$\\]\\|\\\\.\\)*\"\\)\\)?\\s *[;&\n]"
                                                          command))
@@ -260,15 +260,15 @@ Returns the compilation buffer created."
                  (cd (cc-command-dir command)))
                 (t
                  (error "Unexpecte compilation command: %s" command)))))
-	  (erase-buffer)
-	  ;; Select the desired mode.
-	  (if (not (eq mode t))
+          (erase-buffer)
+          ;; Select the desired mode.
+          (if (not (eq mode t))
               (progn
                 (buffer-disable-undo)
                 (funcall mode))
-	    (setq buffer-read-only nil)
-	    (with-no-warnings (comint-mode))
-	    (compilation-shell-minor-mode))
+            (setq buffer-read-only nil)
+            (with-no-warnings (comint-mode))
+            (compilation-shell-minor-mode))
           ;; Remember the original dir, so we can use it when we recompile.
           ;; default-directory' can't be used reliably for that because it may be
           ;; affected by the special handling of "cd ...;".
@@ -288,22 +288,22 @@ Returns the compilation buffer created."
           (if buffer-env
               (setq-local process-environment buffer-env)
             (kill-local-variable 'process-environment))
-	  (if highlight-regexp
+          (if highlight-regexp
               (setq-local compilation-highlight-regexp highlight-regexp))
           (if (or compilation-auto-jump-to-first-error
-		  (eq compilation-scroll-output 'first-error))
+                  (eq compilation-scroll-output 'first-error))
               (setq-local compilation-auto-jump-to-next t))
-	  ;; Output a mode setter, for saving and later reloading this buffer.
-	  (insert "-*- mode: " name-of-mode
-		  "; default-directory: "
+          ;; Output a mode setter, for saving and later reloading this buffer.
+          (insert "-*- mode: " name-of-mode
+                  "; default-directory: "
                   (prin1-to-string (abbreviate-file-name default-directory))
-		  " -*-\n"
-		  (format "%s started at %s\n\n"
-			  mode-name
+                  " -*-\n"
+                  (format "%s started at %s\n\n"
+                          mode-name
                           (el-patch-swap
-			    (substring (current-time-string) 0 19)
+                            (substring (current-time-string) 0 19)
                             (configurable-compilation--timestamp)))
-		  (el-patch-swap
+                  (el-patch-swap
                     command
                     (cond
                       ((stringp command)
@@ -323,64 +323,64 @@ Returns the compilation buffer created."
           ;; Mark the end of the header so that we don't interpret
           ;; anything in it as an error.
           (put-text-property (1- (point)) (point) 'compilation-header-end t)
-	  (setq thisdir default-directory))
+          (setq thisdir default-directory))
         (set-buffer-modified-p nil))
       ;; Pop up the compilation buffer.
       ;; https://lists.gnu.org/r/emacs-devel/2007-11/msg01638.html
       (setq outwin (display-buffer outbuf '(nil (allow-no-window . t))))
       (with-current-buffer outbuf
         (let ((process-environment
-	       (append
-	        compilation-environment
+               (append
+                compilation-environment
                 (and (derived-mode-p 'comint-mode)
                      (comint-term-environment))
-	        (list (format "INSIDE_EMACS=%s,compile" emacs-version))
-	        (copy-sequence process-environment))))
+                (list (format "INSIDE_EMACS=%s,compile" emacs-version))
+                (copy-sequence process-environment))))
           (setq-local compilation-arguments
                       (list command mode name-function highlight-regexp))
           (setq-local revert-buffer-function 'compilation-revert-buffer)
-	  (and outwin
-	       ;; Forcing the window-start overrides the usual redisplay
-	       ;; feature of bringing point into view, so setting the
-	       ;; window-start to top of the buffer risks losing the
-	       ;; effect of moving point to EOB below, per
-	       ;; compilation-scroll-output, if the command is long
-	       ;; enough to push point outside of the window.  This
-	       ;; could happen, e.g., in `rgrep'.
-	       (not compilation-scroll-output)
-	       (set-window-start outwin (point-min)))
+          (and outwin
+               ;; Forcing the window-start overrides the usual redisplay
+               ;; feature of bringing point into view, so setting the
+               ;; window-start to top of the buffer risks losing the
+               ;; effect of moving point to EOB below, per
+               ;; compilation-scroll-output, if the command is long
+               ;; enough to push point outside of the window.  This
+               ;; could happen, e.g., in `rgrep'.
+               (not compilation-scroll-output)
+               (set-window-start outwin (point-min)))
 
-	  ;; Position point as the user will see it.
-	  (let ((desired-visible-point
-	         ;; Put it at the end if `compilation-scroll-output' is set.
-	         (if compilation-scroll-output
-		     (point-max)
-		   ;; Normally put it at the top.
-		   (point-min))))
-	    (goto-char desired-visible-point)
-	    (when (and outwin (not (eq outwin (selected-window))))
-	      (set-window-point outwin desired-visible-point)))
+          ;; Position point as the user will see it.
+          (let ((desired-visible-point
+                 ;; Put it at the end if `compilation-scroll-output' is set.
+                 (if compilation-scroll-output
+                     (point-max)
+                   ;; Normally put it at the top.
+                   (point-min))))
+            (goto-char desired-visible-point)
+            (when (and outwin (not (eq outwin (selected-window))))
+              (set-window-point outwin desired-visible-point)))
 
-	  ;; The setup function is called before compilation-set-window-height
-	  ;; so it can set the compilation-window-height buffer locally.
-	  (if compilation-process-setup-function
-	      (funcall compilation-process-setup-function))
-	  (and outwin (compilation-set-window-height outwin))
-	  ;; Start the compilation.
-	  (if (fboundp 'make-process)
-	      (let ((proc
-		     (if (eq mode t)
+          ;; The setup function is called before compilation-set-window-height
+          ;; so it can set the compilation-window-height buffer locally.
+          (if compilation-process-setup-function
+              (funcall compilation-process-setup-function))
+          (and outwin (compilation-set-window-height outwin))
+          ;; Start the compilation.
+          (if (fboundp 'make-process)
+              (let ((proc
+                     (if (eq mode t)
                          ;; On remote hosts, the local `shell-file-name'
                          ;; might be useless.
                          (with-connection-local-variables
-		          ;; comint uses `start-file-process'.
-		          (get-buffer-process
-			   (with-no-warnings
-			     (comint-exec
-			      outbuf
+                          ;; comint uses `start-file-process'.
+                          (get-buffer-process
+                           (with-no-warnings
+                             (comint-exec
+                              outbuf
                               (downcase mode-name)
-			      shell-file-name
-			      nil
+                              shell-file-name
+                              nil
                               (el-patch-swap
                                 `(,shell-command-switch ,command)
                                 (list shell-command-switch
@@ -390,9 +390,9 @@ Returns the compilation buffer created."
                                         ((cc-command-p command)
                                          (mapconcat #'identity (cc-command-cmd command) " ")))))))))
                        (el-patch-let ((orig
-		                       (start-file-process-shell-command
+                                       (start-file-process-shell-command
                                         (downcase mode-name)
-			                outbuf
+                                        outbuf
                                         command)))
                          (el-patch-swap
                            orig
@@ -421,50 +421,50 @@ Returns the compilation buffer created."
                 (set-process-sentinel proc #'compilation-sentinel)
                 (unless (eq mode t)
                   ;; Keep the comint filter, since it's needed for proper
-		  ;; handling of the prompts.
-		  (set-process-filter proc #'compilation-filter))
-	        ;; Use (point-max) here so that output comes in
-	        ;; after the initial text,
-	        ;; regardless of where the user sees point.
-	        (set-marker (process-mark proc) (point-max) outbuf)
-	        (when compilation-disable-input
-		  (condition-case nil
-		      (process-send-eof proc)
-		    ;; The process may have exited already.
-		    (error nil)))
-	        (run-hook-with-args 'compilation-start-hook proc)
+                  ;; handling of the prompts.
+                  (set-process-filter proc #'compilation-filter))
+                ;; Use (point-max) here so that output comes in
+                ;; after the initial text,
+                ;; regardless of where the user sees point.
+                (set-marker (process-mark proc) (point-max) outbuf)
+                (when compilation-disable-input
+                  (condition-case nil
+                      (process-send-eof proc)
+                    ;; The process may have exited already.
+                    (error nil)))
+                (run-hook-with-args 'compilation-start-hook proc)
                 (compilation--update-in-progress-mode-line)
-	        (push proc compilation-in-progress))
-	    ;; No asynchronous processes available.
-	    (message "Executing `%s'..." command)
-	    ;; Fake mode line display as if `start-process' were run.
-	    (setq mode-line-process
-		  '((:propertize ":run" face compilation-mode-line-run)
+                (push proc compilation-in-progress))
+            ;; No asynchronous processes available.
+            (message "Executing `%s'..." command)
+            ;; Fake mode line display as if `start-process' were run.
+            (setq mode-line-process
+                  '((:propertize ":run" face compilation-mode-line-run)
                     compilation-mode-line-errors))
-	    (force-mode-line-update)
-	    (sit-for 0)			; Force redisplay
-	    (save-excursion
-	      ;; Insert the output at the end, after the initial text,
-	      ;; regardless of where the user sees point.
-	      (goto-char (point-max))
-	      (let* ((inhibit-read-only t) ; call-process needs to modify outbuf
-		     (compilation-filter-start (point))
-		     (status (call-process shell-file-name nil outbuf nil "-c"
-					   command)))
-	        (run-hooks 'compilation-filter-hook)
-	        (cond ((numberp status)
-		       (compilation-handle-exit
-		        'exit status
-		        (if (zerop status)
-			    "finished\n"
-			  (format "exited abnormally with code %d\n" status))))
-		      ((stringp status)
-		       (compilation-handle-exit 'signal status
-					        (concat status "\n")))
-		      (t
-		       (compilation-handle-exit 'bizarre status status)))))
-	    (set-buffer-modified-p nil)
-	    (message "Executing `%s'...done" command)))
+            (force-mode-line-update)
+            (sit-for 0)                        ; Force redisplay
+            (save-excursion
+              ;; Insert the output at the end, after the initial text,
+              ;; regardless of where the user sees point.
+              (goto-char (point-max))
+              (let* ((inhibit-read-only t) ; call-process needs to modify outbuf
+                     (compilation-filter-start (point))
+                     (status (call-process shell-file-name nil outbuf nil "-c"
+                                           command)))
+                (run-hooks 'compilation-filter-hook)
+                (cond ((numberp status)
+                       (compilation-handle-exit
+                        'exit status
+                        (if (zerop status)
+                            "finished\n"
+                          (format "exited abnormally with code %d\n" status))))
+                      ((stringp status)
+                       (compilation-handle-exit 'signal status
+                                                (concat status "\n")))
+                      (t
+                       (compilation-handle-exit 'bizarre status status)))))
+            (set-buffer-modified-p nil)
+            (message "Executing `%s'...done" command)))
         ;; Now finally cd to where the shell started make/grep/...
         (el-patch-wrap 2 0
           (when (stringp command)
@@ -475,7 +475,7 @@ Returns the compilation buffer created."
         ;; complete disregard for the case when compilation-scroll-output
         ;; equals 'first-error (martin 2008-10-04).
         (when compilation-scroll-output
-	  (goto-char (point-max))))
+          (goto-char (point-max))))
 
       ;; Make it so the next C-x ` will use this buffer.
       (setq next-error-last-buffer outbuf)))
@@ -483,28 +483,28 @@ Returns the compilation buffer created."
   (el-patch-defun compilation-handle-exit (process-status exit-status msg)
     "Write MSG in the current buffer and hack its `mode-line-process'."
     (let ((inhibit-read-only t)
-	  (status (if compilation-exit-message-function
-		      (funcall compilation-exit-message-function
-			       process-status exit-status msg)
-		    (cons msg exit-status)))
-	  (omax (point-max))
-	  (opoint (point))
-	  (cur-buffer (current-buffer)))
+          (status (if compilation-exit-message-function
+                      (funcall compilation-exit-message-function
+                               process-status exit-status msg)
+                    (cons msg exit-status)))
+          (omax (point-max))
+          (opoint (point))
+          (cur-buffer (current-buffer)))
       ;; Record where we put the message, so we can ignore it later on.
       (goto-char omax)
       (insert ?\n mode-name " " (car status))
       (if (and (numberp compilation-window-height)
-	       (zerop compilation-window-height))
-	  (message "%s" (cdr status)))
+               (zerop compilation-window-height))
+          (message "%s" (cdr status)))
       (if (bolp)
-	  (forward-char -1))
+          (forward-char -1))
       (insert " at " (el-patch-swap
                        (substring (current-time-string) 0 19)
                        (configurable-compilation--timestamp)))
       (goto-char (point-max))
       ;; Prevent that message from being recognized as a compilation error.
       (add-text-properties omax (point)
-			   (append '(compilation-handle-exit t) nil))
+                           (append '(compilation-handle-exit t) nil))
       (setq mode-line-process
             (list
              (let ((out-string (format ":%s [%s]" process-status (cdr status)))
@@ -521,7 +521,7 @@ Returns the compilation buffer created."
       ;; Force mode line redisplay soon.
       (force-mode-line-update)
       (if (and opoint (< opoint omax))
-	  (goto-char opoint))
+          (goto-char opoint))
       (run-hook-with-args 'compilation-finish-functions cur-buffer msg))))
 
 (provide 'configurable-compilation)
