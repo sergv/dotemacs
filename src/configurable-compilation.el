@@ -400,8 +400,8 @@ Returns the compilation buffer created."
                              ((stringp command)
                               orig)
                              ((cc-command-p command)
-                              (let ((command-line (cc-command-cmd command))
-                                    (default-directory (cc-command-dir command)))
+                              (cd (cc-command-dir command))
+                              (let ((command-line (cc-command-cmd command)))
                                 (apply #'start-file-process
                                        (concat "compilation for " (cc-command-dir command))
                                        (current-buffer)
