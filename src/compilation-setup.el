@@ -64,6 +64,9 @@
   (setup-hl-paren)
   (hl-line-mode +1)
 
+  (def-keys-for-map compilation-mode-map
+    ("C-c C-c" kill-compilation))
+
   (def-keys-for-map vim-normal-mode-local-keymap
     (("<up>"   "C-t")   compilation-jump-to-prev-error)
     (("<down>" "C-h")   compilation-jump-to-next-error)
