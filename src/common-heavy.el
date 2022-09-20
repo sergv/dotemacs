@@ -1039,6 +1039,9 @@ to deleted items. ITEMS will be mutated in order to obtain result."
                      (expand-file-name (file-name-nondirectory buffer-file-name)
                                        new-name)
                    (expand-file-name new-name)))
+  (let ((dir (file-name-directory new-name)))
+    (unless (file-directory-p dir)
+      (make-directory dir t)))
   ;; If the file isn't saved yet, skip the file rename, but still update the
   ;; buffer name and visited file.
   (when (file-exists-p buffer-file-name)
