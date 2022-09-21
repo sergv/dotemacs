@@ -911,7 +911,8 @@ value section should have if it is to be properly indented."
   "Set up vital variables for operation of ‘dante-mode’.
 
 Returns ‘t’ on success, otherwise returns ‘nil’."
-  (let* ((proj (eproj-get-project-for-buf-lax (current-buffer)))
+  (let* ((buf (current-buffer))
+         (proj (eproj-get-project-for-buf-lax buf))
          (vars (and proj
                     (eproj-query/local-variables proj major-mode nil)))
          (val-dante-package-name (cadr-safe (assq 'dante-package-name vars)))
@@ -924,20 +925,22 @@ Returns ‘t’ on success, otherwise returns ‘nil’."
                    (not val-dante-target))
                (buffer-file-name)
                (file-directory-p default-directory))
-      (when-let ((config (flycheck-haskell-get-configuration-for-buf (current-buffer) proj)))
+      (when-let ((config (flycheck-haskell-get-configuration-for-buf buf proj)))
         (let-alist-static config (package-name components)
           (setf package-name (car package-name))
           (when (not val-dante-package-name)
             (setq-local dante-package-name package-name))
           (when (not val-dante-target)
-            (when-let ((component
-                        (haskell-misc--configure-dante--find-cabal-component-for-file
-                         components
-                         (buffer-file-name))))
-              (cl-assert (stringp package-name) nil
-                         "Expected package name to be a string but got %s" package-name)
-              (setq-local dante-target (concat package-name ":" component))
-              t)))))))
+            (if-let ((component
+                      (haskell-misc--configure-dante--find-cabal-component-for-file
+                       components
+                       (buffer-file-name))))
+                (progn
+                  (cl-assert (stringp package-name) nil
+                             "Expected package name to be a string but got %s" package-name)
+                  (setq-local dante-target (concat package-name ":" component))
+                  t)
+              (error "Couldn’t determine cabal component for %s buffer. Check whether cabal can build the project before retrying" buf))))))))
 
 (defun haskell-misc--configure-dante--find-cabal-component-for-file (components filename)
   "Get components dumped by get-cabal-configuration.hs for current package and attempt
