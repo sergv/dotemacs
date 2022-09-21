@@ -2082,6 +2082,7 @@ keymap is the parent of their keymaps.")
     ;; --ita-visible-in-index so that `magit-stage' can work with
     ;; intent-to-add files (see #4026).
     (when (and (not (equal cmd "merge-tree"))
+               (not (equal cmd "diff"))
                (magit-git-version>= "2.19.0"))
       (push "--ita-visible-in-index" args))
     (setq args (magit-diff--maybe-add-stat-arguments args))
