@@ -948,15 +948,18 @@ to find which component the FILENAME belongs to."
   (when filename
     (let ((entry
            (-find (lambda (component-descr)
-                    (let ((main-file (cl-third component-descr))
-                          (modules (cl-fourth component-descr))
-                          (src-dirs (--filter (not (equal it ".")) (cl-fifth component-descr))))
+                    (let* ((main-file (cl-third component-descr))
+                           (modules (cl-fourth component-descr))
+                           (src-dirs-res (filter-elem (lambda (x) (not (equal x ".")))
+                                                      (cl-fifth component-descr)))
+                           (src-dirs (car src-dirs-res))
+                           (src-dirs-contained-dot? (cdr src-dirs-res)))
                       (when (or main-file modules)
                         (let* ((mod-regexps
                                 (when modules
                                   (mapconcat (lambda (x)
                                                (concat "\\(?:"
-                                                       (mapconcat #'identity x ".")
+                                                       (mapconcat #'identity x "/")
                                                        "\\)"))
                                              modules
                                              "\\|")))
@@ -965,7 +968,10 @@ to find which component the FILENAME belongs to."
                                           (concat (when src-dirs
                                                     (concat "\\(?:"
                                                             (mapconcat #'regexp-quote src-dirs "\\|")
-                                                            "\\)/"))
+                                                            "\\)"
+                                                            (when src-dirs-contained-dot?
+                                                              "?")
+                                                            "/"))
                                                   "\\(?:" (regexp-quote main-file) "\\)"))
                                         (when (and main-file mod-regexps)
                                           "\\|")

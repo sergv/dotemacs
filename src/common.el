@@ -1414,6 +1414,26 @@ are CHAR1 and CHAR2 repsectively."
   (declare (indent 2))
   (min cap (max floor value)))
 
+;;
+
+(defun filter-elem (pred xs)
+  "Combine ‘-filter’ and ‘member’.
+
+Returns cons where car is filtered XS where PRED returned non-nil
+and cdr is a boolean whether any element was let out."
+  (let* ((res (cons nil nil))
+         (tmp res)
+         (any-omitted? nil))
+    (while xs
+      (let ((x (car xs)))
+        (if (funcall pred x)
+            (setf tmp
+                  (setf (cdr tmp) (cons x nil)))
+          (setf any-omitted? t)))
+      (setf xs (cdr xs)))
+    (cons (cdr res)
+          any-omitted?)))
+
 (provide 'common)
 
 ;; Local Variables:
