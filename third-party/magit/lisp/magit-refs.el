@@ -1,17 +1,16 @@
-;;; magit-refs.el --- listing references  -*- lexical-binding: t -*-
+;;; magit-refs.el --- Listing references  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2010-2018  The Magit Project Contributors
-;;
-;; You should have received a copy of the AUTHORS.md file which
-;; lists all contributors.  If not, see http://magit.vc/authors.
+;; Copyright (C) 2008-2022 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
 
-;; Magit is free software; you can redistribute it and/or modify it
+;; SPDX-License-Identifier: GPL-3.0-or-later
+
+;; Magit is free software: you can redistribute it and/or modify it
 ;; under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 ;;
 ;; Magit is distributed in the hope that it will be useful, but WITHOUT
 ;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -19,7 +18,7 @@
 ;; License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
-;; along with Magit.  If not, see http://www.gnu.org/licenses.
+;; along with Magit.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -27,12 +26,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'subr-x))
-
 (require 'magit)
-
-(defvar bookmark-make-record-function)
 
 ;;; Options
 
@@ -66,7 +60,7 @@ branch Show counts for branches only.
 nil    Never show counts.
 
 To change the value in an existing buffer use the command
-`magit-refs-show-commit-count'"
+`magit-refs-set-show-commit-count'."
   :package-version '(magit . "2.1.0")
   :group 'magit-refs
   :safe (lambda (val) (memq val '(all branch nil)))
@@ -101,7 +95,7 @@ shown), so this isn't enabled yet.")
   "Whether to show the remote prefix in lists of remote branches.
 
 This is redundant because the name of the remote is already shown
-in the heading preceeding the list of its branches."
+in the heading preceding the list of its branches."
   :package-version '(magit . "2.12.0")
   :group 'magit-refs
   :type 'boolean)
@@ -116,10 +110,12 @@ in the heading preceeding the list of its branches."
 The value has the form (INIT STYLE WIDTH AUTHOR AUTHOR-WIDTH).
 
 If INIT is non-nil, then the margin is shown initially.
-STYLE controls how to format the committer date.  It can be one
-  of `age' (to show the age of the commit), `age-abbreviated' (to
-  abbreviate the time unit to a character), or a string (suitable
-  for `format-time-string') to show the actual date.
+STYLE controls how to format the author or committer date.
+  It can be one of `age' (to show the age of the commit),
+  `age-abbreviated' (to abbreviate the time unit to a character),
+  or a string (suitable for `format-time-string') to show the
+  actual date.  Option `magit-log-margin-show-committer-date'
+  controls which date is being displayed.
 WIDTH controls the width of the margin.  This exists for forward
   compatibility and currently the value should not be changed.
 AUTHOR controls whether the name of the author is also shown by
@@ -131,7 +127,7 @@ AUTHOR-WIDTH has to be an integer.  When the name of the author
   :group 'magit-margin
   :safe (lambda (val) (memq val '(all branch nil)))
   :type magit-log-margin--custom-type
-  :initialize 'magit-custom-initialize-reset
+  :initialize #'magit-custom-initialize-reset
   :set-after '(magit-log-margin)
   :set (apply-partially #'magit-margin-set-variable 'magit-refs-mode))
 
@@ -184,16 +180,21 @@ change the verbosity of this column."
 (defcustom magit-refs-filter-alist nil
   "Alist controlling which refs are omitted from `magit-refs-mode' buffers.
 
+The purpose of this option is to forgo displaying certain refs
+based on their name.  If you want to not display any refs of a
+certain type, then you should remove the appropriate function
+from `magit-refs-sections-hook' instead.
+
 All keys are tried in order until one matches.  Then its value
 is used and subsequent elements are ignored.  If the value is
 non-nil, then the reference is displayed, otherwise it is not.
 If no element matches, then the reference is displayed.
 
-A key can either be a regular expression that the refname has
-to match, or a function that takes the refname as only argument
-and returns a boolean.  Contrary to how they are displayed in
-the buffer, for comparison each tag begins with \"tags/\" and
-each remote branch with \"<remote>/\"."
+A key can either be a regular expression that the refname has to
+match, or a function that takes the refname as only argument and
+returns a boolean.  A remote branch such as \"origin/master\" is
+displayed as just \"master\", however for this comparison the
+former is used."
   :package-version '(magit . "2.12.0")
   :group 'magit-refs
   :type '(alist :key-type   (choice  :tag "Key" regexp function)
@@ -273,8 +274,8 @@ the outcome.
 (defvar magit-refs-mode-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map magit-mode-map)
-    (define-key map "\C-y" 'magit-refs-set-show-commit-count)
-    (define-key map "L"    'magit-margin-popup)
+    (define-key map (kbd "C-y") #'magit-refs-set-show-commit-count)
+    (define-key map (kbd "L")   #'magit-margin-settings)
     map)
   "Keymap for `magit-refs-mode'.")
 
@@ -289,117 +290,122 @@ Type \\[magit-section-toggle] to expand or hide the section at point.
 Type \\[magit-visit-thing] or \\[magit-diff-show-or-scroll-up] \
 to visit the commit or branch at point.
 
-Type \\[magit-branch-popup] to see available branch commands.
-Type \\[magit-merge-popup] to merge the branch or commit at point.
-Type \\[magit-cherry-pick-popup] to apply the commit at point.
+Type \\[magit-branch] to see available branch commands.
+Type \\[magit-merge] to merge the branch or commit at point.
+Type \\[magit-cherry-pick] to apply the commit at point.
 Type \\[magit-reset] to reset `HEAD' to the commit at point.
 
 \\{magit-refs-mode-map}"
   :group 'magit-refs
   (hack-dir-local-variables-non-file-buffer)
-  (setq imenu-create-index-function
-        #'magit-imenu--refs-create-index-function)
-  (setq-local bookmark-make-record-function
-              #'magit-bookmark--refs-make-record))
+  (setq magit--imenu-group-types '(local remote tags)))
 
-(defun magit-refs-refresh-buffer (ref &optional args)
+(defun magit-refs-setup-buffer (ref args)
+  (magit-setup-buffer #'magit-refs-mode nil
+    (magit-buffer-upstream ref)
+    (magit-buffer-arguments args)))
+
+(defun magit-refs-refresh-buffer ()
   (setq magit-set-buffer-margin-refresh (not (magit-buffer-margin-p)))
-  (unless ref
-    (setq ref "HEAD"))
-  (unless (magit-rev-verify ref)
+  (unless (magit-rev-verify magit-buffer-upstream)
     (setq magit-refs-show-commit-count nil))
   (magit-set-header-line-format
-   (format "%s %s" ref (mapconcat #'identity args " ")))
+   (format "%s %s" magit-buffer-upstream
+           (mapconcat #'identity magit-buffer-arguments " ")))
   (magit-insert-section (branchbuf)
     (magit-run-section-hook 'magit-refs-sections-hook))
-  (add-hook 'kill-buffer-hook 'magit-preserve-section-visibility-cache))
+  (add-hook 'kill-buffer-hook #'magit-preserve-section-visibility-cache))
+
+(cl-defmethod magit-buffer-value (&context (major-mode magit-refs-mode))
+  (cons magit-buffer-upstream magit-buffer-arguments))
 
 ;;; Commands
 
-(defcustom magit-show-refs-arguments nil
-  "The arguments used in `magit-refs-mode' buffers."
-  :group 'magit-git-arguments
-  :group 'magit-refs
-  :type '(repeat (string :tag "Argument")))
+;;;###autoload (autoload 'magit-show-refs "magit-refs" nil t)
+(transient-define-prefix magit-show-refs (&optional transient)
+  "List and compare references in a dedicated buffer."
+  :man-page "git-branch"
+  :value (lambda ()
+           (magit-show-refs-arguments magit-prefix-use-buffer-arguments))
+  ["Arguments"
+   (magit-for-each-ref:--contains)
+   ("-M" "Merged"               "--merged=" magit-transient-read-revision)
+   ("-m" "Merged to HEAD"       "--merged")
+   ("-N" "Not merged"           "--no-merged=" magit-transient-read-revision)
+   ("-n" "Not merged to HEAD"   "--no-merged")
+   (magit-for-each-ref:--sort)]
+  ["Actions"
+   ("y" "Show refs, comparing them with HEAD"           magit-show-refs-head)
+   ("c" "Show refs, comparing them with current branch" magit-show-refs-current)
+   ("o" "Show refs, comparing them with other branch"   magit-show-refs-other)
+   ("r" "Show refs, changing commit count display"
+    magit-refs-set-show-commit-count)]
+  (interactive (list (or (derived-mode-p 'magit-refs-mode)
+                         current-prefix-arg)))
+  (if transient
+      (transient-setup 'magit-show-refs)
+    (magit-refs-setup-buffer "HEAD" (magit-show-refs-arguments))))
 
-(defvar magit-show-refs-popup
-  (list
-   :variable 'magit-show-refs-arguments
-   :man-page "git-branch"
-   :switches '((?m "Merged to HEAD"            "--merged")
-               (?M "Merged to master"          "--merged=master")
-               (?n "Not merged to HEAD"        "--no-merged")
-               (?N "Not merged to master"      "--no-merged=master"))
-   :options  '((?c "Contains"   "--contains="  magit-read-branch-or-commit)
-               (?m "Merged"     "--merged="    magit-read-branch-or-commit)
-               (?n "Not merged" "--no-merged=" magit-read-branch-or-commit)
-               (?s "Sort"       "--sort="      magit-read-ref-sort))
-   :actions  '((?y "Show refs, comparing them with HEAD"
-                   magit-show-refs-head)
-               (?c "Show refs, comparing them with current branch"
-                   magit-show-refs-current)
-               (?o "Show refs, comparing them with other branch"
-                   magit-show-refs))
-   :default-action 'magit-show-refs-head
-   :max-action-columns 1
-   :use-prefix (lambda ()
-                 (if (derived-mode-p 'magit-refs-mode)
-                     (if current-prefix-arg 'popup 'default)
-                   'popup))))
+(defun magit-show-refs-arguments (&optional use-buffer-args)
+  (unless use-buffer-args
+    (setq use-buffer-args magit-direct-use-buffer-arguments))
+  (let (args)
+    (cond
+     ((eq transient-current-command 'magit-show-refs)
+      (setq args (transient-args 'magit-show-refs)))
+     ((eq major-mode 'magit-refs-mode)
+      (setq args magit-buffer-arguments))
+     ((and (memq use-buffer-args '(always selected))
+           (when-let* ((buffer (magit-get-mode-buffer ;debbugs#31840
+                               'magit-refs-mode nil
+                               (eq use-buffer-args 'selected))))
+             (setq args (buffer-local-value 'magit-buffer-arguments buffer))
+             t)))
+     (t
+      (setq args (alist-get 'magit-show-refs transient-values))))
+    args))
 
-(magit-define-popup-keys-deferred 'magit-show-refs-popup)
+(transient-define-argument magit-for-each-ref:--contains ()
+  :description "Contains"
+  :class 'transient-option
+  :key "-c"
+  :argument "--contains="
+  :reader #'magit-transient-read-revision)
 
-(defun magit-read-ref-sort (prompt initial-input)
+(transient-define-argument magit-for-each-ref:--sort ()
+  :description "Sort"
+  :class 'transient-option
+  :key "-s"
+  :argument "--sort="
+  :reader #'magit-read-ref-sort)
+
+(defun magit-read-ref-sort (prompt initial-input _history)
   (magit-completing-read prompt
                          '("-committerdate" "-authordate"
                            "committerdate" "authordate")
                          nil nil initial-input))
 
-(defun magit-show-refs-get-buffer-args ()
-  (cond ((and magit-use-sticky-arguments
-              (derived-mode-p 'magit-refs-mode))
-         (cadr magit-refresh-args))
-        ((and (eq magit-use-sticky-arguments t)
-              (--when-let (magit-mode-get-buffer 'magit-refs-mode)
-                (with-current-buffer it
-                  (cadr magit-refresh-args)))))
-        (t
-         (default-value 'magit-show-refs-arguments))))
-
-(defun magit-show-refs-arguments ()
-  (if (eq magit-current-popup 'magit-show-refs-popup)
-      magit-current-popup-args
-    (magit-show-refs-get-buffer-args)))
-
-;;;###autoload
-(defun magit-show-refs-popup (&optional arg)
-  "Popup console for `magit-show-refs'."
-  (interactive "P")
-  (let ((magit-show-refs-arguments (magit-show-refs-get-buffer-args)))
-    (magit-invoke-popup 'magit-show-refs-popup nil arg)))
-
 ;;;###autoload
 (defun magit-show-refs-head (&optional args)
   "List and compare references in a dedicated buffer.
-Refs are compared with `HEAD'."
+Compared with `HEAD'."
   (interactive (list (magit-show-refs-arguments)))
-  (magit-show-refs nil args))
+  (magit-refs-setup-buffer "HEAD" args))
 
 ;;;###autoload
 (defun magit-show-refs-current (&optional args)
   "List and compare references in a dedicated buffer.
-Refs are compared with the current branch or `HEAD' if
-it is detached."
+Compare with the current branch or `HEAD' if it is detached."
   (interactive (list (magit-show-refs-arguments)))
-  (magit-show-refs (magit-get-current-branch) args))
+  (magit-refs-setup-buffer (magit-get-current-branch) args))
 
 ;;;###autoload
-(defun magit-show-refs (&optional ref args)
+(defun magit-show-refs-other (&optional ref args)
   "List and compare references in a dedicated buffer.
-Refs are compared with a branch read from the user."
+Compared with a branch read from the user."
   (interactive (list (magit-read-other-branch "Compare with")
                      (magit-show-refs-arguments)))
-  (magit-mode-setup #'magit-refs-mode ref args))
+  (magit-refs-setup-buffer ref args))
 
 (defun magit-refs-set-show-commit-count ()
   "Change for which refs the commit count is shown."
@@ -420,14 +426,16 @@ This command behaves just like `magit-show-commit', except if
 point is on a reference in a `magit-refs-mode' buffer (a buffer
 listing branches and tags), in which case the behavior may be
 different, but only if you have customized the option
-`magit-visit-ref-behavior' (which see)."
+`magit-visit-ref-behavior' (which see).  When invoked from a
+menu this command always behaves like `magit-show-commit'."
   (interactive)
   (if (and (derived-mode-p 'magit-refs-mode)
-           (magit-section-match '(branch tag)))
+           (magit-section-match '(branch tag))
+           (not (magit-menu-position)))
       (let ((ref (oref (magit-current-section) value)))
         (cond (current-prefix-arg
                (cond ((memq 'focus-on-ref magit-visit-ref-behavior)
-                      (magit-show-refs ref))
+                      (magit-refs-setup-buffer ref (magit-show-refs-arguments)))
                      (magit-visit-ref-behavior
                       ;; Don't prompt for commit to visit.
                       (let ((current-prefix-arg nil))
@@ -451,13 +459,13 @@ Branch %s already exists.
                          (?r (magit-call-git "checkout" "-B" branch ref))
                          (?a (user-error "Abort"))))
                    (magit-call-git "checkout" "-b" branch ref))
-                 (setcar magit-refresh-args branch)
+                 (setq magit-buffer-upstream branch)
                  (magit-refresh)))
               ((or (memq 'checkout-any magit-visit-ref-behavior)
                    (and (memq 'checkout-branch magit-visit-ref-behavior)
                         (magit-section-match [branch local])))
                (magit-call-git "checkout" ref)
-               (setcar magit-refresh-args ref)
+               (setq magit-buffer-upstream ref)
                (magit-refresh))
               (t
                (call-interactively #'magit-show-commit))))
@@ -467,25 +475,39 @@ Branch %s already exists.
 
 (defvar magit-remote-section-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [remap magit-delete-thing] 'magit-remote-remove)
-    (define-key map "R"                        'magit-remote-rename)
+    (magit-menu-set map [magit-delete-thing] #'magit-remote-remove "Remove %m")
+    (magit-menu-set map [magit-file-rename]  #'magit-remote-rename "Rename %s")
     map)
   "Keymap for `remote' sections.")
 
 (defvar magit-branch-section-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [remap magit-visit-thing]  'magit-visit-ref)
-    (define-key map [remap magit-delete-thing] 'magit-branch-delete)
-    (define-key map "R"                        'magit-branch-rename)
+    (magit-menu-set map [magit-visit-thing]  #'magit-visit-ref     "Visit commit")
+    (magit-menu-set map [magit-delete-thing] #'magit-branch-delete "Delete %m")
+    (magit-menu-set map [magit-file-rename]  #'magit-branch-rename "Rename %s")
     map)
   "Keymap for `branch' sections.")
 
 (defvar magit-tag-section-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [remap magit-visit-thing]  'magit-visit-ref)
-    (define-key map [remap magit-delete-thing] 'magit-tag-delete)
+    (magit-menu-set map [magit-visit-thing]  #'magit-visit-ref  "Visit %s")
+    (magit-menu-set map [magit-delete-thing] #'magit-tag-delete "Delete %m")
     map)
   "Keymap for `tag' sections.")
+
+(defun magit--painted-branch-as-menu-section (section)
+  (and-let* ((branch (and (magit-section-match 'commit)
+                          (magit--painted-branch-at-point))))
+    (let ((dummy (magit-section :type 'branch :value branch)))
+      (oset dummy keymap magit-branch-section-map)
+      (dolist (slot '(start content hidden parent children))
+        (when (slot-boundp section slot)
+          (setf (eieio-oref dummy slot)
+                (eieio-oref section slot))))
+      dummy)))
+
+(add-hook 'magit-menu-alternative-section-hook
+          #'magit--painted-branch-as-menu-section)
 
 (defun magit-insert-branch-description ()
   "Insert header containing the description of the current branch.
@@ -493,21 +515,20 @@ Insert a header line with the name and description of the
 current branch.  The description is taken from the Git variable
 `branch.<NAME>.description'; if that is undefined then no header
 line is inserted at all."
-  (when-let ((branch (magit-get-current-branch))
-             (desc (magit-get "branch" branch "description"))
-             (desc (split-string desc "\n")))
+  (when-let* ((branch (magit-get-current-branch))
+              (desc (magit-get "branch" branch "description"))
+              (desc (split-string desc "\n")))
     (when (equal (car (last desc)) "")
       (setq desc (butlast desc)))
     (magit-insert-section (branchdesc branch t)
       (magit-insert-heading branch ": " (car desc))
       (when (cdr desc)
-        (insert (mapconcat 'identity (cdr desc) "\n"))
+        (insert (mapconcat #'identity (cdr desc) "\n"))
         (insert "\n\n")))))
 
 (defun magit-insert-tags ()
   "Insert sections showing all tags."
-  (when-let ((tags (magit-git-lines "tag" "--list" "-n"
-                                    (cadr magit-refresh-args))))
+  (when-let ((tags (magit-git-lines "tag" "--list" "-n" magit-buffer-arguments)))
     (let ((_head (magit-rev-parse "HEAD")))
       (magit-insert-section (tags)
         (magit-insert-heading "Tags:")
@@ -516,17 +537,20 @@ line is inserted at all."
           (let ((tag (match-string 1 tag))
                 (msg (match-string 2 tag)))
             (when (magit-refs--insert-refname-p tag)
-              (magit-insert-section section (tag tag t)
+              (magit-insert-section (tag tag t)
                 (magit-insert-heading
                   (magit-refs--format-focus-column tag 'tag)
-                  (propertize tag 'face 'magit-tag)
-                  (make-string (max 1 (- magit-refs-primary-column-width
-                                         (length tag)))
-                               ?\s)
+                  (propertize tag 'font-lock-face 'magit-tag)
+                  (make-string
+                   (max 1 (- (if (consp magit-refs-primary-column-width)
+                                 (car magit-refs-primary-column-width)
+                               magit-refs-primary-column-width)
+                             (length tag)))
+                   ?\s)
                   (and msg (magit-log-propertize-keywords nil msg)))
                 (when (and magit-refs-margin-for-tags (magit-buffer-margin-p))
                   (magit-refs--format-margin tag))
-                (magit-refs--insert-cherry-commits tag section)))))
+                (magit-refs--insert-cherry-commits tag)))))
         (insert ?\n)
         (magit-make-margin-overlay nil t)))))
 
@@ -537,21 +561,22 @@ line is inserted at all."
       (magit-insert-heading
         (let ((pull (magit-get "remote" remote "url"))
               (push (magit-get "remote" remote "pushurl")))
-          (format (propertize "Remote %s (%s):" 'face 'magit-section-heading)
-                  (propertize remote 'face 'magit-branch-remote)
+          (format (propertize "Remote %s (%s):"
+                              'font-lock-face 'magit-section-heading)
+                  (propertize remote 'font-lock-face 'magit-branch-remote)
                   (concat pull (and pull push ", ") push))))
       (let (head)
         (dolist (line (magit-git-lines "for-each-ref" "--format=\
 %(symref:short)%00%(refname:short)%00%(refname)%00%(subject)"
                                        (concat "refs/remotes/" remote)
-                                       (cadr magit-refresh-args)))
+                                       magit-buffer-arguments))
           (pcase-let ((`(,head-branch ,branch ,ref ,msg)
                        (-replace "" nil (split-string line "\0"))))
             (if head-branch
                 (progn (cl-assert (equal branch (concat remote "/HEAD")))
                        (setq head head-branch))
               (when (magit-refs--insert-refname-p branch)
-                (magit-insert-section section (branch branch t)
+                (magit-insert-section (branch branch t)
                   (let ((headp (equal branch head))
                         (abbrev (if magit-refs-show-remote-prefix
                                     branch
@@ -560,13 +585,16 @@ line is inserted at all."
                       (magit-refs--format-focus-column branch)
                       (magit-refs--propertize-branch
                        abbrev ref (and headp 'magit-branch-remote-head))
-                      (make-string (max 1 (- magit-refs-primary-column-width
-                                             (length abbrev)))
-                                   ?\s)
+                      (make-string
+                       (max 1 (- (if (consp magit-refs-primary-column-width)
+                                     (car magit-refs-primary-column-width)
+                                   magit-refs-primary-column-width)
+                                 (length abbrev)))
+                       ?\s)
                       (and msg (magit-log-propertize-keywords nil msg))))
                   (when (magit-buffer-margin-p)
                     (magit-refs--format-margin branch))
-                  (magit-refs--insert-cherry-commits branch section)))))))
+                  (magit-refs--insert-cherry-commits branch)))))))
       (insert ?\n)
       (magit-make-margin-overlay nil t))))
 
@@ -576,19 +604,19 @@ line is inserted at all."
     (magit-insert-heading "Branches:")
     (dolist (line (magit-refs--format-local-branches))
       (pcase-let ((`(,branch . ,strings) line))
-        (magit-insert-section section
+        (magit-insert-section
           ((eval (if branch 'branch 'commit))
            (or branch (magit-rev-parse "HEAD"))
            t)
           (apply #'magit-insert-heading strings)
           (when (magit-buffer-margin-p)
             (magit-refs--format-margin branch))
-          (magit-refs--insert-cherry-commits branch section))))
+          (magit-refs--insert-cherry-commits branch))))
     (insert ?\n)
     (magit-make-margin-overlay nil t)))
 
 (defun magit-refs--format-local-branches ()
-  (let ((lines (-keep 'magit-refs--format-local-branch
+  (let ((lines (-keep #'magit-refs--format-local-branch
                       (magit-git-lines
                        "for-each-ref"
                        (concat "--format=\
@@ -598,7 +626,7 @@ line is inserted at all."
 %(push:remotename)%00%(push)%00%(push:track)%00%(subject)"
                                  "%00%00%00%(subject)"))
                        "refs/heads"
-                       (cadr magit-refresh-args)))))
+                       magit-buffer-arguments))))
     (unless (magit-get-current-branch)
       (push (magit-refs--format-local-branch
              (concat "*\0\0\0\0\0\0\0\0" (magit-rev-format "%s")))
@@ -637,52 +665,53 @@ line is inserted at all."
               (if branch
                   (magit-refs--propertize-branch
                    branch ref (and headp 'magit-branch-current))
-                (propertize "(detached)" 'face 'font-lock-warning-face)))
+                (magit--propertize-face "(detached)" 'magit-branch-warning)))
              (u:ahead  (and u:track
                             (string-match "ahead \\([0-9]+\\)" u:track)
-                            (propertize
+                            (magit--propertize-face
                              (concat (and magit-refs-pad-commit-counts " ")
                                      (match-string 1 u:track)
                                      ">")
-                             'face 'magit-dimmed)))
+                             'magit-dimmed)))
              (u:behind (and u:track
                             (string-match "behind \\([0-9]+\\)" u:track)
-                            (propertize
+                            (magit--propertize-face
                              (concat "<"
                                      (match-string 1 u:track)
                                      (and magit-refs-pad-commit-counts " "))
-                             'face 'magit-dimmed)))
+                             'magit-dimmed)))
              (p:ahead  (and pushp p:track
                             (string-match "ahead \\([0-9]+\\)" p:track)
-                            (propertize
+                            (magit--propertize-face
                              (concat (match-string 1 p:track)
                                      ">"
                                      (and magit-refs-pad-commit-counts " "))
-                             'face 'magit-branch-remote)))
+                             'magit-branch-remote)))
              (p:behind (and pushp p:track
                             (string-match "behind \\([0-9]+\\)" p:track)
-                            (propertize
+                            (magit--propertize-face
                              (concat "<"
                                      (match-string 1 p:track)
                                      (and magit-refs-pad-commit-counts " "))
-                             'face 'magit-dimmed))))
+                             'magit-dimmed))))
         (list (1+ (length (concat branch-desc u:ahead p:ahead u:behind)))
               branch
               (magit-refs--format-focus-column branch headp)
               branch-desc u:ahead p:ahead u:behind
               (and upstream
                    (concat (if (equal u:track "[gone]")
-                               (propertize upstream 'face 'error)
+                               (magit--propertize-face upstream 'error)
                              (magit-refs--propertize-branch upstream u:ref))
                            " "))
               (and pushp
                    (concat p:behind
-                           (propertize push 'face 'magit-branch-remote)
+                           (magit--propertize-face
+                            push 'magit-branch-remote)
                            " "))
               (and msg (magit-log-propertize-keywords nil msg)))))))
 
 (defun magit-refs--format-focus-column (ref &optional type)
-  (let ((focus (car magit-refresh-args))
+  (let ((focus magit-buffer-upstream)
         (width (if magit-refs-show-commit-count
                    magit-refs-focus-column-width
                  1)))
@@ -690,29 +719,28 @@ line is inserted at all."
      (format "%%%ss " width)
      (cond ((or (equal ref focus)
                 (and (eq type t)
-                     (eq focus nil)))
-            (propertize (concat (if focus "@" "*")
-                                (make-string (1- width) ?\s))
-                        'face 'magit-section-heading))
+                     (equal focus "HEAD")))
+            (magit--propertize-face (concat (if (equal focus "HEAD") "@" "*")
+                                            (make-string (1- width) ?\s))
+                                    'magit-section-heading))
            ((if (eq type 'tag)
                 (eq magit-refs-show-commit-count 'all)
               magit-refs-show-commit-count)
             (pcase-let ((`(,behind ,ahead)
-                         (magit-rev-diff-count
-                          (or (car magit-refresh-args) "HEAD")
-                          ref)))
-              (propertize
+                         (magit-rev-diff-count magit-buffer-upstream ref)))
+              (magit--propertize-face
                (cond ((> ahead  0) (concat "<" (number-to-string ahead)))
                      ((> behind 0) (concat (number-to-string behind) ">"))
                      (t "="))
-               'face 'magit-dimmed)))
+               'magit-dimmed)))
            (t "")))))
 
 (defun magit-refs--propertize-branch (branch ref &optional head-face)
   (let ((face (cdr (cl-find-if (pcase-lambda (`(,re . ,_))
                                  (string-match-p re ref))
                                magit-ref-namespaces))))
-    (propertize branch 'face (if head-face (list face head-face) face))))
+    (magit--propertize-face
+     branch (if head-face (list face head-face) face))))
 
 (defun magit-refs--insert-refname-p (refname)
   (--if-let (-first (pcase-lambda (`(,key . ,_))
@@ -723,21 +751,15 @@ line is inserted at all."
       (cdr it)
     t))
 
-(defun magit-refs--insert-cherry-commits (ref section)
-  (if (oref section hidden)
-      (oset section washer
-            (apply-partially #'magit-refs--insert-cherry-commits-1 ref section))
-    (magit-refs--insert-cherry-commits-1 ref section)))
-
-(defun magit-refs--insert-cherry-commits-1 (ref _section)
-  (let ((start (point))
-        (magit-insert-section--current nil))
-    (magit-git-wash (apply-partially 'magit-log-wash-log 'cherry)
-      "cherry" "-v" (magit-abbrev-arg)
-      (or (car magit-refresh-args) "HEAD")
-      ref magit-refresh-args)
-    (unless (= (point) start)
-      (magit-make-margin-overlay nil t))))
+(defun magit-refs--insert-cherry-commits (ref)
+  (magit-insert-section-body
+    (let ((start (point))
+          (magit-insert-section--current nil))
+      (magit-git-wash (apply-partially #'magit-log-wash-log 'cherry)
+        "cherry" "-v" (magit-abbrev-arg) magit-buffer-upstream ref)
+      (if (= (point) start)
+          (message "No cherries for %s" ref)
+        (magit-make-margin-overlay nil t)))))
 
 (defun magit-refs--format-margin (commit)
   (save-excursion

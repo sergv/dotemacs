@@ -1,9 +1,11 @@
-(define-package "magit" "2.90.1"
+(define-package "magit" "3.3.0-git"
   "A Git porcelain inside Emacs."
   '((emacs "25.1")
-    (async "1.9.3")
-    (dash "2.14.1")
-    (ghub "3.0.0")
-    (git-commit "2.90.0")
-    (magit-popup "2.12.4")
-    (with-editor "2.8.0")))
+    (compat "28.1.1.2")
+    (dash "20210826")
+    (git-commit "20220222")
+    (magit-section "20220325")
+    (transient "20220325")
+    (with-editor "20220318"))
+  :homepage "https://magit.vc"
+  :keywords '("git" "tools" "vc"))
