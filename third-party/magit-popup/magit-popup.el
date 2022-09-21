@@ -1,6 +1,6 @@
 ;;; magit-popup.el --- Define prefix-infix-suffix command combos  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2019  The Magit Project Contributors
+;; Copyright (C) 2010-2020  The Magit Project Contributors
 ;;
 ;; You should have received a copy of the AUTHORS.md file which
 ;; lists all contributors.  If not, see http://magit.vc/authors.
@@ -37,7 +37,7 @@
 ;; external process with the specified arguments.
 
 ;; This package has been superseded by Transient.  No new features
-;; will be added but bugs will be fixes.
+;; will be added but bugs will be fixed.
 
 ;;; Code:
 
