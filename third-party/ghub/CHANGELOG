@@ -1,4 +1,90 @@
 # -*- mode: org -*-
+* v3.5.7    UNRELEASED
+
+- Queries can now be passed to ~ghub-graphql~ in the gsexp format.
+  f3a2654
+
+- Depend on the Compat package, allowing me to use convenient features
+  that were added to Emacs over the last few years, without having to
+  wait another few years until everybody has updated to a reasonably
+  recent Emacs release.  e441385
+
+Bug fixes:
+
+- 8c4d0ba ghub--encode-payload: Drop invalid arguments to json-serialize
+- 0946102 ghub--url-encode-params: Handle lisp booleans
+- 5eed205 Add kludge for debbugs#54989 and rework kludge for debbugs#34341
+
+Also contains various documentation updates, code clean-ups and
+build improvements.
+
+* v3.5.6    2022-03-25
+
+- When encoding payloads, explicitly specify how to encode certain
+  Lisp values in JSON.
+
+* v3.5.5    2022-02-16
+
+- Define ~ghub--auth~ as a generic function.
+
+- Also included are several other improvements, updated documentation
+  and bugfixes.
+
+- The experimental and unfinished support for the native json backend
+  must not be used.  It was merged prematurely.
+
+* v3.5.4    2021-10-02
+
+- Add new ~sparse~ argument to ~ghub-fetch-repository~, making it possible
+  to fetch only information about the repository itself, exluding data
+  such as issues and pull-requests.
+
+* v3.5.3    2021-05-26
+
+- If the username isn't set and the user decides to set it locally,
+  then that resulted in an error.  #124
+
+* v3.5.2    2021-04-27
+
+- Add new function ~ghub-fetch-review-threads~ and make
+  ~ghub-fetch-respository~ fetch ~baseRefOid~ and ~headRefOid~.  #110
+
+- Add new ~headers~ argument to ~ghub-fetch-repository~, ~ghub-fetch-issue~
+  and ~ghub-fetch-pullreq~.  #110
+
+* v3.5.1    2020-12-27
+
+- Add new ~headers~ keyword argument to ~ghub-graphql~.
+
+* v3.5.0    2020-11-21
+
+- Add a kludge to work around a bug in Emacs that causes it to not
+  respond correctly to http codes 401 and 409, causing the user to
+  be asked for their username, which makes it very hard to debug
+  the actual issue that caused to reject the provided information.
+  [[https://github.com/magit/forge/issues/293][forge/293]]
+
+- Limit the kludge from v3.3.0 to Emacs releases that are affected.
+  It was fixed in Emacs 27.1.
+
+* v3.4.2    2020-10-25
+
+- Make sure base64 encoded credentials do not contain any newline
+  characters.  #118
+
+* v3.4.1    2020-08-01
+
+- Fix a regression introduced in v3.4.0.
+
+* v3.4.0    2020-07-20
+
+- Remove the token setup wizard because (a) it only ever supported
+  Github, (b) Github is about to remove support for that on their
+  end, (c) it did not always work, and (d) when it couldn't be used,
+  or failed, then it made things /more/ complicated.  #113
+
+- Various minor fixes and improvements.
+
 * v3.3.0    2020-01-19
 
 - Add a kludge to work around a bug in Emacs versions before 26.3 that
