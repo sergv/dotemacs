@@ -1,17 +1,16 @@
-;;; magit-fetch.el --- download objects and refs  -*- lexical-binding: t -*-
+;;; magit-fetch.el --- Download objects and refs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2018  The Magit Project Contributors
-;;
-;; You should have received a copy of the AUTHORS.md file which
-;; lists all contributors.  If not, see http://magit.vc/authors.
+;; Copyright (C) 2008-2022 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
 
-;; Magit is free software; you can redistribute it and/or modify it
+;; SPDX-License-Identifier: GPL-3.0-or-later
+
+;; Magit is free software: you can redistribute it and/or modify it
 ;; under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 ;;
 ;; Magit is distributed in the hope that it will be useful, but WITHOUT
 ;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -19,7 +18,7 @@
 ;; License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
-;; along with Magit.  If not, see http://www.gnu.org/licenses.
+;; along with Magit.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -29,59 +28,89 @@
 
 (require 'magit)
 
-;;; Options
-
-(defcustom magit-fetch-modules-jobs 4
-  "Number of submodules to fetch in parallel.
-Ignored for Git versions before v2.8.0."
-  :package-version '(magit . "2.12.0")
-  :group 'magit-commands
-  :type '(choice (const :tag "one at a time" nil) number))
+(defvar magit-fetch-modules-jobs nil)
+(make-obsolete-variable
+ 'magit-fetch-modules-jobs
+ "invoke `magit-fetch-modules' with a prefix argument instead."
+ "Magit 3.0.0")
 
 ;;; Commands
 
-;;;###autoload (autoload 'magit-fetch-popup "magit-fetch" nil t)
-(magit-define-popup magit-fetch-popup
-  "Popup console for fetch commands."
+;;;###autoload (autoload 'magit-fetch "magit-fetch" nil t)
+(transient-define-prefix magit-fetch ()
+  "Fetch from another repository."
   :man-page "git-fetch"
-  :switches '((?p "Prune deleted branches" "--prune"))
-  :actions  '("Configure"
-              (?C "variables..."           magit-branch-config-popup)
-              "Fetch from"
-              (?p magit-get-push-remote    magit-fetch-from-pushremote)
-              (?u magit-get-remote         magit-fetch-from-upstream)
-              (?e "elsewhere"              magit-fetch-other)
-              (?a "all remotes"            magit-fetch-all)
-              "Fetch"
-              (?o "another branch"         magit-fetch-branch)
-              (?r "explicit refspec"       magit-fetch-refspec)
-              (?m "submodules"             magit-fetch-modules))
-  :default-action 'magit-fetch
-  :max-action-columns 1)
+  ["Arguments"
+   ("-p" "Prune deleted branches" ("-p" "--prune"))
+   ("-t" "Fetch all tags" ("-t" "--tags"))
+   (7 "-u" "Fetch full history" "--unshallow")]
+  ["Fetch from"
+   ("p" magit-fetch-from-pushremote)
+   ("u" magit-fetch-from-upstream)
+   ("e" "elsewhere"        magit-fetch-other)
+   ("a" "all remotes"      magit-fetch-all)]
+  ["Fetch"
+   ("o" "another branch"   magit-fetch-branch)
+   ("r" "explicit refspec" magit-fetch-refspec)
+   ("m" "submodules"       magit-fetch-modules)]
+  ["Configure"
+   ("C" "variables..." magit-branch-configure)])
+
+(defun magit-fetch-arguments ()
+  (transient-args 'magit-fetch))
 
 (defun magit-git-fetch (remote args)
   (run-hooks 'magit-credential-hook)
   (magit-run-git-async "fetch" remote args))
 
-;;;###autoload
-(defun magit-fetch-from-pushremote (args)
-  "Fetch from the push-remote of the current branch."
-  (interactive (list (magit-fetch-arguments)))
-  (--if-let (magit-get-push-remote)
-      (magit-git-fetch it args)
-    (--if-let (magit-get-current-branch)
-        (user-error "No push-remote is configured for %s" it)
-      (user-error "No branch is checked out"))))
+;;;###autoload (autoload 'magit-fetch-from-pushremote "magit-fetch" nil t)
+(transient-define-suffix magit-fetch-from-pushremote (args)
+  "Fetch from the current push-remote.
 
-;;;###autoload
-(defun magit-fetch-from-upstream (args)
-  "Fetch from the upstream repository of the current branch."
+With a prefix argument or when the push-remote is either not
+configured or unusable, then let the user first configure the
+push-remote."
+  :description #'magit-fetch--pushremote-description
   (interactive (list (magit-fetch-arguments)))
-  (--if-let (magit-get-remote)
-      (magit-git-fetch it args)
-    (--if-let (magit-get-current-branch)
-        (user-error "No upstream is configured for %s" it)
-      (user-error "No branch is checked out"))))
+  (let ((remote (magit-get-push-remote)))
+    (when (or current-prefix-arg
+              (not (member remote (magit-list-remotes))))
+      (let ((var (magit--push-remote-variable)))
+        (setq remote
+              (magit-read-remote (format "Set %s and fetch from there" var)))
+        (magit-set remote var)))
+    (magit-git-fetch remote args)))
+
+(defun magit-fetch--pushremote-description ()
+  (let* ((branch (magit-get-current-branch))
+         (remote (magit-get-push-remote branch))
+         (v (magit--push-remote-variable branch t)))
+    (cond
+     ((member remote (magit-list-remotes)) remote)
+     (remote
+      (format "%s, replacing invalid" v))
+     (t
+      (format "%s, setting that" v)))))
+
+;;;###autoload (autoload 'magit-fetch-from-upstream "magit-fetch" nil t)
+(transient-define-suffix magit-fetch-from-upstream (remote args)
+  "Fetch from the \"current\" remote, usually the upstream.
+
+If the upstream is configured for the current branch and names
+an existing remote, then use that.  Otherwise try to use another
+remote: If only a single remote is configured, then use that.
+Otherwise if a remote named \"origin\" exists, then use that.
+
+If no remote can be determined, then this command is not available
+from the `magit-fetch' transient prefix and invoking it directly
+results in an error."
+  :if          (lambda () (magit-get-current-remote t))
+  :description (lambda () (magit-get-current-remote t))
+  (interactive (list (magit-get-current-remote t)
+                     (magit-fetch-arguments)))
+  (unless remote
+    (error "The \"current\" remote could not be determined"))
+  (magit-git-fetch remote args))
 
 ;;;###autoload
 (defun magit-fetch-other (remote args)
@@ -113,11 +142,8 @@ Ignored for Git versions before v2.8.0."
 ;;;###autoload
 (defun magit-fetch-all (args)
   "Fetch from all remotes."
-  (interactive (list (cl-intersection (magit-fetch-arguments)
-                                      (list "--verbose" "--prune")
-                                      :test #'equal)))
-  (run-hooks 'magit-credential-hook)
-  (magit-run-git-async "remote" "update" args))
+  (interactive (list (magit-fetch-arguments)))
+  (magit-git-fetch nil (cons "--all" args)))
 
 ;;;###autoload
 (defun magit-fetch-all-prune ()
@@ -135,22 +161,38 @@ removed on the respective remote."
   (run-hooks 'magit-credential-hook)
   (magit-run-git-async "remote" "update"))
 
-;;;###autoload
-(defun magit-fetch-modules (&optional all)
+;;;###autoload (autoload 'magit-fetch-modules "magit-fetch" nil t)
+(transient-define-prefix magit-fetch-modules (&optional transient args)
   "Fetch all submodules.
 
-Option `magit-fetch-modules-jobs' controls how many submodules
-are being fetched in parallel.  Also fetch the super-repository,
-because `git-fetch' does not support not doing that.  With a
-prefix argument fetch all remotes."
-  (interactive "P")
-  (magit-with-toplevel
-    (magit-run-git-async
-     "fetch" "--verbose" "--recurse-submodules"
-     (and magit-fetch-modules-jobs
-          (version<= "2.8.0" (magit-git-version))
-          (list "-j" (number-to-string magit-fetch-modules-jobs)))
-     (and all "--all"))))
+Fetching is done using \"git fetch --recurse-submodules\", which
+means that the super-repository and recursively all submodules
+are also fetched.
+
+To set and potentially save other arguments invoke this command
+with a prefix argument."
+  :man-page "git-fetch"
+  :value (list "--verbose"
+               (cond (magit-fetch-modules-jobs
+                      (format "--jobs=%s" magit-fetch-modules-jobs))
+                     (t "--jobs=4")))
+  ["Arguments"
+   ("-v" "verbose"        "--verbose")
+   ("-j" "number of jobs" "--jobs=" :reader transient-read-number-N+)]
+  ["Action"
+   ("m" "fetch modules" magit-fetch-modules)]
+  (interactive (if current-prefix-arg
+                   (list t)
+                 (list nil (transient-args 'magit-fetch-modules))))
+  (if transient
+      (transient-setup 'magit-fetch-modules)
+    (when (magit-git-version< "2.8.0")
+      (when-let ((value (transient-arg-value "--jobs=" args)))
+        (message "Dropping --jobs; not supported by Git v%s"
+                 (magit-git-version))
+        (setq args (remove (format "--jobs=%s" value) args))))
+    (magit-with-toplevel
+      (magit-run-git-async "fetch" "--recurse-submodules" args))))
 
 ;;; _
 (provide 'magit-fetch)
