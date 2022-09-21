@@ -1,68 +1,58 @@
-PREFIX  ?= /usr/local
-LISPDIR ?= $(PREFIX)/share/emacs/site-lisp/git-modes
+-include .config.mk
 
-ELS  = git-modes.el
-ELS += gitattributes-mode.el
-ELS += gitconfig-mode.el
-ELS += gitignore-mode.el
-ELCS = $(ELS:.el=.elc)
+PKG = git-modes
 
-LOADDEFS = git-modes-autoloads.el
+ELS   = $(PKG).el
+ELS  += gitattributes-mode.el
+ELS  += gitconfig-mode.el
+ELS  += gitignore-mode.el
+ELCS  = $(ELS:.el=.elc)
 
-EMACS_BIN ?= emacs
-BATCH = @$(EMACS_BIN) --batch -Q
+DEPS  =
 
-CP    ?= install -p -m 644
-MKDIR ?= install -p -m 755 -d
-RMDIR ?= rm -rf
-SED   ?= sed
+EMACS      ?= emacs
+EMACS_ARGS ?=
 
-VERSION ?= $(shell test -e .git && git describe --tags --dirty 2> /dev/null)
-ifeq "$(VERSION)" ""
-  VERSION = 1.2.1
-endif
+LOAD_PATH  ?= $(addprefix -L ../,$(DEPS))
+LOAD_PATH  += -L .
 
-.PHONY: install clean
+all: lisp
 
-lisp: $(ELCS) $(LOADDEFS)
+help:
+	$(info make all          - generate byte-code and autoloads)
+	$(info make lisp         - generate byte-code and autoloads)
+	$(info make clean        - remove generated files)
+	@printf "\n"
 
-install: lisp
-	@printf "Installing...\n"
-	@$(MKDIR) $(DESTDIR)$(LISPDIR)
-	@$(CP) $(ELS) $(ELCS) $(DESTDIR)$(LISPDIR)
+lisp: $(ELCS) loaddefs check-declare
 
-clean:
-	@printf "Cleaning...\n"
-	@$(RM) $(ELCS) $(LOADDEFS)
+loaddefs: $(PKG)-autoloads.el
 
 %.elc: %.el
-	@printf "Compiling $<...\n"
-	@$(BATCH) -L . -f batch-byte-compile $<
+	@printf "Compiling $<\n"
+	@$(EMACS) -Q --batch $(EMACS_ARGS) $(LOAD_PATH) -f batch-byte-compile $<
 
-define LOADDEFS_TMPL
-;;; $(LOADDEFS) --- automatically extracted autoloads
-;;
-;;; Code:
-(add-to-list 'load-path (directory-file-name \
-(or (file-name-directory #$$) (car load-path))))
-
-;; Local Variables:
-;; version-control: never
-;; no-byte-compile: t
-;; no-update-autoloads: t
-;; End:
-;;; $(LOADDEFS) ends here
-endef
-export LOADDEFS_TMPL
-#'
+check-declare:
+	@printf " Checking function declarations\n"
+	@$(EMACS) -Q --batch $(EMACS_ARGS) $(LOAD_PATH) \
+	--eval "(check-declare-directory default-directory)"
 
-$(LOADDEFS): $(ELS)
-	@printf "Generating $@\n"
-	@printf "%s" "$$LOADDEFS_TMPL" > $@
-	@$(BATCH) --eval "(progn\
-	(setq make-backup-files nil)\
-	(setq vc-handled-backends nil)\
-	(setq default-directory (file-truename default-directory))\
-	(setq generated-autoload-file (expand-file-name \"$@\"))\
-	(setq find-file-visit-truename t)\
-	(update-directory-autoloads default-directory))"
+CLEAN  = $(ELCS) $(PKG)-autoloads.el
+
+clean:
+	@printf " Cleaning...\n"
+	@rm -rf $(CLEAN)
+
+$(PKG)-autoloads.el: $(ELS)
+	@printf " Creating $@\n"
+	@$(EMACS) -Q --batch -l autoload -l cl-lib --eval "\
+(let ((file (expand-file-name \"$@\"))\
+      (autoload-timestamps nil) \
+      (backup-inhibited t)\
+      (version-control 'never)\
+      (coding-system-for-write 'utf-8-emacs-unix))\
+  (write-region (autoload-rubric file \"package\" nil) nil file nil 'silent)\
+  (cl-letf (((symbol-function 'progress-reporter-do-update) (lambda (&rest _)))\
+            ((symbol-function 'progress-reporter-done) (lambda (_))))\
+    (let ((generated-autoload-file file))\
+      (update-directory-autoloads default-directory))))"
