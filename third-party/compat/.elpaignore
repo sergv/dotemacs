@@ -1,0 +1,7 @@
+compat-tests.el
+Makefile
+.github
+.elpaignore
+COPYING
+README.md
+compat.texi
