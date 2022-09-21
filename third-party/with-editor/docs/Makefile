@@ -12,15 +12,9 @@ ORG_EVAL += --eval "(setq indent-tabs-mode nil)"
 ORG_EVAL += --eval "(setq org-src-preserve-indentation nil)"
 ORG_EVAL += --funcall org-texinfo-export-to-texinfo
 
-# This target first bumps version strings in the Org source.  The
-# necessary tools might be missing so other targets do not depend
-# on this target and it has to be run explicitly when appropriate.
-#
-#   AMEND=t make texi    Update manual to be amended to HEAD.
-#   VERSION=N make texi  Update manual for release.
-#
 .PHONY: texi
 texi:
+	@printf "Generating $(PKG).texi\n"
 	@$(EMACS) $(ORG_ARGS) $(PKG).org $(ORG_EVAL)
 	@printf "\n" >> $(PKG).texi
 	@rm -f $(PKG).texi~
@@ -59,11 +53,6 @@ html-dir: $(PKG).texi
 	@printf "Generating $@\n"
 	@texi2pdf --clean $< > /dev/null
 
-.PHONY: stats
-stats:
-	@printf "Generating statistics\n"
-	@gitstats $(GITSTATS_ARGS) $(TOP) $(GITSTATS_DIR)
-
 PUBLISH_PATH   ?= /manual/
 RELEASE_PATH   ?= /manual/$(VERSION)/
 S3_BUCKET      ?= s3://$(DOMAIN)
@@ -93,19 +82,21 @@ release: html html-dir pdf
 	@aws cloudfront create-invalidation --distribution-id $(CFRONT_DIST) --paths \
 	"$(subst $(space),$(comma),$(addprefix $(RELEASE_PATH),$(CFRONT_PATHS)))" > /dev/null
 
+.PHONY: stats
+stats:
+	@printf "Generating statistics\n"
+	@$(GITSTATS) $(GITSTATS_ARGS) $(TOP) $(GITSTATS_DIR)
+
+stats-upload:
+	@printf "Uploading statistics...\n"
+	@aws s3 sync $(GITSTATS_DIR) $(S3_BUCKET)/stats/$(PKG)
+	@printf "Uploaded to $(S3_BUCKET)/stats/$(PKG)\n"
+	@printf "Generating CDN invalidation\n"
+	@aws cloudfront create-invalidation \
+	--distribution-id $(CFRONT_DIST) --paths "/stats/*" > /dev/null
+
 CLEAN = $(PKG).info dir $(PKG) $(PKG).html $(PKG).pdf
 
 clean:
-	@printf "Cleaning docs/*...\n"
+	@printf " Cleaning docs/*...\n"
 	@rm -rf $(CLEAN)
-
-.PHONY: authors AUTHORS.md
-authors: AUTHORS.md
-
-AUTHORS.md:
-	@ printf "Authors\n=======\n\n" > $@
-	@ ( printf "%s\n" "- Barak A. Pearlmutter <barak+git@pearlmutter.net>" && \
-	    printf "%s\n" "- Lele Gaifax <lele@metapensiero.it>" && \
-	    printf "%s\n" "- Rémi Vanicat <vanicat@debian.org>" && \
-	    git log --pretty=format:'- %aN <%aE>' \
-	  ) | sort -u >> $@
