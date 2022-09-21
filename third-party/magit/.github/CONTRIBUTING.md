@@ -1,39 +1,15 @@
-Reporting issues and suggesting features
-========================================
+Magit has many users and very few maintainers, so we kindly ask to read
+the appropriate guidelines before getting in contact. &mdash; Thanks!
 
-To report bugs and suggest new feature use the [issue tracker][issues].
+- 🆘 [How to ask for help](https://github.com/magit/magit/discussions/4630)
+- 🪳 [How to report a bug](https://github.com/magit/magit/wiki/How-to-report-a-bug)
+- 💡 [How to suggest a feature](https://github.com/magit/magit/discussions/4631)
+- 🏗️ [Pull request guidelines](https://github.com/magit/magit/wiki/Pull-request-guidelines)
+- ℹ️ [FAQ](https://magit.vc/manual/magit/FAQ.html)
+- ℹ️ [Manual](https://magit.vc/manual/magit)
 
-Code contributions
-==================
+TL;DR We now use discussions for feature requests (not issues) and prefer
+if you ask the community for support instead of the overworked maintainers.
 
-If you have some code which you would like to be merged, then open a
-[pull request][pulls].  Please create atomic commits with descriptive
-commit messages and use a dedicated feature branch (`b s` might help
-with the latter).
-
-Documentation contributions
-===========================
-
-Improving the documentation is always a good way to get started
-contributing to some project.
-
-In the case of Magit this is somewhat complicated by the fact that
-we use some custom extensions.  Some meta documentation can be found
-[here][metadocs].
-
-TL;DR — Edit `magit.org`.  Do not edit `magit.texi`.  And don't touch
-the version numbers.  The maintainers will then update `magit.texi`
-and the version numbers in `magit.org` and amend those changes to your
-commit.
-
-Donations
-=========
-
-Please also consider to contribute by making a
-[monetary donation][donations].
-
-
-[donations]: https://magit.vc/donate/
-[issues]:    https://github.com/magit/magit/issues
-[metadocs]:  https://github.com/magit/magit/wiki/Documentation-tools-and-conventions
-[pulls]:     https://github.com/magit/magit/pulls
+Please also consider to contribute by supporting other users or by making
+a [monetary donation](https://magit.vc/donate). &mdash; Thanks!
