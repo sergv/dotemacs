@@ -5,7 +5,8 @@ PKG = with-editor
 ELS   = $(PKG).el
 ELCS  = $(ELS:.el=.elc)
 
-DEPS  = dash
+DEPS  = compat
+DEPS += vterm
 
 DOMAIN      ?= magit.vc
 CFRONT_DIST ?= E2LUHBKU1FBV02
@@ -27,5 +28,6 @@ INSTALL_INFO     ?= $(shell command -v ginstall-info || printf install-info)
 MAKEINFO         ?= makeinfo
 MANUAL_HTML_ARGS ?= --css-ref /assets/page.css
 
+GITSTATS      ?= gitstats
 GITSTATS_DIR  ?= $(TOP)docs/stats
 GITSTATS_ARGS ?= -c style=https://magit.vc/assets/stats.css -c max_authors=999
