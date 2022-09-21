@@ -1,23 +1,25 @@
-;;; ghub-graphql.el --- access Github API using GrapthQL  -*- lexical-binding: t -*-
+;;; ghub-graphql.el --- Access Github API using GrapthQL  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2016-2020  Jonas Bernoulli
+;; Copyright (C) 2016-2022 Jonas Bernoulli
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Homepage: https://github.com/magit/ghub
+;; Keywords: tools
 
-;; This file is not part of GNU Emacs.
+;; SPDX-License-Identifier: GPL-3.0-or-later
 
-;; This file is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
-
+;; This file is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published
+;; by the Free Software Foundation, either version 3 of the License,
+;; or (at your option) any later version.
+;;
 ;; This file is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-
-;; For a copy of the GPL see https://www.gnu.org/licenses/gpl.txt.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this file.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -25,43 +27,47 @@
 (require 'gsexp)
 (require 'treepy)
 
-(eval-when-compile
-  (require 'subr-x))
+(eval-when-compile (require 'subr-x))
 
 ;;; Api
 
 (cl-defun ghub-graphql (graphql &optional variables
-                                &key username auth host
-                                silent
+                                &key username auth host forge
+                                headers silent
                                 callback errorback value extra)
   "Make a GraphQL request using GRAPHQL and VARIABLES.
 Return the response as a JSON-like alist.  Even if the response
 contains `errors', do not raise an error.  GRAPHQL is a GraphQL
 string.  VARIABLES is a JSON-like alist.  The other arguments
 behave as for `ghub-request' (which see)."
-  (cl-assert (stringp graphql))
   (cl-assert (not (stringp variables)))
-  (ghub-request "POST" "/graphql" nil :payload
-                (json-encode `(("query" . ,graphql)
-                               ,@(and variables `(("variables" ,@variables)))))
-                :silent silent
-                :username username :auth auth :host host
+  (cl-assert (or (stringp graphql)
+                 (memq (car-safe graphql) '(query mutation))))
+  (unless (stringp graphql)
+    (setq graphql (gsexp-encode (ghub--graphql-prepare-query graphql))))
+  (ghub-request "POST"
+                (if (eq forge 'gitlab) "/api/graphql" "/graphql")
+                nil
+                :payload `(("query" . ,graphql)
+                           ,@(and variables `(("variables" ,@variables))))
+                :headers headers :silent silent
+                :username username :auth auth :host host :forge forge
                 :callback callback :errorback errorback
                 :extra extra :value value))
 
 (cl-defun ghub-graphql-rate-limit (&key username auth host)
   "Return rate limit information."
   (let-alist (ghub-graphql
-              "query { rateLimit { limit cost remaining resetAt }}"
+              '(query (rateLimit limit cost remaining resetAt))
               nil :username username :auth auth :host host)
     .data.rateLimit))
 
 (cl-defun ghub--repository-id (owner name &key username auth host)
   "Return the id of the repository specified by OWNER, NAME and HOST."
   (let-alist (ghub-graphql
-              "query ($owner:String!, $name:String!) {
-                 repository(owner:$owner, name:$name) { id }
-               }"
+              '(query (repository [(owner $owner String!)
+                                   (name  $name  String!)]
+                                  id))
               `((owner . ,owner)
                 (name  . ,name))
               :username username :auth auth :host host)
@@ -69,7 +75,7 @@ behave as for `ghub-request' (which see)."
 
 ;;; Api (drafts)
 
-(defconst ghub-fetch-repository
+(defconst ghub-fetch-repository-sparse
   '(query
     (repository
      [(owner $owner String!)
@@ -92,7 +98,12 @@ behave as for `ghub-request' (which see)."
      hasWikiEnabled
      (licenseInfo name)
      (stargazers totalCount)
-     (watchers totalCount)
+     (watchers totalCount))))
+
+(defconst ghub-fetch-repository
+  `(query
+    (repository
+     ,@(cdr (cadr ghub-fetch-repository-sparse))
      (assignableUsers [(:edges t)]
                       id
                       login
@@ -101,6 +112,7 @@ behave as for `ghub-request' (which see)."
                       (:singular issue number)
                       (orderBy ((field UPDATED_AT) (direction DESC)))]
                      number
+                     id
                      state
                      (author login)
                      title
@@ -115,8 +127,8 @@ behave as for `ghub-request' (which see)."
                      (comments  [(:edges t)]
                                 databaseId
                                 (author login)
-	                        createdAt
-	                        updatedAt
+                                createdAt
+                                updatedAt
                                 body)
                      (labels    [(:edges t)]
                                 id))
@@ -126,10 +138,21 @@ behave as for `ghub-request' (which see)."
                      name
                      color
                      description)
+     (milestones     [(:edges t)
+                      (:singular milestone id)]
+                     id
+                     number
+                     title
+                     createdAt
+                     updatedAt
+                     dueOn
+                     closedAt
+                     description)
      (pullRequests   [(:edges t)
                       (:singular pullRequest number)
                       (orderBy ((field UPDATED_AT) (direction DESC)))]
                      number
+                     id
                      state
                      (author login)
                      title
@@ -137,6 +160,7 @@ behave as for `ghub-request' (which see)."
                      updatedAt
                      closedAt
                      mergedAt
+                     isDraft
                      locked
                      maintainerCanModify
                      isCrossRepository
@@ -144,9 +168,11 @@ behave as for `ghub-request' (which see)."
                      body
                      (baseRef name
                               (repository nameWithOwner))
+                     baseRefOid
                      (headRef name
                               (repository (owner login)
                                           nameWithOwner))
+                     headRefOid
                      (assignees [(:edges t)]
                                 id)
                      (reviewRequests [(:edges t)]
@@ -155,18 +181,49 @@ behave as for `ghub-request' (which see)."
                                 databaseId
                                 (author login)
                                 createdAt
-	                        updatedAt
-	                        body)
+                                updatedAt
+                                body)
                      (labels    [(:edges t)]
                                 id)))))
 
+(defconst ghub-fetch-repository-review-threads
+  '(query
+    (repository
+     [(owner $owner String!)
+      (name  $name  String!)]
+     (pullRequests   [(:edges t)
+                      (:singular pullRequest number)
+                      (orderBy ((field UPDATED_AT) (direction DESC)))]
+                     number
+                     baseRefOid
+                     headRefOid
+                     (reviewThreads [(:edges t)]
+                                    id
+                                    line
+                                    originalLine
+                                    diffSide
+                                    (resolvedBy login)
+                                    (comments [(:edges t)]
+                                              id
+                                              databaseId
+                                              (author login)
+                                              createdAt
+                                              updatedAt
+                                              body
+                                              (replyTo databaseId)
+                                              (originalCommit oid)
+                                              path))))))
+
 (cl-defun ghub-fetch-repository (owner name callback
                                        &optional until
-                                       &key username auth host forge)
+                                       &key username auth host forge
+                                       headers errorback sparse)
   "Asynchronously fetch forge data about the specified repository.
 Once all data has been collected, CALLBACK is called with the
 data as the only argument."
-  (ghub--graphql-vacuum ghub-fetch-repository
+  (ghub--graphql-vacuum (if sparse
+                            ghub-fetch-repository-sparse
+                          ghub-fetch-repository)
                         `((owner . ,owner)
                           (name  . ,name))
                         callback until
@@ -174,11 +231,14 @@ data as the only argument."
                         :username username
                         :auth     auth
                         :host     host
-                        :forge    forge))
+                        :forge    forge
+                        :headers  headers
+                        :errorback errorback))
 
 (cl-defun ghub-fetch-issue (owner name number callback
                                   &optional until
-                                  &key username auth host forge)
+                                  &key username auth host forge
+                                  headers errorback)
   "Asynchronously fetch forge data about the specified issue.
 Once all data has been collected, CALLBACK is called with the
 data as the only argument."
@@ -192,11 +252,14 @@ data as the only argument."
                         :username username
                         :auth     auth
                         :host     host
-                        :forge    forge))
+                        :forge    forge
+                        :headers  headers
+                        :errorback errorback))
 
 (cl-defun ghub-fetch-pullreq (owner name number callback
                                     &optional until
-                                    &key username auth host forge)
+                                    &key username auth host forge
+                                    headers errorback)
   "Asynchronously fetch forge data about the specified pull-request.
 Once all data has been collected, CALLBACK is called with the
 data as the only argument."
@@ -210,7 +273,30 @@ data as the only argument."
                         :username username
                         :auth     auth
                         :host     host
-                        :forge    forge))
+                        :forge    forge
+                        :headers  headers
+                        :errorback errorback))
+
+(cl-defun ghub-fetch-review-threads (owner name number callback
+                                           &optional until
+                                           &key username auth host forge
+                                           headers errorback)
+  "Asynchronously fetch forge data about the review threads from a pull-request.
+Once all data has been collected, CALLBACK is called with the
+data as the only argument."
+  (ghub--graphql-vacuum (ghub--graphql-prepare-query
+                         ghub-fetch-repository-review-threads
+                         `(repository pullRequests (pullRequest . ,number)))
+                        `((owner . ,owner)
+                          (name  . ,name))
+                        callback until
+                        :narrow   '(repository pullRequest)
+                        :username username
+                        :auth     auth
+                        :host     host
+                        :forge    forge
+                        :headers  headers
+                        :errorback errorback))
 
 ;;; Internal
 
@@ -227,7 +313,8 @@ data as the only argument."
 
 (cl-defun ghub--graphql-vacuum (query variables callback
                                       &optional until
-                                      &key narrow username auth host forge)
+                                      &key narrow username auth host forge
+                                      headers errorback)
   "Make a GraphQL request using QUERY and VARIABLES.
 See Info node `(ghub)GraphQL Support'."
   (unless host
@@ -242,8 +329,8 @@ See Info node `(ghub)GraphQL Support'."
                             (substring host 0 -3)
                           host)))
     :method    "POST"
-    :headers   (ghub--headers nil host auth username forge)
-    :handler   'ghub--graphql-handle-response
+    :headers   (ghub--headers headers host auth username forge)
+    :handler   #'ghub--graphql-handle-response
     :query     query
     :variables variables
     :until     until
@@ -255,10 +342,11 @@ See Info node `(ghub)GraphQL Support'."
                          (while (setq key (pop path))
                            (setq data (cdr (assq key data)))))
                        (ghub--graphql-set-mode-line buf nil)
-                       (funcall callback data))
+                       (funcall (or callback #'ghub--graphql-pp-response) data))
                    (lambda (data)
                      (ghub--graphql-set-mode-line buf nil)
-                     (funcall callback data)))))))
+                     (funcall (or callback #'ghub--graphql-pp-response) data))))
+    :errorback errorback)))
 
 (cl-defun ghub--graphql-retrieve (req &optional lineage cursor)
   (let ((p (cl-incf (ghub--graphql-req-pages req))))
@@ -284,7 +372,8 @@ See Info node `(ghub)GraphQL Support'."
     (cl-block nil
       (while t
         (let ((node (treepy-node loc)))
-          (when (vectorp node)
+          (when (and (vectorp node)
+                     (listp (aref node 0)))
             (let ((alist (cl-coerce node 'list))
                   vars)
               (when (cadr (assq :edges alist))
@@ -300,12 +389,10 @@ See Info node `(ghub)GraphQL Support'."
                 (setq loc  (treepy-next loc)))
               (dolist (elt alist)
                 (cond ((keywordp (car elt)))
-                      ((= (length elt) 3)
-                       (push (list (nth 0 elt)
-                                   (nth 1 elt)) vars)
-                       (push (list (nth 1 elt)
-                                   (nth 2 elt)) variables))
-                      ((= (length elt) 2)
+                      ((length= elt 3)
+                       (push (list (nth 0 elt) (nth 1 elt)) vars)
+                       (push (list (nth 1 elt) (nth 2 elt)) variables))
+                      ((length= elt 2)
                        (push elt vars))))
               (setq loc (treepy-replace loc (vconcat (nreverse vars)))))))
         (if (treepy-end-p loc)
@@ -403,7 +490,7 @@ See Info node `(ghub)GraphQL Support'."
         `(,(car single)
           ,(vector (list (cadr single) (cdr (car lineage))))
           ,@(if (cdr lineage)
-               (ghub--graphql-narrow-query child (cdr lineage) cursor)
+                (ghub--graphql-narrow-query child (cdr lineage) cursor)
               child)))
     (let* ((child  (or (assq (car lineage) (cdr query))
                        ;; Alias
@@ -449,6 +536,9 @@ See Info node `(ghub)GraphQL Support'."
       (setq mode-line-process
             (and string (concat " " (apply #'format string args))))
       (force-mode-line-update t))))
+
+(defun ghub--graphql-pp-response (data)
+  (pp-display-expression data "*Pp Eval Output*"))
 
 ;;; _
 (provide 'ghub-graphql)
