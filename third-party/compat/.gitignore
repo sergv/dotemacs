@@ -1,0 +1,6 @@
+*.elc
+*~
+\#*\#
+/compat-pkg.el
+/compat-autoloads.el
+/compat.info
