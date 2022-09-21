@@ -53,8 +53,6 @@
 (add-hook 'magit-diff-mode-hook #'magit-diff-mode-setup)
 (add-hook 'magit-stash-mode-hook #'magit-stash-mode-setup)
 (add-hook 'magit-log-mode-hook #'magit-log-mode-setup)
-(add-hook 'magit-popup-mode-hook #'magit-popup-setup)
-(add-hook 'magit-popup-sequence-mode-hook #'magit-popup-setup)
 (add-hook 'magit-revision-mode-hook #'magit-revision-mode-setup)
 (add-hook 'magit-refs-mode-hook #'magit-refs-mode-setup)
 (add-hook 'magit-reflog-mode-hook #'magit-reflog-mode-setup)
