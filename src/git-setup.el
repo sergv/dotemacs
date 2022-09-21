@@ -258,20 +258,20 @@ Diff chunks:
 _+_: more context
 _-_: less context
 _=_: default context"
-  ("b" magit-branch-popup)
-  ("c" magit-commit-popup)
-  ("d" magit-diff-popup)
-  ("e" magit-ediff-popup)
-  ("l" magit-log-popup)
-  ("m" magit-merge-popup)
-  ("r" magit-rebase-popup)
-  ("x" magit-reset-popup)
-  ("z" magit-stash-popup)
+  ("b" magit-branch)
+  ("c" magit-commit)
+  ("d" magit-diff)
+  ("e" magit-ediff)
+  ("l" magit-log)
+  ("m" magit-merge)
+  ("r" magit-rebase)
+  ("x" magit-reset)
+  ("z" magit-stash)
 
-  ("a" magit-cherry-pick-popup)
+  ("a" magit-cherry-pick)
   ("R" magit-file-rename)
-  ("t" magit-tag-popup)
-  ("T" magit-notes-popup)
+  ("t" magit-tag)
+  ("T" magit-notes)
   ("v" magit-reverse)
 
   ("i" magit-discard)
@@ -280,14 +280,14 @@ _=_: default context"
   ("S" magit-stage-modified)
   ("U" magit-unstage-all)
 
-  ("f" magit-fetch-popup)
-  ("F" magit-pull-popup)
-  ("M" magit-remote-popup)
-  ("o" magit-submodule-popup)
-  ("p" magit-push-popup)
+  ("f" magit-fetch)
+  ("F" magit-pull)
+  ("M" magit-remote)
+  ("o" magit-submodule)
+  ("p" magit-push)
 
-  ("D" magit-diff-refresh-popup)
-  ("L" magit-log-refresh-popup)
+  ("D" magit-diff-refresh)
+  ("L" magit-log-refresh)
 
   ("+" magit-diff-more-context :exit nil)
   ("-" magit-diff-less-context :exit nil)
@@ -324,27 +324,27 @@ ta_b_s"
     ("<down>"          forward-line)
     ("<up>"            backward-line)
 
-    ("e"               magit-ediff-popup)
+    ("e"               magit-ediff)
     ("E"               nil)
 
     ("h"               magit-section-forward)
     ("t"               magit-section-backward)
-    ("T"               magit-tag-popup)
-    ("n"               magit-notes-popup)
+    ("T"               magit-tag)
+    ("n"               magit-notes)
     ("'"               magit-section-up)
 
-    ("p"               magit-stash-popup)
+    ("p"               magit-stash)
     (("H" "<f5>")      magit-refresh)
     ("-"               hydra-magit/body)
     ("j"               hydra-magit-j/body)
     ("\\"              magit-discard)
     ("M"               vim:jump-to-prev-saved-position:interactive)
-    ("O"               magit-remote-popup)
+    ("O"               magit-remote)
 
     ("k"               magit-unstage)
     ("K"               magit-unstage-all)
     ("x"               magit-reset-quickly)
-    ("X"               magit-reset-popup)
+    ("X"               magit-reset)
 
     ;; ("SPC"             magit-visit-thing-other-window)
     (("TAB" "<tab>")   magit-section-cycle)
@@ -359,7 +359,7 @@ ta_b_s"
     ;; Unbind "y" since it's too slow.
     ("y"               nil)
     ;; I don't use "Y" so swap it with "y"
-    ("Y"               magit-show-refs-popup)))
+    ("Y"               magit-show-refs)))
 
 ;;;###autoload
 (defun magit-diff-mode-setup ()
@@ -378,11 +378,13 @@ ta_b_s"
     ("h" pseudovim-motion-down)
     ("t" pseudovim-motion-up)))
 
-;;;###autoload
-(defun magit-popup-setup ()
-  (def-keys-for-map magit-popup-mode-map
-    ("<escape>" magit-popup-quit)
-    ("q"        magit-popup-quit)))
+(defun transient-after-init ()
+  (def-keys-for-map transient-base-map
+    ("<escape>" transient-quit-one)
+    ("q"        transient-quit-all)))
+
+(eval-after-load "transient"
+  (transient-after-init))
 
 ;;;###autoload
 (defun magit-refs-mode-setup ()
@@ -653,12 +655,12 @@ under git version control."
 
 (defhydra-ext hydra-blame (:exit t :foreign-keys nil :hint nil)
   "
-_b_lame popup  _h_: next chunk
+_b_lame        _h_: next chunk
 cop_y_ hash    _t_: prev chunk
                _C-h_: next chunk same commit
                _C-t_: prev chunk same commit
 "
-  ("b"   magit-blame-popup)
+  ("b"   magit-blame)
   ("y"   magit-blame-copy-hash)
 
   ("h"   magit-blame-next-chunk)
@@ -671,7 +673,7 @@ cop_y_ hash    _t_: prev chunk
   +vim-search-keys+
   +vim-search-extended-keys+
   +vim-special-keys+
-  ("b"              magit-blame-popup)
+  ("b"              magit-blame)
   ("h"              magit-blame-next-chunk)
   ("C-h"            magit-blame-next-chunk-same-commit)
   ("t"              magit-blame-previous-chunk)
