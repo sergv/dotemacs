@@ -124,6 +124,8 @@
     (require 'org-mode-autoload)
     (require 'rust-autoloads)
 
+    (require 'configurable-compilation)
+
     (require 'c++-setup)
     (require 'comint-setup)
     (require 'completion-setup)
@@ -136,6 +138,7 @@
     (require 'fortunes)
     (require 'git-setup)
     (require 'grep-setup)
+    (require 'haskell-setup)
     (require 'ptx-mode-setup)
     (require 'org-mode-setup)
     (require 'render-formula)
