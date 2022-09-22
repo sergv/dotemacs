@@ -60,15 +60,9 @@ or \"detached head\" will be substituted for %s."
                              nil)
       (user-error "Nothing selected")))
 
-(el-patch-defun magit-rebase-interactive-assert (since &optional delay-edit-confirm)
-  (el-patch-swap
-    (let* ((commit (if (string-suffix-p "^" since)
-                       ;; If SINCE is "REV^", then the user selected
-                       ;; "REV", which is the first commit that will
-                       ;; be replaced. (from^..to] <=> [from..to].
-                       (substring since 0 -1)
-                     ;; The "--root" argument is being used.
-                     since))
+(el-patch-defun magit-rebase-interactive-assert (since &optional delay-edit-confirm rebase-merges)
+  (el-patch-remove
+    (let* ((commit (magit-rebase--target-commit since))
            (branches (magit-list-publishing-branches commit)))
       (setq magit--rebase-public-edit-confirmed
             (delete (magit-toplevel) magit--rebase-public-edit-confirmed))
@@ -85,9 +79,9 @@ or \"detached head\" will be substituted for %s."
             (concat m1 "%s" m2)
             (concat m1 "%i public branches" m2)
             nil branches))
-        (push (magit-toplevel) magit--rebase-public-edit-confirmed)))
-    nil)
-  (if (magit-git-lines "rev-list" "--merges" (concat since "..HEAD"))
+        (push (magit-toplevel) magit--rebase-public-edit-confirmed))))
+  (if (and (magit-git-lines "rev-list" "--merges" (concat since "..HEAD"))
+           (not rebase-merges))
       (magit-read-char-case "Proceed despite merge in rebase range?  " nil
         (?c "[c]ontinue" since)
         (?s "[s]elect other" nil)
