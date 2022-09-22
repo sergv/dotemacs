@@ -47,23 +47,21 @@
 (def-keys-for-map dired-mode-map
   +vim-special-keys+
   +vim-search-keys+
-  ("h"        dired-cycle-files-forward)
-  ("t"        dired-cycle-files-backward)
-  ("<down>"   dired-cycle-files-forward)
-  ("<up>"     dired-cycle-files-backward)
-  ("k"        dired-unmark)
-  ("K"        dired-unmark-all-marks)
-  ("p"        nil)
-  ("q"        nil)
-  ("e"        nil)
-  ("f"        nil)
-  ("o"        dired-do-open-marked)
-  ("Q"        dired-do-query-replace-regexp)
-  ("<return>" dired-single-buffer)
-  ("SPC"      dired-single-buffer-other-window)
-  ("^"        dired-single-up-directory)
-  ("H"        revert-buffer) ;; refresh
-  ("<f5>"     revert-buffer)
+  (("h" "<down>") dired-cycle-files-forward)
+  (("t" "<up>")   dired-cycle-files-backward)
+  (","            dired-do-delete)
+  ("k"            dired-unmark)
+  ("K"            dired-unmark-all-marks)
+  ("p"            nil)
+  ("q"            nil)
+  ("e"            nil)
+  ("f"            nil)
+  ("o"            dired-do-open-marked)
+  ("Q"            dired-do-query-replace-regexp)
+  ("<return>"     dired-single-buffer)
+  ("SPC"          dired-single-buffer-other-window)
+  ("^"            dired-single-up-directory)
+  (("H" "<f5>")   revert-buffer) ;; refresh
 
   ;; ? is already used by dired
   ;; ("?"        search-start-backward)
