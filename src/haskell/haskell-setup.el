@@ -340,13 +340,16 @@ _<tab>_: reindent  _h_: jump to topmont node end"
 
     ("\"" smart-operators-double-quote)
     ("\(" smart-operators-open-paren)
-    ("\[" smart-operators-open-bracket)))
+    ("\[" smart-operators-open-bracket))
+
+  (def-keys-for-map vim-operator-pending-mode-local-keymap
+    (("is" "s") vim:motion-inner-haskell-symbol:interactive)
+    ("as"       vim:motion-outer-haskell-symbol:interactive)))
 
 ;;;###autoload
 (defun haskell-setup ()
   (let ((non-vanilla-haskell-mode? (-any? #'derived-mode-p '(ghc-core-mode haskell-c2hs-mode haskell-hsc-mode))))
     (init-common :use-whitespace 'tabs-only)
-    (haskell-setup-common-editing)
     (add-hook 'after-save-hook #'haskell-update-eproj-tags-on-save nil t)
 
     (pretty-ligatures-install!)
