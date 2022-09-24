@@ -154,16 +154,18 @@ via ‘configurable-compilation-buffer-name’ and
 ‘configurable-compilation-proj-dir’) and jump to it's position in
 current window."
   (let ((bufname (configurable-compilation-buffer-name (configurable-compilation-proj-dir))))
-    (aif (get-buffer bufname)
-        (let ((err (with-selected-window (get-buffer-window it t)
-                     (with-current-buffer it
-                       (if is-next?
-                           (compilation-jump-to-next-error)
-                         (compilation-jump-to-prev-error))
-                       (when hl-line-mode
-                         (hl-line-highlight))
-                       (compilation--error-at-point)))))
-          (compilation/jump-to-error err nil))
+    (if-let ((buf (get-buffer bufname)))
+        (if-let ((win (get-buffer-window buf t)))
+            (let ((err (with-selected-window win
+                         (with-current-buffer buf
+                           (if is-next?
+                               (compilation-jump-to-next-error)
+                             (compilation-jump-to-prev-error))
+                           (when hl-line-mode
+                             (hl-line-highlight))
+                           (compilation--error-at-point)))))
+              (compilation/jump-to-error err nil))
+          (error "Compilation buffer for current project is not visible: %s" bufname))
       (error "No compilation buffer: %s" bufname))))
 
 ;;;###autoload
