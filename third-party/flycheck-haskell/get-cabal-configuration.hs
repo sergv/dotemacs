@@ -167,7 +167,6 @@ import Distribution.PackageDescription
         allBuildInfo, usedExtensions, allLanguages, hcOptions, exeName,
         buildInfo, modulePath, libBuildInfo, exposedModules)
 import Distribution.System (buildPlatform)
-import Distribution.Verbosity (silent)
 import Language.Haskell.Extension (Extension(..),Language(..))
 import System.Console.GetOpt
 import System.Environment (getArgs)
@@ -215,17 +214,6 @@ import Distribution.PackageDescription
 import Distribution.PackageDescription (mkFlagAssignment)
 #elif defined(Cabal22OrLater)
 import Distribution.Types.GenericPackageDescription (mkFlagAssignment)
-#endif
-
-#if defined(Cabal38OrLater)
-import Distribution.Simple.PackageDescription
-  (readGenericPackageDescription)
-#elif defined(Cabal22OrLater)
-import Distribution.PackageDescription.Parsec
-  (readGenericPackageDescription)
-#elif defined(Cabal20OrLater)
-import Distribution.PackageDescription.Parse
-  (readGenericPackageDescription)
 #endif
 
 #if defined(Cabal22OrLater)
@@ -583,12 +571,13 @@ readHPackPkgDescr exe configFile projectDir = do
         }
 
 readGenericPkgDescr :: FilePath -> IO GenericPackageDescription
-readGenericPkgDescr =
-#if defined(Cabal20OrLater)
-    readGenericPackageDescription silent
-#else
-    readPackageDescription silent
-#endif
+readGenericPkgDescr path = do
+  contents <- readCabalFileContentsFromFile path
+  case parsePkgDescr path contents of
+    Left msgs ->
+      die' $ "Failed to parse cabal '" ++ path ++ "':\n" ++
+          unlines msgs
+    Right x   -> pure x
 
 newtype CabalFileContents = CabalFileContents
     { unCabalFileContents ::
@@ -606,6 +595,15 @@ readCabalFileContentsFromHandle =
         BS.hGetContents
 #else
         hGetContents
+#endif
+
+readCabalFileContentsFromFile :: FilePath -> IO CabalFileContents
+readCabalFileContentsFromFile =
+    fmap CabalFileContents .
+#if defined(Cabal22OrLater)
+        BS.readFile
+#else
+        readFile
 #endif
 
 parsePkgDescr :: FilePath -> CabalFileContents -> Either [String] GenericPackageDescription
