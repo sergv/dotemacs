@@ -224,8 +224,8 @@ _<right>_: move tab to the right"
 ;; redefine motions
 
 (def-keys-for-map vim-motion-mode-keymap
-  ("'"   paredit-backward-up)
-  ("q"   paredit-forward-up))
+  ("'" paredit-backward-up)
+  ("q" paredit-forward-up))
 
 (def-keys-for-map (vim-normal-mode-keymap
                    vim-visual-mode-keymap
