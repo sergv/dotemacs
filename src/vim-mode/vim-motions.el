@@ -667,8 +667,8 @@ text-object before or at point."
             (progn
               (dotimes (_ n)
                 (cl-multiple-value-bind (wsb wse) (save-excursion
-                                                 (funcall forward -1)
-                                                 (funcall ws-sel 'bwd))
+                                                    (funcall forward -1)
+                                                    (funcall ws-sel 'bwd))
                   (vim--move-bwd-beg 1 boundary linewise)
                   (when (and wsb (< wsb (point))
                              (save-excursion
@@ -681,8 +681,8 @@ text-object before or at point."
           ;; extend forward
           (dotimes (_ n)
             (cl-multiple-value-bind (wsb wse) (save-excursion
-                                             (funcall forward +1)
-                                             (funcall ws-sel 'fwd))
+                                                (funcall forward +1)
+                                                (funcall ws-sel 'fwd))
               (vim--move-fwd-end 1 boundary linewise)
               (when (and wsb (> wse (point))
                          (save-excursion
@@ -708,8 +708,8 @@ text-object before or at point."
       (cond
         ;; started at white-space
         ((cl-multiple-value-bind (wsb _) (funcall ws-sel 'fwd)
-           (if (and wsb (<= wsb (point)))
-               (setq beg wsb))))
+           (when (and wsb (<= wsb (point)))
+             (setq beg wsb))))
 
         ;; whitespace behind
         ((save-excursion
@@ -717,16 +717,16 @@ text-object before or at point."
              (goto-char end)
              (funcall forward +1)
              (cl-multiple-value-bind (wsb wse) (funcall ws-sel 'fwd)
-               (if (and wsb (<= wsb (point)))
-                   (setq end wse))))))
+               (when (and wsb (<= wsb (point)))
+                 (setq end wse))))))
 
         ;; no whitespace behind
         ((> beg (point-min))
          (goto-char beg)
          (funcall forward -1)
          (cl-multiple-value-bind (wsb wse) (funcall ws-sel 'bwd)
-           (if (and wse (>= wse (point)))
-               (setq beg wsb)))))
+           (when (and wse (>= wse (point)))
+             (setq beg wsb)))))
 
       (setq pnt end))
 
@@ -987,15 +987,15 @@ text-object before or at point."
 (vim-defmotion vim:motion-inner-symbol (inclusive count motion-result)
   "Select `count' inner symbol."
   (vim--inner-motion (or count 1)
-                    #'vim-boundary--symbol
-                    #'vim-boundary--ws
-                    'inclusive))
+                     #'vim-boundary--symbol
+                     #'vim-boundary--ws
+                     'inclusive))
 
 (vim-defmotion vim:motion-outer-symbol (inclusive count motion-result)
   "Select `count' outer symbols."
   (vim--outer-motion (or count 1)
-                    #'vim-boundary--symbol
-                    #'vim-boundary--ws
+                     #'vim-boundary--symbol
+                     #'vim-boundary--ws
                     'inclusive))
 
 ;;; motion sentence
