@@ -9,6 +9,7 @@
 (eval-when-compile
   (require 'cl-lib))
 
+(require 'dash)
 (require 'tests-utils)
 
 (require 'vim)
@@ -29,6 +30,31 @@
     ;; Don’t reuse buffer to start out in fresh environment each time and don’t
     ;; share things like last cmd events, etc.
     :buffer-id nil))
+
+(defmacro vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+    (name-prefix init actions contentss expected-value)
+  (declare (indent 2))
+  (cl-assert (symbolp name-prefix))
+  (cl-assert (listp contentss))
+  (cl-assert (listp actions))
+  (cl-assert (--all? (or (symbolp (car it)) (numberp (car it))) contentss))
+  (cl-assert (--all? (or (symbolp (car it)) (numberp (car it))) actions))
+  `(progn
+     ,@(cl-loop
+        for action in actions
+        append
+        (cl-loop
+         for contents in contentss
+         collect
+         `(ert-deftest ,(string->symbol (format "%s-%s-%s" name-prefix
+                                                (car action)
+                                                (car contents)))
+              ()
+            (vim-tests--test-fresh-buffer-contents-init
+                ,init
+                (progn ,@(cdr action))
+              ,(cadr contents)
+              ,expected-value))))))
 
 (defmacro vim-tests--test-fresh-buffer-contents-init-all (name inits action contents expected-value)
   (declare (indent 3))
@@ -1584,65 +1610,138 @@
    "foo _|_baz"
    ""))
 
-(ert-deftest vim-tests/haskell-motion-inner-symbol-1 ()
-  (vim-tests--test-fresh-buffer-contents-init
-      (haskell-mode)
-      (execute-kbd-macro (kbd ", i s"))
-    (tests-utils--multiline
-     ""
-     "foo x = do"
-     "  ba_|_r_baz_Quux''' (x + 1) y \"foo\""
-     "")
-    (tests-utils--multiline
-     ""
-     "foo x = do"
-     "  _|_ (x + 1) y \"foo\""
-     "")))
+(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+    vim-tests/haskell-motion-inner-symbol-value
+    (haskell-mode)
+  ((is (execute-kbd-macro (kbd ", i s")))
+   (s (execute-kbd-macro (kbd ", s"))))
+  ((1 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  ba_|_r_baz_Quux''' (x + 1) y \"foo\""
+       ""))
+   (2 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  Bar_baz_Quux''_|_' (x + 1) y \"foo\""
+       ""))
+   (3 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  ba_|_r_baz_Quux# (x + 1) y \"foo\""
+       "")))
+  (tests-utils--multiline
+   ""
+   "foo x = do"
+   "  _|_ (x + 1) y \"foo\""
+   ""))
 
-(ert-deftest vim-tests/haskell-motion-inner-symbol-2 ()
-  (vim-tests--test-fresh-buffer-contents-init
-      (haskell-mode)
-      (execute-kbd-macro (kbd ", i s"))
-    (tests-utils--multiline
-     ""
-     "foo x = do"
-     "  Bar_baz_Quux''_|_' (x + 1) y \"foo\""
-     "")
-    (tests-utils--multiline
-     ""
-     "foo x = do"
-     "  _|_ (x + 1) y \"foo\""
-     "")))
+(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+    vim-tests/haskell-motion-inner-symbol-value-qualified-names
+    (haskell-mode)
+  ((is (execute-kbd-macro (kbd ", i s")))
+   (s (execute-kbd-macro (kbd ", s"))))
+  ((1 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  Frobnicator.ba_|_r_baz_Quux''' (x + 1) y \"foo\""
+       ""))
+   (2 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  Frobnicator.Bar_baz_Quux''_|_' (x + 1) y \"foo\""
+       ""))
+   (3 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  Frobnicator.ba_|_r_baz_Quux# (x + 1) y \"foo\""
+       "")))
+  (tests-utils--multiline
+   ""
+   "foo x = do"
+   "  Frobnicator._|_ (x + 1) y \"foo\""
+   ""))
 
-(ert-deftest vim-tests/haskell-motion-outer-symbol-1 ()
-  (vim-tests--test-fresh-buffer-contents-init
-      (haskell-mode)
-      (execute-kbd-macro (kbd ", a s"))
-    (tests-utils--multiline
-     ""
-     "foo x = do"
-     "  ba_|_r_baz_Quux''' (x + 1) y \"foo\""
-     "")
-    (tests-utils--multiline
-     ""
-     "foo x = do"
-     "  _|_(x + 1) y \"foo\""
-     "")))
+(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+    vim-tests/haskell-motion-inner-symbol-type
+    (haskell-mode)
+  ((is (execute-kbd-macro (kbd ", i s")))
+   (s (execute-kbd-macro (kbd ", s"))))
+  ((1 (tests-utils--multiline
+       ""
+       "foo :: ValidateM m => Email '_|_Unvalidated -> m (Email 'Validated)"
+       "foo x = undefined"
+       ""))
+   (1 (tests-utils--multiline
+       ""
+       "foo :: ValidateM m => Email 'Unvalid_|_ated -> m (Email 'Validated)"
+       "foo x = undefined"
+       "")))
+  (tests-utils--multiline
+   ""
+   "foo :: ValidateM m => Email _|_ -> m (Email 'Validated)"
+   "foo x = undefined"
+   ""))
 
-(ert-deftest vim-tests/haskell-motion-outer-symbol-2 ()
-  (vim-tests--test-fresh-buffer-contents-init
-      (haskell-mode)
-      (execute-kbd-macro (kbd ", a s"))
-    (tests-utils--multiline
-     ""
-     "foo x = do"
-     "  Bar_baz_Quux''_|_' (x + 1) y \"foo\""
-     "")
-    (tests-utils--multiline
-     ""
-     "foo x = do"
-     "  _|_(x + 1) y \"foo\""
-     "")))
+(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+    vim-tests/haskell-motion-outer-symbol-value
+    (haskell-mode)
+  ((as (execute-kbd-macro (kbd ", a s"))))
+  ((1 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  ba_|_r_baz_Quux''' (x + 1) y \"foo\""
+       ""))
+   (2 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  Bar_baz_Quux''_|_' (x + 1) y \"foo\""
+       ""))
+   (3 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  Bar_baz_Quux_|_# (x + 1) y \"foo\""
+       ""))
+   (4 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  _|_Bar_baz_Quux# (x + 1) y \"foo\""
+       "")))
+  (tests-utils--multiline
+   ""
+   "foo x = do"
+   "  _|_(x + 1) y \"foo\""
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+    vim-tests/haskell-motion-outer-symbol-value-qualified
+    (haskell-mode)
+  ((as (execute-kbd-macro (kbd ", a s"))))
+  ((1 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  Frobnicator.ba_|_r_baz_Quux''' (x + 1) y \"foo\""
+       ""))
+   (2 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  Frobnicator.Bar_baz_Quux''_|_' (x + 1) y \"foo\""
+       ""))
+   (3 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  Frobnicator.Bar_baz_Quux_|_# (x + 1) y \"foo\""
+       ""))
+   (4 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  Frobnicator._|_Bar_baz_Quux# (x + 1) y \"foo\""
+       "")))
+  (tests-utils--multiline
+   ""
+   "foo x = do"
+   "  Frobnicator._|_(x + 1) y \"foo\""
+   ""))
 
 (ert-deftest vim-tests/c-motion-inner-symbol-1 ()
   (vim-tests--test-fresh-buffer-contents-init
