@@ -34,6 +34,12 @@
 (require 'hydra-setup)
 (require 'nix-integration)
 
+(require 'vim-defs)
+(require 'vim-macs)
+(require 'vim-core)
+(require 'vim-compat)
+(require 'vim-motions)
+
 (require 'flycheck)
 (require 'flycheck-haskell)
 (require 'flycheck-setup)
@@ -489,6 +495,39 @@ both unicode and ascii characters.")
 
 ;;;###autoload
 (put 'haskell-symbol 'bounds-of-thing-at-point #'bounds-of-haskell-symbol)
+
+(defvar haskell-symbol--motion-identifier-syntax-table
+  (let ((tbl (copy-syntax-table haskell-mode-syntax-table)))
+    (modify-syntax-entry ?#  "w" tbl)
+    (modify-syntax-entry ?_  "w" tbl)
+    (modify-syntax-entry ?\' "w" tbl)
+    (modify-syntax-entry ?,  "/" tbl) ;; Disable , since it's part of syntax
+    ;; (modify-syntax-entry ?.  "_" tbl) ;; So that we match qualified names.
+    tbl)
+  "Special syntax table for haskell that allows to recognize symbols that contain
+both unicode and ascii characters.")
+
+(vim-defmotion vim:motion-inner-haskell-symbol (inclusive count motion-result)
+  "Select `count' inner symbol."
+  (vim--inner-motion (or count 1)
+                     #'vim-boundary--haskell-symbol
+                     #'vim-boundary--ws
+                     'inclusive))
+
+(vim-defmotion vim:motion-outer-haskell-symbol (inclusive count motion-result)
+  "Select `count' outer symbols."
+  (vim--outer-motion (or count 1)
+                     #'vim-boundary--haskell-symbol
+                     #'vim-boundary--ws
+                     'inclusive))
+
+(defun vim-boundary--haskell-symbol (direction)
+  "A boundary selector for words."
+  (with-syntax-table haskell-symbol--motion-identifier-syntax-table
+    (funcall (vim--union-boundary (lambda (dir) (vim-boundary--syntax dir "w_"))
+                                  ;; (lambda (dir) (vim-boundary--syntax dir "^w_"))
+                                  (lambda (dir) (vim-boundary--empty-line dir)))
+             direction)))
 
 ;; newline that detects haskell signatures
 
