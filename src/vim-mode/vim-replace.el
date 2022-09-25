@@ -102,9 +102,12 @@ special characters are introduced via backlash only."
 (vim-defcmd vim:replace-symbol-at-point (nonrepeatable)
   "Partially construct vim ex-replace command from symbol at point.
 With prefix argument puts symbol at point also in substitute part"
+  (vim:replace-symbol-at-point--impl 'symbol))
+
+(defun vim:replace-symbol-at-point--impl (thing)
   (vim--start-ex-with-customized-substitute-command
    (vim--construct-ex-replace-command
-    (thing-at-point 'symbol)
+    (thing-at-point thing)
     :symbol t
     :fill-replacement (not current-prefix-arg))))
 
