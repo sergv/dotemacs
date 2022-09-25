@@ -122,6 +122,11 @@
 (vim-defcmd vim:haskell-qualify-import (repeatable)
   (haskell-qualify-import))
 
+(vim-defcmd vim:replace-haskell-symbol-at-point (nonrepeatable)
+  "Partially construct vim ex-replace command from symbol at point.
+With prefix argument puts symbol at point also in substitute part"
+  (vim:replace-symbol-at-point--impl 'haskell-symbol))
+
 ;; Sample ‘packages’ content:
 ;; "active package flags:\n  -package-id base-4.15.1.0\n  -package-id aeson-2.0.3.0-e91573e5a9f0a74731f7cb1fe08486dfa1990213df0c4f864e51b791370cc73d"
 (defun haskell-go-to-symbol-home--strip-ghci-packages-of-versions (packages)
@@ -310,6 +315,7 @@ _TAB_: align and sort subsection"
 
 (defhydra-derive hydra-haskell-vim-normal-j-ext hydra-vim-normal-j-ext (:exit t :foreign-keys nil :hint nil)
   ""
+  ("ss" vim:replace-haskell-symbol-at-point:interactive)
   ("cc" vim:haskell-comment-line:interactive))
 
 (defhydra-derive hydra-haskell-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
