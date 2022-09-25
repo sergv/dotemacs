@@ -1,4 +1,4 @@
-#!/bin/bash
+#! /usr/bin/env bash
 
 dir="$(dirname "$0")"
 
@@ -8,12 +8,7 @@ else
     dump_file="$HOME/.emacs.d/emacs.dmp"
 fi
 
-source "$(dirname "$(readlink -f "$0")")/utils.sh"
-
-native_comp="$(native-comp-available)"
-
-if [[ ! -f "$dump_file" || ! -z "${EMACS_FORCE_PRISTINE+x}" || "$native_comp" = "t" ]]; then
-    echo "Starting pristine Emacs"
+if [[ ! -f "$dump_file" || ! -z "${EMACS_FORCE_PRISTINE+x}" ]]; then
     "$dir/emacs-pristine" "${@}"
 else
     "$dir/emacs-pristine" --dump-file "$dump_file" "${@}"
