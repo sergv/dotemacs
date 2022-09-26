@@ -18,6 +18,10 @@ if which nix 2>/dev/null && [[ "${RUNNING_UNDER_NIX:-0}" != 1 ]]; then
     exec nix develop --command "$0"
 fi
 
+if [[ "${RUNNING_UNDER_NIX:-0}" == 1 ]]; then
+    export TMPDIR="/tmp"
+fi
+
 # ./scripts/dump.sh &&
 which ghc >/dev/null && \
    ( cd third-party/flycheck-haskell;
