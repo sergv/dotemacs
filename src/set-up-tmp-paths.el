@@ -18,8 +18,10 @@
                               (getenv "TEMP")))
           (concat tmpdir "\\emacs-tmp-"))
         (concat +prog-data-path+ "/tmp"))))
-  "Path to temporary directory, contents of which may be removed on
-system restars.")
+  "Path to temporary directory specific to current Emacs session.
+Other Emacs invocations will not be able to share anything in
+here. Contents of this directory may be removed on system
+restarts.")
 
 (make-directory +tmp-path+ t)
 
