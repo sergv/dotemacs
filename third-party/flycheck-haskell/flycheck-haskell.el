@@ -144,22 +144,22 @@ Take the base command from `flycheck-haskell-runghc-command'."
 (defun flycheck-haskell--read-configuration-with-helper (args proj)
   (with-temp-buffer
     ;; Hack around call-process' limitation handling standard error
-    (let ((error-file (make-temp-file "flycheck-haskell-errors"))
-          (cmd
-           (if flycheck-haskell--compiled-haskell-helper
-               (cons flycheck-haskell--compiled-haskell-helper args)
-             (flycheck-haskell-runghc-command proj (cons flycheck-haskell-helper args)))))
-      (pcase (apply 'call-process (car cmd) nil (list t error-file) nil (cdr cmd))
-        (0 (delete-file error-file)
-           (goto-char (point-min))
-           (read (current-buffer)))
-        (retcode (insert-file-contents error-file)
-                 (delete-file error-file)
-                 (message "Reading Haskell configuration failed:\ncommand: %s\nexit code: %s\noutput:\n%s"
-                          cmd
-                          retcode
-                          (buffer-string))
-                 nil)))))
+    (let* ((cmd
+            (if flycheck-haskell--compiled-haskell-helper
+                (cons flycheck-haskell--compiled-haskell-helper args)
+              (flycheck-haskell-runghc-command proj (cons flycheck-haskell-helper args))))
+           (retcode (apply #'call-process (car cmd) nil (current-buffer) nil (cdr cmd))))
+      (if (zerop retcode)
+          (progn
+            (goto-char (point-min))
+            (read (current-buffer)))
+        (progn
+          (goto-char (point-max))
+          (delete-whitespace-backward)
+          (error "Reading Haskell configuration failed with exit code %s:\n\nCommand: %s\n\nOutput:\n%s"
+                 retcode
+                 (s-join " " cmd)
+                 (buffer-string)))))))
 
 (defun flycheck-haskell-read-cabal-configuration (cabal-file proj)
   "Read the Cabal configuration from CABAL-FILE."
