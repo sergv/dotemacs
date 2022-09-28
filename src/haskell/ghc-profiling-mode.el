@@ -93,8 +93,8 @@ cpu time or allocations that the value of this variable.")
 ;;;###autoload
 (define-derived-mode ghc-profiling-mode prog-mode "GHC-Prof"
   "Major mode for viewing Haskell profiling reports."
-  (set (make-local-variable 'font-lock-defaults)
-       '(ghc-profiling-mode-font-lock-keywords)))
+  (setq-local font-lock-defaults
+              '(ghc-profiling-mode-font-lock-keywords)))
 
 ;;;###autoload
 (defun ghc-profiling-mode-setup ()
