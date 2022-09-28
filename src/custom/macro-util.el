@@ -758,24 +758,27 @@ quote it for macro’s sake).
 "
   (declare (indent 1))
   (cl-assert (memq direction '(forward backward)))
-  (let ((pt '#:pt))
+  (let ((pt '#:pt)
+        (res '#:res))
     `(let ((,pt (point))
+           (,res nil)
            (message-log-max nil))
        (dotimes (_ ,(or count 1))
-         (or ,do-search
-             (progn
-               ;; Go to boundary and redo the search.
-               (goto-char
-                (fold-direction ,direction (point-min) (point-max)))
-               (if ,do-search
-                   (progn
-                     (message ,(format "Wrapped at %s"
-                                       (fold-direction-at-runtime direction "bottom" "top")))
-                     t)
-                 (progn
-                   (princ ,(or not-found-message "Nothing found") t)
-                   (goto-char ,pt)
-                   nil))))))))
+         (setf ,res (or ,do-search
+                        (progn
+                          ;; Go to boundary and redo the search.
+                          (goto-char
+                           (fold-direction ,direction (point-min) (point-max)))
+                          (if ,do-search
+                              (progn
+                                (message ,(format "Wrapped at %s"
+                                                  (fold-direction-at-runtime direction "bottom" "top")))
+                                t)
+                            (progn
+                              (princ ,(or not-found-message "Nothing found") t)
+                              (goto-char ,pt)
+                              nil))))))
+       ,res)))
 
 ;;;
 
