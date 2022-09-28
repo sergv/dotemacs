@@ -2954,6 +2954,30 @@ _|_bar")
      "  bar x"
      "")))
 
+(ert-deftest vim-tests/haskell-abbrev-10 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "i p p i n f o SPC h e a d e r <return> x <return> y <return> <return>"))
+    (tests-utils--multiline
+     ""
+     "import Debug.Trace"
+     ""
+     "foo x = do"
+     "  _|_"
+     "  bar x"
+     "")
+    (tests-utils--multiline
+     ""
+     "import Debug.Trace"
+     ""
+     "foo x = do"
+     "  Debug.Trace.trace (renderString $ ppDictHeader \"header\""
+     "    [ \"x\" --> x"
+     "    , \"y\" --> y"
+     "    ]) $_|_"
+     "  bar x"
+     "")))
+
 (ert-deftest vim-tests/haskell-abbrev-should-expand-only-on-full-abbrev-1 ()
   (vim-tests--test-fresh-buffer-contents-init
       (haskell-mode)
