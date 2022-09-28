@@ -93,6 +93,9 @@
   ("\{"                  pseudoparedit-insert-brace)
   ("\}"                  smart-operators-close-brace)
 
+  ("C-<tab>"                         indent-relative-forward)
+  (("C-S-<tab>" "C-S-<iso-lefttab>") indent-relative-backward)
+
   ;; It’s bound to ‘keyboard-escape-quit’ by default which I never use.
   ("\e\e\e" nil))
 
