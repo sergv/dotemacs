@@ -234,7 +234,7 @@ Return nil if no Cabal description file could be located via
   "Search for package description file upwards starting from DIR.
 If DIR is nil, `default-directory' is used as starting point for
 directory traversal.  Upward traversal is aborted if file owner
-changes.  Uses `haskell-cabal-find-pkg-desc' internally."
+changes."
   (let ((use-dir (or dir default-directory)))
     (while (and use-dir (not (file-directory-p use-dir)))
       (setq use-dir (file-name-directory (directory-file-name use-dir))))
