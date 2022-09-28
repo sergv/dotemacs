@@ -680,6 +680,14 @@ _<tab>_: reindent  _h_: jump to topmont node end"
 
   (setq-local beginning-of-defun-function #'haskell-move-to-topmost-start-impl))
 
+;;;###autoload
+(defun cmm-setup ()
+  (init-common :use-render-formula nil
+               :use-yasnippet nil
+               :use-whitespace 'tabs-only)
+  (hl-line-mode +1)
+  (setq-local beginning-of-defun-function #'haskell-move-to-topmost-start-impl))
+
 (provide 'haskell-setup)
 
 ;; Local Variables:
