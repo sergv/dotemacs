@@ -19,6 +19,7 @@
                             (mode . haskell-hsc-mode)
                             (mode . haskell-cabal-mode)
                             (mode . ghc-core-mode)
+                            (mode . cmm-mode)
                             (mode . hugs-mode)
                             (mode . alex-mode)
                             (mode . happy-mode)
