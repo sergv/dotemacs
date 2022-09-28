@@ -87,13 +87,14 @@
   "Force re-send buffer’s content to currently running LSP server.
 Useful if the server got confused with incremental updating
 scheme and it’s view of current buffer is malformed."
-  (let ((n (buffer-size))
-        ;; Force full sync now
-        (lsp-document-sync-method lsp--sync-full)
-        ;; Don’t make full sync asynchronuously - block since the user specifically
-        ;; pressed this button to synchronize
-        (lsp-debounce-full-sync-notifications nil))
-    (lsp-on-change 0 n n))
+  (when lsp-mode
+    (let ((n (buffer-size))
+          ;; Force full sync now
+          (lsp-document-sync-method lsp--sync-full)
+          ;; Don’t make full sync asynchronuously - block since the user specifically
+          ;; pressed this button to synchronize
+          (lsp-debounce-full-sync-notifications nil))
+      (lsp-on-change 0 n n)))
   (flycheck-buffer))
 
 (vim-defcmd vim:flycheck-compile (nonrepeatable)
