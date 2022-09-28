@@ -354,7 +354,8 @@ _<tab>_: reindent  _h_: jump to topmont node end"
 
 ;;;###autoload
 (defun haskell-setup ()
-  (let ((non-vanilla-haskell-mode? (-any? #'derived-mode-p '(ghc-core-mode haskell-c2hs-mode haskell-hsc-mode))))
+  (let ((non-vanilla-haskell-mode? (-any? #'derived-mode-p '(ghc-core-mode haskell-c2hs-mode haskell-hsc-mode)))
+        (using-lsp? nil))
     (init-common :use-whitespace 'tabs-only)
     (add-hook 'after-save-hook #'haskell-update-eproj-tags-on-save nil t)
 
@@ -397,10 +398,13 @@ _<tab>_: reindent  _h_: jump to topmont node end"
               (dante-mode +1))
              (`lsp
               ;; todo: check that lsp executable is around
-              ;; (lsp)
               (lsp-deferred)
-              (when lsp-mode
-                (lsp-diagnostics-mode))))
+              (setf using-lsp? t)
+              (lsp-diagnostics-mode)
+              ;; (lsp)
+              ;; (when lsp-mode
+              ;;   (lsp-diagnostics-mode))
+              ))
            ;; (unless (flycheck-may-use-checker backend)
            ;;   (flycheck-verify-checker backend)
            ;;   (error "Unable to select checker '%s' for buffer '%s'"
@@ -455,7 +459,7 @@ _<tab>_: reindent  _h_: jump to topmont node end"
         :install-flycheck flycheck-mode
         :load-func #'vim:haskell-dante-load-file-into-repl
         :reset-func #'vim:haskell-dante-reset))
-      (lsp-mode
+      (using-lsp?
        (dolist (cmd '("conf-repl" "configure-repl"))
          (vim-local-emap cmd #'vim:haskell-dante-configure))
 
