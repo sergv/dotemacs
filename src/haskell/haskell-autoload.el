@@ -89,6 +89,7 @@
 (add-hook 'haskell-mode-hook #'haskell-setup)
 (add-hook 'dante-repl-mode-hook #'dante-repl-mode-setup)
 (add-hook 'haskell-literate-mode-hook #'haskell-setup)
+(add-hook 'cmm-mode-hook #'cmm-setup)
 
 (add-hook 'haskell-c2hs-mode #'haskell-c2hs-setup)
 (add-hook 'haskell-hsc-mode #'haskell-hsc-setup)
