@@ -956,79 +956,126 @@ Returns ‘t’ on success, otherwise returns ‘nil’."
                     (eproj-query/local-variables proj major-mode nil)))
          (val-dante-package-name (cadr-safe (assq 'dante-package-name vars)))
          (val-dante-target (cadr-safe (assq 'dante-target vars))))
-    (when val-dante-package-name
-      (setq-local dante-package-name val-dante-package-name))
-    (when val-dante-target
-      (setq-local dante-target val-dante-target))
+    (awhen val-dante-package-name
+      (setq-local dante-package-name it))
+    (awhen val-dante-target
+      (setq-local dante-target it))
     (when (and (or (not val-dante-package-name)
                    (not val-dante-target))
                (buffer-file-name)
                (file-directory-p default-directory))
-      (when-let ((config (flycheck-haskell-get-configuration-for-buf buf proj)))
-        (let-alist-static config (package-name components)
-          (setf package-name (car package-name))
-          (when (not val-dante-package-name)
-            (setq-local dante-package-name package-name))
-          (when (not val-dante-target)
-            (if-let ((component
-                      (haskell-misc--configure-dante--find-cabal-component-for-file
-                       components
-                       (buffer-file-name))))
-                (progn
-                  (cl-assert (stringp package-name) nil
-                             "Expected package name to be a string but got %s" package-name)
-                  (setq-local dante-target (concat package-name ":" component))
-                  t)
-              (error "Couldn’t determine cabal component for %s buffer. Check whether cabal can build the project before retrying" buf))))))))
+
+      (let ((cabal-files (haskell-misc--find-potential-cabal-files (file-name-directory (buffer-file-name buf))))
+            (component nil)
+            (pkg-name nil))
+        (while (and (not component)
+                    cabal-files)
+          (when-let ((config (flycheck-haskell-get-configuration (car cabal-files) proj)))
+            (let-alist-static config (package-name components)
+              (when-let ((candidate-component
+                          (haskell-misc--configure-dante--find-cabal-component-for-file
+                           components
+                           (buffer-file-name))))
+                (setf component candidate-component
+                      pkg-name (car package-name))
+                (cl-assert (stringp pkg-name) nil
+                           "Expected package name to be a string but got %s" pkg-name))))
+
+          (setf cabal-files (cdr cabal-files)))
+        (if component
+            (progn
+              (unless val-dante-package-name
+                (setq-local dante-package-name pkg-name))
+              (unless val-dante-target
+                (setq-local dante-target (concat dante-package-name ":" component)))
+              t)
+          (error "Couldn’t determine cabal component for %s buffer. Check whether cabal can build the project before retrying" buf))))))
 
 (defun haskell-misc--configure-dante--find-cabal-component-for-file (components filename)
   "Get components dumped by get-cabal-configuration.hs for current package and attempt
 to find which component the FILENAME belongs to."
   (when filename
-    (let ((entry
-           (-find (lambda (component-descr)
-                    (let* ((main-file (cl-third component-descr))
-                           (modules (cl-fourth component-descr))
-                           (src-dirs-res (filter-elem (lambda (x) (not (equal x ".")))
-                                                      (cl-fifth component-descr)))
-                           (src-dirs (car src-dirs-res))
-                           (src-dirs-contained-dot? (cdr src-dirs-res)))
-                      (when (or main-file modules)
-                        (let* ((mod-regexps
-                                (when modules
-                                  (mapconcat (lambda (x)
-                                               (concat "\\(?:"
-                                                       (mapconcat #'identity x "/")
-                                                       "\\)"))
-                                             modules
-                                             "\\|")))
-                               (re
-                                (concat (when main-file
-                                          (concat (when src-dirs
-                                                    (concat "\\(?:"
-                                                            (mapconcat #'regexp-quote src-dirs "\\|")
-                                                            "\\)"
-                                                            (when src-dirs-contained-dot?
-                                                              "?")
-                                                            "/"))
-                                                  "\\(?:" (regexp-quote main-file) "\\)"))
-                                        (when (and main-file mod-regexps)
-                                          "\\|")
-                                        (when mod-regexps
-                                          (concat
-                                           "\\(?:"
-                                           mod-regexps
-                                           "\\)\\."
-                                           (eval-when-compile (regexp-opt +haskell-extensions+))))
-                                        "\\'")))
-                          (and re
-                               (string-match-p re filename))))))
-                  components)))
+    (let* ((case-fold-search (fold-platform-os-type nil t))
+           (entry
+            (-find (lambda (component-descr)
+                     (let* ((main-file (cl-third component-descr))
+                            (modules (cl-fourth component-descr))
+                            (src-dirs-res (filter-elem (lambda (x) (not (equal x ".")))
+                                                       (cl-fifth component-descr)))
+                            (src-dirs (car src-dirs-res))
+                            (src-dirs-contained-dot? (cdr src-dirs-res)))
+                       (when (or main-file modules)
+                         (let* ((mod-regexps
+                                 (when modules
+                                   (mapconcat (lambda (x)
+                                                (concat "\\(?:"
+                                                        (mapconcat #'identity x "/")
+                                                        "\\)"))
+                                              modules
+                                              "\\|")))
+                                (re
+                                 (concat (when main-file
+                                           (concat (when src-dirs
+                                                     (concat "\\(?:"
+                                                             (mapconcat #'regexp-quote src-dirs "\\|")
+                                                             "\\)"
+                                                             (when src-dirs-contained-dot?
+                                                               "?")
+                                                             "/"))
+                                                   "\\(?:" (regexp-quote main-file) "\\)"))
+                                         (when (and main-file mod-regexps)
+                                           "\\|")
+                                         (when mod-regexps
+                                           (concat
+                                            "\\(?:"
+                                            mod-regexps
+                                            "\\)\\."
+                                            (eval-when-compile (regexp-opt +haskell-extensions+))))
+                                         "\\'")))
+                           (and re
+                                (string-match-p re filename))))))
+                   components)))
       (when entry
         (let ((typ (car entry))
               (name (cadr entry)))
           (concat typ ":" name))))))
 
+(defun haskell-misc--find-potential-cabal-files (start-dir)
+  (let ((continue? t)
+        (dir start-dir)
+        (result nil))
+    (while continue?
+      (let ((interesting-files (directory-files dir
+                                                nil ;; Relative names.
+                                                (rx (seq bos
+                                                         (or (seq "cabal" (* nonl) ".project" (? ".local"))
+                                                             (seq "stack" (* nonl) ".yaml")
+                                                             (seq (+ nonl) ".cabal"))
+                                                         eos))
+                                                t ;; Do not sort - faster this way.
+                                                ))
+            (have-project? nil)
+            (have-stack? nil)
+            (cabal-files nil))
+        (dolist (file interesting-files)
+          (cond
+            ((or (string-suffix-p ".project.local" file)
+                 (string-suffix-p ".project" file))
+             (setf have-project? t))
+            ((string-suffix-p ".cabal" file)
+             (push (expand-file-name file dir) result))
+            ((string-suffix-p ".yaml" file)
+             (setf have-stack? t))))
+        (setf continue? (and (not (string-match-p locate-dominating-stop-dir-regexp dir))
+                             (not have-stack?)
+                             (not have-project?))
+              dir (file-name-directory (strip-trailing-slash dir)))))
+    (nreverse result)))
+
+;; Cheap approximation for the real thing: the closest .cabal file may
+;; be some utils bundled together and won’t include the file we’re
+;; actually in - the project we’re part of will have a cabal file
+;; above us.
 (defun haskell-misc--get-project-root-for-path (start-dir)
   "Obtain root of a Haskell project that FILE is part of."
   (cl-assert (file-directory-p start-dir))
@@ -1037,8 +1084,7 @@ to find which component the FILENAME belongs to."
                   (or (seq "cabal" (* nonl) ".project" (? ".local"))
                       ".cabal.sandbox"
                       (seq "stack" (* nonl) ".yaml")
-                      (seq (+ nonl) ".cabal")
-                      "package.yaml")
+                      (seq (+ nonl) ".cabal"))
                   eos))))
     (locate-dominating-file start-dir
                             (lambda (dir-name)
