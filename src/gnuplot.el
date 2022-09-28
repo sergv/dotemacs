@@ -181,8 +181,8 @@ lines."
 
   (turn-on-font-lock)
 
-  (set (make-local-variable 'font-lock-defaults)
-       '(gnuplot-font-lock-keywords t t))
+  (setq-local font-lock-defaults
+              '(gnuplot-font-lock-keywords t t))
 
   (set (make-local-variable 'compile-command)
        (when-buffer-has-file
