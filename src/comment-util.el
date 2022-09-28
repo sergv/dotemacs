@@ -188,7 +188,8 @@ Intended to be used with comment-util-mode."
               json-mode
               css-mode
               verilog-mode
-              nix-drv-mode)
+              nix-drv-mode
+              cmm-mode)
              .
              ,(make-comment-format :one-line "//"
                                    :line-regexp "//+"
