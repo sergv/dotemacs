@@ -1228,10 +1228,6 @@ foo x
     (should (equal 2 (- (point) (line-beginning-position))))))
 
 (ert-deftest haskell-indentation-altj-comment ()
-  :expected-result :failed
-  ;; Emacs 25 (snapshot) somehow passes this test, there is something
-  ;; fishy going on
-  (skip-unless (< emacs-major-version 25))
   (with-temp-switch-to-buffer
     (haskell-mode)
     (insert "main = do\n    return ()\n\n-- comment")
