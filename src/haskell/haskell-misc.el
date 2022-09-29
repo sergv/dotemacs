@@ -561,7 +561,11 @@ both unicode and ascii characters.")
   "Similar to ‘paredit-newline’ but autoexpands haskell signatures."
   (interactive "*")
   (haskell-misc--with-expanded-invisible-overlays-in-current-function
-   (let* ((start-pos (point))
+   (let* (
+          ;; Our regexps distinguish between upper and lower case so it’s
+          ;; importent to be case-sensitive during searches.
+          (case-fold-search nil)
+          (start-pos (point))
           (function-name-column nil)
           (point-at-end-of-function-signature? nil)
           ;; Whether we already performed expansion of the function name
