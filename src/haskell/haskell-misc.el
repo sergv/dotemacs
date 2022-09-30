@@ -1070,10 +1070,12 @@ to find which component the FILENAME belongs to."
              (push (expand-file-name file dir) result))
             ((string-suffix-p ".yaml" file)
              (setf have-stack? t))))
-        (setf continue? (and (not (string-match-p locate-dominating-stop-dir-regexp dir))
-                             (not have-stack?)
-                             (not have-project?))
-              dir (file-name-directory (strip-trailing-slash dir)))))
+        (let ((new-dir (file-name-directory (strip-trailing-slash dir))))
+          (setf continue? (and (not (string-match-p locate-dominating-stop-dir-regexp dir))
+                               (not have-stack?)
+                               (not have-project?)
+                               (not (equal dir new-dir)))
+                dir new-dir))))
     (nreverse result)))
 
 ;; Cheap approximation for the real thing: the closest .cabal file may
