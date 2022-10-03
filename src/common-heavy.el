@@ -1157,7 +1157,7 @@ to deleted items. ITEMS will be mutated in order to obtain result."
     (unwind-protect
         (progn
           (window-preserve-size win t t)
-          (balane-windows))
+          (balance-windows))
       (progn
         (window-preserve-size win t nil)))))
 
