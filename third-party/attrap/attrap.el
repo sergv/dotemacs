@@ -176,6 +176,7 @@
     "MonoLocalBinds"
     "MultiParamTypeClasses"
     "NamedFieldPuns"
+    "NumericUnderscores"
     "ParallelListComp"
     "PartialTypeSignatures"
     "PatternGuards"
