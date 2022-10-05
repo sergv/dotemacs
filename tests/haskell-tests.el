@@ -2991,6 +2991,24 @@
      ""
      "")))
 
+(ert-deftest haskell-tests/haskell-newline-with-signature-expansion-ws-10 ()
+  ;; Cannot distinguish unfinished byt indented body from dangling type signature.
+  :expected-result :failed
+  (haskell-tests--test-buffer-contents
+      (haskell-newline-with-signature-expansion)
+    (tests-utils--multiline
+     ""
+     "processInput :: Env -> IO ()_|_"
+     "    res <- processInputResultFromNum <$> Env.processInput env"
+     "")
+    (tests-utils--multiline
+     ""
+     "processInput :: Env -> IO ()_|_"
+     "processInput _|_"
+     "    res <- processInputResultFromNum <$> Env.processInput env"
+     ""
+     "")))
+
 (ert-deftest haskell-tests/haskell-newline-with-signature-expansion--within-where-block-1 ()
   (haskell-tests--test-buffer-contents
       (haskell-newline-with-signature-expansion)
