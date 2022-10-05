@@ -19,10 +19,6 @@
 (require 'render-formula)
 (require 'vim-setup)
 
-;; for reveal.js presentations
-(require 'htmlize)
-(require 'ox-reveal)
-
 ;; tangling
 (require 'ob)
 
@@ -289,11 +285,6 @@
   (org-toggle-inline-images)
   (render-formula-toggle-formulae))
 
-(vim-defcmd vim:org-mode-make-revealjs-presentation (nonrepeatable)
-  (save-buffer)
-  (org-reveal-export-to-html)
-  (message "Done"))
-
 (vim-defcmd vim:org-mode-export (nonrepeatable)
   (save-buffer)
   (org-export-dispatch))
@@ -382,7 +373,6 @@ _C_: hide everything except current entry and its parents"
                  #'org-shifttab
                  :enable-yasnippet t)
   (vim-local-emap "beamer" #'vim:org-mode-make-beamer-presentation)
-  (vim-local-emap "reveal" #'vim:org-mode-make-revealjs-presentation)
   (vim-local-emap "export" #'vim:org-mode-export)
   (vim-local-emap "tangle" #'vim:org-mode-tangle)
   (vim-local-emap "pdf"    #'vim:org-latex-export-to-pdf)
