@@ -28,7 +28,7 @@
            (setf args (cons rust-cargo-bin (cons cmd args)))
 
            (lambda (proj-dir)
-             (make-cc-command args env proj-dir)))))
+             (make-cc-command args env proj-dir (s-join " " args))))))
     (-mapcat (lambda (entry)
                (let ((target (car entry)))
                  (if (listp target)
