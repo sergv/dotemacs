@@ -15,6 +15,13 @@
 
 (declare-function flycheck-rust-find-manifest "flycheck-rust")
 
+;;;###autoload
+(defun configurable-compilation--unimportant-text (x)
+  "Denotes text that user should not focus attention on by default."
+  (propertize x
+              'face 'font-lock-comment-face
+              'font-lock-face 'font-lock-comment-face))
+
 (defvar-local configurable-compilation-command-presets nil
   "Alist of (<symbol> . <string>) pairs where symbol is the
 user-visible name of the preset and string is the command to
@@ -98,21 +105,27 @@ same for a set of buffers rather than being different."
   (cmd nil :read-only t) ;; List of strings, non-empty.
   (env nil :read-only t) ;; List of strings or nil; gets added to ‘process-environment’.
   (dir nil :read-only t) ;; String, a value for ‘default-directory’. Never nil.
+  (pretty-cmd nil :read-only t) ;; String with properties, what to show user when this command executes.
   )
 
-(defun make-cc-command (cmd env dir)
+(defun make-cc-command (cmd env dir pretty-cmd)
   (cl-assert (not (null cmd)))
   (cl-assert (listp cmd))
   (cl-assert (-all? #'stringp cmd))
   (cl-assert (or (null env) (and (listp env) (-all? #'stringp env))))
   (cl-assert (stringp dir))
   (cl-assert (file-directory-p dir))
+  (cl-assert (stringp pretty-cmd))
   (make--cc-command :cmd cmd
                     :env env
-                    :dir dir))
+                    :dir dir
+                    :pretty-cmd pretty-cmd))
 
-(defun configurable-compilation--timestamp ()
-  (format-time-string "%a %-d %b %Y %H:%M:%S"))
+(defun configurable-compilation--format-timestamp (x)
+  (format-time-string "%a %-d %b %Y %H:%M:%S" x))
+
+(defun configurable-compilation--format-duration (start end)
+  (format "%.2f seconds" (float-time (time-subtract end start))))
 
 (defvar-local configurable-compilation--proj-root nil)
 
@@ -180,6 +193,9 @@ same for a set of buffers rather than being different."
 
 ;;;###autoload
 (el-patch-feature compile)
+
+(defvar-local compilation-start-timestamp nil
+  "Time when current compilation started")
 
 (when-emacs-version (<= 28 it)
   (el-patch-defun compilation-start (command &optional mode name-function highlight-regexp)
@@ -307,31 +323,38 @@ Returns the compilation buffer created."
                   (eq compilation-scroll-output 'first-error))
               (setq-local compilation-auto-jump-to-next t))
           ;; Output a mode setter, for saving and later reloading this buffer.
-          (insert "-*- mode: " name-of-mode
-                  "; default-directory: "
-                  (prin1-to-string (abbreviate-file-name default-directory))
-                  " -*-\n"
-                  (format "%s started at %s\n\n"
-                          mode-name
-                          (el-patch-swap
-                            (substring (current-time-string) 0 19)
-                            (configurable-compilation--timestamp)))
+          (el-patch-add
+            (setf compilation-start-timestamp (current-time)))
+          (insert (el-patch-wrap 1 0
+                    (configurable-compilation--unimportant-text
+                     "-*- mode: "))
+                  (el-patch-wrap 1 0
+                    (configurable-compilation--unimportant-text
+                     name-of-mode))
+                  (el-patch-wrap 1 0
+                    (configurable-compilation--unimportant-text
+                     "; default-directory: "))
+                  (el-patch-wrap 1 0
+                    (configurable-compilation--unimportant-text
+                     (prin1-to-string (abbreviate-file-name default-directory))))
+                  (el-patch-wrap 1 0
+                    (configurable-compilation--unimportant-text
+                     " -*-\n"))
+                  (el-patch-swap
+                    (format "%s started at %s\n\n"
+                            mode-name
+                            (substring (current-time-string) 0 19))
+                    (configurable-compilation--unimportant-text
+                     (format "%s started at %s\n\n"
+                             mode-name
+                             (configurable-compilation--format-timestamp compilation-start-timestamp))))
                   (el-patch-swap
                     command
                     (cond
                       ((stringp command)
                        command)
                       ((cc-command-p command)
-                       (let ((command-line (cc-command-cmd command))
-                             (tmp nil))
-                         (mapconcat #'identity
-                                    (if (and command-line
-                                             (equal "nix"
-                                                    (setf tmp
-                                                          (file-name-nondirectory (car command-line)))))
-                                        (cons tmp (cdr command-line))
-                                      command-line)
-                                    " ")))))
+                       (cc-command-pretty-cmd command))))
                   "\n")
           ;; Mark the end of the header so that we don't interpret
           ;; anything in it as an error.
@@ -455,7 +478,7 @@ Returns the compilation buffer created."
                   '((:propertize ":run" face compilation-mode-line-run)
                     compilation-mode-line-errors))
             (force-mode-line-update)
-            (sit-for 0)                        ; Force redisplay
+            (sit-for 0)                 ; Force redisplay
             (save-excursion
               ;; Insert the output at the end, after the initial text,
               ;; regardless of where the user sees point.
@@ -502,18 +525,33 @@ Returns the compilation buffer created."
                     (cons msg exit-status)))
           (omax (point-max))
           (opoint (point))
-          (cur-buffer (current-buffer)))
+          (cur-buffer (current-buffer))
+          (el-patch-add
+            (end-time nil)))
       ;; Record where we put the message, so we can ignore it later on.
       (goto-char omax)
-      (insert ?\n mode-name " " (car status))
+      (el-patch-swap
+        (insert ?\n mode-name " " (car status))
+        (insert
+         (configurable-compilation--unimportant-text
+          (concat "\n" mode-name " " (car status)))))
       (if (and (numberp compilation-window-height)
                (zerop compilation-window-height))
           (message "%s" (cdr status)))
       (if (bolp)
           (forward-char -1))
-      (insert " at " (el-patch-swap
-                       (substring (current-time-string) 0 19)
-                       (configurable-compilation--timestamp)))
+      (el-patch-add
+        (setf end-time (current-time)))
+      (el-patch-swap
+        (insert " at " (substring (current-time-string) 0 19))
+        (insert (configurable-compilation--unimportant-text
+                 " at ")
+                (configurable-compilation--unimportant-text
+                 (configurable-compilation--format-timestamp end-time))
+                (configurable-compilation--unimportant-text
+                 " and took ")
+                (configurable-compilation--unimportant-text
+                 (configurable-compilation--format-duration compilation-start-timestamp end-time))))
       (goto-char (point-max))
       ;; Prevent that message from being recognized as a compilation error.
       (add-text-properties omax (point)
