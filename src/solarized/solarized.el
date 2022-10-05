@@ -308,7 +308,6 @@
       (custom-button-pressed :inherit custom-button-mouse
                              :box (:line-width 2 :style pressed-button))
       (custom-comment-tag :background ,background-highlights)
-      (custom-comment-tag :background ,background-highlights)
       (custom-documentation :inherit default)
       (custom-group-tag :foreground ,orange :bold t)
       (custom-link :foreground ,violet)
