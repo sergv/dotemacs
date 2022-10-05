@@ -169,7 +169,7 @@ same for a set of buffers rather than being different."
                   ((functionp raw-command)
                    (funcall raw-command proj-dir))
                   (t
-                   (error "Raw command must a function of 1 argument: %s" proj-dir))))
+                   (error "Raw command must a function of 1 argument: %s" raw-command))))
            (buf-name (configurable-compilation-buffer-name proj-dir)))
 
       (cl-assert (cc-command-p cmd))
