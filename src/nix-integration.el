@@ -23,9 +23,13 @@
   "If current project has flake.nix then return ‘nix develop
 --command ARGS’, otherwise just return ARGS."
   (if-let ((nix-exe (cached-executable-find "nix")))
-      (if proj-dir
-          (cons nix-exe (cons "develop" (cons "--no-warn-dirty" (cons proj-dir (cons "--command" args)))))
-        (cons nix-exe (cons "develop" (cons "--no-warn-dirty" (cons "--command" args)))))
+      (let ((nix-exe-prop (configurable-compilation--unimportant-text nix-exe))
+            (develop-prop (eval-when-compile (configurable-compilation--unimportant-text "develop")))
+            (no-warn-dirty-prop (eval-when-compile (configurable-compilation--unimportant-text "--no-warn-dirty")))
+            (command-prop (eval-when-compile (configurable-compilation--unimportant-text "--command"))))
+        (if proj-dir
+            (cons nix-exe-prop (cons develop-prop (cons no-warn-dirty-prop (cons (configurable-compilation--unimportant-text proj-dir) (cons command-prop args)))))
+          (cons nix-exe-prop (cons develop-prop (cons no-warn-dirty-prop (cons command-prop args))))))
     args))
 
 (provide 'nix-integration)

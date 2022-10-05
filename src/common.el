@@ -1434,6 +1434,12 @@ and cdr is a boolean whether any element was let out."
     (cons (cdr res)
           any-omitted?)))
 
+;;
+
+(defun file-name-nondirectory-preserve-text-properties (x)
+  (let ((nondir (file-name-nondirectory x)))
+    (substring x (- (length x) (length nondir)))))
+
 (provide 'common)
 
 ;; Local Variables:
