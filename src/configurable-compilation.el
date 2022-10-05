@@ -20,8 +20,8 @@
 user-visible name of the preset and string is the command to
 execute.")
 
-(defvar configurable-compilation-last-command (make-hash-table :test #'eq)
-  "Mapping between major modes and last chosen compilation command.")
+(defvar configurable-compilation-last-command (make-hash-table :test #'equal)
+  "Mapping between (<proj-dir> . <major-mode>) and last chosen compilation command.")
 
 (sessions-mark-global-var-for-save 'configurable-compilation-last-command)
 
@@ -58,6 +58,17 @@ same for a set of buffers rather than being different."
         (error "`compilation-command' evaluated to non-string"))
     configurable-compilation-command-presets))
 
+(defmacro configurable-compilation--with-proj-dir-and-command-key (proj-dir-var command-key-var &rest body)
+  (declare (indent 2))
+  (cl-assert (symbolp proj-dir-var))
+  (cl-assert (symbolp command-key-var))
+  (let ((effective-major-mode-var '#:effective-major-mode))
+    `(let* ((,proj-dir-var (configurable-compilation-proj-dir))
+            (,effective-major-mode-var
+             (configurable-compilation--resolve-synonym-modes major-mode))
+            (,command-key-var (cons ,proj-dir-var ,effective-major-mode-var)))
+       ,@body)))
+
 (defun configurable-compilation-install-command-presets! (presets history-var compilation-mode)
   (cl-assert (--all? (and (consp it)
                           (symbolp (car it))
@@ -66,15 +77,17 @@ same for a set of buffers rather than being different."
   (cl-assert (symbolp history-var))
   (cl-assert (symbolp compilation-mode))
   (setq-local configurable-compilation-command-presets presets)
-  (let ((effective-major-mode
-         (configurable-compilation--resolve-synonym-modes major-mode)))
-    (unless (gethash effective-major-mode configurable-compilation-last-command)
-      (puthash effective-major-mode
+  (configurable-compilation--with-proj-dir-and-command-key
+      proj-dir
+      command-key
+    (unless (gethash command-key configurable-compilation-last-command)
+      (puthash command-key
                (let ((presets (configurable-compilation--get-presets)))
                  (or (cdr-safe (assq 'build presets))
                      (cdar-safe presets)
                      (error "Failed to get default build preset from %s" configurable-compilation-command-presets)))
                configurable-compilation-last-command)))
+
   (setq-local configurable-compilation-history-var history-var
               configurable-compilation-mode compilation-mode))
 
@@ -128,42 +141,42 @@ same for a set of buffers rather than being different."
   (interactive "P")
   (save-some-buffers (not compilation-ask-about-save)
                      compilation-save-buffers-predicate)
-  (let* ((proj-dir (configurable-compilation-proj-dir))
-         (effective-major-mode
-          (configurable-compilation--resolve-synonym-modes major-mode))
-         (raw-command
-          (if edit-command
-              (let* ((preset
-                      (string->symbol
-                       (completing-read "Build preset: "
-                                        (configurable-compilation--get-presets)
-                                        nil ;; predicate
-                                        t   ;; require match
-                                        nil ;; initial input
-                                        configurable-compilation-history-var)))
-                     (command
-                      (cdr
-                       (assq preset (configurable-compilation--get-presets)))))
-                ;; Remember command so it will be called again in the future.
-                (puthash effective-major-mode command configurable-compilation-last-command)
-                command)
-            (gethash effective-major-mode configurable-compilation-last-command)))
-         (cmd (cond
-                    ;; ((stringp raw-command)
-                    ;;  (if proj-dir
-                    ;;      (format raw-command (expand-file-name proj-dir))
-                    ;;    raw-command))
-                    ((functionp raw-command)
-                     (funcall raw-command proj-dir))
-                    (t
-                     (error "Raw command must a function of 1 argument: %s" proj-dir))))
-         (buf-name (configurable-compilation-buffer-name proj-dir)))
+  (configurable-compilation--with-proj-dir-and-command-key
+      proj-dir
+      command-key
+    (let* ((raw-command
+            (if edit-command
+                (let* ((preset
+                        (string->symbol
+                         (completing-read "Build preset: "
+                                          (configurable-compilation--get-presets)
+                                          nil ;; predicate
+                                          t   ;; require match
+                                          nil ;; initial input
+                                          configurable-compilation-history-var)))
+                       (command
+                        (cdr
+                         (assq preset (configurable-compilation--get-presets)))))
+                  ;; Remember command so it will be called again in the future.
+                  (puthash command-key command configurable-compilation-last-command)
+                  command)
+              (gethash command-key configurable-compilation-last-command)))
+           (cmd (cond
+                  ;; ((stringp raw-command)
+                  ;;  (if proj-dir
+                  ;;      (format raw-command (expand-file-name proj-dir))
+                  ;;    raw-command))
+                  ((functionp raw-command)
+                   (funcall raw-command proj-dir))
+                  (t
+                   (error "Raw command must a function of 1 argument: %s" proj-dir))))
+           (buf-name (configurable-compilation-buffer-name proj-dir)))
 
-    (cl-assert (cc-command-p cmd))
+      (cl-assert (cc-command-p cmd))
 
-    (compilation-start cmd
-                       configurable-compilation-mode
-                       (lambda (_) buf-name))))
+      (compilation-start cmd
+                         configurable-compilation-mode
+                         (lambda (_) buf-name)))))
 
 ;;;###autoload
 (el-patch-feature compile)
