@@ -355,15 +355,40 @@ _<tab>_: reindent  _h_: jump to topmont node end"
 ;;;###autoload
 (defun haskell-setup ()
   (let ((non-vanilla-haskell-mode? (-any? #'derived-mode-p '(ghc-core-mode haskell-c2hs-mode haskell-hsc-mode)))
-        (using-lsp? nil))
+        (using-lsp? nil)
+        (should-enable-flycheck? nil))
     (init-common :use-whitespace 'tabs-only)
     (add-hook 'after-save-hook #'haskell-update-eproj-tags-on-save nil t)
 
     (pretty-ligatures-install!)
     (pretty-ligatures-install-special-haskell-ligatures!)
 
+    (turn-on-font-lock)
+
+    ;; The underscore should remain part of word so we never search within
+    ;; _c_style_identifiers.
+    (modify-syntax-entry ?_  "_")
+    (modify-syntax-entry ?\' "w")
+    (modify-syntax-entry ?\@ "'")
+
     (setq-local flycheck-enhancements--get-project-root-for-current-buffer
-                #'haskell-misc-get-project-root)
+                #'haskell-misc-get-project-root
+
+                eproj-symbnav/identifier-type 'haskell-symbol
+
+                yas-indent-line 'fixed
+
+                beginning-of-defun-function #'haskell-move-to-topmost-start-impl
+
+                ;; Improve vim treatment of words for Haskell.
+                ;; Note: underscore should not be included since it would prevent
+                ;; navigating inside of some Haskell identifiers, e.g. foo_bar.
+                vim-word "[:word:]'"
+
+                compilation-read-command nil
+                compilation-auto-jump-to-first-error nil
+                ;; Don't skip any messages.
+                compilation-skip-threshold 0)
 
     ;; Read settings from '.eproj-info' file, if any.
     (let (
@@ -388,7 +413,7 @@ _<tab>_: reindent  _h_: jump to topmont node end"
       (eproj-setup-local-variables proj)
 
       (when (not non-vanilla-haskell-mode?)
-        (flycheck-setup-from-eproj
+        (flycheck-setup-from-eproj-deferred
          proj
          'haskell-dante ;; default checker
          (lambda (backend)
@@ -410,95 +435,13 @@ _<tab>_: reindent  _h_: jump to topmont node end"
            ;;   (error "Unable to select checker '%s' for buffer '%s'"
            ;;          backend (current-buffer)))
            (when (memq backend '(haskell-dante))
-             (add-hook 'flycheck-mode-hook #'haskell-misc--configure-dante! nil t))))))
-
-    (turn-on-font-lock)
-
-    ;; The underscore should remain part of word so we never search within
-    ;; _c_style_identifiers.
-    (modify-syntax-entry ?_  "_")
-    (modify-syntax-entry ?\' "w")
-    (modify-syntax-entry ?\@ "'")
-
-    (setq-local eproj-symbnav/identifier-type 'haskell-symbol
-
-                yas-indent-line 'fixed
-
-                beginning-of-defun-function #'haskell-move-to-topmost-start-impl
-
-                ;; Improve vim treatment of words for Haskell.
-                ;; Note: underscore should not be included since it would prevent
-                ;; navigating inside of some Haskell identifiers, e.g. foo_bar.
-                vim-word "[:word:]'"
-
-                compilation-read-command nil
-                compilation-auto-jump-to-first-error nil
-                ;; Don't skip any messages.
-                compilation-skip-threshold 0)
+             (add-hook 'flycheck-mode-hook #'haskell-misc--configure-dante! nil t)))
+         (lambda (should-enable?)
+           (setf should-enable-flycheck? (if should-enable? +1 -1))))))
 
     (def-keys-for-map vim-normal-mode-local-keymap
       ("SPC SPC"      vim:dante-repl-switch-to-repl-buffer:interactive)
       (("C-l" "<f6>") vim:haskell-dante-load-file-into-repl:interactive))
-
-    ;; Dante doesn't play well with idle-change checks.
-    (cond
-      (dante-mode
-       (setq-local flycheck-check-syntax-automatically
-                   (if buffer-file-name
-                       '(save mode-enabled)
-                     ;; There may be no save step for a temporary buffer.
-                     '(save mode-enabled new-line)))
-
-       (dolist (cmd '("conf" "configure"))
-         (vim-local-emap cmd #'vim:haskell-dante-configure))
-
-       (def-keys-for-map vim-normal-mode-local-keymap
-         ("-" hydra-haskell-dante/body))
-
-       (flycheck-install-ex-commands!
-        :install-flycheck flycheck-mode
-        :load-func #'vim:haskell-dante-load-file-into-repl
-        :reset-func #'vim:haskell-dante-reset))
-      (using-lsp?
-       (dolist (cmd '("conf-repl" "configure-repl"))
-         (vim-local-emap cmd #'vim:haskell-dante-configure))
-
-       (setq-local lsp-ui-sideline-show-code-actions t
-                   lsp-ui-sideline-enable t
-                   lsp-ui-sideline-ignore-duplicate t
-                   lsp-ui-sideline-show-hover nil
-                   ;; Maybe be a good idea to try enabling this one
-                   lsp-ui-sideline-show-diagnostics nil
-                   lsp-ui-sideline-delay 0.05)
-       (lsp-ui-sideline-mode +1)
-       (def-keys-for-map vim-normal-mode-local-keymap
-         ("-"   hydra-haskell-lsp/body)
-         ("C-r" lsp-rename))
-
-       (flycheck-install-ex-commands!
-        :install-flycheck flycheck-mode
-        :load-func #'vim:haskell-dante-load-file-into-repl
-        :reset-func #'vim:haskell-lsp-flycheck-reset))
-      (flycheck-mode
-       ;; Fallback, should rarely be reached since dante should handle most of the cases.
-       (def-keys-for-map vim-normal-mode-local-keymap
-         ("-" hydra-haskell-minus/body))
-
-       (flycheck-install-ex-commands!
-        :install-flycheck flycheck-mode
-        :load-func #'vim:haskell-dante-load-file-into-repl:interactive)))
-
-    (setq-local mode-line-format
-                (apply #'default-mode-line-format
-                       (append
-                        (when dante-mode
-                          (list
-                           " "
-                           '(:eval (dante-status))))
-                        (when flycheck-mode
-                          (list
-                           " "
-                           '(:eval (flycheck-pretty-mode-line)))))))
 
     (vim-local-emap "core" #'vim:ghc-core-create-core)
 
@@ -560,7 +503,74 @@ _<tab>_: reindent  _h_: jump to topmont node end"
     (def-keys-for-map vim-normal-mode-local-keymap
       ("M-." haskell-go-to-symbol-home-smart)
       ("M-," eproj-symbnav/go-back)
-      ("M-?" haskell-find-references-smart))))
+      ("M-?" haskell-find-references-smart))
+
+    (awhen should-enable-flycheck?
+      (flycheck-mode it))
+
+    (setq-local mode-line-format
+                (apply #'default-mode-line-format
+                       (append
+                        (when dante-mode
+                          (list
+                           " "
+                           '(:eval (dante-status))))
+                        (when flycheck-mode
+                          (list
+                           " "
+                           '(:eval (flycheck-pretty-mode-line)))))))
+
+    ;; Dante doesn't play well with idle-change checks.
+    (cond
+      (dante-mode
+       (setq-local flycheck-check-syntax-automatically
+                   (if buffer-file-name
+                       '(save mode-enabled)
+                     ;; There may be no save step for a temporary buffer.
+                     '(save mode-enabled new-line)))
+
+       (dolist (cmd '("conf" "configure"))
+         (vim-local-emap cmd #'vim:haskell-dante-configure))
+
+       (def-keys-for-map vim-normal-mode-local-keymap
+         ("-" hydra-haskell-dante/body))
+
+       (flycheck-install-ex-commands!
+        :install-flycheck flycheck-mode
+        :load-func #'vim:haskell-dante-load-file-into-repl
+        :reset-func #'vim:haskell-dante-reset))
+      (using-lsp?
+       (dolist (cmd '("conf-repl" "configure-repl"))
+         (vim-local-emap cmd #'vim:haskell-dante-configure))
+
+       (setq-local lsp-ui-sideline-show-code-actions t
+                   lsp-ui-sideline-enable t
+                   lsp-ui-sideline-ignore-duplicate t
+                   lsp-ui-sideline-show-hover nil
+                   ;; Maybe be a good idea to try enabling this one
+                   lsp-ui-sideline-show-diagnostics nil
+                   lsp-ui-sideline-delay 0.05)
+       (lsp-ui-sideline-mode +1)
+       (def-keys-for-map vim-normal-mode-local-keymap
+         ("-"   hydra-haskell-lsp/body)
+         ("C-r" lsp-rename))
+
+       (flycheck-install-ex-commands!
+        :install-flycheck flycheck-mode
+        :load-func #'vim:haskell-dante-load-file-into-repl
+        :reset-func #'vim:haskell-lsp-flycheck-reset))
+      (flycheck-mode
+       ;; Fallback, should rarely be reached since dante should handle most of the cases.
+       (def-keys-for-map vim-normal-mode-local-keymap
+         ("-" "" hydra-haskell-minus/body))
+
+       (flycheck-install-ex-commands!
+        :install-flycheck flycheck-mode
+        :load-func #'vim:haskell-dante-load-file-into-repl:interactive))
+      (t
+       ;; Fallback for a fallback, in case some errors occured during setup.
+       (def-keys-for-map vim-normal-mode-local-keymap
+         ("-" "" hydra-haskell-minus/body))))))
 
 ;;;###autoload
 (defun haskell-c2hs-setup ()
