@@ -239,6 +239,9 @@ scheme and it’s view of current buffer is malformed."
 
 ;;;###autoload
 (defun flycheck-setup-from-eproj (proj default-checker &optional preprocess-checker)
+  (flycheck-setup-from-eproj-deferred proj default-checker preprocess-checker #'flycheck-mode ))
+
+(defun flycheck-setup-from-eproj-deferred (proj default-checker preprocess-checker consume-outcome)
   (when (not noninteractive)
     (let* ((flycheck-backend
             (eproj-query/checker proj major-mode default-checker)))
@@ -256,11 +259,11 @@ scheme and it’s view of current buffer is malformed."
             ;;   (error "Unable to select checker '%s' for buffer '%s'"
             ;;          flycheck-backend (current-buffer)))
             (setq-local flycheck-checker flycheck-backend)
-            (flycheck-mode +1))
+            (funcall consume-outcome +1))
         ;; Disable flycheck if it was explicitly set to nil
         (progn
           (when flycheck-mode
-            (flycheck-mode -1)))))))
+            (funcall consume-outcome -1)))))))
 
 (provide 'flycheck-setup)
 
