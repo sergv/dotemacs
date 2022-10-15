@@ -148,7 +148,8 @@ qcProps = testGroup "(checked by QuickCheck)"
   , QC.testProperty "Fermat's little theorem" $
       \x -> ((x :: Integer)^7 - x) `mod` 7 == 0
   -- the following property does not hold
-  , QC.testProperty "Fermat's last theorem" $
+  , localOption (QC.QuickCheckTests 10000) $
+    QC.testProperty "Fermat's last theorem" $
       \x y z n ->
         (n :: Integer) >= 3 QC.==> x^n + y^n /= (z^n :: Integer)
   ]
