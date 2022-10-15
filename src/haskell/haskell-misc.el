@@ -508,7 +508,7 @@ both unicode and ascii characters.")
 both unicode and ascii characters.")
 
 (vim-defmotion vim:motion-inner-haskell-symbol (inclusive count motion-result)
-  "Select `count' inner symbol."
+  "Select `count' inner symbols."
   (vim--inner-motion (or count 1)
                      #'vim-boundary--haskell-symbol
                      #'vim-boundary--ws
