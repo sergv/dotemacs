@@ -241,6 +241,7 @@ will be in different GHCi sessions."
   find-root-pred     ;; Can be nil in which case default directory will be used.
   check-command-line ;; List of strings.
   repl-command-line  ;; Whatever ‘dante--mk-repl-cmdline’ returns.
+  repl-buf-name-func ;; Function of 0 arguments that returns buffer name for dante repl
   )
 
 (defun dante--make-methods (tmp)
@@ -273,7 +274,7 @@ will be in different GHCi sessions."
                              (concat "-" it))))))
          (repl-options (--mapcat (list "--repl-option" it) ghci-options))
          (mk-dante-method
-          (lambda (name is-enabled-pred find-root-pred template)
+          (lambda (name is-enabled-pred find-root-pred repl-buf-name-func template)
             (make-dante-method
              :name name
              :is-enabled-pred is-enabled-pred
@@ -285,13 +286,16 @@ will be in different GHCi sessions."
              (lambda (flake-root)
                (dante--mk-repl-cmdline
                 (funcall template flake-root (append repl repl-options))
-                (funcall template flake-root (append repl (cons "--repl-no-load" repl-options)))))))))
+                (funcall template flake-root (append repl (cons "--repl-no-load" repl-options)))))
+             :repl-buf-name-func
+             repl-buf-name-func))))
     (dante--mk-methods
      (list
       (funcall mk-dante-method
                'nix-flakes-build-script      ;; name
                #'dante-nix-cabal-script-buf? ;; is enabled predicate
                nil                           ;; find root predicate
+               #'dante-buffer-name--default
                (lambda (flake-root flags)
                  (nix-call-via-flakes `("cabal" "repl" buffer-file-name ,@flags) flake-root)))
 
@@ -299,6 +303,7 @@ will be in different GHCi sessions."
                'nix-flakes-build      ;; name
                #'dante-nix-available? ;; is enabled predicate
                #'dante-cabal-new      ;; find root predicate
+               #'dante-buffer-name--default
                (lambda (flake-root flags)
                  (nix-call-via-flakes `("cabal" "repl" (or dante-target (dante-package-name) nil) ,@flags) flake-root)))
 
@@ -306,6 +311,7 @@ will be in different GHCi sessions."
                'build-script
                #'dante-vanilla-cabal-script-buf?
                nil
+               #'dante-buffer-name--default
                (lambda (_flake-root flags)
                  `("cabal" "repl" buffer-file-name ,@flags)))
 
@@ -313,6 +319,7 @@ will be in different GHCi sessions."
                'build
                nil
                #'dante-cabal-new
+               #'dante-buffer-name--default
                (lambda (_flake-root flags)
                  `("cabal" "repl" (or dante-target (dante-package-name) nil) ,@flags)))
 
@@ -320,6 +327,7 @@ will be in different GHCi sessions."
                'bare-ghci
                nil
                (lambda (_) t)
+               #'dante-buffer-name--default
                (lambda (_flake_root _flags)
                  '("ghci")))))))
 
@@ -359,14 +367,16 @@ Do it according to `dante-methods' and previous values of the above variables."
                                    (t
                                     nil))))))
 
-                        (setq-local dante-project-root (or dante-project-root root))
-                        (setq-local dante-repl-command-line (or dante-repl-command-line
-                                                                (funcall (dante-method-check-command-line method) flake-root)))
-                        (setq-local dante-repl--command-line-to-use (or (when (boundp 'dante-repl--command-line-to-use)
-                                                                          dante-repl--command-line-to-use)
-                                                                        (funcall (dante-method-repl-command-line method) flake-root)
-                                                                        ;; Fall back to command used by dante for checking else
-                                                                        (dante--mk-repl-cmdline dante-repl-command-line dante-repl-command-line))))))))
+                        (setq-local
+                         dante-project-root (or dante-project-root root)
+                         dante-repl-command-line (or dante-repl-command-line
+                                                     (funcall (dante-method-check-command-line method) flake-root))
+                         dante-repl--command-line-to-use (or (when (boundp 'dante-repl--command-line-to-use)
+                                                               dante-repl--command-line-to-use)
+                                                             (funcall (dante-method-repl-command-line method) flake-root)
+                                                             ;; Fall back to command used by dante for checking else
+                                                             (dante--mk-repl-cmdline dante-repl-command-line dante-repl-command-line))
+                         dante--selected-method method))))))
               (-non-nil (--map (dante--methods-lookup it dante-methods-defs)
                                dante-methods)))
       (error "No GHCi loading method applies.  Customize `dante-methods' or (`dante-repl-command-line' and `dante-project-root')")))
@@ -1036,7 +1046,13 @@ This is a standard process sentinel function."
             "Process state change: " change "\n"
             (dante-debug-info (current-buffer)))))
 
+(defvar-local dante--selected-method nil)
+
 (defun dante-buffer-name ()
+  "Create a dante process buffer name."
+  (funcall (dante-method-repl-buf-name-func dante--selected-method)))
+
+(defun dante-buffer-name--default ()
   "Create a dante process buffer name."
   (let* ((root (dante-project-root))
          (package-name (dante-package-name)))
