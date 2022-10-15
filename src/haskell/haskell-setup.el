@@ -628,8 +628,6 @@ _<tab>_: reindent  _h_: jump to topmont node end"
     ("<up>"     comint-previous-input)
     ("<down>"   comint-next-input)
 
-    ("C-t"      comint-previous-prompt)
-    ("C-h"      comint-next-prompt)
     ("S-<up>"   comint-previous-prompt)
     ("S-<down>" comint-next-prompt)
 
@@ -639,6 +637,8 @@ _<tab>_: reindent  _h_: jump to topmont node end"
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-visual-mode-local-keymap
                      vim-insert-mode-local-keymap)
+    ("C-t"        comint-previous-prompt)
+    ("C-h"        comint-next-prompt)
     ("C-<return>" dante-repl-newline))
 
   (haskell-setup-folding)
