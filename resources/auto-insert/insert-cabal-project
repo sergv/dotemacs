@@ -23,7 +23,7 @@ constraints:
 --   tag: 8793371475c697ead6f3a5e761ae5a40bcad3cde
 --   -- subdir: quux
 
--- Sperify options for all packages
+-- Specify options for all packages
 program-options
   -- alex-options: --debug
   ld-options: -fuse-ld=lld
@@ -51,7 +51,7 @@ program-options
 --     -funfolding-creation-threshold=2500
 --     -funfolding-use-threshold=1250
 
--- -- Sperify options on a per-package basis
+-- -- Specify options on a per-package basis
 -- package Cabal
 --   ghc-options: -O2
 -- package cabal-testsuite
