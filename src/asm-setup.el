@@ -13,7 +13,9 @@
   (defvar asm-mode-map))
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.asm\\'" . nasm-mode))
+(setq auto-mode-alist
+      (cons '("\\.\\(?:dump-\\)?asm\\'" . nasm-mode)
+            auto-mode-alist))
 
 ;;;###autoload
 (defun nasm-mode-setup ()
