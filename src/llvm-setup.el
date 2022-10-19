@@ -11,8 +11,9 @@
 
 ;;;###autoload
 (setq auto-mode-alist
-      (cons '("\\.ll$" . llvm-mode)
-            auto-mode-alist))
+      (cons '("\\.ll\\'" . llvm-mode)
+            (cons '("\\.dump-llvm\\'" . llvm-mode)
+                  auto-mode-alist)))
 
 ;;;###autoload
 (defun llvm-mode-setup ()
@@ -30,7 +31,7 @@
 
 ;;;###autoload
 (setq auto-mode-alist
-      (cons '("\\.td$" . tablegen-mode)
+      (cons '("\\.td\\'" . tablegen-mode)
             auto-mode-alist))
 
 ;;;###autoload
