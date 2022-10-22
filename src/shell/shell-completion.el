@@ -358,7 +358,7 @@ regexp and files under version-control directories."
          (eval-when-compile
            (concat "\\`"
                    (regexp-opt +version-control-directories+)
-                   "\\'"))))
+                   "/\\'"))))
     (pcomplete-entries select)))
 
 (defun pcmpl-dirs ()
@@ -366,7 +366,7 @@ regexp and files under version-control directories."
          (eval-when-compile
            (concat "\\`"
                    (regexp-opt +version-control-directories+)
-                   "\\'"))))
+                   "/\\'"))))
     (pcomplete-dirs)))
 
 (defun pcmpl-entries-ignoring-common ()
