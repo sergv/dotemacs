@@ -44,6 +44,9 @@
 ;;        [<haskell-stack-ghc|haskell-ghc|haskell-dante|lsp|...>]
 ;;        ...)])]
 ;;
+;; Alternative to cabal’s /tmp/dist, etc.
+;; [(build-dir <abs-or-rel-dir>)]
+;;
 ;; [...] - optional directive
 ;; <abs-or-rel-dir> - absolute or relative path to directory
 ;; <abs-or-rel-file> - absolute or relative path to file
