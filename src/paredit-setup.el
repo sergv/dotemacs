@@ -246,7 +246,7 @@ This macro is similar to `vim:do-motion'."
   (vim:motion-bwd-symbol :count count))
 
 (defun paredit-setup--wrap-or-insert (open close escape?)
-  "Wrap the following expression with PAIR."
+  "Wrap the following expression or the active region with PAIR."
   (let* ((p (point))
          (start p)
          (end p))
