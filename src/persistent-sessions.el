@@ -463,7 +463,7 @@ entries."
 ;;;###autoload
 (defun sessions/save-buffers (file)
   "Save all buffers that have physical file assigned into FILE."
-  (interactive "FFile to save session in: ")
+  (interactive "FFile to save session to: ")
   (with-temp-buffer
     (insert ":;exec emacs --load \"$0\"\n\n")
     (insert ";:;exec gdb -ex \"run\" --args emacs --load \"$0\"\n\n")
