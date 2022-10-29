@@ -342,11 +342,14 @@ _<tab>_: reindent  _h_: jump to topmont node end"
 (defun haskell-setup-common-editing ()
   (def-keys-for-map vim-insert-mode-local-keymap
     ("'"  haskell-smart-operators-quote)
-    ("`"  vim-wrap-backticks)
 
     ("\"" smart-operators-double-quote)
     ("\(" smart-operators-open-paren)
     ("\[" smart-operators-open-bracket))
+
+  (def-keys-for-map (vim-insert-mode-local-keymap
+                     vim-visual-mode-local-keymap)
+    ("`"  vim-wrap-backticks))
 
   (def-keys-for-map vim-operator-pending-mode-local-keymap
     (("is" "s") vim:motion-inner-haskell-symbol:interactive)
@@ -452,7 +455,6 @@ _<tab>_: reindent  _h_: jump to topmont node end"
       ("C-="          input-unicode))
 
     (def-keys-for-map vim-visual-mode-local-keymap
-      ("`"            vim-wrap-backticks)
       ("g"            hydra-haskell-vim-visual-g-ext/body))
 
     (def-keys-for-map (vim-normal-mode-local-keymap
