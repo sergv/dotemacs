@@ -151,12 +151,12 @@ MSYS-style drives, e.g. \"/c/foo/bar.txt\" -> \"c:/foo/bar.txt\"."
   (hl-line-mode +1)
 
   ;; Simplest config that works with this: PS1="\w$"
-  (setf dirtrack-list (list (rx bol
-                                (? (+ (not (or ?: ?\s ?\r ?\n)))
-                                   ":")
-                                (group (+ (not (or ?$ ?\r ?\n))))
-                                (any ?$ ?#))
-                            1))
+  (setq-local dirtrack-list (list (rx bol
+                                      (? (+ (not (or ?: ?\s ?\r ?\n)))
+                                         ":")
+                                      (group (+ (not (or ?$ ?\r ?\n))))
+                                      (any ?$ ?#))
+                                  1))
   (dirtrack-mode +1)
 
   (setq-local comment-start "#"
