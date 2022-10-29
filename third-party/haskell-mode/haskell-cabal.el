@@ -103,7 +103,7 @@ By default these are:
   ;; We could use font-lock-syntactic-keywords, but is it worth it?
   '(("^[ \t]*\\(?:,[ \t]*\\)?\\([^ \t\n\r:]+\\):" (1 font-lock-keyword-face))
     ("^\\([Ll]ibrary\\)[ \t]*\\({\\|$\\)" (1 font-lock-keyword-face))
-    ("^\\([Ee]xecutable\\|[Tt]est-[Ss]uite\\|[Bb]enchmark\\|[Cc]ommon\\|[Pp]ackage\\)[ \t]+\\([^ \t\n\r]*\\)"
+    ("^\\([Ee]xecutable\\|[Tt]est-[Ss]uite\\|[Bb]enchmark\\|\\(:?[Ff]oreign-\\)?[Ll]ibrary\\|[Cc]ommon\\|[Pp]ackage\\)[ \t]+\\([^ \t\n\r]*\\)"
      (1 font-lock-keyword-face) (2 font-lock-function-name-face))
     ("^\\([Ff]lag\\|[Ii]nstall-[Dd]irs\\|[Rr]epository\\)[ \t]+\\([^ \t\n\r]*\\)"
      (1 font-lock-keyword-face) (2 font-lock-constant-face))
@@ -921,7 +921,7 @@ resulting buffer-content.  Unmark line at the end."
   )
 
 (defconst haskell-cabal-source-bearing-sections
-  '("library" "executable" "test-suite" "benchmark"))
+  '("library" "foreign-library" "executable" "test-suite" "benchmark"))
 
 (defun haskell-cabal-source-section-p (section)
   (not (not (member (downcase (haskell-cabal-section-name section))
