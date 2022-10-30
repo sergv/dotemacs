@@ -732,7 +732,9 @@ PROJECT. EQ-FUNC will be used as hash-table comparison."
       (progn
         (kill-new filename)
         (message "Copied buffer filename '%s' to the clipboard." filename))
-    (error "Currrent buffer has no filename")))
+    (let ((dir default-directory))
+      (kill-new dir)
+      (message "Copied buffer default directory '%s' to the clipboard." dir))))
 
 ;;;###autoload
 (defun split-shell-command-into-arguments (command)
