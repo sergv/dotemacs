@@ -62,6 +62,7 @@
             ("hs"       . ,haskell-exts)
             ("haskell"  . ,haskell-exts)
             ("nix"      . "*.nix")
+            ("lua"      . "*.lua")
             ("py"       . "*.py *.pyx *.pxd *.pxi"))))
 
       grep-find-ignored-directories
