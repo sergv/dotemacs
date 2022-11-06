@@ -108,8 +108,9 @@ cpu time or allocations that the value of this variable.")
   (haskell-setup-folding :enable-hideshow nil
                          :enable-cpp nil)
   (def-keys-for-map vim-normal-mode-local-keymap
-    ("C-h" ghc-profiling-mode-search-for-expensive-entry-forward)
-    ("C-t" ghc-profiling-mode-search-for-expensive-entry-backward)))
+    ("C-h"   ghc-profiling-mode-search-for-expensive-entry-forward)
+    ("C-t"   ghc-profiling-mode-search-for-expensive-entry-backward)
+    ("<tab>" yafolding-toggle-element)))
 
 (provide 'ghc-profiling-mode)
 
