@@ -529,8 +529,8 @@ When the universal argument INSERT is non-nil, insert the type in the buffer."
                (dante-fontify-expression info))
               (goto-char (point-min)))))))))
 
-(defvar-local dante-temp-epoch -1
-  "The value of `buffer-modified-tick' when the contents were last loaded.")
+(defvar-local dante-temp-fingerprint -1
+  "The value of `sha1' of source buffer’s contents when the contents were last loaded.")
 
 (defvar-local dante-interpreted nil)
 
@@ -542,8 +542,8 @@ When the universal argument INSERT is non-nil, insert the type in the buffer."
 Interpreting puts all symbols from the current module in
 scope. Compiling to avoids re-interpreting the dependencies over
 and over."
-  (let* ((epoch (buffer-modified-tick))
-         (unchanged (equal epoch dante-temp-epoch))
+  (let* ((fingerprint (sha1 (current-buffer)))
+         (unchanged (equal fingerprint dante-temp-fingerprint))
          (src-fname (buffer-file-name (current-buffer)))
          (fname (dante-temp-file-name (current-buffer)))
          (buffer (lcr-call dante-session))
@@ -551,7 +551,7 @@ and over."
                            (s-equals? (buffer-local-value 'dante-loaded-file buffer) src-fname))))
     (if (and unchanged same-target) ; see #52
         (buffer-local-value 'dante-load-message buffer)
-      (setq dante-temp-epoch epoch)
+      (setq dante-temp-fingerprint fingerprint)
       (setq dante-interpreted interpret)
       (puthash (dante-local-name fname) src-fname dante-original-buffer-map)
       (unless (s-equals? src-fname fname)
