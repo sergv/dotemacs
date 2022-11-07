@@ -724,25 +724,7 @@ index of respective Lua reference manuals.")
   ;; Append Lua menu to popup menu for Emacs.
   (if (boundp 'mode-popup-menu)
       (setq mode-popup-menu
-            (cons (concat mode-name " Mode Commands") lua-emacs-menu)))
-
-  ;; hideshow setup
-  (unless (assq 'lua-mode hs-special-modes-alist)
-    (add-to-list 'hs-special-modes-alist
-                 `(lua-mode
-                   ;; Start
-                   ,(concat
-                     "\\(:?"
-                     (regexp-opt (mapcar 'car lua-sexp-alist) 'words)
-                     "\\)\\|[({]")
-                   ;; End
-                   ,(concat
-                     "\\(:?"
-                     (regexp-opt (mapcar 'cdr lua-sexp-alist) 'words)
-                     "\\)\\|[)}]")
-                   nil lua-forward-sexp))))
-
-
+            (cons (concat mode-name " Mode Commands") lua-emacs-menu))))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.lua\\'" . lua-mode))
