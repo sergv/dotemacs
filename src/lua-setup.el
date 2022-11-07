@@ -7,6 +7,7 @@
 ;; Description:
 
 (eval-when-compile
+  (require 'lua-mode)
   (require 'macro-util))
 
 (require 'hydra-setup)
@@ -36,6 +37,18 @@ _a_lign"
                :use-render-formula t
                :use-whitespace 'tabs-only
                :use-fci t)
+  (hs-minor-mode-initialize
+   :start (eval-when-compile (concat
+                              "\\(:?"
+                              (regexp-opt (mapcar #'car lua-sexp-alist) 'words)
+                              "\\)\\|[({]"))
+   :end (eval-when-compile
+          (concat
+           "\\(:?"
+           (regexp-opt (mapcar #'cdr lua-sexp-alist) 'words)
+           "\\)\\|[)}]"))
+   :forward-sexp
+   #'lua-forward-sexp)
   (setup-folding t nil)
   (setup-indent-size 2)
 
