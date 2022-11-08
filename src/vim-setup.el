@@ -344,6 +344,7 @@ _<right>_: move tab to the right"
 
   (("H" "<f5>") vim:revert-buffer:interactive)
 
+  ("="          vim:cmd-decrement-at-point:interactive)
   ("+"          vim:cmd-increment-at-point:interactive))
 
 ;;; visual keybindings
@@ -389,6 +390,7 @@ _<right>_: move tab to the right"
 
   (("TAB" "<tab>") indent-region)
 
+  ("="       vim:cmd-decrement:interactive)
   ("+"       vim:cmd-increment:interactive))
 
 ;;; insert mode keybindings
