@@ -347,10 +347,10 @@ e.g. whether regexp is malformed, not matched, etc.")
         (delete-overlay vim--ex-pattern-update-overlay)))))
 
 (defun vim--construct-substitute-pattern (search-regex flags)
-  (cl-assert (and (not (null search-regex)) (stringp search-regex)))
+  (cl-assert (and search-regex (stringp search-regex)))
   (cl-assert (or (null flags) (listp flags) (-all #'stringp flags)))
   (when (memq ?g flags)
-    (error "Don't use flag g, use \"n\" with inverted meaning instead"))
+    (error "Don't use ‘g’ flag, use ‘n’ with inverted meaning instead"))
   (vim-make-pattern
    :regex search-regex
    :whole-line (not (memq ?n flags))

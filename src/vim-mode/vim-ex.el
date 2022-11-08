@@ -350,7 +350,7 @@ beg end force) with the following meanings.
   `force' is t iff the command was followed by an exclamation mark"
   (cl-multiple-value-bind (cmd-region beg end force) (vim-ex--parse cmdline)
     (if (null cmd-region)
-      (values cmdline "" cmdline "" beg end nil)
+        (values cmdline "" cmdline "" beg end nil)
       (let ((range (substring cmdline 0 (car cmd-region)))
             (cmd (substring cmdline (car cmd-region) (cdr cmd-region)))
             (spaces "")
