@@ -564,7 +564,7 @@ _<tab>_: reindent  _h_: jump to topmont node end"
       (flycheck-mode
        ;; Fallback, should rarely be reached since dante should handle most of the cases.
        (def-keys-for-map vim-normal-mode-local-keymap
-         ("-" "" hydra-haskell-minus/body))
+         ("-" hydra-haskell-minus/body))
 
        (flycheck-install-ex-commands!
         :install-flycheck flycheck-mode
@@ -572,7 +572,7 @@ _<tab>_: reindent  _h_: jump to topmont node end"
       (t
        ;; Fallback for a fallback, in case some errors occured during setup.
        (def-keys-for-map vim-normal-mode-local-keymap
-         ("-" "" hydra-haskell-minus/body))))))
+         ("-" hydra-haskell-minus/body))))))
 
 ;;;###autoload
 (defun haskell-c2hs-setup ()
