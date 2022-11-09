@@ -803,7 +803,7 @@ quote it for macro’s sake).
   `(or ,var
        (syntax-ppss-update! ,var)))
 
-;;; end
+;;;
 
 (defmacro let-alist-static (val names &rest body)
   (declare (indent 2))
@@ -817,6 +817,22 @@ quote it for macro’s sake).
                        (setf ,x (cdr ,tmp))))
                    names)))
        ,@body)))
+
+;;;
+
+(defmacro dovector (args &rest body)
+  (declare (indent 1))
+  (cl-assert (= 2 (length args)))
+  (let* ((val (car args))
+         (vec (cadr args))
+         (i '#:i)
+         (v '#:vec))
+    `(let ((,v ,vec))
+       (dotimes (,i (length ,v))
+         (let ((,val (aref ,v ,i)))
+           ,@body)))))
+
+;;; end
 
 (provide 'macro-util)
 
