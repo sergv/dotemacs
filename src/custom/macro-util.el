@@ -821,16 +821,31 @@ quote it for macro’s sake).
 ;;;
 
 (defmacro dovector (args &rest body)
+  "Like ‘dolist’, but on vectors.
+
+Use as one of:
+(dovector (x xs) ...)
+(dovector ((x idx) xs) ...)"
   (declare (indent 1))
   (cl-assert (= 2 (length args)))
-  (let* ((val (car args))
-         (vec (cadr args))
-         (i '#:i)
-         (v '#:vec))
-    `(let ((,v ,vec))
-       (dotimes (,i (length ,v))
-         (let ((,val (aref ,v ,i)))
-           ,@body)))))
+  (let ((matcher (car args)))
+    (cl-assert (or (and (listp matcher)
+                        (= 2 (length matcher))
+                        (symbolp (cl-first matcher))
+                        (symbolp (cl-second matcher)))
+                   (symbolp (car args))))
+    (let* ((val (if (listp matcher)
+                    (cl-first matcher)
+                  matcher))
+           (vec (cadr args))
+           (i (if (listp matcher)
+                  (cl-second matcher)
+                '#:i))
+           (v '#:vec))
+      `(let ((,v ,vec))
+         (dotimes (,i (length ,v))
+           (let ((,val (aref ,v ,i)))
+             ,@body))))))
 
 ;;; end
 
