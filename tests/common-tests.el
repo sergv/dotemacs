@@ -11,6 +11,7 @@
 
 (require 'common)
 (require 'common-heavy)
+(require 'macro-util)
 
 (require 'ert)
 
@@ -518,6 +519,18 @@
 (ert-deftest common-tests/remove-duplicates-from-sorted-list-by-6 ()
   (should (equal (remove-duplicates-from-sorted-list-by '(1 2 3 4 5 5) #'equal)
                  '(1 2 3 4 5))))
+
+(ert-deftest common-tests/dovector-1 ()
+  (let ((sum 0))
+    (dovector (x [1 2 3])
+      (setf sum (+ sum x)))
+    (should (equal sum 6))))
+
+(ert-deftest common-tests/dovector-2 ()
+  (let ((sum 0))
+    (dovector ((x idx) [1 2 3])
+      (setf sum (+ sum (* idx idx x))))
+    (should (equal sum 14))))
 
 ;; (progn
 ;;   (ert "common-tests/.*")
