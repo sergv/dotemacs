@@ -93,6 +93,9 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'cl-lib)
 (require 'imenu)
 (require 'js)
@@ -5538,10 +5541,9 @@ Signals an error if it's not a recognized token."
 
 (defconst js2-token-codes
   (let ((table (make-hash-table :test 'eq :size 256)))
-    (cl-loop for name across js2-token-names
-             for sym = (intern (concat "js2-" (upcase name)))
-             do
-             (puthash sym (symbol-value sym) table))
+    (dovector (name js2-token-names)
+      (let ((sym (intern (concat "js2-" (upcase name)))))
+        (puthash sym (symbol-value sym) table)))
     ;; clean up a few that are "wrong" in Rhino's token codes
     (puthash 'js2-DELETE js2-DELPROP table)
     table)

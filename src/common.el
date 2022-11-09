@@ -58,9 +58,7 @@ of random numbers from RANDOM-GEN."
         (delete-char 1))
       (random-shuffle lines *random-gen*)
       (goto-char begin)
-      (cl-loop
-        for line across lines
-        do
+      (dovector (line lines)
         (insert line)
         (insert "\n")))))
 
@@ -1221,10 +1219,8 @@ are CHAR1 and CHAR2 repsectively."
 (defun ci-re-for-literal (str)
   "Make regexp that case-insensitively matches STR, eg for \"foo\" produce \"[Ff][Oo][Oo]\"."
   (with-temp-buffer
-    (cl-loop
-     for c across str
-     do
-     (insert "[" (upcase c) (downcase c) "]"))
+    (dovector (c str)
+      (insert "[" (upcase c) (downcase c) "]"))
     (buffer-substring-no-properties (point-min) (point-max))))
 
 (defun notify (&rest args)
