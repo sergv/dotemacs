@@ -24,9 +24,8 @@
 
 (defconst haskell-smart-operators--operator-chars
   (let ((tbl (make-hash-table :test #'eq)))
-    (cl-loop
-      for c across haskell-smart-operators--operator-chars-str
-      do (puthash c t tbl))
+    (dovector (c haskell-smart-operators--operator-chars-str)
+      (puthash c t tbl))
     tbl)
   "Characters that may constitute operators.")
 
