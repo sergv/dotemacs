@@ -106,10 +106,8 @@
 ;;            "UNPACK"
 ;;            "NOUNPACK"))
 ;;   (insert "(seq")
-;;   (cl-loop
-;;    for c across x
-;;    do
-;;    (insert (format " (char ?%c ?%c)" (downcase c) (upcase c))))
+;;   (dovector (c x)
+;;     (insert (format " (char ?%c ?%c)" (downcase c) (upcase c))))
 ;;   (insert ")\n"))
 (defconst haskell-regexen/pragma-without-args-re
   (rx bos

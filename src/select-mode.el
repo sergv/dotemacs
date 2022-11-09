@@ -235,11 +235,9 @@ by the user)."
   (insert (select-mode--state-preamble state))
   (let ((sep (or (select-mode--state-separator state)
                  "")))
-    (cl-loop
-      for item across (select-mode--state-items state)
-      for i from 0
-      do
-      (unless (= i 0) (insert sep))
+    (dovector ((item i) (select-mode--state-items state))
+      (unless (= i 0)
+        (insert sep))
       ;; Insert item.
       (let ((start (point-marker)))
         (insert (funcall (select-mode--state-item-show-function state) item))
