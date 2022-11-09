@@ -147,7 +147,9 @@ case `default-directory' will be used.
                          default-directory))
         (inhibit-read-only t))
     (cl-assert (< 0 items-count))
-    (with-current-buffer (switch-to-buffer-other-window buffer-name)
+    (with-current-buffer (if (equal (buffer-name) buffer-name)
+                             (current-buffer)
+                           (switch-to-buffer-other-window buffer-name))
       (read-only-mode -1)
       (select-mode)
 
