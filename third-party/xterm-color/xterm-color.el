@@ -184,6 +184,9 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'cl-lib)
 
 (defgroup xterm-color nil
@@ -557,48 +560,47 @@ This function strips text properties that may be present in STRING."
   (or xterm-color--face-cache
       (setq xterm-color--face-cache (make-hash-table :weakness 'value)))
   (xterm-color--with-ANSI-macro-helpers
-    (cl-loop
-     with state = xterm-color--state and result
-     for char across string do
-     (cl-case state
-       (:char
-        (cond
-         ((= char 27)                    ; ESC
-          (maybe-fontify)
-          (state! :ansi-esc))
-         (t
-          (if (color?)
-              (push-char! char)
-            (out! (string char))))))
-       (:ansi-esc
-        (cond ((= char ?\[)
-               (state! :ansi-csi))
-              ((= char ?\])
-               (state! :ansi-osc))
-              (t
-               (push-char! char)
-               (state! :char))))
-       (:ansi-csi
-        (push-csi! char)
-        (when (and (>= char #x40)
-                   (<= char #x7e))
-          (xterm-color--dispatch-CSI)
-          (state! :char)))
-       (:ansi-osc
-        ;; OSC sequences are skipped
-        (cond ((= char 7)
-               (state! :char))
-              ((= char 27)
-               ;; ESC
-               (state! :ansi-osc-esc))))
-       (:ansi-osc-esc
-        (cond ((= char ?\\)
-               (state! :char))
-              (t (state! :ansi-osc)))))
-     finally return
-     (progn (when (eq state :char) (maybe-fontify))
-            (setq xterm-color--state state)
-            (mapconcat 'identity (nreverse result) "")))))
+    (let ((state xterm-color--state)
+          (result nil))
+      (dovector (char string)
+        (cl-case state
+          (:char
+           (cond
+             ((= char 27)               ; ESC
+              (maybe-fontify)
+              (state! :ansi-esc))
+             (t
+              (if (color?)
+                  (push-char! char)
+                (out! (string char))))))
+          (:ansi-esc
+           (cond ((= char ?\[)
+                  (state! :ansi-csi))
+                 ((= char ?\])
+                  (state! :ansi-osc))
+                 (t
+                  (push-char! char)
+                  (state! :char))))
+          (:ansi-csi
+           (push-csi! char)
+           (when (and (>= char #x40)
+                      (<= char #x7e))
+             (xterm-color--dispatch-CSI)
+             (state! :char)))
+          (:ansi-osc
+           ;; OSC sequences are skipped
+           (cond ((= char 7)
+                  (state! :char))
+                 ((= char 27)
+                  ;; ESC
+                  (state! :ansi-osc-esc))))
+          (:ansi-osc-esc
+           (cond ((= char ?\\)
+                  (state! :char))
+                 (t (state! :ansi-osc))))))
+      (when (eq state :char) (maybe-fontify))
+      (setq xterm-color--state state)
+      (mapconcat 'identity (nreverse result) ""))))
 
 ;;;###autoload
 (defun xterm-color-filter (string)
