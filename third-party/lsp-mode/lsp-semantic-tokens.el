@@ -22,6 +22,9 @@
 ;;
 ;;; Code:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'lsp-mode)
 (require 'dash)
 
@@ -372,14 +375,12 @@ following lsp-interface:
   (let* ((old-token-count (length old-data))
          (old-token-index 0)
          (substrings))
-    (cl-loop
-     for edit across edits
-     do
-     (when (< old-token-index (lsp-get edit :start))
-       (push (substring old-data old-token-index (lsp-get edit :start)) substrings))
-     (push (lsp-get edit :data) substrings)
-     (setq old-token-index (+ (lsp-get edit :start) (lsp-get edit :deleteCount)))
-     finally do (push (substring old-data old-token-index old-token-count) substrings))
+    (dovector (edit edits)
+      (when (< old-token-index (lsp-get edit :start))
+        (push (substring old-data old-token-index (lsp-get edit :start)) substrings))
+      (push (lsp-get edit :data) substrings)
+      (setq old-token-index (+ (lsp-get edit :start) (lsp-get edit :deleteCount))))
+    (push (substring old-data old-token-index old-token-count) substrings)
     (apply #'vconcat (nreverse substrings))))
 
 (defun lsp--semantic-tokens-ingest-full/delta-response (response)

@@ -201,14 +201,11 @@
   (cl-assert (hash-table-p marked-bufs))
   (let ((hidden-sections (make-hash-table :test #'equal)))
     (when ebuf--all-sections
-      (cl-loop
-       for section across ebuf--all-sections
-       do
-       (progn
-         (unless (ebuf-section-visible? section)
-           (puthash (ebuf--section-trail section) t hidden-sections))
-         (awhen (ebuf-section-overlay section)
-           (delete-overlay it)))))
+      (dovector (section ebuf--all-sections)
+        (unless (ebuf-section-visible? section)
+          (puthash (ebuf--section-trail section) t hidden-sections))
+        (awhen (ebuf-section-overlay section)
+          (delete-overlay it))))
     (let ((grouped (ebuf--group-and-sort buffers))
           (toplevel-sections nil)
           (all-sections nil))
@@ -346,11 +343,9 @@
                                      (lambda (x y)
                                        (< (ebuf-section-beg x)
                                           (ebuf-section-beg y)))))
-      (cl-loop
-       for section across ebuf--all-sections
-       do
-       (when (gethash (ebuf--section-trail section) hidden-sections)
-         (ebuf--make-section-invisible! section)))))
+      (dovector (section ebuf--all-sections)
+        (when (gethash (ebuf--section-trail section) hidden-sections)
+          (ebuf--make-section-invisible! section)))))
   (read-only-mode +1))
 
 (defun ebuf--get-section-overlay (section)
