@@ -1172,11 +1172,17 @@ projects into the mix."
         `(error "Path is not absolute and no project available to resolve it: %s"
                 ,path))))
 
+
+(defvar eproj-translate-file-name nil
+  "If set should be a function that amends paths according to some rule. E.g. when
+running in WSL it could translate c: as /mnt/c, for example.")
+
 (defun-caching eproj--resolve-to-abs-path-cached (path dir) eproj--resolve-to-abs-path-cached/reset-cache (cons path dir)
   "If PATH is existing absoute file then return it, otherwise try
 to check whether it’s an existing file relative to DIR and return
 that. Report error if both conditions don’t hold."
-  (resolve-to-abs-path path dir))
+  (resolve-to-abs-path (if eproj-translate-file-name (funcall eproj-translate-file-name path) path)
+                       dir))
 
 (defun-caching-extended
   eproj-normalise-file-name-expand-cached (path &optional dir)
