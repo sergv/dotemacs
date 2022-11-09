@@ -52,16 +52,14 @@ call (MERGE old-val VALUE) to produce a new value."
   (cl-assert (stringp key))
 
   (let ((node trie))
-    (cl-loop
-     for c across key
-     do
-     (let ((subtree-entry (trie-node--find-subtree c node)))
-       (aif subtree-entry
-           (setf node (cdr it))
-         (let ((new-node (make-empty-trie)))
-           (setf (trie-node--subtrees node) (cons (cons c new-node)
-                                                 (trie-node--subtrees node))
-                 node new-node)))))
+    (dovector (c key)
+      (let ((subtree-entry (trie-node--find-subtree c node)))
+        (aif subtree-entry
+            (setf node (cdr it))
+          (let ((new-node (make-empty-trie)))
+            (setf (trie-node--subtrees node) (cons (cons c new-node)
+                                                   (trie-node--subtrees node))
+                  node new-node)))))
 
     (let ((val (trie-node--value node)))
       (setf (trie-node--value node)
