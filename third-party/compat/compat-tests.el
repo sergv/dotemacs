@@ -1819,7 +1819,8 @@ being compared against."
 
 (compat-deftests subr-primitive-p
   (ought t (symbol-function 'identity))       ;function from fns.c
-  (ought nil (symbol-function 'match-string)) ;function from subr.el
+  (unless (fboundp 'subr-native-elisp-p)
+    (ought nil (symbol-function 'match-string))) ;function from subr.el
   (ought nil (symbol-function 'defun))        ;macro from subr.el
   (ought nil nil))
 
@@ -1860,6 +1861,90 @@ being compared against."
     (ought two three one.5 two one)
     (ought three three one.5 two one three)
     (ought three three one.5 three two one)))
+
+(unless (fboundp 'make-prop-match)
+  (defalias 'make-prop-match
+    (if (version< emacs-version "26.1")
+        #'compat--make-prop-match-with-vector
+      #'compat--make-prop-match-with-record)))
+
+(ert-deftest compat-text-property-search-forward ()
+  (when (fboundp 'text-property-search-forward)
+    (with-temp-buffer
+      (insert "one "
+              (propertize "two " 'prop 'val)
+              "three "
+              (propertize "four " 'prop 'wert)
+              "five ")
+      (goto-char (point-min))
+      (let ((match (text-property-search-forward 'prop)))
+        (should (eq (prop-match-beginning match) 5))
+        (should (eq (prop-match-end match) 9))
+        (should (eq (prop-match-value match) 'val)))
+      (let ((match (text-property-search-forward 'prop)))
+        (should (eq (prop-match-beginning match) 15))
+        (should (eq (prop-match-end match) 20))
+        (should (eq (prop-match-value match) 'wert)))
+      (should (null (text-property-search-forward 'prop)))
+      (goto-char (point-min))
+      (should (null (text-property-search-forward 'non-existant)))))
+  (with-temp-buffer
+    (insert "one "
+            (propertize "two " 'prop 'val)
+            "three "
+            (propertize "four " 'prop 'wert)
+            "five ")
+    (goto-char (point-min))
+    (let ((match (compat--text-property-search-forward 'prop)))
+      (should (eq (compat--prop-match-beginning match) 5))
+      (should (eq (compat--prop-match-end match) 9))
+      (should (eq (compat--prop-match-value match) 'val)))
+    (let ((match (compat--text-property-search-forward 'prop)))
+      (should (eq (compat--prop-match-beginning match) 15))
+      (should (eq (compat--prop-match-end match) 20))
+      (should (eq (compat--prop-match-value match) 'wert)))
+    (should (null (compat--text-property-search-forward 'prop)))
+    (goto-char (point-min))
+    (should (null (compat--text-property-search-forward 'non-existant)))))
+
+(ert-deftest compat-text-property-search-backward ()
+  (when (fboundp 'text-property-search-backward)
+    (with-temp-buffer
+      (insert "one "
+              (propertize "two " 'prop 'val)
+              "three "
+              (propertize "four " 'prop 'wert)
+              "five ")
+      (goto-char (point-max))
+      (let ((match (text-property-search-backward 'prop)))
+        (should (eq (prop-match-beginning match) 15))
+        (should (eq (prop-match-end match) 20))
+        (should (eq (prop-match-value match) 'wert)))
+      (let ((match (text-property-search-backward 'prop)))
+        (should (eq (prop-match-beginning match) 5))
+        (should (eq (prop-match-end match) 9))
+        (should (eq (prop-match-value match) 'val)))
+      (should (null (text-property-search-backward 'prop)))
+      (goto-char (point-max))
+      (should (null (text-property-search-backward 'non-existant)))))
+  (with-temp-buffer
+    (insert "one "
+            (propertize "two " 'prop 'val)
+            "three "
+            (propertize "four " 'prop 'wert)
+            "five ")
+    (goto-char (point-max))
+    (let ((match (compat--text-property-search-backward 'prop)))
+      (should (eq (compat--prop-match-beginning match) 15))
+      (should (eq (compat--prop-match-end match) 20))
+      (should (eq (compat--prop-match-value match) 'wert)))
+    (let ((match (compat--text-property-search-backward 'prop)))
+      (should (eq (compat--prop-match-beginning match) 5))
+      (should (eq (compat--prop-match-end match) 9))
+      (should (eq (compat--prop-match-value match) 'val)))
+    (should (null (compat--text-property-search-backward 'prop)))
+    (goto-char (point-max))
+    (should (null (compat--text-property-search-backward 'non-existant)))))
 
 (provide 'compat-tests)
 ;;; compat-tests.el ends here
