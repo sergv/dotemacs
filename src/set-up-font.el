@@ -56,6 +56,9 @@
   (let* ((width (display-pixel-width))
          (height (display-pixel-height)))
     (cond
+      ((and (= 5120 width)
+            (= 2880 height))
+       150)
       ((and (= 3840 width)
             (= 2160 height))
        120)
