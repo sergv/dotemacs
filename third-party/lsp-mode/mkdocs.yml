@@ -99,10 +99,12 @@ nav:
     - MSSQL: https://emacs-lsp.github.io/lsp-mssql
     - Nginx: page/lsp-nginx.md
     - Nim: page/lsp-nim.md
-    - Nix: page/lsp-nix.md
+    - Nix (rnix-lsp): page/lsp-nix-rnix.md
+    - Nix (nil): page/lsp-nix-nil.md
     - OCaml (ocaml-lsp): page/lsp-ocaml-lsp-server.md
     - OpenSCAD: page/lsp-openscad.md
     - Pascal/Object Pascal: page/lsp-pascal.md
+    - Perl (PLS): page/lsp-pls.md
     - Perl (Perl::LanguageServer): page/lsp-perl.md
     - Perl (Navigator): page/lsp-perlnavigator.md
     - PHP (intelephense): page/lsp-intelephense.md
