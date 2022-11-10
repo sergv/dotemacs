@@ -252,8 +252,7 @@ will be in loaded in different GHCi sessions."
             "-dsuppress-module-prefixes"
             "-fshow-loaded-modules"
             "-fprint-potential-instances"
-            "-fdefer-typed-holes"
-            "-fdefer-type-errors"))
+            "-fdefer-typed-holes"))
          (build (when tmp
                   `("--builddir"
                     (concat ,tmp
