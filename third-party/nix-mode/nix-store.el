@@ -14,6 +14,7 @@
 
 (require 'eieio)
 (require 'nix)
+(require 'nix-log)
 (require 'magit-section)
 (eval-when-compile
   (require 'cl-lib))
@@ -192,7 +193,7 @@ implement your own ones) you can customize the variable
     (magit-insert-section (store-path)
       (magit-insert-headers 'nix-store-path-headers-hook)
       (magit-run-section-hook 'nix-store-path-sections-hook))
-    (setf (point) (point-min))))
+    (goto-char (point-min))))
 
 (defun nix-store-path-at-point ()
   "Return the nix-store path at point."
@@ -206,9 +207,18 @@ It uses \\[nix-store-show-path] to display the store path."
   (interactive)
   (nix-store-show-path (nix-store-path-at-point)))
 
+(defun nix-store-show-log ()
+  "Opens the log file for the derivation of the nix-store path."
+  (interactive)
+  (let ((drv-path (car (nix-store-path-derivers nix-buffer-store-path))))
+    (if (not drv-path)
+	(message "This store path has no associated derivation.")
+      (find-file (nix-log-path drv-path)))))
+
 (defvar nix-store-path-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "RET") 'nix-store-show-path-at-point)
+    (define-key map (kbd "l") 'nix-store-show-log)
     map))
 
 (defun nix-store--revert-buffer-function (&rest _ignore)
