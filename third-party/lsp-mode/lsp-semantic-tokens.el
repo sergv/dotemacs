@@ -280,9 +280,9 @@ Faces to use for semantic token modifiers if
      . ((dynamicRegistration . t)
         (requests . ((range . t) (full . t)))
         (tokenModifiers . ,(if lsp-semantic-tokens-apply-modifiers
-                               (apply 'vector (mapcar #'car lsp-semantic-token-modifier-faces))
+                               (apply 'vector (mapcar #'car (lsp-semantic-tokens--modifier-faces-for (lsp--workspace-client lsp--cur-workspace))))
                              []))
-        (tokenTypes . ,(apply 'vector (mapcar #'car lsp-semantic-token-faces)))
+        (tokenTypes . ,(apply 'vector (mapcar #'car (lsp-semantic-tokens--type-faces-for (lsp--workspace-client lsp--cur-workspace)))))
         (formats . ["relative"])))))
 
 (defvar lsp--semantic-tokens-pending-full-token-requests '()
@@ -450,6 +450,20 @@ If FONTIFY-IMMEDIATELY is non-nil, fontification will be performed immediately
      :cancel-token (format "semantic-tokens-%s" (lsp--buffer-uri)))))
 
 
+;;;###autoload
+(defvar-local semantic-token-modifier-cache (make-hash-table)
+  "A cache of modifier values to the selected fonts.
+This allows whole-bitmap lookup instead of checking each bit. The
+expectation is that usage of modifiers will tend to cluster, so
+we will not have the full range of possible usages, hence a
+tractable hash map.
+
+This is set as buffer-local. It should probably be shared in a
+given workspace/language-server combination.
+
+This cache should be flushed every time any modifier
+configuration changes.")
+
 (defun lsp-semantic-tokens--fontify (old-fontify-region beg-orig end-orig &optional loudly)
   "Apply fonts to retrieved semantic tokens.
 OLD-FONTIFY-REGION is the underlying region fontification function,
@@ -534,11 +548,19 @@ LOUDLY will be forwarded to OLD-FONTIFY-REGION as-is."
                (setq text-property-end (+ text-property-beg (aref data (+ i 2))))
                (when face
                  (put-text-property text-property-beg text-property-end 'face face))
-               (cl-loop for j from 0 to (1- (length modifier-faces)) do
-                        (when (and (aref modifier-faces j)
-                                   (> (logand (aref data (+ i 4)) (lsh 1 j)) 0))
-                          (add-face-text-property text-property-beg text-property-end
-                                                  (aref modifier-faces j))))
+               ;; Deal with modifiers. We cache common combinations of
+               ;; modifiers, storing the faces they resolve to.
+               (let* ((modifier-code (aref data (+ i 4)))
+                      (faces-to-apply (gethash modifier-code semantic-token-modifier-cache 'not-found)))
+                 (when (eq 'not-found faces-to-apply)
+                   (setq faces-to-apply nil)
+                   (cl-loop for j from 0 to (1- (length modifier-faces)) do
+                            (when (and (aref modifier-faces j)
+                                       (> (logand modifier-code (ash 1 j)) 0))
+                              (push (aref modifier-faces j) faces-to-apply)))
+                   (puthash modifier-code faces-to-apply semantic-token-modifier-cache))
+                 (dolist (face faces-to-apply)
+                   (add-face-text-property text-property-beg text-property-end face)))
                when (> current-line line-max-inclusive) return nil)))))
       `(jit-lock-bounds ,beg . ,end)))))
 
@@ -671,22 +693,29 @@ IS-RANGE-PROVIDER is non-nil when server supports range requests."
                        (lsp-warn "No face has been associated to the %s '%s': consider adding a corresponding definition to %s"
                                  category id varname)) maybe-face)) identifiers)))
 
-(defun lsp-semantic-tokens--replace-alist-values (a b)
-  "Replace alist A values with B ones where available."
-  (-map
-   (-lambda ((ak . av))
-     (cons ak (alist-get ak b av nil #'string=)))
-   a))
+(defun lsp-semantic-tokens--apply-alist-overrides (base overrides discard-defaults)
+  "Merge or replace BASE with OVERRIDES, depending on DISCARD-DEFAULTS.
+For keys present in both alists, the assignments made by
+OVERRIDES will take precedence."
+  (if discard-defaults
+      overrides
+    (let* ((copy-base (copy-alist base)))
+      (mapc (-lambda ((key . value)) (setf (alist-get key copy-base nil nil #'string=) value)) overrides)
+      copy-base)))
 
 (defun lsp-semantic-tokens--type-faces-for (client)
   "Return the semantic token type faces for CLIENT."
-  (lsp-semantic-tokens--replace-alist-values lsp-semantic-token-faces
-                                             (plist-get (lsp--client-semantic-tokens-faces-overrides client) :types)))
+  (lsp-semantic-tokens--apply-alist-overrides
+   lsp-semantic-token-faces
+   (plist-get (lsp--client-semantic-tokens-faces-overrides client) :types)
+   (plist-get (lsp--client-semantic-tokens-faces-overrides client) :discard-default-types)))
 
 (defun lsp-semantic-tokens--modifier-faces-for (client)
   "Return the semantic token type faces for CLIENT."
-  (lsp-semantic-tokens--replace-alist-values lsp-semantic-token-modifier-faces
-                                             (plist-get (lsp--client-semantic-tokens-faces-overrides client) :modifiers)))
+  (lsp-semantic-tokens--apply-alist-overrides
+   lsp-semantic-token-modifier-faces
+   (plist-get (lsp--client-semantic-tokens-faces-overrides client) :modifiers)
+   (plist-get (lsp--client-semantic-tokens-faces-overrides client) :discard-default-modifiers)))
 
 (defun lsp--semantic-tokens-on-refresh (workspace)
   "Clear semantic tokens within all buffers of WORKSPACE,
