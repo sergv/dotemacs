@@ -138,8 +138,7 @@ opened module/namespace."
   :package-version '(lsp-mode . "6.2"))
 
 (defcustom lsp-fsharp-enable-reference-code-lens t
-  "Enables reference count code lenses.
-It is recommended to disable if `--background-service-enabled' is not used."
+  "Enables reference count code lenses."
   :group 'lsp-fsharp
   :type 'boolean
   :package-version '(lsp-mode . "6.2"))
@@ -179,7 +178,12 @@ available, else the globally installed tool."
 
 (defun lsp-fsharp--fsac-cmd ()
   "The location of fsautocomplete executable."
-  (expand-file-name "fsautocomplete.dll" lsp-fsharp-server-install-dir))
+  (or (-let [maybe-local-executable (expand-file-name "fsautocomplete" lsp-fsharp-server-install-dir)]
+        (when (f-exists-p maybe-local-executable)
+          maybe-local-executable))
+      (executable-find "fsautocomplete")
+      (f-join (or (getenv "USERPROFILE") (getenv "HOME"))
+              ".dotnet" "tools" "fsautocomplete")))
 
 (defun lsp-fsharp--make-launch-cmd ()
   "Build the command required to launch fsautocomplete."
@@ -203,12 +207,9 @@ available, else the globally installed tool."
                                 (list "/bin/ksh" "-c"))
 
                                (t nil)))
-
-        (fsautocomplete-exec (or (executable-find "fsautocomplete")
-                                 (f-join (or (getenv "USERPROFILE") (getenv "HOME"))
-                                         ".dotnet" "tools" "fsautocomplete"))))
+        (fsautocomplete-exec (lsp-fsharp--fsac-cmd)))
     (append startup-wrapper
-            (list fsautocomplete-exec "--background-service-enabled")
+            (list fsautocomplete-exec)
             lsp-fsharp-server-args)))
 
 (defun lsp-fsharp--test-fsautocomplete-present ()
