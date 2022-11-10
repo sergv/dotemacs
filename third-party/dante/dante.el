@@ -47,6 +47,7 @@
 (require 'f)
 (require 'flycheck)
 (require 'flymake)
+(require 'haskell-mode)
 (require 's)
 (require 'xref)
 (require 'lcr)
