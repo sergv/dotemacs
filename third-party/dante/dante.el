@@ -634,7 +634,7 @@ CHECKER and BUFFER are added if the error is in TEMP-FILE."
                                                              (car buf-name)
                                                              (concat fixed-err-type
                                                                      "\n"
-                                                                     (s-trim-right msg)))
+                                                                     (trim-whitespace-right msg)))
                                    :checker checker
                                    :buffer buffer
                                    :filename (if (string= (dante-canonicalize-path temp-file)
@@ -1022,7 +1022,7 @@ ACC umulate input and ERR-MSGS."
       (while (not matched)
         (setq acc (concat acc (lcr-call dante-async-read)))
         (setq matched (string-match dante-ghci-prompt acc)))
-      (ansi-color-apply (s-trim-right (substring acc 0 (1- (match-beginning 1))))))))
+      (ansi-color-apply (trim-whitespace-right (substring acc 0 (1- (match-beginning 1))))))))
 
 (defun dante-sentinel (process change)
   "Handle when PROCESS reports a CHANGE.
@@ -1297,7 +1297,7 @@ Or nil if BUFFER / TEMP-FILE are not relevant to the message."
                   (`(,l ,c) (flymake-diag-region buffer l c)))))
         (when r
           (cl-destructuring-bind (type msg-first-line) type-analysis
-            (let* ((final-msg (s-trim (concat msg-first-line "\n" (replace-regexp-in-string "^    " "" msg)))))
+            (let* ((final-msg (trim-whitespace (concat msg-first-line "\n" (replace-regexp-in-string "^    " "" msg)))))
               (flymake-make-diagnostic buffer (car r) (cdr r) type final-msg))))))))
 
 (provide 'dante)
