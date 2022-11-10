@@ -8,7 +8,7 @@
 ;; URL: https://github.com/jyp/attrap
 ;; Created: February 2018
 ;; Keywords: programming, tools
-;; Package-Requires: ((dash "2.12.0") (emacs "25.1") (f "0.19.0") (flycheck "0.30") (s "1.11.0"))
+;; Package-Requires: ((dash "2.12.0") (emacs "25.1") (f "0.19.0") (s "1.11.0"))
 ;; Version: 0.2
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -56,7 +56,15 @@
 ;;; Code:
 (require 'dash)
 (require 's)
-(require 'flycheck)
+
+(declare-function flycheck-error-message "ext:flycheck" (cl-x))
+(declare-function flycheck-overlays-at "ext:flycheck" (pos))
+(declare-function flycheck-get-checker-for-buffer "ext:flycheck" ())
+(declare-function flymake-diagnostics "ext:flycheck" (&optional beg end))
+(declare-function flymake-diagnostic-backend "flymake" (diag))
+(declare-function flymake-diagnostic-beg "flymake" (diag))
+(declare-function flymake-diagnostic-end "flymake" (diag))
+(declare-function flymake-diagnostic-text "flymake" (diag))
 
 (require 'common-whitespace)
 
@@ -67,8 +75,15 @@
   :type '(alist :key-type symbol :value-type function)
   :group 'attrap)
 
+(declare-function flymake-flycheck-diagnostic-function-for 'flymake-flycheck (checker))
+(with-eval-after-load 'flymake-flycheck
+  (defalias 'attrap-flymake-hlint
+    (flymake-flycheck-diagnostic-function-for 'haskell-hlint)))
+
 (defcustom attrap-flymake-backends-alist
   '((dante-flymake . attrap-ghc-fixer)
+    (LaTeX-flymake . attrap-LaTeX-fixer)
+    (attrap-flymake-hlint . attrap-hlint-fixer)
     (elisp-flymake-byte-compile . attrap-elisp-fixer)
     (elisp-flymake-checkdoc . attrap-elisp-fixer))
   "An alist from flymake backend to attrap fixer."
@@ -86,7 +101,8 @@
                                                  nil
                                                  t)
                                 named-options))))
-    (message "Applied %s" (car selected-fix))
+    ;; (message "SELECTED-FIX: %s" selected-fix)
+    ;; (message "Applied %s" (car selected-fix))
     (save-excursion
       (funcall (cdr selected-fix)))))
 
@@ -137,10 +153,10 @@
   (interactive "d")
   (cond
    ((and (bound-and-true-p flyspell-mode)
+         (fboundp 'flyspell-overlay-p)
          (-any #'flyspell-overlay-p (overlays-at (point))))
-    (unless (fboundp 'flyspell-correct-at-point)
-      (error "Expecting the package flyspell-correct-ivy to be installed."))
-    (flyspell-correct-at-point))
+    (if (fboundp 'flyspell-correct-at-point)
+        (flyspell-correct-at-point)))
    ((bound-and-true-p flymake-mode) (attrap-flymake pos))
    ((bound-and-true-p flycheck-mode) (attrap-flycheck pos))
    (t (error "Expecting flymake or flycheck to be active"))))
@@ -223,11 +239,11 @@ The body is code that performs the fix."
 
 (defmacro attrap-alternatives (&rest clauses)
   "Append all succeeding clauses.
-Each clause looks like (CONDITION BODY...).  CONDITION is evaluated
-and, if the value is non-nil, this clause succeeds:
+Each clause looks like (CONDITION BODY...).  CONDITION is
+evaluated and, if the value is non-nil, this clause succeeds:
 then the expressions in BODY are evaluated and the last one's
-value is a list which is appended to the result of `attrap-alternatives'.
-usage: (attrap-alternatives CLAUSES...)"
+value is a list which is appended to the result of
+`attrap-alternatives'.  Usage: (attrap-alternatives CLAUSES...)"
   `(append ,@(mapcar (lambda (c) `(when ,(car c) ,@(cdr c))) clauses)))
 
 (defun attrap-elisp-fixer (msg _beg _end)
@@ -261,6 +277,10 @@ usage: (attrap-alternatives CLAUSES...)"
     (attrap-one-option 'add-empty-doc
       (beginning-of-line)
       (insert "  \"\"\n")))
+   ((string-match "should have documentation" msg)
+    (attrap-one-option 'add-empty-doc
+      (beginning-of-line)
+      (insert "  \"\"\n")))
    ((string-match "The footer should be: " msg)
     (let ((footer (s-replace "\\n" "\n" (substring msg (match-end 0)))))
       (attrap-one-option 'add-footer
@@ -276,27 +296,49 @@ usage: (attrap-alternatives CLAUSES...)"
       (backward-char)
       (insert ".")))))
 
-(defun attrap-insert-language-pragma (pragma)
-  (save-match-data
-    (goto-char (point-min))
-    (if (re-search-forward "{-#[ \t]*LANGUAGE\\_>" nil t)
-        (goto-char (match-beginning 0))
-      (progn
-        (attrap-skip-shebangs)
-        (when (looking-at-p "^module\\_>")
-          (insert "\n")
-          (forward-line -1))))
-    (let ((start (point)))
-      (insert (concat "{-# LANGUAGE " pragma " #-}\n"))
-      (haskell-align-language-pragmas start))))
+(defmacro attrap-insert-language-pragma (pragma)
+  `(attrap-option (list 'use-extension ,extension)
+     (save-match-data
+       (goto-char (point-min))
+       (if (re-search-forward "{-#[ \t]*LANGUAGE\\_>" nil t)
+           (goto-char (match-beginning 0))
+         (progn
+           (attrap-skip-shebangs)
+           (when (looking-at-p "^module\\_>")
+             (insert "\n")
+             (forward-line -1))))
+       (let ((start (point)))
+         (insert (concat "{-# LANGUAGE " pragma " #-}\n"))
+         (haskell-align-language-pragmas start)))))
+
+(defmacro attrap-add-to-import (missing module line col)
+  "Action: insert MISSING to the import of MODULE.
+The import ends at LINE and COL in the file."
+  `(attrap-option (list 'add-to-import-list ,module)
+     (let ((end-line (string-to-number ,line))
+           (end-col (string-to-number ,col)))
+       (goto-char (point-min))
+       (forward-line (1- end-line))
+       (move-to-column (1- end-col))
+       (skip-chars-backward " \t")
+       (unless (looking-back "(" (- (point) 2)) (insert ","))
+       (insert (attrap-add-operator-parens ,missing)))))
 
 (defun attrap-ghc-fixer (msg pos _end)
-  "An `attrap' fixer for any GHC error or warning given as MSG and reported between POS and END."
+  "An `attrap' fixer for any GHC error or warning.
+Error is given as MSG and reported between POS and END."
   (let ((normalized-msg (s-collapse-whitespace msg)))
+  (rx-let ((parens (body) (seq "(" body ")"))
+           (lin-col (l c) (seq "(" (group-n l (* num)) "," (group-n c (* num))")"))
+           (multiline-span (l1 c1 l2 c2) (seq (lin-col l1 c1) "-" (lin-col l2 c2)))
+           (monoline-span (l1 c1 l2 c2) (seq (group-n l2 (group-n l1 (* num))) ":" (group-n c1 (* num)) "-" (group-n c2 (* num))))
+           (any-span (l1 c1 l2 c2) (or (monoline-span l1 c1 l2 c2) (multiline-span l1 c1 l2 c2)))
+           (src-loc (l1 c1 l2 c2) (seq (* (not ":"))":" (any-span l1 c1 l2 c2)))
+           (module-name (+ (any "_." alphanumeric)))
+           (identifier (n) (seq "‘" (group-n n (* (not "’"))) "’")))
   (append
    (when (string-match "Parse error in pattern: pattern" msg)
-    (attrap-one-option (list 'use-extension "PatternSynonyms")
-      (attrap-insert-language-pragma "PatternSynonyms")))
+     (attrap-insert-language-pragma "PatternSynonyms"))
    (when (string-match "No explicit implementation for" msg)
     (attrap-one-option 'insert-method
       (let ((missings (s-match-strings-all "‘\\([^’]*\\)’"
@@ -309,7 +351,7 @@ usage: (attrap-alternatives CLAUSES...)"
       (let ((type (match-string 1 msg)))
         (end-of-line)
         (insert (format "\n  type %s = _" type)))))
-   (when (string-match "Using ‘.*’ (or its Unicode variant) to mean ‘Data.Kind.Type’" msg)
+   (when (s-matches? (rx "Using ‘*’ (or its Unicode variant) to mean ‘Data.Kind.Type’") msg)
     (attrap-one-option 'replace-star-by-Type
       (goto-char pos)
       (delete-char 1)
@@ -319,14 +361,14 @@ usage: (attrap-alternatives CLAUSES...)"
         (end-of-line)
         (insert "\nimport Data.Kind (Type)"))))
    (when (string-match "Valid hole fits include" msg)
-    (let* ((options (-map 'cadr (-non-nil (--map (s-match "[ ]*\\(.*\\) ::" it) (s-split "\n" (substring msg (match-end 0))))))))
+    (let* ((options (-map 'cadr (-non-nil (--map (s-match "[ ]*\\([^ ]*\\) ::" it) (s-split "\n" (substring msg (match-end 0))))))))
       (--map (attrap-option (list 'plug-hole it)
-                     (goto-char pos)
-                     (delete-char 1)
-                     (insert it))
+               (goto-char pos)
+               (delete-char 1)
+               (insert it))
              options)))
    (when (string-match "Redundant constraints?: (?\\([^,)\n]*\\)" msg)
-    (attrap-one-option 'delete-reduntant-constraint
+    (attrap-one-option 'delete-redundant-constraint
       (let ((constraint (match-string 1 msg)))
         (search-forward constraint) ; find type sig
         (delete-region (match-beginning 0) (match-end 0))
@@ -393,45 +435,47 @@ usage: (attrap-alternatives CLAUSES...)"
         (search-forward (match-string 1 msg))
         (delete-region (match-beginning 0) (point))
         (insert replacement))))
-   (when (string-match "Perhaps you want to add ‘\\(.*\\)’ to the import list[\n\t ]+in the import of[ \n\t]*‘.*’[\n\t ]+([^:]*:\\([0-9]*\\):[0-9]*-\\([0-9]*\\))" msg)
-    (attrap-one-option 'add-to-import-list
-      (let ((missing (match-string 1 msg))
-            (line (string-to-number (match-string 2 msg)))
-            (end-col (string-to-number (match-string 3 msg))))
-        (goto-char (point-min))
-        (forward-line (1- line))
-        (move-to-column (1- end-col))
-        (skip-chars-backward " \t")
-        (unless (looking-back "(" (- (point) 2)) (insert ", "))
-        (insert (attrap-add-operator-parens missing)))))
+   (when-let ((match (s-match (rx "Perhaps you want to add " (identifier 1)
+                                  " to the import list in the import of " (identifier 2)
+                                  " " (parens (src-loc 3 4 5 6)))
+                              normalized-msg)))
+     (list (attrap-add-to-import (nth 1 match) (nth 2 match) (nth 5 match) (nth 6 match))))
+   (when-let ((match (s-match (rx "Perhaps you want to add " (identifier 1)
+                                  " to one of these import lists:")
+                              normalized-msg)))
+     (--map (attrap-add-to-import (nth 1 match) (nth 2 it) (nth 5 it) (nth 6 it))
+            (s-match-strings-all (rx (identifier 2) " " (parens (src-loc 3 4 5 6))) msg)))
     ;; Not in scope: data constructor ‘SimpleBroadcast’
     ;; Perhaps you meant ‘SimpleBroadCast’ (imported from TypedFlow.Types)
-    ;;     Not in scope: ‘BackCore.argmax’
+    ;; Not in scope: ‘BackCore.argmax’
     ;;     Perhaps you meant one of these:
     ;;       ‘BackCore.argMax’ (imported from TensorFlow.GenOps.Core),
     ;;       ‘BackCore.argMax'’ (imported from TensorFlow.GenOps.Core),
     ;;       ‘BackCore.max’ (imported from TensorFlow.GenOps.Core)
-   (when (string-match (eval-when-compile
-                         (s-join "\\|"
-                                 '("Data constructor not in scope:[ \n\t]*\\(?1:[^ \n]*\\)"
-                                   "Variable not in scope:[ \n\t]*\\(?1:[^ \n]*\\)"
-                                   "not in scope: data constructor ‘\\(?1:[^’]*\\)’"
-                                   "not in scope: type constructor or class ‘\\(?1:[^’]*\\)’"
-                                   "Not in scope: ‘\\(?1:[^’]*\\)’"
-                                   ))) ; in patterns
-                       msg)
-    (let* ((delete (match-string 1 msg))
+    ;;       ‘BackCore.maxx’ (line 523)
+   (when-let ((match
+               (s-match (rx (or (seq (or "Data constructor" "Variable") " not in scope:"
+                                     (* (any " \n\t")) (group-n 1 (+ (not (any " \n")))))
+                                (seq "Not in scope: "
+                                     (or "" "data constructor " "type constructor or class ") (identifier 1))))
+                        msg)))
+    (let* ((delete (nth 1 match))
            (delete-has-paren (eq ?\( (elt delete 0)))
            (delete-no-paren (if delete-has-paren (substring delete 1 (1- (length delete))) delete))
-           (replacements (s-match-strings-all "‘\\([^’]*\\)’ (\\([^)]*\\))" msg)))
-      (--map (attrap-option (list 'replace delete-no-paren (nth 1 it) (nth 2 it))
+           (rest (nth 1 (s-match (rx "Perhaps you meant" (? " one of these:") (group (+ anychar))) normalized-msg)))
+           (replacements (s-match-strings-all
+                          (rx (identifier 1) " "
+                              (parens (or (seq "imported from " (group-n 2 module-name))
+                                          (group-n 2 (seq "line "  (* num))))))
+                          rest)))
+      (--map (attrap-option (list 'replace delete-no-paren 'by (nth 1 it) 'from (nth 2 it))
                (goto-char pos)
                (let ((case-fold-search nil))
                  (search-forward delete-no-paren (+ (length delete) pos))
                  (replace-match (nth 1 it) t)))
              replacements)))
-    (when (string-match "It could refer to either" msg) ;; ambiguous identifier
-     (let ((replacements (--map (nth 1 it) (s-match-strings-all  "‘\\([^‘]*\\)’," msg))))
+    (when (string-match "It could refer to" msg) ;; ambiguous identifier
+     (let ((replacements (--map (nth 1 it) (s-match-strings-all  (rx (identifier 1) ",") msg))))
        (--map (attrap-option (list 'rename it)
                 (apply #'delete-region (dante-ident-pos-at-point))
                 (insert it))
@@ -449,22 +493,39 @@ usage: (attrap-alternatives CLAUSES...)"
       ;; note there can be a kind annotation, not just a variable.
       (delete-region (point) (+ (point) (- (match-end 1) (match-beginning 1))))))
    ;;     Module ‘TensorFlow.GenOps.Core’ does not export ‘argmax’.
-
-   (when (string-match "The import of ‘\\(.*\\)’ from module ‘[^’]*’ is redundant\\|Module ‘.*’ does not export ‘\\(.*\\)’" normalized-msg)
+   (when-let ((match (s-match (rx (or (seq "The " (? "qualified ") "import of " (identifier 1)
+                                           " from module " (identifier 2) " is redundant")
+                                      (seq "Module " (identifier 2) " does not export " (identifier 1))))
+                        normalized-msg)))
     (attrap-one-option 'delete-import
-      (let ((redundant (or (match-string 1 normalized-msg) (match-string 2 normalized-msg))))
-        (dolist (r (s-split ", " redundant t))
+      (let ((redundant (nth 1 match)))
+        (save-excursion
+          (when (looking-at (rx "import"))
+            ; if there are several things redundant, the message starts at 'import'
+              (search-forward "(")) ; the imported things are after the parenthesis
+          (dolist (r (s-split ", " redundant t))
           (save-excursion
-            ;; todo check for operators
-            ;; toto search for full words
-            (search-forward r)
+            (re-search-forward (rx-to-string (if (s-matches? (rx bol alphanumeric) r)
+                                                 `(seq word-start ,r word-end) ; regular ident
+                                               `(seq "(" ,r ")")))) ; operator
             (replace-match "")
             (when (looking-at "(..)") (delete-char 4))
-            (when (looking-at ",[ \t]*") (delete-region (match-beginning 0) (match-end 0))))))))
-   (when (string-match "The import of ‘[^’]*’ is redundant" msg)
+            (when (or (looking-at (rx (* space) ","))
+                      (looking-back (rx "," (* space)) (line-beginning-position)))
+              (replace-match ""))))))))
+   (when (string-match (rx "The " (? "qualified ") "import of " (identifier 1) " is redundant") msg)
     (attrap-one-option 'delete-module-import
-      (beginning-of-line)
-      (delete-region (point) (progn (next-logical-line) (point)))))
+      (delete-region
+       (point)
+       (progn
+         (unless (looking-at
+                  (rx "import" (+ space) module-name (? (+ space) "hiding") (* space)))
+           (error "import statement not found"))
+         (goto-char (match-end 0))
+         (when (looking-at "(") ; skip the import list if any
+           (forward-sexp))
+         (skip-chars-forward "\t\n ")
+         (point)))))
    (when (string-match "Found type wildcard ‘\\(.*\\)’[ \t\n]*standing for ‘\\([^’]*\\)’" msg)
     (attrap-one-option 'explicit-type-wildcard
       (let ((wildcard (match-string 1 msg))
@@ -472,26 +533,19 @@ usage: (attrap-alternatives CLAUSES...)"
         (goto-char pos)
         (search-forward wildcard)
         (replace-match (concat "(" type-expr ")") t))))
-   (when (and (string-match-p "parse error on input ‘case’" msg)
+   (when (and (string-match-p "parse error on input ‘case’" msg) ; Obsolete with GHC 9, which appears to recognize Lambda case specially.
               (save-excursion
                 (goto-char pos)
                 (string-match-p (rx "\\case\\_>") (buffer-substring-no-properties pos (line-end-position)))))
-     (attrap-one-option (list 'use-extension "LambdaCase")
-                        (attrap-insert-language-pragma "LambdaCase")))
-   (when (string-match-p (rx (or "Illegal symbol ‘forall’ in type"
-                                 (seq "Perhaps you intended to use"
-                                      (* anything) "language"
-                                      (* anything) "extension"
-                                      (* anything) "to"
-                                      (* anything) "enable"
-                                      (* anything) "explicit-forall"
-                                      (* anything) "syntax")))
-                         msg)
-     (attrap-one-option (list 'use-extension "ScopedTypeVariables")
-                        (attrap-insert-language-pragma "ScopedTypeVariables")))
-   (--map (attrap-option (list 'use-extension it)
-                         (attrap-insert-language-pragma it))
-          (--filter (s-matches? it normalized-msg) attrap-haskell-extensions)))))
+     (attrap-insert-language-pragma "LambdaCase"))
+   (when (s-matches? (rx (or "Illegal symbol ‘forall’ in type"
+                             (seq "Perhaps you intended to use"
+                                  (* anything)
+                                  "language extension to enable explicit-forall syntax")))
+                     normalized-msg)
+     (attrap-insert-language-pragma "ScopedTypeVariables"))
+   (--map (attrap-insert-language-pragma it)
+          (--filter (s-matches? it normalized-msg) attrap-haskell-extensions))))))
 
 (defun attrap-add-operator-parens (name)
   "Add parens around a NAME if it refers to a Haskell operator."
@@ -509,6 +563,63 @@ usage: (attrap-alternatives CLAUSES...)"
   (while (and (not (eobp))
               (= (point) (line-end-position)))
     (forward-line 1)))
+
+(defun attrap-hlint-fixer (msg pos end)
+  "Fixer for any hlint hint given as MSG and reported between POS and END."
+  (rx-let ((indented-line (seq space (* not-newline) "\n"))
+           (snippet (+ indented-line)))
+  (cond
+   ((s-matches? (rx (or "Perhaps you should remove it."
+                        "Use fewer LANGUAGE pragmas"))
+                msg)
+    (attrap-one-option 'kill-unused
+      (delete-region pos (+ 2 end))))
+   ((s-matches? (rx "Redundant $") msg)
+    (attrap-one-option 'kill-dollar
+      (delete-region pos (+ 1 end))))
+   ((s-matches? (rx "Redundant bracket") msg)
+    (attrap-one-option 'kill-brackets
+      (delete-region pos (1+ pos))
+      (delete-region (1- end) end)))
+   ((string-match
+     (rx "Found:\n"
+         (group snippet)
+         "Perhaps:\n"
+         (group snippet)
+         (? (seq "Note: " (+ not-newline) "\n"))
+         (* space) "[haskell-hlint]")
+     msg)
+    (let ((replacement (match-string 2 msg)))
+      (attrap-one-option 'replace-as-hinted
+        (delete-region pos (+ 1 end))
+        (insert (s-trim (s-collapse-whitespace replacement)))))))))
+
+(defun attrap-LaTeX-fixer (msg pos end)
+  (cond
+
+   ((s-matches? (rx "Use either `` or '' as an alternative to `\"'.")msg)
+    (list (attrap-option 'fix-open-dquote
+            (delete-region pos (1+ pos))
+            (insert "``"))
+          (attrap-option 'fix-close-dquote
+            (delete-region pos (1+ pos))
+            (insert "''"))))
+   ((s-matches? (rx "Non-breaking space (`~') should have been used.") msg)
+    (attrap-one-option 'non-breaking-space
+      (if (looking-at (rx space))
+          (delete-region pos (1+ pos))
+          (delete-region (save-excursion (skip-chars-backward "\n\t ") (point)) (point)))
+      (insert "~")))
+   ((s-matches? (rx "Interword spacing (`\\ ') should perhaps be used.") msg)
+    (attrap-one-option 'use-interword-spacing
+      (delete-region pos (1+ pos))
+      (insert "\\ ")))
+   ((s-matches? (rx "Delete this space to maintain correct pagereferences.") msg)
+    (attrap-one-option 'fix-space-pageref
+      (if (looking-back (rx bol (* space)))
+          (progn (skip-chars-backward "\n\t ")
+                 (insert "%"))
+        (delete-region (point) (save-excursion (skip-chars-forward " \t") (point))))))))
 
 (provide 'attrap)
 ;;; attrap.el ends here
