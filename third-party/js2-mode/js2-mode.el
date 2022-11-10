@@ -1,13 +1,13 @@
 ;;; js2-mode.el --- Improved JavaScript editing mode -*- lexical-binding: t -*-
 
-;; Copyright (C) 2009, 2011-2021  Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2011-2022  Free Software Foundation, Inc.
 
 ;; Author: Steve Yegge <steve.yegge@gmail.com>
 ;;         mooz <stillpedant@gmail.com>
 ;;         Dmitry Gutov <dgutov@yandex.ru>
 ;; URL:  https://github.com/mooz/js2-mode/
 ;;       http://code.google.com/p/js2-mode/
-;; Version: 20211229
+;; Version: 20220710
 ;; Keywords: languages, javascript
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 
@@ -6343,15 +6343,16 @@ its relevant fields and puts it into `js2-ti-tokens'."
     (catch 'break
       (while (/= c quote-char)
         (catch 'continue
-          (when (eq c js2-EOF_CHAR)
+          (cond
+           ((eq c js2-EOF_CHAR)
             (js2-unget-char)
             (js2-report-error "msg.unterminated.string.lit")
             (throw 'break nil))
-          (when (and (eq c ?\n) (not (eq quote-char ?`)))
+           ((and (eq c ?\n) (not (eq quote-char ?`)))
             (js2-unget-char)
             (js2-report-error "msg.unterminated.string.lit")
             (throw 'break nil))
-          (when (eq c ?\\)
+           ((eq c ?\\)
             ;; We've hit an escaped character
             (setq c (js2-get-char))
             (cl-case c
@@ -6429,10 +6430,10 @@ its relevant fields and puts it into `js2-ti-tokens'."
                            c (js2-get-char))))
                  (js2-unget-char)
                  (setq c val)))))
-          (when (and (eq quote-char ?`) (eq c ?$))
+           ((and (eq quote-char ?`) (eq c ?$))
             (when (eq (setq nc (js2-get-char)) ?\{)
               (throw 'break nil))
-            (js2-unget-char))
+            (js2-unget-char)))
           (js2-add-to-string c)
           (setq c (js2-get-char)))))
     (js2-set-string-from-buffer token)
@@ -6483,12 +6484,16 @@ its relevant fields and puts it into `js2-ti-tokens'."
                                   'syntax-table (string-to-syntax "\"/")))
       (while continue
         (cond
+         ((js2-match-char ?d)
+          (push ?d flags))
          ((js2-match-char ?g)
           (push ?g flags))
          ((js2-match-char ?i)
           (push ?i flags))
          ((js2-match-char ?m)
           (push ?m flags))
+         ((js2-match-char ?s)
+          (push ?s flags))
          ((and (js2-match-char ?u)
                (>= js2-language-version 200))
           (push ?u flags))
@@ -8061,7 +8066,7 @@ string is NAME.  Returns nil and keeps current token otherwise."
                nil)
            ;; The parse was successful, so process and return the "await".
            (js2-record-face 'font-lock-keyword-face current-token)
-           (unless (js2-inside-async-function)
+           (unless (or (js2-inside-async-function) (equal js2-nesting-of-function 0))
              (js2-report-error "msg.bad.await" nil
                                beg (- end beg)))
            pn))))
@@ -10375,11 +10380,11 @@ Returns the list in reverse order.  Consumes the right-paren token."
         pn pos target args beg end init)
     (if (/= tt js2-NEW)
         (setq pn (js2-parse-primary-expr))
+      (setq pos (js2-current-token-beg)
+            beg pos)
       ;; parse a 'new' expression
       (js2-get-token)
-      (setq pos (js2-current-token-beg)
-            beg pos
-            target (js2-parse-member-expr)
+      (setq target (js2-parse-member-expr)
             end (js2-node-end target)
             pn (make-js2-new-node :pos pos
                                   :target target
@@ -11758,7 +11763,7 @@ highlighting features of `js2-mode'."
 (defun js2-minor-mode-exit ()
   "Turn off `js2-minor-mode'."
   (setq next-error-function nil)
-  (remove-hook 'after-change-functions #'js2-mode-edit t)
+  (remove-hook 'after-change-functions #'js2-minor-mode-edit t)
   (remove-hook 'change-major-mode-hook #'js2-minor-mode-exit t)
   (when js2-mode-node-overlay
     (delete-overlay js2-mode-node-overlay)

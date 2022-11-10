@@ -2,6 +2,17 @@
 
 ## Next
 
+* Support top-level await
+  ([#593](https://github.com/mooz/js2-mode/issues/593)).
+* Fix for escaping inside template literal
+  ([#592](https://github.com/mooz/js2-mode/issues/592)).
+
+## 2022-07-10
+
+* Fix for node position of `js2-new-node`
+  ([#591](https://github.com/mooz/js2-mode/issues/591)).
+* Support the d (hasIndices) and s (dotAll) regexp flags
+  ([#590](https://github.com/mooz/js2-mode/pull/590)).
 * Support for `_` separator in numbers (i.e., numeric separator)
   ([#584](https://github.com/mooz/js2-mode/pull/584)).
 
