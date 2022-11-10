@@ -10,8 +10,8 @@ set -u
 # propagate errors from all parts of pipes
 set -o pipefail
 
-if [[ "$#" != 1 && "$#" != 2 ]]; then
-    echo "usage: $0 <subtree-path> [<repository>]"
+if [[ "$#" != 1 && "$#" != 2 && "$#" != 3 ]]; then
+    echo "usage: $0 <subtree-path> [<repository> [<revision>]]"
     exit 1
 fi
 
@@ -36,7 +36,11 @@ if [[ $? != 0 ]]; then
     echo "Failed to get repository url" >&2
 fi
 
-hash="$(get-ref-hash "${repository}/master")"
+if [[ "$#" == 3 ]]; then
+    hash="$3"
+else
+    hash="$(get-ref-hash "${repository}/master")"
+fi
 
 echo "url = ${url}"
 echo "hash = ${hash}"
