@@ -613,7 +613,8 @@ and over."
 process."
   :start 'dante-check
   :predicate (lambda () dante-mode)
-  :modes '(haskell-mode haskell-literate-mode))
+  :modes '(haskell-mode haskell-literate-mode)
+  :working-directory (lambda (_checker) dante-project-root))
 
 (add-to-list 'flycheck-checkers 'haskell-dante)
 
