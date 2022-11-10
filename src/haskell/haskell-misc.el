@@ -139,8 +139,7 @@ and indent them as singe line."
         "-Wwarn=missing-home-modules"
          "-ferror-spans"
         "-O0"
-        "-fdefer-typed-holes"
-        "-fdefer-type-errors")
+        "-fdefer-typed-holes")
 
       ;; dante-debug '(inputs outputs responses command-line)
       )
