@@ -62,7 +62,7 @@
 ;; Configuration
 
 (defgroup dante nil
-  "Interactive development mode for Haskell"
+  "Interactive development mode for Haskell."
   :group 'haskell)
 
 
@@ -74,7 +74,7 @@
 (defcustom dante-repl-command-line nil
   "Command line to start GHCi, as a list: the executable and its arguments.
 When nil, dante will guess the value depending on
-`dante-project-root' contents.  This should usually be customized
+the variable `dante-project-root'  This should usually be customized
 as a file or directory variable.  Each element of the list is a
 sexp which is evaluated to a string before being passed to the
 shell."
@@ -176,7 +176,7 @@ will be in different GHCi sessions."
            t))))
 
 (defun dante-cabal-new-nix (d)
-  "non-nil iff D contains a nix file and a cabal file."
+  "Non-nil iff directory D hosts a nix file and a cabal file."
   (rx-let ((nix (or "shell.nix" "default.nix"))
            (cabal (or "cabal.project" "cabal.project.local" ".cabal")))
     (let ((files (dante-directory-regular-files d (rx (or nix cabal)))))
@@ -186,7 +186,7 @@ will be in different GHCi sessions."
            t))))
 
 (defun dante-cabal-nix (d)
-  "non-nil iff D contains a nix file and a cabal file."
+  "Non-nil iff directory D hosts a nix file and a cabal file."
   (rx-let ((nix (or "shell.nix" "default.nix"))
            (cabal (or ".cabal")))
     (let ((files (dante-directory-regular-files d (rx (or nix cabal) eos))))
@@ -344,8 +344,10 @@ Consider setting this variable as a directory variable."
 (put 'dante-methods 'safe-local-variable #'listp)
 
 (defun dante-initialize-method ()
-  "Initialize `dante-project-root' and `dante-repl-command-line'.
-Do it according to `dante-methods' and previous values of the above variables."
+  "Initialize the method used to run GHCi.
+This sets the variable `dante-project-root' and the variable
+`dante-repl-command-line'.  Do it according to `dante-methods'
+and previous values of the above variables."
   (or (-first (lambda (method)
                 (let ((pred (dante-method-is-enabled-pred method)))
                   (when (or (null pred)
@@ -400,19 +402,19 @@ otherwise search for project root using
 ;; Session-local variables. These are set *IN THE GHCi INTERACTION BUFFER*
 
 (defvar-local dante-flymake-token 1000)
-(defvar-local dante-command-line nil "command line used to start GHCi")
-(defvar-local dante-load-message nil "load messages")
+(defvar-local dante-command-line nil "Command line used to start GHCi.")
+(defvar-local dante-load-message nil "Load messages.")
 (defvar-local dante-loaded-file "<DANTE:NO-FILE-LOADED>")
 (defvar-local dante-queue nil "List of ready GHCi queries.")
 (defvar-local dante-package-name nil "The package name associated with the current buffer.")
 (defvar-local dante-state nil
-  "nil: initial state
+  "The current state.
+- nil: initial state
 - deleting: The process of the buffer is being deleted.
-- dead: GHCi died on its own. Do not try restarting
-automatically. The user will have to manually run `dante-restart'
+- dead: GHCi died on its own.  Do not try restarting
+automatically.  The user will have to manually run `dante-restart'
 to destroy the buffer and create a fresh one without this variable enabled.
-- other value: informative value for the user about what GHCi is doing
-")
+- other value: informative value for the user about what GHCi is doing.")
 
 (defun dante-get-var (symbol)
   "Return the value of SYMBOL in the GHCi process buffer."
@@ -540,7 +542,7 @@ When the universal argument INSERT is non-nil, insert the type in the buffer."
 (lcr-def dante-async-load-current-buffer (interpret err-fn)
   "Load and maybe INTERPRET the temp file for current buffer.
 Interpreting puts all symbols from the current module in
-scope. Compiling to avoids re-interpreting the dependencies over
+scope.  Compiling to avoids re-interpreting the dependencies over
 and over."
   (let* ((fingerprint (sha1 (current-buffer)))
          (unchanged (equal fingerprint dante-temp-fingerprint))
@@ -657,7 +659,8 @@ CHECKER and BUFFER are added if the error is in TEMP-FILE."
 ;; Company integration (auto-completion)
 
 (defun check-balanced-parens (opened str)
-  "Check that all parenthesis are balanced"
+  "Check that all parenthesis are balanced in STR.
+Assume an number parenthesis OPENED in a prefix."
   (cond
    ((string-empty-p str) (= 0 opened))
    ((< opened 0) nil)
@@ -738,7 +741,8 @@ May return a qualified name."
       (buffer-substring-no-properties (car reg) (cdr reg)))))
 
 (defun dante-ident-pos-at-point (&optional offset)
-  "Return the span of the (qualified) identifier at point+OFFSET, or nil if none found."
+  "Return the span of the (qualified) identifier at point+OFFSET.
+Nil if none found."
   (let* ((qualifier-regex "\\([[:upper:]][[:alnum:]]*\\.\\)")
          (ident-regex (concat qualifier-regex "*\\(\\s.+\\|\\(\\sw\\|\\s_\\)+\\)"))) ; note * for many qualifiers
     (save-excursion
@@ -800,6 +804,7 @@ The path returned is canonicalized and stripped of any text properties."
 (defvar-local dante-temp-file-name nil
   "The name of a temporary file to which the current buffer's content is copied.")
 
+(require 'tramp)
 (defun dante-tramp-make-tramp-temp-file (buffer)
   "Create a temporary file for BUFFER, perhaps on a remote host."
   (if-let (fname (buffer-file-name buffer))
@@ -895,8 +900,8 @@ This applies to paths of the form x:\\foo\\bar"
         (dante-schedule-next (current-buffer)))))
 
 (defun dante-schedule-next (buffer)
-  "If no sub-session is running, run the next queued sub-session for BUFFER, if any.
-Note that sub-sessions are not interleaved."
+  "If no sub-session is running, run the next queued sub-session for BUFFER.
+If the queue is empty, do nothing.  Note that sub-sessions are not interleaved."
   (lcr-scheduler)
   (with-current-buffer buffer
     (force-mode-line-update t)
@@ -937,7 +942,8 @@ Note that sub-sessions are not interleaved."
       buffer))
 
 (defun dante-debug (category msg &rest objects)
-  "Append a debug message MSG to the current buffer if CATEGORY is enabled in `dante-debug'."
+  "Append a debug message MSG to the current buffer.
+Do so iff CATEGORY is enabled in variable `dante-debug'."
   (when (memq category dante-debug)
     (goto-char (1- (point-max)))
     (insert (apply 'format msg objects))))
@@ -1068,7 +1074,7 @@ This is a standard process sentinel function."
       (current-buffer))))
 
 (defun dante-set-state (state)
-  "Set the dante-state to STATE and redisplay the modeline."
+  "Set the `dante-state' to STATE and redisplay the modeline."
   (with-current-buffer (dante-buffer-p) (setq-local dante-state state))
   (force-mode-line-update))
 
@@ -1091,7 +1097,9 @@ CABAL-FILE rather than trying to locate one."
                 "")))))
 
 (defun dante-cabal-find-file (&optional file)
-  "Search for directory of cabal file, upwards from FILE (or `default-directory' if nil)."
+  "Search for directory of cabal file.
+Search upwards in the directory structure, starting from FILE (or
+`default-directory' if nil)."
   (let ((dir (locate-dominating-file (or file default-directory)
                                      (lambda (d) (directory-files d t ".\\.cabal\\'")))))
     (when dir (car (directory-files dir t ".\\.cabal\\'")))))
@@ -1165,7 +1173,7 @@ Use nil to disable." :type 'integer :group 'dante)
 (defvar dante-timer nil)
 (defvar dante-last-valid-idle-type-message nil)
 
-(defvar-local dante-idle-point nil "point when idler kicked in.")
+(defvar-local dante-idle-point nil "Point when idler kicked in.")
 
 (defun dante-idle-function ()
   "Eldoc-like support function."
@@ -1198,7 +1206,8 @@ Use nil to disable." :type 'integer :group 'dante)
 
 (defun dante-eval-loop (block-end)
   "Evaluation loop iteration.
-Calls DONE when done.  BLOCK-END is a marker for the end of the evaluation block."
+Calls DONE when done.
+BLOCK-END is a marker for the end of the evaluation block."
   (while (and (looking-at "[ \t]*--")
               (not (looking-at "[ \t]*--[ \t]+>>>")))
     (forward-line))
@@ -1218,7 +1227,8 @@ Calls DONE when done.  BLOCK-END is a marker for the end of the evaluation block
       (dante-eval-loop block-end))))
 
 (defun dante-eval-block ()
-  "Evaluate the expression command(s) found after in the current command block >>> and insert the results."
+  "Evaluate the GHCi command(s) found at point and insert the results.
+The command block is indicated by the >>> symbol."
   (interactive)
   (push-mark)
   (beginning-of-line)
