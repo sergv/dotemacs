@@ -253,7 +253,7 @@ With prefix argument puts symbol at point also in substitute part"
                 file))
            (line (string-to-number (match-string-no-properties 2 string)))
            (col (string-to-number (match-string-no-properties 3 string))))
-      (make-eproj-tag (expand-file-name resolved-file dante-project-root)
+      (make-eproj-tag (expand-file-name resolved-file (dante-project-root))
                       line
                       nil
                       (list `(column . ,(1- col)))))))
