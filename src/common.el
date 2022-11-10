@@ -1301,20 +1301,20 @@ are CHAR1 and CHAR2 repsectively."
             (j (+ i 1)))
         (if (and (char= c ?\\)
                  (< j limit))
-          (pcase (aref str j)
-            (`?n  (setf (aref str r) ?\n)
-                  (setf i (+ i 2)))
-            (`?r  (setf (aref str r) ?\r)
-                  (setf i (+ i 2)))
-            (`?t  (setf (aref str r) ?\t)
-                  (setf i (+ i 2)))
-            (`?\\ (setf (aref str r) ?\\)
-                  (setf i (+ i 2)))
-            (_    (setf (aref str r) c)
-                  (setf i j)))
+            (pcase (aref str j)
+              (`?n  (setf (aref str r) ?\n
+                          i (+ i 2)))
+              (`?r  (setf (aref str r) ?\r
+                          i (+ i 2)))
+              (`?t  (setf (aref str r) ?\t
+                          i (+ i 2)))
+              (`?\\ (setf (aref str r) ?\\
+                          i (+ i 2)))
+              (_    (setf (aref str r) c
+                          i j)))
           (progn
-            (setf (aref str r) c)
-            (setf i j)))
+            (setf (aref str r) c
+                  i j)))
         (setf r (+ r 1))))
     (substring-no-properties str 0 r)))
 
