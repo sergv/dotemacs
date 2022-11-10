@@ -109,7 +109,7 @@ currently defined ex commands. Should be updated with
 `vim-ex--map-command' when new ex commands being defined.")
 
 (defvar-local vim-ex--local-commands-re-cache nil
-  "Local variont of `vim-ex--global-commands-re-cache' that includes both global and
+  "Local variant of `vim-ex--global-commands-re-cache' that includes both global and
 local commands.")
 
 (defvar vim-ex--all-known-global-ex-commands nil
@@ -124,8 +124,7 @@ commands only.")
 and global commands.")
 
 (defun vim-ex--map-command (local keys command tbl)
-  "Updates `vim-ex--global-commands-re-cache' and `vim-ex--local-commands-re-cache' with
-current ex-commands."
+  "NB Inavlidates `vim-ex--global-commands-re-cache' and `vim-ex--local-commands-re-cache'."
   (cl-assert (hash-table-p tbl))
   (cond
     ((stringp command)
@@ -144,20 +143,12 @@ current ex-commands."
             (type-of command))))
   (if local
     (progn
-      (add-to-list 'vim-ex--all-known-local-ex-commands keys)
-      (setf vim-ex--all-known-local-and-global-ex-commands
-            (append vim-ex--all-known-local-ex-commands
-                    vim-ex--all-known-global-ex-commands))
-      (setf vim-ex--local-commands-re-cache
-            (concat "\\("
-                    (regexp-opt vim-ex--all-known-local-and-global-ex-commands)
-                    "\\)\\(!\\)?")))
+      (push keys vim-ex--all-known-local-ex-commands)
+      (setf vim-ex--all-known-local-and-global-ex-commands nil
+            vim-ex--local-commands-re-cache nil))
     (progn
-      (add-to-list 'vim-ex--all-known-global-ex-commands keys)
-      (setf vim-ex--global-commands-re-cache
-            (concat "\\("
-                    (regexp-opt vim-ex--all-known-global-ex-commands)
-                    "\\)\\(!\\)?")))))
+      (push keys vim-ex--all-known-global-ex-commands)
+      (setf vim-ex--global-commands-re-cache nil))))
 
 (defun vim-emap (keys command)
   "Maps an ex-command to some function."
@@ -632,16 +623,10 @@ Returns four values: (cmd beg end force) where
               end 'last-line
               end-off 0
               sep ?,))
-      (when (= pos (or
-                    (if vim-ex--local-commands-re-cache
-                        (string-match vim-ex--local-commands-re-cache
-                                      text
-                                      pos)
-                      (string-match vim-ex--global-commands-re-cache
-                                    ;; "\\([a-zA-Z0-9_]+\\)\\(!\\)?"
-                                    text
-                                    pos))
-                    -1))
+      (when (= pos (or (string-match (vim-ex--known-commands-re)
+                                     text
+                                     pos)
+                       -1))
         (setq cmd (cons (match-beginning 1) (match-end 1))))
       (cl-multiple-value-bind (start end)
           (vim-ex--get-range (and begin (cons begin begin-off))
@@ -649,6 +634,27 @@ Returns four values: (cmd beg end force) where
                              (and end (cons end end-off)))
         (values cmd start end (match-beginning 2))))))
 
+(defun vim-ex--known-commands-re ()
+  "Get regexps that matches all ex commands that are known in current context."
+  (if vim-ex--all-known-local-ex-commands
+      (progn
+        (unless vim-ex--all-known-local-and-global-ex-commands
+          (setf vim-ex--all-known-local-and-global-ex-commands
+                (append vim-ex--all-known-local-ex-commands
+                        vim-ex--all-known-global-ex-commands)))
+        (unless vim-ex--local-commands-re-cache
+          (setf vim-ex--local-commands-re-cache
+                (concat "\\("
+                        (regexp-opt vim-ex--all-known-local-and-global-ex-commands)
+                        "\\)\\(!\\)?")))
+        vim-ex--local-commands-re-cache)
+    (progn
+      (unless vim-ex--global-commands-re-cache
+        (setf vim-ex--global-commands-re-cache
+              (concat "\\("
+                      (regexp-opt vim-ex--all-known-global-ex-commands)
+                      "\\)\\(!\\)?")))
+      vim-ex--global-commands-re-cache)))
 
 (defun vim-ex--parse-address (text pos)
   "Parses `text' starting at `pos' for an address, returning a two values,
@@ -762,8 +768,7 @@ the offset and the new position."
       (add-hook 'minibuffer-setup-hook #'vim-ex--start-session)
       (let ((result
              (completing-read-default vim-ex--prompt
-                                      (or vim-ex--all-known-local-and-global-ex-commands
-                                          vim-ex--all-known-global-ex-commands)
+                                      (vim-ex--get-known-commands)
                                       nil
                                       nil
                                       initial-input
@@ -773,6 +778,16 @@ the offset and the new position."
           (when (< 2 (length result))
             (push result vim-ex--history))
           (vim-ex-execute-command result))))))
+
+(defun vim-ex--get-known-commands ()
+  (if vim-ex--all-known-local-ex-commands
+      (progn
+        (unless vim-ex--all-known-local-and-global-ex-commands
+          (setf vim-ex--all-known-local-and-global-ex-commands
+                (append vim-ex--all-known-local-ex-commands
+                        vim-ex--all-known-global-ex-commands)))
+        vim-ex--all-known-local-and-global-ex-commands)
+    vim-ex--all-known-global-ex-commands))
 
 (provide 'vim-ex)
 
