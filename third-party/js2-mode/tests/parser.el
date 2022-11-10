@@ -122,6 +122,12 @@ the test."
 (js2-deftest-parse comma-after-regexp
   "d = /eee/, 42;")
 
+(js2-deftest-parse regexp-with-s-flag
+  "d = /eee/s;")
+
+(js2-deftest-parse regexp-with-d-flag
+  "d = /eee/d;")
+
 (js2-deftest-parse return-statement
   "function foo() {\n  return 2;\n}")
 
@@ -566,6 +572,9 @@ the test."
 (js2-deftest-parse await-inside-array-is-ok
                    "async function foo() {\n  var results = [await bar(), await baz()];\n}")
 
+(js2-deftest-parse await-top-level-is-ok
+                   "await bar();")
+
 (js2-deftest-parse await-inside-non-async-function-is-not-ok
                    "function foo() {\n  await bar();\n}"
                    :syntax-error "await")
@@ -988,6 +997,9 @@ the test."
 
 (js2-deftest-parse tagged-template
   "foo.args`${++x, \"o\"}k`;")
+
+(js2-deftest-parse template-with-escapes
+  "const valid = `\\${${a}}`;")
 
 ;;; Classes
 
