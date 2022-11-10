@@ -9,11 +9,9 @@
 ;; Author: Jean-Philippe Bernardy <jeanphilippe.bernardy@gmail.com>
 ;; Maintainer: Jean-Philippe Bernardy <jeanphilippe.bernardy@gmail.com>
 ;; URL: https://github.com/jyp/dante
-;; Package-Version: 20200921.723
-;; Package-Commit: e2acbf6dd37818cbf479c9c3503d8a59192e34af
 ;; Created: October 2016
 ;; Keywords: haskell, tools
-;; Package-Requires: ((dash "2.12.0") (emacs "27.1") (f "0.19.0") (flycheck "0.30") (company "0.9") (haskell-mode "13.14") (s "1.11.0") (lcr "1.5"))
+;; Package-Requires: ((dash "2.12.0") (emacs "27.1") (f "0.19.0") (flycheck "0.30") (company "0.9") (flymake "1.0") (s "1.11.0") (lcr "1.5"))
 ;; Version: 0-pre
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -48,7 +46,7 @@
 (require 'dash)
 (require 'f)
 (require 'flycheck)
-(require 'haskell-mode)
+(require 'flymake)
 (require 's)
 (require 'xref)
 (require 'lcr)
@@ -84,21 +82,15 @@ shell."
   "The project root, as a string or nil.
 When nil, dante will guess the value by looking for a cabal file.
 Customize as a file or directory variable."
-  :group 'dante
+  :group 'dante :safe #'stringp
   :type '(choice (const nil) string))
-
-(put 'dante-project-root 'safe-local-variable #'stringp)
 
 (defcustom dante-target nil
   "The target to demand from cabal repl, as a string or nil.
 Customize as a file or directory variable.  Different targets
-will be in different GHCi sessions."
-  :group 'dante :safe t
+will be in loaded in different GHCi sessions."
+  :group 'dante :safe #'stringp
   :type '(choice (const nil) string))
-
-(defvar-local dante-package-name nil "The package name associated with the current buffer.")
-
-(put 'dante-target 'safe-local-variable #'stringp)
 
 (defun dante-nix-available? (_buf)
   "Non-nil iff ‘nix’ executable is avaliable."
@@ -306,7 +298,7 @@ will be in different GHCi sessions."
                #'dante-cabal-new      ;; find root predicate
                #'dante-buffer-name--default
                (lambda (flake-root flags)
-                 (nix-call-via-flakes `("cabal" "repl" (or dante-target dante-package-name nil) ,@flags) flake-root)))
+                 (nix-call-via-flakes `("cabal" "repl" dante-target ,@flags) flake-root)))
 
       (funcall mk-dante-method
                'build-script
@@ -322,7 +314,7 @@ will be in different GHCi sessions."
                #'dante-cabal-new
                #'dante-buffer-name--default
                (lambda (_flake-root flags)
-                 `("cabal" "repl" (or dante-target dante-package-name nil) ,@flags)))
+                 `("cabal" "repl" dante-target ,@flags)))
 
       (funcall mk-dante-method
                'bare-ghci
@@ -346,12 +338,11 @@ Consider setting this variable as a directory variable."
 
 (defun dante-initialize-method ()
   "Initialize the method used to run GHCi.
-This sets the variable `dante-project-root' and the variable
-`dante-repl-command-line'.  Do it according to `dante-methods'
-and previous values of the above variables."
-  (unless dante-package-name
-    ;; Get the current package name from a nearby .cabal file
-    (setq dante-package-name
+Set `dante-project-root', `dante-repl-command-line' and
+`dante-target'.  Do so according to `dante-methods' and previous
+values of the above variables."
+  (unless dante-target ; Get the current package name from a nearby .cabal file
+    (setq-local dante-target
           (let ((cabal-file (dante-cabal-find-file)))
             (if cabal-file
                 (replace-regexp-in-string
@@ -412,9 +403,9 @@ automatically.  The user will have to manually run `dante-restart'
 to destroy the buffer and create a fresh one without this variable enabled.
 - other value: informative value for the user about what GHCi is doing.")
 
-(defun dante-get-var (symbol)
+(defmacro dante-get-var (var)
   "Return the value of SYMBOL in the GHCi process buffer."
-  (let ((bp (dante-buffer-p))) (when bp (buffer-local-value symbol bp))))
+  `(when-let ((bp (dante-buffer-p))) (buffer-local-value ',var bp)))
 
 (add-hook
  'lcr-context-switch-hook
@@ -445,12 +436,13 @@ to destroy the buffer and create a fresh one without this variable enabled.
     (if (not buf) "stopped"
       (with-current-buffer buf
         (concat
+         (if lcr-process-callback "busy " "")
          (pcase dante-state
            (`(ghc-err (compiling ,mod)) (format "error(%s)" mod))
            (`(loaded ,_loaded-mods) (if (s-equals? dante-loaded-file fname) "loaded" (format "loaded(%s)" (file-name-base dante-loaded-file))))
            ;; (`(,hd . ,_tl) (format "%s" hd))
            (_ (format "%s" dante-state)))
-        (if dante-queue (format "+%s" (length dante-queue)) ""))))))
+         (if dante-queue (format "+%s" (length dante-queue)) ""))))))
 
 (defcustom dante-modeline-prefix " Danté:" "Modeline prefix." :group 'dante :type 'string)
 
@@ -482,6 +474,7 @@ if the argument is omitted or nil or a positive integer).
 (define-key dante-mode-map (kbd "C-c ,") 'dante-info)
 (define-key dante-mode-map (kbd "C-c /") 'attrap-attrap) ;; deprecated keybinding
 (define-key dante-mode-map (kbd "C-c \"") 'dante-eval-block)
+(define-key dante-mode-map (kbd "C-c C-c") 'dante-exec)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Interactive utils
@@ -534,15 +527,14 @@ When the universal argument INSERT is non-nil, insert the type in the buffer."
   (interactive (list (dante-ident-at-point)))
   (lcr-spawn
     (lcr-call dante-async-load-current-buffer t nil)
-    (let ((package dante-package-name)
-          (help-xref-following nil)
+    (let ((help-xref-following nil)
           (origin (buffer-name))
           (info (lcr-call dante-async-call (format ":info %s" ident))))
       (help-setup-xref (list #'dante-call-in-buffer (current-buffer) #'dante-info ident)
                        (called-interactively-p 'interactive))
       (with-help-window (help-buffer)
         (princ (concat (dante-fontify-expression ident)
-                       " in `" origin "'" " (" package ")"
+                       " in `" origin "'"
                        "\n\n"
                        (dante-fontify-expression info)))))))
 
@@ -578,9 +570,9 @@ and over."
       ;; GHCi will interpret the buffer if both -fbyte-code and :l * are used.
       (lcr-call dante-async-call (if interpret ":set -fbyte-code" ":set -fobject-code"))
       (with-current-buffer buffer
-        (dante-async-write (if same-target ":r"
-                             (concat ":l " (if interpret "*" "") (dante-local-name fname))))
-        (setq dante-state 'loading)
+        (setq-local dante-status 'loading)
+        (dante-async-write (if same-target ":r!"
+                             (concat ":l! " (if interpret "*" "") (dante-local-name fname))))
         (cl-destructuring-bind (_status err-messages _loaded-modules)
             (lcr-call dante-load-loop "" nil err-fn)
           (setq dante-loaded-file src-fname)
@@ -596,7 +588,7 @@ and over."
 
 (defun dante-check (checker cont)
   "Run a check with CHECKER and pass the status onto CONT."
-  (if (eq (dante-get-var 'dante-state) 'dead) (funcall cont 'interrupted)
+  (if (eq (dante-get-var dante-state) 'dead) (funcall cont 'interrupted)
     (lcr-spawn
       (let* ((messages (lcr-call dante-async-load-current-buffer nil nil))
              (temp-file (dante-local-name (dante-temp-file-name (current-buffer)))))
@@ -675,31 +667,12 @@ CHECKER and BUFFER are added if the error is in TEMP-FILE."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Company integration (auto-completion)
 
-(defun check-balanced-parens (opened str)
-  "Check that all parenthesis are balanced in STR.
-Assume an number parenthesis OPENED in a prefix."
-  (cond
-   ((string-empty-p str) (= 0 opened))
-   ((< opened 0) nil)
-   (t (let ((head (substring str 0 1))
-            (tail (substring str 1 (length str))))
-        (check-balanced-parens (cond ((string= head "(") (+ opened 1))
-                                     ((string= head ")") (- opened 1))
-                                     (t opened))
-                               tail)))))
-
 (lcr-def dante-complete (prefix)
-  (let ((imports
-         (--filter (and (s-matches? "^import[ \t]+" it)
-                        (check-balanced-parens 0 it))
-                   (s-lines (buffer-string)))))
-    (lcr-call dante-async-load-current-buffer nil nil)
-    (dolist (i imports)
-      (lcr-call dante-async-call i)) ;; the file probably won't load when trying to complete. So, load all the imports instead.
-    (let* ((reply (lcr-call dante-async-call (format ":complete repl %S" prefix)))
-           (lines (s-lines reply))
-           (common (nth 2 (read (concat "(" (car lines) ")")))))
-      (--map (concat common (read it)) (cdr lines)))))
+  (lcr-call dante-async-load-current-buffer nil nil)
+  (let* ((reply (lcr-call dante-async-call (format ":complete repl %S" prefix)))
+         (lines (s-lines reply))
+         (common (nth 2 (read (concat "(" (car lines) ")")))))
+    (--map (concat common (read it)) (cdr lines))))
 
 (defun dante--in-a-comment ()
   "Return non-nil if point is in a comment."
@@ -724,7 +697,7 @@ See ``company-backends'' for the meaning of COMMAND, ARG and _IGNORED."
                 (is-import (eq import-end id-start)))
            (buffer-substring-no-properties (if is-import import-start id-start) (point))))))
     (candidates
-     (unless (eq (dante-get-var 'dante-state) 'dead)
+     (unless (eq (dante-get-var dante-state) 'dead)
        (cons :async (lambda (callback) (lcr-spawn (lcr-halt callback (lcr-call dante-complete arg)))))))))
 
 (with-eval-after-load 'company
@@ -752,10 +725,9 @@ See ``company-backends'' for the meaning of COMMAND, ARG and _IGNORED."
 (defun dante-ident-at-point ()
   "Return the identifier under point, or nil if none found.
 May return a qualified name."
-  (let ((reg (or (dante-ident-pos-at-point)
-                 (dante--bounds-of-haskell-symbol))))
-    (when reg
-      (buffer-substring-no-properties (car reg) (cdr reg)))))
+  (when-let ((reg (or (dante-ident-pos-at-point)
+                      (dante--bounds-of-haskell-symbol))))
+    (buffer-substring-no-properties (car reg) (cdr reg))))
 
 (defun dante-ident-pos-at-point (&optional offset)
   "Return the span of the (qualified) identifier at point+OFFSET.
@@ -894,16 +866,15 @@ This applies to paths of the form x:\\foo\\bar"
 (defun dante-destroy ()
   "Stop GHCi and kill its associated process buffer."
   (interactive)
-  (when (dante-buffer-p) ; TODO: simplify
+  (when-let ((buf (dante-buffer-p)))
     (dante-set-state 'deleting)
-    (with-current-buffer (dante-buffer-p)
-      (when (get-buffer-process (current-buffer))
-        (kill-process (get-buffer-process (current-buffer)))
-        (delete-process (get-buffer-process (current-buffer))))
-      (kill-buffer (current-buffer)))))
+    (when-let ((process (get-buffer-process buf)))
+      (kill-process process)
+      (delete-process process))
+    (kill-buffer buf)))
 
 (defun dante-restart ()
-  "Restart GHCi with the same configuration (root, command line) as before."
+  "Restart GHCi with the same configuration (root, command line, …) as before."
   (interactive)
   (when (dante-buffer-p)
     (dante-destroy))
@@ -921,7 +892,7 @@ If WAIT is nil, abort if Dante is busy.  Pass the dante buffer to CONT"
                   (message "Overriding previously queued GHCi request."))
                 (setq dante-queue (cons (lambda (x) (lcr-resume cont x)) nil))))
         (funcall cont buf))
-  (dante-start cont)))
+    (dante-start cont)))
 
 (defcustom dante-load-flags '("+c" "-fdiagnostics-color=never" "-fno-diagnostics-show-caret" "-Wwarn=missing-home-modules" "-ferror-spans")
   "Flags to set whenever GHCi is started."
@@ -930,7 +901,6 @@ If WAIT is nil, abort if Dante is busy.  Pass the dante buffer to CONT"
                             ("-Wall" "Report all warnings")
                             ("-ferror-spans" "Report span in error messages (used in flymake only)")
                             ("-fdefer-typed-holes" "Accept typed holes, so that completion/type-at continues to work then.")
-                            ("-fdefer-type-errors" "Accept incorrectly typed programs, so that completion/type-at continues to work then. (However errors in dependencies won't be detected as such)")
                             ("-Wwarn=missing-home-modules" "Do not error-out if a module is missing in .cabal file")
                             ("-fdiagnostics-color=never" "No color codes in error messages (color codes will trigger bugs in Dante)")
                             ("-fno-diagnostics-show-caret" "Cleaner error messages for GHC >=8.2 (ignored by earlier versions)")))))
@@ -965,8 +935,7 @@ Do so iff CATEGORY is enabled in variable `dante-debug'."
 (lcr-def dante-async-read ()
   "Read input from GHCi.
 Must be called from GHCi process buffer."
-  (let* ((buffer (current-buffer))
-         (input (lcr-call lcr-process-read buffer)))
+  (let* ((input (lcr-call lcr-process-read (current-buffer))))
     (dante-debug 'inputs "%s" input)
     (s-replace "\r" "" input)))
 
@@ -985,13 +954,14 @@ ACC umulate input and ERR-MSGS."
                   "^Ok, one module loaded."))
         (progress "^\\[\\([0-9]*\\) of \\([0-9]*\\)\\] Compiling \\([^ \n]*\\).*")
         (err-regexp "^\\([A-Z]?:?[^ \n:][^:\n\r]+\\):\\([0-9()-:]+\\): \\(.*\\)\n\\(\\([ ]+.*\n\\)*\\)")
-        (result nil))
+        result cur-file)
     (while (not result)
       (let* ((i (string-match (dante-regexp-disjoin dante-ghci-prompt success err-regexp progress) acc))
              (m (when i (match-string 0 acc)))
              (rest (when i (substring acc (match-end 0)))))
         (cond ((and m (string-match dante-ghci-prompt m))
-               (setq dante-state (list 'ghc-err dante-state))
+               (setq dante-state (list 'ghc-err (pcase dante-state (`(compiling ,module) module)
+                                                       (_ cur-file)))) ; when the module name is wrong, ghc does not output any "Compiling ..." message
                (setq result (list 'failed (nreverse err-msgs) (match-string 1 m))))
               ((and m (string-match progress m))
                (setq dante-state (list 'compiling (match-string 3 m))))
@@ -1005,6 +975,7 @@ ACC umulate input and ERR-MSGS."
                  (setq result (list 'ok (or (nreverse err-msgs) warning-msgs) loaded-mods))))
               ((and m (> (length rest) 0) (/= (elt rest 0) ? )) ;; make sure we're matching a full error message
                (let ((err-msg (-take 4 (cdr (s-match err-regexp m)))))
+                 (setq cur-file (car err-msg))
                  (push err-msg err-msgs)
                  (when err-fn (funcall err-fn (list err-msg)))))
               (t (setq rest (concat acc (lcr-call dante-async-read)))))
@@ -1035,7 +1006,7 @@ This is a standard process sentinel function."
       (if (eq (buffer-local-value 'dante-state buffer) 'deleting)
           (message "GHCi process deleted.")
         (with-current-buffer buffer (setq dante-state 'dead))
-        (dante-show-process-problem process change)))))
+        (dante-show-process-problem buffer change)))))
 
 (defun dante-diagnose ()
   "Show all state info in a help buffer."
@@ -1048,8 +1019,8 @@ This is a standard process sentinel function."
   "Show debug info for dante buffer BUFFER."
   (if buffer
       (with-current-buffer buffer
-        (s-join "\n" (--map (format "%s: %s" it (eval it))
-                            '(default-directory dante-command-line dante-state dante-queue dante-loaded-file dante-load-message lcr-process-callback))))
+        (s-join "\n" (--map (format "%s %S" it (eval it))
+                            '(default-directory dante-ghci-path dante-command-line dante-state dante-queue dante-loaded-file dante-load-message lcr-process-callback))))
     "No GHCi interaction buffer"))
 
 (defun dante-show-process-problem (process change)
@@ -1070,9 +1041,11 @@ This is a standard process sentinel function."
   (funcall (dante-method-repl-buf-name-func dante--selected-method)))
 
 (defun dante-buffer-name--default ()
-  "Create a dante process buffer name."
+  "Default implementation for getting name of the GHCi interaction buffer.
+First, if needed, initialize the GHCi invokation method.  Then construct the
+appropriate buffer name on this basis."
   (unless dante-project-root (dante-initialize-method))
-  (concat " *dante#" dante-package-name "#" dante-target "#" dante-project-root "*"))
+  (concat " *dante#" dante-target "#" dante-project-root "*"))
 
 (defun dante-buffer-create ()
   "Create the buffer for GHCi."
@@ -1084,7 +1057,7 @@ This is a standard process sentinel function."
       (current-buffer))))
 
 (defun dante-set-state (state)
-  "Set the `dante-state' to STATE and redisplay the modeline."
+  "Set the `dante-state' to STATE."
   (with-current-buffer (dante-buffer-p) (setq-local dante-state state)))
 
 (defun dante-buffer-p ()
@@ -1124,7 +1097,7 @@ Search upwards in the directory structure, starting from FILE (or
           (col (string-to-number (match-string 3 string))))
       (xref-make-file-location
        (or (gethash file dante-original-buffer-map)
-           (expand-file-name file dante-ghci-path))
+           (expand-file-name file (dante-get-var dante-ghci-path)))
        line (1- col)))))
 
 (defun dante--summarize-src-spans (spans file)
@@ -1184,14 +1157,19 @@ The command block is indicated by the >>> symbol."
   (interactive)
   (push-mark)
   (beginning-of-line)
-  (let ((block-end (save-excursion (while (looking-at-p "[ \t]*--") (forward-line)) (point-marker))))
-    (while (looking-at-p "[ \t]*--") (forward-line -1))
+  (let ((block-end (save-excursion
+                     (while (looking-at "[ \t]*--") (forward-line))
+                     ;; ensure that there is a newline at the end of buffer
+                     (when (eq (point) (point-max)) (newline))
+                     (point-marker))))
+    (while (looking-at "[ \t]*--") (forward-line -1))
     (forward-line)
     (lcr-spawn
       (lcr-call dante-async-load-current-buffer t nil)
       (while (search-forward-regexp "[ \t]*--[ \t]+>>>" (line-end-position) t 1)
         ;; found a command; execute it and replace the result.
-        (let ((res (lcr-call dante-async-call (buffer-substring-no-properties (point) (line-end-position)))))
+        (let* ((cmd (buffer-substring-no-properties (point) (line-end-position)))
+               (res (lcr-call dante-async-call cmd)))
           (beginning-of-line)
           (forward-line)
           (save-excursion
@@ -1206,6 +1184,20 @@ The command block is indicated by the >>> symbol."
           (while (and (looking-at "[ \t]*--")
                       (not (looking-at "[ \t]*--[ \t]+>>>")))
             (forward-line)))))))
+
+(defcustom dante-exec-default "main"
+  (substitute-command-keys "Default command to run by `dante-exec'.")
+  :group 'dante :safe t :type 'string)
+
+(defun dante-exec (command)
+  "Execute COMMAND in GHCi and show the result in the echo area."
+  (interactive (list (if (region-active-p)
+                         (buffer-substring-no-properties (region-beginning) (region-end))
+                       dante-exec-default)))
+  (dante-set-state 'running)
+  (lcr-spawn
+    (lcr-call dante-async-load-current-buffer nil nil)
+    (message "%s" (lcr-call dante-async-call command))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Flymake
@@ -1225,7 +1217,7 @@ The command block is indicated by the >>> symbol."
          ;; got another call from flymake in between.
          (local-token (if buf0 (with-current-buffer buf0 (setq dante-flymake-token (1+ dante-flymake-token)))
                         dante-flymake-token)))
-    (if (eq (dante-get-var 'dante-state) 'dead) (funcall report-fn :panic :explanation "Ghci is dead")
+    (if (eq (dante-get-var dante-state) 'dead) (funcall report-fn :panic :explanation "Ghci is dead")
       (lcr-spawn
         (let* ((buf (lcr-call dante-session)) ; yield until GHCi is ready to process the request
                (token-guard (lambda () (eq (buffer-local-value 'dante-flymake-token buf) local-token)))
