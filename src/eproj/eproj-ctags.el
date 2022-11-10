@@ -368,7 +368,7 @@ BUFFER is expected to contain output of ctags command."
                                (fold-platform-os-type nil t) ;; case insensitivity
                                )
               ;; Add 1 to remove leading slash.
-              (subseq tag-file (1+ (length root)))
+              (substring-no-properties tag-file (1+ (length root)))
             (abbreviate-file-name tag-file
              (eproj-resolve-to-abs-path tag-file proj)))))
     (concat
