@@ -1,4 +1,4 @@
-;;; compat-macs.el --- Compatibility Macros           -*- lexical-binding: t; -*-
+;;; compat-macs.el --- Compatibility Macros           -*- lexical-binding: t; no-byte-compile: t; -*-
 
 ;; Copyright (C) 2021, 2022 Free Software Foundation, Inc.
 
@@ -119,6 +119,8 @@ DEF-FN, INSTALL-FN, CHECK-FN, ATTR and TYPE."
                   '(compat--ignore))
                  (`(when (and ,(if cond cond t)
                               ,(funcall check-fn)))))))
+    (when (eq name realname)
+      (error "%S: Name is equal to realname" name))
     (cond
      ((and (plist-get attr :prefix) (memq type '(func macro))
            (string-match "\\`compat-\\(.+\\)\\'" (symbol-name name))
