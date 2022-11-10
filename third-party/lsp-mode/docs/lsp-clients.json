@@ -490,6 +490,14 @@
     "debugger": "Not available"
   },
   {
+    "name": "nix",
+    "full-name": "Nix",
+    "server-name": "nix-nil",
+    "server-url": "https://github.com/oxalica/nil",
+    "installation": "nix-env -i nil || nix profile install nixpkgs#nil",
+    "debugger": "Not available"
+  },
+  {
     "name": "ocaml",
     "full-name": "OCaml",
     "server-name": "ocaml-language-server",
@@ -514,6 +522,14 @@
     "client-name": "lsp-pascal",
     "client-url": "https://github.com/arjanadriaanse/lsp-pascal",
     "installation-url": "https://github.com/arjanadriaanse/pascal-language-server",
+    "debugger": "Not available"
+  },
+  {
+    "name": "pls",
+    "full-name": "PLS",
+    "server-name": "Perl Language Server",
+    "server-url": "https://metacpan.org/pod/PLS",
+    "installation": "cpan PLS",
     "debugger": "Not available"
   },
   {
@@ -721,7 +737,7 @@
     "full-name": "SQL (sqls)",
     "server-name": "sqls",
     "server-url": "https://github.com/lighttiger2505/sqls",
-    "installation": "go get github.com/lighttiger2505/sqls",
+    "installation": "go install github.com/lighttiger2505/sqls@latest",
     "debugger": "Not available"
   },
   {
@@ -806,7 +822,7 @@
     "full-name": "TOML",
     "server-name": "taplo",
     "server-url": "https://github.com/tamasfe/taplo",
-    "installation": "cargo install taplo-cli",
+    "installation": "cargo install taplo-cli --features lsp",
     "debugger": "Not available"
   },
   {
