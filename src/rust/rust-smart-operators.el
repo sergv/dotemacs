@@ -49,7 +49,7 @@ stick it to the previous operator on line."
           (when (not (string= entry ""))
             (let ((last-idx (1- (length entry))))
               (when-let ((last (aref entry last-idx)))
-                (puthash last (cons (cl-subseq entry 0 last-idx)
+                (puthash last (cons (substring-no-properties entry 0 last-idx)
                                     (gethash last entries))
                          entries)))))
         `(pcase ,(funcall get-char idx)
