@@ -17,6 +17,7 @@
   (require 'cl)
   (require 'macro-util))
 
+(require 'vim-common)
 (require 'vim-macs)
 (require 'vim-ex)
 
@@ -418,7 +419,7 @@ Allowed flags are:
     (vim:cmd-nohighlight)
     (cl-multiple-value-bind (pattern replacement flag-str)
         (vim--parse-substitute argument)
-      (let* ((flags (string->list flag-str)))
+      (let ((flags (string->list flag-str)))
         (when (memq ?g flags)
           (error "Don't use flag g, use \"n\" with inverted meaning instead"))
         (let ((confirm (memq ?c flags)))
@@ -546,13 +547,12 @@ regular expressions."
         flags-start
         flags-end
 
-        delimiter
-        (delimiters (eval-when-compile (string-to-list "/|,;:!@#"))))
+        delimiter)
     (cl-symbol-macrolet ((skip-quoted
                           (while (and (< i len)
-                                      (not (char= (aref str i) delimiter)))
+                                      (not (eq (aref str i) delimiter)))
                             ;; skip quoted character
-                            (if (char= (aref str i) ?\\)
+                            (if (eq (aref str i) ?\\)
                                 (cl-incf i 2)
                               (cl-incf i))))
                          (skip-flags
@@ -561,7 +561,7 @@ regular expressions."
                                             (eval-when-compile (string-to-list "niIcg"))))
                             (cl-incf i))))
       (while (and (< i len)
-                  (not (memq (aref str i) delimiters)))
+                  (not (memq (aref str i) vim-common-command-delimiters)))
         (cl-incf i))
       (setf delimiter (aref str i))
       (cl-incf i)

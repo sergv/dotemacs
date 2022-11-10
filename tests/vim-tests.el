@@ -169,7 +169,28 @@
   (should (equal (vim--parse-substitute-pattern-repl-flags "/[A-Z]/foo/g")
                  '("[A-Z]" "foo" "g")))
   (should (equal (vim--parse-substitute-pattern-repl-flags "/hello/world\\/g")
-                 '("hello" "world\\/g" nil))))
+                 '("hello" "world\\/g" nil)))
+  ;; (should (equal (vim--parse-substitute-pattern-repl-flags "(rx (or \"a\" \"bb\"))world\\/g")
+  ;;                '("\\(?:a\\|bb\\)" "world\\/g" nil)))
+  )
+
+(ert-deftest vim-tests/test-vim--parse-align-pattern-flags ()
+  (should (equal (vim--parse-align-pattern-flags "/foo")
+                 (list "foo" nil)))
+  (should (equal (vim--parse-align-pattern-flags "/foo/")
+                 (list "foo" nil)))
+  (should (equal (vim--parse-align-pattern-flags "/foo/xy")
+                 (list "foo" nil)))
+  (should (equal (vim--parse-align-pattern-flags "/fo\\no/xy")
+                 (list "fo\no" nil)))
+  (should (equal (vim--parse-align-pattern-flags "/fo\\/no/xy")
+                 (list "fo\\/no" nil)))
+  (should (equal (vim--parse-align-pattern-flags "/foo/n")
+                 (list "foo" '(?n))))
+  (should (equal (vim--parse-align-pattern-flags "/fo\\no/n")
+                 (list "fo\no" '(?n))))
+  (should (equal (vim--parse-align-pattern-flags "/fo\\/no/nn")
+                 (list "fo\\/no" '(?n ?n)))))
 
 (ert-deftest vim-tests/vim:regex-without-case ()
   (should (equal (vim--regex-without-case "foobar")
@@ -4185,6 +4206,54 @@ _|_bar")
     (execute-kbd-macro (kbd "v n ="))
   (tests-utils--multiline "" "foo = foo-_|_19 + bar" "")
   (tests-utils--multiline "" "foo = foo-18_|_ + bar"  ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/ex-align-1
+    (execute-kbd-macro (kbd "V h h s a / = <return>"))
+  (tests-utils--multiline
+   ""
+   "a     = 1_|_ = 10"
+   "bar = 2        = 20"
+   "quux = 3=30"
+   "")
+  (tests-utils--multiline
+   ""
+   "a    = 1 = 10"
+   "bar  = 2 = 20"
+   "quux = 3 =_|_30"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-equivalent-commands
+    ((vim-tests/ex-align-2 (execute-kbd-macro (kbd "V h h s a / = / n <return>")))
+     (vim-tests/ex-align-3 (execute-kbd-macro (kbd "V h h s a / \\ ( SPC * \\ ) = / n <return>"))))
+  (tests-utils--multiline
+   ""
+   "_|_a     = 1 = 10"
+   "bar = 2        = 20"
+   "quux = 3=30"
+   "")
+  (tests-utils--multiline
+   ""
+   "a    = 1 = 10"
+   "bar  = 2        = 20"
+   "_|_quux = 3=30"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/ex-align-4
+    (execute-kbd-macro (kbd "V h h s a / = \\ ( SPC * \\ ) / <return>"))
+  (tests-utils--multiline
+   ""
+   "_|_a     = 1 = 10"
+   "bar = 2        = 20"
+   "quux = 3=30"
+   "")
+  (tests-utils--multiline
+   ""
+   "a     = 1 =        10"
+   "bar =   2        = 20"
+   "_|_quux =  3=         30"
+   ""))
 
 (provide 'vim-tests)
 
