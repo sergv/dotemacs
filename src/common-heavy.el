@@ -1163,6 +1163,85 @@ to deleted items. ITEMS will be mutated in order to obtain result."
       (progn
         (window-preserve-size win t nil)))))
 
+;;;
+
+;;;###autoload
+(defun parse-regexp-groups (str)
+  "Return list of indices of capturable regexp groups within STR regular expression. Order of
+groups in the result is *not specified*."
+  (cl-assert (stringp str))
+  (let ((groups nil)
+        (last-unnumbered-group 1)
+        (idx 0)
+        (end (length str)))
+    (while (< idx end)
+      (let ((idx1 (+ idx 1)))
+        (pcase (aref str idx)
+          ;; [...]
+          ;; []...]
+          (`?\[
+           (if (< idx1 end)
+               (let ((curr-idx (pcase (aref str idx1)
+                                 (`?\]
+                                  (+ idx1 1))
+                                 (_
+                                  idx1))))
+                 (while (and (< curr-idx end)
+                             (not (eq (aref str curr-idx) ?\])))
+                   (setf curr-idx (+ curr-idx 1)))
+                 (setf idx (+ curr-idx 1)))
+             ;; Skip
+             (setf idx idx1)))
+          (`?\\
+           (if (< idx1 end)
+               (pcase (aref str idx1)
+                 ;; \(
+                 ;; \(?:
+                 ;; \(?7:
+                 (`?\(
+                  (let ((idx2 (+ idx1 1)))
+                    (if (< idx2 end)
+                        (pcase (aref str idx2)
+                          ;; \(?:
+                          (`??
+                           (let* ((start (+ idx2 1))
+                                  (idx3 start)
+                                  (done nil)
+                                  (is-numbered? nil))
+                             (while (and (< idx3 end)
+                                         (not done))
+                               (let ((c (aref str idx3)))
+                                 (if (and (<= ?0 c)
+                                          (<= c ?9))
+                                     (setf is-numbered? t)
+                                   (setf done t)))
+                               (setf idx3 (+ idx3 1)))
+                             (when is-numbered?
+                               (push (string->number (substring-no-properties str start idx3)) groups))
+                             (setf idx idx3)))
+                          ;; \(
+                          (_
+                           (setf groups (cons last-unnumbered-group groups)
+                                 last-unnumbered-group (+ last-unnumbered-group 1)
+                                 idx idx2)))
+                      ;; Skip
+                      (setf idx idx2))))
+                 ;; \sw
+                 (`?s
+                  ;; Skip next one too
+                  (setf idx (+ idx1 2)))
+                 ;; \_<
+                 (`?_
+                  ;; Skip next one too
+                  (setf idx (+ idx1 2)))
+                 (_
+                  (setf idx (+ idx1 1))))
+             ;; Skip
+             (setf idx idx1)))
+          (_
+           (setf idx idx1)))))
+    groups))
+
 (provide 'common-heavy)
 
 ;; Local Variables:
