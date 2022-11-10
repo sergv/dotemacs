@@ -96,12 +96,12 @@
 
 (defcustom lsp-clients-lua-language-server-bin
   (f-join lsp-clients-lua-language-server-install-dir
-          "extension/server/bin/"
+          "bin/"
           (pcase system-type
-            ('gnu/linux "Linux/lua-language-server")
-            ('darwin "macOS/lua-language-server")
-            ('windows-nt "Windows/lua-language-server.exe")
-            (_ "Linux/lua-language-server")))
+            ('gnu/linux "lua-language-server")
+            ('darwin "lua-language-server")
+            ('windows-nt "lua-language-server.exe")
+            (_ "lua-language-server")))
   "Location of Lua Language Server."
   :group 'lsp-lua-language-server
   :version "8.0.0"
@@ -110,7 +110,7 @@
 
 (defcustom lsp-clients-lua-language-server-main-location
   (f-join lsp-clients-lua-language-server-install-dir
-          "extension/server/main.lua")
+          "main.lua")
   "Location of Lua Language Server main.lua."
   :group 'lsp-lua-language-server
   :version "8.0.0"
@@ -530,19 +530,35 @@ and `../lib` ,exclude `../lib/temp`.
    ("Lua.completion.callSnippet" lsp-lua-completion-call-snippet)
    ("Lua.color.mode" lsp-lua-color-mode)))
 
-(defun lsp-lua-language-server-install (client callback error-callback update?)
+(defun lsp-lua-language-server-install-latest (client callback error-callback update?)
   "Download the latest version of lua-language-server and extract it to
 `lsp-lua-language-server-install-dir'."
   (ignore client update?)
-  (let ((store-path (expand-file-name "vs-lua" lsp-clients-lua-language-server-install-dir)))
+  (let ((store-path (expand-file-name "lua-language-server-github" lsp-clients-lua-language-server-install-dir)))
     (lsp-download-install
      (lambda (&rest _)
        (set-file-modes lsp-clients-lua-language-server-bin #o0700)
        (funcall callback))
      error-callback
-     :url (lsp-vscode-extension-url "sumneko" "lua" "1.17.4")
+     :url (lsp--find-latest-gh-release-url
+           "https://api.github.com/repos/sumneko/lua-language-server/releases/latest"
+           (pcase system-type
+             ('gnu/linux
+              (pcase (lsp-resolve-value lsp--system-arch)
+                ('x64     "linux-x64")))
+             ('darwin
+              (pcase (lsp-resolve-value lsp--system-arch)
+                ('x64     "darwin-x64")
+                ('arm64   "darwin-arm64")))
+             ('windows-nt
+              (pcase (lsp-resolve-value lsp--system-arch)
+                ('x64     "win32-x64")
+                ('arm64   "win32-ia32")))
+             (_
+              (pcase (lsp-resolve-value lsp--system-arch)
+                ('x64     "linux-x64")))))
      :store-path store-path
-     :decompress :zip)))
+     :decompress (pcase system-type ('windows-nt :zip) (_ :targz)))))
 
 (lsp-register-client
  (make-lsp-client
@@ -554,8 +570,7 @@ and `../lib` ,exclude `../lib/temp`.
   :major-modes '(lua-mode)
   :priority -2
   :server-id 'lua-language-server
-  :download-server-fn #'lsp-lua-language-server-install))
-
+  :download-server-fn #'lsp-lua-language-server-install-latest))
 
 ;;; lua-lsp
 (defgroup lsp-lua-lsp nil
@@ -630,7 +645,7 @@ and `../lib` ,exclude `../lib/temp`.
   :type 'file)
 
 (defcustom lsp-lua-roblox-server-download-url
-  (lsp-vscode-extension-url "Nightrains" "robloxlsp" "0.15.8")
+  (lsp-vscode-extension-url "Nightrains" "robloxlsp" "1.5.11")
   "Download url for Roblox Lua vscode extension."
   :group 'lsp-lua-roblox-language-server
   :version "8.0.0"

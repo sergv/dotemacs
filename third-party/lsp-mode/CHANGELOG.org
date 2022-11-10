@@ -21,7 +21,6 @@
   * Fix fsautocomplete (lsp-fsharp) startup on emacs@master (and emacs@emacs-28 on macOS) due to
     a switch ~posix_spawn~ and not setting proper sigmask on child processes.
   * Add TypeProf support.
-  * Add Volar support.
   * Add Ansible support.
   * Disable ~lsp-steep-use-bundler~ by default.
   * Add [[https://github.com/idris-community/idris2-lsp][idris2-lsp]]
@@ -44,6 +43,19 @@
   * Add [[https://github.com/mint-lang/mint][mint-lang]] support.
   * Add ~lsp-sorbet-as-add-on~ variable to allow running the Sorbet server as an add-on alongside Solargraph or others
   * Add [[https://github.com/nikeee/dot-language-server][dot-language-server]] (/a.k.a./ Graphviz) support.
+  * Add [[https://github.com/FractalBoy/perl-language-server][PLS]] support (additional sever for Perl).
+  * Fix ~lsp-avy-lens~ when ~avy-style~ is ~'de-bruijn~ or ~'words~ #3554
+  * Fix ~lsp-avy-lens~ when ~lsp-lens-place-position~ position is ~end-of-line~
+  * Add ~lsp-clojure-trace-enable~ variable.
+  * Add some support for rust-analyzer semantic token modifiers.  Highlights mutable and reference variables.
+  * Update version for ~lsp-xml~ to 0.21.0, adding custom variables
+    for new formatting options.
+  * Changes variable ~lsp-xml-validation-schema~ to be an alist rather
+    than a boolean.
+  * Adds ~lsp-xml-preferences-quote-style~ as a replacement for
+    obsolete ~lsp-xml-format-quotes~.
+  * Add [[https://github.com/oxalica/nil][nil]] support (additional server for Nix)
+  * Add [[https://github.com/johnsoncodehk/volar/pull/1916][Volar 1.0]] support, refactor vue-language-server ~initializationOptions~, and remove multi server that is no longer needed.
 ** Release 8.0.0
   * Add ~lsp-clients-angular-node-get-prefix-command~ to get the Angular server from another location which is still has ~/lib/node_modules~ in it.
   * Set ~lsp-clients-angular-language-server-command~ after the first connection to speed up subsequent connections.
