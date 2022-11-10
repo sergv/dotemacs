@@ -1038,6 +1038,7 @@ This is a standard process sentinel function."
 
 (defun dante-buffer-name ()
   "Create a dante process buffer name."
+  (unless dante--selected-method (dante-initialize-method))
   (funcall (dante-method-repl-buf-name-func dante--selected-method)))
 
 (defun dante-buffer-name--default ()
