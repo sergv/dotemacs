@@ -13,7 +13,7 @@
 ;; Package-Commit: e2acbf6dd37818cbf479c9c3503d8a59192e34af
 ;; Created: October 2016
 ;; Keywords: haskell, tools
-;; Package-Requires: ((dash "2.12.0") (emacs "25.1") (f "0.19.0") (flycheck "0.30") (company "0.9") (haskell-mode "13.14") (s "1.11.0") (lcr "1.1"))
+;; Package-Requires: ((dash "2.12.0") (emacs "25.1") (f "0.19.0") (flycheck "0.30") (company "0.9") (haskell-mode "13.14") (s "1.11.0") (lcr "1.2"))
 ;; Version: 0-pre
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -52,8 +52,7 @@
 (require 's)
 (require 'xref)
 (require 'lcr)
-(eval-when-compile
-  (require 'company))
+(eval-when-compile (require 'company))
 
 (require 'common)
 (require 'haskell-regexen)
@@ -420,6 +419,23 @@ to destroy the buffer and create a fresh one without this variable enabled.
   "Return the value of SYMBOL in the GHCi process buffer."
   (let ((bp (dante-buffer-p))) (when bp (buffer-local-value symbol bp))))
 
+(add-hook
+ 'lcr-context-switch-hook
+ (defun dante-schedule-next ()
+   "If no green thread is running, run the next queued one, if any."
+   ;; when whatever green thread was running is over, we're back in
+   ;; the original source buffer. It's time to check if anything
+   ;; queued should be run.
+   (if-let ((buffer (dante-buffer-p)))
+       (with-current-buffer buffer
+         (unless lcr-process-callback
+           ;; Note that dante green threads are not interleaved,
+           ;; because they only yield by placing a callback.
+           (let ((req (pop dante-queue)))
+             (when req (funcall req buffer))))))
+   ;; we're about to yield back to emacs main loop. Inform the user of status.
+   (force-mode-line-update t)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Mode
 
@@ -431,13 +447,15 @@ to destroy the buffer and create a fresh one without this variable enabled.
         (fname (buffer-file-name (current-buffer))))
     (if (not buf) "stopped"
       (with-current-buffer buf
-        (cond
-         (dante-queue (format "queued(%s)" (length dante-queue)))
-         (t (pcase dante-state
-              (`(ghc-err (compiling ,mod)) (format "error(%s)" mod))
-              (`(loaded ,_loaded-mods) (if (s-equals? dante-loaded-file fname) "loaded" (format "loaded(%s)" (file-name-base dante-loaded-file))))
-              ;; (`(,hd . ,_tl) (format "%s" hd))
-              (_ (format "%s" dante-state)))))))))
+        (concat
+         (pcase dante-state
+           (`(ghc-err (compiling ,mod)) (format "error(%s)" mod))
+           (`(loaded ,_loaded-mods) (if (s-equals? dante-loaded-file fname) "loaded" (format "loaded(%s)" (file-name-base dante-loaded-file))))
+           ;; (`(,hd . ,_tl) (format "%s" hd))
+           (_ (format "%s" dante-state)))
+        (if dante-queue (format "+%s" (length dante-queue)) ""))))))
+
+(defcustom dante-modeline-prefix " Danté:" "Modeline prefix" :group 'dante :type 'string)
 
 ;;;###autoload
 (define-minor-mode dante-mode
@@ -454,7 +472,7 @@ non-positive integer, and enables dante otherwise (including
 if the argument is omitted or nil or a positive integer).
 
 \\{dante-mode-map}"
-  :lighter (:eval (concat " Danté:" (dante-status)))
+  :lighter (:eval (concat dante-modeline-prefix (dante-status)))
   :keymap dante-mode-map
   :group 'dante
   (if dante-mode
@@ -493,7 +511,7 @@ If `haskell-mode' is not loaded, just return EXPRESSION."
   (lcr-cps-let ((info (dante-async-call (format ":doc %s" ident))))
     (with-help-window (help-buffer)
       (with-current-buffer (help-buffer)
-        (insert  (dante-fontify-expression info))))))
+        (insert (dante-fontify-expression info))))))
 
 (defun dante-type-at (insert)
   "Get the type of the thing or selection at point.
@@ -518,7 +536,7 @@ When the universal argument INSERT is non-nil, insert the type in the buffer."
         (help-xref-following nil)
         (origin (buffer-name)))
     (lcr-cps-let ((_load-message (dante-async-load-current-buffer t nil))
-                    (info (dante-async-call (format ":i %s" ident))))
+                  (info (dante-async-call (format ":i %s" ident))))
       (help-setup-xref (list #'dante-call-in-buffer (current-buffer) #'dante-info ident)
                        (called-interactively-p 'interactive))
       (save-excursion
@@ -892,8 +910,8 @@ This applies to paths of the form x:\\foo\\bar"
   "Restart GHCi with the same configuration (root, command line) as before."
   (interactive)
   (when (dante-buffer-p)
-    (dante-destroy)
-    (lcr-cps-let ((_ (dante-session))))))
+    (dante-destroy))
+  (lcr-cps-let ((_ (dante-session)))))
 
 (defun dante-session (cont)
   "Get the session or create one if none exists.
@@ -904,20 +922,9 @@ If WAIT is nil, abort if Dante is busy.  Pass the dante buffer to CONT"
               (with-current-buffer buf
                 (when dante-queue
                   (message "Overriding previously queued GHCi request."))
-                (setq dante-queue (cons (lambda (x) (lcr-resume cont x)) nil)))
-            (force-mode-line-update t))
+                (setq dante-queue (cons (lambda (x) (lcr-resume cont x)) nil))))
         (funcall cont buf))
   (dante-start cont)))
-
-(defun dante-schedule-next (buffer)
-  "If no sub-session is running, run the next queued sub-session for BUFFER.
-If the queue is empty, do nothing.  Note that sub-sessions are not interleaved."
-  (lcr-scheduler)
-  (with-current-buffer buffer
-    (force-mode-line-update t)
-    (unless lcr-process-callback
-      (let ((req (pop dante-queue)))
-        (when req (funcall req buffer))))))
 
 (defcustom dante-load-flags '("+c" "-fdiagnostics-color=never" "-fno-diagnostics-show-caret" "-Wwarn=missing-home-modules" "-ferror-spans")
   "Flags to set whenever GHCi is started."
@@ -960,18 +967,13 @@ Do so iff CATEGORY is enabled in variable `dante-debug'."
     (goto-char (1- (point-max)))
     (insert (apply 'format msg objects))))
 
-(defun dante-async-read (cont)
-  "Install CONT as a callback for an unknown portion GHCi output.
+(lcr-def dante-async-read ()
+  "Read input from GHCi.
 Must be called from GHCi process buffer."
-  (let ((buffer (current-buffer)))
-    (lcr-cps-let ((input (lcr-process-read buffer)))
-      (dante-debug 'inputs "%s" input)
-      (funcall cont (s-replace "\r" "" input))
-      ;; we're returning from the continuation, either because it's
-      ;; done or it has yielded. If it is done, try to pop from the queue.
-      (dante-schedule-next buffer)))
-  ;; the call to lcr-process-read has yielded, but we should updat
-  (force-mode-line-update t))
+  (let* ((buffer (current-buffer))
+         (input (lcr-call lcr-process-read buffer)))
+    (dante-debug 'inputs "%s" input)
+    (s-replace "\r" "" input)))
 
 (defconst dante-ghci-prompt "\4\\(.*\\)|")
 
@@ -1090,8 +1092,7 @@ This is a standard process sentinel function."
 
 (defun dante-set-state (state)
   "Set the `dante-state' to STATE and redisplay the modeline."
-  (with-current-buffer (dante-buffer-p) (setq-local dante-state state))
-  (force-mode-line-update))
+  (with-current-buffer (dante-buffer-p) (setq-local dante-state state)))
 
 (defun dante-buffer-p ()
   "Return the GHCi buffer if it exists, nil otherwise."
@@ -1219,28 +1220,6 @@ Use nil to disable." :type 'integer :group 'dante)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Reploid
 
-(defun dante-eval-loop (block-end)
-  "Evaluation loop iteration.
-Calls DONE when done.
-BLOCK-END is a marker for the end of the evaluation block."
-  (while (and (looking-at "[ \t]*--")
-              (not (looking-at "[ \t]*--[ \t]+>>>")))
-    (forward-line))
-  (when (search-forward-regexp "[ \t]*--[ \t]+>>>" (line-end-position) t 1)
-    ;; found the next command; execute it and replace the result.
-    (lcr-cps-let ((res (dante-async-call (buffer-substring-no-properties (point) (line-end-position)))))
-      (beginning-of-line)
-      (forward-line)
-      (save-excursion
-        (delete-region (point)
-                       ;; look for: empty comment line, next command or end of block.
-                       (or (and (search-forward-regexp "[ \t]*--[ \t]*\\([ \t]>>>\\|$\\)" block-end t 1)
-                                (match-beginning 0))
-                           block-end)))
-      (insert (apply 'concat (--map (concat "-- " it "\n") (--remove (s-blank? it) (s-lines res)))))
-      (beginning-of-line)
-      (dante-eval-loop block-end))))
-
 (defun dante-eval-block ()
   "Evaluate the GHCi command(s) found at point and insert the results.
 The command block is indicated by the >>> symbol."
@@ -1250,8 +1229,25 @@ The command block is indicated by the >>> symbol."
   (let ((block-end (save-excursion (while (looking-at-p "[ \t]*--") (forward-line)) (point-marker))))
     (while (looking-at-p "[ \t]*--") (forward-line -1))
     (forward-line)
-    (lcr-cps-let ((_load_messages (dante-async-load-current-buffer t nil)))
-      (dante-eval-loop block-end))))
+    (lcr-spawn
+      (lcr-call dante-async-load-current-buffer t nil)
+      (while (search-forward-regexp "[ \t]*--[ \t]+>>>" (line-end-position) t 1)
+        ;; found a command; execute it and replace the result.
+        (let ((res (lcr-call dante-async-call (buffer-substring-no-properties (point) (line-end-position)))))
+          (beginning-of-line)
+          (forward-line)
+          (save-excursion
+            (delete-region (point)
+                           ;; look for: empty comment line, next command or end of block.
+                           (or (and (search-forward-regexp "[ \t]*--[ \t]*\\([ \t]>>>\\|$\\)" block-end t 1)
+                                    (match-beginning 0))
+                               block-end)))
+          (insert (apply 'concat (--map (concat "-- " it "\n") (--remove (s-blank? it) (s-lines res)))))
+          (beginning-of-line)
+          ;; skip any non-executable comment
+          (while (and (looking-at "[ \t]*--")
+                      (not (looking-at "[ \t]*--[ \t]+>>>")))
+            (forward-line)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Flymake
@@ -1273,8 +1269,9 @@ The command block is indicated by the >>> symbol."
          (local-token (if buf0 (with-current-buffer buf0 (setq dante-flymake-token (1+ dante-flymake-token)))
                         dante-flymake-token)))
     (if (eq (dante-get-var 'dante-state) 'dead) (funcall report-fn :panic :explanation "Ghci is dead")
-      (lcr-cps-let ((buf (dante-session))) ; yield until GHCi is ready to process the request
-        (let* ((token-guard (lambda () (eq (buffer-local-value 'dante-flymake-token buf) local-token)))
+      (lcr-spawn
+        (let* ((buf (lcr-call dante-session)) ; yield until GHCi is ready to process the request
+               (token-guard (lambda () (eq (buffer-local-value 'dante-flymake-token buf) local-token)))
                (msg-fn (lambda (messages)
                          (when (funcall token-guard)
                            (setq nothing-done nil)
@@ -1282,7 +1279,7 @@ The command block is indicated by the >>> symbol."
                                     (-non-nil
                                      (--map (dante-fm-message it src-buffer temp-file) messages)))))))
           (when (funcall token-guard) ; don't try to load if we're too late.
-            (lcr-cps-let ((messages (dante-async-load-current-buffer nil msg-fn)))
+            (let ((messages (lcr-call dante-async-load-current-buffer nil msg-fn)))
               (when nothing-done ; clears previous messages and deals with #52
                 (funcall msg-fn messages)))))))))
 
