@@ -532,6 +532,54 @@
       (setf sum (+ sum (* idx idx x))))
     (should (equal sum 14))))
 
+(ert-deftest common-tests/parse-regexp-groups-1 ()
+  (should (equal (parse-regexp-groups "") nil)))
+
+(ert-deftest common-tests/parse-regexp-groups-2 ()
+  (should (equal (parse-regexp-groups "a") nil)))
+
+(ert-deftest common-tests/parse-regexp-groups-3 ()
+  (should (equal (parse-regexp-groups "a\\(\\)") '(1))))
+
+(ert-deftest common-tests/parse-regexp-groups-4 ()
+  (should (equal (parse-regexp-groups "\\(a\\)") '(1))))
+
+(ert-deftest common-tests/parse-regexp-groups-5 ()
+  (should (equal (parse-regexp-groups "\\(a\\(b\\)?\\)") '(2 1))))
+
+(ert-deftest common-tests/parse-regexp-groups-6 ()
+  (should (equal (parse-regexp-groups "\\(?:a\\(?:b\\)?\\)") nil)))
+
+(ert-deftest common-tests/parse-regexp-groups-7 ()
+  (should (equal (parse-regexp-groups "\\(?:a\\(?7:b\\)?\\)") '(7))))
+
+(ert-deftest common-tests/parse-regexp-groups-8 ()
+  (should (equal (parse-regexp-groups "\\(a[\\(]b\\)?\\)") '(1))))
+
+(ert-deftest common-tests/parse-regexp-groups-9 ()
+  (should (equal (parse-regexp-groups "\\(?:a\\([?7]:b)?\\)") '(1))))
+
+(ert-deftest common-tests/parse-regexp-groups-10 ()
+  (should (equal (parse-regexp-groups "\\(?:a\\[(]?7:b)?\\)") nil)))
+
+(ert-deftest common-tests/parse-regexp-groups-11 ()
+  (should (equal (parse-regexp-groups "\\(?:a[\\](?7:b)?\\)") nil)))
+
+(ert-deftest common-tests/parse-regexp-groups-12 ()
+  (should (equal (parse-regexp-groups "\\(?:a[\\(]?7:b)?\\)") nil)))
+
+(ert-deftest common-tests/parse-regexp-groups-13 ()
+  (should (equal (parse-regexp-groups "\\(?:a[\]\\(]?7:b)?\\)") nil)))
+
+(ert-deftest common-tests/parse-regexp-groups-14 ()
+  (should (equal (parse-regexp-groups "\\(?:a\\(?75:b\\)?\\)") '(75))))
+
+(ert-deftest common-tests/parse-regexp-groups-15 ()
+  (should (equal (parse-regexp-groups "\\(\\(a\\)\\)") '(2 1))))
+
+(ert-deftest common-tests/parse-regexp-groups-16 ()
+  (should (equal (parse-regexp-groups "\\(?5:\\(?2:a\\)\\)") '(2 5))))
+
 ;; (progn
 ;;   (ert "common-tests/.*")
 ;;   nil)
