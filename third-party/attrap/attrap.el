@@ -297,7 +297,7 @@ value is a list which is appended to the result of
       (insert ".")))))
 
 (defmacro attrap-insert-language-pragma (pragma)
-  `(attrap-option (list 'use-extension ,extension)
+  `(attrap-option (list 'use-extension ,pragma)
      (save-match-data
        (goto-char (point-min))
        (if (re-search-forward "{-#[ \t]*LANGUAGE\\_>" nil t)
@@ -308,7 +308,7 @@ value is a list which is appended to the result of
              (insert "\n")
              (forward-line -1))))
        (let ((start (point)))
-         (insert (concat "{-# LANGUAGE " pragma " #-}\n"))
+         (insert (concat "{-# LANGUAGE " ,pragma " #-}\n"))
          (haskell-align-language-pragmas start)))))
 
 (defmacro attrap-add-to-import (missing module line col)
