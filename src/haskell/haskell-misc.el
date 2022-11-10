@@ -1128,6 +1128,14 @@ to find which component the FILENAME belongs to."
                 (find-file related-file))
             (error "Related file doesn’t exist: %s" related-file)))))))
 
+(defun dante-project-root ()
+  "Get the root directory for the project.
+If the variable `dante-project-root' is non-nil, return that,
+otherwise search for project root using
+`dante-initialize-method'."
+  (or dante-project-root
+      (progn (dante-initialize-method) dante-project-root)))
+
 (provide 'haskell-misc)
 
 ;; Local Variables:
