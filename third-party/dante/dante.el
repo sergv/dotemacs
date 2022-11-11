@@ -465,10 +465,8 @@ if the argument is omitted or nil or a positive integer).
   :keymap dante-mode-map
   :group 'dante
   (if dante-mode
-      (progn (add-hook 'flymake-diagnostic-functions 'dante-flymake nil t)
-             (add-hook 'eldoc-documentation-functions 'dante-eldoc-type nil t))
-    (remove-hook 'flymake-diagnostic-functions 'dante-flymake t)
-    (remove-hook 'eldoc-documentation-functions 'dante-eldoc-type t)))
+      (add-hook 'flymake-diagnostic-functions 'dante-flymake nil t)
+    (remove-hook 'flymake-diagnostic-functions 'dante-flymake t)))
 
 (define-key dante-mode-map (kbd "C-c .") 'dante-type-at)
 (define-key dante-mode-map (kbd "C-c ,") 'dante-info)
@@ -1129,26 +1127,6 @@ Search upwards in the directory structure, starting from FILE (or
    (dante--make-xrefs (lcr-call dante-async-call (concat ":uses " symbol)))))
 
 (add-hook 'xref-backend-functions 'dante--xref-backend)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; eldoc support
-
-(defun dante-eldoc-type (callback &rest _ignored)
-  "Document type of function at point via CALLBACK.
-Intended for `eldoc-documentation-functions'"
-  (let ((tap (dante--ghc-subexp (dante-thing-at-point))))
-    (unless (or (eq (dante-get-var dante-state) 'dead) ;; GHCi dead?
-                (dante-get-var lcr-process-callback) ;; GHCi busy?
-                (dante--in-a-comment)
-                (nth 3 (syntax-ppss)) ;; in a string
-                (s-blank? tap))
-      (lcr-spawn
-        (lcr-call dante-async-load-current-buffer t nil)
-        (let ((ty (lcr-call dante-async-call (concat ":type-at " tap))))
-          (unless (s-match "^<interactive>" ty)
-            (funcall callback (s-collapse-whitespace (dante-fontify-expression ty))))))
-      ;; TODO: improve by reporting :thing separately
-      t)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Reploid
