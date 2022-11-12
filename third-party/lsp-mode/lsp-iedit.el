@@ -77,12 +77,12 @@ language server doesn't support renaming.
 See also `lsp-enable-symbol-highlighting'."
   (interactive)
   (let ((highlights (lsp-request "textDocument/documentHighlight"
-                                 (lsp--text-document-position-params)))
-        (-compare-fn (-lambda ((&Location :range (&Range :start l-start :end l-end))
-                               (&Location :range (&Range :start r-start :end r-end)))
-                       (and (lsp--position-equal l-start r-start)
-                            (lsp--position-equal l-end   r-end)))))
-    (lsp-iedit--on-ranges (mapcar #'lsp:document-highlight-range (-distinct highlights)))))
+                                 (lsp--text-document-position-params))))
+    (lsp-iedit--on-ranges (mapcar #'lsp:document-highlight-range
+                                  (remove-duplicates-by-hashing-projections
+                                   (-lambda ((&Location :range (&Range :start start :end end)))
+                                     (cons start start))
+                                   #'equal)))))
 
 ;;;###autoload
 (defun lsp-iedit-linked-ranges ()
