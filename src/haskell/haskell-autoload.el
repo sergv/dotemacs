@@ -60,8 +60,15 @@
     ;; :back-verify haskell-blocks-verify-back
     )))
 
+(add-to-list 'auto-mode-alist (cons (rx "."
+                                        (or "hcr"
+                                            "dump-simpl"
+                                            "dump-splices"
+                                            "dump-spec")
+                                        eos)
+                                    #'ghc-core-mode))
+
 (add-to-list 'auto-mode-alist '("\\.ghci\\'" . ghci-script-mode))
-(add-to-list 'auto-mode-alist '("\\.\\(?:hcr\\|dump-\\(?:simpl\\|splices\\)\\)\\'" . ghc-core-mode))
 (add-to-list 'auto-mode-alist '("cabal\\.\\(?:config\\|project\\).*\\'" . haskell-cabal-mode))
 (add-to-list 'auto-mode-alist '("\\.cabal\\(?:[./\\]config.*\\)?\\'" . haskell-cabal-mode))
 (add-to-list 'auto-mode-alist '("\\.hs\\(?:-boot\\|ig\\|c\\)?\\'" . haskell-mode))
