@@ -8208,9 +8208,6 @@ session workspace folder configuration for the server."
   "For internal use, any external users please use
   `lsp-register-custom-settings' function instead")
 
-(defun lsp--compare-setting-path (a b)
-  (equal (car a) (car b)))
-
 (defun lsp-register-custom-settings (props)
   "Register PROPS.
 PROPS is list of triple (path value boolean?) where PATH is the path to the
@@ -8222,7 +8219,11 @@ property will be ignored if the VALUE is nil.
 Example: `(lsp-register-custom-settings '((\"foo.bar.buzz.enabled\" t t)))'
 \(note the double parentheses)"
   (let ((-compare-fn #'lsp--compare-setting-path))
-    (setq lsp-client-settings (-uniq (append props lsp-client-settings)))))
+    (setq lsp-client-settings
+          (remove-duplicates-by-hashing-projections
+           #'car
+           #'equal
+           (append props lsp-client-settings)))))
 
 (defun lsp-region-text (region)
   "Get the text for REGION in current buffer."
