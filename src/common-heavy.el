@@ -547,7 +547,8 @@ using EQ-FUNC to determine equal elements."
 
 ;;;###autoload
 (defun remove-duplicates-hashing (xs eq-func)
-  "Remove duplicates from the XS using EQ-FUNC to determine equal elements."
+  "Remove duplicates from the XS using EQ-FUNC hash-table equality
+test function to determine equal elements."
   (cl-assert (consp xs))
   (let* ((tbl (make-hash-table :test eq-func))
          (res (cons nil nil))
@@ -558,6 +559,7 @@ using EQ-FUNC to determine equal elements."
         (setf tmp (setcdr-sure tmp (cons x nil)))))
     (cdr res)))
 
+;;;###autoload
 (defun remove-duplicates-by-hashing-projections (project eq-func xs)
   "Remove duplicates from the XS by hashing results of applying
 PROJECT. EQ-FUNC will be used as hash-table comparison."
