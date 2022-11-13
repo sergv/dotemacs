@@ -252,7 +252,8 @@ Moves the point to the end of type declaration. It should be
 invoked with point just after one of type introducing keywords
 like ::, class, instance, data, newtype, type."
   (interactive)
-  (let ((cont t)
+  (let ((case-fold-search nil)
+        (cont t)
         (end (point))
         (token nil)
         ;; we are starting right after ::
@@ -260,7 +261,7 @@ like ::, class, instance, data, newtype, type."
         (last-token-was-newline nil)
         (open-parens 0))
     (while cont
-      (setq token (haskell-lexeme-looking-at-token t))
+      (setq token (haskell-lexeme-looking-at-token-raw t))
 
       (let ((token-str nil)
             (token-char nil))
