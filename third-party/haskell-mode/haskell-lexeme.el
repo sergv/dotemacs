@@ -483,6 +483,10 @@ symbol or identifier can be done with:
    (haskell-lexeme-classify-by-first-char (char-after (match-beginning 1)))
 
 See `haskell-lexeme-classify-by-first-char' for details."
+  (let ((case-fold-search nil))
+    (haskell-lexeme-looking-at-token-raw skip-newline)))
+
+(defun haskell-lexeme-looking-at-token-raw (&optional skip-newline)
   (while
       ;; Due to how unterminated strings terminate at newline, some
       ;; newlines have syntax set to generic string delimeter. We want
@@ -490,10 +494,9 @@ See `haskell-lexeme-classify-by-first-char' for details."
       (or (> (skip-syntax-forward "-") 0)
           (and (not skip-newline)
                (> (skip-chars-forward "\n") 0))))
-  (let ((case-fold-search nil)
-        (point (point-marker)))
+  (let ((point (point-marker)))
     (cond
-      ((equal (string-to-syntax "<")
+      ((equal (eval-when-compile (string-to-syntax "<"))
               (get-char-property (point) 'syntax-table))
        (set-match-data (list point (set-marker (make-marker) (line-end-position))))
        'literate-comment)

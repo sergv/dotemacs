@@ -524,7 +524,8 @@ be set to the preferred literate style."
           (forward-line 1))))
 
     (goto-char begin)
-    (let ((ppss (syntax-ppss)))
+    (let ((case-fold-search nil)
+          (ppss (syntax-ppss)))
       ;; If inside a comment
       (when (nth 4 ppss)
         ;; go to the end of a comment, there is nothing to see inside
@@ -544,7 +545,7 @@ be set to the preferred literate style."
 
       (while (< (point) end)
         (let
-            ((token-kind (haskell-lexeme-looking-at-token)))
+            ((token-kind (haskell-lexeme-looking-at-token-raw)))
 
           (pcase token-kind
            (`qsymid
@@ -960,10 +961,11 @@ list marker of some kind), and end of the obstacle."
             (goto-char cur)))
         (cl-incf arg))
     (save-match-data
-      (let ((continue t))
+      (let ((case-fold-search nil)
+            (continue t))
         (while (and (> arg 0)
                     continue)
-          (if-let (token-kind (haskell-lexeme-looking-at-token))
+          (if-let (token-kind (haskell-lexeme-looking-at-token-raw))
               (cond
                 ((or (eq token-kind 'comment)
                      (eq token-kind 'nested-comment))
