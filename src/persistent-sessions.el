@@ -595,8 +595,7 @@ entries."
 
     (aif (assq 'tab-bar-mode session-entries)
         (when (cadr it)
-          (sessions--enable-tab-bar-mode)
-          (add-hook 'after-init-hook #'sessions--enable-tab-bar-mode))
+          (add-hook 'window-setup-hook #'sessions--enable-tab-bar-mode))
       (message "sessions/load-from-data: no 'tab-bar-mode field"))
 
     (aif (assq 'frameset session-entries)
@@ -610,7 +609,8 @@ entries."
       (message "sessions/load-from-data: no 'global-variables field"))))
 
 (defun sessions--enable-tab-bar-mode ()
-  (tab-bar-mode 1))
+  (tab-bar-mode 1)
+  (tab-bar--update-tab-bar-lines))
 
 (defvar sessions/load-buffers-hook nil
   "Hook run after restoring session in `sessions/load-buffers'.")
