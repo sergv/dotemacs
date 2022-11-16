@@ -18,10 +18,17 @@
 
 (defun mode-line-show-line-count ()
   "Show number of lines in the `mode-line-format'."
-  (if (and (not (buffer-modified-p))
-           mode-line--buffer-line-count)
-      mode-line--buffer-line-count
-    "?"))
+  (cond
+    ((buffer-narrowed-p)
+     ;; Don’t cache - cannot reliably capture hook all events of
+     ;; narrowing and widening (widening can happen via
+     ;; ‘save-restriction’ which cannot be advised).
+     (int-to-string (line-number-at-pos (point-max) nil)))
+    ((and (not (buffer-modified-p))
+          mode-line--buffer-line-count)
+     mode-line--buffer-line-count)
+    (t
+     "?")))
 
 (defun mode-line--count-lines ()
   (setf mode-line--buffer-line-count
