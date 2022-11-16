@@ -933,7 +933,9 @@ only installing unique attributes."
     (if palette
         (progn
           (setf *current-color-theme* theme)
-          (solarized-apply-palette palette))
+          (solarized-apply-palette palette)
+          (tab-bar--update-tab-bar-lines)
+          (force-mode-line-update))
       (error "Unknown color theme: %s" theme))))
 
 (defun solarized-toggle ()
@@ -950,9 +952,7 @@ only installing unique attributes."
 
 Useful for applying changes made to color theme definition."
   (interactive)
-  (solarized-apply-known-color-theme *current-color-theme*)
-  (tab-bar--update-tab-bar-lines)
-  (force-mode-line-update))
+  (solarized-apply-known-color-theme *current-color-theme*))
 
 (defvar solarized-select-theme-history nil)
 
