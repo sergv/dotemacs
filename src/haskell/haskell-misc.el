@@ -451,7 +451,8 @@ extensions as a list of strings. Leaves point at the end of pragma"
                 (dolist (e (cdr exts))
                   (insert "\n")
                   (insert (format template e))))
-              (haskell-align-on-pragma-close-indent-region pragma-block-start (point)))
+              (haskell-align-on-pragma-close-indent-region pragma-block-start (point))
+              (delete-duplicate-lines pragma-block-start (point) nil t))
           (goto-char p))))))
 
 ;;; define ‘bounds-of-haskell-symbol’
