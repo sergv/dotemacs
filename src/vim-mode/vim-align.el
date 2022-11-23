@@ -58,7 +58,7 @@
   "The VIM align command: [range]s/pattern/flags
 
 Allowed flags are:
-  n - replace only first occurrence on every line
+  n - align only first occurrence on every line
   i - ignore case
   I - don't ignore case"
   (save-match-data
