@@ -98,9 +98,10 @@
        ))))
 
 ;; Make [?\s (Bl . Br) ?\s (Bl . Br) ?\s (Bc . Bc) #xe11d] out of #xe11d (">>=").
-(defun pretty-ligatures--make-composition (c)
-  (if-let ((width (gethash c pretty-ligatures--glyph-widths)))
+(defun pretty-ligatures--make-composition (c &optional override-width)
+  (if-let ((width (or override-width (gethash c pretty-ligatures--glyph-widths))))
       (if (eq width t)
+          ;; No width
           (string ?\t c ?\t)
         (vconcat
          (apply #'vconcat [?\s] (-repeat (1- width) [(Bl . Br) ?\s]))
@@ -268,7 +269,7 @@
 
                ("sum"       . #xe12d)
                ("product"   . #xe132)))))
-      (--map (cons (car it) (pretty-ligatures--make-composition (cdr it))) ligs)))
+      (--map (cons (car it) (pretty-ligatures--make-composition (cdr it) (length (car it)))) ligs)))
   "Replacements of word with single symbols that work through `prettify-symbols-mode'.")
 
 (defconst pretty-ligatures--unsafe-word-replacements
@@ -280,7 +281,7 @@
               ("error" . #xe127)
               ("all"   . #xe128)
               ("any"   . #xe129))))
-      (--map (cons (car it) (pretty-ligatures--make-composition (cdr it))) ligs)))
+      (--map (cons (car it) (pretty-ligatures--make-composition (cdr it) (length (car it)))) ligs)))
   "Word replacements that are likely to conflict with general use of words, e.g.
 in Haskell compilation output. So they're disabled by default.")
 
