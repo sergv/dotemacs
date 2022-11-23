@@ -7,6 +7,82 @@
 ;; Description:
 ;; Inspired by https://github.com/Profpatsch/blog/blob/master/posts/ligature-emulation-in-emacs/post.md.
 
+(require 'el-patch)
+
+(el-patch-feature prog-mode)
+
+(el-patch-defun prettify-symbols--post-command-hook ()
+  (cl-labels ((get-prop-as-list
+               (prop)
+               (remove nil
+                       (list (get-text-property (point) prop)
+                             (when (and (eq prettify-symbols-unprettify-at-point 'right-edge)
+                                        (not (bobp)))
+                               (get-text-property (1- (point)) prop))))))
+    ;; Re-apply prettification to the previous symbol.
+    (when (and prettify-symbols--current-symbol-bounds
+	       (or (< (point) (car prettify-symbols--current-symbol-bounds))
+		   (> (point) (el-patch-swap (cadr prettify-symbols--current-symbol-bounds)
+                                             (cdr prettify-symbols--current-symbol-bounds)))
+		   (and (not (eq prettify-symbols-unprettify-at-point 'right-edge))
+			(= (point) (el-patch-swap (cadr prettify-symbols--current-symbol-bounds)
+                                                  (cdr prettify-symbols--current-symbol-bounds))))))
+      (el-patch-swap (apply #'font-lock-flush prettify-symbols--current-symbol-bounds)
+                     (font-lock-flush (car prettify-symbols--current-symbol-bounds) (cdr prettify-symbols--current-symbol-bounds)))
+      (setq prettify-symbols--current-symbol-bounds nil))
+    ;; Unprettify the current symbol.
+    (when-let* ((c (get-prop-as-list 'composition))
+	        (s (get-prop-as-list 'prettify-symbols-start))
+	        (e (get-prop-as-list 'prettify-symbols-end))
+	        (s (apply #'min s))
+	        (e (apply #'max e)))
+      (with-silent-modifications
+	(setq prettify-symbols--current-symbol-bounds (el-patch-swap (list s e) (cons s e)))
+        (remove-text-properties s e '(composition nil))))))
+
+(defvar-local prettify-symbols--alist-cache nil
+  "Hash table that caches content of ‘prettify-symbols-alist’.")
+
+(el-patch-defun prettify-symbols--compose-symbol (alist)
+  "Compose a sequence of characters into a symbol.
+Regexp match data 0 specifies the characters to be composed."
+  ;; Check that the chars should really be composed into a symbol.
+  (let ((start (match-beginning 0))
+        (end (match-end 0))
+        (match (match-string 0)))
+    (if (and (not (el-patch-swap (equal prettify-symbols--current-symbol-bounds (list start end))
+                                 (and (eq (car prettify-symbols--current-symbol-bounds) start)
+                                      (eq (cdr prettify-symbols--current-symbol-bounds) end))))
+             (funcall prettify-symbols-compose-predicate start end match))
+        ;; That's a symbol alright, so add the composition.
+        (with-silent-modifications
+          (compose-region start end (el-patch-swap (cdr (assoc match alist))
+                                                   (gethash match prettify-symbols--alist-cache)))
+          (add-text-properties
+           start end
+           `(prettify-symbols-start ,start prettify-symbols-end ,end)))
+      ;; No composition for you.  Let's actually remove any
+      ;; composition we may have added earlier and which is now
+      ;; incorrect.
+      (remove-list-of-text-properties start end
+                                      '(composition
+                                        prettify-symbols-start
+                                        prettify-symbols-end))))
+  ;; Return nil because we're not adding any face property.
+  nil)
+
+(el-patch-defun prettify-symbols--make-keywords ()
+  (if prettify-symbols-alist
+      (el-patch-swap
+        `((,(regexp-opt (mapcar 'car prettify-symbols-alist) t)
+           (0 (prettify-symbols--compose-symbol ',prettify-symbols-alist))))
+        (progn
+          (setq-local prettify-symbols--alist-cache
+                      (alist->hash-table prettify-symbols-alist #'equal))
+          `((,(regexp-opt (mapcar 'car prettify-symbols-alist) t)
+             (0 (prettify-symbols--compose-symbol nil))))))
+    nil))
+
 ;; Alternative way to add ligatures. Let here for reference
 ;; NB order is important
 ;; (defconst pretty-ligatures--definitions
@@ -262,7 +338,7 @@
 
                ;; ("mappend" . #xe10f)
                ;; ("`mappend`" . #xe10f)
-               ("forall"    . #xe128)
+               ;; ("forall"    . #xe128)
 
                ("[]"        . #xe12a)
                ("mempty"    . #xe12a)
@@ -295,18 +371,70 @@ a pretty symbol."
       ;; (get-text-property pos 'disable-pretty-symbols)
       ))
 
+(defconst pretty-ligatures--forall-pseudoligature #xe128)
+
+(defconst pretty-ligatures--forall-width-2
+  (pretty-ligatures--make-composition pretty-ligatures--forall-pseudoligature 2))
+
+(defconst pretty-ligatures--forall-width-6
+  (pretty-ligatures--make-composition pretty-ligatures--forall-pseudoligature 6))
+
+(defun pretty-ligatures--compose-forall ()
+  (let ((start (match-beginning 2))
+        (end (match-end 2)))
+    (if (or (and (equal (car prettify-symbols--current-symbol-bounds) start)
+                 (equal (cdr prettify-symbols--current-symbol-bounds) end))
+            (pretty-ligatures--disable-pretty-symbols? start))
+        ;; Not composing
+        (remove-list-of-text-properties start end
+                                        '(composition
+                                          prettify-symbols-start
+                                          prettify-symbols-end))
+      ;; Do the composing
+      (progn
+        (with-silent-modifications
+          (compose-region start
+                          end
+                          (if (match-beginning 1)
+                              pretty-ligatures--forall-width-2
+                            pretty-ligatures--forall-width-6))
+          (add-text-properties start
+                               end
+                               `(prettify-symbols-start ,start prettify-symbols-end ,end)))
+        nil))))
+
+(defun pretty-ligatures--compose-dot ()
+  (unless (pretty-ligatures--disable-pretty-symbols? (match-beginning 0))
+    (with-silent-modifications
+      (compose-region (match-beginning 1) (match-end 1) ?∘))
+    nil))
+
+(defun pretty-ligatures--compose-lambda ()
+  (unless (pretty-ligatures--disable-pretty-symbols? (match-beginning 0))
+    (with-silent-modifications
+      (compose-region (match-beginning 1) (match-end 1) ?λ))
+    nil))
+
 (defconst pretty-ligatures--special-haskell-ligatures
   (eval-when-compile
     (list
+     (list
+      (rx
+       (? (group-n 1
+                   "::"
+                   (* (char ?\s ?\n ?\r ?\t))))
+       symbol-start
+       (group-n 2 "forall")
+       symbol-end)
+      '(0
+        (pretty-ligatures--compose-forall)))
      (list
       (rx
        (or (any ?\s ?\() bol)
        (group-n 1 ".")
        (or (any ?\s ?\)) eol))
       '(0
-        (unless (pretty-ligatures--disable-pretty-symbols? (match-beginning 0))
-          (compose-region (match-beginning 1) (match-end 1) ?∘)
-          nil)))
+        (pretty-ligatures--compose-dot)))
      (list
       (rx
        (or (any ?\s ?$)
@@ -321,9 +449,7 @@ a pretty symbol."
            (syntax word)
            eol))
       '(0
-        (unless (pretty-ligatures--disable-pretty-symbols? (match-beginning 0))
-          (compose-region (match-beginning 1) (match-end 1) ?λ)
-          nil)))))
+        (pretty-ligatures--compose-lambda)))))
   "Special ligature-like symbol replacements that won't fit into constraints
 of `prettify-symbols-mode'. For example, some replacements must take context
 into accound and do the replacement only within specific circumstances.")
