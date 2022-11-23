@@ -83,30 +83,6 @@ Regexp match data 0 specifies the characters to be composed."
              (0 (prettify-symbols--compose-symbol nil))))))
     nil))
 
-;; Alternative way to add ligatures. Let here for reference
-;; NB order is important
-;; (defconst pretty-ligatures--definitions
-;;   (--map (cons (concat "\\(1:" (car it) "\\)") (cdr it))
-;;          '(("<->" . #Xe104)
-;;            ("<=>" . #Xe105)
-;;            ("<-"  . #Xe100)
-;;            ("->"  . #Xe101)
-;;            ("<="  . #Xe102)
-;;            ("=>"  . #Xe103))))
-;; ;;;###autoload
-;; (defun pretty-ligatures-install! ()
-;;   (font-lock-add-keywords
-;;    nil
-;;    (--map (let ((re (car it))
-;;                 (uni-point (cdr it)))
-;;             `(,re (0 (progn
-;;                        (compose-region
-;;                         (match-beginning 1)
-;;                         (match-end 1)
-;;                         ,(concat "\t" (list uni-point)))
-;;                        nil))))
-;;           pretty-ligatures--definitions)))
-
 ;; (set-fontset-font t '(#Xe100 . #Xe115) "Iosevka Slab Lig")
 
 (defconst pretty-ligatures--glyph-widths
