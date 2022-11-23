@@ -76,20 +76,21 @@
      (pseudoparedit--insert-pair ?\" ?\" t nil nil nil))))
 
 ;;;###autoload
-(defun pseudoparedit-backspace ()
-  (interactive)
-  (let* ((before (char-before))
-         (start (1- (point)))
-         (end nil)
-         (after (save-excursion
-                  (skip-chars-forward " \t\n\r")
-                  (unless (eobp)
-                    (setq end (1+ (point))))
-                  (char-after))))
-    (if (and end
-             (eq after (cdr (assq before '((?\( . ?\)) (?\[ . ?\]) (?\{ . ?\}) (?\" . ?\"))))))
-        (delete-region start end)
-      (delete-char -1))))
+(defun pseudoparedit-backspace (&optional count)
+  (interactive "*p")
+  (dotimes (_ (or count 1))
+    (let* ((before (char-before))
+           (start (1- (point)))
+           (end nil)
+           (after (save-excursion
+                    (skip-chars-forward " \t\n\r")
+                    (unless (eobp)
+                      (setq end (1+ (point))))
+                    (char-after))))
+      (if (and end
+               (eq after (cdr (assq before '((?\( . ?\)) (?\[ . ?\]) (?\{ . ?\}) (?\" . ?\"))))))
+          (delete-region start end)
+        (delete-char -1)))))
 
 (provide 'pseudoparedit)
 
