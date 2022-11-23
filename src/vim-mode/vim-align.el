@@ -75,7 +75,7 @@ Allowed flags are:
               (cond
                 ((memq ?i flags) t)
                 ((memq ?I flags) nil)
-                (t               case-fold-search))))
+                (t               nil))))
         (align-regexp (vim-motion-begin-pos motion)
                       (vim-motion-end-pos motion)
                       regexp
