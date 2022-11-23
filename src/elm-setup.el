@@ -156,8 +156,8 @@ _a_lign"
   (setq-local company-backends '(company-elm))
   (setup-indent-size 4)
 
-  (pretty-ligatures-install!)
   (pretty-ligatures-install-special-haskell-ligatures!)
+  (pretty-ligatures-install!)
 
   (setq-local elm-sort-imports-on-save t
 
