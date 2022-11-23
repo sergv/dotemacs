@@ -363,8 +363,9 @@ _<tab>_: reindent  _h_: jump to topmont node end"
     (init-common :use-whitespace 'tabs-only)
     (add-hook 'after-save-hook #'haskell-update-eproj-tags-on-save nil t)
 
-    (pretty-ligatures-install!)
+    ;; Order is important, otherwise special forall fontification doesn’t work
     (pretty-ligatures-install-special-haskell-ligatures!)
+    (pretty-ligatures-install!)
 
     (turn-on-font-lock)
 
@@ -607,8 +608,8 @@ _<tab>_: reindent  _h_: jump to topmont node end"
     :bind-hyphen nil
     :track-extensions? nil)
 
-  (pretty-ligatures-install-safe!)
   (pretty-ligatures-install-special-haskell-ligatures!)
+  (pretty-ligatures-install-safe!)
 
   (vim-local-emap "clear" #'vim:comint-clear-buffer-above-prompt)
   (dolist (cmd '("re" "restart"))
@@ -648,8 +649,8 @@ _<tab>_: reindent  _h_: jump to topmont node end"
 
 ;;;###autoload
 (defun haskell-compilation-setup ()
-  (pretty-ligatures-install-safe!)
   (pretty-ligatures-install-special-haskell-ligatures!)
+  (pretty-ligatures-install-safe!)
 
   (vim-local-emap "c" #'vim:recompile))
 
@@ -686,8 +687,8 @@ _<tab>_: reindent  _h_: jump to topmont node end"
 
 ;;;###autoload
 (defun ghc-core-setup ()
-  (pretty-ligatures-install!)
   (pretty-ligatures-install-special-haskell-ligatures!)
+  (pretty-ligatures-install!)
   (hl-line-mode +1)
 
   (setq-local beginning-of-defun-function #'haskell-move-to-topmost-start-impl))
