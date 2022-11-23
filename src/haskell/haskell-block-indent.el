@@ -23,7 +23,7 @@
     (if (= 0 col)
         (pseudoparedit-backspace count)
       (cl-destructuring-bind (function-applied? . at-indentation?)
-          (let ((inhibit-modification-hooks t))
+          (with-inhibited-modification-hooks
             (haskell--apply-to-block
              (lambda (start)
                (goto-char start)
@@ -48,7 +48,7 @@ haskell block at current indentation level."
         (line (count-lines-fixed (point-min) (point))))
     (cl-destructuring-bind
         (function-applied? . at-indentation?)
-        (let ((inhibit-modification-hooks t))
+        (with-inhibited-modification-hooks
           (haskell--apply-to-block
            (lambda (start)
              (goto-char start)
