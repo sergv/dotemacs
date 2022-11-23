@@ -175,13 +175,17 @@ Regexp match data 0 specifies the characters to be composed."
 
 ;; Make [?\s (Bl . Br) ?\s (Bl . Br) ?\s (Bc . Bc) #xe11d] out of #xe11d (">>=").
 (defun pretty-ligatures--make-composition (c &optional override-width)
-  (if-let ((width (or override-width (gethash c pretty-ligatures--glyph-widths))))
-      (if (eq width t)
-          ;; No width
-          (string ?\t c ?\t)
-        (vconcat
-         (apply #'vconcat [?\s] (-repeat (1- width) [(Bl . Br) ?\s]))
-         (vector '(Bc . Bc) c)))
+  (if-let ((glyph-width (gethash c pretty-ligatures--glyph-widths)))
+      (let ((width (or override-width glyph-width)))
+        (if (eq width t)
+            ;; No width
+            (string ?\t c ?\t)
+          (vconcat
+           (apply #'vconcat [?\s] (-repeat (1- width) [(Bl . Br) ?\s]))
+           (vector (if (eq width glyph-width)
+                       '(Bc . Bc) ;; Put c’s center in the center of the previously composed whitespace
+                     '(Bl . Bl))
+                   c))))
     (error "No width for character '%s'" c)))
 
 ;; ‘>>’ shows up in generic functions in addition to being a shift operator, thus it’s removed.
@@ -338,7 +342,7 @@ Regexp match data 0 specifies the characters to be composed."
 
                ;; ("mappend" . #xe10f)
                ;; ("`mappend`" . #xe10f)
-               ;; ("forall"    . #xe128)
+               ("forall"    . #xe128)
 
                ("[]"        . #xe12a)
                ("mempty"    . #xe12a)
@@ -371,38 +375,6 @@ a pretty symbol."
       ;; (get-text-property pos 'disable-pretty-symbols)
       ))
 
-(defconst pretty-ligatures--forall-pseudoligature #xe128)
-
-(defconst pretty-ligatures--forall-width-2
-  (pretty-ligatures--make-composition pretty-ligatures--forall-pseudoligature 2))
-
-(defconst pretty-ligatures--forall-width-6
-  (pretty-ligatures--make-composition pretty-ligatures--forall-pseudoligature 6))
-
-(defun pretty-ligatures--compose-forall ()
-  (let ((start (match-beginning 2))
-        (end (match-end 2)))
-    (if (or (and (equal (car prettify-symbols--current-symbol-bounds) start)
-                 (equal (cdr prettify-symbols--current-symbol-bounds) end))
-            (pretty-ligatures--disable-pretty-symbols? start))
-        ;; Not composing
-        (remove-list-of-text-properties start end
-                                        '(composition
-                                          prettify-symbols-start
-                                          prettify-symbols-end))
-      ;; Do the composing
-      (progn
-        (with-silent-modifications
-          (compose-region start
-                          end
-                          (if (match-beginning 1)
-                              pretty-ligatures--forall-width-2
-                            pretty-ligatures--forall-width-6))
-          (add-text-properties start
-                               end
-                               `(prettify-symbols-start ,start prettify-symbols-end ,end)))
-        nil))))
-
 (defun pretty-ligatures--compose-dot ()
   (unless (pretty-ligatures--disable-pretty-symbols? (match-beginning 0))
     (with-silent-modifications
@@ -418,16 +390,6 @@ a pretty symbol."
 (defconst pretty-ligatures--special-haskell-ligatures
   (eval-when-compile
     (list
-     (list
-      (rx
-       (? (group-n 1
-                   "::"
-                   (* (char ?\s ?\n ?\r ?\t))))
-       symbol-start
-       (group-n 2 "forall")
-       symbol-end)
-      '(0
-        (pretty-ligatures--compose-forall)))
      (list
       (rx
        (or (any ?\s ?\() bol)
