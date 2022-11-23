@@ -21,7 +21,7 @@
   (let ((col (current-column-fixed))
         (line (count-lines-fixed (point-min) (point))))
     (if (= 0 col)
-        (backward-delete-char count)
+        (pseudoparedit-backspace count)
       (cl-destructuring-bind (function-applied? . at-indentation?)
           (let ((inhibit-modification-hooks t))
             (haskell--apply-to-block
@@ -36,7 +36,7 @@
               (if at-indentation?
                   (skip-to-indentation)
                 (move-to-column (max 0 (- col count)))))
-          (delete-char (- count)))))))
+          (pseudoparedit-backspace count))))))
 
 ;;;###autoload
 (defun haskell-space-with-block-indent (&optional count)
