@@ -819,6 +819,24 @@
    "          foo.hlint"
    "        ]);"))
 
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/block-change-3
+    (execute-kbd-macro (kbd "C-v F . n h c f o o <escape>"))
+  (tests-utils--multiline
+   "        devShell = project (with haskellPackages; [ # [4]"
+   "          haskellPackages.cabal-fmt"
+   "          haskellPackages.cabal-install"
+   "          haskellPackages.haskell-language-serve_|_r"
+   "          haskellPackages.hlint"
+   "        ]);")
+  (tests-utils--multiline
+   "        devShell = project (with haskellPackages; [ # [4]"
+   "          haskellPackages.cabal-fmt"
+   "          haskellPackages.cabal-install"
+   "          haskellPackages.fo_|_o"
+   "          haskellPackages.foo"
+   "        ]);"))
+
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-except
     (rust-mode)
     vim-tests/linewise-append-newline-1

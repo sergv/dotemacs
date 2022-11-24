@@ -502,18 +502,10 @@ This function is also responsible for setting the X-selection."
 
 (defun vim-visual--current-block-motion ()
   "Returns a motion representing the current block region."
-  (let* ((start (region-beginning))
-         (end (region-end))
-         (start-col (character-column-at-pos start))
-         (end-col (character-column-at-pos end)))
-    (when (> start-col end-col)
-      (let ((d (- start-col end-col)))
-        (setf start (- start d)
-              end   (+ end d))))
-    (vim-make-motion :has-begin t
-                     :begin     start
-                     :end       end
-                     :type      'block)))
+  (vim-make-motion :has-begin t
+                   :begin     (region-beginning)
+                   :end       (region-end)
+                   :type      'block))
 
 (defun vim--visual-adjust-region (motion)
   "Adjusts the region according to a certain motion."
