@@ -220,11 +220,17 @@ and switches to insert-mode."
      (vim:cmd-change-line :count (vim-motion-line-count motion)))
 
     (`block
-     (vim--init--vim-visual-insert-info-end! (vim-motion-begin motion)
-                                             (vim-motion-end motion)
-                                             (vim-motion-first-col motion))
-     (vim:cmd-delete :motion motion)
-     (vim-visual--start-insert))
+      ;; Column number at vim-motion-begin-pos can be larger that column at vim-motion-end-pos.
+      ;; It’s important for visual insertion so we adjust it here.
+      (let ((begin (save-excursion
+                     (goto-char (vim-motion-begin-pos motion))
+                     (move-to-column (vim-motion-first-col motion))
+                     (point))))
+        (vim--init--vim-visual-insert-info-end! begin
+                                                (vim-motion-end-pos motion)
+                                                (vim-motion-first-col motion))
+        (vim:cmd-delete :motion motion)
+        (vim-visual--start-insert)))
 
     (_
      ;; deal with cw and cW
