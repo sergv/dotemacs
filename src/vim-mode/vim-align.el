@@ -75,9 +75,12 @@ Allowed flags are:
               (cond
                 ((memq ?i flags) t)
                 ((memq ?I flags) nil)
-                (t               nil))))
-        (align-regexp (vim-motion-begin-pos motion)
-                      (vim-motion-end-pos motion)
+                (t               nil)))
+             (start (vim-motion-begin-pos motion))
+             (end (vim-motion-end-pos motion)))
+        (prettify-symbols-decompose-region start end)
+        (align-regexp start
+                      end
                       regexp
                       group-number
                       nil ;; spacing
