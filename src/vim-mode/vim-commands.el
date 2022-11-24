@@ -332,7 +332,6 @@ and switches to insert-mode."
   "Stores the rectangle defined by motion into the kill-ring."
   (unless (eq (vim-motion-type motion) 'block)
     (error "Motion must be of type block"))
-  ;; TODO: yanking should not insert spaces or expand tabs.
   (let ((begrow (vim-motion-first-line motion))
         (begcol (vim-motion-first-col motion))
         (endrow (vim-motion-last-line motion))
