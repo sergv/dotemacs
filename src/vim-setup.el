@@ -202,12 +202,11 @@ _S-<up>_:    fast enlarge vertically
 
 (defhydra-ext hydra-tab-management (:exit t :foreign-keys warn :hint nil)
   "
-_n_ew
-_c_lose
+_n_ew                 _s_elect by name
+_c_lose               _r_ename
 _o_nly (close other)
-_u_ndo
-_s_elect by name
-_r_ename
+_u_ndo last close
+cop_y_ tab
 
 _<left>_:  move tab to the left
 _<right>_: move tab to the right"
@@ -215,8 +214,10 @@ _<right>_: move tab to the right"
   ("c" tab-close)
   ("o" tab-close-other)
   ("u" tab-undo)
-  ("s" tab-bar-select-tab-by-name)
+  ("y" tab-bar-duplicate-tab)
+
   ("r" tab-rename)
+  ("s" tab-bar-select-tab-by-name)
 
   ("<left>"  tabbar-move-tab-to-the-left :exit nil)
   ("<right>" tabbar-move-tab-to-the-right :exit nil))
