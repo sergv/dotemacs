@@ -43,12 +43,7 @@
          (interactive "*")
          (when (region-active-p)
            (with-region-bounds start end
-             (when prettify-symbols-mode
-               (with-silent-modifications
-                 (remove-text-properties start end
-                                         '(composition
-                                           prettify-symbols-start
-                                           prettify-symbols-end))))
+             (prettify-symbols-decompose-region start end)
              (,indent-region-func start end)
              (when prettify-symbols-mode
                (font-lock-flush start end))))))))
