@@ -1064,6 +1064,20 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/paste-before-visual-block-region-4
+    (execute-kbd-macro (kbd "C-v b h y <escape> 0 P"))
+  (tests-utils--multiline
+   ""
+   "  , setFunctionFinalizer = mkFunc env (#peek emacs_env, set_function_finalizer) dynSetFunctionFinalize_|_r"
+   "  , processInput         = mkFunc env (#peek emacs_env, process_input)          dynProcessInput"
+   "")
+  (tests-utils--multiline
+   ""
+   "_|_dynSetFunctionFinalizer  , setFunctionFinalizer = mkFunc env (#peek emacs_env, set_function_finalizer) dynSetFunctionFinalizer"
+   "dynProcessInput          , processInput         = mkFunc env (#peek emacs_env, process_input)          dynProcessInput"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
     vim-tests/paste-before-visual-block-region-undo-1
     ;; Enable undo tracking.
     (vim-tests--enable-undo
