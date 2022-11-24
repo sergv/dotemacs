@@ -83,6 +83,12 @@ Regexp match data 0 specifies the characters to be composed."
              (0 (prettify-symbols--compose-symbol nil))))))
     nil))
 
+(defun prettify-symbols-decompose-region (start end)
+  "Remove compositions in the region from START to END."
+  (with-silent-modifications
+    (remove-text-properties start end
+                            '(composition nil))))
+
 ;; (set-fontset-font t '(#Xe100 . #Xe115) "Iosevka Slab Lig")
 
 (defconst pretty-ligatures--glyph-widths
