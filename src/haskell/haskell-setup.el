@@ -419,7 +419,7 @@ _<tab>_: reindent  _h_: jump to topmont node end"
       (when (not non-vanilla-haskell-mode?)
         (flycheck-setup-from-eproj-deferred
          proj
-         'haskell-dante ;; default checker
+         +haskell-default-checker+
          (lambda (backend)
            (pcase backend
              (`haskell-dante
