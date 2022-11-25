@@ -101,14 +101,18 @@ By default these are:
 (defconst haskell-cabal-font-lock-keywords
   ;; The comment syntax can't be described simply in syntax-table.
   ;; We could use font-lock-syntactic-keywords, but is it worth it?
-  '(("^[ \t]*\\(?:,[ \t]*\\)?\\([^ \t\n\r:]+\\):" (1 font-lock-keyword-face))
-    ("^\\([Ll]ibrary\\)[ \t]*\\({\\|$\\)" (1 font-lock-keyword-face))
-    ("^\\([Ee]xecutable\\|[Tt]est-[Ss]uite\\|[Bb]enchmark\\|\\(:?[Ff]oreign-\\)?[Ll]ibrary\\|[Cc]ommon\\|[Pp]ackage\\)[ \t]+\\([^ \t\n\r]*\\)"
-     (1 font-lock-keyword-face) (2 font-lock-function-name-face))
+  '(
+    ("^[ \t]*\\(?:,[ \t]*\\)?\\([^ \t\n\r:]+\\):" (1 font-lock-keyword-face))
+    ("^\\([Ll]ibrary\\)[ \t]*\\([^ \t\n\r{}]*[ \t]*\\)?\\(?:{\\|$\\)"
+     (1 font-lock-keyword-face)
+     ;; Library section can have no name so make it a lax match
+     (2 font-lock-type-face nil t))
+    ("^\\([Ee]xecutable\\|[Tt]est-[Ss]uite\\|[Bb]enchmark\\|[Ff]oreign-[Ll]ibrary\\|[Cc]ommon\\|[Pp]ackage\\)[ \t]+\\([^ \t\n\r]*\\)"
+     (1 font-lock-keyword-face) (2 font-lock-type-face))
     ("^\\([Ff]lag\\|[Ii]nstall-[Dd]irs\\|[Rr]epository\\)[ \t]+\\([^ \t\n\r]*\\)"
-     (1 font-lock-keyword-face) (2 font-lock-constant-face))
+     (1 font-lock-keyword-face) (2 font-lock-type-face))
     ("^\\([Ss]ource-[Rr]epository\\)[ \t]+\\(head\\|this\\)"
-     (1 font-lock-keyword-face) (2 font-lock-constant-face))
+     (1 font-lock-keyword-face) (2 font-lock-type-face))
     ("^\\(haddock\\|source-repository-package\\|program-locations\\|program-default-options\\)\\([ \t]\\|$\\)"
      (1 font-lock-keyword-face))
     ("^[ \t]*\\(if\\)[ \t]+.*\\({\\|$\\)" (1 font-lock-keyword-face))
