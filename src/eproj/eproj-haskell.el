@@ -249,22 +249,16 @@ runtime but rather will be silently relied on)."
            (error "Some related projects inferred from cabal.project do not exist: %s"
                   (s-join ", " it)))
          `((languages haskell-mode)
-           (related ,@all-related)
-           (checker
-            (haskell-mode lsp)))))
+           (related ,@all-related))))
       ((file-exists-p (concat root "/package.yaml"))
-       '((languages haskell-mode)
-         (checker
-          (haskell-mode lsp))))
+       '((languages haskell-mode)))
       ((directory-files root
                         nil
                         (rx (or ".cabal"
                                 (seq "stack" (* any) "." (or "yml" "yaml")))
                             eos)
                         t)
-       '((languages haskell-mode)
-         (checker
-          (haskell-mode lsp))))
+       '((languages haskell-mode)))
       (t
        nil))))
 
