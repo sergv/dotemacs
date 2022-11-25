@@ -963,6 +963,36 @@
      " quux)"
      "")))
 
+(ert-deftest vim-tests/comment-sexp-1/emacs-lisp-mode ()
+  (vim-tests--test-fresh-buffer-contents-init
+   (emacs-lisp-mode)
+   (execute-kbd-macro (kbd "j c c"))
+   (tests-utils--multiline
+    ""
+    "_|_(foo bar)"
+    "(quux)"
+    "")
+   (tests-utils--multiline
+    ""
+    "_|_;; (foo bar)"
+    "(quux)"
+    "")))
+
+(ert-deftest vim-tests/comment-sexp-2/emacs-lisp-mode ()
+  (vim-tests--test-fresh-buffer-contents-init
+   (emacs-lisp-mode)
+   (execute-kbd-macro (kbd "j c c h ."))
+   (tests-utils--multiline
+    ""
+    "_|_(foo bar)"
+    "(quux)"
+    "")
+   (tests-utils--multiline
+    ""
+    ";; (foo bar)"
+    "_|_;; (quux)"
+    "")))
+
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
     vim-tests/copy-paste-linewise-region-after-1
     (execute-kbd-macro (kbd "V h y p"))

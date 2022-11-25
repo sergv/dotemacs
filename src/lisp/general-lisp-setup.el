@@ -563,12 +563,15 @@ _a_lign  _t_: jump to topmost node start
   ("t"     glisp/beginning-of-defun)
   ("h"     glisp/end-of-defun))
 
+(vimmize-function lisp-comment-sexp :has-count t)
+(vimmize-function lisp-uncomment-sexp :has-count nil)
+
 (defhydra-derive hydra-lisp-vim-normal-j-ext hydra-vim-normal-j-ext (:exit t :foreign-keys nil :hint nil)
   "
 _cl_: comment lines"
-  ("cc" lisp-comment-sexp)
-  ("cu" lisp-uncomment-sexp)
-  ("cl" comment-util-comment-lines))
+  ("cc" vim:lisp-comment-sexp:interactive)
+  ("cu" vim:lisp-uncomment-sexp:interactive)
+  ("cl" vim:comment-util-comment-lines:interactive))
 
 (defhydra-derive hydra-lisp-vim-visual-j-ext hydra-vim-visual-j-ext (:exit t :foreign-keys nil :hint nil)
   ""
