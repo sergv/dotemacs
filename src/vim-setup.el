@@ -45,7 +45,7 @@ ta_b_s     _cd_: delete comment  _ss_: replace symbol
 
 _C-(_: a (b | …) -> (a b | …)            _M-(_:    (a | b)         -> |b
 _C-)_: (… | a) b -> (… |) a b            _M-)_:    (a | b)         -> a|
-                                           _M-<up>_: (a | (b c) d)   -> |(b c)
+                                         _M-<up>_: (a | (b c) d)   -> |(b c)
 
 _r_aise:          (a | (b c) d)   -> |(b c)
 _?_ (convolute):  (a b (c d | e)) -> (c d (a b | e))
