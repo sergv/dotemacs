@@ -39,7 +39,7 @@ move point to next/previous line."
 
 (defhydra-ext hydra-vim-normal-j-ext (:exit t :foreign-keys nil :hint nil)
   "
-_t_oggle   _cc_: comment         _sw_: replace word
+_t_oggle   _cc_: comment         _sw_: replace word    u_n_narrow
 _w_indows  _cu_: uncomment       _sW_: relpace WORD
 ta_b_s     _cd_: delete comment  _ss_: replace symbol
 
@@ -69,6 +69,8 @@ _)(_: (… | a b) -> (… | a) b
   ("sw"         vim:replace-word:interactive)
   ("sW"         vim:replace-WORD:interactive)
   ("ss"         vim:replace-symbol-at-point:interactive)
+
+  ("n"          unnarrow)
 
   ("M-\("       vim:splice-sexp-killing-backward:interactive)
   ("M-\)"       vim:splice-sexp-killing-forward:interactive)
@@ -140,13 +142,14 @@ _z_: scroll to center"
 
 (defhydra-ext hydra-vim-visual-j-ext (:exit t :foreign-keys nil :hint nil)
   "
-_cc_: comment
-_cu_: uncomment
-
-replace _s_elected"
+_cc_: comment    replace _s_elected
+_cu_: uncomment  _n_arrow to region
+"
   ("cc" comment-util-comment-region)
   ("cu" comment-util-uncomment-region-simple)
-  ("s"  vim:replace-selected:interactive))
+
+  ("s"  vim:replace-selected:interactive)
+  ("n"  narrow-to-region))
 
 (defhydra-ext hydra-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
   "
