@@ -731,18 +731,19 @@ May return a qualified name."
 (defun dante-ident-pos-at-point (&optional offset)
   "Return the span of the (qualified) identifier at point+OFFSET.
 Nil if none found."
-  (let* ((qualifier-regex "\\([[:upper:]][[:alnum:]]*\\.\\)")
-         (ident-regex (concat qualifier-regex "*\\(\\s.+\\|\\(\\sw\\|\\s_\\)+\\)"))) ; note * for many qualifiers
-    (save-excursion
-      (goto-char (+ (point) (or offset 0)))
-      (when (looking-at ident-regex)
-        (let ((end (match-end 0)))
-          (skip-syntax-backward (if (looking-at "\\s.") "." "w_")) ;; find start of operator/variable
-          (while (save-excursion
-                   (and (re-search-backward (concat "\\b" qualifier-regex) (line-beginning-position) t)
-                        (s-matches? (concat "^" ident-regex "$") (buffer-substring-no-properties (point) end))))
-            (goto-char (match-beginning 0)))
-          (cons (point) end))))))
+  (with-syntax-table dante--identifier-syntax-table
+    (let* ((qualifier-regex "\\([[:upper:]][[:alnum:]]*\\.\\)")
+           (ident-regex (concat qualifier-regex "*\\(\\s.+\\|\\(\\sw\\|\\s_\\)+\\)"))) ; note * for many qualifiers
+      (save-excursion
+        (goto-char (+ (point) (or offset 0)))
+        (when (looking-at ident-regex)
+          (let ((end (match-end 0)))
+            (skip-syntax-backward (if (looking-at "\\s.") "." "w_")) ;; find start of operator/variable
+            (while (save-excursion
+                     (and (re-search-backward (concat "\\b" qualifier-regex) (line-beginning-position) t)
+                          (s-matches? (concat "^" ident-regex "$") (buffer-substring-no-properties (point) end))))
+              (goto-char (match-beginning 0)))
+            (cons (point) end)))))))
 
 (defvar dante--identifier-syntax-table
   (let ((tbl (copy-syntax-table haskell-mode-syntax-table)))
