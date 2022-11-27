@@ -919,7 +919,13 @@ If WAIT is nil, abort if Dante is busy.  Pass the dante buffer to CONT"
     (dante-set-state 'starting)
     (lcr-process-initialize buffer)
     (set-process-sentinel process 'dante-sentinel) ; only now can we interact with GHCi
-    (lcr-call dante-async-call (s-join "\n" (--map (concat ":set " it) (-snoc dante-load-flags "prompt \"\\4%s|\""))))
+    (lcr-call dante-async-call
+              (s-join "\n" (--map (concat ":set " it)
+                                  (append dante-load-flags
+                                          (list "prompt \"\\4%s|\""
+                                                ;; Empty continuation prompt so that output
+                                                ;; of :{ will be correctly identified.
+                                                "prompt-cont \"\"")))))
     (let ((dir (lcr-call dante-async-call ":!pwd")))
       (with-current-buffer buffer (setq dante-ghci-path dir)))
     (dante-set-state 'started)
@@ -1139,32 +1145,43 @@ The command block is indicated by the >>> symbol."
   (push-mark)
   (beginning-of-line)
   (let ((block-end (save-excursion
-                     (while (looking-at "[ \t]*--") (forward-line))
+                     (while (looking-at-p " *--") (forward-line))
                      ;; ensure that there is a newline at the end of buffer
                      (when (eq (point) (point-max)) (newline))
                      (point-marker))))
-    (while (looking-at "[ \t]*--") (forward-line -1))
+    (while (looking-at-p " *--") (forward-line -1))
     (forward-line)
     (lcr-spawn
       (lcr-call dante-async-load-current-buffer t nil)
-      (while (search-forward-regexp "[ \t]*--[ \t]+>>>" (line-end-position) t 1)
+      (while (search-forward-regexp " *-- +>>>" (line-end-position) t 1)
         ;; found a command; execute it and replace the result.
-        (let* ((cmd (buffer-substring-no-properties (point) (line-end-position)))
-               (res (lcr-call dante-async-call cmd)))
+        (let ((cmd-start (match-end 0))
+              (prefix (string-replace ">>>" "   " (match-string 0)))
+              (cmd-start-col (current-column))
+              (cmd-lines (list (buffer-substring-no-properties (point) (line-end-position)) ":{")))
+          (cl-assert (equal (point) cmd-start))
           (beginning-of-line)
           (forward-line)
-          (save-excursion
-            (delete-region (point)
-                           ;; look for: empty comment line, next command or end of block.
-                           (or (and (search-forward-regexp "[ \t]*--[ \t]*\\([ \t]>>>\\|$\\)" block-end t 1)
-                                    (match-beginning 0))
-                               block-end)))
-          (insert (apply #'concat (--map (concat "-- " it "\n") (--remove (s-blank? it) (s-lines res)))))
-          (beginning-of-line)
-          ;; skip any non-executable comment
-          (while (and (looking-at "[ \t]*--")
-                      (not (looking-at "[ \t]*--[ \t]+>>>")))
-            (forward-line)))))))
+          (while (looking-at-p prefix)
+            (move-to-column cmd-start-col)
+            (push (buffer-substring-no-properties (point) (line-end-position)) cmd-lines)
+            (beginning-of-line)
+            (forward-line))
+          (let ((cmd-end (1- (point))))
+            (let* ((cmd (join-lines (nreverse (cons ":}" cmd-lines))))
+                   (res (lcr-call dante-async-call cmd))))
+            (save-excursion
+              (delete-region (point)
+                             ;; look for: empty comment line, next command or end of block.
+                             (or (and (search-forward-regexp " *-- *\\( >>>\\|$\\)" block-end t 1)
+                                      (match-beginning 0))
+                                 block-end)))
+            (insert (apply #'concat (--map (concat "-- " it "\n") (--remove (s-blank? it) (s-lines res)))))
+            (beginning-of-line)
+            ;; skip any non-executable comment
+            (while (and (looking-at " *--")
+                        (not (looking-at-p " *-- +>>>")))
+              (forward-line))))))))
 
 (defcustom dante-exec-default "main"
   (substitute-command-keys "Default command to run by `dante-exec'.")
