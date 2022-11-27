@@ -52,7 +52,7 @@ This variable gets assigned by ‘dante-initialize-method’.")
         (dante-repl--start-with-buffer-name buf-name nil nil)
         (switch-to-buffer-other-window (get-buffer buf-name))))))
 
-(defconst +dante-prompt-re+ "^\4 ")
+(defconst +dante-prompt-re+ "^[\4\5] ")
 
 ;;;###autoload
 (define-derived-mode dante-repl-mode comint-mode "Dante-REPL"
@@ -124,7 +124,12 @@ otherwise the command for starting repl will be inferred."
     (0 (prog1 ()
          (compose-region (match-beginning 1)
                          (match-end 1)
-                         ?>))))))
+                         ?>))))
+   ("\\(\5\\)"
+    (0 (prog1 ()
+         (compose-region (match-beginning 1)
+                         (match-end 1)
+                         ?\|))))))
 
 (defun dante-repl--start-in-buffer (repl-buf initial-repl-command load-all-on-start command current-dir)
   (let ((command-line
@@ -153,7 +158,8 @@ otherwise the command for starting repl will be inferred."
 ;; :set -fbyte-code
 ;; :set -fdiagnostics-color=always -Wno-missing-home-modules -dsuppress-modules-prefixes -fshow-loaded-modules
 ;; :set -XOverloadedStrings
-               ":set prompt \"\\4 \""))
+               ":set prompt \"\\4 \""
+               ":set prompt-cont \"\\5 \""))
           (comint-simple-send proc (if initial-repl-command
                                        (concat cmd "\n" initial-repl-command)
                                      cmd)))
