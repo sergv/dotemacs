@@ -218,6 +218,7 @@
     "UndecidableSuperClasses"
     "UndecidableInstances"
     "UnliftedNewtypes"
+    "UnliftedFFITypes"
     "ViewPatterns")
   "Language extensions that Attrap can use to fix errors."
   :type '(repeat string)
