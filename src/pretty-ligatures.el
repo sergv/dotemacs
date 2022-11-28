@@ -200,7 +200,7 @@ Regexp match data 0 specifies the characters to be composed."
     (let ((ligs
            '(("for" . #xe128)
              ("in"  . #xe12b))))
-      (--map (cons (car it) (pretty-ligatures--make-composition (cdr it))) ligs)))
+      (--map (cons (car it) (pretty-ligatures--make-composition (cdr it) (length (car it)))) ligs)))
   "Replacements of word with single symbols that work through `prettify-symbols-mode'.")
 
 (defconst pretty-ligatures--symbol-replacements
