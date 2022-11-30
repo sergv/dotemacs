@@ -302,17 +302,19 @@ value on all subsequent invokations."
 (defun def-keys-for-map--expand-key (key)
   "Expand key definition akin to `kbd' but may also add some
 compatibility mappings for unexpected environments."
-  (cl-assert (or (stringp key)
-                 (vectorp key))
-             nil
-             "Invalid key definition: %s" key)
-  (let ((kbd-expanded (eval `(kbd ,key))))
-    ;; Rebind "C-h" for terminals that refuse to send "C-h" and
-    ;; send "C-<backspace>" instead.
-    (if (equal kbd-expanded (kbd "C-h"))
-        (list kbd-expanded
-              (kbd "C-<backspace>"))
-      (list kbd-expanded))))
+  (cond
+    ((vectorp key)
+     (list key))
+    ((stringp key)
+     (let ((kbd-expanded (eval `(kbd ,key))))
+       ;; Rebind "C-h" for terminals that refuse to send "C-h" and
+       ;; send "C-<backspace>" instead.
+       (if (equal kbd-expanded (kbd "C-h"))
+           (list kbd-expanded
+                 (kbd "C-<backspace>"))
+         (list kbd-expanded))))
+    (t
+     (error "Cannot expand key: %s" key))))
 
 (defmacro def-keys-for-map (mode-map &rest key-command-list)
   "Bind keys specified by KEY-COMMAND-LIST into map MODE-MAP. MODE-MAP can be
@@ -328,8 +330,8 @@ another KEY-COMMAND-LIST spliced in place of a variable;
   (declare (indent nil))
   (letrec ((def-key
              (lambda (map key command)
-               (cl-assert (or (string? key)
-                              (vector? key)
+               (cl-assert (or (stringp key)
+                              (vectorp key)
                               (symbolp key))
                           nil
                           "Invalid key: %s"
@@ -337,12 +339,12 @@ another KEY-COMMAND-LIST spliced in place of a variable;
                `(define-key ,map
                   ,key
                   ,(cond
-                     ((and (list? command)
-                           (or (eq? 'function (car command))
-                               (eq? 'quote (car command))))
+                     ((and (listp command)
+                           (or (eq 'function (car command))
+                               (eq 'quote (car command))))
                       command)
-                     ((and (list? command)
-                           (eq? 'lambda (car command)))
+                     ((and (listp command)
+                           (eq 'lambda (car command)))
                       (list 'function command))
                      (t
                       (list 'quote command))))))
