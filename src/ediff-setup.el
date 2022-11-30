@@ -15,6 +15,8 @@
 (defun ediff-keymap-setup ()
   (def-keys-for-map ediff-mode-map
     +vim-interbuffer-navigation-keys+
+    ("g"            hydra-vim-normal-g-ext/body)
+    ("j"            hydra-vim-normal-j-ext/body)
     ("H"            ediff-update-diffs)
     (("h" "<down>") ediff-next-difference)
     (("t" "<up>")   ediff-previous-difference)
