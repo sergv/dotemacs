@@ -88,21 +88,21 @@
      " <=<"
      )
    '(("A" "w" haskell-constructor-face)
-     ("." "." haskell-constructor-face)
+     ("." "_" haskell-constructor-face)
      ("B" "w" haskell-constructor-face)
-     ("." "." haskell-constructor-face)
+     ("." "_" haskell-constructor-face)
      ("C" "w" haskell-constructor-face)
 
      ("D" "w" nil)
-     ("." "." nil)
+     ("." "_" nil)
      ("E" "w" nil)
-     ("." "." nil)
+     ("." "_" nil)
      ("f" "w" nil)
 
      ("G" "w" haskell-operator-face)
-     ("." "." haskell-operator-face)
+     ("." "_" haskell-operator-face)
      ("H" "w" haskell-operator-face)
-     ("." "." haskell-operator-face)
+     ("." "_" haskell-operator-face)
      (">>=" "." haskell-operator-face)
 
      ("<=<" "." haskell-operator-face))))
