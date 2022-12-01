@@ -8,8 +8,8 @@
 
 (autoload 'ediff-quit "ediff-util" "" t)
 
-;; don't spawn separate ediff frame
-(setf ediff-window-setup-function 'ediff-setup-windows-plain)
+;; Don’t spawn separate ediff frame.
+(setf ediff-window-setup-function #'ediff-setup-windows-plain)
 
 ;; don't be fooled by function names here:
 ;; #'split-window-horizontally causes windows to be split in vertical,
@@ -22,8 +22,8 @@
         #'split-window-horizontally))
 (setf ediff-merge-split-window-function ediff-split-window-function)
 
-(setf ediff-custom-diff-options "-u --ignore-tab-expansion --ignore-space-change --ignore-blank-lines"
-      ediff-diff-options "--ignore-tab-expansion --ignore-space-change --ignore-blank-lines"
+(setf ediff-custom-diff-options "-u --ignore-tab-expansion --ignore-blank-lines"
+      ediff-diff-options "--ignore-tab-expansion --ignore-blank-lines"
       ediff-patch-options "")
 
 (eval-after-load
