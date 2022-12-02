@@ -73,6 +73,9 @@ _a_lign"
   ("<tab>" nix-format-buffer))
 
 ;;;###autoload
+(add-to-list 'auto-mode-alist '("\\<flake\\.lock\\'" . json-mode))
+
+;;;###autoload
 (defun nix-setup ()
   (init-common :use-whitespace t)
 
