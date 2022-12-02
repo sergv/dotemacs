@@ -90,7 +90,7 @@
 (put 'haskell-program-name 'safe-local-variable (lambda (x) (or (stringp x) (listp x))))
 (put 'hindent-style 'safe-local-variable #'stringp)
 
-(add-hook 'ghc-core-mode-hook #'ghc-core-setup)
+(add-hook 'ghc-core-mode-hook #'ghc-core-mode-setup)
 (add-hook 'haskell-cabal-mode-hook #'haskell-cabal-setup)
 (add-hook 'haskell-compilation-mode-hook #'haskell-compilation-setup)
 (add-hook 'haskell-mode-hook #'haskell-setup)
