@@ -849,6 +849,26 @@ Use as one of:
            (let ((,val (aref ,v ,i)))
              ,@body))))))
 
+;;;
+
+(defmacro with-optional-syntax-table (table &rest body)
+  "Like ‘with-syntax-table’ but TABLE may be nil."
+  (declare (debug t) (indent 1))
+  (let ((old-table (make-symbol "table"))
+        (old-buffer (make-symbol "buffer"))
+        (new-table (make-symbol "new-table")))
+    `(let ((,old-table (syntax-table))
+           (,old-buffer (current-buffer))
+           (,new-table ,table))
+       (unwind-protect
+           (progn
+             (when ,new-table
+               (set-syntax-table ,new-table))
+             ,@body)
+         (when ,new-table
+           (with-current-buffer ,old-buffer
+             (set-syntax-table ,old-table)))))))
+
 ;;; end
 
 (provide 'macro-util)
