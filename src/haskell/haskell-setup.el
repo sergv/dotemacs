@@ -691,11 +691,22 @@ _<tab>_: reindent  _h_: jump to topmont node end"
 
 ;;;###autoload
 (defun ghc-core-mode-setup ()
+  (init-common :use-comment t
+               :use-yasnippet t)
   (pretty-ligatures-install-special-haskell-ligatures!)
   (pretty-ligatures-install!)
   (hl-line-mode +1)
+  (setq-local search-syntax-table ghc-core-symbol--identifier-syntax-table
+              search-ignore-syntax-text-properties t)
 
-  (setq-local beginning-of-defun-function #'haskell-move-to-topmost-start-impl))
+  (setq-local beginning-of-defun-function #'haskell-move-to-topmost-start-impl)
+
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-visual-mode-local-keymap)
+    ("*"            search-for-ghc-core-symbol-at-point-forward)
+    ("C-*"          search-for-ghc-core-symbol-at-point-forward-new-color)
+    ("#"            search-for-ghc-core-symbol-at-point-backward)
+    ("C-#"          search-for-ghc-core-symbol-at-point-backward-new-color)))
 
 ;;;###autoload
 (defun cmm-setup ()

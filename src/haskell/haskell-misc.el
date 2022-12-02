@@ -465,14 +465,13 @@ extensions as a list of strings. Leaves point at the end of pragma"
     (modify-syntax-entry ?,  "/" tbl) ;; Disable , since it's part of syntax
     (modify-syntax-entry ?.  "_" tbl) ;; So that we match qualified names.
     tbl)
-  "Special syntax table for haskell that allows to recognize symbols that contain
+  "Special syntax table for Haskell that allows to recognize symbols that contain
 both unicode and ascii characters.")
 
-;;;###autoload
-(defun bounds-of-haskell-symbol ()
-    (save-excursion
+(defun haskell-misc--bounds-of-symbol-with-syntax-table (tbl)
+  (save-excursion
     (save-match-data
-      (with-syntax-table haskell-symbol--identifier-syntax-table
+      (with-syntax-table tbl
         (forward-char 1)
         (let ((start nil)
               (end nil)
@@ -494,7 +493,26 @@ both unicode and ascii characters.")
           (cons start end))))))
 
 ;;;###autoload
+(defun bounds-of-haskell-symbol ()
+  (haskell-misc--bounds-of-symbol-with-syntax-table haskell-symbol--identifier-syntax-table))
+
+;;;###autoload
 (put 'haskell-symbol 'bounds-of-thing-at-point #'bounds-of-haskell-symbol)
+
+(defvar ghc-core-symbol--identifier-syntax-table
+  (let ((tbl (copy-syntax-table haskell-symbol--identifier-syntax-table)))
+    (modify-syntax-entry ?$ "_" tbl)
+    tbl)
+  "Special syntax table for GHC Core that allows to recognize symbols that contain
+both unicode and ascii characters.")
+
+;;;###autoload
+(defun bounds-of-ghc-core-symbol ()
+  (let ((parse-sexp-lookup-properties nil))
+    (haskell-misc--bounds-of-symbol-with-syntax-table ghc-core-symbol--identifier-syntax-table)))
+
+;;;###autoload
+(put 'ghc-core-symbol 'bounds-of-thing-at-point #'bounds-of-ghc-core-symbol)
 
 (defvar haskell-symbol--motion-identifier-syntax-table
   (let ((tbl (copy-syntax-table haskell-mode-syntax-table)))
