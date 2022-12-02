@@ -689,7 +689,7 @@ _<tab>_: reindent  _h_: jump to topmont node end"
     ("," haskell-cabal-smart-operators-comma)))
 
 ;;;###autoload
-(defun ghc-core-setup ()
+(defun ghc-core-mode-setup ()
   (pretty-ligatures-install-special-haskell-ligatures!)
   (pretty-ligatures-install!)
   (hl-line-mode +1)
