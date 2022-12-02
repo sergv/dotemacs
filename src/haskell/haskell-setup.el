@@ -377,6 +377,7 @@ _<tab>_: reindent  _h_: jump to topmont node end"
     ;; So that ‘backward-sexp’ will reach ‘Foo’ when run on ‘Foo.Ba_|_r’.
     ;; This is relied upon by ‘paredit-raise-sexp’.
     (modify-syntax-entry ?.  "_")
+    (modify-syntax-entry ?#  "_")
 
     (setq-local flycheck-enhancements--get-project-root-for-current-buffer
                 #'haskell-misc-get-project-root
