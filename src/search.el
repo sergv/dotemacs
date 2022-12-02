@@ -85,6 +85,15 @@ highlighting searches.")
 (defvar-local search--case-sensetive nil
   "Becomes set to t during case-sensetive matches.")
 
+(defvar-local search-syntax-table nil
+  "Syntax table to use when doing searches in this buffer.")
+
+(defvar-local search-ignore-syntax-text-properties nil
+  "Set ‘parse-sexp-lookup-properties’ to nil when doing searches. This makes regexps like \\_<
+pay attention only to syntax table when doing searches rather than taking text properties
+into account.")
+
+
 (defconst +search-highlight-faces+
   [search-highlight-face
    search-red-face
@@ -297,6 +306,12 @@ Highlighting starts at the beginning of buffer.")
        (not (string-match-p "\\\\$" regex))
        (not (gethash regex +search-ignore-regexps+))))
 
+(defmacro searh--prepare-syntax (&rest body)
+  (declare (indent 0))
+  `(let ((parse-sexp-lookup-properties (not search-ignore-syntax-text-properties)))
+     (with-optional-syntax-table search-syntax-table
+       ,@body)))
+
 (defun search--update (regexp)
   "Update search for REGEXP in current buffer."
   (when (search--regex-valid? regexp)
@@ -354,23 +369,25 @@ Highlighting starts at the beginning of buffer.")
   "Move to the next match for `search--current-regexp' in current-buffer."
   (unless (gethash search--current-regexp +search-ignore-regexps+)
     (let ((case-fold-search (not search--case-sensetive)))
-      (wrap-search-around
-          forward
-        (re-search-forward search--current-regexp nil t)
-        :not-found-message
-        (concat "Nothing found for regexp " search--current-regexp)
-        :count count))))
+      (searh--prepare-syntax
+       (wrap-search-around
+           forward
+         (re-search-forward search--current-regexp nil t)
+         :not-found-message
+         (concat "Nothing found for regexp " search--current-regexp)
+         :count count)))))
 
 (defun search--prev-impl (count)
   "Move to the previous match for `search--current-regexp' in current-buffer."
   (unless (gethash search--current-regexp +search-ignore-regexps+)
     (let ((case-fold-search (not search--case-sensetive)))
-      (wrap-search-around
-          backward
-        (re-search-backward search--current-regexp nil t)
-        :not-found-message
-        (concat "Nothing found for regexp " search--current-regexp)
-        :count count))))
+      (searh--prepare-syntax
+       (wrap-search-around
+           backward
+         (re-search-backward search--current-regexp nil t)
+         :not-found-message
+         (concat "Nothing found for regexp " search--current-regexp)
+         :count count)))))
 
 ;; Some highlight-specific parameters
 
@@ -383,25 +400,26 @@ Highlighting starts at the beginning of buffer.")
       (goto-char (point-min))
       (let ((i 0)
             (case-fold-search (not search--case-sensetive)))
-        (while (and (< i +search-highlight-limit+)
-                    (re-search-forward regexp nil t))
-          (let* ((text-length (- (match-end 0) (match-beginning 0)))
-                 (overlay (when (< text-length +search-maximum-highlight-length+)
-                            (make-overlay (match-beginning 0)
-                                          (match-end 0))))
-                 (highlight-face (aref +search-highlight-faces+
-                                       search--highlight-face-index)))
-            (overlay-put overlay 'face highlight-face)
-            ;; Original-face stores real highlighting face for the overlay.
-            ;; The intention is that 'face attribute may be set to nil
-            ;; in order to disable highlighting, but also it may need
-            ;; to be restored later. The 'original-face preserves face until
-            ;; it's restored.
-            (overlay-put overlay 'original-face highlight-face)
-            (overlay-put overlay 'is-search-highlighting-overlay t)
-            (overlay-put overlay 'search-overlay-face-index search--highlight-face-index)
-            (push overlay search--match-overlays)
-            (cl-incf i)))))))
+        (searh--prepare-syntax
+         (while (and (< i +search-highlight-limit+)
+                     (re-search-forward regexp nil t))
+           (let* ((text-length (- (match-end 0) (match-beginning 0)))
+                  (overlay (when (< text-length +search-maximum-highlight-length+)
+                             (make-overlay (match-beginning 0)
+                                           (match-end 0))))
+                  (highlight-face (aref +search-highlight-faces+
+                                        search--highlight-face-index)))
+             (overlay-put overlay 'face highlight-face)
+             ;; Original-face stores real highlighting face for the overlay.
+             ;; The intention is that 'face attribute may be set to nil
+             ;; in order to disable highlighting, but also it may need
+             ;; to be restored later. The 'original-face preserves face until
+             ;; it's restored.
+             (overlay-put overlay 'original-face highlight-face)
+             (overlay-put overlay 'is-search-highlighting-overlay t)
+             (overlay-put overlay 'search-overlay-face-index search--highlight-face-index)
+             (push overlay search--match-overlays)
+             (cl-incf i))))))))
 
 (defun search--clean-overlays-with-face-index (idx)
   "Remove all search overlays. Must be called in buffer that initiated search."
@@ -541,6 +559,14 @@ obvious"
       "\\>"
     ""))
 
+(defsubst search-for-ghc-core-symbol-at-point-regex-start-func (pat)
+  (if (string-match-p "^[a-zA-Z0-9$]" pat)
+      "\\_<"
+    ""))
+
+(defsubst search-for-ghc-core-symbol-at-point-regex-end-func (pat)
+  (search-for-haskell-symbol-at-point-regex-end-func pat))
+
 ;;;###autoload (autoload 'search-for-haskell-symbol-at-point-forward "search" nil t)
 ;;;###autoload (autoload 'search-for-haskell-symbol-at-point-forward-new-color "search" nil t)
 (search--make-search-for-thing
@@ -563,6 +589,30 @@ obvious"
   :is-forward nil
   :regex-start-func #'search-for-haskell-symbol-at-point-regex-start-func
   :regex-end-func #'search-for-haskell-symbol-at-point-regex-end-func
+  :error-message "No symbol at point")
+
+;;;###autoload (autoload 'search-for-ghc-core-symbol-at-point-forward "search" nil t)
+;;;###autoload (autoload 'search-for-ghc-core-symbol-at-point-forward-new-color "search" nil t)
+(search--make-search-for-thing
+    search-for-ghc-core-symbol-at-point-forward
+    search-for-ghc-core-symbol-at-point-forward-new-color
+    (bounds-of-thing-at-point 'ghc-core-symbol)
+    (lambda (x) `(search--next-impl ,x))
+  :is-forward t
+  :regex-start-func #'search-for-ghc-core-symbol-at-point-regex-start-func
+  :regex-end-func #'search-for-ghc-core-symbol-at-point-regex-end-func
+  :error-message "No symbol at point")
+
+;;;###autoload (autoload 'search-for-ghc-core-symbol-at-point-backward "search" nil t)
+;;;###autoload (autoload 'search-for-ghc-core-symbol-at-point-backward-new-color "search" nil t)
+(search--make-search-for-thing
+    search-for-ghc-core-symbol-at-point-backward
+    search-for-ghc-core-symbol-at-point-backward-new-color
+    (bounds-of-thing-at-point 'ghc-core-symbol)
+    (lambda (x) `(search--prev-impl ,x))
+  :is-forward nil
+  :regex-start-func #'search-for-ghc-core-symbol-at-point-regex-start-func
+  :regex-end-func #'search-for-ghc-core-symbol-at-point-regex-end-func
   :error-message "No symbol at point")
 
 ;; Lispocentric searches
