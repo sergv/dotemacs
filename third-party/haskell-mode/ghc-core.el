@@ -138,6 +138,13 @@ in the current buffer."
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.dump-simpl\\'" . ghc-core-mode))
 
+(defvar ghc-core-mode-syntax-table
+  (let ((tbl (copy-syntax-table haskell-mode-syntax-table)))
+    (modify-syntax-entry ?$ "_" tbl)
+    (modify-syntax-entry ?# "_" tbl)
+    (modify-syntax-entry ?. "_")
+    tbl))
+
 ;;;###autoload
 (define-derived-mode ghc-core-mode haskell-mode "GHC-Core"
   "Major mode for GHC Core files.")
