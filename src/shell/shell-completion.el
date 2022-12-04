@@ -1963,14 +1963,8 @@ under version-control directories."
                        ,(concat "--" p "-option")
                        ,(concat "--" p "-options")))
                    programs))
-         (build-flags `("--only-dependencies"
-                        "--dependencies-only"))
-         (run-flags `(,@help-verbosity-flags
-                      ,@builddir-flags
-                      ,@build-flags
-                      "-j"
-                      "--jobs"
-                      ,@program-options-flags))
+         (deps-flags `("--only-dependencies"
+                       "--dependencies-only"))
          (configure-flags `(,@help-verbosity-flags
                             ,@builddir-flags
                             "-g"
@@ -2101,7 +2095,7 @@ under version-control directories."
       ("install"
        (opts
         (flags ,@configure-flags
-               ,@build-flags
+               ,@deps-flags
                "--enable-documentation"
                "--disable-documentation"
                "--doc-index-file"
@@ -2162,8 +2156,12 @@ under version-control directories."
       ("report")
       ("run"
        (opts
-        (flags
-         ,@run-flags)))
+        (flags ,@help-verbosity-flags
+               ,@builddir-flags
+               ,@deps-flags
+               "-j"
+               "--jobs"
+               ,@program-options-flags)))
       ("init"
        (opts
         (flags "-h"
@@ -2217,13 +2215,17 @@ under version-control directories."
       ("build"
        (opts
         (flags ,@configure-flags
-               ,@build-flags
+               ,@deps-flags
                "-j"
-               "--jobs")))
+               "--jobs")
+        (args (pcomplete-here '("all")))))
       ("repl"
        (opts
-        (flags
-         ,@run-flags)))
+        (flags ,@help-verbosity-flags
+               ,@builddir-flags
+               "-j"
+               "--jobs"
+               "--build-depends")))
       ("sandbox"
        (or ("init")
            ("delete")
