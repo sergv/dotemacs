@@ -29,6 +29,16 @@ build-type:
 --     , base ^>= 4.9
 --     , Cabal ^>= 1.16
 
+extra-source-files:
+  Changelog.md
+  Readme.md
+
+homepage: https://github.com/sergv/${filename no ext}
+
+source-repository head
+  type: git
+  location: https://github.com/sergv/${filename no ext}.git
+
 common ghc-options
   default-language:
     Haskell2010
