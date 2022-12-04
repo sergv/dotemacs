@@ -16,7 +16,7 @@
 
           stdenv = pkgs.stdenv;
 
-          hpkgs = pkgs.haskell.packages.ghc924;
+          hpkgs = pkgs.haskell.packages.ghc943;
       in {
         devShell = pkgs.mkShell {
 
