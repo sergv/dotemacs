@@ -693,6 +693,7 @@ _<tab>_: reindent  _h_: jump to topmont node end"
 (defun ghc-core-mode-setup ()
   (init-common :use-comment t
                :use-yasnippet t)
+  (haskell-setup-folding :enable-cpp nil)
   (pretty-ligatures-install-special-haskell-ligatures!)
   (pretty-ligatures-install!)
   (hl-line-mode +1)
