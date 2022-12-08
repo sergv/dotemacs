@@ -35,23 +35,27 @@
 
 (defmacro haskell-abbrev+--is-function-available (function-name module-name)
   `(save-excursion
-     (save-match-data
-       (goto-char (point-min))
-       (re-search-forward
-        (rx (or ,@(when function-name (list `(seq bow ,function-name eow)))
-                ,@(when module-name   (list `(seq bol "import" (* any) ,module-name)))))
-        nil
-        t))))
+     (save-restriction
+       (widen)
+       (save-match-data
+         (goto-char (point-min))
+         (re-search-forward
+          (rx (or ,@(when function-name (list `(seq bow ,function-name eow)))
+                  ,@(when module-name   (list `(seq bol "import" (* any) ,module-name)))))
+          nil
+          t)))))
 
 (defun haskell-abbrev+--ensure-debug-trace-available ()
   (unless (haskell-abbrev+--is-function-available nil
                                                   (or (seq "qualified" (* any) symbol-start "Debug.Trace" symbol-end)
                                                       (seq symbol-start "Debug.Trace" (or eol (seq symbol-end (* any) "qualified")))))
-    (save-excursion
-      (haskell-navigate-imports)
-      (if (haskell-ext-tracking-have-import-qualified-post?)
-          (insert "import Debug.Trace qualified\n\n")
-        (insert "import qualified Debug.Trace\n\n")))))
+    (save-restriction
+      (save-excursion
+        (widen)
+        (haskell-navigate-imports)
+        (insert (if (haskell-ext-tracking-have-import-qualified-post?)
+                    "import Debug.Trace qualified\n\n"
+                  "import qualified Debug.Trace\n\n"))))))
 
 (defun haskell-insert-general-info-template (_arg monadic? trace-func-name)
   (let* ((start-position (point))
