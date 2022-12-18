@@ -64,7 +64,9 @@
                                         (or "hcr"
                                             "dump-simpl"
                                             "dump-splices"
-                                            "dump-spec")
+                                            "dump-spec"
+                                            "dump-str-signatures"
+                                            "dump-stranal")
                                         eos)
                                     #'ghc-core-mode))
 
