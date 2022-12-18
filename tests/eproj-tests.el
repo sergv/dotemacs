@@ -209,9 +209,9 @@ under ROOT directory."
               "FACTORIAL_H_"
               "item"
               "next")))
-      (should-not (null? proj))
+      (should-not (null proj))
       (should (eproj-tests/paths=? path (eproj-project/root proj)))
-      (should-not (null? tags-index))
+      (should-not (null tags-index))
       (should-not (= 0 (length (eproj--get-tags proj))))
       (should (eproj-tag-index-p tags-index))
       (should-not (= 0 (eproj-tag-index-size tags-index)))
@@ -236,14 +236,14 @@ under ROOT directory."
     "eproj-tests/project-with-eproj-file-and-tags-file"
   (let ((path eproj-tests/project-with-eproj-file-and-tags-file))
     (eproj-reset-projects)
-    (should (not (null? (eproj-get-initial-project-root path))))
+    (should (not (null (eproj-get-initial-project-root path))))
     (eproj-reset-projects)
-    (should (not (null? (eproj-get-initial-project-root (concat path "/Foo")))))
+    (should (not (null (eproj-get-initial-project-root (concat path "/Foo")))))
     (eproj-reset-projects)
-    (should (not (null? (eproj-get-initial-project-root (concat path "/Foo/Bar")))))
+    (should (not (null (eproj-get-initial-project-root (concat path "/Foo/Bar")))))
     (eproj-reset-projects)
     (let ((proj (eproj-get-project-for-path path)))
-      (should (not (null? proj)))
+      (should (not (null proj)))
       (should (eproj-tests/paths=? path (eproj-project/root proj)))
 
       (should (equal (eproj-tests/normalize-file-list
@@ -290,7 +290,7 @@ under ROOT directory."
     "eproj-tests/project-with-file-list"
   (let* ((path eproj-tests/project-with-file-list)
          (proj (eproj-get-project-for-path path)))
-    (should (not (null? proj)))
+    (should (not (null proj)))
     (should (eproj-tests/paths=? path (eproj-project/root proj)))
 
     (should (equal (eproj-tests/normalize-file-list
@@ -301,7 +301,7 @@ under ROOT directory."
  "eproj-tests/project-with-ignored-files"
  (let* ((path eproj-tests/project-with-ignored-files)
         (proj (eproj-get-project-for-path path)))
-   (should (not (null? proj)))
+   (should (not (null proj)))
    (should (eproj-tests/paths=? path (eproj-project/root proj)))
 
    (let ((distribution-test-path (concat path "/Foo/Distribution/Test.hs")))
@@ -347,7 +347,7 @@ under ROOT directory."
                        "/main-project"))
          (proj (eproj-get-project-for-path path)))
     (should (eproj-tests/paths=? path (eproj-project/root proj)))
-    (should (not (null? (eproj-project/related-projects proj))))
+    (should (not (null (eproj-project/related-projects proj))))
 
     (let ((related-roots-norm
            (eproj-tests/normalize-file-list
