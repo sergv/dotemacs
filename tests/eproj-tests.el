@@ -102,6 +102,9 @@ under ROOT directory."
 (defconst eproj-tests/project-with-ignored-files
   (expand-file-name (concat eproj-tests/project-dir "/haskell-project-with-ignored-files")))
 
+(defconst eproj-tests/project-with-manual-default
+  (expand-file-name (concat eproj-tests/project-dir "/haskell-project-with-manual-default")))
+
 (defconst eproj-tests/implicit-haskell-project-archive
   (expand-file-name (concat eproj-tests/project-dir "/haskell-implicit-project.zip")))
 
@@ -340,6 +343,29 @@ under ROOT directory."
                                           'haskell-mode
                                           "IgnoredM"
                                           nil)))))
+
+(eproj-tests--define-tests
+ "eproj-tests/haskell-project-with-manually-configured-default-projects"
+ (let* ((path eproj-tests/project-with-manual-default)
+        (eproj/default-projects (alist->hash-table
+                                 (list (cons 'haskell-mode
+                                             (list (concat path "/default")))))))
+   (let ((proj (eproj-get-project-for-path (concat path "/main"))))
+     (should (not (null proj)))
+
+     (should (memq 'haskell-mode (eproj-project/no-default-project-for proj)))
+
+     (should (eproj-get-matching-tags proj 'haskell-mode "foo" nil))
+     (should (eproj-get-matching-tags proj 'haskell-mode "bar" nil))
+     (should-not (eproj-get-matching-tags proj 'haskell-mode "baz" nil))
+
+     (let ((related-proj (eproj-get-project-for-path (concat path "/related"))))
+       (should (not (null related-proj)))
+       (should (null (eproj-project/no-default-project-for related-proj)))
+
+       (should-not (eproj-get-matching-tags related-proj 'haskell-mode "foo" nil))
+       (should (eproj-get-matching-tags related-proj 'haskell-mode "bar" nil))
+       (should (eproj-get-matching-tags related-proj 'haskell-mode "baz" nil))))))
 
 (eproj-tests--define-tests
     "eproj-tests/eproj-related-project-files-are-not-included-into-main-project"
