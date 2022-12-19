@@ -47,6 +47,9 @@
 ;; Alternative to cabal’s /tmp/dist, etc.
 ;; [(build-dir <abs-or-rel-dir>)]
 ;;
+;; Don’t use default projects for these modes
+;; [(no-default-proj haskell-mode c-mode...)]
+;;
 ;; [...] - optional directive
 ;; <abs-or-rel-dir> - absolute or relative path to directory
 ;; <abs-or-rel-file> - absolute or relative path to file
@@ -339,6 +342,8 @@ get proper flycheck checker."
   (create-tag-files      nil :read-only t)
   ;; string, provided path to the tags file
   (tag-file              nil :read-only t)
+  ;; list of symbols, may be empty
+  (no-default-project-for nil :read-only t)
 
   ;; List of glob strings to include into navigation lists
   (extra-navigation-globs nil :read-only t)
@@ -661,10 +666,12 @@ for project at ROOT directory."
          (cached-ignored-files-re
           (let ((related-projs-globs
                  (--map (concat it "/*") related-projects)))
-            (globs-to-regexp (append ignored-files-globs related-projs-globs)))))
+            (globs-to-regexp (append ignored-files-globs related-projs-globs))))
+         (no-default-project-for (cdr-safe (assq 'no-default-proj aux-info))))
     (cl-assert (sequencep languages) nil "Project languages is not a sequence: %s" languages)
     (cl-assert (listp extra-navigation-globs))
     (cl-assert (-all? #'stringp extra-navigation-globs))
+    (cl-assert (-all? #'symbolp no-default-project-for))
     (let ((proj
            (make-eproj-project :root root
                                :aux-info aux-info
@@ -678,6 +685,7 @@ for project at ROOT directory."
                                :create-tag-files create-tag-files
                                :tag-file (awhen tag-file
                                            (eproj--resolve-to-abs-path-cached it root))
+                               :no-default-project-for no-default-project-for
                                :extra-navigation-globs extra-navigation-globs
                                :cached-files-for-navigation nil
                                :transient-files-for-navigation nil
@@ -1124,12 +1132,19 @@ Returns nil if no relevant entry found in AUX-INFO."
 be regarded as related projects when looking for tags in said major mode from any
 project.")
 
+(defun eproj--get-default-projects (proj mode)
+  "Get default projects associated with MODE for PROJ."
+  (cl-assert (symbolp mode))
+  (cl-assert (eproj-project-p proj))
+  (unless (memq mode (eproj-project/no-default-project-for proj))
+    (gethash mode eproj/default-projects nil)))
+
 (defun eproj-get-all-related-projects (proj)
   "Return transitive closure all projects realted to PROJ."
   (let ((all-related-default-projects
          (-mapcat (lambda (mode)
                     (-map #'eproj-get-project-for-path
-                          (gethash mode eproj/default-projects nil)))
+                          (eproj--get-default-projects proj mode)))
                   (eproj-project/languages proj))))
     (eproj--transitive-closure-of-related-projects
      (cons proj all-related-default-projects))))
@@ -1143,7 +1158,7 @@ projects into the mix."
   (eproj--transitive-closure-of-related-projects
    (cons proj
          (-map #'eproj-get-project-for-path
-               (gethash mode eproj/default-projects nil)))))
+               (eproj--get-default-projects proj mode)))))
 
 (defun eproj--transitive-closure-of-related-projects (projs-to-close-over)
   (cl-assert (-all? #'eproj-project-p projs-to-close-over))

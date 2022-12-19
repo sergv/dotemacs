@@ -1,0 +1,3 @@
+((languages haskell-mode)
+ (related "../related")
+ (no-default-proj haskell-mode))
