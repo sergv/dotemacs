@@ -10,6 +10,8 @@ synopsis:
   TODO
 description:
   TODO
+copyright:
+  (c) ${author} ${date year}
 license:
   ${license spdx}
 -- license-file:
