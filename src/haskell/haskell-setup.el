@@ -97,8 +97,8 @@
     (error "dante is not enabled"))
   (vim:flycheck-clear)
   (dante-destroy)
-  (lcr-cps-let ((_ (dante-session)))
-    (flycheck-buffer)))
+  (lcr-spawn (lcr-call dante-start))
+  (flycheck-buffer))
 
 (vim-defcmd vim:haskell-dante-configure (nonrepeatable)
   (haskell-misc--configure-dante!))
