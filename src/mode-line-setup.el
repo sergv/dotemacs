@@ -49,6 +49,10 @@
       (format " [%s]"
               (count-lines-fixed start end)))))
 
+(defun mode-line-show-search-matches ()
+  "Show number of items that matched last search `mode-line-format'."
+  search--mode-line-matches)
+
 (cl-defun use-repl-modeline (&key (show-directory nil))
   "Set up `mode-line' for use in vairous repl."
   (setf mode-line-format
@@ -67,6 +71,7 @@
             "/"
             (:eval (mode-line-show-line-count-uncached))))
           (:eval (mode-line-show-region-size))
+          (:eval (mode-line-show-search-matches))
 
           ,@(when show-directory
               '("  "
@@ -105,6 +110,7 @@
       "/"
       (:eval (mode-line-show-line-count))))
     (:eval (mode-line-show-region-size))
+    (:eval (mode-line-show-search-matches))
     ;; (which-func-mode (" (" which-func-format ")"))
     global-mode-string))
 
