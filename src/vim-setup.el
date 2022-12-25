@@ -149,7 +149,7 @@ _cu_: uncomment  _n_arrow to region
   ("cu" comment-util-uncomment-region-simple)
 
   ("s"  vim:replace-selected:interactive)
-  ("n"  narrow-to-region))
+  ("n"  vim:narrow-to-region:interactive))
 
 (defhydra-ext hydra-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
   "
