@@ -40,28 +40,57 @@
   :group 'search)
 
 (defface search-red-face `((t (:background ,+solarized-red+)))
-  "Alternative red face."
+  "Red face to highlight matches."
   :group 'search)
 (defface search-orange-face `((t (:background ,+solarized-orange+)))
-  "Alternative orange face."
+  "Orange face to highlight matches."
   :group 'search)
 (defface search-yellow-face `((t (:background ,+solarized-yellow+)))
-  "Alternative yellow face."
+  "Yellow face to highlight matches."
   :group 'search)
 (defface search-green-face `((t (:background ,+solarized-green+)))
-  "Alternative green face."
+  "Green face to highlight matches."
   :group 'search)
 (defface search-cyan-face `((t (:background ,+solarized-cyan+)))
-  "Alternative cyan face."
+  "Cyan face to highlight matches."
   :group 'search)
 (defface search-blue-face `((t (:background ,+solarized-blue+)))
-  "Alternative blue face."
+  "Blue face to highlight matches."
   :group 'search)
 (defface search-violet-face `((t (:background ,+solarized-violet+)))
-  "Alternative violet face."
+  "Violet face to highlight matches."
   :group 'search)
 (defface search-magenta-face `((t (:background ,+solarized-magenta+)))
-  "Alternative magenta face."
+  "Magenta face to highlight matches."
+  :group 'search)
+
+
+(defface search-modeline-highlight-face '((t (:inherit lazy-highlight)))
+  "Main face to show number of matches in mode-line."
+  :group 'search)
+(defface search-modeline-red-face `((t (:background ,+solarized-red+)))
+  "Red face to show number of matches in mode-line."
+  :group 'search)
+(defface search-modeline-orange-face `((t (:background ,+solarized-orange+)))
+  "Orange face to show number of matches in mode-line."
+  :group 'search)
+(defface search-modeline-yellow-face `((t (:background ,+solarized-yellow+)))
+  "Yellow face to show number of matches in mode-line."
+  :group 'search)
+(defface search-modeline-green-face `((t (:background ,+solarized-green+)))
+  "Green face to show number of matches in mode-line."
+  :group 'search)
+(defface search-modeline-cyan-face `((t (:background ,+solarized-cyan+)))
+  "Cyan face to show number of matches in mode-line."
+  :group 'search)
+(defface search-modeline-blue-face `((t (:background ,+solarized-blue+)))
+  "Blue face to show number of matches in mode-line."
+  :group 'search)
+(defface search-modeline-violet-face `((t (:background ,+solarized-violet+)))
+  "Violet face to show number of matches in mode-line."
+  :group 'search)
+(defface search-modeline-magenta-face `((t (:background ,+solarized-magenta+)))
+  "Magenta face to show number of matches in mode-line."
   :group 'search)
 
 ;;; buffer-local search state
@@ -79,6 +108,14 @@ highlighting searches.")
 (defvar-local search--match-overlays nil
   "List of overlays which highlight matches for regexp being searched for.")
 
+(defvar-local search--mode-line-matches-info (make-hash-table :test #'eq)
+  "Hash table mapping successive values of ‘search--highlight-face-index’ to formatted strings
+denoting number of matches for the given index.")
+
+(defvar-local search--mode-line-matches nil
+  "String showing number of matches for last search session to use in ‘mode-line-format’. Aggregates
+info in ‘search--mode-line-matches-info’.")
+
 (defvar-local search--direction-forward? nil
   "Whether we're searching in the forward direction right now. Either t or nil.")
 
@@ -95,16 +132,17 @@ into account.")
 
 
 (defconst +search-highlight-faces+
-  [search-highlight-face
-   search-red-face
-   search-orange-face
-   search-yellow-face
-   search-green-face
-   search-cyan-face
-   search-blue-face
-   search-violet-face])
+  (vector
+   (cons 'search-highlight-face 'search-modeline-highlight-face)
+   (cons 'search-red-face 'search-modeline-red-face)
+   (cons 'search-orange-face 'search-modeline-orange-face)
+   (cons 'search-yellow-face 'search-modeline-yellow-face)
+   (cons 'search-green-face 'search-modeline-green-face)
+   (cons 'search-cyan-face 'search-modeline-cyan-face)
+   (cons 'search-blue-face 'search-modeline-blue-face)
+   (cons 'search-violet-face 'search-modeline-violet-face)))
 
-(defsubst search--reset-search-highlight-face-index ()
+(defsubst search--reset-search-highlight-face-index! ()
   (setf search--highlight-face-index 0))
 
 (defun search--increment-search-highlight-face-index ()
@@ -398,31 +436,57 @@ Highlighting starts at the beginning of buffer.")
              (not (gethash regexp +search-ignore-regexps+)))
     (save-excursion
       (goto-char (point-min))
-      (let ((i 0)
-            (case-fold-search (not search--case-sensetive)))
+      (let* ((i 0)
+             (case-fold-search (not search--case-sensetive))
+             (highlight-faces (aref +search-highlight-faces+
+                                    search--highlight-face-index))
+             (highlight-face (car highlight-faces)))
         (searh--prepare-syntax
-         (while (and (< i +search-highlight-limit+)
-                     (re-search-forward regexp nil t))
-           (let* ((text-length (- (match-end 0) (match-beginning 0)))
-                  (overlay (when (< text-length +search-maximum-highlight-length+)
-                             (make-overlay (match-beginning 0)
-                                           (match-end 0))))
-                  (highlight-face (aref +search-highlight-faces+
-                                        search--highlight-face-index)))
-             (overlay-put overlay 'face highlight-face)
-             ;; Original-face stores real highlighting face for the overlay.
-             ;; The intention is that 'face attribute may be set to nil
-             ;; in order to disable highlighting, but also it may need
-             ;; to be restored later. The 'original-face preserves face until
-             ;; it's restored.
-             (overlay-put overlay 'original-face highlight-face)
-             (overlay-put overlay 'is-search-highlighting-overlay t)
-             (overlay-put overlay 'search-overlay-face-index search--highlight-face-index)
-             (push overlay search--match-overlays)
-             (cl-incf i))))))))
+          (while (and (< i +search-highlight-limit+)
+                      (re-search-forward regexp nil t))
+            (let ((text-length (- (match-end 0) (match-beginning 0))))
+              (when-let ((overlay (when (< text-length +search-maximum-highlight-length+)
+                                    (make-overlay (match-beginning 0)
+                                                  (match-end 0)))))
+                (overlay-put overlay 'face highlight-face)
+                ;; Original-face stores real highlighting face for the overlay.
+                ;; The intention is that 'face attribute may be set to nil
+                ;; in order to disable highlighting, but also it may need
+                ;; to be restored later. The 'original-face preserves face until
+                ;; it's restored.
+                (overlay-put overlay 'original-face highlight-face)
+                (overlay-put overlay 'is-search-highlighting-overlay t)
+                (overlay-put overlay 'search-overlay-face-index search--highlight-face-index)
+                (push overlay search--match-overlays))
+              (cl-incf i)))
+          (puthash search--highlight-face-index
+                   (propertize
+                    (if (= i +search-highlight-limit+)
+                        (concat (number->string +search-highlight-limit+) "+")
+                      (number->string i))
+                    'face
+                    (cdr highlight-faces))
+                   search--mode-line-matches-info)
+          (setf search--mode-line-matches
+                (concat " "
+                        (mapconcat (lambda (i)
+                                     (let ((str (gethash i search--mode-line-matches-info)))
+                                       (if (and (= i search--highlight-face-index)
+                                                (< 1 (hash-table-count search--mode-line-matches-info)))
+                                           (let ((str2 (copy-sequence str)))
+                                             (add-face-text-property 0
+                                                                     (length str)
+                                                                     '(:inherit highlight)
+                                                                     nil
+                                                                     str2)
+                                             str2)
+                                         str)))
+                                   (-iota (hash-table-count search--mode-line-matches-info))
+                                   "/"))))))))
 
 (defun search--clean-overlays-with-face-index (idx)
-  "Remove all search overlays. Must be called in buffer that initiated search."
+  "Remove all search overlays for given face index IDX. Must be
+called in buffer that initiated search."
   (save-excursion
     (setf search--match-overlays
           (delete-if-with-action!
@@ -431,25 +495,27 @@ Highlighting starts at the beginning of buffer.")
            search--match-overlays
            #'delete-overlay))))
 
-(defun search--clean-all-overlays ()
+(defun search--clean-all-overlays! ()
   "Remove all search overlays in current buffer."
   (save-excursion
     (dolist (o search--match-overlays)
       (delete-overlay o))
-    (setf search--match-overlays nil)
+    (setf search--match-overlays nil
+          search--mode-line-matches nil)
+    (clrhash search--mode-line-matches-info)
     (remove-overlays (point-min) (point-max) 'is-search-highlighting-overlay t)))
 
 (defun search-disable-highlighting ()
   "Disable highlighting in current buffer."
-  (search--clean-all-overlays)
-  (search--reset-search-highlight-face-index))
+  (search--clean-all-overlays!)
+  (search--reset-search-highlight-face-index!))
 
 (defun search-disable-all-highlighting ()
   "Disable highlighting in all buffers."
   (dolist (buf (buffer-list))
     (with-current-buffer buf
-      (search--clean-all-overlays)
-      (search--reset-search-highlight-face-index))))
+      (search--clean-all-overlays!)
+      (search--reset-search-highlight-face-index!))))
 
 ;;;###autoload
 (defun search-highlighting-is-enabled? ()
