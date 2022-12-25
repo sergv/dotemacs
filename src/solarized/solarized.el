@@ -632,6 +632,16 @@
       (search-violet-face    :box (:line-width ,box-line-width :color ,violet :extend nil))
       (search-magenta-face   :box (:line-width ,box-line-width :color ,magenta :extend nil))
 
+      (search-modeline-highlight-face :foreground ,magenta)
+      (search-modeline-red-face       :foreground ,red)
+      (search-modeline-orange-face    :foreground ,orange)
+      (search-modeline-yellow-face    :foreground ,yellow)
+      (search-modeline-green-face     :foreground ,green)
+      (search-modeline-cyan-face      :foreground ,cyan)
+      (search-modeline-blue-face      :foreground ,blue)
+      (search-modeline-violet-face    :foreground ,violet)
+      (search-modeline-magenta-face   :foreground ,magenta)
+
       ;; other faces
       (antlr-font-lock-default-face :inherit default)
       (antlr-font-lock-keyword-face :inherit font-lock-keyword-face)
