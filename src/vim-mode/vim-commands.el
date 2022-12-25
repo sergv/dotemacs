@@ -816,6 +816,10 @@ block motions."
           (error "Region contains something beside number: ‘%s’"
                  (buffer-substring-no-properties start end)))))))
 
+(vim-defcmd vim:narrow-to-region (nonrepeatable)
+  (with-region-bounds start end
+    (narrow-to-region start end)))
+
 (provide 'vim-commands)
 
 ;; Local Variables:
