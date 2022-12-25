@@ -265,7 +265,7 @@
          ;; (magenta +solarized-magenta+)
 
          (box-line-width (eval-when-compile
-                           (or (when-emacs-version (= it 28)
+                           (or (when-emacs-version (>= it 28)
                                  '(-1 . -1))
                                -1)))
 
