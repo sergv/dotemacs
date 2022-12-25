@@ -282,7 +282,7 @@
       (highlight :background ,background-highlights)
       (menu :foreground ,primary-content :background ,background-highlights)
       (mode-line :foreground ,emphasized-content
-                 :background ,background-highlights
+                 :background ,background
                  :box (:line-width ,box-line-width :color ,emphasized-content))
       (mode-line-buffer-id :foreground ,emphasized-content)
       (mode-line-inactive :foreground ,primary-content
