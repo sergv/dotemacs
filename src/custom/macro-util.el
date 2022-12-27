@@ -600,6 +600,8 @@ return nil otherwise."
      ,@body))
 
 (cl-defmacro with-marker ((marker-var marker-init) &rest body)
+  "Run BODY with MARKER-VAR variable initialized to a marker value
+produced by MARKER-INIT and remove marker after BODY finishes."
   (declare (indent 1))
   `(let ((,marker-var ,marker-init))
      (unwind-protect
