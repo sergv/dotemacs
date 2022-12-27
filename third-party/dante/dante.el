@@ -515,10 +515,38 @@ When the universal argument INSERT is non-nil, insert the type in the buffer."
 
 (defun dante--insert-or-show-fontified (expr insert?)
   (if insert?
-      (save-excursion (goto-char (line-beginning-position))
-                      (insert-char ?\s (current-indentation))
-                      (insert (dante-fontify-expression expr) "\n"))
+      (dante--insert-type expr)
     (message "%s" (dante-fontify-expression expr))))
+
+(defun dante--bwd-word ()
+  (skip-chars-backward " \t")
+  (skip-chars-backward "^ \t")
+  nil)
+
+(defun dante--insert-type (ty)
+  (with-marker (p (point-marker))
+    (set-marker-insertion-type p t)
+    (let ((let-is-prev? (lambda ()
+                          (save-excursion
+                            (dante--bwd-word)
+                            (looking-at-p (rx symbol-start "let" symbol-end)))))
+          (insert-for-let (lambda (indent)
+                            (insert (dante-fontify-expression ty) "\n")
+                            (insert-char ?\s indent))))
+      (if (funcall let-is-prev?)
+          ;; let _|_foo = bar
+          (funcall insert-for-let (current-column))
+        (progn
+          (dante--bwd-word)
+          (let ((col (current-column)))
+            (if (funcall let-is-prev?)
+                (funcall insert-for-let col)
+              (progn
+                (goto-char p)
+                (goto-char (line-beginning-position))
+                (insert-char ?\s (current-indentation))
+                (insert (dante-fontify-expression ty) "\n")))))))
+    (goto-char p)))
 
 (defun dante-info (ident)
   "Get the info about the IDENT at point."
