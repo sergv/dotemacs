@@ -9,6 +9,7 @@
 (eval-when-compile
   (require 'cl-lib))
 
+(require 'dante)
 (require 'haskell-abbrev+)
 (require 'haskell-block-indent)
 (require 'haskell-format-setup)
@@ -4485,6 +4486,139 @@ end."
              "{-# LANGUAGE LambdaCase #-}"
              "module Foo where"
              "")))))
+
+
+(ert-deftest haskell-tests/dante--insert-type--1 ()
+  (haskell-tests--test-buffer-contents
+      (dante--insert-type "foo :: Int -> Int -> Int")
+    (tests-utils--multiline
+     ""
+     "_|_foo x y = x + y"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo :: Int -> Int -> Int"
+     "_|_foo x y = x + y"
+     "")))
+
+(ert-deftest haskell-tests/dante--insert-type--2 ()
+  (haskell-tests--test-buffer-contents
+      (dante--insert-type "foo :: Int -> Int -> Int")
+    (tests-utils--multiline
+     ""
+     "bar z = foo z z"
+     "  where"
+     "    _|_foo x y = x + y"
+     "")
+    (tests-utils--multiline
+     ""
+     "bar z = foo z z"
+     "  where"
+     "    foo :: Int -> Int -> Int"
+     "    _|_foo x y = x + y"
+     "")))
+
+(ert-deftest haskell-tests/dante--insert-type--3 ()
+  (haskell-tests--test-buffer-contents
+      (dante--insert-type "foo :: Int -> Int -> Int")
+    (tests-utils--multiline
+     ""
+     "bar z = do"
+     "  let _|_foo x y = x + y"
+     "  pure $ foo z z"
+     "")
+    (tests-utils--multiline
+     ""
+     "bar z = do"
+     "  let foo :: Int -> Int -> Int"
+     "      _|_foo x y = x + y"
+     "  pure $ foo z z"
+     "")))
+
+(ert-deftest haskell-tests/dante--insert-type--4 ()
+  (haskell-tests--test-buffer-contents
+      (dante--insert-type "foo :: Int -> Int -> Int")
+    (tests-utils--multiline
+     ""
+     "bar z = do"
+     "  let"
+     "    _|_foo x y = x + y"
+     "  pure $ foo z z"
+     "")
+    (tests-utils--multiline
+     ""
+     "bar z = do"
+     "  let"
+     "    foo :: Int -> Int -> Int"
+     "    _|_foo x y = x + y"
+     "  pure $ foo z z"
+     "")))
+
+(ert-deftest haskell-tests/dante--insert-type--5 ()
+  (haskell-tests--test-buffer-contents
+      (dante--insert-type "foo :: Int -> Int -> Int")
+    (tests-utils--multiline
+     ""
+     "bar z = do let _|_foo x y = x + y"
+     "           pure $ foo z z"
+     "")
+    (tests-utils--multiline
+     ""
+     "bar z = do let foo :: Int -> Int -> Int"
+     "               _|_foo x y = x + y"
+     "           pure $ foo z z"
+     "")))
+
+(ert-deftest haskell-tests/dante--insert-type--6 ()
+  (haskell-tests--test-buffer-contents
+      (dante--insert-type "foo :: Int -> Int -> Int")
+    (tests-utils--multiline
+     ""
+     "bar z = do"
+     "  let fo_|_o x y = x + y"
+     "  pure $ foo z z"
+     "")
+    (tests-utils--multiline
+     ""
+     "bar z = do"
+     "  let foo :: Int -> Int -> Int"
+     "      fo_|_o x y = x + y"
+     "  pure $ foo z z"
+     "")))
+
+(ert-deftest haskell-tests/dante--insert-type--7 ()
+  (haskell-tests--test-buffer-contents
+      (dante--insert-type "foo :: Int -> Int -> Int")
+    (tests-utils--multiline
+     ""
+     "bar z = do"
+     "  let !fo_|_o x y = x + y"
+     "  pure $ foo z z"
+     "")
+    (tests-utils--multiline
+     ""
+     "bar z = do"
+     "  let foo :: Int -> Int -> Int"
+     "      !fo_|_o x y = x + y"
+     "  pure $ foo z z"
+     "")))
+
+(ert-deftest haskell-tests/dante--insert-type--8 ()
+  (haskell-tests--test-buffer-contents
+      (dante--insert-type "foo :: Int -> Int -> Int")
+    (tests-utils--multiline
+     ""
+     "bar z = do"
+     "  let !_|_foo x y = x + y"
+     "  pure $ foo z z"
+     "")
+    (tests-utils--multiline
+     ""
+     "bar z = do"
+     "  let foo :: Int -> Int -> Int"
+     "      !_|_foo x y = x + y"
+     "  pure $ foo z z"
+     "")))
 
 ;; (ert "haskell-tests/.*")
 
