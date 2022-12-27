@@ -96,7 +96,7 @@ stick it to the previous operator on line."
                            (haskell-ext-tracking-have-magic-hash?)))
 
          (insert-trailing-space
-          (lambda (whitespace-deleted? before-pt before after)
+          (lambda (whitespace-deleted? whitespace-inserted? before-pt before after)
             ;; Decide whether to insert a space after the operator.
             (when (and insert-space-after
                        (not (and (eq char ?\\)
@@ -106,19 +106,25 @@ stick it to the previous operator on line."
                            (not (eq after ?,))
                          t))
               (when (or (not after) ;; at end of buffer
-                        ;; If the next thing is lambda then we don't want to merge
-                        ;; with its \.
+                        ;; If the next thing is lambda then we don’t want to merge
+                        ;; with its "\".
                         (eq after ?\\)
                         (and (not (or (haskell-smart-operators--is-whitespace-char? after)
-                                      ;; Don't insert space before backtick.
+                                      ;; Don’t insert space before backtick.
                                       (eq after ?\`)
 
-                                      ;; Do not split '|]' token when we're inserting the '|'.
+                                      ;; Do not split "|]" token when we're inserting the "|".
                                       (and (eq char ?|)
                                            (eq after ?\]))
 
                                       (gethash after haskell-smart-operators--operator-chars)))
                              (cond
+                               ;; Don’t insert space after "!" if it’s preceded by a space,
+                               ;; "foo !x !y = ...".
+                               ((and (eq char ?!)
+                                     (or whitespace-inserted?
+                                         (haskell-smart-operators--is-whitespace-char? before)))
+                                nil)
                                ((eq after ?\))
                                 (let ((c (save-excursion
                                            (goto-char before-pt)
@@ -142,7 +148,7 @@ stick it to the previous operator on line."
              (before (char-before)))
          (insert-char ?\s)
          (insert-char char)
-         (funcall insert-trailing-space nil before-pt before (char-after))))
+         (funcall insert-trailing-space nil nil before-pt before (char-after))))
       ;; Must check for arrows here because otherwise
       ;; `smart-operators--literal-insertion?' will treat '--'
       ;; as a comment and not allow to do any meaningful work.
@@ -153,13 +159,14 @@ stick it to the previous operator on line."
        (let ((before-pt (point))
              (before (char-before)))
          (insert-char char)
-         (funcall insert-trailing-space nil before-pt before (char-after))))
+         (funcall insert-trailing-space nil nil before-pt before (char-after))))
       ((or disable-smart-operators?
            (smart-operators--literal-insertion?)
            (not (gethash char haskell-smart-operators--operator-chars)))
        (insert-char char))
       (t
        (let ((whitespace-deleted? nil)
+             (whitespace-inserted? nil)
              (before-pt nil)
              (before nil)
              (after (char-after)))
@@ -168,7 +175,7 @@ stick it to the previous operator on line."
                   ;; If inserting hash then we should not add a space
                   ;; if MagicHash is enabled.
                   (if magic-hash?
-                      nil ;; Stop considering whether to insert space.
+                      (not (eq char ?#)) ;; Stop considering whether to insert space.
                     t)
                   (or at-beginning-of-buffer?
                       ;; After | that is a potential guard.
@@ -182,6 +189,8 @@ stick it to the previous operator on line."
                           (not (or (null prev-prev-char)
                                    (eq prev-prev-char ?\n)
                                    (haskell-smart-operators--is-whitespace-char? prev-prev-char)))))
+                      (and (eq char ?!)
+                           (eq prev-char ?\\))
                       (and (not (eq prev-char ?\s))
                            (not (eq prev-char ?\())
                            ;; Do not insert spaces before @ since it's mostly used
@@ -204,7 +213,8 @@ stick it to the previous operator on line."
                            (not (gethash prev-char haskell-smart-operators--operator-chars)))))
              (progn
                (setq before-pt (point)
-                     before (char-before))
+                     before (char-before)
+                     whitespace-inserted? t)
                (insert-char ?\s))
            ;; Delete spaces backwards if there's operator or open paren char
            ;; before the spaces.
@@ -223,6 +233,10 @@ stick it to the previous operator on line."
                                  ;; here "#_|_", hash is definitely
                                  ;; not part of a name.
                                  t)
+                             t)
+                           ;; Don’t delete whitespace if result would be "\!".
+                           (if (eq char ?!)
+                               (not (eq char-before-spaces ?\\))
                              t)
                            (or (gethash char-before-spaces haskell-smart-operators--operator-chars)
                                (eq char-before-spaces ?\()
@@ -244,7 +258,7 @@ stick it to the previous operator on line."
                    before (char-before))))
          ;; Insert operator char.
          (insert-char char)
-         (funcall insert-trailing-space whitespace-deleted? before-pt before after))))))
+         (funcall insert-trailing-space whitespace-deleted? whitespace-inserted? before-pt before after))))))
 
 ;;;###autoload
 (defun haskell-smart-operators-self-insert (n)
@@ -360,16 +374,17 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
 (defun haskell-smart-operators-exclamation-mark ()
   "Smart insertion for ! aimed at placing bangs within records."
   (interactive "*")
-  (let ((preceded-by-double-colon?
-         (save-excursion
-           (skip-syntax-backward " ")
-           (preceded-by2 ?: ?:))))
-    (if preceded-by-double-colon?
-        (progn
-          (unless (eq (char-before) ?\s)
-            (insert-char ?\s))
-          (insert-char ?!))
-      (haskell-smart-operators--insert-char-surrounding-with-spaces ?!))))
+  (let* ((preceded-by-double-colon?
+          (save-excursion
+            (skip-syntax-backward " ")
+            (preceded-by2 ?: ?:))))
+    (cond
+      (preceded-by-double-colon?
+       (unless (eq (char-before) ?\s)
+         (insert-char ?\s))
+       (insert-char ?!))
+      (t
+       (haskell-smart-operators--insert-char-surrounding-with-spaces ?!)))))
 
 ;;;###autoload
 (defun haskell-smart-operators-quote ()
