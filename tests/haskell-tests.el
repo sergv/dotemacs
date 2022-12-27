@@ -45,6 +45,9 @@
     :buffer-id haskell))
 
 (defmacro haskell-tests--make-multiple-test-buffer-contents (initial entries)
+  "Define a set of tests that share initial buffer state but
+execute diffent actions and reach different buffer states in the
+end."
   (declare (indent 1))
   `(progn
      ,@(cl-loop
@@ -1418,6 +1421,103 @@
      ""
      "foo x = do"
      "  {- test bar  _|_ -} x"
+     "")))
+
+
+(ert-deftest haskell-tests/haskell-smart-operators-exclamation-mark--1 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators-exclamation-mark)
+    (tests-utils--multiline
+     ""
+     "foo x = x + _|_"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = x +! _|_"
+     "")))
+
+(ert-deftest haskell-tests/haskell-smart-operators-exclamation-mark--2 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators-exclamation-mark)
+    (tests-utils--multiline
+     ""
+     "foo x = x !_|_y"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = x !! _|_y"
+     "")))
+
+(ert-deftest haskell-tests/haskell-smart-operators-exclamation-mark--3 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators-exclamation-mark)
+    (tests-utils--multiline
+     ""
+     "foo x = x_|_y"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = x !_|_y"
+     "")))
+
+(ert-deftest haskell-tests/haskell-smart-operators-exclamation-mark--4 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators-exclamation-mark)
+    (tests-utils--multiline
+     ""
+     "foo x = \\_|_y -> x + y"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = \\ !_|_y -> x + y"
+     "")))
+
+(ert-deftest haskell-tests/haskell-smart-operators-exclamation-mark--5 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators-exclamation-mark)
+    (tests-utils--multiline
+     ""
+     "foo x = \\ _|_y -> x + y"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x = \\ !_|_y -> x + y"
+     "")))
+
+(ert-deftest haskell-tests/haskell-smart-operators-exclamation-mark--6 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators-exclamation-mark)
+    (tests-utils--multiline
+     ""
+     "foo _|_x = x + y"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo !_|_x = x + y"
+     "")))
+
+(ert-deftest haskell-tests/haskell-smart-operators-exclamation-mark--7 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators-exclamation-mark)
+    (tests-utils--multiline
+     ""
+     "data Foo = Foo { bar :: _|_Int }"
+     "")
+    (tests-utils--multiline
+     ""
+     "data Foo = Foo { bar :: !_|_Int }"
+     "")))
+
+(ert-deftest haskell-tests/haskell-smart-operators-exclamation-mark--8 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators-exclamation-mark)
+    (tests-utils--multiline
+     ""
+     "data Foo = Foo { bar ::_|_Int }"
+     "")
+    (tests-utils--multiline
+     ""
+     "data Foo = Foo { bar :: !_|_Int }"
      "")))
 
 
