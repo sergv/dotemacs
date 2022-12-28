@@ -371,68 +371,6 @@ main table and value in aux table."
     (not
      (eq value-missing
          (gethash key table value-missing)))))
-;;;
-
-;; this may be useful for something
-;;
-;; (defun make-ntree-node (value children)
-;;   (cons 'ntree-node
-;;         (cons value children)))
-;;
-;; (defun ntree-node? (item)
-;;   (and (list? item) (not (null? item)) (eq? (car item) 'ntree-node)))
-;;
-;; (defun ntree-node-value (node)
-;;   (cl-assert (ntree-node? node))
-;;   (cadr node))
-;;
-;; (defun ntree-node-children (node)
-;;   (cl-assert (ntree-node? node))
-;;   (cddr node))
-;;
-;;
-;; (defun print-ntree (node)
-;;   (cl-assert (ntree-node? node))
-;;   (letrec ((print-node
-;;              (lambda (node prefix)
-;;                (insert prefix
-;;                        (format "%s" (ntree-node-value node))
-;;                        "\n")))
-;;            (print-rec
-;;              (lambda (node offset line-beg)
-;;                (let* ((children (ntree-node-children node))
-;;                       (last (car-safe (last children)))
-;;                       (offset-delta 2)
-;;                       (children-offset (+ offset offset-delta))
-;;                       (children-line-beg
-;;                         (concat line-beg
-;;                                 "|"
-;;                                 (make-string offset-delta ?\s))))
-;;                  (mapc (lambda (child)
-;;                          (funcall print-node child (concat line-beg "+--"))
-;;                          (funcall print-rec
-;;                                   child
-;;                                   children-offset
-;;                                   children-line-beg))
-;;                        (butlast children))
-;;                  (when last
-;;                    (funcall print-node last (concat line-beg "`--"))
-;;                    (funcall print-rec
-;;                             last
-;;                             children-offset
-;;                             children-line-beg))))))
-;;     (funcall print-node node "/")
-;;     (funcall print-rec node 0 "")))
-;;
-;;
-;; (print-ntree (make-ntree-node 'root
-;;                               (list (make-ntree-node 'lvl1-1
-;;                                                      (list (make-ntree-node 'lvl2-1 '())
-;;                                                            (make-ntree-node 'lvl2-2 '())
-;;                                                            (make-ntree-node 'lvl2-3 '())))
-;;                                     (make-ntree-node 'lvl1-2 '())
-;;                                     (make-ntree-node 'lvl1-3 '()))))
-;;
 
 ;;;
 
