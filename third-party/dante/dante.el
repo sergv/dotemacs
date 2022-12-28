@@ -1040,7 +1040,7 @@ This is a standard process sentinel function."
       (if (eq (buffer-local-value 'dante-state buffer) 'deleting)
           (message "GHCi process deleted.")
         (with-current-buffer buffer (setq dante-state 'dead))
-        (dante-show-process-problem buffer change)))))
+        (dante-show-process-problem process change)))))
 
 (defun dante-diagnose ()
   "Show all state info in a help buffer."
@@ -1053,15 +1053,16 @@ This is a standard process sentinel function."
   "Show debug info for dante buffer BUFFER."
   (if buffer
       (with-current-buffer buffer
-        (s-join "\n" (--map (format "%s %S" it (eval it))
-                            '(default-directory dante-ghci-path dante-command-line dante-state dante-queue dante-loaded-file dante-load-message lcr-process-callback))))
+        (s-join "\n" (cons (concat "dante-command-line " (s-join " " dante-command-line))
+                           (--map (format "%s %S" it (eval it))
+                                  '(default-directory dante-ghci-path dante-state dante-queue dante-loaded-file dante-load-message lcr-process-callback)))))
     "No GHCi interaction buffer"))
 
 (defun dante-show-process-problem (process change)
   "Report to the user that PROCESS reported CHANGE, causing it to end."
-  (message "Dante GHCi process failed! Further details in '%s'. Command: %s"
+  (message "Dante GHCi process failed! Further details in '%s'.\nCommand: %s"
            (process-buffer process)
-           (process-command process))
+           (join-lines (process-command process) " "))
   (with-current-buffer (process-buffer process)
     (goto-char (point-max))
     (insert "\n---\n\n"
