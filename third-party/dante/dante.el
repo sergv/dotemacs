@@ -54,6 +54,7 @@
 (eval-when-compile (require 'company))
 
 (require 'common)
+(require 'common-whitespace)
 (require 'haskell-regexen)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -394,6 +395,7 @@ Variable `dante-project-root' can be different because of cabal behaviour.")
 (defvar-local dante-load-message nil "Load messages.")
 (defvar-local dante-loaded-file "<DANTE:NO-FILE-LOADED>")
 (defvar-local dante-queue nil "List of ready GHCi queries.")
+(defvar-local dante--last-process-msg nil "Last message received from the GHC process.")
 (defvar-local dante-state nil
   "The current state.
 - nil: initial state
@@ -945,8 +947,10 @@ If WAIT is nil, abort if Dante is busy.  Pass the dante buffer to CONT"
       (erase-buffer)
       (setq-local dante-command-line (process-command process)))
     (dante-set-state 'starting)
+    (setq-local dante--last-process-msg nil
+                lcr-last-msg-var 'dante--last-process-msg)
     (lcr-process-initialize buffer)
-    (set-process-sentinel process 'dante-sentinel) ; only now can we interact with GHCi
+    (set-process-sentinel process #'dante-sentinel) ; only now can we interact with GHCi
     (lcr-call dante-async-call
               (s-join "\n" (--map (concat ":set " it)
                                   (append dante-load-flags
@@ -957,6 +961,8 @@ If WAIT is nil, abort if Dante is busy.  Pass the dante buffer to CONT"
     (let ((dir (lcr-call dante-async-call ":!pwd")))
       (with-current-buffer buffer (setq dante-ghci-path dir)))
     (dante-set-state 'started)
+    (setq-local dante--last-process-msg nil
+                lcr-last-msg-var nil)
     buffer))
 
 (defun dante-debug (category msg &rest objects)
@@ -1053,16 +1059,20 @@ This is a standard process sentinel function."
   "Show debug info for dante buffer BUFFER."
   (if buffer
       (with-current-buffer buffer
-        (s-join "\n" (cons (concat "dante-command-line " (s-join " " dante-command-line))
-                           (--map (format "%s %S" it (eval it))
-                                  '(default-directory dante-ghci-path dante-state dante-queue dante-loaded-file dante-load-message lcr-process-callback)))))
+        (s-join "\n"
+                (cons (concat "Last message\n"
+                              dante--last-process-msg)
+                      (cons (concat "dante-command-line " (s-join " " dante-command-line))
+                            (--map (format "%s %S" it (eval it))
+                                   '(default-directory dante-ghci-path dante-state dante-queue dante-loaded-file dante-load-message lcr-process-callback))))))
     "No GHCi interaction buffer"))
 
 (defun dante-show-process-problem (process change)
   "Report to the user that PROCESS reported CHANGE, causing it to end."
-  (message "Dante GHCi process failed! Further details in '%s'.\nCommand: %s"
+  (message "Dante GHCi process failed! Further details in '%s'.\n%s\n--------------------------------\n%s"
            (process-buffer process)
-           (join-lines (process-command process) " "))
+           (join-lines (process-command process) " ")
+           (trim-whitespace (or dante--last-process-msg "")))
   (with-current-buffer (process-buffer process)
     (goto-char (point-max))
     (insert "\n---\n\n"
