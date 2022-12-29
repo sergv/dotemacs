@@ -40,9 +40,9 @@
 ;;; Code:
 
 (eval-when-compile
-  (defvar dante-repl--command-line-to-use))
+  (defvar dante-repl--command-line-to-use)
+  (require 'cl-lib))
 
-(require 'cl-lib)
 (require 'dash)
 (require 'f)
 (require 'flycheck)
@@ -149,10 +149,10 @@ will be in loaded in different GHCi sessions."
 (defun dante-cabal-new (d)
   "non-nil iff D contains a cabal project file or a cabal file."
   (and (dante-directory-regular-files d
-                                     (rx (or "cabal.project"
-                                             "cabal.project.local"
-                                             ".cabal")
-                                         eos))
+                                      (rx (or "cabal.project"
+                                              "cabal.project.local"
+                                              ".cabal")
+                                          eos))
        t))
 
 (defun dante-cabal-vanilla (d)
@@ -268,60 +268,67 @@ will be in loaded in different GHCi sessions."
                              (concat "-" it))))))
          (repl-options (--mapcat (list "--repl-option" it) ghci-options))
          (mk-dante-method
-          (lambda (name is-enabled-pred find-root-pred repl-buf-name-func template)
-            (make-dante-method
-             :name name
-             :is-enabled-pred is-enabled-pred
-             :find-root-pred find-root-pred
-             :check-command-line
-             (lambda (flake-root)
-               (funcall template flake-root build))
-             :repl-command-line
-             (lambda (flake-root)
-               (dante--mk-repl-cmdline
-                (funcall template flake-root (append repl repl-options))
-                (funcall template flake-root (append repl (cons "--repl-no-load" repl-options)))))
-             :repl-buf-name-func
-             repl-buf-name-func))))
+          (cl-function
+           (lambda
+             (&key name is-enabled-pred find-root-pred repl-buf-name-func template)
+             (make-dante-method
+              :name name
+              :is-enabled-pred is-enabled-pred
+              :find-root-pred find-root-pred
+              :check-command-line
+              (lambda (flake-root)
+                (funcall template flake-root build))
+              :repl-command-line
+              (lambda (flake-root)
+                (dante--mk-repl-cmdline
+                 (funcall template flake-root (append repl repl-options))
+                 (funcall template flake-root (append repl (cons "--repl-no-load" repl-options)))))
+              :repl-buf-name-func
+              repl-buf-name-func)))))
     (dante--mk-methods
      (list
       (funcall mk-dante-method
-               'nix-flakes-build-script      ;; name
-               #'dante-nix-cabal-script-buf? ;; is enabled predicate
-               nil                           ;; find root predicate
-               #'dante-buffer-name--default
+               :name 'nix-flakes-build-script
+               :is-enabled-pred #'dante-nix-cabal-script-buf?
+               :find-root-pred nil
+               :repl-buf-name-func #'dante-buffer-name--default
+               :template
                (lambda (flake-root flags)
                  (nix-call-via-flakes `("cabal" "repl" buffer-file-name ,@flags) flake-root)))
 
       (funcall mk-dante-method
-               'nix-flakes-build      ;; name
-               #'dante-nix-available? ;; is enabled predicate
-               #'dante-cabal-new      ;; find root predicate
-               #'dante-buffer-name--default
+               :name 'nix-flakes-build
+               :is-enabled-pred #'dante-nix-available?
+               :find-root-pred #'dante-cabal-new
+               :repl-buf-name-func #'dante-buffer-name--default
+               :template
                (lambda (flake-root flags)
                  (nix-call-via-flakes `("cabal" "repl" dante-target ,@flags) flake-root)))
 
       (funcall mk-dante-method
-               'build-script
-               #'dante-vanilla-cabal-script-buf?
-               nil
-               #'dante-buffer-name--default
+               :name 'build-script
+               :is-enabled-pred #'dante-vanilla-cabal-script-buf?
+               :find-root-pred nil
+               :repl-buf-name-func #'dante-buffer-name--default
+               :template
                (lambda (_flake-root flags)
                  `("cabal" "repl" buffer-file-name ,@flags)))
 
       (funcall mk-dante-method
-               'build
-               nil
-               #'dante-cabal-new
-               #'dante-buffer-name--default
+               :name 'build
+               :is-enabled-pred nil
+               :find-root-pred #'dante-cabal-new
+               :repl-buf-name-func #'dante-buffer-name--default
+               :template
                (lambda (_flake-root flags)
                  `("cabal" "repl" dante-target ,@flags)))
 
       (funcall mk-dante-method
-               'bare-ghci
-               nil
-               (lambda (_) t)
-               #'dante-buffer-name--default
+               :name 'bare-ghci
+               :is-enabled-pred nil
+               :find-root-pred (lambda (_) t)
+               :repl-buf-name-func #'dante-buffer-name--default
+               :template
                (lambda (_flake_root _flags)
                  '("ghci")))))))
 
