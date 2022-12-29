@@ -115,10 +115,8 @@ main = do
     customExecParser (prefs (showHelpOnEmpty <> noBacktrack <> multiSuffix "*")) (progInfo tastyParser)
 
   case Tasty.tryIngredients ingredients cfgTastyOpts allTests of
-    Nothing -> do
-      hPutStrLn stderr
-        "No ingredients agreed to run. Something is wrong either with your ingredient set or the options."
-      exitFailure
+    Nothing  ->
+      die "No ingredients agreed to run. Something is wrong either with your ingredient set or the options."
     Just act -> do
       ok <- act
       if ok then exitSuccess else exitFailure
