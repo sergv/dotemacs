@@ -299,7 +299,7 @@ will be in loaded in different GHCi sessions."
       (funcall mk-dante-method
                :name 'nix-flakes-build
                :is-enabled-pred #'dante-nix-available?
-               :find-root-pred #'dante-cabal-new
+               :find-root-pred #'dante-cabal-flake-nix
                :repl-buf-name-func #'dante-buffer-name--default
                :template
                (lambda (flake-root flags)
