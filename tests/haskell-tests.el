@@ -1039,6 +1039,166 @@ end."
      "foo x xs = foo ## _|_bar"
      "")))
 
+(ert-deftest haskell-tests/haskell-smart-operators--magic-hash-5 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-smart-operators-mode +1)
+        (haskell-ext-tracking-mode +1)
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
+    (tests-utils--multiline
+     "{-# LANGUAGE MagicHash #-}"
+     "foo x xs = foo _|_bar"
+     "")
+    (tests-utils--multiline
+     "{-# LANGUAGE MagicHash #-}"
+     "foo x xs = foo# # _|_bar"
+     "")))
+
+(ert-deftest haskell-tests/haskell-smart-operators--magic-hash-6 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-smart-operators-mode +1)
+        (haskell-ext-tracking-mode +1)
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
+    (tests-utils--multiline
+     "{-# LANGUAGE MagicHash #-}"
+     "foo x xs = 1 _|_bar"
+     "")
+    (tests-utils--multiline
+     "{-# LANGUAGE MagicHash #-}"
+     "foo x xs = 1# _|_bar"
+     "")))
+
+(ert-deftest haskell-tests/haskell-smart-operators--magic-hash-6a ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-smart-operators-mode +1)
+        (haskell-ext-tracking-mode +1)
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
+    (tests-utils--multiline
+     "{-# LANGUAGE MagicHash #-}"
+     "foo x xs = 123.45 _|_bar"
+     "")
+    (tests-utils--multiline
+     "{-# LANGUAGE MagicHash #-}"
+     "foo x xs = 123.45# _|_bar"
+     "")))
+
+(ert-deftest haskell-tests/haskell-smart-operators--magic-hash-6b ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-smart-operators-mode +1)
+        (haskell-ext-tracking-mode +1)
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
+    (tests-utils--multiline
+     "{-# LANGUAGE MagicHash #-}"
+     "foo x xs = 123.45e-2 _|_bar"
+     "")
+    (tests-utils--multiline
+     "{-# LANGUAGE MagicHash #-}"
+     "foo x xs = 123.45e-2# _|_bar"
+     "")))
+
+(ert-deftest haskell-tests/haskell-smart-operators--magic-hash-7 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-smart-operators-mode +1)
+        (haskell-ext-tracking-mode +1)
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
+    (tests-utils--multiline
+     "{-# LANGUAGE MagicHash #-}"
+     "foo x xs = 1 _|_bar"
+     "")
+    (tests-utils--multiline
+     "{-# LANGUAGE MagicHash #-}"
+     "foo x xs = 1## _|_bar"
+     "")))
+
+(ert-deftest haskell-tests/haskell-smart-operators--magic-hash-7a ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-smart-operators-mode +1)
+        (haskell-ext-tracking-mode +1)
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
+    (tests-utils--multiline
+     "{-# LANGUAGE MagicHash #-}"
+     "foo x xs = 123.45 _|_bar"
+     "")
+    (tests-utils--multiline
+     "{-# LANGUAGE MagicHash #-}"
+     "foo x xs = 123.45## _|_bar"
+     "")))
+
+(ert-deftest haskell-tests/haskell-smart-operators--magic-hash-7a ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-smart-operators-mode +1)
+        (haskell-ext-tracking-mode +1)
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
+    (tests-utils--multiline
+     "{-# LANGUAGE MagicHash #-}"
+     "foo x xs = 123.45e-2 _|_bar"
+     "")
+    (tests-utils--multiline
+     "{-# LANGUAGE MagicHash #-}"
+     "foo x xs = 123.45e-2## _|_bar"
+     "")))
+
+(ert-deftest haskell-tests/haskell-smart-operators--magic-hash-8 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-smart-operators-mode +1)
+        (haskell-ext-tracking-mode +1)
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
+    (tests-utils--multiline
+     "{-# LANGUAGE MagicHash #-}"
+     "foo x xs = 1 _|_bar"
+     "")
+    (tests-utils--multiline
+     "{-# LANGUAGE MagicHash #-}"
+     "foo x xs = 1## # _|_bar"
+     "")))
+
+(ert-deftest haskell-tests/haskell-smart-operators--magic-hash-8a ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-smart-operators-mode +1)
+        (haskell-ext-tracking-mode +1)
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
+    (tests-utils--multiline
+     "{-# LANGUAGE MagicHash #-}"
+     "foo x xs = 123.45 _|_bar"
+     "")
+    (tests-utils--multiline
+     "{-# LANGUAGE MagicHash #-}"
+     "foo x xs = 123.45## # _|_bar"
+     "")))
+
+(ert-deftest haskell-tests/haskell-smart-operators--magic-hash-8b ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-smart-operators-mode +1)
+        (haskell-ext-tracking-mode +1)
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
+    (tests-utils--multiline
+     "{-# LANGUAGE MagicHash #-}"
+     "foo x xs = 123.45e-11 _|_bar"
+     "")
+    (tests-utils--multiline
+     "{-# LANGUAGE MagicHash #-}"
+     "foo x xs = 123.45e-11## # _|_bar"
+     "")))
+
 (ert-deftest haskell-tests/haskell-smart-operators--magic-hash-and-equals-space-1 ()
   (haskell-tests--test-buffer-contents
       (progn
