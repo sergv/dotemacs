@@ -228,7 +228,23 @@ stick it to the previous operator on line."
                                (if-let ((char-before-char-before-spaces (char-before (1- pt-before-ws))))
                                    ;; If there’s space before previous # then it’s an operator so
                                    ;; delete whitespace backwards.
-                                   (haskell-smart-operators--is-whitespace-char? char-before-char-before-spaces)
+                                   (or (haskell-smart-operators--is-whitespace-char? char-before-char-before-spaces)
+                                       (and (eq char ?#)
+                                            (save-excursion
+                                              (let ((hashes-count 0))
+                                                (while (eq (char-before) ?#)
+                                                  (setf hashes-count (+ hashes-count 1))
+                                                  (forward-char -1))
+                                                (when (< hashes-count 2)
+                                                  (skip-syntax-backward "^ >")
+                                                  (looking-at-p (rx (? (any ?+ ?-))
+                                                                    (+ (any (?0 . ?9)))
+                                                                    (? "."
+                                                                       (+ (any (?0 . ?9))))
+                                                                    (? (any ?e ?E)
+                                                                       (? (any ?+ ?-))
+                                                                       (+ (any (?0 . ?9))))
+                                                                    "#")))))))
                                  ;; Beginning of buffer, and we’re
                                  ;; here "#_|_", hash is definitely
                                  ;; not part of a name.
