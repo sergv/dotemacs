@@ -1,0 +1,10 @@
+----------------------------------------------------------------------------
+-- |
+-- Module      :  ${haskell path to module name}
+-- Copyright   :  (c) ${author} ${date year}
+-- License     :  ${license spdx} (see LICENSE)
+-- Maintainer  :  ${email}
+----------------------------------------------------------------------------
+
+signature ${haskell path to module name} where
+
