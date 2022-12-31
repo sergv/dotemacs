@@ -173,7 +173,7 @@
 (defconst-set haskell-regexen/empty-line "^[ \t]*$")
 
 (defconst-set haskell-regexen/module-header-start
-  "\\_<module\\_>[ \t\r\n]" )
+  "\\_<\\(?:module\\|signature\\)\\_>[ \t\r\n]" )
 
 (defconst-set haskell-regexen/module-name-section
   "[[:upper:]][[:alnum:]'_]*")
