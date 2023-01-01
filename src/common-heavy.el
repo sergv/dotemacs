@@ -275,6 +275,11 @@ number of spaces equal to `tab-width'."
   (let ((tbl (make-hash-table :test #'equal)))
     (fold-platform-os-type
      (progn
+       (puthash "dolphin"
+                (make-exec-spec
+                 :path "dolphin"
+                 :args '("--new-window"))
+                tbl)
        (puthash "thunar"
                 (make-exec-spec
                  :path "thunar"
@@ -352,7 +357,7 @@ number of spaces equal to `tab-width'."
     (custom--run-first-matching-exec
      (fold-platform-os-type
       (eval-when-compile
-        (-filter #'executable-find '("thunar" "nautilus")))
+        (-filter #'executable-find '("thunar" "dolphin" "nautilus")))
       '("explorer")))))
 
 ;;;###autoload
