@@ -434,16 +434,12 @@ _<tab>_: reindent  _h_: jump to topmont node end"
               (lsp-deferred)
               (setf using-lsp? t)
               (lsp-diagnostics-mode)
-              ;; (lsp)
-              ;; (when lsp-mode
-              ;;   (lsp-diagnostics-mode))
               ))
            ;; (unless (flycheck-may-use-checker backend)
            ;;   (flycheck-verify-checker backend)
            ;;   (error "Unable to select checker '%s' for buffer '%s'"
            ;;          backend (current-buffer)))
-           (when (memq backend '(haskell-dante))
-             (add-hook 'flycheck-mode-hook #'haskell-misc--configure-dante! nil t)))
+           )
          (lambda (should-enable?)
            (setf should-enable-flycheck? (if should-enable? +1 -1))))))
 

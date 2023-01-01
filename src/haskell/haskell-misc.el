@@ -962,6 +962,7 @@ value section should have if it is to be properly indented."
 (defvar-local haskell-misc--dante-configured? nil
   "Whether ‘haskell-misc--configure-dante!’ was called once.")
 
+;;;###autoload
 (defun haskell-misc--configure-dante-if-needed! ()
   "Call ‘haskell-misc--configure-dante!’ if it has not been called before."
   (unless haskell-misc--dante-configured?
@@ -976,41 +977,43 @@ Returns ‘t’ on success, otherwise returns ‘nil’."
          (proj (eproj-get-project-for-buf-lax buf))
          (vars (and proj
                     (eproj-query/local-variables proj major-mode nil)))
-         (val-dante-package-name (cadr-safe (assq 'dante-package-name vars)))
          (val-dante-target (cadr-safe (assq 'dante-target vars))))
-    (awhen val-dante-package-name
-      (setq-local dante-package-name it))
-    (awhen val-dante-target
-      (setq-local dante-target it))
-    (when (and (or (not val-dante-package-name)
-                   (not val-dante-target))
-               (buffer-file-name)
-               (file-directory-p default-directory))
-      (when-let ((cabal-files (haskell-misc--find-potential-cabal-files (file-name-directory (buffer-file-name buf)))))
-        (let ((component nil)
-              (pkg-name nil))
-          (while (and (not component)
-                      cabal-files)
-            (when-let ((config (flycheck-haskell-get-configuration (car cabal-files) proj)))
-              (let-alist-static config (package-name components)
-                (when-let ((candidate-component
-                            (haskell-misc--configure-dante--find-cabal-component-for-file
-                             components
-                             (buffer-file-name))))
-                  (setf component candidate-component
-                        pkg-name (car package-name))
-                  (cl-assert (stringp pkg-name) nil
-                             "Expected package name to be a string but got %s" pkg-name))))
+    (if val-dante-target
+        (progn
+          (setq-local dante-target it)
+          t)
+      (if (buffer-file-name)
+          (if (file-directory-p default-directory)
+              (if-let ((cabal-files (haskell-misc--find-potential-cabal-files (file-name-directory (buffer-file-name buf)))))
+                  (let ((component nil)
+                        (pkg-name nil)
+                        (tmp cabal-files))
+                    (while (and (not component)
+                                tmp)
+                      (when-let ((config (flycheck-haskell-get-configuration (car tmp) proj)))
+                        (let-alist-static config (package-name components)
+                          (when-let ((candidate-component
+                                      (haskell-misc--configure-dante--find-cabal-component-for-file
+                                       components
+                                       (buffer-file-name))))
+                            (setf component candidate-component
+                                  pkg-name (car package-name))
+                            (cl-assert (stringp pkg-name) nil
+                                       "Expected package name to be a string but got %s" pkg-name))))
 
-            (setf cabal-files (cdr cabal-files)))
-          (if component
-              (progn
-                (unless val-dante-package-name
-                  (setq-local dante-package-name pkg-name))
-                (unless val-dante-target
-                  (setq-local dante-target (concat dante-package-name ":" component)))
-                t)
-            (error "Couldn’t determine cabal component for %s buffer. Check whether cabal can build the project before retrying" buf)))))))
+                      (setf tmp (cdr tmp)))
+                    (if component
+                        (progn
+                          (unless val-dante-target
+                            (setq-local dante-target (concat pkg-name ":" component)))
+                          t)
+                      (error "Couldn’t determine cabal component for %s from cabal file%s %s"
+                             (file-name-nondirectory (buffer-file-name))
+                             (if (null (cdr cabal-files)) "" "s")
+                             (mapconcat #'file-name-nondirectory cabal-files ", "))))
+                (error "No cabal files"))
+            (error "Buffer’s directory doesn’t exist: %s" default-directory))
+        (error "Buffer has no file: %s" (current-buffer))))))
 
 (defun haskell-misc--configure-dante--find-cabal-component-for-file (components filename)
   "Get components dumped by get-cabal-configuration.hs for current package and attempt
