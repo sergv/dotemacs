@@ -349,14 +349,7 @@ Consider setting this variable as a directory variable."
 Set `dante-project-root', `dante-repl-command-line' and
 `dante-target'.  Do so according to `dante-methods' and previous
 values of the above variables."
-  (unless dante-target ; Get the current package name from a nearby .cabal file
-    (setq-local dante-target
-          (let ((cabal-file (dante-cabal-find-file)))
-            (if cabal-file
-                (replace-regexp-in-string
-                 ".cabal$" ""
-                 (file-name-nondirectory cabal-file))
-              ""))))
+  (haskell-misc--configure-dante-if-needed!)
   (or (-first (lambda (method)
                 (let ((pred (dante-method-is-enabled-pred method)))
                   (when (or (null pred)
@@ -1102,11 +1095,24 @@ appropriate buffer name on this basis."
 
 (defun dante-buffer-create ()
   "Create the buffer for GHCi."
-  (let* ((dir dante-project-root))
+  (unless dante-project-root (dante-initialize-method))
+  (let ((dir dante-project-root)
+        (selected-method dante--selected-method)
+        (target dante-target))
     (with-current-buffer (get-buffer-create (dante-buffer-name))
       (cd dir)
       (fundamental-mode) ;; this has several effects, including resetting the local variables
       (buffer-disable-undo)
+      ;; Important to transfer all variables confnigured by ‘dante-initialize-method’
+      ;; to this new buffer so that functions like ‘dante-buffer-name’ will pick them up
+      ;; instead of trying to initialize method once again from within GHCI buffer, which
+      ;; would fail since it doesn’t have file associated.
+      ;;
+      ;; Most of these settings are included into buffer name anyway so different
+      ;; buffers obviously have different values of the following parameters.
+      (setq-local dante-project-root dir
+                  dante--selected-method selected-method
+                  dante-target target)
       (current-buffer))))
 
 (defun dante-set-state (state)
