@@ -277,12 +277,12 @@ will be in loaded in different GHCi sessions."
               :find-root-pred find-root-pred
               :check-command-line
               (lambda (flake-root)
-                (funcall template flake-root build))
+                (funcall template :flake-root flake-root :flags build))
               :repl-command-line
               (lambda (flake-root)
                 (dante--mk-repl-cmdline
-                 (funcall template flake-root (append repl repl-options))
-                 (funcall template flake-root (append repl (cons "--repl-no-load" repl-options)))))
+                 (funcall template :flake-root flake-root :flags (append repl repl-options))
+                 (funcall template :flake-root flake-root :flags (append repl (cons "--repl-no-load" repl-options)))))
               :repl-buf-name-func
               repl-buf-name-func)))))
     (dante--mk-methods
@@ -293,8 +293,9 @@ will be in loaded in different GHCi sessions."
                :find-root-pred nil
                :repl-buf-name-func #'dante-buffer-name--default
                :template
-               (lambda (flake-root flags)
-                 (nix-call-via-flakes `("cabal" "repl" buffer-file-name ,@flags) flake-root)))
+               (cl-function
+                (lambda (&key flake-root flags)
+                  (nix-call-via-flakes `("cabal" "repl" buffer-file-name ,@flags) flake-root))))
 
       (funcall mk-dante-method
                :name 'nix-flakes-build
@@ -302,8 +303,9 @@ will be in loaded in different GHCi sessions."
                :find-root-pred #'dante-cabal-flake-nix
                :repl-buf-name-func #'dante-buffer-name--default
                :template
-               (lambda (flake-root flags)
-                 (nix-call-via-flakes `("cabal" "repl" dante-target ,@flags) flake-root)))
+               (cl-function
+                (lambda (&key flake-root flags)
+                  (nix-call-via-flakes `("cabal" "repl" dante-target ,@flags) flake-root))))
 
       (funcall mk-dante-method
                :name 'build-script
@@ -311,8 +313,10 @@ will be in loaded in different GHCi sessions."
                :find-root-pred nil
                :repl-buf-name-func #'dante-buffer-name--default
                :template
-               (lambda (_flake-root flags)
-                 `("cabal" "repl" buffer-file-name ,@flags)))
+               (cl-function
+                (lambda (&key flake-root flags)
+                  (declare (ignore flake-root))
+                  `("cabal" "repl" buffer-file-name ,@flags))))
 
       (funcall mk-dante-method
                :name 'build
@@ -320,8 +324,10 @@ will be in loaded in different GHCi sessions."
                :find-root-pred #'dante-cabal-new
                :repl-buf-name-func #'dante-buffer-name--default
                :template
-               (lambda (_flake-root flags)
-                 `("cabal" "repl" dante-target ,@flags)))
+               (cl-function
+                (lambda (&key flake-root flags)
+                  (declare (ignore flake-root))
+                  `("cabal" "repl" dante-target ,@flags))))
 
       (funcall mk-dante-method
                :name 'bare-ghci
@@ -329,8 +335,10 @@ will be in loaded in different GHCi sessions."
                :find-root-pred (lambda (_) t)
                :repl-buf-name-func #'dante-buffer-name--default
                :template
-               (lambda (_flake_root _flags)
-                 '("ghci")))))))
+               (cl-function
+                (lambda (&key flake-root flags)
+                  (declare (ignore flake-root flags))
+                  '("ghci"))))))))
 
 (defvar dante--default-methods
   (dante--make-methods (fold-platform-os-type "/tmp/dist/dante" "dist/dante")))
