@@ -6593,7 +6593,7 @@ server. WORKSPACE is the active workspace."
     (unless pos
       (signal 'lsp-invalid-header-name (list s)))
     (setq key (substring s 0 pos)
-          val (s-trim-left (substring s (+ 1 pos))))
+          val (trim-whitespace-left (substring s (+ 1 pos))))
     (when (equal key "Content-Length")
       (cl-assert (cl-loop for c across val
                           when (or (> c ?9) (< c ?0)) return nil
@@ -6776,7 +6776,7 @@ they may be customized for finer control."
 If SHOW-DETAIL? is set, make use of its `:detail?' field (often
 the signature)."
   (let ((detail (and show-detail? (s-present? detail?)
-                     (propertize (concat " " (s-trim-left detail?))
+                     (propertize (concat " " (trim-whitespace-left detail?))
                                  'face 'lsp-signature-face)))
         (name (if deprecated?
                   (propertize name 'face 'lsp-face-semhl-deprecated) name)))

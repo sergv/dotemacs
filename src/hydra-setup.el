@@ -6,6 +6,7 @@
 ;; Created: 17 March 2020
 ;; Description:
 
+(require 'common-whitespace)
 (require 'hydra)
 ;; (require 'posframe)
 (require 'simple)
@@ -34,7 +35,7 @@ all hydras in my setup."
      ,(concat (hydra--prop parent "/docstring")
               (if (and docstring
                        (< 0 (length docstring)))
-                  (concat "\n\n" (s-trim-left docstring))
+                  (concat "\n\n" (trim-whitespace-left docstring))
                 ""))
      ,@(cl-delete-duplicates
         (append (hydra--prop parent "/heads") heads)
