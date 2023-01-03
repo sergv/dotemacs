@@ -743,6 +743,62 @@ toText (Builder size f) = T.Text arr 0 size
 
     foo = 1"))
 
+(ert-deftest eproj-tests/parse-cabal-project-1 ()
+  (haskell-tests--with-temp-buffer
+      (progn
+        (should (equal (eproj-haskell--parse-cabal-projects (current-buffer))
+                       '("cabal-benchmarks/"
+                         "Cabal-tests/"
+                         "Cabal-described"
+                         "quux with spaces/frob.cabal"
+                         "frobnicate.cabal"
+                         "Cabal-tree-diff/"
+                         "Cabal-QuickCheck/"
+
+                         "bar/baz.cabal"
+                         "quux with spaces/frob.cabal"
+                         "blob.cabal"
+                         "buzz.cabal"
+                         "decombobulator/decombobulate.cabal"
+
+                         "solver-benchmarks/"
+                         "cabal-install-solver/"
+                         "cabal-install/"
+                         "Cabal/"
+                         "cabal-testsuite/"
+                         "Cabal-syntax/"))))
+    "
+packages: Cabal/ cabal-testsuite/ Cabal-syntax/
+packages: cabal-install/
+packages: cabal-install-solver/
+packages: solver-benchmarks/
+
+packages:
+  -- foo
+  bar/baz.cabal
+  \"quux with spaces/frob.cabal\"
+  blob.cabal
+   -- fizz.cabal
+  buzz.cabal
+
+  decombobulator/decombobulate.cabal
+
+
+tests: True
+
+packages: Cabal-QuickCheck/
+benchmarks: False
+packages: Cabal-tree-diff/
+packages: Cabal-described \"quux with spaces/frob.cabal\" frobnicate.cabal
+
+
+packages: Cabal-tests/
+packages: cabal-benchmarks/
+
+optional-packages: ./vendored/*/*.cabal
+
+_|_"))
+
 ;; (let ((ert-debug-on-error nil))
 ;;   (eproj-reset-projects)
 ;;   (ert (join-lines (-map (lambda (x) (concat "^" (symbol->string x) "$"))
