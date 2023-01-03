@@ -255,7 +255,24 @@ spaces if they’re quoted with double quotes, e.g. \"foobar\"."
        (let* ((related (eproj-haskell--get-related-projects-from-cabal-proj root cabal-proj-file))
               (related-local (when (file-exists-p cabal-proj-local-file)
                                (eproj-haskell--get-related-projects-from-cabal-proj root cabal-proj-local-file)))
-              (all-related (nconc related related-local)))
+              (all-related (-filter
+                            (lambda (path)
+                              (let ((abs (expand-file-name path root)))
+                                ;; If it’s the path leads to a directory
+                                ;; under current project’s root
+                                ;; (i.e. where .git probably is located)
+                                ;; and there’s no .eproj-info (i.e. it’s
+                                ;; not an explictly created project),
+                                ;; then make eproj treat it as part of
+                                ;; project under ‘root’ instead of trying
+                                ;; to infer a new project for it.
+                                (not (and (string-prefix-p root
+                                                           abs
+                                                           ;; ignore case
+                                                           (fold-platform-os-type nil t))
+                                          (file-directory-p abs)
+                                          (not (file-exists-p (concat abs "/.eproj-info")))))))
+                            (nconc related related-local))))
          (awhen (--filter (and (file-name-absolute-p it) (not (file-exists-p it))) all-related)
            (error "Some related projects inferred from cabal.project do not exist: %s"
                   (s-join ", " it)))
