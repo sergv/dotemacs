@@ -744,47 +744,63 @@ PROJECT. EQ-FUNC will be used as hash-table comparison."
       (message "Copied buffer default directory '%s' to the clipboard." dir))))
 
 ;;;###autoload
-(defun split-shell-command-into-arguments (command)
-  "Split command by space, while taking quotation into account. Strips quotes
-around individual arguments."
+(defun split-by-spaces-with-quotes (command quote-chars backslash-quote)
+  "Split command by space, while taking quotation, as defined by
+list of characters QUOTE-CHARS, into account. Strips quotes
+around individual arguments. Adjacent strings are concatenated,
+only space is a separator."
   (let ((result nil)
+        ;; NB have to collect word as a list of characters instead of
+        ;; taking substrings of the original big string because of
+        ;; quoting. I.e. some backslashes may disappear so substrings
+        ;; won’t work.
         (word nil)
+        (found? nil)
         (string-start nil)
         (i 0)
         (len (length command)))
     (while (< i len)
       (let ((c (aref command i)))
         (if string-start
-            (pcase c
-              (?\\
-               (let ((next (aref command (+ i 1))))
-                 (if (and (char= string-start ?\")
-                          (char= next ?\"))
-                     (progn
-                       (push next word)
-                       (cl-incf i 2))
-                   (progn
-                     (push c word)
-                     (cl-incf i)))))
-              (_
-               (if (char= c string-start)
-                   (setf string-start nil)
-                 (push c word))
-               (cl-incf i)))
+            (if (and backslash-quote
+                     (eq c ?\\))
+                (let ((next (aref command (+ i 1))))
+                  (if (and (eq string-start backslash-quote)
+                           (eq next backslash-quote))
+                      (progn
+                        (push next word)
+                        (cl-incf i 2))
+                    (progn
+                      (push c word)
+                      (cl-incf i))))
+              (progn
+                (if (eq c string-start)
+                    (setf string-start nil)
+                  (push c word))
+                (cl-incf i)))
           (progn
-            (pcase c
-              (`?\s
-               (when word
+            (cond
+              ((eq c ?\s)
+               (when found?
                  (push (list->string (nreverse word)) result)
-                 (setf word nil)))
-              ((or `?\" `?\')
-               (setf string-start c))
-              (_
+                 (setf word nil
+                       found? nil)))
+              ((memq c quote-chars)
+               (setf string-start c
+                     found? t))
+              (t
+               (setf found? t)
                (push c word)))
             (cl-incf i)))))
-    (when word
+    (when found?
       (push (list->string (nreverse word)) result))
     (nreverse result)))
+
+;;;###autoload
+(defun split-shell-command-into-arguments (cmd)
+  "Split command by space, while taking quotation into account. Strips quotes
+around individual arguments."
+  (split-by-spaces-with-quotes cmd '(?\" ?\') ?\"))
 
 ;;;###autoload
 (defun make-percentage-reporter (total-units percent-increment-to-report on-next-increment)
