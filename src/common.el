@@ -527,6 +527,7 @@ integer list B."
   "Return string of text with properties between beginning of START-LINE and
 end of END-LINE in current buffer."
   (declare (pure nil) (side-effect-free t))
+  (cl-assert (< start-line end-line))
   (save-excursion
     (buffer-substring (progn (goto-line-dumb start-line)
                              (line-beginning-position))
