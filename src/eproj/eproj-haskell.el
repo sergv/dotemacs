@@ -195,9 +195,11 @@ runtime but rather will be silently relied on)."
                                        (* (group-n 2
                                                    nl
                                                    (+ wsnl)
-                                                   wsnl
+                                                   ws
                                                    (* any)))))))
-                nil t)
+                nil ;; bound
+                t   ;; noerror
+                )
           (let ((val (match-string-no-properties 1))
                 (start 1))
             (when (match-end 2) ;; Multiple lines.
@@ -223,12 +225,21 @@ runtime but rather will be silently relied on)."
     (--remove (or (string= root it)
                   (string= root (eproj-get-initial-project-root it)))
               (--map (if (file-regular-p it) (file-name-directory it) it)
-                     (--map (eproj-normalise-file-name-expand-cached (eproj-haskell--trim-quotes it)
-                                                                     root)
-                            (--remove (string-prefix-p "--" it)
-                                      (-map #'trim-whitespace
-                                            (mapcan #'split-into-lines
-                                                    (eproj-haskell--cabal--get-field "packages")))))))))
+                     (--map (eproj-normalise-file-name-expand-cached it root)
+                            (eproj-haskell--parse-cabal-projects (current-buffer)))))))
+
+(defun eproj-haskell--parse-cabal-projects (buf)
+  (with-current-buffer buf
+    (mapcan #'eproj-haskell--split-fields
+            (--remove (string-prefix-p "--" it)
+                      (-map #'trim-whitespace
+                            (mapcan #'split-into-lines
+                                    (eproj-haskell--cabal--get-field "packages")))))))
+
+(defun eproj-haskell--split-fields (str)
+  "Split multiple entries within STR that are separated by space. Entries may contain
+spaces if they’re quoted with double quotes, e.g. \"foobar\"."
+  (split-by-spaces-with-quotes str '(?\") nil))
 
 (defun eproj-haskell--trim-quotes (str)
   "Trim leading and tailing \" from STR."
