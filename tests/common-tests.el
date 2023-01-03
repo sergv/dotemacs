@@ -278,6 +278,12 @@
     (split-shell-command-into-arguments "foo \"bar \"'quux' baz")
     '("foo" "bar quux" "baz"))))
 
+(ert-deftest common-tests/split-shell-command-into-arguments-11 ()
+  (should
+   (equal
+    (split-shell-command-into-arguments "foo \"\" baz")
+    '("foo" "" "baz"))))
+
 (ert-deftest common-tests/pp-macro-1 ()
   (let ((macro "[,('["))
     (should (equal macro (list->string (read (pp-macro macro)))))))
