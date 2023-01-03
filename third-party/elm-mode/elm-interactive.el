@@ -847,7 +847,7 @@ EXPOSING"
           (when .type
             (insert " : ")
             (insert (propertize .type 'face 'font-lock-type-face)))
-          (insert (concat "\n\n" (s-trim-left .comment)))))))  )
+          (insert (concat "\n\n" (trim-whitespace-left .comment)))))))  )
 
 ;;;###autoload
 (defun elm-documentation-lookup (refresh)
