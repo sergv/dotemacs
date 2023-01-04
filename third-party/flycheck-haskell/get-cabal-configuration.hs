@@ -242,6 +242,10 @@ import Distribution.Types.LibraryName (libraryNameString)
 import Distribution.Utils.Path (getSymbolicPath)
 #endif
 
+#if defined(Cabal20OrLater)
+import Distribution.Types.Library (signatures)
+#endif
+
 import Data.Int
 
 newtype Hash = Hash Int64
@@ -489,7 +493,7 @@ instance ToSexp ComponentType where
 -- | Gather files and modules that constitute each component.
 getComponents :: C8.ByteString -> PackageDescription -> [(ComponentType, C8.ByteString, Maybe C8.ByteString, [ModuleName], [UnixFilepath])]
 getComponents packageName pkgDescr =
-    [ (CTLibrary, name, Nothing, exposedModules lib ++ biMods bi, hsSourceDirs' bi)
+    [ (CTLibrary, name, Nothing, exposedModules lib ++ libSignatures lib ++ biMods bi, hsSourceDirs' bi)
     | lib <- allLibraries' pkgDescr
     , let bi = libBuildInfo lib
     , let name = maybe packageName C8.pack $ libName' lib
@@ -532,6 +536,14 @@ getComponents packageName pkgDescr =
           ++ autogenModules bi
 #else
       biMods = otherModules
+#endif
+
+libSignatures :: Library -> [ModuleName]
+libSignatures =
+#if defined(Cabal20OrLater)
+  signatures
+#else
+  const []
 #endif
 
 getCabalConfiguration :: HPackExe -> ConfigurationFile -> IO Sexp
