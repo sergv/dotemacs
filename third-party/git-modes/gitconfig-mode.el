@@ -36,15 +36,15 @@
   "Return t if the current line is indented correctly."
   (save-excursion
     (beginning-of-line)
-    (or (looking-at (rx line-start "["
-                        symbol-start
-                        (minimal-match (zero-or-more not-newline))
-                        symbol-end "]"))
-        (looking-at (concat (rx line-start)
-                            (gitconfig-indentation-string)
-                            (rx symbol-start (or (syntax word)
-                                                 (syntax symbol)))))
-        (looking-at (rx (zero-or-one "\t") (or "#" ";"))))))
+    (or (looking-at-p (rx line-start "["
+                          symbol-start
+                          (minimal-match (zero-or-more not-newline))
+                          symbol-end "]"))
+        (looking-at-p (concat (rx line-start)
+                              (gitconfig-indentation-string)
+                              (rx symbol-start (or (syntax word)
+                                                   (syntax symbol)))))
+        (looking-at-p (rx (zero-or-one "\t") (or "#" ";"))))))
 
 (defun gitconfig-point-in-indentation-p ()
   "Return if the point is in the indentation of the current line."
