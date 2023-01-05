@@ -50,17 +50,4 @@
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.ghci\\'" . ghci-script-mode))
 
-(define-key ghci-script-mode-map (kbd "C-c C-l") 'ghci-script-mode-load)
-
-(defun ghci-script-mode-load ()
-  "Load the current script file into the GHCi session."
-  (interactive)
-  (let ((buffer (haskell-session-interactive-buffer (haskell-session)))
-        (filename (buffer-file-name)))
-    (save-buffer)
-    (with-current-buffer buffer
-      (set-marker haskell-interactive-mode-prompt-start (point-max))
-      (haskell-interactive-mode-run-expr
-       (concat ":script " filename)))))
-
 (provide 'ghci-script-mode)
