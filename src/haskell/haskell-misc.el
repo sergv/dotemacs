@@ -117,22 +117,7 @@ and indent them as singe line."
 
 
 
-(setf ;; Don't kill any associated buffers when issuing `haskell-session-kill'.
-      haskell-ask-also-kill-buffers nil
-
-      ghc-core-program-args
-      `("-O2"
-        "-dsuppress-uniques"
-        "-dsuppress-idinfo"
-        "-dsuppress-module-prefixes"
-        ;; "-dsuppress-type-signatures"
-        "-dsuppress-type-applications"
-        "-dsuppress-coercions"
-        "-dppr-cols200"
-        "-hidir" ,small-temporary-file-directory
-        "-odir" ,small-temporary-file-directory)
-
-      dante-load-flags
+(setf dante-load-flags
       '("+c"
         "-fdiagnostics-color=never"
         "-fno-diagnostics-show-caret"
