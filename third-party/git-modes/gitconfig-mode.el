@@ -124,13 +124,20 @@
   (setq-local indent-line-function 'gitconfig-indent-line))
 
 ;;;###autoload
-(dolist (pattern '("/\\.gitconfig\\'"      "/\\.git/config\\'"
-                   "/modules/.*/config\\'" "/git/config\\'"
-                   "/\\.gitmodules\\'"     "/etc/gitconfig\\'"))
-  (add-to-list 'auto-mode-alist (cons pattern 'gitconfig-mode)))
+(add-to-list 'auto-mode-alist
+             (cons (rx (or (or "/.gitconfig"
+                               "/.git/config"
+                               "/git/config"
+                               "/.gitmodules"
+                               "/etc/gitconfig")
+                           (seq "/modules/"
+                                (* (regexp "."))
+                                "/config"))
+                       eos)
+                   'gitconfig-mode))
 
-;;; _
 (provide 'gitconfig-mode)
+
 ;; Local Variables:
 ;; indent-tabs-mode: nil
 ;; End:
