@@ -32,42 +32,6 @@
 (require 'haskell-mode)
 (require 'haskell-font-lock)
 
-(defgroup ghc-core nil
-  "Major mode for viewing pretty printed GHC Core output."
-  :link '(custom-manual "(haskell-mode)")
-  :group 'haskell
-  :prefix "ghc-core-")
-
-(defcustom ghc-core-program
-  "ghc"
-  "Name of the GHC executable (excluding any arguments)."
-  :type 'string
-  :group 'ghc-core)
-
-(define-obsolete-variable-alias 'ghc-core-create-options 'ghc-core-program-args
-  "haskell-mode 13.7")
-
-(defcustom ghc-core-program-args
-  '("-O2")
-  "Additional options to be passed to GHC when generating core output.
-GHC (see variable `ghc-core-program') is invoked with the basic
-command line options \"-ddump-simpl -c <source-file>\"
-followed by the additional options defined here.
-
-The following `-ddump-simpl` options might be of interest:
-
- - `-dsuppress-all'
- - `-dsuppress-uniques'
- - `-dsuppress-idinfo'
- - `-dsuppress-module-prefixes'
- - `-dsuppress-type-signatures'
- - `-dsuppress-type-applications'
- - `-dsuppress-coercions'
-
-See `M-x manual-entry RET ghc' for more details."
-  :type '(repeat (string :tag "Argument"))
-  :group 'ghc-core)
-
 (defun ghc-core-clean-region (start end)
   "Remove commonly ignored annotations and namespace prefixes
 in the region between START and END."
@@ -93,50 +57,6 @@ in the region between START and END."
 in the current buffer."
   (interactive)
   (ghc-core-clean-region (point-min) (point-max)))
-
-(defvar ghc-core--create-core-history nil
-  "History of user-entered commands for `ghc-core-create-core'.")
-
-;;;###autoload
-(defun ghc-core-create-core (modify-command-line)
-  "Compile and load the current buffer as tidy core."
-  (interactive "P")
-  (save-buffer)
-  (let* ((core-buffer (generate-new-buffer "ghc-core"))
-         (neh (lambda () (kill-buffer core-buffer)))
-         (default-command-line
-           (cons ghc-core-program
-                 (append ghc-core-program-args
-                         (list "-ddump-simpl"
-                               "-c"
-                               (buffer-file-name)))))
-         (command-line
-          (if modify-command-line
-              (split-shell-command-into-arguments
-               (let ((enable-recursive-minibuffers t))
-                 (read-shell-command
-                  "Ghc command: "
-                  (join-lines default-command-line " ")
-                  'ghc-core--create-core-history)))
-            default-command-line)))
-    (with-current-buffer core-buffer
-      (erase-buffer)
-      (insert "-- Command:")
-      (dolist (arg command-line)
-        (insert " \"" arg "\""))
-      (insert "\n"))
-    (add-hook 'next-error-hook neh)
-    (apply #'call-process (car command-line) nil core-buffer nil
-           (cdr command-line))
-    (display-buffer core-buffer)
-    (with-current-buffer core-buffer
-      (ghc-core-mode))
-    (remove-hook 'next-error-hook neh)))
-
-;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.hcr\\'" . ghc-core-mode))
-;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.dump-simpl\\'" . ghc-core-mode))
 
 (defvar ghc-core-mode-syntax-table
   (let ((tbl (copy-syntax-table haskell-mode-syntax-table)))
