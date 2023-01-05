@@ -228,9 +228,6 @@ be set to the preferred literate style."
     ["Indent line" indent-according-to-mode]
     ["(Un)Comment region" comment-region mark-active]
     "---"
-    ["Start interpreter" haskell-interactive-switch]
-    ["Load file" haskell-process-load-file]
-    "---"
     ["Load tidy core" ghc-core-create-core]
     "---"
     ["Customize" (customize-group 'haskell)]
@@ -868,7 +865,6 @@ run at the same time."
              haskell-decl-scan-mode
              haskell-indent-mode
              haskell-indentation-mode
-             highlight-uses-mode
              imenu-add-menubar-index
              interactive-haskell-mode
              turn-on-haskell-unicode-input-method))
