@@ -15,7 +15,6 @@
   (require 'cl)
   (require 'macro-util))
 
-(require 'haskell-completions)
 (require 'haskell-ext-tracking)
 (require 'haskell-ghc-support)
 (require 'smart-operators-utils)
