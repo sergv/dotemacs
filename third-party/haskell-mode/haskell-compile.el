@@ -95,8 +95,7 @@ The `%s' placeholder is replaced by the current buffer's filename."
 (defcustom haskell-compiler-type
   'auto
   "Controls whether to use cabal, stack, or ghc to compile.
-   Auto (the default) means infer from the presence of a cabal or stack spec file,
-   following same rules as haskell-process-type."
+   Auto (the default) means infer from the presence of a cabal or stack spec file."
     :type '(choice (const auto) (const ghc) (const stack) (const cabal))
     :group 'haskell-compile)
 (make-variable-buffer-local 'haskell-compiler-type)
