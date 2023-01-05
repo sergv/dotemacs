@@ -121,7 +121,7 @@
   ;; .gitconfig is indented with tabs only
   (conf-mode-initialize "#" gitconfig-mode-font-lock-keywords)
   (setq indent-tabs-mode t)
-  (setq-local indent-line-function 'gitconfig-indent-line))
+  (setq-local indent-line-function #'gitconfig-indent-line))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist
