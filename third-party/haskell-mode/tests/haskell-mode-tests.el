@@ -546,13 +546,4 @@ moves over sexps."
   (should (equal "Mod'X.Mod" (haskell-guess-module-name-from-file-name "c:/Mod'X/Mod.lhs")))
   (should (equal "Mod" (haskell-guess-module-name-from-file-name "Mod.xx/Mod.hs"))))
 
-(ert-deftest haskell-mode-add-language-pragma-with-existing-text ()
-  (with-temp-buffer
-    (haskell-mode)
-    (insert "module Main where\n")
-    (end-of-buffer)
-    (haskell-command-insert-language-pragma "ViewPatterns")
-    (should (string= (buffer-string)
-                     "{-# LANGUAGE ViewPatterns #-}\nmodule Main where\n"))))
-
 (provide 'haskell-mode-tests)
