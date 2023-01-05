@@ -30,7 +30,6 @@
 (require 'pulse)
 
 (require 'haskell-decl-scan nil 'noerror)
-(require 'inf-haskell nil 'noerror)
 
 (defcustom elm-main-file "Main.elm"
   "Allows for a custom main file to be specified."
