@@ -245,13 +245,7 @@
 (unless (featurep 'custom-variables-defined)
   (load-library ".emacs"))
 
-(let ((user-info-file
-       (-find #'file-exists?
-              (list (expand-file-name "~/user-info.el")
-                    (concat +emacs-config-path+ "/src/user-info.el")))))
-  (aif user-info-file
-      (load-file it)
-    (message "user-info.el not found")))
+(load-library "user-info")
 
 (let ((machine-specific-setup-file
        (-find #'file-exists?

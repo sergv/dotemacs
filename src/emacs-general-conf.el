@@ -155,9 +155,6 @@
       ;; LSP may produce pretty large outputs during its work.
       read-process-output-max 32768
 
-      user-mail-address "serg.foo@gmail.com"
-      user-full-name "Sergey Vinokurov"
-
       ;; I’ll compile everything I need ahead of time.
       native-comp-deferred-compilation nil
 
