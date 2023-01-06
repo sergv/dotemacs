@@ -1101,26 +1101,39 @@ appropriate buffer name on this basis."
   (unless dante-project-root (dante-initialize-method))
   (concat " *dante#" dante-target "#" dante-project-root "*"))
 
+(cl-defstruct dante-initialize-state
+  (project-root    nil :read-only t)
+  (selected-method nil :read-only t)
+  (target          nil :read-only t))
+
+(defun dante-store-initialize-state ()
+  (make-dante-initialize-state
+   :project-root    dante-project-root
+   :selected-method dante--selected-method
+   :target          dante-target))
+
+(defun dante-restore-initialize-state (state)
+  ;; Important to transfer all variables confnigured by ‘dante-initialize-method’
+  ;; to this new buffer so that functions like ‘dante-buffer-name’ will pick them up
+  ;; instead of trying to initialize method once again from within GHCI buffer, which
+  ;; would fail since it doesn’t have file associated.
+  ;;
+  ;; Most of these settings are included into buffer name anyway so different
+  ;; buffers obviously have different values of the following parameters.
+
+  (setq-local dante-project-root     (dante-initialize-state-project-root state)
+              dante--selected-method (dante-initialize-state-selected-method state)
+              dante-target           (dante-initialize-state-target state)))
+
 (defun dante-buffer-create ()
   "Create the buffer for GHCi."
   (unless dante-project-root (dante-initialize-method))
-  (let ((dir dante-project-root)
-        (selected-method dante--selected-method)
-        (target dante-target))
+  (let ((state (dante-store-initialize-state)))
     (with-current-buffer (get-buffer-create (dante-buffer-name))
-      (cd dir)
+      (cd (dante-initialize-state-project-root state))
       (fundamental-mode) ;; this has several effects, including resetting the local variables
       (buffer-disable-undo)
-      ;; Important to transfer all variables confnigured by ‘dante-initialize-method’
-      ;; to this new buffer so that functions like ‘dante-buffer-name’ will pick them up
-      ;; instead of trying to initialize method once again from within GHCI buffer, which
-      ;; would fail since it doesn’t have file associated.
-      ;;
-      ;; Most of these settings are included into buffer name anyway so different
-      ;; buffers obviously have different values of the following parameters.
-      (setq-local dante-project-root dir
-                  dante--selected-method selected-method
-                  dante-target target)
+      (dante-restore-initialize-state state)
       (current-buffer))))
 
 (defun dante-set-state (state)
