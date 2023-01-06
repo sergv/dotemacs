@@ -950,9 +950,10 @@ value section should have if it is to be properly indented."
 ;;;###autoload
 (defun haskell-misc--configure-dante-if-needed! ()
   "Call ‘haskell-misc--configure-dante!’ if it has not been called before."
-  (unless haskell-misc--dante-configured?
-    (setf haskell-misc--dante-configured?
-          (haskell-misc--configure-dante!))))
+  (unless (dante-cabal-script-buf? (current-buffer))
+    (unless haskell-misc--dante-configured?
+      (setf haskell-misc--dante-configured?
+            (haskell-misc--configure-dante!)))))
 
 (defun haskell-misc--configure-dante! ()
   "Set up vital variables for operation of ‘dante-mode’.
