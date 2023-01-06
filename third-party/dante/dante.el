@@ -155,6 +155,13 @@ will be in loaded in different GHCi sessions."
   (and (dante-directory-regular-files d (rx ".cabal" eos))
        t))
 
+(defun dante-flake-nix (d)
+  "non-nil iff D contains a nix flake file and a cabal file."
+  (rx-let ((nix "flake.nix"))
+    (let ((files (dante-directory-regular-files d (rx nix))))
+      (and files
+           t))))
+
 (defun dante-cabal-flake-nix (d)
   "non-nil iff D contains a nix flake file and a cabal file."
   (rx-let ((nix "flake.nix")
@@ -285,7 +292,7 @@ will be in loaded in different GHCi sessions."
       (funcall mk-dante-method
                :name 'nix-flakes-build-script
                :is-enabled-pred #'dante-nix-cabal-script-buf?
-               :find-root-pred nil
+               :find-root-pred #'dante-flake-nix
                :repl-buf-name-func #'dante-buffer-name--default
                :template
                (cl-function
