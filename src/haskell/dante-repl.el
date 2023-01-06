@@ -85,6 +85,7 @@ otherwise the command for starting repl will be inferred."
          (buf-name (if inside-repl-buffer?
                        (buffer-name (current-buffer))
                      (dante-repl-buffer-name))))
+
     (when-let ((buf (get-buffer buf-name))
                (proc (get-buffer-process buf)))
       (when (and (buffer-live-p buf)
@@ -138,33 +139,33 @@ otherwise the command for starting repl will be inferred."
     (dante-repl--start-in-buffer-with-command-line repl-buf command-line initial-repl-command current-dir)))
 
 (defun dante-repl--start-in-buffer-with-command-line (repl-buf command-line initial-repl-command current-dir)
-  (with-current-buffer repl-buf
-    (cd (or current-dir (dante-project-root)))
-    (dante-repl-mode)
-    (setq-local dante-repl--last-command-line command-line)
-    (let ((proc
-           (get-buffer-process
-            (apply #'make-comint-in-buffer
-                   "dante"
-                   repl-buf
-                   (car command-line)
-                   nil
-                   (cdr command-line)))))
-      (when (process-live-p proc)
-        (set-process-query-on-exit-flag proc nil)
-        (let ((cmd
-               ;; ":set -fbyte-code -fdiagnostics-color=always -Wno-missing-home-modules -dsuppress-modules-prefixes"
-;; :set prompt \"\"
-;; :set -fbyte-code
-;; :set -fdiagnostics-color=always -Wno-missing-home-modules -dsuppress-modules-prefixes -fshow-loaded-modules
-;; :set -XOverloadedStrings
-               ":set prompt \"\\4 \""
-               ":set prompt-cont \"\\5 \""))
-          (comint-simple-send proc (if initial-repl-command
-                                       (concat cmd "\n" initial-repl-command)
-                                     cmd)))
-        (message "Started REPL with %s" (s-join " " command-line))
-        t))))
+  (let ((dir (or current-dir (dante-project-root))))
+    (with-current-buffer repl-buf
+      (cd dir)
+      (dante-repl-mode)
+      (setq-local dante-repl--last-command-line command-line)
+      (let ((proc
+             (get-buffer-process
+              (apply #'make-comint-in-buffer
+                     "dante"
+                     repl-buf
+                     (car command-line)
+                     nil
+                     (cdr command-line)))))
+        (when (process-live-p proc)
+          (set-process-query-on-exit-flag proc nil)
+          (let ((cmd
+                 ;; ":set -fbyte-code -fdiagnostics-color=always -Wno-missing-home-modules -dsuppress-modules-prefixes"
+                 ;; :set prompt \"\"
+                 ;; :set -fbyte-code
+                 ;; :set -fdiagnostics-color=always -Wno-missing-home-modules -dsuppress-modules-prefixes -fshow-loaded-modules
+                 ;; :set -XOverloadedStrings
+                 ":set prompt \"\\4 \"\n:set prompt-cont \"\\5 \""))
+            (comint-simple-send proc (if initial-repl-command
+                                         (concat cmd "\n" initial-repl-command)
+                                       cmd)))
+          (message "Started REPL with %s" (s-join " " command-line))
+          t)))))
 
 (defun dante-repl-completion-at-point ()
   (save-match-data
