@@ -391,42 +391,6 @@ hsSourceDirs' =
   hsSourceDirs
 #endif
 
-allowedOptions :: Set C8.ByteString
-allowedOptions = S.fromList
-  [ "-w"
-  , "-fglasgow-exts"
-  , "-fpackage-trust"
-  , "-fhelpful-errors"
-  , "-F"
-  , "-cpp"
-  ]
-
-allowedOptionPrefixes :: [C8.ByteString]
-allowedOptionPrefixes =
-  [ "-fwarn-"
-  , "-fno-warn-"
-  , "-W"
-  , "-fcontext-stack="
-  , "-firrefutable-tuples"
-  , "-D"
-  , "-U"
-  , "-I"
-  , "-fplugin="
-  , "-fplugin-opt="
-  , "-pgm"
-  , "-opt"
-  ]
-
-forbiddenOptions :: Set C8.ByteString
-forbiddenOptions = S.fromList
-   [ "-Wmissing-home-modules"
-   , "-Werror=missing-home-modules"
-   ]
-
-isAllowedOption :: C8.ByteString -> Bool
-isAllowedOption opt =
-  S.member opt allowedOptions || any (`C8.isPrefixOf` opt) allowedOptionPrefixes && S.notMember opt forbiddenOptions
-
 serializePackageDescription :: PackageDescription -> FilePath -> Sexp
 serializePackageDescription pkgDesc projectDir =
   SList
@@ -463,12 +427,12 @@ serializePackageDescription pkgDesc projectDir =
     -- The "cpp-options" configuration field.
     cppOpts :: [C8.ByteString]
     cppOpts =
-      ordNub (filter isAllowedOption (map C8.pack (concatMap cppOptions buildInfo)))
+      ordNub (map C8.pack (concatMap cppOptions buildInfo))
 
     -- The "ghc-options" configuration field.
     ghcOpts :: [C8.ByteString]
     ghcOpts =
-      ordNub (filter isAllowedOption (map C8.pack (concatMap (hcOptions GHC) buildInfo)))
+      ordNub (map C8.pack (concatMap (hcOptions GHC) buildInfo))
 
 data ComponentType
   = CTLibrary
