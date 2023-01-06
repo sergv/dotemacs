@@ -171,7 +171,7 @@ import Language.Haskell.Extension (Extension(..),Language(..))
 import System.Console.GetOpt
 import System.Environment (getArgs)
 import System.Exit (exitFailure, exitSuccess)
-import System.FilePath (dropFileName, normalise, isPathSeparator)
+import System.FilePath (dropFileName, normalise, isPathSeparator, dropTrailingPathSeparator)
 import System.Info (compilerVersion)
 import System.IO (Handle, hPutStrLn, stderr, stdout)
 
@@ -558,7 +558,7 @@ getCabalConfiguration configFile = do
     Right pkgDesc -> pure $ serializePackageDescription pkgDesc projectDir
   where
     projectDir :: FilePath
-    projectDir = dropFileName $ configFilePath configFile
+    projectDir = dropTrailingPathSeparator $ dropFileName $ configFilePath configFile
 
 readGenericPkgDescr :: FilePath -> IO GenericPackageDescription
 readGenericPkgDescr path = do
