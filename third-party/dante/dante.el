@@ -133,12 +133,7 @@ will be in loaded in different GHCi sessions."
               ;; -}
              (when-let ((fname (buffer-file-name buf)))
                (and (looking-at-p "^#!.*cabal")
-                    (re-search-forward "^{-[ \t]*cabal:" nil t)
-                    ;; If cabal file is lying around then it will be given priority.
-                    (not (directory-files (file-name-directory fname)
-                                          nil
-                                          (rx ".cabal" eos)
-                                          t)))))))
+                    (re-search-forward "^{-[ \t]*cabal:" nil t))))))
        t))
 
 (defun dante-directory-regular-files (dir re)
