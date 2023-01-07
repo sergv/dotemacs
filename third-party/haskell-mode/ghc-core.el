@@ -32,6 +32,9 @@
 (require 'haskell-mode)
 (require 'haskell-font-lock)
 
+(require 'haskell-regexen)
+(require 'haskell-smart-operators-mode)
+
 (defun ghc-core-clean-region (start end)
   "Remove commonly ignored annotations and namespace prefixes
 in the region between START and END."
@@ -60,14 +63,57 @@ in the current buffer."
 
 (defvar ghc-core-mode-syntax-table
   (let ((tbl (copy-syntax-table haskell-mode-syntax-table)))
+    (modify-syntax-entry ?- "_ 12" tbl)
     (modify-syntax-entry ?$ "_" tbl)
     (modify-syntax-entry ?# "_" tbl)
-    (modify-syntax-entry ?. "_")
+    (modify-syntax-entry ?. "_" tbl)
     tbl))
 
+(defvar ghc-core-font-lock-keywords
+  `(
+    (,(eval-when-compile
+        (concat "`\\(?:" haskell-regexen/core/opt-q/varid-or-conid "\\)`"))
+     0 'haskell-operator-face)
+    ("\\[\\]" 0 'haskell-constructor-face)
+    (,(eval-when-compile (regexp-opt haskell-font-lock-keywords)) 0 'haskell-keyword-face)
+
+    ;; ("(\\(,*\\|->\\))" 0 'haskell-constructor-face)
+
+    ;; (,haskell-regexen/core/opt-q/varid
+    ;;  (0 'default)
+    ;;  ;; (1 'font-lock-variable-name-face)
+    ;;  ;; (2 'font-lock-variable-name-face)
+    ;;  )
+
+    (,haskell-regexen/core/opt-q/conid
+     (1 'default)
+     (2 'haskell-constructor-face))
+    (,haskell-regexen/core/opt-q/operator 0 'haskell-operator-face)
+    (,(rx-let ((sign (or "-" "+"))
+               (digits (regex "[0-9]")))
+        (rx symbol-start
+            (? sign)
+            (+ digits)
+            (? "."
+               (+ digits))
+            (? (or "e" "E")
+               (? sign)
+               (+ digits))
+            (? (** 1 2 "#"))
+            symbol-end))
+     (0 'font-lock-constant-face))))
+
 ;;;###autoload
-(define-derived-mode ghc-core-mode haskell-mode "GHC-Core"
-  "Major mode for GHC Core files.")
+(define-derived-mode ghc-core-mode prog-mode "GHC-Core"
+  "Major mode for GHC Core files."
+  (setq-local comment-start "--+"
+              comment-start-skip "--+ *"
+
+              indent-tabs-mode nil
+              font-lock-defaults
+              '(ghc-core-font-lock-keywords
+                nil ;; perform syntactic fontification (e.g. strings, comments)
+                )))
 
 (provide 'ghc-core)
 ;;; ghc-core.el ends here
