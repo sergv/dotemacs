@@ -20,7 +20,6 @@
 (add-hook 'dante-mode-hook #'enable-hlint-after-dante-for-flycheck)
 
 
-(autoload 'vim:ghc-core-create-core "haskell-setup" nil t)
 (autoload 'vim:haskell-compile "haskell-setup" nil t)
 (autoload 'vim:haskell-compile-choosing-command "haskell-setup" nil t)
 (autoload 'vim:haskell-load-file-into-repl "haskell-setup" nil t)
@@ -32,7 +31,6 @@
 (autoload 'vim:haskell-flycheck-list-errors "haskell-setup" nil t)
 (autoload 'vim:haskell-navigate-imports "haskell-setup" nil t)
 
-(autoload 'vim:ghc-core-create-core:interactive "haskell-setup" nil t)
 (autoload 'vim:haskell-compile:interactive "haskell-setup" nil t)
 (autoload 'vim:haskell-compile-choosing-command:interactive "haskell-setup" nil t)
 (autoload 'vim:haskell-load-file-into-repl:interactive "haskell-setup" nil t)
