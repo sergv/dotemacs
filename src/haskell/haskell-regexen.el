@@ -18,6 +18,9 @@
 (defconst-set haskell-regexen/varid
   "\\(?:_\\|\\b[[:lower:]]\\)[[:alnum:]'_#]*")
 
+(defconst-set haskell-regexen/core/varid
+  "[$]?\\(?:_\\|\\b[[:lower:]]\\)[[:alnum:]'_#]*")
+
 (defconst-set haskell-regexen/conid
   "\\(?:\\b\\|'\\)[[:upper:]][[:alnum:]'_#]*")
 (defconst-set haskell-regexen/modid
@@ -33,9 +36,76 @@
   (concat haskell-regexen/modid "\\."
           "\\(?:" haskell-regexen/varid "\\|" haskell-regexen/conid "\\)"))
 
+(defconst-set haskell-regexen/operator
+  (rx (+ (or "!"
+             "#"
+             "$"
+             "%"
+             "&"
+             "*"
+             "+"
+             "-"
+             "."
+             "/"
+             ":"
+             "<"
+             "="
+             ">"
+             "?"
+             "@"
+             "\\"
+             "^"
+             "|"
+             "~"))))
+
+
+(defconst-set haskell-regexen/core/pkgid
+  (rx (char (?a . ?z) (?A . ?Z))
+      (* (char (?a . ?z) (?A . ?Z) (?0 . ?9) ?-))
+      (? "-" (+ (char (?0 . ?9) ?.)))
+      (? "-" (+ (char (?a . ?z) (?0 . ?9))))))
+
+(defconst-set haskell-regexen/core/opt-q/conid
+  (concat "\\_<"
+          "\\(?1:"
+          "\\(?:" haskell-regexen/core/pkgid ":\\)?"
+          "\\)"
+          "\\(?2:"
+          "\\(?:" haskell-regexen/modid "\\.\\)?"
+          "\\(?:" haskell-regexen/conid "\\)"
+          "\\)"
+          "\\_>"))
+
+(defconst-set haskell-regexen/core/opt-q/varid
+  (concat "\\_<"
+          "\\(?1:"
+          "\\(?:" haskell-regexen/core/pkgid ":\\)?"
+          "\\(?:" haskell-regexen/modid "\\.\\)?"
+          "\\)"
+          "\\(?2:" haskell-regexen/core/varid "\\)"
+          "\\_>"))
+
+(defconst-set haskell-regexen/core/opt-q/varid-or-conid
+  (concat "\\_<"
+          "\\(?1:"
+          "\\(?:" haskell-regexen/core/pkgid ":\\)?"
+          "\\(?:" haskell-regexen/modid "\\.\\)?"
+          "\\)"
+          "\\(?2:" haskell-regexen/core/varid "\\|" haskell-regexen/conid "\\)"
+          "\\_>"))
+
+(defconst-set haskell-regexen/core/opt-q/operator
+  (concat "\\_<"
+          "\\(?:" haskell-regexen/core/pkgid ":\\)?"
+          "\\(?:" haskell-regexen/modid "\\.\\)?"
+          "\\(?:" haskell-regexen/operator "\\)"
+          "\\_>"))
+
+
 (defconst-set haskell-regexen/opt-q/varid-or-conid
   (concat "\\(?:" haskell-regexen/modid "\\.\\)?"
           "\\(?:" haskell-regexen/varid "\\|" haskell-regexen/conid "\\)"))
+
 ;; ;; (old-sym "[-!#$%&*+./<=>?@^|~:\\]+")
 ;; (defconst-set haskell-regexen/sym-constructor
 ;;    "\\(?::[-!#$%&*+./<=>?@^|~:\\]*\\)")
