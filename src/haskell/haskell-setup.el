@@ -53,23 +53,6 @@
 
 (autoload 'flycheck--locate-dominating-file-matching "flycheck")
 
-(vim-defcmd vim:ghc-core-create-core (nonrepeatable)
-  (let* ((is-stack-project?
-          (flycheck--locate-dominating-file-matching
-           default-directory
-           "stack.*\\.yaml\\'"))
-         (ghc-core-program
-          (if is-stack-project?
-              "stack"
-            ghc-core-program))
-         (ghc-core-program-args
-          (if is-stack-project?
-              (cons "ghc"
-                    (cons "--"
-                          ghc-core-program-args))
-            ghc-core-program-args)))
-    (ghc-core-create-core current-prefix-arg)))
-
 (vim-defcmd vim:dante-repl-switch-to-repl-buffer (nonrepeatable)
   (haskell-misc--configure-dante-if-needed!)
   (dante-repl-switch-to-repl-buffer))
@@ -446,8 +429,6 @@ _<tab>_: reindent  _h_: jump to topmont node end"
     (def-keys-for-map vim-normal-mode-local-keymap
       ("SPC SPC"      vim:dante-repl-switch-to-repl-buffer:interactive)
       (("C-l" "<f6>") vim:haskell-dante-load-file-into-repl:interactive))
-
-    (vim-local-emap "core" #'vim:ghc-core-create-core)
 
     (def-keys-for-map vim-normal-mode-local-keymap
       ("\\"           vim:flycheck-run:interactive)
