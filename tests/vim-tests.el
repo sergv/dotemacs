@@ -4317,6 +4317,120 @@ _|_bar")
    "_|_quux =  3=         30"
    ""))
 
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (text-mode)
+    vim-tests/cmd-shift-right-1
+    (execute-kbd-macro (kbd "> >"))
+  (tests-utils--multiline
+   ""
+   "foo"
+   " bar"
+   "_|_  baz"
+   " quux"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo"
+   " bar"
+   "_|_    baz"
+   " quux"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (text-mode)
+    vim-tests/cmd-shift-right-2
+    (execute-kbd-macro (kbd "h v h >"))
+  (tests-utils--multiline
+   ""
+   "_|_foo"
+   " bar"
+   "  baz"
+   " quux"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo"
+   "   bar"
+   "_|_    baz"
+   " quux"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (text-mode)
+    vim-tests/cmd-shift-right-3
+    (execute-kbd-macro (kbd "h v h > > >"))
+  (tests-utils--multiline
+   ""
+   "_|_foo"
+   " bar"
+   "  baz"
+   " quux"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo"
+   "       bar"
+   "_|_        baz"
+   " quux"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (text-mode)
+    vim-tests/cmd-shift-left-1
+    (execute-kbd-macro (kbd "< <"))
+  (tests-utils--multiline
+   ""
+   "foo"
+   "_|_       bar"
+   "        baz"
+   " quux"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo"
+   "_|_     bar"
+   "        baz"
+   " quux"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (text-mode)
+    vim-tests/cmd-shift-left-2
+    (execute-kbd-macro (kbd "V h <"))
+  (tests-utils--multiline
+   ""
+   "foo"
+   "_|_       bar"
+   "        baz"
+   " quux"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo"
+   "     bar"
+   "_|_      baz"
+   " quux"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (text-mode)
+    vim-tests/cmd-shift-left-3
+    (execute-kbd-macro (kbd "V h < <"))
+  (tests-utils--multiline
+   ""
+   "foo"
+   "_|_       bar"
+   "        baz"
+   " quux"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo"
+   "   bar"
+   "_|_    baz"
+   " quux"
+   ""))
+
 (provide 'vim-tests)
 
 ;; Local Variables:
