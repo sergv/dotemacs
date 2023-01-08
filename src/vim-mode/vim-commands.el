@@ -652,21 +652,42 @@ indented according to the current mode."
   (goto-line-dumb (vim-motion-first-line motion))
   (vim:cmd-join-lines :count (vim-motion-line-count motion)))
 
-(vim-defcmd vim:cmd-shift-left (motion)
-  "Shift the lines covered by `motion' leftwards."
+(defun vim:cmd-shift--ident (start-line end-line offset)
   (save-current-line-column
-   (goto-line-dumb (vim-motion-first-line motion))
-   (indent-rigidly (line-beginning-position)
-                   (line-end-position (vim-motion-line-count motion))
-                   (- vim-shift-width))))
+    (goto-line-dumb start-line)
+    (beginning-of-line)
+    (let ((i 0))
+      (while (<= (+ start-line i) end-line)
+        (let ((curr-indent (current-indentation))
+              (whitespace-chars 0)
+              (is-empty-line? nil))
+          (save-excursion
+            (setf whitespace-chars (skip-chars-forward " \t"))
+            (setq is-empty-line? (eolp)))
+          (unless is-empty-line?
+              (indent-to (max 0 (+ curr-indent offset)) 0))
+            (delete-region (point) (+ whitespace-chars (point))))
+        (beginning-of-line)
+        (cl-incf i)
+        (forward-line 1)))))
 
-(vim-defcmd vim:cmd-shift-right (motion)
+(vim-defcmd vim:cmd-shift-left (motion keep-visual)
+  "Shift the lines covered by `motion' leftwards."
+  (when (= 0 vim-shift-width)
+    (error "vim-shift-width is zero"))
+  (vim:cmd-shift--ident (vim-motion-first-line motion)
+                        (vim-motion-last-line motion)
+                        (- vim-shift-width))
+  (setf deactivate-mark nil))
+
+(vim-defcmd vim:cmd-shift-right (motion keep-visual)
   "Shift the lines covered by `motion' rightwards."
-  (save-current-line-column
-   (goto-line-dumb (vim-motion-first-line motion))
-   (indent-rigidly (line-beginning-position)
-                   (line-end-position (vim-motion-line-count motion))
-                   vim-shift-width)))
+  (when (= 0 vim-shift-width)
+    (error "vim-shift-width is zero"))
+  (vim:cmd-shift--ident (vim-motion-first-line motion)
+                        (vim-motion-last-line motion)
+                        vim-shift-width)
+  (setf deactivate-mark nil))
 
 (vim-defcmd vim:cmd-toggle-case (motion)
   "Toggles the case of all characters defined by `motion'."
