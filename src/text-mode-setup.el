@@ -6,6 +6,7 @@
 ;; Created: 25 June 2020
 ;; Description:
 
+(require 'indentation)
 (require 'folding-setup)
 
 ;;;###autoload
@@ -15,6 +16,7 @@
                :use-render-formula nil
                :use-whitespace nil)
   (setq-local hs-allow-nesting t)
+  (setup-indent-size 2)
   (setup-hideshow-yafolding t nil))
 
 ;;;###autoload
