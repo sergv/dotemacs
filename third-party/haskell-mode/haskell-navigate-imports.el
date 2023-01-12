@@ -44,7 +44,8 @@
   "Cycle the Haskell import lines."
   (interactive)
   (save-match-data
-    (haskell-navigate-imports-go-internal)))
+    (let ((case-fold-search nil))
+      (haskell-navigate-imports-go-internal))))
 
 (defun haskell-navigate-imports-go-internal ()
   "Go to the first line of a list of consecutive import lines. Cycle."
