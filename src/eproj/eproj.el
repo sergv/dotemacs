@@ -285,6 +285,13 @@
     :create-tags-procedure nil
     :parse-tags-procedure nil
     :show-tag-kind-procedure #'eproj/generic-tag-kind
+    :tag->string-func #'eproj/generic-tag->string)
+   (mk-eproj-lang
+    :mode 'nix-mode
+    :extensions '("nix")
+    :create-tags-procedure nil
+    :parse-tags-procedure nil
+    :show-tag-kind-procedure #'eproj/generic-tag-kind
     :tag->string-func #'eproj/generic-tag->string)))
 
 (defvar eproj/languages-table
