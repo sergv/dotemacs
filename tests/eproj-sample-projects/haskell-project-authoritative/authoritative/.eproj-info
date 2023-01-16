@@ -1,0 +1,3 @@
+((languages haskell-mode)
+ (related "../subproj/")
+ (authoritative-tag-source-for haskell-mode))
