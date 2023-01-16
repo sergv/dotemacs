@@ -103,6 +103,10 @@ By default these are:
   ;; We could use font-lock-syntactic-keywords, but is it worth it?
   '(
     ("^[ \t]*\\(?:,[ \t]*\\)?\\([^ \t\n\r:]+\\):" (1 font-lock-keyword-face))
+    ("^\\([Cc]ustom-[Ss]etup\\)[ \t]*\\(?:{\\|$\\)"
+     (1 font-lock-keyword-face)
+     ;; Library section can have no name so make it a lax match
+     )
     ("^\\([Ll]ibrary\\)[ \t]*\\([^ \t\n\r{}]*[ \t]*\\)?\\(?:{\\|$\\)"
      (1 font-lock-keyword-face)
      ;; Library section can have no name so make it a lax match
@@ -481,6 +485,7 @@ OTHER-WINDOW use `find-file-other-window'."
   "Map from cabal file COMPONENT-TYPE to build command component-type."
   (let ((component-type (downcase component-type)))
     (cond ((equal component-type "executable") "exe")
+          ((equal component-type "foreign-library") "flib")
           ((equal component-type "test-suite") "test")
           ((equal component-type "benchmark")  "bench"))))
 
@@ -925,7 +930,7 @@ resulting buffer-content.  Unmark line at the end."
   )
 
 (defconst haskell-cabal-source-bearing-sections
-  '("library" "foreign-library" "executable" "test-suite" "benchmark"))
+  '("library" "foreign-library" "executable" "test-suite" "benchmark" "custom-setup"))
 
 (defun haskell-cabal-source-section-p (section)
   (not (not (member (downcase (haskell-cabal-section-name section))
