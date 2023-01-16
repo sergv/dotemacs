@@ -50,6 +50,11 @@
 ;; Don’t use default projects for these modes
 ;; [(no-default-proj haskell-mode c-mode...)]
 ;;
+;; If the same (up to a reasonable heuristic) tag is found in current
+;; project and in some of the related ones, including the default
+;; ones, then show the tag only from current project.
+;; [(authoritative-tag-source-for haskell-mode c-mode...)]
+;;
 ;; [...] - optional directive
 ;; <abs-or-rel-dir> - absolute or relative path to directory
 ;; <abs-or-rel-file> - absolute or relative path to file
@@ -104,10 +109,12 @@
   ;; bindings for specified files, where <eproj-tags> is a list of tags.
   parse-tags-procedure
 
-  ;; function that takes a tag and returs a string
+  ;; function that takes a tag and returns a string
   show-tag-kind-procedure
   ;; function of 3 arguments, a project, a string tag name and a tag struct, returning string
   tag->string-func
+  ;; function of 2 arguments, a project and a tag struct, returning string or nil
+  tag->signature-func
   ;; list of symbols, these modes will resolve to this language during
   ;; tag search
   synonym-modes
@@ -123,6 +130,7 @@
                               parse-tags-procedure
                               show-tag-kind-procedure
                               tag->string-func
+                              tag->signature-func
                               synonym-modes
                               normalise-identifier-before-navigation-procedure
                               extra-navigation-globs)
@@ -148,6 +156,12 @@
              nil
              "Invalid tag->string-func: %s"
              tag->string-func)
+  (cl-assert (or (functionp tag->signature-func)
+                 (autoload-p tag->signature-func)
+                 (subr-native-elisp-p tag->signature-func))
+             nil
+             "Invalid tag->signature-func: %s"
+             tag->signature-func)
   (cl-assert (listp synonym-modes))
   (cl-assert (-all? #'symbolp synonym-modes))
   (cl-assert (or (null normalise-identifier-before-navigation-procedure)
@@ -166,6 +180,7 @@
    :parse-tags-procedure parse-tags-procedure
    :show-tag-kind-procedure show-tag-kind-procedure
    :tag->string-func tag->string-func
+   :tag->signature-func tag->signature-func
    :synonym-modes synonym-modes
    :normalise-identifier-before-navigation-procedure
    normalise-identifier-before-navigation-procedure
@@ -194,6 +209,7 @@
     #'eproj/get-fast-tags-tags-from-buffer
     :show-tag-kind-procedure #'eproj/haskell-tag-kind
     :tag->string-func #'eproj/haskell-tag->string
+    :tag->signature-func #'eproj/haskell-extract-tag-signature
     :synonym-modes '(haskell-literate-mode
                      haskell-c-mode
                      haskell-hsc-mode
@@ -223,6 +239,7 @@
     #'eproj/ctags-get-tags-from-buffer
     :show-tag-kind-procedure #'eproj/rust-tag-kind
     :tag->string-func #'eproj/rust-tag->string
+    :tag->signature-func #'eproj/extract-tag-line
     :extra-navigation-globs
     (eval-when-compile
       (--map (concat "*." it)
@@ -237,7 +254,8 @@
     :parse-tags-procedure
     #'eproj/ctags-get-tags-from-buffer
     :show-tag-kind-procedure #'eproj/c-tag-kind
-    :tag->string-func #'eproj/c-tag->string)
+    :tag->string-func #'eproj/c-tag->string
+    :tag->signature-func #'eproj/extract-tag-line)
    (mk-eproj-lang
     :mode 'c++-mode
     :extensions +cpp-extensions+
@@ -247,7 +265,8 @@
     :parse-tags-procedure
     #'eproj/ctags-get-tags-from-buffer
     :show-tag-kind-procedure #'eproj/c-tag-kind
-    :tag->string-func #'eproj/c-tag->string)
+    :tag->string-func #'eproj/c-tag->string
+    :tag->signature-func #'eproj/extract-tag-line)
    (mk-eproj-lang
     :mode 'python-mode
     :extensions '("py" "pyx" "pxd" "pxi")
@@ -257,7 +276,8 @@
     :parse-tags-procedure
     #'eproj/ctags-get-tags-from-buffer
     :show-tag-kind-procedure #'eproj/generic-tag-kind
-    :tag->string-func #'eproj/generic-tag->string)
+    :tag->string-func #'eproj/generic-tag->string
+    :tag->signature-func #'eproj/extract-tag-line)
    (mk-eproj-lang
     :mode 'clojure-mode
     :extensions '("clj" "java")
@@ -268,7 +288,8 @@
     :parse-tags-procedure
     #'eproj/ctags-get-tags-from-buffer
     :show-tag-kind-procedure #'eproj/generic-tag-kind
-    :tag->string-func #'eproj/generic-tag->string)
+    :tag->string-func #'eproj/generic-tag->string
+    :tag->signature-func #'eproj/extract-tag-line)
    (mk-eproj-lang
     :mode 'java-mode
     :extensions '("java")
@@ -278,21 +299,24 @@
     :parse-tags-procedure
     #'eproj/ctags-get-tags-from-buffer
     :show-tag-kind-procedure #'eproj/java-tag-kind
-    :tag->string-func #'eproj/java-tag->string)
+    :tag->string-func #'eproj/java-tag->string
+    :tag->signature-func #'eproj/extract-tag-line)
    (mk-eproj-lang
     :mode 'emacs-lisp-mode
     :extensions '("el")
     :create-tags-procedure nil
     :parse-tags-procedure nil
     :show-tag-kind-procedure #'eproj/generic-tag-kind
-    :tag->string-func #'eproj/generic-tag->string)
+    :tag->string-func #'eproj/generic-tag->string
+    :tag->signature-func #'eproj/extract-tag-line)
    (mk-eproj-lang
     :mode 'nix-mode
     :extensions '("nix")
     :create-tags-procedure nil
     :parse-tags-procedure nil
     :show-tag-kind-procedure #'eproj/generic-tag-kind
-    :tag->string-func #'eproj/generic-tag->string)))
+    :tag->string-func #'eproj/generic-tag->string
+    :tag->signature-func #'eproj/extract-tag-line)))
 
 (defvar eproj/languages-table
   (let ((table (make-hash-table :test #'eq)))
@@ -369,7 +393,10 @@ get proper flycheck checker."
   (transient-files-for-navigation nil)
 
   ;; Regexp that matches any files that should be ignored
-  (cached-ignored-files-re nil :read-only t))
+  (cached-ignored-files-re nil :read-only t)
+
+  ;; List of symbols - mode names.
+  (authoritative-tag-source-for nil :read-only t))
 
 (defmacro eproj-project/query-aux-info-entry (aux-info &rest keys)
   "Retrieve aux-data assoc entry associated with a KEY in the aux info AUX-INFO."
@@ -674,7 +701,9 @@ for project at ROOT directory."
           (let ((related-projs-globs
                  (--map (concat it "/*") related-projects)))
             (globs-to-regexp (append ignored-files-globs related-projs-globs))))
-         (no-default-project-for (cdr-safe (assq 'no-default-proj aux-info))))
+         (no-default-project-for (cdr-safe (assq 'no-default-proj aux-info)))
+
+         (authoritative-tag-source-for (cdr-safe (assq 'authoritative-tag-source-for aux-info))))
     (cl-assert (sequencep languages) nil "Project languages is not a sequence: %s" languages)
     (cl-assert (listp extra-navigation-globs))
     (cl-assert (-all? #'stringp extra-navigation-globs))
@@ -696,7 +725,8 @@ for project at ROOT directory."
                                :extra-navigation-globs extra-navigation-globs
                                :cached-files-for-navigation nil
                                :transient-files-for-navigation nil
-                               :cached-ignored-files-re cached-ignored-files-re)))
+                               :cached-ignored-files-re cached-ignored-files-re
+                               :authoritative-tag-source-for authoritative-tag-source-for)))
       (eproj--prepare-to-load-fresh-tags-lazily-on-demand! proj)
       proj)))
 
@@ -1233,21 +1263,49 @@ or `default-directory', if no file is visited."
 whose name equals IDENTIFIER or matches regexp IDENTIFIER if SEARCH-WITH-REGEXP?
 is non-nil.
 
-Returns list of (tag-name tag project) lists."
-  (-mapcat (lambda (proj)
-             (aif (cdr-safe
-                   (assq tag-major-mode
-                         (eproj--get-tags proj)))
-                 (if search-with-regexp?
-                     (mapcan (lambda (key-and-tags)
-                               (let ((key (car key-and-tags)))
-                                 (-map (lambda (tag) (list key tag proj))
-                                       (cdr key-and-tags))))
-                             (eproj-tag-index-values-where-key-matches-regexp identifier it))
-                   (-map (lambda (x) (list identifier x proj))
-                         (eproj-tag-index-get identifier it nil)))
-               nil))
-           (eproj-get-all-related-projects-for-mode proj tag-major-mode)))
+Returns list of (tag-name tag project is-authoritative?) lists."
+  (let* ((has-authoritative-projects? nil)
+         (matched-tags
+          (-mapcat (lambda (proj)
+                     (aif (cdr-safe
+                           (assq tag-major-mode
+                                 (eproj--get-tags proj)))
+                         (let* ((is-authoritative? (memq tag-major-mode (eproj-project/authoritative-tag-source-for proj)))
+                                (tags
+                                 (if search-with-regexp?
+                                     (mapcan (lambda (key-and-tags)
+                                               (let ((key (car key-and-tags)))
+                                                 (-map (lambda (tag) (list key tag proj is-authoritative?))
+                                                       (cdr key-and-tags))))
+                                             (eproj-tag-index-values-where-key-matches-regexp identifier it))
+                                   (-map (lambda (x) (list identifier x proj is-authoritative?))
+                                         (eproj-tag-index-get identifier it nil)))))
+                           (when tags
+                             (setf has-authoritative-projects? (or has-authoritative-projects?
+                                                                   is-authoritative?)))
+                           tags)
+                       nil))
+                   (eproj-get-all-related-projects-for-mode proj tag-major-mode))))
+    (if has-authoritative-projects?
+        (let* ((tbl (make-hash-table :test #'equal))
+               (lang (aif (gethash tag-major-mode eproj/languages-table)
+                         it
+                       (error "unsupported language %s" tag-major-mode)))
+               (tag->string (eproj-language/tag->signature-func lang))
+               (tag->kind (eproj-language/show-tag-kind-procedure lang)))
+          (dolist (entry matched-tags)
+            (let* ((tag (cadr entry))
+                   (key (cons (car entry)
+                              (cons (funcall tag->kind tag)
+                                    (funcall tag->string proj tag)))))
+              (puthash key (cons entry (gethash key tbl nil)) tbl)))
+          (let ((result nil))
+            (maphash (lambda (_k vs)
+                       (let ((filtered (--filter (cl-fourth it) vs)))
+                         (setf result (nconc (or filtered vs) result))))
+                     tbl)
+            result))
+      matched-tags)))
 
 (defsubst eproj--add-cached-file-for-navigation (proj-root fname files-cache)
   (cl-assert (stringp proj-root))
