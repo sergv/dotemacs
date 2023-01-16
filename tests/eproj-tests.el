@@ -117,6 +117,9 @@ under ROOT directory."
 (defconst eproj-tests/haskell-project-with-aux-files
   (expand-file-name (concat eproj-tests/project-dir "/haskell-project-with-aux-files/prefix-long")))
 
+(defconst eproj-tests/haskell-project-authoritative
+  (expand-file-name (concat eproj-tests/project-dir "/haskell-project-authoritative")))
+
 (eproj-tests--define-tests
     "eproj-tests/eproj-get-all-related-projects"
   (let* ((path (concat eproj-tests/folder-with-related-projects "/project-main"))
@@ -566,6 +569,28 @@ under ROOT directory."
 
    (dolist (name '("foobar" "subfoo" "subbar" "prefixFoo"))
      (should (eproj-get-matching-tags proj 'haskell-mode name nil)))))
+
+(eproj-tests--define-tests
+ "eproj-tests/haskell-project-authoritative"
+ (let* ((path eproj-tests/haskell-project-authoritative)
+        (authoritative-proj (eproj-get-project-for-path (concat path "/authoritative")))
+        (non-authoritative-proj (eproj-get-project-for-path (concat path "/non-authoritative"))))
+
+   (dolist (name '("foo" "bar"))
+     (let ((authoritative-tags (eproj-get-matching-tags authoritative-proj 'haskell-mode name nil)))
+       (should (equal (length authoritative-tags)
+                      1))
+       (should (--all? (member (eproj-tag/file (cadr it))
+                               (list (concat path "/authoritative/src/Foo.hs")))
+                       authoritative-tags)))
+
+     (let ((non-authoritative-tags (eproj-get-matching-tags non-authoritative-proj 'haskell-mode name nil)))
+       (should (equal (length non-authoritative-tags)
+                      2))
+       (should (--all? (member (eproj-tag/file (cadr it))
+                               (list (concat path "/non-authoritative/src/Foo.hs")
+                                     (concat path "/subproj/src/Foo.hs")))
+                       non-authoritative-tags))))))
 
 ;;;; eproj/ctags-get-tags-from-buffer
 
