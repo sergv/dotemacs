@@ -47,7 +47,6 @@ common ghc-options
     GHC2021
 
   default-extensions:
-    ImportQualifiedPost
     LambdaCase
 
   ghc-options:
