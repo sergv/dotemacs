@@ -105,7 +105,7 @@ Returns:
 After successful 'qid or 'qsym match (match-string 1) will return
 the unqualified part (if any)."
   (let ((begin (point))
-        (match-data-old (match-data)))
+        (match-data-old (match-data t)))
     (save-excursion
       (while (looking-at haskell-lexeme-modid-with-dot)
         (goto-char (match-end 0)))
@@ -146,7 +146,7 @@ When match is successful, match-data will contain:
   (match-text 2) - whole qualified identifier
   (match-text 3) - unqualified part of identifier
   (match-text 4) - closing backtick"
-  (let ((match-data-old (match-data))
+  (let ((match-data-old (match-data t))
         first-backtick-start
         last-backtick-start
         qid-start
@@ -167,15 +167,12 @@ When match is successful, match-data will contain:
           (when (looking-at "`")
             (setq last-backtick-start (match-beginning 0))
             (set-match-data
-             (mapcar
-              (lambda (p)
-                (set-marker (make-marker) p))
-              (list
-               first-backtick-start (1+ last-backtick-start)
-               first-backtick-start (1+ first-backtick-start)
-               qid-start id-end
-               id-start id-end
-               last-backtick-start (1+ last-backtick-start))))
+             (list
+              first-backtick-start (1+ last-backtick-start)
+              first-backtick-start (1+ first-backtick-start)
+              qid-start id-end
+              id-start id-end
+              last-backtick-start (1+ last-backtick-start)))
             (setq result t)))))
     (unless result
       (set-match-data match-data-old))
@@ -382,7 +379,7 @@ Regexp has subgroup expressions:
 
 Note that this function excludes 'e', 't', 'd', 'p' as quoter
 names according to Template Haskell specification."
-  (let ((match-data-old (match-data)))
+  (let ((match-data-old (match-data t)))
     (if (and
          (looking-at
           (eval-when-compile
@@ -397,9 +394,9 @@ names according to Template Haskell specification."
         ;; note that quasi quote syntax does not have any escaping
         ;; mechanism and if not closed it will span til lthe end of buffer
         (goto-char (match-end 0))
-        (let ((match-data (match-data))
+        (let ((match-data (match-data t))
               (match-data-2 (and (re-search-forward "|]" nil t)
-                                 (match-data))))
+                                 (match-data t))))
           (if match-data-2
               (set-match-data
                (list
@@ -494,18 +491,18 @@ See `haskell-lexeme-classify-by-first-char' for details."
       (or (> (skip-syntax-forward "-") 0)
           (and (not skip-newline)
                (> (skip-chars-forward "\n") 0))))
-  (let ((point (point-marker)))
+  (let ((point (point)))
     (cond
       ((equal (eval-when-compile (string-to-syntax "<"))
               (get-char-property (point) 'syntax-table))
-       (set-match-data (list point (set-marker (make-marker) (line-end-position))))
+       (set-match-data (list point (line-end-position)))
        'literate-comment)
       ((looking-at "\n")
        'newline)
       ((looking-at "{-")
        (save-excursion
          (forward-comment 1)
-         (set-match-data (list point (point-marker)))
+         (set-match-data (list point (point)))
          'nested-comment))
       ((haskell-lexeme-looking-at-char-literal)
        'char)
@@ -518,7 +515,7 @@ See `haskell-lexeme-classify-by-first-char' for details."
       ((haskell-lexeme-looking-at-qidsym)
        (if (string-match-p "\\`--+\\'" (match-string-no-properties 0))
            (progn
-             (set-match-data (list point (copy-marker (line-end-position))))
+             (set-match-data (list point (line-end-position)))
              'comment)
          'qsymid))
       ((looking-at haskell-lexeme-number)
