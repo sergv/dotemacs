@@ -783,15 +783,18 @@ value section should have if it is to be properly indented."
      (haskell-cabal-with-subsection
       (haskell-misc--cabal-indented-subsection)
       t
-      (haskell-cabal-with-cs-list
-       (haskell-cabal-each-line
-        (beginning-of-line)
-        (when (looking-at "^[ \t]*\\([^ \t\r\n]\\(?:.*[^ \t\r\n]\\)?\\)[ \t]*$")
-          (replace-match (match-string-no-properties 1) nil t)))
-       (sort-subr nil
-                  'forward-line
-                  'end-of-line
-                  'haskell-cabal-sort-lines-key-fun))))))
+      (progn
+        (goto-char (point-min))
+        (delete-char (- (skip-chars-forward "\r\n")))
+        (haskell-cabal-with-cs-list
+         (haskell-cabal-each-line
+          (beginning-of-line)
+          (when (looking-at "^[ \t]*\\([^ \t\r\n]\\(?:.*[^ \t\r\n]\\)?\\)[ \t]*$")
+            (replace-match (match-string-no-properties 1) nil t)))
+         (sort-subr nil
+                    'forward-line
+                    'end-of-line
+                    'haskell-cabal-sort-lines-key-fun)))))))
 
 (defun haskell-cabal--yasnippet--main-module-from-main-file (str)
   "Infer name of Haskell main module from file name."

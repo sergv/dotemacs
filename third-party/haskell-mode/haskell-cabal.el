@@ -664,12 +664,13 @@ determines the style. If there is only one element then `after'
 style is assumed."
   (let (comma-style
         have-leading-comma
-        (before-comma-re "^\\([ \t]*\\),\\([ \t]*\\)"))
+        (first-before-comma-re "\\`\\(?:[ \t]*\r?\n\\)?\\(?1:[ \t]*,[ \t]*\\)")
+        (before-comma-re "^\\(?:[ \t]*\\),\\(?:[ \t]*\\)"))
     ;; split list items on single line
     (goto-char (point-min))
-    (when (looking-at before-comma-re)
+    (when (looking-at first-before-comma-re)
       (setq have-leading-comma t)
-      (replace-match "" nil nil))
+      (replace-match "" nil nil nil 1))
     (while (re-search-forward
             "\\([^ \t,\n]\\)[ \t]*\\(,\\)[ \t]*\\([^ \t,\n]\\)" nil t)
       (when (haskell-cabal-comma-separatorp (match-beginning 2))
@@ -887,9 +888,8 @@ Respect the comma style."
                                        'haskell-cabal-marker
                                        'marked))
         (marked-line (text-property-any (point-min) (point-max)
-                                       'haskell-cabal-marker
-                                       'marked-line) )
-        )
+                                        'haskell-cabal-marker
+                                        'marked-line)))
     (cond (marked-pos (goto-char marked-pos))
           (marked-line (goto-char marked-line)))))
 
