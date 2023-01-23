@@ -45,6 +45,15 @@
     :initialisation (haskell-mode)
     :buffer-id haskell))
 
+(defmacro haskell-tests--cabal--test-buffer-contents (action contents expected-value)
+  (declare (indent 1))
+  `(tests-utils--test-buffer-contents
+    :action ,action
+    :contents ,contents
+    :expected-value ,expected-value
+    :initialisation (haskell-cabal-mode)
+    :buffer-id haskell-cabal))
+
 (defmacro haskell-tests--make-multiple-test-buffer-contents (initial entries)
   "Define a set of tests that share initial buffer state but
 execute diffent actions and reach different buffer states in the
@@ -4778,6 +4787,87 @@ end."
      "  let foo :: Int -> Int -> Int"
      "      !_|_foo x y = x + y"
      "  pure $ foo z z"
+     "")))
+
+
+(ert-deftest haskell-tests/haskell-misc-cabal-align-and-sort-subsection-1 ()
+  (haskell-tests--cabal--test-buffer-contents
+      (haskell-misc-cabal-align-and-sort-subsection)
+    (tests-utils--multiline
+     ""
+     "  build-depends:_|_"
+     "    , base ^>= 4.14"
+     "    , async"
+     "")
+    (tests-utils--multiline
+     ""
+     "  build-depends:_|_"
+     "    , async"
+     "    , base ^>= 4.14"
+     "")))
+
+(ert-deftest haskell-tests/haskell-misc-cabal-align-and-sort-subsection-2 ()
+  (haskell-tests--cabal--test-buffer-contents
+      (haskell-misc-cabal-align-and-sort-subsection)
+    (tests-utils--multiline
+     ""
+     "_|_  build-depends:"
+     "    , base ^>= 4.14"
+     "    , async"
+     "")
+    (tests-utils--multiline
+     ""
+     "_|_  build-depends:"
+     "    , async"
+     "    , base ^>= 4.14"
+     "")))
+
+(ert-deftest haskell-tests/haskell-misc-cabal-align-and-sort-subsection-3 ()
+  (haskell-tests--cabal--test-buffer-contents
+      (haskell-misc-cabal-align-and-sort-subsection)
+    (tests-utils--multiline
+     ""
+     "  build-depends:"
+     "_|_    , base ^>= 4.14"
+     "    , async"
+     "")
+    (tests-utils--multiline
+     ""
+     "  build-depends:_|_"
+     "    , async"
+     "    , base ^>= 4.14"
+     "")))
+
+(ert-deftest haskell-tests/haskell-misc-cabal-align-and-sort-subsection-4 ()
+  (haskell-tests--cabal--test-buffer-contents
+      (haskell-misc-cabal-align-and-sort-subsection)
+    (tests-utils--multiline
+     ""
+     "  build-depends:"
+     "      base ^>= 4.14_|_"
+     "    , async"
+     "")
+    (tests-utils--multiline
+     ""
+     "  build-depends:"
+     "      async_|_"
+     "    , base ^>= 4.14"
+     "")))
+
+(ert-deftest haskell-tests/haskell-misc-cabal-align-and-sort-subsection-5 ()
+  (haskell-tests--cabal--test-buffer-contents
+      (haskell-misc-cabal-align-and-sort-subsection)
+    (tests-utils--multiline
+     ""
+     "  build-depends:"
+     "    base ^>= 4.14,_|_"
+     "    async"
+     "")
+    (tests-utils--multiline
+     ""
+     "  build-depends:"
+     "    async,_|_"
+     "    base ^>= 4.14"
      "")))
 
 ;; (ert "haskell-tests/.*")
