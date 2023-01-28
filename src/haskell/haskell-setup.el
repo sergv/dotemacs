@@ -684,7 +684,11 @@ _<tab>_: reindent  _h_: jump to topmont node end"
     ("*"            search-for-ghc-core-symbol-at-point-forward)
     ("C-*"          search-for-ghc-core-symbol-at-point-forward-new-color)
     ("#"            search-for-ghc-core-symbol-at-point-backward)
-    ("C-#"          search-for-ghc-core-symbol-at-point-backward-new-color)))
+    ("C-#"          search-for-ghc-core-symbol-at-point-backward-new-color))
+
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-insert-mode-local-keymap)
+    ("C-<return>"  haskell--simple-indent-newline-indent)))
 
 ;;;###autoload
 (defun cmm-setup ()
