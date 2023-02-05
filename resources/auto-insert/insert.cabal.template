@@ -77,8 +77,8 @@ library
   import: ghc-options
   exposed-modules:
     Foo
---   other-modules:
---     Other.Module
+  -- other-modules:
+  --   Other.Module
   hs-source-dirs:
     src
   build-depends:
@@ -103,9 +103,9 @@ executable ${filename no ext}
     , ${filename no ext}
   ghc-options:
     -rtsopts
---     -threaded
---     "-with-rts-opts=-N -A32M"
---     -main-is ExeMain
+    -- -threaded
+    -- "-with-rts-opts=-N -A32M"
+    -- -main-is ExeMain
 
 test-suite ${filename no ext}-test
   import: ghc-options
@@ -129,4 +129,6 @@ test-suite ${filename no ext}-test
     , ${filename no ext}
   ghc-options:
     -rtsopts
+    -- -threaded
+    -- "-with-rts-opts=-N -A32M"
     -main-is TestMain
