@@ -22,4 +22,6 @@ ${3:  other-modules:
     , ${6:my-package}
   ghc-options:
     -rtsopts
+    -- -threaded
+    -- "-with-rts-opts=-N -A32M"
     -main-is ${2:$(haskell-cabal--yasnippet--main-module-from-main-file yas-text)}
