@@ -104,7 +104,7 @@ executable ${filename no ext}
   ghc-options:
     -rtsopts
     -- -threaded
-    -- "-with-rts-opts=-N -A32M"
+    -- "-with-rtsopts=-N -A32M"
     -- -main-is ExeMain
 
 test-suite ${filename no ext}-test
@@ -130,5 +130,5 @@ test-suite ${filename no ext}-test
   ghc-options:
     -rtsopts
     -- -threaded
-    -- "-with-rts-opts=-N -A32M"
+    -- "-with-rtsopts=-N -A32M"
     -main-is TestMain
