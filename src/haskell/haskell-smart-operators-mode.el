@@ -124,6 +124,10 @@ stick it to the previous operator on line."
                                      (or whitespace-inserted?
                                          (haskell-smart-operators--is-whitespace-char? before)))
                                 nil)
+                               ;; Special case for @ since it's part of as-patterns.
+                               ((eq char ?@)
+                                (or whitespace-deleted?
+                                    (gethash before haskell-smart-operators--operator-chars)))
                                ((eq after ?\))
                                 (let ((c (save-excursion
                                            (goto-char before-pt)
@@ -131,10 +135,6 @@ stick it to the previous operator on line."
                                            (char-before))))
                                   (or (null c)
                                       (haskell-smart-operators--is-whitespace-char? c))))
-                               ;; Special case for @ since it's part of as-patterns.
-                               ((eq char ?@)
-                                (or whitespace-deleted?
-                                    (gethash before haskell-smart-operators--operator-chars)))
                                (t t))))
                 (insert-char ?\s))))))
     (cond
