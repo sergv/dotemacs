@@ -622,6 +622,18 @@ end."
     "x = x +  _|_  y"
     "x = x +@_|_  y"))
 
+(ert-deftest haskell-tests/haskell-smart-operators--@-1 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?@)
+    (tests-utils--multiline
+     ""
+     "foo x xs = foo (Median3or5 _|_)"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x xs = foo (Median3or5 @_|_)"
+     "")))
+
 (ert-deftest haskell-tests/haskell-smart-operators--inserting-within-backtics-avoids-spaces-1 ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
