@@ -1014,7 +1014,8 @@ to find which component the FILENAME belongs to."
                      (let* ((main-file (cl-third component-descr))
                             (modules (cl-fourth component-descr))
                             (src-dirs-res (filter-elem (lambda (x) (not (equal x ".")))
-                                                       (cl-fifth component-descr)))
+                                                       (-map #'strip-trailing-slash
+                                                             (cl-fifth component-descr))))
                             (src-dirs (car src-dirs-res))
                             (src-dirs-contained-dot? (cdr src-dirs-res)))
                        (when (or main-file modules)
