@@ -4882,6 +4882,55 @@ end."
      "    base ^>= 4.14"
      "")))
 
+
+(ert-deftest haskell-tests/haskell-smart-operators--open-paren-1 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators-open-paren)
+    (tests-utils--multiline
+     ""
+     "foo x xs = foo (Median3or5_|_)"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x xs = foo (Median3or5 (_|_))"
+     "")))
+
+(ert-deftest haskell-tests/haskell-smart-operators--open-paren-2 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators-open-paren)
+    (tests-utils--multiline
+     ""
+     "foo x xs = foo (Median3or5 @_|_)"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x xs = foo (Median3or5 @(_|_))"
+     "")))
+
+(ert-deftest haskell-tests/haskell-smart-operators--open-bracket-1 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators-open-bracket)
+    (tests-utils--multiline
+     ""
+     "foo x xs = foo (Median3or5_|_)"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x xs = foo (Median3or5 [_|_])"
+     "")))
+
+(ert-deftest haskell-tests/haskell-smart-operators--open-bracket-2 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators-open-bracket)
+    (tests-utils--multiline
+     ""
+     "foo x xs = foo (Median3or5 @_|_)"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x xs = foo (Median3or5 @[_|_])"
+     "")))
+
 ;; (ert "haskell-tests/.*")
 
 (setf haskell-tests/tests
