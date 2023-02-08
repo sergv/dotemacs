@@ -327,8 +327,8 @@ _<tab>_: reindent  _h_: jump to topmont node end"
     ("'"  haskell-smart-operators-quote)
 
     ("\"" smart-operators-double-quote)
-    ("\(" smart-operators-open-paren)
-    ("\[" smart-operators-open-bracket))
+    ("\(" haskell-smart-operators-open-paren)
+    ("\[" haskell-smart-operators-open-bracket))
 
   (def-keys-for-map (vim-insert-mode-local-keymap
                      vim-visual-mode-local-keymap)
