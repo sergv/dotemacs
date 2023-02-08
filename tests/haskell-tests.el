@@ -4931,10 +4931,41 @@ end."
      "foo x xs = foo (Median3or5 @[_|_])"
      "")))
 
+
+(defconst haskell-tests/cabal-test-data
+  (concat +emacs-config-path+ "/tests/test-data/cabal"))
+
+(ert-deftest haskell-tests/haskell-misc--configure-dante--find-cabal-component-for-file-1 ()
+  (let* ((cabal-file (expand-file-name (concat haskell-tests/cabal-test-data "/test-components.cabal")))
+         (config (flycheck-haskell-read-cabal-configuration cabal-file nil))
+         (components (cdr (assq 'components config)))
+         (root "/home/user/proj1")
+         (results nil))
+    (should-not (null components))
+    (dolist (entry '(("src/Foo.hs" "lib:test-components" )
+                     ("src/Bar.hs" "lib:test-components" )
+                     ("src/Baz/Quux.hs" "lib:test-components" )
+                     ("src/Frob/Decombobulate.hs" "lib:test-components" )
+                     ("exe/Main1.hs" "exe:test-components-exe1")
+                     ("exe/Main2.hs" "exe:test-components-exe2")
+                     ("exe/Main3.hs" "exe:test-components-exe3")
+                     ("test/TestMain1.hs" "test:test-components-test1")
+                     ("test/TestMain2.hs" "test:test-components-test2")
+                     ("test/TestMain3.hs" "test:test-components-test3")
+                     ("bench/TestComponentsBench1.hs" "bench:test-components-bench1")
+                     ("bench/TestComponentsBench2.hs" "bench:test-components-bench2")
+                     ("bench/TestComponentsBench3.hs" "bench:test-components-bench3")))
+      (let ((file (car entry))
+            (expected-component (cadr entry)))
+        (dolist (path (list file (concat root "/" file)))
+          (should (equal
+                   (haskell-misc--configure-dante--find-cabal-component-for-file components path)
+                   expected-component)))))))
+
 ;; (ert "haskell-tests/.*")
 
-(setf haskell-tests/tests
-      '(haskell-tests/abbrev+-extract-module-name))
+;; (setf haskell-tests/tests
+;;       '(haskell-tests/abbrev+-extract-module-name))
 
 (provide 'haskell-tests)
 
