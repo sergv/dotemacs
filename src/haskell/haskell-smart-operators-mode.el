@@ -432,6 +432,35 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
     (define-key keymap (kbd "$") #'haskell-smart-operators-$)
     keymap))
 
+;;;###autoload
+(defun haskell-smart-operators-open-paren ()
+  (interactive)
+  (smart-operators--insert-pair ?\(
+                                ?\)
+                                (lambda (before)
+                                  (not (or (eq before ?\()
+                                           (eq before ?\[)
+                                           (eq before ?\\)
+                                           (eq before ?@))))
+                                (lambda (after)
+                                  (not (or (eq after ?\))
+                                           (eq after ?\])
+                                           (eq after ?,))))))
+
+;;;###autoload
+(defun haskell-smart-operators-open-bracket ()
+  (interactive)
+  (smart-operators--insert-pair ?\[
+                                ?\]
+                                (lambda (before)
+                                  (not (or (eq before ?\()
+                                           (eq before ?\[)
+                                           (eq before ?\\)
+                                           (eq before ?@))))
+                                (lambda (after)
+                                  (not (or (eq after ?\))
+                                           (eq after ?\])
+                                           (eq after ?,))))))
 
 ;;;###autoload
 (define-minor-mode haskell-smart-operators-mode
