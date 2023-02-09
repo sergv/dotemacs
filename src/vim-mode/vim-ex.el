@@ -554,8 +554,29 @@ has been pressed."
 (defun vim-ex-execute-command (cmdline)
   "Called to execute the current command."
   (interactive)
-  (let* ((split      (vim-ex--split-cmdline cmdline))
-         (cmd        (vim-ex-command-cmd split))
+  (let* ((split (vim-ex--split-cmdline cmdline))
+         (default (lambda ()
+                    (with-current-buffer vim-ex--current-buffer
+                      (vim-ex-execute-command--impl split)))))
+    (cond
+      ((eq major-mode 'dired-mode)
+       (dired-with-marked-files
+        (lambda (buf)
+          (with-current-buffer buf
+            (vim-ex-execute-command--impl split)))
+        default))
+      ((eq major-mode 'ebuf-mode)
+       (ebuf-with-marked-buffers
+        (lambda (buf)
+          (with-current-buffer buf
+            (vim-ex-execute-command--impl split)))
+        default))
+      (t
+       (funcall default)))))
+
+(defun vim-ex-execute-command--impl (split)
+  "Called to execute the current command."
+  (let* ((cmd        (vim-ex-command-cmd split))
          (arg        (vim-ex-command-arg split))
          (start-line (vim-ex-command-beg split))
          (end-line   (vim-ex-command-end split))
@@ -585,38 +606,37 @@ has been pressed."
       (setq cmd (vim-ex--binding cmd))
       (when (zerop (length arg))
         (setq arg nil))
-      (with-current-buffer vim-ex--current-buffer
-        (let (parameters)
-          (cond
-            ((vim-ex--binding-p cmd)
-             (when (vim--cmd-arg-p cmd)
-               (setq parameters (cons :argument (cons arg parameters))))
-             (when force
-               (if (vim--cmd-force-p cmd)
-                   (setq parameters (cons :force (cons t parameters)))
-                 (error "Command cannot be forced '!'")))
-             (pcase (vim--cmd-type cmd)
-               (`complex (setq parameters
-                               (cons :motion (cons motion parameters))))
-               (`simple
-                (when end-line
-                  (error "Command does not take a range: %s" vim-ex--cmd))
-                (when (vim--cmd-count-p cmd)
-                  (setq parameters
-                        (cons :count (cons (or count
-                                               (and arg
-                                                    (not (vim--cmd-arg-p cmd))
-                                                    (string-to-number arg)))
-                                           parameters)))))
-               (`nil (error "Command '%s' binds undefined function" vim-ex--cmd))
-               (invalid (error "Unexpected command-type bound to %s: %s" vim-ex--cmd invalid)))
-             (apply cmd parameters))
-            (start-line
-             (vim:motion-go-to-first-non-blank-beg :count (or end-line start-line)))
-            (t
-             (error "Unknown command: %s" (if (zerop (length vim-ex--cmd))
-                                              cmdline
-                                            vim-ex--cmd)))))))))
+      (let (parameters)
+        (cond
+          ((vim-ex--binding-p cmd)
+           (when (vim--cmd-arg-p cmd)
+             (setq parameters (cons :argument (cons arg parameters))))
+           (when force
+             (if (vim--cmd-force-p cmd)
+                 (setq parameters (cons :force (cons t parameters)))
+               (error "Command cannot be forced '!'")))
+           (pcase (vim--cmd-type cmd)
+             (`complex (setq parameters
+                             (cons :motion (cons motion parameters))))
+             (`simple
+              (when end-line
+                (error "Command does not take a range: %s" vim-ex--cmd))
+              (when (vim--cmd-count-p cmd)
+                (setq parameters
+                      (cons :count (cons (or count
+                                             (and arg
+                                                  (not (vim--cmd-arg-p cmd))
+                                                  (string-to-number arg)))
+                                         parameters)))))
+             (`nil (error "Command '%s' binds undefined function" vim-ex--cmd))
+             (invalid (error "Unexpected command-type bound to %s: %s" vim-ex--cmd invalid)))
+           (apply cmd parameters))
+          (start-line
+           (vim:motion-go-to-first-non-blank-beg :count (or end-line start-line)))
+          (t
+           (error "Unknown command: %s" (if (zerop (length vim-ex--cmd))
+                                            cmdline
+                                          vim-ex--cmd))))))))
 
 ;; parser for ex-commands
 (defun vim-ex--parse (text)
