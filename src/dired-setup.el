@@ -88,18 +88,23 @@ to them."
                               ;; don't redisplay dired after each file
                               nil))
 
-(defun dired-with-marked-files (f)
+(defun dired-with-marked-files (f if-none-selected)
   "Open each marked file and call F with its buffer."
-  (dolist (filename (dired-get-marked-files nil nil #'dired-nondirectory-p))
-    (let ((buf (find-file-noselect filename)))
-      (cl-assert (bufferp buf))
-      (funcall f buf))))
+  (if-let (files (dired-get-marked-files nil nil #'dired-nondirectory-p))
+      (dolist (filename files)
+        (let ((buf (find-file-noselect filename)))
+          (cl-assert (bufferp buf))
+          (funcall f buf)))
+    (funcall if-none-selected)))
 
 (defun dired-do-eval (expr)
   (interactive (list (read--expression "Eval in marked buffers: ")))
-  (dired-with-marked-files (lambda (buf)
-                             (with-current-buffer buf
-                               (eval expr)))))
+  (dired-with-marked-files
+   (lambda (buf)
+     (with-current-buffer buf
+       (eval expr)))
+   (lambda ()
+     (error "No files selected"))))
 
 (defun dired-single-buffer-other-window (&optional file-to-visit)
   "Similar to `dired-single-buffer' but opens file window that the
