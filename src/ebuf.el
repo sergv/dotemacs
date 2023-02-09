@@ -627,24 +627,40 @@
 (defun ebuf-delete-marked-buffers ()
   (interactive)
   (let ((removed nil))
-    (maphash (lambda (buf _)
-               (cl-assert (bufferp buf))
-               (kill-buffer buf)
-               (push buf removed))
-             ebuf--marked-buffers)
+    (ebuf-with-marked-buffers (lambda (buf)
+                                (kill-buffer buf)
+                                (push buf removed))
+                              (lambda ()
+                                (error "No buffers marked")))
     (when removed
       (dolist (buf removed)
         (remhash buf ebuf--marked-buffers))
       (ebuf-refresh))))
 
-(defun ebuf-eval-in-marked-buffers (expr)
-  (interactive (list (read--expression "Eval in marked buffers: ")))
-  (maphash (lambda (buf _)
-             (cl-assert (bufferp buf))
-             (with-current-buffer buf
-               (eval expr)))
-           ebuf--marked-buffers)
-  (ebuf-refresh))
+(defun ebuf-with-marked-buffers (f if-none-selected)
+  "Invoke function F on each marked buffer."
+  (if (zerop (hash-table-count ebuf--marked-buffers))
+      (funcall if-none-selected)
+    (progn
+      (maphash (lambda (buf _)
+                 (cl-assert (bufferp buf))
+                 (funcall f buf))
+               ebuf--marked-buffers)
+      (ebuf-refresh))))
+
+(defun ebuf-eval-in-marked-buffers ()
+  (interactive)
+  (let ((expr-read? nil)
+        (expr nil))
+    (ebuf-with-marked-buffers
+     (lambda (buf)
+       (unless expr-read?
+         (setf expr (read--expression "Eval in marked buffers: ")
+               expr-read? t))
+       (with-current-buffer buf
+         (eval expr)))
+     (lambda ()
+       (error "No buffers marked")))))
 
 (defun ebuf-sort-buffers-alphabetically ()
   (interactive)
