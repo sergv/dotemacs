@@ -626,17 +626,26 @@
 (defun ebuf-delete-marked-buffers ()
   (interactive)
   (let ((removed nil))
-    (maphash (lambda (k v)
-               (cl-assert (bufferp k))
-               (kill-buffer k)
-               (push k removed))
+    (maphash (lambda (buf _)
+               (cl-assert (bufferp buf))
+               (kill-buffer buf)
+               (push buf removed))
              ebuf--marked-buffers)
     (when removed
       (dolist (buf removed)
         (remhash buf ebuf--marked-buffers))
       (ebuf-refresh))))
 
-(defun ebuf-sort-buffers-by-alphabetically ()
+(defun ebuf-eval-in-marked-buffers (expr)
+  (interactive (list (read--expression "Eval in marked buffers: ")))
+  (maphash (lambda (buf _)
+             (cl-assert (bufferp buf))
+             (with-current-buffer buf
+               (eval expr)))
+           ebuf--marked-buffers)
+  (ebuf-refresh))
+
+(defun ebuf-sort-buffers-alphabetically ()
   (interactive)
   (setf ebuf--buffer-sorting-method #'ebuf--sort-alphabetically)
   (ebuf-refresh))
@@ -651,7 +660,7 @@
 _a_lphabetic
 _r_ecency
 "
-  ("a" ebuf-sort-buffers-by-alphabetically)
+  ("a" ebuf-sort-buffers-alphabetically)
   ("r" ebuf-sort-buffers-by-recency) ;; aka least recently used
   )
 
@@ -669,6 +678,7 @@ _r_ecency
 
       ("m"               ebuf-mark-buffers-at-point)
       (","               ebuf-delete-marked-buffers)
+      ("e"               ebuf-eval-in-marked-buffers)
       ("S"               hydra-ebuf-sorting/body)
       ("k"               ebuf-unmark-buffers-at-point)
       ("K"               ebuf-unmark-all)
