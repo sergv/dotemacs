@@ -163,6 +163,8 @@ MSYS-style drives, e.g. \"/c/foo/bar.txt\" -> \"c:/foo/bar.txt\"."
               comment-end   "")
   (setup-folding t nil)
 
+  (setq-local vim-bounds-of-string-guess-start #'vim--bounds-of-string--guess-via-comint-prompt)
+
   (with-editor-export-editor)
   (with-editor-export-git-editor)
 
