@@ -54,7 +54,7 @@
   ("K"            dired-unmark-all-marks)
   ("p"            nil)
   ("q"            nil)
-  ("e"            nil)
+  ("e"            dired-do-eval)
   ("f"            nil)
   ("o"            dired-do-open-marked)
   ("Q"            dired-do-query-replace-regexp)
@@ -79,8 +79,8 @@
        (dired-make-relative filename)))))
 
 (defun dired-do-open-marked ()
-  "Just open currently makred files as emacs buffers without switching to
-them."
+  "Open currently makred files as emacs buffers without switching
+to them."
   (interactive)
   (dired-map-over-marks-check #'dired--open
                               nil
@@ -88,18 +88,18 @@ them."
                               ;; don't redisplay dired after each file
                               nil))
 
-(defun dired-do-substitute (substitute-command)
-  (interactive "sEx command: ")
-  (dolist (filename (dired-get-marked-files nil nil 'dired-nondirectory-p))
-    (find-file filename)
-    (for-buffer-with-file filename
-      (let ((vim-ex--current-buffer (current-buffer))
-            (vim-ex--current-window (or (get-buffer-window (current-buffer))
-                                       (selected-window))))
-        (vim-ex-execute-command substitute-command)))))
+(defun dired-with-marked-files (f)
+  "Open each marked file and call F with its buffer."
+  (dolist (filename (dired-get-marked-files nil nil #'dired-nondirectory-p))
+    (let ((buf (find-file-noselect filename)))
+      (cl-assert (bufferp buf))
+      (funcall f buf))))
 
-(vim-defcmd vim:dired-do-substitute ((argument:text command) nonrepeatable)
-  (dired-do-substitute command))
+(defun dired-do-eval (expr)
+  (interactive (list (read--expression "Eval in marked buffers: ")))
+  (dired-with-marked-files (lambda (buf)
+                             (with-current-buffer buf
+                               (eval expr)))))
 
 (defun dired-single-buffer-other-window (&optional file-to-visit)
   "Similar to `dired-single-buffer' but opens file window that the
@@ -139,9 +139,7 @@ current one."
 
 ;;;###autoload
 (defun dired-setup ()
-  (hl-line-mode +1)
-  (vim-local-emap "ss" #'vim:dired-do-substitute)
-  (vim-local-emap "sub" #'vim:dired-do-substitute))
+  (hl-line-mode +1))
 
 ;;;###autoload
 (add-hook 'dired-mode-hook #'dired-setup)
