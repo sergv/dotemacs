@@ -17,6 +17,7 @@
 (require 'eproj)
 (require 'keys-def)
 (require 'macro-util)
+(require 'nix-prettify-mode)
 (require 'v)
 
 ;;;; Grouping
@@ -693,6 +694,7 @@ _r_ecency
   ;; Fringe line tracking.
   (linum-mode -1)
   (hl-line-mode +1)
+  (nix-prettify-mode +1)
   ;; Disable font-lock-mode so that strings propertized with 'face property
   ;; will display correctly. Also there’s nothing for font-lock to do anyway.
   (when font-lock-mode
