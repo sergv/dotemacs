@@ -286,73 +286,103 @@ This function should be called whenever the minibuffer is exited."
 (defun vim-ex--change (_beg _end _len)
   "Checks if the command or argument changed and informs the
 argument handler. Gets called on every minibuffer change."
-  (let ((cmdline (vim-ex--contents)))
-    (cl-multiple-value-bind (_range cmd _spaces arg beg end _force)
-        (vim-ex--split-cmdline cmdline)
-      (cond
-        ((not (string= vim-ex--cmd cmd))
-         ;; command changed, update argument handler ...
-         (setq vim-ex--cmd cmd
-               vim-ex--arg arg
-               vim-ex--range (cons beg end))
-         ;; ... deactivate old handler ...
-         (when-let (arg-deactivate (and vim-ex--arg-handler
-                                        (vim-arg-handler-deactivate vim-ex--arg-handler)))
-           (let ((format (format "vim:ex-change: error when activating handler %s: %%s"
-                         vim-ex--arg-handler)))
-             (with-demoted-errors format
-               (funcall arg-deactivate))))
-         ;; ... activate and store new handler ...
-         (let ((cmd (vim-ex--binding cmd)))
-           (cond
-             ((eq cmd 'incomplete)
-              )
-             ((and (not cmd)
-                   (not (zerop (length vim-ex--cmd))))
-              )
-             (t
-              (setq vim-ex--arg-handler
-                    (and cmd (vim-ex--get-arg-handler cmd)))
-              (when-let (arg-activate (and vim-ex--arg-handler
-                                           (vim-arg-handler-activate vim-ex--arg-handler)))
-                (let ((format (format "vim:ex-change: error when activating handler %s: %%s"
-                                      vim-ex--arg-handler)))
-                  (with-demoted-errors format
-                    (funcall arg-activate))))))))
-        ((or (not (string= vim-ex--arg arg))
-             (not (equal (cons beg end) vim-ex--range)))
-         ;; command remained the same, but argument or range changed
-         ;; so inform the argument handler
-         (setq vim-ex--arg arg)
-         (setq vim-ex--range (cons beg end))
-         (let ((arg-update (and vim-ex--arg-handler
-                                (vim-arg-handler-update vim-ex--arg-handler))))
-           (when arg-update (funcall arg-update))))))))
+  (let* ((split (vim-ex--split-cmdline (vim-ex--contents)))
+         (cmd   (vim-ex-command-cmd split))
+         (arg   (vim-ex-command-arg split))
+         (beg   (vim-ex-command-beg split))
+         (end   (vim-ex-command-end split)))
+    (cond
+      ((not (string= vim-ex--cmd cmd))
+       ;; command changed, update argument handler ...
+       (setq vim-ex--cmd cmd
+             vim-ex--arg arg
+             vim-ex--range (cons beg end))
+       ;; ... deactivate old handler ...
+       (when-let (arg-deactivate (and vim-ex--arg-handler
+                                      (vim-arg-handler-deactivate vim-ex--arg-handler)))
+         (let ((format (format "vim:ex-change: error when activating handler %s: %%s"
+                               vim-ex--arg-handler)))
+           (with-demoted-errors format
+             (funcall arg-deactivate))))
+       ;; ... activate and store new handler ...
+       (let ((cmd (vim-ex--binding cmd)))
+         (cond
+           ((eq cmd 'incomplete)
+            )
+           ((and (not cmd)
+                 (not (zerop (length vim-ex--cmd))))
+            )
+           (t
+            (setq vim-ex--arg-handler
+                  (and cmd (vim-ex--get-arg-handler cmd)))
+            (when-let (arg-activate (and vim-ex--arg-handler
+                                         (vim-arg-handler-activate vim-ex--arg-handler)))
+              (let ((format (format "vim:ex-change: error when activating handler %s: %%s"
+                                    vim-ex--arg-handler)))
+                (with-demoted-errors format
+                  (funcall arg-activate))))))))
+      ((or (not (string= vim-ex--arg arg))
+           (not (equal (cons beg end) vim-ex--range)))
+       ;; command remained the same, but argument or range changed
+       ;; so inform the argument handler
+       (setq vim-ex--arg arg)
+       (setq vim-ex--range (cons beg end))
+       (let ((arg-update (and vim-ex--arg-handler
+                              (vim-arg-handler-update vim-ex--arg-handler))))
+         (when arg-update (funcall arg-update)))))))
+
+(cl-defstruct vim-ex-command
+  (range  nil :read-only t) ;; the string containing the command's range
+  (cmd    nil :read-only t) ;; the string for the command itself
+  (spaces nil :read-only t) ;; the string containing the spaces between the command and the argument
+  (arg    nil :read-only t)
+  (beg    nil :read-only t) ;; the start line of the range
+  (end    nil :read-only t) ;; the end line of the range
+  (force  nil :read-only t) ;; t iff the command was followed by an exclamation mark
+  )
 
 (defun vim-ex--split-cmdline (cmdline)
   "Splits the command line in range, command and argument part.
-This function returns multiple values (range cmd spaces arg
-beg end force) with the following meanings.
+This function returns multiple values
+
+(range cmd spaces arg beg end force)
+
+with the following meanings.
   `range' is the string containing the command's range
   `cmd' is the string for the command itself
   `spaces' is the string containing the spaces between the command and the argument
   `beg' is the start line of the range
   `end' is the end line of the range
   `force' is t iff the command was followed by an exclamation mark"
-  (cl-multiple-value-bind (cmd-region beg end force) (vim-ex--parse cmdline)
-    (if (null cmd-region)
-        (values cmdline "" cmdline "" beg end nil)
-      (let ((range (substring cmdline 0 (car cmd-region)))
-            (cmd (substring cmdline (car cmd-region) (cdr cmd-region)))
-            (spaces "")
-            (arg (substring cmdline (if force
-                                      (1+ (cdr cmd-region))
-                                      (cdr cmd-region)))))
-        ;; skip whitespaces
-        (when (string-match "\\`\\s-*" arg)
-          (setq spaces (match-string-no-properties 0 arg)
-                arg (substring arg (match-end 0))))
-        (values range cmd spaces arg beg end force)))))
+  (save-match-data
+    (cl-multiple-value-bind (cmd-region beg end force) (vim-ex--parse cmdline)
+      (if (null cmd-region)
+          (make-vim-ex-command
+           :range  cmdline
+           :cmd    ""
+           :spaces cmdline
+           :arg    ""
+           :beg    beg
+           :end    end
+           :force  nil)
+        (let ((range (substring cmdline 0 (car cmd-region)))
+              (cmd (substring cmdline (car cmd-region) (cdr cmd-region)))
+              (spaces "")
+              (arg (substring cmdline (if force
+                                          (1+ (cdr cmd-region))
+                                        (cdr cmd-region)))))
+          ;; skip whitespaces
+          (when (string-match "\\`\\s-*" arg)
+            (setq spaces (match-string-no-properties 0 arg)
+                  arg (substring arg (match-end 0))))
+          (make-vim-ex-command
+           :range  range
+           :cmd    cmd
+           :spaces spaces
+           :arg    arg
+           :beg    beg
+           :end    end
+           :force  force))))))
 
 (defun vim-ex--expect-argument (n)
   "Called if the space separating the command from the argument
@@ -360,15 +390,18 @@ has been pressed."
   (interactive "p")
   (let ((cmdline (vim-ex--contents)))
     (self-insert-command n)
-    (cl-multiple-value-bind (_range cmd spaces arg _beg _end _force) (vim-ex--split-cmdline cmdline)
+    (let* ((split  (vim-ex--split-cmdline cmdline))
+           (cmd    (vim-ex-command-cmd split))
+           (spaces (vim-ex-command-spaces split))
+           (arg    (vim-ex-command-arg split)))
       (when (and (= (point) (point-max))
                  (zerop (length spaces))
                  (zerop (length arg)))
         (setq cmd (vim-ex--binding cmd))
         (if (not (vim-ex--binding-p cmd)) (ding)
-            (setq vim-ex--cmd cmd)
-            (let ((result (vim-ex--complete-argument nil nil nil)))
-              (when result (insert result))))))))
+          (setq vim-ex--cmd cmd)
+          (let ((result (vim-ex--complete-argument nil nil nil)))
+            (when result (insert result))))))))
 
 (defun vim-ex--complete (cmdline predicate flag)
   "Called to complete an object in the ex-buffer."
@@ -377,7 +410,12 @@ has been pressed."
   ;; has ended
   (when (and (bufferp vim-ex--minibuffer)
              (eq (current-buffer) vim-ex--minibuffer))
-    (cl-multiple-value-bind (range cmd spaces arg _beg _end force) (vim-ex--split-cmdline cmdline)
+    (let* ((split  (vim-ex--split-cmdline cmdline))
+           (range  (vim-ex-command-range split))
+           (cmd    (vim-ex-command-cmd split))
+           (spaces (vim-ex-command-spaces split))
+           (arg    (vim-ex-command-arg split))
+           (force  (vim-ex-command-force split)))
       (setq vim-ex--cmd cmd)
       (cond
         ;; only complete at the end of the command
@@ -517,8 +555,12 @@ has been pressed."
 (defun vim-ex-execute-command (cmdline)
   "Called to execute the current command."
   (interactive)
-  (cl-multiple-value-bind (_range cmd _spaces arg start-line end-line force)
-      (vim-ex--split-cmdline cmdline)
+  (let* ((split      (vim-ex--split-cmdline cmdline))
+         (cmd        (vim-ex-command-cmd split))
+         (arg        (vim-ex-command-arg split))
+         (start-line (vim-ex-command-beg split))
+         (end-line   (vim-ex-command-end split))
+         (force      (vim-ex-command-force split)))
     (setq vim-ex--cmd cmd)
     (setf arg (vim-ex--strip-ex-info arg))
     (let ((cmd vim-ex--cmd)
