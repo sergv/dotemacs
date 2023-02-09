@@ -1240,16 +1240,32 @@ but only on the current line."
                           :end (cdr bounds)
                           :type 'inclusive))))))
 
+(defun vim--bounds-of-string--guess-via-beginning-of-defun ()
+  ;; Find beginning current “function” to limit parsing
+  ;; scope. The “function” here is defined as any
+  ;; non-whitespace entity which starts at column 0.
+  (save-excursion
+    (beginning-of-defun)
+    (point)))
+
+(defun vim--bounds-of-string--guess-via-comint-prompt ()
+  "Take closest comint prompt as a reasonable guess."
+  (or (save-excursion
+        (and (comint-previous-prompt 1)
+             (point)))
+      (point-min)))
+
+(defvar vim-bounds-of-string-guess-start #'vim--bounds-of-string--guess-via-beginning-of-defun
+  "Function that should produce point in current buffer that would
+be a good start for ‘parse-partial-sexp’ region for the purpose
+of detecting strings.
+
+The function shouldn’t move point.")
+
 (defun vim--bounds-of-string (p)
   "Return beginning and end of string at poith P."
   (save-excursion
-    (let* ((start
-            ;; Find beginning current “function” to limit parsing
-            ;; scope. The “function” here is defined as any
-            ;; non-whitespace entity which starts at column 0.
-            (save-excursion
-              (beginning-of-defun)
-              (point)))
+    (let* ((start (funcall vim-bounds-of-string-guess-start))
            (end p)
            (state (parse-partial-sexp start end))
            (inside-stringp (elt state 3))
