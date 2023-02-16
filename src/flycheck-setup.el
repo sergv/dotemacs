@@ -239,7 +239,7 @@ scheme and it’s view of current buffer is malformed."
 
 ;;;###autoload
 (defun flycheck-setup-from-eproj (proj default-checker &optional preprocess-checker)
-  (flycheck-setup-from-eproj-deferred proj default-checker preprocess-checker #'flycheck-mode ))
+  (flycheck-setup-from-eproj-deferred proj default-checker preprocess-checker #'flycheck-mode))
 
 (defun flycheck-setup-from-eproj-deferred (proj default-checker preprocess-checker consume-outcome)
   (when (not noninteractive)
