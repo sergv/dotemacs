@@ -81,6 +81,30 @@ of random numbers from RANDOM-GEN."
                             "\\)\\(?:/\\|$\\)"))
                   filepath))
 
+(defun common-string-prefix-length (xs ys ignore-case?)
+  "Return the length of the common beginning of strings XS and YS.
+If there’s none, return 0"
+  (let ((common 0)
+        (continue t)
+        (i 0)
+        (end (min (length xs) (length ys)))
+        (case-fold-search ignore-case?))
+    (while (and continue
+                (< i end))
+      (if (char-equal (aref xs i) (aref ys i))
+          (progn
+            (cl-incf i)
+            (cl-incf common))
+        (setf continue nil)))
+    common))
+
+(defun common-string-prefix (xs ys ignore-case?)
+  "Return the common beginning of strings XS and YS. If there’s none, return
+nil."
+  (let ((len (common-string-prefix-length xs ys ignore-case?)))
+    (unless (zerop len)
+      (substring xs 0 len))))
+
 (defun read-and-insert-filename (&optional abs-path?)
   "Read filename with completion and insert it at point. If ABS-PATH? is true
 then insert absolute filepath, otherwise insert one relative to the current
@@ -97,7 +121,14 @@ then insert absolute filepath, otherwise insert one relative to the current
             (lambda (x) (or (file-directory-p x)
                        (file-exists-p x))))))
          (path (if (and default-directory
-                        (not abs-path?))
+                        (not abs-path?)
+                        ;; If there’s no common prefix then no point going after relative
+                        ;; path.
+                        (let ((len (common-string-prefix-length abs-path
+                                                                default-directory
+                                                                (fold-platform-os-type nil t))))
+                          ;; If match is longer than either "/" or "C:/"
+                          (< (fold-platform-os-type 1 3) len)))
                    (file-relative-name abs-path default-directory)
                  abs-path))
          (output (if (and (eq major-mode 'org-mode)
