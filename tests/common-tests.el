@@ -586,6 +586,31 @@
 (ert-deftest common-tests/parse-regexp-groups-16 ()
   (should (equal (parse-regexp-groups "\\(?5:\\(?2:a\\)\\)") '(2 5))))
 
+
+(ert-deftest common-tests/common-string-prefix-1 ()
+  (should (equal nil (common-string-prefix "foo" "bar" nil)))
+  (should (equal nil (common-string-prefix "foo" "bar" t))))
+
+(ert-deftest common-tests/common-string-prefix-2 ()
+  (should (equal "foo" (common-string-prefix "foo" "foobar" nil)))
+  (should (equal "foo" (common-string-prefix "foo" "foobar" t))))
+
+(ert-deftest common-tests/common-string-prefix-3 ()
+  (should (equal "foo" (common-string-prefix "foodud" "foobar" nil)))
+  (should (equal "foo" (common-string-prefix "foodud" "foobar" t))))
+
+(ert-deftest common-tests/common-string-prefix-4 ()
+  (should (equal nil (common-string-prefix "foodud" "FOObar" nil)))
+  (should (equal "foo" (common-string-prefix "foodud" "FOObar" t))))
+
+(ert-deftest common-tests/common-string-prefix-5 ()
+  (should (equal nil (common-string-prefix "FOOdud" "foobar" nil)))
+  (should (equal "FOO" (common-string-prefix "FOOdud" "foobar" t))))
+
+(ert-deftest common-tests/common-string-prefix-6 ()
+  (should (equal "f" (common-string-prefix "fOo" "foobar" nil)))
+  (should (equal "fOo" (common-string-prefix "fOo" "foobar" t))))
+
 ;; (progn
 ;;   (ert "common-tests/.*")
 ;;   nil)
