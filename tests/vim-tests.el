@@ -3139,6 +3139,22 @@ _|_bar")
      "{-# LANGUAGE OverloadedStrings #-}_|_"
      "")))
 
+(ert-deftest vim-tests/haskell-abbrev-pragma-5 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (haskell-mode)
+      (execute-kbd-macro (kbd "i SPC inl <return> <tab>"))
+    (tests-utils--multiline
+     ""
+     "##_|_"
+     "foo :: a -> a"
+     "foo x = x"
+     "")
+    (tests-utils--multiline
+     ""
+     "{-# INLINE foo #-}_|_"
+     "foo :: a -> a"
+     "foo x = x"
+     "")))
 
 
 (ert-deftest vim-tests/haskell-insert-quote-1 ()
