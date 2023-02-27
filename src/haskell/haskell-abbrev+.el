@@ -274,8 +274,11 @@ then Bar would be the result."
       ((string-match-p haskell-regexen/inline-pragmas pragma)
        (let ((entity (save-excursion
                        (skip-whitespace-forward)
-                       (thing-at-point 'haskell-symbol))))
-         (yas-expand-snippet (concat " ${1:" entity "} #-}$0"))))
+                       (unless (eobp)
+                         (thing-at-point 'haskell-symbol)))))
+         (if entity
+             (yas-expand-snippet (concat " ${1:" entity "} #-}$0"))
+           (yas-expand-snippet (concat " $1 #-}$0")))))
       (t
        (yas-expand-snippet (concat " $1 #-}$0"))))))
 
