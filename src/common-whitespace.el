@@ -91,6 +91,12 @@ character found. Returns t if any whitespace was actually deleted."
       (delete-region (point) start))
     any-deleted?))
 
+(defun skip-whitespace-forward ()
+  (skip-chars-forward " \t\v\f\r\n"))
+
+(defun skip-whitespace-backward ()
+  (skip-chars-backward " \t\v\f\r\n"))
+
 (provide 'common-whitespace)
 
 ;; Local Variables:
