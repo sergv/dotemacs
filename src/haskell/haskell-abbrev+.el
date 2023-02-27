@@ -271,8 +271,13 @@ then Bar would be the result."
        (yas-expand-snippet " $\{1:\$\$\(yas-choose-value \(get-haskell-language-extensions\)\)\} #-}\$0"))
       ((string-match-p haskell-regexen/scc-pragma-name pragma)
        (yas-expand-snippet " \"${1:cost center name}\" #-}\$0"))
+      ((string-match-p haskell-regexen/inline-pragmas pragma)
+       (let ((entity (save-excursion
+                       (skip-whitespace-forward)
+                       (thing-at-point 'haskell-symbol))))
+         (yas-expand-snippet (concat " ${1:" entity "} #-}$0"))))
       (t
-       (yas-expand-snippet " $1 #-}$0")))))
+       (yas-expand-snippet (concat " $1 #-}$0"))))))
 
 (defun haskell-abbrev+--get-ghc-flags ()
   (let ((flags (-mapcat (lambda (x)
