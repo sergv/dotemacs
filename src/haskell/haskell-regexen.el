@@ -199,6 +199,23 @@
       (char ?c ?C)
       eos))
 
+(defconst haskell-regexen/inline-pragmas
+  (rx bos
+      (? (char ?n ?N)
+         (char ?o ?O))
+      (char ?i ?I)
+      (char ?n ?N)
+      (char ?l ?L)
+      (char ?i ?I)
+      (char ?n ?N)
+      (or
+       (char ?e ?E)
+       (seq (char ?a ?A)
+            (char ?b ?B)
+            (char ?l ?L)
+            (char ?e ?E)))
+      eos))
+
 (defconst haskell-regexen/language-pragma-name
   (rx bos
       (char ?l ?L)
