@@ -404,6 +404,12 @@ entries."
          (not (string-match-p "\\(?:^ \\)\\|\\(?:^\\*.*\\*$\\)"
                               (buffer-name buf))))))
 
+(defun persistent-sessions--filter-display-param (current _filtered _parameters _saving)
+  (not (eq (car current) 'display)))
+
+(defun persistent-sessions--frameset-filter-alist ()
+  (cons (cons 'display #'persistent-sessions--filter-display-param)
+        frameset-filter-alist))
 
 (defun sessions/save-buffers/make-session ()
   "Make session to save later"
@@ -450,7 +456,8 @@ entries."
                                   (funcall save-func buf)))))
                       buffers)))
          (frames-entry
-          (list 'frameset (frameset-save (frame-list)))))
+          (list 'frameset (frameset-save (frame-list)
+                                         :filters (persistent-sessions--frameset-filter-alist)))))
 
     (list (list 'schema-version +sessions-schema-version+)
           (list 'buffers buffer-data)
@@ -599,9 +606,10 @@ entries."
       (message "sessions/load-from-data: no 'tab-bar-mode field"))
 
     (aif (assq 'frameset session-entries)
-      (frameset-restore (cadr it)
-                        :reuse-frames t
-                        :cleanup-frames t)
+        (frameset-restore (cadr it)
+                          :reuse-frames t
+                          :cleanup-frames t
+                          :filters (persistent-sessions--frameset-filter-alist))
       (message "sessios/load-from-data: no 'frameset field"))
 
     (aif (assq 'global-variables session-entries)
