@@ -406,7 +406,6 @@ main loop."
               (lcr-scheduler)))))
 
 (defvar-local lcr-process-callback nil "Callback used by `lcr-process-read'.")
-(defvar-local lcr-last-msg-var nil "Variable that, if non-nil, will get assigned the lastest message received from buffer’s process.")
 
 (defun lcr-process-initialize (buffer)
   "Initialize a proccess BUFFER for communication.
@@ -414,16 +413,17 @@ After initialization, you can use `lcr-process-read' to read the
 process' output.  This function overwrites the `process-filter'."
   (set-process-filter
    (get-buffer-process buffer)
-   (lambda (_process string)
-     (when lcr-last-msg-var
-       (cl-assert (symbolp lcr-last-msg-var))
-       (set lcr-last-msg-var string))
-     (let ((cb (buffer-local-value 'lcr-process-callback buffer)))
-       (if cb (funcall cb string)
-         (when (buffer-live-p buffer)
-           (with-current-buffer buffer
-             (goto-char (point-max))
-             (insert string))))))))
+   (lcr-process-make-filter buffer)))
+
+(defun lcr-process-make-filter (buffer)
+  (lambda (_process string)
+    (let ((cb (buffer-local-value 'lcr-process-callback buffer)))
+      (if cb
+          (funcall cb string)
+        (when (buffer-live-p buffer)
+          (with-current-buffer buffer
+            (goto-char (point-max))
+            (insert string)))))))
 
 (defun lcr-process-read (buffer continue)
   "Asynchronously read from the process associated with BUFFER and CONTINUE.
