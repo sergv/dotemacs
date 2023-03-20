@@ -17,7 +17,10 @@
 (defun current-column-fixed ()
   "Similar to ‘current-column’ but doesn’t get confused by ‘prettify-symbols-mode’s fiddling
 with the current buffer. Pretty ligatures may change perceived width of lines and also affect
-column numbers for elisp that executes. This function is immune to that deficiency."
+column numbers for elisp that executes. This function is immune to that deficiency.
+
+HOWEVER this function doesn’t deal all that well with tabs -
+their width is always counted as 1, same as for space."
   (let ((tick (buffer-modified-tick))
         (pt (point)))
     (if (and (eq tick current-column-fixed--last-modified)
