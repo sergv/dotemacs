@@ -131,7 +131,7 @@ and indent them as singe line."
 
 (setf haskell-indentation-electric-flag t)
 
-;;; up level navigation
+;;; Up level navigation
 
 (defun haskell-back-up-indent-level ()
   "Move up to lesser indentation level, skipping empty lines.
@@ -165,14 +165,14 @@ Returns t if indentation occured."
 sexps and indentation levels."
   (interactive)
   (let* ((start (point))
-         (with-indentation
+         (via-indentation
           (with-demoted-errors
               (save-excursion
                 (haskell-back-up-indent-level)
                 (let ((p (point)))
                   (when (/= p start)
                     p)))))
-         (with-sp
+         (via-parens
           (when (/= 0 (syntax-ppss-depth (syntax-ppss start)))
             (with-demoted-errors
                 (save-excursion
@@ -180,11 +180,11 @@ sexps and indentation levels."
                   (let ((p (point)))
                     (when (/= p start)
                       p)))))))
-    (if (and with-indentation
-             with-sp)
-        (goto-char (max with-indentation with-sp))
-      (goto-char (or with-indentation
-                     with-sp
+    (if (and via-indentation
+             via-parens)
+        (goto-char (max via-indentation via-parens))
+      (goto-char (or via-indentation
+                     via-parens
                      (error "Both indentation-based and sexp-based navigations failed"))))))
 
 ;;;###autoload
