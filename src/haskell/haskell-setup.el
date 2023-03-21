@@ -444,8 +444,7 @@ _<tab>_: reindent  _h_: jump to topmont node end"
       ("*"            search-for-haskell-symbol-at-point-forward)
       ("C-*"          search-for-haskell-symbol-at-point-forward-new-color)
       ("#"            search-for-haskell-symbol-at-point-backward)
-      ("C-#"          search-for-haskell-symbol-at-point-backward-new-color)
-      ("'"            vim:haskell-backward-up-indentation-or-sexp:interactive))
+      ("C-#"          search-for-haskell-symbol-at-point-backward-new-color))
 
     (haskell-setup-common-editing)
 
