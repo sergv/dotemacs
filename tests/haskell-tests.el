@@ -4300,7 +4300,7 @@ end."
 
 (ert-deftest haskell-tests/haskell-back-up-indent-level-1 ()
   (haskell-tests--test-buffer-contents
-      (should (haskell-back-up-indent-level))
+      (should (haskell-misc--back-up-indent-level))
     (tests-utils--multiline
      "foo :: Int -> Int"
      "foo = do"
@@ -4318,7 +4318,7 @@ end."
 
 (ert-deftest haskell-tests/haskell-back-up-indent-level-2 ()
   (haskell-tests--test-buffer-contents
-      (should (haskell-back-up-indent-level))
+      (should (haskell-misc--back-up-indent-level))
     (tests-utils--multiline
      "foo :: Int -> Int"
      "foo = do"
@@ -4336,7 +4336,7 @@ end."
 
 (ert-deftest haskell-tests/haskell-back-up-indent-level-3 ()
   (haskell-tests--test-buffer-contents
-      (should (haskell-back-up-indent-level))
+      (should (haskell-misc--back-up-indent-level))
     (tests-utils--multiline
      "foo :: Int -> Int"
      "foo = do"
@@ -4354,7 +4354,7 @@ end."
 
 (ert-deftest haskell-tests/haskell-back-up-indent-level-4 ()
   (haskell-tests--test-buffer-contents
-      (should-not (haskell-back-up-indent-level))
+      (should-not (haskell-misc--back-up-indent-level))
     (tests-utils--multiline
      "foo :: Int -> Int"
      "_|_foo = do"
@@ -4372,7 +4372,7 @@ end."
 
 (ert-deftest haskell-tests/haskell-back-up-indent-level-5 ()
   (haskell-tests--test-buffer-contents
-      (should (haskell-back-up-indent-level))
+      (should (haskell-misc--back-up-indent-level))
     (tests-utils--multiline
      "foo :: Int -> Int"
      "foo = do"
@@ -4390,7 +4390,7 @@ end."
 
 (ert-deftest haskell-tests/haskell-back-up-indent-level-6 ()
   (haskell-tests--test-buffer-contents
-      (should (haskell-back-up-indent-level))
+      (should (haskell-misc--back-up-indent-level))
     (tests-utils--multiline
      "foo :: Int -> Int"
      "foo = do"
@@ -4408,7 +4408,7 @@ end."
 
 (ert-deftest haskell-tests/haskell-back-up-indent-level-6 ()
   (haskell-tests--test-buffer-contents
-      (should (haskell-back-up-indent-level))
+      (should (haskell-misc--back-up-indent-level))
     (tests-utils--multiline
      "foo :: Int -> Int"
      "foo = do"
