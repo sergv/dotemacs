@@ -19,6 +19,8 @@
 ;;;###autoload
 (add-to-list 'interpreter-mode-alist '("lua" . lua-mode))
 
+(setf lua-indent-level 2)
+
 (defhydra-ext hydra-lua-align (:exit t :foreign-keys nil :hint nil)
   "
 _a_: general
