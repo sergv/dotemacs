@@ -107,7 +107,7 @@ actual call to function."
                                         '(unadjusted))
                                   ,@(when raw-result
                                         '(raw-result)))
-       ,(if doc doc (concat "See `" func-name "'."))
+       ,(if doc doc (concat "Vimmized version of ‘" func-name "’."))
        ,(if (listp func)
             func
           (list func)))))
