@@ -444,8 +444,10 @@ _T_: toggle all indented"
                           'selective-display
                           (string-to-vector " ..."))
   (if outline-params
-      (def-keys-for-map vim-normal-mode-local-keymap
-        ("z" hydra-vim-normal-z-hideshow-yafolding-and-outline/body))
+      (progn
+        (apply #'setup-outline-headers outline-params)
+        (def-keys-for-map vim-normal-mode-local-keymap
+          ("z" hydra-vim-normal-z-hideshow-yafolding-and-outline/body)))
     (def-keys-for-map vim-normal-mode-local-keymap
       ("z" hydra-vim-normal-z-hideshow-yafolding/body)))
   (def-keys-for-map vim-visual-mode-local-keymap
