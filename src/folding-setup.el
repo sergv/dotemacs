@@ -415,6 +415,7 @@ _T_: toggle all indented"
 
 ;;;###autoload
 (defun setup-folding (enable-hideshow? outline-params)
+  "Enable either hideshow, or outline, or both."
   (cl-assert (memq enable-hideshow? '(t nil enable-cpp)))
   (if enable-hideshow?
       (progn
@@ -434,8 +435,9 @@ _T_: toggle all indented"
         ("z" hydra-vim-normal-z-outline/body)))))
 
 ;;;###autoload
-(defun setup-hideshow-yafolding (enable-hideshow outline-params)
-  (setup-folding enable-hideshow nil)
+(defun setup-hideshow-yafolding (enable-hideshow? outline-params)
+  "Enable yafolding and either hideshow or outline or both."
+  (setup-folding enable-hideshow? nil)
   (yafolding-mode +1)
   (setq buffer-display-table (make-display-table))
   (set-display-table-slot buffer-display-table
