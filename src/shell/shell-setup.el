@@ -144,6 +144,18 @@ MSYS-style drives, e.g. \"/c/foo/bar.txt\" -> \"c:/foo/bar.txt\"."
  (when (eq system-type 'cygwin)
    (setf dirtrack-directory-function #'cygwin-directory-name-to-emacs)))
 
+(defun shell-backward-up-indentation-or-sexp ()
+  "Haskell brother of ‘paredit-backward-up’ that considers both
+sexps and indentation levels."
+  (interactive)
+  (indent-backward-up-indentation-or-sexp #'indent-on-blank-line-p))
+
+(vimmize-motion shell-backward-up-indentation-or-sexp
+                :name vim:shell-backward-up-indentation-or-sexp
+                :exclusive t
+                :unadjusted t
+                :raw-result t)
+
 ;;;###autoload
 (defun shell-setup ()
   (init-repl :show-directory t
@@ -162,6 +174,7 @@ MSYS-style drives, e.g. \"/c/foo/bar.txt\" -> \"c:/foo/bar.txt\"."
   (setq-local comment-start "#"
               comment-end   "")
   (setup-folding t nil)
+  (setup-hideshow-yafolding t nil)
 
   (setq-local vim-bounds-of-string-guess-start #'vim--bounds-of-string--guess-via-comint-prompt)
 
@@ -195,7 +208,13 @@ MSYS-style drives, e.g. \"/c/foo/bar.txt\" -> \"c:/foo/bar.txt\"."
     ("C-<down>"  comint-next-prompt)
 
     ;; ("C-c C-k"   comint-kill-subjob)
-    ))
+    )
+
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-visual-mode-local-keymap
+                     vim-motion-mode-local-keymap
+                     vim-operator-pending-mode-local-keymap)
+    ("'" vim:shell-backward-up-indentation-or-sexp:interactive)))
 
 ;;;###autoload
 (add-hook 'shell-mode-hook #'shell-setup)
