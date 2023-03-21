@@ -20,6 +20,7 @@
 (require 'common)
 (require 'configurable-compilation)
 (require 'current-column-fixed)
+(require 'indentation)
 (require 'search)
 (require 'trie)
 
@@ -133,58 +134,18 @@ and indent them as singe line."
 
 ;;; Up level navigation
 
-(defun haskell-back-up-indent-level ()
+(defun haskell-misc--back-up-indent-level ()
   "Move up to lesser indentation level, skipping empty lines.
 
 Returns t if indentation occured."
-  (let ((start-indent (indentation-size))
-        (col (current-column-fixed)))
-    (cond
-      ((> col start-indent)
-       (skip-to-indentation)
-       t)
-      ;; Do not move past 0th column in order to not skip to the
-      ;; beginning of file.
-      ((/= 0 start-indent)
-       ;;(= col start-indent)
-       (while (and (not (bobp))
-                   (let ((curr-indent (indentation-size)))
-                     (>= curr-indent start-indent)))
-         (forward-line -1)
-         (while (haskell-on-blank-line-p)
-           (forward-line -1)))
-       (skip-to-indentation)
-       t)
-      (t
-       nil))))
+  (indent-back-up-indent-level #'haskell-on-blank-line-p))
 
 ;;;###autoload
 (defun haskell-backward-up-indentation-or-sexp ()
   "Haskell brother of ‘paredit-backward-up’ that considers both
 sexps and indentation levels."
   (interactive)
-  (let* ((start (point))
-         (via-indentation
-          (with-demoted-errors
-              (save-excursion
-                (haskell-back-up-indent-level)
-                (let ((p (point)))
-                  (when (/= p start)
-                    p)))))
-         (via-parens
-          (when (/= 0 (syntax-ppss-depth (syntax-ppss start)))
-            (with-demoted-errors
-                (save-excursion
-                  (paredit-backward-up)
-                  (let ((p (point)))
-                    (when (/= p start)
-                      p)))))))
-    (if (and via-indentation
-             via-parens)
-        (goto-char (max via-indentation via-parens))
-      (goto-char (or via-indentation
-                     via-parens
-                     (error "Both indentation-based and sexp-based navigations failed"))))))
+  (indent-backward-up-indentation-or-sexp #'haskell-on-blank-line-p))
 
 ;;;###autoload
 (defun haskell-up-sexp ()
@@ -586,7 +547,7 @@ both unicode and ascii characters.")
                    (while (and (not found?)
                                (< lower-bound (point))
                                (not (bolp)))
-                     (haskell-back-up-indent-level)
+                     (haskell-misc--back-up-indent-level)
                      (when (looking-at (eval-when-compile
                                          (let ((ws "[ \t\n\r]")
                                                (name-re (concat
@@ -851,14 +812,10 @@ value section should have if it is to be properly indented."
 
 (defun haskell-on-blank-line-p ()
   "Assumes point is at 0th column."
-  (save-excursion
-    (or (eq (char-after) ?#)
-        (progn
-          (skip-indentation-forward)
-          (let ((c (char-after)))
-            ;; Check that we’re at line end.
-            (or (eq c ?\r)
-                (eq c ?\n)))))))
+  (or
+   ;; Skip preprocessor lines
+   (eq (char-after) ?#)
+   (indent-on-blank-line-p)))
 
 (defun haskell-on-nonindented-line-p ()
   "Assumes point is at 0th column."
