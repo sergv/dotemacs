@@ -162,6 +162,68 @@ See also `indent-relative-maybe'."
     (delete-horizontal-space t)
     (indent-to nexttab)))
 
+;;;; Navigation over indentation levels
+
+(defun indent-on-blank-line-p ()
+  "Assumes point is at 0th column."
+  (save-excursion
+    (skip-indentation-forward)
+    (let ((c (char-after)))
+      ;; Check that we’re at line end.
+      (or (eq c ?\r)
+          (eq c ?\n)))))
+
+(defun indent-back-up-indent-level (on-blank-line-p)
+  "Move up to lesser indentation level, skipping empty lines.
+
+Returns t if point moved."
+  (cl-assert (functionp on-blank-line-p))
+  (let ((start-indent (indentation-size))
+        (start-col (current-column-fixed)))
+    (cond
+      ((< start-indent start-col)
+       (skip-to-indentation)
+       t)
+      ;; Do not move past 0th column in order to not skip to the
+      ;; beginning of file.
+      ((/= 0 start-indent)
+       ;;(= start-col start-indent)
+       (while (and (not (bobp))
+                   (<= start-indent (indentation-size)))
+         (forward-line -1)
+         (while (funcall on-blank-line-p)
+           (forward-line -1)))
+       (skip-to-indentation)
+       t)
+      (t
+       nil))))
+
+(defun indent-backward-up-indentation-or-sexp (on-blank-line-p)
+  "Alternative ‘paredit-backward-up’ that considers both
+sexps and indentation levels."
+  (let* ((start (point))
+         (via-indentation
+          (with-demoted-errors
+              (save-excursion
+                (indent-back-up-indent-level on-blank-line-p)
+                (let ((p (point)))
+                  (when (/= p start)
+                    p)))))
+         (via-parens
+          (when (/= 0 (syntax-ppss-depth (syntax-ppss start)))
+            (with-demoted-errors
+                (save-excursion
+                  (paredit-backward-up)
+                  (let ((p (point)))
+                    (when (/= p start)
+                      p)))))))
+    (if (and via-indentation
+             via-parens)
+        (goto-char (max via-indentation via-parens))
+      (goto-char (or via-indentation
+                     via-parens
+                     (error "Both indentation-based and sexp-based navigations failed"))))))
+
 (provide 'indentation)
 
 ;; Local Variables:
