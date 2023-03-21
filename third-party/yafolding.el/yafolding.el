@@ -57,7 +57,7 @@
   "Get all overlays between BEG and END."
   (delq nil
         (mapcar (lambda (overlay)
-                  (and (member "yafolding" (overlay-properties overlay))
+                  (and (memq 'yafolding (overlay-properties overlay))
                        overlay))
                 (overlays-in beg end))))
 
@@ -144,7 +144,7 @@ If given, toggle all entries that start at INDENT-LEVEL."
                      (list (lambda (overlay &optional a b c d)
                              (delete-overlay overlay))))
         (overlay-put new-overlay 'before-string before-string)
-        (overlay-put new-overlay 'category "yafolding"))))
+        (overlay-put new-overlay 'category 'yafolding))))
 
 (defun yafolding-debug ()
   "Show yafolding information of the current position."
