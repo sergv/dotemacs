@@ -428,7 +428,8 @@
     (save-current-column
       (with-inhibited-read-only
        (delete-region (point-min) (point-max))
-       (ebuf-mode)
+       (unless (eq major-mode 'ebuf-mode)
+         (ebuf-mode))
        (ebuf--render-buffers! ebuf--marked-buffers
                               (ebuf--interesting-buffers))
        (let ((previously-selected-section
@@ -547,27 +548,98 @@
 
 
 (defun ebuf--make-section-invisible! (section)
-  (let ((ov (ebuf--get-section-overlay section)))
-    (overlay-put ov 'invisible t)
-    (overlay-put ov 'before-string " ...\n")
-    (setf (ebuf-section-visible? section) nil)))
+  (unless (ebuf-section-buf section)
+    (let ((ov (ebuf--get-section-overlay section)))
+      (overlay-put ov 'invisible t)
+      (overlay-put ov 'before-string " ...\n")
+      (setf (ebuf-section-visible? section) nil))))
 
 (defun ebuf--make-section-visible! (section)
-  (let ((ov (ebuf--get-section-overlay section)))
-    (overlay-put ov 'invisible nil)
-    (overlay-put ov 'before-string nil)
-    (setf (ebuf-section-visible? section) t)))
+  (unless (ebuf-section-buf section)
+    (let ((ov (ebuf--get-section-overlay section)))
+      (overlay-put ov 'invisible nil)
+      (overlay-put ov 'before-string nil)
+      (setf (ebuf-section-visible? section) t))))
+
+(defun ebuf--section-visibility-state (section)
+  (if (ebuf-section-visible? section)
+      (if (--all? (ebuf-section-visible? it) (ebuf-section-children section))
+          'fully-visible
+        'visible)
+    'hidden))
+
+(defmacro ebuf--fold-visibility-state (state on-fully-visible on-visible on-hidden)
+  (declare (indent 1))
+  `(pcase ,state
+     (`fully-visible ,on-fully-visible)
+     (`visible       ,on-visible)
+     (`hidden        ,on-hidden)
+     (_
+      (error "Invalid visibility state: %s" state))))
+
+(defun ebuf--section-cycle-visibility-state (state is-forward?)
+  (if is-forward?
+      (ebuf--fold-visibility-state state 'hidden 'fully-visible 'visible)
+    (ebuf--fold-visibility-state state 'visible 'hidden 'fully-visible)))
+
+(defun ebuf--make-section-fully-visible! (section)
+  "Show SECTION and its children."
+  (ebuf--make-section-visible! section)
+  (dolist (child (ebuf-section-children section))
+    (ebuf--make-section-visible! child)))
+
+(defun ebuf--make-section-partially-visible! (section)
+  "Show SECTION but hide its children."
+  (ebuf--make-section-visible! section)
+  (dolist (child (ebuf-section-children section))
+    (ebuf--make-section-invisible! child)))
+
+(defun ebuf--cycle-section! (section is-forward?)
+  (unless (ebuf-section-buf section)
+    (ebuf--fold-visibility-state
+        (ebuf--section-cycle-visibility-state (ebuf--section-visibility-state section)
+                                              is-forward?)
+      (ebuf--make-section-fully-visible! section)
+      (ebuf--make-section-partially-visible! section)
+      (ebuf--make-section-invisible! section))))
+
+(defun ebuf-section-show-level-1 ()
+  (interactive)
+  (let ((section (ebuf--section-at-point)))
+    (unless (ebuf-section-buf section)
+      (ebuf--make-section-invisible! section))))
+
+(defun ebuf-section-show-level-2 ()
+  (interactive)
+  (ebuf--make-section-partially-visible! (ebuf--section-at-point)))
+
+(defun ebuf-section-show-level-3 ()
+  (interactive)
+  (let ((section (ebuf--section-at-point)))
+    (ebuf--make-section-visible! section)
+    (dolist (child (ebuf-section-children section))
+      (ebuf--make-section-partially-visible! child))))
+
+(defun ebuf-section-show-level-4 ()
+  (interactive)
+  (let ((section (ebuf--section-at-point)))
+    (ebuf--make-section-visible! section)
+    (dolist (child (ebuf-section-children section))
+      (ebuf--make-section-fully-visible! child))))
 
 (defun ebuf--get-buffer-at-point-or-cycle ()
-  (interactive)
   (let ((section (ebuf--section-at-point)))
     (aif (ebuf-section-buf section)
         it
-      (progn
-        (if (ebuf-section-visible? section)
-            (ebuf--make-section-invisible! section)
-          (ebuf--make-section-visible! section))
-        nil))))
+      (ebuf--cycle-section! section t))))
+
+(defun ebuf-cycle-forward-section-at-point ()
+  (interactive)
+  (ebuf--cycle-section! (ebuf--section-at-point) t))
+
+(defun ebuf-cycle-backward-section-at-point ()
+  (interactive)
+  (ebuf--cycle-section! (ebuf--section-at-point) nil))
 
 (defun ebuf-switch-to-buffer-at-point-or-cycle ()
   (interactive)
@@ -700,9 +772,16 @@ _r_ecency
       ("k"               ebuf-unmark-buffers-at-point)
       ("K"               ebuf-unmark-all)
       ("'"               ebuf-select-parent)
+      ("C-h"             ebuf-select-next-section)
+      ("C-t"             ebuf-select-prev-section)
 
-      (("TAB" "<tab>")                       ebuf-select-next-section)
-      (("S-TAB" "S-<tab>" "S-<iso-lefttab>") ebuf-select-prev-section))
+      ("1"               ebuf-section-show-level-1)
+      ("2"               ebuf-section-show-level-2)
+      ("3"               ebuf-section-show-level-3)
+      ("4"               ebuf-section-show-level-4)
+
+      (("TAB" "<tab>")                       ebuf-cycle-forward-section-at-point)
+      (("S-TAB" "S-<tab>" "S-<iso-lefttab>") ebuf-cycle-forward-section-at-point))
     keymap))
 
 (define-derived-mode ebuf-mode fundamental-mode "Ebuf"
