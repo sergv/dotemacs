@@ -5,11 +5,15 @@
 # Created: Tuesday, 11 September 2012
 #
 
-set -eu
-
-emacs_dir=${1:-"${EMACS_ROOT}"}
+# treat undefined variable substitutions as errors
+set -u
+# propagate errors from all parts of pipes
+set -o pipefail
+set -e
 
 export EMACS_FORCE_PRISTINE=1
+emacs="${EMACS:-emacs}"
+emacs_dir=${1:-"${EMACS_ROOT}"}
 
 source "$(dirname "$(readlink -f "$0")")/utils.sh"
 
@@ -63,7 +67,7 @@ function update-dir-autoloads() {
             (mapconcat #'identity (list $dirs) ", "
             ))))
 EOF
-    emacs --batch --eval "$emacs_cmd"
+    "$emacs" --batch --eval "$emacs_cmd"
 }
 
 inform "Removing generated autoload el files"
@@ -153,13 +157,13 @@ if [[ "$native_comp" = "t" ]]; then
 
     echo "CONFIG = $cfg"
 
-    emacs -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" 0 1 nil \"$cfg\")"
+    "$emacs" -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" 0 1 nil \"$cfg\")"
 
-    find . -type f -name '*.elc' -print | xargs -n 1 -P "$n" emacs --batch -l "$cfg" -f batch-native-compile
+    find . -type f -name '*.elc' -print | xargs -n 1 -P "$n" "$emacs" --batch -l "$cfg" -f batch-native-compile
 
-    # seq 0 "$((n - 1))" | xargs --replace=INPUT --max-args=1 -P "$n" --verbose emacs -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" INPUT $n t)"
+    # seq 0 "$((n - 1))" | xargs --replace=INPUT --max-args=1 -P "$n" --verbose "$emacs" -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" INPUT $n t)"
 else
-    seq 0 "$((n - 1))" | xargs --replace=INPUT --max-args=1 -P "$n" --verbose emacs -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" INPUT $n nil nil)"
+    seq 0 "$((n - 1))" | xargs --replace=INPUT --max-args=1 -P "$n" --verbose "$emacs" -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" INPUT $n nil nil)"
 fi
 
 exit 0
