@@ -54,11 +54,11 @@
     (let* ((ctx (hl-tags-sgml-get-context))
            (boundaries
             (and ctx (cl-case (sgml-tag-type ctx)
-                       ('empty (cons ctx nil))
-                       ('close
+                       (empty (cons ctx nil))
+                       (close
                         (goto-char (sgml-tag-start ctx))
                         (cons (hl-tags-sgml-get-context) ctx))
-                       ('open
+                       (open
                         (goto-char (sgml-tag-start ctx))
                         (sgml-skip-tag-forward 1)
                         (backward-char 1)
