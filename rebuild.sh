@@ -9,7 +9,6 @@
 set -u
 # propagate errors from all parts of pipes
 set -o pipefail
-
 set -e
 
 if which nix 2>/dev/null && [[ "${RUNNING_UNDER_NIX:-0}" != 1 ]]; then
@@ -29,8 +28,8 @@ which ghc >/dev/null && \
          ( [[ -f get-cabal-configuration.exe ]] && strip get-cabal-configuration.exe || strip get-cabal-configuration)
    )
 
-EMACS_FORCE_PRISTINE=1 bash ./scripts/recompile.sh
-EMACS_FORCE_PRISTINE=1 bash ./scripts/dump.sh
+bash ./scripts/recompile.sh
+bash ./scripts/dump.sh
 bash ./tests/run-tests.sh "${@}"
 
 exit 0
