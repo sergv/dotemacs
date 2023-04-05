@@ -12,7 +12,6 @@
 (def-keys-for-map (minibuffer-local-completion-map
                    minibuffer-local-must-match-map
                    minibuffer-local-filename-completion-map
-                   minibuffer-local-filename-must-match-map
                    minibuffer-local-map
                    minibuffer-local-isearch-map
                    minibuffer-inactive-mode-map)
@@ -45,8 +44,7 @@
 
 (def-keys-for-map (minibuffer-local-completion-map
                    minibuffer-local-must-match-map
-                   minibuffer-local-filename-completion-map
-                   minibuffer-local-filename-must-match-map)
+                   minibuffer-local-filename-completion-map)
   ("SPC" self-insert-command)
   ("?"   self-insert-command))
 
