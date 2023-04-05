@@ -6,7 +6,7 @@
 #
 
 function native-comp-available() {
-    emacs -Q --batch \
+    "$emacs" -Q --batch \
           --eval "(message \"%s\" (and (fboundp #'native-comp-available-p) (native-comp-available-p)))" 2>&1
 }
 
