@@ -9,8 +9,11 @@
 set -u
 # propagate errors from all parts of pipes
 set -o pipefail
+set -e
 
 cd "$(dirname "$0")"
+
+emacs="${EMACS:-emacs}"
 
 tests=""
 matcher="t"
@@ -37,7 +40,7 @@ if [[ -z "$tests" ]]; then
     done
 fi
 
-# emacs -Q \
+# "$emacs" -Q \
 #       -L "$EMACS_ROOT/src" \
 #       -L "$EMACS_ROOT/src/custom" \
 #       -L "$EMACS_ROOT/tests" \
@@ -48,7 +51,7 @@ fi
 #       $tests \
 #        --eval "(ert $matcher)"
 
-emacs -Q --batch \
+"$emacs" -Q --batch \
       -L "$EMACS_ROOT/src" \
       -L "$EMACS_ROOT/src/custom" \
       -L "$EMACS_ROOT/tests" \
