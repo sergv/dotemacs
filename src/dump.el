@@ -121,7 +121,8 @@
     (require 'pcmpl-unix)
 
     (require 'haskell-autoload)
-    (require 'org-mode-autoload)
+    ;; Emacs 29: unsupported object type in dump: weird pseudovector
+    ;; (require 'org-mode-autoload)
     (require 'rust-autoloads)
 
     (require 'configurable-compilation)
