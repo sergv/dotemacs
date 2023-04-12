@@ -93,7 +93,8 @@
 (vim-defcmd vim:haskell-navigate-imports (nonrepeatable)
   "Jump to the imports section."
   (vim-save-position)
-  (haskell-navigate-imports))
+  (haskell-navigate-imports)
+  (setq-local vim-save-position-omit-next t))
 
 (vim-defcmd vim:haskell-comment-line (count repeatable)
   (haskell-comment-line count))
