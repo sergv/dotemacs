@@ -603,7 +603,8 @@ obvious"
                               (funcall ,regex-end-func ,substr-var))
                     (regexp-quote ,substr-var))
                   ,is-forward
-                  :case-sensetive t)
+                  :case-sensetive t
+                  :save-position nil)
                  ,(funcall mk-action-after count-var))))))
     `(progn
        ,(funcall make-search-func name t)
