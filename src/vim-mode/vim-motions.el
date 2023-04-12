@@ -108,9 +108,14 @@
     (?\} . vim:motion-fwd-paragraph))
   "Assocative list for special marks to corresponding functions.")
 
-(defsubst vim-save-position (&optional pos)
+(defvar vim-save-position-omit-next nil
+  "Next call to ‘vim-save-position’ won’t do anything.")
+
+(defun vim-save-position (&optional pos)
   "Save position to ' mark register."
-  (vim-set-mark ?' pos))
+  (if vim-save-position-omit-next
+      (setq-local vim-save-position-omit-next nil)
+    (vim-set-mark ?' pos)))
 
 (advice-add 'end-of-defun :before #'vim-save-position)
 
