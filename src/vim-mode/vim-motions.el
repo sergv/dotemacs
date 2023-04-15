@@ -1400,13 +1400,15 @@ The function shouldn’t move point.")
 
 (vim-defmotion vim:motion-inner-double-quote (inclusive count motion-result)
   "Select text between two double quotes without the quotes."
-  (with-syntax-table vim--motion-double-quote-syntax-table
-    (vim--inner-doubled-quote count)))
+  (let ((parse-sexp-lookup-properties nil))
+    (with-syntax-table vim--motion-double-quote-syntax-table
+      (vim--inner-doubled-quote count))))
 
 (vim-defmotion vim:motion-outer-double-quote (inclusive count motion-result)
   "Select text between two double quotes including the quotes."
-  (with-syntax-table vim--motion-double-quote-syntax-table
-    (vim--outer-doubled-quote count)))
+  (let ((parse-sexp-lookup-properties nil))
+    (with-syntax-table vim--motion-double-quote-syntax-table
+      (vim--outer-doubled-quote count))))
 
 (defconst vim--motion-back-quote-syntax-table
   (let ((tbl (make-syntax-table)))
@@ -1415,13 +1417,15 @@ The function shouldn’t move point.")
 
 (vim-defmotion vim:motion-inner-back-quote (inclusive count motion-result)
   "Select text between two back quotes without the quotes."
-  (with-syntax-table vim--motion-back-quote-syntax-table
-    (vim--inner-doubled-quote count)))
+  (let ((parse-sexp-lookup-properties nil))
+    (with-syntax-table vim--motion-back-quote-syntax-table
+      (vim--inner-doubled-quote count))))
 
 (vim-defmotion vim:motion-outer-back-quote (inclusive count motion-result)
   "Select text between two back quotes including the quotes."
-  (with-syntax-table vim--motion-back-quote-syntax-table
-    (vim--outer-doubled-quote count)))
+  (let ((parse-sexp-lookup-properties nil))
+    (with-syntax-table vim--motion-back-quote-syntax-table
+      (vim--outer-doubled-quote count))))
 
 (vim-defmotion vim:motion-find (inclusive count (argument:char arg) raw-result)
   "Move the cursor to the next count’th occurrence of arg."
