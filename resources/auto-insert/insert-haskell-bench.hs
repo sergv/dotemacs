@@ -1,10 +1,8 @@
-----------------------------------------------------------------------------
 -- |
--- Module      :  ${haskell path to module name}
--- Copyright   :  (c) ${author} ${date year}
--- License     :  ${license spdx} (see LICENSE)
--- Maintainer  :  ${email}
-----------------------------------------------------------------------------
+-- Module:     ${haskell path to module name}
+-- Copyright:  (c) ${author} ${date year}
+-- License:    ${license spdx} (see LICENSE)
+-- Maintainer: ${email}
 
 module ${haskell path to module name} (main) where
 
