@@ -48,8 +48,8 @@
 (advice-add 'byte-compile-file :around #'byte-compile-file--file-hideshow-off)
 
 ;; hideshow works badly with these
-(add-hook 'ediff-prepare-buffer-hook #'turn-off-hideshow)
-(add-hook 'vc-before-checkin-hook #'turn-off-hideshow)
+(add-hook 'ediff-prepare-buffer-hook #'hs-show-all)
+(add-hook 'vc-before-checkin-hook #'hs-show-all)
 
 ;;;###autoload
 (defun hs-show-sexps-in-region (begin end)
@@ -452,6 +452,15 @@ _T_: toggle all indented"
       ("z" hydra-vim-normal-z-hideshow-yafolding/body)))
   (def-keys-for-map vim-visual-mode-local-keymap
     ("z" hydra-vim-visual-z-yafolding/body)))
+
+;;;; Advices
+
+(defun hideshow--ensure-mode-enabled (&rest _ignore)
+  (unless hs-minor-mode
+    (error "Hideshow mode disabled")))
+
+(advice-add 'hs-show-block :before #'hideshow--ensure-mode-enabled)
+(advice-add 'hs-hide-block :before #'hideshow--ensure-mode-enabled)
 
 ;;;; Vimmized functions
 
