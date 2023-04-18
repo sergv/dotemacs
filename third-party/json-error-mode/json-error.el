@@ -35,26 +35,26 @@
   :group 'json-error-mode)
 
 ;; json-error-mode state
-(make-local-variable 'json-error-mode-parsing) ; in the middle of a parse
-(make-local-variable 'json-error-mode-buffer-dirty-p)
-(make-local-variable 'json-error-mode-parse-timer)
-(make-local-variable 'json-error-parsed-errors)
+(defvar-local json-error-mode-parsing nil) ; in the middle of a parse
+(defvar-local json-error-mode-buffer-dirty-p nil)
+(defvar-local json-error-mode-parse-timer nil)
+(defvar-local json-error-parsed-errors nil)
 (defvar json-error-idle-timer-delay 0.2
   "Delay in secs before re-parsing after user makes changes.")
 
+;;;###autoload
 (define-minor-mode json-error-mode
   "Minor mode to add error highlighting to json mode"
   :init-value nil
-
   (if json-error-mode
       (json-error-mode-enter)
     (json-error-mode-exit)))
 
 (defun json-error-mode-enter ()
-  (setq json-error-mode-parsing nil)
-  (setq json-error-mode-buffer-dirty-p t)
-  (setq json-error-mode-parse-timer nil)
-  (setq json-error-parsed-errors nil)
+  (setq json-error-mode-parsing nil
+        json-error-mode-buffer-dirty-p t
+        json-error-mode-parse-timer nil
+        json-error-parsed-errors nil)
 
   (add-hook 'change-major-mode-hook #'json-error-mode-exit nil t)
   (add-hook 'after-change-functions #'json-error-mode-edit nil t)
@@ -163,30 +163,30 @@ we discard the parse and reschedule it."
 
 ;; Internal parser state:
 
-(defvar json-error-EOF-CHAR -1)
+(defconst json-error-EOF-CHAR -1)
 
 ;; Continue.
-(defvar json-error-scan-continue 0)
-(defvar json-error-scan-begin-literal 1)
-(defvar json-error-scan-begin-object 2)
-(defvar json-error-scan-object-key 3)
-(defvar json-error-scan-object-value 4)
-(defvar json-error-scan-end-object 5)
-(defvar json-error-scan-begin-array 6)
-(defvar json-error-scan-array-value 7)
-(defvar json-error-scan-end-array 8)
-(defvar json-error-scan-skip-space 9)
+(defconst json-error-scan-continue 0)
+(defconst json-error-scan-begin-literal 1)
+(defconst json-error-scan-begin-object 2)
+(defconst json-error-scan-object-key 3)
+(defconst json-error-scan-object-value 4)
+(defconst json-error-scan-end-object 5)
+(defconst json-error-scan-begin-array 6)
+(defconst json-error-scan-array-value 7)
+(defconst json-error-scan-end-array 8)
+(defconst json-error-scan-skip-space 9)
 ;; Stop.
-(defvar json-error-scan-end 10)
-(defvar json-error-scan-error 11)
+(defconst json-error-scan-end 10)
+(defconst json-error-scan-error 11)
 
 ;; parser state
-(make-local-variable 'json-error-cursor) ; current position
-(make-local-variable 'json-error-step) ; next parse function
-(make-local-variable 'json-error-parse-state) ; Stack of what we are in the middle of
-(make-local-variable 'json-error-error) ; error that happened, if any
-(make-local-variable 'json-error-lineno) ; line number
-(make-local-variable 'json-error-line-offset) ; char offset in line
+(defvar-local json-error-cursor nil) ; current position
+(defvar-local json-error-step nil) ; next parse function
+(defvar-local json-error-parse-state nil) ; Stack of what we are in the middle of
+(defvar-local json-error-error nil) ; error that happened, if any
+(defvar-local json-error-lineno nil) ; line number
+(defvar-local json-error-line-offset nil) ; char offset in line
 
 
 (defun json-error-init-scanner (&optional buf)
