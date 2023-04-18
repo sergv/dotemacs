@@ -72,6 +72,7 @@
   (init-common :use-whitespace 'tabs-only
                :use-yasnippet t
                :use-comment t)
+  (json-error-mode)
   (setup-folding t nil)
   (def-keys-for-map vim-normal-mode-local-keymap
     ("- p" json-mode-show-path)))
