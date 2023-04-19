@@ -332,6 +332,7 @@ Contains single-line and region comments.")
 ;;     (error "No comment format defined for current mode")))
 
 (defun comment-util-detect-line-comment (&optional format)
+  "Check whether current line is commented. May move point past the leading comment."
   (let ((fmt (or format (comment-util-current-format))))
     (funcall (comment-format-detect-line-comment fmt) fmt)))
 
@@ -352,7 +353,7 @@ or down if LINES is negative or comment whole region if region is active."
   (interactive "p")
   (if (region-active-p)
       (with-region-bounds-unadj start end
-        (comment-util-comment-region start end))
+        (comment-util-comment-region--impl start end))
     (let ((fmt (comment-util-current-format)))
       (comment-util--comment-next-n-lines lines fmt))))
 
@@ -362,11 +363,16 @@ or down if LINES is negative or comment whole region if region is active."
 they are defined for current mode or one-line comments otherwise."
   (interactive "*r")
   (with-region-bounds-unadj begin end
-    (save-excursion
-      (let ((fmt (comment-util-current-format)))
-        (if (comment-util-region-comments-defined? fmt)
-            (comment-util--comment-chunk-region begin end fmt)
-          (comment-util--comment-lined-region begin end fmt))))))
+    (comment-util-comment-region--impl begin end)))
+
+(defun comment-util-comment-region--impl (begin end)
+  "Comment region between BEGIN and END position inserting region comments if
+they are defined for current mode or one-line comments otherwise."
+  (save-excursion
+    (let ((fmt (comment-util-current-format)))
+      (if (comment-util-region-comments-defined? fmt)
+          (comment-util--comment-chunk-region begin end fmt)
+        (comment-util--comment-lined-region begin end fmt)))))
 
 ;;;###autoload
 (defun comment-util-uncomment-region ()
@@ -399,17 +405,17 @@ be used only for vim-visual-mode of the vim-mode package."
   (save-excursion
     (goto-char begin)
     (beginning-of-line)
-    (let ((format (comment-util-current-format)))
-      (when (comment-util-detect-line-comment)
-        (comment-util--uncomment-lines (count-lines-fixed begin end) format)))))
-
-(defun comment-util--uncomment-lines (n format)
-  "Uncomment N lines down."
-  (dotimes (_ n)
-    (beginning-of-line)
-    (comment-util--delete-comment format)
-    (indent-for-tab-command)
-    (forward-line 1)))
+    (let ((format (comment-util-current-format))
+          (end-line (save-excursion (goto-char end) (line-end-position))))
+      (combine-change-calls
+          (point)
+          end
+        (with-marker (end-marker (copy-marker end-line))
+          (while (and (< (point) end-marker)
+                      (not (eobp)))
+            (comment-util--delete-comment format)
+            (indent-for-tab-command)
+            (forward-line 1)))))))
 
 ;;;; core functionality, not for interactive use
 
@@ -423,22 +429,40 @@ be used only for vim-visual-mode of the vim-mode package."
 (defun comment-util--uncomment-lined-region (format)
   "Uncomment region that was commented with line comments."
   (skip-to-indentation)
-  (let* ((pos (point))
-         (del-comments (lambda (direction)
-                         (beginning-of-line)
-                         (while (comment-util--delete-comment format)
-                           (forward-line direction)))))
+  (let ((middle (point))
+        (start (line-beginning-position))
+        (end (line-end-position))
+        tmp)
     (unless (comment-util-detect-line-comment format)
       (error "Not in commented region"))
-    ;; Delete comments on lines that are below than current line.
-    (funcall del-comments 1)
-
-    ;; Delete comments on lines that are above than current line.
-    (goto-char pos)
-    (unless (bobp)
-      (forward-line -1)
-      (funcall del-comments -1))))
-
+    ;; Go back to find the start of commented region.
+    (goto-char middle)
+    (while (progn
+             (setf tmp (point))
+             (and (comment-util-detect-line-comment format)
+                  (not (bobp))))
+      (setf start tmp)
+      (forward-line -1))
+    ;; Go forward to find the end of commented region.
+    (goto-char middle)
+    (while (progn
+             (setf tmp (point))
+             (and (comment-util-detect-line-comment format)
+                  (not (eobp))))
+      (setf end tmp)
+      (forward-line +1))
+    ;; Fix end position.
+    (goto-char end)
+    (setf end (line-end-position))
+    ;; Do the actual uncommenting.
+    (combine-change-calls
+        start
+        end
+      (goto-char start)
+      (with-marker (end-marker (copy-marker end))
+        (while (and (comment-util--delete-comment format)
+                    (<= (point) end-marker))
+          (forward-line +1))))))
 
 (defun comment-util--comment-chunk-region (begin end fmt)
   (save-excursion
@@ -512,50 +536,45 @@ be used only for vim-visual-mode of the vim-mode package."
 
 (defun comment-util--comment-n-lines-starting-at-col (comment-str lines column)
   "Comment next LINES with COMMENT-STR, but insert them at COLUMN."
-  (let ((skip-to-column (lambda ()
-                          (beginning-of-line)
-                          (let ((i 0))
-                            (while (and (< i column)
-                                        (not (or (eq ?\n (char-after))
-                                                 (eq ?\r (char-after))
-                                                 (eobp))))
-                              (forward-char 1)
-                              (cl-incf i))))))
-    (when (< 0 lines)
-      ;; this is the zeroth iteration at which we shouldn't
-      ;; update column and use supplied one
-      (funcall skip-to-column)
-      (insert comment-str)
-      (forward-line 1)
-      (cl-incf lines -1)
-      (while (< 0 lines)
-        ;; Is on empty line?
-        (if (and (eq (char-before) ?\n)
-                 (eq (char-after) ?\n))
-            (progn
-              (insert-char ?\s column)
-              (insert comment-str))
-          (progn
-            (setf column (min column (indentation-size)))
-            (funcall skip-to-column)
-            (insert comment-str)))
+  (let* ((col column)
+         (skip-to-column (lambda ()
+                           (beginning-of-line)
+                           (skip-chars-forward " " (+ (point) col)))))
+    (combine-change-calls
+        (line-beginning-position)
+        (save-excursion
+          (forward-line lines)
+          (line-end-position))
+      (when (< 0 lines)
+        ;; This is the zeroth iteration at which we shouldn't
+        ;; update column and use supplied one.
+        (funcall skip-to-column)
+        (insert comment-str)
         (forward-line 1)
-        (cl-incf lines -1)))))
+        (cl-incf lines -1)
+        (while (< 0 lines)
+          ;; Is on empty line?
+          (if (and (eq (char-before) ?\n)
+                   (eq (char-after) ?\n))
+              (progn
+                (insert-char ?\s col)
+                (insert comment-str))
+            (progn
+              (setf col (min col (indentation-size)))
+              (funcall skip-to-column)
+              (insert comment-str)))
+          (forward-line 1)
+          (cl-incf lines -1))))))
 
 (defun comment-util--delete-comment (format)
   "Delete comments (e.g. //, ;) after point if any."
-  (save-position-unsafe
-   (skip-indentation-forward)
-   (let ((before-comment (point)))
-     (when (comment-util-detect-line-comment format)
-       (delete-region before-comment (point))
-       (let ((i 0)
-             (spaces-size (eval-when-compile (length comment-util--spaces-after-comment))))
-         (while (and (eq ?\s (char-after))
-                     (< i spaces-size))
-           (delete-char 1)
-           (cl-incf i)))
-       t))))
+  (skip-indentation-forward)
+  (let ((before-comment (point)))
+    (when (comment-util-detect-line-comment format)
+      (skip-chars-forward " " (+ (point)
+                                 (eval-when-compile (length comment-util--spaces-after-comment))))
+      (delete-region before-comment (point))
+      t)))
 
 ;;;;; Some lisp-specific comment functions, inspired by paredit.el
 
