@@ -488,7 +488,7 @@ of code may be called more than once."
 (defmacro save-position-unsafe (&rest body)
   "Remember position of point and restore it after BODY finishes normally. If body
 exits via signal then no restoration will take place, hence the unsafety."
-  (let ((start-var '#:satrt))
+  (let ((start-var '#:start))
     `(let ((,start-var (point)))
        (prog1
            (progn ,@body)
