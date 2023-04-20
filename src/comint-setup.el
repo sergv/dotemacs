@@ -422,11 +422,23 @@ Similarly for Soar, Scheme, etc."
 
 (eval-after-load "comint" '(comint-init))
 
+(defun comint-next-input-or-fwd-paragraph (count)
+  (interactive "p")
+  (if (comint-after-pmark-p)
+      (comint-next-input count)
+    (vim:motion-fwd-paragraph :count count)))
+
+(defun comint-previous-input-or-bwd-paragraph (count)
+  (interactive "p")
+  (if (comint-after-pmark-p)
+      (comint-previous-input count)
+    (vim:motion-bwd-paragraph :count count)))
+
 ;;;###autoload
 (defun comint-setup ()
   (def-keys-for-map comint-mode-map
-    ("<up>"     comint-previous-input)
-    ("<down>"   comint-next-input)
+    ("<up>"     comint-previous-input-or-bwd-paragraph)
+    ("<down>"   comint-next-input-or-fwd-paragraph)
     ("C-<up>"   comint-previous-prompt)
     ("C-<down>" comint-next-prompt)
     ("S-<up>"   comint-previous-prompt)
