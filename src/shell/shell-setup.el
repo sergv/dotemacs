@@ -202,8 +202,8 @@ sexps and indentation levels."
 
     ("C-t"       comint-previous-prompt)
     ("C-h"       comint-next-prompt)
-    ("<up>"      comint-previous-input)
-    ("<down>"    comint-next-input)
+    ("<up>"      comint-previous-input-or-bwd-paragraph)
+    ("<down>"    comint-next-input-or-fwd-paragraph)
     ("C-<up>"    comint-previous-prompt)
     ("C-<down>"  comint-next-prompt)
 
