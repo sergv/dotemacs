@@ -120,10 +120,10 @@ and indent them as singe line."
 
 (setf dante-load-flags
       '("+c"
-        "-fdiagnostics-color=never"
+        "-fdiagnostics-color=always"
         "-fno-diagnostics-show-caret"
         "-Wwarn=missing-home-modules"
-         "-ferror-spans"
+        "-ferror-spans"
         "-O0"
         "-fdefer-typed-holes")
 
