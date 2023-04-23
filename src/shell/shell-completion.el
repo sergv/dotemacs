@@ -1248,6 +1248,9 @@ under version-control directories."
   (pcmpl-entries
    :select "\\.hi\\'"))
 
+(defun pcmpl-haskell-hp-files ()
+  (pcmpl-entries :select (rx ".hp" eos)))
+
 (defun pcmpl-haskell-source-or-obj-files ()
   (pcmpl-entries
    :select
@@ -2288,12 +2291,12 @@ under version-control directories."
           "-tf"
           "-y"
           "-c")
-   (args (pcmpl-entries :select "\\.hp\\'"))))
+   (args (pcmpl-haskell-hp-files))))
 
 ;;;###autoload (autoload 'pcomplete/hp2pdf "shell-completion" nil t)
 (defpcmpl pcomplete/hp2pdf
   (opts
-   (args (pcmpl-entries :select "\\.hp\\'"))))
+   (args (pcmpl-haskell-hp-files))))
 
 ;;;###autoload (autoload 'pcomplete/hp2pretty "shell-completion" nil t)
 (defpcmpl pcomplete/hp2pretty
@@ -2303,7 +2306,31 @@ under version-control directories."
     "--uniform-scale=time"
     "--uniform-scale=memory"
     "--uniform-scale=both")
-   (args (pcmpl-entries :select (rx ".hp" eos)))))
+   (args (pcmpl-haskell-hp-files))))
+
+;;;###autoload (autoload 'pcomplete/eventlog2html "shell-completion" nil t)
+(defpcmpl pcomplete/eventlog2html
+  (opts
+   (flags
+    "--sort=size"
+    "--sort=stdev"
+    "--sort=name"
+    "--sort=gradient"
+    "--reverse"
+    "--limit-detailed"
+    (("-p" "--heap-profile") (pcmpl-haskell-hp-files))
+    "--no-include-js"
+    "-j"
+    "--json"
+    "--no-traces"
+    "--include-trace-events"
+    "--y-axis"
+    "-i"
+    "--include"
+    "-x"
+    "--exclude"
+    ("-o" (pcmpl-entries :select (rx ".html" eos))))
+   (args (pcmpl-entries :select (rx ".eventlog" eos)))))
 
 ;;;###autoload (autoload 'pcomplete/profiterole "shell-completion" nil t)
 (defpcmpl pcomplete/profiterole
