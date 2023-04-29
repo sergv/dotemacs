@@ -13,6 +13,9 @@
 
   (defvar use-foreign-libraries?))
 
+(require 'common)
+(require 'dash)
+
 ;;;###autoload
 (cl-defun find-rec-do (path
                        &key
