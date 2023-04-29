@@ -28,8 +28,8 @@ build-type:
 --
 -- custom-setup
 --   setup-depends:
---     , base ^>= 4.9
---     , Cabal ^>= 1.16
+--     , base >= 4.16
+--     , Cabal >= 1.16
 
 extra-source-files:
   Changelog.md
@@ -82,7 +82,7 @@ library
   hs-source-dirs:
     src
   build-depends:
-    , base ^>= 4.14
+    , base >= 4.16
     , text ^>= { 1.2.5, 2.0 }
   build-tool-depends:
     , alex:alex
@@ -99,7 +99,7 @@ executable ${filename no ext}
   --   .
   --   exe
   build-depends:
-    , base ^>= 4.14
+    , base >= 4.16
     , ${filename no ext}
   ghc-options:
     -rtsopts
@@ -121,7 +121,7 @@ test-suite ${filename no ext}-test
   build-depends:
     , HUnit
     , QuickCheck
-    , base ^>= 4.14
+    , base >= 4.14
     , optparse-applicative
     , tasty
     , tasty-hunit
