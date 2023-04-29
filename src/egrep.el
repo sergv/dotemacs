@@ -150,7 +150,7 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
                    :ignored-directories +ignored-directories+
                    :ignored-directory-prefixes +ignored-directory-prefixes+))
            (files-length (length files))
-           (should-report-progress? (<= 100 files-length))
+           (should-report-progress? (and (<= 100 files-length) (not noninteractive)))
            (progress-reporter
             (when should-report-progress?
               (make-standard-progress-reporter files-length "files")))
