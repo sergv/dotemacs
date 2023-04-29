@@ -75,7 +75,7 @@ in the current buffer."
         (concat "`\\(?:" haskell-regexen/core/opt-q/varid-or-conid "\\)`"))
      0 'haskell-operator-face)
     ("\\[\\]" 0 'haskell-constructor-face)
-    (,(eval-when-compile (regexp-opt haskell-font-lock-keywords)) 0 'haskell-keyword-face)
+    (,(eval-when-compile (regexp-opt haskell-font-lock-keywords 'symbols)) 0 'haskell-keyword-face)
 
     ;; ("(\\(,*\\|->\\))" 0 'haskell-constructor-face)
 
