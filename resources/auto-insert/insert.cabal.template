@@ -100,6 +100,7 @@ executable ${filename no ext}
   --   exe
   build-depends:
     , base >= 4.16
+    , optparse-applicative
     , ${filename no ext}
   ghc-options:
     -rtsopts
