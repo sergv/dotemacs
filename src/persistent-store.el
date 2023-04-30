@@ -36,18 +36,19 @@
   "Initialize database."
   (unless (persistent-store-initialized?)
     (add-hook 'kill-emacs-hook #'persistent-store-flush-database)
-    (setf persistent-store-content (make-hash-table :test #'equal))
     (persistent-store-load-contents)))
 
 (defsubst persistent-store-initialized? ()
   (not (null persistent-store-content)))
 
-(defsubst persistent-store-put (key value)
+;;;###autoload
+(defun persistent-store-put (key value)
   "Store entry in database."
   (when (persistent-store-initialized?)
     (puthash key value persistent-store-content)))
 
-(defsubst persistent-store-get (key &optional default)
+;;;###autoload
+(defun persistent-store-get (key &optional default)
   "Retrieve entry from database."
   (gethash key persistent-store-content default))
 
@@ -78,9 +79,8 @@
 (defun persistent-store-read-contents-from-string (str)
   (condition-case nil
       (let ((tbl (make-hash-table :test #'eq)))
-        (mapc (lambda (entry)
-                (puthash (car entry) (cdr entry) tbl))
-              (read str))
+        (dolist (entry (read str))
+          (puthash (car entry) (cdr entry) tbl))
         tbl)
     (error
      (error "Failed to read persistent-store's contents from string"))))
