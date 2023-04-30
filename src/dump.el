@@ -53,6 +53,8 @@
     (require 'cycle-on-lines)
     (require 'common)
     (require 'common-heavy)
+    (load-library "persistent-store")
+    (persistent-store-init)
 
     (require 'append-list)
     (require 'bimap)
