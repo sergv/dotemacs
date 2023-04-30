@@ -10,7 +10,11 @@
 
 module ${haskell path to module name} (main) where
 
+import Data.Bifunctor
+import Data.Text.Encoding qualified as T
 import Options.Applicative
+import System.File.OsPath
+import System.OsPath
 
 -- import Data.Bimap (Bimap)
 -- import Data.Bimap qualified as BM
@@ -40,7 +44,7 @@ import Options.Applicative
 --   Just x  -> x
 
 data Config = Config
-  { cfgInputFile :: !FilePath
+  { cfgInputFile :: !OsPath
   , cfgSomeFlag  :: !Bool
   , cfgSomeEnum  :: Test
   , cfgSomeInt   :: !(Maybe Int)
@@ -51,7 +55,7 @@ data Test = Test1 | Test2
 
 optsParser :: Parser Config
 optsParser = do
-  cfgInputFile <- strOption $
+  cfgInputFile <- option (eitherReader (bimap show id . encodeUtf)) $
     long "input" <>
     metavar "FILE" <>
     help "An input file"
@@ -90,5 +94,7 @@ main :: IO ()
 main = do
   Config{cfgInputFile, cfgSomeFlag, cfgSomeInt} <-
     customExecParser (prefs (showHelpOnEmpty <> noBacktrack <> multiSuffix "*")) progInfo
+
+  _ <- T.decodeUtf8 <$> readFile' cfgInputFile
 
   pure ()
