@@ -182,9 +182,8 @@ the symbol 'incomplete is returned."
                    (t 'incomplete))))
          (while (and c (stringp c))
            (setq c (or (gethash c vim-ex--commands)
-                       (and
-                        vim-ex--local-commands
-                        (gethash c vim-ex--local-commands)))))
+                       (and vim-ex--local-commands
+                            (gethash c vim-ex--local-commands)))))
          c)))))
 
 (defsubst vim-ex--binding-p (binding)
@@ -635,7 +634,7 @@ has been pressed."
            (vim:motion-go-to-first-non-blank-beg :count (or end-line start-line)))
           (t
            (error "Unknown command: %s" (if (zerop (length vim-ex--cmd))
-                                            cmdline
+                                            split
                                           vim-ex--cmd))))))))
 
 ;; parser for ex-commands
