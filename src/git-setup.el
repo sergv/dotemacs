@@ -19,10 +19,12 @@
 (require 'dash)
 (require 'el-patch)
 (require 'hydra-setup)
+(require 'persistent-store)
 (require 'pseudovim)
 (require 'magit)
 (require 'magit-blame)
 (require 'search)
+(require 'transient-fixes)
 (require 'vim-setup)
 
 ;;;###autoload
@@ -681,6 +683,8 @@ cop_y_ hash    _t_: prev chunk
   ("<down>"         vim:motion-down:interactive)
   ("<up>"           vim:motion-up:interactive)
   (("q" "<escape>") vim:blame-quit:interactive))
+
+;;; End
 
 (provide 'git-setup)
 
