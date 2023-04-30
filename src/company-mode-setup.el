@@ -9,6 +9,8 @@
 (eval-when-compile
   (require 'macro-util))
 
+(provide 'company-mode-setup)
+
 ;; (require 'company-posframe)
 (require 'company-statistics)
 (require 'persistent-store)
@@ -22,9 +24,6 @@
       company-tooltip-minimum-width 40
       company-tooltip-align-annotations t
       company-tooltip-offset-display 'lines)
-
-(company-statistics-mode +1)
-;; (company-posframe-mode +1)
 
 ;;;###autoload
 (defun company-statistics--save/use-persistent-store ()
@@ -50,7 +49,8 @@
 ;; (def-keys-for-map company-posframe-active-map
 ;;   ("<escape>" company-abort))
 
-(provide 'company-mode-setup)
+(company-statistics-mode +1)
+;; (company-posframe-mode +1)
 
 ;; Local Variables:
 ;; End:
