@@ -26,25 +26,26 @@
 (company-statistics-mode +1)
 ;; (company-posframe-mode +1)
 
-(defadvice company-statistics--save (around
-                                     company-statistics--save/use-persistent-store
-                                     activate
-                                     compile)
+;;;###autoload
+(defun company-statistics--save/use-persistent-store ()
   (persistent-store-put 'company-statistics--scores company-statistics--scores)
   (persistent-store-put 'company-statistics--log company-statistics--log)
   (persistent-store-put 'company-statistics--index company-statistics--index))
 
-(defadvice company-statistics--load (around
-                                     company-statistics--load/use-persistent-store
-                                     activate
-                                     compile)
-  "Restore statistics."
+;;;###autoload
+(advice-add 'company-statistics--save :override #'company-statistics--save/use-persistent-store)
+
+;;;###autoload
+(defun company-statistics--load/use-persistent-store ()
   (setf company-statistics--scores (persistent-store-get 'company-statistics--scores)
         company-statistics--log (persistent-store-get 'company-statistics--log)
         company-statistics--index (persistent-store-get 'company-statistics--index))
   (and company-statistics--scores
        company-statistics--log
        company-statistics--index))
+
+;;;###autoload
+(advice-add 'company-statistics--load :override #'company-statistics--load/use-persistent-store)
 
 ;; (def-keys-for-map company-posframe-active-map
 ;;   ("<escape>" company-abort))
