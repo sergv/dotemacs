@@ -18,7 +18,7 @@
 
 (when (and use-foreign-libraries?
            (not dumping))
-  (load (fold-platform-os-type "libemacs_native_rs" "emacs_native_rs")))
+  (load (fold-platform-os-type "libemacs-native" "emacs-native")))
 
 (provide 'foreign-setup)
 

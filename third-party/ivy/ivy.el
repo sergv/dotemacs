@@ -3970,26 +3970,28 @@ N wraps around."
              cands-left
              cands-to-sort)
 
-        ;; Filter out non-matching candidates
-        (dolist (cand cands)
-          (when (string-match-p fuzzy-regex cand)
-            (push cand cands-left)))
+        (pcase ivy--flx-sort--backend
+          ;; Compute all of the flx scores in one pass and sort
+          (`native
+           (haskell-native-score-matches
+            (if match-filenames? [?/] [])
+            flx-name
+            (list->vector cands)))
 
-        ;; pre-sort the candidates by length before partitioning
-        (setq cands-left (cl-sort cands-left #'< :key #'length))
+          (`elisp
+           ;; Filter out non-matching candidates
+           (dolist (cand cands)
+             (when (string-match-p fuzzy-regex cand)
+               (push cand cands-left)))
 
-        ;; partition the candidates into sorted and unsorted groups
-        (dotimes (_ (min (length cands-left) ivy-flx-limit))
-          (push (pop cands-left) cands-to-sort))
+           ;; pre-sort the candidates by length before partitioning
+           (setq cands-left (cl-sort cands-left #'< :key #'length))
 
-        (nconc
-         ;; Compute all of the flx scores in one pass and sort
-         (pcase ivy--flx-sort--backend
-           (`native (rust-native-score-matches
-                     (if match-filenames? [?/] [])
-                     flx-name
-                     cands-to-sort))
-           (`elisp
+           ;; partition the candidates into sorted and unsorted groups
+           (dotimes (_ (min (length cands-left) ivy-flx-limit))
+             (push (pop cands-left) cands-to-sort))
+
+           (nconc
             (let ((cache (if match-filenames?
                              ivy--flx-cache
                            ivy--flx-filename-cache)))
@@ -4005,12 +4007,13 @@ N wraps around."
                                   (> (cdr c1)
                                      (cdr c2))
                                 (< (length (car c1))
-                                   (length (car c2)))))))))
-           (invalid
-            (error "Invalid ivy--flx-sort--backend: %s" invalid)))
+                                   (length (car c2))))))))
 
-         ;; Add the unsorted candidates
-         cands-left))
+            ;; Add the unsorted candidates
+            cands-left))
+
+          (invalid
+           (error "Invalid ivy--flx-sort--backend: %s" invalid))))
     (error cands)))
 
 (defun ivy--flx-sort (name cands)
