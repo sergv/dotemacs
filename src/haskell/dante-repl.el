@@ -102,7 +102,7 @@ otherwise the command for starting repl will be inferred."
                     (if dante-repl--last-command-line
                         dante-repl--last-command-line
                       (error "No previous REPL command available"))))))
-            (dante-repl--start-in-buffer-with-command-line repl-buf command-line nil nil)
+            (dante-repl--start-in-buffer-with-command-line repl-buf command-line nil (and inside-repl-buffer? default-directory))
             (unless inside-repl-buffer?
               (switch-to-buffer-other-window repl-buf)))
         (error
