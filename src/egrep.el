@@ -120,25 +120,24 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
     (`elisp
      (egrep--find-matches--elisp regexp exts-globs ignored-files-globs root ignore-case))))
 
-(defun egrep--find-matches--native (regexp exts-globs ignored-files-globs root ignore-case)
+(defun egrep--find-matches--native (regexp globs-to-find ignored-files-globs root ignore-case)
   (save-some-buffers)
-  (let* ((globs-to-find exts-globs)
-         (ignored-files ignored-files-globs)
-         (matches
-          (rust-native-grep (list root)
-                            regexp
-                            globs-to-find
-                            ignored-files
-                            +ignored-directories+
-                            +ignored-directory-prefixes+
-                            nil
-                            ignore-case)))
+  (let ((matches
+         (haskell-native-grep
+          (list root)
+          regexp
+          globs-to-find
+          ignored-files-globs
+          +ignored-directories+
+          +ignored-directory-prefixes+
+          nil
+          ignore-case)))
     (cl-assert (listp matches))
     (when (or (null matches)
               (= (length matches) 0))
       (error "No matches for regexp \"%s\" across files %s"
              regexp
-             (mapconcat #'identity exts-globs ", ")))
+             (mapconcat #'identity globs-to-find ", ")))
     matches))
 
 (defun egrep--find-matches--elisp (regexp exts-globs ignored-files-globs root ignore-case)
