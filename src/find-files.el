@@ -114,7 +114,7 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
   (cl-assert (listp ignored-directory-prefixes))
   (funcall (pcase find-rec-backend
              (`native
-              #'find-rec--rust-native-impl)
+              #'find-rec--haskell-native-impl)
              (`executable
               #'find-rec--find-executable-impl)
              (`elisp
@@ -129,32 +129,29 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
            ignored-directories
            ignored-directory-prefixes))
 
-(defun find-rec--rust-native-impl (root
-                                   globs-to-find
-                                   ignored-extensions-globs
-                                   ignored-files-globs
-                                   ignored-absolute-dirs
-                                   ignored-directories
-                                   ignored-directory-prefixes)
+(defun find-rec--haskell-native-impl (root
+                                      globs-to-find
+                                      ignored-extensions-globs
+                                      ignored-files-globs
+                                      ignored-absolute-dirs
+                                      ignored-directories
+                                      ignored-directory-prefixes)
   "A version of `find-rec' that uses ffi to do the search."
   (declare (pure nil) (side-effect-free nil))
   (let ((ignored-files
-         (append ignored-extensions-globs
-                 ignored-files-globs)))
-    (cl-assert (fboundp #'rust-native-find-rec))
-    (let* ((results
-           (rust-native-find-rec
-            (list root)
-            globs-to-find
-            ignored-files
-            ignored-directories
-            ignored-directory-prefixes
-            ignored-absolute-dirs))
-           (errs (cdr results)))
-      (when (< 0 (length errs))
-        (dolist (err errs)
-          (message "Error during file search: %s" err)))
-      (car results))))
+         (append
+          ignored-extensions-globs
+          ignored-files-globs)))
+    (cl-assert (featurep 'haskell-native-emacs-extensions))
+    (cl-assert (fboundp #'haskell-native-find-rec))
+    (haskell-native-find-rec
+     (list root)
+     globs-to-find
+     ignored-files
+     ignored-directories
+     ignored-directory-prefixes
+     ignored-absolute-dirs)))
+
 
 (defun find-rec--find-executable-impl (root
                                        globs-to-find
