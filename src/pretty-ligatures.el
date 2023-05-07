@@ -153,6 +153,7 @@ Regexp match data 0 specifies the characters to be composed."
 
        (#xe12d . 2) ;; sum
        (#xe132 . 2) ;; product
+       (#xe134 . 2) ;; linear lollipop, -o
        ))))
 
 ;; Make [?\s (Bl . Br) ?\s (Bl . Br) ?\s (Bc . Bc) #xe11d] out of #xe11d (">>=").
@@ -249,6 +250,9 @@ Regexp match data 0 specifies the characters to be composed."
               (">="  . #xe123)
               ("||"  . #xe124)
               ("&&"  . #xe125)
+
+              ("%1 ->" . #xe134)
+
               ;;("><" . ?⨝)
 
               ;; Hasklig
@@ -317,7 +321,8 @@ Regexp match data 0 specifies the characters to be composed."
                ;; ("y"        . ?𝓎)
                ;; ("z"        . ?𝓏)
 
-               ;; a 𝒶 𝒷 𝒸 𝒹 ℯaL 𝒻 ℊ 𝒽 𝒾 𝒿 𝓀 𝓁 𝓂 𝓃 ℴ 𝓅 𝓆 𝓇 𝓈 𝓉 𝓊 𝓋 𝓌 𝓍 𝓎 𝓏
+               ;; a 𝒶 𝒷 𝒸 𝒹 ℯ 𝒻 ℊ 𝒽 𝒾 𝒿 𝓀 𝓁 𝓂 𝓃 ℴ 𝓅 𝓆 𝓇 𝓈 𝓉 𝓊 𝓋 𝓌 𝓍 𝓎 𝓏
+               ;;   a b c d e f g
 
                ;; bottom
                ("undefined" . #xe127)
