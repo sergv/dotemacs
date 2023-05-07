@@ -163,7 +163,7 @@ Regexp match data 0 specifies the characters to be composed."
             ;; No width
             (string ?\t c ?\t)
           (vconcat
-           (apply #'vconcat [?\s] (-repeat (1- width) [(Bl . Br) ?\s]))
+           (apply #'vconcat [?\s] (-repeat (1- width) [(Br . Bl) ?\s]))
            (vector (if (eq width glyph-width)
                        '(Bc . Bc) ;; Put c’s center in the center of the previously composed whitespace
                      '(Bl . Bl))
