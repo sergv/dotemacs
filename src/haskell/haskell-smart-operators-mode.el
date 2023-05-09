@@ -297,7 +297,11 @@ stick it to the previous operator on line."
     (when (and strip-next-parens?
                (save-excursion
                  (skip-syntax-forward " ")
-                 (when (eq (char-after) ?\()
+                 (when (and (eq (char-after) ?\()
+                            (save-excursion
+                              (forward-char 1)
+                              (skip-syntax-forward " ")
+                              (not (eq (char-after) ?\`))))
                    (setf paren-start-pos (point))
                    t)))
       (goto-char paren-start-pos)
