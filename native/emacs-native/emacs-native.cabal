@@ -1,0 +1,210 @@
+cabal-version: 3.0
+
+name:
+  emacs-native
+version:
+  0.1
+synopsis:
+  Emacs modules implemented in Haskell for my configuration
+license:
+  BSD-3-Clause
+license-file:
+  LICENSE
+author:
+  Sergey Vinokurov
+maintainer:
+  Sergey Vinokurov <serg.foo@gmail.com>
+stability: stable
+tested-with:
+  GHC == 8.2.2, GHC == 8.4.3, GHC == 8.6.5
+
+build-type:
+  Simple
+
+flag runtime-checks
+  description:
+    Enable more runtime checks
+  default:
+    False
+  manual:
+    True
+
+flag profiling
+  description:
+    Enable profiling
+  default:
+    False
+  manual:
+    True
+
+common ghc-options
+  default-language:
+    GHC2021
+
+  default-extensions:
+    ImportQualifiedPost
+    LambdaCase
+    UnboxedTuples
+
+  ghc-options:
+    -O2
+    -funbox-strict-fields
+
+    -Weverything
+    -Wno-redundant-constraints
+    -Wno-all-missed-specialisations
+    -Wno-implicit-prelude
+    -Wno-missed-specialisations
+    -Wno-missing-import-lists
+    -Wno-missing-local-signatures
+    -Wno-missing-safe-haskell-mode
+    -Wno-safe
+    -Wno-type-defaults
+    -Wno-unsafe
+
+  if impl(ghc >= 8.8)
+    ghc-options:
+      -Wno-missing-deriving-strategies
+
+  if impl(ghc >= 9.2)
+    ghc-options:
+      -Wno-missing-kind-signatures
+
+library
+  import: ghc-options
+  if flag(runtime-checks)
+    cpp-options: -DRUNTIME_CHECKS
+  exposed-modules:
+    Control.LensBlaze
+    Data.ByteString.Char8.Ext
+    Data.Emacs.Path
+    Data.Eproj
+    Data.Filesystem
+    Data.FuzzyMatch
+    Data.FuzzyMatch.SortKey
+    Data.Ignores
+    Data.NBSem
+    Data.Regex
+    Data.Primitive.PrimArray.Ext
+    Data.Text.Ext
+    Data.Vector.Ext
+    Data.Vector.PredefinedSorts
+
+    Emacs.EarlyTermination
+    Emacs.EprojTagIndex
+    Emacs.FastFileSearch
+    Emacs.FuzzyMatch
+    Emacs.Grep
+  hs-source-dirs:
+    src
+  build-depends:
+    , async >= 2
+    , atomic-counter
+    , base >= 4.16
+    , bimap
+    , bytestring
+    , containers
+    , deepseq
+    , directory
+    , directory-ospath-streaming
+    , emacs-module >= 0.2
+    , exceptions
+    , file-io
+    , filepath >= 1.4.100
+    , ghc-prim
+    , lifted-async
+    , monad-control
+    , prettyprinter >= 1.7
+    , prettyprinter-combinators
+    , primitive
+    , regex-tdfa
+    , stm
+    , stm-chans
+    , text
+    , text-builder-linear
+    , transformers-base
+    , tuples-homogenous-h98
+    , vector >= 0.13
+    , vector-quicksort
+
+foreign-library emacs-native
+  import: ghc-options
+  -- options: standalone
+  type:
+    native-shared
+  lib-version-info:
+    0:0:0
+  c-sources:
+    cbits/emacs_wrapper.c
+  includes:
+    emacs-module.h
+  install-includes:
+    emacs-module.h
+  include-dirs:
+    cbits
+  if flag(profiling)
+    cpp-options: -DPROFILING
+
+  if os(Windows)
+    options:
+      standalone
+    mod-def-file:
+      emacs-native.def
+
+  build-depends:
+    , base >= 4.16
+    , emacs-module
+    , emacs-native
+  hs-source-dirs:
+    lib
+  other-modules:
+    Emacs.Init
+  ghc-options:
+    -threaded
+
+test-suite emacs-native-test
+  import: ghc-options
+  type:
+    exitcode-stdio-1.0
+  main-is:
+    test/EmacsNativeTest.hs
+  hs-source-dirs:
+    .
+    test
+  other-modules:
+    Control.LensBlaze.Tests
+    Data.FuzzyMatch.Tests
+  build-depends:
+    , QuickCheck
+    , base
+    , emacs-native
+    , primitive
+    , tasty
+    , tasty-hunit
+    , tasty-quickcheck
+    , text
+  ghc-options:
+    -rtsopts
+    -main-is EmacsNativeTest
+
+benchmark fuzzyprof
+  import: ghc-options
+  type:
+    exitcode-stdio-1.0
+  main-is:
+    bench/FuzzyProf.hs
+  hs-source-dirs:
+    .
+    bench
+  build-depends:
+    , base >= 4.9
+    , deepseq
+    , emacs-native
+    , primitive
+    , text
+    , vector
+  ghc-options:
+    -rtsopts
+    -threaded
+    "-with-rtsopts=-N -A16m -n1m -qg -qb"
+    -main-is FuzzyProf
