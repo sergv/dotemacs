@@ -91,6 +91,23 @@
     :initialisation (haskell-mode)
     :buffer-id comment-tests-haskell))
 
+(ert-deftest comment-tests/uncomment-region-2 ()
+  (tests-utils--test-buffer-contents
+      :action
+      (comment-util-uncomment-region)
+    :contents
+    (tests-utils--multiline
+     "-- _|_foo :: a -> a"
+     "foo x = x"
+     "")
+    :expected-value
+    (tests-utils--multiline
+     "_|_foo :: a -> a"
+     "foo x = x"
+     "")
+    :initialisation (haskell-mode)
+    :buffer-id comment-tests-haskell))
+
 (ert-deftest comment-tests/uncomment-region-simple-1 ()
   (tests-utils--test-buffer-contents
       :action
