@@ -956,6 +956,18 @@ end."
     "x = error \"foobar_|_baz\""
     "x = error \"foobar$_|_baz\""))
 
+(ert-deftest haskell-tests/haskell-smart-operators--operator-$-keeps-parens-for-backtick-call-1 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators-$)
+    "x = decombobulate_|_(`foo` y) $ bar baz quux"
+    "x = decombobulate $ _|_(`foo` y) $ bar baz quux"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--operator-$-keeps-parens-for-backtick-call-2 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators-$)
+    "x = decombobulate_|_( `foo` y) $ bar baz quux"
+    "x = decombobulate $ _|_( `foo` y) $ bar baz quux"))
+
 (ert-deftest haskell-tests/haskell-smart-operators--guard-1 ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
