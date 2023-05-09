@@ -439,16 +439,16 @@ be used only for vim-visual-mode of the vim-mode package."
     (goto-char middle)
     (while (progn
              (setf tmp (point))
-             (and (comment-util-detect-line-comment format)
-                  (not (bobp))))
+             (and (not (bobp))
+                  (comment-util-detect-line-comment format)))
       (setf start tmp)
       (forward-line -1))
     ;; Go forward to find the end of commented region.
     (goto-char middle)
     (while (progn
              (setf tmp (point))
-             (and (comment-util-detect-line-comment format)
-                  (not (eobp))))
+             (and (not (eobp))
+                  (comment-util-detect-line-comment format)))
       (setf end tmp)
       (forward-line +1))
     ;; Fix end position.
