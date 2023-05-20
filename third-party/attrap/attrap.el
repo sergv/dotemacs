@@ -561,6 +561,26 @@ Error is given as MSG and reported between POS and END."
          (search-forward "{")
          (dolist (f fields)
            (insert (format ",%s = _\n" (s-trim f)))))))
+   (when (string-match (rx "• "
+                           (or "No instance for"
+                               "Could not deduce")
+                           " ‘"
+                           (group-n 1 (or "Generic" "Pretty"))
+                           (+ (any ?\s ?\t ?\r ?\n))
+                           (group-n 2 (+ (not (any ?\’))))
+                           "’")
+                       msg)
+     (attrap-one-option 'derive-pretty-instance
+       (let ((class-name (match-string-no-properties 1 msg))
+             (type-name (replace-regexp-in-string "[ \r\n]+" " " (match-string-no-properties 2 msg))))
+         (unless (eq (current-column) 0)
+           (haskell-move-to-topmost-start)
+           (forward-line -1))
+         (cond
+           ((equal class-name "Pretty")
+            (insert "deriving via PPGeneric " type-name " instance Pretty " type-name "\n"))
+           ((equal class-name "Generic")
+            (insert "deriving instance Generic " type-name "\n"))))))
    (--map (attrap-insert-language-pragma it)
           (--filter (s-matches? it normalized-msg) attrap-haskell-extensions))))))
 
