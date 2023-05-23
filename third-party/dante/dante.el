@@ -364,33 +364,42 @@ values of the above variables."
                 (let ((pred (dante-method-is-enabled-pred method)))
                   (when (or (null pred)
                             (funcall pred (current-buffer)))
-                    (when-let ((root (if-let ((pred (dante-method-find-root-pred method)))
-                                         (locate-dominating-file default-directory pred)
-                                       default-directory)))
-                      (setf root (expand-file-name root))
-                      (let ((flake-root
-                             (when (dante-nix-available? (current-buffer))
-                               (let ((eproj (eproj-get-project-for-buf-lax (current-buffer))))
-                                 (cond
-                                   ((file-exists-p (concat root "/flake.nix"))
-                                    root)
-                                   (eproj
-                                    (let ((eproj-root (eproj-project/root eproj)))
-                                      (when (file-exists-p (concat eproj-root "/flake.nix"))
-                                        eproj-root)))
-                                   (t
-                                    nil))))))
+                    (let ((proj-root (awhen (eproj-get-project-for-buf-lax (current-buffer))
+                                       (f-full (eproj-project/root it)))))
+                      (when-let ((root (if-let ((pred (dante-method-find-root-pred method)))
+                                           (locate-dominating-file default-directory
+                                                                   (lambda (dir)
+                                                                     (and (if proj-root
+                                                                              ;; If there’s a project then don’t ascend past it.
+                                                                              (string-prefix-p proj-root
+                                                                                               (f-full dir))
+                                                                            t)
+                                                                          (funcall pred dir))))
+                                         default-directory)))
+                        (setf root (expand-file-name root))
+                        (let ((flake-root
+                               (when (dante-nix-available? (current-buffer))
+                                 (let ((eproj (eproj-get-project-for-buf-lax (current-buffer))))
+                                   (cond
+                                     ((file-exists-p (concat root "/flake.nix"))
+                                      root)
+                                     (eproj
+                                      (let ((eproj-root (eproj-project/root eproj)))
+                                        (when (file-exists-p (concat eproj-root "/flake.nix"))
+                                          eproj-root)))
+                                     (t
+                                      nil))))))
 
-                        (setq-local
-                         dante-project-root (or dante-project-root root)
-                         dante-repl-command-line (or dante-repl-command-line
-                                                     (funcall (dante-method-check-command-line method) flake-root))
-                         dante-repl--command-line-to-use (or (when (boundp 'dante-repl--command-line-to-use)
-                                                               dante-repl--command-line-to-use)
-                                                             (funcall (dante-method-repl-command-line method) flake-root)
-                                                             ;; Fall back to command used by dante for checking else
-                                                             (dante--mk-repl-cmdline dante-repl-command-line dante-repl-command-line))
-                         dante--selected-method method))))))
+                          (setq-local
+                           dante-project-root (or dante-project-root root)
+                           dante-repl-command-line (or dante-repl-command-line
+                                                       (funcall (dante-method-check-command-line method) flake-root))
+                           dante-repl--command-line-to-use (or (when (boundp 'dante-repl--command-line-to-use)
+                                                                 dante-repl--command-line-to-use)
+                                                               (funcall (dante-method-repl-command-line method) flake-root)
+                                                               ;; Fall back to command used by dante for checking else
+                                                               (dante--mk-repl-cmdline dante-repl-command-line dante-repl-command-line))
+                           dante--selected-method method)))))))
               (-non-nil (--map (dante--methods-lookup it dante-methods-defs)
                                dante-methods)))
       (error "No GHCi loading method applies.  Customize `dante-methods' or (`dante-repl-command-line' and `dante-project-root')")))
