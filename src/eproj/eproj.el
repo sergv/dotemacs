@@ -44,6 +44,12 @@
 ;;        [<haskell-stack-ghc|haskell-ghc|haskell-dante|lsp|...>]
 ;;        ...)])]
 ;;
+;; Extra local variables
+;; [(local-variables
+;;    (haskell-mode
+;;       (foo bar)
+;;       (baz decombobulator)))]
+;;
 ;; Alternative to cabal’s /tmp/dist, etc.
 ;; [(build-dir <abs-or-rel-dir>)]
 ;;
