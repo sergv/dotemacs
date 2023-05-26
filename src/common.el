@@ -1115,7 +1115,7 @@ beginning of buffer. Does not cause \"Scan error: \"Unbalanced parentheses\"\" a
   "Function that says whether trailing whitespace should be deleted for current
 buffer."
   (or inhibit-delete-trailing-whitespace
-      (eq? major-mode 'diff-mode)))
+      (eq major-mode 'diff-mode)))
 
 (defun delete-trailing-whitespace+ ()
   "This function removes spaces and tabs on every line after
@@ -1124,8 +1124,12 @@ last non-whitespace character."
     (save-excursion
       (save-match-data
         (goto-char (point-min))
-        (while (re-search-forward "[ \t]+$" nil t)
-          (delete-region (match-beginning 0) (match-end 0)))))))
+        (while (not (eobp))
+          (let ((p (line-end-position)))
+            (goto-char p)
+            (unless (zerop (skip-chars-backward " \t"))
+              (delete-region (point) p))
+            (forward-line 1)))))))
 
 ;;;;
 
