@@ -9,6 +9,7 @@
 ;; Status:
 
 (require 'common)
+(require 'timer)
 
 (defconst hl-paren-parentheses (string-to-list "(){}[]"))
 (defconst hl-paren-open-parentheses (string-to-list "({["))
@@ -16,66 +17,124 @@
 (defface hl-paren-selection-face '((t (:underline "#d33682")))
   "Face to highlight parentheses.")
 
-;; Cons with overlays for current and its' corresponding paren.
-(defvar-local hl-paren-overlay nil)
+(defstruct hl-paren-state
+  first  ;; Current paren overlay
+  second ;; Matching paren overaly
+  is-enabled?)
+
+(defvar-local hl-paren-state nil
+  "Instance of ‘hl-paren-state’ structure.")
+
+(defvar-local hl-paren-timer nil
+  "Latest highlighting timer.")
 
 (defsubst hl-paren-move-overlay-to (overlay pos)
   (move-overlay overlay pos (1+ pos)))
 
 (defun hl-paren-make-overlay (pos)
   (let* ((x (make-overlay pos (1+ pos))))
-    (overlay-put x 'face 'hl-paren-selection-face)
+    (hl-paren-set-overlay-highlighting x t)
     x))
 
-(defsubst hl-paren-optionally-delete-overlay (overlay)
-  (when overlay
-    (delete-overlay overlay)))
+(defsubst hl-paren-set-overlay-highlighting (ov is-enabled?)
+  (overlay-put ov 'face (and is-enabled? 'hl-paren-selection-face)))
 
-(defsubst hl-paren-cleanup-overlays ()
+(defun hl-paren-enable-overlays! ()
+  (when (and hl-paren-state
+             (not (hl-paren-state-is-enabled? hl-paren-state)))
+    (setf (hl-paren-state-is-enabled? hl-paren-state) t)
+    (hl-paren-set-overlay-highlighting (hl-paren-state-first hl-paren-state) t)
+    (hl-paren-set-overlay-highlighting (hl-paren-state-second hl-paren-state) t)))
+
+(defun hl-paren-disable-overlays! ()
+  (when (and hl-paren-state
+             (hl-paren-state-is-enabled? hl-paren-state))
+    (setf (hl-paren-state-is-enabled? hl-paren-state) nil)
+    (hl-paren-set-overlay-highlighting (hl-paren-state-first hl-paren-state) nil)
+    (hl-paren-set-overlay-highlighting (hl-paren-state-second hl-paren-state) nil)))
+
+(defsubst hl-paren-cleanup-overlays! ()
   "Remove any currently active overlays."
-  (hl-paren-optionally-delete-overlay (car-safe hl-paren-overlay))
-  (hl-paren-optionally-delete-overlay (cdr-safe hl-paren-overlay)))
+  (when hl-paren-state
+    (delete-overlay (hl-paren-state-first hl-paren-state))
+    (delete-overlay (hl-paren-state-second hl-paren-state))
+    (setq-local hl-paren-state nil)))
 
 (defun hl-paren-highlight-matching-paren-at-point ()
   "Highlight paren that is matching for symbol at point.
 Turn off highlighting if character at point is not parentheses."
-  (interactive)
   (if (and (not (eobp))
-           (memq (char-after)
-                 hl-paren-parentheses))
-      (let ((matching-pos (save-excursion
-                            (vim:motion-jump-item)
-                            (point))))
-        (if hl-paren-overlay
+           (memq (char-after) hl-paren-parentheses))
+      (if-let ((matching-pos (pseudovim-motion-jump-item-to-pos (point) 10000)))
+          (if hl-paren-state
+              (progn
+                ;; move overlays if they already exist
+                (hl-paren-move-overlay-to (hl-paren-state-first hl-paren-state) (point))
+                (hl-paren-move-overlay-to (hl-paren-state-second hl-paren-state) matching-pos)
+                (hl-paren-enable-overlays!))
             (progn
-              ;; move overlays if they already exist
-              (hl-paren-move-overlay-to (car hl-paren-overlay) (point))
-              (hl-paren-move-overlay-to (cdr hl-paren-overlay) matching-pos))
-          (progn
-            ;; re-create overlays
-            (hl-paren-cleanup-overlays)
-            (setf hl-paren-overlay
-                  (cons (hl-paren-make-overlay (point))
-                        (hl-paren-make-overlay matching-pos))))))
-    (hl-paren-cleanup-overlays)))
+              ;; re-create overlays
+              (setq-local hl-paren-state
+                          (make-hl-paren-state
+                           :first (hl-paren-make-overlay (point))
+                           :second (hl-paren-make-overlay matching-pos)
+                           :is-enabled? t))))
+        (hl-paren-disable-overlays!))
+    (hl-paren-disable-overlays!)))
 
 (defun hl-paren-do-highlight ()
   "Refresh highlighting if last command was a move one."
   (interactive)
-  (if (and (symbolp this-command)
+  (cond
+    ((and (symbolp this-command)
            (memq this-command
                  '(autopair-newline
                    paredit-newline
                    newline
                    newline-and-indent)))
-    (hl-paren-cleanup-overlays)
-    (condition-case nil
-        (hl-paren-highlight-matching-paren-at-point)
-      ;; do not let errors interrupt normal workflow
-      (error (hl-paren-cleanup-overlays)))))
+     (hl-paren-disable-overlays!))
+    ((and hl-paren-state
+          (or (eq (point) (overlay-start (hl-paren-state-first hl-paren-state)))
+              (eq (point) (overlay-start (hl-paren-state-second hl-paren-state)))))
+     ;; Already highlighting relevant parens.
+     nil)
+    (t
+     (hl-paren-highlight-matching-paren-at-point))))
+
+(define-minor-mode hl-paren-mode
+  "Highlight matching parens"
+  (when hl-paren-timer
+    (cancel-timer hl-paren-timer)
+    (setq-local hl-paren-timer nil))
+
+  (unless hl-paren-mode
+    (hl-paren-cleanup-overlays!)))
 
 (defun setup-hl-paren ()
-  (add-hook 'post-command-hook #'hl-paren-do-highlight nil t))
+  (hl-paren-mode +1)
+
+  (add-hook 'post-command-hook #'hl-paren-schedule nil t))
+
+;; (defun hl-paren--highlight-in-timer ()
+;;   (condition-case nil
+;;       (hl-paren-do-highlight)
+;;     ;; Do not let errors interrupt normal workflow.
+;;     (error (hl-paren-cleanup-overlays!)))
+;;   (setq-local hl-paren-timer nil))
+
+(defun hl-paren-schedule ()
+  (condition-case nil
+      (hl-paren-do-highlight)
+    ;; Do not let errors interrupt normal workflow.
+    (error (hl-paren-cleanup-overlays!)))
+  ;; Timers introduce severe input lag, maybe there’s a way to make the lag go awy.
+  ;; (if hl-paren-timer
+  ;;     (timer-activate-when-idle hl-paren-timer
+  ;;                               nil
+  ;;                               (cancel-timer-internal hl-paren-timer))
+  ;;   (setq-local hl-paren-timer
+  ;;               (run-with-idle-timer 0.1 1 #'hl-paren--highlight-in-timer)))
+  )
 
 (provide 'hl-paren)
 
