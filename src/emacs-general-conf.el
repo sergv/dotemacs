@@ -389,6 +389,8 @@
 
 (add-to-list 'find-file-not-found-functions #'egc--create-non-existent-directory)
 
+;; This global mode is enabled by default and is superseded by hl-paren.
+(show-paren-mode -1)
 
 ;;;; aliases
 
