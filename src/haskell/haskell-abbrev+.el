@@ -46,7 +46,7 @@
           t)))))
 
 (defun haskell-abbrev+--ensure-debug-trace-available ()
-  (unless (haskell-abbrev+--is-function-available nil
+  (unless (haskell-abbrev+--is-function-available "trace"
                                                   (or (seq "qualified" (* any) symbol-start "Debug.Trace" symbol-end)
                                                       (seq symbol-start "Debug.Trace" (or eol (seq symbol-end (* any) "qualified")))))
     (save-restriction
@@ -56,6 +56,27 @@
         (insert (if (haskell-ext-tracking-have-import-qualified-post?)
                     "import Debug.Trace qualified\n\n"
                   "import qualified Debug.Trace\n\n"))))))
+
+(defun haskell-abbrev+--ensure-prettyprinter-combinators-available ()
+  (unless (haskell-abbrev+--is-function-available "ppDict"
+                                                  (or (seq "qualified" (* any) symbol-start "Prettyprinter.Combinators" symbol-end)
+                                                      (seq symbol-start "Prettyprinter.Combinators" (or eol (seq symbol-end (* any) "qualified")))))
+    (save-match-data
+      (save-restriction
+        (save-excursion
+          (widen)
+          (if (save-excursion
+                (goto-char (point-min))
+                (re-search-forward (rx "import" (* any) (or (seq "qualified" (* any) symbol-start "Debug.Trace" symbol-end)
+                                                            (seq symbol-start "Debug.Trace" symbol-end (* any) "qualified" eol)))
+                                   nil
+                                   t))
+              (progn
+                (goto-char (match-end 0))
+                (insert "\nimport Prettyprinter.Combinators\n"))
+            (progn
+              (haskell-navigate-imports)
+              (insert "import Prettyprinter.Combinators\n\n"))))))))
 
 (defun haskell-insert-general-info-template (_arg monadic? trace-func-name)
   (let* ((start-position (point))
@@ -186,17 +207,32 @@
    :realign #'haskell-align-on-arrows-indent-region))
 
 (defun haskell-insert-pp-info-template ()
-  (interactive)
+  (interactive "*")
   (haskell-abbrev+--ensure-debug-trace-available)
+  (haskell-abbrev+--ensure-prettyprinter-combinators-available)
+  (haskell-abbrev+--ensure-language-pragma "OverloadedStrings")
   (insert "Debug.Trace.trace (renderString $ ")
   (haskell-insert-pp-dict-info-template)
   (insert ") $"))
 
 (defun haskell-insert-monadic-pp-info-template ()
-  (interactive)
+  (interactive "*")
   (haskell-abbrev+--ensure-debug-trace-available)
+  (haskell-abbrev+--ensure-prettyprinter-combinators-available)
+  (haskell-abbrev+--ensure-language-pragma "OverloadedStrings")
   (insert "Debug.Trace.traceM $ renderString $ ")
   (haskell-insert-pp-dict-info-template))
+
+(defun haskell-abbrev+--ensure-language-pragma (pragma)
+  (save-restriction
+    (save-excursion
+      (save-match-data
+        (goto-char (point-min))
+        (unless (re-search-forward (concat "{-#[ \t]*LANGUAGE[ \t\r\n]+\\(?:[a-zA-Z]+[ \t\r\n]+\\)*"
+                                           pragma)
+                                   nil
+                                   t)
+          (attrap-do-insert-language-pragma pragma))))))
 
 (defun haskell-abbrev+-extract-first-capital-char (qualified-name)
   (when qualified-name
