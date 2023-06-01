@@ -300,20 +300,24 @@ value is a list which is appended to the result of
       (backward-char)
       (insert ".")))))
 
+;;;###autoload
+(defun attrap-do-insert-language-pragma (pragma)
+  (save-match-data
+    (goto-char (point-min))
+    (if (re-search-forward "{-#[ \t]*LANGUAGE\\_>" nil t)
+        (goto-char (match-beginning 0))
+      (progn
+        (attrap-skip-shebangs)
+        (when (looking-at-p "^module\\_>")
+          (insert "\n")
+          (forward-line -1))))
+    (let ((start (point)))
+      (insert (concat "{-# LANGUAGE " pragma " #-}\n"))
+      (haskell-align-language-pragmas start))))
+
 (defmacro attrap-insert-language-pragma (pragma)
   `(attrap-option (list 'use-extension ,pragma)
-     (save-match-data
-       (goto-char (point-min))
-       (if (re-search-forward "{-#[ \t]*LANGUAGE\\_>" nil t)
-           (goto-char (match-beginning 0))
-         (progn
-           (attrap-skip-shebangs)
-           (when (looking-at-p "^module\\_>")
-             (insert "\n")
-             (forward-line -1))))
-       (let ((start (point)))
-         (insert (concat "{-# LANGUAGE " ,pragma " #-}\n"))
-         (haskell-align-language-pragmas start)))))
+     (attrap-do-insert-language-pragma ,pragma)))
 
 (defmacro attrap-add-to-import (missing module line col)
   "Action: insert MISSING to the import of MODULE.
