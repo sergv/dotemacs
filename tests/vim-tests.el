@@ -3027,7 +3027,10 @@ _|_bar")
      "  bar x"
      "")
     (tests-utils--multiline
+     "{-# LANGUAGE OverloadedStrings #-}"
+     ""
      "import qualified Debug.Trace"
+     "import Prettyprinter.Combinators"
      ""
      "foo x = do"
      "  Debug.Trace.trace (renderString $ ppDictHeader \"header\""
@@ -3042,7 +3045,9 @@ _|_bar")
       (haskell-mode)
       (execute-kbd-macro (kbd "i p p i n f o SPC h e a d e r <return> x <return> y <return> <return>"))
     (tests-utils--multiline
+     "{-# LANGUAGE OverloadedStrings #-}"
      ""
+     "import Prettyprinter.Combinators"
      "import Debug.Trace"
      ""
      "foo x = do"
@@ -3050,7 +3055,9 @@ _|_bar")
      "  bar x"
      "")
     (tests-utils--multiline
+     "{-# LANGUAGE OverloadedStrings #-}"
      ""
+     "import Prettyprinter.Combinators"
      "import Debug.Trace"
      ""
      "foo x = do"

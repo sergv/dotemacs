@@ -4974,6 +4974,34 @@ end."
                    (haskell-misc--configure-dante--find-cabal-component-for-file components path)
                    expected-component)))))))
 
+
+(ert-deftest haskell-tests/haskell-abbrev+--ensure-language-pragma-1 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-abbrev+--ensure-language-pragma "OverloadedStrings")
+    (tests-utils--multiline
+     ""
+     "foo x xs = foo _|_"
+     "")
+    (tests-utils--multiline
+     "{-# LANGUAGE OverloadedStrings #-}"
+     ""
+     "foo x xs = foo _|_"
+     "")))
+
+(ert-deftest haskell-tests/haskell-abbrev+--ensure-language-pragma-2 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-abbrev+--ensure-language-pragma "OverloadedStrings")
+    (tests-utils--multiline
+     "{-# LANGUAGE OverloadedStrings #-}"
+     ""
+     "foo x xs = foo _|_"
+     "")
+    (tests-utils--multiline
+     "{-# LANGUAGE OverloadedStrings #-}"
+     ""
+     "foo x xs = foo _|_"
+     "")))
+
 ;; (ert "haskell-tests/.*")
 
 ;; (setf haskell-tests/tests
