@@ -323,6 +323,7 @@ FILE-GLOBS and don't match IGNORED-FILE-GLOBS."
      :buffer-name "*grep*"
      :enable-undo t
      :after-init (lambda ()
+                   (remove-text-properties (point-min) (point-max) '(read-only t))
                    (use-local-map (make-sparse-keymap))
                    (undo-tree-mode +1)
                    (setf vim-normal-mode-local-keymap kmap
