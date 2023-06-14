@@ -97,8 +97,13 @@
     (("C-m" "<f9>") vim:haskell-compile:interactive)
     ("<return>"     newline-and-indent)))
 
+;;;###autoload (autoload 'vim:haskell-compile "haskell-compilation-commands" nil t)
+;;;###autoload (autoload 'vim:haskell-compile:interactive "haskell-compilation-commands" nil t)
 (vim-defcmd vim:haskell-compile (nonrepeatable)
   (configurable-compilation-start nil))
+
+;;;###autoload (autoload 'vim:haskell-compile-choosing-command "haskell-compilation-commands" nil t)
+;;;###autoload (autoload 'vim:haskell-compile-choosing-command:interactive "haskell-compilation-commands" nil t)
 (vim-defcmd vim:haskell-compile-choosing-command (nonrepeatable)
   (configurable-compilation-start t))
 
