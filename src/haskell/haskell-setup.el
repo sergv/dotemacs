@@ -51,10 +51,14 @@
                 :unadjusted t
                 :raw-result t)
 
+;;;###autoload (autoload 'vim:dante-repl-switch-to-repl-buffer "haskell-setup" nil t)
+;;;###autoload (autoload 'vim:dante-repl-switch-to-repl-buffer:interactive "haskell-setup" nil t)
 (vim-defcmd vim:dante-repl-switch-to-repl-buffer (nonrepeatable)
   (haskell-misc--configure-dante-if-needed!)
   (dante-repl-switch-to-repl-buffer))
 
+;;;###autoload (autoload 'vim:haskell-dante-load-file-into-repl "haskell-setup" nil t)
+;;;###autoload (autoload 'vim:haskell-dante-load-file-into-repl:interactive "haskell-setup" nil t)
 (vim-defcmd vim:haskell-dante-load-file-into-repl (nonrepeatable)
   (haskell-misc--configure-dante-if-needed!)
   (dante-repl-load-file))
@@ -88,6 +92,8 @@
   "Clear text above ghci prompt."
   (dante-repl-clear-buffer-above-prompt))
 
+;;;###autoload (autoload 'vim:haskell-navigate-imports "haskell-setup" nil t)
+;;;###autoload (autoload 'vim:haskell-navigate-imports:interactive "haskell-setup" nil t)
 (vim-defcmd vim:haskell-navigate-imports (nonrepeatable)
   "Jump to the imports section."
   (vim-save-position)
