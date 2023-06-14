@@ -51,8 +51,6 @@
                 :unadjusted t
                 :raw-result t)
 
-(autoload 'flycheck--locate-dominating-file-matching "flycheck")
-
 (vim-defcmd vim:dante-repl-switch-to-repl-buffer (nonrepeatable)
   (haskell-misc--configure-dante-if-needed!)
   (dante-repl-switch-to-repl-buffer))
