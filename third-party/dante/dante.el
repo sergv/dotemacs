@@ -617,8 +617,11 @@ and over."
       (lcr-call dante-async-call (if interpret ":set -fbyte-code" ":set -fobject-code"))
       (with-current-buffer buffer
         (setq-local dante-status 'loading)
-        (dante-async-write (if same-target ":r!"
-                             (concat ":l! " (if interpret "*" "") (dante-local-name fname))))
+        (dante-async-write (if same-target
+                               ":r!"
+                             (concat ":l! "
+                                     (if interpret "*" "")
+                                     (dante-local-name fname))))
         (cl-destructuring-bind (_status err-messages _loaded-modules)
             (lcr-call dante-load-loop "" nil err-fn)
           (setq dante-loaded-file src-fname)
@@ -660,7 +663,9 @@ process."
   :start 'dante-check
   :predicate (lambda () dante-mode)
   :modes '(haskell-mode haskell-literate-mode)
-  :working-directory (lambda (_checker) dante-project-root))
+  :working-directory (lambda (_checker)
+                       (unless dante-project-root (dante-initialize-method))
+                       dante-project-root))
 
 (add-to-list 'flycheck-checkers 'haskell-dante)
 
