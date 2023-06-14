@@ -19,29 +19,6 @@
 
 (add-hook 'dante-mode-hook #'enable-hlint-after-dante-for-flycheck)
 
-
-(autoload 'vim:haskell-compile "haskell-setup" nil t)
-(autoload 'vim:haskell-compile-choosing-command "haskell-setup" nil t)
-(autoload 'vim:haskell-load-file-into-repl "haskell-setup" nil t)
-(autoload 'vim:haskell-set-target "haskell-setup" nil t)
-(autoload 'vim:haskell-flycheck-run "haskell-setup" nil t)
-(autoload 'vim:haskell-flycheck-compile "haskell-setup" nil t)
-(autoload 'vim:haskell-flycheck-configure "haskell-setup" nil t)
-(autoload 'vim:haskell-flycheck-clear "haskell-setup" nil t)
-(autoload 'vim:haskell-flycheck-list-errors "haskell-setup" nil t)
-(autoload 'vim:haskell-navigate-imports "haskell-setup" nil t)
-
-(autoload 'vim:haskell-compile:interactive "haskell-setup" nil t)
-(autoload 'vim:haskell-compile-choosing-command:interactive "haskell-setup" nil t)
-(autoload 'vim:haskell-load-file-into-repl:interactive "haskell-setup" nil t)
-(autoload 'vim:haskell-set-target:interactive "haskell-setup" nil t)
-(autoload 'vim:haskell-flycheck-run:interactive "haskell-setup" nil t)
-(autoload 'vim:haskell-flycheck-compile:interactive "haskell-setup" nil t)
-(autoload 'vim:haskell-flycheck-configure:interactive "haskell-setup" nil t)
-(autoload 'vim:haskell-flycheck-clear:interactive "haskell-setup" nil t)
-(autoload 'vim:haskell-flycheck-list-errors:interactive "haskell-setup" nil t)
-(autoload 'vim:haskell-navigate-imports:interactive "haskell-setup" nil t)
-
 (mmm-add-classes
  '((literate-haskell-latex
     :submode haskell-mode
