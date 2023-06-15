@@ -16,7 +16,7 @@
   "Pair of command lines both of which can be used to start current
 repl session, created with the help of ‘dante--mk-repl-cmdline’.
 
-One command shoudl be used for a session that should load all
+One command should be used for a session that should load all
 project modules into new repl. Another command should be used to
 get a “fresh” repl with no modules loaded.
 
