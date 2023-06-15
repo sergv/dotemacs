@@ -83,6 +83,8 @@
        (flycheck-checker-supports-major-mode-p checker)
        (flycheck-may-enable-checker checker)))
 
+;;;###autoload (autoload 'vim:flycheck-run "flycheck-setup" nil t)
+;;;###autoload (autoload 'vim:flycheck-run:interactive "flycheck-setup" nil t)
 (vim-defcmd vim:flycheck-run (nonrepeatable)
   "Force re-send buffer’s content to currently running LSP server.
 Useful if the server got confused with incremental updating
