@@ -4114,7 +4114,7 @@ with the extended highlighting of `ivy-format-function-line'."
         (ivy--flx-propertize
          (cons (pcase ivy--flx-sort--backend
                  (`native
-                  (rust-native-score-single-match (if match-filenames? [?/] []) flx-name str))
+                  (haskell-native-score-single-match (if match-filenames? [?/] []) flx-name str))
                  (`elisp
                   (flx-score str flx-name (if match-filenames? ivy--flx-filename-cache ivy--flx-cache)))
                  (invalid
