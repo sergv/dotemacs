@@ -31,6 +31,7 @@
 (require 'flycheck-setup)
 (require 'haskell-abbrev+)
 (require 'haskell-compilation-commands)
+(require 'haskell-flycheck-cabal-build)
 (require 'haskell-misc)
 (require 'haskell-outline)
 (require 'hydra-setup)
@@ -343,71 +344,158 @@ _<tab>_: reindent  _h_: jump to topmont node end"
     (("is" "s") vim:motion-inner-haskell-symbol:interactive)
     ("as"       vim:motion-outer-haskell-symbol:interactive)))
 
+
+(defun haskell-setup-common-prelude ()
+  (init-common :use-whitespace 'tabs-only)
+  (add-hook 'after-save-hook #'haskell-update-eproj-tags-on-save nil t)
+
+  ;; Order is important, otherwise special forall fontification doesn’t work
+  (pretty-ligatures-install-special-haskell-ligatures!)
+  (pretty-ligatures-install!)
+
+  (turn-on-font-lock)
+
+  ;; The underscore should remain part of word so we never search within
+  ;; _c_style_identifiers.
+  (modify-syntax-entry ?_  "_")
+  (modify-syntax-entry ?\' "w")
+  (modify-syntax-entry ?@  "'")
+  ;; So that ‘backward-sexp’ will reach ‘Foo’ when run on ‘Foo.Ba_|_r’.
+  ;; This is relied upon by ‘paredit-raise-sexp’.
+  (modify-syntax-entry ?.  "_")
+  (modify-syntax-entry ?#  "_")
+
+  (setq-local flycheck-enhancements--get-project-root-for-current-buffer
+              #'haskell-misc-get-project-root
+
+              eproj-symbnav/identifier-type 'haskell-symbol
+
+              yas-indent-line 'fixed
+
+              beginning-of-defun-function #'haskell-move-to-topmost-start-impl
+
+              ;; Improve vim treatment of words for Haskell.
+              ;; Note: underscore should not be included since it would prevent
+              ;; navigating inside of some Haskell identifiers, e.g. foo_bar.
+              vim-word "[:word:]'"
+
+              compilation-read-command nil
+              compilation-auto-jump-to-first-error nil
+              ;; Don't skip any messages.
+              compilation-skip-threshold 0))
+
+(defun haskell-setup-common-project ()
+  ;; Read settings from '.eproj-info' file, if any.
+  (let (
+        ;; NB may be nil.
+        (proj (eproj-get-project-for-buf-lax (current-buffer))))
+
+    (haskell-compilation-commands-install! proj)
+
+    (haskell-setup-indentation
+     :offset (eproj-query/haskell/indent-offset proj))
+
+    (company-mode +1)
+    (setq-local company-backends (if proj
+                                     '(company-files
+                                       (company-eproj company-dabbrev-code)
+                                       company-dabbrev)
+                                   '(company-files
+                                     company-dabbrev-code
+                                     company-dabbrev))
+                flycheck-highlighting-mode 'symbols)
+
+    (eproj-setup-local-variables proj)
+
+    proj))
+
+(defun haskell-setup-common-keybindings (should-enable-flycheck?)
+  (def-keys-for-map vim-normal-mode-local-keymap
+    ("SPC SPC"      vim:dante-repl-switch-to-repl-buffer:interactive)
+    (("C-l" "<f6>") vim:haskell-dante-load-file-into-repl:interactive))
+
+  (def-keys-for-map vim-normal-mode-local-keymap
+    ("\\"           vim:flycheck-run:interactive)
+    ("g"            hydra-haskell-vim-normal-g-ext/body)
+    ("j"            hydra-haskell-vim-normal-j-ext/body)
+    ("C-="          input-unicode))
+
+  (def-keys-for-map vim-visual-mode-local-keymap
+    ("g"            hydra-haskell-vim-visual-g-ext/body))
+
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-visual-mode-local-keymap)
+    ("*"            search-for-haskell-symbol-at-point-forward)
+    ("C-*"          search-for-haskell-symbol-at-point-forward-new-color)
+    ("#"            search-for-haskell-symbol-at-point-backward)
+    ("C-#"          search-for-haskell-symbol-at-point-backward-new-color))
+
+  (haskell-setup-common-editing)
+
+  (install-haskell-smart-operators!
+      vim-insert-mode-local-keymap
+    :bind-colon t
+    :bind-hyphen t
+    :track-extensions? t)
+
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-insert-mode-local-keymap)
+    ("DEL"         haskell-backspace-with-block-dedent)
+    ("<backspace>" haskell-backspace-with-block-dedent)
+
+    ("C-u"         haskell-insert-undefined)
+    ("C-h"         flycheck-enhancements-next-error-with-wraparound)
+    ("C-t"         flycheck-enhancements-previous-error-with-wraparound)
+    ("M-h"         compilation-navigation-next-error-other-window)
+    ("M-t"         compilation-navigation-prev-error-other-window)
+    ("C-SPC"       company-complete)
+
+    ;; Consider using haskell-indentation-newline-and-indent.
+    ("<return>"    haskell-newline-with-signature-expansion)
+    ("C-<return>"  haskell--simple-indent-newline-indent)
+
+    (("S-<tab>" "<S-iso-lefttab>" "<backtab>") nil))
+
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-visual-mode-local-keymap
+                     vim-motion-mode-local-keymap
+                     vim-operator-pending-mode-local-keymap)
+    ("'" vim:haskell-backward-up-indentation-or-sexp:interactive)
+    ("q" vim:haskell-up-sexp:interactive))
+
+  (haskell-setup-folding)
+  (setup-eproj-symbnav :bind-keybindings t)
+  (setq-local xref-show-definitions-function #'eproj-xref-symbnav-show-xrefs
+              xref-show-xrefs-function #'eproj-xref-symbnav-show-xrefs)
+  (def-keys-for-map vim-normal-mode-local-keymap
+    ("M-." haskell-go-to-symbol-home-smart)
+    ("M-," eproj-symbnav/go-back)
+    ("M-?" haskell-find-references-smart))
+
+  (awhen should-enable-flycheck?
+    (flycheck-mode it))
+
+  (setq-local mode-line-format
+              (apply #'default-mode-line-format
+                     (append
+                      (when dante-mode
+                        (list
+                         " "
+                         '(:eval (dante-status))))
+                      (when flycheck-mode
+                        (list
+                         " "
+                         '(:eval (flycheck-pretty-mode-line))))))))
+
 ;;;###autoload
 (defun haskell-setup ()
   (let ((non-vanilla-haskell-mode? (-any? #'derived-mode-p '(ghc-core-mode haskell-c2hs-mode haskell-hsc-mode)))
         (using-lsp? nil)
         (should-enable-flycheck? nil))
-    (init-common :use-whitespace 'tabs-only)
-    (add-hook 'after-save-hook #'haskell-update-eproj-tags-on-save nil t)
 
-    ;; Order is important, otherwise special forall fontification doesn’t work
-    (pretty-ligatures-install-special-haskell-ligatures!)
-    (pretty-ligatures-install!)
+    (haskell-setup-common-prelude)
 
-    (turn-on-font-lock)
-
-    ;; The underscore should remain part of word so we never search within
-    ;; _c_style_identifiers.
-    (modify-syntax-entry ?_  "_")
-    (modify-syntax-entry ?\' "w")
-    (modify-syntax-entry ?@  "'")
-    ;; So that ‘backward-sexp’ will reach ‘Foo’ when run on ‘Foo.Ba_|_r’.
-    ;; This is relied upon by ‘paredit-raise-sexp’.
-    (modify-syntax-entry ?.  "_")
-    (modify-syntax-entry ?#  "_")
-
-    (setq-local flycheck-enhancements--get-project-root-for-current-buffer
-                #'haskell-misc-get-project-root
-
-                eproj-symbnav/identifier-type 'haskell-symbol
-
-                yas-indent-line 'fixed
-
-                beginning-of-defun-function #'haskell-move-to-topmost-start-impl
-
-                ;; Improve vim treatment of words for Haskell.
-                ;; Note: underscore should not be included since it would prevent
-                ;; navigating inside of some Haskell identifiers, e.g. foo_bar.
-                vim-word "[:word:]'"
-
-                compilation-read-command nil
-                compilation-auto-jump-to-first-error nil
-                ;; Don't skip any messages.
-                compilation-skip-threshold 0)
-
-    ;; Read settings from '.eproj-info' file, if any.
-    (let (
-          ;; NB may be nil.
-          (proj (eproj-get-project-for-buf-lax (current-buffer))))
-
-      (haskell-compilation-commands-install! proj)
-
-      (haskell-setup-indentation
-       :offset (eproj-query/haskell/indent-offset proj))
-
-      (company-mode +1)
-      (setq-local company-backends (if proj
-                                       '(company-files
-                                         (company-eproj company-dabbrev-code)
-                                         company-dabbrev)
-                                     '(company-files
-                                       company-dabbrev-code
-                                       company-dabbrev))
-                  flycheck-highlighting-mode 'symbols)
-
-      (eproj-setup-local-variables proj)
-
+    (let ((proj (haskell-setup-common-project)))
       (when (not non-vanilla-haskell-mode?)
         (flycheck-setup-from-eproj-deferred
          proj
@@ -431,82 +519,7 @@ _<tab>_: reindent  _h_: jump to topmont node end"
          (lambda (should-enable?)
            (setf should-enable-flycheck? (if should-enable? +1 -1))))))
 
-    (def-keys-for-map vim-normal-mode-local-keymap
-      ("SPC SPC"      vim:dante-repl-switch-to-repl-buffer:interactive)
-      (("C-l" "<f6>") vim:haskell-dante-load-file-into-repl:interactive))
-
-    (def-keys-for-map vim-normal-mode-local-keymap
-      ("\\"           vim:flycheck-run:interactive)
-      ("g"            hydra-haskell-vim-normal-g-ext/body)
-      ("j"            hydra-haskell-vim-normal-j-ext/body)
-      ("C-="          input-unicode))
-
-    (def-keys-for-map vim-visual-mode-local-keymap
-      ("g"            hydra-haskell-vim-visual-g-ext/body))
-
-    (def-keys-for-map (vim-normal-mode-local-keymap
-                       vim-visual-mode-local-keymap)
-      ("*"            search-for-haskell-symbol-at-point-forward)
-      ("C-*"          search-for-haskell-symbol-at-point-forward-new-color)
-      ("#"            search-for-haskell-symbol-at-point-backward)
-      ("C-#"          search-for-haskell-symbol-at-point-backward-new-color))
-
-    (haskell-setup-common-editing)
-
-    (install-haskell-smart-operators!
-        vim-insert-mode-local-keymap
-      :bind-colon t
-      :bind-hyphen t
-      :track-extensions? t)
-
-    (def-keys-for-map (vim-normal-mode-local-keymap
-                       vim-insert-mode-local-keymap)
-      ("DEL"         haskell-backspace-with-block-dedent)
-      ("<backspace>" haskell-backspace-with-block-dedent)
-
-      ("C-u"         haskell-insert-undefined)
-      ("C-h"         flycheck-enhancements-next-error-with-wraparound)
-      ("C-t"         flycheck-enhancements-previous-error-with-wraparound)
-      ("M-h"         compilation-navigation-next-error-other-window)
-      ("M-t"         compilation-navigation-prev-error-other-window)
-      ("C-SPC"       company-complete)
-
-      ;; Consider using haskell-indentation-newline-and-indent.
-      ("<return>"    haskell-newline-with-signature-expansion)
-      ("C-<return>"  haskell--simple-indent-newline-indent)
-
-      (("S-<tab>" "<S-iso-lefttab>" "<backtab>") nil))
-
-    (def-keys-for-map (vim-normal-mode-local-keymap
-                       vim-visual-mode-local-keymap
-                       vim-motion-mode-local-keymap
-                       vim-operator-pending-mode-local-keymap)
-      ("'" vim:haskell-backward-up-indentation-or-sexp:interactive)
-      ("q" vim:haskell-up-sexp:interactive))
-
-    (haskell-setup-folding)
-    (setup-eproj-symbnav :bind-keybindings t)
-    (setq-local xref-show-definitions-function #'eproj-xref-symbnav-show-xrefs
-                xref-show-xrefs-function #'eproj-xref-symbnav-show-xrefs)
-    (def-keys-for-map vim-normal-mode-local-keymap
-      ("M-." haskell-go-to-symbol-home-smart)
-      ("M-," eproj-symbnav/go-back)
-      ("M-?" haskell-find-references-smart))
-
-    (awhen should-enable-flycheck?
-      (flycheck-mode it))
-
-    (setq-local mode-line-format
-                (apply #'default-mode-line-format
-                       (append
-                        (when dante-mode
-                          (list
-                           " "
-                           '(:eval (dante-status))))
-                        (when flycheck-mode
-                          (list
-                           " "
-                           '(:eval (flycheck-pretty-mode-line)))))))
+    (haskell-setup-common-keybindings should-enable-flycheck?)
 
     ;; Dante doesn't play well with idle-change checks.
     (cond
@@ -566,7 +579,26 @@ _<tab>_: reindent  _h_: jump to topmont node end"
 
 ;;;###autoload
 (defun haskell-hsc-setup ()
-  (add-to-list 'flycheck-disabled-checkers 'haskell-hlint))
+  (let ((should-enable-flycheck? nil))
+    (haskell-setup-common-prelude)
+
+    (add-to-list 'flycheck-disabled-checkers 'haskell-hlint)
+
+    (let ((proj (haskell-setup-common-project)))
+      (flycheck-setup-from-eproj-deferred proj
+                                          'haskell-cabal-build
+                                          #'ignore
+                                          (lambda (should-enable?)
+                                            (setf should-enable-flycheck? (if should-enable? +1 -1)))))
+
+    (haskell-setup-common-keybindings should-enable-flycheck?)
+
+    (def-keys-for-map vim-normal-mode-local-keymap
+      ("-" hydra-haskell-minus/body))
+
+    (flycheck-install-ex-commands!
+     :install-flycheck flycheck-mode
+     :load-func #'vim:haskell-dante-load-file-into-repl:interactive)))
 
 ;;;###autoload
 (defun dante-repl-mode-setup ()
