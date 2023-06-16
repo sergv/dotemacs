@@ -48,7 +48,7 @@
 (add-to-list 'auto-mode-alist '("\\.ghci\\'" . ghci-script-mode))
 (add-to-list 'auto-mode-alist '("cabal\\.\\(?:config\\|project\\).*\\'" . haskell-cabal-mode))
 (add-to-list 'auto-mode-alist '("\\.cabal\\(?:[./\\]config.*\\)?\\'" . haskell-cabal-mode))
-(add-to-list 'auto-mode-alist '("\\.hs\\(?:-boot\\|ig\\|c\\)?\\'" . haskell-mode))
+(add-to-list 'auto-mode-alist '("\\.hs\\(?:-boot\\|ig\\)?\\'" . haskell-mode))
 
 (add-to-list 'auto-mode-alist '("\\.lhs\\(?:-boot\\)?\\'" . haskell-literate-mode))
 
@@ -70,13 +70,18 @@
 (add-hook 'ghc-core-mode-hook #'ghc-core-mode-setup)
 (add-hook 'haskell-cabal-mode-hook #'haskell-cabal-setup)
 (add-hook 'haskell-compilation-mode-hook #'haskell-compilation-setup)
-(add-hook 'haskell-mode-hook #'haskell-setup)
 (add-hook 'dante-repl-mode-hook #'dante-repl-mode-setup)
-(add-hook 'haskell-literate-mode-hook #'haskell-setup)
 (add-hook 'cmm-mode-hook #'cmm-setup)
 
-(add-hook 'haskell-c2hs-mode #'haskell-c2hs-setup)
-(add-hook 'haskell-hsc-mode #'haskell-hsc-setup)
+(defun haskell-conditional-setup ()
+  (when (memq major-mode '(haskell-mode haskell-literate-mode))
+    (haskell-setup)))
+
+(add-hook 'haskell-mode-hook #'haskell-conditional-setup)
+(add-hook 'haskell-literate-mode-hook #'haskell-conditional-setup)
+
+(add-hook 'haskell-c2hs-mode-hook #'haskell-c2hs-setup)
+(add-hook 'haskell-hsc-mode-hook #'haskell-hsc-setup)
 
 
 (add-hook 'alex-mode-hook #'haskell-grammar-tools-setup)
