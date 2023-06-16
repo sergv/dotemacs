@@ -976,6 +976,7 @@ If WAIT is nil, abort if Dante is busy.  Pass the dante buffer to CONT"
                     (make-process :name "dante"
                                   :buffer buffer
                                   :command args
+                                  :noquery t
                                   :filter (lambda (process str)
                                             (if ghc-initialising?
                                                 (progn
@@ -991,7 +992,6 @@ If WAIT is nil, abort if Dante is busy.  Pass the dante buffer to CONT"
                                                               (and ghc-initialising?
                                                                    (join-lines (reverse (--drop-while (string= "" it) initial-ghc-messages))))))
                                   :file-handler t))))
-    (set-process-query-on-exit-flag process nil)
     (with-current-buffer buffer
       (erase-buffer)
       (setq-local dante-command-line (process-command process)))
