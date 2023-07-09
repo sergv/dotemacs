@@ -184,7 +184,7 @@ This will help minimize popup flickering issue in `company-mode'."
 
 (defun lsp-completion--looking-back-trigger-characterp (trigger-characters)
   "Return character if text before point match any of the TRIGGER-CHARACTERS."
-  (unless (= (point) (point-at-bol))
+  (unless (= (point) (line-beginning-position))
     (seq-some
      (lambda (trigger-char)
        (and (equal (buffer-substring-no-properties (- (point) (length trigger-char)) (point))
@@ -394,8 +394,8 @@ The MARKERS and PREFIX value will be attached to each candidate."
     (lsp:completion-item-documentation?)
     (lsp--render-element)))
 
-(defun lsp-completion--get-context (trigger-characters)
-  "Get completion context with provided TRIGGER-CHARACTERS."
+(defun lsp-completion--get-context (trigger-characters same-session?)
+  "Get completion context with provided TRIGGER-CHARACTERS and SAME-SESSION?."
   (let* ((triggered-by-char non-essential)
          (trigger-char (when triggered-by-char
                          (lsp-completion--looking-back-trigger-characterp
@@ -403,7 +403,8 @@ The MARKERS and PREFIX value will be attached to each candidate."
          (trigger-kind (cond
                         (trigger-char
                          lsp/completion-trigger-kind-trigger-character)
-                        ((equal (cl-second lsp-completion--cache) :incomplete)
+                        ((and same-session?
+                              (equal (cl-second lsp-completion--cache) :incomplete))
                          lsp/completion-trigger-kind-trigger-for-incomplete-completions)
                         (t lsp/completion-trigger-kind-invoked))))
     (apply #'lsp-make-completion-context
@@ -457,7 +458,7 @@ The MARKERS and PREFIX value will be attached to each candidate."
                       (-let* ((resp (lsp-request-while-no-input
                                      "textDocument/completion"
                                      (plist-put (lsp--text-document-position-params)
-                                                :context (lsp-completion--get-context trigger-chars))))
+                                                :context (lsp-completion--get-context trigger-chars same-session?))))
                               (completed (and resp
                                               (not (and (lsp-completion-list? resp)
                                                         (lsp:completion-list-is-incomplete resp)))))
@@ -700,7 +701,8 @@ See #2675"
   (lsp-completion--fix-resolve-data item)
   (or (ignore-errors
         (when (lsp-feature? "completionItem/resolve")
-          (lsp-request "completionItem/resolve" item)))
+          (lsp-request "completionItem/resolve"
+                       (lsp-delete (lsp-copy item) :_emacsStartPoint))))
       item))
 
 (defun lsp-completion--resolve-async (item callback &optional cleanup-fn)
@@ -710,7 +712,8 @@ The CLEANUP-FN will be called to cleanup."
   (lsp-completion--fix-resolve-data item)
   (ignore-errors
     (if (lsp-feature? "completionItem/resolve")
-        (lsp-request-async "completionItem/resolve" item
+        (lsp-request-async "completionItem/resolve"
+                           (lsp-delete (lsp-copy item) :_emacsStartPoint)
                            (lambda (result)
                              (funcall callback result)
                              (when cleanup-fn (funcall cleanup-fn)))
