@@ -74,6 +74,11 @@ associated with the requesting language server."
   :group 'lsp-semantic-tokens
   :type 'boolean)
 
+(defcustom lsp-semantic-tokens-enable-multiline-token-support t
+  "When set to nil, tokens will be truncated after end-of-line."
+  :group 'lsp-semantic-tokens
+  :type 'boolean)
+
 (defface lsp-face-semhl-constant
   '((t :inherit font-lock-constant-face))
   "Face used for semantic highlighting scopes matching constant scopes."
@@ -282,6 +287,8 @@ Faces to use for semantic token modifiers if
         (tokenModifiers . ,(if lsp-semantic-tokens-apply-modifiers
                                (apply 'vector (mapcar #'car (lsp-semantic-tokens--modifier-faces-for (lsp--workspace-client lsp--cur-workspace))))
                              []))
+        (overlappingTokenSupport . t)
+        (multilineTokenSupport . ,(if lsp-semantic-tokens-enable-multiline-token-support t json-false))
         (tokenTypes . ,(apply 'vector (mapcar #'car (lsp-semantic-tokens--type-faces-for (lsp--workspace-client lsp--cur-workspace)))))
         (formats . ["relative"])))))
 
@@ -545,7 +552,10 @@ LOUDLY will be forwarded to OLD-FONTIFY-REGION as-is."
                (setq column (+ column (aref data (1+ i))))
                (setq face (aref faces (aref data (+ i 3))))
                (setq text-property-beg (+ line-start-pos column))
-               (setq text-property-end (+ text-property-beg (aref data (+ i 2))))
+               (setq text-property-end
+                     (min (if lsp-semantic-tokens-enable-multiline-token-support
+                              (point-max) (line-end-position))
+                      (+ text-property-beg (aref data (+ i 2)))))
                (when face
                  (put-text-property text-property-beg text-property-end 'face face))
                ;; Deal with modifiers. We cache common combinations of
@@ -570,7 +580,7 @@ LOUDLY will be forwarded to OLD-FONTIFY-REGION as-is."
   ;; which should minimize those occasions where font-lock region extension extends beyond the
   ;; region covered by our freshly requested tokens (see lsp-mode issue #3154), while still limiting
   ;; requests to fairly small regions even if the underlying buffer is large
-  (when (lsp-feature? "textDocument/semanticTokens")
+  (when (lsp-feature? "textDocument/semanticTokensFull")
     (lsp--semantic-tokens-request
      (cons (max (point-min) (- (window-start) (* 5 jit-lock-chunk-size)))
            (min (point-max) (+ (window-end) (* 5 jit-lock-chunk-size)))) t)))
@@ -767,7 +777,7 @@ refresh in currently active buffer."
 (defun lsp-semantic-tokens--enable ()
   "Enable semantic tokens mode."
   (when (and lsp-semantic-tokens-enable
-             (lsp-feature? "textDocument/semanticTokens"))
+             (lsp-feature? "textDocument/semanticTokensFull"))
     (lsp-semantic-tokens--warn-about-deprecated-setting)
     (lsp-semantic-tokens-mode 1)))
 
@@ -781,11 +791,11 @@ refresh in currently active buffer."
   :group 'lsp-semantic-tokens
   :global nil
   (cond
-   (lsp-semantic-tokens-mode
+   ((and lsp-semantic-tokens-mode (lsp-feature? "textDocument/semanticTokensFull"))
     (add-hook 'lsp-configure-hook #'lsp-semantic-tokens--enable nil t)
     (add-hook 'lsp-unconfigure-hook #'lsp-semantic-tokens--disable nil t)
     (mapc #'lsp--semantic-tokens-initialize-workspace
-          (lsp--find-workspaces-for "textDocument/semanticTokens"))
+          (lsp--find-workspaces-for "textDocument/semanticTokensFull"))
     (lsp--semantic-tokens-initialize-buffer))
    (t
     (remove-hook 'lsp-configure-hook #'lsp-semantic-tokens--enable t)
