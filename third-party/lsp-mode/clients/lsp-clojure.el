@@ -92,6 +92,12 @@
   :risky t
   :type 'directory)
 
+(defcustom lsp-clojure-library-dirs (list lsp-clojure-workspace-cache-dir
+                                          (expand-file-name "~/.gitlibs/libs"))
+  "LSP clojure dirs that should be considered library folders."
+  :group 'lsp-clojure
+  :type 'list)
+
 (defcustom lsp-clojure-test-tree-position-params nil
   "The optional test tree position params.
 Defaults to side following treemacs default."
@@ -420,7 +426,7 @@ It updates the test tree view data."
 (defun lsp-clojure--build-command ()
   "Build clojure-lsp start command."
   (let* ((base-command (or lsp-clojure-custom-server-command
-                           `(,(lsp-clojure--server-executable-path)))))
+                           (-some-> (lsp-clojure--server-executable-path) list))))
     (if lsp-clojure-trace-enable
         (-map-last #'stringp
                    (lambda (command)
@@ -438,8 +444,8 @@ It updates the test tree view data."
   :new-connection (lsp-stdio-connection
                    #'lsp-clojure--build-command
                    #'lsp-clojure--build-command)
-  :major-modes '(clojure-mode clojurec-mode clojurescript-mode)
-  :library-folders-fn (lambda (_workspace) (list lsp-clojure-workspace-cache-dir))
+  :major-modes '(clojure-mode clojurec-mode clojurescript-mode clojure-ts-mode)
+  :library-folders-fn (lambda (_workspace) lsp-clojure-library-dirs)
   :uri-handlers (lsp-ht ("jar" #'lsp-clojure--file-in-jar))
   :action-handlers (lsp-ht ("code-lens-references" #'lsp-clojure--show-references))
   :notification-handlers (lsp-ht ("clojure/textDocument/testTree" #'lsp-clojure--handle-test-tree))
@@ -449,6 +455,21 @@ It updates the test tree view data."
   :server-id 'clojure-lsp))
 
 (lsp-consistency-check lsp-clojure)
+
+;; For debugging
+
+(declare-function cider-connect-clj "ext:cider" (params))
+
+(defun lsp-clojure-nrepl-connect ()
+  "Connect to the running nrepl debug server of clojure-lsp."
+  (interactive)
+  (let ((info (lsp-clojure-server-info-raw)))
+    (save-match-data
+      (when (functionp 'cider-connect-clj)
+        (when-let (port (and (string-match "\"port\":\\([0-9]+\\)" info)
+                             (match-string 1 info)))
+          (cider-connect-clj `(:host "localhost"
+                               :port ,port)))))))
 
 ;; Cider integration
 
