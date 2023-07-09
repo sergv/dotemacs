@@ -124,12 +124,17 @@
   :group 'lsp-solargraph
   :package-version '(lsp-mode . "7.0.1"))
 
+(defcustom lsp-solargraph-server-command '("solargraph" "stdio")
+  "Command to start Solargraph Ruby language server."
+  :type '(repeat string)
+  :group 'lsp-solargraph
+  :package-version '(lsp-mode . "8.0.1"))
+
 (defun lsp-solargraph--build-command ()
   "Build solargraph command"
-  (let ((lsp-command '("solargraph" "stdio")))
-    (if lsp-solargraph-use-bundler
-              (append '("bundle" "exec") lsp-command)
-            lsp-command)))
+  (if lsp-solargraph-use-bundler
+      (append '("bundle" "exec") lsp-solargraph-server-command)
+    lsp-solargraph-server-command))
 
 (lsp-register-custom-settings
  '(("solargraph.logLevel" lsp-solargraph-log-level)
@@ -150,7 +155,7 @@
  (make-lsp-client
   :new-connection (lsp-stdio-connection
                    #'lsp-solargraph--build-command)
-  :major-modes '(ruby-mode enh-ruby-mode)
+  :activation-fn (lsp-activate-on "ruby")
   :priority -1
   :multi-root lsp-solargraph-multi-root
   :library-folders-fn (lambda (_workspace) lsp-solargraph-library-directories)

@@ -37,8 +37,8 @@
 
 (defgroup lsp-volar nil
   "Lsp support for vue3."
-  :group 'lsp-volar
-  :link '(url-link "https://github.com/johnsoncodehk/volar")
+  :group 'lsp-mode
+  :link '(url-link "https://github.com/vuejs/language-tools")
   :package-version '(lsp-mode . "8.0.1"))
 
 (defcustom lsp-volar-take-over-mode t
@@ -55,15 +55,17 @@
   :package-version '(lsp-mode . "8.0.1"))
 
 (defconst lsp-volar--is-windows (memq system-type '(cygwin windows-nt ms-dos)))
-(defun lsp-volar-get-typescript-server-path ()
-  "Get tsserver.js file path."
+(defun lsp-volar-get-typescript-tsdk-path ()
+  "Get tsserver lib*.d.ts directory path."
   (if-let ((package-path (lsp-package-path 'typescript))
-           (system-server-path (apply #'f-join (if lsp-volar--is-windows
-                                                   (append (cl-subseq (f-split (file-truename (lsp-package-path 'typescript))) 0 -1) '("node_modules" "typescript" "lib"))
-                                                 (append (cl-subseq (f-split (file-truename (lsp-package-path 'typescript))) 0 -2) '("lib")))))
-           (is-exist (f-file-p system-server-path)))
-      system-server-path
-    (progn (lsp--error "[lsp-volar] Typescript is not detected correctly. Please ensure the npm package typescript is installed in your project or system (npm install -g typescript), otherwise open an issue") "")))
+           (system-tsdk-path (f-join (file-truename package-path)
+                                     (if lsp-volar--is-windows
+                                         "../node_modules/typescript/lib"
+                                       "../../lib")))
+           ((file-exists-p system-tsdk-path)))
+      system-tsdk-path
+    (prog1 ""
+      (lsp--error "[lsp-volar] Typescript is not detected correctly. Please ensure the npm package typescript is installed in your project or system (npm install -g typescript), otherwise open an issue"))))
 
 (lsp-dependency 'typescript
                 '(:system "tsserver")
@@ -72,14 +74,17 @@
 
 (lsp-dependency 'volar-language-server
                 '(:system "vue-language-server")
-                '(:npm :package "@volar/vue-language-server" :path "vue-language-server"))
+                '(:npm :package "@vue/language-server" :path "vue-language-server"))
 
 (lsp-register-custom-settings
- '(("typescript.tsdk" (lambda () (if-let ((project-root (lsp-workspace-root))
-                                                (server-path (f-join project-root "node_modules/typescript/lib"))
-                                                (is-exist (file-exists-p server-path)))
-                                           server-path
-                                        (lsp-volar-get-typescript-server-path))) t)))
+ '(("typescript.tsdk"
+    (lambda ()
+      (if-let ((project-root (lsp-workspace-root))
+               (tsdk-path (f-join project-root "node_modules/typescript/lib"))
+               ((file-exists-p tsdk-path)))
+          tsdk-path
+        (lsp-volar-get-typescript-tsdk-path)))
+    t)))
 
 (defun lsp-volar--vue-project-p (workspace-root)
   "Check if the `Vue' package is present in the package.json file
@@ -88,7 +93,7 @@ in the WORKSPACE-ROOT."
            (exist (f-file-p package-json))
            (config (json-read-file package-json))
            (dependencies (alist-get 'dependencies config)))
-      (alist-get 'vue dependencies)
+      (alist-get 'vue (append dependencies (alist-get 'devDependencies config)))
   nil))
 
 (defun lsp-volar--activate-p (filename &optional _)
@@ -98,7 +103,7 @@ in the WORKSPACE-ROOT."
             (and (lsp-workspace-root) (lsp-volar--vue-project-p (lsp-workspace-root)))
             (and (lsp-workspace-root) lsp-volar-activate-file (f-file-p (f-join (lsp-workspace-root) lsp-volar-activate-file))))
            (or (or (string-match-p "\\.mjs\\|\\.[jt]sx?\\'" filename)
-                   (and (derived-mode-p 'js-mode 'typescript-mode)
+                   (and (derived-mode-p 'js-mode 'typescript-mode 'typescript-ts-mode)
                         (not (derived-mode-p 'json-mode))))
                (string= (file-name-extension filename) "vue")))
    (string= (file-name-extension filename) "vue")))
@@ -114,7 +119,7 @@ in the WORKSPACE-ROOT."
   :server-id 'vue-semantic-server
   :initialization-options (lambda () (ht-merge (lsp-configuration-section "typescript")
                                                (ht ("serverMode" 0)
-                                                   ("diagnosticMode" 1)
+                                                   ("diagnosticModel" 1)
                                                    ("textDocumentSync" 2))))
   :initialized-fn (lambda (workspace)
                     (with-lsp-workspace workspace
