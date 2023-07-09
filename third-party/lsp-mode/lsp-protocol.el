@@ -262,7 +262,10 @@ Allowed params: %s" interface (reverse (-map #'cl-first params)))
       (defun lsp-member? (from key)
         (when (listp from)
           (plist-member from key)))
-      (defalias 'lsp-structure-p 'json-plist-p))
+      (defalias 'lsp-structure-p 'json-plist-p)
+      (defun lsp-delete (from key)
+        (cl-remf from key)
+        from))
   (defun lsp-get (from key)
     (when from
       (gethash (lsp-keyword->string key) from)))
@@ -279,7 +282,10 @@ Allowed params: %s" interface (reverse (-map #'cl-first params)))
     (when (hash-table-p from)
       (not (eq (gethash (lsp-keyword->string key) from :__lsp_default)
                :__lsp_default))))
-  (defalias 'lsp-structure-p 'hash-table-p))
+  (defalias 'lsp-structure-p 'hash-table-p)
+  (defun lsp-delete (from key)
+    (ht-remove from (lsp-keyword->string key))
+    from))
 
 (defmacro lsp-defun (name match-form &rest body)
   "Define a function named NAME.
@@ -400,9 +406,6 @@ See `-let' for a description of the destructuring mechanism."
 
 (lsp-interface (rls:Cmd (:args :binary :env :cwd) nil))
 
-(defconst lsp/rust-analyzer-inlay-hint-kind-type-hint 1)
-(defconst lsp/rust-analyzer-inlay-hint-kind-param-hint 2)
-(defconst lsp/rust-analyzer-inlay-hint-kind-nonstandard-hint nil)
 (lsp-interface (rust-analyzer:AnalyzerStatusParams (:textDocument))
                (rust-analyzer:SyntaxTreeParams (:textDocument) (:range))
                (rust-analyzer:ViewHir (:textDocument :position))
@@ -420,17 +423,9 @@ See `-let' for a description of the destructuring mechanism."
                (rust-analyzer:RunnableArgs (:cargoArgs :executableArgs) (:workspaceRoot :expectTest))
                (rust-analyzer:RelatedTestsParams (:textDocument :position) nil)
                (rust-analyzer:RelatedTests (:runnable) nil)
-               (rust-analyzer:InlayHint (:position :label :kind :paddingLeft :paddingRight) nil)
-               (rust-analyzer:InlayHintsParams (:textDocument :range) nil)
                (rust-analyzer:SsrParams (:query :parseOnly) nil)
                (rust-analyzer:CommandLink (:title :command) (:arguments :tooltip))
                (rust-analyzer:CommandLinkGroup (:commands) (:title)))
-
-(defconst lsp/javascript-inlay-hint-kind-type-hint "Type")
-(defconst lsp/javascript-inlay-hint-kind-parameter-hint "Parameter")
-(defconst lsp/javascript-inlay-hint-kind-enum-hint "Enum")
-(lsp-interface (javascript:InlayHint (:text :position :kind) (:whitespaceBefore :whitespaceAfter))
-               (javascript:InlayHintsParams (:textDocument) (:range)))
 
 (lsp-interface (clojure-lsp:TestTreeParams (:uri :tree) nil)
                (clojure-lsp:TestTreeNode (:name :range :nameRange :kind) (:children)))
@@ -785,7 +780,15 @@ See `-let' for a description of the destructuring mechanism."
  (UnregistrationParams (:unregisterations) nil)
  (WatchKind nil nil)
  (WillSaveTextDocumentParams (:reason :textDocument) nil)
- (WorkspaceSymbolParams (:query) nil))
+ (WorkspaceSymbolParams (:query) nil)
+ ;; 3.17
+ (InlayHint (:label :position) (:kind :paddingLeft :paddingRight))
+ (InlayHintLabelPart (:value) (:tooltip :location :command))
+ (InlayHintsParams (:textDocument) (:range)))
+
+;; 3.17
+(defconst lsp/inlay-hint-kind-type-hint 1)
+(defconst lsp/inlay-hint-kind-parameter-hint 2)
 
 
 (provide 'lsp-protocol)
