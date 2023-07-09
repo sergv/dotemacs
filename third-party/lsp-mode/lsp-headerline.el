@@ -63,25 +63,29 @@
 (defface lsp-headerline-breadcrumb-path-error-face
   '((t :underline (:style wave :color "Red1")
        :inherit lsp-headerline-breadcrumb-path-face))
-  "Face used for breadcrumb paths on headerline when there is an error under that path"
+  "Face used for breadcrumb paths on headerline when there is an error under
+that path"
   :group 'lsp-headerline)
 
 (defface lsp-headerline-breadcrumb-path-warning-face
   '((t :underline (:style wave :color "Yellow")
        :inherit lsp-headerline-breadcrumb-path-face))
-  "Face used for breadcrumb paths on headerline when there is an warning under that path"
+  "Face used for breadcrumb paths on headerline when there is an warning under
+that path"
   :group 'lsp-headerline)
 
 (defface lsp-headerline-breadcrumb-path-info-face
   '((t :underline (:style wave :color "Green")
        :inherit lsp-headerline-breadcrumb-path-face))
-  "Face used for breadcrumb paths on headerline when there is an info under that path"
+  "Face used for breadcrumb paths on headerline when there is an info under
+that path"
   :group 'lsp-headerline)
 
 (defface lsp-headerline-breadcrumb-path-hint-face
   '((t :underline (:style wave :color "Green")
        :inherit lsp-headerline-breadcrumb-path-face))
-  "Face used for breadcrumb paths on headerline when there is an hint under that path"
+  "Face used for breadcrumb paths on headerline when there is an hint under that
+path"
   :group 'lsp-headerline)
 
 (defface lsp-headerline-breadcrumb-project-prefix-face
@@ -135,15 +139,15 @@ is an hints in symbols range."
   "Face used on breadcrumb deprecated text on modeline."
   :group 'lsp-headerline)
 
-(defvar-local lsp-headerline--string nil
-  "Holds the current breadcrumb string on headerline.")
-
 (defvar lsp-headerline-arrow nil
   "Holds the current breadcrumb string on headerline.")
 
 (defvar-local lsp-headerline--path-up-to-project-segments nil
   "Holds the current breadcrumb path-up-to-project segments for
 caching purposes.")
+
+(defvar-local lsp-headerline--cached-workspace-root nil
+  "Holds the current value of lsp-workspace-root for caching purposes")
 
 ;; Redefine local vars of `all-the-icons' to avoid bytecode compilation errors.
 (defvar all-the-icons-default-adjust)
@@ -185,7 +189,8 @@ narrow to the outer symbol."
   (narrow-to-region start end))
 
 (defun lsp-headerline--with-action (local-map help-echo-string display-string)
-  "Assign LOCAL-MAP and HELP-ECHO-STRING to the region around the DISPLAY-STRING."
+  "Assign LOCAL-MAP and HELP-ECHO-STRING to the region around the
+DISPLAY-STRING."
   (propertize display-string
               'mouse-face 'header-line-highlight
               'help-echo help-echo-string
@@ -255,7 +260,7 @@ PATH is the current folder to be checked."
 
 (defun lsp-headerline--build-project-string ()
   "Build the project-segment string for the breadcrumb."
-  (-if-let (root (lsp-workspace-root))
+  (-if-let (root (lsp-headerline--workspace-root))
       (propertize (lsp-headerline--directory-with-action
                    root
                    (f-filename root))
@@ -309,7 +314,7 @@ PATH is the current folder to be checked."
 
 (defun lsp-headerline--build-path-up-to-project-string ()
   "Build the path-up-to-project segment for the breadcrumb."
-  (if-let ((root (lsp-workspace-root)))
+  (if-let ((root (lsp-headerline--workspace-root)))
       (let ((segments (or
                        lsp-headerline--path-up-to-project-segments
                        (setq lsp-headerline--path-up-to-project-segments
@@ -405,7 +410,7 @@ PATH is the current folder to be checked."
 
 (defun lsp-headerline--check-breadcrumb (&rest _)
   "Request for document symbols to build the breadcrumb."
-  (setq lsp-headerline--string (lsp-headerline--build-string))
+  (set-window-parameter (selected-window) 'lsp-headerline--string (lsp-headerline--build-string))
   (force-mode-line-update))
 
 (defun lsp-headerline--enable-breadcrumb ()
@@ -417,6 +422,10 @@ PATH is the current folder to be checked."
 (defun lsp-headerline--disable-breadcrumb ()
   "Disable headerline breadcrumb mode."
   (lsp-headerline-breadcrumb-mode -1))
+
+(defun lsp-headerline--workspace-root ()
+  (or lsp-headerline--cached-workspace-root
+      (setq lsp-headerline--cached-workspace-root (lsp-workspace-root))))
 
 ;;;###autoload
 (define-minor-mode lsp-headerline-breadcrumb-mode
@@ -430,7 +439,7 @@ PATH is the current folder to be checked."
     ;; symbol or a list."
     (unless (listp header-line-format)
       (setq header-line-format (list header-line-format)))
-    (add-to-list 'header-line-format '(t (:eval lsp-headerline--string)))
+    (add-to-list 'header-line-format '(t (:eval (window-parameter nil 'lsp-headerline--string) )))
 
     (add-hook 'xref-after-jump-hook #'lsp-headerline--check-breadcrumb nil t)
 
@@ -445,7 +454,7 @@ PATH is the current folder to be checked."
     (remove-hook 'xref-after-jump-hook #'lsp-headerline--check-breadcrumb t)
 
     (setq lsp-headerline--path-up-to-project-segments nil)
-    (setq header-line-format (remove '(t (:eval lsp-headerline--string)) header-line-format)))))
+    (setq header-line-format (remove '(t (:eval (window-parameter nil 'lsp-headerline--string) )) header-line-format)))))
 
 ;;;###autoload
 (defun lsp-breadcrumb-go-to-symbol (symbol-position)

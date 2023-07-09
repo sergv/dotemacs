@@ -49,6 +49,7 @@ nav:
     - Ada: page/lsp-ada.md
     - Angular: page/lsp-angular.md
     - Ansible: page/lsp-ansible.md
+    - Astro: page/lsp-astro.md
     - Bash: page/lsp-bash.md
     - Beancount: page/lsp-beancount.md
     - Camel: page/lsp-camel.md
@@ -73,6 +74,7 @@ nav:
     - Fortran: page/lsp-fortran.md
     - GDScript: page/lsp-gdscript.md
     - Gleam: page/lsp-gleam.md
+    - GLSL: page/lsp-glsl.md
     - Go (gopls): manual-language-docs/lsp-gopls.md
     - Grammarly: page/lsp-grammarly.md
     - GraphQL: page/lsp-graphql.md
@@ -99,7 +101,7 @@ nav:
     - MSSQL: https://emacs-lsp.github.io/lsp-mssql
     - Nginx: page/lsp-nginx.md
     - Nim: page/lsp-nim.md
-    - Nix (rnix-lsp): page/lsp-nix-rnix.md
+    - Nix (rnix-lsp): page/lsp-nix.md
     - Nix (nil): page/lsp-nix-nil.md
     - OCaml (ocaml-lsp): page/lsp-ocaml-lsp-server.md
     - OpenSCAD: page/lsp-openscad.md
@@ -119,9 +121,11 @@ nav:
     - Python (Palantir deprecated): page/lsp-pyls.md
     - Python (Pyright): https://emacs-lsp.github.io/lsp-pyright
     - Python (Microsoft): https://emacs-lsp.github.io/lsp-python-ms
+    - Python (Ruff): page/lsp-ruff-lsp.md
     - R: page/lsp-r.md
     - Racket (jeapostrophe): page/lsp-racket-langserver.md
     - Racket (Theia): page/lsp-racket-language-server.md
+    - Ruby (ruby-lsp): page/lsp-ruby-lsp.md
     - Ruby (Solargraph): page/lsp-solargraph.md
     - Ruby (Sorbet): page/lsp-sorbet.md
     - Ruby (Steep): page/lsp-steep.md
@@ -129,7 +133,10 @@ nav:
     - Rust (rust-analyzer): page/lsp-rust-analyzer.md
     - Rust (rls): page/lsp-rust-rls.md
     - Scala: https://emacs-lsp.github.io/lsp-metals
+    - Semgrep: page/lsp-semgrep.md
+    - ShaderLab: page/lsp-shader.md
     - SQL (sqls): page/lsp-sqls.md
+    - Standard ML (Millet): page/lsp-sml.md
     - Svelte: page/lsp-svelte.md
     - Swift: https://emacs-lsp.github.io/lsp-sourcekit
     - Terraform (terraform-lsp): page/lsp-terraform.md
@@ -137,6 +144,7 @@ nav:
     - TeX, LaTeX, etc (digestif): page/lsp-tex.md
     - TeX, LaTeX, etc (texlab): page/lsp-texlab.md
     - TeX, LaTeX, etc (texlab, external): page/lsp-latex.md
+    - Tilt: page/lsp-tilt.md
     - TOML: page/lsp-toml.md
     - TTCN3: page/lsp-ttcn3.md
     - V: page/lsp-v.md
