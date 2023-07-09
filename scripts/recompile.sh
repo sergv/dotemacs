@@ -145,7 +145,7 @@ n="1"
 if [[ -e /proc/cpuinfo ]]; then
     n="$(awk '/processor/' /proc/cpuinfo | wc -l)"
 fi
-if [[ "$n" > 4 ]]; then
+if [[ "$n" -gt 4 ]]; then
     n="4"
 fi
 
