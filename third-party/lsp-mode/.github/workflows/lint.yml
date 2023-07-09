@@ -10,23 +10,18 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - uses: purcell/setup-emacs@master
         with:
           version: 27.1
 
-      - uses: actions/setup-python@v2
+      - uses: emacs-eask/setup-eask@master
         with:
-          python-version: "3.6"
-          architecture: "x64"
-
-      - uses: conao3/setup-cask@master
-        with:
-          version: 0.8.4
+          version: 'snapshot'
 
       - name: Resolve dependency
-        run: cask install
+        run: eask install-deps --dev
 
       - name: Run Indentation Lint
         run: |
