@@ -31,13 +31,9 @@ jobs:
         with:
           version: ${{ matrix.emacs-version }}
 
-      - uses: actions/setup-node@v2
-        with:
-          node-version: '14'
-
       - uses: emacs-eask/setup-eask@master
         with:
-          version: '0.6.27'
+          version: 'snapshot'
 
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
@@ -56,7 +52,7 @@ jobs:
           wget https://github.com/rust-analyzer/rust-analyzer/releases/download/$RUST_ANALYZER_VERSION/rust-analyzer-linux -O $HOME/bin/rust-analyzer
           chmod +x $HOME/bin/rust-analyzer
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Run tests
         run: 'make ci'
