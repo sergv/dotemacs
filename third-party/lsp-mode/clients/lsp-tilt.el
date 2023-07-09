@@ -1,9 +1,9 @@
-;;; lsp-cmake.el --- description -*- lexical-binding: t; -*-
+;;; lsp-tilt.el --- tilt LSP                      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020 emacs-lsp maintainers
+;; Copyright (C) 2023  konubinix
 
-;; Author: emacs-lsp maintainers
-;; Keywords: lsp, cmake
+;; Author: konubinix <konubinixweb@gmail.com>
+;; Keywords: tools
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -20,24 +20,16 @@
 
 ;;; Commentary:
 
-;; LSP Clients for the CMake build tool.
+;; Using tilt mode from https://github.com/Konubinix/tilt-mode
 
 ;;; Code:
 
 (require 'lsp-mode)
 
-(defgroup lsp-cmake nil
-  "LSP support for CMake, using cmake-language-server."
-  :group 'lsp-mode
-  :link '(url-link "https://github.com/regen100/cmake-language-server"))
-
 (lsp-register-client
- (make-lsp-client :new-connection (lsp-stdio-connection "cmake-language-server")
-                  :activation-fn (lsp-activate-on "cmake")
-                  :priority -1
-                  :server-id 'cmakels))
+    (make-lsp-client :new-connection (lsp-stdio-connection '("tilt" "lsp" "start"))
+        :activation-fn (lsp-activate-on "tiltfile")
+        :server-id 'tiltfile))
 
-(lsp-consistency-check lsp-cmake)
-
-(provide 'lsp-cmake)
-;;; lsp-cmake.el ends here
+(provide 'lsp-tilt)
+;;; lsp-tilt.el ends here
