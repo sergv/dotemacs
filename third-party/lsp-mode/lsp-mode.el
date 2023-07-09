@@ -8575,8 +8575,16 @@ When ALL is t, erase all log buffers of the running session."
 (defvar lsp-json-rpc-thread nil)
 (defvar lsp-json-rpc-queue nil)
 (defvar lsp-json-rpc-done nil)
-(defvar lsp-json-rpc-mutex (make-mutex))
-(defvar lsp-json-rpc-condition (make-condition-variable lsp-json-rpc-mutex))
+
+;; Lazily initialise these because mutexes and condition variables cannot be dumped.
+(defvar lsp-json-rpc-mutex nil)
+(defvar lsp-json-rpc-condition nil)
+
+(defun lsp-json--init! ()
+  (unless lsp-json-rpc-mutex
+    (setf lsp-json-rpc-mutex (make-mutex)))
+  (unless lsp-json-rpc-condition
+    (setf lsp-json-rpc-condition (make-condition-variable lsp-json-rpc-mutex))))
 
 (defun lsp-json-rpc-process-queue ()
   (while (not lsp-json-rpc-done)
@@ -8586,6 +8594,7 @@ When ALL is t, erase all log buffers of the running session."
          proc message
          :null-object nil
          :false-object :json-false)))
+    (lsp-json--init!)
     (with-mutex lsp-json-rpc-mutex
       (condition-wait lsp-json-rpc-condition))))
 
@@ -8600,6 +8609,7 @@ When ALL is t, erase all log buffers of the running session."
     (with-current-buffer (get-buffer-create " *json-rpc*")
       (setq lsp-json-rpc-thread (make-thread #'lsp-json-rpc-process-queue "*json-rpc-queue*"))))
 
+  (lsp-json--init!)
   (with-mutex lsp-json-rpc-mutex
     (setq lsp-json-rpc-queue (append lsp-json-rpc-queue
                                      (list (cons proc message))))
