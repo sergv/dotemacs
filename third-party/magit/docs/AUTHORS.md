@@ -1,7 +1,4 @@
-The following people have contributed to Magit, including the
-libraries `git-commit.el`, `magit-popup.el`, and `with-editor.el`
-which are distributed as separate Elpa packages.
-
+The following people have contributed to Magit.
 For statistics see https://magit.vc/stats/magit/authors.html.
 
 Authors
@@ -75,6 +72,7 @@ All Contributors
 - Benjamin Motz
 - Ben North
 - Ben Walton
+- Ben Zanin
 - Bob Uhl
 - Boruch Baum
 - Bradley Wright
@@ -95,11 +93,14 @@ All Contributors
 - Chris Shoemaker
 - Christian Dietrich
 - Christian Kluge
+- Christian Tietze
 - Christophe Junke
+- Christopher Carlile
 - Christopher Monsanto
 - Clément Pit-Claudel
 - Cornelius Mika
 - Craig Andera
+- Daanturo
 - Dale Hagglund
 - Damien Cassou
 - Dan Davison
@@ -112,6 +113,7 @@ All Contributors
 - Daniel Kraus
 - Daniel Mai
 - Daniel Martín
+- Daniel Mendler
 - Daniel Nagy
 - Dan Kessler
 - Dan LaManna
@@ -128,11 +130,13 @@ All Contributors
 - Dominique Quatravaux
 - Duianto Vebotci
 - Eli Barzilay
+- Ellis Kenyo
 - Eric
 - Eric Davis
 - Eric Prud'hommeaux
 - Eric Schulte
 - Erik Anderson
+- Eugene Mikhaylov
 - Evan Torrie
 - Evgkeni Sampelnikof
 - Eyal Lotem
@@ -158,6 +162,7 @@ All Contributors
 - Guillaume Martres
 - Hannu Koivisto
 - Hans-Peter Deifel
+- hokomo
 - Hussein Ait-Lahcen
 - Ian Eure
 - Ian Milligan
@@ -176,6 +181,7 @@ All Contributors
 - Jim Blandy
 - Joakim Jalap
 - Johannes Altmanninger
+- Johannes Maier
 - Johann Klähn
 - John Mastro
 - John Morris
@@ -211,9 +217,11 @@ All Contributors
 - Laverne Schrock
 - Leandro Facchinetti
 - Lele Gaifax
+- Lénaïc Huard
 - Leo Liu
 - Leonardo Etcheverry
 - Leo Vivier
+- Li Chen
 - Lingchao Xin
 - Lin Sun
 - Li-Yun Chang
@@ -237,6 +245,7 @@ All Contributors
 - Mark Hepburn
 - Mark Karpov
 - Mark Oteiza
+- Markus Beppler
 - Martin Joerg
 - Martin Polden
 - Matthew Fluet
@@ -253,10 +262,12 @@ All Contributors
 - Miloš Mošić
 - Mitchel Humpherys
 - Moritz Bunkus
+- Nacho Barrientos
 - Naoya Yamashita
 - Natalie Weizenbaum
 - Nguyễn Tuấn Anh
 - Nic Ferier
+- Nicholas Vollmer
 - Nick Alcock
 - Nick Alexander
 - Nick Dimiduk
@@ -295,6 +306,7 @@ All Contributors
 - rabio
 - Radon Rosborough
 - Rafael Laboissiere
+- Rahul Rameshbabu
 - Raimon Grau
 - Ramkumar Ramachandra
 - Remco van 't Veer
@@ -318,6 +330,7 @@ All Contributors
 - Sanjoy Das
 - Sean Allred
 - Sean Bryant
+- Sean Farley
 - Sean Whitton
 - Sebastian Wiesner
 - Sébastien Gross
@@ -325,6 +338,7 @@ All Contributors
 - Sergey Pashinin
 - Sergey Vinokurov
 - Servilio Afre Puentes
+- shoefone
 - Shuguang Sun
 - Siavash Askari Nasr
 - Silent Sphere
@@ -367,6 +381,7 @@ All Contributors
 - Vladimir Ivanov
 - Vladimir Panteleev
 - Vladimir Sedach
+- Waqar Hameed
 - Wei Huang
 - Wilfred Hughes
 - Win Treese
@@ -383,4 +398,5 @@ All Contributors
 - Zach Latta
 - zakora
 - Zhu Zihao
+- ziggy
 - zilongshanren

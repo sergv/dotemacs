@@ -1,6 +1,6 @@
 ;;; magit-margin.el --- Margins in Magit buffers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2022 The Magit Project Contributors
+;; Copyright (C) 2008-2023 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
@@ -44,7 +44,7 @@ options to the same values by customizing `magit-log-margin'
 values for the other options will default to what you have set
 for that variable.  Likewise if you set `magit-log-margin's INIT
 to nil, then that is used in the default of all other options.  But
-setting it to t, i.e. re-enforcing the default for that option,
+setting it to t, i.e., re-enforcing the default for that option,
 does not carry to other options."
   :link '(info-link "(magit)Log Margin")
   :group 'magit-log)
