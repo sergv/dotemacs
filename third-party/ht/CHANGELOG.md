@@ -1,6 +1,16 @@
 ## v2.4 (not yet tagged)
 
-No changes yet.
+Switched to GitHub Actions for automated testing.
+
+### Features
+
+* Added `ht-update-with!`. This is like Racket's `hash-update!`.
+
+### Bug Fixes
+
+* `ht-select-keys` can now select keys whose values happen to be the symbol `key-not-found`.
+
+* Corrected the documentation for `ht-reject!`.
 
 ## v2.3
 
