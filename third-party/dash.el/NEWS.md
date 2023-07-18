@@ -1,12 +1,22 @@
 # Dash NEWS -- history of user-visible changes
 
-Copyright (C) 2012-2021 Free Software Foundation, Inc.
+Copyright (C) 2012-2023 Free Software Foundation, Inc.
 
 See the end of the file for license conditions.
 
 ## Change log
 
 ### From 2.19.1 to 2.20.0
+
+#### Deprecations
+
+- Calling `-zip` with two arguments now emits a warning.  This
+  long-discouraged calling convention remains supported, but the
+  caller is now referred to the equivalent `-zip-pair` instead (Stefan
+  Monnier, #400).
+- Calling `-zip-pair` with less than or more than two arguments is now
+  deprecated, and can be replaced with the equivalent call to
+  `-zip-lists` instead.
 
 #### Fixes
 
@@ -25,6 +35,15 @@ See the end of the file for license conditions.
   (-permutations '(1 1 2)) ; => '((1 1 2) (1 2 1) (2 1 1))
   ```
 
+- Several functions which are documented as returning a fresh, mutable
+  object (such as a copy of one of their arguments) are no longer
+  marked as `pure`.  Pure functions called with constant arguments are
+  evaluated during byte-compilation; the resulting value is an
+  immutable constant, and thus unsafe to modify destructively.  The
+  functions in question are: `-clone`, `-cons*`, `-drop-last`,
+  `-interleave`, `-interpose`, `-iota`, `-non-nil`, `-repeat`,
+  `-slice`, `-snoc`, `-split-at`, `-take`, `-take-last`.
+
 #### New features
 
 - The function `-contains?` now returns the matching tail of the list
@@ -32,6 +51,8 @@ See the end of the file for license conditions.
 - New function `-frequencies` that takes a list and counts how many
   times each distinct element occurs in it (suggested by @ebpa, #209,
   #214, #399).
+- New functions `-zip-lists-fill` and `-unzip-lists` which are better
+  behaved versions of `-zip-fill` and `-unzip`, respectively (#400).
 
 ### From 2.19.0 to 2.19.1
 
@@ -132,8 +153,8 @@ https://github.com/magnars/dash.el/wiki/Obsoletion-of-dash-functional.el
 - Sped up `-uniq` by using hash-tables when possible (@cireu, #305).
 - Fixed `-inits` to be non-destructive (@SwiftLawnGnome, #313).
 - Fixed indent rules for `-some->` and family (@wbolster, #321).
-- Added `-zip-lists` which always returns a list of proper lists, even for two
-  input lists (see issue #135).
+- Added `-zip-lists` which always returns a list of proper lists, even
+  for two input lists, in contrast to `-zip` (see issue #135).
 
 ### From 2.15 to 2.16
 
