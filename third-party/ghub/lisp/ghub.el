@@ -1,6 +1,6 @@
 ;;; ghub.el --- Client libraries for Git forge APIs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2016-2022 Jonas Bernoulli
+;; Copyright (C) 2016-2023 Jonas Bernoulli
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Homepage: https://github.com/magit/ghub
@@ -60,6 +60,11 @@
 (require 'url-http)
 
 (eval-when-compile (require 'subr-x))
+
+;; Needed for Emacs < 27.
+(eval-when-compile (require 'json))
+(declare-function json-read-from-string "json" (string))
+(declare-function json-encode "json" (object))
 
 (declare-function glab-repository-id "glab" (owner name &key username auth host))
 (declare-function gtea-repository-id "gtea" (owner name &key username auth host))
