@@ -24,6 +24,7 @@
 - [Validating patches that are not loaded yet](#validating-patches-that-are-not-loaded-yet)
 - [Integration with `use-package`](#integration-with-use-package)
 - [Templates](#templates)
+- [Patch variants](#patch-variants)
 - [Usage with byte-compiled init-file](#usage-with-byte-compiled-init-file)
 - [But how does it work?](#but-how-does-it-work)
 - [But how does it actually work?](#but-how-does-it-actually-work)
@@ -395,6 +396,13 @@ el-patch-ediff-conflict`.
 You can validate all the patches that have been defined so far using
 `M-x el-patch-validate-all`.
 
+Assuming you are byte-compiling your init-file, you can set
+`el-patch-validate-during-compile` to non-nil to validate patches when
+they are byte-compiled. There is no option to validate patches at
+runtime during startup because this makes startup incredibly slow.
+However, you could manually run `el-patch-validate-all` if such
+behavior is truly desired.
+
 ## Removing patches
 
 Use `M-x el-patch-unpatch`. Note that this does not technically remove
@@ -553,9 +561,9 @@ search for the forms that we want to patch in the original definition
 and patch only those. Enter `el-patch` templates.
 
 As an example, say we want to define a patch of `restart-emacs` so
-that the it starts a new emacs instance without killing the current
-one. Instead of defining a patch that includes the complete definition
-of `restart-emacs`, we can define a template as follows
+that it starts a new emacs instance without killing the current one.
+Instead of defining a patch that includes the complete definition of
+`restart-emacs`, we can define a template as follows
 
     (el-patch-define-template
       (defun (el-patch-swap restart-emacs radian-new-emacs))
@@ -609,6 +617,21 @@ accessible, for example, using `find-function-noselect` for functions.
 Like patches, templates can be validated using
 `el-patch-validate-template` and `el-patch-validate-all-templates`.
 
+## Patch variants
+
+You can define multiple versions of the same patch. Normally,
+(re)defining a patch will just overwrite the old version entirely.
+However, if you dynamically bind `el-patch-variant` to a different
+(symbol) value for each call, then the latter patch is still the one
+that takes effect, but `el-patch` retains a record of both patches,
+meaning they can be inspected and validated individually. See
+[#29](https://github.com/radian-software/el-patch/issues/29).
+
+You may also define patches of functions as `:override` advices
+instead of overriding the original definition. This is done by setting
+`el-patch-use-advice` to a non-nil value (either dynamically around a
+patch or globally). The patched function must have the same name and
+number of arguments as the original function.
 
 ## Usage with byte-compiled init-file
 
@@ -654,7 +677,7 @@ It doesn't seem to crash [my Emacs][radian], at least.
 ## Contributor guide
 
 Please see [the contributor guide for my
-projects](https://github.com/raxod502/contributor-guide).
+projects](https://github.com/radian-software/contributor-guide).
 
 [installation]: #installation
 [lazy-loading]: #lazy-loading-packages
@@ -667,6 +690,6 @@ projects](https://github.com/raxod502/contributor-guide).
 [ivy]: https://github.com/abo-abo/swiper
 [melpa]: http://melpa.org
 [package.el]: https://www.gnu.org/software/emacs/manual/html_node/emacs/Packages.html
-[radian]: https://github.com/raxod502/radian
+[radian]: https://github.com/radian-software/radian
 [straight.el]: https://github.com/raxod502/straight.el
 [use-package]: https://github.com/jwiegley/use-package
