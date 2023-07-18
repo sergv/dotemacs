@@ -20,18 +20,15 @@ DIST_FILES += $(ELS) Makefile README.md tuareg.install
 
 EMACSFORMACOSX = /Applications/Emacs.app/Contents/MacOS/Emacs
 EMACSMACPORTS = /Applications/MacPorts/Emacs.app/Contents/MacOS/Emacs
-AQUAMACS = $(shell test -d /Applications \
-	&& find /Applications -type f | grep 'Aquamacs$$')
+AQUAMACS = /Applications/Aquamacs.app/Contents/MacOS/Aquamacs
 ifeq ($(wildcard $(EMACSFORMACOSX)),$(EMACSFORMACOSX))
 EMACS ?= $(EMACSFORMACOSX)
 else
 ifeq ($(wildcard $(EMACSMACPORTS)),$(EMACSMACPORTS))
 EMACS ?= $(EMACSMACPORTS)
 else
-ifneq ($(strip $(AQUAMACS)),)
 ifeq ($(wildcard $(AQUAMACS)),$(AQUAMACS))
 EMACS ?= $(AQUAMACS)
-endif
 endif
 endif
 endif
@@ -90,7 +87,15 @@ tuareg-site-file.el: $(SOURCES)
 	 echo "(add-to-list 'load-path";\
 	 echo "             (or (file-name-directory load-file-name) (car load-path)))";\
 	 echo "") >$@
-	$(EMACS) --batch --eval '(setq generated-autoload-file "'`pwd`'/$@")' -f batch-update-autoloads "."
+	$(EMACS) --batch --eval '(if (>= emacs-major-version 28) (make-directory-autoloads "." "'`pwd`'/$@") (setq generated-autoload-file "'`pwd`'/$@") (batch-update-autoloads))' "."
+
+tuareg.install:
+	echo "share_root: [" > $@
+	for f in $(ELS); do \
+	  echo "  \"$$f\" {\"emacs/site-lisp/$$f\"}" >> $@; \
+	  echo "  \"?$${f}c\" {\"emacs/site-lisp/$${f}c\"}" >> $@; \
+	done
+	echo "]" >> $@
 
 dist distrib: $(TARBALL)
 
