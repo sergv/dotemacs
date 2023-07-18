@@ -75,6 +75,7 @@
       (stack-exe
        `(,stack-exe "--verbosity" "silent" "runghc" "--no-ghc-package-path" "--" "-i"
                     "-packageCabal"
+                    "-packageCabal-syntax"
                     "-packagebase"
                     "-packagebytestring"
                     "-packagecontainers"
@@ -84,6 +85,7 @@
       (runghc-exe
        `(,runghc-exe "--" "-i"
                      "-packageCabal"
+                     "-packageCabal-syntax"
                      "-packagebase"
                      "-packagebytestring"
                      "-packagecontainers"
@@ -142,24 +144,29 @@ Take the base command from `flycheck-haskell-runghc-command'."
      (eproj-project/root proj))))
 
 (defun flycheck-haskell--read-configuration-with-helper (args proj)
-  (with-temp-buffer
-    ;; Hack around call-process' limitation handling standard error
-    (let* ((cmd
-            (if flycheck-haskell--compiled-haskell-helper
-                (cons flycheck-haskell--compiled-haskell-helper args)
-              (flycheck-haskell-runghc-command proj (cons flycheck-haskell-helper args))))
-           (retcode (apply #'call-process (car cmd) nil (current-buffer) nil (cdr cmd))))
-      (if (zerop retcode)
+  (let ((env process-environment)
+        (path exec-path))
+    (with-temp-buffer
+      ;; Copy the entire environment just in case there's something we need.
+      (setq-local process-environment env)
+      ;; Set path so we can find the command.
+      (setq-local exec-path path)
+      (let* ((cmd
+              (if flycheck-haskell--compiled-haskell-helper
+                  (cons flycheck-haskell--compiled-haskell-helper args)
+                (flycheck-haskell-runghc-command proj (cons flycheck-haskell-helper args))))
+             (retcode (apply #'call-process (car cmd) nil (current-buffer) nil (cdr cmd))))
+        (if (zerop retcode)
+            (progn
+              (goto-char (point-min))
+              (read (current-buffer)))
           (progn
-            (goto-char (point-min))
-            (read (current-buffer)))
-        (progn
-          (goto-char (point-max))
-          (delete-whitespace-backward)
-          (error "Reading Haskell configuration failed with exit code %s:\n\nCommand: %s\n\nOutput:\n%s"
-                 retcode
-                 (s-join " " cmd)
-                 (buffer-string)))))))
+            (goto-char (point-max))
+            (delete-whitespace-backward)
+            (error "Reading Haskell configuration failed with exit code %s:\n\nCommand: %s\n\nOutput:\n%s"
+                   retcode
+                   (s-join " " cmd)
+                   (buffer-string))))))))
 
 (defun flycheck-haskell-read-cabal-configuration (cabal-file proj)
   "Read the Cabal configuration from CABAL-FILE."
