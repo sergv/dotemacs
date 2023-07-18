@@ -1,10 +1,10 @@
 ;;; csv-mode.el --- Major mode for editing comma/char separated values  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2003, 2004, 2012-2022 Free Software Foundation, Inc
+;; Copyright (C) 2003-2023  Free Software Foundation, Inc
 
 ;; Author: "Francis J. Wright" <F.J.Wright@qmul.ac.uk>
 ;; Maintainer: emacs-devel@gnu.org
-;; Version: 1.21
+;; Version: 1.22
 ;; Package-Requires: ((emacs "27.1") (cl-lib "0.5"))
 ;; Keywords: convenience
 
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -84,6 +84,17 @@
 ;; the current field index in the mode line, cf. `line-number-mode'
 ;; and `column-number-mode'.  It is on by default.
 
+;;;; See also:
+
+;; the standard GNU Emacs 21 packages align.el, which will align
+;; columns within a region, and delim-col.el, which helps to prettify
+;; columns in a text region or rectangle;
+
+;; csv.el by Ulf Jasper <ulf.jasper at web.de>, which provides
+;; functions for reading/parsing comma-separated value files and is
+;; available at http://de.geocities.com/ulf_jasper/emacs.html (and in
+;; the gnu.emacs.sources archives).
+
 ;;; Installation:
 
 ;; Put this file somewhere that Emacs can find it (i.e. in one of the
@@ -94,8 +105,16 @@
 ;; (autoload 'csv-mode "csv-mode"
 ;;   "Major mode for editing comma-separated value files." t)
 
-;;; History:
+;;; News:
 
+;; Since 1.21:
+;; - New command `csv-insert-column'.
+;; - New config var `csv-align-min-width' for `csv-align-mode'.
+
+;; Since 1.9:
+;; - `csv-align-mode' auto-aligns columns dynamically (on screen).
+
+;; Before that:
 ;; Begun on 15 November 2003 to provide lexicographic sorting of
 ;; simple CSV data by field and released as csv.el.  Facilities to
 ;; kill multiple fields and customize separator added on 9 April 2004.
@@ -107,17 +126,6 @@
 ;; 2004.  Multiple field separators added on 12 June 2004.
 ;; Transposition added on 22 June 2004.  Separator invisibility added
 ;; on 23 June 2004.
-
-;;; See also:
-
-;; the standard GNU Emacs 21 packages align.el, which will align
-;; columns within a region, and delim-col.el, which helps to prettify
-;; columns in a text region or rectangle;
-
-;; csv.el by Ulf Jasper <ulf.jasper at web.de>, which provides
-;; functions for reading/parsing comma-separated value files and is
-;; available at http://de.geocities.com/ulf_jasper/emacs.html (and in
-;; the gnu.emacs.sources archives).
 
 ;;; To do (maybe):
 
@@ -280,19 +288,19 @@ after separators."
 
 (defvar csv-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [(control ?c) (control ?v)] 'csv-toggle-invisibility)
-    (define-key map [(control ?c) (control ?t)] 'csv-transpose)
-    (define-key map [(control ?c) (control ?c)] 'csv-set-comment-start)
-    (define-key map [(control ?c) (control ?u)] 'csv-unalign-fields)
-    (define-key map [(control ?c) (control ?a)] 'csv-align-fields)
-    (define-key map [(control ?c) (control ?z)] 'csv-yank-as-new-table)
-    (define-key map [(control ?c) (control ?y)] 'csv-yank-fields)
-    (define-key map [(control ?c) (control ?k)] 'csv-kill-fields)
-    (define-key map [(control ?c) (control ?d)] 'csv-toggle-descending)
-    (define-key map [(control ?c) (control ?r)] 'csv-reverse-region)
-    (define-key map [(control ?c) (control ?n)] 'csv-sort-numeric-fields)
-    (define-key map [(control ?c) (control ?s)] 'csv-sort-fields)
-    (define-key map "\t" #'csv-tab-command)
+    (define-key map [(control ?c) (control ?v)] #'csv-toggle-invisibility)
+    (define-key map [(control ?c) (control ?t)] #'csv-transpose)
+    (define-key map [(control ?c) (control ?c)] #'csv-set-comment-start)
+    (define-key map [(control ?c) (control ?u)] #'csv-unalign-fields)
+    (define-key map [(control ?c) (control ?a)] #'csv-align-fields)
+    (define-key map [(control ?c) (control ?z)] #'csv-yank-as-new-table)
+    (define-key map [(control ?c) (control ?y)] #'csv-yank-fields)
+    (define-key map [(control ?c) (control ?k)] #'csv-kill-fields)
+    (define-key map [(control ?c) (control ?d)] #'csv-toggle-descending)
+    (define-key map [(control ?c) (control ?r)] #'csv-reverse-region)
+    (define-key map [(control ?c) (control ?n)] #'csv-sort-numeric-fields)
+    (define-key map [(control ?c) (control ?s)] #'csv-sort-fields)
+    (define-key map "\t"      #'csv-tab-command)
     (define-key map [backtab] #'csv-backtab-command)
     map))
 
@@ -716,6 +724,14 @@ point or marker arguments, BEG and END, delimiting the region."
 	       (setq ended t))))))
   (skip-chars-forward csv--skip-chars))
 
+(defun csv--bof-p ()
+  (or (bolp)
+      (memq (preceding-char) csv-separator-chars)))
+
+(defun csv--eof-p ()
+  (or (eolp)
+      (memq (following-char) csv-separator-chars)))
+
 (defun csv-beginning-of-field ()
   "Skip backward over one field."
   (skip-syntax-backward " ")
@@ -950,6 +966,21 @@ Ignore blank and comment lines."
 	(push (csv-kill-one-field field) csv-killed-fields))
     (forward-line)))
 
+(defun csv-insert-column (field)
+  "Insert an empty column at point."
+  (interactive
+   (let ((cur (csv--field-index)))
+     (list (if (and (csv--eof-p) (not (csv--bof-p))) (1+ cur) cur))))
+  (save-excursion
+    (goto-char (point-min))
+    (while (not (eobp))
+      (or (csv-not-looking-at-record)
+	  (progn
+	    (csv-sort-skip-fields field t)
+	    (insert (car csv-separators))))
+      (forward-line 1))
+    (csv--jit-flush-columns)))
+
 (defun csv-kill-many-columns (fields)
   "Kill several fields in all lines in (narrowed) buffer.
 FIELDS is an unordered list of field indices.
@@ -984,7 +1015,7 @@ Ignore blank and comment lines."
       (setq f (cdr f))))
   (goto-char (point-min))
   ;; Kill from right to avoid miscounting:
-  (setq fields (sort fields '>))
+  (setq fields (sort fields #'>))
   (while (not (eobp))
     (or (csv-not-looking-at-record)
 	(let ((fields fields) killed-fields field)
@@ -1445,6 +1476,10 @@ This does not apply to the last column (for which the usual `truncate-lines'
 setting works better)."
   :type 'integer)
 
+(defcustom csv-align-min-width 1
+  "Minimum width of a column in `csv-align-mode'."
+  :type 'integer)
+
 (defvar-local csv--config-column-widths nil
   "Settings per column, stored as a list indexed by the column.")
 
@@ -1474,6 +1509,11 @@ setting works better)."
   (jit-lock-refontify))
 
 (defvar-local csv--jit-columns nil)
+
+(defun csv--jit-flush-columns ()
+  "Throw away all cached info about column widths."
+  ;; FIXME: Maybe we should kill its overlays as well.
+  (setq csv--jit-columns nil))
 
 (defun csv--jit-merge-columns (column-widths)
   ;; FIXME: The incremental update (delayed by jit-lock-context-time) of column
@@ -1631,7 +1671,8 @@ setting works better)."
                      (left-padding 0) (right-padding 0)
                      (field-width (pop field-widths))
                      (column-width
-                      (min (car (pop w))
+                      (min (max csv-align-min-width
+                                (car (pop w)))
                            (or width-config
                                ;; Don't apply csv-align-max-width
                                ;; to the last field!
