@@ -182,7 +182,7 @@ as accepted by `bounds-of-thing-at-point'.")
   ;; Load tags if there're none.
   (unless (or (eproj--get-tags proj)
               (assq effective-major-mode (eproj--get-tags proj)))
-    (eproj-reload-project! proj)
+    (eproj--make-project-and-register! (eproj-project/root proj))
     (unless (eproj--get-tags proj)
       (error "Project %s loaded no names\nProject: %s"
              (eproj-project/root proj)
