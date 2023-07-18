@@ -176,7 +176,7 @@ As defined by the Language Server Protocol 3.16."
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-client-packages
-  '( ccls lsp-actionscript lsp-ada lsp-angular lsp-ansible lsp-astro lsp-bash
+  '( ccls lsp-actionscript lsp-ada lsp-angular lsp-ansible lsp-awk lsp-astro lsp-bash
      lsp-beancount lsp-clangd lsp-clojure lsp-cmake lsp-credo lsp-crystal lsp-csharp lsp-css
      lsp-d lsp-dart lsp-dhall lsp-docker lsp-dockerfile lsp-elm lsp-elixir lsp-emmet
      lsp-erlang lsp-eslint lsp-fortran lsp-fsharp lsp-gdscript lsp-go lsp-gleam
@@ -788,6 +788,7 @@ Changes take effect only when a new session is started."
     ("^go\\.mod\\'" . "go.mod")
     ("^settings.json$" . "jsonc")
     (ada-mode . "ada")
+    (awk-mode . "awk")
     (nxml-mode . "xml")
     (sql-mode . "sql")
     (vimrc-mode . "vim")
@@ -4883,6 +4884,7 @@ Applies on type formatting."
          (type (url-type parsed-url)))
     (pcase type
       ("file"
+       (xref-push-marker-stack)
        (find-file (lsp--uri-to-path url))
        (-when-let ((_ line column) (s-match (rx "#" (group (1+ num)) (or "," "#") (group (1+ num))) url))
          (goto-char (lsp--position-to-point
@@ -5888,7 +5890,9 @@ It will filter by KIND if non nil."
          (lsp-send-execute-command command arguments?))))))
 
 (lsp-defun lsp-execute-code-action ((action &as &CodeAction :command? :edit?))
-  "Execute code action ACTION.
+  "Execute code action ACTION. For example, when text under the
+caret has a suggestion to apply a fix from an lsp-server, calling
+this function will do so.
 If ACTION is not set it will be selected from `lsp-code-actions-at-point'.
 Request codeAction/resolve for more info if server supports."
   (interactive (list (lsp--select-action (lsp-code-actions-at-point))))
