@@ -53,7 +53,6 @@ magit-push.elc:            magit.elc
 magit-bisect.elc:          magit.elc
 magit-stash.elc:           magit.elc magit-sequence.elc magit-reflog.elc
 magit-blame.elc:           magit.elc
-magit-obsolete.elc:        magit.elc
 magit-submodule.elc:       magit.elc
 magit-patch.elc:           magit.elc
 magit-subtree.elc:         magit.elc
@@ -64,7 +63,6 @@ magit-bundle.elc:          magit.elc
 magit-extras.elc:          magit.elc magit-merge.elc
 git-rebase.elc:            magit.elc
 magit-bookmark.elc:        magit.elc
-magit-obsolete.elc:        magit.elc
 
 ## Build #############################################################
 
@@ -93,7 +91,8 @@ $(PKG)-autoloads.el: $(ELS)
   (cl-letf (((symbol-function 'progress-reporter-do-update) (lambda (&rest _)))\
             ((symbol-function 'progress-reporter-done) (lambda (_))))\
     (let ((generated-autoload-file file))\
-      (update-directory-autoloads default-directory))))"
+      (update-directory-autoloads default-directory))))" \
+	2>&1 | sed "/^Package autoload is deprecated$$/d"
 
 $(PKG)-version.el:
 	@printf " Creating $@\n"

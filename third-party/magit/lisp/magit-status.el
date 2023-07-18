@@ -1,6 +1,6 @@
 ;;; magit-status.el --- The grand overview  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2022 The Magit Project Contributors
+;; Copyright (C) 2008-2023 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
@@ -290,7 +290,9 @@ prefix arguments:
 
 ;;;###autoload
 (defalias 'magit #'magit-status
-  "An alias for `magit-status' for better discoverability.
+  "Begin using Magit.
+
+This alias for `magit-status' exists for better discoverability.
 
 Instead of invoking this alias for `magit-status' using
 \"M-x magit RET\", you should bind a key to `magit-status'
@@ -332,13 +334,11 @@ init file: (global-set-key (kbd \"C-x g\") \\='magit-status-quick)."
 
 ;;; Mode
 
-(defvar magit-status-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map magit-mode-map)
-    (define-key map "j" #'magit-status-jump)
-    (define-key map [remap dired-jump] #'magit-dired-jump)
-    map)
-  "Keymap for `magit-status-mode'.")
+(defvar-keymap magit-status-mode-map
+  :doc "Keymap for `magit-status-mode'."
+  :parent magit-mode-map
+  "j" #'magit-status-jump
+  "<remap> <dired-jump>" #'magit-dired-jump)
 
 (transient-define-prefix magit-status-jump ()
   "In a Magit-Status buffer, jump to a section."
@@ -498,12 +498,10 @@ The sections are inserted by running the functions on the hook
       (magit-insert-headers 'magit-status-headers-hook)
     (insert "In the beginning there was darkness\n\n")))
 
-(defvar magit-error-section-map
-  (let ((map (make-sparse-keymap)))
-    (magit-menu-set map [magit-visit-thing]
-      #'magit-process-buffer "Visit process output")
-    map)
-  "Keymap for `error' sections.")
+(defvar-keymap magit-error-section-map
+  :doc "Keymap for `error' sections."
+  "<remap> <magit-visit-thing>" #'magit-process-buffer
+  "<1>" (magit-menu-item "Visit process output" #'magit-process-buffer))
 
 (defun magit-insert-error-header ()
   "Insert the message about the Git error that just occurred.
@@ -701,12 +699,12 @@ remote in alphabetic order."
 
 ;;;; File Sections
 
-(defvar magit-untracked-section-map
-  (let ((map (make-sparse-keymap)))
-    (magit-menu-set map [magit-stage-file]   #'magit-stage   "Stage files")
-    (magit-menu-set map [magit-delete-thing] #'magit-discard "Discard files")
-    map)
-  "Keymap for the `untracked' section.")
+(defvar-keymap magit-untracked-section-map
+  :doc "Keymap for the `untracked' section."
+  "<remap> <magit-delete-thing>" #'magit-discard
+  "<remap> <magit-stage-file>"   #'magit-stage
+  "<2>" (magit-menu-item "Discard files" #'magit-discard)
+  "<1>" (magit-menu-item "Stage files"   #'magit-stage))
 
 (magit-define-section-jumper magit-jump-to-untracked "Untracked files" untracked)
 
