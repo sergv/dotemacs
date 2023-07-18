@@ -38,7 +38,7 @@ fi
 
 if [[ "$#" == 3 ]]; then
     hash="$3"
-elif [[ "${repository}" == "magit-repo" || "${repository}" == "with-editor-repo" ]]; then
+elif [[ "${repository}" == "magit-repo" || "${repository}" == "with-editor-repo" || "${repository}" == "transient-repo" ]]; then
     hash="$(get-ref-hash "${repository}/main")"
 else
     hash="$(get-ref-hash "${repository}/master")"
