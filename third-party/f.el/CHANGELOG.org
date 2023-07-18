@@ -5,14 +5,16 @@
 
 * v0.21.0 (upcoming)
 - Add ~f-change-time~, ~f-modification-time~, ~f-access-time~ ([[https://github.com/rejeep/f.el/pull/66][#66]] by @ebpa)
+- Add ~f-newer-p~, ~f-same-time-p~, and ~f-older-p~
 - Add Github Action CI
 - Add ~f-mkdir-full-path~
 - Fix ~f-split~ ([[https://github.com/rejeep/f.el/issues/80][#80]] by @blaenk)
 - Fix ~f-join~
 - Allow ~f-read-bytes~ to do partial file reading ([[https://github.com/rejeep/f.el/pull/106][#106]] by @nagy)
 - Clarify ~f-mkdir~ behavior
-- Implement shortdoc for Emacs 28
+- Implement shortdoc for Emacs 28 and later
 - Prefer Elisp-style predicates in ~-p~ rather than Scheme-style predicates in ~?~
+- Improve behavior of ~f-hidden-p~
 
 * v0.20.0
 - Add predicate ~f-hidden-p~
