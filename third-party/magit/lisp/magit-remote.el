@@ -1,6 +1,6 @@
 ;;; magit-remote.el --- Transfer Git commits  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2022 The Magit Project Contributors
+;; Copyright (C) 2008-2023 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
@@ -85,6 +85,7 @@ has to be used to view and change remote related variables."
    [("C" "Configure..."         magit-remote-configure)
     ("p" "Prune stale branches" magit-remote-prune)
     ("P" "Prune stale refspecs" magit-remote-prune-refspecs)
+    ("b" magit-update-default-branch)
     (7 "z" "Unshallow remote"   magit-remote-unshallow)]]
   (interactive (list (magit-get-current-remote)))
   (transient-setup 'magit-remote nil nil :scope remote))
@@ -206,10 +207,10 @@ the now stale refspecs.  Other stale branches are not removed."
                 (pcase-let ((`(,refspec . ,refs) (car stale)))
                   (magit-confirm 'prune-stale-refspecs
                     (format "Prune stale refspec %s and branch %%s" refspec)
-                    (format "Prune stale refspec %s and %%i branches" refspec)
+                    (format "Prune stale refspec %s and %%d branches" refspec)
                     nil refs))
               (magit-confirm 'prune-stale-refspecs nil
-                (format "Prune %%i stale refspecs and %i branches"
+                (format "Prune %%d stale refspecs and %d branches"
                         (length (cl-mapcan (lambda (s) (copy-sequence (cdr s)))
                                            stale)))
                 nil
@@ -223,7 +224,7 @@ the now stale refspecs.  Other stale branches are not removed."
                               (regexp-quote refspec))
               (magit--log-action
                (lambda (refs)
-                 (format "Deleting %i branches" (length refs)))
+                 (format "Deleting %d branches" (length refs)))
                (lambda (ref)
                  (format "Deleting branch %s (was %s)" ref
                          (magit-rev-parse "--short" ref)))
@@ -254,6 +255,37 @@ doing that."
 Delete the symbolic-ref \"refs/remotes/<remote>/HEAD\"."
   (interactive (list (magit-read-remote "Unset HEAD for remote")))
   (magit-run-git "remote" "set-head" remote "--delete"))
+
+;;;###autoload (autoload 'magit-update-default-branch "magit-remote" nil t)
+(transient-define-suffix magit-update-default-branch ()
+  "Update name of the default branch after upstream changed it."
+  :description "Update default branch"
+  :inapt-if-not #'magit-get-some-remote
+  (interactive)
+  (pcase-let ((`(,_remote ,oldname) (magit--get-default-branch))
+              (`( ,remote ,newname) (magit--get-default-branch t)))
+    (cond
+     ((equal oldname newname)
+      (setq oldname
+            (read-string
+             (format "Name of default branch is still `%s', %s\n%s" oldname
+                     "but some upstreams might need updating."
+                     "Name of upstream branches to update: ")))
+      (magit--set-default-branch newname oldname)
+      (magit-refresh))
+     (t
+      (unless oldname
+        (setq oldname
+              (magit-read-other-local-branch
+               (format "Name of old default branch to be renamed to `%s'"
+                       newname)
+               newname "master")))
+      (cond
+       ((y-or-n-p (format "Default branch changed from `%s' to `%s' on %s.%s"
+                          oldname newname remote "  Do the same locally? "))
+        (magit--set-default-branch newname oldname)
+        (magit-refresh))
+       ((user-error "Abort")))))))
 
 ;;;###autoload
 (defun magit-remote-unshallow (remote)

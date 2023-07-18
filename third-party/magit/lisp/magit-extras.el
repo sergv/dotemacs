@@ -1,6 +1,6 @@
 ;;; magit-extras.el --- Additional functionality for Magit  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2022 The Magit Project Contributors
+;; Copyright (C) 2008-2023 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
@@ -204,15 +204,15 @@ To make this command available use something like:
 
   (add-hook \\='ido-setup-hook
             (lambda ()
-              (define-key ido-completion-map
-                (kbd \"C-x g\") \\='ido-enter-magit-status)))
+              (keymap-set ido-completion-map
+                          \"C-x g\" \\='ido-enter-magit-status)))
 
 Starting with Emacs 25.1 the Ido keymaps are defined just once
 instead of every time Ido is invoked, so now you can modify it
 like pretty much every other keymap:
 
-  (define-key ido-common-completion-map
-    (kbd \"C-x g\") \\='ido-enter-magit-status)"
+  (keymap-set ido-common-completion-map
+              \"C-x g\" \\='ido-enter-magit-status)"
   (interactive)
   (setq ido-exit 'fallback)
   (setq ido-fallback #'magit-status)                ; for Emacs >= 26.2
@@ -242,7 +242,7 @@ to nil before loading Magit to prevent \"m\" from being bound.")
              (equal project-switch-commands
                     (eval (car (get 'project-switch-commands 'standard-value))
                           t)))
-    (define-key project-prefix-map "m" #'magit-project-status)
+    (keymap-set project-prefix-map "m" #'magit-project-status)
     (add-to-list 'project-switch-commands '(magit-project-status "Magit") t)))
 
 ;;;###autoload
@@ -263,9 +263,9 @@ is no file at point, then instead visit `default-directory'."
   (interactive "P")
   (if-let ((topdir (magit-toplevel default-directory)))
       (let ((args (car (magit-log-arguments)))
-            (files (compat-dired-get-marked-files
-                    nil nil #'magit-file-tracked-p nil
-                    "No marked file is being tracked by Git")))
+            (files (dired-get-marked-files nil nil #'magit-file-tracked-p)))
+        (unless files
+          (user-error "No marked file is being tracked by Git"))
         (when (and follow
                    (not (member "--follow" args))
                    (not (cdr files)))
@@ -286,7 +286,10 @@ for a repository."
   (interactive (list (or (magit-toplevel)
                          (magit-read-repository t))
                      current-prefix-arg))
-  (let ((files (compat-dired-get-marked-files nil arg nil nil t)))
+  ;; Note: The ERROR argument of `dired-get-marked-files' isn't
+  ;; available until Emacs 27.
+  (let ((files (or (dired-get-marked-files nil arg)
+                   (user-error "No files specified"))))
     (magit-status-setup-buffer repo)
     (magit-am-apply-patches files)))
 
@@ -295,8 +298,7 @@ for a repository."
   "Open FILE with `dired-do-async-shell-command'.
 Interactively, open the file at point."
   (interactive (list (or (magit-file-at-point)
-                         (completing-read "Act on file: "
-                                          (magit-list-files)))))
+                         (magit-read-file "Act on file"))))
   (require 'dired-aux)
   (dired-do-async-shell-command
    (dired-read-shell-command "& on %s: " current-prefix-arg (list file))
@@ -465,7 +467,7 @@ points at it) otherwise."
         (if rebase
             (let ((magit--rebase-published-symbol 'edit-published))
               (magit-rebase-edit-commit rev (magit-rebase-arguments)))
-          (magit-checkout (or (magit-rev-branch rev) rev)))
+          (magit--checkout (or (magit-rev-branch rev) rev)))
         (unless (and buffer-file-name
                      (file-equal-p file buffer-file-name))
           (let ((blame-type (and magit-blame-mode magit-blame-type)))
@@ -503,7 +505,7 @@ to be visited.
 
 Neither the blob nor the file buffer are killed when finishing
 the rebase.  If that is undesirable, then it might be better to
-use `magit-rebase-edit-command' instead of this command."
+use `magit-rebase-edit-commit' instead of this command."
   (interactive (list (magit-file-at-point t t)))
   (let ((magit-diff-visit-previous-blob nil))
     (with-current-buffer
@@ -681,8 +683,8 @@ stack.
 
 When reading the revision from the minibuffer, then it might not
 be possible to guess the correct repository.  When this command
-is called inside a repository (e.g. while composing a commit
-message), then that repository is used.  Otherwise (e.g. while
+is called inside a repository (e.g., while composing a commit
+message), then that repository is used.  Otherwise (e.g., while
 composing an email) then the repository recorded for the top
 element of the stack is used (even though we insert another
 revision).  If not called inside a repository and with an empty
@@ -721,7 +723,7 @@ the minibuffer too."
               (setq pnt-format
                     (string-replace "%N" idx pnt-format)))
             (magit-rev-insert-format pnt-format rev pnt-args)
-            (backward-delete-char 1))
+            (delete-char -1))
           (when eob-format
             (when idx-format
               (setq eob-format
@@ -738,11 +740,10 @@ the minibuffer too."
                   (insert ?\n)))
               (insert ?\n)
               (magit-rev-insert-format eob-format rev eob-args)
-              (backward-delete-char 1)))))
+              (delete-char -1)))))
     (user-error "Revision stack is empty")))
 
-(define-key git-commit-mode-map
-  (kbd "C-c C-w") #'magit-pop-revision-stack)
+(keymap-set git-commit-mode-map "C-c C-w" #'magit-pop-revision-stack)
 
 ;;;###autoload
 (defun magit-copy-section-value (arg)
@@ -857,7 +858,7 @@ abbreviated revision to the `kill-ring' and the
 The buffer is displayed using `magit-display-buffer', which see."
   (interactive (list (magit--read-repository-buffer
                       "Display magit buffer: ")))
-  (magit-display-buffer buffer))
+  (magit-display-buffer (get-buffer buffer)))
 
 ;;;###autoload
 (defun magit-switch-to-repository-buffer (buffer)

@@ -1,6 +1,6 @@
 ;;; magit-stash.el --- Stash support for Magit  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2022 The Magit Project Contributors
+;; Copyright (C) 2008-2023 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
@@ -218,8 +218,9 @@ use \"git stash\" and are generally more flexible but don't allow
 specifying a list of files to be stashed."
   :man-page "git-stash"
   ["Arguments"
-   (magit:-- :reader ,(-rpartial #'magit-read-files
-                                 #'magit-modified-files))
+   (magit:-- :reader (lambda (prompt initial-input history)
+                       (magit-read-files prompt initial-input history
+                                         #'magit-modified-files)))
    ("-u" "Also save untracked files" ("-u" "--include-untracked"))
    ("-a" "Also save untracked and ignored files" ("-a" "--all"))
    ("-k" "Keep index" ("-k" "--keep-index"))
@@ -260,7 +261,7 @@ and forgo removing the stash."
 When the region is active offer to drop all contained stashes."
   (interactive
    (list (--if-let (magit-region-values 'stash)
-             (magit-confirm 'drop-stashes nil "Drop %i stashes" nil it)
+             (magit-confirm 'drop-stashes nil "Drop %d stashes" nil it)
            (magit-read-stash "Drop stash"))))
   (dolist (stash (if (listp stash)
                      (nreverse (prog1 stash (setq stash (car stash))))
@@ -281,20 +282,23 @@ When the region is active offer to drop all contained stashes."
 
 ;;;###autoload
 (defun magit-stash-branch (stash branch)
-  "Create and checkout a new BRANCH from STASH."
+  "Create and checkout a new BRANCH from an existing STASH.
+The new branch starts at the commit that was current when the
+stash was created.  If the stash applies cleanly, then drop it."
   (interactive (list (magit-read-stash "Branch stash")
                      (magit-read-string-ns "Branch name")))
   (magit-run-git "stash" "branch" branch stash))
 
 ;;;###autoload
 (defun magit-stash-branch-here (stash branch)
-  "Create and checkout a new BRANCH and apply STASH.
-The branch is created using `magit-branch-and-checkout', using the
-current branch or `HEAD' as the start-point."
+  "Create and checkout a new BRANCH from an existing STASH.
+Use the current branch or `HEAD' as the starting-point of BRANCH.
+Then apply STASH, dropping it if it applies cleanly."
   (interactive (list (magit-read-stash "Branch stash")
                      (magit-read-string-ns "Branch name")))
-  (let ((magit-inhibit-refresh t))
-    (magit-branch-and-checkout branch (or (magit-get-current-branch) "HEAD")))
+  (let ((start-point (or (magit-get-current-branch) "HEAD")))
+    (magit-call-git "checkout" "-b" branch start-point)
+    (magit-branch-maybe-adjust-upstream branch start-point))
   (magit-stash-apply stash))
 
 ;;;###autoload
@@ -372,21 +376,23 @@ current branch or `HEAD' as the start-point."
 
 ;;; Sections
 
-(defvar magit-stashes-section-map
-  (let ((map (make-sparse-keymap)))
-    (magit-menu-set map [magit-visit-thing]  #'magit-stash-list  "List %t")
-    (magit-menu-set map [magit-delete-thing] #'magit-stash-clear "Clear %t")
-    map)
-  "Keymap for `stashes' section.")
+(defvar-keymap magit-stashes-section-map
+  :doc "Keymap for `stashes' section."
+  "<remap> <magit-delete-thing>" #'magit-stash-clear
+  "<remap> <magit-visit-thing>"  #'magit-stash-list
+  "<2>" (magit-menu-item "Clear %t" #'magit-stash-clear)
+  "<1>" (magit-menu-item "List %t"  #'magit-stash-list))
 
-(defvar magit-stash-section-map
-  (let ((map (make-sparse-keymap)))
-    (magit-menu-set map [magit-visit-thing]  #'magit-stash-show  "Visit %v")
-    (magit-menu-set map [magit-delete-thing] #'magit-stash-drop  "Delete %M")
-    (magit-menu-set map [magit-cherry-apply] #'magit-stash-apply "Apply %M")
-    (magit-menu-set map [magit-cherry-pick]  #'magit-stash-pop   "Pop %M")
-    map)
-  "Keymap for `stash' sections.")
+(defvar-keymap magit-stash-section-map
+  :doc "Keymap for `stash' sections."
+  "<remap> <magit-cherry-pick>"  #'magit-stash-pop
+  "<remap> <magit-cherry-apply>" #'magit-stash-apply
+  "<remap> <magit-delete-thing>" #'magit-stash-drop
+  "<remap> <magit-visit-thing>"  #'magit-stash-show
+  "<4>" (magit-menu-item "Pop %M"    #'magit-stash-pop)
+  "<3>" (magit-menu-item "Apply %M"  #'magit-stash-apply)
+  "<2>" (magit-menu-item "Delete %M" #'magit-stash-drop)
+  "<1>" (magit-menu-item "Visit %v"  #'magit-stash-show))
 
 (magit-define-section-jumper magit-jump-to-stashes
   "Stashes" stashes "refs/stash")
@@ -521,8 +527,9 @@ If there is no stash buffer in the same frame, then do nothing."
 (defun magit-stash-insert-section (commit range message &optional files)
   (magit-insert-section (commit commit)
     (magit-insert-heading message)
-    (magit--insert-diff "diff" range "-p" "--no-prefix" magit-buffer-diff-args
-                        "--" (or files magit-buffer-diff-files))))
+    (magit--insert-diff nil
+      "diff" range "-p" "--no-prefix" magit-buffer-diff-args
+      "--" (or files magit-buffer-diff-files))))
 
 (defun magit-insert-stash-notes ()
   "Insert section showing notes for a stash.

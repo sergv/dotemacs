@@ -1,6 +1,6 @@
 ;;; magit-refs.el --- Listing references  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2022 The Magit Project Contributors
+;; Copyright (C) 2008-2023 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
@@ -271,13 +271,11 @@ the outcome.
 
 ;;; Mode
 
-(defvar magit-refs-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map magit-mode-map)
-    (define-key map (kbd "C-y") #'magit-refs-set-show-commit-count)
-    (define-key map (kbd "L")   #'magit-margin-settings)
-    map)
-  "Keymap for `magit-refs-mode'.")
+(defvar-keymap magit-refs-mode-map
+  :doc "Keymap for `magit-refs-mode'."
+  :parent magit-mode-map
+  "C-y" #'magit-refs-set-show-commit-count
+  "L"   #'magit-margin-settings)
 
 (define-derived-mode magit-refs-mode magit-mode "Magit Refs"
   "Mode which lists and compares references.
@@ -357,8 +355,8 @@ Type \\[magit-reset] to reset `HEAD' to the commit at point.
       (setq args magit-buffer-arguments))
      ((and (memq use-buffer-args '(always selected))
            (when-let* ((buffer (magit-get-mode-buffer ;debbugs#31840
-                               'magit-refs-mode nil
-                               (eq use-buffer-args 'selected))))
+                                'magit-refs-mode nil
+                                (eq use-buffer-args 'selected))))
              (setq args (buffer-local-value 'magit-buffer-arguments buffer))
              t)))
      (t
@@ -473,27 +471,28 @@ Branch %s already exists.
 
 ;;; Sections
 
-(defvar magit-remote-section-map
-  (let ((map (make-sparse-keymap)))
-    (magit-menu-set map [magit-delete-thing] #'magit-remote-remove "Remove %m")
-    (magit-menu-set map [magit-file-rename]  #'magit-remote-rename "Rename %s")
-    map)
-  "Keymap for `remote' sections.")
+(defvar-keymap magit-remote-section-map
+  :doc "Keymap for `remote' sections."
+  "<remap> <magit-file-rename>"  #'magit-remote-rename
+  "<remap> <magit-delete-thing>" #'magit-remote-remove
+  "<2>" (magit-menu-item "Rename %s" #'magit-remote-rename)
+  "<1>" (magit-menu-item "Remove %m" #'magit-remote-remove))
 
-(defvar magit-branch-section-map
-  (let ((map (make-sparse-keymap)))
-    (magit-menu-set map [magit-visit-thing]  #'magit-visit-ref     "Visit commit")
-    (magit-menu-set map [magit-delete-thing] #'magit-branch-delete "Delete %m")
-    (magit-menu-set map [magit-file-rename]  #'magit-branch-rename "Rename %s")
-    map)
-  "Keymap for `branch' sections.")
+(defvar-keymap magit-branch-section-map
+  :doc "Keymap for `branch' sections."
+  "<remap> <magit-file-rename>"  #'magit-branch-rename
+  "<remap> <magit-delete-thing>" #'magit-branch-delete
+  "<remap> <magit-visit-thing>"  #'magit-visit-ref
+  "<3>" (magit-menu-item "Rename %s"    #'magit-branch-rename)
+  "<2>" (magit-menu-item "Delete %m"    #'magit-branch-delete)
+  "<1>" (magit-menu-item "Visit commit" #'magit-visit-ref))
 
-(defvar magit-tag-section-map
-  (let ((map (make-sparse-keymap)))
-    (magit-menu-set map [magit-visit-thing]  #'magit-visit-ref  "Visit %s")
-    (magit-menu-set map [magit-delete-thing] #'magit-tag-delete "Delete %m")
-    map)
-  "Keymap for `tag' sections.")
+(defvar-keymap magit-tag-section-map
+  :doc "Keymap for `tag' sections."
+  "<remap> <magit-delete-thing>" #'magit-tag-delete
+  "<remap> <magit-visit-thing>"  #'magit-visit-ref
+  "<2>" (magit-menu-item "Delete %m" #'magit-tag-delete)
+  "<1>" (magit-menu-item "Visit %s"  #'magit-visit-ref))
 
 (defun magit--painted-branch-as-menu-section (section)
   (and-let* ((branch (and (magit-section-match 'commit)
@@ -573,7 +572,12 @@ line is inserted at all."
           (pcase-let ((`(,head-branch ,branch ,ref ,msg)
                        (-replace "" nil (split-string line "\0"))))
             (if head-branch
-                (progn (cl-assert (equal branch (concat remote "/HEAD")))
+                ;; Note: Use `ref' instead of `branch' for the check
+                ;; below because 'refname:short' shortens the remote
+                ;; HEAD to '<remote>' instead of '<remote>/HEAD' as of
+                ;; Git v2.40.0.
+                (progn (cl-assert
+                        (equal ref (concat "refs/remotes/" remote "/HEAD")))
                        (setq head head-branch))
               (when (magit-refs--insert-refname-p branch)
                 (magit-insert-section (branch branch t)

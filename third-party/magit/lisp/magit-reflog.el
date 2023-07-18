@@ -1,6 +1,6 @@
 ;;; magit-reflog.el --- Inspect ref history  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2022 The Magit Project Contributors
+;; Copyright (C) 2008-2023 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
@@ -130,13 +130,11 @@ If `HEAD' is detached, then show the reflog for that instead."
 
 ;;; Mode
 
-(defvar magit-reflog-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map magit-log-mode-map)
-    (define-key map (kbd "C-c C-n") #'undefined)
-    (define-key map (kbd "L")       #'magit-margin-settings)
-    map)
-  "Keymap for `magit-reflog-mode'.")
+(defvar-keymap magit-reflog-mode-map
+  :doc "Keymap for `magit-reflog-mode'."
+  :parent magit-log-mode-map
+  "C-c C-n" #'undefined
+  "L"       #'magit-margin-settings)
 
 (define-derived-mode magit-reflog-mode magit-mode "Magit Reflog"
   "Mode for looking at Git reflog.
@@ -180,6 +178,7 @@ Type \\[magit-reset] to reset `HEAD' to the commit at point.
     ("branch"      . magit-reflog-checkout)
     ("reset"       . magit-reflog-reset)
     ("rebase"      . magit-reflog-rebase)
+    ("rewritten"   . magit-reflog-rebase)
     ("cherry-pick" . magit-reflog-cherry-pick)
     ("initial"     . magit-reflog-commit)
     ("pull"        . magit-reflog-remote)
