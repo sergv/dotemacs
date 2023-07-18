@@ -1,9 +1,8 @@
 ;;; tuareg.el --- OCaml mode  -*- coding: utf-8; lexical-binding:t -*-
 
 ;; Copyright (C) 1997-2006 Albert Cohen, all rights reserved.
-;; Copyright (C) 2011-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2023 Free Software Foundation, Inc.
 ;; Copyright (C) 2009-2010 Jane Street Holding, LLC.
-;; Licensed under the GNU General Public License.
 
 ;; Author: Albert Cohen <Albert.Cohen@inria.fr>
 ;;      Sam Steingold <sds@gnu.org>
@@ -14,19 +13,36 @@
 ;; Maintainer: Christophe Troestler <Christophe.Troestler@umons.ac.be>
 ;;      Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Created: 8 Jan 1997
-;; Version: 2.3.0
-;; Package-Requires: ((emacs "24.4") (caml "4.8"))
+;; Version: 3.0.2-snapshot
+;; Package-Requires: ((emacs "26.3") (caml "4.8"))
 ;; Keywords: ocaml languages
 ;; Homepage: https://github.com/ocaml/tuareg
 ;; EmacsWiki: TuaregMode
 
+;; This file is *NOT* part of GNU Emacs.
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 ;;; Commentary:
+;;
 ;; Tuareg helps editing OCaml code, to highlight important parts of
 ;; the code, to run an OCaml REPL, and to run the OCaml debugger
 ;; within Emacs.
 ;; See https://github.com/ocaml/tuareg for customization tips.
 
 ;;; Installation:
+;;
 ;; If you have permissions to the local `site-lisp' directory, you
 ;; only have to copy `tuareg.el', `ocamldebug.el'
 ;; and `tuareg-site-file.el'.  Otherwise, copy the previous files
@@ -35,11 +51,12 @@
 ;; (add-to-list 'load-path "DIR")
 
 ;;; Usage:
+;;
 ;; Tuareg allows you to run batch OCaml compilations from Emacs (using
 ;; M-x compile) and browse the errors (C-x `). Typing C-x ` sets the
 ;; point at the beginning of the erroneous program fragment, and the
 ;; mark at the end.  Under Emacs, the program fragment is temporarily
-;; hilighted.
+;; highlighted.
 ;;
 ;; M-x tuareg-run-ocaml (or simply `run-ocaml') starts an OCaml
 ;; REPL (aka toplevel) with input and output in an Emacs buffer named
@@ -60,18 +77,6 @@
 ;; changes to support XEmacs, Tuareg and OCaml. Furthermore, package
 ;; `thingatpt' is not required any more.
 
-;; This file is *NOT* part of GNU Emacs.
-
-;; This program is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2 of the License, or
-;; (at your option) any later version.
-
-;; This program is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-;; GNU General Public License for more details.
-
 ;;; Code:
 
 (require 'current-column-fixed)
@@ -80,45 +85,13 @@
 (require 'easymenu)
 (require 'find-file)
 (require 'subr-x)
+(require 'seq)
 (require 'caml-help nil t)
 (require 'caml-types nil t)
 (require 'tuareg-opam)
 (require 'tuareg-compat)
 
 (require 'common-whitespace)
-
-(defconst tuareg-mode-revision
-  (eval-when-compile
-    (with-temp-buffer
-      (if (file-directory-p ".git")
-           (progn
-             (insert "git: ")
-             (call-process "git" nil t nil "log" "--pretty=%h" "-1")))
-      (unless (zerop (buffer-size))
-        (buffer-substring-no-properties
-         (point-min) (1- (point-max))))))
-  "Tuareg revision from the control system used.")
-
-(defconst tuareg-mode-version
-  (let ((version "Tuareg Version 2.2.0"))
-    (if (null tuareg-mode-revision)
-        version
-      (concat version " (" tuareg-mode-revision ")")
-      ))
-  "         Copyright (C) 1997-2006 Albert Cohen, all rights reserved.
-         Copyright (C) 2009-2010 Jane Street Holding, LLC.
-         Copyright (C) 2011- Stefan Monnier & Christophe Troestler
-         Copying is covered by the GNU General Public License.
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-    GNU General Public License for more details.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                      Compatibility functions
@@ -155,7 +128,7 @@
 ;; Indentation defaults
 
 (defcustom tuareg-default-indent 2
-  "*Default indentation.
+  "Default indentation.
 
 Global indentation variable (large values may lead to indentation overflows).
 When no governing keyword is found, this value is used to indent the line
@@ -163,7 +136,7 @@ if it has to."
   :group 'tuareg :type 'integer)
 
 (defcustom tuareg-support-camllight nil
-  "*If true, handle Caml Light character syntax (incompatible with labels)."
+  "If true, handle Caml Light character syntax (incompatible with labels)."
   :group 'tuareg :type 'boolean
   :set (lambda (var val)
          (set-default var val)
@@ -172,7 +145,7 @@ if it has to."
                                 tuareg-mode-syntax-table))))
 
 (defcustom tuareg-support-metaocaml nil
-  "*If true, handle MetaOCaml syntax."
+  "If true, handle MetaOCaml syntax."
   :group 'tuareg :type 'boolean
   :set (lambda (var val)
          (set-default var val)
@@ -183,27 +156,27 @@ if it has to."
                  (tuareg--install-font-lock)))))))
 
 (defcustom tuareg-in-indent 0 ; tuareg-default-indent
-  "*How many spaces to indent from a `in' keyword.
-Upstream <http://caml.inria.fr/resources/doc/guides/guidelines.en.html>
+  "How many spaces to indent from a `in' keyword.
+Upstream <https://ocaml.org/docs/guidelines>
 recommends 0, and this is what we default to since 2.0.1
 instead of the historical `tuareg-default-indent'."
   :group 'tuareg :type 'integer)
 
 (defcustom tuareg-with-indent 0
-  "*How many spaces to indent from a `with' keyword.
-The examples at <http://caml.inria.fr/resources/doc/guides/guidelines.en.html>
-show the '|' is aligned with 'match', thus 0 is the default value."
+  "How many spaces to indent from a `with' keyword.
+The examples at <https://ocaml.org/docs/guidelines>
+show the `|' is aligned with `match', thus 0 is the default value."
   :group 'tuareg :type 'integer)
 
 (defcustom tuareg-match-clause-indent 1
-  "*How many spaces to indent a clause of match after a pattern `| ... ->'
+  "How many spaces to indent a clause of match after a pattern `| ... ->'
 or `... ->' (pattern without preceding `|' in the first clause of a matching).
-To respect <http://caml.inria.fr/resources/doc/guides/guidelines.en.html>
+To respect <https://ocaml.org/docs/guidelines>
 the default is 1."
   :type 'integer)
 
 (defcustom tuareg-match-when-indent (+ 4 tuareg-match-clause-indent)
-  "*How many spaces from `|' to indent `when' in a pattern match
+  "How many spaces from `|' to indent `when' in a pattern match
    | patt
         when cond ->
       clause"
@@ -235,7 +208,7 @@ with `|', `)', `]`, and `}' are always indented when the
   :group 'tuareg :type 'boolean)
 
 (defcustom tuareg-electric-close-vector t
-  "*Non-nil means electrically insert `|' before a vector-closing `]' or
+  "Non-nil means electrically insert `|' before a vector-closing `]' or
 `>' before an object-closing `}'.
 
 Many people find electric keys irritating, so you can disable them by
@@ -250,8 +223,10 @@ much less efficient."
   :group 'tuareg :type 'boolean)
 
 (defcustom tuareg-other-file-alist
-  '(("\\.\\(?:pp\\.\\)?mli\\'" (".ml" ".mll" ".mly" ".pp.ml"))
-    ("\\.\\(?:pp\\.\\)?ml\\'" (".mli"))
+  '(("\\.pp\\.mli\\'" (".ml" ".mll" ".mly" ".pp.ml"))
+    ("\\.mli\\'" (".ml" ".mll" ".mly" ".pp.ml"))
+    ("\\.pp\\.ml\\'" (".mli"))
+    ("\\.ml\\'" (".mli"))
     ("\\.mll\\'" (".mli"))
     ("\\.mly\\'" (".mli"))
     ("\\.eliomi\\'" (".eliom"))
@@ -266,9 +241,8 @@ See `ff-other-file-alist'."
   :group 'tuareg
   :type 'boolean)
 
-
 (defcustom tuareg-interactive-scroll-to-bottom-on-output nil
-  "*Controls when to scroll to the bottom of the interactive buffer
+  "Controls when to scroll to the bottom of the interactive buffer
 upon evaluating an expression.
 
 See `comint-scroll-to-bottom-on-output' for details."
@@ -282,53 +256,57 @@ See `comint-scroll-to-bottom-on-output' for details."
                  (setq-local comint-scroll-to-bottom-on-output val)))))))
 
 (defcustom tuareg-skip-after-eval-phrase t
-  "*Non-nil means skip to the end of the phrase after evaluation in the
+  "Non-nil means skip to the end of the phrase after evaluation in the
 OCaml REPL."
   :group 'tuareg :type 'boolean)
 
 (defcustom tuareg-interactive-read-only-input nil
-  "*Non-nil means input sent to the OCaml REPL is read-only."
+  "Non-nil means input sent to the OCaml REPL is read-only."
   :group 'tuareg :type 'boolean)
 
 (defcustom tuareg-interactive-echo-phrase t
-  "*Non-nil means echo phrases in the REPL buffer when sending
+  "Non-nil means echo phrases in the REPL buffer when sending
 them to the OCaml REPL."
   :group 'tuareg :type 'boolean)
 
 (defcustom tuareg-interactive-input-font-lock t
-  "*Non nil means Font-Lock for REPL input phrases."
+  "Non nil means Font-Lock for REPL input phrases."
   :group 'tuareg :type 'boolean)
 
 (defcustom tuareg-interactive-output-font-lock t
-  "*Non nil means Font-Lock for REPL output messages."
+  "Non nil means Font-Lock for REPL output messages."
   :group 'tuareg :type 'boolean)
 
 (defcustom tuareg-interactive-error-font-lock t
-  "*Non nil means Font-Lock for REPL error messages."
+  "Non nil means Font-Lock for REPL error messages."
   :group 'tuareg :type 'boolean)
 
 (defcustom tuareg-display-buffer-on-eval t
-  "*Non nil means pop up the OCaml REPL when evaluating code."
+  "Non nil means pop up the OCaml REPL when evaluating code."
   :group 'tuareg :type 'boolean)
 
 (defcustom tuareg-manual-url
-  "http://caml.inria.fr/pub/docs/manual-ocaml/"
-  "*URL to the OCaml reference manual."
+  "https://v2.ocaml.org/manual/"
+  "URL to the OCaml reference manual."
   :group 'tuareg :type 'string)
 
-(defcustom tuareg-browser 'browse-url
-  "*Name of function that displays the OCaml reference manual.
+(defcustom tuareg-browser #'browse-url
+  "Name of function that displays the OCaml reference manual.
 Valid names are `browse-url', `browse-url-firefox', etc."
   :group 'tuareg :type 'function)
 
 (defcustom tuareg-library-path "/usr/local/lib/ocaml/"
-  "*Path to the OCaml library."
+  "Name of directory holding the OCaml library."
   :group 'tuareg :type 'string)
+
+(defcustom tuareg-mode-line-other-file nil
+  "If non-nil, display the (extension of the) alternative file in mode line."
+  :type 'boolean)
 
 (defvar tuareg-options-list
   `(["Prettify symbols" prettify-symbols-mode
       :style toggle :selected prettify-symbols-mode :active t])
-  "*List of menu-configurable Tuareg options.")
+  "List of menu-configurable Tuareg options.")
 
 (defvar tuareg-interactive-options-list
   '(("Skip phrase after evaluation" . 'tuareg-skip-after-eval-phrase)
@@ -339,10 +317,10 @@ Valid names are `browse-url', `browse-url-firefox', etc."
     ("Font-lock interactive error" . 'tuareg-interactive-error-font-lock)
     "---"
     ("Read only input" . 'tuareg-interactive-read-only-input))
-  "*List of menu-configurable Tuareg options.")
+  "List of menu-configurable Tuareg options.")
 
 (defvar tuareg-interactive-program "ocaml -nopromptcont"
-  "*Default program name for invoking an OCaml REPL (aka toplevel) from Emacs.")
+  "Default program name for invoking an OCaml REPL (aka toplevel) from Emacs.")
 ;; Could be interesting to have this variable buffer-local
 ;;   (e.g., ocaml vs. metaocaml buffers)
 ;; (make-variable-buffer-local 'tuareg-interactive-program)
@@ -351,14 +329,17 @@ Valid names are `browse-url', `browse-url-firefox', etc."
   "Special faces for the Tuareg mode."
   :group 'tuareg)
 
+(defmacro tuareg--obsolete-face-var (name)
+  `(progn (defvar ,name ',name)
+          (make-obsolete-variable ',name "use the face instead" "2023")))
+
 (defface tuareg-font-lock-governing-face
   '((((class color) (type tty)) (:bold t))
     (((background light)) (:foreground "black" :bold t))
     (t (:foreground "wheat" :bold t)))
   "Face description for governing/leading keywords."
   :group 'tuareg-faces)
-(defvar tuareg-font-lock-governing-face
-  'tuareg-font-lock-governing-face)
+(tuareg--obsolete-face-var tuareg-font-lock-governing-face)
 
 (defface tuareg-font-lock-multistage-face
   '((((background light))
@@ -366,59 +347,50 @@ Valid names are `browse-url', `browse-url-firefox', etc."
     (t (:foreground "steelblue" :background "darkgray" :bold t)))
   "Face description for MetaOCaml staging operators."
   :group 'tuareg-faces)
-(defvar tuareg-font-lock-multistage-face
-  'tuareg-font-lock-multistage-face)
-
+(tuareg--obsolete-face-var tuareg-font-lock-multistage-face)
 (defface tuareg-font-lock-line-number-face
   '((((background light)) (:foreground "dark gray"))
     (t (:foreground "gray60")))
   "Face description for line numbering directives."
   :group 'tuareg-faces)
-(defvar tuareg-font-lock-line-number-face
-  'tuareg-font-lock-line-number-face)
+(tuareg--obsolete-face-var tuareg-font-lock-line-number-face)
 
 (defface tuareg-font-lock-operator-face
   '((((background light)) (:foreground "brown"))
     (t (:foreground "khaki")))
   "Face description for all operators."
   :group 'tuareg-faces)
-(defvar tuareg-font-lock-operator-face
-  'tuareg-font-lock-operator-face)
+(tuareg--obsolete-face-var tuareg-font-lock-operator-face)
 
 (defface tuareg-font-lock-module-face
   '((t (:inherit font-lock-type-face))); backward compatibility
   "Face description for modules and module paths."
   :group 'tuareg-faces)
-(defvar tuareg-font-lock-module-face
-  'tuareg-font-lock-module-face)
+(tuareg--obsolete-face-var tuareg-font-lock-module-face)
 
 (defface tuareg-font-lock-constructor-face
-  '((t (:inherit default)))
+  '((t (:inherit default)))             ;FIXME: Why not just nil?
   "Face description for constructors of (polymorphic) variants and exceptions."
   :group 'tuareg-faces)
-(defvar tuareg-font-lock-constructor-face
-  'tuareg-font-lock-constructor-face)
+(tuareg--obsolete-face-var tuareg-font-lock-constructor-face)
 
 (defface tuareg-font-lock-label-face
   '((t (:inherit font-lock-constant-face keep)))
   "Face description for labels."
   :group 'tuareg-faces)
-(defvar tuareg-font-lock-label-face
-  'tuareg-font-lock-label-face)
+(tuareg--obsolete-face-var tuareg-font-lock-label-face)
 
 (defface tuareg-font-double-semicolon-face
   '((t (:foreground "OrangeRed")))
   "Face description for ;; which is not needed in standard code."
   :group 'tuareg-faces)
-(defvar tuareg-font-double-semicolon-face
-  'tuareg-font-double-semicolon-face)
+(tuareg--obsolete-face-var tuareg-font-double-semicolon-face)
 
 (defface tuareg-font-lock-error-face
   '((t (:foreground "yellow" :background "red" :bold t)))
   "Face description for all errors reported to the source."
   :group 'tuareg-faces)
-(defvar tuareg-font-lock-error-face
-  'tuareg-font-lock-error-face)
+(tuareg--obsolete-face-var tuareg-font-lock-error-face)
 
 (defface tuareg-font-lock-interactive-output-face
   '((((background light))
@@ -426,37 +398,32 @@ Valid names are `browse-url', `browse-url-firefox', etc."
     (t (:foreground "grey")))
   "Face description for all outputs in the REPL."
   :group 'tuareg-faces)
-(defvar tuareg-font-lock-interactive-output-face
-  'tuareg-font-lock-interactive-output-face)
+(tuareg--obsolete-face-var tuareg-font-lock-interactive-output-face)
 
 (defface tuareg-font-lock-interactive-error-face
   '((t :inherit font-lock-warning-face))
   "Face description for all REPL errors."
   :group 'tuareg-faces)
-(defvar tuareg-font-lock-interactive-error-face
-  'tuareg-font-lock-interactive-error-face)
+(tuareg--obsolete-face-var tuareg-font-lock-interactive-error-face)
 
 (defface tuareg-font-lock-interactive-directive-face
   '((((background light)) (:foreground "slate gray"))
     (t (:foreground "light slate gray")))
   "Face description for all REPL directives such as #load."
   :group 'tuareg-faces)
-(defvar tuareg-font-lock-interactive-directive-face
-  'tuareg-font-lock-interactive-directive-face)
+(tuareg--obsolete-face-var tuareg-font-lock-interactive-directive-face)
 
 (defface tuareg-font-lock-attribute-face
   '((t :inherit font-lock-preprocessor-face))
   "Face description for OCaml attribute annotations."
   :group 'tuareg-faces)
-(defvar tuareg-font-lock-attribute-face
-  'tuareg-font-lock-attribute-face)
+(tuareg--obsolete-face-var tuareg-font-lock-attribute-face)
 
 (defface tuareg-font-lock-infix-extension-node-face
   '((t :inherit font-lock-preprocessor-face))
   "Face description for OCaml the infix extension node."
   :group 'tuareg-faces)
-(defvar tuareg-font-lock-infix-extension-node-face
-  'tuareg-font-lock-infix-extension-node-face)
+(tuareg--obsolete-face-var tuareg-font-lock-infix-extension-node-face)
 
 (defface tuareg-font-lock-extension-node-face
   '((default :inherit tuareg-font-lock-infix-extension-node-face)
@@ -464,8 +431,7 @@ Valid names are `browse-url', `browse-url-firefox', etc."
     (t :background "gray92"))
   "Face description for OCaml extension nodes."
   :group 'tuareg-faces)
-(defvar tuareg-font-lock-extension-node-face
-  'tuareg-font-lock-extension-node-face)
+(tuareg--obsolete-face-var tuareg-font-lock-extension-node-face)
 
 (defface tuareg-font-lock-doc-markup-face
   `((t :inherit ,(if (facep 'font-lock-doc-markup-face)
@@ -517,7 +483,7 @@ Valid names are `browse-url', `browse-url-firefox', etc."
 ;; Originally by Stefan Monnier
 
 (defcustom tuareg-font-lock-symbols nil
-  "*Display fun and -> and such using symbols in fonts.
+  "Display fun and -> and such using symbols in fonts.
 This may sound like a neat trick, but note that it can change the
 alignment and can thus lead to surprises.  On recent Emacs >= 24.4,
 use `prettify-symbols-mode'."
@@ -537,6 +503,7 @@ do not perturb in essential ways the alignment are used.  See
 
 (defvar tuareg-prettify-symbols-basic-alist
   `(("sqrt" . ?√)
+    ("cbrt" . ?∛)
     ("&&" . ?∧)        ; 'LOGICAL AND' (U+2227)
     ("||" . ?∨)        ; 'LOGICAL OR' (U+2228)
     ("+." . ?∔)        ;DOT PLUS (U+2214)
@@ -544,6 +511,18 @@ do not perturb in essential ways the alignment are used.  See
     ;;("*." . ?×)
     ("*." . ?∙)   ; BULLET OPERATOR
     ("/." . ?÷)
+    ("+:" . "̈+"); (⨥ ＋ ➕ ⨁ ⨢)
+    ("-:" . "̈－"); COMBINING DIAERESIS ̈-  (⨪ － ➖)
+    ("*:" .  "̈∙"); (⨱ ＊ ✕ ✖ ⁑ ◦ ⨰ ⦿ ⨀ ⨂)
+    ("/:" . "̈÷"); (➗)
+    ("+^" . ?⨣)
+    ("-^" . "̂－") ; COMBINING CIRCUMFLEX ACCENT
+    ("*^" . "̂∙")
+    ("/^" . "̂÷")
+    ("+~" . ?⨤)
+    ("-~" . "̃－") ; COMBINING TILDE
+    ("*~" . "̃∙")
+    ("/~" . "̃÷")
     ("<-" . ?←)
     ("<=" . ?≤)
     (">=" . ?≥)
@@ -622,7 +601,9 @@ Regexp match data 0 points to the chars."
                            tuareg-prettify-symbols-extra-alist)
                  tuareg-prettify-symbols-basic-alist)))
     (dolist (x alist)
-      (when (and (char-displayable-p (cdr x))
+      (when (and (or (and (number-or-marker-p (cdr x))
+                          (char-displayable-p (cdr x)))
+                     (seq-every-p #'char-displayable-p (cdr x)))
                  (not (assoc (car x) alist))) ; not yet in alist.
         (push x alist)))
     (when alist
@@ -636,7 +617,7 @@ Regexp match data 0 points to the chars."
     (modify-syntax-entry ?# "." st)
     (modify-syntax-entry ?? ". p" st)
     (modify-syntax-entry ?~ ". p" st)
-    ;; See http://caml.inria.fr/pub/docs/manual-ocaml/lex.html.
+    ;; See https://v2.ocaml.org/manual/lex.html.
     (dolist (c '(?! ?$ ?% ?& ?+ ?- ?/ ?: ?< ?= ?> ?@ ?^ ?|))
       (modify-syntax-entry c "." st))
     (modify-syntax-entry ?' "_" st) ; ' is part of symbols (for primes).
@@ -701,7 +682,7 @@ Regexp match data 0 points to the chars."
                               'syntax-table (string-to-syntax "|"))))
         (`?\{
          ;; We're inside a quoted string
-         ;; http://caml.inria.fr/pub/docs/manual-ocaml/extn.html#sec244
+         ;; https://v2.ocaml.org/manual/extn.html#sec244
          (let ((id (save-excursion
                      (goto-char (1+ (nth 8 ppss)))
                      (buffer-substring (point)
@@ -733,8 +714,12 @@ delimiting the region of interest. "
                       ,@body))
                 body)))
         (push re regexps)
-        (push `((match-beginning ,group-number) . ,clause-body)
-              clauses)
+        ;; We can just omit empty clauses since the conditions are
+        ;; mutually exclusive by construction (and the value of the
+        ;; clause bodies are ignored).
+        (when body
+          (push `((match-beginning ,group-number) . ,clause-body)
+                clauses))
         (setq group-number (+ group-number 1 re-ngroups))))
     (let ((combined-re (mapconcat (lambda (re) (concat "\\(" re "\\)"))
                                   (nreverse regexps) "\\|"))
@@ -874,14 +859,14 @@ delimiting the region of interest. "
 (defun tuareg-font-lock-syntactic-face-function (state)
   "`font-lock-syntactic-face-function' for Tuareg."
   (if (nth 3 state)
-      font-lock-string-face
+      'font-lock-string-face
     (let ((start (nth 8 state)))
       (if (and (> (point-max) (+ start 2))
                (eq (char-after (+ start 2)) ?*)
                (not (eq (char-after (+ start 3)) ?*)))
           ;; This is a documentation comment
           (tuareg-fontify-doc-comment state)
-        font-lock-comment-face))))
+        'font-lock-comment-face))))
 
 ;; Initially empty, set in `tuareg--install-font-lock-1'
 (defvar tuareg-font-lock-keywords ()
@@ -987,102 +972,102 @@ for the interactive mode."
          ;; font-lock rules common to all levels
          (common-keywords
           `(("^#[0-9]+ *\\(?:\"[^\"]+\"\\)?"
-             0 tuareg-font-lock-line-number-face t)
+             0 'tuareg-font-lock-line-number-face t)
             ;; cppo
             (,(concat "^ *#"
                       (regexp-opt '("define" "undef" "if" "ifdef" "ifndef"
                                     "else" "elif" "endif" "include"
                                     "warning" "error" "ext" "endext")
                                   'symbols))
-             . font-lock-preprocessor-face)
+             (0 'font-lock-preprocessor-face))
             ;; Directives
             ,@(if interactive-p
                   `((,(concat "^# +\\(#" lid "\\)")
-                     1 tuareg-font-lock-interactive-directive-face)
+                     1 'tuareg-font-lock-interactive-directive-face)
                     (,(concat "^ *\\(#" lid "\\)")
-                     1 tuareg-font-lock-interactive-directive-face))
+                     1 'tuareg-font-lock-interactive-directive-face))
                 `((,(concat "^\\(#" lid "\\)")
-                   . tuareg-font-lock-interactive-directive-face)))
+                   (0 'tuareg-font-lock-interactive-directive-face))))
             (,(concat (if interactive-p "^ *#\\(?: +#\\)?" "^#")
                       "show\\(?:_module\\)? +\\(" uid "\\)")
-             1 tuareg-font-lock-module-face)
-            (";;+" 0 tuareg-font-double-semicolon-face)
+             1 'tuareg-font-lock-module-face)
+            (";;+" 0 'tuareg-font-double-semicolon-face)
             ;; Attributes (`keep' to highlight except strings & chars)
             (,(concat "\\[@\\(?:@@?\\)?" attr-id balanced-brackets "\\]")
-             0 tuareg-font-lock-attribute-face keep)
+             0 'tuareg-font-lock-attribute-face keep)
             ;; Extension nodes.
             (,(concat "\\(\\[%%?" attr-id "\\)" balanced-brackets "\\(\\]\\)")
-             (1 tuareg-font-lock-extension-node-face)
-             (2 tuareg-font-lock-extension-node-face))
+             (1 'tuareg-font-lock-extension-node-face)
+             (2 'tuareg-font-lock-extension-node-face))
             (,(concat "[^;];\\(" maybe-infix-extension "\\)")
-             1 tuareg-font-lock-infix-extension-node-face)
+             1 'tuareg-font-lock-infix-extension-node-face)
             (,(concat "\\_<\\(function\\)\\_>\\(" maybe-infix-ext+attr "\\)"
                       tuareg--whitespace-re "\\(" lid "\\)?")
-             (1 font-lock-keyword-face)
-             (2 tuareg-font-lock-infix-extension-node-face keep)
-             (3 font-lock-variable-name-face nil t))
+             (1 'font-lock-keyword-face)
+             (2 'tuareg-font-lock-infix-extension-node-face keep)
+             (3 'font-lock-variable-name-face nil t))
             (,(concat "\\_<\\(fun\\|match\\)\\_>\\(" maybe-infix-ext+attr "\\)")
-             (1 font-lock-keyword-face)
-             (2 tuareg-font-lock-infix-extension-node-face keep))
+             (1 'font-lock-keyword-face)
+             (2 'tuareg-font-lock-infix-extension-node-face keep))
             ;; "type" to introduce a local abstract type considered a keyword
             (,(concat "( *\\(type\\) +\\(" lid " *\\)+)")
-             (1 font-lock-keyword-face)
-             (2 font-lock-type-face))
+             (1 'font-lock-keyword-face)
+             (2 'font-lock-type-face))
             (":[\n]? *\\(\\<type\\>\\)"
-             (1 font-lock-keyword-face))
+             (1 'font-lock-keyword-face))
             ;; (lid: t), before function definitions
             (,(concat "(" lid " *:\\(['_A-Za-z]"
                       balanced-braces-no-string "\\))")
-             1 font-lock-type-face keep)
+             1 'font-lock-type-face keep)
             ;; "module type of" module-expr (here "of" is a governing
             ;; keyword).  Must be before the modules highlighting.
             (,(concat "\\<\\(module +type +of\\)\\>\\(?: +\\("
                       module-path "\\)\\)?")
-             (1 tuareg-font-lock-governing-face keep)
-             (2 tuareg-font-lock-module-face keep t))
+             (1 'tuareg-font-lock-governing-face keep)
+             (2 'tuareg-font-lock-module-face keep t))
             ;; First class modules.  In these contexts, "val" and "module"
             ;; are not considered as "governing" (main structure of the code).
             (,(concat "( *\\(module\\) +\\(" module-path "\\) *\\(?:: *\\("
                       balanced-braces-no-string "\\)\\)?)")
-             (1 font-lock-keyword-face)
-             (2 tuareg-font-lock-module-face)
-             (3 tuareg-font-lock-module-face keep t))
+             (1 'font-lock-keyword-face)
+             (2 'tuareg-font-lock-module-face)
+             (3 'tuareg-font-lock-module-face keep t))
             (,(concat "( *\\(val\\) +\\("
                       balanced-braces-no-end-operator "\\): +\\("
                       balanced-braces-no-string "\\))")
-             (1 font-lock-keyword-face)
-             (2 tuareg-font-lock-module-face)
-             (3 tuareg-font-lock-module-face))
+             (1 'font-lock-keyword-face)
+             (2 'tuareg-font-lock-module-face)
+             (3 'tuareg-font-lock-module-face))
             (,(concat "\\_<\\(module\\)\\(" maybe-infix-ext+attr "\\)"
                       "\\(\\(?: +type\\)?\\(?: +rec\\)?\\)\\>\\(?: *\\("
                       uid "\\)\\)?")
-             (1 tuareg-font-lock-governing-face)
-             (2 tuareg-font-lock-infix-extension-node-face)
-             (3 tuareg-font-lock-governing-face)
-             (4 tuareg-font-lock-module-face keep t))
+             (1 'tuareg-font-lock-governing-face)
+             (2 'tuareg-font-lock-infix-extension-node-face)
+             (3 'tuareg-font-lock-governing-face)
+             (4 'tuareg-font-lock-module-face keep t))
             ("\\_<let +exception\\_>" . tuareg-font-lock-governing-face)
             (,(concat (regexp-opt '("sig" "struct" "functor" "inherit"
                                     "initializer" "object" "begin")
                                   'symbols)
                       "\\(" maybe-infix-ext+attr "\\)")
-             (1 tuareg-font-lock-governing-face)
-             (2 tuareg-font-lock-infix-extension-node-face keep))
+             (1 'tuareg-font-lock-governing-face)
+             (2 'tuareg-font-lock-infix-extension-node-face keep))
             (,(regexp-opt '("constraint" "in" "end") 'symbols)
-             . tuareg-font-lock-governing-face)
+             (0 'tuareg-font-lock-governing-face))
             ,@(if (tuareg-editing-ls3)
                   `((,(concat "\\<\\(let[ \t]+" let-ls3 "\\)\\>")
-                     . tuareg-font-lock-governing-face)))
+                     (0 'tuareg-font-lock-governing-face))))
             ;; "with type": "with" treated as a governing keyword
             (,(concat "\\<\\(\\(?:with\\|and\\) +type\\(?: +nonrec\\)?\\_>\\) *"
                       "\\(" typeconstr "\\)?")
-             (1 tuareg-font-lock-governing-face keep)
-             (2 font-lock-type-face keep t))
+             (1 'tuareg-font-lock-governing-face keep)
+             (2 'font-lock-type-face keep t))
             (,(concat "\\<\\(\\(?:with\\|and\\) +module\\>\\) *\\(?:\\("
                       module-path "\\) *\\)?\\(?:= *\\("
                       extended-module-path "\\)\\)?")
-             (1 tuareg-font-lock-governing-face keep)
-             (2 tuareg-font-lock-module-face keep t)
-             (3 tuareg-font-lock-module-face keep t))
+             (1 'tuareg-font-lock-governing-face keep)
+             (2 'tuareg-font-lock-module-face keep t)
+             (3 'tuareg-font-lock-module-face keep t))
             ;; "!", "mutable", "virtual" treated as governing keywords
             (,(concat "\\<\\(\\(?:val\\(" maybe-infix-ext+attr "\\)"
                       (if (tuareg-editing-ls3) "\\|reset\\|do")
@@ -1090,25 +1075,25 @@ for the interactive mode."
                       "\\|virtual\\(?: +mutable\\)?\\_>\\)"
                       "\\|val!\\(" maybe-infix-ext+attr "\\)\\)"
                       "\\(?: *\\(" lid "\\)\\)?")
-             (2 tuareg-font-lock-infix-extension-node-face keep t)
-             (3 tuareg-font-lock-infix-extension-node-face keep t)
-             (1 tuareg-font-lock-governing-face keep t)
-             (4 font-lock-variable-name-face nil t))
+             (2 'tuareg-font-lock-infix-extension-node-face keep t)
+             (3 'tuareg-font-lock-infix-extension-node-face keep t)
+             (1 'tuareg-font-lock-governing-face keep t)
+             (4 'font-lock-variable-name-face nil t))
             ;; "val" without "!", "mutable" or "virtual"
             (,(concat "\\_<\\(val\\)\\_>\\(" maybe-infix-ext+attr "\\)"
                       "\\(?: +\\(" lid "\\)\\)?")
-             (1 tuareg-font-lock-governing-face keep)
-             (2 tuareg-font-lock-infix-extension-node-face keep)
-             (3 font-lock-function-name-face keep t))
+             (1 'tuareg-font-lock-governing-face keep)
+             (2 'tuareg-font-lock-infix-extension-node-face keep)
+             (3 'font-lock-function-name-face keep t))
             ;; "private" treated as governing keyword
             (,(concat "\\(\\<method!?\\(?: +\\(?:private\\(?: +virtual\\)?"
                       "\\|virtual\\(?: +private\\)?\\)\\)?\\>\\)"
                       " *\\(" lid "\\)?")
-             (1 tuareg-font-lock-governing-face keep t)
-             (2 font-lock-function-name-face keep t)); method name
+             (1 'tuareg-font-lock-governing-face keep t)
+             (2 'font-lock-function-name-face keep t)); method name
             (,(concat "\\<\\(open\\(?:! +\\|\\> *\\)\\)\\(" module-path "\\)?")
-             (1 tuareg-font-lock-governing-face)
-             (2 tuareg-font-lock-module-face keep t))
+             (1 'tuareg-font-lock-governing-face)
+             (2 'tuareg-font-lock-module-face keep t))
             ;; (expr: t) and (expr :> t) If `t' is longer then one
             ;; word, require a space before.  Not only this is more
             ;; readable but it also avoids that `~label:expr var` is
@@ -1120,54 +1105,54 @@ for the interactive mode."
                       "\\(['_A-Za-z]" balanced-braces-no-string
                       "\\|(" balanced-braces-no-string ")"
                       balanced-braces-no-string"\\))")
-             1 font-lock-type-face)
+             1 'font-lock-type-face)
             ;; module paths A.B.
             (,(concat module-path "\\.") . tuareg-font-lock-module-face)
             ,@(and tuareg-support-metaocaml
                    '(("[^-@^!*=<>&/%+~?#]\\(\\(?:\\.<\\|\\.~\\|!\\.\\|>\\.\\)+\\)"
-                      1 tuareg-font-lock-multistage-face)))
+                      1 'tuareg-font-lock-multistage-face)))
             ;; External function declaration
             (,(concat "\\_<\\(external\\)\\_>\\(?: +\\(" lid "\\)\\)?")
-             (1 tuareg-font-lock-governing-face)
-             (2 font-lock-function-name-face keep t))
+             (1 'tuareg-font-lock-governing-face)
+             (2 'font-lock-function-name-face keep t))
             ;; Binding operators
             (,(concat "( *\\(\\(?:let\\|and\\)\\_>"
                       binding-operator-char "\\) *)")
-             1 font-lock-function-name-face)
+             1 'font-lock-function-name-face)
             ;; Highlight "let" and function names (their argument
             ;; patterns can then be treated uniformly with variable bindings)
             (,(concat let-binding-g4 " *\\(?:\\(" lid "\\) *"
                       "\\(?:[^ =,:a]\\|a\\(?:[^s]\\|s[^[:space:]]\\)\\)\\)?")
-             (1 tuareg-font-lock-governing-face keep t)
-             (2 tuareg-font-lock-infix-extension-node-face keep t)
-             (3 tuareg-font-lock-governing-face keep t)
-             (4 tuareg-font-lock-governing-face keep t)
-             (5 font-lock-function-name-face keep t))
+             (1 'tuareg-font-lock-governing-face keep t)
+             (2 'tuareg-font-lock-infix-extension-node-face keep t)
+             (3 'tuareg-font-lock-governing-face keep t)
+             (4 'tuareg-font-lock-governing-face keep t)
+             (5 'font-lock-function-name-face keep t))
             (,(concat "\\_<\\(include\\)\\_>\\(?: +\\("
                       extended-module-path "\\|( *"
                       extended-module-path " *: *" balanced-braces " *)\\)\\)?")
-             (1 tuareg-font-lock-governing-face)
-             (2 tuareg-font-lock-module-face keep t))
+             (1 'tuareg-font-lock-governing-face)
+             (2 'tuareg-font-lock-module-face keep t))
             ;; module type A = B
             (,(concat "\\_<\\(module +type\\)\\_>\\(?: +" id
                       " *= *\\(" modtype-path "\\)\\)?")
-             (1 tuareg-font-lock-governing-face)
-             (2 tuareg-font-lock-module-face keep t))
+             (1 'tuareg-font-lock-governing-face)
+             (2 'tuareg-font-lock-module-face keep t))
             ;; "class [params] name"
             (,(concat gclass-gparams "\\(" lid "\\)?")
-             (1 tuareg-font-lock-governing-face keep)
-             (2 font-lock-type-face keep t)
-             (3 font-lock-function-name-face keep t))
+             (1 'tuareg-font-lock-governing-face keep)
+             (2 'font-lock-type-face keep t)
+             (3 'font-lock-function-name-face keep t))
             ;; "type lid" anywhere (e.g. "let f (type t) x =")
             ;; introduces a new type
             (,(concat "\\_<\\(type\\_>\\)\\(" maybe-infix-ext+attr
                       "\\)\\(?: +\\(nonrec\\_>\\)\\)?\\(?:"
                       tuareg--whitespace-re
                       "\\(" typedef "\\)\\)?")
-             (1 tuareg-font-lock-governing-face)
-             (2 tuareg-font-lock-infix-extension-node-face keep)
-             (3 tuareg-font-lock-governing-face keep t)
-             (4 font-lock-type-face keep t))))
+             (1 'tuareg-font-lock-governing-face)
+             (2 'tuareg-font-lock-infix-extension-node-face keep)
+             (3 'tuareg-font-lock-governing-face keep t)
+             (4 'font-lock-type-face keep t))))
          tuareg-font-lock-keywords-1-extra)
     (setq
      tuareg-font-lock-keywords
@@ -1176,8 +1161,8 @@ for the interactive mode."
       `(;; Basic way of matching functions
         (,(concat let-binding-g4 " *\\("
                   lid "\\) *= *\\(fun\\(?:ction\\)?\\)\\>")
-         (5 font-lock-function-name-face)
-         (6 font-lock-keyword-face))
+         (5 'font-lock-function-name-face)
+         (6 'font-lock-keyword-face))
         )))
     (setq
      tuareg-font-lock-keywords-1-extra
@@ -1185,7 +1170,7 @@ for the interactive mode."
                        "__MODULE__" "__POS__" "__LOC_OF__" "__LINE_OF__"
                        "__POS_OF__")
                      'symbols)
-        . font-lock-constant-face)
+        (0 'font-lock-constant-face))
        (,(let ((kwd '("as" "do" "done" "downto" "else" "for" "if"
                       "then" "to" "try" "when" "while" "new"
                       "lazy" "assert" "exception")))
@@ -1193,14 +1178,14 @@ for the interactive mode."
                (progn (push "reset" kwd)  (push "merge" kwd)
                       (push "emit" kwd)  (push "period" kwd)))
            (regexp-opt kwd 'symbols))
-        . font-lock-keyword-face)
+        (0 'font-lock-keyword-face))
        (,(concat "\\_<exception +\\(" uid "\\)")
-        1 tuareg-font-lock-constructor-face)
+        1 'tuareg-font-lock-constructor-face)
        ;; (M: S) -- only color S here (may be "A.T with type t = s")
        (,(concat "( *" uid " *: *\\("
                  modtype-path "\\(?: *\\_<with\\_>"
                  balanced-braces "\\)?\\) *)")
-        1 tuareg-font-lock-module-face keep)
+        1 'tuareg-font-lock-module-face keep)
        ;; module A(B: _)(C: _) : D = E, including "module A : E"
        (,(concat "\\_<module +" uid tuareg--whitespace-re
                  "\\(\\(?:( *" uid " *: *"
@@ -1209,23 +1194,23 @@ for the interactive mode."
                  tuareg--whitespace-re "\\(" modtype-path
                  "\\) *\\)?\\(?:=" tuareg--whitespace-re
                  "\\(" extended-module-path "\\)\\)?")
-        (1 font-lock-variable-name-face keep); functor (module) variable
-        (2 tuareg-font-lock-module-face keep t)
-        (3 tuareg-font-lock-module-face keep t))
+        (1 'font-lock-variable-name-face keep); functor (module) variable
+        (2 'tuareg-font-lock-module-face keep t)
+        (3 'tuareg-font-lock-module-face keep t))
        (,(concat "\\_<functor\\> *( *\\(" uid "\\) *: *\\("
                  modtype-path "\\) *)")
-        (1 font-lock-variable-name-face keep); functor (module) variable
-        (2 tuareg-font-lock-module-face keep))
+        (1 'font-lock-variable-name-face keep); functor (module) variable
+        (2 'tuareg-font-lock-module-face keep))
        ;; Other uses of "with", "mutable", "private", "virtual"
        (,(regexp-opt '("of" "with" "mutable" "private" "virtual") 'symbols)
-        . font-lock-keyword-face)
+        (0 'font-lock-keyword-face))
        ;; labels
        (,(concat "\\([?~]" lid "\\)" tuareg--whitespace-re ":[^:>=]")
-        1 tuareg-font-lock-label-face keep)
+        1 'tuareg-font-lock-label-face keep)
        ;; label in a type signature
        (,(concat "\\(?:->\\|:[^:>=]\\)" tuareg--whitespace-re
                  "\\(" lid "\\)[ \t]*:[^:>=]")
-        1 tuareg-font-lock-label-face keep)
+        1 'tuareg-font-lock-label-face keep)
        ;; Polymorphic variants (take precedence on builtin names)
        (,(concat "`" id) . tuareg-font-lock-constructor-face)
        (,(regexp-opt '("failwith" "failwithf" "exit" "at_exit" "invalid_arg"
@@ -1235,40 +1220,40 @@ for the interactive mode."
                        "Sys_error" "End_of_file" "Division_by_zero"
                        "Sys_blocked_io" "Undefined_recursive_module")
                      'symbols)
-        . font-lock-builtin-face)
+        (0 'font-lock-builtin-face))
        ("\\[[ \t]*\\]" . tuareg-font-lock-constructor-face) ; []
        ("[])a-zA-Z0-9 \t]\\(::\\)[[(a-zA-Z0-9 \t]" ; :: (not not ::…)
-        1 tuareg-font-lock-constructor-face)
+        1 'tuareg-font-lock-constructor-face)
        ;; Constructors
-       (,(concat "\\(" uid "\\)[^.]")  1 tuareg-font-lock-constructor-face)
+       (,(concat "\\(" uid "\\)[^.]")  1 'tuareg-font-lock-constructor-face)
        (,(concat "\\_<let +exception +\\(" uid "\\)")
-        1 tuareg-font-lock-constructor-face)
+        1 'tuareg-font-lock-constructor-face)
        ;; let-bindings (let f : type = fun)
        (,(concat let-binding-g4 " *\\(" lid "\\) *\\(?:: *\\([^=]+\\)\\)?= *"
                  "fun\\(?:ction\\)?\\>")
-        (5 font-lock-function-name-face nil t)
-        (6 font-lock-type-face keep t))
+        (5 'font-lock-function-name-face nil t)
+        (6 'font-lock-type-face keep t))
        ;; let binding variables
        (,(concat "\\(?:" let-binding-g4 "\\|" gclass-gparams "\\)")
         (tuareg--pattern-vars-matcher (tuareg--pattern-pre-form-let) nil
-                                      (0 font-lock-variable-name-face keep))
+                                      (0 'font-lock-variable-name-face keep))
         (tuareg--pattern-maybe-type-matcher nil nil ; def followed by type
-                                            (1 font-lock-type-face keep)))
+                                            (1 'font-lock-type-face keep)))
        (,(concat "\\_<fun\\_>" maybe-infix-ext+attr)
         (tuareg--pattern-vars-matcher (tuareg--pattern-pre-form-fun) nil
-                                      (0 font-lock-variable-name-face keep)))
+                                      (0 'font-lock-variable-name-face keep)))
        (,(concat "\\_<method!? +\\(" lid "\\)")
-        (1 font-lock-function-name-face keep t); method name
+        (1 'font-lock-function-name-face keep t); method name
         (tuareg--pattern-vars-matcher (tuareg--pattern-pre-form-let) nil
-                                      (0 font-lock-variable-name-face keep))
+                                      (0 'font-lock-variable-name-face keep))
         (tuareg--pattern-maybe-type-matcher nil nil ; method followed by type
-                                            (1 font-lock-type-face keep)))
+                                            (1 'font-lock-type-face keep)))
        (,(concat "\\_<object *(\\(" lid "\\) *\\(?:: *\\("
                  balanced-braces "\\)\\)?)")
-        (1 font-lock-variable-name-face)
-        (2 font-lock-type-face keep t))
+        (1 'font-lock-variable-name-face)
+        (2 'font-lock-type-face keep t))
        (,(concat "\\_<object *( *\\(" typevar "\\|_\\) *)")
-        1 font-lock-type-face)
+        1 'font-lock-type-face)
        ,@(and tuareg-font-lock-symbols
               (tuareg-font-lock-symbols-keywords))))
     (setq
@@ -1281,7 +1266,7 @@ for the interactive mode."
        ;; https://caml.inria.fr/pub/docs/manual-ocaml/lex.html#infix-symbol
        (,(concat "( *\\([-=<>@^|&+*/$%!]" operator-char
                  "*\\|[#?~]" operator-char "+\\) *)")
-        1 font-lock-function-name-face)
+        1 'font-lock-function-name-face)
        ;; By default do no highlight relation operators (=, <, >) nor
        ;; arithmetic operators because it is slow.  However,
        ;; optionally allow it by popular demand.
@@ -1291,19 +1276,19 @@ for the interactive mode."
              `((,(concat before-operator-char
                          "\\([=<>@^&+*/$%!]" operator-char "*\\|:=\\|"
                          "[|#?~]" operator-char "+\\)")
-                1 tuareg-font-lock-operator-face)
+                1 'tuareg-font-lock-operator-face)
                ;; "-" is special: avoid "->" and "-13"
                (,(concat "\\(-\\)\\(?:[^0-9>]\\|\\("
                          operator-char-no> operator-char "*\\)\\)")
-                (1 tuareg-font-lock-operator-face)
-                (2 tuareg-font-lock-operator-face keep t))
+                (1 'tuareg-font-lock-operator-face)
+                (2 'tuareg-font-lock-operator-face keep t))
                (,(regexp-opt '("type" "module" "module type"
                                "val" "val mutable")
                              'symbols)
                 (tuareg--pattern-equal-matcher nil nil nil)))
            `((,(concat "[@^&$%!]" operator-char "*\\|"
                        "[|#?~]" operator-char "+")
-              . tuareg-font-lock-operator-face)))
+              (0 'tuareg-font-lock-operator-face))))
        (,(regexp-opt
           (if (tuareg-editing-ls3)
               '("asr" "asl" "lsr" "lsl" "or" "lor" "and" "land" "lxor"
@@ -1311,7 +1296,7 @@ for the interactive mode."
             '("asr" "asl" "lsr" "lsl" "or" "lor" "land"
               "lxor" "not" "lnot" "mod"))
           'symbols)
-        1 tuareg-font-lock-operator-face)
+        1 'tuareg-font-lock-operator-face)
        ,@tuareg-font-lock-keywords-1-extra)))
   (setq font-lock-defaults
         `((tuareg-font-lock-keywords
@@ -1359,6 +1344,7 @@ It must not be used outside fontification purposes."
            pos)
       (setq tuareg--pattern-matcher-limit nil)
       (while (and
+              (<= (point) limit)
               (setq pos (re-search-forward "[=({:]" limit t))
               (progn
                 (backward-char)
@@ -1398,6 +1384,7 @@ It must not be used outside fontification purposes."
            (limit (+ opoint 800))
            pos)
       (while (and
+              (<= (point) limit)
               (setq pos (re-search-forward "[-({]" limit t))
               (cond
                ((or (char-equal ?\( (char-before))
@@ -1517,6 +1504,7 @@ Run only once."
     (define-key map "\C-c\C-r" #'tuareg-eval-region)
     (define-key map "\C-c\C-b" #'tuareg-eval-buffer)
     (define-key map "\C-c\C-s" #'tuareg-run-ocaml)
+    (define-key map "\C-c\C-z" #'tuareg-switch-to-repl)
     (define-key map "\C-c\C-i" #'tuareg-interrupt-ocaml)
     (define-key map "\C-c\C-k" #'tuareg-kill-ocaml)
     (define-key map "\C-c`" #'tuareg-interactive-next-error-source)
@@ -1676,7 +1664,7 @@ For use on `electric-indent-functions'."
             (mod-constraints (mod-constraints "m-and" mod-constraints)
                              ("w-type" simpledef)
                              ("w-module" simpledef))
-            ;; http://caml.inria.fr/pub/docs/manual-ocaml/expr.html
+            ;; https://v2.ocaml.org/manual/expr.html
             ;; exp1 is "all exps except for `if exp then'".
             (exp1 ("begin" exp "end")
                   ("(" exp:type ")")
@@ -1740,10 +1728,10 @@ For use on `electric-indent-functions'."
             (foo2 ("mutable" id) (foo2 ";" foo2))
             )
           ;; Type precedence rules.
-          ;; http://caml.inria.fr/pub/docs/manual-ocaml/types.html
+          ;; https://v2.ocaml.org/manual/types.html
           '((nonassoc "as") (assoc "t->") (assoc "*…"))
           ;; Pattern precedence rules.
-          ;; http://caml.inria.fr/pub/docs/manual-ocaml/patterns.html
+          ;; https://v2.ocaml.org/manual/patterns.html
           '((nonassoc "as") (assoc "|-or") (assoc ",") (assoc "::"))
           ;; Resolve "{a=(1;b=2)}" vs "{(a=1);(b=2)}".
           '((nonassoc ";") (nonassoc "f="))
@@ -1793,7 +1781,7 @@ For use on `electric-indent-functions'."
       bnfprec2
       (smie-precs->prec2
        ;; Precedence of operators.
-       ;; http://caml.inria.fr/pub/docs/manual-ocaml/expr.html
+       ;; https://v2.ocaml.org/manual/expr.html
        (reverse
         '((nonassoc ".")
           ;; function application, constructor application, assert, lazy
@@ -1927,7 +1915,7 @@ For use on `electric-indent-functions'."
      ((or (member tok '("let" "=" "->"
                         "module" "class" "open" "type" "with" "and"
                         "exception"))
-          ;; http://caml.inria.fr/pub/docs/manual-ocaml/expr.html lists
+          ;; https://v2.ocaml.org/manual/expr.html lists
           ;; the tokens whose precedence is based on their prefix.
           (memq (aref tok 0) '(?* ?/ ?% ?+ ?- ?@ ?^ ?= ?< ?> ?| ?& ?$)))
       ;; When indenting, the movement is mainly backward, so it's OK to make
@@ -2147,7 +2135,7 @@ Return values can be
       (if (tuareg-smie--|-or-p) "|-or" "|"))
      ;; Some infix operators get a precedence based on their prefix, so we
      ;; collapse them into a canonical representative.
-     ;; See http://caml.inria.fr/pub/docs/manual-ocaml/expr.html.
+     ;; See https://v2.ocaml.org/manual/expr.html.
      ((memq (aref tok 0) '(?* ?/ ?% ?+ ?- ?@ ?^ ?= ?< ?> ?| ?& ?$))
       (cond
        ((member tok '("|" "||" "&" "&&" "<-" "->" ">.")) tok)
@@ -2517,7 +2505,7 @@ Return a non-nil value if a comment was skipped."
       nil)))
 
 (defun tuareg--skip-backward-comments-semicolon ()
-  "Skip 'sticky' comments and ';;' after a definition."
+  "Skip `sticky' comments and `;;' after a definition."
   ;; Comments after the definition not separated by a blank like
   ;; ("sticking") are considered part of the definition.
   (when (looking-at-p "[ \t]*(\\*")
@@ -2539,7 +2527,7 @@ Return a non-nil value if a comment was skipped."
       nil)))
 
 (defun tuareg--skip-forward-comments-semicolon ()
-  "Skip ';;' and then 'sticky' comments after a definition."
+  "Skip `;;' and then `sticky' comments after a definition."
   (when (looking-at (rx (* (in " \t\n")) ";;"))
     (goto-char (match-end 0)))
   (while (tuareg--skip-forward-comment)))
@@ -2886,24 +2874,51 @@ This function moves the point."
 (defun tuareg--fill-comment ()
   "Assumes the point is inside a comment and justify it.
 This function moves the point."
-  (let* ((start (set-marker (make-marker) (nth 8 (syntax-ppss))))
-         (end (make-marker))
-         fill-prefix
-         (use-hard-newlines t))
-    (goto-char (marker-position start))
-    (indent-according-to-mode)
-    (setq fill-prefix (make-string (+ 3 (current-column-fixed-uncached)) ?\ ))
-    (forward-comment 1)
-    (set-marker end (point))
-    (goto-char (marker-position start))
-    (let ((e (marker-position end)))
-      (while (re-search-forward "\n\n" e t)
-        (put-text-property (match-beginning 0) (match-end 0) 'hard 't)))
-    (fill-region start end)
-    (remove-text-properties (marker-position start) (marker-position end)
-                            '(hard))
-    (set-marker start nil)
-    (set-marker end nil)))
+  (let* ((com-start (nth 8 (syntax-ppss)))
+         content-start
+         com-end
+         in-doc-comment
+         par-start
+         par-end)
+    (save-excursion
+      (goto-char com-start)
+      (setq content-start (and (looking-at comment-start-skip)
+                               (match-end 0)))
+      (setq in-doc-comment (looking-at-p (rx "(**" (not (in "*")))))
+      (forward-comment 1)
+      (setq com-end (point)))
+
+    ;; In doc comments, let @tags start a paragraph.
+    (let ((paragraph-start
+           (if in-doc-comment
+               (concat paragraph-start
+                       "\\|"
+                       (rx (* (in " \t")) "@" (+ (in "a-z")) symbol-end))
+             paragraph-start)))
+      (save-restriction
+        (narrow-to-region content-start com-end)
+        (save-excursion
+          (skip-chars-forward " \t")
+          (backward-paragraph)
+          (skip-chars-forward " \t\n")
+          (setq par-start (point))
+          (forward-paragraph)
+          (setq par-end (point))))
+
+      ;; Set `fill-prefix' to preserve the indentation of the start of the
+      ;; paragraph, assuming that is what the user wants.
+      (let ((fill-prefix
+             (save-excursion
+               (goto-char par-start)
+               (let ((col
+                      (if (and in-doc-comment
+                               (looking-at-p
+                                (rx "@" (+ (in "a-z")) symbol-end)))
+                          ;; Indent two spaces under @tag.
+                          (+ 2 (current-column-fixed-uncached))
+                        (current-column-fixed-uncached))))
+                 (make-string col ?\s)))))
+        (fill-region-as-paragraph par-start par-end)))))
 
 (defun tuareg-indent-phrase ()
   "Depending of the context: justify and indent a comment,
@@ -3122,6 +3137,47 @@ file outside _build? "))
          (t (list here-beg here-end here-beg here-end t))))))
    (t (funcall orig-fun))))
 
+(defun tuareg--indent-line-inside-comment ()
+  "Indent the current line if it is inside a comment."
+  (let ((ppss (syntax-ppss)))
+    (and (nth 4 ppss)
+         (let ((indent-col
+                (save-excursion
+                  (let* ((com-start (nth 8 ppss))
+                         (in-doc-comment
+                          (save-excursion
+                            (goto-char com-start)
+                            (looking-at-p (rx "(**" (not (in "*"))))))
+                         tag-starts-line)
+                    ;; Use the indentation of the previous nonempty line.
+                    ;; If we are in a doc comment and that line
+                    ;; starts with an @tag, and the current line
+                    ;; doesn't, then indent to after the @tag.
+                    (goto-char (max com-start (line-beginning-position)))
+                    (setq tag-starts-line
+                          (and in-doc-comment
+                               (looking-at-p
+                                (rx (* (in " \t"))
+                                    "@" (+ (in "a-z")) symbol-end))))
+                    (skip-chars-backward " \t\n" com-start)
+                    (goto-char (max com-start (line-beginning-position)))
+                    (when (looking-at (rx "(*" (* "*")))
+                      (goto-char (match-end 0)))
+                    (skip-chars-forward " \t")
+                    (when (and in-doc-comment
+                               (not tag-starts-line)
+                               (looking-at-p (rx "@" (+ (in "a-z")) " ")))
+                      (forward-char 2)))
+                  (current-column))))
+           (indent-line-to indent-col)
+           t))))
+
+(defun tuareg--indent-line (orig-fun)
+  (let ((res (funcall orig-fun)))
+    (if (eq res 'noindent)
+        (tuareg--indent-line-inside-comment)
+      res)))
+
 (defun tuareg--common-mode-setup ()
   (setq-local syntax-propertize-function #'tuareg-syntax-propertize)
   (setq-local parse-sexp-ignore-comments t)
@@ -3134,6 +3190,8 @@ file outside _build? "))
     ;; hasn't provided any alternative so far :-(
     (add-function :before (local 'smie--hanging-eolp-function)
                   #'tuareg--hanging-eolp-advice))
+  (add-function :around (local 'indent-line-function)
+                #'tuareg--indent-line)
   (add-hook 'smie-indent-functions #'tuareg-smie--args nil t)
   (add-hook 'smie-indent-functions #'tuareg-smie--inside-string nil t)
   (setq-local add-log-current-defun-function #'tuareg-current-fun-name)
@@ -3168,6 +3226,25 @@ file outside _build? "))
 
 (defvar compilation-error-screen-columns)
 
+(defun tuareg--other-file (filename)
+  "Given a FILENAME \"foo.ml\", return \"foo.mli\" if it exists.
+Return nil otherwise."
+  ;; FIXME: Share code with `tuareg-find-alternate-file'.
+  (when filename
+    (catch 'found
+      (let* ((file-no-ext (file-name-sans-extension filename))
+             (matching-exts
+              (catch 'found
+                (pcase-dolist (`(,rx ,exts) tuareg-other-file-alist)
+                  (when (string-match-p rx filename) (throw 'found exts))))))
+        (dolist (ext matching-exts)
+          (when (file-exists-p (concat file-no-ext ext))
+            (throw 'found (substring ext 1))))))))
+
+(defvar-local tuareg--other-file nil)
+
+(defvar tuareg-mode-name "Tuareg")
+
 ;;;###autoload
 (define-derived-mode tuareg-mode prog-mode "Tuareg"
   "Major mode for editing OCaml code.
@@ -3184,7 +3261,7 @@ You have better byte-compile tuareg.el.
 For customization purposes, you should use `tuareg-mode-hook'
 \(run for every file) or `tuareg-load-hook' (run once) and not patch
 the mode itself.  You should add to your configuration file something like:
-  (add-hook 'tuareg-mode-hook
+  (add-hook \\='tuareg-mode-hook
             (lambda ()
                ... ; your customization code
             ))
@@ -3208,6 +3285,16 @@ Short cuts for the Tuareg mode:
 Short cuts for interactions with the REPL:
 \\{tuareg-interactive-mode-map}"
 
+  (setq mode-name
+        '(tuareg--other-file
+          ;; FIXME: Clicking on the "+mli" should probably jump to the
+          ;; .mli file.
+          ("" tuareg-mode-name "[+" tuareg--other-file "]")
+          tuareg-mode-name))
+  ;; FIXME: Update `tuareg--other-file' every once in a while, e.g. when we
+  ;; save the `.ml' or `.mli' file.
+  (setq tuareg--other-file
+        (if tuareg-mode-line-other-file (tuareg--other-file buffer-file-name)))
   (unless (tuareg--switch-outside-build)
     ;; Initialize the Tuareg menu
     (tuareg-build-menu)
@@ -3445,6 +3532,7 @@ OCaml uses exclusive end-columns but Emacs wants them to be inclusive."
   (let ((map (copy-keymap comint-mode-map)))
     (define-key map "\C-c\C-i" #'tuareg-interrupt-ocaml)
     (define-key map "\C-c\C-k" #'tuareg-kill-ocaml)
+    (define-key map "\C-c\C-z" #'tuareg-switch-to-recent-buffer)
     (define-key map "\C-c`" #'tuareg-interactive-next-error-repl)
     (define-key map "\C-c?" #'tuareg-interactive-next-error-repl)
     (define-key map "\C-m" #'tuareg-interactive-send-input)
@@ -3552,6 +3640,30 @@ which the matched error refers. Return (BEG-POS . END-POS)."
                  'font-lock-face 'tuareg-font-lock-interactive-error-face)))
              )))))))
 
+(defun tuareg-switch-to-repl (eob-p)
+  "Switch to the inferior OCaml process buffer.
+With prefix argument EOB-P, positions cursor at end of buffer."
+  (interactive "P")
+  (let ((repl-buffer (get-buffer tuareg-interactive-buffer-name)))
+    (if (get-buffer-process repl-buffer)
+        (pop-to-buffer repl-buffer)
+      ;; start a new REPL if one is not running already
+      (call-interactively #'tuareg-run-ocaml)))
+  (when eob-p
+    (push-mark)
+    (goto-char (point-max))))
+
+(defun tuareg-switch-to-recent-buffer ()
+  "Switch to the most recently used `tuareg-mode' buffer."
+  (interactive)
+  (let ((recent-ocaml-buffer
+         (cl-find-if (lambda (buf)
+                       (with-current-buffer buf (derived-mode-p 'tuareg-mode)))
+                     (buffer-list))))
+    (if recent-ocaml-buffer
+        (pop-to-buffer recent-ocaml-buffer)
+      (message "Tuareg: No recent Ocaml buffer found."))))
+
 (easy-menu-define
   tuareg-interactive-mode-menu tuareg-interactive-mode-map
   "Tuareg Interactive Mode Menu."
@@ -3562,6 +3674,8 @@ which the matched error refers. Return (BEG-POS . END-POS)."
       :active (comint-check-proc tuareg-interactive-buffer-name)]
      ["Kill OCaml REPL" tuareg-kill-ocaml
       :active (comint-check-proc tuareg-interactive-buffer-name)]
+     ["Switch to Recent Source Buffer" tuareg-switch-to-recent-buffer
+      :active (comint-check-proc tuareg-interactive-buffer-name)]
      ["Evaluate Region" tuareg-eval-region :active (region-active-p)]
      ["Evaluate Phrase" tuareg-eval-phrase t]
      ["Evaluate Buffer" tuareg-eval-buffer t])
@@ -3570,7 +3684,6 @@ which the matched error refers. Return (BEG-POS . END-POS)."
     ("Tuareg Options" ["Dummy" nil t])
     ("Tuareg Interactive Options" ["Dummy" nil t])
     "---"
-    ["About" tuareg-about t]
     ["Help" tuareg-interactive-help t]))
 
 (define-derived-mode tuareg-interactive-mode comint-mode "Tuareg-Interactive"
@@ -3815,12 +3928,35 @@ If the region is active, evaluate all phrases intersecting the region."
     (with-current-buffer tuareg-interactive-buffer-name
       (comint-kill-subjob))))
 
+(defcustom tuareg-kill-ocaml-on-opam-switch t
+    "If t, kill Tuareg subprocesses when the OPAM switch changes.
+If the user changes the OPAM switch using `opam-switch-mode',
+this option asks to kill the subprocesses that are using the old
+switch.
+
+See https://github.com/ProofGeneral/opam-switch-mode
+
+Note: `opam-switch-mode' triggers automatic changes for `exec-path'
+and `process-environment', which are useful to find the `\"ocaml\"'
+binary and that of its subprocesses, in the ambient opam switch.
+
+`opam-switch-mode' is compatible with `tuareg-mode' whatever is
+the value of `tuareg-opam-insinuate'."
+  :type 'boolean)
+
+(defun tuareg--kill-ocaml-on-opam-switch ()
+  "Kill the OCaml toplevel before the opam switch changes.
+This function is for the `opam-switch-mode' hook
+`opam-switch-before-change-opam-switch-hook', which runs just
+before the user changes the opam switch through `opam-switch-mode'."
+  (when tuareg-kill-ocaml-on-opam-switch
+    (tuareg-kill-ocaml)))
+
+(add-hook 'opam-switch-before-change-opam-switch-hook
+          #'tuareg--kill-ocaml-on-opam-switch t)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                               Menu support
-
-(defun tuareg-about ()
-  (interactive)
-  (describe-variable 'tuareg-mode-version))
 
 (defun tuareg-short-cuts ()
   "Short cuts for the Tuareg mode:
@@ -3846,6 +3982,8 @@ Short cuts for interaction within the REPL:
    '("Tuareg"
      ("Interactive Mode"
       ["Run OCaml REPL" tuareg-run-ocaml t]
+      ["Switch to OCaml REPL" tuareg-switch-to-repl
+       :active (comint-check-proc tuareg-interactive-buffer-name)]
       ["Interrupt OCaml REPL" tuareg-interrupt-ocaml
        :active (comint-check-proc tuareg-interactive-buffer-name)]
       ["Kill OCaml REPL" tuareg-kill-ocaml
@@ -3890,7 +4028,6 @@ Short cuts for interaction within the REPL:
      ("Tuareg Options" ["Dummy" nil t])
      ("Tuareg Interactive Options" ["Dummy" nil t])
      "---"
-     ["About" tuareg-about t]
      ["Short Cuts" tuareg-short-cuts]
      ["Help" tuareg-help t]))
   (tuareg-update-options-menu))
@@ -3930,7 +4067,7 @@ Short cuts for interaction within the REPL:
 ;; From M. Quercia
 
 (defun tuareg-browse-manual ()
-  "*Browse OCaml reference manual."
+  "Browse OCaml reference manual."
   (interactive)
   (setq tuareg-manual-url (read-from-minibuffer "URL: " tuareg-manual-url))
   (funcall tuareg-browser tuareg-manual-url))
@@ -3951,7 +4088,7 @@ Short cuts for interaction within the REPL:
   "Browse the OCaml library."
   (interactive)
   (let ((buf-name "*ocaml-library*") (opoint)
-        (dir (read-from-minibuffer "Library path: " tuareg-library-path)))
+        (dir (read-from-minibuffer "Library dir: " tuareg-library-path)))
     (when (and (file-directory-p dir) (file-readable-p dir))
       (setq tuareg-library-path dir)
       ;; List *.ml and *.mli files
@@ -4028,15 +4165,14 @@ See `imenu-create-index-function'."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                      Related files & modes
 
-(eval-when-compile
-  (autoload 'speedbar-add-supported-extension "speedbar")
-  (defvar speedbar-obj-alist))
+(with-eval-after-load 'speedbar
+  (declare-function speedbar-add-supported-extension "speedbar" (extension))
+  (defvar speedbar-obj-alist)
 
-(when (require 'speedbar nil t)
   (speedbar-add-supported-extension
    '(".ml" ".mli" ".mll" ".mly" ".mlp" ".ls"))
-  (push '("\\.mli$" . ".cmi") speedbar-obj-alist)
-  (push '("\\.ml$"  . ".cmo") speedbar-obj-alist))
+  (push '("\\.mli\\'" . ".cmi") speedbar-obj-alist)
+  (push '("\\.ml\\'"  . ".cmo") speedbar-obj-alist))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                             Hooks and Exit
