@@ -7,7 +7,7 @@
 #+texinfo_dir_category: Emacs
 #+texinfo_dir_title: With-Editor: (with-editor).
 #+texinfo_dir_desc: Using the Emacsclient as $EDITOR
-#+subtitle: for version 3.2.0-git
+#+subtitle: for version 3.3.0
 
 #+setupfile: .orgconfig
 
@@ -27,7 +27,7 @@ additional functionality which makes it useful even for end-users, who
 don't use Magit or another package which uses it internally.
 
 #+texinfo: @noindent
-This manual is for With-Editor version 3.2.0-git.
+This manual is for With-Editor version 3.3.0.
 
 #+texinfo: @insertcopying
 :END:
@@ -76,7 +76,7 @@ and we have to add another kludge to find it anyway.
   Note that there also is a nuclear option; setting this variable to
   ~nil~ causes the "sleeping editor" described below to be used even for
   local child processes.  Obviously we don't recommend that you use
-  this except in "emergencies", i.e. before we had a change to add a
+  this except in "emergencies", i.e., before we had a change to add a
   kludge appropriate for you setup.
 
 - Function: with-editor-locate-emacsclient ::
@@ -113,14 +113,14 @@ it receives a signal.
   child process, but by default we do use such a blocking child
   process.
 
-  If you use such a shell (e.g. ~csh~ on FreeBSD, but not Debian), then
+  If you use such a shell (e.g., ~csh~ on FreeBSD, but not Debian), then
   you have to edit this option.  You can either replace ~sh~ with ~bash~
   (and install that), or you can use the older, less performant
   implementation:
 
   #+BEGIN_SRC emacs-lisp
     "sh -c '\
-    echo \"WITH-EDITOR: $$ OPEN $0 IN $(pwd)\"; \
+    echo \"WITH-EDITOR: $$ OPEN $0$1 IN $(pwd)\"; \
     trap \"exit 0\" USR1; \
     trap \"exit 1\" USR2; \
     while true; do sleep 1; done'"
@@ -187,7 +187,7 @@ mode hooks:
   (add-hook 'shell-mode-hook  'with-editor-export-editor)
   (add-hook 'eshell-mode-hook 'with-editor-export-editor)
   (add-hook 'term-exec-hook   'with-editor-export-editor)
-  (add-hook 'vterm-exec-hook  'with-editor-export-editor)
+  (add-hook 'vterm-mode-hook  'with-editor-export-editor)
 #+end_src
 
 Some variants of this function exist; these two forms are equivalent:
@@ -264,7 +264,7 @@ the most likely reason is that someone found yet another way to
 package Emacs (most likely on macOS) without putting the executable on
 ~$PATH~, and we have to add another kludge to find it anyway.
 
-If you are having problems using ~with-editor~, e.g. you cannot commit
+If you are having problems using ~with-editor~, e.g., you cannot commit
 in Magit, then please open a new issue at
 https://github.com/magit/with-editor/issues and provide information
 about your Emacs installation.  Most importantly how did you install
