@@ -1,0 +1,15 @@
+/config.mk
+/docs/*.html
+/docs/*.info
+/docs/*.pdf
+/docs/*.texi
+/docs/dir
+/docs/stats/
+/lisp/*-autoloads.el
+/lisp/*.elc
+
+/docs/transient/
+
+# For ELPA:
+/*-autoloads.el
+/*-pkg.el
