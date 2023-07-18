@@ -132,9 +132,24 @@ for the final key, which may return any value."
 
 (defalias 'ht-update 'ht-update!)
 
+(define-inline ht-update-with! (table key updater &optional default)
+  "Update the value of KEY in TABLE with UPDATER.
+If the value does not exist, do nothing, unless DEFAULT is
+non-nil, in which case act as if the value is DEFAULT.
+
+UPDATER receives one argument, the value, and its return value
+becomes the new value of KEY."
+  (inline-quote
+   (let* ((not-found-symbol (make-symbol "ht--not-found"))
+          (v (gethash ,key ,table
+                      (or ,default not-found-symbol))))
+     (unless (eq v not-found-symbol)
+       (prog1 nil
+         (puthash ,key (funcall ,updater v) ,table))))))
+
 (defun ht-merge (&rest tables)
-  "Crete a new tables that includes all the key-value pairs from TABLES.
-If multiple have tables have the same key, the value in the last
+  "Crete a new table that includes all the key-value pairs from TABLES.
+If multiple tables have the same key, the value in the last
 table is used."
   (let ((merged (ht-create)))
     (mapc (lambda (table) (ht-update! merged table)) tables)
@@ -182,7 +197,7 @@ these variables, then use `ht-map' to avoid warnings."
   (ht-map (lambda (_key value) value) table))
 
 (defun ht-items (table)
-  "Return a list of two-element lists '(key value) from TABLE."
+  "Return a list of two-element lists \\='(key value) from TABLE."
   (declare (side-effect-free t))
   (ht-amap (list key value) table))
 
@@ -199,19 +214,20 @@ variables key and value bound."
 (defun ht-select-keys (table keys)
   "Return a copy of TABLE with only the specified KEYS."
   (declare (side-effect-free t))
-  (let (result)
+  (let ((not-found-symbol (make-symbol "ht--not-found"))
+        result)
     (setq result (make-hash-table :test (hash-table-test table)))
     (dolist (key keys result)
-      (if (not (equal (gethash key table 'key-not-found) 'key-not-found))
+      (if (not (equal (gethash key table not-found-symbol) not-found-symbol))
           (puthash key (gethash key table) result)))))
 
 (defun ht->plist (table)
-  "Return a flat list '(key1 value1 key2 value2...) from TABLE.
+  "Return a flat list \\='(key1 value1 key2 value2...) from TABLE.
 
 Note that hash tables are unordered, so this cannot be an exact
 inverse of `ht<-plist'.  The following is not guaranteed:
 
-\(let ((data '(a b c d)))
+\(let ((data \\='(a b c d)))
   (equalp data
           (ht->plist (ht<-plist data))))"
   (declare (side-effect-free t))
@@ -225,12 +241,12 @@ inverse of `ht<-plist'.  The following is not guaranteed:
   (inline-quote (copy-hash-table ,table)))
 
 (defun ht->alist (table)
-  "Return a list of two-element lists '(key . value) from TABLE.
+  "Return a list of two-element lists \\='(key . value) from TABLE.
 
 Note that hash tables are unordered, so this cannot be an exact
 inverse of `ht<-alist'.  The following is not guaranteed:
 
-\(let ((data '((a . b) (c . d))))
+\(let ((data \\='((a . b) (c . d))))
   (equalp data
           (ht->alist (ht<-alist data))))"
   (declare (side-effect-free t))
@@ -243,7 +259,7 @@ inverse of `ht<-alist'.  The following is not guaranteed:
 (defalias 'ht-p 'hash-table-p)
 
 (define-inline ht-contains? (table key)
-  "Return 't if TABLE contains KEY."
+  "Return \\='t if TABLE contains KEY."
   (declare (side-effect-free t))
   (inline-quote
    (let ((not-found-symbol (make-symbol "ht--not-found")))
@@ -292,7 +308,7 @@ FUNCTION is called with two arguments, KEY and VALUE."
     results))
 
 (defun ht-reject! (function table)
-  "Delete entries from TABLE for which FUNCTION returns a falsy value.
+  "Delete entries from TABLE for which FUNCTION returns non-nil.
 
 FUNCTION is called with two arguments, KEY and VALUE."
   (ht-each
@@ -325,8 +341,11 @@ Does not compare equality predicates."
         (sentinel (make-symbol "ht-sentinel")))
     (and (equal (length keys1) (length keys2))
          (--all?
-          (equal (ht-get table1 it)
-                 (ht-get table2 it sentinel))
+          (if (ht-p (ht-get table1 it))
+              (ht-equal-p (ht-get table1 it)
+                          (ht-get table2 it))
+            (equal (ht-get table1 it)
+                 (ht-get table2 it sentinel)))
           keys1))))
 
 (defalias 'ht-equal-p 'ht-equal?)

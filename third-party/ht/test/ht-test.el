@@ -71,6 +71,23 @@
     (should (equal (ht-get* test-table 1)
                    "alpha"))))
 
+(ert-deftest ht-test-update-with! ()
+  (let ((test-table (ht ("foo" 1))))
+    ;; Do it
+    (ht-update-with! test-table "foo" #'1+)
+    (should
+     (equal (ht-get test-table "foo") 2))
+
+    ;; Keys stay unset
+    (ht-update-with! test-table "bar" #'1+)
+    (should-not
+     (ht-contains? test-table "bar"))
+
+    ;; Default value
+    (ht-update-with! test-table "bar" #'1+ 0)
+    (should
+     (equal (ht-get test-table "bar") 1))))
+
 (ert-deftest ht-test-update ()
   (let ((test-table (ht ("foo" 1))))
     (ht-update test-table (ht ("bar" 2)))
@@ -316,7 +333,12 @@
   (should (not (ht-equal-p (ht (1 2)) (ht (2 2)))))
   ;; Different amount of keys.
   (should (not (ht-equal-p (ht (1 2)) (ht (1 2) (3 4)))))
-  (should (not (ht-equal-p (ht (1 2) (3 4)) (ht (1 2))))))
+  (should (not (ht-equal-p (ht (1 2) (3 4)) (ht (1 2)))))
+  ;; Nested
+  (should (ht-equal-p (ht ("foo" (ht ("bar" "baz"))))
+                      (ht ("foo" (ht ("bar" "baz"))))))
+  (should (ht-equal-p (ht ("foo" (ht ("bar" (ht ("baz" "qux"))))))
+                      (ht ("foo" (ht ("bar" (ht ("baz" "qux")))))))))
 
 (ert-deftest ht-test-two-name-style-predicator ()
   (let ((real-definition (lambda (sym)
