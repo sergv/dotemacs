@@ -1,6 +1,6 @@
 ;;; company-keywords.el --- A company backend for programming language keywords
 
-;; Copyright (C) 2009-2011, 2013-2018, 2020-2021  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011, 2013-2018, 2020-2022  Free Software Foundation, Inc.
 
 ;; Author: Nikolaj Schumacher
 
@@ -105,6 +105,24 @@
      "super" "switch" "synchronized" "template" "this" "throw" "true" "try"
      "typedef" "typeid" "typeof" "ubyte" "ucent" "uint" "ulong" "union"
      "unittest" "ushort" "version" "void" "volatile" "wchar" "while" "with")
+    (elixir-mode
+     ;; from https://hexdocs.pm/elixir/Kernel.html
+     "__CALLER__" "__DIR__" "__ENV__" "__MODULE__" "__STACKTRACE__"
+     "__aliases__" "__block__" "abs" "alias" "alias!" "and" "apply"
+     "binary_part" "binary_slice" "binding" "bit_size" "byte_size" "case" "ceil"
+     "cond" "dbg" "def" "defdelegate" "defexception" "defguard" "defguardp"
+     "defimpl" "defmacro" "defmacrop" "defmodule" "defoverridable" "defp"
+     "defprotocol" "defstruct" "destructure" "div" "elem" "exit" "floor" "fn"
+     "for" "function_exported?" "get_and_update_in" "get_in" "hd" "if" "import"
+     "in" "inspect" "is_atom" "is_binary" "is_bitstring" "is_boolean"
+     "is_exception" "is_float" "is_function" "is_integer" "is_list" "is_map"
+     "is_map_key" "is_nil" "is_number" "is_pid" "is_port" "is_reference"
+     "is_struct" "is_tuple" "length" "macro_exported?" "make_ref" "map_size"
+     "match?" "max" "min" "node" "not" "or" "pop_in" "put_elem" "put_in" "quote"
+     "raise" "receive" "rem" "require" "reraise" "round" "self" "send" "spawn"
+     "spawn_link" "spawn_monitor" "struct" "struct!" "super" "tap" "then"
+     "throw" "tl" "to_charlist" "to_string" "trunc" "try" "tuple_size" "unless"
+     "unquote" "unquote_splicing" "update_in" "use" "var!" "with")
     (erlang-mode
      ;; from https://www.erlang.org/docs/20/reference_manual/introduction.html#id63536
      "after" "and" "andalso" "band" "begin" "bnot" "bor" "bsl" "bsr" "bxor"
@@ -268,6 +286,10 @@
      "print" "private" "protected" "public" "readonly" "require" "require_once"
      "return" "self" "static" "string" "switch" "this" "throw" "trait" "true"
      "try" "unset" "use" "var" "void" "while" "xor" "yield" "yield from")
+    (purescript-mode ;; purescript-font-lock.el
+     "ado" "case" "class" "data" "default" "deriving" "do" "else" "if" "import"
+     "in" "infix" "infixl" "infixr" "instance" "let" "module" "newtype" "of"
+     "then" "type" "where")
     (python-mode
      ;; https://docs.python.org/3/reference/lexical_analysis.html#keywords
      "False" "None" "True" "and" "as" "assert" "break" "class" "continue" "def"
