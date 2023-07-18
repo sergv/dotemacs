@@ -193,15 +193,21 @@ If point was on indentation, it stays in indentation."
 (defvar paredit-indent-region-function #'indent-region)
 (defvar paredit-calculate-indent #'calculate-lisp-indent)
 
-(defun paredit-lisp-single-char-comment-start-at? (pt)
+(defun paredit-lisp-single-char-comment-start-at? (pt margin-only?)
   (and (eq ?\; (char-after pt))
-       (not (eq ?\; (char-after (1+ pt))))
-       (1+ pt)))
+       (if margin-only?
+           (and (not (eq ?\; (char-after (1+ pt))))
+                (1+ pt))
+         (let ((p (1+ pt)))
+           (while (eq ?\; (char-after p))
+             (setf p (1+ p)))
+           p))))
 
 (defvar paredit-comment-start-at-function #'paredit-lisp-single-char-comment-start-at?
-  "Function that takes 1 argument, point and if that position denotes start of comment returns
-another point of where comment contents starts on that line (i.e. skips the comment delimiter).
-Otherwise it should return nil.")
+  "Function that takes 2 arguments:
+
+1. point and if that position denotes start of comment returns another point of where comment contents starts on that line (i.e. skips the comment delimiter). Otherwise it should return nil.
+2. boolean for whether to consider margin comments only (i.e. one-character comments at the end of line)")
 
 (defun paredit-indent-sexp ()
   (funcall paredit-indent-sexp-function))
@@ -720,8 +726,8 @@ Used by `paredit-yank-pop'; for internal paredit use only.")
       (paredit-move-past-close-and-reindent close)
       (funcall if-moved))))
 
-(defun paredit-comment-start-at? (pt)
-  (funcall paredit-comment-start-at-function pt))
+(defun paredit-comment-start-at? (pt margin-only)
+  (funcall paredit-comment-start-at-function pt margin-only))
 
 (defun paredit-find-comment-on-line ()
   "Find a margin comment on the current line.
@@ -733,7 +739,7 @@ If such a comment exists, delete the comment (including all leading
   relative to the start of the line."
   (save-excursion
     (paredit-skip-trailing-whitespace (point-at-eol))
-    (and (paredit-comment-start-at? (point))
+    (and (paredit-comment-start-at? (point) t)
          (not (or (paredit-in-string-p)
                   (paredit-in-char-p)))
          (let* ((start                  ;Move to before the semicolon.
@@ -1293,14 +1299,21 @@ This is expected to be called only in `paredit-comment-dwim'; do not
 (defun paredit-forward-delete-operator (&optional argument kill-flag)
   (let ((state nil)
         (comment-end-pos nil))
-    (cond ((or (consp argument) (eobp))
+    (cond ((consp argument)
            (delete-char +1 kill-flag))
           ((integerp argument)
-           (if (< argument 0)
-               (paredit-backward-delete-operator argument kill-flag)
-             (while (> argument 0)
-               (paredit-forward-delete-operator nil kill-flag)
-               (setq argument (- argument 1)))))
+           (let ((delete-active-region nil))
+             (if (< argument 0)
+                 (paredit-backward-delete-operator argument kill-flag)
+               (while (> argument 0)
+                 (paredit-forward-delete-operator nil kill-flag)
+                 (setq argument (- argument 1))))))
+          ((paredit-delete-active-region-p)
+           (paredit-delete-region (region-beginning) (region-end)))
+          ((paredit-kill-active-region-p)
+           (paredit-kill-region (region-beginning) (region-end)))
+          ((eobp)
+           (delete-char +1))
           ;; Initialize state here, order of conds is important.
           ((paredit-in-string-p (setq state (paredit-current-parse-state)))
            (paredit-forward-delete-in-string kill-flag))
@@ -1325,7 +1338,7 @@ This is expected to be called only in `paredit-comment-dwim'; do not
                 (eq (char-before) (matching-paren (char-after))))
            (delete-char -1 kill-flag) ; Empty list -- delete both
            (delete-char +1 kill-flag))         ;   delimiters.
-          ((setf comment-end-pos (paredit-comment-start-at? (point)))
+          ((setf comment-end-pos (paredit-comment-start-at? (point) t))
            (paredit-forward-delete-comment-start comment-end-pos kill-flag))
           ((eq (char-syntax (char-after)) ?\) )
            (if (paredit-handle-sexp-errors
@@ -1435,15 +1448,22 @@ without regard for delimiter balancing."
 
 (defun paredit-backward-delete-operator (argument kill-flag)
   (let ((state nil))
-    (cond ((or (consp argument) (bobp))
+    (cond ((consp argument)
            ;++ Should this untabify?
            (delete-char -1 kill-flag))
           ((integerp argument)
-           (if (< argument 0)
-               (paredit-forward-delete-operator (- 0 argument) kill-flag)
-             (while (> argument 0)
-               (paredit-backward-delete-operator nil kill-flag)
-               (setq argument (- argument 1)))))
+           (let ((delete-active-region nil))
+             (if (< argument 0)
+                 (paredit-forward-delete-operator (- 0 argument) kill-flag)
+               (while (> argument 0)
+                 (paredit-backward-delete-operator nil kill-flag)
+                 (setq argument (- argument 1))))))
+          ((paredit-delete-active-region-p)
+           (paredit-delete-region (region-beginning) (region-end)))
+          ((paredit-kill-active-region-p)
+           (paredit-kill-region (region-beginning) (region-end)))
+          ((bobp)
+           (delete-char -1))
           ;; Initialize state, order of conds is important.
           ((paredit-in-string-p (setq state (paredit-current-parse-state)))
            (paredit-backward-delete-in-string kill-flag))
@@ -1587,7 +1607,7 @@ In that case, ensure there is at least one space between the
            (paredit-kill-line-in-comment))
           ((save-excursion (paredit-skip-trailing-whitespace (point-at-eol))
                            (or (eolp)
-                               (paredit-comment-start-at? (point))))
+                               (paredit-comment-start-at? (point) nil)))
            ;** Be careful about trailing backslashes.
            (when (paredit-in-char-p)
              (backward-char))
@@ -1708,10 +1728,11 @@ In that case, ensure there is at least one space between the
 ;;; expectations.
 
 (defun paredit-kill-sexps-on-whole-line (beginning)
+  (message "in paredit-kill-sexps-on-whole-line")
   (kill-region beginning
                (or (save-excursion     ; Delete trailing indentation...
                      (paredit-skip-trailing-whitespace)
-                     (and (not (paredit-comment-start-at? (point)))
+                     (and (not (paredit-comment-start-at? (point) nil))
                           (point)))
                    ;; ...or just use the point past the newline, if
                    ;; we encounter a comment.
@@ -1802,6 +1823,7 @@ Also see `paredit-skip-forward-for-kill'."
 (defun paredit-forward-kill-word (&optional argument)
   "Kill a word forward, skipping over intervening delimiters."
   (interactive "p")
+  (setf argument (or argument 1))
   (if (< argument 0)
       (paredit-backward-kill-word (- argument))
     (dotimes (_ argument)
@@ -1811,6 +1833,7 @@ Also see `paredit-skip-forward-for-kill'."
 (defun paredit-backward-kill-word (&optional argument)
   "Kill a word backward, skipping over any intervening delimiters."
   (interactive "p")
+  (setf argument (or argument 1))
   (if (< argument 0)
       (paredit-forward-kill-word (- argument))
     (dotimes (_ argument)
@@ -1848,7 +1871,7 @@ Also see `paredit-skip-forward-for-kill'."
           ((and (not (eq old-state 'comment))
                 (eq new-state 'comment)
                 (setf comment-end-pos
-                      (paredit-comment-start-at? (1- (point)))))
+                      (paredit-comment-start-at? (1- (point)) nil)))
            (goto-char comment-end-pos)
            (paredit-current-parse-state)
            ;;          (parse-partial-sexp (point) (save-excursion
@@ -1867,7 +1890,7 @@ Also see `paredit-skip-forward-for-kill'."
            (copy-region-as-kill (point) (point-at-eol)))
           ((save-excursion (paredit-skip-trailing-whitespace (point-at-eol))
                            (or (eolp)
-                               (paredit-comment-start-at? (point))))
+                               (paredit-comment-start-at? (point) nil)))
            ;** Be careful about trailing backslashes.
            (save-excursion
              (when (paredit-in-char-p)
@@ -1895,7 +1918,7 @@ Also see `paredit-skip-forward-for-kill'."
                              (cond (kill-whole-line
                                     (or (save-excursion
                                           (paredit-skip-trailing-whitespace)
-                                          (and (not (paredit-comment-start-at? (point)))
+                                          (and (not (paredit-comment-start-at? (point) nil))
                                                (point)))
                                         (point-at-eol)))
                                    ((and (not end-of-list-p)
@@ -2021,8 +2044,8 @@ If there are no more S-expressions in this one before the closing
   delimiter, move past that closing delimiter; otherwise, move forward
   past the S-expression following the point."
   (let ((n (or arg 1)))
-    (cond ((< 0 n) (dotimes (i n)       (paredit-move-forward)))
-          ((< n 0) (dotimes (i (- n))   (paredit-move-backward))))))
+    (cond ((< 0 n) (dotimes (_ n)       (paredit-move-forward)))
+          ((< n 0) (dotimes (_ (- n))   (paredit-move-backward))))))
 
 (defun-motion paredit-backward (&optional arg)
   "Move backward an S-expression, or up an S-expression backward.
@@ -2030,8 +2053,8 @@ If there are no more S-expressions in this one before the opening
   delimiter, move past that opening delimiter backward; otherwise, move
   move backward past the S-expression preceding the point."
   (let ((n (or arg 1)))
-    (cond ((< 0 n) (dotimes (i n)       (paredit-move-backward)))
-          ((< n 0) (dotimes (i (- n))   (paredit-move-forward))))))
+    (cond ((< 0 n) (dotimes (_ n)       (paredit-move-backward)))
+          ((< n 0) (dotimes (_ (- n))   (paredit-move-forward))))))
 
 (defun paredit-move-forward ()
   (let ((state (paredit-current-parse-state)))
@@ -2744,7 +2767,7 @@ Automatically reindent the barfed S-expression and the form from which
                      (setq n (+ n 1))))
                  n))))
           (while (progn (paredit-skip-trailing-whitespace)
-                        (paredit-comment-start-at? (point)))
+                        (paredit-comment-start-at? (point) nil))
             (forward-line 1))
           (when (eobp)
             ;++ We'll have deleted the close, but there's no open.
@@ -2829,7 +2852,7 @@ Both must be lists, strings, or atoms; error if there is a mismatch."
          (and (not (eolp))
               (save-excursion
                 (paredit-skip-trailing-whitespace (point-at-eol))
-                (paredit-comment-start-at? (point))))
+                (paredit-comment-start-at? (point) nil)))
          ;; (foo)|(bar) => (foo| bar), not (foo|bar).
          (and (= left-point right-point)
               (not (or (eq ?\  (char-syntax (char-before)))
