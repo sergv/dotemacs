@@ -1,6 +1,6 @@
 ;;; magit-tag.el --- Tag functionality  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2022 The Magit Project Contributors
+;; Copyright (C) 2008-2023 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
@@ -69,7 +69,7 @@ With a prefix argument annotate the tag.
                      (magit-read-branch-or-commit "Place tag on")
                      (let ((args (magit-tag-arguments)))
                        (when current-prefix-arg
-                         (cl-pushnew "--annotate" args))
+                         (cl-pushnew "--annotate" args :test #'equal))
                        args)))
   (magit-run-git-with-editor "tag" args name rev))
 
@@ -81,7 +81,7 @@ to delete those, otherwise prompt for a single tag to be deleted,
 defaulting to the tag at point.
 \n(git tag -d TAGS)"
   (interactive (list (--if-let (magit-region-values 'tag)
-                         (magit-confirm t nil "Delete %i tags" nil it)
+                         (magit-confirm t nil "Delete %d tags" nil it)
                        (let ((helm-comp-read-use-marked t))
                          (magit-read-tag "Delete tag" t)))))
   (magit-run-git "tag" "-d" tags))
@@ -101,12 +101,12 @@ defaulting to the tag at point.
        (message "Same tags exist locally and remotely"))
      (unless (magit-confirm t
                "Delete %s locally"
-               "Delete %i tags locally"
+               "Delete %d tags locally"
                'noabort ltags)
        (setq ltags nil))
      (unless (magit-confirm t
                "Delete %s from remote"
-               "Delete %i tags from remote"
+               "Delete %d tags from remote"
                'noabort rtags)
        (setq rtags nil))
      (list ltags rtags remote)))
@@ -177,7 +177,7 @@ like \"/path/to/foo-bar\"."
           (tag (cond
                 ((not ptag)
                  (read-string "Create first release tag: "
-                              (if (string-match-p "\\`[0-9]" ver)
+                              (if (and ver (string-match-p "\\`[0-9]" ver))
                                   (concat "v" ver)
                                 ver)))
                 (ver

@@ -1,6 +1,6 @@
 ;;; magit-push.el --- Update remote objects and refs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2022 The Magit Project Contributors
+;; Copyright (C) 2008-2023 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
@@ -218,7 +218,7 @@ only available for the part before the colon, or when no colon
 is used."
   (interactive
    (list (magit-read-remote "Push to remote")
-         (magit-completing-read-multiple*
+         (magit-completing-read-multiple
           "Push refspec,s: "
           (cons "HEAD" (magit-list-local-branch-names))
           nil nil nil 'magit-push-refspecs-history)

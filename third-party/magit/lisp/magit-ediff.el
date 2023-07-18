@@ -1,6 +1,6 @@
 ;;; magit-ediff.el --- Ediff extension for Magit  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2022 The Magit Project Contributors
+;; Copyright (C) 2008-2023 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
@@ -58,7 +58,7 @@ invoked using Magit."
 
 (defcustom magit-ediff-dwim-resolve-function #'magit-ediff-resolve-rest
   "The function `magit-ediff-dwim' uses to resolve conflicts."
-  :package-version '(magit . "3.4.0")
+  :package-version '(magit . "4.0.0")
   :group 'magit-ediff
   :type '(choice (const magit-ediff-resolve-rest)
                  (const magit-ediff-resolve-all)
@@ -221,9 +221,11 @@ See info node `(magit) Ediffing' for more information about this
 and alternative commands."
   (interactive (list (magit-read-unmerged-file)))
   (magit-with-toplevel
-    (let* ((revA  (or (magit-name-branch "HEAD")
+    (let* ((dir   (magit-gitdir))
+           (revA  (or (magit-name-branch "HEAD")
                       (magit-commit-p "HEAD")))
-           (revB  (cl-find-if (lambda (head) (file-exists-p (magit-git-dir head)))
+           (revB  (cl-find-if (lambda (head)
+                                (file-exists-p (expand-file-name head dir)))
                               '("MERGE_HEAD" "CHERRY_PICK_HEAD" "REVERT_HEAD")))
            (revB  (or (magit-name-branch revB)
                       (magit-commit-p revB)))
