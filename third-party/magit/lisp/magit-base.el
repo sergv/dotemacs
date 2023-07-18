@@ -1,6 +1,6 @@
 ;;; magit-base.el --- Early birds  -*- lexical-binding:t; coding:utf-8 -*-
 
-;; Copyright (C) 2008-2022 The Magit Project Contributors
+;; Copyright (C) 2008-2023 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
@@ -21,7 +21,7 @@
 ;; along with Magit.  If not, see <https://www.gnu.org/licenses/>.
 
 ;; This file contains code taken from GNU Emacs, which is
-;; Copyright (C) 1976-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1976-2023 Free Software Foundation, Inc.
 
 ;;; Commentary:
 
@@ -37,11 +37,8 @@
 
 (require 'cl-lib)
 (require 'compat)
-(require 'compat-26)
-(require 'compat-27)
 (require 'dash)
 (require 'eieio)
-(require 'seq)
 (require 'subr-x)
 
 (require 'crm)
@@ -186,7 +183,7 @@ so we don't use the command names but more generic symbols.
 
 Applying changes:
 
-  `discard' Discarding one or more changes (i.e. hunks or the
+  `discard' Discarding one or more changes (i.e., hunks or the
   complete diff for a file) loses that change, obviously.
 
   `reverse' Reverting one or more changes can usually be undone
@@ -387,21 +384,50 @@ Messages which can currently be suppressed using this option are:
   :group 'magit-miscellaneous
   :type '(repeat string))
 
-(defcustom magit-ellipsis (if (char-displayable-p ?…) "…" "...")
-  "String used to abbreviate text in process buffers.
+(defcustom magit-verbose-messages nil
+  "Whether to make certain prompts and messages more verbose.
 
-Currently this is only used to elide `magit-git-global-arguments'
-in process buffers.  In the future it may be used in other places
-as well, but not the following:
+Occasionally a user suggests that a certain prompt or message
+should be more verbose, but I would prefer to keep it as-is
+because I don't think that the fact that that one user did not
+understand the existing prompt/message means that a large number
+of users would have the same difficulty, and that making it more
+verbose would actually do a disservice to users who understand
+the shorter prompt well enough.
 
-- Author names in the log margin are always abbreviated using
-  \"…\" or if that is not displayable, then \">\".
-
-- Whether collapsed sections are indicated using ellipsis is
-  controlled by `magit-section-visibility-indicator'."
-  :package-version '(magit . "3.0.0")
+Going forward I will start offering both messages when I feel the
+suggested longer message is reasonable enough, and the value of
+this option decides which will be used.  Note that changing the
+value of this option affects all such messages and that I do not
+intend to add an option per prompt."
+  :package-version '(magit . "4.0.0")
   :group 'magit-miscellaneous
-  :type 'string)
+  :type 'boolean)
+
+(defcustom magit-ellipsis
+  '((margin (?… . ">"))
+    (t      (?… . "...")))
+  "Characters or strings used to abbreviate text in some buffers.
+
+Each element has the form (WHERE (FANCY . UNIVERSAL)).
+
+FANCY is a single character or nil whereas UNIVERSAL is a string
+of any length.  The ellipsis produced by `magit--ellipsis' will
+be FANCY if it's a non-nil character that can be displayed with
+the available fonts, otherwise UNIVERSAL will be used.  FANCY is
+meant to be a rich character like a horizontal ellipsis symbol or
+an emoji whereas UNIVERSAL something simpler available in a less
+rich environment like the CLI.  WHERE determines the use-case for
+the ellipsis definition.  Currently the only acceptable values
+for WHERE are `margin' or t (representing the default).
+
+Whether collapsed sections are indicated using ellipsis is
+controlled by `magit-section-visibility-indicator'."
+  :package-version '(magit . "4.0.0")
+  :group 'magit-miscellaneous
+  :type '(repeat (list (symbol :tag "Where")
+                       (cons (choice :tag "Fancy" character (const nil))
+                             (string :tag "Universal")))))
 
 (defcustom magit-update-other-window-delay 0.2
   "Delay before automatically updating the other window.
@@ -486,9 +512,9 @@ and delay of your graphical environment or operating system."
 
 (defvar magit-completing-read--silent-default nil)
 
-(defun magit-completing-read (prompt collection &optional
-                                     predicate require-match initial-input
-                                     hist def fallback)
+(defun magit-completing-read ( prompt collection &optional
+                               predicate require-match initial-input
+                               hist def fallback)
   "Read a choice in the minibuffer, or use the default choice.
 
 This is the function that Magit commands use when they need the
@@ -589,48 +615,13 @@ acts similarly to `completing-read', except for the following:
                        predicate require-match
                        initial-input hist def))))
 
+(define-obsolete-function-alias 'magit-completing-read-multiple*
+  'magit-completing-read-multiple "Magit-Section 4.0.0")
+
 (defun magit-completing-read-multiple
-    (prompt choices &optional sep default hist keymap)
-  "Read multiple items from CHOICES, separated by SEP.
-
-Set up the `crm' variables needed to read multiple values with
-`read-from-minibuffer'.
-
-SEP is a regexp matching characters that can separate choices.
-When SEP is nil, it defaults to `crm-separator'.  DEFAULT, HIST,
-and KEYMAP are passed to `read-from-minibuffer'.  When KEYMAP is
-nil, it defaults to `crm-local-completion-map'.
-
-Unlike `completing-read-multiple', the return value is not split
-into a list."
-  (declare (obsolete magit-completing-read-multiple* "Magit 3.1.0"))
-  (let* ((crm-separator (or sep crm-separator))
-         (crm-completion-table (magit--completion-table choices))
-         (choose-completion-string-functions
-          '(crm--choose-completion-string))
-         (minibuffer-completion-table #'crm--collection-fn)
-         (minibuffer-completion-confirm t)
-         (helm-completion-in-region-default-sort-fn nil)
-         (helm-crm-default-separator nil)
-         (ivy-sort-matches-functions-alist nil)
-         (input
-          (cl-letf (((symbol-function #'completion-pcm--all-completions)))
-            (when (< emacs-major-version 26)
-              (fset 'completion-pcm--all-completions
-                    'magit-completion-pcm--all-completions))
-            (read-from-minibuffer
-             (concat prompt (and default (format " (%s)" default)) ": ")
-             nil (or keymap crm-local-completion-map)
-             nil hist default))))
-    (when (string-equal input "")
-      (or (setq input default)
-          (user-error "Nothing selected")))
-    input))
-
-(defun magit-completing-read-multiple*
-    (prompt table &optional predicate require-match initial-input
-            hist def inherit-input-method
-            no-split)
+    ( prompt table &optional predicate require-match initial-input
+      hist def inherit-input-method
+      no-split)
   "Read multiple strings in the minibuffer, with completion.
 Like `completing-read-multiple' but don't mess with order of
 TABLE and take an additional argument NO-SPLIT, which causes
@@ -703,12 +694,10 @@ back to built-in `completing-read' for now." :error)
       (format "%s (default %s): " (substring prompt 0 -2) def)
     prompt))
 
-(defvar magit-minibuffer-local-ns-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map minibuffer-local-map)
-    (define-key map "\s" #'magit-whitespace-disallowed)
-    (define-key map "\t" #'magit-whitespace-disallowed)
-    map))
+(defvar-keymap magit-minibuffer-local-ns-map
+  :parent minibuffer-local-map
+  "SPC" #'magit-whitespace-disallowed
+  "TAB" #'magit-whitespace-disallowed)
 
 (defun magit-whitespace-disallowed ()
   "Beep to tell the user that whitespace is not allowed."
@@ -718,8 +707,8 @@ back to built-in `completing-read' for now." :error)
   (setq defining-kbd-macro nil)
   (force-mode-line-update))
 
-(defun magit-read-string (prompt &optional initial-input history default-value
-                                 inherit-input-method no-whitespace)
+(defun magit-read-string ( prompt &optional initial-input history default-value
+                           inherit-input-method no-whitespace)
   "Read a string from the minibuffer, prompting with string PROMPT.
 
 This is similar to `read-string', but
@@ -755,8 +744,8 @@ This is similar to `read-string', but
            (user-error "Input contains whitespace"))
           (t val))))
 
-(defun magit-read-string-ns (prompt &optional initial-input history
-                                    default-value inherit-input-method)
+(defun magit-read-string-ns ( prompt &optional initial-input history
+                              default-value inherit-input-method)
   "Call `magit-read-string' with non-nil NO-WHITESPACE."
   (magit-read-string prompt initial-input history default-value
                      inherit-input-method t))
@@ -787,8 +776,8 @@ ACTION is a member of option `magit-slow-confirm'."
   '((safe-with-wip magit-wip-before-change-mode
                    discard reverse stage-all-changes unstage-all-changes)))
 
-(cl-defun magit-confirm (action &optional prompt prompt-n noabort
-                                (items nil sitems))
+(cl-defun magit-confirm ( action &optional prompt prompt-n noabort
+                          (items nil sitems))
   (declare (indent defun))
   (setq prompt-n (format (concat (or prompt-n prompt) "? ") (length items)))
   (setq prompt   (format (concat (or prompt (magit-confirm-make-prompt action))
@@ -822,7 +811,7 @@ ACTION is a member of option `magit-slow-confirm'."
       (setq prompt (magit-confirm-make-prompt action)))
     (magit-confirm action
       (concat prompt " %s")
-      (concat prompt " %i files")
+      (concat prompt " %d files")
       nil files)))
 
 (defun magit-confirm-make-prompt (action)
@@ -985,7 +974,7 @@ with the text area."
 
 This combines the benefits of `buffer-string', `buffer-substring'
 and `buffer-substring-no-properties' into one function that is
-not as painful to use as the latter.  I.e. you can write
+not as painful to use as the latter.  I.e., you can write
   (magit--buffer-string)
 instead of
   (buffer-substring-no-properties (point-min)
@@ -1254,6 +1243,22 @@ Like `message', except that `message-log-max' is bound to nil."
          (widen)
          (goto-char (or ,pos 1))
          ,@body))))
+
+(defun magit--ellipsis (&optional where)
+  "Build an ellipsis always as string, depending on WHERE."
+  (if (stringp magit-ellipsis)
+      magit-ellipsis
+    (if-let ((pair (car (or
+                         (alist-get (or where t) magit-ellipsis)
+                         (alist-get t magit-ellipsis)))))
+        (pcase-let ((`(,fancy . ,universal) pair))
+          (let ((ellipsis (if (and fancy (char-displayable-p fancy))
+                              fancy
+                            universal)))
+            (if (characterp ellipsis)
+                (char-to-string ellipsis)
+              ellipsis)))
+      (user-error "Variable magit-ellipsis is invalid"))))
 
 ;;; _
 (provide 'magit-base)

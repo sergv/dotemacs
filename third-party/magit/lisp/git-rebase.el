@@ -1,6 +1,6 @@
 ;;; git-rebase.el --- Edit Git rebase files  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2022 The Magit Project Contributors
+;; Copyright (C) 2008-2023 The Magit Project Contributors
 
 ;; Author: Phil Jackson <phil@shellarchive.co.uk>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
@@ -25,7 +25,7 @@
 ;; This package assists the user in editing the list of commits to be
 ;; rewritten during an interactive rebase.
 
-;; When the user initiates an interactive rebase, e.g. using "r e" in
+;; When the user initiates an interactive rebase, e.g., using "r e" in
 ;; a Magit buffer or on the command line using "git rebase -i REV",
 ;; Git invokes the `$GIT_SEQUENCE_EDITOR' (or if that is undefined
 ;; `$GIT_EDITOR' or even `$EDITOR') letting the user rearrange, drop,
@@ -36,7 +36,7 @@
 ;; providing the following commands:
 ;;
 ;;   C-c C-c  Tell Git to make it happen.
-;;   C-c C-k  Tell Git that you changed your mind, i.e. abort.
+;;   C-c C-k  Tell Git that you changed your mind, i.e., abort.
 ;;
 ;;   p        Move point to previous line.
 ;;   n        Move point to next line.
@@ -143,41 +143,39 @@
 
 ;;; Keymaps
 
-(defvar git-rebase-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map special-mode-map)
-    (define-key map (kbd "C-m") #'git-rebase-show-commit)
-    (define-key map (kbd   "p") #'git-rebase-backward-line)
-    (define-key map (kbd   "n") #'forward-line)
-    (define-key map (kbd "M-p") #'git-rebase-move-line-up)
-    (define-key map (kbd "M-n") #'git-rebase-move-line-down)
-    (define-key map (kbd   "c") #'git-rebase-pick)
-    (define-key map (kbd   "k") #'git-rebase-kill-line)
-    (define-key map (kbd "C-k") #'git-rebase-kill-line)
-    (define-key map (kbd "b")   #'git-rebase-break)
-    (define-key map (kbd "e")   #'git-rebase-edit)
-    (define-key map (kbd "l")   #'git-rebase-label)
-    (define-key map (kbd "M M") #'git-rebase-merge)
-    (define-key map (kbd "M t") #'git-rebase-merge-toggle-editmsg)
-    (define-key map (kbd "m")   #'git-rebase-edit)
-    (define-key map (kbd "f")   #'git-rebase-fixup)
-    (define-key map (kbd "q")   #'undefined)
-    (define-key map (kbd "r")   #'git-rebase-reword)
-    (define-key map (kbd "w")   #'git-rebase-reword)
-    (define-key map (kbd "s")   #'git-rebase-squash)
-    (define-key map (kbd "t")   #'git-rebase-reset)
-    (define-key map (kbd "x")   #'git-rebase-exec)
-    (define-key map (kbd "y")   #'git-rebase-insert)
-    (define-key map (kbd "z")   #'git-rebase-noop)
-    (define-key map (kbd "SPC")     #'git-rebase-show-or-scroll-up)
-    (define-key map (kbd "DEL")     #'git-rebase-show-or-scroll-down)
-    (define-key map (kbd "C-x C-t") #'git-rebase-move-line-up)
-    (define-key map [M-up]          #'git-rebase-move-line-up)
-    (define-key map [M-down]        #'git-rebase-move-line-down)
-    (define-key map [remap undo]    #'git-rebase-undo)
-    map)
-  "Keymap for Git-Rebase mode.")
-
+(defvar-keymap git-rebase-mode-map
+  :doc "Keymap for Git-Rebase mode."
+  :parent special-mode-map
+  "C-m" #'git-rebase-show-commit
+  "p"   #'git-rebase-backward-line
+  "n"   #'forward-line
+  "M-p" #'git-rebase-move-line-up
+  "M-n" #'git-rebase-move-line-down
+  "c"   #'git-rebase-pick
+  "k"   #'git-rebase-kill-line
+  "C-k" #'git-rebase-kill-line
+  "b"   #'git-rebase-break
+  "e"   #'git-rebase-edit
+  "l"   #'git-rebase-label
+  "M M" #'git-rebase-merge
+  "M t" #'git-rebase-merge-toggle-editmsg
+  "m"   #'git-rebase-edit
+  "f"   #'git-rebase-fixup
+  "q"   #'undefined
+  "r"   #'git-rebase-reword
+  "w"   #'git-rebase-reword
+  "s"   #'git-rebase-squash
+  "t"   #'git-rebase-reset
+  "u"   #'git-rebase-update-ref
+  "x"   #'git-rebase-exec
+  "y"   #'git-rebase-insert
+  "z"   #'git-rebase-noop
+  "SPC" #'git-rebase-show-or-scroll-up
+  "DEL" #'git-rebase-show-or-scroll-down
+  "C-x C-t"        #'git-rebase-move-line-up
+  "M-<up>"         #'git-rebase-move-line-up
+  "M-<down>"       #'git-rebase-move-line-down
+  "<remap> <undo>" #'git-rebase-undo)
 (put 'git-rebase-reword       :advertised-binding (kbd "r"))
 (put 'git-rebase-move-line-up :advertised-binding (kbd "M-p"))
 (put 'git-rebase-kill-line    :advertised-binding (kbd "k"))
@@ -201,7 +199,7 @@
 
 (defvar git-rebase-command-descriptions
   '((with-editor-finish           . "tell Git to make it happen")
-    (with-editor-cancel           . "tell Git that you changed your mind, i.e. abort")
+    (with-editor-cancel           . "tell Git that you changed your mind, i.e., abort")
     (git-rebase-backward-line     . "move point to previous line")
     (forward-line                 . "move point to next line")
     (git-rebase-move-line-up      . "move the commit at point up")
@@ -258,6 +256,7 @@ If the region is active, act on all lines touched by the region."
     (?r . "reword")
     (?s . "squash")
     (?t . "reset")
+    (?u . "update-ref")
     (?x . "exec"))
   "Alist mapping single key of an action to the full name.")
 
@@ -291,7 +290,8 @@ If the region is active, act on all lines touched by the region."
     (bare . ,(concat (regexp-opt '("b" "break" "noop") "\\(?1:")
                      " *$"))
     (label . ,(concat (regexp-opt '("l" "label"
-                                    "t" "reset")
+                                    "t" "reset"
+                                    "u" "update-ref")
                                   "\\(?1:")
                       " \\(?3:[^ \n]+\\) ?\\(?4:.*\\)"))
     (merge . ,(concat "\\(?1:m\\|merge\\) "
@@ -547,6 +547,20 @@ input, remove the reset command on the current line, if any."
          ""))
    arg))
 
+(defun git-rebase-update-ref (arg)
+  "Insert an update-ref action after the current line.
+If there is already an update-ref action on the current line,
+then edit that instead.  With a prefix argument, insert a new
+action even when there is already one on the current line.  With
+empty input, remove the action on the current line, if any."
+  (interactive "P")
+  (git-rebase-set-noncommit-action
+   "update-ref"
+   (lambda (initial)
+     (or (magit-completing-read "Ref" (magit-list-refs) nil nil initial)
+         ""))
+   arg))
+
 (defun git-rebase-merge (arg)
   "Add a merge command after the current commit.
 If there is already a merge command on the current line, then
@@ -720,7 +734,8 @@ running \"man git-rebase\" at the command line) for details."
       (magit-confirm 'abort-rebase "Abort this rebase" nil 'noabort)))
 
 (defun git-rebase-autostash-save ()
-  (--when-let (magit-file-line (magit-git-dir "rebase-merge/autostash"))
+  (--when-let (magit-file-line
+               (expand-file-name "rebase-merge/autostash" (magit-gitdir)))
     (push (cons 'stash it) with-editor-cancel-alist)))
 
 (defun git-rebase-autostash-apply ()

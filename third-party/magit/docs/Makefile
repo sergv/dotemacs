@@ -39,12 +39,12 @@ HTML_FIXUP_MENU   = '/<\/body>/i<div id="s-css-s--menu"><\/div>'
 
 html-dir: $(TEXIFILES)
 	@printf "Generating magit/*.html\n"
-	@$(MAKEINFO) --html $(MANUAL_HTML_ARGS) magit.texi
+	@$(MAKEINFO) --html -o $(PKG)/ $(MANUAL_HTML_ARGS) magit.texi
 	@for f in $$(find magit -name '*.html') ; do \
 	sed -i -e $(HTML_FIXUP_CSS) -e $(HTML_FIXUP_ONLOAD) -e $(HTML_FIXUP_MENU) $$f ; \
 	done
 	@printf "Generating magit-section/*.html\n"
-	@$(MAKEINFO) --html $(MANUAL_HTML_ARGS) magit-section.texi
+	@$(MAKEINFO) --html -o $(PKG)-section/ $(MANUAL_HTML_ARGS) magit-section.texi
 	@for f in $$(find magit-section -name '*.html') ; do \
 	sed -i -e $(HTML_FIXUP_CSS) -e $(HTML_FIXUP_ONLOAD) -e $(HTML_FIXUP_MENU) $$f ; \
 	done
@@ -105,9 +105,13 @@ AUTHORS.md:
 	@printf "Generating AUTHORS.md..."
 	@test -e $(TOP).git \
 	&& (printf "$$AUTHORS_HEADER\n" > $@ \
-	&& git log --pretty=format:'- %aN' | sort -u >> $@ \
+	&& git log --pretty=format:'- %aN' | sort -u | \
+	grep -v dependabot >> $@ \
 	&& printf "done\n" ; ) \
 	|| printf "FAILED (non-fatal)\n"
+	@git commit --gpg-sign -m "AUTHORS.md: Update list of contributors" \
+	-o -- $@ ../.mailmap || true
+	@git show --pretty= -p HEAD
 
 PUBLISH_PATH   ?= /manual/
 RELEASE_PATH   ?= /manual/$(VERSION)/
@@ -192,10 +196,7 @@ export ORG_MAN_EXPORT
 # Templates ##########################################################
 
 define AUTHORS_HEADER
-The following people have contributed to Magit, including the
-libraries `git-commit.el`, `magit-popup.el`, and `with-editor.el`
-which are distributed as separate Elpa packages.
-
+The following people have contributed to Magit.
 For statistics see https://magit.vc/stats/magit/authors.html.
 
 Authors
