@@ -8,7 +8,7 @@
 
 @copying
 @quotation
-Copyright (C) 2015-2022 Jonas Bernoulli <jonas@@bernoul.li>
+Copyright (C) 2015-2023 Jonas Bernoulli <jonas@@bernoul.li>
 
 You can redistribute this document and/or modify it under the terms
 of the GNU General Public License as published by the Free Software
@@ -31,7 +31,7 @@ General Public License for more details.
 @finalout
 @titlepage
 @title Magit-Section Developer Manual
-@subtitle for version 3.3.0-git
+@subtitle for version 3.3.0.50-git
 @author Jonas Bernoulli
 @page
 @vskip 0pt plus 1filll
@@ -54,7 +54,7 @@ user options see @ref{Sections,,,magit,}.  This manual documents how you
 can use sections in your own packages.
 
 @noindent
-This manual is for Magit-Section version 3.3.0-git.
+This manual is for Magit-Section version 3.3.0.50-git.
 
 @insertcopying
 @end ifnottex
@@ -105,7 +105,7 @@ appropriate package prefix.  This works due to some undocumented
 kludges, which are not available to other packages.
 
 When optional HIDE is non-nil collapse the section body by
-default, i.e. when first creating the section, but not when
+default, i.e., when first creating the section, but not when
 refreshing the buffer.  Else expand it by default.  This can be
 overwritten using @code{magit-section-set-visibility-hook}.  When a
 section is recreated during a refresh, then the visibility of
