@@ -291,6 +291,10 @@ to view the docstring of the syntax checker.  Likewise, you may use
 
          The C or C++ Language standard that you want the CUDA compiler to enforce.
 
+      .. defcustom:: flycheck-cuda-gencodes
+
+         A list of include real and virtual GPU architectures for nvcc.
+
       .. defcustom:: flycheck-cuda-includes
 
          A list of cuda includes.
@@ -830,6 +834,14 @@ to view the docstring of the syntax checker.  Likewise, you may use
 
       .. syntax-checker-config-file:: flycheck-markdown-markdownlint-cli-config
 
+      .. defcustom:: flycheck-markdown-markdownlint-cli-disable-rules
+
+         A list of disabled rules.
+
+      .. defcustom:: flycheck-markdown-markdownlint-cli-enable-rules
+
+         A list of enabled rules.
+
    .. syntax-checker:: markdown-mdl
 
       Check Markdown with `markdownlint <https://github.com/markdownlint/markdownlint/>`_.
@@ -1046,7 +1058,7 @@ to view the docstring of the syntax checker.  Likewise, you may use
 
       .. note::
 
-         This syntax checker requires mypy 0.580 or newer.
+         This syntax checker requires mypy 0.730 or newer.
 
       .. syntax-checker-config-file:: flycheck-python-mypy-config
 
@@ -1056,6 +1068,11 @@ to view the docstring of the syntax checker.  Likewise, you may use
 
          Set to ``null-device`` to disable writing cache directories
          entirely.
+
+      .. defcustom:: flycheck-python-mypy-python-executable
+
+         Python executable to collect the type information from PEP 561
+         compliant packages.
 
    .. syntax-checker:: python-pylint
 
