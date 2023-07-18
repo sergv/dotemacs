@@ -6,9 +6,7 @@
 ;; Author: Alex Kost
 ;; Maintainer: Matthew Bauer <mjbauer95@gmail.com>
 ;; Homepage: https://github.com/NixOS/nix-mode
-;; Version: 1.1
 ;; Keywords: nix
-;; Package-Requires: ((emacs "24.3"))
 
 
 ;; This file is NOT part of GNU Emacs.
@@ -127,7 +125,7 @@ enabling/disabling `nix-prettify-mode'.  If nil, do nothing.")
   "Toggle Nix Prettify mode.
 
 With a prefix argument ARG, enable Nix Prettify mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
+positive, and disable it otherwise. If called from Lisp, enable
 the mode if ARG is omitted or nil.
 
 When Nix Prettify mode is enabled, hash-parts of the Nix store
