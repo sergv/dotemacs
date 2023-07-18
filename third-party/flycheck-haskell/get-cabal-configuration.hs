@@ -215,16 +215,10 @@ import Distribution.PackageDescription (mkFlagAssignment)
 import Distribution.Types.GenericPackageDescription (mkFlagAssignment)
 #endif
 
+
 #if defined(Cabal22OrLater)
-# if defined(Cabal38OrLater)
-import Distribution.Simple.PackageDescription
-       (readGenericPackageDescription)
 import Distribution.PackageDescription.Parsec
-       (runParseResult, parseGenericPackageDescription)
-# else
-import Distribution.PackageDescription.Parsec
-       (runParseResult, readGenericPackageDescription, parseGenericPackageDescription)
-# endif
+  (runParseResult, parseGenericPackageDescription)
 # if defined(Cabal30OrLater)
 import Distribution.Parsec.Error (showPError)
 # else
