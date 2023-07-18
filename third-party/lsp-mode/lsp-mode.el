@@ -1766,6 +1766,7 @@ etc."
   "Display a warning message made from (`format-message' MESSAGE ARGS...).
 This is equivalent to `display-warning', using `lsp-mode' as the type and
 `:warning' as the level."
+  (apply #'message message args)
   (display-warning 'lsp-mode (apply #'format-message message args)))
 
 (defun lsp--get-uri-handler (scheme)
