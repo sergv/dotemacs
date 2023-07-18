@@ -74,6 +74,9 @@ Or you can just dump ~f.el~ in your load path somewhere.
     - [[#f-descendant-of-p][f-descendant-of-p]]
     - [[#f-hidden-p][f-hidden-p]]
     - [[#f-empty-p][f-empty-p]]
+    - [[#f-newer-p][f-newer-p]]
+    - [[#f-older-p][f-older-p]]
+    - [[#f-same-time-p][f-same-time-p]]
   - [[#stats][Stats]]
     - [[#f-size][f-size]]
     - [[#f-depth][f-depth]]
@@ -760,8 +763,16 @@ Alias: ~f-descendant-of?~
 Alias: ~f-hidden?~
 
 #+begin_src emacs-lisp
-(f-hidden-p "/path/to/foo") ;; => nil
-(f-hidden-p "/path/to/.foo") ;; => t
+(f-hidden-p "path/to/foo") ;; => nil
+(f-hidden-p ".path/to/foo") ;; => t
+(f-hidden-p "path/.to/foo") ;; => nil
+(f-hidden-p "path/to/.foo") ;; => nil
+(f-hidden-p ".path/to/foo" 'any) ;; => t
+(f-hidden-p "path/.to/foo" 'any) ;; => t
+(f-hidden-p "path/to/.foo" 'any) ;; => t
+(f-hidden-p ".path/to/foo" 'last) ;; => nil
+(f-hidden-p "path/.to/foo" 'last) ;; => nil
+(f-hidden-p "path/to/.foo" 'last) ;; => t
 #+end_src
 
 *** f-empty-p
@@ -778,6 +789,51 @@ Alias: ~f-empty?~
 (f-empty-p "/path/to/file-with-contents") ;; => nil
 (f-empty-p "/path/to/empty-dir/") ;; => t
 (f-empty-p "/path/to/dir-with-contents/") ;; => nil
+#+end_src
+
+*** f-newer-p
+#+begin_example
+(f-newer-p file other &optional method)
+
+{{f-newer-p}}
+#+end_example
+
+Alias: ~f-newer?~
+
+#+begin_src emacs-lisp
+(f-newer-p "newer.txt" "older.txt") ;; t
+(f-newer-p "older.txt""newer.txt" ) ;; nil
+(f-newer-p "same1.txt" "same2.txt") ;; nil
+#+end_src
+
+*** f-older-p
+#+begin_example
+(f-older-p file other &optional method)
+
+{{f-older-p}}
+#+end_example
+
+Alias: ~f-older?~
+
+#+begin_src emacs-lisp
+(f-older-p "older.txt" "newer.txt") ;; t
+(f-older-p "newer.txt""older.txt" ) ;; nil
+(f-older-p "same1.txt" "same2.txt") ;; nil
+#+end_src
+
+*** f-same-time-p
+#+begin_example
+(f-same-time-p file other &optional method)
+
+{{f-same-time-p}}
+#+end_example
+
+Alias: ~f-same-time?~
+
+#+begin_src emacs-lisp
+(f-same-time-p "same1.txt" "same2.txt") ;; t
+(f-same-time-p "newer.txt" "older.txt") ;; nil
+(f-same-time-p "older.txt" "newer.txt") ;; nil
 #+end_src
 
 ** Stats
@@ -808,38 +864,50 @@ Alias: ~f-empty?~
 
 *** f-change-time
 #+begin_example
-(f-change-time path)
+(f-change-time path &optional timestamp-p)
 
 {{f-change-time}}
 #+end_example
 
 #+begin_src emacs-lisp
-(f-change-time "path/to/file.txt")
-(f-change-time "path/to/dir")
+(f-change-time "path/to/file.txt")         ;; (25517 48756 26337 111000)
+(f-change-time "path/to/dir")              ;; (25517 57887 344657 210000)
+(f-change-time "path/to/file.txt" t)       ;; (1672330868026337111 . 1000000000)
+(f-change-time "path/to/dir" t)            ;; (1672339999344657210 . 1000000000)
+(f-change-time "path/to/file.txt"'seconds) ;; 1672330868
+(f-change-time "path/to/dir"'seconds)      ;; 1672339999
 #+end_src
 
 *** f-modification-time
 #+begin_example
-(f-modification-time path)
+(f-modification-time path &optional timestamp-p)
 
 {{f-modification-time}}
 #+end_example
 
 #+begin_src emacs-lisp
-(f-modification-time "path/to/file.txt")
-(f-modification-time "path/to/dir")
+(f-modification-time "path/to/file.txt")          ;; (25517 48756 26337 111000)
+(f-modification-time "path/to/dir")               ;; (25517 57887 344657 210000)
+(f-modification-time "path/to/file.txt" t)        ;; (1672330868026337111 . 1000000000)
+(f-modification-time "path/to/dir" t)             ;; (1672339999344657210 . 1000000000)
+(f-modification-time "path/to/file.txt" 'seconds) ;; 1672330868
+(f-modification-time "path/to/dir" 'seconds)      ;; 1672339999
 #+end_src
 
 *** f-access-time
 #+begin_example
-(f-access-time path)
+(f-access-time path &optional timestamp-p)
 
 {{f-access-time}}
 #+end_example
 
 #+begin_src emacs-lisp
-(f-access-time "path/to/file.txt")
-(f-access-time "path/to/dir")
+(f-access-time "path/to/file.txt")          ;; (25517 48756 26337 111000)
+(f-access-time "path/to/dir")               ;; (25517 57887 344657 210000)
+(f-access-time "path/to/file.txt" t)        ;; (1672330868026337111 . 1000000000)
+(f-access-time "path/to/dir" t)             ;; (1672339999344657210 . 1000000000)
+(f-access-time "path/to/file.txt" 'seconds) ;; 1672330868
+(f-access-time "path/to/dir" 'seconds)      ;; 1672339999
 #+end_src
 
 ** Misc
