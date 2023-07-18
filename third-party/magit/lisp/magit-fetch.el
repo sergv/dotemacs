@@ -1,6 +1,6 @@
 ;;; magit-fetch.el --- Download objects and refs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2022 The Magit Project Contributors
+;; Copyright (C) 2008-2023 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
@@ -27,12 +27,6 @@
 ;;; Code:
 
 (require 'magit)
-
-(defvar magit-fetch-modules-jobs nil)
-(make-obsolete-variable
- 'magit-fetch-modules-jobs
- "invoke `magit-fetch-modules' with a prefix argument instead."
- "Magit 3.0.0")
 
 ;;; Commands
 
@@ -163,7 +157,7 @@ removed on the respective remote."
 
 ;;;###autoload (autoload 'magit-fetch-modules "magit-fetch" nil t)
 (transient-define-prefix magit-fetch-modules (&optional transient args)
-  "Fetch all submodules.
+  "Fetch all populated submodules.
 
 Fetching is done using \"git fetch --recurse-submodules\", which
 means that the super-repository and recursively all submodules
@@ -172,10 +166,7 @@ are also fetched.
 To set and potentially save other arguments invoke this command
 with a prefix argument."
   :man-page "git-fetch"
-  :value (list "--verbose"
-               (cond (magit-fetch-modules-jobs
-                      (format "--jobs=%s" magit-fetch-modules-jobs))
-                     (t "--jobs=4")))
+  :value (list "--verbose" "--jobs=4")
   ["Arguments"
    ("-v" "verbose"        "--verbose")
    ("-j" "number of jobs" "--jobs=" :reader transient-read-number-N+)]

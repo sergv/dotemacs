@@ -1,6 +1,6 @@
 ;;; magit-process.el --- Process functionality  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2022 The Magit Project Contributors
+;; Copyright (C) 2008-2023 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
@@ -222,7 +222,7 @@ hook allows users to deal with such questions explicitly.
 Each function is called with the process and the output string
 as arguments until one of the functions returns non-nil.  The
 function is responsible for asking the user the appropriate
-question using e.g. `read-char-choice' and then forwarding the
+question using, e.g., `read-char-choice' and then forwarding the
 answer to the process using `process-send-string'.
 
 While functions such as `magit-process-yes-or-no-prompt' may not
@@ -244,6 +244,15 @@ implement such functions."
   :package-version '(magit . "2.12.0")
   :group 'magit-process
   :type 'boolean)
+
+(defcustom magit-process-timestamp-format nil
+  "Format of timestamp for each process in the process buffer.
+If non-nil, pass this to `format-time-string' when creating a
+process section in the process buffer, and insert the returned
+string in the heading of its section."
+  :package-version '(magit . "4.0.0")
+  :group 'magit-process
+  :type '(choice (const :tag "none" nil) string))
 
 (defface magit-process-ok
   '((t :inherit magit-section-heading :foreground "green"))
@@ -269,11 +278,10 @@ Used when `magit-process-display-mode-line-error' is non-nil."
 
 ;;; Process Mode
 
-(defvar magit-process-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map magit-mode-map)
-    map)
-  "Keymap for `magit-process-mode'.")
+(defvar-keymap magit-process-mode-map
+  :doc "Keymap for `magit-process-mode'."
+  :parent magit-mode-map
+  "<remap> <magit-delete-thing>" #'magit-process-kill)
 
 ;;;###autoload
 (define-derived-mode magit-process-mode magit-mode "Magit Process"
@@ -597,7 +605,12 @@ Magit status buffer."
     (when input
       (with-current-buffer input
         (process-send-region process (point-min) (point-max))
-        (process-send-eof    process)))
+        ;; `process-send-eof' appears to be broken over
+        ;;  Tramp from Windows. See #3624 and bug#43226.
+        (if (and (eq system-type 'windows-nt)
+                 (file-remote-p (process-get process 'default-dir) nil t))
+            (process-send-string process "")
+          (process-send-eof process))))
     (setq magit-this-process process)
     (oset section value process)
     (magit-process-display-buffer process)
@@ -642,6 +655,8 @@ Magit status buffer."
                   (format "%3s " (propertize (number-to-string errcode)
                                              'font-lock-face 'magit-process-ng))
                 "run "))
+      (when magit-process-timestamp-format
+        (insert (format-time-string magit-process-timestamp-format) " "))
       (unless (equal (expand-file-name pwd)
                      (expand-file-name default-directory))
         (insert (file-relative-name pwd default-directory) ?\s))
@@ -662,10 +677,7 @@ Magit status buffer."
     (concat (propertize (file-name-nondirectory program)
                         'font-lock-face 'magit-section-heading)
             " "
-            (propertize (if (stringp magit-ellipsis)
-                            magit-ellipsis
-                          ;; For backward compatibility.
-                          (char-to-string magit-ellipsis))
+            (propertize (magit--ellipsis)
                         'font-lock-face 'magit-section-heading
                         'help-echo (mapconcat #'identity (car args) " "))
             " "
@@ -751,6 +763,7 @@ Magit status buffer."
       (when-let ((ret-pos (cl-position ?\r string :from-end t)))
         (cl-callf substring string (1+ ret-pos))
         (delete-region (line-beginning-position) (point)))
+      (setq string (magit-process-remove-bogus-errors string))
       (insert (propertize string 'magit-section
                           (process-get proc 'section)))
       (set-marker (process-mark proc) (point))
@@ -768,13 +781,24 @@ Magit status buffer."
        (set-keymap-parent ,map minibuffer-local-map)
        ;; Note: Leaving (kbd ...) unevaluated leads to the
        ;; magit-process:password-prompt test failing.
-       (define-key ,map ,(kbd "C-g")
-         (lambda ()
-           (interactive)
-           (ignore-errors (kill-process ,proc))
-           (abort-recursive-edit)))
+       (keymap-set ,map "C-g"
+                   (lambda ()
+                     (interactive)
+                     (ignore-errors (kill-process ,proc))
+                     (abort-recursive-edit)))
        (let ((minibuffer-local-map ,map))
          ,@body))))
+
+(defun magit-process-remove-bogus-errors (str)
+  (save-match-data
+    (when (string-match "^\\(\\*ERROR\\*: \\)Canceled by user" str)
+      (setq str (replace-match "" nil nil str 1)))
+    (when (string-match "^error: There was a problem with the editor.*\n" str)
+      (setq str (replace-match "" nil nil str)))
+    (when (string-match
+           "^Please supply the message using either -m or -F option\\.\n" str)
+      (setq str (replace-match "" nil nil str))))
+  str)
 
 (defun magit-process-yes-or-no-prompt (process string)
   "Forward Yes-or-No prompts to the user."
@@ -932,7 +956,7 @@ as argument."
                                  (magit-git-executable)
                                  "credential-cache--daemon"
                                  magit-credential-cache-daemon-socket)
-                ;; Some Git implementations (e.g. Windows) won't have
+                ;; Some Git implementations (e.g., Windows) won't have
                 ;; this program; if we fail the first time, stop trying.
                 ((debug error)
                  (remove-hook 'magit-credential-hook
@@ -963,12 +987,9 @@ as argument."
 (advice-add 'tramp-sh-handle-process-file :around
             #'tramp-sh-handle-process-file--magit-tramp-process-environment)
 
-(defvar magit-mode-line-process-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "<mode-line> <mouse-1>")
-      'magit-process-buffer)
-    map)
-  "Keymap for `mode-line-process'.")
+(defvar-keymap magit-mode-line-process-map
+  :doc "Keymap for `mode-line-process'."
+  "<mode-line> <mouse-1>" ''magit-process-buffer)
 
 (defun magit-process-set-mode-line (program args)
   "Display the git command (sans arguments) in the mode line."
