@@ -380,6 +380,7 @@
   (with-playground
    (f-mkdir "foo" "bar" "baz" "qux")
    (should-not (f-descendant-of-p "foo" "foo/bar"))
+   (should-not (f-descendant-of-p "foobar" "foo/bar"))
    (should-not (f-descendant-of-p "foo" "foo/bar/baz"))
    (should-not (f-descendant-of-p "foo" "foo/bar/baz/qux"))
    (should-not (f-descendant-of-p "foo/bar" "foo/bar/baz"))
@@ -400,26 +401,63 @@
 
 ;;;; f-hidden-p
 
-(ert-deftest-async f-hidden-p-test/does-not-exist (done)
-  (condition-case err
-      (f-hidden-p "foo")
-    (error
-     (should (string= (error-message-string err) "Path does not exist: foo"))
-     (funcall done))))
-
 (ert-deftest f-hidden-p-test/is-hidden ()
   (with-playground
-   (f-touch ".foo")
-   (f-mkdir ".bar")
    (should (f-hidden-p ".foo"))
-   (should (f-hidden-p ".bar"))))
+   (should (f-hidden-p ".bar"))
+   (should (f-hidden-p ".baz"))
+   (should (f-hidden-p ".foo" 'any))
+   (should (f-hidden-p ".bar" 'any))
+   (should (f-hidden-p ".baz" 'any))
+   (should (f-hidden-p ".foo" 'last))
+   (should (f-hidden-p ".bar" 'last))
+   (should (f-hidden-p ".baz" 'last))))
 
 (ert-deftest f-hidden-p-test/is-not-hidden ()
   (with-playground
-   (f-touch "foo")
-   (f-mkdir "bar")
    (should-not (f-hidden-p "foo"))
-   (should-not (f-hidden-p "bar"))))
+   (should-not (f-hidden-p "bar"))
+   (should-not (f-hidden-p "baz"))
+   (should-not (f-hidden-p "foo" 'any))
+   (should-not (f-hidden-p "bar" 'any))
+   (should-not (f-hidden-p "baz" 'any))
+   (should-not (f-hidden-p "foo" 'last))
+   (should-not (f-hidden-p "bar" 'last))
+   (should-not (f-hidden-p "baz" 'last))))
+
+(ert-deftest f-hidden-p-test/child-is-hidden ()
+  (should     (f-hidden-p ".foo/bar"))
+  (should     (f-hidden-p ".foo/bar" 'any))
+  (should-not (f-hidden-p ".foo/bar" 'last))
+  (should-not (f-hidden-p "foo/.bar"))
+  (should     (f-hidden-p "foo/.bar" 'any))
+  (should     (f-hidden-p "foo/.bar" 'last))
+  (should-not (f-hidden-p "foo/.bar/baz"))
+  (should     (f-hidden-p "foo/.bar/baz" 'any))
+  (should-not (f-hidden-p "foo/.bar/baz" 'last))
+  (should-not (f-hidden-p "foo/bar/.baz"))
+  (should     (f-hidden-p "foo/bar/.baz" 'any))
+  (should     (f-hidden-p "foo/bar/.baz" 'last)))
+
+(ert-deftest f-hidden-p-test/child-is-not-hidden ()
+  (should-not (f-hidden-p "foo/bar"))
+  (should-not (f-hidden-p "foo/bar" 'any))
+  (should-not (f-hidden-p "foo/bar" 'last))
+  (should     (f-hidden-p ".foo/bar"))
+  (should     (f-hidden-p ".foo/bar" 'any))
+  (should-not (f-hidden-p ".foo/bar" 'last))
+  (should-not (f-hidden-p "foo/.bar/baz"))
+  (should     (f-hidden-p "foo/.bar/baz" 'any))
+  (should-not (f-hidden-p "foo/.bar/baz" 'last))
+  (should-not (f-hidden-p "./foo/.bar/baz"))
+  (should     (f-hidden-p "./foo/.bar/baz" 'any))
+  (should-not (f-hidden-p "./foo/.bar/baz" 'last))
+  (should-not (f-hidden-p "../foo/bar/baz"))
+  (should-not (f-hidden-p "../foo/bar/baz" 'any))
+  (should-not (f-hidden-p "../foo/bar/baz" 'last))
+  (should-not (f-hidden-p "../foo/.bar/baz"))
+  (should     (f-hidden-p "../foo/.bar/baz" 'any))
+  (should-not (f-hidden-p "../foo/.bar/baz" 'last)))
 
 ;;; f-empty-p
 
