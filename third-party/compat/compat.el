@@ -1,13 +1,13 @@
 ;;; compat.el --- Emacs Lisp Compatibility Library -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021, 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
 
-;; Author: Philip Kaludercic <philipk@posteo.net>
-;; Maintainer: Compat Development <~pkal/compat-devel@lists.sr.ht>
-;; Version: 28.1.2.2
-;; URL: https://sr.ht/~pkal/compat
-;; Package-Requires: ((emacs "24.3") (nadvice "0.3"))
-;; Keywords: lisp
+;; Author: Philip Kaludercic <philipk@posteo.net>, Daniel Mendler <mail@daniel-mendler.de>
+;; Maintainer: Daniel Mendler <mail@daniel-mendler.de>, Compat Development <~pkal/compat-devel@lists.sr.ht>
+;; Version: 29.1.4.1
+;; URL: https://github.com/emacs-compat/compat
+;; Package-Requires: ((emacs "24.4") (seq "2.3"))
+;; Keywords: lisp, maint
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -24,35 +24,71 @@
 
 ;;; Commentary:
 
-;; To allow for the usage of Emacs functions and macros that are
-;; defined in newer versions of Emacs, compat.el provides definitions
-;; that are installed ONLY if necessary.  These reimplementations of
-;; functions and macros are at least subsets of the actual
-;; implementations.  Be sure to read the documentation string to make
-;; sure.
+;; Compat is the Elisp forwards compatibility library, which provides
+;; definitions introduced in newer Emacs versions.  The definitions
+;; are only installed if necessary for your current Emacs version.  If
+;; Compat is compiled on a recent version of Emacs, all of the
+;; definitions are disabled at compile time, such that no negative
+;; performance impact is incurred.  The provided compatibility
+;; implementations of functions and macros are at least subsets of the
+;; actual implementations.  Be sure to read the documentation string
+;; and the Compat manual.
 ;;
 ;; Not every function provided in newer versions of Emacs is provided
-;; here.  Some depend on new features from the core, others cannot be
-;; implemented to a meaningful degree.  Please consult the Compat
-;; manual for details.  The main audience for this library are not
-;; regular users, but package maintainers.  Therefore commands and
-;; user options are usually not implemented here.
+;; here.  Some depend on new features from the C core, others cannot
+;; be implemented to a meaningful degree.  Please consult the Compat
+;; manual for details regarding the usage of the Compat library and
+;; the provided functionality.
+
+;; The main audience for this library are not regular users, but
+;; package maintainers.  Therefore no commands, user-facing modes or
+;; user options are implemented here.
 
 ;;; Code:
 
-(defvar compat--inhibit-prefixed)
-(let ((compat--inhibit-prefixed (not (bound-and-true-p compat-testing))))
-  ;; Instead of using `require', we manually check `features' and call
-  ;; `load' to avoid the issue of not using `provide' at the end of
-  ;; the file (which is disabled by `compat--inhibit-prefixed', so
-  ;; that the file can be loaded again at some later point when the
-  ;; prefixed definitions are needed).
-  (dolist (vers '(24 25 26 27 28))
-    (unless (memq (intern (format "compat-%d" vers)) features)
-      (load (format "compat-%d%s" vers
-                    (if (bound-and-true-p compat-testing)
-                        ".el" ""))
-            nil t))))
+;; Ensure that the newest compatibility layer is required at compile
+;; time and runtime, but only if needed.
+(eval-when-compile
+  (defmacro compat--maybe-require-29 ()
+    ;; TODO Update to 29.1 as soon as the Emacs emacs-29 branch version bumped
+    (when (version< emacs-version "29.0.90")
+      (require 'compat-29)
+      '(require 'compat-29))))
+(compat--maybe-require-29)
+
+;;;; Macros for extended compatibility function calls
+
+(defmacro compat-function (fun)
+  "Return compatibility function symbol for FUN.
+
+If the Emacs version provides a sufficiently recent version of
+FUN, the symbol FUN is returned itself.  Otherwise the macro
+returns the symbol of a compatibility function which supports the
+behavior and calling convention of the current stable Emacs
+version.  For example Compat 29.1 will provide compatibility
+functions which implement the behavior and calling convention of
+Emacs 29.1.
+
+See also `compat-call' to directly call compatibility functions."
+  (let ((compat (intern (format "compat--%s" fun))))
+    `#',(if (fboundp compat) compat fun)))
+
+(defmacro compat-call (fun &rest args)
+  "Call compatibility function or macro FUN with ARGS.
+
+A good example function is `plist-get' which was extended with an
+additional predicate argument in Emacs 29.1.  The compatibility
+function, which supports this additional argument, can be
+obtained via (compat-function plist-get) and called
+via (compat-call plist-get plist prop predicate).  It is not
+possible to directly call (plist-get plist prop predicate) on
+Emacs older than 29.1, since the original `plist-get' function
+does not yet support the predicate argument.  Note that the
+Compat library never overrides existing functions.
+
+See also `compat-function' to lookup compatibility functions."
+  (let ((compat (intern (format "compat--%s" fun))))
+    `(,(if (fboundp compat) compat fun) ,@args)))
 
 (provide 'compat)
 ;;; compat.el ends here
