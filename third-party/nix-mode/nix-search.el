@@ -3,8 +3,6 @@
 ;; Author: Matthew Bauer <mjbauer95@gmail.com>
 ;; Homepage: https://github.com/NixOS/nix-mode
 ;; Keywords: nix
-;; Version: 1.4.0
-;; Package-Requires: ((emacs "25.1"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -22,7 +20,7 @@
   (nix--process-json-nocheck "search" "--json"
 			     (unless use-flakes "--file") file
 			     (when no-cache "--no-cache")
-			     (unless (string= "" search) search)))
+			     (unless (string-empty-p search) search)))
 
 (defface nix-search-pname
   '((t :height 1.5

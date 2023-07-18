@@ -1,8 +1,16 @@
 # Changelog
 
-## Unreleased
+## Unreleased (1.6.0)
+
+* Introduce nix-store-path-omit-self customization option.
+
+## 1.5.0
 
 * Removed json-mode dependency, using js instead.
+* Compatibility with Emacs 28+.
+* Add nix-flake commands, based on magit-section.
+* Add nix-store-show-log command.
+* Other various fixes.
 
 ## 1.4.5
 
