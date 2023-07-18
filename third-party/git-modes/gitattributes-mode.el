@@ -1,7 +1,7 @@
 ;;; gitattributes-mode.el --- Major mode for editing .gitattributes files  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2013-2015 Rüdiger Sonderfeld
-;; Copyright (C) 2013-2022 The Magit Project Contributors
+;; Copyright (C) 2013-2023 The Magit Project Contributors
 
 ;; Author: Rüdiger Sonderfeld <ruediger@c-plusplus.net>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
@@ -31,6 +31,7 @@
 
 ;;; Code:
 
+(require 'compat)
 (require 'easymenu)
 (require 'thingatpt)
 
@@ -184,8 +185,8 @@ If ARG is omitted or nil, move point backward one field."
     (dotimes (_ (or arg 1))
       (re-search-backward "\\s-[!-]?\\<" nil 'move))))
 
-(defvar gitattributes-mode-map (make-sparse-keymap)
-  "Keymap for `gitattributes-mode'.")
+(defvar-keymap gitattributes-mode-map
+  :doc "Keymap for `gitattributes-mode'.")
 
 (easy-menu-define gitattributes-mode-menu
   gitattributes-mode-map
