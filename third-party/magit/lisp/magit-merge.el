@@ -1,6 +1,6 @@
 ;;; magit-merge.el --- Merge functionality  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2022 The Magit Project Contributors
+;; Copyright (C) 2008-2023 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
@@ -232,7 +232,7 @@ then also remove the respective remote branch."
   "Abort the current merge operation.
 \n(git merge --abort)"
   (interactive)
-  (unless (file-exists-p (magit-git-dir "MERGE_HEAD"))
+  (unless (file-exists-p (expand-file-name "MERGE_HEAD" (magit-gitdir)))
     (user-error "No merge in progress"))
   (magit-confirm 'abort-merge)
   (magit-run-git-async "merge" "--abort"))
@@ -271,12 +271,13 @@ then also remove the respective remote branch."
 ;;; Utilities
 
 (defun magit-merge-in-progress-p ()
-  (file-exists-p (magit-git-dir "MERGE_HEAD")))
+  (file-exists-p (expand-file-name "MERGE_HEAD" (magit-gitdir))))
 
 (defun magit--merge-range (&optional head)
   (unless head
     (setq head (magit-get-shortname
-                (car (magit-file-lines (magit-git-dir "MERGE_HEAD"))))))
+                (car (magit-file-lines
+                      (expand-file-name "MERGE_HEAD" (magit-gitdir)))))))
   (and head
        (concat (magit-git-string "merge-base" "--octopus" "HEAD" head)
                ".." head)))
@@ -290,15 +291,14 @@ then also remove the respective remote branch."
   (magit-read-char-case (format "For %s checkout: " file) t
     (?o "[o]ur stage"   "--ours")
     (?t "[t]heir stage" "--theirs")
-    (?c "[c]onflict"    "--merge")))
+    (?c (if magit-verbose-messages "restore [c]onflict" "[c]onflict")
+        "--merge")))
 
 ;;; Sections
 
-(defvar magit-unmerged-section-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map magit-log-section-map)
-    map)
-  "Keymap for `unmerged' sections.")
+(defvar-keymap magit-unmerged-section-map
+  :doc "Keymap for `unmerged' sections."
+  :parent magit-log-section-map)
 
 (defun magit-insert-merge-log ()
   "Insert section for the on-going merge.
@@ -306,17 +306,18 @@ Display the heads that are being merged.
 If no merge is in progress, do nothing."
   (when (magit-merge-in-progress-p)
     (let* ((heads (mapcar #'magit-get-shortname
-                          (magit-file-lines (magit-git-dir "MERGE_HEAD"))))
+                          (magit-file-lines
+                           (expand-file-name "MERGE_HEAD" (magit-gitdir)))))
            (range (magit--merge-range (car heads))))
       (magit-insert-section (unmerged range)
         (magit-insert-heading
           (format "Merging %s:" (mapconcat #'identity heads ", ")))
-        (magit-insert-log
-         range
-         (let ((args magit-buffer-log-args))
-           (unless (member "--decorate=full" magit-buffer-log-args)
-             (push "--decorate=full" args))
-           args))))))
+        (magit--insert-log nil
+          range
+          (let ((args magit-buffer-log-args))
+            (unless (member "--decorate=full" magit-buffer-log-args)
+              (push "--decorate=full" args))
+            args))))))
 
 ;;; _
 (provide 'magit-merge)

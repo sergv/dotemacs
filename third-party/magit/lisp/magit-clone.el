@@ -1,6 +1,6 @@
 ;;; magit-clone.el --- Clone a repository  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2022 The Magit Project Contributors
+;; Copyright (C) 2008-2023 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
@@ -87,7 +87,7 @@ default user specified in the matched entry is used.
 If USER contains a dot, then it is treated as a Git variable and
 the value of that is used as the username.  Otherwise it is used
 as the username itself."
-  :package-version '(magit . "3.4.0")
+  :package-version '(magit . "4.0.0")
   :group 'magit-commands
   :type '(repeat (list regexp
                        (string :tag "Hostname")
@@ -105,12 +105,21 @@ The value can be a string (representing a single static format)
 or an alist with elements (HOSTNAME . FORMAT) mapping hostnames
 to formats.  When an alist is used, the t key represents the
 default.  Also see `magit-clone-name-alist'."
-  :package-version '(magit . "3.4.0")
+  :package-version '(magit . "4.0.0")
   :group 'magit-commands
   :type '(choice (string :tag "Format")
                  (alist :key-type (choice (string :tag "Host")
                                           (const :tag "Default" t))
                         :value-type (string :tag "Format"))))
+
+(defcustom magit-post-clone-hook nil
+  "Hook run after the repository has been successfully cloned.
+
+When the hook is called, `default-directory' is let-bound to the
+directory where the repository has been cloned."
+  :package-version '(magit . "4.0.0")
+  :group 'magit-commands
+  :type 'hook)
 
 ;;; Commands
 
@@ -228,8 +237,8 @@ Then show the status buffer for the new repository."
                         'sparse))
 
 (defun magit-clone-internal (repository directory args &optional sparse)
-  (let* ((checkout (not (memq (car args) '("--bare" "--mirror"))))
-         (remote (or (transient-arg-value "--origin" args)
+  (let* ((checkout (not (member (car args) '("--bare" "--mirror"))))
+         (remote (or (transient-arg-value "--origin=" args)
                      (magit-get "clone.defaultRemote")
                      "origin"))
          (set-push-default
@@ -275,6 +284,8 @@ Then show the status buffer for the new repository."
            (let ((default-directory directory))
              (magit-call-git "sparse-checkout" "init" "--cone")
              (magit-call-git "checkout" (magit-get-current-branch))))
+         (let ((default-directory directory))
+           (run-hooks 'magit-post-clone-hook))
          (with-current-buffer (process-get process 'command-buf)
            (magit-status-setup-buffer directory)))))))
 

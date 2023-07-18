@@ -1,6 +1,6 @@
 ;;; magit-transient.el --- Support for transients  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2022 The Magit Project Contributors
+;; Copyright (C) 2008-2023 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
@@ -37,12 +37,12 @@
 
 (defclass magit--git-variable (transient-variable)
   ((scope       :initarg :scope)
-   (global      :initarg :global      :initform nil)))
+   (global      :initarg :global      :initform nil)
+   (default     :initarg :default     :initform nil)))
 
 (defclass magit--git-variable:choices (magit--git-variable)
   ((choices     :initarg :choices)
-   (fallback    :initarg :fallback    :initform nil)
-   (default     :initarg :default     :initform nil)))
+   (fallback    :initarg :fallback    :initform nil)))
 
 (defclass magit--git-variable:boolean (magit--git-variable:choices)
   ((choices     :initarg :choices     :initform '("true" "false"))))
@@ -158,7 +158,11 @@
             (propertize (car value) 'face 'transient-value))
         (propertize (car (split-string value "\n"))
                     'face 'transient-value))
-    (propertize "unset" 'face 'transient-inactive-value)))
+    (if-let* ((default (oref obj default))
+              (default (if (functionp default) (funcall default) default)))
+        (concat (propertize "default:" 'face 'transient-inactive-value)
+                (propertize default 'face 'transient-value))
+      (propertize "unset" 'face 'transient-inactive-value))))
 
 (cl-defmethod transient-format-value ((obj magit--git-variable:choices))
   (let* ((variable (oref obj variable))
