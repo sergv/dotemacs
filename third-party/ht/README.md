@@ -4,7 +4,6 @@ The missing hash table library for Emacs.
 
 [![MELPA](http://melpa.org/packages/ht-badge.svg)](http://melpa.org/#/ht)
 [![MELPA Stable](http://stable.melpa.org/packages/ht-badge.svg)](http://stable.melpa.org/#/ht)
-[![Build Status](https://travis-ci.org/Wilfred/ht.el.png?branch=master)](https://travis-ci.org/Wilfred/ht.el)
 
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-generate-toc again -->
 **Table of Contents**
@@ -56,6 +55,7 @@ The missing hash table library for Emacs.
 
 * `ht-set!` `(table key value)`
 * `ht-update!` `(table table)`
+* `ht-update-with!` `(table key updater default?)`
 * `ht-remove!` `(table key)`
 * `ht-clear!` `(table)`
 * `ht-reject!` `(function table)`
@@ -158,6 +158,26 @@ is equivalent to
 ``` emacs-lisp
 (let ((table (ht (1 (ht (2 (ht (3 "three"))))))))
   (setf (ht-get* table 1 2 3) :three))
+```
+
+Updating values with a function using `ht-update-with!`:
+
+``` emacs-lisp
+(let ((table (ht ("a" (list "a" "b")))))
+  (ht-update-with!
+   table "a"
+   (lambda (list)
+     (cons "c" list)))
+  (ht-get table "a")) ; '("c" "a" "b"))
+```
+
+is equivalent to
+
+``` emacs-lisp
+(let ((table (ht ("a" (list "a" "b")))))
+  (setf (ht-get table "a")
+        (cons "c" (ht-get table "a")))
+  (ht-get table "a")) ; '("c" "a" "b"))
 ```
 
 ## Why?
