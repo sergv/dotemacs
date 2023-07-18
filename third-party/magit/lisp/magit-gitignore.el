@@ -1,6 +1,6 @@
 ;;; magit-gitignore.el --- Intentionally untracked files  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2022 The Magit Project Contributors
+;; Copyright (C) 2008-2023 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
@@ -84,7 +84,7 @@ Also stage the file."
   "Add the Git ignore RULE to \"$GIT_DIR/info/exclude\".
 Rules in that file only affects this clone of the repository."
   (interactive (list (magit-gitignore-read-pattern)))
-  (magit--gitignore rule (magit-git-dir "info/exclude"))
+  (magit--gitignore rule (expand-file-name "info/exclude" (magit-gitdir)))
   (magit-refresh))
 
 ;;;###autoload

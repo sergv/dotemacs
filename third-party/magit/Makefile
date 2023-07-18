@@ -72,6 +72,7 @@ help:
 
 lisp:
 	@$(MAKE) -C lisp lisp
+	@$(MAKE) -C test lisp
 
 docs:
 	@$(MAKE) -C docs all
@@ -127,7 +128,7 @@ clean: clean-lisp clean-docs clean-archives
 	@printf "Cleaning...\n"
 	@$(RM) *.elc $(ELGS) # temporary cleanup kludge
 	@$(RM) docs/*.texi~ docs/*.info-1 docs/*.info-2
-	@$(RM) magit-pkg.el t/magit-tests.elc
+	@$(RM) magit-pkg.el test/magit-tests.elc
 
 clean-lisp:
 	@$(MAKE) -C lisp clean
@@ -151,9 +152,6 @@ texi:
 
 authors:
 	@$(MAKE) -C docs authors
-	@git commit --gpg-sign -m "AUTHORS.md: Update list of contributors" \
-	-o -- docs/AUTHORS.md .mailmap
-	@git show --pretty= -p HEAD
 
 publish:
 	@$(MAKE) -C docs publish
@@ -186,56 +184,48 @@ magit-$(VERSION).tar.gz: lisp versionlib info
 
 define set_package_requires_nongnu
 
-(with-temp-file "lisp/git-commit.el"
-  (insert-file-contents "lisp/git-commit.el")
-  (re-search-forward "^;; Package-Requires: ")
-  (delete-region (point) (line-end-position))
-  (insert (format "%S"
-`((emacs ,emacs-version) ;`
-  (dash ,dash-version)
-  (transient ,transient-version)
-  (with-editor ,with-editor-version))))
-  (re-search-forward "^;; Package-Version: ")
-  (delete-region (point) (line-end-position))
-  (insert "$(GIT_COMMIT_VERSION)"))
+(defun --update-package (file version deps)
+  (with-temp-buffer
+    (insert-file-contents file)
+    (re-search-forward "^;; Package-Version: ")
+    (delete-region (point) (line-end-position))
+    (insert (concat version "$(DEV_SUFFIX)"))
+    (re-search-forward "^;; Package-Requires: (\n")
+    (let ((beg (point)))
+      (forward-line)
+      (while (looking-at "^;;     ")
+        (forward-line))
+      (delete-region beg (1- (point)))
+      (goto-char beg)
+      (while deps
+        (insert (format ";;     %S%s" (pop deps) (if deps "\n" ")")))))
+    (write-region nil nil file nil 0)))
 
-(with-temp-file "lisp/magit.el"
-  (insert-file-contents "lisp/magit.el")
-  (re-search-forward "^;; Package-Requires: ")
-  (delete-region (point) (line-end-position))
-  (insert (format "%S"
+(--update-package "lisp/git-commit.el" "$(GIT_COMMIT_VERSION)"
 `((emacs ,emacs-version) ;`
+  (compat ,compat-version)
+  (transient ,transient-version)
+  (with-editor ,with-editor-version)))
+
+(--update-package "lisp/magit.el" "$(MAGIT_SECTION_VERSION)"
+`((emacs ,emacs-version) ;`
+  (compat ,compat-version)
   (dash ,dash-version)
   (git-commit ,git-commit-version)
   (magit-section ,magit-section-version)
   (transient ,transient-version)
-  (with-editor ,with-editor-version))))
-  (re-search-forward "^;; Package-Version: ")
-  (delete-region (point) (line-end-position))
-  (insert "$(MAGIT_SECTION_VERSION)"))
+  (with-editor ,with-editor-version)))
 
-(with-temp-file "lisp/magit-libgit.el"
-  (insert-file-contents "lisp/magit-libgit.el")
-  (re-search-forward "^;; Package-Requires: ")
-  (delete-region (point) (line-end-position))
-  (insert (format "%S"
+(--update-package "lisp/magit-libgit.el" "$(MAGIT_LIBGIT_VERSION)"
 `((emacs "$(LIBGIT_EMACS_VERSION)") ;`
+  (compat ,compat-version)
   (libgit ,libgit-version)
-  (magit ,magit-version))))
-  (re-search-forward "^;; Package-Version: ")
-  (delete-region (point) (line-end-position))
-  (insert "$(MAGIT_LIBGIT_VERSION)"))
+  (magit ,magit-version)))
 
-(with-temp-file "lisp/magit-section.el"
-  (insert-file-contents "lisp/magit-section.el")
-  (re-search-forward "^;; Package-Requires: ")
-  (delete-region (point) (line-end-position))
-  (insert (format "%S"
+(--update-package "lisp/magit-section.el" "$(MAGIT_SECTION_VERSION)"
 `((emacs ,emacs-version) ;`
-  (dash ,dash-version))))
-  (re-search-forward "^;; Package-Version: ")
-  (delete-region (point) (line-end-position))
-  (insert "$(MAGIT_SECTION_VERSION)"))
+  (compat ,compat-version)
+  (dash ,dash-version)))
 endef
 export set_package_requires_nongnu
 
@@ -245,13 +235,14 @@ define set_package_requires_melpa
   (insert (format
 "(define-package \"git-commit\" \"$(GIT_COMMIT_VERSION)$(DEV_SUFFIX)\"
   \"Edit Git commit messages.\"
-  '((emacs %S)
-    (transient %S)
+  '((emacs       %S)
+    (compat      %S)
+    (transient   %S)
     (with-editor %S))
   :homepage \"https://magit.vc\"
   :keywords '(\"git\" \"tools\" \"vc\"))
 "   emacs-version
-    dash-version
+    compat-version
     transient-version
     with-editor-version)))
 
@@ -259,15 +250,17 @@ define set_package_requires_melpa
   (insert (format
 "(define-package \"magit\" \"$(MAGIT_VERSION)$(DEV_SUFFIX)\"
   \"A Git porcelain inside Emacs.\"
-  '((emacs %S)
-    (dash %S)
-    (git-commit %S)
+  '((emacs         %S)
+    (compat        %S)
+    (dash          %S)
+    (git-commit    %S)
     (magit-section %S)
-    (transient %S)
-    (with-editor %S))
+    (transient     %S)
+    (with-editor   %S))
   :homepage \"https://magit.vc\"
   :keywords '(\"git\" \"tools\" \"vc\"))
 "   emacs-version
+    compat-version
     dash-version
     git-commit-version
     magit-section-version
@@ -277,31 +270,36 @@ define set_package_requires_melpa
 (with-temp-file "lisp/magit-libgit-pkg.el"
   (insert (format
 "(define-package \"magit-libgit\" \"$(MAGIT_LIBGIT_VERSION)$(DEV_SUFFIX)\"
-  \".\"
-  '((emacs %S)
+  \"(POC) Teach Magit to use Libgit2.\"
+  '((emacs  %S)
+    (compat %S)
     (libgit %S)
-    (magit %S))
+    (magit  %S))
   :homepage \"https://magit.vc\"
   :keywords '(\"git\" \"tools\" \"vc\"))
 "   emacs-version
+    compat-version
     libgit-version
     magit-version)))
 
 (with-temp-file "lisp/magit-section-pkg.el"
   (insert (format
 "(define-package \"magit-section\" \"$(MAGIT_SECTION_VERSION)$(DEV_SUFFIX)\"
-  \"Sections for read-only buffers\"
-  '((emacs %S)
-    (dash %S))
+  \"Sections for read-only buffers.\"
+  '((emacs  %S)
+    (compat %S)
+    (dash   %S))
   :homepage \"https://magit.vc\"
   :keywords '(\"tools\"))
 "   emacs-version
+    compat-version
     dash-version)))
 endef
 export set_package_requires_melpa
 
 define set_package_versions
 (emacs-version "$(EMACS_VERSION)")
+(compat-version "$(COMPAT_VERSION)")
 (dash-version "$(DASH_VERSION)")
 (git-commit-version "$(GIT_COMMIT_VERSION)")
 (libgit-version "$(LIBGIT_VERSION)")
@@ -315,6 +313,7 @@ export set_package_versions
 
 define set_package_snapshots
 (emacs-version "$(EMACS_VERSION)")
+(compat-version "$(COMPAT_SNAPSHOT)")
 (dash-version "$(DASH_MELPA_SNAPSHOT)")
 (git-commit-version "$(GIT_COMMIT_MELPA_SNAPSHOT)")
 (libgit-version "$(LIBGIT_MELPA_SNAPSHOT)")
@@ -334,7 +333,7 @@ _bump-versions:
         $$set_package_requires_melpa)"
 
 bump-snapshots:
-	@$(eval DEV_SUFFIX := -git)
+	@$(eval DEV_SUFFIX := $(DEV_VERSION_SUFFIX))
 	@$(BATCH) --eval "(let (\
         $$set_package_versions)\
         $$set_package_requires_nongnu)"

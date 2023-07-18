@@ -1,6 +1,6 @@
 ;;; magit-commit.el --- Create Git commits  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2022 The Magit Project Contributors
+;; Copyright (C) 2008-2023 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
@@ -75,7 +75,7 @@ an error while using those is harder to recover from."
   "Hook run after creating a commit without the user editing a message.
 
 This hook is run by `magit-refresh' if `this-command' is a member
-of `magit-post-stage-hook-commands'.  This only includes commands
+of `magit-post-commit-hook-commands'.  This only includes commands
 named `magit-commit-*' that do *not* require that the user edits
 the commit message in a buffer and then finishes by pressing
 \\<with-editor-mode-map>\\[with-editor-finish].
@@ -180,8 +180,10 @@ With a prefix argument, amend to the commit at `HEAD' instead.
   (interactive (if current-prefix-arg
                    (list (cons "--amend" (magit-commit-arguments)))
                  (list (magit-commit-arguments))))
-  (when (member "--all" args)
-    (setq this-command 'magit-commit--all))
+  (cond ((member "--all" args)
+         (setq this-command 'magit-commit--all))
+        ((member "--allow-empty" args)
+         (setq this-command 'magit-commit--allow-empty)))
   (when (setq args (magit-commit-assert args))
     (let ((default-directory (magit-toplevel)))
       (magit-run-git-with-editor "commit" args))))
@@ -317,18 +319,22 @@ depending on the value of option `magit-commit-squash-confirm'."
                   args)))
             (magit-run-git-with-editor "commit" args))
           t) ; The commit was created; used by below lambda.
-      (magit-log-select
-        (lambda (commit)
-          (when (and (magit-commit-squash-internal option commit args
-                                                   rebase edit t)
-                     rebase)
-            (magit-commit-amend-assert commit)
-            (magit-rebase-interactive-1 commit
-                (list "--autosquash" "--autostash" "--keep-empty")
-              "" "true" nil t)))
-        (format "Type %%p on a commit to %s into it,"
-                (substring option 2))
-        nil nil nil commit)
+      (let ((winconf (and magit-commit-show-diff
+                          (current-window-configuration))))
+        (magit-log-select
+          (lambda (commit)
+            (when (and (magit-commit-squash-internal option commit args
+                                                     rebase edit t)
+                       rebase)
+              (magit-commit-amend-assert commit)
+              (magit-rebase-interactive-1 commit
+                  (list "--autosquash" "--autostash" "--keep-empty")
+                "" "true" nil t))
+            (when winconf
+              (set-window-configuration winconf)))
+          (format "Type %%p on a commit to %s into it,"
+                  (substring option 2))
+          nil nil nil commit))
       (when magit-commit-show-diff
         (let ((magit-display-buffer-noselect t))
           (apply #'magit-diff-staged nil (magit-diff-arguments)))))))
@@ -339,7 +345,7 @@ depending on the value of option `magit-commit-squash-confirm'."
           (m2 ".\nDo you really want to modify it"))
       (magit-confirm 'amend-published
         (concat m1 "%s" m2)
-        (concat m1 "%i public branches" m2)
+        (concat m1 "%d public branches" m2)
         nil it))))
 
 (defun magit-commit-assert (args &optional strict)
@@ -363,7 +369,7 @@ depending on the value of option `magit-commit-squash-confirm'."
     (setq this-command #'magit-rebase-continue)
     (magit-run-git-sequencer "rebase" "--continue")
     nil)
-   ((and (file-exists-p (magit-git-dir "MERGE_MSG"))
+   ((and (file-exists-p (expand-file-name "MERGE_MSG" (magit-gitdir)))
          (not (magit-anything-unstaged-p)))
     (or args (list "--")))
    ((not (magit-anything-unstaged-p))
@@ -392,7 +398,7 @@ The current time is used as the initial minibuffer input and the
 original author or committer date is available as the previous
 history element.
 
-Both the author and the committer dates are changes, unless one
+Both the author and the committer dates are changed, unless one
 of the following is true, in which case only the committer date
 is updated:
 - You are not the author of the commit that is being reshelved.
@@ -459,7 +465,7 @@ See `magit-commit-autofixup' for an alternative implementation."
                        (transient-args 'magit-commit-absorb))))
   (if (eq phase 'transient)
       (transient-setup 'magit-commit-absorb)
-    (unless (compat-executable-find "git-absorb" t)
+    (unless (magit-git-executable-find "git-absorb")
       (user-error "This command requires the git-absorb executable, which %s"
                   "is available from https://github.com/tummychow/git-absorb"))
     (unless (magit-anything-staged-p)
@@ -502,7 +508,7 @@ See `magit-commit-absorb' for an alternative implementation."
                        (transient-args 'magit-commit-autofixup))))
   (if (eq phase 'transient)
       (transient-setup 'magit-commit-autofixup)
-    (unless (compat-executable-find "git-autofixup" t)
+    (unless (magit-git-executable-find "git-autofixup")
       (user-error "This command requires the git-autofixup script, which %s"
                   "is available from https://github.com/torbiak/git-autofixup"))
     (unless (magit-anything-modified-p)
@@ -572,7 +578,8 @@ See `magit-commit-absorb' for an alternative implementation."
          ;; requires a working tree.
          (magit-with-toplevel
            (magit-anything-unstaged-p)))
-        (squash (let ((f (magit-git-dir "rebase-merge/rewritten-pending")))
+        (squash (let ((f (expand-file-name "rebase-merge/rewritten-pending"
+                                           (magit-gitdir))))
                   (and (file-exists-p f) (length (magit-file-lines f)))))
         (noalt nil))
     (pcase (list staged unstaged command)
@@ -581,6 +588,9 @@ See `magit-commit-absorb' for an alternative implementation."
        (setq rev (format "HEAD~%s" squash)))
       (`(,_ ,_ magit-commit-amend)
        (setq rev "HEAD^"))
+      (`(nil nil magit-commit--allow-empty)
+       (setq rev "HEAD")
+       (setq arg nil))
       ((or `(,_ ,_ magit-commit-reword)
            `(nil nil ,_))
        (setq rev "HEAD^..HEAD")
@@ -601,7 +611,8 @@ See `magit-commit-absorb' for an alternative implementation."
                    (equal arg (buffer-local-value 'magit-buffer-typearg buf)))))))
      ((eq command 'magit-commit-amend)
       (setq rev nil))
-     ((or squash (file-exists-p (magit-git-dir "rebase-merge/amend")))
+     ((or squash
+          (file-exists-p (expand-file-name "rebase-merge/amend" (magit-gitdir))))
       (setq rev "HEAD^"))
      (t
       (message "No alternative diff while committing")
@@ -614,7 +625,10 @@ See `magit-commit-absorb' for an alternative implementation."
         (when magit-commit-diff-inhibit-same-window
           (setq display-buffer-overriding-action
                 '(nil (inhibit-same-window . t))))
-        (magit-diff-setup-buffer rev arg (car (magit-diff-arguments)) nil)))))
+        (magit-diff-setup-buffer rev arg (car (magit-diff-arguments)) nil
+                                 (cond ((equal rev "HEAD") 'staged)
+                                       ((equal rev "HEAD^..HEAD") 'committed)
+                                       ('undefined)))))))
 
 (add-hook 'server-switch-hook #'magit-commit-diff)
 (add-hook 'with-editor-filter-visit-hook #'magit-commit-diff)

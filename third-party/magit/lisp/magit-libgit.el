@@ -1,6 +1,6 @@
 ;;; magit-libgit.el --- (POC) Teach Magit to use Libgit2  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2022 The Magit Project Contributors
+;; Copyright (C) 2008-2023 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
@@ -8,10 +8,10 @@
 ;; Homepage: https://github.com/magit/magit
 ;; Keywords: git tools vc
 
-;; Package-Version: 3.3.0-git
+;; Package-Version: 3.3.0.50-git
 ;; Package-Requires: (
 ;;     (emacs "26.1")
-;;     (compat "28.1.1.2")
+;;     (compat "29.1.3.4")
 ;;     (libgit "0")
 ;;     (magit "3.3.0"))
 
@@ -51,11 +51,8 @@
 
 (require 'cl-lib)
 (require 'compat)
-(require 'compat-26)
-(require 'compat-27)
 (require 'dash)
 (require 'eieio)
-(require 'seq)
 (require 'subr-x)
 
 (require 'magit-git)
