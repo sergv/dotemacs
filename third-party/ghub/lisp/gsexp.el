@@ -1,6 +1,6 @@
 ;;; gsexp.el --- GraphQl as S-expressions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2016-2022 Jonas Bernoulli
+;; Copyright (C) 2016-2023 Jonas Bernoulli
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Homepage: https://github.com/magit/ghub
@@ -45,7 +45,7 @@
     (symbol-name field))
    ((listp (car field))
     (concat (format "%s: " (caar field))
-            (gsexp--encode-field (cons (cadar field)
+            (gsexp--encode-field (cons (car (cdar field))
                                        (cdr field)))))
    ((concat
      (pcase (pop field)

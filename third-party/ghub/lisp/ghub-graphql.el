@@ -1,6 +1,6 @@
 ;;; ghub-graphql.el --- Access Github API using GrapthQL  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2016-2022 Jonas Bernoulli
+;; Copyright (C) 2016-2023 Jonas Bernoulli
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Homepage: https://github.com/magit/ghub
@@ -27,9 +27,21 @@
 (require 'gsexp)
 (require 'treepy)
 
+;; Needed for Emacs < 27.
+(eval-when-compile (require 'json))
+(declare-function json-read-from-string "json" (string))
+(declare-function json-encode "json" (object))
+
+(eval-when-compile (require 'pp)) ; Needed for Emacs < 29.
 (eval-when-compile (require 'subr-x))
 
 ;;; Api
+
+(defvar ghub-graphql-items-per-request 100
+  "Number of GraphQL items to query for entities that return a collection.
+
+Adjust this value if you're hitting query timeouts against larger
+repositories.")
 
 (cl-defun ghub-graphql (graphql &optional variables
                                 &key username auth host forge
@@ -48,8 +60,8 @@ behave as for `ghub-request' (which see)."
   (ghub-request "POST"
                 (if (eq forge 'gitlab) "/api/graphql" "/graphql")
                 nil
-                :payload `(("query" . ,graphql)
-                           ,@(and variables `(("variables" ,@variables))))
+                :payload `((query . ,graphql)
+                           ,@(and variables `((variables ,@variables))))
                 :headers headers :silent silent
                 :username username :auth auth :host host :forge forge
                 :callback callback :errorback errorback
@@ -335,18 +347,22 @@ See Info node `(ghub)GraphQL Support'."
     :variables variables
     :until     until
     :buffer    (current-buffer)
-    :callback  (let ((buf (current-buffer)))
-                 (if narrow
-                     (lambda (data)
-                       (let ((path narrow) key)
-                         (while (setq key (pop path))
-                           (setq data (cdr (assq key data)))))
-                       (ghub--graphql-set-mode-line buf nil)
-                       (funcall (or callback #'ghub--graphql-pp-response) data))
-                   (lambda (data)
-                     (ghub--graphql-set-mode-line buf nil)
-                     (funcall (or callback #'ghub--graphql-pp-response) data))))
-    :errorback errorback)))
+    :callback  (and (not (eq callback 'synchronous))
+                    (let ((buf (current-buffer)))
+                      (if narrow
+                          (lambda (data)
+                            (let ((path narrow) key)
+                              (while (setq key (pop path))
+                                (setq data (cdr (assq key data)))))
+                            (ghub--graphql-set-mode-line buf nil)
+                            (funcall (or callback #'ghub--graphql-pp-response)
+                                     data))
+                        (lambda (data)
+                          (ghub--graphql-set-mode-line buf nil)
+                          (funcall (or callback #'ghub--graphql-pp-response)
+                                   data)))))
+    :errorback (and (not (eq callback 'synchronous))
+                    errorback))))
 
 (cl-defun ghub--graphql-retrieve (req &optional lineage cursor)
   (let ((p (cl-incf (ghub--graphql-req-pages req))))
@@ -377,7 +393,7 @@ See Info node `(ghub)GraphQL Support'."
             (let ((alist (cl-coerce node 'list))
                   vars)
               (when (cadr (assq :edges alist))
-                (push (list 'first 100) vars)
+                (push (list 'first ghub-graphql-items-per-request) vars)
                 (setq loc  (treepy-up loc))
                 (setq node (treepy-node loc))
                 (setq loc  (treepy-replace
@@ -460,11 +476,13 @@ See Info node `(ghub)GraphQL Support'."
                                               cursor)
                       (cl-return))
                   (setq loc (treepy-replace loc (cons key nodes))))))))
-        (if (not (treepy-end-p loc))
-            (setq loc (treepy-next loc))
-          (funcall (ghub--req-callback req)
-                   (treepy-root loc))
-          (cl-return))))))
+        (cond ((not (treepy-end-p loc))
+               (setq loc (treepy-next loc)))
+              ((ghub--req-callback req)
+               (funcall (ghub--req-callback req)
+                        (treepy-root loc))
+               (cl-return))
+              ((cl-return (treepy-root loc))))))))
 
 (defun ghub--graphql-lineage (loc)
   (let (lineage)
@@ -538,6 +556,7 @@ See Info node `(ghub)GraphQL Support'."
       (force-mode-line-update t))))
 
 (defun ghub--graphql-pp-response (data)
+  (require 'pp) ; needed for Emacs < 29.
   (pp-display-expression data "*Pp Eval Output*"))
 
 ;;; _
