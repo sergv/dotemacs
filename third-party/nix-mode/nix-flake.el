@@ -1,9 +1,7 @@
 ;;; nix-flake.el --- Transient interface to Nix flake commands -*- lexical-binding: t -*-
 
 ;; Keywords: nix, languages, tools, unix
-;; Package-Requires: ((emacs "27.1") (transient "0.3"))
 ;; Homepage: https://github.com/NixOS/nix-mode
-;; Version: 1.4.4
 
 ;;; Commentary:
 
@@ -571,6 +569,9 @@ See `nix-flake-init-post-action' variable for details."
     (if (file-exists-p "flake.nix")
         (user-error "The directory already contains a flake")
       (nix-flake-init-dispatch))))
+
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\flake.lock\\'" . js-mode))
 
 (provide 'nix-flake)
 ;;; nix-flake.el ends here
