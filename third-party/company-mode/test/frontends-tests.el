@@ -1,6 +1,6 @@
 ;;; frontends-tests.el --- company-mode tests  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2017, 2020-2021  Free Software Foundation, Inc.
+;; Copyright (C) 2015-2017, 2020-2023  Free Software Foundation, Inc.
 
 ;; Author: Dmitry Gutov
 
@@ -59,6 +59,22 @@
         (should (string= (overlay-get ov 'company-display)
                          "  123 \nc 45  c\nddd\n")))))))
 
+(ert-deftest company-pseudo-tooltip-show-at-point-RTL ()
+  :tags '(interactive)
+  (with-temp-buffer
+    (save-window-excursion
+    (set-window-buffer nil (current-buffer))
+    (setq bidi-display-reordering t)
+    (setq bidi-paragraph-direction 'right-to-left)
+    (insert "انا مثال للكتابة بالعربية")
+    (search-backward "مثال")
+    (let ((company-candidates-length 2)
+          (company-candidates '("123" "45"))
+          (company-backend 'ignore))
+      (company-pseudo-tooltip-show-at-point (point) 0)
+      (let ((ov company-pseudo-tooltip-overlay))
+        (should (eq (overlay-get ov 'company-column) 5)))))))
+
 (ert-deftest company-pseudo-tooltip-edit-updates-width ()
   :tags '(interactive)
   (with-temp-buffer
@@ -111,6 +127,27 @@
           (should (string= (overlay-get ov 'company-display)
                            " 123(4) \n 45     \n")))))))
 
+(ert-deftest company-pseudo-tooltip-show-with-annotations-padding-2 ()
+  :tags '(interactive)
+  (with-temp-buffer
+    (save-window-excursion
+      (set-window-buffer nil (current-buffer))
+      (insert " ")
+      (save-excursion (insert "\n"))
+      (let ((company-candidates-length 3)
+            (company-backend (lambda (action &optional arg &rest _ignore)
+                               (when (eq action 'annotation)
+                                 (cdr (assoc arg '(("123" . "(4)")
+                                                   ("67" . "(891011)")))))))
+            (company-candidates '("123" "45" "67"))
+            (company-tooltip-annotation-padding 2))
+        (company-pseudo-tooltip-show-at-point (point) 0)
+        (let ((ov company-pseudo-tooltip-overlay))
+          ;; With margins.
+          (should (eq (overlay-get ov 'company-width) 14))
+          (should (string= (overlay-get ov 'company-display)
+                           " 123  (4)     \n 45           \n 67  (891011) \n")))))))
+
 (ert-deftest company-pseudo-tooltip-show-with-annotations-right-aligned ()
   :tags '(interactive)
   (with-temp-buffer
@@ -131,6 +168,28 @@
           (should (eq (overlay-get ov 'company-width) 13))
           (should (string= (overlay-get ov 'company-display)
                            " 123     (4) \n 45          \n 67 (891011) \n")))))))
+
+(ert-deftest company-pseudo-tooltip-show-with-annotations-right-padding-2 ()
+  :tags '(interactive)
+  (with-temp-buffer
+    (save-window-excursion
+      (set-window-buffer nil (current-buffer))
+      (insert " ")
+      (save-excursion (insert "\n"))
+      (let ((company-candidates-length 3)
+            (company-backend (lambda (action &optional arg &rest _ignore)
+                               (when (eq action 'annotation)
+                                 (cdr (assoc arg '(("123" . "(4)")
+                                                   ("67" . "(891011)")))))))
+            (company-candidates '("123" "45" "67"))
+            (company-tooltip-align-annotations t)
+            (company-tooltip-annotation-padding 2))
+        (company-pseudo-tooltip-show-at-point (point) 0)
+        (let ((ov company-pseudo-tooltip-overlay))
+          ;; With margins.
+          (should (eq (overlay-get ov 'company-width) 14))
+          (should (string= (overlay-get ov 'company-display)
+                           " 123      (4) \n 45           \n 67  (891011) \n")))))))
 
 (ert-deftest company-create-lines-shows-quick-access ()
   (let ((company-show-quick-access t)
@@ -427,7 +486,7 @@
              "-*-foobar zz"))))
 
 (ert-deftest company-modify-line-with-invisible-prop ()
-  (let ((str "-*-foobar")
+  (let ((str (copy-sequence "-*-foobar"))
         (buffer-invisibility-spec '((outline . t) t)))
     (put-text-property 1 2 'invisible 'foo str)
     (should (equal
