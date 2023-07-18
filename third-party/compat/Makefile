@@ -1,39 +1,50 @@
 .POSIX:
-.PHONY: all compile test clean
+.PHONY: all compile test clean check
 .SUFFIXES: .el .elc
 
 EMACS = emacs
 MAKEINFO = makeinfo
-BYTEC = compat-help.elc \
-	compat-font-lock.elc \
-	compat-macs.elc \
-	compat-24.elc \
-	compat-25.elc \
+BYTEC = compat-25.elc \
 	compat-26.elc \
 	compat-27.elc \
 	compat-28.elc \
-	compat.elc
+	compat-29.elc \
+	compat.elc \
+	compat-macs.elc \
+	compat-tests.elc
 
 all: compile
 
 compile: $(BYTEC)
 
-test: compile
+test:
 	$(EMACS) --version
 	$(EMACS) -Q --batch -L . -l compat-tests.el -f ert-run-tests-batch-and-exit
 
 clean:
 	$(RM) $(BYTEC) compat.info
 
-compat-24.el:	compat-macs.el
-compat-25.el:	compat-macs.el
-compat-26.el:	compat-macs.el
-compat-27.el:	compat-macs.el
-compat-28.el:	compat-macs.el
-compat-font-lock.el: compat-macs.el
+check:
+	@echo "Check: All definitions must link to a test"
+	@! (grep -P "^\\(compat-(def|guard)" *.el | grep -v "compat-tests:")
+	@echo "Check: All definitions must use compat-def* macros"
+	@! (grep -P "^\\(def" compat-[0-9][0-9].el)
+	@echo "Check: Test links must be valid"
+	@grep "(ert-deftest compat-" compat-tests.el | \
+		grep -E -v "\\(ert-deftest compat-(function|loaded-features) \\(\\)" | \
+		sed -E "s/\\(ert-deftest compat-| \\(\\).*//g" | sort > /tmp/compat-defs
+	@grep "compat-tests:" *.el | \
+		sed -E "s/.*<compat-tests:(.+?)>|.*\\[\\[compat-tests:(.+?)\\]\\]/\1\2/g" | \
+		sort | uniq > /tmp/compat-links
+	@ (diff /tmp/compat-defs /tmp/compat-defs)
+
+$(BYTEC): compat-macs.el
 
 .el.elc:
-	$(EMACS) -Q --batch -L . -f batch-byte-compile $<
+	@echo "Compiling $<"
+	@$(EMACS) -Q --batch -L . \
+		--eval '(setq compat-strict t byte-compile-error-on-warn t)' \
+		-f batch-byte-compile $<
 
 compat.info: compat.texi
 	$(MAKEINFO) $<
