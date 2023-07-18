@@ -1,6 +1,6 @@
 ;;; magit-repos.el --- Listing repositories  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2022 The Magit Project Contributors
+;; Copyright (C) 2008-2023 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
@@ -93,12 +93,12 @@ The `:sort' function has a weird interface described in the
 docstring of `tabulated-list--get-sort'.  Alternatively `<' and
 `magit-repolist-version<' can be used as those functions are
 automatically replaced with functions that satisfy the interface.
-Set `:sort' to nil to inhibit sorting; if unspecifed, then the
+Set `:sort' to nil to inhibit sorting; if unspecified, then the
 column is sortable using the default sorter.
 
 You may wish to display a range of numeric columns using just one
 character per column and without any padding between columns, in
-which case you should use an appropriat HEADER, set WIDTH to 1,
+which case you should use an appropriate HEADER, set WIDTH to 1,
 and set `:pad-right' to 0.  \"+\" is substituted for numbers higher
 than 9."
   :package-version '(magit . "2.12.0")
@@ -149,7 +149,7 @@ non-nil, means to invert the resulting sort."
 (defun magit-list-repositories ()
   "Display a list of repositories.
 
-Use the options `magit-repository-directories' to control which
+Use the option `magit-repository-directories' to control which
 repositories are displayed."
   (interactive)
   (magit-repolist-setup (default-value 'magit-repolist-columns)))
@@ -254,16 +254,14 @@ If it contains \"%s\" then the directory is substituted for that."
 
 ;;;; Mode
 
-(defvar magit-repolist-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map tabulated-list-mode-map)
-    (define-key map (kbd "C-m") #'magit-repolist-status)
-    (define-key map (kbd "m")   #'magit-repolist-mark)
-    (define-key map (kbd "u")   #'magit-repolist-unmark)
-    (define-key map (kbd "f")   #'magit-repolist-fetch)
-    (define-key map (kbd "5")   #'magit-repolist-find-file-other-frame)
-    map)
-  "Local keymap for Magit-Repolist mode buffers.")
+(defvar-keymap magit-repolist-mode-map
+  :doc "Local keymap for Magit-Repolist mode buffers."
+  :parent tabulated-list-mode-map
+  "C-m" #'magit-repolist-status
+  "m"   #'magit-repolist-mark
+  "u"   #'magit-repolist-unmark
+  "f"   #'magit-repolist-fetch
+  "5"   #'magit-repolist-find-file-other-frame)
 
 (define-derived-mode magit-repolist-mode tabulated-list-mode "Repos"
   "Major mode for browsing a list of Git repositories."
@@ -344,8 +342,8 @@ If it contains \"%s\" then the directory is substituted for that."
 See `tabulated-list--get-sorter'.  Given a more reasonable API
 this would not be necessary and one could just use SORT-PREDICATE
 directly.  CONVERT-CELL can be used to turn the cell value, which
-is always a string back into e.g. a number.  COLUMN-IDX has to be
-the index of the column that uses the returned sorter function."
+is always a string back into, e.g., a number.  COLUMN-IDX has to
+be the index of the column that uses the returned sorter function."
   (lambda (a b)
     (funcall sort-predicate
              (funcall convert-cell (aref (cadr a) column-idx))

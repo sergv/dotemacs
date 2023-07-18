@@ -1,6 +1,6 @@
 ;;; magit-files.el --- Finding files  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2022 The Magit Project Contributors
+;; Copyright (C) 2008-2023 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
@@ -203,7 +203,8 @@ is done using `magit-find-index-noselect'."
     (unless (equal magit-buffer-refname "{index}")
       (user-error "%s isn't visiting the index" file))
     (if (y-or-n-p (format "Update index with contents of %s" (buffer-name)))
-        (let ((index (make-temp-name (magit-git-dir "magit-update-index-")))
+        (let ((index (make-temp-name
+                      (expand-file-name "magit-update-index-" (magit-gitdir))))
               (buffer (current-buffer)))
           (when magit-wip-before-change-mode
             (magit-wip-commit-before-change (list file) " before un-/stage"))
@@ -243,7 +244,7 @@ This command is like `find-file', except that it temporarily
 binds `default-directory' to the actual git directory, while
 reading the FILENAME."
   (interactive
-   (let ((default-directory (magit-git-dir)))
+   (let ((default-directory (magit-gitdir)))
      (find-file-read-args "Find file: "
                           (confirm-nonexistent-file-or-buffer))))
   (find-file filename wildcards))
@@ -259,7 +260,7 @@ This command is like `find-file-other-window', except that it
 temporarily binds `default-directory' to the actual git
 directory, while reading the FILENAME."
   (interactive
-   (let ((default-directory (magit-git-dir)))
+   (let ((default-directory (magit-gitdir)))
      (find-file-read-args "Find file in other window: "
                           (confirm-nonexistent-file-or-buffer))))
   (find-file-other-window filename wildcards))
@@ -275,7 +276,7 @@ This command is like `find-file-other-frame', except that it
 temporarily binds `default-directory' to the actual git
 directory, while reading the FILENAME."
   (interactive
-   (let ((default-directory (magit-git-dir)))
+   (let ((default-directory (magit-gitdir)))
      (find-file-read-args "Find file in other frame: "
                           (confirm-nonexistent-file-or-buffer))))
   (find-file-other-frame filename wildcards))
@@ -288,50 +289,61 @@ directory, while reading the FILENAME."
 When invoked outside a file-visiting buffer, then fall back
 to `magit-dispatch'."
   :info-manual "(magit) Minor Mode for Buffers Visiting Files"
-  ["Actions"
-   [("s" "Stage"      magit-stage-file)
-    ("u" "Unstage"    magit-unstage-file)
-    ("c" "Commit"     magit-commit)
-    ("e" "Edit line"  magit-edit-line-commit)]
-   [("D" "Diff..."    magit-diff)
-    ("d" "Diff"       magit-diff-buffer-file)
-    ("g" "Status"     magit-status-here)]
-   [("L" "Log..."     magit-log)
+  [:if magit-file-relative-name
+   ["File actions"
+    ("  s" "Stage"    magit-stage-buffer-file)
+    ("  u" "Unstage"  magit-unstage-buffer-file)
+    (", x" "Untrack"  magit-file-untrack)
+    (", r" "Rename"   magit-file-rename)
+    (", k" "Delete"   magit-file-delete)
+    (", c" "Checkout" magit-file-checkout)]
+   ["Inspect"
+    ("D" "Diff..."    magit-diff)
+    ("d" "Diff"       magit-diff-buffer-file)]
+   [""
+    ("L" "Log..."     magit-log)
     ("l" "Log"        magit-log-buffer-file)
     ("t" "Trace"      magit-log-trace-definition)
     (7 "M" "Merged"   magit-log-merged)]
-   [("B" "Blame..."   magit-blame)
+   [""
+    ("B" "Blame..."   magit-blame)
     ("b" "Blame"      magit-blame-addition)
     ("r" "...removal" magit-blame-removal)
     ("f" "...reverse" magit-blame-reverse)
     ("m" "Blame echo" magit-blame-echo)
     ("q" "Quit blame" magit-blame-quit)]
-   [("p" "Prev blob"  magit-blob-previous)
-    ("n" "Next blob"  magit-blob-next)
-    ("v" "Goto blob"  magit-find-file)
-    ("V" "Goto file"  magit-blob-visit-file)]
-   [(5 "C-c r" "Rename file"   magit-file-rename)
-    (5 "C-c d" "Delete file"   magit-file-delete)
-    (5 "C-c u" "Untrack file"  magit-file-untrack)
-    (5 "C-c c" "Checkout file" magit-file-checkout)]]
-  (interactive)
-  (transient-setup
-   (if (magit-file-relative-name)
-       'magit-file-dispatch
-     'magit-dispatch)))
+   ["Navigate"
+    ("p" "Prev blob"   magit-blob-previous)
+    ("n" "Next blob"   magit-blob-next)
+    ("v" "Goto blob"   magit-find-file)
+    ("V" "Goto file"   magit-blob-visit-file)
+    ("g" "Goto status" magit-status-here)
+    ("G" "Goto magit"  magit-display-repository-buffer)]
+   ["More actions"
+    ("c" "Commit"     magit-commit)
+    ("e" "Edit line"  magit-edit-line-commit)]]
+  [:if-not magit-file-relative-name
+   ["File actions"
+    ("s" "Stage"    magit-stage-file)
+    ("u" "Unstage"  magit-unstage-file)
+    ("x" "Untrack"  magit-file-untrack)
+    ("r" "Rename"   magit-file-rename)
+    ("k" "Delete"   magit-file-delete)
+    ("c" "Checkout" magit-file-checkout)]
+   ["Navigate"
+    ("g" "Goto status" magit-status-here :if-not-mode magit-status-mode)
+    ("G" "Goto magit"  magit-display-repository-buffer)]])
 
 ;;; Blob Mode
 
-(defvar magit-blob-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "p" #'magit-blob-previous)
-    (define-key map "n" #'magit-blob-next)
-    (define-key map "b" #'magit-blame-addition)
-    (define-key map "r" #'magit-blame-removal)
-    (define-key map "f" #'magit-blame-reverse)
-    (define-key map "q" #'magit-kill-this-buffer)
-    map)
-  "Keymap for `magit-blob-mode'.")
+(defvar-keymap magit-blob-mode-map
+  :doc "Keymap for `magit-blob-mode'."
+  "p" #'magit-blob-previous
+  "n" #'magit-blob-next
+  "b" #'magit-blame-addition
+  "r" #'magit-blame-removal
+  "f" #'magit-blame-reverse
+  "q" #'magit-kill-this-buffer)
 
 (define-minor-mode magit-blob-mode
   "Enable some Magit features in blob-visiting buffers.
@@ -404,11 +416,10 @@ NEWNAME may be a file or directory name.  If FILE isn't tracked in
 Git, fallback to using `rename-file'."
   (interactive
    (let* ((file (magit-read-file "Rename file"))
-          (dir (file-name-directory file))
-          (newname (read-file-name (format "Move %s to destination: " file)
-                                   (and dir (expand-file-name dir)))))
-     (list (expand-file-name file (magit-toplevel))
-           (expand-file-name newname))))
+          (path (expand-file-name file (magit-toplevel))))
+     (list path (expand-file-name
+                 (read-file-name (format "Move %s to destination: " file)
+                                 (file-name-directory path))))))
   (let ((oldbuf (get-file-buffer file))
         (dstdir (file-name-directory newname))
         (dstfile (if (directory-name-p newname)
@@ -488,13 +499,15 @@ Git, then fallback to using `delete-file'."
      (car (member (or default (magit-current-file)) files)))))
 
 (defun magit-read-file (prompt &optional tracked-only)
-  (let ((choices (nconc (magit-list-files)
-                        (unless tracked-only (magit-untracked-files)))))
-    (magit-completing-read
-     prompt choices nil t nil nil
-     (car (member (or (magit-section-value-if '(file submodule))
-                      (magit-file-relative-name nil tracked-only))
-                  choices)))))
+  (magit-with-toplevel
+    (let ((choices (nconc (magit-list-files)
+                          (and (not tracked-only)
+                               (magit-untracked-files)))))
+      (magit-completing-read
+       prompt choices nil t nil nil
+       (car (member (or (magit-section-value-if '(file submodule))
+                        (magit-file-relative-name nil tracked-only))
+                    choices))))))
 
 (defun magit-read-tracked-file (prompt)
   (magit-read-file prompt t))
