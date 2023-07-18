@@ -327,10 +327,14 @@
                        (with-temp-buffer
                          (insert-file-contents-literally filename)
                          (seq-map fn matches)))))
-               (error (lsp-warn "Failed to process xref entry for filename '%s': %s"
-                                filename (error-message-string err)))
-               (file-error (lsp-warn "Failed to process xref entry, file-error, '%s': %s"
-                                     filename (error-message-string err))))))))
+               (error
+                (lsp-warn "Failed to process xref entry for filename '%s': %s"
+                          filename (error-message-string err))
+                nil)
+               (file-error
+                (lsp-warn "Failed to process xref entry, file-error, '%s': %s"
+                          filename (error-message-string err))
+                nil))))))
 
     (mapcan get-tags-in-file
             (seq-group-by
