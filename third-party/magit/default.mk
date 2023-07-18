@@ -25,8 +25,9 @@ RMDIR    ?= rm -rf
 TAR      ?= tar
 SED      ?= sed
 
-EMACS    ?= emacs
-BATCH     = $(EMACS) -Q --batch $(LOAD_PATH)
+EMACS      ?= emacs
+EMACS_ARGS ?=
+BATCH       = $(EMACS) -Q --batch $(EMACS_ARGS) $(LOAD_PATH)
 
 LISP_EXTRA_TARGETS ?= check-declare
 
@@ -81,7 +82,6 @@ ELS += magit-merge.el
 ELS += magit-tag.el
 ELS += magit-worktree.el
 ELS += magit-notes.el
-ELS += magit-obsolete.el
 ELS += magit-sequence.el
 ELS += magit-commit.el
 ELS += magit-remote.el
@@ -111,9 +111,10 @@ ELGS = magit-autoloads.el magit-version.el
 VERSION ?= $(shell \
   test -e $(TOP).git && \
   git describe --tags --abbrev=0 --always | cut -c2-)
-TIMESTAMP = 20211004
+# TODO Deal with the fact that timestamps are no longer in sync.
+TIMESTAMP = 20230101
 
-COMPAT_VERSION        = 28.1.0.4
+COMPAT_VERSION        = 29.1.3.4
 DASH_VERSION          = 2.19.1
 GIT_COMMIT_VERSION    = $(VERSION)
 LIBGIT_VERSION        = 0
@@ -123,15 +124,17 @@ MAGIT_SECTION_VERSION = $(VERSION)
 TRANSIENT_VERSION     = 0.3.6
 WITH_EDITOR_VERSION   = 3.0.5
 
-COMPAT_SNAPSHOT              = 28.1.0.4
-DASH_MELPA_SNAPSHOT          = 20210826
+COMPAT_SNAPSHOT              = 29.1.3.4
+DASH_MELPA_SNAPSHOT          = 20221013
 GIT_COMMIT_MELPA_SNAPSHOT    = $(TIMESTAMP)
 LIBGIT_MELPA_SNAPSHOT        = 0
 MAGIT_MELPA_SNAPSHOT         = $(TIMESTAMP)
 MAGIT_LIBGIT_MELPA_SNAPSHOT  = $(TIMESTAMP)
 MAGIT_SECTION_MELPA_SNAPSHOT = $(TIMESTAMP)
-TRANSIENT_MELPA_SNAPSHOT     = 20210920
-WITH_EDITOR_MELPA_SNAPSHOT   = 20211001
+TRANSIENT_MELPA_SNAPSHOT     = 20230201
+WITH_EDITOR_MELPA_SNAPSHOT   = 20230118
+
+DEV_VERSION_SUFFIX = .50-git
 
 EMACS_VERSION        = 25.1
 LIBGIT_EMACS_VERSION = 26.1
@@ -234,6 +237,16 @@ endif # ifndef LOAD_PATH
 ifndef ORG_LOAD_PATH
 ORG_LOAD_PATH = -L ../../org/lisp
 endif
+
+## Dependencies ######################################################
+
+# This isn't used by make, but is needed for the Compile ci workflow.
+
+DEPS  = compat
+DEPS += dash
+DEPS += transient/lisp
+DEPS += vterm
+DEPS += with-editor/lisp
 
 ## Publish ###########################################################
 
