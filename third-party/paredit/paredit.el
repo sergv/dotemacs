@@ -1357,13 +1357,13 @@ Like `delete-char', ignores `delete-active-region'."
 
 (defun paredit-delete-active-region-p ()
   "True if the region is active and to be deleted."
-  (and (paredit-region-active-p)
+  (and (region-active-p)
        (boundp 'delete-active-region)
        (eq delete-active-region t)))
 
 (defun paredit-kill-active-region-p ()
   "True if the region is active and to be killed."
-  (and (paredit-region-active-p)
+  (and (region-active-p)
        (boundp 'delete-active-region)
        (eq delete-active-region 'kill)))
 
@@ -2375,7 +2375,7 @@ If the point is on an S-expression, such as a string or a symbol, not
   (save-excursion
     ;; Select the S-expressions we want to raise in a buffer substring.
     (let* ((bound
-            (if (and (not argument) (paredit-region-active-p))
+            (if (and (not argument) (region-active-p))
                 (progn (if (< (mark) (point))
                            (paredit-check-region (mark) (point))
                            (paredit-check-region (point) (mark)))
