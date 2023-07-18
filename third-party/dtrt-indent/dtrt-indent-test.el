@@ -20,7 +20,7 @@
 ;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth
 ;; Floor, Boston, MA 02110-1301 USA
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'dtrt-indent)
 
@@ -32,8 +32,6 @@
   (with-temp-buffer
     (make-local-variable 'dtrt-indent-verbosity)
     (setq dtrt-indent-verbosity 0)
-    (make-local-variable 'dtrt-indent-min-relevant-lines)
-    (setq dtrt-indent-min-relevant-lines 3)
     (insert (cdr (assoc :buffer-contents args)))
     (let* ((language-and-variable
             (cdr (dtrt-indent--search-hook-mapping
@@ -62,21 +60,21 @@
             (cdr (assoc :expected-tab-setting args))))
       (cond
        ((eq expected-tab-setting 'hard)
-        (assert (eq change-indent-tabs-mode t))
-        (assert (eq indent-tabs-mode-setting t)))
+        (cl-assert (eq change-indent-tabs-mode t))
+        (cl-assert (eq indent-tabs-mode-setting t)))
        ((eq expected-tab-setting 'soft)
-        (assert (eq change-indent-tabs-mode t))
-        (assert (eq indent-tabs-mode-setting nil)))
+        (cl-assert (eq change-indent-tabs-mode t))
+        (cl-assert (eq indent-tabs-mode-setting nil)))
        ((eq expected-tab-setting 'undecided)
-        (assert (eq change-indent-tabs-mode nil))))
-      (if expected-offset
-          (assert (eq nil rejected) t)
-        (assert (not (eq nil rejected)) t))          
-      (assert (eq expected-offset
-                  best-indent-offset) t))))
+        (cl-assert (eq change-indent-tabs-mode nil))))
+      (if (not expected-offset)
+          (cl-assert (not (eq nil rejected)) t)
+        (cl-assert (eq nil rejected) t)
+        (cl-assert (eq expected-offset
+                       best-indent-offset) t)))))
 
 (defun dtrt-indent-test-rec-directory-files
-  (directory filename-pattern function)
+    (directory filename-pattern function)
   (let ((files
          (directory-files directory t)))
     (mapc (lambda (file)
@@ -175,6 +173,22 @@ aa /*foo
    (:mode . derived-c-mode)
    (:expected-tab-setting . soft)
    (:expected-offset . 8)))
+
+(dtrt-indent-functional-test
+ '((:buffer-contents . "")
+   (:mode . c-mode)
+   (:expected-tab-setting . undecided)
+   (:expected-offset . nil)))
+
+(dtrt-indent-functional-test
+ '((:buffer-contents . "\
+(let ((foo 1)
+      (bar
+       2))
+  (message \"%d %d\" foo bar))")
+   (:mode . emacs-lisp-mode)
+   (:expected-tab-setting . soft)
+   (:expected-offset . nil)))
 
 (when nil ;; disabled
   (with-output-to-temp-buffer "*dtrt-indent-test-results*"
