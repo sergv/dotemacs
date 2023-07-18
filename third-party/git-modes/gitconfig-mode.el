@@ -1,7 +1,7 @@
 ;;; gitconfig-mode.el --- Major mode for editing .gitconfig files  -*- lexical-binding:t -*-
 
 ;; Copyright (c) 2012-2013 Sebastian Wiesner
-;; Copyright (C) 2012-2022 The Magit Project Contributors
+;; Copyright (C) 2012-2023 The Magit Project Contributors
 
 ;; Author: Sebastian Wiesner <lunaryorn@gmail.com>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
@@ -29,8 +29,9 @@
 
 ;;; Code:
 
-(require 'rx)
+(require 'compat)
 (require 'conf-mode)
+(require 'rx)
 
 (defun gitconfig-line-indented-p ()
   "Return t if the current line is indented correctly."
