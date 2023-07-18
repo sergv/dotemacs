@@ -1047,7 +1047,7 @@ documentation if you encounter problems.
 @sp 1
 @noindent
 You can indeed. @code{sml-insert-form} is extensible so all you need to
-do is create the macros yourself. Define a @emph{keybord macro}
+do is create the macros yourself. Define a @emph{keyboard macro}
 (@kbd{C-x (} <something> @kbd{C-x )}) and give it a suitable name:
 @code{sml-addto-forms-alist} prompts for a name, say @code{NAME}, and
 binds the macro @code{sml-form-NAME}. Thereafter @kbd{C-c @key{RET}
