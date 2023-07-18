@@ -1,14 +1,14 @@
 ;;; el-patch.el --- Future-proof your Elisp -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016 Radon Rosborough
+;; Copyright (C) 2016-2022 Radian LLC and contributors
 
-;; Author: Radon Rosborough <radon.neon@gmail.com>
+;; Author: Radian LLC <contact+el-patch@radian.codes>
 ;; Created: 31 Dec 2016
-;; Homepage: https://github.com/raxod502/el-patch
+;; Homepage: https://github.com/radian-software/el-patch
 ;; Keywords: extensions
-;; Package-Requires: ((emacs "25"))
+;; Package-Requires: ((emacs "26"))
 ;; SPDX-License-Identifier: MIT
-;; Version: 2.4
+;; Version: 3.0
 
 ;;; Commentary:
 
@@ -36,7 +36,7 @@
 ;; definition by el-patch so you will know when to update your copy of
 ;; the definition.
 
-;; Please see https://github.com/raxod502/el-patch for more
+;; Please see https://github.com/radian-software/el-patch for more
 ;; information.
 
 ;;; Code:
@@ -64,7 +64,7 @@
   "Future-proof your Emacs Lisp customizations!"
   :prefix "el-patch-"
   :group 'lisp
-  :link '(url-link :tag "GitHub" "https://github.com/raxod502/el-patch")
+  :link '(url-link :tag "GitHub" "https://github.com/radian-software/el-patch")
   :link '(emacs-commentary-link :tag "Commentary" "el-patch"))
 
 (defcustom el-patch-use-aggressive-defvar nil
@@ -147,21 +147,58 @@ loaded. You can toggle the `use-package' integration later using
 \\[el-patch-use-package-mode]."
   :type 'boolean)
 
+(defcustom el-patch-validate-during-compile nil
+  "Non-nil means to validate patches when byte-compiling."
+  :type 'boolean)
+
+(defcustom el-patch-use-advice nil
+  "Non-nil causes el-patch to use Emacs' advice system for patching functions.
+This can be set globally or bound dynamically around a patch.
+
+An advice is used if the patched function has the same name and
+the same number of arguments as the original.
+
+An advice takes precedence over subsequent non-advice patches.
+You may need to un-advice or un-patch a function to apply a new
+patch."
+  :type 'boolean)
+
 ;;;; Internal variables
+
+(defvar el-patch-variant nil
+  "Advanced variable for defining patch variants.
+This variable may be used to define multiple different patches
+for the same object, and have them all be validated by
+`el-patch'. Usage: dynamically bind this variable around an
+invocation of `el-patch-defun', etc. As long as each patch
+definition for the same object uses a different value for this
+variable (including its default, nil), the patches will be
+distinguishable (and hence can be validated) by `el-patch', even
+though only the most recently defined one will actually take
+effect.
+
+Common use case: defining a separate patch for the same function
+before and after a library is loaded.")
 
 (defvar el-patch--patches (make-hash-table :test 'equal)
   "Hash table of patches that have been defined.
-The keys are symbols naming the objects that have been patched.
-The values are hash tables mapping definition types (symbols
-`defun', `defmacro', etc.) to patch definitions, which are lists
-beginning with `defun', `defmacro', etc.
+This is a three-level hash table. The first-level keys are
+symbols naming the objects that have been patched. The
+second-level keys are definition types (symbols `defun',
+`defmacro', etc.). The third-level keys are arbitrary symbols
+\(always nil, unless `el-patch-variant' has been used). The values
+are patch definitions, which are lists beginning with `defun',
+`defmacro', etc.
 
-Note that the symbols are from the versions of patches that have
-been resolved in favor of the modified version, when a patch
-renames a symbol.")
+Note that the object name symbols are from the versions of
+patches that have been resolved in favor of the modified version,
+when a patch renames a symbol.")
 
 (defvar el-patch--not-present (make-symbol "el-patch--not-present")
   "Value used as a default argument to `gethash'.")
+
+(defvar el-patch--concat-function #'concat
+  "Function to concatenate strings when resolving patches.")
 
 ;;;; Resolving patches
 
@@ -199,6 +236,13 @@ This function lives halfway between `copy-sequence' and
   (if (consp tree)
       (cons (car tree) (el-patch--copy-semitree (cdr tree)))
     tree))
+
+(defun el-patch--advice-name (name variant-name)
+  "Return advice name for a given NAME and VARIANT-NAME."
+  (intern
+   (format "%S@%s@el-patch--advice"
+           name
+           (if variant-name (format "%S" el-patch-variant) ""))))
 
 (defun el-patch--resolve (form new &optional table)
   "Resolve a patch FORM.
@@ -305,7 +349,8 @@ their bindings."
            (when (<= (length form) 1)
              (error "Not enough arguments (%d) for `el-patch-concat'"
                     (1- (length form))))
-           (list (apply #'concat (cl-mapcan resolve (cdr form)))))
+           (list (apply el-patch--concat-function
+                        (cl-mapcan resolve (cdr form)))))
           (_
            (let ((car-forms (funcall resolve (car form)))
                  (cdr-forms (funcall resolve (cdr form))))
@@ -514,37 +559,103 @@ PATCH-DEFINITION is an unquoted list starting with `defun',
   (let ((definition (el-patch--resolve-definition patch-definition t)))
     ;; Then we parse out the definition type and symbol name.
     (cl-destructuring-bind (type name . body) definition
-      `(progn
-         ;; Register the patch in our hash. We want to do this right
-         ;; away so that if there is an error then at least the user
-         ;; can undo the patch (as long as it is not too terribly
-         ;; wrong).
-         (let ((patches (or (bound-and-true-p el-patch--patches)
-                            (make-hash-table :test #'equal))))
-           (puthash ',type
-                    ',patch-definition
-                    (or (gethash ',name patches)
-                        (puthash ',name
-                                 (make-hash-table :test #'equal)
-                                 patches))))
-         ;; Now we actually overwrite the current definition.
-         (el-patch--stealthy-eval
-          ,definition
-          "This function was patched by `el-patch'.")))))
+      (let* ((advise (and el-patch-use-advice
+                          ;; Only advice functions
+                          (let* ((props (alist-get type
+                                                   el-patch-deftype-alist))
+                                 (classifier (plist-get props :classify)))
+                            (and classifier
+                                 (equal
+                                  (caar (funcall classifier definition))
+                                  'function)))
+                          ;; Patches must have the same name and
+                          ;; same number of arguments
+                          (let ((orig-def (el-patch--resolve-definition
+                                           (cl-subseq patch-definition 0 3)
+                                           nil)))
+                            ;; Same name and same argument count
+                            (and (equal name (nth 1 orig-def))
+                                 (equal (length (nth 2 definition))
+                                        (length (nth 2 orig-def)))))
+                          'advice))
+             (register-patch
+              `(let ((table (or (bound-and-true-p el-patch--patches)
+                                (make-hash-table :test #'eq))))
+                 (setq el-patch--patches table)
+                 (setq table
+                       (puthash ',name
+                                (gethash
+                                 ',name table
+                                 (make-hash-table :test #'eq))
+                                table))
+                 (setq table
+                       (puthash ',type
+                                (gethash
+                                 ',type table
+                                 (make-hash-table :test #'equal))
+                                table))
+                 (puthash (cons ,(when advise `(quote ,advise))
+                                el-patch-variant)
+                          ',patch-definition table))))
+        ;; If we need to validate the patch, then we also need to
+        ;; register it at compile-time, not just at runtime.
+        (when (and el-patch-validate-during-compile byte-compile-current-file)
+          (eval register-patch t)
+          (el-patch-validate name type 'nomsg nil
+                             (cons advise el-patch-variant)))
+        ;; Check that `el-patch-variant' is not a cons or a string
+        (when (or (consp el-patch-variant)
+                  (stringp el-patch-variant))
+          (error "`el-patch-variant' cannot be a string or a cons"))
+        `(progn
+           ;; Register the patch in our hash. We want to do this right
+           ;; away so that if there is an error then at least the user
+           ;; can undo the patch (as long as it is not too terribly
+           ;; wrong).
+           ,register-patch
+           ;; Now we actually overwrite the current definition.
+           ,(if advise
+                ;; Use advice system
+                (let ((advice-name (el-patch--advice-name name
+                                                          el-patch-variant)))
+                  `(progn
+                     (el-patch--stealthy-eval
+                      ,(append
+                        (list (car definition) ;; Same type
+                              advice-name)     ;; Different name
+                        ;; Rest is the same
+                        (cddr definition))
+                      ,(format
+                        ;; The new line before the name is to avoid
+                        ;; long doc strings
+                        "This advice was defined by `el-patch' for\n`%S'."
+                        name))
+                     (advice-add (quote ,name)
+                                 :override (quote ,advice-name))))
+              `(el-patch--stealthy-eval
+                ,definition
+                "This definition was patched by `el-patch'.")))))))
 
 ;;;;; Removing patches
 
 ;;;###autoload
-(defun el-patch-unpatch (name type)
+(defun el-patch-unpatch (name type variant)
   "Remove the patch given by the PATCH-DEFINITION.
 This restores the original functionality of the object being
-patched. NAME and TYPE are as returned by `el-patch-get'."
+patched. NAME, TYPE, and VARIANT are as returned by
+`el-patch-get'."
   (interactive (el-patch--select-patch))
-  (if-let ((patch-definition (el-patch-get name type)))
-      (eval `(el-patch--stealthy-eval
-              ,(el-patch--resolve-definition
-                patch-definition nil)
-              "This function was patched and then unpatched by `el-patch'."))
+  (if-let ((patch-definition (el-patch-get name type variant)))
+      (if (car variant)
+          ;; an advice, remove it
+          (advice-remove name
+                         (el-patch--advice-name name (cdr variant)))
+        ;; Otherwise just re-evaluate original definition
+        (eval
+         `(el-patch--stealthy-eval
+           ,(el-patch--resolve-definition
+             patch-definition nil)
+           "This function was patched and then unpatched by `el-patch'.")))
     (error "There is no patch for %S %S" type name)))
 
 ;;;; Defining patch types
@@ -808,7 +919,7 @@ whether the symbol is a function or variable."
     (funcall locator definition)))
 
 ;;;###autoload
-(defun el-patch-validate (name type &optional nomsg run-hooks)
+(defun el-patch-validate (name type &optional nomsg run-hooks variant)
   "Validate the patch with given NAME and TYPE.
 This means el-patch will attempt to find the original definition
 for the function, and verify that it is the same as the original
@@ -816,6 +927,10 @@ function assumed by the patch. A warning will be signaled if the
 original definition for a patched function cannot be found, or if
 there is a difference between the actual and expected original
 definitions.
+
+If multiple variants exist for the same patch, then select the
+one specified by VARIANT (defaults to nil, like
+`el-patch-variant'). For advanced usage only.
 
 Interactively, use `completing-read' to select a function to
 inspect the patch of.
@@ -835,14 +950,18 @@ See also `el-patch-validate-all'."
   (interactive (progn
                  (unless current-prefix-arg
                    (run-hooks 'el-patch-pre-validate-hook))
-                 (append (el-patch--select-patch)
-                         (list nil (unless current-prefix-arg
-                                     'post-only)))))
+                 (cl-destructuring-bind (name type variant)
+                     (el-patch--select-patch)
+                   (list
+                    name type nil
+                    (unless current-prefix-arg
+                      'post-only)
+                    variant))))
   (unless (member run-hooks '(nil post-only))
     (run-hooks 'el-patch-pre-validate-hook))
   (unwind-protect
       (progn
-        (let* ((patch-definition (el-patch-get name type))
+        (let* ((patch-definition (el-patch-get name type variant))
                (type (car patch-definition))
                (expected-definition (el-patch--resolve-definition
                                      patch-definition nil))
@@ -885,10 +1004,13 @@ See `el-patch-validate'."
         (dolist (name (hash-table-keys el-patch--patches))
           (let ((patch-hash (gethash name el-patch--patches)))
             (dolist (type (hash-table-keys patch-hash))
-              (setq patch-count (1+ patch-count))
-              (unless (el-patch-validate name type 'nomsg)
-                (setq warning-count (1+ warning-count))
-                (push name failed)))))
+              (let ((type-hash (gethash type patch-hash)))
+                (dolist (variant (hash-table-keys type-hash))
+                  (setq patch-count (1+ patch-count))
+                  (unless (el-patch-validate name type 'nomsg nil
+                                             variant)
+                    (setq warning-count (1+ warning-count))
+                    (push name failed)))))))
         (cond
          ((zerop patch-count)
           (user-error "No patches defined"))
@@ -933,40 +1055,72 @@ unchanged along with FEATURE to `el-patch-require-function' when
 ;;;; Viewing patches
 
 ;;;###autoload
-(defun el-patch-get (name type)
+(defun el-patch-get (name type &optional variant)
   "Return the patch for object NAME of the given TYPE.
 NAME is a symbol for the name of the definition that was patched,
 and TYPE is a symbol `defun', `defmacro', etc. If the patch could
-not be found, return nil."
+not be found, return nil.
+
+If VARIANT is provided, select that variant of the patch. This is
+useful only if patches were defined using `el-patch-variant'."
   (condition-case nil
-      (gethash type (gethash name el-patch--patches))
+      (gethash
+       (if (consp variant)
+           variant
+         (cons nil variant))
+       (gethash type (gethash name el-patch--patches)))
     (error nil)))
 
 (defun el-patch--select-patch ()
   "Use `completing-read' to select a patched function.
-Return a list of two elements, the name (a symbol) of the object
-being patched and the type (a symbol `defun', `defmacro', etc.)
-of the definition."
-  (let ((options (mapcar #'symbol-name (hash-table-keys el-patch--patches))))
-    (unless options
-      (user-error "No patches defined"))
-    (let* ((name (intern (completing-read
-                          "Which patch? "
-                          options
-                          nil
-                          'require-match)))
-           (patch-hash (gethash name el-patch--patches))
-           (options (mapcar #'symbol-name
-                            (hash-table-keys patch-hash))))
-      (list name
-            (intern (pcase (length options)
-                      (0 (error "Internal `el-patch' error"))
-                      (1 (car options))
-                      (_ (completing-read
-                          "Which version? "
-                          options
-                          nil
-                          'require-match))))))))
+Return a list of three elements, the name (a symbol) of the
+object being patched, the type (a symbol `defun', `defmacro',
+etc.) of the definition, and the patch variant (a symbol, usually
+nil; see `el-patch-variant')."
+  (let* ((options (mapcar #'symbol-name (hash-table-keys el-patch--patches)))
+         (name (intern
+                (pcase (length options)
+                  (0 (user-error "No patches defined"))
+                  (_ (completing-read
+                      "Which patch? "
+                      options
+                      nil
+                      'require-match)))))
+         (patch-hash (gethash name el-patch--patches))
+         (options (mapcar #'symbol-name
+                          (hash-table-keys patch-hash)))
+         (type (intern
+                (pcase (length options)
+                  (0 (error "Internal `el-patch' error"))
+                  (1 (car options))
+                  (_ (completing-read
+                      "Which type? "
+                      options
+                      nil
+                      'require-match)))))
+         (type-hash (gethash type patch-hash))
+         (options (hash-table-keys type-hash))
+         (variant (pcase (length options)
+                    (0 (error "Internal `el-patch' error"))
+                    (1 (car options))
+                    (_ (let ((completing-options
+                              (mapcar (lambda (x)
+                                        (cons (format "%s%S"
+                                                      (or (and (car x)
+                                                               "Advice: ")
+                                                          "")
+                                                      (cdr x))
+                                              x))
+                                      (hash-table-keys type-hash))))
+                         (alist-get
+                          (completing-read
+                           "Which variant? "
+                           completing-options
+                           nil
+                           'require-match)
+                          completing-options
+                          nil nil 'equal))))))
+    (list name type variant)))
 
 (defun el-patch--ediff-forms (name1 form1 name2 form2)
   "Ediff two forms.
@@ -996,11 +1150,11 @@ two buffers wordwise."
      nil 'ediff-regions-wordwise 'word-mode nil)))
 
 ;;;###autoload
-(defun el-patch-ediff-patch (name type)
+(defun el-patch-ediff-patch (name type &optional variant)
   "Show the patch for an object in Ediff.
-NAME and TYPE are as returned by `el-patch-get'."
+NAME, TYPE, and VARIANT are as returned by `el-patch-get'."
   (interactive (el-patch--select-patch))
-  (if-let ((patch-definition (el-patch-get name type)))
+  (if-let ((patch-definition (el-patch-get name type variant)))
       (let* ((old-definition (el-patch--resolve-definition
                               patch-definition nil))
              (new-definition (el-patch--resolve-definition
@@ -1013,13 +1167,13 @@ NAME and TYPE are as returned by `el-patch-get'."
     (error "There is no patch for %S %S" type name)))
 
 ;;;###autoload
-(defun el-patch-ediff-conflict (name type)
+(defun el-patch-ediff-conflict (name type &optional variant)
   "Show a patch conflict in Ediff.
 This is a diff between the expected and actual values of a
-patch's original definition. NAME and TYPE are as returned by
-`el-patch-get'."
+patch's original definition. NAME, TYPE, and VARIANT are as
+returned by `el-patch-get'."
   (interactive (el-patch--select-patch))
-  (if-let ((patch-definition (el-patch-get name type)))
+  (if-let ((patch-definition (el-patch-get name type variant)))
       (let* ((expected-definition (el-patch--resolve-definition
                                    patch-definition nil))
              (actual-definition (el-patch--locate expected-definition)))
