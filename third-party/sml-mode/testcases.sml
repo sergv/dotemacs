@@ -1,4 +1,4 @@
-(* Copyright 1999-2020  Stefan Monnier <monnier@gnu.org> *)
+(* Copyright 1999-2023  Stefan Monnier <monnier@gnu.org> *)
 
 (* sml-mode here treats the second `=' as an equal op because it
  * thinks it's seeing something like "... type t = (s.t = ...)".  FIXME!  *)
@@ -340,6 +340,9 @@ local
 in
 
 val say = Control_Print.say
+val teststring = "hello \
+                 \there \
+                 \" ^ "he\l\\\"p"
 fun bug msg = ErrorMsg.impossible ("FSplit: "^msg)
 fun buglexp (msg,le) = (say "\n"; PP.printLexp le; say " "; bug msg)
 fun bugval (msg,v) = (say "\n"; PP.printSval v; say " "; bug msg)
