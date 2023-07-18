@@ -1,13 +1,13 @@
 ;;; js2-mode.el --- Improved JavaScript editing mode -*- lexical-binding: t -*-
 
-;; Copyright (C) 2009, 2011-2022  Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2011-2023  Free Software Foundation, Inc.
 
 ;; Author: Steve Yegge <steve.yegge@gmail.com>
 ;;         mooz <stillpedant@gmail.com>
 ;;         Dmitry Gutov <dgutov@yandex.ru>
 ;; URL:  https://github.com/mooz/js2-mode/
 ;;       http://code.google.com/p/js2-mode/
-;; Version: 20220710
+;; Version: 20230408
 ;; Keywords: languages, javascript
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 
@@ -2342,11 +2342,20 @@ If any given node in NODES is nil, doesn't record that link."
   top)          ; top-level `js2-scope' (script/function)
 
 (js2--struct-put 'js2-scope 'js2-visitor 'js2-visit-block)
-(js2--struct-put 'js2-scope 'js2-printer 'js2-print-none)
+(js2--struct-put 'js2-scope 'js2-printer 'js2-print-block)
 
 (defun js2-node-get-enclosing-scope (node)
   "Return the innermost `js2-scope' node surrounding NODE.
 Returns nil if there is no enclosing scope node."
+  ;; when node is the name of a function statement, the enclosing
+  ;; scope is not that function itself but the surrounding scope.
+  (let ((parent (js2-node-parent node)))
+    (when (and (js2-name-node-p node)
+               (js2-function-node-p parent)
+               (eq 'FUNCTION_STATEMENT (js2-function-node-form parent))
+               (eq node (js2-function-node-name parent)))
+      (setq node parent)))
+  ;; dig up to find the closest scope parent
   (while (and (setq node (js2-node-parent node))
               (not (js2-scope-p node))))
   node)
@@ -11148,6 +11157,10 @@ expression)."
        ((and class-p
              (= tt js2-SEMI))
         nil)
+       ((and class-p
+             (eq tt js2-LC))
+        (setq after-comma nil
+              elem (js2-parse-block)))
        (t
         (js2-report-error "msg.bad.prop")
         (unless js2-recover-from-parse-errors
