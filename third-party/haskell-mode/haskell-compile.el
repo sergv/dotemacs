@@ -138,22 +138,31 @@ The `%s' placeholder is replaced by the current buffer's filename."
                       ,(cons 'or
                              +haskell-extensions+))
              ":"
-             (group-n 2
-                      (+ numeric))
-             ":"
-             (group-n 3
-                      (+ numeric))
-             (? "-"
-                (group-n 4
-                         (+ numeric)))
+             (or
+              ;; "121:1" & "12:3-5"
+              (seq (group-n 2 (+ numeric))
+                   ":"
+                   (group-n 4 (+ numeric))
+                   (? "-"
+                      (group-n 5 (+ numeric))))
+              ;; "(289,5)-(291,36)"
+              (seq "("
+                   (group-n 2 (+ numeric))
+                   ","
+                   (group-n 4 (+ numeric))
+                   ")-("
+                   (group-n 3 (+ numeric))
+                   ","
+                   (group-n 5 (+ numeric))
+                   ")"))
              ;; Require paren or \n at end because this regexp aims to
              ;; highlight auxiliary file names, not the actuall
              ;; errors/warnings (cf type of this regexp).
              (or ")"
                  eol)))
       1
-      2
-      (3 . 4)
+      (2 . 3)
+      (4 . 5)
       0 ;; type - info
       )))
 
