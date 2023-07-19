@@ -217,14 +217,14 @@ With prefix argument puts symbol at point also in substitute part"
 (defun haskell-go-to-symbol-home-smart (&optional use-regexp?)
   (interactive "P")
   (cond
-    ((dante-mode
-      (if use-regexp?
-          (eproj-symbnav/go-to-symbol-home use-regexp?)
-        (haskell-dante-symbnav/go-to-symbol-home)))
-     (lsp-mode
-      (lsp-haskell-symbnav/go-to-symbol-home use-regexp?))
-     (t
-      (eproj-symbnav/go-to-symbol-home use-regexp?)))))
+    (dante-mode
+     (if use-regexp?
+         (eproj-symbnav/go-to-symbol-home use-regexp?)
+       (haskell-dante-symbnav/go-to-symbol-home)))
+    (lsp-mode
+     (lsp-haskell-symbnav/go-to-symbol-home use-regexp?))
+    (t
+     (eproj-symbnav/go-to-symbol-home use-regexp?))))
 
 (defun haskell-find-references-smart ()
   (interactive)
