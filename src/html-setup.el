@@ -164,6 +164,16 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
                        (error "No matching item found")))))
           (vim:motion-jump-item))))))
 
+;;;###autoload (autoload 'vim:motion-jump-html-tag "html-setup" "" t)
+(vim-defmotion vim:motion-jump-html-tag (inclusive raw-result)
+  "If point is positioned inside tag then jump to the beginning
+of the matching tag, else fallback to `vim:motion-jump-item'."
+  (if (let ((synt (char-syntax (char-after))))
+        (or (char=? synt ?\()
+            (char=? synt ?\))))
+      (vim:motion-jump-item)
+    (web-mode-navigate)))
+
 ;;;###autoload
 (el-patch-feature rng-valid)
 
@@ -335,7 +345,7 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
                      vim-visual-mode-local-keymap
                      vim-motion-mode-local-keymap
                      vim-operator-pending-mode-local-keymap)
-    ("m" vim:motion-jump-tag:interactive)
+    ("m" vim:motion-jump-html-tag:interactive)
 
     ("'" vim:nxml-backward-up-element:interactive)
     ("q" vim:markup-forward-up-element:interactive)))
