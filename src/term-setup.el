@@ -36,7 +36,7 @@ on current line. See `term-bol'.")
 
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-insert-mode-local-keymap)
-    ("M-x"  execute-extended-command)
+    ("M-x"  counsel-M-x)
     ("M-:"  eval-expression)
     ("<f6>" term-paste))
 
