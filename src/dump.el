@@ -98,7 +98,6 @@
     (require 'grep)
     (require 'ivy)
     ;; (require 'ivy-posframe)
-    (require 'ivy-smex)
     (require 'lsp-mode)
     (require 'magit)
     (require 'markdown-mode)
