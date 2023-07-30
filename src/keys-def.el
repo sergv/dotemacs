@@ -104,7 +104,7 @@ _z_: scroll to center
 
     ("g"     hydra-vim-normal-g-ext/body)
     ("j"     hydra-vim-normal-j-ext/body)
-    ("M-x"   ivy-smex)
+    ("M-x"   counsel-M-x)
 
     ("G"     pseudovim-motion-go-to-first-non-blank-end)
 
