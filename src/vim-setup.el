@@ -111,7 +111,7 @@ M-_x_
   ("r" egrep)
   ("u" undo-tree-visualize)
   ("v" vim:visual-mode-reactivate:interactive)
-  ("x" ivy-smex)
+  ("x" counsel-M-x)
 
   ("#" server-edit)
   ("k" remove-buffer)
@@ -158,7 +158,7 @@ g_r_ep
 M-_x_"
   ("g" vim:motion-go-to-first-non-blank-beg:interactive)
   ("r" egrep-region)
-  ("x" ivy-smex))
+  ("x" counsel-M-x))
 
 (defhydra-ext hydra-window-management (:exit t :foreign-keys warn :hint nil)
   "

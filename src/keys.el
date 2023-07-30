@@ -64,7 +64,7 @@
   ("M-m"      nil)
   ("M-M"      nil)
 
-  ("M-x"      ivy-smex)
+  ("M-x"      counsel-M-x)
 
   ("C-x <f1>" nil)
   ("C-z"      nil)
