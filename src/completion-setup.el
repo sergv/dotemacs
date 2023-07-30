@@ -15,7 +15,6 @@
 
 (require 'ivy)
 ;; (require 'ivy-posframe)
-(require 'ivy-smex)
 (require 'flx)
 
 (eval-after-load "pcomplete"
