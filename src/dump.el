@@ -96,6 +96,7 @@
     (require 'flycheck)
     (require 'flycheck-rust)
     (require 'grep)
+    (require 'isar-mode)
     (require 'ivy)
     ;; (require 'ivy-posframe)
     (require 'lsp-mode)
