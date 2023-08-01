@@ -246,8 +246,9 @@ Intended to be used with comment-util-mode."
                                    :comment-chars-str "%#"
                                    :detect-line-comment #'comment-util--detect-line-comment-with-at-least-1-char))
 
-            ((tuareg-mode
-              sml-mode)
+            ((isar-mode
+              sml-mode
+              tuareg-mode)
              .
              ,(make-comment-format :region-begin "(*"
                                    :region-end "*)"
