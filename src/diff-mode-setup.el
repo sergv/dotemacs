@@ -21,6 +21,23 @@
 _,_: kill hunk"
   ("," diff-hunk-kill))
 
+(defconst diff--outline-headings
+  '(("diff" . 1)
+    ("@@" . 2)))
+(defconst diff--outline-header-regexp
+  (concat "^\\(?:"
+          (mapconcat (lambda (x) (concat "\\(?:" (car x) "\\)"))
+                     diff--outline-headings
+                     "\\|")
+          "\\)"))
+
+(defun diff-up-heading ()
+  "Move to current hunk start then to start of current file."
+  (interactive)
+  (if (outline-on-heading-p nil)
+      (outline-up-heading 1 nil)
+    (outline-back-to-heading nil)))
+
 ;;;###autoload
 (defun diff-mode-setup ()
   (init-common :use-yasnippet nil
@@ -33,16 +50,24 @@ _,_: kill hunk"
    :comment-start-re (rx bol
                          (repeat 3 (or "-" "+"))
                          " "))
-  (setup-folding t nil)
+
+  ;; Enable outline by hand because diff mode outline is too specialized
+  (setf outline-regexp diff--outline-header-regexp
+        outline-heading-alist diff--outline-headings)
+  (outline-minor-mode +1)
+
+  (setup-folding t t)
 
   (def-keys-for-map vim-normal-mode-local-keymap
-    ("<up>"     diff-hunk-prev)
-    ("<down>"   diff-hunk-next)
-    ("C-<up>"   diff-file-prev)
-    ("C-<down>" diff-file-next)
-    ("SPC"      diff-goto-source)
-    ("<return>" diff-goto-source)
-    ("g"        hydra-diff-vim-normal-g-ext/body)))
+    (("<up>"     "C-t") diff-hunk-prev)
+    (("<down>"   "C-h") diff-hunk-next)
+    (("C-<up>"   "M-t") diff-file-prev)
+    (("C-<down>" "M-h") diff-file-next)
+    (("<return>" "SPC") diff-goto-source)
+    ("g"                hydra-diff-vim-normal-g-ext/body)
+    ("<tab>"            outline-cycle)
+    ("<backtab>"        outline-cycle-buffer)
+    ("'"                diff-up-heading)))
 
 ;;;###autoload
 (add-hook 'diff-mode-hook #'diff-mode-setup)
