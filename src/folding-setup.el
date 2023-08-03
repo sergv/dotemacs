@@ -398,22 +398,25 @@ _T_: toggle all indented"
 (defun setup-folding (enable-hideshow? outline-params)
   "Enable either hideshow, or outline, or both."
   (cl-assert (memq enable-hideshow? '(t nil enable-cpp)))
-  (if enable-hideshow?
-      (progn
-        (unless hs-block-start-regexp
-          (hs-minor-mode--initialize-preproc (eq enable-hideshow? 'enable-cpp)))
-        (hs-minor-mode +1)
-        (if outline-params
-            (progn
-              (apply #'setup-outline-headers outline-params)
-              (def-keys-for-map vim-normal-mode-local-keymap
-                ("z" hydra-vim-normal-z-hideshow-and-outline/body)))
-          (def-keys-for-map vim-normal-mode-local-keymap
-            ("z" hydra-vim-normal-z-hideshow/body))))
-    (when outline-params
-      (apply #'setup-outline-headers outline-params)
-      (def-keys-for-map vim-normal-mode-local-keymap
-        ("z" hydra-vim-normal-z-outline/body)))))
+  (let ((outline-enabled? (not (null outline-params))))
+    (if enable-hideshow?
+        (progn
+          (unless hs-block-start-regexp
+            (hs-minor-mode--initialize-preproc (eq enable-hideshow? 'enable-cpp)))
+          (hs-minor-mode +1)
+          (if outline-enabled?
+              (progn
+                (when (listp outline-params)
+                  (apply #'setup-outline-headers outline-params))
+                (def-keys-for-map vim-normal-mode-local-keymap
+                  ("z" hydra-vim-normal-z-hideshow-and-outline/body)))
+            (def-keys-for-map vim-normal-mode-local-keymap
+              ("z" hydra-vim-normal-z-hideshow/body))))
+      (when outline-enabled?
+        (when (listp outline-params)
+          (apply #'setup-outline-headers outline-params))
+        (def-keys-for-map vim-normal-mode-local-keymap
+          ("z" hydra-vim-normal-z-outline/body))))))
 
 ;;;###autoload
 (defun setup-hideshow-yafolding (enable-hideshow? outline-params)
@@ -426,7 +429,8 @@ _T_: toggle all indented"
                           (string-to-vector " ..."))
   (if outline-params
       (progn
-        (apply #'setup-outline-headers outline-params)
+        (when (listp outline-params)
+          (apply #'setup-outline-headers outline-params))
         (def-keys-for-map vim-normal-mode-local-keymap
           ("z" hydra-vim-normal-z-hideshow-yafolding-and-outline/body)))
     (def-keys-for-map vim-normal-mode-local-keymap
