@@ -121,18 +121,16 @@ _f_: next goal"
   (dolist (cmd '("load" "lo" "l"))
     (vim-local-emap cmd #'vim:agda-load-file))
   (def-keys-for-map vim-normal-mode-local-keymap
-    ("C-l"             agda2-load)
-    ("<f6>"            agda2-load)
-    ("<tab>"           eri-indent)
-    ("S-<tab>"         eri-indent-reverse)
-    ("S-<lefttab>"     eri-indent-reverse)
-    ("S-<iso-lefttab>" eri-indent-reverse)
+    (("C-l" "<f6>")    agda2-load)
     ("C-="             input-unicode)
     ("C-."             agda2-goto-definition-keyboard)
     ("C-,"             agda2-go-back)
     ("-"               hydra-agda/body)
     ("C-t"             agda2-previous-goal)
-    ("C-h"             agda2-next-goal))
+    ("C-h"             agda2-next-goal)
+
+    ("<tab>"           eri-indent)
+    (("S-<tab>" "S-<lefttab>" "S-<iso-lefttab>") eri-indent-reverse))
   (def-keys-for-map vim-visual-mode-local-keymap
     ("- e" agda2-compute-normalised-region)
     ("g"   hydra-agda-vim-visual-g-ext/body))
