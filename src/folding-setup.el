@@ -225,26 +225,6 @@ function; and adjust-block-beginning function."
 
 ;;;; Outline
 
-(defvar-local outline-headers/min-header-length nil
-  "Minimum number of `outline-headers/section-symbol''s allowed in header.")
-
-(defvar-local outline-headers/section-start
-  "^"
-  "Beginning part of `outline-headers/header-re'.")
-
-(defvar-local outline-headers/section-symbol
-  nil
-  "Main part of `outline-headers/header-re' that defines headers of different length.")
-
-(defvar-local outline-headers/section-end
-  "\\(?: \\|$\\)"
-  "End part of `outline-headers/header-re'.")
-
-
-(defvar-local outline-headers/header-re
-  nil
-  "Regular expression that defines headers")
-
 ;;;###autoload
 (cl-defun setup-outline-headers (&key
                                  (header-start "^")
@@ -256,7 +236,7 @@ function; and adjust-block-beginning function."
           (assq 'one-line
                 (v-assq major-mode
                         +comment-util-comment-format-alist+)))
-    (when (< 1 (length header-symbol))
+    (when (not (equal 1 (length header-symbol)))
       (error "setup-outline-headers: error: fetched header-symbol from comment-util but it's length is greater than 1: \"%s\" and no other header-symbol was provided"
              header-symbol)))
   (cl-assert (and (string? header-symbol)
@@ -274,33 +254,34 @@ function; and adjust-block-beginning function."
              nil
              "length-min must be integer >= 1")
 
-  (setf outline-headers/section-start     header-start
-        outline-headers/section-symbol    (regexp-quote header-symbol)
-        outline-headers/section-end       header-end
-        outline-headers/min-header-length length-min)
-
-  (setf outline-headers/header-re
+  (let*
+      ((section-start     header-start)
+       (section-symbol    (regexp-quote header-symbol))
+       (section-end       header-end)
+       (min-header-length length-min)
+       ;; Regular expression that defines headers
+       (header-re
         (format "%s\\(?1:%s\\{%d,\\}\\)%s"
-                outline-headers/section-start
-                outline-headers/section-symbol
-                outline-headers/min-header-length
-                outline-headers/section-end))
+                section-start
+                section-symbol
+                min-header-length
+                section-end)))
 
-  (setf buffer-display-table (make-display-table))
-  (set-display-table-slot buffer-display-table
-                          'selective-display
-                          (string-to-vector " ..."))
+    (setf buffer-display-table (make-display-table))
+    (set-display-table-slot buffer-display-table
+                            'selective-display
+                            (string-to-vector " ..."))
 
-  (setq-local outline-regexp outline-headers/header-re
-              outline-heading-end-regexp
-              (concat "\\(?:"
-                      outline-headers/header-re
-                      ".*?"
-                      "\\(?:\\\\\n.*\\)?"
-                      "\n"
-                      "\\)+"))
+    (setq-local outline-regexp header-re
+                outline-heading-end-regexp
+                (concat "\\(?:"
+                        header-re
+                        ".*?"
+                        "\\(?:\\\\\n.*\\)?"
+                        "\n"
+                        "\\)+"))
 
-  (outline-minor-mode +1))
+    (outline-minor-mode +1)))
 
 ;;;; Combined hideshow and yafolding
 
