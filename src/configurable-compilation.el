@@ -309,8 +309,14 @@ Returns the compilation buffer created."
           (setq-local compilation-environment
                       (el-patch-swap
                         thisenv
-                        (append (cc-command-env command)
-                                thisenv)))
+                        (cond
+                          ((stringp command)
+                           thisenv)
+                          ((cc-command-p command)
+                           (append (cc-command-env command)
+                                   thisenv))
+                          (t
+                           (error "Unexpected compilation command: %s" command)))))
           (if buffer-path
               (setq-local exec-path buffer-path)
             (kill-local-variable 'exec-path))
