@@ -288,7 +288,7 @@ Returns the compilation buffer created."
                 ((cc-command-p command)
                  (cd (cc-command-dir command)))
                 (t
-                 (error "Unexpecte compilation command: %s" command)))))
+                 (error "Unexpected compilation command: %s" command)))))
           (erase-buffer)
           ;; Select the desired mode.
           (if (not (eq mode t))
