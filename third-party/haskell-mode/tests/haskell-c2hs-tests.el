@@ -309,5 +309,7 @@
       ("#}" t haskell-c2hs-hook-pair-face))
     'haskell-c2hs-mode))
 
+(provide 'haskell-c2hs-tests)
+
 ;; haskell-c2hs-tests.el ends here
 

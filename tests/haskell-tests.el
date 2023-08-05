@@ -113,7 +113,7 @@ end."
      "{-# LANGUAGE Safe             #-}_|_"
      "")))
 
-(ert-deftest haskell-tests/haskell-align-language-pragmas-2 ()
+(ert-deftest haskell-tests/haskell-align-language-pragmas-3 ()
   (haskell-tests--test-buffer-contents
       (haskell-align-language-pragmas (point))
     (tests-utils--multiline
@@ -131,7 +131,7 @@ end."
      "{-# LANGUAGE Safe             #-}_|_"
      "")))
 
-(ert-deftest haskell-tests/haskell-align-language-pragmas-3 ()
+(ert-deftest haskell-tests/haskell-align-language-pragmas-4 ()
   (haskell-tests--test-buffer-contents
       (haskell-align-language-pragmas (point))
     (tests-utils--multiline
@@ -149,7 +149,7 @@ end."
      "{-# LANGUAGE Safe             #-}_|_"
      "-- bar")))
 
-(ert-deftest haskell-tests/haskell-align-language-pragmas-4 ()
+(ert-deftest haskell-tests/haskell-align-language-pragmas-5 ()
   (haskell-tests--test-buffer-contents
       (haskell-align-language-pragmas (point))
     (tests-utils--multiline
@@ -275,98 +275,6 @@ end."
      "import Data.Text qualified as T"
      "#endif"
      "")))
-
-(ert-deftest haskell-tests/haskell-format--get-language-extensions-1 ()
-  (haskell-tests--test-result
-    :action
-    (haskell-format--get-language-extensions (current-buffer) t)
-    :expected-value
-    '("Safe" "AlternativeLayoutRule" "AllowAmbiguousTypes" "FlexibleContexts")
-    :contents
-    (tests-utils--multiline
-     "_|_"
-     "{-# LANGUAGE Safe #-}"
-     "{-#LANGUAGE AlternativeLayoutRule #-}"
-     "{-# LANGUAGE AllowAmbiguousTypes#-}"
-     "{-#LANGUAGE FlexibleContexts#-}")))
-
-(ert-deftest haskell-tests/haskell-format--get-language-extensions-2 ()
-  (haskell-tests--test-result
-    :action
-    (haskell-format--get-language-extensions (current-buffer) t)
-    :expected-value
-    '("Safe" "AlternativeLayoutRule" "AllowAmbiguousTypes" "FlexibleContexts")
-    :contents
-    (tests-utils--multiline
-     "_|_"
-     "{-# LANGUAGE Safe,AlternativeLayoutRule, AllowAmbiguousTypes,"
-     "FlexibleContexts #-}")))
-
-(ert-deftest haskell-tests/haskell-format--get-language-extensions-3 ()
-  (haskell-tests--test-result
-    :action
-    (haskell-format--get-language-extensions (current-buffer) t)
-    :expected-value
-    '("Safe" "AlternativeLayoutRule" "AllowAmbiguousTypes" "FlexibleContexts")
-    :contents
-    (tests-utils--multiline
-     "_|_"
-     "{-# language Safe #-}"
-     "{-#language AlternativeLayoutRule #-}"
-     "{-# language AllowAmbiguousTypes#-}"
-     "{-#language FlexibleContexts#-}")))
-
-(ert-deftest haskell-tests/haskell-format--get-language-extensions-4 ()
-  (haskell-tests--test-result
-    :action
-    (haskell-format--get-language-extensions (current-buffer) t)
-    :expected-value
-    '("Safe" "AlternativeLayoutRule" "AllowAmbiguousTypes" "FlexibleInstances" "FlexibleContexts")
-    :contents
-    (tests-utils--multiline
-     "_|_"
-     "{-# LANGUAGE Safe "
-     ""
-     "#-}"
-     "{-#"
-     "LANGUAGE AlternativeLayoutRule #-}"
-     "{-# LANGUAGE AllowAmbiguousTypes, "
-     "FlexibleInstances #-}"
-     "{-#LANGUAGE"
-     " FlexibleContexts#-}")))
-
-(ert-deftest haskell-tests/haskell-format--get-language-extensions-5 ()
-  (haskell-tests--test-result
-    :action
-    (haskell-format--get-language-extensions (current-buffer) t)
-    :expected-value
-    '("FlexibleContexts" "FlexibleInstances" "RecordWildCards" "AllowAmbiguousTypes")
-    :contents
-    (tests-utils--multiline
-     "----------------------------------------------------------------------------"
-     "-- |"
-     "-- Module      :  Test"
-     "--"
-     "--"
-     "----------------------------------------------------------------------------"
-     ""
-     "{-# LANGUAGE FlexibleContexts    #-}"
-     "{-# LANGUAGE FlexibleInstances   #-}"
-     "{-# LANGUAGE RecordWildCards     #-}"
-     "{-# LANGUAGE AllowAmbiguousTypes #-}"
-     ""
-     ""
-     "module Test where"
-     ""
-     "data Frob = Frob"
-     "  { frob1 :: Int"
-     "  , frob2 :: Double"
-     "  }"
-     "_|_"
-     "foo Frob{..} ="
-     " frob1 * 2"
-     "")))
-
 
 (ert-deftest haskell-tests/haskell-indentation--add-to-sorted-list! ()
   (dolist (entry '((0 ()        (0))
@@ -1165,7 +1073,7 @@ end."
      "foo x xs = 123.45## _|_bar"
      "")))
 
-(ert-deftest haskell-tests/haskell-smart-operators--magic-hash-7a ()
+(ert-deftest haskell-tests/haskell-smart-operators--magic-hash-7b ()
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-smart-operators-mode +1)
@@ -4418,7 +4326,7 @@ end."
      "        quux x"
      "  bar 10 ")))
 
-(ert-deftest haskell-tests/haskell-back-up-indent-level-6 ()
+(ert-deftest haskell-tests/haskell-back-up-indent-level-7 ()
   (haskell-tests--test-buffer-contents
       (should (haskell-misc--back-up-indent-level))
     (tests-utils--multiline
@@ -4679,6 +4587,97 @@ end."
              "{-# LANGUAGE LambdaCase #-}"
              "module Foo where"
              "")))))
+
+(ert-deftest haskell-tests/haskell-format--get-language-extensions-9 ()
+  (haskell-tests--test-result
+    :action
+    (haskell-format--get-language-extensions (current-buffer) t)
+    :expected-value
+    '("Safe" "AlternativeLayoutRule" "AllowAmbiguousTypes" "FlexibleContexts")
+    :contents
+    (tests-utils--multiline
+     "_|_"
+     "{-# LANGUAGE Safe #-}"
+     "{-#LANGUAGE AlternativeLayoutRule #-}"
+     "{-# LANGUAGE AllowAmbiguousTypes#-}"
+     "{-#LANGUAGE FlexibleContexts#-}")))
+
+(ert-deftest haskell-tests/haskell-format--get-language-extensions-10 ()
+  (haskell-tests--test-result
+    :action
+    (haskell-format--get-language-extensions (current-buffer) t)
+    :expected-value
+    '("Safe" "AlternativeLayoutRule" "AllowAmbiguousTypes" "FlexibleContexts")
+    :contents
+    (tests-utils--multiline
+     "_|_"
+     "{-# LANGUAGE Safe,AlternativeLayoutRule, AllowAmbiguousTypes,"
+     "FlexibleContexts #-}")))
+
+(ert-deftest haskell-tests/haskell-format--get-language-extensions-11 ()
+  (haskell-tests--test-result
+    :action
+    (haskell-format--get-language-extensions (current-buffer) t)
+    :expected-value
+    '("Safe" "AlternativeLayoutRule" "AllowAmbiguousTypes" "FlexibleContexts")
+    :contents
+    (tests-utils--multiline
+     "_|_"
+     "{-# language Safe #-}"
+     "{-#language AlternativeLayoutRule #-}"
+     "{-# language AllowAmbiguousTypes#-}"
+     "{-#language FlexibleContexts#-}")))
+
+(ert-deftest haskell-tests/haskell-format--get-language-extensions-12 ()
+  (haskell-tests--test-result
+    :action
+    (haskell-format--get-language-extensions (current-buffer) t)
+    :expected-value
+    '("Safe" "AlternativeLayoutRule" "AllowAmbiguousTypes" "FlexibleInstances" "FlexibleContexts")
+    :contents
+    (tests-utils--multiline
+     "_|_"
+     "{-# LANGUAGE Safe "
+     ""
+     "#-}"
+     "{-#"
+     "LANGUAGE AlternativeLayoutRule #-}"
+     "{-# LANGUAGE AllowAmbiguousTypes, "
+     "FlexibleInstances #-}"
+     "{-#LANGUAGE"
+     " FlexibleContexts#-}")))
+
+(ert-deftest haskell-tests/haskell-format--get-language-extensions-13 ()
+  (haskell-tests--test-result
+    :action
+    (haskell-format--get-language-extensions (current-buffer) t)
+    :expected-value
+    '("FlexibleContexts" "FlexibleInstances" "RecordWildCards" "AllowAmbiguousTypes")
+    :contents
+    (tests-utils--multiline
+     "----------------------------------------------------------------------------"
+     "-- |"
+     "-- Module      :  Test"
+     "--"
+     "--"
+     "----------------------------------------------------------------------------"
+     ""
+     "{-# LANGUAGE FlexibleContexts    #-}"
+     "{-# LANGUAGE FlexibleInstances   #-}"
+     "{-# LANGUAGE RecordWildCards     #-}"
+     "{-# LANGUAGE AllowAmbiguousTypes #-}"
+     ""
+     ""
+     "module Test where"
+     ""
+     "data Frob = Frob"
+     "  { frob1 :: Int"
+     "  , frob2 :: Double"
+     "  }"
+     "_|_"
+     "foo Frob{..} ="
+     " frob1 * 2"
+     "")))
 
 
 (ert-deftest haskell-tests/dante--insert-type--1 ()
