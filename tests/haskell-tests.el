@@ -4593,7 +4593,7 @@ end."
     :action
     (haskell-format--get-language-extensions (current-buffer) t)
     :expected-value
-    '("Safe" "AlternativeLayoutRule" "AllowAmbiguousTypes" "FlexibleContexts")
+    '("FlexibleContexts" "AllowAmbiguousTypes" "AlternativeLayoutRule" "Safe")
     :contents
     (tests-utils--multiline
      "_|_"
@@ -4619,7 +4619,7 @@ end."
     :action
     (haskell-format--get-language-extensions (current-buffer) t)
     :expected-value
-    '("Safe" "AlternativeLayoutRule" "AllowAmbiguousTypes" "FlexibleContexts")
+    '("FlexibleContexts" "AllowAmbiguousTypes" "AlternativeLayoutRule" "Safe")
     :contents
     (tests-utils--multiline
      "_|_"
@@ -4633,7 +4633,7 @@ end."
     :action
     (haskell-format--get-language-extensions (current-buffer) t)
     :expected-value
-    '("Safe" "AlternativeLayoutRule" "AllowAmbiguousTypes" "FlexibleInstances" "FlexibleContexts")
+    '("FlexibleContexts" "AllowAmbiguousTypes" "FlexibleInstances" "AlternativeLayoutRule" "Safe")
     :contents
     (tests-utils--multiline
      "_|_"
@@ -4652,7 +4652,7 @@ end."
     :action
     (haskell-format--get-language-extensions (current-buffer) t)
     :expected-value
-    '("FlexibleContexts" "FlexibleInstances" "RecordWildCards" "AllowAmbiguousTypes")
+    '("AllowAmbiguousTypes" "RecordWildCards" "FlexibleInstances" "FlexibleContexts")
     :contents
     (tests-utils--multiline
      "----------------------------------------------------------------------------"
