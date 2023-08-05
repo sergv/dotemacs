@@ -637,7 +637,10 @@ cache tags in."
     language-specific
     checker
     disabled-checkers
-    build-dir)
+    build-dir
+    local-variables
+    no-default-proj
+    authoritative-tag-source-for)
   "List .eproj-info keys that are currently supported.")
 
 (defun eproj-read-eproj-info-file (root filename)
