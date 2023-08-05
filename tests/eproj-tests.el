@@ -837,6 +837,8 @@ _|_"))
 ;;   (ert "eproj-tests/.*")
 ;;   nil)
 
+(provide 'eproj-tests)
+
 ;; Local Variables:
 ;; no-byte-compile: t
 ;; End:

@@ -34,3 +34,5 @@
     ("abc" . (("b.hs" . "-- Empty file"))))
    (cd "abc"))
   (should (eq default-directory cur-haskell-dir)))
+
+(provide 'haskell-test-utils-tests)

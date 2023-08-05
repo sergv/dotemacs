@@ -62,6 +62,8 @@
 ;;        )
 ;;   nil)
 
+(provide 'git-tests)
+
 ;; Local Variables:
 ;; End:
 

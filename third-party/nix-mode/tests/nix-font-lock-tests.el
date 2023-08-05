@@ -105,6 +105,8 @@ if all of its characters have syntax and face. See
    '("''\\$${x}''")
    '(("''\\$${x}''" t font-lock-string-face))))
 
+(provide 'nix-font-lock-tests)
+
 ;; Local Variables:
 ;; flycheck-disabled-checkers: (emacs-lisp-checkdoc)
 ;; End:

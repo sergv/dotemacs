@@ -260,4 +260,6 @@ Tests flag updates and `post-command-hook' cleanup."
   (should (string= (haskell-utils-unqualify-op "L.++")              "++"))
   (should (string= (haskell-utils-unqualify-op "GHC.Base.*")        "*")))
 
+(provide 'haskell-utils-tests)
+
 ;;; haskell-utils-tests.el ends here

@@ -397,3 +397,5 @@ buffer."
                (setq result (concat result result)))
              result)
            "id`")))
+
+(provide 'haskell-lexeme-tests)
