@@ -23,6 +23,8 @@
 
 ;;; Commentary:
 
+(require 'f-init)
+
 ;;; Code:
 
 (defvar f-test/playground-path
@@ -77,4 +79,6 @@ includes the CONTENT."
         (args (list mode (f-expand file f-test/playground-path))))
     (apply 'call-process (append (list chmod nil nil nil) args))))
 
-;;; test-helper.el ends here
+(provide 'f-test-helper)
+
+;;; f-test-helper.el ends here
