@@ -1098,3 +1098,5 @@
      ("pattern" t haskell-keyword-face)
      ("pattern" t haskell-keyword-face)
      ("pattern" t haskell-keyword-face))))
+
+(provide 'haskell-font-lock-tests)
