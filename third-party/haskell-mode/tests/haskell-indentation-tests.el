@@ -1234,4 +1234,6 @@ foo x
     (execute-kbd-macro (kbd "M-j"))
     (should (equal 3 (- (point) (line-beginning-position))))))
 
+(provide 'haskell-indentation-tests)
+
 ;;; haskell-indentation-tests.el ends here
