@@ -787,7 +787,8 @@ _r_ecency
 (define-derived-mode ebuf-mode fundamental-mode "Ebuf"
   "Major mode for queries in auxiliary buffer."
   ;; Fringe line tracking.
-  (linum-mode -1)
+  (when (bound-and-true-p linum-mode)
+    (linum-mode -1))
   (hl-line-mode +1)
   (nix-prettify-mode +1)
   ;; Disable font-lock-mode so that strings propertized with 'face property
