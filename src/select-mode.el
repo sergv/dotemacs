@@ -83,7 +83,8 @@ or just to bury selection buffer, leaving it's windows inplace (nil).)"
 (define-derived-mode select-mode text-mode "Selection"
   "Major mode for queries in auxiliary buffer."
   ;; Fringe line tracking.
-  (linum-mode -1)
+  (when (bound-and-true-p linum-mode)
+    (linum-mode -1))
   ;; Disable font-lock-mode so that strings propertized with 'face property
   ;; will display correctly. Also there’s nothing to propertize for font-lock
   ;; in select-mode buffers, so no reason to have it enabled in the fist place.
