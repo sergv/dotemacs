@@ -30,12 +30,15 @@ fi
 
 if [[ -z "$tests" ]]; then
     for x in "$EMACS_ROOT/tests"/*.el; do
-        tests="$tests -l $x"
+        # tests="$tests -l $x"
+        tests="$tests (require '$(basename "${x%%.el}"))"
     done
+        # tests="$tests (require '$(basename "${x%%.el}"))"
 
     for y in "haskell-mode/tests" "nix-mode/tests" "f.el/test" "rainbow-delimiters"; do
         for x in "$EMACS_ROOT/third-party/$y"/*.el; do
-            tests="$tests -l $x"
+            tests="$tests (require '$(basename "${x%%.el}"))"
+            # tests="$tests -l $x"
         done
     done
 fi
@@ -57,12 +60,12 @@ fi
       -L "$EMACS_ROOT/tests" \
       -L "$EMACS_ROOT/third-party/haskell-mode/tests" \
       -L "$EMACS_ROOT/third-party/nix-mode/tests" \
-      -L "$EMACS_ROOT/third-party/f.el/tests" \
+      -L "$EMACS_ROOT/third-party/f.el/test" \
       -L "$EMACS_ROOT/third-party/rainbow-delimiters" \
       --eval "(progn (require 'cl))" \
       --eval "(progn (require 'cl-lib))" \
       -l start \
-      $tests \
+      --eval "(progn $tests)" \
        --eval "(ert-run-tests-batch-and-exit $matcher)"
 
       #-f ert-run-tests-batch-and-exit
