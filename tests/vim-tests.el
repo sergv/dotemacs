@@ -54,7 +54,8 @@
                 ,init
                 (progn ,@(cdr action))
               ,(cadr contents)
-              ,expected-value))))))
+
+             ,expected-value))))))
 
 (defmacro vim-tests--test-fresh-buffer-contents-init-all (name inits action contents expected-value)
   (declare (indent 3))
@@ -458,7 +459,7 @@
    "frobnicate"))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    vim-tests/block-insert-1b
+    vim-tests/block-insert-1ba
     (execute-kbd-macro (kbd "C-v t t t I 1 2 3 <escape>"))
   (tests-utils--multiline
    "foo"
@@ -476,7 +477,7 @@
    "frobnicate"))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    vim-tests/block-insert-1bb
+    vim-tests/block-insert-1bba
     (execute-kbd-macro (kbd "C-v t t t $ I 1 2 3 <escape>"))
   (tests-utils--multiline
    "foo"
@@ -566,7 +567,7 @@
    "frobnicate"))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    vim-tests/block-insert-1ca
+    vim-tests/block-insert-1cb
     (execute-kbd-macro (kbd "$ C-v 3 t ^ d I 1 2 3 <escape>"))
   (tests-utils--multiline
    "foo"
@@ -620,7 +621,7 @@
    "frobnicate"))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    vim-tests/block-insert-1d
+    vim-tests/block-insert-1da
     (execute-kbd-macro (kbd "C-v 3 t ^ I 1 2 3 <escape>"))
   (tests-utils--multiline
    "foo"
@@ -638,7 +639,7 @@
    "frobnicate"))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
-    vim-tests/block-insert-1dd
+    vim-tests/block-insert-1dda
     (execute-kbd-macro (kbd "C-v 3 t ^ d I 1 2 3 <escape>"))
   (tests-utils--multiline
    "foo"
@@ -1755,7 +1756,7 @@
        "foo :: ValidateM m => Email '_|_Unvalidated -> m (Email 'Validated)"
        "foo x = undefined"
        ""))
-   (1 (tests-utils--multiline
+   (2 (tests-utils--multiline
        ""
        "foo :: ValidateM m => Email 'Unvalid_|_ated -> m (Email 'Validated)"
        "foo x = undefined"
@@ -4110,7 +4111,7 @@ _|_bar")
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (text-mode)
-    vim-tests/increment-at-point-takes-numeric-arg-2
+    vim-tests/increment-at-point-takes-numeric-arg-3
     (execute-kbd-macro (kbd "5 + 4 ."))
   (tests-utils--multiline "" "foo = 1_|_1 + bar" "")
   (tests-utils--multiline "" "foo = 36_|_ + bar"  ""))
@@ -4273,7 +4274,7 @@ _|_bar")
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (text-mode)
-    vim-tests/decrement-at-point-takes-numeric-arg-2
+    vim-tests/decrement-at-point-takes-numeric-arg-3
     (execute-kbd-macro (kbd "5 = 4 ."))
   (tests-utils--multiline "" "foo = 1_|_1 + bar" "")
   (tests-utils--multiline "" "foo = -14_|_ + bar"  ""))

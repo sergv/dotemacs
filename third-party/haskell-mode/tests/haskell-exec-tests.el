@@ -21,3 +21,5 @@
       (call-process-region (point-min) (point-max) haskell-example-script t t nil "-a" "--arg1" "/zonk" "filename.el")
       (should (equal "-a\n--arg1\n/zonk\nfilename.el\nline1\nline2\nline3-no-newline\n"
                      (buffer-substring-no-properties (point-min) (point-max)))))))
+
+(provide 'haskell-exec-tests)
