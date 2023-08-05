@@ -25,6 +25,8 @@
 
 ;;; Code:
 
+(require 'f-test-helper)
+
 
 ;;;; f-size
 
