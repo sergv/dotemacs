@@ -129,3 +129,5 @@
                  (haskell-string-trim "\r\n saf \t  sdsaf \t\v\n   \f")))
   (should (haskell-string-only-spaces-p "\r\n \t  \t\v\n   \f"))
   (should-not (haskell-string-only-spaces-p "\r\n \t  x  \t\v\n   \f")))
+
+(provide 'haskell-string-tests)

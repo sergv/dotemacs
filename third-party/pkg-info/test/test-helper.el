@@ -42,6 +42,8 @@
   (setq package-user-dir (expand-file-name "test/elpa" source-directory))
   (package-initialize))
 
+(provide 'test-helper)
+
 ;; Local Variables:
 ;; indent-tabs-mode: nil
 ;; coding: utf-8

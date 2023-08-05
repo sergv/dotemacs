@@ -764,6 +764,8 @@
 ;;        )
 ;;   nil)
 
+(provide 'datastructures-tests)
+
 ;; Local Variables:
 ;; no-byte-compile: t
 ;; End:
