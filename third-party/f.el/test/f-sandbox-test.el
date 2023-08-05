@@ -31,6 +31,8 @@
   (defvar f-test/playground-path)
   (defvar f-test/trash-path))
 
+(require 'f-test-helper)
+
 
 ;;;; f-write-bytes
 
