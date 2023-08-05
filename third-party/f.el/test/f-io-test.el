@@ -26,6 +26,8 @@
 
 ;;; Code:
 
+(require 'f-test-helper)
+
 
 ;;;; f-write-bytes
 
