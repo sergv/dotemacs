@@ -6,6 +6,8 @@
 ;; Created: 21 October 2021
 ;; Description:
 
+(require 'el-patch)
+
 (defsubst tabbar--at-least-2-elements? (x)
   (cdr x))
 
@@ -66,12 +68,40 @@
       tab-bar-tab-hints t
       tab-bar-tab-name-truncated-max 32
       tab-bar-tab-name-function #'tab-bar-tab-name-current-truncated-with-count
-      tab-bar-new-tab-to 'right)
+      tab-bar-new-tab-to 'right
+      tab-bar-separator " "
+
+      tab-bar-format '(tab-bar-format-tabs)
+      tab-bar-auto-width nil)
+
+(el-patch-defun tab-bar--format-tab (tab i)
+  "Format TAB using its index I and return the result as a keymap."
+  (append
+   (el-patch-swap
+     `((,(intern (format "sep-%i" i)) menu-item ,(tab-bar-separator) ignore))
+     (when (< 1 i)
+       `((,(intern (format "sep-%i" i)) menu-item ,(tab-bar-separator) ignore))))
+   (cond
+    ((eq (car tab) 'current-tab)
+     `((current-tab
+        menu-item
+        ,(funcall tab-bar-tab-name-format-function tab i)
+        ignore
+        :help "Current tab")))
+    (t
+     `((,(intern (format "tab-%i" i))
+        menu-item
+        ,(funcall tab-bar-tab-name-format-function tab i)
+        ,(alist-get 'binding tab)
+        :help "Click to visit tab"))))
+   (when (alist-get 'close-binding tab)
+     `((,(if (eq (car tab) 'current-tab) 'C-current-tab (intern (format "C-tab-%i" i)))
+        menu-item ""
+        ,(alist-get 'close-binding tab))))))
 
 ;; The tab bar will appear automatically once new tab is created
 ;; thanks to setting ‘tab-bar-show’ to 1.
 ;; (tab-bar-mode 1)
-
 
 (provide 'tabbar-setup)
 
