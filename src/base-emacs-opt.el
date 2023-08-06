@@ -17,7 +17,7 @@
 (defvar vim--universal-argument-provided?)
 (defvar thing-at-point-beginning-of-url-regexp)
 
-(when-emacs-version (<= 28 it)
+(when-emacs-version (= 28 it)
   (el-patch-defun kill-new (string &optional replace)
     "Make STRING the latest kill in the kill ring.
 Set `kill-ring-yank-pointer' to point to it.
@@ -36,7 +36,7 @@ argument should still be a \"useful\" string for such uses."
     ;; Allow the user to transform or ignore the string.
     (when (or (not kill-transform-function)
               (setq string (funcall kill-transform-function string)))
-      ;; This yank-menu just duplicates kill-ring and grows uncontrollably in size increasin
+      ;; This yank-menu just duplicates kill-ring and grows uncontrollably in size increasing
       ;; Emacs’s heap size.
       (el-patch-remove
         (unless (and kill-do-not-save-duplicates
@@ -49,6 +49,67 @@ argument should still be a \"useful\" string for such uses."
       (when save-interprogram-paste-before-kill
         (let ((interprogram-paste (and interprogram-paste-function
                                        (funcall interprogram-paste-function))))
+          (when interprogram-paste
+            (setq interprogram-paste
+                  (if (listp interprogram-paste)
+                      ;; Use `reverse' to avoid modifying external data.
+                      (reverse interprogram-paste)
+		    (list interprogram-paste)))
+            (when (or (not (numberp save-interprogram-paste-before-kill))
+                      (< (seq-reduce #'+ (mapcar #'length interprogram-paste) 0)
+                         save-interprogram-paste-before-kill))
+              (dolist (s interprogram-paste)
+	        (unless (and kill-do-not-save-duplicates
+                             (equal-including-properties s (car kill-ring)))
+	          (push s kill-ring)))))))
+      (unless (and kill-do-not-save-duplicates
+	           (equal-including-properties string (car kill-ring)))
+        (if (and replace kill-ring)
+	    (setcar kill-ring string)
+          (let ((history-delete-duplicates nil))
+            (add-to-history 'kill-ring string kill-ring-max t))))
+      (setq kill-ring-yank-pointer kill-ring)
+      (if interprogram-cut-function
+          (funcall interprogram-cut-function string)))))
+
+(when-emacs-version (<= 29 it)
+  (el-patch-defun kill-new (string &optional replace)
+    "Make STRING the latest kill in the kill ring.
+Set `kill-ring-yank-pointer' to point to it.
+If `interprogram-cut-function' is non-nil, apply it to STRING.
+Optional second argument REPLACE non-nil means that STRING will replace
+the front of the kill ring, rather than being added to the list.
+
+When `save-interprogram-paste-before-kill' and `interprogram-paste-function'
+are non-nil, save the interprogram paste string(s) into `kill-ring' before
+STRING.
+
+When the yank handler has a non-nil PARAM element, the original STRING
+argument is not used by `insert-for-yank'.  However, since Lisp code
+may access and use elements from the kill ring directly, the STRING
+argument should still be a \"useful\" string for such uses."
+    ;; Allow the user to transform or ignore the string.
+    (when (or (not kill-transform-function)
+              (setq string (funcall kill-transform-function string)))
+      ;; This yank-menu just duplicates kill-ring and grows uncontrollably in size increasing
+      ;; Emacs’s heap size.
+      (el-patch-remove
+        (unless (and kill-do-not-save-duplicates
+	             ;; Due to text properties such as 'yank-handler that
+	             ;; can alter the contents to yank, comparison using
+	             ;; `equal' is unsafe.
+	             (equal-including-properties string (car kill-ring)))
+          (if (fboundp 'menu-bar-update-yank-menu)
+	      (menu-bar-update-yank-menu string (and replace (car kill-ring))))))
+      (when save-interprogram-paste-before-kill
+        (let ((interprogram-paste
+               (and interprogram-paste-function
+                    ;; On X, the selection owner might be slow, so the user might
+                    ;; interrupt this. If they interrupt it, we want to continue
+                    ;; so we become selection owner, so this doesn't stay slow.
+                    (if (eq (window-system) 'x)
+                        (ignore-error quit (funcall interprogram-paste-function))
+                      (funcall interprogram-paste-function)))))
           (when interprogram-paste
             (setq interprogram-paste
                   (if (listp interprogram-paste)
