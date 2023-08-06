@@ -36,12 +36,16 @@
   )
 
 (defun eproj-home-entry=? (entry-a entry-b)
-  (and (eq (eproj-home-entry/buffer entry-a)
-           (eproj-home-entry/buffer entry-b))
-       (eq (eproj-home-entry/position entry-a)
-           (eproj-home-entry/position entry-b))
-       (eq (eproj-home-entry/symbol entry-a)
-           (eproj-home-entry/symbol entry-b))))
+  (or (and (null entry-a)
+           (null entry-b))
+      (and entry-a
+           entry-b
+           (eq (eproj-home-entry/buffer entry-a)
+               (eproj-home-entry/buffer entry-b))
+           (eq (eproj-home-entry/position entry-a)
+               (eproj-home-entry/position entry-b))
+           (eq (eproj-home-entry/symbol entry-a)
+               (eproj-home-entry/symbol entry-b)))))
 
 (defvar-local eproj-symbnav/identifier-type 'symbol
   "Type of identifiers to look for when retrieving name at point to
@@ -165,6 +169,7 @@ as accepted by `bounds-of-thing-at-point'.")
                       (eproj-symbnav/identifier-at-point nil))))
     (eproj-symbnav/go-to-symbol-home-impl identifier use-regexp?)))
 
+;;;###autoload
 (defun eproj-symbnav-current-home-entry ()
   (make-eproj-home-entry :buffer (current-buffer)
                          :position (point-marker)
