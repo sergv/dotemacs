@@ -23,102 +23,6 @@
 (require 'compilation-setup)
 (require 'haskell-autoload)
 
-(when-emacs-version (= it 27)
-  (el-patch-defun grep-expand-template (template &optional regexp files dir excl)
-    "Expand grep COMMAND string replacing <C>, <D>, <F>, <R>, and <X>."
-    (el-patch-wrap 2 0
-      ((setf dir (or dir "."))
-       (setf *grep-latest-dir* dir)
-       (let* ((command template)
-              (env `((opts . ,(let (opts)
-                                (when (el-patch-wrap 2 0
-                                        (or rgrep-ignore-case
-                                            (and case-fold-search
-                                                 (isearch-no-upper-case-p regexp t))))
-                                  (push "-i" opts))
-                                (cond
-                                  ((eq grep-highlight-matches 'always)
-                                   (push "--color=always" opts))
-                                  ((eq grep-highlight-matches 'auto)
-                                   (push "--color" opts)))
-                                opts))
-                     (excl . ,excl)
-                     (dir . ,dir)
-                     (files . ,files)
-                     (regexp . ,regexp)))
-              (case-fold-search nil))
-         (dolist (kw grep-expand-keywords command)
-           (if (string-match (car kw) command)
-               (setq command
-                     (replace-match
-                      (or (if (symbolp (cdr kw))
-                              (eval (cdr kw) env)
-                            (save-match-data (eval (cdr kw) env)))
-                          "")
-                      t t command))))))))
-  (el-patch-defun grep-read-files (regexp)
-    "Read a file-name pattern arg for interactive grep.
-The pattern can include shell wildcards.  As whitespace triggers
-completion when entering a pattern, including it requires
-quoting, e.g. `\\[quoted-insert]<space>'.
-
-REGEXP is used as a string in the prompt."
-    (let* ((grep-read-files-function (get major-mode 'grep-read-files))
-           (file-name-at-point
-            (run-hook-with-args-until-success 'file-name-at-point-functions))
-           (bn (if grep-read-files-function
-                   (funcall grep-read-files-function)
-                 (or (if (and (stringp file-name-at-point)
-                              (not (file-directory-p file-name-at-point)))
-                         file-name-at-point)
-                     (buffer-file-name)
-                     (replace-regexp-in-string "<[0-9]+>\\'" "" (buffer-name)))))
-           (fn (and bn
-                    (stringp bn)
-                    (file-name-nondirectory bn)))
-           (default-alias
-             (and fn
-                  (let ((aliases (remove (assoc "all" grep-files-aliases)
-                                         grep-files-aliases))
-                        alias)
-                    (while aliases
-                      (setq alias (car aliases)
-                            aliases (cdr aliases))
-                      (if (string-match (mapconcat
-                                         'wildcard-to-regexp
-                                         (split-string (cdr alias) nil t)
-                                         "\\|")
-                                        fn)
-                          (setq aliases nil)
-                        (setq alias nil)))
-                    (cdr alias))))
-           (default-extension
-             (and fn
-                  (let ((ext (file-name-extension fn)))
-                    (and ext (concat "*." ext)))))
-           (default
-             (or default-alias
-                 default-extension
-                 (car grep-files-history)
-                 (car (car grep-files-aliases))))
-           (files (completing-read
-                   (concat "Search for \"" regexp
-                           "\" in files matching wildcard"
-                           (if default (concat " (default " default ")"))
-                           ": ")
-                   (el-patch-swap
-                     'read-file-name-internal
-                     (delete-dups
-                      (delq nil (append (list default default-alias default-extension)
-                                        (mapcar 'car grep-files-aliases)))))
-                   nil nil nil 'grep-files-history
-                   (delete-dups
-                    (delq nil (append (list default default-alias default-extension)
-                                      (mapcar 'car grep-files-aliases)))))))
-      (and files
-           (or (cdr (assoc files grep-files-aliases))
-               files)))))
-
 (when-emacs-version (<= 28 it)
   (el-patch-defun grep-expand-template (template &optional regexp files dir excl more-opts)
     "Expand grep COMMAND string replacing <C>, <D>, <F>, <R>, and <X>."
@@ -151,7 +55,9 @@ REGEXP is used as a string in the prompt."
                               (eval (cdr kw) env)
                             (save-match-data (eval (cdr kw) env)))
                           "")
-                      t t command))))))))
+                      t t command)))))))))
+
+(when-emacs-version (= 28 it)
   (el-patch-defun grep-read-files (regexp)
     "Read a file-name pattern arg for interactive grep.
 The pattern can include shell wildcards.  As SPC can triggers
@@ -164,30 +70,30 @@ REGEXP is used as a string in the prompt."
 		    (stringp bn)
 		    (file-name-nondirectory bn)))
 	   (default-alias
-	     (and fn
-		  (let ((aliases (remove (assoc "all" grep-files-aliases)
-				         grep-files-aliases))
-		        alias)
-		    (while aliases
-		      (setq alias (car aliases)
-			    aliases (cdr aliases))
-		      (if (string-match (mapconcat
-				         #'wildcard-to-regexp
-				         (split-string (cdr alias) nil t)
-				         "\\|")
-				        fn)
-			  (setq aliases nil)
-		        (setq alias nil)))
-		    (cdr alias))))
+	    (and fn
+		 (let ((aliases (remove (assoc "all" grep-files-aliases)
+				        grep-files-aliases))
+		       alias)
+		   (while aliases
+		     (setq alias (car aliases)
+			   aliases (cdr aliases))
+		     (if (string-match (mapconcat
+				        #'wildcard-to-regexp
+				        (split-string (cdr alias) nil t)
+				        "\\|")
+				       fn)
+			 (setq aliases nil)
+		       (setq alias nil)))
+		   (cdr alias))))
 	   (default-extension
-	     (and fn
-		  (let ((ext (file-name-extension fn)))
-		    (and ext (concat "*." ext)))))
+	    (and fn
+		 (let ((ext (file-name-extension fn)))
+		   (and ext (concat "*." ext)))))
 	   (default
-	     (or default-alias
-	         default-extension
-	         (car grep-files-history)
-	         (car (car grep-files-aliases))))
+	    (or default-alias
+	        default-extension
+	        (car grep-files-history)
+	        (car (car grep-files-aliases))))
 	   (files (completing-read
 		   (concat "Search for \"" regexp
 			   "\" in files matching wildcard"
