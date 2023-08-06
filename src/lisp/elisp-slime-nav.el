@@ -27,8 +27,7 @@
 (eval-when-compile
   (require 'cl))
 
-;; for find-tag-marker-ring
-(require 'etags)
+(require 'eproj)
 
 (defun elisp-slime-nav--all-navigable-symbol-names ()
   "Return a list of strings for the symbols to which navigation is possible."
@@ -55,7 +54,8 @@ Argument SYM-NAME thing to find."
   (when sym-name
     (let ((sym (intern sym-name)))
       (message "search for %s" (pp-to-string sym))
-      (ring-insert find-tag-marker-ring (point-marker))
+      (push (eproj-symbnav-current-home-entry)
+            eproj-symbnav/previous-homes)
       (cond
         ((fboundp sym) (find-function sym))
         ((boundp sym) (find-variable sym))
