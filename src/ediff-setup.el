@@ -9,7 +9,8 @@
 (eval-when-compile
   (require 'cl)
   (require 'macro-util)
-  (require 'keys-def))
+  (require 'keys-def)
+  (require 'set-up-platform))
 
 (require 'ediff)
 (require 'el-patch)
@@ -453,27 +454,53 @@ window configuration on end of ediff session."
 	 (vconcat diff-overlay-list))
     ))
 
-(el-patch-defun ediff-setup-diff-regions3 (file-A file-B file-C)
-  ;; looking for '-i' or a 'i' among clustered non-long options
-  (if (string-match "^-i\\| -i\\|\\(^\\| \\)-[^- ]+i" ediff-diff-options)
-      (error "Option `-i' is not allowed in `ediff-diff3-options'"))
+(when-emacs-version (= 28 it)
+  (el-patch-defun ediff-setup-diff-regions3 (file-A file-B file-C)
+    ;; looking for '-i' or a 'i' among clustered non-long options
+    (if (string-match "^-i\\| -i\\|\\(^\\| \\)-[^- ]+i" ediff-diff-options)
+        (error "Option `-i' is not allowed in `ediff-diff3-options'"))
 
-  (or (ediff-buffer-live-p ediff-diff-buffer)
-      (setq ediff-diff-buffer
-	    (get-buffer-create (ediff-unique-buffer-name "*ediff-diff" "*"))))
+    (or (ediff-buffer-live-p ediff-diff-buffer)
+        (setq ediff-diff-buffer
+	      (get-buffer-create (ediff-unique-buffer-name "*ediff-diff" "*"))))
 
-  (el-patch-remove
-    (message "Computing differences ..."))
-  (ediff-exec-process ediff-diff3-program ediff-diff-buffer 'synchronize
-		      ediff-actual-diff3-options file-A file-B file-C)
+    (el-patch-remove
+      (message "Computing differences ..."))
+    (ediff-exec-process ediff-diff3-program ediff-diff-buffer 'synchronize
+		        ediff-actual-diff3-options file-A file-B file-C)
 
-  (ediff-prepare-error-list ediff-diff3-ok-lines-regexp ediff-diff-buffer)
-  ;;(message "Computing differences ... done")
-  (ediff-convert-diffs-to-overlays
-   (ediff-extract-diffs3
-    ediff-diff-buffer
-    ediff-word-mode ediff-3way-comparison-job ediff-narrow-bounds)
-   ))
+    (ediff-prepare-error-list ediff-diff3-ok-lines-regexp ediff-diff-buffer)
+    ;;(message "Computing differences ... done")
+    (ediff-convert-diffs-to-overlays
+     (ediff-extract-diffs3
+      ediff-diff-buffer
+      ediff-word-mode ediff-3way-comparison-job ediff-narrow-bounds))))
+
+(when-emacs-version (<= 29 it)
+  (el-patch-defun ediff-setup-diff-regions3 (file-A file-B file-C)
+    ;; looking for '-i' or a 'i' among clustered non-long options
+    (if (string-match "^-i\\| -i\\|\\(^\\| \\)-[^- ]+i" ediff-diff-options)
+        (error "Option `-i' is not allowed in `ediff-diff3-options'"))
+
+    (or (ediff-buffer-live-p ediff-diff-buffer)
+        (setq ediff-diff-buffer
+	      (get-buffer-create (ediff-unique-buffer-name "*ediff-diff" "*"))))
+
+    (el-patch-remove
+      (message "Computing differences ..."))
+    (apply #'ediff-exec-process ediff-diff3-program ediff-diff-buffer 'synchronize
+	   ediff-actual-diff3-options
+           (cons file-A (if ediff-merge-with-ancestor-job
+                            ;; Ancestor must be the middle file
+                            (list file-C file-B)
+                          (list file-B file-C))))
+
+    (ediff-prepare-error-list ediff-diff3-ok-lines-regexp ediff-diff-buffer)
+    ;;(message "Computing differences ... done")
+    (ediff-convert-diffs-to-overlays
+     (ediff-extract-diffs3
+      ediff-diff-buffer
+      ediff-word-mode ediff-3way-comparison-job ediff-narrow-bounds))))
 
 (el-patch-defun ediff-update-diffs ()
   "Recompute difference regions in buffers A, B, and C.
