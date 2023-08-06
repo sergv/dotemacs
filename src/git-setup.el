@@ -79,7 +79,7 @@ or \"detached head\" will be substituted for %s."
               (m2 ".\nDo you really want to modify them"))
           (magit-confirm (or magit--rebase-published-symbol 'rebase-published)
             (concat m1 "%s" m2)
-            (concat m1 "%i public branches" m2)
+            (concat m1 "%d public branches" m2)
             nil branches))
         (push (magit-toplevel) magit--rebase-public-edit-confirmed))))
   (if (and (magit-git-lines "rev-list" "--merges" (concat since "..HEAD"))
@@ -97,7 +97,7 @@ or \"detached head\" will be substituted for %s."
             (m2 ".\nDo you really want to modify it"))
         (magit-confirm 'amend-published
           (concat m1 "%s" m2)
-          (concat m1 "%i public branches" m2)
+          (concat m1 "%d public branches" m2)
           nil it)))
     t))
 
