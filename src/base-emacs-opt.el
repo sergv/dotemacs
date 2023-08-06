@@ -133,60 +133,7 @@ argument should still be a \"useful\" string for such uses."
       (if interprogram-cut-function
           (funcall interprogram-cut-function string)))))
 
-(when-emacs-version (= it 27)
-  (el-patch-defun command-execute (cmd &optional record-flag keys special)
-    ;; BEWARE: Called directly from the C code.
-    "Execute CMD as an editor command.
-CMD must be a symbol that satisfies the `commandp' predicate.
-Optional second arg RECORD-FLAG non-nil
-means unconditionally put this command in the variable `command-history'.
-Otherwise, that is done only if an arg is read using the minibuffer.
-The argument KEYS specifies the value to use instead of (this-command-keys)
-when reading the arguments; if it is nil, (this-command-keys) is used.
-The argument SPECIAL, if non-nil, means that this command is executing
-a special event, so ignore the prefix argument and don't clear it."
-    (setq debug-on-next-call nil)
-    (let ((prefixarg (unless special
-                       ;; FIXME: This should probably be done around
-                       ;; pre-command-hook rather than here!
-                       (prog1 prefix-arg
-                         (setq current-prefix-arg prefix-arg)
-                         (setq prefix-arg nil)
-                         (el-patch-add
-                           (setq vim--current-universal-argument-provided? vim--universal-argument-provided?)
-                           (setq vim--universal-argument-provided? nil))
-                         (when current-prefix-arg
-                           (prefix-command-update))))))
-      (if (and (symbolp cmd)
-               (get cmd 'disabled)
-               disabled-command-function)
-          ;; FIXME: Weird calling convention!
-          (run-hooks 'disabled-command-function)
-        (let ((final cmd))
-          (while
-              (progn
-                (setq final (indirect-function final))
-                (if (autoloadp final)
-                    (setq final (autoload-do-load final cmd)))))
-          (cond
-            ((arrayp final)
-             ;; If requested, place the macro in the command history.  For
-             ;; other sorts of commands, call-interactively takes care of this.
-             (when record-flag
-               (add-to-history
-                'command-history `(execute-kbd-macro ,final ,prefixarg) nil t))
-             (execute-kbd-macro final prefixarg))
-            (t
-             ;; Pass `cmd' rather than `final', for the backtrace's sake.
-             (prog1 (call-interactively cmd record-flag keys)
-               (when (and (symbolp cmd)
-                          (get cmd 'byte-obsolete-info)
-                          (not (get cmd 'command-execute-obsolete-warned)))
-                 (put cmd 'command-execute-obsolete-warned t)
-                 (message "%s" (macroexp--obsolete-warning
-                                cmd (get cmd 'byte-obsolete-info) "command")))))))))))
-
-(when-emacs-version (<= 28 it)
+(when-emacs-version (= 28 it)
   (el-patch-defun command-execute (cmd &optional record-flag keys special)
     ;; BEWARE: Called directly from the C code.
     "Execute CMD as an editor command.
@@ -244,6 +191,71 @@ don't clear it."
                  (message "%s" (macroexp--obsolete-warning
                                 cmd (get cmd 'byte-obsolete-info) "command")))))))))))
 
+(when-emacs-version (<= 29 it)
+  (el-patch-defun command-execute (cmd &optional record-flag keys special)
+    ;; BEWARE: Called directly from the C code.
+    "Execute CMD as an editor command.
+CMD must be a symbol that satisfies the `commandp' predicate.
+
+Optional second arg RECORD-FLAG non-nil means unconditionally put
+this command in the variable `command-history'.  Otherwise, that
+is done only if an arg is read using the minibuffer.
+
+The argument KEYS specifies the value to use instead of the
+return value of the `this-command-keys' function when reading the
+arguments; if it is nil, `this-command-keys' is used.
+
+The argument SPECIAL, if non-nil, means that this command is
+executing a special event, so ignore the prefix argument and
+don't clear it."
+    (setq debug-on-next-call nil)
+    (let ((prefixarg (unless special
+                       ;; FIXME: This should probably be done around
+                       ;; pre-command-hook rather than here!
+                       (prog1 prefix-arg
+                         (setq current-prefix-arg prefix-arg)
+                         (setq prefix-arg nil)
+                         (el-patch-add
+                           (setq vim--current-universal-argument-provided? vim--universal-argument-provided?)
+                           (setq vim--universal-argument-provided? nil))
+                         (when current-prefix-arg
+                           (prefix-command-update)))))
+          query)
+      (if (and (symbolp cmd)
+               (get cmd 'disabled)
+               (or (and (setq query (and (consp (get cmd 'disabled))
+                                         (eq (car (get cmd 'disabled)) 'query)))
+                        (not (command-execute--query cmd)))
+                   (and (not query) disabled-command-function)))
+          (when (not query)
+            ;; FIXME: Weird calling convention!
+            (run-hooks 'disabled-command-function))
+        (let ((final cmd))
+          (while
+              (progn
+                (setq final (indirect-function final))
+                (if (autoloadp final)
+                    (setq final (autoload-do-load final cmd)))))
+          (cond
+            ((arrayp final)
+             ;; If requested, place the macro in the command history.  For
+             ;; other sorts of commands, call-interactively takes care of this.
+             (when record-flag
+               (add-to-history
+                'command-history `(execute-kbd-macro ,final ,prefixarg) nil t))
+             (execute-kbd-macro final prefixarg))
+            (t
+             ;; Pass `cmd' rather than `final', for the backtrace's sake.
+             (prog1 (call-interactively cmd record-flag keys)
+               (when-let ((info
+                           (and (symbolp cmd)
+                                (not (get cmd 'command-execute-obsolete-warned))
+                                (get cmd 'byte-obsolete-info))))
+                 (put cmd 'command-execute-obsolete-warned t)
+                 (message "%s" (macroexp--obsolete-warning
+                                cmd info "command"
+                                (help--key-description-fontified
+                                 (where-is-internal (car info) nil t)))))))))))))
 ;;;###autoload
 (el-patch-feature thingatpt)
 
