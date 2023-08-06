@@ -761,7 +761,7 @@ characters."
 ;;;###autoload
 (add-hook 'el-patch-pre-validate-hook #'el-patch--load-indent)
 
-(when-emacs-version (<= 28 it)
+(when-emacs-version (= 28 it)
   (el-patch-defun indent-region-line-by-line (start end)
     (save-excursion
       (setq end (copy-marker end))
@@ -777,6 +777,24 @@ characters."
           (and pr (progress-reporter-update pr (point))))
         (and pr (progress-reporter-done pr))
         (move-marker end nil)))))
+
+(when-emacs-version (<= 29 it)
+  (el-patch-defun indent-region-line-by-line (start end)
+    (save-excursion
+      (setq end (copy-marker end))
+      (goto-char start)
+      (el-patch-splice 2 0
+        (let ((pr (unless (minibufferp)
+                    (make-progress-reporter "Indenting region..." (point) end))))
+          (while (< (point) end)
+            (or (and (bolp) (eolp))
+                (indent-according-to-mode t))
+            (forward-line 1)
+            (el-patch-remove
+              (and pr (progress-reporter-update pr (point)))))
+          (el-patch-remove
+            (and pr (progress-reporter-done pr)))
+          (move-marker end nil))))))
 
 (provide 'base-emacs-fixes)
 
