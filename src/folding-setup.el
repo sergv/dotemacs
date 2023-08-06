@@ -129,15 +129,27 @@
      (message "Showing all blocks ... done"))
    (run-hooks 'hs-show-hook)))
 
-(el-patch-defun hs-forward-sexp (match-data arg)
-  "Adjust point based on MATCH-DATA and call `hs-forward-sexp-func' w/ ARG.
+(when-emacs-version (= 28 it)
+  (el-patch-defun hs-forward-sexp (match-data arg)
+    "Adjust point based on MATCH-DATA and call `hs-forward-sexp-func' w/ ARG.
 Original match data is restored upon return."
-  (save-match-data
-    (set-match-data match-data)
-    (el-patch-wrap 2 0
-      (when hs-block-start-mdata-select
-        (goto-char (match-beginning hs-block-start-mdata-select))))
-    (funcall hs-forward-sexp-func arg)))
+    (save-match-data
+      (set-match-data match-data)
+      (el-patch-wrap 2 0
+        (when hs-block-start-mdata-select
+          (goto-char (match-beginning hs-block-start-mdata-select))))
+      (funcall hs-forward-sexp-func arg))))
+
+(when-emacs-version (<= 29 it)
+  (el-patch-defun hs-forward-sexp (match-data arg)
+    "Adjust point based on MATCH-DATA and call `hs-forward-sexp-func' with ARG.
+Original match data is restored upon return."
+    (save-match-data
+      (set-match-data match-data)
+      (el-patch-wrap 2 0
+        (when hs-block-start-mdata-select
+          (goto-char (match-beginning hs-block-start-mdata-select))))
+      (funcall hs-forward-sexp-func arg))))
 
 ;;;###autoload
 (cl-defun hs-minor-mode-initialize (&key
@@ -189,7 +201,7 @@ Original match data is restored upon return."
   (unless (stringp hs-block-start-regexp)
     (error "‘hs-minor-mode-initialize’ was not called!")))
 
-(when-emacs-version (<= 27 it)
+(when-emacs-version (= 28 it)
   (el-patch-defun hs-grok-mode-type ()
     "Set up hideshow variables for new buffers.
 If `hs-special-modes-alist' has information associated with the
@@ -218,6 +230,47 @@ function; and adjust-block-beginning function."
                                             c-start-regexp)))
                   hs-forward-sexp-func (or (nth 4 lookup) #'forward-sexp)
                   hs-adjust-block-beginning (or (nth 5 lookup) #'identity)))
+        (setq hs-minor-mode nil)
+        (error "%s Mode doesn't support Hideshow Minor Mode"
+               (format-mode-line mode-name)))
+      (hs-minor-mode-ensure-initialized))))
+
+(when-emacs-version (<= 29 it)
+  (el-patch-defun hs-grok-mode-type ()
+    "Set up hideshow variables for new buffers.
+If `hs-special-modes-alist' has information associated with the
+current buffer's major mode, use that.
+Otherwise, guess start, end and `comment-start' regexps; `forward-sexp'
+function; and adjust-block-beginning function."
+    (el-patch-swap
+      (if (and (bound-and-true-p comment-start)
+               (bound-and-true-p comment-end))
+          (let* ((lookup (assoc major-mode hs-special-modes-alist))
+                 (start-elem (or (nth 1 lookup) "\\s(")))
+            (if (listp start-elem)
+                ;; handle (START-REGEXP MDATA-SELECT)
+                (setq hs-block-start-regexp (car start-elem)
+                      hs-block-start-mdata-select (cadr start-elem))
+              ;; backwards compatibility: handle simple START-REGEXP
+              (setq hs-block-start-regexp start-elem
+                    hs-block-start-mdata-select 0))
+            (setq hs-block-end-regexp (or (nth 2 lookup) "\\s)")
+                  hs-c-start-regexp (or (nth 3 lookup)
+                                        (let ((c-start-regexp
+                                               (regexp-quote comment-start)))
+                                          (if (string-match " +$" c-start-regexp)
+                                              (substring c-start-regexp
+                                                         0 (1- (match-end 0)))
+                                            c-start-regexp)))
+                  hs-forward-sexp-func (or (nth 4 lookup) #'forward-sexp)
+                  hs-adjust-block-beginning (or (nth 5 lookup) #'identity)
+                  hs-find-block-beginning-func (or (nth 6 lookup)
+                                                   #'hs-find-block-beginning)
+                  hs-find-next-block-func (or (nth 7 lookup)
+                                              #'hs-find-next-block)
+                  hs-looking-at-block-start-p-func
+                  (or (nth 8 lookup)
+                      #'hs-looking-at-block-start-p)))
         (setq hs-minor-mode nil)
         (error "%s Mode doesn't support Hideshow Minor Mode"
                (format-mode-line mode-name)))
