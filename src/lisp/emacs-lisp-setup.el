@@ -17,6 +17,7 @@
 (require 'elisp-slime-nav)
 (require 'emacs-lisp-abbrev+)
 (require 'emacs-lisp-highlight)
+(require 'eproj)
 (require 'find-func)
 (require 'general-lisp-setup)
 (require 'hydra-setup)
@@ -126,7 +127,7 @@ realign _l_et
     ("M-:"     nil)
     ("C-:"     pp-eval-expression)
     ("C-."     elisp-slime-nav-find-elisp-thing-at-point)
-    ("C-,"     pop-tag-mark)
+    ("C-,"     eproj-symbnav/go-back)
 
     ("<tab>"        indent-for-tab-command)
     (("C-m" "<f9>") elisp-compile-and-move))
