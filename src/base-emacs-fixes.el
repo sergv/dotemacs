@@ -95,7 +95,7 @@ running their FOO-mode-hook."
         (funcall fun))
       (setq delayed-after-hook-functions nil))))
 
-(when-emacs-version (<= 27 it)
+(when-emacs-version (= 28 it)
   (el-patch-defun run-mode-hooks (&rest hooks)
     "Run mode hooks `delayed-mode-hooks' and HOOKS, or delay HOOKS.
 Call `hack-local-variables' to set up file local and directory local
@@ -137,98 +137,53 @@ running their FOO-mode-hook."
                      (setq delayed-after-hook-functions nil)))
         (funcall fun)))))
 
+(when-emacs-version (<= 29 it)
+  (el-patch-defun run-mode-hooks (&rest hooks)
+    "Run mode hooks `delayed-mode-hooks' and HOOKS, or delay HOOKS.
+Call `hack-local-variables' to set up file local and directory local
+variables.
+
+If the variable `delay-mode-hooks' is non-nil, does not do anything,
+just adds the HOOKS to the list `delayed-mode-hooks'.
+Otherwise, runs hooks in the sequence: `change-major-mode-after-body-hook',
+`delayed-mode-hooks' (in reverse order), HOOKS, then runs
+`hack-local-variables' (if the buffer is visiting a file),
+runs the hook `after-change-major-mode-hook', and finally
+evaluates the functions in `delayed-after-hook-functions' (see
+`define-derived-mode').
+
+Major mode functions should use this instead of `run-hooks' when
+running their FOO-mode-hook."
+    (if delay-mode-hooks
+        ;; Delaying case.
+        (dolist (hook hooks)
+	  (push hook delayed-mode-hooks))
+      ;; Normal case, just run the hook as before plus any delayed hooks.
+      (setq hooks (el-patch-swap
+                    (nconc (nreverse delayed-mode-hooks) hooks)
+                    (cl-remove-duplicates (nconc (nreverse delayed-mode-hooks) hooks)
+                                          :test #'eq)))
+      (and (bound-and-true-p syntax-propertize-function)
+           (not (local-variable-p 'parse-sexp-lookup-properties))
+           ;; `syntax-propertize' sets `parse-sexp-lookup-properties' for us, but
+           ;; in order for the sexp primitives to automatically call
+           ;; `syntax-propertize' we need `parse-sexp-lookup-properties' to be
+           ;; set first.
+           (setq-local parse-sexp-lookup-properties t))
+      (setq delayed-mode-hooks nil)
+      (apply #'run-hooks (cons 'change-major-mode-after-body-hook hooks))
+      (if (buffer-file-name)
+          (with-demoted-errors "File local-variables error: %s"
+            (hack-local-variables 'no-mode)))
+      (run-hooks 'after-change-major-mode-hook)
+      (dolist (fun (prog1 (nreverse delayed-after-hook-functions)
+                     (setq delayed-after-hook-functions nil)))
+        (funcall fun)))))
+
 ;;;###autoload
 (el-patch-feature autorevert)
 
 (defun autorevert-init ()
-  (when-emacs-version (or (= it 25) (= it 26))
-    (el-patch-defun auto-revert-notify-add-watch ()
-      "Enable file notification for current buffer's associated file."
-      ;; We can assume that `buffer-file-name' and
-      ;; `auto-revert-use-notify' are non-nil.
-      (if (or (el-patch-wrap 2 0
-                (and default-directory
-                     (string-match auto-revert-notify-exclude-dir-regexp
-                                   (expand-file-name default-directory))))
-              (el-patch-wrap 2 0
-                (and (or buffer-file-name default-directory)
-                     (file-symlink-p (or buffer-file-name default-directory)))))
-
-          ;; Fallback to file checks.
-          (setq-local auto-revert-use-notify nil)
-
-        (when (not auto-revert-notify-watch-descriptor)
-          (setq auto-revert-notify-watch-descriptor
-                (ignore-errors
-                  (if buffer-file-name
-                      (file-notify-add-watch
-                       (expand-file-name buffer-file-name default-directory)
-                       '(change attribute-change)
-                       'auto-revert-notify-handler)
-                    (file-notify-add-watch
-                     (expand-file-name default-directory)
-                     '(change)
-                     'auto-revert-notify-handler))))
-          (if auto-revert-notify-watch-descriptor
-              (progn
-                (puthash
-                 auto-revert-notify-watch-descriptor
-                 (cons (current-buffer)
-                       (gethash auto-revert-notify-watch-descriptor
-                                auto-revert-notify-watch-descriptor-hash-list))
-                 auto-revert-notify-watch-descriptor-hash-list)
-                (add-hook 'kill-buffer-hook
-                          #'auto-revert-notify-rm-watch nil t))
-            ;; Fallback to file checks.
-            (setq-local auto-revert-use-notify nil))))))
-
-  (when-emacs-version (= it 27)
-    (el-patch-defun auto-revert-notify-add-watch ()
-      "Enable file notification for current buffer's associated file."
-      ;; We can assume that `auto-revert-notify-watch-descriptor' is nil.
-      (unless (or auto-revert-notify-watch-descriptor
-                  (el-patch-wrap 2 0
-                    (and default-directory
-                         ((el-patch-swap string-match string-match-p)
-                          auto-revert-notify-exclude-dir-regexp
-                          (expand-file-name default-directory))))
-                  (el-patch-wrap 2 0
-                    (and (or buffer-file-name default-directory)
-                         (file-symlink-p (or buffer-file-name default-directory)))))
-        ;; Check, whether this has been activated already.
-        (let ((file (if buffer-file-name
-                        (expand-file-name buffer-file-name default-directory)
-                      (expand-file-name default-directory))))
-          (maphash
-           (lambda (key _value)
-             (when (and
-                    (file-notify-valid-p key)
-                    (equal (file-notify--watch-absolute-filename
-                            (gethash key file-notify-descriptors))
-                           (directory-file-name file))
-                    (equal (file-notify--watch-callback
-                            (gethash key file-notify-descriptors))
-                           'auto-revert-notify-handler))
-               (setq auto-revert-notify-watch-descriptor key)))
-           auto-revert--buffers-by-watch-descriptor)
-          ;; Create a new watch if needed.
-          (unless auto-revert-notify-watch-descriptor
-            (setq auto-revert-notify-watch-descriptor
-                  (ignore-errors
-                    (file-notify-add-watch
-                     file
-                     (if buffer-file-name '(change attribute-change) '(change))
-                     'auto-revert-notify-handler))))
-          (when auto-revert-notify-watch-descriptor
-            (setq auto-revert-notify-modified-p t)
-            (puthash
-             auto-revert-notify-watch-descriptor
-             (cons (current-buffer)
-                   (gethash auto-revert-notify-watch-descriptor
-                            auto-revert--buffers-by-watch-descriptor))
-             auto-revert--buffers-by-watch-descriptor)
-            (add-hook 'kill-buffer-hook #'auto-revert-notify-rm-watch nil t))))))
-
   (when-emacs-version (<= 28 it)
     (el-patch-defun auto-revert-notify-add-watch ()
       "Enable file notification for current buffer's associated file."
