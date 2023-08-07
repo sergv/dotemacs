@@ -14,7 +14,6 @@ set -e
 function is_tracked() {
     local file="$1"
     local check="$(git status --porcelain "$file" | awk '{ print $1; }')"
-    echo "check = ${check}"
     [[ "$check" != "??" && ! -z "$check" ]]
 }
 
