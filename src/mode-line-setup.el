@@ -37,10 +37,10 @@
 (defun mode-line-show-line-count-uncached ()
   (int-to-string (line-number-at-pos (point-max) t)))
 
-(add-hook 'find-file-hook 'mode-line--count-lines)
-(add-hook 'after-save-hook 'mode-line--count-lines)
-(add-hook 'after-revert-hook 'mode-line--count-lines)
-(add-hook 'dired-after-readin-hook 'mode-line--count-lines)
+(add-hook 'find-file-hook #'mode-line--count-lines)
+(add-hook 'after-save-hook #'mode-line--count-lines)
+(add-hook 'after-revert-hook #'mode-line--count-lines)
+(add-hook 'dired-after-readin-hook #'mode-line--count-lines)
 
 (defun mode-line-show-region-size ()
   "Format region size for `mode-line-format'."
