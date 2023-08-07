@@ -57,7 +57,7 @@ will be possible."
   (let ((adv-name (string->symbol (concat (symbol->string func) "-expand-on-search")))
         (mode-list (-flatten
                     (util/eval-if-symbol modes))))
-    (when (not (null? mode-list))
+    (when (not (null mode-list))
       `(make-light-synchronizing-advice
         ,func
         ,adv-name

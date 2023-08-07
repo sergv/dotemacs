@@ -396,7 +396,7 @@ entries."
 
 (defun sessions/is-temporary-buffer? (buf)
   (with-current-buffer buf
-    (and (null? (buffer-file-name buf))
+    (and (null (buffer-file-name buf))
          (not (memq major-mode
                     sessions/ignored-temporary-buffer-modes))
          (not (assq major-mode
@@ -426,7 +426,7 @@ entries."
                      major-mode
                      nil
                      (sessions/get-special-buffer-variables buf))))
-                (--filter (not (null? (buffer-file-name it)))
+                (--filter (not (null (buffer-file-name it)))
                           buffers)))
          (temporary-buffer-data
           (-map (lambda (buf)

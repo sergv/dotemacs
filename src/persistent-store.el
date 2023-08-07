@@ -170,9 +170,9 @@ performed for some field."
             new-contents (cdr-safe new-contents)))
     (unless failed
       (cond
-        ((null? new-contents)
+        ((null new-contents)
          (setf result (append (reverse old-contents) result)))
-        ((null? old-contents)
+        ((null old-contents)
          (setf result (append (reverse new-contents) result)))))
     (nreverse result)))
 
