@@ -164,7 +164,7 @@ if [[ "$native_comp" = "t" ]]; then
 
     find . -type f -name '*.elc' -print | xargs -n 1 -P "$n" "$emacs" --batch -l "$cfg" -f batch-native-compile
 
-    # seq 0 "$((n - 1))" | xargs --replace=INPUT --max-args=1 -P "$n" --verbose "$emacs" -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" INPUT $n t)"
+    # seq 0 "$((n - 1))" | xargs --replace=INPUT --max-args=1 -P "$n" --verbose "$emacs" -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" INPUT $n t nil)"
 else
     seq 0 "$((n - 1))" | xargs --replace=INPUT --max-args=1 -P "$n" --verbose "$emacs" -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" INPUT $n nil nil)"
 fi
