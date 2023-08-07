@@ -145,8 +145,8 @@ n="1"
 if [[ -e /proc/cpuinfo ]]; then
     n="$(awk '/processor/' /proc/cpuinfo | wc -l)"
 fi
-if [[ "$n" -gt 4 ]]; then
-    n="4"
+if [[ "$n" -gt 5 ]]; then
+    n="5"
 fi
 
 # Either 't' or 'nil'
@@ -160,9 +160,12 @@ if [[ "$native_comp" = "t" ]]; then
 
     echo "CONFIG = $cfg"
 
-    "$emacs" -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" 0 1 nil \"$cfg\")"
+    # "$emacs" -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" 0 1 nil \"$cfg\")"
 
-    find . -type f -name '*.elc' -print | xargs -n 1 -P "$n" "$emacs" --batch -l "$cfg" -f batch-native-compile
+    ( seq 0 "$((n - 1))" | xargs --replace=INPUT --max-args=1 -P "$n" --verbose "$emacs" -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" INPUT $n nil \"$cfg\")";
+      find . -type f -name '*.elc' -print | xargs -n 1 -P "$n" "$emacs" --batch -l "$cfg" -f batch-native-compile;
+      rm "$cfg"
+    ) || rm "$cfg"
 
     # seq 0 "$((n - 1))" | xargs --replace=INPUT --max-args=1 -P "$n" --verbose "$emacs" -Q --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\" INPUT $n t nil)"
 else
