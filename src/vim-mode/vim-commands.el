@@ -234,7 +234,7 @@ and switches to insert-mode."
 
     (_
      ;; deal with cw and cW
-     (when (and (not (null? vim--current-motion))
+     (when (and (not (null vim--current-motion))
                 (not (eob?))
                 (not (member (char-after) '(?\s ?\r ?\n ?\t))))
        (let ((cnt (* (or vim--current-cmd-count 1)

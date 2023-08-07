@@ -32,12 +32,12 @@
          (tmp res-items)
          (items (sorted-set/items set))
          (lt-pred (sorted-set/lt-pred set)))
-    (while (and (not (null? items))
+    (while (and (not (null items))
                 (funcall lt-pred (first items) item))
       (setf (rest tmp) (cons (first items) nil)
             tmp (rest tmp)
             items (rest items)))
-    (if (and (not (null? items))
+    (if (and (not (null items))
              ;; If existing item is not greater thar the
              ;; one we're trying to insert then do not
              ;; insert it.
@@ -63,13 +63,13 @@ X ~ Y == (and (not (lt-than X Y)) (not (lt-than Y X)))."
          (items1 (sorted-set/items set1))
          (items2 (sorted-set/items set2))
          (len 0))
-    (while (or (not (null? items1))
-               (not (null? items2)))
-      (cond ((null? items1)
+    (while (or (not (null items1))
+               (not (null items2)))
+      (cond ((null items1)
              (setf (rest tmp) items2
                    len (+ len (length items2))
                    items2 nil))
-            ((null? items2)
+            ((null items2)
              (setf (rest tmp) items1
                    len (+ len (length items1))
                    items1 nil))
@@ -108,8 +108,8 @@ X ~ Y == (and (not (lt-than X Y)) (not (lt-than Y X)))."
          (items1 (sorted-set/items set1))
          (items2 (sorted-set/items set2))
          (len 0))
-    (while (and (not (null? items1))
-                (not (null? items2)))
+    (while (and (not (null items1))
+                (not (null items2)))
       (cond ((funcall lt-than (first items1) (first items2))
              (setf items1 (rest items1)))
             ((funcall lt-than (first items2) (first items1))
@@ -156,7 +156,7 @@ items and remove any duplicates."
 
 (defun sorted-set/empty? (set)
   "Check whether SET is empty."
-  (null? (sorted-set/items set)))
+  (null (sorted-set/items set)))
 
 (provide 'sorted-set)
 

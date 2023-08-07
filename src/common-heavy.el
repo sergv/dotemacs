@@ -48,7 +48,7 @@ if CASE-SENSETIVE is t."
                             nil)
                            (join-lines path "/")))))
       (while (and (not found?)
-                  (not (null? path)))
+                  (not (null path)))
         (let ((subdir (funcall path-join (reverse path))))
           (message "searching in %s" subdir)
           (setf files
@@ -63,13 +63,13 @@ if CASE-SENSETIVE is t."
                                  (file-name-nondirectory p))
                                 (--any? (string-prefix? it p)
                                         subdirs-visited)))))
-          (when (not (null? files))
+          (when (not (null files))
             (setf found? t))
           (push subdir subdirs-visited)
           (setf path (cdr path))))
       (if found?
           (progn
-            (cl-assert (not (null? files)))
+            (cl-assert (not (null files)))
             (if (= 1 (length files))
                 (find-file (car files))
               (select-mode-start-selection
@@ -925,7 +925,7 @@ to deleted items. ITEMS will be mutated in order to obtain result."
         (if (funcall pred item)
             ;; remove the item
             (let ((next-cons (cdr tmp)))
-              (if (null? next-cons)
+              (if (null next-cons)
                   ;; at the end of list - overwrite current cons
                   (progn
                     (if prev
