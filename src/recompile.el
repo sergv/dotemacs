@@ -139,7 +139,6 @@
 
       (when config
         (with-temp-buffer
-
           (dolist (entry '((no-native-compile nil)
                            (byte-native-compiling t)
                            (byte-native-qualities nil)

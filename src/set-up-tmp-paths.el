@@ -10,6 +10,8 @@
   (require 'subr-x)
   (require 'set-up-platform))
 
+(require 'set-up-paths)
+
 (defconst +tmp-path+
   (make-temp-name
    (fold-platform-os-type

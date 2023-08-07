@@ -9,7 +9,7 @@
 (eval-when-compile
   (require 'set-up-platform))
 
-(defvar dumping)
+(require 'dump-init)
 
 (defcustom use-foreign-libraries? t
   "Whether to use foreign extensions to Emacs."
