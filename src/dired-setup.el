@@ -12,15 +12,14 @@
   (require 'cl)
   (require 'macro-util))
 
-(require 'set-up-paths)
 (require 'common)
+(require 'set-up-paths)
+(require 'vim-setup)
 
 (require 'dired-single)
 (require 'dired-aux)
 (require 'dired-x)
 (require 'dired-single)
-
-(require 'vim-setup)
 
 ;;;###autoload
 (autoload 'dired-single-buffer "dired-single" "" t)

@@ -9,6 +9,8 @@
 (eval-when-compile
   (require 'el-patch))
 
+(require 'el-patch)
+
 (defvar current-column-fixed--last-point nil)
 (defvar current-column-fixed--last-modified nil)
 (defvar current-column-fixed--last-result nil)
