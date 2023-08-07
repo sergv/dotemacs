@@ -257,7 +257,7 @@ combinations"
 structure like this (:arg1 value1 :arg2 value2 ... :argN valueN)"
   (declare (pure t) (side-effect-free t))
   (cond
-    ((null? keyword-arglist)
+    ((null keyword-arglist)
      default)
     ((eq? key (car keyword-arglist))
      (cadr keyword-arglist))
@@ -534,8 +534,8 @@ integer list B."
   (let ((done nil)
         (result nil))
     (while (and (not done)
-                (not (null? a))
-                (not (null? b)))
+                (not (null a))
+                (not (null b)))
       (cond ((< (first a) (first b))
              (setf done t
                    result t))
@@ -1079,8 +1079,8 @@ beginning of buffer. Does not cause \"Scan error: \"Unbalanced parentheses\"\" a
 (defun rotate-entry-list (listvar)
   "Rotate list of any etries such that list '(X Y Z) becomes '(Y Z X)"
   (set listvar (let ((value (symbol-value listvar)))
-                 (cond ((null? value) nil)
-                       ((null? (cdr value)) value)
+                 (cond ((null value) nil)
+                       ((null (cdr value)) value)
                        (t (let ((new-list (cdr value)))
                             (setcdr value nil)
                             (nconc new-list value)
@@ -1089,8 +1089,8 @@ beginning of buffer. Does not cause \"Scan error: \"Unbalanced parentheses\"\" a
 (defun rotate-entry-list-backward (listvar)
   "Rotate list of any etries such that list '(X Y Z) becomes '(Z X Y)"
   (set listvar (let ((value (symbol-value listvar)))
-                 (cond ((null? value) nil)
-                       ((null? (cdr value)) value)
+                 (cond ((null value) nil)
+                       ((null (cdr value)) value)
                        (t (while (cddr value)
                             (setq value (cdr value)))
                           (let ((last-elem (cdr value)))
