@@ -217,7 +217,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
     (letrec ((process
               (lambda (definition positional-depth)
                 (cl-assert (and (list? definition)
-                                (not (null? definition)))
+                                (not (null definition)))
                            nil
                            "invalid definition %s"
                            definition)
@@ -256,7 +256,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                                                   pcomplete-arg-var
                                                   positional-depth))
                                        positional-defs)
-                               ,@(when (not (null? other-defs))
+                               ,@(when (not (null other-defs))
                                    (list `(t
                                            ,@(--map (funcall process it positional-depth)
                                                     other-defs)))))))))))
@@ -266,7 +266,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                 (let ((info (rest definition)))
                   (cl-assert (-all? (lambda (entry)
                                       (and (list? entry)
-                                           (not (null? entry))
+                                           (not (null entry))
                                            (memq (first entry) '(flags args))))
                                     info)
                              nil

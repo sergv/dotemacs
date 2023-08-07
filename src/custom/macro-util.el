@@ -375,7 +375,7 @@ another KEY-COMMAND-LIST spliced in place of a variable;
                            ((list? mode-map)
                             mode-map)
                            (t (list mode-map)))))
-               (when (null? ,map-var)
+               (when (null ,map-var)
                  ;; don't silently ignore potential problems
                  (error ,(format "warning: map %s is nil" map-var)))
                ,@(funcall process-key-command-list map-var key-command-list))))

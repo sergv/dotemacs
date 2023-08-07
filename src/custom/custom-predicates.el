@@ -60,8 +60,7 @@
         (defalias new-command command)))))
 
 (save-match-data
-  (dolist (command '(null
-                     eq
+  (dolist (command '(eq
                      equal
                      string-match
                      looking-at
