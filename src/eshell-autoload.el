@@ -7,6 +7,7 @@
 ;; Description:
 
 (provide 'eshell-autoload)
+(require 'set-up-paths)
 
 (setf eshell-buffer-name "esh"
       eshell-directory-name (concat +prog-data-path+ "/eshell/")
