@@ -8,11 +8,12 @@
 
 (require 'cl)
 
+(require 'dump-init)
+
 (defvar trie-opt--global-cache)
 
-(defvar dumping t)
-
 (defun dump-main (emacs-dir)
+  (setf dumping t)
   (let ((init-file
          (cl-find-if #'file-exists-p
                      (mapcan (lambda (x) (list (concat emacs-dir "/src/" x)
@@ -201,6 +202,7 @@
     (makunbound 'dumping)
     (fmakunbound 'dump-main)
     (delete-file dump-target)
+
     (dump-emacs-portable dump-target)
 
     (message "Success")

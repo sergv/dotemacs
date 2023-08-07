@@ -20,6 +20,7 @@
 (require 'folding-setup)
 (require 'hydra-setup)
 (require 'macro-util)
+(require 'set-up-paths)
 
 (require 'python)
 (require 'python-abbrev+)

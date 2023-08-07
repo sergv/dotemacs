@@ -26,6 +26,7 @@
 (require 'search)
 (require 'vim-ex)
 (require 'vim-replace)
+(require 'vim)
 
 ;;; configuration variables
 
