@@ -18,6 +18,7 @@
   (require 'macro-util))
 
 (require 'common)
+(require 'set-up-paths)
 
 (defconst b/backup-directory (path-concat +prog-data-path+ "backup"))
 

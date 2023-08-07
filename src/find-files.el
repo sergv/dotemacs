@@ -9,12 +9,11 @@
 (eval-when-compile
   (require 'cl)
   (require 'set-up-platform)
-  (require 'macro-util)
-
-  (defvar use-foreign-libraries?))
+  (require 'macro-util))
 
 (require 'common)
 (require 'dash)
+(require 'foreign-setup)
 
 ;;;###autoload
 (cl-defun find-rec-do (path
