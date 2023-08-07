@@ -14,9 +14,8 @@
 
 (require 'common)
 (require 'find-files)
+(require 'foreign-setup)
 (require 'macro-util)
-
-(defvar use-foreign-libraries?)
 
 (autoload 'grep-read-files "grep")
 (autoload 'grep-read-regexp "grep")
