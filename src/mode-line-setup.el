@@ -16,6 +16,9 @@
 
 (defvar-local mode-line--buffer-line-count nil)
 
+;; Mark it as permanent-local so that it survives major mode change.
+(put 'mode-line--buffer-line-count 'permanent-local t)
+
 (defun mode-line-show-line-count ()
   "Show number of lines in the `mode-line-format'."
   (cond
