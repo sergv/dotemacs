@@ -128,12 +128,12 @@ With prefix argument allows to select different profile."
       (push clojure-compile/current-profile
             clojure-compile/avaliable-profiles)))
   (let ((command nil))
-    (setf command (if (not (null? clojure-compile/lein-command))
+    (setf command (if (not (null clojure-compile/lein-command))
                       clojure-compile/lein-command
                     (clojure-lein/read-variable-from-project-clj
                      buffer-file-name
                      'clojure-compile/lein-command)))
-    (cl-assert (not (null? command)))
+    (cl-assert (not (null command)))
     (compilation-start (format command
                                clojure-compile/current-profile)
                        #'clojure-compilation-mode

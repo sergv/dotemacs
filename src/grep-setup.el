@@ -182,7 +182,7 @@ more than once"
                  (files (grep-read-files regexp))
                  (dir (read-directory-name "Base directory: "
                                            nil default-directory t))
-                 (ignore-case (and (not (null? current-prefix-arg))
+                 (ignore-case (and (not (null current-prefix-arg))
                                    (<= 16 (first current-prefix-arg)))))
             (list regexp files dir ignore-case))))))
   (let* ((rgrep-ignore-case ignore-case)
@@ -194,7 +194,7 @@ more than once"
 
 (defun rgrep-region (str ignore-case)
   (interactive (list (get-region-string-no-properties)
-                     (and (not (null? current-prefix-arg))
+                     (and (not (null current-prefix-arg))
                           (<= 16 (first current-prefix-arg)))))
   (let* ((regexp (read-string "Search for: "
                               str
