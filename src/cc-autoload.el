@@ -6,6 +6,9 @@
 ;; Created: 12 January 2022
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (defconst +c-like-modes+ '(c-mode c++-mode cuda-mode glsl-mode idl-mode java-mode))
 
 (defconst +c-header-exts+ '("h"))

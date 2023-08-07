@@ -48,7 +48,7 @@
 (eval-when-compile
   (require 'subr-x))
 
-(defvar use-foreign-libraries?)
+(require 'foreign-setup)
 
 ;;* Customization
 (defgroup ivy nil

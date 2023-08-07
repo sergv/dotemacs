@@ -8,7 +8,9 @@
 
 (eval-when-compile
   (require 'set-up-platform)
-  (require 'macro-util))
+  (require 'macro-util)
+
+  (declare-function sessions-mark-global-var-for-save "persistent-sessions-global-vars"))
 
 (require 'persistent-sessions-global-vars)
 
