@@ -12,6 +12,7 @@
   (require 'macro-util))
 
 (require 'common)
+(require 'set-up-paths)
 
 (require 'ivy)
 ;; (require 'ivy-posframe)

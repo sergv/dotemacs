@@ -10,6 +10,7 @@
   (require 'macro-util))
 
 (require 'company-mode-setup)
+(require 'eproj)
 
 (defvar company-eproj-ignore-case nil)
 
