@@ -137,13 +137,12 @@
            (proceed? (or (not compile-native?)
                          native-comp-available?)))
 
-      (when config
+      (when (and config
+                 (= k 0))
         (with-temp-buffer
           (dolist (entry '((no-native-compile nil)
                            (byte-native-compiling t)
                            (byte-native-qualities nil)
-                           ;; Batch compilation has memory leak thanks to libgccjit.
-                           (comp-running-batch-compilation nil)
                            (native-comp-debug 0)
                            (native-comp-compiler-options '("-O2"))
                            (native-comp-driver-options '("-march=native"))))
