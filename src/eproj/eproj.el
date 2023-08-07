@@ -412,7 +412,7 @@ get proper flycheck checker."
                         aux-info
                         keys)))
      (cl-assert
-      (or (null? entry)
+      (or (null entry)
           (eq 'languages (car-safe entry)) ;; 'languages entry can have any length
           (= (length entry) 2))
       nil

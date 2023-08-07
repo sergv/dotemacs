@@ -294,7 +294,7 @@ carried out on FORMULA-STR."
                eval-result))
       (foldl (lambda (str command-cell)
                (unless (and (list? command-cell)
-                            (not (null? command-cell)))
+                            (not (null command-cell)))
                  (error "invalid command cell, list expected: %s"
                         command-cell))
                (cond
