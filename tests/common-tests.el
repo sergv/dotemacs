@@ -611,6 +611,39 @@
   (should (equal "f" (common-string-prefix "fOo" "foobar" nil)))
   (should (equal "fOo" (common-string-prefix "fOo" "foobar" t))))
 
+
+(ert-deftest common-tests/list<-1 ()
+  (should-not (list< nil nil)))
+
+(ert-deftest common-tests/list<-2 ()
+  (should (list< nil '(1))))
+
+(ert-deftest common-tests/list<-3 ()
+  (should (list< '(1) '(2))))
+
+(ert-deftest common-tests/list<-4 ()
+  (should (list< '(1) '(2 3))))
+
+(ert-deftest common-tests/list<-5 ()
+  (should-not (list< '(2) '(1))))
+
+
+(ert-deftest common-tests/string-list<-1 ()
+  (should-not (string-list< nil nil)))
+
+(ert-deftest common-tests/string-list<-2 ()
+  (should (string-list< nil '("a"))))
+
+(ert-deftest common-tests/string-list<-3 ()
+  (should (string-list< '("a") '("b"))))
+
+(ert-deftest common-tests/string-list<-4 ()
+  (should (string-list< '("a") '("b" "c"))))
+
+(ert-deftest common-tests/string-list<-5 ()
+  (should-not (string-list< '("b") '("a"))))
+
+
 ;; (progn
 ;;   (ert "common-tests/.*")
 ;;   nil)
