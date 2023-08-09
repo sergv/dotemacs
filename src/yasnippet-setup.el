@@ -189,6 +189,7 @@ happens to be located in org's headline."
 (defvar-local yas-expand-fallback
   (lambda () (error "yas-expand-fallback not set to proper callback")))
 
+;;;###autoload
 (defun yas-expand-or-fallback ()
   (interactive)
   (or (yas-expand)

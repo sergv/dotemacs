@@ -9,6 +9,7 @@
 (eval-when-compile
   (require 'macro-util))
 
+(require 'keys-def)
 (require 'persistent-store)
 
 (eval-after-load
