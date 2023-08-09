@@ -10,6 +10,7 @@
 
 (eval-when-compile
   (require 'cl)
+  (require 'cycle-on-lines)
   (require 'macro-util))
 
 (require 'common)
