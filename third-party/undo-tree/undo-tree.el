@@ -755,6 +755,9 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'current-column-fixed)
 
 (require 'cl-lib)
