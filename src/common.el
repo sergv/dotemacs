@@ -531,21 +531,61 @@ write buffer contents back into file if flag DONT-WRITE is nil."
   "Check whether list of integers A is lexicographically lesser than
 integer list B."
   (declare (pure t) (side-effect-free t))
-  (let ((done nil)
-        (result nil))
-    (while (and (not done)
-                (not (null a))
-                (not (null b)))
-      (cond ((< (first a) (first b))
-             (setf done t
-                   result t))
-            ((> (first a) (first b))
-             (setf done t
-                   result nil))
-            (t
-             (setf a (rest a)
-                   b (rest b)))))
-    result))
+  (cond
+    ((and a
+          (not b))
+     nil)
+    ((and (not a)
+          b)
+     t)
+    (t
+     (let ((continue t)
+           (result nil))
+       (while (and continue
+                   a
+                   b)
+         (let ((elem-a (car a))
+               (elem-b (car b)))
+           (cond ((< elem-a elem-b)
+                  (setf continue nil
+                        result t))
+                 ((> elem-a elem-b)
+                  (setf continue nil
+                        result nil))
+                 (t
+                  (setf a (cdr a)
+                        b (cdr b))))))
+       result))))
+
+(defun string-list< (a b)
+  "Check whether list of strings A is lexicographically lesser than
+strings list B."
+  (declare (pure t) (side-effect-free t))
+  (cond
+    ((and a
+          (not b))
+     nil)
+    ((and (not a)
+          b)
+     t)
+    (t
+     (let ((continue t)
+           (result nil))
+       (while (and continue
+                   a
+                   b)
+         (let ((elem-a (car a))
+               (elem-b (car b)))
+           (cond ((string< elem-a elem-b)
+                  (setf continue nil
+                        result t))
+                 ((string> elem-a elem-b)
+                  (setf continue nil
+                        result nil))
+                 (t
+                  (setf a (cdr a)
+                        b (cdr b))))))
+       result))))
 
 (defsubst list= (a b)
   "Check whether list of integers A is equal to integer list B."
