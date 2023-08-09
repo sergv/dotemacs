@@ -6,6 +6,9 @@
 ;; Created: 30 April 2023
 ;; Description:
 
+(eval-when-compile
+  (require 'cl))
+
 (require 'persistent-store)
 
 ;;; Make transient.el use persistent store.
@@ -46,11 +49,32 @@
                                            (cons key (seq-take (delete-dups val)
                                                                transient-history-limit)))
                                          transient-history)
-                                 #'string< :key #'car)))
+                                 #'string<
+                                 :key #'car)))
 
 ;;;###autoload
 (advice-add 'transient-save-history :override #'transient-save-history/use-persistent-store)
 
+(defun transient-history--merge-entries (old new)
+  (let ((old-normalised
+         (cl-sort (mapcar (pcase-lambda (`(,key . ,val))
+                            (cons key
+                                  (cl-sort val #'string-list<)))
+                          old)
+                  #'string<
+                  :key #'car))
+        (new-normalised
+         (cl-sort (mapcar (pcase-lambda (`(,key . ,val))
+                            (cons key
+                                  (cl-sort val #'string-list<)))
+                          new)
+                  #'string<
+                  :key #'car)))
+    (when (equal old-normalised new-normalised)
+      old-normalised)))
+
+(push (cons 'transient-history #'transient-history--merge-entries)
+      persistent-store-merge-handlers)
 
 (provide 'transient-fixes)
 
