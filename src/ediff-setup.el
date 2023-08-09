@@ -15,6 +15,7 @@
 (require 'ediff)
 (require 'el-patch)
 (require 'hydra-setup)
+(require 'vim-setup)
 
 (setf ediff-verbose-p nil)
 
