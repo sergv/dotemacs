@@ -24,6 +24,9 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'set-up-platform))
+
 (require 'common)
 
 (require 'lsp-mode)

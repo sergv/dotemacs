@@ -41,7 +41,8 @@
 
 (eval-when-compile
   (defvar dante-repl--command-line-to-use)
-  (require 'cl-lib))
+  (require 'cl-lib)
+  (require 'set-up-platform))
 
 (require 'dash)
 (require 'f)
