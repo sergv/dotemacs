@@ -6,6 +6,9 @@
 ;; Created: 15 June 2023
 ;; Description:
 
+(eval-when-compile
+  (require 'set-up-platform))
+
 (require 'dante)
 (require 'flycheck)
 (require 'nix-integration)
