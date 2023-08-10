@@ -137,8 +137,8 @@
            (proceed? (or (not compile-native?)
                          native-comp-available?)))
 
-      (when (and config
-                 (= k 0))
+      (cond
+       (config
         (with-temp-buffer
           (dolist (entry '((no-native-compile nil)
                            (byte-native-compiling t)
@@ -152,46 +152,47 @@
           (write-file config)
           (message "WRITTEN CONFIG TO %S" config)))
 
-      (if proceed?
-          (progn
-            (message "[recompile.el] loading local *.el files")
-            (dolist (file local-files)
-              (require (intern (file-name-sans-extension (file-name-nondirectory file))))
-              ;; (load-library file)
-              )
+       (proceed?
+        (message "[recompile.el] loading local *.el files")
+        (dolist (file local-files)
+          (require (intern (file-name-sans-extension (file-name-nondirectory file))))
+          ;; (load-library file)
+          )
 
-            (let ((i 0))
-              (message "[recompile.el] %s %s files" k (if compile-native? "native-compiling" "byte-compiling"))
-              (dolist (file (append local-files third-party-files))
-                (when (= k (mod i n))
-                  (if compile-native?
-                      (progn
-                        (message "[recompile.el] %s native-compiling %s" k file)
+        (let ((i 0))
+          (message "[recompile.el] %s %s files" k (if compile-native? "native-compiling" "byte-compiling"))
+          (dolist (file (append local-files third-party-files))
+            (when (= k (mod i n))
+              (if compile-native?
+                  (progn
+                    (message "[recompile.el] %s native-compiling %s" k file)
 
-                        (condition-case err
-                            (let ((no-native-compile nil)
-                                  (byte-native-compiling t)
-                                  (byte-native-qualities nil)
-                                  ;; Batch compilation has memory leak thanks to libgccjit.
-                                  (comp-running-batch-compilation nil)
-                                  (native-comp-debug 0)
-                                  (native-comp-compiler-options '("-O2"))
-                                  (native-comp-driver-options '("-march=native")))
-                              (native-compile file
-                                              (comp-el-to-eln-filename file)))
-                          (error
-                           (message "[recompile.el] %s failed to native-compile %s: %s" k file (cdr err)))))
+                    (condition-case err
+                        (let ((no-native-compile nil)
+                              (byte-native-compiling t)
+                              (byte-native-qualities nil)
+                              ;; Batch compilation has memory leak thanks to libgccjit.
+                              (comp-running-batch-compilation nil)
+                              (native-comp-debug 0)
+                              (native-comp-compiler-options '("-O2"))
+                              (native-comp-driver-options '("-march=native")))
+                          (native-compile file
+                                          (comp-el-to-eln-filename file)))
+                      (error
+                       (message "[recompile.el] %s failed to native-compile %s: %s" k file (cdr err)))))
 
-                    (progn
-                      (message "[recompile.el] %s byte-compiling %s" k file)
-                      (let ((target (concat file "c")))
-                        (if (file-exists-p target)
-                            (message "[recompile.el] %s skipping %s - already compiled" k file)
-                          (byte-compile-file file))))))
-                (cl-incf i))
+                (progn
+                  (message "[recompile.el] %s byte-compiling %s" k file)
+                  (let ((target (concat file "c")))
+                    (if (file-exists-p target)
+                        (message "[recompile.el] %s skipping %s - already compiled" k file)
+                      (byte-compile-file file))))))
+            (cl-incf i))
 
-              (message "[recompile.el] %s done %s" k (if compile-native? "native-compiling" "byte-compiling"))))
-        (message "[recompile.el] %s nothing to do" k))))
+          (message "[recompile.el] %s done %s" k (if compile-native? "native-compiling" "byte-compiling"))))
+
+       (t
+        (message "[recompile.el] %s nothing to do" k)))))
 
   (recompile-disable-hooks))
 
