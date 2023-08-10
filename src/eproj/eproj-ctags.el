@@ -9,7 +9,8 @@
 ;;;; ctags facility
 
 (eval-when-compile
-  (require 'macro-util))
+  (require 'macro-util)
+  (require 'set-up-platform))
 
 (require 'common)
 (require 'eproj-tag-index)
