@@ -6,7 +6,9 @@
 ;; Created: 19 June 2018
 ;; Description:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'set-up-platform))
 
 (require 'common)
 (require 'egrep)
