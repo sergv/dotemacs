@@ -8,8 +8,9 @@
 
 (eval-when-compile
   (require 'cl)
-  (require 'subr-x)
-  (require 'macro-util))
+  (require 'macro-util)
+  (require 'set-up-platform)
+  (require 'subr-x))
 
 (require 'pcomplete)
 (require 'completion-setup)

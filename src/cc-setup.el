@@ -17,6 +17,7 @@
 (require 'indentation)
 (require 'find-file)
 (require 'company-eproj)
+(require 'vim-setup)
 
 (require 'dtrt-indent) ;; indent offset guesser
 

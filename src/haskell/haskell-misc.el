@@ -12,6 +12,7 @@
   (require 'cl)
   (require 'subr-x)
   (require 'macro-util)
+  (require 'set-up-platform)
   (require 'trie))
 
 (require 'align-util)
