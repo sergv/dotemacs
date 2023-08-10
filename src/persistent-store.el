@@ -152,7 +152,7 @@ performed for some field."
                 (setf done t
                       failed t
                       result nil)))))
-          ((persistent-store-symbol< old-entry-key new-entry-key)
+          ((string< old-entry-key new-entry-key)
            ;; Store entries in reverse order because we're going to do
            ;; nreverse at the end.
            (setf result
@@ -176,22 +176,14 @@ performed for some field."
          (setf result (append (reverse new-contents) result)))))
     (nreverse result)))
 
-(defun persistent-store-symbol< (x y)
-  (string< (symbol->string x)
-           (symbol->string y)))
-
 (defun persistent-store-flush-database ()
   "Flush db contents to file."
-  (let ((new-content nil)
+  (let ((new-content (hash-table->alist persistent-store-content))
         (current-content-str
          (persistent-store-load-file persistent-store-store-file))
         (entries-sort-pred
          (lambda (x y)
-           (persistent-store-symbol< (car x) (car y)))))
-    (maphash (lambda (key value)
-               ;; store nil values too
-               (push (cons key value) new-content))
-             persistent-store-content)
+           (string< (car x) (car y)))))
 
     (setf new-content (-sort entries-sort-pred
                              new-content))
@@ -202,10 +194,11 @@ performed for some field."
       ;; file was changed since we loaded data from it
       (let ((merged-content
              (persistent-store-try-merging-contents
-              (sort
+              (cl-sort
                (hash-table->alist
                 (persistent-store-read-contents-from-string current-content-str))
-               entries-sort-pred)
+               #'string<
+               :key #'car)
               new-content)))
         (if merged-content
             (persistent-store-write-contents-to-file
