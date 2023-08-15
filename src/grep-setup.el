@@ -17,6 +17,7 @@
   (require 'set-up-platform)
   (require 'macro-util))
 
+(require 'dash)
 (require 'el-patch)
 (require 'grep)
 (require 'keys-def)

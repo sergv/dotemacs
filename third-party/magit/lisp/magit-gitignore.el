@@ -26,6 +26,7 @@
 
 ;;; Code:
 
+(require 'dash)
 (require 'magit)
 
 ;;; Transient
