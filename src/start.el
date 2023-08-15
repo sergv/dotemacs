@@ -213,6 +213,7 @@
 (require 'flycheck-setup)
 (require 'typography-setup)
 (require 'eshell-autoload)
+(require 'auto-insert-autoload)
 
 (require 'undo-tree-setup)
 
@@ -245,6 +246,7 @@
 (unless (featurep 'custom-variables-defined)
   (load-library ".emacs"))
 
+(load-library "global-setup")
 (load-library "user-info")
 
 (let ((machine-specific-setup-file

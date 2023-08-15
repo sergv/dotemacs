@@ -27,6 +27,7 @@
 
 ;;; Code:
 
+(require 'dash)
 (require 'magit-core)
 (require 'git-commit)
 

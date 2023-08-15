@@ -13,6 +13,7 @@
 (declare-function lean-find-definition-cont "lean-info")
 (declare-function lean-server-send-synchronous-command "lean-server")
 
+(require 'dash)
 (require 'select-mode)
 
 (defun lean-setup--get-definitions-candidates (pat)
