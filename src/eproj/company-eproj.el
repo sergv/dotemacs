@@ -40,25 +40,25 @@
                       (--map (cdr-safe (assq effective-major-mode (eproj--get-tags it)))
                              all-projs)))
          (all-matches
-          (-mapcat (lambda (tag-index)
-                     (cl-assert (eproj-tag-index-p tag-index))
-                     (-mapcat (lambda (completion)
-                                (let ((tags (eproj-tag-index-get completion tag-index)))
-                                  (-map (lambda (tag)
-                                          (cl-assert (eproj-tag-p tag))
-                                          (let ((new-completion (copy-sequence completion)))
-                                            (set-text-properties
-                                             0
-                                             (length new-completion)
-                                             (list :file (eproj-tag/file tag)
-                                                   :line (eproj-tag/line tag)
-                                                   ;; :tag tag
-                                                   :kind (funcall show-tag-kind-func tag))
-                                             new-completion)
-                                            new-completion))
-                                        tags)))
-                              (eproj-tag-index-all-completions arg tag-index)))
-                   tag-tables)))
+          (mapcan (lambda (tag-index)
+                    (cl-assert (eproj-tag-index-p tag-index))
+                    (mapcan (lambda (completion)
+                              (let ((tags (eproj-tag-index-get completion tag-index)))
+                                (-map (lambda (tag)
+                                        (cl-assert (eproj-tag-p tag))
+                                        (let ((new-completion (copy-sequence completion)))
+                                          (set-text-properties
+                                           0
+                                           (length new-completion)
+                                           (list :file (eproj-tag/file tag)
+                                                 :line (eproj-tag/line tag)
+                                                 ;; :tag tag
+                                                 :kind (funcall show-tag-kind-func tag))
+                                           new-completion)
+                                          new-completion))
+                                      tags)))
+                            (eproj-tag-index-all-completions arg tag-index)))
+                  tag-tables)))
     (remove-duplicates-hashing all-matches #'equal)))
 
 (provide 'company-eproj)
