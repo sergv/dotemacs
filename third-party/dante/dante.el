@@ -42,6 +42,8 @@
 (eval-when-compile
   (defvar dante-repl--command-line-to-use)
   (require 'cl-lib)
+  (require 'company)
+  (require 'dash)
   (require 'set-up-platform))
 
 (require 'dash)
@@ -52,7 +54,6 @@
 (require 's)
 (require 'xref)
 (require 'lcr)
-(eval-when-compile (require 'company))
 
 (require 'common)
 (require 'common-whitespace)
