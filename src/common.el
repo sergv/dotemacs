@@ -507,7 +507,7 @@ write buffer contents back into file if flag DONT-WRITE is nil."
   (declare (pure t) (side-effect-free t))
   (cond ((ring? item)
          (ring-length item))
-        ((or (list? item)
+        ((or (listp item)
              (vector? item)
              (string? item))
          (length item))
@@ -518,7 +518,7 @@ write buffer contents back into file if flag DONT-WRITE is nil."
   (declare (pure t) (side-effect-free t))
   (cond ((ring? sequence)
          (ring-member sequence item))
-        ((list? sequence)
+        ((listp sequence)
          (member item sequence))
         (t
          (error "Cannot determine generic membership of item %s in sequence %s"
