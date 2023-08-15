@@ -10,7 +10,7 @@
   (require 'macro-util))
 
 (require 'common-heavy)
-(require 'eproj)
+(require 'dash)
 (require 'eproj-ctags)
 (require 'eproj-tag-index)
 

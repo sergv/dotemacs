@@ -81,13 +81,20 @@
 (provide 'eproj)
 
 (require 'common)
+(require 'dash)
+(require 'eproj-ctags)
+(require 'eproj-haskell)
+(require 'eproj-tag-index)
 (require 'eproj-symbnav)
 (require 'eproj-tag-index)
 (require 'ivy)
 
 (require 'cc-autoload)
 (require 'haskell-autoload)
+(require 'haskell-regexen)
 (require 'rust-autoloads)
+
+(declare-function eproj/create-haskell-tags "eproj-haskell")
 
 ;;; eproj languages
 
@@ -173,7 +180,10 @@
   (cl-assert (or (null normalise-identifier-before-navigation-procedure)
                  (functionp normalise-identifier-before-navigation-procedure)
                  (autoloadp normalise-identifier-before-navigation-procedure)
-                 (subr-native-elisp-p normalise-identifier-before-navigation-procedure)))
+                 (subr-native-elisp-p normalise-identifier-before-navigation-procedure))
+             nil
+             "Invalid normalise-identifier-before-navigation-procedure: %s"
+             normalise-identifier-before-navigation-procedure)
   (cl-assert (or (null extra-navigation-globs)
                  (-all? #'stringp extra-navigation-globs)))
   (make-eproj-language

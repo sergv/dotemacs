@@ -22,6 +22,8 @@
 (declare-function ffap-guesser "ffap")
 (declare-function search-property "search-prop")
 
+(require 'dash)
+(require 'common-constants)
 (require 'custom-predicates)
 (require 'macro-util)
 
@@ -177,7 +179,7 @@ Use like this to pick changes that will go into CURR-CONFIG-DIR:
                         (redisplay t))
                     (progn
                       (message "Files %s and %s are the same, skipping" new curr)))
-                (when (y-or-n? (format "Copy %s to %s?" new curr))
+                (when (y-or-n-p (format "Copy %s to %s?" new curr))
                   (copy-file new curr nil t t t))))
           (error
            (message "Error occurred while processing files %s and %s:\n%s"
@@ -391,7 +393,7 @@ not exist after command is finished."
     (shell-command command output-buffer error-buffer)
     (when (and buffer-file-name
                (not (file-exists? buffer-file-name))
-               (y-or-n? (format "Kill buffer %s?" (buffer-name buf))))
+               (y-or-n-? (format "Kill buffer %s?" (buffer-name buf))))
       (kill-buffer buf))))
 
 (defun rm-on-file-and-kill-buffer-afterwards
@@ -409,7 +411,7 @@ not exist after command is finished."
                    (with-current-buffer buf
                      (expand-file-name buffer-file-name))
                    path)
-                  (y-or-n? (format "Kill buffer %s?" (buffer-name buf))))
+                  (y-or-n-? (format "Kill buffer %s?" (buffer-name buf))))
          (kill-buffer buf))))
     (t
      (error "Path does not exist: %s" path))))

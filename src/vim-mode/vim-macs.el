@@ -309,7 +309,7 @@ look at vim-core.el."
 
     ;; collect parameters
     (dolist (arg args)
-      (pcase (if (cons? arg) (car arg) arg)
+      (pcase (if (consp arg) (car arg) arg)
         ((or `inclusive `exclusive `linewise `block)
          (setq type arg))
 

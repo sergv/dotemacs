@@ -24,9 +24,6 @@
 (awhen (getenv "EMACS_NIX_STATE_DIR")
   (setf nix-state-dir it))
 
-;;;###autoload
-(nix-prettify-global-mode +1)
-
 (defun nix-align-generic ()
   (interactive)
   (generic-align-on-equals))

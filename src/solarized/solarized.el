@@ -5,7 +5,9 @@
 
 (eval-when-compile
   (require 'cl)
-  (require 'set-up-platform))
+  (require 'set-up-platform)
+
+  (require 'macro-util))
 
 (require 'solarized-palettes)
 
