@@ -157,7 +157,7 @@ CACHE-ARGS, which should be a list.
 NB does not expect to cache values of ARGS that are nil."
   (cl-assert (symbolp func))
   (cl-assert (symbolp reset-cache-func))
-  (cl-assert (list? cache-args))
+  (cl-assert (listp cache-args))
   (cl-assert (-all? #'symbolp cache-args))
   (cl-assert (equal? cache-args
                      (intersection args cache-args :test #'equal?))
@@ -359,7 +359,7 @@ another KEY-COMMAND-LIST spliced in place of a variable;
                                     (eval entry)
                                   entry)
                               (cond
-                                ((list? key)
+                                ((listp key)
                                  (list
                                   `(dolist (key ',(-mapcat #'def-keys-for-map--expand-key key))
                                      ,(funcall def-key map-var 'key command))))
@@ -372,7 +372,7 @@ another KEY-COMMAND-LIST spliced in place of a variable;
             `(dolist (,map-var
                       (list
                        ,@(cond
-                           ((list? mode-map)
+                           ((listp mode-map)
                             mode-map)
                            (t (list mode-map)))))
                (when (null ,map-var)
