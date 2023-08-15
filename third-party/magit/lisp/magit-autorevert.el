@@ -22,6 +22,7 @@
 
 ;;; Code:
 
+(require 'dash)
 (require 'magit-git)
 
 (require 'autorevert)

@@ -12,7 +12,6 @@
   (require 'macro-util))
 
 (require 'select-mode)
-(require 'eproj)
 (require 'eproj-customization)
 
 ;;; tag/symbol navigation (navigation over homes)

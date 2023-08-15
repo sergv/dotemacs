@@ -14,6 +14,7 @@
   (require 'macro-util))
 
 (require 'common)
+(require 'dash)
 (require 'el-patch)
 (require 'indentation)
 (require 'render-formula)
