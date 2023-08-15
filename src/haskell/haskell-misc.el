@@ -362,7 +362,7 @@ extensions as a list of strings. Leaves point at the end of pragma"
       ;; (cl-assert (looking-at-p haskell-regexen/language-pragma-prefix))
       ;; Navigate up while we're still getting LANGUAGE pragmas.
       (beginning-of-line)
-      (while (and (not (bob?))
+      (while (and (not (bobp))
                   (or (looking-at-p pragma-prefix-re)
                       (haskell-misc--point-inside-pragma? (point))))
         ;; Go to beginning of the previous line.
@@ -381,7 +381,7 @@ extensions as a list of strings. Leaves point at the end of pragma"
                 (setf exts (append it exts)
                       pragma-block-end (point))
                 (forward-line 1)
-                (if (eob?)
+                (if (eobp)
                     (setf done t)
                   (beginning-of-line))
                 ;; (skip-syntax-forward " >")

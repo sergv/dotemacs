@@ -6,6 +6,8 @@
 ;; Created:  1 September 2022
 ;; Description:
 
+(require 'configurable-compilation)
+
 ;;;###autoload
 (defun nix-maybe-call-via-flakes (args &optional proj-dir)
   "If current project has flake.nix then return ‘nix develop

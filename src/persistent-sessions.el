@@ -19,6 +19,7 @@
 (require 'frameset)
 
 (require 'common)
+(require 'dash)
 (require 'haskell-constants)
 (require 'persistent-sessions-error-reporting)
 (require 'persistent-sessions-global-vars)
