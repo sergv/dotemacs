@@ -24,6 +24,7 @@
 
 ;;; Code:
 
+(require 'dash)
 (require 'lsp-protocol)
 (require 'lsp-mode)
 

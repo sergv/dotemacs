@@ -23,6 +23,7 @@
 
 (require 'current-column-fixed)
 
+(require 'dash)
 (require 'lsp-mode)
 
 (defgroup lsp-lens nil

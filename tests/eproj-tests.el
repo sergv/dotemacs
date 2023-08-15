@@ -10,10 +10,10 @@
   (require 'cl-lib))
 
 (require 'common)
-
-(require 'find-files)
+(require 'dash)
 (require 'eproj)
 (require 'eproj-haskell)
+(require 'find-files)
 
 (require 'ert)
 (require 'haskell-tests)

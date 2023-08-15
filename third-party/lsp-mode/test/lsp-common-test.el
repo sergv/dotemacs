@@ -17,6 +17,7 @@
 
 ;;; Code:
 
+(require 'dash)
 (require 'ert)
 (require 'lsp-mode)
 (require 'elenv)
