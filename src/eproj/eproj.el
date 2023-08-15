@@ -1260,8 +1260,8 @@ or `default-directory', if no file is visited."
     (eproj/evaluate-with-caching-buffer-local-var
      ;; Take directory since the file visited by buf may not be
      ;; under version control per se.
-     (or (and buffer-file-truename
-              (file-name-directory buffer-file-truename))
+     (or (and buffer-file-name
+              (file-name-directory buffer-file-name))
          default-directory)
      buf
      eproj/buffer-directory
@@ -1400,7 +1400,10 @@ Returns list of (tag-name tag project is-authoritative?) lists."
                 (if buffer-abs-file
                     ;; If buffer is under current project's root, add it under
                     ;; both relative and absolute names.
-                    (if (string-prefix-p root buffer-abs-file)
+                    (if (string-prefix-p root
+                                         buffer-abs-file
+                                         ;; ignore case
+                                         (fold-platform-os-type nil t))
                         (list (file-relative-name buffer-abs-file root)
                               buffer-abs-file)
                       (list buffer-abs-file))

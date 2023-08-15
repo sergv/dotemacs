@@ -192,8 +192,8 @@
   "Sort buffers by name in lexicographic order."
   (sort bufs
         (lambda (x y)
-          (string< (buffer-local-value 'buffer-file-truename x)
-                   (buffer-local-value 'buffer-file-truename y)))))
+          (string< (buffer-local-value 'buffer-file-name x)
+                   (buffer-local-value 'buffer-file-name y)))))
 
 (defun ebuf--add-face (str face)
   (propertize str 'face face 'font-lock-face face))
@@ -240,11 +240,9 @@
               (insert-char ?\n)
               (dolist (buf bufs)
                 (let* ((buf-name (buffer-name buf))
-                       ;; Important fo ask for ‘buffer-file-truename’
-                       ;; here so that it will be fully resolved
-                       ;; w.r.t. symbolic links. So don’t use
-                       ;; ‘buffer-file-name’ blindly instead.
-                       (buf-file (buffer-local-value 'buffer-file-truename buf))
+                       ;; May consider using ‘buffer-file-truename’ to resolve symbolic
+                       ;; links. But there seems to be no reason to do so yet.
+                       (buf-file (buffer-local-value 'buffer-file-name buf))
                        (buf-ro? (buffer-local-value 'buffer-read-only buf))
                        (buf-caption (if buf-file
                                         (if proj-root
