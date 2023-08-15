@@ -8,6 +8,7 @@
 
 (eval-when-compile
   (require 'cl)
+  (require 'dash)
   (require 'macro-util)
   (require 'set-up-platform)
   (require 'subr-x))
@@ -294,6 +295,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                     (when (or flags args)
                       (cl-multiple-value-bind (single-dash-flags double-dash-flags)
                           (--separate (string-match-p "^-[^-]" it)
+                                      ;; Need to not destructively modify flags, hence cannot use ‘mapcan’.
                                       (-mapcat #'pcmpl-flag/names flags))
                         `(while
                              (unless ,got-end-of-flags-var
@@ -1961,12 +1963,12 @@ under version-control directories."
                         "--reject-unconstrained-dependencies=none"
                         "--reject-unconstrained-dependencies=all"))
          (program-options-flags
-          (-mapcat (lambda (p)
-                     `((,(concat "--" p)
-                        (pcmpl-entries-ignoring-common))
-                       ,(concat "--" p "-option")
-                       ,(concat "--" p "-options")))
-                   programs))
+          (mapcan (lambda (p)
+                    `((,(concat "--" p)
+                       (pcmpl-entries-ignoring-common))
+                      ,(concat "--" p "-option")
+                      ,(concat "--" p "-options")))
+                  programs))
          (deps-flags `("--only-dependencies"
                        "--dependencies-only"))
          (configure-flags `(,@help-verbosity-flags
