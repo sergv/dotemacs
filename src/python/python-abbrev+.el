@@ -83,7 +83,6 @@ string on error"
            :action-data "print(\"$1\".format($2))$0"))
     (cons (list "info")
           (make-abbrev+-abbreviation
-           :trigger "info"
            :action-type 'function-with-side-effects
            :action-data #'python-print-info-template))
     (cons (make-abbrev+-triggers-for-func-name
