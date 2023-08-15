@@ -143,8 +143,8 @@
   )
 
 (cl-defun make-pcmpl-flag (&key names completion-expr)
-  (cl-assert (or (string? names)
-                 (-all? #'string? names)))
+  (cl-assert (or (stringp names)
+                 (-all? #'stringp names)))
   (pcmpl-flag/create :names names :completion-expr completion-expr))
 
 (cl-defun pcpmpl/make-name-regex (flag)
@@ -158,7 +158,7 @@ be either singular string or a list of strings."
   (-map
    (lambda (entry)
      (cond
-       ((string? entry)
+       ((stringp entry)
         (make-pcmpl-flag
          :names (list entry)
          :completion-expr nil))
@@ -167,14 +167,14 @@ be either singular string or a list of strings."
              (= 2 (length entry)))
         (let ((flag-name (first entry))
               (compl-expr (cadr-safe entry)))
-          (cl-assert (or (string? flag-name)
+          (cl-assert (or (stringp flag-name)
                          (and
                           (listp flag-name)
-                          (-all? #'string? flag-name)))
+                          (-all? #'stringp flag-name)))
                      nil
                      "process-opts: invalid flag name: %s"
                      flag-name)
-          (make-pcmpl-flag :names (if (string? flag-name)
+          (make-pcmpl-flag :names (if (stringp flag-name)
                                       (list flag-name)
                                     flag-name)
                            :completion-expr compl-expr)))
@@ -234,10 +234,10 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                 (when-let (defs (rest definition))
                   (let* ((positional-def?
                           (lambda (def)
-                            (or (string? (first def))
+                            (or (stringp (first def))
                                 (and
                                  (listp (first def))
-                                 (-all? #'string? (first def))))))
+                                 (-all? #'stringp (first def))))))
                          (positional-defs
                           (-filter positional-def? defs))
                          (other-defs
@@ -325,11 +325,11 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
              (process-positional
               (lambda (definition pcomplete-arg-var positional-depth)
                 (let ((name (first definition)))
-                  (cl-assert (or (string? name)
+                  (cl-assert (or (stringp name)
                                  (and (listp name)
-                                      (-all? #'string? name))))
+                                      (-all? #'stringp name))))
                   `(,(cond
-                       ((string? name)
+                       ((stringp name)
                         `(string= ,pcomplete-arg-var ,name))
                        ((listp name)
                         `(member ,pcomplete-arg-var ',name))

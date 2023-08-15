@@ -107,7 +107,7 @@ file-local variable in source *.clj file or via file-local variable in
 project.clj for current project. Values in individual source files
 override values in project.clj")
 
-(put 'clojure-compile/lein-command 'safe-local-variable #'string?)
+(put 'clojure-compile/lein-command 'safe-local-variable #'stringp)
 
 
 

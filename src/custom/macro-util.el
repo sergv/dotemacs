@@ -363,7 +363,7 @@ another KEY-COMMAND-LIST spliced in place of a variable;
                                  (list
                                   `(dolist (key ',(-mapcat #'def-keys-for-map--expand-key key))
                                      ,(funcall def-key map-var 'key command))))
-                                ((string? key)
+                                ((stringp key)
                                  (list (funcall def-key map-var (eval `(kbd ,key)) command)))
                                 (t
                                  (error "Invalid key: %s" key)))))))))

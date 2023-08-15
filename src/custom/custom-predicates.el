@@ -23,7 +23,6 @@
                      typep
                      timerp
                      tailp
-                     stringp
                      subsetp
                      subrp
                      symbolp
