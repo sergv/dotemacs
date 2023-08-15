@@ -547,7 +547,7 @@ existing file. If PATH is relative then try resolving it against DIR."
 (defun remove-duplicates-sorting (xs eq-func comparison)
   "Sort XS using COMPARISON function and remove duplicates from the result
 using EQ-FUNC to determine equal elements."
-  (cl-assert (list? xs))
+  (cl-assert (listp xs))
   (remove-duplicates-sorted! (sort xs comparison) eq-func))
 
 ;;;###autoload
