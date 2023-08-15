@@ -292,14 +292,14 @@ function; and adjust-block-beginning function."
     (when (not (equal 1 (length header-symbol)))
       (error "setup-outline-headers: error: fetched header-symbol from comment-util but it's length is greater than 1: \"%s\" and no other header-symbol was provided"
              header-symbol)))
-  (cl-assert (and (string? header-symbol)
+  (cl-assert (and (stringp header-symbol)
                   (= 1 (length header-symbol)))
              nil
              "header-symbol must be string of length 1")
-  (cl-assert (string? header-start)
+  (cl-assert (stringp header-start)
              nil
              "header-start must be string")
-  (cl-assert (string? header-end)
+  (cl-assert (stringp header-end)
              nil
              "header-end must be string")
   (cl-assert (and (integer? length-min)
