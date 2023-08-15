@@ -175,8 +175,8 @@ _a_lign"
   "Return all staged hunk sections in magit status buffer."
   (save-excursion
     (letrec ((collect (lambda (section)
-                        (let ((xs (-mapcat collect
-                                           (oref section children))))
+                        (let ((xs (mapcan collect
+                                          (oref section children))))
                           (if (magit-section-match '[hunk file unstaged]
                                                    section)
                               (cons section xs)
