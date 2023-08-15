@@ -163,13 +163,13 @@ be either singular string or a list of strings."
          :names (list entry)
          :completion-expr nil))
        ((and entry
-             (list? entry)
+             (listp entry)
              (= 2 (length entry)))
         (let ((flag-name (first entry))
               (compl-expr (cadr-safe entry)))
           (cl-assert (or (string? flag-name)
                          (and
-                          (list? flag-name)
+                          (listp flag-name)
                           (-all? #'string? flag-name)))
                      nil
                      "process-opts: invalid flag name: %s"
@@ -217,7 +217,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
   (let ((got-end-of-flags-var '#:got-end-of-flags))
     (letrec ((process
               (lambda (definition positional-depth)
-                (cl-assert (and (list? definition)
+                (cl-assert (and (listp definition)
                                 (not (null definition)))
                            nil
                            "invalid definition %s"
@@ -236,14 +236,14 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                           (lambda (def)
                             (or (string? (first def))
                                 (and
-                                 (list? (first def))
+                                 (listp (first def))
                                  (-all? #'string? (first def))))))
                          (positional-defs
                           (-filter positional-def? defs))
                          (other-defs
                           (--filter (not (funcall positional-def? it)) defs))
                          (names
-                          (-map (lambda (x) (if (list? x) (first x) (list x)))
+                          (-map (lambda (x) (if (listp x) (first x) (list x)))
                                 positional-defs))
                          (pcomplete-arg-var '#:positional-arg))
                     `(progn
@@ -266,7 +266,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
               (lambda (definition)
                 (let ((info (rest definition)))
                   (cl-assert (-all? (lambda (entry)
-                                      (and (list? entry)
+                                      (and (listp entry)
                                            (not (null entry))
                                            (memq (first entry) '(flags args))))
                                     info)
@@ -326,12 +326,12 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
               (lambda (definition pcomplete-arg-var positional-depth)
                 (let ((name (first definition)))
                   (cl-assert (or (string? name)
-                                 (and (list? name)
+                                 (and (listp name)
                                       (-all? #'string? name))))
                   `(,(cond
                        ((string? name)
                         `(string= ,pcomplete-arg-var ,name))
-                       ((list? name)
+                       ((listp name)
                         `(member ,pcomplete-arg-var ',name))
                        (t
                         (error "Invalid name while processing positional option: %s" name)))
