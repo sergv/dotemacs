@@ -50,17 +50,17 @@
   `(setq vim-emulation-mode-alist
          (list
           ,@(cons '(cons 'vim-intercept-ESC-mode vim-intercept-ESC-keymap)
-                  (-mapcat (lambda (keym)
-                             (let ((localname
-                                    (string->symbol
-                                     (replace-regexp-in-string
-                                      "mode-keymap" "mode-local-keymap"
-                                      (symbol->string keym)))))
-                               (if (eq localname keym)
-                                   (list `(cons ',vim-mode-name ,keym))
-                                 (list `(cons ',vim-mode-name ,localname)
-                                       `(cons ',vim-mode-name ,keym)))))
-                           keymaps)))))
+                  (mapcan (lambda (keym)
+                            (let ((localname
+                                   (string->symbol
+                                    (replace-regexp-in-string
+                                     "mode-keymap" "mode-local-keymap"
+                                     (symbol->string keym)))))
+                              (if (eq localname keym)
+                                  (list `(cons ',vim-mode-name ,keym))
+                                (list `(cons ',vim-mode-name ,localname)
+                                      `(cons ',vim-mode-name ,keym)))))
+                          keymaps)))))
 
 (defun vim-default-command-function (&rest args)
   (error "Default noop command function called with args %s" args))

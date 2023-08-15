@@ -194,11 +194,11 @@ default into prompt."
   (declare (pure t) (side-effect-free t))
   (if (null list)
       (list nil)
-    (-mapcat (lambda (item)
-               (-map (lambda (x)
-                       (cons item x))
-                     (permutations (remove item list))))
-             list)))
+    (mapcan (lambda (item)
+              (mapcar (lambda (x)
+                        (cons item x))
+                      (permutations (remove item list))))
+            list)))
 
 
 (defun combinations (n k)
@@ -212,11 +212,11 @@ combinations"
               (if (< start 0)
                   (list ())
                 (cl-loop
-                  for i from start to end
-                  nconcing
-                  (-map (lambda (rest)
-                          (cons i rest))
-                        (funcall collect (1- start) (1- i))))))))
+                 for i from start to end
+                 nconcing
+                 (mapcar (lambda (rest)
+                           (cons i rest))
+                         (funcall collect (1- start) (1- i))))))))
     (funcall collect (1- k) (1- n))))
 
 ;;;
@@ -609,16 +609,16 @@ end of END-LINE in current buffer."
 
 (setf completion-ignored-extensions
       (eval-when-compile
-        (append (-map (lambda (x) (concat x "/")) +ignored-directories+)
+        (append (mapcar (lambda (x) (concat x "/")) +ignored-directories+)
                 +ignored-file-extensions+))
       grep-find-ignored-files
       (eval-when-compile
         (append (list ".#*"
                       "*.exe"
                       "*.prof")
-                (-map (lambda (x)
-                        (concat "*" x))
-                      +ignored-file-extensions+))))
+                (mapcar (lambda (x)
+                          (concat "*" x))
+                        +ignored-file-extensions+))))
 
 ;;;
 
@@ -866,13 +866,13 @@ the current buffer."
   (let* ((stats (garbage-collect))
          (to-mb (lambda (x) (when x (/ x (* 1024 1024)))))
          (entry->mb (lambda (entry)
-                         (when entry
-                           (let ((size (second entry))
-                                 (used (third entry)))
-                             (funcall to-mb
-                                      (* size used))))))
+                      (when entry
+                        (let ((size (second entry))
+                              (used (third entry)))
+                          (funcall to-mb
+                                   (* size used))))))
          ;; (extract-used (lambda (x) (car-safe (cdr-safe (cdr-safe x)))))
-         (mbytes-used (-sum (-map entry->mb stats))))
+         (mbytes-used (-sum (mapcar entry->mb stats))))
     (format "[%sMb/cons %sMb/vec %sMb/heap %sMb]"
             mbytes-used
             (funcall entry->mb (assoc 'conses stats))
@@ -1183,7 +1183,7 @@ last non-whitespace character."
 
 (defun globs-to-regexp (globs)
   (declare (pure t) (side-effect-free t))
-  (mk-regexp-from-alts (-map #'wildcard-to-regexp globs)))
+  (mk-regexp-from-alts (mapcar #'wildcard-to-regexp globs)))
 
 (defun ci-looking-at (regexp)
   "Case-insensetive version of `looking-at'."

@@ -319,20 +319,20 @@ then Bar would be the result."
        (yas-expand-snippet (concat " $1 #-}$0"))))))
 
 (defun haskell-abbrev+--get-ghc-flags ()
-  (let ((flags (-mapcat (lambda (x)
-                          (cond
-                            ((stringp x)
-                             (list x))
-                            ((and (listp x)
-                                  (not (null x)))
-                             (let ((head (car x)))
-                               (if (listp head)
-                                   head
-                                 (list head))))
-                            (t
-                             (error "invalid ghc flag specification, string or list with first string element expected but got: %s"
-                                    x))))
-                        pcomplete-ghc-flags)))
+  (let ((flags (mapcan (lambda (x)
+                         (cond
+                           ((stringp x)
+                            (list x))
+                           ((and (listp x)
+                                 (not (null x)))
+                            (let ((head (car x)))
+                              (if (listp head)
+                                  (copy-list head)
+                                (list head))))
+                           (t
+                            (error "invalid ghc flag specification, string or list with first string element expected but got: %s"
+                                   x))))
+                       pcomplete-ghc-flags)))
     (cl-assert (-all? #'stringp flags))
     flags))
 
@@ -458,8 +458,8 @@ then Bar would be the result."
                          :action-data "import"
                          :predicate #'haskell-abbrev++--import-expand-pred))
 
-                  (cons (--mapcat (list (concat it "q") (concat "q" it))
-                                  (make-abbrev+-prefixes "import" 1))
+                  (cons (mapcan (lambda (x) (list (concat x "q") (concat "q" x)))
+                                (make-abbrev+-prefixes "import" 1))
                         (make-abbrev+-abbreviation
                          :action-type 'function-with-side-effects
                          :action-data #'haskell-insert-qualified-import
