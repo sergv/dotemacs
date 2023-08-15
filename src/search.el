@@ -339,7 +339,7 @@ Highlighting starts at the beginning of buffer.")
 ;;;; Rest of search engine
 
 (defun search--regex-valid? (regex)
-  (and (string? regex)
+  (and (stringp regex)
        (< 0 (length regex))
        (not (string-match-p "\\\\$" regex))
        (not (gethash regex +search-ignore-regexps+))))
