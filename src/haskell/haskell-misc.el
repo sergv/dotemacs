@@ -1081,7 +1081,7 @@ to find which component the FILENAME belongs to."
   "Quickly switch to e.g. ‘cabal.project.local’ if currently visiting ‘cabal.project’ and back."
   (interactive "P")
   (save-match-data
-    (let ((curr-file buffer-file-truename))
+    (let ((curr-file buffer-file-name))
       (when (and curr-file
                  (string-match "cabal.*\\.project\\(?:\\..*?\\)?\\(?1:\\.local\\)?\\'"
                                curr-file))
