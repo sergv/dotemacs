@@ -7,6 +7,9 @@
 ;; Description:
 ;; Inspired by https://github.com/Profpatsch/blog/blob/master/posts/ligature-emulation-in-emacs/post.md.
 
+(eval-when-compile
+  (require 'dash))
+
 (require 'el-patch)
 
 (el-patch-feature prog-mode)
@@ -287,10 +290,10 @@ Regexp match data 0 specifies the characters to be composed."
     (let* ((make-combinations
             (lambda (func-name module-prefixes code-point)
               (--map (cons it code-point)
-                     (-mapcat (lambda (f)
-                                (cons (funcall f func-name)
-                                      (--map (funcall f (concat it "." func-name)) module-prefixes)))
-                              (list #'identity (lambda (x) (concat "`" x "`")))))))
+                     (mapcan (lambda (f)
+                               (cons (funcall f func-name)
+                                     (--map (funcall f (concat it "." func-name)) module-prefixes)))
+                             (list #'identity (lambda (x) (concat "`" x "`")))))))
            (standard-prefixes
             '("M" "Map" "S" "Set" "HM" "HashMap" "HS" "HashSet" "IS" "IntSet" "IM" "IntMap"))
            (ligs

@@ -110,10 +110,10 @@ pnm utils suite.")
                                   render-formula-conversion-errors-buf))
            (packages
             (append +render-formula-standard-packages+
-                    (-mapcat #'cdr
-                             (-filter (lambda (cond-spec)
-                                        (funcall (car cond-spec) str))
-                                      +render-formula-conditional-packages+)))))
+                    (mapcan #'cdr
+                            (-filter (lambda (cond-spec)
+                                       (funcall (car cond-spec) str))
+                                     +render-formula-conditional-packages+)))))
 
       (dolist (buf (cons conversion-error-buf latex-bufs))
         (with-current-buffer buf
