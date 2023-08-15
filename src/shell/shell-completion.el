@@ -13,9 +13,11 @@
   (require 'set-up-platform)
   (require 'subr-x))
 
-(require 'pcomplete)
+(require 'common-constants)
 (require 'completion-setup)
+(require 'dash)
 (require 'haskell-misc)
+(require 'pcomplete)
 ;; (require 'json)
 
 ;;;; Utilities

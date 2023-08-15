@@ -235,7 +235,7 @@ and switches to insert-mode."
     (_
      ;; deal with cw and cW
      (when (and (not (null vim--current-motion))
-                (not (eob?))
+                (not (eobp))
                 (not (member (char-after) '(?\s ?\r ?\n ?\t))))
        (let ((cnt (* (or vim--current-cmd-count 1)
                      (or vim--current-motion-count 1))))
@@ -535,7 +535,7 @@ and switches to insert-mode."
 
       (_
        (when (and adjust?
-                  (not (eob?)))
+                  (not (eobp)))
          (forward-char))
        (vim--cmd-paste-before-impl count)
        ;; goto end of paste
