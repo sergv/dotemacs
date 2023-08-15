@@ -300,7 +300,7 @@ carried out on FORMULA-STR."
                (cond
                  ((eq? (car command-cell) 'remove)
                   (foldl (lambda (s rx)
-                           (cl-assert (string? rx))
+                           (cl-assert (stringp rx))
                            (render-buffer/remove-all-matches rx s))
                          str
                          (cdr command-cell)))
