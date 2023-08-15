@@ -24,6 +24,8 @@
 
 ;;; Code:
 
+(require 'dash)
+
 (with-temp-buffer
   (insert-file-contents-literally "generated.protocol.schema.json")
 
