@@ -3814,9 +3814,7 @@ CANDS are the current candidates."
                      ((and (not empty)
                            (not (eq caller 'swiper))
                            (not (and ivy--flx-featurep
-                                     (memq ivy--regex-function '(ivy--regex-fuzzy ivy--regex-fuzzy-filenames))
-                                     ;; Limit to configured number of candidates
-                                     (null (nthcdr ivy-flx-limit cands))))
+                                     (memq ivy--regex-function '(ivy--regex-fuzzy ivy--regex-fuzzy-filenames))))
                            ;; If there was a preselected candidate, don't try to
                            ;; keep it selected even if the regexp still matches it.
                            ;; See issue #1563.  See also `ivy--preselect-index',
