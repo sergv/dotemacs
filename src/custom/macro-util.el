@@ -361,7 +361,7 @@ another KEY-COMMAND-LIST spliced in place of a variable;
                               (cond
                                 ((listp key)
                                  (list
-                                  `(dolist (key ',(-mapcat #'def-keys-for-map--expand-key key))
+                                  `(dolist (key ',(mapcan #'def-keys-for-map--expand-key key))
                                      ,(funcall def-key map-var 'key command))))
                                 ((stringp key)
                                  (list (funcall def-key map-var (eval `(kbd ,key)) command)))

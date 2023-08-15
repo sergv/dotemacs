@@ -1079,26 +1079,26 @@ paths."
               (setf (eproj-project/cached-file-list proj) resolved-files)
               resolved-files))
         (when-let (globs
-                   (-mapcat (lambda (lang)
-                              (cl-assert (and lang (symbolp lang)) nil
-                                         "Expected a symbol for language but got: %s"
-                                         lang)
-                              (aif (gethash lang eproj/languages-table)
-                                  (--map (concat "*." it)
-                                         (eproj-language/extensions it))
-                                (error "Unknown language: %s" lang)))
-                            (eproj-project/languages proj)))
+                   (mapcan (lambda (lang)
+                             (cl-assert (and lang (symbolp lang)) nil
+                                        "Expected a symbol for language but got: %s"
+                                        lang)
+                             (aif (gethash lang eproj/languages-table)
+                                 (--map (concat "*." it)
+                                        (eproj-language/extensions it))
+                               (error "Unknown language: %s" lang)))
+                           (eproj-project/languages proj)))
           (find-rec*
            :root (eproj-project/root proj)
-           :globs-to-find (-mapcat (lambda (lang)
-                                     (cl-assert (and lang (symbolp lang)) nil
-                                                "Expected a symbor for language but got: %s"
-                                                lang)
-                                     (aif (gethash lang eproj/languages-table)
-                                         (--map (concat "*." it)
-                                                (eproj-language/extensions it))
-                                       (error "Unknown language: %s" lang)))
-                                   (eproj-project/languages proj))
+           :globs-to-find (mapcan (lambda (lang)
+                                    (cl-assert (and lang (symbolp lang)) nil
+                                               "Expected a symbor for language but got: %s"
+                                               lang)
+                                    (aif (gethash lang eproj/languages-table)
+                                        (--map (concat "*." it)
+                                               (eproj-language/extensions it))
+                                      (error "Unknown language: %s" lang)))
+                                  (eproj-project/languages proj))
            :ignored-files-globs (eproj-project/ignored-files-globs proj)
            :ignored-absolute-dirs related-projects-roots
            :ignored-directories +ignored-directories+
@@ -1188,10 +1188,10 @@ project.")
 (defun eproj-get-all-related-projects (proj)
   "Return transitive closure all projects realted to PROJ."
   (let ((all-related-default-projects
-         (-mapcat (lambda (mode)
-                    (-map #'eproj-get-project-for-path
-                          (eproj--get-default-projects proj mode)))
-                  (eproj-project/languages proj))))
+         (mapcan (lambda (mode)
+                   (-map #'eproj-get-project-for-path
+                         (eproj--get-default-projects proj mode)))
+                 (eproj-project/languages proj))))
     (eproj--transitive-closure-of-related-projects
      (cons proj all-related-default-projects))))
 
@@ -1275,26 +1275,26 @@ is non-nil.
 Returns list of (tag-name tag project is-authoritative?) lists."
   (let* ((has-authoritative-projects? nil)
          (matched-tags
-          (-mapcat (lambda (proj)
-                     (aif (cdr-safe
-                           (assq tag-major-mode
-                                 (eproj--get-tags proj)))
-                         (let* ((is-authoritative? (memq tag-major-mode (eproj-project/authoritative-tag-source-for proj)))
-                                (tags
-                                 (if search-with-regexp?
-                                     (mapcan (lambda (key-and-tags)
-                                               (let ((key (car key-and-tags)))
-                                                 (-map (lambda (tag) (list key tag proj is-authoritative?))
-                                                       (cdr key-and-tags))))
-                                             (eproj-tag-index-values-where-key-matches-regexp identifier it))
-                                   (-map (lambda (x) (list identifier x proj is-authoritative?))
-                                         (eproj-tag-index-get identifier it nil)))))
-                           (when tags
-                             (setf has-authoritative-projects? (or has-authoritative-projects?
-                                                                   is-authoritative?)))
-                           tags)
-                       nil))
-                   (eproj-get-all-related-projects-for-mode proj tag-major-mode))))
+          (mapcan (lambda (proj)
+                    (aif (cdr-safe
+                          (assq tag-major-mode
+                                (eproj--get-tags proj)))
+                        (let* ((is-authoritative? (memq tag-major-mode (eproj-project/authoritative-tag-source-for proj)))
+                               (tags
+                                (if search-with-regexp?
+                                    (mapcan (lambda (key-and-tags)
+                                              (let ((key (car key-and-tags)))
+                                                (-map (lambda (tag) (list key tag proj is-authoritative?))
+                                                      (cdr key-and-tags))))
+                                            (eproj-tag-index-values-where-key-matches-regexp identifier it))
+                                  (-map (lambda (x) (list identifier x proj is-authoritative?))
+                                        (eproj-tag-index-get identifier it nil)))))
+                          (when tags
+                            (setf has-authoritative-projects? (or has-authoritative-projects?
+                                                                  is-authoritative?)))
+                          tags)
+                      nil))
+                  (eproj-get-all-related-projects-for-mode proj tag-major-mode))))
     (if has-authoritative-projects?
         (let* ((tbl (make-hash-table :test #'equal))
                (lang (aif (gethash tag-major-mode eproj/languages-table)
