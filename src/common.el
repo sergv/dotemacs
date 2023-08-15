@@ -277,7 +277,7 @@ tabbar, etc")
 
 (defun add-invisible-buffer (buf-re)
   (declare (pure nil) (side-effect-free nil))
-  (cl-assert (string? buf-re))
+  (cl-assert (stringp buf-re))
   (add-to-list '*invisible-buffers* buf-re)
   (let ((buf-re-with-group
          (concat "\\(?:" buf-re "\\)")))
@@ -295,7 +295,7 @@ tabbar, etc")
   (cond ((or (stringp buf)
              (bufferp buf))
          (string-match-p invisible-buffers-re
-                         (if (string? buf)
+                         (if (stringp buf)
                              buf
                            (buffer-name buf))))
         (t
@@ -509,7 +509,7 @@ write buffer contents back into file if flag DONT-WRITE is nil."
          (ring-length item))
         ((or (listp item)
              (vector? item)
-             (string? item))
+             (stringp item))
          (length item))
         (t
          (error "Cannot determine generic length of item %s" item))))
