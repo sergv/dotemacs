@@ -14,6 +14,7 @@
 
 (require 'common)
 (require 'eproj-tag-index)
+(require 'set-up-paths)
 
 (eval-when-compile (require 'subr-x))
 

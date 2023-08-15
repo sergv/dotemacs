@@ -11,6 +11,7 @@
   (require 'set-up-platform)
   (require 'macro-util))
 
+(require 'common-constants)
 (require 'common)
 (require 'set-up-paths)
 
