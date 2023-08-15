@@ -10,7 +10,6 @@
   (require 'macro-util)
 
   (defvar awk-buffer-name)
-  (defvar git-repository)
   (defvar magit-blame-mode))
 
 (declare-function magit-blame-quit "magit-blame")
@@ -499,15 +498,7 @@ Basically swap current point with previous one."
 (vim-defcmd vim:magit (nonrepeatable)
   "Show git status for current file's repository."
   (aif buffer-file-name
-      (if *have-git?*
-          (progn
-            (git-update-file-repository)
-            (if git-repository
-                (magit-status git-repository)
-              (progn
-                (message "File %s is not under git VCS" it)
-                (magit-status))))
-        (magit-status (file-name-nondirectory it)))
+      (magit-status)
     (progn
       (message "Warning: current buffer has no associated file")
       (magit-status))))
@@ -548,8 +539,7 @@ Basically swap current point with previous one."
 (vim-defcmd vim:git-add (nonrepeatable)
   "Run 'git add' on current file."
   (save-some-buffers)
-  (git-add)
-  (git-update-file-repository))
+  (git-add))
 
 (vim-emap "add" #'vim:git-add)
 
@@ -572,8 +562,7 @@ Basically swap current point with previous one."
 (vim-defcmd vim:git-rm (nonrepeatable)
   "Run 'git rm' on current file."
   (save-some-buffers)
-  (git-rm)
-  (git-update-file-repository))
+  (git-rm))
 
 (vim-emap "rm" #'vim:git-rm)
 
