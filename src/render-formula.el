@@ -288,12 +288,12 @@ carried out on FORMULA-STR."
                          ,(car (read-from-string command)))
                       t)
               (end-of-file nil))))
-      (unless (list? eval-result)
+      (unless (listp eval-result)
         (error "command %S evaluated to invalid value: %s"
                command
                eval-result))
       (foldl (lambda (str command-cell)
-               (unless (and (list? command-cell)
+               (unless (and (listp command-cell)
                             (not (null command-cell)))
                  (error "invalid command cell, list expected: %s"
                         command-cell))
