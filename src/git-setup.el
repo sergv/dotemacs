@@ -480,95 +480,6 @@ e_x_ec"
     ("f"              git-rebase-fixup)
     ("d"              git-rebase-kill-line)))
 
-
-(defvar-local git-repository nil
-  "Path to root of git repository this buffer's file is member of, if any.")
-
-(defvar *git-get-head-commit-cache* nil
-  "Optional cache for `git-get-head-commit-cached'.")
-
-;;;###autoload
-(defmacro git-with-temp-head-commit-cache (&rest body)
-  "Execute BODY with `*git-get-head-commit-cache*' temporarily bound to
-hash-table. Therefore all calls to `git-get-head-commit-cached' in BODY
-will be cached and therefore will not be able to see changes to HEAD reference
-in any repository that was already queried with `git-get-head-commit-cached'."
-  `(let ((*git-get-head-commit-cache* (make-hash-table :test #'equal)))
-     ,@body))
-
-;;;###autoload
-(defun git-get-head-commit-cached (repo-root)
-  "Get head commit as sha-1 string of length 40 for git project at REPO-ROOT.
-If *git-get-head-commit-cache* is a hash table then try to find answer there
-and put one if nothing was found."
-  (let ((get-head-commit
-         (lambda (repo-root)
-           (with-temp-buffer
-             (cd repo-root)
-             (call-process "git"
-                           nil
-                           (current-buffer)
-                           nil
-                           "log"
-                           "-n"
-                           "1"
-                           "--pretty='%H'"
-                           "HEAD")
-             (trim-whitespace
-              (buffer-substring-no-properties (point-min) (point-max)))))))
-    (if (hash-table-p *git-get-head-commit-cache*)
-        (aif (gethash repo-root *git-get-head-commit-cache*)
-            it
-          (let ((commit (funcall get-head-commit repo-root)))
-            (puthash repo-root commit *git-get-head-commit-cache*)
-            commit))
-      (funcall get-head-commit repo-root))))
-
-(defvar *git-get-tracked-files-cache* (make-hash-table :test #'equal)
-  "Hash table from repository root (expanded) to hash table of
-repository commits (sha-1 strings of length 40) to hash tables that map
-expanded filenames in git repository to themselves.")
-
-;;;###autoload
-(defun git-get-tracked-files (repo-path)
-  "Returns hashtable of tracked files in repository located at REPO-PATH"
-  (let ((get-tracked-files
-         (lambda (repo-path)
-           (with-temp-buffer
-             (cd repo-path)
-             (call-process "git"
-                           nil
-                           (current-buffer)
-                           nil
-                           "ls-files"
-                           ;; cached
-                           "-c"
-                           ;; null-separated
-                           "-z")
-             (let ((filename-table (make-hash-table :test #'equal))
-                   (rough-filenames
-                    (split-string (buffer-substring-no-properties (point-min)
-                                                                  (point-max))
-                                  "\0"
-                                  t)))
-               (dolist (filename
-                        (--map (common/registered-filename (expand-file-name it))
-                               rough-filenames))
-                 (puthash filename filename filename-table))
-               filename-table))))
-        (commit (git-get-head-commit-cached repo-path)))
-    (if-let (inner-table (gethash repo-path *git-get-tracked-files-cache*))
-        (if-let (files-entry (gethash commit inner-table))
-            files-entry
-          (let ((files (funcall get-tracked-files repo-path)))
-            (puthash commit files inner-table)
-            files))
-      (let* ((files (funcall get-tracked-files repo-path))
-             (inner-table (make-hash-table :test #'equal)))
-        (puthash commit files inner-table)
-        (puthash repo-path inner-table *git-get-tracked-files-cache*)
-        files))))
-
 ;;;###autoload
 (defun git-get-repository-root (path)
   "Return root of git repository PATH is part of or nil if it's not
@@ -599,22 +510,6 @@ under git version control."
                       (trim-whitespace
                        (buffer-substring-no-properties (point-min)
                                                        (point-max)))))))))))
-
-;;;###autoload
-(defun git-update-file-repository ()
-  "Update git-repository for current buffer."
-  (when-buffer-has-file
-    (when (or (not git-repository)
-              (not (string-prefix? (expand-file-name git-repository)
-                                   (expand-file-name buffer-file-name))))
-      (when-let (repository
-                 (git-get-repository-root (file-name-directory buffer-file-name)))
-        (let ((tracked-files-table (git-get-tracked-files repository)))
-          ;; buffer-file-truename does not contain symbolic links
-          ;; as buffer-file-name does
-          (when (gethash (expand-file-name buffer-file-truename)
-                         tracked-files-table)
-            (setf git-repository repository)))))))
 
 ;;;###autoload
 (defun git-add ()
