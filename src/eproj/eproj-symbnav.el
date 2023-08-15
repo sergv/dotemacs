@@ -14,7 +14,6 @@
 (declare-function eproj-reload-project! "eproj")
 
 (require 'select-mode)
-(require 'eproj)
 (require 'eproj-customization)
 
 ;;; tag/symbol navigation (navigation over homes)

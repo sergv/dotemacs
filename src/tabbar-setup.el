@@ -6,6 +6,9 @@
 ;; Created: 21 October 2021
 ;; Description:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'el-patch)
 
 (defsubst tabbar--at-least-2-elements? (x)

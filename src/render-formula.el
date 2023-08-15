@@ -11,7 +11,9 @@
   (require 'macro-util))
 
 (require 'common)
+(require 'dash)
 (require 'solarized)
+(require 'set-up-paths)
 
 (defvar *formula-images-cache* (make-hash-table :test 'equal))
 
