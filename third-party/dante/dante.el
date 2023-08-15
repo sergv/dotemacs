@@ -452,18 +452,20 @@ to destroy the buffer and create a fresh one without this variable enabled.
 
 (defun dante-status ()
   "Return dante's status for the current source buffer."
-  (let ((buf (dante-buffer-p))
-        (fname (buffer-file-name (current-buffer))))
-    (if (not buf) "stopped"
-      (with-current-buffer buf
-        (concat
-         (if lcr-process-callback "busy " "")
-         (pcase dante-state
-           (`(ghc-err (compiling ,mod)) (format "error(%s)" mod))
-           (`(loaded ,_loaded-mods) (if (s-equals? dante-loaded-file fname) "loaded" (format "loaded(%s)" (file-name-base dante-loaded-file))))
-           ;; (`(,hd . ,_tl) (format "%s" hd))
-           (_ (format "%s" dante-state)))
-         (if dante-queue (format "+%s" (length dante-queue)) ""))))))
+  (condition-case err
+      (let ((buf (dante-buffer-p))
+            (fname (buffer-file-name (current-buffer))))
+        (if (not buf) "stopped"
+          (with-current-buffer buf
+            (concat
+             (if lcr-process-callback "busy " "")
+             (pcase dante-state
+               (`(ghc-err (compiling ,mod)) (format "error(%s)" mod))
+               (`(loaded ,_loaded-mods) (if (s-equals? dante-loaded-file fname) "loaded" (format "loaded(%s)" (file-name-base dante-loaded-file))))
+               ;; (`(,hd . ,_tl) (format "%s" hd))
+               (_ (format "%s" dante-state)))
+             (if dante-queue (format "+%s" (length dante-queue)) "")))))
+    (error (format "error %s" err))))
 
 (defcustom dante-modeline-prefix " Danté:" "Modeline prefix." :group 'dante :type 'string)
 
