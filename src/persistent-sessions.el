@@ -92,12 +92,12 @@ on values of said variables.")
 (defun sessions/get-buffer-variables (buffer)
   "Get buffer's local variables that should be saved."
   (with-current-buffer buffer
-    (-mapcat (lambda (entry)
-               (let ((pred (car entry))
-                     (vars (cdr entry)))
-                 (when (funcall pred buffer)
-                   (sessions/store-buffer-local-variables buffer vars))))
-             +sessions-buffer-variables+)))
+    (mapcan (lambda (entry)
+              (let ((pred (car entry))
+                    (vars (cdr entry)))
+                (when (funcall pred buffer)
+                  (sessions/store-buffer-local-variables buffer vars))))
+            +sessions-buffer-variables+)))
 
 (defun sessions/restore-buffer-variables (version buffer bindings)
   "Restore variables captured in BINDINGS for buffer BUFFER."

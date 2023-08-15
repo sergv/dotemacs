@@ -29,13 +29,13 @@
 
            (lambda (proj-dir)
              (make-cc-command args env proj-dir (s-join " " args))))))
-    (-mapcat (lambda (entry)
-               (let ((target (car entry)))
-                 (if (listp target)
-                     (--map (cons it (cdr entry)) target)
-                   (list entry))))
-             `((build . ,(funcall cargo-command nil "build" "--color=always"))
-               (test .  ,(funcall cargo-command '("RUST_BACKTRACE=1") "test" "--color=always"))))))
+    (mapcan (lambda (entry)
+              (let ((target (car entry)))
+                (if (listp target)
+                    (--map (cons it (cdr entry)) target)
+                  (list entry))))
+            `((build . ,(funcall cargo-command nil "build" "--color=always"))
+              (test .  ,(funcall cargo-command '("RUST_BACKTRACE=1") "test" "--color=always"))))))
 
 (defvar rust-compilation-cargo-build-command-default-presets
   (rust-compilation--make-cargo-build-command-presets (fold-platform-os-type "/tmp/target" nil)))

@@ -142,8 +142,8 @@
        (remove-duplicates-by-hashing-projections
         #'car
         #'equal
-        (-non-nil (-mapcat
-                   (lambda (msg) (-mapcat
+        (-non-nil (mapcan
+                   (lambda (msg) (mapcan
                              (lambda (fixer) (apply fixer msg))
                              fixers))
                    messages)))))))
