@@ -150,7 +150,7 @@
                  (subr-native-elisp-p create-tags-procedure))
              nil
              "invalid create-tags-procedure: %s"
-             #'create-tags-procedure)
+             create-tags-procedure)
   (cl-assert (or (null parse-tags-procedure)
                  (functionp parse-tags-procedure)
                  (autoloadp parse-tags-procedure)
