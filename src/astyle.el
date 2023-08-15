@@ -9,6 +9,8 @@
 (eval-when-compile
   (require 'macro-util))
 
+(require 'set-up-paths)
+
 ;; Indentation of c-style languages via AStyle command-line utility.
 
 (defvar astyle-indent--styles-alist

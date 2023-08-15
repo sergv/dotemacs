@@ -10,11 +10,8 @@
   (dolist (command '(plusp
                      minusp
                      zerop
-                     consp
                      integerp
                      integer-or-markerp
-                     eobp
-                     bobp
                      y-or-n-p
                      vidgetp
                      virtualenvp

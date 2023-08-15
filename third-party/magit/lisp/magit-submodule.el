@@ -22,6 +22,7 @@
 
 ;;; Code:
 
+(require 'dash)
 (require 'magit)
 
 (defvar x-stretch-cursor)

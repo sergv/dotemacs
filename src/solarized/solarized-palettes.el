@@ -27,7 +27,8 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl))
+  (require 'cl)
+  (require 'macro-util))
 
 (cl-defstruct (solarized-palette
                (:constructor make--solarized-palette)
