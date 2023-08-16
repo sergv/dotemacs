@@ -139,18 +139,20 @@
 
       (cond
        (config
-        (with-temp-buffer
-          (dolist (entry '((no-native-compile nil)
-                           (byte-native-compiling t)
-                           (byte-native-qualities nil)
-                           (native-comp-debug 0)
-                           (native-comp-compiler-options '("-O2"))
-                           (native-comp-driver-options '("-march=native"))))
-            (insert (format "(setf %s %S)\n" (car entry) (cadr entry))))
-          (insert (format "(setf load-path '%S)" load-path))
+        ;; No point in config for now, just exit. Uncomment when decide to use again.
+        (when nil
+          (with-temp-buffer
+            (dolist (entry '((no-native-compile nil)
+                             (byte-native-compiling t)
+                             (byte-native-qualities nil)
+                             (native-comp-debug 0)
+                             (native-comp-compiler-options '("-O2"))
+                             (native-comp-driver-options '("-march=native"))))
+              (insert (format "(setf %s %S)\n" (car entry) (cadr entry))))
+            (insert (format "(setf load-path '%S)" load-path))
 
-          (write-file config)
-          (message "WRITTEN CONFIG TO %S" config)))
+            (write-file config)
+            (message "WRITTEN CONFIG TO %S" config))))
 
        (proceed?
         (message "[recompile.el] loading local *.el files")
