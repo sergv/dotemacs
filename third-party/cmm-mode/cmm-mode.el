@@ -28,24 +28,21 @@
 ;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 ;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
-(defvar cmm-keywords
-  '("aborts" "align" "aligned" "also" "as" "big" "bits" "byteorder" "case"
-    "const," "continuation" "cut" "cuts" "else" "equal" "export" "foreign"
-    "goto" "if" "import" "in," "invariant" "invisible" "jump" "little" "memsize"
-    "pragma" "reads" "register," "return" "returns" "section" "semi" "span"
-    "stackdata" "switch" "target" "targets" "to," "typedef" "unicode" "unwinds"
-    "writes"))
-
-(defvar cmm-types
-  '("bits8" "bits16" "bits32" "bits64" "float32" "float64" "I8" "I16" "I32"
-    "CInt" "CLong" "I64" "CInt" "CLong" "L_" "F_" "D_"))
-
 (defconst cmm-font-lock-defaults
-  `((,(eval-when-compile (regexp-opt cmm-types 'words)) . font-lock-type-face)
-    (,(eval-when-compile (regexp-opt cmm-keywords 'words)) . font-lock-keyword-face)))
-
-(setq cmm-keywords nil)
-(setq cmm-types nil)
+  `((,(rx bow
+          (or "bits8" "bits16" "bits32" "bits64" "float32" "float64" "I8" "I16" "I32"
+              "CInt" "CLong" "I64" "CInt" "CLong" "L_" "F_" "D_")
+          eow)
+     . font-lock-type-face)
+    (,(rx bow
+          (or "aborts" "align" "aligned" "also" "as" "big" "bits" "byteorder" "case"
+              "const," "continuation" "cut" "cuts" "else" "equal" "export" "foreign"
+              "goto" "if" "import" "in," "invariant" "invisible" "jump" "little" "memsize"
+              "pragma" "reads" "register," "return" "returns" "section" "semi" "span"
+              "stackdata" "switch" "target" "targets" "to," "typedef" "unicode" "unwinds"
+              "writes")
+          eow)
+     . font-lock-keyword-face)))
 
 (defvar cmm-mode-syntax-table
   (let ((st (make-syntax-table)))
