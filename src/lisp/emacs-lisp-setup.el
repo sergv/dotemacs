@@ -21,6 +21,7 @@
 (require 'find-func)
 (require 'general-lisp-setup)
 (require 'hydra-setup)
+(require 'set-up-paths)
 
 ;;; elisp fontification and indentation
 
@@ -165,6 +166,16 @@ realign _l_et
 
 ;;;;
 
+(defun elisp-compile-get-elc-destination (path)
+  (concat (file-name-sans-extension path) ".elc")
+  ;; Old vesrion that moves .elc files which doesn’t work with native compilation and
+  ;; documentation finding.
+  ;; (concat
+  ;;  +emacs-config-path+
+  ;;  "/compiled/"
+  ;;  (file-name-sans-extension (file-name-nondirectory path)) ".elc")
+  )
+
 (defun elisp-compile-and-move ()
   (interactive)
   (save-buffer-if-modified)
@@ -172,7 +183,8 @@ realign _l_et
              (not no-byte-compile)
              (not (string= ".eproj-info"
                            (file-name-nondirectory buffer-file-name))))
-    (let ((window-config (current-window-configuration)))
+    (let ((window-config (current-window-configuration))
+          (byte-compile-dest-file-function #'elisp-compile-get-elc-destination))
       (if (byte-compile-file buffer-file-name)
           (progn
             (ignore-errors
