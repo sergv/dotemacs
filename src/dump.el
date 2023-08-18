@@ -12,30 +12,33 @@
 
 (defvar trie-opt--global-cache)
 
-(defun dump-main (emacs-dir)
+(defun dump-main (emacs-dir dump-target)
   (setf dumping t)
+
+  (unless emacs-dir
+    (setf emacs-dir
+          (let ((emacs-root (expand-file-name (getenv "EMACS_ROOT")))
+                (default-emacs-dir (expand-file-name "~/.emacs.d")))
+            (cond
+              (emacs-root
+               (progn
+                 (cl-assert (file-directory-p emacs-root))
+                 emacs-root))
+              ((file-directory-p default-emacs-dir)
+               default-emacs-dir)
+              (t
+               (error "EMACS_ROOT not defined and default emacs directory does not exist: %s" default-emacs-dir))))))
+  (dolist (dir '("compiled" "src"))
+    (let ((dir2 (concat emacs-dir "/" dir)))
+      (cl-assert (file-directory-p dir2))
+      (add-to-list 'load-path dir2)))
+  (startup-redirect-eln-cache (concat emacs-dir "/compiled"))
+
   (let ((init-file
          (cl-find-if #'file-exists-p
                      (mapcan (lambda (x) (list (concat emacs-dir "/src/" x)
-                                          (concat "~/" x)))
-                             '(".emacs"))))
-        (dump-target "~/.emacs.d/emacs.dmp"))
-
-    (let* ((emacs-root (getenv "EMACS_ROOT"))
-           (default-emacs-dir (expand-file-name "~/.emacs.d"))
-           (default-src-dir (expand-file-name "src" default-emacs-dir)))
-      (cond
-        (emacs-root
-         (progn
-           (cl-assert (file-directory-p emacs-root))
-           (let ((src-dir (concat emacs-root "/src")))
-             (cl-assert (file-directory-p src-dir))
-             (add-to-list 'load-path src-dir))))
-        ((file-directory-p default-src-dir)
-         (add-to-list 'load-path default-src-dir))
-        (t
-         (error "EMACS_ROOT not defined"))))
-
+                                          (expand-file-name (concat "~/" x))))
+                             '(".emacs")))))
     ;; (message "Loading start.el...")
     ;; (load-library "start")
     ;; (message "Loading start.el... OK")
@@ -204,8 +207,6 @@
     (delete-file dump-target)
 
     (dump-emacs-portable dump-target)
-
-    (message "Success")
 
     (mapc (lambda (func)
             (remove-hook 'kill-emacs-hook func)

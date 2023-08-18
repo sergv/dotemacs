@@ -55,6 +55,7 @@ fi
 #        --eval "(ert $matcher)"
 
 "$emacs" -Q --batch \
+      -L "$EMACS_ROOT/compiled" \
       -L "$EMACS_ROOT/src" \
       -L "$EMACS_ROOT/src/custom" \
       -L "$EMACS_ROOT/tests" \
