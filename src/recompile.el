@@ -161,7 +161,8 @@
           ;; (load-library file)
           )
 
-        (let ((i 0))
+        (let ((i 0)
+              (byte-compile-dest-file-function #'elisp-compile-get-elc-destination))
           (message "[recompile.el] %s %s files" k (if compile-native? "native-compiling" "byte-compiling"))
           (dolist (file (append local-files third-party-files))
             (when (= k (mod i n))
