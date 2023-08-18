@@ -142,6 +142,9 @@ directories whose absolute path matches IGNORED-DIR-RE."
 
 (add-to-list 'load-path (concat +emacs-config-path+ "/lib"))
 
+;; Shadow everything else
+(push (concat +emacs-config-path+ "/compiled") load-path)
+
 (add-to-list 'exec-path +execs-path+)
 
 

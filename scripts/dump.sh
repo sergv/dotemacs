@@ -19,7 +19,7 @@ source "$(dirname "$(readlink -f "$0")")/utils.sh"
 native_comp="$(native-comp-available)"
 
 "$emacs" \
-    --batch --quick --no-window-system -L src --load src/dump.el --eval '(progn (dump-main "/home/sergey/.emacs.d"))'
+    --batch --quick --no-window-system -L src --load src/dump.el --eval '(progn (dump-main "~/.emacs.d" "~/.emacs.d/compiled/emacs.dmp"))'
 
 exit 0
 
