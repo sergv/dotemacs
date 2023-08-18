@@ -72,6 +72,7 @@ EOF
 
 inform "Removing generated autoload el files"
 rm -f \
+   "compiled/local-autoloads.el" \
    "src/local-autoloads.el" \
    "third-party/auctex/preview.el" \
    "third-party/auctex/tex-site.el" \
@@ -81,9 +82,14 @@ rm -f \
    "third-party/flycheck/flycheck-autoloads.el"
 
 inform "Removing old *.elc files"
-find -O3 . \( -name '*.elc' -o -name '*.eln' \) -delete
-rm -frv "$emacs_dir/eln-cache"
 
+if [[ ! -d "$emacs_dir/compiled" && ! -L "$emacs_dir/compiled" ]]; then
+    mkdir "$emacs_dir/compiled"
+fi
+
+rm -frv "$emacs_dir/eln-cache"
+find -O3 "$emacs_dir" \( -name '*.elc' -o -name '*.eln' -o -name 'emacs.dmp' \) -delete
+find -L -O3 "$emacs_dir/compiled" \( -name '*.elc' -o -name '*.eln' -o -name 'emacs.dmp' \) -delete
 
 tex_site_el="$emacs_dir/third-party/auctex/tex-site.el"
 if [[ ! -f "${tex_site_el}" ]]; then
@@ -117,9 +123,9 @@ if [[ ! -f "${preview_el}" ]]; then
 fi
 
 
-inform "Generating src/local-autoloads.el"
+inform "Generating compiled/local-autoloads.el"
 update-dir-autoloads \
-    "src/local-autoloads.el" \
+    "compiled/local-autoloads.el" \
     $(find . \( -path '*/tests' -o -path '*/testing' -o -path '*/test' -o -name 'scripts' -o -name '.cask' -o -name '.git' \) -prune -o -type f -name '*.el' -print0 | xargs -0 grep -l ';;;###autoload' | xargs dirname | sort | uniq | sed 's,^\./,,')
 
 mkdir -p "${emacs_dir}/prog-data"
