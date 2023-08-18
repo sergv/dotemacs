@@ -17,7 +17,7 @@
 
 ;;; Code:
 
-(require 'haskell)
+(require 'haskell-mode)
 
 (defvar ghci-script-mode-keywords
   ;; The comment syntax can't be described simply in syntax-table.
