@@ -1,9 +1,10 @@
 # directories
-check out/**
+compiled
+compiled/
 doc/**
-experimental/**
 drills/**
 eshell/**
+experimental/**
 lib/**
 local/**
 local.24.*/**
