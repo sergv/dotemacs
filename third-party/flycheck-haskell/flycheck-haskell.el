@@ -56,6 +56,7 @@
 (require 'flycheck)
 (require 'dash)
 (require 'dante)
+(require 'set-up-paths)
 
 (require 'nix-integration)
 
@@ -118,9 +119,7 @@ value will make this library ignore `package.yaml' file, even if it's present."
 
 ;;; Cabal support
 (defconst flycheck-haskell-directory
-  (file-name-directory (if load-in-progress
-                           load-file-name
-                         (buffer-file-name)))
+  (concat +emacs-config-path+ "/third-party/flycheck-haskell")
   "The package directory of flycheck-haskell.")
 
 (defconst flycheck-haskell-helper
