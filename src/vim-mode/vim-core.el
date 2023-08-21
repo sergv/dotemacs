@@ -98,9 +98,10 @@ of the command handling code the buffer in vim--new-buffer is made current.")
   "The resulting column of the previous motion.")
 
 
-(defsubst vim--use-last-column! ()
-  "This function should by called by a motion not changing the column."
-  (setq vim--this-column vim--last-column))
+(defun vim--use-last-column! ()
+  "This function should be called by a motion not changing the column."
+  (setq vim--this-column (or vim--last-column
+                             (current-column-fixed))))
 
 
 (defsubst vim--toplevel-execution? ()
@@ -502,7 +503,7 @@ but with nil, point will be repositioned at r:
       (backward-char)))
 
   (setq vim--last-column (or vim--this-column
-                            (current-column-fixed)))
+                             (current-column-fixed)))
   (setq vim--this-column nil))
 
 
