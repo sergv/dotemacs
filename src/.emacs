@@ -51,9 +51,10 @@
   ;;   (unless (equal (car native-comp-eln-load-path) compiled-dir)
   ;;     (startup-redirect-eln-cache compiled-dir)))
   ;; Sometimes there are extra entries, remove them all except the last one.
-  (while (cdr native-comp-eln-load-path)
-    (setf native-comp-eln-load-path (cdr native-comp-eln-load-path)))
-  (push (concat emacs-dir "/compiled/") native-comp-eln-load-path))
+  (when (boundp 'native-comp-eln-load-path)
+    (while (cdr native-comp-eln-load-path)
+      (setf native-comp-eln-load-path (cdr native-comp-eln-load-path)))
+    (push (concat emacs-dir "/compiled/") native-comp-eln-load-path)))
 
 ;; Emacs uses following environment variables for configuration:
 ;; 1. EMACS_ROOT - path to .emacs.d directory.
