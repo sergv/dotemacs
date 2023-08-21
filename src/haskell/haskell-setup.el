@@ -140,6 +140,25 @@ With prefix argument puts symbol at point also in substitute part"
            "."
            (eval-when-compile (regexp-opt +haskell-extensions+)))))
 
+(defun haskell-dante--strip-instances-from-ghci-info (str)
+  "The info may look like, for a type ‘Foo’ that comes from
+third-party package but has instances defined in current project:
+
+```
+Foo in `Foo.hs'
+
+type Foo :: * -> *
+data Foo a = Foo | Bar a a
+  	-- Defined in ‘Data.Foo’
+instance Pretty a => Pretty (Foo a)
+  -- Defined at packages/pretty-instances/src/Prettyprinter/Instances.hs
+```
+
+This function will strip everything after the first ‘instance’ in order for location
+regexps to not be confused by the instance location."
+  (when-let (end (string-search "\ninstance" str))
+    (substring str x end)))
+
 (defun haskell-dante-symbnav/go-to-symbol-home ()
   (let* ((dante-ident-bounds (dante-thing-at-point))
          (identifier
@@ -172,47 +191,48 @@ With prefix argument puts symbol at point also in substitute part"
              t
              "Choose symbol\n\n"))
         (lcr-cps-let ((_load-message (dante-async-load-current-buffer t nil))
-                      (info (dante-async-call (concat ":i " identifier))))
-          ;; Parse ghci responses, they may narrow down the result.
-          (save-match-data
-            (cond
-              ;; Sometimes :loc-at couldn’t produce anything useful but :i pinpoints
-              ;; the result perfectly.
-              ((string-match haskell-regexen/ghci-info-definition-site-in-curr-project-for-old-ghci info)
-               (let ((file (match-string 1 info))
-                     (line (string->number (match-string 2 info)))
-                     (column (string->number (match-string 3 info))))
-                 (unless (file-name-absolute-p file)
-                   (setq file (expand-file-name file (dante-project-root))))
-                 (eproj-symbnav--jump-to-location file line column (eproj-symbnav-current-home-entry) identifier)))
-              ;; Now try to check whether :loc-at produce module name we could use. The same module
-              ;; name is available in the output of :i command but :loc-at also includes
-              ;; specific package name we could use whereas :i doesn’t and we’ll have to
-              ;; use set of currently loaded packages as an approximation.
-              ((string-match haskell-regexen/ghci-loc-at-external-symbol locations)
-               (let* ((mod-name (match-string-no-properties 3 locations))
-                      (pkg1 (match-string-no-properties 1 locations))
-                      (pkg2 (match-string-no-properties 2 locations))
-                      (pkgs-without-versions
-                       (if (equal pkg1 pkg2)
-                           (list pkg1)
-                         (list pkg1 pkg2))))
-                 (haskell-go-to-symbol-home--jump-to-filtered-tags identifier
-                                                                   mod-name
-                                                                   pkgs-without-versions)))
-              ;; Other times :i only provides us with a module name which is still
-              ;; usefull to narrow down tag search.
-              ((string-match haskell-regexen/ghci-info-definition-site info)
-               (let ((mod-name (match-string-no-properties 1 info)))
-                 (lcr-cps-let ((packages (dante-async-call ":show packages")))
-                   (let* ((pkgs-without-versions (haskell-go-to-symbol-home--strip-ghci-packages-of-versions packages) ))
-                     (haskell-go-to-symbol-home--jump-to-filtered-tags identifier
-                                                                       mod-name
-                                                                       pkgs-without-versions)))))
-              ((string-match-p haskell-regexen/ghci-name-not-in-scope-error info)
-               (error "Name not in scope, invoke eproj tags via M-."))
-              (t
-               (error "Failed to extract mod name from ghci result:\n%s" info)))))))))
+                      (raw-info (dante-async-call (concat ":i " identifier))))
+          (let ((info (haskell-dante--strip-instances-from-ghci-info raw-info)))
+            ;; Parse ghci responses, they may narrow down the result.
+            (save-match-data
+              (cond
+                ;; Sometimes :loc-at couldn’t produce anything useful but :i pinpoints
+                ;; the result perfectly.
+                ((string-match haskell-regexen/ghci-info-definition-site-in-curr-project-for-old-ghci info)
+                 (let ((file (match-string 1 info))
+                       (line (string->number (match-string 2 info)))
+                       (column (string->number (match-string 3 info))))
+                   (unless (file-name-absolute-p file)
+                     (setq file (expand-file-name file (dante-project-root))))
+                   (eproj-symbnav--jump-to-location file line column (eproj-symbnav-current-home-entry) identifier)))
+                ;; Now try to check whether :loc-at produce module name we could use. The same module
+                ;; name is available in the output of :i command but :loc-at also includes
+                ;; specific package name we could use whereas :i doesn’t and we’ll have to
+                ;; use set of currently loaded packages as an approximation.
+                ((string-match haskell-regexen/ghci-loc-at-external-symbol locations)
+                 (let* ((mod-name (match-string-no-properties 3 locations))
+                        (pkg1 (match-string-no-properties 1 locations))
+                        (pkg2 (match-string-no-properties 2 locations))
+                        (pkgs-without-versions
+                         (if (equal pkg1 pkg2)
+                             (list pkg1)
+                           (list pkg1 pkg2))))
+                   (haskell-go-to-symbol-home--jump-to-filtered-tags identifier
+                                                                     mod-name
+                                                                     pkgs-without-versions)))
+                ;; Other times :i only provides us with a module name which is still
+                ;; usefull to narrow down tag search.
+                ((string-match haskell-regexen/ghci-info-definition-site info)
+                 (let ((mod-name (match-string-no-properties 1 info)))
+                   (lcr-cps-let ((packages (dante-async-call ":show packages")))
+                     (let* ((pkgs-without-versions (haskell-go-to-symbol-home--strip-ghci-packages-of-versions packages) ))
+                       (haskell-go-to-symbol-home--jump-to-filtered-tags identifier
+                                                                         mod-name
+                                                                         pkgs-without-versions)))))
+                ((string-match-p haskell-regexen/ghci-name-not-in-scope-error info)
+                 (error "Name not in scope, invoke eproj tags via M-."))
+                (t
+                 (error "Failed to extract mod name from ghci result:\n%s" info))))))))))
 
 (defun haskell-go-to-symbol-home-smart (&optional use-regexp?)
   (interactive "P")
