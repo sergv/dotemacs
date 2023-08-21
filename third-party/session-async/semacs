@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# wrapper around sandboxed emacs to use a "this machine" sandbox as default
+# - don't use display (leverage modified ./emacs-sandbox.sh
+unset DISPLAY
+export EMACS="${EMACS:-emacs} -Q --batch"
+exec ./emacs-sandbox.sh --dir .sandbox-$(md5sum /etc/os-release | cut -d \  -f 1)  "$@"
