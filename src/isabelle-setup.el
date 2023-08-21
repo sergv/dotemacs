@@ -6,7 +6,11 @@
 ;; Created:  1 August 2023
 ;; Description:
 
+(defvar lsp-isar-split-pattern)
+
 (require 'isar-mode)
+
+(setq lsp-isar-split-pattern 'lsp-isar-split-pattern-three-columns)
 
 ;;;###autoload
 (defun isar-setup ()
@@ -15,10 +19,14 @@
                :use-render-formula t
                :use-fci t
                :use-whitespace 'tabs-only)
-  (setup-indent-size 2))
+  (setup-indent-size 2)
+  (lsp-isar-define-client-and-start))
 
 ;;;###autoload
 (add-hook 'isar-mode-hook #'isar-setup)
+
+;;;###autoload
+(add-hook 'lsp-isar-init-hook #'lsp-isar-open-output-and-progress-right-spacemacs)
 
 (provide 'isabelle-setup)
 
