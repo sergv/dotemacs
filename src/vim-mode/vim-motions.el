@@ -188,16 +188,16 @@
   "Move the cursor count lines up."
   (vim--use-last-column!)
   (let ((line-move-visual nil))
-    ;; don't use `forward-line' because `previous-line' skips invisible parts
-    ;; of buffer while `forward-line' doesn't
+    ;; Don’t use ‘previous-line’ because it skips invisible parts
+    ;; of buffer while ‘forward-line’ doesn’t.
     (forward-line (- (or count 1)))))
 
 (vim-defmotion vim:motion-down (linewise count raw-result)
   "Move the cursor count lines down."
   (vim--use-last-column!)
   (let ((line-move-visual nil))
-    ;; don't use `forward-line' because `next-line' skips invisible parts
-    ;; of buffer while `forward-line' doesn't
+    ;; Don’t use ‘previous-line’ because it skips invisible parts
+    ;; of buffer while ‘forward-line’ doesn’t.
     (forward-line (or count 1))))
 
 (vim-defmotion vim:motion-lines (linewise count raw-result)
