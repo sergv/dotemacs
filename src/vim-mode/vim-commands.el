@@ -459,22 +459,25 @@ and switches to insert-mode."
 
 (defun vim--cmd-paste-before-impl (count)
   "Implementation of the vim’s paste before command."
-  (let ((pos (point))
-        beg
-        end
-        (text (vim--cmd-paste-get-text vim--cmd-paste-before-impl-counter)))
+  (let* ((pos (point))
+         beg
+         end
+         (text (vim--cmd-paste-get-text vim--cmd-paste-before-impl-counter))
+         (yhandler (get-text-property 0 'yank-handler text))
+         (is-line-handler? (eq (car yhandler) 'vim--yank-line-handler)))
     (save-excursion
       (dotimes (_ (or count 1))
-        (let ((start (point)))
+        (let ((start (if is-line-handler?
+                         (line-beginning-position)
+                       (point))))
           (insert-for-yank text)
           (let ((finish (point)))
             (setq beg (min start finish (or beg finish))
                   end (max start finish (or end finish)))))))
-    (let ((yhandler (get-text-property 0 'yank-handler text)))
-      (when (eq (car yhandler) 'vim--yank-line-handler)
-        ;; Place cursor at for non-blank of first inserted line.
-        (goto-char pos)
-        (vim:motion-first-non-blank)))
+    (when is-line-handler?
+      ;; Place cursor at for non-blank of first inserted line.
+      (goto-char pos)
+      (vim:motion-first-non-blank))
     (if vim--last-paste
         ;; Reuse the structure to reduce allocations!
         (setf (vim-paste-info-point  vim--last-paste) pos
