@@ -254,21 +254,13 @@ Set `lsp-isabelle-options' for other options (like importing the AFP)."
 (defun lsp-full-isabelle-path ()
   "Calculate the full path and the options for Isabelle."
   (append
-   (list (concat lsp-isar-path-to-isabelle "/bin/isabelle")
+   (list "isabelle"
 	 "vscode_server")
    lsp-vscode-options
    lsp-isabelle-options))
 
 ;; tramp fixes for emacs 28 (i.e. devel)
 (when (>= emacs-major-version 28)
-  ;; fix for Emacs 28 (https://github.com/emacs-lsp/lsp-mode/issues/2514#issuecomment-759452037)
-  (defun start-file-process-shell-command@around (start-file-process-shell-command name buffer &rest args)
-    "Start a program in a subprocess.  Return the process object for it. Similar to `start-process-shell-command', but calls `start-file-process'."
-    (let ((command (mapconcat 'identity args " ")))
-      (funcall start-file-process-shell-command name buffer command)))
-
-  (advice-add 'start-file-process-shell-command :around #'start-file-process-shell-command@around)
-
   ;; work-around to make sure no brace is lost during transmission
   ;; see https://github.com/emacs-lsp/lsp-mode/issues/2375
   (defun lsp-tramp-connection (local-command &optional generate-error-file-fn)
