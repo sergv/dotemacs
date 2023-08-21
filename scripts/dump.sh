@@ -18,8 +18,10 @@ source "$(dirname "$(readlink -f "$0")")/utils.sh"
 
 native_comp="$(native-comp-available)"
 
-"$emacs" \
-    --batch --quick --no-window-system -L src --load src/dump.el --eval '(progn (dump-main "~/.emacs.d" "~/.emacs.d/compiled/emacs.dmp"))'
+if [[ "$native_comp" = "t" ]]; then
+    "$emacs" \
+        --batch --quick --no-window-system -L src --load src/dump.el --eval '(progn (dump-main "~/.emacs.d" "~/.emacs.d/compiled/emacs.dmp"))'
+fi
 
 exit 0
 
