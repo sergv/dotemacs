@@ -482,53 +482,54 @@ classes."
 
 
 (defvar-local lsp-isar-decorations-get-font
-  '(("background_unprocessed1"  .  lsp-isar-font-background-unprocessed1)
-    ("background_running1"  .  lsp-isar-font-background-running1)
-    ("background_bad"  .  lsp-isar-font-background-bad)
-    ("background_intensify"  .  lsp-isar-font-background-intensify)
-    ("background_quoted"  .  lsp-isar-font-background-quoted)
-    ("background_antiquoted"  .  lsp-isar-font-background-antiquoted)
-    ("background_markdown_bullet1"  .  lsp-isar-font-background-markdown-bullet1)
-    ("background_markdown_bullet2"  .  lsp-isar-font-background-markdown-bullet2)
-    ("background_markdown_bullet3"  .  lsp-isar-font-background-markdown-bullet3)
-    ("background_markdown_bullet4"  .  lsp-isar-font-background-markdown-bullet4)
+    (alist->hash-table
+     '(("background_unprocessed1"  .  lsp-isar-font-background-unprocessed1)
+       ("background_running1"  .  lsp-isar-font-background-running1)
+       ("background_bad"  .  lsp-isar-font-background-bad)
+       ("background_intensify"  .  lsp-isar-font-background-intensify)
+       ("background_quoted"  .  lsp-isar-font-background-quoted)
+       ("background_antiquoted"  .  lsp-isar-font-background-antiquoted)
+       ("background_markdown_bullet1"  .  lsp-isar-font-background-markdown-bullet1)
+       ("background_markdown_bullet2"  .  lsp-isar-font-background-markdown-bullet2)
+       ("background_markdown_bullet3"  .  lsp-isar-font-background-markdown-bullet3)
+       ("background_markdown_bullet4"  .  lsp-isar-font-background-markdown-bullet4)
 
-    ("foreground_quoted"  .  lsp-isar-font-foreground-quoted)
-    ("foreground_antiquoted"  .  lsp-isar-font-foreground-antiquoted)
-    ("dotted_writeln"  .  lsp-isar-font-dotted-writeln)
+       ("foreground_quoted"  .  lsp-isar-font-foreground-quoted)
+       ("foreground_antiquoted"  .  lsp-isar-font-foreground-antiquoted)
+       ("dotted_writeln"  .  lsp-isar-font-dotted-writeln)
 
-    ("dotted_information"  .  lsp-isar-font-dotted-information)
-    ("dotted_warning"  .  lsp-isar-font-dotted-warning)
+       ("dotted_information"  .  lsp-isar-font-dotted-information)
+       ("dotted_warning"  .  lsp-isar-font-dotted-warning)
 
-    ("text_main"  .  lsp-isar-font-text-main)
+       ("text_main"  .  lsp-isar-font-text-main)
 
-    ("text_keyword1"  .  lsp-isar-font-text-keyword1)
+       ("text_keyword1"  .  lsp-isar-font-text-keyword1)
 
-    ("text_keyword2"  .  lsp-isar-font-text-keyword2)
-    ("text_keyword3"  .  lsp-isar-font-text-keyword3)
-    ("text_quasi_keyword"  .  lsp-isar-font-text-quasi_keyword)
-    ("text_improper"  .  lsp-isar-font-text-improper)
-    ("text_operator"  .  lsp-isar-font-text-operator)
-    ("text_tfree"  .  lsp-isar-font-text-tfree)
-    ("text_tvar"  .  lsp-isar-font-text-tvar)
-    ("text_free"  .  lsp-isar-font-text-free)
-    ("text_skolem"  .  lsp-isar-font-text-skolem)
-    ("text_bound"  .  lsp-isar-font-text-bound)
-    ("text_var"  .  lsp-isar-font-text-var)
-    ("text_inner_numeral"  .  lsp-isar-font-text-inner_numeral)
-    ("text_inner_quoted"  .  lsp-isar-font-text-inner_quoted)
-    ("text_inner_cartouche"  .  lsp-isar-font-text-inner_cartouche)
-    ("text_inner_comment"  .  lsp-isar-font-text-inner_comment)
-    ("text_dynamic"  .  lsp-isar-font-text-dynamic)
-    ("text_class_parameter"  .  lsp-isar-font-text-class_parameter)
-    ("text_antiquote"  .  lsp-isar-font-text-antiquote)
+       ("text_keyword2"  .  lsp-isar-font-text-keyword2)
+       ("text_keyword3"  .  lsp-isar-font-text-keyword3)
+       ("text_quasi_keyword"  .  lsp-isar-font-text-quasi_keyword)
+       ("text_improper"  .  lsp-isar-font-text-improper)
+       ("text_operator"  .  lsp-isar-font-text-operator)
+       ("text_tfree"  .  lsp-isar-font-text-tfree)
+       ("text_tvar"  .  lsp-isar-font-text-tvar)
+       ("text_free"  .  lsp-isar-font-text-free)
+       ("text_skolem"  .  lsp-isar-font-text-skolem)
+       ("text_bound"  .  lsp-isar-font-text-bound)
+       ("text_var"  .  lsp-isar-font-text-var)
+       ("text_inner_numeral"  .  lsp-isar-font-text-inner_numeral)
+       ("text_inner_quoted"  .  lsp-isar-font-text-inner_quoted)
+       ("text_inner_cartouche"  .  lsp-isar-font-text-inner_cartouche)
+       ("text_inner_comment"  .  lsp-isar-font-text-inner_comment)
+       ("text_dynamic"  .  lsp-isar-font-text-dynamic)
+       ("text_class_parameter"  .  lsp-isar-font-text-class_parameter)
+       ("text_antiquote"  .  lsp-isar-font-text-antiquote)
 
-    ("text_overview_unprocessed"  .  lsp-isar-font-text-overview-unprocessed)
-    ("text_overview_running"  .  lsp-isar-font-text-overview-running)
-    ("text_overview_error"  .  lsp-isar-font-text-overview-error)
-    ("text_overview_warning"  .  lsp-isar-font-text-overview-warning)
+       ("text_overview_unprocessed"  .  lsp-isar-font-text-overview-unprocessed)
+       ("text_overview_running"  .  lsp-isar-font-text-overview-running)
+       ("text_overview_error"  .  lsp-isar-font-text-overview-error)
+       ("text_overview_warning"  .  lsp-isar-font-text-overview-warning)
 
-    ("spell_checker"  .  lsp-isar-font-spell-checker)))
+       ("spell_checker"  .  lsp-isar-font-spell-checker))))
 
 
 ;; REMOVE FOR DEBUGGING: performance hacks
@@ -874,9 +875,13 @@ one.  This a performance critical function."
 
 	  (cl-loop for entry across entries do
 		   (-let* (
-			   (typ (gethash "type" entry))
-			   (face (cdr (assoc typ lsp-isar-decorations-get-font)))
-			   (pranges (gethash "content" entry))
+			   (typ (if lsp-use-plists
+                                    (plist-get entry :type)
+                                  (gethash "type" entry)))
+			   (face (gethash typ lsp-isar-decorations-get-font))
+			   (pranges (if lsp-use-plists
+                                        (plist-get entry :content)
+                                      (gethash "content" entry)))
 			   (end_char_offset (if (or (equal typ "text_overview_error") (equal typ "text_overview_running")) 1 0)))
 
 		     (if (and lsp-isar-decorations-delayed-printing (not (get-buffer-window buffer 'visible)))
