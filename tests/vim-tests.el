@@ -2163,6 +2163,42 @@ _|_bar")
    "xyz"
    ""))
 
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/linewise-region-paste-cycle-1
+    (execute-kbd-macro (kbd "t y f , t 2 y y h h P P"))
+  (tests-utils--multiline
+   "(progn"
+   "  (lsp-isar-font-background-markdown-bullet2 :foreground ,orange)"
+   "  (lsp-isar-font-background-markdown-bullet3 :foreground ,blue)"
+   "  (lsp-isar-font-background-markdown-bullet4 _|_magenta))")
+  (tests-utils--multiline
+   "(progn"
+   "  (lsp-isar-font-background-markdown-bullet2 :foreground ,orange)"
+   "  (lsp-isar-font-background-markdown-bullet3 :foreground ,blue)"
+   "  (lsp-isar-font-background-markdown-bullet4 _|_:foreground ,magenta))"))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/linewise-region-paste-check-paste-info-1
+    (progn
+      (execute-kbd-macro (kbd "t t 2 y y h h P"))
+      (should vim--last-paste)
+      (should (equal nil (vim-paste-info-count vim--last-paste)))
+      (should (equal 138 (vim-paste-info-begin vim--last-paste)))
+      (should (equal 268 (vim-paste-info-end vim--last-paste)))
+      (should (equal 183 (vim-paste-info-point vim--last-paste))))
+  (tests-utils--multiline
+   "(progn"
+   "  (lsp-isar-font-background-markdown-bullet2 :foreground ,orange)"
+   "  (lsp-isar-font-background-markdown-bullet3 :foreground ,blue)"
+   "  (lsp-isar-font-background-markdown-bullet4 _|_magenta))")
+  (tests-utils--multiline
+   "(progn"
+   "  (lsp-isar-font-background-markdown-bullet2 :foreground ,orange)"
+   "  (lsp-isar-font-background-markdown-bullet3 :foreground ,blue)"
+   "  _|_(lsp-isar-font-background-markdown-bullet2 :foreground ,orange)"
+   "  (lsp-isar-font-background-markdown-bullet3 :foreground ,blue)"
+   "  (lsp-isar-font-background-markdown-bullet4 magenta))"))
+
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-equivalent-commands
     ((vim-tests/splice-sexp-killing-backward-binding-1 (execute-kbd-macro (kbd "M-(")))
      (vim-tests/splice-sexp-killing-backward-binding-2 (execute-kbd-macro (kbd "j M-(")))
