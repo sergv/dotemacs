@@ -526,6 +526,7 @@ under git version control."
   (aif buffer-file-name
       (rm-on-file-and-kill-buffer-afterwards
        it
+       (buffer-name)
        (lambda (path) (shell-command (concat "git rm -r " (shell-quote-argument path))))
        (lambda (path) (shell-command (concat "git rm " (shell-quote-argument path)))))
     (error "Current buffer has no file")))
