@@ -90,10 +90,11 @@
 (defmacro solarized-define-faces-into (out-var &rest body)
   "Regular two-level quoting macro."
   (declare (indent 1))
-  (let ((bindings (mapcar (lambda (x)
-                            (list (car x) `((t ,@(cdr x)))))
-                          body)))
-    `(setq ,out-var (,'\` ,bindings))))
+  `(progn
+     ,@(mapcar (lambda (x)
+                 `(push (,'\` ,(list (car x) `((t ,@(cdr x)))))
+                        ,out-var))
+               body)))
 
 
 ;; (when (eq 'light mode)
