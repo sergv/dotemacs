@@ -397,7 +397,7 @@ not exist after command is finished."
       (kill-buffer buf))))
 
 (defun rm-on-file-and-kill-buffer-afterwards
-    (path on-directory on-file)
+    (path buf-name on-directory on-file)
   (cond
     ((file-directory-p path)
      (when (and (directory-files path nil nil t)
@@ -414,7 +414,7 @@ not exist after command is finished."
                   (y-or-n-p (format "Kill buffer %s?" (buffer-name buf))))
          (kill-buffer buf))))
     (t
-     (error "Path does not exist: %s" path))))
+     (error "Path of buffer %s does not exist: %s" buf-name path))))
 
 ;;;###autoload
 (defun rm (path)
@@ -429,6 +429,7 @@ not exist after command is finished."
 
   (rm-on-file-and-kill-buffer-afterwards
    path
+   (buffer-name)
    (lambda (path) (delete-directory path t))
    #'delete-file))
 
