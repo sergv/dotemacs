@@ -603,7 +603,7 @@ Basically swap current point with previous one."
      )
     (when-buffer-has-file
       (when (and (not (file-exists? buffer-file-name))
-                 (y-or-n-? (format "Kill buffer %s?" (buffer-name buf))))
+                 (y-or-n-p (format "Kill buffer %s?" (buffer-name buf))))
         (kill-buffer buf)))))
 
 (vim-emap "!" #'vim:shell-command-on-region)
