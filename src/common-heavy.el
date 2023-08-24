@@ -393,7 +393,7 @@ not exist after command is finished."
     (shell-command command output-buffer error-buffer)
     (when (and buffer-file-name
                (not (file-exists? buffer-file-name))
-               (y-or-n-? (format "Kill buffer %s?" (buffer-name buf))))
+               (y-or-n-p (format "Kill buffer %s?" (buffer-name buf))))
       (kill-buffer buf))))
 
 (defun rm-on-file-and-kill-buffer-afterwards
@@ -411,7 +411,7 @@ not exist after command is finished."
                    (with-current-buffer buf
                      (expand-file-name buffer-file-name))
                    path)
-                  (y-or-n-? (format "Kill buffer %s?" (buffer-name buf))))
+                  (y-or-n-p (format "Kill buffer %s?" (buffer-name buf))))
          (kill-buffer buf))))
     (t
      (error "Path does not exist: %s" path))))
