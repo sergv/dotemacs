@@ -7,6 +7,7 @@
 ;; Description:
 
 (eval-when-compile
+  (require 'dash)
   (require 'macro-util))
 
 (require 'macro-util)
