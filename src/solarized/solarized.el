@@ -806,7 +806,81 @@
       (whitespace-space-after-tab :underline ,red)
       (whitespace-space-before-tab :underline ,red)
       (whitespace-tab :underline ,background-highlights)
-      (yas-field-highlight-face :background ,highlight-cyan-background))
+      (yas-field-highlight-face :background ,highlight-cyan-background)
+
+      ;; The face used to mark inactive regions.
+      ;; (lsp-isar-font-background-unprocessed1 :inherit font-lock-comment-face)
+      (lsp-isar-font-background-unprocessed1 :background ,magenta)
+      (lsp-isar-font-background-unprocessed :background ,orange)
+      (lsp-isar-font-background-running1 :background ,yellow)
+      (lsp-isar-font-background-bad :background ,red)
+
+      (lsp-isar-font-background-intensify :foreground ,orange)
+      (lsp-isar-font-background-quoted :inherit default :bold t)
+      (lsp-isar-font-background-antiquoted :foreground ,yellow)
+      (lsp-isar-font-background-markdown-bullet1 :foreground ,green)
+      (lsp-isar-font-background-markdown-bullet2 :foreground ,orange)
+      (lsp-isar-font-background-markdown-bullet3 :foreground ,blue)
+      (lsp-isar-font-background-markdown-bullet4 :foreground ,magenta)
+
+      ;; Font used inside quotes and cartouches
+      (lsp-isar-font-foreground-quoted :underline ,background-highlights
+                                       ;; :background ,background-highlights
+                                       )
+
+      (lsp-isar-font-foreground-antiquoted :background ,magenta ;;:priority 0
+                                           )
+
+      (lsp-isar-font-dotted-writeln :underline ,primary-content)
+      (lsp-isar-font-dotted-information :underline ,green)
+      (lsp-isar-font-dotted-warning :underline ,orange)
+
+      ;; This font is not used by LSP. It’s here only to signal
+      ;; whether some new font was added to Isabelle.
+      (lsp-isar-font-default :background ,magenta)
+
+      (lsp-isar-font-text-main :foreground ,yellow)
+
+      (lsp-isar-font-text-keyword1 :inherit font-lock-keyword-face)
+      (lsp-isar-font-text-keyword2 :inherit font-lock-keyword-face)
+      (lsp-isar-font-text-keyword3 :inherit font-lock-keyword-face)
+      (lsp-isar-font-text-quasi_keyword :inherit font-lock-keyword-face)
+
+      ;; (lsp-isar-font-text-keyword1 :foreground ,orange)
+      ;; (lsp-isar-font-text-keyword2 :foreground ,green)
+      ;; (lsp-isar-font-text-keyword3 :foreground ,cyan)
+      ;; (lsp-isar-font-text-quasi_keyword :foreground ,red)
+
+      (lsp-isar-font-text-improper :background ,red)
+
+      (lsp-isar-font-text-operator :foreground ,red)
+
+      (lsp-isar-font-text-tfree :foreground ,magenta)
+      (lsp-isar-font-text-tvar :foreground ,magenta)
+      (lsp-isar-font-text-free :foreground ,green)
+      (lsp-isar-font-text-skolem :foreground ,orange)
+      (lsp-isar-font-text-bound :foreground ,cyan :bold t)
+      (lsp-isar-font-text-var :foreground ,cyan)
+
+      (lsp-isar-font-text-inner_numeral :inherit font-lock-constant-face)
+      (lsp-isar-font-text-inner_quoted :inherit lsp-isar-font-foreground-quoted :bold t)
+      (lsp-isar-font-text-inner_cartouche :inherit lsp-isar-font-foreground-quoted :bold t :underline t)
+      (lsp-isar-font-text-inner_comment :inherit font-lock-comment-face)
+
+      (lsp-isar-font-text-dynamic :background ,magenta)
+      (lsp-isar-font-text-class_parameter :background ,magenta)
+      (lsp-isar-font-text-antiquote :background ,magenta)
+
+      (lsp-isar-font-text-overview-unprocessed :background ,magenta)
+
+      (lsp-isar-font-text-overview-running :underline (:style wave :color ,green))
+
+      (lsp-isar-font-text-overview-error :inherit ghc-face-error)
+      (lsp-isar-font-text-overview-warning :inherit ghc-face-warn)
+
+      (lsp-isar-font-spell-checker :underline (:style wave :color ,red))
+
+      (lsp-isar-font-nothing :foreground nil :background nil))
 
     (solarized--install-frame-params
      `((foreground-color . ,primary-content)
