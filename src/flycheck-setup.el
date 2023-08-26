@@ -12,6 +12,8 @@
 
 (defvar lsp-document-sync-method)
 
+(require 'common)
+
 (require 'current-column-fixed)
 (provide 'flycheck-setup)
 
@@ -46,10 +48,12 @@
       (`finished
        (let-alist-static (flycheck-count-errors flycheck-current-errors) (info warning error)
          (when (or error warning info)
-           (format "%s/%s/%s"
-                   (propertize (format "%d" (or error 0)) 'face 'compilation-error)
-                   (propertize (format "%d" (or warning 0)) 'face 'compilation-warning)
-                   (propertize (format "%d" (or info 0)) 'face 'compilation-info)))))
+           (concat
+            (set-string-face-property 'compilation-error (number->string (or error 0)))
+            "/"
+            (set-string-face-property 'compilation-warning (number->string (or warning 0)))
+            "/"
+            (set-string-face-property 'compilation-info (number->string (or info 0)))))))
       (`interrupted (flycheck-mode-line--propertise-as-comments "flycheck:interrupted"))
       (`suspicious  "flycheck:suspicious output from checker")
       (_ (propertize "flycheck:unknown" 'face 'error)))))
