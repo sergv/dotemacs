@@ -6,11 +6,16 @@
 ;; Created:  1 August 2023
 ;; Description:
 
+(defvar lsp-isar-progress-theory-name-map)
 (defvar lsp-isar-split-pattern)
 
 (require 'isar-mode)
 
-(setq lsp-isar-split-pattern 'lsp-isar-split-pattern-three-columns)
+(setq lsp-isar-split-pattern 'lsp-isar-split-pattern-two-columns)
+
+(defun isar-lsp-status ()
+  (when-let (buf-file (buffer-file-name))
+    (lsp-isar-progress--get buf-file)))
 
 ;;;###autoload
 (defun isar-setup ()
@@ -20,7 +25,10 @@
                :use-fci t
                :use-whitespace 'tabs-only)
   (setup-indent-size 2)
-  (lsp-isar-define-client-and-start))
+  (lsp-isar-define-client-and-start)
+  (setq-local mode-line-format
+              (apply #'default-mode-line-format
+                     (list " " '(:eval (isar-lsp-status))))))
 
 ;;;###autoload
 (add-hook 'isar-mode-hook #'isar-setup)
