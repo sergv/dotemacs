@@ -1450,6 +1450,13 @@ and cdr is a boolean whether any element was let out."
   (let ((nondir (file-name-nondirectory x)))
     (substring x (- (length x) (length nondir)))))
 
+(defun set-string-face-property (new-face str)
+  "Set 'face property of string STR to NEW-FACE and return STR."
+  (cl-assert (symbolp new-face))
+  (cl-assert (stringp str))
+  (put-text-property 0 (length str) 'face new-face str)
+  str)
+
 (provide 'common)
 
 ;; Local Variables:
