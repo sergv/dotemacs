@@ -165,11 +165,7 @@ buffer in current window."
   (other-window 1)
   (switch-to-buffer "*lsp-isar-output*")
   (lsp-isar-toggle-window-dedicated)
-  (split-window-below)
-  (other-window 1)
-  (switch-to-buffer "*lsp-isar-progress*")
-  (lsp-isar-toggle-window-dedicated)
-  (other-window -3))
+  (other-window -2))
 
 (defun lsp-isar-open-output-and-progress-right-three-columns ()
   "Opens the *lsp-isar-output* and *lsp-isar-progress* buffers on the right."
@@ -181,13 +177,8 @@ buffer in current window."
   ;; split second
   (split-window-right)
   (other-window 1)
-  (switch-to-buffer "*lsp-isar-progress*")
-  (lsp-isar-toggle-window-dedicated)
-
-  (other-window -1)
   (switch-to-buffer "*lsp-isar-state*")
   (lsp-isar-toggle-window-dedicated)
-  (split-window-below)
   (other-window 1)
   (switch-to-buffer "*lsp-isar-output*")
   (lsp-isar-toggle-window-dedicated)
@@ -323,7 +314,7 @@ the AFP and other options."
 	(lsp-ht
 	 ("PIDE/decoration" #'lsp-isar-decorations-update-and-reprint)
 	 ("PIDE/dynamic_output" #'lsp-isar-output-update-state-and-output-buffer)
-	 ("PIDE/progress" #'lsp-isar-progress--update-buffer))))
+	 ("PIDE/progress" #'lsp-isar-progress--update))))
 
     (lsp-register-client
      (make-lsp-client
@@ -338,7 +329,7 @@ the AFP and other options."
       (lsp-ht
        ("PIDE/decoration" #'lsp-isar-decorations-update-and-reprint)
        ("PIDE/dynamic_output" #'lsp-isar-output-update-state-and-output-buffer)
-       ("PIDE/progress" #'lsp-isar-progress--update-buffer))))))
+       ("PIDE/progress" #'lsp-isar-progress--update))))))
 
 
 ;;;###autoload
