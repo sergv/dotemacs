@@ -28,7 +28,12 @@
   (lsp-isar-define-client-and-start)
   (setq-local mode-line-format
               (apply #'default-mode-line-format
-                     (list " " '(:eval (isar-lsp-status))))))
+                     (list " " '(:eval (isar-lsp-status)))))
+
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-insert-mode-local-keymap)
+    ("C-h" flycheck-enhancements-next-error-with-wraparound)
+    ("C-t" flycheck-enhancements-previous-error-with-wraparound)))
 
 ;;;###autoload
 (add-hook 'isar-mode-hook #'isar-setup)
