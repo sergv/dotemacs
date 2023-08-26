@@ -9,9 +9,27 @@
 (defvar lsp-isar-progress-theory-name-map)
 (defvar lsp-isar-split-pattern)
 
+(require 'flycheck-setup)
+(require 'hydra-setup)
 (require 'isar-mode)
+(require 'lsp-setup)
 
 (setq lsp-isar-split-pattern 'lsp-isar-split-pattern-two-columns)
+
+(defhydra-derive hydra-isabelle-lsp-toggle hydra-lsp-toggle (:exit t :foreign-keys nil :hint nil)
+  "")
+
+(defhydra-ext hydra-isabelle-lsp (:exit t :foreign-keys warn :hint nil)
+  "
+_a_ctions  _d_ocumentation  toggle some _o_ptions
+_r_ename
+"
+  ("a" lsp-execute-code-action)
+  ("r" lsp-rename)
+
+  ("d" lsp-doc-other-window)
+
+  ("o" hydra-haskell-lsp-toggle/body))
 
 (defun isar-lsp-status ()
   (when-let (buf-file (buffer-file-name))
@@ -29,6 +47,10 @@
   (setq-local mode-line-format
               (apply #'default-mode-line-format
                      (list " " '(:eval (isar-lsp-status)))))
+
+  (def-keys-for-map vim-normal-mode-local-keymap
+    ("\\"  vim:flycheck-run:interactive)
+    ("-"   hydra-isabelle-lsp/body))
 
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-insert-mode-local-keymap)
