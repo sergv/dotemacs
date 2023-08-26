@@ -361,6 +361,18 @@
                     (list (cons 'column (lsp-translate-column start-char))
                           (cons 'summary line)))))
 
+
+(defhydra hydra-lsp-toggle (:exit nil :foreign-keys nil :hint nil)
+  "
+Toggle:
+_f_ormatting on typing             %`lsp-enable-on-type-formatting
+_h_ighlight of symbol at point     %`lsp-enable-symbol-highlighting
+_l_ens                             %`lsp-lens-mode
+"
+  ("f" lsp-toggle-on-type-formatting)
+  ("h" lsp-toggle-symbol-highlight)
+  ("l" lsp-lens-mode))
+
 (provide 'lsp-setup)
 
 ;; Local Variables:
