@@ -56,6 +56,8 @@
 (defvar lsp-isar-output-session-name nil
   "Async session to send goals to for printing.")
 
+(defvar lsp-isar-output-state-selected nil)
+
 (defcustom lsp-isar-output-maximal-time 3
   "Maximal time in seconds printing can take.
 
