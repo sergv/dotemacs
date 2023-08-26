@@ -23,7 +23,7 @@ if [[ "${RUNNING_UNDER_NIX:-0}" != 1 ]] && which nix 2>/dev/null && is_tracked "
     exec nix develop --command "$0"
 fi
 
-if [[ "${RUNNING_UNDER_NIX:-0}" == 1 ]]; then
+if [[ -z "${TMPDIR:-}" ]]; then
     export TMPDIR="/tmp"
 fi
 
