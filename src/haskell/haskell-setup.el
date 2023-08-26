@@ -36,6 +36,7 @@
 (require 'haskell-outline)
 (require 'hydra-setup)
 (require 'lcr)
+(require 'lsp-setup)
 (require 'lsp-haskell-setup)
 (require 's-extras)
 (require 'shell-setup)
@@ -268,16 +269,8 @@ regexps to not be confused by the instance location."
                       nil
                       (list `(column . ,(1- col)))))))
 
-(defhydra hydra-haskell-lsp-toggle (:exit nil :foreign-keys nil :hint nil)
-  "
-Toggle:
-_f_ormatting on typing             %`lsp-enable-on-type-formatting
-_h_ighlight of symbol at point     %`lsp-enable-symbol-highlighting
-_l_ens                             %`lsp-lens-mode
-"
-  ("f" lsp-toggle-on-type-formatting)
-  ("h" lsp-toggle-symbol-highlight)
-  ("l" lsp-lens-mode))
+(defhydra-derive hydra-haskell-lsp-toggle hydra-lsp-toggle (:exit t :foreign-keys nil :hint nil)
+  "")
 
 (defhydra-ext hydra-haskell-minus (:exit t :foreign-keys warn :hint nil)
   "
