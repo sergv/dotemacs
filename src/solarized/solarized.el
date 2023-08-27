@@ -808,6 +808,10 @@
       (whitespace-tab :underline ,background-highlights)
       (yas-field-highlight-face :background ,highlight-cyan-background)
 
+      (isar-keyword1-face :inherit font-lock-keyword-face)
+      (isar-keyword2-face :foreground ,green)
+      (isar-keyword3-face :foreground ,cyan)
+
       ;; The face used to mark inactive regions.
       ;; (lsp-isar-font-background-unprocessed1 :inherit font-lock-comment-face)
       (lsp-isar-font-background-unprocessed1 :background ,magenta)
@@ -824,9 +828,8 @@
       (lsp-isar-font-background-markdown-bullet4 :foreground ,magenta)
 
       ;; Font used inside quotes and cartouches
-      (lsp-isar-font-foreground-quoted :underline ,background-highlights
-                                       ;; :background ,background-highlights
-                                       )
+      (lsp-isar-font-foreground-quoted ;; :background ,background-highlights
+                                       :background nil)
 
       (lsp-isar-font-foreground-antiquoted :background ,magenta ;;:priority 0
                                            )
@@ -839,11 +842,11 @@
       ;; whether some new font was added to Isabelle.
       (lsp-isar-font-default :background ,magenta)
 
-      (lsp-isar-font-text-main :foreground ,yellow)
+      (lsp-isar-font-text-main :inherit default)
 
-      (lsp-isar-font-text-keyword1 :inherit font-lock-keyword-face)
-      (lsp-isar-font-text-keyword2 :inherit font-lock-keyword-face)
-      (lsp-isar-font-text-keyword3 :inherit font-lock-keyword-face)
+      (lsp-isar-font-text-keyword1 :inherit isar-keyword1-face)
+      (lsp-isar-font-text-keyword2 :inherit isar-keyword2-face)
+      (lsp-isar-font-text-keyword3 :inherit isar-keyword3-face)
       (lsp-isar-font-text-quasi_keyword :inherit font-lock-keyword-face)
 
       ;; (lsp-isar-font-text-keyword1 :foreground ,orange)
@@ -857,10 +860,10 @@
 
       (lsp-isar-font-text-tfree :foreground ,magenta)
       (lsp-isar-font-text-tvar :foreground ,magenta)
-      (lsp-isar-font-text-free :foreground ,green)
-      (lsp-isar-font-text-skolem :foreground ,orange)
-      (lsp-isar-font-text-bound :foreground ,cyan :bold t)
-      (lsp-isar-font-text-var :foreground ,cyan)
+      (lsp-isar-font-text-free :foreground ,blue)
+      (lsp-isar-font-text-skolem :foreground ,yellow)
+      (lsp-isar-font-text-bound :foreground ,green)
+      (lsp-isar-font-text-var :foreground ,blue)
 
       (lsp-isar-font-text-inner_numeral :inherit font-lock-constant-face)
       (lsp-isar-font-text-inner_quoted :inherit lsp-isar-font-foreground-quoted :bold t)
