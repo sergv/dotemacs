@@ -391,7 +391,8 @@
    (syntax-propertize-rules
     ("\\((\\)\\(\\*\\)\\()\\)" ;; (*) are not opening comments
      (1 "w")))
-   start end))
+   start
+   end))
 
 (defun isar-unicode-tokens-configure ()
   "Set the Unicode Tokens table and initialise."
@@ -401,11 +402,8 @@
              (intern (concat "isar-" (symbol-name var))))))
   (unicode-tokens-initialise))
 
-(defvar isar-name "isar"
-  "Name of isar mode.")
-
 ;;;###autoload
-(define-derived-mode isar-mode prog-mode isar-name
+(define-derived-mode isar-mode prog-mode "isar"
   "Major mode for editing isar files"
   (kill-all-local-variables)
   (set-syntax-table isar-mode-syntax-table)
@@ -414,12 +412,12 @@
   (set (make-local-variable 'font-lock-defaults) '(isar-font-lock-keywords))
   (set (make-local-variable 'syntax-propertize-function)
         #'isar-syntax-propertize)
-  (setq major-mode 'isar-mode)
-  (setq mode-name "Isar")
-  (setq-local comment-start "(* ")
-  (setq-local comment-end " *)")
-  (setq-local comment-start-skip "(\\*+[ \t]*")
-  (setq-local comment-style 'multi-line)
+  (setq major-mode 'isar-mode
+        mode-name "Isar")
+  (setq-local comment-start "(* "
+              comment-end " *)"
+              comment-start-skip "(\\*+[ \t]*"
+              comment-style 'multi-line)
   (isar-unicode-tokens-configure)
   (run-hooks 'isar-mode-hook)
   (unicode-tokens-mode 1))
