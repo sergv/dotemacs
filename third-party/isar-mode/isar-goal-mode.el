@@ -43,25 +43,32 @@
 (add-to-list 'auto-mode-alist '("*isar-output*" . isar-goal-mode))
 
 (defvar isar-goal-most-outer-keyword
-  (regexp-opt
-   '("proof" "prove")))
+  (rx bow
+      (or "proof" "prove")
+      eow))
 
 (defvar isar-goal-outer-keyword
-  (regexp-opt '("goal" "subgoal" "consts" "show") t))
+  (rx bow
+      (or "goal" "subgoal" "consts" "show")
+      eow))
 
 (defvar isar-goal-inner-keyword
   "$^[:digit:]*.")
 
 (defvar isar-goal-tactics ;; warning
-  (regexp-opt '("Introduced" "fixed" "type" "variable" "variable(s)"
-     "Ambiguous" "input""produces" "parse" "trees"
-     "Ignoring" "duplicate" "rewrite" "rule" "introduction"
-     "elim" "intro") t))
+  (rx bow
+      (or "Introduced" "fixed" "type" "variable" "variable(s)"
+          "Ambiguous" "input""produces" "parse" "trees"
+          "Ignoring" "duplicate" "rewrite" "rule" "introduction"
+          "elim" "intro")
+      eow))
 
 (defvar isar-goal-minor ;; information
-  (regexp-opt '("is" "Found" "termination" "order" "Proofs" "for" "inductive" "predicate"
-   "Successful" "attempt" "to" "solve" "goal" "by" "exported" "rule" "this" "calculation"
-    "have" "using" "Proof" "outline" "with" "cases") t))
+  (rx bow
+      (or "is" "Found" "termination" "order" "Proofs" "for" "inductive" "predicate"
+          "Successful" "attempt" "to" "solve" "goal" "by" "exported" "rule" "this" "calculation"
+          "have" "using" "Proof" "outline" "with" "cases")
+      eow))
 
 (defconst isar-goal-font-lock-keywords-1
   (list
