@@ -6,7 +6,8 @@
 ;; Created: 12 December 2021
 ;; Description:
 
-(require 'dash)
+(eval-when-compile
+  (require 'dash))
 
 (defun switch-to-prev-buffer-in-window ()
   "Switch to previous alive buffer for selected window, if there's one."
