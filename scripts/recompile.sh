@@ -123,9 +123,9 @@ if [[ ! -f "${preview_el}" ]]; then
 fi
 
 
-inform "Generating compiled/local-autoloads.el"
+inform "Generating src/local-autoloads.el"
 update-dir-autoloads \
-    "compiled/local-autoloads.el" \
+    "src/local-autoloads.el" \
     $(find . \( -path '*/tests' -o -path '*/testing' -o -path '*/test' -o -name 'scripts' -o -name '.cask' -o -name '.git' \) -prune -o -type f -name '*.el' -print0 | xargs -0 grep -l ';;;###autoload' | xargs dirname | sort | uniq | sed 's,^\./,,')
 
 mkdir -p "${emacs_dir}/prog-data"
