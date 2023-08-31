@@ -86,6 +86,7 @@ Regexp match data 0 specifies the characters to be composed."
              (0 (prettify-symbols--compose-symbol nil))))))
     nil))
 
+;;;###autoload
 (defun prettify-symbols-decompose-region (start end)
   "Remove compositions in the region from START to END."
   (with-silent-modifications
