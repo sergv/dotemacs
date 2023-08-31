@@ -18,6 +18,10 @@ build-depends:
   , directory
   , text${1:
   , ${2:vector ^>= 0.12}
+default-language:
+  GHC2021
+ghc-options:
+  -threaded -rtsopts \"-with-rtsopts=-A32m -s\"
 }-}")
 
 (defconst haskell-snippets--cabal-run-header-snippet
