@@ -326,7 +326,7 @@ and switches to insert-mode."
   (let ((beg (line-beginning-position)))
     (save-excursion
       (forward-line (1- (or count 1)))
-      (let ((txt (concat (buffer-substring beg (line-end-position)) "\n")))
+      (let ((txt (concat (buffer-substring-no-properties beg (line-end-position)) "\n")))
         (put-text-property 0
                            (length txt)
                            'yank-handler
@@ -349,7 +349,7 @@ and switches to insert-mode."
             (end (save-excursion (move-to-column (1+ endcol)) (point))))
         (push (cons (save-excursion (goto-char beg)
                                     (- (current-column-fixed) begcol))
-                    (buffer-substring beg end))
+                    (buffer-substring-no-properties beg end))
               parts)
         (forward-line -1)))
     (let ((txt (mapconcat #'cdr parts "\n")))
