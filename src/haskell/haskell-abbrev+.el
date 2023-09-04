@@ -46,7 +46,7 @@
           t)))))
 
 (defun haskell-abbrev+--ensure-debug-trace-available ()
-  (unless (haskell-abbrev+--is-function-available "trace"
+  (unless (haskell-abbrev+--is-function-available nil
                                                   (or (seq "qualified" (* any) symbol-start "Debug.Trace" symbol-end)
                                                       (seq symbol-start "Debug.Trace" (or eol (seq symbol-end (* any) "qualified")))))
     (save-restriction
