@@ -55,6 +55,9 @@ Sentinels will always get the two parameters PROCESS and EVENT."
 (el-patch-feature comint)
 
 (defun comint-init ()
+
+  (setf comint-terminfo-terminal "xterm")
+
   (when-emacs-version (= 28 it)
     ;; NOTE: this should be updated regularly
     ;; rework agressive bolding of comint input so that it doesn't replace
