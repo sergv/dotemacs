@@ -5006,6 +5006,35 @@ end."
 ;; (setf haskell-tests/tests
 ;;       '(haskell-tests/abbrev+-extract-module-name))
 
+(ert-deftest haskell-tests/haskell-dante--strip-instances-from-ghci-info-1 ()
+  (let ((str
+         (tests-utils--multiline
+          "Foo in `Foo.hs'"
+          ""
+          "type Foo :: * -> *"
+          "data Foo a = Foo | Bar a a"
+          "  	-- Defined in ‘Data.Foo’")))
+    (should (equal (haskell-dante--strip-instances-from-ghci-info str)
+                   str))))
+
+(ert-deftest haskell-tests/haskell-dante--strip-instances-from-ghci-info-2 ()
+  (let ((str
+         (tests-utils--multiline
+          "Foo in `Foo.hs'"
+          ""
+          "type Foo :: * -> *"
+          "data Foo a = Foo | Bar a a"
+          "  	-- Defined in ‘Data.Foo’"
+          "instance Pretty a => Pretty (Foo a)"
+          "  -- Defined at packages/pretty-instances/src/Prettyprinter/Instances.hs")))
+    (should (equal (haskell-dante--strip-instances-from-ghci-info str)
+                   (tests-utils--multiline
+                    "Foo in `Foo.hs'"
+                    ""
+                    "type Foo :: * -> *"
+                    "data Foo a = Foo | Bar a a"
+                    "  	-- Defined in ‘Data.Foo’")))))
+
 (provide 'haskell-tests)
 
 ;; (let ((ert-debug-on-error nil))
