@@ -592,14 +592,18 @@
   (dolist (child (ebuf-section-children section))
     (ebuf--make-section-invisible! child)))
 
+(defun ebuf--apply-visibility-state! (section state)
+  (ebuf--fold-visibility-state
+      state
+    (ebuf--make-section-fully-visible! section)
+    (ebuf--make-section-partially-visible! section)
+    (ebuf--make-section-invisible! section)))
+
 (defun ebuf--cycle-section! (section is-forward?)
   (unless (ebuf-section-buf section)
-    (ebuf--fold-visibility-state
-        (ebuf--section-cycle-visibility-state (ebuf--section-visibility-state section)
-                                              is-forward?)
-      (ebuf--make-section-fully-visible! section)
-      (ebuf--make-section-partially-visible! section)
-      (ebuf--make-section-invisible! section))))
+    (ebuf--apply-visibility-state! section
+                                   (ebuf--section-cycle-visibility-state (ebuf--section-visibility-state section)
+                                                                         is-forward?))))
 
 (defun ebuf-section-show-level-1 ()
   (interactive)
@@ -631,13 +635,22 @@
         it
       (ebuf--cycle-section! section t))))
 
-(defun ebuf-cycle-forward-section-at-point ()
+(defun ebuf-cycle-section-at-point ()
   (interactive)
   (ebuf--cycle-section! (ebuf--section-at-point) t))
 
-(defun ebuf-cycle-backward-section-at-point ()
+(defvar ebuf-global-cycle-state nil)
+
+(defun ebuf-cycle-all-toplevel-sections ()
   (interactive)
-  (ebuf--cycle-section! (ebuf--section-at-point) nil))
+  (setf ebuf-global-cycle-state
+        (if ebuf-global-cycle-state
+            (ebuf--section-cycle-visibility-state ebuf-global-cycle-state t)
+          'hidden))
+  (cl-loop
+   for section in ebuf--toplevel-sections
+   do
+   (ebuf--apply-visibility-state! section ebuf-global-cycle-state)))
 
 (defun ebuf-switch-to-buffer-at-point-or-cycle ()
   (interactive)
@@ -778,8 +791,8 @@ _r_ecency
       ("3"               ebuf-section-show-level-3)
       ("4"               ebuf-section-show-level-4)
 
-      (("TAB" "<tab>")                       ebuf-cycle-forward-section-at-point)
-      (("S-TAB" "S-<tab>" "S-<iso-lefttab>") ebuf-cycle-forward-section-at-point))
+      (("TAB" "<tab>")                       ebuf-cycle-section-at-point)
+      (("S-TAB" "S-<tab>" "S-<iso-lefttab>") ebuf-cycle-all-toplevel-sections))
     keymap))
 
 (define-derived-mode ebuf-mode fundamental-mode "Ebuf"
