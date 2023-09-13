@@ -156,8 +156,9 @@ instance Pretty a => Pretty (Foo a)
 
 This function will strip everything after the first ‘instance’ in order for location
 regexps to not be confused by the instance location."
-  (when-let (end (string-search "\ninstance" str))
-    (substring str x end)))
+  (if-let (end (string-search "\ninstance" str))
+      (substring str nil end)
+    str))
 
 (defun haskell-dante-symbnav/go-to-symbol-home ()
   (let* ((dante-ident-bounds (dante-thing-at-point))
