@@ -16,6 +16,7 @@
 (require 'dirtrack)
 (require 'folding-setup)
 (require 'shell-script-abbrev+)
+(require 'xterm-color)
 
 (declare-function msys-directory-name-to-emacs "windows-setup")
 (declare-function cygwin-directory-name-to-emacs "windows-setup")
@@ -181,7 +182,7 @@ sexps and indentation levels."
   (with-editor-export-editor)
   (with-editor-export-git-editor)
 
-  (ansi-color-for-comint-mode-on)
+  (add-hook 'comint-preoutput-filter-functions #'xterm-color-filter nil t)
   (setq-local comint-scroll-to-bottom-on-input t)
 
   (vim-local-emap "clear" #'vim:comint-clear-buffer-above-prompt)
