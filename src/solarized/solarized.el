@@ -267,6 +267,7 @@
       (compilation-info :foreground ,green :bold t)
       (compilation-error :inherit error)
       (compilation-warning :foreground ,orange :bold t)
+      (eproj-symbnav-file-name :foreground ,yellow :bold t)
       ;; customize
       (custom-button :background ,background-highlights
                      :box (:line-width 2 :style released-button))
