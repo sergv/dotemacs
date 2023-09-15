@@ -349,6 +349,9 @@ as accepted by `bounds-of-thing-at-point'.")
              (-map (lambda (tag-entry)
                      (cl-destructuring-bind (tag-name tag tag-proj)
                          tag-entry
+                       (cl-assert (stringp tag-name))
+                       (cl-assert (eproj-tag-p tag))
+                       (cl-assert (eproj-project-p tag-proj))
                        (list (funcall tag->sort-token tag-name tag)
                              tag-name
                              tag
