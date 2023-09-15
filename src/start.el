@@ -225,7 +225,7 @@
 (fortunes-init-scratch-buffer)
 
 (require 'solarized)
-(solarized-dark)
+(solarized-apply-known-color-theme 'solarized-dark-improved)
 
 (dolist (func '(downcase-region
                 erase-buffer
