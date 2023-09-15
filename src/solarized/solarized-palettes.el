@@ -752,8 +752,7 @@
        (green-d     . #x488249)
        (green-l     . #x95d291)
        ;; palette end
-       )))
-  "The solarized color palette alist.")
+       ))))
 
 (defconst solarized-selenized-dark-color-palette
   (eval-when-compile
@@ -825,8 +824,7 @@
        (green-d     . #x489615)
        (green-l     . #x9fe35b)
        ;; palette end
-       )))
-  "The solarized color palette alist")
+       ))))
 
 (defconst solarized-selenized-black-color-palette
   (eval-when-compile
@@ -898,8 +896,7 @@
        (green-d     . #x428800)
        (green-l     . #x7bc447)
        ;; palette end
-       )))
-  "The solarized color palette alist")
+       ))))
 
 (defconst solarized-selenized-light-color-palette
   (eval-when-compile
@@ -971,8 +968,7 @@
        (green-d     . #x569623)
        (green-l     . #x70b447)
        ;; palette end
-       )))
-  "The solarized color palette alist")
+       ))))
 
 (defconst solarized-selenized-white-color-palette
   (eval-when-compile
@@ -1044,8 +1040,90 @@
        (green-d     . #x3e9e2d)
        (green-l     . #x5cb947)
        ;; palette end
+       ))))
+
+
+(defconst solarized-dark-high-contrast-improved-colors-palette
+  (eval-when-compile
+    (make-solarized-palette
+     nil
+     '(;; solarized-dark-high-contrast palette
+       (base03      . #x002732)
+       (base02      . #x01323d)
+       (base01      . #x62787f)
+       (base00      . #x60767e)
+       (base0       . #x8d9fa1)
+       (base1       . #x9eacac)
+       (base2       . #xfaf3e0)
+       (base3       . #xffffee)
+
+       (red         . #xec423a)
+
+       (orange      . #xdb5823)
+       ;; (orange      . #xcf771e)
+
+       (yellow      . #xc49619)
+       ;; (yellow      . #x93a61a)
+
+       ;; (green       . #x93a61a)
+       (green       . #x1aa625)
+
+       (cyan        . #x3cafa5)
+       (blue        . #x3c98e0)
+       (violet      . #x7a7ed2)
+       (magenta     . #xe2468f)
+
+       (yellow-1bg  . #x273430)
+       (yellow-1fg  . #xbb9a4c)
+       (yellow-2bg  . #x484224)
+       (yellow-2fg  . #xbba165)
+       (yellow-d    . #x936d00)
+       (yellow-l    . #xf3be51)
+       (orange-1bg  . #x2d2d2f)
+       (orange-1fg  . #xd0744d)
+       (orange-2bg  . #x522f22)
+       (orange-2fg  . #xcd8464)
+       (orange-d    . #xa72e01)
+       (orange-l    . #xff8148)
+       (red-1bg     . #x2f2c31)
+       (red-1fg     . #xdc6a5a)
+       (red-2bg     . #x582b29)
+       (red-2fg     . #xd77e6f)
+       (red-d       . #xae1212)
+       (red-l       . #xff7254)
+       (magenta-1bg . #x292d3c)
+       (magenta-1fg . #xd16c96)
+       (magenta-2bg . #x512c46)
+       (magenta-2fg . #xcd809f)
+       (magenta-d   . #xa81761)
+       (magenta-l   . #xff75ab)
+       (violet-1bg  . #x103145)
+       (violet-1fg  . #x8589c4)
+       (violet-2bg  . #x213a5e)
+       (violet-2fg  . #x9095c4)
+       (violet-d    . #x3548a2)
+       (violet-l    . #x9b94f2)
+       (blue-1bg    . #x023447)
+       (blue-1fg    . #x649bce)
+       (blue-2bg    . #x004363)
+       (blue-2fg    . #x78a3cb)
+       (blue-d      . #x0069b0)
+       (blue-l      . #x7ebaff)
+       (cyan-1bg    . #x03373f)
+       (cyan-1fg    . #x60aca4)
+       (cyan-2bg    . #x004b4f)
+       (cyan-2fg    . #x73b0aa)
+       (cyan-d      . #x008981)
+       (cyan-l      . #x77dece)
+       (green-1bg   . #x1e3531)
+       (green-1fg   . #x97a54d)
+       (green-2bg   . #x354725)
+       (green-2fg   . #x9eaa66)
+       (green-d     . #x687f00)
+       (green-l     . #xc3d255)
+       ;; palette end
        )))
-  "The solarized color palette alist")
+  "Solarized with real green colour.")
 
 (provide 'solarized-palettes)
 
