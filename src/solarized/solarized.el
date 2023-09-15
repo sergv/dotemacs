@@ -71,19 +71,6 @@
 ;;   blue
 ;;   cyan
 ;;   green)
-;;
-;; (defconst solarized-dark-palette
-;;   (make-solarized-base-palette
-;;    :darkest-base
-;;    :brightest-base
-;;    :yellow  +solarized-yellow+
-;;    :orange  +solarized-orange+
-;;    :red     +solarized-red+
-;;    :magenta +solarized-magenta+
-;;    :violet  +solarized-violet+
-;;    :blue    +solarized-blue+
-;;    :cyan    +solarized-cyan+
-;;    :green   +solarized-green+))
 
 
 
@@ -243,30 +230,6 @@
          (highlight-violet-background     violet-aux-aux-aux-bg)
          (highlight-magenta-background    magenta-aux-aux-aux-bg)
 
-         ;; ;; background
-         ;; (background  "#002b36")
-         ;; ;; background highlights
-         ;; (background-highlights  "#073642")
-         ;; ;; comments/secondary content
-         ;; (secondary-content  "#586e75")
-         ;; ;; Aux
-         ;; (aux-mid  "#657b83")
-         ;; ;; body text/default code/primary content
-         ;; (primary-content   "#839496")
-         ;; ;; optional emphasized content
-         ;; (emphasized-content   "#93a1a1")
-         ;; (aux-high-1   "#eee8d5")
-         ;; (aux-high-2   "#fdf6e3")
-         ;;
-         ;; (red     +solarized-red+)
-         ;; (orange  +solarized-orange+)
-         ;; (yellow  +solarized-yellow+)
-         ;; (green   +solarized-green+)
-         ;; (cyan    +solarized-cyan+)
-         ;; (blue    +solarized-blue+)
-         ;; (violet  +solarized-violet+)
-         ;; (magenta +solarized-magenta+)
-
          (box-line-width (eval-when-compile
                            (or (when-emacs-version (>= it 28)
                                  '(-1 . -1))
@@ -348,6 +311,9 @@
       (ghc-face-warn :underline (:style wave :color ,orange))
       ;; ((supports :underline (:style wave)))
       (ghc-face-hole :underline (:style wave :color ,violet))
+
+      (ghc-profiling-expensive-face :underline (:style wave :color ,orange))
+      (uuag-field-name-face :foreground ,orange :bold t)
 
       ;; agda
       (agda2-highlight-bound-variable-face :inherit default)
@@ -612,6 +578,7 @@
       (py-variable-name-face :inherit font-lock-variable-name-face)
       (py-XXX-tag-face :foreground ,red)
 
+      (python-warnings-and-errors-face :foreground ,orange)
 
       ;; scheme
       (scheme-predicate-face :foreground ,blue)
@@ -862,12 +829,12 @@
           ansi-term-color-vector
           [aux-high-2
            secondary-content
-           +solarized-red+
-           +solarized-green+
-           +solarized-yellow+
-           +solarized-blue+
-           +solarized-magenta+
-           +solarized-cyan+
+           red
+           green
+           yellow
+           blue
+           magenta
+           cyan
            primary-content])
     (run-hooks 'solarized-theme-mode-changed-hook))
   (when window-system
