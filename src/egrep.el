@@ -82,7 +82,7 @@
 MATCH-START and MATCH-END are match bounds in the current buffer"
   (let ((header
          (concat (propertize (egrep-match-short-file-name match-entry)
-                             'face 'compilation-info)
+                             'face 'eproj-symbnav-file-name)
                  ":"
                  (propertize (number->string (egrep-match-line match-entry))
                              'face 'compilation-line-number)
