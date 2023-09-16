@@ -9,6 +9,10 @@
 (eval-when-compile
   (require 'cl))
 
+(defvar transient-values)
+(defvar transient-levels)
+(defvar transient-history)
+
 (require 'persistent-store)
 
 ;;; Make transient.el use persistent store.
