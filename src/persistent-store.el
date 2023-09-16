@@ -44,20 +44,20 @@
 ;;;###autoload
 (defun persistent-store-put (key value)
   "Store entry in database."
+  (cl-assert (symbolp key))
   (when (persistent-store-initialized?)
     (puthash key value persistent-store-content)))
 
 ;;;###autoload
 (defun persistent-store-get (key &optional default)
   "Retrieve entry from database."
+  (cl-assert (symbolp key))
   (gethash key persistent-store-content default))
 
 (defsetf persistent-store-get (key) (value)
-  `(setf (gethash ,key persistent-store-content) ,value))
-
-(defsubst persistent-store-remove (key)
-  "Remove entry from database."
-  (remhash key persistent-store-content))
+  `(progn
+     (cl-assert (symbolp key))
+     (setf (gethash ,key persistent-store-content) ,value)))
 
 (defun persistent-store-load-file (filename)
   (with-temp-buffer
@@ -178,7 +178,7 @@ performed for some field."
 
 (defun persistent-store-flush-database ()
   "Flush db contents to file."
-  (let ((new-content (hash-table->alist persistent-store-content))
+  (let ((new-content (--filter (symbolp (car it)) (hash-table->alist persistent-store-content)))
         (current-content-str
          (persistent-store-load-file persistent-store-store-file))
         (entries-sort-pred
