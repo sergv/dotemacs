@@ -530,6 +530,21 @@ called in buffer that initiated search."
                        'face
                        (overlay-get overlay 'original-face)))))))
 
+;;;###autoload
+(defun search--fix-state-after-clone ()
+  "Fixup ‘search--match-overlays’ in indirect buffer by detaching from the original buffer."
+  (when search--match-overlays
+    (let ((result nil))
+      (with-all-matching-overlays
+          ov
+          (overlay-get ov 'is-search-highlighting-overlay)
+        (push ov result)
+        (overlay-put ov 'is-fixed-after-clone? t))
+      (setf search--match-overlays result))))
+
+;;;###autoload
+(add-hook 'clone-indirect-buffer-hook #'search--fix-state-after-clone)
+
 ;;;
 
 ;;;###autoload

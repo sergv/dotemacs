@@ -10,7 +10,8 @@
 (eval-when-compile
   (require 'cl)
   (require 'set-up-platform)
-  (require 'el-patch))
+  (require 'el-patch)
+  (require 'macro-util))
 
 (require 'el-patch)
 
@@ -795,6 +796,27 @@ characters."
           (el-patch-remove
             (and pr (progress-reporter-done pr)))
           (move-marker end nil))))))
+
+(el-patch-defun hl-line-make-overlay ()
+  (let ((ol (make-overlay (point) (point))))
+    (overlay-put ol 'priority hl-line-overlay-priority)
+    (overlay-put ol 'face hl-line-face)
+    (el-patch-add
+      (overlay-put ol 'hl-line t))
+    ol))
+
+;;;###autoload
+(defun hl-line--fix-state-after-clone ()
+  "Fixup ‘hl-line-overlay’ in indirect buffer by detaching from the original buffer."
+  (when hl-line-mode
+    (with-first-matching-overlay
+        ov
+        (overlay-get ov 'hl-line)
+      (overlay-put ov 'is-fixed-after-clone? t)
+      (setf hl-line-overlay ov))))
+
+;;;###autoload
+(add-hook 'clone-indirect-buffer-hook #'hl-line--fix-state-after-clone)
 
 (provide 'base-emacs-fixes)
 

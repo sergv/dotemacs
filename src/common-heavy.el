@@ -462,15 +462,6 @@ not exist after command is finished."
     (error "Must have exactly 2 windows to transpose")))
 
 ;;;###autoload
-(defun narrow-to-region-indirect (start end)
-  "Restrict editing in this buffer to the current region, indirectly (meaning: create a new buffer for this)."
-  (interactive "r")
-  (let ((buf (clone-indirect-buffer nil nil)))
-    (with-current-buffer buf
-      (narrow-to-region start end))
-    (switch-to-buffer buf)))
-
-;;;###autoload
 (defun fontify-conflict-markers! (&optional mode)
   "Fontify conflict markers produced by VCS systemts with warning face for MODE.
 If MODE is nil - fontify in current buffer."
@@ -1267,6 +1258,49 @@ groups in the result is *not specified*."
           (_
            (setf idx idx1)))))
     groups))
+
+;;;###autoload
+(defun narrow-to-region-indirect (&optional create-new-buf?)
+  (interactive "P")
+  (with-region-bounds start end
+    (when (vim-visual-mode-p)
+      (vim:visual-mode-exit))
+    (if create-new-buf?
+        (progn
+          (let* ((orig-buf (current-buffer))
+                 (new-buf (make-indirect-buffer orig-buf
+                                                (narrow-to-region-indirect--find-new-buf-name orig-buf)
+                                                t)))
+            (with-current-buffer new-buf
+
+              (with-all-matching-overlays
+                  ov
+                  t
+                (if (overlay-get ov 'is-fixed-after-clone?)
+                    ;; So that subsequent indirect buffers don’t inherit
+                    ;; fixidness state.
+                    (overlay-put ov 'is-fixed-after-clone? nil)
+                  ;; Remove overlays that were not explicitly migrated.
+                  (delete-overlay ov)))
+
+              (narrow-to-region start end))
+            (switch-to-buffer new-buf)))
+
+      (narrow-to-region start end))))
+
+(defun narrow-to-region-indirect--find-new-buf-name (orig-buf)
+  (let* ((name (buffer-name orig-buf))
+         (first-candidate (concat (buffer-name orig-buf)
+                                  ":narrowed")))
+    (if (buffer-live-p (get-buffer first-candidate))
+        (let* ((i 0)
+               (candidate nil))
+          (while (buffer-live-p (get-buffer (setf candidate (concat (buffer-name orig-buf)
+                                                                    ":narrowed:"
+                                                                    (number-to-string i)))))
+            (setf i (1+ i)))
+          candidate)
+      first-candidate)))
 
 (provide 'common-heavy)
 
