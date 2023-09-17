@@ -149,7 +149,7 @@ _cu_: uncomment  _n_arrow to region
   ("cu" comment-util-uncomment-region-simple)
 
   ("s"  vim:replace-selected:interactive)
-  ("n"  vim:narrow-to-region:interactive))
+  ("n"  narrow-to-region-indirect))
 
 (defhydra-ext hydra-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
   "
@@ -472,19 +472,6 @@ Basically swap current point with previous one."
                  (line-end-position))))
 
 (vim-emap "no-tabs" #'vim:remove-tabs)
-
-(vim-defcmd vim:narrow-to-region-indirect (motion nonrepeatable)
-  (narrow-to-region-indirect
-   (if motion
-       (vim-motion-begin-pos motion)
-     (point-min))
-   (if motion
-       (vim-motion-end-pos motion)
-     (point-max))))
-
-(vim-emap "narrow-indirect" #'vim:narrow-to-region-indirect)
-(vim-emap "ni" #'vim:narrow-to-region-indirect)
-
 
 (vim-defcmd vim:indent (nonrepeatable)
   (aif (gethash major-mode *mode-indent-functions-table*)
