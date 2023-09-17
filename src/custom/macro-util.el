@@ -871,6 +871,46 @@ Use as one of:
            (with-current-buffer ,old-buffer
              (set-syntax-table ,old-table)))))))
 
+;;; Working with overlays
+
+(defmacro with-first-matching-overlay (ov-var matching-predicate &rest body)
+  "Loop over all overlays in current buffer binding each of them to OV-VAR and running
+MATCHING-PREDICATE expression. When the predicate returns non-nil, execute BODY and finish."
+  (declare (indent 2))
+  (cl-assert (symbolp ov-var))
+  (let ((found-var '#:found)
+        (ovss-var '#:ovss)
+        (ovs-var '#:ovs))
+    `(let ((,found-var nil)
+           (,ovss-var (overlay-lists)))
+       (while (and (not ,found-var)
+                   ,ovss-var)
+         (let ((,ovs-var (car ,ovss-var)))
+           (while (and (not ,found-var)
+                       ,ovs-var)
+             (let ((,ov-var (car ,ovs-var)))
+               (when (setf ,found-var ,matching-predicate)
+                 ,@body))
+             (setf ,ovs-var (cdr ,ovs-var))))
+         (setf ,ovss-var (cdr ,ovss-var))))))
+
+(defmacro with-all-matching-overlays (ov-var matching-predicate &rest body)
+  "Loop over all overlays in current buffer binding each of them to OV-VAR and running
+MATCHING-PREDICATE expression. When the predicate returns non-nil, execute BODY and continue."
+  (declare (indent 2))
+  (cl-assert (symbolp ov-var))
+  (let ((ovss-var '#:ovss)
+        (ovs-var '#:ovs))
+    `(let ((,ovss-var (overlay-lists)))
+       (while ,ovss-var
+         (let ((,ovs-var (car ,ovss-var)))
+           (while ,ovs-var
+             (let ((,ov-var (car ,ovs-var)))
+               (when ,matching-predicate
+                 ,@body))
+             (setf ,ovs-var (cdr ,ovs-var))))
+         (setf ,ovss-var (cdr ,ovss-var))))))
+
 ;;; end
 
 (provide 'macro-util)
