@@ -48,7 +48,7 @@
   '((t :inherit font-lock-variable-name-face))
   "Face to use for JSON object names.")
 
-(defvar json-mode-map
+(defconst json-mode-map
   (let ((map (make-sparse-keymap "JSON")))
     (define-key map "\C-c\C-f" #'json-mode-pretty-print-dwim)
     (define-key map "\C-c\C-p" #'json-mode-show-path)
@@ -63,7 +63,7 @@
     map)
   "Keymap used in JSON mode.")
 
-(defvar json-mode-syntax-table
+(defconst json-mode-syntax-table
   (let ((st (make-syntax-table)))
     ;; Objects
     (modify-syntax-entry ?\{ "(}" st)
@@ -78,23 +78,22 @@
     (modify-syntax-entry ?\n ">" st)
     st))
 
-(defvar json-mode-font-lock-keywords
+(defconst json-mode-font-lock-keywords
   `(;; Constants
-    (,(concat "\\<" (regexp-opt json-keywords) "\\>")
-     (0 font-lock-constant-face))
+    (,(rx bow (or "true" "false" "null") eow)
+     (0 'font-lock-keyword-face))
+    (,(rx (? (any ?+ ?-))
+          (+ (any (?0 . ?9)))
+          (? "."
+             (+ (any (?0 . ?9))))
+          (? (any ?e ?E)
+             (? (any ?+ ?-))
+             (+ (any (?0 . ?9))))
+          eow)
+     (0 'font-lock-constant-face))
     ;; Object names
-    ("\\(\"[^\"]*\"\\)[[:blank:]]*:"
-     (1 'json-mode-object-name-face))
-    ;; Strings
-    ("\"\\(\\\\.\\|[^\"]\\)*\""
-     (0 font-lock-string-face))))
-
-(defun json-font-lock-syntactic-face-function (state)
-  "Highlight comments only.
-Strings are handled by `json-mode-font-lock-keywords', since we
-want to highlight object name strings differently from ordinary
-strings."
-  (when (nth 4 state) font-lock-comment-face))
+    ("\\(\"\\(\\\\[^\n]\\|[^\"\n]\\)*\"\\)[[:blank:]]*:"
+     (1 'json-mode-object-name-face t))))
 
 (defconst json-mode--smie-grammar
   (smie-prec2->grammar
@@ -154,12 +153,13 @@ integers."
 ;;;###autoload
 (define-derived-mode json-mode prog-mode "JSON"
   "Major mode for editing JavaScript Object Notation (JSON) data files."
-  (setq-local
-   font-lock-defaults
-   '(json-mode-font-lock-keywords
-     nil nil nil nil
-     (font-lock-syntactic-face-function
-      . json-font-lock-syntactic-face-function)))
+  :syntax-table json-mode-syntax-table
+  (setq-local font-lock-defaults
+              '(json-mode-font-lock-keywords
+                nil
+                nil ;; fontify strings an comments
+                nil
+                nil))
   ;; JSON has no comment syntax, but we set this to keep SMIE happy.
   ;; Also, some JSON extensions allow comments.
   (setq-local comment-start "// ")
