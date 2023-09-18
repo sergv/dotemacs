@@ -282,8 +282,8 @@ and switches to insert-mode."
   (let ((pos (point)))
     (vim:cmd-delete-char:wrapper :count count)
     (if (< (point) pos)
-      (vim:cmd-append)
-      (vim:cmd-insert))))
+        (vim:cmd-append:wrapper)
+      (vim:cmd-insert:wrapper))))
 
 (vim-defcmd vim:cmd-replace-char (count (argument:char arg))
   "Replaces the next count characters with arg."
