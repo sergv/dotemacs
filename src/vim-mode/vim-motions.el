@@ -1012,7 +1012,7 @@ text-object before or at point."
                       (vim--move-fwd-beg 1 #'vim-boundary--sentence)
                       (point))
                     (save-excursion
-                      (vim:motion-fwd-paragraph)
+                      (vim:motion-fwd-paragraph:wrapper)
                       (point))))))
 
 (vim-defmotion vim:motion-bwd-sentence (exclusive count raw-result)
@@ -1451,14 +1451,14 @@ The function shouldn’t move point.")
 (vim-defmotion vim:motion-find-to (inclusive count (argument:char arg) raw-result)
   "Move the cursor to the character before the next count'th\
    occurence of arg."
-  (vim:motion-find :count count :argument arg)
+  (vim:motion-find:wrapper :count count :argument arg)
   (backward-char)
   (setq vim--last-find (cons #'vim:motion-find-to arg)))
 
 (vim-defmotion vim:motion-find-back-to (exclusive count (argument:char arg) raw-result)
   "Move the cursor to the character after the previous count'th\
    occurence of arg."
-  (vim:motion-find-back :count count :argument arg)
+  (vim:motion-find-back:wrapper :count count :argument arg)
   (forward-char)
   (setq vim--last-find (cons #'vim:motion-find-to arg)))
 
@@ -1467,8 +1467,12 @@ The function shouldn’t move point.")
   (unless vim--last-find
     (error "No previous find command"))
   (funcall (car vim--last-find)
-           :count count
-           :argument (cdr vim--last-find)))
+           nil                  ;; motion
+           count
+           (cdr vim--last-find) ;; argument
+           nil                  ;; force
+           nil                  ;; register
+           ))
 
 (vim-defmotion vim:motion-repeat-last-find-opposite (inclusive count raw-result)
   "Repeats the last find command."
@@ -1476,15 +1480,21 @@ The function shouldn’t move point.")
     (error "No previous find command"))
   (let ((func
          (pcase (car vim--last-find)
-           (`vim:motion-find         'vim:motion-find-back)
-           (`vim:motion-find-back    'vim:motion-find)
-           (`vim:motion-find-to      'vim:motion-find-back-to)
-           (`vim:motion-find-back-to 'vim:motion-find-to)
+           (`vim:motion-find         #'vim:motion-find-back)
+           (`vim:motion-find-back    #'vim:motion-find)
+           (`vim:motion-find-to      #'vim:motion-find-back-to)
+           (`vim:motion-find-back-to #'vim:motion-find-to)
            (_                        (error (format "Unexpected find command %s"
                                                     (car vim--last-find))))))
         (arg (cdr vim--last-find)))
     (let ((vim--last-find nil))
-      (funcall func :count count :argument arg))))
+      (funcall func
+               nil ;; motion
+               count
+               arg ;; argument
+               nil ;; force
+               nil ;; register
+               ))))
 
 (vim-defmotion vim:motion-jump-item (inclusive raw-result)
   "Find the next item in this line after or under the cursor and
@@ -1567,7 +1577,7 @@ jumps to the corresponding one."
   "Moves to the first non-blank char in the line of `mark-char'."
   (let ((pos (point)))
     (goto-char (vim-get-local-mark mark-char))
-    (vim:motion-first-non-blank)
+    (vim:motion-first-non-blank:wrapper)
     (vim-save-position pos)
     t))
 

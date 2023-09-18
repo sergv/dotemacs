@@ -1264,7 +1264,7 @@ groups in the result is *not specified*."
   (interactive "P")
   (with-region-bounds start end
     (when (vim-visual-mode-p)
-      (vim:visual-mode-exit))
+      (vim:visual-mode-exit:wrapper))
     (if create-new-buf?
         (progn
           (let* ((orig-buf (current-buffer))
