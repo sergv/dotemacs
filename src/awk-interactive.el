@@ -240,7 +240,7 @@ with id value of `awk-program-id'."
       (let ((begin (region-beginning))
             (end   (region-end)))
         (deactivate-mark)
-        (vim:visual-mode-exit)
+        (vim:visual-mode-exit:wrapper)
         (awk-on-region begin end))
     (awk-on-region (point-min) (point-max))))
 
