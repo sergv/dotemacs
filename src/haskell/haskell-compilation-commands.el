@@ -90,7 +90,7 @@
                 dante-methods (dante--methods-names dante-check-and-repl-methods)))
 
   (dolist (cmd '("c" "compile"))
-    (vim-local-emap  cmd 'vim:haskell-compile))
+    (vim-local-emap cmd 'vim:haskell-compile))
   (dolist (cmd '("cc" "ccompile"))
     (vim-local-emap cmd 'vim:haskell-compile-choosing-command))
 

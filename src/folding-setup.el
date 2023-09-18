@@ -65,7 +65,7 @@
   ;; turn visual mode off
   (when (region-active-p)
     (deactivate-mark)
-    (vim:visual-mode-exit)))
+    (vim:visual-mode-exit:wrapper)))
 
 ;;;###autoload
 (defun hs-hide-sexps-in-region (begin end)
@@ -81,7 +81,7 @@
   ;; turn visual mode off
   (when (region-active-p)
     (deactivate-mark)
-    (vim:visual-mode-exit)))
+    (vim:visual-mode-exit:wrapper)))
 
 ;; todo: these two are quite similar to `hs-hide-sexps-in-region' and
 ;; `hs-show-sexps-in-region'
@@ -98,7 +98,7 @@
   ;; turn visual mode off
   (when (region-active-p)
     (deactivate-mark)
-    (vim:visual-mode-exit)))
+    (vim:visual-mode-exit:wrapper)))
 
 ;;;###autoload
 (defun hs-hide-c-sexps-in-region (begin end)
@@ -115,7 +115,7 @@
   ;; turn visual mode off
   (when (region-active-p)
     (deactivate-mark)
-    (vim:visual-mode-exit)))
+    (vim:visual-mode-exit:wrapper)))
 
 (el-patch-defun hs-show-all ()
   "Show everything then run `hs-show-hook'.  See `run-hooks'."

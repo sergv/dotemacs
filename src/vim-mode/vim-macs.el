@@ -102,7 +102,7 @@ the correct position after the operation.
 In order to call a command from lisp-code, one has to use keyword
 arguments, e.g.,
 
-  (vim:cmd-delete-line :count 5)
+  (vim:cmd-delete-line:wrapper :count 5)
 
 deletes five lines. Note that the keyword used to call a commands
 are always :count, :motion, :register or :argument no matter which
@@ -110,19 +110,22 @@ parameter names are used to define the command.
 
 For more information about the vim:motion struct look at vim-core.el."
   (declare (indent defun) (doc-string 3))
-  (let ((name-interactive (string->symbol (concat (symbol->string name) ":interactive")))
-        (count nil)
-        (register nil)
-        (motion nil)
-        (argument nil)
-        (keep-visual nil)
-        (repeatable t)
-        (force nil)
-        (params nil)
-        (named-params nil)
-        (doc nil)
-        (interactive t)
-        (unadjusted nil))
+  (cl-assert (symbolp name))
+  (let* ((name-str (symbol->string name))
+         (name-interactive (string->symbol (concat name-str ":interactive")))
+         (name-wrapper (string->symbol (concat name-str ":wrapper")))
+         (count nil)
+         (register nil)
+         (motion nil)
+         (argument nil)
+         (keep-visual nil)
+         (repeatable t)
+         (force nil)
+         (params nil)
+         (named-params nil)
+         (doc nil)
+         (interactive t)
+         (unadjusted nil))
 
     ;; extract documentation string
     (if (and (consp body)
@@ -161,7 +164,7 @@ For more information about the vim:motion struct look at vim-core.el."
         (`motion:optional
          (when motion
            (error "%s: only one motion argument may be specified: %s" 'vim-defcmd arg))
-         (setq motion ''optional)
+         (setq motion 'optional)
          (push 'motion params)
          (when (and (consp arg)
                     (not (eq (cadr arg) 'motion)))
@@ -184,40 +187,79 @@ For more information about the vim:motion struct look at vim-core.el."
 
         (_
          (let ((arg-name (symbol-name (if (consp arg) (car arg) arg))))
-           (unless (string-match "^argument\\(?::\\([[:word:]]+\\)\\)?$" arg-name)
-             (error "%s: Unexpected argument: %s" 'vim-defcmd arg))
-           (when argument
-             (error "%s: only one argument may be specified: %s" 'vim-defcmd arg))
-           (let ((arg-type (if (match-beginning 1)
-                               `',(string->symbol (match-string-no-properties 1 arg-name))
-                             ''text)))
-             (setq argument arg-type)
-             (push 'argument params)
-             (when (and (consp arg)
-                        (not (eq (cadr arg) 'argument)))
-               (push `(,(cadr arg) argument) named-params)))))))
+           (save-match-data
+             (unless (string-match "^argument\\(?::\\([[:word:]]+\\)\\)?$" arg-name)
+               (error "vim-defcmd: Unexpected argument: %s" arg))
+             (when argument
+               (error "vim-defcmd: only one argument may be specified: %s" arg))
+             (let ((arg-type (if (match-beginning 1)
+                                 (string->symbol (match-string-no-properties 1 arg-name))
+                               'text)))
+               (setq argument arg-type)
+               (push 'argument params)
+               (when (and (consp arg)
+                          (not (eq (cadr arg) 'argument)))
+                 (push `(,(cadr arg) argument) named-params))))))))
 
     (let* ((args `(,@(when params `(&key ,@params))
-                   ,@(when named-params `(&aux ,@named-params))))
-           (has-args? (and args t)))
+                   ;; ,@(when named-params `(&aux ,@named-params))
+                   ))
+           (has-args? (and args t))
+           (worker-args
+            ;; (argument force &optional motion count register)
+            ;; (argument force motion &optional count register)
+
+            (list (if motion
+                      'motion
+                    '_ignored-motion)
+                  (if count
+                      'count
+                    '_ignored-count)
+                  (if argument
+                      'argument
+                    '_ignored-argument)
+                  (if force
+                      'force
+                    '_ignored-force)
+                  (if register
+                      'register
+                    '_ignored-register))))
       `(progn
          (put ',name 'type ',(if motion 'complex 'simple))
          (put ',name 'count ,count)
-         (put ',name 'motion ,motion)
-         (put ',name 'argument ,argument)
+         (put ',name 'motion ',motion)
+         (put ',name 'argument ',argument)
          (put ',name 'register ,register)
          (put ',name 'keep-visual ,keep-visual)
          (put ',name 'repeatable ,repeatable)
          (put ',name 'force ,force)
 
-         (cl-defun ,name (,@args)
+         ;; This does all the work.
+         (defun ,name (,@worker-args)
            ,doc
-           ,@body)
+           (let (,@named-params)
+             ,@body))
+
+         ;; Name for use from elisp.
+         (cl-defmacro ,name-wrapper (,@args)
+           ,doc
+           (list ',name
+                 ,(when motion
+                    'motion)
+                 ,(when count
+                    'count)
+                 ,(when argument
+                    'argument)
+                 ,(when force
+                    'force)
+                 ,(when register
+                    'register)))
 
          ,@(when interactive
              (list
               `(progn
                  (put ',name-interactive 'vim--is-cmd? t)
+                 ;; Name to bind to keys.
                  (defun ,name-interactive ,(if has-args? '(&rest args) '())
                    ,(format "Interactive version of ‘%s’" name)
                    (interactive)
@@ -227,7 +269,8 @@ For more information about the vim:motion struct look at vim-core.el."
                      (if vim-active-mode
                          (vim-execute-command #',name)
                        ,(if has-args?
-                            `(apply #',name args)
+                            `(error ,(format "Command %s takes arguments and cannot be called outside vim mode" name))
+                          ;; `(apply #',name args)
                           `(,name))))
 
                    ;; (if ;; Since in minibuffer vim-mode may be inactive but
@@ -286,18 +329,20 @@ returns *always* a vim:motion object.
 For more information about the vim:motion struct and motion types
 look at vim-core.el."
   (declare (indent defun) (doc-string 3))
-  (let ((name-interactive (string->symbol (concat (symbol->string name) ":interactive")))a
-        (name-raw (string->symbol (concat (symbol->string name) "/raw")))
-        (type nil)
-        (count nil)
-        (argument nil)
-        (params nil)
-        (named-params nil)
-        (doc nil)
-        (unadjusted nil)
-        (raw-result nil)
-        (motion-result nil)
-        (ret '#:ret))
+  (let* ((name-str (symbol->string name))
+         (name-interactive (string->symbol (concat name-str ":interactive")))a
+         (name-raw (string->symbol (concat name-str ":raw")))
+         (name-wrapper (string->symbol (concat name-str ":wrapper")))
+         (type nil)
+         (count nil)
+         (argument nil)
+         (params nil)
+         (named-params nil)
+         (doc nil)
+         (unadjusted nil)
+         (raw-result nil)
+         (motion-result nil)
+         (ret '#:ret))
 
     ;; extract documentation string
     (if (and (consp body)
@@ -332,7 +377,7 @@ look at vim-core.el."
         ((or `argument `argument:char)
          (when argument
            (error "vim-defcmd: only one argument may be specified: %s" arg))
-         (setq argument ''char)
+         (setq argument 'char)
          (push 'argument params)
          (when (and (consp arg)
                     (not (eq (cadr arg) 'argument)))
@@ -347,44 +392,77 @@ look at vim-core.el."
                motion-result)
       (error "Only one fo raw-result or motion-result may be specified"))
 
-    `(progn
-       (put ',name 'type ',type)
-       (put ',name 'count ,count)
-       (put ',name 'argument ,argument)
+    (let ((worker-args
+           (list '_ignored-motion
+                 (if count
+                     'count
+                   '_ignored-count)
+                 (if argument
+                     'argument
+                   '_ignored-argument)
+                 '_ignored-force
+                 '_ignored-register)))
+      `(progn
+         (put ',name 'type ',type)
+         (put ',name 'count ,count)
+         (put ',name 'argument ',argument)
 
-       ,@(when raw-result
-           (list
-            `(cl-defun ,name-raw (,@(when params `(&key ,@params))
-                                  ,@(when named-params `(&aux ,@named-params)))
-               ,doc
-               ,@body)))
+         ,@(when raw-result
+             (list
+              `(defun ,name-raw (,@worker-args)
+                 ,doc
+                 (let (,@named-params)
+                   ,@body))))
 
-       (cl-defun ,name (,@(when params `(&key ,@params))
-                        ,@(when named-params `(&aux ,@named-params)))
-         ,doc
-         ,(cond
-            (raw-result
-             `(vim-wrap-motion ,type
-                ,@body))
-            (motion-result
-             `(let ((,ret (progn ,@body)))
-                (cl-assert (equal (vim-motion-type ,ret)
-                                  ',type))
-                ,ret))
-            (t
-             `(vim-do-motion ,type
-                ,@body))))
-       (defun ,name-interactive ()
-         ,(format "Interactive version of ‘%s’" name)
-         (interactive)
-         (let ,(if unadjusted
-                   '((vim-do-not-adjust-point t))
-                 '())
-           (if vim-active-mode
-               (vim-execute-command #',name)
-             (,(if raw-result
-                   name-raw
-                 name))))))))
+         (defun ,name (,@worker-args)
+           ,doc
+           ,(cond
+              (raw-result
+               `(vim-wrap-motion ,type
+                  (,name-raw nil                        ;; motion
+                             ,(when count 'count)       ;; count
+                             ,(when argument 'argument) ;; arg
+                             nil                        ;; force
+                             nil                        ;; register
+                             )))
+              (motion-result
+               `(let (,@named-params)
+                  (let ((,ret (progn ,@body)))
+                    (cl-assert (equal (vim-motion-type ,ret)
+                                      ',type))
+                    ,ret)))
+              (t
+               `(let (,@named-params)
+                  (vim-do-motion ,type
+                    ,@body)))))
+
+         (cl-defmacro ,name-wrapper (,@(when params `(&key ,@params)))
+           ,doc
+           (list ',name
+                 nil
+                 ,(when count
+                    'count)
+                 ,(when argument
+                    'argument)
+                 nil
+                 nil))
+
+         (defun ,name-interactive ()
+           ,(format "Interactive version of ‘%s’" name)
+           (interactive)
+           (let ,(if unadjusted
+                     '((vim-do-not-adjust-point t))
+                   '())
+             (if vim-active-mode
+                 (vim-execute-command #',name)
+               (,(if raw-result
+                     name-raw
+                   name)
+                nil
+                nil
+                nil
+                nil
+                nil))))))))
 
 (provide 'vim-macs)
 
