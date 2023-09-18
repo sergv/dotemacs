@@ -430,7 +430,7 @@ _<right>_: move tab to the right"
 (vim-defcmd vim:jump-to-prev-saved-position (nonrepeatable keep-visual)
   "Jump to position pointed to by ' mark.
 Basically swap current point with previous one."
-  (vim:motion-mark :argument ?\'))
+  (vim:motion-mark:wrapper :argument ?\'))
 
 (vim-defcmd vim:start-awk (motion nonrepeatable)
   (when (get-buffer awk-buffer-name)
@@ -439,7 +439,7 @@ Basically swap current point with previous one."
   ;; turn visual mode off
   (when (region-active-p)
     (deactivate-mark)
-    (vim:visual-mode-exit))
+    (vim:visual-mode-exit:wrapper))
   (awk-on-region (if motion
                      (vim-motion-begin-pos motion)
                    (line-beginning-position))

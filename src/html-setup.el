@@ -93,7 +93,7 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
     (if (let ((synt (char-syntax (char-after))))
           (or (char=? synt ?\()
               (char=? synt ?\))))
-        (vim:motion-jump-item)
+        (vim:motion-jump-item:wrapper)
       (let ((tag-start (point))
             (type nil)
             ;; note: be and ee are exclusive ends
@@ -162,7 +162,7 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
                        (goto-char bb))
                       (t
                        (error "No matching item found")))))
-          (vim:motion-jump-item))))))
+          (vim:motion-jump-item:wrapper))))))
 
 ;;;###autoload (autoload 'vim:motion-jump-html-tag "html-setup" "" t)
 (vim-defmotion vim:motion-jump-html-tag (inclusive raw-result)
@@ -171,7 +171,7 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
   (if (let ((synt (char-syntax (char-after))))
         (or (char=? synt ?\()
             (char=? synt ?\))))
-      (vim:motion-jump-item)
+      (vim:motion-jump-item:wrapper)
     (web-mode-navigate)))
 
 ;;;###autoload

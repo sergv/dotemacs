@@ -416,7 +416,7 @@ Allowed flags are:
   I - don't ignore case
 "
   (save-match-data
-    (vim:cmd-nohighlight)
+    (vim:cmd-nohighlight:wrapper)
     (cl-multiple-value-bind (pattern replacement flag-str)
         (vim--parse-substitute argument)
       (let ((flags (string->list flag-str)))
