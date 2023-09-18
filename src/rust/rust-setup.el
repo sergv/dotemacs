@@ -119,7 +119,7 @@ which is suitable for most programming languages such as C or Lisp."
 
 (defun rust-flycheck-reset ()
   (interactive)
-  (vim:flycheck-clear)
+  (vim:flycheck-clear:wrapper)
   (when (and (boundp 'flycheck-checker)
              (eq flycheck-checker 'lsp))
     (lsp-restart-workspace)))
@@ -176,7 +176,7 @@ which is suitable for most programming languages such as C or Lisp."
                       rust-compilation-extra-error-modes)
               compilation-environment '("TERM=xterm-256color"))
 
-  (vim-local-emap "c" 'vim:recompile)
+  (vim-local-emap "c" 'vim:recompile:interactive)
 
   (add-hook 'compilation-filter-hook #'rust-compilation-filter-hook nil t))
 
