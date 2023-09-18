@@ -43,14 +43,14 @@
   (vim--use-last-column!)
   (scroll-down (or count 1))
   (when vim-scroll-move-point
-    (vim:motion-up :count (or count 1))))
+    (vim:motion-up:wrapper :count (or count 1))))
 
 (vim-defcmd vim:scroll-line-down (count nonrepeatable keep-visual)
   "Scrolls the window `count' lines downwards."
   (vim--use-last-column!)
   (scroll-up (or count 1))
   (when vim-scroll-move-point
-    (vim:motion-down :count (or count 1))))
+    (vim:motion-down:wrapper :count (or count 1))))
 
 (vim-defcmd vim:scroll-up (count nonrepeatable keep-visual)
   "Scrolls the window and the cursor `count' lines upwards, default half of the screen."
@@ -101,7 +101,7 @@
     (goto-char (window-end))
     (unless (bobp) (backward-char)))
   (recenter 0)
-  (vim:motion-first-non-blank))
+  (vim:motion-first-non-blank:wrapper))
 
 (vim-defcmd vim:scroll-top-line-to-bottom (count nonrepeatable keep-visual)
   "Scrolls the line right below the window or line `count' to the top of the window."
@@ -109,7 +109,7 @@
       (goto-line-dumb count)
     (goto-char (window-start)))
   (recenter -1)
-  (vim:motion-first-non-blank))
+  (vim:motion-first-non-blank:wrapper))
 
 (provide 'vim-scroll)
 
