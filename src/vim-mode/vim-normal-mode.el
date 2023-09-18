@@ -190,24 +190,19 @@ If the old motion type was already characterwise exclusive/inclusive will be tog
   (when (vim--cmd-char-arg-p command)
     (setf vim--current-cmd-arg (read-char-exclusive)))
   (vim--prepare-buffer-undo-list!)
-  (let* ((parameters nil)
-         (vim--last-undo buffer-undo-list)
+  (let* ((vim--last-undo buffer-undo-list)
          (record-repeat? (and (vim--cmd-repeatable-p command)
                               atomic-command-for-keys?))
          (events (when record-repeat?
                    (vim--remember-this-command-keys!)
                    vim--current-key-sequence)))
-    (when (vim--cmd-count-p command)
-      (push vim--current-cmd-count parameters)
-      (push :count parameters))
-    (when (vim--cmd-char-arg-p command)
-      (push vim--current-cmd-arg parameters)
-      (push :argument parameters))
-    (when (and (vim--cmd-register-p command)
-               vim--current-register)
-      (push vim--current-register parameters)
-      (push :register parameters))
-    (vim--apply-save-buffer command parameters)
+    (vim--funcall-save-buffer command
+                              nil                    ;; motion
+                              vim--current-cmd-count ;; count
+                              vim--current-cmd-arg   ;; argument
+                              nil                    ;; force
+                              vim--current-register  ;; register
+                              )
     (when record-repeat?
       (vim--overwrite-repeat-events! events))
     (vim--command-finalize! vim--last-undo atomic-command-for-keys?)))
@@ -242,8 +237,14 @@ If the old motion type was already characterwise exclusive/inclusive will be tog
          (events (when repeatable?
                    (vim--remember-this-command-keys!)
                    vim--current-key-sequence)))
+    ;; (vim--funcall-save-buffer vim--current-cmd
+    ;;                           :motion (vim--get-current-cmd-motion))
     (vim--funcall-save-buffer vim--current-cmd
-                              :motion (vim--get-current-cmd-motion))
+                              (vim--get-current-cmd-motion)
+                              nil
+                              nil
+                              nil
+                              nil)
     (when repeatable?
       (vim--overwrite-repeat-events! events))
     (vim--command-finalize! vim--last-undo t))
