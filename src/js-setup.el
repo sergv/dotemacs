@@ -61,7 +61,19 @@
 
 (defun json-format-buffer ()
   (interactive)
-  (json-mode-pretty-print-dwim))
+  (let ((json-encoding-default-indentation
+         (make-string 2 ?\s)))
+    (if (use-region-p)
+        (with-region-bounds start end
+          (funcall (if alphabetical
+                       #'json-pretty-print-ordered
+                     #'json-pretty-print)
+                   start
+                   end))
+      (funcall
+       (if alphabetical
+           #'json-pretty-print-buffer-ordered
+         #'json-pretty-print-buffer)))))
 
 (puthash 'json-mode
          #'json-format-buffer
