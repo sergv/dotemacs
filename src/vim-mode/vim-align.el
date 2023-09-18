@@ -62,7 +62,7 @@ Allowed flags are:
   i - ignore case
   I - don't ignore case"
   (save-match-data
-    (vim:cmd-nohighlight)
+    (vim:cmd-nohighlight:wrapper)
     (cl-multiple-value-bind (pattern flags)
         (vim--parse-align-pattern-flags argument)
       (let* ((pattern-with-group

@@ -164,12 +164,12 @@ This macro is similar to `vim:do-motion'."
 ;;;###autoload (autoload 'vim:paredit-forward-word "paredit-setup" "" t)
 (vim-defmotion vim:paredit-forward-word (inclusive count motion-result)
   (goto-char (paredit-skip-forward-for-kill (point) '(?\w)))
-  (vim:motion-fwd-word :count count))
+  (vim:motion-fwd-word:wrapper :count count))
 
 ;;;###autoload (autoload 'vim:paredit-forward-word-end "paredit-setup" "" t)
 (vim-defmotion vim:paredit-forward-word-end (inclusive count motion-result)
   (goto-char (paredit-skip-forward-for-kill (point) '(?\w)))
-  (vim:motion-fwd-word-end :count count))
+  (vim:motion-fwd-word-end:wrapper :count count))
 
 ;;;###autoload (autoload 'vim:paredit-backward-word "paredit-setup" "" t)
 (vim-defmotion vim:paredit-backward-word (inclusive count motion-result)
@@ -177,10 +177,10 @@ This macro is similar to `vim:do-motion'."
               (point)
               '(?\w)
               :forward-word (lambda (count)
-                              (vim:motion-fwd-word-end :count count))
+                              (vim:motion-fwd-word-end:wrapper :count count))
               :backward-word (lambda (count)
-                               (vim:motion-bwd-word-end :count count))))
-  (vim:motion-bwd-word :count count))
+                               (vim:motion-bwd-word-end:wrapper :count count))))
+  (vim:motion-bwd-word:wrapper :count count))
 
 
 ;;;###autoload (autoload 'vim:paredit-forward-WORD "paredit-setup" "" t)
@@ -188,14 +188,14 @@ This macro is similar to `vim:do-motion'."
   (vim--do-motion-with-amended-begin
       #'vim-change-motion-begin
     (goto-char (paredit-skip-forward-for-kill (point) '(?\w ?\_)))
-    (vim:motion-fwd-WORD :count count)))
+    (vim:motion-fwd-WORD:wrapper :count count)))
 
 ;;;###autoload (autoload 'vim:paredit-forward-WORD-end "paredit-setup" "" t)
 (vim-defmotion vim:paredit-forward-WORD-end (inclusive count motion-result)
   (vim--do-motion-with-amended-begin
       #'vim-change-motion-begin
     (goto-char (paredit-skip-forward-for-kill (point) '(?\w ?\_)))
-    (vim:motion-fwd-WORD-end :count count)))
+    (vim:motion-fwd-WORD-end:wrapper :count count)))
 
 ;;;###autoload (autoload 'vim:paredit-backward-WORD "paredit-setup" "" t)
 (vim-defmotion vim:paredit-backward-WORD (inclusive count motion-result)
@@ -205,34 +205,34 @@ This macro is similar to `vim:do-motion'."
                 (point)
                 '(?\w ?\_)
                 :forward-word (lambda (count)
-                                (vim:motion-fwd-WORD-end :count count))
+                                (vim:motion-fwd-WORD-end:wrapper :count count))
                 :backward-word (lambda (count)
-                                 (vim:motion-bwd-WORD-end :count count))))
-    (vim:motion-bwd-WORD :count count)))
+                                 (vim:motion-bwd-WORD-end:wrapper :count count))))
+    (vim:motion-bwd-WORD:wrapper :count count)))
 
 ;; note: symbol-oriented functions are also working fine without
 ;; vim--do-motion-with-amended-begin corrections
 ;;;###autoload (autoload 'vim:paredit-inner-symbol "paredit-setup" "" t)
 (vim-defmotion vim:paredit-inner-symbol (inclusive count motion-result)
   (goto-char (paredit-skip-forward-for-kill (point) '(?\w ?\_)))
-  (vim:motion-inner-symbol :count count))
+  (vim:motion-inner-symbol:wrapper :count count))
 
 ;;;###autoload (autoload 'vim:paredit-outer-symbol "paredit-setup" "" t)
 (vim-defmotion vim:paredit-outer-symbol (inclusive count motion-result)
   (goto-char (paredit-skip-forward-for-kill (point) '(?\w ?\_)))
-  (vim:motion-outer-symbol :count count))
+  (vim:motion-outer-symbol:wrapper :count count))
 
 
 ;;;###autoload (autoload 'vim:paredit-forward-symbol "paredit-setup" "" t)
 (vim-defmotion vim:paredit-forward-symbol (inclusive count motion-result)
   (goto-char (paredit-skip-forward-for-kill (point) '(?\w ?\_)))
-  (vim:motion-fwd-symbol :count count))
+  (vim:motion-fwd-symbol:wrapper :count count))
 
 ;;;###autoload (autoload 'vim:paredit-forward-symbol-end "paredit-setup" "" t)
 (vim-defmotion vim:paredit-forward-symbol-end (inclusive count motion-result)
   (goto-char (paredit-skip-forward-for-kill (point)
                                             '(?\w ?\_)))
-  (vim:motion-fwd-symbol-end :count count))
+  (vim:motion-fwd-symbol-end:wrapper :count count))
 
 ;;;###autoload (autoload 'vim:paredit-backward-symbol "paredit-setup" "" t)
 (vim-defmotion vim:paredit-backward-symbol (inclusive count motion-result)
@@ -240,10 +240,10 @@ This macro is similar to `vim:do-motion'."
               (point)
               '(?\w ?\_)
               :forward-word (lambda (count)
-                              (vim:motion-fwd-symbol-end :count count))
+                              (vim:motion-fwd-symbol-end:wrapper :count count))
               :backward-word (lambda (count)
-                               (vim:motion-bwd-symbol :count count))))
-  (vim:motion-bwd-symbol :count count))
+                               (vim:motion-bwd-symbol:wrapper :count count))))
+  (vim:motion-bwd-symbol:wrapper :count count))
 
 (defun paredit-setup--wrap-or-insert (open close escape?)
   "Wrap the following expression or the active region with PAIR."
@@ -327,22 +327,22 @@ This macro is similar to `vim:do-motion'."
 ;; (defun paredit-forward-kill-symbol ()
 ;;   "Kill a word forward, skipping over intervening delimiters."
 ;;   (interactive)
-;;   (paredit-kill-forward (lambda () (vim:cmd-delete :motion
-;;                                               (vim:motion-outer-symbol :count 1)
-;;                                               ;; (vim:motion-fwd-symbol-end :count 1)
+;;   (paredit-kill-forward (lambda () (vim:cmd-delete:wrapper :motion
+;;                                               (vim:motion-outer-symbol:wrapper :count 1)
+;;                                               ;; (vim:motion-fwd-symbol-end:wrapper :count 1)
 ;;                                               ))
 ;;                         '(?\w ?\_)))
 ;;
 ;; (defun paredit-backward-kill-symbol ()
 ;;   "Kill a word backward, skipping over any intervening delimiters."
 ;;   (interactive)
-;;   (paredit-backward-kill (lambda () (vim:cmd-delete :motion
-;;                                                (vim:motion-bwd-symbol :count 1)))
+;;   (paredit-backward-kill (lambda () (vim:cmd-delete:wrapper :motion
+;;                                                (vim:motion-bwd-symbol:wrapper :count 1)))
 ;;                          '(?\w ?\_)
 ;;                          :forward-word (lambda (count)
-;;                                          (vim:motion-fwd-symbol-end :count 1))
+;;                                          (vim:motion-fwd-symbol-end:wrapper :count 1))
 ;;                          :backward-word (lambda (count)
-;;                                           (vim:motion-bwd-symbol :count 1))))
+;;                                           (vim:motion-bwd-symbol:wrapper :count 1))))
 ;;
 ;;
 ;; (vimmize-function paredit-forward-kill-symbol

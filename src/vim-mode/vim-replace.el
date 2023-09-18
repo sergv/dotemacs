@@ -79,7 +79,7 @@ special characters are introduced via backlash only."
    (vim--construct-ex-replace-command
     (vim--get-str-covered-by-motion
      (save-excursion
-       (vim:motion-inner-word)))
+       (vim:motion-inner-word:wrapper)))
     :word t
     :fill-replacement (not current-prefix-arg))))
 
@@ -89,7 +89,7 @@ special characters are introduced via backlash only."
    (vim--construct-ex-replace-command
     (vim--get-str-covered-by-motion
      (save-excursion
-       (vim:motion-inner-WORD)))
+       (vim:motion-inner-WORD:wrapper)))
     :fill-replacement (not current-prefix-arg))))
 
 (vim-defcmd vim:replace-selected (nonrepeatable)
