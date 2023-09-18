@@ -68,12 +68,12 @@
   "Inserts a newline according to current insert-mode direction."
   (pcase vim--insert-newline
     (`above
-     (vim:motion-beginning-of-line)
+     (vim:motion-beginning-of-line:wrapper)
      (newline)
      (forward-line -1)
      (indent-according-to-mode))
     (`below
-     (vim:motion-end-of-line)
+     (vim:motion-end-of-line:wrapper)
      (newline)
      (indent-according-to-mode))))
 

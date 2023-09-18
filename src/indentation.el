@@ -41,7 +41,7 @@ to mode and write new contents back to FILENAME."
     (insert-file-contents filename)
     (let ((buffer-file-name filename))
       (normal-mode)
-      (vim:indent)
+      (vim:indent:wrapper)
       (write-region (point-min) (point-max) filename))))
 
 ;;;###autoload

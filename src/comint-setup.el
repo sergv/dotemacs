@@ -438,13 +438,13 @@ Similarly for Soar, Scheme, etc."
   (interactive "p")
   (if (comint-after-pmark-p)
       (comint-next-input count)
-    (vim:motion-fwd-paragraph :count count)))
+    (vim:motion-fwd-paragraph:wrapper :count count)))
 
 (defun comint-previous-input-or-bwd-paragraph (count)
   (interactive "p")
   (if (comint-after-pmark-p)
       (comint-previous-input count)
-    (vim:motion-bwd-paragraph :count count)))
+    (vim:motion-bwd-paragraph:wrapper :count count)))
 
 ;;;###autoload
 (defun comint-setup ()

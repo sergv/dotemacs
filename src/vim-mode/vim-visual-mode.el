@@ -157,7 +157,7 @@ popuated (in this case mostly by insert mode).")
   (if (and (vim-visual-mode-p)
            (eq vim-visual--mode-type type)
            (vim--toplevel-execution?))
-      (vim:visual-mode-exit)
+      (vim:visual-mode-exit:wrapper)
     (vim-activate-visual type)))
 
 (vim-defcmd vim:visual-toggle-normal (nonrepeatable keep-visual)
@@ -229,7 +229,7 @@ popuated (in this case mostly by insert mode).")
   (add-hook 'post-command-hook #'vim-visual--post-command)
   (add-hook 'pre-command-hook #'vim-visual--normalize-region)
   (add-hook 'post-command-hook #'vim-visual--denormalize-region)
-  (add-hook 'deactivate-mark-hook #'vim:visual-mode-exit))
+  (add-hook 'deactivate-mark-hook #'vim:visual-mode-exit:wrapper))
 
 (defun vim-visual-mode--deactivate ()
   "Called when visual mode is deactivated."
@@ -239,7 +239,7 @@ popuated (in this case mostly by insert mode).")
   (remove-hook 'pre-command-hook #'vim-visual--normalize-region)
   (remove-hook 'post-command-hook #'vim-visual--denormalize-region)
   (remove-hook 'post-command-hook #'vim-visual--post-command post-command-hook)
-  (remove-hook 'deactivate-mark-hook #'vim:visual-mode-exit)
+  (remove-hook 'deactivate-mark-hook #'vim:visual-mode-exit:wrapper)
   (setq transient-mark-mode vim-visual--old-transient-mark-mode)
   (vim-visual--delete-overlays! vim-visual--overlays)
   (mapc #'kill-local-variable vim-visual--old-global-variables)
@@ -270,17 +270,15 @@ popuated (in this case mostly by insert mode).")
       (progn
         (vim--prepare-buffer-undo-list!)
         (let ((vim--last-undo buffer-undo-list)
-              (repeatable? (vim--cmd-repeatable-p command))
-              parameters)
-          (push (vim-visual--current-motion) parameters)
-          (push :motion parameters)
-          (when (vim--cmd-register-p command)
-            (push vim--current-register parameters)
-            (push :register parameters))
-          (when (vim--cmd-char-arg-p command)
-            (push vim--current-cmd-arg parameters)
-            (push :argument parameters))
-          (vim--apply-save-buffer command parameters)
+              (repeatable? (vim--cmd-repeatable-p command)))
+          (vim--funcall-save-buffer command
+                                    (vim-visual--current-motion) ;; motion
+                                    nil                          ;; count
+                                    vim--current-cmd-arg         ;; argument
+                                    nil                          ;; force
+                                    vim--current-register        ;; register
+                                    )
+
           (when repeatable?
             (vim--overwrite-repeat-events! vim--current-key-sequence))
           (vim--command-finalize! vim--last-undo t)
@@ -289,7 +287,7 @@ popuated (in this case mostly by insert mode).")
   ;; deactivate visual mode unless the command should keep it
   (when (and vim-visual-mode
              (not (vim--cmd-keep-visual-p command)))
-    (vim:visual-mode-exit)))
+    (vim:visual-mode-exit:wrapper)))
 
 (defun vim-visual--execute-motion (command)
   "Called to execute a motion in visual mode."
@@ -310,7 +308,7 @@ popuated (in this case mostly by insert mode).")
     (if (or deactivate-mark
             (memq this-command vim-visual--deactivate-mark-commands))
         (condition-case nil
-            (vim:visual-mode-exit)
+            (vim:visual-mode-exit:wrapper)
           (error nil))
       (condition-case info
           (vim-visual--highlight-region)
@@ -318,7 +316,7 @@ popuated (in this case mostly by insert mode).")
          (ding)
          (message "visual-mode trouble: %s" info)
          (condition-case nil
-             (vim:visual-mode-exit)
+             (vim:visual-mode-exit:wrapper)
            (error nil)))))))
 
 (defun vim-visual--highlight-region ()
@@ -544,13 +542,13 @@ This function is also responsible for setting the X-selection."
        ;; TODO: ensure the right command is run on repetition.
        ;; this is really a dirty hack
        (setf vim-visual--key-sequence-for-repeat (cons [?i] (vim--obtain-intermediate-handle!)))
-       (vim:cmd-insert :count 1)
+       (vim:cmd-insert:wrapper :count 1)
        (setq-local vim-insert-mode-on-exit #'vim--insert-block-copies))
       (`linewise
        ;; TODO: ensure the right command is run on repetition.
        ;; this is really a dirty hack
        (setf vim-visual--key-sequence-for-repeat (cons [?I] (vim--obtain-intermediate-handle!)))
-       (vim:cmd-Insert :count 1)
+       (vim:cmd-Insert:wrapper :count 1)
        (setq-local vim-insert-mode-on-exit #'vim--insert-linewise-copies))
       (`normal
        (error "visual insert is not supported in normal visual mode"))))
@@ -700,13 +698,13 @@ This function is also responsible for setting the X-selection."
        ;; TODO: ensure the right command is run on repeat.
        ;; this is really a dirty hack
        (setf vim-visual--key-sequence-for-repeat (cons [?a] (vim--obtain-intermediate-handle!)))
-       (vim:cmd-append :count 1)
+       (vim:cmd-append:wrapper :count 1)
        (setq-local vim-insert-mode-on-exit #'vim--append-block-copies))
       (`linewise
        ;; TODO: ensure the right command is run on repeat
        ;; this is really a dirty hack
        (setf vim-visual--key-sequence-for-repeat (cons [?A] (vim--obtain-intermediate-handle!)))
-       (vim:cmd-Append :count 1)
+       (vim:cmd-Append:wrapper :count 1)
        (setq-local vim-insert-mode-on-exit #'vim--insert-linewise-copies))
       (_
        (error "visual append is not supported in normal visual mode"))))
@@ -858,7 +856,7 @@ current line."
     (vim-visual--get-normal-or-linewise-region-bounds)
     (lambda (x)
       `(progn
-         (vim:visual-mode-exit)
+         (vim:visual-mode-exit:wrapper)
          (search--next-impl (or ,x 1))))
   :is-forward t
   :error-message "No symbol at point"
@@ -870,7 +868,7 @@ current line."
     (vim-visual--get-normal-or-linewise-region-bounds)
     (lambda (x)
       `(progn
-         (vim:visual-mode-exit)
+         (vim:visual-mode-exit:wrapper)
          (search--prev-impl (or ,x 1))))
   :is-forward nil
   :error-message "No region selected"

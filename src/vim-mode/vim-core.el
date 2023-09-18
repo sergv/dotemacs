@@ -234,9 +234,14 @@ command has finished execution."
   "Returns the type of command CMD."
   (get cmd 'type))
 
+(defsubst vim--cmd-worker (cmd)
+  "Returns the type of command CMD."
+  (get cmd 'vim--worker))
+
 (defsubst vim--is-cmd-p (cmd)
   "Returns non-nil iff command CMD is defined via vim’s defcmd."
   (and (get cmd 'vim--is-cmd?) t))
+
 
 
 (defmacro vim--apply-save-buffer (func &rest args)
@@ -548,18 +553,14 @@ vim:motion object."
                          vim--current-motion-count)
                      (* (or vim--current-cmd-count 1)
                         (or vim--current-motion-count 1))
-                   nil))
-          (parameters nil))
-
-      ;; build the parameter-list
-      (when (vim--cmd-char-arg-p cmd)
-        (push vim--current-motion-arg parameters)
-        (push :argument parameters))
-      (when (vim--cmd-count-p cmd)
-        (push count parameters)
-        (push :count parameters))
-
-      (vim--apply-save-buffer cmd parameters))))
+                   nil)))
+      (vim--funcall-save-buffer cmd
+                                nil                     ;; motion
+                                count                   ;; count
+                                vim--current-motion-arg ;; argument
+                                nil                     ;; force
+                                nil                     ;; register
+                                ))))
 
 (defun vim--get-current-cmd-motion ()
   "Returns the motion range for the current command w.r.t.
