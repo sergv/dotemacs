@@ -15,9 +15,9 @@ set -e
 for x in native/tree-sitter*; do
     echo "$x"
     if [[ -f "$x/src/scanner.c" ]]; then
-        gcc -Os -fPIC "-I$x/src" "$x/src/parser.c" "$x/src/scanner.c" -shared -o "lib/lib$(basename "$x").so"
+        "${CC:-cc}" -Os -fPIC "-I$x/src" "$x/src/parser.c" "$x/src/scanner.c" -shared -o "lib/lib$(basename "$x").so"
     else
-        gcc -Os -fPIC "-I$x/src" "$x/src/parser.c" -shared -o "lib/lib$(basename "$x").so"
+        "${CC:-cc}" -Os -fPIC "-I$x/src" "$x/src/parser.c" -shared -o "lib/lib$(basename "$x").so"
     fi
 done
 
