@@ -29,7 +29,7 @@ hash_before_commit=$(get-ref-hash HEAD)
 
 git remote add -f "$(basename "${subtree_path}")-repo" "$repo_url"
 git read-tree --prefix=$path -u "$commit"
-git commit -m "Merge commit '$commit' from '$repo_url' into '$path'"
+git commit -m "Merge commit '$(get-ref-hash "$commit")' from '$repo_url' into '$path'"
 
 hash_after_commit=$(get-ref-hash HEAD)
 subtree_hash_to_merge=$(get-ref-hash "$commit")
