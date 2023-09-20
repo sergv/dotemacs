@@ -81,7 +81,7 @@
 (cl-defun init-common (&key (use-yasnippet t)
                             (use-comment t)
                             (use-fci t)
-                            (use-whitespace nil) ;; can be t, nil, 'tabs-only
+                            (use-whitespace nil) ;; can be t, nil, 'tabs-only, 'tabs-and-trailing-only
                             (use-render-formula nil)
                             (use-hl-line t)
                             (enable-backup t)
@@ -109,11 +109,14 @@
     (yas-minor-mode-on))
 
   (when use-whitespace
-    (when (and (not (eq use-whitespace 'tabs-only))
-               (memq major-mode +do-not-track-long-lines-modes+))
-      (error "Shouldn't have enabled whitespace-mode in %s" major-mode))
-    (when (eq use-whitespace 'tabs-only)
-      (setq-local whitespace-style '(face tabs)))
+    (pcase use-whitespace
+      (`tabs-and-trailing-only
+       (setq-local whitespace-style '(face tabs trailing)))
+      (`tabs-only
+       (setq-local whitespace-style '(face tabs)))
+      (_
+       (when (memq major-mode +do-not-track-long-lines-modes+)
+         (error "Shouldn't have enabled whitespace-mode in %s" major-mode))))
     (whitespace-mode 1))
 
   (when use-render-formula
