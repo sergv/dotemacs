@@ -215,6 +215,7 @@
 (require 'eshell-autoload)
 (require 'auto-insert-autoload)
 
+(require 'tree-sitter-setup)
 (require 'undo-tree-setup)
 
 ;; load keys after everything to ensure that nothing will be rebond
