@@ -75,22 +75,35 @@
            #'json-pretty-print-buffer-ordered
          #'json-pretty-print-buffer)))))
 
-(puthash 'json-mode
-         #'json-format-buffer
-         *mode-indent-functions-table*)
+(dolist (mode '(json-mode json-ts-mode))
+  (puthash mode
+           #'json-format-buffer
+           *mode-indent-functions-table*))
 
-;;;###autoload
-(defun json-setup ()
+(defun json-common-setup ()
   (init-common :use-whitespace 'tabs-only
                :use-yasnippet t
                :use-comment t)
-  (json-error-mode)
   (setup-folding t nil)
   (def-keys-for-map vim-normal-mode-local-keymap
     ("- p" json-mode-show-path)))
 
 ;;;###autoload
+(defun json-setup ()
+  (json-common-setup)
+  (json-error-mode))
+
+;;;###autoload
 (add-hook 'json-mode-hook #'json-setup)
+
+;;;###autoload
+(defun json-ts-setup ()
+  (json-common-setup)
+  ;; Don’t enable ‘json-error-mode’ - treesitter will detect errors for us.
+  )
+
+;;;###autoload
+(add-hook 'json-ts-mode-hook #'json-ts-setup)
 
 (provide 'js-setup)
 
