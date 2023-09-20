@@ -81,7 +81,7 @@
            *mode-indent-functions-table*))
 
 (defun json-common-setup ()
-  (init-common :use-whitespace 'tabs-only
+  (init-common :use-whitespace 'tabs-and-trailing-only
                :use-yasnippet t
                :use-comment t)
   (setup-folding t nil)
