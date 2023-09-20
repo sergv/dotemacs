@@ -894,7 +894,8 @@ only installing unique attributes."
 
 (defvar solarized-known-color-themes
   (list
-   (list 'solarized-dark-improved       nil                             solarized-dark-high-contrast-improved-colors-palette)
+   (list 'solarized-dark-improved       'solarized-light-improved       solarized-dark-high-contrast-improved-colors-palette)
+   (list 'solarized-light-improved      'solarized-dark-improved        solarized-light-high-contrast-improved-colors-palette)
    (list 'solarized-dark                'solarized-light                solarized-dark-color-palette)
    (list 'solarized-light               'solarized-dark                 solarized-light-color-palette)
    (list 'solarized-dark-high-constrast 'solarized-light-high-constrast solarized-dark-high-contrast-palette)
