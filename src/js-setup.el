@@ -59,19 +59,19 @@
 ;;;###autoload
 (add-hook 'js-mode-hook #'js-setup)
 
-(defun json-format-buffer ()
-  (interactive)
+(defun json-format-buffer (&optional alphabetical?)
+  (interactive "P")
   (let ((json-encoding-default-indentation
          (make-string 2 ?\s)))
     (if (use-region-p)
         (with-region-bounds start end
-          (funcall (if alphabetical
+          (funcall (if alphabetical?
                        #'json-pretty-print-ordered
                      #'json-pretty-print)
                    start
                    end))
       (funcall
-       (if alphabetical
+       (if alphabetical?
            #'json-pretty-print-buffer-ordered
          #'json-pretty-print-buffer)))))
 
