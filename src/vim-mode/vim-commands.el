@@ -306,22 +306,6 @@ and switches to insert-mode."
        (delete-region beg end)
        (insert-char arg (- end beg))))))
 
-(vim-defcmd vim:cmd-yank (motion nonrepeatable)
-  "Saves the characters in motion into the kill-ring."
-  (pcase (vim-motion-type motion)
-    (`block (vim:cmd-yank-rectangle:wrapper :motion motion))
-    (`linewise (goto-line-dumb (vim-motion-first-line motion))
-               (vim:cmd-yank-line:wrapper :count (vim-motion-line-count motion)))
-    (_
-     (let ((text (buffer-substring-no-properties
-                  (vim-motion-begin-pos motion)
-                  (vim-motion-end-pos motion))))
-       (kill-new-ignoring-duplicates text)))))
-
-(vim-defcmd vim:yank-current-line ()
-  "Function that does what \"y$\" does in vanilla vim."
-  (vim:cmd-yank:wrapper :motion (save-excursion (vim:motion-end-of-line:wrapper))))
-
 (vim-defcmd vim:cmd-yank-line (count nonrepeatable)
   "Saves the next count lines into the kill-ring."
   (let ((beg (line-beginning-position)))
@@ -363,6 +347,22 @@ and switches to insert-mode."
       (kill-new-ignoring-duplicates txt))
     (goto-line-dumb begrow)
     (move-to-column begcol)))
+
+(vim-defcmd vim:cmd-yank (motion nonrepeatable)
+  "Saves the characters in motion into the kill-ring."
+  (pcase (vim-motion-type motion)
+    (`block (vim:cmd-yank-rectangle:wrapper :motion motion))
+    (`linewise (goto-line-dumb (vim-motion-first-line motion))
+               (vim:cmd-yank-line:wrapper :count (vim-motion-line-count motion)))
+    (_
+     (let ((text (buffer-substring-no-properties
+                  (vim-motion-begin-pos motion)
+                  (vim-motion-end-pos motion))))
+       (kill-new-ignoring-duplicates text)))))
+
+(vim-defcmd vim:yank-current-line ()
+  "Function that does what \"y$\" does in vanilla vim."
+  (vim:cmd-yank:wrapper :motion (save-excursion (vim:motion-end-of-line:wrapper))))
 
 (defun vim--yank-line-handler (text)
   "Inserts the current text linewise."
