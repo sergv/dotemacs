@@ -186,6 +186,7 @@ Intended to be used with comment-util-mode."
               js2-mode
               js-mode
               json-mode
+              json-ts-mode
               css-mode
               verilog-mode
               nix-drv-mode
