@@ -199,6 +199,7 @@ realign _l_et
 (defun debugger-setup ()
   (def-keys-for-map debugger-mode-map
     +vi-essential-keys+
+    +vim-search-keys+
     +vim-special-keys+
     +vim-word-motion-keys+
     ("<escape>" exit-recursive-edit)
