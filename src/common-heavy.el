@@ -1289,18 +1289,8 @@ groups in the result is *not specified*."
       (narrow-to-region start end))))
 
 (defun narrow-to-region-indirect--find-new-buf-name (orig-buf)
-  (let* ((name (buffer-name orig-buf))
-         (first-candidate (concat (buffer-name orig-buf)
-                                  ":narrowed")))
-    (if (buffer-live-p (get-buffer first-candidate))
-        (let* ((i 0)
-               (candidate nil))
-          (while (buffer-live-p (get-buffer (setf candidate (concat (buffer-name orig-buf)
-                                                                    ":narrowed:"
-                                                                    (number-to-string i)))))
-            (setf i (1+ i)))
-          candidate)
-      first-candidate)))
+  (generate-new-buffer-name (concat (buffer-name orig-buf)
+                                    ":indirect")))
 
 (provide 'common-heavy)
 
