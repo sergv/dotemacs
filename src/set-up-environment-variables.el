@@ -29,7 +29,7 @@
         (save-match-data
           (let ( ;; shell is expected to be a bash shell
                 (all-values (shell-command-to-string
-                             (format ". %s; printenv --null;"
+                             (format "source '%s' && printenv --null;"
                                      env-config-file))))
             (dolist (entry (split-string all-values "[\0]" t))
               (let ((eq-pos (cl-position ?\= entry)))
