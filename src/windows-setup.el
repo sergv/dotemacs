@@ -14,7 +14,7 @@ Such a directory is all lowercase, has forward-slashes as delimiters,
 and ends with a forward slash."
   (when dir
     (file-name-as-directory
-     (replace-regexp-in-string "^/\\([a-z]\\)/" "\\1:"
+     (replace-regexp-in-string "^/\\([a-z]\\)/" "\\1:/"
                                (downcase
                                 (subst-char-in-string ?\\ ?/ dir))))))
 
@@ -24,7 +24,7 @@ Such a directory is all lowercase, has forward-slashes as delimiters,
 and ends with a forward slash."
   (when dir
     (file-name-as-directory
-     (replace-regexp-in-string "^/\\([a-z]\\)/" "\\1:"
+     (replace-regexp-in-string "^/\\([a-z]\\)/" "\\1:/"
                                (string-remove-prefix "/cygdrive"
                                                      (downcase
                                                       (subst-char-in-string ?\\ ?/ dir)))))))
