@@ -29,6 +29,16 @@ and ends with a forward slash."
                                                      (downcase
                                                       (subst-char-in-string ?\\ ?/ dir)))))))
 
+(defun msys-or-cygwin-file-name-to-emacs (x)
+  (let ((case-fold-search t))
+    (cond
+      ((string-match-p "^/cygdrive/[a-z]/" x)
+       (cygwin-directory-name-to-emacs x))
+      ((string-match-p "^/[a-z]/" x)
+       (msys-directory-name-to-emacs x))
+      (t
+       x))))
+
 (defun msys-file-name-handler (func &rest args)
   "Make Emacs transparently handle MSYS-style paths when put in
 ‘file-name-handler-alist’."
