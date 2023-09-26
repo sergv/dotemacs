@@ -169,7 +169,7 @@ _a_ctions"
   ("a" lsp-execute-code-action))
 
 (vim-defcmd vim:c++-flycheck-reset (nonrepeatable)
-  (vim:flycheck-clear)
+  (vim:flycheck-clear:wrapper)
   (when (and (boundp 'flycheck-checker)
              (eq flycheck-checker 'lsp))
     (lsp-workspace-restart (lsp--read-workspace))))
