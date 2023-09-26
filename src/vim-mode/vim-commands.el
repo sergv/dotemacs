@@ -126,13 +126,13 @@
   "Moves the cursor to the beginning of the current line
 and switches to insert-mode."
   (vim:motion-first-non-blank:wrapper)
-  (vim:cmd-insert:wrapper :count count))
+  (vim:cmd-insert nil count nil nil nil))
 
 (vim-defcmd vim:cmd-Append (count)
   "Moves the cursor to the end of the current line
 and switches to insert-mode."
   (end-of-line)
-  (vim:cmd-append:wrapper :count count))
+  (vim:cmd-append nil count nil nil nil))
 
 (vim-defcmd vim:cmd-insert-line-above (count)
   "Inserts a new line above the current one and goes to insert mode."
@@ -157,7 +157,7 @@ and switches to insert-mode."
 
 (defun vim--cmd-delete-line-impl (count yank?)
   (when yank?
-    (vim:cmd-yank-line:wrapper :count count))
+    (vim:cmd-yank-line nil count nil nil nil))
   (let ((beg (line-beginning-position))
         (end (save-excursion
                (let ((n (1- (or count 1))))
@@ -191,34 +191,34 @@ and switches to insert-mode."
 
     (`block
      (when yank?
-       (vim:cmd-yank:wrapper :motion motion))
+       (vim:cmd-yank motion nil nil nil nil))
      (delete-rectangle (vim-motion-begin-pos motion)
                        (vim-motion-end-pos motion)))
 
     (_
      (when yank?
-       (vim:cmd-yank:wrapper :motion motion))
+       (vim:cmd-yank motion nil nil nil nil))
      (delete-region (vim-motion-begin-pos motion) (vim-motion-end-pos motion))
      (goto-char (vim-motion-begin-pos motion)))))
 
 (vim-defcmd vim:delete-current-line ()
   "Function that does what \"d$\" does in vanilla vim."
-  (vim:cmd-delete:wrapper :motion (vim:motion-end-of-line:wrapper)))
+  (vim:cmd-delete (vim:motion-end-of-line:wrapper) nil nil nil nil))
 
 (vim-defcmd vim:cmd-delete-char (count)
   "Deletes the next count characters."
-  (vim:cmd-delete:wrapper :motion (vim:motion-right:wrapper :count (or count 1))))
+  (vim:cmd-delete (vim:motion-right:wrapper :count (or count 1)) nil nil nil nil))
 
 (vim-defcmd vim:cmd-delete-char-backward (count)
   "Deletes the next count characters."
-  (vim:cmd-delete:wrapper :motion (vim:motion-left:wrapper :count (or count 1))))
+  (vim:cmd-delete (vim:motion-left:wrapper :count (or count 1)) nil nil nil nil))
 
 (vim-defcmd vim:cmd-change (motion)
   "Deletes the characters defined by motion and goes to insert mode."
   (pcase (vim-motion-type motion)
     (`linewise
      (goto-line-dumb (vim-motion-first-line motion))
-     (vim:cmd-change-line:wrapper :count (vim-motion-line-count motion)))
+     (vim:cmd-change-line nil (vim-motion-line-count motion) nil nil nil))
 
     (`block
       ;; Column number at vim-motion-begin-pos can be larger that column at vim-motion-end-pos.
@@ -230,7 +230,7 @@ and switches to insert-mode."
         (vim--init--vim-visual-insert-info-end! begin
                                                 (vim-motion-end-pos motion)
                                                 (vim-motion-first-col motion))
-        (vim:cmd-delete:wrapper :motion motion)
+        (vim:cmd-delete motion nil nil nil nil)
         (vim-visual--start-insert)))
 
     (_
@@ -246,15 +246,15 @@ and switches to insert-mode."
            (`vim:motion-fwd-WORD
             (setq motion (vim:motion-fwd-WORD-end:wrapper :count cnt))))))
 
-     (vim:cmd-delete:wrapper :motion motion)
+     (vim:cmd-delete motion nil nil nil nil)
      (if (eolp)
-         (vim:cmd-append:wrapper :count 1)
-       (vim:cmd-insert:wrapper :count 1)))))
+         (vim:cmd-append nil 1 nil nil nil)
+       (vim:cmd-insert nil 1 nil nil nil)))))
 
 (vim-defcmd vim:cmd-change-line (count)
   "Deletes count lines and goes to insert mode."
   (let ((pos (line-beginning-position)))
-    (vim:cmd-delete-line:wrapper :count count)
+    (vim:cmd-delete-line nil count nil nil nil)
     (if (< (point) pos)
       (progn
         (end-of-line)
@@ -265,25 +265,29 @@ and switches to insert-mode."
         (forward-line -1)))
     (indent-according-to-mode)
     (if (eolp)
-        (vim:cmd-append:wrapper :count 1)
-      (vim:cmd-insert:wrapper :count 1))))
+        (vim:cmd-append nil 1 nil nil nil)
+      (vim:cmd-insert nil 1 nil nil nil))))
 
 (vim-defcmd vim:cmd-change-rest-of-line ()
   "Deletes the rest of the current line."
   (let* ((start (point))
          (end (max start (line-end-position))))
-    (vim:cmd-delete:wrapper :motion (vim-make-motion :begin start
-                                             :end end
-                                             :type 'exclusive))
-    (vim:cmd-insert:wrapper :count 1)))
+    (vim:cmd-delete (vim-make-motion :begin start
+                                     :end end
+                                     :type 'exclusive)
+                    nil
+                    nil
+                    nil
+                    nil)
+    (vim:cmd-insert nil 1 nil nil nil)))
 
 (vim-defcmd vim:cmd-change-char (count)
   "Deletes the next count characters and goes to insert mode."
   (let ((pos (point)))
-    (vim:cmd-delete-char:wrapper :count count)
+    (vim:cmd-delete-char nil count nil nil nil)
     (if (< (point) pos)
-        (vim:cmd-append:wrapper)
-      (vim:cmd-insert:wrapper))))
+        (vim:cmd-append nil nil nil nil nil)
+      (vim:cmd-insert nil nil nil nil nil))))
 
 (vim-defcmd vim:cmd-replace-char (count (argument:char arg))
   "Replaces the next count characters with arg."
@@ -351,9 +355,9 @@ and switches to insert-mode."
 (vim-defcmd vim:cmd-yank (motion nonrepeatable)
   "Saves the characters in motion into the kill-ring."
   (pcase (vim-motion-type motion)
-    (`block (vim:cmd-yank-rectangle:wrapper :motion motion))
+    (`block (vim:cmd-yank-rectangle motion nil nil nil nil))
     (`linewise (goto-line-dumb (vim-motion-first-line motion))
-               (vim:cmd-yank-line:wrapper :count (vim-motion-line-count motion)))
+               (vim:cmd-yank-line nil (vim-motion-line-count motion) nil nil nil))
     (_
      (let ((text (buffer-substring-no-properties
                   (vim-motion-begin-pos motion)
@@ -362,7 +366,7 @@ and switches to insert-mode."
 
 (vim-defcmd vim:yank-current-line ()
   "Function that does what \"y$\" does in vanilla vim."
-  (vim:cmd-yank:wrapper :motion (save-excursion (vim:motion-end-of-line:wrapper))))
+  (vim:cmd-yank (save-excursion (vim:motion-end-of-line:wrapper)) nil nil nil nil))
 
 (defun vim--yank-line-handler (text)
   "Inserts the current text linewise."
@@ -594,7 +598,7 @@ around at all so that paste cycling happens at the same place in buffer."
   "Pastes the latest yanked text before point.
 If the inserted text consists of full lines those lines are
 indented according to the current mode."
-  (vim:cmd-paste-before:wrapper :count count)
+  (vim:cmd-paste-before nil count nil nil nil)
   (let* ((txt (current-kill 0))
          (yhandler (get-text-property 0 'yank-handler txt)))
     (when (eq (car yhandler) #'vim--yank-line-handler)
@@ -612,7 +616,7 @@ indented according to the current mode."
   "Pastes the latest yanked text behind point.
 If the inserted text consists of full lines those lines are
 indented according to the current mode."
-  (vim:cmd-paste-after:wrapper :count count)
+  (vim:cmd-paste-after nil count nil nil nil)
   (let* ((txt (current-kill 0))
          (yhandler (get-text-property 0 'yank-handler txt)))
     (when (eq (car yhandler) #'vim--yank-line-handler)
@@ -654,7 +658,7 @@ indented according to the current mode."
 (vim-defcmd vim:cmd-join (motion)
   "Join the lines covered by `motion'."
   (goto-line-dumb (vim-motion-first-line motion))
-  (vim:cmd-join-lines:wrapper :count (vim-motion-line-count motion)))
+  (vim:cmd-join-lines nil (vim-motion-line-count motion) nil nil nil))
 
 (defun vim:cmd-shift--ident (start-line end-line offset)
   (save-current-line-column
@@ -709,7 +713,7 @@ indented according to the current mode."
 (vim-defcmd vim:cmd-toggle-case-one-char (count)
   "Toggles the case of a single character at point and moves the point forward."
   (interactive)
-  (vim:cmd-toggle-case:wrapper :motion (vim:motion-right:wrapper :count count)))
+  (vim:cmd-toggle-case (vim:motion-right:wrapper :count count) nil nil nil nil))
 
 (vim-defcmd vim:cmd-make-upcase (motion)
   "Upcases all characters defined by `motion'."
