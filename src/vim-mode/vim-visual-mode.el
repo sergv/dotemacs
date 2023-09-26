@@ -229,7 +229,7 @@ popuated (in this case mostly by insert mode).")
   (add-hook 'post-command-hook #'vim-visual--post-command)
   (add-hook 'pre-command-hook #'vim-visual--normalize-region)
   (add-hook 'post-command-hook #'vim-visual--denormalize-region)
-  (add-hook 'deactivate-mark-hook #'vim:visual-mode-exit:wrapper))
+  (add-hook 'deactivate-mark-hook #'vim:visual-mode-exit--hook))
 
 (defun vim-visual-mode--deactivate ()
   "Called when visual mode is deactivated."
@@ -239,11 +239,15 @@ popuated (in this case mostly by insert mode).")
   (remove-hook 'pre-command-hook #'vim-visual--normalize-region)
   (remove-hook 'post-command-hook #'vim-visual--denormalize-region)
   (remove-hook 'post-command-hook #'vim-visual--post-command post-command-hook)
-  (remove-hook 'deactivate-mark-hook #'vim:visual-mode-exit:wrapper)
+  (remove-hook 'deactivate-mark-hook #'vim:visual-mode-exit--hook)
   (setq transient-mark-mode vim-visual--old-transient-mark-mode)
   (vim-visual--delete-overlays! vim-visual--overlays)
   (mapc #'kill-local-variable vim-visual--old-global-variables)
   (deactivate-mark))
+
+(defun vim:visual-mode-exit--hook ()
+  "Call ‘vim:visual-mode-exit’ from hooks."
+  (vim:visual-mode-exit:wrapper))
 
 (defun vim--visual-mode-command (command)
   "Executes a command in visual mode."
