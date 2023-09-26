@@ -54,6 +54,8 @@
 (require 's)
 (require 'xref)
 (require 'lcr)
+(when-windows
+ (require 'windows-setup))
 
 (require 'common)
 (require 'common-whitespace)
@@ -1008,7 +1010,11 @@ If WAIT is nil, abort if Dante is busy.  Pass the dante buffer to CONT"
                                                 ;; of :{ will be correctly identified.
                                                 "prompt-cont \"\"")))))
     (let ((dir (lcr-call dante-async-call ":!pwd")))
-      (with-current-buffer buffer (setq dante-ghci-path dir)))
+      (with-current-buffer buffer
+        (setq dante-ghci-path
+              (fold-platform-os-type
+               dir
+               (msys-or-cygwin-file-name-to-emacs dir)))))
     (dante-set-state 'started)
     (setf ghc-initialising? nil
           initial-ghc-messages nil)
