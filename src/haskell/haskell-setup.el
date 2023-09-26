@@ -70,7 +70,7 @@
 
 (vim-defcmd vim:haskell-lsp-flycheck-reset (nonrepeatable)
   "Restart lsp checker session."
-  (vim:flycheck-clear)
+  (vim:flycheck-clear:wrapper)
   (when (and (boundp 'flycheck-checker)
              (eq flycheck-checker 'lsp))
     (lsp-workspace-restart (lsp--read-workspace))))
@@ -81,7 +81,7 @@
   ;; dante buffer.
   (unless dante-mode
     (error "dante is not enabled"))
-  (vim:flycheck-clear)
+  (vim:flycheck-clear:wrapper)
   (dante-destroy)
   (lcr-spawn (lcr-call dante-start))
   (flycheck-buffer))
