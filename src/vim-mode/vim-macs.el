@@ -205,6 +205,7 @@ For more information about the vim:motion struct look at vim-core.el."
                    ;; ,@(when named-params `(&aux ,@named-params))
                    ))
            (has-args? (and args t))
+           (has-nontrivial-args? (or motion argument))
            (worker-args
             ;; (argument force &optional motion count register)
             ;; (argument force motion &optional count register)
@@ -268,10 +269,10 @@ For more information about the vim:motion struct look at vim-core.el."
                            '())
                      (if vim-active-mode
                          (vim-execute-command #',name)
-                       ,(if has-args?
+                       ,(if has-nontrivial-args?
                             `(error ,(format "Command %s takes arguments and cannot be called outside vim mode" name))
                           ;; `(apply #',name args)
-                          `(,name))))
+                          `(,name nil 1 nil nil nil))))
 
                    ;; (if ;; Since in minibuffer vim-mode may be inactive but
                    ;;     ;; we may still want to execute the desired command.
