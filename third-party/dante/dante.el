@@ -1008,7 +1008,8 @@ If WAIT is nil, abort if Dante is busy.  Pass the dante buffer to CONT"
                                           (list "prompt \"\\4%s|\""
                                                 ;; Empty continuation prompt so that output
                                                 ;; of :{ will be correctly identified.
-                                                "prompt-cont \"\"")))))
+                                                "prompt-cont \"\""
+                                                "-ignore-dot-ghci")))))
     (let ((dir (lcr-call dante-async-call "System.IO.putStrLn =<< System.Directory.getCurrentDirectory")))
       (with-current-buffer buffer
         (setq dante-ghci-path
