@@ -629,10 +629,11 @@ and over."
                                      (if interpret "*" "")
                                      (dante-local-name fname))))
         (cl-destructuring-bind (_status err-messages _loaded-modules)
-            (lcr-call dante-load-loop "" nil err-fn)
-          (setq dante-loaded-file src-fname)
-          (setq dante-load-message
-                (--map (-map #'ansi-color-apply it) err-messages)))))))
+            (lcr-call dante-load-loop "" err-fn)
+          (setq dante-loaded-file src-fname
+                dante-load-message
+                (let ((ansi-color-context nil))
+                  (--map (-map #'ansi-color-apply it) err-messages))))))))
 
 (defun dante-local-name (fname)
   "Local name of FNAME on the remote host."
@@ -1035,54 +1036,80 @@ Must be called from GHCi process buffer."
     (dante-debug 'inputs "%s" input)
     (s-replace "\r" "" input)))
 
-(defconst dante-ghci-prompt "\4\\(.*\\)|")
-
 (defun dante-regexp-disjoin (&rest regexps)
   "Return a regexp matching any of REGEXPS."
-  (s-join "\\|" regexps))
+  (mapconcat (lambda (x) (concat "\\(?:" x "\\)")) regexps "\\|"))
+
+(defconst dante-ghci-prompt "\4\\(?1:.*\\)|")
+
+(defconst dante-progress-regexp
+  "^\\[[0-9]* of [0-9]*\\] Compiling \\(?2:[^ \n]*\\).*")
+
+(defconst dante-success-regexp
+  (eval-when-compile
+    (concat
+     "^\\(?3:"
+     (dante-regexp-disjoin
+      "Ok, modules loaded:[ ]*[^\n ]*\\(?: (.*)\\)?"
+      "Ok, .*modules loaded" ;; .* stands for a number in english (two, three, ...) (GHC 8.2)
+      "Ok, one module loaded")
+     "\\.\\)")))
 
 (defconst dante-error-regexp
-  "^\\([A-Z]?:?[^ \n:][^:\n\r]+\\):\\([0-9()-:]+\\): \\(.*\\)\n\\(\\([ ]+.*\n\\)*\\)")
+  "^\\(?:\e\\\[[0-9;]*m\\)?\\(?4:\\(?:[a-zA-Z]:\\)?[^ \n:][^:\n\r]+\\):\\(?5:[0-9()-:]+\\): \\(?6:.*\\)\n\\(?7:\\(?:[ ]+.*\r?\n\\)*\\)")
 
-(lcr-def dante-load-loop (acc err-msgs err-fn)
+(lcr-def dante-load-loop (str err-fn)
   "Parse the output of load command.
 ACC umulate input and ERR-MSGS."
   (save-match-data
-    (let ((success (dante-regexp-disjoin
-                    "^Ok, modules loaded:[ ]*\\([^\n ]*\\)\\( (.*)\\)?\."
-                    "^Ok, .*modules loaded." ;; .* stands for a number in english (two, three, ...) (GHC 8.2)
-                    "^Ok, one module loaded."))
-          (progress "^\\[\\([0-9]*\\) of \\([0-9]*\\)\\] Compiling \\([^ \n]*\\).*")
-          result cur-file)
+    (let (result
+          cur-file
+          err-msgs
+          (acc str))
       (while (not result)
-        (let* ((i (string-match (dante-regexp-disjoin dante-ghci-prompt success dante-error-regexp progress) acc))
-               (m (when i (match-string 0 acc)))
+        (let* ((i (string-match (eval-when-compile
+                                  (dante-regexp-disjoin dante-ghci-prompt
+                                                        dante-progress-regexp
+                                                        dante-success-regexp
+                                                        dante-error-regexp))
+                                acc))
                (rest (when i (substring acc (match-end 0)))))
-          (cond ((and m (string-match dante-ghci-prompt m))
+          (cond ((and i
+                      (match-beginning 1))
+                 ;; (and m
+                 ;;      (string-match dante-ghci-prompt m))
                  (setq dante-state (list 'ghc-err (pcase dante-state
                                                     (`(compiling ,module) (ansi-color-apply module))
                                                     (_ cur-file)))) ; when the module name is wrong, ghc does not output any "Compiling ..." message
-                 (setq result (list 'failed (nreverse err-msgs) (match-string 1 m))))
-                ((and m (string-match progress m))
-                 (setq dante-state (list 'compiling (match-string 3 m))))
-                ((and m (string-match success m))
-                 ;; With the +c setting, GHC (8.2) prints: 1. error
-                 ;; messages+warnings, if compiling only 2. if successful,
-                 ;; repeat the warnings
+                 (setq result (list 'failed (nreverse err-msgs) (match-string 1 acc))))
+
+                ((and i
+                      (match-beginning 2))
+                 (setq dante-state (list 'compiling (match-string 2 acc))))
+
+                ((and i
+                      (match-beginning 3))
+                 ;; With the +c setting, GHC (8.2) prints:
+                 ;; 1. error messages+warnings, if compiling only
+                 ;; 2. if successful, repeat the warnings
                  (setq dante-state 'process-warnings)
-                 (cl-destructuring-bind (_status warning-msgs loaded-mods) (lcr-call dante-load-loop rest nil nil)
-                   (setq dante-state (list 'loaded loaded-mods))
-                   (setq result (list 'ok (or (nreverse err-msgs) warning-msgs) loaded-mods))))
-                ((and m (> (length rest) 0) (/= (elt rest 0) ?\s)) ;; make sure we're matching a full error message
-                 (when (string-match dante-error-regexp m)
-                   (let* ((file (match-string 1 m))
+                 (cl-destructuring-bind (_status warning-msgs loaded-mods) (lcr-call dante-load-loop rest nil)
+                   (setq dante-state (list 'loaded loaded-mods)
+                         result (list 'ok (or (nreverse err-msgs) warning-msgs) loaded-mods))))
+
+                ((and i
+                      (not (zerop (length rest)))
+                      (/= (aref rest 0) ?\s)) ;; make sure we're matching a full error message
+                 (when (match-beginning 4)
+                   (let* ((file (match-string 4 acc))
                           (err-msg (list file
-                                         (match-string 2 m)
-                                         (match-string 3 m)
-                                         (match-string 4 m))))
+                                         (match-string 5 acc)
+                                         (match-string 6 acc)
+                                         (match-string 7 acc))))
                      (setq cur-file file)
                      (push err-msg err-msgs)
                      (when err-fn (funcall err-fn (list err-msg))))))
+
                 (t (setq rest (concat acc (lcr-call dante-async-read)))))
           (setq acc rest)))
       result)))
@@ -1097,11 +1124,13 @@ ACC umulate input and ERR-MSGS."
   (with-current-buffer (dante-buffer-p)
     (dante-async-write cmd)
     (let ((acc "")
-          (matched nil))
-      (while (not matched)
-        (setq acc (concat acc (lcr-call dante-async-read)))
-        (setq matched (string-match dante-ghci-prompt acc)))
-      (ansi-color-apply (trim-whitespace-right (substring acc 0 (1- (match-beginning 1))))))))
+          (matched nil)
+          (ansi-color-context nil))
+      (save-match-data
+        (while (not matched)
+          (setq acc (concat acc (lcr-call dante-async-read)))
+          (setq matched (string-match dante-ghci-prompt acc)))
+        (ansi-color-apply (trim-whitespace-right (substring acc 0 (1- (match-beginning 1)))))))))
 
 (defun dante-sentinel (process change init-msg)
   "Handle when PROCESS reports a CHANGE.
