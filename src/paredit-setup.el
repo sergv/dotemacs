@@ -136,9 +136,9 @@
 
 ;; :call-n-times nil because these two handle numeric arguments themselves
 ;;;###autoload (autoload 'vim:paredit-forward-kill "paredit-setup" "" t)
-(vimmize-function paredit-forward-kill :name vim:paredit-forward-kill :call-n-times nil)
+(vimmize-function paredit-forward-kill :name vim:paredit-forward-kill :call-n-times nil :has-count t)
 ;;;###autoload (autoload 'vim:paredit-backward-kill "paredit-setup" "" t)
-(vimmize-function paredit-backward-kill :name vim:paredit-backward-kill :call-n-times nil)
+(vimmize-function paredit-backward-kill :name vim:paredit-backward-kill :call-n-times nil :has-count t)
 
 ;;;###autoload (autoload 'vim:paredit-forward-kill-word "paredit-setup" "" t)
 (vimmize-function paredit-forward-kill-word :name vim:paredit-forward-kill-word :call-n-times t)
