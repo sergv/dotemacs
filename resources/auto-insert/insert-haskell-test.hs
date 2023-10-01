@@ -4,10 +4,9 @@
 -- License:    ${license spdx} (see LICENSE)
 -- Maintainer: ${email}
 
-{-# LANGUAGE ApplicativeDo       #-}
-{-# LANGUAGE ImportQualifiedPost #-}
-{-# LANGUAGE NamedFieldPuns      #-}
-{-# LANGUAGE RecordWildCards     #-}
+{-# LANGUAGE ApplicativeDo   #-}
+{-# LANGUAGE NamedFieldPuns  #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module ${haskell path to module name} (main) where
 
