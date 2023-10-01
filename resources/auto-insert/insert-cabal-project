@@ -16,7 +16,7 @@ constraints:
 -- optimization: 2
 
 -- source-repository-package
---   type: it
+--   type: git
 --   location: https://github.com/foo/bar.git
 --   -- location: git://github.com/foo/bar.git
 --   -- branch: master
