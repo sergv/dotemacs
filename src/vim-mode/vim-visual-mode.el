@@ -189,6 +189,9 @@ popuated (in this case mostly by insert mode).")
 
 (vim-defcmd vim:visual-mode-exit (nonrepeatable)
   "Deactivates visual mode, returning to normal-mode."
+  (vim:visual-mode-exit--impl))
+
+(defsubst vim:visual-mode-exit--impl ()
   (vim-activate-normal-mode))
 
 (vim-defcmd vim:visual-mode-reactivate (nonrepeatable)

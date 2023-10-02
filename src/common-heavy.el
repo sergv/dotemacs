@@ -22,6 +22,8 @@
 (declare-function ffap-guesser "ffap")
 (declare-function search-property "search-prop")
 
+(declare-function vim:visual-mode-exit--impl "vim-visual-mode")
+
 (require 'dash)
 (require 'common-constants)
 (require 'custom-predicates)
@@ -1264,7 +1266,7 @@ groups in the result is *not specified*."
   (interactive "P")
   (with-region-bounds start end
     (when (vim-visual-mode-p)
-      (vim:visual-mode-exit:wrapper))
+      (vim:visual-mode-exit--impl))
     (if create-new-buf?
         (progn
           (let* ((orig-buf (current-buffer))
