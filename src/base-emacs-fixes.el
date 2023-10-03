@@ -797,13 +797,19 @@ characters."
             (and pr (progress-reporter-done pr)))
           (move-marker end nil))))))
 
-(el-patch-defun hl-line-make-overlay ()
-  (let ((ol (make-overlay (point) (point))))
-    (overlay-put ol 'priority hl-line-overlay-priority)
-    (overlay-put ol 'face hl-line-face)
-    (el-patch-add
-      (overlay-put ol 'hl-line t))
-    ol))
+;;;###autoload
+(el-patch-feature hl-line)
+
+(defun hl-line-init ()
+  (el-patch-defun hl-line-make-overlay ()
+    (let ((ol (make-overlay (point) (point))))
+      (overlay-put ol 'priority hl-line-overlay-priority)
+      (overlay-put ol 'face hl-line-face)
+      (el-patch-add
+        (overlay-put ol 'hl-line t))
+      ol)))
+
+(eval-after-load "hl-line" '(hl-line-init))
 
 ;;;###autoload
 (defun hl-line--fix-state-after-clone ()
@@ -813,6 +819,7 @@ characters."
         ov
         (overlay-get ov 'hl-line)
       (overlay-put ov 'is-fixed-after-clone? t)
+      ;; Overlays are already copied, need to only propagate them to correct variables
       (setf hl-line-overlay ov))))
 
 ;;;###autoload
