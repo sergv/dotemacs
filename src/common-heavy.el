@@ -1280,7 +1280,7 @@ groups in the result is *not specified*."
                   t
                 (if (overlay-get ov 'is-fixed-after-clone?)
                     ;; So that subsequent indirect buffers don’t inherit
-                    ;; fixidness state.
+                    ;; fixedness state.
                     (overlay-put ov 'is-fixed-after-clone? nil)
                   ;; Remove overlays that were not explicitly migrated.
                   (delete-overlay ov)))
