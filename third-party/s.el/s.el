@@ -522,7 +522,7 @@ SUBEXP-DEPTH is 0 by default."
         (setq pos (match-end 0)))
       (nreverse result))))
 
-(defun s-match (regexp s &optional start)
+(defun s-match (regexp s &optional start omit-properties?)
   "When the given expression matches the string, this function returns a list
 of the whole matching string and a string for each matched subexpressions.
 Subexpressions that didn't match are represented by nil elements
@@ -541,7 +541,10 @@ When START is non-nil the search will start at that index."
           (while match-data-list
             (let* ((beg (car match-data-list))
                    (end (cadr match-data-list))
-                   (subs (if (and beg end) (substring s beg end) nil)))
+                   (subs (when (and beg end)
+                           (if omit-properties?
+                               (substring-no-properties s beg end)
+                             (substring s beg end)))))
               (setq result (cons subs result))
               (setq match-data-list
                     (cddr match-data-list))))
