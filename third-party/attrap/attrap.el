@@ -253,7 +253,7 @@ value is a list which is appended to the result of
 (defun attrap-elisp-fixer (msg _beg _end)
   "An `attrap' fixer for any elisp warning given as MSG."
   (append
-   (when-let ((match (s-match "You should have a section marked \"\\(.*\\)\"" msg)))
+   (when-let ((match (s-match "You should have a section marked \"\\(.*\\)\"" msg nil t)))
      (attrap-one-option 'insert-section-header
        (beginning-of-line)
        (insert (nth 1 match) "\n")))
@@ -454,11 +454,15 @@ Error is given as MSG and reported between POS and END."
    (when-let ((match (s-match (rx "Perhaps you want to add " (identifier 1)
                                   " to the import list in the import of " (identifier 2)
                                   " " (parens (src-loc 3 4 5 6)))
-                              normalized-msg)))
+                              normalized-msg
+                              nil
+                              t)))
      (list (attrap-add-to-import (nth 1 match) (nth 2 match) (nth 5 match) (nth 6 match))))
    (when-let ((match (s-match (rx "Perhaps you want to add " (identifier 1)
                                   " to one of these import lists:")
-                              normalized-msg)))
+                              normalized-msg
+                              nil
+                              t)))
      (--map (attrap-add-to-import (nth 1 match) (nth 2 it) (nth 5 it) (nth 6 it))
             (s-match-strings-all (rx (identifier 2) " " (parens (src-loc 3 4 5 6))) msg)))
     ;; Not in scope: data constructor ‘SimpleBroadcast’
@@ -509,7 +513,10 @@ Error is given as MSG and reported between POS and END."
       ;; note there can be a kind annotation, not just a variable.
       (delete-region (point) (+ (point) (- (match-end 1) (match-beginning 1))))))
    ;;     Module ‘TensorFlow.GenOps.Core’ does not export ‘argmax’.
-   (when-let ((m (s-match (rx "No module named " (identifier 1) " is imported.") msg)))
+   (when-let ((m (s-match (rx "No module named " (identifier 1) " is imported.")
+                          msg
+                          nil
+                          t)))
      (attrap-one-option (list 'add-import (nth 1 m))
        (goto-char 1)
        (search-forward-regexp (rx "module" (*? anychar) "where"))
@@ -567,7 +574,9 @@ Error is given as MSG and reported between POS and END."
      (list (attrap-insert-language-pragma "ScopedTypeVariables")))
    (when-let (match (s-match (rx "Fields of " (identifier 1) " not initialised: "
                                  (group-n 2 (+ (not (any "•")))) "•")
-                             msg))
+                             msg
+                             nil
+                             t))
      (attrap-one-option 'initialize-fields
        (let ((fields (s-split "," (nth 2 match) t)))
          (search-forward "{")
