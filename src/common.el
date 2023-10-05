@@ -120,16 +120,18 @@ then insert absolute filepath, otherwise insert one relative to the current
             nil
             (lambda (x) (or (file-directory-p x)
                        (file-exists-p x))))))
-         (path (if (and default-directory
+         (def-dir (when default-directory
+                    (expand-file-name default-directory)))
+         (path (if (and def-dir
                         (not abs-path?)
                         ;; If there’s no common prefix then no point going after relative
                         ;; path.
                         (let ((len (common-string-prefix-length abs-path
-                                                                default-directory
+                                                                def-dir
                                                                 (fold-platform-os-type nil t))))
                           ;; If match is longer than either "/" or "C:/"
                           (< (fold-platform-os-type 1 3) len)))
-                   (file-relative-name abs-path default-directory)
+                   (file-relative-name abs-path def-dir)
                  abs-path))
          (output (if (and (eq major-mode 'org-mode)
                           (y-or-n-p "Insert link? "))
