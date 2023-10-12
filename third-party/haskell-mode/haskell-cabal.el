@@ -117,10 +117,10 @@ By default these are:
      (1 font-lock-keyword-face) (2 font-lock-type-face))
     ("^\\([Ss]ource-[Rr]epository\\)[ \t]+\\(head\\|this\\)"
      (1 font-lock-keyword-face) (2 font-lock-type-face))
-    ("^\\(haddock\\|source-repository-package\\|program-locations\\|program-default-options\\)\\([ \t]\\|$\\)"
+    ("^\\(haddock\\|source-repository-package\\|program-locations\\|program-default-options\\)\\(?:[ \t]\\|$\\)"
      (1 font-lock-keyword-face))
-    ("^[ \t]*\\(if\\)[ \t]+.*\\({\\|$\\)" (1 font-lock-keyword-face))
-    ("^[ \t]*\\(}[ \t]*\\)?\\(else\\)[ \t]*\\({\\|$\\)"
+    ("^[ \t]*\\(if\\)[ \t(]+.*\\({\\|$\\)" (1 font-lock-keyword-face))
+    ("^[ \t]*\\(}[ \t]*\\)?\\(else\\)[ \t]*\\(?:{\\|$\\)"
      (2 font-lock-keyword-face))
     ("\\<\\(?:[Tt]rue\\|[Ff]alse\\)\\>"
      (0 font-lock-constant-face))))
