@@ -19,9 +19,11 @@
                                   (window-prev-buffers win))))
 
     (if-let ((next-buf-entry (car prev-bufs)))
-        (progn
+        (let ((is-dedicated? (window-dedicated-p win)))
           (set-window-prev-buffers win prev-bufs)
-          (switch-to-buffer (car next-buf-entry))
+          (set-window-next-buffers win nil)
+          (set-window-buffer win (car next-buf-entry))
+          (set-window-dedicated-p win is-dedicated?)
           (set-window-start win (cadr next-buf-entry))
           (goto-char (caddr next-buf-entry)))
       (error "no alive previous buffers to switch to"))))
