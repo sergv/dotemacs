@@ -11,7 +11,8 @@
 (eval-when-compile
   (require 'cl)
   (require 'subr-x)
-  (require 'macro-util))
+  (require 'macro-util)
+  (require 'vim-motions))
 
 (require 'persistent-sessions-global-vars)
 
