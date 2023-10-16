@@ -8,11 +8,13 @@
 
 (eval-when-compile
   (require 'cl)
-  (require 'macro-util))
+  (require 'macro-util)
+  (require 'vim-search))
 
 (require 'vim-common)
 (require 'vim-macs)
 (require 'vim-ex)
+(require 'vim-search)
 
 ;; (vim--define-arg-handler 'substitute
 ;;   :activate 'vim-ex--pattern-argument-activate

@@ -13,6 +13,7 @@
 
 (eval-when-compile
   (require 'cl)
+  (require 'vim-motions)
   (defvar vim--last-undo))
 
 (require 'vim-macs)

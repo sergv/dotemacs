@@ -92,7 +92,8 @@
 (eval-when-compile
   (require 'cl)
   (require 'macro-util)
-  (require 'vim-macs))
+  (require 'vim-macs)
+  (require 'vim-motions))
 
 (require 'current-column-fixed)
 (require 'macro-util)
