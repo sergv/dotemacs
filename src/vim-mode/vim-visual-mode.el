@@ -18,7 +18,7 @@
   (require 'cl)
   (require 'macro-util)
   (require 'search)
-
+  (require 'vim-commands)
   (defvar vim--last-undo))
 
 (require 'common)
