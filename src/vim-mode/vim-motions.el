@@ -1012,7 +1012,7 @@ text-object before or at point."
                       (vim--move-fwd-beg 1 #'vim-boundary--sentence)
                       (point))
                     (save-excursion
-                      (vim:motion-fwd-paragraph:wrapper)
+                      (vim:motion-fwd-paragraph nil nil nil nil nil)
                       (point))))))
 
 (vim-defmotion vim:motion-bwd-sentence (exclusive count raw-result)
