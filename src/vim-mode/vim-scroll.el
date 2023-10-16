@@ -16,9 +16,8 @@
 
 (eval-when-compile
   (require 'cl)
-
+  (require 'vim-motions)
   (defvar vim-scroll-move-point))
-
 
 (require 'vim-macs)
 (require 'vim-motions)
