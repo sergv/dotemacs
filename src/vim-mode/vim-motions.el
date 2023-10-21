@@ -52,6 +52,7 @@
   (require 'cl)
   (require 'subr-x))
 
+(require 'common-whitespace)
 (require 'vim-defs)
 (require 'vim-macs)
 (require 'vim-core)
@@ -1246,9 +1247,6 @@ but only on the current line."
                           :type 'inclusive))))))
 
 (defun vim--bounds-of-string--guess-via-beginning-of-defun ()
-  ;; Find beginning current “function” to limit parsing
-  ;; scope. The “function” here is defined as any
-  ;; non-whitespace entity which starts at column 0.
   (save-excursion
     (beginning-of-defun)
     (point)))
@@ -1259,6 +1257,21 @@ but only on the current line."
         (and (comint-previous-prompt 1)
              (point)))
       (point-min)))
+
+(defun vim--bounds-of-string--guess-via-enclosing-smaller-indent ()
+  ;; Find beginning of enclosing “entity” to limit parsing scope. The
+  ;; “entity” here is defined as any thing above us that has less
+  ;; indentation (leading whitespace) than we do.
+  (save-excursion
+    (let ((our-indent (indentation-size)))
+      (if (zerop our-indent)
+          (line-beginning-position)
+        (progn
+          (move-to-column 0)
+          (while (and (not (bobp))
+                      (<= our-indent (indentation-size)))
+            (forward-line -1))
+          (point))))))
 
 (defvar vim-bounds-of-string-guess-start #'vim--bounds-of-string--guess-via-beginning-of-defun
   "Function that should produce point in current buffer that would
