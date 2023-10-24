@@ -366,18 +366,21 @@
 
 (defun ebuf--section-idx-at-point ()
   (when ebuf--all-sections
-    (let ((pt (point)))
-      (bisect-find ebuf--all-sections
-                   0
-                   (length ebuf--all-sections)
-                   (lambda (section)
-                     (and (<= (ebuf-section-beg section)
-                              pt)
-                          (<= pt
-                              (ebuf-section-caption-end section))))
-                   (lambda (section)
-                     (< pt
-                        (ebuf-section-beg section)))))))
+    (let* ((pt (point))
+           (len (length ebuf--all-sections))
+           (idx (bisect-find ebuf--all-sections
+                             0
+                             len
+                             (lambda (section)
+                               (and (<= (ebuf-section-beg section)
+                                        pt)
+                                    (<= pt
+                                        (ebuf-section-caption-end section))))
+                             (lambda (section)
+                               (< pt
+                                  (ebuf-section-beg section))))))
+      ;; Don’t let result go past the last section.
+      (min idx (1- len)))))
 
 (defun ebuf--section-at-point ()
   (awhen (ebuf--section-idx-at-point)
