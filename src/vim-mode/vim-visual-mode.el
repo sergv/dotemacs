@@ -157,7 +157,7 @@ popuated (in this case mostly by insert mode).")
   (if (and (vim-visual-mode-p)
            (eq vim-visual--mode-type type)
            (vim--toplevel-execution?))
-      (vim:visual-mode-exit:wrapper)
+      (vim:visual-mode-exit nil nil nil nil nil)
     (vim-activate-visual type)))
 
 (vim-defcmd vim:visual-toggle-normal (nonrepeatable keep-visual)
