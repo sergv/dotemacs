@@ -75,6 +75,7 @@ common ghc-options
   if impl(ghc >= 9.8)
     ghc-options:
       -Wno-missing-role-annotations
+      -Wno-missing-poly-kind-signatures
 
 library
   import: ghc-options
