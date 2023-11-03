@@ -33,35 +33,44 @@
                               :line-number line
                               :column-number col))))
 
-(defun compilation/find-buffer (filename &optional root)
+(defun compilation/find-buffer (filename &optional root proj-dir)
   "Get buffer that corresponds to FILENAME, which may be neither full nor
-relative path. In case it's neither, the filename with suffix equal to FILENAME
-will searched for."
+relative path. In case it's neither, a buffer visiting filename
+with suffix equal to FILENAME will searched for."
   (cl-assert (not (= 0 (length filename))))
-  (aif (-find (lambda (buf)
-                (string-suffix-p filename (buffer-file-name buf)))
-              (visible-buffers))
-      it
-    (cl-block done
-      ;; If filename did not resolve in immediate root then try all the parents,
-      ;; perhaps compilation was actually executed/reported its errors from the
-      ;; directory above?
-      (dolist (parent (file-name-all-parents root))
-        (let ((resolved-filename (resolve-to-abs-path-lax filename parent)))
-          (when (and resolved-filename
-                     (file-exists-p resolved-filename))
-            (cl-return-from done
-              (aif (get-file-buffer resolved-filename)
-                  it
-                (find-file-noselect resolved-filename)))))))))
+  (let ((root-norm (and root
+                        (normalise-file-name root)))
+        (proj-dir-norm (and proj-dir
+                            (normalise-file-name proj-dir))))
+    (aif (-find (lambda (buf)
+                  (awhen (buffer-file-name buf)
+                    (let ((buf-file (normalise-file-name it)))
+                      (and (string-suffix-p filename buf-file)
+                           (or (and root-norm (string-prefix-p root-norm buf-file))
+                               (and proj-dir-norm (string-prefix-p proj-dir-norm buf-file)))))))
+                (visible-buffers))
+        it
+      (cl-block done
+        ;; If filename did not resolve in immediate root then try all the parents,
+        ;; perhaps compilation was actually executed/reported its errors from the
+        ;; directory above?
+        (dolist (parent (file-name-all-parents root))
+          (let ((resolved-filename (resolve-to-abs-path-lax filename parent)))
+            (when (and resolved-filename
+                       (file-exists-p resolved-filename))
+              (cl-return-from done
+                (aif (get-file-buffer resolved-filename)
+                    it
+                  (find-file-noselect resolved-filename))))))))))
 
-(defun compilation/jump-to-error (err &optional other-window)
+(defun compilation/jump-to-error (err &optional other-window proj-dir)
   "Jump to source of compilation error. ERR should be structure describing
 error location - value of compilation-error structure."
   (cl-assert (compilation-error-p err))
   (aif (compilation/find-buffer
         (compilation-error/filename err)
-        (compilation-error/compilation-root-directory err))
+        (compilation-error/compilation-root-directory err)
+        proj-dir)
     (funcall (if other-window
                #'switch-to-buffer-other-window
                #'switch-to-buffer)
@@ -76,13 +85,13 @@ error location - value of compilation-error structure."
   "Jump to location of error or warning (file, line and column) in current window."
   (interactive)
   (when-let (err (compilation--error-at-point))
-    (compilation/jump-to-error err nil)))
+    (compilation/jump-to-error err nil nil)))
 
 (defun compilation/goto-error-other-window ()
   "Jump to location of error or warning (file, line and column) in other window."
   (interactive)
   (when-let (err (compilation--error-at-point))
-    (compilation/jump-to-error err t)))
+    (compilation/jump-to-error err t nil)))
 
 (defun compilation-navigation--use-selected-error-or-jump-to-next (win buf jump-to-next-err-func)
   "Either return error currently selected in the compilation buffer BUF, if
@@ -125,7 +134,7 @@ with the position of the selected error."
                           win
                           comp-buf
                           jump-to-next-err-func))
-                (compilation/jump-to-error err nil)
+                (compilation/jump-to-error err nil nil)
               (funcall fallback))
           (funcall fallback)))
     (funcall fallback)))
@@ -153,7 +162,8 @@ it's position in current window."
 via ‘configurable-compilation-buffer-name’ and
 ‘configurable-compilation-proj-dir’) and jump to it's position in
 current window."
-  (let ((bufname (configurable-compilation-buffer-name (configurable-compilation-proj-dir))))
+  (let* ((proj-dir (configurable-compilation-proj-dir))
+         (bufname (configurable-compilation-buffer-name proj-dir)))
     (if-let ((buf (get-buffer bufname)))
         (if-let ((win (get-buffer-window buf t)))
             (let ((err (with-selected-window win
@@ -164,7 +174,7 @@ current window."
                            (when hl-line-mode
                              (hl-line-highlight))
                            (compilation--error-at-point)))))
-              (compilation/jump-to-error err nil))
+              (compilation/jump-to-error err nil proj-dir))
           (error "Compilation buffer for current project is not visible: %s" bufname))
       (error "No compilation buffer: %s" bufname))))
 
