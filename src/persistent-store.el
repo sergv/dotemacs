@@ -192,76 +192,78 @@ performed for some field."
         ;; file was not changed since we loaded data from it
         (persistent-store-write-contents-to-file new-content persistent-store-store-file)
       ;; file was changed since we loaded data from it
-      (let ((merged-content
-             (persistent-store-try-merging-contents
-              (cl-sort
-               (hash-table->alist
-                (persistent-store-read-contents-from-string current-content-str))
-               #'string<
-               :key #'car)
-              new-content)))
-        (if merged-content
-            (persistent-store-write-contents-to-file
-             merged-content
-             persistent-store-store-file)
-          (let ((done nil))
-            (while (not done)
-              (let ((ch nil))
-                (while (not (memq ch '(?y ?n ?d ?b ?h ?\? ?Y ?N ?D ?B ?H 7 27 ?q ?Q)))
-                  (setf ch (read-key (format "Store file changed since last load, store anyway? [?hyYnNdDbB]: "))))
-                (cond
-                  ((or (= ch 7)  ;; C-g, abort
-                       (= ch 27) ;; <escape>
-                       (char=? ch ?q)
-                       (char=? ch ?Q))
-                   (error "Store file not saved, *your data may get lost*"))
-                  ((or (char=? ch ?y)
-                       (char=? ch ?Y))
-                   (persistent-store-write-contents-to-file
-                    new-content
-                    persistent-store-store-file)
-                   (setf persistent-store-loaded-content
-                         (buffer-substring-no-properties (point-min) (point-max))
-                         done t))
-                  ((and
-                    (or (char=? ch ?n)
-                        (char=? ch ?N))
-                    (y-or-n-p "Store file not saved, *your data may get lost*. Really continue?"))
-                   (setf done t)
-                   ;; unwind stack, prevent emacs exit if any
-                   ;; by all means, let the user know, that he may loose data!
-                   (message "Store file not saved, *your data may get lost*")
-                   (sit-for 0.5))
-                  ((or (char=? ch ?d)
-                       (char=? ch ?D))
-                   (ediff-diff-texts-recursive-edit
-                    persistent-store-loaded-content
-                    current-content-str
-                    :a-buf-name "Loaded contents (original file)"
-                    :b-buf-name "Current file contents")
-                   (sit-for 0.1))
-                  ((or (char=? ch ?b)
-                       (char=? ch ?B))
-                   (persistent-store-write-contents-to-file
-                    new-content
-                    (read-file-name "Backup file name: "
-                                    (file-name-directory persistent-store-store-file)
-                                    persistent-store-backup-file))
-                   (setf done t))
-                  ((or (char=? ch ?h)
-                       (char=? ch ?H)
-                       (char=? ch ?\?))
-                   (read-key
-                    (join-lines
-                     '("yY  - write your data to store file, nevermind that someone wrote something there"
-                       "nN  - do not write data, *your data may get lost*"
-                       "dD  - view diff between contents of store file loaded by you and current one"
-                       "bB  - write to backup file"
-                       "?hH - show this message"
-                       ""
-                       "Press any key to continue")
-                     "\n"))
-                   (sit-for 0.1)))))))))))
+      (let ((current-content
+             (hash-table->alist
+              (persistent-store-read-contents-from-string current-content-str))))
+        (cl-assert (--all? (symbolp (car it)) current-content) nil
+                   "Current contents of %s is not valid"
+                   persistent-store-store-file)
+        (let ((merged-content
+               (persistent-store-try-merging-contents
+                (cl-sort current-content #'string< :key #'car)
+                new-content)))
+          (if merged-content
+              (persistent-store-write-contents-to-file
+               merged-content
+               persistent-store-store-file)
+            (let ((done nil))
+              (while (not done)
+                (let ((ch nil))
+                  (while (not (memq ch '(?y ?n ?d ?b ?h ?\? ?Y ?N ?D ?B ?H 7 27 ?q ?Q)))
+                    (setf ch (read-key (format "Store file changed since last load, store anyway? [?hyYnNdDbB]: "))))
+                  (cond
+                    ((or (= ch 7)  ;; C-g, abort
+                         (= ch 27) ;; <escape>
+                         (char=? ch ?q)
+                         (char=? ch ?Q))
+                     (error "Store file not saved, *your data may get lost*"))
+                    ((or (char=? ch ?y)
+                         (char=? ch ?Y))
+                     (persistent-store-write-contents-to-file
+                      new-content
+                      persistent-store-store-file)
+                     (setf persistent-store-loaded-content
+                           (buffer-substring-no-properties (point-min) (point-max))
+                           done t))
+                    ((and
+                      (or (char=? ch ?n)
+                          (char=? ch ?N))
+                      (y-or-n-p "Store file not saved, *your data may get lost*. Really continue?"))
+                     (setf done t)
+                     ;; unwind stack, prevent emacs exit if any
+                     ;; by all means, let the user know, that he may loose data!
+                     (message "Store file not saved, *your data may get lost*")
+                     (sit-for 0.5))
+                    ((or (char=? ch ?d)
+                         (char=? ch ?D))
+                     (ediff-diff-texts-recursive-edit
+                      persistent-store-loaded-content
+                      current-content-str
+                      :a-buf-name "Loaded contents (original file)"
+                      :b-buf-name "Current file contents")
+                     (sit-for 0.1))
+                    ((or (char=? ch ?b)
+                         (char=? ch ?B))
+                     (persistent-store-write-contents-to-file
+                      new-content
+                      (read-file-name "Backup file name: "
+                                      (file-name-directory persistent-store-store-file)
+                                      persistent-store-backup-file))
+                     (setf done t))
+                    ((or (char=? ch ?h)
+                         (char=? ch ?H)
+                         (char=? ch ?\?))
+                     (read-key
+                      (join-lines
+                       '("yY  - write your data to store file, nevermind that someone wrote something there"
+                         "nN  - do not write data, *your data may get lost*"
+                         "dD  - view diff between contents of store file loaded by you and current one"
+                         "bB  - write to backup file"
+                         "?hH - show this message"
+                         ""
+                         "Press any key to continue")
+                       "\n"))
+                     (sit-for 0.1))))))))))))
 
 (defun persistent-store-debug-print-content ()
   (interactive)
