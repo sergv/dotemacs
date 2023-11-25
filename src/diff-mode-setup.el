@@ -72,6 +72,22 @@ _,_: kill hunk"
 ;;;###autoload
 (add-hook 'diff-mode-hook #'diff-mode-setup)
 
+;;;###autoload
+(defun diff-magic-function ()
+  "Detect whether buffer shows patch produced by the \"diff\" command-line tool."
+  (when-buffer-has-file
+    (and
+     ;; Only attempt to classify files which are not clear from the get go.
+     (null (file-name-extension buffer-file-name))
+     (save-excursion
+       (save-match-data
+         (goto-char (point-min))
+         (and (re-search-forward (rx bol "--- ") nil t)
+              (re-search-forward (rx bol "+++ ") nil t)))))))
+
+;;;###autoload
+(add-to-list 'magic-mode-alist (cons #'diff-magic-function #'diff-mode))
+
 (provide 'diff-mode-setup)
 
 ;; Local Variables:
