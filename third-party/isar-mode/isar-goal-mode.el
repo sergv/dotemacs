@@ -31,6 +31,8 @@
 
 ;;; Code:
 
+(require 'pretty-ligatures)
+
 (require 'isar-mode)
 
 (defvar isar-goal-mode-hook nil)
@@ -130,12 +132,11 @@ In Isar, `(*)' does not start a compent but is the multiplication sign."
   (set-syntax-table isar-goal-mode-syntax-table)
   (use-local-map isar-goal-mode-map)
   (set (make-local-variable 'font-lock-defaults) '(isar-goal-font-lock-keywords))
-  (isar-unicode-tokens-configure)
   (set (make-local-variable 'syntax-propertize-function)
        #'isar-goal-syntax-propertize)
   (setq major-mode 'isar-goal-mode)
   (setq mode-name "Isar-goal")
-  (unicode-tokens-mode 1)
+  (pretty-ligatures-install-isabelle-ligatures!)
   (run-hooks 'isar-goal-mode-hook))
 
 ;;spacemacs specific function
