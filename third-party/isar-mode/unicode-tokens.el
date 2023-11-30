@@ -205,10 +205,10 @@ will be initialised from unicode-tokens-token-symbol-map-variable,
 if it is bound; it should be the name of a variable."
   (dolist (sym unicode-tokens-configuration-variables)
     (let ((var (unicode-tokens-config-var sym)))
-      (if (and (boundp var) (not (null (symbol-value var))))
-          (set (unicode-tokens-config sym)
-               (symbol-value (symbol-value
-                              (unicode-tokens-config-var sym)))))))
+      (when (and (boundp var) (not (null (symbol-value var))))
+        (set (unicode-tokens-config sym)
+             (symbol-value (symbol-value
+                            (unicode-tokens-config-var sym)))))))
   (unless unicode-tokens-shortcut-replacement-alist
     (setq unicode-tokens-shortcut-replacement-alist
           unicode-tokens-shortcut-alist))
@@ -267,11 +267,11 @@ This is used for an approximate reverse mapping, see `unicode-tokens-paste'.")
     ("Fraktur"
      "Lucida Blackletter" "Isabella" "URW Bookman L")))
 
-(if (boundp 'face-font-family-alternatives)
-    (custom-set-default
-     'face-font-family-alternatives
-     (append face-font-family-alternatives
-             unicode-tokens-font-family-alternatives)))
+(when (boundp 'face-font-family-alternatives)
+  (custom-set-default
+   'face-font-family-alternatives
+   (append face-font-family-alternatives
+           unicode-tokens-font-family-alternatives)))
 
 (defface unicode-tokens-symbol-font-face
  '((t :family "STIXGeneral"))      ;; best, but needs installation/config
