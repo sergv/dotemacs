@@ -813,9 +813,11 @@
       (isar-keyword3-face :foreground ,cyan)
 
       ;; The face used to mark inactive regions.
-      ;; (lsp-isar-font-background-unprocessed1 :inherit font-lock-comment-face)
-      (lsp-isar-font-background-unprocessed1 :background ,magenta)
-      (lsp-isar-font-background-unprocessed :background ,orange)
+      (lsp-isar-font-background-unprocessed1 :inherit lsp-isar-font-background-unprocessed)
+      (lsp-isar-font-background-unprocessed :foreground ,aux-mid
+                                            ;; :background ,magenta
+                                            ;; :background ,orange
+                                            )
       (lsp-isar-font-background-running1 :background ,yellow)
       (lsp-isar-font-background-bad :background ,red)
 
@@ -874,7 +876,7 @@
       (lsp-isar-font-text-class_parameter :background ,magenta)
       (lsp-isar-font-text-antiquote :background ,magenta)
 
-      (lsp-isar-font-text-overview-unprocessed :background ,magenta)
+      (lsp-isar-font-text-overview-unprocessed :inherit lsp-isar-font-background-unprocessed)
 
       (lsp-isar-font-text-overview-running :underline (:style wave :color ,green))
 
