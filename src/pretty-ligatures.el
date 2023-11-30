@@ -454,7 +454,35 @@ into accound and do the replacement only within specific circumstances.")
     (and (not (memq (char-syntax (or (char-before start) ?\s)) syntaxes-beg))
          (or (char-equal following-char ?,)
              (not (memq (char-syntax following-char) syntaxes-end)))
+         ;; Not in string or comment.
          (not (nth 8 (syntax-ppss))))))
+
+(defun pretty-ligatures--isabelle-install (ligatures)
+  "Add hasklig ligatures for use with prettify-symbols-mode."
+  (when (pretty-ligatures-supported?)
+    (setq-local prettify-symbols-alist
+                (append ligatures
+                        prettify-symbols-alist)
+                prettify-symbols-unprettify-at-point t
+                prettify-symbols-compose-predicate #'pretty-ligatures--isabelle--compose-p)
+    (prettify-symbols-mode)))
+
+(defun pretty-ligatures--isabelle--compose-p (start end _match)
+  "Do not prettify withing comments or within words/operators."
+  (let* ((start-char (char-after start))
+         (end-char (char-before end))
+         (syntaxes-beg (if (memq (char-syntax start-char) '(?w ?_))
+                           '(?w ?_) '(?. ?\\)))
+         (syntaxes-end (if (memq (char-syntax end-char) '(?w ?_))
+                           '(?w ?_) '(?. ?\\)))
+         (following-char (or (char-after end) ?\s)))
+    (and (not (memq (char-syntax (or (char-before start) ?\s)) syntaxes-beg))
+         (or (char-equal following-char ?,)
+             (not (memq (char-syntax following-char) syntaxes-end)))
+         (let ((syn (syntax-ppss)))
+           (if (nth 8 syn) ;; If in string or comment...
+               (nth 3 syn) ;; ... only compose if in string.
+             t)))))
 
 ;;;###autoload
 (defun pretty-ligatures-install! ()
@@ -486,6 +514,23 @@ safe to use on any kind of text."
    (font-lock-add-keywords
     nil
     pretty-ligatures--special-haskell-ligatures)))
+
+(defconst pretty-ligatures--isabelle-replacements
+  (eval-when-compile
+    (--map
+     (cons (concat "\\<" (car it) ">")
+           (pretty-ligatures--make-composition (cdr it)))
+     '(("leftarrow" . "<-")
+       ("forall"    . "forall")
+       ("exists"    . "exists")
+       ("not"       . "not")
+       ("emptyset"  . "emptySet")
+       ("Sum"       . "sum")
+       ("Prod"      . "product")))))
+
+;;;###autoload
+(defun pretty-ligatures-install-isabelle-ligatures! ()
+  (pretty-ligatures--isabelle-install pretty-ligatures--isabelle-replacements))
 
 (provide 'pretty-ligatures)
 
