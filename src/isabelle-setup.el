@@ -14,7 +14,16 @@
 (require 'isar-mode)
 (require 'lsp-setup)
 
-(setq lsp-isar-split-pattern 'lsp-isar-split-pattern-two-columns)
+(setf lsp-isar-split-pattern 'lsp-isar-split-pattern-two-columns
+      lsp-isar-path-to-isabelle-exe (executable-find "isabelle"))
+
+(defun lsp-full-isabelle-path-override ()
+  (append (list lsp-isar-path-to-isabelle-exe
+                "vscode_server")
+          lsp-vscode-options
+          lsp-isabelle-options))
+
+(advice-add 'lsp-full-isabelle-path :override #'lsp-full-isabelle-path-override)
 
 (defhydra-derive hydra-isabelle-lsp-toggle hydra-lsp-toggle (:exit t :foreign-keys nil :hint nil)
   "")
