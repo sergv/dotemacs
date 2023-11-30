@@ -31,9 +31,9 @@
 
 ;;; Code:
 
-(require 'isar-unicode-tokens)
-(require 'unicode-tokens)
+(require 'pretty-ligatures)
 
+(require 'isar-unicode-tokens)
 
 (defvar isar-mode-hook nil)
 
@@ -442,9 +442,8 @@
               comment-end " *)"
               comment-start-skip "(\\*+[ \t]*"
               comment-style 'multi-line)
-  (isar-unicode-tokens-configure)
-  (run-hooks 'isar-mode-hook)
-  (unicode-tokens-mode 1))
+  (pretty-ligatures-install-isabelle-ligatures!)
+  (run-hooks 'isar-mode-hook))
 
 ;;spacemacs specific function
 (when (boundp 'spacemacs-jump-handlers-isar-mode)
