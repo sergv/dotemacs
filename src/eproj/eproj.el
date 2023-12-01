@@ -1008,7 +1008,7 @@ current project’s root."
   "Get globs for files to consider during quick navigation."
   (let ((globs
          (append (eproj-project/extra-navigation-globs proj)
-                 '("*.org" "*.md" "*.markdown" "*.rst" "*.json" "*.sh" "*.mk" "*.txt" "*.yaml" "*.xml" "*.nix" "makefile*" "Makefile*" "*.inc" "*.spec" "README" "ChangeLog*" "Changelog*" "*.nix"))))
+                 '("*.org" "*.md" "*.markdown" "*.rst" "*.json" "*.sh" "*.mk" "*.txt" "*.yaml" "*.xml" "*.nix" "makefile*" "Makefile*" "*.inc" "*.spec" "README" "ChangeLog*" "Changelog*" "*.toml"))))
     (dolist (mode (eproj-project/languages proj))
       (let ((lang (gethash (eproj/resolve-synonym-modes mode)
                            eproj/languages-table)))
