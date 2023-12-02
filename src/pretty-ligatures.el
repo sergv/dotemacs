@@ -95,167 +95,178 @@ Regexp match data 0 specifies the characters to be composed."
 
 ;; (set-fontset-font t '(#Xe100 . #Xe115) "Iosevka Slab Lig")
 
-(defconst pretty-ligatures--glyph-widths
+(defstruct ligature-glyph
+  symbol ;; character, >= #xe100
+  width  ;; integer
+  )
+
+(defconst iosevka-slab-lig-glyphs
   (eval-when-compile
     (alist->hash-table
-     '((#xe100 . 2) ;; "<-"
-       (#xe101 . 2) ;; "->"
-       (#xe102 . 2) ;; "<=", left short double arrow, not used much since clashes with less-than-or-equal
-       (#xe103 . 2) ;; "=>"
-       (#xe104 . 3) ;; "<->"
-       (#xe105 . 3) ;; "<=>"
-       (#xe106 . 2) ;; "=="
-       (#xe107 . 2) ;; "/="
-       (#xe108 . 2) ;; "::"
-       (#xe109 . 3) ;; "<<-"
-       (#xe10a . 3) ;; "->>"
-       (#xe10b . 3) ;; "<-<"
-       (#xe10c . 3) ;; ">->"
-       (#xe10d . 2) ;; "++"
-       (#xe10e . 3) ;; "+++"
-       (#xe10f . 2) ;; "<>"
-       (#xe110 . 2) ;; "><"
-       (#xe111 . 2) ;; "<<"
-       (#xe112 . 2) ;; ">>"
-       (#xe113 . 2) ;; "<|"
-       (#xe114 . 2) ;; "|>"
+     (mapcar
+      (lambda (x) (cons (cl-first x) (make-ligature-glyph :symbol (cl-second x) :width (cl-third x))))
+      '(("<-"   #xe100 2) ;; "<-"
+        ("->"   #xe101 2) ;; "->"
+        ("<="   #xe102 2) ;; "<=", left short double arrow, not used much since clashes with less-than-or-equal
+        ("=>"   #xe103 2) ;; "=>"
+        ("<->"  #xe104 3) ;; "<->"
+        ("<=>"  #xe105 3) ;; "<=>"
+        ("=="   #xe106 2) ;; "=="
+        ("/="   #xe107 2) ;; "/="
+        ("::"   #xe108 2) ;; "::"
+        ("<<-"  #xe109 3) ;; "<<-"
+        ("->>"  #xe10a 3) ;; "->>"
+        ("<-<"  #xe10b 3) ;; "<-<"
+        (">->"  #xe10c 3) ;; ">->"
+        ("++"   #xe10d 2) ;; "++"
+        ("+++"  #xe10e 3) ;; "+++"
+        ("<>"   #xe10f 2) ;; "<>"
+        ("><"   #xe110 2) ;; "><"
+        ("<<"   #xe111 2) ;; "<<"
+        (">>"   #xe112 2) ;; ">>"
+        ("<|"   #xe113 2) ;; "<|"
+        ("|>"   #xe114 2) ;; "|>"
 
-       (#xe115 . 2) ;; "##"
-       (#xe116 . 3) ;; "###"
-       (#xe117 . 4) ;; "####"
+        ("##"   #xe115 2) ;; "##"
+        ("###"  #xe116 3) ;; "###"
+        ("####" #xe117 4) ;; "####"
 
-       (#xe118 . 3) ;; "<--"
-       (#xe119 . 3) ;; "-->"
-       (#xe11a . 3) ;; "<=="
-       (#xe11b . 3) ;; "==>"
+        ("<--"  #xe118 3) ;; "<--"
+        ("-->"  #xe119 3) ;; "-->"
+        ("<=="  #xe11a 3) ;; "<=="
+        ("==>"  #xe11b 3) ;; "==>"
 
-       (#xe11c . 3) ;; "=<<"
-       (#xe11d . 3) ;; ">>="
-       (#xe11e . 3) ;; "<=<"
-       (#xe11f . 3) ;; ">=>"
-       (#xe120 . 3) ;; "<<="
-       (#xe121 . 3) ;; "=>>"
+        ("=<<"  #xe11c 3) ;; "=<<"
+        (">>="  #xe11d 3) ;; ">>="
+        ("<=<"  #xe11e 3) ;; "<=<"
+        (">=>"  #xe11f 3) ;; ">=>"
+        ("<<="  #xe120 3) ;; "<<="
+        ("=>>"  #xe121 3) ;; "=>>"
 
-       (#xe122 . 2) ;; "<="
-       (#xe123 . 2) ;; ">="
-       (#xe124 . 2) ;; "||"
-       (#xe125 . 2) ;; "&&"
+        ("LE"   #xe122 2) ;; "<="
+        ("GE"   #xe123 2) ;; ">="
+        ("||"   #xe124 2) ;; "||"
+        ("&&"   #xe125 2) ;; "&&"
 
-       (#xe130 . 2) ;; union
-       (#xe131 . 2) ;; intersection
-       (#xe12b . 2) ;; elem, member
-       (#xe12c . 2) ;; notElem, notMember
-       (#xe12f . 2) ;; isSubsetOf
-       ;; (#xe12f . t) ;; isSubsetOf, 2 but glyph is broken
-       (#xe12e . 2) ;; isProperSubsetOf
-       (#xe12a . 2) ;; empty, mempty
+        ("union"            #xe130 2) ;; union
+        ("intersection"     #xe131 2) ;; intersection
+        ("elem"             #xe12b 2) ;; elem, member
+        ("notElem"          #xe12c 2) ;; notElem, notMember
+        ("isSubsetOf"       #xe12f 2) ;; isSubsetOf
+        ;; ("isSubsetOf"       #xe12f t) ;; isSubsetOf, 2 but glyph is broken
+        ("isProperSubsetOf" #xe12e 2) ;; isProperSubsetOf
+        ("emptySet"         #xe12a 2) ;; empty, mempty
 
-       (#xe127 . 2) ;; error, undefined - bottom
-       (#xe128 . 2) ;; forall, all
-       (#xe129 . 2) ;; exists, any
-       (#xe133 . 2) ;; not
+        ("bottom"  #xe127 2) ;; error, undefined - bottom
+        ("forall"  #xe128 2) ;; forall, all
+        ("exists"  #xe129 2) ;; exists, any
+        ("not"     #xe133 2) ;; not
 
-       (#xe12d . 2) ;; sum
-       (#xe132 . 2) ;; product
-       (#xe134 . 2) ;; linear lollipop, -o
-       ))))
+        ("sum"     #xe12d 2) ;; sum
+        ("product" #xe132 2) ;; product
+        ("-o"      #xe134 2) ;; linear lollipop, -o
+        )))))
 
 ;; Make [?\s (Bl . Br) ?\s (Bl . Br) ?\s (Bc . Bc) #xe11d] out of #xe11d (">>=").
-(defun pretty-ligatures--make-composition (c &optional override-width)
-  (if-let ((glyph-width (gethash c pretty-ligatures--glyph-widths)))
-      (let ((width (or override-width glyph-width)))
-        (if (eq width t)
-            ;; No width
-            (string ?\t c ?\t)
-          (vconcat
-           (apply #'vconcat [?\s] (-repeat (1- width) [(Br . Bl) ?\s]))
-           (vector (if (eq width glyph-width)
-                       '(Bc . Bc) ;; Put c’s center in the center of the previously composed whitespace
-                     '(Bl . Bl))
-                   c))))
-    (error "No width for character '%s'" c)))
+(defun pretty-ligatures--make-composition (g &optional override-width)
+  (cl-assert (stringp g))
+  (cl-assert (gethash g iosevka-slab-lig-glyphs))
+  (if-let ((glyph (gethash g iosevka-slab-lig-glyphs))
+           (c (ligature-glyph-symbol glyph))
+           (width (or override-width
+                      (ligature-glyph-width glyph))))
+      (if (eq width t)
+          ;; No width
+          (string ?\t c ?\t)
+        (vconcat
+         (apply #'vconcat [?\s] (-repeat (1- width) [(Br . Bl) ?\s]))
+         (vector (if (eq (ligature-glyph-width glyph) width)
+                     '(Bc . Bc) ;; Put c’s center in the center of the previously composed whitespace
+                   '(Bl . Bl))
+                 c)))
+    (error "No width for glyph '%s'" g)))
 
 ;; ‘>>’ shows up in generic functions in addition to being a shift operator, thus it’s removed.
 ;; For consistency ‘<<’ is removed as well.
 (defconst pretty-ligatures-rust-symbols
   (eval-when-compile
     (let* ((ligs
-            '(("<-" . #xe100)
-              ("->" . #xe101)
-              ("=>" . #xe103)
-              ("==" . #xe106)
-              ("!=" . #xe107)
-              ("<=" . #xe122)
-              (">=" . #xe123)
-              ("||" . #xe124)
-              ("&&" . #xe125)
-              ("::" . #xe108))))
+            '(("<-" . "<-")
+              ("->" . "->")
+              ("=>" . "=>")
+              ("==" . "==")
+              ("!=" . "/=")
+              ("<=" . "LE")
+              (">=" . "GE")
+              ("||" . "||")
+              ("&&" . "&&")
+              ("::" . "::"))))
       (--map (cons (car it) (pretty-ligatures--make-composition (cdr it))) ligs))))
 
 (defconst pretty-ligatures-c-like-symbols
   (eval-when-compile
     (let* ((ligs
-            '(("<<" . #xe111)
-              (">>" . #xe112))))
+            '(("<<" . "<<")
+              (">>" . ">>"))))
       (append pretty-ligatures-rust-symbols
               (--map (cons (car it) (pretty-ligatures--make-composition (cdr it))) ligs)))))
 
 (defconst pretty-ligatures-python-like-words
   (eval-when-compile
     (let ((ligs
-           '(("for" . #xe128)
-             ("in"  . #xe12b))))
+           '(("for" . "forall")
+             ("in"  . "elem"))))
       (--map (cons (car it) (pretty-ligatures--make-composition (cdr it) (length (car it)))) ligs)))
   "Replacements of word with single symbols that work through `prettify-symbols-mode'.")
 
 (defconst pretty-ligatures--symbol-replacements
   (eval-when-compile
     (let* ((ligs
-            '(("<-"  . #xe100)
-              ("->"  . #xe101)
+            '(("<-"  . "<-")
+              ("->"  . "->")
 
               ;; ("<="  . #xe102)
-              ("=>"  . #xe103)
-              ("<->" . #xe104)
-              ("<=>" . #xe105)
-              ("=="  . #xe106)
-              ("/="  . #xe107)
-              ("::"  . #xe108)
-              ("<<-" . #xe109)
-              ("->>" . #xe10a)
-              ("<-<" . #xe10b)
-              (">->" . #xe10c)
-              ("++"  . #xe10d)
-              ("+++" . #xe10e)
-              ("<>"  . #xe10f)
-              ("><"  . #xe110)
-              ("<<"  . #xe111)
-              (">>"  . #xe112)
-              ("<|"  . #xe113)
-              ("|>"  . #xe114)
+              ("=>"  . "=>")
+              ("<->" . "<->")
+              ("<=>" . "<=>")
+              ("=="  . "==")
+              ("/="  . "/=")
+              ("::"  . "::")
+              ("<<-" . "<<-")
+              ("->>" . "-->")
+              ("<-<" . "<-<")
+              (">->" . ">->")
+              ("++"  . "++")
+              ("+++" . "+++")
+              ("<>"  . "<>")
+              ("><"  . "><")
+              ("<<"  . "<<")
+              (">>"  . ">>")
+              ("<|"  . "<|")
+              ("|>"  . "|>")
 
-              ("##"   . #xe115)
-              ("###"  . #xe116)
-              ("####" . #xe117)
+              ("##"   . "##")
+              ("###"  . "###")
+              ("####" . "####")
 
-              ("<--" . #xe118)
-              ("-->" . #xe119)
-              ("<==" . #xe11a)
-              ("==>" . #xe11b)
+              ("<--" . "<--")
+              ("-->" . "-->")
+              ("<==" . "<==")
+              ("==>" . "==>")
 
-              ("=<<" . #xe11c)
-              (">>=" . #xe11d)
-              ("<=<" . #xe11e)
-              (">=>" . #xe11f)
-              ("<<=" . #xe120)
-              ("=>>" . #xe121)
+              ("=<<" . "=<<")
+              (">>=" . ">>=")
+              ("<=<" . "<=<")
+              (">=>" . ">=>")
+              ("<<=" . "<<=")
+              ("=>>" . "=>>")
 
-              ("<="  . #xe122)
-              (">="  . #xe123)
-              ("||"  . #xe124)
-              ("&&"  . #xe125)
+              ("<="  . "LE")
+              (">="  . "GE")
+              ("||"  . "||")
+              ("&&"  . "&&")
 
-              ("%1 ->" . #xe134)
+              ("%1 ->" . "-o")
 
               ;;("><" . ?⨝)
 
@@ -299,20 +310,20 @@ Regexp match data 0 specifies the characters to be composed."
             '("M" "Map" "S" "Set" "HM" "HashMap" "HS" "HashSet" "IS" "IntSet" "IM" "IntMap"))
            (ligs
             (append
-             (funcall make-combinations "mappend" nil #xe10f)
-             (funcall make-combinations "union" standard-prefixes #xe130)
-             (funcall make-combinations "intersection" standard-prefixes #xe131)
-             (funcall make-combinations "elem" nil #xe12b)
-             (funcall make-combinations "member" standard-prefixes #xe12b)
-             (funcall make-combinations "notElem" nil #xe12c)
-             (funcall make-combinations "notMember" standard-prefixes #xe12c)
+             (funcall make-combinations "mappend" nil "<>")
+             (funcall make-combinations "union" standard-prefixes "union")
+             (funcall make-combinations "intersection" standard-prefixes "intersection")
+             (funcall make-combinations "elem" nil "elem")
+             (funcall make-combinations "member" standard-prefixes "elem")
+             (funcall make-combinations "notElem" nil "notElem")
+             (funcall make-combinations "notMember" standard-prefixes "notElem")
 
              ;; possibly equal
-             (funcall make-combinations "isSubsetOf" standard-prefixes #xe12f)
+             (funcall make-combinations "isSubsetOf" standard-prefixes "isSubsetOf")
              ;; not-equal
-             (funcall make-combinations "isProperSubsetOf" standard-prefixes #xe12e)
+             (funcall make-combinations "isProperSubsetOf" standard-prefixes "isProperSubsetOf")
 
-             (funcall make-combinations "empty" (append '("V" "Vector") standard-prefixes) #xe12a)
+             (funcall make-combinations "empty" (append '("V" "Vector") standard-prefixes) "emptySet")
 
              '(;; ("Double"   . ?ℝ)
                ;; ("Int"      . ?ℤ)
@@ -329,29 +340,29 @@ Regexp match data 0 specifies the characters to be composed."
                ;;   a b c d e f g
 
                ;; bottom
-               ("undefined" . #xe127)
+               ("undefined" . "bottom")
 
-               ;; ("mappend" . #xe10f)
-               ;; ("`mappend`" . #xe10f)
-               ("forall"    . #xe128)
+               ;; ("mappend" . "<>")
+               ;; ("`mappend`" . "<>")
+               ("forall"    . "forall")
 
-               ("[]"        . #xe12a)
-               ("mempty"    . #xe12a)
+               ("[]"        . "emptySet")
+               ("mempty"    . "emptySet")
 
-               ("sum"       . #xe12d)
-               ("product"   . #xe132)))))
+               ("sum"       . "sum")
+               ("product"   . "product")))))
       (--map (cons (car it) (pretty-ligatures--make-composition (cdr it) (length (car it)))) ligs)))
   "Replacements of word with single symbols that work through `prettify-symbols-mode'.")
 
 (defconst pretty-ligatures--unsafe-word-replacements
   (eval-when-compile
     (let* ((ligs
-            '(("not"   . #xe133)
-              ("or"    . #xe124)
-              ("and"   . #xe125)
-              ("error" . #xe127)
-              ("all"   . #xe128)
-              ("any"   . #xe129))))
+            '(("not"   . "not")
+              ("or"    . "||")
+              ("and"   . "&&")
+              ("error" . "bottom")
+              ("all"   . "forall")
+              ("any"   . "exists"))))
       (--map (cons (car it) (pretty-ligatures--make-composition (cdr it) (length (car it)))) ligs)))
   "Word replacements that are likely to conflict with general use of words, e.g.
 in Haskell compilation output. So they're disabled by default.")
