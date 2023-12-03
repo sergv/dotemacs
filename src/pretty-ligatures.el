@@ -162,9 +162,10 @@ Regexp match data 0 specifies the characters to be composed."
         ("exists"  #xe129 2) ;; exists, any
         ("not"     #xe133 2) ;; not
 
-        ("sum"     #xe12d 2) ;; sum
-        ("product" #xe132 2) ;; product
-        ("-o"      #xe134 2) ;; linear lollipop, -o
+        ("sum"       #xe12d 2) ;; sum
+        ("product"   #xe132 2) ;; product
+        ("coproduct" #xe135 2) ;; product
+        ("-o"        #xe134 2) ;; linear lollipop, -o
         )))))
 
 ;; Make [?\s (Bl . Br) ?\s (Bl . Br) ?\s (Bc . Bc) #xe11d] out of #xe11d (">>=").
@@ -350,7 +351,8 @@ Regexp match data 0 specifies the characters to be composed."
                ("mempty"    . "emptySet")
 
                ("sum"       . "sum")
-               ("product"   . "product")))))
+               ("product"   . "product")
+               ("coproduct" . "coproduct")))))
       (--map (cons (car it) (pretty-ligatures--make-composition (cdr it) (length (car it)))) ligs)))
   "Replacements of word with single symbols that work through `prettify-symbols-mode'.")
 
