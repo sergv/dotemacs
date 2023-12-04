@@ -541,7 +541,7 @@ be used only for vim-visual-mode of the vim-mode package."
   (let* ((col column)
          (skip-to-column (lambda ()
                            (beginning-of-line)
-                           (skip-chars-forward " " (+ (point) col)))))
+                           (skip-chars-forward " \t" (+ (point) col)))))
     (combine-change-calls
         (line-beginning-position)
         (save-excursion
