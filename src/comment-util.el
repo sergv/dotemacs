@@ -164,7 +164,8 @@ Intended to be used with comment-util-mode."
               tcl-mode
               ucf-mode
               yaml-mode
-              snippet-mode)
+              snippet-mode
+              ptl-mode)
              .
              ,(make-comment-format :one-line "#"
                                    :line-regexp "#+"
