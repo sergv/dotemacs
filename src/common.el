@@ -1093,7 +1093,8 @@ Return indentation size in number of characters (i.e. tabs count as 1)."
 (defun indentation-size ()
   "Return indentation size for current line without moving point."
   (save-excursion
-    (skip-to-indentation)))
+    (skip-to-indentation)
+    (current-column)))
 
 (defun current-line-indentation-str (&optional end-pos)
   (save-excursion
