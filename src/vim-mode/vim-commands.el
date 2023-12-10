@@ -226,7 +226,7 @@ and switches to insert-mode."
       ;; It’s important for visual insertion so we adjust it here.
       (let ((begin (save-excursion
                      (goto-char (vim-motion-begin-pos motion))
-                     (move-to-column (vim-motion-first-col motion))
+                     (move-to-column-fixed (vim-motion-first-col motion))
                      (point))))
         (vim--init--vim-visual-insert-info-end! begin
                                                 (vim-motion-end-pos motion)
@@ -335,8 +335,8 @@ and switches to insert-mode."
         (parts nil))
     (goto-line-dumb endrow)
     (dotimes (_ (1+ (- endrow begrow)))
-      (let ((beg (save-excursion (move-to-column begcol) (point)))
-            (end (save-excursion (move-to-column (1+ endcol)) (point))))
+      (let ((beg (save-excursion (move-to-column-fixed begcol) (point)))
+            (end (save-excursion (move-to-column-fixed (1+ endcol)) (point))))
         (push (cons (save-excursion (goto-char beg)
                                     (- (current-column-fixed) begcol))
                     (buffer-substring-no-properties beg end))
@@ -351,7 +351,7 @@ and switches to insert-mode."
                          txt)
       (kill-new-ignoring-duplicates txt))
     (goto-line-dumb begrow)
-    (move-to-column begcol)))
+    (move-to-column-fixed begcol)))
 
 (vim-defcmd vim:cmd-yank (motion nonrepeatable)
   "Saves the characters in motion into the kill-ring."
@@ -414,7 +414,7 @@ and switches to insert-mode."
                      (<= offset 0)
                      (zerop len) ;; and nothing to insert
                      )
-          (move-to-column (+ col (max 0 offset)) t)
+          (move-to-column-fixed (+ col (max 0 offset)) t)
           (insert txt)
           (unless (eolp)
             ;; text follows, so we have to insert spaces
@@ -741,10 +741,10 @@ block motions."
             (goto-line-dumb begrow)
             (dotimes (_ (1+ (- endrow begrow)))
               (let ((beg (save-excursion
-                           (move-to-column begcol)
+                           (move-to-column-fixed begcol)
                            (point)))
                     (end (save-excursion
-                           (move-to-column (1+ endcol))
+                           (move-to-column-fixed (1+ endcol))
                            (point))))
                 (funcall func beg end))
               (forward-line)))))

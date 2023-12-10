@@ -1267,7 +1267,7 @@ but only on the current line."
       (if (zerop our-indent)
           (line-beginning-position)
         (progn
-          (move-to-column 0)
+          (move-to-column-fixed 0)
           (while (and (not (bobp))
                       (<= our-indent (indentation-size)))
             (forward-line -1))
