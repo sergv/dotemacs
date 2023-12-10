@@ -169,7 +169,8 @@ Regexp match data 0 specifies the characters to be composed."
         )))))
 
 ;; Make [?\s (Bl . Br) ?\s (Bl . Br) ?\s (Bc . Bc) #xe11d] out of #xe11d (">>=").
-(defun pretty-ligatures--make-composition (g &optional override-width)
+(defun pretty-ligatures--make-glyph-composition (g &optional override-width)
+  "G must denote one of ‘iosevka-slab-lig-glyphs’ glyphs."
   (cl-assert (stringp g))
   (cl-assert (gethash g iosevka-slab-lig-glyphs))
   (if-let ((glyph (gethash g iosevka-slab-lig-glyphs))
@@ -187,6 +188,19 @@ Regexp match data 0 specifies the characters to be composed."
                  c)))
     (error "No width for glyph '%s'" g)))
 
+(defun pretty-ligatures--make-literal-composition (symbol &optional override-width)
+  (cl-assert (characterp symbol))
+  (let ((width (or override-width 1)))
+    (if (eq width t)
+        ;; No width
+        (string ?\t symbol ?\t)
+      (vconcat
+       (apply #'vconcat [?\s] (-repeat (1- width) [(Br . Bl) ?\s]))
+       (vector (if (eq 1 width)
+                   '(Bc . Bc) ;; Put c’s center in the center of the previously composed whitespace
+                 '(Bl . Bl))
+               symbol)))))
+
 ;; ‘>>’ shows up in generic functions in addition to being a shift operator, thus it’s removed.
 ;; For consistency ‘<<’ is removed as well.
 (defconst pretty-ligatures-rust-symbols
@@ -202,7 +216,7 @@ Regexp match data 0 specifies the characters to be composed."
               ("||" . "||")
               ("&&" . "&&")
               ("::" . "::"))))
-      (--map (cons (car it) (pretty-ligatures--make-composition (cdr it))) ligs))))
+      (--map (cons (car it) (pretty-ligatures--make-glyph-composition (cdr it))) ligs))))
 
 (defconst pretty-ligatures-c-like-symbols
   (eval-when-compile
@@ -210,14 +224,14 @@ Regexp match data 0 specifies the characters to be composed."
             '(("<<" . "<<")
               (">>" . ">>"))))
       (append pretty-ligatures-rust-symbols
-              (--map (cons (car it) (pretty-ligatures--make-composition (cdr it))) ligs)))))
+              (--map (cons (car it) (pretty-ligatures--make-glyph-composition (cdr it))) ligs)))))
 
 (defconst pretty-ligatures-python-like-words
   (eval-when-compile
     (let ((ligs
            '(("for" . "forall")
              ("in"  . "elem"))))
-      (--map (cons (car it) (pretty-ligatures--make-composition (cdr it) (length (car it)))) ligs)))
+      (--map (cons (car it) (pretty-ligatures--make-glyph-composition (cdr it) (length (car it)))) ligs)))
   "Replacements of word with single symbols that work through `prettify-symbols-mode'.")
 
 (defconst pretty-ligatures--symbol-replacements
@@ -295,7 +309,7 @@ Regexp match data 0 specifies the characters to be composed."
               ;; "<~~" "</" "</>" "~@" "~-" "~=" "~>" "~~" "~~>" "%%"
               ;; "x" ":" "+" "+" "*"
               )))
-      (--map (cons (car it) (pretty-ligatures--make-composition (cdr it))) ligs)))
+      (--map (cons (car it) (pretty-ligatures--make-glyph-composition (cdr it))) ligs)))
   "Symbolic ligatures that work through `prettify-symbols-mode'.")
 
 (defconst pretty-ligatures--word-replacements
@@ -353,7 +367,7 @@ Regexp match data 0 specifies the characters to be composed."
                ("sum"       . "sum")
                ("product"   . "product")
                ("coproduct" . "coproduct")))))
-      (--map (cons (car it) (pretty-ligatures--make-composition (cdr it) (length (car it)))) ligs)))
+      (--map (cons (car it) (pretty-ligatures--make-glyph-composition (cdr it) (length (car it)))) ligs)))
   "Replacements of word with single symbols that work through `prettify-symbols-mode'.")
 
 (defconst pretty-ligatures--unsafe-word-replacements
@@ -365,7 +379,7 @@ Regexp match data 0 specifies the characters to be composed."
               ("error" . "bottom")
               ("all"   . "forall")
               ("any"   . "exists"))))
-      (--map (cons (car it) (pretty-ligatures--make-composition (cdr it) (length (car it)))) ligs)))
+      (--map (cons (car it) (pretty-ligatures--make-glyph-composition (cdr it) (length (car it)))) ligs)))
   "Word replacements that are likely to conflict with general use of words, e.g.
 in Haskell compilation output. So they're disabled by default.")
 
@@ -457,32 +471,6 @@ into accound and do the replacement only within specific circumstances.")
          ;; Not in string or comment.
          (not (nth 8 (syntax-ppss))))))
 
-(defun pretty-ligatures--isabelle-install (ligatures)
-  "Add hasklig ligatures for use with prettify-symbols-mode."
-  (when (pretty-ligatures-supported?)
-    (setq-local prettify-symbols-alist
-                (append ligatures
-                        prettify-symbols-alist)
-                prettify-symbols-unprettify-at-point t
-                prettify-symbols-compose-predicate #'pretty-ligatures--isabelle--compose-p)
-    (prettify-symbols-mode)))
-
-(defun pretty-ligatures--isabelle--compose-p (start end _match)
-  "Do not prettify withing comments or within words/operators."
-  (let* ((start-char (char-after start))
-         (end-char (char-before end))
-         (syntaxes-beg (if (memq (char-syntax start-char) '(?w ?_))
-                           '(?w ?_) '(?. ?\\)))
-         (syntaxes-end (if (memq (char-syntax end-char) '(?w ?_))
-                           '(?w ?_) '(?. ?\\)))
-         (following-char (or (char-after end) ?\s)))
-    (and (not (memq (char-syntax (or (char-before start) ?\s)) syntaxes-beg))
-         (or (char-equal following-char ?,)
-             (not (memq (char-syntax following-char) syntaxes-end)))
-         (let ((syn (syntax-ppss)))
-           (if (nth 8 syn) ;; If in string or comment...
-               (nth 3 syn) ;; ... only compose if in string.
-             t)))))
 
 ;;;###autoload
 (defun pretty-ligatures-install! ()
@@ -514,23 +502,6 @@ safe to use on any kind of text."
    (font-lock-add-keywords
     nil
     pretty-ligatures--special-haskell-ligatures)))
-
-(defconst pretty-ligatures--isabelle-replacements
-  (eval-when-compile
-    (--map
-     (cons (concat "\\<" (car it) ">")
-           (pretty-ligatures--make-composition (cdr it)))
-     '(("leftarrow" . "<-")
-       ("forall"    . "forall")
-       ("exists"    . "exists")
-       ("not"       . "not")
-       ("emptyset"  . "emptySet")
-       ("Sum"       . "sum")
-       ("Prod"      . "product")))))
-
-;;;###autoload
-(defun pretty-ligatures-install-isabelle-ligatures! ()
-  (pretty-ligatures--isabelle-install pretty-ligatures--isabelle-replacements))
 
 (provide 'pretty-ligatures)
 
