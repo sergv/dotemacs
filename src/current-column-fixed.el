@@ -28,14 +28,14 @@ their width is always counted as 1, same as for space."
     (if (and (eq tick current-column-fixed--last-modified)
              (eq pt current-column-fixed--last-point))
         current-column-fixed--last-result
-      (let ((ret (- pt (point-at-bol))))
+      (let ((ret (- pt (line-beginning-position))))
         (setf current-column-fixed--last-modified tick
               current-column-fixed--last-point pt
               current-column-fixed--last-result ret)
         ret))))
 
 (defun current-column-fixed-uncached ()
-  (- (point) (point-at-bol)))
+  (- (point) (line-beginning-position)))
 
 ;;;###autoload
 (el-patch-feature smie)
