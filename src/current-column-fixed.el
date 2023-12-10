@@ -34,6 +34,33 @@ their width is always counted as 1, same as for space."
               current-column-fixed--last-result ret)
         ret))))
 
+(defun move-to-column-fixed (num-chars &optional force)
+  "Like ‘move-to-column’ but counts each buffer character as one regardles of how many
+glyphs it occupies, which helps when having ‘prettify-symbols-mode’ change glyphs counts
+or when using tabs for indentation."
+  (let* ((start (line-beginning-position))
+         (end (line-end-position))
+         (dest (+ start num-chars)))
+    (cond
+      ((< dest end)
+       (goto-char dest))
+      (force
+       ;; Insert spaces/tabs past last position of current line.
+       (goto-char end)
+       (insert-char ?\s (- dest (point)))
+       ;; Not clear how to cleanly fill up with tabs considering that we want
+       ;; to only count characters and not give tab any special meaning.
+       ;; (if (and indent-tabs-mode
+       ;;          (eq (char-before) ?\t))
+       ;;     (let ((remaining (- dest (point))))
+       ;;       ;; Insert some tabs to not overshoot our destination and fill the rest with spaces.
+       ;;       (insert-char ?\t (/ remaining tab-width))
+       ;;       (insert-char ?\t (mod remaining tab-width)))
+       ;;   (insert-char ?\s (- dest (point))))
+       )
+      (t
+       (goto-char end)))))
+
 (defun current-column-fixed-uncached ()
   (- (point) (line-beginning-position)))
 
