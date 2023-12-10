@@ -445,7 +445,7 @@ Similar to ‘vim-do-motion’ but assumes that BODY will not return a motion ob
     `(let ((,start-pos (point)))
        ,@body
        (when vim--this-column
-         (move-to-column vim--this-column))
+         (move-to-column-fixed vim--this-column))
        (vim-make-motion :has-begin nil
                         :begin ,start-pos
                         :end (point)
@@ -467,7 +467,7 @@ and the (default) type of the motion."
            ,motion
          (progn
            (when vim--this-column
-             (move-to-column vim--this-column))
+             (move-to-column-fixed vim--this-column))
            (vim-make-motion :has-begin nil
                             :begin ,start-pos
                             :end (point)
@@ -498,7 +498,7 @@ but with nil, point will be repositioned at r:
   ;; TODO: should we check modes directly?
   (unless (vim-insert-mode-p)
     (when vim--this-column
-      (move-to-column vim--this-column))
+      (move-to-column-fixed vim--this-column))
 
     ;; Always stop at the last character (not the newline).
     (when (and (not (vim-visual-mode-p))
