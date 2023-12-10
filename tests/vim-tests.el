@@ -4491,6 +4491,23 @@ _|_bar")
    " quux"
    ""))
 
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (text-mode)
+    vim-tests/motion-down-1
+    (execute-kbd-macro (kbd "h"))
+  (tests-utils--multiline
+   ""
+   "\t\t_|_foo"
+   "\t\tbar"
+   "\t\tbaz"
+   "")
+  (tests-utils--multiline
+   ""
+   "\t\tfoo"
+   "\t\t_|_bar"
+   "\t\tbaz"
+   ""))
+
 (provide 'vim-tests)
 
 ;; Local Variables:
