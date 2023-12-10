@@ -402,11 +402,11 @@ This function is also responsible for setting the X-selection."
         (cl-rotatef start-col end-col)
         (setq start (save-excursion
                       (goto-char start)
-                      (move-to-column start-col nil)
+                      (move-to-column-fixed start-col nil)
                       (point))
               end (save-excursion
                     (goto-char end)
-                    (move-to-column end-col nil)
+                    (move-to-column-fixed end-col nil)
                     (point))))
       ;; Force a redisplay so we can do reliable window start/end
       ;; calculations.
@@ -425,10 +425,10 @@ This function is also responsible for setting the X-selection."
         (goto-char window-start)
         (dotimes (_ nlines)
           (let ((row-start (progn
-                             (move-to-column start-col nil)
+                             (move-to-column-fixed start-col nil)
                              (point)))
                 (row-end (progn
-                           (move-to-column end-col nil)
+                           (move-to-column-fixed end-col nil)
                            (min (1+ (point))
                                 (line-end-position)))))
             ;; Trim old leading overlays.
@@ -541,7 +541,7 @@ This function is also responsible for setting the X-selection."
 (defun vim-visual--start-insert ()
   "Starts a new multi-line insert operation with `vim-visual--last-insert-info'."
   (goto-char (vim-visual-insert-info-begin vim-visual--last-insert-info))
-  (move-to-column (vim-visual-insert-info-column vim-visual--last-insert-info) t)
+  (move-to-column-fixed (vim-visual-insert-info-column vim-visual--last-insert-info) t)
   (vim-visual--record-undo-pos! (point))
   (let ((undo-inhibit-record-point t))
     (pcase vim-visual--mode-type
@@ -579,7 +579,7 @@ This function is also responsible for setting the X-selection."
                         (end-of-line)
                         (current-column-fixed-uncached))
                       col)
-              (move-to-column col t)
+              (move-to-column-fixed col t)
               (save-excursion
                 (vim--cmd-repeat-impl 1 events nil)))
             (forward-line -1))
@@ -629,11 +629,11 @@ This function is also responsible for setting the X-selection."
            (undo-inhibit-record-point t))
        (vim-visual--record-undo-pos! beg)
        (goto-char beg)
-       (move-to-column col t)
+       (move-to-column-fixed col t)
        (save-excursion
          (goto-char end)
          (dotimes (_ (1+ (vim-count-lines-with-correction beg end)))
-           (move-to-column col t)
+           (move-to-column-fixed col t)
            (save-excursion
              (vim:cmd-repeat))
            (vim--cmd-paste-after 1 t)
@@ -658,12 +658,12 @@ This function is also responsible for setting the X-selection."
            (undo-inhibit-record-point t))
        (vim-visual--record-undo-pos! beg)
        (goto-char beg)
-       (move-to-column col t)
+       (move-to-column-fixed col t)
        (vim--cmd-paste-after 1 t)
        (save-excursion
          (dotimes (_ (vim-count-lines-with-correction beg end))
            (forward-line 1)
-           (move-to-column col t)
+           (move-to-column-fixed col t)
            (vim--cmd-paste-after 1 t)))))))
 
 (vim-defcmd vim:visual-paste-before (motion)
@@ -684,7 +684,7 @@ This function is also responsible for setting the X-selection."
        (save-excursion
          (dotimes (_ (vim-count-lines-with-correction beg end))
            (forward-line 1)
-           (move-to-column col t)
+           (move-to-column-fixed col t)
            (vim--cmd-paste-before-impl 1)))))))
 
 (vim-defcmd vim:visual-append (motion)
@@ -697,7 +697,7 @@ This function is also responsible for setting the X-selection."
 (defun vim-visual--start-append ()
   "Starts a new multi-line append operation with `vim-visual--last-insert-info'."
   (goto-char (vim-visual-insert-info-begin vim-visual--last-insert-info))
-  (move-to-column (vim-visual-insert-info-column vim-visual--last-insert-info) t)
+  (move-to-column-fixed (vim-visual-insert-info-column vim-visual--last-insert-info) t)
   (vim-visual--record-undo-pos! (point))
   (let ((undo-inhibit-record-point t))
     (pcase vim-visual--mode-type
@@ -730,8 +730,8 @@ This function is also responsible for setting the X-selection."
           (let ((col-past (1+ col)))
             (goto-char (vim-visual-insert-info-end vim-visual--last-insert-info))
             (dotimes (_ count)
-              (move-to-column col-past t) ;; extend the newline at the end
-              (move-to-column col)        ;; no need to force again
+              (move-to-column-fixed col-past t) ;; extend the newline at the end
+              (move-to-column-fixed col)        ;; no need to force again
               (save-excursion
                 (vim--cmd-repeat-impl 1 events nil))
               (forward-line -1))
@@ -757,9 +757,9 @@ current line."
            (point-col (current-column-fixed-uncached)))
        (set-mark (save-excursion
                    (goto-char (mark t))
-                   (move-to-column point-col t)
+                   (move-to-column-fixed point-col t)
                    (point)))
-       (move-to-column mark-col t)))
+       (move-to-column-fixed mark-col t)))
     (_ (error "Not in visual mode"))))
 
 (vim-defcmd vim:visual-ex-read-command (nonrepeatable)
