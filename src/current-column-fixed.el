@@ -55,7 +55,7 @@ their width is always counted as 1, same as for space."
         (goto-char pos))
       (el-patch-swap
         (current-column)
-        current-column-fixed-uncached))))
+        (current-column-fixed-uncached)))))
 
 (provide 'current-column-fixed)
 
