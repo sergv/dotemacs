@@ -114,7 +114,8 @@ with exclamation mark"
        (0 (prog1 nil
             (compose-region (match-beginning 1)
                             (match-end 1)
-                            ,(make-char 'greek-iso8859-7 107)))))
+                            ,(make-char 'greek-iso8859-7 107) ;; ?λ
+                            ))))
 
       ;; ensure that pretty lambda goes away as soon as we type something after it
       ("(lambda[^ \n\t\v\f]"
