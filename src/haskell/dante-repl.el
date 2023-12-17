@@ -222,7 +222,7 @@ otherwise the command for starting repl will be inferred."
     (switch-to-buffer-other-window (get-buffer repl-buf-name))))
 
 (defun dante-repl-load-file--send-load-command (repl-buf-name repl-buf file-to-load)
-  (let ((cmd (concat ":load \"" file-to-load "\"")))
+  (let ((cmd (concat ":load \"*" file-to-load "\"")))
     (if (and repl-buf
              (buffer-live-p repl-buf))
         (let ((proc (get-buffer-process repl-buf)))
