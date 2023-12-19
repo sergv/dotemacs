@@ -1398,6 +1398,19 @@ are CHAR1 and CHAR2 repsectively."
               (char= it (aref str j)))))
     res))
 
+(defun text-after-matches? (str)
+  "Check if text after point is equal to STR."
+  (let ((res t)
+        (p (point)))
+    (cl-loop
+      for i from 0 to (1- (length str))
+      while res
+      do
+      (setf res
+            (awhen (char-after (+ p i))
+              (char= it (aref str i)))))
+    res))
+
 ;;;
 
 (defun string<-safe (x y)
