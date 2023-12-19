@@ -493,10 +493,8 @@ be used only for vim-visual-mode of the vim-mode package."
 
 (defun comment-util-uncomment--chunk-region (fmt)
   "Uncomment region around point surrounded by region begin and end markers."
-  (let* ((begin-str (concat (comment-format-region-begin fmt)
-                            comment-util--spaces-after-comment))
-         (end-str   (concat comment-util--spaces-after-comment
-                            (comment-format-region-end fmt)))
+  (let* ((begin-str (comment-format-region-begin fmt))
+         (end-str   (comment-format-region-end fmt))
          (curr-pos  (point))
          (begin-pos (search-backward begin-str nil t))
          (end-pos   (search-forward end-str nil t)))
@@ -508,14 +506,17 @@ be used only for vim-visual-mode of the vim-mode package."
              (<= begin-pos curr-pos)
              (<= curr-pos end-pos))
       (error "Point is not within commented block"))
-    ;; note: deletion of last comment must come first because
-    ;; otherwise point should be adjusted
+    ;; NB deletion of last comment must come first because
+    ;; otherwise point must be adjusted.
     (goto-char end-pos)
     (delete-char (- (length end-str)))
+    (when (text-before-matches? comment-util--spaces-after-comment)
+      (delete-char (- (length comment-util--spaces-after-comment))))
 
     (goto-char begin-pos)
     (delete-char (length begin-str))
-    (indent-for-tab-command)))
+    (when (text-after-matches? comment-util--spaces-after-comment)
+      (delete-char (length comment-util--spaces-after-comment)))))
 
 ;;;;; Low-level core functions
 
