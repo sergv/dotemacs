@@ -160,6 +160,7 @@ Regexp match data 0 specifies the characters to be composed."
         ("bottom"  #xe127 2) ;; error, undefined - bottom
         ("forall"  #xe128 2) ;; forall, all
         ("exists"  #xe129 2) ;; exists, any
+        ("nexists" #xe136 2)
         ("not"     #xe133 2) ;; not
 
         ("sum"       #xe12d 2) ;; sum
