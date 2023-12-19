@@ -470,6 +470,46 @@
    :initialisation (text-mode)
    :buffer-id common))
 
+(ert-deftest common-tests/text-after-matches?-1 ()
+  (tests-utils--with-temp-buffer
+   :action (should (text-after-matches? "foobar"))
+   :contents
+   (tests-utils--multiline
+    ""
+    "abc _|_foobar"
+    "")
+   :initialisation (text-mode)
+   :buffer-id common))
+
+(ert-deftest common-tests/text-after-matches?-2 ()
+  (tests-utils--with-temp-buffer
+   :action (should (text-after-matches? "foobar"))
+   :contents
+   (tests-utils--multiline
+    "_|_foobar")
+   :initialisation (text-mode)
+   :buffer-id common))
+
+(ert-deftest common-tests/text-after-matches?-3 ()
+  (tests-utils--with-temp-buffer
+   :action (should-not (text-after-matches? "foobar"))
+   :contents
+   (tests-utils--multiline
+    ""
+    "abc  _|_fooba"
+    "")
+   :initialisation (text-mode)
+   :buffer-id common))
+
+(ert-deftest common-tests/text-after-matches?-4 ()
+  (tests-utils--with-temp-buffer
+   :action (should-not (text-after-matches? "foobar"))
+   :contents
+   (tests-utils--multiline
+    "f_|_oobar")
+   :initialisation (text-mode)
+   :buffer-id common))
+
 (ert-deftest common-tests/file-name-all-parents-1 ()
   (should (equal (file-name-all-parents "/foo/bar/baz/quux")
                  (list "/foo/bar/baz/quux"
