@@ -93,6 +93,7 @@
        ("bottom"         . "bottom")
        ("forall"         . "forall")
        ("exists"         . "exists")
+       ("nexists"        . "nexists")
        ("not"            . "not")
        ("emptyset"       . "emptySet")
        ("Sum"            . "sum")
