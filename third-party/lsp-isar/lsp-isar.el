@@ -155,33 +155,36 @@ buffer in current window."
 (defun lsp-isar-open-output-and-progress-right-two-columns ()
   "Opens the *lsp-isar-output* and *lsp-isar-progress* buffers on the right."
   (interactive)
-  (split-window-right)
-  (other-window 1)
-  (switch-to-buffer "*lsp-isar-state*")
-  (lsp-isar-toggle-window-dedicated)
-  (split-window-below)
-  (other-window 1)
-  (switch-to-buffer "*lsp-isar-output*")
-  (lsp-isar-toggle-window-dedicated)
-  (other-window -2))
+  (unless (and (get-buffer-window "*lsp-isar-state*")
+               (get-buffer-window "*lsp-isar-output*"))
+    (split-window-right)
+    (other-window 1)
+    (switch-to-buffer "*lsp-isar-state*")
+    (lsp-isar-toggle-window-dedicated)
+    (split-window-below)
+    (other-window 1)
+    (switch-to-buffer "*lsp-isar-output*")
+    (lsp-isar-toggle-window-dedicated)
+    (other-window -2)))
 
 (defun lsp-isar-open-output-and-progress-right-three-columns ()
   "Opens the *lsp-isar-output* and *lsp-isar-progress* buffers on the right."
   (interactive)
-  ;; split first
-  (split-window-right)
-  (other-window 1)
+  (unless (and (get-buffer-window "*lsp-isar-state*")
+               (get-buffer-window "*lsp-isar-output*"))
+    ;; split first
+    (split-window-right)
+    (other-window 1)
 
-  ;; split second
-  (split-window-right)
-  (other-window 1)
-  (switch-to-buffer "*lsp-isar-state*")
-  (lsp-isar-toggle-window-dedicated)
-  (other-window 1)
-  (switch-to-buffer "*lsp-isar-output*")
-  (lsp-isar-toggle-window-dedicated)
-  (other-window -2))
-
+    ;; split second
+    (split-window-right)
+    (other-window 1)
+    (switch-to-buffer "*lsp-isar-state*")
+    (lsp-isar-toggle-window-dedicated)
+    (other-window 1)
+    (switch-to-buffer "*lsp-isar-output*")
+    (lsp-isar-toggle-window-dedicated)
+    (other-window -2)))
 
 (defun lsp-isar-open-output-and-progress-right ()
   "Opens the *lsp-isar-output* and *lsp-isar-progress* buffers on the right.
