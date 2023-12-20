@@ -199,7 +199,7 @@ functions adds up.  So any optimisation would help."
 	   (setq lsp-isar-output--state-selected nil)
 	   (push (dom-node 'lsp-isar-output-select-state-buffer ()) contents)
 	   (let ((start-point (point)) (face "dotted_information"))
-	     (push (dom-node 'lsp-isar-output-fontification `((start-point .  ,start-point) (face .  ,face)) nil) contents)
+	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
 	     (setq contents (append (dom-children content) contents))))
 
 	  ('tracing_message ;; TODO Proper colour
@@ -207,8 +207,8 @@ functions adds up.  So any optimisation would help."
 	   (setq lsp-isar-output--state-selected nil)
 	   (push (dom-node 'lsp-isar-output-select-state-buffer ()) contents)
 	   (let ((start-point (point)) (face "dotted_information"))
-	     (push (dom-node 'break `(('line .  1)) "\n") contents)
-	     (push (dom-node 'lsp-isar-output-fontification `((start-point .  ,start-point) (face .  ,face)) nil) contents)
+	     (push (dom-node 'break `(('line . 1)) "\n") contents)
+	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
 	     (setq contents (append (dom-children content) contents))))
 
 	  ('warning_message
@@ -216,8 +216,8 @@ functions adds up.  So any optimisation would help."
 	   (setq lsp-isar-output--state-selected nil)
 	   (push (dom-node 'lsp-isar-output-select-state-buffer ()) contents)
 	   (let ((start-point (point)) (face "text_overview_warning"))
-	     (push (dom-node 'break `(('line .  1)) "\n") contents)
-	     (push (dom-node 'lsp-isar-output-fontification `((start-point .  ,start-point) (face .  ,face)) nil) contents)
+	     (push (dom-node 'break `(('line . 1)) "\n") contents)
+	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
 	     (setq contents (append (dom-children content) contents))))
 
 	  ('legacy_message
@@ -225,8 +225,8 @@ functions adds up.  So any optimisation would help."
 	   (setq lsp-isar-output--state-selected nil)
 	   (push (dom-node 'lsp-isar-output-select-state-buffer ()) contents)
 	   (let ((start-point (point)) (face "text_overview_warning"))
-	     (push (dom-node 'break `(('line .  1)) "\n") contents)
-	     (push (dom-node 'lsp-isar-output-fontification `((start-point .  ,start-point) (face .  ,face)) nil) contents)
+	     (push (dom-node 'break `(('line . 1)) "\n") contents)
+	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
 	     (setq contents (append (dom-children content) contents))))
 
 	  ('writeln_message
@@ -234,8 +234,8 @@ functions adds up.  So any optimisation would help."
 	   (setq lsp-isar-output--state-selected nil)
 	   (push (dom-node 'lsp-isar-output-select-state-buffer ()) contents)
 	   (let ((start-point (point)) (face "dotted_writeln"))
-	     (push (dom-node 'break `(('line .  1)) "\n") contents)
-	     (push (dom-node 'lsp-isar-output-fontification `((start-point .  ,start-point) (face .  ,face)) nil) contents)
+	     (push (dom-node 'break `(('line . 1)) "\n") contents)
+	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
 	     (setq contents (append (dom-children content) contents))))
 
 	  ('error_message
@@ -243,8 +243,8 @@ functions adds up.  So any optimisation would help."
 	   (setq lsp-isar-output--state-selected nil)
 	   (push (dom-node 'lsp-isar-output-select-state-buffer ()) contents)
 	   (let ((start-point (point)) (face "text_overview_error"))
-	     (push (dom-node 'lsp-isar-output-fontification `((start-point .  ,start-point) (face .  ,face)) nil) contents)
-	     (push (dom-node 'break `(('line .  1)) "\n") contents)
+	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
+	     (push (dom-node 'break `(('line . 1)) "\n") contents)
 	     (setq contents (append (dom-children content) contents))))
 
 	  ('b
@@ -270,27 +270,27 @@ functions adds up.  So any optimisation would help."
 
 	  ('intensify
 	   (let ((start-point (point)) (face "background_intensify"))
-	     (push (dom-node 'lsp-isar-output-fontification `((start-point .  ,start-point) (face .  ,face)) nil) contents)
+	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
 	     (setq contents (append (dom-children content) contents))))
 
 	  ('keyword1
 	   (let ((start-point (point)) (face "text_keyword1"))
-	     (push (dom-node 'lsp-isar-output-fontification `((start-point .  ,start-point) (face .  ,face)) nil) contents)
+	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
 	     (setq contents (append (dom-children content) contents))))
 
 	  ('keyword2
 	   (let ((start-point (point)) (face "text_keyword2"))
-	     (push (dom-node 'lsp-isar-output-fontification `((start-point .  ,start-point) (face .  ,face)) nil) contents)
+	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
 	     (setq contents (append (dom-children content) contents))))
 
 	  ('keyword3
 	   (let ((start-point (point)) (face "text_keyword3"))
-	     (push (dom-node 'lsp-isar-output-fontification `((start-point .  ,start-point) (face .  ,face)) nil) contents)
+	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
 	     (setq contents (append (dom-children content) contents))))
 
 	  ('keyword4
 	   (let ((start-point (point)) (face "text_keyword4"))
-	     (push (dom-node 'lsp-isar-output-fontification `((start-point .  ,start-point) (face .  ,face)) nil) contents)
+	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
 	     (setq contents (append (dom-children content) contents))))
 
 	  ('fixed ;; this is used to enclose other variables
@@ -298,7 +298,7 @@ functions adds up.  So any optimisation would help."
 
 	  ('free
 	   (let ((start-point (point)) (face "text_free"))
-	     (push (dom-node 'lsp-isar-output-fontification `((start-point .  ,start-point) (face .  ,face)) nil) contents)
+	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
 	     (setq contents (append (dom-children content) contents))))
 
 	  ('inner_string ;; TODO font
@@ -306,27 +306,27 @@ functions adds up.  So any optimisation would help."
 
 	  ('tfree
 	   (let ((start-point (point)) (face "text_tfree"))
-	     (push (dom-node 'lsp-isar-output-fontification `((start-point .  ,start-point) (face .  ,face)) nil) contents)
+	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
 	     (setq contents (append (dom-children content) contents))))
 
 	  ('tvar
 	   (let ((start-point (point)) (face "text_tvar"))
-	     (push (dom-node 'lsp-isar-output-fontification `((start-point .  ,start-point) (face .  ,face)) nil) contents)
+	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
 	     (setq contents (append (dom-children content) contents))))
 
 	  ('var
 	   (let ((start-point (point)) (face "text_var"))
-	     (push (dom-node 'lsp-isar-output-fontification `((start-point .  ,start-point) (face .  ,face)) nil) contents)
+	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
 	     (setq contents (append (dom-children content) contents))))
 
 	  ('bound
 	   (let ((start-point (point)) (face "text_bound"))
-	     (push (dom-node 'lsp-isar-output-fontification `((start-point .  ,start-point) (face .  ,face)) nil) contents)
+	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
 	     (setq contents (append (dom-children content) contents))))
 
 	  ('skolem
 	   (let ((start-point (point)) (face "text_skolem"))
-	     (push (dom-node 'lsp-isar-output-fontification `((start-point .  ,start-point) (face .  ,face)) nil) contents)
+	     (push (dom-node 'lsp-isar-output-fontification `((start-point .  ,start-point) (face . ,face)) nil) contents)
 	     (setq contents (append (dom-children content) contents))))
 
 	  ('sendback ;; TODO handle properly
