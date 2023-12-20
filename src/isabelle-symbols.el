@@ -98,12 +98,13 @@
        ("emptyset"       . "emptySet")
        ("Sum"            . "sum")
        ("Prod"           . "product")
-       ("Coprod"         . "coproduct"))))
+       ("Coprod"         . "coproduct")
+       ("And"            . "&&")
+       ("Or"             . "||"))))
   "Mapping to specific ‘Iosevka Slab Lig’ glyphs.")
 
 (defconst pretty-ligatures--isabelle-unicode-ligatures
-  '(
-    ("alpha" . ?α)
+  '(("alpha" . ?α)
     ("beta" . ?β)
     ("gamma" . ?γ)
     ("delta" . ?δ)
@@ -139,7 +140,12 @@
     ("Omega" . ?Ω)
 
     ("open"  . ?‹)
-    ("close" . ?›))
+    ("close" . ?›)
+
+    ("and" . ?∧ ;; ?⋀
+     )
+    ("or" . ?∨ ;; ?⋁
+     ))
   "Mapping to regular unicode characters.")
 
 (defconst pretty-ligatures--isabelle-replacements
