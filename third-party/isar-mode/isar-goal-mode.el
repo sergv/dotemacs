@@ -42,7 +42,7 @@
   "Keymap for isar major mode.")
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("*isar-output*" . isar-goal-mode))
+(add-to-list 'auto-mode-alist `(,(rx bos (or "*lsp-isar-output*" "*lsp-isar-state*") eos) . isar-goal-mode))
 
 (defvar isar-goal-most-outer-keyword
   (rx bow
