@@ -36,6 +36,9 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'macro-util))
+
 (require 'isar-goal-mode)
 (require 'lsp-isar-decorations)
 (require 'dash)
@@ -63,7 +66,6 @@ Use nil for infinity"
   :type '(number)
   :group 'isabelle)
 
-(defvar lsp-isar-output--last-start nil "Last start time in seconds.")
 (defvar lsp-isar-output--previous-goal nil "Previous outputted goal.")
 (defvar lsp-isar-output-current-output-number 0 "Number of the current output.")
 (defvar lsp-isar-output-last-seen-prover nil "Name of the prover that was seen last.")
@@ -426,15 +428,6 @@ Lisp equivalent of `replace-regexp' as indicated in the help."
   (while (re-search-forward REGEXP nil t)
     (replace-match TO-STRING nil nil)))
 
-(defun lsp-isar-output-update-goal-without-deadline ()
-  "Update the goal without time limit."
-  (interactive)
-  (let ((old-timeout lsp-isar-output-maximal-time))
-    (setq lsp-isar-output-maximal-time nil)
-    (lsp-isar-output--update-state-and-output-buffer lsp-isar-output--previous-goal)
-    (setq lsp-isar-output-maximal-time old-timeout)))
-
-
 (defun lsp-isar-output--prepare-html ()
   "fixes the html output from Isabelle to match the expectation from emacs"
 
@@ -449,45 +442,6 @@ Lisp equivalent of `replace-regexp' as indicated in the help."
   (lsp-isar-output-replace-regexp-all-occs "\\(\\w\\)>\\( *\\)<"
 					   "\\1><break>'\\2'</break><")
   )
-
-(defun lsp-isar-output--update-state-and-output-buffer (content)
-  "Update state and output buffers with Isabelle's CONTENT."
-  (condition-case nil
-      (let ((parsed-content nil))
-	(setq lsp-isar-output--previous-goal content)
-	(save-excursion
-	  (with-current-buffer lsp-isar-output-buffer
-	    (read-only-mode -1)
-	    (erase-buffer))
-	  (with-temp-buffer
-	    (if content
-		(progn
-		  (insert "$")
-		  (insert content)
-		  ;; (message (buffer-string))
-		  ;; Isabelle's HTML and Emacs's HMTL disagree, so
-		  ;; we preprocess the output.
-		  (lsp-isar-output--prepare-html)
-
-		  ;; (message (buffer-string))
-		  ;; (message "%s"(libxml-parse-html-region  (point-min) (point-max)))
-		  (setq parsed-content (libxml-parse-html-region (point-min) (point-max))))))
-	  (with-current-buffer lsp-isar-output-state-buffer
-	    (let ((inhibit-read-only t))
-	      (erase-buffer)
-	      (setq lsp-isar-output-proof-cases-content nil
-		    lsp-isar-output-last-seen-prover nil)
-	      (lsp-isar-output-parse-output parsed-content)
-	      (goto-char (point-min))
-	      (ignore-errors
-		(search-forward "Proof outline with cases:") ;; TODO this should go to lsp-isar-output-parse-output
-		(setq lsp-isar-output-proof-cases-content (buffer-substring (point) (point-max))))))
-	  (with-current-buffer lsp-isar-output-buffer
-	    (read-only-mode t))))
-    ('abort-rendering
-     (message "updating goal interrupted (too slow), use lsp-isar-output-update-goal-without-deadline")
-     nil)))
-
 
 (defun lsp-isar-output--caddddr (x)
   "Return the `car' of the `cdr' of the `cdr' of the `cdr' of the `cdr' of X."
@@ -508,26 +462,22 @@ Lisp equivalent of `replace-regexp' as indicated in the help."
       (when lsp-isar-output-output
 	(save-excursion
 	  (with-current-buffer lsp-isar-output-buffer
-	    (read-only-mode -1)
-	    (erase-buffer)
-	    (insert lsp-isar-output-output)
-	    ;;(setf (buffer-string) lsp-isar-output-output)
-	    (read-only-mode t))))
+            (with-inhibited-read-only
+	     (erase-buffer)
+	     (insert lsp-isar-output-output)))))
       (when lsp-isar-output-state
 	(save-excursion
 	  (with-current-buffer lsp-isar-output-state-buffer
-	    (read-only-mode -1)
-	    (erase-buffer)
-	    (insert lsp-isar-output-state)
-	    (read-only-mode t))
-	  (with-current-buffer lsp-isar-output-state-buffer
-	    (dolist (deco lsp-isar-output-state-deco)
-	      (let* ((point0 (car deco))
-		     (point1 (cadr deco))
-		     (font (caddr deco))
-		     (face (cdr (assoc font lsp-isar-decorations-get-font)))
-		     (ov (make-overlay point0 point1)))
-		(overlay-put ov 'face face))))
+            (with-inhibited-read-only
+	     (erase-buffer)
+	     (insert lsp-isar-output-state)
+	     (dolist (deco lsp-isar-output-state-deco)
+	       (let* ((point0 (car deco))
+		      (point1 (cadr deco))
+		      (font (caddr deco))
+		      (face (gethash font lsp-isar-decorations-get-font))
+		      (ov (make-overlay point0 point1)))
+		 (overlay-put ov 'face face)))))
 	  (with-current-buffer lsp-isar-output-buffer
 	    (dolist (deco lsp-isar-output-output-deco)
 	      (let* ((point0 (car deco))
@@ -547,15 +497,14 @@ LSP-ISAR-OUTPUT-CURRENT-OUTPUT-NUMBER-RES."
      lsp-isar-output-session-name)))
 
 (defun lsp-isar-output-recalculate-sync (content)
-  (let
-      (;;(lsp-isar-output-output-deco nil)
-       (lsp-isar-output-state-deco nil)
-       (lsp-isar-output--state-selected t)
-       (lsp-isar-output-proof-cases-content nil)
-       (lsp-isar-output-last-seen-prover nil)
-       (inhibit-message t)
-       lsp-isar-output-state
-       lsp-isar-output)
+  (let ((lsp-isar-output-output-deco nil)
+        (lsp-isar-output-state-deco nil)
+        (lsp-isar-output--state-selected t)
+        (lsp-isar-output-proof-cases-content nil)
+        (lsp-isar-output-last-seen-prover nil)
+        (inhibit-message t)
+        lsp-isar-output-state
+        lsp-isar-output)
 
     (set-buffer lsp-isar-output-state-buffer)
 
@@ -567,27 +516,28 @@ LSP-ISAR-OUTPUT-CURRENT-OUTPUT-NUMBER-RES."
 	  (read-only-mode -1)
 	  (erase-buffer))
 	(with-temp-buffer
-	  (if content
-	      (progn
-		(insert "$")
-		(insert content)
-		(lsp-isar-output--prepare-html)
-		;; (message "%s" (libxml-parse-html-region  (point-min) (point-max)))
-		(setq parsed-content (libxml-parse-html-region (point-min) (point-max))))))
+	  (when content
+	    (insert "$")
+	    (insert content)
+	    (lsp-isar-output--prepare-html)
+	    ;; (message "%s" (libxml-parse-html-region  (point-min) (point-max)))
+	    (setq parsed-content (libxml-parse-html-region (point-min) (point-max)))
+            (message "parsed contents = %s" (pp-to-string (libxml-parse-html-region (point-min) (point-max))))
+            ))
 
 	(with-current-buffer lsp-isar-output-state-buffer
-	  (let ((inhibit-read-only t))
-	    (erase-buffer)
-	    (lsp-isar-output-parse-output parsed-content)
-	    (goto-char (point-min))
-	    (setq lsp-isar-output-state (buffer-string))))
+	  (with-inhibited-read-only
+	   (erase-buffer)
+	   (lsp-isar-output-parse-output parsed-content)
+	   (goto-char (point-min))
+	   (setq lsp-isar-output-state (buffer-string))))
 	(with-current-buffer lsp-isar-output-buffer
 	  (read-only-mode t)
 	  (setq lsp-isar-output (buffer-string)))
 	(list lsp-isar-output-state lsp-isar-output lsp-isar-output-proof-cases-content
 	      lsp-isar-output-state-deco lsp-isar-output-output-deco)))))
 
-;; deactivate font-lock-mode because we to the fontification ourselves anyway.
+;; Deactivate font-lock-mode because we do the fontification ourselves anyway.
 (defun lsp-isar-output-initialize-output-buffer ()
   "Initialize buffers."
   (setq lsp-isar-output-session-name (session-async-new))
@@ -667,22 +617,15 @@ panel with CONTENT."
   (setq lsp-isar-output--previous-goal content)
   (cl-incf lsp-isar-output-current-output-number)
 
-  (if lsp-isar-output-time-before-printing-goal
-      (progn
-	(if lsp-isar-output-proof-timer
-	    (cancel-timer lsp-isar-output-proof-timer))
-	(setq lsp-isar-output-proof-timer
-	      (run-at-time lsp-isar-output-time-before-printing-goal nil
-			   (lambda (content)
-			     (progn
-			       (setq lsp-isar-output--last-start (time-to-seconds))
-			       (lsp-isar-output--update-state-and-output-buffer content)))
-			   content)))
-    (if lsp-isar-output-use-async
-	(lsp-isar-output--update-state-and-output-buffer-async lsp-isar-output-current-output-number content)
-      (lsp-isar-output-give-parsed-goal lsp-isar-output-current-output-number (lsp-isar-output-recalculate-sync content)))))
-
-
+  (when lsp-isar-output-time-before-printing-goal
+    (when lsp-isar-output-proof-timer
+      (cancel-timer lsp-isar-output-proof-timer))
+    (setq lsp-isar-output-proof-timer
+	  (run-at-time lsp-isar-output-time-before-printing-goal nil
+		       (lambda (content)
+			 (progn
+                           (lsp-isar-output-give-parsed-goal lsp-isar-output-current-output-number (lsp-isar-output-recalculate-sync content))))
+		       content))))
 
 (defun lsp-isar-output-set-size (size)
   "Resize line length of output buffer."
