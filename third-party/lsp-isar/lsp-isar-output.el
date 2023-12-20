@@ -483,7 +483,7 @@ Lisp equivalent of `replace-regexp' as indicated in the help."
 	      (let* ((point0 (car deco))
 		     (point1 (cadr deco))
 		     (font (caddr deco))
-		     (face (cdr (assoc font lsp-isar-decorations-get-font)))
+		     (face (gethash font lsp-isar-decorations-get-font))
 		     (ov (make-overlay point0 point1)))
 		(overlay-put ov 'face face)))))))))
 
