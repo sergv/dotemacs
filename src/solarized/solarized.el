@@ -836,9 +836,9 @@
       (lsp-isar-font-foreground-antiquoted :background ,magenta ;;:priority 0
                                            )
 
-      (lsp-isar-font-dotted-writeln :underline ,primary-content)
-      (lsp-isar-font-dotted-information :underline ,green)
-      (lsp-isar-font-dotted-warning :underline ,orange)
+      (lsp-isar-font-dotted-writeln nil)
+      (lsp-isar-font-dotted-information nil)
+      (lsp-isar-font-dotted-warning nil)
 
       ;; This font is not used by LSP. It’s here only to signal
       ;; whether some new font was added to Isabelle.
