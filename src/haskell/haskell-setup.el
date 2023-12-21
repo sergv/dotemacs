@@ -395,6 +395,8 @@ _<tab>_: reindent  _h_: jump to topmont node end"
 
               beginning-of-defun-function #'haskell-move-to-topmost-start-impl
 
+              paredit-forward-sexp-function #'haskell-forward-sexp-no-pairing
+
               ;; Improve vim treatment of words for Haskell.
               ;; Note: underscore should not be included since it would prevent
               ;; navigating inside of some Haskell identifiers, e.g. foo_bar.
