@@ -5035,6 +5035,258 @@ end."
                     "data Foo a = Foo | Bar a a"
                     "  	-- Defined in ‘Data.Foo’")))))
 
+(ert-deftest haskell-tests/vim:splice-sexp-killing-backward-1-paren ()
+  (haskell-tests--test-buffer-contents
+      (vim:splice-sexp-killing-backward:wrapper)
+    (tests-utils--multiline
+     ""
+     "foo x xs = (bar _|_ baz)"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x xs = _|_baz"
+     "")))
+
+(ert-deftest haskell-tests/vim:splice-sexp-killing-backward-2-paren ()
+  (haskell-tests--test-buffer-contents
+      (vim:splice-sexp-killing-backward:wrapper)
+    (tests-utils--multiline
+     ""
+     "foo x xs = (bar `quux` _|_baz)"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x xs = _|_baz"
+     "")))
+
+(ert-deftest haskell-tests/vim:splice-sexp-killing-backward-3-paren ()
+  (haskell-tests--test-buffer-contents
+      (vim:splice-sexp-killing-backward:wrapper)
+    (tests-utils--multiline
+     ""
+     "foo x xs = ((bar) `quux` _|_baz)"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x xs = _|_baz"
+     "")))
+
+(ert-deftest haskell-tests/vim:splice-sexp-killing-backward-4-paren ()
+  (haskell-tests--test-buffer-contents
+      (vim:splice-sexp-killing-backward:wrapper)
+    (tests-utils--multiline
+     ""
+     "foo x xs = (bar \"quux\" _|_baz)"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x xs = _|_baz"
+     "")))
+
+(ert-deftest haskell-tests/vim:splice-sexp-killing-backward-5-paren ()
+  (haskell-tests--test-buffer-contents
+      (vim:splice-sexp-killing-backward:wrapper)
+    (tests-utils--multiline
+     ""
+     "foo x xs = ((bar) \"quux\" _|_baz)"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x xs = _|_baz"
+     "")))
+
+(ert-deftest haskell-tests/vim:splice-sexp-killing-backward-6-paren ()
+  (haskell-tests--test-buffer-contents
+      (vim:splice-sexp-killing-backward:wrapper)
+    (tests-utils--multiline
+     ""
+     "foo x xs = (bar [|quux|] _|_baz)"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x xs = _|_baz"
+     "")))
+
+(ert-deftest haskell-tests/vim:splice-sexp-killing-backward-7-paren ()
+  (haskell-tests--test-buffer-contents
+      (vim:splice-sexp-killing-backward:wrapper)
+    (tests-utils--multiline
+     ""
+     "foo x xs = ((bar) [|quux|] _|_baz)"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x xs = _|_baz"
+     "")))
+
+(ert-deftest haskell-tests/vim:splice-sexp-killing-backward-1-bracket ()
+  (haskell-tests--test-buffer-contents
+      (vim:splice-sexp-killing-backward:wrapper)
+    (tests-utils--multiline
+     ""
+     "foo x xs = [bar _|_ baz]"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x xs = _|_baz"
+     "")))
+
+(ert-deftest haskell-tests/vim:splice-sexp-killing-backward-2-bracket ()
+  (haskell-tests--test-buffer-contents
+      (vim:splice-sexp-killing-backward:wrapper)
+    (tests-utils--multiline
+     ""
+     "foo x xs = [bar `quux` _|_baz]"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x xs = _|_baz"
+     "")))
+
+(ert-deftest haskell-tests/vim:splice-sexp-killing-backward-3-bracket ()
+  (haskell-tests--test-buffer-contents
+      (vim:splice-sexp-killing-backward:wrapper)
+    (tests-utils--multiline
+     ""
+     "foo x xs = [[bar] `quux` _|_baz]"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x xs = _|_baz"
+     "")))
+
+(ert-deftest haskell-tests/vim:splice-sexp-killing-backward-4-bracket ()
+  (haskell-tests--test-buffer-contents
+      (vim:splice-sexp-killing-backward:wrapper)
+    (tests-utils--multiline
+     ""
+     "foo x xs = [bar \"quux\" _|_baz]"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x xs = _|_baz"
+     "")))
+
+(ert-deftest haskell-tests/vim:splice-sexp-killing-backward-5-bracket ()
+  (haskell-tests--test-buffer-contents
+      (vim:splice-sexp-killing-backward:wrapper)
+    (tests-utils--multiline
+     ""
+     "foo x xs = [[bar] \"quux\" _|_baz]"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x xs = _|_baz"
+     "")))
+
+(ert-deftest haskell-tests/vim:splice-sexp-killing-backward-6-bracket ()
+  (haskell-tests--test-buffer-contents
+      (vim:splice-sexp-killing-backward:wrapper)
+    (tests-utils--multiline
+     ""
+     "foo x xs = [bar [|quux|] _|_baz]"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x xs = _|_baz"
+     "")))
+
+(ert-deftest haskell-tests/vim:splice-sexp-killing-backward-7-bracket ()
+  (haskell-tests--test-buffer-contents
+      (vim:splice-sexp-killing-backward:wrapper)
+    (tests-utils--multiline
+     ""
+     "foo x xs = [[bar] [|quux|] _|_baz]"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x xs = _|_baz"
+     "")))
+
+(ert-deftest haskell-tests/vim:splice-sexp-killing-backward-1-brace ()
+  (haskell-tests--test-buffer-contents
+      (vim:splice-sexp-killing-backward:wrapper)
+    (tests-utils--multiline
+     ""
+     "foo x xs = {bar _|_ baz}"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x xs = _|_baz"
+     "")))
+
+(ert-deftest haskell-tests/vim:splice-sexp-killing-backward-2-brace ()
+  (haskell-tests--test-buffer-contents
+      (vim:splice-sexp-killing-backward:wrapper)
+    (tests-utils--multiline
+     ""
+     "foo x xs = {bar `quux` _|_baz}"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x xs = _|_baz"
+     "")))
+
+(ert-deftest haskell-tests/vim:splice-sexp-killing-backward-3-brace ()
+  (haskell-tests--test-buffer-contents
+      (vim:splice-sexp-killing-backward:wrapper)
+    (tests-utils--multiline
+     ""
+     "foo x xs = {{bar} `quux` _|_baz}"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x xs = _|_baz"
+     "")))
+
+(ert-deftest haskell-tests/vim:splice-sexp-killing-backward-4-brace ()
+  (haskell-tests--test-buffer-contents
+      (vim:splice-sexp-killing-backward:wrapper)
+    (tests-utils--multiline
+     ""
+     "foo x xs = {bar \"quux\" _|_baz}"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x xs = _|_baz"
+     "")))
+
+(ert-deftest haskell-tests/vim:splice-sexp-killing-backward-5-brace ()
+  (haskell-tests--test-buffer-contents
+      (vim:splice-sexp-killing-backward:wrapper)
+    (tests-utils--multiline
+     ""
+     "foo x xs = {{bar} \"quux\" _|_baz}"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x xs = _|_baz"
+     "")))
+
+(ert-deftest haskell-tests/vim:splice-sexp-killing-backward-6-brace ()
+  (haskell-tests--test-buffer-contents
+      (vim:splice-sexp-killing-backward:wrapper)
+    (tests-utils--multiline
+     ""
+     "foo x xs = {bar [|quux|] _|_baz}"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x xs = _|_baz"
+     "")))
+
+(ert-deftest haskell-tests/vim:splice-sexp-killing-backward-7-brace ()
+  (haskell-tests--test-buffer-contents
+      (vim:splice-sexp-killing-backward:wrapper)
+    (tests-utils--multiline
+     ""
+     "foo x xs = {{bar} [|quux|] _|_baz}"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x xs = _|_baz"
+     "")))
+
 (provide 'haskell-tests)
 
 ;; (let ((ert-debug-on-error nil))
