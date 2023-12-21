@@ -925,6 +925,19 @@ run at the same time."
 ;;           (skip-syntax-forward "^w")
 ;;           (make-string (- (point) line-start) ?\s))))))
 
+(defvar haskell-paredit-fixed-syntax-table
+  (let ((tbl (copy-syntax-table haskell-mode-syntax-table)))
+    (modify-syntax-entry ?` "." tbl)
+    tbl)
+  "Special syntax table for Haskell makes paredit work with `...`
+blocks. Ultimately paredit will use ‘scan-sexps’ which behaves
+funny when there are characters with $ syntax around.")
+
+;;;###autoload
+(defun haskell-forward-sexp-no-pairing (&optional arg)
+  (with-syntax-table haskell-paredit-fixed-syntax-table
+    (haskell-forward-sexp arg)))
+
 ;;;###autoload
 (defun haskell-forward-sexp (&optional arg)
   "Haskell specific version of `forward-sexp'.
