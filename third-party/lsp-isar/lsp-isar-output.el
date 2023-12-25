@@ -31,9 +31,6 @@
 ;; Provides two ways to update the output and state buffer.  Once directly and another
 ;; asynchronously via the async library.
 
-;; The synchronous version can timeout via `lsp-isar-output-maximal-time'. This is necessary,
-;; because the update runs in the main thread.
-
 ;;; Code:
 
 (eval-when-compile
@@ -44,29 +41,16 @@
 (require 'dash)
 
 (require 'dom)
-(require 'session-async)
 (require 'lsp-protocol)
 (require 'lsp-isar-types)
 
 (eval-when-compile (require 'subr-x))
 
-(defvar lsp-isar-output-state-buffer nil "Isabelle state buffer.")
 (defvar lsp-isar-output-buffer nil "Isabelle output buffer.")
 (defvar lsp-isar-output-output-deco nil "Isabelle decorations.")
-(defvar lsp-isar-output-state-deco nil "Isabelle decorations in state buffer.")
 (defvar lsp-isar-output-proof-cases-content nil)
 (defvar lsp-isar-output-proof-timer nil "Current timer rendering the HTML.")
-(defvar lsp-isar-output-session-name nil
-  "Async session to send goals to for printing.")
 
-(defcustom lsp-isar-output-maximal-time 3
-  "Maximal time in seconds printing can take.
-
-Use nil for infinity"
-  :type '(number)
-  :group 'isabelle)
-
-(defvar lsp-isar-output--previous-goal nil "Previous outputted goal.")
 (defvar lsp-isar-output-current-output-number 0 "Number of the current output.")
 (defvar lsp-isar-output-last-seen-prover nil "Name of the prover that was seen last.")
 
@@ -80,15 +64,23 @@ Use nil for infinity"
   :type '(number)
   :group 'isabelle)
 
-(define-error 'abort-rendering "Abort the rendering of the state and output buffer.")
+(defun lsp-isar-output-remove-quotes-from-string (str)
+  (if (string= str "''")
+      ""
+    (let ((len (length str)))
+      (pcase len
+        (`0 str)
+        (`1 str)
+        (_
+         (let* ((last (1- len))
+                (start (if (char= (aref str 0) ?\')
+                           1
+                         0))
+                (end (if (char= (aref str last) ?\')
+                         last
+                       len)))
+           (substring str start end)))))))
 
-
-(define-inline lsp-isar-output-remove-quotes-from-string (obj)
-  (inline-letevals (obj)
-    (inline-quote (string-remove-suffix "'" (string-remove-prefix "'" ,obj)))))
-
-(defvar lsp-isar-output--state-selected nil
-  "defines whether we should output to the state panel or not.")
 ;; The function iterates over the HTML as parsed by the HTML library.  As a side effect, it fills the
 ;; state buffer and the output buffer with the correct faces.  We cannot make the function recursive,
 ;; as recursive is slower and fail for deep goals.
@@ -156,18 +148,13 @@ functions adds up.  So any optimisation would help."
 	(insert (format "%s" content)))
        (t
 	(pcase (dom-tag content)
-	  ('lsp-isar-output-select-state-buffer
-	   (setq lsp-isar-output--state-selected t)
-	   (set-buffer lsp-isar-output-state-buffer))
 	  ('lsp-isar-output-fontification
 	   (let ((start-point (dom-attr content 'start-point))
 		 (face (dom-attr content 'face)))
-	     (if lsp-isar-output--state-selected
-		 (push (list start-point (point) face) lsp-isar-output-state-deco)
-	       (push (list start-point (point) face) lsp-isar-output-output-deco))))
+	     (push (list start-point (point) face) lsp-isar-output-output-deco)))
 	  ('lsp-isar-output-save-sendback
 	   (let ((start-point (dom-attr content 'start-point)))
-	     (push (buffer-substring start-point (point)) lsp-isar-output-proof-cases-content)))
+	     (push (buffer-substring-no-properties start-point (point)) lsp-isar-output-proof-cases-content)))
 	  ('html
 	   (setq contents (append (dom-children content) contents)))
 	  ('xmlns nil)
@@ -183,7 +170,7 @@ functions adds up.  So any optimisation would help."
 	   (setq contents (append (dom-children content) contents)))
 
 	  ('block
-	   (insert (if (dom-attr content 'indent) " " ""))
+	   (when (dom-attr content 'indent) (insert-char ?\s))
 	   (setq contents (append (dom-children content) contents)))
 
 	  ('class
@@ -198,16 +185,12 @@ functions adds up.  So any optimisation would help."
 
 	  ('information_message
 	   (set-buffer lsp-isar-output-buffer)
-	   (setq lsp-isar-output--state-selected nil)
-	   (push (dom-node 'lsp-isar-output-select-state-buffer ()) contents)
 	   (let ((start-point (point)) (face "dotted_information"))
 	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
 	     (setq contents (append (dom-children content) contents))))
 
 	  ('tracing_message ;; TODO Proper colour
 	   (set-buffer lsp-isar-output-buffer)
-	   (setq lsp-isar-output--state-selected nil)
-	   (push (dom-node 'lsp-isar-output-select-state-buffer ()) contents)
 	   (let ((start-point (point)) (face "dotted_information"))
 	     (push (dom-node 'break `(('line . 1)) "\n") contents)
 	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
@@ -215,8 +198,6 @@ functions adds up.  So any optimisation would help."
 
 	  ('warning_message
 	   (set-buffer lsp-isar-output-buffer)
-	   (setq lsp-isar-output--state-selected nil)
-	   (push (dom-node 'lsp-isar-output-select-state-buffer ()) contents)
 	   (let ((start-point (point)) (face "text_overview_warning"))
 	     (push (dom-node 'break `(('line . 1)) "\n") contents)
 	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
@@ -224,8 +205,6 @@ functions adds up.  So any optimisation would help."
 
 	  ('legacy_message
 	   (set-buffer lsp-isar-output-buffer)
-	   (setq lsp-isar-output--state-selected nil)
-	   (push (dom-node 'lsp-isar-output-select-state-buffer ()) contents)
 	   (let ((start-point (point)) (face "text_overview_warning"))
 	     (push (dom-node 'break `(('line . 1)) "\n") contents)
 	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
@@ -233,8 +212,6 @@ functions adds up.  So any optimisation would help."
 
 	  ('writeln_message
 	   (set-buffer lsp-isar-output-buffer)
-	   (setq lsp-isar-output--state-selected nil)
-	   (push (dom-node 'lsp-isar-output-select-state-buffer ()) contents)
 	   (let ((start-point (point)) (face "dotted_writeln"))
 	     (push (dom-node 'break `(('line . 1)) "\n") contents)
 	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
@@ -242,8 +219,6 @@ functions adds up.  So any optimisation would help."
 
 	  ('error_message
 	   (set-buffer lsp-isar-output-buffer)
-	   (setq lsp-isar-output--state-selected nil)
-	   (push (dom-node 'lsp-isar-output-select-state-buffer ()) contents)
 	   (let ((start-point (point)) (face "text_overview_error"))
 	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
 	     (push (dom-node 'break `(('line . 1)) "\n") contents)
@@ -251,22 +226,23 @@ functions adds up.  So any optimisation would help."
 
 	  ('b
 	   (insert "\\<^bbold>")
-	   (setq contents (append (dom-children content)  (list "\\<^ebold>") contents)))
+	   (setq contents (append (dom-children content) (list "\\<^ebold>") contents)))
 
 	  ('i
 	   (insert "\\<^bitalic>")
-	   (setq contents (append (dom-children content)  (list "\\<^eitalic>") contents)))
+	   (setq contents (append (dom-children content) (list "\\<^eitalic>") contents)))
 
 	  ('text_fold
 	   (setq contents (append (dom-children content) contents)))
 
 	  ('subgoal
-	   ;;(set-buffer lsp-isar-output-state-buffer)
 	   (setq contents (append (dom-children content) contents)))
 
 	  ('span
 	   (let ((str (format "%s" (car (last (dom-children content))))))
-	     (insert (format "%s"str))))
+             (insert str)
+	     ;; (insert (format "%s" str))
+             ))
 	  ('position
 	   (push (car (last (dom-children content))) contents))
 
@@ -328,19 +304,17 @@ functions adds up.  So any optimisation would help."
 
 	  ('skolem
 	   (let ((start-point (point)) (face "text_skolem"))
-	     (push (dom-node 'lsp-isar-output-fontification `((start-point .  ,start-point) (face . ,face)) nil) contents)
+	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
 	     (setq contents (append (dom-children content) contents))))
 
 	  ('sendback ;; TODO handle properly
            (insert "|" (format "%s" (1+ (length lsp-isar-output-proof-cases-content))) "|: ")
 	   (let ((start-point (point)))
-	     (save-excursion
-	       (beginning-of-line)
-	       (let ((str (buffer-substring (point) start-point)))
-		 (if (and str (cl-search "Try" str))
-		     (setq lsp-isar-output-last-seen-prover str)
-		   (setq lsp-isar-output-last-seen-prover
-			 (concat lsp-isar-output-last-seen-prover "Isar")))))
+	     (let ((str (buffer-substring-no-properties (line-beginning-position) start-point)))
+	       (if (cl-search "Try" str)
+		   (setq lsp-isar-output-last-seen-prover str)
+		 (setq lsp-isar-output-last-seen-prover
+		       (concat lsp-isar-output-last-seen-prover "Isar"))))
 	     (push (dom-node 'lsp-isar-output-save-sendback `((start-point .  ,start-point) nil)) contents)
 	     (setq contents (append (dom-children content) contents))))
 
@@ -370,10 +344,10 @@ functions adds up.  So any optimisation would help."
 	   (setq contents (append (dom-children content) contents))) ;; TODO line break
 
 	  ('break
-	   (let ((children (mapcar 'lsp-isar-output-remove-quotes-from-string (dom-children content))))
-	     (insert (if (dom-attr content 'width) " " ""))
-	     (insert (if (dom-attr content 'line) "\n" ""))
-	     (mapc 'insert children)))
+	   (when (dom-attr content 'width) (insert-char ?\s))
+	   (when (dom-attr content 'line) (insert-char ?\n))
+           (dolist (x (dom-children content))
+             (insert (lsp-isar-output-remove-quotes-from-string x))))
 
 	  ('xml_elem
 	   (setq contents (append (dom-children content) contents)))
@@ -381,11 +355,10 @@ functions adds up.  So any optimisation would help."
 	  ('emacs_isabelle_symbol
 	   (let ((symbol (car (dom-children content))))
 	     (setq contents (append (cdr (dom-children content)) contents))
-	     (insert "\\<")
-	     (insert symbol)
-	     (insert ">")))
+	     (insert "\\<" symbol ?>)))
 
-	  ('sub ;; Heuristically find the difference between sub and bsub...esub
+	  ('sub
+           ;; Heuristically find the difference between sub and bsub...esub
 	   (let ((children (dom-children content)))
 	     (if (and
 		  (not (cdr children))
@@ -396,7 +369,8 @@ functions adds up.  So any optimisation would help."
 		 (push "\\<^esub>" contents))
 	       (setq contents (append children contents)))))
 
-	  ('sup ;; Heuristically find the difference between sup and bsup...esup
+	  ('sup
+           ;; Heuristically find the difference between sup and bsup...esup
 	   ;; but we cannot do better as the information is not transmitted
 	   (let ((children (dom-children content)))
 	     (if (and
@@ -412,13 +386,9 @@ functions adds up.  So any optimisation would help."
 	  (_
 	   (if (listp (dom-tag content))
 	       (progn
-		 ;; (message "unrecognised node %s" (dom-tag content))
 		 (insert (format "%s" (dom-tag content)))
-		 (mapc 'lsp-isar-output-parse-output (dom-children content)))
-	     (progn
-	       ;; (message "unrecognised content %s; node is: %s; string: %s %s"
-	       ;;       content (dom-tag content) (stringp (dom-tag content)) (listp content))
-	       (insert (format "%s" (dom-tag content))))))))))))
+		 (mapc #'lsp-isar-output-parse-output (dom-children content)))
+	     (insert (format "%s" (dom-tag content)))))))))))
 
 (defun lsp-isar-output-replace-regexp-all-occs (REGEXP TO-STRING)
   "Replace all occurences of REGEXP by TO-STRING.
@@ -438,8 +408,8 @@ Lisp equivalent of `replace-regexp' as indicated in the help."
   (lsp-isar-output-replace-regexp-all-occs "\s\s\s\s\s"
 					   "  ")
   (lsp-isar-output-replace-regexp-all-occs "\n\\( *\\)"
-					   "<break line = 1>'\\1'</break>")
-  (lsp-isar-output-replace-regexp-all-occs "\\(\\w\\)>\\( *\\)<"
+					   "<break line=1>'\\1'</break>")
+  (lsp-isar-output-replace-regexp-all-occs "\\(\\w\\)>\\( +\\)<"
 					   "\\1><break>'\\2'</break><")
   )
 
@@ -448,36 +418,31 @@ Lisp equivalent of `replace-regexp' as indicated in the help."
   (declare (compiler-macro internal--compiler-macro-cXXr))
   (car (cdr (cdr (cdr (cdr x))))))
 
-(defun lsp-isar-output-give-parsed-goal (lsp-isar-output-current-output-number-res result)
-  ;; After evaluating the goal asynchronously, we retrieve it and update it in the current
-  ;; window.
-  (let* ((lsp-isar-output-state (car result))
-	 (lsp-isar-output-output (cadr result))
-	 (lsp-isar-output-proof-cases-content-1 (caddr result))
-	 (lsp-isar-output-state-deco  (cadddr result))
-	 (lsp-isar-output-output-deco (lsp-isar-output--caddddr result)))
-    (when (= lsp-isar-output-current-output-number lsp-isar-output-current-output-number-res)
-      (cl-incf lsp-isar-output-current-output-number)
-      (setq lsp-isar-output-proof-cases-content lsp-isar-output-proof-cases-content-1)
-      (when lsp-isar-output-output
-	(save-excursion
-	  (with-current-buffer lsp-isar-output-buffer
-            (with-inhibited-read-only
-	     (erase-buffer)
-	     (insert lsp-isar-output-output)))))
-      (when lsp-isar-output-state
-	(save-excursion
-	  (with-current-buffer lsp-isar-output-state-buffer
-            (with-inhibited-read-only
-	     (erase-buffer)
-	     (insert lsp-isar-output-state)
-	     (dolist (deco lsp-isar-output-state-deco)
-	       (let* ((point0 (car deco))
-		      (point1 (cadr deco))
-		      (font (caddr deco))
-		      (face (gethash font lsp-isar-decorations-get-font))
-		      (ov (make-overlay point0 point1)))
-		 (overlay-put ov 'face face)))))
+(defun lsp-isar-output-recalculate-sync (lsp-isar-output-current-output-number-res content)
+  (setf lsp-isar-output-proof-cases-content nil)
+  (let ((lsp-isar-output-output-deco nil)
+        (lsp-isar-output-last-seen-prover nil)
+        (inhibit-message t)
+        lsp-isar-have-output?)
+
+    (let ((parsed-content nil))
+      (with-temp-buffer
+	(when content
+	  (insert "$")
+	  (insert content)
+	  (lsp-isar-output--prepare-html)
+	  (setq parsed-content (libxml-parse-html-region (point-min) (point-max)))))
+
+      (with-current-buffer lsp-isar-output-buffer
+        (with-inhibited-read-only
+         (erase-buffer)
+	 (lsp-isar-output-parse-output parsed-content)
+	 (goto-char (point-min))
+	 (setq lsp-isar-have-output? t)))
+
+      (when (= lsp-isar-output-current-output-number lsp-isar-output-current-output-number-res)
+        (cl-incf lsp-isar-output-current-output-number)
+        (when lsp-isar-have-output?
 	  (with-current-buffer lsp-isar-output-buffer
 	    (dolist (deco lsp-isar-output-output-deco)
 	      (let* ((point0 (car deco))
@@ -485,136 +450,22 @@ Lisp equivalent of `replace-regexp' as indicated in the help."
 		     (font (caddr deco))
 		     (face (gethash font lsp-isar-decorations-get-font))
 		     (ov (make-overlay point0 point1)))
-		(overlay-put ov 'face face)))))))))
-
-(defun lsp-isar-output--update-state-and-output-buffer-async (lsp-isar-output-current-output-number-res content)
-  "Parse Isabelle output CONTENT asynchronously and number
-LSP-ISAR-OUTPUT-CURRENT-OUTPUT-NUMBER-RES."
-  (save-excursion
-    (session-async-start
-     `(lambda () (lsp-isar-output-recalculate-async ,content))
-     (lambda (content) (lsp-isar-output-give-parsed-goal lsp-isar-output-current-output-number-res content))
-     lsp-isar-output-session-name)))
-
-(defun lsp-isar-output-recalculate-sync (content)
-  (let ((lsp-isar-output-output-deco nil)
-        (lsp-isar-output-state-deco nil)
-        (lsp-isar-output--state-selected t)
-        (lsp-isar-output-proof-cases-content nil)
-        (lsp-isar-output-last-seen-prover nil)
-        (inhibit-message t)
-        lsp-isar-output-state
-        lsp-isar-output)
-
-    (set-buffer lsp-isar-output-state-buffer)
-
-    (setq lsp-isar-output-maximal-time nil)
-    (let ((parsed-content nil))
-      (setq lsp-isar-output--previous-goal content)
-      (save-excursion
-	(with-current-buffer lsp-isar-output-buffer
-	  (read-only-mode -1)
-	  (erase-buffer))
-	(with-temp-buffer
-	  (when content
-	    (insert "$")
-	    (insert content)
-	    (lsp-isar-output--prepare-html)
-	    ;; (message "%s" (libxml-parse-html-region  (point-min) (point-max)))
-	    (setq parsed-content (libxml-parse-html-region (point-min) (point-max)))
-            (message "parsed contents = %s" (pp-to-string (libxml-parse-html-region (point-min) (point-max))))
-            ))
-
-	(with-current-buffer lsp-isar-output-state-buffer
-	  (with-inhibited-read-only
-	   (erase-buffer)
-	   (lsp-isar-output-parse-output parsed-content)
-	   (goto-char (point-min))
-	   (setq lsp-isar-output-state (buffer-string))))
-	(with-current-buffer lsp-isar-output-buffer
-	  (read-only-mode t)
-	  (setq lsp-isar-output (buffer-string)))
-	(list lsp-isar-output-state lsp-isar-output lsp-isar-output-proof-cases-content
-	      lsp-isar-output-state-deco lsp-isar-output-output-deco)))))
+	        (overlay-put ov 'face face)))))))))
 
 ;; Deactivate font-lock-mode because we do the fontification ourselves anyway.
 (defun lsp-isar-output-initialize-output-buffer ()
   "Initialize buffers."
-  (setq lsp-isar-output-session-name (session-async-new))
-  (session-async-start
-   `(lambda ()
-      (progn
-	(require 'dom)
-	(require 'subr-x)
-	(require 'lsp-isar-output)
-	(defun lsp-isar-output-remove-quotes-from-string (obj)
-	  (string-remove-suffix "'" (string-remove-prefix "'" obj)))
-	(defun lsp-isar-output-replace-regexp-all-occs (REGEXP TO-STRING)
-	  "replace-regexp as indicated in the help"
-	  (goto-char (point-min))
-	  (while (re-search-forward REGEXP nil t)
-	    (replace-match TO-STRING nil nil)))
-	(defun lsp-isar-output-recalculate-async (content)
-	  (let
-	      ((lsp-isar-output-output-deco nil)
-	       (lsp-isar-output-state-deco nil)
-	       (lsp-isar-output--state-selected t)
-	       (lsp-isar-output-state-buffer (get-buffer-create "*lsp-isar-state*"))
-	       (lsp-isar-output-buffer (get-buffer-create "*lsp-isar-output*"))
-	       (lsp-isar-output-proof-cases-content nil)
-	       (lsp-isar-output-last-seen-prover nil)
-               (inhibit-message t)
-	       lsp-isar-output-state
-	       lsp-isar-output)
-
-	    (set-buffer lsp-isar-output-state-buffer)
-
-	    (setq lsp-isar-output-maximal-time nil)
-	    (let ((parsed-content nil))
-	      (setq lsp-isar-output--previous-goal content)
-	      (save-excursion
-		(with-current-buffer lsp-isar-output-buffer
-		  (read-only-mode -1)
-		  (erase-buffer))
-		(with-temp-buffer
-		  (if content
-		      (progn
-			(insert "$")
-			(insert content)
-			(lsp-isar-output--prepare-html)
-			;; (message "%s" (libxml-parse-html-region  (point-min) (point-max)))
-			(setq parsed-content (libxml-parse-html-region (point-min) (point-max))))))
-
-		(with-current-buffer lsp-isar-output-state-buffer
-		  (let ((inhibit-read-only t))
-		    (erase-buffer)
-		    (lsp-isar-output-parse-output parsed-content)
-		    (goto-char (point-min))
-		    (setq lsp-isar-output-state (buffer-string))))
-		(with-current-buffer lsp-isar-output-buffer
-		  (read-only-mode t)
-		  (setq lsp-isar-output (buffer-string)))
-		(list lsp-isar-output-state lsp-isar-output lsp-isar-output-proof-cases-content
-		      lsp-isar-output-state-deco lsp-isar-output-output-deco)))))))
-   'ignore
-   lsp-isar-output-session-name)
-  (setq lsp-isar-output-state-buffer (get-buffer-create "*lsp-isar-state*"))
   (setq lsp-isar-output-buffer (get-buffer-create "*lsp-isar-output*"))
-  (save-excursion
-    (with-current-buffer lsp-isar-output-state-buffer
-      (read-only-mode t)
-      (isar-goal-mode)
-      (font-lock-mode nil))
-    (with-current-buffer lsp-isar-output-buffer
-      (visual-line-mode t)
-      (read-only-mode t)
-      (isar-goal-mode)
-      (font-lock-mode nil))))
+  (with-current-buffer lsp-isar-output-buffer
+    (visual-line-mode t)
+    (hl-line-mode t)
+    (read-only-mode t)
+    (isar-goal-mode)
+    (font-lock-mode nil)))
 
 (lsp-defun lsp-isar-output-update-state-and-output-buffer (_workspace (&lsp-isar:DynamicOutput :content))
   "Launch the thread or timer to update the state and the output
 panel with CONTENT."
-  (setq lsp-isar-output--previous-goal content)
   (cl-incf lsp-isar-output-current-output-number)
 
   (when lsp-isar-output-time-before-printing-goal
@@ -623,28 +474,30 @@ panel with CONTENT."
     (setq lsp-isar-output-proof-timer
 	  (run-at-time lsp-isar-output-time-before-printing-goal nil
 		       (lambda (content)
-			 (progn
-                           (lsp-isar-output-give-parsed-goal lsp-isar-output-current-output-number (lsp-isar-output-recalculate-sync content))))
+			 (lsp-isar-output-recalculate-sync lsp-isar-output-current-output-number content))
 		       content))))
+
+(defvar lsp-isar-output--last-message-margin nil)
 
 (defun lsp-isar-output-set-size (size)
   "Resize line length of output buffer."
   (interactive)
-  (let ((my-message (lsp-make-notification "PIDE/set_message_margin" (list :value size))))
-    (lsp-send-notification my-message)))
+  (when (or (null lsp-isar-output--last-message-margin)
+            (not (= lsp-isar-output--last-message-margin size)))
+    (let ((my-message (lsp-make-notification "PIDE/set_message_margin" (list :value size))))
+      (setf lsp-isar-output--last-message-margin size)
+      (lsp-send-notification my-message))))
 
 (defun lsp-isar-output-adapt-length ()
   "Adapt the size of the buffer"
   (when lsp-isar-output-buffer
-    (save-excursion
-      (let
-	  ((cols (window-body-width (get-buffer-window lsp-isar-output-buffer))))
-	(lsp-isar-output-set-size (- cols 5))))))
+    (let ((cols (window-body-width (get-buffer-window lsp-isar-output-buffer))))
+      (lsp-isar-output-set-size (- cols 5)))))
 
 (defun lsp-isar-output-adapt-to-change (&optional _frame)
   (lsp-isar-output-adapt-length))
 
-(add-hook 'window-configuration-change-hook 'lsp-isar-output-adapt-to-change)
+(add-hook 'window-configuration-change-hook #'lsp-isar-output-adapt-to-change)
 
 (modify-coding-system-alist 'file "*lsp-isar-output*" 'utf-8-auto)
 
