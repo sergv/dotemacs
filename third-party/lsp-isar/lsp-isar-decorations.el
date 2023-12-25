@@ -506,6 +506,7 @@ classes."
 
      ("text_keyword2"               . lsp-isar-font-text-keyword2)
      ("text_keyword3"               . lsp-isar-font-text-keyword3)
+     ("text_keyword4"               . lsp-isar-font-text-keyword4)
      ("text_quasi_keyword"          . lsp-isar-font-text-quasi_keyword)
      ("text_improper"               . lsp-isar-font-text-improper)
      ("text_operator"               . lsp-isar-font-text-operator)
