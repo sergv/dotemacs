@@ -55,7 +55,17 @@ _r_ename
   (lsp-isar-define-client-and-start)
   (setq-local mode-line-format
               (apply #'default-mode-line-format
-                     (list " " '(:eval (isar-lsp-status)))))
+                     (list " " '(:eval (isar-lsp-status))))
+              lsp-ui-sideline-enable t
+              lsp-ui-sideline-show-diagnostics nil
+              lsp-ui-sideline-show-hover nil
+              lsp-ui-sideline-show-code-actions t)
+
+  (setup-lsp-symbnav :bind-keybindings nil)
+  (def-keys-for-map vim-normal-mode-local-keymap
+    ("C-." lsp-symbnav/go-to-symbol-home-no-regexp)
+    ("C-," lsp-symbnav/go-back)
+    ("C-?" lsp-symbnav/find-references))
 
   (def-keys-for-map vim-normal-mode-local-keymap
     ("\\"  vim:flycheck-run:interactive)
