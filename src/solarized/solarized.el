@@ -811,6 +811,7 @@
       (isar-keyword1-face :inherit font-lock-keyword-face)
       (isar-keyword2-face :inherit font-lock-keyword-face)
       (isar-keyword3-face :inherit font-lock-keyword-face)
+      (isar-keyword4-face :inherit font-lock-keyword-face)
 
       ;; The face used to mark inactive regions.
       (lsp-isar-font-background-unprocessed1 :inherit lsp-isar-font-background-unprocessed)
