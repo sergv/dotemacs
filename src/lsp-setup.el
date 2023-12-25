@@ -171,18 +171,22 @@
 
 ;;;; Symbnav
 
-(cl-defun setup-lsp-symbnav (&key (bind-keybindings t))
+(cl-defun setup-lsp-symbnav (&key (bind-keybindings t) (enable-regexp? t))
   (setq-local xref-show-definitions-function #'eproj-xref-symbnav-show-xrefs
               xref-show-xrefs-function #'eproj-xref-symbnav-show-xrefs)
   (setup-eproj-symbnav :bind-keybindings bind-keybindings)
   (when bind-keybindings
     (awhen (current-local-map)
       (def-keys-for-map it
-        ("M-." lsp-symbnav/go-to-symbol-home)
+        ("M-." (if enable-regexp?
+                   #'lsp-symbnav/go-to-symbol-home
+                 #'lsp-symbnav/go-to-symbol-home-no-regexp))
         ("M-," lsp-symbnav/go-back)
         ("M-?" lsp-symbnav/find-references)))
     (def-keys-for-map vim-normal-mode-local-keymap
-      ("M-." lsp-symbnav/go-to-symbol-home)
+      ("M-." (if enable-regexp?
+                 #'lsp-symbnav/go-to-symbol-home
+               #'lsp-symbnav/go-to-symbol-home-no-regexp))
       ("M-," lsp-symbnav/go-back)
       ("M-?" lsp-symbnav/find-references))))
 
@@ -201,16 +205,20 @@
               (-map #'lsp-symbnav--symbol-information->eproj-tag-triple
                     (lsp-request "workspace/symbol" `(:query ,re)))))
         (lsp-symbnav/go-to-symbol-home-impl re lsp-tags))
-    (let* ((identifier (eproj-symbnav/identifier-at-point nil))
-           (lsp-tags
-            (--map (list identifier it nil)
-                   (lsp-symbnav--locations->eproj-tags
-                    identifier
-                    (lsp-request "textDocument/definition"
-                                 (lsp--text-document-position-params))))))
-      (lsp-symbnav/go-to-symbol-home-impl
-       identifier
-       lsp-tags))))
+    (lsp-symbnav/go-to-symbol-home-no-regexp)))
+
+(defun lsp-symbnav/go-to-symbol-home-no-regexp ()
+  (interactive)
+  (let* ((identifier (eproj-symbnav/identifier-at-point nil))
+         (lsp-tags
+          (--map (list identifier it nil)
+                 (lsp-symbnav--locations->eproj-tags
+                  identifier
+                  (lsp-request "textDocument/definition"
+                               (lsp--text-document-position-params))))))
+    (lsp-symbnav/go-to-symbol-home-impl
+     identifier
+     lsp-tags)))
 
 (defun lsp-symbnav/go-to-symbol-home-impl (ident tags)
   (let ((proj nil)
