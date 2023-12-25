@@ -143,60 +143,30 @@ you can decide at startup what you want."
 
 ;; taken from
 ;; https://emacs.stackexchange.com/questions/2189/how-can-i-prevent-a-command-from-using-specific-windows
-(defun lsp-isar-toggle-window-dedicated ()
+(defun lsp-isar-set-window-dedicated ()
   "Dedicate current window to content.
 
 Control whether or not Emacs is allowed to display another
 buffer in current window."
   (let ((window (get-buffer-window (current-buffer))))
-    (set-window-dedicated-p window (not (window-dedicated-p window)))))
+    (set-window-dedicated-p window t)))
 
-;; unconditionnaly split the window
 (defun lsp-isar-open-output-and-progress-right-two-columns ()
-  "Opens the *lsp-isar-output* and *lsp-isar-progress* buffers on the right."
+  "Opens the *lsp-isar-output* buffer on the right."
   (interactive)
-  (unless (and (get-buffer-window "*lsp-isar-state*")
-               (get-buffer-window "*lsp-isar-output*"))
+  (unless (get-buffer-window "*lsp-isar-output*")
     (split-window-right)
-    (other-window 1)
-    (switch-to-buffer "*lsp-isar-state*")
-    (lsp-isar-toggle-window-dedicated)
-    (split-window-below)
     (other-window 1)
     (switch-to-buffer "*lsp-isar-output*")
-    (lsp-isar-toggle-window-dedicated)
-    (other-window -2)))
-
-(defun lsp-isar-open-output-and-progress-right-three-columns ()
-  "Opens the *lsp-isar-output* and *lsp-isar-progress* buffers on the right."
-  (interactive)
-  (unless (and (get-buffer-window "*lsp-isar-state*")
-               (get-buffer-window "*lsp-isar-output*"))
-    ;; split first
-    (split-window-right)
-    (other-window 1)
-
-    ;; split second
-    (split-window-right)
-    (other-window 1)
-    (switch-to-buffer "*lsp-isar-state*")
-    (lsp-isar-toggle-window-dedicated)
-    (other-window 1)
-    (switch-to-buffer "*lsp-isar-output*")
-    (lsp-isar-toggle-window-dedicated)
-    (other-window -2)))
+    (lsp-isar-set-window-dedicated)
+    (other-window -1)))
 
 (defun lsp-isar-open-output-and-progress-right ()
   "Opens the *lsp-isar-output* and *lsp-isar-progress* buffers on the right.
 
 It can be used for example by ``(add-hook \\='lsp-isar-init-hook
 \\='lsp-isar-open-output-and-progress-right-spacemacs)''."
-  (cond
-   ((eq lsp-isar-split-pattern 'lsp-isar-split-pattern-two-columns)
-    (lsp-isar-open-output-and-progress-right-two-columns))
-   ((eq lsp-isar-split-pattern 'lsp-isar-split-pattern-three-columns)
-    (lsp-isar-open-output-and-progress-right-three-columns))
-   (t (message "unrecognised motif to split window.  See variable `lsp-isar-split-pattern'"))))
+  (lsp-isar-open-output-and-progress-right-two-columns))
 
 ;; split the window 2 seconds later (the timeout is necessary to give
 ;; enough time to spacemacs to jump to the theory file).
