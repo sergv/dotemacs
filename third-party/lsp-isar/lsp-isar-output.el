@@ -47,7 +47,6 @@
 (eval-when-compile (require 'subr-x))
 
 (defvar lsp-isar-output-buffer nil "Isabelle output buffer.")
-(defvar lsp-isar-output-output-deco nil "Isabelle decorations.")
 (defvar lsp-isar-output-proof-cases-content nil)
 (defvar lsp-isar-output-proof-timer nil "Current timer rendering the HTML.")
 
@@ -136,259 +135,257 @@ the decorations), because goals can become arbitrary long.  Remark
 that I have not really tried to optimise it yet.  Even if the
 function is less critical, Emacs is single threaded and all these
 functions adds up.  So any optimisation would help."
-  (while contents
-    (let ((content (pop contents)))
-      ;; (message "content = %s" content)
-      (cond
-       ((eq content nil) nil)
-       ((eq content 'html) nil)
-       ((stringp content) (insert content))
-       ((not (listp content))
-	;; (message "unrecognised %s" content)
-	(insert (format "%s" content)))
-       (t
-	(pcase (dom-tag content)
-	  ('lsp-isar-output-fontification
-	   (let ((start-point (dom-attr content 'start-point))
-		 (face (dom-attr content 'face)))
-	     (push (list start-point (point) face) lsp-isar-output-output-deco)))
-	  ('lsp-isar-output-save-sendback
-	   (let ((start-point (dom-attr content 'start-point)))
-	     (push (buffer-substring-no-properties start-point (point)) lsp-isar-output-proof-cases-content)))
-	  ('html
-	   (setq contents (append (dom-children content) contents)))
-	  ('xmlns nil)
-	  ('meta nil)
-	  ('link nil)
-	  ('xml_body nil)
-	  ('path nil)
+  (let ((decorations nil))
+    (while contents
+      (let ((content (pop contents)))
+        ;; (message "content = %s" content)
+        (cond
+          ((eq content nil) nil)
+          ((eq content 'html) nil)
+          ((stringp content) (insert content))
+          ((not (listp content))
+	   ;; (message "unrecognised %s" content)
+	   (insert (format "%s" content)))
+          (t
+           (pcase (car content)
+	     ('lsp-isar-output-fontification
+	      (let ((start-point (cadr content))
+		    (face (cddr content)))
+	        (push (list start-point (point) face) decorations)))
+	     ('lsp-isar-output-save-sendback
+	      (let ((start-point (cadr content)))
+	        (push (buffer-substring-no-properties start-point (point)) lsp-isar-output-proof-cases-content)))
+             (_
+	      (pcase (dom-tag content)
+	        ('html
+	         (setq contents (append (dom-children content) contents)))
+	        ('xmlns nil)
+	        ('meta nil)
+	        ('link nil)
+	        ('xml_body nil)
+	        ('path nil)
 
-	  ('head
-	   (push (car (last (dom-children content))) contents))
+	        ('head
+	         (push (car (last (dom-children content))) contents))
 
-	  ('body
-	   (setq contents (append (dom-children content) contents)))
+	        ('body
+	         (setq contents (append (dom-children content) contents)))
 
-	  ('block
-	   (when (dom-attr content 'indent) (insert-char ?\s))
-	   (setq contents (append (dom-children content) contents)))
+	        ('block
+	            (when (dom-attr content 'indent) (insert-char ?\s))
+	          (setq contents (append (dom-children content) contents)))
 
-	  ('class
-	   (setq contents (append (dom-children content) contents)))
+	        ('class
+	         (setq contents (append (dom-children content) contents)))
 
-	  ('pre
-	   (setq contents (append (dom-children content) contents)))
+	        ('pre
+	         (setq contents (append (dom-children content) contents)))
 
-	  ('state_message
-	   (push (dom-node 'break `(('line .  1)) "\n") contents)
-	   (setq contents (append (dom-children content) contents)))
+	        ('state_message
+	         (push (dom-node 'break `(('line . 1)) "\n") contents)
+	         (setq contents (append (dom-children content) contents)))
 
-	  ('information_message
-	   (set-buffer lsp-isar-output-buffer)
-	   (let ((start-point (point)) (face "dotted_information"))
-	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
-	     (setq contents (append (dom-children content) contents))))
+	        ('information_message
+	         (let ((start-point (point)) (face 'lsp-isar-font-dotted-information))
+                   (push (cons 'lsp-isar-output-fontification (cons start-point face)) contents)
+	           (setq contents (append (dom-children content) contents))))
 
-	  ('tracing_message ;; TODO Proper colour
-	   (set-buffer lsp-isar-output-buffer)
-	   (let ((start-point (point)) (face "dotted_information"))
-	     (push (dom-node 'break `(('line . 1)) "\n") contents)
-	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
-	     (setq contents (append (dom-children content) contents))))
+	        ('tracing_message ;; TODO Proper colour
+	         (let ((start-point (point)) (face 'lsp-isar-font-dotted-information))
+	           (push (dom-node 'break `(('line . 1)) "\n") contents)
+                   (push (cons 'lsp-isar-output-fontification (cons start-point face)) contents)
+	           (setq contents (append (dom-children content) contents))))
 
-	  ('warning_message
-	   (set-buffer lsp-isar-output-buffer)
-	   (let ((start-point (point)) (face "text_overview_warning"))
-	     (push (dom-node 'break `(('line . 1)) "\n") contents)
-	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
-	     (setq contents (append (dom-children content) contents))))
+	        ('warning_message
+	         (let ((start-point (point)) (face 'lsp-isar-font-text-overview-warning))
+	           (push (dom-node 'break `(('line . 1)) "\n") contents)
+                   (push (cons 'lsp-isar-output-fontification (cons start-point face)) contents)
+	           (setq contents (append (dom-children content) contents))))
 
-	  ('legacy_message
-	   (set-buffer lsp-isar-output-buffer)
-	   (let ((start-point (point)) (face "text_overview_warning"))
-	     (push (dom-node 'break `(('line . 1)) "\n") contents)
-	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
-	     (setq contents (append (dom-children content) contents))))
+	        ('legacy_message
+	         (let ((start-point (point)) (face 'lsp-isar-font-text-overview-warning))
+	           (push (dom-node 'break `(('line . 1)) "\n") contents)
+                   (push (cons 'lsp-isar-output-fontification (cons start-point face)) contents)
+	           (setq contents (append (dom-children content) contents))))
 
-	  ('writeln_message
-	   (set-buffer lsp-isar-output-buffer)
-	   (let ((start-point (point)) (face "dotted_writeln"))
-	     (push (dom-node 'break `(('line . 1)) "\n") contents)
-	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
-	     (setq contents (append (dom-children content) contents))))
+	        ('writeln_message
+	         (let ((start-point (point)) (face 'lsp-isar-font-dotted-writeln))
+	           (push (dom-node 'break `(('line . 1)) "\n") contents)
+                   (push (cons 'lsp-isar-output-fontification (cons start-point face)) contents)
+	           (setq contents (append (dom-children content) contents))))
 
-	  ('error_message
-	   (set-buffer lsp-isar-output-buffer)
-	   (let ((start-point (point)) (face "text_overview_error"))
-	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
-	     (push (dom-node 'break `(('line . 1)) "\n") contents)
-	     (setq contents (append (dom-children content) contents))))
+	        ('error_message
+	         (let ((start-point (point)) (face 'lsp-isar-font-text-overview-error))
+	           (push (dom-node 'break `(('line . 1)) "\n") contents)
+                   (push (cons 'lsp-isar-output-fontification (cons start-point face)) contents)
+	           (setq contents (append (dom-children content) contents))))
 
-	  ('b
-	   (insert "\\<^bbold>")
-	   (setq contents (append (dom-children content) (list "\\<^ebold>") contents)))
+	        ('b
+	         (insert "\\<^bbold>")
+	         (setq contents (append (dom-children content) (list "\\<^ebold>") contents)))
 
-	  ('i
-	   (insert "\\<^bitalic>")
-	   (setq contents (append (dom-children content) (list "\\<^eitalic>") contents)))
+	        ('i
+	         (insert "\\<^bitalic>")
+	         (setq contents (append (dom-children content) (list "\\<^eitalic>") contents)))
 
-	  ('text_fold
-	   (setq contents (append (dom-children content) contents)))
+	        ('text_fold
+	         (setq contents (append (dom-children content) contents)))
 
-	  ('subgoal
-	   (setq contents (append (dom-children content) contents)))
+	        ('subgoal
+	         (setq contents (append (dom-children content) contents)))
 
-	  ('span
-	   (let ((str (format "%s" (car (last (dom-children content))))))
-             (insert str)
-	     ;; (insert (format "%s" str))
-             ))
-	  ('position
-	   (push (car (last (dom-children content))) contents))
+	        ('span
+	         (let ((str (format "%s" (car (last (dom-children content))))))
+                   (insert str)))
+	        ('position
+	         (push (car (last (dom-children content))) contents))
 
-	  ('intensify
-	   (let ((start-point (point)) (face "background_intensify"))
-	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
-	     (setq contents (append (dom-children content) contents))))
+	        ('intensify
+	         (let ((start-point (point)) (face 'lsp-isar-font-background-intensify))
+                   (push (cons 'lsp-isar-output-fontification (cons start-point face)) contents)
+	           (setq contents (append (dom-children content) contents))))
 
-	  ('keyword1
-	   (let ((start-point (point)) (face "text_keyword1"))
-	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
-	     (setq contents (append (dom-children content) contents))))
+	        ('keyword1
+	         (let ((start-point (point)) (face 'lsp-isar-font-text-keyword1))
+                   (push (cons 'lsp-isar-output-fontification (cons start-point face)) contents)
+	           (setq contents (append (dom-children content) contents))))
 
-	  ('keyword2
-	   (let ((start-point (point)) (face "text_keyword2"))
-	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
-	     (setq contents (append (dom-children content) contents))))
+	        ('keyword2
+	         (let ((start-point (point)) (face 'lsp-isar-font-text-keyword2))
+                   (push (cons 'lsp-isar-output-fontification (cons start-point face)) contents)
+	           (setq contents (append (dom-children content) contents))))
 
-	  ('keyword3
-	   (let ((start-point (point)) (face "text_keyword3"))
-	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
-	     (setq contents (append (dom-children content) contents))))
+	        ('keyword3
+	         (let ((start-point (point)) (face 'lsp-isar-font-text-keyword3))
+                   (push (cons 'lsp-isar-output-fontification (cons start-point face)) contents)
+	           (setq contents (append (dom-children content) contents))))
 
-	  ('keyword4
-	   (let ((start-point (point)) (face "text_keyword4"))
-	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
-	     (setq contents (append (dom-children content) contents))))
+	        ('keyword4
+	         (let ((start-point (point)) (face 'lsp-isar-font-text-keyword4))
+                   (push (cons 'lsp-isar-output-fontification (cons start-point face)) contents)
+	           (setq contents (append (dom-children content) contents))))
 
-	  ('fixed ;; this is used to enclose other variables
-	   (setq contents (append (dom-children content) contents)))
+	        ('fixed ;; this is used to enclose other variables
+	         (setq contents (append (dom-children content) contents)))
 
-	  ('free
-	   (let ((start-point (point)) (face "text_free"))
-	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
-	     (setq contents (append (dom-children content) contents))))
+	        ('free
+	         (let ((start-point (point)) (face 'lsp-isar-font-text-free))
+                   (push (cons 'lsp-isar-output-fontification (cons start-point face)) contents)
+	           (setq contents (append (dom-children content) contents))))
 
-	  ('inner_string ;; TODO font
-	   (setq contents (append (dom-children content) contents)))
+	        ('inner_string ;; TODO font
+	         (setq contents (append (dom-children content) contents)))
 
-	  ('tfree
-	   (let ((start-point (point)) (face "text_tfree"))
-	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
-	     (setq contents (append (dom-children content) contents))))
+	        ('tfree
+	         (let ((start-point (point)) (face 'lsp-isar-font-text-tfree))
+                   (push (cons 'lsp-isar-output-fontification (cons start-point face)) contents)
+	           (setq contents (append (dom-children content) contents))))
 
-	  ('tvar
-	   (let ((start-point (point)) (face "text_tvar"))
-	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
-	     (setq contents (append (dom-children content) contents))))
+	        ('tvar
+	         (let ((start-point (point)) (face 'lsp-isar-font-text-tvar))
+                   (push (cons 'lsp-isar-output-fontification (cons start-point face)) contents)
+	           (setq contents (append (dom-children content) contents))))
 
-	  ('var
-	   (let ((start-point (point)) (face "text_var"))
-	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
-	     (setq contents (append (dom-children content) contents))))
+	        ('var
+	         (let ((start-point (point)) (face 'lsp-isar-font-text-var))
+                   (push (cons 'lsp-isar-output-fontification (cons start-point face)) contents)
+	           (setq contents (append (dom-children content) contents))))
 
-	  ('bound
-	   (let ((start-point (point)) (face "text_bound"))
-	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
-	     (setq contents (append (dom-children content) contents))))
+	        ('bound
+	         (let ((start-point (point)) (face 'lsp-isar-font-text-bound))
+                   (push (cons 'lsp-isar-output-fontification (cons start-point face)) contents)
+	           (setq contents (append (dom-children content) contents))))
 
-	  ('skolem
-	   (let ((start-point (point)) (face "text_skolem"))
-	     (push (dom-node 'lsp-isar-output-fontification `((start-point . ,start-point) (face . ,face)) nil) contents)
-	     (setq contents (append (dom-children content) contents))))
+	        ('skolem
+	         (let ((start-point (point)) (face 'lsp-isar-font-text-skolem))
+                   (push (cons 'lsp-isar-output-fontification (cons start-point face)) contents)
+	           (setq contents (append (dom-children content) contents))))
 
-	  ('sendback ;; TODO handle properly
-           (insert "|" (format "%s" (1+ (length lsp-isar-output-proof-cases-content))) "|: ")
-	   (let ((start-point (point)))
-	     (let ((str (buffer-substring-no-properties (line-beginning-position) start-point)))
-	       (if (cl-search "Try" str)
-		   (setq lsp-isar-output-last-seen-prover str)
-		 (setq lsp-isar-output-last-seen-prover
-		       (concat lsp-isar-output-last-seen-prover "Isar"))))
-	     (push (dom-node 'lsp-isar-output-save-sendback `((start-point .  ,start-point) nil)) contents)
-	     (setq contents (append (dom-children content) contents))))
+	        ('sendback ;; TODO handle properly
+                 (insert "|" (format "%s" (1+ (length lsp-isar-output-proof-cases-content))) "|: ")
+	         (let ((start-point (point)))
+	           (let ((str (buffer-substring-no-properties (line-beginning-position) start-point)))
+	             (if (cl-search "Try" str)
+		         (setq lsp-isar-output-last-seen-prover str)
+		       (setq lsp-isar-output-last-seen-prover
+		             (concat lsp-isar-output-last-seen-prover "Isar"))))
+	           (push (list 'lsp-isar-output-save-sendback start-point) contents)
+	           (setq contents (append (dom-children content) contents))))
 
-	  ('bullet
-	   (insert "•")
-	   (setq contents (append (dom-children content) contents)))
+	        ('bullet
+	         (insert "•")
+	         (setq contents (append (dom-children content) contents)))
 
-	  ('language
-	   (setq contents (append (dom-children content) contents)))
+	        ('language
+	         (setq contents (append (dom-children content) contents)))
 
-	  ('literal
-	   (setq contents (append (dom-children content) contents)))
+	        ('literal
+	         (setq contents (append (dom-children content) contents)))
 
-	  ('delimiter
-	   (setq contents (append (dom-children content) contents)))
+	        ('delimiter
+	         (setq contents (append (dom-children content) contents)))
 
-	  ('entity
-	   (setq contents (append (dom-children content) contents)))
+	        ('entity
+	         (setq contents (append (dom-children content) contents)))
 
-	  ('paragraph
-	   (setq contents (append (dom-children content) contents)))
+	        ('paragraph
+	         (setq contents (append (dom-children content) contents)))
 
-	  ('dynamic_fact
-	   (setq contents (append (dom-children content) contents)))
+	        ('dynamic_fact
+	         (setq contents (append (dom-children content) contents)))
 
-	  ('item
-	   (setq contents (append (dom-children content) contents))) ;; TODO line break
+	        ('item
+	         (setq contents (append (dom-children content) contents))) ;; TODO line break
 
-	  ('break
-	   (when (dom-attr content 'width) (insert-char ?\s))
-	   (when (dom-attr content 'line) (insert-char ?\n))
-           (dolist (x (dom-children content))
-             (insert (lsp-isar-output-remove-quotes-from-string x))))
+	        ('break
+	         (when (dom-attr content 'width) (insert-char ?\s))
+	         (when (dom-attr content 'line) (insert-char ?\n))
+                 (dolist (x (dom-children content))
+                   (insert (lsp-isar-output-remove-quotes-from-string x))))
 
-	  ('xml_elem
-	   (setq contents (append (dom-children content) contents)))
+	        ('xml_elem
+	         (setq contents (append (dom-children content) contents)))
 
-	  ('emacs_isabelle_symbol
-	   (let ((symbol (car (dom-children content))))
-	     (setq contents (append (cdr (dom-children content)) contents))
-	     (insert "\\<" symbol ?>)))
+	        ('emacs_isabelle_symbol
+	         (let ((symbol (car (dom-children content))))
+	           (setq contents (append (cdr (dom-children content)) contents))
+	           (insert "\\<" symbol ?>)))
 
-	  ('sub
-           ;; Heuristically find the difference between sub and bsub...esub
-	   (let ((children (dom-children content)))
-	     (if (and
-		  (not (cdr children))
-		  (stringp (car children)))
-		 (insert (format "\\<^sub>%s" (car children)))
-	       (progn
-		 (insert "\\<^bsub>")
-		 (push "\\<^esub>" contents))
-	       (setq contents (append children contents)))))
+	        ('sub
+                 ;; Heuristically find the difference between sub and bsub...esub
+	         (let ((children (dom-children content)))
+	           (if (and
+		        (not (cdr children))
+		        (stringp (car children)))
+		       (insert (format "\\<^sub>%s" (car children)))
+	             (progn
+		       (insert "\\<^bsub>")
+		       (push "\\<^esub>" contents))
+	             (setq contents (append children contents)))))
 
-	  ('sup
-           ;; Heuristically find the difference between sup and bsup...esup
-	   ;; but we cannot do better as the information is not transmitted
-	   (let ((children (dom-children content)))
-	     (if (and
-		  (not (cdr children))
-		  (stringp (car children)))
-		 (insert (format "\\<^sup>%s" (car children)))
-	       (insert "\\<^bsup>")
-	       (push "\\<^esup>" contents)
-	       (setq contents (append children contents)))))
+	        ('sup
+                 ;; Heuristically find the difference between sup and bsup...esup
+	         ;; but we cannot do better as the information is not transmitted
+	         (let ((children (dom-children content)))
+	           (if (and
+		        (not (cdr children))
+		        (stringp (car children)))
+		       (insert (format "\\<^sup>%s" (car children)))
+	             (insert "\\<^bsup>")
+	             (push "\\<^esup>" contents)
+	             (setq contents (append children contents)))))
 
-	  ('p nil) ;; libxml odd behaviour
+	        ('p nil) ;; libxml odd behaviour
 
-	  (_
-	   (if (listp (dom-tag content))
-	       (progn
-		 (insert (format "%s" (dom-tag content)))
-		 (mapc #'lsp-isar-output-parse-output (dom-children content)))
-	     (insert (format "%s" (dom-tag content)))))))))))
+	        (_
+	         (if (listp (dom-tag content))
+	             (progn
+		       (insert (format "%s" (dom-tag content)))
+                       (dolist (c (dom-children content))
+                         (setf decocations (append (lsp-isar-output-parse-output c)
+                                                   decorations))))
+	           (insert (format "%s" (dom-tag content))))))))))))
+    decorations))
 
 (defun lsp-isar-output-replace-regexp-all-occs (REGEXP TO-STRING)
   "Replace all occurences of REGEXP by TO-STRING.
@@ -420,7 +417,7 @@ Lisp equivalent of `replace-regexp' as indicated in the help."
 
 (defun lsp-isar-output-recalculate-sync (lsp-isar-output-current-output-number-res content)
   (setf lsp-isar-output-proof-cases-content nil)
-  (let ((lsp-isar-output-output-deco nil)
+  (let ((decorations nil)
         (lsp-isar-output-last-seen-prover nil)
         (inhibit-message t)
         lsp-isar-have-output?)
@@ -436,7 +433,7 @@ Lisp equivalent of `replace-regexp' as indicated in the help."
       (with-current-buffer lsp-isar-output-buffer
         (with-inhibited-read-only
          (erase-buffer)
-	 (lsp-isar-output-parse-output parsed-content)
+	 (setf decorations (lsp-isar-output-parse-output parsed-content))
 	 (goto-char (point-min))
 	 (setq lsp-isar-have-output? t)))
 
@@ -444,13 +441,12 @@ Lisp equivalent of `replace-regexp' as indicated in the help."
         (cl-incf lsp-isar-output-current-output-number)
         (when lsp-isar-have-output?
 	  (with-current-buffer lsp-isar-output-buffer
-	    (dolist (deco lsp-isar-output-output-deco)
-	      (let* ((point0 (car deco))
+            (with-inhibited-read-only
+	     (dolist (deco decorations)
+               (let ((point0 (car deco))
 		     (point1 (cadr deco))
-		     (font (caddr deco))
-		     (face (gethash font lsp-isar-decorations-get-font))
-		     (ov (make-overlay point0 point1)))
-	        (overlay-put ov 'face face)))))))))
+		     (face (caddr deco)))
+	         (put-text-property point0 point1 'font-lock-face face))))))))))
 
 ;; Deactivate font-lock-mode because we do the fontification ourselves anyway.
 (defun lsp-isar-output-initialize-output-buffer ()
