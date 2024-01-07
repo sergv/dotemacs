@@ -345,6 +345,13 @@
 ;; This global mode is enabled by default and is superseded by hl-paren.
 (show-paren-mode -1)
 
+;;;###autoload
+(defun help-mode-setup ()
+  (hl-line-mode +1))
+
+;;;###autoload
+(add-hook 'help-mode-hook #'help-mode-setup)
+
 ;;;; aliases
 
 (fset 'yes-or-no-p 'y-or-n-p)
