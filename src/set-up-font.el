@@ -19,35 +19,35 @@
 (require 'set-up-environment-variables)
 (require 'set-up-paths)
 
-(defun font-exist? (font)
-  "Test whethef FONT is avaliable on the system."
-  (condition-case nil
-      (if (null (x-list-fonts font)) nil t)
-    (error nil)))
-
-(defconst +emacs-fonts+
-  (seq-filter
-   #'font-exist?
-   (append
-    '("-*-Iosevka Slab Lig-normal-normal-normal-*-16-*-*-*-*-*-iso10646-1"
-      "-*-Iosevka Slab Lig-*-*-*-*-16-*-*-*-*-*-*-*"
-      "-*-Iosevka Slab-normal-normal-normal-*-16-*-*-*-*-*-iso10646-1"
-      "-*-Terminus-normal-normal-normal-*-16-*-*-*-*-*-iso10646-1"
-      "-*-Terminus (TTF)-normal-normal-normal-*-16-*-*-*-*-*-iso10646-1"
-      "-raster-Terminus-normal-normal-normal-*-20-*-*-*-c-*-iso8859-1")
-    (if (and (<= (display-pixel-width) 1280)
-             (<= (display-pixel-height) 1024))
-        '("-outline-Anonymous Pro-normal-normal-normal-mono-15-*-*-*-c-*-iso8859-1")
-      '("-outline-Anonymous Pro-normal-normal-normal-mono-19-*-*-*-c-*-iso8859-1"))
-    '("-unknown-Droid Sans Mono-normal-normal-normal-*-15-*-*-*-m-0-iso10646-1"
-      "-unknown-DejaVu Sans Mono-normal-normal-normal-*-15-*-*-*-m-0-iso10646-1"
-      "-unknown-Inconsolata-normal-normal-normal-*-17-*-*-*-m-0-iso10646-1"
-      "-unknown-Liberation Mono-normal-normal-normal-*-15-*-*-*-m-0-iso10646-1"
-      "-unknown-FreeMono-normal-normal-normal-*-17-*-*-*-m-0-iso10646-1"
-      "-monotype-Courier New-normal-normal-normal-*-17-*-*-*-m-0-iso10646-1")))
-  "List of fonts from best to worst availabse on the system.")
-
-(defconst current-font (car +emacs-fonts+))
+(defconst current-font
+  (if-let ((iosevka-slab-lig-reg  (find-font (font-spec :name "Iosevka Slab Lig" :weight 'regular :slant 'normal)))
+           (iosevka-slab-lig-bold (find-font (font-spec :name "Iosevka Slab Lig" :weight 'bold :slant 'normal)))
+           (iosevka-slab-lig-reg-it  (find-font (font-spec :name "Iosevka Slab Lig" :weight 'regular :slant 'italic)))
+           (iosevka-slab-lig-bold-it (find-font (font-spec :name "Iosevka Slab Lig" :weight 'bold :slant 'italic))))
+      iosevka-slab-lig-reg
+    (car
+     (seq-filter
+      (lambda (font)
+        (condition-case nil
+            (and (x-list-fonts font) t)
+          (error nil)))
+      (append
+       '("-*-Iosevka Slab Lig-normal-normal-normal-*-16-*-*-*-*-*-iso10646-1"
+         "-*-Iosevka Slab Lig-*-*-*-*-16-*-*-*-*-*-*-*"
+         "-*-Iosevka Slab-normal-normal-normal-*-16-*-*-*-*-*-iso10646-1"
+         "-*-Terminus-normal-normal-normal-*-16-*-*-*-*-*-iso10646-1"
+         "-*-Terminus (TTF)-normal-normal-normal-*-16-*-*-*-*-*-iso10646-1"
+         "-raster-Terminus-normal-normal-normal-*-20-*-*-*-c-*-iso8859-1")
+       (if (and (<= (display-pixel-width) 1280)
+                (<= (display-pixel-height) 1024))
+           '("-outline-Anonymous Pro-normal-normal-normal-mono-15-*-*-*-c-*-iso8859-1")
+         '("-outline-Anonymous Pro-normal-normal-normal-mono-19-*-*-*-c-*-iso8859-1"))
+       '("-unknown-Droid Sans Mono-normal-normal-normal-*-15-*-*-*-m-0-iso10646-1"
+         "-unknown-DejaVu Sans Mono-normal-normal-normal-*-15-*-*-*-m-0-iso10646-1"
+         "-unknown-Inconsolata-normal-normal-normal-*-17-*-*-*-m-0-iso10646-1"
+         "-unknown-Liberation Mono-normal-normal-normal-*-15-*-*-*-m-0-iso10646-1"
+         "-unknown-FreeMono-normal-normal-normal-*-17-*-*-*-m-0-iso10646-1"
+         "-monotype-Courier New-normal-normal-normal-*-17-*-*-*-m-0-iso10646-1"))))))
 
 (defvar current-font-scaling nil)
 
@@ -82,7 +82,7 @@
         (set-face-attribute 'default frame :height scaling))))
 
   (defun set-up-font--set-current-font-for-frame (&optional frame)
-    (cl-assert (font-exist? current-font) nil "Font does not exist: %s" current-font)
+    (cl-assert (find-font current-font) nil "Font does not exist: %s" current-font)
     (set-frame-font current-font nil (if frame (list frame) nil)))
 
   (add-hook 'window-setup-hook #'set-up-font--init-font-and-scaling)
