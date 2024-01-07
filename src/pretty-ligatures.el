@@ -420,7 +420,13 @@ into accound and do the replacement only within specific circumstances.")
 
 (defun pretty-ligatures-supported? ()
   (and (bound-and-true-p current-font)
-       (string-match-p "Iosevka Slab Lig" current-font)))
+       (cond
+         ((stringp current-font)
+          (string-match-p "Iosevka Slab Lig" current-font))
+         ((fontp current-font)
+          (string= "Iosevka Slab Lig" (font-get current-font :name)))
+         (t
+          (error "Invalid current font: %s" current-font)))))
 
 (setq-default prettify-symbols-unprettify-at-point t)
 
