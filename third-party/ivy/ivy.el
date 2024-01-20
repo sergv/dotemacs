@@ -3934,12 +3934,12 @@ This function serves as a fallback when nothing else is available."
 N wraps around."
   (aref ivy-minibuffer-faces (mod n (eval-when-compile (length ivy-minibuffer-faces)))))
 
-(defun ivy--flx-propertize (x)
-  "X is (cons (flx-score STR ...) STR)."
-  (let ((str (copy-sequence (cdr x)))
+(defun ivy--flx-propertize (x y)
+  "X is (flx-score STR ...), Y is STR."
+  (let ((str (copy-sequence y))
         (i -1)
         (last-j -2))
-    (dolist (j (cdar x))
+    (dolist (j (cdr x))
       (unless (eq j (1+ last-j))
         (cl-incf i))
       (setq last-j j)
@@ -4114,14 +4114,14 @@ with the extended highlighting of `ivy-format-function-line'."
            (memq (ivy-alist-setting ivy-re-builders-alist) '(ivy--regex-fuzzy ivy--regex-fuzzy-filenames)))
       (let ((flx-name (string-remove-prefix "^" ivy-text)))
         (ivy--flx-propertize
-         (cons (pcase ivy--flx-sort--backend
-                 (`native
-                  (haskell-native-score-single-match (if match-filenames? [?/] []) flx-name str))
-                 (`elisp
-                  (flx-score str flx-name (if match-filenames? ivy--flx-filename-cache ivy--flx-cache)))
-                 (invalid
-                  (error "Invalid ivy--flx-sort--backend: %s" invalid)))
-               str)))
+         (pcase ivy--flx-sort--backend
+           (`native
+            (haskell-native-score-single-match (if match-filenames? [?/] []) flx-name str))
+           (`elisp
+            (flx-score str flx-name (if match-filenames? ivy--flx-filename-cache ivy--flx-cache)))
+           (invalid
+            (error "Invalid ivy--flx-sort--backend: %s" invalid)))
+         str))
     (ivy--highlight-default str)))
 
 (defun ivy--highlight-fuzzy (str)
