@@ -93,6 +93,12 @@
   "Force re-send buffer’s content to currently running LSP server.
 Useful if the server got confused with incremental updating
 scheme and it’s view of current buffer is malformed."
+  (let ((time (current-time)))
+    ;; Set modtime of the underlying file
+    (set-file-times (buffer-file-name) time)
+    ;; Sync buffer’s recorded modtime so that auto-revert won’t trigger.
+    (set-visited-file-modtime) time)
+
   (when lsp-mode
     (let ((n (buffer-size))
           ;; Force full sync now
