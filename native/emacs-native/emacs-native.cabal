@@ -87,8 +87,11 @@ library
     Data.FuzzyMatch
     Data.FuzzyMatch.SortKey
     Data.Ignores
+    Data.MinMaxIdx
     Data.NBSem
+    Data.Packed
     Data.Regex
+    Data.StrIdx
     Data.Primitive.PrimArray.Ext
     Data.Text.Ext
     Data.Vector.Ext
@@ -188,6 +191,7 @@ test-suite emacs-native-test
     , tasty-hunit
     , tasty-quickcheck
     , text
+    , vector
   ghc-options:
     -rtsopts
     -main-is EmacsNativeTest
