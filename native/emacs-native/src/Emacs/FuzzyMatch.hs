@@ -15,7 +15,7 @@ module Emacs.FuzzyMatch (initialise) where
 
 import Control.Concurrent
 import Control.Concurrent.Async.Lifted.Safe
-import Control.Concurrent.Counter qualified as Counter
+import Control.Concurrent.Counter.Lifted.IO qualified as Counter
 import Control.DeepSeq
 import Control.LensBlaze
 import Control.Monad.Catch
@@ -24,6 +24,8 @@ import Control.Monad.ST.Strict
 import Control.Monad.Trans.Control
 import Data.Foldable
 import Data.Int
+import Data.List.NonEmpty (NonEmpty(..))
+import Data.Maybe
 import Data.Primitive.PrimArray
 import Data.Primitive.Types
 import Data.Text (Text)
@@ -90,13 +92,12 @@ scoreMatches (R seps (R needle (R haystacks Stop))) = do
   (matches :: P.Vector SortKey) <- runWithEarlyTermination $ do
     let chunk :: Int
         !chunk = 256
-        needleChars :: NeedleChars
-        !needleChars = prepareNeedle needle'
         totalHaystacks :: Int
         !totalHaystacks = V.length haystacks'
+        needleSegments :: NonEmpty Text
+        needleSegments = splitNeedle needle'
 
-    jobs <- getNumCapabilities
-
+    jobs    <- getNumCapabilities
     jobSync <- Counter.new (jobs * chunk)
 
     (scores :: PM.MVector RealWorld SortKey) <- PM.new totalHaystacks
@@ -106,12 +107,12 @@ scoreMatches (R seps (R needle (R haystacks Stop))) = do
           let haystackLen :: Int
               !haystackLen = T.length haystack
           !match <-
-            fuzzyMatch'
-              store
-              (computeHeatmap store haystack haystackLen seps')
-              needle'
-              needleChars
-              haystack
+            fromMaybe noMatch <$>
+              fuzzyMatch'
+                store
+                (computeHeatmap store haystack haystackLen seps')
+                needleSegments
+                haystack
           pure $! mkSortKey (fi32 (mScore match)) (fromIntegral haystackLen) (fromIntegral n)
 
         processChunk :: forall ss. ReusableState ss -> Int -> Int -> ST ss ()
@@ -122,7 +123,7 @@ scoreMatches (R seps (R needle (R haystacks Stop))) = do
 
         processChunks :: forall ss. Int -> ST ss ()
         processChunks !k = do
-          store <- mkReusableState (T.length needle') needleChars
+          store <- mkReusableState (T.length needle')
 
           let go :: Int -> ST ss ()
               go !start
@@ -187,10 +188,21 @@ scoreSingleMatch (R seps (R needle (R haystack Stop))) = do
   seps'     <- extractSeps seps
   needle'   <- extractText needle
   haystack' <- extractText haystack
-  let needleChars = (prepareNeedle needle')
-      !Match{mScore, mPositions} = runST $ do
-        store <- mkReusableState (T.length needle') needleChars
-        fuzzyMatch' store (computeHeatmap store haystack' (T.length haystack') seps') needle' needleChars haystack'
+  let !Match{mScore, mPositions} = runST $ do
+        store <- mkReusableState (T.length needle')
+        fromMaybe noMatch <$>
+          fuzzyMatch'
+            store
+            (computeHeatmap store haystack' (T.length haystack') seps')
+            (splitNeedle needle')
+            haystack'
   score     <- makeInt $ fromIntegral mScore
-  positions <- makeList =<< traverse (makeInt . fromIntegral . unStrIdx) mPositions
+  positions <- makeList =<< traverse (makeInt . fromIntegral . unStrCharIdx) mPositions
   cons score positions
+
+noMatch :: Match
+noMatch = Match
+  { mScore     = (-1000000)
+  , mPositions = StrCharIdx (-1) :| []
+  }
+
