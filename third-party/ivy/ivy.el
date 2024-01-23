@@ -2852,9 +2852,13 @@ regexp is passed to `regexp-quote'."
 (defun ivy--trim-trailing-re (regex)
   "Trim incomplete REGEX.
 If REGEX ends with \\|, trim it, since then it matches an empty string."
-  (if (string-match "\\`\\(.*\\)[\\]|\\'" regex)
-      (match-string 1 regex)
-    regex))
+  (let* ((len (length regex))
+         (penultimate-idx (- len 2)))
+    (if (and (<= 2 len)
+             (eq ?| (aref regex (1- len)))
+             (eq ?\\ (aref regex penultimate-idx)))
+        (substring regex 0 penultimate-idx)
+      regex)))
 
 (defun ivy--regex (str &optional greedy)
   "Re-build regex pattern from STR in case it has a space.
