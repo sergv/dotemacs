@@ -21,6 +21,7 @@ module Data.FuzzyMatch
   , Match(..)
   , NeedleChars
   , prepareNeedle
+  , splitNeedle
   , ReusableState
   , mkReusableState
 
@@ -28,21 +29,24 @@ module Data.FuzzyMatch
   , computeHeatmap
   , Heatmap(..)
   , Heat(..)
-  , StrIdx(..)
+  , StrCharIdx(..)
   ) where
 
 import Control.Monad
-import Control.Monad.Primitive
 import Control.Monad.ST.Strict
 import Data.Bits
 import Data.Char
-import Data.Coerce
-import Data.Function
+import Data.Foldable
+import Data.Foldable1 as Foldable1
 import Data.Int
 import Data.IntMap (IntMap)
 import Data.IntMap qualified as IM
 import Data.List.NonEmpty (NonEmpty(..))
 import Data.List.NonEmpty qualified as NE
+import Data.Maybe
+import Data.MinMaxIdx
+import Data.Monoid (Dual(..))
+import Data.Ord
 import Data.Primitive.ByteArray
 import Data.Primitive.PrimArray
 import Data.Primitive.PrimArray.Ext qualified as PExt
@@ -53,28 +57,28 @@ import Data.Text qualified as T
 import Data.Text.Array qualified as TA
 import Data.Text.Ext qualified as T
 import Data.Text.Internal qualified as TI
+import Data.Text.Internal.Private qualified as T (spanAscii_)
 import Data.Text.Unsafe qualified as T
+import Data.Traversable
 import Data.Vector qualified as V
 import Data.Vector.Ext qualified as VExt
-import Data.Vector.Generic qualified as G
-import Data.Vector.Generic.Mutable qualified as GM
 import Data.Vector.Mutable qualified as VM
 import Data.Vector.PredefinedSorts
 import Data.Vector.Primitive qualified as P
 import Data.Vector.Primitive.Mutable qualified as PM
 import Data.Vector.Unboxed qualified as U
 import Data.Vector.Unboxed.Base qualified as U
+import Data.Vector.Unboxed.Mutable qualified as UM
 import Data.Word
-import GHC.Generics (Generic)
 import GHC.Int (Int32(I32#))
 import GHC.Magic (inline)
 import GHC.ST
 import GHC.Types
 import GHC.Word (Word64(W64#))
-import Numeric (showHex)
-import Prettyprinter
-import Prettyprinter.Show
+import Prettyprinter.Generics
 
+import Data.Packed
+import Data.StrIdx
 import Emacs.Module.Assert (WithCallStack)
 
 #if __GLASGOW_HASKELL__ < 904
@@ -112,47 +116,67 @@ isWord x = case chr# x of
   _     -> True#
 
 data ReusableState s = ReusableState
-  { rsHaystackStore :: !(STRef s (MutableByteArray s))
+  { rsHaystackStore :: !(STRef s (UM.MVector s CharAndIdxs))
   , rsHeatmapStore  :: !(STRef s (MutablePrimArray s Heat))
-  , rsNeedleStore   :: !(VM.MVector s (U.Vector PackedIdx))
+  , rsNeedleStore   :: !(VM.MVector s (U.Vector PackedStrCharIdxAndStrByteIdx))
   }
 
-mkReusableState :: Int -> NeedleChars -> ST s (ReusableState s)
-mkReusableState !needleSize !chars = do
-  rsHaystackStore <- newSTRef =<< newByteArray (needleCharsCountHint chars)
-  rsHeatmapStore  <- newSTRef =<< newPrimArray (needleCharsCountHint chars)
+-- Needle size here must cover all possible needle sizes that are going to be passed.
+mkReusableState :: Int -> ST s (ReusableState s)
+mkReusableState !needleSize = do
+  rsHaystackStore <- newSTRef =<< UM.unsafeNew needleSize
+  rsHeatmapStore  <- newSTRef =<< newPrimArray needleSize
   rsNeedleStore   <- VM.unsafeNew needleSize
   pure ReusableState{rsHaystackStore, rsHeatmapStore, rsNeedleStore}
 
 newtype Bytes8 = Bytes8 Word64
+  deriving (Generic, Pretty)
 data Bytes16 = Bytes16 {-# UNPACK #-} !Word64 {-# UNPACK #-} !Word64
+  deriving (Generic)
 data Bytes24 = Bytes24 {-# UNPACK #-} !Word64 {-# UNPACK #-} !Word64 {-# UNPACK #-} !Word64
+  deriving (Generic)
 data Bytes32 = Bytes32 {-# UNPACK #-} !Word64 {-# UNPACK #-} !Word64 {-# UNPACK #-} !Word64 {-# UNPACK #-} !Word64
+  deriving (Generic)
 newtype CharsVector = CharsVector { unCharsVector :: P.Vector Char }
+  deriving (Generic)
+
+instance Pretty Bytes16 where
+  pretty = ppGeneric
+instance Pretty Bytes24 where
+  pretty = ppGeneric
+instance Pretty Bytes32 where
+  pretty = ppGeneric
+instance Pretty CharsVector where
+  pretty = pretty . P.toList . unCharsVector
 
 class CharMember a where
-  charMember :: Int# -> a -> Bool
+  charMember :: Char# -> a -> Bool
 
 instance CharMember Bytes8 where
-  charMember charCode (Bytes8 w1) = isTrue# (charCode <# 128#) && wordMember w1 (fanout charCode)
+  charMember charCode (Bytes8 w1) = isTrue# (charCode' <# 128#) && wordMember w1 (fanout charCode')
+    where
+      !charCode' = ord# charCode
 
 instance CharMember Bytes16 where
-  charMember charCode (Bytes16 w1 w2) = isTrue# (charCode <# 128#) && (wordMember w1 bytes || wordMember w2 bytes)
+  charMember charCode (Bytes16 w1 w2) = isTrue# (charCode' <# 128#) && (wordMember w1 bytes || wordMember w2 bytes)
     where
-      !bytes = fanout charCode
+      !bytes = fanout charCode'
+      !charCode' = ord# charCode
 
 instance CharMember Bytes24 where
-  charMember charCode (Bytes24 w1 w2 w3) = isTrue# (charCode <# 128#) && (wordMember w1 bytes || wordMember w2 bytes || wordMember w3 bytes)
+  charMember charCode (Bytes24 w1 w2 w3) = isTrue# (charCode' <# 128#) && (wordMember w1 bytes || wordMember w2 bytes || wordMember w3 bytes)
     where
-      !bytes = fanout charCode
+      !bytes = fanout charCode'
+      !charCode' = ord# charCode
 
 instance CharMember Bytes32 where
-  charMember charCode (Bytes32 w1 w2 w3 w4) = isTrue# (charCode <# 128#) && (wordMember w1 bytes || wordMember w2 bytes || wordMember w3 bytes ||  wordMember w4 bytes)
+  charMember charCode (Bytes32 w1 w2 w3 w4) = isTrue# (charCode' <# 128#) && (wordMember w1 bytes || wordMember w2 bytes || wordMember w3 bytes ||  wordMember w4 bytes)
     where
-      !bytes = fanout charCode
+      !bytes = fanout charCode'
+      !charCode' = ord# charCode
 
 instance CharMember CharsVector where
-  charMember charCode (CharsVector arr) = VExt.binSearchMember (C# (chr# charCode)) arr
+  charMember charCode (CharsVector arr) = VExt.binSearchMember (C# charCode) arr
 
 hasZeroByte :: Word64 -> Bool
 hasZeroByte !x = 0 /= (((x - 0x0101010101010101) .&. complement x .&. 0x8080808080808080))
@@ -160,7 +184,6 @@ hasZeroByte !x = 0 /= (((x - 0x0101010101010101) .&. complement x .&. 0x80808080
 -- hasZeroByte :: Word64# -> Bool
 -- hasZeroByte x =
 --   isTrue# (wordToWord64# 0## `ltWord64#` (((x `subWord64#` wordToWord64# 0x0101010101010101##) `and64#` not64# x `and64#` wordToWord64# 0x8080808080808080##)))
-
 
 wordMember :: Word64 -> ByteFanout -> Bool
 wordMember !big !(ByteFanout small) = hasZeroByte (small `xor` big)
@@ -176,14 +199,10 @@ data NeedleChars
   | NeedleChars24 {-# UNPACK #-} !Bytes24
   | NeedleChars32 {-# UNPACK #-} !Bytes32
   | NeedleCharsLong {-# UNPACK #-} !CharsVector
+  deriving (Generic)
 
-needleCharsCountHint :: NeedleChars -> Int
-needleCharsCountHint = \case
-  NeedleChars8 _     -> 8
-  NeedleChars16 _    -> 16
-  NeedleChars24 _    -> 24
-  NeedleChars32 _    -> 32
-  NeedleCharsLong xs -> P.length (unCharsVector xs)
+instance Pretty NeedleChars where
+  pretty = ppGeneric
 
 prepareNeedle :: Text -> NeedleChars
 prepareNeedle str
@@ -234,177 +253,86 @@ instance CharMember NeedleChars where
     NeedleChars32   x  -> charMember charCode x
     NeedleCharsLong xs -> charMember charCode xs
 
-newtype PackedCharAndIdx = PackedCharAndIdx { _unPackedCharAndIdx :: Word64 }
-
-newtype instance U.MVector s PackedCharAndIdx = MV_PackedCharAndIdx (U.MVector s Word64)
-newtype instance U.Vector    PackedCharAndIdx = V_PackedCharAndIdx  (U.Vector    Word64)
-deriving instance GM.MVector U.MVector PackedCharAndIdx
-deriving instance G.Vector   U.Vector  PackedCharAndIdx
-instance U.Unbox PackedCharAndIdx
-
-instance Show PackedCharAndIdx where
-  show (PackedCharAndIdx x) =
-    show
-      ( chr $ fromIntegral $ keepChar (PackedChar x) `unsafeShiftR` 32
-      , showString "0x" . showHex (keepChar (PackedChar x) `unsafeShiftR` 32) $ []
-      , keepIdx (PackedIdx x)
-      )
-
-instance Pretty PackedCharAndIdx where
-  pretty = ppShow
-
-
-newtype PackedChar = PackedChar { unPackedChar :: Word64 }
-
-instance Show PackedChar where
-  showsPrec _ =
-    (showString "0x" .) . showHex . (`unsafeShiftR` 32) . keepChar
-
-newtype instance U.MVector s PackedChar = MV_PackedChar (U.MVector s Word64)
-newtype instance U.Vector    PackedChar = V_PackedChar  (U.Vector    Word64)
-deriving instance GM.MVector U.MVector PackedChar
-deriving instance G.Vector   U.Vector  PackedChar
-instance U.Unbox PackedChar
-
-mkPackedChar :: Char -> PackedChar
-mkPackedChar = PackedChar . (`unsafeShiftL` 32) . w64 . ord
-
-keepChar :: PackedChar -> Word64
-keepChar =
-  (.&. upper4Bytes) . unPackedChar
-
-instance Eq PackedChar where
-  (==) = (==) `on` keepChar
-
-instance Ord PackedChar where
-  compare = compare `on` keepChar
-
-
-newtype PackedIdx = PackedIdx { unPackedIdx :: Word64 }
-
-{-# INLINE upper4Bytes #-}
-{-# INLINE lower4Bytes #-}
-upper4Bytes, lower4Bytes :: Integral a => a
-upper4Bytes = 0xFFFFFFFF00000000
-lower4Bytes = 0x00000000FFFFFFFF
-
-{-# INLINE keepIdx #-}
-keepIdx :: PackedIdx -> StrIdx
-keepIdx = StrIdx . fromIntegral . (.&. lower4Bytes) . unPackedIdx
-
-{-# INLINE mkPackedIdx #-}
-mkPackedIdx :: StrIdx -> PackedIdx
-mkPackedIdx = PackedIdx . w64 . unStrIdx
-
-{-# INLINE getStrIdx #-}
-getStrIdx :: PackedIdx -> StrIdx
-getStrIdx = keepIdx
-
-newtype instance U.MVector s PackedIdx = MV_PackedIdx (U.MVector s Word64)
-newtype instance U.Vector    PackedIdx = V_PackedIdx  (U.Vector    Word64)
-deriving instance GM.MVector U.MVector PackedIdx
-deriving instance G.Vector   U.Vector  PackedIdx
-instance U.Unbox PackedIdx
-
-instance Show PackedIdx where
-  show = show . keepIdx
-
-instance Pretty PackedIdx where
-  pretty = ppShow
-
-instance Eq PackedIdx where
-  (==) = (==) `on` keepIdx
-
-instance Ord PackedIdx where
-  compare = compare `on` keepIdx
-
 {-# NOINLINE mkHaystack #-}
-mkHaystack :: forall s. ReusableState s -> NeedleChars -> Text -> ST s (PM.MVector s Word64)
-mkHaystack ReusableState{rsHaystackStore} !needleChars !str@(TI.Text _ _ haystackBytes) = do
+mkHaystack :: forall s. ReusableState s -> NeedleChars -> Text -> ST s (UM.MVector s CharAndIdxs)
+mkHaystack ReusableState{rsHaystackStore} !needleChars !haystack@(TI.Text _ _ haystackBytes) = do
   -- store <- PGM.new (needleCharsCountHint needleChars)
   arr <- readSTRef rsHaystackStore
 
+  -- Upper bound is twice the haystack size because each uppercase
+  -- needle character may be counted twice - once as uppercase second
+  -- as lowercase.
   let toReserve = 2 * haystackBytes * I# (sizeOf# (undefined :: Word64))
 
-  currSize <- getSizeofMutableByteArray arr
+  let !currSize = UM.length arr
 
-  arr'@(MutableByteArray mbarr) <-
+  arr' <-
     if toReserve <= currSize
     then pure arr
     else do
-      arr' <- resizeMutableByteArray arr toReserve
+      arr' <- UM.unsafeNew toReserve
       writeSTRef rsHaystackStore arr'
       pure arr'
 
   let goAscii
-        :: (Int# -> Bool)
-        -> Word64
-        -> Int#
-        -> Int#
-        -> State# s
-        -> (# State# s, Int# #)
-      goAscii memberPred i charCode j s1
-        | memberPred charCode =
-          case writeByteArray# mbarr j (combineCharIdx (W64# c') i) s1 of
-            s2 ->
-              if toBool (isUpperASCII charCode)
-              then
-                case writeByteArray# mbarr (j +# 1#) (combineCharIdx (fromIntegral (I# (toLowerASCII charCode))) i) s2 of
-                  s3 -> (# s3, j +# 2# #)
-              else (# s2, j +# 1# #)
+        :: (Char# -> Bool)
+        -> StrCharIdx Int
+        -> StrByteIdx Int
+        -> Char
+        -> Int
+        -> ST s Int
+      goAscii memberPred !cidx !bidx !charCode@(C# charCode#) j
+        | memberPred charCode# = do
+          let !packedIdxs = mkPackedStrCharIdxAndStrByteIdx (fromIntegral <$> cidx) (fromIntegral <$> bidx)
+          UM.unsafeWrite arr' j $ CharAndIdxs charCode packedIdxs
+          if toBool (isUpperASCII charCode')
+          then do
+            UM.unsafeWrite arr' (j + 1) (CharAndIdxs (C# (chr# (toLowerASCII charCode'))) packedIdxs)
+            pure $! j + 2
+          else
+            pure $! j + 1
         | otherwise =
-          (# s1, j #)
+          pure j
         where
-          !c' = wordToWord64# (int2Word# charCode)
+          charCode' :: Int#
+          !(I# charCode') = ord charCode
 
   arrLen <- case needleChars of
-    NeedleChars8    needleChars' -> do
-      primitive $ \s ->
-        case T.textFoldIdxM' (goAscii (`charMember` needleChars')) 0# str s of
-          (# s2, arrLen #) -> (# s2, I# arrLen #)
+    NeedleChars8    needleChars' ->
+      T.textFoldIdxM (goAscii (`charMember` needleChars')) 0 haystack
 
-    NeedleChars16   needleChars' -> do
-      primitive $ \s ->
-        case T.textFoldIdxM' (goAscii (`charMember` needleChars')) 0# str s of
-          (# s2, arrLen #) -> (# s2, I# arrLen #)
+    NeedleChars16   needleChars' ->
+      T.textFoldIdxM (goAscii (`charMember` needleChars')) 0 haystack
 
-    NeedleChars24   needleChars' -> do
-      primitive $ \s ->
-        case T.textFoldIdxM' (goAscii (`charMember` needleChars')) 0# str s of
-          (# s2, arrLen #) -> (# s2, I# arrLen #)
+    NeedleChars24   needleChars' ->
+      T.textFoldIdxM (goAscii (`charMember` needleChars')) 0 haystack
 
-    NeedleChars32   needleChars' -> do
-      primitive $ \s ->
-        case T.textFoldIdxM' (goAscii (`charMember` needleChars')) 0# str s of
-          (# s2, arrLen #) -> (# s2, I# arrLen #)
+    NeedleChars32   needleChars' ->
+      T.textFoldIdxM (goAscii (`charMember` needleChars')) 0 haystack
 
     NeedleCharsLong needleChars' -> do
       let go
-            :: Word64
-            -> Int#
-            -> Int#
-            -> State# s
-            -> (# State# s, Int# #)
-          go i charCode j s1
-            | charMember charCode needleChars' =
-              case writeByteArray# mbarr j (combineCharIdx (W64# c') i) s1 of
-                s2 ->
-                  let !c = chr (I# charCode) in
-                  if isUpper c
-                  then
-                    case writeByteArray# mbarr (j +# 1#) (combineCharIdx (fromIntegral (ord (toLower c))) i) s2 of
-                      s3 -> (# s3, j +# 2# #)
-                  else (# s2, j +# 1# #)
+            :: StrCharIdx Int
+            -> StrByteIdx Int
+            -> Char
+            -> Int
+            -> ST s Int
+          go !cidx !bidx !charCode@(C# charCode#) j
+            | charMember charCode# needleChars' = do
+              let !packedIdxs = mkPackedStrCharIdxAndStrByteIdx (fromIntegral <$> cidx) (fromIntegral <$> bidx)
+              UM.unsafeWrite arr' j (CharAndIdxs charCode packedIdxs)
+              if isUpper charCode
+              then do
+                UM.unsafeWrite arr' (j + 1) (CharAndIdxs (toLower charCode) packedIdxs)
+                pure $! j + 2
+              else
+                pure $! j + 1
             | otherwise =
-              (# s1, j #)
-            where
-              c' = wordToWord64# (int2Word# charCode)
+              pure j
 
-      primitive $ \s ->
-        case T.textFoldIdxM' go 0# str s of
-          (# s2, arrLen #) -> (# s2, I# arrLen #)
+      T.textFoldIdxM go 0 haystack
 
-  pure $ P.MVector 0 arrLen arr'
+  pure $ UM.unsafeSlice 0 arrLen arr'
 
 isUpperASCII :: Int# -> Bool#
 isUpperASCII x = Bool# ((64# <# x) `andI#` (x <# 91#))
@@ -412,126 +340,242 @@ isUpperASCII x = Bool# ((64# <# x) `andI#` (x <# 91#))
 toLowerASCII :: Int# -> Int#
 toLowerASCII x = x +# 32#
 
-{-# INLINE combineCharIdx #-}
-combineCharIdx :: Word64 -> Word64 -> Word64
--- Safe to omit anding with lower4Bytes because index is unlikely to reach a point where that
--- operation would have any effect
--- combineCharIdx c idx = (c `unsafeShiftL` 32) .|. (lower4Bytes .&. w64 idx)
-combineCharIdx c idx = (c `unsafeShiftL` 32) .|. idx
-
-{-# INLINE w64 #-}
-w64 :: Integral a => a -> Word64
-w64 = fromIntegral
-
--- | For each character in the argument string compute the set of positions
--- it occurs in.
+{-# NOINLINE characterOccurrences #-}
+-- | For each character in the needle string compute the set of positions
+-- it occurs within the haystack.
 --
 -- Upper-case characters are counted twice as an upper-case and a
 -- lower-case character. This is done in order to make lower-case
 -- charaters match upper-case ones.
-
-{-# NOINLINE characterOccurrences #-}
 characterOccurrences
   :: ReusableState s
-  -> Text
+  -> Text -- ^ Needle
   -> NeedleChars
-  -> Text
-  -> ST s (V.MVector s (U.Vector PackedIdx), Bool)
+  -> Text -- ^ Haystack
+  -> ST s (V.MVector s (U.Vector PackedStrCharIdxAndStrByteIdx), Bool)
 characterOccurrences store@ReusableState{rsNeedleStore} !needle !needleChars !haystack = do
   -- rsNeedleStore <- VM.unsafeNew (T.length needle)
   haystackMut <- mkHaystack store needleChars haystack
-  sortWord64 haystackMut
-  (haystack' :: U.Vector Word64) <- U.V_Word64 <$> P.unsafeFreeze haystackMut
-
+  sortPackedCharAndIdx haystackMut
+  (haystack' :: U.Vector CharAndIdxs) <- U.unsafeFreeze haystackMut
   let
-    haystackChars :: U.Vector PackedChar
-    !haystackChars = coerce haystack'
-
-    haystackIdx :: U.Vector PackedIdx
-    !haystackIdx = coerce haystack'
+    haystackChars :: U.Vector Char
+    haystackIdx   :: U.Vector PackedStrCharIdxAndStrByteIdx
+    (!haystackChars, !haystackIdx) = case haystack' of
+      V_CharAndIdxs (U.V_2 _ xs ys) -> (xs, ys)
 
     !haystackLen = U.length haystack'
 
-    findOccurs :: Char -> U.Vector PackedIdx
+    findOccurs :: Char -> U.Vector PackedStrCharIdxAndStrByteIdx
     findOccurs !c
       | isMember
       = U.unsafeSlice start (skipSameChars start - start) haystackIdx
       | otherwise
       = U.empty
       where
-        !c' = mkPackedChar c
-        (isMember, !start) = VExt.binSearchMemberL c' haystackChars
+        (isMember, !start) = VExt.binSearchMemberL c haystackChars
 
         skipSameChars :: Int -> Int
         skipSameChars !j
           | j == haystackLen
           = j
-          | keepChar (haystackChars `U.unsafeIndex` j) == unPackedChar c'
+          | haystackChars `U.unsafeIndex` j == c
           = skipSameChars $ j + 1
           | otherwise
           = j
 
   !anyEmpty <- T.textFoldIdxM
-    (\ !i !c (!anyEmpty :: Bool) ->
+    (\ !i _ !c (!anyEmpty :: Bool) ->
         if anyEmpty
         then pure anyEmpty
         else do
-          let !occs = findOccurs c
-          VM.unsafeWrite rsNeedleStore i occs
+          let occs :: U.Vector PackedStrCharIdxAndStrByteIdx
+              !occs = findOccurs c
+          VM.unsafeWrite rsNeedleStore (unStrCharIdx i) occs
           pure $ U.null occs)
     False
     needle
-  -- Exposes freezing bug in GHC.
+  -- Exposes freezing issue in GHC.
   -- V.unsafeFreeze rsNeedleStore
-  pure (rsNeedleStore, anyEmpty)
+  pure (VM.unsafeSlice 0 (T.length needle) rsNeedleStore, anyEmpty)
 
 data Match = Match
   { mScore     :: !Int32
-  , mPositions :: !(NonEmpty StrIdx)
+  -- | Sorted by construction
+  , mPositions :: !(NonEmpty (StrCharIdx Int32))
   } deriving (Eq, Generic, Ord, Show)
 
 data Submatch = Submatch
-  { smScore           :: !Heat
-  , smPositions       :: !(NonEmpty StrIdx)
+  { smMatch           :: {-# UNPACK #-} !Match
   , smContiguousCount :: !Int32
+  , smMinMaxChar      :: !(MinMaxIdx StrCharIdx)
+  , smMinMaxByte      :: !(MinMaxIdx StrByteIdx)
   } deriving (Generic, Show)
-
-submatchToMatch :: Submatch -> Match
-submatchToMatch Submatch{smScore, smPositions} = Match
-  { mScore     = unHeat smScore
-  , mPositions = smPositions
-  }
 
 fuzzyMatch
   :: forall s. WithCallStack
   => ReusableState s
-  -> Heatmap
+  -> Heatmap s
   -> Text            -- ^ Needle
-  -> NeedleChars     -- ^ Sorted needle characters
   -> Text            -- ^ Haystack
-  -> ST s Match
-fuzzyMatch store heatmap needle needleChars haystack =
-  fuzzyMatch' store (pure heatmap) needle needleChars haystack
+  -> ST s (Maybe Match)
+fuzzyMatch store heatmap needle haystack =
+  fuzzyMatch' store (pure heatmap) (splitNeedle needle) haystack
+
+instance Semigroup Match where
+  Match s1 ps1 <> Match s2 ps2 = Match
+    { mScore     = s1 + s2
+    , mPositions = merge ps1 ps2
+    }
+    where
+      merge :: Ord a => NonEmpty a -> NonEmpty a -> NonEmpty a
+      merge (x :| xs) (y :| ys) = case compare x y of
+        LT -> x :| merge' xs (y : ys)
+        EQ -> x :| y : merge' xs ys
+        GT -> y :| merge' (x : xs) ys
+      merge' :: Ord a => [a] -> [a] -> [a]
+      merge' []           ys           = ys
+      merge' xs           []           = xs
+      merge' xs'@(x : xs) ys'@(y : ys) = case compare x y of
+        LT -> x : merge' xs ys'
+        EQ -> x : y : merge' xs ys
+        GT -> y : merge' xs' ys
 
 fuzzyMatch'
   :: forall s. WithCallStack
   => ReusableState s
-  -> ST s Heatmap
-  -> Text            -- ^ Needle
-  -> NeedleChars     -- ^ Sorted needle characters
+  -> ST s (Heatmap s)
+  -> NonEmpty Text   -- ^ Needle segments to be matched as a conjunction
   -> Text            -- ^ Haystack
-  -> ST s Match
-fuzzyMatch' store mkHeatmap needle needleChars haystack
-  | T.null needle = pure noMatch
+  -> ST s (Maybe Match)
+fuzzyMatch' store mkHeatmap needleSegments haystack = do
+  case needleSegments of
+    firstSegment :| otherSegments -> do
+      sm <- fuzzyMatchImpl store mkHeatmap firstSegment haystack
+      case sm of
+        Nothing -> pure Nothing
+        Just (sm', heatmap) -> do
+          go (smMatch sm') (mkParts 0 sm' haystack heatmap) otherSegments
+  where
+    mkParts :: Int32 -> Submatch -> Text -> Heatmap s -> NonEmpty (Text, Heatmap s, StrCharIdx Int32)
+    mkParts offset Submatch{smMinMaxChar, smMinMaxByte} str heatmap =
+      (hk1, hm1, StrCharIdx 0) :| [(hk2, hm2, idx)]
+      where
+        (hm1, hm2, idx) = splitHeatmap offset smMinMaxChar heatmap
+        (hk1, hk2)      = splitHaystack offset smMinMaxByte str
+
+    go :: Match -> NonEmpty (Text, Heatmap s, StrCharIdx Int32) -> [Text] -> ST s (Maybe Match)
+    go macc _     []                   = pure $ Just macc
+    go macc parts (segment : segments) = do
+      matches <- fmap catMaybes $ for (zip [0..] (toList parts)) $ \(i :: Int, part@(haystack', heatmap', _offset)) -> do
+        fmap (\(sm, _) -> (i, sm, part))  <$>
+          fuzzyMatchImpl store (pure heatmap') segment haystack'
+      case matches of
+        []     -> pure Nothing
+        m : ms -> do
+          let !(bestI, bestSM, (bestHaystack, bestHeatmap, StrCharIdx bestOffset)) =
+                Foldable1.maximumBy (comparing (\(_i, Submatch{smMatch = Match{mScore}}, _part) -> mScore)) (m :| ms)
+              bestMatch :: Match
+              bestMatch = (smMatch bestSM) { mPositions = (`charIdxAdvance` bestOffset) <$> mPositions (smMatch bestSM) }
+              macc'     = macc <> bestMatch
+              parts'    = flip Foldable1.foldMap1 (NE.zip (0 :| [1..]) parts) $ \(i, part) ->
+                if i == bestI
+                then (\(a, b, c) -> (a, b, charIdxAdvance c bestOffset)) <$> mkParts bestOffset bestSM bestHaystack bestHeatmap
+                else part :| []
+
+          go macc' parts' segments
+
+splitHaystack :: Int32 -> MinMaxIdx StrByteIdx -> Text -> (Text, Text)
+splitHaystack offset mm (TI.Text arr off len) =
+  ( TI.text arr off               bstart'
+  , TI.text arr (off + bend' + 1) (len - bend' - 1)
+  )
+  where
+    bstart, bend :: StrByteIdx Int32
+    !(!bstart, !bend) = getMinMax mm
+    bstart', bend' :: Int
+    !bstart' = fromIntegral (unStrByteIdx bstart - offset)
+    !bend'   = fromIntegral (unStrByteIdx bend   - offset)
+
+splitHeatmap :: Int32 -> MinMaxIdx StrCharIdx -> Heatmap s -> (Heatmap s, Heatmap s, StrCharIdx Int32)
+splitHeatmap offset mm (Heatmap arr) =
+  ( Heatmap $ PM.unsafeSlice 0 cstart' arr
+  , Heatmap $ PM.unsafeSlice cend' (PM.length arr) arr
+  , cend
+  )
+  where
+    cstart, cend :: StrCharIdx Int32
+    !(!cstart, !cend) = getMinMax mm
+    cstart', cend' :: Int
+    !cstart' = fromIntegral (unStrCharIdx cstart - offset)
+    !cend'   = fromIntegral (unStrCharIdx cend - offset)
+
+
+--   matches <- for needleSegments $ \segment -> do
+--     sm <- fuzzyMatchImpl store mkHeatmap segment haystack
+--     case sm of
+--       Nothing -> pure noMatch
+--       Just (sm'@Submatch{smMinMaxChar, smMinMaxByte}, heatmap) -> do
+--         let bstart, bend :: StrByteIdx Int32
+--             (bstart, bend) = getMinMax smMinMaxByte
+--             cstart, cend :: StrCharIdx Int32
+--             (cstart, cend) = getMinMax smMinMaxChar
+--         pure $ submatchToMatch sm'
+--   pure $
+--     if any (== noMatch) matches
+--     then noMatch
+--     else Match
+--       -- Cannot use product: we have only 21 bit to spare for scores.
+--       { mScore     = sum $ map mScore $ toList matches
+--       , mPositions = NE.sort $ foldMap1 mPositions matches
+--       }
+
+splitNeedle :: Text -> NonEmpty Text
+splitNeedle = NE.sortBy (comparing (Dual . T.lengthWord8)) . splitOnSpace
+  where
+    splitOnSpace :: Text -> NonEmpty Text
+    splitOnSpace str = case splitBy (fromIntegral (ord ' ')) str of
+      []     -> str :| []
+      x : xs -> x :| xs
+
+splitBy :: Word8 -> Text -> [Text]
+splitBy c = go
+  where
+    split str =
+      let (# prefix, suffix  #) = T.spanAscii_ (/= c) str
+          (# _,      suffix' #) = T.spanAscii_ (== c) suffix
+      in (# prefix, suffix' #)
+    go str
+      | T.null str = []
+      | otherwise  =
+        let (# prefix, suffix #) = split str
+        in if T.null prefix
+        then go suffix
+        else prefix : go' suffix
+    go' str
+      | T.null str = []
+      | otherwise  =
+        let (# prefix, suffix #) = split str
+        in prefix : go' suffix
+
+fuzzyMatchImpl
+  :: forall s. WithCallStack
+  => ReusableState s
+  -> ST s (Heatmap s)
+  -> Text            -- ^ Needle
+  -> Text            -- ^ Haystack
+  -> ST s (Maybe (Submatch, Heatmap s))
+fuzzyMatchImpl store mkHeatmap needle haystack
+  | T.null needle = pure Nothing
   | otherwise     = do
-    (occurs :: V.MVector s (U.Vector PackedIdx), anyEmpty) <- characterOccurrences store needle needleChars haystack
+    (occurs :: V.MVector s (U.Vector PackedStrCharIdxAndStrByteIdx), anyEmpty) <- characterOccurrences store needle needleChars haystack
     if anyEmpty -- Also catches occurs == V.empty
-    then pure noMatch
+    then pure Nothing
     else do
 
-      Heatmap heatmap <- unsafeInterleaveST mkHeatmap
+      heatmap'@(Heatmap heatmap) <- unsafeInterleaveST mkHeatmap
       let
-        bigger :: StrIdx -> U.Vector PackedIdx -> U.Vector PackedIdx
+        bigger :: StrCharIdx Int32 -> U.Vector PackedStrCharIdxAndStrByteIdx -> U.Vector PackedStrCharIdxAndStrByteIdx
         bigger x xs
           | isMember
           = let !i' = i + 1
@@ -539,68 +583,73 @@ fuzzyMatch' store mkHeatmap needle needleChars haystack
           | otherwise
           = U.unsafeSlice i (U.length xs - i) xs
           where
-            (isMember, !i) = VExt.binSearchMemberIdx (mkPackedIdx x) xs
+            (isMember, !i) =
+              VExt.binSearchMemberIdx (mkPackedStrCharIdxInLower x) (coerceVectorToPackedStrCharIdxInLower xs)
 
         computeScore
-          :: PrimMonad m
-          => (V.MVector (PrimState m) (U.Vector PackedIdx) -> StrIdx -> m (Maybe Submatch))
-          -> V.MVector (PrimState m) (U.Vector PackedIdx)
-          -> StrIdx
-          -> m (Maybe Submatch)
+          :: (V.MVector s (U.Vector PackedStrCharIdxAndStrByteIdx) -> StrCharIdx Int32 -> ST s (Maybe Submatch))
+          -> V.MVector s (U.Vector PackedStrCharIdxAndStrByteIdx)
+          -> StrCharIdx Int32
+          -> ST s (Maybe Submatch)
         computeScore recur !needleOccursInHaystack !cutoffIndex = do
-          -- Debug.Trace.traceM $ "key = " ++ show (VM.length needleOccursInHaystack, cutoffIndex)
-
-          (remainingOccurrences :: U.Vector PackedIdx) <- bigger cutoffIndex <$> VM.unsafeRead needleOccursInHaystack 0
+          (remainingOccurrences :: U.Vector PackedStrCharIdxAndStrByteIdx) <-
+            bigger cutoffIndex <$> VM.unsafeRead needleOccursInHaystack 0
           case VM.length needleOccursInHaystack of
             -- Last character, already checked that vector is never empty
             1 ->
               inline findBestWith remainingOccurrences $ \ !pidx -> do
-                let StrIdx !idx = getStrIdx pidx
+                let !(!cidx, !bidx) = unpackIdxs pidx
+                heat <- PM.unsafeRead heatmap $ fromIntegral $ unStrCharIdx cidx
                 pure $! Just $! Submatch
-                  { smScore           = heatmap `indexPrimArray` fromIntegral idx
-                  , smPositions       = StrIdx idx :| []
+                  { smMatch           = Match
+                    { mScore     = unHeat heat
+                    , mPositions = cidx :| []
+                    }
                   , smContiguousCount = 0
+                  , smMinMaxChar      = mkMinMaxIdx cidx cidx
+                  , smMinMaxByte      = mkMinMaxIdx bidx bidx
                   }
 
             _ ->
               inline findBestWith remainingOccurrences $ \ !pidx -> do
-                let !idx' = getStrIdx pidx
-                submatch' <- recur (VM.unsafeTail needleOccursInHaystack) idx'
-                pure $ (`fmap` submatch') $ \Submatch{smScore, smContiguousCount, smPositions} ->
-                  let score'          = smScore + (heatmap `indexPrimArray` fromIntegral (unStrIdx idx'))
-                      contiguousBonus = Heat $ 60 + 15 * min 3 smContiguousCount
-                      isContiguous    = NE.head smPositions == succ idx'
+                let !(!cidx, !bidx) = unpackIdxs pidx
+                submatch' <- recur (VM.unsafeTail needleOccursInHaystack) cidx
+                for submatch' $ \Submatch{smMatch = Match{mScore, mPositions}, smContiguousCount, smMinMaxChar, smMinMaxByte} -> do
+                  heat <- PM.unsafeRead heatmap $ fromIntegral $ unStrCharIdx cidx
+                  let score'          = mScore + unHeat heat
+                      contiguousBonus = 60 + 15 * min 3 smContiguousCount
+                      isContiguous    = NE.head mPositions == succ cidx
                       score
                         | isContiguous
                         = score' + contiguousBonus
                         | otherwise
                         = score'
-                  in Submatch
-                    { smScore           = score
-                    , smPositions       = NE.cons idx' smPositions
+                  pure $ Submatch
+                    { smMatch           = Match
+                      { mScore     = score
+                      , mPositions = NE.cons cidx mPositions
+                      }
                     , smContiguousCount =
                       if isContiguous then smContiguousCount + 1 else 0
+                    , smMinMaxChar      = mkMinMaxIdx cidx cidx <> smMinMaxChar
+                    , smMinMaxByte      = mkMinMaxIdx bidx bidx <> smMinMaxByte
                     }
 
-      !result <- do
-        res <- memoizeBy makeKey computeScore occurs (StrIdx (-1))
-        pure $ case res of
-          Nothing -> noMatch
-          Just m  -> submatchToMatch m
-      pure result
+      fmap (, heatmap') <$> memoizeBy makeKey computeScore occurs (StrCharIdx (-1))
   where
-    noMatch = Match
-      { mScore     = (-1000000)
-      , mPositions = StrIdx (-1) :| []
-      }
+    needleChars = prepareNeedle needle
 
-    makeKey :: V.MVector s (U.Vector a) -> StrIdx -> Int
+    makeKey :: V.MVector s (U.Vector a) -> StrCharIdx Int32 -> Int
     makeKey !occs !k =
-      j `unsafeShiftL` 32 .|. fromIntegral (unStrIdx k)
+      j `unsafeShiftL` 32 .|. fromIntegral (unStrCharIdx k)
       where
         !j = VM.length occs
 
-    findBestWith :: forall n. Monad n => U.Vector PackedIdx -> (PackedIdx -> n (Maybe Submatch)) -> n (Maybe Submatch)
+    findBestWith
+      :: forall n. Monad n
+      => U.Vector PackedStrCharIdxAndStrByteIdx
+      -> (PackedStrCharIdxAndStrByteIdx -> n (Maybe Submatch))
+      -> n (Maybe Submatch)
     findBestWith !occs f = go Nothing 0
       where
         go :: Maybe Submatch -> Int -> n (Maybe Submatch)
@@ -612,10 +661,10 @@ fuzzyMatch' store mkHeatmap needle needleChars haystack
             x <- f (occs `U.unsafeIndex` i)
             let best' = case (best, x) of
                   (Nothing, y)       -> y
-                  (y, Nothing)       -> y
+                  (y,       Nothing) -> y
                   (Just b', Just x') ->
                     -- If scores are equal then prefer the match occuring later.
-                    Just $! if smScore x' >= smScore b' then x' else b'
+                    Just $! if mScore (smMatch x') >= mScore (smMatch b') then x' else b'
             go best' (i + 1)
 
 memoizeBy
@@ -637,24 +686,12 @@ memoizeBy mkKey f = \ !aa !bb -> do
             pure c
   g aa bb
 
-newtype StrIdx = StrIdx { unStrIdx :: Int32 }
-  deriving (Eq, Ord, Enum, Pretty)
-
-instance Show StrIdx where
-  show = show . unStrIdx
-
-newtype instance U.MVector s StrIdx = MV_StrIdx (U.MVector s Int32)
-newtype instance U.Vector    StrIdx = V_StrIdx  (U.Vector    Int32)
-deriving instance GM.MVector U.MVector StrIdx
-deriving instance G.Vector   U.Vector  StrIdx
-instance U.Unbox StrIdx
-
 data Group = Group
   { gPrevChar :: {-# UNPACK #-} !Char
   , gLen      :: {-# UNPACK #-} !Int
   , gStr      :: {-# UNPACK #-} !Text
   -- [gStart, gStart + gLen)
-  , gStart    :: {-# UNPACK #-} !Int
+  , gStart    :: {-# UNPACK #-} !(StrCharIdx Int)
   } deriving (Show)
 
 {-# INLINE splitWithSeps #-}
@@ -666,28 +703,28 @@ splitWithSeps
   -> Either Group [Group]
 splitWithSeps !firstSep !seps !fullStr !fullStrLen
   | sizeofPrimArray seps == 0
-  = Left $! Group { gPrevChar = firstSep, gLen = fullStrLen, gStr = fullStr, gStart = 0 }
+  = Left $! Group { gPrevChar = firstSep, gLen = fullStrLen, gStr = fullStr, gStart = StrCharIdx 0 }
   | otherwise
-  = Right $! go fullStrLen fullStr
+  = Right $! go (StrCharIdx fullStrLen) fullStr
   where
-    go :: Int -> Text -> [Group]
+    go :: StrCharIdx Int -> Text -> [Group]
     go !off !str
       | T.null str
       = []
       | T.null prefix
-      = if isSep $ fromIntegral $ ord $ T.unsafeHead suffix
+      = if inline isSep $ fromIntegral $ ord $ T.unsafeHead suffix
         then
           [ Group
             { gPrevChar = T.unsafeHead suffix
             , gLen      = len - 1
             , gStr      = T.unsafeTail suffix
-            , gStart    = off - len + 1
+            , gStart    = StrCharIdx $ unStrCharIdx off - len + 1
             }
           , Group
             { gPrevChar = firstSep
             , gLen      = 0
             , gStr      = T.empty
-            , gStart    = 0
+            , gStart    = StrCharIdx $ 0
             }
           ]
         else
@@ -695,7 +732,7 @@ splitWithSeps !firstSep !seps !fullStr !fullStrLen
             { gPrevChar = firstSep
             , gLen      = len
             , gStr      = suffix
-            , gStart    = off - len
+            , gStart    = StrCharIdx $ unStrCharIdx off - len
             }
           ]
       | otherwise
@@ -705,25 +742,24 @@ splitWithSeps !firstSep !seps !fullStr !fullStrLen
         , gStr      = T.unsafeTail suffix
         , gStart    = start
         }
-      : go (start - 1) prefix
+      : go (charIdxAdvance start (-1)) prefix
       where
-        !start = off - len
+        !start = StrCharIdx $ unStrCharIdx off - len
         isSep  = PExt.binSearchMember seps
-        (!len, !prefix, !suffix) = T.spanLenEnd (not . isSep . fromIntegral) str
+        (!len, !prefix, !suffix) = T.spanLenEnd (not . inline isSep . fromIntegral) str
 
 newtype Heat = Heat { unHeat :: Int32 }
-  deriving (Eq, Ord, Num, Prim, Pretty, Bounded)
+  deriving (Eq, Ord, Prim, Pretty, Bounded)
 
 instance Show Heat where
   show = show . unHeat
 
--- | Heatmap mapping characters to scores
-newtype Heatmap = Heatmap { unHeatmap :: PrimArray Heat }
-  deriving (Show)
+-- | Heatmap mapping haystack characters to scores.
+newtype Heatmap s = Heatmap { unHeatmap :: PM.MVector s Heat }
 
 -- Heatmap elements spast @hastyackLen@ will have undefined values. Take care not
 -- to access them!
-computeHeatmap :: ReusableState s -> Text -> Int -> PrimArray Int32 -> ST s Heatmap
+computeHeatmap :: forall s. ReusableState s -> Text -> Int -> PrimArray Int32 -> ST s (Heatmap s)
 computeHeatmap ReusableState{rsHeatmapStore} !haystack !haystackLen groupSeps = do
   arr    <- readSTRef rsHeatmapStore
   scores <- do
@@ -746,10 +782,10 @@ computeHeatmap ReusableState{rsHeatmapStore} !haystack !haystackLen groupSeps = 
       initScore = (-35)
       !initAdjustment = if groupsCount > 1 then groupsCount * (-2) else 0
       lastCharBonus :: Heat
-      !lastCharBonus = 1
+      !lastCharBonus = Heat 1
 
   setPrimArray scores 0 haystackLen (Heat (fi32 (initScore + initAdjustment)))
-  update (haystackLen - 1) lastCharBonus scores
+  update (StrCharIdx (haystackLen - 1)) lastCharBonus scores
 
   let initGroupState = GroupState
         { gsIsBasePath = False
@@ -760,13 +796,15 @@ computeHeatmap ReusableState{rsHeatmapStore} !haystack !haystackLen groupSeps = 
     Left  g      -> void $ analyzeGroup g False groupsCount initGroupState haystackLen scores
     Right groups -> goGroups False initGroupState groups
       where
+        goGroups :: Bool -> GroupState -> [Group] -> ST s ()
         goGroups !seenBasePath !s = \case
           []     -> pure ()
           g : gs -> do
             s' <- analyzeGroup g seenBasePath groupsCount s haystackLen scores
             goGroups (seenBasePath || gsIsBasePath s') s' gs
 
-  Heatmap <$> unsafeFreezePrimArray scores
+  pure $ Heatmap $ PM.MVector 0 haystackLen $ case scores of
+    MutablePrimArray xs -> MutableByteArray xs
 
 data GroupState = GroupState
   { gsIsBasePath        :: !Bool
@@ -836,19 +874,20 @@ isUpper# x
 
 analyzeGroup :: Group -> Bool -> Int -> GroupState -> Int -> MutablePrimArray s Heat -> ST s GroupState
 analyzeGroup Group{gPrevChar, gLen, gStr, gStart} !seenBasePath !groupsCount GroupState{gsGroupIdx} !scoresLen !scores = do
-  let start :: Int
+  let start :: StrCharIdx Int
       !start = gStart
-      !end = start + gLen
+      end   :: StrCharIdx Int
+      !end   = charIdxAdvance start gLen
 
   let wordStart :: Heat
-      !wordStart = 85
+      !wordStart = Heat 85
 
   let wordStart#, leadingPenalty# :: Int#
       wordStart#      = 85#
       leadingPenalty# = (-45#)
 
   GroupChar{gcWordIdx, gcWordCharIdx, gcWordCount} <- ST $ \s -> T.textFoldIntIdxM
-    (\ (!idx :: Int) (c :: Int#) GroupChar{gcIsWord, gcIsUpper, gcWordCount, gcWordIdx, gcWordCharIdx, gcPrevChar} s' -> unST s' $ do
+    (\ (!idx :: StrCharIdx Int) (c :: Int#) GroupChar{gcIsWord, gcIsUpper, gcWordCount, gcWordIdx, gcWordCharIdx, gcPrevChar} s' -> unST s' $ do
 
       let currWord, currUpper :: Bool#
           !currWord   = isWord c
@@ -904,12 +943,12 @@ analyzeGroup Group{gPrevChar, gLen, gStr, gStart} !seenBasePath !groupsCount Gro
     gStr
     s
 
-  when (gStart == 0 && gLen == 0) $
+  when (gStart == StrCharIdx 0 && gLen == 0) $
     update gStart wordStart scores
 
   -- Update score for trailing separator of current group.
   let !trailingSep = end
-  when (trailingSep < scoresLen && gcWordIdx >= 0) $
+  when (unStrCharIdx trailingSep < scoresLen && gcWordIdx >= 0) $
     update trailingSep (Heat $ fi32 $ gcWordIdx * (-3) - gcWordCharIdx) scores
 
   let !isBasePath = not seenBasePath && gcWordCount /= 0
@@ -928,25 +967,27 @@ analyzeGroup Group{gPrevChar, gLen, gStr, gStart} !seenBasePath !groupsCount Gro
 calcGroupScore :: Bool -> Int -> Int -> Int -> Heat
 calcGroupScore isBasePath groupsCount wordCount gcGroupIdx
   | isBasePath = Heat $ fi32 $ 35 + max (groupsCount - 2) 0 - wordCount
-  | otherwise  = if gcGroupIdx == 0 then (- 3) else Heat $ fi32 $ gcGroupIdx - 6
+  | otherwise  = if gcGroupIdx == 0 then Heat (- 3) else Heat $ fi32 $ gcGroupIdx - 6
 
 penaliseIfLeading :: Int# -> Bool#
 penaliseIfLeading x = Bool# (x <=# 46#) `band#` Bool# (x >=# 46#) -- 46 is '.' in ascii
 
-update :: Int -> Heat -> MutablePrimArray s Heat -> ST s ()
+update :: StrCharIdx Int -> Heat -> MutablePrimArray s Heat -> ST s ()
 update !idx !val !arr = do
-  x <- readPrimArray arr idx
-  writePrimArray arr idx (x + val)
+  x <- readPrimArray arr (unStrCharIdx idx)
+  writePrimArray arr (unStrCharIdx idx) (coerce ((+) @Int32) x val)
 
-applyGroupScore :: Heat -> Int -> Int -> Int -> MutablePrimArray s Heat -> ST s ()
+applyGroupScore
+  :: forall s. Heat -> StrCharIdx Int -> StrCharIdx Int -> Int -> MutablePrimArray s Heat -> ST s ()
 applyGroupScore !score !start !end !arrLen !scores =
   go start
   where
+    go :: StrCharIdx Int -> ST s ()
     go !i
       | i < end
-      = update i score scores *> go (i + 1)
+      = update i score scores *> go (charIdxAdvance i 1)
       -- If we reached here then i == end
-      | i < arrLen
+      | unStrCharIdx i < arrLen
       = update i score scores
       | otherwise
       = pure ()
