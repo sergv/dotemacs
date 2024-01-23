@@ -2998,21 +2998,28 @@ match.  Everything after \"!\" should not match."
 (defun ivy--regex-fuzzy (str)
   "Build a regex sequence from STR.
 Insert .* between each char."
-  (setq str (ivy--trim-trailing-re str))
-  (if (string-match "\\`\\(\\^?\\)\\(.*?\\)\\(\\$?\\)\\'" str)
+  (if (string= str "")
+      ""
+    (let ((subexps 0))
       (prog1
-          (concat (match-string 1 str)
-                  (let ((lst (string-to-list (match-string 2 str))))
-                    (apply #'concat
-                           (cl-mapcar
-                            #'concat
-                            (cons "" (cdr (mapcar (lambda (c) (format "[^%c\n]*" c))
-                                                  lst)))
-                            (mapcar (lambda (x) (format "\\(%s\\)" (regexp-quote (char-to-string x))))
-                                    lst))))
-                  (match-string 3 str))
-        (setq ivy--subexps (length (match-string 2 str))))
-    str))
+          (mapcar (lambda (part)
+                    (setq part (ivy--trim-trailing-re part))
+                    (cons (if (string-match "\\`\\(\\^?\\)\\(.*?\\)\\(\\$?\\)\\'" part)
+                              (prog1
+                                  (concat (match-string 1 part)
+                                          (let ((lst (match-string 2 part)))
+                                            (apply #'concat
+                                                   (cl-mapcar
+                                                    #'concat
+                                                    (cons "" (cdr (mapcar (lambda (c) (format "[^%c\n]*" c))
+                                                                          lst)))
+                                                    (mapcar (lambda (x) (format "\\(%s\\)" (regexp-quote (char-to-string x))))
+                                                            lst))))
+                                          (match-string 3 part))
+                                (setq subexps (+ subexps (length (match-string 2 part))))))
+                          t))
+                  (split-string str " " t))
+        (setf ivy--subexps subexps)))))
 
 (defalias 'ivy--regex-fuzzy-filenames #'ivy--regex-fuzzy)
 
