@@ -3947,15 +3947,17 @@ N wraps around."
 
 (defun ivy--flx-propertize (x y)
   "X is (flx-score STR ...), Y is STR."
-  (let ((str (copy-sequence y))
-        (i -1)
-        (last-j -2))
-    (dolist (j (cdr x))
-      (unless (eq j (1+ last-j))
-        (cl-incf i))
-      (setq last-j j)
-      (add-face-text-property j (1+ j) (ivy--minibuffer-face i) nil str))
-    str))
+  (if x
+      (let ((str (copy-sequence y))
+            (i -1)
+            (last-j -2))
+        (dolist (j (cdr x))
+          (unless (eq j (1+ last-j))
+            (cl-incf i))
+          (setq last-j j)
+          (add-face-text-property j (1+ j) (ivy--minibuffer-face i) nil str))
+        str)
+    y))
 
 (defvar ivy--flx-sort--backend nil)
 
