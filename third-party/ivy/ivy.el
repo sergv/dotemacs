@@ -4264,11 +4264,9 @@ CANDS is a list of candidates that :display-transformer can turn into strings."
                     (plist-get completion-extra-properties :annotation-function)))
          (str (concat "\n"
                       (funcall (ivy-alist-setting ivy-format-functions-alist)
-                               (condition-case nil
-                                   (mapcar
-                                    (lambda (cand) (ivy--format-minibuffer-line cand annot))
-                                    wnd-cands)
-                                 (error wnd-cands))))))
+                               (mapcar
+                                (lambda (cand) (ivy--format-minibuffer-line cand annot))
+                                wnd-cands)))))
     (put-text-property 0 (length str) 'read-only nil str)
     str))
 
