@@ -15,14 +15,15 @@ import Control.Exception
 import Control.LensBlaze
 import Control.Monad.ST
 import Data.Int
+import Data.List.NonEmpty (NonEmpty(..))
 import Data.Primitive.PrimArray
 import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
 import Data.Vector qualified as V
 import Data.Vector.PredefinedSorts
-import Data.Vector.Primitive qualified as P
-import Data.Vector.Primitive.Mutable qualified as PM
+import Data.Vector.Unboxed qualified as U
+import Data.Vector.Unboxed.Mutable qualified as UM
 import System.Environment
 
 import Data.FuzzyMatch qualified as FuzzyMatch
@@ -31,18 +32,18 @@ import Data.FuzzyMatch.SortKey
 {-# NOINLINE doMatch #-}
 doMatch :: PrimArray Int32 -> Text -> [Text] -> [(Int, Text)]
 doMatch seps needle haystacks =
-  map (\key -> (fromIntegral (getScore key), haystacks' `V.unsafeIndex` fromIntegral (view idxL key))) $ P.toList ys
+  map (\key -> (getScore key, haystacks' `V.unsafeIndex` fromIntegral (view idxL key))) $ U.toList ys
   where
     haystacks' :: V.Vector Text
     haystacks' = V.fromList haystacks
 
-    ys :: P.Vector SortKey
+    ys :: U.Vector SortKey
     ys = runST $ do
       let !totalHaystacks = V.length haystacks'
 
       store <- FuzzyMatch.mkReusableState (T.length needle)
 
-      scores <- PM.new totalHaystacks
+      scores <- UM.new totalHaystacks
 
       let go !n
             | n == totalHaystacks
@@ -55,15 +56,15 @@ doMatch seps needle haystacks =
                 FuzzyMatch.fuzzyMatch'
                   store
                   (FuzzyMatch.computeHeatmap store haystack haystackLen seps)
-                  needle
+                  (needle :| [])
                   haystack
-              PM.unsafeWrite scores n $!
-                mkSortKey (FuzzyMatch.mScore match) (fromIntegral haystackLen) (fromIntegral n)
+              UM.unsafeWrite scores n $!
+                mkSortKey (maybe minBound FuzzyMatch.mScore match) (fromIntegral haystackLen) (fromIntegral n)
               go (n + 1)
 
       go 0
       sortSortKeyPar scores
-      P.unsafeFreeze scores
+      U.unsafeFreeze scores
 
 main :: IO ()
 main = do
