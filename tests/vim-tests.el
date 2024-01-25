@@ -2340,7 +2340,7 @@ _|_bar")
 (ert-deftest vim-tests/haskell-smart-operators-expand-pragma-pair-1/haskell-mode ()
   (vim-tests--test-fresh-buffer-contents-init
       (haskell-mode)
-      (execute-kbd-macro (kbd "i { - # <return> ok <tab> <escape>"))
+      (execute-kbd-macro (kbd "i { - # S C <return> ok <tab> <escape>"))
     (tests-utils--multiline
      ""
      "_|_"
