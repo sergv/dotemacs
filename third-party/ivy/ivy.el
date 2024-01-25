@@ -3968,8 +3968,20 @@ N wraps around."
 
 (defun ivy--flx-sort-impl (name cands match-filenames?)
   "Sort according to closeness to string NAME the string list CANDS."
-  (condition-case nil
-      (let* ((bolp (= (string-to-char name) ?^))
+  (let* ((bolp (= (string-to-char name) ?^))
+         (flx-name (if bolp (substring name 1) name)))
+    (pcase ivy--flx-sort--backend
+      ;; Compute all of the flx scores in one pass and sort
+      (`native
+       (haskell-native-score-matches
+        (if match-filenames? [?/] [])
+        flx-name
+        ;; Costly but worth it because Haskell spends (1 + 1/N) ffi calls to Emacs to
+        ;; extract items from vectors and 2 ffi calls to extract from list.
+        (list->vector cands)))
+
+      (`elisp
+       (let (
              ;; An optimized regex for fuzzy matching
              ;; "abc" → "^[^a]*a[^b]*b[^c]*c"
              (fuzzy-regex (concat "\\`"
@@ -3981,55 +3993,44 @@ N wraps around."
                                    (if bolp (substring name 2) name)
                                    "")))
              ;; Strip off the leading "^" for flx matching
-             (flx-name (if bolp (substring name 1) name))
              cands-left
              cands-to-sort)
 
-        (pcase ivy--flx-sort--backend
-          ;; Compute all of the flx scores in one pass and sort
-          (`native
-           (haskell-native-score-matches
-            (if match-filenames? [?/] [])
-            flx-name
-            (list->vector cands)))
+         ;; Filter out non-matching candidates
+         (dolist (cand cands)
+           (when (string-match-p fuzzy-regex cand)
+             (push cand cands-left)))
 
-          (`elisp
-           ;; Filter out non-matching candidates
-           (dolist (cand cands)
-             (when (string-match-p fuzzy-regex cand)
-               (push cand cands-left)))
+         ;; pre-sort the candidates by length before partitioning
+         (setq cands-left (cl-sort cands-left #'< :key #'length))
 
-           ;; pre-sort the candidates by length before partitioning
-           (setq cands-left (cl-sort cands-left #'< :key #'length))
+         ;; partition the candidates into sorted and unsorted groups
+         (dotimes (_ (min (length cands-left) ivy-flx-limit))
+           (push (pop cands-left) cands-to-sort))
 
-           ;; partition the candidates into sorted and unsorted groups
-           (dotimes (_ (min (length cands-left) ivy-flx-limit))
-             (push (pop cands-left) cands-to-sort))
+         (nconc
+          (let ((cache (if match-filenames?
+                           ivy--flx-cache
+                         ivy--flx-filename-cache)))
+            (mapcar #'car
+                    (sort (mapcar
+                           (lambda (cand)
+                             (cons cand
+                                   (car (flx-score cand flx-name cache))))
+                           cands-to-sort)
+                          (lambda (c1 c2)
+                            ;; Break ties by length
+                            (if (/= (cdr c1) (cdr c2))
+                                (> (cdr c1)
+                                   (cdr c2))
+                              (< (length (car c1))
+                                 (length (car c2))))))))
 
-           (nconc
-            (let ((cache (if match-filenames?
-                             ivy--flx-cache
-                           ivy--flx-filename-cache)))
-              (mapcar #'car
-                      (sort (mapcar
-                             (lambda (cand)
-                               (cons cand
-                                     (car (flx-score cand flx-name cache))))
-                             cands-to-sort)
-                            (lambda (c1 c2)
-                              ;; Break ties by length
-                              (if (/= (cdr c1) (cdr c2))
-                                  (> (cdr c1)
-                                     (cdr c2))
-                                (< (length (car c1))
-                                   (length (car c2))))))))
+          ;; Add the unsorted candidates
+          cands-left)))
 
-            ;; Add the unsorted candidates
-            cands-left))
-
-          (invalid
-           (error "Invalid ivy--flx-sort--backend: %s" invalid))))
-    (error cands)))
+      (invalid
+       (error "Invalid ivy--flx-sort--backend: %s" invalid)))))
 
 (defun ivy--flx-sort (name cands)
   "Sort according to closeness to string NAME the string list CANDS."
