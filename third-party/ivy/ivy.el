@@ -3595,18 +3595,17 @@ When the cdr is t, the car must match.
 Otherwise, the car must not match."
   (if (equal re "")
       candidates
-    (ignore-errors
-      (dolist (re (if (stringp re) (list (cons re t)) re))
-        (let* ((re-str (car re))
-               (pred
-                (if mkpred
-                    (funcall mkpred re-str)
-                  (lambda (x) (string-match-p re-str x)))))
-          (setq candidates
-                (cl-remove nil candidates
-                           (if (cdr re) :if-not :if)
-                           pred))))
-      candidates)))
+    (dolist (re (if (stringp re) (list (cons re t)) re))
+      (let* ((re-str (car re))
+             (pred
+              (if mkpred
+                  (funcall mkpred re-str)
+                (lambda (x) (string-match-p re-str x)))))
+        (setq candidates
+              (cl-remove nil candidates
+                         (if (cdr re) :if-not :if)
+                         pred))))
+    candidates))
 
 (defun ivy--filter (name candidates)
   "Return all items that match NAME in CANDIDATES.
