@@ -825,6 +825,101 @@ characters."
 ;;;###autoload
 (add-hook 'clone-indirect-buffer-hook #'hl-line--fix-state-after-clone)
 
+(defun comint-init ()
+  (when-emacs-version (<= 29 it)
+    (el-patch-defun comint-output-filter (process string)
+      (let ((oprocbuf (process-buffer process)))
+        ;; First check for killed buffer or no input.
+        (when (and string oprocbuf (buffer-name oprocbuf))
+          (with-current-buffer oprocbuf
+            (el-patch-wrap 1 0
+              (with-disabled-undo
+	       ;; Run preoutput filters
+	       (let ((functions comint-preoutput-filter-functions))
+	         (while (and functions string)
+	           (if (eq (car functions) t)
+		       (let ((functions
+                              (default-value 'comint-preoutput-filter-functions)))
+		         (while (and functions string)
+		           (setq string (funcall (car functions) string))
+		           (setq functions (cdr functions))))
+	             (setq string (funcall (car functions) string)))
+	           (setq functions (cdr functions))))
+
+	       ;; Insert STRING
+	       (let ((inhibit-read-only t)
+                     ;; The point should float after any insertion we do.
+	             (saved-point (copy-marker (point) t)))
+
+	         ;; We temporarily remove any buffer narrowing, in case the
+	         ;; process mark is outside of the restriction
+	         (save-restriction
+	           (widen)
+
+	           (goto-char (process-mark process))
+	           (set-marker comint-last-output-start (point))
+
+                   ;; Before we call `comint--mark-as-output' later,
+                   ;; redisplay can be called.  We mark the inserted text as
+                   ;; output early, to prevent redisplay from fontifying it
+                   ;; as input in case of `comint-fontify-input-mode'.
+                   (put-text-property 0 (length string) 'field 'output string)
+
+	           ;; insert-before-markers is a bad thing. XXX
+	           ;; Luckily we don't have to use it any more, we use
+	           ;; window-point-insertion-type instead.
+	           (insert string)
+
+	           ;; Advance process-mark
+	           (set-marker (process-mark process) (point))
+
+	           (unless comint-inhibit-carriage-motion
+	             ;; Interpret any carriage motion characters (newline, backspace)
+	             (comint-carriage-motion comint-last-output-start (point)))
+
+	           ;; Run these hooks with point where the user had it.
+	           (goto-char saved-point)
+	           (run-hook-with-args 'comint-output-filter-functions string)
+	           (set-marker saved-point (point))
+
+	           (goto-char (process-mark process)) ; In case a filter moved it.
+
+	           (unless comint-use-prompt-regexp
+                     (comint--mark-as-output comint-last-output-start (point)))
+
+	           ;; Highlight the prompt, where we define `prompt' to mean
+	           ;; the most recent output that doesn't end with a newline.
+	           (let ((prompt-start (save-excursion (forward-line 0) (point)))
+		         (inhibit-read-only t))
+	             (when comint-prompt-read-only
+		       (with-silent-modifications
+		         (or (= (point-min) prompt-start)
+		             (get-text-property (1- prompt-start) 'read-only)
+		             (put-text-property (1- prompt-start)
+					        prompt-start 'read-only 'fence))
+		         (add-text-properties prompt-start (point)
+				              '(read-only t front-sticky (read-only)))))
+	             (when comint-last-prompt
+		       ;; There might be some keywords here waiting for
+		       ;; fontification, so no `with-silent-modifications'.
+		       (font-lock--remove-face-from-text-property
+		        (car comint-last-prompt)
+		        (cdr comint-last-prompt)
+		        'font-lock-face
+		        'comint-highlight-prompt))
+	             (setq comint-last-prompt
+		           (cons (copy-marker prompt-start) (point-marker)))
+	             (font-lock-append-text-property prompt-start (point)
+					             'font-lock-face
+					             'comint-highlight-prompt)
+	             (add-text-properties prompt-start (point)
+	                                  `(rear-nonsticky
+	                                    ,comint--prompt-rear-nonsticky)))
+	           (goto-char saved-point)))))))))))
+
+(eval-after-load "comint" '(comint-init))
+
+
 (provide 'base-emacs-fixes)
 
 ;; Local Variables:
