@@ -33,6 +33,12 @@
 (defvar-local tab-bar--truncated-buf-name nil
   "Cached truncated buffer name to show in tab bar.")
 
+(defun tab-bar--reset-truncated-buf-name (new-name &optional _unique)
+  (awhen (get-buffer new-name)
+    (setf (buffer-local-value 'tab-bar--truncated-buf-name it) nil)))
+
+(advice-add 'rename-buffer :after #'tab-bar--reset-truncated-buf-name)
+
 (defun tab-bar--get-truncated-buf-name (buf)
   (aif (buffer-local-value 'tab-bar--truncated-buf-name buf)
       it
