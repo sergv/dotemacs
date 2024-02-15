@@ -82,7 +82,6 @@
         (set-face-attribute 'default frame :height scaling))))
 
   (defun set-up-font--set-current-font-for-frame (&optional frame)
-    (cl-assert (find-font current-font) nil "Font does not exist: %s" current-font)
     (set-frame-font current-font nil (if frame (list frame) nil)))
 
   (add-hook 'window-setup-hook #'set-up-font--init-font-and-scaling)
