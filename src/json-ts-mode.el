@@ -6,6 +6,9 @@
 ;; Created: 16 September 2023
 ;; Description:
 
+(eval-when-compile
+  (require 'dash))
+
 (require 'json-mode)
 (require 'treesit)
 
@@ -20,38 +23,35 @@
 
 (defconst json-ts-font-lock-rules
   (append
-   '(:language json
-     :feature comment
-     ((comment) @font-lock-comment-face))
-   '(:language json
-     :feature constant
-     ((number) @font-lock-constant-face))
-   '(:language json
-     :feature word-constant
-     ([(true) (false) (null)] @font-lock-keyword-face))
-   '(:language json
-     :feature string
-     ((string) @font-lock-string-face))
-
-   ;; Override keys which look like strings
-   '(:language json
-     :feature key
-     :override t
-     ((pair key: (string) @json-mode-object-name-face)))
-
    ;; Errors
-   '(:language json
+   '(:language
+     json
      :feature error
      :override t
      ((ERROR) @json-ts-error ;; _ @json-ts-error
       ))
+   (--mapcat
+    (cons :language (cons 'json (cons :feature it)))
+    '((comment
+       ((comment) @font-lock-comment-face))
+      (constant
+       ((number) @font-lock-constant-face))
+      (word-constant
+       ([(true) (false) (null)] @font-lock-keyword-face))
+      (string
+       ((string) @font-lock-string-face))
 
-   ;; ;; Fontify malformed objects which couldn’t be parsed in full due to narrowing
-   ;; '(:language json
-   ;;   :feature key
-   ;;   :override t
-   ;;   ((["," "{"] (string) @json-mode-object-name-face ":")))
-   ))
+      ;; Override keys which look like strings
+      (key
+       :override t
+       ((pair key: (string) @json-mode-object-name-face)))
+
+      ;; ;; Fontify malformed objects which couldn’t be parsed in full due to narrowing
+      ;; '(key
+      ;;   :override t
+      ;;   ((["," "{"] (string) @json-mode-object-name-face ":")))
+      )))
+  )
 
 (defconst json-ts-indent-rules
   `(((node-is   ,(rx (any ?\] ?\})))         parent-bol 0)
@@ -65,7 +65,7 @@
   ;; Important to disable long lines optimizations because they make font locking
   ;; operate in narrowed buffer which could make treesitter miss things.
   (setq-local long-line-optimizations-region-size 0)
-  ;; Fast font lock mode is too imprecise and can also treesitter miss things.
+  ;; Fast font lock mode is too imprecise and can also make treesitter miss things.
   (setq-local treesit--font-lock-fast-mode nil)
 
   (setq-local font-lock-defaults nil
