@@ -226,7 +226,8 @@
     :show-tag-kind-procedure #'eproj/haskell-tag-kind
     :tag->string-func #'eproj/haskell-tag->string
     :tag->signature-func #'eproj/haskell-extract-tag-signature
-    :synonym-modes '(haskell-literate-mode
+    :synonym-modes '(haskell-ts-mode
+                     haskell-literate-mode
                      haskell-c-mode
                      haskell-hsc-mode
                      haskell-c2hs-mode
