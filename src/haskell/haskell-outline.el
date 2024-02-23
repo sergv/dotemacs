@@ -18,7 +18,7 @@
 
 (search-def-autoexpand-advices
  (yafolding-show-element)
- (haskell-mode))
+ (haskell-mode haskell-ts-mode))
 
 ;;;###autoload
 (cl-defun haskell-setup-folding (&key (enable-hideshow t) (enable-cpp t))

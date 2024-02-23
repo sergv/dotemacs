@@ -135,7 +135,8 @@ same for a set of buffers rather than being different."
             (or
              (when-let ((epr (eproj-get-project-for-buf-lax (current-buffer))))
                (eproj-project/root epr))
-             (when (derived-mode-p 'haskell-mode)
+             (when (or (derived-mode-p 'haskell-mode)
+                       (derived-mode-p 'haskell-ts-mode))
                (haskell-misc-get-project-root))
              (when (derived-mode-p 'rust-mode)
                (if configurable-compilation--cached-rust-project-root
