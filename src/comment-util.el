@@ -115,6 +115,7 @@ Intended to be used with comment-util-mode."
                         (car x))
               (list x)))
           `(((haskell-mode
+              haskell-ts-mode
               haskell-c-mode
               haskell-c2hs-mode
               haskell-hsc-mode
