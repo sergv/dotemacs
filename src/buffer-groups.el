@@ -13,6 +13,7 @@
 (defvar +buffer-groups+
   (cl-symbol-macrolet
       ((haskell-filter `(or (mode . haskell-mode)
+                            (mode . haskell-ts-mode)
                             (mode . haskell-literate-mode)
                             (mode . haskell-c-mode)
                             (mode . haskell-c2hs-mode)
