@@ -74,10 +74,11 @@
 (add-hook 'cmm-mode-hook #'cmm-setup)
 
 (defun haskell-conditional-setup ()
-  (when (memq major-mode '(haskell-mode haskell-literate-mode))
+  (when (memq major-mode '(haskell-mode haskell-ts-mode haskell-literate-mode))
     (haskell-setup)))
 
 (add-hook 'haskell-mode-hook #'haskell-conditional-setup)
+(add-hook 'haskell-ts-mode-hook #'haskell-conditional-setup)
 (add-hook 'haskell-literate-mode-hook #'haskell-conditional-setup)
 
 (add-hook 'haskell-c2hs-mode-hook #'haskell-c2hs-setup)
