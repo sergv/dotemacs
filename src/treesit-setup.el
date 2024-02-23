@@ -1,4 +1,4 @@
-;; tree-sitter-setup.el --- -*- lexical-binding: t; -*-
+;; treesit-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -12,7 +12,7 @@
 (defvar treesit-font-lock-level)
 (defvar treesit-extra-load-path)
 
-(setf treesit-max-buffer-size (* 30 1024 1024)
+(setf treesit-max-buffer-size (* 100 1024 1024)
       treesit-font-lock-level 4)
 
 (add-to-list 'treesit-extra-load-path (concat +emacs-config-path+ "/lib"))
@@ -20,8 +20,12 @@
 (when (and (fboundp 'treesit-available-p)
            (treesit-available-p))
   (require 'treesit)
-  (add-to-list 'major-mode-remap-alist
-               '(json-mode . json-ts-mode)))
+  (when (treesit-language-available-p 'json)
+    (add-to-list 'major-mode-remap-alist
+                 '(json-mode . json-ts-mode)))
+  (when (treesit-language-available-p 'haskell)
+    (add-to-list 'major-mode-remap-alist
+                 '(haskell-mode . haskell-ts-mode))))
 
 (defun treesit-parse-file (path language)
   "Parse STRING using a parser for LANGUAGE.
@@ -61,11 +65,11 @@ Return the root node of the syntax tree."
 ;; (treesit--explorer-draw-node
 ;;  (treesit-parse-file "/home/sergey/projects/haskell/projects/vector-quicksort/src/Data/Vector/Algorithms/Quicksort.hs" 'haskell))
 
-(provide 'tree-sitter-setup)
+(provide 'treesit-setup)
 
 ;; Local Variables:
 ;; no-byte-compile: t
 ;; no-native-compile: t
 ;; End:
 
-;; tree-sitter-setup.el ends here
+;; treesit-setup.el ends here
