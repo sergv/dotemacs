@@ -88,7 +88,7 @@
 process."
   :start 'haskell-flycheck-cabal-build--check
   ;; :predicate (lambda () dante-mode)
-  :modes '(haskell-mode haskell-literate-mode haskell-hsc-mode)
+  :modes '(haskell-mode haskell-ts-mode haskell-literate-mode haskell-hsc-mode)
   :working-directory (lambda (_checker)
                        (unless dante-project-root (dante-initialize-method))
                        dante-project-root))
@@ -113,7 +113,7 @@ process."
 ;;             (eval flycheck-ghc-args)
 ;;             "-x" (eval
 ;;                   (pcase major-mode
-;;                     (`haskell-mode "hs")
+;;                     ((or `haskell-mode `haskell-ts-mode) "hs")
 ;;                     ((or `literate-haskell-mode 'haskell-literate-mode) "lhs")))
 ;;             source)
 ;;   :error-patterns
@@ -139,7 +139,7 @@ process."
 ;;   :error-filter
 ;;   (lambda (errors)
 ;;     (flycheck-sanitize-errors (flycheck-dedent-error-messages errors)))
-;;   :modes (haskell-mode haskell-literate-mode literate-haskell-mode)
+;;   :modes (haskell-mode haskell-ts-mode haskell-literate-mode literate-haskell-mode)
 ;;   :next-checkers ((warning . haskell-hlint))
 ;;   :working-directory (lambda (_)
 ;;                        (flycheck-haskell--find-stack-default-directory))

@@ -10,7 +10,7 @@
   '("hs" "hsig" "lhs" "hsc" "chs" "hs-boot" "lhs-boot" "alex" "x" "lx" "happy" "y" "ly" "ag" "lag"))
 
 (defconst +haskell-syntax-modes+
-  '(haskell-mode haskell-literate-mode haskell-c-mode haskell-c2hs-mode alex-mode happy-mode uuag-mode)
+  '(haskell-mode haskell-ts-mode haskell-literate-mode haskell-c-mode haskell-c2hs-mode alex-mode happy-mode uuag-mode)
   "List of modes that use haskell syntax.")
 
 (defconst +haskell-default-checker+ 'haskell-dante ;;'lsp
