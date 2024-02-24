@@ -506,17 +506,29 @@ if the argument is omitted or nil or a positive integer).
 (defun dante-fontify-expression (expression)
   "Return a haskell-fontified version of EXPRESSION.
 If `haskell-mode' is not loaded, just return EXPRESSION."
-  (if (fboundp 'haskell-mode)
-      ;; From https://github.com/lunaryorn/ansible-doc.el/blob/master/ansible-doc.el#L211
-      ;; See also http://emacs.stackexchange.com/a/5408/227
-      (with-temp-buffer
-        (insert expression)
-        (delay-mode-hooks
-          (haskell-mode)
-          (font-lock-mode))
-        (font-lock-ensure)
-        (buffer-string))
-    expression))
+  (cond
+    ((and (fboundp #'haskell-ts-mode)
+          (fboundp #'treesit-language-available-p)
+          (treesit-language-available-p 'haskell))
+     (with-temp-buffer
+       (insert expression)
+       (delay-mode-hooks
+         (haskell-ts-mode)
+         (font-lock-mode))
+       (font-lock-ensure)
+       (buffer-string)))
+    ((fboundp #'haskell-mode)
+     ;; From https://github.com/lunaryorn/ansible-doc.el/blob/master/ansible-doc.el#L211
+     ;; See also http://emacs.stackexchange.com/a/5408/227
+     (with-temp-buffer
+       (insert expression)
+       (delay-mode-hooks
+         (haskell-mode)
+         (font-lock-mode))
+       (font-lock-ensure)
+       (buffer-string)))
+    (t
+     expression)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Type, info and doc at point
@@ -669,7 +681,7 @@ and over."
 process."
   :start 'dante-check
   :predicate (lambda () dante-mode)
-  :modes '(haskell-mode haskell-literate-mode)
+  :modes '(haskell-mode haskell-ts-mode haskell-literate-mode)
   :working-directory (lambda (_checker)
                        (unless dante-project-root (dante-initialize-method))
                        dante-project-root))
