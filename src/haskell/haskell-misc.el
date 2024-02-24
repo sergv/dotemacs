@@ -259,7 +259,13 @@ _#-}_: on pragma close"
       ((or (save-excursion
              (beginning-of-line)
              (looking-at-p haskell-regexen/language-pragma-prefix))
-           (and (eq (get-char-property (point) 'face) 'haskell-pragma-face)
+           ;; First check that we’re inside pragma then try to locate beginning
+           ;; of pragma block.
+           (and (cond
+                  ((derived-mode-p 'haskell-mode)
+                   (eq (get-char-property (point) 'face) 'haskell-pragma-face))
+                  ((derived-mode-p 'haskell-ts-mode)
+                   (string= "pragma" (treesit-node-type (treesit-node-at (point))))))
                 (save-excursion
                   (re-search-backward haskell-regexen/pragma-start nil t)
                   (looking-at-p haskell-regexen/language-pragma-prefix))))
@@ -332,11 +338,19 @@ _#-}_: on pragma close"
 extensions as a list of strings. Leaves point at the end of pragma"
   (goto-char start)
   (when (looking-at pragma-prefix-re)
-    (let ((pragma-end (min
-                       end
-                       (save-excursion
-                         (forward-sexp)
-                         (point)))))
+    (let ((pragma-end (min end
+                           (cond
+                             ((derived-mode-p 'haskell-mode)
+                              (save-excursion
+                                (forward-sexp)
+                                (point)))
+                             ((derived-mode-p 'haskell-ts-mode)
+                              (let ((node (treesit-node-at (point))))
+                                (cl-assert (string= "pragma" (treesit-node-type node))
+                                           nil
+                                           "Expected ‘pragma’ node type, but got: %s"
+                                           (treesit-node-type node))
+                                (treesit-node-end node)))))))
       (goto-char (match-end 0))
       (let ((contents-start (point)))
         (goto-char pragma-end)
