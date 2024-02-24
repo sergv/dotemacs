@@ -32,12 +32,11 @@
      ((ERROR) @haskell-ts-error))
 
    (--mapcat
-    (let ((feature (car it)))
-      (--mapcat (cons :language
-                      (cons 'haskell
-                            (cons :feature
-                                  (cons feature (list it)))))
-                (cdr it)))
+    (cons :language
+          (cons 'haskell
+                (cons :feature
+                      (cons (car it)
+                            (list (cdr it))))))
     '((comment
        ((comment) @font-lock-comment-face))
 
