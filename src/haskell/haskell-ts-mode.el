@@ -106,11 +106,12 @@
          "->"
          "<-"
          "\\"
-         "`"
          "@"
-         (exp_infix (variable))
          ]
-        @haskell-operator-face))
+        @haskell-operator-face)
+       ("`" @haskell-operator-face
+        [(variable) (qualified_variable)] @haskell-operator-face
+        "`" @haskell-operator-face))
 
       (type
        ;; ((signature name: (variable) @font-lock-type-face))
