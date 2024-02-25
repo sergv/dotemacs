@@ -590,17 +590,22 @@ both unicode and ascii characters.")
                      (goto-char (match-beginning 1))
                      (setf function-name-column (current-column-fixed-uncached))
                      (let ((indented-section-end (line-end-position)))
-                       (forward-line 1)
-                       (beginning-of-line)
-                       (while (and (not (eobp))
-                                   (< function-name-column (indentation-size)))
-                         (unless (haskell-on-blank-line-p)
-                           (setf indented-section-end (line-end-position)))
-                         (forward-line 1))
-                       ;; Do not expand if we're not located at the
-                       ;; type signature's end.
                        (setf point-at-end-of-function-signature?
-                             (= start-pos indented-section-end))
+                             (or (and (derived-mode-p 'haskell-ts-mode)
+                                      (let ((sig-node (treesit-node-parent (treesit-node-at (point)))))
+                                        (when (string= "signature" (treesit-node-type sig-node))
+                                          (= start-pos (treesit-node-end sig-node)))))
+                                 (progn
+                                   (forward-line 1)
+                                   (beginning-of-line)
+                                   (while (and (not (eobp))
+                                               (< function-name-column (indentation-size)))
+                                     (unless (haskell-on-blank-line-p)
+                                       (setf indented-section-end (line-end-position)))
+                                     (forward-line 1))
+                                   ;; Do not expand if we're not located at the
+                                   ;; type signature's end.
+                                   (= start-pos indented-section-end))))
                        (when (and point-at-end-of-function-signature?
                                   (not (save-excursion
                                          (goto-char indented-section-end)
