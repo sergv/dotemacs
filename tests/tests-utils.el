@@ -19,7 +19,7 @@
   "Alist from buffer-id (symbol) to actual buffer.")
 
 (cl-defmacro tests-utils--with-temp-buffer (&key action contents initialisation buffer-id)
-  (declare (indent 1))
+  (declare (indent 0))
   `(save-match-data
      (let ((buf ,@(when buffer-id
                     (list `(cdr-safe (assq ',buffer-id test-utils--temp-buffers))))))

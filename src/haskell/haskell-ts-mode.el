@@ -12,6 +12,8 @@
 (require 'haskell-mode)
 (require 'treesit)
 
+(require 'haskell-smart-operators-mode)
+
 (declare-function treesit-parser-create "treesit.c")
 
 (defconst haskell-ts-mode-syntax-table haskell-mode-syntax-table)
@@ -156,6 +158,27 @@
     (when (eq (char-after p) char)
       (put-text-property p (1+ p) 'face 'font-lock-negation-char-face))))
 
+(defvar haskell-ts---syntax-propertize-nonoperator-node
+  (alist->hash-table (--map (cons it t) '("string" "quasiquote_body" "pragma" "cpp" "comment"))))
+
+(defun haskell-ts-syntax-propertize (begin end)
+  "Basically finds all operators (e.g. -->) that start with comment delimiter, -- that should
+not be treated as comment start."
+  (save-match-data
+    (save-excursion
+      (goto-char begin)
+      (while (re-search-forward
+              "\\(?:^\\|[^!#$%&*+./:<=>?@\\^|~]\\)\\(?1:--[!#$%&*+./:<=>?@\\^|~-]*[!#$%&*+./:<=>?@\\^|~]\\)"
+              end
+              t)
+        (let (node (treesit-node-at (point)))
+          (when (or (not node)
+                    (not (gethash (treesit-node-type) haskell-ts---syntax-propertize-nonoperator-node)))
+            (put-text-property (match-beginning 1)
+                               (match-end 1)
+                               'syntax-table
+                               (eval-when-compile (string-to-syntax ".")))))))))
+
 ;;;###autoload
 (define-derived-mode haskell-ts-mode prog-mode "Haskell[ts]"
   "Major mode for Haskell that uses tree-sitter."
@@ -165,6 +188,9 @@
   (setq-local long-line-optimizations-region-size 0)
   ;; Fast font lock mode is too imprecise and can also make treesitter miss things.
   (setq-local treesit--font-lock-fast-mode nil)
+
+  (setq-local syntax-propertize-function
+              #'haskell-ts-syntax-propertize)
 
   (setq-local font-lock-defaults nil
               treesit-font-lock-feature-list
