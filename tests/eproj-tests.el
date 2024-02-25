@@ -739,25 +739,30 @@ test	%s	102	;\"	f
        (should (= 102 (eproj-tag/line function-tag)))
        (should (equal ?f (eproj-tag/type function-tag)))))))
 
-(ert-deftest eproj-tests/haskell-extract-block-1 ()
-  (haskell-tests--with-temp-buffer
-      (progn
-        (goto-line 2)
-        (should (equal (eproj/haskell-extract-block)
-                       "toText :: Builder -> T.Text"))
+(haskell-tests--test-results
+    eproj-tests/haskell-extract-block-1
+  :actions-and-values
+  (((progn
+      (goto-line 2)
+      (eproj/haskell-extract-block))
+    "toText :: Builder -> T.Text")
 
-        (goto-line 3)
-        (should (equal (eproj/haskell-extract-block)
-                       "toText (Builder size f) = T.Text arr 0 size\n  where\n    arr = TA.run $ do\n      marr <- TA.new size\n      f 0 marr\n      pure marr\n\n    foo = 1"))
+   ((progn
+      (goto-line 3)
+      (eproj/haskell-extract-block))
+    "toText (Builder size f) = T.Text arr 0 size\n  where\n    arr = TA.run $ do\n      marr <- TA.new size\n      f 0 marr\n      pure marr\n\n    foo = 1")
 
-        (goto-line 4)
-        (should (equal (eproj/haskell-extract-block)
-                       "  where\n    arr = TA.run $ do\n      marr <- TA.new size\n      f 0 marr\n      pure marr\n\n    foo = 1"))
+   ((progn
+      (goto-line 4)
+      (eproj/haskell-extract-block))
+    "  where\n    arr = TA.run $ do\n      marr <- TA.new size\n      f 0 marr\n      pure marr\n\n    foo = 1")
 
-        (goto-line 5)
-        (should (equal (eproj/haskell-extract-block)
-                       "    arr = TA.run $ do\n      marr <- TA.new size\n      f 0 marr\n      pure marr")))
-    "_|_
+   ((progn
+      (goto-line 5)
+      (eproj/haskell-extract-block))
+    "    arr = TA.run $ do\n      marr <- TA.new size\n      f 0 marr\n      pure marr"))
+  :contents
+  "_|_
 toText :: Builder -> T.Text
 toText (Builder size f) = T.Text arr 0 size
   where
@@ -766,33 +771,35 @@ toText (Builder size f) = T.Text arr 0 size
       f 0 marr
       pure marr
 
-    foo = 1"))
+    foo = 1")
 
-(ert-deftest eproj-tests/parse-cabal-project-1 ()
-  (haskell-tests--with-temp-buffer
-      (progn
-        (should (equal (eproj-haskell--parse-cabal-projects (current-buffer))
-                       '("cabal-benchmarks/"
-                         "Cabal-tests/"
-                         "Cabal-described"
-                         "quux with spaces/frob.cabal"
-                         "frobnicate.cabal"
-                         "Cabal-tree-diff/"
-                         "Cabal-QuickCheck/"
+(haskell-tests--test-result
+    eproj-tests/parse-cabal-project-1
+  :action
+  (eproj-haskell--parse-cabal-projects (current-buffer))
+  :expected-value
+  '("cabal-benchmarks/"
+    "Cabal-tests/"
+    "Cabal-described"
+    "quux with spaces/frob.cabal"
+    "frobnicate.cabal"
+    "Cabal-tree-diff/"
+    "Cabal-QuickCheck/"
 
-                         "bar/baz.cabal"
-                         "quux with spaces/frob.cabal"
-                         "blob.cabal"
-                         "buzz.cabal"
-                         "decombobulator/decombobulate.cabal"
+    "bar/baz.cabal"
+    "quux with spaces/frob.cabal"
+    "blob.cabal"
+    "buzz.cabal"
+    "decombobulator/decombobulate.cabal"
 
-                         "solver-benchmarks/"
-                         "cabal-install-solver/"
-                         "cabal-install/"
-                         "Cabal/"
-                         "cabal-testsuite/"
-                         "Cabal-syntax/"))))
-    "
+    "solver-benchmarks/"
+    "cabal-install-solver/"
+    "cabal-install/"
+    "Cabal/"
+    "cabal-testsuite/"
+    "Cabal-syntax/")
+  :contents
+  "
 packages: Cabal/ cabal-testsuite/ Cabal-syntax/
 packages: cabal-install/
 packages: cabal-install-solver/
@@ -822,7 +829,7 @@ packages: cabal-benchmarks/
 
 optional-packages: ./vendored/*/*.cabal
 
-_|_"))
+_|_")
 
 ;; (let ((ert-debug-on-error nil))
 ;;   (eproj-reset-projects)
