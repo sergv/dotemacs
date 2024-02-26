@@ -47,6 +47,7 @@
 (require 'haskell-lexeme)
 
 (require 'current-column-fixed)
+(require 'haskell-smart-operators-utils)
 (require 'macro-util)
 (require 'smart-operators-utils)
 
@@ -441,26 +442,31 @@ and indent when all of the following are true:
           (if (eq (point) point)
               (forward-line -1)
             (beginning-of-line)))
-        (let* ((ps (syntax-ppss))
-               (start-of-comment-or-string (nth 8 ps))
-               (start-of-list-expression (nth 1 ps)))
-          (cond
-           (start-of-comment-or-string
-            ;; inside comment or string
-            (goto-char start-of-comment-or-string))
-           (start-of-list-expression
-            (let ((zero-column-start (save-excursion
-                                       (haskell-indentation-goto-zero-column)
-                                       (point))))
-              (if (< zero-column-start start-of-list-expression)
-                  ;; inside a parenthesized expression
-                  (goto-char start-of-list-expression)
-                (progn
-                  (goto-char zero-column-start)
-                  ;; We're at 0 indentation now.
-                  (throw 'return nil)))))
-           ((= 0 (haskell-indentation-current-indentation))
-             (throw 'return nil))))))
+        (let ((node (haskell-smart-operators--treesit--current-node)))
+          (if (and node
+                   (or (haskell-smart-operators--treesit--in-string? node)
+                       (haskell-smart-operators--treesit--in-comment? node)))
+              (goto-char (treesit-node-start node))
+            (let* ((ps (syntax-ppss))
+                   (start-of-comment-or-string (nth 8 ps))
+                   (start-of-list-expression (nth 1 ps)))
+              (cond
+                (start-of-comment-or-string
+                 ;; inside comment or string
+                 (goto-char start-of-comment-or-string))
+                (start-of-list-expression
+                 (let ((zero-column-start (save-excursion
+                                            (haskell-indentation-goto-zero-column)
+                                            (point))))
+                   (if (< zero-column-start start-of-list-expression)
+                       ;; inside a parenthesized expression
+                       (goto-char start-of-list-expression)
+                     (progn
+                       (goto-char zero-column-start)
+                       ;; We're at 0 indentation now.
+                       (throw 'return nil)))))
+                ((= 0 (haskell-indentation-current-indentation))
+                 (throw 'return nil))))))))
     (beginning-of-line)
     (when (bobp)
       (forward-comment (buffer-size)))))
@@ -498,35 +504,51 @@ and indent when all of the following are true:
 
 (defun haskell-indentation-find-indentations ()
   "Return list of indentation positions corresponding to actual cursor position."
-  (let ((ppss nil))
-    (cond
-      ((or (smart-operators--in-string-syntax?)
-           (nth 3 (syntax-ppss-update! ppss)))
-       (if (save-excursion
-             (and (forward-line -1)
-                  (< (nth 8 (syntax-ppss-cached ppss)) (point))))
-           ;; if this string goes over more than one line we want to
-           ;; sync with the last line, not the first one
-           (list (save-excursion
-                   (forward-line -1)
-                   (current-indentation)))
-
+  (let ((node (haskell-smart-operators--treesit--current-node))
+        (ppss nil))
+    (pcase-let* ((`(,anchor . ,offset) (when node (treesit--indent-1))))
+      (let ((treesit-indent
+             (when (and anchor offset)
+               (let ((col (save-excursion
+                            (goto-char anchor)
+                            (+ (current-column) offset))))
+                 (list col)))))
+        (remove-duplicates-sorting
          (append
-          (haskell-indentation-first-indentation)
-          (list (save-excursion
-                  (goto-char (nth 8 (syntax-ppss-cached ppss)))
-                  (current-column-fixed))))))
-      ;; Is inside comment
-      ((nth 4 (syntax-ppss-cached ppss))
-       (if (save-excursion
-             (and (skip-syntax-forward "-")
-                  (eolp)
-                  (not (> (forward-line 1) 0))
-                  (not (nth 4 (syntax-ppss)))))
-           (haskell-indentation-parse-to-indentations)
-         (haskell-indentation-first-indentation)))
-      (t
-       (haskell-indentation-parse-to-indentations)))))
+          treesit-indent
+          (cond
+            ((or (haskell-smart-operators--in-string-syntax?-raw node)
+                 (nth 3 (syntax-ppss-update! ppss)))
+             (if (save-excursion
+                   (and (forward-line -1)
+                        (< (nth 8 (syntax-ppss-cached ppss)) (point))))
+                 ;; if this string goes over more than one line we want to
+                 ;; sync with the last line, not the first one
+                 (list (save-excursion
+                         (forward-line -1)
+                         (current-indentation)))
+
+               (append
+                (haskell-indentation-first-indentation)
+                (list (save-excursion
+                        (goto-char (nth 8 (syntax-ppss-cached ppss)))
+                        (current-column-fixed))))))
+            ;; Is inside comment
+            ((or (haskell-smart-operators--treesit--in-comment? node)
+                 (nth 4 (syntax-ppss-cached ppss)))
+             (if (save-excursion
+                   (and (skip-syntax-forward "-")
+                        (eolp)
+                        (not (> (forward-line 1) 0))
+                        (not (or (haskell-smart-operators--treesit--in-comment?
+                                  (haskell-smart-operators--treesit--current-node))
+                                 (nth 4 (syntax-ppss))))))
+                 (haskell-indentation-parse-to-indentations)
+               (haskell-indentation-first-indentation)))
+            (t
+             (haskell-indentation-parse-to-indentations))))
+         #'=
+         #'<)))))
 
 (defconst haskell-indentation-unicode-tokens
   '(("→" . "->")     ;; #x2192 RIGHTWARDS ARROW
