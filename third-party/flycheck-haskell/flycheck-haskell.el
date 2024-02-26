@@ -55,7 +55,6 @@
 (require 'haskell-cabal)
 (require 'flycheck)
 (require 'dash)
-(require 'dante)
 (require 'set-up-paths)
 
 (require 'nix-integration)
@@ -229,7 +228,7 @@ Return the configuration."
 ;;; Buffer setup
 
 (defun flycheck-haskell--find-config-file (buf)
-  (unless (dante-cabal-script-buf? buf)
+  (unless (haskell-misc-cabal-script-buf? buf)
     (haskell-cabal-find-file)))
 
 (provide 'flycheck-haskell)

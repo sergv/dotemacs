@@ -927,9 +927,26 @@ value section should have if it is to be properly indented."
   "Whether ‘haskell-misc--configure-dante!’ was called once.")
 
 ;;;###autoload
+(defun haskell-misc-cabal-script-buf? (buf)
+  "Non-nil if BUF is a cabal-style script which has no extra configuration."
+  (and (with-current-buffer buf
+         (save-excursion
+           (save-match-data
+             (goto-char (point-min))
+             ;; {- cabal:
+             ;; build-depends:
+             ;;   , base
+             ;;   , containers ^>= 0.6
+             ;; -}
+             (when-let ((fname (buffer-file-name buf)))
+               (and (looking-at-p "^#!.*cabal")
+                    (re-search-forward "^{-[ \t]*cabal:" nil t))))))
+       t))
+
+;;;###autoload
 (defun haskell-misc--configure-dante-if-needed! ()
   "Call ‘haskell-misc--configure-dante!’ if it has not been called before."
-  (unless (dante-cabal-script-buf? (current-buffer))
+  (unless (haskell-misc-cabal-script-buf? (current-buffer))
     (unless haskell-misc--dante-configured?
       (setf haskell-misc--dante-configured?
             (haskell-misc--configure-dante!)))))
