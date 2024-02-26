@@ -17,6 +17,8 @@
 
 (require 'haskell-ext-tracking)
 (require 'haskell-ghc-support)
+(require 'haskell-mode)
+(require 'haskell-smart-operators-utils)
 (require 'smart-operators-utils)
 
 (defconst haskell-smart-operators--operator-chars-str "!#$%&*+-./:<=>?@\\^|~")
@@ -27,36 +29,6 @@
       (puthash c t tbl))
     tbl)
   "Characters that may constitute operators.")
-
-(defun haskell-smart-operators--treesit--current-node ()
-  (condition-case nil
-      (treesit-node-at (point))
-    (treesit-no-parser nil)))
-
-(defun haskell-smart-operators--treesit--in-string? (node)
-  (when node
-    (memq (treesit-node-type node) '(string quasiquote_body))))
-
-(defun haskell-smart-operators--treesit--in-comment? (node)
-  (when node
-    (memq (treesit-node-type node) '(comment))))
-
-;;;###autoload
-(defun haskell-smart-operators--in-string-syntax?-raw (node)
-  (or (haskell-smart-operators--treesit--in-string?
-       node)
-      (smart-operators--in-string-syntax?)))
-
-;;;###autoload
-(defun haskell-smart-operators--in-string-syntax? ()
-  (haskell-smart-operators--in-string-syntax?-raw (haskell-smart-operators--treesit--current-node)))
-
-;;;###autoload
-(defun haskell-smart-operators--literal-insertion? (&optional disable-comment-check?)
-  (let ((node (haskell-smart-operators--treesit--current-node)))
-    (or (haskell-smart-operators--treesit--in-string? node)
-        (haskell-smart-operators--treesit--in-comment? node)
-        (smart-operators--literal-insertion? disable-comment-check?))))
 
 (defun haskell-smart-operators--on-a-line-with-guard? ()
   ;; Same as but should be leaner without regexen.
