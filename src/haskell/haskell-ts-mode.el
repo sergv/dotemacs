@@ -141,11 +141,7 @@
       ))))
 
 (defconst haskell-ts-indent-rules
-  nil
-  ;; `(((node-is   ,(rx (any ?\] ?\})))         parent-bol 0)
-  ;;   ((parent-is ,(rx (or "object" "array"))) parent-bol 2)
-  ;;   (no-node                                 parent     0))
-  )
+  `(((parent-is ,(rx (or bos "do" eos))) parent-bol 2)))
 
 (defun haskell-ts-mode--fontify-bang (node override start end &rest _)
   (haskell-ts-mode--fontify-first-char ?! node))
