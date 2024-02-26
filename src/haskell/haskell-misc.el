@@ -622,7 +622,7 @@ both unicode and ascii characters.")
      (when (null expanded-function-name?)
        (goto-char start-pos)
        (let* ((syn nil)
-              (in-string? (or (smart-operators--in-string-syntax?)
+              (in-string? (or (haskell-smart-operators--in-string-syntax?)
                               (nth 3 (syntax-ppss-update! syn)))))
          (cond
            (in-string?
