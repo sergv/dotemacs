@@ -29,11 +29,10 @@
   (should (string= (haskell-abbrev+-extract-mod-name "Foo'.Bar2.Baz_3.Quux")
                    "Quux")))
 
-(defmacro haskell-tests--test-buffer-contents (name action contents expected-value)
-  (declare (indent 2))
+(defmacro* haskell-tests--test-buffer-contents* (&key name action contents expected-value modes)
   `(progn
      ,@(cl-loop
-        for mode in '(haskell-mode haskell-ts-mode)
+        for mode in modes
         collect
         `(ert-deftest ,(string->symbol (format "%s/%s" name mode)) ()
            (tests-utils--test-buffer-contents
@@ -42,6 +41,15 @@
             :expected-value ,expected-value
             :initialisation (,mode)
             :buffer-id ,(string->symbol (format "haskel-tests-%s" mode)))))))
+
+(defmacro haskell-tests--test-buffer-contents (name action contents expected-value)
+  (declare (indent 2))
+  `(haskell-tests--test-buffer-contents*
+    :name ,name
+    :action ,action
+    :contents ,contents
+    :expected-value ,expected-value
+    :modes (haskell-mode haskell-ts-mode)))
 
 (defmacro haskell-tests--test-buffer-contents-expect-failed (name action contents expected-value)
   (declare (indent 2))
@@ -527,6 +535,24 @@ end."
     (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
   "x = f \(_|_"
   "x = f \(+ _|_")
+
+(haskell-tests--test-buffer-contents*
+    :name haskell-tests/haskell-smart-operators--prepend-to-prev-operator-8
+  :action (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
+  :contents
+  "x = [foo| 1 + _|_x|]"
+  :expected-value
+  "x = [foo| 1 + +_|_x|]"
+  :modes (haskell-ts-mode))
+
+(haskell-tests--test-buffer-contents*
+    :name haskell-tests/haskell-smart-operators--prepend-to-prev-operator-9
+  :action (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
+  :contents
+  "x = [foo| 1 + x|]_|_y"
+  :expected-value
+  "x = [foo| 1 + x|] + _|_y"
+  :modes (haskell-ts-mode))
 
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-smart-operators--inserting-@-avoid-spaces-1
