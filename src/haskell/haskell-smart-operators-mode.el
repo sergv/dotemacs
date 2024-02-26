@@ -28,6 +28,36 @@
     tbl)
   "Characters that may constitute operators.")
 
+(defun haskell-smart-operators--treesit--current-node ()
+  (condition-case nil
+      (treesit-node-at (point))
+    (treesit-no-parser nil)))
+
+(defun haskell-smart-operators--treesit--in-string? (node)
+  (when node
+    (memq (treesit-node-type node) '(string quasiquote_body))))
+
+(defun haskell-smart-operators--treesit--in-comment? (node)
+  (when node
+    (memq (treesit-node-type node) '(comment))))
+
+;;;###autoload
+(defun haskell-smart-operators--in-string-syntax?-raw (node)
+  (or (haskell-smart-operators--treesit--in-string?
+       node)
+      (smart-operators--in-string-syntax?)))
+
+;;;###autoload
+(defun haskell-smart-operators--in-string-syntax? ()
+  (haskell-smart-operators--in-string-syntax?-raw (haskell-smart-operators--treesit--current-node)))
+
+;;;###autoload
+(defun haskell-smart-operators--literal-insertion? (&optional disable-comment-check?)
+  (let ((node (haskell-smart-operators--treesit--current-node)))
+    (or (haskell-smart-operators--treesit--in-string? node)
+        (haskell-smart-operators--treesit--in-comment? node)
+        (smart-operators--literal-insertion? disable-comment-check?))))
+
 (defun haskell-smart-operators--on-a-line-with-guard? ()
   ;; Same as but should be leaner without regexen.
   ;; (save-excursion
@@ -149,7 +179,7 @@ stick it to the previous operator on line."
          (insert-char char)
          (funcall insert-trailing-space nil nil before-pt before (char-after))))
       ;; Must check for arrows here because otherwise
-      ;; `smart-operators--literal-insertion?' will treat '--'
+      ;; `haskell-smart-operators--literal-insertion?' will treat '--'
       ;; as a comment and not allow to do any meaningful work.
       ((and (not handling-haddock-comment?)
             pt-preceded-by-two-dashes?
@@ -160,7 +190,7 @@ stick it to the previous operator on line."
          (insert-char char)
          (funcall insert-trailing-space nil nil before-pt before (char-after))))
       ((or disable-smart-operators?
-           (smart-operators--literal-insertion?)
+           (haskell-smart-operators--literal-insertion?)
            (not (gethash char haskell-smart-operators--operator-chars)))
        (insert-char char))
       (t
@@ -408,7 +438,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
 ;;;###autoload
 (defun haskell-smart-operators-quote ()
   (interactive "*")
-  (if (smart-operators--literal-insertion?)
+  (if (haskell-smart-operators--literal-insertion?)
       (insert-char ?\')
     (let ((prev-char (char-before)))
       (insert-char ?\')
