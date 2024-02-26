@@ -116,29 +116,12 @@ will be in loaded in different GHCi sessions."
 (defun dante-nix-cabal-script-buf? (buf)
   "Non-nil if BUF is a cabal-style script which has no extra configuration."
   (and (dante-nix-available? buf)
-       (dante-cabal-script-buf? buf)))
+       (haskell-misc-cabal-script-buf? buf)))
 
 (defun dante-vanilla-cabal-script-buf? (buf)
   "Non-nil if BUF is a cabal-style script which has no extra configuration."
   (and (cached-executable-find "cabal")
-       (dante-cabal-script-buf? buf)))
-
-;;;###autoload
-(defun dante-cabal-script-buf? (buf)
-  "Non-nil if BUF is a cabal-style script which has no extra configuration."
-  (and (with-current-buffer buf
-         (save-excursion
-           (save-match-data
-             (goto-char (point-min))
-              ;; {- cabal:
-              ;; build-depends:
-              ;;   , base
-              ;;   , containers ^>= 0.6
-              ;; -}
-             (when-let ((fname (buffer-file-name buf)))
-               (and (looking-at-p "^#!.*cabal")
-                    (re-search-forward "^{-[ \t]*cabal:" nil t))))))
-       t))
+       (haskell-misc-cabal-script-buf? buf)))
 
 (defun dante-directory-regular-files (dir re)
   (--map (car it)
