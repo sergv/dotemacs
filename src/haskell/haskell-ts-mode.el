@@ -127,7 +127,7 @@
      )))
 
 (defconst haskell-ts-indent-rules
-  `(((parent-is ,(rx (or bos "do" eos))) parent-bol 2)))
+  `(((parent-is ,(rx bos "exp_do" eos)) parent-bol 2)))
 
 (defun haskell-ts-mode--fontify-bang (node override start end &rest _)
   (haskell-ts-mode--fontify-first-char ?! node))
