@@ -18,127 +18,113 @@
 
 (defconst haskell-ts-mode-syntax-table haskell-mode-syntax-table)
 
-(defface haskell-ts-error
-  '((t (:inherit error :extend t)))
-  "Face to highlight malformed syntax."
-  :group 'haskell)
-
 (defconst haskell-ts-font-lock-rules
-  (append
+  (--mapcat
+   (cons :language
+         (cons 'haskell
+               (cons :feature
+                     (cons (car it)
+                           (list (cdr it))))))
+   '((comment
+      ((comment) @font-lock-comment-face))
 
-   ;; Errors
-   '(:language
-     haskell
-     :feature error
-     ;; :override t
-     ((ERROR) @haskell-ts-error))
+     (constant
+      ([(integer) (float)] @font-lock-constant-face))
 
-   (--mapcat
-    (cons :language
-          (cons 'haskell
-                (cons :feature
-                      (cons (car it)
-                            (list (cdr it))))))
-    '((comment
-       ((comment) @font-lock-comment-face))
+     (string
+      ([(char) (string) (quasiquote_body)] @font-lock-string-face))
 
-      (constant
-       ([(integer) (float)] @font-lock-constant-face))
+     (preprocessor
+      ([(pragma) (cpp)] @haskell-pragma-face))
 
-      (string
-       ([(char) (string) (quasiquote_body)] @font-lock-string-face))
+     (keyword
+      ([
+        "forall"
+        (where)
+        "let"
+        "in"
+        "class"
+        "instance"
+        "data"
+        "newtype"
+        "family"
+        "type"
+        "as"
+        "hiding"
+        "deriving"
+        "via"
+        "stock"
+        "anyclass"
+        "do"
+        "mdo"
+        "rec"
+        "infix"
+        "infixl"
+        "infixr"
 
-      (preprocessor
-       ([(pragma) (cpp)] @haskell-pragma-face))
+        "if"
+        "then"
+        "else"
+        "case"
+        "of"
 
-      (keyword
-       ([
-         "forall"
-         (where)
-         "let"
-         "in"
-         "class"
-         "instance"
-         "data"
-         "newtype"
-         "family"
-         "type"
-         "as"
-         "hiding"
-         "deriving"
-         "via"
-         "stock"
-         "anyclass"
-         "do"
-         "mdo"
-         "rec"
-         "infix"
-         "infixl"
-         "infixr"
+        "import"
+        "qualified"
+        "module"
 
-         "if"
-         "then"
-         "else"
-         "case"
-         "of"
-
-         "import"
-         "qualified"
-         "module"
-
-         (exp_lambda_cases
-          "\\"
-          ("cases" @haskell-keyword-face))]
-        @haskell-keyword-face))
-
-      (operator
-       ([
-         (operator)
-         (constructor_operator)
-         (type_operator)
-         (tycon_arrow)
-         ;; (qualified_module) ; grabs the `.` (dot), ex: import System.IO
-         (all_names)
-         ;; (strict_type) ;; ! inside data declaration
-         (wildcard)
-         "="
-         "|"
-         "::"
-         "=>"
-         "->"
-         "<-"
+        (exp_lambda_cases
          "\\"
-         "@"
-         ]
-        @haskell-operator-face)
-       ("`" @haskell-operator-face
-        [(variable) (qualified_variable)] @haskell-operator-face
-        "`" @haskell-operator-face))
+         ("cases" @haskell-keyword-face))]
+       @haskell-keyword-face))
 
-      (type
-       ;; ((signature name: (variable) @font-lock-type-face))
-       ([(qualified_type) (type)] @haskell-type-face))
+     (operator
+      ([
+        (operator)
+        (constructor_operator)
+        (type_operator)
+        (tycon_arrow)
+        ;; (qualified_module) ; grabs the `.` (dot), ex: import System.IO
+        (all_names)
+        ;; (strict_type) ;; ! inside data declaration
+        (wildcard)
+        "="
+        "|"
+        "::"
+        "=>"
+        "->"
+        "<-"
+        "\\"
+        "@"
+        ]
+       @haskell-operator-face)
+      ("`" @haskell-operator-face
+       [(variable) (qualified_variable)] @haskell-operator-face
+       "`" @haskell-operator-face))
 
-      (constructor
-       ([(constructor) (con_unit)] @haskell-type-face))
+     (type
+      ;; ((signature name: (variable) @font-lock-type-face))
+      ([(qualified_type) (type)] @haskell-type-face))
 
-      (module-name
-       ;; Must come before (module) to override it.
-       ((qualified_variable) @default)
-       ([(module) (qualified_module)] @haskell-type-face))
+     (constructor
+      ([(constructor) (con_unit)] @haskell-type-face))
 
-      (strictness
-       ((strict_type) @haskell-ts-mode--fontify-bang)
-       ((pat_strict) @haskell-ts-mode--fontify-bang))
+     (module-name
+      ;; Must come before (module) to override it.
+      ((qualified_variable) @default)
+      ([(module) (qualified_module)] @haskell-type-face))
 
-      (laziness
-       ((lazy_type) @haskell-ts-mode--fontify-tilde)
-       ((pat_irrefutable) @haskell-ts-mode--fontify-tilde))
+     (strictness
+      ((strict_type) @haskell-ts-mode--fontify-bang)
+      ((pat_strict) @haskell-ts-mode--fontify-bang))
 
-      ;; (quasiquote
-      ;;  (quoter) @injection.language
-      ;;  (quasiquote_body) @injection.content)
-      ))))
+     (laziness
+      ((lazy_type) @haskell-ts-mode--fontify-tilde)
+      ((pat_irrefutable) @haskell-ts-mode--fontify-tilde))
+
+     ;; (quasiquote
+     ;;  (quoter) @injection.language
+     ;;  (quasiquote_body) @injection.content)
+     )))
 
 (defconst haskell-ts-indent-rules
   `(((parent-is ,(rx (or bos "do" eos))) parent-bol 2)))
@@ -190,9 +176,8 @@ not be treated as comment start."
 
   (setq-local font-lock-defaults nil
               treesit-font-lock-feature-list
-              '((comment error)
+              '((comment keyword)
                 (preprocessor
-                 keyword
                  operator
                  constant
                  string
