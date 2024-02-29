@@ -956,17 +956,18 @@ symbol 'unresolved.")
 project for PATH."
   (if-let (proj (gethash path *eproj-projects* nil))
       proj
-    (if-let (proj-root (eproj-get-initial-project-root path))
-        (if-let (proj (gethash proj-root *eproj-projects* nil))
-            proj
-          (if-let ((info (eproj--get-info-from-root proj-root nil)))
-              (let ((proj (eproj-make-project proj-root info)))
-                (puthash (eproj-project/root proj)
-                         proj
-                         *eproj-projects*)
-                proj)
-            nil))
-      nil)))
+    (when (file-directory-p path)
+      (if-let (proj-root (eproj-get-initial-project-root path))
+          (if-let (proj (gethash proj-root *eproj-projects* nil))
+              proj
+            (if-let ((info (eproj--get-info-from-root proj-root nil)))
+                (let ((proj (eproj-make-project proj-root info)))
+                  (puthash (eproj-project/root proj)
+                           proj
+                           *eproj-projects*)
+                  proj)
+              nil))
+        nil))))
 
 (defun eproj-get-project-for-path (path)
   "Retrieve project that contains PATH as its part."
