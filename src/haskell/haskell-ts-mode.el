@@ -98,7 +98,7 @@
         ]
        @haskell-operator-face)
       ("`" @haskell-operator-face
-       [(variable) (qualified_variable)] @haskell-operator-face
+       [(variable) (qualified_variable) (constructor) (qualified_constructor)] @haskell-operator-face
        "`" @haskell-operator-face))
 
      (type
@@ -106,7 +106,7 @@
       ([(qualified_type) (type)] @haskell-type-face))
 
      (constructor
-      ([(constructor) (con_unit)] @haskell-type-face))
+      ([(constructor) (qualified_constructor) (con_unit)] @haskell-type-face))
 
      (module-name
       ;; Must come before (module) to override it.
