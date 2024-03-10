@@ -4019,11 +4019,22 @@ N wraps around."
                            cands-to-sort)
                           (lambda (c1 c2)
                             ;; Break ties by length
-                            (if (/= (cdr c1) (cdr c2))
-                                (> (cdr c1)
-                                   (cdr c2))
-                              (< (length (car c1))
-                                 (length (car c2))))))))
+                            (let ((score1 (cdr c1))
+                                  (score2 (cdr c2)))
+                              (cond
+                                ((null score1)
+                                 (if (null score2)
+                                     (< (length (car c1))
+                                        (length (car c2)))
+                                   nil))
+                                ((null score2)
+                                 t)
+                                ((/= score1 score2)
+                                 (> score1
+                                    score2))
+                                (t
+                                 (< (length (car c1))
+                                    (length (car c2))))))))))
 
           ;; Add the unsorted candidates
           cands-left)))
