@@ -305,6 +305,8 @@ under ROOT directory."
 
 (eproj-tests--define-tests
  "eproj-tests/project-with-ignored-files"
+ (unless (cached-executable-find "fast-tags")
+   (ert-skip "fast-tags not available"))
  (let* ((path eproj-tests/project-with-ignored-files)
         (proj (eproj-get-project-for-path path)))
    (should (not (null proj)))
@@ -349,6 +351,8 @@ under ROOT directory."
 
 (eproj-tests--define-tests
  "eproj-tests/haskell-project-with-manually-configured-default-projects"
+ (unless (cached-executable-find "fast-tags")
+   (ert-skip "fast-tags not available"))
  (let* ((path eproj-tests/project-with-manual-default)
         (eproj/default-projects (alist->hash-table
                                  (list (cons 'haskell-mode
@@ -407,6 +411,8 @@ under ROOT directory."
 (eproj-tests--define-tests
     "eproj-tests/implicit-haskell-project"
 
+  (unless (cached-executable-find "fast-tags")
+    (ert-skip "fast-tags not available"))
   (let ((tmp-dir (make-temp-file "temp" t))
         (unzip (cached-executable-find "unzip")))
 
@@ -452,6 +458,8 @@ under ROOT directory."
 (eproj-tests--define-tests
     "eproj-tests/implicit-haskell-project-alt-cabal.project"
 
+  (unless (cached-executable-find "fast-tags")
+    (ert-skip "fast-tags not available"))
   (let ((tmp-dir (make-temp-file "temp" t))
         (unzip (cached-executable-find "unzip")))
 
@@ -497,6 +505,8 @@ under ROOT directory."
 (eproj-tests--define-tests
     "eproj-tests/implicit-haskell-project-with-local"
 
+  (unless (cached-executable-find "fast-tags")
+    (ert-skip "fast-tags not available"))
   (let ((tmp-dir (make-temp-file "temp" t))
         (unzip (cached-executable-find "unzip")))
 
@@ -541,6 +551,8 @@ under ROOT directory."
 
 (eproj-tests--define-tests
  "eproj-tests/haskell-project-with-aux-files"
+ (unless (cached-executable-find "fast-tags")
+   (ert-skip "fast-tags not available"))
  (let* ((path eproj-tests/haskell-project-with-aux-files)
         (proj (eproj-get-project-for-path path))
         (expected-navigation-files
@@ -572,6 +584,8 @@ under ROOT directory."
 
 (eproj-tests--define-tests
  "eproj-tests/haskell-project-authoritative"
+  (unless (cached-executable-find "fast-tags")
+    (ert-skip "fast-tags not available"))
  (let* ((path eproj-tests/haskell-project-authoritative)
         (authoritative-proj (eproj-get-project-for-path (concat path "/authoritative")))
         (non-authoritative-proj (eproj-get-project-for-path (concat path "/non-authoritative"))))
@@ -636,6 +650,8 @@ foo3	%s	102	;\"	z
 
 (eproj-tests--define-tests
     "eproj-tests/eproj/get-fast-tags-from-buffer"
+  (unless (cached-executable-find "fast-tags")
+    (ert-skip "fast-tags not available"))
   (let* ((test-root (fold-platform-os-type "/home/test/whatever"
                                            "c:/home/test/whatever"))
          (test-filename "foo.bar")
@@ -674,6 +690,8 @@ foo3	%s	102	;\"	z
 
 (eproj-tests--define-tests
     "eproj-tests/eproj/get-fast-tags-from-buffer/filenames-with-spaces"
+  (unless (cached-executable-find "fast-tags")
+    (ert-skip "fast-tags not available"))
   (let ((test-filename (fold-platform-os-type
                         "/home/admin/my projects/test project/hello.c"
                         "c:/home/admin/my projects/test project/hello.c")))
@@ -711,6 +729,8 @@ foo3	%s	102	;\"	z
 
 (eproj-tests--define-tests
     "eproj-tests/eproj/get-fast-tags-from-buffer/ignore-constructor-tags-that-repeat-type-tags"
+  (unless (cached-executable-find "fast-tags")
+    (ert-skip "fast-tags not available"))
   (let ((test-filename (fold-platform-os-type "/home/sergey/Test.hs"
                                               "c:/home/sergey/Test.hs")))
     (eproj-tests/test-ctags-get-tags-from-buffer
