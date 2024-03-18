@@ -80,7 +80,6 @@
      (operator
       ([
         (operator)
-        (constructor_operator)
         (type_operator)
         (tycon_arrow)
         ;; (qualified_module) ; grabs the `.` (dot), ex: import System.IO
@@ -106,7 +105,7 @@
       ([(qualified_type) (type)] @haskell-type-face))
 
      (constructor
-      ([(constructor) (qualified_constructor) (con_unit)] @haskell-type-face))
+      ([(constructor) (qualified_constructor) (con_unit) (constructor_operator)] @haskell-type-face))
 
      (module-name
       ;; Must come before (module) to override it.
