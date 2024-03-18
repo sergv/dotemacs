@@ -132,20 +132,21 @@ same for a set of buffers rather than being different."
 (defun configurable-compilation-proj-dir ()
   (or configurable-compilation--proj-root
       (setf configurable-compilation--proj-root
-            (or
-             (when-let ((epr (eproj-get-project-for-buf-lax (current-buffer))))
-               (eproj-project/root epr))
-             (when (or (derived-mode-p 'haskell-mode)
-                       (derived-mode-p 'haskell-ts-mode))
-               (haskell-misc-get-project-root))
-             (when (derived-mode-p 'rust-mode)
-               (if configurable-compilation--cached-rust-project-root
-                   configurable-compilation--cached-rust-project-root
-                 (when-let ((buf (buffer-file-name))
-                            (manifest (flycheck-rust-find-manifest buf)))
-                   (setq-local configurable-compilation--cached-rust-project-root
-                               (file-name-directory manifest)))))
-             default-directory))))
+            (abbreviate-file-name
+             (or
+              (when-let ((epr (eproj-get-project-for-buf-lax (current-buffer))))
+                (eproj-project/root epr))
+              (when (or (derived-mode-p 'haskell-mode)
+                        (derived-mode-p 'haskell-ts-mode))
+                (haskell-misc-get-project-root))
+              (when (derived-mode-p 'rust-mode)
+                (if configurable-compilation--cached-rust-project-root
+                    configurable-compilation--cached-rust-project-root
+                  (when-let ((buf (buffer-file-name))
+                             (manifest (flycheck-rust-find-manifest buf)))
+                    (setq-local configurable-compilation--cached-rust-project-root
+                                (file-name-directory manifest)))))
+              default-directory)))))
 
 (defun configurable-compilation-buffer-name (proj-dir)
   (concat "*compilation:" proj-dir "*"))
