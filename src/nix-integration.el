@@ -30,7 +30,7 @@
             (no-warn-dirty-prop (eval-when-compile (configurable-compilation--unimportant-text "--no-warn-dirty")))
             (command-prop (eval-when-compile (configurable-compilation--unimportant-text "--command"))))
         (if proj-dir
-            (cons nix-exe-prop (cons develop-prop (cons no-warn-dirty-prop (cons (configurable-compilation--unimportant-text proj-dir) (cons command-prop args)))))
+            (cons nix-exe-prop (cons develop-prop (cons no-warn-dirty-prop (cons (configurable-compilation--unimportant-text (expand-file-name proj-dir)) (cons command-prop args)))))
           (cons nix-exe-prop (cons develop-prop (cons no-warn-dirty-prop (cons command-prop args))))))
     args))
 
