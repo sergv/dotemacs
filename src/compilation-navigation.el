@@ -37,7 +37,8 @@
   "Get buffer that corresponds to FILENAME, which may be neither full nor
 relative path. In case it's neither, a buffer visiting filename
 with suffix equal to FILENAME will searched for."
-  (cl-assert (not (= 0 (length filename))))
+  (cl-assert (and filename
+                  (not (zerop (length filename)))))
   (let ((root-norm (and root
                         (normalise-file-name root)))
         (proj-dir-norm (and proj-dir
