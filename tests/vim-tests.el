@@ -92,6 +92,10 @@
     (rust-mode (rust-mode))
     (c-mode (c-mode))))
 
+(defconst vim-tests--all-known-modes-and-init
+  (cons '(haskell-hsc-mode (haskell-hsc-mode))
+        vim-tests--modes-and-init))
+
 ;; Text mode has surprising bindings for <tab>. It doesn’t really matter
 ;; day to day but breaks tests significantly without much benefit testingwise.
 (defmacro vim-tests--test-fresh-buffer-contents-init-standard-modes-except (skip-modes name action contents expected-value)
@@ -111,7 +115,7 @@
   (cl-assert (cl-every #'symbolp keep-modes))
   `(vim-tests--test-fresh-buffer-contents-init-all
        ,name
-       ,(--filter (memq (car it) keep-modes) vim-tests--modes-and-init)
+       ,(--filter (memq (car it) keep-modes) vim-tests--all-known-modes-and-init)
        ,action
      ,contents
      ,expected-value))
@@ -3836,28 +3840,56 @@ _|_bar")
   (tests-utils--multiline "" "foo [_|_] bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode text-mode c-mode rust-mode emacs-lisp-mode)
+    (text-mode c-mode rust-mode emacs-lisp-mode)
     vim-tests/pseudoparedit-3
     (execute-kbd-macro (kbd "i \{"))
   (tests-utils--multiline "" "foo_|_bar" "")
   (tests-utils--multiline "" "foo{_|_}bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode text-mode c-mode rust-mode emacs-lisp-mode)
+    (text-mode c-mode rust-mode emacs-lisp-mode)
     vim-tests/pseudoparedit-3a
     (execute-kbd-macro (kbd "i \{"))
   (tests-utils--multiline "" "foo _|_bar" "")
   (tests-utils--multiline "" "foo {_|_}bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode text-mode c-mode rust-mode emacs-lisp-mode)
+    (text-mode c-mode rust-mode emacs-lisp-mode)
     vim-tests/pseudoparedit-3b
     (execute-kbd-macro (kbd "i \{"))
   (tests-utils--multiline "" "foo_|_ bar" "")
   (tests-utils--multiline "" "foo{_|_} bar" ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode text-mode c-mode rust-mode emacs-lisp-mode)
+    (text-mode c-mode rust-mode emacs-lisp-mode)
+    vim-tests/pseudoparedit-3c
+    (execute-kbd-macro (kbd "i \{"))
+  (tests-utils--multiline "" "foo _|_ bar" "")
+  (tests-utils--multiline "" "foo {_|_} bar" ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/pseudoparedit-3
+    (execute-kbd-macro (kbd "i \{"))
+  (tests-utils--multiline "" "foo_|_bar" "")
+  (tests-utils--multiline "" "foo {_|_} bar" ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/pseudoparedit-3a
+    (execute-kbd-macro (kbd "i \{"))
+  (tests-utils--multiline "" "foo _|_bar" "")
+  (tests-utils--multiline "" "foo {_|_} bar" ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/pseudoparedit-3b
+    (execute-kbd-macro (kbd "i \{"))
+  (tests-utils--multiline "" "foo_|_ bar" "")
+  (tests-utils--multiline "" "foo {_|_} bar" ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
     vim-tests/pseudoparedit-3c
     (execute-kbd-macro (kbd "i \{"))
   (tests-utils--multiline "" "foo _|_ bar" "")
@@ -4520,6 +4552,20 @@ _|_bar")
    "\t\t_|_bar"
    "\t\tbaz"
    ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-hsc-mode)
+    vim-tests/haskell-hsc-pragma-insertion
+    (execute-kbd-macro (kbd "i # \{ c o n s t"))
+  (tests-utils--multiline "" "foo _|_ bar" "")
+  (tests-utils--multiline "" "foo #{const_|_} bar" ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/regular-haskell-pragma-insertion
+    (execute-kbd-macro (kbd "i # \{ c o n s t"))
+  (tests-utils--multiline "" "foo _|_ bar" "")
+  (tests-utils--multiline "" "foo # {const_|_} bar" ""))
 
 (provide 'vim-tests)
 

@@ -19,6 +19,7 @@
 (require 'haskell-ghc-support)
 (require 'haskell-mode)
 (require 'haskell-smart-operators-utils)
+(require 'pseudoparedit)
 (require 'smart-operators-utils)
 
 (defconst haskell-smart-operators--operator-chars-str "!#$%&*+-./:<=>?@\\^|~")
@@ -467,6 +468,30 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
                                   (not (or (eq after ?\))
                                            (eq after ?\])
                                            (eq after ?,))))))
+
+;;;###autoload
+(defun haskell-smart-operators-open-brace ()
+  (interactive)
+  (let ((is-hsc? (derived-mode-p 'haskell-hsc-mode))
+        (p (point)))
+    (when is-hsc?
+      (save-excursion
+        (when (and (not (zerop (skip-chars-backward " \t")))
+                   (eq (char-before) ?#))
+          (delete-region (point) p))))
+    (smart-operators--insert-pair ?\{
+                                  ?\}
+                                  (lambda (before)
+                                    (not (or (eq before ?\()
+                                             (eq before ?\[)
+                                             (eq before ?\\)
+                                             (if is-hsc?
+                                                 (eq before ?#)
+                                               nil))))
+                                  (lambda (after)
+                                    (not (or (eq after ?\))
+                                             (eq after ?\])
+                                             (eq after ?,)))))))
 
 ;;;###autoload
 (define-minor-mode haskell-smart-operators-mode
