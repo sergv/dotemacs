@@ -230,14 +230,14 @@
   (tests-utils--multiline
    ""
    ""
-   "(foo"
-   "   (bar (baz "
+   "\(foo"
+   "   \(bar \(baz "
    "_|_"))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-except
     (text-mode haskell-mode haskell-ts-mode)
     vim-tests/repeat-vim:splice-sexp-killing-backward-1
-    (execute-kbd-macro (kbd "j ( d"))
+    (execute-kbd-macro (kbd "j \( d"))
   (tests-utils--multiline
    ""
    ""
@@ -255,7 +255,7 @@
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-except
     (text-mode haskell-mode haskell-ts-mode)
     vim-tests/repeat-vim:splice-sexp-killing-backward-2
-    (execute-kbd-macro (kbd "j ( d ."))
+    (execute-kbd-macro (kbd "j \( d ."))
   (tests-utils--multiline
    ""
    ""
@@ -273,7 +273,7 @@
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-mode haskell-ts-mode)
     vim-tests/repeat-vim:splice-sexp-killing-backward-2
-    (execute-kbd-macro (kbd "j ( d"))
+    (execute-kbd-macro (kbd "j \( d"))
   (tests-utils--multiline
    ""
    ""
@@ -291,7 +291,7 @@
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-mode haskell-ts-mode)
     vim-tests/repeat-vim:splice-sexp-killing-backward-3
-    (execute-kbd-macro (kbd "j ( d ."))
+    (execute-kbd-macro (kbd "j \( d ."))
   (tests-utils--multiline
    ""
    ""
@@ -308,7 +308,7 @@
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
     vim-tests/repeat-vim:splice-sexp-killing-backward-4
-    (execute-kbd-macro (kbd "j ( d 2 ."))
+    (execute-kbd-macro (kbd "j \( d 2 ."))
   (tests-utils--multiline
    ""
    ""
@@ -2320,7 +2320,7 @@ _|_bar")
       (emacs-lisp-mode)
       (progn
         (should (eq paredit-indent-sexp-function #'indent-sexp))
-        (execute-kbd-macro (kbd "j ( d")))
+        (execute-kbd-macro (kbd "j \( d")))
     (tests-utils--multiline
      ""
      "(let ((counter '#:counter))"
@@ -2785,7 +2785,7 @@ _|_bar")
 (ert-deftest vim-tests/emacs-lisp-abbrev-1 ()
   (vim-tests--test-fresh-buffer-contents-init
       (emacs-lisp-mode)
-      (execute-kbd-macro (kbd "i ( d k f m SPC"))
+      (execute-kbd-macro (kbd "i \( d k f m SPC"))
     (tests-utils--multiline
      ""
      "_|_"
@@ -3052,7 +3052,7 @@ _|_bar")
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-mode haskell-ts-mode)
     vim-tests/haskell-abbrev-8
-    (execute-kbd-macro (kbd "i # # SPC i n l i n <return> ( + + + <tab> <escape>"))
+    (execute-kbd-macro (kbd "i # # SPC i n l i n <return> \( + + + <tab> <escape>"))
   (tests-utils--multiline
    ""
    "_|_"
@@ -3296,7 +3296,7 @@ _|_bar")
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-mode haskell-ts-mode)
     vim-tests/haskell-insert-paren-1
-    (execute-kbd-macro (kbd "i ( x , y ) - > z <escape>"))
+    (execute-kbd-macro (kbd "i \( x , y \) - > z <escape>"))
   (tests-utils--multiline
    ""
    "foo | any (\\_|_) = _"
@@ -3309,7 +3309,7 @@ _|_bar")
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-mode haskell-ts-mode)
     vim-tests/haskell-insert-paren-2
-    (execute-kbd-macro (kbd "i ( \\ ( x , y <escape>"))
+    (execute-kbd-macro (kbd "i \( \\ \( x , y <escape>"))
   (tests-utils--multiline
    ""
    "foo | any _|_ = _"
