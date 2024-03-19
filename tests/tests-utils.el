@@ -49,7 +49,11 @@
                 (re-search-forward "_|_" nil t))
           (error "More than one occurrence of _|_ in source"))
         (font-lock-fontify-buffer)
-        ,action))))
+        (unwind-protect
+            ,action
+          (when (and vim-active-mode
+                     (not (eq vim-active-mode 'vim-normal-mode)))
+            (vim-activate-mode #'vim-normal-mode)))))))
 
 (cl-defmacro tests-utils--test-buffer-contents (&key action contents expected-value initialisation buffer-id)
   (declare (indent 2))
