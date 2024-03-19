@@ -56,11 +56,11 @@
     (with-current-buffer buf
       (goto-char (point-min))
       (while (re-search-forward dante-error-regexp nil t)
-        (let* ((file (match-string 1))
+        (let* ((file (match-string 4))
                (buf (compilation/find-buffer file))
-               (location-raw (match-string 2))
-               (err-type (match-string 3))
-               (msg (match-string 4))
+               (location-raw (match-string 5))
+               (err-type (match-string 6))
+               (msg (match-string 7))
 
                (type (cdr (--first (string-match (car it) err-type) dante-flycheck-types)))
                (fixed-err-type (if (eq type 'error)
