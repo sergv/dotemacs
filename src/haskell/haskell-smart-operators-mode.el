@@ -442,37 +442,44 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
 ;;;###autoload
 (defun haskell-smart-operators-open-paren ()
   (interactive)
-  (smart-operators--insert-pair ?\(
-                                ?\)
-                                (lambda (before)
-                                  (not (or (eq before ?\()
-                                           (eq before ?\[)
-                                           (eq before ?\\)
-                                           (eq before ?@))))
-                                (lambda (after)
-                                  (not (or (eq after ?\))
-                                           (eq after ?\])
-                                           (eq after ?,))))))
+  (let ((literal-insertion? (haskell-smart-operators--literal-insertion?)))
+    (smart-operators--insert-pair ?\(
+                                  ?\)
+                                  (lambda (before)
+                                    (not (or literal-insertion?
+                                             (eq before ?\()
+                                             (eq before ?\[)
+                                             (eq before ?\\)
+                                             (eq before ?@))))
+                                  (lambda (after)
+                                    (not (or literal-insertion?
+                                             (eq after ?\))
+                                             (eq after ?\])
+                                             (eq after ?,)))))))
 
 ;;;###autoload
 (defun haskell-smart-operators-open-bracket ()
   (interactive)
-  (smart-operators--insert-pair ?\[
-                                ?\]
-                                (lambda (before)
-                                  (not (or (eq before ?\()
-                                           (eq before ?\[)
-                                           (eq before ?\\)
-                                           (eq before ?@))))
-                                (lambda (after)
-                                  (not (or (eq after ?\))
-                                           (eq after ?\])
-                                           (eq after ?,))))))
+  (let ((literal-insertion? (haskell-smart-operators--literal-insertion?)))
+    (smart-operators--insert-pair ?\[
+                                  ?\]
+                                  (lambda (before)
+                                    (not (or literal-insertion?
+                                             (eq before ?\()
+                                             (eq before ?\[)
+                                             (eq before ?\\)
+                                             (eq before ?@))))
+                                  (lambda (after)
+                                    (not (or literal-insertion?
+                                             (eq after ?\))
+                                             (eq after ?\])
+                                             (eq after ?,)))))))
 
 ;;;###autoload
 (defun haskell-smart-operators-open-brace ()
   (interactive)
-  (let ((is-hsc? (derived-mode-p 'haskell-hsc-mode))
+  (let ((literal-insertion? (haskell-smart-operators--literal-insertion?))
+        (is-hsc? (derived-mode-p 'haskell-hsc-mode))
         (p (point)))
     (when is-hsc?
       (save-excursion
@@ -482,14 +489,16 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
     (smart-operators--insert-pair ?\{
                                   ?\}
                                   (lambda (before)
-                                    (not (or (eq before ?\()
+                                    (not (or literal-insertion?
+                                             (eq before ?\()
                                              (eq before ?\[)
                                              (eq before ?\\)
                                              (if is-hsc?
                                                  (eq before ?#)
                                                nil))))
                                   (lambda (after)
-                                    (not (or (eq after ?\))
+                                    (not (or literal-insertion?
+                                             (eq after ?\))
                                              (eq after ?\])
                                              (eq after ?,)))))))
 
