@@ -4977,6 +4977,30 @@ end."
    ""))
 
 (haskell-tests--test-buffer-contents
+    haskell-tests/haskell-smart-operators--open-paren-3
+    (haskell-smart-operators-open-paren)
+  (tests-utils--multiline
+   ""
+   "foo x xs = foo (Median3or5 \"_|_\")"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo x xs = foo (Median3or5 \"(_|_)\")"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-smart-operators--open-paren-4
+    (haskell-smart-operators-open-paren)
+  (tests-utils--multiline
+   ""
+   "foo x xs = foo (Median3or5 \"foo_|_bar\")"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo x xs = foo (Median3or5 \"foo(_|_)bar\")"
+   ""))
+
+(haskell-tests--test-buffer-contents
     haskell-tests/haskell-smart-operators--open-bracket-1
     (haskell-smart-operators-open-bracket)
   (tests-utils--multiline
@@ -5000,6 +5024,53 @@ end."
    "foo x xs = foo (Median3or5 @[_|_])"
    ""))
 
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-smart-operators--open-bracket-3
+    (haskell-smart-operators-open-bracket)
+  (tests-utils--multiline
+   ""
+   "foo x xs = foo (Median3or5 \"_|_\")"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo x xs = foo (Median3or5 \"[_|_]\")"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-smart-operators--open-bracket-4
+    (haskell-smart-operators-open-bracket)
+  (tests-utils--multiline
+   ""
+   "foo x xs = foo (Median3or5 \"foo_|_bar\")"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo x xs = foo (Median3or5 \"foo[_|_]bar\")"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-smart-operators--open-brace-1
+    (haskell-smart-operators-open-brace)
+  (tests-utils--multiline
+   ""
+   "foo x xs = foo (Median3or5 \"_|_\")"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo x xs = foo (Median3or5 \"{_|_}\")"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-smart-operators--open-brace-2
+    (haskell-smart-operators-open-brace)
+  (tests-utils--multiline
+   ""
+   "foo x xs = foo (Median3or5 \"foo_|_bar\")"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo x xs = foo (Median3or5 \"foo{_|_}bar\")"
+   ""))
 
 (defconst haskell-tests/cabal-test-data
   (concat +emacs-config-path+ "/tests/test-data/cabal"))
