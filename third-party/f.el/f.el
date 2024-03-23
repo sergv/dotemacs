@@ -40,7 +40,8 @@
 (require 's)
 (require 'dash)
 (when (version<= "28.1" emacs-version)
-  (require 'f-shortdoc))
+  (when (< emacs-major-version 29)
+   (require 'f-shortdoc nil t)))
 
 (put 'f-guard-error 'error-conditions '(error f-guard-error))
 (put 'f-guard-error 'error-message "Destructive operation outside sandbox")
@@ -633,8 +634,6 @@ their last access time when METHOD is \\='access."
          (date-file (apply fn-method (list file)))
          (date-other (apply fn-method (list other)))
          (dates      (-zip-pair date-file date-other)))
-    (message "[DEBUG]: file: %s\t\tother: %s" file other)
-    (message "[DEBUG]: dates: %S" dates)
     (-reduce-from (lambda (acc elt)
                     (if (= acc 0)
                         (f--three-way-compare (car elt) (cdr elt))
