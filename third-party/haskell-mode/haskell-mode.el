@@ -138,6 +138,7 @@
 (require 'compile)
 (require 'etags)
 (require 'flymake)
+(require 'flymake-proc)
 (require 'outline)
 (require 'cl-lib)
 (require 'haskell-ghc-support)
@@ -1069,7 +1070,7 @@ See `haskell-check-command' for the default."
                     (list (haskell-flymake-create-temp-buffer-copy
                            'flymake-create-temp-inplace)))))))
 
-(add-to-list 'flymake-allowed-file-name-masks '("\\.l?hs\\'" haskell-flymake-init))
+(add-to-list 'flymake-proc-allowed-file-name-masks '("\\.l?hs\\'" haskell-flymake-init))
 
 (defun haskell-mode-format-imports ()
   "Format the imports by aligning and sorting them."
