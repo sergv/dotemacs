@@ -32,7 +32,8 @@
     (let ((dir2 (concat emacs-dir "/" dir)))
       (cl-assert (file-directory-p dir2))
       (add-to-list 'load-path dir2)))
-  (startup-redirect-eln-cache (concat emacs-dir "/compiled"))
+  (when (boundp 'native-comp-eln-load-path)
+    (startup-redirect-eln-cache (concat emacs-dir "/compiled")))
 
   (let ((init-file
          (cl-find-if #'file-exists-p
