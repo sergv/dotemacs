@@ -24,10 +24,14 @@
 ;; [(file-list <abs-or-rel-file>)] - filename listing all files on on each line
 ;; [(extra-navigation-files <glob>+)] - more files to include into navigation via `eproj-switch-to-file-or-buffer'.
 ;;
-;; [(create-tag-files <t-or-nil>)] - whether to cache tags in tag files for this project
+;; Whether to cache tags, list of files, list of navigation files in
+;; files for this project to be shared with other Emacs instances.
+;; I.e. enabling this means use cache files if they already exist or
+;; create them from scratch to be used next time.
+;; [(create-cache-files <t-or-nil>)]
 ;;
 ;; Use this file as a source of tags instead of creating tags ourselves.
-;; If specified together with 'create-tag-files then it will be created
+;; If specified together with 'create-cache-files then it will be created
 ;; automatically.
 ;; [(tag-file <abs-or-rel-file>)]
 ;;
@@ -386,8 +390,8 @@ get proper flycheck checker."
   (ignored-files-globs   nil :read-only t)
   ;; list of files, if specified in aux-info via 'file-list
   (file-list-filename    nil :read-only t)
-  ;; boolean, whether to cache tags for this project in files
-  (create-tag-files      nil :read-only t)
+  ;; boolean, whether to cache tags, list of files, list of navigation files for this project in files
+  (create-cache-files      nil :read-only t)
   ;; string, provided path to the tags file
   (tag-file              nil :read-only t)
   ;; list of symbols, may be empty
@@ -529,11 +533,24 @@ get proper flycheck checker."
 (defun eproj/tag-file-name (proj mode)
   "Return absolute path for tag file for project PROJ and language mode MODE to
 cache tags in."
+  (cl-assert (symbolp mode))
   (concat +tmp-global-path+
           "/tags-"
           (sha1 (eproj-project/root proj))
           "-"
-          (format "%s" mode)))
+          (symbol->string mode)))
+
+(defun eproj/list-of-files-file-name (proj)
+  "Return absolute path for file that caches file list for project PROJ."
+  (concat +tmp-global-path+
+          "/files-"
+          (sha1 (eproj-project/root proj))))
+
+(defun eproj/list-of-navigation-files-file-name (proj)
+  "Return absolute path for file that caches navigation file list for project PROJ."
+  (concat +tmp-global-path+
+          "/navigation-files-"
+          (sha1 (eproj-project/root proj))))
 
 (cl-defun eproj/load-tags-for-mode (proj mode project-files-thunk &key (consider-tag-files t))
   (if-let ((lang (gethash mode eproj/languages-table)))
@@ -541,7 +558,7 @@ cache tags in."
           (if-let ((parse-tags-procedure (eproj-language/parse-tags-procedure lang)))
               (if consider-tag-files
                   (cond
-                    ((eproj-project/create-tag-files proj)
+                    ((eproj-project/create-cache-files proj)
                      (let ((tag-file (or (eproj-project/tag-file proj)
                                          (eproj/tag-file-name proj mode))))
                        (if (file-exists-p tag-file)
@@ -562,7 +579,7 @@ cache tags in."
                            (with-temp-buffer
                              (insert-file-contents-literally tag-file)
                              (funcall parse-tags-procedure (eproj-project/root proj) (current-buffer)))
-                         (error "The specified tag file does not exist and create-tag-files was not specified in the .eproj-info: %s"
+                         (error "The specified tag file does not exist and create-cache-files was not specified in the .eproj-info: %s"
                                 tag-file))))
                     (t
                      (funcall create-tags-procedure
@@ -643,7 +660,7 @@ cache tags in."
     ignored-files
     file-list
     extra-navigation-files
-    create-tag-files
+    create-cache-files
     tag-file
     language-specific
     checker
@@ -708,8 +725,8 @@ for project at ROOT directory."
                         (not (file-exists-p fname)))
                 (error "File list filename does not exist: %s" fname))
               fname)))
-         (create-tag-files
-          (eproj-project/query-aux-info aux-info 'create-tag-files))
+         (create-cache-files
+          (eproj-project/query-aux-info aux-info 'create-cache-files))
          (tag-file
           (eproj-project/query-aux-info aux-info 'tag-file))
          (extra-navigation-globs
@@ -738,7 +755,7 @@ for project at ROOT directory."
                                :cached-file-list nil
                                :ignored-files-globs ignored-files-globs
                                :file-list-filename file-list-filename
-                               :create-tag-files create-tag-files
+                               :create-cache-files create-cache-files
                                :tag-file (awhen tag-file
                                            (eproj--resolve-to-abs-path-cached it root))
                                :no-default-project-for no-default-project-for
@@ -891,20 +908,37 @@ variable or symbol 'unresolved.")
                       t
                     (file-directory-p path-dir))))
     (awhen (and exists?
-                (or (locate-dominating-file path-dir ".eproj-info")
-                    (locate-dominating-file path-dir
-                                            (lambda (dir)
-                                              (directory-files dir
-                                                               nil ;; absolute names
-                                                               (rx bos
-                                                                   (or ".git"
-                                                                       (seq "cabal.project"
-                                                                            (? "." (* any))
-                                                                            (? ".local")))
-                                                                   eos)
-                                                               t ;; nosort
-                                                               )))))
+                (or (eproj--locate-dominating-file path-dir ".eproj-info")
+                    (eproj--locate-dominating-file path-dir
+                                                   (lambda (dir)
+                                                     (directory-files dir
+                                                                      nil ;; absolute names
+                                                                      (rx bos
+                                                                          (or ".git"
+                                                                              (seq "cabal.project"
+                                                                                   (? "." (* any))
+                                                                                   (? ".local")))
+                                                                          eos)
+                                                                      t ;; nosort
+                                                                      )))))
       (eproj-normalise-file-name-expand-cached it))))
+
+(defun eproj--locate-dominating-file (file name)
+  "Like ‘locate-dominating-file’ but with optimisations."
+  (let ((root nil)
+        try)
+    (while (not (or root
+                    (null file)
+                    (string-match-p locate-dominating-stop-dir-regexp file)))
+      (setq try (if (stringp name)
+                    (and (file-directory-p file)
+                         (file-exists-p (expand-file-name name file)))
+                  (funcall name file)))
+      (cond (try (setq root file))
+            ((equal file (setq file (file-name-directory
+                                     (directory-file-name file))))
+             (setq file nil))))
+    (when root (file-name-as-directory root))))
 
 (defvar eproj--inferrable-project-infos
   (list #'eproj--infer-haskell-project
@@ -1034,24 +1068,75 @@ doing `eproj-switch-to-file-or-buffer'."
           :ignored-directory-prefixes +ignored-directory-prefixes+)))
     (eproj--filter-ignored-files-from-file-list proj files)))
 
+(defun eproj--parse-newline-separated-entries-in-current-buffer ()
+  (let* ((res (cons nil nil))
+         (tmp res)
+         (continue t))
+    (while continue
+      (let ((start (point))
+            (n (skip-chars-forward "^\r\n")))
+        (if (zerop n)
+            (setf continue nil)
+          (progn
+            (setf (cdr tmp) (cons (buffer-substring-no-properties start (point)) nil)
+                  tmp (cdr tmp))
+            (skip-chars-forward "\r\n")))))
+    (cdr res)))
+
+(defmacro eproj--with-file-cache (use-cache? buf mk-path generate)
+  (let ((path '#:path)
+        (result '#:result)
+        (x '#:x))
+    `(if ,use-cache?
+         (let ((,path ,mk-path))
+           (,@(if buf `(with-buffer ,buf) '(progn))
+            (erase-buffer)
+             (if (file-exists-p ,path)
+                 (progn
+                   (insert-file-contents-literally ,path)
+                   (goto-char (point-min))
+                   (eproj--parse-newline-separated-entries-in-current-buffer))
+               (let ((,result ,generate))
+                 (dolist (,x ,result)
+                   (insert ,x)
+                   (insert-char ?\n))
+                 (write-region (point-min) (point-max) ,path)
+                 ,result))
+             ,generate))
+       ,generate)))
+
 (defun eproj--get-all-files (proj)
   "Get all files that are managed by a project PROJ."
-  (let* ((files (eproj-get-project-files proj))
-         (aux (eproj-project/aux-files proj))
-         (all-files (nconc aux files))
-         (extra (eproj--navigation-files proj))
-         (files-cache (eproj-project/cached-files-for-navigation proj))
-         (proj-root (eproj-project/root proj)))
-    ;; Cache files
+  ;; Cache files
+  (let ((files-cache (eproj-project/cached-files-for-navigation proj))
+        (proj-root (eproj-project/root proj))
+        (should-cache? (eproj-project/create-cache-files proj)))
     (if files-cache
         (clrhash files-cache)
       (setf (eproj-project/cached-files-for-navigation proj)
             (setf files-cache (make-hash-table :test #'equal))))
-    (dolist (file all-files)
-      (eproj--add-cached-file-for-navigation proj-root file files-cache))
-    (dolist (file extra)
-      (eproj--add-cached-file-for-navigation proj-root file files-cache))
-    all-files))
+
+    (with-temp-buffer
+      (let ((extra
+             (eproj--with-file-cache
+              should-cache?
+              nil
+              (eproj/list-of-navigation-files-file-name proj)
+              (eproj--navigation-files proj))))
+        (dolist (file extra)
+          (eproj--add-cached-file-for-navigation proj-root file files-cache)))
+
+      (let ((all-files
+             (eproj--with-file-cache
+              should-cache?
+              nil
+              (eproj/list-of-files-file-name proj)
+              (let ((files (eproj--get-project-files proj))
+                   (aux (eproj--aux-files proj)))
+               (nconc aux files)))))
+        (dolist (file all-files)
+          (eproj--add-cached-file-for-navigation proj-root file files-cache))
+        all-files))))
 
 (defun eproj--read-file-list (file)
   (let* ((res (cons nil nil))
@@ -1067,7 +1152,7 @@ doing `eproj-switch-to-file-or-buffer'."
         (forward-line 1)))
     (cdr res)))
 
-(defun eproj-get-project-files (proj)
+(defun eproj--get-project-files (proj)
   "Retrieve project files for PROJ depending on it's type. Returns absolute
 paths."
   ;; Cached files are necessarily from file-list and intended for projects whose
@@ -1128,8 +1213,8 @@ Returns nil if no relevant entry found in AUX-INFO."
             (eproj--resolve-to-abs-path-cached path root))
           it)))
 
-(defun eproj-project/aux-files (proj)
-  "Get aux files, mainly for navigation."
+(defun eproj--aux-files (proj)
+  "Get aux files, mainly for navigation but can also serve as source for tag generation."
   (when-let (aux-files-entry (eproj-project/aux-files-entries proj))
     (let ((project-root (eproj-project/root proj))
           (aux-trees (make-hash-table :test #'equal)))
