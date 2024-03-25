@@ -196,12 +196,16 @@ performed for some field."
              (hash-table->alist
               (persistent-store-read-contents-from-string current-content-str))))
         (cl-assert (--all? (symbolp (car it)) current-content) nil
-                   "Current contents of %s is not valid"
-                   persistent-store-store-file)
+                   "Current contents of %s is not valid: %s"
+                   persistent-store-store-file
+                   current-content)
         (let ((merged-content
                (persistent-store-try-merging-contents
                 (cl-sort current-content #'string< :key #'car)
                 new-content)))
+          (cl-assert (--all? (symbolp (car it)) merged-content) nil
+                     "Merged contents of is not valid: %s"
+                     merged-content)
           (if merged-content
               (persistent-store-write-contents-to-file
                merged-content
