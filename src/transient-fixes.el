@@ -60,22 +60,34 @@
 (advice-add 'transient-save-history :override #'transient-save-history/use-persistent-store)
 
 (defun transient-history--merge-entries (old new)
-  (let ((old-normalised
-         (cl-sort (mapcar (pcase-lambda (`(,key . ,val))
-                            (cons key
-                                  (cl-sort val #'string-list<)))
-                          old)
+  (cl-assert (and (consp old) (symbolp (car old))) nil "Invalid old transient-history contents: %s" old)
+  (cl-assert (and (consp new) (symbolp (car new))) nil "Invalid new transient-history contents: %s" new)
+  (let ((old-key (car old))
+        (new-key (car new))
+        (old-normalised
+         (cl-sort (mapcar (lambda (x)
+                            (pcase x
+                              (`(,key . ,val)
+                               (cons key
+                                     (cl-sort val #'string-list<)))
+                              (_
+                               (error "Invalid transient-history element in old contents: %s" x))))
+                          (cdr old))
                   #'string<
                   :key #'car))
         (new-normalised
-         (cl-sort (mapcar (pcase-lambda (`(,key . ,val))
-                            (cons key
-                                  (cl-sort val #'string-list<)))
-                          new)
+         (cl-sort (mapcar (lambda (x)
+                            (pcase x
+                              (`(,key . ,val)
+                               (cons key
+                                     (cl-sort val #'string-list<)))
+                              (_
+                               (error "Invalid transient-history element in new contents: %s" x))))
+                          (cdr new))
                   #'string<
                   :key #'car)))
     (when (equal old-normalised new-normalised)
-      old-normalised)))
+      (cons old-key old-normalised))))
 
 (push (cons 'transient-history #'transient-history--merge-entries)
       persistent-store-merge-handlers)
