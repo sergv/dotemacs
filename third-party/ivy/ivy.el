@@ -1462,15 +1462,7 @@ See variable `ivy-recursive-restore' for further information."
     (cond
      ;; Alist type.
      ((and (consp (car-safe collection))
-           ;; Previously, the cdr of the selected
-           ;; candidate would be returned.  Now, the
-           ;; whole candidate is returned.
-           (let ((idx (get-text-property 0 'idx current)))
-             (if idx
-                 (progn
-                   (ivy--remove-props current 'idx)
-                   (nth idx collection))
-               (assoc current collection)))))
+           (assoc current collection)))
      (ivy--directory
       (expand-file-name current ivy--directory))
      ((equal current "")
@@ -2246,10 +2238,7 @@ customizations apply to the current completion session."
 
 (defun ivy--alist-to-cands (alist)
   "Transform ALIST to a list of strings."
-  (let ((i -1))
-    (mapcar (lambda (x)
-              (propertize x 'idx (cl-incf i)))
-            (all-completions "" alist))))
+  (all-completions "" alist))
 
 (defvar ivy--minibuffer-metadata nil
   "Store `completion-metadata'.")
