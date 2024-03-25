@@ -270,58 +270,46 @@ structure like this (:arg1 value1 :arg2 value2 ... :argN valueN)"
 
 ;;;
 
-(defvar *invisible-buffers* '()
-  "List of buffer name regexps than should not be visible in e.g. ebuf, ibuffer,
-tabbar, etc")
-
-(defvar invisible-buffers-re nil
-  "Regexp that is synced with `*invisible-buffers*' variable.")
-
-(defun add-invisible-buffer (buf-re)
-  (declare (pure nil) (side-effect-free nil))
-  (cl-assert (stringp buf-re))
-  (add-to-list '*invisible-buffers* buf-re)
-  (let ((buf-re-with-group
-         (concat "\\(?:" buf-re "\\)")))
-    (setf invisible-buffers-re
-          (if invisible-buffers-re
-              (concat invisible-buffers-re
-                      "\\|"
-                      buf-re-with-group)
-            buf-re-with-group))))
-
 (defun invisible-buffer? (buf)
   "Returns t if buffer BUF should be regarded as invisible, see also
 `*invisible-buffers*'."
   (declare (pure nil) (side-effect-free t))
-  (cond ((or (stringp buf)
-             (bufferp buf))
-         (string-match-p invisible-buffers-re
-                         (if (stringp buf)
-                             buf
-                           (buffer-name buf))))
-        (t
-         (error "wrong argument type - neither a string or a buffer: %s"
-                buf))))
+  (let* ((name (cond
+                 ((stringp buf)
+                  buf)
+                 ((bufferp buf)
+                  (buffer-name buf))
+                 (t
+                  (error "wrong argument type - neither a string or a buffer: %s"
+                         buf))))
+         (len (length name)))
+    (or (member name '("*Kill Ring*" "*Pp Eval Output*" "*buflist*" "*Async Shell Command*" "*Completions*" "*Ibuffer*" "*magit-process*" "*Help*"))
+        (zerop len)
+        (let ((first-char (aref name 0)))
+          (or (eq first-char ?\s)
+              (and (eq first-char ?#)
+                   (> len 2)
+                   (let ((last-char (aref name (1- length))))
+                     (eq last-char ?#))))))))
 
 (defun visible-buffers ()
   "Get list of buffers that are not invisible."
   (declare (pure nil) (side-effect-free t))
   (--filter (not (invisible-buffer? it)) (buffer-list)))
 
-(add-invisible-buffer (rx
-                       bol
-                       (or (or "*Kill Ring*"
-                               "*Pp Eval Output*"
-                               "*buflist*"
-                               "*Async Shell Command*"
-                               "*Completions*"
-                               "*Ibuffer*"
-                               "*magit-process*"
-                               "*Help*")
-                           (seq "#" (+ anything) "#")
-                           (seq " " (* anything)))
-                       eol))
+(defvar invisible-buffers-re
+  (rx bol
+      (or (or "*Kill Ring*"
+              "*Pp Eval Output*"
+              "*buflist*"
+              "*Async Shell Command*"
+              "*Completions*"
+              "*Ibuffer*"
+              "*magit-process*"
+              "*Help*")
+          (seq "#" (+ anything) "#")
+          (seq " " (* anything)))
+      eol))
 
 ;;;
 
