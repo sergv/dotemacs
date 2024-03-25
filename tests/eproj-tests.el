@@ -166,9 +166,9 @@ under ROOT directory."
          (proj (eproj-get-project-for-path path)))
     (should (not (null proj)))
     (should (eproj-tests/paths=? path (eproj-project/root proj)))
-    (should (not (null (eproj-project/aux-files proj))))
+    (should (not (null (eproj--aux-files proj))))
     (should (equal (eproj-tests/normalize-file-list
-                    (eproj-project/aux-files proj))
+                    (eproj--aux-files proj))
                    (eproj-tests/normalize-file-list
                     (-filter #'file-regular?
                              (directory-files
@@ -255,7 +255,7 @@ under ROOT directory."
       (should (equal (eproj-tests/normalize-file-list
                       (find-rec path
                                 :filep (lambda (path) (string-match-p "\\.hs$" path))))
-                     (eproj-tests/normalize-file-list (eproj-get-project-files proj))))
+                     (eproj-tests/normalize-file-list (eproj--get-project-files proj))))
 
       (let ((identity-monad-test-path (concat path "/Foo/Bar/IdentityMonad.hs"))
             (nonexistent-test-path (concat path "/Foo/Bar/Nonexistent.hs")))
@@ -301,7 +301,7 @@ under ROOT directory."
 
     (should (equal (eproj-tests/normalize-file-list
                     (list (concat path "/Foo/Bar/Test.hs")))
-                   (eproj-tests/normalize-file-list (eproj-get-project-files proj))))))
+                   (eproj-tests/normalize-file-list (eproj--get-project-files proj))))))
 
 (eproj-tests--define-tests
  "eproj-tests/project-with-ignored-files"
@@ -317,7 +317,7 @@ under ROOT directory."
                      (list
                       (concat path "/Foo/Bar/IdentityMonad.hs")
                       distribution-test-path))
-                    (eproj-tests/normalize-file-list (eproj-get-project-files proj))))
+                    (eproj-tests/normalize-file-list (eproj--get-project-files proj))))
      (should (eproj-get-matching-tags proj
                                       'haskell-mode
                                       "IdentityM"
@@ -395,18 +395,18 @@ under ROOT directory."
       (should (equal '("src/Bar.hs" "src/Foo.hs")
                      (--map (file-relative-name it path)
                             (eproj-tests/normalize-file-list
-                             (eproj-get-project-files proj)))))
+                             (eproj--get-project-files proj)))))
 
       (should (equal '("subproj1/Bar1.hs" "subproj2/src/Quux.hs")
                      (--map (file-relative-name it path)
                             (eproj-tests/normalize-file-list
-                             (--mapcat (eproj-get-project-files (eproj-get-project-for-path it))
+                             (--mapcat (eproj--get-project-files (eproj-get-project-for-path it))
                                        (eproj-project/related-projects proj))))))
 
       (should (equal '("Foo.txt" "src/Bar.txt")
                      (--map (file-relative-name it path)
                             (eproj-tests/normalize-file-list
-                             (eproj-project/aux-files proj))))))))
+                             (eproj--aux-files proj))))))))
 
 (eproj-tests--define-tests
     "eproj-tests/implicit-haskell-project"
@@ -570,7 +570,7 @@ under ROOT directory."
            "test.extra")))
    (should (not (null proj)))
    (should (eproj-tests/paths=? path (eproj-project/root proj)))
-   (should (not (null (eproj-project/aux-files proj))))
+   (should (not (null (eproj--aux-files proj))))
 
    (let ((actual-navigation-files nil))
      (eproj-with-all-project-files-for-navigation proj
