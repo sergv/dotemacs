@@ -1386,13 +1386,12 @@ Returns list of (tag-name tag project is-authoritative?) lists."
                 (if (and buf
                          (not (invisible-buffer? buf)))
                     (puthash buf buf bufs-to-add)
-                  (progn
-                    (dolist (p (if rel-path
-                                   (list abs-path rel-path)
-                                 (list abs-path)))
-                      (unless (gethash p collected-entries nil)
-                        (puthash p t collected-entries)
-                        (push (cons p abs-path) files)))))))))
+                  (dolist (p (if rel-path
+                                 (list abs-path rel-path)
+                               (list abs-path)))
+                    (unless (gethash p collected-entries nil)
+                      (puthash p t collected-entries)
+                      (push (cons p abs-path) files))))))))
       (let ((eproj-file (concat root "/.eproj-info")))
         (when (file-exists-p eproj-file)
           (funcall add-file eproj-file nil)))
