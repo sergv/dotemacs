@@ -8,7 +8,7 @@
 
 @copying
 @ifnottex
-Ivy manual, version 0.13.4
+Ivy manual, version 0.14.2
 
 Ivy is an interactive interface for completion in Emacs. Emacs uses
 completion mechanism in a variety of contexts: code, menus, commands,
@@ -20,7 +20,7 @@ final candidate is either through simple keyboard character inputs or
 through powerful regular expressions.
 @end ifnottex
 
-Copyright (C) 2015--2021 Free Software Foundation, Inc.
+Copyright (C) 2015--2024 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -204,8 +204,7 @@ for documentation look-ups.
 Install Ivy automatically through Emacs's package manager, or manually
 from Ivy's development repository.
 
-Emacs 24.3 is the oldest version to run Ivy. Emacs 24.4 is the oldest
-version that runs Ivy with fancy faces display.
+Emacs 24.5 is the oldest version to run Ivy.
 
 @menu
 * Installing from Emacs Package Manager::
@@ -1094,7 +1093,7 @@ in the @code{format} documentation.
 @defopt ivy-display-style
 Specifies highlighting candidates in the minibuffer.
 
-The default setting is @code{'fancy} in Emacs versions 24.4 or newer.
+The default setting is @code{fancy}.
 
 Set @code{ivy-display-style} to @code{nil} for a plain minibuffer.
 @end defopt
