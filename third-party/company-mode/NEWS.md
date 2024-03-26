@@ -1,6 +1,55 @@
 # History of user-visible changes
 
-## Next
+# Next
+
+* `company-elisp` has been removed.  It's not needed since Emacs 24.4, with all
+  of its features having been incorporated into the built-in Elisp completion.
+* `company-files` shows shorter completions.  Previously, the popup spanned
+  the whole absolute file name being completed, and now it starts after the
+  nearest directory separator
+  (#[1040](https://github.com/company-mode/company-mode/issues/1040)).
+* New user option `company-capf-disabled-functions`
+  (#[1437](https://github.com/company-mode/company-mode/issues/1437)).
+* Better support for `yas-key-syntaxes`
+  (#[1268](https://github.com/company-mode/company-mode/issues/1268)).
+* New user option `company-tooltip-scrollbar-width` with default 0.4.
+* The tooltip uses a more complex rendering approach, supporting double
+  width/CJK characters, as well as buffer text of different sizes
+  ([#1394](https://github.com/company-mode/company-mode/pull/1394)).
+  `variable-pitch-mode` is also working better, although when using it it's
+  recommended to customize the `company-tooltip` face to be monospaced.
+* New user option `company-dabbrev-code-completion-styles`.  Use it to enable
+  fuzzy matching in `company-dabbrev-code`
+  ([#1215](https://github.com/company-mode/company-mode/pull/1215)).  An example
+  configuration one can try:
+
+```el
+(setq company-dabbrev-code-ignore-case t
+      company-dabbrev-code-completion-styles '(basic flex))
+```
+
+* The backend command `keep-prefix` is being phased out.  The built-in backends
+  implement it internally now, which resolved a number of sharp edges (mostly)
+  around "grouped" backends.  To make that easier, several helpers were added,
+  such as `company-cache-fetch` and `company-substitute-prefix`
+  ([#1411](https://github.com/company-mode/company-mode/pull/1411)).  And
+  `company-ispell` uses the cache to keep the currently selected dictionary
+  loaded in memory between completions.
+* The "length override" behavior in grouped backends now acts on each backend
+  separately ([#1405](https://github.com/company-mode/company-mode/pull/1405)).
+
+## 2023-10-08 (0.10.2)
+
+* More `company-auto-update-doc`-related fixes.
+* Better handling of `C-g` performed inside a `doc-buffer` handler
+  ([#1408](https://github.com/company-mode/company-mode/issues/1408)).
+
+## 2023-10-06 (0.10.1)
+
+* Fix upgrading from 0.9.13 when the package is already loaded
+  ([#1406](https://github.com/company-mode/company-mode/issues/1406)).
+
+## 2023-10-04 (0.10.0)
 
 * `company-echo-show` (and related featuers, most importantly,
   `company-echo-metadata-frontend`) now should stop interfering with the echo

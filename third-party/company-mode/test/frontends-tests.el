@@ -61,6 +61,7 @@
 
 (ert-deftest company-pseudo-tooltip-show-at-point-RTL ()
   :tags '(interactive)
+  :expected-result (if (display-graphic-p) :failed :passed)
   (with-temp-buffer
     (save-window-excursion
     (set-window-buffer nil (current-buffer))
@@ -77,6 +78,7 @@
 
 (ert-deftest company-pseudo-tooltip-edit-updates-width ()
   :tags '(interactive)
+  :expected-result (if (display-graphic-p) :failed :passed)
   (with-temp-buffer
     (set-window-buffer nil (current-buffer))
     (let ((company-candidates-length 5)
@@ -285,18 +287,19 @@
                              "avatar"))
         (company-candidates-length 2)
         (company-backend 'ignore))
-    (should (equal '(" avalis?e "
-                     " avatar   ")
+    (should (equal '(" avalis?e    "
+                     " avatar      ")
                    (cdr (company--create-lines 0 999))))))
 
 (ert-deftest company-create-lines-handles-multiple-width ()
   :tags '(interactive)
+  :expected-result (if (display-graphic-p) :failed :passed)
   (let (company-show-quick-access
         (company-candidates '("蛙蛙蛙蛙" "蛙abc"))
         (company-candidates-length 2)
         (company-backend 'ignore))
-    (should (equal '(" ﻿蛙﻿蛙﻿蛙﻿蛙 "
-                     " ﻿蛙abc    ")
+    (should (equal '(" 蛙蛙蛙蛙﻿﻿﻿﻿ "
+                     " 蛙abc﻿    ")
                    (cdr (company--create-lines 0 999))))))
 
 (ert-deftest company-create-lines-handles-multiple-width-in-annotation ()
@@ -307,12 +310,13 @@
          (company-backend (lambda (c &optional a &rest _)
                             (when (eq c 'annotation)
                               (assoc-default a alist)))))
-    (should (equal '(" a ﻿︸   "
-                     " b ﻿︸﻿︸ ")
+    (should (equal '(" a ︸﻿   "
+                     " b ︸︸﻿﻿ ")
                    (cdr (company--create-lines 0 999))))))
 
 (ert-deftest company-create-lines-with-multiple-width-and-keep-prefix ()
   :tags '(interactive)
+  :expected-result (if (display-graphic-p) :failed :passed)
   (let* (company-show-quick-access
          (company-candidates '("MIRAI発売1カ月"
                                "MIRAI発売2カ月"))
@@ -321,8 +325,8 @@
          (company-backend (lambda (c &rest _)
                             (pcase c
                               (`ignore-case 'keep-prefix)))))
-    (should (equal '(" MIRAI﻿発﻿売1﻿カ﻿月 "
-                     " MIRAI﻿発﻿売2﻿カ﻿月 ")
+    (should (equal '(" MIRAI発売1カ月﻿﻿﻿﻿ "
+                     " MIRAI発売2カ月﻿﻿﻿﻿ ")
                    (cdr (company--create-lines 0 999))))))
 
 (ert-deftest company-create-lines-with-format-function ()
@@ -476,22 +480,35 @@
 (ert-deftest company-modify-line ()
   (let ((str "-*-foobar"))
     (should (equal-including-properties
-             (company-modify-line str "zz" 4)
+             (company-modify-line str "zz" (* 4 (frame-char-width)))
              "-*-fzzbar"))
     (should (equal-including-properties
              (company-modify-line str "xx" 0)
              "xx-foobar"))
-    (should (equal-including-properties
-             (company-modify-line str "zz" 10)
-             "-*-foobar zz"))))
+    (should (company--equal-including-properties
+             (company-modify-line str "zz" (* 10 (frame-char-width)))
+             (concat "-*-foobar"
+                     (propertize " " 'display `(space :width (,(frame-char-width))))
+                     "zz")))))
 
 (ert-deftest company-modify-line-with-invisible-prop ()
   (let ((str (copy-sequence "-*-foobar"))
         (buffer-invisibility-spec '((outline . t) t)))
     (put-text-property 1 2 'invisible 'foo str)
     (should (equal
-             (company-modify-line str "zz" 4)
+             (company-modify-line str "zz" (* 4 (frame-char-width)))
              "-*-fzzbar"))))
+
+(ert-deftest company-modify-line-with-prettify ()
+  :tags '(interactive)
+  (with-temp-buffer
+    (insert "lambda foo bar")
+    (setq-local prettify-symbols-alist '(("lambda" . ?λ)))
+    (prettify-symbols-mode)
+    (font-lock-ensure (point-min) (point-max))
+    (should (equal
+             (company-modify-line (buffer-string) "zz" (* 3 (frame-char-width)))
+             "lambda fzz bar"))))
 
 (ert-deftest company-scrollbar-bounds ()
   (should (equal nil (company--scrollbar-bounds 0 3 3)))
