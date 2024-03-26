@@ -1,6 +1,6 @@
-;;; company-tng.el --- company-mode configuration for single-button interaction
+;;; company-tng.el --- company-mode configuration for single-button interaction  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017-2021  Free Software Foundation, Inc.
+;; Copyright (C) 2017-2021, 2023  Free Software Foundation, Inc.
 
 ;; Author: Nikita Leshenko
 
@@ -140,7 +140,7 @@ confirm the selection and finish the completion."
   :type 'boolean)
 
 ;;;###autoload
-(define-obsolete-function-alias 'company-tng-configure-default 'company-tng-mode "0.9.14"
+(define-obsolete-function-alias 'company-tng-configure-default 'company-tng-mode "0.10.0"
   "Applies the default configuration to enable company-tng.")
 
 (declare-function eglot--snippet-expansion-fn "eglot")
