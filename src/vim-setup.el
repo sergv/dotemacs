@@ -37,6 +37,18 @@ move point to next/previous line."
 
 ;;; keybindings
 
+(defhydra-ext hydra-vim-normal-read-only-j-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_t_oggle   u_n_narrow
+_w_indows
+ta_b_s
+"
+  ("w" hydra-window-management/body)
+  ("t" toggle)
+  ("b" hydra-tab-management/body)
+
+  ("n" unnarrow))
+
 (defhydra-ext hydra-vim-normal-j-ext (:exit t :foreign-keys nil :hint nil)
   "
 _t_oggle   _cc_: comment         _sw_: replace word    u_n_narrow

@@ -253,7 +253,8 @@ d_i_scard  _S_tage all  _U_nstage all
 Diff chunks:
 _+_: more context
 _-_: less context
-_=_: default context"
+_=_: default context
+"
   ("b" magit-branch)
   ("c" magit-commit)
   ("d" magit-diff)
@@ -292,9 +293,12 @@ _=_: default context"
 (defhydra-derive hydra-magit-j hydra-magit (:exit t :foreign-keys warn :hint nil)
   "
 _w_indow
-ta_b_s"
+ta_b_s
+_j_: default vim hydra
+"
   ("w" hydra-window-management/body)
-  ("b" hydra-tab-management/body))
+  ("b" hydra-tab-management/body)
+  ("j" hydra-vim-normal-read-only-j-ext/body))
 
 (defun magit-bind-common-vimless-mode-keymap (map)
   (def-keys-for-map (magit-unstaged-section-map
