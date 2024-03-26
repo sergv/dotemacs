@@ -776,14 +776,30 @@ value section should have if it is to be properly indented."
                     'end-of-line
                     'haskell-cabal-sort-lines-key-fun)))))))
 
-(defun haskell-cabal--yasnippet--main-module-from-main-file (str)
+(defun haskell-misc--add-new-import (mod-name)
+  "Go to the imports section and add MOD-NAME import."
+  (cl-assert (stringp mod-name))
+  (save-restriction
+    (save-excursion
+      (widen)
+      (haskell-navigate-imports)
+      (insert "import " mod-name)
+      (insert-char ?\n)
+      (haskell-sort-imports))))
+
+;;;###autoload
+(defun haskell-misc--file-name-to-module-name (path)
   "Infer name of Haskell main module from file name."
+  (cl-assert (stringp path))
   (s-join
    "."
    (nreverse
     (--take-while
      (is-uppercase? (string-to-char it))
-     (nreverse (f-split (file-name-sans-extension str)))))))
+     (nreverse (f-split (file-name-sans-extension path)))))))
+
+(defsubst haskell-cabal--yasnippet--main-module-from-main-file (str)
+  (haskell-misc--file-name-to-module-name str))
 
 (defun haskell-cabal--yasnippet--main-module-from-executable-name (str)
   (let ((upcase-first-character
