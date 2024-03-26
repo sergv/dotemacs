@@ -1,3 +1,4 @@
+;; Copyright (C) 2019-2024 Free Software Foundation, Inc.
 (setq melpa-stable (getenv "MELPA_STABLE"))
 (setq package-user-dir
       (expand-file-name
@@ -8,8 +9,8 @@
 (setq package-archives
       (list (if melpa-stable
                 '("melpa-stable" . "https://stable.melpa.org/packages/")
-              '("melpa" . "http://melpa.org/packages/"))
-            ;; '("gnu" . "http://elpa.gnu.org/packages/")
+              '("melpa" . "https://melpa.org/packages/"))
+            ;; '("gnu" . "https://elpa.gnu.org/packages/")
             ))
 (package-refresh-contents)
 

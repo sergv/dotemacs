@@ -1,3 +1,4 @@
+;; Copyright (C) 2017-2024 Free Software Foundation, Inc.
 ;; (package-initialize)
 (require 'counsel)
 (ivy-mode)

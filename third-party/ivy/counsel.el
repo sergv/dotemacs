@@ -1,11 +1,12 @@
 ;;; counsel.el --- Various completion functions using Ivy -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2024 Free Software Foundation, Inc.
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
+;; Maintainer: Basil L. Contovounesios <basil@contovou.net>
 ;; URL: https://github.com/abo-abo/swiper
-;; Version: 0.13.4
-;; Package-Requires: ((emacs "24.5") (ivy "0.13.4") (swiper "0.13.4"))
+;; Version: 0.14.2
+;; Package-Requires: ((emacs "24.5") (ivy "0.14.2") (swiper "0.14.2"))
 ;; Keywords: convenience, matching, tools
 
 ;; This file is part of GNU Emacs.
@@ -319,13 +320,20 @@ caused by spawning too many subprocesses too quickly."
   "The amount of microseconds to wait until updating `counsel--async-filter'."
   :type 'integer)
 
+(defalias 'counsel--async-filter-update-time
+  (if (fboundp 'time-convert)
+      ;; Preferred (TICKS . HZ) format since Emacs 27.1.
+      (lambda () (cons counsel-async-filter-update-time 1000000))
+    (lambda () (list 0 0 counsel-async-filter-update-time)))
+  "Return `counsel-async-filter-update-time' as a time value.")
+
 (defun counsel--async-filter (process str)
   "Receive from PROCESS the output STR.
 Update the minibuffer with the amount of lines collected every
 `counsel-async-filter-update-time' microseconds since the last update."
   (with-current-buffer (process-buffer process)
     (insert str))
-  (when (time-less-p (list 0 0 counsel-async-filter-update-time)
+  (when (time-less-p (counsel--async-filter-update-time)
                      (time-since counsel--async-time))
     (let (numlines)
       (with-current-buffer (process-buffer process)
@@ -349,10 +357,14 @@ Update the minibuffer with the amount of lines collected every
       (delete-process process))))
 
 ;;* Completion at point
-(define-obsolete-function-alias 'counsel-el #'complete-symbol "<2020-05-20 Wed>")
-(define-obsolete-function-alias 'counsel-cl #'complete-symbol "<2020-05-20 Wed>")
-(define-obsolete-function-alias 'counsel-jedi #'complete-symbol "<2020-05-20 Wed>")
-(define-obsolete-function-alias 'counsel-clj #'complete-symbol "<2020-05-20 Wed>")
+(define-obsolete-function-alias 'counsel-el
+  #'complete-symbol "0.13.2 (2020-05-20)")
+(define-obsolete-function-alias 'counsel-cl
+  #'complete-symbol "0.13.2 (2020-05-20)")
+(define-obsolete-function-alias 'counsel-jedi
+  #'complete-symbol "0.13.2 (2020-05-20)")
+(define-obsolete-function-alias 'counsel-clj
+  #'complete-symbol "0.13.2 (2020-05-20)")
 
 ;;** `counsel-company'
 (defvar company-candidates)
@@ -2674,7 +2686,7 @@ library, which see."
 
 (defun counsel-file-stale-p (fname seconds)
   "Return non-nil if FNAME was modified more than SECONDS ago."
-  (> (float-time (time-subtract nil (nth 5 (file-attributes fname))))
+  (> (float-time (time-since (nth 5 (file-attributes fname))))
      seconds))
 
 (defun counsel--locate-updatedb ()
@@ -4355,13 +4367,21 @@ Additional actions:\\<ivy-minibuffer-map>
    ("h" counsel-package-action-homepage "open package homepage")))
 
 ;;** `counsel-tmm'
-(defvar tmm-km-list nil)
-(declare-function tmm-get-keymap "tmm")
-(declare-function tmm--completion-table "tmm")
-(declare-function tmm-get-keybind "tmm")
+(declare-function tmm-get-keymap "tmm" (elt &optional in-x-menu))
+(declare-function tmm--completion-table "tmm" (items))
+
+(defalias 'counsel--menu-keymap
+  ;; Added in Emacs 28.1.
+  (if (fboundp 'menu-bar-keymap)
+      #'menu-bar-keymap
+    (autoload 'tmm-get-keybind "tmm")
+    (declare-function tmm-get-keybind "tmm" (keyseq))
+    (lambda () (tmm-get-keybind [menu-bar])))
+  "Compatibility shim for `menu-bar-keymap'.")
 
 (defun counsel-tmm-prompt (menu)
   "Select and call an item from the MENU keymap."
+  (defvar tmm-km-list)
   (let (out
         choice
         chosen-string)
@@ -4379,16 +4399,15 @@ Additional actions:\\<ivy-minibuffer-map>
            (setq last-command-event chosen-string)
            (call-interactively choice)))))
 
-(defvar tmm-table-undef)
-
 ;;;###autoload
 (defun counsel-tmm ()
   "Text-mode emulation of looking and choosing from a menu bar."
   (interactive)
   (require 'tmm)
+  (defvar tmm-table-undef)
   (run-hooks 'menu-bar-update-hook)
   (setq tmm-table-undef nil)
-  (counsel-tmm-prompt (tmm-get-keybind [menu-bar])))
+  (counsel-tmm-prompt (counsel--menu-keymap)))
 
 ;;** `counsel-yank-pop'
 (defcustom counsel-yank-pop-truncate-radius 2
@@ -6120,7 +6139,7 @@ This function always returns its elements in a stable order."
       (when (file-exists-p dir)
         (let ((dir (file-name-as-directory dir)))
           ;; Function `directory-files-recursively' added in Emacs 25.1.
-          (dolist (file (directory-files-recursively dir ".*\\.desktop$"))
+          (dolist (file (directory-files-recursively dir "\\.desktop\\'"))
             (let ((id (subst-char-in-string ?/ ?- (file-relative-name file dir))))
               (when (and (not (gethash id hash)) (file-readable-p file))
                 (push (cons id file) result)
@@ -6867,7 +6886,7 @@ Additional actions:\\<ivy-minibuffer-map>
      "https://duckduckgo.com/html/?q="
      counsel--search-request-data-ddg))
   "Search engine parameters for `counsel-search'."
-  :type '(list))
+  :type '(alist :key-type symbol :value-type (list string string function)))
 
 (defun counsel--search-request-data-google (data)
   (mapcar #'identity (aref data 1)))
@@ -6913,7 +6932,7 @@ We update it in the callback with `ivy-update-candidates'."
             :caller 'counsel-search))
 
 (define-obsolete-function-alias 'counsel-google
-    #'counsel-search "<2019-10-17 Thu>")
+    #'counsel-search "0.13.2 (2019-10-17)")
 
 ;;** `counsel-compilation-errors'
 (defun counsel--compilation-errors-buffer (buf)
