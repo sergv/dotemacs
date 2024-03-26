@@ -15,7 +15,7 @@ YASnippet. Watch [a demo on YouTube][youtube-demo].
 
 # Installation
 
-## Install the most recent version
+## Manual install from Git
 
 Clone this repository somewhere
 
@@ -33,12 +33,16 @@ Add your own snippets to `~/.emacs.d/snippets` by placing files there or invokin
 
 ## Install with `package-install`
 
-In a recent emacs `M-x list-packages` is the recommended way to list and install packages.
-[MELPA][melpa] keeps a very recent snapshot of YASnippet, see http://melpa.org/#installing.
+In a recent emacs `M-x list-packages` is the recommended way to list
+and install packages.
+It's available from [GNU ELPA][gnuelpa].
+If you need a very recent snapshot, you can get it from
+[GNU-devel ELPA][gnudevel] as well as [MELPA][melpa]
+(see http://melpa.org/#installing).
 
 ## Install with el-get
 
-El-get is a nice way to get the most recent version, too. See
+El-get is another nice way to get the most recent version, too. See
 https://github.com/dimitri/el-get for instructions.
 
 ## Use `yas-minor-mode` on a per-buffer basis
@@ -71,10 +75,6 @@ get some!
     To use these snippets you have to run the tool first, so
     [see its doc][yasmate]), and then point the `yas-snippet-dirs`
     variable to the `.../yasmate/snippets` subdir.
-
-    If you have a working ruby environment, you can probably get lucky
-    directly with `rake convert-bundles`.
-
 3.  [textmate-to-yas.el]
 
     This is another textmate bundle converting tool using Elisp
@@ -103,8 +103,9 @@ common problems and practical snippet examples.
 
 The [Github issue tracker][issues] is where most YASnippet-related
 discussion happens.  Nevertheless, since YASnippet is a part of Emacs,
-you may alternatively report bugs to the main Emacs bug list,
-bug-gnu-emacs@gnu.org, putting "yasnippet" somewhere in the subject.
+you may alternatively report bugs to Emacs via `M-x report-emacs-bug` or
+sending an email to `bug-gnu-emacs@gnu.org`, putting "yasnippet"
+somewhere in the subject.
 
 ## Important note regarding bug reporting
 
@@ -160,6 +161,8 @@ Finally, thank you very much for using YASnippet!
 [googlecode tracker]: http://code.google.com/p/yasnippet/issues/list
 [forum]: http://groups.google.com/group/smart-snippet
 [melpa]: http://melpa.milkbox.net/
+[gnuelpa]: http://elpa.gnu.org/packages/yasnippet.html
+[gnudevel]: http://elpa.gnu.org/devel/yasnippet.html
 [yasmate]: http://github.com/joaotavora/yasmate
 [textmate-to-yas.el]: https://github.com/mattfidler/textmate-to-yas.el
 [yasnippet-snippets]: http://github.com/AndreaCrotti/yasnippet-snippets
