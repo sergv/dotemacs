@@ -35,7 +35,7 @@ all hydras in my setup."
      ,(concat (hydra--prop parent "/docstring")
               (if (and docstring
                        (< 0 (length docstring)))
-                  (concat "\n\n" (trim-whitespace-left docstring))
+                  (concat "\n" (trim-whitespace-left docstring))
                 ""))
      ,@(cl-delete-duplicates
         (append (hydra--prop parent "/heads") heads)
