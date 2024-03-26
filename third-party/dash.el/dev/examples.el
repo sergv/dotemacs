@@ -1,6 +1,6 @@
 ;;; examples.el --- Examples/tests for dash.el's API  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2024 Free Software Foundation, Inc.
 
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -1356,8 +1356,8 @@ related predicates."
     => '(a b)
     (let ((dash--short-list-length 0)) (-intersection '(a b) '(b a a)))
     => '(a b)
-    (let ((-compare-fn #'string=)) (-intersection '(a) '("a")) => '(a))
-    (let ((-compare-fn #'string=)) (-intersection '("a") '(a)) => '("a")))
+    (let ((-compare-fn #'string=)) (-intersection '(a) '("a"))) => '(a)
+    (let ((-compare-fn #'string=)) (-intersection '("a") '(a))) => '("a"))
 
   (defexamples -powerset
     (-powerset '()) => '(())
