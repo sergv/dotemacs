@@ -231,6 +231,7 @@ by the user)."
 
 (defun select-mode--render-state (state)
   "It's assumed that this function is only called inside select buffer."
+  (cl-assert (functionp (select-mode--state-item-show-function state)))
   (erase-buffer)
   (goto-char (point-min))
   (insert (select-mode--state-preamble state))
