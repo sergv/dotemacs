@@ -23,7 +23,6 @@
           "company-mode/company-tests.el"
           "csv-mode/csv-mode-tests.el"
           "flx/misc/flx-test-list.el"
-          "flycheck-elm/flycheck-elm-tests.el"
           "prop-menu-el/prop-menu-tests.el"
           "rust-mode/rust-mode-tests.el"
           "tuareg/tuareg-tests.el"
