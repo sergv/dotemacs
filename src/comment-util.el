@@ -127,7 +127,6 @@ Intended to be used with comment-util-mode."
               happy-mode
               agda2-mode
               lean-mode
-              elm-mode
               sql-mode
               lua-mode
               vhdl-mode)
