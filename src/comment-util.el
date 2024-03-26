@@ -208,7 +208,8 @@ Intended to be used with comment-util-mode."
               clojure-mode
               blueprint-mode
               vim-edmacro-mode
-              lisp-data-mode)
+              lisp-data-mode
+              git-commit-elisp-text-mode)
              .
              ,(make-comment-format :one-line ";;"
                                    :line-regexp ";+"
