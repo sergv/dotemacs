@@ -306,7 +306,6 @@
       (bison-rule-name-face :foreground ,yellow)
       (rust-question-mark :weight bold :inherit font-lock-negation-char-face)
 
-      (elm-font-lock-operators :inherit haskell-operator-face)
       (haskell-operator-face :foreground ,red)
       (ghc-face-error :underline (:style wave :color ,red))
       (ghc-face-warn :underline (:style wave :color ,orange))
