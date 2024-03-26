@@ -960,12 +960,9 @@ activate snippets associated with that mode."
   (setq-local yas--extra-modes
               (remove mode yas--extra-modes)))
 
-(defun yas-temp-buffer-p (&optional buffer)
-  (eq (aref (buffer-name buffer) 0) ?\s))
-
 (define-obsolete-variable-alias 'yas-dont-activate
   'yas-dont-activate-functions "0.9.2")
-(defvar yas-dont-activate-functions (list #'minibufferp #'yas-temp-buffer-p)
+(defvar yas-dont-activate-functions (list #'minibufferp)
   "Special hook to control which buffers `yas-global-mode' affects.
 Functions are called with no argument, and should return non-nil to prevent
 `yas-global-mode' from enabling yasnippet in this buffer.
