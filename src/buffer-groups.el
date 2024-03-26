@@ -57,7 +57,8 @@
                                 .
                                 (and (memq major-mode
                                            '(emacs-lisp-mode
-                                             inferior-emacs-lisp-mode))
+                                             inferior-emacs-lisp-mode
+                                             git-commit-elisp-text-mode))
                                      (not (string-match-p "^\\*.+\\*$"
                                                           (buffer-name)))))))
        (c-c++-filter `(or (mode . c-mode)
