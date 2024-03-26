@@ -378,7 +378,7 @@ get proper flycheck checker."
   (aux-files-entries     nil :read-only t)
 
   ;; Thunk of list of (language-major-mode . <eproj-tag-index>);
-  ;; <eproj-tag-index> - datastructure mapping 'symbol-str's to 'eproj-tag's. See `eproj-tag-index.el'.
+  ;; <eproj-tag-index> - datastructure mapping 'symbol-str's to list of 'eproj-tag's. See `eproj-tag-index.el'.
   (tags                  nil)
   ;; list of other project roots
   (related-projects      nil :read-only t)
