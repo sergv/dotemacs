@@ -428,7 +428,12 @@ The condition will respect the value of `yas-keymap-disable-hook'."
     ;; instead (relying on `function-key-map` to remap `tab` to TAB).
     ;; If this causes problem because of another package that binds to `tab`,
     ;; complain to that other package!
-    ;; (define-key map [tab]       (yas-filtered-definition 'yas-next-field-or-maybe-expand))
+    ;;
+    ;; UPD: I stick to <tab> everywhere because C-TAB is not a thing, it either
+    ;; doesn’t work (in terminal) or is equal to C-<tab>. I only care about GUI
+    ;; so I do the change here. In care terminals will be needed I’ll need to
+    ;; fix my config anyway.
+    (define-key map (kbd "<tab>") (yas-filtered-definition 'yas-next-field-or-maybe-expand))
     (define-key map (kbd "TAB")   (yas-filtered-definition 'yas-next-field-or-maybe-expand))
     (define-key map [(shift tab)] (yas-filtered-definition 'yas-prev-field))
     (define-key map [backtab]     (yas-filtered-definition 'yas-prev-field))
