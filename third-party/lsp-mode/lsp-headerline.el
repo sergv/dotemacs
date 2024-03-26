@@ -304,7 +304,7 @@ PATH is the current folder to be checked."
     'lsp-headerline-breadcrumb-path-face))
 
 (defun lsp-headerline--severity-level-for-range (range)
-  "Get the severiy level for RANGE."
+  "Get the severity level for RANGE."
   (let ((range-severity 10))
     (mapc (-lambda ((&Diagnostic :range (&Range :start) :severity?))
             (when (lsp-point-in-range? start range)
@@ -399,7 +399,7 @@ PATH is the current folder to be checked."
                (_ (lsp-log "'%s' is not a valid entry for `lsp-headerline-breadcrumb-segments'"
                            (symbol-name segment))
                   ""))))
-        (if (eq segment-string "")
+        (if (string-empty-p segment-string)
             ""
           (concat (lsp-headerline--arrow-icon)
                   " "

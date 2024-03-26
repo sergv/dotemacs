@@ -50,8 +50,8 @@
 
 (defun lsp-typescript-javascript-tsx-jsx-activate-p (filename &optional _)
   "Check if the js-ts lsp server should be enabled based on FILENAME."
-  (or (string-match-p "\\.mjs\\|\\.[jt]sx?\\'" filename)
-      (and (derived-mode-p 'js-mode 'typescript-mode 'typescript-ts-mode)
+  (or (string-match-p "\\.[cm]js\\|\\.[jt]sx?\\'" filename)
+      (and (derived-mode-p 'js-mode 'js-ts-mode 'typescript-mode 'typescript-ts-mode)
            (not (derived-mode-p 'json-mode)))))
 
 ;; Unmaintained sourcegraph server
@@ -498,7 +498,7 @@ TypeScript 2.6.1 or newer in the workspace."
           (const "ru")
           (const "zh-CN")
           (const "zh-TW")
-          nil)
+          (const :tag "default" nil))
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-javascript-suggestion-actions-enabled t
@@ -791,22 +791,23 @@ name (e.g. `data' variable passed as `data' parameter)."
     (eq 'initialized (lsp--workspace-status workspace))))
 
 (defun lsp-clients-typescript-project-ts-server-path ()
+  "Return the project local TS server path."
   (f-join (lsp-workspace-root) "node_modules" "typescript" "lib" "tsserver.js"))
 
 (defun lsp-clients-typescript-server-path ()
+  "Return the TS sever path base on settings."
   (cond
-   ((and
-     lsp-clients-typescript-prefer-use-project-ts-server
-     (f-exists? (lsp-clients-typescript-project-ts-server-path)))
+   ((and lsp-clients-typescript-prefer-use-project-ts-server
+         (f-exists? (lsp-clients-typescript-project-ts-server-path)))
     (lsp-clients-typescript-project-ts-server-path))
    (t
-    (lsp-package-path 'typescript))))
+    (if (memq system-type '(cygwin windows-nt ms-dos))
+        (f-join (f-parent (lsp-package-path 'typescript)) "node_modules" "typescript" "lib")
+      (f-join (f-parent (f-parent (lsp-package-path 'typescript))) "lib" "node_modules" "typescript" "lib")))))
 
 (lsp-register-client
  (make-lsp-client :new-connection (lsp-stdio-connection (lambda ()
                                                           `(,(lsp-package-path 'typescript-language-server)
-                                                            "--tsserver-path"
-                                                            ,(lsp-clients-typescript-server-path)
                                                             ,@lsp-clients-typescript-server-args)))
                   :activation-fn 'lsp-typescript-javascript-tsx-jsx-activate-p
                   :priority -2
@@ -825,8 +826,8 @@ name (e.g. `data' variable passed as `data' parameter)."
                                                (list :plugins lsp-clients-typescript-plugins))
                                              (when lsp-clients-typescript-preferences
                                                (list :preferences lsp-clients-typescript-preferences))
-                                             (when lsp-clients-typescript-tsserver
-                                               (list :tsserver lsp-clients-typescript-tsserver))))
+                                             `(:tsserver ( :path ,(lsp-clients-typescript-server-path)
+                                                           ,@lsp-clients-typescript-tsserver))))
                   :initialized-fn (lambda (workspace)
                                     (with-lsp-workspace workspace
                                       (lsp--set-configuration
@@ -890,13 +891,13 @@ with the file contents."
         (unless (re-search-forward "[^\n[:space:]]" nil t)
           (setq stop t))
         (if (= (point) (point-min)) (setq stop t) (backward-char))
-        (cond ((or (looking-at "//+[ ]*@flow")
-                   (looking-at "/\\**[ ]*@flow")
-                   (looking-at "[ ]*\\*[ ]*@flow"))
+        (cond ((or (looking-at-p "//+[ ]*@flow")
+                   (looking-at-p "/\\**[ ]*@flow")
+                   (looking-at-p "[ ]*\\*[ ]*@flow"))
                (setq found t) (setq stop t))
-              ((or (looking-at "//") (looking-at "*"))
+              ((or (looking-at-p "//") (looking-at-p "*"))
                (forward-line))
-              ((looking-at "/\\*")
+              ((looking-at-p "/\\*")
                (save-excursion
                  (unless (re-search-forward "*/" nil t) (setq stop t)))
                (forward-line))
@@ -1010,15 +1011,15 @@ Examples: `./import-map.json',
 
 (defun lsp-clients-deno--make-init-options ()
   "Initialization options for the Deno language server."
-  `(:enable t
-    :config ,lsp-clients-deno-config
-    :importMap ,lsp-clients-deno-import-map
-    :lint ,(lsp-json-bool lsp-clients-deno-enable-lint)
-    :unstable ,(lsp-json-bool lsp-clients-deno-enable-unstable)
-    :codeLens (:implementations ,(lsp-json-bool lsp-clients-deno-enable-code-lens-implementations)
-               :references ,(lsp-json-bool (or lsp-clients-deno-enable-code-lens-references
-                                               lsp-clients-deno-enable-code-lens-references-all-functions))
-               :referencesAllFunctions ,(lsp-json-bool lsp-clients-deno-enable-code-lens-references-all-functions))))
+  `( :enable t
+     :config ,lsp-clients-deno-config
+     :importMap ,lsp-clients-deno-import-map
+     :lint ,(lsp-json-bool lsp-clients-deno-enable-lint)
+     :unstable ,(lsp-json-bool lsp-clients-deno-enable-unstable)
+     :codeLens ( :implementations ,(lsp-json-bool lsp-clients-deno-enable-code-lens-implementations)
+                 :references ,(lsp-json-bool (or lsp-clients-deno-enable-code-lens-references
+                                                 lsp-clients-deno-enable-code-lens-references-all-functions))
+                 :referencesAllFunctions ,(lsp-json-bool lsp-clients-deno-enable-code-lens-references-all-functions))))
 
 (lsp-register-client
  (make-lsp-client :new-connection

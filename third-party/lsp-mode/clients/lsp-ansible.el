@@ -34,6 +34,15 @@
   :link '(url-link "https://github.com/ansible/ansible-language-server")
   :package-version '(lsp-mode . "8.0.1"))
 
+(defcustom lsp-ansible-add-on? t
+  "Make the client `add-on' so that it works with other language servers.
+`yamlls`is a common one.
+
+Enabled by default."
+  :type 'boolean
+  :group 'lsp-ansible
+  :package-version '(lsp-mode . "8.0.1"))
+
 (defcustom lsp-ansible-language-server-command
   '("ansible-language-server" "--stdio")
   "The command that starts the ansible language server."
@@ -222,7 +231,7 @@ Pretty print the content of PARAMS."
     (message "Ansible Language Server metadata: %s" (json-encode params))))
 
 (defun lsp-ansible-show-server-metadata ()
-  "Show informations about Ansible environment used by the Ansible Language Server."
+  "Show information about Ansible environment used by the Ansible Language Server."
   (interactive)
   (lsp-notify "update/ansible-metadata" nil))
 
@@ -235,6 +244,8 @@ Pretty print the content of PARAMS."
                             (lsp-package-path 'ansible-language-server))
                        ,@(cl-rest lsp-ansible-language-server-command))))
   :priority 1
+  :add-on? lsp-ansible-add-on?
+  :multi-root t
   :notification-handlers (ht ("update/ansible-metadata" #'lsp-ansible-update-metadata-handler))
   :activation-fn #'lsp-ansible-check-ansible-minor-mode
   :server-id 'ansible-ls
