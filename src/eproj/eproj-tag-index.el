@@ -60,10 +60,12 @@
 (defsubst eproj-tag/file (tag-struct)
   "Get the file that current tag came from. Always absolute."
   (declare (pure t) (side-effect-free t))
+  (cl-assert (eproj-tag-p tag-struct))
   (car-sure tag-struct))
 
 (defsubst eproj-tag/line (tag-struct)
   (declare (pure t) (side-effect-free t))
+  (cl-assert (eproj-tag-p tag-struct))
   (let ((rest (cdr-sure tag-struct)))
     (packing-unpack-pair-car
      (if (consp rest)
@@ -72,6 +74,7 @@
 
 (defun eproj-tag/type (tag-struct)
   (declare (pure t) (side-effect-free t))
+  (cl-assert (eproj-tag-p tag-struct))
   (let* ((rest (cdr-sure tag-struct))
          (res (packing-unpack-pair-cdr (if (consp rest)
                                            (car rest)
@@ -82,6 +85,7 @@
 
 (defsubst eproj-tag/column (tag-struct)
   (declare (pure t) (side-effect-free t))
+  (cl-assert (eproj-tag-p tag-struct))
   (eproj-tag/get-prop 'column tag-struct))
 
 ;; Return associative array of tag properties.
@@ -95,6 +99,7 @@
 (defsubst eproj-tag/get-prop (prop tag-struct)
   (declare (pure t) (side-effect-free t))
   (cl-assert (symbolp prop))
+  (cl-assert (eproj-tag-p tag-struct))
   (cdr-safe (assq prop (eproj-tag/properties tag-struct))))
 
 (defsubst eproj-tag-index--create (tbl)
