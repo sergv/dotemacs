@@ -110,7 +110,7 @@
                            nil
                            t ;; require match
                            nil
-                           astyle-indent-style-history ;; history
+                           'astyle-indent-style-history ;; history
                            )))
   (with-temporary-file file "astyle-indent" nil nil
     (let ((p (point))
