@@ -55,6 +55,8 @@
 
 ;;; Code:
 (require 'dash)
+(require 'eproj)
+(require 'haskell-misc)
 (require 's)
 
 (declare-function flycheck-error-message "ext:flycheck" (cl-x))
@@ -603,7 +605,74 @@ Error is given as MSG and reported between POS and END."
            ((equal class-name "Generic")
             (insert "deriving instance Generic " type-name "\n"))))))
    (--map (attrap-insert-language-pragma it)
-          (--filter (s-matches? it normalized-msg) attrap-haskell-extensions))))))
+          (--filter (s-matches? it normalized-msg) attrap-haskell-extensions))
+
+   (when (string-match
+          (rx-let ((ws (any ?\n ?\r ?\s ?\t))
+                   (name-capture
+                    (group-n 1
+                      (+ (not (any ?\n ?\r ?\s ?\t))))))
+            (rx (or (seq "warning: [GHC-88464] [-Wdeferred-out-of-scope-variables]"
+                         (+ ws)
+                         "Variable not in scope:"
+                         (+ ws)
+                         name-capture
+                         (+ ws)
+                         "::")
+                    (seq "error: [GHC-76037]"
+                         (+ ws)
+                         "Not in scope: type constructor or class ‘"
+                         name-capture
+                         "’")
+                    )))
+          msg)
+    (attrap-one-option 'add-import
+      (let ((name (attrap-strip-parens (match-string-no-properties 1 msg))))
+        (attrap--add-import name))))))))
+
+(defun attrap-strip-parens (identifier)
+  (let* ((i 0)
+         (j (length identifier))
+         (non-empty? (not (zerop j))))
+    (when (and non-empty?
+               (eq (aref identifier 0) ?\())
+      (cl-incf i))
+    (when (and non-empty?
+               (eq (aref identifier (1- j)) ?\)))
+      (cl-decf j))
+    (substring identifier i j)))
+
+(defvar attrap--import-history nil)
+
+(defun attrap--add-import (identifier)
+  (let ((proj (eproj-get-project-for-buf (current-buffer)))
+        (effective-major-mode (eproj/resolve-synonym-modes major-mode)))
+
+    (eproj-symbnav/ensure-tags-loaded! effective-major-mode proj)
+
+    (let* ((candidate-tags
+            (eproj-get-matching-tags proj
+                                     effective-major-mode
+                                     identifier
+                                     nil))
+           (module-names
+            (remove-duplicates-sorting
+             (--map (haskell-misc--file-name-to-module-name (eproj-tag/file (cadr it)))
+                    candidate-tags)
+             #'string=
+             #'string<)))
+
+      (haskell-misc--add-new-import
+       (pcase (length module-names)
+         (0 (error "No candidates modules defining ‘%s’ found" identifier))
+         (1 (car module-names))
+         (_ (completing-read "Choose module: "
+                             module-names
+                             nil
+                             t ;; require match
+                             nil
+                             'attrap-import-history ;; history
+                             )))))))
 
 (defun attrap-add-operator-parens (name)
   "Add parens around a NAME if it refers to a Haskell operator."
