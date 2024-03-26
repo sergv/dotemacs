@@ -682,13 +682,13 @@ cache tags in."
     (goto-char (point-min))
     (let ((info (read (current-buffer))))
       (cl-assert (listp info) nil "Expected eproj info to be a list: %s" nifo)
-      (cl-assert (--every? (memq (car it) eproj--known-eproj-info-entries)
-                           info)
-                 nil
-                 "Some entries in .eproj-info are not supported:\n%s"
-                 (pp-to-string
-                  (--filter (not (memq (car it) eproj--known-eproj-info-entries))
-                            info)))
+      (unless (--every? (memq (car it) eproj--known-eproj-info-entries)
+                        info)
+        (error "Some entries in .eproj-info at %s are not supported:\n%s"
+               filename
+               (pp-to-string
+                (--filter (not (memq (car it) eproj--known-eproj-info-entries))
+                          info))))
       info)))
 
 ;;;; project creation
