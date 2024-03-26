@@ -1,6 +1,6 @@
-;;; yas-doc-helper.el --- Help generate documentation for YASnippet
+;;; yas-doc-helper.el --- Help generate documentation for YASnippet  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012, 2013  Free Software Foundation, Inc.
+;; Copyright (C) 2012-2023  Free Software Foundation, Inc.
 
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Keywords: convenience
@@ -25,11 +25,16 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl))
+  (require 'cl-lib))
 (require 'org)
-(or (require 'org-publish nil t)
-    (require 'ox-publish))
+(require 'ox-publish)
 (require 'yasnippet) ; docstrings must be loaded
+
+;; Presumably one of org/ox-publish provided the following vars:
+(defvar org-publish-project-alist)
+(defvar org-publish-use-timestamps-flag)
+(defvar org-export-copy-to-kill-ring)
+(defvar org-html-htmlize-output-type)
 
 (defun yas--org-raw-html (tag content &optional attrs)
   ;; in version 8.0 org-mode changed the export syntax, see
@@ -132,24 +137,24 @@
 (defun yas--document-symbols (level &rest names-and-predicates)
   (let ((sym-lists (make-vector (length names-and-predicates) nil))
         (stars (make-string level ?*)))
-    (loop for sym in yas--exported-syms
-          do (loop for test in (mapcar #'cdr names-and-predicates)
-                   for i from 0
-                   do (when (funcall test sym)
-                        (push sym (aref sym-lists i))
-                        (return))))
-    (loop for slist across sym-lists
-          for name in (mapcar #'car names-and-predicates)
-          concat (format "\n%s %s\n" stars name)
-          concat (mapconcat (lambda (sym)
-                              (yas--document-symbol sym (1+ level)))
-                            slist "\n\n"))))
+    (cl-loop for sym in yas--exported-syms
+             do (cl-loop for test in (mapcar #'cdr names-and-predicates)
+                         for i from 0
+                         do (when (funcall test sym)
+                              (push sym (aref sym-lists i))
+                              (cl-return))))
+    (cl-loop for slist across sym-lists
+             for name in (mapcar #'car names-and-predicates)
+             concat (format "\n%s %s\n" stars name)
+             concat (mapconcat (lambda (sym)
+                                 (yas--document-symbol sym (1+ level)))
+                               slist "\n\n"))))
 
 (defun yas--internal-link-snippet ()
   (interactive)
   (yas-expand-snippet "[[#$1][=${1:`yas/selected-text`}=]]"))
 
-(define-key org-mode-map [M-f8] 'yas--internal-link-snippet)
+(define-key org-mode-map [M-f8] #'yas--internal-link-snippet)
 
 ;; This lets all the org files be exported to HTML with
 ;; `org-publish-current-project' (C-c C-e P).

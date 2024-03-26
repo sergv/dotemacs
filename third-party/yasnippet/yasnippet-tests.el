@@ -1,8 +1,8 @@
 ;;; yasnippet-tests.el --- some yasnippet tests  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012-2015, 2017-2018  Free Software Foundation, Inc.
+;; Copyright (C) 2012-2024  Free Software Foundation, Inc.
 
-;; Author: Jo�o T�vora <joaot@siscog.pt>
+;; Author: João Távora <joaot@siscog.pt>
 ;; Keywords: emulations, convenience
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -123,7 +123,8 @@ This lets `yas--maybe-expand-from-keymap-filter' work as expected."
         (funcall fn)
       (cl-loop for var in vars
                for saved in saved-values
-               do (set var saved)))))
+               do (unless (eq (symbol-value var) saved) ;Beware read-only vars!
+                    (set var saved))))))
 
 (defun yas-call-with-snippet-dirs (dirs fn)
   (let* ((default-directory (make-temp-file "yasnippet-fixture" t))
@@ -138,9 +139,6 @@ This lets `yas--maybe-expand-from-keymap-filter' work as expected."
 
 ;;; Older emacsen
 ;;;
-(unless (fboundp 'special-mode)
-  ;; FIXME: Why provide this default definition here?!?
-  (defalias 'special-mode 'fundamental))
 
 (unless (fboundp 'string-suffix-p)
   ;; introduced in Emacs 24.4
@@ -558,16 +556,19 @@ XXXXX   ------------------------"))))
     (yas-mock-insert "foo bar")
     (ert-simulate-command '(yas-next-field))
     (goto-char (point-min))
-    (let ((expected (with-temp-buffer
-                      (insert (format (concat "* Test foo bar\n"
-                                              "  " org-property-format "\n"
-                                              "  " org-property-format "\n"
-                                              "  " org-property-format)
-                                      ":PROPERTIES:" ""
-                                      ":ID:" "foo bar-after"
-                                      ":END:" ""))
-                      (delete-trailing-whitespace)
-                      (buffer-string))))
+    ;; The default value of `org-adapt-indentation' changed between Org-mode 9.4
+    ;; and 9.5, so force a specific value.
+    (let* ((org-adapt-indentation nil)
+           (expected (with-temp-buffer
+                       (insert (format (concat "* Test foo bar\n"
+                                               org-property-format "\n"
+                                               org-property-format "\n"
+                                               org-property-format)
+                                       ":PROPERTIES:" ""
+                                       ":ID:" "foo bar-after"
+                                       ":END:" ""))
+                       (delete-trailing-whitespace)
+                       (buffer-string))))
       ;; Some org-mode versions leave trailing whitespace, some don't.
       (delete-trailing-whitespace)
       (should (equal expected (buffer-string))))))
@@ -712,7 +713,7 @@ mapconcat #'(lambda (arg)
 
 
 ;;; Snippet expansion and character escaping
-;;; Thanks to @zw963 (Billy) for the testing
+;; Thanks to @zw963 (Billy) for the testing
 ;;;
 (ert-deftest escape-dollar ()
   (with-temp-buffer
@@ -1228,14 +1229,17 @@ hello ${1:$(when (stringp yas-text) (funcall func yas-text))} foo${1:$$(concat \
 
 (defmacro yas-with-overriden-buffer-list (&rest body)
   (declare (debug t))
+  ;; FIXME: This macro was added by commit 185c771dedea as part of the
+  ;; fix for https://github.com/joaotavora/yasnippet/issues/253,
+  ;; but I don't know why it was/is needed.
   (let ((saved-sym (make-symbol "yas--buffer-list")))
     `(let ((,saved-sym (symbol-function 'buffer-list)))
        (cl-letf (((symbol-function 'buffer-list)
-                  (lambda ()
+                  (lambda (&rest args)
                     (cl-remove-if (lambda (buf)
                                     (with-current-buffer buf
                                       (eq major-mode 'lisp-interaction-mode)))
-                                  (funcall ,saved-sym)))))
+                                  (apply ,saved-sym args)))))
          ,@body))))
 
 
@@ -1314,7 +1318,7 @@ hello ${1:$(when (stringp yas-text) (funcall func yas-text))} foo${1:$$(concat \
      (yas-minor-mode +1)
      (should (equal (yas--template-content (yas-lookup-snippet "one"))
                     "one"))
-     (should (eq (yas--key-binding "\C-c1") 'yas-expand-from-keymap))
+     (should (eq (yas--key-binding "\C-c1") #'yas-expand-from-keymap))
      (yas-define-snippets
       'text-mode '(("_1" "one!" "won" nil nil nil nil nil "uuid-1")))
      (should (null (yas-lookup-snippet "one" nil 'noerror)))
@@ -1388,14 +1392,14 @@ hello ${1:$(when (stringp yas-text) (funcall func yas-text))} foo${1:$$(concat \
                           yet-another-c-mode
                           and-also-this-one
                           and-that-one
-                          ;; prog-mode doesn't exist in emacs 23.4
-                          ,@(if (fboundp 'prog-mode)
-                                '(prog-mode))
+                          prog-mode
+                          ,@(if (fboundp 'lisp-data-mode) ;Emacs≥28
+                                '(lisp-data-mode))
                           emacs-lisp-mode
                           lisp-interaction-mode))
               (observed (yas--modes-to-activate)))
          (should (equal major-mode (car observed)))
-         (should (equal (sort expected #'string<) (sort observed #'string<))))))))
+         (should-not (cl-set-exclusive-or expected observed)))))))
 
 (ert-deftest extra-modes-parenthood ()
   "Test activation of parents of `yas--extra-modes'."
@@ -1412,40 +1416,44 @@ hello ${1:$(when (stringp yas-text) (funcall func yas-text))} foo${1:$$(concat \
        (yas-activate-extra-mode 'and-that-one)
        (let* ((expected-first `(and-that-one
                                 yet-another-c-mode
-                                c-mode
-                                ,major-mode))
+                                c-mode))
               (expected-rest `(cc-mode
-                               ;; prog-mode doesn't exist in emacs 23.4
-                               ,@(if (fboundp 'prog-mode)
-                                     '(prog-mode))
+                               prog-mode
+                               ,@(if (fboundp 'lisp-data-mode) ;Emacs≥28
+                                     '(lisp-data-mode))
                                emacs-lisp-mode
                                and-also-this-one
                                lisp-interaction-mode))
-              (observed (yas--modes-to-activate)))
-         (should (equal expected-first
-                        (cl-subseq observed 0 (length expected-first))))
-         (should (equal (sort expected-rest #'string<)
-                        (sort (cl-subseq observed (length expected-first)) #'string<))))))))
+              (observed (remq 'fundamental-mode (yas--modes-to-activate))))
+         (should-not (cl-set-exclusive-or
+                      expected-first
+                      (cl-subseq observed 0 (length expected-first))))
+         (should-not (cl-set-exclusive-or
+                      expected-rest
+                      (cl-subseq observed (length expected-first)))))))))
 
-(defalias 'yas--phony-c-mode 'c-mode)
+(defalias 'yas--phony-c-mode #'c-mode)
 
 (ert-deftest issue-492-and-494 ()
+  "Aliases like `yas--phony-c-mode' should be considered as \"derived\"."
   (define-derived-mode yas--test-mode yas--phony-c-mode "Just a test mode")
   (yas-with-snippet-dirs '((".emacs.d/snippets"
                             ("yas--test-mode")))
-                         (yas-reload-all)
-                         (with-temp-buffer
-                           (let* ((major-mode 'yas--test-mode)
-                                  (expected `(fundamental-mode
-                                              c-mode
-                                              ,@(if (fboundp 'prog-mode)
-                                                    '(prog-mode))
-                                              yas--phony-c-mode
-                                              yas--test-mode))
-                                  (observed (yas--modes-to-activate)))
-                             (should (null (cl-set-exclusive-or expected observed)))
-                             (should (= (length expected)
-                                        (length observed)))))))
+    (yas-reload-all)
+    (with-temp-buffer
+      (let* ((major-mode 'yas--test-mode)
+             (expected `(fundamental-mode
+                         c-mode
+                         yas--phony-c-mode
+                         yas--test-mode))
+             ;; The set of mode depends on some external factors:
+             ;; `prog-mode': if cc-mode.el has been loaded.
+             ;; `cc-mode': if we added `cc-mode' as yas--parent of `c-mode'.
+             (observed (cl-set-difference (yas--modes-to-activate)
+                                          '(prog-mode cc-mode))))
+        (should-not (cl-set-exclusive-or expected observed))
+        (should (= (length expected)
+                   (length observed)))))))
 
 (define-derived-mode yas--test-mode c-mode "Just a test mode")
 (define-derived-mode yas--another-test-mode c-mode "Another test mode")
@@ -1649,14 +1657,14 @@ TODO: be meaner"
     (with-temp-buffer
       (yas-minor-mode -1)
       (insert "foo")
-      (should (not (eq (key-binding (yas--read-keybinding "<tab>")) 'yas-expand)))
+      (should-not (eq (key-binding (kbd "TAB")) #'yas-expand))
       (yas-minor-mode 1)
-      (should (eq (key-binding (yas--read-keybinding "<tab>")) 'yas-expand))
+      (should (eq (key-binding (kbd "TAB")) #'yas-expand))
       (yas-expand-snippet "$1 $2 $3")
-      (should (eq (key-binding [(tab)]) 'yas-next-field-or-maybe-expand))
-      (should (eq (key-binding (kbd "TAB")) 'yas-next-field-or-maybe-expand))
-      (should (eq (key-binding [(shift tab)]) 'yas-prev-field))
-      (should (eq (key-binding [backtab]) 'yas-prev-field))))))
+      ;; (should (eq (key-binding [tab]) #'yas-next-field-or-maybe-expand))
+      (should (eq (key-binding (kbd "TAB")) #'yas-next-field-or-maybe-expand))
+      (should (eq (key-binding [(shift tab)]) #'yas-prev-field))
+      (should (eq (key-binding [backtab]) #'yas-prev-field))))))
 
 (ert-deftest test-rebindings ()
   (let* ((yas-minor-mode-map (copy-keymap yas-minor-mode-map))
@@ -1666,14 +1674,14 @@ TODO: be meaner"
                            :test #'eq :key #'car))))
     (define-key yas-minor-mode-map [tab] nil)
     (define-key yas-minor-mode-map (kbd "TAB") nil)
-    (define-key yas-minor-mode-map (kbd "SPC") 'yas-expand)
+    (define-key yas-minor-mode-map (kbd "SPC") #'yas-expand)
     (with-temp-buffer
       (yas-minor-mode 1)
-      (should-not (eq (key-binding (kbd "TAB")) 'yas-expand))
-      (should (eq (key-binding (kbd "SPC")) 'yas-expand))
+      (should-not (eq (key-binding (kbd "TAB")) #'yas-expand))
+      (should (eq (key-binding (kbd "SPC")) #'yas-expand))
       (yas-reload-all)
-      (should-not (eq (key-binding (kbd "TAB")) 'yas-expand))
-      (should (eq (key-binding (kbd "SPC")) 'yas-expand)))))
+      (should-not (eq (key-binding (kbd "TAB")) #'yas-expand))
+      (should (eq (key-binding (kbd "SPC")) #'yas-expand)))))
 
 (ert-deftest test-yas-in-org ()
   (yas-saving-variables
@@ -1686,16 +1694,18 @@ TODO: be meaner"
       (org-mode)
       (yas-minor-mode 1)
       (insert "foo")
-      (should (eq (key-binding [(tab)]) 'yas-expand))
-      (should (eq (key-binding (kbd "TAB")) 'yas-expand))))))
+      ;; (should (eq (key-binding [tab]) #'yas-expand))
+      (should (eq (key-binding (kbd "TAB")) #'yas-expand))))))
 
 (ert-deftest yas-org-native-tab-in-source-block-text ()
   "Test expansion of snippets in org source blocks."
   ;; org 9+ no longer runs fontification for text-mode, so our hacks
   ;; don't work.  Note that old ert doesn't have skipping, so we have
-  ;; to expect failure instead.
+  ;; to expect failure instead.  Starting with Org-mode 9.5 this seems
+  ;; to work again.
   :expected-result (if (and (fboundp 'org-in-src-block-p)
-                            (version< (org-version) "9"))
+                            (or (version< (org-version) "9")
+                                (version<= "9.5" (org-version))))
                        :passed :failed)
   (let ((text-mode-hook #'yas-minor-mode))
     (do-yas-org-native-tab-in-source-block "text")))

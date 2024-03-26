@@ -141,7 +141,7 @@ See the internal documentation on [[sym:yas-expand-snippet][=yas-expand-snippet=
 
 * Controlling expansion
 
-** Eligible snippets
+** Eligible snippets<<eligible-snippets>>
 
 YASnippet does quite a bit of filtering to find out which snippets are
 eligible for expanding at the current cursor position.
@@ -210,11 +210,12 @@ inside a comment?  Set [[sym:yas-buffer-local-condition][=yas-buffer-local-condi
 
 #+BEGIN_SRC emacs-lisp
   (add-hook 'python-mode-hook
-            (lambda ()
-              (setq yas-buffer-local-condition
-                    '(if (python-syntax-comment-or-string-p)
-                         '(require-snippet-condition . force-in-comment)
-                       t))))
+	    (lambda ()
+	      (setq yas-buffer-local-condition
+	            (lambda ()
+		      (if (python-syntax-comment-or-string-p)
+			  '(require-snippet-condition . force-in-comment)
+		        t)))))
 #+END_SRC
 
 ... and for a snippet that you want to expand in comments, specify a
@@ -227,7 +228,7 @@ For the full set of possible conditions, see the documentation for
 
 ** Multiples snippet with the same key
 
-The rules outlined [[Eligible%20snippets][above]] can return more than
+The rules outlined [[eligible-snippets][above]] can return more than
 one snippet to be expanded at point.
 
 When there are multiple candidates, YASnippet will let you select one.
