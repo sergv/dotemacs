@@ -19,8 +19,8 @@
       max-specpdl-size    5000)
 
 ;; speeds up startup time considerably, worth to use
-(setq gc-cons-threshold (* 1 1024 1024)
-      gc-cons-percentage 0.01)
+(setq gc-cons-threshold (* 4 1024 1024)
+      gc-cons-percentage 0.001)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;Customizations done by emacs customize routine
