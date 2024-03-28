@@ -453,12 +453,17 @@ pattern and replace matches with REPLACEMENT.
           (cond
             ((vim-pattern-whole-line pattern)
              ;; this one is easy, just use the built in function
-             (let ((start (save-excursion
-                            (goto-line-dumb first-line)
-                            (line-beginning-position)))
-                   (end (save-excursion
-                          (goto-line-dumb last-line)
-                          (line-end-position))))
+             (let* ((current-line (line-number-at-pos (point)))
+                    (start (if (= current-line first-line)
+                               (line-beginning-position)
+                             (save-excursion
+                               (goto-line-dumb first-line)
+                               (line-beginning-position))))
+                    (end (if (= current-line first-line)
+                             (line-end-position)
+                           (save-excursion
+                             (goto-line-dumb last-line)
+                             (line-end-position)))))
                (perform-replace regex
                                 replacement
                                 confirm
