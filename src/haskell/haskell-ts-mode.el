@@ -38,6 +38,13 @@
       ([(pragma) (cpp)] @haskell-pragma-face))
 
      (keyword
+      (exp_lambda_cases
+       "\\"
+       ("cases" @haskell-keyword-face))
+
+      (default_signature
+       ("default" @haskell-keyword-face))
+
       ([
         "forall"
         (where)
@@ -71,10 +78,7 @@
         "import"
         "qualified"
         "module"
-
-        (exp_lambda_cases
-         "\\"
-         ("cases" @haskell-keyword-face))]
+        ]
        @haskell-keyword-face))
 
      (operator
