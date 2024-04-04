@@ -61,8 +61,8 @@ _i_: jump to imports"
   (haskell-setup-common-editing)
 
   (def-keys-for-map (vim-normal-mode-local-keymap vim-insert-mode-local-keymap)
-    ("M-t"             haskell-compilation-prev-error-other-window)
-    ("M-h"             haskell-compilation-next-error-other-window)
+    ("M-t"             compilation-navigation-prev-error-other-window)
+    ("M-h"             compilation-navigation-next-error-other-window)
     ("C-SPC"           company-complete)
 
     ("DEL"             haskell-backspace-with-block-dedent)
