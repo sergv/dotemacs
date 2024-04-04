@@ -45,6 +45,12 @@
       (default_signature
        ("default" @haskell-keyword-face))
 
+      (pattern_synonym
+       ("pattern" @haskell-keyword-face))
+
+      (namespace
+       ("pattern" @haskell-keyword-face))
+
       ([
         "forall"
         (where)
