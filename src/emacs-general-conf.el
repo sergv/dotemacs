@@ -345,12 +345,13 @@
 ;; This global mode is enabled by default and is superseded by hl-paren.
 (show-paren-mode -1)
 
+;; NB there’s also ‘help-mode-setup’ defined in vanilla Emacs, which we don’t want.
 ;;;###autoload
-(defun help-mode-setup ()
+(defun proper-help-mode-setup ()
   (hl-line-mode +1))
 
 ;;;###autoload
-(add-hook 'help-mode-hook #'help-mode-setup)
+(add-hook 'help-mode-hook #'proper-help-mode-setup)
 
 ;;;; aliases
 

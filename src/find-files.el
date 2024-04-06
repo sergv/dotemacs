@@ -71,10 +71,10 @@ All predicates are called with full absolute paths."
            'busybox))
   "Type of find program that `find-files/find-program-executable' refers to.
 Valid values are:
-'find        - vanilla gnu find
-'cygwin-find - cygwin version of gnu find, requires special quoting due to
+\\='find        - vanilla gnu find
+\\='cygwin-find - cygwin version of gnu find, requires special quoting due to
                Windows and libcygwin*.dll
-'busybox     - find as found in busybox, does not have as many options as gnu
+\\='busybox     - find as found in busybox, does not have as many options as gnu
                find.")
 
 (defvar find-files/find-program-executable
