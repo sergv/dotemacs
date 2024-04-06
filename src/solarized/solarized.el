@@ -375,7 +375,7 @@
       (ebuf-marked-buffer-face :foreground ,orange :bold t)
       (ebuf-regular-buffer-face :foreground ,orange)
       (ebuf-read-only-buffer-face :foreground ,cyan)
-      (ebuf-invisible-buffer-face :foreground ,violet)
+      (ebuf-invisible-buffer-face :foreground ,secondary-content)
 
       ;; info
       (info-xref :foreground ,blue :underline t)
