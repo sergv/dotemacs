@@ -252,7 +252,8 @@ regexps to not be confused by the instance location."
   (interactive)
   (if lsp-mode
       (lsp-symbnav/find-references)
-    (xref-find-references)))
+    (let ((identifier (eproj-symbnav/identifier-at-point nil)))
+      (xref-find-references identifier))))
 
 (defun haskell-go-to-symbol-home--ghc-src-span-to-eproj-tag (string)
   "Extract a location from a ghc span STRING."
