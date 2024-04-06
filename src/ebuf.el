@@ -32,7 +32,7 @@
                  grouped)))
     grouped))
 
-(defstruct ebuf--buffer-classifier
+(cl-defstruct ebuf--buffer-classifier
   by-name      ;; list of (<regexp string> . <name>)
   by-mode      ;; hash table <mode> -> <name>
   by-predicate ;; list of (<function called within buffer> . <name>)
@@ -801,7 +801,7 @@ _r_ecency
 (define-derived-mode ebuf-mode fundamental-mode "Ebuf"
   "Major mode for queries in auxiliary buffer."
   ;; Fringe line tracking.
-  (when (bound-and-true-p linum-mode)
+  (when (eval-when-compile (bound-and-true-p linum-mode))
     (linum-mode -1))
   (hl-line-mode +1)
   (nix-prettify-mode +1)
