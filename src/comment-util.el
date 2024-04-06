@@ -26,14 +26,14 @@
             (unless current-prefix-arg ;; Disable advice if prefix argument is supplied.
               (when-let (,current-format-var (comment-util-current-format-lax))
                 (save-excursion
-                  (let ((bol (point-at-bol)))
+                  (let ((bol (line-beginning-position)))
                     (goto-char bol)
                     (when (funcall (comment-format-detect-line-comment ,current-format-var)
                                    ,current-format-var)
                       (buffer-substring-no-properties bol (point)))))))))
        ,@body
        (when ,line-comment-prefix-var
-         (let ((bol (point-at-bol)))
+         (let ((bol (line-beginning-position)))
            (goto-char bol)
            (skip-indentation-forward)
            (delete-region bol (point))
