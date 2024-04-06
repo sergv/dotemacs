@@ -953,9 +953,10 @@ arguments: a message, the start of the obstacle (a parenthesis or
 list marker of some kind), and end of the obstacle."
   (interactive "^p")
   ;; If we’re not derived then lexeme parsing doesn’t work.
-  (cl-assert (derived-mode-p 'haskell-mode)
+  (cl-assert (or (derived-mode-p 'haskell-mode) (derived-mode-p 'haskell-ts-mode))
              nil
-             "The ‘haskell-forward-sexp’ function doesn’t work in modes not derived from ‘haskell-mode’")
+             "The ‘haskell-forward-sexp’ function doesn’t work in modes not derived from ‘haskell-mode’ or ‘haskell-ts-mode’. Current mode: %s"
+             major-mode)
   (or arg (setq arg 1))
   (if (< arg 0)
       (while (< arg 0)
