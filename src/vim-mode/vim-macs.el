@@ -263,6 +263,7 @@ For more information about the vim:motion struct look at vim-core.el."
                  ;; Name to bind to keys.
                  (defun ,name-interactive ,(if has-args? '(&rest args) '())
                    ,(format "Interactive version of ‘%s’" name)
+                   ,@(when has-args? '((declare (ignore args))))
                    (interactive)
                    (let ,(if unadjusted
                              '((vim-do-not-adjust-point t))
