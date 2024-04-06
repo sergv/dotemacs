@@ -507,9 +507,6 @@ _T_: toggle all indented"
 (vimmize-function hs-hide-all   :name vim:hs-hide-all   :has-count nil)
 (vimmize-function hs-show-all   :name vim:hs-show-all   :has-count nil)
 
-(vimmize-function hs-hide-block :name vim:hs-hide-block :has-count nil)
-(vimmize-function hs-show-block :name vim:hs-show-block :has-count nil)
-
 (vimmize-function yafolding-toggle-all :name vim:yafolding-toggle-all :has-count nil)
 (vimmize-function yafolding-hide-all   :name vim:yafolding-hide-all   :has-count nil)
 
