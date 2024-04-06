@@ -1325,14 +1325,14 @@ The command block is indicated by the >>> symbol."
             (forward-line))
           (let ((cmd-end (1- (point))))
             (let* ((cmd (join-lines (nreverse (cons ":}" cmd-lines))))
-                   (res (lcr-call dante-async-call cmd))))
-            (save-excursion
-              (delete-region (point)
-                             ;; look for: empty comment line, next command or end of block.
-                             (or (and (search-forward-regexp " *-- *\\( >>>\\|$\\)" block-end t 1)
-                                      (match-beginning 0))
-                                 block-end)))
-            (insert (apply #'concat (--map (concat "-- " it "\n") (--remove (s-blank? it) (s-lines res)))))
+                   (res (lcr-call dante-async-call cmd)))
+              (save-excursion
+                (delete-region (point)
+                               ;; look for: empty comment line, next command or end of block.
+                               (or (and (search-forward-regexp " *-- *\\( >>>\\|$\\)" block-end t 1)
+                                        (match-beginning 0))
+                                   block-end)))
+              (insert (apply #'concat (--map (concat "-- " it "\n") (--remove (s-blank? it) (s-lines res))))))
             (beginning-of-line)
             ;; skip any non-executable comment
             (while (and (looking-at " *--")
