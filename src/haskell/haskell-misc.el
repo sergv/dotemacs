@@ -480,7 +480,7 @@ both unicode and ascii characters.")
     (modify-syntax-entry ?_  "w" tbl)
     (modify-syntax-entry ?\' "w" tbl)
     (modify-syntax-entry ?,  "/" tbl) ;; Disable , since it's part of syntax
-    ;; (modify-syntax-entry ?.  "_" tbl) ;; So that we match qualified names.
+    (modify-syntax-entry ?.  "." tbl) ;; For identifier navigation we want Foo.bar to be 2 words
     tbl)
   "Special syntax table for haskell that allows to recognize symbols that contain
 both unicode and ascii characters.")
