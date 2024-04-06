@@ -370,16 +370,6 @@ _<tab>_: reindent  _h_: jump to topmont node end"
 
   (turn-on-font-lock)
 
-  ;; The underscore should remain part of word so we never search within
-  ;; _c_style_identifiers.
-  (modify-syntax-entry ?_  "_")
-  (modify-syntax-entry ?\' "w")
-  (modify-syntax-entry ?@  "'")
-  ;; So that ‘backward-sexp’ will reach ‘Foo’ when run on ‘Foo.Ba_|_r’.
-  ;; This is relied upon by ‘paredit-raise-sexp’.
-  (modify-syntax-entry ?.  "_")
-  (modify-syntax-entry ?#  "_")
-
   (setq-local flycheck-enhancements--get-project-root-for-current-buffer
               #'haskell-misc-get-project-root
 
