@@ -325,7 +325,7 @@ sexps and indentation levels."
   (interactive)
   (let* ((start (point))
          (with-indentation
-          (with-demoted-errors
+          (with-demoted-errors "Ignoring error: %s"
               (save-excursion
                 (rust-back-up-indent-level)
                 (let ((p (point)))
@@ -333,7 +333,7 @@ sexps and indentation levels."
                     p)))))
          (with-sp
           (when (/= 0 (syntax-ppss-depth (syntax-ppss start)))
-            (with-demoted-errors
+            (with-demoted-errors "Ignoring error: %s"
                 (save-excursion
                   (paredit-backward-up)
                   (let ((p (point)))
