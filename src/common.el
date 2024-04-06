@@ -56,7 +56,7 @@ of random numbers from RANDOM-GEN."
       (delete-region begin end)
       (when (= (char-after) ?\n)
         (delete-char 1))
-      (random-shuffle lines *random-gen*)
+      (random-shuffle lines)
       (goto-char begin)
       (dovector (line lines)
         (insert line)
@@ -175,7 +175,6 @@ default into prompt."
   (declare (pure t) (side-effect-free t))
   (let ((tmp x))
     (lambda (&rest _y)
-      (declare (ignore _y))
       tmp)))
 
 ;;; combinatorics
@@ -289,7 +288,7 @@ structure like this (:arg1 value1 :arg2 value2 ... :argN valueN)"
           (or (eq first-char ?\s)
               (and (eq first-char ?#)
                    (> len 2)
-                   (let ((last-char (aref name (1- length))))
+                   (let ((last-char (aref name (1- len))))
                      (eq last-char ?#))))))))
 
 (defun visible-buffers ()
@@ -1455,7 +1454,7 @@ and cdr is a boolean whether any element was let out."
     (substring x (- (length x) (length nondir)))))
 
 (defun set-string-face-property (new-face str)
-  "Set 'face property of string STR to NEW-FACE and return STR."
+  "Set \\='face property of string STR to NEW-FACE and return STR."
   (cl-assert (symbolp new-face))
   (cl-assert (stringp str))
   (put-text-property 0 (length str) 'face new-face str)
