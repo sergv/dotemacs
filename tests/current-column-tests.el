@@ -63,8 +63,6 @@
     :initialisation (text-mode)
     :buffer-id nil))
 
-(ert "current-column-tests/move-to-column-fixed.*")
-
 (provide 'current-column-tests)
 
 ;; Local Variables:
