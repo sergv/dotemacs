@@ -203,20 +203,20 @@ Returns t if point moved."
 sexps and indentation levels."
   (let* ((start (point))
          (via-indentation
-          (with-demoted-errors
-              (save-excursion
-                (indent-back-up-indent-level on-blank-line-p)
-                (let ((p (point)))
-                  (when (/= p start)
-                    p)))))
+          (with-demoted-errors "Ignoring error: %s"
+            (save-excursion
+              (indent-back-up-indent-level on-blank-line-p)
+              (let ((p (point)))
+                (when (/= p start)
+                  p)))))
          (via-parens
           (when (/= 0 (syntax-ppss-depth (syntax-ppss start)))
-            (with-demoted-errors
-                (save-excursion
-                  (paredit-backward-up)
-                  (let ((p (point)))
-                    (when (/= p start)
-                      p)))))))
+            (with-demoted-errors "Ignoring error: %s"
+              (save-excursion
+                (paredit-backward-up)
+                (let ((p (point)))
+                  (when (/= p start)
+                    p)))))))
     (if (and via-indentation
              via-parens)
         (goto-char (max via-indentation via-parens))
