@@ -5416,6 +5416,54 @@ end."
    "foo x xs = _|_baz"
    ""))
 
+(haskell-tests--test-buffer-contents
+    haskell-tests/vim:raise-sexp-1
+    (vim:raise-sexp:wrapper)
+  (tests-utils--multiline
+   ""
+   "foo = whnf (_|_M.withoutKeys m) m_odd_keys"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo = whnf _|_M.withoutKeys m_odd_keys"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/vim:raise-sexp-2
+    (vim:raise-sexp:wrapper)
+  (tests-utils--multiline
+   ""
+   "foo = whnf (M.witho_|_utKeys m) m_odd_keys"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo = whnf _|_M.withoutKeys m_odd_keys"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/vim:raise-sexp-3
+    (vim:raise-sexp:wrapper)
+  (tests-utils--multiline
+   ""
+   "foo = whnf (M._|_withoutKeys m) m_odd_keys"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo = whnf _|_M.withoutKeys m_odd_keys"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/vim:raise-sexp-4
+    (vim:raise-sexp:wrapper)
+  (tests-utils--multiline
+   ""
+   "foo = whnf (M_|_.withoutKeys m) m_odd_keys"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo = whnf _|_M.withoutKeys m_odd_keys"
+   ""))
+
 (provide 'haskell-tests)
 
 ;; (let ((ert-debug-on-error nil))
