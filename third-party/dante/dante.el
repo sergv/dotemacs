@@ -963,8 +963,8 @@ If WAIT is nil, abort if Dante is busy.  Pass the dante buffer to CONT"
 (defun dante--make-file-process (name buffer program args filter sentinel)
   (let ((fh (find-file-name-handler default-directory 'dante--make-file-process)))
     (if fh
-        (apply fh #'make-process :name name :buffer buffer :command (cons program program-args) :filter filter :sentinel sentinel :file-handler t)
-      (apply #'make-process :name name :buffer buffer :command (cons program program-args) :filter filter :sentinel sentinel :file-handler t))))
+        (apply fh #'make-process :name name :buffer buffer :command (cons program args) :filter filter :sentinel sentinel :file-handler t)
+      (apply #'make-process :name name :buffer buffer :command (cons program args) :filter filter :sentinel sentinel :file-handler t))))
 
 (lcr-def dante-start ()
   "Start a GHCi process and return its buffer."
