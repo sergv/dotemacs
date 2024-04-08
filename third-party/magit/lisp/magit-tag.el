@@ -80,8 +80,8 @@ If the region marks multiple tags (and nothing else), then offer
 to delete those, otherwise prompt for a single tag to be deleted,
 defaulting to the tag at point.
 \n(git tag -d TAGS)"
-  (interactive (list (--if-let (magit-region-values 'tag)
-                         (magit-confirm t nil "Delete %d tags" nil it)
+  (interactive (list (if-let ((tags (magit-region-values 'tag)))
+                         (magit-confirm t nil "Delete %d tags" nil tags)
                        (let ((helm-comp-read-use-marked t))
                          (magit-read-tag "Delete tag" t)))))
   (magit-run-git "tag" "-d" tags))
@@ -95,8 +95,8 @@ defaulting to the tag at point.
           (rtags  (prog2 (message "Determining remote tags...")
                       (magit-remote-list-tags remote)
                     (message "Determining remote tags...done")))
-          (ltags  (-difference tags rtags))
-          (rtags  (-difference rtags tags)))
+          (ltags  (cl-set-difference tags rtags :test #'equal))
+          (rtags  (cl-set-difference rtags tags :test #'equal)))
      (unless (or ltags rtags)
        (message "Same tags exist locally and remotely"))
      (unless (magit-confirm t
@@ -127,7 +127,7 @@ defaulting to the tag at point.
 See also `magit-release-tag-regexp'.")
 
 (defvar magit-release-tag-regexp "\\`\
-\\(?1:\\(?:v\\(?:ersion\\)?\\|r\\(?:elease\\)?\\)?[-_]?\\)?\
+\\(?1:\\(?:v\\(?:ersion\\)?\\|r\\(?:elease\\)?\\)[-_]?\\)?\
 \\(?2:[0-9]+\\(?:\\.[0-9]+\\)*\
 \\(?:-[a-zA-Z0-9-]+\\(?:\\.[a-zA-Z0-9-]+\\)*\\)?\\)\\'"
   "Regexp used by `magit-tag-release' to parse release tags.

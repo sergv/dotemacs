@@ -389,12 +389,12 @@ to recover from making a mistake here, but don't count on it."
   (magit-with-toplevel
     (when-let
         ((modified
-          (-filter (lambda (module)
-                     (let ((default-directory (file-name-as-directory
-                                               (expand-file-name module))))
-                       (and (cddr (directory-files default-directory))
-                            (magit-anything-modified-p))))
-                   modules)))
+          (seq-filter (lambda (module)
+                        (let ((default-directory (file-name-as-directory
+                                                  (expand-file-name module))))
+                          (and (cddr (directory-files default-directory))
+                               (magit-anything-modified-p))))
+                      modules)))
       (if (member "--force" args)
           (if (magit-confirm 'remove-dirty-modules
                 "Remove dirty module %s"
@@ -494,18 +494,19 @@ or, failing that, the abbreviated HEAD commit hash."
                                 'font-lock-face 'magit-diff-file-heading))
             (if (not (file-exists-p ".git"))
                 (insert "(unpopulated)")
-              (insert (format
-                       branch-format
-                       (--if-let (magit-get-current-branch)
-                           (propertize it 'font-lock-face 'magit-branch-local)
-                         (propertize "(detached)" 'font-lock-face 'warning))))
-              (--if-let (magit-git-string "describe" "--tags")
+              (insert
+               (format
+                branch-format
+                (if-let ((branch (magit-get-current-branch)))
+                    (propertize branch 'font-lock-face 'magit-branch-local)
+                  (propertize "(detached)" 'font-lock-face 'warning))))
+              (if-let ((desc (magit-git-string "describe" "--tags")))
                   (progn (when (and magit-modules-overview-align-numbers
-                                    (string-match-p "\\`[0-9]" it))
+                                    (string-match-p "\\`[0-9]" desc))
                            (insert ?\s))
-                         (insert (propertize it 'font-lock-face 'magit-tag)))
-                (--when-let (magit-rev-format "%h")
-                  (insert (propertize it 'font-lock-face 'magit-hash)))))
+                         (insert (propertize desc 'font-lock-face 'magit-tag)))
+                (when-let ((abbrev (magit-rev-format "%h")))
+                  (insert (propertize abbrev 'font-lock-face 'magit-hash)))))
             (insert ?\n))))))
   (insert ?\n))
 
@@ -659,7 +660,12 @@ These sections can be expanded to show the respective commits."
 
 (defun magit-submodule-list-refresh ()
   (setq tabulated-list-entries
-        (-keep (lambda (module)
+        ;; Backport version 2.23 of seq lacks seq-keep.  Once that is
+        ;; available trace this commment to find more instances where
+        ;; it should be used.
+        (delq nil
+              (mapcar
+               (lambda (module)
                  (let ((default-directory
                         (expand-file-name (file-name-as-directory module))))
                    (and (file-exists-p ".git")
@@ -674,7 +680,7 @@ These sections can be expanded to show the respective commits."
                                                            ,@props))
                                              ""))
                                        magit-repolist-columns))))))
-               (magit-list-module-paths)))
+               (magit-list-module-paths))))
   (message "Listing submodules...")
   (tabulated-list-init-header)
   (tabulated-list-print t)
