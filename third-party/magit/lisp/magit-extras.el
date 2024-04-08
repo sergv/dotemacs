@@ -730,7 +730,7 @@ the minibuffer too."
                     (string-replace "%N" idx eob-format)))
             (save-excursion
               (goto-char (point-max))
-              (skip-syntax-backward ">s-")
+              (skip-syntax-backward ">-")
               (beginning-of-line)
               (if (and comment-start (looking-at comment-start))
                   (while (looking-at comment-start)
@@ -780,7 +780,7 @@ argument."
        (replace-regexp-in-string
         (format "^\\%c.*\n?" (if (< (prefix-numeric-value arg) 0) ?+ ?-))
         "")
-       (replace-regexp-in-string "^[ \\+\\-]" "")))
+       (replace-regexp-in-string "^[ +-]" "")))
     (deactivate-mark))
    ((use-region-p)
     (call-interactively #'copy-region-as-kill))

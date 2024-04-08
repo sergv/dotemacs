@@ -354,11 +354,12 @@ Type \\[magit-reset] to reset `HEAD' to the commit at point.
      ((eq major-mode 'magit-refs-mode)
       (setq args magit-buffer-arguments))
      ((and (memq use-buffer-args '(always selected))
-           (when-let* ((buffer (magit-get-mode-buffer ;debbugs#31840
-                                'magit-refs-mode nil
-                                (eq use-buffer-args 'selected))))
-             (setq args (buffer-local-value 'magit-buffer-arguments buffer))
-             t)))
+           (and-let* ((buffer (magit-get-mode-buffer
+                               'magit-refs-mode nil
+                               (eq use-buffer-args 'selected))))
+             (progn ; work around debbugs#31840
+               (setq args (buffer-local-value 'magit-buffer-arguments buffer))
+               t))))
      (t
       (setq args (alist-get 'magit-show-refs transient-values))))
     args))
@@ -570,7 +571,9 @@ line is inserted at all."
                                        (concat "refs/remotes/" remote)
                                        magit-buffer-arguments))
           (pcase-let ((`(,head-branch ,branch ,ref ,msg)
-                       (-replace "" nil (split-string line "\0"))))
+                       (cl-substitute nil ""
+                                      (split-string line "\0")
+                                      :test #'equal)))
             (if head-branch
                 ;; Note: Use `ref' instead of `branch' for the check
                 ;; below because 'refname:short' shortens the remote
@@ -620,17 +623,17 @@ line is inserted at all."
     (magit-make-margin-overlay nil t)))
 
 (defun magit-refs--format-local-branches ()
-  (let ((lines (-keep #'magit-refs--format-local-branch
-                      (magit-git-lines
-                       "for-each-ref"
-                       (concat "--format=\
+  (let ((lines (delq nil (mapcar #'magit-refs--format-local-branch
+                                 (magit-git-lines
+                                  "for-each-ref"
+                                  (concat "--format=\
 %(HEAD)%00%(refname:short)%00%(refname)%00\
 %(upstream:short)%00%(upstream)%00%(upstream:track)%00"
-                               (if magit-refs-show-push-remote "\
+                                          (if magit-refs-show-push-remote "\
 %(push:remotename)%00%(push)%00%(push:track)%00%(subject)"
                                  "%00%00%00%(subject)"))
-                       "refs/heads"
-                       magit-buffer-arguments))))
+                                  "refs/heads"
+                                  magit-buffer-arguments)))))
     (unless (magit-get-current-branch)
       (push (magit-refs--format-local-branch
              (concat "*\0\0\0\0\0\0\0\0" (magit-rev-format "%s")))
@@ -657,7 +660,7 @@ line is inserted at all."
 (defun magit-refs--format-local-branch (line)
   (pcase-let ((`(,head ,branch ,ref ,upstream ,u:ref ,u:track
                        ,push ,p:ref ,p:track ,msg)
-               (-replace "" nil (split-string line "\0"))))
+               (cl-substitute nil "" (split-string line "\0") :test #'equal)))
     (when (or (not branch)
               (magit-refs--insert-refname-p branch))
       (let* ((headp (equal head "*"))
@@ -747,12 +750,12 @@ line is inserted at all."
      branch (if head-face (list face head-face) face))))
 
 (defun magit-refs--insert-refname-p (refname)
-  (--if-let (-first (pcase-lambda (`(,key . ,_))
-                      (if (functionp key)
-                          (funcall key refname)
-                        (string-match-p key refname)))
-                    magit-refs-filter-alist)
-      (cdr it)
+  (if-let ((entry (seq-find (pcase-lambda (`(,key . ,_))
+                              (if (functionp key)
+                                  (funcall key refname)
+                                (string-match-p key refname)))
+                            magit-refs-filter-alist)))
+      (cdr entry)
     t))
 
 (defun magit-refs--insert-cherry-commits (ref)
