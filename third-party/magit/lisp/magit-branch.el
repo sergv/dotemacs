@@ -394,19 +394,20 @@ when using `magit-branch-and-checkout'."
          (magit-process-sentinel process event)))))))
 
 (defun magit-branch-maybe-adjust-upstream (branch start-point)
-  (--when-let
-      (or (and (magit-get-upstream-branch branch)
-               (magit-get-indirect-upstream-branch start-point))
-          (and (magit-remote-branch-p start-point)
-               (let ((name (cdr (magit-split-branch-name start-point))))
-                 (-some (pcase-lambda (`(,upstream . ,rule))
-                          (and (magit-branch-p upstream)
-                               (if (listp rule)
-                                   (not (member name rule))
-                                 (string-match-p rule name))
-                               upstream))
-                        magit-branch-adjust-remote-upstream-alist))))
-    (magit-call-git "branch" (concat "--set-upstream-to=" it) branch)))
+  (when-let ((upstream
+              (or (and (magit-get-upstream-branch branch)
+                       (magit-get-indirect-upstream-branch start-point))
+                  (and (magit-remote-branch-p start-point)
+                       (let ((name (cdr (magit-split-branch-name start-point))))
+                         (seq-some
+                          (pcase-lambda (`(,upstream . ,rule))
+                            (and (magit-branch-p upstream)
+                                 (if (listp rule)
+                                     (not (member name rule))
+                                   (string-match-p rule name))
+                                 upstream))
+                          magit-branch-adjust-remote-upstream-alist))))))
+    (magit-call-git "branch" (concat "--set-upstream-to=" upstream) branch)))
 
 ;;;###autoload
 (defun magit-branch-orphan (branch start-point)
@@ -506,8 +507,8 @@ from the source branch's upstream, then an error is raised."
           (if checkout
               (magit-call-git "checkout" "-b" branch current)
             (magit-call-git "branch" branch current)))
-        (--when-let (magit-get-indirect-upstream-branch current)
-          (magit-call-git "branch" "--set-upstream-to" it branch))
+        (when-let ((upstream (magit-get-indirect-upstream-branch current)))
+          (magit-call-git "branch" "--set-upstream-to" upstream branch))
         (when (and tracked
                    (setq base
                          (if from
@@ -593,13 +594,14 @@ prompt is confusing."
              (list (magit-read-branch-prefer-other
                     (if force "Force delete branch" "Delete branch")))))
      (unless force
-       (when-let ((unmerged (-remove #'magit-branch-merged-p branches)))
+       (when-let ((unmerged (seq-remove #'magit-branch-merged-p branches)))
          (if (magit-confirm 'delete-unmerged-branch
                "Delete unmerged branch %s"
                "Delete %d unmerged branches"
                'noabort unmerged)
              (setq force branches)
-           (or (setq branches (-difference branches unmerged))
+           (or (setq branches
+                     (cl-set-difference branches unmerged :test #'equal))
                (user-error "Abort")))))
      (list branches force)))
   (let* ((refs (mapcar #'magit-ref-fullname branches))
@@ -610,7 +612,7 @@ prompt is confusing."
        (let ((len (length ambiguous)))
          (cond
           ((= len 1)
-           (format "%s is" (-first #'magit-ref-ambiguous-p branches)))
+           (format "%s is" (seq-find #'magit-ref-ambiguous-p branches)))
           ((= len (length refs))
            (format "These %s names are" len))
           (t
