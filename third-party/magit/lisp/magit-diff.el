@@ -837,9 +837,7 @@ and `:slant'."
 (defun magit-diff-arguments (&optional mode)
   "Return the current diff arguments."
   (if (memq transient-current-command '(magit-diff magit-diff-refresh))
-      (pcase-let ((`(,args ,alist)
-                   (-separate #'atom (transient-get-value))))
-        (list args (cdr (assoc "--" alist))))
+      (magit--transient-args-and-files)
     (magit-diff--get-value (or mode 'magit-diff-mode))))
 
 (defun magit-diff--get-value (mode &optional use-buffer-args)
@@ -872,9 +870,7 @@ and `:slant'."
   (pcase-let* ((obj  (oref obj prototype))
                (mode (or (oref obj major-mode) major-mode))
                (key  (intern (format "magit-diff:%s" mode)))
-               (`(,args ,alist)
-                (-separate #'atom (transient-get-value)))
-               (files (cdr (assoc "--" alist))))
+               (`(,args ,files) (magit--transient-args-and-files)))
     (put mode 'magit-diff-current-arguments args)
     (when save
       (setf (alist-get key transient-values) args)
@@ -1121,10 +1117,10 @@ The information can be in three forms:
 
 If no DWIM context is found, nil is returned."
   (cond
-   ((when-let* ((commits (magit-region-values '(commit branch) t)))
-      ;; Cannot use and-let* because of debbugs#31840.
-      (deactivate-mark)
-      (concat (car (last commits)) ".." (car commits))))
+   ((and-let* ((commits (magit-region-values '(commit branch) t)))
+      (progn ; work around debbugs#31840
+        (deactivate-mark)
+        (concat (car (last commits)) ".." (car commits)))))
    (magit-buffer-refname
     (cons 'commit magit-buffer-refname))
    ((derived-mode-p 'magit-stash-mode)
@@ -1152,8 +1148,8 @@ If no DWIM context is found, nil is returned."
       (branch (let ((current (magit-get-current-branch))
                     (atpoint (oref it value)))
                 (if (equal atpoint current)
-                    (--if-let (magit-get-upstream-branch)
-                        (format "%s...%s" it current)
+                    (if-let ((upstream (magit-get-upstream-branch)))
+                        (format "%s...%s" upstream current)
                       (if (magit-anything-modified-p)
                           current
                         (cons 'commit current)))
@@ -1173,26 +1169,27 @@ If no DWIM context is found, nil is returned."
         (t range)))
 
 (defun magit-diff--region-range (&optional interactive mbase)
-  (when-let* ((commits (magit-region-values '(commit branch) t)) ;debbugs#31840
-              (revA (car (last commits)))
-              (revB (car commits)))
-    (when interactive
-      (deactivate-mark))
-    (if mbase
-        (let ((base (magit-git-string "merge-base" revA revB)))
-          (cond
-           ((string= (magit-rev-parse revA) base)
-            (format "%s..%s" revA revB))
-           ((string= (magit-rev-parse revB) base)
-            (format "%s..%s" revB revA))
-           (interactive
-            (let ((main (magit-completing-read "View changes along"
-                                               (list revA revB)
-                                               nil t nil nil revB)))
-              (format "%s...%s"
-                      (if (string= main revB) revA revB) main)))
-           (t "%s...%s" revA revB)))
-      (format "%s..%s" revA revB))))
+  (and-let* ((commits (magit-region-values '(commit branch) t))
+             (revA (car (last commits)))
+             (revB (car commits)))
+    (progn ; work around debbugs#31840
+      (when interactive
+        (deactivate-mark))
+      (if mbase
+          (let ((base (magit-git-string "merge-base" revA revB)))
+            (cond
+             ((string= (magit-rev-parse revA) base)
+              (format "%s..%s" revA revB))
+             ((string= (magit-rev-parse revB) base)
+              (format "%s..%s" revB revA))
+             (interactive
+              (let ((main (magit-completing-read "View changes along"
+                                                 (list revA revB)
+                                                 nil t nil nil revB)))
+                (format "%s...%s"
+                        (if (string= main revB) revA revB) main)))
+             (t "%s...%s" revA revB)))
+        (format "%s..%s" revA revB)))))
 
 (defun magit-diff-read-range-or-commit (prompt &optional secondary-default mbase)
   "Read range or revision with special diff range treatment.
@@ -1476,10 +1473,14 @@ instead."
 (defun magit-diff-set-context (fn)
   (when (derived-mode-p 'magit-merge-preview-mode)
     (user-error "Cannot use %s in %s" this-command major-mode))
-  (let* ((def (--if-let (magit-get "diff.context") (string-to-number it) 3))
+  (let* ((def (if-let ((context (magit-get "diff.context")))
+                  (string-to-number context)
+                3))
          (val magit-buffer-diff-args)
          (arg (--first (string-match "^-U\\([0-9]+\\)?$" it) val))
-         (num (--if-let (and arg (match-string 1 arg)) (string-to-number it) def))
+         (num (if-let ((str (and arg (match-string 1 arg))))
+                  (string-to-number str)
+                def))
          (val (delete arg val))
          (num (funcall fn num))
          (arg (and num (not (= num def)) (format "-U%d" num)))
@@ -1711,24 +1712,25 @@ the Magit-Status buffer for DIRECTORY."
       (user-error "No file at point"))))
 
 (defun magit-diff-visit--hunk ()
-  (when-let* ((scope (magit-diff-scope)) ;debbugs#31840
-              (section (magit-current-section)))
-    (cl-case scope
-      ((file files)
-       (setq section (car (oref section children))))
-      (list
-       (setq section (car (oref section children)))
-       (when section
-         (setq section (car (oref section children))))))
-    (and
-     ;; Unmerged files appear in the list of staged changes
-     ;; but unlike in the list of unstaged changes no diffs
-     ;; are shown here.  In that case `section' is nil.
-     section
-     ;; Currently the `hunk' type is also abused for file
-     ;; mode changes, which we are not interested in here.
-     (not (equal (oref section value) '(chmod)))
-     section)))
+  (and-let* ((scope (magit-diff-scope))
+             (section (magit-current-section)))
+    (progn ; work around debbugs#31840
+      (cl-case scope
+        ((file files)
+         (setq section (car (oref section children))))
+        (list
+         (setq section (car (oref section children)))
+         (when section
+           (setq section (car (oref section children))))))
+      (and
+       ;; Unmerged files appear in the list of staged changes
+       ;; but unlike in the list of unstaged changes no diffs
+       ;; are shown here.  In that case `section' is nil.
+       section
+       ;; Currently the `hunk' type is also abused for file
+       ;; mode changes, which we are not interested in here.
+       (not (equal (oref section value) '(chmod)))
+       section))))
 
 (defun magit-diff-visit--goto-from-p (section in-worktree)
   (and magit-diff-visit-previous-blob
@@ -1907,8 +1909,8 @@ commit or stash at point, then prompt for a commit."
                       (list (magit-get-section '((staged)   (status)))
                             (magit-get-section '((unstaged) (status))))))
                     ((derived-mode-p 'magit-diff-mode)
-                     (-filter #'magit-file-section-p
-                              (oref magit-root-section children))))))
+                     (seq-filter #'magit-file-section-p
+                                 (oref magit-root-section children))))))
     (if (--any-p (oref it hidden) sections)
         (dolist (s sections)
           (magit-section-show s)
@@ -2177,13 +2179,13 @@ When point is on a file inside the diffstat section, then jump
 to the respective diff section, otherwise jump to the diffstat
 section or a child thereof."
   (interactive)
-  (--if-let (magit-get-section
-             (append (magit-section-case
-                       ([file diffstat] `((file . ,(oref it value))))
-                       (file `((file . ,(oref it value)) (diffstat)))
-                       (t '((diffstat))))
-                     (magit-section-ident magit-root-section)))
-      (magit-section-goto it)
+  (if-let ((section (magit-get-section
+                     (append (magit-section-case
+                               ([file diffstat] `((file . ,(oref it value))))
+                               (file `((file . ,(oref it value)) (diffstat)))
+                               (t '((diffstat))))
+                             (magit-section-ident magit-root-section)))))
+      (magit-section-goto section)
     (user-error "No diffstat in this buffer")))
 
 (defun magit-diff-wash-signature (object)
@@ -2751,8 +2753,9 @@ or a ref which is not a branch, then it inserts nothing."
 (defun magit-insert-revision-headers ()
   "Insert headers about the commit into a revision buffer."
   (magit-insert-section (headers)
-    (--when-let (magit-rev-format "%D" magit-buffer-revision "--decorate=full")
-      (insert (magit-format-ref-labels it) ?\s))
+    (when-let ((string (magit-rev-format "%D" magit-buffer-revision
+                                         "--decorate=full")))
+      (insert (magit-format-ref-labels string) ?\s))
     (insert (propertize
              (magit-rev-parse (magit--rev-dereference magit-buffer-revision))
              'font-lock-face 'magit-hash))
@@ -2832,10 +2835,10 @@ Refer to user option `magit-revision-insert-related-refs-display-alist'."
                    ('author '("^Author:     " . nil))
                    ('committer '(nil . "^Commit:     "))
                    (_ magit-revision-show-gravatars))))
-      (--when-let (and author (magit-rev-format "%aE" rev))
-        (magit-insert-revision-gravatar beg rev it author))
-      (--when-let (and committer (magit-rev-format "%cE" rev))
-        (magit-insert-revision-gravatar beg rev it committer)))))
+      (when-let ((email (and author (magit-rev-format "%aE" rev))))
+        (magit-insert-revision-gravatar beg rev email author))
+      (when-let ((email (and committer (magit-rev-format "%cE" rev))))
+        (magit-insert-revision-gravatar beg rev email committer)))))
 
 (defun magit-insert-revision-gravatar (beg rev email regexp)
   (save-excursion
@@ -3040,7 +3043,7 @@ is determined using other means.  In `magit-revision-mode'
 buffers the type is always `committed'.
 
 Do not confuse this with `magit-diff-scope' (which see)."
-  (--when-let (or section (magit-current-section))
+  (when-let ((section (or section (magit-current-section))))
     (cond ((derived-mode-p 'magit-revision-mode 'magit-stash-mode) 'committed)
           ((derived-mode-p 'magit-diff-mode)
            (let ((range magit-buffer-range)
@@ -3060,17 +3063,17 @@ Do not confuse this with `magit-diff-scope' (which see)."
                       'undefined)) ; i.e., committed and staged
                    (t 'committed))))
           ((derived-mode-p 'magit-status-mode)
-           (let ((stype (oref it type)))
+           (let ((stype (oref section type)))
              (if (memq stype '(staged unstaged tracked untracked))
                  stype
                (pcase stype
                  ((or 'file 'module)
-                  (let* ((parent (oref it parent))
+                  (let* ((parent (oref section parent))
                          (type   (oref parent type)))
                     (if (memq type '(file module))
                         (magit-diff-type parent)
                       type)))
-                 ('hunk (thread-first it
+                 ('hunk (thread-first section
                           (oref parent)
                           (oref parent)
                           (oref type)))))))
@@ -3108,8 +3111,8 @@ actually a `diff' but a `diffstat' section."
     (when (and section
                (or (not strict)
                    (and (not (eq (magit-diff-type section) 'untracked))
-                        (not (eq (--when-let (oref section parent)
-                                   (oref it type))
+                        (not (eq (and-let* ((parent (oref section parent)))
+                                   (oref parent type))
                                  'diffstat)))))
       (pcase (list (oref section type)
                    (and siblings t)
