@@ -24,6 +24,7 @@
 ;;     (dash "2.19.1")
 ;;     (git-commit "3.3.0")
 ;;     (magit-section "3.3.0")
+;;     (seq "2.23")
 ;;     (transient "0.3.6")
 ;;     (with-editor "3.0.5"))
 
@@ -555,7 +556,7 @@ is run in the top-level directory of the current working tree."
 (defconst magit-font-lock-keywords
   (eval-when-compile
     `((,(concat "(\\(magit-define-section-jumper\\)\\_>"
-                "[ \t'\(]*"
+                "[ \t'(]*"
                 "\\(\\(?:\\sw\\|\\s_\\)+\\)?")
        (1 'font-lock-keyword-face)
        (2 'font-lock-function-name-face nil t))
@@ -629,12 +630,12 @@ the output in the kill ring.
             (when (featurep 'package)
               (push 'elpa debug)
               (ignore-errors
-                (--when-let (assq 'magit package-alist)
+                (when-let ((version (cadr (assq 'magit package-alist))))
                   (push t debug)
                   (setq magit-version
                         (and (fboundp 'package-desc-version)
                              (package-version-join
-                              (package-desc-version (cadr it))))))))
+                              (package-desc-version version)))))))
             (progn
               (push 'dirname debug)
               (let ((dirname (file-name-nondirectory

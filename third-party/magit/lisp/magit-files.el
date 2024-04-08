@@ -179,11 +179,18 @@ then only after asking.  A non-nil value for REVERT is ignored if REV is
           (after-change-major-mode-hook
            (remq 'global-diff-hl-mode-enable-in-buffers
                  after-change-major-mode-hook)))
-      (delay-mode-hooks
-        (normal-mode t)))
+      (normal-mode t))
     (setq buffer-read-only t)
     (set-buffer-modified-p nil)
     (goto-char (point-min))))
+
+(defun magit--lsp--disable-when-visiting-blob (fn &rest args)
+  "Do nothing when visiting blob using `magit-find-file' and similar.
+See also https://github.com/doomemacs/doomemacs/pull/6309."
+  (unless magit-buffer-revision
+    (apply fn args)))
+
+(advice-add 'lsp :around #'magit--lsp--disable-when-visiting-blob)
 
 ;;; Find Index
 
@@ -227,8 +234,9 @@ is done using `magit-find-index-noselect'."
           (when magit-wip-after-apply-mode
             (magit-wip-commit-after-apply (list file) " after un-/stage")))
       (message "Abort")))
-  (--when-let (magit-get-mode-buffer 'magit-status-mode)
-    (with-current-buffer it (magit-refresh)))
+  (when-let ((buffer (magit-get-mode-buffer 'magit-status-mode)))
+    (with-current-buffer buffer
+      (magit-refresh)))
   t)
 
 ;;; Find Config File
@@ -368,8 +376,8 @@ Currently this only adds the following key bindings.
   (interactive)
   (if-let ((file (or magit-buffer-file-name
                      (buffer-file-name (buffer-base-buffer)))))
-      (--if-let (magit-blob-ancestor magit-buffer-revision file)
-          (magit-blob-visit it)
+      (if-let ((ancestor (magit-blob-ancestor magit-buffer-revision file)))
+          (magit-blob-visit ancestor)
         (user-error "You have reached the beginning of time"))
     (user-error "Buffer isn't visiting a file or blob")))
 
@@ -431,7 +439,7 @@ Git, fallback to using `rename-file'."
       (user-error "%s already exists" dstfile))
     (unless (file-exists-p dstdir)
       (user-error "Destination directory %s does not exist" dstdir))
-    (if (magit-file-tracked-p (magit-convert-filename-for-git file))
+    (if (magit-file-tracked-p file)
         (magit-call-git "mv"
                         (magit-convert-filename-for-git file)
                         (magit-convert-filename-for-git newname))
@@ -451,11 +459,10 @@ Git, fallback to using `rename-file'."
 
 With a prefix argument FORCE do so even when the files have
 staged as well as unstaged changes."
-  (interactive (list (or (--if-let (magit-region-values 'file t)
-                             (progn
-                               (unless (magit-file-tracked-p (car it))
-                                 (user-error "Already untracked"))
-                               (magit-confirm-files 'untrack it "Untrack"))
+  (interactive (list (or (if-let ((files (magit-region-values 'file t)))
+                             (if (magit-file-tracked-p (car files))
+                                 (magit-confirm-files 'untrack files "Untrack")
+                               (user-error "Already untracked"))
                            (list (magit-read-tracked-file "Untrack file"))))
                      current-prefix-arg))
   (magit-with-toplevel
@@ -467,8 +474,8 @@ staged as well as unstaged changes."
 With a prefix argument FORCE do so even when the files have
 uncommitted changes.  When the files aren't being tracked in
 Git, then fallback to using `delete-file'."
-  (interactive (list (--if-let (magit-region-values 'file t)
-                         (magit-confirm-files 'delete it "Delete")
+  (interactive (list (if-let ((files (magit-region-values 'file t)))
+                         (magit-confirm-files 'delete files "Delete")
                        (list (magit-read-file "Delete file")))
                      current-prefix-arg))
   (if (magit-file-tracked-p (car files))
