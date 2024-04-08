@@ -130,9 +130,10 @@ the upstream."
               (not (or (magit-get-upstream-branch branch)
                        (magit--unnamed-upstream-p remote merge)
                        (magit--valid-upstream-p remote merge))))
-      (let* ((branches (-union (--map (concat it "/" branch)
-                                      (magit-list-remotes))
-                               (magit-list-remote-branch-names)))
+      (let* ((branches (cl-union (--map (concat it "/" branch)
+                                        (magit-list-remotes))
+                                 (magit-list-remote-branch-names)
+                                 :test #'equal))
              (upstream (magit-completing-read
                         (format "Set upstream of %s and push there" branch)
                         branches nil nil nil 'magit-revision-history
@@ -181,9 +182,9 @@ the upstream."
 (defun magit-push-current (target args)
   "Push the current branch to a branch read in the minibuffer."
   (interactive
-   (--if-let (magit-get-current-branch)
-       (list (magit-read-remote-branch (format "Push %s to" it)
-                                       nil nil it 'confirm)
+   (if-let ((current (magit-get-current-branch)))
+       (list (magit-read-remote-branch (format "Push %s to" current)
+                                       nil nil current 'confirm)
              (magit-push-arguments))
      (user-error "No branch is checked out")))
   (magit-git-push (magit-get-current-branch) target args))

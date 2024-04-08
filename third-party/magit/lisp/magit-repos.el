@@ -159,8 +159,8 @@ repositories are displayed."
 (defun magit-repolist-status (&optional _button)
   "Show the status for the repository at point."
   (interactive)
-  (--if-let (tabulated-list-get-id)
-      (magit-status-setup-buffer (expand-file-name it))
+  (if-let ((id (tabulated-list-get-id)))
+      (magit-status-setup-buffer (expand-file-name id))
     (user-error "There is no repository at point")))
 
 (defun magit-repolist-mark ()
@@ -291,8 +291,8 @@ If it contains \"%s\" then the directory is substituted for that."
                       (caar magit-repolist-columns))
                   flip))))
   (setq tabulated-list-format
-        (vconcat (-map-indexed
-                  (lambda (idx column)
+        (vconcat (seq-map-indexed
+                  (lambda (column idx)
                     (pcase-let* ((`(,title ,width ,_fn ,props) column)
                                  (sort-set (assoc :sort props))
                                  (sort-fn (cadr sort-set)))

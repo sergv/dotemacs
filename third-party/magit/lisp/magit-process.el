@@ -37,6 +37,8 @@
 (require 'ansi-color)
 (require 'with-editor)
 
+(defvar y-or-n-p-map)
+
 ;;; Options
 
 (defcustom magit-process-connection-type (not (eq system-type 'cygwin))
@@ -150,13 +152,13 @@ itself from the hook, to avoid further futile attempts."
                  (const :tag "Don't start a cache daemon" nil)))
 
 (defcustom magit-process-yes-or-no-prompt-regexp
-  (concat " [\[(]"
+  (concat " [([]"
           "\\([Yy]\\(?:es\\)?\\)"
           "[/|]"
           "\\([Nn]o?\\)"
           ;; OpenSSH v8 prints this.  See #3969.
           "\\(?:/\\[fingerprint\\]\\)?"
-          "[\])] ?[?:]? ?$")
+          "[])] ?[?:]? ?$")
   "Regexp matching Yes-or-No prompts of Git and its subprocesses."
   :package-version '(magit . "2.1.0")
   :group 'magit-process
@@ -436,8 +438,8 @@ conversion."
                  (cdr (assoc magit-git-executable magit-git-w32-path-hack)))
             (and local magit-need-cygwin-noglob
                  (mapcar (lambda (var)
-                           (concat var "=" (--if-let (getenv var)
-                                               (concat it " noglob")
+                           (concat var "=" (if-let ((val (getenv var)))
+                                               (concat val " noglob")
                                              "noglob")))
                          '("CYGWIN" "MSYS")))
             process-environment)))
@@ -673,16 +675,17 @@ Magit status buffer."
 (defun magit-process--format-arguments (program args)
   (cond
    ((and args (equal program (magit-git-executable)))
-    (setq args (-split-at (length magit-git-global-arguments) args))
-    (concat (propertize (file-name-nondirectory program)
-                        'font-lock-face 'magit-section-heading)
-            " "
-            (propertize (magit--ellipsis)
-                        'font-lock-face 'magit-section-heading
-                        'help-echo (mapconcat #'identity (car args) " "))
-            " "
-            (propertize (mapconcat #'shell-quote-argument (cadr args) " ")
-                        'font-lock-face 'magit-section-heading)))
+    (let ((global (length magit-git-global-arguments)))
+      (concat
+       (propertize (file-name-nondirectory program)
+                   'font-lock-face 'magit-section-heading)
+       " "
+       (propertize (magit--ellipsis)
+                   'font-lock-face 'magit-section-heading
+                   'help-echo (mapconcat #'identity (seq-take args global) " "))
+       " "
+       (propertize (mapconcat #'shell-quote-argument (seq-drop args global) " ")
+                   'font-lock-face 'magit-section-heading))))
    ((and args (equal program shell-file-name))
     (propertize (cadr args)
                 'font-lock-face 'magit-section-heading))
@@ -741,16 +744,16 @@ Magit status buffer."
                 (status-buf (with-current-buffer process-buf
                               (magit-get-mode-buffer 'magit-status-mode))))
       (with-current-buffer status-buf
-        (--when-let
-            (magit-get-section
-             `((commit . ,(magit-rev-parse "HEAD"))
-               (,(pcase (car (cadr (-split-at
-                                    (1+ (length magit-git-global-arguments))
-                                    (process-command process))))
-                   ((or "rebase" "am")   'rebase-sequence)
-                   ((or "cherry-pick" "revert") 'sequence)))
-               (status)))
-          (goto-char (oref it start))
+        (when-let ((section
+                    (magit-get-section
+                     `((commit . ,(magit-rev-parse "HEAD"))
+                       (,(pcase (car (seq-drop
+                                      (process-command process)
+                                      (1+ (length magit-git-global-arguments))))
+                           ((or "rebase" "am") 'rebase-sequence)
+                           ((or "cherry-pick" "revert") 'sequence)))
+                       (status)))))
+          (goto-char (oref section start))
           (magit-section-update-highlight))))))
 
 (defun magit-process-filter (proc string)
@@ -774,20 +777,27 @@ Magit status buffer."
       (run-hook-with-args-until-success 'magit-process-prompt-functions
                                         proc string))))
 
-(defmacro magit-process-kill-on-abort (proc &rest body)
-  (declare (indent 1) (debug (form body)))
-  (let ((map (cl-gensym)))
-    `(let ((,map (make-sparse-keymap)))
-       (set-keymap-parent ,map minibuffer-local-map)
-       ;; Note: Leaving (kbd ...) unevaluated leads to the
-       ;; magit-process:password-prompt test failing.
-       (keymap-set ,map "C-g"
-                   (lambda ()
-                     (interactive)
-                     (ignore-errors (kill-process ,proc))
-                     (abort-recursive-edit)))
-       (let ((minibuffer-local-map ,map))
-         ,@body))))
+(defun magit-process-make-keymap (process parent)
+  "Remap `abort-minibuffers' to a command that also kills PROCESS.
+PARENT is used as the parent of the returned keymap."
+  (let ((cmd (lambda ()
+               (interactive)
+               (ignore-errors (kill-process process))
+               (if (fboundp 'abort-minibuffers)
+                   (abort-minibuffers)
+                 (abort-recursive-edit)))))
+    (define-keymap :parent parent
+      "C-g" cmd
+      "<remap> <abort-minibuffers>" cmd
+      "<remap> <abort-recursive-edit>" cmd)))
+
+(defmacro magit-process-kill-on-abort (process &rest body)
+  (declare (indent 1)
+           (debug (form body))
+           (obsolete magit-process-make-keymap "Magit 4.0.0"))
+  `(let ((minibuffer-local-map
+          (magit-process-make-keymap ,process minibuffer-local-map)))
+     ,@body))
 
 (defun magit-process-remove-bogus-errors (str)
   (save-match-data
@@ -803,17 +813,19 @@ Magit status buffer."
 (defun magit-process-yes-or-no-prompt (process string)
   "Forward Yes-or-No prompts to the user."
   (when-let ((beg (string-match magit-process-yes-or-no-prompt-regexp string)))
-    (let ((max-mini-window-height 30))
-      (process-send-string
-       process
-       (downcase
-        (concat
-         (match-string
-          (if (save-match-data
-                (magit-process-kill-on-abort process
-                  (yes-or-no-p (substring string 0 beg)))) 1 2)
-          string)
-         "\n"))))))
+    (process-send-string
+     process
+     (if (save-match-data
+           (let ((max-mini-window-height 30)
+                 (minibuffer-local-map
+                  (magit-process-make-keymap process minibuffer-local-map))
+                 ;; In case yes-or-no-p is fset to that, but does
+                 ;; not cover use-dialog-box-p and y-or-n-p-read-key.
+                 (y-or-n-p-map
+                  (magit-process-make-keymap process y-or-n-p-map)))
+             (yes-or-no-p (substring string 0 beg))))
+         (concat (downcase (match-string 1 string)) "\n")
+       (concat (downcase (match-string 2 string)) "\n")))))
 
 (defun magit-process-password-auth-source (key)
   "Use `auth-source-search' to get a password.
@@ -894,20 +906,24 @@ from the user."
   (when-let ((prompt (magit-process-match-prompt
                       magit-process-password-prompt-regexps string)))
     (process-send-string
-     process (magit-process-kill-on-abort process
-               (concat (or (and-let* ((key (match-string 99 string)))
-                             (run-hook-with-args-until-success
-                              'magit-process-find-password-functions key))
-                           (read-passwd prompt))
-                       "\n")))))
+     process
+     (concat (or (and-let* ((key (match-string 99 string)))
+                   (run-hook-with-args-until-success
+                    'magit-process-find-password-functions key))
+                 (let ((read-passwd-map
+                        (magit-process-make-keymap process read-passwd-map)))
+                   (read-passwd prompt)))
+             "\n"))))
 
 (defun magit-process-username-prompt (process string)
   "Forward username prompts to the user."
-  (--when-let (magit-process-match-prompt
-               magit-process-username-prompt-regexps string)
+  (when-let ((prompt (magit-process-match-prompt
+                      magit-process-username-prompt-regexps string)))
     (process-send-string
-     process (magit-process-kill-on-abort process
-               (concat (read-string it nil nil (user-login-name)) "\n")))))
+     process
+     (let ((minibuffer-local-map
+            (magit-process-make-keymap process minibuffer-local-map)))
+       (concat (read-string prompt nil nil (user-login-name)) "\n")))))
 
 (defun magit-process-match-prompt (prompts string)
   "Match STRING against PROMPTS and set match data.
