@@ -134,9 +134,9 @@
         (seturl   (oref obj seturl-arg))
         (remote   (oref transient--prefix scope)))
     (oset obj value values)
-    (dolist (v (-difference values previous))
+    (dolist (v (cl-set-difference values previous :test #'equal))
       (magit-call-git "remote" "set-url" seturl "--add" remote v))
-    (dolist (v (-difference previous values))
+    (dolist (v (cl-set-difference previous values :test #'equal))
       (magit-call-git "remote" "set-url" seturl "--delete" remote
                       (concat "^" (regexp-quote v) "$")))
     (magit-refresh)))
@@ -218,6 +218,15 @@
                                         'transient-inactive-value
                                       'transient-value))))))
      (propertize "]" 'face 'transient-inactive-value))))
+
+;;; Utilities
+
+(defun magit--transient-args-and-files ()
+  "Return (args files) for use by log and diff functions.
+The value derives from that returned by `transient-get-value'."
+  (let ((args (transient-get-value)))
+    (list (seq-filter #'atom args)
+          (cdr (assoc "--" args)))))
 
 ;;; _
 (provide 'magit-transient)
