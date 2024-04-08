@@ -108,7 +108,7 @@ which creates patches for all commits that are reachable from
                    range
                  (format "%s~..%s" range range))))
            (let ((args (transient-args 'magit-patch-create)))
-             (list (-filter #'stringp args)
+             (list (seq-filter #'stringp args)
                    (cdr (assoc "--" args)))))))
   (if (not range)
       (transient-setup 'magit-patch-create)
@@ -295,7 +295,9 @@ same differences as those shown in the buffer are always used."
              (setq args nil)))
           ((eq (car-safe magit-patch-save-arguments) 'exclude)
            (unless arg
-             (setq args (-difference args (cdr magit-patch-save-arguments)))))
+             (setq args
+                   (cl-set-difference args (cdr magit-patch-save-arguments)
+                                      :test #'equal))))
           ((not arg)
            (setq args magit-patch-save-arguments)))
     (with-temp-file file
