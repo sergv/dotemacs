@@ -446,16 +446,16 @@ This is only used if Magit is available."
 (add-to-list 'with-editor-file-name-history-exclude git-commit-filename-regexp)
 
 (defun git-commit-setup-font-lock-in-buffer ()
-  (and buffer-file-name
-       (string-match-p git-commit-filename-regexp buffer-file-name)
-       (git-commit-setup-font-lock)))
+  (when (and buffer-file-name
+             (string-match-p git-commit-filename-regexp buffer-file-name))
+    (git-commit-setup-font-lock)))
 
 (add-hook 'after-change-major-mode-hook #'git-commit-setup-font-lock-in-buffer)
 
 (defun git-commit-setup-check-buffer ()
-  (and buffer-file-name
-       (string-match-p git-commit-filename-regexp buffer-file-name)
-       (git-commit-setup)))
+  (when (and buffer-file-name
+             (string-match-p git-commit-filename-regexp buffer-file-name))
+    (git-commit-setup)))
 
 (defvar git-commit-mode)
 
@@ -534,10 +534,17 @@ Used as the local value of `header-line-format', in buffer using
       (hack-dir-local-variables)
       (hack-local-variables-apply)))
   (when git-commit-major-mode
-    (let ((auto-mode-alist (list (cons (concat "\\`"
-                                               (regexp-quote buffer-file-name)
-                                               "\\'")
-                                       git-commit-major-mode)))
+    (let ((auto-mode-alist
+           ;; `set-auto-mode--apply-alist' removes the remote part from
+           ;; the file-name before looking it up in `auto-mode-alist'.
+           ;; For our temporary entry to be found, we have to modify the
+           ;; file-name the same way.
+           (list (cons (concat "\\`"
+                               (regexp-quote
+                                (or (file-remote-p buffer-file-name 'localname)
+                                    buffer-file-name))
+                               "\\'")
+                       git-commit-major-mode)))
           ;; The major-mode hook might want to consult these minor
           ;; modes, while the minor-mode hooks might want to consider
           ;; the major mode.
@@ -791,12 +798,13 @@ Save current message first."
       (unless (eq (char-before) ?\n)
         (insert ?\n))
       (setq str (buffer-string)))
-    (unless (string-match "\\`[ \t\n\r]*\\'" str)
-      (when (string-match "\\`\n\\{2,\\}" str)
-        (setq str (replace-match "\n" t t str)))
-      (when (string-match "\n\\{2,\\}\\'" str)
-        (setq str (replace-match "\n" t t str)))
-      str)))
+    (and (not (string-match "\\`[ \t\n\r]*\\'" str))
+         (progn
+           (when (string-match "\\`\n\\{2,\\}" str)
+             (setq str (replace-match "\n" t t str)))
+           (when (string-match "\n\\{2,\\}\\'" str)
+             (setq str (replace-match "\n" t t str)))
+           str))))
 
 ;;; Utilities
 
@@ -1068,8 +1076,16 @@ Added to `font-lock-extend-region-functions'."
                              (buffer-substring (point) (line-end-position)))))
                     "#"))
     (setq-local comment-start-skip (format "^%s+[\s\t]*" comment-start))
+    (setq-local comment-end "")
     (setq-local comment-end-skip "\n")
     (setq-local comment-use-syntax nil)
+    (when (and (derived-mode-p 'markdown-mode)
+               (fboundp 'markdown-fill-paragraph))
+      (setq-local fill-paragraph-function
+                  (lambda (&optional justify)
+                    (and (not (= (char-after (line-beginning-position))
+                                 (aref comment-start 0)))
+                         (markdown-fill-paragraph justify)))))
     (setq-local git-commit--branch-name-regexp
                 (if (and (featurep 'magit-git)
                          ;; When using cygwin git, we may end up in a
