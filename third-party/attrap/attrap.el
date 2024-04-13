@@ -529,20 +529,21 @@ Error is given as MSG and reported between POS and END."
                         normalized-msg)))
     (attrap-one-option 'delete-import
       (let ((redundant (nth 1 match)))
-        (save-excursion
-          (when (looking-at (rx "import"))
-            ; if there are several things redundant, the message starts at 'import'
-              (search-forward "(")) ; the imported things are after the parenthesis
-          (dolist (r (s-split ", " redundant t))
+        (save-match-data
           (save-excursion
-            (re-search-forward (rx-to-string (if (s-matches? (rx bol alphanumeric) r)
-                                                 `(seq word-start ,r word-end) ; regular ident
-                                               `(seq "(" ,r ")")))) ; operator
-            (replace-match "")
-            (when (looking-at "(..)") (delete-char 4))
-            (when (or (looking-at (rx (* space) ","))
-                      (looking-back (rx "," (* space)) (line-beginning-position)))
-              (replace-match ""))))))))
+            (when (looking-at (rx "import"))
+              ; if there are several things redundant, the message starts at 'import'
+              (search-forward "(")) ; the imported things are after the parenthesis
+            (dolist (r (s-split ", " redundant t))
+              (save-excursion
+                (re-search-forward (rx-to-string (if (s-matches? (rx bol alphanumeric) r)
+                                                     `(seq word-start ,r word-end) ; regular ident
+                                                   `(seq "(" ,r ")")))) ; operator
+                (replace-match "")
+                (when (looking-at "(..)") (delete-char 4))
+                (when (or (looking-at (rx (* space) "," (* space)))
+                          (looking-back (rx "," (* space)) (line-beginning-position)))
+                  (replace-match "")))))))))
    (when (string-match (rx "The " (? "qualified ") "import of " (identifier 1) " is redundant") msg)
     (attrap-one-option 'delete-module-import
       (save-match-data
