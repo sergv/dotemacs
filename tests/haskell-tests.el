@@ -40,7 +40,7 @@
             :contents ,contents
             :expected-value ,expected-value
             :initialisation (,mode)
-            :buffer-id ,(string->symbol (format "haskel-tests-%s" mode)))))))
+            :buffer-id ,(string->symbol (format "haskell-tests-%s" mode)))))))
 
 (defmacro haskell-tests--test-buffer-contents (name action contents expected-value)
   (declare (indent 2))
@@ -64,7 +64,7 @@
             :contents ,contents
             :expected-value ,expected-value
             :initialisation (,mode)
-            :buffer-id ,(string->symbol (format "haskel-tests-%s" mode)))))))
+            :buffer-id ,(string->symbol (format "haskell-tests-%s" mode)))))))
 
 (defmacro haskell-tests--cabal--test-buffer-contents (action contents expected-value)
   (declare (indent 1))
