@@ -347,11 +347,11 @@ The import ends at LINE and COL in the file."
 Error is given as MSG and reported between POS and END."
   (let ((normalized-msg (s-collapse-whitespace msg)))
   (rx-let ((parens (body) (seq "(" body ")"))
-           (lin-col (l c) (seq "(" (group-n l (* num)) "," (group-n c (* num))")"))
+           (lin-col (l c) (seq "(" (group-n l (* num)) "," (group-n c (* num)) ")"))
            (multiline-span (l1 c1 l2 c2) (seq (lin-col l1 c1) "-" (lin-col l2 c2)))
            (monoline-span (l1 c1 l2 c2) (seq (group-n l2 (group-n l1 (* num))) ":" (group-n c1 (* num)) "-" (group-n c2 (* num))))
            (any-span (l1 c1 l2 c2) (or (monoline-span l1 c1 l2 c2) (multiline-span l1 c1 l2 c2)))
-           (src-loc (l1 c1 l2 c2) (seq (* (not ":"))":" (any-span l1 c1 l2 c2)))
+           (src-loc (l1 c1 l2 c2) (seq (* (not ":")) ":" (any-span l1 c1 l2 c2)))
            (module-name (+ (any "_." alphanumeric)))
            (identifier (n) (seq "‘" (group-n n (* (not "’"))) "’")))
   (append
@@ -553,12 +553,19 @@ Error is given as MSG and reported between POS and END."
            (point)
            (progn
              (unless (looking-at
-                      (rx "import" (+ space) module-name (? (+ space) "hiding") (* space)))
+                      (rx "import" (+ space) (? "qualified" (+ space)) module-name (? (+ space) (? "qualified") (? (+ space) "as" (+ space) module-name) (? (+ space) "hiding"))))
                (error "Import statement not found"))
              (goto-char (match-end 0))
-             (when (looking-at "(") ; skip the import list if any
-               (forward-sexp))
              (skip-chars-forward "\t ")
+             (let ((sexp-end
+                    (save-excursion
+                      (skip-chars-forward "\r\n\t ")
+                      (when (looking-at "(") ; skip the import list if any
+                        (forward-sexp)
+                        (skip-chars-forward "\t ")
+                        (point)))))
+               (when sexp-end
+                 (goto-char sexp-end)))
              (when (eq (char-after) ?\r)
                (forward-char 1))
              (when (eq (char-after) ?\n)
