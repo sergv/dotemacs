@@ -18,7 +18,7 @@
 (defvar test-utils--temp-buffers nil
   "Alist from buffer-id (symbol) to actual buffer.")
 
-(cl-defmacro tests-utils--with-temp-buffer (&key action contents initialisation buffer-id)
+(cl-defmacro tests-utils--with-temp-buffer (&key action contents initialisation post-content-initialisation buffer-id)
   (declare (indent nil))
   `(save-match-data
      (let ((buf ,@(when buffer-id
@@ -41,6 +41,9 @@
         (erase-buffer)
         (insert ,contents)
         (goto-char (point-min))
+        (save-match-data
+          (save-excursion
+            ,post-content-initialisation))
         (if (re-search-forward "_|_" nil t)
             (replace-match "")
           (error "No _|_ marker for point position within contents:\n%s" ,contents))
@@ -55,10 +58,11 @@
                      (not (eq vim-active-mode 'vim-normal-mode)))
             (vim-activate-mode #'vim-normal-mode)))))))
 
-(cl-defmacro tests-utils--test-buffer-contents (&key action contents expected-value initialisation buffer-id)
+(cl-defmacro tests-utils--test-buffer-contents (&key action contents expected-value initialisation post-content-initialisation buffer-id)
   (declare (indent nil))
   `(tests-utils--with-temp-buffer
     :initialisation ,initialisation
+    :post-content-initialisation ,post-content-initialisation
     :action
     (progn
       ,action
