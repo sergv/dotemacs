@@ -545,17 +545,24 @@ Error is given as MSG and reported between POS and END."
               (replace-match ""))))))))
    (when (string-match (rx "The " (? "qualified ") "import of " (identifier 1) " is redundant") msg)
     (attrap-one-option 'delete-module-import
-      (delete-region
-       (point)
-       (progn
-         (unless (looking-at
-                  (rx "import" (+ space) module-name (? (+ space) "hiding") (* space)))
-           (error "Import statement not found"))
-         (goto-char (match-end 0))
-         (when (looking-at "(") ; skip the import list if any
-           (forward-sexp))
-         (skip-chars-forward "\t\n ")
-         (point)))))
+      (save-match-data
+        (save-excursion
+          (beginning-of-line)
+          (delete-region
+           (point)
+           (progn
+             (unless (looking-at
+                      (rx "import" (+ space) module-name (? (+ space) "hiding") (* space)))
+               (error "Import statement not found"))
+             (goto-char (match-end 0))
+             (when (looking-at "(") ; skip the import list if any
+               (forward-sexp))
+             (skip-chars-forward "\t ")
+             (when (eq (char-after) ?\r)
+               (forward-char 1))
+             (when (eq (char-after) ?\n)
+               (forward-char 1))
+             (point)))))))
    (when (string-match "Found type wildcard ‘\\(.*\\)’[ \t\n]*standing for ‘\\([^’]*\\)’" msg)
     (attrap-one-option 'explicit-type-wildcard
       (let ((wildcard (match-string 1 msg))
