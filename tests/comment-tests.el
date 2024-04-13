@@ -146,6 +146,7 @@
 (provide 'comment-tests)
 
 ;; Local Variables:
+;; no-byte-compile: t
 ;; End:
 
 ;; comment-tests.el ends here
