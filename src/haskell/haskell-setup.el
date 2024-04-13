@@ -117,6 +117,9 @@
 With prefix argument puts symbol at point also in substitute part"
   (vim:replace-symbol-at-point--impl 'haskell-symbol))
 
+(vim-defcmd vim:attrap-flycheck (repeatable)
+  (attrap-flycheck (point)))
+
 ;; Sample ‘packages’ content:
 ;; "active package flags:\n  -package-id base-4.15.1.0\n  -package-id aeson-2.0.3.0-e91573e5a9f0a74731f7cb1fe08486dfa1990213df0c4f864e51b791370cc73d"
 (defun haskell-go-to-symbol-home--strip-ghci-packages-of-versions (packages)
@@ -279,7 +282,7 @@ _q_ualify import  _-_: attrap
 "
   ("q" vim:haskell-qualify-import:interactive)
 
-  ("-" attrap-flycheck))
+  ("-" vim:attrap-flycheck:interactive))
 
 (defhydra-ext hydra-haskell-dante (:exit t :foreign-keys warn :hint nil)
   "
@@ -291,7 +294,7 @@ _q_ualify import"
   ("q" vim:haskell-qualify-import:interactive)
 
   ("j" dante-eval-block)
-  ("-" attrap-flycheck))
+  ("-" vim:attrap-flycheck:interactive))
 
 (defhydra-ext hydra-haskell-lsp (:exit t :foreign-keys warn :hint nil)
   "
@@ -300,7 +303,7 @@ _a_ctions         _i_nfo
 _q_ualify import  _t_ype
 _r_ename          _u_ses of thing at point
 "
-  ("-" attrap-flycheck)
+  ("-" vim:attrap-flycheck:interactive)
   ("a" lsp-execute-code-action)
   ("q" vim:haskell-qualify-import:interactive)
   ("r" lsp-rename)
