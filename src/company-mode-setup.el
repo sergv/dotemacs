@@ -52,6 +52,8 @@
 (company-statistics-mode +1)
 ;; (company-posframe-mode +1)
 
+(provide 'company-mode-setup)
+
 ;; Local Variables:
 ;; End:
 
