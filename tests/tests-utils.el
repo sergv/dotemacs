@@ -19,7 +19,7 @@
   "Alist from buffer-id (symbol) to actual buffer.")
 
 (cl-defmacro tests-utils--with-temp-buffer (&key action contents initialisation buffer-id)
-  (declare (indent 0))
+  (declare (indent nil))
   `(save-match-data
      (let ((buf ,@(when buffer-id
                     (list `(cdr-safe (assq ',buffer-id test-utils--temp-buffers))))))
@@ -56,7 +56,7 @@
             (vim-activate-mode #'vim-normal-mode)))))))
 
 (cl-defmacro tests-utils--test-buffer-contents (&key action contents expected-value initialisation buffer-id)
-  (declare (indent 2))
+  (declare (indent nil))
   `(tests-utils--with-temp-buffer
     :initialisation ,initialisation
     :action
