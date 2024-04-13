@@ -180,7 +180,7 @@ import Data.Version (Version)
 #endif
 
 #if defined(Cabal114OrMore)
-import Distribution.PackageDescription (BenchmarkInterface(..),)
+import Distribution.PackageDescription (BenchmarkInterface(..))
 #endif
 
 #if defined(Cabal20OrLater)
@@ -273,7 +273,7 @@ instance Ord UnixFilepath where
 mkUnixFilepath :: FilePath -> UnixFilepath
 mkUnixFilepath x = UnixFilepath
   { ufContents = builderFromByteString x'
-  , ufHash   = mkHash x'
+  , ufHash     = mkHash x'
   }
   where
     x' = C8.map (\c -> if isPathSeparator c then '/' else c) $ C8.pack $ normalise x
