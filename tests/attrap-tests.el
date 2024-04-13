@@ -215,6 +215,44 @@
   "_|_import Distribution.Package (PackageName)"
   ""))
 
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/delete-import-2
+ :flycheck-errors
+ (list
+  (let ((linecol (save-excursion
+                   (re-search-forward "_|_")
+                   (flycheck-line-column-at-pos (point)))))
+    (flycheck-error-new
+     :line (car linecol)
+     :column (cdr linecol)
+     :buffer (current-buffer)
+     :checker 'haskell-dante
+     :message
+     (tests-utils--multiline
+      "warning: [GHC-38856] [-Wunused-imports]"
+      "    The import of ‘Executable(buildInfo), Library(exposedModules),"
+      "                   hcOptions, Library(libBuildInfo), Executable(modulePath),"
+      "                   usedExtensions’"
+      "    from module ‘Distribution.PackageDescription’ is redundant")
+     :level 'warning
+     :id nil
+     :group nil)))
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Quux"
+  "_|_import Distribution.PackageDescription (GenericPackageDescription, PackageDescription(..), usedExtensions, hcOptions, exeName, buildInfo, modulePath, libBuildInfo, exposedModules)"
+  ""
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Quux"
+  "_|_import Distribution.PackageDescription (GenericPackageDescription, PackageDescription(..), exeName)"
+  ""))
+
 (provide 'attrap-tests)
 
 ;; Local Variables:
