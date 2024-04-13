@@ -523,19 +523,31 @@ Error is given as MSG and reported between POS and END."
        (goto-char 1)
        (search-forward-regexp (rx "module" (*? anychar) "where"))
        (insert "\n" "import " (nth 1 m) "\n")))
-   (when-let ((match (s-match (rx (or (seq "The " (? "qualified ") "import of " (identifier 1)
-                                           " from module " (identifier 2) " is redundant")
+   (when-let ((match (s-match (rx (or (seq "The " (? "qualified ") "import of " (identifier 1) (* (any ?\s ?\t ?\n ?\r))
+                                           "from module " (identifier 2) " is redundant")
                                       (seq "Module " (identifier 2) " does not export " (identifier 1))))
-                        normalized-msg)))
+                              normalized-msg)))
     (attrap-one-option 'delete-import
       (let ((redundant (nth 1 match)))
         (save-match-data
           (save-excursion
             (when (looking-at (rx "import"))
-              ; if there are several things redundant, the message starts at 'import'
+                                   ; if there are several things redundant, the message starts at 'import'
               (search-forward "(")) ; the imported things are after the parenthesis
-            (dolist (r (s-split ", " redundant t))
+            (dolist (r (s-split "[, \n\r\t]+" redundant t))
               (save-excursion
+                ;; Transform Executable(buildInfo) -> buildInfo for when
+                ;; we imported a type’s accessor but GHC reports it together
+                ;; with parent type name.
+                (when-let (m (s-match (rx
+                                       (* (any ?_))
+                                       (any (?A . ?Z))
+                                       (* alphanumeric)
+                                       "("
+                                       (group-n 1 (+ (not ?\))))
+                                       ")")
+                                      r))
+                    (setf r (nth 1 m)))
                 (re-search-forward (rx-to-string (if (s-matches? (rx bol alphanumeric) r)
                                                      `(seq word-start ,r word-end) ; regular ident
                                                    `(seq "(" ,r ")")))) ; operator
