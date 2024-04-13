@@ -15,7 +15,7 @@
 (require 'haskell-setup)
 (require 'flycheck)
 
-(cl-defmacro attrap-tests--test-buffer-contents-multi
+(cl-defmacro attrap-tests--test-buffer-contents-many
     (&key
      name
      flycheck-errors
@@ -54,7 +54,7 @@
      contents
      expected-value
      (modes '(haskell-mode haskell-ts-mode)))
-  `(attrap-tests--test-buffer-contents-multi
+  `(attrap-tests--test-buffer-contents-many
      :name ,name
      :flycheck-errors ,flycheck-errors
      :action ,action
@@ -72,7 +72,7 @@
           'haskell-dante)))
     (attrap-flycheck (point))))
 
-(attrap-tests--test-buffer-contents-one
+(attrap-tests--test-buffer-contents-many
  :name attrap/haskell-dante/delete-module-import-1
  :flycheck-errors
  (list
@@ -96,10 +96,65 @@
  :action
  (attrap-tests--run-attrap)
  :contents
+ ((a
+   (tests-utils--multiline
+    ""
+    "import Quux"
+    "_|_import Foo.Bar.Baz"
+    ""
+    ""))
+  (b
+   (tests-utils--multiline
+    ""
+    "import Quux"
+    "_|_import Foo.Bar.Baz (foo, bar)"
+    ""
+    ""))
+  (c
+   (tests-utils--multiline
+    ""
+    "import Quux"
+    "_|_import Foo.Bar.Baz"
+    "  ( foo"
+    "  , bar"
+    "  )"
+    ""
+    "")))
+ :expected-value
  (tests-utils--multiline
   ""
   "import Quux"
-  "_|_import Foo.Bar.Baz"
+  "_|_"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/delete-module-import-2
+ :flycheck-errors
+ (list
+  (let ((linecol (save-excursion
+                   (re-search-forward "_|_")
+                   (flycheck-line-column-at-pos (point)))))
+    (flycheck-error-new
+     :line (car linecol)
+     :column (cdr linecol)
+     :buffer (current-buffer)
+     :checker 'haskell-dante
+     :message
+     (tests-utils--multiline
+      "warning: [GHC-66111] [-Wunused-imports]"
+      "    The qualified import of ‘Distribution.ModuleName’ is redundant"
+      "      except perhaps to import instances from ‘Distribution.ModuleName’"
+      "    To import instances alone, use: import Distribution.ModuleName()")
+     :level 'warning
+     :id nil
+     :group nil)))
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Quux"
+  "_|_import Distribution.ModuleName qualified as ModuleName"
   ""
   "")
  :expected-value
@@ -109,7 +164,7 @@
   "_|_"
   ""))
 
-(attrap-tests--test-buffer-contents-multi
+(attrap-tests--test-buffer-contents-many
  :name attrap/haskell-dante/delete-import-1
  :flycheck-errors
  (list
