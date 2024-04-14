@@ -29,7 +29,13 @@
   (should (string= (haskell-abbrev+-extract-mod-name "Foo'.Bar2.Baz_3.Quux")
                    "Quux")))
 
-(cl-defmacro haskell-tests--test-buffer-contents* (&key name action contents expected-value (modes '(haskell-mode haskell-ts-mode)))
+(cl-defmacro haskell-tests--test-buffer-contents*
+    (&key name
+          action
+          contents
+          expected-value
+          (modes '(haskell-mode haskell-ts-mode))
+          fresh-buffer)
   `(progn
      ,@(cl-loop
         for mode in modes
@@ -40,7 +46,7 @@
             :contents ,contents
             :expected-value ,expected-value
             :initialisation (,mode)
-            :buffer-id ,(string->symbol (format "haskell-tests-%s" mode)))))))
+            :buffer-id ,(if fresh-buffer nil (string->symbol (format "haskell-tests-%s" mode))))))))
 
 (defmacro haskell-tests--test-buffer-contents (name action contents expected-value)
   (declare (indent 2))
@@ -90,7 +96,7 @@ end."
            ,(cl-third entry)))))
 
 (cl-defmacro haskell-tests--make-multiple-input-test-buffer-contents
-    (&key action entries expected-value modes)
+    (&key action entries expected-value modes fresh-buffer)
   "Define a set of tests that share final buffer state but
 have different input states."
   (declare (indent 1))
@@ -103,7 +109,8 @@ have different input states."
           :action ,action
           :contents ,(cl-second entry)
           :expected-value ,expected-value
-          ,@(when modes `(:modes ,modes))))))
+          ,@(when modes `(:modes ,modes))
+          :fresh-buffer ,fresh-buffer))))
 
 (cl-defmacro haskell-tests--test-result (name &key action expected-value contents)
   (declare (indent 1))
@@ -1680,7 +1687,8 @@ have different input states."
      "  { foo :: !(_|_Set Int)"
      "  , bar :: Map Int Double"
      "  }")
-    :modes (haskell-ts-mode))
+    :modes (haskell-ts-mode)
+    :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -1699,7 +1707,8 @@ have different input states."
   "  { foo ::  !(_|_Set Int)"
   "  , bar :: Map Int Double"
   "  }")
- :modes (haskell-ts-mode))
+ :modes (haskell-ts-mode)
+ :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
  :name
@@ -1718,7 +1727,8 @@ have different input states."
   "  { foo ::            !(_|_Set Int)"
   "  , bar :: Map Int Double"
   "  }")
- :modes (haskell-ts-mode))
+ :modes (haskell-ts-mode)
+ :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-backspace-with-block-dedent-1
