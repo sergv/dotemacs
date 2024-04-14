@@ -29,7 +29,7 @@
   (should (string= (haskell-abbrev+-extract-mod-name "Foo'.Bar2.Baz_3.Quux")
                    "Quux")))
 
-(defmacro* haskell-tests--test-buffer-contents* (&key name action contents expected-value modes)
+(cl-defmacro haskell-tests--test-buffer-contents* (&key name action contents expected-value modes)
   `(progn
      ,@(cl-loop
         for mode in modes
