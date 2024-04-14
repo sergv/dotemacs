@@ -398,11 +398,84 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
 (defun haskell-smart-operators-exclamation-mark ()
   "Smart insertion for ! aimed at placing bangs within records."
   (interactive "*")
-  (let* ((preceded-by-double-colon?
+  (let* ((p (point))
+         (p-before-ws
           (save-excursion
             (skip-syntax-backward " ")
-            (preceded-by2 ?: ?:))))
+            (point)))
+         (p-after-ws
+          (save-excursion
+            (skip-syntax-forward " ")
+            (point)))
+         (preceded-by-double-colon?
+          (save-excursion
+            (goto-char p-before-ws)
+            (preceded-by2 ?: ?:)))
+         (preceded-by-arrow?
+          (save-excursion
+            (goto-char p-before-ws)
+            (preceded-by2 ?- ?>)))
+         (preceded-by-operator?
+          (save-excursion
+            (goto-char p-before-ws)
+            (gethash (char-before) haskell-smart-operators--operator-chars)))
+         (followed-by-operator?
+          (save-excursion
+            (goto-char p-after-ws)
+            (gethash (char-after) haskell-smart-operators--operator-chars)))
+         (ts-field-node-children
+          (when (and (derived-mode-p 'haskell-ts-mode)
+                     (or
+                      ;; Don’t stick to preceding arrow since it’s most likely part of
+                      ;; a funciton type.
+                      preceded-by-arrow?
+                      (not (or (and (not preceded-by-double-colon?)
+                                    preceded-by-operator?)
+                               followed-by-operator?))
+                      ))
+            (awhen (treesit-node-top-level
+                    (treesit-node-at p)
+                    (lambda (x) (string= (treesit-node-type x) "field")))
+              (treesit-node-children it))))
+         (ts-field-colon-node nil)
+         (ts-field-type-node nil))
     (cond
+      ((and ts-field-node-children
+            (= (length ts-field-node-children) 3)
+            (string= (treesit-node-type (car ts-field-node-children)) "variable")
+            (setf ts-field-colon-node (cadr ts-field-node-children))
+            (string= (treesit-node-type ts-field-colon-node) "::")
+            (setf ts-field-type-node (caddr ts-field-node-children))
+            (not (string= (treesit-node-type ts-field-type-node) "strict_type"))
+            ;; That we’re after :: but before type end (i.e. could be
+            ;; before type start but that’s ok).
+            (<= (treesit-node-end ts-field-colon-node) p)
+            (<= p (treesit-node-end ts-field-type-node)))
+       (let ((has-parens? (string= (treesit-node-type ts-field-type-node) "type_parens")))
+         (if has-parens?
+             (progn
+               (goto-char (treesit-node-start ts-field-type-node))
+               (insert-char ?!))
+           (let* ((start (treesit-node-start ts-field-type-node))
+                  (end (treesit-node-end ts-field-type-node))
+                  (should-add-parens?
+                   (save-excursion
+                     (save-restriction
+                       (narrow-to-region start end)
+                       (goto-char (point-min))
+                       (search-forward " " nil t)))))
+             ;; Start from the end so that we don’t need to recompute
+             ;; positions due to moves.
+             (when should-add-parens?
+               (goto-char end)
+               (insert-char ?\)))
+             (goto-char start)
+             (when (and preceded-by-double-colon?
+                        (not (eq (char-before) ?\s)))
+               (insert-char ?\s))
+             (insert-char ?!)
+             (when should-add-parens?
+               (insert-char ?\())))))
       (preceded-by-double-colon?
        (unless (eq (char-before) ?\s)
          (insert-char ?\s))
