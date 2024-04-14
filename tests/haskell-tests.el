@@ -1268,6 +1268,20 @@ end."
    "foo x xs = foo .+._|_ bar"
    ""))
 
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-smart-operators--dot-3
+    (progn
+      (haskell-smart-operators-mode +1)
+      (haskell-ext-tracking-mode +1)
+      (haskell-smart-operators-dot))
+  (tests-utils--multiline
+   ""
+   "foo x xs = foo <_|_> bar"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo x xs = foo <._|_> bar"
+   ""))
 
 ;; (ert-deftest haskell-tests/shm/!-1 ()
 ;;   (haskell-tests--test-buffer-contents
