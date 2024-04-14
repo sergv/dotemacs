@@ -364,7 +364,9 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
       (delete-region pos-before-spaces (point)))
     (insert-char ?\.)
     (when (and preceded-by-operator?
-               (not (memq (char-after) '(?\s ?\) ?\] ?\}))))
+               (let ((next-char (char-after)))
+                 (and (not (memq next-char '(?\s ?\) ?\] ?\})))
+                      (not (gethash next-char haskell-smart-operators--operator-chars)))))
       (insert-char ?\s))))
 
 ;;;###autoload
