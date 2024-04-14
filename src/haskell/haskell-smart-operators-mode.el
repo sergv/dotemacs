@@ -421,9 +421,6 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
         (insert-char ?\')
         (forward-char -1)))))
 
-(defun haskell-smart-operators-exclamation-mark--impl (insert-space-after)
-  (haskell-smart-operators--insert-char-optionally-surrounding-with-spaces ?! insert-space-after))
-
 (defvar haskell-smart-operators-mode-map
   (let ((keymap (make-sparse-keymap)))
     (dolist (key (list (kbd "=") (kbd "+") (kbd "*") (kbd "<") (kbd ">")
