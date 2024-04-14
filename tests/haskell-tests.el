@@ -29,7 +29,7 @@
   (should (string= (haskell-abbrev+-extract-mod-name "Foo'.Bar2.Baz_3.Quux")
                    "Quux")))
 
-(cl-defmacro haskell-tests--test-buffer-contents* (&key name action contents expected-value modes)
+(cl-defmacro haskell-tests--test-buffer-contents* (&key name action contents expected-value (modes '(haskell-mode haskell-ts-mode)))
   `(progn
      ,@(cl-loop
         for mode in modes
@@ -48,8 +48,7 @@
     :name ,name
     :action ,action
     :contents ,contents
-    :expected-value ,expected-value
-    :modes (haskell-mode haskell-ts-mode)))
+    :expected-value ,expected-value))
 
 (defmacro haskell-tests--test-buffer-contents-expect-failed (name action contents expected-value)
   (declare (indent 2))
@@ -75,7 +74,7 @@
     :initialisation (haskell-cabal-mode)
     :buffer-id haskell-cabal))
 
-(defmacro haskell-tests--make-multiple-test-buffer-contents (initial entries)
+(defmacro haskell-tests--make-multiple-output-test-buffer-contents (initial entries)
   "Define a set of tests that share initial buffer state but
 execute diffent actions and reach different buffer states in the
 end."
@@ -89,6 +88,22 @@ end."
              ,(cl-second entry)
            ,initial
            ,(cl-third entry)))))
+
+(cl-defmacro haskell-tests--make-multiple-input-test-buffer-contents
+    (&key action entries expected-value modes)
+  "Define a set of tests that share final buffer state but
+have different input states."
+  (declare (indent 1))
+  `(progn
+     ,@(cl-loop
+        for entry in entries
+        collect
+        `(haskell-tests--test-buffer-contents*
+          :name ,(cl-first entry)
+          :action ,action
+          :contents ,(cl-second entry)
+          :expected-value ,expected-value
+          ,@(when modes `(:modes ,modes))))))
 
 (cl-defmacro haskell-tests--test-result (name &key action expected-value contents)
   (declare (indent 1))
@@ -537,22 +552,22 @@ end."
   "x = f \(+ _|_")
 
 (haskell-tests--test-buffer-contents*
-    :name haskell-tests/haskell-smart-operators--prepend-to-prev-operator-8
-  :action (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
-  :contents
-  "x = [foo| 1 + _|_x|]"
-  :expected-value
-  "x = [foo| 1 + +_|_x|]"
-  :modes (haskell-ts-mode))
+ :name haskell-tests/haskell-smart-operators--prepend-to-prev-operator-8
+ :action (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
+ :contents
+ "x = [foo| 1 + _|_x|]"
+ :expected-value
+ "x = [foo| 1 + +_|_x|]"
+ :modes (haskell-ts-mode))
 
 (haskell-tests--test-buffer-contents*
-    :name haskell-tests/haskell-smart-operators--prepend-to-prev-operator-9
-  :action (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
-  :contents
-  "x = [foo| 1 + x|]_|_y"
-  :expected-value
-  "x = [foo| 1 + x|] + _|_y"
-  :modes (haskell-ts-mode))
+ :name haskell-tests/haskell-smart-operators--prepend-to-prev-operator-9
+ :action (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
+ :contents
+ "x = [foo| 1 + x|]_|_y"
+ :expected-value
+ "x = [foo| 1 + x|] + _|_y"
+ :modes (haskell-ts-mode))
 
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-smart-operators--inserting-@-avoid-spaces-1
@@ -1283,64 +1298,6 @@ end."
    "foo x xs = foo <._|_> bar"
    ""))
 
-;; (ert-deftest haskell-tests/shm/!-1 ()
-;;   (haskell-tests--test-buffer-contents
-;;       (shm/!)
-;;     (tests-utils--multiline
-;;      "data Foo = Foo"
-;;      "  { foo ::_|_ Set Int"
-;;      "  , bar :: Map Int Double"
-;;      "  }")
-;;     (tests-utils--multiline
-;;      "data Foo = Foo"
-;;      "  { foo :: !_|_(Set Int)"
-;;      "  , bar :: Map Int Double"
-;;      "  }")))
-;;
-;; (ert-deftest haskell-tests/shm/!-2 ()
-;;   (haskell-tests--test-buffer-contents
-;; ;
-;;       (shm/!)
-;;     (tests-utils--multiline
-;;      "data Foo = Foo"
-;;      "  { foo :: _|_Set Int"
-;;      "  , bar :: Map Int Double"
-;;      "  }")
-;;     (tests-utils--multiline
-;;      "data Foo = Foo"
-;;      "  { foo :: !_|_(Set Int)"
-;;      "  , bar :: Map Int Double"
-;;      "  }")))
-;;
-;; (ert-deftest haskell-tests/shm/!-3 ()
-;;   (haskell-tests--test-buffer-contents
-;;       (shm/!)
-;;     (tests-utils--multiline
-;;      "data Foo = Foo"
-;;      "  { foo :: _|_ Set Int"
-;;      "  , bar :: Map Int Double"
-;;      "  }")
-;;     (tests-utils--multiline
-;;      "data Foo = Foo"
-;;      "  { foo :: !_|_(Set Int)"
-;;      "  , bar :: Map Int Double"
-;;      "  }")))
-;;
-;; (ert-deftest haskell-tests/shm/!-4 ()
-;;   (haskell-tests--test-buffer-contents
-;; ;
-;;       (shm/!)
-;;     (tests-utils--multiline
-;;      "data Foo = Foo"
-;;      "  { foo ::      _|_      Set Int"
-;;      "  , bar :: Map Int Double"
-;;      "  }")
-;;     (tests-utils--multiline
-;;      "data Foo = Foo"
-;;      "  { foo :: !_|_(Set Int)"
-;;      "  , bar :: Map Int Double"
-;;      "  }")))
-
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-smart-operators--arrows-in-non-haddock-comment-1
     (progn
@@ -1695,6 +1652,73 @@ end."
    "data Foo = Foo { bar :: !_|_Int }"
    ""))
 
+(haskell-tests--make-multiple-input-test-buffer-contents
+    :action
+    (haskell-smart-operators-exclamation-mark)
+    :entries
+    ((haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-1a
+      (tests-utils--multiline
+       "data Foo = Foo"
+       "  { foo ::_|_ Set Int"
+       "  , bar :: Map Int Double"
+       "  }"))
+     (haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-1b
+      (tests-utils--multiline
+       "data Foo = Foo"
+       "  { foo :: _|_Set Int"
+       "  , bar :: Map Int Double"
+       "  }"))
+     (haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-1c
+      (tests-utils--multiline
+       "data Foo = Foo"
+       "  { foo :: Set _|_Int"
+       "  , bar :: Map Int Double"
+       "  }")))
+    :expected-value
+    (tests-utils--multiline
+     "data Foo = Foo"
+     "  { foo :: !(_|_Set Int)"
+     "  , bar :: Map Int Double"
+     "  }")
+    :modes (haskell-ts-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-2
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  "data Foo = Foo"
+  "  { foo :: _|_ Set Int"
+  "  , bar :: Map Int Double"
+  "  }")
+ :expected-value
+ (tests-utils--multiline
+  "data Foo = Foo"
+  "  { foo ::  !(_|_Set Int)"
+  "  , bar :: Map Int Double"
+  "  }")
+ :modes (haskell-ts-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-3
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  "data Foo = Foo"
+  "  { foo ::      _|_      Set Int"
+  "  , bar :: Map Int Double"
+  "  }")
+ :expected-value
+ (tests-utils--multiline
+  "data Foo = Foo"
+  "  { foo ::            !(_|_Set Int)"
+  "  , bar :: Map Int Double"
+  "  }")
+ :modes (haskell-ts-mode))
 
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-backspace-with-block-dedent-1
@@ -4416,7 +4440,7 @@ end."
    "        quux x"
    "  bar 10 "))
 
-(haskell-tests--make-multiple-test-buffer-contents
+(haskell-tests--make-multiple-output-test-buffer-contents
     (tests-utils--multiline
      "_|_foo :: Int -> Int"
      "foo = do -- a comment"
@@ -4546,7 +4570,7 @@ end."
      "        quux x"
      "  bar 10 "))))
 
-(haskell-tests--make-multiple-test-buffer-contents
+(haskell-tests--make-multiple-output-test-buffer-contents
     " (foo + _|_((*) bar $ f baz) - g [quux, fizz, frob] `min` xxx)"
   ((haskell-tests/haskell-forward-nested-sexp-1
     (haskell-forward-sexp)
