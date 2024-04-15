@@ -436,19 +436,16 @@ both unicode and ascii characters.")
         (let ((start nil)
               (end nil)
               (beginning-quotes "'"))
-          (if (zerop (skip-syntax-backward "w_"))
-              (progn
-                (skip-syntax-backward "._")
-                ;; To get qualified part
-                (skip-syntax-backward "w_")
-                (skip-chars-forward beginning-quotes))
-            (progn
-              (skip-chars-forward beginning-quotes)))
+          (when (zerop (skip-syntax-backward "w_"))
+            (skip-syntax-backward "._")
+            ;; To get qualified part
+            (skip-syntax-backward "w_")
+            (skip-chars-forward beginning-quotes))
+          (skip-chars-forward beginning-quotes)
           (setf start (point))
           (when (looking-at (rx (+ (char upper) (* (char alnum ?_)) ".")))
             (goto-char (match-end 0)))
-          (when (zerop (skip-syntax-forward "w_"))
-            (skip-syntax-forward "._"))
+          (skip-syntax-forward "w_.")
           (setf end (point))
           (cons start end))))))
 

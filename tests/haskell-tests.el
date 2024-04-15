@@ -133,7 +133,8 @@ have different input states."
                   collect
                   `(should (equal ,(car entry) ,(cadr entry)))))
              :contents ,contents
-             :initialisation (,mode))))))
+             :initialisation (,mode)
+             :buffer-id ,(string->symbol (format "haskell-tests-%s" mode)))))))
 
 ;; (defmacro haskell-tests--test-evaluate (action contents expected-value)
 ;;   (declare (indent 1))
@@ -439,6 +440,78 @@ have different input states."
    "Fooobar")
   :contents
   " ''Fooo_|_bar ")
+
+(haskell-tests--test-result
+    haskell-tests/bounds-of-haskell-symbol-1
+  :action
+  (thing-at-point 'haskell-symbol)
+  :expected-value
+  "Fooobar"
+  :contents
+  " ''Fooo_|_bar ")
+
+(haskell-tests--test-result
+    haskell-tests/bounds-of-haskell-symbol-2
+  :action
+  (thing-at-point 'haskell-symbol)
+  :expected-value
+  "Quux.Fooobar"
+  :contents
+  " ''Quux.Fooo_|_bar ")
+
+(haskell-tests--test-result
+    haskell-tests/bounds-of-haskell-symbol-3
+  :action
+  (substring-no-properties (thing-at-point 'haskell-symbol))
+  :expected-value
+  ".=?"
+  :contents
+  " .=_|_? ")
+
+(haskell-tests--test-result
+    haskell-tests/bounds-of-haskell-symbol-3a
+  :action
+  (substring-no-properties (thing-at-point 'haskell-symbol))
+  :expected-value
+  ".=?"
+  :contents
+  " (.=_|_?) ")
+
+(haskell-tests--test-result
+    haskell-tests/bounds-of-haskell-symbol-4
+  :action
+  (substring-no-properties (thing-at-point 'haskell-symbol))
+  :expected-value
+  "Quux..=?"
+  :contents
+  " Quux..=_|_? ")
+
+(haskell-tests--test-result
+    haskell-tests/bounds-of-haskell-symbol-5
+  :action
+  (substring-no-properties (thing-at-point 'haskell-symbol))
+  :expected-value
+  "Quux..=?"
+  :contents
+  " ''Quux..=_|_? ")
+
+(haskell-tests--test-result
+    haskell-tests/bounds-of-haskell-symbol-6
+  :action
+  (substring-no-properties (thing-at-point 'haskell-symbol))
+  :expected-value
+  "Fooobar"
+  :contents
+  " `Fooo_|_bar` ")
+
+(haskell-tests--test-result
+    haskell-tests/bounds-of-haskell-symbol-6a
+  :action
+  (substring-no-properties (thing-at-point 'haskell-symbol))
+  :expected-value
+  "Quux.Baz.Fooobar"
+  :contents
+  " `Quux.Baz.Fooo_|_bar` ")
 
 (ert-deftest haskell-tests/haskell-cabal--yasnippet--main-module-from-main-file-1 ()
   (should
