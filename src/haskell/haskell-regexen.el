@@ -274,7 +274,9 @@
 (defconst-set haskell-regexen/pre-post-qualified-import-line
   (rx-let ((ws (any ?\s ?\t ?\r ?\n))
            (constituent
-            (any (?A . ?Z) (?a . ?z) (?0 . ?9) ?_ ?- ?.)))
+            (any digit upper lower ?_ ?.)
+            ;; (any (?A . ?Z) (?a . ?z) (?0 . ?9) ?_ ?- ?.)
+            ))
     (rx (group-n 7
                  bow
                  "import"
@@ -319,7 +321,7 @@
         (* ws)
         (? "("
            (* nonl))
-
+        (* (any ?\s ?\t))
         eol)))
 
 (defconst-set haskell-regexen/module-quantification
