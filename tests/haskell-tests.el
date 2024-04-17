@@ -4031,8 +4031,19 @@ have different input states."
    ""))
 
 (ert-deftest haskell-tests/haskell-regexen/pre-post-qualified-import-line-1 ()
-  (should (string-match-p haskell-regexen/pre-post-qualified-import-line "import qualified Data.Ord  "))
-  (should (string-match-p haskell-regexen/pre-post-qualified-import-line "import Data.Ord  qualified   ")))
+  (dolist (str '("import qualified Data.Ord  "
+                 "import Data.Ord  qualified   "
+                 "import A.B.C"
+                 "import qualified A.B.C"
+                 "import qualified AAA.Bc.Cx as Something"
+                 "import Żółć"
+                 "\t import\t qualified \t\tM\tas G"
+                 "import Module_1.S_3_3_"
+                 "import q.Module...qwerqwe..."
+                 "import \"package-1.2.3\" B"
+                 "import safe B"
+                 "import safe qualified \"unicode-7.0\" Data.Char.Unicode_v_7 as U (func)"))
+    (should (string-match-p haskell-regexen/pre-post-qualified-import-line str))))
 
 
 (haskell-tests--test-buffer-contents
