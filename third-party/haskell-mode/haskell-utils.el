@@ -59,23 +59,6 @@ DEFAULT."
   (let ((filename (file-truename (read-directory-name prompt default default))))
     (concat (replace-regexp-in-string "/$" "" filename) "/")))
 
-(defun haskell-utils-parse-import-statement-at-point ()
-  "Return imported module name if on import statement or nil otherwise.
-This currently assumes that the \"import\" keyword and the module
-name are on the same line.
-
-This function supports the SafeHaskell and PackageImports syntax extensions.
-
-Note: doesn't detect if in {--}-style comment."
-  (save-excursion
-    (goto-char (line-beginning-position))
-    (if (looking-at (concat "[\t ]*import[\t ]+"
-                            "\\(?:safe[\t ]+\\)?" ;; SafeHaskell
-                            "\\(?:qualified[\t ]+\\)?"
-                            "\\(?:\"[^\"]*\"[\t ]+\\)?" ;; PackageImports
-                            "\\([[:digit:][:upper:][:lower:]_.]+\\)"))
-        (match-string-no-properties 1))))
-
 (defun haskell-utils-async-update-post-command-flag ()
   "A special hook which collects triggered commands during async execution.
 This hook pushes value of variable `this-command' to flag variable
