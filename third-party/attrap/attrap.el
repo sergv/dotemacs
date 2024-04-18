@@ -658,7 +658,9 @@ Error is given as MSG and reported between POS and END."
                       (+ (not (any ?\n ?\r ?\s ?\t))))))
             (rx (or (seq "warning: [GHC-88464] [-Wdeferred-out-of-scope-variables]"
                          (+ ws)
-                         "Variable not in scope:"
+                         (or "Variable"
+                             "Data constructor")
+                         " not in scope:"
                          (+ ws)
                          name-capture
                          (+ ws)
@@ -667,8 +669,7 @@ Error is given as MSG and reported between POS and END."
                          (+ ws)
                          "Not in scope: type constructor or class ‘"
                          name-capture
-                         "’")
-                    )))
+                         "’"))))
           msg)
     (attrap-one-option 'add-import
       (let ((name (attrap-strip-parens (match-string-no-properties 1 msg))))
