@@ -446,7 +446,19 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
             (setf ts-field-colon-node (cadr ts-field-node-children))
             (string= (treesit-node-type ts-field-colon-node) "::")
             (setf ts-field-type-node (caddr ts-field-node-children))
-            (not (string= (treesit-node-type ts-field-type-node) "strict_type"))
+            ;; Chec kfor when inserting ! in:
+            ;;
+            ;; data Foo = Foo
+            ;;   { foo :: Set Int
+            ;;   , bar :: Map Int Double
+            ;;   , baz :: _|_
+            ;;   })
+            (if (string= (treesit-node-type ts-field-type-node) "type_name")
+                ;; If there’s a node but it’s empty then there’s no node and treesitter
+                ;; is messing with us.
+                (/= (treesit-node-start ts-field-type-node)
+                    (treesit-node-end ts-field-type-node))
+              (not (string= (treesit-node-type ts-field-type-node) "strict_type")))
             ;; That we’re after :: but before type end (i.e. could be
             ;; before type start but that’s ok).
             (<= (treesit-node-end ts-field-colon-node) p)
