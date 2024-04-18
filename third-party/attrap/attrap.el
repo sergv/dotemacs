@@ -95,18 +95,27 @@
 (defun attrap-select-and-apply-option (options)
   "Ask the user which of OPTIONS is best, then apply it."
   (when (not options) (error "No fixer applies to the issue at point"))
-  (let* ((named-options (--map (cons (format "%s" (car it)) (cdr it)) options))
-         (selected-fix (if (eq 1 (length options))
-                           (car options)
-                         (assoc (completing-read "repair using: "
-                                                 named-options
-                                                 nil
-                                                 t)
-                                named-options))))
+  (let ((selected-fix (if (eq 1 (length options))
+                          (car options)
+                        (let ((named-options (--map (cons (format "%s" (car it)) (cdr it))
+                                                    options)))
+                          (assoc (completing-read "repair using: "
+                                                  named-options
+                                                  nil
+                                                  t)
+                                 named-options)))))
     ;; (message "SELECTED-FIX: %s" selected-fix)
     ;; (message "Applied %s" (car selected-fix))
     (save-excursion
-      (funcall (cdr selected-fix)))))
+      (funcall (cl-second selected-fix))
+      (awhen (cl-third selected-fix)
+        (cl-assert (overlayp it))
+        (let ((err (overlay-get it 'flycheck-error)))
+          (cl-assert (flycheck-error-p err))
+          ;; Remove the error we’re looking at.
+          (setq flycheck-current-errors
+                (remq err flycheck-current-errors))
+          (delete-overlay it))))))
 
 ;;;###autoload
 (defun attrap-flymake (pos)
@@ -115,13 +124,14 @@
   (let ((diags (flymake-diagnostics pos)))
     (when (not diags) (error "No flymake diagnostic at point"))
     (attrap-select-and-apply-option
-     (-non-nil (--mapcat (let ((fixer (alist-get (flymake-diagnostic-backend it)
-                                                 attrap-flymake-backends-alist)))
-                           (when fixer (funcall fixer
-                                                (flymake-diagnostic-text it)
-                                                (flymake-diagnostic-beg it)
-                                                (flymake-diagnostic-end it))))
-                         diags)))))
+     (--map (list (car it) (cdr it) nil)
+            (-non-nil (--mapcat (let ((fixer (alist-get (flymake-diagnostic-backend it)
+                                                        attrap-flymake-backends-alist)))
+                                  (when fixer (funcall fixer
+                                                       (flymake-diagnostic-text it)
+                                                       (flymake-diagnostic-beg it)
+                                                       (flymake-diagnostic-end it))))
+                                diags))))))
 
 
 ;;;###autoload
@@ -130,10 +140,9 @@
   (interactive "d")
   (let ((messages (-filter
                    #'car
-                   (--map (list (flycheck-error-message
+                   (--map (cons (flycheck-error-message
                                  (overlay-get it 'flycheck-error))
-                                (overlay-start it)
-                                (overlay-end it))
+                                it)
                           (flycheck-overlays-at pos))))
         (checker (flycheck-get-checker-for-buffer)))
     (when (not messages) (error "No flycheck message at point"))
@@ -144,11 +153,19 @@
        (remove-duplicates-by-hashing-projections
         #'car
         #'equal
-        (-non-nil (mapcan
-                   (lambda (msg) (mapcan
-                             (lambda (fixer) (apply fixer msg))
-                             fixers))
-                   messages)))))))
+        (--filter (car it)
+                  (mapcan (lambda (msg)
+                            (mapcan (lambda (fixer)
+                                      (cl-assert (functionp fixer))
+                                      (let ((ov (cdr msg)))
+                                        (cl-assert (overlayp ov))
+                                        (--map (list (car it) (cdr it) ov)
+                                               (funcall fixer
+                                                        (car msg)
+                                                        (overlay-start ov)
+                                                        (overlay-end ov)))))
+                                    fixers))
+                          messages)))))))
 
 ;;;###autoload
 (defun attrap-attrap (pos)
