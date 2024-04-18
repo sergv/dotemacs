@@ -704,20 +704,20 @@ Error is given as MSG and reported between POS and END."
             (remove-duplicates-sorting
              (--map (haskell-misc--file-name-to-module-name (eproj-tag/file (cadr it)))
                     candidate-tags)
-             #'string=
-             #'string<)))
+             #'string<))
 
-      (haskell-misc--add-new-import
-       (pcase (length module-names)
-         (0 (error "No candidates modules defining ‘%s’ found" identifier))
-         (1 (car module-names))
-         (_ (completing-read "Choose module: "
-                             module-names
-                             nil
-                             t ;; require match
-                             nil
-                             'attrap-import-history ;; history
-                             )))))))
+           (mod-name (pcase (length module-names)
+                       (0 (error "No candidates modules defining ‘%s’ found" identifier))
+                       (1 (car module-names))
+                       (_ (completing-read "Choose module: "
+                                           module-names
+                                           nil
+                                           t ;; require match
+                                           nil
+                                           'attrap-import-history ;; history
+                                           )))))
+      (haskell-misc--add-new-import mod-name)
+      (message "Added import of ‘%s’" mod-name))))
 
 (defun attrap-add-operator-parens (name)
   "Add parens around a NAME if it refers to a Haskell operator."
