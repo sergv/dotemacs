@@ -1803,6 +1803,50 @@ have different input states."
  :modes (haskell-ts-mode)
  :fresh-buffer t)
 
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-4
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  "data Foo = Foo"
+  "  { foo :: Set Int"
+  "  , bar :: Map Int Double"
+  "  , baz :: _|_"
+  "  }")
+ :expected-value
+ (tests-utils--multiline
+  "data Foo = Foo"
+  "  { foo :: Set Int"
+  "  , bar :: Map Int Double"
+  "  , baz :: !_|_"
+  "  }")
+ :modes (haskell-ts-mode)
+ :fresh-buffer t)
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-5
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  "data Foo = Foo"
+  "  { foo :: Set Int"
+  "  , bar :: Map Int Double"
+  "  , baz ::      _|_     "
+  "  }")
+ :expected-value
+ (tests-utils--multiline
+  "data Foo = Foo"
+  "  { foo :: Set Int"
+  "  , bar :: Map Int Double"
+  "  , baz ::      !_|_     "
+  "  }")
+ :modes (haskell-ts-mode)
+ :fresh-buffer t)
+
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-backspace-with-block-dedent-1
     (haskell-backspace-with-block-dedent)
