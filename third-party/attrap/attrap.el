@@ -329,18 +329,26 @@ value is a list which is appended to the result of
 
 ;;;###autoload
 (defun attrap-do-insert-language-pragma (pragma)
-  (save-match-data
-    (goto-char (point-min))
-    (if (re-search-forward "{-#[ \t]*LANGUAGE\\_>" nil t)
-        (goto-char (match-beginning 0))
-      (progn
-        (attrap-skip-shebangs)
-        (when (looking-at-p "^module\\_>")
-          (insert "\n")
-          (forward-line -1))))
-    (let ((start (point)))
-      (insert (concat "{-# LANGUAGE " pragma " #-}\n"))
-      (haskell-align-language-pragmas start))))
+  (let ((have-language-pragmas? nil))
+    (save-match-data
+      (goto-char (point-min))
+      (if (re-search-forward "{-#[ \t]*LANGUAGE\\_>" nil t)
+          (progn
+            (goto-char (match-beginning 0))
+            (setf have-language-pragmas? t))
+        (progn
+          (attrap-skip-shebangs)
+          (when (looking-at-p "^module\\_>")
+            (insert "\n")
+            (forward-line -1))))
+      (let ((start (point)))
+        (insert (concat "{-# LANGUAGE " pragma " #-}\n"))
+        (when (and (not have-language-pragmas?)
+                   ;; When not on empty line.
+                   (not (= (line-beginning-position)
+                           (line-end-position))))
+          (insert-char ?\n))
+        (haskell-align-language-pragmas start)))))
 
 (defmacro attrap-insert-language-pragma (pragma)
   `(attrap-option (list 'use-extension ,pragma)
@@ -732,14 +740,21 @@ Error is given as MSG and reported between POS and END."
 
 (defun attrap-skip-shebangs ()
   "Skip #! and -- shebangs used in Haskell scripts."
-  (when (looking-at-p "#!") (forward-line 1))
-  (when (looking-at-p "--[ \t]*stack\\>") (forward-line 1))
-  (while (and (not (eobp))
-              (looking-at-p "--"))
-    (forward-line 1))
-  (while (and (not (eobp))
-              (= (point) (line-end-position)))
-    (forward-line 1)))
+  (let ((skip-empty? nil))
+    (when (looking-at-p "#!")
+      (forward-line 1)
+      (setf skip-empty? t))
+    (when (looking-at-p "--[ \t]*stack\\>")
+      (forward-line 1)
+      (setf skip-empty? t))
+    (while (and (not (eobp))
+                (looking-at-p "--"))
+      (forward-line 1)
+      (setf skip-empty? t))
+    (when skip-empty?
+      (while (and (not (eobp))
+                  (= (point) (line-end-position)))
+        (forward-line 1)))))
 
 (defun attrap-hlint-fixer (msg pos end)
   "Fixer for any hlint hint given as MSG and reported between POS and END."

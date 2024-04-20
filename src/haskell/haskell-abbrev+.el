@@ -45,6 +45,12 @@
           nil
           t)))))
 
+(defun haskell-abbrev+--have-imports? ()
+  (save-match-data
+    (save-excursion
+      (goto-char (point-min))
+      (re-search-forward "^\\(?:> \\)?import\\_>" nil t))))
+
 (defun haskell-abbrev+--ensure-debug-trace-available ()
   (unless (haskell-abbrev+--is-function-available nil
                                                   (or (seq "qualified" (* any) symbol-start "Debug.Trace" symbol-end)
@@ -52,10 +58,13 @@
     (save-restriction
       (save-excursion
         (widen)
-        (haskell-navigate-imports)
-        (insert (if (haskell-ext-tracking-have-import-qualified-post?)
-                    "import Debug.Trace qualified\n\n"
-                  "import qualified Debug.Trace\n\n"))))))
+        (let ((have-imports? (haskell-abbrev+--have-imports?)))
+          (haskell-navigate-imports)
+          (insert (if (haskell-ext-tracking-have-import-qualified-post?)
+                      "import Debug.Trace qualified\n"
+                    "import qualified Debug.Trace\n"))
+          (when have-imports?
+            (insert-char ?\n)))))))
 
 (defun haskell-abbrev+--ensure-prettyprinter-combinators-available ()
   (unless (haskell-abbrev+--is-function-available "ppDict"
@@ -73,10 +82,12 @@
                                    t))
               (progn
                 (goto-char (match-end 0))
-                (insert "\nimport Prettyprinter.Combinators\n"))
-            (progn
+                (insert "\nimport Prettyprinter.Combinators"))
+            (let ((have-imports? (haskell-abbrev+--have-imports?)))
               (haskell-navigate-imports)
-              (insert "import Prettyprinter.Combinators\n\n"))))))))
+              (insert "import Prettyprinter.Combinators\n")
+              (when have-imports?
+                (insert-char ?\n)))))))))
 
 (defun haskell-insert-general-info-template (_arg monadic? trace-func-name)
   (let* ((start-position (point))
