@@ -771,21 +771,44 @@ value section should have if it is to be properly indented."
                     'end-of-line
                     'haskell-cabal-sort-lines-key-fun)))))))
 
-(defun haskell-misc--add-new-import (mod-name identifier)
+(defun haskell-misc--add-new-import (mod-name identifier is-name-from-current-project?)
   "Go to the imports section and add MOD-NAME import."
   (cl-assert (stringp mod-name))
-  (save-restriction
-    (save-excursion
-      (widen)
-      (haskell-navigate-imports)
-      (insert "import " mod-name)
-      (when identifier
-        (insert-char ?\s)
-        (insert-char ?\()
-        (insert identifier)
-        (insert-char ?\)))
-      (insert-char ?\n)
-      (haskell-sort-imports))))
+  (save-match-data
+    (save-restriction
+      (save-excursion
+        (widen)
+        (haskell-navigate-imports)
+        (let ((positions nil))
+          (save-excursion
+            (while (re-search-forward haskell-regexen/pre-post-qualified-import-line nil t)
+              (aif (match-beginning 10)
+                  (push (cons (common-string-prefix-length mod-name (match-string 10) nil)
+                              (match-beginning 7))
+                        positions)
+                (error "Import regexps matched without matching module name!"))))
+          (setf positions (sort positions
+                                (lambda (a b)
+                                  (let ((prefix-len-a (car-sure a))
+                                        (prefix-len-b (car-sure b)))
+                                    (or (> prefix-len-a prefix-len-b)
+                                        (and (= prefix-len-a prefix-len-b)
+                                             (< (cdr-sure a) (cdr-sure b))))))))
+          (when positions
+            (let* ((first-prefix-length (caar-sure positions))
+                   (candidate-imports (--take-while (= first-prefix-length (car-sure it)) positions)))
+              (goto-char
+               (cdr-sure (if is-name-from-current-project?
+                             (-last-item candidate-imports)
+                           (-first-item candidate-imports)))))))
+        (insert "import " mod-name)
+        (when identifier
+          (insert-char ?\s)
+          (insert-char ?\()
+          (insert identifier)
+          (insert-char ?\)))
+        (insert-char ?\n)
+        (haskell-sort-imports)))))
 
 ;;;###autoload
 (defun haskell-misc--file-name-to-module-name (path)
