@@ -6072,6 +6072,36 @@ have different input states."
    "foo x = x_|_"
    ""))
 
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-navigate-imports-1
+    (haskell-navigate-imports)
+  (tests-utils--multiline
+   ""
+   "import System.IO"
+   ""
+   "main = undefined_|_"
+   "")
+  (tests-utils--multiline
+   ""
+   "_|_import System.IO"
+   ""
+   "main = undefined"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-navigate-imports-2
+    (haskell-navigate-imports)
+  (tests-utils--multiline
+   "import System.IO"
+   ""
+   "main = undefined_|_"
+   "")
+  (tests-utils--multiline
+   "_|_import System.IO"
+   ""
+   "main = undefined"
+   ""))
+
 (provide 'haskell-tests)
 
 ;; (let ((ert-debug-on-error nil))
