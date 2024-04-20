@@ -87,16 +87,17 @@ Turn off highlighting if character at point is not parentheses."
   (interactive)
   (cond
     ((and (symbolp this-command)
-           (memq this-command
-                 '(autopair-newline
-                   paredit-newline
-                   newline
-                   newline-and-indent)))
+          (memq this-command
+                '(autopair-newline
+                  paredit-newline
+                  newline
+                  newline-and-indent)))
      (hl-paren-disable-overlays!))
     ((and hl-paren-state
+          (hl-paren-state-is-enabled? hl-paren-state)
           (or (eq (point) (overlay-start (hl-paren-state-first hl-paren-state)))
               (eq (point) (overlay-start (hl-paren-state-second hl-paren-state)))))
-     ;; Already highlighting relevant parens.
+     ;; Nothing to do: already highlighting relevant parens.
      nil)
     (t
      (hl-paren-highlight-matching-paren-at-point))))
