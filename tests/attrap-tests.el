@@ -213,6 +213,7 @@
   ""
   "import Quux"
   "_|_import Distribution.Package (PackageName)"
+  ""
   ""))
 
 (attrap-tests--test-buffer-contents-one
@@ -251,6 +252,7 @@
   ""
   "import Quux"
   "_|_import Distribution.PackageDescription (GenericPackageDescription, PackageDescription(..), exeName)"
+  ""
   ""))
 
 (provide 'attrap-tests)
