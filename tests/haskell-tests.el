@@ -16,6 +16,7 @@
 (require 'haskell-misc)
 (require 'haskell-regexen)
 (require 'haskell-smart-operators-mode)
+(require 'haskell-sort-imports)
 
 (require 'common)
 (require 'ert)
@@ -333,6 +334,32 @@ have different input states."
    "#ifdef FOO"
    "import Data.Bifunctors"
    "import Data_|_.Bimap (Bimap)"
+   "import qualified Data.Bimap as BM"
+   "import Data.Text qualified as T"
+   "#endif"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-reindent-at-point-6
+    (haskell-reindent-at-point)
+  (tests-utils--multiline
+   ""
+   "#ifdef FOO"
+   "import Data.Text qualified as T"
+   "import Data.Bimap"
+   "  ( Bimap_|_"
+   "  )"
+   "import Data.Bifunctors"
+   "import qualified Data.Bimap as BM"
+   "#endif"
+   "")
+  (tests-utils--multiline
+   ""
+   "#ifdef FOO"
+   "import Data.Bifunctors"
+   "import Data.Bimap"
+   "  ( Bimap_|_"
+   "  )"
    "import qualified Data.Bimap as BM"
    "import Data.Text qualified as T"
    "#endif"
@@ -5639,6 +5666,257 @@ have different input states."
    ""
    "foo = whnf _|_M.withoutKeys m_odd_keys"
    ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/sort-imports-1
+    (haskell-sort-imports)
+  (tests-utils--multiline
+   ""
+   "import Foo_|_"
+   "")
+  (tests-utils--multiline
+   ""
+   "import Foo_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/sort-imports-2
+    (haskell-sort-imports)
+  (tests-utils--multiline
+   ""
+   "import Foo_|_"
+   "import Bar"
+   "")
+  (tests-utils--multiline
+   ""
+   "import Bar"
+   "import Foo_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/sort-imports-3
+    (haskell-sort-imports)
+  (tests-utils--multiline
+   ""
+   "import Bar"
+   "import Foo_|_"
+   "import Bar"
+   "")
+  (tests-utils--multiline
+   ""
+   "import Bar"
+   "import Foo_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/sort-imports-4
+    (haskell-sort-imports)
+  (tests-utils--multiline
+   ""
+   "import Bar (foo)"
+   "import Foo_|_"
+   "import Bar"
+   "")
+  (tests-utils--multiline
+   ""
+   "import Bar"
+   "import Foo_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/sort-imports-5
+    (haskell-sort-imports)
+  (tests-utils--multiline
+   ""
+   "import Bar (foo)"
+   "import Foo_|_"
+   "import Bar (bar)"
+   "")
+  (tests-utils--multiline
+   ""
+   "import Bar (bar, foo)"
+   "import Foo_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/sort-imports-6
+    (haskell-sort-imports)
+  (tests-utils--multiline
+   ""
+   "import Bar "
+   "  ( foo"
+   "  , bar_|_"
+   "  )"
+   "import Foo"
+   "import Bar (baz)"
+   "")
+  (tests-utils--multiline
+   ""
+   "_|_import Bar "
+   "  ( baz"
+   "  , foo"
+   "  , bar"
+   "  )"
+   "import Foo"
+   ""))
+
+(ert-deftest haskell-tests/haskell-sort-imports--group-imports-1 ()
+  (should (equal (haskell-sort-imports--group-imports
+                  '("import Foo"
+                    "import Bar"
+                    "import Bar"))
+                 '("import Bar"
+                   "import Foo"))))
+
+(ert-deftest haskell-tests/haskell-sort-imports--group-imports-2 ()
+  (should (equal (haskell-sort-imports--group-imports
+                  '("import Foo"
+                    "import Bar (quux)"
+                    "import Bar"))
+                 '("import Bar"
+                   "import Foo"))))
+
+(ert-deftest haskell-tests/haskell-sort-imports--group-imports-3 ()
+  (should (equal (haskell-sort-imports--group-imports
+                  '("import Foo"
+                    "import Bar hiding (foo)"
+                    "import Bar hiding (bar)"))
+                 '("import Bar hiding (bar, foo)"
+                   "import Foo"))))
+
+(ert-deftest haskell-tests/haskell-sort-imports--group-imports-4 ()
+  (should (equal (haskell-sort-imports--group-imports
+                  '("import Foo"
+                    "import Bar hiding (foo)"
+                    "import Bar"))
+                 '("import Bar"
+                   "import Foo"))))
+
+(ert-deftest haskell-tests/haskell-sort-imports--group-imports-4a ()
+  (should (equal (haskell-sort-imports--group-imports
+                  '("import Foo"
+                    "import Bar hiding (foo, baz)"
+                    "import Bar"))
+                 '("import Bar"
+                   "import Foo"))))
+
+(ert-deftest haskell-tests/haskell-sort-imports--group-imports-5 ()
+  (should (equal (haskell-sort-imports--group-imports
+                  '("import Foo"
+                    "import Bar hiding (foo)"
+                    "import Bar (bar)"))
+                 '("import Bar hiding (foo)"
+                   "import Foo"))))
+
+(ert-deftest haskell-tests/haskell-sort-imports--group-imports-6 ()
+  (should (equal (haskell-sort-imports--group-imports
+                  '("import Foo"
+                    "import Bar hiding (foo, bar)"
+                    "import Bar (bar)"))
+                 '("import Bar hiding (foo)"
+                   "import Foo"))))
+
+(ert-deftest haskell-tests/haskell-sort-imports--group-imports-6a ()
+  (should (equal (haskell-sort-imports--group-imports
+                  '("import Foo"
+                    "import Bar hiding (bar, foo)"
+                    "import Bar (bar)"))
+                 '("import Bar hiding (foo)"
+                   "import Foo"))))
+
+(ert-deftest haskell-tests/haskell-sort-imports--parse-import-list-0 ()
+  (should (equal (haskell-sort-imports--parse-import-list "()")
+                 (make-haskell-import-list
+                  :start-str "("
+                  :sep nil
+                  :end-str ")"
+                  :entries '()))))
+
+(ert-deftest haskell-tests/haskell-sort-imports--parse-import-list-0a ()
+  (should (equal (haskell-sort-imports--parse-import-list "(    )")
+                 (make-haskell-import-list
+                  :start-str "(    "
+                  :sep nil
+                  :end-str ")"
+                  :entries '()))))
+
+(ert-deftest haskell-tests/haskell-sort-imports--parse-import-list-1 ()
+  (should (equal (haskell-sort-imports--parse-import-list "(foo)")
+                 (make-haskell-import-list
+                  :start-str "("
+                  :sep nil
+                  :end-str ")"
+                  :entries '("foo")))))
+
+(ert-deftest haskell-tests/haskell-sort-imports--parse-import-list-1a ()
+  (should (equal (haskell-sort-imports--parse-import-list "( foo )")
+                 (make-haskell-import-list
+                  :start-str "( "
+                  :sep nil
+                  :end-str " )"
+                  :entries '("foo")))))
+
+(ert-deftest haskell-tests/haskell-sort-imports--parse-import-list-2 ()
+  (should (equal (haskell-sort-imports--parse-import-list "(foo, bar)")
+                 (make-haskell-import-list
+                  :start-str "("
+                  :sep ", "
+                  :end-str ")"
+                  :entries '("foo" ", " "bar")))))
+
+(ert-deftest haskell-tests/haskell-sort-imports--parse-import-list-3 ()
+  (should (equal (haskell-sort-imports--parse-import-list "  (  foo, bar  )  ")
+                 (make-haskell-import-list
+                  :start-str "  (  "
+                  :sep ", "
+                  :end-str "  )  "
+                  :entries '("foo" ", " "bar")))))
+
+(ert-deftest haskell-tests/haskell-sort-imports--parse-import-list-4 ()
+  (should (equal (haskell-sort-imports--parse-import-list "  (  foo, bar, pattern Foo, (:+:), Foo(quux, frobnicator, ..))  ")
+                 (make-haskell-import-list
+                  :start-str "  (  "
+                  :sep ", "
+                  :end-str ")  "
+                  :entries '("foo" ", " "bar" ", " "pattern Foo" ", " "(:+:)" ", " "Foo(quux, frobnicator, ..)")))))
+
+
+(ert-deftest haskell-tests/haskell-sort-imports--parse-import-list-5 ()
+  (should (equal (haskell-sort-imports--parse-import-list "(bar, baz, Żółć (..) ) ")
+                 (make-haskell-import-list
+                  :start-str "("
+                  :sep ", "
+                  :end-str " ) "
+                  :entries '("bar" ", " "baz" ", " "Żółć (..)")))))
+
+(ert-deftest haskell-tests/haskell-sort-imports--parse-import-list-6 ()
+  (should (equal (haskell-sort-imports--parse-import-list
+                  (tests-utils--multiline
+                   ""
+                   "  ( foo"
+                   "  , bar"
+                   "  , baz"
+                   "  )"))
+                 (make-haskell-import-list
+                  :start-str "\n  ( "
+                  :sep "\n  , "
+                  :end-str "\n  )"
+                  :entries '("foo" "\n  , " "bar" "\n  , " "baz")))))
+
+(ert-deftest haskell-tests/haskell-sort-imports--parse-import-list-7 ()
+  (should (equal (haskell-sort-imports--parse-import-list
+                  (tests-utils--multiline
+                   ""
+                   "  ( foo"
+                   "  , pattern Bar"
+                   " ,   Decombobulator (..)  "
+                   "  , baz"
+                   "  )"))
+                 (make-haskell-import-list
+                  :start-str "\n  ( "
+                  :sep "\n  , "
+                  :end-str "\n  )"
+                  :entries '("foo" "\n  , " "pattern Bar" "\n ,   " "Decombobulator (..)" "  \n  , " "baz")))))
 
 (provide 'haskell-tests)
 
