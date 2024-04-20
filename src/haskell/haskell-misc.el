@@ -771,7 +771,7 @@ value section should have if it is to be properly indented."
                     'end-of-line
                     'haskell-cabal-sort-lines-key-fun)))))))
 
-(defun haskell-misc--add-new-import (mod-name)
+(defun haskell-misc--add-new-import (mod-name identifier)
   "Go to the imports section and add MOD-NAME import."
   (cl-assert (stringp mod-name))
   (save-restriction
@@ -779,6 +779,11 @@ value section should have if it is to be properly indented."
       (widen)
       (haskell-navigate-imports)
       (insert "import " mod-name)
+      (when identifier
+        (insert-char ?\s)
+        (insert-char ?\()
+        (insert identifier)
+        (insert-char ?\)))
       (insert-char ?\n)
       (haskell-sort-imports))))
 
