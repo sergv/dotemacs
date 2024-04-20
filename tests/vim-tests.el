@@ -2363,8 +2363,8 @@ _|_bar")
    "_|_"
    "")
   (tests-utils--multiline
-   "{-# SCC \"ok\" #-_|_}"
    ""
+   "{-# SCC \"ok\" #-_|_}"
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
@@ -3085,6 +3085,33 @@ _|_bar")
    ""
    "import qualified Debug.Trace"
    "import Prettyprinter.Combinators"
+   ""
+   "foo x = do"
+   "  Debug.Trace.trace (renderString $ ppDictHeader \"header\""
+   "    [ \"x\" --> x"
+   "    , \"y\" --> y"
+   "    ]) $_|_"
+   "  bar x"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell-abbrev-9a
+    (execute-kbd-macro (kbd "i p p i n f o SPC h e a d e r <return> x <return> y <return> <return>"))
+  (tests-utils--multiline
+   "import Data.List"
+   ""
+   "foo x = do"
+   "  _|_"
+   "  bar x"
+   "")
+  (tests-utils--multiline
+   "{-# LANGUAGE OverloadedStrings #-}"
+   ""
+   "import qualified Debug.Trace"
+   "import Prettyprinter.Combinators"
+   ""
+   "import Data.List"
    ""
    "foo x = do"
    "  Debug.Trace.trace (renderString $ ppDictHeader \"header\""
