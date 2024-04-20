@@ -345,6 +345,10 @@
       (flycheck-warning :underline (:style wave :color ,orange :bold t))
       (flycheck-info :underline (:style wave :color ,green :bold t))
 
+      (flycheck-error-fix-available :underline (:style line :color ,red :bold t))
+      (flycheck-warning-fix-available :underline (:style line :color ,orange :bold t))
+      (flycheck-info-fix-available :underline (:style line :color ,green :bold t))
+
       (evaporate-region-face :foreground ,secondary-content)
       (lsp-lsp-flycheck-warning-unnecessary-face :foreground ,secondary-content
                                                  :inherit flycheck-warning)
