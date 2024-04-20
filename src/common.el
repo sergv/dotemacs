@@ -1420,6 +1420,14 @@ are CHAR1 and CHAR2 repsectively."
         nil
       (< x y))))
 
+(defun bool-< (x y)
+  "Like ‘<’ but allows nils. nil is considered smaller that non-nil."
+  (if (null x)
+      (if (null y)
+          nil
+        t)
+    nil))
+
 ;;
 
 (defsubst cap-floor (cap floor value)
