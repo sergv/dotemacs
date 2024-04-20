@@ -9,34 +9,28 @@
 (eval-when-compile
   (require 'macro-util))
 
-(defmacro defconst-set (var val &optional doc)
-  (declare (indent 1) (docstring 3))
-  `(defconst ,var ,val ,doc)
-  ;; `(setq ,var ,val)
-  )
-
-(defconst-set haskell-regexen/varid
+(defconst haskell-regexen/varid
   "\\(?:_\\|\\b[[:lower:]]\\)[[:alnum:]'_#]*")
 
-(defconst-set haskell-regexen/core/varid
+(defconst haskell-regexen/core/varid
   "[$]?\\(?:_\\|\\b[[:lower:]]\\)[[:alnum:]'_#]*")
 
-(defconst-set haskell-regexen/conid
+(defconst haskell-regexen/conid
   "\\(?:\\b\\|'\\)[[:upper:]][[:alnum:]'_#]*")
-(defconst-set haskell-regexen/modid
+(defconst haskell-regexen/modid
   (concat "\\b" haskell-regexen/conid
           "\\(?:\\." haskell-regexen/conid "\\)*\\b"))
 
-(defconst-set haskell-regexen/q/varid
+(defconst haskell-regexen/q/varid
   (concat "\\(" haskell-regexen/modid "\\)\\.\\(" haskell-regexen/varid "\\)"))
-(defconst-set haskell-regexen/q/conid
+(defconst haskell-regexen/q/conid
   (concat haskell-regexen/modid "\\." haskell-regexen/conid))
 
-(defconst-set haskell-regexen/q/varid-or-conid
+(defconst haskell-regexen/q/varid-or-conid
   (concat haskell-regexen/modid "\\."
           "\\(?:" haskell-regexen/varid "\\|" haskell-regexen/conid "\\)"))
 
-(defconst-set haskell-regexen/operator
+(defconst haskell-regexen/operator
   (rx (+ (or "!"
              "#"
              "$"
@@ -59,13 +53,13 @@
              "~"))))
 
 
-(defconst-set haskell-regexen/core/pkgid
+(defconst haskell-regexen/core/pkgid
   (rx (char (?a . ?z) (?A . ?Z))
       (* (char (?a . ?z) (?A . ?Z) (?0 . ?9) ?-))
       (? "-" (+ (char (?0 . ?9) ?.)))
       (? "-" (+ (char (?a . ?z) (?0 . ?9))))))
 
-(defconst-set haskell-regexen/core/opt-q/conid
+(defconst haskell-regexen/core/opt-q/conid
   (concat "\\_<"
           "\\(?1:"
           "\\(?:" haskell-regexen/core/pkgid ":\\)?"
@@ -76,7 +70,7 @@
           "\\)"
           "\\_>"))
 
-(defconst-set haskell-regexen/core/opt-q/varid
+(defconst haskell-regexen/core/opt-q/varid
   (concat "\\_<"
           "\\(?1:"
           "\\(?:" haskell-regexen/core/pkgid ":\\)?"
@@ -85,7 +79,7 @@
           "\\(?2:" haskell-regexen/core/varid "\\)"
           "\\_>"))
 
-(defconst-set haskell-regexen/core/opt-q/varid-or-conid
+(defconst haskell-regexen/core/opt-q/varid-or-conid
   (concat "\\_<"
           "\\(?1:"
           "\\(?:" haskell-regexen/core/pkgid ":\\)?"
@@ -94,7 +88,7 @@
           "\\(?2:" haskell-regexen/core/varid "\\|" haskell-regexen/conid "\\)"
           "\\_>"))
 
-(defconst-set haskell-regexen/core/opt-q/operator
+(defconst haskell-regexen/core/opt-q/operator
   (concat "\\_<"
           "\\(?:" haskell-regexen/core/pkgid ":\\)?"
           "\\(?:" haskell-regexen/modid "\\.\\)?"
@@ -102,19 +96,19 @@
           "\\_>"))
 
 
-(defconst-set haskell-regexen/opt-q/varid-or-conid
+(defconst haskell-regexen/opt-q/varid-or-conid
   (concat "\\(?:" haskell-regexen/modid "\\.\\)?"
           "\\(?:" haskell-regexen/varid "\\|" haskell-regexen/conid "\\)"))
 
 ;; ;; (old-sym "[-!#$%&*+./<=>?@^|~:\\]+")
-;; (defconst-set haskell-regexen/sym-constructor
+;; (defconst haskell-regexen/sym-constructor
 ;;    "\\(?::[-!#$%&*+./<=>?@^|~:\\]*\\)")
 ;;
-;; (defconst-set haskell-regexen/sym-nonconstructor
+;; (defconst haskell-regexen/sym-nonconstructor
 ;;    "\\(?:[-!#$%&*+./<=>?^|~\\][-!#$%&*+./<=>?@^|~:\\]*\\|@[-!#$%&*+./<=>?@^|~:\\]+\\)")
 ;;
 ;; ;; sym = sym-nonconstructor ∪ sym-constructor = old-sym
-;; (defconst-set haskell-regexen/sym
+;; (defconst haskell-regexen/sym
 ;;   (concat "\\(?:"
 ;;           haskell-regexen/sym-constructor
 ;;           "\\|"
@@ -127,7 +121,7 @@
 ;; "→←≡≠»≤≥⧺↢↣⤛⤜‥∈∉⇒∷∧∨⊕⊗"
 ;; reserved unicode chars
 ;; "→←⇒‥∷"
-(defconst-set haskell-regexen/sym
+(defconst haskell-regexen/sym
   "\\(?:\\(?:[!#$%&*+/>?^][-!#$%&*+./:<=>?@\\\\^|~]*\\)\\|\\(?:\\(?:\\.\\(?:\\(?:\\(?:[-!#$%&*+/:<=>?@\\\\^|~][-!#$%&*+./:<=>?@\\\\^|~]*\\)\\|\\(?:\\.\\(?:[-!#$%&*+./:<=>?@\\\\^|~][-!#$%&*+./:<=>?@\\\\^|~]*\\)\\)\\)\\)?\\)\\|\\(?:\\(?::\\(?:\\(?:\\(?:[-!#$%&*+./<=>?@\\\\^|~][-!#$%&*+./:<=>?@\\\\^|~]*\\)\\|\\(?::\\(?:[-!#$%&*+./:<=>?@\\\\^|~][-!#$%&*+./:<=>?@\\\\^|~]*\\)\\)\\)\\)?\\)\\|\\(?:\\(?:=\\(?:\\(?:[-!#$%&*+./:<=?@\\\\^|~][-!#$%&*+./:<=>?@\\\\^|~]*\\)\\|\\(?:>\\(?:[-!#$%&*+./:<=>?@\\\\^|~][-!#$%&*+./:<=>?@\\\\^|~]*\\)\\)\\)\\)\\|\\(?:\\(?:\\\\\\(?:[-!#$%&*+./:<=>?@\\\\^|~][-!#$%&*+./:<=>?@\\\\^|~]*\\)\\)\\|\\(?:\\(?:|\\(?:[-!#$%&*+./:<=>?@\\\\^|~][-!#$%&*+./:<=>?@\\\\^|~]*\\)\\)\\|\\(?:\\(?:<\\(?:\\(?:\\(?:[!#$%&*+./:<=>?@\\\\^|~][-!#$%&*+./:<=>?@\\\\^|~]*\\)\\|\\(?:-\\(?:[-!#$%&*+./:<=>?@\\\\^|~][-!#$%&*+./:<=>?@\\\\^|~]*\\)\\)\\)\\)?\\)\\|\\(?:\\(?:-\\(?:\\(?:\\(?:[-!#$%&*+./:<=?@\\\\^|~][-!#$%&*+./:<=>?@\\\\^|~]*\\)\\|\\(?:>\\(?:[-!#$%&*+./:<=>?@\\\\^|~][-!#$%&*+./:<=>?@\\\\^|~]*\\)\\)\\)\\)?\\)\\|\\(?:\\(?:@\\(?:[-!#$%&*+./:<=>?@\\\\^|~][-!#$%&*+./:<=>?@\\\\^|~]*\\)\\)\\|\\(?:~\\(?:[-!#$%&*+./:<=>?@\\\\^|~][-!#$%&*+./:<=>?@\\\\^|~]*\\)\\)\\)\\)\\)\\)\\)\\)\\)\\)\\)")
 
 ;; (let* ((s "<-")
@@ -139,7 +133,7 @@
 ;;           (match-end 0))
 ;;     'not-matched))
 
-(defconst-set haskell-regexen/reservedsym
+(defconst haskell-regexen/reservedsym
   (rx (or ".."
           "::"
           "="
@@ -156,15 +150,15 @@
           "‥"
           "∷")))
 
-(defconst-set haskell-regexen/reservedsym/w-context
+(defconst haskell-regexen/reservedsym/w-context
   (concat "\\(?:^\\|[^-!#$%&*+./<=>?@^|~:\\]\\)"
           "\\("
           haskell-regexen/reservedsym
           "\\)"
           "\\(?:$\\|[^-!#$%&*+./<=>?@^|~:\\]\\)"))
 
-(defconst-set haskell-regexen/pragma-start "{-#")
-(defconst-set haskell-regexen/pragma-end "#-}")
+(defconst haskell-regexen/pragma-start "{-#")
+(defconst haskell-regexen/pragma-end "#-}")
 
 ;; Generated with
 ;; (dolist (x
@@ -255,23 +249,23 @@
       (char ?h ?H)
       (char ?c ?C)))
 
-(defconst-set haskell-regexen/function-signature-colons "\\(?:::[^:]\\|∷\\)")
+(defconst haskell-regexen/function-signature-colons "\\(?:::[^:]\\|∷\\)")
 
-(defconst-set haskell-regexen/empty-line "^[ \t]*$")
+(defconst haskell-regexen/empty-line "^[ \t]*$")
 
-(defconst-set haskell-regexen/module-header-start
+(defconst haskell-regexen/module-header-start
   "\\_<\\(?:module\\|signature\\)\\_>[ \t\r\n]" )
 
-(defconst-set haskell-regexen/module-name-section
+(defconst haskell-regexen/module-name-section
   "[[:upper:]][[:alnum:]'_]*")
 
-(defconst-set haskell-regexen/module-name
+(defconst haskell-regexen/module-name
   (eval-when-compile
     (let ((conid "[[:upper:]][[:alnum:]'_]*"))
       (concat "\\b" haskell-regexen/module-name-section
               "\\(?:\\." haskell-regexen/module-name-section "\\)*\\b"))))
 
-(defconst-set haskell-regexen/pre-post-qualified-import-line
+(defconst haskell-regexen/pre-post-qualified-import-line
   (rx-let ((ws (any ?\s ?\t ?\r ?\n))
            (constituent
             (any digit upper lower ?_ ?.)
@@ -315,16 +309,19 @@
         (? (group-n 6 (+ ws))
            (group-n 4 bow "as" eow)
            (+ ws)
-           (+ constituent))
+           (group-n 12
+             (+ constituent)))
         (? (+ ws)
            (group-n 5 bow "hiding" eow))
-        (* ws)
-        (? "("
+        (? (group-n 11
+             (* ws)
+             "("
+             (* ws))
            (* nonl))
         (* (any ?\s ?\t))
         eol)))
 
-(defconst-set haskell-regexen/module-quantification
+(defconst haskell-regexen/module-quantification
   (eval-when-compile
     (concat "\\b\\(?:" haskell-regexen/module-name-section "\\.\\)+")))
 
@@ -341,7 +338,7 @@
         (replace-match "" t t name 1)
       name)))
 
-(defconst-set haskell-regexen/ghci-info-definition-site-in-curr-project-for-old-ghci
+(defconst haskell-regexen/ghci-info-definition-site-in-curr-project-for-old-ghci
   (rx "-- Defined at "
       (group-n 1 (+ (not (any ?\r ?\n ?\t))))
       ":"
@@ -351,7 +348,7 @@
       eol)
   "Similar to ‘haskell-regexen/ghci-info-definition-site’ but for older GHCs (8.6-ish).")
 
-(defconst-set haskell-regexen/ghci-info-definition-site
+(defconst haskell-regexen/ghci-info-definition-site
   (rx "-- Defined in "
       ?\‘
       (group-n 1 (+ (not (any ?\n ?\r ?\t))))
@@ -361,24 +358,24 @@
 
 This regexps is for newer ghc (8.10+-ish).")
 
-(defconst-set haskell-regexen/ghci-name-not-in-scope-error
+(defconst haskell-regexen/ghci-name-not-in-scope-error
   (rx "error: Not in scope: ‘"
       (+ (not (any ?\r ?\n ?\t)))
       "’"
       eol))
 
 ;; On external symbols, GHC may return a location such as integer-gmp-1.0.0.1:integer-gmp-1.0.0.1:GHC.Integer.Type
-(defconst-set haskell-regexen/ghci-src-span
+(defconst haskell-regexen/ghci-src-span
   "\\(.*?\\):(\\([0-9]+\\),\\([0-9]+\\))-(\\([0-9]+\\),\\([0-9]+\\))\\'")
 
-(defconst-set haskell-regexen/package-version
+(defconst haskell-regexen/package-version
   (rx ?-
       (+ (any (?0 . ?9) ?.))
       ;; Unique hash that ghci may print
       (? ?- (+ (any (?a . ?z) (?0 . ?9))))
       eos))
 
-(defconst-set haskell-regexen/ghci-loc-at-external-symbol
+(defconst haskell-regexen/ghci-loc-at-external-symbol
   (rx-let ((version (seq ?-
                          (+ (any (?0 . ?9) ?.)))))
     (rx bos
