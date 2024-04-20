@@ -8,11 +8,13 @@
 
 (eval-when-compile
   (require 'cl)
+  (require 'dash)
   (require 'macro-util))
 
 (defvar lsp-document-sync-method)
 
 (require 'common)
+(require 'dash)
 
 (require 'current-column-fixed)
 (provide 'flycheck-setup)
@@ -250,10 +252,10 @@ scheme and it’s view of current buffer is malformed."
     (error "Flycheck not enabled")))
 
 ;;;###autoload
-(defun flycheck-setup-from-eproj (proj default-checker &optional preprocess-checker)
-  (flycheck-setup-from-eproj-deferred proj default-checker preprocess-checker #'flycheck-mode))
+(defun flycheck-setup-from-eproj (proj default-checker &optional on-checker-selected)
+  (flycheck-setup-from-eproj-deferred proj default-checker on-checker-selected #'flycheck-mode))
 
-(defun flycheck-setup-from-eproj-deferred (proj default-checker preprocess-checker consume-outcome)
+(defun flycheck-setup-from-eproj-deferred (proj default-checker on-checker-selected consume-outcome)
   (when (not noninteractive)
     (let* ((flycheck-backend
             (eproj-query/checker proj major-mode default-checker)))
@@ -264,18 +266,56 @@ scheme and it’s view of current buffer is malformed."
                    flycheck-disabled-checkers))
       (if flycheck-backend
           (progn
-            (awhen preprocess-checker
+            (awhen on-checker-selected
               (funcall it flycheck-backend))
             ;; (unless (flycheck-eligible-checker? flycheck-backend)
             ;;   (flycheck-verify-checker flycheck-backend)
             ;;   (error "Unable to select checker '%s' for buffer '%s'"
             ;;          flycheck-backend (current-buffer)))
             (setq-local flycheck-checker flycheck-backend)
+            (add-hook 'flycheck-after-syntax-check-hook
+                      #'flycheck-highlight-errors-with-attrap-fix
+                      nil
+                      t)
             (funcall consume-outcome +1))
         ;; Disable flycheck if it was explicitly set to nil
         (progn
           (when flycheck-mode
             (funcall consume-outcome -1)))))))
+
+(defface flycheck-error-fix-available
+  '((t :inherit flycheck-error))
+  "Flycheck face for errors that have attrap fix."
+  :group 'flycheck-faces)
+
+(defface flycheck-warning-fix-available
+  '((t :inherit flycheck-warning))
+  "Flycheck face for warnings that have attrap fix."
+  :group 'flycheck-faces)
+
+(defface flycheck-info-fix-available
+  '((t :inherit flycheck-info))
+  "Flycheck face for info that have attrap fix."
+  :group 'flycheck-faces)
+
+(defun flycheck-highlight-errors-with-attrap-fix ()
+  (when-let ((checker (flycheck-get-checker-for-buffer))
+             (messages
+              (--filter (car-sure it)
+                        (--map (cons (flycheck-error-message (overlay-get it 'flycheck-error))
+                                     it)
+                               (--filter (overlay-get it 'flycheck-overlay)
+                                         (overlays-in (point-min) (point-max)))))))
+    (dolist (entry (attrap--find-fixes-for-flycheck-messages checker messages))
+      (cl-destructuring-bind (_ _ ov) entry
+        (cl-assert (overlayp ov))
+        (let ((err (overlay-get ov 'flycheck-error)))
+          (cl-assert (flycheck-error-p err))
+          (overlay-put ov 'face
+                       (pcase (flycheck-error-level err)
+                         (`info    'flycheck-info-fix-available)
+                         (`warning 'flycheck-warning-fix-available)
+                         (`error   'flycheck-error-fix-available))))))))
 
 (provide 'flycheck-setup)
 
