@@ -3463,7 +3463,6 @@ have different input states."
    "(.!=) :: Functor m => m (Maybe a) -> a -> m a"
    "(.!=) _|_"
    "    "
-   ""
    ""))
 
 ;; Cannot distinguish unfinished byt indented body from dangling type signature.
@@ -6070,6 +6069,128 @@ have different input states."
    "import Project.Decombobulate"
    ""
    "foo x = x_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-abbrev+--ensure-debug-trace-available-1
+    (haskell-abbrev+--ensure-debug-trace-available)
+  (tests-utils--multiline
+   ""
+   "import System.IO"
+   ""
+   "main = undefined_|_"
+   "")
+  (tests-utils--multiline
+   ""
+   "import qualified Debug.Trace"
+   ""
+   "import System.IO"
+   ""
+   "main = undefined_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-abbrev+--ensure-debug-trace-available-2
+    (haskell-abbrev+--ensure-debug-trace-available)
+  (tests-utils--multiline
+   ""
+   "main = undefined_|_"
+   "")
+  (tests-utils--multiline
+   "import qualified Debug.Trace"
+   ""
+   "main = undefined_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-abbrev+--ensure-prettyprinter-combinators-available-1
+    (haskell-abbrev+--ensure-prettyprinter-combinators-available)
+  (tests-utils--multiline
+   ""
+   "import System.IO"
+   ""
+   "main = undefined_|_"
+   "")
+  (tests-utils--multiline
+   ""
+   "import Prettyprinter.Combinators"
+   ""
+   "import System.IO"
+   ""
+   "main = undefined_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-abbrev+--ensure-prettyprinter-combinators-available-2
+    (haskell-abbrev+--ensure-prettyprinter-combinators-available)
+  (tests-utils--multiline
+   ""
+   "main = undefined_|_"
+   "")
+  (tests-utils--multiline
+   "import Prettyprinter.Combinators"
+   ""
+   "main = undefined_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-abbrev+/ensure-debug-trace-and-prettyprinter-combinators-available-1
+    (progn
+      (haskell-abbrev+--ensure-debug-trace-available)
+      (haskell-abbrev+--ensure-prettyprinter-combinators-available))
+  (tests-utils--multiline
+   ""
+   "import System.IO"
+   ""
+   "main = undefined_|_"
+   "")
+  (tests-utils--multiline
+   ""
+   "import qualified Debug.Trace"
+   "import Prettyprinter.Combinators"
+   ""
+   "import System.IO"
+   ""
+   "main = undefined_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-abbrev+/ensure-debug-trace-and-prettyprinter-combinators-available-2
+    (progn
+      (haskell-abbrev+--ensure-debug-trace-available)
+      (haskell-abbrev+--ensure-prettyprinter-combinators-available))
+  (tests-utils--multiline
+   ""
+   "main = undefined_|_"
+   "")
+  (tests-utils--multiline
+   "import qualified Debug.Trace"
+   "import Prettyprinter.Combinators"
+   ""
+   "main = undefined_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-abbrev+/ensure-debug-trace-and-prettyprinter-combinators-available-3
+    (progn
+      (haskell-abbrev+--ensure-debug-trace-available)
+      (haskell-abbrev+--ensure-prettyprinter-combinators-available))
+  (tests-utils--multiline
+   "import Data.List"
+   ""
+   "foo x = do"
+   "  _|_"
+   "  bar x"
+   "")
+  (tests-utils--multiline
+   "import qualified Debug.Trace"
+   "import Prettyprinter.Combinators"
+   ""
+   "import Data.List"
+   ""
+   "foo x = do"
+   "  _|_"
+   "  bar x"
    ""))
 
 (haskell-tests--test-buffer-contents
