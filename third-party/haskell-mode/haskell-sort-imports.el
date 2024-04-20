@@ -31,30 +31,13 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl))
+  (require 'cl)
+  (require 'macro-util))
 
 (require 'common-heavy)
-
-(defconst haskell-sort-imports-regexp
-  (rx (seq bol
-           "import"
-           (* space)
-           (or (seq "{-#"
-                    (* (any ?\s ?\t ?\n ?\r))
-                    (char ?s ?S)
-                    (char ?o ?O)
-                    (char ?u ?U)
-                    (char ?r ?R)
-                    (char ?c ?C)
-                    (char ?e ?E)
-                    (* (any ?\s ?\t ?\n ?\r))
-                    "#-}"
-                    (* space))
-               (+ space))
-           (optional (group-n 1 "qualified" space))
-           (optional (seq (* space) (group-n 2 (char ?\") (+ (not (any ?\"))) (char ?\") space)))
-           (* space)
-           (group-n 3 (+? (or (syntax word) (syntax symbol))) (* nonl)))))
+(require 'dash)
+(require 'haskell-regexen)
+(require 'ht)
 
 ;;;###autoload
 (defun haskell-sort-imports ()
@@ -64,36 +47,346 @@ i.e. an import list separated by blank lines on either side.
 If the region is active, it will restrict the imports to sort
 within that region."
   (interactive)
-  (when (haskell-sort-imports-at-import)
-    (let* ((points (haskell-sort-imports-decl-points))
-           (current-string (buffer-substring-no-properties (car points)
-                                                           (cdr points)))
-           (current-offset (- (point) (car points))))
-      (if (region-active-p)
-          (progn (goto-char (region-beginning))
-                 (haskell-sort-imports-goto-import-start))
-        (haskell-sort-imports-goto-group-start))
-      (let* ((start (point))
-             (imports (haskell-sort-imports-collect-imports))
-             (sorted (sort (remove-duplicates-hashing imports
-                                                      #'equal)
-                           (lambda (a b)
-                             (string< (haskell-sort-imports-normalize a)
-                                      (haskell-sort-imports-normalize b))))))
-        (when (not (equal imports sorted))
-          (delete-region start (point))
-          (mapc (lambda (import) (insert import "\n")) sorted))
-        (goto-char start)
-        (when (search-forward current-string nil t 1)
-          (forward-char (- (length current-string)))
-          (forward-char current-offset))))))
+  (save-match-data
+    (when (haskell-sort-imports-at-import)
+      (let* ((points (haskell-sort-imports-decl-points))
+             (current-string (buffer-substring-no-properties (car points)
+                                                             (cdr points)))
+             (current-offset (- (point) (car points))))
+        (if (region-active-p)
+            (progn
+              (goto-char (region-beginning))
+              (haskell-sort-imports-goto-import-start))
+          (haskell-sort-imports-goto-group-start))
+        (let* ((start (point))
+               (imports (haskell-sort-imports-collect-imports))
+               (sorted (haskell-sort-imports--group-imports imports)))
+          (when (not (equal imports sorted))
+            (delete-region start (point))
+            (mapc (lambda (import) (insert import "\n")) sorted))
+          (goto-char start)
+          (when (search-forward current-string nil t 1)
+            (forward-char (- (length current-string)))
+            (forward-char current-offset)))))))
 
-(defun haskell-sort-imports-normalize (i)
+(cl-defstruct haskell-import
+  mod-name
+  is-qualified?
+  qualified-as-name
+  is-hiding?
+
+  import-list ;; haskell-import-list struct
+
+  str-before-import-list
+
+  ;; import-list-pos ;; either nil or integer position of the opening space after which opening paren starts.
+  ;; import-list
+  )
+
+(cl-defstruct haskell-import-list
+  start-str ;; ( with surrounding space
+  sep       ;; , with surrounding space
+  end-str   ;; ) with surrounding space
+  entries   ;; list of stings
+  )
+
+(defun haskell-sort-imports--longest-str (x y)
+  (if (< (length x) (length y))
+      y
+    x))
+
+(defun haskell-sort-imports--symmetric-append-import-lists (xs ys)
+  (cl-assert (or (haskell-import-list-p xs) (null xs)))
+  (cl-assert (or (haskell-import-list-p ys) (null xs)))
+  (if (and xs ys)
+      (let* ((xs-start (haskell-import-list-start-str xs))
+             (ys-start (haskell-import-list-start-str ys))
+             (base
+              (if (< (length xs-start) (length ys-start))
+                  ys
+                xs))
+             (other
+              (if (< (length xs-start) (length ys-start))
+                  xs
+                ys))
+             (sep (or (haskell-import-list-sep base)
+                      (haskell-import-list-sep other)
+                      ", ")))
+        (cl-assert (stringp sep))
+        (make-haskell-import-list
+         :start-str (haskell-import-list-start-str base)
+         :sep       sep
+         :end-str   (haskell-import-list-end-str base)
+         :entries   (append (haskell-import-list-entries xs) (cons sep (haskell-import-list-entries ys)))))
+    ;; If one of import lists is missing (i.e. wildcard) then the other one gets subsumed.
+    nil))
+
+(defun haskell-sort-imports--is-separator? (str)
+  (and str
+       (string-match-p (rx bos (* (any ?\s ?\t ?\n ?\r)) "," (* (any ?\s ?\t ?\n ?\r)) eos)
+                       str)))
+
+(defun haskell-sort-imports--asymmetric-append-import-lists (regular-import with-hiding-import k)
+  (let ((regular (haskell-import-import-list regular-import))
+        (with-hiding (haskell-import-import-list with-hiding-import)))
+    (cl-assert (or (haskell-import-list-p regular) (null regular)))
+    ;; hiding must always come with an import list
+    (cl-assert (haskell-import-list-p with-hiding))
+    (if regular
+        (let ((regular-entries (haskell-import-list-entries regular))
+              (filtered-entries nil)
+              (do-skip nil)
+              (do-push nil))
+
+          (dolist (entry (haskell-import-list-entries with-hiding))
+            (cond
+              (do-push
+               (push entry filtered-entries)
+               (setf do-push nil))
+              (do-skip
+               (setf do-skip nil))
+              ((member entry regular-entries)
+               (setf do-skip t))
+              (t
+               (push entry filtered-entries)
+               (setf do-push t))))
+
+          (when (and do-skip
+                     (haskell-sort-imports--is-separator? (car filtered-entries)))
+            (pop filtered-entries))
+
+          (funcall k
+                   t ;; TODO
+                   (make-haskell-import-list
+                    :start-str (haskell-import-list-start-str with-hiding)
+                    :sep       (haskell-import-list-sep with-hiding)
+                    :end-str   (haskell-import-list-end-str with-hiding)
+                    :entries   (nreverse filtered-entries))
+                   (haskell-import-str-before-import-list with-hiding-import)))
+      ;; If regular is missing (i.e. wildcard) then hiding gets subsumed.
+      (funcall k nil nil (haskell-import-str-before-import-list regular-import)))))
+
+(defvar haskell-sort-imports--parens-syntax-table
+  (let ((tbl (make-syntax-table)))
+    (modify-syntax-entry ?\( "\(\)" tbl)
+    (modify-syntax-entry ?\) "\)\(" tbl)
+    tbl))
+
+(defun haskell-sort-imports--parse-import-list (str)
+  (cl-flet*
+      ((skip-whitespace ()
+         (skip-chars-forward " \t\n\r"))
+       (skip-whitespace-backward ()
+         (skip-chars-backward " \t\n\r"))
+       (malformed-input-error ()
+         (error "Malformed import list ‘%s’, cannot recognize the part: ‘%s’"
+                str
+                (buffer-substring-no-properties (point) (point-max))))
+       (advance-char (c)
+         (unless (eq (char-after) c)
+           (malformed-input-error))
+         (forward-char)))
+    (with-temp-buffer
+      (with-syntax-table haskell-sort-imports--parens-syntax-table
+        (insert str)
+        (goto-char (point-min))
+        (let ((open-start (point)))
+          (skip-whitespace)
+          (advance-char 40 ;; ?(
+                        )
+          (skip-whitespace)
+
+          (let ((open-end (point))
+                (first-sep nil)
+                (entries nil)
+
+                (continue t)
+                (result nil))
+
+            (while continue
+              (skip-whitespace)
+
+              (let ((entry-start (point)))
+                (skip-chars-forward "^,()")
+
+                (when (eq (char-after) ?\()
+                  (forward-sexp 1))
+
+                (skip-whitespace-backward)
+
+                (when (< entry-start (point))
+                  (push (buffer-substring-no-properties entry-start (point)) entries))
+
+                (let ((ws-before-end (point)))
+                  (skip-whitespace)
+                  (pcase (char-after)
+                    (?,
+                     (advance-char ?,)
+                     (skip-whitespace)
+                     (let ((sep (buffer-substring-no-properties ws-before-end (point))))
+                       (push sep entries)
+                       (unless first-sep
+                         (setf first-sep sep))))
+                    (41 ;; ?)
+                     (setf continue nil
+                           result
+                           (make-haskell-import-list
+                            :start-str (buffer-substring-no-properties open-start open-end)
+                            :sep       first-sep
+                            :end-str   (buffer-substring-no-properties (if entries ws-before-end (point)) (point-max))
+                            :entries   (nreverse entries))))))))
+
+            result))))))
+
+(cl-defstruct haskell-import-group-key
+  mod-name
+  qualified-as ;; may be nil
+  ;; is-wildcard?
+  )
+
+(defun haskell-sort-imports--derive-import-group-key (import)
+  (cl-assert (haskell-import-p import))
+  (make-haskell-import-group-key
+   :mod-name (haskell-import-mod-name import)
+   :qualified-as (when (haskell-import-is-qualified? import)
+                   (or (haskell-import-qualified-as-name import)
+                       (haskell-import-mod-name import)))
+   ;; :is-wildcard? (or (haskell-import-is-hiding? import)
+   ;;                   (not (haskell-import-import-list-pos import)))
+   ))
+
+(defun haskell-sort-imports--parse-import-statement (str)
+  (cl-assert (stringp str))
+  (if (string-match haskell-regexen/pre-post-qualified-import-line str)
+      (let ((is-qualified? (and (or (match-beginning 2)
+                                    (match-beginning 3))
+                                t))
+            (import-list-pos (match-beginning 11)))
+        (make-haskell-import
+         :mod-name (match-string-no-properties 10 str)
+         :is-qualified? is-qualified?
+         :qualified-as-name (when is-qualified?
+                              (match-string-no-properties 12 str))
+         :is-hiding? (and (match-beginning 5) t)
+
+         :import-list (when import-list-pos
+                        (haskell-sort-imports--parse-import-list
+                         (substring str import-list-pos)))
+
+         :str-before-import-list (substring str nil import-list-pos)))
+    (error "Malformed import: %s" str)))
+
+(defun haskell-import-merge (a b)
+  "Return T if \"import A\" can be replaced by \"import B\" with introducing compilation errors.
+I.e. chacks that A defines less names that B."
+  (let ((mod-name (haskell-import-mod-name a))
+        (is-qualified? (haskell-import-is-qualified? a))
+        (qualified-as-name (haskell-import-qualified-as-name a))
+        (merged-str-before-import-list
+         (haskell-sort-imports--longest-str
+          (haskell-import-str-before-import-list a)
+          (haskell-import-str-before-import-list b))))
+    (cl-assert (equal (haskell-import-mod-name a)
+                      (haskell-import-mod-name b)))
+    (cl-assert (equal (haskell-import-is-qualified? a)
+                      (haskell-import-is-qualified? b)))
+    (cl-assert (equal (haskell-import-qualified-as-name a)
+                      (haskell-import-qualified-as-name b)))
+    ;; (cl-assert (equal (haskell-import-str-before-import-list a)
+    ;;                   (haskell-import-str-before-import-list b)))
+    (pcase (cons a b)
+      (`(,(pred haskell-import-is-hiding?) . ,(pred haskell-import-is-hiding?))
+       (make-haskell-import
+        :mod-name mod-name
+        :is-qualified? is-qualified?
+        :qualified-as-name qualified-as-name
+        :is-hiding? t
+
+        :import-list (haskell-sort-imports--symmetric-append-import-lists (haskell-import-import-list a)
+                                                                          (haskell-import-import-list b))
+
+        :str-before-import-list merged-str-before-import-list))
+      (`(,(pred haskell-import-is-hiding?) . ,(pred (not haskell-import-is-hiding?)))
+       (haskell-sort-imports--asymmetric-append-import-lists
+        b
+        a
+        (lambda (is-hiding? merged-import-list merged-str-before-import)
+          (make-haskell-import
+           :mod-name mod-name
+           :is-qualified? is-qualified?
+           :qualified-as-name qualified-as-name
+
+           :is-hiding? is-hiding?
+           :import-list merged-import-list
+           :str-before-import-list merged-str-before-import))))
+      (`(,(pred (not haskell-import-is-hiding?)) . ,(pred haskell-import-is-hiding?))
+       (haskell-sort-imports--asymmetric-append-import-lists
+        a
+        b
+        (lambda (is-hiding? merged-import-list merged-str-before-import)
+          (make-haskell-import
+           :mod-name mod-name
+           :is-qualified? is-qualified?
+           :qualified-as-name qualified-as-name
+
+           :is-hiding? is-hiding?
+           :import-list merged-import-list
+           :str-before-import-list merged-str-before-import))))
+      (`(,(pred (not haskell-import-is-hiding?)) . ,(pred (not haskell-import-is-hiding?)))
+       (make-haskell-import
+        :mod-name mod-name
+        :is-qualified? is-qualified?
+        :qualified-as-name qualified-as-name
+
+        :is-hiding? nil
+        :import-list (haskell-sort-imports--symmetric-append-import-lists (haskell-import-import-list a)
+                                                                          (haskell-import-import-list b))
+
+        :str-before-import-list merged-str-before-import-list)))))
+
+(defun haskell-sort-imports--combine-group (group-key grouped-imports)
+  (foldl #'haskell-import-merge (car grouped-imports) (cdr grouped-imports)))
+
+(defun haskell-sort-imports--reconstruct-import-statement (import)
+  (cl-assert (haskell-import-p import))
+  (if-let (import-list (haskell-import-import-list import))
+      (concat (haskell-import-str-before-import-list import)
+              (haskell-import-list-start-str import-list)
+              (apply #'concat (haskell-import-list-entries import-list))
+              (haskell-import-list-end-str import-list))
+    (haskell-import-str-before-import-list import)))
+
+(defun haskell-sort-imports--group-imports (imports)
+  (let ((grouped (make-hash-table :test #'equal)))
+    (dolist (i (remove-duplicates-hashing imports #'equal))
+      (let* ((parsed (haskell-sort-imports--parse-import-statement i))
+             (key (haskell-sort-imports--derive-import-group-key parsed)))
+        (puthash key
+                 (cons parsed
+                       (gethash key grouped nil))
+                 grouped)))
+
+    ;; grouped
+    (-map #'haskell-sort-imports--reconstruct-import-statement
+          (sort (ht-map #'haskell-sort-imports--combine-group grouped)
+                (lambda (a b)
+                  (let ((mod-name-a (haskell-import-mod-name a))
+                        (mod-name-b (haskell-import-mod-name b)))
+                    (or (string< mod-name-a mod-name-b)
+                        (and (string= mod-name-a mod-name-b)
+                             (let ((is-hiding-a (haskell-import-is-hiding? a))
+                                   (is-hiding-b (haskell-import-is-hiding? b)))
+                               (or (bool-< is-hiding-a is-hiding-b)
+                                   (and (equal is-hiding-a is-hiding-b)
+                                        (let ((is-qualified-a (haskell-import-is-qualified? a))
+                                              (is-qualified-b (haskell-import-is-qualified? b)))
+                                          (bool-< is-qualified-a is-qualified-b)))))))))))))
+
+(defun haskell-sort-imports--extract-mod-name (str)
   "Normalize an import, if possible, so that it can be sorted."
-  (if (string-match haskell-sort-imports-regexp
-                    i)
-      (match-string 3 i)
-    i))
+  (if (string-match haskell-regexen/pre-post-qualified-import-line str)
+      (match-string-no-properties 10 str)
+    str))
 
 (defun haskell-sort-imports-collect-imports ()
   (let ((imports (list)))
