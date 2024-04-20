@@ -50,20 +50,25 @@
 (defun haskell-navigate-imports-go-internal ()
   "Go to the first line of a list of consecutive import lines. Cycle."
   (if (haskell-navigate-imports-line)
-      (progn (haskell-navigate-imports-goto-end)
-             (when (haskell-navigate-imports-find-forward-line)
-               (haskell-navigate-imports-go-internal)))
+      (progn
+        (haskell-navigate-imports-goto-end)
+        (when (haskell-navigate-imports-find-forward-line)
+          (haskell-navigate-imports-go-internal)))
     (let ((point (haskell-navigate-imports-find-forward-line)))
       (if point
           (goto-char point)
         (progn (goto-char (point-min))
-               (if (haskell-navigate-imports-find-forward-line)
-                   (haskell-navigate-imports-go-internal)
-                 (let ((module (if (eq haskell-literate 'bird)
-                                   "^> ?module"
-                                 "^module")))
-                   (when (search-forward-regexp module nil t 1)
-                     (search-forward "\n\n" nil t 1)))))))))
+               (cond
+                 ((haskell-navigate-imports-line)
+                  t)
+                 ((haskell-navigate-imports-find-forward-line)
+                  (haskell-navigate-imports-go-internal))
+                 (t
+                  (let ((module (if (eq haskell-literate 'bird)
+                                    "^> ?module"
+                                  "^module")))
+                    (when (search-forward-regexp module nil t 1)
+                      (search-forward "\n\n" nil t 1))))))))))
 
 (defun haskell-navigate-imports-goto-end ()
   "Skip a bunch of consecutive import lines."
