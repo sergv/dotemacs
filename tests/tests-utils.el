@@ -72,8 +72,8 @@
             (expected-contents ,expected-value))
         (unless (string-match-p "_|_" expected-contents)
           (error "Expected buffer contents does not provide point position with _|_"))
-        (should (equal (split-into-lines actual-contents)
-                       (split-into-lines expected-contents)))))
+        (should (equal (split-into-lines actual-contents t)
+                       (split-into-lines expected-contents t)))))
     :contents ,contents
     :buffer-id ,buffer-id))
 
