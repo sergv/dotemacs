@@ -700,24 +700,29 @@ Error is given as MSG and reported between POS and END."
                                      effective-major-mode
                                      identifier
                                      nil))
+
            (module-names
             (remove-duplicates-sorting
-             (--map (haskell-misc--file-name-to-module-name (eproj-tag/file (cadr it)))
+             (--map (cons (haskell-misc--file-name-to-module-name (eproj-tag/file (cl-second it)))
+                          (eq proj (cl-third it)))
                     candidate-tags)
-             #'string<))
+             (lambda (x y)
+               (string< (car x) (car y)))))
 
-           (mod-name (pcase (length module-names)
-                       (0 (error "No candidates modules defining ‘%s’ found" identifier))
-                       (1 (car module-names))
-                       (_ (completing-read "Choose module: "
-                                           module-names
-                                           nil
-                                           t ;; require match
-                                           nil
-                                           'attrap-import-history ;; history
-                                           )))))
-      (haskell-misc--add-new-import mod-name identifier)
-      (message "Added import of ‘%s’" mod-name))))
+           (entry
+            (pcase (length module-names)
+              (0 (error "No candidates modules defining ‘%s’ found" identifier))
+              (1 (car module-names))
+              (_ (completing-read "Choose module: "
+                                  module-names
+                                  nil
+                                  t ;; require match
+                                  nil
+                                  'attrap-import-history ;; history
+                                  )))))
+      (cl-destructuring-bind (mod-name . import-from-current-project?) entry
+        (haskell-misc--add-new-import mod-name identifier import-from-current-project?)
+        (message "Added import of ‘%s’" mod-name)))))
 
 (defun attrap-add-operator-parens (name)
   "Add parens around a NAME if it refers to a Haskell operator."

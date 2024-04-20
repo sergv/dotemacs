@@ -5918,6 +5918,160 @@ have different input states."
                   :end-str "\n  )"
                   :entries '("foo" "\n  , " "pattern Bar" "\n ,   " "Decombobulator (..)" "  \n  , " "baz")))))
 
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-misc--add-new-import-1
+    (haskell-misc--add-new-import "Foo" nil nil)
+  (tests-utils--multiline
+   ""
+   "import Bar"
+   ""
+   "foo x = x_|_"
+   "")
+  (tests-utils--multiline
+   ""
+   "import Bar"
+   "import Foo"
+   ""
+   "foo x = x_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-misc--add-new-import-2
+    (haskell-misc--add-new-import "Foo" "quux" nil)
+  (tests-utils--multiline
+   ""
+   "import Bar"
+   ""
+   "foo x = x_|_"
+   "")
+  (tests-utils--multiline
+   ""
+   "import Bar"
+   "import Foo (quux)"
+   ""
+   "foo x = x_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-misc--add-new-import-3
+    (haskell-misc--add-new-import "Data.Foo" "quux" nil)
+  (tests-utils--multiline
+   ""
+   "import Control.Applicative"
+   "import Control.Monad"
+   ""
+   "import Data.List qualified as L"
+   ""
+   "foo x = x_|_"
+   "")
+  (tests-utils--multiline
+   ""
+   "import Control.Applicative"
+   "import Control.Monad"
+   ""
+   "import Data.Foo (quux)"
+   "import Data.List qualified as L"
+   ""
+   "foo x = x_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-misc--add-new-import-4
+    (haskell-misc--add-new-import "Data.Foo" "quux" nil)
+  (tests-utils--multiline
+   ""
+   "import System.IO"
+   ""
+   "import Control.Applicative"
+   "import Control.Monad"
+   ""
+   "import Data.List qualified as L"
+   ""
+   "foo x = x_|_"
+   "")
+  (tests-utils--multiline
+   ""
+   "import System.IO"
+   ""
+   "import Control.Applicative"
+   "import Control.Monad"
+   ""
+   "import Data.Foo (quux)"
+   "import Data.List qualified as L"
+   ""
+   "foo x = x_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-misc--add-new-import-5
+    (haskell-misc--add-new-import "Data.Foo" "quux" nil)
+  (tests-utils--multiline
+   ""
+   "import System.IO"
+   ""
+   "import Control.Applicative"
+   "import Control.Monad"
+   ""
+   "import Data.List qualified as L"
+   "import Data.Map qualified as M"
+   ""
+   "import Data.AAA.ProjectSpecific qualified as PS"
+   "import Project.Decombobulate"
+   ""
+   "foo x = x_|_"
+   "")
+  (tests-utils--multiline
+   ""
+   "import System.IO"
+   ""
+   "import Control.Applicative"
+   "import Control.Monad"
+   ""
+   "import Data.Foo (quux)"
+   "import Data.List qualified as L"
+   "import Data.Map qualified as M"
+   ""
+   "import Data.AAA.ProjectSpecific qualified as PS"
+   "import Project.Decombobulate"
+   ""
+   "foo x = x_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-misc--add-new-import-6
+    (haskell-misc--add-new-import "Data.Foo" "quux" t)
+  (tests-utils--multiline
+   ""
+   "import System.IO"
+   ""
+   "import Control.Applicative"
+   "import Control.Monad"
+   ""
+   "import Data.List qualified as L"
+   "import Data.Map qualified as M"
+   ""
+   "import Data.AAA.ProjectSpecific qualified as PS"
+   "import Project.Decombobulate"
+   ""
+   "foo x = x_|_"
+   "")
+  (tests-utils--multiline
+   ""
+   "import System.IO"
+   ""
+   "import Control.Applicative"
+   "import Control.Monad"
+   ""
+   "import Data.List qualified as L"
+   "import Data.Map qualified as M"
+   ""
+   "import Data.AAA.ProjectSpecific qualified as PS"
+   "import Data.Foo (quux)"
+   "import Project.Decombobulate"
+   ""
+   "foo x = x_|_"
+   ""))
+
 (provide 'haskell-tests)
 
 ;; (let ((ert-debug-on-error nil))
