@@ -722,7 +722,6 @@
      "")
     (tests-utils--multiline
      ""
-     ""
      "fn foo(x: i32) -> char {"
      "   ',_|_'"
      "}"
