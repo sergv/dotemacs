@@ -716,7 +716,7 @@ Error is given as MSG and reported between POS and END."
                                            nil
                                            'attrap-import-history ;; history
                                            )))))
-      (haskell-misc--add-new-import mod-name)
+      (haskell-misc--add-new-import mod-name identifier)
       (message "Added import of ‘%s’" mod-name))))
 
 (defun attrap-add-operator-parens (name)
