@@ -52,6 +52,8 @@
 ;; using `attrap-option'.  A singleton option list can be conveniently
 ;; defined using `attrap-one-option'.
 
+(eval-when-compile
+  (require 'macro-util))
 
 ;;; Code:
 (require 'dash)
@@ -133,39 +135,47 @@
                                                        (flymake-diagnostic-end it))))
                                 diags))))))
 
+;;;###autoload
+(defun attrap--find-fixes-for-flycheck-messages (checker messages)
+  "
+MESSAGES should be list of pairs (<error message str> <responsible flycheck overlay>)
+
+Returns list of triples
+
+(<fix name> <fix action, lambda of 0 args> <responsible flycheck overlay>)"
+  (let ((fixers (-map #'cdr (--filter (eq (car it) checker) attrap-flycheck-checkers-alist))))
+    (when (not fixers) (error "No fixers for flycheck-checker %s" checker))
+    (--filter (car it)
+              (mapcan (lambda (msg)
+                        (mapcan (lambda (fixer)
+                                  (cl-assert (functionp fixer))
+                                  (let ((ov (cdr msg)))
+                                    (cl-assert (overlayp ov))
+                                    (--map (list (car it) (cdr it) ov)
+                                           (funcall fixer
+                                                    (car msg)
+                                                    (overlay-start ov)
+                                                    (overlay-end ov)))))
+                                fixers))
+                      messages))))
 
 ;;;###autoload
 (defun attrap-flycheck (pos)
   "Attempt to repair the flycheck error at POS."
   (interactive "d")
-  (let ((messages (-filter
-                   #'car
-                   (--map (cons (flycheck-error-message
-                                 (overlay-get it 'flycheck-error))
-                                it)
-                          (flycheck-overlays-at pos))))
+  (let ((messages (--filter (car-sure it)
+                            (--map (cons (flycheck-error-message
+                                          (overlay-get it 'flycheck-error))
+                                         it)
+                                   (flycheck-overlays-at pos))))
         (checker (flycheck-get-checker-for-buffer)))
     (when (not messages) (error "No flycheck message at point"))
     (when (not checker) (error "No flycheck-checker for current buffer"))
-    (let ((fixers (-map #'cdr (--filter (eq (car it) checker) attrap-flycheck-checkers-alist))))
-      (when (not fixers) (error "No fixers for flycheck-checker %s" checker))
-      (attrap-select-and-apply-option
-       (remove-duplicates-by-hashing-projections
-        #'car
-        #'equal
-        (--filter (car it)
-                  (mapcan (lambda (msg)
-                            (mapcan (lambda (fixer)
-                                      (cl-assert (functionp fixer))
-                                      (let ((ov (cdr msg)))
-                                        (cl-assert (overlayp ov))
-                                        (--map (list (car it) (cdr it) ov)
-                                               (funcall fixer
-                                                        (car msg)
-                                                        (overlay-start ov)
-                                                        (overlay-end ov)))))
-                                    fixers))
-                          messages)))))))
+    (attrap-select-and-apply-option
+     (remove-duplicates-by-hashing-projections
+      #'car
+      #'equal
+      (attrap--find-fixes-for-flycheck-messages checker messages)))))
 
 ;;;###autoload
 (defun attrap-attrap (pos)
@@ -715,20 +725,24 @@ Error is given as MSG and reported between POS and END."
                           (eq proj (cl-third it)))
                     candidate-tags)
              (lambda (x y)
+               (string= (car x) (car y)))
+             (lambda (x y)
                (string< (car x) (car y)))))
 
            (entry
             (pcase (length module-names)
               (0 (error "No candidates modules defining ‘%s’ found" identifier))
               (1 (car module-names))
-              (_ (completing-read "Choose module: "
-                                  module-names
-                                  nil
-                                  t ;; require match
-                                  nil
-                                  'attrap-import-history ;; history
-                                  )))))
-      (cl-destructuring-bind (mod-name . import-from-current-project?) entry
+              (_ (assoc (completing-read "Choose module: "
+                                         module-names
+                                         nil
+                                         t ;; require match
+                                         nil
+                                         'attrap-import-history ;; history
+                                         )
+                        module-names)))))
+      (let ((mod-name (car entry))
+            (import-from-current-project? (cdr entry)))
         (haskell-misc--add-new-import mod-name identifier import-from-current-project?)
         (message "Added import of ‘%s’" mod-name)))))
 
