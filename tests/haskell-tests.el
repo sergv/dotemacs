@@ -4027,6 +4027,43 @@ have different input states."
    ""))
 
 (haskell-tests--test-buffer-contents
+    haskell-tests/haskell-move-to-topmost-start-2
+    (haskell-move-to-topmost-start)
+  (tests-utils--multiline
+   ""
+   "module Foo"
+   "  ( foo"
+   "  , bar_|_"
+   "  )"
+   "  where"
+   "")
+  (tests-utils--multiline
+   ""
+   "_|_module Foo"
+   "  ( foo"
+   "  , bar"
+   "  )"
+   "  where"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-move-to-topmost-start-3
+    (haskell-move-to-topmost-start)
+  (tests-utils--multiline
+   ""
+   "module Foo (foo, _|_bar) where"
+   ""
+   "foo :: Int -> Int"
+   "foo x = x + 1"
+   "")
+  (tests-utils--multiline
+   ""
+   "_|_module Foo (foo, bar) where"
+   ""
+   "foo :: Int -> Int"
+   "foo x = x + 1"
+   ""))
+(haskell-tests--test-buffer-contents
     haskell-tests/haskell-move-to-topmost-end-1
     (haskell-move-to-topmost-end)
   (tests-utils--multiline
@@ -4098,6 +4135,44 @@ have different input states."
    ""
    "bar :: a -> x"
    "bar x = x"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-move-to-topmost-end-2
+    (haskell-move-to-topmost-end)
+  (tests-utils--multiline
+   ""
+   "_|_module Foo"
+   "  ( foo"
+   "  , bar"
+   "  )"
+   "  where"
+   "")
+  (tests-utils--multiline
+   ""
+   "module Foo"
+   "  ( foo"
+   "  , bar"
+   "  )"
+   "  where_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-move-to-topmost-end-3
+    (haskell-move-to-topmost-end)
+  (tests-utils--multiline
+   ""
+   "_|_module Foo (foo, bar) where"
+   ""
+   "foo :: Int -> Int"
+   "foo x = x + 1"
+   "")
+  (tests-utils--multiline
+   ""
+   "module Foo (foo, bar) where_|_"
+   ""
+   "foo :: Int -> Int"
+   "foo x = x + 1"
    ""))
 
 (ert-deftest haskell-tests/haskell-regexen/pre-post-qualified-import-line-1 ()
