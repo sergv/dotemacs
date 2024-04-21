@@ -149,7 +149,7 @@ MSYS-style drives, e.g. \"/c/foo/bar.txt\" -> \"c:/foo/bar.txt\"."
   "Haskell brother of ‘paredit-backward-up’ that considers both
 sexps and indentation levels."
   (interactive)
-  (indent-backward-up-indentation-or-sexp #'indent-on-blank-line-p))
+  (indent-backward-up-indentation-or-sexp #'indent-on-blank-line?))
 
 (vimmize-motion shell-backward-up-indentation-or-sexp
                 :name vim:shell-backward-up-indentation-or-sexp
