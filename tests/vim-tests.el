@@ -3393,7 +3393,6 @@ _|_bar")
   (tests-utils--multiline
    ""
    "foo :: Int -> _|_Int"
-   ""
    "foo x ="
    ""
    "  bar + 1 +"
@@ -3403,12 +3402,36 @@ _|_bar")
   (tests-utils--multiline
    ""
    "foo :: Int -> Int"
-   ""
    "foo x ="
    ""
    "  bar + 1 +"
    ""
    "    baz (quux x)_|_"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell-move-to-topmost-end-3a
+    (execute-kbd-macro (kbd "g h"))
+  (tests-utils--multiline
+   ""
+   "foo :: Int -> _|_Int"
+   ""
+   "foo x ="
+   ""
+   "  bar + 1 +"
+   ""
+   "    baz (quux x)"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo :: Int -> Int_|_"
+   ""
+   "foo x ="
+   ""
+   "  bar + 1 +"
+   ""
+   "    baz (quux x)"
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
