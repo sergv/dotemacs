@@ -594,7 +594,10 @@ Error is given as MSG and reported between POS and END."
                 (when (or (looking-at (rx (* space) "," (* space)))
                           (looking-back (rx "," (* space)) (line-beginning-position)))
                   (replace-match "")))))))))
-   (when (string-match (rx "The " (? "qualified ") "import of " (identifier 1) " is redundant") msg)
+   (when (string-match
+          (rx "warning: [GHC-66111] [-Wunused-imports]" (+ ws)
+              "The " (? "qualified ") "import of " (identifier 1) " is redundant")
+          msg)
     (attrap-one-option 'delete-module-import
       (save-match-data
         (save-excursion
