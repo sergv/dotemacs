@@ -139,14 +139,14 @@ and indent them as singe line."
   "Move up to lesser indentation level, skipping empty lines.
 
 Returns t if indentation occured."
-  (indent-back-up-indent-level #'haskell-on-blank-line-p))
+  (indent-back-up-indent-level #'haskell-on-blank-line?))
 
 ;;;###autoload
 (defun haskell-backward-up-indentation-or-sexp ()
   "Haskell brother of ‘paredit-backward-up’ that considers both
 sexps and indentation levels."
   (interactive)
-  (indent-backward-up-indentation-or-sexp #'haskell-on-blank-line-p))
+  (indent-backward-up-indentation-or-sexp #'haskell-on-blank-line?))
 
 ;;;###autoload
 (defun haskell-up-sexp ()
@@ -595,7 +595,7 @@ both unicode and ascii characters.")
                                    (beginning-of-line)
                                    (while (and (not (eobp))
                                                (< function-name-column (indentation-size)))
-                                     (unless (haskell-on-blank-line-p)
+                                     (unless (haskell-on-blank-line?)
                                        (setf indented-section-end (line-end-position)))
                                      (forward-line 1))
                                    ;; Do not expand if we're not located at the
@@ -864,23 +864,23 @@ value section should have if it is to be properly indented."
   ;;   (while (and (not (bobp))
   ;;               (or (and c
   ;;                        (whitespace-char? c))
-  ;;                   (haskell-on-blank-line-p)))
+  ;;                   (haskell-on-blank-line?)))
   ;;     (forward-line -1)
   ;;     (setf c (char-after))))
   )
 
-(defun haskell-on-blank-line-p ()
+(defun haskell-on-blank-line? ()
   "Assumes point is at 0th column."
   (or
    ;; Skip preprocessor lines
    (eq (char-after) ?#)
-   (indent-on-blank-line-p)))
+   (indent-on-blank-line?)))
 
-(defun haskell-on-nonindented-line-p ()
+(defun haskell-on-nonindented-line? ()
   "Assumes point is at 0th column."
   (= 0 (indentation-size)))
 
-(defun haskell-on-indented-line-p ()
+(defun haskell-on-indented-line? ()
   "Assumes point is at 0th column."
   (/= 0 (indentation-size)))
 
@@ -896,15 +896,15 @@ value section should have if it is to be properly indented."
   (vim-save-position)
   (beginning-of-line)
   (while (and (not (eobp))
-              (haskell-on-nonindented-line-p))
+              (haskell-on-nonindented-line?))
     (forward-line 1))
   (while (and (not (eobp))
-              (or (haskell-on-indented-line-p)
-                  (haskell-on-blank-line-p)))
+              (or (haskell-on-indented-line?)
+                  (haskell-on-blank-line?)))
     (forward-line 1))
   (forward-line -1)
   (while (and (not (bobp))
-              (haskell-on-blank-line-p))
+              (haskell-on-blank-line?))
     (forward-line -1))
   (end-of-line))
 
