@@ -391,7 +391,9 @@ Error is given as MSG and reported between POS and END."
            (module-name (+ (any "_." alphanumeric)))
            (identifier (n) (seq "‘" (group-n n (* (not "’"))) "’"))
            (ws (any ?\n ?\r ?\s ?\t))
-           (name-capture (n) (group-n n (+ (not (any ?\n ?\r ?\s ?\t))))))
+           (name-capture (n) (group-n n (+ (not (any ?\n ?\r ?\s ?\t)))))
+           (ghc-warning (n) (seq "warning:" (optional " [GHC-" n "]")))
+           (ghc-error (n) (seq "error:" (optional " [GHC-" n "]"))))
   (append
    (when (string-match "Parse error in pattern: pattern" msg)
      (list (attrap-insert-language-pragma "PatternSynonyms")))
@@ -595,7 +597,7 @@ Error is given as MSG and reported between POS and END."
                           (looking-back (rx "," (* space)) (line-beginning-position)))
                   (replace-match "")))))))))
    (when (string-match
-          (rx "warning: [GHC-66111] [-Wunused-imports]" (+ ws)
+          (rx (ghc-warning "66111") " [-Wunused-imports]" (+ ws)
               "The " (? "qualified ") "import of " (identifier 1) " is redundant")
           msg)
     (attrap-one-option 'delete-module-import
@@ -679,7 +681,8 @@ Error is given as MSG and reported between POS and END."
           (--filter (s-matches? it normalized-msg) attrap-haskell-extensions))
 
    (when (string-match
-          (rx (or (seq "warning: [GHC-88464] [-Wdeferred-out-of-scope-variables]"
+          (rx (or (seq (ghc-warning "88464")
+                       " [-Wdeferred-out-of-scope-variables]"
                        (+ ws)
                        (or "Variable"
                            "Data constructor")
@@ -688,7 +691,7 @@ Error is given as MSG and reported between POS and END."
                        (name-capture 1)
                        (+ ws)
                        "::")
-                  (seq "error: [GHC-76037]"
+                  (seq (ghc-error "76037")
                        (+ ws)
                        "Not in scope: type constructor or class "
                        (identifier 1))))
@@ -702,7 +705,7 @@ Error is given as MSG and reported between POS and END."
     ;;     Suggested fix:
     ;;       Perhaps use ‘MC.MonadMask’ (imported from Control.Monad.Catch)
     (when (string-match
-           (rx "error: [GHC-76037]"
+           (rx (ghc-error "76037")
                (+ ws)
                "Not in scope: type constructor or class"
                (+ ws)
