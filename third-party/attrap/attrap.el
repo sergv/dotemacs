@@ -669,7 +669,9 @@ Error is given as MSG and reported between POS and END."
            ((equal class-name "Pretty")
             (insert "deriving via PPGeneric " type-name " instance Pretty " type-name "\n"))
            ((equal class-name "Generic")
-            (insert "deriving instance Generic " type-name "\n"))))))
+            (insert "deriving instance Generic " type-name "\n"))
+           (t
+            (error "Unhandled class case: %s" class-name))))))
    (--map (attrap-insert-language-pragma it)
           (--filter (s-matches? it normalized-msg) attrap-haskell-extensions))
 
