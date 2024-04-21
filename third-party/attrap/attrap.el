@@ -59,6 +59,7 @@
 (require 'dash)
 (require 'eproj)
 (require 'haskell-misc)
+(require 'haskell-regexen)
 (require 's)
 
 (declare-function flycheck-error-message "ext:flycheck" (cl-x))
@@ -601,15 +602,16 @@ Error is given as MSG and reported between POS and END."
           (delete-region
            (point)
            (progn
-             (unless (looking-at
-                      (rx "import" (+ space) (? "qualified" (+ space)) module-name (? (+ space) (? "qualified") (? (+ space) "as" (+ space) module-name) (? (+ space) "hiding"))))
+             (unless (looking-at haskell-regexen/pre-post-qualified-import-line)
                (error "Import statement not found"))
-             (goto-char (match-end 0))
+             (goto-char (if-let ((import-list-start (match-beginning 11)))
+                            import-list-start
+                          (match-end 0)))
              (skip-chars-forward "\t ")
              (let ((sexp-end
                     (save-excursion
                       (skip-chars-forward "\r\n\t ")
-                      (when (looking-at "(") ; skip the import list if any
+                      (when (eq (char-after) ?\() ; skip the import list if any
                         (forward-sexp)
                         (skip-chars-forward "\t ")
                         (point)))))
