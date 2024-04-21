@@ -255,6 +255,46 @@
   ""
   ""))
 
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/replace-1
+ :flycheck-errors
+ (list
+  (let ((linecol (save-excursion
+                   (re-search-forward "_|_")
+                   (flycheck-line-column-at-pos (point)))))
+    (flycheck-error-new
+     :line (car linecol)
+     :column (cdr linecol)
+     :buffer (current-buffer)
+     :checker 'haskell-dante
+     :message
+     (tests-utils--multiline
+      "error: [GHC-76037]"
+      "    Not in scope: type constructor or class ‘MonadMask’"
+      "    Suggested fix:"
+      "      Perhaps use ‘MC.MonadMask’ (imported from Control.Monad.Catch)")
+     :level 'error
+     :id nil
+     :group nil)))
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Control.Monad.Catch qualified as MC"
+  ""
+  "foo :: _|_MonadMask m => a -> m a"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Control.Monad.Catch qualified as MC"
+  ""
+  "foo :: _|_MC.MonadMask m => a -> m a"
+  "foo = undefined"
+  ""))
+
 (provide 'attrap-tests)
 
 ;; Local Variables:
