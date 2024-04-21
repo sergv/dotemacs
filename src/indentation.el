@@ -104,7 +104,7 @@ See also `indent-relative-maybe'."
                 (forward-line -1)
                 (beginning-of-line)
                 (while (and (not (bobp))
-                            (or (haskell-on-blank-line-p)
+                            (or (haskell-on-blank-line?)
                                 (if (or forward?
                                         ;; If we start at column 0
                                         ;; then we do not want to iterate
@@ -164,7 +164,7 @@ See also `indent-relative-maybe'."
 
 ;;;; Navigation over indentation levels
 
-(defun indent-on-blank-line-p ()
+(defun indent-on-blank-line? ()
   "Assumes point is at 0th column."
   (save-excursion
     (skip-indentation-forward)
