@@ -388,7 +388,9 @@ Error is given as MSG and reported between POS and END."
            (any-span (l1 c1 l2 c2) (or (monoline-span l1 c1 l2 c2) (multiline-span l1 c1 l2 c2)))
            (src-loc (l1 c1 l2 c2) (seq (* (not ":")) ":" (any-span l1 c1 l2 c2)))
            (module-name (+ (any "_." alphanumeric)))
-           (identifier (n) (seq "‘" (group-n n (* (not "’"))) "’")))
+           (identifier (n) (seq "‘" (group-n n (* (not "’"))) "’"))
+           (ws (any ?\n ?\r ?\s ?\t))
+           (name-capture (n) (group-n n (+ (not (any ?\n ?\r ?\s ?\t))))))
   (append
    (when (string-match "Parse error in pattern: pattern" msg)
      (list (attrap-insert-language-pragma "PatternSynonyms")))
@@ -670,28 +672,56 @@ Error is given as MSG and reported between POS and END."
           (--filter (s-matches? it normalized-msg) attrap-haskell-extensions))
 
    (when (string-match
-          (rx-let ((ws (any ?\n ?\r ?\s ?\t))
-                   (name-capture
-                    (group-n 1
-                      (+ (not (any ?\n ?\r ?\s ?\t))))))
-            (rx (or (seq "warning: [GHC-88464] [-Wdeferred-out-of-scope-variables]"
-                         (+ ws)
-                         (or "Variable"
-                             "Data constructor")
-                         " not in scope:"
-                         (+ ws)
-                         name-capture
-                         (+ ws)
-                         "::")
-                    (seq "error: [GHC-76037]"
-                         (+ ws)
-                         "Not in scope: type constructor or class ‘"
-                         name-capture
-                         "’"))))
+          (rx (or (seq "warning: [GHC-88464] [-Wdeferred-out-of-scope-variables]"
+                       (+ ws)
+                       (or "Variable"
+                           "Data constructor")
+                       " not in scope:"
+                       (+ ws)
+                       (name-capture 1)
+                       (+ ws)
+                       "::")
+                  (seq "error: [GHC-76037]"
+                       (+ ws)
+                       "Not in scope: type constructor or class "
+                       (identifier 1))))
           msg)
     (attrap-one-option 'add-import
       (let ((name (attrap-strip-parens (match-string-no-properties 1 msg))))
-        (attrap--add-import name))))))))
+        (attrap--add-import name))))
+
+    ;; error: [GHC-76037]
+    ;;     Not in scope: type constructor or class ‘MonadMask’
+    ;;     Suggested fix:
+    ;;       Perhaps use ‘MC.MonadMask’ (imported from Control.Monad.Catch)
+    (when (string-match
+           (rx "error: [GHC-76037]"
+               (+ ws)
+               "Not in scope: type constructor or class"
+               (+ ws)
+               (identifier 1)
+               (+ ws)
+               "Suggested fix:"
+               (+ ws)
+               "Perhaps use "
+               (identifier 2)
+               (? " (imported from "
+                  (group-n 3 (+ (not ?\))))
+                  ")"))
+           msg)
+      (let* ((delete (match-string-no-properties 1 msg))
+             (delete-has-paren (eq 40 ;; ?(
+                                   (elt delete 0)))
+             (delete-no-paren (if delete-has-paren (substring delete 1 (1- (length delete))) delete))
+             (new-ident (match-string-no-properties 2 msg))
+             (new-module (match-string-no-properties 3 msg)))
+        (attrap-one-option (append (list 'replace delete-no-paren 'by new-ident)
+                                   (when new-module
+                                     (list 'from new-module)))
+          (goto-char pos)
+          (let ((case-fold-search nil))
+            (search-forward delete-no-paren (+ (length delete) pos))
+            (replace-match new-ident t)))))))))
 
 (defun attrap-strip-parens (identifier)
   (let* ((i 0)
