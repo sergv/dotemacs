@@ -191,7 +191,9 @@ into account.")
       ("<next>"    search--next-from-minibuf)
       ("<prior>"   search--prev-from-minibuf)
 
-      ("C-SPC"     delete-minibuffer-contents))
+      ("C-SPC"     delete-minibuffer-contents)
+
+      ("C-'"       typopunct-insert-single-quotation-mark))
     map))
 
 (defconst +search-highlight-limit+ 1000
