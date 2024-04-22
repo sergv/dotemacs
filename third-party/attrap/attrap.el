@@ -419,22 +419,22 @@ Error is given as MSG and reported between POS and END."
            (ghc-warning (n) (seq "warning:" (optional " [GHC-" n "]")))
            (ghc-error (n) (seq "error:" (optional " [GHC-" n "]"))))
   (append
-   (when (string-match "Parse error in pattern: pattern" msg)
+   (when (string-match-p "Parse error in pattern: pattern" msg)
      (list (attrap-insert-language-pragma "PatternSynonyms")))
    (when (string-match "No explicit implementation for" msg)
-    (attrap-one-option 'insert-method
+    (attrap-one-option "insert method"
       (let ((missings (s-match-strings-all "‘\\([^’]*\\)’"
                                            (car (s-split-up-to "In the instance declaration" msg 1)))))
         (end-of-line)
         (dolist (missing missings)
           (insert (format "\n  %s = _" (nth 1 missing)))))))
    (when (string-match "No explicit associated type or default declaration for ‘\\(.*\\)’" msg)
-    (attrap-one-option 'insert-type
+    (attrap-one-option "insert type"
       (let ((type (match-string 1 msg)))
         (end-of-line)
         (insert (format "\n  type %s = _" type)))))
    (when (s-matches? (rx "Using ‘*’ (or its Unicode variant) to mean ‘Data.Kind.Type’") msg)
-    (attrap-one-option 'replace-star-by-Type
+    (attrap-one-option "replace star by Type"
       (goto-char pos)
       (delete-char 1)
       (insert "Type")
@@ -450,7 +450,7 @@ Error is given as MSG and reported between POS and END."
                (insert it))
              options)))
    (when (string-match "Redundant constraints?: (?\\([^,)\n]*\\)" msg)
-    (attrap-one-option 'delete-redundant-constraint
+    (attrap-one-option "delete redundant constraint"
       (let ((constraint (match-string 1 msg)))
         (search-forward constraint) ; find type sig
         (delete-region (match-beginning 0) (match-end 0))
@@ -469,7 +469,7 @@ Error is given as MSG and reported between POS and END."
               (* ws)
               "lacks an accompanying binding")
           msg)
-    (attrap-one-option 'add-binding
+    (attrap-one-option "add binding"
       (skip-to-indentation)
       (let ((col (current-column)))
         (forward-line)
@@ -477,7 +477,7 @@ Error is given as MSG and reported between POS and END."
           (forward-line)))
       (insert (concat (match-string-no-properties 1 msg) " = _\n"))))
    (when (string-match "add (\\(.*\\)) to the context of[\n ]*the type signature for:[ \n]*\\([^ ]*\\) ::" msg)
-    (attrap-one-option 'add-constraint-to-context
+    (attrap-one-option "add constraint to context"
       (let ((missing-constraint (match-string 1 msg))
             (function-name (match-string 2 msg)))
         (search-backward-regexp (concat (regexp-quote function-name) "[ \t]*::[ \t]*" )) ; find type sig
@@ -488,14 +488,14 @@ Error is given as MSG and reported between POS and END."
         (insert (concat missing-constraint " => ")))))
    (when (string-match "Unticked promoted constructor: ‘\\(.*\\)’" msg)
     (let ((constructor (match-string 1 msg)))
-      (attrap-one-option 'tick-promoted-constructor
+      (attrap-one-option "tick promoted constructor"
         (goto-char pos)
         ;; when the constructor is infix, flycheck reports the wrong position.
         (search-forward constructor)
         (backward-char (length constructor))
         (insert "'"))))
    (when (string-match "Patterns not matched:" msg)
-    (attrap-one-option 'add-missing-patterns
+    (attrap-one-option "add missing patterns"
       (let ((patterns (mapcar #'trim-whitespace
                               ;; patterns to match
                               (split-string (substring msg (match-end 0))
@@ -512,18 +512,18 @@ Error is given as MSG and reported between POS and END."
             (insert "\n     ") ;; fixme: guess how much indent is needed.
             (insert (concat pattern " -> _")))))))
    (when (string-match "A do-notation statement discarded a result of type" msg)
-    (attrap-one-option 'explicitly-discard-result
+    (attrap-one-option "explicitly discard result"
       (goto-char pos)
       (insert "_ <- ")))
    (when (string-match "\\(Failed to load interface for\\|Could not find module\\) ‘\\(.*\\)’\n[ ]*Perhaps you meant[ \n]*\\([^ ]*\\)" msg)
-    (attrap-one-option 'rename-module-import
+    (attrap-one-option "rename module import"
       (let ((replacement (match-string 3 msg)))
         ;; ^^ delete-region may garble the matches
         (search-forward (match-string 2 msg))
         (delete-region (match-beginning 0) (point))
         (insert replacement))))
    (when (string-match "Unsupported extension: \\(.*\\)\n[ ]*Perhaps you meant ‘\\([^‘]*\\)’" msg)
-    (attrap-one-option 'rename-extension
+    (attrap-one-option "rename extension"
       (let ((replacement (match-string 2 msg)))
         ;; ^^ delete-region may garble the matches
         (goto-char pos)
@@ -580,7 +580,7 @@ Error is given as MSG and reported between POS and END."
                 (insert it))
               replacements)))
    (when (string-match "\\(Top-level binding\\|Pattern synonym\\) with no type signature:[\n ]*" msg)
-    (attrap-one-option 'add-signature
+    (attrap-one-option "add signature"
       (beginning-of-line)
       (insert (concat (substring msg (match-end 0)) "\n"))))
    (when (and (string-match-p "Defined but not used" msg)
@@ -589,11 +589,11 @@ Error is given as MSG and reported between POS and END."
                         "Defined but not used: "
                         (identifier 1))
                     msg)))
-     (attrap-one-option 'add-underscore
+     (attrap-one-option "add underscore"
        (goto-char pos)
        (insert "_")))
    (when (string-match "Unused quantified type variable ‘\\(.*\\)’" msg)
-    (attrap-one-option 'delete-type-variable
+    (attrap-one-option "delete type variable"
       ;; note there can be a kind annotation, not just a variable.
       (delete-region (point) (+ (point) (- (match-end 1) (match-beginning 1))))))
    ;;     Module ‘TensorFlow.GenOps.Core’ does not export ‘argmax’.
@@ -601,7 +601,7 @@ Error is given as MSG and reported between POS and END."
                           msg
                           nil
                           t)))
-     (attrap-one-option (list 'add-import (nth 1 m))
+     (attrap-one-option (list "add import" (nth 1 m))
        (goto-char 1)
        (search-forward-regexp (rx "module" (*? anychar) "where"))
        (insert "\n" "import " (nth 1 m) "\n")))
@@ -609,7 +609,7 @@ Error is given as MSG and reported between POS and END."
                                            "from module " (identifier 2) " is redundant")
                                       (seq "Module " (identifier 2) " does not export " (identifier 1))))
                               normalized-msg)))
-    (attrap-one-option 'delete-import
+    (attrap-one-option "delete import"
       (let ((redundant (nth 1 match)))
         (save-match-data
           (save-excursion
@@ -642,7 +642,7 @@ Error is given as MSG and reported between POS and END."
           (rx (ghc-warning "66111") " [-Wunused-imports]" (+ ws)
               "The " (? "qualified ") "import of " (identifier 1) " is redundant")
           msg)
-    (attrap-one-option 'delete-module-import
+    (attrap-one-option "delete module import"
       (save-match-data
         (save-excursion
           (beginning-of-line)
@@ -670,7 +670,7 @@ Error is given as MSG and reported between POS and END."
                (forward-char 1))
              (point)))))))
    (when (string-match "Found type wildcard ‘\\(.*\\)’[ \t\n]*standing for ‘\\([^’]*\\)’" msg)
-    (attrap-one-option 'explicit-type-wildcard
+    (attrap-one-option "explicit type wildcard"
       (let ((wildcard (match-string 1 msg))
             (type-expr (match-string 2 msg)))
         (goto-char pos)
@@ -692,7 +692,7 @@ Error is given as MSG and reported between POS and END."
                              msg
                              nil
                              t))
-     (attrap-one-option 'initialize-fields
+     (attrap-one-option "initialize fields"
        (let ((fields (s-split "," (nth 2 match) t)))
          (search-forward "{")
          (dolist (f fields)
@@ -706,7 +706,7 @@ Error is given as MSG and reported between POS and END."
                            (group-n 2 (+ (not (any ?\’))))
                            "’")
                        msg)
-     (attrap-one-option 'derive-pretty-instance
+     (attrap-one-option "derive pretty instance"
        (let ((class-name (match-string-no-properties 1 msg))
              (type-name (replace-regexp-in-string "[ \r\n]+" " " (match-string-no-properties 2 msg))))
          (unless (eq (current-column) 0)
@@ -736,7 +736,7 @@ Error is given as MSG and reported between POS and END."
                        "Not in scope: type constructor or class "
                        (identifier 1))))
           msg)
-    (attrap-one-option 'add-import
+    (attrap-one-option "add import"
       (let ((name (attrap-strip-parens (match-string-no-properties 1 msg))))
         (attrap--add-import name))))
 
