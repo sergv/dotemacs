@@ -399,7 +399,7 @@ The import ends at LINE and COL in the file."
        (forward-line (1- end-line))
        (move-to-column (1- end-col))
        (skip-chars-backward " \t")
-       (unless (looking-back "(" (- (point) 2)) (insert-char ?,) (insert-char ?\s))
+       (unless (looking-back "\(" (- (point) 2)) (insert-char ?,) (insert-char ?\s))
        (insert (attrap-add-operator-parens ,missing)))))
 
 (defun attrap-ghc-fixer (msg pos _end)
