@@ -52,6 +52,25 @@
 (company-statistics-mode +1)
 ;; (company-posframe-mode +1)
 
+(defsubst delete-duplicate-candidates--introduced-by-company-dabbrev-code? (x)
+  (eq (get-text-property 0 'company-backend x)
+      'company-dabbrev-code))
+
+(defun delete-duplicate-candidates-from-company-dabbrev-code (xs)
+  "Remove candidates introduced by ‘company-dabbrev-code’ backend if they were
+introduced by some other backend."
+  (if (cdr xs)
+      ;; Only invoke if there’s more than one candidate
+      (let ((introduced-by-other (make-hash-table :test #'equal)))
+        (dolist (x xs)
+          (unless (delete-duplicate-candidates--introduced-by-company-dabbrev-code? x)
+            (puthash x t introduced-by-other)))
+        (inplace-delete-if! (lambda (x)
+                              (and (delete-duplicate-candidates--introduced-by-company-dabbrev-code? x)
+                                   (gethash x introduced-by-other)))
+                            xs))
+    xs))
+
 (provide 'company-mode-setup)
 
 ;; Local Variables:
