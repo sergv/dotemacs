@@ -434,11 +434,24 @@ Error is given as MSG and reported between POS and END."
           (delete-region (point) (search-forward ",")))
         (when (looking-at "[ \t]*=>")
           (delete-region (point) (search-forward "=>"))))))
-   (when (string-match "The type signature for ‘\\(.*\\)’[ \t\n]*lacks an accompanying binding" msg)
+   ;; error: [GHC-44432]
+   ;;     The type signature for ‘withSystemTempFileContents’
+   ;;       lacks an accompanying binding
+   (when (string-match
+          (rx (ghc-error "44432")
+              (+ ws)
+              "The type signature for "
+              (identifier 1)
+              (* ws)
+              "lacks an accompanying binding")
+          msg)
     (attrap-one-option 'add-binding
-      (beginning-of-line)
-      (forward-line)
-      (insert (concat (match-string 1 msg) " = _\n"))))
+      (skip-to-indentation)
+      (let ((col (current-column)))
+        (forward-line)
+        (while (< col (indentation-size))
+          (forward-line)))
+      (insert (concat (match-string-no-properties 1 msg) " = _\n"))))
    (when (string-match "add (\\(.*\\)) to the context of[\n ]*the type signature for:[ \n]*\\([^ ]*\\) ::" msg)
     (attrap-one-option 'add-constraint-to-context
       (let ((missing-constraint (match-string 1 msg))
