@@ -295,6 +295,80 @@
   "foo = undefined"
   ""))
 
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/add-binding-1
+ :flycheck-errors
+ (list
+  (let ((linecol (save-excursion
+                   (re-search-forward "_|_")
+                   (flycheck-line-column-at-pos (point)))))
+    (flycheck-error-new
+     :line (car linecol)
+     :column (cdr linecol)
+     :buffer (current-buffer)
+     :checker 'haskell-dante
+     :message
+     (tests-utils--multiline
+      "error: [GHC-44432]"
+      "    The type signature for ‘foo’"
+      "      lacks an accompanying binding")
+     :level 'error
+     :id nil
+     :group nil)))
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "_|_foo :: MonadMask m => a -> m a"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "_|_foo :: MonadMask m => a -> m a"
+  "foo = _"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/add-binding-2
+ :flycheck-errors
+ (list
+  (let ((linecol (save-excursion
+                   (re-search-forward "_|_")
+                   (flycheck-line-column-at-pos (point)))))
+    (flycheck-error-new
+     :line (car linecol)
+     :column (cdr linecol)
+     :buffer (current-buffer)
+     :checker 'haskell-dante
+     :message
+     (tests-utils--multiline
+      "error: [GHC-44432]"
+      "    The type signature for ‘foo’"
+      "      lacks an accompanying binding")
+     :level 'error
+     :id nil
+     :group nil)))
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "_|_foo"
+  "  :: MonadMask m"
+  "  => a"
+  "  -> m a"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "_|_foo"
+  "  :: MonadMask m"
+  "  => a"
+  "  -> m a"
+  "foo = _"
+  ""))
+
 (provide 'attrap-tests)
 
 ;; Local Variables:
