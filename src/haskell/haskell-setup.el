@@ -288,10 +288,12 @@ _q_ualify import  _-_: attrap
   "
 _i_nfo            _j_: eval
 _t_ype            _-_: attrap
-_q_ualify import"
+_q_ualify import
+_e_xport"
   ("i" dante-info)
   ("t" dante-type-at)
   ("q" vim:haskell-qualify-import:interactive)
+  ("e" haskell-export-ident-at-point)
 
   ("j" dante-eval-block)
   ("-" vim:attrap-flycheck:interactive))
@@ -302,11 +304,13 @@ _-_: attrap       _d_ocumentation           toggle some _o_ptions
 _a_ctions         _i_nfo
 _q_ualify import  _t_ype
 _r_ename          _u_ses of thing at point
+_e_xport
 "
   ("-" vim:attrap-flycheck:interactive)
   ("a" lsp-execute-code-action)
   ("q" vim:haskell-qualify-import:interactive)
   ("r" lsp-rename)
+  ("e" haskell-export-ident-at-point)
 
   ("d" lsp-doc-other-window)
   ("i" lsp-doc-other-window)
