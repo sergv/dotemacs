@@ -420,6 +420,9 @@ _<tab>_: reindent  _h_: jump to topmont node end"
                                    '(company-files
                                      company-dabbrev-code
                                      company-dabbrev))
+                company-transformers
+                '(delete-duplicate-candidates-from-company-dabbrev-code
+                  company-sort-by-statistics)
                 flycheck-highlighting-mode 'symbols)
 
     (eproj-setup-local-variables proj)
@@ -520,7 +523,10 @@ _<tab>_: reindent  _h_: jump to topmont node end"
          (lambda (backend)
            (pcase backend
              (`haskell-dante
-              (setq-local company-backends (cons 'dante-company company-backends))
+              (setq-local company-backends
+                          '(company-files
+                            (dante-company company-eproj company-dabbrev-code)
+                            company-dabbrev))
               (dante-mode +1))
              (`lsp
               ;; todo: check that lsp executable is around
