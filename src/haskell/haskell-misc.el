@@ -33,6 +33,7 @@
 (require 'haskell-format-setup)
 (require 'haskell-mode)
 (require 'haskell-regexen)
+(require 'haskell-sort-imports)
 (require 'hydra-setup)
 (require 'nix-integration)
 
@@ -948,6 +949,53 @@ value section should have if it is to be properly indented."
                  (insert qstr)
                  (insert-char ?\s))))
           (error "Not on a line with import"))))))
+
+(defun haskell-export-ident-at-point ()
+  "Add Haskell symbol at point to the export list."
+  (interactive)
+  (haskell--export-ident (thing-at-point 'haskell-symbol t)))
+
+(defun haskell--export-ident (identifier)
+  "Add IDENTIFIER to the end of the module’s export list."
+  (cl-assert (stringp identifier))
+  (save-match-data
+    (save-restriction
+      (save-excursion
+        (widen)
+        (goto-char (point-min))
+        (rx-let ((ws (any ?\n ?\r ?\s ?\t))
+                 (module-name (+ (any "_." alphanumeric))))
+          (let ((case-fold-search nil))
+            ;; Do case-sensitive search for "module" declaration.
+            (if (re-search-forward
+                 (rx bol
+                     "module"
+                     symbol-end
+                     (* ws)
+                     module-name
+                     (* ws)
+                     "(")
+                 nil
+                 t)
+                (let ((start (1- (match-end 0))))
+                  (goto-char start)
+                  (cl-assert (eq (char-after) ?\())
+                  (forward-sexp)
+                  (cl-assert (eq (char-after (1- (point))) ?\)))
+                  (let* ((end (point))
+                         (parsed (haskell-sort-imports--parse-import-list-in-buffer start end)))
+                    (goto-char (1- end))
+                    (skip-chars-backward " \t\n\r")
+                    (pcase (length (haskell-import-list-entries parsed))
+                      (0
+                       (insert identifier))
+                      (1
+                       (insert ", " identifier))
+                      (_
+                       (insert (haskell-import-list-sep parsed) identifier)))))
+              ;; Nothing to do: either no module keyword or no export
+              ;; list - in both cses everything is exported.
+              nil)))))))
 
 (defadvice haskell-indentation-indent-line (around
                                             haskell-indentation-indent-line-expand-yafolding
