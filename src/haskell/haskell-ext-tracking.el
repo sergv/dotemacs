@@ -30,27 +30,32 @@
 (defvar haskell-ext-tracking-known-exts--store (haskell-ext-tracking-known-exts--default))
 
 (defun haskell-ext-tracking--update! ()
-  (save-excursion
-    (save-match-data
-      (goto-char (point-min))
-      (let ((end (if (re-search-forward "^module " nil t)
-                     (match-beginning 1)
-                   nil)))
+  (save-restriction
+    (save-excursion
+      (save-match-data
+        (widen)
         (goto-char (point-min))
-        (while (re-search-forward (eval-when-compile
-                                    (concat haskell-regexen/language-pragma-prefix
-                                            (rx (+? anything)
-                                                symbol-start
-                                                (or (group-n 1 "MagicHash")
-                                                    (group-n 2 "ImportQualifiedPost"))
-                                                symbol-end)))
-                                  end
-                                  t)
-          (cond
-            ((match-beginning 1)
-             (setf (haskell-ext-tracking-known-exts-magic-hash haskell-ext-tracking-known-exts--store) t))
-            ((match-beginning 2)
-             (setf (haskell-ext-tracking-known-exts-import-qualified-post haskell-ext-tracking-known-exts--store) t))))))))
+        (let ((end
+               (let ((case-fold-search nil))
+                 ;; Do case-sensitive search for "module" declaration.
+                 (if (re-search-forward "^module\\_>" nil t)
+                     (match-beginning 0)
+                   nil))))
+          (goto-char (point-min))
+          (while (re-search-forward (eval-when-compile
+                                      (concat haskell-regexen/language-pragma-prefix
+                                              (rx (+? anything)
+                                                  symbol-start
+                                                  (or (group-n 1 "MagicHash")
+                                                      (group-n 2 "ImportQualifiedPost"))
+                                                  symbol-end)))
+                                    end
+                                    t)
+            (cond
+              ((match-beginning 1)
+               (setf (haskell-ext-tracking-known-exts-magic-hash haskell-ext-tracking-known-exts--store) t))
+              ((match-beginning 2)
+               (setf (haskell-ext-tracking-known-exts-import-qualified-post haskell-ext-tracking-known-exts--store) t)))))))))
 
 ;;;###autoload
 (define-minor-mode haskell-ext-tracking-mode
