@@ -365,7 +365,9 @@ _<tab>_: reindent  _h_: jump to topmont node end"
 
   (def-keys-for-map vim-operator-pending-mode-local-keymap
     (("is" "s") vim:motion-inner-haskell-symbol:interactive)
-    ("as"       vim:motion-outer-haskell-symbol:interactive)))
+    ("as"       vim:motion-outer-haskell-symbol:interactive)
+    (("iS" "S") vim:motion-inner-qualified-haskell-symbol:interactive)
+    ("aS"       vim:motion-outer-qualified-haskell-symbol:interactive)))
 
 
 (defun haskell-setup-common-prelude ()
