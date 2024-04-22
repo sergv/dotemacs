@@ -95,6 +95,9 @@
   :type '(alist :key-type symbol :value-type function)
   :group 'attrap)
 
+(defvar attrap-select-predefined-option nil
+  "Pick this option instead of asking user if defined.")
+
 (defun attrap-select-and-apply-option (options)
   "Ask the user which of OPTIONS is best, then apply it."
   (when (not options) (error "No fixer applies to the issue at point"))
@@ -102,11 +105,20 @@
                           (car options)
                         (let ((named-options (--map (cons (format "%s" (car it)) (cdr it))
                                                     options)))
-                          (assoc (completing-read "repair using: "
-                                                  named-options
-                                                  nil
-                                                  t)
-                                 named-options)))))
+                          (if noninteractive
+                              (if attrap-select-predefined-option
+                                  (or (assoc attrap-select-predefined-option named-options)
+                                      (error "Predefined option ‘%s’ does not match available options: %s\n%s"
+                                             attrap-select-predefined-option
+                                             named-options
+                                             (equal attrap-select-predefined-option (car (cdr named-options)))))
+                                (error "Multiple repair options apply: %s"
+                                       named-options))
+                            (assoc (completing-read "repair using: "
+                                                    named-options
+                                                    nil
+                                                    t)
+                                   named-options))))))
     ;; (message "SELECTED-FIX: %s" selected-fix)
     ;; (message "Applied %s" (car selected-fix))
     (save-excursion
@@ -261,10 +273,22 @@ Returns list of triples
 The body is code that performs the fix."
   (declare (indent 1))
   `(let ((saved-match-data (match-data)))
-     (cons ,description
+     (cons (attrap--format-option-description ,description)
            (lambda ()
              (set-match-data saved-match-data 'evaporate)
              ,@body))))
+
+(defun attrap--format-option-description (descr)
+  (cond
+    ((stringp descr)
+     descr)
+    ((symbolp descr)
+     (symbol-name descr))
+    ((listp descr)
+     (cl-assert (--every? (or (stringp it) (symbolp it)) descr))
+     (attrap-strip-parens (format "%s" descr)))
+    (t
+     (error "Invalid option description: %s" descr))))
 
 (defmacro attrap-one-option (description &rest body)
   "Create an attrap option list with a single element of DESCRIPTION and BODY."
@@ -694,9 +718,7 @@ Error is given as MSG and reported between POS and END."
           (--filter (s-matches? it normalized-msg) attrap-haskell-extensions))
 
    (when (string-match
-          (rx (or (seq (ghc-warning "88464")
-                       " [-Wdeferred-out-of-scope-variables]"
-                       (+ ws)
+          (rx (or (seq (ghc-warning "88464") " [-Wdeferred-out-of-scope-variables]" (+ ws)
                        (or "Variable"
                            "Data constructor")
                        " not in scope:"
@@ -744,7 +766,18 @@ Error is given as MSG and reported between POS and END."
           (goto-char pos)
           (let ((case-fold-search nil))
             (search-forward delete-no-paren (+ (length delete) pos))
-            (replace-match new-ident t)))))))))
+            (replace-match new-ident t)))))
+
+    ;; warning: [GHC-40910] [-Wunused-top-binds]
+    ;;     Defined but not used: ‘withSystemTempFileContents’
+    (when (string-match
+           (rx (ghc-warning "40910") " [-Wunused-top-binds]" (+ ws)
+               "Defined but not used: "
+               (identifier 1))
+           msg)
+      (let ((identifier (match-string-no-properties 1 msg)))
+        (attrap-one-option (list 'export identifier)
+          (haskell--export-ident identifier))))))))
 
 (defun attrap-strip-parens (identifier)
   (let* ((i 0)
