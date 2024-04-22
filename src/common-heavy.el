@@ -1294,6 +1294,27 @@ groups in the result is *not specified*."
   (generate-new-buffer-name (concat (buffer-name orig-buf)
                                     ":indirect")))
 
+;;
+
+;;;###autoload
+(defun inplace-delete-if! (pred items)
+  "Delete items matching PRED by mutating ITEMS list."
+  (cl-assert (functionp pred))
+  (cl-assert (listp items))
+  (let* ((res (cons nil items))
+         (curr res)
+         (tmp (cdr curr)))
+    (while tmp
+      (if (funcall pred (car tmp))
+          (let ((next (cddr curr)))
+            (setcdr curr next)
+            (setf curr next))
+        (setf curr tmp))
+      (setf tmp (cdr curr)))
+    (cdr res)))
+
+;;
+
 (provide 'common-heavy)
 
 ;; Local Variables:
