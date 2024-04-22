@@ -583,10 +583,15 @@ Error is given as MSG and reported between POS and END."
     (attrap-one-option 'add-signature
       (beginning-of-line)
       (insert (concat (substring msg (match-end 0)) "\n"))))
-   (when (string-match "Defined but not used" msg)
-    (attrap-one-option 'add-underscore
-      (goto-char pos)
-      (insert "_")))
+   (when (and (string-match-p "Defined but not used" msg)
+              (not (string-match-p
+                    (rx (ghc-warning "40910") " [-Wunused-top-binds]" (+ ws)
+                        "Defined but not used: "
+                        (identifier 1))
+                    msg)))
+     (attrap-one-option 'add-underscore
+       (goto-char pos)
+       (insert "_")))
    (when (string-match "Unused quantified type variable ‘\\(.*\\)’" msg)
     (attrap-one-option 'delete-type-variable
       ;; note there can be a kind annotation, not just a variable.
