@@ -470,12 +470,19 @@ both unicode and ascii characters.")
 ;;;###autoload
 (put 'ghc-core-symbol 'bounds-of-thing-at-point #'bounds-of-ghc-core-symbol)
 
-(defvar haskell-symbol--motion-identifier-syntax-table
+(defvar haskell-symbol--motion-qualified-identifier-syntax-table
   (let ((tbl (copy-syntax-table haskell-mode-syntax-table)))
     (modify-syntax-entry ?#  "w" tbl)
     (modify-syntax-entry ?_  "w" tbl)
     (modify-syntax-entry ?\' "w" tbl)
     (modify-syntax-entry ?,  "/" tbl) ;; Disable , since it's part of syntax
+    (modify-syntax-entry ?.  "_" tbl) ;; For identifier navigation we want Foo.bar to be 1 word
+    tbl)
+  "Special syntax table for haskell that allows to recognize symbols that contain
+both unicode and ascii characters.")
+
+(defvar haskell-symbol--motion-identifier-syntax-table
+  (let ((tbl (copy-syntax-table haskell-symbol--motion-qualified-identifier-syntax-table)))
     (modify-syntax-entry ?.  "." tbl) ;; For identifier navigation we want Foo.bar to be 2 words
     tbl)
   "Special syntax table for haskell that allows to recognize symbols that contain
@@ -495,13 +502,39 @@ both unicode and ascii characters.")
                      #'vim-boundary--ws
                      'inclusive))
 
+(vim-defmotion vim:motion-inner-qualified-haskell-symbol (inclusive count motion-result)
+  "Select `count' inner qualified symbols."
+  (vim--inner-motion (or count 1)
+                     #'vim-boundary--qualified-haskell-symbol
+                     #'vim-boundary--ws
+                     'inclusive))
+
+(vim-defmotion vim:motion-outer-qualified-haskell-symbol (inclusive count motion-result)
+  "Select `count' outer qualified symbols."
+  (vim--outer-motion (or count 1)
+                     #'vim-boundary--qualified-haskell-symbol
+                     #'vim-boundary--ws
+                     'inclusive))
+
+(defun vim-boundary--haskell-symbol-impl (direction)
+  "A boundary selector for haskell symbols, qualified names like Foo.Bar.baz will be treated as
+containining distinct words between the dot."
+  (funcall (vim--union-boundary (lambda (dir) (vim-boundary--syntax dir "w_"))
+                                ;; (lambda (dir) (vim-boundary--syntax dir "^w_"))
+                                (lambda (dir) (vim-boundary--empty-line dir)))
+           direction))
+
 (defun vim-boundary--haskell-symbol (direction)
-  "A boundary selector for words."
+  "A boundary selector for haskell symbols, qualified names like Foo.Bar.baz will be treated as
+containining distinct words between the dot."
   (with-syntax-table haskell-symbol--motion-identifier-syntax-table
-    (funcall (vim--union-boundary (lambda (dir) (vim-boundary--syntax dir "w_"))
-                                  ;; (lambda (dir) (vim-boundary--syntax dir "^w_"))
-                                  (lambda (dir) (vim-boundary--empty-line dir)))
-             direction)))
+    (vim-boundary--haskell-symbol-impl direction)))
+
+(defun vim-boundary--qualified-haskell-symbol (direction)
+  "A boundary selector for haskell symbols, qualified names like Foo.Bar.baz will be treated as
+a single entity."
+  (with-syntax-table haskell-symbol--motion-qualified-identifier-syntax-table
+    (vim-boundary--haskell-symbol-impl direction)))
 
 ;; newline that detects haskell signatures
 
