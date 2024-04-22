@@ -10,6 +10,7 @@
   (require 'cl-lib))
 
 (require 'common)
+(require 'common-heavy)
 (require 'ert)
 
 (require 'append-list)
@@ -763,6 +764,13 @@
 ;;        ;; "haskell-tests/.*"
 ;;        )
 ;;   nil)
+
+(ert-deftest datastructures-tests/inplace-delete-if!-1 ()
+  (let ((xs '(1 2 3 4 5 1 2 3 4 5)))
+    (dolist (x (cons 0 (cons 6 xs)))
+      (should (equal (inplace-delete-if! (lambda (y) (= y x))
+                                         (copy-list xs))
+                     (remove x xs))))))
 
 (provide 'datastructures-tests)
 
