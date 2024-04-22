@@ -172,10 +172,22 @@ within that region."
     (modify-syntax-entry ?\) "\)\(" tbl)
     tbl))
 
-(defun haskell-sort-imports--parse-import-list (str)
+(defun haskell-sort-imports--parse-import-list-in-buffer (start end)
+  "Parse either Haskell import/export list, i.e. list of comma-separated
+entities. Entities must be valid Haskell import/export names. E.g.
+
+(foo, bar)
+
+(foo, pattern Quux, Foo(..))
+
+( frobnicate
+, decombobulate
+, Fizz(Buzz, Quux)
+)
+"
   (cl-flet*
       ((skip-whitespace ()
-         (skip-chars-forward " \t\n\r"))
+         (skip-chars-forward " \t\n\r" ))
        (skip-whitespace-backward ()
          (skip-chars-backward " \t\n\r"))
        (malformed-input-error ()
@@ -186,10 +198,10 @@ within that region."
          (unless (eq (char-after) c)
            (malformed-input-error))
          (forward-char)))
-    (with-temp-buffer
+    (save-restriction
+      (narrow-to-region start end)
       (with-syntax-table haskell-sort-imports--parens-syntax-table
-        (insert str)
-        (goto-char (point-min))
+        (goto-char start)
         (let ((open-start (point)))
           (skip-whitespace)
           (advance-char 40 ;; ?(
@@ -237,6 +249,11 @@ within that region."
                             :entries   (nreverse entries))))))))
 
             result))))))
+
+(defun haskell-sort-imports--parse-import-list (str)
+  (with-temp-buffer
+    (insert str)
+    (haskell-sort-imports--parse-import-list-in-buffer (point-min) (point-max))))
 
 (cl-defstruct haskell-import-group-key
   mod-name
