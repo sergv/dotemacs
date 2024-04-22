@@ -1844,6 +1844,144 @@
    "  Frobnicator._|_(x + 1) y \"foo\""
    ""))
 
+(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+    vim-tests/haskell-motion-inner-qualified-symbol-value
+    ((haskell-mode (haskell-mode))
+     (haskell-ts-mode (haskell-ts-mode)))
+  ((is (execute-kbd-macro (kbd ", i S")))
+   (s (execute-kbd-macro (kbd ", S"))))
+  ((1 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  ba_|_r_baz_Quux''' (x + 1) y \"foo\""
+       ""))
+   (2 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  Bar_baz_Quux''_|_' (x + 1) y \"foo\""
+       ""))
+   (3 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  ba_|_r_baz_Quux# (x + 1) y \"foo\""
+       "")))
+  (tests-utils--multiline
+   ""
+   "foo x = do"
+   "  _|_ (x + 1) y \"foo\""
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+    vim-tests/haskell-motion-inner-qualified-symbol-value-qualified-names
+    ((haskell-mode (haskell-mode))
+     (haskell-ts-mode (haskell-ts-mode)))
+  ((is (execute-kbd-macro (kbd ", i S")))
+   (s (execute-kbd-macro (kbd ", S"))))
+  ((1 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  Frobnicator.ba_|_r_baz_Quux''' (x + 1) y \"foo\""
+       ""))
+   (2 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  Frobnicator.Bar_baz_Quux''_|_' (x + 1) y \"foo\""
+       ""))
+   (3 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  Frobnicator.ba_|_r_baz_Quux# (x + 1) y \"foo\""
+       "")))
+  (tests-utils--multiline
+   ""
+   "foo x = do"
+   "  _|_ (x + 1) y \"foo\""
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+    vim-tests/haskell-motion-inner-qualified-symbol-type
+    ((haskell-mode (haskell-mode))
+     (haskell-ts-mode (haskell-ts-mode)))
+  ((is (execute-kbd-macro (kbd ", i S")))
+   (s (execute-kbd-macro (kbd ", S"))))
+  ((1 (tests-utils--multiline
+       ""
+       "foo :: ValidateM m => Email '_|_Unvalidated -> m (Email 'Validated)"
+       "foo x = undefined"
+       ""))
+   (2 (tests-utils--multiline
+       ""
+       "foo :: ValidateM m => Email 'Unvalid_|_ated -> m (Email 'Validated)"
+       "foo x = undefined"
+       "")))
+  (tests-utils--multiline
+   ""
+   "foo :: ValidateM m => Email _|_ -> m (Email 'Validated)"
+   "foo x = undefined"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+    vim-tests/haskell-motion-outer-qualified-symbol-value
+    ((haskell-mode (haskell-mode))
+     (haskell-ts-mode (haskell-ts-mode)))
+  ((as (execute-kbd-macro (kbd ", a S"))))
+  ((1 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  ba_|_r_baz_Quux''' (x + 1) y \"foo\""
+       ""))
+   (2 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  Bar_baz_Quux''_|_' (x + 1) y \"foo\""
+       ""))
+   (3 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  Bar_baz_Quux_|_# (x + 1) y \"foo\""
+       ""))
+   (4 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  _|_Bar_baz_Quux# (x + 1) y \"foo\""
+       "")))
+  (tests-utils--multiline
+   ""
+   "foo x = do"
+   "  _|_(x + 1) y \"foo\""
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+    vim-tests/haskell-motion-outer-qualified-symbol-value-qualified
+    ((haskell-mode (haskell-mode))
+     (haskell-ts-mode (haskell-ts-mode)))
+  ((as (execute-kbd-macro (kbd ", a S"))))
+  ((1 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  Frobnicator.ba_|_r_baz_Quux''' (x + 1) y \"foo\""
+       ""))
+   (2 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  Frobnicator.Bar_baz_Quux''_|_' (x + 1) y \"foo\""
+       ""))
+   (3 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  Frobnicator.Bar_baz_Quux_|_# (x + 1) y \"foo\""
+       ""))
+   (4 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  Frobnicator._|_Bar_baz_Quux# (x + 1) y \"foo\""
+       "")))
+  (tests-utils--multiline
+   ""
+   "foo x = do"
+   "  _|_(x + 1) y \"foo\""
+   ""))
+
 (ert-deftest vim-tests/c-motion-inner-symbol-1 ()
   (vim-tests--test-fresh-buffer-contents-init
       (c-mode)
