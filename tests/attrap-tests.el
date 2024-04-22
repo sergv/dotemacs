@@ -15,6 +15,8 @@
 (require 'haskell-setup)
 (require 'flycheck)
 
+(defvar attrap-select-predefined-option)
+
 (cl-defmacro attrap-tests--test-buffer-contents-many
     (&key
      name
@@ -277,7 +279,9 @@
      :id nil
      :group nil)))
  :action
- (attrap-tests--run-attrap)
+ (let ((attrap-select-predefined-option
+        "replace MonadMask by MC.MonadMask from Control.Monad.Catch"))
+   (attrap-tests--run-attrap))
  :contents
  (tests-utils--multiline
   ""
@@ -367,6 +371,50 @@
   "  => a"
   "  -> m a"
   "foo = _"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/export-1
+ :flycheck-errors
+ (list
+  (let ((linecol (save-excursion
+                   (re-search-forward "_|_")
+                   (flycheck-line-column-at-pos (point)))))
+    (flycheck-error-new
+     :line (car linecol)
+     :column (cdr linecol)
+     :buffer (current-buffer)
+     :checker 'haskell-dante
+     :message
+     (tests-utils--multiline
+      "warning: [GHC-40910] [-Wunused-top-binds]"
+      "    Defined but not used: ‘foo’")
+     :level 'error
+     :id nil
+     :group nil)))
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "module Foo () where"
+  ""
+  "foo"
+  "  :: MonadMask m"
+  "  => a"
+  "  -> m a"
+  "_|_foo = _"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "module Foo (foo) where"
+  ""
+  "foo"
+  "  :: MonadMask m"
+  "  => a"
+  "  -> m a"
+  "_|_foo = _"
   ""))
 
 (provide 'attrap-tests)
