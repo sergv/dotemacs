@@ -198,6 +198,17 @@
 (defun ebuf--add-face (str face)
   (propertize str 'face face 'font-lock-face face))
 
+(defvar ebuf-render-filenames? nil
+  "Whether to render absolute filenames each buffer is visiting in a separate column alongside their regular names.")
+(defvar ebuf-recenter-after-refresh? nil)
+
+(defun ebuf--buffer-render-caption (proj-root buf)
+  (if-let ((buf-file (buffer-local-value 'buffer-file-name buf)))
+      (if proj-root
+          (file-relative-name buf-file proj-root)
+        (abbreviate-file-name buf-file))
+    (buffer-name buf)))
+
 (defun ebuf--render-buffers! (marked-bufs buffers)
   (cl-assert (hash-table-p marked-bufs))
   (let ((hidden-sections (make-hash-table :test #'equal)))
@@ -209,7 +220,19 @@
           (delete-overlay it))))
     (let ((grouped (ebuf--group-and-sort buffers))
           (toplevel-sections nil)
-          (all-sections nil))
+          (all-sections nil)
+          (max-buffer-caption-length 0))
+      (when ebuf-render-filenames?
+        (dolist (proj-entry grouped)
+          (let ((proj-root (car proj-entry)))
+            (dolist (subgroup (cdr proj-entry))
+              (let ((bufs (cdr subgroup)))
+                (dolist (buf bufs)
+                  (let ((caption (ebuf--buffer-render-caption proj-root buf)))
+                    (cl-assert (stringp caption))
+                    (let ((len (length caption)))
+                      (when (< max-buffer-caption-length len)
+                        (setf max-buffer-caption-length len))))))))))
       (dolist (proj-entry grouped)
         (let* ((proj-root (car proj-entry))
                (proj-name (or proj-root
@@ -239,54 +262,64 @@
               (setf group-caption-end (point))
               (insert-char ?\n)
               (dolist (buf bufs)
-                (let* ((buf-name (buffer-name buf))
+                (let* (
                        ;; May consider using ‘buffer-file-truename’ to resolve symbolic
                        ;; links. But there seems to be no reason to do so yet.
                        (buf-file (buffer-local-value 'buffer-file-name buf))
                        (buf-ro? (buffer-local-value 'buffer-read-only buf))
-                       (buf-caption (if buf-file
-                                        (if proj-root
-                                            (file-relative-name buf-file proj-root)
-                                          (abbreviate-file-name buf-file))
-                                      buf-name))
+                       (buf-caption (ebuf--buffer-render-caption proj-root buf))
                        (buf-depth (+ group-depth 1))
                        (buf-beg (point))
                        (buf-caption-end nil)
                        (buf-end nil)
+
+                       (is-marked? (gethash buf marked-bufs))
+                       (mark (if is-marked?
+                                 ">"
+                               " "))
+                       (mod (if (and buf-file
+                                     (buffer-modified-p buf))
+                                "*"
+                              " "))
+                       (ro (if buf-ro?
+                               "%"
+                             " "))
+                       (prefix (concat mark
+                                       mod
+                                       ro
+                                       (make-string (max 0
+                                                         (- (* buf-depth ebuf--depth-mult)
+                                                            (length mark)
+                                                            (length mod)
+                                                            (length ro)))
+                                                    ?\s)))
+
                        (buf-line
-                        (let* ((is-marked? (gethash buf marked-bufs))
-                               (mark (if is-marked?
-                                         ">"
-                                       " "))
-                               (mod (if (and buf-file
-                                             (buffer-modified-p buf))
-                                        "*"
-                                      " "))
-                               (ro (if buf-ro?
-                                       "%"
-                                     " "))
-                               (line (concat mark
-                                             mod
-                                             ro
-                                             (make-string (max 0
-                                                               (- (* buf-depth ebuf--depth-mult)
-                                                                  (length mark)
-                                                                  (length mod)
-                                                                  (length ro)))
-                                                          ?\s)
-                                             (cond
-                                               (buf-ro?
-                                                (ebuf--add-face buf-caption
-                                                                'ebuf-read-only-buffer-face))
-                                               ((invisible-buffer? buf)
-                                                (ebuf--add-face buf-caption
-                                                                'ebuf-invisible-buffer-face))
-                                               (t
-                                                buf-caption)))))
+                        (let ((line (concat prefix
+                                            (cond
+                                              (buf-ro?
+                                               (ebuf--add-face buf-caption
+                                                               'ebuf-read-only-buffer-face))
+                                              ((invisible-buffer? buf)
+                                               (ebuf--add-face buf-caption
+                                                               'ebuf-invisible-buffer-face))
+                                              (t
+                                               buf-caption)))))
                           (if is-marked?
                               (ebuf--add-face line 'ebuf-marked-buffer-face)
                             line))))
                   (insert buf-line)
+                  (when ebuf-render-filenames?
+                    (when-let ((absolute-path (or buf-file
+                                                  (buffer-local-value 'default-directory buf))))
+                      (cl-assert (stringp absolute-path))
+                      (insert (make-string (+ (max 0
+                                                   (- (+ (length prefix)
+                                                         max-buffer-caption-length)
+                                                      (length buf-line)))
+                                              2)
+                                           ?\s)
+                              (abbreviate-file-name absolute-path))))
                   (setf buf-end (point)
                         buf-caption-end (point))
                   (insert-char ?\n)
@@ -450,7 +483,10 @@
          (if previously-selected-section
              (progn
                (set-window-start win start)
-               (goto-char (ebuf-section-beg previously-selected-section)))
+               (goto-char (ebuf-section-beg previously-selected-section))
+               (when ebuf-recenter-after-refresh?
+                 (recenter nil)
+                 (setf ebuf-recenter-after-refresh? nil)))
            (goto-char (point-min))))))))
 
 (defconst ebuf--invisible-buffer-re
@@ -710,6 +746,14 @@
   (clrhash ebuf--marked-buffers)
   (ebuf-refresh))
 
+(defun ebuf-toggle-render-paths ()
+  "Toggle rendering of separate column showing absolute paths buffers are visiting."
+  (interactive)
+  (setf ebuf-render-filenames? (not ebuf-render-filenames?)
+        ebuf-recenter-after-refresh? t)
+  (nix-prettify-mode (if ebuf-render-filenames? -1 +1))
+  (ebuf-refresh))
+
 (defun ebuf-delete-marked-buffers ()
   (interactive)
   (let ((removed nil))
@@ -793,6 +837,8 @@ _r_ecency
       ("2"               ebuf-section-show-level-2)
       ("3"               ebuf-section-show-level-3)
       ("4"               ebuf-section-show-level-4)
+
+      ("`"               ebuf-toggle-render-paths)
 
       (("TAB" "<tab>")                       ebuf-cycle-section-at-point)
       (("S-TAB" "S-<tab>" "S-<iso-lefttab>") ebuf-cycle-all-toplevel-sections))
