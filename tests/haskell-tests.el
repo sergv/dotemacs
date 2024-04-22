@@ -6298,6 +6298,185 @@ have different input states."
    "main = undefined"
    ""))
 
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell--export-ident-1
+    (haskell--export-ident "foo")
+  (tests-utils--multiline
+   "import System.IO"
+   ""
+   "main = undefined_|_"
+   "")
+  (tests-utils--multiline
+   "import System.IO"
+   ""
+   "main = undefined_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell--export-ident-2
+    (haskell--export-ident "foo")
+  (tests-utils--multiline
+   ""
+   "module Foo where"
+   ""
+   "import System.IO"
+   ""
+   "main = undefined_|_"
+   "")
+  (tests-utils--multiline
+   ""
+   "module Foo where"
+   ""
+   "import System.IO"
+   ""
+   "main = undefined_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell--export-ident-3
+    (haskell--export-ident "foo")
+  (tests-utils--multiline
+   ""
+   "module Foo (bar) where"
+   ""
+   "import System.IO"
+   ""
+   "main = undefined_|_"
+   "")
+  (tests-utils--multiline
+   ""
+   "module Foo (bar, foo) where"
+   ""
+   "import System.IO"
+   ""
+   "main = undefined_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell--export-ident-4
+    (haskell--export-ident "foo")
+  (tests-utils--multiline
+   ""
+   "module Foo (bar, quux) where"
+   ""
+   "import System.IO"
+   ""
+   "main = undefined_|_"
+   "")
+  (tests-utils--multiline
+   ""
+   "module Foo (bar, quux, foo) where"
+   ""
+   "import System.IO"
+   ""
+   "main = undefined_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell--export-ident-5
+    (haskell--export-ident "foo")
+  (tests-utils--multiline
+   ""
+   "module Foo"
+   "  ( bar"
+   "  , quux"
+   "  ) where"
+   ""
+   "import System.IO"
+   ""
+   "main = undefined_|_"
+   "")
+  (tests-utils--multiline
+   ""
+   "module Foo"
+   "  ( bar"
+   "  , quux"
+   "  , foo"
+   "  ) where"
+   ""
+   "import System.IO"
+   ""
+   "main = undefined_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell--export-ident-6
+    (haskell--export-ident "foo")
+  (tests-utils--multiline
+   ""
+   "module Foo"
+   "  ( bar"
+   "  , quux"
+   "  -- * Reexports"
+   "  , frobnicate"
+   "  ) where"
+   ""
+   "import System.IO"
+   ""
+   "main = undefined_|_"
+   "")
+  (tests-utils--multiline
+   ""
+   "module Foo"
+   "  ( bar"
+   "  , quux"
+   "  -- * Reexports"
+   "  , frobnicate"
+   "  , foo"
+   "  ) where"
+   ""
+   "import System.IO"
+   ""
+   "main = undefined_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell--export-ident-7
+    (haskell--export-ident "foo")
+  (tests-utils--multiline
+   ""
+   "module Foo"
+   "  ( bar"
+   "  , Foo(Bar, Baz)"
+   "  ) where"
+   ""
+   "import System.IO"
+   ""
+   "main = undefined_|_"
+   "")
+  (tests-utils--multiline
+   ""
+   "module Foo"
+   "  ( bar"
+   "  , Foo(Bar, Baz)"
+   "  , foo"
+   "  ) where"
+   ""
+   "import System.IO"
+   ""
+   "main = undefined_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell--export-ident-8
+    (haskell--export-ident "foo")
+  (tests-utils--multiline
+   ""
+   "module Foo () where"
+   ""
+   "import System.IO"
+   ""
+   "main = undefined_|_"
+   "")
+  (tests-utils--multiline
+   ""
+   "module Foo (foo) where"
+   ""
+   "import System.IO"
+   ""
+   "main = undefined_|_"
+   ""))
+
 (provide 'haskell-tests)
 
 ;; (let ((ert-debug-on-error nil))
