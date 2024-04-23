@@ -793,7 +793,8 @@ value section should have if it is to be properly indented."
       (save-excursion
         (widen)
         (haskell-navigate-imports)
-        (let ((positions nil))
+        (let ((positions nil)
+              (add-at-end nil))
           (save-excursion
             (while (re-search-forward haskell-regexen/pre-post-qualified-import-line nil t)
               (aif (match-beginning 10)
@@ -808,22 +809,26 @@ value section should have if it is to be properly indented."
                                     (or (> prefix-len-a prefix-len-b)
                                         (and (= prefix-len-a prefix-len-b)
                                              (< (cdr-sure a) (cdr-sure b))))))))
-          (when positions
-            (let* ((first-prefix-length (caar-sure positions))
-                   (candidate-imports (--take-while (= first-prefix-length (car-sure it)) positions)))
-              (goto-char
-               (cdr-sure (if is-name-from-current-project?
-                             (-last-item candidate-imports)
-                           (-first-item candidate-imports)))))))
-        (insert "import " mod-name)
-        (when identifier
-          (insert " ("
-                  (if (haskel-misc--is-operator? identifier)
-                      (concat "(" identifier ")")
-                    identifier)
-                  ")"))
-        (insert-char ?\n)
-        (haskell-sort-imports)))))
+          (if positions
+              (let* ((first-prefix-length (caar-sure positions))
+                     (candidate-imports (--take-while (= first-prefix-length (car-sure it)) positions)))
+                (goto-char
+                 (cdr-sure (if is-name-from-current-project?
+                               (-last-item candidate-imports)
+                             (-first-item candidate-imports)))))
+            (setf add-at-end "\n"))
+          (insert "import " mod-name)
+          (when identifier
+            (insert " ("
+                    (if (haskel-misc--is-operator? identifier)
+                        (concat "(" identifier ")")
+                      identifier)
+                    ")"))
+          (insert-char ?\n)
+          (when add-at-end
+            (save-excursion
+              (insert add-at-end)))
+          (haskell-sort-imports))))))
 
 (defun haskel-misc--is-operator? (str)
   (cl-assert (stringp str))
