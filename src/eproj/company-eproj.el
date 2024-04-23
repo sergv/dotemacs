@@ -36,9 +36,10 @@
          (show-tag-kind-func (aif (gethash effective-major-mode eproj/languages-table)
                                  (eproj-language/show-tag-kind-procedure it)
                                (error "Cannot find language definition for mode %s" effective-major-mode)))
-         (tag-tables (-non-nil
-                      (--map (cdr-safe (assq effective-major-mode (eproj--get-tags it)))
-                             all-projs)))
+         (tag-tables (--map (eproj-thunk-get-value (cdr it))
+                            (-non-nil
+                             (--map (assq effective-major-mode (eproj-project/tags it))
+                                    all-projs))))
          (all-matches
           (mapcan (lambda (tag-index)
                     (cl-assert (eproj-tag-index-p tag-index))
