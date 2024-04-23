@@ -22,7 +22,7 @@
 (require 'pseudoparedit)
 (require 'smart-operators-utils)
 
-(defconst haskell-smart-operators--operator-chars-str "!#$%&*+-./:<=>?@\\^|~")
+(defconst haskell-smart-operators--operator-chars-str "!#$%&*+./:<=>?@\\^|~-")
 
 (defconst haskell-smart-operators--operator-chars
   (let ((tbl (make-hash-table :test #'eq)))
