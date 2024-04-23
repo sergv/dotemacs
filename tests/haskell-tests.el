@@ -415,7 +415,6 @@ have different input states."
       (should (equal "hls-plugin-api-api" (match-string 2 sample-input)))
       (should (equal "Ide.Types" (match-string 3 sample-input))))))
 
-
 (haskell-tests--test-result
     haskell-tests/forward-haskell-symbol-1
   :action
@@ -487,6 +486,33 @@ have different input states."
   " ''Quux.Fooo_|_bar ")
 
 (haskell-tests--test-result
+    haskell-tests/bounds-of-haskell-symbol-2a
+  :action
+  (thing-at-point 'haskell-symbol)
+  :expected-value
+  "Żółć.Quux.Fooobar"
+  :contents
+  " ''Żółć.Quux.Fooo_|_bar ")
+
+(haskell-tests--test-result
+    haskell-tests/bounds-of-haskell-symbol-2b
+  :action
+  (thing-at-point 'haskell-symbol)
+  :expected-value
+  "Quux.Żółć.fooobar"
+  :contents
+  " ''Quux.Żółć.fooo_|_bar ")
+
+(haskell-tests--test-result
+    haskell-tests/bounds-of-haskell-symbol-2c
+  :action
+  (thing-at-point 'haskell-symbol)
+  :expected-value
+  "Quux.Żółć.++"
+  :contents
+  " Quux.Żółć.+_|_+ ")
+
+(haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-3
   :action
   (substring-no-properties (thing-at-point 'haskell-symbol))
@@ -539,6 +565,51 @@ have different input states."
   "Quux.Baz.Fooobar"
   :contents
   " `Quux.Baz.Fooo_|_bar` ")
+
+(haskell-tests--test-result
+    haskell-tests/bounds-of-haskell-symbol-7
+  :action
+  (substring-no-properties (thing-at-point 'haskell-symbol))
+  :expected-value
+  "myosstr"
+  :contents
+  " [_|_myosstr|test|] ")
+
+(haskell-tests--test-result
+    haskell-tests/bounds-of-haskell-symbol-7a
+  :action
+  (substring-no-properties (thing-at-point 'haskell-symbol))
+  :expected-value
+  "myosstr"
+  :contents
+  " [myos_|_str|test|] ")
+
+(haskell-tests--test-result
+    haskell-tests/bounds-of-haskell-symbol-7b
+  :action
+  (substring-no-properties (thing-at-point 'haskell-symbol))
+  :expected-value
+  "myosstr"
+  :contents
+  " [myosst_|_r|test|] ")
+
+(haskell-tests--test-result
+    haskell-tests/bounds-of-haskell-symbol-8
+  :action
+  (substring-no-properties (thing-at-point 'haskell-symbol))
+  :expected-value
+  "test"
+  :contents
+  " _|_test++ ")
+
+(haskell-tests--test-result
+    haskell-tests/bounds-of-haskell-symbol-9
+  :action
+  (substring-no-properties (thing-at-point 'haskell-symbol))
+  :expected-value
+  "Foo.Bar.."
+  :contents
+  " f ((Foo._|_Bar..) g) ")
 
 (ert-deftest haskell-tests/haskell-cabal--yasnippet--main-module-from-main-file-1 ()
   (should
