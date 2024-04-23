@@ -183,18 +183,22 @@ as accepted by `bounds-of-thing-at-point'.")
      (expand-file-name magit-buffer-file-name))))
 
 (defun eproj-symbnav/ensure-tags-loaded! (effective-major-mode proj)
-  ;; Load tags if there're none.
-  (unless (or (eproj--get-tags proj)
-              (assq effective-major-mode (eproj--get-tags proj)))
-    (eproj--make-project-and-register! (eproj-project/root proj))
-    (unless (eproj--get-tags proj)
-      (error "Project %s loaded no names\nProject: %s"
-             (eproj-project/root proj)
-             proj))
-    (unless (assq effective-major-mode (eproj--get-tags proj))
-      (error "No names in project %s for mode %s"
-             (eproj-project/root proj)
-             effective-major-mode))))
+  "Load (i.e. force) tags if there're not loaded yet."
+  (if-let (tags-entry (assq effective-major-mode (eproj-project/tags proj)))
+      ;; Force loading now.
+      (eproj-thunk-get-value (cdr tags-entry))
+    (progn
+      (eproj--make-project-and-register! (eproj-project/root proj))
+      (unless (eproj-project/tags proj)
+        (error "Project %s loaded no names - no modes registered\nProject: %s"
+               (eproj-project/root proj)
+               proj))
+      (if-let (tags-entry2 (assq effective-major-mode (eproj-project/tags proj)))
+          ;; Force loading now.
+          (eproj-thunk-get-value (cdr tags-entry2))
+        (error "No names for mode %s in project %s"
+               effective-major-mode
+               (eproj-project/root proj))))))
 
 (defun eproj-symbnav/go-to-symbol-home-impl (identifier use-regexp?)
   (let* ((proj (eproj-get-project-for-buf (current-buffer)))
