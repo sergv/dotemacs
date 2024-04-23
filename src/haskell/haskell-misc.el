@@ -33,6 +33,7 @@
 (require 'haskell-format-setup)
 (require 'haskell-mode)
 (require 'haskell-regexen)
+(require 'haskell-smart-operators-utils)
 (require 'haskell-sort-imports)
 (require 'hydra-setup)
 (require 'nix-integration)
@@ -837,12 +838,26 @@ value section should have if it is to be properly indented."
                            (-first-item candidate-imports)))))))
         (insert "import " mod-name)
         (when identifier
-          (insert-char ?\s)
-          (insert-char ?\()
-          (insert identifier)
-          (insert-char ?\)))
+          (insert " ("
+                  (if (haskel-misc--is-operator? identifier)
+                      (concat "(" identifier ")")
+                    identifier)
+                  ")"))
         (insert-char ?\n)
         (haskell-sort-imports)))))
+
+(defun haskel-misc--is-operator? (str)
+  (cl-assert (stringp str))
+  (let ((len (length str)))
+    (if (zerop len)
+        nil
+      (let ((result t)
+            (i 0))
+        (while (and result
+                    (< i len))
+          (setf result (gethash (aref str i) haskell-smart-operators--operator-chars)
+                i (+ i 1)))
+        result))))
 
 ;;;###autoload
 (defun haskell-misc--file-name-to-module-name (path)
