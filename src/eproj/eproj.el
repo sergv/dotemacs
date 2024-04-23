@@ -377,12 +377,13 @@ get proper flycheck checker."
   ;; (tree <tree-root> <glob>*)
   (aux-files-entries     nil :read-only t)
 
-  ;; Thunk of list of (language-major-mode . <eproj-tag-index>);
+  ;; List of (language-major-mode . <thunk of <eproj-tag-index>>);
   ;; <eproj-tag-index> - datastructure mapping 'symbol-str's to list of 'eproj-tag's. See `eproj-tag-index.el'.
   (tags                  nil)
-  ;; list of other project roots
+  ;; List of other project roots that are related to this one
+  ;; (mostly for tag collection and file nativagiot purposes for now but in general too).
   (related-projects      nil :read-only t)
-  ;; list of symbols - major-modes for related languages
+  ;; List of symbols - major-modes for languages this project is effective for.
   (languages             nil :read-only t)
   ;; Stores list of filenames, if specified in aux-info via 'file-list
   (cached-file-list      nil)
@@ -502,16 +503,15 @@ get proper flycheck checker."
          (eproj-project/root proj)
          fname
          (eproj-project/transient-files-for-navigation proj))
-        (let ((tags-thunk (eproj-project/tags proj)))
-          (cl-assert (not (null tags-thunk)) nil
-                     "Got nil tags thunk for project %s"
-                     (eproj-project/root proj))
-          ;; If tags are still a thunk (i.e. value is *not* ready yet) then
-          ;; we should not do anything here - tags will emerge once thunk
-          ;; will become forced.
-          (when (eproj-thunk/value-ready? tags-thunk)
-            (if-let (old-tags (cdr-safe (assq mode (eproj-thunk/value tags-thunk))))
-                (let ((new-tags
+        (if-let (old-tags-thunk (cdr-safe (assq mode (eproj-project/tags proj))))
+            (progn
+              (cl-assert (eproj-thunk-p tags-thunk))
+              ;; If tags are still a thunk (i.e. value is *not* ready yet) then
+              ;; we should not do anything here - tags will emerge once thunk
+              ;; will become forced.
+              (when (eproj-thunk/value-ready? old-tags-thunk)
+                (let ((old-tags (eproj-thunk/value tags-thunk))
+                      (new-tags
                        (eproj/load-tags-for-mode
                         proj
                         mode
@@ -525,10 +525,10 @@ get proper flycheck checker."
                                                         old-tags)
                   (eproj-tag-index-merge!
                    old-tags
-                   new-tags))
-              (error "Project '%s' does not have tags for '%s'"
-                     (eproj-project/root proj)
-                     mode))))))))
+                   new-tags))))
+          (error "Project '%s' does not have tags for '%s'"
+                 (eproj-project/root proj)
+                 mode))))))
 
 (defun eproj/tag-file-name (proj mode)
   "Return absolute path for tag file for project PROJ and language mode MODE to
@@ -632,19 +632,20 @@ cache tags in."
           (eproj--make-thunk
            (eproj--get-all-files proj))))
     (setf (eproj-project/tags proj)
-          (eproj--make-thunk
-           (-map (lambda (lang-mode)
-                   (let ((new-tags (eproj/load-tags-for-mode proj
-                                                             lang-mode
-                                                             project-files-thunk
-                                                             :consider-tag-files t)))
-                     (cl-assert (eproj-tag-index-p new-tags))
-                     (when (= 0 (eproj-tag-index-size new-tags))
-                       (error "Warning while reloading: project %s loaded no tags for language %s"
-                              (eproj-project/root proj)
-                              lang-mode))
-                     (cons lang-mode new-tags)))
-                 (eproj-project/languages proj)))))
+          (-map (lambda (lang-mode)
+                  (cons lang-mode
+                        (eproj--make-thunk
+                         (let ((new-tags (eproj/load-tags-for-mode proj
+                                                                   lang-mode
+                                                                   project-files-thunk
+                                                                   :consider-tag-files t)))
+                           (cl-assert (eproj-tag-index-p new-tags))
+                           (when (= 0 (eproj-tag-index-size new-tags))
+                             (error "Warning while reloading: project %s loaded no tags for language %s"
+                                    (eproj-project/root proj)
+                                    lang-mode))
+                           new-tags))))
+                (eproj-project/languages proj))))
   nil)
 
 (defun eproj--get-eproj-info-from-dir (root)
@@ -826,8 +827,8 @@ for project at ROOT directory."
       (when describe-tags
         (insert "number of tags loaded: "
                 (let ((tag-count 0))
-                  (dolist (tags-entry (eproj--get-tags proj))
-                    (dolist (entry (eproj-tag-index-entries (cdr tags-entry)))
+                  (dolist (tags-entry (eproj-project/tags proj))
+                    (dolist (entry (eproj-tag-index-entries (eproj-thunk-get-value (cdr tags-entry))))
                       (setf tag-count
                             (+ tag-count (length (cdr entry))))))
                   (number->string tag-count))
@@ -843,9 +844,9 @@ for project at ROOT directory."
       (insert "\n")
       (when describe-tags
         (insert "tags:\n")
-        (dolist (tags-entry (eproj--get-tags proj))
+        (dolist (tags-entry (eproj-project/tags proj))
           (let ((lang-tags (-sort (lambda (a b) (string< (car a) (car b)))
-                                  (eproj-tag-index-entries (cdr tags-entry)))))
+                                  (eproj-tag-index-entries (eproj-thunk-get-value (cdr tags-entry))))))
             (insert "lang: "
                     (pp-to-string (car tags-entry))
                     ", total amount = "
@@ -1373,23 +1374,24 @@ Returns list of (tag-name tag project is-authoritative?) lists."
   (let* ((has-authoritative-projects? nil)
          (matched-tags
           (mapcan (lambda (proj)
-                    (aif (cdr-safe
+                    (aif (cdr
                           (assq tag-major-mode
-                                (eproj--get-tags proj)))
-                        (let* ((is-authoritative? (memq tag-major-mode (eproj-project/authoritative-tag-source-for proj)))
-                               (tags
+                                (eproj-project/tags proj)))
+                        (let* ((all-tags (eproj-thunk-get-value it))
+                               (is-authoritative? (memq tag-major-mode (eproj-project/authoritative-tag-source-for proj)))
+                               (matched-tags
                                 (if search-with-regexp?
                                     (mapcan (lambda (key-and-tags)
                                               (let ((key (car key-and-tags)))
                                                 (-map (lambda (tag) (list is-authoritative? key tag proj))
                                                       (cdr key-and-tags))))
-                                            (eproj-tag-index-values-where-key-matches-regexp identifier it))
+                                            (eproj-tag-index-values-where-key-matches-regexp identifier all-tags))
                                   (mapcar (lambda (x) (list is-authoritative? identifier x proj))
-                                          (eproj-tag-index-get identifier it nil)))))
-                          (when tags
+                                          (eproj-tag-index-get identifier all-tags nil)))))
+                          (when matched-tags
                             (setf has-authoritative-projects? (or has-authoritative-projects?
                                                                   is-authoritative?)))
-                          tags)
+                          matched-tags)
                       nil))
                   (eproj-get-all-related-projects-for-mode proj tag-major-mode))))
     (mapcar #'cdr
