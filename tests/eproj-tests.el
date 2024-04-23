@@ -202,9 +202,7 @@ under ROOT directory."
 
     (let* ((path eproj-tests/project-with-c-files)
            (proj (eproj-get-project-for-path path))
-           (tags-index
-            (cdr-safe (assq 'c-mode
-                            (eproj--get-tags proj))))
+           (tags-index-thunk (cdr (assq 'c-mode (eproj-project/tags proj))))
            (project-names
             '("bigint"
               "bigint_list_s"
@@ -217,14 +215,16 @@ under ROOT directory."
               "next")))
       (should-not (null proj))
       (should (eproj-tests/paths=? path (eproj-project/root proj)))
-      (should-not (null tags-index))
-      (should-not (= 0 (length (eproj--get-tags proj))))
-      (should (eproj-tag-index-p tags-index))
-      (should-not (= 0 (eproj-tag-index-size tags-index)))
-      (should-not (= 0 (length (eproj-tag-index-keys tags-index))))
-      (should (equal (eproj-tests/normalize-string-list project-names)
-                     (eproj-tests/normalize-string-list
-                      (eproj-tag-index-keys tags-index)))))))
+      (should-not (= 0 (length (eproj-project/tags proj))))
+      (should (eproj-thunk-p tags-index-thunk))
+      (let ((tags-index (eproj-thunk-get-value tags-index-thunk)))
+        (should-not (null tags-index))
+        (should (eproj-tag-index-p tags-index))
+        (should-not (= 0 (eproj-tag-index-size tags-index)))
+        (should-not (= 0 (length (eproj-tag-index-keys tags-index))))
+        (should (equal (eproj-tests/normalize-string-list project-names)
+                       (eproj-tests/normalize-string-list
+                        (eproj-tag-index-keys tags-index))))))))
 
 (defmacro eproj-tests/test-ctags-get-tags-from-buffer
   (input
