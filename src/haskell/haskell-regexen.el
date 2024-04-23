@@ -16,7 +16,7 @@
   "[$]?\\(?:_\\|\\b[[:lower:]]\\)[[:alnum:]'_#]*")
 
 (defconst haskell-regexen/conid
-  "\\(?:\\b\\|'\\)[[:upper:]][[:alnum:]'_#]*")
+  "\\(?:\\b\\|'+\\)[[:upper:]][[:alnum:]'_#]*")
 (defconst haskell-regexen/modid
   (concat "\\b" haskell-regexen/conid
           "\\(?:\\." haskell-regexen/conid "\\)*\\b"))
@@ -99,6 +99,13 @@
 (defconst haskell-regexen/opt-q/varid-or-conid
   (concat "\\(?:" haskell-regexen/modid "\\.\\)?"
           "\\(?:" haskell-regexen/varid "\\|" haskell-regexen/conid "\\)"))
+
+(defconst haskell-regexen/opt-q/varid-or-conid-or-operator
+  (concat "\\(?:" haskell-regexen/modid "\\.\\)?"
+          "\\(?:" haskell-regexen/varid
+          "\\|" haskell-regexen/conid
+          "\\|" haskell-regexen/operator
+          "\\)"))
 
 ;; ;; (old-sym "[-!#$%&*+./<=>?@^|~:\\]+")
 ;; (defconst haskell-regexen/sym-constructor
