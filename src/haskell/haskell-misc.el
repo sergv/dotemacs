@@ -33,6 +33,7 @@
 (require 'haskell-format-setup)
 (require 'haskell-mode)
 (require 'haskell-regexen)
+(require 'haskell-smart-operators-mode)
 (require 'haskell-smart-operators-utils)
 (require 'haskell-sort-imports)
 (require 'hydra-setup)
@@ -417,56 +418,34 @@ extensions as a list of strings. Leaves point at the end of pragma"
 
 ;;; define ‘bounds-of-haskell-symbol’
 
-(defvar haskell-symbol--identifier-syntax-table
-  (let ((tbl (copy-syntax-table haskell-mode-syntax-table)))
-    (modify-syntax-entry ?#  "w" tbl)
-    (modify-syntax-entry ?_  "w" tbl)
-    (modify-syntax-entry ?\' "w" tbl)
-    (modify-syntax-entry ?,  "/" tbl) ;; Disable , since it's part of syntax
-    (modify-syntax-entry ?.  "_" tbl) ;; So that we match qualified names.
-    tbl)
-  "Special syntax table for Haskell that allows to recognize symbols that contain
-both unicode and ascii characters.")
+(defconst haskell-misc--bounds-of-symbol--word-chars "[:alnum:]_'")
 
-(defun haskell-misc--bounds-of-symbol-with-syntax-table (tbl)
+(defun haskell-misc--bounds-of-symbol-impl ()
   (save-excursion
     (save-match-data
-      (with-syntax-table tbl
-        (forward-char 1)
-        (let ((start nil)
-              (end nil)
-              (beginning-quotes "'"))
-          (when (zerop (skip-syntax-backward "w_"))
-            (skip-syntax-backward "._")
-            ;; To get qualified part
-            (skip-syntax-backward "w_")
-            (skip-chars-forward beginning-quotes))
+      (let ((beginning-quotes "'"))
+        (when (zerop (skip-chars-backward (eval-when-compile (concat haskell-misc--bounds-of-symbol--word-chars
+                                                                     "."))))
+
+          (skip-chars-backward haskell-smart-operators--operator-chars-str)
+          ;; To get qualified part
+          (skip-chars-backward (eval-when-compile (concat haskell-misc--bounds-of-symbol--word-chars
+                                                          "."))))
+        (when (looking-at haskell-regexen/opt-q/varid-or-conid-or-operator)
           (skip-chars-forward beginning-quotes)
-          (setf start (point))
-          (when (looking-at (rx (+ (char upper) (* (char alnum ?_)) ".")))
-            (goto-char (match-end 0)))
-          (skip-syntax-forward "w_.")
-          (setf end (point))
-          (cons start end))))))
+          (cons (point) (match-end 0)))))))
 
 ;;;###autoload
 (defun bounds-of-haskell-symbol ()
-  (haskell-misc--bounds-of-symbol-with-syntax-table haskell-symbol--identifier-syntax-table))
+  (haskell-misc--bounds-of-symbol-impl))
 
 ;;;###autoload
 (put 'haskell-symbol 'bounds-of-thing-at-point #'bounds-of-haskell-symbol)
 
-(defvar ghc-core-symbol--identifier-syntax-table
-  (let ((tbl (copy-syntax-table haskell-symbol--identifier-syntax-table)))
-    (modify-syntax-entry ?$ "_" tbl)
-    tbl)
-  "Special syntax table for GHC Core that allows to recognize symbols that contain
-both unicode and ascii characters.")
-
 ;;;###autoload
 (defun bounds-of-ghc-core-symbol ()
   (let ((parse-sexp-lookup-properties nil))
-    (haskell-misc--bounds-of-symbol-with-syntax-table ghc-core-symbol--identifier-syntax-table)))
+    (haskell-misc--bounds-of-symbol-impl)))
 
 ;;;###autoload
 (put 'ghc-core-symbol 'bounds-of-thing-at-point #'bounds-of-ghc-core-symbol)
