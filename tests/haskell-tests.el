@@ -6477,6 +6477,27 @@ have different input states."
    "main = undefined_|_"
    ""))
 
+(ert-deftest haskell-tests/haskell-misc--is-operator?-1 ()
+  (should (haskell-misc--is-operator? "+")))
+
+(ert-deftest haskell-tests/haskell-misc--is-operator?-2 ()
+  (should (haskell-misc--is-operator? "++")))
+
+(ert-deftest haskell-tests/haskell-misc--is-operator?-3 ()
+  (should (haskell-misc--is-operator? "##")))
+
+(ert-deftest haskell-tests/haskell-misc--is-operator?-4 ()
+  (should (haskell-misc--is-operator? "<=<")))
+
+(ert-deftest haskell-tests/haskell-misc--is-operator?-5 ()
+  (should-not (haskell-misc--is-operator? "abc")))
+
+(ert-deftest haskell-tests/haskell-misc--is-operator?-6 ()
+  (should-not (haskell-misc--is-operator? "a++")))
+
+(ert-deftest haskell-tests/haskell-misc--is-operator?-7 ()
+  (should-not (haskell-misc--is-operator? "")))
+
 (provide 'haskell-tests)
 
 ;; (let ((ert-debug-on-error nil))
