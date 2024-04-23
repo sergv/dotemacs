@@ -736,9 +736,22 @@ Error is given as MSG and reported between POS and END."
                        "Not in scope: type constructor or class "
                        (identifier 1))))
           msg)
-    (attrap-one-option "add import"
-      (let ((name (attrap-strip-parens (match-string-no-properties 1 msg))))
-        (attrap--add-import name))))
+     (when-let ((proj (eproj-get-project-for-buf-lax (current-buffer))))
+       (let ((effective-major-mode (eproj/resolve-synonym-modes major-mode)))
+         ;; Mostly to make tests green but in general too: don’t proceed
+         ;; if found project doesn’t define tags for us.
+         (when (assq effective-major-mode (eproj-project/tags proj))
+
+           (eproj-symbnav/ensure-tags-loaded! effective-major-mode proj)
+
+           (let ((identifier (attrap-strip-parens (match-string-no-properties 1 msg))))
+             (when-let ((candidate-tags
+                         (eproj-get-matching-tags proj
+                                                  effective-major-mode
+                                                  identifier
+                                                  nil)))
+               (attrap-one-option "add import"
+                 (attrap--add-import proj candidate-tags identifier))))))))
 
     ;; error: [GHC-76037]
     ;;     Not in scope: type constructor or class ‘MonadMask’
@@ -798,44 +811,36 @@ Error is given as MSG and reported between POS and END."
 
 (defvar attrap--import-history nil)
 
-(defun attrap--add-import (identifier)
-  (let ((proj (eproj-get-project-for-buf (current-buffer)))
-        (effective-major-mode (eproj/resolve-synonym-modes major-mode)))
+(defun attrap--add-import (proj candidate-tags identifier)
+  "CANDIDATE-TAGS is the result returned by ‘eproj-get-matching-tags’."
+  (cl-assert (eproj-project-p proj))
+  (cl-assert (stringp identifier))
+  (let* ((module-names
+          (remove-duplicates-sorting
+           (--map (cons (haskell-misc--file-name-to-module-name (eproj-tag/file (cl-second it)))
+                        (eq proj (cl-third it)))
+                  candidate-tags)
+           (lambda (x y)
+             (string= (car x) (car y)))
+           (lambda (x y)
+             (string< (car x) (car y)))))
 
-    (eproj-symbnav/ensure-tags-loaded! effective-major-mode proj)
-
-    (let* ((candidate-tags
-            (eproj-get-matching-tags proj
-                                     effective-major-mode
-                                     identifier
-                                     nil))
-
-           (module-names
-            (remove-duplicates-sorting
-             (--map (cons (haskell-misc--file-name-to-module-name (eproj-tag/file (cl-second it)))
-                          (eq proj (cl-third it)))
-                    candidate-tags)
-             (lambda (x y)
-               (string= (car x) (car y)))
-             (lambda (x y)
-               (string< (car x) (car y)))))
-
-           (entry
-            (pcase (length module-names)
-              (0 (error "No candidates modules defining ‘%s’ found" identifier))
-              (1 (car module-names))
-              (_ (assoc (completing-read "Choose module: "
-                                         module-names
-                                         nil
-                                         t ;; require match
-                                         nil
-                                         'attrap-import-history ;; history
-                                         )
-                        module-names)))))
-      (let ((mod-name (car entry))
-            (import-from-current-project? (cdr entry)))
-        (haskell-misc--add-new-import mod-name identifier import-from-current-project?)
-        (message "Added import of ‘%s’" mod-name)))))
+         (entry
+          (pcase (length module-names)
+            (0 (error "No candidates modules defining ‘%s’ found" identifier))
+            (1 (car module-names))
+            (_ (assoc (completing-read "Choose module: "
+                                       module-names
+                                       nil
+                                       t ;; require match
+                                       nil
+                                       'attrap-import-history ;; history
+                                       )
+                      module-names))))
+         (mod-name (car entry))
+         (import-from-current-project? (cdr entry)))
+    (haskell-misc--add-new-import mod-name identifier import-from-current-project?)
+    (message "Added import of ‘%s’" mod-name)))
 
 (defun attrap-add-operator-parens (name)
   "Add parens around a NAME if it refers to a Haskell operator."
