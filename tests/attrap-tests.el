@@ -9,13 +9,33 @@
 (require 'attrap)
 
 (require 'common)
+(require 'eproj)
+(require 'eproj-tag-index)
 (require 'ert)
-(require 'tests-utils)
+(require 'flycheck)
 (require 'haskell-autoload)
 (require 'haskell-setup)
-(require 'flycheck)
+(require 's)
+(require 'tests-utils)
 
 (defvar attrap-select-predefined-option)
+
+(defun attrap-tests-make-ephemeral-haskell-eproj-project (tags)
+  (let ((proj (eproj-make-project default-directory
+                                  '((languages haskell-mode)
+                                    (no-default-proj haskell-mode))))
+        (tags-index (empty-eproj-tag-index)))
+    (cl-assert (listp tags))
+    (dolist (x tags)
+      (cl-destructuring-bind (sym file line type props) x
+        (eproj-tag-index-add! sym file line type props tags-index)))
+    (cl-assert (= (eproj-tag-index-size tags-index)
+                  (length tags)))
+    (setf (eproj-project/tags proj)
+          (list (cons 'haskell-mode
+                      (eproj--make-thunk
+                       tags-index))))
+    proj))
 
 (cl-defmacro attrap-tests--test-buffer-contents-many
     (&key
@@ -24,7 +44,11 @@
      action
      contents
      expected-value
-     (modes '(haskell-mode haskell-ts-mode)))
+     (modes '(haskell-mode haskell-ts-mode))
+     ;; If supplied then disable caching and make buffer visit fresh
+     ;; temporary directory. This is to facilitate testing with
+     ;; ephemeral eproj projects.
+     (eproj-project nil))
   `(progn
      ,@(cl-loop
         for mode in modes
@@ -42,11 +66,21 @@
                :contents ,content
                :expected-value ,expected-value
                :initialisation
-               (,mode)
+               (progn
+                 ,(when eproj-project
+                    `(progn
+                       (cd (make-temp-file ,(s-replace "/" "_" (format "attrap-test-%s" name)) t))
+                       (let ((proj ,eproj-project))
+                         (puthash default-directory proj *eproj-projects*)
+                         (should (eq (eproj-get-project-for-buf-lax (current-buffer))
+                                     proj)))))
+                 (,mode))
                :post-content-initialisation
                (dolist (err ,flycheck-errors)
                  (flycheck-add-overlay err))
-               :buffer-id ,(string->symbol (format "attrap-tests-%s" mode)))))))))
+               :buffer-id
+               ,(unless eproj-project
+                  (string->symbol (format "attrap-tests-%s" mode))))))))))
 
 (cl-defmacro attrap-tests--test-buffer-contents-one
     (&key
@@ -55,14 +89,16 @@
      action
      contents
      expected-value
-     (modes '(haskell-mode haskell-ts-mode)))
+     (modes '(haskell-mode haskell-ts-mode))
+     (eproj-project nil))
   `(attrap-tests--test-buffer-contents-many
      :name ,name
      :flycheck-errors ,flycheck-errors
      :action ,action
      :contents ,(list (list nil contents))
      :expected-value ,expected-value
-     :modes ,modes))
+     :modes ,modes
+     :eproj-project ,eproj-project))
 
 (defun attrap-tests--run-attrap ()
   (cl-letf
@@ -416,6 +452,48 @@
   "  -> m a"
   "_|_foo = _"
   ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/add-import-1
+ :flycheck-errors
+ (list
+  (let ((linecol (save-excursion
+                   (re-search-forward "_|_")
+                   (flycheck-line-column-at-pos (point)))))
+    (flycheck-error-new
+     :line (car linecol)
+     :column (cdr linecol)
+     :buffer (current-buffer)
+     :checker 'haskell-dante
+     :message
+     (tests-utils--multiline
+      "error: [GHC-76037]"
+      "    • Not in scope: ‘osstr’"
+      "    • In the quasi-quotation: [osstr|test|]")
+     :level 'error
+     :id nil
+     :group nil)))
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "module Foo () where"
+  ""
+  "main = putStrLn _|_[osstr|test|]"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "module Foo () where"
+  ""
+  "import Test.Foo.Bar (osstr)"
+  ""
+  "main = putStrLn _|_[osstr|test|]"
+  "")
+ :eproj-project
+ (attrap-tests-make-ephemeral-haskell-eproj-project
+  '(("osstr" "/tmp/Test/Foo/Bar.hs" 100 ?f nil))))
 
 (provide 'attrap-tests)
 

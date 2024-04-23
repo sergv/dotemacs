@@ -731,10 +731,15 @@ Error is given as MSG and reported between POS and END."
                        (name-capture 1)
                        (+ ws)
                        "::")
+                  ;; error: [GHC-76037]
+                  ;;     • Not in scope: ‘osstr’
+                  ;;     • In the quasi-quotation: [osstr|fully-pinned-cabal.config|]
                   (seq (ghc-error "76037")
                        (+ ws)
-                       "Not in scope: type constructor or class "
-                       (identifier 1))))
+                       (or (seq "Not in scope: type constructor or class "
+                                (identifier 1))
+                           (seq "• Not in scope: "
+                                (identifier 1))))))
           msg)
      (when-let ((proj (eproj-get-project-for-buf-lax (current-buffer))))
        (let ((effective-major-mode (eproj/resolve-synonym-modes major-mode)))
