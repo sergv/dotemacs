@@ -486,7 +486,7 @@ be set to the preferred literate style."
     ;; The underscore should remain part of word so we never search within
     ;; _c_style_identifiers.
     (modify-syntax-entry ?_  "_" table)
-    (modify-syntax-entry ?\' "w" table)
+    (modify-syntax-entry ?\' "_" table)
     (modify-syntax-entry ?@  "'" table)
     ;; So that ‘backward-sexp’ will reach ‘Foo’ when run on ‘Foo.Ba_|_r’.
     ;; This is relied upon by ‘paredit-raise-sexp’.
