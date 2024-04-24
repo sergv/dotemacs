@@ -481,16 +481,27 @@ have different input states."
   :action
   (thing-at-point 'haskell-symbol)
   :expected-value
-  "Quux.Fooobar"
+  "Fooobar"
   :contents
   " ''Quux.Fooo_|_bar ")
 
 (haskell-tests--test-result
-    haskell-tests/bounds-of-haskell-symbol-2a
+    haskell-tests/bounds-of-haskell-symbol-2-qualified
   :action
-  (thing-at-point 'haskell-symbol)
+  (when-let ((bounds (haskell-misc--bounds-of-symbol-impl t nil nil)))
+    (buffer-substring-no-properties (car bounds) (cdr bounds)))
   :expected-value
-  "Żółć.Quux.Fooobar"
+  "''Quux.Fooobar"
+  :contents
+  " ''Quux.Fooo_|_bar ")
+
+(haskell-tests--test-result
+    haskell-tests/bounds-of-haskell-symbol-2a-qualified
+  :action
+  (when-let ((bounds (haskell-misc--bounds-of-symbol-impl t nil nil)))
+    (buffer-substring-no-properties (car bounds) (cdr bounds)))
+  :expected-value
+  "''Żółć.Quux.Fooobar"
   :contents
   " ''Żółć.Quux.Fooo_|_bar ")
 
@@ -499,7 +510,17 @@ have different input states."
   :action
   (thing-at-point 'haskell-symbol)
   :expected-value
-  "Quux.Żółć.fooobar"
+  "fooobar"
+  :contents
+  " ''Quux.Żółć.fooo_|_bar ")
+
+(haskell-tests--test-result
+    haskell-tests/bounds-of-haskell-symbol-2b-qualified
+  :action
+  (when-let ((bounds (haskell-misc--bounds-of-symbol-impl t nil nil)))
+    (buffer-substring-no-properties (car bounds) (cdr bounds)))
+  :expected-value
+  "''Quux.Żółć.fooobar"
   :contents
   " ''Quux.Żółć.fooo_|_bar ")
 
@@ -507,6 +528,16 @@ have different input states."
     haskell-tests/bounds-of-haskell-symbol-2c
   :action
   (thing-at-point 'haskell-symbol)
+  :expected-value
+  "++"
+  :contents
+  " Quux.Żółć.+_|_+ ")
+
+(haskell-tests--test-result
+    haskell-tests/bounds-of-haskell-symbol-2c-qualified
+  :action
+  (when-let ((bounds (haskell-misc--bounds-of-symbol-impl t nil nil)))
+    (buffer-substring-no-properties (car bounds) (cdr bounds)))
   :expected-value
   "Quux.Żółć.++"
   :contents
@@ -535,6 +566,16 @@ have different input states."
   :action
   (substring-no-properties (thing-at-point 'haskell-symbol))
   :expected-value
+  ".=?"
+  :contents
+  " Quux..=_|_? ")
+
+(haskell-tests--test-result
+    haskell-tests/bounds-of-haskell-symbol-4-qualified
+  :action
+  (when-let ((bounds (haskell-misc--bounds-of-symbol-impl t nil nil)))
+    (buffer-substring-no-properties (car bounds) (cdr bounds)))
+  :expected-value
   "Quux..=?"
   :contents
   " Quux..=_|_? ")
@@ -544,7 +585,17 @@ have different input states."
   :action
   (substring-no-properties (thing-at-point 'haskell-symbol))
   :expected-value
-  "Quux..=?"
+  ".=?"
+  :contents
+  " ''Quux..=_|_? ")
+
+(haskell-tests--test-result
+    haskell-tests/bounds-of-haskell-symbol-5-qualified
+  :action
+  (when-let ((bounds (haskell-misc--bounds-of-symbol-impl t nil nil)))
+    (buffer-substring-no-properties (car bounds) (cdr bounds)))
+  :expected-value
+  "''Quux..=?"
   :contents
   " ''Quux..=_|_? ")
 
@@ -561,6 +612,16 @@ have different input states."
     haskell-tests/bounds-of-haskell-symbol-6a
   :action
   (substring-no-properties (thing-at-point 'haskell-symbol))
+  :expected-value
+  "Fooobar"
+  :contents
+  " `Quux.Baz.Fooo_|_bar` ")
+
+(haskell-tests--test-result
+    haskell-tests/bounds-of-haskell-symbol-6a-qualified
+  :action
+  (when-let ((bounds (haskell-misc--bounds-of-symbol-impl t nil nil)))
+    (buffer-substring-no-properties (car bounds) (cdr bounds)))
   :expected-value
   "Quux.Baz.Fooobar"
   :contents
@@ -594,6 +655,25 @@ have different input states."
   " [myosst_|_r|test|] ")
 
 (haskell-tests--test-result
+    haskell-tests/bounds-of-haskell-symbol-7c
+  :action
+  (substring-no-properties (thing-at-point 'haskell-symbol))
+  :expected-value
+  "myosstr"
+  :contents
+  " [Żółć.Foo.Bar.myos_|_str|test|] ")
+
+(haskell-tests--test-result
+    haskell-tests/bounds-of-haskell-symbol-7c-qualified
+  :action
+  (when-let ((bounds (haskell-misc--bounds-of-symbol-impl t nil nil)))
+    (buffer-substring-no-properties (car bounds) (cdr bounds)))
+  :expected-value
+  "Żółć.Foo.Bar.myosstr"
+  :contents
+  " [Żółć.Foo.Bar.myos_|_str|test|] ")
+
+(haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-8
   :action
   (substring-no-properties (thing-at-point 'haskell-symbol))
@@ -603,13 +683,69 @@ have different input states."
   " _|_test++ ")
 
 (haskell-tests--test-result
+    haskell-tests/bounds-of-haskell-symbol-8a
+  :action
+  (substring-no-properties (thing-at-point 'haskell-symbol))
+  :expected-value
+  "test"
+  :contents
+  " ++_|_test ")
+
+(haskell-tests--test-result
+    haskell-tests/bounds-of-haskell-symbol-8b
+  :action
+  (substring-no-properties (thing-at-point 'haskell-symbol))
+  :expected-value
+  "test"
+  :contents
+  " ++tes_|_t ")
+
+(haskell-tests--test-result
+    haskell-tests/bounds-of-haskell-symbol-8c
+  :action
+  (substring-no-properties (thing-at-point 'haskell-symbol))
+  :expected-value
+  "test_prim#"
+  :contents
+  " ++Żółć.Foo.Bar.tes_|_t_prim# ")
+
+(haskell-tests--test-result
+    haskell-tests/bounds-of-haskell-symbol-8c-qualified
+  :action
+  (when-let ((bounds (haskell-misc--bounds-of-symbol-impl t nil nil)))
+    (buffer-substring-no-properties (car bounds) (cdr bounds)))
+  :expected-value
+  "Żółć.Foo.Bar.test_prim#"
+  :contents
+  " ++Żółć.Foo.Bar.tes_|_t_prim# ")
+
+(haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-9
   :action
   (substring-no-properties (thing-at-point 'haskell-symbol))
   :expected-value
+  "."
+  :contents
+  " f ((Foo.Bar._|_.) g) ")
+
+(haskell-tests--test-result
+    haskell-tests/bounds-of-haskell-symbol-10-qualified
+  :action
+  (when-let ((bounds (haskell-misc--bounds-of-symbol-impl t nil nil)))
+    (buffer-substring-no-properties (car bounds) (cdr bounds)))
+  :expected-value
   "Foo.Bar.."
   :contents
   " f ((Foo._|_Bar..) g) ")
+
+(haskell-tests--test-result
+    haskell-tests/bounds-of-ghc-core-symbol-1
+  :action
+  (substring-no-properties (thing-at-point 'ghc-core-symbol))
+  :expected-value
+  "$test_prim#"
+  :contents
+  " ++$tes_|_t_prim# ")
 
 (ert-deftest haskell-tests/haskell-cabal--yasnippet--main-module-from-main-file-1 ()
   (should
