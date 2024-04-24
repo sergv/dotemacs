@@ -1734,6 +1734,70 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+    vim-tests/haskell-motion-inner-symbol-value-after-operator
+    ((haskell-mode (haskell-mode))
+     (haskell-ts-mode (haskell-ts-mode)))
+  ((is (execute-kbd-macro (kbd ", i s")))
+   (s (execute-kbd-macro (kbd ", s"))))
+  ((1 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  ++ba_|_r_baz_Quux''' (x + 1) y \"foo\""
+       ""))
+   (2 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  ++Bar_baz_Quux''_|_' (x + 1) y \"foo\""
+       ""))
+   (3 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  ++ba_|_r_baz_Quux# (x + 1) y \"foo\""
+       ""))
+   (4 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  ++_|_bar_baz_Quux# (x + 1) y \"foo\""
+       "")))
+  (tests-utils--multiline
+   ""
+   "foo x = do"
+   "  ++_|_ (x + 1) y \"foo\""
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+    vim-tests/haskell-motion-inner-symbol-value-before-operator
+    ((haskell-mode (haskell-mode))
+     (haskell-ts-mode (haskell-ts-mode)))
+  ((is (execute-kbd-macro (kbd ", i s")))
+   (s (execute-kbd-macro (kbd ", s"))))
+  ((1 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  ba_|_r_baz_Quux'''++ (x + 1) y \"foo\""
+       ""))
+   (2 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  Bar_baz_Quux''_|_'++ (x + 1) y \"foo\""
+       ""))
+   (3 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  ba_|_r_baz_Quux#++ (x + 1) y \"foo\""
+       ""))
+   (4 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  _|_bar_baz_Quux#++ (x + 1) y \"foo\""
+       "")))
+  (tests-utils--multiline
+   ""
+   "foo x = do"
+   "  _|_++ (x + 1) y \"foo\""
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-inner-symbol-value-qualified-names
     ((haskell-mode (haskell-mode))
      (haskell-ts-mode (haskell-ts-mode)))
@@ -1891,11 +1955,90 @@
        ""
        "foo x = do"
        "  Frobnicator.ba_|_r_baz_Quux# (x + 1) y \"foo\""
+       ""))
+   (4 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  Żółć.Frobnicator.ba_|_r_baz_Quux# (x + 1) y \"foo\""
        "")))
   (tests-utils--multiline
    ""
    "foo x = do"
    "  _|_ (x + 1) y \"foo\""
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+    vim-tests/haskell-motion-inner-qualified-symbol-value-qualified-names-after-operator
+    ((haskell-mode (haskell-mode))
+     (haskell-ts-mode (haskell-ts-mode)))
+  ((is (execute-kbd-macro (kbd ", i S")))
+   (s (execute-kbd-macro (kbd ", S"))))
+  ((1 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  ++Frobnicator.ba_|_r_baz_Quux''' (x + 1) y \"foo\""
+       ""))
+   (2 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  ++Frobnicator.Bar_baz_Quux''_|_' (x + 1) y \"foo\""
+       ""))
+   (3 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  ++Frobnicator.ba_|_r_baz_Quux# (x + 1) y \"foo\""
+       ""))
+   (4 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  ++Żółć.Frobnicator.ba_|_r_baz_Quux# (x + 1) y \"foo\""
+       ""))
+   (5 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  ++_|_Żółć.Frobnicator.bar_baz_Quux# (x + 1) y \"foo\""
+       "")))
+  (tests-utils--multiline
+   ""
+   "foo x = do"
+   "  ++_|_ (x + 1) y \"foo\""
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+    vim-tests/haskell-motion-inner-qualified-symbol-value-qualified-names-before-operator
+    ((haskell-mode (haskell-mode))
+     (haskell-ts-mode (haskell-ts-mode)))
+  ((is (execute-kbd-macro (kbd ", i S")))
+   (s (execute-kbd-macro (kbd ", S"))))
+  ((1 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  Frobnicator.ba_|_r_baz_Quux'''++ (x + 1) y \"foo\""
+       ""))
+   (2 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  Frobnicator.Bar_baz_Quux''_|_'++ (x + 1) y \"foo\""
+       ""))
+   (3 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  Frobnicator.ba_|_r_baz_Quux#++ (x + 1) y \"foo\""
+       ""))
+   (4 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  Żółć.Frobnicator.ba_|_r_baz_Quux#++ (x + 1) y \"foo\""
+       ""))
+   (5 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  _|_Żółć.Frobnicator.bar_baz_Quux#++ (x + 1) y \"foo\""
+       "")))
+  (tests-utils--multiline
+   ""
+   "foo x = do"
+   "  _|_++ (x + 1) y \"foo\""
    ""))
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
@@ -1912,6 +2055,11 @@
    (2 (tests-utils--multiline
        ""
        "foo :: ValidateM m => Email 'Unvalid_|_ated -> m (Email 'Validated)"
+       "foo x = undefined"
+       ""))
+   (3 (tests-utils--multiline
+       ""
+       "foo :: ValidateM m => Email 'Żółć.Unvalid_|_ated -> m (Email 'Validated)"
        "foo x = undefined"
        "")))
   (tests-utils--multiline
@@ -1975,11 +2123,108 @@
        ""
        "foo x = do"
        "  Frobnicator._|_Bar_baz_Quux# (x + 1) y \"foo\""
+       ""))
+   (5 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  Żółć.Frobnicator._|_Bar_baz_Quux# (x + 1) y \"foo\""
        "")))
   (tests-utils--multiline
    ""
    "foo x = do"
    "  _|_(x + 1) y \"foo\""
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+    vim-tests/haskell-motion-symbol-value-in-quasiquoter
+    ((haskell-mode (haskell-mode))
+     (haskell-ts-mode (haskell-ts-mode)))
+  ((is (execute-kbd-macro (kbd ", i s")))
+   (s (execute-kbd-macro (kbd ", s")))
+   (as (execute-kbd-macro (kbd ", a s")))
+   (iS (execute-kbd-macro (kbd ", i S")))
+   (S (execute-kbd-macro (kbd ", S")))
+   (aS (execute-kbd-macro (kbd ", a S"))))
+  ((1 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  putStrLn [_|_myosstr|test|]"
+       ""))
+   (2 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  putStrLn [myos_|_str|test|]"
+       ""))
+   (3 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  putStrLn [myosst_|_r|test|]"
+       "")))
+  (tests-utils--multiline
+   ""
+   "foo x = do"
+   "  putStrLn [_|_|test|]"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+    vim-tests/haskell-motion-symbol-value-in-qualified-quasiquoter
+    ((haskell-mode (haskell-mode))
+     (haskell-ts-mode (haskell-ts-mode)))
+  ((is (execute-kbd-macro (kbd ", i s")))
+   (s (execute-kbd-macro (kbd ", s")))
+   (as (execute-kbd-macro (kbd ", a s"))))
+  ((1 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  putStrLn [Żółć._|_myosstr|test|]"
+       ""))
+   (2 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  putStrLn [Żółć.myos_|_str|test|]"
+       ""))
+   (3 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  putStrLn [Żółć.myosst_|_r|test|]"
+       "")))
+  (tests-utils--multiline
+   ""
+   "foo x = do"
+   "  putStrLn [Żółć._|_|test|]"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+    vim-tests/haskell-motion-symbol-value-in-qualified-quasiquoter-qualified
+    ((haskell-mode (haskell-mode))
+     (haskell-ts-mode (haskell-ts-mode)))
+  ((iS (execute-kbd-macro (kbd ", i S")))
+   (S (execute-kbd-macro (kbd ", S")))
+   (aS (execute-kbd-macro (kbd ", a S"))))
+  ((1 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  putStrLn [Żółć._|_myosstr|test|]"
+       ""))
+   (2 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  putStrLn [Żółć.myos_|_str|test|]"
+       ""))
+   (3 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  putStrLn [Żółć.myosst_|_r|test|]"
+       ""))
+   (4 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  putStrLn [_|_Żółć.myosstr|test|]"
+       "")))
+  (tests-utils--multiline
+   ""
+   "foo x = do"
+   "  putStrLn [_|_|test|]"
    ""))
 
 (ert-deftest vim-tests/c-motion-inner-symbol-1 ()
