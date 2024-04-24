@@ -12,17 +12,25 @@
 (defconst haskell-regexen/varid
   "\\(?:_\\|\\b[[:lower:]]\\)[[:alnum:]'_#]*")
 
+(defconst haskell-regexen/core/varid-raw
+  "[$]?\\(?:_\\|[[:lower:]]\\)[[:alnum:]'_#]*")
+
 (defconst haskell-regexen/core/varid
   "[$]?\\(?:_\\|\\b[[:lower:]]\\)[[:alnum:]'_#]*")
 
+(defconst haskell-regexen/conid-raw
+  "[[:upper:]][[:alnum:]'_#]*")
+
 (defconst haskell-regexen/conid
-  "\\(?:\\b\\|'+\\)[[:upper:]][[:alnum:]'_#]*")
+  (concat "\\(?:\\b\\|'+\\)" haskell-regexen/conid-raw))
+
 (defconst haskell-regexen/modid
-  (concat "\\b" haskell-regexen/conid
-          "\\(?:\\." haskell-regexen/conid "\\)*\\b"))
+  (let ((mod-name "[[:upper:]][[:alnum:]_]*"))
+    (concat "\\b" mod-name "\\(?:\\." mod-name "\\)*")))
 
 (defconst haskell-regexen/q/varid
-  (concat "\\(" haskell-regexen/modid "\\)\\.\\(" haskell-regexen/varid "\\)"))
+  (concat "\\(?:" haskell-regexen/modid "\\)\\.\\(?:" haskell-regexen/varid "\\)"))
+
 (defconst haskell-regexen/q/conid
   (concat haskell-regexen/modid "\\." haskell-regexen/conid))
 
@@ -51,7 +59,6 @@
              "^"
              "|"
              "~"))))
-
 
 (defconst haskell-regexen/core/pkgid
   (rx (char (?a . ?z) (?A . ?Z))
@@ -101,10 +108,22 @@
           "\\(?:" haskell-regexen/varid "\\|" haskell-regexen/conid "\\)"))
 
 (defconst haskell-regexen/opt-q/varid-or-conid-or-operator
-  (concat "\\(?:" haskell-regexen/modid "\\.\\)?"
-          "\\(?:" haskell-regexen/varid
-          "\\|" haskell-regexen/conid
+  (concat "'*"
+          "\\(?:" haskell-regexen/modid "\\.\\)?"
+          "\\(1:" haskell-regexen/varid
+          "\\|" haskell-regexen/conid-raw
           "\\|" haskell-regexen/operator
+          "\\)"))
+
+(defconst haskell-regexen/core/opt-q/varid-or-conid-or-operator
+  (concat "'*"
+          "\\(?:" haskell-regexen/core/pkgid ":\\)?"
+          "\\(?:" haskell-regexen/modid "\\.\\)?"
+          "\\(1:" haskell-regexen/operator
+          "\\|" haskell-regexen/conid-raw
+          ;; varid must come later because operators can match $ but we want longest match
+          ;; and regexp engine seems to prefer later alternatives (?)
+          "\\|" haskell-regexen/core/varid-raw
           "\\)"))
 
 ;; ;; (old-sym "[-!#$%&*+./<=>?@^|~:\\]+")
