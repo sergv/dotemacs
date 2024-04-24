@@ -742,7 +742,7 @@ See ``company-backends'' for the meaning of COMMAND, ARG and _IGNORED."
     (interactive (company-begin-backend 'dante-company))
     (sorted t)
     (prefix
-     (let ((bounds (dante-ident-pos-at-point -1)))
+     (let ((bounds (haskell-misc--bounds-of-symbol-impl t -1 nil)))
        (when (and dante-mode (not (dante--in-a-comment)) bounds)
          (let* ((id-start (car bounds))
                 (_ (save-excursion (re-search-backward "import[\t ]*" (line-beginning-position) t)))
@@ -763,7 +763,7 @@ See ``company-backends'' for the meaning of COMMAND, ARG and _IGNORED."
   "Return (START . END) the indent at point, or the region if it is active."
   (if (region-active-p)
       (cons (region-beginning) (region-end))
-    (let ((bounds (dante--bounds-of-haskell-symbol)))
+    (let ((bounds (bounds-of-haskell-symbol)))
       (if (and include-parens
                bounds)
           (let ((start (car bounds))
@@ -779,63 +779,8 @@ See ``company-backends'' for the meaning of COMMAND, ARG and _IGNORED."
 (defun dante-ident-at-point ()
   "Return the identifier under point, or nil if none found.
 May return a qualified name."
-  (when-let ((reg (or (dante-ident-pos-at-point)
-                      (dante--bounds-of-haskell-symbol))))
+  (when-let ((reg (haskell-misc--bounds-of-symbol-impl t nil nil)))
     (buffer-substring-no-properties (car reg) (cdr reg))))
-
-(defun dante-ident-pos-at-point (&optional offset)
-  "Return the span of the (qualified) identifier at point+OFFSET.
-Nil if none found."
-  (with-syntax-table dante--identifier-syntax-table
-    (let* ((qualifier-regex "\\([[:upper:]][[:alnum:]]*\\.\\)")
-           (ident-regex (concat qualifier-regex "*\\(\\s.+\\|\\(\\sw\\|\\s_\\)+\\)"))) ; note * for many qualifiers
-      (save-excursion
-        (goto-char (+ (point) (or offset 0)))
-        (when (looking-at ident-regex)
-          (let ((end (match-end 0)))
-            (skip-syntax-backward (if (looking-at "\\s.") "." "w_")) ;; find start of operator/variable
-            (while (save-excursion
-                     (and (re-search-backward (concat "\\b" qualifier-regex) (line-beginning-position) t)
-                          (s-matches? (concat "^" ident-regex "$") (buffer-substring-no-properties (point) end))))
-              (goto-char (match-beginning 0)))
-            (cons (point) end)))))))
-
-(defvar dante--identifier-syntax-table
-  (let ((tbl (copy-syntax-table haskell-mode-syntax-table)))
-    (modify-syntax-entry ?#  "w" tbl)
-    (modify-syntax-entry ?_  "w" tbl)
-    (modify-syntax-entry ?\' "w" tbl)
-    (modify-syntax-entry ?,  "/" tbl) ;; Disable , since it's part of syntax
-    (modify-syntax-entry ?.  "_" tbl) ;; So that we match qualified names.
-    tbl)
-  "Special syntax table for haskell that allows to recognize symbols that contain
-both unicode and ascii characters.")
-
-(defun dante--bounds-of-haskell-symbol ()
-  "Like `forward-symbol' but for generic Haskell symbols (either operators,
-uppercase or lowercase names)."
-  (save-excursion
-    (save-match-data
-      (with-syntax-table dante--identifier-syntax-table
-        (forward-char 1)
-        (let ((start nil)
-              (end nil)
-              (beginning-quotes "'"))
-          (if (zerop (skip-syntax-backward "w_"))
-              (progn
-                (skip-syntax-backward "._")
-                ;; To get qualified part
-                (skip-syntax-backward "w_")
-                (skip-chars-forward beginning-quotes))
-            (progn
-              (skip-chars-forward beginning-quotes)))
-          (setf start (point))
-          (when (looking-at (rx (+ (char upper) (* (char alnum ?_)) ".")))
-            (goto-char (match-end 0)))
-          (when (zerop (skip-syntax-forward "w_"))
-            (skip-syntax-forward "._"))
-          (setf end (point))
-          (cons start end))))))
 
 (defun dante-buffer-file-name-for-error-message (&optional buffer)
   "Call function `buffer-file-name' for BUFFER and clean its result.
