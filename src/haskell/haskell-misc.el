@@ -418,26 +418,40 @@ extensions as a list of strings. Leaves point at the end of pragma"
 
 ;;; define ‘bounds-of-haskell-symbol’
 
-(defconst haskell-misc--bounds-of-symbol--word-chars "[:alnum:]_'")
+(defconst haskell-misc--bounds-of-symbol--word-chars "[:alnum:]_'#.")
 
-(defun haskell-misc--bounds-of-symbol-impl ()
+(defun haskell-misc--bounds-of-symbol-impl (qualified? offset core-mode?)
+  "Qualified symbol may return prefix of ' before the symbol."
   (save-excursion
     (save-match-data
-      (let ((beginning-quotes "'"))
-        (when (zerop (skip-chars-backward (eval-when-compile (concat haskell-misc--bounds-of-symbol--word-chars
-                                                                     "."))))
-
+      (let ((word-chars
+             (if core-mode?
+                 (eval-when-compile (concat haskell-misc--bounds-of-symbol--word-chars "$"))
+               haskell-misc--bounds-of-symbol--word-chars)))
+        (when offset
+          (forward-char offset))
+        (when (and (zerop (skip-chars-backward word-chars))
+                   ;; No word constituent characters before the point here - if we’re followed
+                   ;; by a word character then we’re at the start of an identifier.
+                   (not (looking-at-p
+                         (if core-mode?
+                             (eval-when-compile (concat "[" haskell-misc--bounds-of-symbol--word-chars "$]"))
+                           (eval-when-compile (concat "[" haskell-misc--bounds-of-symbol--word-chars "]"))))))
           (skip-chars-backward haskell-smart-operators--operator-chars-str)
           ;; To get qualified part
-          (skip-chars-backward (eval-when-compile (concat haskell-misc--bounds-of-symbol--word-chars
-                                                          "."))))
-        (when (looking-at haskell-regexen/opt-q/varid-or-conid-or-operator)
-          (skip-chars-forward beginning-quotes)
-          (cons (point) (match-end 0)))))))
+          (skip-chars-backward word-chars))
+        ;; May be useful later when we want to return qualified names from this function:
+        ;; (skip-chars-forward "'")
+        (when (looking-at (if core-mode?
+                              haskell-regexen/core/opt-q/varid-or-conid-or-operator
+                            haskell-regexen/opt-q/varid-or-conid-or-operator))
+          (if qualified?
+              (cons (match-beginning 0) (match-end 0))
+            (cons (match-beginning 1) (match-end 1))))))))
 
 ;;;###autoload
 (defun bounds-of-haskell-symbol ()
-  (haskell-misc--bounds-of-symbol-impl))
+  (haskell-misc--bounds-of-symbol-impl nil nil nil))
 
 ;;;###autoload
 (put 'haskell-symbol 'bounds-of-thing-at-point #'bounds-of-haskell-symbol)
@@ -445,7 +459,7 @@ extensions as a list of strings. Leaves point at the end of pragma"
 ;;;###autoload
 (defun bounds-of-ghc-core-symbol ()
   (let ((parse-sexp-lookup-properties nil))
-    (haskell-misc--bounds-of-symbol-impl)))
+    (haskell-misc--bounds-of-symbol-impl nil nil t)))
 
 ;;;###autoload
 (put 'ghc-core-symbol 'bounds-of-thing-at-point #'bounds-of-ghc-core-symbol)
@@ -463,7 +477,7 @@ both unicode and ascii characters.")
 
 (defvar haskell-symbol--motion-identifier-syntax-table
   (let ((tbl (copy-syntax-table haskell-symbol--motion-qualified-identifier-syntax-table)))
-    (modify-syntax-entry ?.  "." tbl) ;; For identifier navigation we want Foo.bar to be 2 words
+    (modify-syntax-entry ?. "." tbl) ;; For identifier navigation we want Foo.bar to be 2 words
     tbl)
   "Special syntax table for haskell that allows to recognize symbols that contain
 both unicode and ascii characters.")
