@@ -484,6 +484,7 @@ of sexp."
 (ert-deftest haskell-forward-sexp-1 ()
   "Check if `haskell-forward-sexp' properly moves over sexps."
   (should (with-temp-buffer
+            (haskell-mode)
             (insert "foo = bar . baz")
             (goto-char 1)
             (haskell-forward-sexp 4)
@@ -492,6 +493,7 @@ of sexp."
 (ert-deftest haskell-forward-sexp-2 ()
   "Check if `haskell-forward-sexp' properly moves over sexps."
   (should (with-temp-buffer
+            (haskell-mode)
             (insert "foo = bar . baz")
             (goto-char 1)
             (haskell-forward-sexp 1)
@@ -500,6 +502,7 @@ of sexp."
 (ert-deftest haskell-forward-sexp-3 ()
   "Check if `haskell-forward-sexp' properly moves over sexps."
   (should (with-temp-buffer
+            (haskell-mode)
             (insert "(a b) c = d . e")
             (goto-char 1)
             (haskell-forward-sexp 5)
@@ -508,6 +511,7 @@ of sexp."
 (ert-deftest haskell-forward-sexp-4 ()
   "Check if `haskell-forward-sexp' properly moves over sexps."
   (should (with-temp-buffer
+            (haskell-mode)
             (insert "(a b) c = d . e")
             (goto-char 1)
             (haskell-forward-sexp 1)
@@ -529,6 +533,7 @@ beginning of sexp."
   "Check if `haskell-forward-sexp' with negatives arg properly
 moves over sexps."
   (should (with-temp-buffer
+            (haskell-mode)
             (insert "a (b c) = d . e")
             (goto-char 15)
             (haskell-forward-sexp -4)
