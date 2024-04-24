@@ -14,7 +14,7 @@
 (require 'browse-kill-ring)
 
 (setf browse-kill-ring-display-duplicates nil
-      browse-kill-ring-maximum-display-length 80)
+      browse-kill-ring-maximum-display-length nil)
 
 ;;;###autoload
 (defun browse-kill-ring ()
