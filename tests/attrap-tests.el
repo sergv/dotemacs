@@ -495,6 +495,54 @@
  (attrap-tests-make-ephemeral-haskell-eproj-project
   '(("osstr" "/tmp/Test/Foo/Bar.hs" 100 ?f nil))))
 
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/add-import-2
+ :flycheck-errors
+ (list
+  (let ((linecol (save-excursion
+                   (re-search-forward "_|_")
+                   (flycheck-line-column-at-pos (point)))))
+    (flycheck-error-new
+     :line (car linecol)
+     :column (cdr linecol)
+     :buffer (current-buffer)
+     :checker 'haskell-dante
+     :message
+     (tests-utils--multiline
+      "error: [GHC-76037]"
+      "    Not in scope: type constructor or class ‘WithCallStack’")
+     :level 'error
+     :id nil
+     :group nil)))
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "module Foo () where"
+  ""
+  "import Control.Monad.State"
+  "-- import MyProject.List.Ext (mySort)"
+  ""
+  "foo :: (_|_WithCallStack, MonadState Int m) => Int -> m Int"
+  "foo = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "module Foo () where"
+  ""
+  "import Control.Monad.State"
+  "import Test.Foo.Bar (WithCallStack)"
+  "-- import MyProject.List.Ext (mySort)"
+  ""
+  "foo :: (_|_WithCallStack, MonadState Int m) => Int -> m Int"
+  "foo = undefined"
+  "")
+ :eproj-project
+ (attrap-tests-make-ephemeral-haskell-eproj-project
+  '(("WithCallStack" "/tmp/Test/Foo/Bar.hs" 100 ?t nil))))
+
 (provide 'attrap-tests)
 
 ;; Local Variables:
