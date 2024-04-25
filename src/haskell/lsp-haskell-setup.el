@@ -187,10 +187,13 @@
 
     (eproj-symbnav/ensure-tags-loaded! effective-major-mode proj)
 
-    (let* ((candidate-tags
+    (let* (;; Strip qualification since tag entries will not have any.
+           (unqual-identifier
+            (haskell-remove-module-qualification identifier))
+           (candidate-tags
             (eproj-get-matching-tags proj
                                      effective-major-mode
-                                     identifier
+                                     unqual-identifier
                                      nil))
            (filtered-tags
             (--filter (and (not (eq ?m (eproj-tag/type (cadr it))))
@@ -204,7 +207,7 @@
            (tag->kind (eproj-language/show-tag-kind-procedure lang)))
 
       (eproj-symbnav/choose-location-to-jump-to
-       identifier
+       unqual-identifier
        tag->string
        tag->kind
        (eproj-symbnav-get-file-name)

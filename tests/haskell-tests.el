@@ -488,8 +488,7 @@ have different input states."
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-2-qualified
   :action
-  (when-let ((bounds (haskell-misc--bounds-of-symbol-impl t nil nil)))
-    (buffer-substring-no-properties (car bounds) (cdr bounds)))
+  (thing-at-point 'qualified-haskell-symbol)
   :expected-value
   "''Quux.Fooobar"
   :contents
@@ -498,8 +497,7 @@ have different input states."
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-2a-qualified
   :action
-  (when-let ((bounds (haskell-misc--bounds-of-symbol-impl t nil nil)))
-    (buffer-substring-no-properties (car bounds) (cdr bounds)))
+  (thing-at-point 'qualified-haskell-symbol)
   :expected-value
   "''Żółć.Quux.Fooobar"
   :contents
@@ -517,8 +515,7 @@ have different input states."
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-2b-qualified
   :action
-  (when-let ((bounds (haskell-misc--bounds-of-symbol-impl t nil nil)))
-    (buffer-substring-no-properties (car bounds) (cdr bounds)))
+  (thing-at-point 'qualified-haskell-symbol)
   :expected-value
   "''Quux.Żółć.fooobar"
   :contents
@@ -536,8 +533,7 @@ have different input states."
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-2c-qualified
   :action
-  (when-let ((bounds (haskell-misc--bounds-of-symbol-impl t nil nil)))
-    (buffer-substring-no-properties (car bounds) (cdr bounds)))
+  (thing-at-point 'qualified-haskell-symbol)
   :expected-value
   "Quux.Żółć.++"
   :contents
@@ -573,8 +569,7 @@ have different input states."
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-4-qualified
   :action
-  (when-let ((bounds (haskell-misc--bounds-of-symbol-impl t nil nil)))
-    (buffer-substring-no-properties (car bounds) (cdr bounds)))
+  (thing-at-point 'qualified-haskell-symbol)
   :expected-value
   "Quux..=?"
   :contents
@@ -592,8 +587,7 @@ have different input states."
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-5-qualified
   :action
-  (when-let ((bounds (haskell-misc--bounds-of-symbol-impl t nil nil)))
-    (buffer-substring-no-properties (car bounds) (cdr bounds)))
+  (thing-at-point 'qualified-haskell-symbol)
   :expected-value
   "''Quux..=?"
   :contents
@@ -620,8 +614,7 @@ have different input states."
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-6a-qualified
   :action
-  (when-let ((bounds (haskell-misc--bounds-of-symbol-impl t nil nil)))
-    (buffer-substring-no-properties (car bounds) (cdr bounds)))
+  (thing-at-point 'qualified-haskell-symbol)
   :expected-value
   "Quux.Baz.Fooobar"
   :contents
@@ -666,8 +659,7 @@ have different input states."
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-7c-qualified
   :action
-  (when-let ((bounds (haskell-misc--bounds-of-symbol-impl t nil nil)))
-    (buffer-substring-no-properties (car bounds) (cdr bounds)))
+  (thing-at-point 'qualified-haskell-symbol)
   :expected-value
   "Żółć.Foo.Bar.myosstr"
   :contents
@@ -712,8 +704,7 @@ have different input states."
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-8c-qualified
   :action
-  (when-let ((bounds (haskell-misc--bounds-of-symbol-impl t nil nil)))
-    (buffer-substring-no-properties (car bounds) (cdr bounds)))
+  (thing-at-point 'qualified-haskell-symbol)
   :expected-value
   "Żółć.Foo.Bar.test_prim#"
   :contents
@@ -731,8 +722,7 @@ have different input states."
 (haskell-tests--test-result
     haskell-tests/bounds-of-haskell-symbol-10-qualified
   :action
-  (when-let ((bounds (haskell-misc--bounds-of-symbol-impl t nil nil)))
-    (buffer-substring-no-properties (car bounds) (cdr bounds)))
+  (thing-at-point 'qualified-haskell-symbol)
   :expected-value
   "Foo.Bar.."
   :contents
