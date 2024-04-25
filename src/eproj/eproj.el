@@ -505,12 +505,12 @@ get proper flycheck checker."
          (eproj-project/transient-files-for-navigation proj))
         (if-let (old-tags-thunk (cdr-safe (assq mode (eproj-project/tags proj))))
             (progn
-              (cl-assert (eproj-thunk-p tags-thunk))
+              (cl-assert (eproj-thunk-p old-tags-thunk))
               ;; If tags are still a thunk (i.e. value is *not* ready yet) then
               ;; we should not do anything here - tags will emerge once thunk
               ;; will become forced.
               (when (eproj-thunk/value-ready? old-tags-thunk)
-                (let ((old-tags (eproj-thunk/value tags-thunk))
+                (let ((old-tags (eproj-thunk/value old-tags-thunk))
                       (new-tags
                        (eproj/load-tags-for-mode
                         proj
