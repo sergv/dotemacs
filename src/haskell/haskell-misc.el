@@ -457,6 +457,13 @@ extensions as a list of strings. Leaves point at the end of pragma"
 (put 'haskell-symbol 'bounds-of-thing-at-point #'bounds-of-haskell-symbol)
 
 ;;;###autoload
+(defun bounds-of-qualified-haskell-symbol ()
+  (haskell-misc--bounds-of-symbol-impl t nil nil))
+
+;;;###autoload
+(put 'qualified-haskell-symbol 'bounds-of-thing-at-point #'bounds-of-qualified-haskell-symbol)
+
+;;;###autoload
 (defun bounds-of-ghc-core-symbol ()
   (let ((parse-sexp-lookup-properties nil))
     (haskell-misc--bounds-of-symbol-impl nil nil t)))
