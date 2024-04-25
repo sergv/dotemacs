@@ -763,7 +763,7 @@ See ``company-backends'' for the meaning of COMMAND, ARG and _IGNORED."
   "Return (START . END) the indent at point, or the region if it is active."
   (if (region-active-p)
       (cons (region-beginning) (region-end))
-    (let ((bounds (bounds-of-haskell-symbol)))
+    (let ((bounds (bounds-of-qualified-haskell-symbol)))
       (if (and include-parens
                bounds)
           (let ((start (car bounds))
@@ -779,8 +779,7 @@ See ``company-backends'' for the meaning of COMMAND, ARG and _IGNORED."
 (defun dante-ident-at-point ()
   "Return the identifier under point, or nil if none found.
 May return a qualified name."
-  (when-let ((reg (haskell-misc--bounds-of-symbol-impl t nil nil)))
-    (buffer-substring-no-properties (car reg) (cdr reg))))
+  (thing-at-point 'qualified-haskell-symbol))
 
 (defun dante-buffer-file-name-for-error-message (&optional buffer)
   "Call function `buffer-file-name' for BUFFER and clean its result.
