@@ -742,7 +742,7 @@ See ``company-backends'' for the meaning of COMMAND, ARG and _IGNORED."
     (interactive (company-begin-backend 'dante-company))
     (sorted t)
     (prefix
-     (let ((bounds (haskell-misc--bounds-of-symbol-impl t -1 nil)))
+     (let ((bounds (haskell-misc--bounds-of-symbol-impl t -1 nil nil)))
        (when (and dante-mode (not (dante--in-a-comment)) bounds)
          (let* ((id-start (car bounds))
                 (_ (save-excursion (re-search-backward "import[\t ]*" (line-beginning-position) t)))
