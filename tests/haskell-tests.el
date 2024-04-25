@@ -490,7 +490,7 @@ have different input states."
   :action
   (thing-at-point 'qualified-haskell-symbol)
   :expected-value
-  "''Quux.Fooobar"
+  "Quux.Fooobar"
   :contents
   " ''Quux.Fooo_|_bar ")
 
@@ -499,7 +499,7 @@ have different input states."
   :action
   (thing-at-point 'qualified-haskell-symbol)
   :expected-value
-  "''Żółć.Quux.Fooobar"
+  "Żółć.Quux.Fooobar"
   :contents
   " ''Żółć.Quux.Fooo_|_bar ")
 
@@ -517,7 +517,7 @@ have different input states."
   :action
   (thing-at-point 'qualified-haskell-symbol)
   :expected-value
-  "''Quux.Żółć.fooobar"
+  "Quux.Żółć.fooobar"
   :contents
   " ''Quux.Żółć.fooo_|_bar ")
 
@@ -589,7 +589,7 @@ have different input states."
   :action
   (thing-at-point 'qualified-haskell-symbol)
   :expected-value
-  "''Quux..=?"
+  "Quux..=?"
   :contents
   " ''Quux..=_|_? ")
 
@@ -727,6 +727,15 @@ have different input states."
   "Foo.Bar.."
   :contents
   " f ((Foo._|_Bar..) g) ")
+
+(haskell-tests--test-result
+    haskell-tests/bounds-of-haskell-symbol-11
+  :action
+  (thing-at-point 'qualified-haskell-symbol)
+  :expected-value
+  "|++|"
+  :contents
+  " f |+_|_+| ")
 
 (haskell-tests--test-result
     haskell-tests/bounds-of-ghc-core-symbol-1
