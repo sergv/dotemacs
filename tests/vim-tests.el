@@ -1912,8 +1912,8 @@
     vim-tests/haskell-motion-inner-qualified-symbol-value
     ((haskell-mode (haskell-mode))
      (haskell-ts-mode (haskell-ts-mode)))
-  ((is (execute-kbd-macro (kbd ", i S")))
-   (s (execute-kbd-macro (kbd ", S"))))
+  ((iS (execute-kbd-macro (kbd ", i S")))
+   (S (execute-kbd-macro (kbd ", S"))))
   ((1 (tests-utils--multiline
        ""
        "foo x = do"
@@ -1939,8 +1939,8 @@
     vim-tests/haskell-motion-inner-qualified-symbol-value-qualified-names
     ((haskell-mode (haskell-mode))
      (haskell-ts-mode (haskell-ts-mode)))
-  ((is (execute-kbd-macro (kbd ", i S")))
-   (s (execute-kbd-macro (kbd ", S"))))
+  ((iS (execute-kbd-macro (kbd ", i S")))
+   (S (execute-kbd-macro (kbd ", S"))))
   ((1 (tests-utils--multiline
        ""
        "foo x = do"
@@ -1971,8 +1971,8 @@
     vim-tests/haskell-motion-inner-qualified-symbol-value-qualified-names-after-operator
     ((haskell-mode (haskell-mode))
      (haskell-ts-mode (haskell-ts-mode)))
-  ((is (execute-kbd-macro (kbd ", i S")))
-   (s (execute-kbd-macro (kbd ", S"))))
+  ((iS (execute-kbd-macro (kbd ", i S")))
+   (S (execute-kbd-macro (kbd ", S"))))
   ((1 (tests-utils--multiline
        ""
        "foo x = do"
@@ -2008,8 +2008,8 @@
     vim-tests/haskell-motion-inner-qualified-symbol-value-qualified-names-before-operator
     ((haskell-mode (haskell-mode))
      (haskell-ts-mode (haskell-ts-mode)))
-  ((is (execute-kbd-macro (kbd ", i S")))
-   (s (execute-kbd-macro (kbd ", S"))))
+  ((iS (execute-kbd-macro (kbd ", i S")))
+   (S (execute-kbd-macro (kbd ", S"))))
   ((1 (tests-utils--multiline
        ""
        "foo x = do"
@@ -2045,8 +2045,8 @@
     vim-tests/haskell-motion-inner-qualified-symbol-type
     ((haskell-mode (haskell-mode))
      (haskell-ts-mode (haskell-ts-mode)))
-  ((is (execute-kbd-macro (kbd ", i S")))
-   (s (execute-kbd-macro (kbd ", S"))))
+  ((iS (execute-kbd-macro (kbd ", i S")))
+   (S (execute-kbd-macro (kbd ", S"))))
   ((1 (tests-utils--multiline
        ""
        "foo :: ValidateM m => Email '_|_Unvalidated -> m (Email 'Validated)"
@@ -2072,7 +2072,7 @@
     vim-tests/haskell-motion-outer-qualified-symbol-value
     ((haskell-mode (haskell-mode))
      (haskell-ts-mode (haskell-ts-mode)))
-  ((as (execute-kbd-macro (kbd ", a S"))))
+  ((aS (execute-kbd-macro (kbd ", a S"))))
   ((1 (tests-utils--multiline
        ""
        "foo x = do"
@@ -2103,7 +2103,7 @@
     vim-tests/haskell-motion-outer-qualified-symbol-value-qualified
     ((haskell-mode (haskell-mode))
      (haskell-ts-mode (haskell-ts-mode)))
-  ((as (execute-kbd-macro (kbd ", a S"))))
+  ((aS (execute-kbd-macro (kbd ", a S"))))
   ((1 (tests-utils--multiline
        ""
        "foo x = do"
@@ -2225,6 +2225,40 @@
    ""
    "foo x = do"
    "  putStrLn [_|_|test|]"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+    vim-tests/haskell-motion-symbol-operator
+    ((haskell-mode (haskell-mode))
+     (haskell-ts-mode (haskell-ts-mode)))
+  ((is (execute-kbd-macro (kbd ", i s")))
+   (s (execute-kbd-macro (kbd ", s"))))
+  ((1 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  foo |+_|_+| bar"
+       "")))
+  (tests-utils--multiline
+   ""
+   "foo x = do"
+   "  foo _|_ bar"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+    vim-tests/haskell-motion-symbol-operator-qualified
+    ((haskell-mode (haskell-mode))
+     (haskell-ts-mode (haskell-ts-mode)))
+  ((iS (execute-kbd-macro (kbd ", i S")))
+   (S (execute-kbd-macro (kbd ", S"))))
+  ((1 (tests-utils--multiline
+       ""
+       "foo x = do"
+       "  foo Decombobulate.|+_|_+| bar"
+       "")))
+  (tests-utils--multiline
+   ""
+   "foo x = do"
+   "  foo _|_ bar"
    ""))
 
 (ert-deftest vim-tests/c-motion-inner-symbol-1 ()

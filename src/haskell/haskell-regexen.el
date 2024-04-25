@@ -12,9 +12,6 @@
 (defconst haskell-regexen/varid
   "\\(?:_\\|\\b[[:lower:]]\\)[[:alnum:]'_#]*")
 
-(defconst haskell-regexen/core/varid-raw
-  "[$]?\\(?:_\\|[[:lower:]]\\)[[:alnum:]'_#]*")
-
 (defconst haskell-regexen/core/varid
   "[$]?\\(?:_\\|\\b[[:lower:]]\\)[[:alnum:]'_#]*")
 
@@ -28,8 +25,11 @@
 (defconst haskell-regexen/module-name-section
   "[[:upper:]][[:alnum:]'_]*")
 
+(defconst haskell-regexen/modid-raw
+  (concat haskell-regexen/module-name-section "\\(?:\\." haskell-regexen/module-name-section "\\)*"))
+
 (defconst haskell-regexen/modid
-  (concat "\\b" haskell-regexen/module-name-section -name "\\(?:\\." haskell-regexen/module-name-section "\\)*"))
+  (concat "\\b" haskell-regexen/modid-raw))
 
 (defconst haskell-regexen/q/varid
   (concat "\\(?:" haskell-regexen/modid "\\)\\.\\(?:" haskell-regexen/varid "\\)"))
@@ -111,22 +111,31 @@
           "\\(?:" haskell-regexen/varid "\\|" haskell-regexen/conid "\\)"))
 
 (defconst haskell-regexen/opt-q/varid-or-conid-or-operator
-  (concat "'*"
-          "\\(?:" haskell-regexen/modid "\\.\\)?"
-          "\\(1:" haskell-regexen/varid
-          "\\|" haskell-regexen/conid-raw
-          "\\|" haskell-regexen/operator
-          "\\)"))
+  (concat "\\(?:" "'*" haskell-regexen/modid-raw "\\.\\)?"
+          "\\(?1:"
+          "'*"
+          "\\(?:" haskell-regexen/varid "\\|" haskell-regexen/conid-raw "\\|" haskell-regexen/operator "\\)"
+          "\\)"
+          ))
 
 (defconst haskell-regexen/core/opt-q/varid-or-conid-or-operator
-  (concat "'*"
-          "\\(?:" haskell-regexen/core/pkgid ":\\)?"
-          "\\(?:" haskell-regexen/modid "\\.\\)?"
-          "\\(1:" haskell-regexen/operator
-          "\\|" haskell-regexen/conid-raw
-          ;; varid must come later because operators can match $ but we want longest match
-          ;; and regexp engine seems to prefer later alternatives (?)
-          "\\|" haskell-regexen/core/varid-raw
+  (concat "\\(?:" "'*"
+          "\\(?:" "\\(?:" haskell-regexen/core/pkgid ":\\)?" haskell-regexen/modid-raw "\\.\\)"
+          "\\|"
+          "\\(?:"
+          haskell-regexen/core/pkgid ":" "\\(?:" haskell-regexen/modid-raw "\\.\\)?"
+          "\\)"
+          "\\)?"
+
+          "\\(?1:"
+          "'*"
+          "\\(?:" haskell-regexen/conid-raw
+          "\\|"
+          (concat "[$]?"
+                  "\\(?:" haskell-regexen/operator
+                  "\\|" haskell-regexen/varid
+                  "\\)")
+          "\\)"
           "\\)"))
 
 ;; ;; (old-sym "[-!#$%&*+./<=>?@^|~:\\]+")
