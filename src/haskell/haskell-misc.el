@@ -420,7 +420,7 @@ extensions as a list of strings. Leaves point at the end of pragma"
 
 (defconst haskell-misc--bounds-of-symbol--word-chars "[:alnum:]_'#.")
 
-(defun haskell-misc--bounds-of-symbol-impl (qualified? offset core-mode?)
+(defun haskell-misc--bounds-of-symbol-impl (qualified? offset core-mode? include-quotes?)
   "Qualified symbol may return prefix of ' before the symbol."
   (save-excursion
     (save-match-data
@@ -440,8 +440,8 @@ extensions as a list of strings. Leaves point at the end of pragma"
           (skip-chars-backward haskell-smart-operators--operator-chars-str)
           ;; To get qualified part
           (skip-chars-backward word-chars))
-        ;; May be useful later when we want to return qualified names from this function:
-        ;; (skip-chars-forward "'")
+        (unless include-quotes?
+          (skip-chars-forward "'"))
         (when (looking-at (if core-mode?
                               haskell-regexen/core/opt-q/varid-or-conid-or-operator
                             haskell-regexen/opt-q/varid-or-conid-or-operator))
@@ -451,14 +451,14 @@ extensions as a list of strings. Leaves point at the end of pragma"
 
 ;;;###autoload
 (defun bounds-of-haskell-symbol ()
-  (haskell-misc--bounds-of-symbol-impl nil nil nil))
+  (haskell-misc--bounds-of-symbol-impl nil nil nil nil))
 
 ;;;###autoload
 (put 'haskell-symbol 'bounds-of-thing-at-point #'bounds-of-haskell-symbol)
 
 ;;;###autoload
 (defun bounds-of-qualified-haskell-symbol ()
-  (haskell-misc--bounds-of-symbol-impl t nil nil))
+  (haskell-misc--bounds-of-symbol-impl t nil nil nil))
 
 ;;;###autoload
 (put 'qualified-haskell-symbol 'bounds-of-thing-at-point #'bounds-of-qualified-haskell-symbol)
@@ -466,28 +466,10 @@ extensions as a list of strings. Leaves point at the end of pragma"
 ;;;###autoload
 (defun bounds-of-ghc-core-symbol ()
   (let ((parse-sexp-lookup-properties nil))
-    (haskell-misc--bounds-of-symbol-impl nil nil t)))
+    (haskell-misc--bounds-of-symbol-impl nil nil t nil)))
 
 ;;;###autoload
 (put 'ghc-core-symbol 'bounds-of-thing-at-point #'bounds-of-ghc-core-symbol)
-
-(defvar haskell-symbol--motion-qualified-identifier-syntax-table
-  (let ((tbl (copy-syntax-table haskell-mode-syntax-table)))
-    (modify-syntax-entry ?#  "w" tbl)
-    (modify-syntax-entry ?_  "w" tbl)
-    (modify-syntax-entry ?\' "w" tbl)
-    (modify-syntax-entry ?,  "/" tbl) ;; Disable , since it's part of syntax
-    (modify-syntax-entry ?.  "_" tbl) ;; For identifier navigation we want Foo.bar to be 1 word
-    tbl)
-  "Special syntax table for haskell that allows to recognize symbols that contain
-both unicode and ascii characters.")
-
-(defvar haskell-symbol--motion-identifier-syntax-table
-  (let ((tbl (copy-syntax-table haskell-symbol--motion-qualified-identifier-syntax-table)))
-    (modify-syntax-entry ?. "." tbl) ;; For identifier navigation we want Foo.bar to be 2 words
-    tbl)
-  "Special syntax table for haskell that allows to recognize symbols that contain
-both unicode and ascii characters.")
 
 (vim-defmotion vim:motion-inner-haskell-symbol (inclusive count motion-result)
   "Select `count' inner symbols."
@@ -517,25 +499,30 @@ both unicode and ascii characters.")
                      #'vim-boundary--ws
                      'inclusive))
 
-(defun vim-boundary--haskell-symbol-impl (direction)
+(defun vim-boundary--haskell-symbol-impl (direction qualified?)
   "A boundary selector for haskell symbols, qualified names like Foo.Bar.baz will be treated as
 containining distinct words between the dot."
-  (funcall (vim--union-boundary (lambda (dir) (vim-boundary--syntax dir "w_"))
-                                ;; (lambda (dir) (vim-boundary--syntax dir "^w_"))
+  (funcall (vim--union-boundary (lambda (dir)
+                                  (let ((bnds (haskell-misc--bounds-of-symbol-impl qualified? nil nil t)))
+                                    (pcase dir
+                                      (`fwd
+                                       (1- (cdr bnds)))
+                                      (`bwd
+                                       (car bnds))
+                                      (_
+                                       (error "Invalid boundary direction: %s" dir)))))
                                 (lambda (dir) (vim-boundary--empty-line dir)))
            direction))
 
 (defun vim-boundary--haskell-symbol (direction)
   "A boundary selector for haskell symbols, qualified names like Foo.Bar.baz will be treated as
 containining distinct words between the dot."
-  (with-syntax-table haskell-symbol--motion-identifier-syntax-table
-    (vim-boundary--haskell-symbol-impl direction)))
+  (vim-boundary--haskell-symbol-impl direction nil))
 
 (defun vim-boundary--qualified-haskell-symbol (direction)
   "A boundary selector for haskell symbols, qualified names like Foo.Bar.baz will be treated as
 a single entity."
-  (with-syntax-table haskell-symbol--motion-qualified-identifier-syntax-table
-    (vim-boundary--haskell-symbol-impl direction)))
+  (vim-boundary--haskell-symbol-impl direction t))
 
 ;; newline that detects haskell signatures
 
