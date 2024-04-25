@@ -24,9 +24,12 @@
 (defconst haskell-regexen/conid
   (concat "\\(?:\\b\\|'+\\)" haskell-regexen/conid-raw))
 
+
+(defconst haskell-regexen/module-name-section
+  "[[:upper:]][[:alnum:]'_]*")
+
 (defconst haskell-regexen/modid
-  (let ((mod-name "[[:upper:]][[:alnum:]_]*"))
-    (concat "\\b" mod-name "\\(?:\\." mod-name "\\)*")))
+  (concat "\\b" haskell-regexen/module-name-section -name "\\(?:\\." haskell-regexen/module-name-section "\\)*"))
 
 (defconst haskell-regexen/q/varid
   (concat "\\(?:" haskell-regexen/modid "\\)\\.\\(?:" haskell-regexen/varid "\\)"))
@@ -282,9 +285,6 @@
 (defconst haskell-regexen/module-header-start
   "\\_<\\(?:module\\|signature\\)\\_>[ \t\r\n]" )
 
-(defconst haskell-regexen/module-name-section
-  "[[:upper:]][[:alnum:]'_]*")
-
 (defconst haskell-regexen/module-name
   (eval-when-compile
     (let ((conid "[[:upper:]][[:alnum:]'_]*"))
@@ -347,7 +347,7 @@
         (* (any ?\s ?\t))
         eol)))
 
-(defconst haskell-regexen/module-quantification
+(defconst haskell-regexen/module-qualification
   (eval-when-compile
     (concat "\\b\\(?:" haskell-regexen/module-name-section "\\.\\)+")))
 
@@ -358,7 +358,7 @@
   (save-match-data
     (if (string-match (eval-when-compile
                         (concat "^\\("
-                                haskell-regexen/module-quantification
+                                haskell-regexen/module-qualification
                                 "\\)"))
                       name)
         (replace-match "" t t name 1)
