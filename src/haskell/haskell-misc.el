@@ -804,7 +804,7 @@ value section should have if it is to be properly indented."
         (let ((positions nil)
               (add-at-end nil))
           (save-excursion
-            (while (re-search-forward haskell-regexen/pre-post-qualified-import-line nil t)
+            (while (re-search-forward (eval-when-compile (concat "^" haskell-regexen/pre-post-qualified-import-line)) nil t)
               (aif (match-beginning 10)
                   (push (cons (common-string-prefix-length mod-name (match-string 10) nil)
                               (match-beginning 7))
