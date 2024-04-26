@@ -42,6 +42,18 @@ all hydras in my setup."
         :key #'car
         :test #'equal)))
 
+(defmacro defhydra-derive-special-docstring (name parent args transform-parent-docstring &rest heads)
+  (declare (indent defun) (doc-string 4))
+  (cl-assert (functionp transform-parent-docstring))
+  (let ((transformed-docstring (funcall transform-parent-docstring (hydra--prop parent "/docstring"))))
+    (cl-assert (stringp transformed-docstring))
+    `(defhydra-ext ,name ,args
+       ,transformed-docstring
+       ,@(cl-delete-duplicates
+          (append (hydra--prop parent "/heads") heads)
+          :key #'car
+          :test #'equal))))
+
 (defhydra-ext hydra-toggle (:exit nil :foreign-keys nil :hint nil)
   "
 Toggle:

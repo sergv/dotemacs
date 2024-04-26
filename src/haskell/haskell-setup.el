@@ -117,6 +117,11 @@
 With prefix argument puts symbol at point also in substitute part"
   (vim:replace-symbol-at-point--impl 'haskell-symbol))
 
+(vim-defcmd vim:replace-qualified-haskell-symbol-at-point (nonrepeatable)
+  "Partially construct vim ex-replace command from symbol at point.
+With prefix argument puts symbol at point also in substitute part"
+  (vim:replace-symbol-at-point--impl 'qualified-haskell-symbol))
+
 (vim-defcmd vim:attrap-flycheck (repeatable)
   (attrap-flycheck (point)))
 
@@ -324,9 +329,20 @@ _e_xport
 _TAB_: align and sort subsection"
   ("<tab>" haskell-misc-cabal-align-and-sort-subsection))
 
-(defhydra-derive hydra-haskell-vim-normal-j-ext hydra-vim-normal-j-ext (:exit t :foreign-keys nil :hint nil)
-  ""
+(defhydra-derive-special-docstring hydra-haskell-vim-normal-j-ext hydra-vim-normal-j-ext (:exit t :foreign-keys nil :hint nil)
+  (lambda (str)
+    (save-match-data
+      (let* ((substr  "ta_b_s      _cd_: delete comment  _ss_: replace symbol\nu_n_narrow\n\n")
+             (new-row "u_n_narrow                        _sS_: replace qualified symbol"))
+        (if (string-match (regexp-quote substr) str)
+            (replace-match (concat (seq-take-while (lambda (x) (not (eq x ?\n))) substr) "\n"
+                                   new-row "\n\n")
+                           nil
+                           t
+                           str)
+          (error "Docstring of ‘hydra-haskell-vim-normal-j-ext’s parent has unexpected shape, please fix definition of ‘hydra-haskell-vim-normal-j-ext’.")))))
   ("ss" vim:replace-haskell-symbol-at-point:interactive)
+  ("sS" vim:replace-qualified-haskell-symbol-at-point:interactive)
   ("cc" vim:haskell-comment-line:interactive))
 
 (defhydra-derive hydra-haskell-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
