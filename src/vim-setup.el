@@ -51,9 +51,10 @@ ta_b_s
 
 (defhydra-ext hydra-vim-normal-j-ext (:exit t :foreign-keys nil :hint nil)
   "
-_t_oggle   _cc_: comment         _sw_: replace word    u_n_narrow
-_w_indows  _cu_: uncomment       _sW_: relpace WORD
-ta_b_s     _cd_: delete comment  _ss_: replace symbol
+_t_oggle    _cc_: comment         _sw_: replace word
+_w_indows   _cu_: uncomment       _sW_: relpace WORD
+ta_b_s      _cd_: delete comment  _ss_: replace symbol
+u_n_narrow
 
 _C-(_: a (b | …) -> (a b | …)            _M-(_:    (a | b)         -> |b
 _C-)_: (… | a) b -> (… |) a b            _M-)_:    (a | b)         -> a|
@@ -64,7 +65,6 @@ _?_ (convolute):  (a b (c d | e)) -> (c d (a b | e))
 _S_plit sexp:     (a | b)         -> (a) |(b)
 _J_oin sexp:      (a) | (b)       -> (a | b)
 
-Full operation table:
 _((_: a (b | …) -> (a b | …)             _(d_: (a | b)         -> |b
 _()_: (a b | …) -> a (b | …)             _)d_: (a | b)         -> a|
 _))_: (… | a) b -> (… | a b)
@@ -73,6 +73,7 @@ _)(_: (… | a b) -> (… | a) b
   ("w"          hydra-window-management/body)
   ("t"          toggle)
   ("b"          hydra-tab-management/body)
+  ("n"          unnarrow)
 
   ("cc"         vim:comment-util-comment-lines:interactive)
   ("cu"         vim:comment-util-uncomment-region:interactive)
@@ -81,8 +82,6 @@ _)(_: (… | a b) -> (… | a) b
   ("sw"         vim:replace-word:interactive)
   ("sW"         vim:replace-WORD:interactive)
   ("ss"         vim:replace-symbol-at-point:interactive)
-
-  ("n"          unnarrow)
 
   ("M-\("       vim:splice-sexp-killing-backward:interactive)
   ("M-\)"       vim:splice-sexp-killing-forward:interactive)
