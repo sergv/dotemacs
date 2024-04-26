@@ -10,11 +10,13 @@
 (require 'hydra-setup)
 (require 'eproj)
 
-(add-to-list 'ivy-sort-matches-functions-alist
-             '(switch-to-buffer-with-completion . ivy-sort-function-buffer))
-
 (defvar eshell-buffer-name)
 (defvar this-command)
+
+(add-to-list 'ivy-sort-matches-functions-alist
+             '(switch-to-buffer-with-completion . ivy--flx-sort))
+(add-to-list 'ivy-re-builders-alist
+             '(switch-to-buffer-with-completion . ivy--regex-fuzzy))
 
 ;;;###autoload
 (defun switch-to-buffer-with-completion ()
