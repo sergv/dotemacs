@@ -48,7 +48,12 @@
 ;;          (fields (mapcar (lambda (sym) (substring-no-properties sym 0 -1)) syms)))
 ;;     fields))
 
+(eval-when-compile
+  (require 'dash))
+
+(require 'common)
 (require 'current-column-fixed)
+(require 'dash)
 
 (require 'cl-lib)
 (require 'haskell-utils)
@@ -98,11 +103,113 @@ By default these are:
     (modify-syntax-entry ?\} "\)\{" st)
     st))
 
+(defface haskell-cabal-invalid-field-face
+  `((t (:inherit error)))
+  "Face to highlight unknown fields."
+  :group 'haskell-mode)
+
+(defconst haskell-cabal--valid-fields
+  '("asm-options"
+    "asm-sources"
+    "author"
+    "autogen-includes"
+    "autogen-modules"
+    "branch"
+    "bug-reports"
+    "buildable"
+    "build-depends"
+    "build-tool-depends"
+    "build-type"
+    "cabal-version"
+    "category"
+    "cc-options"
+    "cmm-options"
+    "cmm-sources"
+    "code-generators"
+    "copyright"
+    "cpp-options"
+    "c-sources"
+    "custom-setup"
+    "cxx-options"
+    "cxx-sources"
+    "data-dir"
+    "data-files"
+    "default"
+    "default-extensions"
+    "default-language"
+    "description"
+    "executable"
+    "exposed"
+    "exposed-modules"
+    "extensions"
+    "extra-bundled-libraries"
+    "extra-doc-files"
+    "extra-dynamic-library-flavours"
+    "extra-framework-dirs"
+    "extra-ghci-libraries"
+    "extra-lib-dirs"
+    "extra-lib-dirs-static"
+    "extra-libraries"
+    "extra-libraries-static"
+    "extra-library-flavours"
+    "extra-source-files"
+    "extra-tmp-files"
+    "flag"
+    "frameworks"
+    "ghcjs-options"
+    "ghcjs-prof-options"
+    "ghcjs-shared-options"
+    "ghc-options"
+    "ghc-prof-options"
+    "ghc-shared-options"
+    "homepage"
+    "hsc2hs-options"
+    "hs-source-dirs"
+    "import"
+    "include-dirs"
+    "includes"
+    "install-includes"
+    "js-sources"
+    "ld-options"
+    "lib-version-info"
+    "lib-version-linux"
+    "license"
+    "license-file"
+    "license-files"
+    "location"
+    "main-is"
+    "maintainer"
+    "manual"
+    "mixins"
+    "mod-def-file"
+    "module"
+    "name"
+    "options"
+    "other-extensions"
+    "other-languages"
+    "other-modules"
+    "package-url"
+    "pkgconfig-depends"
+    "reexported-modules"
+    "scope"
+    "setup-depends"
+    "signatures"
+    "source-repository"
+    "stability"
+    "subdir"
+    "synopsis"
+    "tag"
+    "tested-with"
+    "test-module"
+    "type"
+    "version"
+    "virtual-modules"
+    "visibility"))
+
 (defconst haskell-cabal-font-lock-keywords
   ;; The comment syntax can't be described simply in syntax-table.
   ;; We could use font-lock-syntactic-keywords, but is it worth it?
-  '(
-    ("^[ \t]*\\(?:,[ \t]*\\)?\\([^ \t\n\r:]+\\):" (1 font-lock-keyword-face))
+  `(
     ("^\\([Cc]ustom-[Ss]etup\\)[ \t]*\\(?:{\\|$\\)"
      (1 font-lock-keyword-face)
      ;; Library section can have no name so make it a lax match
@@ -117,13 +224,31 @@ By default these are:
      (1 font-lock-keyword-face) (2 font-lock-type-face))
     ("^\\([Ss]ource-[Rr]epository\\)[ \t]+\\(head\\|this\\)"
      (1 font-lock-keyword-face) (2 font-lock-type-face))
-    ("^\\(haddock\\|source-repository-package\\|program-locations\\|program-default-options\\)\\(?:[ \t]\\|$\\)"
+    ("^\\([Hh]addock\\|[Ss]ource-[Rr]epository-[Pp]ackage\\|[Pp]rogram-[Ll]ocations\\|[Pp]rogram-[Dd]efault-[Oo]ptions\\)\\(?:[ \t]\\|$\\)"
      (1 font-lock-keyword-face))
-    ("^[ \t]*\\(if\\)[ \t(]+.*\\({\\|$\\)" (1 font-lock-keyword-face))
-    ("^[ \t]*\\(}[ \t]*\\)?\\(else\\)[ \t]*\\(?:{\\|$\\)"
-     (2 font-lock-keyword-face))
+    ("^[ \t]*\\(\\(?:el\\)?if\\)[ \t(]+.*\\({\\|$\\)" (1 font-lock-keyword-face))
+    ("^[ \t]*\\(?:}[ \t]*\\)?\\(else\\)[ \t]*\\(?:{\\|$\\)"
+     (1 font-lock-keyword-face))
     ("\\<\\(?:[Tt]rue\\|[Ff]alse\\)\\>"
-     (0 font-lock-constant-face))))
+     (0 font-lock-constant-face))
+
+    ("\\(?:)[ \t\n\r]*\\)\\(requires\\)[ \t\n\r]*\\(?:(\\)"
+     (1 font-lock-keyword-face))
+
+    (,(concat "^[ \t]*\\(?:\\(?1:"
+             (mapconcat #'identity
+                        (-map (lambda (str)
+                                (mapconcat (lambda (part)
+                                             (cl-assert (stringp part))
+                                             (let ((first (seq-take part 1)))
+                                               (concat "[" (s-upcase first) (s-downcase first) "]" (seq-drop part 1))))
+                                           (s-split "-" str t)
+                                           "-"))
+                              haskell-cabal--valid-fields)
+                        "\\|")
+             "\\)\\|\\(?2:[^ \t\n\r:]+\\)\\)[ \t]*:\\(?:[ \t]\\|$\\)")
+     (1 'font-lock-keyword-face nil t)
+     (2 'haskell-cabal-invalid-field-face nil t))))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.cabal\\'\\|/cabal\\.project\\|/\\.cabal/config\\'" . haskell-cabal-mode))
