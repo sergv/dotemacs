@@ -100,10 +100,10 @@ with exclamation mark"
       ;; handle both :keywords and #:sybols-without-home-package
       ("\\(#\\)?\\_<\\(\\:\\(?:\\s_\\|\\sw\\)+\\)\\_>"
        ;; symbols without home package, as special kind of constant
-       (0 (when (re-group-matchedp 1)
+       (0 (when (re-group-matched? 1)
             'emacs-lisp-constant-face))
        ;; keywords
-       (2 (unless (re-group-matchedp 1)
+       (2 (unless (re-group-matched? 1)
             'emacs-lisp-keyword-face)))
 
       ("\\_<\\(?:[^ \n\t]+\\)\\?\\_>" 0 'emacs-lisp-predicate-face)
