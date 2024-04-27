@@ -220,9 +220,9 @@ scheme and it’s view of current buffer is malformed."
           (progn
             (if-let (filename (flycheck-error-filename next-error))
                 (progn
-                  (if (file-exists-p (flycheck-error-filename next-error))
-                      (find-file (flycheck-error-filename next-error))
-                    (aif (compilation/find-buffer (flycheck-error-filename next-error)
+                  (if (file-exists-p filename)
+                      (find-file filename)
+                    (aif (compilation/find-buffer filename
                                                   (funcall flycheck-enhancements--get-project-root-for-current-buffer))
                         (switch-to-buffer it)
                       (error "Failed to find path the error refers to: %s. file does not exist an no matching buffer is opened"
