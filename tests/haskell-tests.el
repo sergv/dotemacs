@@ -4032,6 +4032,23 @@ have different input states."
    "  ]"))
 
 (haskell-tests--test-buffer-contents
+    haskell-tests/haskell-newline-with-signature-expansion--at-beginning-of-buffer-1
+    (haskell-newline-with-signature-expansion)
+  (tests-utils--multiline
+   "_|_"
+   "module Foo where"
+   ""
+   "makeFunction"
+   "  :: MonadBase IO m => Env -> CPtrdiff -> CPtrDiff")
+  (tests-utils--multiline
+   ""
+   "_|_"
+   "module Foo where"
+   ""
+   "makeFunction"
+   "  :: MonadBase IO m => Env -> CPtrdiff -> CPtrDiff"))
+
+(haskell-tests--test-buffer-contents
     haskell-tests/haskell-newline-with-signature-expansion--at-end-of-buffer-1
     (haskell-newline-with-signature-expansion)
   (tests-utils--multiline
