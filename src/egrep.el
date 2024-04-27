@@ -382,13 +382,17 @@ string patterns."
 
 (autoload 'grep-tag-default "grep" nil nil)
 
+(defun egrep--tag-default-quoted ()
+  (awhen (grep-tag-default)
+    (regexp-quote it)))
+
 (defun egrep--read-regexp ()
   (read-regexp (pcase egrep-backend
                  (`native
                   "Extended re")
                  (`elisp
                   "Emacs re"))
-               'grep-tag-default
+               #'egrep--tag-default-quoted
                'egrep-regexp-history))
 
 ;;;###autoload
