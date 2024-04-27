@@ -122,6 +122,8 @@ Intended to be used with comment-util-mode."
               haskell-literate-mode
               ghc-core-mode
               haskell-cabal-mode
+              haskell-cabal-config-mode
+              haskell-cabal-project-mode
               alex-mode
               uuag-mode
               happy-mode
