@@ -1268,6 +1268,10 @@ otherwise search for project root using
   (or dante-project-root
       (progn (dante-initialize-method) dante-project-root)))
 
+(defun haskell-misc-find-tag-default ()
+  (when-let ((bnds (bounds-of-haskell-symbol)))
+    (buffer-substring-no-properties (car bnds) (cdr bnds))))
+
 (provide 'haskell-misc)
 
 ;; Local Variables:
