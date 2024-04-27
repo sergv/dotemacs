@@ -415,7 +415,9 @@ _<tab>_: reindent  _h_: jump to topmont node end"
               compilation-read-command nil
               compilation-auto-jump-to-first-error nil
               ;; Don't skip any messages.
-              compilation-skip-threshold 0))
+              compilation-skip-threshold 0
+
+              find-tag-default-function #'haskell-misc-find-tag-default))
 
 (defun haskell-setup-common-project ()
   ;; Read settings from '.eproj-info' file, if any.
