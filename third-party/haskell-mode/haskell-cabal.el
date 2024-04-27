@@ -58,20 +58,6 @@
 (require 'cl-lib)
 (require 'haskell-utils)
 
-(defcustom haskell-hasktags-path "hasktags"
-  "Path to `hasktags' executable."
-  :group 'haskell
-  :type 'string)
-
-(defcustom haskell-hasktags-arguments '("-e" "-x")
-  "Additional arguments for `hasktags' executable.
-By default these are:
-
--e - generate ETAGS file
--x - generate additional information in CTAGS file."
-  :group 'haskell
-  :type '(list string))
-
 (defconst haskell-cabal-mode-syntax-table
   (let ((st (make-syntax-table)))
     (modify-syntax-entry ?\n ">" st)
