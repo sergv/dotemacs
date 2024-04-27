@@ -165,7 +165,10 @@
 
       fill-colunm 80
 
-      message-log-max (ash 1 19))
+      message-log-max (ash 1 19)
+
+      ;; To be able to show tall messages
+      max-mini-window-height 0.5)
 
 (when-emacs-version (<= 28 it)
   (when (boundp 'native-comp-deferred-compilation-deny-list)
