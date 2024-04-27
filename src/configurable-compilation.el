@@ -46,6 +46,8 @@ responsible for highlighting errors for compilers its using.")
 (defvar configurable-compilation--synonym-modes
   (let ((tbl (copy-hash-table eproj/synonym-modes-table)))
     (puthash 'haskell-cabal-mode 'haskell-mode tbl)
+    (puthash 'haskell-cabal-config-mode 'haskell-mode tbl)
+    (puthash 'haskell-cabal-project-mode 'haskell-mode tbl)
     tbl))
 
 (defun configurable-compilation--resolve-synonym-modes (mode)
