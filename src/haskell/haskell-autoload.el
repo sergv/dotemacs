@@ -46,8 +46,6 @@
                                     #'ghc-core-mode))
 
 (add-to-list 'auto-mode-alist '("\\.ghci\\'" . ghci-script-mode))
-(add-to-list 'auto-mode-alist '("cabal\\.\\(?:config\\|project\\).*\\'" . haskell-cabal-mode))
-(add-to-list 'auto-mode-alist '("\\.cabal\\(?:[./\\]config.*\\)?\\'" . haskell-cabal-mode))
 (add-to-list 'auto-mode-alist '("\\.hs\\(?:-boot\\|ig\\)?\\'" . haskell-mode))
 
 (add-to-list 'auto-mode-alist '("\\.lhs\\(?:-boot\\)?\\'" . haskell-literate-mode))

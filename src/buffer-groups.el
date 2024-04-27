@@ -19,6 +19,8 @@
                             (mode . haskell-c2hs-mode)
                             (mode . haskell-hsc-mode)
                             (mode . haskell-cabal-mode)
+                            (mode . haskell-cabal-config-mode)
+                            (mode . haskell-cabal-project-mode)
                             (mode . ghc-core-mode)
                             (mode . cmm-mode)
                             (mode . hugs-mode)
