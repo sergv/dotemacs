@@ -72,6 +72,61 @@
   "Face to highlight unknown fields."
   :group 'haskell-mode)
 
+(defconst haskell-cabal--valid-extra-options
+  '("alex-options"
+    "ar-options"
+    "c2hs-options"
+    "cpphs-options"
+    "doctest-options"
+    "gcc-options"
+    "ghc-options"
+    "ghc-pkg-options"
+    "ghcjs-options"
+    "ghcjs-pkg-options"
+    "greencard-options"
+    "haddock-options"
+    "happy-options"
+    "haskell-suite-options"
+    "haskell-suite-pkg-options"
+    "hmake-options"
+    "hpc-options"
+    "hsc2hs-options"
+    "hscolour-options"
+    "jhc-options"
+    "ld-options"
+    "pkg-config-options"
+    "runghc-options"
+    "strip-options"
+    "tar-options"
+    "uhc-options"
+
+    "alex-location"
+    "ar-location"
+    "c2hs-location"
+    "cpphs-location"
+    "doctest-location"
+    "gcc-location"
+    "ghc-location"
+    "ghc-pkg-location"
+    "ghcjs-location"
+    "ghcjs-pkg-location"
+    "greencard-location"
+    "haddock-location"
+    "happy-location"
+    "haskell-suite-location"
+    "haskell-suite-pkg-location"
+    "hmake-location"
+    "hpc-location"
+    "hsc2hs-location"
+    "hscolour-location"
+    "jhc-location"
+    "ld-location"
+    "pkg-config-location"
+    "runghc-location"
+    "strip-location"
+    "tar-location"
+    "uhc-location"))
+
 (defconst haskell-cabal--valid-fields
   '("asm-options"
     "asm-sources"
@@ -123,7 +178,6 @@
     "ghcjs-options"
     "ghcjs-prof-options"
     "ghcjs-shared-options"
-    "ghc-options"
     "ghc-prof-options"
     "ghc-shared-options"
     "homepage"
@@ -134,7 +188,6 @@
     "includes"
     "install-includes"
     "js-sources"
-    "ld-options"
     "lib-version-info"
     "lib-version-linux"
     "license"
@@ -166,56 +219,200 @@
     "tested-with"
     "test-module"
     "type"
+    "url"
     "version"
     "virtual-modules"
     "visibility"))
 
-(defconst haskell-cabal-font-lock-keywords
-  ;; The comment syntax can't be described simply in syntax-table.
-  ;; We could use font-lock-syntactic-keywords, but is it worth it?
-  `(
-    ("^\\([Cc]ustom-[Ss]etup\\)[ \t]*\\(?:{\\|$\\)"
-     (1 font-lock-keyword-face)
-     ;; Library section can have no name so make it a lax match
-     )
-    ("^\\([Ll]ibrary\\)[ \t]*\\([^ \t\n\r{}]*[ \t]*\\)?\\(?:{\\|$\\)"
-     (1 font-lock-keyword-face)
-     ;; Library section can have no name so make it a lax match
-     (2 font-lock-type-face nil t))
-    ("^\\([Ee]xecutable\\|[Tt]est-[Ss]uite\\|[Bb]enchmark\\|[Ff]oreign-[Ll]ibrary\\|[Cc]ommon\\|[Pp]ackage\\)[ \t]+\\([^ \t\n\r]*\\)"
-     (1 font-lock-keyword-face) (2 font-lock-type-face))
-    ("^\\([Ff]lag\\|[Ii]nstall-[Dd]irs\\|[Rr]epository\\)[ \t]+\\([^ \t\n\r]*\\)"
-     (1 font-lock-keyword-face) (2 font-lock-type-face))
-    ("^\\([Ss]ource-[Rr]epository\\)[ \t]+\\(head\\|this\\)"
-     (1 font-lock-keyword-face) (2 font-lock-type-face))
-    ("^\\([Hh]addock\\|[Ss]ource-[Rr]epository-[Pp]ackage\\|[Pp]rogram-[Ll]ocations\\|[Pp]rogram-[Dd]efault-[Oo]ptions\\)\\(?:[ \t]\\|$\\)"
-     (1 font-lock-keyword-face))
-    ("^[ \t]*\\(\\(?:el\\)?if\\)[ \t(]+.*\\({\\|$\\)" (1 font-lock-keyword-face))
+(defconst haskell-cabal-project--valid-fields
+  '("active-repositories"
+    "allow-boot-library-installs"
+    "allow-newer"
+    "allow-older"
+    "benchmarks"
+    "build-info"
+    "build-summary"
+    "cabal-lib-version"
+    "compiler"
+    "configure-options"
+    "constraints"
+    "count-conflicts"
+    "coverage"
+    "debug-info"
+    "doc-index-file"
+    "documentation"
+    "executable-dynamic"
+    "executable-dynamic"
+    "executable-profiling"
+    "executable-static"
+    "executable-static"
+    "executable-stripping"
+    "extra-framework-dirs"
+    "extra-include-dirs"
+    "extra-lib-dirs"
+    "extra-packages"
+    "extra-prog-path"
+    "fine-grained-conflicts"
+    "flags"
+    "haddock-all"
+    "haddock-benchmarks"
+    "haddock-contents-location"
+    "haddock-css"
+    "haddock-executables"
+    "haddock-hoogle"
+    "haddock-hscolour-css"
+    "haddock-html"
+    "haddock-html-location"
+    "haddock-hyperlink-source"
+    "haddock-internal"
+    "haddock-keep-temp-files"
+    "haddock-output-dir"
+    "haddock-quickjump"
+    "haddock-tests"
+    "http-transport"
+    "ignore-expiry"
+    "import"
+    "index-state"
+    "jobs"
+    "keep-going"
+    "library-coverage"
+    "library-for-ghci"
+    "library-profiling"
+    "library-profiling-detail"
+    "library-stripping"
+    "library-vanilla"
+    "location"
+    "logs-dir"
+    "max-backjumps"
+    "minimize-conflict-set"
+    "open"
+    "optimization"
+    "optional-packages"
+    "package-dbs"
+    "packages"
+    "post-checkout-command"
+    "prefer-oldest"
+    "preferences"
+    "profiling"
+    "profiling-detail"
+    "program-prefix"
+    "program-suffix"
+    "reject-unconstrained-dependencies"
+    "relocatable"
+    "remote-repo-cache"
+    "reorder-goals"
+    "run-tests"
+    "semaphore"
+    "shared"
+    "shared"
+    "solver"
+    "split-objs"
+    "split-sections"
+    "split-sections"
+    "static"
+    "static"
+    "strong-flags"
+    "subdir"
+    "tag"
+    "tests"
+    "type"
+    "verbose"
+    "with-compiler"
+    "with-hc-pkg"))
+
+(defun haskell-cabal-font-lock--make-field-regexp (fields)
+  "Turn '(\"foo\" \"bar-baz\") into regexp that matches either foo, Foo, bar-baz, Bar-baz, bar-Baz, or Bar-Baz."
+  (mapconcat #'identity
+             (-map (lambda (str)
+                     (cl-assert (stringp str))
+                     (mapconcat (lambda (part)
+                                  (cl-assert (stringp part))
+                                  (let ((first (seq-take part 1)))
+                                    (concat "[" (s-upcase first) (s-downcase first) "]" (seq-drop part 1))))
+                                (s-split "-" str t)
+                                "-"))
+                   fields)
+             "\\|"))
+
+(defconst haskell-cabal-font-lock--conditionals-and-constants-keywords
+  '(("^[ \t]*\\(\\(?:el\\)?if\\)[ \t(]+.*\\({\\|$\\)" (1 font-lock-keyword-face))
     ("^[ \t]*\\(?:}[ \t]*\\)?\\(else\\)[ \t]*\\(?:{\\|$\\)"
      (1 font-lock-keyword-face))
     ("\\<\\(?:[Tt]rue\\|[Ff]alse\\)\\>"
-     (0 font-lock-constant-face))
+     (0 font-lock-constant-face))))
 
-    ("\\(?:)[ \t\n\r]*\\)\\(requires\\)[ \t\n\r]*\\(?:(\\)"
-     (1 font-lock-keyword-face))
+(defconst haskell-cabal-font-lock-keywords
+  ;; The comment syntax can't be described simply in syntax-table.
+  ;; We could use font-lock-syntactic-keywords, but is it worth it?
+  (append
+   haskell-cabal-font-lock--conditionals-and-constants-keywords
+   `(("^\\([Cc]ustom-[Ss]etup\\)[ \t]*\\(?:{\\|$\\)"
+      (1 font-lock-keyword-face)
+      ;; Library section can have no name so make it a lax match
+      )
+     ("^\\([Ll]ibrary\\)[ \t]*\\([^ \t\n\r{}]*[ \t]*\\)?\\(?:{\\|$\\)"
+      (1 font-lock-keyword-face)
+      ;; Library section can have no name so make it a lax match
+      (2 font-lock-type-face nil t))
+     ("^\\([Ee]xecutable\\|[Tt]est-[Ss]uite\\|[Bb]enchmark\\|[Ff]oreign-[Ll]ibrary\\|[Cc]ommon\\|[Pp]ackage\\)[ \t]+\\([^ \t\n\r]*\\)"
+      (1 font-lock-keyword-face) (2 font-lock-type-face))
+     ("^\\([Ff]lag\\)[ \t]+\\([^ \t\n\r]*\\)"
+      (1 font-lock-keyword-face) (2 font-lock-type-face))
+     ("^\\([Ss]ource-[Rr]epository\\)[ \t]+\\(head\\|this\\)"
+      (1 font-lock-keyword-face) (2 font-lock-type-face))
+     ("^\\([Hh]addock\\|[Ss]ource-[Rr]epository-[Pp]ackage\\|[Pp]rogram-[Ll]ocations\\|[Pp]rogram-[Dd]efault-[Oo]ptions\\)\\(?:[ \t]\\|$\\)"
+      (1 font-lock-keyword-face))
 
-    (,(concat "^[ \t]*\\(?:\\(?1:"
-             (mapconcat #'identity
-                        (-map (lambda (str)
-                                (mapconcat (lambda (part)
-                                             (cl-assert (stringp part))
-                                             (let ((first (seq-take part 1)))
-                                               (concat "[" (s-upcase first) (s-downcase first) "]" (seq-drop part 1))))
-                                           (s-split "-" str t)
-                                           "-"))
-                              haskell-cabal--valid-fields)
-                        "\\|")
-             "\\)\\|\\(?2:[^ \t\n\r:]+\\)\\)[ \t]*:\\(?:[ \t]\\|$\\)")
-     (1 'font-lock-keyword-face nil t)
-     (2 'haskell-cabal-invalid-field-face nil t))))
+     ("\\(?:)[ \t\n\r]*\\)\\(requires\\)[ \t\n\r]*\\(?:(\\)"
+      (1 font-lock-keyword-face))
+
+     (,(concat "^[ \t]*\\(?:\\(?1:"
+               (haskell-cabal-font-lock--make-field-regexp (append haskell-cabal--valid-extra-options
+                                                                   haskell-cabal--valid-fields))
+               "\\)\\|\\(?2:[^ \t\n\r:]+\\)\\)[ \t]*:\\(?:[ \t]\\|$\\)")
+      (1 'font-lock-keyword-face nil t)
+      (2 'haskell-cabal-invalid-field-face nil t)))))
+
+(defconst haskell-cabal-project-font-lock-keywords
+  ;; The comment syntax can't be described simply in syntax-table.
+  ;; We could use font-lock-syntactic-keywords, but is it worth it?
+  (append
+   haskell-cabal-font-lock--conditionals-and-constants-keywords
+   `(("^\\([Pp]ackage\\)[ \t]+\\([^ \t\n\r]*\\)"
+      (1 font-lock-keyword-face)
+      (2 font-lock-type-face))
+
+     ("^\\([Ss]ource-[Rr]epository-[Pp]ackage\\|[Pp]rogram-[Oo]ptions\\)\\(?:[ \t]\\|$\\)"
+      (1 font-lock-keyword-face))
+
+
+     (,(concat "^[ \t]*\\(?:\\(?1:"
+               (haskell-cabal-font-lock--make-field-regexp (append haskell-cabal--valid-extra-options
+                                                                   haskell-cabal-project--valid-fields))
+               "\\)\\|\\(?2:[^ \t\n\r:]+\\)\\)[ \t]*:\\(?:[ \t]\\|$\\)")
+      (1 'font-lock-keyword-face nil t)
+      (2 'haskell-cabal-invalid-field-face nil t)))))
+
+(defconst haskell-cabal-config-font-lock-keywords
+  ;; The comment syntax can't be described simply in syntax-table.
+  ;; We could use font-lock-syntactic-keywords, but is it worth it?
+  (append
+   haskell-cabal-font-lock--conditionals-and-constants-keywords
+   '(("^\\([Ii]nstall-[Dd]irs\\|[Rr]epository\\)[ \t]+\\([^ \t\n\r]*\\)"
+      (1 font-lock-keyword-face) (2 font-lock-type-face))
+
+     ("^\\([Hh]addock\\|[Ss]ource-[Rr]epository-[Pp]ackage\\|[Pp]rogram-[Ll]ocations\\|[Pp]rogram-[Dd]efault-[Oo]ptions\\)\\(?:[ \t]\\|$\\)"
+      (1 font-lock-keyword-face))
+
+     ("^[ \t]*\\([^ \t\n\r:]+\\)[ \t]*:\\(?:[ \t]\\|$\\)"
+      (1 font-lock-keyword-face)))))
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.cabal\\'\\|/cabal\\.project\\|/\\.cabal/config\\'" . haskell-cabal-mode))
+(add-to-list 'auto-mode-alist '("\\.cabal\\'" . haskell-cabal-mode))
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.cabal\\(?:[./\\]config.*\\)\\'" . haskell-cabal-config-mode))
+;;;###autoload
+(add-to-list 'auto-mode-alist '("cabal\\.\\(?:config\\|project\\).*\\'" . haskell-cabal-project-mode))
 
 (defvar haskell-cabal-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1242,6 +1439,16 @@ buffer not visiting a file returns nil."
   (or (haskell-cabal-find-dir)
       (when buffer-file-name
         (file-name-directory buffer-file-name))))
+
+(define-derived-mode haskell-cabal-project-mode haskell-cabal-mode "Haskell-Cabal-Project"
+  "Major mode for cabal.projcet files."
+  (setq-local font-lock-defaults
+              (list haskell-cabal-project-font-lock-keywords nil nil nil nil)))
+
+(define-derived-mode haskell-cabal-config-mode haskell-cabal-mode "Haskell-Cabal-Config"
+  "Major mode for cabal.projcet files."
+  (setq-local font-lock-defaults
+              (list haskell-cabal-config-font-lock-keywords nil nil nil nil)))
 
 (provide 'haskell-cabal)
 ;;; haskell-cabal.el ends here
