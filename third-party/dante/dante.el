@@ -766,12 +766,14 @@ See ``company-backends'' for the meaning of COMMAND, ARG and _IGNORED."
     (let ((bounds (bounds-of-qualified-haskell-symbol)))
       (if (and include-parens
                bounds)
-          (let ((start (car bounds))
-                (end (cdr bounds)))
-            (cons (if (char-equal ?\( (char-before start))
+          (let* ((start (car bounds))
+                 (end (cdr bounds))
+                 (has-parens? (and (eq ?\( (char-before start))
+                                   (eq ?\) (char-after end)))))
+            (cons (if has-parens?
                       (- start 1)
                     start)
-                  (if (char-equal ?\) (char-after end))
+                  (if has-parens?
                       (+ end 1)
                     end)))
         bounds))))
