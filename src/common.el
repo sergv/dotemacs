@@ -163,7 +163,7 @@ default into prompt."
     (when p
       (set-process-query-on-exit-flag p nil))))
 
-(defun re-group-matchedp (n)
+(defsubst re-group-matchedp (n)
   "Return non-nil if Nth group matched."
   (declare (pure nil) (side-effect-free t))
   (match-beginning n))

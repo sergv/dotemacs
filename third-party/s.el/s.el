@@ -420,14 +420,14 @@ This is a simple wrapper around the built-in `string-match-p'."
                              (lambda (it) (s--aget replacements it))
                              s t t)))
 
-(defun s-downcase (s)
+(defsubst s-downcase (s)
   "Convert S to lower case.
 
 This is a simple wrapper around the built-in `downcase'."
   (declare (side-effect-free t))
   (downcase s))
 
-(defun s-upcase (s)
+(defsubst s-upcase (s)
   "Convert S to upper case.
 
 This is a simple wrapper around the built-in `upcase'."
@@ -439,7 +439,7 @@ This is a simple wrapper around the built-in `upcase'."
   (declare (side-effect-free t))
   (concat (upcase (substring s 0 1)) (downcase (substring s 1))))
 
-(defun s-titleize (s)
+(defsubst s-titleize (s)
   "Convert in S each word's first character to upper and the rest to lower case.
 
 This is a simple wrapper around the built-in `capitalize'."
