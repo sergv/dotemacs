@@ -72,28 +72,6 @@ By default these are:
   :group 'haskell
   :type '(list string))
 
-(defconst haskell-cabal-general-fields
-  ;; Extracted with (haskell-cabal-extract-fields-from-doc "general-fields")
-  '("name" "version" "cabal-version" "license" "license-file" "copyright"
-    "author" "maintainer" "stability" "homepage" "package-url" "synopsis"
-    "description" "category" "tested-with" "build-depends" "data-files"
-    "extra-source-files" "extra-tmp-files" "import"))
-
-(defconst haskell-cabal-library-fields
-  ;; Extracted with (haskell-cabal-extract-fields-from-doc "library")
-  '("exposed-modules"))
-
-(defconst haskell-cabal-executable-fields
-  ;; Extracted with (haskell-cabal-extract-fields-from-doc "executable")
-  '("executable" "main-is"))
-
-(defconst haskell-cabal-buildinfo-fields
-  ;; Extracted with (haskell-cabal-extract-fields-from-doc "buildinfo")
-  '("buildable" "other-modules" "hs-source-dirs" "extensions" "ghc-options"
-    "ghc-prof-options" "hugs-options" "nhc-options" "includes"
-    "install-includes" "include-dirs" "c-sources" "extra-libraries"
-    "extra-lib-dirs" "cc-options" "ld-options" "frameworks"))
-
 (defconst haskell-cabal-mode-syntax-table
   (let ((st (make-syntax-table)))
     (modify-syntax-entry ?\n ">" st)
