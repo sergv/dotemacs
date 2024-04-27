@@ -143,7 +143,7 @@
             (-non-nil (--mapcat (let ((fixer (alist-get (flymake-diagnostic-backend it)
                                                         attrap-flymake-backends-alist)))
                                   (when fixer (funcall fixer
-                                                       (flymake-diagnostic-text it)
+                                                       (substring-no-properties (flymake-diagnostic-text it))
                                                        (flymake-diagnostic-beg it)
                                                        (flymake-diagnostic-end it))))
                                 diags))))))
@@ -166,7 +166,7 @@ Returns list of triples
                                     (cl-assert (overlayp ov))
                                     (--map (list (car it) (cdr it) ov)
                                            (funcall fixer
-                                                    (car msg)
+                                                    (substring-no-properties (car msg))
                                                     (overlay-start ov)
                                                     (overlay-end ov)))))
                                 fixers))
@@ -582,7 +582,7 @@ Error is given as MSG and reported between POS and END."
    (when (string-match "\\(Top-level binding\\|Pattern synonym\\) with no type signature:[\n ]*" msg)
     (attrap-one-option "add signature"
       (beginning-of-line)
-      (insert (concat (substring msg (match-end 0)) "\n"))))
+      (insert (concat (substring-no-properties msg (match-end 0)) "\n"))))
    (when (and (string-match-p "Defined but not used" msg)
               (not (string-match-p
                     (rx (ghc-warning "40910") " [-Wunused-top-binds]" (+ ws)
@@ -671,8 +671,8 @@ Error is given as MSG and reported between POS and END."
              (point)))))))
    (when (string-match "Found type wildcard ‘\\(.*\\)’[ \t\n]*standing for ‘\\([^’]*\\)’" msg)
     (attrap-one-option "explicit type wildcard"
-      (let ((wildcard (match-string 1 msg))
-            (type-expr (match-string 2 msg)))
+      (let ((wildcard (match-string-no-properties 1 msg))
+            (type-expr (match-string-no-properties 2 msg)))
         (goto-char pos)
         (search-forward wildcard)
         (replace-match (concat "(" type-expr ")") t))))
