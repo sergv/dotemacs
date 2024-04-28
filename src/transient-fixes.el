@@ -59,6 +59,20 @@
 ;;;###autoload
 (advice-add 'transient-save-history :override #'transient-save-history/use-persistent-store)
 
+(defun transient-history--merge-entries-normalise (x context)
+  (pcase x
+    (`(,key . ,val)
+     (let ((sorted (cl-sort (remq nil val) #'string-list<)))
+       (cond
+         (sorted
+          (cons key sorted))
+         (key
+          (cons key (list nil)))
+         (t
+          (list nil)))))
+    (_
+     (error "Invalid transient-history element in %s contents: %s" context x))))
+
 (defun transient-history--merge-entries (old new)
   (cl-assert (and (consp old) (symbolp (car old))) nil "Invalid old transient-history contents: %s" old)
   (cl-assert (and (consp new) (symbolp (car new))) nil "Invalid new transient-history contents: %s" new)
@@ -66,23 +80,13 @@
         (new-key (car new))
         (old-normalised
          (cl-sort (mapcar (lambda (x)
-                            (pcase x
-                              (`(,key . ,val)
-                               (cons key
-                                     (cl-sort val #'string-list<)))
-                              (_
-                               (error "Invalid transient-history element in old contents: %s" x))))
+                            (transient-history--merge-entries-normalise x "old"))
                           (cdr old))
                   #'string<
                   :key #'car))
         (new-normalised
          (cl-sort (mapcar (lambda (x)
-                            (pcase x
-                              (`(,key . ,val)
-                               (cons key
-                                     (cl-sort val #'string-list<)))
-                              (_
-                               (error "Invalid transient-history element in new contents: %s" x))))
+                            (transient-history--merge-entries-normalise x "new"))
                           (cdr new))
                   #'string<
                   :key #'car)))
