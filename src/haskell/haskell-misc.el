@@ -547,7 +547,7 @@ a single entity."
       (insert-char ?\s indent-size))))
 
 (defun haskell--simple-indent-newline-indent ()
-  "Make a newline on the current column and indent on step."
+  "Make a newline on the current column and indent one step further."
   (interactive "*")
   (haskell--simple-indent-newline-same-col)
   (insert-char ?\s haskell-indent-offset))
@@ -561,6 +561,10 @@ a single entity."
           ;; importent to be case-sensitive during searches.
           (case-fold-search nil)
           (start-pos (point))
+          (start-pos-no-ws (save-excursion
+                             (goto-char start-pos)
+                             (skip-whitespace-backward)
+                             (point)))
           (function-name-column nil)
           (point-at-end-of-function-signature? nil)
           ;; Whether we already performed expansion of the function name
@@ -611,7 +615,8 @@ a single entity."
                              (or (and (derived-mode-p 'haskell-ts-mode)
                                       (let ((sig-node (treesit-node-parent (treesit-node-at (point)))))
                                         (when (string= "signature" (treesit-node-type sig-node))
-                                          (= start-pos (treesit-node-end sig-node)))))
+                                          (setf indented-section-end (treesit-node-end sig-node))
+                                          (= start-pos-no-ws (treesit-node-end sig-node)))))
                                  (progn
                                    (forward-line 1)
                                    (beginning-of-line)
