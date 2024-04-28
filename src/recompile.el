@@ -19,7 +19,6 @@
           "ivy/ivy-test.el"
           "rainbow-delimiters/rainbow-delimiters-test.el"
           "paredit/test.el"
-          "company-statistics/company-statistics-tests.el"
           "company-mode/company-tests.el"
           "csv-mode/csv-mode-tests.el"
           "flx/misc/flx-test-list.el"
