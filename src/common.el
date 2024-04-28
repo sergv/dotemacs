@@ -1468,6 +1468,22 @@ and cdr is a boolean whether any element was let out."
   (put-text-property 0 (length str) 'face new-face str)
   str)
 
+;;
+
+(defun string-contains? (c str)
+  "Return t if STR contains character C."
+  (let* ((i 0)
+         (len (length str))
+         (continue (< i len))
+         (res nil))
+    (while continue
+      (if (char-equal c (aref str i))
+          (setf continue nil
+                res t)
+        (setf i (+ i 1)
+              continue (< i len))))
+    res))
+
 (provide 'common)
 
 ;; Local Variables:
