@@ -86,6 +86,42 @@
                    (magit-stash nil)
                    (nil)))))
 
+(ert-deftest misc-tests/transient-history--merge-entries-2 ()
+  (should (equal (transient-history--merge-entries
+                  '(transient-history
+                    (magit-branch nil)
+                    (magit-commit nil)
+                    (magit-fetch nil)
+                    (magit-gitignore nil)
+                    (magit-log ("-n256" "--graph" "--decorate"))
+                    (magit-merge nil)
+                    (magit-push ("--force-with-lease"))
+                    (magit-rebase nil ("--autostash"))
+                    (magit-stash nil)
+                    (nil))
+                  '(transient-history
+                    (magit-branch nil)
+                    (magit-commit nil)
+                    (magit-fetch nil)
+                    (magit-gitignore nil)
+                    (magit-log ("-n256" "--graph" "--decorate"))
+                    (magit-merge nil)
+                    (magit-push ("--force-with-lease") nil)
+                    (magit-rebase nil ("--autostash"))
+                    (magit-stash nil)
+                    (nil)))
+                 '(transient-history
+                   (magit-branch nil)
+                   (magit-commit nil)
+                   (magit-fetch nil)
+                   (magit-gitignore nil)
+                   (magit-log ("-n256" "--graph" "--decorate"))
+                   (magit-merge nil)
+                   (magit-push ("--force-with-lease"))
+                   (magit-rebase ("--autostash"))
+                   (magit-stash nil)
+                   (nil)))))
+
 (provide 'misc-tests)
 
 ;; Local Variables:

@@ -439,8 +439,7 @@ _<tab>_: reindent  _h_: jump to topmont node end"
                                      company-dabbrev-code
                                      company-dabbrev))
                 company-transformers
-                '(delete-duplicate-candidates-from-company-dabbrev-code
-                  company-sort-by-statistics)
+                '(delete-duplicate-candidates-from-company-dabbrev-code)
                 flycheck-highlighting-mode 'symbols)
 
     (eproj-setup-local-variables proj)
