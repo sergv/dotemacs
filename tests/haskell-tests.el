@@ -5621,8 +5621,21 @@ have different input states."
         (dolist (path (list file (concat root "/" file)))
           (should (equal
                    (haskell-misc--configure-dante--find-cabal-component-for-file components path)
-                   expected-component)))))))
+                   (cons expected-component nil))))))))
 
+(ert-deftest haskell-tests/haskell-misc--configure-dante--find-cabal-component-for-file-2 ()
+  (should (equal (haskell-misc--configure-dante--find-cabal-component-for-file
+                  '(("exe" "tg" "exe/TG.hs" nil ("exe")))
+                  "/home/sergey/projects/haskell/projects/tg/exe/TG.hs")
+                 (cons nil
+                       '("Component ‘exe:tg’ specifies main file with slash (exe/TG.hs) but doesn’t put ‘.’ in source dirs: ‘exe’. Possible fix: remove slash or put ‘.’ into source dirs.")))))
+
+(ert-deftest haskell-tests/haskell-misc--configure-dante--find-cabal-component-for-file-3 ()
+  (should (equal (haskell-misc--configure-dante--find-cabal-component-for-file
+                  '(("exe" "tg" "exe/TG.hs" nil ("exe" ".")))
+                  "/home/sergey/projects/haskell/projects/tg/exe/TG.hs")
+                 (cons "exe:tg"
+                       nil))))
 
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-abbrev+--ensure-language-pragma-1
