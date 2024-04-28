@@ -19,6 +19,11 @@
 (require 'current-column-fixed)
 (provide 'flycheck-setup)
 
+
+(defvar-local flycheck-enhancements--error-overlays nil
+  "List of flycheck error overlays in current buffer. Overlays may be invalid/deleted,
+do check that ‘overlay-buffer’ is non-nil before use.")
+
 (defvar-local flycheck-enhancements--get-project-root-for-current-buffer (lambda () nil)
   "Function that should return potential project root this buffer is part of.")
 
@@ -34,7 +39,13 @@
            flycheck-display-errors-delay 0
            flycheck-check-syntax-automatically '(save mode-enabled)
            ;; Display all errors & warnings from all relevant files.
-           flycheck-relevant-error-other-file-minimum-level nil)))
+           flycheck-relevant-error-other-file-minimum-level nil)
+
+     ;; Need same ‘flycheck-add-overlay’ but with storing overlays in a variables for
+     ;; ease of access.
+     (remove-hook 'flycheck-process-error-functions #'flycheck-add-overlay)
+     (add-hook 'flycheck-process-error-functions #'flycheck-add-and-record-overlay 'append)
+     (add-hook 'flycheck-before-syntax-check-hook #'flycheck-reset-recorded-overlays)))
 
 (defun flycheck-mode-line--propertise-as-comments (str)
   (propertize str 'face 'font-lock-comment-face))
@@ -158,97 +169,131 @@ scheme and it’s view of current buffer is malformed."
                           (cl-assert (or (integerp column-b) (null colunm-b)))
                           (extended< column-a column-b)))))))))
 
-(defun flycheck-enhancements--navigate-errors-with-wraparound (forward? errs)
+(defun flycheck-error-and-ov-pair< (a b)
+  (cl-assert (consp a))
+  (cl-assert (consp b))
+  (let* ((ov-a (cdr-sure a))
+         (ov-b (cdr-sure b))
+         (start-a (overlay-start ov-a))
+         (start-b (overlay-start ov-b)))
+    (cl-assert (overlayp ov-a))
+    (cl-assert (overlayp ov-b))
+    (or (< start-a start-b)
+        (and (= start-a start-b)
+             (let ((end-a (overlay-end ov-a))
+                   (end-b (overlay-end ov-b)))
+               (or (< start-a start-b)
+                   (and (= start-a start-b)
+                        (let ((err-a (car-sure a))
+                              (err-b (car-sure b)))
+                          (cl-assert (flycheck-error-p err-a))
+                          (cl-assert (flycheck-error-p err-b))
+                          (flycheck-error< err-a err-b)))))))))
+
+;; This function assumes that each flycheck error necessarily has a
+;; corresponding overlay (in current buffer, no less). This seems to
+;; hold - all reported errors have to be presented to the user at some point.
+;; Invisible errors would not be desirable.
+(defun flycheck-enhancements--navigate-errors-with-wraparound (forward? error-overlays)
   (let* ((expanded-buffer-file-name (aif buffer-file-name
                                         (expand-file-name it)
                                       (buffer-name)))
          (curr-buf (current-buffer))
          (all-errors (--separate
-                      (if-let (fname (flycheck-error-filename it))
-                          (string= expanded-buffer-file-name
-                                   (expand-file-name fname))
-                        (if-let (buf (flycheck-error-buffer it))
-                            (eq buf curr-buf)
-                          nil))
-                      (-sort #'flycheck-error< errs)))
+                      (let ((err (car-sure it)))
+                        (if-let (fname (flycheck-error-filename err))
+                            (string= expanded-buffer-file-name
+                                     (expand-file-name fname))
+                          (if-let (buf (flycheck-error-buffer err))
+                              (eq buf curr-buf)
+                            nil)))
+                      (sort (--map (cons (overlay-get it 'flycheck-error) it)
+                                   error-overlays)
+                            #'flycheck-error-and-ov-pair<)))
          (current-file-errors (car all-errors))
          (other-all (cadr all-errors))
          (other-errors
-          (--filter (eq (flycheck-error-level it) 'error) other-all)))
-    (let ((next-error
-           (cond
-             (other-errors
-              ;; Search in other files first - they're dependencies and
-              ;; current module would not work without fixing them first.
-              (car other-errors))
-             (current-file-errors
-              ;; Search in current file.
-              (let* ((current-line (line-number-at-pos))
-                     (current-col (1+ (current-column-fixed)))
-                     (current-pos (cons current-line current-col))
-                     ;; Make sure that current error will go to the
-                     ;; end of the candidate list regardless of the
-                     ;; direction we're searching.
-                     (cmp (if forward? #'extended<= #'extended<))
-                     (position<= (lambda (x y)
-                                   (let ((line-x (car x))
-                                         (line-y (car y))
-                                         (col-x (cdr x))
-                                         (col-y (cdr y)))
-                                     (or (< line-x line-y)
-                                         (and (= line-x line-y)
-                                              (funcall cmp col-x col-y))))))
-                     (current-file-errors-around-current-line
-                      (--split-with (funcall position<=
-                                             (cons (flycheck-error-line it) (flycheck-error-column it))
-                                             current-pos)
-                                    current-file-errors))
-                     (current-file-errors-before-current-line
-                      (first current-file-errors-around-current-line))
-                     (current-file-errors-after-current-line
-                      (second current-file-errors-around-current-line)))
-                (car (funcall
-                      (if forward? #'identity #'nreverse)
-                      (nconc current-file-errors-after-current-line
-                             ;; Make errors wrap around.
-                             current-file-errors-before-current-line)))))
-             (other-all
-              ;; Any warnings or hlint suggestions in dependent buffers.
-              (car other-all))
-             (t nil))))
-      (if next-error
-          (progn
-            (if-let (filename (flycheck-error-filename next-error))
-                (progn
-                  (if (file-exists-p filename)
-                      (find-file filename)
-                    (aif (compilation/find-buffer filename
-                                                  (funcall flycheck-enhancements--get-project-root-for-current-buffer))
-                        (switch-to-buffer it)
-                      (error "Failed to find path the error refers to: %s. file does not exist an no matching buffer is opened"
-                             (flycheck-error-filename next-error)))))
-              ;; No filename - got to the bufer in the error message
-              (if-let (buf (flycheck-error-buffer next-error))
-                  (switch-to-buffer buf)
-                (error "Error does not refer to any file or buffer: %s" next-error)))
-            (goto-line-dumb (flycheck-error-line next-error))
-            (awhen (flycheck-error-column next-error)
-              ;; Flycheck columns are 1-based .
-              (move-to-character-column (- it 1)))
-            (flycheck-display-error-at-point))
-        (let ((message-log-max nil))
-          (message "No more flycheck errors"))))))
+          (--filter (eq (flycheck-error-level (car it)) 'error) other-all))
+
+         (next-error-and-overlay
+          (cond
+            (other-errors
+             ;; Search in other files first - they're dependencies and
+             ;; current module would not work without fixing them first.
+             (car other-errors))
+            (current-file-errors
+             ;; Search in current file.
+             (let* ((current-line (line-number-at-pos))
+                    (current-col (1+ (current-column-fixed)))
+                    (current-pos (cons current-line current-col))
+                    ;; Make sure that current error will go to the
+                    ;; end of the candidate list regardless of the
+                    ;; direction we're searching.
+                    (cmp (if forward? #'<= #'<))
+                    (pt (point))
+                    (current-file-errors-around-current-line
+                     (--split-with (funcall cmp
+                                            (overlay-start (cdr-sure it))
+                                            pt)
+                                   current-file-errors))
+                    (current-file-errors-before-current-line
+                     (cl-first current-file-errors-around-current-line))
+                    (current-file-errors-after-current-line
+                     (cl-second current-file-errors-around-current-line)))
+               (car (funcall
+                     (if forward? #'identity #'nreverse)
+                     (nconc current-file-errors-after-current-line
+                            ;; Make errors wrap around.
+                            current-file-errors-before-current-line)))))
+            (other-all
+             ;; Any warnings or hlint suggestions in dependent buffers.
+             (car other-all))
+            (t nil)))
+
+         (next-error (car next-error-and-overlay))
+         (next-error-overlay (cdr next-error-and-overlay))
+         (buf (current-buffer)))
+    (if next-error
+        (progn
+          (if-let (filename (flycheck-error-filename next-error))
+              (progn
+                (if (file-exists-p filename)
+                    (find-file filename)
+                  (aif (compilation/find-buffer filename
+                                                (funcall flycheck-enhancements--get-project-root-for-current-buffer))
+                      (switch-to-buffer it)
+                    (error "Failed to find path the error refers to: ‘%s’. file does not exist an no matching buffer is opened"
+                           (flycheck-error-filename next-error)))))
+            ;; No filename - got to the bufer in the error message
+            (if-let (buf (flycheck-error-buffer next-error))
+                (switch-to-buffer buf)
+              (error "Error does not refer to any file or buffer: ‘%s’" next-error)))
+          (if (eq buf (current-buffer))
+              ;; Stayed in current buffer - use position from overlays
+              (progn
+                (goto-char (overlay-start (cdr next-error-and-overlay))))
+            ;; Jumped to different buffer - use position from error struct
+            (progn
+              (goto-line-dumb (flycheck-error-line next-error))
+              (awhen (flycheck-error-column next-error)
+                ;; Flycheck columns are 1-based .
+                (move-to-character-column (- it 1)))))
+          (flycheck-display-error-at-point))
+      (let ((message-log-max nil))
+        (message "No more flycheck errors")))))
 
 (defun flycheck-enhancements-previous-error-with-wraparound ()
   (interactive)
   (if flycheck-mode
-      (flycheck-enhancements--navigate-errors-with-wraparound nil flycheck-current-errors)
+      (flycheck-enhancements--navigate-errors-with-wraparound nil
+                                                              (flycheck-enhancements--get-error-overlays))
     (error "Flycheck not enabled")))
 
 (defun flycheck-enhancements-next-error-with-wraparound ()
   (interactive)
   (if flycheck-mode
-      (flycheck-enhancements--navigate-errors-with-wraparound t flycheck-current-errors)
+      (flycheck-enhancements--navigate-errors-with-wraparound t
+                                                              (flycheck-enhancements--get-error-overlays))
     (error "Flycheck not enabled")))
 
 ;;;###autoload
@@ -301,21 +346,40 @@ scheme and it’s view of current buffer is malformed."
 (defun flycheck-highlight-errors-with-attrap-fix ()
   (when-let ((checker (flycheck-get-checker-for-buffer))
              (messages
-              (--filter (car-sure it)
-                        (--map (cons (flycheck-error-message (overlay-get it 'flycheck-error))
-                                     it)
-                               (--filter (overlay-get it 'flycheck-overlay)
-                                         (overlays-in (point-min) (point-max)))))))
+              (--filter-nondet
+               (car-sure it)
+               (--map (cons (flycheck-error-message (overlay-get it 'flycheck-error))
+                            it)
+                      (flycheck-enhancements--get-error-overlays)))))
     (dolist (entry (attrap--find-fixes-for-flycheck-messages checker messages))
       (cl-destructuring-bind (_ _ ov) entry
         (cl-assert (overlayp ov))
         (let ((err (overlay-get ov 'flycheck-error)))
           (cl-assert (flycheck-error-p err))
-          (overlay-put ov 'face
+          (overlay-put ov
+                       'face
                        (pcase (flycheck-error-level err)
                          (`info    'flycheck-info-fix-available)
                          (`warning 'flycheck-warning-fix-available)
                          (`error   'flycheck-error-fix-available))))))))
+
+(defun flycheck-enhancements--get-error-overlays ()
+  ;; Filter out deleted overlays
+  (--filter-nondet
+   (overlay-buffer it)
+   flycheck-enhancements--error-overlays))
+
+(defun flycheck-reset-recorded-overlays ()
+  "Reset ‘flycheck-enhancements--error-overlays’ before new syntax check."
+  (setf flycheck-enhancements--error-overlays nil))
+
+(defun flycheck-add-and-record-overlay (err)
+  "Like ‘flycheck-add-overlay’ but records added overlays in flycheck-enhancements--error-overlays."
+  (cl-assert (flycheck-error-p err))
+  (let ((ov (flycheck-add-overlay err)))
+    (cl-assert (overlayp ov))
+    (push ov flycheck-enhancements--error-overlays)
+    ov))
 
 (provide 'flycheck-setup)
 
