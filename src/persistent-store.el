@@ -149,6 +149,7 @@ performed for some field."
                           result nil))
                 ;; Abort if entries are different and there's no suitable
                 ;; merge handler.
+                (message "No merge handler for %s" old-entry-key)
                 (setf done t
                       failed t
                       result nil)))))
