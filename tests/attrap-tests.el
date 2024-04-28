@@ -76,8 +76,7 @@
                                      proj)))))
                  (,mode))
                :post-content-initialisation
-               (dolist (err ,flycheck-errors)
-                 (flycheck-add-overlay err))
+               (flycheck-report-current-errors ,flycheck-errors)
                :buffer-id
                ,(unless eproj-project
                   (string->symbol (format "attrap-tests-%s" mode))))))))))
