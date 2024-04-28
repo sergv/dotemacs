@@ -176,11 +176,14 @@ Returns list of triples
 (defun attrap-flycheck (pos)
   "Attempt to repair the flycheck error at POS."
   (interactive "d")
-  (let ((messages (--filter (car-sure it)
-                            (--map (cons (flycheck-error-message
-                                          (overlay-get it 'flycheck-error))
-                                         it)
-                                   (flycheck-overlays-at pos))))
+  (let ((messages (--filter-nondet
+                   (car-sure it)
+                   (--map (cons (flycheck-error-message (overlay-get it 'flycheck-error))
+                                it)
+                          (--filter-nondet
+                           (and (<= (overlay-start it) pos)
+                                (<= pos (overlay-end it)))
+                           (flycheck-enhancements--get-error-overlays)))))
         (checker (flycheck-get-checker-for-buffer)))
     (when (not messages) (error "No flycheck message at point"))
     (when (not checker) (error "No flycheck-checker for current buffer"))
