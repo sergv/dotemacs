@@ -218,8 +218,7 @@
             doc-view-save-pages-on-kill
             save-place-kill-emacs-hook
             backup-all-buffers
-            persistent-store-flush-database
-            company-statistics--maybe-save))))
+            persistent-store-flush-database))))
 
 ;; Local Variables:
 ;; no-byte-compile: t
