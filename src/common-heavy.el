@@ -104,7 +104,7 @@ if CASE-SENSETIVE is t."
   ;; (on 2k lines performance is acceptable)
   (let ((chars (string->list (buffer-substring-no-properties (point-min)
                                                              (point-max)))))
-    (remove-duplicates-sorting (--filter (< 127 it) chars) #'= #'<)))
+    (remove-duplicates-sorting (--filter-nondet (< 127 it) chars) #'= #'<)))
 
 ;;;###autoload
 (defun input-unicode ()
