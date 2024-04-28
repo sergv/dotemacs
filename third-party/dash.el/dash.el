@@ -478,6 +478,20 @@ For the opposite operation, see also `--remove'."
        (--each ,list (when ,form (push it ,r)))
        (nreverse ,r))))
 
+(defmacro --filter-nondet (form list)
+  "Like ‘--filter’ but order of resulting elements is not deterministic"
+  (declare (debug (form form)))
+  (let ((res '#:res)
+        (xs '#:xs))
+    `(let* ((,xs ,list)
+            (,res nil))
+       (while ,xs
+         (let ((it (car ,xs)))
+           (when ,form
+             (push it ,res)))
+         (setf ,xs (cdr ,xs)))
+       ,res)))
+
 (defun -filter (pred list)
   "Return a new list of the items in LIST for which PRED returns non-nil.
 
