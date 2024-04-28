@@ -46,6 +46,28 @@
 ;;;###autoload
 (advice-add 'company-statistics--load :override #'company-statistics--load/use-persistent-store)
 
+(push (cons 'company-statistics--scores #'company-statistics--merge-scores)
+      persistent-store-merge-handlers)
+
+(defun company-statistics--merge-scores (old-entry new-entry)
+  (cl-assert (consp old-entry))
+  (cl-assert (consp new-entry))
+  (let ((old (cdr old-entry))
+        (new (cdr new-entry)))
+    (cl-assert (hash-table-p (cdr old-entry)))
+    (cl-assert (hash-table-p (cdr new-entry)))
+    (let ((merged (copy-hash-table old)))
+      (cl-loop
+       for k being the hash-keys of new using (hash-values v)
+       do
+       (if-let ((old-entry (gethash k old)))
+           (puthash k (company-statistics--merge-scores-entries old-entry v) merged)
+         (puthash k v merged)))
+      (cons (car old-entry) merged))))
+
+(defun company-statistics--merge-scores-entries (old new)
+  (company-statistics--alist-update old new #'max))
+
 ;; (def-keys-for-map company-posframe-active-map
 ;;   ("<escape>" company-abort))
 
