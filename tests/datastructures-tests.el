@@ -772,6 +772,35 @@
                                          (copy-list xs))
                      (remove x xs))))))
 
+(defun datastructures-tests/string-contains?-1 ()
+  (should (string-contains? ?x "foox")))
+
+(defun datastructures-tests/string-contains?-2 ()
+  (should-not (string-contains? ?x "foo")))
+
+(defun datastructures-tests/string-contains?-3 ()
+  (should-not (string-contains? ?x "")))
+
+(defun datastructures-tests/string-contains?-4 ()
+  (should (string-contains? ?x "x")))
+
+(defun datastructures-tests/string-contains?-5 ()
+  (should (string-contains? ?x "xxx")))
+
+(defun datastructures-tests/string-contains?-6 ()
+  (should (string-contains? ?x "xfoo")))
+
+(defun datastructures-tests/string-contains?-7 ()
+  (should (string-contains? ?x "fooxfoo")))
+
+(defun datastructures-tests/string-contains?-8 ()
+  (let ((case-fold-search t))
+    (should (string-contains? ?X "fooxfoo"))))
+
+(defun datastructures-tests/string-contains?-9 ()
+  (let ((case-fold-search t))
+    (should (string-contains? ?x "fooXfoo"))))
+
 (provide 'datastructures-tests)
 
 ;; Local Variables:
