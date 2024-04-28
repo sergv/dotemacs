@@ -90,6 +90,8 @@
      (operator
       ([
         (operator)
+        ;; Must come before (module) to override it.
+        (qualified_operator)
         (type_operator)
         (tycon_arrow)
         ;; (qualified_module) ; grabs the `.` (dot), ex: import System.IO
