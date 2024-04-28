@@ -1092,7 +1092,8 @@ Returns ‘t’ on success, otherwise returns ‘nil’."
          (proj (eproj-get-project-for-buf-lax buf))
          (vars (and proj
                     (eproj-query/local-variables proj major-mode nil)))
-         (val-dante-target (cadr-safe (assq 'dante-target vars))))
+         (val-dante-target (cadr-safe (assq 'dante-target vars)))
+         (all-warnings nil))
     (if val-dante-target
         (progn
           (setq-local dante-target it)
@@ -1107,14 +1108,18 @@ Returns ‘t’ on success, otherwise returns ‘nil’."
                                 tmp)
                       (when-let ((config (flycheck-haskell-get-configuration (car tmp) proj)))
                         (let-alist-static config (package-name components)
-                          (when-let ((candidate-component
-                                      (haskell-misc--configure-dante--find-cabal-component-for-file
-                                       components
-                                       (buffer-file-name))))
-                            (setf component candidate-component
-                                  pkg-name (car package-name))
-                            (cl-assert (stringp pkg-name) nil
-                                       "Expected package name to be a string but got %s" pkg-name))))
+                          (let* ((result
+                                  (haskell-misc--configure-dante--find-cabal-component-for-file
+                                   components
+                                   (buffer-file-name)))
+                                 (candidate-component (car result))
+                                 (warnings (cdr result)))
+                            (when candidate-component
+                              (setf component candidate-component
+                                    pkg-name (car package-name))
+                              (cl-assert (stringp pkg-name) nil
+                                         "Expected package name to be a string but got %s" pkg-name))
+                            (setf all-warnings (nconc warnings all-warnings)))))
 
                       (setf tmp (cdr tmp)))
                     (if component
@@ -1122,19 +1127,31 @@ Returns ‘t’ on success, otherwise returns ‘nil’."
                           (unless val-dante-target
                             (setq-local dante-target (concat pkg-name ":" component)))
                           t)
-                      (error "Couldn’t determine cabal component for %s from cabal file%s %s"
+                      (error "Couldn’t determine cabal component for %s from cabal file%s%s"
                              (file-name-nondirectory (buffer-file-name))
-                             (if (null (cdr cabal-files)) "" "s")
-                             (mapconcat #'file-name-nondirectory cabal-files ", "))))
+                             (if (null (cdr cabal-files))
+                                 (concat " " (car cabal-files))
+                               (concat "s "
+                                       (mapconcat #'file-name-nondirectory cabal-files ", ")))
+                             (if all-warnings
+                                 (format "\nFound problems:\n%s"
+                                         (mapconcat (lambda (x) (concat "- " x)) all-warnings "\n"))
+                                 ""))))
                 (error "No cabal files"))
             (error "Buffer’s directory doesn’t exist: %s" default-directory))
         (error "Buffer has no file: %s" (current-buffer))))))
 
 (defun haskell-misc--configure-dante--find-cabal-component-for-file (components filename)
   "Get components dumped by get-cabal-configuration.hs for current package and attempt
-to find which component the FILENAME belongs to."
+to find which component the FILENAME belongs to.
+
+COMPONENTS is a list of
+(<component type> <component name> <main file> <module list> <source dirs>)
+
+Returns (<component name or nil> . <list of warnings>)"
   (when filename
     (let* ((case-fold-search (fold-platform-os-type nil t))
+           (components-with-main-is-with-slash-and-no-dot-in-src-dirs nil)
            (entry
             (-find (lambda (component-descr)
                      (let* ((main-file (cl-third component-descr))
@@ -1144,6 +1161,13 @@ to find which component the FILENAME belongs to."
                                                              (cl-fifth component-descr))))
                             (src-dirs (car src-dirs-res))
                             (src-dirs-contained-dot? (cdr src-dirs-res)))
+                       (when (and (or (string-contains? ?/ main-file)
+                                      (fold-platform-os-type nil
+                                                             (string-contains? ?\\ main-file)))
+                                  (not src-dirs-contained-dot?)
+                                  (string-match-p (concat (regexp-quote main-file) "\\'")
+                                                  filename))
+                         (push component-descr components-with-main-is-with-slash-and-no-dot-in-src-dirs))
                        (when (or main-file modules)
                          (let* ((mod-regexps
                                  (when modules
@@ -1175,10 +1199,23 @@ to find which component the FILENAME belongs to."
                            (and re
                                 (string-match-p re filename))))))
                    components)))
-      (when entry
-        (let ((typ (car entry))
-              (name (cadr entry)))
-          (concat typ ":" name))))))
+      (if entry
+          (let ((typ (car entry))
+                (name (cadr entry)))
+            (cons (concat typ ":" name)
+                  nil))
+        (progn
+          (cons nil
+                ;; Report possible error to the user
+                (-map (lambda (component-descr)
+                        (format "Component ‘%s:%s’ specifies main file with slash (%s) but doesn’t put ‘.’ in source dirs: %s. Possible fix: remove slash or put ‘.’ into source dirs."
+                                (cl-first component-descr)
+                                (cl-second component-descr)
+                                (cl-third component-descr)
+                                (mapconcat (lambda (x) (concat "‘" x "’"))
+                                           (cl-fifth component-descr)
+                                           ", ")))
+                      components-with-main-is-with-slash-and-no-dot-in-src-dirs)))))))
 
 (defun haskell-misc--find-potential-cabal-files (start-dir)
   (let ((continue? t)
