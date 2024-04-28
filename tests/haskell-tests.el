@@ -4081,6 +4081,27 @@ have different input states."
    "makeFunction"))
 
 (haskell-tests--test-buffer-contents
+    haskell-tests/haskell-newline-with-signature-expansion--does-not-insert-redundant-function-name-1a
+    (haskell-newline-with-signature-expansion)
+  (tests-utils--multiline
+   "makeFunction"
+   "  :: MonadBase IO m"
+   "  => Env"
+   "  -> CPtrdiff -- ^ Minimum arity"
+   "  -> CPtrDiff -- ^ Maximum arity"
+   "  -> FunPtr (FunctionType a)_|_"
+   "makeFunction = _")
+  (tests-utils--multiline
+   "makeFunction"
+   "  :: MonadBase IO m"
+   "  => Env"
+   "  -> CPtrdiff -- ^ Minimum arity"
+   "  -> CPtrDiff -- ^ Maximum arity"
+   "  -> FunPtr (FunctionType a)"
+   "_|_"
+   "makeFunction = _"))
+
+(haskell-tests--test-buffer-contents
     haskell-tests/haskell-newline-with-signature-expansion-indent-1
     (haskell-newline-with-signature-expansion)
   (tests-utils--multiline
