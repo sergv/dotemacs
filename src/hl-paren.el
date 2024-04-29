@@ -9,7 +9,7 @@
 ;; Status:
 
 (require 'common)
-(require 'timer)
+;; (require 'timer)
 
 (defconst hl-paren-parentheses (string-to-list "(){}[]"))
 (defconst hl-paren-open-parentheses (string-to-list "({["))
@@ -25,8 +25,8 @@
 (defvar-local hl-paren-state nil
   "Instance of ‘hl-paren-state’ structure.")
 
-(defvar-local hl-paren-timer nil
-  "Latest highlighting timer.")
+;; (defvar-local hl-paren-timer nil
+;;   "Latest highlighting timer.")
 
 (defsubst hl-paren-move-overlay-to (overlay pos)
   (move-overlay overlay pos (1+ pos)))
@@ -63,8 +63,7 @@
 (defun hl-paren-highlight-matching-paren-at-point ()
   "Highlight paren that is matching for symbol at point.
 Turn off highlighting if character at point is not parentheses."
-  (if (and (not (eobp))
-           (memq (char-after) hl-paren-parentheses))
+  (if (memq (char-after) hl-paren-parentheses)
       (if-let ((matching-pos (pseudovim-motion-jump-item-to-pos (point) 10000)))
           (if hl-paren-state
               (progn
@@ -104,17 +103,20 @@ Turn off highlighting if character at point is not parentheses."
 
 (define-minor-mode hl-paren-mode
   "Highlight matching parens"
-  (when hl-paren-timer
-    (cancel-timer hl-paren-timer)
-    (setq-local hl-paren-timer nil))
-
-  (unless hl-paren-mode
-    (hl-paren-cleanup-overlays!)))
+  :init-value nil
+  :keymap nil
+  (if hl-paren-mode
+      (add-hook 'post-command-hook #'hl-paren-schedule nil t)
+    (progn
+      (hl-paren-cleanup-overlays!)
+      (remove-hook 'post-command-hook #'hl-paren-schedule t)))
+  ;; (when hl-paren-timer
+  ;;   (cancel-timer hl-paren-timer)
+  ;;   (setq-local hl-paren-timer nil))
+  )
 
 (defun setup-hl-paren ()
-  (hl-paren-mode +1)
-
-  (add-hook 'post-command-hook #'hl-paren-schedule nil t))
+  (hl-paren-mode +1))
 
 ;; (defun hl-paren--highlight-in-timer ()
 ;;   (condition-case nil
