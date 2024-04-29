@@ -149,6 +149,7 @@
               global-auto-revert-ignore-buffer t)
   (emacs-forget-buffer-process)
 
+  (setup-hl-paren)
   (set-up-paredit)
 
   (when create-keymaps
