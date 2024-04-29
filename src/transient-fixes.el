@@ -93,8 +93,9 @@
     (when (equal old-normalised new-normalised)
       (cons old-key old-normalised))))
 
-(push (cons 'transient-history #'transient-history--merge-entries)
-      persistent-store-merge-handlers)
+;;;###autoload
+(add-to-list 'persistent-store-merge-handlers
+             (cons 'transient-history #'transient-history--merge-entries))
 
 (provide 'transient-fixes)
 
