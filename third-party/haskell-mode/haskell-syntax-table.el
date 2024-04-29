@@ -268,6 +268,23 @@
     table)
   "Syntax table used in Haskell mode.")
 
+(defvar haskell-search-fixed-syntax-table
+  (let ((tbl (copy-syntax-table haskell-mode-syntax-table)))
+    (modify-syntax-entry ?#  "w" tbl)
+    (modify-syntax-entry ?.  "." tbl)
+    (modify-syntax-entry ?_  "w" tbl)
+    (modify-syntax-entry ?,  "/" tbl) ;; Disable , since it's part of syntax
+    (modify-syntax-entry ?\' "w" tbl)
+    tbl)
+  "Special syntax table for Haskell searches that will match \"\\_<foo\\_>\" in \"Bar.foo\"")
+
+(defvar ghc-core-symbol--identifier-syntax-table
+  (let ((tbl (copy-syntax-table haskell-search-fixed-syntax-table)))
+    (modify-syntax-entry ?$ "_" tbl)
+    tbl)
+  "Special syntax table for GHC Core that allows to recognize symbols that contain
+both unicode and ascii characters.")
+
 (provide 'haskell-syntax-table)
 
 ;; Local Variables:
