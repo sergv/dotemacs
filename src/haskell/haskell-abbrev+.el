@@ -286,7 +286,7 @@ then Bar would be the result."
       (haskell-align-language-pragmas start)
       (insert "\n"))))
 
-(defun haskell-abbrev++--import-expand-pred ()
+(defun haskell-abbrev+--at-start-of-line? ()
   "Check that the point is at the start of the line."
   (let ((c (char-before (point))))
     ;; By this point we’re assured that we’re
@@ -387,7 +387,8 @@ then Bar would be the result."
                   (make-abbrev+-abbreviation
                    :followed-by-space t
                    :action-type 'function-with-side-effects
-                   :action-data #'haskell-abbrev+--insert-pragma))
+                   :action-data #'haskell-abbrev+--insert-pragma
+                   :predicate #'haskell-abbrev+--at-start-of-line?))
             (cons (list "#scc"
                         "##scc"
                         "# scc"
@@ -404,6 +405,7 @@ then Bar would be the result."
                    :followed-by-space t
                    :action-type 'yas-snippet
                    :action-data language-snippet
+                   :predicate #'haskell-abbrev+--at-start-of-line?
                    :on-successful-expansion #'haskell-abbrev+--register-alignment-of-language-pragmas))
             (cons (list "#ll"
                         "#llang"
@@ -412,7 +414,8 @@ then Bar would be the result."
                   (make-abbrev+-abbreviation
                    :followed-by-space t
                    :action-type 'function-with-side-effects
-                   :action-data #'haskell-insert-language-pragmas))
+                   :action-data #'haskell-insert-language-pragmas
+                   :predicate #'haskell-abbrev+--at-start-of-line?))
             (cons (list "#o"
                         "#opt"
                         "#opts"
@@ -422,7 +425,8 @@ then Bar would be the result."
                   (make-abbrev+-abbreviation
                    :followed-by-space t
                    :action-type 'yas-snippet
-                   :action-data options-snippet))
+                   :action-data options-snippet
+                   :predicate #'haskell-abbrev+--at-start-of-line?))
             (cons (list "#d"
                         "#dump"
                         "#dump-core"
@@ -431,7 +435,8 @@ then Bar would be the result."
                         "##dump-core")
                   (make-abbrev+-abbreviation
                    :action-type 'yas-snippet
-                   :action-data dump-core-snippet))))
+                   :action-data dump-core-snippet
+                   :predicate #'haskell-abbrev+--at-start-of-line?))))
           (plain-abbrevs
            (append
             (list (cons (list "hpf"
@@ -467,14 +472,14 @@ then Bar would be the result."
                         (make-abbrev+-abbreviation
                          :action-type 'literal-string
                          :action-data "import"
-                         :predicate #'haskell-abbrev++--import-expand-pred))
+                         :predicate #'haskell-abbrev+--at-start-of-line?))
 
                   (cons (mapcan (lambda (x) (list (concat x "q") (concat "q" x)))
                                 (make-abbrev+-prefixes "import" 1))
                         (make-abbrev+-abbreviation
                          :action-type 'function-with-side-effects
                          :action-data #'haskell-insert-qualified-import
-                         :predicate #'haskell-abbrev++--import-expand-pred))
+                         :predicate #'haskell-abbrev+--at-start-of-line?))
 
                   (cons (list "pp"
                               "ppdh"
@@ -533,7 +538,7 @@ then Bar would be the result."
                      (make-abbrev+-abbreviation
                       :action-type 'function-with-side-effects-and-args
                       :action-data (list #'haskell-insert-import-block type-name module-name alias)
-                      :predicate #'haskell-abbrev++--import-expand-pred)))
+                      :predicate #'haskell-abbrev+--at-start-of-line?)))
              '(("m"   "Data.Map.Strict"               "Map"             "M"   nil)
                ("s"   "Data.Set"                      "Set"             "S"   nil)
                ("v"   "Data.Vector"                   "Vector"          "V"   nil)
