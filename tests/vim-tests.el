@@ -3335,6 +3335,19 @@ _|_bar")
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-mode haskell-ts-mode)
+    vim-tests/haskell-abbrev-import--no-expansion-if-not-on-first-column-1
+    (execute-kbd-macro (kbd "i i q SPC F o o <escape>"))
+  (tests-utils--multiline
+   ""
+   " _|_"
+   "")
+  (tests-utils--multiline
+   ""
+   " iq Fo_|_o"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
     vim-tests/haskell-abbrev-1
     ;; Aborting pragma prompt with <escape> causes 'quit signal to be raised.
     ;; If we don’t catch it then ert will not proceed to compare buffer contents.
@@ -3661,6 +3674,37 @@ _|_bar")
    "foo x = x"
    ""))
 
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell-abbrev-pragma--no-expansion-if-not-on-first-column-1
+    (execute-kbd-macro (kbd "i SPC <escape>"))
+  (tests-utils--multiline
+   ""
+   " ##_|_"
+   "foo :: a -> a"
+   "foo x = x"
+   "")
+  (tests-utils--multiline
+   ""
+   " ##_|_ "
+   "foo :: a -> a"
+   "foo x = x"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell-abbrev-pragma--no-expansion-if-not-on-first-column-2
+    (execute-kbd-macro (kbd "i # # p r e t t y SPC f o o <escape>"))
+  (tests-utils--multiline
+   ""
+   "foo :: a -> a"
+   "foo x = x_|_"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo :: a -> a"
+   "foo x = x ## pretty fo_|_o"
+   ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-mode haskell-ts-mode)
