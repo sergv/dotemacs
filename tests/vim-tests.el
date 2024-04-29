@@ -5078,6 +5078,109 @@ _|_bar")
   (tests-utils--multiline "" "foo _|_ bar" "")
   (tests-utils--multiline "" "foo # {const_|_} bar" ""))
 
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell--search-for-haskell-symbol-at-point-1
+    (execute-kbd-macro (kbd "*"))
+  (tests-utils--multiline
+   ""
+   "foo _|_bar = putStrLn $ bar ++ \"... OK\" "
+   "")
+  (tests-utils--multiline
+   ""
+   "foo bar = putStrLn $ bar_|_ ++ \"... OK\" "
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell--search-for-haskell-symbol-at-point-2
+    (execute-kbd-macro (kbd "*"))
+  (tests-utils--multiline
+   ""
+   "foo _|_bar = putStrLn $ bar' ++ bar ++ \"... OK\" "
+   "  where"
+   "    bar' = \"decombobulate\""
+   "")
+  (tests-utils--multiline
+   ""
+   "foo bar = putStrLn $ bar' ++ bar_|_ ++ \"... OK\" "
+   "  where"
+   "    bar' = \"decombobulate\""
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell--search-for-haskell-symbol-at-point-3
+    (execute-kbd-macro (kbd "*"))
+  (tests-utils--multiline
+   ""
+   "foo _|_x=x:Node(x-1)"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo x=x_|_:Node(x-1)"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell--search-for-haskell-symbol-at-point-4
+    (execute-kbd-macro (kbd "* u"))
+  (tests-utils--multiline
+   ""
+   "foo _|_x=x:Node(x-1)"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo x=x:Node(x_|_-1)"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell--search-for-haskell-symbol-at-point-5
+    (execute-kbd-macro (kbd "*"))
+  (tests-utils--multiline
+   ""
+   "data Node = N_|_ode Int"
+   ""
+   "foo x=x:Node(x-1)"
+   "")
+  (tests-utils--multiline
+   ""
+   "data Node = Node Int"
+   ""
+   "foo x=x:Node_|_(x-1)"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell--search-for-haskell-symbol-at-point-6
+    (execute-kbd-macro (kbd "#"))
+  (tests-utils--multiline
+   ""
+   "data Node = Node Int"
+   ""
+   "foo x=x:No_|_de(x-1)"
+   "")
+  (tests-utils--multiline
+   ""
+   "data Node = _|_Node Int"
+   ""
+   "foo x=x:Node(x-1)"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell--search-for-haskell-symbol-at-point-7
+    (execute-kbd-macro (kbd "*"))
+  (tests-utils--multiline
+   ""
+   "foo x=x_|_:Node(x:xs)"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo x=x:Node(x:_|_xs)"
+   ""))
+
 (provide 'vim-tests)
 
 ;; Local Variables:
