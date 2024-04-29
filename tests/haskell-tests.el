@@ -738,6 +738,42 @@ have different input states."
   " f |+_|_+| ")
 
 (haskell-tests--test-result
+    haskell-tests/bounds-of-haskell-symbol-12
+  :action
+  (thing-at-point 'qualified-haskell-symbol)
+  :expected-value
+  ":"
+  :contents
+  " x _|_: xs")
+
+(haskell-tests--test-result
+    haskell-tests/bounds-of-haskell-symbol-12a
+  :action
+  (thing-at-point 'qualified-haskell-symbol)
+  :expected-value
+  ":"
+  :contents
+  " x _|_:xs")
+
+(haskell-tests--test-result
+    haskell-tests/bounds-of-haskell-symbol-12b
+  :action
+  (thing-at-point 'qualified-haskell-symbol)
+  :expected-value
+  ":"
+  :contents
+  " x_|_: xs")
+
+(haskell-tests--test-result
+    haskell-tests/bounds-of-haskell-symbol-12c
+  :action
+  (thing-at-point 'qualified-haskell-symbol)
+  :expected-value
+  ":"
+  :contents
+  " x_|_:xs")
+
+(haskell-tests--test-result
     haskell-tests/bounds-of-ghc-core-symbol-1
   :action
   (substring-no-properties (thing-at-point 'ghc-core-symbol))
@@ -6754,6 +6790,104 @@ have different input states."
 
 (ert-deftest haskell-tests/haskel-misc--is-operator?-7 ()
   (should-not (haskel-misc--is-operator? "")))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell--search-for-haskell-symbol-at-point-1
+    (re-search-forward "\\_<Node")
+  (tests-utils--multiline
+   "_|_"
+   "foo x = x:Node (x - 1)"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo x = x:Node_|_ (x - 1)"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell--search-for-haskell-symbol-at-point-1a
+    (re-search-forward "\\_<Node")
+  (tests-utils--multiline
+   "_|_"
+   "foo x = x :Node (x - 1)"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo x = x :Node_|_ (x - 1)"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell--search-for-haskell-symbol-at-point-1b
+    (re-search-forward "\\_<Node")
+  (tests-utils--multiline
+   "_|_"
+   "foo x = x: Node (x - 1)"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo x = x: Node_|_ (x - 1)"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell--search-for-haskell-symbol-at-point-1c
+    (re-search-forward "\\_<Node")
+  (tests-utils--multiline
+   "_|_"
+   "foo x = x : Node (x - 1)"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo x = x : Node_|_ (x - 1)"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell--search-for-haskell-symbol-at-point-1d
+    (re-search-forward "\\_<Node")
+  (tests-utils--multiline
+   "_|_"
+   "foo x=x:Node(x-1)"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo x=x:Node_|_(x-1)"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell--search-for-haskell-symbol-at-point-2
+    (re-search-forward "\\_<x\\_>")
+  (tests-utils--multiline
+   "_|_"
+   "foo x=x:Node(x-1)"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo x_|_=x:Node(x-1)"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell--search-for-haskell-symbol-at-point-2a
+    (dotimes (_ 2)
+      (re-search-forward "\\_<x\\_>"))
+  (tests-utils--multiline
+   "_|_"
+   "foo x=x:Node(x-1)"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo x=x_|_:Node(x-1)"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell--search-for-haskell-symbol-at-point-2b
+    (dotimes (_ 3)
+      (re-search-forward "\\_<x\\_>"))
+  (tests-utils--multiline
+   "_|_"
+   "foo x=x:Node(x-1)"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo x=x:Node(x_|_-1)"
+   ""))
 
 (provide 'haskell-tests)
 
