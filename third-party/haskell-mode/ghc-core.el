@@ -31,6 +31,7 @@
 ;;; Code:
 (require 'haskell-mode)
 (require 'haskell-font-lock)
+(require 'haskell-syntax-table)
 
 (require 'haskell-regexen)
 (require 'haskell-smart-operators-mode)
