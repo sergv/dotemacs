@@ -104,6 +104,7 @@
 
 (require 'cl-lib)
 (require 'haskell-mode)
+(require 'haskell-syntax-table)
 (require 'syntax)
 (require 'imenu)
 
