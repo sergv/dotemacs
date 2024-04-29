@@ -430,16 +430,21 @@ extensions as a list of strings. Leaves point at the end of pragma"
                haskell-misc--bounds-of-symbol--word-chars)))
         (when offset
           (forward-char offset))
-        (when (and (zerop (skip-chars-backward word-chars))
-                   ;; No word constituent characters before the point here - if we’re followed
-                   ;; by a word character then we’re at the start of an identifier.
-                   (not (looking-at-p
-                         (if core-mode?
-                             (eval-when-compile (concat "[" haskell-misc--bounds-of-symbol--word-chars "$]"))
-                           (eval-when-compile (concat "[" haskell-misc--bounds-of-symbol--word-chars "]"))))))
-          (skip-chars-backward haskell-smart-operators--operator-chars-str)
-          ;; To get qualified part
-          (skip-chars-backward word-chars))
+        (if (looking-at-p
+             (if core-mode?
+                 (eval-when-compile (concat "[" haskell-misc--bounds-of-symbol--word-chars "$]"))
+               (eval-when-compile (concat "[" haskell-misc--bounds-of-symbol--word-chars "]"))))
+            ;; In the middle of a word - next character is a word one
+            ;; so go back while we’re part of the word.
+            (skip-chars-backward word-chars)
+          ;; Not followed by a word so if also not preceded by a word then try
+          ;; to detect operator.
+          (when (or (string-contains? (char-after) haskell-smart-operators--operator-chars-str)
+                    (zerop (skip-chars-backward word-chars)))
+            (skip-chars-backward haskell-smart-operators--operator-chars-str)
+            ;; To get qualified part
+            (when (= (char-after) ?.)
+              (skip-chars-backward word-chars))))
         (unless include-quotes?
           (skip-chars-forward "'"))
         (when (looking-at (if core-mode?
