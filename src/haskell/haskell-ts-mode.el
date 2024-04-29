@@ -9,7 +9,7 @@
 (eval-when-compile
   (require 'dash))
 
-(require 'haskell-mode)
+(require 'haskell-syntax-table)
 (require 'treesit)
 
 (require 'haskell-smart-operators-mode)
