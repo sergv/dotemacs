@@ -625,16 +625,12 @@ obvious"
 
 (defsubst search-for-haskell-symbol-at-point-regex-start-func (pat)
   (if (string-match-p "^[a-zA-Z0-9]" pat)
-      ;; Don't use \\_<,\\_> since they rely on
-      ;; syntax table which was tampered with in haskell
-      ;; mode so that e.g. regexp "\\_<Node" won't match
-      ;; the input "x:Node (x - 1)".
-      "\\<"
+      "\\_<"
     ""))
 
 (defsubst search-for-haskell-symbol-at-point-regex-end-func (pat)
   (if (string-match-p "[a-zA-Z0-9]$" pat)
-      "\\>"
+      "\\_>"
     ""))
 
 (defsubst search-for-ghc-core-symbol-at-point-regex-start-func (pat)
