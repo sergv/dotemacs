@@ -43,6 +43,9 @@
   ;; will be called before performing ACTION and should return nil or t.
   ;; If t is returned then ACTION would be performed.
   ;;
+  ;; Will be called with point just before the abbreviation text to be replaced
+  ;; by the expansion.
+  ;;
   ;; Optional.
   (predicate nil :read-only t)
 
