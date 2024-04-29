@@ -19,6 +19,7 @@
 (require 'haskell-ghc-support)
 (require 'haskell-mode)
 (require 'haskell-smart-operators-utils)
+(require 'haskell-syntax-table)
 (require 'pseudoparedit)
 (require 'smart-operators-utils)
 

@@ -10,6 +10,7 @@
   (require 'macro-util))
 
 (require 'haskell-mode)
+(require 'haskell-syntax-table)
 
 (require 'common)
 (require 'solarized)
