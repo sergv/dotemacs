@@ -9,6 +9,7 @@
 (require 'ert)
 
 (require 'company-mode-setup)
+(require 'transient-fixes)
 
 (ert-deftest misc-tests/delete-duplicate-candidates-from-company-dabbrev-code-1 ()
   (should (equal (delete-duplicate-candidates-from-company-dabbrev-code
