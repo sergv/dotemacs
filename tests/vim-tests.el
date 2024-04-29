@@ -5181,6 +5181,23 @@ _|_bar")
    "foo x=x:Node(x:_|_xs)"
    ""))
 
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell--search-for-haskell-symbol-at-point-8
+    (execute-kbd-macro (kbd "*"))
+  (tests-utils--multiline
+   ""
+   "foo x = Foo.Bar.de_|_combobulate x + y"
+   "  where"
+   "    y = Foo.Bar.decombobulate (x + x)"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo x = Foo.Bar.decombobulate x + y"
+   "  where"
+   "    y = Foo.Bar.decombobulate_|_ (x + x)"
+   ""))
+
 (provide 'vim-tests)
 
 ;; Local Variables:

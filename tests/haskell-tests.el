@@ -20,6 +20,7 @@
 
 (require 'common)
 (require 'ert)
+(require 'search)
 (require 'tests-utils)
 
 (ert-deftest haskell-tests/abbrev+-extract-module-name ()
@@ -6887,6 +6888,39 @@ have different input states."
   (tests-utils--multiline
    ""
    "foo x=x:Node(x_|_-1)"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell--search-for-haskell-symbol-at-point-3
+    (search-for-haskell-symbol-at-point-forward 1)
+  (tests-utils--multiline
+   ""
+   "foo x = Foo.Bar.de_|_combobulate x + y"
+   "  where"
+   "    y = Foo.Bar.decombobulate (x + x)"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo x = Foo.Bar.decombobulate x + y"
+   "  where"
+   "    y = Foo.Bar.decombobulate_|_ (x + x)"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell--search-for-haskell-symbol-at-point-3a
+    (with-syntax-table haskell-search-fixed-syntax-table
+      (re-search-forward "\\_<decombobulate\\_>"))
+  (tests-utils--multiline
+   ""
+   "foo x = Foo.Bar.de_|_combobulate x + y"
+   "  where"
+   "    y = Foo.Bar.decombobulate (x + x)"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo x = Foo.Bar.decombobulate x + y"
+   "  where"
+   "    y = Foo.Bar.decombobulate_|_ (x + x)"
    ""))
 
 (provide 'haskell-tests)
