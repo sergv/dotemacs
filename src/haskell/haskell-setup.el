@@ -34,6 +34,7 @@
 (require 'haskell-flycheck-cabal-build)
 (require 'haskell-misc)
 (require 'haskell-outline)
+(require 'haskell-syntax-table)
 (require 'hydra-setup)
 (require 'lcr)
 (require 'lsp-setup)
@@ -417,7 +418,10 @@ _<tab>_: reindent  _h_: jump to topmont node end"
               ;; Don't skip any messages.
               compilation-skip-threshold 0
 
-              find-tag-default-function #'haskell-misc-find-tag-default))
+              find-tag-default-function #'haskell-misc-find-tag-default
+
+              search-syntax-table haskell-search-fixed-syntax-table
+              search-ignore-syntax-text-properties t))
 
 (defun haskell-setup-common-project ()
   ;; Read settings from '.eproj-info' file, if any.

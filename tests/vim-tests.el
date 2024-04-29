@@ -5198,6 +5198,44 @@ _|_bar")
    "    y = Foo.Bar.decombobulate_|_ (x + x)"
    ""))
 
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell--search-for-haskell-symbol-at-point-9
+    (execute-kbd-macro (kbd "*"))
+  (tests-utils--multiline
+   ""
+   "import Codec.CBOR.Read qualified as _|_CBOR"
+   ""
+   "foo :: CBOR.DeserialiseFailure -> IO a"
+   "foo = undefined"
+   "")
+  (tests-utils--multiline
+   ""
+   "import Codec.CBOR.Read qualified as CBOR"
+   ""
+   "foo :: CBOR_|_.DeserialiseFailure -> IO a"
+   "foo = undefined"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell--search-for-haskell-symbol-at-point-9a
+    (execute-kbd-macro (kbd "* u"))
+  (tests-utils--multiline
+   ""
+   "import Codec.CBOR.Read qualified as _|_CBOR"
+   ""
+   "foo :: CBOR.DeserialiseFailure -> IO a"
+   "foo = undefined"
+   "")
+  (tests-utils--multiline
+   ""
+   "import Codec.CBOR_|_.Read qualified as CBOR"
+   ""
+   "foo :: CBOR.DeserialiseFailure -> IO a"
+   "foo = undefined"
+   ""))
+
 (provide 'vim-tests)
 
 ;; Local Variables:

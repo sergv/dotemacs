@@ -275,6 +275,7 @@ Highlighting starts at the beginning of buffer.")
   "Set up internal search variables for use of `search--next-impl',
 `search--prev-impl' etc for REGEX."
   (setf search--current-regexp regex
+        search--current-syntax-table (syntax-table)
         search--start-marker   (point-marker)
         search--direction-forward? is-forward?
         search--case-sensetive case-sensetive
@@ -645,12 +646,6 @@ obvious"
 
 (defsubst search-for-ghc-core-symbol-at-point-regex-end-func (pat)
   (search-for-haskell-symbol-at-point-regex-end-func pat))
-
-(defvar haskell-search-fixed-syntax-table
-  (let ((tbl (copy-syntax-table haskell-mode-syntax-table)))
-    (modify-syntax-entry ?. "." tbl)
-    tbl)
-  "Special syntax table for Haskell searches that will match \"\\_<foo\\_>\" in \"Bar.foo\"")
 
 ;;;###autoload (autoload 'search-for-haskell-symbol-at-point-forward "search" nil t)
 ;;;###autoload (autoload 'search-for-haskell-symbol-at-point-forward-new-color "search" nil t)
