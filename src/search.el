@@ -28,6 +28,7 @@
 
 (require 'persistent-sessions-global-vars)
 (require 'solarized)
+(require 'haskell-syntax-table)
 
 ;;; search faces
 
@@ -574,7 +575,8 @@ called in buffer that initiated search."
                                             regex-start-func
                                             regex-end-func
                                             (error-message nil)
-                                            (force-include-bounds-to 'not-provided))
+                                            (force-include-bounds-to 'not-provided)
+                                            (syntax-table nil))
   "BOUNDS-FUNC should return cons pair (START . END), everything else is
 obvious"
   (declare (indent 4))
@@ -587,36 +589,39 @@ obvious"
             `(defun ,name (,count-var)
                "Do search in the specified direction of a text at point (or from currently selected region"
                (interactive "p")
-               (let* ((,include-bounds?-var ,(if (eq force-include-bounds-to 'not-provided)
-                                                 '(not vim--current-universal-argument-provided?)
-                                               force-include-bounds-to))
-                      (,bounds-var ,get-bounds-expr)
-                      (,substr-var (progn
-                                     ,@(when error-message
-                                         (cl-assert (stringp error-message))
-                                         (list
-                                          `(unless ,bounds-var
-                                             (error ,error-message))))
-                                     (buffer-substring-no-properties
-                                      (car ,bounds-var)
-                                      (cdr ,bounds-var)))))
-                 (vim-save-position)
-                 (goto-char
-                  ,(if is-forward
-                       `(cdr ,bounds-var)
-                     `(car ,bounds-var)))
-                 ,(unless create-reset?
-                    '(search--increment-search-highlight-face-index))
-                 (search--setup-search-for
-                  (if ,include-bounds?-var
-                      (concat (funcall ,regex-start-func ,substr-var)
-                              (regexp-quote ,substr-var)
-                              (funcall ,regex-end-func ,substr-var))
-                    (regexp-quote ,substr-var))
-                  ,is-forward
-                  :case-sensetive t
-                  :save-position nil)
-                 ,(funcall mk-action-after count-var))))))
+               (,@(if syntax-table
+                      `(with-syntax-table ,syntax-table)
+                    '(progn))
+                (let* ((,include-bounds?-var ,(if (eq force-include-bounds-to 'not-provided)
+                                                  '(not vim--current-universal-argument-provided?)
+                                                force-include-bounds-to))
+                       (,bounds-var ,get-bounds-expr)
+                       (,substr-var (progn
+                                      ,@(when error-message
+                                          (cl-assert (stringp error-message))
+                                          (list
+                                           `(unless ,bounds-var
+                                              (error ,error-message))))
+                                      (buffer-substring-no-properties
+                                       (car ,bounds-var)
+                                       (cdr ,bounds-var)))))
+                  (vim-save-position)
+                  (goto-char
+                   ,(if is-forward
+                        `(cdr ,bounds-var)
+                      `(car ,bounds-var)))
+                  ,(unless create-reset?
+                     '(search--increment-search-highlight-face-index))
+                  (search--setup-search-for
+                   (if ,include-bounds?-var
+                       (concat (funcall ,regex-start-func ,substr-var)
+                               (regexp-quote ,substr-var)
+                               (funcall ,regex-end-func ,substr-var))
+                     (regexp-quote ,substr-var))
+                   ,is-forward
+                   :case-sensetive t
+                   :save-position nil)
+                  ,(funcall mk-action-after count-var)))))))
     `(progn
        ,(funcall make-search-func name t)
        ,(funcall make-search-func alt-name nil))))
@@ -641,6 +646,12 @@ obvious"
 (defsubst search-for-ghc-core-symbol-at-point-regex-end-func (pat)
   (search-for-haskell-symbol-at-point-regex-end-func pat))
 
+(defvar haskell-search-fixed-syntax-table
+  (let ((tbl (copy-syntax-table haskell-mode-syntax-table)))
+    (modify-syntax-entry ?. "." tbl)
+    tbl)
+  "Special syntax table for Haskell searches that will match \"\\_<foo\\_>\" in \"Bar.foo\"")
+
 ;;;###autoload (autoload 'search-for-haskell-symbol-at-point-forward "search" nil t)
 ;;;###autoload (autoload 'search-for-haskell-symbol-at-point-forward-new-color "search" nil t)
 (search--make-search-for-thing
@@ -651,7 +662,8 @@ obvious"
   :is-forward t
   :regex-start-func #'search-for-haskell-symbol-at-point-regex-start-func
   :regex-end-func #'search-for-haskell-symbol-at-point-regex-end-func
-  :error-message "No symbol at point")
+  :error-message "No symbol at point"
+  :syntax-table haskell-search-fixed-syntax-table)
 
 ;;;###autoload (autoload 'search-for-haskell-symbol-at-point-backward "search" nil t)
 ;;;###autoload (autoload 'search-for-haskell-symbol-at-point-backward-new-color "search" nil t)
@@ -663,7 +675,8 @@ obvious"
   :is-forward nil
   :regex-start-func #'search-for-haskell-symbol-at-point-regex-start-func
   :regex-end-func #'search-for-haskell-symbol-at-point-regex-end-func
-  :error-message "No symbol at point")
+  :error-message "No symbol at point"
+  :syntax-table haskell-search-fixed-syntax-table)
 
 ;;;###autoload (autoload 'search-for-ghc-core-symbol-at-point-forward "search" nil t)
 ;;;###autoload (autoload 'search-for-ghc-core-symbol-at-point-forward-new-color "search" nil t)
