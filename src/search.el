@@ -629,9 +629,14 @@ obvious"
 
 ;; Haskell search
 
+(defconst haskell-symbol-at-point--left-symbol-bound
+  "\\_<'*"
+  "Regexp to add at the begginning of the pattern to be searched. Pattern
+is assumed to be identifier at point.")
+
 (defsubst search-for-haskell-symbol-at-point-regex-start-func (pat)
   (if (string-match-p "^[a-zA-Z0-9]" pat)
-      "\\_<"
+      haskell-symbol-at-point--left-symbol-bound
     ""))
 
 (defsubst search-for-haskell-symbol-at-point-regex-end-func (pat)
@@ -641,7 +646,7 @@ obvious"
 
 (defsubst search-for-ghc-core-symbol-at-point-regex-start-func (pat)
   (if (string-match-p "^[a-zA-Z0-9$]" pat)
-      "\\_<"
+      haskell-symbol-at-point--left-symbol-bound
     ""))
 
 (defsubst search-for-ghc-core-symbol-at-point-regex-end-func (pat)
