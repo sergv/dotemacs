@@ -205,7 +205,13 @@ sexps and indentation levels."
          (via-indentation
           (with-demoted-errors "Ignoring error: %s"
             (save-excursion
-              (indent-back-up-indent-level on-blank-line-p)
+              (if (funcall on-blank-line-p)
+                  (progn
+                    (while (and (not (bobp))
+                                (funcall on-blank-line-p))
+                      (forward-line -1))
+                    (skip-to-indentation))
+                (indent-back-up-indent-level on-blank-line-p))
               (let ((p (point)))
                 (when (/= p start)
                   p)))))
