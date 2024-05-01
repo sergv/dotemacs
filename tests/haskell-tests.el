@@ -6923,6 +6923,46 @@ have different input states."
    "    y = Foo.Bar.decombobulate_|_ (x + x)"
    ""))
 
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-backward-up-indentation-or-sexp-1
+    (haskell-backward-up-indentation-or-sexp)
+  (tests-utils--multiline
+   ""
+   "foo x = Foo.Bar.decombobulate x + y"
+   ""
+   "  where"
+   "_|_"
+   "    y = Foo.Bar.decombobulate (x + x)"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo x = Foo.Bar.decombobulate x + y"
+   ""
+   "  _|_where"
+   ""
+   "    y = Foo.Bar.decombobulate (x + x)"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-backward-up-indentation-or-sexp-2
+    (haskell-backward-up-indentation-or-sexp)
+  (tests-utils--multiline
+   ""
+   "foo x = Foo.Bar.decombobulate x + y"
+   ""
+   "  _|_where"
+   ""
+   "    y = Foo.Bar.decombobulate (x + x)"
+   "")
+  (tests-utils--multiline
+   ""
+   "_|_foo x = Foo.Bar.decombobulate x + y"
+   ""
+   "  where"
+   ""
+   "    y = Foo.Bar.decombobulate (x + x)"
+   ""))
+
 (provide 'haskell-tests)
 
 ;; (let ((ert-debug-on-error nil))
