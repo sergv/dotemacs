@@ -335,6 +335,52 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/replace-2
+ :flycheck-errors
+ (list
+  (let ((linecol (save-excursion
+                   (re-search-forward "_|_")
+                   (flycheck-line-column-at-pos (point)))))
+    (flycheck-error-new
+     :line (car linecol)
+     :column (cdr linecol)
+     :buffer (current-buffer)
+     :checker 'haskell-dante
+     :message
+     (tests-utils--multiline
+      "warning: [GHC-88464] [-Wdeferred-out-of-scope-variables]"
+      "    Variable not in scope:"
+      "      withWindow"
+      "        :: Int -> Int -> String -> (GLFW.Window -> IO ()) -> IO a0"
+      "    Suggested fix:"
+      "      Perhaps use ‘GLFW.withWindow’ (imported from Graphics.UI.GLFW)")
+     :level 'error
+     :id nil
+     :group nil)))
+ :action
+ ;; (let ((attrap-select-predefined-option
+ ;;        "replace MonadMask by MC.MonadMask from Control.Monad.Catch")))
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Graphics.UI.GLFW qualified as GLFW"
+  ""
+  "main = do"
+  "  _|_withWindow width height \"Turgtle Geometry\" $ \win -> do"
+  "    pure ()"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Graphics.UI.GLFW qualified as GLFW"
+  ""
+  "main = do"
+  "  _|_GLFW.withWindow width height \"Turgtle Geometry\" $ \win -> do"
+  "    pure ()"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/add-binding-1
  :flycheck-errors
  (list
