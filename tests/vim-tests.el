@@ -5236,6 +5236,144 @@ _|_bar")
    "foo = undefined"
    ""))
 
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell--search-for-haskell-symbol-at-point-10
+    (execute-kbd-macro (kbd "*"))
+  (tests-utils--multiline
+   ""
+   "foo :: Id 'Fo_|_o -> Int"
+   "foo = undefined"
+   ""
+   "bar :: Id 'Foo -> Int"
+   "bar = undefined"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo :: Id 'Foo -> Int"
+   "foo = undefined"
+   ""
+   "bar :: Id 'Foo_|_ -> Int"
+   "bar = undefined"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell--search-for-haskell-symbol-at-point-10a
+    (execute-kbd-macro (kbd "*"))
+  (tests-utils--multiline
+   ""
+   "foo :: Id Fo_|_o' -> Int"
+   "foo = undefined"
+   ""
+   "baz :: Foo -> Int"
+   "baz = undefined"
+   ""
+   "bar :: Id Foo' -> Int"
+   "bar = undefined"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo :: Id Foo' -> Int"
+   "foo = undefined"
+   ""
+   "baz :: Foo -> Int"
+   "baz = undefined"
+   ""
+   "bar :: Id Foo'_|_ -> Int"
+   "bar = undefined"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell--search-for-haskell-symbol-at-point-10b
+    (execute-kbd-macro (kbd "*"))
+  (tests-utils--multiline
+   ""
+   "foo :: Id 'Fo_|_o -> Int"
+   "foo = undefined"
+   ""
+   "bar :: Foo -> Int"
+   "bar = undefined"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo :: Id 'Foo -> Int"
+   "foo = undefined"
+   ""
+   "bar :: Foo_|_ -> Int"
+   "bar = undefined"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell--search-for-haskell-symbol-at-point-10c
+    (execute-kbd-macro (kbd "*"))
+  (tests-utils--multiline
+   ""
+   "foo :: Id 'Fo_|_o -> Int"
+   "foo = undefined"
+   ""
+   "baz :: Foo' -> Int"
+   "baz = undefined"
+   ""
+   "bar :: Foo -> Int"
+   "bar = undefined"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo :: Id 'Foo -> Int"
+   "foo = undefined"
+   ""
+   "baz :: Foo' -> Int"
+   "baz = undefined"
+   ""
+   "bar :: Foo_|_ -> Int"
+   "bar = undefined"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell--search-for-haskell-symbol-at-point-10d
+    (execute-kbd-macro (kbd "*"))
+  (tests-utils--multiline
+   ""
+   "foo :: Id ''Fo_|_o -> Int"
+   "foo = undefined"
+   ""
+   "bar :: Id ''Foo -> Int"
+   "bar = undefined"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo :: Id ''Foo -> Int"
+   "foo = undefined"
+   ""
+   "bar :: Id ''Foo_|_ -> Int"
+   "bar = undefined"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell--search-for-haskell-symbol-at-point-10e
+    (execute-kbd-macro (kbd "*"))
+  (tests-utils--multiline
+   ""
+   "foo :: Id ''Fo_|_o -> Int"
+   "foo = undefined"
+   ""
+   "bar :: Id 'Foo -> Int"
+   "bar = undefined"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo :: Id ''Foo -> Int"
+   "foo = undefined"
+   ""
+   "bar :: Id 'Foo_|_ -> Int"
+   "bar = undefined"
+   ""))
+
 (provide 'vim-tests)
 
 ;; Local Variables:
