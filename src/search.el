@@ -652,7 +652,7 @@ obvious"
 (search--make-search-for-thing
     search-for-haskell-symbol-at-point-forward
     search-for-haskell-symbol-at-point-forward-new-color
-    (bounds-of-thing-at-point 'haskell-symbol)
+    (bounds-of-thing-at-point 'qualified-haskell-symbol)
     (lambda (x) `(search--next-impl ,x))
   :is-forward t
   :regex-start-func #'search-for-haskell-symbol-at-point-regex-start-func
@@ -665,7 +665,7 @@ obvious"
 (search--make-search-for-thing
     search-for-haskell-symbol-at-point-backward
     search-for-haskell-symbol-at-point-backward-new-color
-    (bounds-of-thing-at-point 'haskell-symbol)
+    (bounds-of-thing-at-point 'qualified-haskell-symbol)
     (lambda (x) `(search--prev-impl ,x))
   :is-forward nil
   :regex-start-func #'search-for-haskell-symbol-at-point-regex-start-func
