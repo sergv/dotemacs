@@ -5187,13 +5187,13 @@ _|_bar")
     (execute-kbd-macro (kbd "*"))
   (tests-utils--multiline
    ""
-   "foo x = Foo.Bar.de_|_combobulate x + y"
+   "foo x = Foo.Bar.de_|_combobulate x + decombobulate y"
    "  where"
    "    y = Foo.Bar.decombobulate (x + x)"
    "")
   (tests-utils--multiline
    ""
-   "foo x = Foo.Bar.decombobulate x + y"
+   "foo x = Foo.Bar.decombobulate x + decombobulate y"
    "  where"
    "    y = Foo.Bar.decombobulate_|_ (x + x)"
    ""))
