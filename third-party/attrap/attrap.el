@@ -765,13 +765,30 @@ Error is given as MSG and reported between POS and END."
     ;;     Not in scope: type constructor or class ‘MonadMask’
     ;;     Suggested fix:
     ;;       Perhaps use ‘MC.MonadMask’ (imported from Control.Monad.Catch)
+    ;;
+    ;; warning: [GHC-88464] [-Wdeferred-out-of-scope-variables]
+    ;;     Variable not in scope:
+    ;;       withWindow
+    ;;         :: Int -> Int -> String -> (GLFW.Window -> IO ()) -> IO a0
+    ;;     Suggested fix:
+    ;;       Perhaps use ‘GLFW.hideWindow’ (imported from Graphics.UI.GLFW)
     (when (string-match
-           (rx (ghc-error "76037")
+           (rx (or (ghc-error "76037")
+                   (seq (ghc-warning "88464") " [-Wdeferred-out-of-scope-variables]"))
                (+ ws)
-               "Not in scope: type constructor or class"
-               (+ ws)
-               (identifier 1)
-               (+ ws)
+               (or (seq "Not in scope: type constructor or class"
+                        (+ ws)
+                        (identifier 1)
+                        (+ ws))
+                   (seq (or "Variable"
+                            "Data constructor")
+                        " not in scope:"
+                        (+ ws)
+                        (name-capture 1)
+                        (+ ws)
+                        "::"
+                        (+ (+ (not ?\n))
+                           (+ ws))))
                "Suggested fix:"
                (+ ws)
                "Perhaps use "
