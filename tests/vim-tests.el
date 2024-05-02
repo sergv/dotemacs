@@ -1734,6 +1734,29 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+    vim-tests/haskell-motion-inner-symbol-number
+    ((haskell-mode (haskell-mode))
+     (haskell-ts-mode (haskell-ts-mode)))
+  ((is (execute-kbd-macro (kbd ", i s")))
+   (s (execute-kbd-macro (kbd ", s"))))
+  ((1 (tests-utils--multiline
+       ""
+       "foo x = x + _|_100"
+       ""))
+   (2 (tests-utils--multiline
+       ""
+       "foo x = x + 10_|_0"
+       ""))
+   (3 (tests-utils--multiline
+       ""
+       "foo x = x + 1_|_00"
+       "")))
+  (tests-utils--multiline
+   ""
+   "foo x = x +_|_ "
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     vim-tests/haskell-motion-inner-symbol-value-after-operator
     ((haskell-mode (haskell-mode))
      (haskell-ts-mode (haskell-ts-mode)))
@@ -5372,6 +5395,27 @@ _|_bar")
    ""
    "bar :: Id 'Foo_|_ -> Int"
    "bar = undefined"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell--search-for-haskell-symbol-at-point-11
+    (execute-kbd-macro (kbd "*"))
+  (tests-utils--multiline
+   ""
+   "foo :: XXX -> Int"
+   "foo x = x + _|_1000"
+   ""
+   "bar :: Int"
+   "bar = 1000"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo :: XXX -> Int"
+   "foo x = x + 1000"
+   ""
+   "bar :: Int"
+   "bar = 1000_|_"
    ""))
 
 (provide 'vim-tests)
