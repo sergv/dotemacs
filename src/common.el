@@ -1474,10 +1474,11 @@ and cdr is a boolean whether any element was let out."
   "Return t if STR contains character C."
   (let* ((i 0)
          (len (length str))
-         (continue (< i len))
+         (continue (and c
+                        (< i len)))
          (res nil))
     (while continue
-      (if (char-equal c (aref str i))
+      (if (eq c (aref str i))
           (setf continue nil
                 res t)
         (setf i (+ i 1)
