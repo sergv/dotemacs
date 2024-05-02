@@ -448,8 +448,8 @@ extensions as a list of strings. Leaves point at the end of pragma"
         (unless include-quotes?
           (skip-chars-forward "'"))
         (when (looking-at (if core-mode?
-                              haskell-regexen/core/opt-q/varid-or-conid-or-operator
-                            haskell-regexen/opt-q/varid-or-conid-or-operator))
+                              haskell-regexen/core/opt-q/varid-or-conid-or-operator-or-number
+                            haskell-regexen/opt-q/varid-or-conid-or-operator-or-number))
           (if qualified?
               (cons (match-beginning 0) (match-end 0))
             (cons (match-beginning 1) (match-end 1))))))))
@@ -508,15 +508,17 @@ extensions as a list of strings. Leaves point at the end of pragma"
   "A boundary selector for haskell symbols, qualified names like Foo.Bar.baz will be treated as
 containining distinct words between the dot."
   (funcall (vim--union-boundary (lambda (dir)
-                                  (let ((bnds (haskell-misc--bounds-of-symbol-impl qualified? nil nil t)))
+                                  (when-let* ((bnds (haskell-misc--bounds-of-symbol-impl qualified? nil nil t))
+                                              (start (car bnds))
+                                              (end (cdr bnds)))
                                     (pcase dir
                                       (`fwd
-                                       (1- (cdr bnds)))
+                                       (1- end))
                                       (`bwd
-                                       (car bnds))
+                                       start)
                                       (_
                                        (error "Invalid boundary direction: %s" dir)))))
-                                (lambda (dir) (vim-boundary--empty-line dir)))
+                                #'vim-boundary--empty-line)
            direction))
 
 (defun vim-boundary--haskell-symbol (direction)
