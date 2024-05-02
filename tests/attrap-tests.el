@@ -588,6 +588,48 @@
  (attrap-tests-make-ephemeral-haskell-eproj-project
   '(("WithCallStack" "/tmp/Test/Foo/Bar.hs" 100 ?t nil))))
 
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/add-to-import-import-list-1
+ :flycheck-errors
+ (list
+  (let ((linecol (save-excursion
+                   (re-search-forward "_|_")
+                   (flycheck-line-column-at-pos (point)))))
+    (flycheck-error-new
+     :line (car linecol)
+     :column (cdr linecol)
+     :buffer (current-buffer)
+     :checker 'haskell-dante
+     :message
+     (tests-utils--multiline
+      "warning: [GHC-88464] [-Wdeferred-out-of-scope-variables}"
+      "Variable not in scope: foo :: Int -> Double"
+      "Suggested fix:"
+      "  Add ‘foo’ to the import list in the import of"
+      "  ‘Decombobulate’"
+      "  (at /foo/bar/baz/Quux.hs:2:1-26)")
+     :level 'error
+     :id nil
+     :group nil)))
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Decombobulate (bar)"
+  ""
+  "test :: Int -> Double"
+  "test x = _|_foo x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Decombobulate (bar, foo)"
+  ""
+  "test :: Int -> Double"
+  "test x = _|_foo x"
+  ""))
+
 (provide 'attrap-tests)
 
 ;; Local Variables:
