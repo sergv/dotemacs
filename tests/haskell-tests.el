@@ -775,6 +775,15 @@ have different input states."
   " x_|_:xs")
 
 (haskell-tests--test-result
+    haskell-tests/bounds-of-haskell-symbol-13
+  :action
+  (substring-no-properties (thing-at-point 'haskell-symbol))
+  :expected-value
+  "100"
+  :contents
+  " _|_100 ")
+
+(haskell-tests--test-result
     haskell-tests/bounds-of-ghc-core-symbol-1
   :action
   (substring-no-properties (thing-at-point 'ghc-core-symbol))

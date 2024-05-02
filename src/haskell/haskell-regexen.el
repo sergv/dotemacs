@@ -110,15 +110,18 @@
   (concat "\\(?:" haskell-regexen/modid "\\.\\)?"
           "\\(?:" haskell-regexen/varid "\\|" haskell-regexen/conid "\\)"))
 
-(defconst haskell-regexen/opt-q/varid-or-conid-or-operator
+(defconst haskell-regexen/number
+  "[+-]?[0-9]+\\(?:\\.[0-9]+\\)?\\(?:[eE][+-]?[0-9]+\\)?")
+
+(defconst haskell-regexen/opt-q/varid-or-conid-or-operator-or-number
   (concat "\\(?:" "'*" haskell-regexen/modid-raw "\\.\\)?"
           "\\(?1:"
           "'*"
-          "\\(?:" haskell-regexen/varid "\\|" haskell-regexen/conid-raw "\\|" haskell-regexen/operator "\\)"
+          "\\(?:" haskell-regexen/varid "\\|" haskell-regexen/conid-raw "\\|" haskell-regexen/operator "\\|" haskell-regexen/number "\\)"
           "\\)"
           ))
 
-(defconst haskell-regexen/core/opt-q/varid-or-conid-or-operator
+(defconst haskell-regexen/core/opt-q/varid-or-conid-or-operator-or-number
   (concat "\\(?:" "'*"
           "\\(?:" "\\(?:" haskell-regexen/core/pkgid ":\\)?" haskell-regexen/modid-raw "\\.\\)"
           "\\|"
@@ -136,6 +139,8 @@
                   "\\|" haskell-regexen/varid
                   "\\)")
           "\\)"
+          "\\|"
+          haskell-regexen/number
           "\\)"))
 
 ;; ;; (old-sym "[-!#$%&*+./<=>?@^|~:\\]+")
