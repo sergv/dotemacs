@@ -787,8 +787,7 @@ Error is given as MSG and reported between POS and END."
                         (name-capture 1)
                         (+ ws)
                         "::"
-                        (+ (+ (not ?\n))
-                           (+ ws))))
+                        (+ anything)))
                "Suggested fix:"
                (+ ws)
                "Perhaps use "
