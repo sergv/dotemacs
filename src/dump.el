@@ -83,7 +83,6 @@
 
     (require 'messages-buffer-setup)
 
-    (require 'browse-kill-ring)
     (require 'company)
     (require 'company-mode-setup)
     (require 'el-patch)
@@ -157,6 +156,8 @@
     (require 'toml-mode-setup)
     (require 'typography-setup)
     ;; (require 'undo-tree-setup)
+
+    (require 'bkr)
 
     (require 'shell-setup)
     (require 'shell-completion)
