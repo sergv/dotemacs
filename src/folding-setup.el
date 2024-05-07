@@ -166,7 +166,7 @@ Original match data is restored upon return."
               (comment-format-line-regexp it)))
            (comment-start
             (trim-whitespace-right (regexp-quote comment-start)))
-           ((memq major-mode '(select-mode text-mode flycheck-error-message-mode))
+           ((memq major-mode '(bkr-mode select-mode text-mode flycheck-error-message-mode))
             "\\(?:#\\|//\\)")
            (t
             (error "Mode %s has no comment format defined for hideshow to use"
