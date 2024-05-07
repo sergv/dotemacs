@@ -141,7 +141,7 @@
 
 (defcustom vim-initial-modes
   (list (cons 'Custom-mode nil)
-        (cons 'browse-kill-ring-mode nil)
+        (cons 'bkr-mode nil)
         (cons 'calendar-mode nil)
         (cons 'completion-list-mode nil)
         (cons 'debugger-mode nil)

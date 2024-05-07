@@ -39,6 +39,7 @@
         magit-stash-mode
         magit-status-mode
 
+        bkr-mode
         dired-mode
         haskell-compilation-mode
         rust-compilation-mode
