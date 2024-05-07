@@ -18,7 +18,7 @@
        (append
         mmm-never-modes
         '(Custom-mode
-          browse-kill-ring-mode
+          bkr-mode
           calendar-mode
           clojure-compilation-mode
           compilation-mode

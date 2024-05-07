@@ -50,13 +50,14 @@ or just to bury selection buffer, leaving it's windows inplace (nil).)"
   (epilogue              nil                    :read-only t) ;; String that will be inserted at the bottom of the buffer;
   (separator             select-mode-bold-separator :read-only t) ;; Separator
 
-  (selected-item         nil) ;; Number, index of selected item withit items field.
+  (selected-item         nil) ;; Number, index of selected item within items field.
   (items                 nil) ;; Vector of possible selections.
   (item-positions        nil) ;; Vector of positions for tracking current selection.
   (items-count           nil) ;; Number of items and item-positions
 
   (selection-overlay     nil :read-only t) ;; Overlay that displays currently selected item.
 
+  (on-selection-moved-function #'ignore :read-only t) ;; A function of item index, called each time command is executed with index of item under cursor
   )
 
 (defvar-local select-mode--current-state nil
@@ -114,15 +115,18 @@ or just to bury selection buffer, leaving it's windows inplace (nil).)"
 (cl-defun select-mode-start-selection (items
                                        &key
                                        (buffer-name "Selection")
+                                       before-render-state
                                        after-init
                                        (on-selection #'ignore)
+                                       (on-selection-moved #'ignore)
                                        item-show-function
                                        (preamble "")
                                        (epilogue "")
                                        (separator select-mode-bold-separator)
                                        (working-directory nil)
                                        (read-only t)
-                                       (enable-undo nil))
+                                       (enable-undo nil)
+                                       (mode nil))
   "Initiate select session.
 
 ON-SELECTION - function of 2 arguments, index of selected item inside ITEMS collection
@@ -152,7 +156,9 @@ case `default-directory' will be used.
                              (current-buffer)
                            (switch-to-buffer-other-window buffer-name))
       (read-only-mode -1)
-      (select-mode)
+      (if mode
+          (funcall mode)
+        (select-mode))
 
       (cd working-dir)
       ;; Disable undo tracking in this buffer
@@ -179,6 +185,7 @@ case `default-directory' will be used.
 
                      :item-show-function item-show-function
                      :on-selection-function on-selection
+                     :on-selection-moved-function on-selection-moved
                      :preamble preamble
                      :epilogue epilogue
                      :separator separator
@@ -189,6 +196,9 @@ case `default-directory' will be used.
                      :items-count items-count
 
                      :selection-overlay selection-overlay)))
+
+      (when before-render-state
+        (funcall before-render-state))
 
       (select-mode--render-state select-mode--current-state)
 
@@ -209,6 +219,8 @@ case `default-directory' will be used.
     (move-overlay (select-mode--state-selection-overlay state)
                   start
                   end)
+    (funcall (select-mode--state-on-selection-moved-function state)
+             idx)
     (force-mode-line-update)))
 
 (defun select-mode-on-selectable-items (f)
@@ -269,7 +281,10 @@ by the user)."
                     (< pos (car pos-pair))))))
     (if (and selection-idx
              (< selection-idx (length positions))
-             (select-mode--pos-inside-pos-pair pos (aref positions selection-idx)))
+             (or (select-mode--pos-inside-pos-pair pos (aref positions selection-idx))
+                 (and (= 0 selection-idx)
+                      (< 0 (length positions))
+                      (< pos (car (aref positions 0))))))
         (select-mode--move-selection-to select-mode--current-state selection-idx nil)
       (move-overlay (select-mode--state-selection-overlay select-mode--current-state)
                     (point-min)
@@ -364,6 +379,14 @@ by the user)."
                 (select-mode--state-items-count select-mode--current-state)    items-count)
           (select-mode--render-state select-mode--current-state))
       (set-buffer-modified-p nil))))
+
+(defun select-mode-remove-item! (idx)
+  (cl-assert select-mode--current-state)
+  (let ((old-items (select-mode--state-items select-mode--current-state))
+        (selected-idx (select-mode--state-selected-item select-mode--current-state)))
+    (select-mode-update-items (vconcat (subseq old-items 0 idx)
+                                       (subseq old-items (+ idx 1)))
+                              selected-idx)))
 
 (provide 'select-mode)
 
