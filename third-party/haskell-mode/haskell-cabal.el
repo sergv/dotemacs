@@ -410,7 +410,7 @@
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.cabal\\'" . haskell-cabal-mode))
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.cabal\\(?:[./\\]config.*\\)\\'" . haskell-cabal-config-mode))
+(add-to-list 'auto-mode-alist '("\\.cabal[/\\]config\\'" . haskell-cabal-config-mode))
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("cabal\\.\\(?:config\\|project\\).*\\'" . haskell-cabal-project-mode))
 
