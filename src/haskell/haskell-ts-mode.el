@@ -25,19 +25,21 @@
                (cons :feature
                      (cons (car it)
                            (list (cdr it))))))
-   '((comment
-      ((comment) @font-lock-comment-face))
+   '((everyone
 
-     (constant
-      ([(integer) (float)] @font-lock-constant-face))
+      ;; comment
+      ((comment) @font-lock-comment-face)
 
-     (string
-      ([(char) (string) (quasiquote_body)] @font-lock-string-face))
+      ;; constant
+      ([(integer) (float)] @font-lock-constant-face)
 
-     (preprocessor
-      ([(pragma) (cpp)] @haskell-pragma-face))
+      ;; string
+      ([(char) (string) (quasiquote_body)] @font-lock-string-face)
 
-     (keyword
+      ;; preprocessor
+      ([(pragma) (cpp)] @haskell-pragma-face)
+
+      ;; keyword
       (exp_lambda_cases
        "\\"
        ("cases" @haskell-keyword-face))
@@ -85,9 +87,9 @@
         "qualified"
         "module"
         ]
-       @haskell-keyword-face))
+       @haskell-keyword-face)
 
-     (operator
+      ;; operator
       ([
         (operator)
         ;; Must come before (module) to override it.
@@ -110,32 +112,31 @@
        @haskell-operator-face)
       ("`" @haskell-operator-face
        [(variable) (qualified_variable) (constructor) (qualified_constructor)] @haskell-operator-face
-       "`" @haskell-operator-face))
+       "`" @haskell-operator-face)
 
-     (type
+      ;; type
       ;; ((signature name: (variable) @font-lock-type-face))
-      ([(qualified_type) (type)] @haskell-type-face))
+      ([(qualified_type) (type)] @haskell-type-face)
 
-     (constructor
-      ([(constructor) (qualified_constructor) (con_unit) (constructor_operator)] @haskell-type-face))
+      ;; constructor
+      ([(constructor) (qualified_constructor) (con_unit) (constructor_operator)] @haskell-type-face)
 
-     (module-name
+      ;; module-name
       ;; Must come before (module) to override it.
       ((qualified_variable) @default)
-      ([(module) (qualified_module)] @haskell-type-face))
+      ([(module) (qualified_module)] @haskell-type-face)
 
-     (strictness
+      ;; strictness
       ((strict_type) @haskell-ts-mode--fontify-bang)
-      ((pat_strict) @haskell-ts-mode--fontify-bang))
+      ((pat_strict) @haskell-ts-mode--fontify-bang)
 
-     (laziness
+      ;; laziness
       ((lazy_type) @haskell-ts-mode--fontify-tilde)
-      ((pat_irrefutable) @haskell-ts-mode--fontify-tilde))
+      ((pat_irrefutable) @haskell-ts-mode--fontify-tilde)
 
-     ;; (quasiquote
-     ;;  (quoter) @injection.language
-     ;;  (quasiquote_body) @injection.content)
-     )))
+      ;; quasiquote
+      (quoter) @injection.language
+      (quasiquote_body) @injection.content))))
 
 (defconst haskell-ts-indent-rules
   `(((parent-is ,(rx bos "exp_do" eos)) parent-bol 2)))
@@ -187,16 +188,7 @@ not be treated as comment start."
 
   (setq-local font-lock-defaults nil
               treesit-font-lock-feature-list
-              '((comment keyword)
-                (preprocessor
-                 operator
-                 constant
-                 string
-                 type
-                 module-name
-                 constructor
-                 strictness
-                 laziness)))
+              '((everyone)))
 
   (let ((res (treesit-language-available-p 'haskell t)))
     (unless (car res)
