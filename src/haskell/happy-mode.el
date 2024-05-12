@@ -40,26 +40,6 @@
 
 (require 'polymode)
 
-;;;; prelude
-
-(defmacro happy--rxx (definitions &rest main-expr)
-  "Return `rx' invokation of main-expr that has symbols defined in
-DEFINITIONS substituted by definition body. DEFINITIONS is list
-of let-bindig forms, (<symbol> <body>). No recursion is permitted -
-no defined symbol should show up in body of its definition or in
-body of any futher definition."
-  (declare (indent 1))
-  (let ((def (cl-find-if (lambda (def) (not (= 2 (length def)))) definitions)))
-    (when def
-      (error "happy-rxx: every definition should consist of two elements: (name def), offending definition: %s"
-             def)))
-  `(rx ,@(cl-reduce (lambda (def expr)
-                      (cl-subst (cadr def) (car def) expr
-                                :test #'eq))
-                    definitions
-                    :initial-value main-expr
-                    :from-end t)))
-
 ;;;; happy mode
 
 (defconst happy-colon-column 16 "\
@@ -92,20 +72,20 @@ body of any futher definition."
   "Syntax table in use in happy-mode buffers.")
 
 (defconst happy-mode-rule-start-regexp
-  (happy--rxx ((ws (* (any ?\s ?\t)))
-               (ws-nl (* (any ?\s ?\t ?\n ?\r))))
-    bol
-    ws
-    (+ (or (syntax word)
-           (syntax symbol)))
-    ws
-    (? "::"
-       ws
-       "{"
-       (* (not (any ?\})))
-       "}"
-       ws-nl)
-    ":"))
+  (rx-let ((ws (* (any ?\s ?\t)))
+           (ws-nl (* (any ?\s ?\t ?\n ?\r))))
+    (rx bol
+        ws
+        (+ (or (syntax word)
+               (syntax symbol)))
+        ws
+        (? "::"
+           ws
+           "{"
+           (* (not (any ?\})))
+           "}"
+           ws-nl)
+        ":")))
 
 (defconst happy-mode-rule-start-or-body-regexp
   "^[ \t]*\\(?:\\(?:\\s_\\|\\sw\\)+[ \t]*:\\||\\)")
@@ -160,20 +140,24 @@ body of any futher definition."
                 nil ;; no special syntax provided
                 ))
 
-  (setq-local paragraph-start (concat "^$\\|" page-delimiter))
-  (setq-local paragraph-separate paragraph-start)
-  (setq-local paragraph-ignore-fill-prefix t)
-  (setq-local indent-line-function 'happy-indent-line)
-  (setq-local require-final-newline t)
-  (setq-local comment-start "--")
-  (setq-local comment-end "")
-  (setq-local comment-column 32)
-  (setq-local comment-start-skip "--+ *")
-  (setq-local parse-sexp-ignore-comments t)
-  ;; (setq-local selective-display t)
-  ;; (setq-local selective-display-ellipses t)
+  (setq-local paragraph-start (concat "^$\\|" page-delimiter)
+              paragraph-separate paragraph-start
+              paragraph-ignore-fill-prefix t
+              indent-line-function 'happy-indent-line
+              require-final-newline t
+              comment-start "--"
+              comment-end ""
+              comment-column 32
+              comment-start-skip "--+ *"
+              parse-sexp-ignore-comments t
+              ;; selective-display t
+              ;; selective-display-ellipses t
+              )
+
   (make-local-variable 'block-indent-level)
-  (make-local-variable 'auto-fill-hook))
+  (make-local-variable 'auto-fill-hook)
+
+  (setq-local parse-sexp-lookup-properties t))
 
 (defun happy-in-literal-context? (start end)
   "Check whether end is in literal context."
@@ -348,15 +332,15 @@ Return the amount the indentation changed by."
                (goto-char (point-min))
                (or (not (re-search-forward "^%%" limit t))
                    (happy-in-literal-context?
-                          (save-excursion
-                            (goto-char limit)
-                            (if (re-search-backward
-                                 happy-mode-rule-start-regexp
-                                 nil
-                                 t)
-                              (- (match-end 0) 1)
-                              (point-min)))
-                          limit)))))
+                    (save-excursion
+                      (goto-char limit)
+                      (if (re-search-backward
+                           happy-mode-rule-start-regexp
+                           nil
+                           t)
+                          (- (match-end 0) 1)
+                        (point-min)))
+                    limit)))))
          (setq indent nil))
         ((save-excursion
            (beginning-of-line)
@@ -365,7 +349,7 @@ Return the amount the indentation changed by."
         (t
          (beginning-of-line)
          (if (looking-at-p happy-mode-rule-start-regexp)
-           (setq indent 0)
+             (setq indent 0)
            (progn
              (forward-line -1)
              (while (not (or (bobp)
@@ -380,10 +364,14 @@ Return the amount the indentation changed by."
       (skip-chars-forward " \t"))
     indent))
 
-;;;; haskell-blocks mode to highlight Haskell regions in Happy files
+;;;; Detection of bounds of Haskell sources within Happy/Alex files
 
 (defconst haskell-blocks-default-syntax-table
   (let ((tbl (make-syntax-table)))
+    (modify-syntax-entry ?\( "."     tbl)
+    (modify-syntax-entry ?\) "."     tbl)
+    (modify-syntax-entry ?\[ "."     tbl)
+    (modify-syntax-entry ?\] "."     tbl)
     (modify-syntax-entry ?\{ "(}1nb" tbl)
     (modify-syntax-entry ?\} "){4nb" tbl)
     (modify-syntax-entry ?\' "."     tbl)
@@ -394,23 +382,52 @@ Return the amount the indentation changed by."
   "Syntax table to help detecting Haskell regions in Alex and Happy files.")
 
 (defun poly-alex-happy-find-front (direction)
-  (with-syntax-table haskell-blocks-default-syntax-table
+  (let* ((fmt (comment-util-current-format))
+         (continue t)
+         (result nil)
+         (search-forward? (< 0 direction))
+         (search (if search-forward?
+                     #'re-search-forward
+                   #'re-search-backward)))
     (save-match-data
-      (when (if (< 0 direction)
-                (re-search-forward "{[ \r\n%]" nil t)
-              (re-search-backward "{[ \r\n%]" nil t))
-        (cons (match-beginning 0) (match-end 0))))))
+      (with-syntax-table haskell-blocks-default-syntax-table
+        (let ((parse-sexp-lookup-properties nil))
+          (while continue
+            (if (funcall search "{[ \t\r\n%]" nil t)
+                (progn
+                  (goto-char (match-end 0))
+                  (if (comment-util--on-commented-line? fmt)
+                      (goto-char (if search-forward?
+                                     (line-end-position)
+                                   (line-beginning-position)))
+                    (let* ((syntax-state (parse-partial-sexp (point-min) (point)))
+                           (in-comment-or-string? (nth 8 syntax-state)))
+                      (if in-comment-or-string?
+                          (if search-forward?
+                              (parse-partial-sexp (point)
+                                                  (point-max)
+                                                  nil
+                                                  nil
+                                                  syntax-state
+                                                  'syntax-table ;; stop when comment ends
+                                                  )
+                            (goto-char in-comment-or-string?))
+                        (let ((open-positions (nth 9 syntax-state)))
+                          (when open-positions
+                            (let ((outermost (car open-positions)))
+                              (setf result (cons outermost (+ 2 outermost)))))
+                          (setf continue nil))))))
+              (setf continue nil))))))
+    result))
 
 (defun poly-alex-happy-find-tail (_direction)
-  (with-syntax-table haskell-blocks-default-syntax-table
-    (when (when (not (zerop (skip-chars-backward "%\n\r ")))
-            (when-let ((c (char-before)))
-              (and (eq c ?\{)
-                   (progn
-                     (backward-char 1)
-                     t))))
-      (cl-assert (eq (char-after) ?\{))
-      (forward-sexp 1)
+  (skip-chars-backward " \t\r\n%")
+  (when-let ((prev (char-before)))
+    (when (eq prev ?\{)
+      (forward-char -1)
+      (with-syntax-table haskell-blocks-default-syntax-table
+        (let ((parse-sexp-lookup-properties nil))
+          (forward-sexp 1)))
       (cons (1- (point)) (point)))))
 
 ;;;; happy-mode
@@ -423,8 +440,12 @@ Return the amount the indentation changed by."
   :head-matcher #'poly-alex-happy-find-front
   :tail-matcher #'poly-alex-happy-find-tail
   :head-mode 'host
-  :tail-mode 'host)
+  :tail-mode 'host
+  :allow-nested nil
+  :can-nest nil
+  :protect-syntax t)
 
+;;;###autoload (autoload 'happy-mode "happy-mode" nil t)
 (define-polymode happy-mode
   :hostmode 'poly-happy-hostmode
   :innermodes '(poly-alex-happy-haskell-innermode))
