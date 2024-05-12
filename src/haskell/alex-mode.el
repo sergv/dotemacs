@@ -10,7 +10,15 @@
   (require 'macro-util))
 
 (require 'common)
-(require 'mmm-auto)
+
+(require 'polymode)
+
+(define-hostmode poly-alex-hostmode
+  :mode 'alex-grammar-mode)
+
+(define-polymode alex-mode
+  :hostmode 'poly-alex-hostmode
+  :innermodes '(poly-alex-happy-haskell-innermode))
 
 (defconst alex-colon-column 16 "\
 *The column in which to place a colon separating a token from its definition.")
@@ -18,12 +26,12 @@
 (defconst alex-percent-column 41 "\
 *The column in which to place a percent introducing a modifier (e.g. %prec).")
 
-(defvar alex-mode-map
+(defvar alex-grammar-mode-map
   (let ((keymap (make-sparse-keymap)))
     keymap)
   "Keymap used in alex mode.")
 
-(defvar alex-mode-syntax-table
+(defvar alex-grammar-mode-syntax-table
   (let ((tbl (make-syntax-table)))
     (modify-syntax-entry ?/ ". 14"  tbl)
     (modify-syntax-entry ?* ". 23"  tbl)
@@ -37,9 +45,9 @@
     (modify-syntax-entry ?-  ". 12" tbl)
     (modify-syntax-entry ?\n ">"    tbl)
     tbl)
-  "Syntax table in use in alex-mode buffers.")
+  "Syntax table in use in alex-grammar-mode buffers.")
 
-(defvar alex-mode-font-lock-keywords
+(defvar alex-grammar-mode-font-lock-keywords
   `((,(rx (or "%wrapper"
               ":-"))
      (0 'font-lock-keyword-face))
@@ -69,10 +77,9 @@
   "Highlight definitions of alex distinctive constructs for font-lock.")
 
 ;;;###autoload
-(define-derived-mode alex-mode prog-mode "Alex"
+(define-derived-mode alex-grammar-mode prog-mode "Alex"
   "Major mode for editing Alex files."
-  (set (make-local-variable 'font-lock-defaults)
-       '(alex-mode-font-lock-keywords))
+  (setq-local font-lock-defaults '(alex-grammar-mode-font-lock-keywords))
 
   (setq-local paragraph-start (concat "^$\\|" page-delimiter)
               paragraph-separate paragraph-start
