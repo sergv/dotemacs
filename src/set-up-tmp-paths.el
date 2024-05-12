@@ -125,7 +125,6 @@ directories whose absolute path matches IGNORED-DIR-RE."
        "lua-mode/test"
        "magit/t"
        "markdown-mode/tests"
-       "mmm-mode/tests"
        (seq "org-mode/" (or "mk" "testing"))
        "s.el/dev")))
 

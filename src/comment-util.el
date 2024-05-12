@@ -125,8 +125,10 @@ Intended to be used with comment-util-mode."
               haskell-cabal-config-mode
               haskell-cabal-project-mode
               alex-mode
+              alex-grammar-mode
               uuag-mode
               happy-mode
+              happy-grammar-mode
               agda2-mode
               lean-mode
               sql-mode
