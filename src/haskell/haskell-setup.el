@@ -386,7 +386,6 @@ _<tab>_: reindent  _h_: jump to topmont node end"
     (("iS" "S") vim:motion-inner-qualified-haskell-symbol:interactive)
     ("aS"       vim:motion-outer-qualified-haskell-symbol:interactive)))
 
-
 (defun haskell-setup-common-prelude ()
   (init-common :use-whitespace 'tabs-only)
   (add-hook 'after-save-hook #'haskell-update-eproj-tags-on-save nil t)
