@@ -109,6 +109,7 @@
     (require 'org)
     (require 'org-faces)
     (require 'org-indent)
+    (require 'polymode)
     ;; (require 'posframe)
     (require 'ptx-mode)
     (require 'rainbow-delimiters)
