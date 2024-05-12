@@ -28,34 +28,17 @@
 ;; that's not part of emacs.
 ;;
 ;; Requirements:
-;; This mode depends on recent version of mmm-mode (tested with development HEAD
-;; circa May 2014. But doesn't use fancy features so hopefully should work with
-;; less recent versions just as well).
-;;
-;; Quick setup:
-;;
-;; (require 'happy-mode-autoload)
-;;
-;; (add-to-list 'auto-mode-alist '("\\.happy\\'" . happy-mode))
-;; (mmm-add-mode-ext-class 'happy-mode "\\.happy\\'" 'haskell-blocks)
-;; (add-to-list 'auto-mode-alist '("\\.ly\\'" . happy-mode))
-;; (mmm-add-mode-ext-class 'happy-mode "\\.ly\\'" 'haskell-blocks)
-;; ;; this one is probably going to conflict with another parser generators,
-;; ;; user discretion is advised
-;; (add-to-list 'auto-mode-alist '("\\.y\\'" . happy-mode))
-;; (mmm-add-mode-ext-class 'happy-mode "\\.y\\'" 'haskell-blocks)
-;;
-;; Make sure that haskell-c-mode and haskell-font-lock are available somewhere
-;; in the load path, e.g.
-;; (add-to-list 'load-path "<path-to-haskell-mode-directory>")
+;; This mode depends on of poly-mode.
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib))
 
 (require 'current-column-fixed)
 
-(require 'happy-mode-autoload)
 (require 'haskell-mode)
 (require 'cc-mode)
+
+(require 'polymode)
 
 ;;;; prelude
 
@@ -82,7 +65,7 @@ body of any futher definition."
 (defconst happy-colon-column 16 "\
 *The column in which to place a colon separating a token from its definition.")
 
-(defvar happy-mode-map
+(defvar happy-grammar-mode-map
   (let ((keymap (make-sparse-keymap)))
     (define-key keymap ";"                     #'electric-happy-semi)
     (define-key keymap ":"                     #'electric-happy-colon)
@@ -94,7 +77,7 @@ body of any futher definition."
     keymap)
   "Keymap used in happy mode.")
 
-(defvar happy-mode-syntax-table
+(defvar happy-grammar-mode-syntax-table
   (let ((tbl (make-syntax-table)))
     (modify-syntax-entry ?\{ "(}  " tbl)
     (modify-syntax-entry ?\} "){  " tbl)
@@ -127,7 +110,7 @@ body of any futher definition."
 (defconst happy-mode-rule-start-or-body-regexp
   "^[ \t]*\\(?:\\(?:\\s_\\|\\sw\\)+[ \t]*:\\||\\)")
 
-(defvar happy-mode-font-lock-keywords
+(defvar happy-grammar-mode-font-lock-keywords
   `((,(rx (or "%name"
               "%tokentype"
               "%error"
@@ -168,14 +151,14 @@ body of any futher definition."
      (0 'font-lock-variable-name-face)))
   "Highlight definitions of happy distinctive constructs for font-lock.")
 
-(define-derived-mode happy-mode prog-mode "Happy"
+(define-derived-mode happy-grammar-mode prog-mode "Happy"
   "Major mode for editing Happy files."
-  (set (make-local-variable 'font-lock-defaults)
-       '(happy-mode-font-lock-keywords
-         nil ;; perform syntactic fontification
-         nil ;; do not ignore case
-         nil ;; no special syntax provided
-         ))
+  (setq-local font-lock-defaults
+              '(happy-grammar-mode-font-lock-keywords
+                nil ;; perform syntactic fontification
+                nil ;; do not ignore case
+                nil ;; no special syntax provided
+                ))
 
   (setq-local paragraph-start (concat "^$\\|" page-delimiter))
   (setq-local paragraph-separate paragraph-start)
@@ -408,43 +391,43 @@ Return the amount the indentation changed by."
     (modify-syntax-entry ?-  ". 123" tbl)
     (modify-syntax-entry ?\n ">"     tbl)
     tbl)
-  "Syntax table to help detecting Haskell regions in Happy files.")
+  "Syntax table to help detecting Haskell regions in Alex and Happy files.")
 
-(defun haskell-blocks-verify-location ()
+(defun poly-alex-happy-find-front (direction)
   (with-syntax-table haskell-blocks-default-syntax-table
-    (let* ((state (parse-partial-sexp (point-min)
-                                      (point)))
-           (parens-depth (nth 0 state))
-           (inside-string? (nth 3 state)))
-      (list parens-depth
-            inside-string?))))
+    (save-match-data
+      (when (if (< 0 direction)
+                (re-search-forward "{[ \r\n%]" nil t)
+              (re-search-backward "{[ \r\n%]" nil t))
+        (cons (match-beginning 0) (match-end 0))))))
 
-(defun haskell-blocks-verify-front ()
-  (save-excursion
-    (goto-char (match-end 0))
-    (let ((in-comment? (and (= ?\{ (char-before))
-                            (= ?- (char-after)))))
-      (when (not in-comment?)
-        (haskell-blocks-verify-location)))))
+(defun poly-alex-happy-find-tail (_direction)
+  (with-syntax-table haskell-blocks-default-syntax-table
+    (when (when (not (zerop (skip-chars-backward "%\n\r ")))
+            (when-let ((c (char-before)))
+              (and (eq c ?\{)
+                   (progn
+                     (backward-char 1)
+                     t))))
+      (cl-assert (eq (char-after) ?\{))
+      (forward-sexp 1)
+      (cons (1- (point)) (point)))))
 
-(defun haskell-blocks-verify-back ()
-  (save-excursion
-    (goto-char (match-beginning 0))
-    (unless (= ?- (char-before))
-      (haskell-blocks-verify-location))))
+;;;; happy-mode
 
-(defun haskell-blocks-find-back (bound)
-  "Find end of haskell block."
-  (with-syntax-table
-      haskell-blocks-default-syntax-table
-    (let ((p (point)))
-      (goto-char (match-beginning 0))
-      (forward-sexp)
-      (backward-char)
-      ;; NB must modify match data since mmm expects that
-      (if (< bound (point))
-        nil
-        (looking-at "")))))
+(define-hostmode poly-happy-hostmode
+  :mode 'happy-grammar-mode)
+
+(define-innermode poly-alex-happy-haskell-innermode
+  :mode 'haskell-mode
+  :head-matcher #'poly-alex-happy-find-front
+  :tail-matcher #'poly-alex-happy-find-tail
+  :head-mode 'host
+  :tail-mode 'host)
+
+(define-polymode happy-mode
+  :hostmode 'poly-happy-hostmode
+  :innermodes '(poly-alex-happy-haskell-innermode))
 
 ;;;; utils
 

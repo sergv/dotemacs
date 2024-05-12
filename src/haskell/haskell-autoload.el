@@ -7,8 +7,6 @@
 ;; Description:
 
 (require 'haskell-constants)
-(require 'happy-mode-autoload)
-(require 'mmm-setup)
 
 (add-hook 'ghc-profiling-mode-hook #'ghc-profiling-mode-setup)
 (add-to-list 'auto-mode-alist '("\\.prof\\'" . ghc-profiling-mode))
@@ -19,21 +17,26 @@
 
 (add-hook 'dante-mode-hook #'enable-hlint-after-dante-for-flycheck)
 
-(mmm-add-classes
- '((literate-haskell-latex
-    :submode haskell-mode
-    ;; :face font-lock-function-name-face ;; mmm-output-submode-face
-    :front "^\\\\begin{\\(?:\\(?:new\\)?code\\|spec\\)}$"
-    :include-front nil
-    :front-offset (end-of-line 1)
-    :back "^\\\\end{\\(?:\\(?:new\\)?code\\|spec\\)}$"
-    :include-back nil
-    :back-offset (beginning-of-line -1)
-
-    ;; :front-verify haskell-blocks-verify-front
-    ;; :back haskell-blocks-find-back
-    ;; :back-verify haskell-blocks-verify-back
-    )))
+;; (mmm-add-classes
+;;  '((literate-haskell-latex
+;;     :submode haskell-mode
+;;     ;; :face font-lock-function-name-face ;; mmm-output-submode-face
+;;     :front "^\\\\begin{\\(?:\\(?:new\\)?code\\|spec\\)}$"
+;;     :include-front nil
+;;     :front-offset (end-of-line 1)
+;;     :back "^\\\\end{\\(?:\\(?:new\\)?code\\|spec\\)}$"
+;;     :include-back nil
+;;     :back-offset (beginning-of-line -1)
+;;
+;;     ;; :front-verify haskell-blocks-verify-front
+;;     ;; :back haskell-blocks-find-back
+;;     ;; :back-verify haskell-blocks-verify-back
+;;     )))
+;;
+;; ;; (add-to-list 'auto-mode-alist '("\\.lhs\\(?:-boot\\)?\\'" . latex-mode))
+;;
+;; (dolist (mode '(LaTeX-mode latex-mode))
+;;   (mmm-add-mode-ext-class mode "\\.lhs\\(?:-boot\\)\\'" 'literate-haskell-latex))
 
 (add-to-list 'auto-mode-alist (cons (rx "."
                                         (or "hcr"
@@ -49,11 +52,6 @@
 (add-to-list 'auto-mode-alist '("\\.hs\\(?:-boot\\|ig\\)?\\'" . haskell-mode))
 
 (add-to-list 'auto-mode-alist '("\\.lhs\\(?:-boot\\)?\\'" . haskell-literate-mode))
-
-;; (add-to-list 'auto-mode-alist '("\\.lhs\\(?:-boot\\)?\\'" . latex-mode))
-
-(dolist (mode '(LaTeX-mode latex-mode))
-  (mmm-add-mode-ext-class mode "\\.lhs\\(?:-boot\\)\\'" 'literate-haskell-latex))
 
 (add-to-list 'interpreter-mode-alist '("runghc" . haskell-mode))
 (add-to-list 'interpreter-mode-alist '("runhaskell" . haskell-mode))
@@ -89,12 +87,10 @@
 
 (add-to-list 'auto-mode-alist '("\\.alex\\'" . alex-mode))
 (add-to-list 'auto-mode-alist '("\\.x\\'" . alex-mode))
-(mmm-add-mode-ext-class 'alex-mode "\\.x\\'" 'haskell-blocks)
 
 (add-to-list 'auto-mode-alist '("\\.happy\\'" . happy-mode))
 (add-to-list 'auto-mode-alist '("\\.ly\\'" . happy-mode))
 (add-to-list 'auto-mode-alist '("\\.y\\'" . happy-mode))
-(mmm-add-mode-ext-class 'happy-mode "\\.y\\'" 'haskell-blocks)
 
 (provide 'haskell-autoload)
 
