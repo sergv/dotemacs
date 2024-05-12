@@ -153,6 +153,7 @@
     (require 'select-mode)
     (require 'solarized)
     (require 'spell)
+    (require 'tar-mode-setup)
     (require 'toml-mode-setup)
     (require 'typography-setup)
     ;; (require 'undo-tree-setup)
