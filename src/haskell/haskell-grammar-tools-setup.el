@@ -15,8 +15,6 @@
 (require 'haskell-setup)
 (require 'hydra-setup)
 
-(require 'mmm-setup)
-
 ;;;###autoload
 (defun haskell-grammar-tools-setup ()
   (init-common :use-whitespace 'tabs-only)
