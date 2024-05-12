@@ -44,7 +44,7 @@
         (remove-text-properties s e '(composition nil))))))
 
 (defvar-local prettify-symbols--alist-cache nil
-  "Hash table that caches content of ‘prettify-symbols-alist’.")
+  "Hash table that caches content of ‘prettify-symbols-alist’ to speed up ‘prettify-symbols--compose-symbol’.")
 
 (el-patch-defun prettify-symbols--compose-symbol (alist)
   "Compose a sequence of characters into a symbol.
