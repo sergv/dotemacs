@@ -106,6 +106,8 @@ module Main (main) where
 #define HAVE_DATA_FUNCTOR_IDENTITY
 #endif
 
+import Prelude (IO, Maybe(..), Either(..), FilePath, Bool(..), Char, Eq(..), Ord(..), Semigroup(..), String, Enum(..), Bounded(..), Show(..), ($), unlines, (++), concatMap, putStrLn, (=<<), any, elem, pure, flip, (.), otherwise, const, Functor(..), fst, map, Monoid(..), id, maybe, Num(..), not, fromIntegral)
+
 import qualified Data.ByteString.Char8 as C8
 #if defined(bytestring_10_2_or_later)
 import qualified Data.ByteString.Builder as BS.Builder
