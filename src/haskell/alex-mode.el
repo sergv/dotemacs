@@ -10,12 +10,14 @@
   (require 'macro-util))
 
 (require 'common)
+(require 'happy-mode)
 
 (require 'polymode)
 
 (define-hostmode poly-alex-hostmode
   :mode 'alex-grammar-mode)
 
+;;;###autoload (autoload 'alex-mode "alex-mode" nil t)
 (define-polymode alex-mode
   :hostmode 'poly-alex-hostmode
   :innermodes '(poly-alex-happy-haskell-innermode))
@@ -94,8 +96,11 @@
               ;; selective-display t
               ;; selective-display-ellipses t
               )
+
   (make-local-variable 'block-indent-level)
-  (make-local-variable 'auto-fill-hook))
+  (make-local-variable 'auto-fill-hook)
+
+  (setq-local parse-sexp-lookup-properties t))
 
 ;;;;
 
