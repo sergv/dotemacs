@@ -22,32 +22,45 @@
 
     (haskell-compilation-commands-install! proj)
 
-    (haskell-setup-indentation
-     :offset (eproj-query/haskell/indent-offset proj)
-     :simpler-indentation-by-default t)
-    (setq-local tab-always-indent t
-                indent-line-function
-                (lambda ()
-                  (indent-to standard-indent))))
+    ;; polymode.el will enable indentation within Haskell blocks. On
+    ;; the outside Happy’s indentation rules should apply
+    ;; (haskell-setup-indentation
+    ;;  :offset (eproj-query/haskell/indent-offset proj)
+    ;;  :simpler-indentation-by-default t)
+    ;; (setq-local tab-always-indent t
+    ;;             indent-line-function
+    ;;             (lambda ()
+    ;;               (indent-to standard-indent)))
+    )
   (haskell-setup-folding)
 
   (setq-local beginning-of-defun-function #'haskell-move-to-topmost-start-impl)
 
-  (install-haskell-smart-operators!
-      vim-insert-mode-local-keymap
-    :bind-colon t
-    :bind-hyphen t
-    :track-extensions? t)
-  (setup-eproj-symbnav)
+  ;; polymode will enable smart operators in Haskell blocks. On the outside
+  ;; Happy mode will do the right thing.
+  ;; (install-haskell-smart-operators!
+  ;;     vim-insert-mode-local-keymap
+  ;;   :bind-colon t
+  ;;   :bind-hyphen t
+  ;;   :track-extensions? t)
+  ;; (setup-eproj-symbnav)
+  (haskell-ext-tracking-mode +1)
 
   (dolist (cmd '("c" "compile"))
-    (vim-local-emap cmd  #'vim:haskell-compile))
+    (vim-local-emap cmd #'vim:haskell-compile))
   (dolist (cmd '("cc" "ccompile"))
-    (vim-local-emap cmd  #'vim:haskell-compile-choosing-command))
+    (vim-local-emap cmd #'vim:haskell-compile-choosing-command))
+
   (def-keys-for-map vim-normal-mode-local-keymap
-    ("g" hydra-haskell-vim-normal-g-ext/body))
+    ("g" hydra-haskell-vim-normal-g-ext/body)
+    ("-" hydra-haskell-minus/body))
+
   (def-keys-for-map vim-visual-mode-local-keymap
     ("g" hydra-haskell-vim-visual-g-ext/body))
+
+  (def-keys-for-map vim-insert-mode-local-keymap
+    ;; Reasonably useful for Alex/Happy grammars.
+    ("SPC" haskell-space-with-block-indent))
 
   (haskell-setup-common-editing)
 
