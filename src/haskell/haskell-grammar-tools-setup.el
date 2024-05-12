@@ -17,13 +17,6 @@
 
 (require 'mmm-setup)
 
-(defhydra-derive hydra-haskell-grammar-tools-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
-  "
-_a_lign
-_i_: jump to imports"
-  ("a"     hydra-haskell-align/body)
-  ("i"     vim:haskell-navigate-imports:interactive))
-
 ;;;###autoload
 (defun haskell-grammar-tools-setup ()
   (init-common :use-whitespace 'tabs-only)
@@ -54,7 +47,7 @@ _i_: jump to imports"
   (dolist (cmd '("cc" "ccompile"))
     (vim-local-emap cmd  #'vim:haskell-compile-choosing-command))
   (def-keys-for-map vim-normal-mode-local-keymap
-    ("g" hydra-haskell-grammar-tools-vim-normal-g-ext/body))
+    ("g" hydra-haskell-vim-normal-g-ext/body))
   (def-keys-for-map vim-visual-mode-local-keymap
     ("g" hydra-haskell-vim-visual-g-ext/body))
 
