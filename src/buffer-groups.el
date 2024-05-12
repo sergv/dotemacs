@@ -25,7 +25,9 @@
                             (mode . cmm-mode)
                             (mode . hugs-mode)
                             (mode . alex-mode)
+                            (mode . alex-grammar-mode)
                             (mode . happy-mode)
+                            (mode . happy-grammar-mode)
                             (mode . uuag-mode)
                             (name . ,(rx bos
                                          "*"
