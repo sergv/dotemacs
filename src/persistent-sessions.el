@@ -427,7 +427,9 @@ entries."
                      major-mode
                      nil
                      (sessions/get-special-buffer-variables buf))))
-                (--filter (not (null (buffer-file-name it)))
+                (--filter (and (not (null (buffer-file-name it)))
+                               (not (and (buffer-local-value 'polymode-mode it)
+                                         (buffer-base-buffer it))))
                           buffers)))
          (temporary-buffer-data
           (-map (lambda (buf)
