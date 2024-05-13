@@ -41,6 +41,7 @@
                    "lsp-mode"
                    "lsp-ui"
                    "pkg-info"
+                   "poly-mode"
                    "treepy.el")
                (or "/test/"
                    "/tests/")
