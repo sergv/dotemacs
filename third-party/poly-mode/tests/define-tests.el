@@ -74,4 +74,10 @@
     (should (equal ran-inner-hooks-in-modes '(emacs-lisp-mode poly-head-tail-mode)))
     (should (equal ran-host-hooks-in-modes '(text-mode)))))
 
+(provide 'define-tests)
+
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
+
 ;;; mode-init-tests.el ends here
