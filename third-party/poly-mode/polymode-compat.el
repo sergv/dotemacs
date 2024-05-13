@@ -352,24 +352,24 @@ are passed to ORIG-FUN."
 
 (pm-around-advice 'python-indent-line-function #'pm--python-dont-indent-to-0)
 
-
-;;; Core Font Lock
-(defvar font-lock-beg)
-(defvar font-lock-end)
-(defun pm-check-for-real-change-in-extend-multiline (fun)
-  "Protect FUN from inf-looping at ‘point-max’.
-FUN is `font-lock-extend-region-multiline'. Propagate only real
-changes."
-  ;; fixme: report this ASAP!
-  (let ((obeg font-lock-beg)
-        (oend font-lock-end)
-        (change (funcall fun)))
-    (and change
-         (not (eq obeg font-lock-beg))
-         (not (eq oend font-lock-end)))))
-
-(pm-around-advice #'font-lock-extend-region-multiline
-                  #'pm-check-for-real-change-in-extend-multiline)
+;; 
+;; ;;; Core Font Lock
+;; (defvar font-lock-beg)
+;; (defvar font-lock-end)
+;; (defun pm-check-for-real-change-in-extend-multiline (fun)
+;;   "Protect FUN from inf-looping at ‘point-max’.
+;; FUN is `font-lock-extend-region-multiline'. Propagate only real
+;; changes."
+;;   ;; fixme: report this ASAP!
+;;   (let ((obeg font-lock-beg)
+;;         (oend font-lock-end)
+;;         (change (funcall fun)))
+;;     (and change
+;;          (not (eq obeg font-lock-beg))
+;;          (not (eq oend font-lock-end)))))
+;;
+;; (pm-around-advice #'font-lock-extend-region-multiline
+;;                   #'pm-check-for-real-change-in-extend-multiline)
 
 
 ;;; Editing
