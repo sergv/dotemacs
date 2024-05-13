@@ -267,3 +267,9 @@ Some text
 ;; (profiler-start 'cpu)
 ;; (profiler-report)
 ;; (profiler-stop)
+
+(provide 'span-matcher-tests)
+
+;; Local Variables:
+;; no-byte-compile: t
+;; End:

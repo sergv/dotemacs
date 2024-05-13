@@ -35,7 +35,7 @@ if [[ -z "$tests" ]]; then
     done
         # tests="$tests (require '$(basename "${x%%.el}"))"
 
-    for y in "haskell-mode/tests" "nix-mode/tests" "f.el/test" "rainbow-delimiters"; do
+    for y in "haskell-mode/tests" "nix-mode/tests" "f.el/test" "rainbow-delimiters" "poly-mode/tests"; do
         for x in "$EMACS_ROOT/third-party/$y"/*.el; do
             tests="$tests (require '$(basename "${x%%.el}"))"
             # tests="$tests -l $x"
@@ -63,6 +63,7 @@ fi
       -L "$EMACS_ROOT/third-party/nix-mode/tests" \
       -L "$EMACS_ROOT/third-party/f.el/test" \
       -L "$EMACS_ROOT/third-party/rainbow-delimiters" \
+      -L "$EMACS_ROOT/third-party/poly-mode/tests" \
       --eval "(progn (require 'cl))" \
       --eval "(progn (require 'cl-lib))" \
       -l start \
