@@ -422,7 +422,7 @@ _<tab>_: reindent  _h_: jump to topmont node end"
               search-syntax-table haskell-search-fixed-syntax-table
               search-ignore-syntax-text-properties t))
 
-(defun haskell-setup-common-project ()
+(defun haskell-setup-common-project (set-up-indentation?)
   ;; Read settings from '.eproj-info' file, if any.
   (let (
         ;; NB may be nil.
@@ -430,8 +430,10 @@ _<tab>_: reindent  _h_: jump to topmont node end"
 
     (haskell-compilation-commands-install! proj)
 
-    (haskell-setup-indentation
-     :offset (eproj-query/haskell/indent-offset proj))
+    (when set-up-indentation?
+      (haskell-setup-indentation (eproj-query/haskell/indent-offset proj) nil))
+
+    (haskell-abbrev+-setup nil)
 
     (company-mode +1)
     (setq-local company-backends (if proj
@@ -535,7 +537,7 @@ _<tab>_: reindent  _h_: jump to topmont node end"
 
     (haskell-setup-common-prelude)
 
-    (let ((proj (haskell-setup-common-project)))
+    (let ((proj (haskell-setup-common-project t)))
       (when (not non-vanilla-haskell-mode?)
         (flycheck-setup-from-eproj-deferred
          proj
@@ -627,7 +629,7 @@ _<tab>_: reindent  _h_: jump to topmont node end"
 
     (add-to-list 'flycheck-disabled-checkers 'haskell-hlint)
 
-    (let ((proj (haskell-setup-common-project)))
+    (let ((proj (haskell-setup-common-project t)))
       (flycheck-setup-from-eproj-deferred proj
                                           'haskell-cabal-build
                                           #'ignore
