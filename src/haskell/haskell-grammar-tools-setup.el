@@ -18,20 +18,17 @@
 ;;;###autoload
 (defun haskell-grammar-tools-setup ()
   (init-common :use-whitespace 'tabs-only)
-  (let ((proj (eproj-get-project-for-buf-lax (current-buffer))))
 
-    (haskell-compilation-commands-install! proj)
-
-    ;; polymode.el will enable indentation within Haskell blocks. On
-    ;; the outside Happy’s indentation rules should apply
-    ;; (haskell-setup-indentation
-    ;;  :offset (eproj-query/haskell/indent-offset proj)
-    ;;  :simpler-indentation-by-default t)
-    ;; (setq-local tab-always-indent t
-    ;;             indent-line-function
-    ;;             (lambda ()
-    ;;               (indent-to standard-indent)))
+  (let ((_proj (haskell-setup-common-project
+                ;; polymode.el will enable indentation within Haskell blocks. On
+                ;; the outside Alex’s or Happy’s indentation rules should apply
+                nil)))
     )
+  ;; (setq-local tab-always-indent t
+  ;;             indent-line-function
+  ;;             (lambda ()
+  ;;               (indent-to standard-indent)))
+
   (haskell-setup-folding)
 
   (setq-local beginning-of-defun-function #'haskell-move-to-topmost-start-impl)
