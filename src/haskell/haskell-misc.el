@@ -53,13 +53,13 @@
   "Haskell indentation amount used by functions written as part
 of my home config.")
 
-(cl-defun haskell-setup-indentation (&key offset simpler-indentation-by-default)
+(defun haskell-setup-indentation (offset simpler-indentation-by-default?)
   "Set up bindings and indentation parameters using OFFSET as a
 single indentation unit."
 
   (haskell-indentation-mode +1)
 
-  (if simpler-indentation-by-default
+  (if simpler-indentation-by-default?
       (progn
         (bind-tab-keys #'indent-relative-forward
                        #'indent-relative-backward
@@ -83,8 +83,7 @@ single indentation unit."
                 haskell-indent-offset              real-offset
                 haskell-indentation-layout-offset  real-offset
                 haskell-indentation-starter-offset real-offset
-                haskell-indentation-left-offset    real-offset)
-    (haskell-abbrev+-setup nil)))
+                haskell-indentation-left-offset    real-offset)))
 
 (defmacro haskell-misc--with-expanded-invisible-overlays-in-current-function (&rest body)
   `(with-expanded-invisible-overlays
