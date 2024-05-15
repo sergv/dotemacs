@@ -379,9 +379,7 @@ _<tab>_: reindent  _h_: jump to topmont node end"
               vim-word "[:word:]'"
 
               search-syntax-table haskell-search-fixed-syntax-table
-              search-ignore-syntax-text-properties t
-
-              pseudovim-motion-jump-item-syntax-table haskell-pseudovim-motion-jump-item-fixed-for-pragmas-syntax-table)
+              search-ignore-syntax-text-properties t)
 
   (def-keys-for-map vim-insert-mode-local-keymap
     ("'"  haskell-smart-operators-quote)
@@ -531,6 +529,11 @@ _<tab>_: reindent  _h_: jump to topmont node end"
                         (list
                          " "
                          '(:eval (flycheck-pretty-mode-line))))))))
+
+;;;###autoload
+(defun haskell-ts-setup ()
+  (setq-local pseudovim-motion-jump-item-syntax-table
+              haskell-pseudovim-motion-jump-item-fixed-for-pragmas-syntax-table))
 
 ;;;###autoload
 (defun haskell-setup ()
