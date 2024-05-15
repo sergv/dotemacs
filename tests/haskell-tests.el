@@ -10,6 +10,8 @@
   (require 'cl-lib))
 
 (require 'dante)
+(require 'alex-mode)
+(require 'happy-mode)
 (require 'haskell-abbrev+)
 (require 'haskell-block-indent)
 (require 'haskell-format-setup)
@@ -6971,6 +6973,26 @@ have different input states."
    ""
    "    y = Foo.Bar.decombobulate (x + x)"
    ""))
+
+;; This test may infilitely loop if ‘poly-alex-happy-find-front’ is not implemented correctly.
+(haskell-tests--test-result
+    haskell-tests/poly-alex-happy-find-front-1
+  :action
+  (poly-alex-happy-find-front -1)
+  :expected-value
+  (cons 1 3)
+  :contents
+  (tests-utils--multiline
+   "{"
+   "-_|_- {-# LANGUAGE LambdaCase          #-}"
+   "{-# LANGUAGE OverloadedStrings   #-}"
+   "{-# LANGUAGE ScopedTypeVariables #-}"
+   ""
+   "module Data.Elisp.Parser.Parser (parseSexp, parseProgram) where"
+   ""
+   "import Control.Applicative"
+   ""
+   "}"))
 
 (provide 'haskell-tests)
 
