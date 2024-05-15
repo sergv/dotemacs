@@ -396,7 +396,8 @@ Return the amount the indentation changed by."
             (if (funcall search "{[ \t\r\n%]" nil t)
                 (progn
                   (goto-char (match-end 0))
-                  (if (comment-util--on-commented-line? fmt)
+                  (if (and (not (eq (char-before) ?\n))
+                           (comment-util--on-commented-line? fmt))
                       (goto-char (if search-forward?
                                      (line-end-position)
                                    (line-beginning-position)))
