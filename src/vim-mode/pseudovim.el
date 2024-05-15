@@ -112,6 +112,9 @@
    (min (line-end-position)
         (+ (point) (or count 1)))))
 
+(defvar-local pseudovim-motion-jump-item-syntax-table nil
+  "Override default syntax table for ‘pseudovim-motion-jump-item’.")
+
 (defun pseudovim-motion-jump-item-to-pos (start-pos limit)
   (if limit
       (let ((pmax (point-max))
@@ -124,6 +127,13 @@
     (pseudovim-motion-jump-item-to-pos--impl start-pos)))
 
 (defun pseudovim-motion-jump-item-to-pos--impl (start-pos)
+  (if pseudovim-motion-jump-item-syntax-table
+      (with-syntax-table pseudovim-motion-jump-item-syntax-table
+        (let ((parse-sexp-lookup-properties nil))
+          (pseudovim-motion-jump-item-to-pos--impl2 start-pos)))
+    (pseudovim-motion-jump-item-to-pos--impl2 start-pos)))
+
+(defun pseudovim-motion-jump-item-to-pos--impl2 (start-pos)
   (let* ((next-open
           (condition-case nil
               (1- (scan-lists start-pos 1 -1))
@@ -142,7 +152,7 @@
 
 (defun pseudovim-motion-jump-item ()
   "Find the next item in this line after or under the cursor and
-jumps to the corresponding one."
+jumps to the corresponding one (i.e. jump to matching paren, bracket, etc)."
   (interactive)
   (goto-char (pseudovim-motion-jump-item-to-pos (point) nil)))
 
