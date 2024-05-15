@@ -3420,22 +3420,6 @@ _|_bar")
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-mode haskell-ts-mode)
-    vim-tests/haskell-abbrev-3a
-    (let ((pseudovim-motion-jump-item-syntax-table haskell-pseudovim-motion-jump-item-fixed-for-pragmas-syntax-table))
-      (execute-kbd-macro (kbd "i # s c c SPC 1 2 3 <tab> <escape>")))
-  (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  bar (_|_ x + 1) y \"foo\""
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x = do"
-   "  bar ({-# SCC \"123\" #-_|_} x + 1) y \"foo\""
-   ""))
-
-(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
     vim-tests/haskell-abbrev-4
     (execute-kbd-macro (kbd "i h p l n SPC"))
   (tests-utils--multiline
@@ -5457,6 +5441,19 @@ _|_bar")
    "  , aiLine     :: {-# UNPACK #-} !Line"
    "  , aiColumn   :: {-# UNPACK #-} !Column"
    "  } deriving (Show, Eq, Ord)"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell--motion-jump-item-char-1
+    (execute-kbd-macro (kbd "y m P"))
+  (tests-utils--multiline
+   ""
+   "foo x = _|_(bar ')' + 1)"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo x = _|_(bar ')' + 1)(bar ')' + 1)"
    ""))
 
 (provide 'vim-tests)

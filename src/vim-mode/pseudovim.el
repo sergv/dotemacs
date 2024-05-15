@@ -129,8 +129,7 @@
 (defun pseudovim-motion-jump-item-to-pos--impl (start-pos)
   (if pseudovim-motion-jump-item-syntax-table
       (with-syntax-table pseudovim-motion-jump-item-syntax-table
-        (let ((parse-sexp-lookup-properties nil))
-          (pseudovim-motion-jump-item-to-pos--impl2 start-pos)))
+        (pseudovim-motion-jump-item-to-pos--impl2 start-pos))
     (pseudovim-motion-jump-item-to-pos--impl2 start-pos)))
 
 (defun pseudovim-motion-jump-item-to-pos--impl2 (start-pos)

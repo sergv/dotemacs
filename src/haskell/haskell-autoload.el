@@ -75,6 +75,7 @@
 
 (add-hook 'haskell-mode-hook #'haskell-conditional-setup)
 (add-hook 'haskell-ts-mode-hook #'haskell-conditional-setup)
+(add-hook 'haskell-ts-mode-hook #'haskell-ts-setup)
 (add-hook 'haskell-literate-mode-hook #'haskell-conditional-setup)
 
 (add-hook 'haskell-c2hs-mode-hook #'haskell-c2hs-setup)
