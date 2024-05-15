@@ -13,6 +13,7 @@
 
 (require 'current-column-fixed)
 (require 'dante)
+(require 'haskell-syntax-table)
 
 (defvar-local dante-repl--command-line-to-use nil
   "Pair of command lines both of which can be used to start current
@@ -56,9 +57,12 @@ This variable gets assigned by ‘dante-initialize-method’.")
 
 (defconst +dante-prompt-re+ "^[\4\5] ")
 
+(defconst dante-repl-syntax-table (copy-syntax-table haskell-mode-syntax-table))
+
 ;;;###autoload
 (define-derived-mode dante-repl-mode comint-mode "Dante-REPL"
   "Interactive prompt for Dante."
+  :syntax-table dante-repl-syntax-table
   (setq-local comint-prompt-regexp +dante-prompt-re+
               ;; warning-suppress-types (cons '(undo discard-info) warning-suppress-types)
               comint-prompt-read-only t)
