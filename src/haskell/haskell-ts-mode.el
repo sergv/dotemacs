@@ -134,9 +134,10 @@
       ;; laziness
       ([(lazy_type) (pat_irrefutable)] @haskell-ts-mode--fontify-tilde)
 
-      ;; quasiquote
-      (quoter) @injection.language
-      (quasiquote_body) @injection.content))))
+      ;; ;; quasiquote
+      ;; (quoter) @injection.language
+      ;; (quasiquote_body) @injection.content
+      ))))
 
 (defconst haskell-ts-indent-rules
   `(((parent-is ,(rx bos "exp_do" eos)) parent-bol 2)))
