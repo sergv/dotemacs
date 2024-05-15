@@ -9,6 +9,7 @@
 (eval-when-compile
   (require 'dash))
 
+(require 'haskell-lexeme)
 (require 'haskell-syntax-table)
 (require 'treesit)
 
@@ -167,11 +168,20 @@ not be treated as comment start."
               t)
         (let (node (treesit-node-at (point)))
           (when (or (not node)
-                    (not (gethash (treesit-node-type) haskell-ts---syntax-propertize-nonoperator-node)))
+                    (not (gethash (treesit-node-type node) haskell-ts---syntax-propertize-nonoperator-node)))
             (put-text-property (match-beginning 1)
                                (match-end 1)
                                'syntax-table
-                               (eval-when-compile (string-to-syntax ".")))))))))
+                               (eval-when-compile (string-to-syntax "."))))))
+      (goto-char begin)
+      (while (re-search-forward haskell-lexeme--char-literal-rx end t)
+        (let (node (treesit-node-at (point)))
+          (when (or (not node)
+                    (equal (treesit-node-type note) "char"))
+            (put-text-property (match-beginning 0)
+                               (match-end 0)
+                               'syntax-table
+                               (eval-when-compile (string-to-syntax "\"")))))))))
 
 ;;;###autoload
 (define-derived-mode haskell-ts-mode prog-mode "Haskell[ts]"
