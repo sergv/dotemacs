@@ -55,10 +55,6 @@
   (def-keys-for-map vim-visual-mode-local-keymap
     ("g" hydra-haskell-vim-visual-g-ext/body))
 
-  (def-keys-for-map vim-insert-mode-local-keymap
-    ;; Reasonably useful for Alex/Happy grammars.
-    ("SPC" haskell-space-with-block-indent))
-
   (haskell-setup-common-editing)
 
   (def-keys-for-map (vim-normal-mode-local-keymap vim-insert-mode-local-keymap)
