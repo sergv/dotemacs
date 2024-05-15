@@ -368,6 +368,21 @@ _<tab>_: reindent  _h_: jump to topmont node end"
 
 ;;;###autoload
 (defun haskell-setup-common-editing ()
+
+  (setq-local paredit-forward-sexp-function #'haskell-forward-sexp-no-pairing
+
+              eproj-symbnav/identifier-type 'haskell-symbol
+
+              ;; Improve vim treatment of words for Haskell.
+              ;; Note: underscore should not be included since it would prevent
+              ;; navigating inside of some Haskell identifiers, e.g. foo_bar.
+              vim-word "[:word:]'"
+
+              search-syntax-table haskell-search-fixed-syntax-table
+              search-ignore-syntax-text-properties t
+
+              pseudovim-motion-jump-item-syntax-table haskell-pseudovim-motion-jump-item-fixed-for-pragmas-syntax-table)
+
   (def-keys-for-map vim-insert-mode-local-keymap
     ("'"  haskell-smart-operators-quote)
 
@@ -399,28 +414,16 @@ _<tab>_: reindent  _h_: jump to topmont node end"
   (setq-local flycheck-enhancements--get-project-root-for-current-buffer
               #'haskell-misc-get-project-root
 
-              eproj-symbnav/identifier-type 'haskell-symbol
-
               yas-indent-line 'fixed
 
               beginning-of-defun-function #'haskell-move-to-topmost-start-impl
-
-              paredit-forward-sexp-function #'haskell-forward-sexp-no-pairing
-
-              ;; Improve vim treatment of words for Haskell.
-              ;; Note: underscore should not be included since it would prevent
-              ;; navigating inside of some Haskell identifiers, e.g. foo_bar.
-              vim-word "[:word:]'"
 
               compilation-read-command nil
               compilation-auto-jump-to-first-error nil
               ;; Don't skip any messages.
               compilation-skip-threshold 0
 
-              find-tag-default-function #'haskell-misc-find-tag-default
-
-              search-syntax-table haskell-search-fixed-syntax-table
-              search-ignore-syntax-text-properties t))
+              find-tag-default-function #'haskell-misc-find-tag-default))
 
 (defun haskell-setup-common-project (set-up-indentation?)
   ;; Read settings from '.eproj-info' file, if any.
