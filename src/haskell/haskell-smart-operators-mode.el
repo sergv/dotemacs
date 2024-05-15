@@ -432,8 +432,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
                       preceded-by-arrow?
                       (not (or (and (not preceded-by-double-colon?)
                                     preceded-by-operator?)
-                               followed-by-operator?))
-                      ))
+                               followed-by-operator?))))
             (awhen (treesit-node-top-level
                     (treesit-node-at p)
                     (lambda (x) (string= (treesit-node-type x) "field")))
@@ -447,7 +446,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
             (setf ts-field-colon-node (cadr ts-field-node-children))
             (string= (treesit-node-type ts-field-colon-node) "::")
             (setf ts-field-type-node (caddr ts-field-node-children))
-            ;; Chec kfor when inserting ! in:
+            ;; Check for when inserting ! in:
             ;;
             ;; data Foo = Foo
             ;;   { foo :: Set Int
