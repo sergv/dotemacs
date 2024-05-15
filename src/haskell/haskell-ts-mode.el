@@ -158,30 +158,43 @@
 
 (defun haskell-ts-syntax-propertize (begin end)
   "Basically finds all operators (e.g. -->) that start with comment delimiter, -- that should
-not be treated as comment start."
+not be treated as comment start.
+
+Also fix syntax of character quote delimiters because quote is a valid part of symbols as well
+but when paired then it’s like a string."
   (save-match-data
     (save-excursion
       (goto-char begin)
       (while (re-search-forward
-              "\\(?:^\\|[^!#$%&*+./:<=>?@\\^|~]\\)\\(?1:--[!#$%&*+./:<=>?@\\^|~-]*[!#$%&*+./:<=>?@\\^|~]\\)"
+              (eval-when-compile
+                (concat "\\(?:\\(?:^\\|[^!#$%&*+./:<=>?@\\^|~]\\)\\(?1:--[!#$%&*+./:<=>?@\\^|~-]*[!#$%&*+./:<=>?@\\^|~]\\)\\)"
+                        "\\|"
+                        "\\(?2:'\\)\\(?:"
+                        haskell-lexeme-string-literal-inside-item
+                        "\\)\\(?3:'\\)"))
               end
               t)
-        (let (node (treesit-node-at (point)))
-          (when (or (not node)
-                    (not (gethash (treesit-node-type node) haskell-ts---syntax-propertize-nonoperator-node)))
-            (put-text-property (match-beginning 1)
-                               (match-end 1)
-                               'syntax-table
-                               (eval-when-compile (string-to-syntax "."))))))
-      (goto-char begin)
-      (while (re-search-forward haskell-lexeme--char-literal-rx end t)
-        (let (node (treesit-node-at (point)))
-          (when (or (not node)
-                    (equal (treesit-node-type note) "char"))
-            (put-text-property (match-beginning 0)
-                               (match-end 0)
-                               'syntax-table
-                               (eval-when-compile (string-to-syntax "\"")))))))))
+        (cond
+          ;; Fix syntax of operators that start with --
+          ((match-beginning 1)
+           (let (node (treesit-node-at (point)))
+             (when (or (not node)
+                       (not (gethash (treesit-node-type node) haskell-ts---syntax-propertize-nonoperator-node)))
+               (put-text-property (match-beginning 1)
+                                  (match-end 1)
+                                  'syntax-table
+                                  (eval-when-compile (string-to-syntax "."))))))
+          ;; Adjust syntax of character delimiter quotes
+          ((and (match-beginning 2)
+                (match-beginning 3))
+           (put-text-property (match-beginning 2)
+                              (match-end 2)
+                              'syntax-table
+                              (eval-when-compile (string-to-syntax "\"")))
+           (put-text-property (match-beginning 3)
+                              (match-end 3)
+                              'syntax-table
+                              (eval-when-compile (string-to-syntax "\"")))))))))
 
 ;;;###autoload
 (define-derived-mode haskell-ts-mode prog-mode "Haskell[ts]"
