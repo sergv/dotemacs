@@ -1320,6 +1320,21 @@ otherwise search for project root using
   (when-let ((bnds (bounds-of-haskell-symbol)))
     (buffer-substring-no-properties (car bnds) (cdr bnds))))
 
+(defvar haskell-pseudovim-motion-jump-item-fixed-for-pragmas-syntax-table
+  (let ((tbl (make-syntax-table)))
+    (modify-syntax-entry ?\( "()"    tbl)
+    (modify-syntax-entry ?\) ")("    tbl)
+    (modify-syntax-entry ?\[ "(]"    tbl)
+    (modify-syntax-entry ?\] ")["    tbl)
+    (modify-syntax-entry ?\{ "(}"    tbl)
+    (modify-syntax-entry ?\} "){"    tbl)
+    (modify-syntax-entry ?\" "\""    tbl)
+    (modify-syntax-entry ?-  ". 123" tbl)
+    (modify-syntax-entry ?\n ">"     tbl)
+    tbl)
+  "Restricted Haskell-specific syntax table for matching open/close parens, brackets and braces with
+proper tracking of comments and strings (characters are not tracked which may be a problem).")
+
 (provide 'haskell-misc)
 
 ;; Local Variables:
