@@ -90,6 +90,11 @@
         ]
        @haskell-keyword-face)
 
+      ;; module-name
+      ;; Must come before (module) to override it.
+      ((qualified_variable) @default)
+      ([(module) (qualified_module)] @haskell-type-face)
+
       ;; operator
       ([
         (operator)
@@ -120,20 +125,14 @@
       ([(qualified_type) (type)] @haskell-type-face)
 
       ;; constructor
-      ([(constructor) (qualified_constructor) (con_unit) (constructor_operator)] @haskell-type-face)
+      ([(constructor) (qualified_constructor) (con_unit) (constructor_operator)] @haskell-constructor-face)
 
-      ;; module-name
-      ;; Must come before (module) to override it.
-      ((qualified_variable) @default)
-      ([(module) (qualified_module)] @haskell-type-face)
 
       ;; strictness
-      ((strict_type) @haskell-ts-mode--fontify-bang)
-      ((pat_strict) @haskell-ts-mode--fontify-bang)
+      ([(strict_type) (pat_strict)] @haskell-ts-mode--fontify-bang)
 
       ;; laziness
-      ((lazy_type) @haskell-ts-mode--fontify-tilde)
-      ((pat_irrefutable) @haskell-ts-mode--fontify-tilde)
+      ([(lazy_type) (pat_irrefutable)] @haskell-ts-mode--fontify-tilde)
 
       ;; quasiquote
       (quoter) @injection.language
