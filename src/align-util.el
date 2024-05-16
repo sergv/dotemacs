@@ -30,20 +30,23 @@
         (indent-region-func (string->symbol (format "%s-indent-region" func))))
     `(progn
        (defun ,indent-region-func (start end)
-         (align-regexp start
-                       end
-                       (eval-when-compile
-                         ,(if put-align-spaces-after-str
-                              `(concat ,align-re ,spaces-re)
-                            `(concat ,spaces-re ,align-re)))
-                       1
-                       1
-                       ,repeat))
+         (with-marker (end-marker (copy-marker end))
+           (remove-tabs-in-region! start end)
+           (align-regexp start
+                         end-marker
+                         (eval-when-compile
+                           ,(if put-align-spaces-after-str
+                                `(concat ,align-re ,spaces-re)
+                              `(concat ,spaces-re ,align-re)))
+                         1
+                         1
+                         ,repeat)))
        (defun ,func ()
          (interactive "*")
          (when (region-active-p)
            (with-region-bounds start end
-             (prettify-symbols-decompose-region start end)
+             (when prettify-symbols-mode
+               (prettify-symbols-decompose-region start end))
              (,indent-region-func start end)
              (when prettify-symbols-mode
                (font-lock-flush start end))))))))
