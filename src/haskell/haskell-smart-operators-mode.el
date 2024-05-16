@@ -465,7 +465,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
             ;; before type start but that’s ok).
             (<= (treesit-node-end ts-field-colon-node) p)
             (<= p (treesit-node-end ts-field-type-node)))
-       (let ((has-parens? (string= (treesit-node-type ts-field-type-node) "type_parens")))
+       (let ((has-parens? (string= (treesit-node-type ts-field-type-node) "parens")))
          (if has-parens?
              (progn
                (goto-char (treesit-node-start ts-field-type-node))

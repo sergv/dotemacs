@@ -2044,6 +2044,37 @@ have different input states."
     :modes (haskell-ts-mode)
     :fresh-buffer t)
 
+(haskell-tests--make-multiple-input-test-buffer-contents
+    :action
+    (haskell-smart-operators-exclamation-mark)
+    :entries
+    ((haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-1aa
+      (tests-utils--multiline
+       "data Foo = Foo"
+       "  { foo ::_|_ (Set Int)"
+       "  , bar :: Map Int Double"
+       "  }"))
+     (haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-1ba
+      (tests-utils--multiline
+       "data Foo = Foo"
+       "  { foo :: _|_(Set Int)"
+       "  , bar :: Map Int Double"
+       "  }"))
+     (haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-1ca
+      (tests-utils--multiline
+       "data Foo = Foo"
+       "  { foo :: (Set _|_Int)"
+       "  , bar :: Map Int Double"
+       "  }")))
+    :expected-value
+    (tests-utils--multiline
+     "data Foo = Foo"
+     "  { foo :: !_|_(Set Int)"
+     "  , bar :: Map Int Double"
+     "  }")
+    :modes (haskell-ts-mode)
+    :fresh-buffer t)
+
 (haskell-tests--test-buffer-contents*
  :name
  haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-2

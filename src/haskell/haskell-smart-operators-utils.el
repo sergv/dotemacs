@@ -21,12 +21,11 @@
 
 (defun haskell-smart-operators--treesit--in-comment? (node)
   (when node
-    (memq (treesit-node-type node) '(comment))))
+    (memq (treesit-node-type node) '(comment haddock pragma))))
 
 ;;;###autoload
 (defun haskell-smart-operators--in-string-syntax?-raw (node)
-  (or (haskell-smart-operators--treesit--in-string?
-       node)
+  (or (haskell-smart-operators--treesit--in-string? node)
       (smart-operators--in-string-syntax?)))
 
 ;;;###autoload
