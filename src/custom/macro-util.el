@@ -609,6 +609,7 @@ produced by MARKER-INIT and remove marker after BODY finishes."
   `(let ((,marker-var ,marker-init))
      (unwind-protect
          (progn
+           (cl-assert (markerp ,marker-var))
            ,@body)
        (set-marker ,marker-var nil))))
 
