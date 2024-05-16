@@ -203,19 +203,27 @@ Use like this to pick changes that will go into CURR-CONFIG-DIR:
 ;;;
 
 ;;;###autoload
-(defun remove-tabs (start end)
+(defun remove-tabs-in-region! (start end)
   "Replace all tab characters in region between START and END with
 number of spaces equal to `tab-width'."
-  (interactive "r")
   (save-excursion
     (save-match-data
       (goto-char end)
-      (save-excursion
-        (unless (re-search-backward "\t" start t)
-          (error "No tabs found")))
       (let ((str (make-string tab-width ?\s)))
-        (while (re-search-backward "\t" start t)
+        (while (search-backward "\t" start t)
           (replace-match str))))))
+
+;;;###autoload
+(defun remove-tabs (start end)
+  "Replace all tab characters in region between START and END with
+number of spaces equal to `tab-width'."
+  (interactive "r*")
+  (save-match-data
+    (save-excursion
+      (goto-char start)
+      (unless (search-forward "\t" end t)
+        (error "No tabs found"))))
+  (remove-tabs-in-region! start end))
 
 ;;;
 
