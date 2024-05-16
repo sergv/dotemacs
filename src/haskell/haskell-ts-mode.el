@@ -9,6 +9,7 @@
 (eval-when-compile
   (require 'dash))
 
+(require 'common-whitespace)
 (require 'haskell-lexeme)
 (require 'haskell-syntax-table)
 (require 'treesit)
@@ -19,17 +20,26 @@
 
 (defconst haskell-ts-mode-syntax-table haskell-mode-syntax-table)
 
+(defface haskell-ts-hadddock-face
+  '((t :inherit font-lock-comment-face :bold t))
+  "How to fontify Haddocck omments, e.g. ‘-- |’"
+  :group 'haskell-appearance)
+
 (defconst haskell-ts-font-lock-rules
   (--mapcat
    (cons :language
          (cons 'haskell
                (cons :feature
                      (cons (car it)
-                           (list (cdr it))))))
+                           (cons :override
+                                 (cons nil
+                                       (list (cdr it))))))))
    '((everyone
 
       ;; comment
       ((comment) @font-lock-comment-face)
+
+      ((haddock) @haskell-ts-hadddock-face)
 
       ;; constant
       ([(integer) (float)] @font-lock-constant-face)
@@ -41,7 +51,7 @@
       ([(pragma) (cpp)] @haskell-pragma-face)
 
       ;; keyword
-      (exp_lambda_cases
+      (lambda_cases
        "\\"
        ("cases" @haskell-keyword-face))
 
@@ -51,12 +61,9 @@
       (pattern_synonym
        ("pattern" @haskell-keyword-face))
 
-      (namespace
-       ("pattern" @haskell-keyword-face))
-
       ([
         "forall"
-        (where)
+        "where"
         "let"
         "in"
         "class"
@@ -90,22 +97,12 @@
         ]
        @haskell-keyword-face)
 
-      ;; module-name
-      ;; Must come before (module) to override it.
-      ((qualified_variable) @default)
-      ([(module) (qualified_module)] @haskell-type-face)
-
       ;; operator
       ([
         (operator)
-        ;; Must come before (module) to override it.
-        (qualified_operator)
-        (type_operator)
-        (tycon_arrow)
-        ;; (qualified_module) ; grabs the `.` (dot), ex: import System.IO
+        ;; Competes with (module)
+        (qualified (operator))
         (all_names)
-        ;; (strict_type) ;; ! inside data declaration
-        (wildcard)
         "="
         "|"
         "::"
@@ -116,28 +113,47 @@
         "@"
         ]
        @haskell-operator-face)
-      ("`" @haskell-operator-face
-       [(variable) (qualified_variable) (constructor) (qualified_constructor)] @haskell-operator-face
-       "`" @haskell-operator-face)
+
+      (forall "." @haskell-keyword-face)
+
+      ;; (unboxed_tuple "(#" @haskell-keyword-face)
+      ;; (unboxed_tuple "#)" @haskell-keyword-face)
+
+      ((infix_id
+        "`"
+        [(variable)
+         (qualified (variable))
+         (constructor)
+         (qualified (constructor))]
+        "`")
+       @haskell-operator-face)
+
+      ;; module-name
+      ;; Competes with (module)
+      ;; ((qualified (variable)) @default)
+
+      (import (module) @haskell-type-face)
+      (header (module) @haskell-type-face)
+      (module_export (module) @haskell-type-face)
+      ((qualified (module) (name)) @haskell-type-face)
 
       ;; type
       ;; ((signature name: (variable) @font-lock-type-face))
-      ([(qualified_type) (type)] @haskell-type-face)
+
+      ;; Handles all types
+      ((name) @haskell-type-face)
 
       ;; constructor
-      ([(constructor) (qualified_constructor) (con_unit) (constructor_operator)] @haskell-constructor-face)
+      ([(constructor) (unit) (list "[" !element "]") (constructor_operator)] @haskell-constructor-face)
 
+      ((qualified (module) @haskell-type-face
+                  [(constructor) (constructor_operator)] @haskell-constructor-face))
 
       ;; strictness
-      ([(strict_type) (pat_strict)] @haskell-ts-mode--fontify-bang)
+      ([(strict_field "!") (strict "!")] @haskell-ts-mode--fontify-bang)
 
       ;; laziness
-      ([(lazy_type) (pat_irrefutable)] @haskell-ts-mode--fontify-tilde)
-
-      ;; ;; quasiquote
-      ;; (quoter) @injection.language
-      ;; (quasiquote_body) @injection.content
-      ))))
+      ([(lazy_field) (irrefutable "~")] @haskell-ts-mode--fontify-tilde)))))
 
 (defconst haskell-ts-indent-rules
   `(((parent-is ,(rx bos "exp_do" eos)) parent-bol 2)))
@@ -149,7 +165,12 @@
   (haskell-ts-mode--fontify-first-char ?~ node))
 
 (defun haskell-ts-mode--fontify-first-char (char node)
-  (let ((p (treesit-node-start node)))
+  (let* ((p (treesit-node-start node))
+         (c (char-after p)))
+    (while (and c
+                (whitespace-char? c))
+      (setf p (+ p 1)
+            c (char-after p)))
     (when (eq (char-after p) char)
       (put-text-property p (1+ p) 'face 'font-lock-negation-char-face))))
 
