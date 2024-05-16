@@ -1,0 +1,8 @@
+packages:
+  emacs-native.cabal
+
+constraints:
+  , prettyprinter-combinators -enummapset
+
+allow-newer:
+  , boring:base
