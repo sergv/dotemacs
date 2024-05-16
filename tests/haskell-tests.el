@@ -103,7 +103,7 @@ end."
     (&key action entries expected-value modes fresh-buffer)
   "Define a set of tests that share final buffer state but
 have different input states."
-  (declare (indent 1))
+  (declare (indent 0))
   `(progn
      ,@(cl-loop
         for entry in entries
@@ -146,6 +146,66 @@ have different input states."
 ;;      :action ,action
 ;;      :contents ,contents
 ;;      :initialisation (haskell-mode)))
+
+(haskell-tests--make-multiple-input-test-buffer-contents
+  :action
+  (let ((start (point)))
+    (forward-line 2)
+    (goto-char (line-end-position))
+    (set-mark start)
+    (activate-mark)
+    (haskell-align-on-comments))
+  :entries
+  ((haskell-tests/haskell-align-on-comments-1a
+    (tests-utils--multiline
+     ""
+     "foo = do"
+     "  _|_bar -- a"
+     "  baz \t\t-- b"
+     "  decombobulate -- c"
+     ""))
+   (haskell-tests/haskell-align-on-comments-1b
+    (tests-utils--multiline
+     ""
+     "foo = do"
+     "  _|_bar -- a"
+     "  baz -- b"
+     "  decombobulate -- c"
+     ""))
+   (haskell-tests/haskell-align-on-comments-1c
+    (tests-utils--multiline
+     ""
+     "foo = do"
+     "  _|_bar\t-- a"
+     "  baz\t\t\t-- b"
+     "  decombobulate\t-- c"
+     ""))
+   (haskell-tests/haskell-align-on-comments-1d
+    (tests-utils--multiline
+     ""
+     "foo = do"
+     "  _|_bar                                    -- a"
+     "  baz                                    -- b"
+     "  decombobulate -- c"
+     ""))
+   (haskell-tests/haskell-align-on-comments-1e
+    (tests-utils--multiline
+     ""
+     "foo = do"
+     "  _|_bar                                    -- a"
+     "  baz                                    -- b"
+     "  decombobulate\t-- c"
+     "")))
+  :expected-value
+  (tests-utils--multiline
+   ""
+   "foo = do"
+   "  bar           -- a"
+   "  baz           -- b"
+   "  decombobulate -- c_|_"
+   "")
+  :modes (haskell-mode haskell-ts-mode)
+  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-align-language-pragmas-1
@@ -2014,66 +2074,66 @@ have different input states."
    ""))
 
 (haskell-tests--make-multiple-input-test-buffer-contents
-    :action
-    (haskell-smart-operators-exclamation-mark)
-    :entries
-    ((haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-1a
-      (tests-utils--multiline
-       "data Foo = Foo"
-       "  { foo ::_|_ Set Int"
-       "  , bar :: Map Int Double"
-       "  }"))
-     (haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-1b
-      (tests-utils--multiline
-       "data Foo = Foo"
-       "  { foo :: _|_Set Int"
-       "  , bar :: Map Int Double"
-       "  }"))
-     (haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-1c
-      (tests-utils--multiline
-       "data Foo = Foo"
-       "  { foo :: Set _|_Int"
-       "  , bar :: Map Int Double"
-       "  }")))
-    :expected-value
+  :action
+  (haskell-smart-operators-exclamation-mark)
+  :entries
+  ((haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-1a
     (tests-utils--multiline
      "data Foo = Foo"
-     "  { foo :: !(_|_Set Int)"
+     "  { foo ::_|_ Set Int"
      "  , bar :: Map Int Double"
-     "  }")
-    :modes (haskell-ts-mode)
-    :fresh-buffer t)
+     "  }"))
+   (haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-1b
+    (tests-utils--multiline
+     "data Foo = Foo"
+     "  { foo :: _|_Set Int"
+     "  , bar :: Map Int Double"
+     "  }"))
+   (haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-1c
+    (tests-utils--multiline
+     "data Foo = Foo"
+     "  { foo :: Set _|_Int"
+     "  , bar :: Map Int Double"
+     "  }")))
+  :expected-value
+  (tests-utils--multiline
+   "data Foo = Foo"
+   "  { foo :: !(_|_Set Int)"
+   "  , bar :: Map Int Double"
+   "  }")
+  :modes (haskell-ts-mode)
+  :fresh-buffer t)
 
 (haskell-tests--make-multiple-input-test-buffer-contents
-    :action
-    (haskell-smart-operators-exclamation-mark)
-    :entries
-    ((haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-1aa
-      (tests-utils--multiline
-       "data Foo = Foo"
-       "  { foo ::_|_ (Set Int)"
-       "  , bar :: Map Int Double"
-       "  }"))
-     (haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-1ba
-      (tests-utils--multiline
-       "data Foo = Foo"
-       "  { foo :: _|_(Set Int)"
-       "  , bar :: Map Int Double"
-       "  }"))
-     (haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-1ca
-      (tests-utils--multiline
-       "data Foo = Foo"
-       "  { foo :: (Set _|_Int)"
-       "  , bar :: Map Int Double"
-       "  }")))
-    :expected-value
+  :action
+  (haskell-smart-operators-exclamation-mark)
+  :entries
+  ((haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-1aa
     (tests-utils--multiline
      "data Foo = Foo"
-     "  { foo :: !_|_(Set Int)"
+     "  { foo ::_|_ (Set Int)"
      "  , bar :: Map Int Double"
-     "  }")
-    :modes (haskell-ts-mode)
-    :fresh-buffer t)
+     "  }"))
+   (haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-1ba
+    (tests-utils--multiline
+     "data Foo = Foo"
+     "  { foo :: _|_(Set Int)"
+     "  , bar :: Map Int Double"
+     "  }"))
+   (haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-1ca
+    (tests-utils--multiline
+     "data Foo = Foo"
+     "  { foo :: (Set _|_Int)"
+     "  , bar :: Map Int Double"
+     "  }")))
+  :expected-value
+  (tests-utils--multiline
+   "data Foo = Foo"
+   "  { foo :: !_|_(Set Int)"
+   "  , bar :: Map Int Double"
+   "  }")
+  :modes (haskell-ts-mode)
+  :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents*
  :name
