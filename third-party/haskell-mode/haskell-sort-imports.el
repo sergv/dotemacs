@@ -111,13 +111,19 @@ within that region."
                 ys))
              (sep (or (haskell-import-list-sep base)
                       (haskell-import-list-sep other)
-                      ", ")))
+                      ", "))
+             (xs-entries (haskell-import-list-entries xs))
+             (ys-entries (haskell-import-list-entries ys)))
         (cl-assert (stringp sep))
         (make-haskell-import-list
          :start-str (haskell-import-list-start-str base)
          :sep       sep
          :end-str   (haskell-import-list-end-str base)
-         :entries   (append (haskell-import-list-entries xs) (cons sep (haskell-import-list-entries ys)))))
+         :entries   (if xs-entries
+                        (if ys-entries
+                            (append xs-entries (cons sep ys-entries))
+                          xs-entries)
+                      ys-entries)))
     ;; If one of import lists is missing (i.e. wildcard) then the other one gets subsumed.
     nil))
 
