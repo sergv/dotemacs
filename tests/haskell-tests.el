@@ -6209,6 +6209,36 @@ have different input states."
    ""))
 
 (haskell-tests--test-buffer-contents
+    haskell-tests/sort-imports-5a
+    (haskell-sort-imports)
+  (tests-utils--multiline
+   ""
+   "import Bar (foo)"
+   "import Foo_|_"
+   "import Bar ()"
+   "")
+  (tests-utils--multiline
+   ""
+   "import Bar (foo)"
+   "import Foo_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/sort-imports-5b
+    (haskell-sort-imports)
+  (tests-utils--multiline
+   ""
+   "import Bar ()"
+   "import Foo_|_"
+   "import Bar (bar)"
+   "")
+  (tests-utils--multiline
+   ""
+   "import Bar (bar)"
+   "import Foo_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
     haskell-tests/sort-imports-6
     (haskell-sort-imports)
   (tests-utils--multiline
