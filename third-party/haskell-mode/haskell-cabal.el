@@ -314,11 +314,14 @@
     "strong-flags"
     "subdir"
     "tag"
+    "test-options"
+    "test-show-details"
     "tests"
     "type"
     "verbose"
     "with-compiler"
-    "with-hc-pkg"))
+    "with-hc-pkg"
+    "write-ghc-environment-files"))
 
 (defun haskell-cabal-font-lock--make-field-regexp (fields)
   "Turn '(\"foo\" \"bar-baz\") into regexp that matches either foo, Foo, bar-baz, Bar-baz, bar-Baz, or Bar-Baz."
