@@ -5456,6 +5456,74 @@ _|_bar")
    "foo x = _|_(bar ')' + 1)(bar ')' + 1)"
    ""))
 
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell--motion-jump-item-quoting-1
+    (execute-kbd-macro (kbd "y m P"))
+  (tests-utils--multiline
+   ""
+   "foo x = _|_(bar \")\" + 1)"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo x = _|_(bar \")\" + 1)(bar \")\" + 1)"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell--motion-jump-item-quoting-2
+    (execute-kbd-macro (kbd "y m P"))
+  (tests-utils--multiline
+   ""
+   "foo x = _|_(bar 41 {- ) -} + 1)"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo x = _|_(bar 41 {- ) -} + 1)(bar 41 {- ) -} + 1)"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell--motion-jump-item-quoting-3
+    (execute-kbd-macro (kbd "y m P"))
+  (tests-utils--multiline
+   ""
+   "foo x = _|_(bar 41 -- )"
+   "              + 1)"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo x = _|_(bar 41 -- )"
+   "              + 1)(bar 41 -- )"
+   "              + 1)"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell--motion-jump-item-quoting-4
+    (execute-kbd-macro (kbd "y m P"))
+  (tests-utils--multiline
+   ""
+   "foo x = _|_(bar [megachar| ) |] + 1)"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo x = _|_(bar [megachar| ) |] + 1)(bar [megachar| ) |] + 1)"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell--motion-jump-item-quoting-5
+    (execute-kbd-macro (kbd "y m P"))
+  (tests-utils--multiline
+   ""
+   "foo x = _|_[f| 1 + x|] + 1"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo x = _|_[f| 1 + x|][f| 1 + x|] + 1"
+   ""))
+
 (provide 'vim-tests)
 
 ;; Local Variables:
