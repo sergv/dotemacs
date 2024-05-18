@@ -299,11 +299,11 @@ be set to the preferred literate style."
 
           (pcase token-kind
            (`qsymid
-            (when (member
-                   (haskell-lexeme-classify-by-first-char (char-after (match-beginning 1)))
-                   '(varsym consym))
-              ;; we have to neutralize potential comments here
-              (put-text-property (match-beginning 1) (match-end 1) 'syntax-table (eval-when-compile (string-to-syntax ".")))))
+            (let ((lexeme (haskell-lexeme-classify-by-first-char (char-after (match-beginning 1)))))
+              (when (or (eq lexeme 'varsym)
+                        (eq lexeme 'consym))
+                ;; we have to neutralize potential comments here
+                (put-text-property (match-beginning 1) (match-end 1) 'syntax-table (eval-when-compile (string-to-syntax "."))))))
            (`number
             (put-text-property (match-beginning 0) (match-end 0) 'syntax-table (eval-when-compile (string-to-syntax "w"))))
            (`char
