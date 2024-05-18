@@ -1233,6 +1233,24 @@ are CHAR1 and CHAR2 repsectively."
   (unless noninteractive
     (apply #'message args)))
 
+(defun extended-max (a b)
+  (if a
+      (if b
+          (max a b)
+        a)
+    (if b
+        b
+      nil)))
+
+(defun extended-min (a b)
+  (if a
+      (if b
+          (min a b)
+        a)
+    (if b
+        b
+      nil)))
+
 (defun extended< (a b)
   "Operator `<' extended to numbers that may be nil."
   (if a
@@ -1373,7 +1391,8 @@ are CHAR1 and CHAR2 repsectively."
   (enlarge-window 4))
 
 (defun text-before-matches? (str)
-  "Check if text before point is equal to STR."
+  "Check if text before point is equal to STR, last character of which should come strictly
+before point."
   (let ((res t)
         (p (point)))
     (cl-loop
@@ -1383,6 +1402,20 @@ are CHAR1 and CHAR2 repsectively."
       do
       (setf res
             (awhen (char-before (- p i))
+              (char= it (aref str j)))))
+    res))
+
+(defun text-before-matches1? (str)
+  "Check if text before point is equal to STR, last character of which should be currently under point."
+  (let ((res t)
+        (p (point)))
+    (cl-loop
+      for i from 0
+      for j downfrom (1- (length str)) to 0
+      while res
+      do
+      (setf res
+            (awhen (char-after (- p i))
               (char= it (aref str j)))))
     res))
 
