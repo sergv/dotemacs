@@ -5421,7 +5421,20 @@ _|_bar")
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-mode haskell-ts-mode)
     vim-tests/haskell--motion-jump-item-pragma-1
-    (execute-kbd-macro (kbd "y m P"))
+    (execute-kbd-macro (kbd "m"))
+  (tests-utils--multiline
+   ""
+   "_|_{-# INLINE foo #-}"
+   "")
+  (tests-utils--multiline
+   ""
+   "{-# INLINE foo #-_|_}"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell--motion-jump-item-pragma-2
+    (execute-kbd-macro (kbd "m"))
   (tests-utils--multiline
    ""
    "data AlexInput = AlexInput"
@@ -5436,7 +5449,7 @@ _|_bar")
    ""
    "data AlexInput = AlexInput"
    "  { aiInput    :: !Text"
-   "  , aiPrevChar :: _|_{-# UNPACK #-}{-# UNPACK #-} !Char"
+   "  , aiPrevChar :: {-# UNPACK #-_|_} !Char"
    "  , aiBytes    :: [Word8]"
    "  , aiLine     :: {-# UNPACK #-} !Line"
    "  , aiColumn   :: {-# UNPACK #-} !Column"
@@ -5445,47 +5458,77 @@ _|_bar")
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-mode haskell-ts-mode)
-    vim-tests/haskell--motion-jump-item-char-1
-    (execute-kbd-macro (kbd "y m P"))
+    vim-tests/haskell--motion-jump-item-quoting-char-1
+    (execute-kbd-macro (kbd "m"))
   (tests-utils--multiline
    ""
    "foo x = _|_(bar ')' + 1)"
    "")
   (tests-utils--multiline
    ""
-   "foo x = _|_(bar ')' + 1)(bar ')' + 1)"
+   "foo x = (bar ')' + 1_|_)"
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-mode haskell-ts-mode)
-    vim-tests/haskell--motion-jump-item-quoting-1
-    (execute-kbd-macro (kbd "y m P"))
+    vim-tests/haskell--motion-jump-item-quoting-string-1
+    (execute-kbd-macro (kbd "m"))
   (tests-utils--multiline
    ""
    "foo x = _|_(bar \")\" + 1)"
    "")
   (tests-utils--multiline
    ""
-   "foo x = _|_(bar \")\" + 1)(bar \")\" + 1)"
+   "foo x = (bar \")\" + 1_|_)"
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
-    vim-tests/haskell--motion-jump-item-quoting-2
-    (execute-kbd-macro (kbd "y m P"))
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell--motion-jump-item-quoting-multiline-string-1
+    (execute-kbd-macro (kbd "m"))
+  (tests-utils--multiline
+   ""
+   "foo = _|_(bar 41 \" )bb\\"
+   "              \\ aa\" + 1)"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo = (bar 41 \" )bb\\"
+   "              \\ aa\" + 1_|_)"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell--motion-jump-item-quoting-multiline-string-2
+    (execute-kbd-macro (kbd "m"))
+  (tests-utils--multiline
+   ""
+   "foo = _|_(bar 41 \" bb\\"
+   "              \\ )aa\" + 1)"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo = (bar 41 \" bb\\"
+   "              \\ )aa\" + 1_|_)"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell--motion-jump-item-quoting-comment-1
+    (execute-kbd-macro (kbd "m"))
   (tests-utils--multiline
    ""
    "foo x = _|_(bar 41 {- ) -} + 1)"
    "")
   (tests-utils--multiline
    ""
-   "foo x = _|_(bar 41 {- ) -} + 1)(bar 41 {- ) -} + 1)"
+   "foo x = (bar 41 {- ) -} + 1_|_)"
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-ts-mode)
-    vim-tests/haskell--motion-jump-item-quoting-3
-    (execute-kbd-macro (kbd "y m P"))
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell--motion-jump-item-quoting-comment-2
+    (execute-kbd-macro (kbd "m"))
   (tests-utils--multiline
    ""
    "foo x = _|_(bar 41 -- )"
@@ -5493,35 +5536,79 @@ _|_bar")
    "")
   (tests-utils--multiline
    ""
-   "foo x = _|_(bar 41 -- )"
-   "              + 1)(bar 41 -- )"
-   "              + 1)"
+   "foo x = (bar 41 -- )"
+   "              + 1_|_)"
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-mode haskell-ts-mode)
-    vim-tests/haskell--motion-jump-item-quoting-4
-    (execute-kbd-macro (kbd "y m P"))
+    vim-tests/haskell--motion-jump-item-quoting-comment-3
+    (execute-kbd-macro (kbd "m"))
+  (tests-utils--multiline
+   ""
+   "-- _|_(foo bar)"
+   "")
+  (tests-utils--multiline
+   ""
+   "-- (foo bar_|_)"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell--motion-jump-item-quoting-comment-4
+    (execute-kbd-macro (kbd "m"))
+  (tests-utils--multiline
+   ""
+   "-- (foo bar_|_)"
+   "")
+  (tests-utils--multiline
+   ""
+   "-- _|_(foo bar)"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell--motion-jump-item-quoting-comment-5
+    (execute-kbd-macro (kbd "m"))
+  (tests-utils--multiline
+   ""
+   "test3 x = () (bar 41 -- )"
+   "               + 1)"
+   ""
+   "  {-# INLINE foo #-_|_}"
+   "")
+  (tests-utils--multiline
+   ""
+   "test3 x = () (bar 41 -- )"
+   "               + 1)"
+   ""
+   "  _|_{-# INLINE foo #-}"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell--motion-jump-item-quoting-quasiquote-1
+    (execute-kbd-macro (kbd "m"))
   (tests-utils--multiline
    ""
    "foo x = _|_(bar [megachar| ) |] + 1)"
    "")
   (tests-utils--multiline
    ""
-   "foo x = _|_(bar [megachar| ) |] + 1)(bar [megachar| ) |] + 1)"
+   "foo x = (bar [megachar| ) |] + 1_|_)"
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-mode haskell-ts-mode)
-    vim-tests/haskell--motion-jump-item-quoting-5
-    (execute-kbd-macro (kbd "y m P"))
+    vim-tests/haskell--motion-jump-item-quoting-quasiquote-2
+    (execute-kbd-macro (kbd "m"))
   (tests-utils--multiline
    ""
    "foo x = _|_[f| 1 + x|] + 1"
    "")
   (tests-utils--multiline
    ""
-   "foo x = _|_[f| 1 + x|][f| 1 + x|] + 1"
+   "foo x = [f| 1 + x|_|_] + 1"
    ""))
 
 (provide 'vim-tests)
