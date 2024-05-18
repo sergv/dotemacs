@@ -314,14 +314,21 @@ _#-}_: on pragma close"
        (error "Don't know how to reindent construct at point")))))
 
 (defun haskell-misc--point-inside-pragma? (point)
-  (save-excursion
-    (save-match-data
-      (when (re-search-forward haskell-regexen/pragma-end nil t)
-        (let ((end (point)))
-          (backward-sexp)
-          (let ((start (point)))
-            (and (<= start point)
-                 (<= point end))))))))
+  (cond
+    ((derived-mode-p 'haskell-mode)
+     (save-excursion
+       (save-match-data
+         (when (search-forward haskell-regexen/pragma-end nil t)
+           (let ((end (point)))
+             (backward-sexp)
+             (let ((start (point)))
+               (and (<= start point)
+                    (<= point end))))))))
+    ((derived-mode-p 'haskell-ts-mode)
+     (when-let ((node (treesit-node-at (point))))
+       (string= "pragma" (treesit-node-type node))))
+    (t
+     (error "haskell-misc--point-inside-pragma?: not implemented for major mode %s" major-mode))))
 
 (defun haskell-align-language-pragmas (start)
   (haskell-align--pragmas-impl haskell-regexen/language-pragma-prefix
