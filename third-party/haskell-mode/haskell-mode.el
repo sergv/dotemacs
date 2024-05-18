@@ -294,9 +294,7 @@ be set to the preferred literate style."
           (goto-char (1- (point)))))
 
       (while (< (point) end)
-        (let
-            ((token-kind (haskell-lexeme-looking-at-token-raw)))
-
+        (let ((token-kind (haskell-lexeme-looking-at-token-raw)))
           (pcase token-kind
            (`qsymid
             (let ((lexeme (haskell-lexeme-classify-by-first-char (char-after (match-beginning 1)))))
@@ -743,7 +741,7 @@ list marker of some kind), and end of the obstacle."
                  (let ((str (char-after (match-beginning 0))))
                    (cond ((memq str '(?\( ?\[ ?\{))
                           (goto-char (or (scan-sexps (point) 1)
-                                         (buffer-end 1))))
+                                         (point-max))))
                          ((memq str '(?\) ?\] ?\}))
                           (signal 'scan-error (list "Containing expression ends prematurely."
                                                     (match-beginning 0)
