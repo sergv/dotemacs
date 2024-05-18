@@ -350,7 +350,7 @@ be set to the preferred literate style."
               (goto-char (match-beginning 3))
               (let ((limit (match-end 3)))
                 (save-match-data
-                  (while (re-search-forward "\"" limit t)
+                  (while (search-forward "\"" limit t)
                     (put-text-property (match-beginning 0) (match-end 0) 'syntax-table (eval-when-compile (string-to-syntax ".")))))))))
           (if token-kind
               (goto-char (match-end 0))
