@@ -174,8 +174,22 @@
     (when (eq (char-after p) char)
       (put-text-property p (1+ p) 'face 'font-lock-negation-char-face))))
 
-(defvar haskell-ts---syntax-propertize-nonoperator-node
-  (alist->hash-table (--map (cons it t) '("string" "quasiquote_body" "pragma" "cpp" "comment"))))
+(defconst haskell-ts-syntax-propertize--query
+  (treesit-query-compile 'haskell
+                         '(((string) @str-like)
+                           ((char) @str-like)
+                           (quasiquote
+                            ;; start bracket not needed as we’re leaving them as is
+                            ;; and make pipes carry quoting syntax so that parens matching
+                            ;; will still work
+                            ;; "[" @qq-start-bracket
+                            "|" @qq-start-pipe
+                            "|]" @qq-end
+                            )
+                           ((comment) @comment)
+                           ((haddock) @comment)
+                           ((operator) @operator
+                            (:match "^--" @operator)))))
 
 (defun haskell-ts-syntax-propertize (begin end)
   "Basically finds all operators (e.g. -->) that start with comment delimiter, -- that should
@@ -184,38 +198,89 @@ not be treated as comment start.
 Also fix syntax of character quote delimiters because quote is a valid part of symbols as well
 but when paired then it’s like a string."
   (save-match-data
-    (save-excursion
-      (goto-char begin)
-      (while (re-search-forward
-              (eval-when-compile
-                (concat "\\(?:\\(?:^\\|[^!#$%&*+./:<=>?@\\^|~]\\)\\(?1:--[!#$%&*+./:<=>?@\\^|~-]*[!#$%&*+./:<=>?@\\^|~]\\)\\)"
-                        "\\|"
-                        "\\(?2:'\\)\\(?:"
-                        haskell-lexeme-string-literal-inside-item
-                        "\\)\\(?3:'\\)"))
-              end
-              t)
-        (cond
-          ;; Fix syntax of operators that start with --
-          ((match-beginning 1)
-           (let (node (treesit-node-at (point)))
-             (when (or (not node)
-                       (not (gethash (treesit-node-type node) haskell-ts---syntax-propertize-nonoperator-node)))
-               (put-text-property (match-beginning 1)
-                                  (match-end 1)
-                                  'syntax-table
-                                  (eval-when-compile (string-to-syntax "."))))))
-          ;; Adjust syntax of character delimiter quotes
-          ((and (match-beginning 2)
-                (match-beginning 3))
-           (put-text-property (match-beginning 2)
-                              (match-end 2)
-                              'syntax-table
-                              (eval-when-compile (string-to-syntax "\"")))
-           (put-text-property (match-beginning 3)
-                              (match-end 3)
-                              'syntax-table
-                              (eval-when-compile (string-to-syntax "\"")))))))))
+    (let ((end-eol
+           (save-excursion
+             (goto-char end)
+             (line-end-position))))
+      (save-excursion
+        (goto-char begin)
+
+        (let ((beg-bol (line-beginning-position)))
+          (dolist (entry
+                   (treesit-query-capture (treesit-buffer-root-node 'haskell)
+                                          haskell-ts-syntax-propertize--query
+                                          beg-bol
+                                          end-eol
+                                          nil ;; want capture names
+                                          ))
+            (let* ((node (cdr entry))
+                   (start (treesit-node-start node))
+                   (end (treesit-node-end node)))
+              (cl-assert (treesit-node-p node))
+              (pcase (car entry)
+                (`str-like
+                 (put-text-property start
+                                    (1+ start)
+                                    'syntax-table
+                                    (eval-when-compile (string-to-syntax "\"")))
+                 (put-text-property (1- end)
+                                    end
+                                    'syntax-table
+                                    (eval-when-compile (string-to-syntax "\""))))
+                ;; (`qq-start-bracket
+                ;;  (put-text-property start
+                ;;                     end
+                ;;                     'syntax-table
+                ;;                     (eval-when-compile (string-to-syntax "\""))))
+                (`qq-start-pipe
+                 (put-text-property start
+                                    end
+                                    'syntax-table
+                                    (eval-when-compile (string-to-syntax "|"))))
+                (`qq-end
+                 (put-text-property (- end 2)
+                                    (- end 1)
+                                    'syntax-table
+                                    (eval-when-compile (string-to-syntax "|"))))
+                (`comment
+                 (when (eq (char-after start) ?\{)
+                   (put-text-property (+ start 1)
+                                      (+ start 2)
+                                      'syntax-table
+                                      (eval-when-compile (string-to-syntax "!")))
+                   (put-text-property (- end 2)
+                                      (- end 1)
+                                      'syntax-table
+                                      (eval-when-compile (string-to-syntax "!"))))
+                 ;; (pcase (char-after start)
+                 ;;   (?-
+                 ;;    (let ((i start))
+                 ;;      (while (and (< i end-eol)
+                 ;;                  (eq (char-after i) ?-))
+                 ;;        (cl-incf i))
+                 ;;      (put-text-property start
+                 ;;                         i
+                 ;;                         'syntax-table
+                 ;;                         (eval-when-compile (string-to-syntax "<")))))
+                 ;;   (?\{
+                 ;;    (put-text-property start
+                 ;;                       (+ start 2)
+                 ;;                       'syntax-table
+                 ;;                       (eval-when-compile (string-to-syntax "<")))
+                 ;;    (put-text-property (- end 2)
+                 ;;                       end
+                 ;;                       'syntax-table
+                 ;;                       (eval-when-compile (string-to-syntax ">"))))
+                 ;;   (other
+                 ;;    (error "Invalid comment-like start: %s" other)))
+                 )
+                (`operator
+                 (put-text-property start
+                                    end
+                                    'syntax-table
+                                    (eval-when-compile (string-to-syntax "."))))
+                (other
+                 (error "Invalid capture: %s" other))))))))))
 
 ;;;###autoload
 (define-derived-mode haskell-ts-mode prog-mode "Haskell[ts]"
