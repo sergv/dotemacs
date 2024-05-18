@@ -176,7 +176,10 @@
 
 (defconst haskell-ts-syntax-propertize--query
   (treesit-query-compile 'haskell
-                         '(((string) @str-like)
+                         '(
+                           ;; Need strings because multiline strings may not
+                           ;; be handled correctly be Emacs.
+                           ((string) @str-like)
                            ((char) @str-like)
                            (quasiquote
                             ;; start bracket not needed as we’re leaving them as is
@@ -186,8 +189,8 @@
                             "|" @qq-start-pipe
                             "|]" @qq-end
                             )
-                           ((comment) @comment)
-                           ((haddock) @comment)
+                           ;; ((comment) @comment)
+                           ;; ((haddock) @comment)
                            ((operator) @operator
                             (:match "^--" @operator)))))
 
@@ -236,44 +239,48 @@ but when paired then it’s like a string."
                  (put-text-property start
                                     end
                                     'syntax-table
+                                    ;; TODO: double check whether this should be a string or a
+                                    ;; comment. String may imply unnecessary quoting!
                                     (eval-when-compile (string-to-syntax "|"))))
                 (`qq-end
                  (put-text-property (- end 2)
                                     (- end 1)
                                     'syntax-table
+                                    ;; TODO: double check whether this should be a string or a
+                                    ;; comment. String may imply unnecessary quoting!
                                     (eval-when-compile (string-to-syntax "|"))))
-                (`comment
-                 (when (eq (char-after start) ?\{)
-                   (put-text-property (+ start 1)
-                                      (+ start 2)
-                                      'syntax-table
-                                      (eval-when-compile (string-to-syntax "!")))
-                   (put-text-property (- end 2)
-                                      (- end 1)
-                                      'syntax-table
-                                      (eval-when-compile (string-to-syntax "!"))))
-                 ;; (pcase (char-after start)
-                 ;;   (?-
-                 ;;    (let ((i start))
-                 ;;      (while (and (< i end-eol)
-                 ;;                  (eq (char-after i) ?-))
-                 ;;        (cl-incf i))
-                 ;;      (put-text-property start
-                 ;;                         i
-                 ;;                         'syntax-table
-                 ;;                         (eval-when-compile (string-to-syntax "<")))))
-                 ;;   (?\{
-                 ;;    (put-text-property start
-                 ;;                       (+ start 2)
-                 ;;                       'syntax-table
-                 ;;                       (eval-when-compile (string-to-syntax "<")))
-                 ;;    (put-text-property (- end 2)
-                 ;;                       end
-                 ;;                       'syntax-table
-                 ;;                       (eval-when-compile (string-to-syntax ">"))))
-                 ;;   (other
-                 ;;    (error "Invalid comment-like start: %s" other)))
-                 )
+                ;; (`comment
+                ;;  (when (eq (char-after start) ?\{)
+                ;;    (put-text-property (+ start 1)
+                ;;                       (+ start 2)
+                ;;                       'syntax-table
+                ;;                       (eval-when-compile (string-to-syntax "!")))
+                ;;    (put-text-property (- end 2)
+                ;;                       (- end 1)
+                ;;                       'syntax-table
+                ;;                       (eval-when-compile (string-to-syntax "!"))))
+                ;;  ;; (pcase (char-after start)
+                ;;  ;;   (?-
+                ;;  ;;    (let ((i start))
+                ;;  ;;      (while (and (< i end-eol)
+                ;;  ;;                  (eq (char-after i) ?-))
+                ;;  ;;        (cl-incf i))
+                ;;  ;;      (put-text-property start
+                ;;  ;;                         i
+                ;;  ;;                         'syntax-table
+                ;;  ;;                         (eval-when-compile (string-to-syntax "<")))))
+                ;;  ;;   (?\{
+                ;;  ;;    (put-text-property start
+                ;;  ;;                       (+ start 2)
+                ;;  ;;                       'syntax-table
+                ;;  ;;                       (eval-when-compile (string-to-syntax "<")))
+                ;;  ;;    (put-text-property (- end 2)
+                ;;  ;;                       end
+                ;;  ;;                       'syntax-table
+                ;;  ;;                       (eval-when-compile (string-to-syntax ">"))))
+                ;;  ;;   (other
+                ;;  ;;    (error "Invalid comment-like start: %s" other)))
+                ;;  )
                 (`operator
                  (put-text-property start
                                     end
