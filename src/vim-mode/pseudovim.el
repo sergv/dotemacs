@@ -11,6 +11,7 @@
 
   (defvar vim-scroll-move-point))
 
+(require 'common)
 (require 'vim-motions)
 
 (defun pseudovim-scroll-line-to-center ()
@@ -115,39 +116,82 @@
 (defvar-local pseudovim-motion-jump-item-syntax-table nil
   "Override default syntax table for ‘pseudovim-motion-jump-item’.")
 
+(defvar-local pseudovim-motion-jump-item--matching-comment-start-str nil
+  "Matching comment construction to treat as matching items. Start
+of such sequence - plain string, not regexp.")
+
+(defvar-local pseudovim-motion-jump-item--matching-comment-end-str nil
+  "Matching comment construction to treat as matching items. End
+of such sequence - plain string, not regexp.")
+
 (defun pseudovim-motion-jump-item-to-pos (start-pos limit)
-  (if limit
-      (let ((pmax (point-max))
-            (pmin (point-min)))
-        (save-restriction
-          (narrow-to-region
-           (max pmin (- (point) limit))
-           (min pmax (+ (point) limit)))
-          (pseudovim-motion-jump-item-to-pos--impl start-pos)))
-    (pseudovim-motion-jump-item-to-pos--impl start-pos)))
+  (let ((parse-sexp-ignore-comments t))
+    (if limit
+        (let ((pmax (point-max))
+              (pmin (point-min)))
+          (save-restriction
+            (narrow-to-region
+             (max pmin (- (point) limit))
+             (min pmax (+ (point) limit)))
+            (pseudovim-motion-jump-item-to-pos--impl start-pos)))
+      (pseudovim-motion-jump-item-to-pos--impl start-pos))))
 
 (defun pseudovim-motion-jump-item-to-pos--impl (start-pos)
-  (if pseudovim-motion-jump-item-syntax-table
-      (with-syntax-table pseudovim-motion-jump-item-syntax-table
-        (pseudovim-motion-jump-item-to-pos--impl2 start-pos))
-    (pseudovim-motion-jump-item-to-pos--impl2 start-pos)))
-
-(defun pseudovim-motion-jump-item-to-pos--impl2 (start-pos)
-  (let* ((next-open
+  (let* ((next-open-list
           (condition-case nil
               (1- (scan-lists start-pos 1 -1))
-            (error (point-max))))
-         (next-close
+            (error nil)))
+         (next-close-list
           (condition-case nil
               (1- (scan-lists start-pos 1 +1))
-            (error (point-max))))
-         (pos (min next-open
-                   next-close)))
-    (when (>= pos (line-end-position))
-      (error "No matching item found on the current line"))
-    (if (= pos next-open)
-        (1- (or (scan-lists pos 1 0) (buffer-end 1)))
-      (or (scan-lists (+ 1 pos) -1 0) (buffer-end -1)))))
+            (error nil)))
+         (next-open-str
+          (when pseudovim-motion-jump-item--matching-comment-start-str
+            (save-excursion
+              (search-forward pseudovim-motion-jump-item--matching-comment-start-str nil t))))
+         (next-close-str
+          (when pseudovim-motion-jump-item--matching-comment-end-str
+            (if (or (text-before-matches? pseudovim-motion-jump-item--matching-comment-end-str)
+                    (text-before-matches1? pseudovim-motion-jump-item--matching-comment-end-str))
+                (point)
+              (save-excursion
+                (search-forward pseudovim-motion-jump-item--matching-comment-end-str nil t)))))
+         (pos (extended-min (extended-min next-open-list
+                                          next-close-list)
+                            (extended-min next-open-str
+                                          next-close-str))))
+    (when (or (null pos)
+              (> pos (line-end-position)))
+      (error "No matching item found on the current line")
+      ;; (error "No matching item found on the current line: %s_|_%s"
+      ;;        (buffer-substring-no-properties (line-beginning-position) (point))
+      ;;        (buffer-substring-no-properties (point) (line-end-position)))
+      )
+    (cond
+      ((eq pos next-open-str)
+       ;; Scan forward
+       (or (save-excursion
+             (and (search-forward pseudovim-motion-jump-item--matching-comment-end-str nil t)
+                  (1- (point))))
+           (point-max)))
+      ((eq pos next-close-str)
+       ;; Scan backward
+       (or (save-excursion
+             (and (search-backward pseudovim-motion-jump-item--matching-comment-start-str nil t)
+                  (point)))
+           (point-min)))
+      ((eq pos next-open-list)
+       ;; Scan forward
+       (1- (condition-case nil
+               (scan-lists pos 1 0)
+             (error (point-max)))))
+      ((eq pos next-close-list)
+       ;; Scan backward
+       (condition-case nil
+           (scan-lists (+ 1 pos) -1 0)
+         (error (point-min))))
+      (t
+       (error "Impossible happened")))))
 
 (defun pseudovim-motion-jump-item ()
   "Find the next item in this line after or under the cursor and
