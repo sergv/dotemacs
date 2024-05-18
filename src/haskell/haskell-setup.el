@@ -421,7 +421,10 @@ _<tab>_: reindent  _h_: jump to topmont node end"
               ;; Don't skip any messages.
               compilation-skip-threshold 0
 
-              find-tag-default-function #'haskell-misc-find-tag-default))
+              find-tag-default-function #'haskell-misc-find-tag-default
+
+              pseudovim-motion-jump-item--matching-comment-start-str "{-"
+              pseudovim-motion-jump-item--matching-comment-end-str "-}"))
 
 (defun haskell-setup-common-project (set-up-indentation?)
   ;; Read settings from '.eproj-info' file, if any.
@@ -531,9 +534,7 @@ _<tab>_: reindent  _h_: jump to topmont node end"
                          '(:eval (flycheck-pretty-mode-line))))))))
 
 ;;;###autoload
-(defun haskell-ts-setup ()
-  (setq-local pseudovim-motion-jump-item-syntax-table
-              haskell-pseudovim-motion-jump-item-fixed-for-pragmas-syntax-table))
+(defun haskell-ts-setup ())
 
 ;;;###autoload
 (defun haskell-setup ()
