@@ -105,7 +105,7 @@ and indent them as singe line."
   (interactive)
   (save-excursion
     (goto-char (point-min))
-    (while (re-search-forward "srt:SRT:" nil t)
+    (while (search-forward "srt:SRT:" nil t)
       (skip-chars-backward "^\\\\")
       (zap-to-char 1 ?\])
       (delete-whitespace-forward)
@@ -318,7 +318,13 @@ _#-}_: on pragma close"
     ((derived-mode-p 'haskell-mode)
      (save-excursion
        (save-match-data
-         (when (search-forward haskell-regexen/pragma-end nil t)
+         (when (search-forward (eval-when-compile
+                                 (unless (equal (regexp-quote haskell-regexen/pragma-end)
+                                                haskell-regexen/pragma-end)
+                                   (error "Definition of haskell-regexen/pragma-start is not plain string anymore, amend its use in searching"))
+                                 haskell-regexen/pragma-end)
+                               nil
+                               t)
            (let ((end (point)))
              (backward-sexp)
              (let ((start (point)))
@@ -389,7 +395,11 @@ extensions as a list of strings. Leaves point at the end of pragma"
         ;; Go to beginning of the previous line.
         (backward-line))
       ;; Skip whitespace and possible comments to the beginning of pragma.
-      (re-search-forward haskell-regexen/pragma-start)
+      (search-forward (eval-when-compile
+                        (unless (equal (regexp-quote haskell-regexen/pragma-start)
+                                       haskell-regexen/pragma-start)
+                          (error "Definition of haskell-regexen/pragma-start is not plain string anymore, amend its use in searching"))
+                        haskell-regexen/pragma-start))
       (goto-char (match-beginning 0))
       (let ((pragma-block-start (point))
             (pragma-block-end nil)
