@@ -10,6 +10,8 @@
 
 (add-hook 'ghc-profiling-mode-hook #'ghc-profiling-mode-setup)
 (add-to-list 'auto-mode-alist '("\\.prof\\'" . ghc-profiling-mode))
+;; Override regular ".prof" regexp for typical cabal.project with profiling options.
+(add-to-list 'auto-mode-alist '("cabal\\.project\\.prof\\'" . haskell-cabal-project-mode))
 
 (defun enable-hlint-after-dante-for-flycheck ()
   (flycheck-add-next-checker 'haskell-dante
