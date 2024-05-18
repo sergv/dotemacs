@@ -535,153 +535,156 @@ on an uppercase identifier."
 
 (defun haskell-syntactic-face-function (state)
   "`font-lock-syntactic-face-function' for Haskell."
-  (cond
-   ((nth 3 state)
-    (if (eq ?| (nth 3 state))
-        ;; find out what kind of QuasiQuote is this
-        (let* ((qqname (save-excursion
-                        (goto-char (nth 8 state))
-                        (skip-syntax-backward "w._")
-                        (buffer-substring-no-properties (point) (nth 8 state))))
-               (lang-mode (cdr (assoc (haskell-string-drop-qualifier qqname)
-                                      haskell-font-lock-quasi-quote-modes))))
+  (let ((inside-string? (nth 3 state))
+        (comment-or-string-start (nth 8 state)))
+    (cond
+      (inside-string?
+       (if (eq ?| inside-string?)
+           ;; find out what kind of QuasiQuote is this
+           (let* ((qqname (save-excursion
+                            (goto-char comment-or-string-start)
+                            (skip-syntax-backward "w._")
+                            (buffer-substring-no-properties (point) comment-or-string-start)))
+                  (lang-mode (cdr (assoc (haskell-string-drop-qualifier qqname)
+                                         haskell-font-lock-quasi-quote-modes))))
 
-          (if (and lang-mode
-                   (fboundp lang-mode))
-              (save-excursion
-                ;; find the end of the QuasiQuote
-                (parse-partial-sexp (point) (point-max) nil nil state
-                                    'syntax-table)
-                (haskell-font-lock-fontify-block lang-mode (1+ (nth 8 state)) (1- (point)))
-                ;; must return nil here so that it is not fontified again as string
-                nil)
-            ;; fontify normally as string because lang-mode is not present
-            'haskell-quasi-quote-face))
-      (save-excursion
-        (let
-            ((state2
-              (parse-partial-sexp (point) (point-max) nil nil state
-                                  'syntax-table))
-             (end-of-string (point)))
-
-          (put-text-property (nth 8 state) (point)
-                             'face 'font-lock-string-face)
-
-
-          (if (or (eq t (nth 3 state)) (nth 3 state2))
-              ;; This is an unterminated string constant, use warning
-              ;; face for the opening quote.
-              (put-text-property (nth 8 state) (1+ (nth 8 state))
-                                 'face 'font-lock-warning-face))
-
-          (goto-char (1+ (nth 8 state)))
-          (while (re-search-forward "\\\\" end-of-string t)
-
-            (goto-char (1- (point)))
-
-            (if (looking-at haskell-lexeme-string-literal-inside-item)
-                (goto-char (match-end 0))
-
-              ;; We are looking at an unacceptable escape
-              ;; sequence. Use warning face to highlight that.
-              (put-text-property (point) (1+ (point))
-                                 'face 'font-lock-warning-face)
-              (goto-char (1+ (point)))))))
-      ;; must return nil here so that it is not fontified again as string
-      nil))
-   ;; Detect literate comment lines starting with syntax class '<'
-   ((save-excursion
-      (goto-char (nth 8 state))
-      (equal (eval-when-compile (string-to-syntax "<")) (syntax-after (point))))
-    'haskell-literate-comment-face)
-   ;; Detect pragmas. A pragma is enclosed in special comment
-   ;; delimiters {-# .. #-}.
-   ((save-excursion
-      (goto-char (nth 8 state))
-      (and (looking-at-p "{-#")
-           (forward-comment 1)
-           (goto-char (- (point) 3))
-           (looking-at-p "#-}")))
-    'haskell-pragma-face)
-   ;; Detect Liquid Haskell annotations enclosed in special comment
-   ;; delimiters {-@ .. @-}.
-   ((save-excursion
-      (goto-char (nth 8 state))
-      (and (looking-at-p "{-@")
-           (forward-comment 1)
-           (goto-char (- (point) 3))
-           (looking-at-p "@-}")))
-    'haskell-liquid-haskell-annotation-face)
-   ;; Haddock comment start with either "-- [|^*$]" or "{- ?[|^*$]"
-   ;; (note space optional for nested comments and mandatory for
-   ;; double dash comments).
-   ;;
-   ;; Haddock comment will also continue on next line, provided:
-   ;; - current line is a double dash haddock comment
-   ;; - next line is also double dash comment
-   ;; - there is only whitespace between
-   ;;
-   ;; We recognize double dash haddock comments by property
-   ;; 'font-lock-doc-face attached to newline. In case of {- -}
-   ;; comments newline is outside of comment.
-   ((save-excursion
-      (goto-char (nth 8 state))
-      (or (looking-at-p "\\(?:{- ?\\|-- \\)[|^*$]")
-          (and (looking-at-p "--")            ; are we at double dash comment
-               (forward-line -1)              ; this is nil on first line
-               (eq (get-text-property (line-end-position) 'face)
-                   'font-lock-doc-face)       ; is a doc face
-               (forward-line)
-               (skip-syntax-forward "-")      ; see if there is only whitespace
-               (eq (point) (nth 8 state)))))  ; we are back in position
-    ;; Here we look inside the comment to see if there are substrings
-    ;; worth marking inside we try to emulate as much of haddock as
-    ;; possible.  First we add comment face all over the comment, then
-    ;; we add special features.
-    (let ((beg (nth 8 state))
-          (end (save-excursion
+             (if (and lang-mode
+                      (fboundp lang-mode))
+                 (save-excursion
+                   ;; find the end of the QuasiQuote
+                   (parse-partial-sexp (point) (point-max) nil nil state
+                                       'syntax-table)
+                   (haskell-font-lock-fontify-block lang-mode (1+ comment-or-string-start) (1- (point)))
+                   ;; must return nil here so that it is not fontified again as string
+                   nil)
+               ;; fontify normally as string because lang-mode is not present
+               'haskell-quasi-quote-face))
+         (save-excursion
+           (let
+               ((state2
                  (parse-partial-sexp (point) (point-max) nil nil state
-                                     'syntax-table)
-                 (point)))
-          (emphasis-open-point nil)
-          (strong-open-point nil))
-      (put-text-property beg end 'face 'font-lock-doc-face)
+                                     'syntax-table))
+                (end-of-string (point)))
 
-      (when (fboundp 'add-face-text-property)
-        ;; `add-face-text-property' is not defined in Emacs 23
+             (put-text-property comment-or-string-start (point)
+                                'face 'font-lock-string-face)
 
-        ;; iterate over chars, take escaped chars unconditionally
-        ;; mark when a construct is opened, close and face it when
-        ;; it is closed
 
-        (save-excursion
-          (while (< (point) end)
-            (if (looking-at "__\\|\\\\.\\|\\\n\\|[/]")
-                (progn
-                  (cond
-                   ((equal (match-string 0) "/")
-                    (if emphasis-open-point
-                        (progn
-                          (add-face-text-property emphasis-open-point (match-end 0)
-                                                  '(:slant italic))
-                          (setq emphasis-open-point nil))
-                      (setq emphasis-open-point (point))))
-                   ((equal (match-string 0) "__")
-                    (if strong-open-point
-                        (progn
-                          (add-face-text-property strong-open-point (match-end 0)
-                                                  '(:weight bold))
-                          (setq strong-open-point nil))
-                      (setq strong-open-point (point))))
-                   (t
-                    ;; this is a backslash escape sequence, skip over it
-                    ))
-                  (goto-char (match-end 0)))
-              ;; skip chars that are not interesting
-              (goto-char (1+ (point)))
-              (skip-chars-forward "^_\\\\/" end))))))
-    nil)
-   (t 'font-lock-comment-face)))
+             (when (or (eq t inside-string?) (nth 3 state2))
+               ;; This is an unterminated string constant, use warning
+               ;; face for the opening quote.
+               (put-text-property comment-or-string-start (1+ comment-or-string-start)
+                                  'face 'font-lock-warning-face))
+
+             (goto-char (1+ comment-or-string-start))
+             (while (re-search-forward "\\\\" end-of-string t)
+
+               (goto-char (1- (point)))
+
+               (if (looking-at haskell-lexeme-string-literal-inside-item)
+                   (goto-char (match-end 0))
+
+                 (progn
+                   ;; We are looking at an unacceptable escape
+                   ;; sequence. Use warning face to highlight that.
+                   (put-text-property (point) (1+ (point))
+                                      'face 'font-lock-warning-face)
+                   (goto-char (1+ (point))))))))
+         ;; must return nil here so that it is not fontified again as string
+         nil))
+      ;; Detect literate comment lines starting with syntax class '<'
+      ((save-excursion
+         (goto-char comment-or-string-start)
+         (equal (eval-when-compile (string-to-syntax "<")) (syntax-after (point))))
+       'haskell-literate-comment-face)
+      ;; Detect pragmas. A pragma is enclosed in special comment
+      ;; delimiters {-# .. #-}.
+      ((save-excursion
+         (goto-char comment-or-string-start)
+         (and (looking-at-p "{-#")
+              (forward-comment 1)
+              (goto-char (- (point) 3))
+              (looking-at-p "#-}")))
+       'haskell-pragma-face)
+      ;; Detect Liquid Haskell annotations enclosed in special comment
+      ;; delimiters {-@ .. @-}.
+      ((save-excursion
+         (goto-char comment-or-string-start)
+         (and (looking-at-p "{-@")
+              (forward-comment 1)
+              (goto-char (- (point) 3))
+              (looking-at-p "@-}")))
+       'haskell-liquid-haskell-annotation-face)
+      ;; Haddock comment start with either "-- [|^*$]" or "{- ?[|^*$]"
+      ;; (note space optional for nested comments and mandatory for
+      ;; double dash comments).
+      ;;
+      ;; Haddock comment will also continue on next line, provided:
+      ;; - current line is a double dash haddock comment
+      ;; - next line is also double dash comment
+      ;; - there is only whitespace between
+      ;;
+      ;; We recognize double dash haddock comments by property
+      ;; 'font-lock-doc-face attached to newline. In case of {- -}
+      ;; comments newline is outside of comment.
+      ((save-excursion
+         (goto-char comment-or-string-start)
+         (or (looking-at-p "\\(?:{- ?\\|-- \\)[|^*$]")
+             (and (looking-at-p "--")            ; are we at double dash comment
+                  (forward-line -1)              ; this is nil on first line
+                  (eq (get-text-property (line-end-position) 'face)
+                      'font-lock-doc-face)       ; is a doc face
+                  (forward-line)
+                  (skip-syntax-forward "-")      ; see if there is only whitespace
+                  (eq (point) comment-or-string-start))))  ; we are back in position
+       ;; Here we look inside the comment to see if there are substrings
+       ;; worth marking inside we try to emulate as much of haddock as
+       ;; possible.  First we add comment face all over the comment, then
+       ;; we add special features.
+       (let ((beg comment-or-string-start)
+             (end (save-excursion
+                    (parse-partial-sexp (point) (point-max) nil nil state
+                                        'syntax-table)
+                    (point)))
+             (emphasis-open-point nil)
+             (strong-open-point nil))
+         (put-text-property beg end 'face 'font-lock-doc-face)
+
+         (when (fboundp 'add-face-text-property)
+           ;; `add-face-text-property' is not defined in Emacs 23
+
+           ;; iterate over chars, take escaped chars unconditionally
+           ;; mark when a construct is opened, close and face it when
+           ;; it is closed
+
+           (save-excursion
+             (while (< (point) end)
+               (if (looking-at "__\\|\\\\.\\|\\\n\\|[/]")
+                   (progn
+                     (cond
+                       ((equal (match-string 0) "/")
+                        (if emphasis-open-point
+                            (progn
+                              (add-face-text-property emphasis-open-point (match-end 0)
+                                                      '(:slant italic))
+                              (setq emphasis-open-point nil))
+                          (setq emphasis-open-point (point))))
+                       ((equal (match-string 0) "__")
+                        (if strong-open-point
+                            (progn
+                              (add-face-text-property strong-open-point (match-end 0)
+                                                      '(:weight bold))
+                              (setq strong-open-point nil))
+                          (setq strong-open-point (point))))
+                       (t
+                        ;; this is a backslash escape sequence, skip over it
+                        ))
+                     (goto-char (match-end 0)))
+                 ;; skip chars that are not interesting
+                 (goto-char (1+ (point)))
+                 (skip-chars-forward "^_\\\\/" end))))))
+       nil)
+      (t 'font-lock-comment-face))))
 
 (defun haskell-fontify-as-mode (text mode)
   "Fontify TEXT as MODE, returning the fontified text."
