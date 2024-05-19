@@ -1104,12 +1104,16 @@ This is a standard process sentinel function."
 
 (defun dante-show-process-problem (process change init-msg)
   "Report to the user that PROCESS reported CHANGE, causing it to end."
-  (message "Dante GHCi process failed! Further details in ‘%s’.\n--------------------------------\n%s%s"
-           (process-buffer process)
-           (join-lines (process-command process) " ")
-           (if init-msg
-               (concat "\n--------------------------------\n" (trim-whitespace-right init-msg))
-             ""))
+  (let ((sep "\n--------------------------------\n"))
+    (message "Dante GHCi process failed! Further details in ‘%s’.%sDirectory: ‘%s’%s%s%s"
+             (process-buffer process)
+             sep
+             (buffer-local-value 'default-directory (process-buffer process))
+             sep
+             (join-lines (process-command process) " ")
+             (if init-msg
+                 (concat sep (trim-whitespace-right init-msg))
+               "")))
   (with-current-buffer (process-buffer process)
     (goto-char (point-max))
     (insert "\n---\n\n"
