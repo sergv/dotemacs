@@ -5611,6 +5611,44 @@ _|_bar")
    "foo x = [f| 1 + x|_|_] + 1"
    ""))
 
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-rename-at-point-1
+    (execute-kbd-macro (kbd "C-r y z <return>"))
+  (tests-utils--multiline
+   ""
+   "test :: forall a. [a] -> [(a, a)]"
+   "test _|_x = do"
+   "  y <- frobnicator"
+   "  pure $ x + y + x"
+   "")
+  (tests-utils--multiline
+   ""
+   "test :: forall a. [a] -> [(a, a)]"
+   "test xyz_|_ = do"
+   "  y <- frobnicator"
+   "  pure $ xyz + y + xyz"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-rename-at-point-2
+    (execute-kbd-macro (kbd "C-r C-w a b c <return>"))
+  (tests-utils--multiline
+   ""
+   "test :: forall a. [a] -> [(a, a)]"
+   "test _|_x = do"
+   "  y <- frobnicator"
+   "  pure $ x + y + x"
+   "")
+  (tests-utils--multiline
+   ""
+   "test :: forall a. [a] -> [(a, a)]"
+   "test abc_|_ = do"
+   "  y <- frobnicator"
+   "  pure $ abc + y + abc"
+   ""))
+
 (provide 'vim-tests)
 
 ;; Local Variables:
