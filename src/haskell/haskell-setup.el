@@ -534,7 +534,10 @@ _<tab>_: reindent  _h_: jump to topmont node end"
                          '(:eval (flycheck-pretty-mode-line))))))))
 
 ;;;###autoload
-(defun haskell-ts-setup ())
+(defun haskell-ts-setup ()
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-insert-mode-local-keymap)
+    ("C-r" haskell-ts-rename-at-point)))
 
 ;;;###autoload
 (defun haskell-setup ()
