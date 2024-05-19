@@ -61,46 +61,92 @@
                         "class"))))))
       (unless topmost-parent
         (error "Internal error: failed to find scoping node above variable at point"))
-      (let ((closest-scope
-             (if (equal "class" (treesit-node-type topmost-parent))
-                 (haskell-ts-rename--find-topmost-parent
-                  node
-                  (lambda (x)
-                    (member (treesit-node-type x)
-                            '("function"
-                              "signature"
-                              "data_type"
-                              "newtype"
-                              "bind"))))
-               topmost-parent)))
-        (let ((variables
-               (treesit-query-capture closest-scope
-                                      haskell-ts-rename--variable-query
-                                      nil
-                                      nil
-                                      t ;; Don’t capture names, we only ask for variables.
-                                      ))
-              (ovs nil)
-              (mod-hooks (list #'haskell-ts-rename--modification-hook))
-              (node-text (buffer-substring-no-properties (treesit-node-start node)
-                                                         (treesit-node-end node))))
-          (dolist (v variables)
-            (let ((start (treesit-node-start v))
-                  (end (treesit-node-end v)))
-              (when (equal node-text (buffer-substring-no-properties start end))
-                (let ((ov (make-overlay start
-                                        end
+      (let* ((closest-scope
+              (if (equal "class" (treesit-node-type topmost-parent))
+                  (haskell-ts-rename--find-topmost-parent
+                   node
+                   (lambda (x)
+                     (member (treesit-node-type x)
+                             '("function"
+                               "signature"
+                               "data_type"
+                               "newtype"
+                               "bind"))))
+                topmost-parent))
+             (ovs nil)
+             (mod-hooks (list #'haskell-ts-rename--modification-hook))
+             (node-text (treesit-node-text node
+                                           t ;; no properties
+                                           ))
+             (node-text-len (length node-text))
+             (relevant-scopes (list closest-scope)))
+
+        (pcase (treesit-node-type closest-scope)
+          ("function"
+           ;; Find signature for current function by searching backwards.
+           (when-let ((func-name (treesit-node-child-by-field-name closest-scope "name")))
+             (let ((continue t)
+                   (n (treesit-node-prev-sibling closest-scope)))
+               (while (and n
+                           continue)
+                 (pcase (treesit-node-type n)
+                   ("function"
+                    ;; Found previous function’s definition.
+                    (setf continue nil))
+                   ("signature"
+                    (when-let ((sig-name (treesit-node-child-by-field-name n "name")))
+                      (when (equal (treesit-node-text func-name)
+                                   (treesit-node-text sig-name))
+                        (push n relevant-scopes)
+                        (setf continue nil)))))
+                 (setf n (treesit-node-prev-sibling n))))))
+          ("signature"
+           ;; Find function for current signature by searching forwards.
+           (when-let ((func-name (treesit-node-child-by-field-name closest-scope "name")))
+             (let ((continue t)
+                   (n (treesit-node-next-sibling closest-scope)))
+               (while (and n
+                           continue)
+                 (pcase (treesit-node-type n)
+                   ("function"
+                    (when-let ((sig-name (treesit-node-child-by-field-name n "name")))
+                      (when (equal (treesit-node-text func-name)
+                                   (treesit-node-text sig-name))
+                        (push n relevant-scopes)
+                        (setf continue nil))))
+                   ("signature"
+                    ;; Found next function’s signature.
+                    (setf continue nil)))
+                 (setf n (treesit-node-next-sibling n)))))))
+
+        (dolist (scope relevant-scopes)
+          (let ((variables
+                 (treesit-query-capture scope
+                                        haskell-ts-rename--variable-query
                                         nil
-                                        nil ;; Include text inserted at front
-                                        t   ;; Include text inserted at back
+                                        nil
+                                        t ;; Don’t capture names, we only ask for variables.
                                         )))
-                  (overlay-put ov 'face                  'haskell-ts-rename-candidate-face)
-                  (overlay-put ov 'modification-hooks    mod-hooks)
-                  (overlay-put ov 'insert-in-front-hooks mod-hooks)
-                  (overlay-put ov 'insert-behind-hooks   mod-hooks)
-                  (overlay-put ov 'keymap                haskell-ts-rename-keymap)
-                  (push ov ovs)))))
-          (mapc #'delete-overlay haskell-ts-rename--current-overlays)
+            (dolist (v variables)
+              (let ((start (treesit-node-start v))
+                    (end (treesit-node-end v)))
+                (when (and (= (- end start) node-text-len)
+                           (equal node-text (buffer-substring-no-properties start end)))
+                  (let ((ov (make-overlay start
+                                          end
+                                          nil
+                                          nil ;; Include text inserted at front
+                                          t ;; Include text inserted at back
+                                          )))
+                    (overlay-put ov 'face                  'haskell-ts-rename-candidate-face)
+                    (overlay-put ov 'modification-hooks    mod-hooks)
+                    (overlay-put ov 'insert-in-front-hooks mod-hooks)
+                    (overlay-put ov 'insert-behind-hooks   mod-hooks)
+                    (overlay-put ov 'keymap                haskell-ts-rename-keymap)
+                    (push ov ovs)))))))
+        (mapc #'delete-overlay haskell-ts-rename--current-overlays)
+        (setf haskell-ts-rename--current-overlays nil)
+        (when ovs
           (setf haskell-ts-rename--current-overlays ovs
                 haskell-ts-rename--should-restore-vim-normal-mode? vim-normal-mode)
 

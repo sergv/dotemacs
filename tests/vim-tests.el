@@ -5649,6 +5649,88 @@ _|_bar")
    "  pure $ abc + y + abc"
    ""))
 
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-rename-at-point-3
+    (execute-kbd-macro (kbd "C-r b c <return>"))
+  (tests-utils--multiline
+   ""
+   "test :: forall a. [a] -> [(a, a)]"
+   "test x = do"
+   "  y <- frobnicator"
+   "  pure $ (x :: _|_a) + y + x"
+   "")
+  (tests-utils--multiline
+   ""
+   "test :: forall abc. [abc] -> [(abc, abc)]"
+   "test x = do"
+   "  y <- frobnicator"
+   "  pure $ (x :: abc_|_) + y + x"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-rename-at-point-4
+    (execute-kbd-macro (kbd "C-r b c <return>"))
+  (tests-utils--multiline
+   ""
+   "test :: forall a. [a] -> [(a, a)]"
+   "-- inconvenient comment"
+   "test x = do"
+   "  y <- frobnicator"
+   "  pure $ (x :: _|_a) + y + x"
+   "")
+  (tests-utils--multiline
+   ""
+   "test :: forall abc. [abc] -> [(abc, abc)]"
+   "-- inconvenient comment"
+   "test x = do"
+   "  y <- frobnicator"
+   "  pure $ (x :: abc_|_) + y + x"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-rename-at-point-5
+    (execute-kbd-macro (kbd "C-r b c <return>"))
+  (tests-utils--multiline
+   ""
+   "test :: forall a. [_|_a] -> [(a, a)]"
+   "-- inconvenient comment"
+   "test x = do"
+   "  y <- frobnicator"
+   "  pure $ (x :: a) + y + x"
+   "")
+  (tests-utils--multiline
+   ""
+   "test :: forall abc. [abc_|_] -> [(abc, abc)]"
+   "-- inconvenient comment"
+   "test x = do"
+   "  y <- frobnicator"
+   "  pure $ (x :: abc) + y + x"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-rename-at-point-6
+    (execute-kbd-macro (kbd "C-r b c <return>"))
+  (tests-utils--multiline
+   ""
+    "data Foo a = Foo"
+    "  { foo :: (Bar Int)"
+    "  , bar :: (_|_a, Double)"
+    "  , baz :: {-# UNPACK #-} !Double"
+    "  }"
+   "")
+  (tests-utils--multiline
+   ""
+    "data Foo abc = Foo"
+    "  { foo :: (Bar Int)"
+    "  , bar :: (abc_|_, Double)"
+    "  , baz :: {-# UNPACK #-} !Double"
+    "  }"
+   ""))
+
 (provide 'vim-tests)
 
 ;; Local Variables:
