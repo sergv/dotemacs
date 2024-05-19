@@ -991,9 +991,9 @@ Must be called from GHCi process buffer."
     (concat
      "^\\(?3:"
      (dante-regexp-disjoin
-      "Ok, modules loaded:[ ]*[^\n ]*\\(?: (.*)\\)?"
-      "Ok, .*modules loaded" ;; .* stands for a number in english (two, three, ...) (GHC 8.2)
-      "Ok, one module loaded")
+      "Ok, modules \\(?:re\\)?loaded:[ ]*[^\n ]*\\(?: (.*)\\)?"
+      "Ok, .*modules \\(?:re\\)?loaded" ;; .* stands for a number in english (two, three, ...) (GHC 8.2)
+      "Ok, one module \\(?:re\\)?loaded")
      "\\.\\)")))
 
 (defconst dante-error-regexp
