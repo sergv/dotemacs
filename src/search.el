@@ -174,9 +174,8 @@ into account.")
 (defvar *search-minibuffer-keymap*
   (let ((map (make-sparse-keymap)))
     (def-keys-for-map map
-      ("<enter>"   search-done)
-      ("<return>"  search-done)
-      ("RET"       search-done)
+      (("<enter>" "<return>" "RET") search-done)
+
       ("<escape>"  search-abort)
 
       ("<f6>"      search-return-to-start)
