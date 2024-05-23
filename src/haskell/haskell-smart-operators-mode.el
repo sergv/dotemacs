@@ -23,6 +23,9 @@
 (require 'pseudoparedit)
 (require 'smart-operators-utils)
 
+(require 'treesit)
+(require 'treesit-setup)
+
 (defconst haskell-smart-operators--operator-chars-str "!#$%&*+./:<=>?@\\^|~-")
 
 (defconst haskell-smart-operators--operator-chars
@@ -528,7 +531,9 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
 ;;;###autoload
 (defun haskell-smart-operators-open-paren ()
   (interactive)
-  (let ((literal-insertion? (haskell-smart-operators--literal-insertion?)))
+  (let ((literal-insertion? (haskell-smart-operators--literal-insertion?))
+        (checked-import-list? nil)
+        (inside-import-list? nil))
     (smart-operators--insert-pair ?\(
                                   ?\)
                                   (lambda (before)
@@ -536,12 +541,20 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
                                              (eq before ?\()
                                              (eq before ?\[)
                                              (eq before ?\\)
-                                             (eq before ?@))))
+                                             (eq before ?@)
+                                             (if checked-import-list?
+                                                 inside-import-list?
+                                               (setf checked-import-list? t
+                                                     inside-import-list? (haskell-smart-operators--in-import-list?))))))
                                   (lambda (after)
                                     (not (or literal-insertion?
                                              (eq after ?\))
                                              (eq after ?\])
-                                             (eq after ?,)))))))
+                                             (eq after ?,)
+                                             (if checked-import-list?
+                                                 inside-import-list?
+                                               (setf checked-import-list? t
+                                                     inside-import-list? (haskell-smart-operators--in-import-list?)))))))))
 
 ;;;###autoload
 (defun haskell-smart-operators-open-bracket ()
