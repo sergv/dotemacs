@@ -44,6 +44,17 @@ Return the root node of the syntax tree."
       (setf p (treesit-node-parent p)))
     result))
 
+(defun treesit-utils-find-topmost-parent-limited (node pred limit)
+  (let ((result nil)
+        (p node))
+    (while (and p
+                (> limit 0))
+      (when (funcall pred p)
+        (setf result p))
+      (setf p (treesit-node-parent p)
+            limit (- limit 1)))
+    result))
+
 ;; Debug indentation:
 ;; treesit--indent-verbose
 
