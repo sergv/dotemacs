@@ -123,6 +123,18 @@
                    (magit-stash nil)
                    (nil)))))
 
+(ert-deftest misc-tests/ivy--regex-fuzzy-1 ()
+  (should (equal (ivy--regex-fuzzy " a")
+                 '(("\\( \\)[^a\n]*\\(a\\)" . t)))))
+
+(ert-deftest misc-tests/ivy--regex-fuzzy-2 ()
+  (should (equal (ivy--regex-fuzzy "a ")
+                 '(("\\(a\\)" . t)))))
+
+(ert-deftest misc-tests/ivy--regex-fuzzy-3 ()
+  (should (equal (ivy--regex-fuzzy "a b")
+                 '(("\\(a\\)" . t) ("\\(b\\)" . t)))))
+
 (provide 'misc-tests)
 
 ;; Local Variables:
