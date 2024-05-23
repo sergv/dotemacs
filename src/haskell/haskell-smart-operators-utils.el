@@ -17,11 +17,11 @@
 
 (defun haskell-smart-operators--treesit--in-string? (node)
   (when node
-    (memq (treesit-node-type node) '(string quasiquote_body))))
+    (member (treesit-node-type node) '("string" "quasiquote_body"))))
 
 (defun haskell-smart-operators--treesit--in-comment? (node)
   (when node
-    (memq (treesit-node-type node) '(comment haddock pragma))))
+    (member (treesit-node-type node) '("comment" "haddock" "pragma"))))
 
 ;;;###autoload
 (defun haskell-smart-operators--in-string-syntax?-raw (node)
