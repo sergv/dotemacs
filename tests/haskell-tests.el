@@ -5660,6 +5660,24 @@ have different input states."
    "foo x xs = foo (Median3or5 \"foo(_|_)bar\")"
    ""))
 
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--open-paren-5
+ :action
+ (haskell-smart-operators-open-paren)
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Foo (Bar_|_)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Foo (Bar(_|_))"
+  "")
+ :modes (haskell-ts-mode)
+ :fresh-buffer t)
+
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-smart-operators--open-bracket-1
     (haskell-smart-operators-open-bracket)
