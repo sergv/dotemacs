@@ -3012,7 +3012,20 @@ match.  Everything after \"!\" should not match."
 Insert .* between each char."
   (if (string= str "")
       ""
-    (let ((subexps 0))
+    (let ((components
+           (if (eq (aref str 0) ?\s)
+               (let ((i 1)
+                     (len (length str)))
+                 (while (and (< i len)
+                             (eq (aref str i) ?\s))
+                   (cl-incf i))
+                 (while (and (< i len)
+                             (not (eq (aref str i) ?\s)))
+                   (cl-incf i))
+                 (cons (subseq str 0 i)
+                       (split-string (subseq str i) " " t)))
+             (split-string str " " t)))
+          (subexps 0))
       (prog1
           (mapcar (lambda (part)
                     (setq part (ivy--trim-trailing-re part))
@@ -3030,7 +3043,7 @@ Insert .* between each char."
                                           (match-string 3 part))
                                 (setq subexps (+ subexps (length (match-string 2 part))))))
                           t))
-                  (split-string str " " t))
+                  components)
         (setf ivy--subexps subexps)))))
 
 (defalias 'ivy--regex-fuzzy-filenames #'ivy--regex-fuzzy)
