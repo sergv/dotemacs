@@ -7115,6 +7115,51 @@ have different input states."
    ""
    "}"))
 
+(haskell-tests--test-result
+    haskell-tests/syntax-propertize-1
+  :action
+  (nth 3 (parse-partial-sexp (line-beginning-position) (point)))
+  :expected-value
+  nil
+  :contents
+  (tests-utils--multiline
+   ""
+   "isWord :: Int# -> Bool#"
+   "isWord x = case chr# x of"
+   "  ' '#  -> _|_False#"
+   ""))
+
+(haskell-tests--test-result
+    haskell-tests/syntax-propertize-2
+  :action
+  (nth 3 (parse-partial-sexp (line-beginning-position) (point)))
+  :expected-value
+  nil
+  :contents
+  (tests-utils--multiline
+   ""
+   "isWord :: Int# -> Bool#"
+   "isWord x = case chr# x of"
+   "  '/'#  -> False#"
+   "  '\\\\'#  -> _|_False#"
+   ""))
+
+(haskell-tests--test-result
+    haskell-tests/syntax-propertize-3
+  :action
+  (nth 3 (parse-partial-sexp (line-beginning-position -1) (point)))
+  :expected-value
+  nil
+  :contents
+  (tests-utils--multiline
+   ""
+   "isWord :: Int# -> Bool#"
+   "isWord x = case chr# x of"
+   "  '/'#  -> False#"
+   "  '\\\\'#  -> False#"
+   "  _     -> _|_True#"
+   ""))
+
 (provide 'haskell-tests)
 
 ;; (let ((ert-debug-on-error nil))

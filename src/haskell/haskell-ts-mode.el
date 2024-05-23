@@ -226,10 +226,15 @@ but when paired then it’s like a string."
                                     (1+ start)
                                     'syntax-table
                                     (eval-when-compile (string-to-syntax "\"")))
-                 (put-text-property (1- end)
-                                    end
-                                    'syntax-table
-                                    (eval-when-compile (string-to-syntax "\""))))
+                 ;; If it was unboxed character literal, e.g. 'a'# then adjust point
+                 ;; to make quotes the string delimiters.
+                 (let ((butlast (1- end)))
+                   (when (eq (char-after butlast) ?#)
+                     (setf butlast (1- butlast)))
+                   (put-text-property butlast
+                                      (1+ butlast)
+                                      'syntax-table
+                                      (eval-when-compile (string-to-syntax "\"")))))
                 ;; (`qq-start-bracket
                 ;;  (put-text-property start
                 ;;                     end
