@@ -3636,6 +3636,7 @@ Otherwise, the car must not match."
   "Return all items that match NAME in CANDIDATES.
 CANDIDATES are assumed to be static."
   (let ((re (funcall ivy--regex-function name)))
+    (cl-assert (not (null re)))
     (if (and
          ivy--old-re
          ivy--old-cands
