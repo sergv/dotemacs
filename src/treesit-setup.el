@@ -35,6 +35,15 @@ Return the root node of the syntax tree."
     (treesit-parser-root-node
      (treesit-parser-create language))))
 
+(defun treesit-utils-find-topmost-parent (node pred)
+  (let ((result nil)
+        (p node))
+    (while p
+      (when (funcall pred p)
+        (setf result p))
+      (setf p (treesit-node-parent p)))
+    result))
+
 ;; Debug indentation:
 ;; treesit--indent-verbose
 
