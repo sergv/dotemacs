@@ -7,15 +7,7 @@
 ;; Description:
 
 (require 'treesit)
-
-(defun haskell-ts-rename--find-topmost-parent (node pred)
-  (let ((result nil)
-        (p node))
-    (while p
-      (when (funcall pred p)
-        (setf result p))
-      (setf p (treesit-node-parent p)))
-    result))
+(require 'treesit-setup)
 
 (defconst haskell-ts-rename--variable-query
   (treesit-query-compile 'haskell '((variable) @variable)))
@@ -49,7 +41,7 @@
     (unless (equal "variable" (treesit-node-type node))
       (error "Cannot rename non-variable. Node at point is: %s" (treesit-node-type node)))
     (let ((topmost-parent
-           (haskell-ts-rename--find-topmost-parent
+           (treesit-utils-find-topmost-parent
             node
             (lambda (x)
               (member (treesit-node-type x)
