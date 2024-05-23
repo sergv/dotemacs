@@ -17,7 +17,8 @@
 
 (defun haskell-smart-operators--treesit--in-string? (node)
   (when node
-    (member (treesit-node-type node) '("string" "quasiquote_body"))))
+    (when (member (treesit-node-type node) '("string" "quasiquote_body"))
+      (not (eq (point) (treesit-node-start node))))))
 
 (defun haskell-smart-operators--treesit--in-comment? (node)
   (when node
@@ -38,6 +39,17 @@
     (or (haskell-smart-operators--treesit--in-string? node)
         (haskell-smart-operators--treesit--in-comment? node)
         (smart-operators--literal-insertion? disable-comment-check?))))
+
+(defun haskell-smart-operators--treesit--in-import-list? (node)
+  (when node
+    (equal (treesit-node-type node) "import_list")))
+
+(defun haskell-smart-operators--in-import-list? ()
+  (let ((node (haskell-smart-operators--treesit--current-node)))
+    (treesit-utils-find-topmost-parent-limited node
+                                               (lambda (x)
+                                                 (haskell-smart-operators--treesit--in-import-list? x))
+                                               5)))
 
 (provide 'haskell-smart-operators-utils)
 
