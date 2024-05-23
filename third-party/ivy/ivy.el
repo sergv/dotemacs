@@ -3381,16 +3381,19 @@ Otherwise, ~/ will move home."
   "Insert Ivy completions display, possibly after a timeout for
 dynamic collections.
 Should be run via minibuffer `post-command-hook'."
-  (if (and (> ivy-dynamic-exhibit-delay-ms 0)
-           (ivy-state-dynamic-collection ivy-last))
-      (progn
-        (when ivy--exhibit-timer (cancel-timer ivy--exhibit-timer))
-        (setq ivy--exhibit-timer
-              (run-with-timer
-               (/ ivy-dynamic-exhibit-delay-ms 1000.0)
-               nil
-               'ivy--exhibit)))
-    (ivy--exhibit)))
+  (condition-case err
+      (if (and (> ivy-dynamic-exhibit-delay-ms 0)
+               (ivy-state-dynamic-collection ivy-last))
+          (progn
+            (when ivy--exhibit-timer (cancel-timer ivy--exhibit-timer))
+            (setq ivy--exhibit-timer
+                  (run-with-timer
+                   (/ ivy-dynamic-exhibit-delay-ms 1000.0)
+                   nil
+                   'ivy--exhibit)))
+        (ivy--exhibit))
+    (error
+     (message "ivy--queue-exhibit failed: %s" err))))
 
 (defalias 'ivy--file-local-name
   (if (fboundp 'file-local-name)
