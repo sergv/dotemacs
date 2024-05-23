@@ -26,134 +26,141 @@
   :group 'haskell-appearance)
 
 (defconst haskell-ts-font-lock-rules
-  (--mapcat
-   (cons :language
-         (cons 'haskell
-               (cons :feature
-                     (cons (car it)
-                           (cons :override
-                                 (cons nil
-                                       (list (cdr it))))))))
-   '((everyone
+  (append
+   '(:language
+     haskell
+     :feature
+     infix-backtickts
+     ;; :override t
+     ((infix_id
+       "`"
+       [(name)
+        (qualified (name))
+        (variable)
+        (qualified (variable))
+        (constructor)
+        (qualified (constructor))]
+       "`")
+      @haskell-operator-face))
+   (--mapcat
+    (cons :language
+          (cons 'haskell
+                (cons :feature
+                      (cons (car it)
+                            (cons :override
+                                  (cons nil
+                                        (list (cdr it))))))))
+    '((everyone
 
-      ;; comment
-      ((comment) @font-lock-comment-face)
+       ;; comment
+       ((comment) @font-lock-comment-face)
 
-      ((haddock) @haskell-ts-hadddock-face)
+       ((haddock) @haskell-ts-hadddock-face)
 
-      ;; constant
-      ([(integer) (float)] @font-lock-constant-face)
+       ;; constant
+       ([(integer) (float)] @font-lock-constant-face)
 
-      ;; string
-      ([(char) (string) (quasiquote_body)] @font-lock-string-face)
+       ;; string
+       ([(char) (string) (quasiquote_body)] @font-lock-string-face)
 
-      ;; preprocessor
-      ([(pragma) (cpp)] @haskell-pragma-face)
+       ;; preprocessor
+       ([(pragma) (cpp)] @haskell-pragma-face)
 
-      ;; keyword
-      (lambda_cases
-       "\\"
-       ("cases" @haskell-keyword-face))
-
-      (default_signature
-       ("default" @haskell-keyword-face))
-
-      (pattern_synonym
-       ("pattern" @haskell-keyword-face))
-
-      ([
-        "forall"
-        "where"
-        "let"
-        "in"
-        "class"
-        "instance"
-        "data"
-        "newtype"
-        "family"
-        "type"
-        "as"
-        "hiding"
-        "deriving"
-        "via"
-        "stock"
-        "anyclass"
-        "do"
-        "mdo"
-        "rec"
-        "infix"
-        "infixl"
-        "infixr"
-
-        "if"
-        "then"
-        "else"
-        "case"
-        "of"
-
-        "import"
-        "qualified"
-        "module"
-        ]
-       @haskell-keyword-face)
-
-      ;; operator
-      ([
-        (operator)
-        ;; Competes with (module)
-        (qualified (operator))
-        (all_names)
-        "="
-        "|"
-        "::"
-        "=>"
-        "->"
-        "<-"
+       ;; keyword
+       (lambda_cases
         "\\"
-        "@"
-        ]
-       @haskell-operator-face)
+        ("cases" @haskell-keyword-face))
 
-      (forall "." @haskell-keyword-face)
+       (default_signature
+        ("default" @haskell-keyword-face))
 
-      ;; (unboxed_tuple "(#" @haskell-keyword-face)
-      ;; (unboxed_tuple "#)" @haskell-keyword-face)
+       (pattern_synonym
+        ("pattern" @haskell-keyword-face))
 
-      ((infix_id
-        "`"
-        [(variable)
-         (qualified (variable))
-         (constructor)
-         (qualified (constructor))]
-        "`")
-       @haskell-operator-face)
+       ([
+         "forall"
+         "where"
+         "let"
+         "in"
+         "class"
+         "instance"
+         "data"
+         "newtype"
+         "family"
+         "type"
+         "as"
+         "hiding"
+         "deriving"
+         "via"
+         "stock"
+         "anyclass"
+         "do"
+         "mdo"
+         "rec"
+         "infix"
+         "infixl"
+         "infixr"
 
-      ;; module-name
-      ;; Competes with (module)
-      ;; ((qualified (variable)) @default)
+         "if"
+         "then"
+         "else"
+         "case"
+         "of"
 
-      (import (module) @haskell-type-face)
-      (header (module) @haskell-type-face)
-      (module_export (module) @haskell-type-face)
-      ((qualified (module) (name)) @haskell-type-face)
+         "import"
+         "qualified"
+         "module"
+         ]
+        @haskell-keyword-face)
 
-      ;; type
-      ;; ((signature name: (variable) @font-lock-type-face))
+       ;; operator
+       ([
+         (operator)
+         ;; Competes with (module)
+         (qualified (operator))
+         (all_names)
+         "="
+         "|"
+         "::"
+         "=>"
+         "->"
+         "<-"
+         "\\"
+         "@"
+         ]
+        @haskell-operator-face)
 
-      ;; Handles all types
-      ((name) @haskell-type-face)
+       (forall "." @haskell-keyword-face)
 
-      ;; constructor
-      ([(constructor) (unit) (list "[" !element "]") (constructor_operator)] @haskell-constructor-face)
+       ;; (unboxed_tuple "(#" @haskell-keyword-face)
+       ;; (unboxed_tuple "#)" @haskell-keyword-face)
 
-      ((qualified (module) @haskell-type-face
-                  [(constructor) (constructor_operator)] @haskell-constructor-face))
+       ;; module-name
+       ;; Competes with (module)
+       ;; ((qualified (variable)) @default)
 
-      ;; strictness
-      ([(strict_field "!") (strict "!")] @haskell-ts-mode--fontify-bang)
+       (import (module) @haskell-type-face)
+       (header (module) @haskell-type-face)
+       (module_export (module) @haskell-type-face)
+       ((qualified (module) (name)) @haskell-type-face)
 
-      ;; laziness
-      ([(lazy_field) (irrefutable "~")] @haskell-ts-mode--fontify-tilde)))))
+       ;; type
+       ;; ((signature name: (variable) @font-lock-type-face))
+
+       ;; Handles all types
+       ((name) @haskell-type-face)
+
+       ;; constructor
+       ([(constructor) (unit) (list "[" !element "]") (constructor_operator)] @haskell-constructor-face)
+
+       ((qualified (module) @haskell-type-face
+                   [(constructor) (constructor_operator)] @haskell-constructor-face))
+
+       ;; strictness
+       ([(strict_field "!") (strict "!")] @haskell-ts-mode--fontify-bang)
+
+       ;; laziness
+       ([(lazy_field) (irrefutable "~")] @haskell-ts-mode--fontify-tilde))))))
 
 (defconst haskell-ts-indent-rules
   `(((parent-is ,(rx bos "exp_do" eos)) parent-bol 2)))
@@ -309,7 +316,7 @@ but when paired then it’s like a string."
 
   (setq-local font-lock-defaults nil
               treesit-font-lock-feature-list
-              '((everyone)))
+              '((everyone infix-backtickts)))
 
   (let ((res (treesit-language-available-p 'haskell t)))
     (unless (car res)
