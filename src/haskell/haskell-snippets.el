@@ -9,7 +9,7 @@
 (require 'yasnippet-setup)
 
 (defconst haskell-snippets--cabal-run-header--body
-  "#!/usr/bin/env cabal
+  "#!/usr/bin/env -S cabal run
 {- cabal:
 build-depends:
   , base
@@ -22,7 +22,12 @@ default-language:
   GHC2021
 ghc-options:
   -threaded -rtsopts \"-with-rtsopts=-A32m -s\"
-}-}")
+}-}$(3:
+{- project:
+allow-newer:
+  , *:base
+-})
+")
 
 (defconst haskell-snippets--cabal-run-header-snippet
   (concat
