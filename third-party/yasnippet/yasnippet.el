@@ -605,11 +605,23 @@ can be useful."
   "List of characters which *might* need to be escaped.")
 
 (defconst yas--field-regexp
-  "${\\([0-9]+:\\)?\\([^}]*\\)}"
+  (rx "$"
+      (or (seq (group-n 3 "(")
+               (group-n 1 (+ (any (?0 . ?9)))) ":"
+               (group-n 2 (* (not ?\))))
+               ")")
+          (seq (group-n 3 "[")
+               (group-n 1 (+ (any (?0 . ?9)))) ":"
+               (group-n 2 (* (not ?\])))
+               "]")
+          (seq (group-n 3 "{")
+               (? (group-n 1 (+ (any (?0 . ?9)))) ":")
+               (group-n 2 (* (not ?\})))
+               "}")))
   "A regexp to *almost* recognize a field.")
 
 (defconst yas--multi-dollar-lisp-expression-regexp
-  "$+[ \t\n]*\\(([^)]*)\\)"
+  "[$]+[ \t\n]*\\(([^)]*)\\)"
   "A regexp to *almost* recognize a \"$(...)\" expression.")
 
 (defconst yas--backquote-lisp-expression-regexp
@@ -617,11 +629,11 @@ can be useful."
   "A regexp to recognize a \"\\=`lisp-expression\\=`\" expression." )
 
 (defconst yas--transform-mirror-regexp
-  "${\\(?:\\([0-9]+\\):\\)?$\\([ \t\n]*([^}]*\\)"
+  "[$]{\\(?:\\([0-9]+\\):\\)?$\\([ \t\n]*([^}]*\\)"
   "A regexp to *almost* recognize a mirror with a transform.")
 
 (defconst yas--simple-mirror-regexp
-  "$\\([0-9]+\\)"
+  "[$]\\([0-9]+\\)"
   "A regexp to recognize a simple mirror.")
 
 (defvar yas--snippet-id-seed 0
@@ -4699,10 +4711,27 @@ SAVED-QUOTES is the in format returned by `yas--save-backquotes'."
   (setq yas--indent-markers (nreverse yas--indent-markers)))
 
 (defun yas--scan-for-field-end ()
-  (while (progn (re-search-forward "\\${\\|}")
-                (when (eq (char-before) ?\{)
-                  ;; Nested field.
-                  (yas--scan-for-field-end))))
+  (let* ((start-char (char-after))
+         (re (pcase start-char
+               (`?\(
+                (rx (or (seq "$" (group-n 1
+                                   (any ?\( ?\[ ?\{)))
+                        (any ?\)))))
+               (`?\[
+                (rx (or (seq "$" (group-n 1
+                                   (any ?\( ?\[ ?\{)))
+                        (any ?\]))))
+               (`?\{
+                (rx (or (seq "$" (group-n 1
+                                   (any ?\( ?\[ ?\{)))
+                        (any ?\}))))
+               (other
+                (error "Invalid field start character: %c" start-char)))))
+    (while (progn (re-search-forward re)
+                  (when-let ((p (match-beginning 1)))
+                    (goto-char p)
+                    ;; Nested field.
+                    (yas--scan-for-field-end)))))
   (point))
 
 (defun yas--field-parse-create (snippet &optional parent-field)
@@ -4723,7 +4752,7 @@ When multiple expressions are found, only the last one counts."
   (save-excursion
     (while (re-search-forward yas--field-regexp nil t)
       (let* ((brace-scan (save-match-data
-                           (goto-char (match-beginning 2))
+                           (goto-char (match-beginning 3))
                            (yas--scan-for-field-end)))
              ;; if the `brace-scan' didn't reach a brace, we have a
              ;; snippet with invalid escaping, probably a closing
