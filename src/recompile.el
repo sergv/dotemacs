@@ -67,6 +67,45 @@
           backup-all-buffers
           persistent-store-flush-database)))
 
+(defun fix-comp-delete-or-replace-file! ()
+  (require 'el-patch)
+
+  (el-patch-defun comp-delete-or-replace-file (oldfile &optional newfile)
+    "Replace OLDFILE with NEWFILE.
+When NEWFILE is nil just delete OLDFILE.
+Takes the necessary steps when dealing with OLDFILE being a
+shared library that might be currently loaded into a running Emacs
+session."
+    (cond ((eq 'windows-nt system-type)
+           (ignore-errors (delete-file oldfile))
+           (while
+               (condition-case _
+                   (progn
+                     ;; oldfile maybe recreated by another Emacs in
+                     ;; between the following two rename-file calls
+                     (if (file-exists-p oldfile)
+                         (rename-file oldfile (make-temp-file-internal
+                                               (file-name-sans-extension oldfile)
+                                               nil ".eln.old" nil)
+                                      t))
+                     (when newfile
+                       (rename-file newfile oldfile nil))
+                     ;; Keep on trying.
+                     nil)
+                 (file-already-exists
+                  ;; Done
+                  t))))
+          ;; Remove the old eln instead of copying the new one into it
+          ;; to get a new inode and prevent crashes in case the old one
+          ;; is currently loaded.
+          (t (delete-file oldfile)
+             (when newfile
+               (el-patch-swap
+                 (rename-file newfile oldfile)
+                 ;; Concurrent compilation process may have written
+                 ;; the file after we just deleted it.
+                 (rename-file newfile oldfile t)))))))
+
 (defun recompile-set-up-env (emacs-dir)
   (cl-assert emacs-dir)
   (cl-proclaim '(optimize (speed 3) (safety 0)))
@@ -87,6 +126,8 @@
     ;; load init file to get path detection from set-up-paths.el
     (load-library init-file)
     (recompile-disable-hooks)
+
+    (fix-comp-delete-or-replace-file!)
 
     (cons emacs-dir init-file)))
 
