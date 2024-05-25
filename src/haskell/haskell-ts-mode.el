@@ -53,6 +53,8 @@
       ;; constant
       ([(integer) (float)] @font-lock-constant-face)
 
+      (quasiquote "|" @default)
+
       ;; string
       ([(char) (string) (quasiquote_body)] @font-lock-string-face)
 
@@ -113,7 +115,6 @@
       ;; operator
       ([
         (operator)
-        ;; Competes with (module)
         (qualified (operator))
         (all_names)
         "="
