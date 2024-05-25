@@ -7,7 +7,8 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'cl-lib))
+  (require 'cl-lib)
+  (require 'cl))
 
 (require 'dante)
 (require 'alex-mode)
@@ -139,6 +140,58 @@ have different input states."
              :contents ,contents
              :initialisation (,mode)
              :buffer-id ,(string->symbol (format "haskell-tests-%s" mode)))))))
+
+(cl-defmacro haskell-tests--test-ts-fontification (name &key contents fontification fresh-buffer)
+  (declare (indent 1))
+  `(progn
+     ,@(cl-loop
+        for mode in '(haskell-ts-mode)
+        collect
+        `(ert-deftest ,(string->symbol (format "%s/%s" name mode)) ()
+           (tests-utils--with-temp-buffer
+            :action
+            (haskell-tests--check-properties ',fontification)
+            :suppress-cursor t
+            :contents ,contents
+            :initialisation (,mode)
+            :buffer-id ,(if fresh-buffer nil (string->symbol (format "haskell-tests-%s" mode))))))))
+
+(defun haskell-tests--check-properties (props)
+  "Check if syntax properties and font-lock properties as set properly.
+
+LINES is a list of strings that will be inserted to a new
+buffer. Then PROPS is a list of tripples of (string syntax
+face). String is searched for in the buffer and then is checked
+if all of its characters have syntax and face. See
+`check-syntax-and-face-match-range`."
+  (goto-char (point-min))
+  (dolist (prop props)
+    (cl-destructuring-bind (string face) prop
+      (let ((case-fold-search nil))
+        (search-forward string))
+      (haskell-tests--check-syntax-and-face-match-range (match-beginning 0) (match-end 0) nil face))))
+
+(defun haskell-tests--check-syntax-and-face-match-range (beg end syntax face)
+  "Check if all charaters between positions BEG and END have
+syntax set to SYNTAX and face set to FACE.
+
+If SYNTAX or FACE are set to t then any syntex respective face is
+not checked."
+  (let (actual-syntaxes
+        actual-faces
+        (syntax-classes "-.w_()'\"$\\/<>@!|")
+        (text (buffer-substring-no-properties beg end)))
+    (while (< beg end)
+      (when syntax
+        (cl-pushnew (char-to-string (aref syntax-classes (syntax-class (syntax-after beg)))) actual-syntaxes :test #'equal))
+      (cl-pushnew (get-text-property beg 'face) actual-faces :test #'equal)
+      (setq beg (1+ beg)))
+    (when syntax
+      (should (equal (list text (mapconcat #'identity (sort (mapcar (lambda (syn) (char-to-string syn)) syntax) #'string<) ""))
+                     (list text (mapconcat #'identity (sort actual-syntaxes #'string<) "")))))
+    (unless (eq face t)
+      (should (equal (list text (list face))
+                     (list text actual-faces))))))
 
 ;; (defmacro haskell-tests--test-evaluate (action contents expected-value)
 ;;   (declare (indent 1))
@@ -7144,7 +7197,7 @@ have different input states."
    ""
    "isWord :: Int# -> Bool#"
    "isWord x = case chr# x of"
-   "  ' '#  -> _|_False#"
+   "  ' '# -> _|_False#"
    ""))
 
 (haskell-tests--test-result
@@ -7159,7 +7212,7 @@ have different input states."
    "isWord :: Int# -> Bool#"
    "isWord x = case chr# x of"
    "  '/'#  -> False#"
-   "  '\\\\'#  -> _|_False#"
+   "  '\\\\'# -> _|_False#"
    ""))
 
 (haskell-tests--test-result
@@ -7174,9 +7227,40 @@ have different input states."
    "isWord :: Int# -> Bool#"
    "isWord x = case chr# x of"
    "  '/'#  -> False#"
-   "  '\\\\'#  -> False#"
+   "  '\\\\'# -> False#"
    "  _     -> _|_True#"
    ""))
+
+(haskell-tests--test-ts-fontification
+    haskell-tests/fontification-1
+  :contents
+  (tests-utils--multiline
+   ""
+   "isWord :: _ Int# -> Bool#"
+   "isWord x = case chr# x of"
+   "  '/'#  -> False#"
+   "  '\\\\'# -> False#"
+   "  _     -> _ True#"
+   "")
+  :fontification
+  (("::"      haskell-operator-face)
+   ("_"       haskell-keyword-face)
+   ("Int#"    haskell-type-face)
+   ("->"      haskell-operator-face)
+   ("Bool#"   haskell-type-face)
+   ("case"    haskell-keyword-face)
+   ("of"      haskell-keyword-face)
+   ("'/'#"    font-lock-string-face)
+   ("->"      haskell-operator-face)
+   ("False#"  haskell-constructor-face)
+   ("'\\\\'#" font-lock-string-face)
+   ("->"      haskell-operator-face)
+   ("False#"  haskell-constructor-face)
+   ("_"       haskell-keyword-face)
+   ("->"      haskell-operator-face)
+   ("_"       haskell-keyword-face)
+   ("True#"   haskell-constructor-face))
+  :fresh-buffer t)
 
 (provide 'haskell-tests)
 
