@@ -69,6 +69,57 @@ not checked."
                      (list text actual-faces))))))
 
 (fontification-tests--test-ts-fontification
+    json-ts-mode/fontification-1
+  :modes (json-ts-mode)
+  :contents
+  (tests-utils--multiline
+   "{"
+   "  \"signatures\": ["
+   "    {"
+   "      \"keyid\": \"foo\","
+   "      \"method\": \"ed25519\","
+   "      \"sig\": \"bar\""
+   "    }"
+   "  ],"
+   "  \"signed\": {"
+   "    \"_type\": \"Timestamp\","
+   "    \"expires\": \"2024-05-21T20:19:41Z\","
+   "    \"meta\": {"
+   "      \"<repo>/snapshot.json\": {"
+   "        \"hashes\": {"
+   "          \"md5\": true,"
+   "          \"sha256\": null"
+   "        },"
+   "        \"length\": false"
+   "      }"
+   "    },"
+   "    \"version\": 95848"
+   "  }"
+   "}")
+  :fontification
+  (("\"signatures\""           json-mode-object-name-face)
+   ("\"keyid\""                json-mode-object-name-face)
+   ("\"foo\""                  font-lock-string-face)
+   ("\"method\""               json-mode-object-name-face)
+   ("\"ed25519\""              font-lock-string-face)
+   ("\"sig\""                  json-mode-object-name-face)
+   ("\"bar\""                  font-lock-string-face)
+   ("\"signed\""               json-mode-object-name-face)
+   ("\"_type\""                json-mode-object-name-face)
+   ("\"Timestamp\""            font-lock-string-face)
+   ("\"<repo>/snapshot.json\"" json-mode-object-name-face)
+   ("\"hashes\""               json-mode-object-name-face)
+   ("\"md5\""                  json-mode-object-name-face)
+   ("true"                     font-lock-keyword-face)
+   ("\"sha256\""               json-mode-object-name-face)
+   ("null"                     font-lock-keyword-face)
+   ("\"length\""               json-mode-object-name-face)
+   ("false"                    font-lock-keyword-face)
+   ("\"version\""              json-mode-object-name-face)
+   ("95848"                    font-lock-constant-face))
+  :fresh-buffer t)
+
+(fontification-tests--test-ts-fontification
     haskell-ts-mode/fontification-1
   :modes (haskell-ts-mode)
   :contents
