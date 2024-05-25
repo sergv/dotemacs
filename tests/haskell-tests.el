@@ -7262,6 +7262,227 @@ not checked."
    ("True#"   haskell-constructor-face))
   :fresh-buffer t)
 
+(haskell-tests--test-ts-fontification
+    haskell-tests/fontification-2
+  :contents
+  (tests-utils--multiline
+   ""
+   "test :: forall a. [a] -> [(a, a)]"
+   "test !x@(y : ys) = do"
+   "  y <- frobnicator"
+   "  pure $ (x :: b) + 1 + x `foo` bar `Mod.foo3` baz"
+   "")
+  :fontification
+  (("test"        nil)
+   ("::"          haskell-operator-face)
+   ("forall"      haskell-keyword-face)
+   ("."           haskell-keyword-face)
+   ("\["          nil)
+   ("a"           nil)
+   ("\]"          nil)
+   ("->"          haskell-operator-face)
+   ("\["          nil)
+   ("\("          nil)
+   ("a"           nil)
+   (","           nil)
+   ("a"           nil)
+   ("\)"          nil)
+   ("\]"          nil)
+   ("!"           font-lock-negation-char-face)
+   ("x"           nil)
+   ("@"           haskell-operator-face)
+   ("\("          nil)
+   ("y"           nil)
+   (":"           haskell-constructor-face)
+   ("ys"          nil)
+   ("\)"          nil)
+   ("="           haskell-operator-face)
+   ("do"          haskell-keyword-face)
+   ("<-"          haskell-operator-face)
+   ("frobnicator" nil)
+   ("$"           haskell-operator-face)
+   ("\("          nil)
+   ("x"           nil)
+   ("::"          haskell-operator-face)
+   ("b"           nil)
+   ("\)"          nil)
+   ("+"           haskell-operator-face)
+   ("1"           font-lock-constant-face)
+   ("+"           haskell-operator-face)
+   ("`foo`"       haskell-operator-face)
+   ("`Mod.foo3`"  haskell-operator-face))
+  :fresh-buffer t)
+
+(haskell-tests--test-ts-fontification
+    haskell-tests/fontification-3
+  :contents
+  (tests-utils--multiline
+   ""
+   "data Foo a = Foo"
+   "  { foo :: (Int `Bar` Quux `Mod.Bar2` Quux3)"
+   "  , bar :: (a, Double)"
+   "  , xxx :: (# a, Double #)"
+   "  , baz :: {-# UNPACK #-} !Double"
+   "  }"
+   "")
+  :fontification
+  (("data"           haskell-keyword-face)
+   ("Foo"            haskell-type-face)
+   ("a"              nil)
+   ("="              haskell-operator-face)
+   ("Foo"            haskell-constructor-face)
+   ("foo"            nil)
+   ("::"             haskell-operator-face)
+   ("\("             nil)
+   ("Int"            haskell-type-face)
+   ("`Bar`"          haskell-operator-face)
+   ("Quux"           haskell-type-face)
+   ("`Mod.Bar2`"     haskell-operator-face)
+   ("Quux3"          haskell-type-face)
+   ("\)"             nil)
+   (","              nil)
+   ("bar"            nil)
+   ("::"             haskell-operator-face)
+   ("\("             nil)
+   ("a"              nil)
+   (","              nil)
+   ("Double"         haskell-type-face)
+   ("\)"             nil)
+   ("xxx"            nil)
+   ("\(#"            nil)
+   ("a"              nil)
+   (","              nil)
+   ("Double"         haskell-type-face)
+   ("#\)"            nil)
+   ("{-# UNPACK #-}" haskell-pragma-face)
+   ("!"              font-lock-negation-char-face)
+   ("Double"         haskell-type-face))
+  :fresh-buffer t)
+
+(haskell-tests--test-ts-fontification
+    haskell-tests/fontification-4
+  :contents
+  (tests-utils--multiline
+   ""
+   "test :: [Foo.Test a] -> [(a, a)]"
+   "test ~(y : ys)"
+   "  | checkLength (fmap (\\_ -> ()) ys) = z"
+   "  | otherwise                        = []"
+   "  where"
+   "    z = Foo.Wrapped $ Foo.decombobulate y"
+   "")
+  :fontification
+  (("test"              nil)
+   ("::"                haskell-operator-face)
+   ("\["                nil)
+   ("Foo.Test"          haskell-type-face)
+   ("a"                 nil)
+   ("\]"                nil)
+   ("~"                 font-lock-negation-char-face)
+   (":"                 haskell-constructor-face)
+   ("|"                 haskell-operator-face)
+   ("checkLength"       nil)
+   ("\\"                haskell-operator-face)
+   ("_"                 haskell-keyword-face)
+   ("->"                haskell-operator-face)
+   ("()"                haskell-constructor-face)
+   ("="                 haskell-operator-face)
+   ("|"                 haskell-operator-face)
+   ("="                 haskell-operator-face)
+   ("[]"                haskell-constructor-face)
+   ("where"             haskell-keyword-face)
+   ("z"                 nil)
+   ("="                 haskell-operator-face)
+   ("Foo"               haskell-type-face)
+   ("Wrapped"           haskell-constructor-face)
+   ("$"                 haskell-operator-face)
+   ("Foo.decombobulate" nil)
+   ("y"                 nil))
+  :fresh-buffer t)
+
+(haskell-tests--test-ts-fontification
+    haskell-tests/fontification-5
+  :contents
+  (tests-utils--multiline
+   ""
+   "pattern Foo x = Cons x Nil"
+   ""
+   "test :: a -> a"
+   "test pattern = pattern"
+   "")
+  :fontification
+  (("pattern" haskell-keyword-face)
+   ("Foo"     haskell-constructor-face)
+   ("x"       nil)
+   ("="       haskell-operator-face)
+   ("Cons"    haskell-constructor-face)
+   ("x"       nil)
+   ("Nil"     haskell-constructor-face)
+   ("test"    nil)
+   ("pattern" nil)
+   ("="       haskell-operator-face)
+   ("pattern" nil))
+  :fresh-buffer t)
+
+(haskell-tests--test-ts-fontification
+    haskell-tests/fontification-6
+  :contents
+  (tests-utils--multiline
+   ""
+   "test = [quux|abcd|] ++ 'b' : \"oo\""
+   "")
+  :fontification
+  (("test"    nil)
+   ("="       haskell-operator-face)
+   ("\["      nil)
+   ("quux"    nil)
+   ("|"       default)
+   ("abcd"    font-lock-string-face)
+   ("|\]"     nil)
+   ("++"      haskell-operator-face)
+   ("'b'"     font-lock-string-face)
+   (":"       haskell-constructor-face)
+   ("\"oo\""  font-lock-string-face))
+  :fresh-buffer t)
+
+(haskell-tests--test-ts-fontification
+    haskell-tests/fontification-7
+  :contents
+  (tests-utils--multiline
+   ""
+   "class Foo a where"
+   "  test :: a -> a"
+   "  default test :: Representable a ~ Foo => a -> a"
+   "  test default = represent default"
+   "")
+  :fontification
+  (("class"         haskell-keyword-face)
+   ("Foo"           haskell-type-face)
+   ("a"             nil)
+   ("where"         haskell-keyword-face)
+   ("test"          nil)
+   ("::"            haskell-operator-face)
+   ("a"             nil)
+   ("->"            haskell-operator-face)
+   ("a"             nil)
+   ("default"       haskell-keyword-face)
+   ("test"          nil)
+   ("::"            haskell-operator-face)
+   ("Representable" haskell-type-face)
+   ("a"             nil)
+   ("~"             haskell-operator-face)
+   ("Foo"           haskell-type-face)
+   ("=>"            haskell-operator-face)
+   ("a"             nil)
+   ("->"            haskell-operator-face)
+   ("a"             nil)
+   ("test"          nil)
+   ("default"       nil)
+   ("="             haskell-operator-face)
+   ("represent"     nil)
+   ("default"       nil))
+  :fresh-buffer t)
+
 (provide 'haskell-tests)
 
 ;; (let ((ert-debug-on-error nil))
