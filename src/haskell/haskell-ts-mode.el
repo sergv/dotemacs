@@ -70,6 +70,9 @@
       (pattern_synonym
        ("pattern" @haskell-keyword-face))
 
+      ((variable) @haskell-keyword-face
+       (:equal "_" @haskell-keyword-face))
+
       ([
         "forall"
         "where"
@@ -103,6 +106,7 @@
         "import"
         "qualified"
         "module"
+        (wildcard "_")
         ]
        @haskell-keyword-face)
 

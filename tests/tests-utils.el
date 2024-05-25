@@ -18,7 +18,7 @@
 (defvar test-utils--temp-buffers nil
   "Alist from buffer-id (symbol) to actual buffer.")
 
-(cl-defmacro tests-utils--with-temp-buffer (&key action contents initialisation post-content-initialisation buffer-id)
+(cl-defmacro tests-utils--with-temp-buffer (&key action contents initialisation post-content-initialisation buffer-id suppress-cursor)
   (declare (indent nil))
   `(save-match-data
      (let ((buf ,@(when buffer-id
@@ -44,13 +44,15 @@
         (save-match-data
           (save-excursion
             ,post-content-initialisation))
-        (if (re-search-forward "_|_" nil t)
-            (replace-match "")
-          (error "No _|_ marker for point position within contents:\n%s" ,contents))
-        (when (save-excursion
-                (goto-char (point-min))
-                (re-search-forward "_|_" nil t))
-          (error "More than one occurrence of _|_ in source"))
+        ,(unless suppress-cursor
+           `(progn
+              (if (re-search-forward "_|_" nil t)
+                  (replace-match "")
+                (error "No _|_ marker for point position within contents:\n%s" ,contents))
+              (when (save-excursion
+                      (goto-char (point-min))
+                      (re-search-forward "_|_" nil t))
+                (error "More than one occurrence of _|_ in source"))))
         (font-lock-fontify-buffer)
         (unwind-protect
             ,action
