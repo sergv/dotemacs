@@ -298,6 +298,27 @@ then Bar would be the result."
         (eq c ?\r) ;; Old Mac newlines, anyone?
         )))
 
+(defun haskell-abbrev+--only-whitespace-till-line-start? ()
+  "Check that the point is at the start of the line."
+  (save-excursion
+    (skip-chars-backward " \t")
+    (haskell-abbrev+--at-start-of-line?)))
+
+(defun haskell-abbrev+--only-whitespace-till-line-start-and-not-operator? ()
+  (and (haskell-abbrev+--only-whitespace-till-line-start?)
+       (if (derived-mode-p 'haskell-ts-mode)
+           (if-let* ((node (treesit-node-at (point)))
+                     (p (treesit-node-parent node)))
+               (if (equal "operator" (treesit-node-type p))
+                   (if-let ((p2 (treesit-node-parent p)))
+                       ;; Operator not applied no anything and just being there at toplevel
+                       ;; waiting to be expanded.
+                       (equal "ERROR" (treesit-node-type p2))
+                     t)
+                 t)
+             t)
+         t)))
+
 (add-to-list 'ivy-re-builders-alist
              '(haskell-abbrev+--insert-pragma . ivy--regex-fuzzy))
 
@@ -388,7 +409,7 @@ then Bar would be the result."
                    :followed-by-space t
                    :action-type 'function-with-side-effects
                    :action-data #'haskell-abbrev+--insert-pragma
-                   :predicate #'haskell-abbrev+--at-start-of-line?))
+                   :predicate #'haskell-abbrev+--only-whitespace-till-line-start-and-not-operator?))
             (cons (list "#scc"
                         "##scc"
                         "# scc"
@@ -405,7 +426,7 @@ then Bar would be the result."
                    :followed-by-space t
                    :action-type 'yas-snippet
                    :action-data language-snippet
-                   :predicate #'haskell-abbrev+--at-start-of-line?
+                   :predicate #'haskell-abbrev+--only-whitespace-till-line-start?
                    :on-successful-expansion #'haskell-abbrev+--register-alignment-of-language-pragmas))
             (cons (list "#ll"
                         "#llang"
@@ -415,7 +436,7 @@ then Bar would be the result."
                    :followed-by-space t
                    :action-type 'function-with-side-effects
                    :action-data #'haskell-insert-language-pragmas
-                   :predicate #'haskell-abbrev+--at-start-of-line?))
+                   :predicate #'haskell-abbrev+--only-whitespace-till-line-start?))
             (cons (list "#o"
                         "#opt"
                         "#opts"
@@ -426,7 +447,7 @@ then Bar would be the result."
                    :followed-by-space t
                    :action-type 'yas-snippet
                    :action-data options-snippet
-                   :predicate #'haskell-abbrev+--at-start-of-line?))
+                   :predicate #'haskell-abbrev+--only-whitespace-till-line-start?))
             (cons (list "#d"
                         "#dump"
                         "#dump-core"
@@ -436,7 +457,7 @@ then Bar would be the result."
                   (make-abbrev+-abbreviation
                    :action-type 'yas-snippet
                    :action-data dump-core-snippet
-                   :predicate #'haskell-abbrev+--at-start-of-line?))))
+                   :predicate #'haskell-abbrev+--only-whitespace-till-line-start?))))
           (plain-abbrevs
            (append
             (list (cons (list "hpf"
