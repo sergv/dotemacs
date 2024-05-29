@@ -117,17 +117,18 @@ have different input states."
           ,@(when modes `(:modes ,modes))
           :fresh-buffer ,fresh-buffer))))
 
-(cl-defmacro haskell-tests--test-result (name &key action expected-value contents)
+(cl-defmacro haskell-tests--test-result (name &key action expected-value contents modes)
   (declare (indent 1))
   `(haskell-tests--test-results ,name
                                 :actions-and-values ,(list (list action expected-value))
-                                :contents ,contents))
+                                :contents ,contents
+                                :modes ,modes))
 
-(cl-defmacro haskell-tests--test-results (name &key actions-and-values contents)
+(cl-defmacro haskell-tests--test-results (name &key actions-and-values contents modes)
   (declare (indent 1))
   `(progn
      ,@(cl-loop
-        for mode in '(haskell-mode haskell-ts-mode)
+        for mode in (or modes '(haskell-mode haskell-ts-mode))
         collect
         `(ert-deftest ,(string->symbol (format "%s/%s" name mode)) ()
            (tests-utils--with-temp-buffer
@@ -7137,9 +7138,10 @@ have different input states."
 (haskell-tests--test-result
     haskell-tests/syntax-propertize-1
   :action
-  (nth 3 (parse-partial-sexp (line-beginning-position) (point)))
+  (list (nth 3 (parse-partial-sexp (line-beginning-position) (point)))
+        (haskell-smart-operators--in-string-syntax?))
   :expected-value
-  nil
+  (list nil nil)
   :contents
   (tests-utils--multiline
    ""
@@ -7151,9 +7153,10 @@ have different input states."
 (haskell-tests--test-result
     haskell-tests/syntax-propertize-2
   :action
-  (nth 3 (parse-partial-sexp (line-beginning-position) (point)))
+  (list (nth 3 (parse-partial-sexp (line-beginning-position) (point)))
+        (haskell-smart-operators--in-string-syntax?))
   :expected-value
-  nil
+  (list nil nil)
   :contents
   (tests-utils--multiline
    ""
@@ -7166,9 +7169,10 @@ have different input states."
 (haskell-tests--test-result
     haskell-tests/syntax-propertize-3
   :action
-  (nth 3 (parse-partial-sexp (line-beginning-position -1) (point)))
+  (list (nth 3 (parse-partial-sexp (line-beginning-position -1) (point)))
+        (haskell-smart-operators--in-string-syntax?))
   :expected-value
-  nil
+  (list nil nil)
   :contents
   (tests-utils--multiline
    ""
@@ -7178,6 +7182,81 @@ have different input states."
    "  '\\\\'# -> False#"
    "  _     -> _|_True#"
    ""))
+
+(haskell-tests--test-result
+    haskell-tests/syntax-propertize-4
+  :action
+  (list (nth 3 (parse-partial-sexp (line-beginning-position -1) (point)))
+        (haskell-smart-operators--in-string-syntax?))
+  :expected-value
+  (list t t)
+  :contents
+  (tests-utils--multiline
+   ""
+   "test :: Int -> Bool"
+   "test x = todo [foo| bar _|_ baz |] x"
+   "")
+  :modes (haskell-ts-mode))
+
+(haskell-tests--test-result
+    haskell-tests/syntax-propertize-4a
+  :action
+  (list (nth 3 (parse-partial-sexp (line-beginning-position -1) (point)))
+        (haskell-smart-operators--in-string-syntax?))
+  :expected-value
+  (list nil nil)
+  :contents
+  (tests-utils--multiline
+   ""
+   "test :: Int -> Bool"
+   "test x = todo [e| bar _|_ baz |] x"
+   "")
+  :modes (haskell-ts-mode))
+
+(haskell-tests--test-result
+    haskell-tests/syntax-propertize-4b
+  :action
+  (list (nth 3 (parse-partial-sexp (line-beginning-position -1) (point)))
+        (haskell-smart-operators--in-string-syntax?))
+  :expected-value
+  (list nil nil)
+  :contents
+  (tests-utils--multiline
+   ""
+   "test :: Int -> Bool"
+   "test x = todo [t| bar _|_ baz |] x"
+   "")
+  :modes (haskell-ts-mode))
+
+(haskell-tests--test-result
+    haskell-tests/syntax-propertize-4c
+  :action
+  (list (nth 3 (parse-partial-sexp (line-beginning-position -1) (point)))
+        (haskell-smart-operators--in-string-syntax?))
+  :expected-value
+  (list nil nil)
+  :contents
+  (tests-utils--multiline
+   ""
+   "test :: Int -> Bool"
+   "test x = todo [d| bar _|_ baz |] x"
+   "")
+  :modes (haskell-ts-mode))
+
+(haskell-tests--test-result
+ haskell-tests/syntax-propertize-5
+ :action
+ (list (nth 3 (parse-partial-sexp (line-beginning-position -1) (point)))
+       (haskell-smart-operators--in-string-syntax?))
+ :expected-value
+ (list t t)
+ :contents
+ (tests-utils--multiline
+  ""
+  "test :: Int -> Bool"
+  "test x = todo [foo| bar $(_|_) baz |] x"
+  "")
+ :modes (haskell-ts-mode))
 
 (provide 'haskell-tests)
 
