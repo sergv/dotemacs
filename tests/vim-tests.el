@@ -3699,24 +3699,86 @@ _|_bar")
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-mode haskell-ts-mode)
-    vim-tests/haskell-abbrev-pragma--no-expansion-if-not-on-first-column-1
-    (execute-kbd-macro (kbd "i SPC <escape>"))
+    vim-tests/haskell-abbrev-pragma-5a
+    (execute-kbd-macro (kbd "i SPC inl <return> <tab>"))
   (tests-utils--multiline
    ""
-   " ##_|_"
+   "  ##_|_"
    "foo :: a -> a"
    "foo x = x"
    "")
   (tests-utils--multiline
    ""
-   " ##_|_ "
+   "  {-# INLINE foo #-}_|_"
    "foo :: a -> a"
    "foo x = x"
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-mode haskell-ts-mode)
-    vim-tests/haskell-abbrev-pragma--no-expansion-if-not-on-first-column-2
+    vim-tests/haskell-abbrev-pragma-5b
+    (execute-kbd-macro (kbd "i SPC inl <return> <tab>"))
+  (tests-utils--multiline
+   ""
+   "\t\t##_|_"
+   "foo :: a -> a"
+   "foo x = x"
+   "")
+  (tests-utils--multiline
+   ""
+   "\t\t{-# INLINE foo #-}_|_"
+   "foo :: a -> a"
+   "foo x = x"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell-abbrev-pragma--no-expansion-if-not-on-empty-line-1
+    (execute-kbd-macro (kbd "i SPC <escape>"))
+  (tests-utils--multiline
+   ""
+   "-- ##_|_"
+   "foo :: a -> a"
+   "foo x = x"
+   "")
+  (tests-utils--multiline
+   ""
+   "-- ##_|_ "
+   "foo :: a -> a"
+   "foo x = x"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell-abbrev-pragma--no-expansion-if-not-on-empty-line-1a
+    (execute-kbd-macro (kbd "i SPC <escape>"))
+  (tests-utils--multiline
+   ""
+   "x = y ##_|_"
+   "")
+  (tests-utils--multiline
+   ""
+   "x = y ##_|_ "
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-abbrev-pragma--no-expansion-if-not-on-empty-line-1b
+    (execute-kbd-macro (kbd "i SPC"))
+  (tests-utils--multiline
+   ""
+   "test = decombobulate"
+   "   ##_|_ baz"
+   "")
+  (tests-utils--multiline
+   ""
+   "test = decombobulate"
+   "   ## _|_ baz"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell-abbrev-pragma--no-expansion-if-not-on-empty-line-2
     (execute-kbd-macro (kbd "i # # p r e t t y SPC f o o <escape>"))
   (tests-utils--multiline
    ""
