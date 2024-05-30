@@ -197,52 +197,53 @@ name `name' to `new-regex'."
       (vim-hl-idle-update))))
 
 
-(cl-defun vim-hl-update-highlights ()
+(defun vim-hl-update-highlights ()
   "Updates the overlays of all active highlights."
-  (dolist (hl (-map #'cdr vim--active-highlights-alist))
-    (let ((old-ovs (vim-hl-overlays hl))
-          new-ovs
-          (pattern (vim-hl-pattern hl))
-          (face (vim-hl-face hl))
-          (match-hook (vim-hl-match-hook hl))
-          result)
+  (dolist (highlight vim--active-highlights-alist)
+    (let* ((hl (cdr highlight))
+           (old-ovs (vim-hl-overlays hl))
+           new-ovs
+           (pattern (vim-hl-pattern hl))
+           (face (vim-hl-face hl))
+           (match-hook (vim-hl-match-hook hl))
+           result)
       (condition-case lossage
           (progn
             (when pattern
-              (dolist (win (if (eq vim-interactive-search-highlight 'all-windows)
-                               (get-buffer-window-list (current-buffer) nil t)
-                             (list (vim-hl-window hl))))
-                (let ((begin (max (window-start win)
-                                  (or (vim-hl-beg hl) (point-min))))
-                      (end (min (window-end win)
-                                (or (vim-hl-end hl) (point-max))))
-                      last-line)
-                  (when (< begin end)
-                    (save-excursion
-                      (goto-char begin)
-                      ;; set the overlays for the current highlight, reusing old overlays
-                      ;; (if possible)
-                      (while (and (vim-search--find-next-pattern pattern t)
-                                  (< (match-beginning 0) (match-end 0))
-                                  (<= (match-end 0) end))
-                        (when (or (vim-pattern-whole-line pattern)
-                                  (not (equal (line-number-at-pos (match-beginning 0)) last-line)))
-                          (setq last-line (line-number-at-pos (match-beginning 0)))
-                          (push (if old-ovs
-                                    (progn
-                                      (move-overlay (car old-ovs)
-                                                    (match-beginning 0)
-                                                    (match-end 0))
-                                      (overlay-put (car old-ovs) 'face face)
-                                      (pop old-ovs))
-                                  (let ((ov (make-overlay (match-beginning 0) (match-end 0))))
-                                    (overlay-put ov 'face face)
-                                    (overlay-put ov 'vim-hl (vim-hl-name hl))
-                                    (overlay-put ov 'priority 1000)
-                                    ov))
-                                new-ovs)
-                          (when match-hook (funcall match-hook (car new-ovs)))
-                          )))))))
+              (let ((case-fold-search (eq (vim-pattern-case-fold pattern) 'insensitive))
+                    (regex (vim-pattern-regex pattern)))
+                (dolist (win (if (eq vim-interactive-search-highlight 'all-windows)
+                                 (get-buffer-window-list (current-buffer) nil t)
+                               (list (vim-hl-window hl))))
+                  (let ((begin (max (window-start win)
+                                    (or (vim-hl-beg hl) (point-min))))
+                        (end (min (window-end win)
+                                  (or (vim-hl-end hl) (point-max))))
+                        (last-line-end-pos nil))
+                    (when (< begin end)
+                      (save-excursion
+                        (goto-char begin)
+                        ;; set the overlays for the current highlight, reusing old overlays
+                        ;; (if possible)
+                        (while (re-search-forward regex end t)
+                          (when (or (vim-pattern-whole-line pattern)
+                                    (not (equal (line-end-position) last-line-end-pos)))
+                            (unless (vim-pattern-whole-line pattern)
+                              (setq last-line-end-pos (line-end-position)))
+                            (push (if old-ovs
+                                      (progn
+                                        (move-overlay (car old-ovs)
+                                                      (match-beginning 0)
+                                                      (match-end 0))
+                                        (overlay-put (car old-ovs) 'face face)
+                                        (pop old-ovs))
+                                    (let ((ov (make-overlay (match-beginning 0) (match-end 0))))
+                                      (overlay-put ov 'face face)
+                                      (overlay-put ov 'vim-hl (vim-hl-name hl))
+                                      (overlay-put ov 'priority 1000)
+                                      ov))
+                                  new-ovs)
+                            (when match-hook (funcall match-hook (car new-ovs)))))))))))
 
             (mapc #'delete-overlay old-ovs)
             (setf (vim-hl-overlays hl) new-ovs)
@@ -251,7 +252,7 @@ name `name' to `new-regex'."
               ;; maybe the match could just not be found somewhere else?
               (save-excursion
                 (goto-char (vim-hl-beg hl))
-                (if (and (vim-search--find-next-pattern pattern t)
+                (if (and (vim-search--find-next-pattern pattern)
                          (< (match-end 0) (vim-hl-end hl)))
                     (setq result (format "Match in line %d" (line-number-at-pos (match-beginning 0))))
                   (setq result "No match")))))
@@ -300,12 +301,10 @@ name `name' to `new-regex'."
       (with-current-buffer buf
         (vim-hl-idle-update)))))
 
-(cl-defun vim-search--find-next-pattern (pattern is-forward?)
+(defun vim-search--find-next-pattern (pattern)
   "Looks for the next occurrence of pattern in a certain direction."
   (let ((case-fold-search (eq (vim-pattern-case-fold pattern) 'insensitive)))
-    (if is-forward?
-        (re-search-forward (vim-pattern-regex pattern) nil t)
-      (re-search-backward (vim-pattern-regex pattern) nil t))))
+    (re-search-forward (vim-pattern-regex pattern) nil t)))
 
 ;; Substitute
 (defun vim-ex--pattern-argument-activate ()
@@ -436,16 +435,26 @@ pattern and replace matches with REPLACEMENT.
   (unless pattern (error "No pattern given"))
   (unless replacement (error "No replacement given"))
 
-  (let ((first-line (if motion
-                        (vim-motion-first-line motion)
-                      (line-number-at-pos (point))))
-        (last-line (if motion
-                       (vim-motion-last-line motion)
-                     (line-number-at-pos (point))))
-        (regex (vim-pattern-regex pattern))
-        (last-point (point))
-        (overlay (make-overlay (point) (point)))
-        (next-line (line-number-at-pos (point))))
+  (let* ((current-line (line-number-at-pos (point)))
+         (first-line (if motion
+                         (vim-motion-first-line motion)
+                       current-line))
+         (last-line (if motion
+                        (vim-motion-last-line motion)
+                      current-line))
+         (last-line-pos (if (= current-line last-line)
+                            (line-end-position)
+                          (save-excursion
+                            (goto-line-dumb last-line)
+                            (line-end-position))))
+         (regex (vim-pattern-regex pattern))
+         (last-point (point))
+         (overlay (make-overlay (point) (point)))
+         (first-line-pos (if (= current-line first-line)
+                             (line-beginning-position)
+                           (save-excursion
+                             (goto-line-dumb first-line)
+                             (line-beginning-position)))))
 
     (let ((case-fold-search (eq 'insensitive (vim-pattern-case-fold pattern)))
           (case-replace case-fold-search))
@@ -453,30 +462,26 @@ pattern and replace matches with REPLACEMENT.
           (cond
             ((vim-pattern-whole-line pattern)
              ;; this one is easy, just use the built in function
-             (let* ((current-line (line-number-at-pos (point)))
-                    (start (if (= current-line first-line)
-                               (line-beginning-position)
-                             (save-excursion
-                               (goto-line-dumb first-line)
-                               (line-beginning-position))))
-                    (end (if (= current-line last-line)
-                             (line-end-position)
-                           (save-excursion
-                             (goto-line-dumb last-line)
-                             (line-end-position)))))
-               (perform-replace regex
-                                replacement
-                                confirm
-                                t   ;; is-regexp
-                                nil ;; delimited-count
-                                nil ;; repeat-count
-                                nil ;; map
-                                start
-                                end)))
+             (let* ((start first-line-pos)
+                    (end last-line-pos))
+               (if confirm
+                   (perform-replace regex
+                                    replacement
+                                    t
+                                    t   ;; is-regexp
+                                    nil ;; delimited-count
+                                    nil ;; repeat-count
+                                    nil ;; map
+                                    start
+                                    end)
+                 (progn
+                   (goto-char start)
+                   (while (re-search-forward regex end t)
+                     (replace-match replacement nil nil))))))
             (t
              (let ((nreplaced 0))
                (if confirm
-                   (progn
+                   (with-marker (next-line-pos-marker (copy-marker first-line-pos))
                      ;; this one is more difficult, we have to do the
                      ;; highlighting and questioning on our own
                      (overlay-put overlay 'face
@@ -496,27 +501,19 @@ pattern and replace matches with REPLACEMENT.
                                      (cl-incf nreplaced)
                                      (setq last-point (point)))
                                    (lambda ()
-                                     (let ((end (save-excursion
-                                                  (goto-line-dumb last-line)
-                                                  (line-end-position))))
-                                       (goto-line-dumb next-line)
-                                       (beginning-of-line)
-                                       (when (and (> end (point))
-                                                  (re-search-forward regex end t nil))
-                                         (setq last-point (point))
-                                         (setq next-line (1+ (line-number-at-pos (point))))
-                                         (match-data))))))
+                                     (goto-char next-line-pos-marker)
+                                     (when (and (< (point) last-line-pos)
+                                                (re-search-forward regex last-line-pos t nil))
+                                       (setq last-point (point))
+                                       (move-marker next-line-pos-marker (1+ (line-end-position)))
+                                       (match-data)))))
 
                  ;; just replace the first occurences per line
                  ;; without highlighting and asking
                  (progn
-                   (goto-line-dumb first-line)
-                   (beginning-of-line)
-                   (while (and (<= (line-number-at-pos (point)) last-line)
-                               (re-search-forward regex (save-excursion
-                                                          (goto-line-dumb last-line)
-                                                          (line-end-position))
-                                                  t nil))
+                   (goto-char first-line-pos)
+                   (while (and (<= (point) last-line-pos)
+                               (re-search-forward regex last-line-pos t nil))
                      (cl-incf nreplaced)
                      (replace-match replacement)
                      (setq last-point (point))
