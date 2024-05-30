@@ -459,7 +459,7 @@ pattern and replace matches with REPLACEMENT.
                              (save-excursion
                                (goto-line-dumb first-line)
                                (line-beginning-position))))
-                    (end (if (= current-line first-line)
+                    (end (if (= current-line last-line)
                              (line-end-position)
                            (save-excursion
                              (goto-line-dumb last-line)
