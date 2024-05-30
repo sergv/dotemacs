@@ -344,7 +344,9 @@ e.g. whether regexp is malformed, not matched, etc.")
     (with-selected-window vim-ex--current-window
       (with-current-buffer vim-ex--current-buffer
         (vim--delete-hl 'vim-substitute-face)
-        (delete-overlay vim--ex-pattern-update-overlay)))))
+        (when vim--ex-pattern-update-overlay
+          (delete-overlay vim--ex-pattern-update-overlay)
+          (setf vim--ex-pattern-update-overlay nil))))))
 
 (defun vim--construct-substitute-pattern (search-regex flags)
   (cl-assert (and search-regex (stringp search-regex)))
