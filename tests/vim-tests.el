@@ -16,6 +16,18 @@
 (require 'vim-search)
 (require 'ert)
 
+(defconst vim-tests--modes-and-init
+  '((text-mode (text-mode))
+    (haskell-mode (haskell-mode))
+    (haskell-ts-mode (haskell-ts-mode))
+    (emacs-lisp-mode (emacs-lisp-mode))
+    (rust-mode (rust-mode))
+    (c-mode (c-mode))))
+
+(defconst vim-tests--all-known-modes-and-init
+  (cons '(haskell-hsc-mode (haskell-hsc-mode))
+        vim-tests--modes-and-init))
+
 (defmacro vim-tests--enable-undo (&rest body)
   `(let ((buffer-undo-list nil))
      ,@body))
@@ -30,6 +42,15 @@
     ;; Don’t reuse buffer to start out in fresh environment each time and don’t
     ;; share things like last cmd events, etc.
     :buffer-id nil))
+
+(defmacro vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands-all-known-inits (name-prefix actions contentss expected-value)
+  (declare (indent 1))
+  `(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
+       ,name-prefix
+       ,vim-tests--all-known-modes-and-init
+     ,actions
+     ,contentss
+     ,expected-value))
 
 (defmacro vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands
     (name-prefix inits actions contentss expected-value)
@@ -83,18 +104,6 @@
                ;; Don’t reuse buffer to start out in fresh environment each time and don’t
                ;; share things like last cmd events, etc.
                :buffer-id nil))))))
-
-(defconst vim-tests--modes-and-init
-  '((text-mode (text-mode))
-    (haskell-mode (haskell-mode))
-    (haskell-ts-mode (haskell-ts-mode))
-    (emacs-lisp-mode (emacs-lisp-mode))
-    (rust-mode (rust-mode))
-    (c-mode (c-mode))))
-
-(defconst vim-tests--all-known-modes-and-init
-  (cons '(haskell-hsc-mode (haskell-hsc-mode))
-        vim-tests--modes-and-init))
 
 ;; Text mode has surprising bindings for <tab>. It doesn’t really matter
 ;; day to day but breaks tests significantly without much benefit testingwise.
@@ -5792,6 +5801,204 @@ _|_bar")
     "  , baz :: {-# UNPACK #-} !Double"
     "  }"
    ""))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands-all-known-inits
+    vim-tests/substitute-1
+  ((yes-confirm (execute-kbd-macro (kbd "s % s / f o o / d e c o m b o b u l a t e / c <return> y y y")))
+   (no-confirm (execute-kbd-macro (kbd "s % s / f o o / d e c o m b o b u l a t e / <return>"))))
+  ((a
+    (tests-utils--multiline
+     "_|_foo foo"
+     "bar"
+     "baz"
+     "quux"
+     "foo"))
+   (b
+    (tests-utils--multiline
+     "foo_|_ foo"
+     "bar"
+     "baz"
+     "quux"
+     "foo"))
+   (c
+    (tests-utils--multiline
+     "foo foo"
+     "_|_bar"
+     "baz"
+     "quux"
+     "foo"))
+   (d
+    (tests-utils--multiline
+     "foo foo"
+     "bar"
+     "baz"
+     "_|_quux"
+     "foo"))
+   (e
+    (tests-utils--multiline
+     "foo foo"
+     "bar"
+     "baz"
+     "quux_|_"
+     "foo")
+    (f
+     (tests-utils--multiline
+      "foo foo"
+      "bar"
+      "baz"
+      "quux"
+      "_|_foo"))
+    (g
+     (tests-utils--multiline
+      "foo foo"
+      "bar"
+      "baz"
+      "quux"
+      "foo_|_"))))
+  (tests-utils--multiline
+   "decombobulate decombobulate"
+   "bar"
+   "baz"
+   "quux"
+   "decombobulate_|_"))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands-all-known-inits
+    vim-tests/substitute-2
+  ((yes-confirm (execute-kbd-macro (kbd "s % s / f o o / d e c o m b o b u l a t e / c n <return> y y")))
+   (no-confirm (execute-kbd-macro (kbd "s % s / f o o / d e c o m b o b u l a t e / n <return>"))))
+  ((a
+    (tests-utils--multiline
+     "_|_foo foo"
+     "bar"
+     "baz"
+     "quux"
+     "foo"))
+   (b
+    (tests-utils--multiline
+     "foo_|_ foo"
+     "bar"
+     "baz"
+     "quux"
+     "foo"))
+   (c
+    (tests-utils--multiline
+     "foo foo"
+     "_|_bar"
+     "baz"
+     "quux"
+     "foo"))
+   (d
+    (tests-utils--multiline
+     "foo foo"
+     "bar"
+     "baz"
+     "_|_quux"
+     "foo"))
+   (e
+    (tests-utils--multiline
+     "foo foo"
+     "bar"
+     "baz"
+     "quux_|_"
+     "foo")
+    (f
+     (tests-utils--multiline
+      "foo foo"
+      "bar"
+      "baz"
+      "quux"
+      "_|_foo"))
+    (g
+     (tests-utils--multiline
+      "foo foo"
+      "bar"
+      "baz"
+      "quux"
+      "foo_|_"))))
+  (tests-utils--multiline
+   "decombobulate foo"
+   "bar"
+   "baz"
+   "quux"
+   "decombobulate_|_"))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands-all-known-inits
+    vim-tests/substitute-3
+  ((yes-confirm (execute-kbd-macro (kbd "s % s / e / X X X / c n <return> y y")))
+   (no-confirm (execute-kbd-macro (kbd "s % s / e / X X X / n <return>"))))
+  ((a
+    (tests-utils--multiline
+     "_|_e e"
+     "bar"
+     "baz"
+     "quux"
+     "e"))
+   (b
+    (tests-utils--multiline
+     "e _|_e"
+     "bar"
+     "baz"
+     "quux"
+     "e"))
+   (c
+    (tests-utils--multiline
+     "e e_|_"
+     "bar"
+     "baz"
+     "quux"
+     "e"))
+   (d
+    (tests-utils--multiline
+     "e e"
+     "bar_|_"
+     "baz"
+     "quux"
+     "e")))
+  (tests-utils--multiline
+   "XXX e"
+   "bar"
+   "baz"
+   "quux"
+   "XXX_|_"))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands-all-known-inits
+    vim-tests/substitute-4
+  ((yes-confirm (execute-kbd-macro (kbd "s % s / e / X X X / c <return> y y y")))
+   (no-confirm (execute-kbd-macro (kbd "s % s / e / X X X / <return>"))))
+  ((a
+    (tests-utils--multiline
+     "_|_e e"
+     "bar"
+     "baz"
+     "quux"
+     "e"))
+   (b
+    (tests-utils--multiline
+     "e _|_e"
+     "bar"
+     "baz"
+     "quux"
+     "e"))
+   (c
+    (tests-utils--multiline
+     "e e_|_"
+     "bar"
+     "baz"
+     "quux"
+     "e"))
+   (d
+    (tests-utils--multiline
+     "e e"
+     "bar_|_"
+     "baz"
+     "quux"
+     "e")))
+  (tests-utils--multiline
+   "XXX XXX"
+   "bar"
+   "baz"
+   "quux"
+   "XXX_|_"))
 
 (provide 'vim-tests)
 
