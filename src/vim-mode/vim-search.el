@@ -458,12 +458,11 @@ pattern and replace matches with REPLACEMENT.
 
     (let ((case-fold-search (eq 'insensitive (vim-pattern-case-fold pattern)))
           (case-replace case-fold-search))
-      (unwind-protect
-          (cond
-            ((vim-pattern-whole-line pattern)
-             ;; this one is easy, just use the built in function
-             (let* ((start first-line-pos)
-                    (end last-line-pos))
+      (with-marker (last-line-pos-marker (copy-marker last-line-pos))
+        (unwind-protect
+            (cond
+              ((vim-pattern-whole-line pattern)
+               ;; this one is easy, just use the built in function
                (if confirm
                    (perform-replace regex
                                     replacement
@@ -472,61 +471,64 @@ pattern and replace matches with REPLACEMENT.
                                     nil ;; delimited-count
                                     nil ;; repeat-count
                                     nil ;; map
-                                    start
-                                    end)
-                 (progn
-                   (goto-char start)
-                   (while (re-search-forward regex end t)
-                     (replace-match replacement nil nil))))))
-            (t
-             (let ((nreplaced 0))
-               (if confirm
-                   (with-marker (next-line-pos-marker (copy-marker first-line-pos))
-                     ;; this one is more difficult, we have to do the
-                     ;; highlighting and questioning on our own
-                     (overlay-put overlay 'face
-                                  (if (facep 'isearch) 'isearch 'region))
-                     (map-y-or-n-p (lambda (x)
-                                     (set-match-data x)
-                                     (move-overlay overlay (match-beginning 0) (match-end 0))
-                                     (concat "Query replacing "
-                                             (match-string-no-properties 0)
-                                             " with "
-                                             (match-substitute-replacement replacement
-                                                                           case-fold-search)
-                                             ": "))
-                                   (lambda (x)
-                                     (set-match-data x)
-                                     (replace-match replacement case-fold-search)
-                                     (cl-incf nreplaced)
-                                     (setq last-point (point)))
-                                   (lambda ()
-                                     (goto-char next-line-pos-marker)
-                                     (when (and (< (point) last-line-pos)
-                                                (re-search-forward regex last-line-pos t nil))
-                                       (setq last-point (point))
-                                       (move-marker next-line-pos-marker (1+ (line-end-position)))
-                                       (match-data)))))
-
-                 ;; just replace the first occurences per line
-                 ;; without highlighting and asking
+                                    first-line-pos
+                                    last-line-pos-marker)
                  (progn
                    (goto-char first-line-pos)
-                   (while (and (<= (point) last-line-pos)
-                               (re-search-forward regex last-line-pos t nil))
-                     (cl-incf nreplaced)
-                     (replace-match replacement)
-                     (setq last-point (point))
-                     (forward-line)
-                     (beginning-of-line))))
+                   (while (re-search-forward regex last-line-pos-marker t)
+                     (replace-match replacement nil nil)))))
+              (t
+               (let ((nreplaced 0))
+                 (if confirm
+                     ;; Marker is needed to keep track where current line ends
+                     ;; because replacement may make current line longer and computed line end
+                     ;; position will not be correct any more.
+                     (with-marker (next-line-pos-marker (copy-marker first-line-pos))
+                       ;; this one is more difficult, we have to do the
+                       ;; highlighting and questioning on our own
+                       (overlay-put overlay 'face
+                                    (if (facep 'isearch) 'isearch 'region))
+                       (map-y-or-n-p (lambda (x)
+                                       (set-match-data x)
+                                       (move-overlay overlay (match-beginning 0) (match-end 0))
+                                       (concat "Query replacing "
+                                               (match-string-no-properties 0)
+                                               " with "
+                                               (match-substitute-replacement replacement
+                                                                             case-fold-search)
+                                               ": "))
+                                     (lambda (x)
+                                       (set-match-data x)
+                                       (replace-match replacement case-fold-search)
+                                       (cl-incf nreplaced)
+                                       (setq last-point (point)))
+                                     (lambda ()
+                                       (goto-char next-line-pos-marker)
+                                       (when (and (< (point) last-line-pos-marker)
+                                                  (re-search-forward regex last-line-pos-marker t nil))
+                                         (setq last-point (point))
+                                         (move-marker next-line-pos-marker (1+ (line-end-position)))
+                                         (match-data)))))
 
-               (goto-char last-point)
-               (if (= nreplaced 1)
-                   (vim-notify "Replaced 1 occurence")
-                 (vim-notify "Replaced %d occurences" nreplaced)))))
+                   ;; just replace the first occurences per line
+                   ;; without highlighting and asking
+                   (progn
+                     (goto-char first-line-pos)
+                     (while (and (<= (point) last-line-pos-marker)
+                                 (re-search-forward regex last-line-pos-marker t nil))
+                       (cl-incf nreplaced)
+                       (replace-match replacement)
+                       (setq last-point (point))
+                       (forward-line)
+                       (beginning-of-line))))
 
-        ;; clean-up the overlay
-        (delete-overlay overlay)))))
+                 (goto-char last-point)
+                 (if (= nreplaced 1)
+                     (vim-notify "Replaced 1 occurence")
+                   (vim-notify "Replaced %d occurences" nreplaced)))))
+
+          ;; clean-up the overlay
+          (delete-overlay overlay))))))
 
 (defun vim--parse-substitute (text)
   "Parse ex command line in TEXT and return triple
