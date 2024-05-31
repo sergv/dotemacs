@@ -157,6 +157,16 @@ sexps and indentation levels."
                 :unadjusted t
                 :raw-result t)
 
+(defconst shell-dirtrack-regexp
+  (rx bol
+      (* (any ?\r))
+      (? (+ (not (or ?: ?\s ?\r ?\n)))
+         ":")
+      (group (+ (not (or ?$ ?\r ?\n))))
+      (any ?$ ?#)))
+
+(defconst shell-dirtrack-entry (list shell-dirtrack-regexp 1))
+
 ;;;###autoload
 (defun shell-setup ()
   (init-repl :show-directory t
@@ -164,12 +174,7 @@ sexps and indentation levels."
   (hl-line-mode +1)
 
   ;; Simplest config that works with this: PS1="\w$"
-  (setq-local dirtrack-list (list (rx bol
-                                      (? (+ (not (or ?: ?\s ?\r ?\n)))
-                                         ":")
-                                      (group (+ (not (or ?$ ?\r ?\n))))
-                                      (any ?$ ?#))
-                                  1))
+  (setq-local dirtrack-list shell-dirtrack-entry)
   (dirtrack-mode +1)
 
   (setq-local comment-start "#"
