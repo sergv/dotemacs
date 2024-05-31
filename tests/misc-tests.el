@@ -10,6 +10,7 @@
 
 (require 'company-mode-setup)
 (require 'transient-fixes)
+(require 'shell-setup)
 
 (ert-deftest misc-tests/delete-duplicate-candidates-from-company-dabbrev-code-1 ()
   (should (equal (delete-duplicate-candidates-from-company-dabbrev-code
@@ -134,6 +135,37 @@
 (ert-deftest misc-tests/ivy--regex-fuzzy-3 ()
   (should (equal (ivy--regex-fuzzy "a b")
                  '(("\\(a\\)" . t) ("\\(b\\)" . t)))))
+
+(ert-deftest misc-tests/shell-dirtrack-1 ()
+  (save-match-data
+    (let* ((dir "/home/sergey/projects/haskell/projects/stackage-build-docker/work")
+           (str (concat "[docker]root@04f0355e49f1:" dir "#")))
+      (should (string-match (car shell-dirtrack-entry)
+                            str))
+      (should (equal dir
+                     (match-string (cadr shell-dirtrack-entry) str))))))
+
+(ert-deftest misc-tests/shell-dirtrack-2 ()
+  (save-match-data
+    (let* ((dir "/home/sergey/projects/haskell/projects/stackage-build-docker/work")
+           ;; Where \r comes from is not entirely clear but it does so we have
+           ;; to plan for it.
+           (str (concat "\r[docker]root@04f0355e49f1:" dir "#")))
+      (should (string-match (car shell-dirtrack-entry)
+                            str))
+      (should (equal dir
+                     (match-string (cadr shell-dirtrack-entry) str))))))
+
+(ert-deftest misc-tests/shell-dirtrack-3 ()
+  (save-match-data
+    (let* ((dir "~/.emacs.d")
+           ;; Where \r comes from is not entirely clear but it does so we have
+           ;; to plan for it.
+           (str (concat "sergey@home:" dir "$")))
+      (should (string-match (car shell-dirtrack-entry)
+                            str))
+      (should (equal dir
+                     (match-string (cadr shell-dirtrack-entry) str))))))
 
 (provide 'misc-tests)
 
