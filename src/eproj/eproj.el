@@ -428,9 +428,25 @@ get proper flycheck checker."
                         aux-info
                         keys)))
      (cl-assert
-      (or (null entry)
-          (eq 'languages (car-safe entry)) ;; 'languages entry can have any length
-          (= (length entry) 2))
+      (cond
+        ((null entry)
+         t)
+        ((not (consp entry))
+         nil)
+        ((memq (car entry) '(languages no-default-proj authoritative-tag-source-for))
+         (-all? #'symbolp (cdr entry)))
+        ((memq (car entry) '(related ignored-files))
+         (-all? #'stringp (cdr entry)))
+        ((memq (car entry) '(file-list tag-file build-dir))
+         (and (= (length entry) 2)
+              (stringp (cadr entry))))
+        ((eq (car entry) 'create-cache-files)
+         (and (= (length entry) 2)
+              (booleanp (cadr entry))))
+        ((memq (car entry) '(language-specific checker disabled-checkers local-variables aux-files))
+         (-all? #'listp (cdr entry)))
+        (t
+         nil))
       nil
       "Invalid entry in .eproj-info: %s"
       entry)
