@@ -412,6 +412,13 @@ entries."
   (cons (cons 'display #'persistent-sessions--filter-display-param)
         frameset-filter-alist))
 
+(defun sessions--is-polymode-indirect-buffer? (buf)
+  (cl-assert (bufferp buf))
+  ;; Could be unbound if it wasn’t loaded yet.
+  (and (boundp 'polymode-mode)
+       (buffer-local-value 'polymode-mode buf)
+       (buffer-base-buffer buf)))
+
 (defun sessions/save-buffers/make-session ()
   "Make session to save later"
   (let* ((max-lisp-eval-depth 1000)
@@ -428,8 +435,7 @@ entries."
                      nil
                      (sessions/get-special-buffer-variables buf))))
                 (--filter (and (not (null (buffer-file-name it)))
-                               (not (and (buffer-local-value 'polymode-mode it)
-                                         (buffer-base-buffer it))))
+                               (not (sessions--is-polymode-indirect-buffer? it)))
                           buffers)))
          (temporary-buffer-data
           (-map (lambda (buf)
