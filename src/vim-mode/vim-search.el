@@ -399,7 +399,7 @@ e.g. whether regexp is malformed, not matched, etc.")
 
 (defun vim-ex--pattern-update-replacement (overlay)
   "Updates the replacement display."
-  (let ((replacement (match-substitute-replacement vim-substitute-face-replacement)))
+  (let ((replacement (match-substitute-replacement vim-substitute-face-replacement t)))
     (put-text-property 0 (length replacement)
                        'face 'vim-substitute-face
                        replacement)
@@ -464,7 +464,7 @@ pattern and replace matches with REPLACEMENT.
                              (line-beginning-position)))))
 
     (let ((case-fold-search (eq 'insensitive (vim-pattern-case-fold pattern)))
-          (case-replace case-fold-search))
+          (case-replace nil))
       (with-marker (last-line-pos-marker (copy-marker last-line-pos))
         (unwind-protect
             (cond
@@ -531,7 +531,7 @@ pattern and replace matches with REPLACEMENT.
                      (while (and (<= (point) last-line-pos-marker)
                                  (re-search-forward regex last-line-pos-marker t nil))
                        (cl-incf nreplaced)
-                       (replace-match replacement)
+                       (replace-match replacement t)
                        (setq last-point (point))
                        (forward-line)
                        (beginning-of-line))))
