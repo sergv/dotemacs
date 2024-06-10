@@ -225,7 +225,8 @@ name `name' to `new-regex'."
                         (goto-char begin)
                         ;; set the overlays for the current highlight, reusing old overlays
                         ;; (if possible)
-                        (while (re-search-forward regex end t)
+                        (while (and (< (point) end)
+                                    (re-search-forward regex end t))
                           (when (or (vim-pattern-whole-line pattern)
                                     (not (equal (line-end-position) last-line-end-pos)))
                             (unless (vim-pattern-whole-line pattern)
@@ -243,7 +244,9 @@ name `name' to `new-regex'."
                                       (overlay-put ov 'priority 1000)
                                       ov))
                                   new-ovs)
-                            (when match-hook (funcall match-hook (car new-ovs)))))))))))
+                            (when match-hook (funcall match-hook (car new-ovs))))
+                          (unless (eobp)
+                            (forward-char 1)))))))))
 
             (mapc #'delete-overlay old-ovs)
             (setf (vim-hl-overlays hl) new-ovs)
@@ -468,17 +471,24 @@ pattern and replace matches with REPLACEMENT.
                (if confirm
                    (perform-replace regex
                                     replacement
-                                    t
+                                    t   ;; query
                                     t   ;; is-regexp
                                     nil ;; delimited-count
                                     nil ;; repeat-count
                                     nil ;; map
                                     first-line-pos
                                     last-line-pos-marker)
-                 (progn
+                 (let ((last-end nil))
                    (goto-char first-line-pos)
-                   (while (re-search-forward regex last-line-pos-marker t)
-                     (replace-match replacement nil nil)))))
+                   (while (and (< (point) last-line-pos-marker)
+                               (re-search-forward regex last-line-pos-marker t))
+                     (replace-match replacement t nil)
+                     (setf last-end (point))
+                     (unless (eobp)
+                       ;; To avoid adjacent maches
+                       (forward-char 1)))
+                   (when last-end
+                     (goto-char last-end)))))
               (t
                (let ((nreplaced 0))
                  (if confirm
