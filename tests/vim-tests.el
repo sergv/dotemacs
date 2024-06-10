@@ -6021,6 +6021,111 @@ _|_bar")
      "\"e\"_|_"
      ""))
 
+(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands-all-known-inits
+ vim-tests/substitute-6
+ ((no-confirm
+   (condition-case nil
+       (execute-kbd-macro (kbd "s % s / U 1 / P a r 1 / <escape>"))
+     (quit t))))
+ ((a
+   (tests-utils--multiline
+    "_|_"
+    "- | @since base-4.21.0.0"
+    "instance Eq1 U1 where"
+    "  liftEq _ = \_ _ -> True"
+    ""
+    "-- | @since base-4.21.0.0"
+    "instance Ord1 U1 where"
+    "  liftCompare _ = \_ _ -> EQ"
+    ""
+    "-- | @since base-4.21.0.0"
+    "instance Show1 U1 where"
+    "  liftShowsPrec _ _ _ U1 = showString U1"
+    ""
+    "-- | @since base-4.21.0.0"
+    ""
+    "instance Read1 U1 where"
+    "  liftReadPrec _ _ ="
+    "    parens (expectP (Ident U1) *> pure U1)"
+    ""
+    "  liftReadListPrec  = liftReadListPrecDefault"
+    "  liftReadList      = liftReadListDefault"
+    "")))
+ (tests-utils--multiline
+  "_|_"
+  "- | @since base-4.21.0.0"
+  "instance Eq1 U1 where"
+  "  liftEq _ = \_ _ -> True"
+  ""
+  "-- | @since base-4.21.0.0"
+  "instance Ord1 U1 where"
+  "  liftCompare _ = \_ _ -> EQ"
+  ""
+  "-- | @since base-4.21.0.0"
+  "instance Show1 U1 where"
+  "  liftShowsPrec _ _ _ U1 = showString U1"
+  ""
+  "-- | @since base-4.21.0.0"
+  ""
+  "instance Read1 U1 where"
+  "  liftReadPrec _ _ ="
+  "    parens (expectP (Ident U1) *> pure U1)"
+  ""
+  "  liftReadListPrec  = liftReadListPrecDefault"
+  "  liftReadList      = liftReadListDefault"
+  ""))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands-all-known-inits
+    vim-tests/substitute-7
+  ((no-confirm (execute-kbd-macro (kbd "s % s / U 1 / P a r 1 / <return>"))))
+  ((a
+    (tests-utils--multiline
+     "_|_"
+     "- | @since base-4.21.0.0"
+     "instance Eq1 U1 where"
+     "  liftEq _ = \\_ _ -> True"
+     ""
+     "-- | @since base-4.21.0.0"
+     "instance Ord1 U1 where"
+     "  liftCompare _ = \\_ _ -> EQ"
+     ""
+     "-- | @since base-4.21.0.0"
+     "instance Show1 U1 where"
+     "  liftShowsPrec _ _ _ U1 = showString U1"
+     ""
+     "-- | @since base-4.21.0.0"
+     ""
+     "instance Read1 U1 where"
+     "  liftReadPrec _ _ ="
+     "    parens (expectP (Ident U1) *> pure U1)"
+     ""
+     "  liftReadListPrec  = liftReadListPrecDefault"
+     "  liftReadList      = liftReadListDefault"
+     "")))
+  (tests-utils--multiline
+   ""
+   "- | @since base-4.21.0.0"
+   "instance Eq1 Par1 where"
+   "  liftEq _ = \\_ _ -> True"
+   ""
+   "-- | @since base-4.21.0.0"
+   "instance Ord1 Par1 where"
+   "  liftCompare _ = \\_ _ -> EQ"
+   ""
+   "-- | @since base-4.21.0.0"
+   "instance Show1 Par1 where"
+   "  liftShowsPrec _ _ _ Par1 = showString Par1"
+   ""
+   "-- | @since base-4.21.0.0"
+   ""
+   "instance Read1 Par1 where"
+   "  liftReadPrec _ _ ="
+   "    parens (expectP (Ident Par1) *> pure Par1_|_)"
+   ""
+   "  liftReadListPrec  = liftReadListPrecDefault"
+   "  liftReadList      = liftReadListDefault"
+   ""))
+
 (provide 'vim-tests)
 
 ;; Local Variables:
