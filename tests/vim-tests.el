@@ -6000,6 +6000,27 @@ _|_bar")
    "quux"
    "XXX_|_"))
 
+(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands-all-known-inits
+    vim-tests/substitute-5
+  ((no-confirm (execute-kbd-macro (kbd "V 4 h s s / \\ ( . * <right> <right> / \" \\ 1 \" <return>"))))
+  ((a
+    (tests-utils--multiline
+     ""
+     "_|_e e"
+     "bar"
+     ""
+     "quux"
+     "e"
+     "")))
+  (tests-utils--multiline
+     ""
+     "\"e e\""
+     "\"bar\""
+     "\"\""
+     "\"quux\""
+     "\"e\"_|_"
+     ""))
+
 (provide 'vim-tests)
 
 ;; Local Variables:
