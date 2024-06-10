@@ -23,6 +23,8 @@ case "${shared_ext}" in
         ;;
 esac
 
+mkdir -p "lib"
+
 for x in native/tree-sitter*; do
     echo "$x"
     if [[ -f "$x/src/scanner.c" ]]; then
