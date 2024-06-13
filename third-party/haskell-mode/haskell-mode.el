@@ -341,6 +341,8 @@ be set to the preferred literate style."
                 (put-text-property (match-beginning 1) (match-end 1) 'syntax-table (eval-when-compile (string-to-syntax "|")))
                 (put-text-property (match-end 2 ) (1+ (match-end 2)) 'syntax-table (eval-when-compile (string-to-syntax "|"))))))
            (`template-haskell-quasi-quote
+            (put-text-property (match-beginning 0) (match-end 0) 'haskell-mode-quasiquote (match-string-no-properties 1))
+
             (put-text-property (match-beginning 2) (match-end 2) 'syntax-table (eval-when-compile (string-to-syntax "\"")))
             (when (match-beginning 4)
               (put-text-property (match-beginning 4) (match-end 4) 'syntax-table (eval-when-compile (string-to-syntax "\""))))
