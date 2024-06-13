@@ -667,8 +667,23 @@ a single entity."
      (when (null expanded-function-name?)
        (goto-char start-pos)
        (let* ((syn nil)
-              (in-string? (or (haskell-smart-operators--in-string-syntax?)
-                              (nth 3 (syntax-ppss-update! syn)))))
+              (in-string? (let ((node (when (derived-mode-p 'haskell-ts-mode)
+                                        (haskell-smart-operators--treesit--current-node))))
+                            (cond
+                              ((haskell-smart-operators--treesit--in-quasiquote-body? node)
+                               ;; [Non-Haskell-QQ]
+                               ;; Quasiquote’s body syntax probably
+                               ;; doesn’t support Haskell’s multiline
+                               ;; strings separated by backslashes.
+                               nil)
+                              ((and (derived-mode-p 'haskell-mode)
+                                    (when-let ((prop (get-char-property (point) 'haskell-mode-quasiquote)))
+                                      (not (member prop '("" "t" "e" "d")))))
+                               ;; Same reasoning as for [Non-Haskell-QQ].
+                               nil)
+                              (t
+                               (or (haskell-smart-operators--in-string-syntax?-raw node)
+                                   (nth 3 (syntax-ppss-update! syn))))))))
          (cond
            (in-string?
             (let ((string-start-column (save-excursion
