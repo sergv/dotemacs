@@ -4173,6 +4173,82 @@ have different input states."
    "  ]"))
 
 (haskell-tests--test-buffer-contents
+    haskell-tests/haskell-newline-with-signature-expansion--inside-quasiquote-1
+    (haskell-newline-with-signature-expansion)
+  (tests-utils--multiline
+   ""
+   "quux ="
+   "  [foo| "
+   "    frobnicate _|_decombobulator"
+   "  |]"
+   "")
+  (tests-utils--multiline
+   ""
+   "quux ="
+   "  [foo| "
+   "    frobnicate"
+   "    _|_decombobulator"
+   "  |]"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-newline-with-signature-expansion--inside-quasiquote-2
+    (haskell-newline-with-signature-expansion)
+  (tests-utils--multiline
+   ""
+   "quux ="
+   "  [foo| "
+   "    \"frobnicate _|_decombobulator\""
+   "  |]"
+   "")
+  (tests-utils--multiline
+   ""
+   "quux ="
+   "  [foo| "
+   "    \"frobnicate"
+   "    _|_decombobulator\""
+   "  |]"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-newline-with-signature-expansion--inside-quasiquote-3
+    (haskell-newline-with-signature-expansion)
+  (tests-utils--multiline
+   ""
+   "quux ="
+   "  [| "
+   "    \"frobnicate _|_decombobulator\""
+   "  |]"
+   "")
+  (tests-utils--multiline
+   ""
+   "quux ="
+   "  [| "
+   "    \"frobnicate\\"
+   "    \\_|_decombobulator\""
+   "  |]"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-newline-with-signature-expansion--inside-quasiquote-4
+    (haskell-newline-with-signature-expansion)
+  (tests-utils--multiline
+   ""
+   "quux ="
+   "  [e| "
+   "    \"frobnicate _|_decombobulator\""
+   "  |]"
+   "")
+  (tests-utils--multiline
+   ""
+   "quux ="
+   "  [e| "
+   "    \"frobnicate\\"
+   "    \\_|_decombobulator\""
+   "  |]"
+   ""))
+
+(haskell-tests--test-buffer-contents
     haskell-tests/haskell-newline-with-signature-expansion--at-beginning-of-buffer-1
     (haskell-newline-with-signature-expansion)
   (tests-utils--multiline
