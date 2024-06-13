@@ -76,6 +76,7 @@
   '("alex-options"
     "ar-options"
     "c2hs-options"
+    "cpp-options"
     "cpphs-options"
     "doctest-options"
     "gcc-options"
@@ -175,6 +176,7 @@
     "extra-tmp-files"
     "flag"
     "frameworks"
+    "ghc-options"
     "ghcjs-options"
     "ghcjs-prof-options"
     "ghcjs-shared-options"
@@ -324,17 +326,20 @@
     "write-ghc-environment-files"))
 
 (defun haskell-cabal-font-lock--make-field-regexp (fields)
-  "Turn '(\"foo\" \"bar-baz\") into regexp that matches either foo, Foo, bar-baz, Bar-baz, bar-Baz, or Bar-Baz."
+  "Turn '(\"foo\" \"bar-baz\") into case-insensitive regexp that matches either foo, Foo, FoO, bar-baz, Bar-baz, bar-Baz, Bar-Baz, BAR-BAZ, etc."
   (mapconcat #'identity
              (-map (lambda (str)
                      (cl-assert (stringp str))
-                     (mapconcat (lambda (part)
-                                  (cl-assert (stringp part))
-                                  (let ((first (seq-take part 1)))
-                                    (concat "[" (s-upcase first) (s-downcase first) "]" (seq-drop part 1))))
-                                (s-split "-" str t)
-                                "-"))
-                   fields)
+                     (apply #'concat
+                            (-map
+                             (lambda (c)
+                               (let ((u (s-upcase c))
+                                     (d (s-downcase c)))
+                                 (if (eq u d)
+                                     (char->string c)
+                                   (concat "[" (char->string u) (char->string d) "]"))))
+                             (string->list str))))
+                   (remove-duplicates-hashing fields #'equal))
              "\\|"))
 
 (defconst haskell-cabal-font-lock--conditionals-and-constants-keywords
