@@ -424,14 +424,14 @@ This is a simple wrapper around the built-in `string-match-p'."
   "Convert S to lower case.
 
 This is a simple wrapper around the built-in `downcase'."
-  (declare (side-effect-free t))
+  (declare (pure t) (side-effect-free t))
   (downcase s))
 
 (defsubst s-upcase (s)
   "Convert S to upper case.
 
 This is a simple wrapper around the built-in `upcase'."
-  (declare (side-effect-free t))
+  (declare (pure t) (side-effect-free t))
   (upcase s))
 
 (defun s-capitalize (s)
