@@ -23,6 +23,7 @@
 (require 'current-column-fixed)
 (require 'indentation)
 (require 'search)
+(require 'treesit-utils)
 (require 'trie)
 
 (require 'abbrev+)
@@ -667,8 +668,7 @@ a single entity."
      (when (null expanded-function-name?)
        (goto-char start-pos)
        (let* ((syn nil)
-              (in-string? (let ((node (when (derived-mode-p 'haskell-ts-mode)
-                                        (haskell-smart-operators--treesit--current-node))))
+              (in-string? (let ((node (treesit-haskell--current-node)))
                             (cond
                               ((haskell-smart-operators--treesit--in-quasiquote-body? node)
                                ;; [Non-Haskell-QQ]
