@@ -11,6 +11,7 @@
   (require 'dash))
 
 (require 'el-patch)
+(require 'treesit-utils)
 
 (el-patch-feature prog-mode)
 
@@ -395,7 +396,14 @@ a pretty symbol."
       ))
 
 (defun pretty-ligatures--compose-dot ()
-  (unless (pretty-ligatures--disable-pretty-symbols? (match-beginning 0))
+  (when (and (not (pretty-ligatures--disable-pretty-symbols? (match-beginning 0)))
+             (if (derived-mode-p 'haskell-ts-mode)
+                 (if-let ((node (treesit-haskell--node-at (match-beginning 1))))
+                     (not (and (equal (treesit-node-type node) ".")
+                               (when-let ((p (treesit-node-parent node)))
+                                 (equal (treesit-node-type p) "forall"))))
+                   t)
+               t))
     (with-silent-modifications
       (compose-region (match-beginning 1) (match-end 1) ?∘))
     nil))
