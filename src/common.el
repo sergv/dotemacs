@@ -941,18 +941,18 @@ Save buffer if it has assigned file and this file exists on disk."
 
 (defun make-script-file-exec ()
   "Make buffer file executable if it's a shell script."
-  (and (not (file-executable-p buffer-file-name))
-       (save-excursion
-         (save-restriction
-           (widen)
-           (goto-char (point-min))
-           ;; first alternative - unix shell shebang
-           ;; second alternative - emacs "shebang"
-           (looking-at-p "^\\(?:#!\\|:;[ \t]*exec\\)")))
-       (make-file-executable buffer-file-name)
-       (shell-command (concat "chmod u+x \"" buffer-file-name "\""))
-       (message
-        (concat "Saved as script: " buffer-file-name))))
+  (unless (file-executable-p buffer-file-name)
+    (when (save-excursion
+            (save-restriction
+              (widen)
+              (goto-char (point-min))
+              ;; first alternative - unix shell shebang
+              ;; second alternative - emacs "shebang"
+              (looking-at-p "^\\(?:#!\\|:;[ \t]*exec\\)")))
+      (make-file-executable buffer-file-name)
+      (unless (file-executable-p buffer-file-name)
+        (shell-command (concat "chmod u+x \"" buffer-file-name "\"")))
+      (message "Saved as script: %s" buffer-file-name))))
 
 (defun count-lines-fixed (begin end)
   "Return line count in region like `count-lines' but don't
