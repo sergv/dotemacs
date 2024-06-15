@@ -4173,6 +4173,23 @@ have different input states."
    "  ]"))
 
 (haskell-tests--test-buffer-contents
+    haskell-tests/haskell-newline-with-signature-expansion--inside-string-2
+    (haskell-newline-with-signature-expansion)
+  (tests-utils--multiline
+   "quux = "
+   "  [ foobar"
+   "  , \"T.makeInstances [2..6]\"_|_ ==> []"
+   "  , baz "
+   "  ]")
+  (tests-utils--multiline
+   "quux = "
+   "  [ foobar"
+   "  , \"T.makeInstances [2..6]\""
+   "  _|_ ==> []"
+   "  , baz "
+   "  ]"))
+
+(haskell-tests--test-buffer-contents
     haskell-tests/haskell-newline-with-signature-expansion--inside-quasiquote-1
     (haskell-newline-with-signature-expansion)
   (tests-utils--multiline
