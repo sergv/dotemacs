@@ -22,7 +22,8 @@
 (defun haskell-smart-operators--treesit--in-string? (node)
   (when node
     (when (member (treesit-node-type node) '("char" "string" "quasiquote_body"))
-      (not (eq (point) (treesit-node-start node))))))
+      (and (not (eq (point) (treesit-node-start node)))
+           (not (eq (point) (treesit-node-end node)))))))
 
 (defun haskell-smart-operators--treesit--in-comment? (node)
   (when node
