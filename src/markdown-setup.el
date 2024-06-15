@@ -19,7 +19,7 @@
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.text\\'" . markdown-mode))
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
+(add-to-list 'auto-mode-alist '("\\.mk?d\\'" . markdown-mode))
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.markdown\\'" . markdown-mode))
 
