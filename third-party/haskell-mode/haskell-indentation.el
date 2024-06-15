@@ -50,6 +50,7 @@
 (require 'haskell-smart-operators-utils)
 (require 'macro-util)
 (require 'smart-operators-utils)
+(require 'treesit-utils)
 
 (defgroup haskell-indentation nil
   "Haskell indentation."
@@ -410,7 +411,7 @@ and indent when all of the following are true:
     (re-search-backward "^[^ \t\v\f\n\r#]" nil t 1)))
 
 (defun haskell-indentation-goto-least-indentation ()
-  "" ; FIXME
+  ""                                    ; FIXME
   (beginning-of-line)
   (if (haskell-indentation-bird-p)
       (catch 'return
@@ -442,10 +443,10 @@ and indent when all of the following are true:
           (if (eq (point) point)
               (forward-line -1)
             (beginning-of-line)))
-        (let ((node (haskell-smart-operators--treesit--current-node)))
-          (if (and node
-                   (or (haskell-smart-operators--treesit--in-string? node)
-                       (haskell-smart-operators--treesit--in-comment? node)))
+        (let ((node (treesit-haskell--current-node)))
+          (if (when node
+                (or (haskell-smart-operators--treesit--in-string?-sure node)
+                    (haskell-smart-operators--treesit--in-comment?-sure node)))
               (goto-char (treesit-node-start node))
             (let* ((ps (syntax-ppss))
                    (start-of-comment-or-string (nth 8 ps))
@@ -504,7 +505,7 @@ and indent when all of the following are true:
 
 (defun haskell-indentation-find-indentations ()
   "Return list of indentation positions corresponding to actual cursor position."
-  (let ((node (haskell-smart-operators--treesit--current-node))
+  (let ((node (treesit-haskell--current-node))
         (ppss nil))
     (pcase-let* ((`(,anchor . ,offset) (when node (treesit--indent-1))))
       (let ((treesit-indent
@@ -540,8 +541,7 @@ and indent when all of the following are true:
                    (and (skip-syntax-forward "-")
                         (eolp)
                         (not (> (forward-line 1) 0))
-                        (not (or (haskell-smart-operators--treesit--in-comment?
-                                  (haskell-smart-operators--treesit--current-node))
+                        (not (or (haskell-smart-operators--treesit--in-comment? (treesit-haskell--current-node))
                                  (nth 4 (syntax-ppss))))))
                  (haskell-indentation-parse-to-indentations)
                (haskell-indentation-first-indentation)))
