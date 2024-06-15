@@ -10,24 +10,27 @@
   (require 'cl)
   (require 'macro-util))
 
-(defun haskell-smart-operators--treesit--current-node ()
-  (condition-case nil
-      (treesit-node-at (point))
-    (treesit-no-parser nil)))
+(require 'treesit-utils)
 
 (defun haskell-smart-operators--treesit--in-quasiquote-body? (node)
   (and node
        (equal (treesit-node-type node) "quasiquote_body")))
 
-(defun haskell-smart-operators--treesit--in-string? (node)
-  (when node
-    (when (member (treesit-node-type node) '("char" "string" "quasiquote_body"))
-      (and (not (eq (point) (treesit-node-start node)))
-           (not (eq (point) (treesit-node-end node)))))))
+(defun haskell-smart-operators--treesit--in-string?-sure (node)
+  (when (member (treesit-node-type node) '("char" "string" "quasiquote_body"))
+    (and (not (eq (point) (treesit-node-start node)))
+         (not (eq (point) (treesit-node-end node))))))
 
-(defun haskell-smart-operators--treesit--in-comment? (node)
+(defsubst haskell-smart-operators--treesit--in-string? (node)
   (when node
-    (member (treesit-node-type node) '("comment" "haddock" "pragma"))))
+    (haskell-smart-operators--treesit--in-string?-sure node)))
+
+(defun haskell-smart-operators--treesit--in-comment?-sure (node)
+  (member (treesit-node-type node) '("comment" "haddock" "pragma")))
+
+(defsubst haskell-smart-operators--treesit--in-comment? (node)
+  (when node
+    (haskell-smart-operators--treesit--in-comment?-sure node)))
 
 ;;;###autoload
 (defun haskell-smart-operators--in-string-syntax?-raw (node)
@@ -36,21 +39,21 @@
 
 ;;;###autoload
 (defun haskell-smart-operators--in-string-syntax? ()
-  (haskell-smart-operators--in-string-syntax?-raw (haskell-smart-operators--treesit--current-node)))
+  (haskell-smart-operators--in-string-syntax?-raw (treesit-haskell--current-node)))
 
 ;;;###autoload
 (defun haskell-smart-operators--literal-insertion? (&optional disable-comment-check?)
-  (let ((node (haskell-smart-operators--treesit--current-node)))
-    (or (haskell-smart-operators--treesit--in-string? node)
-        (haskell-smart-operators--treesit--in-comment? node)
-        (smart-operators--literal-insertion? disable-comment-check?))))
+  (or (when-let ((node (treesit-haskell--current-node)))
+        (or (haskell-smart-operators--treesit--in-string?-sure node)
+            (haskell-smart-operators--treesit--in-comment?-sure node)))
+      (smart-operators--literal-insertion? disable-comment-check?)))
 
 (defun haskell-smart-operators--treesit--in-import-list? (node)
   (when node
     (equal (treesit-node-type node) "import_list")))
 
 (defun haskell-smart-operators--in-import-list? ()
-  (let ((node (haskell-smart-operators--treesit--current-node)))
+  (when-let ((node (treesit-haskell--current-node)))
     (treesit-utils-find-topmost-parent-limited node
                                                (lambda (x)
                                                  (haskell-smart-operators--treesit--in-import-list? x))
