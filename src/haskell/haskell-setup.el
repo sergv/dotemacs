@@ -547,6 +547,8 @@ _<tab>_: reindent  _h_: jump to topmont node end"
 
     (haskell-setup-common-prelude)
 
+    (add-hook 'after-save-hook #'make-script-file-exec nil t)
+
     (let ((proj (haskell-setup-common-project t)))
       (when (not non-vanilla-haskell-mode?)
         (flycheck-setup-from-eproj-deferred
