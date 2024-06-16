@@ -21,7 +21,8 @@
 
 (setf compilation-always-kill t
       ;; don't ask - just save
-      compilation-ask-about-save nil)
+      compilation-ask-about-save nil
+      compilation-max-output-line-length nil)
 
 
 (defun compilation--apply-ansi-colours-filter (f proc string)
