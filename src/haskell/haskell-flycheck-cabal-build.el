@@ -84,8 +84,9 @@
   (concat " *flycheck#" dante-target "#" dante-project-root "*"))
 
 (flycheck-define-generic-checker 'haskell-cabal-build
-  "A syntax and type checker for Haskell using a Dante worker
-process."
+  "A syntax and type checker for Haskell using regular ‘cabal build’.
+
+Not as low-latency as ‘haskell-dante’ checker, but works with .hsc files."
   :start 'haskell-flycheck-cabal-build--check
   ;; :predicate (lambda () dante-mode)
   :modes '(haskell-mode haskell-ts-mode haskell-literate-mode haskell-hsc-mode)
