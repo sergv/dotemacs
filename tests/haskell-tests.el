@@ -4248,6 +4248,23 @@ have different input states."
    "  ]"))
 
 (haskell-tests--test-buffer-contents
+    haskell-tests/haskell-newline-with-signature-expansion--outside-string-1
+    (haskell-newline-with-signature-expansion)
+  (tests-utils--multiline
+   "quote :: Char -> ByteString"
+   "quote = \\case"
+   "  '\"'  -> \"\\\\\\\"\"_|_"
+   "  '\\\\' -> \"\\\\\\\\\""
+   "  c    -> C8.singleton c")
+  (tests-utils--multiline
+   "quote :: Char -> ByteString"
+   "quote = \\case"
+   "  '\"'  -> \"\\\\\\\"\""
+   "  _|_"
+   "  '\\\\' -> \"\\\\\\\\\""
+   "  c    -> C8.singleton c"))
+
+(haskell-tests--test-buffer-contents
     haskell-tests/haskell-newline-with-signature-expansion--inside-quasiquote-1
     (haskell-newline-with-signature-expansion)
   (tests-utils--multiline
