@@ -1839,6 +1839,64 @@ have different input states."
   (tests-utils--multiline
    "-- >test_|_"))
 
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-smart-operators--arrows-1
+    (progn
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?-)
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?>)
+      (insert "foo"))
+  (tests-utils--multiline
+   ""
+   "writeTo :: Handle -> [(OsPath, [Token.Pos Tag.TagVal])] -> IO ()"
+   "writeTo dest xs ="
+   "    for_ xs $ \\(fn, tags) _|_"
+   "")
+  (tests-utils--multiline
+   ""
+   "writeTo :: Handle -> [(OsPath, [Token.Pos Tag.TagVal])] -> IO ()"
+   "writeTo dest xs ="
+   "    for_ xs $ \\(fn, tags) -> foo_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-smart-operators--arrows-2
+    (progn
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?-)
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?>)
+      (insert "foo"))
+  (tests-utils--multiline
+   ""
+   "writeTo :: Handle -> [(OsPath, [Token.Pos Tag.TagVal])] -> IO ()"
+   "writeTo dest xs ="
+   "    for_ xs $ \\(fn, tags)_|_"
+   "")
+  (tests-utils--multiline
+   ""
+   "writeTo :: Handle -> [(OsPath, [Token.Pos Tag.TagVal])] -> IO ()"
+   "writeTo dest xs ="
+   "    for_ xs $ \\(fn, tags) -> foo_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-smart-operators--arrows-3
+    (progn
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?-)
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?>)
+      (insert "foo"))
+  (tests-utils--multiline
+   ""
+   "writeTo :: Handle -> [(OsPath, [Token.Pos Tag.TagVal])] -> IO ()"
+   "writeTo dest xs ="
+   "    for_ xs $ \\(fn, tags)_|_"
+   "    -- = map (uncurry formatFileTags)"
+   "")
+  (tests-utils--multiline
+   ""
+   "writeTo :: Handle -> [(OsPath, [Token.Pos Tag.TagVal])] -> IO ()"
+   "writeTo dest xs ="
+   "    for_ xs $ \\(fn, tags) -> foo_|_"
+   "    -- = map (uncurry formatFileTags)"
+   ""))
 
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-smart-operators-hyphen--1
