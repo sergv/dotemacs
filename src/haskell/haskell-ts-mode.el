@@ -240,6 +240,11 @@ but when paired then it’s like a string."
               (cl-assert (treesit-node-p node))
               (pcase (car entry)
                 (`str-like
+                 (save-excursion
+                   (save-match-data
+                     (goto-char start)
+                     (while (search-forward "\"" end t)
+                       (put-text-property (match-beginning 0) (match-end 0) 'syntax-table (eval-when-compile (string-to-syntax "."))))))
                  (put-text-property start
                                     (1+ start)
                                     'syntax-table
