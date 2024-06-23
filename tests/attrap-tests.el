@@ -630,6 +630,64 @@
   "test x = _|_foo x"
   ""))
 
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/add-to-import-import-list-2
+ :flycheck-errors
+ (list
+  (let ((linecol (save-excursion
+                   (re-search-forward "_|_")
+                   (flycheck-line-column-at-pos (point)))))
+    (flycheck-error-new
+     :line (car linecol)
+     :column (cdr linecol)
+     :buffer (current-buffer)
+     :checker 'haskell-dante
+     :message
+     (tests-utils--multiline
+      "warning: [GHC-88464] [-Wdeferred-out-of-scope-variables]"
+      "    Variable not in scope: hPutChar :: Handle -> Char -> IO ()"
+      "    Suggested fixes:"
+      "      • Perhaps use ‘putChar’ (imported from Prelude)"
+      "      • Add ‘hPutChar’ to the import list in the import of ‘System.IO’"
+      "        (at /foo/bar/baz/Quux.hs:2:1-25).")
+     :level 'error
+     :id nil
+     :group nil)))
+ :action
+ (let ((attrap-select-predefined-option
+        "add to import list of ‘System.IO’"))
+   (attrap-tests--run-attrap))
+ :contents
+ (tests-utils--multiline
+  ""
+  "import System.IO (Handle)"
+  ""
+  "writeTo :: Handle -> [String] -> IO ()"
+  "writeTo dest xs = do"
+  "    list $ traverse (traverse char) xs"
+  "    where"
+  "        list :: IO a -> IO a"
+  "        list action = C8.hPut dest \"(\" *> action <* C8.hPut dest \")\""
+  ""
+  "        char :: Char -> IO ()"
+  "        char = _|_hPutChar dest"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import System.IO (Handle, hPutChar)"
+  ""
+  "writeTo :: Handle -> [String] -> IO ()"
+  "writeTo dest xs = do"
+  "    list $ traverse (traverse char) xs"
+  "    where"
+  "        list :: IO a -> IO a"
+  "        list action = C8.hPut dest \"(\" *> action <* C8.hPut dest \")\""
+  ""
+  "        char :: Char -> IO ()"
+  "        char = _|_hPutChar dest"
+  ""))
+
 (provide 'attrap-tests)
 
 ;; Local Variables:
