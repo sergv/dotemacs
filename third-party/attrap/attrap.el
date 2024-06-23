@@ -395,7 +395,7 @@ value is a list which is appended to the result of
 (defmacro attrap-add-to-import (missing module line col)
   "Action: insert MISSING to the import of MODULE.
 The import ends at LINE and COL in the file."
-  `(attrap-option (list 'add-to-import-list ,module)
+  `(attrap-option (format "add to import list of ‘%s’" ,module)
      (let ((end-line (string-to-number ,line))
            (end-col (string-to-number ,col)))
        (goto-char (point-min))
@@ -535,6 +535,17 @@ Error is given as MSG and reported between POS and END."
         (insert replacement))))
    (when (string-match
           (rx "Suggested fix: Add " (identifier 1)
+              " to the import list in the import of " (identifier 2)
+              " " (parens (src-loc 3 4 5 6)))
+          normalized-msg)
+     (list (attrap-add-to-import (match-string-no-properties 1 normalized-msg)
+                                 (match-string-no-properties 2 normalized-msg)
+                                 (match-string-no-properties 5 normalized-msg)
+                                 (match-string-no-properties 6 normalized-msg))))
+   (when (string-match
+          (rx "Suggested fixes: "
+              (* "•" (+ (not ?•)))
+              "• Add " (identifier 1)
               " to the import list in the import of " (identifier 2)
               " " (parens (src-loc 3 4 5 6)))
           normalized-msg)
