@@ -17,8 +17,7 @@
 
 (require 'haskell-cabal)
 
-;;;###autoload
-(defun eproj/create-haskell-tags (proj project-files-thunk parse-tags-proc)
+(defun eproj/create-haskell-generic-tags (proj project-files-thunk parse-tags-proc args)
   (with-temp-buffer
     (with-disabled-undo
      (with-inhibited-modification-hooks
@@ -39,7 +38,8 @@
               (when (string-match-p ext-re file)
                 (insert file "\n")))
             (unless (= 0
-                       (call-process-region
+                       (apply
+                        #'call-process-region
                         (point-min)
                         (point-max)
                         fast-tags-exe
@@ -47,9 +47,7 @@
                         ;; Discard error output from fast-tags
                         (list out-buffer nil)
                         nil
-                        "-o-"
-                        "--nomerge"
-                        "-"))
+                        args))
               (error "fast-tags invokation failed: %s"
                      (with-current-buffer out-buffer
                        (buffer-substring-no-properties (point-min) (point-max)))))
@@ -57,7 +55,27 @@
         (funcall parse-tags-proc (eproj-project/root proj) out-buffer))))))
 
 ;;;###autoload
-(defun eproj/get-fast-tags-tags-from-buffer (proj-root buffer)
+(defun eproj/create-haskell-vim-tags (proj project-files-thunk parse-tags-proc)
+  (eproj/create-haskell-generic-tags
+   proj
+   project-files-thunk
+   parse-tags-proc
+   '("-o-"
+     "--nomerge"
+     "-")))
+
+;;;###autoload
+(defun eproj/create-haskell-compact-tags (proj project-files-thunk parse-tags-proc)
+  (eproj/create-haskell-generic-tags
+   proj
+   project-files-thunk
+   parse-tags-proc
+   '("-o-"
+     "--compact-format"
+     "-")))
+
+;;;###autoload
+(defun eproj/get-fast-tags-vim-tags-from-buffer (proj-root buffer)
   "Constructs hash-table of (tag . eproj-tag) bindings extracted from buffer BUFFER.
 BUFFER is expected to contain simplified output of ctags - fast-tags command.
 
@@ -106,6 +124,61 @@ runtime but rather will be silently relied on)."
           (forward-line 1)
           (when eproj-verbose-tag-loading
             (funcall progress-reporter 1)))
+        tags-index))))
+
+;;;###autoload
+(defun eproj/get-fast-tags-compact-tags-from-buffer (proj-root buffer)
+  "Constructs hash-able of (tag . eproj-tag) bindings extracted from buffer BUFFER.
+BUFFER is expected to contain simplified output of ctags - fast-tags command.
+
+Function does not attempt to parse <key>=<value> pairs after ;\",
+and expects single character there instead (this isn't be checked at
+runtime but rather will be silently relied on)."
+  (with-current-buffer buffer
+    (save-match-data
+      (goto-char (point-min))
+      (let ((tags-index (empty-eproj-tag-index))
+            (data (read (current-buffer)))
+            (file-name-cache (eproj-normalise-file-name-expand-cached/make-cache))
+            (sharing-cache (eproj-ctags--make-sharing-cache)))
+
+        (dolist (entry data)
+          (let* ((filename (car entry))
+                 (tags (cdr entry))
+                 (file (eproj-ctags--share
+                        (eproj-normalise-file-name-expand-cached/with-explicit-cache
+                         file-name-cache
+                         filename
+                         proj-root)
+                        sharing-cache)))
+            (dolist (tag tags)
+              (let* ((line (car tag))
+                     (tag2 (cdr tag))
+                     (symbol (car tag2))
+                     (tag3 (cdr tag2)))
+                (if (consp tag3)
+                    (let* ((type (car tag3))
+                           (tag4 (cdr tag3))
+                           ;; (parent-name (car tag4))
+                           ;; (tag5 (cdr tag4))
+                           ;; (parent-type (car tag5))
+                           )
+                      (eproj-tag-index-add! symbol
+                                            file
+                                            line
+                                            type
+                                            ;; tag4 is (cons <parent-name> <parent-type>)
+                                            ;; <parent-name> is string
+                                            ;; <parent-type> is character, same as regular type
+                                            (list (cons 'parent tag4))
+                                            tags-index))
+                  (let ((type tag3))
+                    (eproj-tag-index-add! symbol
+                                          file
+                                          line
+                                          type
+                                          nil
+                                          tags-index)))))))
         tags-index))))
 
 ;;;###autoload
