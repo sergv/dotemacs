@@ -1,9 +1,1 @@
-!_TAG_FILE_SORTED	1	//
->>=#	Foo/Bar/IdentityMonad.hs	22;"	o
->>>	Foo/Bar/IdentityMonad.hs	27;"	o
->>>=	Foo/Bar/IdentityMonad.hs	13;"	o
-IdentityMMangledForNoReason	Foo/Bar/IdentityMonad.hs	3;"	t
-Main	Foo/Bar/IdentityMonad.hs	1;"	m
-extract	Foo/Bar/IdentityMonad.hs	35;"	f
-main	Foo/Bar/IdentityMonad.hs	38;"	f
-outdated	Foo/Bar/Nonexistent.hs	100000;"	f
+(("Foo/Bar/IdentityMonad.hs"(22">>=#".?o)(27">>>".?o)(13">>>=".?o)(35"extract".?f)(38"main".?f)(3"IdentityMMangledForNoReason"?C"IdentityMMangledForNoReason".?t)(3"IdentityMMangledForNoReason".?t)(1"Main".?m))("Foo/Bar/Nonexistent.hs"(100000"outdated".?f)))
