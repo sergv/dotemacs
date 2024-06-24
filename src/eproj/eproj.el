@@ -224,9 +224,9 @@
     :mode 'haskell-mode
     :extensions +haskell-extensions+
     :create-tags-procedure
-    #'eproj/create-haskell-tags
+    #'eproj/create-haskell-compact-tags
     :parse-tags-procedure
-    #'eproj/get-fast-tags-tags-from-buffer
+    #'eproj/get-fast-tags-compact-tags-from-buffer
     :show-tag-kind-procedure #'eproj/haskell-tag-kind
     :tag->string-func #'eproj/haskell-tag->string
     :tag->signature-func #'eproj/haskell-extract-tag-signature
