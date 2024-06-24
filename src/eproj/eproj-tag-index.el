@@ -91,6 +91,7 @@
 ;; Return associative array of tag properties.
 (defun eproj-tag/properties (tag-struct)
   (declare (pure t) (side-effect-free t))
+  (cl-assert (eproj-tag-p tag-struct))
   (let ((rest (cdr-sure tag-struct)))
     (if (consp rest)
         (cdr rest)
@@ -100,7 +101,7 @@
   (declare (pure t) (side-effect-free t))
   (cl-assert (symbolp prop))
   (cl-assert (eproj-tag-p tag-struct))
-  (cdr-safe (assq prop (eproj-tag/properties tag-struct))))
+  (cdr (assq prop (eproj-tag/properties tag-struct))))
 
 (defsubst eproj-tag-index--create (tbl)
   (declare (pure t) (side-effect-free t))
@@ -119,12 +120,23 @@
 
 (defsubst eproj-tag-index-size (index)
   (declare (pure t) (side-effect-free t))
-  (hash-table-count (cdr-sure index)))
+  (cl-assert (eproj-tag-index-p index) nil "Invalid index: %s" index)
+  (let ((n 0))
+    (maphash (lambda (_ tags)
+               (setf n (+ n (length tags))))
+             (cdr-sure index))
+    n))
 
 (defun eproj-tag-index-add! (symbol file line type props index)
   (cl-assert (stringp symbol))
   (cl-assert (or (characterp type) (stringp type) (null type)))
   (cl-assert (file-name-absolute-p file))
+  (cl-assert (eproj-tag-index-p index) nil "Invalid index: %s" index)
+  (cl-assert (or (null props)
+                 (and (listp props)
+                      (--every (and (consp it)
+                                    (symbolp (car it)))
+                               props))))
   (let ((table (cdr-sure index)))
     (puthash symbol
              (cons (make-eproj-tag file line type props)
@@ -134,6 +146,7 @@
 (defsubst eproj-tag-index-get (key index &optional default)
   (declare (pure t))
   (cl-assert (stringp key))
+  (cl-assert (eproj-tag-index-p index) nil "Invalid index: %s" index)
   (gethash key (cdr-sure index) default))
 
 (defun eproj-tag-index-values-where-key-matches-regexp (re index &optional ignore-case)
@@ -144,10 +157,12 @@
 
 (defsubst eproj-tag-index-keys (index)
   (declare (pure t))
+  (cl-assert (eproj-tag-index-p index) nil "Invalid index: %s" index)
   (hash-table-keys (cdr-sure index)))
 
 (defsubst eproj-tag-index-entries (index)
   (declare (pure t))
+  (cl-assert (eproj-tag-index-p index) nil "Invalid index: %s" index)
   (hash-table->alist (cdr-sure index)))
 
 (defun eproj-tag-index-drop-tags-from-file! (fname proj-root index)
@@ -191,6 +206,7 @@ equal keys using `append'."
    (cdr-sure index-b)))
 
 (defsubst eproj-tag-index-all-completions (s index)
+  (cl-assert (eproj-tag-index-p index) nil "Invalid index: %s" index)
   (all-completions s (cdr-sure index)))
 
 (provide 'eproj-tag-index)
