@@ -749,19 +749,20 @@ Error is given as MSG and reported between POS and END."
          (when (string-match
                 (rx (or (seq (ghc-warning "88464") " [-Wdeferred-out-of-scope-variables]" (+ ws)
                              (or "Variable"
-                                 "Data constructor")
+                                 (group-n 2 "Data constructor"))
                              " not in scope:"
                              (+ ws)
                              (name-capture 1)
-                             (+ ws)
-                             "::")
+                             (? (+ ws)
+                                "::"))
                         ;; error: [GHC-76037]
                         ;;     • Not in scope: ‘osstr’
                         ;;     • In the quasi-quotation: [osstr|fully-pinned-cabal.config|]
                         (seq (ghc-error "76037")
                              (+ ws)
-                             (or (seq "Not in scope: type constructor or class "
-                                      (identifier 1))
+                             (or (group-n 3
+                                   "Not in scope: type constructor or class "
+                                   (identifier 1))
                                  (seq "• Not in scope: "
                                       (identifier 1))))))
                 msg)
@@ -780,7 +781,11 @@ Error is given as MSG and reported between POS and END."
                                                         identifier
                                                         nil)))
                      (attrap-one-option "add import"
-                       (attrap--add-import proj candidate-tags identifier))))))))
+                       (attrap--add-import proj
+                                           candidate-tags
+                                           identifier
+                                           (not (null (match-beginning 2)))
+                                           (not (null (match-beginning 3)))))))))))
 
          ;; error: [GHC-76037]
          ;;     Not in scope: type constructor or class ‘MonadMask’
@@ -856,15 +861,26 @@ Error is given as MSG and reported between POS and END."
 
 (defvar attrap--import-history nil)
 
-(defun attrap--add-import (proj candidate-tags identifier)
+(defun attrap--add-import (proj candidate-tags identifier is-constructor? is-type-or-class?)
   "CANDIDATE-TAGS is the result returned by ‘eproj-get-matching-tags’."
   (cl-assert (eproj-project-p proj))
   (cl-assert (stringp identifier))
-  (let* ((module-names
+  (let* ((filtered-tags
+          (cond
+            (is-constructor?
+             (--filter (eq (eproj-tag/type (cl-second it)) ?C) candidate-tags))
+            (is-type-or-class?
+             (--filter (let ((typ (eproj-tag/type (cl-second it))))
+                         (or (eq typ ?t)
+                             (eq typ ?c)))
+                       candidate-tags))
+            (t
+             candidate-tags)))
+         (module-names
           (remove-duplicates-sorting
            (--map (cons (haskell-misc--file-name-to-module-name (eproj-tag/file (cl-second it)))
-                        (eq proj (cl-third it)))
-                  candidate-tags)
+                        it)
+                  filtered-tags)
            (lambda (x y)
              (string= (car x) (car y)))
            (lambda (x y)
@@ -883,8 +899,15 @@ Error is given as MSG and reported between POS and END."
                                        )
                       module-names))))
          (mod-name (car entry))
-         (import-from-current-project? (cdr entry)))
-    (haskell-misc--add-new-import mod-name identifier import-from-current-project?)
+         (candidate-entry (cdr entry))
+         (tag (cl-second candidate-entry))
+         (tag-parent (eproj-tag/get-prop 'parent tag))
+         (import-from-current-project? (eq proj (cl-third candidate-entry))))
+    (haskell-misc--add-new-import mod-name
+                                  identifier
+                                  import-from-current-project?
+                                  (awhen tag-parent
+                                    (car it)))
     (message "Added import of ‘%s’" mod-name)))
 
 (defun attrap-add-operator-parens (name)
