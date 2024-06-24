@@ -836,7 +836,7 @@ value section should have if it is to be properly indented."
                     'end-of-line
                     'haskell-cabal-sort-lines-key-fun)))))))
 
-(defun haskell-misc--add-new-import (mod-name identifier is-name-from-current-project?)
+(defun haskell-misc--add-new-import (mod-name identifier is-name-from-current-project? parent-name)
   "Go to the imports section and add MOD-NAME import."
   (cl-assert (stringp mod-name))
   (save-match-data
@@ -871,9 +871,15 @@ value section should have if it is to be properly indented."
           (insert "import " mod-name)
           (when identifier
             (insert " ("
+                    (if parent-name
+                        (concat parent-name "(")
+                      "")
                     (if (haskel-misc--is-operator? identifier)
                         (concat "(" identifier ")")
                       identifier)
+                    (if parent-name
+                        ")"
+                      "")
                     ")"))
           (insert-char ?\n)
           (when add-at-end
