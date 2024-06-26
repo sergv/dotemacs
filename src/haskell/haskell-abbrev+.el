@@ -16,6 +16,8 @@
 (require 'haskell-completions)
 (require 'haskell-misc)
 (require 'haskell-snippets)
+(require 's)
+(require 'trie)
 (require 'v)
 
 ;; for ghc flags to OPTIONS_GHC
@@ -304,20 +306,30 @@ then Bar would be the result."
     (skip-chars-backward " \t")
     (haskell-abbrev+--at-start-of-line?)))
 
+(defun haskell-abbrev+--after-instance-keyword? ()
+  "Check that the point is at the start of the line."
+  (save-excursion
+    (skip-chars-backward " \t")
+    (trie-matches-backwards?
+     (eval-when-compile
+       (trie-opt-recover-sharing!
+        (trie-from-list (list (cons (s-reverse "instance") t))))))))
+
 (defun haskell-abbrev+--only-whitespace-till-line-start-and-not-operator? ()
-  (and (haskell-abbrev+--only-whitespace-till-line-start?)
-       (if (derived-mode-p 'haskell-ts-mode)
-           (if-let* ((node (treesit-node-at (point)))
-                     (p (treesit-node-parent node)))
-               (if (equal "operator" (treesit-node-type p))
-                   (if-let ((p2 (treesit-node-parent p)))
-                       ;; Operator not applied no anything and just being there at toplevel
-                       ;; waiting to be expanded.
-                       (equal "ERROR" (treesit-node-type p2))
+  (or (and (haskell-abbrev+--only-whitespace-till-line-start?)
+           (if (derived-mode-p 'haskell-ts-mode)
+               (if-let* ((node (treesit-node-at (point)))
+                         (p (treesit-node-parent node)))
+                   (if (equal "operator" (treesit-node-type p))
+                       (if-let ((p2 (treesit-node-parent p)))
+                           ;; Operator not applied no anything and just being there at toplevel
+                           ;; waiting to be expanded.
+                           (equal "ERROR" (treesit-node-type p2))
+                         t)
                      t)
                  t)
-             t)
-         t)))
+             t))
+      (haskell-abbrev+--after-instance-keyword?)))
 
 (add-to-list 'ivy-re-builders-alist
              '(haskell-abbrev+--insert-pragma . ivy--regex-fuzzy))
