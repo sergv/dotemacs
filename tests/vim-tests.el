@@ -3802,6 +3802,21 @@ _|_bar")
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-mode haskell-ts-mode)
+    vim-tests/haskell-abbrev-pragma--expands-in-instance-1
+    (execute-kbd-macro (kbd "i # # SPC o v e r l a p p i n g <return>"))
+  (tests-utils--multiline
+   ""
+   "instance _|_ Pretty a => PPGenericOverride a where"
+   "  ppGenericOverride = compositeMetaDoc . pretty"
+   "")
+  (tests-utils--multiline
+   ""
+   "instance {-# OVERLAPPING #-}_|_ Pretty a => PPGenericOverride a where"
+   "  ppGenericOverride = compositeMetaDoc . pretty"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
     vim-tests/haskell-insert-quote-1
     (execute-kbd-macro (kbd "i '"))
   (tests-utils--multiline

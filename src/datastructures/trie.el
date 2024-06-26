@@ -97,6 +97,7 @@ call (MERGE old-val VALUE) to produce a new value."
 (defun trie-from-list (entries)
   (let ((tr (make-empty-trie)))
     (dolist (entry entries)
+      (cl-assert (consp entry))
       (trie-insert! (car entry) (cdr entry) tr))
     tr))
 
