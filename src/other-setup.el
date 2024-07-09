@@ -22,6 +22,13 @@
 ;;;###autoload
 (add-hook 'xmodmap-mode-hook #'xmodmap-setup)
 
+;;;###autoload
+(defun Man-setup ()
+  (hl-line-mode +1))
+
+;;;###autoload
+(add-hook 'Man-mode-hook #'Man-setup)
+
 (provide 'other-setup)
 
 ;; Local Variables:
