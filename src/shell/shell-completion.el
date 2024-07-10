@@ -977,10 +977,6 @@ under version-control directories."
                "--force"
                "-k")
         (args (pcmpl-entries))))
-      ("p4"
-       (or ("submit")
-           ("rebase")
-           ("clone")))
       ("pull"
        (opts
         (flags "-n"
