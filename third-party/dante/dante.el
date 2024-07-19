@@ -528,7 +528,9 @@ If `haskell-mode' is not loaded, just return EXPRESSION."
   "Get the type of the thing or selection at point.
 When the universal argument INSERT is non-nil, insert the type in the buffer."
   (interactive "P")
-  (let ((tap (dante--ghc-subexp (dante-thing-at-point t))))
+  (let ((tap (if-let ((thing (dante-thing-at-point t)))
+                 (dante--ghc-subexp thing)
+               (error "No thing at point"))))
     (lcr-spawn
       (lcr-call dante-async-load-current-buffer nil nil)
       (let ((ty (lcr-call dante-async-call (concat ":type-at " tap))))
@@ -851,6 +853,7 @@ This applies to paths of the form x:\\foo\\bar"
 
 (defun dante--ghc-subexp (reg)
   "Format the subexpression denoted by REG for GHCi commands."
+  (cl-assert (not (null reg)))
   (let ((beg (car reg))
         (end (cdr reg)))
     (format "%S %d %d %d %d %s"
@@ -1192,7 +1195,9 @@ Search upwards in the directory structure, starting from FILE (or
 (defun dante--xref-backend () "Dante xref backend." (when dante-mode 'dante))
 
 (cl-defmethod xref-backend-identifier-at-point ((_backend (eql dante)))
-  (dante--ghc-subexp (dante-thing-at-point)))
+  (if-let ((thing (dante-thing-at-point)))
+      (dante--ghc-subexp thing)
+    (error "No thing at point")))
 
 (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql dante)))
   nil)
