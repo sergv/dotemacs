@@ -96,6 +96,11 @@ cpu time or allocations that the value of this variable.")
   (setq-local font-lock-defaults
               '(ghc-profiling-mode-font-lock-keywords)))
 
+(defun ghc-profiling-mode-back-up-indent-level ()
+  "Move back to the previous indentation level."
+  (interactive)
+  (indent-back-up-indent-level #'indent-on-blank-line?))
+
 ;;;###autoload
 (defun ghc-profiling-mode-setup ()
   (init-common :use-yasnippet nil
@@ -110,7 +115,8 @@ cpu time or allocations that the value of this variable.")
   (def-keys-for-map vim-normal-mode-local-keymap
     ("C-h"   ghc-profiling-mode-search-for-expensive-entry-forward)
     ("C-t"   ghc-profiling-mode-search-for-expensive-entry-backward)
-    ("<tab>" yafolding-toggle-element)))
+    ("<tab>" yafolding-toggle-element)
+    ("'"     ghc-profiling-mode-back-up-indent-level)))
 
 (provide 'ghc-profiling-mode)
 
