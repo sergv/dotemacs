@@ -9,8 +9,9 @@
 (require 'ert)
 
 (require 'company-mode-setup)
-(require 'transient-fixes)
 (require 'shell-setup)
+(require 'tests-utils)
+(require 'transient-fixes)
 
 (ert-deftest misc-tests/delete-duplicate-candidates-from-company-dabbrev-code-1 ()
   (should (equal (delete-duplicate-candidates-from-company-dabbrev-code
@@ -167,9 +168,69 @@
       (should (equal dir
                      (match-string (cadr shell-dirtrack-entry) str))))))
 
+(tests-utils--multiple-buffer-contents-from-same-init
+ :initialisation
+ (ghc-profiling-mode)
+ :contents
+ (tests-utils--multiline
+  "                                                                   individual     inherited"
+  "COST CENTRE              MODULE                  no.     entries  %time %alloc   %time %alloc"
+  ""
+  "MAIN                     MAIN                     44           0    0.0    0.0   100.0  100.0"
+  " main                    Talk                     89           0    0.0    0.0     0.0    0.0"
+  " CAF                     Talk                     87           0    0.0    0.0   100.0  100.0"
+  "  showsPrec              Talk                    296           0    0.0    0.0     0.0    0.0"
+  "  mul                    _|_Talk                    291           1    0.0    0.0     0.0    0.0")
+ :actions-with-results
+ ((misc-tests/ghc-profiling-mode-back-up-indent-level-1
+   :action
+   (ghc-profiling-mode-back-up-indent-level)
+   :expected-value
+   (tests-utils--multiline
+    "                                                                   individual     inherited"
+    "COST CENTRE              MODULE                  no.     entries  %time %alloc   %time %alloc"
+    ""
+    "MAIN                     MAIN                     44           0    0.0    0.0   100.0  100.0"
+    " main                    Talk                     89           0    0.0    0.0     0.0    0.0"
+    " CAF                     Talk                     87           0    0.0    0.0   100.0  100.0"
+    "  showsPrec              Talk                    296           0    0.0    0.0     0.0    0.0"
+    "  _|_mul                    Talk                    291           1    0.0    0.0     0.0    0.0"))
+  (misc-tests/ghc-profiling-mode-back-up-indent-level-2
+   :action
+   (progn
+     (ghc-profiling-mode-back-up-indent-level)
+     (ghc-profiling-mode-back-up-indent-level))
+   :expected-value
+   (tests-utils--multiline
+    "                                                                   individual     inherited"
+    "COST CENTRE              MODULE                  no.     entries  %time %alloc   %time %alloc"
+    ""
+    "MAIN                     MAIN                     44           0    0.0    0.0   100.0  100.0"
+    " main                    Talk                     89           0    0.0    0.0     0.0    0.0"
+    " _|_CAF                     Talk                     87           0    0.0    0.0   100.0  100.0"
+    "  showsPrec              Talk                    296           0    0.0    0.0     0.0    0.0"
+    "  mul                    Talk                    291           1    0.0    0.0     0.0    0.0"))
+  (misc-tests/ghc-profiling-mode-back-up-indent-level-3
+   :action
+   (progn
+     (ghc-profiling-mode-back-up-indent-level)
+     (ghc-profiling-mode-back-up-indent-level)
+     (ghc-profiling-mode-back-up-indent-level))
+   :expected-value
+   (tests-utils--multiline
+    "                                                                   individual     inherited"
+    "COST CENTRE              MODULE                  no.     entries  %time %alloc   %time %alloc"
+    ""
+    "_|_MAIN                     MAIN                     44           0    0.0    0.0   100.0  100.0"
+    " main                    Talk                     89           0    0.0    0.0     0.0    0.0"
+    " CAF                     Talk                     87           0    0.0    0.0   100.0  100.0"
+    "  showsPrec              Talk                    296           0    0.0    0.0     0.0    0.0"
+    "  mul                    Talk                    291           1    0.0    0.0     0.0    0.0"))))
+
 (provide 'misc-tests)
 
 ;; Local Variables:
+;; no-byte-compile: t
 ;; End:
 
 ;; misc-tests.el ends here
