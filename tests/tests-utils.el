@@ -90,6 +90,19 @@
     :action ,action
     :contents ,contents))
 
+(cl-defmacro tests-utils--multiple-buffer-contents-from-same-init (&key initialisation contents actions-with-results buffer-id)
+  `(progn
+     ,@(cl-loop
+        for entry in actions-with-results
+        collecting
+        `(ert-deftest ,(car entry) ()
+           ,(append
+             (list 'tests-utils--test-buffer-contents
+                   :contents contents
+                   :initialisation initialisation
+                   :buffer-id buffer-id)
+             (cdr entry))))))
+
 (provide 'tests-utils)
 
 ;; Local Variables:
