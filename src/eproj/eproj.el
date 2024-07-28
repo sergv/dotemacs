@@ -313,7 +313,7 @@
     :tag->signature-func #'eproj/extract-tag-line)
    (mk-eproj-lang
     :mode 'java-mode
-    :extensions '("java")
+    :extensions '("java" "kt")
     :create-tags-procedure
     (lambda (proj project-files-thunk parse-tags-proc)
       (eproj/load-ctags-project 'java-mode proj project-files-thunk parse-tags-proc))
@@ -322,6 +322,18 @@
     :show-tag-kind-procedure #'eproj/java-tag-kind
     :tag->string-func #'eproj/java-tag->string
     :tag->signature-func #'eproj/extract-tag-line)
+   (mk-eproj-lang
+    :mode 'kotlin-mode
+    :extensions '("kt" "java")
+    :create-tags-procedure
+    (lambda (proj project-files-thunk parse-tags-proc)
+      (eproj/load-ctags-project 'kotlin-mode proj project-files-thunk parse-tags-proc))
+    :parse-tags-procedure
+    #'eproj/ctags-get-tags-from-buffer
+    :show-tag-kind-procedure #'eproj/java-tag-kind
+    :tag->string-func #'eproj/java-tag->string
+    :tag->signature-func #'eproj/extract-tag-line
+    :synonym-modes '(kotlin-ts-mode))
    (mk-eproj-lang
     :mode 'emacs-lisp-mode
     :extensions '("el")
