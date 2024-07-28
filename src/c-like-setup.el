@@ -71,6 +71,35 @@
                 (func-decl-cont . c-lineup-java-throws)))
              c-style-alist))
 
+     (unless (assoc "android-java-style" c-style-alist)
+       (push `("android-java-style"
+               (c-basic-offset . 8)
+               (indent-tabs-mode . nil)
+               (c-comment-only-line-offset 0 . 0)
+               (c-offsets-alist
+                (topmost-intro . 0)
+                (inclass . +)
+                (inexpr-class . 0)
+
+                (arglist-intro . +)
+                (arglist-close . 0)
+                (arglist-cont-nonempty c-lineup-gcc-asm-reg c-lineup-arglist)
+                (arglist-cont c-lineup-gcc-asm-reg 0)
+
+                (inline-open . 0)
+                (topmost-intro-cont . +)
+                (statement-block-intro . +)
+                (knr-argdecl-intro . 5)
+                (substatement-open . +)
+                (substatement-label . +)
+                (label . +)
+                (statement-case-open . +)
+                (statement-cont . +)
+                (access-label . 0)
+                (inher-cont . c-lineup-java-inher)
+                (func-decl-cont . c-lineup-java-throws)))
+             c-style-alist))
+
      (setf c-default-style
            `((java-mode . "my-java-style")
              (awk-mode . "awk")
