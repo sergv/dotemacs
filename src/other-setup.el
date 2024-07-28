@@ -29,6 +29,13 @@
 ;;;###autoload
 (add-hook 'Man-mode-hook #'Man-setup)
 
+;;;###autoload
+(defun archive-setup ()
+  (hl-line-mode +1))
+
+;;;###autoload
+(add-hook 'archive-mode-hook #'archive-setup)
+
 (provide 'other-setup)
 
 ;; Local Variables:
