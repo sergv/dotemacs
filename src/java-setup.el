@@ -28,7 +28,12 @@
               whitespace-style '(face tabs space-after-tab space-before-tab))
   (let ((proj (eproj-get-project-for-buf-lax (current-buffer))))
     ;; indent with tabs?
-    (setq-local indent-tabs-mode (eproj-query/java/indent-tab proj t)))
+    (setq-local indent-tabs-mode (eproj-query/java/indent-tab proj t))
+    (when indent-tabs-mode
+      ;; Make single indent offset occupy single tab character,
+      ;; otherwise mismatch between the two will make indentation mix tabs with spaces.
+      (setf c-basic-offset tab-width
+            vim-shift-width tab-width)))
   (setup-eproj-symbnav)
   (java-abbrev+-setup))
 
