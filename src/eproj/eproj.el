@@ -437,7 +437,7 @@ get proper flycheck checker."
          (-all? #'symbolp (cdr entry)))
         ((memq (car entry) '(related ignored-files))
          (-all? #'stringp (cdr entry)))
-        ((memq (car entry) '(file-list tag-file build-dir))
+        ((memq (car entry) '(file-list tag-file build-dir indent-style))
          (and (= (length entry) 2)
               (stringp (cadr entry))))
         ((eq (car entry) 'create-cache-files)
