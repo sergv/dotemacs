@@ -129,6 +129,8 @@
                             (mode . tex-mode)
                             (mode . LaTeX-mode)))
        (java-filter    `(or (mode . java-mode)
+                            (mode . kotlin-mode)
+                            (mode . kotlin-ts-mode)
                             (mode . groovy-mode)))
        (web-filter     `(or (mode . html-mode)
                             (mode . sgml-mode)

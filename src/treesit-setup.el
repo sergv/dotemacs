@@ -25,7 +25,10 @@
                  '(json-mode . json-ts-mode)))
   (when (treesit-language-available-p 'haskell)
     (add-to-list 'major-mode-remap-alist
-                 '(haskell-mode . haskell-ts-mode))))
+                 '(haskell-mode . haskell-ts-mode)))
+  (when (treesit-language-available-p 'kotlin)
+    (add-to-list 'major-mode-remap-alist
+                 '(kotlin-mode . kotlin-ts-mode))))
 
 (defun treesit-parse-file (path language)
   "Parse STRING using a parser for LANGUAGE.
