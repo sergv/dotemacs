@@ -36,6 +36,13 @@
 ;;;###autoload
 (add-hook 'archive-mode-hook #'archive-setup)
 
+;;;###autoload
+(defun mesages-buffer-setup ()
+  (hl-line-mode +1))
+
+;;;###autoload
+(add-hook 'mesages-buffer-mode-hook #'mesages-buffer-setup)
+
 (provide 'other-setup)
 
 ;; Local Variables:
