@@ -27,7 +27,12 @@
               ;; "java-clojure"
               whitespace-style '(face tabs space-after-tab space-before-tab))
   (let ((proj (eproj-get-project-for-buf-lax (current-buffer))))
-    ;; indent with tabs?
+    (awhen (eproj-query/any-mode/indent-style proj 'java-mode nil)
+      (message "Switching to ‘%s’ indentation style" it)
+      (c-set-style it))
+
+    ;; Override indenting with tabs since selecting style may have
+    ;; changed it.
     (setq-local indent-tabs-mode (eproj-query/java/indent-tab proj t))
     (when indent-tabs-mode
       ;; Make single indent offset occupy single tab character,
