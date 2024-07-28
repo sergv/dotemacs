@@ -82,6 +82,31 @@
     default))
 
 ;;;###autoload
+(defun eproj-query/any-mode/indent-style (proj mode &optional default)
+  "For now only allows styles registerted in ‘c-style-alist’ and thus only has
+sense for modes where cc’s indentation engine works."
+  (declare (pure t) (side-effect-free nil))
+  (cl-assert (symbolp mode) "Mode must be a symbol")
+  (if-let ((p proj)
+           (entry (eproj-project/query-aux-info-entry (eproj-project/aux-info p)
+                    'language-specific
+                    mode
+                    'indent-style)))
+      (let ((res (car entry)))
+        (unless (stringp res)
+          (error "language-specific.%s.indent-style entry in .eproj-info of %s must be a string, but got %s"
+                 mode
+                 (eproj-project/root proj)
+                 res))
+        (unless (assoc res c-style-alist)
+          (error "language-specific.%s.indent-style entry in .eproj-info of %s specifies unknown indentation style: %s"
+                 mode
+                 (eproj-project/root proj)
+                 res))
+        res)
+    default))
+
+;;;###autoload
 (defun eproj-query/checker (proj mode default)
   (declare (pure t) (side-effect-free nil))
   (cl-assert (symbolp mode))
