@@ -846,6 +846,11 @@ block motions."
           (error "Region contains something beside number: ‘%s’"
                  (buffer-substring-no-properties start end)))))))
 
+(defun vim-visual-indent-region (_start _end)
+  (interactive "*r")
+  (with-region-bounds start end
+    (indent-region start end)))
+
 (provide 'vim-commands)
 
 ;; Local Variables:
