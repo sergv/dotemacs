@@ -187,6 +187,8 @@ Intended to be used with comment-util-mode."
               antlr-mode
               idl-mode
               java-mode
+              kotlin-mode
+              kotlin-ts-mode
               groovy-mode
               js2-mode
               js-mode
