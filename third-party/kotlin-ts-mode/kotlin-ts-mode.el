@@ -117,7 +117,7 @@ and END mark the region to be fontified.  OVERRIDE is the override flag."
   (when (treesit-available-p)
     (treesit-font-lock-rules
      :language 'kotlin
-     :feature 'keyword
+     :feature 'everything
      '(;; `it` keyword inside lambdas
        ;; FIXME: This will highlight the keyword outside of lambdas since tree-sitter
        ;;        does not allow us to check for arbitrary nestation
@@ -183,56 +183,42 @@ and END mark the region to be fontified.  OVERRIDE is the override flag."
 
        (infix_expression (simple_identifier) @font-lock-keyword-face (:equal @font-lock-keyword-face "to"))
 
-       (prefix_expression "!" @font-lock-negation-char-face))
+       ((multiline_comment) @font-lock-doc-face (:match "^/\\*\\*" @font-lock-doc-face))
+       [(line_comment) (multiline_comment) (shebang_line)] @font-lock-comment-face
 
-     :language 'kotlin
-     :feature 'comment
-     '(((multiline_comment) @font-lock-doc-face (:match "^/\\*\\*" @font-lock-doc-face))
-       [(line_comment) (multiline_comment) (shebang_line)] @font-lock-comment-face)
+       (character_literal) @font-lock-string-face
+       (string_literal) @kotlin-ts-mode--fontify-string
 
-     :language 'kotlin
-     :feature 'string
-     '((character_literal) @font-lock-string-face
-       (string_literal) @kotlin-ts-mode--fontify-string)
+       (string_literal ["$" "${" "}"] @font-lock-builtin-face)
 
-     :language 'kotlin
-     :feature 'string
-     '((string_literal ["$" "${" "}"] @font-lock-builtin-face))
+       (character_escape_seq) @font-lock-escape-face
 
-     :language 'kotlin
-     :feature 'escape-sequence
-     :override t
-     '((character_escape_seq) @font-lock-escape-face)
-
-     :language 'kotlin
-     :feature 'definition
-     '((function_declaration (simple_identifier) @font-lock-function-name-face)
+       (function_declaration (simple_identifier) @font-lock-function-name-face)
        (parameter (simple_identifier) @font-lock-variable-name-face)
        (class_parameter (simple_identifier) @font-lock-variable-name-face)
-       (variable_declaration (simple_identifier) @font-lock-variable-name-face))
+       (variable_declaration (simple_identifier) @font-lock-variable-name-face)
 
-     :language 'kotlin
-     :feature 'number
-     '([(integer_literal) (long_literal) (hex_literal) (bin_literal) (unsigned_literal) (real_literal)] @font-lock-number-face)
+       [(integer_literal) (long_literal) (hex_literal) (bin_literal) (unsigned_literal) (real_literal)] @font-lock-number-face
 
-     :language 'kotlin
-     :feature 'type
-     '((type_identifier) @font-lock-type-face
+       (type_identifier) @font-lock-type-face
        (enum_entry (simple_identifier) @font-lock-type-face)
        (call_expression (simple_identifier) @font-lock-type-face
                         (:match "^[A-Z]" @font-lock-type-face))
        (navigation_expression (simple_identifier) @font-lock-type-face
-                              (:match "^[A-Z]" @font-lock-type-face)))
+                              (:match "^[A-Z]" @font-lock-type-face))
 
-     :language 'kotlin
-     :feature 'function
-     '((call_expression (navigation_expression (navigation_suffix (simple_identifier) @font-lock-function-name-face)))
+       (call_expression (navigation_expression (navigation_suffix (simple_identifier) @font-lock-function-name-face)))
        (call_expression (simple_identifier) @font-lock-function-name-face)
-       (infix_expression _ (simple_identifier) @font-lock-function-name-face _))
+       (infix_expression _ (simple_identifier) @font-lock-function-name-face _)
 
-     :language 'kotlin
-     :feature 'property
-     '((navigation_expression (navigation_suffix (simple_identifier) @font-lock-property-face)))
+       (navigation_expression (navigation_suffix (simple_identifier) @font-lock-property-face))
+
+       (import_header (identifier (simple_identifier) @font-lock-constant-face
+                                  (:match "^[A-Z_][A-Z_0-9]*$" @font-lock-constant-face)))
+       (import_header (identifier (simple_identifier) @font-lock-type-face
+                                  (:match "^[A-Z]" @font-lock-type-face)))
+       (simple_identifier) @font-lock-variable-name-face
+       (interpolated_identifier) @font-lock-variable-name-face)
 
      :language 'kotlin
      :feature 'constant
@@ -335,16 +321,7 @@ and END mark the region to be fontified.  OVERRIDE is the override flag."
        (call_expression (simple_identifier) @font-lock-builtin-face
                         (:equal @font-lock-builtin-face "suspend"))
        (call_expression (simple_identifier) @font-lock-builtin-face
-                        (:equal @font-lock-builtin-face "synchronized")))
-
-     :language 'kotlin
-     :feature 'variable
-     '((import_header (identifier (simple_identifier) @font-lock-constant-face
-                                  (:match "^[A-Z_][A-Z_0-9]*$" @font-lock-constant-face)))
-       (import_header (identifier (simple_identifier) @font-lock-type-face
-                                  (:match "^[A-Z]" @font-lock-type-face)))
-       (simple_identifier) @font-lock-variable-name-face
-       (interpolated_identifier) @font-lock-variable-name-face))))
+                        (:equal @font-lock-builtin-face "synchronized"))))))
 
 (defconst kotlin-ts-mode--treesit-indent-rules
   (let ((offset kotlin-ts-mode-indent-offset))
@@ -571,9 +548,7 @@ Current rules are:
 
     ;; Syntax Highlighting
     (setq-local treesit-font-lock-settings kotlin-ts-mode--treesit-settings)
-    (setq-local treesit-font-lock-feature-list '((comment number string definition)
-                                                 (keyword builtin type constant variable)
-                                                 (escape-sequence function property)))
+    (setq-local treesit-font-lock-feature-list '((everything constant builtin)))
 
     ;; Indent
     (setq-local treesit-simple-indent-rules kotlin-ts-mode--treesit-indent-rules)
