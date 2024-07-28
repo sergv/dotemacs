@@ -706,11 +706,11 @@ newline in vim’s linewise visual mode."
                           (line-beginning-position))
                  ,end (save-excursion
                         (goto-char (region-end))
-                        ;; Include newline and the end of line.
-                        (+ 1 (line-end-position))))
+                        (min (point-max)
+                             ;; Include newline and the end of line.
+                             (+ 1 (line-end-position)))))
          (setf ,start (region-beginning)
                ,end (region-end)))
-       (setf end (min end (point-max)))
        ,@body)))
 
 (defmacro with-region-bounds-unadj (start end &rest body)
