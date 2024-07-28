@@ -403,7 +403,7 @@ _<right>_: move tab to the right"
   ("C-'"     vim-wrap-typographical-single-quotes)
   ("C-\""    vim-wrap-typographical-double-quotes)
 
-  (("TAB" "<tab>") indent-region)
+  (("TAB" "<tab>") vim-visual-indent-region)
 
   ("="       vim:cmd-decrement:interactive)
   ("+"       vim:cmd-increment:interactive))
