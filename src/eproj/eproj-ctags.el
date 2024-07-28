@@ -59,6 +59,10 @@
      "--language-force=java"
      "--java-kinds=+cefgimp"
      "--fields=+kia")
+    (kotlin-mode
+     "--language-force=kotlin"
+     "--kotlin-kinds=+picomTCv"
+     "--fields=+kia")
     (rust-mode
      "--language-force=rust"
      "--fields=+k")))
