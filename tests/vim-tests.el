@@ -6141,6 +6141,64 @@ _|_bar")
    "  liftReadList      = liftReadListDefault"
    ""))
 
+(ert-deftest vim-tests/indent-region/c-mode-1 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (c-mode)
+      (execute-kbd-macro (kbd "V m <tab>"))
+    (tests-utils--multiline
+     ""
+     "foo() {"
+     "while (1) _|_{"
+     "if (condition()) {"
+     "break;"
+     "}"
+     "process();"
+     "}"
+     "}"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo() {"
+     "    while (1) {"
+     "        if (condition()) {"
+     "            break;"
+     "        }"
+     "        process();"
+     "_|_    }"
+     "}"
+     "")))
+
+(ert-deftest vim-tests/indent-region/c-mode-2 ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (progn
+        (c-mode)
+        (indent-tabs-mode +1)
+        (setq-local tab-width 4
+                    c-basic-offset 4))
+      (execute-kbd-macro (kbd "V m <tab>"))
+    (tests-utils--multiline
+     ""
+     "foo() {"
+     "while (1) _|_{"
+     "if (condition()) {"
+     "break;"
+     "}"
+     "process();"
+     "}"
+     "}"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo() {"
+     "\twhile (1) {"
+     "\t\tif (condition()) {"
+     "\t\t\tbreak;"
+     "\t\t}"
+     "\t\tprocess();"
+     "_|_\t}"
+     "}"
+     "")))
+
 (provide 'vim-tests)
 
 ;; Local Variables:
