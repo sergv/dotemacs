@@ -1,0 +1,49 @@
+[[https://melpa.org/#/kotlin-ts-mode][file:https://melpa.org/packages/kotlin-ts-mode-badge.svg]]
+
+A major mode for [[https://kotlinlang.org/][Kotlin]], based on the built-in support for [[https://tree-sitter.github.io/tree-sitter/][tree-sitter]] that was added in Emacs 29.
+
+* Install
+
+** Grammar
+In order to use ~tree-sitter~, you must have a grammar for the language. In this case, that is [[https://github.com/fwcd/tree-sitter-kotlin][tree-sitter-kotlin]]. The easiest way to install it is to add it to ~treesit-language-sources-alist~:
+
+#+BEGIN_SRC emacs-lisp
+  (require 'treesit)
+  (add-to-list 'treesit-language-source-alist '(mermaid . ("https://github.com/fwcd/tree-sitter-kotlin")))
+#+END_SRC
+
+Then you can run ~M-x treesit-install-language-grammar~.
+
+** Major Mode
+First, make sure that your Emacs is compiled with ~tree-sitter~ support:
+#+BEGIN_SRC emacs-lisp
+  (treesit-available-p) ; should return t
+#+END_SRC
+
+Then just install this package!
+
+*** Raw Emacs
+Clone this repository somewhere on your machine.
+
+#+BEGIN_SRC emacs-lisp
+  (add-to-list 'load-path "/path/to/emacs-kotlin-ts-mode")
+  (require 'kotlin-ts-mode)
+  (add-to-list 'auto-mode-alist '("\\.kt\\'" . kotlin-ts-mode)) ; if you want this mode to be auto-enabled
+#+END_SRC
+
+*** straight.el
+#+BEGIN_SRC emacs-lisp
+  (use-package kotlin-ts-mode
+    :straight (:host gitlab :repo "bricka/emacs-kotlin-ts-mode")
+    :mode "\\.kt\\'" ; if you want this mode to be auto-enabled
+    )
+#+END_SRC
+
+* Usage
+Syntax highlighting and code navigation should work automatically. There are a few extra commands defined, though:
+
+| Command                                    | Description                                   |
+|--------------------------------------------+-----------------------------------------------|
+| ~kotlin-ts-mode-goto-test-file~            | Find the test file corresponding to this file |
+| ~kotlin-ts-mode-run-current-test-class~    | Run the tests in the class containing point   |
+| ~kotlin-ts-mode-run-current-test-function~ | Run the test function containing point        |
