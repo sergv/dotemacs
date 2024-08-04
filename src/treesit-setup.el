@@ -6,6 +6,10 @@
 ;; Created:  9 August 2023
 ;; Description:
 
+(eval-when-compile
+  (require 'cl)
+  (require 'macro-util))
+
 (require 'set-up-paths)
 
 (defvar treesit-max-buffer-size)
@@ -57,6 +61,17 @@ Return the root node of the syntax tree."
       (setf p (treesit-node-parent p)
             limit (- limit 1)))
     result))
+
+(defun treesit-grand-parent-bol (_n parent &rest _)
+  (awhen (treesit-node-parent parent)
+    (save-excursion
+      (goto-char (treesit-node-start it))
+      (back-to-indentation)
+      (point))))
+
+(add-to-list 'treesit-simple-indent-presets
+             (cons 'grand-parent-bol
+                   #'treesit-grand-parent-bol))
 
 ;; Debug indentation:
 ;; treesit--indent-verbose
