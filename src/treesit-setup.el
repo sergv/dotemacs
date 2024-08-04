@@ -61,6 +61,29 @@ Return the root node of the syntax tree."
 ;; Debug indentation:
 ;; treesit--indent-verbose
 
+;; (add-to-list 'treesit-simple-indent-presets
+;;              (cons 'n-p-gp-debug
+;;                    #'treesit-n-p-gp-debug))
+;;
+;; (defun treesit-n-p-gp-debug (node-t parent-t grand-parent-t)
+;;   (lambda (node parent &rest _)
+;;     (message "node = %s, parent = %s"
+;;              (pp-to-string node)
+;;              (pp-to-string parent))
+;;     (and (or (null node-t)
+;;              (string-match-p
+;;               node-t (or (treesit-node-type node) "")))
+;;          (or (null parent-t)
+;;              (string-match-p
+;;               parent-t (treesit-node-type parent)))
+;;          (or (null grand-parent-t)
+;;              (and
+;;               (treesit-node-parent parent)
+;;               (string-match-p
+;;                grand-parent-t
+;;                (treesit-node-type
+;;                 (treesit-node-parent parent))))))))
+
 ;; (treesit-query-validate 'json '((pair key: (string) @default))
 
 ;; Parse with elisp
