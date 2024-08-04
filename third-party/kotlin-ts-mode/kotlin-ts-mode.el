@@ -327,6 +327,9 @@ and END mark the region to be fontified.  OVERRIDE is the override flag."
   (let ((offset kotlin-ts-mode-indent-offset))
     `((kotlin
        ((node-is "}") parent-bol 0)
+       ((n-p-gp "control_structure_body" "if_expression" nil) parent-bol 0)
+       ((n-p-gp "{" "control_structure_body" "if_expression") grand-parent-bol 0)
+       ((n-p-gp ")" "if_expression" nil) prev-sibling 0)
        ((node-is ")") parent-bol 0)
        ((parent-is "anonymous_initializer") parent-bol ,offset)
        ((parent-is "statements") parent-bol 0)
