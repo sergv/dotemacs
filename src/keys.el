@@ -16,6 +16,9 @@
   ("h" nil))
 
 (def-keys-for-map global-map
+  ;; Unbind so that I don’t accidetally invoke tutorial, news or other such nonsense.
+  ("C-h"      nil)
+
   ("<f1>"     help-command)
   ("<f1> t"   nil)
   ("<f2>"     universal-argument)
