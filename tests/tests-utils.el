@@ -103,6 +103,11 @@
                    :buffer-id buffer-id)
              (cdr entry))))))
 
+(defmacro skip-if-no-treesitter! ()
+  `(unless (and (fboundp 'treesit-available-p)
+                (treesit-available-p))
+     (ert-skip "treesitter not available")))
+
 (provide 'tests-utils)
 
 ;; Local Variables:
