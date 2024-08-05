@@ -24,7 +24,7 @@
   ("<f2>"     universal-argument)
 
   ("<f5>"     revert-buffer)
-  ("<f6>"     nil)
+  ("<f6>"     revert-buffer)
 
   ("<f9>"     compile)
   ("<f12>"    start-profiler-or-report)
