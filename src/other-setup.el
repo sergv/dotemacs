@@ -12,7 +12,8 @@
 ;;;###autoload
 (add-to-list 'auto-mode-alist
              (cons (rx (or (seq (? ".") "xmodmaprc")
-                           "\.xmodmap"))
+                           ".xmodmap")
+                       eos)
                    'xmodmap-mode))
 
 ;;;###autoload
