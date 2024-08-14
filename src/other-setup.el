@@ -16,6 +16,11 @@
                    'xmodmap-mode))
 
 ;;;###autoload
+(add-to-list 'auto-mode-alist
+             (cons (rx "config.log" eos)
+                   'text-mode))
+
+;;;###autoload
 (defun xmodmap-setup ()
   (init-common :use-yasnippet nil))
 
