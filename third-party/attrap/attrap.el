@@ -56,6 +56,7 @@
   (require 'macro-util))
 
 ;;; Code:
+(require 'common)
 (require 'dash)
 (require 'eproj)
 (require 'haskell-misc)
@@ -858,6 +859,42 @@ Error is given as MSG and reported between POS and END."
       (cl-decf j))
     (substring identifier i j)))
 
+(defconst attrap--module-name-fixes
+  (eval-when-compile
+    (alist->hash-table
+     (mapcan (lambda (x)
+               (let ((source-modules (car x))
+                     (target-module (cadr x))
+                     (identifiers (caddr x)))
+                 (cl-assert (listp source-modules))
+                 (cl-assert (stringp target-module))
+                 (mapcar (lambda (xx)
+                           (cons xx
+                                 (alist->hash-table
+                                  (mapcar (lambda (y)
+                                            (cons y target-module))
+                                          identifiers))))
+                         source-modules)))
+             '((("GHC.IO.Handle.Text"
+                 "GHC.IO.FD"
+                 "GHC.IO.Handle.FD"
+                 "GHC.IO.StdHandles"
+                 "GHC.IO.Windows.Handle")
+                "System.IO"
+                ("hPutStrLn"
+                 "hPutStr"
+                 "stdin"
+                 "stdout"
+                 "stderr")))))))
+
+(defun attrap--add-import--fix-module-name (identifier mod-name)
+  (cl-assert (stringp identifier))
+  (cl-assert (stringp mod-name))
+  (if-let ((entry (gethash mod-name attrap--module-name-fixes))
+           (new-name (gethash identifier entry)))
+      new-name
+    mod-name))
+
 (defvar attrap--import-history nil)
 
 (defun attrap--add-import (proj candidate-tags identifier is-constructor? is-type-or-class?)
@@ -877,7 +914,8 @@ Error is given as MSG and reported between POS and END."
              candidate-tags)))
          (module-names
           (remove-duplicates-sorting
-           (--map (cons (haskell-misc--file-name-to-module-name (eproj-tag/file (cl-second it)))
+           (--map (cons (attrap--add-import--fix-module-name identifier
+                                                             (haskell-misc--file-name-to-module-name (eproj-tag/file (cl-second it))))
                         it)
                   filtered-tags)
            (lambda (x y)
