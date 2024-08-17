@@ -349,6 +349,13 @@ but when paired then it’s like a string."
   (setq-local treesit-simple-indent-rules
               (list (cons 'haskell haskell-ts-indent-rules)))
 
+  (setq-local comment-start "--"
+              comment-padding 1
+              comment-start-skip "[-{]-[ \t]*"
+              comment-end ""
+              comment-end-skip "[ \t]*\\(-}\\|\\s>\\)"
+              fill-paragraph-function #'haskell-fill-paragraph)
+
   (treesit-major-mode-setup))
 
 (provide 'haskell-ts-mode)
