@@ -1,10 +1,10 @@
 ;;; magit.el --- A Git porcelain inside Emacs  -*- lexical-binding:t; coding:utf-8 -*-
 
-;; Copyright (C) 2008-2023 The Magit Project Contributors
+;; Copyright (C) 2008-2024 The Magit Project Contributors
 
 ;; Author: Marius Vollmer <marius.vollmer@gmail.com>
-;;     Jonas Bernoulli <jonas@bernoul.li>
-;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
+;;     Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
+;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 ;;     Kyle Meyer <kyle@kyleam.com>
 ;; Former-Maintainers:
 ;;     Nicolas Dudebout <nicolas.dudebout@gatech.edu>
@@ -17,16 +17,16 @@
 ;; Homepage: https://github.com/magit/magit
 ;; Keywords: git tools vc
 
-;; Package-Version: 3.3.0.50-git
+;; Package-Version: 4.0.0
 ;; Package-Requires: (
-;;     (emacs "25.1")
-;;     (compat "29.1.3.4")
+;;     (emacs "26.1")
+;;     (compat "30.0.0.0")
 ;;     (dash "2.19.1")
-;;     (git-commit "3.3.0")
-;;     (magit-section "3.3.0")
-;;     (seq "2.23")
-;;     (transient "0.3.6")
-;;     (with-editor "3.0.5"))
+;;     (git-commit "4.0.0")
+;;     (magit-section "4.0.0")
+;;     (seq "2.24")
+;;     (transient "0.7.4")
+;;     (with-editor "3.4.1"))
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -303,8 +303,6 @@ already been run."
                  (const :tag "Use default bindings" default)
                  (const :tag "Use recommended bindings" recommended)))
 
-;; This is autoloaded and thus is used before `compat' is
-;; loaded, so we cannot use `keymap-lookup' and `keymap-set'.
 ;;;###autoload
 (progn
   (defun magit-maybe-define-global-key-bindings (&optional force)
@@ -319,6 +317,8 @@ already been run."
                              ('(("C-x g"   . magit-status)
                                 ("C-x M-g" . magit-dispatch)
                                 ("C-c M-g" . magit-file-dispatch)))))
+          ;; This is autoloaded and thus is used before `compat' is
+          ;; loaded, so we cannot use `keymap-lookup' and `keymap-set'.
           (when (or force
                     (not (or (lookup-key map (kbd key))
                              (where-is-internal def (make-sparse-keymap) t))))
@@ -483,8 +483,9 @@ is run in the top-level directory of the current working tree."
   (let ((default-directory (or directory default-directory)))
     (with-environment-variables (("GIT_PAGER" "cat"))
       (magit--with-connection-local-variables
-       (magit-start-process shell-file-name nil
-                            shell-command-switch command))))
+        (magit-with-editor
+          (magit-start-process shell-file-name nil
+                               shell-command-switch command)))))
   (magit-process-buffer))
 
 (defun magit-read-shell-command (&optional toplevel initial-input)
@@ -597,7 +598,7 @@ the output in the kill ring.
                          '("magit.el" "magit.el.gz")))
       (let ((load-suffixes (reverse load-suffixes))) ; prefer .el than .elc
         (setq toplib (locate-library "magit"))))
-    (setq toplib (and toplib (magit--straight-chase-links toplib)))
+    (setq toplib (and toplib (magit--chase-links toplib)))
     (push toplib debug)
     (when toplib
       (let* ((topdir (file-name-directory toplib))
@@ -605,7 +606,7 @@ the output in the kill ring.
                       ".git" (file-name-directory
                               (directory-file-name topdir))))
              (static (locate-library "magit-version.el" nil (list topdir)))
-             (static (and static (magit--straight-chase-links static))))
+             (static (and static (magit--chase-links static))))
         (or (progn
               (push 'repo debug)
               (when (and (file-exists-p gitdir)

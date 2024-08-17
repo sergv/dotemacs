@@ -1,9 +1,9 @@
 ;;; magit-worktree.el --- Worktree support  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2023 The Magit Project Contributors
+;; Copyright (C) 2008-2024 The Magit Project Contributors
 
-;; Author: Jonas Bernoulli <jonas@bernoul.li>
-;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
+;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
+;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -61,20 +61,20 @@ Used by `magit-worktree-checkout' and `magit-worktree-branch'."
      (list (funcall magit-worktree-read-directory-name-function
                     (format "Checkout %s in new worktree: " branch))
            branch)))
-  (magit-run-git "worktree" "add" (magit--expand-worktree path) branch)
-  (magit-diff-visit-directory path))
+  (when (zerop (magit-run-git "worktree" "add"
+                              (magit--expand-worktree path) branch))
+    (magit-diff-visit-directory path)))
 
 ;;;###autoload
-(defun magit-worktree-branch (path branch start-point &optional force)
+(defun magit-worktree-branch (path branch start-point)
   "Create a new BRANCH and check it out in a new worktree at PATH."
   (interactive
    `(,(funcall magit-worktree-read-directory-name-function
                "Create worktree: ")
-     ,@(magit-branch-read-args "Create and checkout branch")
-     ,current-prefix-arg))
-  (magit-run-git "worktree" "add" (if force "-B" "-b")
-                 branch (magit--expand-worktree path) start-point)
-  (magit-diff-visit-directory path))
+     ,@(magit-branch-read-args "Create and checkout branch")))
+  (when (zerop (magit-run-git "worktree" "add" "-b" branch
+                              (magit--expand-worktree path) start-point))
+    (magit-diff-visit-directory path)))
 
 ;;;###autoload
 (defun magit-worktree-move (worktree path)
@@ -160,7 +160,7 @@ If there is only one worktree, then insert nothing."
   (let ((worktrees (magit-list-worktrees)))
     (when (length> worktrees 1)
       (magit-insert-section (worktrees)
-        (magit-insert-heading "Worktrees:")
+        (magit-insert-heading t "Worktrees")
         (let* ((cols
                 (mapcar
                  (lambda (config)
