@@ -1,18 +1,27 @@
 -include ../config.mk
 include ../default.mk
 
-## ###################################################################
-
-.PHONY: texi install clean AUTHORS.md stats
-
-all: info
+.PHONY: install clean AUTHORS.md stats
 
 ## Build #############################################################
 
+docs: texi info html html-dir pdf
+
+texi: $(TEXIPAGES)
 info: $(INFOPAGES) dir
 html: $(HTMLFILES)
 pdf:  $(PDFFILES)
 epub: $(EPUBFILES)
+
+ORG_ARGS  = --batch -Q $(ORG_LOAD_PATH) -l ol-man
+ORG_EVAL += --eval "(progn $$ORG_MAN_EXPORT)"
+ORG_EVAL += --eval "(setq indent-tabs-mode nil)"
+ORG_EVAL += --eval "(setq org-src-preserve-indentation nil)"
+ORG_EVAL += --funcall org-texinfo-export-to-texinfo
+
+%.texi: %.org
+	@printf "Generating $@\n"
+	@$(EMACS) $(ORG_ARGS) $< $(ORG_EVAL)
 
 %.info: %.texi
 	@printf "Generating $@\n"
@@ -84,21 +93,6 @@ clean:
 
 ## Release management ################################################
 
-ORG_ARGS  = --batch -Q $(ORG_LOAD_PATH) -l ol-man
-ORG_EVAL += --eval "(progn $$ORG_MAN_EXPORT)"
-ORG_EVAL += --eval "(setq indent-tabs-mode nil)"
-ORG_EVAL += --eval "(setq org-src-preserve-indentation nil)"
-ORG_EVAL += --funcall org-texinfo-export-to-texinfo
-
-texi:
-	@printf "Generating $(PKG).texi\n"
-	@$(EMACS) $(ORG_ARGS) $(PKG).org $(ORG_EVAL)
-	@printf "\n" >> $(PKG).texi
-	@rm -f $(PKG).texi~
-	@$(EMACS) $(ORG_ARGS) magit-section.org $(ORG_EVAL)
-	@printf "\n" >> magit-section.texi
-	@rm -f magit-section.texi~
-
 authors: AUTHORS.md
 
 AUTHORS.md:
@@ -154,7 +148,7 @@ release: $(PUBLISH_TARGETS)
 	@aws cloudfront create-invalidation --distribution-id $(CFRONT_DIST) --paths \
 	"$(subst $(space),$(comma),$(addprefix $(RELEASE_PATH),$(CFRONT_PATHS)))" > /dev/null
 
-# Statistics #########################################################
+## Statistics ########################################################
 
 stats:
 	@printf "Generating statistics\n"
@@ -168,12 +162,11 @@ stats-upload:
 	@aws cloudfront create-invalidation \
 	--distribution-id $(CFRONT_DIST) --paths "/stats/*" > /dev/null
 
-# Lisp ###############################################################
+## Lisp ##############################################################
 
 # When making changes here, then also adjust the copy in magit-base.el.
 define ORG_MAN_EXPORT
-(advice-add 'org-man-export :around 'org-man-export--magit-gitman)
-(defun org-man-export--magit-gitman (fn link description format)
+(define-advice org-man-export (:around (fn link description format) gitman)
   (if (and (eq format 'texinfo) ;'
            (string-match-p "\\`git" link))
       (replace-regexp-in-string "%s" link "
@@ -193,7 +186,7 @@ the %s(1) manpage.
 endef
 export ORG_MAN_EXPORT
 
-# Templates ##########################################################
+## Templates #########################################################
 
 define AUTHORS_HEADER
 The following people have contributed to Magit.

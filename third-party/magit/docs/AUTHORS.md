@@ -31,6 +31,7 @@ All Contributors
 - Aaron Madlon-Kay
 - Abdo Roig-Maranges
 - Adam Benanti
+- Adam Jones
 - Adam Kruszewski
 - Adam Porter
 - Adam Spiers
@@ -45,6 +46,7 @@ All Contributors
 - Alex Dunn
 - Alexey Voinov
 - Alex Kost
+- Alex Kreisher
 - Alex Ott
 - Allen Li
 - Andreas Fuchs
@@ -55,6 +57,7 @@ All Contributors
 - Andrew Kirkpatrick
 - Andrew Psaltis
 - Andrew Schwartzmeyer
+- Andrew Zipperer
 - Andrey Smirnov
 - Andriy Kmit'
 - Andy Sawyer
@@ -140,6 +143,7 @@ All Contributors
 - Evan Torrie
 - Evgkeni Sampelnikof
 - Eyal Lotem
+- Eyal Soha
 - Fabian Wiget
 - Felix Geller
 - Felix Yan
@@ -173,10 +177,12 @@ All Contributors
 - Ivan Brennan
 - Jan Tatarik
 - Jasper St. Pierre
+- JD Smith
 - Jean-Louis Giordano
 - Jeff Bellegarde
 - Jeff Dairiki
 - Jeremy Meng
+- Jeremy Sowden
 - Jesse Alama
 - Jim Blandy
 - Joakim Jalap
@@ -230,6 +236,7 @@ All Contributors
 - Louis Roché
 - Luís Oliveira
 - Luke Amdor
+- Magnar Sveen
 - Magnus Malm
 - Mak Kolybabi
 - Manuel Vázquez Acosta
@@ -248,6 +255,7 @@ All Contributors
 - Markus Beppler
 - Martin Joerg
 - Martin Polden
+- Matt Beshara
 - Matthew Fluet
 - Matthew Kraai
 - Matthieu Hauglustaine
@@ -278,12 +286,14 @@ All Contributors
 - Nikolay Martynov
 - Noam Postavsky
 - N. Troy de Freitas
-- Ola x Nilsson
+- Ola Nilsson
 - Ole Arndt
 - Oleh Krehel
 - Orivej Desh
 - Óscar Fuentes
 - Pancho Horrillo
+- Park Zhou
+- Paul Pogonyshev
 - Paul Stadig
 - Pavel Holejsovsky
 - Pekka Pessi
@@ -301,7 +311,9 @@ All Contributors
 - Phil Sainty
 - Pierre Neidhardt
 - Pieter Praet
+- Pieter van Oostrum
 - Prathamesh Sonpatki
+- Pratyush Yadav
 - Pritam Baral
 - rabio
 - Radon Rosborough
@@ -318,6 +330,7 @@ All Contributors
 - Robin Green
 - Roey Darwish Dror
 - Roger Crew
+- Roland Marchand
 - Romain Francoise
 - Ron Parker
 - Roy Crihfield
@@ -350,6 +363,7 @@ All Contributors
 - Steven Thomas
 - Steven Vancoillie
 - Steve Purcell
+- StrawberryTea
 - Suhail Shergill
 - Sylvain Rousseau
 - Syohei Yoshida
@@ -376,6 +390,7 @@ All Contributors
 - Troy Hinckley
 - Tsuyoshi Kitamoto
 - Tunc Uzlu
+- Ulrich Müller
 - Vineet Naik
 - Vitaly Ostashov
 - Vladimir Ivanov

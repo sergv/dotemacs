@@ -37,9 +37,8 @@ MANUAL_HTML_ARGS ?= --css-ref /assets/page.css
 
 GITSTATS      ?= gitstats
 GITSTATS_DIR  ?= $(TOP)docs/stats
-GITSTATS_ARGS ?= -c style=https://magit.vc/assets/stats.css -c max_authors=999
-
-BUILD_MAGIT_LIBGIT ?= false
+GITSTATS_ARGS ?= -c style=https://magit.vc/assets/stats.css \
+                 -c max_authors=180 -c graph_max_authors=7
 
 ## Files #############################################################
 
@@ -56,9 +55,6 @@ EPUBFILES = $(addsuffix .epub,$(filter-out git-commit,$(PACKAGES)))
 ELS  = git-commit.el
 ELS += magit-section.el
 ELS += magit-base.el
-ifeq "$(BUILD_MAGIT_LIBGIT)" "true"
-ELS += magit-libgit.el
-endif
 ELS += magit-git.el
 ELS += magit-mode.el
 ELS += magit-margin.el
@@ -111,35 +107,8 @@ ELGS = magit-autoloads.el magit-version.el
 VERSION ?= $(shell \
   test -e $(TOP).git && \
   git describe --tags --abbrev=0 --always | cut -c2-)
-# TODO Deal with the fact that timestamps are no longer in sync.
-TIMESTAMP = 20230101
 
-COMPAT_VERSION        = 29.1.3.4
-DASH_VERSION          = 2.19.1
-GIT_COMMIT_VERSION    = $(VERSION)
-LIBGIT_VERSION        = 0
-MAGIT_VERSION         = $(VERSION)
-MAGIT_LIBGIT_VERSION  = $(VERSION)
-MAGIT_SECTION_VERSION = $(VERSION)
-SEQ_VERSION           = 2.23
-TRANSIENT_VERSION     = 0.3.6
-WITH_EDITOR_VERSION   = 3.0.5
-
-COMPAT_SNAPSHOT              = 29.1.3.4
-DASH_MELPA_SNAPSHOT          = 20221013
-GIT_COMMIT_MELPA_SNAPSHOT    = $(TIMESTAMP)
-LIBGIT_MELPA_SNAPSHOT        = 0
-MAGIT_MELPA_SNAPSHOT         = $(TIMESTAMP)
-MAGIT_LIBGIT_MELPA_SNAPSHOT  = $(TIMESTAMP)
-MAGIT_SECTION_MELPA_SNAPSHOT = $(TIMESTAMP)
-SEQ_MELPA_SNAPSHOT           = $(SEQ_VERSION)
-TRANSIENT_MELPA_SNAPSHOT     = 20230201
-WITH_EDITOR_MELPA_SNAPSHOT   = 20230118
-
-DEV_VERSION_SUFFIX = .50-git
-
-EMACS_VERSION        = 25.1
-LIBGIT_EMACS_VERSION = 26.1
+EMACS_VERSION = 26.1
 
 EMACSOLD := $(shell $(BATCH) --eval \
   "(and (version< emacs-version \"$(EMACS_VERSION)\") (princ \"true\"))")
@@ -175,13 +144,6 @@ DASH_DIR ?= $(shell \
   sort | tail -n 1)
 ifeq "$(DASH_DIR)" ""
   DASH_DIR = $(TOP)../dash
-endif
-
-LIBGIT_DIR ?= $(shell \
-  find -L $(ELPA_DIR) -maxdepth 1 -regex '.*/libgit-[.0-9]*' 2> /dev/null | \
-  sort | tail -n 1)
-ifeq "$(LIBGIT_DIR)" ""
-  LIBGIT_DIR = $(TOP)../libgit
 endif
 
 SEQ_DIR ?= $(shell \
@@ -224,7 +186,6 @@ LOAD_PATH = -L $(TOP)lisp
 ifdef CYGPATH
   LOAD_PATH += -L $(shell cygpath --mixed $(COMPAT_DIR))
   LOAD_PATH += -L $(shell cygpath --mixed $(DASH_DIR))
-  LOAD_PATH += -L $(shell cygpath --mixed $(LIBGIT_DIR))
   LOAD_PATH += -L $(shell cygpath --mixed $(SEQ_DIR))
   LOAD_PATH += -L $(shell cygpath --mixed $(TRANSIENT_DIR))
   LOAD_PATH += -L $(shell cygpath --mixed $(WITH_EDITOR_DIR))
@@ -234,7 +195,6 @@ ifdef CYGPATH
 else
   LOAD_PATH += -L $(COMPAT_DIR)
   LOAD_PATH += -L $(DASH_DIR)
-  LOAD_PATH += -L $(LIBGIT_DIR)
   LOAD_PATH += -L $(SEQ_DIR)
   LOAD_PATH += -L $(TRANSIENT_DIR)
   LOAD_PATH += -L $(WITH_EDITOR_DIR)

@@ -1,9 +1,9 @@
 ;;; magit-remote.el --- Transfer Git commits  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2023 The Magit Project Contributors
+;; Copyright (C) 2008-2024 The Magit Project Contributors
 
-;; Author: Jonas Bernoulli <jonas@bernoul.li>
-;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
+;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
+;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -70,7 +70,7 @@ has to be used to view and change remote related variables."
   ["Variables"
    :if (lambda ()
          (and magit-remote-direct-configure
-              (oref transient--prefix scope)))
+              (oref (transient-prefix-object) scope)))
    ("u" magit-remote.<remote>.url)
    ("U" magit-remote.<remote>.fetch)
    ("s" magit-remote.<remote>.pushurl)
@@ -206,8 +206,8 @@ the now stale refspecs.  Other stale branches are not removed."
         (if (if (length= stale 1)
                 (pcase-let ((`(,refspec . ,refs) (car stale)))
                   (magit-confirm 'prune-stale-refspecs
-                    (format "Prune stale refspec %s and branch %%s" refspec)
-                    (format "Prune stale refspec %s and %%d branches" refspec)
+                    (list "Prune stale refspec %s and branch %%s" refspec)
+                    (list "Prune stale refspec %s and %%d branches" refspec)
                     nil refs))
               (magit-confirm 'prune-stale-refspecs nil
                 (format "Prune %%d stale refspecs and %d branches"
@@ -268,9 +268,10 @@ Delete the symbolic-ref \"refs/remotes/<remote>/HEAD\"."
      ((equal oldname newname)
       (setq oldname
             (read-string
-             (format "Name of default branch is still `%s', %s\n%s" oldname
-                     "but some upstreams might need updating."
-                     "Name of upstream branches to update: ")))
+             (format
+              "Name of default branch is still `%s', %s\n%s `%s': " oldname
+              "but the upstreams of some local branches might need updating."
+              "Name of upstream branches to replace with" newname)))
       (magit--set-default-branch newname oldname)
       (magit-refresh))
      (t
@@ -313,9 +314,9 @@ refspec."
   :man-page "git-remote"
   [:description
    (lambda ()
-     (concat
-      (propertize "Configure " 'face 'transient-heading)
-      (propertize (oref transient--prefix scope) 'face 'magit-branch-remote)))
+     (concat (propertize "Configure " 'face 'transient-heading)
+             (propertize (oref (transient-prefix-object) scope)
+                         'face 'magit-branch-remote)))
    ("u" magit-remote.<remote>.url)
    ("U" magit-remote.<remote>.fetch)
    ("s" magit-remote.<remote>.pushurl)
