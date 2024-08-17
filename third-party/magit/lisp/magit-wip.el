@@ -1,9 +1,9 @@
 ;;; magit-wip.el --- Commit snapshots to work-in-progress refs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2023 The Magit Project Contributors
+;; Copyright (C) 2008-2024 The Magit Project Contributors
 
-;; Author: Jonas Bernoulli <jonas@bernoul.li>
-;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
+;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
+;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -359,9 +359,9 @@ commit message."
         (setq msg (concat
                    (cond ((= len 0) "autosave tracked files")
                          ((> len 1) (format "autosave %s files" len))
-                         (t (concat "autosave "
-                                    (file-relative-name (car files)
-                                                        (magit-toplevel)))))
+                         ((concat "autosave "
+                                  (file-relative-name (car files)
+                                                      (magit-toplevel)))))
                    msg))))
     (magit-update-ref wipref msg
                       (magit-git-string "commit-tree" "--no-gpg-sign"
@@ -461,7 +461,7 @@ many \"branches\" of each wip ref are shown."
       (while (and reflog (> count 1))
         ;; "start autosaving ..." is the current message, but it used
         ;; to be "restart autosaving ...", and those messages may
-        ;; still be around (e.g., if gc.reflogExpire is to "never").
+        ;; still be around (e.g., if gc.reflogExpire is set to "never").
         (setq reflog (cl-member "^[^ ]+ [^:]+: \\(?:re\\)?start autosaving"
                                 reflog :test #'string-match-p))
         (when (and (cadr reflog)

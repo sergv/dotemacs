@@ -1,9 +1,9 @@
 ;;; magit-submodule.el --- Submodule support for Magit  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2023 The Magit Project Contributors
+;; Copyright (C) 2008-2024 The Magit Project Contributors
 
-;; Author: Jonas Bernoulli <jonas@bernoul.li>
-;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
+;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
+;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -347,8 +347,8 @@ With a prefix argument act on all suitable modules.  Otherwise,
 if the region selects modules, then act on those.  Otherwise, if
 there is a module at point, then act on that.  Otherwise read a
 single module from the user."
-  ;; Even though a package is "uninitialized" (it has no worktree)
-  ;; the super-projects $GIT_DIR/config may never-the-less set the
+  ;; Even when a submodule is "uninitialized" (it has no worktree)
+  ;; the super-project's $GIT_DIR/config may never-the-less set the
   ;; module's url.  This may happen if you `deinit' and then `init'
   ;; to register (NOT initialize).  Because the purpose of `deinit'
   ;; is to remove the working directory AND to remove the url, this
@@ -409,7 +409,7 @@ to recover from making a mistake here, but don't count on it."
         (if (cdr modified)
             (message "Omitting %s modules with uncommitted changes: %s"
                      (length modified)
-                     (mapconcat #'identity modified ", "))
+                     (string-join modified ", "))
           (message "Omitting module %s, it has uncommitted changes"
                    (car modified)))
         (setq modules (cl-set-difference modules modified :test #'equal))))
@@ -489,7 +489,7 @@ or, failing that, the abbreviated HEAD commit hash."
       (dolist (module modules)
         (let ((default-directory
                (expand-file-name (file-name-as-directory module))))
-          (magit-insert-section (magit-module-section module t)
+          (magit-insert-section (module module t)
             (insert (propertize (format path-format module)
                                 'font-lock-face 'magit-diff-file-heading))
             (if (not (file-exists-p ".git"))
@@ -591,7 +591,7 @@ These sections can be expanded to show the respective commits."
   "For internal use, don't add to a hook."
   (unless (magit-ignore-submodules-p)
     (when-let ((modules (magit-list-module-paths)))
-      (magit-insert-section section ((eval type) nil t)
+      (magit-insert-section ((eval type) nil t)
         (string-match "\\`\\(.+\\) \\([^ ]+\\)\\'" heading)
         (magit-insert-heading
           (propertize (match-string 1 heading)
@@ -600,28 +600,28 @@ These sections can be expanded to show the respective commits."
           (propertize (match-string 2 heading)
                       'font-lock-face 'magit-branch-remote)
           ":")
-        (magit-with-toplevel
-          (dolist (module modules)
-            (when (magit-module-worktree-p module)
-              (let ((default-directory
-                     (expand-file-name (file-name-as-directory module))))
-                (when (magit-file-accessible-directory-p default-directory)
-                  (magit-insert-section sec (magit-module-section module t)
-                    (magit-insert-heading
-                      (propertize module
-                                  'font-lock-face 'magit-diff-file-heading)
-                      ":")
-                    (oset sec range range)
-                    (magit-git-wash
-                        (apply-partially #'magit-log-wash-log 'module)
-                      "-c" "push.default=current" "log" "--oneline" range)
-                    (when (> (point)
-                             (oref sec content))
-                      (delete-char -1))))))))
-        (if (> (point)
-               (oref section content))
-            (insert ?\n)
-          (magit-cancel-section))))))
+        (dolist (module modules)
+          (when-let* ((default-directory (expand-file-name module))
+                      ((file-exists-p (expand-file-name ".git")))
+                      (lines (magit-git-lines "-c" "push.default=current"
+                                              "log" "--oneline" range))
+                      (count (length lines))
+                      ((> count 0)))
+            (magit-insert-section
+                ( module module t
+                  :range range)
+              (magit-insert-heading count
+                (propertize module 'font-lock-face 'magit-diff-file-heading))
+              (dolist (line lines)
+                (string-match magit-log-module-re line)
+                (let ((rev (match-string 1 line))
+                      (msg (match-string 2 line)))
+                  (magit-insert-section (module-commit rev t)
+                    (insert (propertize rev 'font-lock-face 'magit-hash) " "
+                            (funcall magit-log-format-message-function rev msg)
+                            "\n")))))))
+        (magit-cancel-section 'if-empty)
+        (insert ?\n)))))
 
 ;;; List
 
@@ -637,7 +637,8 @@ These sections can be expanded to show the respective commits."
 
 (define-derived-mode magit-submodule-list-mode tabulated-list-mode "Modules"
   "Major mode for browsing a list of Git submodules."
-  :group 'magit-repolist-mode
+  :interactive nil
+  :group 'magit-repolist
   (setq-local x-stretch-cursor nil)
   (setq tabulated-list-padding 0)
   (add-hook 'tabulated-list-revert-hook #'magit-submodule-list-refresh nil t)
@@ -660,27 +661,23 @@ These sections can be expanded to show the respective commits."
 
 (defun magit-submodule-list-refresh ()
   (setq tabulated-list-entries
-        ;; Backport version 2.23 of seq lacks seq-keep.  Once that is
-        ;; available trace this commment to find more instances where
-        ;; it should be used.
-        (delq nil
-              (mapcar
-               (lambda (module)
-                 (let ((default-directory
-                        (expand-file-name (file-name-as-directory module))))
-                   (and (file-exists-p ".git")
-                        (or (not magit-submodule-list-predicate)
-                            (funcall magit-submodule-list-predicate module))
-                        (list module
-                              (vconcat
-                               (mapcar (pcase-lambda (`(,title ,width ,fn ,props))
-                                         (or (funcall fn `((:path  ,module)
-                                                           (:title ,title)
-                                                           (:width ,width)
-                                                           ,@props))
-                                             ""))
-                                       magit-repolist-columns))))))
-               (magit-list-module-paths))))
+        (seq-keep
+         (lambda (module)
+           (let ((default-directory
+                  (expand-file-name (file-name-as-directory module))))
+             (and (file-exists-p ".git")
+                  (or (not magit-submodule-list-predicate)
+                      (funcall magit-submodule-list-predicate module))
+                  (list module
+                        (vconcat
+                         (mapcar (pcase-lambda (`(,title ,width ,fn ,props))
+                                   (or (funcall fn `((:path  ,module)
+                                                     (:title ,title)
+                                                     (:width ,width)
+                                                     ,@props))
+                                       ""))
+                                 magit-repolist-columns))))))
+         (magit-list-module-paths)))
   (message "Listing submodules...")
   (tabulated-list-init-header)
   (tabulated-list-print t)
