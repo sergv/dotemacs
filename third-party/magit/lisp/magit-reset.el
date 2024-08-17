@@ -1,9 +1,9 @@
 ;;; magit-reset.el --- Reset functionality  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2023 The Magit Project Contributors
+;; Copyright (C) 2008-2024 The Magit Project Contributors
 
-;; Author: Jonas Bernoulli <jonas@bernoul.li>
-;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
+;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
+;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -34,15 +34,16 @@
 (transient-define-prefix magit-reset ()
   "Reset the `HEAD', index and/or worktree to a previous state."
   :man-page "git-reset"
-  ["Reset"
-   ("m" "mixed    (HEAD and index)"        magit-reset-mixed)
-   ("s" "soft     (HEAD only)"             magit-reset-soft)
-   ("h" "hard     (HEAD, index and files)" magit-reset-hard)
-   ("k" "keep     (HEAD and index, keeping uncommitted)" magit-reset-keep)
-   ("i" "index    (only)"                  magit-reset-index)
-   ("w" "worktree (only)"                  magit-reset-worktree)
-   ""
-   ("f" "a file"                           magit-file-checkout)])
+  [["Reset"
+    ("b" "branch" magit-branch-reset)
+    ("f" "file"   magit-file-checkout)]
+   ["Reset this"
+    ("m" "mixed    (HEAD and index)" magit-reset-mixed)
+    ("s" "soft     (HEAD only)"      magit-reset-soft)
+    ("h" "hard     (HEAD, index and worktree)" magit-reset-hard)
+    ("k" "keep     (HEAD and index, keeping uncommitted)" magit-reset-keep)
+    ("i" "index    (only)"           magit-reset-index)
+    ("w" "worktree (only)"           magit-reset-worktree)]])
 
 ;;;###autoload
 (defun magit-reset-mixed (commit)
