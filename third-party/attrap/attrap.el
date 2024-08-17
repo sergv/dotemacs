@@ -758,11 +758,15 @@ Error is given as MSG and reported between POS and END."
                   ;; error: [GHC-76037]
                   ;;     • Not in scope: ‘osstr’
                   ;;     • In the quasi-quotation: [osstr|fully-pinned-cabal.config|]
+                  ;; error: [GHC-76037]
+                  ;;     Not in scope: data constructor ‘Compose’
                   (seq (ghc-error "76037")
                        (+ ws)
-                       (or (group-n 3
-                             "Not in scope: type constructor or class "
-                             (identifier 1))
+                       (or (seq "Not in scope: "
+                                (or (group-n 3 "type constructor or class")
+                                    (group-n 2 "data constructor"))
+                                " "
+                                (identifier 1))
                            (seq "• Not in scope: "
                                 (identifier 1))))))
           msg)
