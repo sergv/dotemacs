@@ -1,6 +1,6 @@
 ;;; compat-tests.el --- Tests for Compat -*- lexical-binding: t; no-byte-compile: t; -*-
 
-;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2024 Free Software Foundation, Inc.
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -19,10 +19,10 @@
 
 ;; Tests for compatibility functions from compat.el.
 ;;
-;; Note that all functions are covered by tests. When new functions are
+;; Note that all functions are covered by tests.  When new functions are
 ;; added to Compat, they must come with test coverage!
 
-;; Functions are marked with a link to the testsuite.  The link type
+;; Functions are marked with a link to the test suite.  The link type
 ;; `compat-tests' must be registered first by evaluating the following
 ;; code.  If you intend to work on the test suite you can add this code to
 ;; your init.el.
@@ -75,13 +75,9 @@
 (defmacro should-equal (a b)
   `(should (equal ,a ,b)))
 
-(defmacro compat-tests--if (cond then &rest else)
-  (declare (indent 2))
-  (if (eval cond t) then (macroexp-progn else)))
-
 (ert-deftest compat-loaded-features ()
   (let ((version 0))
-    (while (< version 30)
+    (while (< version 31)
       (should-equal (> version emacs-major-version)
                     (featurep (intern (format "compat-%s" version))))
       (setq version (1+ version)))))
@@ -96,7 +92,7 @@
 (defconst compat-tests--version (package-get-version))
 (ert-deftest compat-package-get-version ()
   (should (stringp compat-tests--version))
-  (should-equal 29 (car (version-to-list compat-tests--version))))
+  (should-equal 30 (car (version-to-list compat-tests--version))))
 
 (ert-deftest compat-buffer-match-p ()
   (let ((b "*compat-test-buffer*")
@@ -137,18 +133,18 @@
     (with-temp-buffer
       (let ((event `(mouse-1 (,(selected-window) 1 (0 . 0) 0))))
         (set-window-buffer nil (current-buffer))
-        (insert "http://emacs.org/")
+        (insert "https://emacs.org/")
         (goto-char (point-min))
-        (should-equal "http://emacs.org/" (thing-at-mouse event 'url))
-        (should-equal '(1 . 18) (bounds-of-thing-at-mouse event 'url))
+        (should-equal "https://emacs.org/" (thing-at-mouse event 'url))
+        (should-equal '(1 . 19) (bounds-of-thing-at-mouse event 'url))
         (should-not (region-active-p))
         (mark-thing-at-mouse event 'url)
-        (should-equal (point) 18)
-        (should-equal '((1 . 18)) (region-bounds))
+        (should-equal (point) 19)
+        (should-equal '((1 . 19)) (region-bounds))
         (let ((mouse-select-region-move-to-beginning t))
           (mark-thing-at-mouse event 'url))
         (should-equal (point) 1)
-        (should-equal '((1 . 18)) (region-bounds))))))
+        (should-equal '((1 . 19)) (region-bounds))))))
 
 (ert-deftest compat-dolist-with-progress-reporter ()
   (let (y)
@@ -216,7 +212,7 @@
     (should-equal 'h (get-text-property 0 'help-echo b))
     (should-equal 'h (get-text-property 5 'help-echo b))))
 
-(ert-deftest compat-button-buttonize ()
+(ert-deftest compat-obsolete-button-buttonize ()
   (let ((b (with-no-warnings (button-buttonize "button" 'c 'd))))
     (should-equal b "button")
     (should-equal 'c (get-text-property 0 'action b))
@@ -405,6 +401,15 @@
     (with-environment-variables ((A B))
       (should-equal (getenv A) B))
     (should-not (getenv A))))
+
+(ert-deftest compat-window-configuration-equal-p ()
+  (let ((wc (current-window-configuration)))
+    (should (window-configuration-equal-p wc wc))
+    (save-window-excursion
+      (with-temp-buffer
+        (pop-to-buffer (current-buffer))
+        (should-not (window-configuration-equal-p (current-window-configuration) wc))))
+    (should (window-configuration-equal-p (current-window-configuration) wc))))
 
 (ert-deftest compat-with-window-non-dedicated ()
   (unwind-protect
@@ -801,15 +806,15 @@
     (unwind-protect
         (progn
           (use-global-map (make-sparse-keymap))
-          (should-not (keymap-global-lookup "s-c"))
+          (should-not (keymap-global-lookup "H-c"))
           (should-not (keymap-global-lookup "x"))
-          (keymap-global-set "s-c" 'test)
+          (keymap-global-set "H-c" 'test)
           (keymap-global-set "<t>" 'default)
-          (should-equal (keymap-global-lookup "s-c") 'test)
+          (should-equal (keymap-global-lookup "H-c") 'test)
           (should-equal (keymap-global-lookup "x" t) 'default)
           (should-not (keymap-global-lookup "x")))
       (use-global-map orig))
-    (should-not (keymap-global-lookup "s-c"))))
+    (should-not (keymap-global-lookup "H-c"))))
 
 (ert-deftest compat-keymap-global-lookup ()
   (should-equal (keymap-global-lookup "C-x b") #'switch-to-buffer)
@@ -883,7 +888,7 @@
   (should-equal (function-alias-p 'compat-tests--alias-a)
                 '(compat-tests--alias-b compat-tests--alias-c))
   ;; Emacs 30 disallows cyclic function aliases
-  (compat-tests--if (>= emacs-major-version 30)
+  (static-if (>= emacs-major-version 30)
       (should-error
        (progn
          (defalias 'compat-tests--cyclic-alias-a 'compat-tests--cyclic-alias-b)
@@ -952,6 +957,10 @@
   (should-equal '(1 2) (take 5 '(1 2)))
   (should-equal '(1 2 3) (take 3 '(1 2 3 4))))
 
+(ert-deftest compat-drop ()
+  (should-not (drop 5 nil))
+  (should-equal '(3 4 5) (drop 2 '(1 2 3 4 5))))
+
 (ert-deftest compat-format-message ()
   (should-equal (format-message "a=%s b=%s" 1 2) "a=1 b=2"))
 
@@ -995,6 +1004,19 @@
       (should-equal compat-tests--global 1)
       (should-equal compat-tests--local 2)
       (should-not (boundp 'compat-tests--unexist)))))
+
+(ert-deftest compat-obarray-clear ()
+  ;; obarray APIs are only available since 26
+  (static-if (> emacs-major-version 25)
+      (progn
+        (let ((ob (obarray-make)))
+          (should-not (obarray-get ob "sym1"))
+          (should (intern "sym1" ob))
+          (should (obarray-get ob "sym1"))
+          (obarray-clear ob)
+          (should-not (obarray-get ob "sym1"))
+          (should (intern "sym2" ob))
+          (should (obarray-get ob "sym2"))))))
 
 (ert-deftest compat-gensym ()
   (let ((orig gensym-counter))
@@ -1045,7 +1067,15 @@
     (should-equal (compat-call plist-get list "first" #'string=) 10)
     (should-equal (compat-call plist-get list "second" #'string=) 2)
     (should (compat-call plist-member list "first" #'string=))
-    (should-not (compat-call plist-member list "third" #'string=))))
+    (should-not (compat-call plist-member list "third" #'string=)))
+  (let (list)
+    (setq list (compat-call plist-put list "first" 1 #'equal))
+    (setq list (compat-call plist-put list "second" 2 #'equal))
+    (setq list (compat-call plist-put list "first" 10 #'equal))
+    (should-equal (compat-call plist-get list "first" #'equal) 10)
+    (should-equal (compat-call plist-get list "second" #'equal) 2)
+    (should (compat-call plist-member list "first" #'equal))
+    (should-not (compat-call plist-member list "third" #'equal))))
 
 (ert-deftest compat-garbage-collect-maybe ()
   (garbage-collect-maybe 10))
@@ -1186,7 +1216,7 @@
   (should-equal '((0 . zero) a (0 . zero)) (compat-call assoc-delete-all 0 (list (cons 0 'zero) (cons 1 'one) 'a  (cons 0 'zero)) #'/=))
   (should-equal '(a (0 . zero) (0 . zero)) (compat-call assoc-delete-all 0 (list 'a (cons 0 'zero) (cons 1 'one) (cons 0 'zero)) #'/=)))
 
-(ert-deftest compat-provided-derived-mode-p ()
+(ert-deftest compat-provided-mode-derived-p ()
   (let ((one (make-symbol "1"))
         (two (make-symbol "2"))
         (three (make-symbol "3"))
@@ -1195,26 +1225,21 @@
     (put two 'derived-mode-parent one)
     (put one.5 'derived-mode-parent one)
     (put three 'derived-mode-parent two)
-    (should-equal one (provided-mode-derived-p one one))
-    (should-equal one (provided-mode-derived-p two one))
-    (should-equal one (provided-mode-derived-p three one))
+    (should (provided-mode-derived-p one one))
+    (should (provided-mode-derived-p two one))
+    (should (provided-mode-derived-p two two))
+    (should (provided-mode-derived-p three one))
     (should-not (provided-mode-derived-p one eins))
     (should-not (provided-mode-derived-p two eins))
     (should-not (provided-mode-derived-p two one.5))
-    (should-equal one (provided-mode-derived-p two one.5 one))
-    (should-equal two (provided-mode-derived-p two one.5 two))
-    (should-equal one (provided-mode-derived-p three one.5 one))
-    (should-equal two (provided-mode-derived-p three one.5 one two))
-    (should-equal two (provided-mode-derived-p three one.5 two one))
-    (should-equal three (provided-mode-derived-p three one.5 two one three))
-    (should-equal three (provided-mode-derived-p three one.5 three two one))
+    (should (provided-mode-derived-p three one))
+    (should (provided-mode-derived-p three two))
+    (should-not (provided-mode-derived-p three one.5))
     (let ((major-mode three))
-      (should-equal one (derived-mode-p one))
-      (should-equal one (derived-mode-p one.5 one))
-      (should-equal two (derived-mode-p one.5 one two))
-      (should-equal two (derived-mode-p one.5 two one))
-      (should-equal three (derived-mode-p one.5 two one three))
-      (should-equal three (derived-mode-p one.5 three two one)))))
+      (should-not (derived-mode-p one.5))
+      (should (derived-mode-p one))
+      (should (derived-mode-p two))
+      (should (derived-mode-p three)))))
 
 (ert-deftest compat-format-prompt ()
   (should-equal "Prompt: " (format-prompt "Prompt" nil))
@@ -1288,8 +1313,26 @@
 (ert-deftest compat-native-comp-available-p ()
   (should (memq (native-comp-available-p) '(nil t))))
 
-(ert-deftest compat-subr-native-elisp-p ()
-  (should-not (subr-native-elisp-p (symbol-function 'identity))))
+(ert-deftest compat-obsolete-subr-native-elisp-p ()
+  (with-no-warnings
+    (static-if (< emacs-major-version 30)
+        (should-not (subr-native-elisp-p (symbol-function 'identity))))))
+
+(ert-deftest compat-closurep ()
+  (should (interpreted-function-p (eval '(lambda (x) x) t)))
+  (should (closurep (eval '(lambda (x) x) t)))
+  (should-not (closurep '(lambda (x) x)))
+  (should-not (closurep 'identity))
+  (should-not (closurep (symbol-function 'identity)))
+  (should-not (closurep (symbol-function 'if)))
+  (should-not (closurep (symbol-function 'defun))))
+
+(ert-deftest compat-primitive-function-p ()
+  (should (primitive-function-p (symbol-function 'identity)))
+  (should-not (primitive-function-p (eval '(lambda (x) x) t)))
+  (should-not (primitive-function-p '(lambda (x) x)))
+  (should-not (primitive-function-p (symbol-function 'if)))
+  (should-not (primitive-function-p (symbol-function 'defun))))
 
 (ert-deftest compat-subr-primitive-p ()
   (should (subr-primitive-p (symbol-function 'identity)))       ;function from fns.c
@@ -1320,10 +1363,10 @@
                          (list (list) (list) (list) (list)))))
 
 (ert-deftest compat-xor ()
-  (should (xor t nil))
-  (should (xor nil t))
+  (should-equal (xor 'a nil) 'a)
+  (should-equal (xor nil 'b) 'b)
   (should-not (xor nil nil))
-  (should-not (xor t t)))
+  (should-not (xor 'a 'b)))
 
 (ert-deftest compat-length= ()
   (should (length= '() 0))                  ;empty list
@@ -1745,6 +1788,47 @@
   (should-equal '(1 2 3 4) (flatten-tree '((1) nil 2 ((3 4)))))
   (should-equal '(1 2 3 4) (flatten-tree '(((1 nil)) 2 (((3 nil nil) 4))))))
 
+(defmacro compat--should-value< (x y)
+  "Helper for (value< X Y) test."
+  `(progn
+     (should (value< ,x ,y))
+     (should-not (value< ,y ,x))))
+
+(ert-deftest compat-value< ()
+  ;; Type mismatch
+  (should-error (value< 'aa "aa"))
+  (should-error (value< 1 "aa"))
+  (should-error (value< 1 (cons 1 2)))
+  ;; Nil symbol
+  (compat--should-value< nil t)
+  (compat--should-value< nil 'nim)
+  (compat--should-value< nil 'nll)
+  (compat--should-value< 'mil nil)
+  ;; Atoms
+  (compat--should-value< 1 2)
+  (compat--should-value< "aa" "b")
+  (compat--should-value< 'aa 'b)
+  ;; Lists
+  (compat--should-value< nil '(1))
+  (compat--should-value< '(1 2) '(2 3))
+  (compat--should-value< '(1 2 3) '(2))
+  (compat--should-value< '(0 1 2) '(0 2 3))
+  (compat--should-value< '(0 1 2 3) '(0 2))
+  ;; Pairs and improper lists
+  (compat--should-value< nil '(1 . 2))
+  (compat--should-value< nil '(1 2 . 3))
+  (compat--should-value< '(1 . 2) '(2 . 2))
+  (compat--should-value< '(1 . 2) '(1 . 3))
+  (compat--should-value< '(1 2 . 3) '(1 2 . 4))
+  ;; Vectors
+  (compat--should-value< [] [1])
+  (compat--should-value< [1 2] [2 3])
+  (compat--should-value< [1 2 3] [2])
+  (compat--should-value< [0 1 2] [0 2 3])
+  (compat--should-value< [0 1 2 3] [0 2])
+  ;; Buffers are compared by name
+  (compat--should-value< (get-buffer-create "a") (get-buffer-create "b")))
+
 (ert-deftest compat-sort ()
   (should-equal (list 1 2 3) (sort (list 1 2 3) #'<))
   (should-equal (list 1 2 3) (sort (list 1 3 2) #'<))
@@ -1752,14 +1836,34 @@
   (should-equal (list 1 2 3) (compat-call sort (list 1 2 3) #'<))
   (should-equal (list 1 2 3) (compat-call sort (list 1 3 2) #'<))
   (should-equal (list 1 2 3) (compat-call sort (list 3 2 1) #'<))
+  ;; Test Emacs 25 support for vectors.
   (should-equal [1 2 3] (compat-call sort (vector 1 2 3) #'<))
   (should-equal [1 2 3] (compat-call sort (vector 1 3 2) #'<))
   (should-equal [1 2 3] (compat-call sort (vector 3 2 1) #'<))
   ;; Test side effect
   (let* ((vec (vector 4 5 8 3 1 2 3 2 3 4))
          (sorted (compat-call sort vec #'>)))
+    (should (eq vec sorted))
     (should-equal sorted [8 5 4 4 3 3 3 2 2 1])
-    (should-equal vec [8 5 4 4 3 3 3 2 2 1])))
+    (should-equal vec [8 5 4 4 3 3 3 2 2 1]))
+  ;; Test Emacs 30 keyword arguments.
+  (should-equal '(1 2 3) (compat-call sort '(2 3 1)))
+  (should-equal '(3 2 1) (compat-call sort '(2 3 1) :reverse t))
+  (should-equal '((x 3) (y 2) (z 1)) (compat-call sort '((z 1) (x 3) (y 2)) :key #'car))
+  (should-equal '((z 1) (y 2) (x 3)) (compat-call sort '((z 1) (x 3) (y 2)) :key #'car :reverse t))
+  (should-equal '((z 1) (y 2) (x 3)) (compat-call sort '((z 1) (x 3) (y 2)) :key #'cadr))
+  (should-equal '((x 3) (y 2) (z 1)) (compat-call sort '((z 1) (x 3) (y 2)) :key #'cadr :reverse t))
+  (should-equal '(3 2 1) (compat-call sort '(2 3 1) :lessp #'>))
+  (should-equal '(1 2 3) (compat-call sort '(2 3 1) :reverse t :lessp #'>))
+  (should-equal '((30 1) (20 2) (10 3)) (compat-call sort '((30 1) (10 3) (20 2)) :key #'car :lessp #'>))
+  (should-equal '((10 3) (20 2) (30 1)) (compat-call sort '((30 1) (10 3) (20 2)) :key #'car :reverse t :lessp #'>))
+  (should-equal '((x 3) (y 2) (z 1)) (compat-call sort '((z 1) (x 3) (y 2)) :key #'cadr :lessp #'>))
+  (should-equal '((z 1) (y 2) (x 3)) (compat-call sort '((z 1) (x 3) (y 2)) :key #'cadr :reverse t :lessp #'>))
+  (let* ((vec (vector 4 5 8 3 1 2 3 2 3 4))
+         (sorted (compat-call sort vec :in-place t)))
+    (should (eq vec sorted))
+    (should-equal sorted [1 2 2 3 3 3 4 4 5 8])
+    (should-equal vec [1 2 2 3 3 3 4 4 5 8])))
 
 (ert-deftest compat-replace-string-in-region ()
   (with-temp-buffer
@@ -1828,6 +1932,15 @@
       (should-equal (replace-regexp-in-region " bar" "" (point-min) 8) 1)
       (should-equal (buffer-string) "foo bar"))))
 
+(ert-deftest compat-char-to-name ()
+  (should-equal (char-to-name ?.) "FULL STOP"))
+
+(ert-deftest compat-char-uppercase-p ()
+  (dolist (c (list ?R ?S ?Ω ?Ψ))
+    (should (char-uppercase-p c)))
+  (dolist (c (list ?a ?b ?α ?β))
+    (should-not (char-uppercase-p c))))
+
 (ert-deftest compat-string-split ()
   (should-equal '("a" "b" "c") (split-string "a b c"))
   (should-equal '("a" "b" "c") (string-split "a b c")))
@@ -1882,7 +1995,7 @@
   (should-equal '(" abc" " bcd " "cde ") (string-lines " abc\n bcd \ncde "))
 
   ;; NOTE: Behavior for trailing newline was different on Emacs 28
-  (compat-tests--if (= emacs-major-version 28)
+  (static-if (= emacs-major-version 28)
       (should-equal '("a" "b" "c" "") (string-lines "a\nb\nc\n"))
     (should-equal '("a" "b" "c") (string-lines "a\nb\nc\n"))
     (should-equal '("a\n" "\n" "b\n" "c\n") (string-lines "a\n\nb\nc\n" nil t))
@@ -2017,10 +2130,10 @@
 (ert-deftest compat-string-search ()
   ;; Find needle at the beginning of a haystack:
   (should-equal 0 (string-search "a" "abb"))
-  ;; Find needle at the begining of a haystack, with more potential
+  ;; Find needle at the beginning of a haystack, with more potential
   ;; needles that could be found:
   (should-equal 0 (string-search "a" "abba"))
-  ;; Find needle with more than one charachter at the beginning of
+  ;; Find needle with more than one character at the beginning of
   ;; a line:
   (should-equal 0 (string-search "aa" "aabbb"))
   ;; Find a needle midstring:
@@ -2121,7 +2234,12 @@
     ;; backport this behaviour.
     (should-equal 2 (string-search (compat-tests--string-to-multibyte "\377") "ab\377c"))
     (should-equal 2 (string-search (compat-tests--string-to-multibyte "o\303\270")
-                                   "foo\303\270"))))
+                                   "foo\303\270")))
+  ;; Ensure that `match-data' is preserved by `string-search'
+  (string-match (rx (* "a") (group (* "b")) (* "a")) "abba")
+  (should-equal '(0 4 1 3) (match-data))
+  (should (string-search "foo" "foobar"))
+  (should-equal '(0 4 1 3) (match-data)))
 
 (ert-deftest compat-string-replace ()
   (should-equal "bba" (string-replace "aa" "bb" "aaa"))
@@ -2202,7 +2320,7 @@
 
 (ert-deftest compat-when-let ()
   ;; FIXME Broken on Emacs 25
-  (compat-tests--if (= emacs-major-version 25)
+  (static-if (= emacs-major-version 25)
       (should-equal "second"
                     (when-let
                         ((x 3)
@@ -2232,7 +2350,7 @@
 
 (ert-deftest compat-if-let ()
   ;; FIXME Broken on Emacs 25
-  (compat-tests--if (= emacs-major-version 25)
+  (static-if (= emacs-major-version 25)
       (should-equal "then"
                     (if-let
                         ((x 3)
@@ -2934,7 +3052,7 @@
     (should (directory-name-p dir))
     (should (file-directory-p dir)))
   (ert-with-temp-file file :buffer buffer
-    (should (equal (current-buffer) buffer))
+    (should-equal (current-buffer) buffer)
     (should-equal buffer-file-name file)
     (should-not (directory-name-p file))
     (should (file-readable-p file))
@@ -2991,6 +3109,128 @@
 (ert-deftest compat-widget-key ()
   (with-temp-buffer
     (should-equal (take 3 (widget-create 'key)) '(key :value ""))))
+
+(ert-deftest compat-copy-tree ()
+  ;; Adapted from Emacs /test/lisp/subr-tests.el
+  ;; Check that values other than conses, vectors and records are
+  ;; neither copied nor traversed.
+  (let ((s (propertize "abc" 'prop (list 11 12)))
+        (h (make-hash-table :test #'equal)))
+    (puthash (list 1 2) (list 3 4) h)
+    (dolist (x (list nil 'a "abc" s h))
+      (should (eq (compat-call copy-tree x) x))
+      (should (eq (compat-call copy-tree x t) x))))
+
+  (cl-defstruct compat-tests--rec foo)
+  (let* ((rec (make-compat-tests--rec :foo 1))
+         (lst (list rec rec)))
+    ;; Plain record
+    (should-equal (compat-call copy-tree rec) rec)
+    (should-equal (compat-call copy-tree rec t) rec)
+    (should (eq (compat-call copy-tree rec) rec))
+    (should-not (eq (compat-call copy-tree rec t) rec))
+    ;; Record inside list
+    (should-equal (compat-call copy-tree lst) lst)
+    (should-not (eq (compat-call copy-tree lst) lst))
+    (should (eq (car (compat-call copy-tree lst)) rec))
+    (should-not (eq (car (compat-call copy-tree lst t)) rec))
+    (should (eq (cadr (compat-call copy-tree lst)) rec))
+    (should-not (eq (cadr (compat-call copy-tree lst t)) rec)))
+
+  ;; Use the printer to detect common parts of Lisp values.
+  (let ((print-circle t))
+    (cl-labels ((prn3 (x y z) (prin1-to-string (list x y z)))
+                (cat3 (x y z) (concat "(" x " " y " " z ")")))
+      (let ((x '(a (b ((c) . d) e) (f))))
+        (should-equal (prn3 x (compat-call copy-tree x) (compat-call copy-tree x t))
+                      (cat3 "(a (b ((c) . d) e) (f))"
+                            "(a (b ((c) . d) e) (f))"
+                            "(a (b ((c) . d) e) (f))"))))))
+
+(ert-deftest compat-static-if ()
+  (should-equal "true" (static-if t "true"))
+  (should-not (static-if nil "true"))
+  (should-equal "else2" (static-if nil "true" "else1" "else2")))
+
+(ert-deftest compat-completion-lazy-hilit ()
+  (let ((completion-lazy-hilit t)
+        (completion-lazy-hilit-fn (lambda (x) (concat "<" x ">"))))
+    (should-equal (completion-lazy-hilit "test") "<test>"))
+  (should-equal (completion-lazy-hilit "test") "test"))
+
+(ert-deftest compat-merge-ordered-lists ()
+  (should-equal (merge-ordered-lists
+                 '((B A) (C A) (D B) (E D C))
+                 (lambda (_) (error "cycle")))
+                '(E D B C A))
+  (should-equal (merge-ordered-lists
+                 '((E D C) (B A) (C A) (D B))
+                 (lambda (_) (error "cycle")))
+                '(E D C B A))
+  (should-error (merge-ordered-lists
+                 '((E C D) (B A) (A C) (D B))
+                 (lambda (_) (error "cycle")))))
+
+(ert-deftest compat-require-with-check ()
+  (ert-with-temp-directory dir1
+    (ert-with-temp-directory dir2
+      (dolist (dir (list dir1 dir2))
+        (with-temp-buffer
+          (insert "(provide 'compat-reload)")
+          (write-region (point-min) (point-max)
+                        (file-name-concat dir "compat-reload.el"))))
+      (should-not (require-with-check 'compat-does-not-exist nil 'noerror))
+      (should-not (require-with-check 'compat-does-not-exist "compat-does-not-exist.el" 'noerror))
+      (let ((load-path (cons dir1 load-path)))
+        (should-equal 'compat-reload (require-with-check 'compat-reload))
+        (should-equal 'compat-reload (require-with-check 'compat-reload)))
+      (let ((load-path (cons dir2 load-path)))
+        (should-error (require-with-check 'compat-reload))
+        (should-equal 'compat-reload (require-with-check 'compat-reload nil 'noerror))
+        (should-equal 'compat-reload (require-with-check 'compat-reload nil 'reload))))))
+
+(defvar compat-tests-find-buffer nil)
+(ert-deftest compat-find-buffer ()
+  (let ((buf1 (get-buffer-create "*compat-tests-buf1*"))
+        (buf2 (get-buffer-create "*compat-tests-buf2*")))
+    (with-current-buffer buf1
+      (setq-local compat-tests-find-buffer 1))
+    (with-current-buffer buf2
+      (setq-local compat-tests-find-buffer 2))
+    (should-equal buf1 (find-buffer 'compat-tests-find-buffer 1))
+    (should-equal buf2 (find-buffer 'compat-tests-find-buffer 2))
+    (should-not (find-buffer 'compat-tests-find-buffer 3))))
+
+(ert-deftest compat-get-truename-buffer ()
+  (let ((buf1 (get-buffer-create "*compat-tests-buf1*"))
+        (buf2 (get-buffer-create "*compat-tests-buf2*")))
+    (with-current-buffer buf1
+      (setq-local buffer-file-truename "compat-tests-file1"))
+    (with-current-buffer buf2
+      (setq-local buffer-file-truename "compat-tests-file2"))
+    (should-equal buf1 (get-truename-buffer "compat-tests-file1"))
+    (should-equal buf2 (get-truename-buffer "compat-tests-file2"))
+    (should-not (get-truename-buffer "compat-tests-file3"))))
+
+(ert-deftest compat-completion-metadata-get ()
+  (let ((md '((a . 1) (b . 2) (c . 3) (category . compat-test))))
+    (should-equal 'compat-test (compat-call completion-metadata-get md 'category))
+    (should-equal 1 (compat-call completion-metadata-get md 'a))
+    (should-equal 2 (compat-call completion-metadata-get md 'b))
+    (should-equal 3 (compat-call completion-metadata-get md 'c))
+    (should-not (compat-call completion-metadata-get md 'd))
+    (let ((completion-extra-properties '(:d 4)))
+      (should-equal 4 (compat-call completion-metadata-get md 'd)))
+    (let ((completion-category-overrides '((compat-test (a . 10)))))
+      (should-equal 10 (compat-call completion-metadata-get md 'a))))
+  (let ((md '((a . 1) (b . 2))))
+    (should-not (compat-call completion-metadata-get md 'category))
+    (let ((completion-extra-properties '(:category compat-test)))
+      (should-equal 1 (compat-call completion-metadata-get md 'a))
+      (should-equal 2 (compat-call completion-metadata-get md 'b))
+      (should-equal 'compat-test (compat-call completion-metadata-get md 'category))
+      (let ((completion-category-overrides '((compat-test (a . 10)))))
+        (should-equal 10 (compat-call completion-metadata-get md 'a))))))
 
 (provide 'compat-tests)
 ;;; compat-tests.el ends here

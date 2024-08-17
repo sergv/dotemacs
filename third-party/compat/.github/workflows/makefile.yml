@@ -31,10 +31,13 @@ jobs:
           - '27.2'
           - '28.1'
           - '28.2'
+          - '29.1'
+          - '29.2'
+          - '29.3'
           - 'release-snapshot'
           - 'snapshot'
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: purcell/setup-emacs@master
       with:
         version: ${{ matrix.emacs-version }}
@@ -46,9 +49,7 @@ jobs:
     - name: Run interpreted tests
       run: make test
     - name: Byte compile all files
-      run: |
-        sed -i "s/ no-byte-compile: t;//" compat-macs.el compat-tests.el
-        make compile
+      run: make force-compile
     - name: Run compiled tests
       run: make test
     - name: Make info manual
