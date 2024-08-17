@@ -889,7 +889,13 @@ Error is given as MSG and reported between POS and END."
                  "hPutStr"
                  "stdin"
                  "stdout"
-                 "stderr")))))))
+                 "stderr"))
+               (("GHC.Word")
+                "Data.Word"
+                ("Word8"
+                 "Word16"
+                 "Word32"
+                 "Word64")))))))
 
 (defun attrap--add-import--fix-module-name (identifier mod-name)
   (cl-assert (stringp identifier))
