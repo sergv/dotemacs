@@ -683,6 +683,53 @@
     ("ComposeT" "/tmp/Test/Foo/Bar.hs" 100 ?t nil))))
 
 (attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/add-import-4
+ :flycheck-errors
+ (list
+  (let ((linecol (save-excursion
+                   (re-search-forward "_|_")
+                   (flycheck-line-column-at-pos (point)))))
+    (flycheck-error-new
+     :line (car linecol)
+     :column (cdr linecol)
+     :buffer (current-buffer)
+     :checker 'haskell-dante
+     :message
+     (tests-utils--multiline
+      "error: [GHC-76037]"
+      "    Not in scope: data constructor ‘Compose’")
+     :level 'error
+     :id nil
+     :group nil)))
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Decombobulate"
+  ""
+  "main :: IO ()"
+  "main = do"
+  "  print (\\(_|_Compose y) -> y) $ x"
+  "  pure ()"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Decombobulate"
+  "import Test.Foo.Bar (Compose(Compose))"
+  ""
+  "main :: IO ()"
+  "main = do"
+  "  print (\\(_|_Compose y) -> y) $ x"
+  "  pure ()"
+  "")
+ :eproj-project
+ (attrap-tests-make-ephemeral-haskell-eproj-project
+  '(("Compose" "/tmp/Test/Foo/Bar.hs" 100 ?C ((parent "Compose" . ?t)))
+    ("Compose" "/tmp/Test/Foo/Bar.hs" 100 ?t nil))))
+
+(attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/add-to-import-import-list-1
  :flycheck-errors
  (list
