@@ -1,9 +1,9 @@
 ;;; magit-files.el --- Finding files  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2023 The Magit Project Contributors
+;; Copyright (C) 2008-2024 The Magit Project Contributors
 
-;; Author: Jonas Bernoulli <jonas@bernoul.li>
-;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
+;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
+;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -184,13 +184,11 @@ then only after asking.  A non-nil value for REVERT is ignored if REV is
     (set-buffer-modified-p nil)
     (goto-char (point-min))))
 
-(defun magit--lsp--disable-when-visiting-blob (fn &rest args)
+(define-advice lsp (:around (fn &rest args) magit-find-file)
   "Do nothing when visiting blob using `magit-find-file' and similar.
 See also https://github.com/doomemacs/doomemacs/pull/6309."
   (unless magit-buffer-revision
     (apply fn args)))
-
-(advice-add 'lsp :around #'magit--lsp--disable-when-visiting-blob)
 
 ;;; Find Index
 
@@ -491,7 +489,7 @@ Git, then fallback to using `delete-file'."
   (interactive
    (let ((rev (magit-read-branch-or-commit
                "Checkout from revision" magit-buffer-revision)))
-     (list rev (magit-read-file-from-rev rev "Checkout file"))))
+     (list rev (magit-read-file-from-rev rev "Checkout file" nil t))))
   (magit-with-toplevel
     (magit-run-git "checkout" rev "--" file)))
 
@@ -499,8 +497,11 @@ Git, then fallback to using `delete-file'."
 
 (defvar magit-read-file-hist nil)
 
-(defun magit-read-file-from-rev (rev prompt &optional default)
+(defun magit-read-file-from-rev (rev prompt &optional default include-dirs)
   (let ((files (magit-revision-files rev)))
+    (when include-dirs
+      (setq files (sort (nconc files (magit-revision-directories rev))
+                        #'string<)))
     (magit-completing-read
      prompt files nil t nil 'magit-read-file-hist
      (car (member (or default (magit-current-file)) files)))))
