@@ -1,9 +1,9 @@
 ;;; magit-push.el --- Update remote objects and refs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2023 The Magit Project Contributors
+;; Copyright (C) 2008-2024 The Magit Project Contributors
 
-;; Author: Jonas Bernoulli <jonas@bernoul.li>
-;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
+;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
+;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -87,10 +87,8 @@ argument the push-remote can be changed before pushed to it."
                (magit--select-push-remote "push there")))
     (when changed
       (magit-confirm 'set-and-push
-        (string-replace
-         "%" "%%"
-         (format "Really use \"%s\" as push-remote and push \"%s\" there"
-                 remote branch))))
+        (list "Really use \"%s\" as push-remote and push \"%s\" there"
+              remote branch)))
     (run-hooks 'magit-credential-hook)
     (magit-run-git-async "push" "-v" args remote
                          (format "refs/heads/%s:refs/heads/%s"
@@ -150,10 +148,8 @@ the upstream."
           ;; is what the user wants to happen.
           (setq merge (concat "refs/heads/" merge)))
         (magit-confirm 'set-and-push
-          (string-replace
-           "%" "%%"
-           (format "Really use \"%s\" as upstream and push \"%s\" there"
-                   upstream branch))))
+          (list "Really use \"%s\" as upstream and push \"%s\" there"
+                upstream branch)))
       (cl-pushnew "--set-upstream" args :test #'equal))
     (run-hooks 'magit-credential-hook)
     (magit-run-git-async "push" "-v" args remote (concat branch ":" merge))))
@@ -340,9 +336,9 @@ what this command will do.  To add it use something like:
                             ((not (string-match "/" ref))
                              (magit--propertize-face (format "%s/%s" remote ref)
                                                      'magit-branch-remote))
-                            (t (format "%s as %s"
-                                       (magit--propertize-face remote 'bold)
-                                       (magit--propertize-face ref 'bold)))))
+                            ((format "%s as %s"
+                                     (magit--propertize-face remote 'bold)
+                                     (magit--propertize-face ref 'bold)))))
                  "nothing (no upstream)")))
             ("matching" (format "all matching to %s"
                                 (magit--propertize-face remote 'bold)))))))))
