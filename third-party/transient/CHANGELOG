@@ -1,4 +1,77 @@
 # -*- mode: org -*-
+* v0.7.4    2024-08-05
+
+- Added new function ~transient-active-prefix~.
+
+* v0.7.3    2024-07-13
+
+- Refactored code responsible for inserting columns.
+
+Bug fix:
+
+- The ~transient-current-*~ variables are intended to only be used by
+  suffix commands, when they are invoked from a prefix.  Previously
+  they were only cleared when the prefix is ultimately exited, which
+  meant that they unintentionally were accessible in timers.  Now the
+  values of these variables are nil when used outside their intended
+  scope.  0e0ece32, f2cb28a5
+
+* v0.7.2    2024-06-24
+
+- Added support for adding suffixes that activate value presets.  #183
+
+Bug fix:
+
+- Restored the ability to individually set infix arguments if the
+  prefix's ~refresh-suffixes~ slot is non-nil.  8db5f0fd
+
+* v0.7.1    2024-06-19
+
+- Added a workaround for ~emoji.el~ from Emacs 29.1 calling an internal
+  function using an outdated number of arguments.  #288
+
+* v0.7.0    2024-06-18
+
+- Added new macro ~transient-augment-suffix~, which can be used to
+  specify the suffix behavior of a command that was previously defined
+  as a prefix, using ~transient-define-prefix~.  2fd3ea14
+
+- Added new function ~transient-scope~, which is just a convenient way
+  to get the value of the ~scope~ slot of the ~transient-prefix-object~.
+  7f6c39c5
+
+- Added new hook ~transient-setup-buffer-hook~, which is run early when
+  setting the transient menu buffer.  #283
+
+- Added new class ~transient-information*~, a variant of recently added
+  ~transient-information~ class.  8a80e952
+
+- By default our macros that define commands, mark those as for
+  interactive use only.  ~(declare (interactive-only nil))~ can now be
+  used to overwrite that.  fcc60e27
+
+- Groups now also accept ~:inapt*~ predicates.  3d395d64
+
+- Spaces between columns is reduced from three to two.  dd93001e
+
+- Removed unused ~transient-plist-to-alist~ function.  1251faf0
+
+Bug fixes:
+
+- ~transient--force-fixed-pitch~ was run to late to always succeed.  #283
+
+- Key binding conflict detection was too strict, taking hypothetical
+  bindings for inapt commands into account.  c356d1bc
+
+- Key binding conflict detection did not consider bindings in regular
+  keymaps, such as ~transient-base-map~.  2698d62d
+
+- ~func-arity~ gets confused when a function is advised, so we had to
+  add a wrapper function ~transient--func-arity~.  91dd7bb3
+
+- Some mistakes, that can be expected to occur when defining suffix and
+  prefix commands, were not detected.  7e827c31
+
 * v0.6.0    2024-03-21
 
 - On Emacs 28.1 and later, all infix commands and suffix commands
@@ -9,7 +82,7 @@
   declared to be unsuitable for ~M-x~, it is now possible to hide them
   /without/ also hiding other, unrelated kinds of unsuitable commands.
 
-  I recommend that you instruct to hide /all/ unsuitable command.
+  I recommend that you instruct ~M-x~ to hide /all/ unsuitable command.
   This requires that you customizing ~read-extended-command-predicate~,
   because the Emacs authors have decided that this should be an opt-in
   feature.
@@ -178,9 +251,9 @@ in your favorite transient-using packages in the coming months.
 
 - Sometimes it is useful to display some information in the transient
   buffer, which is not associated with a suffix command.  The new
-  class ~transient-info~ can be used for that purpose.  Children that
-  use this class are very similar to regular suffixes, the lack of a
-  command binding being nearly the only difference.  #226
+  class ~transient-information~ can be used for that purpose.  Children
+  that use this class are very similar to regular suffixes, the lack
+  of a command binding being nearly the only difference.  #226
 
 - Instead of a list of choices, the value of a suffix's ~choices~ slot
   can now be a function that returns such a list.  #212
