@@ -1,7 +1,7 @@
 #+title: Magit-Section Developer Manual
 :PREAMBLE:
 #+author: Jonas Bernoulli
-#+email: jonas@bernoul.li
+#+email: emacs.magit@jonas.bernoulli.dev
 #+date: 2015-{{{year}}}
 
 #+texinfo_dir_category: Emacs
@@ -86,7 +86,7 @@ source for suitable examples before asking me for help.  Thanks!
   a section by washing Git's output and Git didn't actually output
   anything this time around.
 
-- Function: magit-insert-heading &rest args ::
+- Function: magit-insert-heading [child-count] &rest args ::
 
   Insert the heading for the section currently being inserted.
 
@@ -114,6 +114,13 @@ source for suitable examples before asking me for help.  Thanks!
   newline character.  This isn't enforced, you are responsible for
   getting it right.  The only exception is that this function does
   insert a newline character if necessary.
+
+  If provided, optional CHILD-COUNT must evaluate to an integer or
+  boolean.  If t, then the count is determined once the children have been
+  inserted, using ~magit-insert-child-count~ (which see).  For historic
+  reasons, if the heading ends with ":", the count is substituted for
+  that, at this time as well.  If ~magit-section-show-child-count~ is nil,
+  no counts are inserted
 
 - Macro: magit-insert-section-body &rest body ::
 
@@ -171,10 +178,11 @@ source for suitable examples before asking me for help.  Thanks!
   If optional ROOT is non-nil, then search in that section tree
   instead of in the one whose root ~magit-root-section~ is.
 
-- Function: magit-section-lineage section ::
+- Function: magit-section-lineage section &optional raw ::
 
   Return the lineage of SECTION.
-  The return value has the form ~(TYPE...)~.
+  If optional RAW is non-nil, return a list of section objects,
+  beginning with SECTION, otherwise return a list of section types.
 
 - Function: magit-section-content-p section ::
 
@@ -274,7 +282,7 @@ when appropriate.
 :END:
 
 #+begin_quote
-Copyright (C) 2015-{{{year}}} Jonas Bernoulli <jonas@bernoul.li>
+Copyright (C) 2015-{{{year}}} Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 
 You can redistribute this document and/or modify it under the terms
 of the GNU General Public License as published by the Free Software

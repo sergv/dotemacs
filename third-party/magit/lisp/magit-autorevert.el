@@ -1,9 +1,9 @@
 ;;; magit-autorevert.el --- Revert buffers when files in repository change  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2023 The Magit Project Contributors
+;; Copyright (C) 2008-2024 The Magit Project Contributors
 
-;; Author: Jonas Bernoulli <jonas@bernoul.li>
-;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
+;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
+;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -153,7 +153,7 @@ and code surrounding the definition of this function."
       (magit-auto-revert-mode 1)
       (magit-message
        "Turning on magit-auto-revert-mode...done%s"
-       (let ((elapsed (float-time (time-subtract nil start))))
+       (let ((elapsed (float-time (time-since start))))
          (if (> elapsed 0.2)
              (format " (%.3fs, %s buffers checked)" elapsed
                      (length (buffer-list)))
@@ -245,7 +245,7 @@ defaults to nil) for any BUFFER."
              ;; ^ `tramp-handle-file-in-directory-p' lacks this optimization.
              (file-in-directory-p dir top))))))
 
-(defun auto-revert-buffers--buffer-list-filter (fn)
+(define-advice auto-revert-buffers (:around (fn) buffer-list-filter)
   (cl-incf magit-auto-revert-counter)
   (if (or global-auto-revert-mode
           (not auto-revert-buffer-list)
@@ -257,9 +257,6 @@ defaults to nil) for any BUFFER."
       (funcall fn))
     (unless auto-revert-timer
       (auto-revert-set-timer))))
-
-(advice-add 'auto-revert-buffers :around
-            #'auto-revert-buffers--buffer-list-filter)
 
 ;;; _
 (provide 'magit-autorevert)

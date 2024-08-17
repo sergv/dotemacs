@@ -1,9 +1,9 @@
 ;;; magit-bisect.el --- Bisect support for Magit  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2023 The Magit Project Contributors
+;; Copyright (C) 2008-2024 The Magit Project Contributors
 
-;; Author: Jonas Bernoulli <jonas@bernoul.li>
-;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
+;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
+;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -104,15 +104,7 @@ other actions from the bisect transient command (\
   (interactive (if (magit-bisect-in-progress-p)
                    (user-error "Already bisecting")
                  (magit-bisect-start-read-args)))
-  (unless (magit-rev-ancestor-p good bad)
-    (user-error
-     "The %s revision (%s) has to be an ancestor of the %s one (%s)"
-     (or (transient-arg-value "--term-old=" args) "good")
-     good
-     (or (transient-arg-value "--term-new=" args) "bad")
-     bad))
-  (when (magit-anything-modified-p)
-    (user-error "Cannot bisect with uncommitted changes"))
+  (magit-bisect-start--assert bad good args)
   (magit-repository-local-set 'bisect--first-parent
                               (transient-arg-value "--first-parent" args))
   (magit-git-bisect "start" (list args bad good) t))
@@ -129,6 +121,17 @@ other actions from the bisect transient command (\
                                      "Good"))
            bad)
           args)))
+
+(defun magit-bisect-start--assert (bad good args)
+  (unless (magit-rev-ancestor-p good bad)
+    (user-error
+     "The %s revision (%s) has to be an ancestor of the %s one (%s)"
+     (or (transient-arg-value "--term-old=" args) "good")
+     good
+     (or (transient-arg-value "--term-new=" args) "bad")
+     bad))
+  (when (magit-anything-modified-p)
+    (user-error "Cannot bisect with uncommitted changes")))
 
 ;;;###autoload
 (defun magit-bisect-reset ()
@@ -197,6 +200,7 @@ bisect run'."
                                 (magit-bisect-start-read-args))))
                  (cons (read-shell-command "Bisect shell command: ") args)))
   (when (and bad good)
+    (magit-bisect-start--assert bad good args)
     ;; Avoid `magit-git-bisect' because it's asynchronous, but the
     ;; next `git bisect run' call requires the bisect to be started.
     (magit-with-toplevel
@@ -206,8 +210,8 @@ bisect run'."
         (list "bisect" "start" bad good args)))
       (magit-refresh)))
   (magit--with-connection-local-variables
-   (magit-git-bisect "run" (list shell-file-name
-                                 shell-command-switch cmdline))))
+    (magit-git-bisect "run" (list shell-file-name
+                                  shell-command-switch cmdline))))
 
 (defun magit-git-bisect (subcommand &optional args no-assert)
   (unless (or no-assert (magit-bisect-in-progress-p))
@@ -270,7 +274,7 @@ bisect run'."
   "While bisecting, insert section visualizing the bisect state."
   (when (magit-bisect-in-progress-p)
     (magit-insert-section (bisect-view)
-      (magit-insert-heading "Bisect Rest:")
+      (magit-insert-heading t "Bisect Rest")
       (magit-git-wash (apply-partially #'magit-log-wash-log 'bisect-vis)
         "bisect" "visualize" "git" "log"
         "--format=%h%x00%D%x00%s" "--decorate=full"
@@ -282,7 +286,7 @@ bisect run'."
   "While bisecting, insert section logging bisect progress."
   (when (magit-bisect-in-progress-p)
     (magit-insert-section (bisect-log)
-      (magit-insert-heading "Bisect Log:")
+      (magit-insert-heading t "Bisect Log")
       (magit-git-wash #'magit-wash-bisect-log "bisect" "log")
       (insert ?\n))))
 
