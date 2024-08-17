@@ -1,7 +1,7 @@
-(define-package "magit-section" "3.3.0.50-git"
+(define-package "magit-section" "4.0.0"
   "Sections for read-only buffers."
-  '((emacs  "25.1")
-    (compat "29.1.3.4")
-    (dash   "20221013"))
+  '((emacs  "26.1")
+    (compat "30.0.0.0")
+    (dash   "20240510"))
   :homepage "https://magit.vc"
   :keywords '("tools"))

@@ -1,9 +1,9 @@
 ;;; magit-margin.el --- Margins in Magit buffers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2023 The Magit Project Contributors
+;; Copyright (C) 2008-2024 The Magit Project Contributors
 
-;; Author: Jonas Bernoulli <jonas@bernoul.li>
-;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
+;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
+;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -62,14 +62,16 @@ does not carry to other options."
   "Change what information is displayed in the margin."
   :info-manual "(magit) Log Margin"
   ["Margin"
-   ("L" "Toggle visibility" magit-toggle-margin      :transient t)
-   ("l" "Cycle style"       magit-cycle-margin-style :transient t)
-   ("d" "Toggle details"    magit-toggle-margin-details)
-   ("v" "Change verbosity"  magit-refs-set-show-commit-count
-    :if-derived magit-refs-mode)])
+   (magit-toggle-margin)
+   (magit-cycle-margin-style)
+   (magit-toggle-margin-details)
+   (magit-refs-set-show-commit-count)])
 
-(defun magit-toggle-margin ()
+(transient-define-suffix magit-toggle-margin ()
   "Show or hide the Magit margin."
+  :description "Toggle visibility"
+  :key "L"
+  :transient t
   (interactive)
   (unless (magit-margin-option)
     (user-error "Magit margin isn't supported in this buffer"))
@@ -79,8 +81,11 @@ does not carry to other options."
 (defvar magit-margin-default-time-format nil
   "See https://github.com/magit/magit/pull/4605.")
 
-(defun magit-cycle-margin-style ()
+(transient-define-suffix magit-cycle-margin-style ()
   "Cycle style used for the Magit margin."
+  :description "Cycle style"
+  :key "l"
+  :transient t
   (interactive)
   (unless (magit-margin-option)
     (user-error "Magit margin isn't supported in this buffer"))
@@ -95,8 +100,11 @@ does not carry to other options."
           (_ 'age)))
   (magit-set-buffer-margin nil t))
 
-(defun magit-toggle-margin-details ()
+(transient-define-suffix magit-toggle-margin-details ()
   "Show or hide details in the Magit margin."
+  :description "Toggle details"
+  :key "d"
+  :transient t
   (interactive)
   (unless (magit-margin-option)
     (user-error "Magit margin isn't supported in this buffer"))
@@ -118,7 +126,8 @@ does not carry to other options."
     ('magit-refs-mode       'magit-refs-margin)
     ('magit-stashes-mode    'magit-stashes-margin)
     ('magit-status-mode     'magit-status-margin)
-    ('forge-notifications-mode 'magit-status-margin)))
+    ('forge-notifications-mode 'magit-status-margin)
+    ('forge-topics-mode     'magit-status-margin)))
 
 (defun magit-set-buffer-margin (&optional reset refresh)
   (when-let ((option (magit-margin-option)))
@@ -165,14 +174,15 @@ does not carry to other options."
                                (list (list 'margin 'right-margin)
                                      (or string " ")))))))
 
+(defvar magit-margin-overlay-conditions
+  '( unpulled unpushed recent stashes local cherries
+     [remote branchbuf]
+     [tags branchbuf]
+     topics issues pullreqs))
+
 (defun magit-maybe-make-margin-overlay ()
-  (when (or (magit-section-match
-             '(unpulled unpushed recent stashes local cherries)
-             magit-insert-section--current)
-            (and (eq major-mode 'magit-refs-mode)
-                 (magit-section-match
-                  '(remote commit tags)
-                  magit-insert-section--current)))
+  (when (magit-section-match magit-margin-overlay-conditions
+                             magit-insert-section--current)
     (magit-make-margin-overlay nil t)))
 
 ;;; Custom Support
