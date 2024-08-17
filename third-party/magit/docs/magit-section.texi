@@ -8,7 +8,7 @@
 
 @copying
 @quotation
-Copyright (C) 2015-2023 Jonas Bernoulli <jonas@@bernoul.li>
+Copyright (C) 2015-2024 Jonas Bernoulli <emacs.magit@@jonas.bernoulli.dev>
 
 You can redistribute this document and/or modify it under the terms
 of the GNU General Public License as published by the Free Software
@@ -129,7 +129,7 @@ a section by washing Git's output and Git didn't actually output
 anything this time around.
 @end defmac
 
-@defun magit-insert-heading &rest args
+@defun magit-insert-heading [child-count] &rest args
 Insert the heading for the section currently being inserted.
 
 This function should only be used inside @code{magit-insert-section}.
@@ -156,6 +156,13 @@ then its height must be exactly one line, including a trailing
 newline character.  This isn't enforced, you are responsible for
 getting it right.  The only exception is that this function does
 insert a newline character if necessary.
+
+If provided, optional CHILD-COUNT must evaluate to an integer or
+boolean.  If t, then the count is determined once the children have been
+inserted, using @code{magit-insert-child-count} (which see).  For historic
+reasons, if the heading ends with ":", the count is substituted for
+that, at this time as well.  If @code{magit-section-show-child-count} is nil,
+no counts are inserted
 @end defun
 
 @defmac magit-insert-section-body &rest body
@@ -216,9 +223,10 @@ If optional ROOT is non-nil, then search in that section tree
 instead of in the one whose root @code{magit-root-section} is.
 @end defun
 
-@defun magit-section-lineage section
+@defun magit-section-lineage section &optional raw
 Return the lineage of SECTION@.
-The return value has the form @code{(TYPE...)}.
+If optional RAW is non-nil, return a list of section objects,
+beginning with SECTION, otherwise return a list of section types.
 @end defun
 
 @defun magit-section-content-p section
