@@ -12,12 +12,7 @@ all: lisp
 git-commit.elc:
 magit-section.elc:
 magit-base.elc:            magit-section.elc
-ifeq "$(BUILD_MAGIT_LIBGIT)" "true"
-magit-libgit.elc:
-magit-git.elc:             magit-base.elc magit-libgit.elc
-else
 magit-git.elc:             magit-base.elc
-endif
 magit-mode.elc:            magit-base.elc magit-git.elc
 magit-margin.elc:          magit-base.elc magit-mode.elc
 magit-process.elc:         magit-base.elc magit-git.elc magit-mode.elc
@@ -137,8 +132,9 @@ export VERSIONLIB_TMPL
 #'
 
 define suppress_warnings
+(remhash (indirect-function 'derived-mode-p) advertised-signature-table)
 (fset 'original-message (symbol-function 'message))
-(fset 'message ;'
+(fset 'message
       (lambda (f &rest a)
         (unless (or (equal f "Wrote %s")
                     (equal f "pcase-memoize: equal first branch, yet different")

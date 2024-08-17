@@ -8,7 +8,7 @@
 
 @copying
 @quotation
-Copyright (C) 2015-2023 Jonas Bernoulli <jonas@@bernoul.li>
+Copyright (C) 2015-2024 Jonas Bernoulli <emacs.magit@@jonas.bernoulli.dev>
 
 You can redistribute this document and/or modify it under the terms
 of the GNU General Public License as published by the Free Software
@@ -694,7 +694,7 @@ file, but then only a subset of the commands is available.
 
 The global key bindings mentioned in the previous two paragraphs are
 quite inconvenient.  We recommend using @code{C-c g} and @code{C-c f} instead, but
-cannot use those key sequences by default because they are strickly
+cannot use those key sequences by default because they are strictly
 reserved for bindings added by the user.  See @ref{Global Bindings}, if you
 want to explicitly opt-in to the recommended key bindings.
 
@@ -1410,10 +1410,22 @@ but all you need to get started are the next two.
 @findex magit-section-toggle
 Toggle the visibility of the body of the current section.
 
-@item @kbd{C-<tab>} (@code{magit-section-cycle})
+@item @kbd{C-c @key{TAB}} (@code{magit-section-cycle})
+@itemx @kbd{C-<tab>} (@code{magit-section-cycle})
+@kindex C-c TAB
 @kindex C-<tab>
 @findex magit-section-cycle
 Cycle the visibility of current section and its children.
+
+If this command is invoked using @code{C-<tab>} and that is globally bound
+to @code{tab-next}, then this command pivots to behave like that command,
+and you must instead use @code{C-c TAB} to cycle section visibility.
+
+If you would like to keep using @code{C-<tab>} to cycle section visibility
+but also want to use @code{tab-bar-mode}, then you have to prevent that mode
+from using this key and instead bind another key to @code{tab-next}.  Because
+@code{tab-bar-mode} does not use a mode map but instead manipulates the
+global map, this involves advising @code{tab-bar--define-keys}.
 
 @item @kbd{M-<tab>} (@code{magit-section-cycle-diffs})
 @kindex M-<tab>
@@ -1935,6 +1947,15 @@ Sequences:
 operation loses all information collected so far.
 
 @item
+@code{abort-cherry-pick} Aborting a cherry-pick throws away all
+conflict resolutions which have already been carried out by the
+user.
+
+@item
+@code{abort-revert} Aborting a revert throws away all conflict
+resolutions which have already been carried out by the user.
+
+@item
 @code{abort-rebase} Aborting a rebase throws away all already modified
 commits, but it's possible to restore those from the reflog.
 
@@ -2021,6 +2042,12 @@ set @code{magit-published-branches} to @code{nil}.
 Various:
 
 @itemize
+@item
+@code{stash-apply-3way} When a stash cannot be applied using @code{git stash
+      apply}, then Magit uses @code{git apply} instead, possibly using the
+@code{--3way} argument, which isn't always perfectly safe.  See also
+@code{magit-stash-apply}.
+
 @item
 @code{kill-process} There seldom is a reason to kill a process.
 @end itemize
@@ -2277,14 +2304,11 @@ this function always asks the user to choose a candidate, just as
 if both defaults were @code{nil}.
 
 @item
-": " is appended to PROMPT@.
-
-@item
-PROMPT is modified to end with \" (default DEF|FALLBACK): \"
-provided that DEF or FALLBACK is non-nil, that neither @code{ivy-mode}
-nor @code{helm-mode} is enabled, and that
-@code{magit-completing-read-function} is set to its default value of
-@code{magit-builtin-completing-read}.
+@code{format-prompt} is called on PROMPT and DEF (or FALLBACK if
+DEF is @code{nil}).  This appends ": " to the prompt and may also
+add the default to the prompt, using the format specified by
+@code{minibuffer-default-prompt-format} and depending on
+@code{magit-completing-read-default-prompt-predicate}.
 @end itemize
 @end defun
 
@@ -3068,10 +3092,6 @@ respective commits.
 @node Status Options
 @subsection Status Options
 
-@defopt magit-status-refresh-hook
-Hook run after a status buffer has been refreshed.
-@end defopt
-
 @defopt magit-status-margin
 This option specifies whether the margin is initially shown in
 Magit-Status mode buffers and how it is formatted.
@@ -3280,7 +3300,6 @@ the <a href="http://git-scm.com/docs/git-log">git-log(1)</a> manpage.
 @iftex
 the git-log(1) manpage.
 @end iftex
-
 The switch @code{++order=VALUE} is converted to one of @code{--author-date-order},
 @code{--date-order}, or @code{--topo-order} before being passed to @code{git log}.
 
@@ -4397,8 +4416,8 @@ markers in the worktree file.  Because you and/or Git may have
 already resolved some conflicts, that means that these buffers
 may not contain the actual versions from the respective blobs.
 
-@item @kbd{E m} (@code{magit-ediff-resolve-all})
-@kindex E m
+@item @kbd{E M} (@code{magit-ediff-resolve-all})
+@kindex E M
 @findex magit-ediff-resolve-all
 This command allows you to resolve all conflicts in the file at
 point using Ediff.  If there is no file at point or if it doesn't
@@ -5573,7 +5592,7 @@ Visit the @code{HEAD} commit and navigate to the change that should
 not have been included in that commit.
 @item
 Type @code{u} (@code{magit-unstage}) to reverse it in the index.
-This assumes that @code{magit-unstage-committed-changes} is non-nil.
+This assumes that @code{magit-unstage-committed} is non-nil.
 @item
 Type @code{c e} to extend @code{HEAD} with the staged changes,
 including those that were already staged before.
@@ -6697,7 +6716,6 @@ git config --global remote.autoSetupMerge always
 @end example
 
 For more information about these variables you should also see
-
 @ifinfo
 @ref{git-config,,,gitman,}.
 @end ifinfo
@@ -7889,17 +7907,52 @@ prefix arguments are equivalent to @code{--all}-.
 @item @kbd{z a} (@code{magit-stash-apply})
 @kindex z a
 @findex magit-stash-apply
-Apply a stash to the working tree.  Try to preserve the stash index.
-If that fails because there are staged changes, apply without
-preserving the stash index.
+Apply a stash to the working tree.
+
+First try @code{git stash apply --index}, which tries to preserve
+the index stored in the stash, if any.  This may fail because
+applying the stash could result in conflicts and those have to
+be stored in the index, making it impossible to also store the
+stash's index there as well.
+
+If the above failed, then try @code{git stash apply}.  This fails
+(with or without @code{--index}) if there are any uncommitted
+changes to files that are also modified in the stash.
+
+If both of the above failed, then apply using @code{git apply}.
+If there are no conflicting files, use @code{--3way}.  If there are
+conflicting files, then using @code{--3way} requires that those
+files are staged first, which may be undesirable, so prompt
+the user whether to use @code{--3way} or @code{--reject}.
+
+Customize @code{magit-no-confirm} if you want to always use @code{--3way},
+without being prompted.
 
 @item @kbd{z p} (@code{magit-stash-pop})
 @kindex z p
 @findex magit-stash-pop
-Apply a stash to the working tree and remove it from stash list.
-Try to preserve the stash index.  If that fails because there are
-staged changes, apply without preserving the stash index and forgo
-removing the stash.
+Apply a stash to the working tree.  On complete success (if the
+stash can be applied without any conflicts, and while preserving
+the stash's index) then remove the stash from stash list.
+
+First try @code{git stash pop --index}, which tries to preserve
+the index stored in the stash, if any.  This may fail because
+applying the stash could result in conflicts and those have to
+be stored in the index, making it impossible to also store the
+stash's index there as well.
+
+If the above failed, then try @code{git stash apply}.  This fails
+(with or without @code{--index}) if there are any uncommitted
+changes to files that are also modified in the stash.
+
+If both of the above failed, then apply using @code{git apply}.
+If there are no conflicting files, use @code{--3way}.  If there are
+conflicting files, then using @code{--3way} requires that those
+files are staged first, which may be undesirable, so prompt
+the user whether to use @code{--3way} or @code{--reject}.
+
+Customize @code{magit-no-confirm} if you want to always use @code{--3way},
+without being prompted.
 
 @item @kbd{z k} (@code{magit-stash-drop})
 @kindex z k
@@ -8221,11 +8274,12 @@ of which are read from the minibuffer.
 @findex magit-fetch-all
 This command fetches from all remotes.
 
-@item @kbd{f m} (@code{magit-submodule-fetch})
+@item @kbd{f m} (@code{magit-fetch-modules})
 @kindex f m
-@findex magit-submodule-fetch
-This command fetches all submodules.  With a prefix argument it
-fetches all remotes of all submodules.
+@findex magit-fetch-modules
+This command fetches all submodules.  With a prefix argument, it
+acts as a transient prefix command, allowing the caller to set
+options.
 @end table
 
 @defopt magit-pull-or-fetch
@@ -8856,12 +8910,12 @@ This command displays a list of the current repository's modules.
 @item @kbd{o f} (@code{magit-fetch-modules})
 @kindex o f
 @findex magit-fetch-modules
-This command fetches all populated modules.
+This command fetches all populated modules.  With a prefix argument,
+it acts as a transient prefix command, allowing the caller to set
+options.
 
-Option @code{magit-fetch-modules-jobs} controls how many submodules are
-being fetched in parallel.  Also fetch the super-repository, because
-@code{git fetch} does not support not doing that.  With a prefix argument
-fetch all remotes.
+Also fetch the super-repository, because @code{git fetch} does not
+support not doing that.
 @end table
 
 @node Subtree
@@ -9418,7 +9472,7 @@ By default Magit defines a few global key bindings.  These bindings
 are a compromise between providing no bindings at all and providing
 the better bindings I would have liked to use instead.  Magit cannot
 provide the set of recommended bindings by default because those key
-sequences are stricktly reserved for bindings added by the user.
+sequences are strictly reserved for bindings added by the user.
 Also see @ref{Global Bindings} and @ref{Key Binding Conventions,,,elisp,}.
 
 To use the recommended bindings, add this to your init file and
@@ -9928,10 +9982,6 @@ error-prone, but also more costly.  Keeping it simple and just
 re-creating everything from scratch is an old design decision and
 departing from that will require major refactoring.
 
-I plan to do that in time for the next major release.  I also intend
-to create logs and diffs asynchronously, which should also help a lot
-but also requires major refactoring.
-
 Meanwhile you can tell Magit to only automatically refresh the current
 Magit buffer, but not the status buffer.  If you do that, then the
 status buffer is only refreshed automatically if it is the
@@ -9942,14 +9992,16 @@ current buffer.
 @end lisp
 
 You should also check whether any third-party packages have added
-anything to @code{magit-refresh-buffer-hook}, @code{magit-status-refresh-hook},
-@code{magit-pre-refresh-hook}, and @code{magit-post-refresh-hook}.  If so, then
-check whether those additions impact performance significantly.
+anything to @code{magit-refresh-buffer-hook}, @code{magit-pre-refresh-hook}, and
+@code{magit-post-refresh-hook}.  If so, then check whether those additions
+impact performance significantly.
 
 Magit can be told to refresh buffers verbosely using @code{M-x
 magit-toggle-verbose-refresh}.  Enabling this helps figuring out which
-sections are bottlenecks.  The additional output can be found in the
-@code{*Messages*} buffer.
+sections are bottlenecks. Each line printed to the @code{*Messages*} buffer
+contains a section name, the number of seconds it took to show this
+section, and from 0 to 2 exclamation marks: the more exclamation marks
+the slower the section is.
 
 Magit also reverts buffers for visited files located inside the
 current repository when the visited file changes on disk.  That is
@@ -9990,7 +10042,7 @@ numbers of tags.  It would therefore be a good idea to disable
 When showing logs, Magit limits the number of commits initially shown
 in the hope that this avoids unnecessary work.  When @code{--graph} is
 used, then this unfortunately does not have the desired effect for
-large histories.  Junio, Git's maintainer, said on the git mailing
+large histories.  Junio, Git's maintainer, said on the Git mailing
 list (@uref{https://www.spinics.net/lists/git/msg232230.html}): "@code{--graph} wants
 to compute the whole history and the max-count only affects the output
 phase after @code{--graph} does its computation".
@@ -11143,8 +11195,8 @@ undo that setting in Magit by customizing @code{magit-git-global-arguments}.
 @node Point is wrong in the @code{COMMIT_EDITMSG} buffer
 @appendixsubsec Point is wrong in the @code{COMMIT_EDITMSG} buffer
 
-Neither Magit nor `git-commit` fiddle with point in the buffer used to
-write commit messages, so something else must be doing it.
+Neither Magit nor @code{git-commit.el} fiddle with point in the buffer used
+to write commit messages, so something else must be doing it.
 
 You have probably globally enabled a mode which restores point in
 file-visiting buffers.  It might be a bit surprising, but when you
