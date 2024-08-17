@@ -1,11 +1,11 @@
-;;; magit-bookmark.el --- Bookmark support for Magit  -*- lexical-binding:t -*-
+;;; magit-bookmark.el --- Bookmarks for Magit buffers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2023 The Magit Project Contributors
+;; Copyright (C) 2008-2024 The Magit Project Contributors
 
 ;; Inspired by an earlier implementation by Yuri Khan.
 
-;; Author: Jonas Bernoulli <jonas@bernoul.li>
-;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
+;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
+;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -30,6 +30,23 @@
 
 (require 'magit)
 
+(require 'bookmark)
+
+;;; Common
+
+(cl-defmethod magit-bookmark-get-filename (&context (major-mode magit-mode))
+  (magit-toplevel))
+
+(cl-defmethod magit-bookmark-get-buffer-create
+  (bookmark (mode (derived-mode magit-mode)))
+  (let ((default-directory (bookmark-get-filename bookmark))
+        (magit-display-buffer-function #'identity)
+        (magit-display-buffer-noselect t))
+    (apply (intern (format "%s-setup-buffer"
+                           (substring (symbol-name mode) 0 -5)))
+           (--map (bookmark-prop-get bookmark it)
+                  (get mode 'magit-bookmark-variables)))))
+
 ;;; Diff
 ;;;; Diff
 
@@ -48,7 +65,7 @@
             ('undefined
              (delq nil (list magit-buffer-typearg magit-buffer-range-hashed))))
           (if magit-buffer-diff-files
-              (concat " -- " (mapconcat #'identity magit-buffer-diff-files " "))
+              (concat " -- " (string-join magit-buffer-diff-files " "))
             "")))
 
 ;;;; Revision
@@ -62,7 +79,7 @@
   (format "magit-revision(%s %s)"
           (magit-rev-abbrev magit-buffer-revision)
           (if magit-buffer-diff-files
-              (mapconcat #'identity magit-buffer-diff-files " ")
+              (string-join magit-buffer-diff-files " ")
             (magit-rev-format "%s" magit-buffer-revision))))
 
 ;;;; Stash
@@ -76,8 +93,14 @@
   (format "magit-stash(%s %s)"
           (magit-rev-abbrev magit-buffer-revision)
           (if magit-buffer-diff-files
-              (mapconcat #'identity magit-buffer-diff-files " ")
+              (string-join magit-buffer-diff-files " ")
             (magit-rev-format "%s" magit-buffer-revision))))
+
+(cl-defmethod magit-bookmark--get-child-value
+  (section &context (major-mode magit-stash-mode))
+  (string-replace magit-buffer-revision
+                  magit-buffer-revision-hash
+                  (oref section value)))
 
 ;;; Log
 ;;;; Log
@@ -89,9 +112,9 @@
 
 (cl-defmethod magit-bookmark-name (&context (major-mode magit-log-mode))
   (format "magit-log(%s%s)"
-          (mapconcat #'identity magit-buffer-revisions " ")
+          (string-join magit-buffer-revisions " ")
           (if magit-buffer-log-files
-              (concat " -- " (mapconcat #'identity magit-buffer-log-files " "))
+              (concat " -- " (string-join magit-buffer-log-files " "))
             "")))
 
 ;;;; Cherry

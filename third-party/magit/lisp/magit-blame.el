@@ -1,9 +1,9 @@
 ;;; magit-blame.el --- Blame support for Magit  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2023 The Magit Project Contributors
+;; Copyright (C) 2008-2024 The Magit Project Contributors
 
-;; Author: Jonas Bernoulli <jonas@bernoul.li>
-;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
+;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
+;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -274,7 +274,7 @@ Also see option `magit-blame-styles'."
                                    (error "Cannot get blame chunk at eob"))
                                (car (magit-blame--parse-chunk type))))))
                    (noerror nil)
-                   (t (error "Buffer does not visit a tracked file")))))))
+                   ((error "Buffer does not visit a tracked file")))))))
 
 (defun magit-blame-chunk-at (pos)
   (--some (overlay-get it 'magit-blame-chunk)
@@ -454,6 +454,7 @@ modes is toggled, then this mode also gets toggled automatically.
   (let ((status (process-status process)))
     (when (memq status '(exit signal))
       (kill-buffer (process-buffer process))
+      (kill-buffer (process-get process 'stderr-buf))
       (if (and (eq status 'exit)
                (zerop (process-exit-status process)))
           (unless quiet
@@ -512,7 +513,8 @@ modes is toggled, then this mode also gets toggled automatically.
                  (setf prev-file (magit-decode-git-path (match-string 2))))
                 ((looking-at "^\\([^ ]+\\) \\(.+\\)")
                  (push (cons (match-string 1)
-                             (match-string 2)) revinfo)))
+                             (match-string 2))
+                       revinfo)))
           (forward-line)))
       (when (and (eq type 'removal) prev-rev)
         (cl-rotatef orig-rev  prev-rev)

@@ -1,7 +1,7 @@
 #+title: Magit User Manual
 :PREAMBLE:
 #+author: Jonas Bernoulli
-#+email: jonas@bernoul.li
+#+email: emacs.magit@jonas.bernoulli.dev
 #+date: 2015-{{{year}}}
 
 #+texinfo_dir_category: Emacs
@@ -361,7 +361,7 @@ file, but then only a subset of the commands is available.
 
 The global key bindings mentioned in the previous two paragraphs are
 quite inconvenient.  We recommend using ~C-c g~ and ~C-c f~ instead, but
-cannot use those key sequences by default because they are strickly
+cannot use those key sequences by default because they are strictly
 reserved for bindings added by the user.  See [[*Global Bindings]], if you
 want to explicitly opt-in to the recommended key bindings.
 
@@ -1011,9 +1011,20 @@ but all you need to get started are the next two.
 
   Toggle the visibility of the body of the current section.
 
+- Key: C-c TAB (magit-section-cycle) ::
 - Key: C-<tab> (magit-section-cycle) ::
 
   Cycle the visibility of current section and its children.
+
+  If this command is invoked using ~C-<tab>~ and that is globally bound
+  to ~tab-next~, then this command pivots to behave like that command,
+  and you must instead use ~C-c TAB~ to cycle section visibility.
+
+  If you would like to keep using ~C-<tab>~ to cycle section visibility
+  but also want to use ~tab-bar-mode~, then you have to prevent that mode
+  from using this key and instead bind another key to ~tab-next~.  Because
+  ~tab-bar-mode~ does not use a mode map but instead manipulates the
+  global map, this involves advising ~tab-bar--define-keys~.
 
 - Key: M-<tab> (magit-section-cycle-diffs) ::
 
@@ -1460,6 +1471,13 @@ telling Magit to ask fewer questions.
     - ~reset-bisect~ Aborting (known to Git as "resetting") a bisect
       operation loses all information collected so far.
 
+    - ~abort-cherry-pick~ Aborting a cherry-pick throws away all
+      conflict resolutions which have already been carried out by the
+      user.
+
+    - ~abort-revert~ Aborting a revert throws away all conflict
+      resolutions which have already been carried out by the user.
+
     - ~abort-rebase~ Aborting a rebase throws away all already modified
       commits, but it's possible to restore those from the reflog.
 
@@ -1524,6 +1542,11 @@ telling Magit to ask fewer questions.
     set ~magit-published-branches~ to ~nil~.
 
   - Various:
+
+    - ~stash-apply-3way~ When a stash cannot be applied using ~git stash
+      apply~, then Magit uses ~git apply~ instead, possibly using the
+      ~--3way~ argument, which isn't always perfectly safe.  See also
+      ~magit-stash-apply~.
 
     - ~kill-process~ There seldom is a reason to kill a process.
 
@@ -1762,13 +1785,11 @@ will also have to install the ~ido-completing-read+~ package and use
     this function always asks the user to choose a candidate, just as
     if both defaults were ~nil~.
 
-  - ": " is appended to PROMPT.
-
-  - PROMPT is modified to end with \" (default DEF|FALLBACK): \"
-    provided that DEF or FALLBACK is non-nil, that neither ~ivy-mode~
-    nor ~helm-mode~ is enabled, and that
-    ~magit-completing-read-function~ is set to its default value of
-    ~magit-builtin-completing-read~.
+  - ~format-prompt~ is called on PROMPT and DEF (or FALLBACK if
+    DEF is ~nil~).  This appends ": " to the prompt and may also
+    add the default to the prompt, using the format specified by
+    ~minibuffer-default-prompt-format~ and depending on
+    ~magit-completing-read-default-prompt-predicate~.
 
 *** Additional Completion Options
 
@@ -2461,10 +2482,6 @@ variable.
   respective commits.
 
 *** Status Options
-
-- User Option: magit-status-refresh-hook ::
-
-  Hook run after a status buffer has been refreshed.
 
 - User Option: magit-status-margin ::
 
@@ -3530,7 +3547,7 @@ information on how to use Ediff itself, see info:ediff.
   already resolved some conflicts, that means that these buffers
   may not contain the actual versions from the respective blobs.
 
-- Key: E m (magit-ediff-resolve-all) ::
+- Key: E M (magit-ediff-resolve-all) ::
 
   This command allows you to resolve all conflicts in the file at
   point using Ediff.  If there is no file at point or if it doesn't
@@ -4488,7 +4505,7 @@ You can also use Ediff to stage and unstage.  See [[*Ediffing]].
   1. Visit the ~HEAD~ commit and navigate to the change that should
      not have been included in that commit.
   2. Type ~u~ (~magit-unstage~) to reverse it in the index.
-     This assumes that ~magit-unstage-committed-changes~ is non-nil.
+     This assumes that ~magit-unstage-committed~ is non-nil.
   3. Type ~c e~ to extend ~HEAD~ with the staged changes,
      including those that were already staged before.
   4. Optionally stage the remaining changes using ~s~ or ~S~ and then
@@ -6396,16 +6413,51 @@ Also see [[man:git-stash]]
 
 - Key: z a (magit-stash-apply) ::
 
-  Apply a stash to the working tree.  Try to preserve the stash index.
-  If that fails because there are staged changes, apply without
-  preserving the stash index.
+  Apply a stash to the working tree.
+
+  First try ~git stash apply --index~, which tries to preserve
+  the index stored in the stash, if any.  This may fail because
+  applying the stash could result in conflicts and those have to
+  be stored in the index, making it impossible to also store the
+  stash's index there as well.
+
+  If the above failed, then try ~git stash apply~.  This fails
+  (with or without ~--index~) if there are any uncommitted
+  changes to files that are also modified in the stash.
+
+  If both of the above failed, then apply using ~git apply~.
+  If there are no conflicting files, use ~--3way~.  If there are
+  conflicting files, then using ~--3way~ requires that those
+  files are staged first, which may be undesirable, so prompt
+  the user whether to use ~--3way~ or ~--reject~.
+
+  Customize ~magit-no-confirm~ if you want to always use ~--3way~,
+  without being prompted.
 
 - Key: z p (magit-stash-pop) ::
 
-  Apply a stash to the working tree and remove it from stash list.
-  Try to preserve the stash index.  If that fails because there are
-  staged changes, apply without preserving the stash index and forgo
-  removing the stash.
+  Apply a stash to the working tree.  On complete success (if the
+  stash can be applied without any conflicts, and while preserving
+  the stash's index) then remove the stash from stash list.
+
+  First try ~git stash pop --index~, which tries to preserve
+  the index stored in the stash, if any.  This may fail because
+  applying the stash could result in conflicts and those have to
+  be stored in the index, making it impossible to also store the
+  stash's index there as well.
+
+  If the above failed, then try ~git stash apply~.  This fails
+  (with or without ~--index~) if there are any uncommitted
+  changes to files that are also modified in the stash.
+
+  If both of the above failed, then apply using ~git apply~.
+  If there are no conflicting files, use ~--3way~.  If there are
+  conflicting files, then using ~--3way~ requires that those
+  files are staged first, which may be undesirable, so prompt
+  the user whether to use ~--3way~ or ~--reject~.
+
+  Customize ~magit-no-confirm~ if you want to always use ~--3way~,
+  without being prompted.
 
 - Key: z k (magit-stash-drop) ::
 
@@ -6646,10 +6698,11 @@ push-remote, see [[*The Two Remotes]].
 
   This command fetches from all remotes.
 
-- Key: f m (magit-submodule-fetch) ::
+- Key: f m (magit-fetch-modules) ::
 
-  This command fetches all submodules.  With a prefix argument it
-  fetches all remotes of all submodules.
+  This command fetches all submodules.  With a prefix argument, it
+  acts as a transient prefix command, allowing the caller to set
+  options.
 
 - User Option: magit-pull-or-fetch ::
 
@@ -7103,12 +7156,12 @@ suitable modules.
 
 - Key: o f (magit-fetch-modules) ::
 
-  This command fetches all populated modules.
+  This command fetches all populated modules.  With a prefix argument,
+  it acts as a transient prefix command, allowing the caller to set
+  options.
 
-  Option ~magit-fetch-modules-jobs~ controls how many submodules are
-  being fetched in parallel.  Also fetch the super-repository, because
-  ~git fetch~ does not support not doing that.  With a prefix argument
-  fetch all remotes.
+  Also fetch the super-repository, because ~git fetch~ does not
+  support not doing that.
 
 ** Subtree
 
@@ -7567,7 +7620,7 @@ By default Magit defines a few global key bindings.  These bindings
 are a compromise between providing no bindings at all and providing
 the better bindings I would have liked to use instead.  Magit cannot
 provide the set of recommended bindings by default because those key
-sequences are stricktly reserved for bindings added by the user.
+sequences are strictly reserved for bindings added by the user.
 Also see [[*Global Bindings]] and [[info:elisp#Key Binding Conventions]].
 
 To use the recommended bindings, add this to your init file and
@@ -7944,10 +7997,6 @@ error-prone, but also more costly.  Keeping it simple and just
 re-creating everything from scratch is an old design decision and
 departing from that will require major refactoring.
 
-I plan to do that in time for the next major release.  I also intend
-to create logs and diffs asynchronously, which should also help a lot
-but also requires major refactoring.
-
 Meanwhile you can tell Magit to only automatically refresh the current
 Magit buffer, but not the status buffer.  If you do that, then the
 status buffer is only refreshed automatically if it is the
@@ -7958,14 +8007,16 @@ current buffer.
 #+end_src
 
 You should also check whether any third-party packages have added
-anything to ~magit-refresh-buffer-hook~, ~magit-status-refresh-hook~,
-~magit-pre-refresh-hook~, and ~magit-post-refresh-hook~.  If so, then
-check whether those additions impact performance significantly.
+anything to ~magit-refresh-buffer-hook~, ~magit-pre-refresh-hook~, and
+~magit-post-refresh-hook~.  If so, then check whether those additions
+impact performance significantly.
 
 Magit can be told to refresh buffers verbosely using ~M-x
 magit-toggle-verbose-refresh~.  Enabling this helps figuring out which
-sections are bottlenecks.  The additional output can be found in the
-~*Messages*~ buffer.
+sections are bottlenecks. Each line printed to the ~*Messages*~ buffer
+contains a section name, the number of seconds it took to show this
+section, and from 0 to 2 exclamation marks: the more exclamation marks
+the slower the section is.
 
 Magit also reverts buffers for visited files located inside the
 current repository when the visited file changes on disk.  That is
@@ -8004,7 +8055,7 @@ numbers of tags.  It would therefore be a good idea to disable
 When showing logs, Magit limits the number of commits initially shown
 in the hope that this avoids unnecessary work.  When ~--graph~ is
 used, then this unfortunately does not have the desired effect for
-large histories.  Junio, Git's maintainer, said on the git mailing
+large histories.  Junio, Git's maintainer, said on the Git mailing
 list (https://www.spinics.net/lists/git/msg232230.html): "~--graph~ wants
 to compute the whole history and the max-count only affects the output
 phase after ~--graph~ does its computation".
@@ -9062,8 +9113,8 @@ undo that setting in Magit by customizing ~magit-git-global-arguments~.
 
 *** Point is wrong in the ~COMMIT_EDITMSG~ buffer
 
-Neither Magit nor `git-commit` fiddle with point in the buffer used to
-write commit messages, so something else must be doing it.
+Neither Magit nor ~git-commit.el~ fiddle with point in the buffer used
+to write commit messages, so something else must be doing it.
 
 You have probably globally enabled a mode which restores point in
 file-visiting buffers.  It might be a bit surprising, but when you
@@ -9079,7 +9130,7 @@ help:
   (with-eval-after-load 'pointback
     (lambda ()
       (when (or git-commit-mode git-rebase-mode)
-	(pointback-mode -1))))
+        (pointback-mode -1))))
 #+end_src
 
 *** The mode-line information isn't always up-to-date
@@ -9313,7 +9364,7 @@ Please also see [[*FAQ]].
 :END:
 
 #+begin_quote
-Copyright (C) 2015-{{{year}}} Jonas Bernoulli <jonas@bernoul.li>
+Copyright (C) 2015-{{{year}}} Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 
 You can redistribute this document and/or modify it under the terms
 of the GNU General Public License as published by the Free Software

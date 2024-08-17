@@ -1,9 +1,9 @@
 ;;; magit-pull.el --- Update local objects and refs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2023 The Magit Project Contributors
+;; Copyright (C) 2008-2024 The Magit Project Contributors
 
-;; Author: Jonas Bernoulli <jonas@bernoul.li>
-;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
+;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
+;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -47,7 +47,8 @@
    (lambda () (if magit-pull-or-fetch "Pull arguments" "Arguments"))
    ("-f" "Fast-forward only" "--ff-only")
    ("-r" "Rebase local commits" ("-r" "--rebase"))
-   ("-A" "Autostash" "--autostash" :level 7)]
+   ("-A" "Autostash" "--autostash" :level 7)
+   ("-F" "Force" ("-f" "--force"))]
   [:description
    (lambda ()
      (if-let ((branch (magit-get-current-branch)))
