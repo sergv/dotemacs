@@ -1,9 +1,9 @@
 ;;; magit-commit.el --- Create Git commits  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2023 The Magit Project Contributors
+;; Copyright (C) 2008-2024 The Magit Project Contributors
 
-;; Author: Jonas Bernoulli <jonas@bernoul.li>
-;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
+;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
+;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -202,8 +202,8 @@ With a prefix argument, amend to the commit at `HEAD' instead.
 
 With a prefix argument keep the committer date, otherwise change
 it.  The option `magit-commit-extend-override-date' can be used
-to inverse the meaning of the prefix argument.  \n(git commit
---amend --no-edit)"
+to inverse the meaning of the prefix argument.
+\n(git commit --amend --no-edit)"
   (interactive (list (magit-commit-arguments)
                      (if current-prefix-arg
                          (not magit-commit-extend-override-date)
@@ -368,9 +368,14 @@ depending on the value of option `magit-commit-squash-confirm'."
     (setq this-command #'magit-rebase-continue)
     (magit-run-git-sequencer "rebase" "--continue")
     nil)
-   ((and (file-exists-p (expand-file-name "MERGE_MSG" (magit-gitdir)))
-         (not (magit-anything-unstaged-p)))
-    (or args (list "--")))
+   ((file-exists-p (expand-file-name "MERGE_MSG" (magit-gitdir)))
+    (cond ((magit-anything-unmerged-p)
+           (user-error "Unresolved conflicts"))
+          ((and (magit-anything-unstaged-p)
+                (not (y-or-n-p
+                      "Proceed with merge despite unstaged changes? ")))
+           (user-error "Abort"))
+          ((or args (list "--")))))
    ((not (magit-anything-unstaged-p))
     (user-error "Nothing staged (or unstaged)"))
    (magit-commit-ask-to-stage

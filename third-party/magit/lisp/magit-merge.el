@@ -1,9 +1,9 @@
 ;;; magit-merge.el --- Merge functionality  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2023 The Magit Project Contributors
+;; Copyright (C) 2008-2024 The Magit Project Contributors
 
-;; Author: Jonas Bernoulli <jonas@bernoul.li>
-;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
+;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
+;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -296,10 +296,6 @@ then also remove the respective remote branch."
 
 ;;; Sections
 
-(defvar-keymap magit-unmerged-section-map
-  :doc "Keymap for `unmerged' sections."
-  :parent magit-log-section-map)
-
 (defun magit-insert-merge-log ()
   "Insert section for the on-going merge.
 Display the heads that are being merged.
@@ -311,7 +307,7 @@ If no merge is in progress, do nothing."
            (range (magit--merge-range (car heads))))
       (magit-insert-section (unmerged range)
         (magit-insert-heading
-          (format "Merging %s:" (mapconcat #'identity heads ", ")))
+          (format "Merging %s:" (string-join heads ", ")))
         (magit--insert-log nil
           range
           (let ((args magit-buffer-log-args))
