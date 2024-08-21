@@ -874,10 +874,12 @@ Error is given as MSG and reported between POS and END."
                  (cl-assert (stringp target-module))
                  (mapcar (lambda (xx)
                            (cons xx
-                                 (alist->hash-table
-                                  (mapcar (lambda (y)
-                                            (cons y target-module))
-                                          identifiers))))
+                                 (if (eq identifiers t)
+                                     t
+                                   (alist->hash-table
+                                    (mapcar (lambda (y)
+                                              (cons y target-module))
+                                            identifiers)))))
                          source-modules)))
              '((("GHC.IO.Handle.Text"
                  "GHC.IO.FD"
@@ -895,14 +897,31 @@ Error is given as MSG and reported between POS and END."
                 ("Word8"
                  "Word16"
                  "Word32"
-                 "Word64")))))))
+                 "Word64"))
+               (("Prettyprinter.Internal")
+                "Prettyprinter"
+                ;; wildcard
+                t)
+               (("Basement.Compat.Bifunctor"
+                 "Bifunctor")
+                "Data.Bifunctor"
+                ("Bifunctor"
+                 "bimap"))
+               (("Data.Generics.Aliases"
+                 "Generics.Deriving.Base.Internal"
+                 "Generics.SOP.Universe")
+                "GHC.Generics"
+                ("Generic")))))))
 
 (defun attrap--add-import--fix-module-name (identifier mod-name)
   (cl-assert (stringp identifier))
   (cl-assert (stringp mod-name))
-  (if-let ((entry (gethash mod-name attrap--module-name-fixes))
-           (new-name (gethash identifier entry)))
-      new-name
+  (if-let ((entry (gethash mod-name attrap--module-name-fixes)))
+      (if (eq entry t)
+          new-name
+        (if-let ((new-name (gethash identifier entry)))
+            new-name
+          mod-name))
     mod-name))
 
 (defvar attrap--import-history nil)
@@ -954,7 +973,10 @@ Error is given as MSG and reported between POS and END."
                                   identifier
                                   import-from-current-project?
                                   (awhen tag-parent
-                                    (car it)))
+                                    (let ((parent-type (cdr it)))
+                                      ;; When type is not class.
+                                      (unless (eq parent-type ?c)
+                                        (car it)))))
     (message "Added import of ‘%s’" mod-name)))
 
 (defun attrap-add-operator-parens (name)
