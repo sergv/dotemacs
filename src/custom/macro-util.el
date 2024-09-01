@@ -602,6 +602,11 @@ return nil otherwise."
   `(let ((inhibit-redisplay t))
      ,@body))
 
+(defmacro with-inhibited-field-text-motion (&rest body)
+  (declare (indent 0))
+  `(let ((inhibit-field-text-motion t))
+     ,@body))
+
 (cl-defmacro with-marker ((marker-var marker-init) &rest body)
   "Run BODY with MARKER-VAR variable initialized to a marker value
 produced by MARKER-INIT and remove marker after BODY finishes."
