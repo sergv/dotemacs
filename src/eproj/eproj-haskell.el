@@ -220,14 +220,14 @@ runtime but rather will be silently relied on)."
   (let ((is-module?
          (pcase (eproj-tag/type tag)
            (?m t)
-           (_  nil)))
-        (inhibit-field-text-motion t))
-    (unless is-module?
-      (for-buffer-with-file
-          (eproj-resolve-to-abs-path (eproj-tag/file tag) proj)
-        (save-excursion
-          (goto-line-dumb (eproj-tag/line tag))
-          (eproj/haskell-extract-block))))))
+           (_  nil))))
+    (with-inhibited-field-text-motion
+      (unless is-module?
+        (for-buffer-with-file
+            (eproj-resolve-to-abs-path (eproj-tag/file tag) proj)
+          (save-excursion
+            (goto-line-dumb (eproj-tag/line tag))
+            (eproj/haskell-extract-block)))))))
 
 ;;;###autoload
 (defun eproj/haskell-extract-block ()
