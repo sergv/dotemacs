@@ -360,7 +360,7 @@ BUFFER is expected to contain output of ctags command."
   (cl-assert (eproj-tag-p tag) nil "Eproj tag is required.")
   (for-buffer-with-file
       (eproj-resolve-to-abs-path (eproj-tag/file tag) proj)
-    (let ((inhibit-field-text-motion t))
+    (with-inhibited-field-text-motion
       (save-excursion
         (goto-line-dumb (eproj-tag/line tag))
         (current-line-with-properties)))))
