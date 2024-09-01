@@ -474,10 +474,11 @@ Similarly for Soar, Scheme, etc."
 inclusively."
   (interactive)
   (save-excursion
-    (with-inhibited-read-only
-     (forward-line -1)
-     (delete-region (point-min) (line-end-position))
-     (delete-char 1))))
+    (with-inhibited-field-text-motion
+      (with-inhibited-read-only
+       (forward-line -1)
+       (delete-region (point-min) (line-end-position))
+       (delete-char 1)))))
 
 (provide 'comint-setup)
 
