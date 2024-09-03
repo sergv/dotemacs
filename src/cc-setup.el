@@ -111,8 +111,17 @@ _o_: show c sexps in region"
 
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-insert-mode-local-keymap)
-    ("C-SPC"       company-complete)
-    ("<backspace>" backward-delete-char))
+    ("C-SPC"               company-complete)
+
+    ;; Override c-mode’s electric keybindings.
+    (("DEL" "<backspace>") pseudoparedit-backspace)
+    ("\""                  pseudoparedit-insert-double-quote)
+    ("\("                  pseudoparedit-insert-paren)
+    ("\)"                  smart-operators-close-paren)
+    ("\["                  pseudoparedit-insert-bracket)
+    ("\]"                  smart-operators-close-bracket)
+    ("\{"                  pseudoparedit-insert-brace)
+    ("\}"                  smart-operators-close-brace))
 
   (bind-tab-keys #'indent-for-tab-command
                  #'tab-to-tab-stop-backward
