@@ -22,36 +22,31 @@
   :group 'json)
 
 (defconst json-ts-font-lock-rules
-  (append
-   ;; Errors
-   '(:language
-     json
-     :feature error
-     :override t
-     ((ERROR) @json-ts-error ;; _ @json-ts-error
-      ))
-   (--mapcat
-    (cons :language (cons 'json (cons :feature it)))
-    '((comment
-       ((comment) @font-lock-comment-face))
-      (constant
-       ((number) @font-lock-constant-face))
-      (word-constant
-       ([(true) (false) (null)] @font-lock-keyword-face))
-      (string
-       ((string) @font-lock-string-face))
+  (--mapcat
+   (cons :language (cons 'json (cons :feature it)))
+   '((everyone
+      (;; comment
+       ((comment) @font-lock-comment-face)
+       ;; constant
+       ((number) @font-lock-constant-face)
+       ;; word-constant
+       ([(true) (false) (null)] @font-lock-keyword-face)
+       ;; string
+       ((string) @font-lock-string-face)))
 
-      ;; Override keys which look like strings
-      (key
-       :override t
-       ((pair key: (string) @json-mode-object-name-face)))
+     (overrides
+      :override t
+      (((ERROR) @json-ts-error
+        ;; _ @json-ts-error
+        )
+       ;; Override keys which look like strings
+       ((pair key: (string) @json-mode-object-name-face))))
 
-      ;; ;; Fontify malformed objects which couldn’t be parsed in full due to narrowing
-      ;; '(key
-      ;;   :override t
-      ;;   ((["," "{"] (string) @json-mode-object-name-face ":")))
-      )))
-  )
+     ;; ;; Fontify malformed objects which couldn’t be parsed in full due to narrowing
+     ;; '(key
+     ;;   :override t
+     ;;   ((["," "{"] (string) @json-mode-object-name-face ":")))
+     )))
 
 (defconst json-ts-indent-rules
   `(((node-is   ,(rx (any ?\] ?\})))         parent-bol 0)
@@ -70,8 +65,7 @@
 
   (setq-local font-lock-defaults nil
               treesit-font-lock-feature-list
-              '((comment error)
-                (string key constant word-constant)))
+              '((everyone overrides)))
 
   (let ((res (treesit-language-available-p 'json t)))
     (unless (car res)
