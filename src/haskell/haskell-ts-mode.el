@@ -20,9 +20,9 @@
 
 (defconst haskell-ts-mode-syntax-table haskell-mode-syntax-table)
 
-(defface haskell-ts-hadddock-face
+(defface haskell-ts-haddock-face
   '((t :inherit font-lock-comment-face :bold t))
-  "How to fontify Haddocck omments, e.g. ‘-- |’"
+  "How to fontify Haddock omments, e.g. ‘-- |’"
   :group 'haskell-appearance)
 
 (defun haskell-ts-mode--name-not-within-infix? (node)
@@ -48,7 +48,7 @@
       ;; comment
       ((comment) @font-lock-comment-face)
 
-      ((haddock) @haskell-ts-hadddock-face)
+      ((haddock) @haskell-ts-haddock-face)
 
       ;; constant
       ([(integer) (float)] @font-lock-constant-face)
