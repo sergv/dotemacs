@@ -911,7 +911,11 @@ Error is given as MSG and reported between POS and END."
                  "Generics.Deriving.Base.Internal"
                  "Generics.SOP.Universe")
                 "GHC.Generics"
-                ("Generic")))))))
+                ("Generic"))
+               (("Data.Bit.Internal")
+                "Data.Bit"
+                ;; wildcard
+                t))))))
 
 (defun attrap--add-import--fix-module-name (identifier mod-name)
   (cl-assert (stringp identifier))
