@@ -875,7 +875,7 @@ Error is given as MSG and reported between POS and END."
                  (mapcar (lambda (xx)
                            (cons xx
                                  (if (eq identifiers t)
-                                     t
+                                     target-module
                                    (alist->hash-table
                                     (mapcar (lambda (y)
                                               (cons y target-module))
@@ -917,8 +917,8 @@ Error is given as MSG and reported between POS and END."
   (cl-assert (stringp identifier))
   (cl-assert (stringp mod-name))
   (if-let ((entry (gethash mod-name attrap--module-name-fixes)))
-      (if (eq entry t)
-          new-name
+      (if (stringp entry)
+          entry
         (if-let ((new-name (gethash identifier entry)))
             new-name
           mod-name))
