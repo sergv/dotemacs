@@ -920,6 +920,22 @@ MATCHING-PREDICATE expression. When the predicate returns non-nil, execute BODY 
              (setf ,ovs-var (cdr ,ovs-var))))
          (setf ,ovss-var (cdr ,ovss-var))))))
 
+;;;
+
+(defmacro setq-local-if-not-eq (&rest bindings)
+  "Do ‘setq-local’ only when current value is not equal to the new one."
+  (let ((res nil))
+    (while bindings
+      (let ((name (car bindings))
+            (val (cadr bindings))
+            (tmp '#:tmp))
+        (cl-assert (symbolp name))
+        (cl-assert (not (null (cdr bindings))) nil "Each name must have corresponding value")
+        (push `(let ((,tmp ,val)) (unless (eq ,name ,tmp) (setq-local ,name ,tmp))) res)
+        (setq bindings (cddr bindings))))
+    `(progn
+       ,@(reverse res))))
+
 ;;; end
 
 (provide 'macro-util)
