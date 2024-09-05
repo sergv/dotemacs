@@ -50,7 +50,7 @@
 (require 'flycheck-haskell)
 (require 'flycheck-setup)
 
-(defvar-local haskell-indent-offset 2
+(defvar haskell-indent-offset 2
   "Haskell indentation amount used by functions written as part
 of my home config.")
 
@@ -79,12 +79,12 @@ single indentation unit."
         (("C-S-<tab>" "C-S-<iso-lefttab>") indent-relative-backward))))
 
   (let ((real-offset (or offset 2)))
-    (setq-local vim-shift-width                    real-offset
-                tab-width                          real-offset
-                haskell-indent-offset              real-offset
-                haskell-indentation-layout-offset  real-offset
-                haskell-indentation-starter-offset real-offset
-                haskell-indentation-left-offset    real-offset)))
+    (setq-local-if-not-eq vim-shift-width                    real-offset
+                          tab-width                          real-offset
+                          haskell-indent-offset              real-offset
+                          haskell-indentation-layout-offset  real-offset
+                          haskell-indentation-starter-offset real-offset
+                          haskell-indentation-left-offset    real-offset)))
 
 (defmacro haskell-misc--with-expanded-invisible-overlays-in-current-function (&rest body)
   `(with-expanded-invisible-overlays
