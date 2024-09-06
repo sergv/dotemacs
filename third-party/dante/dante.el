@@ -587,10 +587,13 @@ When the universal argument INSERT is non-nil, insert the type in the buffer."
                        "\n\n"
                        (dante-fontify-expression info)))))))
 
-(defvar-local dante-temp-fingerprint -1
+(defvar-local dante-temp-fingerprint nil
   "The value of `sha1' of source buffer’s contents when the contents were last loaded.")
 
 (defvar-local dante-interpreted nil)
+
+(defsubst dante-reset-temp-fingerprint! ()
+  (setf dante-temp-fingerprint nil))
 
 (defvar dante-original-buffer-map (make-hash-table :test 'equal)
   "Hash table from (local) temp file names to the file they originate.")
