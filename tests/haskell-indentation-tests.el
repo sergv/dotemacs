@@ -1,0 +1,312 @@
+;; haskell-indentation-tests.el --- -*- lexical-binding: t; -*-
+
+;; Copyright (C) Sergey Vinokurov
+;;
+;; Author: Sergey Vinokurov <serg.foo@gmail.com>
+;; Created:  5 September 2024
+;; Description:
+
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'cl))
+
+(require 'dante)
+(require 'alex-mode)
+(require 'happy-mode)
+(require 'haskell-abbrev+)
+(require 'haskell-block-indent)
+(require 'haskell-format-setup)
+(require 'haskell-misc)
+(require 'haskell-regexen)
+(require 'haskell-smart-operators-mode)
+(require 'haskell-sort-imports)
+
+(require 'common)
+(require 'ert)
+(require 'search)
+(require 'tests-utils)
+
+(cl-defmacro haskell-indentation-tests--test-treesitter
+    (&key name
+          contents
+          expected-value)
+  `(progn
+     ,@(cl-loop
+        for mode in '(haskell-ts-mode)
+        collect
+        `(ert-deftest ,(string->symbol (format "%s/%s" name mode)) ()
+           (tests-utils--test-buffer-contents
+            :action
+            (haskell-misc--indent-line-with-treesitter)
+            :contents ,contents
+            :expected-value ,expected-value
+            :initialisation (,mode)
+            :buffer-id
+            ,(string->symbol (format "haskell-indentation-tests-%s" mode)))))))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-apply-1
+ :contents
+ (tests-utils--multiline
+  "scoreMatches (R seps (R needle (R haystacks Stop))) = do"
+  ""
+  "  (matches :: U.Vector SortKey) <- runWithEarlyTermination $ do"
+  "    let processOne :: forall ss. ReusableState ss -> Text -> Int -> ST ss ()"
+  "        processOne !store !haystack !n = do"
+  "          let haystackLen :: Int"
+  "              !haystackLen = T.length haystack"
+  "          -- frobnicator"
+  "          !match <- foo $ fuzzyMatch"
+  "              _|_store"
+  "              (computeHeatmap store haystack haystackLen seps')"
+  "              needleSegments"
+  "              haystack"
+  "          for_ match $ \\Match{mScore} -> do"
+  "            let !sortKey = mkSortKey mScore (fromIntegral haystackLen) (fromIntegral n)"
+  "            k <- unsafeIOToST $ Counter.add scoresCount 1"
+  "            unsafeIOToST $ UM.unsafeWrite scores k sortKey"
+  "    pure todo"
+  ""
+  "  putStrLn todo2")
+ :expected-value
+ (tests-utils--multiline
+  "scoreMatches (R seps (R needle (R haystacks Stop))) = do"
+  ""
+  "  (matches :: U.Vector SortKey) <- runWithEarlyTermination $ do"
+  "    let processOne :: forall ss. ReusableState ss -> Text -> Int -> ST ss ()"
+  "        processOne !store !haystack !n = do"
+  "          let haystackLen :: Int"
+  "              !haystackLen = T.length haystack"
+  "          -- frobnicator"
+  "          !match <- foo $ fuzzyMatch"
+  "            _|_store"
+  "              (computeHeatmap store haystack haystackLen seps')"
+  "              needleSegments"
+  "              haystack"
+  "          for_ match $ \\Match{mScore} -> do"
+  "            let !sortKey = mkSortKey mScore (fromIntegral haystackLen) (fromIntegral n)"
+  "            k <- unsafeIOToST $ Counter.add scoresCount 1"
+  "            unsafeIOToST $ UM.unsafeWrite scores k sortKey"
+  "    pure todo"
+  ""
+  "  putStrLn todo2"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-apply-2
+ :contents
+ (tests-utils--multiline
+  "scoreMatches (R seps (R needle (R haystacks Stop))) = do"
+  ""
+  "  (matches :: U.Vector SortKey) <- runWithEarlyTermination $ do"
+  "    let processOne :: forall ss. ReusableState ss -> Text -> Int -> ST ss ()"
+  "        processOne !store !haystack !n = do"
+  "          let haystackLen :: Int"
+  "              !haystackLen = T.length haystack"
+  "          -- frobnicator"
+  "          !match <- foo $"
+  "            fuzzyMatch"
+  "                _|_store"
+  "              (computeHeatmap store haystack haystackLen seps')"
+  "              needleSegments"
+  "              haystack"
+  "          for_ match $ \\Match{mScore} -> do"
+  "            let !sortKey = mkSortKey mScore (fromIntegral haystackLen) (fromIntegral n)"
+  "            k <- unsafeIOToST $ Counter.add scoresCount 1"
+  "            unsafeIOToST $ UM.unsafeWrite scores k sortKey"
+  "    pure todo"
+  ""
+  "  putStrLn todo2")
+ :expected-value
+ (tests-utils--multiline
+  "scoreMatches (R seps (R needle (R haystacks Stop))) = do"
+  ""
+  "  (matches :: U.Vector SortKey) <- runWithEarlyTermination $ do"
+  "    let processOne :: forall ss. ReusableState ss -> Text -> Int -> ST ss ()"
+  "        processOne !store !haystack !n = do"
+  "          let haystackLen :: Int"
+  "              !haystackLen = T.length haystack"
+  "          -- frobnicator"
+  "          !match <- foo $"
+  "            fuzzyMatch"
+  "              _|_store"
+  "              (computeHeatmap store haystack haystackLen seps')"
+  "              needleSegments"
+  "              haystack"
+  "          for_ match $ \\Match{mScore} -> do"
+  "            let !sortKey = mkSortKey mScore (fromIntegral haystackLen) (fromIntegral n)"
+  "            k <- unsafeIOToST $ Counter.add scoresCount 1"
+  "            unsafeIOToST $ UM.unsafeWrite scores k sortKey"
+  "    pure todo"
+  ""
+  "  putStrLn todo2"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-apply-3
+ :contents
+ (tests-utils--multiline
+  "scoreMatches (R seps (R needle (R haystacks Stop))) = do"
+  ""
+  "  (matches :: U.Vector SortKey) <- runWithEarlyTermination $ do"
+  "    let processOne :: forall ss. ReusableState ss -> Text -> Int -> ST ss ()"
+  "        processOne !store !haystack !n = do"
+  "          let haystackLen :: Int"
+  "              !haystackLen = T.length haystack"
+  "          -- frobnicator"
+  "          !match <-"
+  "            foo"
+  "              $ fuzzyMatch"
+  "               _|_store"
+  "               (computeHeatmap store haystack haystackLen seps')"
+  "               needleSegments"
+  "               haystack"
+  "          for_ match $ \\Match{mScore} -> do"
+  "            let !sortKey = mkSortKey mScore (fromIntegral haystackLen) (fromIntegral n)"
+  "            k <- unsafeIOToST $ Counter.add scoresCount 1"
+  "            unsafeIOToST $ UM.unsafeWrite scores k sortKey"
+  "    pure todo"
+  ""
+  "  putStrLn todo2")
+ :expected-value
+ (tests-utils--multiline
+  "scoreMatches (R seps (R needle (R haystacks Stop))) = do"
+  ""
+  "  (matches :: U.Vector SortKey) <- runWithEarlyTermination $ do"
+  "    let processOne :: forall ss. ReusableState ss -> Text -> Int -> ST ss ()"
+  "        processOne !store !haystack !n = do"
+  "          let haystackLen :: Int"
+  "              !haystackLen = T.length haystack"
+  "          -- frobnicator"
+  "          !match <-"
+  "            foo"
+  "              $ fuzzyMatch"
+  "                  _|_store"
+  "               (computeHeatmap store haystack haystackLen seps')"
+  "               needleSegments"
+  "               haystack"
+  "          for_ match $ \\Match{mScore} -> do"
+  "            let !sortKey = mkSortKey mScore (fromIntegral haystackLen) (fromIntegral n)"
+  "            k <- unsafeIOToST $ Counter.add scoresCount 1"
+  "            unsafeIOToST $ UM.unsafeWrite scores k sortKey"
+  "    pure todo"
+  ""
+  "  putStrLn todo2"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-apply-4
+ :contents
+ (tests-utils--multiline
+  "foo = do"
+  "  xxx <- foo"
+  "    $ bar"
+  "          _|_baz"
+  "  pure yyy")
+ :expected-value
+ (tests-utils--multiline
+  "foo = do"
+  "  xxx <- foo"
+  "    $ bar"
+  "        _|_baz"
+  "  pure yyy"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-apply-5
+ :contents
+ (tests-utils--multiline
+  "foo = do"
+  "  xxx <- foo"
+  "        _|_quux"
+  "    $ bar"
+  "        baz"
+  "  pure yyy")
+ :expected-value
+ (tests-utils--multiline
+  "foo = do"
+  "  xxx <- foo"
+  "    _|_quux"
+  "    $ bar"
+  "        baz"
+  "  pure yyy"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-where-1
+ :contents
+ (tests-utils--multiline
+  "loopM :: Applicative m => Int -> Int -> (Int -> m ()) -> m ()"
+  "loopM !from !to action = go from"
+  "  where"
+  "_|_      go !n"
+  "        | n == to"
+  "        = pure ()"
+  "        | otherwise"
+  "        = action n *> go (n + 1)")
+ :expected-value
+ (tests-utils--multiline
+  "loopM :: Applicative m => Int -> Int -> (Int -> m ()) -> m ()"
+  "loopM !from !to action = go from"
+  "  where"
+  "    _|_go !n"
+  "        | n == to"
+  "        = pure ()"
+  "        | otherwise"
+  "        = action n *> go (n + 1)"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-where-2
+ :contents
+ (tests-utils--multiline
+  "loopM :: Applicative m => Int -> Int -> (Int -> m ()) -> m ()"
+  "loopM !from !to action = go from"
+  "      _|_where"
+  "      go !n"
+  "        | n == to"
+  "        = pure ()"
+  "        | otherwise"
+  "        = action n *> go (n + 1)")
+ :expected-value
+ (tests-utils--multiline
+  "loopM :: Applicative m => Int -> Int -> (Int -> m ()) -> m ()"
+  "loopM !from !to action = go from"
+  "  _|_where"
+  "      go !n"
+  "        | n == to"
+  "        = pure ()"
+  "        | otherwise"
+  "        = action n *> go (n + 1)"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-let-1
+ :contents
+ (tests-utils--multiline
+  "foo ="
+  "  let xxx = do"
+  "          _|_frobnicator"
+  "  in y xxx")
+ :expected-value
+ (tests-utils--multiline
+  "foo ="
+  "  let xxx = do"
+  "        _|_frobnicator"
+  "  in y xxx"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-let-2
+ :contents
+ (tests-utils--multiline
+  "foo = do"
+  "  let xxx = do"
+  "            _|_frobnicator"
+  "  pure ok")
+ :expected-value
+ (tests-utils--multiline
+  "foo = do"
+  "  let xxx = do"
+  "        _|_frobnicator"
+  "  pure ok"))
+
+(provide 'haskell-indentation-tests)
+
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
+
+;; haskell-tests.el ends here
