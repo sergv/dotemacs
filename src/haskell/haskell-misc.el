@@ -54,6 +54,43 @@
   "Haskell indentation amount used by functions written as part
 of my home config.")
 
+(defun haskell-misc--indent-line-with-treesitter ()
+  (treesit-update-ranges (line-beginning-position)
+                         (line-end-position))
+  (pcase-let* ((`(,anchor . ,offset) (treesit--indent-1)))
+    (when (and anchor offset)
+      ;; Indent with treesitter
+      (let ((col (+ (save-excursion
+                      (goto-char anchor)
+                      (current-column))
+                    offset))
+            (delta (- (point-max) (point))))
+        (indent-line-to col)
+        ;; Now point is at the end of indentation.  If we started
+        ;; from within the line, go back to where we started.
+        (let ((d (- (point-max) delta)))
+          (when (> d (point))
+            (goto-char d))
+          t)))))
+
+(defun haskell-misc--indent-line-with-treesitter-or-fallback (fallback)
+  "Try to indent with treesiter if we can, otherwise fallback to haskell-indentation.el"
+  (cl-assert (functionp fallback))
+  (if treesit-simple-indent-rules
+      (unless (haskell-misc--indent-line-with-treesitter)
+        (funcall fallback))
+    (funcall fallback)))
+
+(defun haskell-misc-combined-indent-forwards ()
+  "Try to indent with treesiter if we can, otherwise fallback to ‘haskell-indentation-indent-line’."
+  (interactive "*")
+  (haskell-misc--indent-line-with-treesitter-or-fallback #'haskell-indentation-indent-line))
+
+(defun haskell-misc-combined-indent-backwards ()
+  "Try to indent with treesiter if we can, otherwise fallback to ‘haskell-indentation-indent-backwards’."
+  (interactive "*")
+  (haskell-misc--indent-line-with-treesitter-or-fallback #'haskell-indentation-indent-backwards))
+
 (defun haskell-setup-indentation (offset simpler-indentation-by-default?)
   "Set up bindings and indentation parameters using OFFSET as a
 single indentation unit."
@@ -67,11 +104,11 @@ single indentation unit."
                        :enable-yasnippet t)
         (def-keys-for-map (vim-normal-mode-local-keymap
                            vim-insert-mode-local-keymap)
-          ("C-<tab>"                         haskell-indentation-indent-line)
-          (("C-S-<tab>" "C-S-<iso-lefttab>") haskell-indentation-indent-backwards)))
+          ("C-<tab>"                         haskell-misc-combined-indent-forwards)
+          (("C-S-<tab>" "C-S-<iso-lefttab>") haskell-misc-combined-indent-backwards)))
     (progn
-      (bind-tab-keys #'haskell-indentation-indent-line
-                     #'haskell-indentation-indent-backwards
+      (bind-tab-keys #'haskell-misc-combined-indent-forwards
+                     #'haskell-misc-combined-indent-backwards
                      :enable-yasnippet t)
       (def-keys-for-map (vim-normal-mode-local-keymap
                          vim-insert-mode-local-keymap)
