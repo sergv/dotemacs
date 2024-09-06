@@ -228,6 +228,63 @@
   "  pure yyy"))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-apply-6
+ :contents
+ (tests-utils--multiline
+  "foo ="
+  "  flip evalState 0 $ do"
+  "    xxx <- foo quux"
+  "_|_"
+  "    pure yyy")
+ :expected-value
+ (tests-utils--multiline
+  "foo ="
+  "  flip evalState 0 $ do"
+  "    xxx <- foo quux"
+  "    _|_"
+  "    pure yyy"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-apply-7
+ :contents
+ (tests-utils--multiline
+  "foo ="
+  "  let foo ="
+  "        flip evalState 0 $ do"
+  "          xxx <- foo quux"
+  "  _|_"
+  "          pure yyy"
+  "  in bar")
+ :expected-value
+ (tests-utils--multiline
+  "foo ="
+  "  let foo ="
+  "        flip evalState 0 $ do"
+  "          xxx <- foo quux"
+  "          _|_"
+  "          pure yyy"
+  "  in bar"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-apply-8
+ :contents
+ (tests-utils--multiline
+  "foo ="
+  "  let foo = flip evalState 0 $ do"
+  "        xxx <- foo quux"
+  "_|_"
+  "        pure yyy"
+  "  in bar")
+ :expected-value
+ (tests-utils--multiline
+  "foo ="
+  "  let foo = flip evalState 0 $ do"
+  "        xxx <- foo quux"
+  "        _|_"
+  "        pure yyy"
+  "  in bar"))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-where-1
  :contents
  (tests-utils--multiline
