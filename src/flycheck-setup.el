@@ -110,7 +110,10 @@ scheme and it’s view of current buffer is malformed."
     ;; Set modtime of the underlying file
     (set-file-times (buffer-file-name) time)
     ;; Sync buffer’s recorded modtime so that auto-revert won’t trigger.
-    (set-visited-file-modtime) time)
+    (set-visited-file-modtime time)
+    ;; Make sure dante will reload this buffer.
+    (when (eq flycheck-checker 'haskell-dante)
+      (dante-reset-temp-fingerprint!)))
 
   (when lsp-mode
     (let ((n (buffer-size))
