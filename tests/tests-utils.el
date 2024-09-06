@@ -10,6 +10,7 @@
   (require 'cl-lib))
 
 (require 'common)
+(require 'el-patch)
 (require 'ert)
 
 (defun tests-utils--multiline (&rest lines)
@@ -60,6 +61,27 @@
                      (not (eq vim-active-mode 'vim-normal-mode)))
             (vim-activate-mode #'vim-normal-mode)))))))
 
+;; Nasty overrides to print actual string I want to see instead of prettyprinting
+;; lisp object that ERT insists on.
+(el-patch-defun ert--pp-with-indentation-and-newline (object)
+  "Pretty-print OBJECT, indenting it to the current column of point.
+Ensures a final newline is inserted."
+  (el-patch-wrap 3 0
+    (if (and (consp object)
+             (eq (car object) 'ert-test-failed)
+             (stringp (cdr object)))
+        (progn
+          (delete-region (line-beginning-position) (point))
+          (insert (cdr object) "\n"))
+      (let ((begin (point))
+            (pp-escape-newlines t)
+            (print-escape-control-characters t))
+        (pp object (current-buffer))
+        (unless (bolp) (insert "\n"))
+        (save-excursion
+          (goto-char begin)
+          (indent-sexp))))))
+
 (cl-defmacro tests-utils--test-buffer-contents (&key action contents expected-value initialisation post-content-initialisation buffer-id)
   (declare (indent nil))
   `(tests-utils--with-temp-buffer
@@ -74,8 +96,20 @@
             (expected-contents ,expected-value))
         (unless (string-match-p "_|_" expected-contents)
           (error "Expected buffer contents does not provide point position with _|_"))
-        (should (equal (split-into-lines actual-contents t)
-                       (split-into-lines expected-contents t)))))
+        (let ((actual-lines (split-into-lines actual-contents t))
+              (expected-lines (split-into-lines expected-contents t)))
+          (unless (equal actual-lines expected-lines)
+            (while (and expected-lines
+                        actual-lines
+                        (equal (car expected-lines) (car actual-lines)))
+              (pop actual-lines)
+              (pop expected-lines))
+            (signal 'ert-test-failed
+                    (format "Mismatch:\nActual:\n%s\nExpected:\n%s\nFirst mismatch in actual:\n%s\nFirst mismatch in expected:\n%s"
+                            actual-contents
+                            expected-contents
+                            (join-lines actual-lines)
+                            (join-lines expected-lines)))))))
     :contents ,contents
     :buffer-id ,buffer-id))
 
