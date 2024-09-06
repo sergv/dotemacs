@@ -366,6 +366,10 @@ _<tab>_: reindent  _h_: jump to topmont node end"
   ("t"     haskell-move-to-topmost-start)
   ("h"     haskell-move-to-topmost-end))
 
+(defhydra-derive hydra-haskell-vim-visual-j-ext hydra-vim-visual-j-ext (:exit t :foreign-keys nil :hint nil)
+  ""
+  ("cu" haskell-uncomment-region-simple))
+
 ;;;###autoload
 (defun haskell-setup-common-editing ()
 
@@ -392,6 +396,9 @@ _<tab>_: reindent  _h_: jump to topmont node end"
   (def-keys-for-map (vim-insert-mode-local-keymap
                      vim-visual-mode-local-keymap)
     ("`"  vim-wrap-backticks))
+
+  (def-keys-for-map vim-visual-mode-local-keymap
+    ("j"  hydra-haskell-vim-visual-j-ext/body))
 
   (def-keys-for-map vim-operator-pending-mode-local-keymap
     (("is" "s") vim:motion-inner-haskell-symbol:interactive)

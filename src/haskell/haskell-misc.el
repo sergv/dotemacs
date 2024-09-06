@@ -54,6 +54,10 @@
   "Haskell indentation amount used by functions written as part
 of my home config.")
 
+(defun haskell-uncomment-region-simple (begin end)
+  (interactive "*r")
+  (comment-util-uncomment-region-simple--impl begin end nil))
+
 (defun haskell-misc--indent-line-with-treesitter ()
   (treesit-update-ranges (line-beginning-position)
                          (line-end-position))
