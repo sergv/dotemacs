@@ -115,6 +115,9 @@ single indentation unit."
         ("C-<tab>"                         indent-relative-forward)
         (("C-S-<tab>" "C-S-<iso-lefttab>") indent-relative-backward))))
 
+  (when treesit-simple-indent-rules
+    (setq-local indent-region-function #'treesit-indent-region))
+
   (let ((real-offset (or offset 2)))
     (setq-local-if-not-eq vim-shift-width                    real-offset
                           tab-width                          real-offset
