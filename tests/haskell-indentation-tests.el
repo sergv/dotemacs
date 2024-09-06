@@ -285,6 +285,64 @@
   "  in bar"))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-apply-9
+ :contents
+ (tests-utils--multiline
+  "foo ref = Bar $ Baz"
+  "  foo"
+  "  ((\\x y -> XXX $"
+  "               _|_M.singleton key $ g value)"
+  "   <$> a"
+  "   <*> b)")
+ :expected-value
+ (tests-utils--multiline
+  "foo ref = Bar $ Baz"
+  "  foo"
+  "  ((\\x y -> XXX $"
+  "     _|_M.singleton key $ g value)"
+  "   <$> a"
+  "   <*> b)"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-apply-10
+ :contents
+ (tests-utils--multiline
+  "foo ="
+  "  for_ bar $ \x ->"
+  "      _|_bar")
+ :expected-value
+ (tests-utils--multiline
+  "foo ="
+  "  for_ bar $ \x ->"
+  "    _|_bar"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-apply-11
+ :contents
+ (tests-utils--multiline
+  "foo ="
+  "  for_ bar $ \x ->"
+  "      _|_bar $ baz")
+ :expected-value
+ (tests-utils--multiline
+  "foo ="
+  "  for_ bar $ \x ->"
+  "    _|_bar $ baz"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-apply-11a
+ :contents
+ (tests-utils--multiline
+  "foo ="
+  "  for_ bar $ \x ->"
+  "      bar $ _|_baz")
+ :expected-value
+ (tests-utils--multiline
+  "foo ="
+  "  for_ bar $ \x ->"
+  "    bar $ _|_baz"))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-where-1
  :contents
  (tests-utils--multiline
