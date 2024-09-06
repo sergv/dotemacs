@@ -1440,7 +1440,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-except
-    (text-mode)
+    (text-mode haskell-ts-mode)
     vim-tests/paste-cycle-after-2
     (execute-kbd-macro (kbd "y w h y w h y w h y w o <escape> <tab> p p p"))
   (tests-utils--multiline
@@ -1463,7 +1463,32 @@
    "de_|_f quux)"
    ""))
 
-(vim-tests--test-fresh-buffer-contents-init-standard-modes
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (text-mode haskell-ts-mode)
+    vim-tests/paste-cycle-after-2a
+    (execute-kbd-macro (kbd "y w h y w h y w h y w o <escape> p p p"))
+  (tests-utils--multiline
+   ""
+   "(foo"
+   " _|_abc"
+   " def"
+   " ghi"
+   " jkl"
+   " quux)"
+   "")
+  (tests-utils--multiline
+   ""
+   "(foo"
+   " abc"
+   " def"
+   " ghi"
+   " jkl"
+   " de_|_f"
+   " quux)"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-except
+    (haskell-ts-mode)
     vim-tests/tab-on-newly-created-empty-line-1
     (progn
       (execute-kbd-macro (kbd "h h h o <escape> <tab>"))
@@ -1492,7 +1517,7 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-except
-    (text-mode)
+    (text-mode haskell-ts-mode)
     vim-tests/paste-cycle-before-1
     (execute-kbd-macro (kbd "y w h y w h y w h y w o <escape> <tab> P P P"))
   (tests-utils--multiline
@@ -1512,6 +1537,30 @@
    " ghi"
    " jkl"
    " _|_def"
+   " quux)"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (text-mode haskell-ts-mode)
+    vim-tests/paste-cycle-before-1a
+    (execute-kbd-macro (kbd "y w h y w h y w h y w o <escape> P P P"))
+  (tests-utils--multiline
+   ""
+   "(foo"
+   " _|_abc"
+   " def"
+   " ghi"
+   " jkl"
+   " quux)"
+   "")
+  (tests-utils--multiline
+   ""
+   "(foo"
+   " abc"
+   " def"
+   " ghi"
+   " jkl"
+   "_|_def "
    " quux)"
    ""))
 
