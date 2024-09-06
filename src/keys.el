@@ -210,6 +210,10 @@
   ("C-w"     backward-delete-word)
   ("C-S-w"   backward-delete-word*))
 
+(def-keys-for-map read-regexp-map
+  ("M-h" next-complete-history-element)
+  ("M-t" previous-complete-history-element))
+
 (provide 'keys)
 
 ;; Local Variables:
