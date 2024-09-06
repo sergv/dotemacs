@@ -412,7 +412,13 @@ they are defined for current mode or one-line comments otherwise."
   "Uncomment region between begin and end presumably commented with
 line comments. If that's not the case then do nothing. Should
 be used only for vim-visual-mode of the vim-mode package."
-  (interactive "r")
+  (interactive "*r")
+  (comment-util-uncomment-region-simple--impl begin end t))
+
+(defun comment-util-uncomment-region-simple--impl (begin end indent?)
+  "Uncomment region between begin and end presumably commented with
+line comments. If that's not the case then do nothing. Should
+be used only for vim-visual-mode of the vim-mode package."
   (save-excursion
     (goto-char begin)
     (beginning-of-line)
@@ -425,7 +431,8 @@ be used only for vim-visual-mode of the vim-mode package."
           (while (and (< (point) end-marker)
                       (not (eobp)))
             (comment-util--delete-comment format)
-            (indent-for-tab-command)
+            (when indent?
+              (indent-for-tab-command))
             (forward-line 1)))))))
 
 ;;;; core functionality, not for interactive use
