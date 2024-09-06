@@ -179,21 +179,26 @@
 (defun haskell-ts-indent--standalone-non-infix-parent-or-let-bind (node parent bol)
   (save-excursion
     (let ((prev2 nil)
-          (prev1 nil)
+          (prev1 node)
           (curr parent))
       (catch 'term
         (while curr
           (let ((curr-type (treesit-node-type curr)))
             (when (string= "infix" curr-type)
-              (let ((prev-field (treesit-node-field-name prev1)))
+              (let ((left-child (treesit-node-child-by-field-name
+                                 curr
+                                 "left_operand"))
+                    (right-child (treesit-node-child-by-field-name
+                                  curr
+                                  "right_operand")))
                 (cond
-                  ((string= prev-field "left_operand")
+                  ((equal prev1 left-child)
                    ;; Continue: we’re left operand of an infix operator,
                    ;; operator comes after us so if we’re not at bol then
                    ;; whe don’t care where operator is.
                    ;; (throw 'term (treesit-node-start prev1))
                    )
-                  ((string= prev-field "right_operand")
+                  ((equal prev1 right-child)
                    ;; Operator may be on a line of its own, take it into account.
                    (let* ((op (treesit-node-child-by-field-name curr "operator"))
                           (start (treesit-node-start op)))
@@ -207,19 +212,22 @@
                    ;; as is.
                    )
                   (t
-                   (error "Unexpected infix field ‘%s’: node = %s, child = %s"
-                          prev-field
+                   ;; Should not happen but just don’t do anything then.
+                   (error "Unexpected infix field, node = %s, child = %s"
                           curr
                           prev1)))))
             (let ((start (treesit-node-start curr)))
-              (goto-char start)
-              (skip-chars-backward " \t")
-              (when (eq (point) (line-beginning-position))
-                (if (or (string= "let" curr-type)
-                        (string= "let_in" curr-type))
-                    (when prev2
-                      (throw 'term (treesit-node-start prev2)))
-                  (throw 'term start)))))
+              (if (string= "parens" curr-type)
+                  (throw 'term start)
+                (progn
+                  (goto-char start)
+                  (skip-chars-backward " \t")
+                  (when (eq (point) (line-beginning-position))
+                    (if (or (string= "let" curr-type)
+                            (string= "let_in" curr-type))
+                        (when prev2
+                          (throw 'term (treesit-node-start prev2)))
+                      (throw 'term start)))))))
           (setq prev2 prev1
                 prev1 curr
                 curr (treesit-node-parent curr)))))))
