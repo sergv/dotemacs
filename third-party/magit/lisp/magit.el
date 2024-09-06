@@ -17,16 +17,15 @@
 ;; Homepage: https://github.com/magit/magit
 ;; Keywords: git tools vc
 
-;; Package-Version: 4.0.0
+;; Package-Version: 4.1.0
 ;; Package-Requires: (
 ;;     (emacs "26.1")
 ;;     (compat "30.0.0.0")
 ;;     (dash "2.19.1")
-;;     (git-commit "4.0.0")
-;;     (magit-section "4.0.0")
+;;     (magit-section "4.1.0")
 ;;     (seq "2.24")
-;;     (transient "0.7.4")
-;;     (with-editor "3.4.1"))
+;;     (transient "0.7.5")
+;;     (with-editor "3.4.2"))
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -580,7 +579,7 @@ is run in the top-level directory of the current working tree."
 Use the function by the same name instead of this variable.")
 
 ;;;###autoload
-(defun magit-version (&optional print-dest interactive)
+(defun magit-version (&optional print-dest interactive nowarn)
   "Return the version of Magit currently in use.
 
 If optional argument PRINT-DEST is non-nil, also print the used
@@ -658,7 +657,7 @@ the output in the kill ring.
     (if (stringp magit-version)
         (when print-dest
           (let ((str (format
-                      "Magit %s%s, Transient %s, Git %s, Emacs %s, %s"
+                      "Magit %s%s, Transient %s,%s Git %s, Emacs %s, %s"
                       (or magit-version "(unknown)")
                       (or (and (ignore-errors
                                  (magit--version>= magit-version "2008"))
@@ -680,6 +679,18 @@ the output in the kill ring.
                                     (locate-library "transient.el" t))
                                    (lm-header "Package-Version"))))
                           "(unknown)")
+                      (let ((lib (locate-library "forge.el" t)))
+                        (or (and lib
+                                 (format
+                                  " Forge %s,"
+                                  (or (ignore-errors
+                                        (require 'lisp-mnt)
+                                        (with-temp-buffer
+                                          (insert-file-contents lib)
+                                          (and (fboundp 'lm-header)
+                                               (lm-header "Package-Version"))))
+                                      "(unknown)")))
+                            ""))
                       (magit--safe-git-version)
                       emacs-version
                       system-type)))
@@ -690,8 +701,7 @@ the output in the kill ring.
       (setq magit-version 'error)
       (when magit-version
         (push magit-version debug))
-      (unless (equal (getenv "CI") "true")
-        ;; The repository is a sparse clone.
+      (unless (or nowarn (equal (getenv "CI") "true"))
         (message "Cannot determine Magit's version %S" debug)))
     magit-version))
 
@@ -771,7 +781,7 @@ For X11 something like ~/.xinitrc should work.\n"
 (unless (bound-and-true-p byte-compile-current-file)
   (if after-init-time
       (progn (magit-startup-asserts)
-             (magit-version))
+             (magit-version nil nil t))
     (add-hook 'after-init-hook #'magit-startup-asserts t)
     (add-hook 'after-init-hook #'magit-version t)))
 
