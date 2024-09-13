@@ -49,6 +49,13 @@
 ;;;###autoload
 (add-hook 'mesages-buffer-mode-hook #'mesages-buffer-setup)
 
+;;;###autoload
+(defun conf-setup ()
+  (init-common :use-yasnippet nil))
+
+;;;###autoload
+(add-hook 'conf-mode-hook #'conf-setup)
+
 (provide 'other-setup)
 
 ;; Local Variables:
