@@ -542,6 +542,61 @@
   "        }"
   "  in bar"))
 
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-record-2
+ :contents
+ (tests-utils--multiline
+  "foo x ="
+  "  let bar = baz"
+  "        _|_{ quux = x"
+  "        }"
+  "  in bar")
+ :expected-value
+ (tests-utils--multiline
+  "foo x ="
+  "  let bar = baz"
+  "        _|_{ quux = x"
+  "        }"
+  "  in bar"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-field-update-1
+ :contents
+ (tests-utils--multiline
+  "foo x ="
+  "  let bar = baz"
+  "        { quux ="
+  "              _|_foo bar baaz"
+  "        }"
+  "  in bar")
+ :expected-value
+ (tests-utils--multiline
+  "foo x ="
+  "  let bar = baz"
+  "        { quux ="
+  "            _|_foo bar baaz"
+  "        }"
+  "  in bar"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-field-update-2
+ :contents
+ (tests-utils--multiline
+  "foo x ="
+  "  let bar = baz"
+  "        { quux ="
+  "              _|_foo $ bar baaz"
+  "        }"
+  "  in bar")
+ :expected-value
+ (tests-utils--multiline
+  "foo x ="
+  "  let bar = baz"
+  "        { quux ="
+  "            _|_foo $ bar baaz"
+  "        }"
+  "  in bar"))
+
 (provide 'haskell-indentation-tests)
 
 ;; Local Variables:
