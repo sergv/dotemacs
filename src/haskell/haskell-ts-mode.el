@@ -184,6 +184,8 @@
       (catch 'term
         (while curr
           (let ((curr-type (treesit-node-type curr)))
+            (when (string= "function" curr-type)
+              (throw 'term (treesit-node-start prev1)))
             (when (string= "infix" curr-type)
               (let ((left-child (treesit-node-child-by-field-name
                                  curr
