@@ -408,6 +408,48 @@
   "foo = undefined"))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-apply-13a
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "  :: ( Bar"
+  "       _|_, Baz"
+  "     , Quux"
+  "     )"
+  "  -> Int"
+  "foo = undefined")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "  :: ( Bar"
+  "     _|_, Baz"
+  "     , Quux"
+  "     )"
+  "  -> Int"
+  "foo = undefined"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-apply-13b
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "  :: Int"
+  "  -> ( Bar"
+  "       _|_, Baz"
+  "     , Quux"
+  "     )"
+  "foo = undefined")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "  :: Int"
+  "  -> ( Bar"
+  "     _|_, Baz"
+  "     , Quux"
+  "     )"
+  "foo = undefined"))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-where-1
  :contents
  (tests-utils--multiline
@@ -483,6 +525,22 @@
   "        _|_frobnicator"
   "  pure ok"))
 
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-record-1
+ :contents
+ (tests-utils--multiline
+  "foo x ="
+  "  let bar = baz"
+  "          _|_{ quux = x"
+  "        }"
+  "  in bar")
+ :expected-value
+ (tests-utils--multiline
+  "foo x ="
+  "  let bar = baz"
+  "        _|_{ quux = x"
+  "        }"
+  "  in bar"))
 
 (provide 'haskell-indentation-tests)
 
