@@ -176,7 +176,7 @@
       ;; laziness
       ([(lazy_field) (irrefutable "~")] @haskell-ts-mode--fontify-tilde)))))
 
-(defun haskell-ts-indent--standalone-non-infix-parent-or-let-bind (node parent bol)
+(defun haskell-ts-indent--standalone-non-infix-parent--generic (node parent bol support-functions?)
   (save-excursion
     (let ((prev2 nil)
           (prev1 node)
@@ -184,7 +184,8 @@
       (catch 'term
         (while curr
           (let ((curr-type (treesit-node-type curr)))
-            (when (string= "function" curr-type)
+            (when (and support-functions?
+                       (string= "function" curr-type))
               (throw 'term (treesit-node-start prev1)))
             (when (string= "infix" curr-type)
               (let ((left-child (treesit-node-child-by-field-name
@@ -234,6 +235,12 @@
                 prev1 curr
                 curr (treesit-node-parent curr)))))))
 
+(defun haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function (node parent bol)
+  (haskell-ts-indent--standalone-non-infix-parent--generic node parent bol t))
+
+(defun haskell-ts-indent--standalone-non-infix-parent-or-let-bind (node parent bol)
+  (haskell-ts-indent--standalone-non-infix-parent--generic node parent bol nil))
+
 (defun haskell-ts-indent--standalone-parent-fast (node parent bol)
   (save-excursion
     (let ((curr parent))
@@ -258,7 +265,7 @@
     ((parent-is "comment") column-0 0)
     ((parent-is "imports") column-0 0)
     ;; Infix
-    ((node-is "infix") haskell-ts-indent--standalone-non-infix-parent-or-let-bind haskell-indent-offset)
+    ((node-is "infix") haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function haskell-indent-offset)
     ((parent-is "infix") haskell-ts-indent--standalone-parent-fast haskell-indent-offset)
     ;; Lambda
     ((parent-is "lambda") haskell-ts-indent--standalone-parent-fast haskell-indent-offset)
@@ -276,7 +283,7 @@
     ((node-is "^else$") parent haskell-indent-offset)
 
     ((parent-is "apply")
-     haskell-ts-indent--standalone-non-infix-parent-or-let-bind
+     haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function
      haskell-indent-offset)
 
     ((node-is "quasiquote") grand-parent haskell-indent-offset)
@@ -349,12 +356,14 @@
     ((parent-is "haskell") column-0 0)
     ((parent-is "declarations") column-0 0)
 
-    ((parent-is "record") haskell-ts-indent--standalone-parent-fast 2)
+    ((parent-is "record") haskell-ts-indent--standalone-non-infix-parent-or-let-bind haskell-indent-offset)
 
     ((parent-is "exports")
      (lambda (_ b _) (treesit-node-start (treesit-node-prev-sibling b)))
      0)
     ((n-p-gp nil "signature" "foreign_import") grand-parent haskell-indent-offset)
+
+    ((n-p-gp "," "tuple" nil) parent 0)
 
     ;; No backup - we would like to default to something else.
     ;; ;; Backup
