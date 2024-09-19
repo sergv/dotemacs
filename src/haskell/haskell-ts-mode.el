@@ -309,8 +309,7 @@
 
 
     ((node-is "alternatives")
-     (lambda (_ b _)
-       (treesit-node-start (treesit-node-child b 0)))
+     haskell-ts-indent--standalone-non-infix-parent-or-let-bind
      haskell-indent-offset)
     ((parent-is "alternatives") haskell-ts-indent--prev-sib 0)
 
