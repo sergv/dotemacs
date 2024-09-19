@@ -597,6 +597,17 @@
   "        }"
   "  in bar"))
 
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-alternatives-1
+ :contents
+ (tests-utils--multiline
+  "foo x = case x of"
+  "     _|_Bar y -> y * y")
+ :expected-value
+ (tests-utils--multiline
+  "foo x = case x of"
+  "  _|_Bar y -> y * y"))
+
 (provide 'haskell-indentation-tests)
 
 ;; Local Variables:
