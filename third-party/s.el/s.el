@@ -302,7 +302,7 @@ Alias: `s-suffix?'"
          (eq t (compare-strings suffix nil nil
                                 s start-pos nil ignore-case)))))
 
-(defun s-starts-with? (prefix s &optional ignore-case)
+(defsubst s-starts-with? (prefix s &optional ignore-case)
   "Does S start with PREFIX?
 
 If IGNORE-CASE is non-nil, the comparison is done without paying
@@ -313,7 +313,7 @@ Alias: `s-prefix?'. This is a simple wrapper around the built-in
   (declare (pure t) (side-effect-free t))
   (string-prefix-p prefix s ignore-case))
 
-(defun s--truthy? (val)
+(defsubst s--truthy? (val)
   (declare (pure t) (side-effect-free t))
   (not (null val)))
 
