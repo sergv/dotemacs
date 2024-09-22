@@ -916,7 +916,10 @@ value section should have if it is to be properly indented."
           (when identifier
             (insert " ("
                     (if parent-name
-                        (concat parent-name "(")
+                        (concat (if (s-starts-with? ":" parent-name)
+                                    (concat "(" parent-name ")")
+                                  parent-name)
+                                "(")
                       "")
                     (if (haskel-misc--is-operator? identifier)
                         (concat "(" identifier ")")
