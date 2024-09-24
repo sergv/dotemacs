@@ -574,7 +574,7 @@
   "foo x ="
   "  let bar = baz"
   "        { quux ="
-  "            _|_foo bar baaz"
+  "          _|_foo bar baaz"
   "        }"
   "  in bar"))
 
@@ -593,9 +593,28 @@
   "foo x ="
   "  let bar = baz"
   "        { quux ="
-  "            _|_foo $ bar baaz"
+  "          _|_foo $ bar baaz"
   "        }"
   "  in bar"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-field-update-3
+ :contents
+ (tests-utils--multiline
+  "foo x ="
+  "  baz"
+  "    { quux = bar"
+  "        _|_{ frobnicate = baar $ baaz"
+  "      }"
+  "    }")
+ :expected-value
+ (tests-utils--multiline
+  "foo x ="
+  "  baz"
+  "    { quux = bar"
+  "      _|_{ frobnicate = baar $ baaz"
+  "      }"
+  "    }"))
 
 (haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-alternatives-1
