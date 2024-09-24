@@ -540,10 +540,18 @@ be used only for vim-visual-mode of the vim-mode package."
   (cond
     ;; has one-line comments defined
     ((comment-format-one-line fmt)
-     (comment-util--comment-n-lines-starting-at-col (concat (comment-format-one-line fmt)
-                                                            comment-util--spaces-after-comment)
-                                                    lines
-                                                    (indentation-size)))
+     (let ((col (indentation-size)))
+       (save-excursion
+         (dotimes (_ lines)
+           (let ((new-col (indentation-size)))
+             (when (< 0 new-col)
+               (setf col (min col new-col))))
+           (forward-line 1)))
+       (comment-util--comment-n-lines-starting-at-col (concat (comment-format-one-line fmt)
+                                                              comment-util--spaces-after-comment)
+                                                      lines
+                                                      col
+                                                      nil)))
     ((comment-util-region-comments-defined? fmt)
      (save-excursion
        (skip-to-indentation)
@@ -553,12 +561,12 @@ be used only for vim-visual-mode of the vim-mode package."
          (forward-line (- lines 1))
          (comment-util--comment-chunk-region begin (line-end-position) fmt))))))
 
-(defun comment-util--comment-n-lines-starting-at-col (comment-str lines column)
+(defun comment-util--comment-n-lines-starting-at-col (comment-str lines column update-column?)
   "Comment next LINES with COMMENT-STR, but insert them at COLUMN."
   (let* ((col column)
          (skip-to-column (lambda ()
                            (beginning-of-line)
-                           (skip-chars-forward " \t" (+ (point) col)))))
+                           (move-to-column col))))
     (combine-change-calls
         (line-beginning-position)
         (save-excursion
@@ -576,10 +584,11 @@ be used only for vim-visual-mode of the vim-mode package."
           (if (and (eq (char-before) ?\n)
                    (eq (char-after) ?\n))
               (progn
-                (insert-char ?\s col)
+                (indent-to col)
                 (insert comment-str))
             (progn
-              (setf col (min col (indentation-size)))
+              (when update-column?
+                (setf col (min col (indentation-size))))
               (funcall skip-to-column)
               (insert comment-str)))
           (forward-line 1)
@@ -630,7 +639,8 @@ up and then comment the result."
       (comment-util--comment-n-lines-starting-at-col
        ";; " ;; bad hack, hard-coded lisp comment... ;; survived for a long time...
        (count-lines-fixed (point) sexp-end-exclusive)
-       (current-column-fixed-uncached)))))
+       (current-column-fixed-uncached)
+       t))))
 
 (defun comment-util--on-commented-line? (fmt)
   "Return t if current line is commented out."
@@ -759,7 +769,8 @@ commented parts and leave point unchanged."
           (comment-util--comment-n-lines-starting-at-col
            comment-format
            count
-           (current-column-fixed)))
+           (current-column-fixed)
+           t))
       (comment-util-comment-lines 1))))
 
 (provide 'comment-util)

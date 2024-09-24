@@ -985,6 +985,44 @@
      " quux)"
      "")))
 
+(ert-deftest vim-tests/comment-linewise-region-2/c-mode ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (c-mode)
+      (execute-kbd-macro (kbd "V h j c c"))
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " b_|_ar"
+     "   baz"
+     " quux)"
+     "")
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " // bar"
+     " //  _|_ baz"
+     " quux)"
+     "")))
+
+(ert-deftest vim-tests/comment-linewise-region-3/c-mode ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (c-mode)
+      (execute-kbd-macro (kbd "V h j c c"))
+    (tests-utils--multiline
+     ""
+     "(foo"
+     "\tb_|_ar"
+     "\t\tbaz"
+     "\tquux)"
+     "")
+    (tests-utils--multiline
+     ""
+     "(foo"
+     "\t// bar"
+     "\t// \t_|_baz"
+     "\tquux)"
+     "")))
+
 (ert-deftest vim-tests/comment-sexp-1/emacs-lisp-mode ()
   (vim-tests--test-fresh-buffer-contents-init
    (emacs-lisp-mode)
