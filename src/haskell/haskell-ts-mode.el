@@ -186,11 +186,11 @@
           (let ((curr-type (treesit-node-type curr)))
             (when (and support-functions?
                        (string= "function" curr-type))
-              (throw 'term (treesit-node-start prev1)))
+              (throw 'term prev1))
             (when (and support-field-update?
                        (string= "field_update" curr-type))
               (when-let ((field-name (treesit-node-child-by-field-name curr "field")))
-                (throw 'term (treesit-node-start field-name))))
+                (throw 'term field-name)))
             (when (string= "infix" curr-type)
               (let ((left-child (treesit-node-child-by-field-name
                                  curr
@@ -203,7 +203,7 @@
                    ;; Continue: we’re left operand of an infix operator,
                    ;; operator comes after us so if we’re not at bol then
                    ;; whe don’t care where operator is.
-                   ;; (throw 'term (treesit-node-start prev1))
+                   ;; (throw 'term prev1)
                    )
                   ((equal prev1 right-child)
                    ;; Operator may be on a line of its own, take it into account.
@@ -212,7 +212,7 @@
                      (goto-char start)
                      (skip-chars-backward " \t")
                      (when (eq (point) (line-beginning-position))
-                       (throw 'term (treesit-node-start prev1))))
+                       (throw 'term prev1)))
                    ;; Otherwise whole operator application may occupy
                    ;; its own line, i.e. its left child may be at the
                    ;; line start so continue processing current node
@@ -225,7 +225,7 @@
                           prev1)))))
             (let ((start (treesit-node-start curr)))
               (if (string= "parens" curr-type)
-                  (throw 'term start)
+                  (throw 'term curr)
                 (progn
                   (goto-char start)
                   (skip-chars-backward " \t")
@@ -233,8 +233,8 @@
                     (if (or (string= "let" curr-type)
                             (string= "let_in" curr-type))
                         (when prev2
-                          (throw 'term (treesit-node-start prev2)))
-                      (throw 'term start)))))))
+                          (throw 'term prev2))
+                      (throw 'term curr)))))))
           (setq prev2 prev1
                 prev1 curr
                 curr (treesit-node-parent curr)))))))
@@ -245,8 +245,8 @@
 (defun haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function (node parent bol)
   (haskell-ts-indent--standalone-non-infix-parent--generic node parent bol t nil))
 
-(defun haskell-ts-indent--standalone-non-infix-parent-or-let-bind (node parent bol)
-  (haskell-ts-indent--standalone-non-infix-parent--generic node parent bol nil nil))
+(defun haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update (node parent bol)
+  (haskell-ts-indent--standalone-non-infix-parent--generic node parent bol nil t))
 
 (defun haskell-ts-indent--standalone-parent-fast (node parent bol)
   (save-excursion
@@ -267,10 +267,23 @@
     (treesit-node-start n)))
 
 (defconst haskell-ts-indent-rules
-  '(((node-is "comment") prev-sibling 0)
+  `(((node-is "comment") prev-sibling 0)
     ((node-is "cpp") column-0 0)
     ((parent-is "comment") column-0 0)
     ((parent-is "imports") column-0 0)
+
+    ((parent-is "record")
+     haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update
+     ,(lambda (node parent bol)
+        (lambda (matched-anchor)
+          (if (string= "field_name" (treesit-node-type matched-anchor))
+              0
+            haskell-indent-offset))))
+
+    ((parent-is "field_update")
+     haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update
+     0)
+
     ;; Infix
     ((node-is "infix") haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update haskell-indent-offset)
     ((parent-is "infix") haskell-ts-indent--standalone-parent-fast haskell-indent-offset)
@@ -305,11 +318,11 @@
     ;;  haskell-indent-offset)
     ;; ((parent-is "do") haskell-ts-indent--prev-sib 0)
 
-    ((parent-is "do") haskell-ts-indent--standalone-non-infix-parent-or-let-bind haskell-indent-offset)
+    ((parent-is "do") haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update haskell-indent-offset)
 
 
     ((node-is "alternatives")
-     haskell-ts-indent--standalone-non-infix-parent-or-let-bind
+     haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update
      haskell-indent-offset)
     ((parent-is "alternatives") haskell-ts-indent--prev-sib 0)
 
@@ -362,18 +375,12 @@
     ((parent-is "haskell") column-0 0)
     ((parent-is "declarations") column-0 0)
 
-    ((parent-is "record") haskell-ts-indent--standalone-non-infix-parent-or-let-bind haskell-indent-offset)
-
     ((parent-is "exports")
      (lambda (_ b _) (treesit-node-start (treesit-node-prev-sibling b)))
      0)
     ((n-p-gp nil "signature" "foreign_import") grand-parent haskell-indent-offset)
 
     ((n-p-gp "," "tuple" nil) parent 0)
-
-    ((parent-is "field_update")
-     haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update
-     haskell-indent-offset)
 
     ;; No backup - we would like to default to something else.
     ;; ;; Backup
