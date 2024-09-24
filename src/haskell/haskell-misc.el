@@ -64,11 +64,25 @@ of my home config.")
   (pcase-let* ((`(,anchor . ,offset) (treesit--indent-1)))
     (when (and anchor offset)
       ;; Indent with treesitter
-      (let ((col (+ (save-excursion
-                      (goto-char anchor)
-                      (current-column))
-                    offset))
-            (delta (- (point-max) (point))))
+      (let* ((anchor-pos (cond
+                           ((treesit-node-p anchor)
+                            (treesit-node-start anchor))
+                           ((number-or-marker-p anchor)
+                            anchor)
+                           (t
+                            (error "Unexpected anchor: ‘%s’" anchor))))
+             (offset-num (cond
+                           ((functionp offset)
+                            (funcall offset anchor))
+                           ((numberp offset)
+                            offset)
+                           (t
+                            (error "Unexpected offset: ‘%s’" offset))))
+             (col (+ (save-excursion
+                       (goto-char anchor-pos)
+                       (current-column))
+                     offset-num))
+             (delta (- (point-max) (point))))
         (indent-line-to col)
         ;; Now point is at the end of indentation.  If we started
         ;; from within the line, go back to where we started.
