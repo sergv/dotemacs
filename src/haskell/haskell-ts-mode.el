@@ -75,6 +75,9 @@
       (pattern_synonym
        ("pattern" @haskell-keyword-face))
 
+      (namespace
+       ("pattern" @haskell-keyword-face))
+
       ((variable) @haskell-keyword-face
        (:equal "_" @haskell-keyword-face))
 
