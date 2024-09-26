@@ -299,7 +299,8 @@
 
     ;; list
     ((node-is "]") parent 0)
-    ((parent-is "list") parent 1)
+    ((n-p-gp "," "list" nil) parent 0)
+    ((parent-is "list") parent haskell-indent-offset)
 
     ;; If then else
     ((node-is "then") parent haskell-indent-offset)
