@@ -921,7 +921,13 @@ Error is given as MSG and reported between POS and END."
                 t)
                (("GHC.Internal.Unsafe.Coerce")
                 "Unsafe.Coerce"
-                t))))))
+                t)
+               (("GHC.Internal.IO.Unsafe")
+                "System.IO.Unsafe"
+                ("unsafePerformIO"
+                 "unsafeDupablePerformIO"
+                 "unsafeInterleaveIO"
+                 "unsafeFixIO")))))))
 
 (defun attrap--add-import--fix-module-name (identifier mod-name)
   (cl-assert (stringp identifier))
