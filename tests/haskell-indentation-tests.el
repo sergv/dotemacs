@@ -627,6 +627,70 @@
   "foo x = case x of"
   "  _|_Bar y -> y * y"))
 
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-list-1
+ :contents
+ (tests-utils--multiline
+  "foo x ="
+  "  [ bar"
+  "    _|_, baz"
+  "  ]")
+ :expected-value
+ (tests-utils--multiline
+  "foo x ="
+  "  [ bar"
+  "  _|_, baz"
+  "  ]"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-list-1a
+ :contents
+ (tests-utils--multiline
+  "foo x ="
+  "  [ bar"
+  "  , quux"
+  "    _|_, baz"
+  "  ]")
+ :expected-value
+ (tests-utils--multiline
+  "foo x ="
+  "  [ bar"
+  "  , quux"
+  "  _|_, baz"
+  "  ]"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-list-1b
+ :contents
+ (tests-utils--multiline
+  "foo x ="
+  "  [ bar"
+  "    _|_, baz"
+  "  , quux"
+  "  ]")
+ :expected-value
+ (tests-utils--multiline
+  "foo x ="
+  "  [ bar"
+  "  _|_, baz"
+  "  , quux"
+  "  ]"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-list-2
+ :contents
+ (tests-utils--multiline
+  "foo x ="
+  "  ["
+  "  _|_bar"
+  "  ]")
+ :expected-value
+ (tests-utils--multiline
+  "foo x ="
+  "  ["
+  "    _|_bar"
+  "  ]"))
+
 (provide 'haskell-indentation-tests)
 
 ;; Local Variables:
