@@ -915,6 +915,9 @@ Error is given as MSG and reported between POS and END."
                (("Data.Bit.Internal")
                 "Data.Bit"
                 ;; wildcard
+                t)
+               (("GHC.Internal.Unsafe.Coerce")
+                "Unsafe.Coerce"
                 t))))))
 
 (defun attrap--add-import--fix-module-name (identifier mod-name)
