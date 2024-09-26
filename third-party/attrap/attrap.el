@@ -770,15 +770,18 @@ Error is given as MSG and reported between POS and END."
                            (seq "• Not in scope: "
                                 (identifier 1))))))
           msg)
-     (when-let ((proj (eproj-get-project-for-buf-lax (current-buffer))))
-       (let ((effective-major-mode (eproj/resolve-synonym-modes major-mode)))
-         ;; Mostly to make tests green but in general too: don’t proceed
-         ;; if found project doesn’t define tags for us.
-         (when (assq effective-major-mode (eproj-project/tags proj))
+     (let ((identifier (attrap-strip-parens (match-string-no-properties 1 msg)))
+           (is-constructor? (not (null (match-beginning 2))))
+           (is-type-or-class? (not (null (match-beginning 3)))))
+       (when-let ((proj (eproj-get-project-for-buf-lax (current-buffer))))
+         (let ((effective-major-mode (eproj/resolve-synonym-modes major-mode)))
+           ;; Mostly to make tests green but in general too: don’t proceed
+           ;; if found project doesn’t define tags for us.
+           (when (assq effective-major-mode (eproj-project/tags proj))
 
-           (eproj-symbnav/ensure-tags-loaded! effective-major-mode proj)
+             (save-match-data
+               (eproj-symbnav/ensure-tags-loaded! effective-major-mode proj))
 
-           (let ((identifier (attrap-strip-parens (match-string-no-properties 1 msg))))
              (when-let ((candidate-tags
                          (eproj-get-matching-tags proj
                                                   effective-major-mode
@@ -788,8 +791,8 @@ Error is given as MSG and reported between POS and END."
                  (attrap--add-import proj
                                      candidate-tags
                                      identifier
-                                     (not (null (match-beginning 2)))
-                                     (not (null (match-beginning 3)))))))))))
+                                     is-constructor?
+                                     is-type-or-class?))))))))
 
     ;; error: [GHC-76037]
     ;;     Not in scope: type constructor or class ‘MonadMask’
