@@ -269,6 +269,13 @@
       (setq n (treesit-node-prev-sibling n)))
     (treesit-node-start n)))
 
+(defun haskell-ts--positions-on-the-same-line? (pos1 pos2)
+  (let ((end (max pos1 pos2)))
+    (save-excursion
+      (goto-char (min pos1 pos2))
+      (skip-chars-forward "^\r\n" end)
+      (eq (point) end))))
+
 (defconst haskell-ts-indent-rules
   `(((node-is "comment") prev-sibling 0)
     ((node-is "cpp") column-0 0)
@@ -296,6 +303,20 @@
     ((parent-is "class_declarations") prev-sibling 0)
 
     ((node-is "^in$") parent 0)
+    ((match nil "let_in" "expression" nil nil)
+     ,(lambda (node parent bol)
+        (let* ((in-node (treesit-node-child parent 2))
+               (in-node-start (treesit-node-start in-node))
+               (parent-start (treesit-node-start parent)))
+          (if (haskell-ts--positions-on-the-same-line? in-node-start parent-start)
+              parent
+            in-node)))
+     ,(lambda (node parent bol)
+        (lambda (matched-anchor)
+          (if (string= "let_in" (treesit-node-type matched-anchor))
+              0
+            haskell-indent-offset))))
+    ((field-is "expression"))
 
     ;; list
     ((node-is "]") parent 0)
