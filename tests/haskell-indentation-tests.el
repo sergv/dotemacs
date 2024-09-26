@@ -691,6 +691,44 @@
   "    _|_bar"
   "  ]"))
 
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-list-3
+ :contents
+ (tests-utils--multiline
+  "foo x ="
+  "  [ bar"
+  "  , baz"
+  "  , let quux = x in"
+  "          _|_y"
+  "  ]")
+ :expected-value
+ (tests-utils--multiline
+  "foo x ="
+  "  [ bar"
+  "  , baz"
+  "  , let quux = x in"
+  "    _|_y"
+  "  ]"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-list-3a
+ :contents
+ (tests-utils--multiline
+  "foo x ="
+  "  [ bar"
+  "  , baz"
+  "  , let quux = x"
+  "      _|_in y"
+  "  ]")
+ :expected-value
+ (tests-utils--multiline
+  "foo x ="
+  "  [ bar"
+  "  , baz"
+  "  , let quux = x"
+  "    _|_in y"
+  "  ]"))
+
 (provide 'haskell-indentation-tests)
 
 ;; Local Variables:
