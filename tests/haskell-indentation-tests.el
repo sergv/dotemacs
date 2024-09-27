@@ -729,6 +729,39 @@
   "    _|_in y"
   "  ]"))
 
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-complex-1
+ :contents
+ (tests-utils--multiline
+  "fuzzyMatchImpl"
+  "  :: forall s. WithCallStack"
+  "  => Text"
+  "  -> ST s (Maybe (Submatch, Heatmap s))"
+  "fuzzyMatchImpl x = do"
+  "  heatmap'@(Heatmap heatmap) <- unsafeInterleaveST mkHeatmap"
+  "  let"
+  "    bigger :: StrCharIdx Int32 -> U.Vector PackedStrCharIdxAndStrByteIdx -> U.Vector PackedStrCharIdxAndStrByteIdx"
+  "    bigger x xs = U.unsafeSlice i (U.length xs - i) xs"
+  "      where"
+  "        (isMember, !i) ="
+  "            _|_foo bar"
+  "  pure XXX")
+ :expected-value
+ (tests-utils--multiline
+  "fuzzyMatchImpl"
+  "  :: forall s. WithCallStack"
+  "  => Text"
+  "  -> ST s (Maybe (Submatch, Heatmap s))"
+  "fuzzyMatchImpl x = do"
+  "  heatmap'@(Heatmap heatmap) <- unsafeInterleaveST mkHeatmap"
+  "  let"
+  "    bigger :: StrCharIdx Int32 -> U.Vector PackedStrCharIdxAndStrByteIdx -> U.Vector PackedStrCharIdxAndStrByteIdx"
+  "    bigger x xs = U.unsafeSlice i (U.length xs - i) xs"
+  "      where"
+  "        (isMember, !i) ="
+  "          _|_foo bar"
+  "  pure XXX"))
+
 (provide 'haskell-indentation-tests)
 
 ;; Local Variables:
