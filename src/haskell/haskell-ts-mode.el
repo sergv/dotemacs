@@ -277,140 +277,147 @@
       (eq (point) end))))
 
 (defconst haskell-ts-indent-rules
-  `(((node-is "comment") prev-sibling 0)
-    ((node-is "cpp") column-0 0)
-    ((parent-is "comment") column-0 0)
-    ((parent-is "imports") column-0 0)
+  (eval-when-compile
+    (let ((rules
+           `(((node-is "comment") prev-sibling 0)
+             ((node-is "cpp") column-0 0)
+             ((parent-is "comment") column-0 0)
+             ((parent-is "imports") column-0 0)
 
-    ((parent-is "record")
-     haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update
-     ,(lambda (node parent bol)
-        (lambda (matched-anchor)
-          (if (string= "field_name" (treesit-node-type matched-anchor))
-              0
-            haskell-indent-offset))))
+             ((parent-is "record")
+              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update
+              ,(lambda (node parent bol)
+                 (lambda (matched-anchor)
+                   (if (string= "field_name" (treesit-node-type matched-anchor))
+                       0
+                     haskell-indent-offset))))
 
-    ((parent-is "field_update")
-     haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update
-     0)
+             ((parent-is "field_update")
+              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update
+              0)
 
-    ;; Infix
-    ((node-is "infix") haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update haskell-indent-offset)
-    ((parent-is "infix") haskell-ts-indent--standalone-parent-fast haskell-indent-offset)
-    ;; Lambda
-    ((parent-is "lambda") haskell-ts-indent--standalone-parent-fast haskell-indent-offset)
+             ;; Infix
+             ((node-is "infix") haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update haskell-indent-offset)
+             ((parent-is "infix") haskell-ts-indent--standalone-parent-fast haskell-indent-offset)
+             ;; Lambda
+             ((parent-is "lambda") haskell-ts-indent--standalone-parent-fast haskell-indent-offset)
 
-    ((parent-is "class_declarations") prev-sibling 0)
+             ((parent-is "class_declarations") prev-sibling 0)
 
-    ((node-is "^in$") parent 0)
-    ((match nil "let_in" "expression" nil nil)
-     ,(lambda (node parent bol)
-        (let* ((in-node (treesit-node-child parent 2))
-               (in-node-start (treesit-node-start in-node))
-               (parent-start (treesit-node-start parent)))
-          (if (haskell-ts--positions-on-the-same-line? in-node-start parent-start)
+             ((node-is "^in$") parent 0)
+             ((match nil "let_in" "expression" nil nil)
+              ,(lambda (node parent bol)
+                 (let* ((in-node (treesit-node-child parent 2))
+                        (in-node-start (treesit-node-start in-node))
+                        (parent-start (treesit-node-start parent)))
+                   (if (haskell-ts--positions-on-the-same-line? in-node-start parent-start)
+                       parent
+                     in-node)))
+              ,(lambda (node parent bol)
+                 (lambda (matched-anchor)
+                   (if (string= "let_in" (treesit-node-type matched-anchor))
+                       0
+                     haskell-indent-offset))))
+
+             ;; list
+             ((node-is "]") parent 0)
+             ((n-p-gp "," "list" nil) parent 0)
+             ((parent-is "list") parent haskell-indent-offset)
+
+             ;; If then else
+             ((node-is "then") parent haskell-indent-offset)
+             ((node-is "^else$") parent haskell-indent-offset)
+
+             ((parent-is "apply")
+              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update
+              haskell-indent-offset)
+
+             ((node-is "quasiquote") grand-parent haskell-indent-offset)
+             ((parent-is "quasiquote_body") (lambda (_ _ c) c) 0)
+
+             ;; ((lambda (node parent bol)
+             ;;    (let ((n (treesit-node-prev-sibling node)))
+             ;;      (while (string= "comment" (treesit-node-type n))
+             ;;        (setq n (treesit-node-prev-sibling n)))
+             ;;      (string= "do" (treesit-node-type n))))
+             ;;  haskell-ts-indent--standalone-parent-fast
+             ;;  haskell-indent-offset)
+             ;; ((parent-is "do") haskell-ts-indent--prev-sib 0)
+
+             ((parent-is "do") haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update haskell-indent-offset)
+
+
+             ((node-is "alternatives")
+              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update
+              haskell-indent-offset)
+             ((parent-is "alternatives") haskell-ts-indent--prev-sib 0)
+
+             (no-node prev-adaptive-prefix 0)
+
+             ((parent-is "data_constructors") parent 0)
+
+             ;; where
+             ((lambda (node _ _)
+                (let ((n (treesit-node-prev-sibling node)))
+                  (while (string= "comment" (treesit-node-type n))
+                    (setq n (treesit-node-prev-sibling n)))
+                  (string= "where" (treesit-node-type n))))
+              (lambda (_ b _)
+                (+ haskell-indent-offset (treesit-node-start (treesit-node-prev-sibling b))))
+              haskell-indent-offset)
+             ((parent-is "local_binds\\|instance_declarations") haskell-ts-indent--prev-sib 0)
+             ((node-is "^where$") parent haskell-indent-offset)
+
+             ;; Match
+             ;; ((match "match" nil 2 2 nil) haskell-ts-indent--prev-sib 0)
+             ((lambda (node _ _)
+                (and (string= (treesit-node-type node) "match")
+                     (let ((pos 3)
+                           (n node)
+                           (ch (lambda () )))
+                       (while (and (not (null n))
+                                   (not (eq pos 0)))
+                         (setq n (treesit-node-prev-sibling n))
+                         (unless (string= "comment" (treesit-node-type n))
+                           (setq pos (- pos 1))))
+                       (and (null n) (eq pos 0)))))
               parent
-            in-node)))
-     ,(lambda (node parent bol)
-        (lambda (matched-anchor)
-          (if (string= "let_in" (treesit-node-type matched-anchor))
-              0
-            haskell-indent-offset))))
-    ((field-is "expression"))
+              haskell-indent-offset)
+             ;; ((match "match" nil nil 3 nil) haskell-ts-indent--prev-sib 0)
+             ((lambda (node _ _)
+                (and (string= (treesit-node-type node) "match")
+                     (let ((pos 4)
+                           (n node)
+                           (ch (lambda () )))
+                       (while (and (not (null n))
+                                   (not (eq pos 0)))
+                         (setq n (treesit-node-prev-sibling n))
+                         (unless (string= "comment" (treesit-node-type n))
+                           (setq pos (- pos 1))))
+                       (eq pos 0))))
+              haskell-ts-indent--prev-sib 0)
+             ((parent-is "match") haskell-ts-indent--standalone-parent-fast haskell-indent-offset)
 
-    ;; list
-    ((node-is "]") parent 0)
-    ((n-p-gp "," "list" nil) parent 0)
-    ((parent-is "list") parent haskell-indent-offset)
+             ((parent-is "haskell") column-0 0)
+             ((parent-is "declarations") column-0 0)
 
-    ;; If then else
-    ((node-is "then") parent haskell-indent-offset)
-    ((node-is "^else$") parent haskell-indent-offset)
+             ((parent-is "exports")
+              (lambda (_ b _) (treesit-node-start (treesit-node-prev-sibling b)))
+              0)
+             ((n-p-gp nil "signature" "foreign_import") grand-parent haskell-indent-offset)
 
-    ((parent-is "apply")
-     haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update
-     haskell-indent-offset)
+             ((n-p-gp "," "tuple" nil) parent 0)
 
-    ((node-is "quasiquote") grand-parent haskell-indent-offset)
-    ((parent-is "quasiquote_body") (lambda (_ _ c) c) 0)
-
-    ;; ((lambda (node parent bol)
-    ;;    (let ((n (treesit-node-prev-sibling node)))
-    ;;      (while (string= "comment" (treesit-node-type n))
-    ;;        (setq n (treesit-node-prev-sibling n)))
-    ;;      (string= "do" (treesit-node-type n))))
-    ;;  haskell-ts-indent--standalone-parent-fast
-    ;;  haskell-indent-offset)
-    ;; ((parent-is "do") haskell-ts-indent--prev-sib 0)
-
-    ((parent-is "do") haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update haskell-indent-offset)
-
-
-    ((node-is "alternatives")
-     haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update
-     haskell-indent-offset)
-    ((parent-is "alternatives") haskell-ts-indent--prev-sib 0)
-
-    (no-node prev-adaptive-prefix 0)
-
-    ((parent-is "data_constructors") parent 0)
-
-    ;; where
-    ((lambda (node _ _)
-       (let ((n (treesit-node-prev-sibling node)))
-         (while (string= "comment" (treesit-node-type n))
-           (setq n (treesit-node-prev-sibling n)))
-         (string= "where" (treesit-node-type n))))
-     (lambda (_ b _)
-       (+ haskell-indent-offset (treesit-node-start (treesit-node-prev-sibling b))))
-     haskell-indent-offset)
-    ((parent-is "local_binds\\|instance_declarations") haskell-ts-indent--prev-sib 0)
-    ((node-is "^where$") parent haskell-indent-offset)
-
-    ;; Match
-    ;; ((match "match" nil 2 2 nil) haskell-ts-indent--prev-sib 0)
-    ((lambda (node _ _)
-       (and (string= (treesit-node-type node) "match")
-            (let ((pos 3)
-                  (n node)
-                  (ch (lambda () )))
-              (while (and (not (null n))
-                          (not (eq pos 0)))
-                (setq n (treesit-node-prev-sibling n))
-                (unless (string= "comment" (treesit-node-type n))
-                  (setq pos (- pos 1))))
-              (and (null n) (eq pos 0)))))
-     parent
-     haskell-indent-offset)
-    ;; ((match "match" nil nil 3 nil) haskell-ts-indent--prev-sib 0)
-    ((lambda (node _ _)
-       (and (string= (treesit-node-type node) "match")
-            (let ((pos 4)
-                  (n node)
-                  (ch (lambda () )))
-              (while (and (not (null n))
-                          (not (eq pos 0)))
-                (setq n (treesit-node-prev-sibling n))
-                (unless (string= "comment" (treesit-node-type n))
-                  (setq pos (- pos 1))))
-              (eq pos 0))))
-     haskell-ts-indent--prev-sib 0)
-    ((parent-is "match") haskell-ts-indent--standalone-parent-fast haskell-indent-offset)
-
-    ((parent-is "haskell") column-0 0)
-    ((parent-is "declarations") column-0 0)
-
-    ((parent-is "exports")
-     (lambda (_ b _) (treesit-node-start (treesit-node-prev-sibling b)))
-     0)
-    ((n-p-gp nil "signature" "foreign_import") grand-parent haskell-indent-offset)
-
-    ((n-p-gp "," "tuple" nil) parent 0)
-
-    ;; No backup - we would like to default to something else.
-    ;; ;; Backup
-    ;; (catch-all parent haskell-indent-offset)
-    ))
+             ;; No backup - we would like to default to something else.
+             ;; ;; Backup
+             ;; (catch-all parent haskell-indent-offset)
+             )))
+      (dolist (rule rules)
+        (unless (and (listp rule)
+                     (= 3 (length rule)))
+          (error "Malformed rule in haskell-ts-indent-rules: %s"
+                 rule)))
+      rules)))
 
 (defun haskell-ts-mode--fontify-bang (node override start end &rest _)
   (haskell-ts-mode--fontify-first-char ?! node))
