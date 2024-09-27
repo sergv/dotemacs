@@ -895,6 +895,9 @@ Error is given as MSG and reported between POS and END."
                  "stdin"
                  "stdout"
                  "stderr"))
+               (("GHC.Internal.IO.Handle")
+                "System.IO"
+                ("hFlush"))
                (("GHC.Word")
                 "Data.Word"
                 ("Word8"
