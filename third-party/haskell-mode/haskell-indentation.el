@@ -508,12 +508,19 @@ and indent when all of the following are true:
   (let ((node (treesit-haskell--current-node))
         (ppss nil))
     (pcase-let* ((`(,anchor . ,offset) (when node (treesit--indent-1))))
-      (let ((treesit-indent
-             (when (and anchor offset)
-               (let ((col (save-excursion
-                            (goto-char anchor)
-                            (+ (current-column) offset))))
-                 (list col)))))
+      (let* ((anchor-pos (cond
+                           ((treesit-node-p anchor)
+                            (treesit-node-start anchor))
+                           ((number-or-marker-p anchor)
+                            anchor)
+                           (t
+                            (error "Unexpected anchor: ‘%s’" anchor))))
+             (treesit-indent
+              (when (and anchor offset)
+                (let ((col (save-excursion
+                             (goto-char anchor-pos)
+                             (+ (current-column) offset))))
+                  (list col)))))
         (remove-duplicates-sorting
          (append
           treesit-indent
