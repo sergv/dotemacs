@@ -5,7 +5,7 @@
 ;; Author: Nikolaj Schumacher
 ;; Maintainer: Dmitry Gutov <dmitry@gutov.dev>
 ;; URL: http://company-mode.github.io/
-;; Version: 0.10.2
+;; Version: 1.0.2
 ;; Keywords: abbrev, convenience, matching
 ;; Package-Requires: ((emacs "25.1"))
 
@@ -301,7 +301,8 @@ This doesn't include the margins and the scroll bar."
 
 (defcustom company-tooltip-scrollbar-width 0.4
   "Width of the scrollbar thumb, in columns."
-  :type 'number)
+  :type 'number
+  :package-version '(company . "1.0.0"))
 
 (defcustom company-tooltip-align-annotations nil
   "When non-nil, align annotations to the right tooltip border."
@@ -375,26 +376,32 @@ one (see below).
 `company-begin-backend' can be used to start a specific backend,
 `company-other-backend' will skip to the next matching backend in the list.
 
+To debug which backend is currently in use, try `M-x company-diag'.
+
 Each backend is a function that takes a variable number of arguments.
 The first argument is the command requested from the backend.  It is one
 of the following:
 
-`prefix': The backend should return the text to be completed.  It must be
-text immediately before point.  Returning nil from this command passes
-control to the next backend.  The function should return `stop' if it
-should complete but cannot (e.g. when in the middle of a symbol).
-Instead of a string, the backend may return a cons (PREFIX . LENGTH)
-where LENGTH is a number used in place of PREFIX's length when
-comparing against `company-minimum-prefix-length'.  LENGTH can also
-be just t, and in the latter case the test automatically succeeds.
+`prefix': The backend should return the text to be completed.  Returning
+nil from this command passes control to the next backend.
+
+The expected return value looks like (PREFIX SUFFIX &optional PREFIX-LEN).
+Where PREFIX is the text to be completed before point, SUFFIX - the
+remainder after point (when e.g. inside a symbol), and PREFIX-LEN, when
+non-nil, is the number to use in place of PREFIX's length when comparing
+against `company-minimum-prefix-length'.  PREFIX-LEN can also be just t,
+and in the latter case the test automatically succeeds.
+
+The return value can also be just PREFIX, in which case SUFFIX is taken to
+be an empty string.
 
 `candidates': The second argument is the prefix to be completed.  The
 return value should be a list of candidates that match the prefix.
 
 Non-prefix matches are also supported (candidates that don't start with the
 prefix, but match it in some backend-defined way).  Backends that use this
-feature must disable cache (return t to `no-cache') and might also want to
-respond to `match'.
+feature must disable cache (return t in response to `no-cache') and might
+also want to handle `match'.
 
 Optional commands
 =================
@@ -463,6 +470,19 @@ modify it, e.g. to expand a snippet.
 `kind': The second argument is a completion candidate.  Return a symbol
 describing the kind of the candidate.  Refer to `company-vscode-icons-mapping'
 for the possible values.
+
+`adjust-boundaries': The second argument is prefix and the third argument
+is suffix (previously returned by the `prefix' command).  Return a
+cons (NEW-PREFIX . NEW-SUFFIX) where both parts correspond to the
+completion candidate.
+
+`expand-common': The first argument is prefix and the second argument is
+suffix.  Return a cons (NEW-PREFIX . NEW-SUFFIX) that denote an edit in the
+current buffer which would be performed by `company-complete-common'.  It
+should try to make the combined length of the prefix and suffix longer,
+while ensuring that the completions for the new inputs are the same.
+Othewise return the original inputs.  If there are no matching completions,
+return the symbol `no-match'.
 
 The backend should return nil for all commands it does not support or
 does not know about.  It should also be callable interactively and use
@@ -669,6 +689,15 @@ happens.  The value of nil means no idle completion."
   :type '(choice (const :tag "never (nil)" nil)
                  (const :tag "immediate (0)" 0)
                  (number :tag "seconds")))
+
+(defcustom company-inhibit-inside-symbols nil
+  "Non-nil to inhibit idle completion when typing in the middle of a symbol.
+The symbol is in a generalized sense, indicated by the `prefix' backend
+action returning a non-empty SUFFIX element.  When this variable is
+non-nil, completion inside symbol will onlytriggered by an explicit command
+invocation, such as \\[company-complete-common]."
+  :type 'boolean
+  :package-version '(company . "1.0.0"))
 
 (defcustom company-begin-commands '(self-insert-command
                                     org-self-insert-command
@@ -994,8 +1023,7 @@ keymap during active completions (`company-active-map'):
     (remove-hook 'pre-command-hook 'company-pre-command t)
     (remove-hook 'post-command-hook 'company-post-command t)
     (remove-hook 'yas-keymap-disable-hook 'company--active-p t)
-    (company-cancel)
-    (kill-local-variable 'company-point)))
+    (company-cancel)))
 
 (defcustom company-global-modes t
   "Modes for which `company-mode' mode is turned on by `global-company-mode'.
@@ -1097,6 +1125,10 @@ means that `company-mode' is always turned on except in `message-mode' buffers."
   (when (looking-back regexp limit)
     (or (match-string-no-properties (or expression 0)) "")))
 
+(defun company-grab-suffix (regexp &optional expression)
+  (when (looking-at regexp)
+    (or (match-string-no-properties (or expression 0)) "")))
+
 (defun company-grab-line (regexp &optional expression)
   "Return a match string for REGEXP if it matches text before point.
 If EXPRESSION is non-nil, return the match string for the respective
@@ -1106,36 +1138,49 @@ Matching is limited to the current line."
     (company-grab regexp expression (line-beginning-position))))
 
 (defun company-grab-symbol ()
-  "If point is at the end of a symbol, return it.
-Otherwise, if point is not inside a symbol, return an empty string."
-  (if (looking-at-p "\\_>")
-      (buffer-substring (point) (save-excursion (skip-syntax-backward "w_")
-                                                (point)))
-    (unless (and (char-after) (memq (char-syntax (char-after)) '(?w ?_)))
-      "")))
+  "Return buffer substring from the beginning of the symbol until point."
+  (buffer-substring (point) (save-excursion (skip-syntax-backward "w_")
+                                            (point))))
+
+(defun company-grab-symbol-suffix ()
+  "Return buffer substring from point until the end of the symbol."
+  (buffer-substring (point) (save-excursion (skip-syntax-forward "w_")
+                                            (point))))
 
 (defun company-grab-word ()
-  "If point is at the end of a word, return it.
-Otherwise, if point is not inside a symbol, return an empty string."
-  (if (looking-at-p "\\>")
-      (buffer-substring (point) (save-excursion (skip-syntax-backward "w")
-                                                (point)))
-    (unless (and (char-after) (eq (char-syntax (char-after)) ?w))
-      "")))
+  "Return buffer substring from the beginning of the word until point."
+  (buffer-substring (point) (save-excursion (skip-syntax-backward "w")
+                                            (point))))
 
-(defun company-grab-symbol-cons (idle-begin-after-re &optional max-len)
-  "Return a string SYMBOL or a cons (SYMBOL . t).
-SYMBOL is as returned by `company-grab-symbol'.  If the text before point
-matches IDLE-BEGIN-AFTER-RE, return it wrapped in a cons."
-  (let ((symbol (company-grab-symbol)))
-    (when symbol
+(defun company-grab-word-suffix ()
+  "Return buffer substring from the beginning of the word until point."
+  (buffer-substring (point) (save-excursion (skip-syntax-forward "w")
+                                            (point))))
+
+(defun company-grab-symbol-parts (&optional idle-begin-after-re max-len)
+  "Return a list (PREFIX SUFFIX &optional OVERRIDE).
+
+IDLE-BEGIN-AFTER-RE, if non-nil, must be a regexp.
+
+Where OVERRIDE might be t is IDLE-BEGIN-AFTER-RE is non-nil and the text
+before prefix matches it.  PREFIX and SUFFIX are as returned by
+`company-grab-symbol' and `company-grab-symbol-suffix'.
+MAX-LEN is how far back to try to match the IDLE-BEGIN-AFTER-RE regexp."
+  (let ((prefix (company-grab-symbol))
+        suffix override)
+    (setq suffix (company-grab-symbol-suffix))
+    (when idle-begin-after-re
       (save-excursion
-        (forward-char (- (length symbol)))
-        (if (looking-back idle-begin-after-re (if max-len
-                                                  (- (point) max-len)
-                                                (line-beginning-position)))
-            (cons symbol t)
-          symbol)))))
+        (forward-char (- (length prefix)))
+        (when (looking-back idle-begin-after-re (if max-len
+                                                    (- (point) max-len)
+                                                  (line-beginning-position)))
+          (setq override t))))
+    (list prefix suffix override)))
+
+(define-obsolete-function-alias
+  'company-grab-symbol-cons
+  'company-grab-symbol-parts "1.0")
 
 (defun company-in-string-or-comment ()
   "Return non-nil if point is within a string or comment."
@@ -1172,6 +1217,70 @@ matches IDLE-BEGIN-AFTER-RE, return it wrapped in a cons."
              (push (cons match-start pos) chunks)
              (setq match-start nil))))
     (nreverse chunks)))
+
+(defun company--capf-completions (prefix suffix table &optional pred meta)
+  (cl-letf* ((keep-suffix t)
+             (wrapper
+              (lambda (&rest args)
+                ;; If emacs22 style is used, suffix is ignored.
+                ;; That's the only popular completion style that does this.
+                (let ((res (apply #'completion-emacs22-all-completions args)))
+                  (when res (setq keep-suffix nil))
+                  res)))
+             (completion-styles-alist (copy-tree completion-styles-alist))
+             ((nth 2 (assoc 'emacs22 completion-styles-alist))
+              wrapper)
+             (all (completion-all-completions (concat prefix suffix)
+                                              table pred
+                                              (length prefix)
+                                              meta))
+             (last (last all))
+             (base-size (or (cdr last) 0))
+             ;; base-suffix-size is not available, but it's usually simple.
+             (bounds (completion-boundaries prefix table pred suffix)))
+    (when last
+      (setcdr last nil))
+    (unless keep-suffix
+      (setcdr bounds 0))
+    `((:completions . ,all)
+      (:boundaries . ,(cons (substring prefix base-size)
+                            (substring suffix 0 (cdr bounds)))))))
+
+(defun company--capf-expand-common (prefix suffix table &optional pred metadata)
+  (let* ((res
+          (completion-try-completion (concat prefix suffix)
+                                     table pred (length prefix) metadata)))
+    (cond
+     ((null res)
+      'no-match)
+     ((memq res '(t nil))
+      (cons prefix suffix))
+     (t
+      (cons
+       (substring (car res) 0 (cdr res))
+       (substring (car res) (cdr res)))))))
+
+;; We store boundaries as markers because when the `unhide' frontend action is
+;; called, the completions are still being fetched. So the capf boundaries info
+;; can't be relied to be fresh by other means.
+(defun company--capf-boundaries-markers (string-pair &optional markers)
+  "STRING-PAIR is (PREFIX . SUFFIX) and MARKERS is a pair to reuse."
+  (when (or (not markers)
+            (stringp (car markers)))
+    (setq markers (cons (make-marker)
+                        (make-marker))))
+  (move-marker (car markers) (- (point) (length (car string-pair))))
+  (move-marker (cdr markers) (+ (point) (length (cdr string-pair))))
+  markers)
+
+(defun company--capf-boundaries (markers)
+  (let* ((beg (car markers))
+         (end (cdr markers))
+         res)
+    (when (> (point) end) (setq end (point)))
+    (setq res (cons (buffer-substring beg (point))
+                    (buffer-substring (point) end)))
+    res))
 
 (defvar company--cache (make-hash-table :test #'equal :size 10))
 
@@ -1252,15 +1361,12 @@ be recomputed when this value changes."
                            collect b))
         (separate (memq :separate backends)))
 
-    (when (eq command 'prefix)
-      (setq backends (butlast backends (length (member :with backends)))))
-
-    (setq backends (cl-delete-if #'keywordp backends))
+    (unless (eq command 'prefix)
+      (setq backends (cl-delete-if #'keywordp backends)))
 
     (pcase command
       (`candidates
        (company--multi-backend-adapter-candidates backends
-                                                  (car args)
                                                   (or company--multi-min-prefix 0)
                                                   separate))
       (`set-min-prefix (setq company--multi-min-prefix (car args)))
@@ -1293,6 +1399,23 @@ be recomputed when this value changes."
                (setq value t))
              (cl-return value)))))
       (`prefix (company--multi-prefix backends))
+      (`adjust-boundaries
+       (let ((arg (car args)))
+         (when (> (length arg) 0)
+           (let* ((backend (or (get-text-property 0 'company-backend arg)
+                               (car backends)))
+                  (entity (company--force-sync backend '(prefix) backend))
+                  (prefix (company--prefix-str entity))
+                  (suffix (company--suffix-str entity)))
+             (setq args (list arg prefix suffix))
+             (or
+              (apply backend command args)
+              (cons prefix suffix))))))
+      (`expand-common
+       (apply #'company--multi-expand-common
+              backends
+              (or company--multi-min-prefix 0)
+              args))
       (_
        (let ((arg (car args)))
          (when (> (length arg) 0)
@@ -1301,45 +1424,134 @@ be recomputed when this value changes."
              (apply backend command args))))))))
 
 (defun company--multi-prefix (backends)
-  (let (str len)
-    (dolist (backend backends)
-      (let* ((prefix (company--force-sync backend '(prefix) backend))
-             (prefix-len (cdr-safe prefix)))
-        (when (stringp (company--prefix-str prefix))
-          (cond
-           ((not str)
-            (setq str (company--prefix-str prefix)
-                  len (cdr-safe prefix)))
-           ((and prefix-len
-                 (not (eq len t))
-                 (equal str (company--prefix-str prefix))
-                 (or (eq prefix-len t)
-                     (> prefix-len (or len (length str)))))
-            (setq len prefix-len))))))
-    (if (and str len)
-        (cons str len)
-      str)))
+  (let* ((backends-after-with (cdr (member :with backends)))
+         prefix suffix len)
 
-(defun company--multi-backend-adapter-candidates (backends prefix min-length separate)
-  (let ((pairs (cl-loop for backend in backends
-                        when (let ((bp (let ((company-backend backend))
-                                         (company-call-backend 'prefix))))
-                               (and
-                                ;; It's important that the lengths match.
-                                (equal (company--prefix-str bp) prefix)
+    (dolist (backend backends)
+      (let* ((entity (and
+                      (not (keywordp backend))
+                      (company--force-sync backend '(prefix) backend)))
+             (new-len (company--prefix-len entity)))
+        (when (stringp (company--prefix-str entity))
+          (or (not backends-after-with)
+              (unless (memq backend backends-after-with)
+                (setq backends-after-with nil)))
+          (when (or
+                 (null prefix)
+                 (> (length (company--prefix-str entity))
+                    (length prefix)))
+            (setq prefix (company--prefix-str entity)))
+          (when (> (length (company--suffix-str entity))
+                   (length suffix))
+            (setq suffix (company--suffix-str entity)))
+          (when (or (eq t new-len)
+                    (and new-len
+                         (not (eq t len))
+                         (or (not len) (> new-len len))))
+            (setq len new-len)))))
+    (when (and prefix
+               (not backends-after-with))
+      (list prefix suffix len))))
+
+(defun company--multi-expand-common (backends min-length prefix suffix)
+  (let ((tuples
+         (cl-loop for backend in backends
+                  for bp = (let ((company-backend backend))
+                             (company-call-backend 'prefix))
+                  for expansion =
+                  (when (company--good-prefix-p bp min-length)
+                    (let ((inhibit-redisplay t)
+                          (company-backend backend))
+                      (company--expand-common (company--prefix-str bp)
+                                              (company--suffix-str bp))))
+                  when (consp expansion)
+                  collect
+                  (list backend bp expansion)))
+        replacements)
+    (dolist (tuple tuples)
+      (cl-assert (string-suffix-p (company--prefix-str (nth 1 tuple))
+                                  prefix))
+      (cl-assert (string-prefix-p (company--suffix-str (nth 1 tuple))
+                                  suffix)))
+    ;; We try to find the smallest possible edit for each backend's expansion
+    ;; (minimum prefix and suffix, beyond which the area is unchanged).
+    (setq replacements
+          (mapcar
+           (lambda (tuple)
+             (let* ((backend-prefix (company--prefix-str (nth 1 tuple)))
+                    (backend-suffix (company--suffix-str (nth 1 tuple)))
+                    (bplen (length backend-prefix))
+                    (bslen (length backend-suffix))
+                    (beg 0)
+                    (end 0)
+                    (rep-suffix-len (length (cdr (nth 2 tuple))))
+                    (max-beg (min bplen (length (car (nth 2 tuple)))))
+                    (max-end (min bslen rep-suffix-len)))
+               (while (and (< beg max-beg)
+                           (= (aref backend-prefix beg)
+                              (aref (car (nth 2 tuple)) beg)))
+                 (cl-incf beg))
+               (while (and (< end max-end)
+                           (= (aref suffix (- bslen end 1))
+                              (aref (cdr (nth 2 tuple))
+                                    (- rep-suffix-len end 1))))
+                 (cl-incf end))
+               (list (- bplen beg)
+                     (substring (car (nth 2 tuple)) beg)
+                     (- bslen end)
+                     (substring (cdr (nth 2 tuple)) 0 (- rep-suffix-len end))
+                     (nth 0 tuple))))
+           tuples))
+    (setq replacements (sort replacements
+                             (lambda (t1 t2) (< (- (length (nth 1 t1)) (nth 0 t1))
+                                           (- (length (nth 1 t2)) (nth 0 t2))))))
+    (or
+     (let ((choice (car replacements)))
+       ;; See if every replacement is similar enough to the one we selected:
+       ;; same suffix and beg/end and a prefix that starts with the proposed.
+       ;;
+       ;; More advanced checks seem possible, but with some backends reacting to
+       ;; buffer contents (not just string arguments) it seems we'd need to
+       ;; change the buffer contents first, then fetch `candidates' for each,
+       ;; and revert at the end.  Might be error-prone.
+       (and
+        choice
+        (cl-every
+         (lambda (replacement)
+           (and
+            (= (car replacement) (car choice))
+            (= (nth 2 replacement) (nth 2 choice))
+            (equal (nth 3 replacement) (nth 3 choice))
+            (string-prefix-p (nth 1 choice) (nth 1 replacement))))
+         (cdr replacements))
+        ;; Proposed edit applied to the group's prefix and suffix.
+        (cons (concat (substring prefix 0 (- (length prefix) (nth 0 choice)))
+                      (nth 1 choice))
+              (concat (nth 3 choice)
+                      (substring suffix (nth 2 choice))))))
+     (and (null replacements) 'no-match)
+     ;; Didn't find anything suitable - return entity parts unchanged.
+     (cons prefix suffix))))
+
+(defun company--multi-backend-adapter-candidates (backends min-length separate)
+  (let* (backend-prefix suffix
+         (pairs (cl-loop for backend in backends
+                         when (let ((bp (let ((company-backend backend))
+                                          (company-call-backend 'prefix))))
                                 ;; One might override min-length, another not.
                                 (if (company--good-prefix-p bp min-length)
-                                    t
+                                    (setq backend-prefix (company--prefix-str bp)
+                                          suffix (company--suffix-str bp))
                                   (push backend company--multi-uncached-backends)
-                                  nil)))
-                        collect (cons (funcall backend 'candidates prefix)
-                                      (company--multi-candidates-mapper
-                                       backend
-                                       separate
-                                       ;; Small perf optimization: don't tag the
-                                       ;; candidates received from the first
-                                       ;; backend in the group.
-                                       (not (eq backend (car backends))))))))
+                                  nil))
+                         collect (cons (funcall backend 'candidates backend-prefix suffix)
+                                       (company--multi-candidates-mapper
+                                        backend
+                                        separate
+                                        ;; Small perf optimization: don't tag the
+                                        ;; candidates received from the first
+                                        ;; backend in the group.
+                                        (not (eq backend (car backends))))))))
     (company--merge-async pairs (lambda (values) (apply #'append values)))))
 
 (defun company--multi-candidates-mapper (backend separate tag)
@@ -1381,18 +1593,39 @@ be recomputed when this value changes."
                     (this-finisher (lambda (res)
                                      (setq pending (delq val pending))
                                      (setcar cell (funcall mapper res))
-                                     (funcall finisher))))
+                                     (funcall-interactively finisher))))
                (if (not (eq :async (car-safe val)))
                    (funcall this-finisher val)
                  (let ((fetcher (cdr val)))
                    (funcall fetcher this-finisher)))))))))))
 
-(defun company--prefix-str (prefix)
-  (or (car-safe prefix) prefix))
+(defun company--prefix-str (entity)
+  (or (car-safe entity) entity))
+
+(defun company--prefix-len (entity)
+  (let ((cdr (cdr-safe entity))
+        override)
+    (cond
+     ((consp cdr)
+      (setq override (cadr cdr)))
+     ((or (numberp cdr) (eq t cdr))
+      (setq override cdr)))
+    (or override
+        (length
+         (if (stringp entity)
+             entity
+           (car entity))))))
+
+(defun company--suffix-str (entity)
+  (if (stringp (car-safe (cdr-safe entity)))
+      (car-safe (cdr-safe entity))
+    ""))
 
 ;;; completion mechanism ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defvar-local company-prefix nil)
+
+(defvar-local company-suffix nil)
 
 (defvar-local company-candidates nil)
 
@@ -1411,7 +1644,10 @@ be recomputed when this value changes."
 (defvar-local company-selection-changed nil)
 
 (defvar-local company--manual-action nil
-  "Non-nil, if manual completion took place.")
+  "Non-nil if manual completion was performed by the user.")
+
+(defvar-local company--manual-now nil
+  "Non-nil if manual completion is being performed now.")
 
 (defvar-local company--manual-prefix nil)
 
@@ -1419,20 +1655,22 @@ be recomputed when this value changes."
 
 (defvar-local company-point nil)
 
+(defvar-local company-valid-point nil)
+
 (defvar company-timer nil)
 (defvar company-tooltip-timer nil)
 
-(defsubst company-strip-prefix (str)
-  (substring str (length company-prefix)))
+(defun company-strip-prefix (str prefix)
+  (substring str (length prefix)))
 
-(defun company--insert-candidate (candidate)
+(defun company--insert-candidate (candidate prefix)
   (when (> (length candidate) 0)
     (setq candidate (substring-no-properties candidate))
     ;; XXX: Return value we check here is subject to change.
     (if (eq (company-call-backend 'ignore-case) 'keep-prefix)
-        (insert (company-strip-prefix candidate))
-      (unless (equal company-prefix candidate)
-        (delete-region (- (point) (length company-prefix)) (point))
+        (insert (company-strip-prefix candidate prefix))
+      (unless (equal prefix candidate)
+        (delete-region (- (point) (length prefix)) (point))
         (insert candidate)))))
 
 (defmacro company-with-candidate-inserted (candidate &rest body)
@@ -1443,7 +1681,7 @@ can retrieve meta-data for them."
   `(let ((inhibit-modification-hooks t)
          (inhibit-point-motion-hooks t)
          (modified-p (buffer-modified-p)))
-     (company--insert-candidate ,candidate)
+     (company--insert-candidate ,candidate company-prefix)
      (unwind-protect
          (progn ,@body)
        (delete-region company-point (point))
@@ -1524,7 +1762,8 @@ update if FORCE-UPDATE."
         (format "%s-<%s>" base name)))))
 
 (defun company-update-candidates (candidates)
-  (setq company-candidates-length (length candidates))
+  (setq company-candidates-length (length candidates)
+        company-valid-point company-point)
   (if company-selection-changed
       ;; Try to restore the selection
       (let ((selected (and company-selection
@@ -1553,12 +1792,11 @@ update if FORCE-UPDATE."
     (setq company-common
           (if (cdr company-candidates)
               (let ((common (try-completion "" company-candidates)))
-                (when (string-prefix-p company-prefix common
-                                       completion-ignore-case)
-                  common))
+                (and (stringp common)
+                     common))
             (car company-candidates)))))
 
-(defun company-calculate-candidates (prefix ignore-case)
+(defun company-calculate-candidates (prefix ignore-case suffix)
   (let ((candidates (cdr (assoc prefix company-candidates-cache))))
     (or candidates
         (when company-candidates-cache
@@ -1572,33 +1810,35 @@ update if FORCE-UPDATE."
                 (cl-return t)))))
         ;; No cache match, call the backend.
         (let ((refresh-timer (run-with-timer company-async-redisplay-delay
-                                             nil #'company--sneaky-refresh)))
-          (setq candidates (company--preprocess-candidates
-                            (company--fetch-candidates prefix)))
-          ;; If the backend is synchronous, no chance for the timer to run.
-          (cancel-timer refresh-timer)
+                                             nil
+                                             #'company--sneaky-refresh
+                                             prefix suffix)))
+          (unwind-protect
+              (setq candidates (company--preprocess-candidates
+                                (company--fetch-candidates prefix suffix)))
+            ;; If the backend is synchronous, no chance for the timer to run.
+            (cancel-timer refresh-timer))
           ;; Save in cache.
           (push (cons prefix candidates) company-candidates-cache)))
     ;; Only now apply the predicate and transformers.
     (company--postprocess-candidates candidates)))
 
-(defun company--unique-match-p (candidates prefix ignore-case)
+(defun company--unique-match-p (candidates prefix suffix ignore-case)
   (and candidates
        (not (cdr candidates))
        (eq t (compare-strings (car candidates) nil nil
-                              prefix nil nil ignore-case))
+                              (concat prefix suffix) nil nil ignore-case))
        (not (eq (company-call-backend 'kind (car candidates))
                 'snippet))))
 
-(defun company--fetch-candidates (prefix)
-  (let* ((non-essential (not (company-explicit-action-p)))
+(defun company--fetch-candidates (prefix suffix)
+  (let* ((non-essential (not company--manual-now))
          (inhibit-redisplay t)
-         (c (if (or company-selection-changed
-                    ;; FIXME: This is not ideal, but we have not managed to deal
-                    ;; with these situations in a better way yet.
-                    (company-require-match-p))
-                (company-call-backend 'candidates prefix)
-              (company-call-backend-raw 'candidates prefix))))
+         ;; At least we need "fresh" completions if the current command will
+         ;; rely on the result (e.g. insert common, or finish completion).
+         (c (if company--manual-now
+                (company-call-backend 'candidates prefix suffix)
+              (company-call-backend-raw 'candidates prefix suffix))))
     (if (not (eq (car c) :async))
         c
       (let ((res 'none))
@@ -1617,12 +1857,18 @@ update if FORCE-UPDATE."
         (while (member (car unread-command-events)
                        '(company-foo (t . company-foo)))
           (pop unread-command-events))
-        (prog1
-            (and (consp res) res)
-          (setq res 'exited))))))
+        (let ((res-was res))
+          (setq res 'exited)
+          (if (eq 'none res-was)
+              (throw 'interrupted 'new-input)
+            res-was))))))
 
-(defun company--sneaky-refresh ()
-  (when company-candidates (company-call-frontends 'unhide))
+(defun company--sneaky-refresh (prefix suffix)
+  (when company-candidates
+    (let* ((company-prefix prefix)
+           (company-suffix suffix))
+      (and prefix
+           (company-call-frontends 'unhide))))
   (let (inhibit-redisplay)
     (redisplay))
   (when company-candidates (company-call-frontends 'pre-command)))
@@ -1770,6 +2016,7 @@ end of the match."
                          :width icon-size
                          :height icon-size
                          :ascent 'center
+                         ;; Transparency requires Emacs 28+.
                          :background (unless (eq bkg 'unspecified)
                                        bkg)))
              (spacer-px-width (- (* company-icon-margin dfw) icon-size)))
@@ -2102,8 +2349,10 @@ doesn't cause any immediate changes to the buffer text."
   (company-assert-enabled)
   (setq company--manual-action t)
   (unwind-protect
-      (let ((company-minimum-prefix-length 0))
-        (or company-candidates
+      (let ((company-minimum-prefix-length 0)
+            (company--manual-now t))
+        (or (and company-candidates
+                 (= company-valid-point (point)))
             (company-auto-begin)))
     (unless company-candidates
       (setq company--manual-action nil))))
@@ -2170,7 +2419,7 @@ For more details see `company-insertion-on-trigger' and
     (company-cancel 'non-unique))
    ((company-require-match-p)
     ;; Wrong incremental input, but required match.
-    (delete-char (- company-point (point)))
+    (delete-char (- company-valid-point (point)))
     (ding)
     (message "Matching input is required")
     company-candidates)
@@ -2178,8 +2427,8 @@ For more details see `company-insertion-on-trigger' and
 
 (defun company--good-prefix-p (prefix min-length)
   (and (stringp (company--prefix-str prefix)) ;excludes 'stop
-       (or (eq (cdr-safe prefix) t)
-           (>= (or (cdr-safe prefix) (length prefix))
+       (or (eq (company--prefix-len prefix) t)
+           (>= (company--prefix-len prefix)
                min-length))))
 
 (defun company--prefix-min-length ()
@@ -2200,23 +2449,32 @@ For more details see `company-insertion-on-trigger' and
     ;; Don't complete existing candidates, fetch new ones.
     (setq company-candidates-cache nil))
   (let* ((new-prefix (company-call-backend 'prefix))
+         (new-suffix (company--suffix-str new-prefix))
          (ignore-case (company-call-backend 'ignore-case))
-         (c (when (and (company--good-prefix-p new-prefix
-                                               (company--prefix-min-length))
-                       (setq new-prefix (company--prefix-str new-prefix))
-                       (= (- (point) (length new-prefix))
-                          (- company-point (length company-prefix))))
-              (company-calculate-candidates new-prefix ignore-case))))
+         (c (catch 'interrupted
+              (when (and (company--good-prefix-p new-prefix
+                                                 (company--prefix-min-length))
+                         (setq new-prefix (company--prefix-str new-prefix))
+                         (= (- (point) (length new-prefix))
+                            (- company-point (length company-prefix))))
+                (company-calculate-candidates new-prefix ignore-case new-suffix)))))
     (cond
+     ((eq c 'new-input) ; Keep the old completions, but update the rest.
+      (setq company-prefix new-prefix
+            company-suffix new-suffix
+            company-point (point))
+      t)
      ((and company-abort-on-unique-match
-           (company--unique-match-p c new-prefix ignore-case))
+           (company--unique-match-p c new-prefix new-suffix ignore-case))
       ;; Handle it like completion was aborted, to differentiate from user
       ;; calling one of Company's commands to insert the candidate,
       ;; not to trigger template expansion, etc.
       (company-cancel 'unique))
      ((consp c)
       ;; incremental match
-      (setq company-prefix new-prefix)
+      (setq company-prefix new-prefix
+            company-suffix new-suffix
+            company-point (point))
       (company-update-candidates c)
       c)
      ((and (characterp last-command-event)
@@ -2232,29 +2490,40 @@ For more details see `company-insertion-on-trigger' and
 
 (defun company--begin-new ()
   (let ((min-prefix (company--prefix-min-length))
-        prefix c)
+        entity c)
+    (company-cache-expire)
     (cl-dolist (backend (if company-backend
                             ;; prefer manual override
                             (list company-backend)
                           company-backends))
-      (setq prefix
+      (setq entity
             (if (or (symbolp backend)
                     (functionp backend))
                 (when (company--maybe-init-backend backend)
                   (let ((company-backend backend))
                     (company-call-backend 'prefix)))
               (company--multi-backend-adapter backend 'prefix)))
-      (when prefix
-        (when (company--good-prefix-p prefix min-prefix)
+      (when entity
+        (when (and (company--good-prefix-p entity min-prefix)
+                   (or (not company-inhibit-inside-symbols)
+                       company--manual-action
+                       (zerop (length (company--suffix-str entity)))))
           (let ((ignore-case (company-call-backend 'ignore-case)))
             ;; Keep this undocumented, esp. while only 1 backend needs it.
             (company-call-backend 'set-min-prefix min-prefix)
-            (setq company-prefix (company--prefix-str prefix)
+            (setq company-prefix (company--prefix-str entity)
+                  company-suffix (company--suffix-str entity)
+                  company-point (point)
                   company-backend backend
-                  c (company-calculate-candidates company-prefix ignore-case))
+                  c (catch 'interrupted
+                      (company-calculate-candidates company-prefix ignore-case
+                                                    company-suffix)))
             (cond
+             ((or (null c) (eq c 'new-input))
+              (when company--manual-action
+                (message "No completion found")))
              ((and company-abort-on-unique-match
-                   (company--unique-match-p c company-prefix ignore-case)
+                   (company--unique-match-p c company-prefix company-suffix ignore-case)
                    (if company--manual-action
                        ;; If `company-manual-begin' was called, the user
                        ;; really wants something to happen.  Otherwise...
@@ -2262,12 +2531,9 @@ For more details see `company-insertion-on-trigger' and
                      t))
               ;; ...abort and run the hooks, e.g. to clear the cache.
               (company-cancel 'unique))
-             ((null c)
-              (when company--manual-action
-                (message "No completion found")))
              (t ;; We got completions!
               (when company--manual-action
-                (setq company--manual-prefix prefix))
+                (setq company--manual-prefix entity))
               (company-update-candidates c)
               (run-hook-with-args 'company-completion-started-hook
                                   (company-explicit-action-p))
@@ -2282,8 +2548,7 @@ For more details see `company-insertion-on-trigger' and
     (company--begin-new)))
   (if (not company-candidates)
       (setq company-backend nil)
-    (setq company-point (point)
-          company--point-max (point-max))
+    (setq company--point-max (point-max))
     (company-ensure-emulation-alist)
     (company-enable-overriding-keymap company-active-map)
     (company-call-frontends 'update)))
@@ -2306,7 +2571,6 @@ For more details see `company-insertion-on-trigger' and
           company--multi-uncached-backends nil
           company--multi-min-prefix nil
           company-point nil)
-    (company-cache-expire)
     (when company-timer
       (cancel-timer company-timer))
     (company-echo-cancel t)
@@ -2328,11 +2592,35 @@ For more details see `company-insertion-on-trigger' and
   (company-cancel 'abort))
 
 (defun company-finish (result)
-  (company--insert-candidate result)
+  (pcase-let ((`(,prefix . ,suffix) (company--boundaries result)))
+    (company--insert-candidate result (or prefix company-prefix))
+    (and (> (length suffix) 0)
+         (delete-region (point) (+ (point) (length suffix)))))
   (company-cancel result))
 
 (defsubst company-keep (command)
   (and (symbolp command) (get command 'company-keep)))
+
+(defun company--proper-suffix-p (candidate)
+  (and
+   (>= (length candidate)
+       (+ (length company-prefix)
+          (length company-suffix)))
+   (string-suffix-p company-suffix candidate
+                    (company-call-backend 'ignore-case))))
+
+(defun company--boundaries (&optional candidate)
+  (unless candidate
+    (setq candidate (nth (or company-selection 0) company-candidates)))
+  (or
+   (company-call-backend 'adjust-boundaries
+                         candidate
+                         company-prefix company-suffix)
+   (and
+    ;; Default to replacing the suffix only if the completion ends with it.
+    (company--proper-suffix-p candidate)
+    (cons company-prefix company-suffix))
+   (cons company-prefix "")))
 
 (defun company--active-p ()
   company-candidates)
@@ -2366,7 +2654,8 @@ For more details see `company-insertion-on-trigger' and
   (unless (company-keep this-command)
     (condition-case-unless-debug err
         (progn
-          (unless (equal (point) company-point)
+          (unless (and (equal (point) company-point)
+                       (equal (point-max) company--point-max))
             (let (company-idle-delay) ; Against misbehavior while debugging.
               (company--perform)))
           (if company-candidates
@@ -2510,7 +2799,8 @@ each one wraps a part of the input string."
                company-search-filtering
                (lambda (candidate) (string-match-p re candidate))))
          (cc (company-calculate-candidates company-prefix
-                                           (company-call-backend 'ignore-case))))
+                                           (company-call-backend 'ignore-case)
+                                           company-suffix)))
     (unless cc (user-error "No match"))
     (company-update-candidates cc)))
 
@@ -2791,6 +3081,46 @@ For use in the `select-mouse' frontend action.  `let'-bound.")
     (let ((result (nth company-selection company-candidates)))
       (company-finish result))))
 
+(defun company--expand-common (prefix suffix)
+  (let ((expansion (company-call-backend 'expand-common prefix suffix)))
+    (unless expansion
+      ;; Backend doesn't implement this, try emulating.
+      (let* (;; XXX: We could also filter/group `company-candidates'.
+             (candidates (company-call-backend 'candidates prefix suffix))
+             ;; Assuming that boundaries don't vary between completions here.
+             ;; If they do, the backend should have a custom `expand-common'.
+             (boundaries-prefix (car (company--boundaries)))
+             (completion-ignore-case (company-call-backend 'ignore-case))
+             (trycmp (try-completion boundaries-prefix candidates))
+             (common (if (eq trycmp t) (car candidates) trycmp))
+             (max-len (when (and common
+                                 (cl-every (lambda (s) (string-suffix-p
+                                                   suffix s
+                                                   completion-ignore-case))
+                                           candidates))
+                        (-
+                         (apply #'min
+                                (mapcar #'length candidates))
+                         (length suffix))))
+             (common (if max-len
+                         (substring common 0
+                                    (min max-len (length common)))
+                       common)))
+        (setq expansion
+              (cond
+               ((null candidates)
+                'no-match)
+               ((string-prefix-p boundaries-prefix common t)
+                (cons (concat
+                       (substring prefix
+                                  0
+                                  (- (length prefix)
+                                     (length boundaries-prefix)))
+                       common)
+                      suffix))
+               (t (cons prefix suffix))))))
+    expansion))
+
 (defun company-complete-common ()
   "Insert the common part of all candidates."
   (interactive)
@@ -2798,7 +3128,19 @@ For use in the `select-mouse' frontend action.  `let'-bound.")
     (if (and (not (cdr company-candidates))
              (equal company-common (car company-candidates)))
         (company-complete-selection)
-      (company--insert-candidate company-common))))
+      (let ((expansion (company--expand-common company-prefix
+                                               company-suffix)))
+        (when (eq expansion 'no-match)
+          (user-error "No matches for the current input"))
+        (unless (equal (car expansion) company-prefix)
+          (if (eq (company-call-backend 'ignore-case) 'keep-prefix)
+              (insert (substring (car expansion) (length company-prefix)))
+            (delete-region (- (point) (length company-prefix)) (point))
+            (insert (car expansion))))
+        (unless (equal (cdr expansion) company-suffix)
+          (save-excursion
+            (delete-region (point) (+ (point) (length company-suffix)))
+            (insert (cdr expansion))))))))
 
 (defun company-complete-common-or-cycle (&optional arg)
   "Insert the common part of all candidates, or select the next one.
@@ -2963,37 +3305,39 @@ from the candidates list.")
                 (kill-local-variable 'face-remapping-alist)
                 (kill-local-variable 'buffer-display-table)))))))
 
-(defalias 'company--string-pixel-width
-  (if (fboundp 'string-pixel-width)
-      ;; Emacs 29.1+
-      'string-pixel-width
-    (lambda (string)
-      (if (zerop (length string))
-          0
-        ;; Keeping a work buffer around is more efficient than creating a
-        ;; new temporary buffer.
-        (with-current-buffer (get-buffer-create " *string-pixel-width*")
-          ;; `display-line-numbers-mode' is enabled in internal buffers
-          ;; that breaks width calculation, so need to disable (bug#59311)
-          (when (bound-and-true-p display-line-numbers-mode)
-            (with-no-warnings ;; Emacs 25
-              (display-line-numbers-mode -1)))
-          (delete-region (point-min) (point-max))
-          (insert string)
-          (let ((wb (window-buffer))
-                (hscroll (window-hscroll))
-                (dedicated (window-dedicated-p)))
-            (unwind-protect
-                (progn
-                  (when dedicated
-                    (set-window-dedicated-p nil nil))
-                  (set-window-buffer nil (current-buffer))
-                  (car
-                   (window-text-pixel-size nil nil nil 55555)))
-              (set-window-buffer nil wb)
-              (set-window-hscroll nil hscroll)
-              (when dedicated
-                (set-window-dedicated-p nil dedicated)))))))))
+(declare-function buffer-text-pixel-size "xdisp.c")
+
+(defun company--string-pixel-width (string)
+  (if (zerop (length string))
+      0
+    ;; Keeping a work buffer around is more efficient than creating a
+    ;; new temporary buffer.
+    (with-current-buffer (get-buffer-create " *string-pixel-width*")
+      ;; `display-line-numbers-mode' is enabled in internal buffers
+      ;; that breaks width calculation, so need to disable (bug#59311)
+      (when (bound-and-true-p display-line-numbers-mode)
+        (with-no-warnings ;; Emacs 25
+          (display-line-numbers-mode -1)))
+      (delete-region (point-min) (point-max))
+      (insert string)
+      (if (fboundp #'buffer-text-pixel-size)
+          ;; Emacs 29.1+
+          (car (buffer-text-pixel-size nil nil t))
+        (let ((wb (window-buffer))
+              (hscroll (window-hscroll))
+              (dedicated (window-dedicated-p))
+              buffer-list-update-hook)
+          (unwind-protect
+              (progn
+                (when dedicated
+                  (set-window-dedicated-p nil nil))
+                (set-window-buffer nil (current-buffer))
+                (car
+                 (window-text-pixel-size nil nil nil 55555)))
+            (set-window-buffer nil wb)
+            (set-window-hscroll nil hscroll)
+            (when dedicated
+              (set-window-dedicated-p nil dedicated))))))))
 
 (defun company--string-width (str)
   (if (display-graphic-p)
@@ -3014,7 +3358,8 @@ from the candidates list.")
         (inhibit-modification-hooks t)
         (dedicated (window-dedicated-p))
         (hscroll (window-hscroll))
-        window-configuration-change-hook)
+        window-configuration-change-hook
+        buffer-list-update-hook)
     (with-current-buffer (get-buffer-create " *company-sps*")
       (unwind-protect
           (progn
@@ -3267,7 +3612,9 @@ If SHOW-VERSION is non-nil, show the version in the echo area."
     (when (or (stringp prefix) (consp prefix))
       (let ((company-backend backend))
         (condition-case nil
-            (setq cc (company-call-backend 'candidates (company--prefix-str prefix))
+            (setq cc (company-call-backend 'candidates
+                                           (company--prefix-str prefix)
+                                           (company--suffix-str prefix))
                   annotations
                   (mapcar
                    (lambda (c) (cons c (company-call-backend 'annotation c)))
@@ -3343,7 +3690,7 @@ If SHOW-VERSION is non-nil, show the version in the echo area."
 
 (defun company-plainify (str)
   (let ((prefix (get-text-property 0 'line-prefix str)))
-    (when prefix ; Keep the original value unmodified, for no special reason.
+    (when (stringp prefix) ; Keep the original value unmodified, for no special reason.
       (setq str (concat prefix str))
       (remove-text-properties 0 (length str) '(line-prefix) str)))
   (let* ((pieces (split-string str "\t"))
@@ -3354,19 +3701,18 @@ If SHOW-VERSION is non-nil, show the version in the echo area."
       (pop copy))
     (apply 'concat pieces)))
 
-(defun company--common-or-matches (value)
+(defun company--common-or-matches (value &optional suffix)
   (let ((matches (company-call-backend 'match value)))
-    (when (and matches
-               company-common
-               (listp matches)
-               (= 1 (length matches))
-               (= 0 (caar matches))
-               (> (length company-common) (cdar matches)))
-      (setq matches nil))
     (when (integerp matches)
       (setq matches `((0 . ,matches))))
     (or matches
-        (and company-common `((0 . ,(length company-common))))
+        (and company-common `((0 . ,(length company-common))
+                              ,@(list
+                                 (cons
+                                  (- (length value)
+                                     (length (or suffix
+                                                 (cdr (company--boundaries value)))))
+                                  (length value)))))
         nil)))
 
 (defun company-fill-propertize (value annotation width selected left right)
@@ -3505,7 +3851,7 @@ If SHOW-VERSION is non-nil, show the version in the echo area."
                  ))
               ))
            str)))
-    (if (= 0 add-length)
+    (if (>= 0 add-length)
         new-str
       (concat new-str
               (propertize
@@ -3967,8 +4313,9 @@ Returns a negative number if the tooltip should be displayed above point."
       (overlay-put ov 'display "")
       (overlay-put ov 'window (selected-window)))))
 
-(defun company-pseudo-tooltip-guard ()
+(defun company-pseudo-tooltip-guard (prefix)
   (list
+   (- (point) (length prefix))
    (save-excursion (beginning-of-visual-line))
    (window-width)
    (let ((ov company-pseudo-tooltip-overlay)
@@ -3996,19 +4343,23 @@ Returns a negative number if the tooltip should be displayed above point."
              (move-overlay ov (point) (overlay-end ov))))))
      (company-pseudo-tooltip-unhide))
     (post-command
-     (unless (when (overlayp company-pseudo-tooltip-overlay)
-               (let* ((ov company-pseudo-tooltip-overlay)
-                      (old-height (overlay-get ov 'company-height))
-                      (new-height (company--pseudo-tooltip-height)))
-                 (and
-                  (>= (* old-height new-height) 0)
-                  (>= (abs old-height) (abs new-height))
-                  (equal (company-pseudo-tooltip-guard)
-                         (overlay-get ov 'company-guard)))))
-       ;; Redraw needed.
-       (company-pseudo-tooltip-show-at-point (point) (length company-prefix))
-       (overlay-put company-pseudo-tooltip-overlay
-                    'company-guard (company-pseudo-tooltip-guard)))
+     (let ((prefix (car (company--boundaries)))
+           guard)
+       (unless (when (overlayp company-pseudo-tooltip-overlay)
+                 (let* ((ov company-pseudo-tooltip-overlay)
+                        (old-height (overlay-get ov 'company-height))
+                        (new-height (company--pseudo-tooltip-height)))
+                   (and
+                    (>= (* old-height new-height) 0)
+                    (>= (abs old-height) (abs new-height))
+                    (equal (setq guard (company-pseudo-tooltip-guard prefix))
+                           (overlay-get ov 'company-guard)))))
+         ;; Redraw needed.
+         (company-pseudo-tooltip-show-at-point (point)
+                                               (length prefix))
+         (overlay-put company-pseudo-tooltip-overlay
+                      'company-guard (or guard
+                                         (company-pseudo-tooltip-guard prefix)))))
      (company-pseudo-tooltip-unhide))
     (show (setq company--tooltip-current-width 0))
     (hide (company-pseudo-tooltip-hide)
@@ -4077,13 +4428,16 @@ Delay is determined by `company-tooltip-idle-delay'."
 
 (defvar-local company-preview-overlay nil)
 
-(defun company-preview-show-at-point (pos completion)
+(defun company-preview-show-at-point (pos completion &optional boundaries)
   (company-preview-hide)
 
-  (let* ((company-common (and company-common
-                              (string-prefix-p company-prefix company-common)
+  (let* ((boundaries (or boundaries (company--boundaries completion)))
+         (prefix (car boundaries))
+         (suffix (cdr boundaries))
+         (company-common (and company-common
+                              (string-prefix-p prefix company-common)
                               company-common))
-         (common (company--common-or-matches completion)))
+         (common (company--common-or-matches completion suffix)))
     (setq completion (copy-sequence (company--pre-render completion)))
     (add-face-text-property 0 (length completion) 'company-preview
                             nil completion)
@@ -4100,10 +4454,10 @@ Delay is determined by `company-tooltip-idle-delay'."
            (add-face-text-property mbeg mend 'company-preview-search
                                    nil completion)))
 
-    (setq completion (if (string-prefix-p company-prefix completion
+    (setq completion (if (string-prefix-p prefix completion
                                           (eq (company-call-backend 'ignore-case)
                                               'keep-prefix))
-                         (company-strip-prefix completion)
+                         (company-strip-prefix completion prefix)
                        completion))
 
     (when (string-prefix-p "\n" completion)
@@ -4119,17 +4473,21 @@ Delay is determined by `company-tooltip-idle-delay'."
            (ptf-workaround (and
                             pto
                             (char-before pos)
-                            (eq pos (overlay-start pto)))))
+                            (eq pos (overlay-start pto))))
+           (end pos))
       ;; Try to accommodate for the pseudo-tooltip overlay,
       ;; which may start at the same position if it's at eol.
       (when ptf-workaround
         (cl-decf beg)
         (setq completion (concat (buffer-substring beg pos) completion)))
 
-      (setq company-preview-overlay (make-overlay beg pos))
+      (when (string-suffix-p suffix completion)
+        (cl-incf end (length suffix)))
+
+      (setq company-preview-overlay (make-overlay beg end))
 
       (let ((ov company-preview-overlay))
-        (overlay-put ov (if ptf-workaround 'display 'after-string)
+        (overlay-put ov (if (> end beg) 'display 'after-string)
                      completion)
         (overlay-put ov 'window (selected-window))))))
 
@@ -4144,14 +4502,7 @@ Delay is determined by `company-tooltip-idle-delay'."
     (`pre-command (company-preview-hide))
     (`unhide
      (when company-selection
-       (let* ((current (nth company-selection company-candidates))
-              (company-prefix (if (equal current company-prefix)
-                                  ;; Would be more accurate to compare lengths,
-                                  ;; but this is shorter.
-                                  current
-                                (buffer-substring
-                                 (- company-point (length company-prefix))
-                                 (point)))))
+       (let* ((current (nth company-selection company-candidates)))
          (company-preview-show-at-point (point) current))))
     (`post-command
      (when company-selection
@@ -4166,13 +4517,19 @@ Delay is determined by `company-tooltip-idle-delay'."
     (company-preview-frontend command)))
 
 (defun company--show-inline-p ()
-  (and (not (cdr company-candidates))
-       company-common
-       (not (eq t (compare-strings company-prefix nil nil
-                                   (car company-candidates) nil nil
-                                   t)))
-       (or (eq (company-call-backend 'ignore-case) 'keep-prefix)
-           (string-prefix-p company-prefix company-common))))
+  (let* ((boundaries (and company-candidates (company--boundaries)))
+         (prefix (car boundaries))
+         (suffix (cdr boundaries))
+         (ignore-case (company-call-backend 'ignore-case))
+         (candidate (car company-candidates)))
+    (and (not (cdr company-candidates))
+         company-common
+         (not (eq t (compare-strings prefix nil nil
+                                     candidate nil nil
+                                     t)))
+         (string-suffix-p suffix candidate ignore-case)
+         (or (eq ignore-case 'keep-prefix)
+             (string-prefix-p prefix company-common)))))
 
 (defun company-tooltip-visible-p ()
   "Returns whether the tooltip is visible."
@@ -4280,7 +4637,7 @@ Delay is determined by `company-tooltip-idle-delay'."
           comp msg)
 
       (while candidates
-        (setq comp (company-strip-prefix (pop candidates))
+        (setq comp (company-strip-prefix (pop candidates) company-prefix)
               len (+ len 2 (length comp)))
         (when (< numbered qa-keys-len)
           (let ((qa-hint (format " (%s)"
