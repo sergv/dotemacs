@@ -2,7 +2,7 @@
 
 ;; Copyright 2011-2024 François-Xavier Bois
 
-;; Version: 17.3.19
+;; Version: 17.3.20
 ;; Author: François-Xavier Bois
 ;; Maintainer: François-Xavier Bois <fxbois@gmail.com>
 ;; Package-Requires: ((emacs "23.1"))
@@ -23,7 +23,7 @@
 
 ;;---- CONSTS ------------------------------------------------------------------
 
-(defconst web-mode-version "17.3.19"
+(defconst web-mode-version "17.3.20"
   "Web Mode version.")
 
 ;;---- GROUPS ------------------------------------------------------------------
@@ -71,49 +71,58 @@
   "Html attribute indentation level."
   :type '(choice (integer :tags "Number of spaces")
           (const :tags "Default" nil))
-  :safe #'(lambda (v) (or (integerp v) (booleanp v)))
   :group 'web-mode)
+;;;###autoload
+(put 'web-mode-attr-indent-offset
+     'safe-local-variable #'(lambda (v) (or (integerp v) (booleanp v))))
 
 (defcustom web-mode-attr-value-indent-offset nil
   "Html attribute value indentation level."
   :type '(choice (integer :tags "Number of spaces")
           (const :tags "Default" nil))
-  :safe #'(lambda (v) (or (integerp v) (booleanp v)))
   :group 'web-mode)
+;;;###autoload
+(put 'web-mode-attr-value-indent-offset
+     'safe-local-variable #'(lambda (v) (or (integerp v) (booleanp v))))
 
 (defcustom web-mode-markup-indent-offset
   (if (and (boundp 'standard-indent) standard-indent) standard-indent 2)
   "Html indentation level."
   :type 'integer
-  :safe #'integerp
   :group 'web-mode)
+;;;###autoload
+(put 'web-mode-markup-indent-offset 'safe-local-variable #'integerp)
 
 (defcustom web-mode-markup-comment-indent-offset
   5
   "Html comment indentation level."
   :type 'integer
-  :safe #'integerp
   :group 'web-mode)
+;;;###autoload
+(put 'web-mode-markup-comment-indent-offset 'safe-local-variable #'integerp)
 
 (defcustom web-mode-css-indent-offset
   (if (and (boundp 'standard-indent) standard-indent) standard-indent 2)
   "CSS indentation level."
   :type 'integer
-  :safe #'integerp
   :group 'web-mode)
+;;;###autoload
+(put 'web-mode-css-indent-offset 'safe-local-variable #'integerp)
 
 (defcustom web-mode-code-indent-offset
   (if (and (boundp 'standard-indent) standard-indent) standard-indent 2)
   "Code (javascript, php, etc.) indentation level."
   :type 'integer
-  :safe #'integerp
   :group 'web-mode)
+;;;###autoload
+(put 'web-mode-code-indent-offset 'safe-local-variable #'integerp)
 
 (defcustom web-mode-sql-indent-offset 4
   "Sql (inside strings) indentation level."
   :type 'integer
-  :safe #'integerp
   :group 'web-mode)
+;;;###autoload
+(put 'web-mode-sql-indent-offset 'safe-local-variable #'integerp)
 
 (defcustom web-mode-enable-css-colorization (display-graphic-p)
   "In a CSS part, set background according to the color: #xxx, rgb(x,x,x)."
@@ -997,7 +1006,7 @@ Must be used in conjunction with web-mode-enable-block-face."
     ("json-t"           . ())
     ("jsp"              . ("grails"))
     ("mako"             . ())
-    ("marko"            . ())
+    ("marko"            . ("pandoc"))
     ("mason"            . ("poet"))
     ("lsp"              . ("lisp"))
     ("mojolicious"      . ())
@@ -1376,7 +1385,7 @@ For example,
                  ("ifequal"    . "{% ifequal | %}\n\n{% endifequal %}")
                  ("ifnotequal" . "{% ifnotequal | %}\n\n{% endifnotequal %}")
                  ("js"         . "{% javascript | %}\n\n{% endjavascript %}")
-                 ("schema"     . "{% javascript | %}\n\n{% endschema %}")
+                 ("schema"     . "{% schema | %}\n\n{% endschema %}")
                  ("safe"       . "{% safe | %}\n\n{% endsafe %}")))
     ("mako" . (("if"        . "% if |:\n% endif")
                ("for"       . "% for | in :\n% endfor")
@@ -4285,6 +4294,7 @@ Also return non-nil if it is the command `self-insert-command' is remapped to."
     (goto-char pos)
     (forward-char)
     (skip-chars-forward "a-zA-Z0-9_-")
+    (skip-chars-forward " ")
     (when (eq (char-after) ?\()
       (setq regexp "[\"'()]"
             inc 0)
