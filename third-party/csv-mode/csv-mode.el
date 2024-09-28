@@ -1,10 +1,10 @@
 ;;; csv-mode.el --- Major mode for editing comma/char separated values  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2003-2023  Free Software Foundation, Inc
+;; Copyright (C) 2003-2024  Free Software Foundation, Inc
 
 ;; Author: "Francis J. Wright" <F.J.Wright@qmul.ac.uk>
 ;; Maintainer: emacs-devel@gnu.org
-;; Version: 1.22
+;; Version: 1.27
 ;; Package-Requires: ((emacs "27.1") (cl-lib "0.5"))
 ;; Keywords: convenience
 
@@ -107,9 +107,32 @@
 
 ;;; News:
 
+;; Since 1.27:
+;; - `csv-end-of-field' no longer errors out in the presence of
+;;    unclosed quotes.
+
+;; Since 1.26:
+;; - `csv-guess-separator' will no longer guess the comment-start
+;;    character as a potential separator character.
+
+;; Since 1.25:
+;; - The ASCII control character 31 Unit Separator can now be
+;;   recognized as a CSV separator by `csv-guess-separator'.
+
+;; Since 1.24:
+;; - New function `csv--unquote-value'.
+;; - New function `csv-parse-current-row'.
+
 ;; Since 1.21:
 ;; - New command `csv-insert-column'.
 ;; - New config var `csv-align-min-width' for `csv-align-mode'.
+;; - New option `csv-confirm-region'.
+
+;; Since 1.20:
+;; - New command `csv-guess-set-separator' that automatically guesses
+;;   and sets the CSV separator of the current buffer.
+;; - New command `csv-set-separator' for setting the CSV separator
+;;   manually.
 
 ;; Since 1.9:
 ;; - `csv-align-mode' auto-aligns columns dynamically (on screen).
@@ -233,14 +256,12 @@ FIELD-QUOTES should be a list of single-character strings."
 	   (symbol-value 'csv-mode-syntax-table)))
 	field-quotes))
 
-(defvar csv-comment-start nil
+(defvar-local csv-comment-start nil
   "String that starts a comment line, or nil if no comment syntax.
 Such comment lines are ignored by CSV mode commands.
 This variable is buffer local; its default value is that of
 `csv-comment-start-default'.  It is set by the function
 `csv-set-comment-start' -- do not set it directly!")
-
-(make-variable-buffer-local 'csv-comment-start)
 
 (defcustom csv-comment-start-default "#"
   "String that starts a comment line, or nil if no comment syntax.
@@ -271,6 +292,10 @@ after separators."
 
 (defcustom csv-invisibility-default t
   "If non-nil, make separators in aligned records invisible."
+  :type 'boolean)
+
+(defcustom csv-confirm-region t
+  "If non-nil, confirm that region is OK in interactive commands."
   :type 'boolean)
 
 (defface csv-separator-face
@@ -347,19 +372,19 @@ CSV mode provides the following specific keyboard key bindings:
   ;; Set syntax for field quotes:
   (csv-set-quote-syntax csv-field-quotes)
   ;; Make sexp functions apply to fields:
-  (set (make-local-variable 'forward-sexp-function) #'csv-forward-field)
+  (setq-local forward-sexp-function #'csv-forward-field)
   (csv-set-comment-start csv-comment-start)
   ;; Font locking -- separator plus syntactic:
   (setq font-lock-defaults '(csv-font-lock-keywords))
   (setq-local jit-lock-contextually nil) ;Each line should be independent.
   (if csv-invisibility-default (add-to-invisibility-spec 'csv))
   ;; Mode line to support `csv-field-index-mode':
-  (set (make-local-variable 'mode-line-position)
-       (pcase mode-line-position
-         (`(,(or (pred consp) (pred stringp)) . ,_)
-          `(,@mode-line-position ,csv-mode-line-format))
-         (_ `("" ,mode-line-position ,csv-mode-line-format))))
-  (set (make-local-variable 'truncate-lines) t)
+  (setq-local mode-line-position
+              (pcase mode-line-position
+                (`(,(or (pred consp) (pred stringp)) . ,_)
+                 `(,@mode-line-position ,csv-mode-line-format))
+                (_ `("" ,mode-line-position ,csv-mode-line-format))))
+  (setq-local truncate-lines t)
   ;; Enable or disable `csv-field-index-mode' (could probably do this
   ;; a bit more efficiently):
   (csv-field-index-mode (symbol-value 'csv-field-index-mode)))
@@ -371,8 +396,8 @@ It must be either a string or nil."
    (list (edit-and-eval-command
 	  "Comment start (string or nil): " csv-comment-start)))
   ;; Paragraph means a group of contiguous records:
-  (set (make-local-variable 'paragraph-separate) "[[:space:]]*$") ; White space.
-  (set (make-local-variable 'paragraph-start) "\n");Must include \n explicitly!
+  (setq-local paragraph-separate "[[:space:]]*$") ; White space.
+  (setq-local paragraph-start "\n");Must include \n explicitly!
   ;; Remove old comment-start/end if available
   (with-syntax-table text-mode-syntax-table
     (when comment-start
@@ -385,7 +410,7 @@ It must be either a string or nil."
   (when string
     (setq paragraph-separate (concat paragraph-separate "\\|" string)
 	  paragraph-start (concat paragraph-start "\\|" string))
-    (set (make-local-variable 'comment-start) string)
+    (setq-local comment-start string)
     (modify-syntax-entry
      (string-to-char string) "<" csv-mode-syntax-table)
     (modify-syntax-entry ?\n ">" csv-mode-syntax-table))
@@ -511,11 +536,11 @@ Assumes point is at beginning of line."
 (defun csv-interactive-args (&optional type)
   "Get arg or field(s) and region interactively, offering sensible defaults.
 Signal an error if the buffer is read-only.
-If TYPE is noarg then return a list (beg end).
-Otherwise, return a list (arg beg end), where arg is:
+If TYPE is `noarg' then return a list (beg end).
+Otherwise, return a list (ARG BEG END), where ARG is:
   the raw prefix argument by default;
-  a single field index if TYPE is single;
-  a list of field indices or index ranges if TYPE is multiple.
+  a single field index if TYPE is `single';
+  a list of field indices or index ranges if TYPE is `multiple'.
 Field defaults to the current prefix arg; if not set, prompt user.
 
 A field index list consists of positive or negative integers or ranges,
@@ -532,12 +557,9 @@ The default field when read interactively is the current field."
 	  (if (not (use-region-p))
 	      ;; Set region automatically:
 	      (save-excursion
-                (if arg
-                    (beginning-of-line)
-                  (let ((lbp (line-beginning-position)))
-                    (while (re-search-backward csv-separator-regexp lbp 1)
-                      ;; Move as far as possible, i.e. to beginning of line.
-                      (setq default-field (1+ default-field)))))
+                (unless arg
+                  (setq default-field (csv--field-index)))
+                (beginning-of-line)
                 (if (csv-not-looking-at-record)
                     (error "Point must be within CSV records"))
 		(let ((startline (point)))
@@ -559,9 +581,10 @@ The default field when read interactively is the current field."
 		    (exchange-point-and-mark)
 		    (sit-for 1)
 		    (exchange-point-and-mark))
-		  (or (y-or-n-p "Region OK? ")
-		      (error "Action aborted by user"))
-		  (message nil)		; clear y-or-n-p message
+                  (when csv-confirm-region
+                    (or (y-or-n-p "Region OK? ")
+                        (error "Action aborted by user"))
+                    (message nil))      ; clear y-or-n-p message
 		  (list (region-beginning) (region-end))))
 	    ;; Use region set by user:
 	    (list (region-beginning) (region-end)))))
@@ -711,7 +734,7 @@ point or marker arguments, BEG and END, delimiting the region."
   (when (eq (char-syntax (following-char)) ?\")
     (forward-char)
     (let ((ended nil))
-      (while (not ended)
+      (while (and (not ended) (not (eolp)))
 	(cond ((not (eq (char-syntax (following-char)) ?\"))
 	       (forward-char 1))
 	      ;; According to RFC-4180 (sec 2.7), quotes inside quoted strings
@@ -836,11 +859,9 @@ which case extend the record as necessary."
 
 (defvar csv-field-index-idle-timer nil)
 
-(defvar csv-field-index-string nil)
-(make-variable-buffer-local 'csv-field-index-string)
+(defvar-local csv-field-index-string nil)
 
-(defvar csv-field-index-old nil)
-(make-variable-buffer-local 'csv-field-index-old)
+(defvar-local csv-field-index-old nil)
 
 (define-minor-mode csv-field-index-mode
   "Toggle CSV-Field-Index mode.
@@ -1396,6 +1417,26 @@ point is assumed to be at the beginning of the line."
 	      (forward-char)))
 	(nreverse fields)))))
 
+(defun csv--unquote-value (value)
+  "Remove quotes around VALUE.
+If VALUE contains escaped quote characters, un-escape them.  If
+VALUE is not quoted, return it unchanged."
+  (save-match-data
+    (let ((quote-regexp (apply #'concat `("[" ,@csv-field-quotes "]"))))
+      (if-let (((string-match (concat "^\\(" quote-regexp "\\)\\(.*\\)\\(" quote-regexp "\\)$") value))
+               (quote-char (match-string 1 value))
+               ((equal quote-char (match-string 3 value)))
+               (unquoted (match-string 2 value)))
+          (replace-regexp-in-string (concat quote-char quote-char) quote-char unquoted)
+        value))))
+
+(defun csv-parse-current-row ()
+  "Parse the current CSV line.
+Return the field values as a list."
+  (save-mark-and-excursion
+    (goto-char (line-beginning-position))
+    (mapcar #'csv--unquote-value (csv--collect-fields (line-end-position)))))
+
 (defvar-local csv--header-line nil)
 (defvar-local csv--header-hscroll nil)
 (defvar-local csv--header-string nil)
@@ -1833,7 +1874,7 @@ separator automatically when visiting a buffer:
                ;; or so chars, but take more than we probably need to
                ;; minimize the chance of breaking the input in the
                ;; middle of a (long) row.
-               (min 8192 (point-max)))
+               (min (+ 8192 (point-min)) (point-max)))
               2048)))
     (when sep
       (csv-set-separator sep))))
@@ -1861,10 +1902,11 @@ When CUTOFF is passed, look only at the first CUTOFF number of characters."
                     (substring text 0 (min cutoff (length text)))
                   text)))
       (when (and (not (gethash c chars))
-                 (or (= c ?\t)
-                     (and (not (member c '(?. ?/ ?\" ?')))
-                          (not (member (get-char-code-property c 'general-category)
-                                       '(Lu Ll Lt Lm Lo Nd Nl No Ps Pe Cc Co))))))
+                 (or (memq c '(?\t ?\C-_))
+                     (not (or (memq c '(?. ?/ ?\" ?'))
+                              (= c (string-to-char csv-comment-start))
+                              (memq (get-char-code-property c 'general-category)
+                                    '(Lu Ll Lt Lm Lo Nd Nl No Ps Pe Cc Co))))))
         (puthash c t chars)))
     (hash-table-keys chars)))
 
@@ -1889,7 +1931,7 @@ Nazábal, and Charles Sutton: https://arxiv.org/abs/1811.11242."
              (insert text))
            (let ((groups (make-hash-table))
                  (chars-read 0))
-             (while (and (/= (point) (point-max))
+             (while (and (not (eobp))
                          (or (not cutoff)
                              (< chars-read cutoff)))
                (let* ((lep (line-end-position))
