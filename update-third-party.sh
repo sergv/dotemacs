@@ -38,7 +38,7 @@ fi
 
 if [[ "$#" == 3 ]]; then
     hash="$3"
-elif [[ "${repository}" == "magit-repo" || "${repository}" == "with-editor-repo" || "${repository}" == "transient-repo" || "${repository}" == "el-patch-repo" || "${repository}" == "git-modes-repo" || "${repository}" == "ghub-repo"  || "${repository}" == "kotlin-ts-mode-repo" ]]; then
+elif [[ "${repository}" == "magit-repo" || "${repository}" == "with-editor-repo" || "${repository}" == "transient-repo" || "${repository}" == "el-patch-repo" || "${repository}" == "git-modes-repo" || "${repository}" == "ghub-repo"  || "${repository}" == "kotlin-ts-mode-repo" || "${repository}" == "tree-sitter-kotlin-repo" ]]; then
     hash="$(get-ref-hash "${repository}/main")"
 else
     hash="$(get-ref-hash "${repository}/master")"
