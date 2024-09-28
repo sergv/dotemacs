@@ -1,6 +1,6 @@
 ;;; capf-tests.el --- company tests for the company-capf backend  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018-2019, 2021-2023  Free Software Foundation, Inc.
+;; Copyright (C) 2018-2019, 2021-2024  Free Software Foundation, Inc.
 
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Keywords:
@@ -84,8 +84,8 @@
        (company--equal-including-properties
         render
         #("with-timeout-suspend"
-          0 12 (face (company-tooltip-common company-tooltip))   ; "with"
-          12 20 (face company-tooltip)))))))
+          0 7 (face (company-tooltip-common company-tooltip)) ; "with"
+          7 20 (face company-tooltip)))))))
 
 
 ;; Re. "perfect" highlighting of the non-prefix in company-capf matches, it is
@@ -140,6 +140,61 @@
         #("with-current-buffer"
           0 14 (face (company-tooltip-common company-tooltip)); "with-current-b"
           14 19 (face company-tooltip)))))))                ; "uffer"
+
+(ert-deftest company-capf-interrupted-on-input ()
+  (should
+   (eq
+    (catch 'interrupted
+      (with-temp-buffer
+        (let ((completion-at-point-functions
+               (list (lambda ()
+                       (list 1 1 obarray :company-use-while-no-input t))))
+              (unread-command-events '(?a))
+              (non-essential t))
+          (company-capf 'candidates "a")
+          (error "Not reachable"))))
+    'new-input)))
+
+(ert-deftest company-capf-uninterrupted ()
+  (should
+   (equal
+    (with-temp-buffer
+      (let ((completion-at-point-functions
+             (list (lambda ()
+                     (list 1 1 '("abcd" "ae" "be") t))))
+            (unread-command-events '(?a)))
+        (company-capf 'candidates "b" "")))
+    '("be"))))
+
+(ert-deftest company-capf-changed-source ()
+  (company-capf-with-buffer
+   "abc|"
+   (let* ((cc1 '("abczzzzzz" "abcdef" "abc123"))
+          (comp1
+           (lambda ()
+             (let ((len (length (thing-at-point 'word))))
+               (when (< len 4)
+                 (list (- (point) len) (point) cc1)))))
+          (cc2 '("abcz" "abczdef" "abcz123"))
+          (comp2
+           (lambda ()
+             (let ((bol (line-beginning-position)))
+               (list bol (point)
+                     (mapcar
+                      (lambda (s)
+                        (concat (buffer-substring bol (+ bol (current-indentation)))
+                                s))
+                      cc2))))))
+
+     (setq-local completion-at-point-functions
+                 (list comp1 comp2))
+
+     (should (equal (company-capf 'prefix) '("abc" "" nil)))
+     (should (equal (company-capf 'candidates "abc" "") cc1))
+     (insert "z")
+     (should (null (company-capf 'candidates "abcz" "")))
+     (delete-char -2)
+     (should (equal (company-capf 'candidates "ab" "") cc1)))))
 
 (provide 'capf-tests)
 ;;; capf-tests.el ends here
