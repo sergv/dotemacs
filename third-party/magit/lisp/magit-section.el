@@ -1597,9 +1597,7 @@ is explicitly expanded."
           (cons (lambda ()
                   (push magit-insert-section--current
                         header-sections))
-                (if (listp magit-insert-section-hook)
-                    magit-insert-section-hook
-                  (list magit-insert-section-hook)))))
+                (ensure-list magit-insert-section-hook))))
     (magit-run-section-hook hook)
     (when header-sections
       (insert "\n")
@@ -1635,7 +1633,8 @@ is explicitly expanded."
 (defun magit-section-maybe-remove-heading-map (section)
   (with-slots (start content end keymap) section
     (when (= content end)
-      (put-text-property start end 'keymap keymap))))
+      (put-text-property start end 'keymap
+                         (if (symbolp keymap) (symbol-value keymap) keymap)))))
 
 (defun magit-insert-child-count (section)
   "Modify SECTION's heading to contain number of child sections.
@@ -2271,7 +2270,7 @@ Configuration'."
   (while (< beg end)
     (let* ((pos (next-single-property-change beg 'font-lock-face object end))
            (val (get-text-property beg 'font-lock-face object))
-           (val (if (listp val) val (list val))))
+           (val (ensure-list val)))
       (put-text-property beg pos 'font-lock-face
                          (if append
                              (append val (list face))
