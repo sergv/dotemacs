@@ -44,6 +44,7 @@ const PREC = {
   SIMPLE_USER_TYPE: 2,
   ASSIGNMENT: 1,
   BLOCK: 1,
+  ARGUMENTS: 1,
   LAMBDA_LITERAL: 0,
   RETURN_OR_THROW: 0,
   COMMENT: 0
@@ -118,7 +119,7 @@ module.exports = grammar({
     $.multiline_comment,
     $._string_start,
     $._string_end,
-    $._string_content,
+    $.string_content,
   ],
 
   extras: $ => [
@@ -167,10 +168,12 @@ module.exports = grammar({
 
     import_header: $ => seq(
       "import",
-      $.identifier,
-      optional(choice(seq(".*"), $.import_alias)),
+      alias($._import_identifier, $.identifier),
+      optional(choice(seq(".", $.wildcard_import), $.import_alias)),
       $._semi
     ),
+
+    wildcard_import: _ => token.immediate("*"),
 
     import_alias: $ => seq("as", alias($.simple_identifier, $.type_identifier)),
 
@@ -243,9 +246,11 @@ module.exports = grammar({
       ")"
     ),
 
+    binding_pattern_kind: $ => choice("val", "var"),
+
     class_parameter: $ => seq(
       optional($.modifiers),
-      optional(choice("val", "var")),
+      optional($.binding_pattern_kind),
       $.simple_identifier,
       ":",
       $._type,
@@ -363,7 +368,7 @@ module.exports = grammar({
 
     property_declaration: $ => prec.right(seq(
       optional($.modifiers),
-      choice("val", "var"),
+      $.binding_pattern_kind,
       optional($.type_parameters),
       optional(seq($._receiver_type, optional('.'))),
       choice($.variable_declaration, $.multi_variable_declaration),
@@ -696,7 +701,7 @@ module.exports = grammar({
       // this introduces ambiguities with 'less than' for comparisons
       optional($.type_arguments),
       choice(
-        seq(optional($.value_arguments), $.annotated_lambda),
+        prec(PREC.ARGUMENTS, seq(optional($.value_arguments), $.annotated_lambda)),
         $.value_arguments
       )
     )),
@@ -755,14 +760,14 @@ module.exports = grammar({
       $.bin_literal,
       $.character_literal,
       $.real_literal,
-      "null",
+      $.null_literal,
       $.long_literal,
       $.unsigned_literal
     ),
 
     string_literal: $ => seq(
       $._string_start,
-      repeat(choice($._string_content, $._interpolation)),
+      repeat(choice($.string_content, $._interpolation)),
       $._string_end,
     ),
 
@@ -825,16 +830,16 @@ module.exports = grammar({
 
     if_expression: $ => prec.right(seq(
       "if",
-      "(", $._expression, ")",
+      "(", field('condition', $._expression), ")",
       choice(
-        $.control_structure_body,
-        ";",
+        field('consequence', $.control_structure_body),
         seq(
-          optional($.control_structure_body),
+          optional(field('consequence', $.control_structure_body)),
           optional(";"),
-          "else",
-          choice($.control_structure_body, ";")
-        )
+          "else", 
+          choice(field('alternative', $.control_structure_body), ";")
+        ),
+        ";"
       )
     )),
 
@@ -1099,6 +1104,13 @@ module.exports = grammar({
 
     identifier: $ => sep1($.simple_identifier, "."),
 
+    // Adapted from tree-sitter-java, helps to avoid a conflic with
+    // wildcard_import node while being compatible with identifier
+    _import_identifier: $ => choice(
+      $.simple_identifier,
+      seq($._import_identifier, ".", $.simple_identifier),
+    ),
+
     // ====================
     // Lexical grammar
     // ====================
@@ -1175,8 +1187,7 @@ module.exports = grammar({
 
     unsigned_literal: $ => seq(
       choice($.integer_literal, $.hex_literal, $.bin_literal),
-      /[uU]/,
-      optional("L")
+      /[uU]L?/
     ),
 
     long_literal: $ => seq(
@@ -1196,6 +1207,8 @@ module.exports = grammar({
       $._uni_character_literal,
       $._escaped_identifier
     ),
+
+    null_literal: $ => "null",
 
     // ==========
     // Identifiers
