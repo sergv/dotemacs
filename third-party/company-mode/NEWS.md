@@ -2,6 +2,37 @@
 
 # Next
 
+* Handle the case when the current c-a-p-f function changes mid-session
+  (#[1494](https://github.com/company-mode/company-mode/pull/1494)).
+
+# 2024-09-23 (1.0.2)
+
+* More reliable cache expiration (at the beginning of completion).
+
+# 2024-09-21 (1.0.1)
+
+* Fix for failover from a backend group to the next backend.
+
+# 2024-09-21 (1.0.0)
+
+* `company-complete-common` now performs generalized [expand common
+  part](https://github.com/company-mode/company-mode/pull/1488) completion when
+  the backend supports that. In particular, for `completion-at-point-functions`
+  it queries `completion-try-completion`. `company-dabbrev-code` and
+  `company-etags` also do that when `completion-styles` support is enabled.
+* `company-dabbrev-other-buffers` and `company-dabbrev-code-other-buffers` can
+  now take a function as its value (#[1485](https://github.com/company-mode/company-mode/issues/1485))
+* Completion works in the middle of a symbol
+  (#[1474](https://github.com/company-mode/company-mode/pull/1474)).
+* New user option `company-inhibit-inside-symbols`. Set it to `t` to switch
+  closer to the previous behavior.
+* Improved behavior when user types new character while completion is being
+  computed: better performance, less blinking (in the rare cases when it still
+  happened). This affects native async backends and is opt-in with
+  `company-capf`.
+* For that, `company-capf` supports interrupting computation on new user
+  input. Completion functions that want to take advantage of this behavior
+  should include `:company-use-while-no-input t` in the returned properties.
 * `company-elisp` has been removed.  It's not needed since Emacs 24.4, with all
   of its features having been incorporated into the built-in Elisp completion.
 * `company-files` shows shorter completions.  Previously, the popup spanned
@@ -27,6 +58,8 @@
 (setq company-dabbrev-code-ignore-case t
       company-dabbrev-code-completion-styles '(basic flex))
 ```
+
+* New user option `company-etags-completion-styles`, to be used the same way.
 
 * The backend command `keep-prefix` is being phased out.  The built-in backends
   implement it internally now, which resolved a number of sharp edges (mostly)

@@ -35,7 +35,7 @@
     (company-mode)
     (let (company-frontends
           (company-backends
-           (list (lambda (command &optional _)
+           (list (lambda (command &rest _)
                    (cl-case command
                      (prefix (buffer-substring (point-min) (point)))
                      (candidates '("abc" "abd")))))))
@@ -51,7 +51,7 @@
     (let (company-frontends
           (company-abort-on-unique-match t)
           (company-backends
-           (list (lambda (command &optional _)
+           (list (lambda (command &rest _)
                    (cl-case command
                      (prefix (buffer-substring (point-min) (point)))
                      (candidates '("abc")))))))
@@ -65,7 +65,7 @@
     (let (company-frontends
           company-abort-on-unique-match
           (company-backends
-           (list (lambda (command &optional _)
+           (list (lambda (command &rest _)
                    (cl-case command
                      (prefix (buffer-substring (point-min) (point)))
                      (candidates '("abc")))))))
@@ -78,7 +78,7 @@
     (company-mode)
     (let (company-frontends
           (company-backends
-           (list (lambda (command &optional _)
+           (list (lambda (command &rest _)
                    (cl-case command
                      (prefix (buffer-substring (point-min) (point)))
                      (candidates '("abc")))))))
@@ -109,9 +109,9 @@
         company-candidates-cache
         company-common)
     (company-update-candidates '("abc" "def-abc"))
-    (should (null company-common))
+    (should (equal company-common ""))
     (company-update-candidates '("abc" "abe-c"))
-    (should (null company-common))
+    (should (equal company-common "ab"))
     (company-update-candidates '("abcd" "abcde" "abcdf"))
     (should (equal "abcd" company-common))))
 
@@ -128,47 +128,63 @@
     (company-call-backend 'set-min-prefix 1)
     (should (equal (company-call-backend 'candidates "z") '("a" "b" "c" "d")))))
 
-(ert-deftest company-multi-backend-filters-backends-by-prefix ()
+(ert-deftest company-multi-backend-with-empty-prefixes ()
   (let ((company-backend
          (list (lambda (command &optional _ &rest _r)
                  (cl-case command
-                   (prefix (cons "z" t))
+                   (prefix "")
                    (candidates '("a" "b"))))
                (lambda (command &optional _ &rest _r)
                  (cl-case command
-                   (prefix "t")
-                   (candidates '("c" "d"))))
-               (lambda (command &optional _ &rest _r)
+                   (prefix "")
+                   (candidates '("c" "d")))))))
+    (should (equal (company-call-backend 'prefix) '("" nil 0)))))
+
+(ert-deftest company-multi-backend-none-applicable ()
+  (let ((company-backend (list #'ignore #'ignore)))
+    (should (null (company-call-backend 'prefix)))))
+
+(ert-deftest company-multi-backend-dispatches-separate-prefix-to-backends ()
+  (let ((company-backend
+         (list (lambda (command &optional arg &rest _r)
                  (cl-case command
-                   (prefix "z")
-                   (candidates '("e" "f")))))))
+                   (prefix (cons "z" t))
+                   (candidates
+                    (should (equal arg "z"))
+                    '("a" "b"))))
+               (lambda (command &optional arg &rest _r)
+                 (cl-case command
+                   (prefix "t")
+                   (candidates
+                    (should (equal arg "t"))
+                    '("c" "d")))))))
     (company-call-backend 'set-min-prefix 1)
-    (should (equal (company-call-backend 'candidates "z") '("a" "b" "e" "f")))))
+    (should (equal (company-call-backend 'candidates "z") '("a" "b" "c" "d")))))
 
 (ert-deftest company-multi-backend-remembers-candidate-backend ()
   (let ((company-backend
-         (list (lambda (command &optional _)
+         (list (lambda (command &rest _)
                  (cl-case command
                    (prefix "")
                    (ignore-case nil)
                    (annotation "1")
                    (candidates '("a" "c"))
                    (post-completion "13")))
-               (lambda (command &optional _)
+               (lambda (command &rest _)
                  (cl-case command
                    (prefix "")
                    (ignore-case t)
                    (annotation "2")
                    (candidates '("b" "d"))
                    (post-completion "42")))
-               (lambda (command &optional _)
+               (lambda (command &rest _)
                  (cl-case command
                    (prefix "")
                    (annotation "3")
                    (candidates '("e"))
                    (post-completion "74"))))))
     (company-call-backend 'set-min-prefix 0)
-    (let ((candidates (company-calculate-candidates "" nil)))
+    (let ((candidates (company-calculate-candidates "" nil nil)))
       (should (equal candidates '("a" "b" "c" "d" "e")))
       (should (equal t (company-call-backend 'ignore-case)))
       (should (equal "1" (company-call-backend 'annotation (nth 0 candidates))))
@@ -179,32 +195,32 @@
       (should (equal "74" (company-call-backend 'post-completion (nth 4 candidates)))))))
 
 (ert-deftest company-multi-backend-handles-keyword-with ()
-  (let ((primo (lambda (command &optional _)
+  (let ((primo (lambda (command &rest _)
                  (cl-case command
                    (prefix "a")
                    (candidates '("abb" "abc" "abd")))))
-        (secundo (lambda (command &optional _)
+        (secundo (lambda (command &rest _)
                    (cl-case command
                      (prefix "a")
                      (candidates '("acc" "acd"))))))
     (let ((company-backend (list 'ignore 'ignore :with secundo)))
       (should (null (company-call-backend 'prefix))))
     (let ((company-backend (list 'ignore primo :with secundo)))
-      (should (equal "a" (company-call-backend 'prefix)))
+      (should (equal '("a" nil 1) (company-call-backend 'prefix)))
       (company-call-backend 'set-min-prefix 1)
       (should (equal '("abb" "abc" "abd" "acc" "acd")
                      (company-call-backend 'candidates "a"))))))
 
 (ert-deftest company-multi-backend-handles-keyword-separate ()
-  (let ((one (lambda (command &optional _)
+  (let ((one (lambda (command &rest _)
                (cl-case command
                  (prefix "a")
                  (candidates (list "aa" "ca" "ba")))))
-        (two (lambda (command &optional _)
+        (two (lambda (command &rest _)
                (cl-case command
                  (prefix "a")
                  (candidates (list "bb" "ab")))))
-        (tri (lambda (command &optional _)
+        (tri (lambda (command &rest _)
                (cl-case command
                  (prefix "a")
                  (sorted t)
@@ -217,15 +233,15 @@
                      (company-call-backend 'candidates "a"))))))
 
 (ert-deftest company-multi-backend-handles-length-overrides-separately ()
-  (let ((one (lambda (command &optional _)
+  (let ((one (lambda (command &rest _)
                (cl-case command
                  (prefix "a")
                  (candidates (list "aa" "ca" "ba")))))
-        (two (lambda (command &optional _)
+        (two (lambda (command &rest _)
                (cl-case command
                  (prefix (cons "a" 2))
                  (candidates (list "bb" "ab")))))
-        (tri (lambda (command &optional _)
+        (tri (lambda (command &rest _)
                (cl-case command
                  (prefix "")
                  (candidates (list "cc" "bc" "ac"))))))
@@ -233,21 +249,21 @@
     (let ((company-backend (list one two tri)))
       (should (equal '("bb" "ab")
                      (company-call-backend 'candidates "a"))))
-    (company-call-backend 'set-min-prefix 0)
+    (company-call-backend 'set-min-prefix 1)
     (let ((company-backend (list one two tri)))
       (should (equal '("aa" "ca" "ba" "bb" "ab")
                      (company-call-backend 'candidates "a"))))))
 
 (ert-deftest company-multi-backend-handles-clears-cache-when-needed ()
-  (let* ((one (lambda (command &optional _)
+  (let* ((one (lambda (command &rest _)
                 (cl-case command
                   (prefix "aa")
                   (candidates (list "aa")))))
-         (two (lambda (command &optional _)
+         (two (lambda (command &rest _)
                 (cl-case command
                   (prefix (cons "aa" t))
                   (candidates (list "aab" )))))
-         (tri (lambda (command &optional _)
+         (tri (lambda (command &rest _)
                 (cl-case command
                   (prefix "")
                   (candidates (list "aac")))))
@@ -261,23 +277,23 @@
                      (company-call-backend 'candidates "aa"))))))
 
 (ert-deftest company-multi-backend-chooses-longest-prefix-length ()
-  (let* ((one (lambda (command &optional _)
+  (let* ((one (lambda (command &rest _)
                 (cl-case command
                   (prefix "aa")
                   (candidates (list "aa")))))
-         (two (lambda (command &optional _)
+         (two (lambda (command &rest _)
                 (cl-case command
                   (prefix (cons "aa" t))
                   (candidates (list "aab" )))))
-         (tri (lambda (command &optional _)
+         (tri (lambda (command &rest _)
                 (cl-case command
                   (prefix "")
                   (candidates (list "aac")))))
-         (fur (lambda (command &optional _)
+         (fur (lambda (command &rest _)
                 (cl-case command
                   (prefix (cons "aa" 3))
                   (candidates (list "aac")))))
-         (fiv (lambda (command &optional _)
+         (fiv (lambda (command &rest _)
                 (cl-case command
                   (prefix (cons "aa" 1))
                   (candidates (list "aac")))))
@@ -285,18 +301,129 @@
     (let ((company-backend (list one tri fur)))
       (should
        (equal
-        '("aa" . 3)
+        '("aa" nil 3)
         (company-call-backend 'prefix))))
     (let ((company-backend (list one two tri fur)))
       (should
        (equal
-        '("aa" . t)
+        '("aa" nil t)
         (company-call-backend 'prefix))))
     (let ((company-backend (list one fiv)))
       (should
        (equal
-        "aa"
+        '("aa" nil 2)
         (company-call-backend 'prefix))))))
+
+(ert-deftest company-multi-backend-supports-different-suffixes ()
+  (let* ((one (lambda (command &rest args)
+                (cl-case command
+                  (prefix '("a" "b"))
+                  (candidates
+                   (should (equal args '("a" "b")))
+                   '("a1b")))))
+         (two (lambda (command &rest args)
+                (cl-case command
+                  (prefix "a")
+                  (candidates
+                   (should (equal args '("a" "")))
+                   '("a2")))))
+         (tri (lambda (command &rest args)
+                (cl-case command
+                  (prefix '("a" ""))
+                  (candidates
+                   (should (equal args '("a" "")))
+                   '("a3")))))
+         (company-backend (list one two tri)))
+    (should
+     (equal '("a" "b" 1)
+            (company-call-backend 'prefix)))
+    (should
+     (equal '("a1b" "a2" "a3")
+            (company-call-backend 'candidates "a" "b")))))
+
+(ert-deftest company-multi-backend-dispatches-adjust-boundaries ()
+  (let* ((one (lambda (command &rest _args)
+                (cl-case command
+                  (prefix '("a" ""))
+                  (candidates
+                   '("a1b")))))
+         (tri (lambda (command &rest args)
+                (cl-case command
+                  (prefix '("aa" "bcd"))
+                  (adjust-boundaries
+                   (should (equal args
+                                  '("a3" "aa" "bcd")))
+                   (cons "a" "bc"))
+                  (candidates
+                   '("a3")))))
+         (company-backend (list one tri))
+         (company-point (point))
+         (candidates (company-call-backend 'candidates "a" "")))
+    (should
+     (equal '("aa" "bcd" 2)
+            (company-call-backend 'prefix)))
+    (should
+     (equal (cons "a" "bc")
+            (company-call-backend 'adjust-boundaries
+                                  (car (member "a3" candidates))
+                                  "aa" "bcd")))
+    (should
+     (equal (cons "a" "")
+            (company-call-backend 'adjust-boundaries
+                                  (car (member "a1b" candidates))
+                                  "aa" "bcd")))))
+
+(ert-deftest company-multi-backend-combines-expand-common ()
+  (let* ((one (lambda (command &rest _args)
+                (cl-case command
+                  (prefix '("a" ""))
+                  (expand-common (cons "ab" "")))))
+         (two (lambda (command &rest _args)
+                (cl-case command
+                  (prefix '("aa" "bcd"))
+                  (expand-common (cons "aab" "bcd")))))
+         (tri (lambda (command &rest _args)
+                (cl-case command
+                  (prefix '("aa" "bcd"))
+                  (expand-common 'no-match))))
+         (company-backend (list one two tri))
+         (company-point (point)))
+    (company-call-backend 'set-min-prefix 1)
+    (should
+     (equal '("aab" . "bcd")
+            (company-call-backend 'expand-common "aa" "bcd")))))
+
+(ert-deftest company-multi-backend-expand-common-returns-no-match ()
+  (let* ((one (lambda (command &rest _args)
+                (cl-case command
+                  (prefix '("a" ""))
+                  (expand-common 'no-match))))
+         (two (lambda (command &rest _args)
+                (cl-case command
+                  (prefix '("aa" "bcd"))
+                  (expand-common 'no-match))))
+         (company-backend (list one two))
+         (company-point (point)))
+    (company-call-backend 'set-min-prefix 1)
+    (should
+     (equal 'no-match
+            (company-call-backend 'expand-common "aa" "bcd")))))
+
+(ert-deftest company-multi-backend-expand-common-keeps-current ()
+  (let* ((one (lambda (command &rest _args)
+                (cl-case command
+                  (prefix '("a" ""))
+                  (expand-common (cons "ab" "")))))
+         (two (lambda (command &rest _args)
+                (cl-case command
+                  (prefix '("a" ""))
+                  (expand-common (cons "ac" "")))))
+         (company-backend (list one two))
+         (company-point (point)))
+    (company-call-backend 'set-min-prefix 1)
+    (should
+     (equal '("a" . "")
+            (company-call-backend 'expand-common "a" "")))))
 
 (ert-deftest company-begin-backend-failure-doesnt-break-company-backends ()
   (with-temp-buffer
@@ -306,7 +433,7 @@
      (company-begin-backend #'ignore))
     (let (company-frontends
           (company-backends
-           (list (lambda (command &optional _)
+           (list (lambda (command &rest _)
                    (cl-case command
                      (prefix "a")
                      (candidates '("a" "ab" "ac")))))))
@@ -321,7 +448,7 @@
     (let (company-frontends
           (company-require-match 'company-explicit-action-p)
           (company-backends
-           (list (lambda (command &optional _)
+           (list (lambda (command &rest _)
                    (cl-case command
                      (prefix (buffer-substring (point-min) (point)))
                      (candidates '("abc" "abd")))))))
@@ -340,7 +467,7 @@
           (company-minimum-prefix-length 2)
           (company-require-match 'company-explicit-action-p)
           (company-backends
-           (list (lambda (command &optional _)
+           (list (lambda (command &rest _)
                    (cl-case command
                      (prefix (buffer-substring (point-min) (point)))
                      (candidates '("abc" "abd")))))))
@@ -360,7 +487,7 @@
           company-insertion-on-trigger
           (company-require-match t)
           (company-backends
-           (list (lambda (command &optional _)
+           (list (lambda (command &rest _)
                    (cl-case command
                      (prefix (company-grab-word))
                      (candidates '("abc" "ab" "abd"))
@@ -383,7 +510,7 @@
     (let (company-frontends
           (company-require-match t)
           (company-backends
-           (list (lambda (command &optional _)
+           (list (lambda (command &rest _)
                    (cl-case command
                      (prefix (if (> (point) 2)
                                  'stop
@@ -403,7 +530,7 @@
     (let (company-frontends
           company-begin-commands
           (company-backends
-           (list (lambda (command &optional _)
+           (list (lambda (command &rest _)
                    (cl-case command
                      (prefix (buffer-substring (point-min) (point)))
                      (candidates '("abc" "abd")))))))
@@ -425,7 +552,7 @@
     (let (company-frontends
           company-begin-commands
           (company-backends
-           (list (lambda (command &optional _)
+           (list (lambda (command &rest _)
                    (cl-case command
                      (prefix (buffer-substring (point-min) (point)))
                      (candidates '("abc" "abd")))))))
@@ -447,7 +574,7 @@
     (let (company-frontends
           (company-minimum-prefix-length 2)
           (company-backends
-           (list (lambda (command &optional _)
+           (list (lambda (command &rest _)
                    (cl-case command
                      (prefix (buffer-substring (point-min) (point)))
                      (candidates '("abcd" "abef")))))))
@@ -465,7 +592,7 @@
           (company-insertion-on-trigger 'company-explicit-action-p)
           (company-insertion-triggers '(? ))
           (company-backends
-           (list (lambda (command &optional _)
+           (list (lambda (command &rest _)
                    (cl-case command
                      (prefix (buffer-substring (point-min) (point)))
                      (candidates '("abcd" "abef")))))))
@@ -484,7 +611,7 @@
           (company-insertion-on-trigger t)
           (company-insertion-triggers '(? ?\)))
           (company-backends
-           (list (lambda (command &optional _)
+           (list (lambda (command &rest _)
                    (cl-case command
                      (prefix (buffer-substring 5 (point)))
                      (candidates '("abcd" "abef"))))))
@@ -509,7 +636,7 @@
           (company-insertion-triggers '(? ))
           (company-minimum-prefix-length 2)
           (company-backends
-           (list (lambda (command &optional _)
+           (list (lambda (command &rest _)
                    (cl-case command
                      (prefix (buffer-substring (point-min) (point)))
                      (candidates '("abcd" "abef")))))))
@@ -533,7 +660,7 @@
     (company-mode)
     (let (company-frontends
           (company-backends
-           (list (lambda (command &optional _)
+           (list (lambda (command &rest _)
                    (cl-case command
                      (prefix (buffer-substring (point-min) (point)))
                      (candidates '("abcd" "abef"))
@@ -553,7 +680,7 @@
     (company-mode)
     (let (company-frontends
           (company-backends
-           (list (lambda (command &optional _)
+           (list (lambda (command &rest _)
                    (cl-case command
                      (prefix (buffer-substring (point-min) (point)))
                      (candidates '("abcd" "abef"))
@@ -569,7 +696,7 @@
     (company-mode)
     (let (company-frontends
           (company-backends
-           (list (lambda (command &optional _)
+           (list (lambda (command &rest _)
                    (cl-case command
                      (prefix (buffer-substring (point-min) (point)))
                      (candidates '("tea-cup" "teal-color")))))))
@@ -818,5 +945,18 @@
     (setq company-selection nil)
     (company-select-next -10)
     (should (eq company-selection 0))))
+
+(ert-deftest company-capf-completions ()
+  (let ((table '("ab-de-b" "ccc" "abc-de-b")))
+    (let ((completion-styles '(partial-completion)))
+      (should
+       (equal (company--capf-completions "ab-d" "b" table)
+              '((:completions . ("ab-de-b" "abc-de-b"))
+                (:boundaries . ("ab-d" . "b"))))))
+    (let ((completion-styles '(emacs22)))
+      (should
+       (equal (company--capf-completions "ab-d" "b" table)
+              '((:completions . ("ab-de-b"))
+                (:boundaries . ("ab-d" . ""))))))))
 
 ;;; core-tests.el ends here.
