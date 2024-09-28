@@ -81,6 +81,9 @@ Since `execute-kbd-macro' doesn't pick up a let-bound `default-directory'.")
 
 (defvar ivy-test-inhibit-message t)
 
+;; New in Emacs 25.
+(defvar inhibit-message)
+
 (cl-defun ivy-with (expr keys &key dir)
   "Evaluate EXPR followed by KEYS."
   (let ((ivy-expr expr)
@@ -292,6 +295,8 @@ Since `execute-kbd-macro' doesn't pick up a let-bound `default-directory'.")
   :expected-result (if (>= emacs-major-version 25)
                        :passed
                      :failed)
+  ;; New in Emacs 25.
+  (defvar search-default-mode)
   (let ((search-default-mode 'char-fold-to-regexp))
     (should (string= (swiper--re-builder "f b")
                      "\\(\\(?:ḟ\\|[fᶠḟⓕｆ𝐟𝑓𝒇𝒻𝓯𝔣𝕗𝖋𝖿𝗳𝘧𝙛𝚏]\\)\\).*?\\(\\(?:b[̣̱̇]\\|[bᵇḃḅḇⓑｂ𝐛𝑏𝒃𝒷𝓫𝔟𝕓𝖇𝖻𝗯𝘣𝙗𝚋]\\)\\)"))
@@ -785,80 +790,55 @@ Since `execute-kbd-macro' doesn't pick up a let-bound `default-directory'.")
            "default")))
 
 (ert-deftest ivy-read-prompt ()
-  (setq prompt "pattern: ")
-  (setq collection '("blue" "yellow"))
-  (should (equal
-           (ivy-with
-            '(let ((ivy-use-selectable-prompt nil))
-              (ivy-read prompt collection))
-            "bl C-m")
-           "blue"))
-  (should (equal
-           (ivy-with
-            '(let ((ivy-use-selectable-prompt nil))
-              (ivy-read prompt collection))
-            "bl C-p C-m")
-           "blue"))
-  (should (equal
-           (ivy-with
-            '(let ((ivy-use-selectable-prompt nil))
-              (ivy-read prompt collection))
-            "bl C-j")
-           "blue"))
-  (should (equal
-           (ivy-with
-            '(let ((ivy-use-selectable-prompt nil))
-              (ivy-read prompt collection))
-            "bl C-p C-j")
-           "blue"))
-  (should (equal
-           (ivy-with
-            '(let ((ivy-use-selectable-prompt nil))
-              (ivy-read prompt collection))
-            "bl C-M-j")
-           "bl"))
-  (should (equal
-           (ivy-with
-            '(let ((ivy-use-selectable-prompt nil))
-              (ivy-read prompt collection))
-            "bl C-p C-M-j")
-           "bl"))
-  (should (equal
-           (ivy-with
-            '(let ((ivy-use-selectable-prompt t))
-              (ivy-read prompt collection))
-            "bl C-m")
-           "blue"))
-  (should (equal
-           (ivy-with
-            '(let ((ivy-use-selectable-prompt t))
-              (ivy-read prompt collection))
-            "bl C-p C-m")
-           "bl"))
-  (should (equal
-           (ivy-with
-            '(let ((ivy-use-selectable-prompt t))
-              (ivy-read prompt collection))
-            "bl C-j")
-           "blue"))
-  (should (equal
-           (ivy-with
-            '(let ((ivy-use-selectable-prompt t))
-              (ivy-read prompt collection))
-            "bl C-p C-j")
-           "bl"))
-  (should (equal
-           (ivy-with
-            '(let ((ivy-use-selectable-prompt t))
-              (ivy-read prompt collection))
-            "bl C-M-j")
-           "bl"))
-  (should (equal
-           (ivy-with
-            '(let ((ivy-use-selectable-prompt t))
-              (ivy-read prompt collection))
-            "bl C-p C-M-j")
-           "bl")))
+  (let ((read '(ivy-read "pattern: " '("blue" "yellow"))))
+    (should (equal (ivy-with
+                    `(let ((ivy-use-selectable-prompt nil)) ,read)
+                    "bl C-m")
+                   "blue"))
+    (should (equal (ivy-with
+                    `(let ((ivy-use-selectable-prompt nil)) ,read)
+                    "bl C-p C-m")
+                   "blue"))
+    (should (equal (ivy-with
+                    `(let ((ivy-use-selectable-prompt nil)) ,read)
+                    "bl C-j")
+                   "blue"))
+    (should (equal (ivy-with
+                    `(let ((ivy-use-selectable-prompt nil)) ,read)
+                    "bl C-p C-j")
+                   "blue"))
+    (should (equal (ivy-with
+                    `(let ((ivy-use-selectable-prompt nil)) ,read)
+                    "bl C-M-j")
+                   "bl"))
+    (should (equal (ivy-with
+                    `(let ((ivy-use-selectable-prompt nil)) ,read)
+                    "bl C-p C-M-j")
+                   "bl"))
+    (should (equal (ivy-with
+                    `(let ((ivy-use-selectable-prompt t)) ,read)
+                    "bl C-m")
+                   "blue"))
+    (should (equal (ivy-with
+                    `(let ((ivy-use-selectable-prompt t)) ,read)
+                    "bl C-p C-m")
+                   "bl"))
+    (should (equal (ivy-with
+                    `(let ((ivy-use-selectable-prompt t)) ,read)
+                    "bl C-j")
+                   "blue"))
+    (should (equal (ivy-with
+                    `(let ((ivy-use-selectable-prompt t)) ,read)
+                    "bl C-p C-j")
+                   "bl"))
+    (should (equal (ivy-with
+                    `(let ((ivy-use-selectable-prompt t)) ,read)
+                    "bl C-M-j")
+                   "bl"))
+    (should (equal (ivy-with
+                    `(let ((ivy-use-selectable-prompt t)) ,read)
+                    "bl C-p C-M-j")
+                   "bl"))))
 
 (defmacro ivy-with-r (expr &rest keys)
   `(with-output-to-string
@@ -995,7 +975,8 @@ Since `execute-kbd-macro' doesn't pick up a let-bound `default-directory'.")
            ;; Handler = `completing-read-default'; make sure ivy-read
            ;; is never called
            (cl-letf (((symbol-function 'ivy-read)
-                      (lambda (&rest args) (error "`ivy-read' should not be called"))))
+                      (lambda (&rest _)
+                        (error "`ivy-read' should not be called"))))
 
              (should
               (equal ""
@@ -1140,13 +1121,14 @@ Since `execute-kbd-macro' doesn't pick up a let-bound `default-directory'.")
   (let (dir)
     (unwind-protect
         (let ((ivy-minibuffer-map
-               ;; Avoid modifying global `ivy-minibuffer-map'.
-               (easy-mmode-define-keymap
-                '(("\t" . ivy-partial)
-                  ;; Allow quitting during `execute-kbd-macro'.
+               (let ((map (make-sparse-keymap)))
+                 ;; Avoid modifying global `ivy-minibuffer-map'.
+                 (set-keymap-parent map ivy-minibuffer-map)
+                 (define-key map "\t" #'ivy-partial)
+                 ;; Allow quitting during `execute-kbd-macro'.
                   ;; See issue #2906 and URL `https://bugs.gnu.org/48603'.
-                  ("\C-g" . abort-recursive-edit))
-                nil nil `(:inherit ,ivy-minibuffer-map)))
+                 (define-key map "\C-g" #'abort-recursive-edit)
+                 map))
               (subdirs '("test1/" "test2/")))
           (setq dir (file-name-as-directory (make-temp-file "ivy-test-" t)))
           (dolist (subdir subdirs)
@@ -1180,6 +1162,40 @@ Since `execute-kbd-macro' doesn't pick up a let-bound `default-directory'.")
                  (counsel-yank-pop-after-point t))
              (ivy-with-temp-buffer '(counsel-yank-pop) "C-m"))
            '(1 "foo"))))
+
+(ert-deftest counsel-string-non-blank-p ()
+  "Test `counsel-string-non-blank-p'."
+  (should-not (counsel-string-non-blank-p ""))
+  (should-not (counsel-string-non-blank-p " "))
+  (should-not (counsel-string-non-blank-p "  "))
+  (should (counsel-string-non-blank-p "a"))
+  (should (counsel-string-non-blank-p " a"))
+  (should (counsel-string-non-blank-p "a "))
+  (should (counsel-string-non-blank-p "aa")))
+
+(ert-deftest counsel--equal-w-props ()
+  "Sanity check for `sxhash-equal-including-properties'."
+  (let ((name 'counsel--equal-w-props)
+        (test (counsel--equal-w-props)))
+    (should (eq test (and (>= emacs-major-version 28) name)))
+    (if test
+        (should (make-hash-table :test test :size 0))
+      (should-not (get name 'hash-table-test)))))
+
+(ert-deftest counsel--yank-pop-filter ()
+  "Test `counsel--yank-pop-filter'."
+  (should-not (counsel--yank-pop-filter ()))
+  (dolist (len '(1 2 3 120))
+    (let (kills)
+      (dotimes (_ len)
+        (push (propertize "a" t nil) kills))
+      (should (equal (counsel--yank-pop-filter kills) '("a")))))
+  (dolist (len '(1 2 3 60))
+    (let (kills)
+      (dotimes (_ len)
+        (push (propertize "a" t nil) kills)
+        (push (propertize "a" t t) kills))
+      (should (equal (counsel--yank-pop-filter kills) '("a" "a"))))))
 
 (ert-deftest ivy-read-file-name-in-buffer-visiting-file ()
   "Test `ivy-immediate-done' command in `read-file-name' without any editing in
