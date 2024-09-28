@@ -477,10 +477,10 @@ fuzzyMatch store mkHeatmap needleSegments haystack = do
       case sm of
         Nothing -> pure Nothing
         Just (sm', heatmap) -> do
-          go (toMatch sm') (mkParts zeroPackedStrCharIdxAndStrByteIdx sm' haystack heatmap) otherSegments
+          go (toMatch sm') (dividePart sm' haystack heatmap) otherSegments
   where
-    mkParts :: PackedStrCharIdxAndStrByteIdx -> Submatch -> Text -> Heatmap s -> NonEmpty (Text, Heatmap s, PackedStrCharIdxAndStrByteIdx)
-    mkParts offset Submatch{smPositions} str heatmap =
+    dividePart :: Submatch -> Text -> Heatmap s -> NonEmpty (Text, Heatmap s, PackedStrCharIdxAndStrByteIdx)
+    dividePart Submatch{smPositions} str heatmap =
       (hk1, hm1, zeroPackedStrCharIdxAndStrByteIdx) :| [(hk2, hm2, offset')]
       where
         -- Longest and earliest region that will never be crossed by subsequent matches.
@@ -491,9 +491,8 @@ fuzzyMatch store mkHeatmap needleSegments haystack = do
         !len'                = fromIntegral $ negate $ rLength dividingRegion - 1
         !startC              = charIdxAdvance endC len'
         !startB              = byteIdxAdvance endB len'
-        !(!cidx, !bidx)      = unpackIdxs offset
-        (!hm1, !hm2, !cidx') = splitHeatmap cidx startC endC heatmap
-        (!hk1, !hk2, !bidx') = splitHaystack bidx startB endB str
+        (!hm1, !hm2, !cidx') = splitHeatmap startC endC heatmap
+        (!hk1, !hk2, !bidx') = splitHaystack startB endB str
         !offset'             = mkPackedStrCharIdxAndStrByteIdx cidx' bidx'
 
     go
@@ -516,38 +515,47 @@ fuzzyMatch store mkHeatmap needleSegments haystack = do
               macc'     = macc <> bestMatch
               parts'    = flip Foldable1.foldMap1 (NE.zip (0 :| [1..]) parts) $ \(i, part) ->
                 if i == bestI
-                then (\(a, b, c) -> (a, b, packedIdxAdvance c bestOffset)) <$> mkParts bestOffset bestSM bestHaystack bestHeatmap
+                then
+                  (\(a, b, c) -> (a, b, packedIdxAdvance c bestOffset)) <$> dividePart bestSM bestHaystack bestHeatmap
                 else part :| []
 
           go macc' parts' segments
 
-splitHaystack :: StrByteIdx Int32 -> StrByteIdx Int32 -> StrByteIdx Int32 -> Text -> (Text, Text, StrByteIdx Int32)
-splitHaystack offset bstart bend (TI.Text arr off len) =
-  ( TI.text arr off            bstart'
-  , TI.text arr (off + bend'') (len - bend'')
+splitHaystack
+  :: WithCallStack
+  => StrByteIdx Int32 -> StrByteIdx Int32 -> Text -> (Text, Text, StrByteIdx Int32)
+splitHaystack !bstart !bend (TI.Text arr off len) =
+  ( left
+  , right
   , bend'
   )
   where
-    -- bstart, bend :: StrByteIdx Int32
-    -- !(!bstart, !bend) = getMinMax mm
+    !left  = TI.text arr off    (bstart' - off)
+    !right = TI.text arr bend'' (off + len - bend'')
+    -- left  = TI.text arr off            bstart'
+    -- right = TI.text arr (off + bend'') (len - bend'')
     bstart', bend'' :: Int
-    !bstart' = fromIntegral (unStrByteIdx bstart - unStrByteIdx offset)
-    bend''   = fromIntegral (unStrByteIdx bend'  - unStrByteIdx offset)
+    !bstart' = fromIntegral (unStrByteIdx bstart)
+    !bend''   = fromIntegral (unStrByteIdx bend')
     bend' :: StrByteIdx Int32
     !bend'   = byteIdxAdvance bend 1
 
-splitHeatmap :: StrCharIdx Int32 -> StrCharIdx Int32 -> StrCharIdx Int32 -> Heatmap s -> (Heatmap s, Heatmap s, StrCharIdx Int32)
-splitHeatmap offset cstart cend (Heatmap arr) =
-  ( Heatmap $ PM.unsafeSlice 0 cstart' arr
-  , Heatmap $ PM.unsafeSlice cend'' (PM.length arr) arr
+splitHeatmap
+  :: WithCallStack
+  => StrCharIdx Int32 -> StrCharIdx Int32 -> Heatmap s -> (Heatmap s, Heatmap s, StrCharIdx Int32)
+splitHeatmap !cstart !cend (Heatmap arr) =
+  ( left
+  , right
   , cend'
   )
   where
+    !left  = Heatmap $ PM.unsafeSlice 0 cstart' arr
+    !right = Heatmap $ PM.unsafeSlice cend'' (PM.length arr - cend'') arr
     cend' :: StrCharIdx Int32
     !cend' = charIdxAdvance cend 1
     cstart', cend'' :: Int
-    !cstart' = fromIntegral (unStrCharIdx cstart - unStrCharIdx offset)
-    !cend''  = fromIntegral (unStrCharIdx cend' - unStrCharIdx offset)
+    !cstart' = fromIntegral (unStrCharIdx cstart)
+    !cend''  = fromIntegral (unStrCharIdx cend')
 
 preprocessNeedle :: Text -> NonEmpty (Text, NeedleChars)
 preprocessNeedle = fmap (\x -> (x, prepareNeedleSegment x)) . splitNeedle
@@ -558,9 +566,9 @@ splitNeedle = splitOnSpace
     space :: Word8
     !space = fromIntegral (ord ' ')
     splitOnSpace :: Text -> NonEmpty Text
-    splitOnSpace str = case T.uncons str of
+    splitOnSpace !str = case T.uncons str of
       Just (' ', _) ->
-        let (# first, rest #) = T.spanAscii2_ (== space) (/= space) str
+        let (# !first, !rest #) = T.spanAscii2_ (== space) (/= space) str
         in case splitBy space rest of
           [] -> first :| [rest]
           xs -> first :| xs
@@ -569,23 +577,23 @@ splitNeedle = splitOnSpace
         x : xs -> x :| xs
 
 splitBy :: Word8 -> Text -> [Text]
-splitBy c = go
+splitBy !c = go
   where
-    split str =
-      let (# prefix, suffix  #) = T.spanAscii_ (/= c) str
-          (# _,      suffix' #) = T.spanAscii_ (== c) suffix
+    split !str =
+      let (# !prefix, !suffix  #) = T.spanAscii_ (/= c) str
+          (# _,       !suffix' #) = T.spanAscii_ (== c) suffix
       in (# prefix, suffix' #)
-    go str
+    go !str
       | T.null str = []
       | otherwise  =
-        let (# prefix, suffix #) = split str
+        let (# !prefix, !suffix #) = split str
         in if T.null prefix
         then go suffix
         else prefix : go' suffix
-    go' str
+    go' !str
       | T.null str = []
       | otherwise  =
-        let (# prefix, suffix #) = split str
+        let (# !prefix, !suffix #) = split str
         in prefix : go' suffix
 
 fuzzyMatchImpl
@@ -606,7 +614,7 @@ fuzzyMatchImpl store mkHeatmap (needle, needleChars) haystack
       heatmap'@(Heatmap heatmap) <- unsafeInterleaveST mkHeatmap
       let
         bigger :: StrCharIdx Int32 -> U.Vector PackedStrCharIdxAndStrByteIdx -> U.Vector PackedStrCharIdxAndStrByteIdx
-        bigger x xs
+        bigger !x !xs
           | isMember
           = let !i' = i + 1
             in U.unsafeSlice i' (U.length xs - i') xs
@@ -784,7 +792,7 @@ newtype Heatmap s = Heatmap { unHeatmap :: PM.MVector s Heat }
 -- Heatmap elements spast @hastyackLen@ will have undefined values. Take care not
 -- to access them!
 computeHeatmap :: forall s. ReusableState s -> Text -> Int -> PrimArray Int32 -> ST s (Heatmap s)
-computeHeatmap ReusableState{rsHeatmapStore} !haystack !haystackLen groupSeps = do
+computeHeatmap ReusableState{rsHeatmapStore} !haystack !haystackLen !groupSeps = do
   arr    <- readSTRef rsHeatmapStore
   scores <- do
     !currSize <- getSizeofMutablePrimArray arr
@@ -989,7 +997,7 @@ analyzeGroup Group{gPrevChar, gLen, gStr, gStart} !seenBasePath !groupsCount Gro
   pure res
 
 calcGroupScore :: Bool -> Int -> Int -> Int -> Heat
-calcGroupScore isBasePath groupsCount wordCount gcGroupIdx
+calcGroupScore !isBasePath !groupsCount !wordCount !gcGroupIdx
   | isBasePath = Heat $ fi32 $ 35 + max (groupsCount - 2) 0 - wordCount
   | otherwise  = if gcGroupIdx == 0 then Heat (- 3) else Heat $ fi32 $ gcGroupIdx - 6
 
