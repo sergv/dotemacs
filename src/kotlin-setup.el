@@ -42,7 +42,7 @@
 (add-hook 'kotlin-ts-mode-hook #'kotlin-setup)
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.kt\\'" . kotlin-mode))
+(add-to-list 'auto-mode-alist '("\\.kts?\\'" . kotlin-mode))
 
 (provide 'kotlin-setup)
 
