@@ -71,34 +71,46 @@
                 (func-decl-cont . c-lineup-java-throws)))
              c-style-alist))
 
-     (unless (assoc "android-java-style" c-style-alist)
-       (push `("android-java-style"
-               (c-basic-offset . 8)
-               (indent-tabs-mode . nil)
-               (c-comment-only-line-offset 0 . 0)
-               (c-offsets-alist
-                (topmost-intro . 0)
-                (inclass . +)
-                (inexpr-class . 0)
+     (let ((android-java-style-rules
+            '((c-comment-only-line-offset 0 . 0)
+              (c-offsets-alist
+               (topmost-intro . 0)
+               (inclass . +)
+               (inexpr-class . 0)
 
-                (arglist-intro . +)
-                (arglist-close . 0)
-                (arglist-cont-nonempty c-lineup-gcc-asm-reg c-lineup-arglist)
-                (arglist-cont c-lineup-gcc-asm-reg 0)
+               (arglist-intro . +)
+               (arglist-close . 0)
+               (arglist-cont-nonempty c-lineup-gcc-asm-reg c-lineup-arglist)
+               (arglist-cont c-lineup-gcc-asm-reg 0)
 
-                (inline-open . 0)
-                (topmost-intro-cont . +)
-                (statement-block-intro . +)
-                (knr-argdecl-intro . 5)
-                (substatement-open . +)
-                (substatement-label . +)
-                (label . +)
-                (statement-case-open . +)
-                (statement-cont . +)
-                (access-label . 0)
-                (inher-cont . c-lineup-java-inher)
-                (func-decl-cont . c-lineup-java-throws)))
-             c-style-alist))
+               (inline-open . 0)
+               (topmost-intro-cont . +)
+               (statement-block-intro . +)
+               (knr-argdecl-intro . 5)
+               (substatement-open . +)
+               (substatement-label . +)
+               (label . +)
+               (statement-case-open . +)
+               (statement-cont . +)
+               (access-label . 0)
+               (inher-cont . c-lineup-java-inher)
+               (func-decl-cont . c-lineup-java-throws)))))
+
+       (unless (assoc "android-java-style" c-style-alist)
+         (push (append
+                `("android-java-style"
+                  (c-basic-offset . 4)
+                  (indent-tabs-mode . nil))
+                android-java-style-rules)
+               c-style-alist))
+
+       (unless (assoc "android-java-tabs-style" c-style-alist)
+         (push (append
+                `("android-java-tabs-style"
+                  (c-basic-offset . 8)
+                  (indent-tabs-mode . t))
+                android-java-style-rules)
+               c-style-alist)))
 
      (setf c-default-style
            `((java-mode . "my-java-style")
@@ -110,6 +122,9 @@
                               "linux")))))
 
      (setq-default c-basic-offset 4)))
+
+;; (setf c-style-alist
+;;       (--filter (not (string-match-p "android" (car it))) c-style-alist))
 
 (provide 'c-like-setup)
 
