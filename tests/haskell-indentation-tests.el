@@ -25,6 +25,7 @@
 (require 'ert)
 (require 'search)
 (require 'tests-utils)
+(require 'treesit-setup)
 
 (cl-defmacro haskell-indentation-tests--test-treesitter
     (&key name
@@ -37,7 +38,13 @@
         `(ert-deftest ,(string->symbol (format "%s/%s" name mode)) ()
            (tests-utils--test-buffer-contents
             :action
-            (haskell-misc--indent-line-with-treesitter)
+            (progn
+              (let ((fallback-indentations (haskell-indentation-find-indentations)))
+                ;; Mostly test that it doesn’t throw an error. Should always
+                ;; produce some entries because it would include treesitter
+                ;; indentation which these tests are expected to always have.
+                (should (not (null fallback-indentations))))
+              (haskell-misc--indent-line-with-treesitter))
             :contents ,contents
             :expected-value ,expected-value
             :initialisation (,mode)
@@ -761,6 +768,60 @@
   "        (isMember, !i) ="
   "          _|_foo bar"
   "  pure XXX"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-complex-2
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: (XXX, YYY m) => a -> m a"
+  "foo x@Test{test} ="
+  "  case x of"
+  "    Left err -> throwError $ \"Too bad:\" ## pretty err"
+  "    Right (x, y) ->"
+  "      baz quux $"
+  "        pure result"
+  "_|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: (XXX, YYY m) => a -> m a"
+  "foo x@Test{test} ="
+  "  case x of"
+  "    Left err -> throwError $ \"Too bad:\" ## pretty err"
+  "    Right (x, y) ->"
+  "      baz quux $"
+  "        pure result"
+  "        _|_"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-complex-3
+ :contents
+ (tests-utils--multiline
+  "foo :: (XXX, YYY m) => a -> m a"
+  "foo x@Test{test} ="
+  "  case x of"
+  "    Left err -> throwError $ \"Too bad:\" ## pretty err"
+  "    Right (x, y) ->"
+  "      baz quux $"
+  "        pure result"
+  "_|_"
+  "  where"
+  "    xxx = yyy")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: (XXX, YYY m) => a -> m a"
+  "foo x@Test{test} ="
+  "  case x of"
+  "    Left err -> throwError $ \"Too bad:\" ## pretty err"
+  "    Right (x, y) ->"
+  "      baz quux $"
+  "        pure result"
+  "        _|_"
+  "  where"
+  "    xxx = yyy"))
 
 (provide 'haskell-indentation-tests)
 
