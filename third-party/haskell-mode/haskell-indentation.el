@@ -41,7 +41,8 @@
 ;; version
 
 (eval-when-compile
-  (require 'macro-util))
+  (require 'macro-util)
+  (require 'treesit-utils))
 
 (require 'cl-lib)
 (require 'haskell-lexeme)
@@ -510,26 +511,13 @@ and indent when all of the following are true:
     (pcase-let* ((`(,anchor . ,offset) (when node (treesit--indent-1))))
       (let ((treesit-indent
              (when (and anchor offset)
-               (let* ((anchor-pos (cond
-                                    ((treesit-node-p anchor)
-                                     (treesit-node-start anchor))
-                                    ((number-or-marker-p anchor)
-                                     anchor)
-                                    ((null anchor)
-                                     nil)
-                                    (t
-                                     (error "Unexpected anchor: ‘%s’" anchor))))
-                      (offset-num (cond
-                                    ((functionp offset)
-                                     (funcall offset anchor))
-                                    ((numberp offset)
-                                     offset)
-                                    (t
-                                     (error "Unexpected offset: ‘%s’" offset))))
-                      (col (save-excursion
-                             (goto-char anchor-pos)
-                             (+ (current-column) offset-num))))
-                 (list col)))))
+               (treesit-with-evaluated-anchor-and-offset
+                   (anchor-pos anchor)
+                   (offset-num offset)
+                 (let ((col (save-excursion
+                              (goto-char anchor-pos)
+                              (+ (current-column) offset-num))))
+                   (list col))))))
         (remove-duplicates-sorting
          (append
           treesit-indent
