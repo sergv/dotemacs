@@ -51,6 +51,45 @@
             :buffer-id
             ,(string->symbol (format "haskell-indentation-tests-%s" mode)))))))
 
+(cl-defmacro haskell-indentation-tests--test-treesitter-region
+    (&key name
+          contents
+          expected-value)
+  `(progn
+     ,@(cl-loop
+        for mode in '(haskell-ts-mode)
+        collect
+        `(ert-deftest ,(string->symbol (format "%s/%s" name mode)) ()
+           (tests-utils--test-buffer-contents
+            :action
+            (save-excursion
+              (let ((start nil)
+                    (end nil))
+                (goto-char (point-min))
+                (if (re-search-forward "_|_" nil t)
+                    (replace-match "")
+                  (error "No _|_ marker for point position within contents:\n%s" ,contents))
+                (when (save-excursion
+                        (goto-char (point-min))
+                        (re-search-forward "_|_" nil t))
+                  (error "More than one occurrence of _|_ in source"))
+                (setf start (point))
+                (if (re-search-forward "_||_" nil t)
+                    (replace-match "")
+                  (error "No _||_ marker for point position within contents:\n%s" ,contents))
+                (when (save-excursion
+                        (goto-char (point-min))
+                        (re-search-forward "_||_" nil t))
+                  (error "More than one occurrence of _||_ in source"))
+                (setf end (point))
+                (indent-region start end)))
+            :contents ,contents
+            :expected-value ,expected-value
+            :initialisation (,mode)
+            :suppress-cursor t
+            :buffer-id
+            ,(string->symbol (format "haskell-indentation-tests-%s" mode)))))))
+
 (haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-apply-1
  :contents
@@ -822,6 +861,21 @@
   "        _|_"
   "  where"
   "    xxx = yyy"))
+
+(haskell-indentation-tests--test-treesitter-region
+ :name haskell-indentation-tests--test-treesitter-region-1
+ :contents
+ (tests-utils--multiline
+  "foo = _|_["
+  "  bar $ quux"
+  "  , baz"
+  " _||_]")
+ :expected-value
+ (tests-utils--multiline
+  "_|_foo = ["
+  "        bar $ quux"
+  "      , baz"
+  "      ]"))
 
 (provide 'haskell-indentation-tests)
 
