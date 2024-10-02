@@ -227,7 +227,8 @@
                           curr
                           prev1)))))
             (let ((start (treesit-node-start curr)))
-              (if (string= "parens" curr-type)
+              (if (or (string= "parens" curr-type)
+                      (string= "list" curr-type))
                   (throw 'term curr)
                 (progn
                   (goto-char start)
