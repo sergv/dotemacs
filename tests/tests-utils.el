@@ -82,11 +82,12 @@ Ensures a final newline is inserted."
           (goto-char begin)
           (indent-sexp))))))
 
-(cl-defmacro tests-utils--test-buffer-contents (&key action contents expected-value initialisation post-content-initialisation buffer-id)
+(cl-defmacro tests-utils--test-buffer-contents (&key action contents expected-value initialisation post-content-initialisation buffer-id suppress-cursor)
   (declare (indent nil))
   `(tests-utils--with-temp-buffer
     :initialisation ,initialisation
     :post-content-initialisation ,post-content-initialisation
+    :suppress-cursor ,suppress-cursor
     :action
     (progn
       ,action
