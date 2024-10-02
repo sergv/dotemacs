@@ -930,7 +930,10 @@ Error is given as MSG and reported between POS and END."
                 ("unsafePerformIO"
                  "unsafeDupablePerformIO"
                  "unsafeInterleaveIO"
-                 "unsafeFixIO")))))))
+                 "unsafeFixIO"))
+               (("GHC.IO")
+                "Control.Exception"
+                ("evaluate")))))))
 
 (defun attrap--add-import--fix-module-name (identifier mod-name)
   (cl-assert (stringp identifier))
