@@ -9,7 +9,8 @@
 (eval-when-compile
   (require 'cl)
   (require 'el-patch)
-  (require 'macro-util))
+  (require 'macro-util)
+  (require 'treesit-utils))
 
 (require 'el-patch)
 (require 'set-up-paths)
@@ -143,22 +144,9 @@ Similar to `treesit-indent', but indent a region instead."
                   ;; SET OFFSET.
                   (setf (aref meta-vec (+ 1 (* idx meta-len))) offset))
                 (el-patch-add
-                  (let ((anchor-pos (cond
-                                      ((treesit-node-p anchor)
-                                       (treesit-node-start anchor))
-                                      ((number-or-marker-p anchor)
-                                       anchor)
-                                      ((null anchor)
-                                       nil)
-                                      (t
-                                       (error "Unexpected anchor: ‘%s’" anchor))))
-                        (offset-num (cond
-                                      ((functionp offset)
-                                       (funcall offset anchor))
-                                      ((numberp offset)
-                                       offset)
-                                      (t
-                                       (error "Unexpected offset: ‘%s’" offset)))))
+                  (treesit-with-evaluated-anchor-and-offset
+                      (anchor-pos anchor)
+                      (offset-num offset)
                     ;; Set ANCHOR.
                     (if (markerp marker)
                         (move-marker marker anchor-pos)
