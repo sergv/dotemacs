@@ -3636,10 +3636,11 @@ _|_bar")
    "import Prettyprinter.Combinators"
    ""
    "foo x = do"
-   "  Debug.Trace.trace (renderString $ ppDictHeader \"header\""
-   "    [ \"x\" --> x"
-   "    , \"y\" --> y"
-   "    ]) $_|_"
+   "  Debug.Trace.trace"
+   "    (renderString $ ppDictHeader \"header\""
+   "      [ \"x\" --> x"
+   "      , \"y\" --> y"
+   "      ]) $_|_"
    "  bar x"
    ""))
 
@@ -3663,10 +3664,11 @@ _|_bar")
    "import Data.List"
    ""
    "foo x = do"
-   "  Debug.Trace.trace (renderString $ ppDictHeader \"header\""
-   "    [ \"x\" --> x"
-   "    , \"y\" --> y"
-   "    ]) $_|_"
+   "  Debug.Trace.trace"
+   "    (renderString $ ppDictHeader \"header\""
+   "      [ \"x\" --> x"
+   "      , \"y\" --> y"
+   "      ]) $_|_"
    "  bar x"
    ""))
 
@@ -3691,10 +3693,139 @@ _|_bar")
    "import Debug.Trace"
    ""
    "foo x = do"
-   "  Debug.Trace.trace (renderString $ ppDictHeader \"header\""
+   "  Debug.Trace.trace"
+   "    (renderString $ ppDictHeader \"header\""
+   "      [ \"x\" --> x"
+   "      , \"y\" --> y"
+   "      ]) $_|_"
+   "  bar x"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell-abbrev-11
+    (execute-kbd-macro (kbd "i p p i n f o m SPC h e a d e r <return> x <return> y <return> <return>"))
+  (tests-utils--multiline
+   "{-# LANGUAGE OverloadedStrings #-}"
+   ""
+   "import Prettyprinter.Combinators"
+   "import Debug.Trace"
+   ""
+   "foo x = do"
+   "  _|_"
+   "  bar x"
+   "")
+  (tests-utils--multiline
+   "{-# LANGUAGE OverloadedStrings #-}"
+   ""
+   "import Prettyprinter.Combinators"
+   "import Debug.Trace"
+   ""
+   "foo x = do"
+   "  Debug.Trace.traceM $ renderString $ ppDictHeader \"header\""
    "    [ \"x\" --> x"
    "    , \"y\" --> y"
-   "    ]) $_|_"
+   "    ]_|_"
+   "  bar x"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell-abbrev-12
+    (execute-kbd-macro (kbd "i t r a c e SPC x <return> y <return> <return>"))
+  (tests-utils--multiline
+   "{-# LANGUAGE OverloadedStrings #-}"
+   ""
+   "import Prettyprinter.Combinators"
+   "import Debug.Trace"
+   ""
+   "foo x = do"
+   "  _|_"
+   "  bar x"
+   "")
+  (tests-utils--multiline
+   "{-# LANGUAGE OverloadedStrings #-}"
+   ""
+   "import Prettyprinter.Combinators"
+   "import Debug.Trace"
+   ""
+   "foo x = do"
+   "  Debug.Trace.trace (\"x = \" ++ show x ++ \", y = \" ++ show y) $ _|_"
+   "  bar x"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell-abbrev-13
+    (execute-kbd-macro (kbd "i t r a c e m SPC x <return> y <return> <return>"))
+  (tests-utils--multiline
+   "{-# LANGUAGE OverloadedStrings #-}"
+   ""
+   "import Prettyprinter.Combinators"
+   "import Debug.Trace"
+   ""
+   "foo x = do"
+   "  _|_"
+   "  bar x"
+   "")
+  (tests-utils--multiline
+   "{-# LANGUAGE OverloadedStrings #-}"
+   ""
+   "import Prettyprinter.Combinators"
+   "import Debug.Trace"
+   ""
+   "foo x = do"
+   "  Debug.Trace.traceM $ \"x = \" ++ show x ++ \", y = \" ++ show y_|_"
+   "  bar x"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode)
+    vim-tests/haskell-abbrev-14a
+    (execute-kbd-macro (kbd "i i n f o m SPC x <return> y <return> <return>"))
+  (tests-utils--multiline
+   "{-# LANGUAGE OverloadedStrings #-}"
+   ""
+   "import Prettyprinter.Combinators"
+   "import Debug.Trace"
+   ""
+   "foo x = do"
+   "  _|_"
+   "  bar x"
+   "")
+  (tests-utils--multiline
+   "{-# LANGUAGE OverloadedStrings #-}"
+   ""
+   "import Prettyprinter.Combinators"
+   "import Debug.Trace"
+   ""
+   "foo x = do"
+   "  liftIO $ putStrLn $ \"x = \" ++ show x ++ \", y = \" ++ show y_|_"
+   "  bar x"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-abbrev-14b
+    (execute-kbd-macro (kbd "i i n f o m SPC x <return> y <return> <return>"))
+  (tests-utils--multiline
+   "{-# LANGUAGE OverloadedStrings #-}"
+   ""
+   "import Prettyprinter.Combinators"
+   "import Debug.Trace"
+   ""
+   "foo x = do"
+   "  _|_"
+   "  bar x"
+   "")
+  (tests-utils--multiline
+   "{-# LANGUAGE OverloadedStrings #-}"
+   ""
+   "import Prettyprinter.Combinators"
+   "import Debug.Trace"
+   ""
+   "foo x = do"
+   "  putStrLn $ \"x = \" ++ show x ++ \", y = \" ++ show y_|_"
    "  bar x"
    ""))
 
