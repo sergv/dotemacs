@@ -224,7 +224,10 @@
   (haskell-abbrev+--ensure-debug-trace-available)
   (haskell-abbrev+--ensure-prettyprinter-combinators-available)
   (haskell-abbrev+--ensure-language-pragma "OverloadedStrings")
-  (insert "Debug.Trace.trace (renderString $ ")
+  (let ((indent (current-indentation)))
+    (insert "Debug.Trace.trace\n"
+            (make-string (+ indent haskell-indent-offset) ?\s)
+            "(renderString $ "))
   (haskell-insert-pp-dict-info-template)
   (insert ") $"))
 
