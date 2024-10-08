@@ -577,10 +577,23 @@ but when paired then it’s like a string."
 (defun haskell-ts-end-of-defun-impl (pos)
   (goto-char (cdr (haskell-ts--bounds-of-toplevel-node pos))))
 
-(defun haskell-ts--is-function-or-signature-node? (node)
+(defun haskell-ts--is-toplevel-function-related-node? (node)
   (let ((typ (treesit-node-type node)))
     (or (string= typ "signature")
-        (string= typ "function"))))
+        (string= typ "function")
+        (string= typ "bind"))))
+
+(defun haskell-ts--function-name (node)
+  (cl-assert (string= "function" (treesit-node-type node)))
+  (if-let ((name-node (treesit-node-child-by-field-name node "name")))
+      (treesit-node-text-no-properties-unsafe name-node)
+    (if-let ((first-child (treesit-node-child node 0))
+             ((string= "infix" (treesit-node-type first-child)))
+             (op (treesit-node-child-by-field-name first-child "operator"))
+             ((string= "infix_id" (treesit-node-type op)))
+             (name (treesit-node-child op 1)))
+        (treesit-node-text-no-properties-unsafe name)
+      (error "Cannot obtain function nome from node: %s" node))))
 
 (defun haskell-ts--bounds-of-toplevel-node (pos)
   (when-let ((node (treesit-node-at pos)))
@@ -588,24 +601,18 @@ but when paired then it’s like a string."
       (while (and (setq p (treesit-node-parent node))
                   (not (string= (treesit-node-type p) "declarations")))
         (setf node p))
-      (if (haskell-ts--is-function-or-signature-node? node)
-          (let ((func-name
-                 (treesit-node-text-no-properties-unsafe
-                  (treesit-node-child-by-field-name node "name")))
+      (if (haskell-ts--is-toplevel-function-related-node? node)
+          (let ((func-name (haskell-ts--function-name node))
                 (first-node node)
                 (last-node node)
                 (tmp nil))
             (while (and (setq tmp (treesit-node-prev-sibling first-node))
-                        (haskell-ts--is-function-or-signature-node? tmp)
-                        (equal func-name
-                               (treesit-node-text-no-properties-unsafe
-                                (treesit-node-child-by-field-name tmp "name"))))
+                        (haskell-ts--is-toplevel-function-related-node? tmp)
+                        (string= func-name (haskell-ts--function-name tmp)))
               (setf first-node tmp))
             (while (and (setq tmp (treesit-node-next-sibling last-node))
-                        (haskell-ts--is-function-or-signature-node? tmp)
-                        (equal func-name
-                               (treesit-node-text-no-properties-unsafe
-                                (treesit-node-child-by-field-name tmp "name"))))
+                        (haskell-ts--is-toplevel-function-related-node? tmp)
+                        (string= func-name (haskell-ts--function-name tmp)))
               (setf last-node tmp))
             (cons (treesit-node-start first-node)
                   (treesit-node-end last-node)))
