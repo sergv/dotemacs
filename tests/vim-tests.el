@@ -6150,6 +6150,102 @@ _|_bar")
    "bar n = n * n"
    ""))
 
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-beginning-of-defun-3
+    (execute-kbd-macro (kbd "g t"))
+  (tests-utils--multiline
+   "foo :: Int -> Int"
+   "foo x ="
+   "#if FOO"
+   "  bar + 1 +"
+   "#else"
+   "  bar + 2 +_|_"
+   "#endif"
+   "    baz (quux x)")
+  (tests-utils--multiline
+   "_|_foo :: Int -> Int"
+   "foo x ="
+   "#if FOO"
+   "  bar + 1 +"
+   "#else"
+   "  bar + 2 +"
+   "#endif"
+   "    baz (quux x)"))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-beginning-of-defun-3a
+    (execute-kbd-macro (kbd "g t"))
+  (tests-utils--multiline
+   "foo :: Int -> Int"
+   "foo = \\x ->"
+   "#if FOO"
+   "  bar + 1 +"
+   "#else"
+   "  bar + 2 +_|_"
+   "#endif"
+   "    baz (quux x)")
+  (tests-utils--multiline
+   "_|_foo :: Int -> Int"
+   "foo = \\x ->"
+   "#if FOO"
+   "  bar + 1 +"
+   "#else"
+   "  bar + 2 +"
+   "#endif"
+   "    baz (quux x)"))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-beginning-of-defun-4
+    (execute-kbd-macro (kbd "g t"))
+  (tests-utils--multiline
+   "foo :: Int -> Int"
+   "foo = bar_|_")
+  (tests-utils--multiline
+   "_|_foo :: Int -> Int"
+   "foo = bar"))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-beginning-of-defun-5
+    (execute-kbd-macro (kbd "g t"))
+  (tests-utils--multiline
+   "bar :: Int -> Int -> Int"
+   "x `bar` y = foo_|_")
+  (tests-utils--multiline
+   "_|_bar :: Int -> Int -> Int"
+   "x `bar` y = foo"))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-beginning-of-defun-5a
+    (execute-kbd-macro (kbd "g t"))
+  (tests-utils--multiline
+   "bar :: Int -> Int -> Int"
+   "0 `bar` y = 100 * y"
+   "x `bar` y = foo_|_")
+  (tests-utils--multiline
+   "_|_bar :: Int -> Int -> Int"
+   "0 `bar` y = 100 * y"
+   "x `bar` y = foo"))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-beginning-of-defun-5b
+    (execute-kbd-macro (kbd "g t"))
+  (tests-utils--multiline
+   "bar :: Int -> Int -> Int"
+   "bar 0 y = 100 * y"
+   "x `bar` 2 = foo"
+   "bar x y = quux_|_")
+  (tests-utils--multiline
+   "_|_bar :: Int -> Int -> Int"
+   "bar 0 y = 100 * y"
+   "x `bar` 2 = foo"
+   "bar x y = quux"))
+
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands-all-known-inits
     vim-tests/substitute-1
   ((yes-confirm (execute-kbd-macro (kbd "s % s / f o o / d e c o m b o b u l a t e / c <return> y y y")))
