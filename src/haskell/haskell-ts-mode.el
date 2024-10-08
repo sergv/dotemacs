@@ -31,9 +31,9 @@
 (defun haskell-ts-mode--name-not-within-infix? (node)
   (let ((p1 (treesit-node-parent node)))
     (if p1
-        (and (not (equal "infix_id" (treesit-node-type p1)))
+        (and (not (string= "infix_id" (treesit-node-type p1)))
              (if-let ((p2 (treesit-node-parent p1)))
-                 (not (equal "infix_id" (treesit-node-type p2)))
+                 (not (string= "infix_id" (treesit-node-type p2)))
                t))
       t)))
 
