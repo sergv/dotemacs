@@ -299,12 +299,32 @@ _#-}_: on pragma close"
     (haskell-format--format-region-preserving-position haskell-indent-offset
                                                        width
                                                        start
-                                                       end)))
+                                                       end
+                                                       t)))
+
+(defun haskell-ts-reindent-region (_start _end)
+  (interactive "r*")
+  (with-region-bounds start end
+    (haskell-format--format-region-preserving-position haskell-indent-offset
+                                                       width
+                                                       start
+                                                       end
+                                                       nil)))
 
 ;;;###autoload
 (defun haskell-reindent-at-point (&optional width)
   "Do some sensible reindentation depending on the current position in file."
   (interactive "p*")
+  (haskell-reindent-at-point-impl width t))
+
+;;;###autoload
+(defun haskell-ts-reindent-at-point ()
+  "Do some sensible reindentation depending on the current position in file."
+  (interactive "*")
+  (haskell-reindent-at-point-impl nil nil))
+
+(defun haskell-reindent-at-point-impl (width format-with-brittany?)
+  "Do some sensible reindentation depending on the current position in file."
   (save-match-data
     (cond
       ((or (save-excursion
@@ -358,7 +378,8 @@ _#-}_: on pragma close"
          (haskell-format--format-region-preserving-position haskell-indent-offset
                                                             width
                                                             start
-                                                            end)))
+                                                            end
+                                                            format-with-brittany?)))
       (t
        (error "Don't know how to reindent construct at point")))))
 
