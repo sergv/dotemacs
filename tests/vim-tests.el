@@ -4198,7 +4198,7 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
+    (haskell-mode)
     vim-tests/haskell-move-to-topmost-end-3a
     (execute-kbd-macro (kbd "g h"))
   (tests-utils--multiline
@@ -4220,6 +4220,31 @@ _|_bar")
    "  bar + 1 +"
    ""
    "    baz (quux x)"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-move-to-topmost-end-3b
+    (execute-kbd-macro (kbd "g h"))
+  (tests-utils--multiline
+   ""
+   "foo :: Int -> _|_Int"
+   ""
+   "foo x ="
+   ""
+   "  bar + 1 +"
+   ""
+   "    baz (quux x)"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo :: Int -> Int"
+   ""
+   "foo x ="
+   ""
+   "  bar + 1 +"
+   ""
+   "    baz (quux x)_|_"
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
@@ -4250,8 +4275,8 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
-    vim-tests/haskell-move-to-topmost-start-1
+    (haskell-mode)
+    vim-tests/haskell-move-to-topmost-start-1a
     (execute-kbd-macro (kbd "g t"))
   (tests-utils--multiline
    ""
@@ -4277,8 +4302,35 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
-    (haskell-mode haskell-ts-mode)
-    vim-tests/haskell-move-to-topmost-start-2
+    (haskell-ts-mode)
+    vim-tests/haskell-move-to-topmost-start-1b
+    (execute-kbd-macro (kbd "g t"))
+  (tests-utils--multiline
+   ""
+   "foo :: Int -> Int"
+   "foo x ="
+   "#if FOO"
+   "  bar + 1 +"
+   "#else"
+   "  bar + 2 +_|_"
+   "#endif"
+   "    baz (quux x)"
+   "")
+  (tests-utils--multiline
+   ""
+   "_|_foo :: Int -> Int"
+   "foo x ="
+   "#if FOO"
+   "  bar + 1 +"
+   "#else"
+   "  bar + 2 +"
+   "#endif"
+   "    baz (quux x)"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode)
+    vim-tests/haskell-move-to-topmost-start-2a
     (execute-kbd-macro (kbd "g t"))
   (tests-utils--multiline
    ""
@@ -4295,6 +4347,31 @@ _|_bar")
    "foo :: Int -> Int"
    ""
    "_|_foo x ="
+   ""
+   "  bar + 1 +"
+   ""
+   "    baz (quux x)"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-move-to-topmost-start-2b
+    (execute-kbd-macro (kbd "g t"))
+  (tests-utils--multiline
+   ""
+   "foo :: Int -> Int"
+   ""
+   "foo x ="
+   ""
+   "  bar + 1 +"
+   ""
+   "    baz (quux _|_x)"
+   "")
+  (tests-utils--multiline
+   ""
+   "_|_foo :: Int -> Int"
+   ""
+   "foo x ="
    ""
    "  bar + 1 +"
    ""
@@ -6020,11 +6097,11 @@ _|_bar")
     (execute-kbd-macro (kbd "C-r b c <return>"))
   (tests-utils--multiline
    ""
-    "data Foo a = Foo"
-    "  { foo :: (Bar Int)"
-    "  , bar :: (_|_a, Double)"
-    "  , baz :: {-# UNPACK #-} !Double"
-    "  }"
+   "data Foo a = Foo"
+   "  { foo :: (Bar Int)"
+   "  , bar :: (_|_a, Double)"
+   "  , baz :: {-# UNPACK #-} !Double"
+   "  }"
    "")
   (tests-utils--multiline
    ""
@@ -6033,6 +6110,44 @@ _|_bar")
     "  , bar :: (abc_|_, Double)"
     "  , baz :: {-# UNPACK #-} !Double"
     "  }"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-beginning-of-defun-1
+    (execute-kbd-macro (kbd "g t"))
+  (tests-utils--multiline
+   ""
+   "data Foo a = Foo"
+   "  { foo :: (Bar Int)"
+   "  , bar :: (_|_a, Double)"
+   "  , baz :: {-# UNPACK #-} !Double"
+   "  }"
+   "")
+  (tests-utils--multiline
+   ""
+   "_|_data Foo a = Foo"
+   "  { foo :: (Bar Int)"
+   "  , bar :: (a, Double)"
+   "  , baz :: {-# UNPACK #-} !Double"
+   "  }"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-beginning-of-defun-2
+    (execute-kbd-macro (kbd "g t"))
+  (tests-utils--multiline
+   ""
+   "bar :: Int -> Int"
+   "bar 0 = 1"
+   "bar n = _|_n * n"
+   "")
+  (tests-utils--multiline
+   ""
+   "_|_bar :: Int -> Int"
+   "bar 0 = 1"
+   "bar n = n * n"
    ""))
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands-all-known-inits
