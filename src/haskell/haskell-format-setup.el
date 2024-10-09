@@ -15,18 +15,20 @@
 
 (defvar haskell-format-default-width 100)
 
-(defun haskell-format--format-region-preserving-position (indent-offset width start end)
+(defun haskell-format--format-region-preserving-position (indent-offset width start end format-with-brittany?)
   (let ((p (point))
         (col (current-column))
         (end-mark (copy-marker end))
         (fingerprint-re (haskell-format--fingerprint-re (current-line))))
-    (haskell-format--format-with-brittany indent-offset
-                                          (if (and width
-                                                   (< 1 width))
-                                              width
-                                            haskell-format-default-width)
-                                          start
-                                          end)
+    (if format-with-brittany?
+        (haskell-format--format-with-brittany indent-offset
+                                              (if (and width
+                                                       (< 1 width))
+                                                  width
+                                                haskell-format-default-width)
+                                              start
+                                              end)
+      (indent-region start end))
     (goto-char start)
     (if (re-search-forward fingerprint-re end-mark t)
         (progn

@@ -356,6 +356,16 @@ _<tab>_: reindent         _h_: jump to topmont node end"
   ("t"     haskell-move-to-topmost-start)
   ("h"     haskell-move-to-topmost-end))
 
+(defhydra-derive hydra-haskell-ts-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_i_:     jump to imports  _t_: jump to topmost function/entity start
+_<tab>_: reindent         _h_: jump to topmont function/entity end"
+  ("i"     vim:haskell-navigate-imports:interactive)
+  ("<tab>" haskell-ts-reindent-at-point)
+
+  ("t"     haskell-ts-beginning-of-defun)
+  ("h"     haskell-ts-end-of-defun))
+
 (defhydra-derive hydra-haskell-vim-visual-g-ext hydra-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
   "
 _a_lign            _t_: jump to topmost node start
@@ -365,6 +375,16 @@ _<tab>_: reindent  _h_: jump to topmont node end"
 
   ("t"     haskell-move-to-topmost-start)
   ("h"     haskell-move-to-topmost-end))
+
+(defhydra-derive hydra-haskell-ts-vim-visual-g-ext hydra-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_a_lign            _t_: jump to topmost function/entity start
+_<tab>_: reindent  _h_: jump to topmont function/entity end"
+  ("a"     hydra-haskell-align/body)
+  ("<tab>" haskell-ts-reindent-region)
+
+  ("t"     haskell-ts-beginning-of-defun)
+  ("h"     haskell-ts-end-of-defun))
 
 (defhydra-derive hydra-haskell-vim-visual-j-ext hydra-vim-visual-j-ext (:exit t :foreign-keys nil :hint nil)
   ""
@@ -542,6 +562,12 @@ _<tab>_: reindent  _h_: jump to topmont node end"
 
 ;;;###autoload
 (defun haskell-ts-setup ()
+  (def-keys-for-map vim-normal-mode-local-keymap
+    ("g"   hydra-haskell-ts-vim-normal-g-ext/body))
+
+  (def-keys-for-map vim-visual-mode-local-keymap
+    ("g"   hydra-haskell-ts-vim-visual-g-ext/body))
+
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-insert-mode-local-keymap)
     ("C-r" haskell-ts-rename-at-point)))
