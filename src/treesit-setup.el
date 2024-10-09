@@ -72,6 +72,12 @@ Return the root node of the syntax tree."
       (back-to-indentation)
       (point))))
 
+(defun treesit-node-text-no-properties-unsafe (node)
+  (cl-assert (not (null node)))
+  (cl-assert (treesit-node-p node))
+  (cl-assert (eq (current-buffer) (treesit-node-buffer node)))
+  (buffer-substring-no-properties (treesit-node-start node) (treesit-node-end node)))
+
 (add-to-list 'treesit-simple-indent-presets
              (cons 'grand-parent-bol
                    #'treesit-grand-parent-bol))
