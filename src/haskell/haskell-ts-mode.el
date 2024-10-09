@@ -561,6 +561,64 @@ but when paired then it’s like a string."
                 (other
                  (error "Invalid capture: %s" other))))))))))
 
+(defun haskell-ts-beginning-of-defun ()
+  (interactive)
+  (vim-save-position)
+  (haskell-ts-beginning-of-defun-impl (point)))
+
+(defun haskell-ts-beginning-of-defun-impl (pos)
+  (goto-char (car (haskell-ts--bounds-of-toplevel-node pos))))
+
+(defun haskell-ts-end-of-defun ()
+  (interactive)
+  (vim-save-position)
+  (haskell-ts-end-of-defun-impl (point)))
+
+(defun haskell-ts-end-of-defun-impl (pos)
+  (goto-char (cdr (haskell-ts--bounds-of-toplevel-node pos))))
+
+(defun haskell-ts--is-function-or-signature-node? (node)
+  (let ((typ (treesit-node-type node)))
+    (or (string= typ "signature")
+        (string= typ "function"))))
+
+(defun haskell-ts--bounds-of-toplevel-node (pos)
+  (when-let ((node (treesit-node-at pos)))
+    (let ((p nil))
+      (while (and (setq p (treesit-node-parent node))
+                  (not (string= (treesit-node-type p) "declarations")))
+        (setf node p))
+      (if (haskell-ts--is-function-or-signature-node? node)
+          (let ((func-name
+                 (treesit-node-text-no-properties-unsafe
+                  (treesit-node-child-by-field-name node "name")))
+                (first-node node)
+                (last-node node)
+                (tmp nil))
+            (while (and (setq tmp (treesit-node-prev-sibling first-node))
+                        (haskell-ts--is-function-or-signature-node? tmp)
+                        (equal func-name
+                               (treesit-node-text-no-properties-unsafe
+                                (treesit-node-child-by-field-name tmp "name"))))
+              (setf first-node tmp))
+            (while (and (setq tmp (treesit-node-next-sibling last-node))
+                        (haskell-ts--is-function-or-signature-node? tmp)
+                        (equal func-name
+                               (treesit-node-text-no-properties-unsafe
+                                (treesit-node-child-by-field-name tmp "name"))))
+              (setf last-node tmp))
+            (cons (treesit-node-start first-node)
+                  (treesit-node-end last-node)))
+        (cons (treesit-node-start node)
+              (treesit-node-end node))))))
+
+(defun haskell-ts-indent-defun (pos)
+  "Indent the current function."
+  (interactive "d")
+  (if-let ((bounds (haskell-ts--bounds-of-toplevel-node pos)))
+      (indent-region (car bounds) (cdr bounds))
+    (error "No function at point")))
+
 ;;;###autoload
 (define-derived-mode haskell-ts-mode prog-mode "Haskell[ts]"
   "Major mode for Haskell that uses tree-sitter."
