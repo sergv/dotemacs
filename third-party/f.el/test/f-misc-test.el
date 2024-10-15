@@ -23,6 +23,11 @@
 
 ;;; Commentary:
 
+(eval-when-compile
+  (require 'macro-util))
+
+(require 'macro-util)
+
 ;;; Code:
 
 (require 'f-test-helper)
@@ -97,6 +102,7 @@
      '("bar.el" "bar" "bar/qux" "bar/baz.el" "bar/qux/hey.el")))))
 
 (ert-deftest f-entries-test/safe-recursion ()
+  (fold-platform-os-type nil (ert-skip "Doesn’t work on Windows"))
   (with-playground
    (f-mkdir "foo")
    (f-touch "foo/bar.el")
@@ -277,7 +283,9 @@
 ;;;; f-root
 
 (ert-deftest f-root-test ()
-  (should (equal (f-root) "/")))
+  (fold-platform-os-type
+   (should (equal (f-root) "/"))
+   (should (equal (f-root) "c:/"))))
 
 
 ;;;; f-traverse-upwards/f--traverse-upwards
