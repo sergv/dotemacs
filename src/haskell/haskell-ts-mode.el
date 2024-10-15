@@ -575,7 +575,7 @@ but when paired then it’s like a string."
   (haskell-ts-beginning-of-defun-impl (point)))
 
 (defun haskell-ts-beginning-of-defun-impl (pos)
-  (goto-char (car (haskell-ts--bounds-of-toplevel-node pos))))
+  (goto-char (car (haskell-ts--bounds-of-toplevel-node pos nil))))
 
 (defun haskell-ts-end-of-defun ()
   (interactive)
@@ -583,7 +583,7 @@ but when paired then it’s like a string."
   (haskell-ts-end-of-defun-impl (point)))
 
 (defun haskell-ts-end-of-defun-impl (pos)
-  (goto-char (cdr (haskell-ts--bounds-of-toplevel-node pos))))
+  (goto-char (cdr (haskell-ts--bounds-of-toplevel-node pos t))))
 
 (defun haskell-ts--is-toplevel-function-related-node? (node)
   (let ((typ (treesit-node-type node)))
@@ -606,8 +606,24 @@ but when paired then it’s like a string."
         (treesit-node-text-no-properties-unsafe name)
       (error "Cannot obtain function nome from node: %s" node))))
 
-(defun haskell-ts--bounds-of-toplevel-node (pos)
-  (when-let ((node (treesit-node-at pos)))
+(defun haskell-ts--bounds-of-toplevel-node (pos scan-forward?)
+  (when-let ((node
+              (let ((n (treesit-node-at pos)))
+                (if (string= "declarations" (treesit-node-type n))
+                    (let ((next-pos
+                           (save-excursion
+                             (goto-char pos)
+                             (if scan-forward?
+                                 (progn
+                                   (skip-whitespace-forward)
+                                   (min (point) (point-max)))
+                               (progn
+                                 (skip-whitespace-backward)
+                                 (forward-char -1)
+                                 (max (point) (point-min)))))))
+                      (unless (eq pos next-pos)
+                        (treesit-node-at next-pos)))
+                  n))))
     (let ((p nil))
       (while (and (setq p (treesit-node-parent node))
                   (not (string= (treesit-node-type p) "declarations")))
