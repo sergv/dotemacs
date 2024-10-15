@@ -592,7 +592,10 @@ but when paired then it’s like a string."
         (string= typ "bind"))))
 
 (defun haskell-ts--function-name (node)
-  (cl-assert (string= "function" (treesit-node-type node)))
+  (cl-assert (haskell-ts--is-toplevel-function-related-node? node)
+             nil
+             "Unexpected non-function treesit node: %s"
+             node)
   (if-let ((name-node (treesit-node-child-by-field-name node "name")))
       (treesit-node-text-no-properties-unsafe name-node)
     (if-let ((first-child (treesit-node-child node 0))
