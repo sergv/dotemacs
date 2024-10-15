@@ -354,12 +354,12 @@
  :contents
  (tests-utils--multiline
   "foo ="
-  "  for_ bar $ \x ->"
+  "  for_ bar $ \\x ->"
   "      _|_bar")
  :expected-value
  (tests-utils--multiline
   "foo ="
-  "  for_ bar $ \x ->"
+  "  for_ bar $ \\x ->"
   "    _|_bar"))
 
 (haskell-indentation-tests--test-treesitter
@@ -367,12 +367,12 @@
  :contents
  (tests-utils--multiline
   "foo ="
-  "  for_ bar $ \x ->"
+  "  for_ bar $ \\x ->"
   "      _|_bar $ baz")
  :expected-value
  (tests-utils--multiline
   "foo ="
-  "  for_ bar $ \x ->"
+  "  for_ bar $ \\x ->"
   "    _|_bar $ baz"))
 
 (haskell-indentation-tests--test-treesitter
@@ -380,12 +380,12 @@
  :contents
  (tests-utils--multiline
   "foo ="
-  "  for_ bar $ \x ->"
+  "  for_ bar $ \\x ->"
   "      bar $ _|_baz")
  :expected-value
  (tests-utils--multiline
   "foo ="
-  "  for_ bar $ \x ->"
+  "  for_ bar $ \\x ->"
   "    bar $ _|_baz"))
 
 (haskell-indentation-tests--test-treesitter
