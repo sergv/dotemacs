@@ -214,6 +214,11 @@
   ("M-h" next-complete-history-element)
   ("M-t" previous-complete-history-element))
 
+(def-keys-for-map (minibuffer-mode-map
+                   ivy-minibuffer-map)
+  ("C-'"  typopunct-insert-single-quotation-mark)
+  ("C-\"" typopunct-insert-quotation-mark))
+
 (provide 'keys)
 
 ;; Local Variables:
