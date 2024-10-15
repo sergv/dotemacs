@@ -23,6 +23,11 @@
 
 ;;; Commentary:
 
+(eval-when-compile
+  (require 'macro-util))
+
+(require 'macro-util)
+
 (require 'f-init)
 
 ;;; Code:
@@ -37,7 +42,8 @@
 
 (defmacro with-default-directory (&rest body)
   "Yield BODY with temporary `default-directory'."
-  `(let ((default-directory "/default/directory")) ,@body))
+  `(let ((default-directory (fold-platform-os-type "/default/directory" "c:/default/directory")))
+     ,@body))
 
 (defmacro with-playground (&rest body)
   "Yield BODY in a playground environment.
