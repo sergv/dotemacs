@@ -6246,6 +6246,193 @@ _|_bar")
    "x `bar` 2 = foo"
    "bar x y = quux"))
 
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-beginning-of-defun-6a
+    (execute-kbd-macro (kbd "g t"))
+  (tests-utils--multiline
+   "foo :: Int -> Int"
+   "foo = \\x ->"
+   "-- #if FOO"
+   "  bar + 1 +"
+   "-- #else"
+   "  bar + 2 +_|_"
+   "-- #endif"
+   "    baz (quux x)")
+  (tests-utils--multiline
+   "_|_foo :: Int -> Int"
+   "foo = \\x ->"
+   "-- #if FOO"
+   "  bar + 1 +"
+   "-- #else"
+   "  bar + 2 +"
+   "-- #endif"
+   "    baz (quux x)"))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-beginning-of-defun-6b
+    (execute-kbd-macro (kbd "g t"))
+  (tests-utils--multiline
+   "foo :: Int -> Int"
+   "foo = \\x ->"
+   "-- #if FOO"
+   "  bar + 1 +"
+   "-- #else"
+   "  bar + 2 +"
+   "-- #endif"
+   "    baz (quux x)_|_")
+  (tests-utils--multiline
+   "_|_foo :: Int -> Int"
+   "foo = \\x ->"
+   "-- #if FOO"
+   "  bar + 1 +"
+   "-- #else"
+   "  bar + 2 +"
+   "-- #endif"
+   "    baz (quux x)"))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-beginning-of-defun-6c
+    (execute-kbd-macro (kbd "g t"))
+  (tests-utils--multiline
+   "module Foo where"
+   ""
+   "foo :: Int -> Int"
+   "foo = \\x ->"
+   "-- #if FOO"
+   "  bar + 1 +"
+   "-- #else"
+   "  bar + 2 +"
+   "-- #endif"
+   "    baz (quux x)_|_")
+  (tests-utils--multiline
+   "module Foo where"
+   ""
+   "_|_foo :: Int -> Int"
+   "foo = \\x ->"
+   "-- #if FOO"
+   "  bar + 1 +"
+   "-- #else"
+   "  bar + 2 +"
+   "-- #endif"
+   "    baz (quux x)"))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-beginning-of-defun-6d
+    (execute-kbd-macro (kbd "g t g h"))
+  (tests-utils--multiline
+   "module Foo where"
+   ""
+   "foo :: Int -> Int"
+   "foo = \\x ->"
+   "-- #if FOO"
+   "  bar + 1 +"
+   "-- #else"
+   "  bar + 2 +"
+   "-- #endif"
+   "    baz (quux x)_|_")
+  (tests-utils--multiline
+   "module Foo where"
+   ""
+   "foo :: Int -> Int"
+   "foo = \\x ->"
+   "-- #if FOO"
+   "  bar + 1 +"
+   "-- #else"
+   "  bar + 2 +"
+   "-- #endif"
+   "    baz (quux x)_|_"))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-beginning-of-defun-6e
+    (execute-kbd-macro (kbd "g t g h g t"))
+  (tests-utils--multiline
+   "module Foo where"
+   ""
+   "foo :: Int -> Int"
+   "foo = \\x ->"
+   "-- #if FOO"
+   "  bar + 1 +"
+   "-- #else"
+   "  bar + 2 +"
+   "-- #endif"
+   "    baz (quux x)_|_")
+  (tests-utils--multiline
+   "module Foo where"
+   ""
+   "_|_foo :: Int -> Int"
+   "foo = \\x ->"
+   "-- #if FOO"
+   "  bar + 1 +"
+   "-- #else"
+   "  bar + 2 +"
+   "-- #endif"
+   "    baz (quux x)"))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-beginning-of-defun-6f
+    (execute-kbd-macro (kbd "g t g h g t"))
+  (tests-utils--multiline
+   "module Foo where"
+   ""
+   "foo :: Int -> Int"
+   "foo = \\x ->"
+   "-- #if FOO"
+   "  bar + 1 +"
+   "-- #else"
+   "  bar + 2 +"
+   "-- #endif"
+   "    baz (quux x)_|_"
+   "")
+  (tests-utils--multiline
+   "module Foo where"
+   ""
+   "_|_foo :: Int -> Int"
+   "foo = \\x ->"
+   "-- #if FOO"
+   "  bar + 1 +"
+   "-- #else"
+   "  bar + 2 +"
+   "-- #endif"
+   "    baz (quux x)"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-beginning-of-defun-6g
+    (execute-kbd-macro (kbd "g t"))
+  (tests-utils--multiline
+   "module Foo where"
+   ""
+   "foo :: Int -> Int"
+   "foo = \\x ->"
+   "-- #if FOO"
+   "  bar + 1 +"
+   "-- #else"
+   "  bar + 2 +"
+   "-- #endif"
+   "    baz (quux x)"
+   "_|_"
+   "")
+  (tests-utils--multiline
+   "module Foo where"
+   ""
+   "_|_foo :: Int -> Int"
+   "foo = \\x ->"
+   "-- #if FOO"
+   "  bar + 1 +"
+   "-- #else"
+   "  bar + 2 +"
+   "-- #endif"
+   "    baz (quux x)"
+   ""
+   ""))
+
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands-all-known-inits
     vim-tests/substitute-1
   ((yes-confirm (execute-kbd-macro (kbd "s % s / f o o / d e c o m b o b u l a t e / c <return> y y y")))
