@@ -835,7 +835,7 @@
 
       ;; Font used inside quotes and cartouches
       (lsp-isar-font-foreground-quoted ;; :background ,background-highlights
-                                       :background nil)
+                                       :background unspecified)
 
       (lsp-isar-font-foreground-antiquoted :background ,magenta ;;:priority 0
                                            )
@@ -889,7 +889,7 @@
 
       (lsp-isar-font-spell-checker :underline (:style wave :color ,red))
 
-      (lsp-isar-font-nothing :foreground nil :background nil))
+      (lsp-isar-font-nothing :foreground unspecified :background unspecified))
 
     (solarized--install-frame-params
      `((foreground-color . ,primary-content)
