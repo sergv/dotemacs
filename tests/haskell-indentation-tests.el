@@ -877,6 +877,51 @@
   "      , baz"
   "      ]"))
 
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-vertical-op-1
+ :contents
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo"
+  "  = bar"
+  " _|_. baz")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo"
+  "  = bar"
+  "  _|_. baz"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-vertical-op-2
+ :contents
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo"
+  "  = bar"
+  " _|_+ baz")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo"
+  "  = bar"
+  "  _|_+ baz"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-vertical-op-3
+ :contents
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo"
+  "  = bar"
+  " _|_++ baz")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo"
+  "  = bar"
+  "  _|_++ baz"))
+
 (provide 'haskell-indentation-tests)
 
 ;; Local Variables:
