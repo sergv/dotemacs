@@ -1236,4 +1236,8 @@ foo x
 
 (provide 'haskell-indentation-tests)
 
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
+
 ;;; haskell-indentation-tests.el ends here
