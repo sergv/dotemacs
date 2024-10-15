@@ -200,7 +200,10 @@
                                  "left_operand"))
                     (right-child (treesit-node-child-by-field-name
                                   curr
-                                  "right_operand")))
+                                  "right_operand"))
+                    (op-child (treesit-node-child-by-field-name
+                               curr
+                               "operator")))
                 (cond
                   ((equal prev1 left-child)
                    ;; Continue: we’re left operand of an infix operator,
@@ -208,10 +211,10 @@
                    ;; whe don’t care where operator is.
                    ;; (throw 'term prev1)
                    )
-                  ((equal prev1 right-child)
+                  ((or (equal prev1 right-child)
+                       (equal prev1 op-child))
                    ;; Operator may be on a line of its own, take it into account.
-                   (let* ((op (treesit-node-child-by-field-name curr "operator"))
-                          (start (treesit-node-start op)))
+                   (let ((start (treesit-node-start op-child)))
                      (goto-char start)
                      (skip-chars-backward " \t")
                      (when (eq (point) (line-beginning-position))
@@ -299,7 +302,12 @@
 
              ;; Infix
              ((node-is "infix") haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update haskell-indent-offset)
-             ((parent-is "infix") haskell-ts-indent--standalone-parent-fast haskell-indent-offset)
+
+             ;; Assumes that this will only hit when "operator" node is at beginning of line.
+             ((n-p-gp "operator" "infix" nil)
+              haskell-ts-indent--standalone-parent-fast
+              0)
+
              ;; Lambda
              ((parent-is "lambda") haskell-ts-indent--standalone-parent-fast haskell-indent-offset)
 
