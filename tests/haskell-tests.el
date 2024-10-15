@@ -3870,7 +3870,7 @@ have different input states."
    "    "
    ""))
 
-;; Cannot distinguish unfinished byt indented body from dangling type signature.
+;; Cannot distinguish unfinished but indented body from dangling type signature.
 (haskell-tests--test-buffer-contents-expect-failed
     haskell-tests/haskell-newline-with-signature-expansion-ws-10
     (haskell-newline-with-signature-expansion)
