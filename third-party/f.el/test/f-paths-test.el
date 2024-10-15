@@ -23,6 +23,11 @@
 
 ;;; Commentary:
 
+(eval-when-compile
+  (require 'macro-util))
+
+(require 'macro-util)
+
 ;;; Code:
 
 (require 'f-test-helper)
@@ -40,14 +45,17 @@
   (should (equal (f-join "path" "to" "file") "path/to/file")))
 
 (ert-deftest f-join-test/multiple-paths-absolute ()
+  (fold-platform-os-type nil (ert-skip "Doesn’t work on Windows"))
   (should (equal (f-join "/path" "to" "file") "/path/to/file"))
   (should (equal (f-join "/" "path" "to" "file") "/path/to/file")))
 
 (ert-deftest f-join-test/delimiters-in-path/relative ()
+  (fold-platform-os-type nil (ert-skip "Doesn’t work on Windows"))
   (should (equal (f-join "path" "/" "to" "/" "file") "/file"))
   (should (equal (f-join "path" "/to" "file") "/to/file")))
 
 (ert-deftest f-join-test/delimiters-in-path/absolute ()
+  (fold-platform-os-type nil (ert-skip "Doesn’t work on Windows"))
   (should (equal (f-join "/path" "/to" "file") "/to/file"))
   (should (equal (f-join "/path" "to/" "file") "/path/to/file")))
 
@@ -80,6 +88,7 @@
   (should (equal (f-split "/path/to/file") '("/" "path" "to" "file"))))
 
 (ert-deftest f-split-test/inverse-of-join ()
+  (fold-platform-os-type nil (ert-skip "Doesn’t work on Windows"))
   (should (equal (f-split (apply 'f-join (f-split "/path/to/file")))
                  '("/" "path" "to" "file"))))
 
@@ -91,11 +100,14 @@
 
 (ert-deftest f-expand-test/no-dir ()
   (with-default-directory
-   (should (equal (f-expand "foo") "/default/directory/foo"))))
+   (should (equal (f-expand "foo")
+                  (fold-platform-os-type "/default/directory/foo" "c:/default/directory/foo")))))
 
 (ert-deftest f-expand-test/with-dir ()
   (with-default-directory
-   (should (equal (f-expand "foo" "/other") "/other/foo"))))
+   (fold-platform-os-type
+    (should (equal (f-expand "foo" "/other") "/other/foo"))
+    (should (equal (f-expand "foo" "c:/other") "c:/other/foo")))))
 
 (ert-deftest f-expand-test/skip-handlers ()
   ;; If handlers are used, Tramp will try to connect but fail with an
@@ -104,7 +116,9 @@
 
 (ert-deftest f-expand-test/directory-name ()
   (with-default-directory
-   (should (equal (f-expand "foo/" "/other/") "/other/foo/"))))
+   (fold-platform-os-type
+    (should (equal (f-expand "foo/" "/other/") "/other/foo/"))
+    (should (equal (f-expand "foo/" "c:/other/") "c:/other/foo/")))))
 
 
 ;;;; f-filename
@@ -175,6 +189,7 @@
   (should (equal (f-common-parent '("foo/bar/baz" "foo/bar/qux" "foo/bax/mux")) "foo/")))
 
 (ert-deftest f-common-parent/directory-absolute ()
+  (fold-platform-os-type nil (ert-skip "Doesn’t work on Windows"))
   (should (equal (f-common-parent '("/foo/bar/baz" "/foo/bar/qux" "/foo/bar/mux")) "/foo/bar/"))
   (should (equal (f-common-parent '("/foo/bar/baz" "/foo/bar/qux" "/foo/bax/mux")) "/foo/")))
 
@@ -182,7 +197,9 @@
   (should (equal (f-common-parent '("foo/bar/baz" "foo/bar/qux" "fo/bar/mux")) "")))
 
 (ert-deftest f-common-parent/root-common-parent ()
-  (should (equal (f-common-parent '("/foo" "/bar")) "/")))
+  (fold-platform-os-type
+   (should (equal (f-common-parent '("/foo" "/bar")) "/"))
+   (should (equal (f-common-parent '("c:/foo" "c:/bar")) "c:/"))))
 
 (ert-deftest f-common-parent/single-file ()
   (should (equal (f-common-parent '("foo/bar/baz")) "foo/bar/"))
@@ -274,7 +291,9 @@
     (should (equal (f-long "~/Code/bar") (f-expand "Code/bar" home)))))
 
 (ert-deftest f-long-test/other ()
-  (should (equal (f-long "/path/to/Code/bar") "/path/to/Code/bar")))
+  (fold-platform-os-type
+   (should (equal (f-long "/path/to/Code/bar") "/path/to/Code/bar"))
+   (should (equal (f-long "c:/path/to/Code/bar") "c:/path/to/Code/bar"))))
 
 
 ;;;; f-cannonical
@@ -424,5 +443,9 @@
                  '(("/foo/bar" . "foo/bar") ("/home/www/bar" . "www/bar") ("/foo/baz" . "foo/baz") ("/home/www/baz" . "home/www/baz") ("/opt/foo/www/baz" . "foo/www/baz") ("/var/foo" . "foo")))))
 
 (provide 'f-paths-test)
+
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
 
 ;;; f-paths-test.el ends here
