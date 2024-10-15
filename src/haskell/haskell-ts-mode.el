@@ -313,7 +313,7 @@
 
              ((parent-is "class_declarations") prev-sibling 0)
 
-             ((node-is "^in$") parent 0)
+             ((node-is "in") parent 0)
              ((match nil "let_in" "expression" nil nil)
               ,(lambda (node parent bol)
                  (let* ((in-node (treesit-node-child parent 2))
@@ -335,7 +335,7 @@
 
              ;; If then else
              ((node-is "then") parent haskell-indent-offset)
-             ((node-is "^else$") parent haskell-indent-offset)
+             ((node-is "else") parent haskell-indent-offset)
 
              ((parent-is "apply")
               haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update
@@ -374,8 +374,8 @@
               (lambda (_ b _)
                 (+ haskell-indent-offset (treesit-node-start (treesit-node-prev-sibling b))))
               haskell-indent-offset)
-             ((parent-is "local_binds\\|instance_declarations") haskell-ts-indent--prev-sib 0)
-             ((node-is "^where$") parent haskell-indent-offset)
+             ((parent-is "local_binds" "instance_declarations") haskell-ts-indent--prev-sib 0)
+             ((node-is "where") parent haskell-indent-offset)
 
              ;; Match
              ;; ((match "match" nil 2 2 nil) haskell-ts-indent--prev-sib 0)
@@ -653,6 +653,81 @@ but when paired then it’s like a string."
       (indent-region (car bounds) (cdr bounds))
     (error "No function at point")))
 
+(defconst haskell-ts--treesit-simple-indent-presets
+  (append
+   (list (cons 'match
+               (lambda
+                 (&optional node-type parent-type node-field
+                            node-index-min node-index-max)
+                 (lambda (node parent &rest _)
+                   (and (pcase node-type
+                          ('nil t)
+                          ('null (null node))
+                          (_ (awhen (treesit-node-type node)
+                               (string= node-type it))))
+                        (or (null parent-type)
+                            (awhen (treesit-node-type parent)
+                              (string= parent-type it)))
+                        (or (null node-field)
+                            (awhen (treesit-node-field-name node)
+                              (string= node-field it)))
+                        (or (null node-index-min)
+                            (>= (treesit-node-index node)
+                                node-index-min))
+                        (or (null node-index-max)
+                            (<= (treesit-node-index node)
+                                node-index-max))))))
+         (cons 'n-p-gp
+               (lambda (node-t parent-t grand-parent-t)
+                 (lambda (node parent &rest _)
+                   (and (or (null node-t)
+                            (awhen (treesit-node-type node)
+                              (string= node-t it)))
+                        (or (null parent-t)
+                            (awhen (treesit-node-type parent)
+                              (string= parent-t it)))
+                        (or (null grand-parent-t)
+                            (when-let ((gp (treesit-node-parent parent))
+                                       (gpt (treesit-node-type gp)))
+                              (string= grand-parent-t gpt)))))))
+         (cons 'parent-is (lambda (&rest types)
+                            (lambda (_n parent &rest _)
+                              (member (treesit-node-type parent) types))))
+
+         (cons 'node-is (lambda (type)
+                          (lambda (node &rest _)
+                            (awhen (treesit-node-type node)
+                              (string= type it)))))
+         (cons 'field-is (lambda (name)
+                           (lambda (node &rest _)
+                             (awhen (treesit-node-field-name node)
+                               (string= name it))))))
+
+   (--map (assq it treesit-simple-indent-presets)
+          '(no-node
+            comment-end
+            catch-all
+            query
+            first-sibling
+            nth-sibling
+            parent
+            comment-start
+            prev-adaptive-prefix
+            grand-parent
+            great-grand-parent
+
+            parent-bol
+
+            standalone-parent
+            prev-sibling
+            no-indent
+            prev-line
+            column-0
+            and
+            or
+            not
+            list))))
+
 ;;;###autoload
 (define-derived-mode haskell-ts-mode prog-mode "Haskell[ts]"
   "Major mode for Haskell that uses tree-sitter."
@@ -682,7 +757,9 @@ but when paired then it’s like a string."
               (apply #'treesit-font-lock-rules haskell-ts-font-lock-rules))
 
   ;; Indentation
-  (setq-local treesit-simple-indent-rules
+  (setq-local treesit-simple-indent-presets
+              haskell-ts--treesit-simple-indent-presets
+              treesit-simple-indent-rules
               (list (cons 'haskell haskell-ts-indent-rules)))
 
   (setq-local comment-start "--"
