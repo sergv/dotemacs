@@ -31,7 +31,7 @@ General Public License for more details.
 @finalout
 @titlepage
 @title Magit User Manual
-@subtitle for version 4.1.0
+@subtitle for version 4.1.1
 @author Jonas Bernoulli
 @page
 @vskip 0pt plus 1filll
@@ -53,7 +53,7 @@ directly from within Emacs.  While many fine Git clients exist, only
 Magit and Git itself deserve to be called porcelains.
 
 @noindent
-This manual is for Magit version 4.1.0.
+This manual is for Magit version 4.1.1.
 
 @insertcopying
 @end ifnottex
@@ -6375,7 +6375,7 @@ no upstream or no unpushed commits, then the new branch is created
 anyway and the previously current branch is not touched.
 
 This is useful to create a feature branch after work has already
-began on the old branch (likely but not necessarily "master").
+begun on the old branch (likely but not necessarily "master").
 
 If the current branch is a member of the value of option
 @code{magit-branch-prefer-remote-upstream} (which see), then the current
