@@ -8,7 +8,7 @@
 ;; Homepage: https://github.com/magit/magit
 ;; Keywords: tools
 
-;; Package-Version: 4.1.0
+;; Package-Version: 4.1.1
 ;; Package-Requires: (
 ;;     (emacs "26.1")
 ;;     (compat "30.0.0.0")
@@ -2267,6 +2267,9 @@ Configuration'."
 
 (defun magit--add-face-text-property (beg end face &optional append object)
   "Like `add-face-text-property' but for `font-lock-face'."
+  (when (stringp object)
+    (unless beg (setq beg 0))
+    (unless end (setq end (length object))))
   (while (< beg end)
     (let* ((pos (next-single-property-change beg 'font-lock-face object end))
            (val (get-text-property beg 'font-lock-face object))
@@ -2276,7 +2279,8 @@ Configuration'."
                              (append val (list face))
                            (cons face val))
                          object)
-      (setq beg pos))))
+      (setq beg pos)))
+  object)
 
 (defun magit--propertize-face (string face)
   (propertize string 'face face 'font-lock-face face))
