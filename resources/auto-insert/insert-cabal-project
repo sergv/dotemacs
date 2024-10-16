@@ -13,6 +13,8 @@ constraints:
   , foo >= 0.2
   , bar +assertions
 
+-- with-compiler: /usr/bin/ghc-enhanced
+
 -- optimization: 2
 
 -- source-repository-package
