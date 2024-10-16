@@ -6433,6 +6433,120 @@ _|_bar")
    ""
    ""))
 
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-beginning-of-defun-7
+    (execute-kbd-macro (kbd "g t"))
+  (tests-utils--multiline
+   ""
+   "bar :: Int -> Int"
+   "-- bar"
+   "bar 0 = 1 -- baz"
+   "-- foo"
+   "bar n = _|_n * n"
+   "")
+  (tests-utils--multiline
+   ""
+   "_|_bar :: Int -> Int"
+   "-- bar"
+   "bar 0 = 1 -- baz"
+   "-- foo"
+   "bar n = n * n"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-beginning-of-defun-7a
+    (execute-kbd-macro (kbd "g t"))
+  (tests-utils--multiline
+   ""
+   "bar :: Int -> Int"
+   "-- bar"
+   "bar 0 = 1 -- baz"
+   "bar n = _|_n * n"
+   "")
+  (tests-utils--multiline
+   ""
+   "_|_bar :: Int -> Int"
+   "-- bar"
+   "bar 0 = 1 -- baz"
+   "bar n = n * n"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-beginning-of-defun-7b
+    (execute-kbd-macro (kbd "g t"))
+  (tests-utils--multiline
+   ""
+   "bar :: Int -> Int"
+   "bar 0 = 1 -- baz"
+   "bar n = _|_n * n"
+   "")
+  (tests-utils--multiline
+   ""
+   "_|_bar :: Int -> Int"
+   "bar 0 = 1 -- baz"
+   "bar n = n * n"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-end-of-defun-1
+    (execute-kbd-macro (kbd "g h"))
+  (tests-utils--multiline
+   ""
+   "_|_bar :: Int -> Int"
+   "-- bar"
+   "bar 0 = 1 -- baz"
+   "-- foo"
+   "bar n = n * n"
+   "")
+  (tests-utils--multiline
+   ""
+   "bar :: Int -> Int"
+   "-- bar"
+   "bar 0 = 1 -- baz"
+   "-- foo"
+   "bar n = n * n_|_"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-end-of-defun-1a
+    (execute-kbd-macro (kbd "g h"))
+  (tests-utils--multiline
+   ""
+   "_|_bar :: Int -> Int"
+   "bar 0 = 1 -- baz"
+   "-- foo"
+   "bar n = n * n"
+   "")
+  (tests-utils--multiline
+   ""
+   "bar :: Int -> Int"
+   "bar 0 = 1 -- baz"
+   "-- foo"
+   "bar n = n * n_|_"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-end-of-defun-1b
+    (execute-kbd-macro (kbd "g h"))
+  (tests-utils--multiline
+   ""
+   "_|_bar :: Int -> Int"
+   "bar 0 = 1 -- baz"
+   "bar n = n * n"
+   "")
+  (tests-utils--multiline
+   ""
+   "bar :: Int -> Int"
+   "bar 0 = 1 -- baz"
+   "bar n = n * n_|_"
+   ""))
+
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands-all-known-inits
     vim-tests/substitute-1
   ((yes-confirm (execute-kbd-macro (kbd "s % s / f o o / d e c o m b o b u l a t e / c <return> y y y")))
