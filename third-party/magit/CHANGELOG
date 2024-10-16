@@ -1,4 +1,45 @@
 # -*- mode: org -*-
+* v4.1.2    UNRELEASED
+
+Bug fixes:
+
+- If the left margin was in use before ~magit-blame-mode~ started using
+  that margin, then the old width was not restored when the mode was
+  disabled.  #5236
+
+- Prior to Tramp being loaded, setting ~magit-tramp-pipe-stty-settings~
+  to ~nil~ resulted in an error, due to ~tramp-pipe-stty-settings~ not
+  being bound yet.  #5240
+
+* v4.1.1    2024-10-01
+
+- Avoid unnecessary work when ~auto-revert-remote-files~ is ~nil~.  #5222
+
+- Improved default choice offered by ~magit-branch-reset~ and
+  ~magit-reset-*~.  #5230
+
+Bug fixes:
+
+- Added a workaround for a regression in Git v2.46.0.  #5212
+
+- Section-specific bindings were removed when a section was expanded
+  whose body is not inserted until the expansion takes place.
+  9395de2c94
+
+- Addressed an incompatibility with Eglot.  #5226
+
+- Adapted to a change in ~define-globalized-minor-mode~ in Emacs 30,
+  which caused ~diff-hl-mode~ to be enabled in blob buffers.  #5229
+
+- When adding the commit at point to the completion defaults, it was
+  assumed that ~minibuffer-default-add-function~ cannot be nil.
+  6d0075f523
+
+- ~magit-blame--format-string-1~ didn't handle a list of faces
+  correctly.  5395798301
+
+- Addressed an incompatibility with Indent-Bars.  #5233
+
 * v4.1.0    2024-09-01
 
 - The library ~git-commit.el~ is no longer distributed as a separate

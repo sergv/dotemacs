@@ -347,7 +347,7 @@ in `magit-blame-read-only-mode-map' instead."
                (and (cl-find-if (lambda (style)
                                   (assq 'margin-format (cdr style)))
                                 magit-blame-styles)))
-         (magit-blame--update-margin))
+         (magit-blame--update-margin 'enable))
         (t
          (when (process-live-p magit-blame-process)
            (kill-process magit-blame-process)
@@ -366,7 +366,7 @@ in `magit-blame-read-only-mode-map' instead."
          (kill-local-variable 'magit-blame-disabled-modes)
          (kill-local-variable 'magit-blame-type)
          (kill-local-variable 'magit-blame--style)
-         (magit-blame--update-margin)
+         (magit-blame--update-margin 'disable)
          (magit-blame--remove-overlays))))
 
 (defun magit-blame--refresh ()
@@ -538,6 +538,8 @@ modes is toggled, then this mode also gets toggled automatically.
 
 ;;; Display
 
+(defvar-local magit-blame--previous-margin-width nil)
+
 (defsubst magit-blame--style-get (key)
   (cdr (assoc key (cdr magit-blame--style))))
 
@@ -605,8 +607,15 @@ modes is toggled, then this mode also gets toggled automatically.
     (overlay-put ov 'magit-blame-highlight t)
     (magit-blame--update-highlight-overlay ov)))
 
-(defun magit-blame--update-margin ()
-  (setq left-margin-width (or (magit-blame--style-get 'margin-width) 0))
+(defun magit-blame--update-margin (&optional action)
+  (when (eq action 'enable)
+    (setq magit-blame--previous-margin-width left-margin-width))
+  (setq left-margin-width
+        (if (eq action 'disable)
+            (prog1 magit-blame--previous-margin-width
+              (setq magit-blame--previous-margin-width nil))
+          (or (magit-blame--style-get 'margin-width)
+              magit-blame--previous-margin-width)))
   (set-window-buffer (selected-window) (current-buffer)))
 
 (defun magit-blame--update-overlays ()
@@ -645,7 +654,10 @@ modes is toggled, then this mode also gets toggled automatically.
   (overlay-put
    ov 'before-string
    (if-let ((format (magit-blame--style-get 'heading-format)))
-       (magit-blame--format-string ov format 'magit-blame-heading)
+       ;; Use `default' as the last face to avoid picking up any face
+       ;; attributes from the first character of the text on which we
+       ;; put the overlay.  See #5233.
+       (magit-blame--format-string ov format '(magit-blame-heading default))
      (and (magit-blame--style-get 'show-lines)
           (or (not (magit-blame--style-get 'margin-format))
               (save-excursion
@@ -653,7 +665,7 @@ modes is toggled, then this mode also gets toggled automatically.
                 ;; Special case of the special case described in
                 ;; `magit-blame--make-margin-overlay'.  For empty
                 ;; lines it is not possible to show both overlays
-                ;; without the line being to high.
+                ;; without the line being too high.
                 (not (= (point) (line-end-position)))))
           magit-blame-separator))))
 
@@ -684,11 +696,7 @@ modes is toggled, then this mode also gets toggled automatically.
             (propertize format 'font-lock-face face)
             (cl-flet* ((p0 (s f)
                          (propertize s 'font-lock-face
-                                     (if face
-                                         (if (listp face)
-                                             face
-                                           (list f face))
-                                       f)))
+                                     (if face (cons f (ensure-list face)) f)))
                        (p1 (k f)
                          (p0 (cdr (assoc k revinfo)) f))
                        (p2 (k1 k2 f)
