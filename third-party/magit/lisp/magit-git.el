@@ -2603,16 +2603,19 @@ and this option only controls what face is used.")
 
 (defun magit--minibuf-default-add-commit ()
   (let ((fn minibuffer-default-add-function))
-    (lambda ()
-      (if-let ((commit (with-selected-window (minibuffer-selected-window)
-                         (or (magit-thing-at-point 'git-revision-range t)
-                             (magit-commit-at-point)))))
-          (let ((rest (cons commit (delete commit (funcall fn))))
-                (def minibuffer-default))
-            (if (listp def)
-                (append def rest)
-              (cons def (delete def rest))))
-        (funcall fn)))))
+    (setq-local
+     minibuffer-default-add-function
+     (lambda ()
+       (let ((rest (and (functionp fn) (funcall fn))))
+         (if-let ((commit (with-selected-window (minibuffer-selected-window)
+                            (or (magit-thing-at-point 'git-revision-range t)
+                                (magit-commit-at-point)))))
+             (let ((rest (cons commit (delete commit rest)))
+                   (def minibuffer-default))
+               (if (listp def)
+                   (append def rest)
+                 (cons def (delete def rest))))
+           rest))))))
 
 (defun magit-read-branch (prompt &optional secondary-default)
   (magit-completing-read prompt (magit-list-branch-names)
@@ -2621,14 +2624,22 @@ and this option only controls what face is used.")
                              secondary-default
                              (magit-get-current-branch))))
 
-(defun magit-read-branch-or-commit (prompt &optional secondary-default)
-  (let ((minibuffer-default-add-function (magit--minibuf-default-add-commit)))
-    (or (magit-completing-read prompt (magit-list-refnames nil t)
-                               nil nil nil 'magit-revision-history
-                               (or (magit-branch-or-commit-at-point)
-                                   secondary-default
-                                   (magit-get-current-branch)))
-        (user-error "Nothing selected"))))
+(defun magit-read-branch-or-commit (prompt &optional secondary-default exclude)
+  (let ((current (magit-get-current-branch))
+        (branch-at-point (magit-branch-at-point))
+        (commit-at-point (magit-commit-at-point))
+        (choices (delete exclude (magit-list-refnames nil t))))
+    (when (equal current exclude)
+      (setq current nil))
+    (when (equal branch-at-point exclude)
+      (setq branch-at-point nil))
+    (when (and commit-at-point (not branch-at-point))
+      (setq choices (cons commit-at-point choices)))
+    (minibuffer-with-setup-hook #'magit--minibuf-default-add-commit
+      (or (magit-completing-read
+           prompt choices nil nil nil 'magit-revision-history
+           (or branch-at-point commit-at-point secondary-default current))
+          (user-error "Nothing selected")))))
 
 (defun magit-read-range-or-commit (prompt &optional secondary-default)
   (magit-read-range
@@ -2642,8 +2653,10 @@ and this option only controls what face is used.")
        (magit-get-current-branch))))
 
 (defun magit-read-range (prompt &optional default)
-  (let ((minibuffer-default-add-function (magit--minibuf-default-add-commit))
-        (crm-separator "\\.\\.\\.?"))
+  (minibuffer-with-setup-hook
+      (lambda ()
+        (magit--minibuf-default-add-commit)
+        (setq-local crm-separator "\\.\\.\\.?"))
     (magit-completing-read-multiple
      (concat prompt ": ")
      (magit-list-refnames)
@@ -2679,16 +2692,16 @@ and this option only controls what face is used.")
                              (magit-get-current-branch))))
 
 (defun magit-read-local-branch-or-commit (prompt)
-  (let ((minibuffer-default-add-function (magit--minibuf-default-add-commit))
-        (choices (nconc (magit-list-local-branch-names)
+  (let ((choices (nconc (magit-list-local-branch-names)
                         (magit-list-special-refnames)))
         (commit (magit-commit-at-point)))
     (when commit
       (push commit choices))
-    (or (magit-completing-read prompt choices
-                               nil nil nil 'magit-revision-history
-                               (or (magit-local-branch-at-point) commit))
-        (user-error "Nothing selected"))))
+    (minibuffer-with-setup-hook #'magit--minibuf-default-add-commit
+      (or (magit-completing-read prompt choices
+                                 nil nil nil 'magit-revision-history
+                                 (or (magit-local-branch-at-point) commit))
+          (user-error "Nothing selected")))))
 
 (defun magit-read-local-branch-or-ref (prompt &optional secondary-default)
   (magit-completing-read prompt (nconc (magit-list-local-branch-names)
@@ -2713,8 +2726,7 @@ and this option only controls what face is used.")
 
 (defun magit-read-other-branch-or-commit
     (prompt &optional exclude secondary-default)
-  (let* ((minibuffer-default-add-function (magit--minibuf-default-add-commit))
-         (current (magit-get-current-branch))
+  (let* ((current (magit-get-current-branch))
          (atpoint (magit-branch-or-commit-at-point))
          (exclude (or exclude current))
          (default (or (and (not (equal atpoint exclude))
@@ -2724,9 +2736,10 @@ and this option only controls what face is used.")
                       (and (not (equal current exclude)) current)
                       secondary-default
                       (magit-get-previous-branch))))
-    (or (magit-completing-read prompt (delete exclude (magit-list-refnames))
-                               nil nil nil 'magit-revision-history default)
-        (user-error "Nothing selected"))))
+    (minibuffer-with-setup-hook #'magit--minibuf-default-add-commit
+      (or (magit-completing-read prompt (delete exclude (magit-list-refnames))
+                                 nil nil nil 'magit-revision-history default)
+          (user-error "Nothing selected")))))
 
 (defun magit-read-other-local-branch
     (prompt &optional exclude secondary-default no-require-match)
