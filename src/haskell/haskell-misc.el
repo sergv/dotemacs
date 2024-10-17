@@ -983,6 +983,9 @@ value section should have if it is to be properly indented."
      (is-uppercase? (string-to-char it))
      (nreverse (f-split (file-name-sans-extension path)))))))
 
+(defun haskell-misc--module-name-to-file-name (mod-name)
+  (mapconcat #'identity (s-split "[.]" mod-name) "/"))
+
 (defsubst haskell-cabal--yasnippet--main-module-from-main-file (str)
   (haskell-misc--file-name-to-module-name str))
 

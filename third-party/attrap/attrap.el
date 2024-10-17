@@ -393,18 +393,54 @@ value is a list which is appended to the result of
   `(attrap-option (list 'use-extension ,pragma)
      (attrap-do-insert-language-pragma ,pragma)))
 
+(defun attrap-add-to-import--impl (missing parent line col)
+  (cl-assert (stringp missing))
+  (cl-assert (or (null parent) (stringp parent)))
+  (cl-assert (numberp line))
+  (cl-assert (numberp col))
+  (goto-char (point-min))
+  (forward-line (1- line))
+  (move-to-column (1- col))
+  (skip-chars-backward " \t")
+  (unless (looking-back "\(" (- (point) 2)) (insert-char ?,) (insert-char ?\s))
+  (if parent
+      (insert (attrap-add-operator-parens parent) "(" (attrap-add-operator-parens missing) ")")
+    (insert (attrap-add-operator-parens missing))))
+
+(defun attrap-add-to-haskell-import--add-parent-from-eproj-tags-if-needed
+    (identifier mod-name line col is-constructor? is-type-or-class?)
+  (cl-assert (stringp identifier))
+  (cl-assert (stringp mod-name))
+  (cl-assert (numberp line))
+  (cl-assert (numberp col))
+
+  (let* ((candidate-tags (attrap-import--get-matching-tags-for-proj (eproj-get-project-for-buf-lax (current-buffer)) identifier))
+
+         (filtered-tags (attrap-haskell-import--filter-tags-by-type candidate-tags is-constructor? is-type-or-class?))
+
+         (filename-stem-no-ext
+          (haskell-misc--module-name-to-file-name mod-name))
+
+         (filtered-by-module
+          (--filter
+           (s-contains-p filename-stem-no-ext (eproj-tag/file (cl-second it)))
+           filtered-tags))
+
+         (parent-name
+          (when-let ((filtered-by-module)
+                     ;; When there’s only one candidate
+                     ((null (cdr filtered-by-module)))
+                     (tag-entry (car filtered-by-module))
+                     (tag (cl-second tag-entry)))
+            (attrap-haskell-import--resolve-tag-parent-name tag))))
+
+    (attrap-add-to-import--impl identifier parent-name line col)))
+
 (defmacro attrap-add-to-import (missing module line col)
   "Action: insert MISSING to the import of MODULE.
 The import ends at LINE and COL in the file."
   `(attrap-option (format "add to import list of ‘%s’" ,module)
-     (let ((end-line (string-to-number ,line))
-           (end-col (string-to-number ,col)))
-       (goto-char (point-min))
-       (forward-line (1- end-line))
-       (move-to-column (1- end-col))
-       (skip-chars-backward " \t")
-       (unless (looking-back "\(" (- (point) 2)) (insert-char ?,) (insert-char ?\s))
-       (insert (attrap-add-operator-parens ,missing)))))
+     (attrap-add-to-import--impl ,missing nil (string-to-number ,line) (string-to-number ,col))))
 
 (defun attrap-ghc-fixer (msg pos _end)
   "An `attrap' fixer for any GHC error or warning.
@@ -537,28 +573,6 @@ Error is given as MSG and reported between POS and END."
          (search-forward ext)
          (delete-region (match-beginning 0) (point))
          (insert replacement))))
-   (when (string-match
-          (rx "Suggested fix: Add " (identifier 1)
-              " to the import list in the import of " (identifier 2)
-              " " (parens (src-loc 3 4 5 6)))
-          normalized-msg)
-     (let ((name   (match-string-no-properties 1 normalized-msg))
-           (module (match-string-no-properties 2 normalized-msg))
-           (line   (match-string-no-properties 5 normalized-msg))
-           (col    (match-string-no-properties 6 normalized-msg)))
-       (list (attrap-add-to-import name module line col))))
-   (when (string-match
-          (rx "Suggested fixes: "
-              (* "•" (+ (not ?•)))
-              "• Add " (identifier 1)
-              " to the import list in the import of " (identifier 2)
-              " " (parens (src-loc 3 4 5 6)))
-          normalized-msg)
-     (let ((name   (match-string-no-properties 1 normalized-msg))
-           (module (match-string-no-properties 2 normalized-msg))
-           (line   (match-string-no-properties 5 normalized-msg))
-           (col    (match-string-no-properties 6 normalized-msg)))
-       (list (attrap-add-to-import name module line col))))
    (when-let ((match (s-match (rx "Perhaps you want to add " (identifier 1)
                                   " to the import list in the import of " (identifier 2)
                                   " " (parens (src-loc 3 4 5 6)))
@@ -778,26 +792,36 @@ Error is given as MSG and reported between POS and END."
      (let ((identifier (attrap-strip-parens (match-string-no-properties 1 msg)))
            (is-constructor? (not (null (match-beginning 2))))
            (is-type-or-class? (not (null (match-beginning 3)))))
-       (when-let ((proj (eproj-get-project-for-buf-lax (current-buffer))))
-         (let ((effective-major-mode (eproj/resolve-synonym-modes major-mode)))
-           ;; Mostly to make tests green but in general too: don’t proceed
-           ;; if found project doesn’t define tags for us.
-           (when (assq effective-major-mode (eproj-project/tags proj))
-
-             (save-match-data
-               (eproj-symbnav/ensure-tags-loaded! effective-major-mode proj))
-
-             (when-let ((candidate-tags
-                         (eproj-get-matching-tags proj
-                                                  effective-major-mode
-                                                  identifier
-                                                  nil)))
-               (attrap-one-option "add import"
-                 (attrap--add-import proj
-                                     candidate-tags
-                                     identifier
-                                     is-constructor?
-                                     is-type-or-class?))))))))
+       (if-let ((have-specific-import-location?
+                 (string-match
+                  (rx (or (seq "Suggested fix:"
+                               (* ws) "Add" (* ws) (identifier 1) (* ws)
+                               "to the import list in the import of"
+                               (* ws) (identifier 2) (* ws) (parens (src-loc 3 4 5 6)))
+                          (seq "Suggested fixes:" (* ws)
+                               (* "•" (+ (not ?•)))
+                               "• Add" (* ws) (identifier 1) (* ws)
+                               "to the import list in the import of"
+                               (* ws) (identifier 2) (* ws) (parens (src-loc 3 4 5 6)))))
+                  msg)))
+           (let ((module (match-string-no-properties 2 msg))
+                 (line (match-string-no-properties 5 msg))
+                 (col (match-string-no-properties 6 msg)))
+             (attrap-one-option (format "add to import list of ‘%s’" module)
+               (attrap-add-to-haskell-import--add-parent-from-eproj-tags-if-needed identifier
+                                                                                   module
+                                                                                   (string-to-number line)
+                                                                                   (string-to-number col)
+                                                                                   is-constructor?
+                                                                                   is-type-or-class?)))
+         (when-let ((proj (eproj-get-project-for-buf-lax (current-buffer)))
+                    (candidate-tags (attrap-import--get-matching-tags-for-proj proj identifier)))
+           (attrap-one-option "add import"
+             (attrap--add-haskell-import proj
+                                         candidate-tags
+                                         identifier
+                                         is-constructor?
+                                         is-type-or-class?))))))
 
     ;; error: [GHC-76037]
     ;;     Not in scope: type constructor or class ‘MonadMask’
@@ -940,7 +964,7 @@ Error is given as MSG and reported between POS and END."
                 "Control.Exception"
                 ("evaluate")))))))
 
-(defun attrap--add-import--fix-module-name (identifier mod-name)
+(defun attrap-haskell-import--fix-module-name (identifier mod-name)
   (cl-assert (stringp identifier))
   (cl-assert (stringp mod-name))
   (if-let ((entry (gethash mod-name attrap--module-name-fixes)))
@@ -953,25 +977,46 @@ Error is given as MSG and reported between POS and END."
 
 (defvar attrap--import-history nil)
 
-(defun attrap--add-import (proj candidate-tags identifier is-constructor? is-type-or-class?)
+(defun attrap-import--get-matching-tags-for-proj (proj identifier)
+  (when proj
+    (let ((effective-major-mode (eproj/resolve-synonym-modes major-mode)))
+      ;; Mostly to make tests green but in general too: don’t proceed
+      ;; if found project doesn’t define tags for us.
+      (when (assq effective-major-mode (eproj-project/tags proj))
+        (save-match-data
+          (eproj-symbnav/ensure-tags-loaded! effective-major-mode proj))
+        (eproj-get-matching-tags proj effective-major-mode identifier nil)))))
+
+(defun attrap-haskell-import--filter-tags-by-type (candidate-tags is-constructor? is-type-or-class?)
+  (cond
+    (is-constructor?
+     (--filter (eq (eproj-tag/type (cl-second it)) ?C) candidate-tags))
+    (is-type-or-class?
+     (--filter (let ((typ (eproj-tag/type (cl-second it))))
+                 (or (eq typ ?t)
+                     (eq typ ?c)))
+               candidate-tags))
+    (t
+     candidate-tags)))
+
+(defun attrap-haskell-import--resolve-tag-parent-name (tag)
+  (cl-assert (eproj-tag-p tag))
+  (when-let ((tag-parent (eproj-tag/get-prop 'parent tag)))
+    (let ((parent-type (cdr tag-parent)))
+      ;; When type is not class.
+      (unless (eq parent-type ?c)
+        (car tag-parent)))))
+
+(defun attrap--add-haskell-import (proj candidate-tags identifier is-constructor? is-type-or-class?)
   "CANDIDATE-TAGS is the result returned by ‘eproj-get-matching-tags’."
   (cl-assert (eproj-project-p proj))
   (cl-assert (stringp identifier))
   (let* ((filtered-tags
-          (cond
-            (is-constructor?
-             (--filter (eq (eproj-tag/type (cl-second it)) ?C) candidate-tags))
-            (is-type-or-class?
-             (--filter (let ((typ (eproj-tag/type (cl-second it))))
-                         (or (eq typ ?t)
-                             (eq typ ?c)))
-                       candidate-tags))
-            (t
-             candidate-tags)))
+          (attrap-haskell-import--filter-tags-by-type candidate-tags is-constructor? is-type-or-class?))
          (module-names
           (remove-duplicates-sorting
-           (--map (cons (attrap--add-import--fix-module-name identifier
-                                                             (haskell-misc--file-name-to-module-name (eproj-tag/file (cl-second it))))
+           (--map (cons (attrap-haskell-import--fix-module-name identifier
+                                                                (haskell-misc--file-name-to-module-name (eproj-tag/file (cl-second it))))
                         it)
                   filtered-tags)
            (lambda (x y)
@@ -994,16 +1039,11 @@ Error is given as MSG and reported between POS and END."
          (mod-name (car entry))
          (candidate-entry (cdr entry))
          (tag (cl-second candidate-entry))
-         (tag-parent (eproj-tag/get-prop 'parent tag))
          (import-from-current-project? (eq proj (cl-third candidate-entry))))
     (haskell-misc--add-new-import mod-name
                                   identifier
                                   import-from-current-project?
-                                  (awhen tag-parent
-                                    (let ((parent-type (cdr it)))
-                                      ;; When type is not class.
-                                      (unless (eq parent-type ?c)
-                                        (car it)))))
+                                  (attrap-haskell-import--resolve-tag-parent-name tag))
     (message "Added import of ‘%s’" mod-name)))
 
 (defun attrap-add-operator-parens (name)
