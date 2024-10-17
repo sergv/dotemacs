@@ -161,6 +161,27 @@
      ,contents
      ,expected-value))
 
+(cl-defmacro vim-tests--test-fresh-buffer-contents-init-standard-modes-pair-only
+    (keep-modes name contents (name1 action1 expected1) (name2 action2 expected2))
+  (declare (indent 3))
+  (cl-assert (listp keep-modes))
+  (cl-assert (cl-every #'symbolp keep-modes))
+  (cl-assert (symbolp name1))
+  (cl-assert (symbolp name2))
+  `(progn
+     (vim-tests--test-fresh-buffer-contents-init-all
+         ,(string->symbol (format "%s-%s" name name1))
+         ,(--filter (memq (car it) keep-modes) vim-tests--all-known-modes-and-init)
+         ,action1
+       ,contents
+       ,expected1)
+     (vim-tests--test-fresh-buffer-contents-init-all
+         ,(string->symbol (format "%s-%s" name name2))
+         ,(--filter (memq (car it) keep-modes) vim-tests--all-known-modes-and-init)
+         ,action2
+       ,contents
+       ,expected2)))
+
 (ert-deftest vim-tests/test-vim--parse-substitute-pattern-repl-flags ()
   (should (equal (vim--parse-substitute-pattern-repl-flags "/foo/bar")
                  '("foo" "bar" nil)))
@@ -6727,6 +6748,53 @@ _|_bar")
    "bar 0 = 1 -- baz"
    "bar n = n * n_|_"
    ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-pair-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-beginning-and-end-of-defun-1
+    (tests-utils--multiline
+     "quux :: Int -> Int"
+     "quux 0 = 1"
+     "quux x = x"
+     ""
+     "-----------------"
+     "-- foo"
+     "_|_"
+     ""
+     "-- | bar"
+     "foo :: Int -> Int"
+     "foo 0 = 3"
+     "foo x = x + x")
+  (beginning
+   (execute-kbd-macro (kbd "g t"))
+   (tests-utils--multiline
+    "_|_quux :: Int -> Int"
+    "quux 0 = 1"
+    "quux x = x"
+    ""
+    "-----------------"
+    "-- foo"
+    ""
+    ""
+    "-- | bar"
+    "foo :: Int -> Int"
+    "foo 0 = 3"
+    "foo x = x + x"))
+  (end
+   (execute-kbd-macro (kbd "g h"))
+   (tests-utils--multiline
+    "quux :: Int -> Int"
+    "quux 0 = 1"
+    "quux x = x"
+    ""
+    "-----------------"
+    "-- foo"
+    ""
+    ""
+    "-- | bar"
+    "foo :: Int -> Int"
+    "foo 0 = 3"
+    "foo x = x + x_|_")))
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands-all-known-inits
     vim-tests/substitute-1
