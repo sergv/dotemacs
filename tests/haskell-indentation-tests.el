@@ -922,6 +922,97 @@
   "  = bar"
   "  _|_++ baz"))
 
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-data-1
+ :contents
+ (tests-utils--multiline
+  ""
+  "data Foo"
+  "  = Foo Int"
+  "  | Bar Foo Foo"
+  "_|_")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data Foo"
+  "  = Foo Int"
+  "  | Bar Foo Foo"
+  "    _|_"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-data-2
+ :contents
+ (tests-utils--multiline
+  "module Test where"
+  ""
+  "data Foo"
+  "  = Foo Int"
+  "  | Bar Foo Foo"
+  " _|_deriving (Eq, Ord, Show)")
+ :expected-value
+ (tests-utils--multiline
+  "module Test where"
+  ""
+  "data Foo"
+  "  = Foo Int"
+  "  | Bar Foo Foo"
+  "  _|_deriving (Eq, Ord, Show)"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-data-3
+ :contents
+ (tests-utils--multiline
+  "module Test where"
+  ""
+  "data Foo"
+  "  = Foo Int"
+  "  | Bar Foo Foo"
+  "_|_")
+ :expected-value
+ (tests-utils--multiline
+  "module Test where"
+  ""
+  "data Foo"
+  "  = Foo Int"
+  "  | Bar Foo Foo"
+  "    _|_"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-data-4
+ :contents
+ (tests-utils--multiline
+  "module Test where"
+  ""
+  "data Foo"
+  "  = Foo Int"
+  " _|_| Bar Foo Foo"
+  "  deriving (Eq)")
+ :expected-value
+ (tests-utils--multiline
+  "module Test where"
+  ""
+  "data Foo"
+  "  = Foo Int"
+  "  _|_| Bar Foo Foo"
+  "  deriving (Eq)"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-gadt-1
+ :contents
+ (tests-utils--multiline
+  "module Test where"
+  ""
+  "data Foo2 ix where"
+  " _|_XXX :: Foo2 Int"
+  "  YYY :: a -> Foo2 a")
+ :expected-value
+ (tests-utils--multiline
+  "module Test where"
+  ""
+  "data Foo2 ix where"
+  "  _|_XXX :: Foo2 Int"
+  "  YYY :: a -> Foo2 a"))
+
 (provide 'haskell-indentation-tests)
 
 ;; Local Variables:
