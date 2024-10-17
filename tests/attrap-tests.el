@@ -884,7 +884,7 @@
      :checker 'haskell-dante
      :message
      (tests-utils--multiline
-      "warning: [GHC-88464] [-Wdeferred-out-of-scope-variables}"
+      "warning: [GHC-88464] [-Wdeferred-out-of-scope-variables]"
       "Variable not in scope: foo :: Int -> Double"
       "Suggested fix:"
       "  Add ‘foo’ to the import list in the import of"
