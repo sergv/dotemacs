@@ -358,8 +358,6 @@
      :id nil
      :group nil)))
  :action
- ;; (let ((attrap-select-predefined-option
- ;;        "replace MonadMask by MC.MonadMask from Control.Monad.Catch")))
  (attrap-tests--run-attrap)
  :contents
  (tests-utils--multiline
@@ -936,9 +934,7 @@
      :id nil
      :group nil)))
  :action
- (let ((attrap-select-predefined-option
-        "add to import list of ‘System.IO’"))
-   (attrap-tests--run-attrap))
+ (attrap-tests--run-attrap)
  :contents
  (tests-utils--multiline
   ""
