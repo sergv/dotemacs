@@ -6796,6 +6796,106 @@ _|_bar")
     "foo 0 = 3"
     "foo x = x + x_|_")))
 
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-pair-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-beginning-and-end-of-defun-2
+    (tests-utils--multiline
+     "data Foo"
+     "  = Foo Int"
+     "  | Bar Foo Foo"
+     "  deriving (Eq, Ord, Show)"
+     ""
+     "-----------------"
+     "-- foo"
+     "_|_"
+     ""
+     "-- | bar"
+     "foo :: Int -> Int"
+     "foo 0 = 3"
+     "foo x = x + x")
+  (beginning
+   (execute-kbd-macro (kbd "g t"))
+   (tests-utils--multiline
+    "_|_data Foo"
+    "  = Foo Int"
+    "  | Bar Foo Foo"
+    "  deriving (Eq, Ord, Show)"
+    ""
+    "-----------------"
+    "-- foo"
+    ""
+    ""
+    "-- | bar"
+    "foo :: Int -> Int"
+    "foo 0 = 3"
+    "foo x = x + x"))
+  (end
+   (execute-kbd-macro (kbd "g h"))
+   (tests-utils--multiline
+    "data Foo"
+    "  = Foo Int"
+    "  | Bar Foo Foo"
+    "  deriving (Eq, Ord, Show)"
+    ""
+    "-----------------"
+    "-- foo"
+    ""
+    ""
+    "-- | bar"
+    "foo :: Int -> Int"
+    "foo 0 = 3"
+    "foo x = x + x_|_")))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-pair-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-beginning-and-end-of-defun-3
+    (tests-utils--multiline
+     "foo :: Int -> Int"
+     "foo 0 = 3"
+     "foo x = x + x"
+     ""
+     "-----------------"
+     "-- foo"
+     "_|_"
+     ""
+     "-- | bar"
+     "data Foo"
+     "  = Foo Int"
+     "  | Bar Foo Foo"
+     "  deriving (Eq, Ord, Show)")
+  (beginning
+   (execute-kbd-macro (kbd "g t"))
+   (tests-utils--multiline
+     "_|_foo :: Int -> Int"
+     "foo 0 = 3"
+     "foo x = x + x"
+     ""
+     "-----------------"
+     "-- foo"
+     ""
+     ""
+     "-- | bar"
+     "data Foo"
+     "  = Foo Int"
+     "  | Bar Foo Foo"
+     "  deriving (Eq, Ord, Show)"))
+  (end
+   (execute-kbd-macro (kbd "g h"))
+   (tests-utils--multiline
+     "foo :: Int -> Int"
+     "foo 0 = 3"
+     "foo x = x + x"
+     ""
+     "-----------------"
+     "-- foo"
+     ""
+     ""
+     "-- | bar"
+     "data Foo"
+     "  = Foo Int"
+     "  | Bar Foo Foo"
+     "  deriving (Eq, Ord, Show)_|_")))
+
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands-all-known-inits
     vim-tests/substitute-1
   ((yes-confirm (execute-kbd-macro (kbd "s % s / f o o / d e c o m b o b u l a t e / c <return> y y y")))
