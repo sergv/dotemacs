@@ -592,14 +592,14 @@ but when paired then it’s like a string."
 (defun haskell-ts--is-comment-node? (node)
   (haskell-ts--is-comment-node-type? (treesit-node-type node)))
 
-(defun haskell-ts--is-toplevel-function-related-node-type? (typ)
+(defun haskell-ts--is-toplevel-function-related-named-node-type? (typ)
   (cl-assert (stringp typ))
   (or (string= typ "signature")
       (string= typ "function")
       (string= typ "bind")))
 
 (defun haskell-ts--is-toplevel-function-related-node? (node)
-  (haskell-ts--is-toplevel-function-related-node-type? (treesit-node-type node)))
+  (haskell-ts--is-toplevel-function-related-named-node-type? (treesit-node-type node)))
 
 (defun haskell-ts--function-name (node)
   (cl-assert (haskell-ts--is-toplevel-function-related-node? node)
@@ -616,29 +616,75 @@ but when paired then it’s like a string."
         (treesit-node-text-no-properties-unsafe name)
       (error "Cannot obtain function nome from node: %s" node))))
 
+(defun haskell-ts--search-function-related-named-nodes
+    (start search-forward? continue-predicate stop-after-first-find?)
+  "CONTINUE-PREDICATE should take treesit-node and return boolean whether to continue scanning."
+  (let ((tmp start)
+        (continue? t)
+        (result nil)
+        (continue-after-first-find? (not stop-after-first-find?)))
+    (while (and continue?
+                (setq tmp (if search-forward?
+                              (treesit-node-next-sibling tmp)
+                            (treesit-node-prev-sibling tmp))))
+      (let ((tmp-type (treesit-node-type tmp)))
+        (cond
+          ((and (haskell-ts--is-toplevel-function-related-named-node-type? tmp-type)
+                (funcall continue-predicate tmp))
+           (setf result tmp
+                 continue? continue-after-first-find?))
+          ((haskell-ts--is-comment-node-type? tmp-type)
+           ;; Continue search.
+           )
+          (t
+           (setf continue? nil)))))
+    result))
+
 (defun haskell-ts--bounds-of-toplevel-entity (pos do-scan-around? scan-forward? find-furthest-start? find-furthest-end?)
   "Recognizes functions spanning multiple cases as a single entity.
 
 Classes and data declarations are atomic entities and their
 indented block will be their bounds without any extra processing."
   (when-let ((node
-              (let ((n (treesit-node-at pos)))
-                (if (string= "declarations" (treesit-node-type n))
-                    (when do-scan-around?
-                      (let ((next-pos
-                             (save-excursion
-                               (goto-char pos)
-                               (if scan-forward?
-                                   (progn
-                                     (skip-whitespace-forward)
-                                     (min (point) (point-max)))
-                                 (progn
-                                   (skip-whitespace-backward)
-                                   (forward-char -1)
-                                   (max (point) (point-min)))))))
-                        (unless (eq pos next-pos)
-                          (treesit-node-at next-pos))))
-                  n))))
+              (let* ((n (treesit-node-at pos))
+                     (n-typ (treesit-node-type n)))
+                (cond
+                  ((string= "declarations" n-typ)
+                   (when do-scan-around?
+                     (let ((next-pos
+                            (save-excursion
+                              (goto-char pos)
+                              (if scan-forward?
+                                  (progn
+                                    (skip-whitespace-forward)
+                                    (min (point) (point-max)))
+                                (progn
+                                  (skip-whitespace-backward)
+                                  (forward-char -1)
+                                  (max (point) (point-min)))))))
+                       (unless (eq pos next-pos)
+                         (treesit-node-at next-pos)))))
+                  ((string= "comment" n-typ)
+                   (let ((func-node-above (haskell-ts--search-function-related-named-nodes
+                                           n
+                                           nil
+                                           (lambda (_) t)
+                                           t))
+                         (func-node-below (haskell-ts--search-function-related-named-nodes
+                                           n
+                                           t
+                                           (lambda (_) t)
+                                           t)))
+
+                     (when (and func-node-above
+                                func-node-below
+                                (string= (haskell-ts--function-name func-node-above)
+                                         (haskell-ts--function-name func-node-below)))
+                       (if scan-forward?
+                           func-node-below
+                         func-node-above))))
+                  (t
+                   n)))))
     (let ((p nil))
       (while (and (setq p (treesit-node-parent node))
                   (not (string= (treesit-node-type p) "declarations")))
@@ -648,39 +694,27 @@ indented block will be their bounds without any extra processing."
                 (first-node node)
                 (last-node node))
 
-            ;; Search backward.
+            ;; Search backward as much as possible.
             (when find-furthest-start?
-              (let ((tmp first-node)
-                    (continue? t))
-                (while (and continue?
-                            (setq tmp (treesit-node-prev-sibling tmp)))
-                  (let ((tmp-type (treesit-node-type tmp)))
-                    (cond
-                      ((and (haskell-ts--is-toplevel-function-related-node-type? tmp-type)
-                            (string= func-name (haskell-ts--function-name tmp)))
-                       (setf first-node tmp))
-                      ((haskell-ts--is-comment-node-type? tmp-type)
-                       ;; Continue to prev sibling.
-                       )
-                      (t
-                       (setf continue? nil)))))))
+              (setf first-node
+                    (or (haskell-ts--search-function-related-named-nodes
+                         first-node
+                         nil
+                         (lambda (x)
+                           (string= func-name (haskell-ts--function-name x)))
+                         nil)
+                        first-node)))
 
-            ;; Search forward.
+            ;; Search forward as much as possible.
             (when find-furthest-end?
-              (let ((tmp last-node)
-                    (continue? t))
-                (while (and continue?
-                            (setq tmp (treesit-node-next-sibling tmp)))
-                  (let ((tmp-type (treesit-node-type tmp)))
-                    (cond
-                      ((and (haskell-ts--is-toplevel-function-related-node-type? tmp-type)
-                            (string= func-name (haskell-ts--function-name tmp)))
-                       (setf last-node tmp))
-                      ((haskell-ts--is-comment-node-type? tmp-type)
-                       ;; Continue to next sibling.
-                       )
-                      (t
-                       (setf continue? nil)))))))
+              (setf last-node
+                    (or (haskell-ts--search-function-related-named-nodes
+                         last-node
+                         t
+                         (lambda (x)
+                           (string= func-name (haskell-ts--function-name x)))
+                         nil)
+                        last-node)))
 
             (cons (treesit-node-start first-node)
                   (treesit-node-end last-node)))
