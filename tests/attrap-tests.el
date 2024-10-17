@@ -970,6 +970,116 @@
   "        char = _|_hPutChar dest"
   ""))
 
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/add-to-import-import-list-3
+ :flycheck-errors
+ (list
+  (let ((linecol (save-excursion
+                   (re-search-forward "_|_")
+                   (flycheck-line-column-at-pos (point)))))
+    (flycheck-error-new
+     :line (car linecol)
+     :column (cdr linecol)
+     :buffer (current-buffer)
+     :checker 'haskell-dante
+     :message
+     (tests-utils--multiline
+      "warning: [GHC-88464] [-Wdeferred-out-of-scope-variables]"
+      "    Data constructor not in scope:"
+      "      Foo :: Bar (Either Int Double)"
+      "    Suggested fixes:"
+      "      • Perhaps use one of these:"
+      "          variable ‘foo’ (imported from Foo.Bar),"
+      "          ‘Foo1’ (imported from Foo.Foo1),"
+      "          ‘Foo2’ (imported from Foo.Foo2)"
+      "      • Add ‘Foo’ to the import list in the import of ‘Foo.Decombobulate’"
+      "        (at /foo/bar/baz/Quux.hs:2:1-27).")
+     :level 'error
+     :id nil
+     :group nil)))
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Foo.Decombobulate ()"
+  ""
+  "test :: FooType -> IO ()"
+  "test (_|_Foo x) = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Foo.Decombobulate (FooType(Foo))"
+  ""
+  "test :: FooType -> IO ()"
+  "test (_|_Foo x) = undefined"
+  "")
+ :eproj-project
+ (attrap-tests-make-ephemeral-haskell-eproj-project
+  '(("Foo" "/tmp/Foo/Decombobulate.hs" 100 ?C ((parent "FooType" . ?t)))
+    ("FooType" "/tmp/Foo/Decombobulate.hs" 100 ?t nil)
+
+    ("Foo" "/tmp/Foo/Quux.hs" 100 ?C ((parent "FooType1" . ?t)))
+    ("FooType1" "/tmp/Foo/Quux.hs" 100 ?t nil)
+
+    ("FooType" "/tmp/Foo/Frobnicate.hs" 200 ?t nil))))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/add-to-import-import-list-4
+ :flycheck-errors
+ (list
+  (let ((linecol (save-excursion
+                   (re-search-forward "_|_")
+                   (flycheck-line-column-at-pos (point)))))
+    (flycheck-error-new
+     :line (car linecol)
+     :column (cdr linecol)
+     :buffer (current-buffer)
+     :checker 'haskell-dante
+     :message
+     (tests-utils--multiline
+      "warning: [GHC-88464] [-Wdeferred-out-of-scope-variables]"
+      "    Data constructor not in scope:"
+      "      Foo :: Bar (Either Int Double)"
+      "    Suggested fixes:"
+      "      • Perhaps use one of these:"
+      "          variable ‘foo’ (imported from Foo.Bar),"
+      "          ‘Foo1’ (imported from Foo.Foo1),"
+      "          ‘Foo2’ (imported from Foo.Foo2)"
+      "      • Add ‘Foo’ to the import list in the import of ‘Foo.Decombobulate’"
+      "        (at /foo/bar/baz/Quux.hs:2:1-39).")
+     :level 'error
+     :id nil
+     :group nil)))
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Foo.Decombobulate (Bar(..), Baz)"
+  ""
+  "test :: FooType -> IO ()"
+  "test (_|_Foo x) = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Foo.Decombobulate (Bar(..), Baz, FooType(Foo))"
+  ""
+  "test :: FooType -> IO ()"
+  "test (_|_Foo x) = undefined"
+  "")
+ :eproj-project
+ (attrap-tests-make-ephemeral-haskell-eproj-project
+  '(("Foo" "/tmp/Foo/Decombobulate.hs" 100 ?C ((parent "FooType" . ?t)))
+    ("FooType" "/tmp/Foo/Decombobulate.hs" 100 ?t nil)
+
+    ("Foo" "/tmp/Foo/Quux.hs" 100 ?C ((parent "FooType1" . ?t)))
+    ("FooType1" "/tmp/Foo/Quux.hs" 100 ?t nil)
+
+    ("FooType" "/tmp/Foo/Frobnicate.hs" 200 ?t nil))))
+
 (provide 'attrap-tests)
 
 ;; Local Variables:
