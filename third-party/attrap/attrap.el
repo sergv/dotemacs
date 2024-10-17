@@ -316,8 +316,8 @@ value is a list which is appended to the result of
        (beginning-of-line)
        (insert (nth 1 match) "\n")))
    (when (string-match "Lisp symbol ‘\\(.*\\)’ should appear in quotes" msg)
-     (attrap-one-option 'kill-message-period
-       (let ((sym (match-string 1 msg)))
+     (let ((sym (match-string 1 msg)))
+       (attrap-one-option 'kill-message-period
          (re-search-forward sym)
          (replace-match (concat "`" sym "'") nil t nil 0))))
    (when (string-match "Error messages should \\*not\\* end with a period" msg)
@@ -434,8 +434,8 @@ Error is given as MSG and reported between POS and END."
                (dolist (missing missings)
                  (insert (format "\n  %s = _" (nth 1 missing)))))))
          (when (string-match "No explicit associated type or default declaration for ‘\\(.*\\)’" msg)
-           (attrap-one-option "insert type"
-             (let ((type (match-string 1 msg)))
+           (let ((type (match-string 1 msg)))
+             (attrap-one-option "insert type"
                (end-of-line)
                (insert (format "\n  type %s = _" type)))))
          (when (s-matches? (rx "Using ‘*’ (or its Unicode variant) to mean ‘Data.Kind.Type’") msg)
@@ -455,8 +455,8 @@ Error is given as MSG and reported between POS and END."
                                    (insert it))
                     options)))
          (when (string-match "Redundant constraints?: (?\\([^,)\n]*\\)" msg)
-           (attrap-one-option "delete redundant constraint"
-             (let ((constraint (match-string 1 msg)))
+           (let ((constraint (match-string 1 msg)))
+             (attrap-one-option "delete redundant constraint"
                (search-forward constraint) ; find type sig
                (delete-region (match-beginning 0) (match-end 0))
                (when (looking-at "[ \t]*,")
@@ -474,17 +474,18 @@ Error is given as MSG and reported between POS and END."
                     (* ws)
                     "lacks an accompanying binding")
                 msg)
-           (attrap-one-option "add binding"
-             (skip-to-indentation)
-             (let ((col (current-column)))
-               (forward-line)
-               (while (< col (indentation-size))
-                 (forward-line)))
-             (insert (concat (match-string-no-properties 1 msg) " = _\n"))))
+           (let ((name (match-string-no-properties 1 msg)))
+             (attrap-one-option "add binding"
+               (skip-to-indentation)
+               (let ((col (current-column)))
+                 (forward-line)
+                 (while (< col (indentation-size))
+                   (forward-line)))
+               (insert (concat name " = _\n")))))
          (when (string-match "add (\\(.*\\)) to the context of[\n ]*the type signature for:[ \n]*\\([^ ]*\\) ::" msg)
-           (attrap-one-option "add constraint to context"
-             (let ((missing-constraint (match-string 1 msg))
-                   (function-name (match-string 2 msg)))
+           (let ((missing-constraint (match-string 1 msg))
+                 (function-name (match-string 2 msg)))
+             (attrap-one-option "add constraint to context"
                (search-backward-regexp (concat (regexp-quote function-name) "[ \t]*::[ \t]*" )) ; find type sig
                (goto-char (match-end 0))
                (when (looking-at "forall\\|∀") ; skip quantifiers
@@ -521,18 +522,20 @@ Error is given as MSG and reported between POS and END."
              (goto-char pos)
              (insert "_ <- ")))
          (when (string-match "\\(Failed to load interface for\\|Could not find module\\) ‘\\(.*\\)’\n[ ]*Perhaps you meant[ \n]*\\([^ ]*\\)" msg)
-           (attrap-one-option "rename module import"
-             (let ((replacement (match-string 3 msg)))
-               ;; ^^ delete-region may garble the matches
-               (search-forward (match-string 2 msg))
+           (let ((old (match-string 2 msg))
+                 (replacement (match-string 3 msg)))
+             (attrap-one-option "rename module import"
+               ;; delete-region may garble the matches
+               (search-forward old)
                (delete-region (match-beginning 0) (point))
                (insert replacement))))
          (when (string-match "Unsupported extension: \\(.*\\)\n[ ]*Perhaps you meant ‘\\([^‘]*\\)’" msg)
-           (attrap-one-option "rename extension"
-             (let ((replacement (match-string 2 msg)))
-               ;; ^^ delete-region may garble the matches
+           (let ((ext (match-string-no-properties 1 msg))
+                 (replacement (match-string 2 msg)))
+             (attrap-one-option "rename extension"
+               ;; Delete-region may garble the matches
                (goto-char pos)
-               (search-forward (match-string-no-properties 1 msg))
+               (search-forward ext)
                (delete-region (match-beginning 0) (point))
                (insert replacement))))
          (when (string-match
@@ -540,10 +543,11 @@ Error is given as MSG and reported between POS and END."
                     " to the import list in the import of " (identifier 2)
                     " " (parens (src-loc 3 4 5 6)))
                 normalized-msg)
-           (list (attrap-add-to-import (match-string-no-properties 1 normalized-msg)
-                                       (match-string-no-properties 2 normalized-msg)
-                                       (match-string-no-properties 5 normalized-msg)
-                                       (match-string-no-properties 6 normalized-msg))))
+           (let ((name   (match-string-no-properties 1 normalized-msg))
+                 (module (match-string-no-properties 2 normalized-msg))
+                 (line   (match-string-no-properties 5 normalized-msg))
+                 (col    (match-string-no-properties 6 normalized-msg)))
+             (list (attrap-add-to-import name module line col))))
          (when (string-match
                 (rx "Suggested fixes: "
                     (* "•" (+ (not ?•)))
@@ -551,10 +555,11 @@ Error is given as MSG and reported between POS and END."
                     " to the import list in the import of " (identifier 2)
                     " " (parens (src-loc 3 4 5 6)))
                 normalized-msg)
-           (list (attrap-add-to-import (match-string-no-properties 1 normalized-msg)
-                                       (match-string-no-properties 2 normalized-msg)
-                                       (match-string-no-properties 5 normalized-msg)
-                                       (match-string-no-properties 6 normalized-msg))))
+           (let ((name   (match-string-no-properties 1 normalized-msg))
+                 (module (match-string-no-properties 2 normalized-msg))
+                 (line   (match-string-no-properties 5 normalized-msg))
+                 (col    (match-string-no-properties 6 normalized-msg)))
+             (list (attrap-add-to-import name module line col))))
          (when-let ((match (s-match (rx "Perhaps you want to add " (identifier 1)
                                         " to the import list in the import of " (identifier 2)
                                         " " (parens (src-loc 3 4 5 6)))
@@ -695,9 +700,9 @@ Error is given as MSG and reported between POS and END."
                       (forward-char 1))
                     (point)))))))
          (when (string-match "Found type wildcard ‘\\(.*\\)’[ \t\n]*standing for ‘\\([^’]*\\)’" msg)
-           (attrap-one-option "explicit type wildcard"
-             (let ((wildcard (match-string-no-properties 1 msg))
-                   (type-expr (match-string-no-properties 2 msg)))
+           (let ((wildcard  (match-string-no-properties 1 msg))
+                 (type-expr (match-string-no-properties 2 msg)))
+             (attrap-one-option "explicit type wildcard"
                (goto-char pos)
                (search-forward wildcard)
                (replace-match (concat "(" type-expr ")") t))))
@@ -731,9 +736,9 @@ Error is given as MSG and reported between POS and END."
                                  (group-n 2 (+ (not (any ?\’))))
                                  "’")
                              msg)
-           (attrap-one-option "derive pretty instance"
-             (let ((class-name (match-string-no-properties 1 msg))
-                   (type-name (replace-regexp-in-string "[ \r\n]+" " " (match-string-no-properties 2 msg))))
+           (let ((class-name (match-string-no-properties 1 msg))
+                 (type-name (replace-regexp-in-string "[ \r\n]+" " " (match-string-no-properties 2 msg))))
+             (attrap-one-option "derive pretty instance"
                (unless (eq (current-column) 0)
                  (haskell-move-to-topmost-start)
                  (forward-line -1))
