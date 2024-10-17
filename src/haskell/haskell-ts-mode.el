@@ -363,7 +363,9 @@
 
              (no-node prev-adaptive-prefix 0)
 
-             ((parent-is "data_constructors") parent 0)
+             ((parent-is "data_constructors") grand-parent haskell-indent-offset)
+             ((node-is "gadt_constructors") parent haskell-indent-offset)
+             ((parent-is "gadt_constructors") grand-parent haskell-indent-offset)
 
              ;; where
              ((lambda (node _ _)
@@ -416,6 +418,8 @@
              ((n-p-gp nil "signature" "foreign_import") grand-parent haskell-indent-offset)
 
              ((n-p-gp "," "tuple" nil) parent 0)
+
+             ((node-is "deriving") parent haskell-indent-offset)
 
              ;; No backup - we would like to default to something else.
              ;; ;; Backup
