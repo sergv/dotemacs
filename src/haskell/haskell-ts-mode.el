@@ -575,7 +575,9 @@ but when paired then it’s like a string."
   (haskell-ts-beginning-of-defun-impl (point)))
 
 (defun haskell-ts-beginning-of-defun-impl (pos)
-  (goto-char (car (haskell-ts--bounds-of-toplevel-entity pos t nil t nil))))
+  (aif (haskell-ts--bounds-of-toplevel-entity pos t nil t nil)
+      (goto-char (car it))
+    (error "No toplevel entity at point")))
 
 (defun haskell-ts-end-of-defun ()
   (interactive)
@@ -583,11 +585,14 @@ but when paired then it’s like a string."
   (haskell-ts-end-of-defun-impl (point)))
 
 (defun haskell-ts-end-of-defun-impl (pos)
-  (goto-char (cdr (haskell-ts--bounds-of-toplevel-entity pos t t nil t))))
+  (aif (haskell-ts--bounds-of-toplevel-entity pos t t nil t)
+      (goto-char (cdr it))
+    (error "No toplevel entity at point")))
 
 (defun haskell-ts--is-comment-node-type? (typ)
   (cl-assert (stringp typ))
-  (string= typ "comment"))
+  (or (string= typ "comment")
+      (string= typ "haddock")))
 
 (defun haskell-ts--is-comment-node? (node)
   (haskell-ts--is-comment-node-type? (treesit-node-type node)))
@@ -664,7 +669,7 @@ indented block will be their bounds without any extra processing."
                                   (max (point) (point-min)))))))
                        (unless (eq pos next-pos)
                          (treesit-node-at next-pos)))))
-                  ((string= "comment" n-typ)
+                  ((haskell-ts--is-comment-node-type? n-typ)
                    (let ((func-node-above (haskell-ts--search-function-related-named-nodes
                                            n
                                            nil
@@ -676,10 +681,11 @@ indented block will be their bounds without any extra processing."
                                            (lambda (_) t)
                                            t)))
 
-                     (when (and func-node-above
-                                func-node-below
-                                (string= (haskell-ts--function-name func-node-above)
-                                         (haskell-ts--function-name func-node-below)))
+                     (when (or do-scan-around?
+                               (and func-node-above
+                                    func-node-below
+                                    (string= (haskell-ts--function-name func-node-above)
+                                             (haskell-ts--function-name func-node-below))))
                        (if scan-forward?
                            func-node-below
                          func-node-above))))
