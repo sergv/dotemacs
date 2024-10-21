@@ -596,7 +596,8 @@ but when paired then it’s like a string."
 (defun haskell-ts--is-comment-node-type? (typ)
   (cl-assert (stringp typ))
   (or (string= typ "comment")
-      (string= typ "haddock")))
+      (string= typ "haddock")
+      (string= typ "pragma")))
 
 (defun haskell-ts--is-comment-node? (node)
   (haskell-ts--is-comment-node-type? (treesit-node-type node)))
