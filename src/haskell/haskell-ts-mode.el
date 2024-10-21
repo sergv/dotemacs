@@ -17,8 +17,6 @@
 (require 'haskell-syntax-table)
 (require 'treesit)
 
-(require 'haskell-smart-operators-mode)
-
 (declare-function treesit-parser-create "treesit.c")
 
 (defconst haskell-ts-mode-syntax-table haskell-mode-syntax-table)
@@ -598,6 +596,12 @@ but when paired then it’s like a string."
   (or (string= typ "comment")
       (string= typ "haddock")
       (string= typ "pragma")))
+
+(defun haskell-ts--is-string-node-type? (typ)
+  (cl-assert (stringp typ))
+  (or (string= typ "char")
+      (string= typ "string")
+      (string= typ "quasiquote_body")))
 
 (defun haskell-ts--is-comment-node? (node)
   (haskell-ts--is-comment-node-type? (treesit-node-type node)))
