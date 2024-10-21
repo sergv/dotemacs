@@ -3887,6 +3887,58 @@ have different input states."
    ""
    ""))
 
+(haskell-tests--make-multiple-input-test-buffer-contents
+ :action
+ (haskell-newline-with-signature-expansion)
+ :entries
+ ((haskell-tests/haskell-newline-with-signature-expansion-11a
+   (tests-utils--multiline
+    ""
+    "pFoo :: Mega.Parsec Void Text (Foo, Bar)"
+    "pFoo = do"
+    "  x <- Mega.anySingle"
+    "  case x of"
+    "_|_"
+    "    'F' -> Foo  <$ Mega.chunk \"oo\""
+    "    'B' -> Bar  <$ Mega.chunk \"ar\""
+    "    'Q' -> Quux <$ Mega.chunk \"uux\""
+    "    y   -> do"
+    "      ys <- Mega.takeWhileP Nothing isAlphaNum"
+    "      fail $ \"Invalid foo: \" ++ show (T.cons y ys)"
+    ""))
+  (haskell-tests/haskell-newline-with-signature-expansion-11b
+   (tests-utils--multiline
+    ""
+    "pFoo :: Mega.Parsec Void Text (Foo, Bar)"
+    "pFoo = do"
+    "  x <- Mega.anySingle"
+    "  case x of"
+    "    _|_"
+    "    'F' -> Foo  <$ Mega.chunk \"oo\""
+    "    'B' -> Bar  <$ Mega.chunk \"ar\""
+    "    'Q' -> Quux <$ Mega.chunk \"uux\""
+    "    y   -> do"
+    "      ys <- Mega.takeWhileP Nothing isAlphaNum"
+    "      fail $ \"Invalid foo: \" ++ show (T.cons y ys)"
+    "")))
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "pFoo :: Mega.Parsec Void Text (Foo, Bar)"
+  "pFoo = do"
+  "  x <- Mega.anySingle"
+  "  case x of"
+  ""
+  "_|_"
+  "    'F' -> Foo  <$ Mega.chunk \"oo\""
+  "    'B' -> Bar  <$ Mega.chunk \"ar\""
+  "    'Q' -> Quux <$ Mega.chunk \"uux\""
+  "    y   -> do"
+  "      ys <- Mega.takeWhileP Nothing isAlphaNum"
+  "      fail $ \"Invalid foo: \" ++ show (T.cons y ys)"
+  "")
+ :modes (haskell-mode haskell-ts-mode))
+
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-newline-with-signature-expansion--within-where-block-1
     (haskell-newline-with-signature-expansion)
@@ -4231,7 +4283,24 @@ have different input states."
    "  ]"))
 
 (haskell-tests--test-buffer-contents
-    haskell-tests/haskell-newline-with-signature-expansion--inside-string-2
+    haskell-tests/haskell-newline-with-signature-expansion--outside-string-1
+    (haskell-newline-with-signature-expansion)
+  (tests-utils--multiline
+   "quote :: Char -> ByteString"
+   "quote = \\case"
+   "  '\"'  -> \"\\\\\\\"\"_|_"
+   "  '\\\\' -> \"\\\\\\\\\""
+   "  c    -> C8.singleton c")
+  (tests-utils--multiline
+   "quote :: Char -> ByteString"
+   "quote = \\case"
+   "  '\"'  -> \"\\\\\\\"\""
+   "  _|_"
+   "  '\\\\' -> \"\\\\\\\\\""
+   "  c    -> C8.singleton c"))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-newline-with-signature-expansion--outside-string-2
     (haskell-newline-with-signature-expansion)
   (tests-utils--multiline
    "quux = "
@@ -4248,21 +4317,21 @@ have different input states."
    "  ]"))
 
 (haskell-tests--test-buffer-contents
-    haskell-tests/haskell-newline-with-signature-expansion--outside-string-1
-    (haskell-newline-with-signature-expansion)
-  (tests-utils--multiline
-   "quote :: Char -> ByteString"
-   "quote = \\case"
-   "  '\"'  -> \"\\\\\\\"\"_|_"
-   "  '\\\\' -> \"\\\\\\\\\""
-   "  c    -> C8.singleton c")
-  (tests-utils--multiline
-   "quote :: Char -> ByteString"
-   "quote = \\case"
-   "  '\"'  -> \"\\\\\\\"\""
-   "  _|_"
-   "  '\\\\' -> \"\\\\\\\\\""
-   "  c    -> C8.singleton c"))
+ haskell-tests/haskell-newline-with-signature-expansion--outside-string-3
+ (haskell-newline-with-signature-expansion)
+ (tests-utils--multiline
+  "quux = "
+  "  [ foobar"
+  "  , _|_\"T.makeInstances [2..6]\" ==> []"
+  "  , baz "
+  "  ]")
+ (tests-utils--multiline
+  "quux = "
+  "  [ foobar"
+  "  ,"
+  "  _|_\"T.makeInstances [2..6]\" ==> []"
+  "  , baz "
+  "  ]"))
 
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-newline-with-signature-expansion--inside-quasiquote-1
