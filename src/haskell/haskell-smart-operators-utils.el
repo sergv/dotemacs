@@ -26,7 +26,7 @@
     (haskell-smart-operators--treesit--in-string?-sure node)))
 
 (defun haskell-smart-operators--treesit--in-comment?-sure (node)
-  (member (treesit-node-type node) '("comment" "haddock" "pragma")))
+  (haskell-ts--is-comment-node-type? (treesit-node-type node)))
 
 (defsubst haskell-smart-operators--treesit--in-comment? (node)
   (when node
