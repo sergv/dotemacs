@@ -10,6 +10,7 @@
   (require 'cl)
   (require 'macro-util))
 
+(require 'haskell-ts-mode)
 (require 'treesit-utils)
 
 (defun haskell-smart-operators--treesit--in-quasiquote-body? (node)
@@ -17,9 +18,10 @@
        (equal (treesit-node-type node) "quasiquote_body")))
 
 (defun haskell-smart-operators--treesit--in-string?-sure (node)
-  (when (member (treesit-node-type node) '("char" "string" "quasiquote_body"))
-    (and (not (eq (point) (treesit-node-start node)))
-         (not (eq (point) (treesit-node-end node))))))
+  (when (haskell-ts--is-string-node-type? (treesit-node-type node))
+    (let ((p (point)))
+      (and (< (treesit-node-start node) p)
+           (< p (treesit-node-end node))))))
 
 (defsubst haskell-smart-operators--treesit--in-string? (node)
   (when node
