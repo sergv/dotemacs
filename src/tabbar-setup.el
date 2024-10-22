@@ -83,30 +83,57 @@
       tab-bar-format '(tab-bar-format-tabs)
       tab-bar-auto-width nil)
 
-(el-patch-defun tab-bar--format-tab (tab i)
-  "Format TAB using its index I and return the result as a keymap."
-  (append
-   (el-patch-swap
-     `((,(intern (format "sep-%i" i)) menu-item ,(tab-bar-separator) ignore))
-     (when (< 1 i)
-       `((,(intern (format "sep-%i" i)) menu-item ,(tab-bar-separator) ignore))))
-   (cond
-    ((eq (car tab) 'current-tab)
-     `((current-tab
-        menu-item
-        ,(funcall tab-bar-tab-name-format-function tab i)
-        ignore
-        :help "Current tab")))
-    (t
-     `((,(intern (format "tab-%i" i))
-        menu-item
-        ,(funcall tab-bar-tab-name-format-function tab i)
-        ,(alist-get 'binding tab)
-        :help "Click to visit tab"))))
-   (when (alist-get 'close-binding tab)
-     `((,(if (eq (car tab) 'current-tab) 'C-current-tab (intern (format "C-tab-%i" i)))
-        menu-item ""
-        ,(alist-get 'close-binding tab))))))
+(when-emacs-version (< it 30)
+  (el-patch-defun tab-bar--format-tab (tab i)
+    "Format TAB using its index I and return the result as a keymap."
+    (append
+     (el-patch-swap
+       `((,(intern (format "sep-%i" i)) menu-item ,(tab-bar-separator) ignore))
+       (when (< 1 i)
+         `((,(intern (format "sep-%i" i)) menu-item ,(tab-bar-separator) ignore))))
+     (cond
+       ((eq (car tab) 'current-tab)
+        `((current-tab
+           menu-item
+           ,(funcall tab-bar-tab-name-format-function tab i)
+           ignore
+           :help "Current tab")))
+       (t
+        `((,(intern (format "tab-%i" i))
+           menu-item
+           ,(funcall tab-bar-tab-name-format-function tab i)
+           ,(alist-get 'binding tab)
+           :help "Click to visit tab"))))
+     (when (alist-get 'close-binding tab)
+       `((,(if (eq (car tab) 'current-tab) 'C-current-tab (intern (format "C-tab-%i" i)))
+          menu-item ""
+          ,(alist-get 'close-binding tab)))))))
+
+(when-emacs-version (>= it 30)
+  (el-patch-defun tab-bar--format-tab (tab i)
+    "Format TAB using its index I and return the result as a keymap."
+    (append
+     (el-patch-wrap 2 0
+       (when (< 1 i)
+         `((,(intern (format "sep-%i" i)) menu-item ,(tab-bar-separator) ignore))))
+     (cond
+       ((eq (car tab) 'current-tab)
+        `((current-tab
+           menu-item
+           ,(funcall tab-bar-tab-name-format-function tab i)
+           ignore
+           :help ,(alist-get 'name tab))))
+       (t
+        `((,(intern (format "tab-%i" i))
+           menu-item
+           ,(funcall tab-bar-tab-name-format-function tab i)
+           ,(alist-get 'binding tab)
+           :help ,(alist-get 'name tab)))))
+     (when (alist-get 'close-binding tab)
+       `((,(if (eq (car tab) 'current-tab) 'C-current-tab
+             (intern (format "C-tab-%i" i)))
+          menu-item ""
+          ,(alist-get 'close-binding tab)))))))
 
 ;; The tab bar will appear automatically once new tab is created
 ;; thanks to setting ‘tab-bar-show’ to 1.
