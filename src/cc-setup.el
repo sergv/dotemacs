@@ -56,14 +56,24 @@ _=_: on equals"
   ("a" align)
   ("=" c-align-on-equals))
 
+(defun c-beginning-of-defun-vim (&optional arg)
+  (interactive "p")
+  (vim-save-position)
+  (call-interactively #'c-beginning-of-defun arg))
+
+(defun c-end-of-defun-vim (&optional arg)
+  (interactive "p")
+  (vim-save-position)
+  (call-interactively #'c-end-of-defun arg))
+
 (defhydra-derive hydra-c-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
   "
 _<tab>_: reindent function  _t_: jump to function start
                             _h_: jump to function end"
   ("TAB" c-indent-defun)
 
-  ("t"   c-beginning-of-defun)
-  ("h"   c-end-of-defun))
+  ("t"   c-beginning-of-defun-vim)
+  ("h"   c-end-of-defun-vim))
 
 (defhydra-derive hydra-c-vim-visual-g-ext hydra-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
   "
@@ -71,8 +81,8 @@ _a_lign  _t_: jump to function start
        _h_: jump to function end"
   ("a" hydra-c-align/body)
 
-  ("t" c-beginning-of-defun)
-  ("h" c-end-of-defun))
+  ("t" c-beginning-of-defun-vim)
+  ("h" c-end-of-defun-vim))
 
 (defhydra-derive hydra-c-vim-visual-z-ext hydra-vim-visual-z-ext (:exit t :foreign-keys nil :hint nil)
   "
