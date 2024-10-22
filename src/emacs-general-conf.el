@@ -307,6 +307,9 @@
 
 (advice-add 'scroll-down :around #'scroll-down--preserve-column)
 
+(when-emacs-version (>= it 30)
+  (require 'auth-source))
+
 (def-keys-for-map read-passwd-map
   ("C-p" yank))
 
