@@ -147,21 +147,14 @@
       (should (ert-equal-including-properties
                (progn
                  (remove-list-of-text-properties
-                  (point-min) (point-max) '(category c-type syntax-table))
+                  (point-min) (point-max) '(category c-type syntax-table c-<>-c-types-set))
                  (buffer-string))
-               (if (< emacs-major-version 29)
-                   #("foo<int> x;"
-                     0 3 (face font-lock-type-face)
-                     3 4 (face (rainbow-delimiters-depth-1-face))
-                     4 7 (face font-lock-type-face)
-                     7 8 (face (rainbow-delimiters-depth-1-face))
-                     9 10 (face font-lock-variable-name-face))
-                 #("foo<int> x;"
-                     0 3 (face font-lock-type-face)
-                     3 4 (face (rainbow-delimiters-depth-1-face) c-<>-c-types-set t)
-                     4 7 (face font-lock-type-face)
-                     7 8 (face (rainbow-delimiters-depth-1-face))
-                     9 10 (face font-lock-variable-name-face))))))))
+               #("foo<int> x;"
+                 0 3 (face font-lock-type-face)
+                 3 4 (face (rainbow-delimiters-depth-1-face))
+                 4 7 (face font-lock-type-face)
+                 7 8 (face (rainbow-delimiters-depth-1-face))
+                 9 10 (face font-lock-variable-name-face)))))))
 
 (ert-deftest doesnt-higlight-nondelimiters-1 ()
   (should-do-nothing 'text-mode "foo"))
