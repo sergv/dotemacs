@@ -1161,6 +1161,48 @@ newlines."
 
 (eval-after-load "comint" '(comint-init))
 
+(when-emacs-version (and (<= 30 it) (native-comp-available-p))
+  (defvar dump--emacs-dir)
+  (el-patch-defun load--fixup-all-elns ()
+    "Fix all compilation unit filename.
+This to have it working when installed or if Emacs source
+directory got moved.  This is set to be a pair in the form of:
+\(rel-filename-from-install-bin . rel-filename-from-local-bin)."
+    (when (and load--bin-dest-dir load--eln-dest-dir)
+      (setq eln-dest-dir
+            (concat load--eln-dest-dir "native-lisp/" comp-native-version-dir "/"))
+      (maphash (lambda (_ cu)
+                 (when (el-patch-swap
+                         (stringp (native-comp-unit-file cu))
+                         (and (stringp (native-comp-unit-file cu))
+                              (not
+                               ;; Keep my locally-produced .eln files under my .emacs.d directory,
+                               ;; don’t
+                               (string-prefix-p (expand-file-name
+                                                 (concat dump--emacs-dir "/compiled"))
+                                                (expand-file-name
+                                                 (native-comp-unit-file cu))
+                                                (fold-platform-os-type nil t)))))
+                   (let* ((file (native-comp-unit-file cu))
+                          (preloaded (equal (substring (file-name-directory file)
+                                                       -10 -1)
+                                            "preloaded"))
+                          (eln-dest-dir-eff (if preloaded
+                                                (expand-file-name "preloaded"
+                                                                  eln-dest-dir)
+                                              eln-dest-dir)))
+                     (native-comp-unit-set-file
+                      cu
+	              (cons
+                       ;; Relative filename from the installed binary.
+                       (file-relative-name (expand-file-name
+                                            (file-name-nondirectory
+                                             file)
+                                            eln-dest-dir-eff)
+                                           load--bin-dest-dir)
+                       ;; Relative filename from the built uninstalled binary.
+                       (file-relative-name file invocation-directory))))))
+	       comp-loaded-comp-units-h))))
 
 (provide 'base-emacs-fixes)
 
