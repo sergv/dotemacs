@@ -12,6 +12,8 @@
 
 (defvar trie-opt--global-cache)
 
+(defvar dump--emacs-dir nil)
+
 (defun dump-main (emacs-dir dump-target)
   (setf dumping t)
 
@@ -28,6 +30,8 @@
                default-emacs-dir)
               (t
                (error "EMACS_ROOT not defined and default emacs directory does not exist: %s" default-emacs-dir))))))
+  (setf dump--emacs-dir emacs-dir)
+
   (dolist (dir '("compiled" "src"))
     (let ((dir2 (concat emacs-dir "/" dir)))
       (cl-assert (file-directory-p dir2))
