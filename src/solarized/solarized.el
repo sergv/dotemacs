@@ -252,7 +252,7 @@
                  :box (:line-width ,box-line-width :color ,emphasized-content))
       (mode-line-buffer-id :foreground ,emphasized-content)
       (mode-line-inactive :foreground ,primary-content
-                                                 :background ,background-highlights
+                          :background ,background-highlights
                           :box (:line-width ,box-line-width :color ,background-highlights))
       (region :background ,background-highlights
               :underline t)
@@ -835,7 +835,7 @@
 
       ;; Font used inside quotes and cartouches
       (lsp-isar-font-foreground-quoted ;; :background ,background-highlights
-                                       :background unspecified)
+       :background unspecified)
 
       (lsp-isar-font-foreground-antiquoted :background ,magenta ;;:priority 0
                                            )
