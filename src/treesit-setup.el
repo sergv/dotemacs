@@ -85,7 +85,7 @@ Return the root node of the syntax tree."
 ;;;###autoload
 (when (and (fboundp 'treesit-available-p)
            (treesit-available-p))
-  (el-patch-feature 'treesit))
+  (el-patch-feature treesit))
 
 (el-patch-defun treesit-indent-region (beg end)
   "Indent the region between BEG and END.
