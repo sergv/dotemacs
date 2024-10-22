@@ -34,7 +34,7 @@
 ;; cmake executable variable used to run cmake --help-command
 ;; on commands in cmake-mode
 ;;
-;; cmake-command-help Written by James Bigler 
+;; cmake-command-help Written by James Bigler
 ;;
 
 (defcustom cmake-mode-cmake-executable "cmake"
@@ -190,11 +190,11 @@ the indentation.  Otherwise it retains the same position on the line"
   (setq save-point (point))
   (goto-char (point-min))
   (while (re-search-forward "^\\([ \t]*\\)\\(\\w+\\)\\([ \t]*(\\)" nil t)
-    (replace-match 
-     (concat 
-      (match-string 1) 
-      (downcase (match-string 2)) 
-      (match-string 3)) 
+    (replace-match
+     (concat
+      (match-string 1)
+      (downcase (match-string 2))
+      (match-string 3))
      t))
   (goto-char save-point)
   )
@@ -212,13 +212,6 @@ the indentation.  Otherwise it retains the same position on the line"
 ;------------------------------------------------------------------------------
 
 ;;
-;; Syntax table for this mode.  Initialize to nil so that it is
-;; regenerated when the cmake-mode function is called.
-;;
-(defvar cmake-mode-syntax-table nil "Syntax table for cmake-mode.")
-(setq cmake-mode-syntax-table nil)
-
-;;
 ;; User hook entry point.
 ;;
 (defvar cmake-mode-hook nil)
@@ -230,39 +223,23 @@ the indentation.  Otherwise it retains the same position on the line"
 
 ;------------------------------------------------------------------------------
 
-;;
-;; CMake mode startup function.
-;;
-(defun cmake-mode ()
-  "Major mode for editing CMake listfiles."
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'cmake-mode)
-  (setq mode-name "CMAKE")
-
   ; Create the syntax table
-  (setq cmake-mode-syntax-table (make-syntax-table))
-  (set-syntax-table cmake-mode-syntax-table)
-  (modify-syntax-entry ?_  "w" cmake-mode-syntax-table)
-  (modify-syntax-entry ?\(  "()" cmake-mode-syntax-table)
-  (modify-syntax-entry ?\)  ")(" cmake-mode-syntax-table)
-  (modify-syntax-entry ?# "<" cmake-mode-syntax-table)
-  (modify-syntax-entry ?\n ">" cmake-mode-syntax-table)
+(defvar cmake-mode-syntax-table
+  (let ((tbl (make-syntax-table)))
+    (modify-syntax-entry ?_  "w"  tbl)
+    (modify-syntax-entry ?\( "()" tbl)
+    (modify-syntax-entry ?\) ")(" tbl)
+    (modify-syntax-entry ?#  "<"  tbl)
+    (modify-syntax-entry ?\n ">"  tbl)
+    tbl))
 
-  ; Setup font-lock mode.
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '(cmake-font-lock-keywords))
+(define-derived-mode cmake-mode prog-mode "CMAKE"
+  "Major mode for editing CMake listfiles."
+  (setq-local font-lock-defaults '(cmake-font-lock-keywords))
 
-  ; Setup indentation function.
-  (make-local-variable 'indent-line-function)
-  (setq indent-line-function 'cmake-indent)
+  (setq-local indent-line-function 'cmake-indent)
 
-  ; Setup comment syntax.
-  (make-local-variable 'comment-start)
-  (setq comment-start "#")
-
-  ; Run user hooks.
-  (run-hooks 'cmake-mode-hook))
+  (setq-local comment-start "#"))
 
 ; Help mode starts here
 
