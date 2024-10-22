@@ -119,6 +119,9 @@
     (require 'toml-mode)
     (require 'yasnippet)
 
+    (when (treesit-language-available-p 'haskell t)
+      (require 'haskell-ts-mode))
+
     (require 'ebuf)
 
     (require 'pcomplete)
