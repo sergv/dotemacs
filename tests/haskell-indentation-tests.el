@@ -862,6 +862,21 @@
   "  where"
   "    xxx = yyy"))
 
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-complex-4
+ :contents
+ (tests-utils--multiline
+  "foo :: Int -> IO Int"
+  "foo n ="
+  "      _|_bracket (getResource n) releaseResource $ \\_ -> do"
+  "           pure n")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: Int -> IO Int"
+  "foo n ="
+  "  _|_bracket (getResource n) releaseResource $ \\_ -> do"
+  "           pure n"))
+
 (haskell-indentation-tests--test-treesitter-region
  :name haskell-indentation-tests--test-treesitter-region-1
  :contents

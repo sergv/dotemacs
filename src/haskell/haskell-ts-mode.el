@@ -187,7 +187,7 @@
           (let ((curr-type (treesit-node-type curr)))
             (when (and support-functions?
                        (string= "function" curr-type))
-              (throw 'term prev1))
+              (throw 'term curr))
             (when (and support-field-update?
                        (string= "field_update" curr-type))
               (when-let ((field-name (treesit-node-child-by-field-name curr "field")))
