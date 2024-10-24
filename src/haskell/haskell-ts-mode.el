@@ -212,11 +212,8 @@
                   ((or (equal prev1 right-child)
                        (equal prev1 op-child))
                    ;; Operator may be on a line of its own, take it into account.
-                   (let ((start (treesit-node-start op-child)))
-                     (goto-char start)
-                     (skip-chars-backward " \t")
-                     (when (eq (point) (line-beginning-position))
-                       (throw 'term prev1)))
+                   (when (haskell-ts--is-standalone-node? op-child)
+                     (throw 'term prev1))
                    ;; Otherwise whole operator application may occupy
                    ;; its own line, i.e. its left child may be at the
                    ;; line start so continue processing current node
@@ -227,19 +224,15 @@
                    (error "Unexpected infix field, node = %s, child = %s"
                           curr
                           prev1)))))
-            (let ((start (treesit-node-start curr)))
-              (if (or (string= "parens" curr-type)
-                      (string= "list" curr-type))
-                  (throw 'term curr)
-                (progn
-                  (goto-char start)
-                  (skip-chars-backward " \t")
-                  (when (eq (point) (line-beginning-position))
-                    (if (or (string= "let" curr-type)
-                            (string= "let_in" curr-type))
-                        (when prev2
-                          (throw 'term prev2))
-                      (throw 'term curr)))))))
+            (if (or (string= "parens" curr-type)
+                    (string= "list" curr-type))
+                (throw 'term curr)
+              (when (haskell-ts--is-standalone-node? curr)
+                (if (or (string= "let" curr-type)
+                        (string= "let_in" curr-type))
+                    (when prev2
+                      (throw 'term prev2))
+                  (throw 'term curr)))))
           (setq prev2 prev1
                 prev1 curr
                 curr (treesit-node-parent curr)))))))
@@ -278,10 +271,93 @@
       (skip-chars-forward "^\r\n" end)
       (eq (point) end))))
 
+(defun haskell-ts-haddock--haddock-arg-doc-anchor (node parent bol)
+  (declare (ignore bol))
+  (haskell-ts-haddock--haddock-arg-doc-anchor--impl parent
+                                                    (treesit-node-start node)))
+
+(defun haskell-ts-haddock--haddock-arg-doc-anchor--impl (start haddock-start)
+  (let ((curr start))
+    (catch 'term
+      (while curr
+        (let ((typ (treesit-node-type curr)))
+          (cond
+            ((string= typ "function")
+             (when-let ((arr (treesit-node-child-by-field-name curr "arrow")))
+               (when (and (or (null haddock-start)
+                              ;; Check that arrow is before haddock comment.
+                              (< (treesit-node-start arr)
+                                 haddock-start))
+                          (haskell-ts--is-standalone-node? arr))
+                 (throw 'term arr))
+               ;; Here ‘curr’ is the immediate parent of our ‘haddock’ node
+               (when-let ((param
+                           (let ((n (treesit-node-child-count curr t))
+                                 (i 0)
+                                 (continue t)
+                                 (non-comment-child nil))
+                             (while (and continue (< i n))
+                               (let ((child (treesit-node-child curr i t)))
+                                 (when (not (string= (treesit-node-type child)
+                                                     "haddock"))
+                                   (setf continue nil
+                                         non-comment-child child)))
+                               (setf i (+ i 1)))
+                             (when (and non-comment-child
+                                        (haskell-ts--is-standalone-node? non-comment-child))
+                               (throw 'term non-comment-child))))))))
+            ((string= typ "signature")
+             (when-let ((double-colon (treesit-node-child curr 1)))
+               (when (haskell-ts--is-standalone-node? double-colon)
+                 (throw 'term double-colon))))
+            ((string= typ "declarations")
+             (throw 'term nil))
+            ((haskell-ts--is-standalone-node? curr)
+             (throw 'term curr))
+            (
+             ;; skip
+             ))
+          (setf curr (treesit-node-parent curr)))))))
+
+(defun haskell-ts-haddock--haddock-result-doc-anchor (node parent bol)
+  (let ((prev (treesit-node-prev-sibling node)))
+    (unless (string= (treesit-node-type prev)
+                     "signature")
+      (error "Node to this haddock node (%s) must be a signature but it’s %s"
+             node
+             prev))
+    (catch 'term
+      (let* ((sig prev)
+             (sig-end (treesit-node-end sig)))
+        (when-let ((double-colon (treesit-node-child sig 1)))
+          (when (haskell-ts--is-standalone-node? double-colon)
+            (throw 'term double-colon)))
+
+        (when-let ((last-type (treesit-node-descendant-for-range sig (- sig-end 1) sig-end)))
+          (haskell-ts-haddock--haddock-arg-doc-anchor--impl last-type nil))))))
+
+(defun haskell-ts--is-standalone-node? (node)
+  (save-excursion
+    (let ((start (treesit-node-start node)))
+      (goto-char start)
+      (skip-chars-backward " \t")
+      (eq (point) (line-beginning-position)))))
+
 (defconst haskell-ts-indent-rules
   (eval-when-compile
     (let ((rules
-           `(((node-is "comment") prev-sibling 0)
+           `(((and (node-is "haddock")
+                   (parent-is "function" "signature"))
+              haskell-ts-haddock--haddock-arg-doc-anchor
+              0)
+
+             ((and (node-is "haddock")
+                   (between-siblings "signature" "function"))
+              haskell-ts-haddock--haddock-result-doc-anchor
+              0)
+
+             ((node-is "comment" "haddock") prev-sibling 0)
+
              ((node-is "cpp") column-0 0)
              ((parent-is "comment") column-0 0)
              ((parent-is "imports") column-0 0)
@@ -801,14 +877,22 @@ indented block will be their bounds without any extra processing."
                             (lambda (_n parent &rest _)
                               (member (treesit-node-type parent) types))))
 
-         (cons 'node-is (lambda (type)
+         (cons 'node-is (lambda (&rest types)
                           (lambda (node &rest _)
                             (awhen (treesit-node-type node)
-                              (string= type it)))))
+                              (member it types)))))
          (cons 'field-is (lambda (name)
                            (lambda (node &rest _)
                              (awhen (treesit-node-field-name node)
-                               (string= name it))))))
+                               (string= name it)))))
+
+         (cons 'between-siblings
+               (lambda (prev next)
+                 (lambda (node &rest _)
+                   (when-let ((prev-node (treesit-node-prev-sibling node))
+                              (next-node (treesit-node-next-sibling node)))
+                     (and (string= (treesit-node-type prev-node) prev)
+                          (string= (treesit-node-type next-node) next)))))))
 
    (--map (assq it treesit-simple-indent-presets)
           '(no-node
