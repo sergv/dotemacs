@@ -1028,6 +1028,192 @@
   "  _|_XXX :: Foo2 Int"
   "  YYY :: a -> Foo2 a"))
 
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-haddock-1
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "  :: Int"
+  "   _|_-- ^ test"
+  "  -> Int"
+  "foo x = x")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "  :: Int"
+  "  _|_-- ^ test"
+  "  -> Int"
+  "foo x = x"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-haddock-1a
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "  :: (Int"
+  "   _|_-- ^ test"
+  "  -> Int)"
+  "foo x = x")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "  :: (Int"
+  "  _|_-- ^ test"
+  "  -> Int)"
+  "foo x = x"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-haddock-2
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "  :: Int"
+  "  -> Int"
+  "   _|_-- ^ test"
+  "  -> Int"
+  "foo x y = x + y")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "  :: Int"
+  "  -> Int"
+  "  _|_-- ^ test"
+  "  -> Int"
+  "foo x y = x + y"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-haddock-3
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "  :: Int"
+  "  -> (Int"
+  "   _|_-- ^ test"
+  "  -> Int)"
+  "foo x y = x + y")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "  :: Int"
+  "  -> (Int"
+  "  _|_-- ^ test"
+  "  -> Int)"
+  "foo x y = x + y"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-haddock-4
+ :contents
+ (tests-utils--multiline
+  "bar1 ::"
+  "  Int ->"
+  "   _|_-- ^ test"
+  "  Double ->"
+  "  String"
+  "bar1 _ _ = \"\"")
+ :expected-value
+ (tests-utils--multiline
+  "bar1 ::"
+  "  Int ->"
+  "  _|_-- ^ test"
+  "  Double ->"
+  "  String"
+  "bar1 _ _ = \"\""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-haddock-5
+ :contents
+ (tests-utils--multiline
+  "foo2"
+  "  :: Int"
+  "  ->"
+  "    Int"
+  "   _|_-- ^ test"
+  "  -> Int"
+  "foo2 x y = x + y")
+ :expected-value
+ (tests-utils--multiline
+  "foo2"
+  "  :: Int"
+  "  ->"
+  "    Int"
+  "    _|_-- ^ test"
+  "  -> Int"
+  "foo2 x y = x + y"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-haddock-6
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "  :: Int"
+  "  -> Int"
+  "   _|_-- ^ test"
+  "foo x = x")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "  :: Int"
+  "  -> Int"
+  "  _|_-- ^ test"
+  "foo x = x"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-haddock-7
+ :contents
+ (tests-utils--multiline
+  "bar1 ::"
+  "  Int ->"
+  "  Double ->"
+  "  String"
+  "   _|_-- ^ test"
+  "bar1 _ _ = \"\"")
+ :expected-value
+ (tests-utils--multiline
+  "bar1 ::"
+  "  Int ->"
+  "  Double ->"
+  "  String"
+  "  _|_-- ^ test"
+  "bar1 _ _ = \"\""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-haddock-7a
+ :contents
+ (tests-utils--multiline
+  "bar1 ::"
+  "  Int ->"
+  "  (Double ->"
+  "  String)"
+  "   _|_-- ^ test"
+  "bar1 _ _ = \"\"")
+ :expected-value
+ (tests-utils--multiline
+  "bar1 ::"
+  "  Int ->"
+  "  (Double ->"
+  "  String)"
+  "  _|_-- ^ test"
+  "bar1 _ _ = \"\""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-haddock-8
+ :contents
+ (tests-utils--multiline
+  "bar1 ::"
+  "  Int ->"
+  "  (Double ->"
+  "   _|_-- ^ test"
+  "  String)"
+  "bar1 _ _ = \"\"")
+ :expected-value
+ (tests-utils--multiline
+  "bar1 ::"
+  "  Int ->"
+  "  (Double ->"
+  "  _|_-- ^ test"
+  "  String)"
+  "bar1 _ _ = \"\""))
+
 (provide 'haskell-indentation-tests)
 
 ;; Local Variables:
