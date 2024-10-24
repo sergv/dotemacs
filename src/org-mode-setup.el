@@ -370,6 +370,7 @@ _C_: hide everything except current entry and its parents"
                :use-fci t)
   (typography-setup)
   (setup-indent-size 2)
+  (setq-local tab-width 8)
   (bind-tab-keys #'org-cycle
                  #'org-shifttab
                  :enable-yasnippet t)
