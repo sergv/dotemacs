@@ -34,27 +34,54 @@
 ;;;###autoload
 (el-patch-feature eshell)
 
-(el-patch-defun eshell-emit-prompt ()
-  "Emit a prompt if eshell is being used interactively."
-  (when (boundp 'ansi-color-context-region)
-    (setq ansi-color-context-region nil))
-  (run-hooks 'eshell-before-prompt-hook)
-  (if (not eshell-prompt-function)
-      (set-marker eshell-last-output-end (point))
-    (let ((prompt (funcall eshell-prompt-function)))
-      (and eshell-highlight-prompt
-           (add-text-properties 0 (length prompt)
-                                '(read-only
-                                  t
-                                  font-lock-face eshell-prompt
-                                  front-sticky (el-patch-swap (font-lock-face read-only)
-                                                             t)
-                                  rear-nonsticky (el-patch-swap (font-lock-face read-only)
+(when-emacs-version (< it 30)
+  (el-patch-defun eshell-emit-prompt ()
+    "Emit a prompt if eshell is being used interactively."
+    (when (boundp 'ansi-color-context-region)
+      (setq ansi-color-context-region nil))
+    (run-hooks 'eshell-before-prompt-hook)
+    (if (not eshell-prompt-function)
+        (set-marker eshell-last-output-end (point))
+      (let ((prompt (funcall eshell-prompt-function)))
+        (and eshell-highlight-prompt
+             (add-text-properties 0 (length prompt)
+                                  '(read-only
+                                    t
+                                    font-lock-face eshell-prompt
+                                    front-sticky (el-patch-swap (font-lock-face read-only)
                                                                 t)
-                                  (el-patch-add field prompt))
-                                prompt))
-      (eshell-interactive-print prompt)))
-  (run-hooks 'eshell-after-prompt-hook))
+                                    rear-nonsticky (el-patch-swap (font-lock-face read-only)
+                                                                  t)
+                                    (el-patch-add field prompt))
+                                  prompt))
+        (eshell-interactive-print prompt)))
+    (run-hooks 'eshell-after-prompt-hook)))
+
+(when-emacs-version (<= 30 it)
+  (el-patch-defun eshell-emit-prompt ()
+    "Emit a prompt if eshell is being used interactively."
+    (when (boundp 'ansi-color-context-region)
+      (setq ansi-color-context-region nil))
+    (run-hooks 'eshell-before-prompt-hook)
+    (if (not eshell-prompt-function)
+        (set-marker eshell-last-output-end (point))
+      (let ((prompt (funcall eshell-prompt-function)))
+        (add-text-properties
+         0 (length prompt)
+         (if eshell-highlight-prompt
+             '( read-only t
+                field prompt
+                font-lock-face eshell-prompt
+                front-sticky (el-patch-swap (read-only field font-lock-face)
+                                            t)
+                rear-nonsticky (el-patch-swap (read-only field font-lock-face)
+                                              t))
+           '( field prompt
+              front-sticky (field)
+              rear-nonsticky (field)))
+         prompt)
+        (eshell-interactive-filter nil prompt)))
+    (run-hooks 'eshell-after-prompt-hook)))
 
 ;;;###autoload
 (setenv "PAGER" "cat")
