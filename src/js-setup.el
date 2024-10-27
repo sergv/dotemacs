@@ -36,15 +36,22 @@
       (hs-show-block)
     (js2-mode-show-element)))
 
+(defhydra-derive hydra-js-vim-normal-z hydra-vim-normal-z-ext (:exit t :foreign-keys nil :hint nil)
+  "
+_c_: hide block
+_o_: show block
+_O_: show all blocks"
+  ("c" js2-hide-indented-or-sexp)
+  ("o" js2-show-indented-or-sexp)
+  ("O" js2-mode-show-all))
 
 ;;;###autoload
 (defun js2-setup ()
   (init-common :use-whitespace 'tabs-only)
-  (setup-folding t nil)
-  (def-keys-for-map (vim-normal-mode-local-keymap)
-    ("z c" js2-hide-indented-or-sexp)
-    ("z o" js2-show-indented-or-sexp)
-    ("z O" js2-mode-show-all)))
+  (setup-folding--impl t nil nil)
+
+  (def-keys-for-map vim-normal-mode-local-keymap
+    ("z" hydra-js-vim-normal-z/body)))
 
 ;;;###autoload
 (add-hook 'js2-mode-hook #'js2-setup)
