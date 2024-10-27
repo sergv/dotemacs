@@ -254,6 +254,8 @@
       (mode-line-inactive :foreground ,primary-content
                           :background ,background-highlights
                           :box (:line-width ,box-line-width :color ,background-highlights))
+      (pulse-highlight-start-face :background ,magenta)
+      (pulse-highlight-face :background ,magenta)
       (region :background ,background-highlights
               :underline t)
       (tab-bar-tab :foreground ,magenta :background ,background)
