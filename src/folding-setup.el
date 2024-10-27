@@ -450,6 +450,10 @@ _T_: toggle all indented"
 ;;;###autoload
 (defun setup-folding (enable-hideshow? outline-params)
   "Enable either hideshow, or outline, or both."
+  (setup-folding--impl enable-hideshow? outline-params t))
+
+(defun setup-folding--impl (enable-hideshow? outline-params bind-keys?)
+  "Enable either hideshow, or outline, or both."
   (cl-assert (memq enable-hideshow? '(t nil enable-cpp)))
   (let ((outline-enabled? (not (null outline-params))))
     (if enable-hideshow?
@@ -461,15 +465,18 @@ _T_: toggle all indented"
               (progn
                 (when (listp outline-params)
                   (apply #'setup-outline-headers outline-params))
-                (def-keys-for-map vim-normal-mode-local-keymap
-                  ("z" hydra-vim-normal-z-hideshow-and-outline/body)))
-            (def-keys-for-map vim-normal-mode-local-keymap
-              ("z" hydra-vim-normal-z-hideshow/body))))
+                (when bind-keys?
+                  (def-keys-for-map vim-normal-mode-local-keymap
+                    ("z" hydra-vim-normal-z-hideshow-and-outline/body))))
+            (when bind-keys?
+              (def-keys-for-map vim-normal-mode-local-keymap
+                ("z" hydra-vim-normal-z-hideshow/body)))))
       (when outline-enabled?
         (when (listp outline-params)
           (apply #'setup-outline-headers outline-params))
-        (def-keys-for-map vim-normal-mode-local-keymap
-          ("z" hydra-vim-normal-z-outline/body))))))
+        (when bind-keys?
+          (def-keys-for-map vim-normal-mode-local-keymap
+            ("z" hydra-vim-normal-z-outline/body)))))))
 
 ;;;###autoload
 (defun setup-hideshow-yafolding (enable-hideshow? outline-params)
