@@ -87,13 +87,18 @@ _O_: show all blocks"
            #'json-format-buffer
            *mode-indent-functions-table*))
 
+(defhydra-ext hydra-json (:exit t :foreign-keys warn :hint nil)
+  "
+show _p_ath to current element"
+  ("p" json-mode-show-path))
+
 (defun json-common-setup ()
   (init-common :use-whitespace 'tabs-and-trailing-only
                :use-yasnippet t
                :use-comment t)
   (setup-folding t nil)
   (def-keys-for-map vim-normal-mode-local-keymap
-    ("- p" json-mode-show-path)))
+    ("-" hydra-json/body)))
 
 ;;;###autoload
 (defun json-setup ()
