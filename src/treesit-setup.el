@@ -184,6 +184,39 @@ Similar to `treesit-indent', but indent a region instead."
             (move-marker marker nil))))
       (move-marker end nil))))
 
+(el-patch-defun treesit--simple-indent-eval (exp)
+  "Evaluate EXP.
+
+If EXP is an application and the function is a key in
+`treesit-simple-indent-presets', use the corresponding value as
+the function."
+  ;; We don't want to match uncompiled lambdas, so make sure this cons
+  ;; is not a function.  We could move the condition functionp
+  ;; forward, but better be explicit.
+  (cond (el-patch-add
+          ((and (consp exp)
+                (eq (car exp) 'quote))
+           (cadr exp)))
+
+        ((and (consp exp)
+              (not (functionp exp)))
+         (apply (treesit--simple-indent-eval (car exp))
+                (mapcar #'treesit--simple-indent-eval
+                        (cdr exp))))
+        ;; Presets override functions, so this condition comes before
+        ;; `functionp'.
+        ((alist-get exp treesit-simple-indent-presets))
+        ((functionp exp) exp)
+        ((symbolp exp)
+         (if (null exp)
+             exp
+           ;; Matchers only return lambdas, anchors only return
+           ;; integer, so we should never see a variable.
+           (signal 'treesit-indent-error
+                   (list "Couldn't find the preset corresponding to expression"
+                         exp))))
+        (t exp)))
+
 ;; Debug indentation:
 ;; treesit--indent-verbose
 

@@ -356,13 +356,14 @@
               haskell-ts-haddock--haddock-result-doc-anchor
               0)
 
-             ((node-is "comment" "haddock") prev-sibling 0)
+             ((n-p-gp '("comment" "haddock") "haskell" nil) prev-sibling 0)
 
              ((node-is "cpp") column-0 0)
              ((parent-is "comment") column-0 0)
              ((parent-is "imports") column-0 0)
 
-             ((parent-is "record")
+             ((or (parent-is "record")
+                  (node-is "comment" "haddock"))
               haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update
               ,(lambda (node parent bol)
                  (lambda (matched-anchor)
@@ -865,10 +866,14 @@ indented block will be their bounds without any extra processing."
                  (lambda (node parent &rest _)
                    (and (or (null node-t)
                             (awhen (treesit-node-type node)
-                              (string= node-t it)))
+                              (if (stringp node-t)
+                                  (string= node-t it)
+                                (member it node-t))))
                         (or (null parent-t)
                             (awhen (treesit-node-type parent)
-                              (string= parent-t it)))
+                              (if (stringp parent-t)
+                                  (string= parent-t it)
+                                (member it parent-t))))
                         (or (null grand-parent-t)
                             (when-let ((gp (treesit-node-parent parent))
                                        (gpt (treesit-node-type gp)))
