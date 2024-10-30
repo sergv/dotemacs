@@ -496,6 +496,56 @@
   "foo = undefined"))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-comment-1
+ :contents
+ (tests-utils--multiline
+  "foo :: Int -> IO ()"
+  "foo x = do"
+  "  if x > 0"
+  "  then"
+  "   _|_-- frobnicate"
+  "    pure ()"
+  "  else"
+  "    -- decombobulate"
+  "    pure ()")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: Int -> IO ()"
+  "foo x = do"
+  "  if x > 0"
+  "  then"
+  "    _|_-- frobnicate"
+  "    pure ()"
+  "  else"
+  "    -- decombobulate"
+  "    pure ()"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-comment-1a
+ :contents
+ (tests-utils--multiline
+  "foo :: Int -> IO ()"
+  "foo x = do"
+  "  if x > 0"
+  "  then"
+  "    -- frobnicate"
+  "    pure ()"
+  "  else"
+  "   _|_-- decombobulate"
+  "    pure ()")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: Int -> IO ()"
+  "foo x = do"
+  "  if x > 0"
+  "  then"
+  "    -- frobnicate"
+  "    pure ()"
+  "  else"
+  "    _|_-- decombobulate"
+  "    pure ()"))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-where-1
  :contents
  (tests-utils--multiline
