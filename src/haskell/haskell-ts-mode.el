@@ -360,8 +360,6 @@
              ((n-p-gp '("comment" "haddock") "haskell" nil) prev-sibling 0)
 
              ((node-is "cpp") column-0 0)
-             ((parent-is "comment") column-0 0)
-             ((parent-is "imports") column-0 0)
 
              ((or (parent-is "record")
                   (node-is "comment" "haddock"))
@@ -490,8 +488,7 @@
               haskell-ts-indent--prev-sib 0)
              ((parent-is "match") haskell-ts-indent--standalone-parent-fast haskell-indent-offset)
 
-             ((parent-is "haskell") column-0 0)
-             ((parent-is "declarations") column-0 0)
+             ((parent-is "comment" "imports" "haskell" "declarations") column-0 0)
 
              ((parent-is "exports")
               (lambda (_ b _) (treesit-node-start (treesit-node-prev-sibling b)))
