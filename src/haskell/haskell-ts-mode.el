@@ -260,7 +260,8 @@
 
 (defun haskell-ts-indent--prev-sib (node parent bol)
   (let ((n (treesit-node-prev-sibling node)))
-    (while (string= "comment" (treesit-node-type n))
+    (while (and n
+                (string= "comment" (treesit-node-type n)))
       (setq n (treesit-node-prev-sibling n)))
     (treesit-node-start n)))
 
