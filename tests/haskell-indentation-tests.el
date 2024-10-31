@@ -622,6 +622,90 @@
   "  pure ok"))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-let-3a
+ :contents
+ (tests-utils--multiline
+  "foo :: Int -> IO ()"
+  "foo x = do"
+  "  let bar ="
+  "       _|_baz"
+  "          x"
+  "          quux"
+  "  decombobulate")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: Int -> IO ()"
+  "foo x = do"
+  "  let bar ="
+  "        _|_baz"
+  "          x"
+  "          quux"
+  "  decombobulate"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-let-3b
+ :contents
+ (tests-utils--multiline
+  "foo :: Int -> IO ()"
+  "foo x = do"
+  "  let bar ="
+  "        baz"
+  "         _|_x"
+  "          quux"
+  "  decombobulate")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: Int -> IO ()"
+  "foo x = do"
+  "  let bar ="
+  "        baz"
+  "          _|_x"
+  "          quux"
+  "  decombobulate"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-let-4a
+ :contents
+ (tests-utils--multiline
+  "foo :: Int -> IO ()"
+  "foo x ="
+  "  let bar ="
+  "       _|_baz"
+  "          x"
+  "          quux"
+  "  in decombobulate")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: Int -> IO ()"
+  "foo x ="
+  "  let bar ="
+  "        _|_baz"
+  "          x"
+  "          quux"
+  "  in decombobulate"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-let-4b
+ :contents
+ (tests-utils--multiline
+  "foo :: Int -> IO ()"
+  "foo x ="
+  "  let bar ="
+  "        baz"
+  "         _|_x"
+  "          quux"
+  "  in decombobulate")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: Int -> IO ()"
+  "foo x ="
+  "  let bar ="
+  "        baz"
+  "          _|_x"
+  "          quux"
+  "  in decombobulate"))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-record-1
  :contents
  (tests-utils--multiline
