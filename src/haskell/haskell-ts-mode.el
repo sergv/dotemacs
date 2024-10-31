@@ -486,7 +486,9 @@
                            (setq pos (- pos 1))))
                        (eq pos 0))))
               haskell-ts-indent--prev-sib 0)
-             ((parent-is "match") haskell-ts-indent--standalone-parent-fast haskell-indent-offset)
+             ((parent-is "match")
+              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function
+              haskell-indent-offset)
 
              ((parent-is "comment" "imports" "haskell" "declarations") column-0 0)
 
