@@ -31,16 +31,18 @@
     `(progn
        (defun ,indent-region-func (start end)
          (with-marker (end-marker (copy-marker end))
-           (remove-tabs-in-region! start end)
-           (align-regexp start
-                         end-marker
-                         (eval-when-compile
-                           ,(if put-align-spaces-after-str
-                                `(concat ,align-re ,spaces-re)
-                              `(concat ,spaces-re ,align-re)))
-                         1
-                         1
-                         ,repeat)))
+           (unless indent-tabs-mode
+             (remove-tabs-in-region! start end))
+           (let ((indent-tabs-mode nil))
+             (align-regexp start
+                           end-marker
+                           (eval-when-compile
+                             ,(if put-align-spaces-after-str
+                                  `(concat ,align-re ,spaces-re)
+                                `(concat ,spaces-re ,align-re)))
+                           1
+                           1
+                           ,repeat))))
        (defun ,func ()
          (interactive "*")
          (when (region-active-p)
