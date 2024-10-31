@@ -376,12 +376,17 @@
               0)
 
              ;; Infix
-             ((node-is "infix") haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update haskell-indent-offset)
+             ((node-is "infix")
+              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update
+              haskell-indent-offset)
 
              ;; Assumes that this will only hit when "operator" node is at beginning of line.
              ((n-p-gp "operator" "infix" nil)
               haskell-ts-indent--standalone-parent-fast
               0)
+
+             ;; Fallback
+             ((parent-is "infix") haskell-ts-indent--standalone-parent-fast haskell-indent-offset)
 
              ;; Lambda
              ((parent-is "lambda") haskell-ts-indent--standalone-parent-fast haskell-indent-offset)
