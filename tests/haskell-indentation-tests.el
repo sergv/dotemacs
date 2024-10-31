@@ -927,6 +927,59 @@
   "  _|_bracket (getResource n) releaseResource $ \\_ -> do"
   "           pure n"))
 
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-infix-1
+ :contents
+ (tests-utils--multiline
+  "foo :: Int -> IO Int"
+  "foo x = do"
+  "  bar <-"
+  "    baz >>="
+  "     _|_quux x"
+  "  pure bar")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: Int -> IO Int"
+  "foo x = do"
+  "  bar <-"
+  "    baz >>="
+  "      _|_quux x"
+  "  pure bar"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-infix-2a
+ :contents
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo 0 = 0"
+  "foo x ="
+  " _|_foo $"
+  "    foo $ x - 1")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo 0 = 0"
+  "foo x ="
+  "  _|_foo $"
+  "    foo $ x - 1"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-infix-2b
+ :contents
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo 0 = 0"
+  "foo x ="
+  "  foo $"
+  "   _|_foo $ x - 1")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo 0 = 0"
+  "foo x ="
+  "  foo $"
+  "    _|_foo $ x - 1"))
+
 (haskell-indentation-tests--test-treesitter-region
  :name haskell-indentation-tests--test-treesitter-region-1
  :contents
