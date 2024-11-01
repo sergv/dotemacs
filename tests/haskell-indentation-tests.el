@@ -740,6 +740,96 @@
   "  in bar"))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-record-3a
+ :contents
+ (tests-utils--multiline
+  "newtype Foo a = Foo"
+  "  { unFoo ::"
+  "      IO a"
+  "   _|_}")
+ :expected-value
+ (tests-utils--multiline
+  "newtype Foo a = Foo"
+  "  { unFoo ::"
+  "      IO a"
+  "  _|_}"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-record-3b
+ :contents
+ (tests-utils--multiline
+  "newtype Foo a = Foo"
+  "  { unFoo ::"
+  "     _|_IO a"
+  "  }")
+ :expected-value
+ (tests-utils--multiline
+  "newtype Foo a = Foo"
+  "  { unFoo ::"
+  "      _|_IO a"
+  "  }"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-record-3c
+ :contents
+ (tests-utils--multiline
+  "newtype Foo a = Foo"
+  "   _|_{ unFoo ::"
+  "      IO a"
+  "  }")
+ :expected-value
+ (tests-utils--multiline
+  "newtype Foo a = Foo"
+  "  _|_{ unFoo ::"
+  "      IO a"
+  "  }"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-record-4a
+ :contents
+ (tests-utils--multiline
+  "data Foo a = Foo"
+  "  { unFoo ::"
+  "      IO a"
+  "   _|_}")
+ :expected-value
+ (tests-utils--multiline
+  "data Foo a = Foo"
+  "  { unFoo ::"
+  "      IO a"
+  "  _|_}"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-record-4b
+ :contents
+ (tests-utils--multiline
+  "data Foo a = Foo"
+  "  { unFoo ::"
+  "     _|_IO a"
+  "  }")
+ :expected-value
+ (tests-utils--multiline
+  "data Foo a = Foo"
+  "  { unFoo ::"
+  "      _|_IO a"
+  "  }"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-record-4c
+ :contents
+ (tests-utils--multiline
+  "data Foo a = Foo"
+  "   _|_{ unFoo ::"
+  "      IO a"
+  "  }")
+ :expected-value
+ (tests-utils--multiline
+  "data Foo a = Foo"
+  "  _|_{ unFoo ::"
+  "      IO a"
+  "  }"))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-field-update-1
  :contents
  (tests-utils--multiline
@@ -754,7 +844,7 @@
   "foo x ="
   "  let bar = baz"
   "        { quux ="
-  "          _|_foo bar baaz"
+  "            _|_foo bar baaz"
   "        }"
   "  in bar"))
 
@@ -773,7 +863,7 @@
   "foo x ="
   "  let bar = baz"
   "        { quux ="
-  "          _|_foo $ bar baaz"
+  "            _|_foo $ bar baaz"
   "        }"
   "  in bar"))
 
