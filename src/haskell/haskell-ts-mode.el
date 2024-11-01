@@ -361,6 +361,20 @@
 
              ((node-is "cpp") column-0 0)
 
+             ((parent-is "field") parent haskell-indent-offset)
+
+             (,(lambda (node parent bol)
+                 (and node
+                      (member (treesit-node-type node) '("record" "fields"))
+                      (when-let ((open-brace (treesit-node-child node 0)))
+                        (and (string= "{" (treesit-node-type open-brace))
+                             (eq (treesit-node-start node)
+                                 (treesit-node-start open-brace))))))
+              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update
+              haskell-indent-offset)
+             ((n-p-gp "}" '("record" "fields") nil)
+              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update
+              0)
              ((or (parent-is "record")
                   (node-is "comment" "haddock"))
               haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update
@@ -370,14 +384,12 @@
                        0
                      haskell-indent-offset))))
 
-             ((parent-is "field_update")
-              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update
-              0)
-
-             ;; Infix
-             ((node-is "infix")
+             ((or (parent-is "field_update")
+                  (node-is "infix"))
               haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update
               haskell-indent-offset)
+
+             ;; Other infix rules
 
              ;; Assumes that this will only hit when "operator" node is at beginning of line.
              ((n-p-gp "operator" "infix" nil)
