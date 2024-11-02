@@ -325,21 +325,22 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
 
   ;; (markup-setup)
   (setf *markup-tags-context-func* #'hl-tags-context-nxml-mode)
-  (setf web-mode-markup-indent-offset 2
-        web-mode-css-indent-offset 2
-        web-mode-code-indent-offset 2
-        web-mode-enable-css-colorization t
-        web-mode-enable-comment-keywords t
-        web-mode-enable-current-element-highlight t
-        web-mode-enable-auto-indentation t
-        web-mode-enable-auto-closing t
-        web-mode-enable-auto-pairing t
-        web-mode-enable-auto-quoting t
-        web-mode-auto-close-style 2
-        web-mode-script-padding 2
-        web-mode-style-padding 2
-        web-mode-css-indent-offset 2
-        web-mode-code-indent-offset 2)
+  (let ((offset 4))
+    (setq-local web-mode-markup-indent-offset offset
+                web-mode-css-indent-offset offset
+                web-mode-code-indent-offset offset
+                web-mode-enable-css-colorization t
+                web-mode-enable-comment-keywords t
+                web-mode-enable-current-element-highlight t
+                web-mode-enable-auto-indentation t
+                web-mode-enable-auto-closing t
+                web-mode-enable-auto-pairing t
+                web-mode-enable-auto-quoting t
+                web-mode-auto-close-style offset
+                web-mode-script-padding offset
+                web-mode-style-padding offset
+                web-mode-css-indent-offset offset
+                web-mode-code-indent-offset offset))
 
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-visual-mode-local-keymap
