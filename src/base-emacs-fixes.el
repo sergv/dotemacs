@@ -1204,6 +1204,28 @@ directory got moved.  This is set to be a pair in the form of:
                        (file-relative-name file invocation-directory))))))
 	       comp-loaded-comp-units-h))))
 
+(when-emacs-version (<= 30 it)
+  (el-patch-defun shell-command--same-buffer-confirm (action)
+    (let ((help-form
+           (format
+            "There's a command already running in the default buffer,
+so we can't start a new one in the same one.
+
+Answering \"yes\" will %s.
+
+Answering \"no\" will exit without doing anything, and won't
+start the new command.
+
+Also see the `async-shell-command-buffer' variable."
+            (downcase action))))
+      (unless (el-patch-let ((query (format "A command is running in the default buffer.  %s? "
+                                            action)))
+                (el-patch-swap
+                  (yes-or-no-p query)
+                  (or (eq async-shell-command-buffer 'confirm-new-buffer)
+                      (y-or-n-p query))))
+        (user-error "Shell command in progress")))))
+
 (provide 'base-emacs-fixes)
 
 ;; Local Variables:
