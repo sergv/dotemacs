@@ -246,6 +246,40 @@
 (defun haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update (node parent bol)
   (haskell-ts-indent--standalone-non-infix-parent--generic node parent bol nil t))
 
+(defun haskell-ts-indent--get-record-or-fields-open-brace (node)
+  (cl-assert (member (treesit-node-type node) '("record" "fields")))
+  (let* ((typ (treesit-node-type node))
+         (open-brace-idx-candidates
+          (cond
+            ((string= "record" typ)
+             '(0 1))
+            ((string= "fields" typ)
+             '(0))
+            (t
+             (error "Inexpected record-like node: %s" node))))
+         (result
+          (--some (when-let ((open-brace (treesit-node-child node it)))
+                    (when (string= "{" (treesit-node-type open-brace))
+                      open-brace))
+                  open-brace-idx-candidates)))
+    (cl-assert (or (null result)
+                   (string= "{" (treesit-node-type result)))
+               nil
+               "Not an open brace node: %s, node = %s, parent = %s"
+               open-brace
+               node
+               (treesit-node-parent node))
+    result))
+
+(defun haskell-ts-indent--standalone-record-start (node parent bol)
+  (let ((typ (treesit-node-type parent)))
+    (cond
+      ((when (or (string= "record" typ)
+                 (string= "fields" typ))
+         (haskell-ts-indent--get-record-or-fields-open-brace parent)))
+      (t
+       (haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update node parent bol)))))
+
 (defun haskell-ts-indent--standalone-parent-fast (node parent bol)
   (save-excursion
     (let ((curr parent))
@@ -366,15 +400,16 @@
              (,(lambda (node parent bol)
                  (and node
                       (member (treesit-node-type node) '("record" "fields"))
-                      (when-let ((open-brace (treesit-node-child node 0)))
-                        (and (string= "{" (treesit-node-type open-brace))
-                             (eq (treesit-node-start node)
-                                 (treesit-node-start open-brace))))))
+                      (when-let ((open-brace (haskell-ts-indent--get-record-or-fields-open-brace node)))
+                        (eq (treesit-node-start node)
+                            (treesit-node-start open-brace)))))
               haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update
               haskell-indent-offset)
              ((n-p-gp "}" '("record" "fields") nil)
-              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update
-              0)
+              haskell-ts-indent--standalone-record-start
+              0
+              ;; haskell-indent-offset
+              )
              ((or (parent-is "record")
                   (node-is "comment" "haddock"))
               haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update
