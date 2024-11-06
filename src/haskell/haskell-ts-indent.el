@@ -150,15 +150,18 @@
                    (error "Unexpected infix field, node = %s, child = %s"
                           curr
                           prev1)))))
-            (if (or (string= "parens" curr-type)
-                    (string= "list" curr-type))
-                (throw 'term curr)
-              (when (haskell-ts--is-standalone-node? curr)
-                (if (or (string= "let" curr-type)
-                        (string= "let_in" curr-type))
-                    (when prev2
-                      (throw 'term prev2))
-                  (throw 'term curr)))))
+            (cond
+              ((or (string= "parens" curr-type)
+                   (string= "list" curr-type))
+               (throw 'term curr))
+              ((string= "tuple" curr-type)
+               (throw 'term prev1))
+              ((haskell-ts--is-standalone-node? curr)
+               (if (or (string= "let" curr-type)
+                       (string= "let_in" curr-type))
+                   (when prev2
+                     (throw 'term prev2))
+                 (throw 'term curr)))))
           (setq prev2 prev1
                 prev1 curr
                 curr (treesit-node-parent curr)))))))
@@ -193,6 +196,18 @@
                nil
                "Not an open brace node: %s, node = %s, parent = %s"
                open-brace
+               node
+               (treesit-node-parent node))
+    result))
+
+(defun haskell-ts-indent--get-signature-double-colon (node)
+  (cl-assert (string= "signature" (treesit-node-type node)))
+  (let ((result (treesit-node-child node 1)))
+    (cl-assert (or (null result)
+                   (string= "::" (treesit-node-type result)))
+               nil
+               "Not a double colon: %s, node = %s, parent = %s"
+               result
                node
                (treesit-node-parent node))
     result))
@@ -268,7 +283,7 @@
                                         (haskell-ts--is-standalone-node? non-comment-child))
                                (throw 'term non-comment-child))))))))
             ((string= typ "signature")
-             (when-let ((double-colon (treesit-node-child curr 1)))
+             (when-let ((double-colon (haskell-ts-indent--get-signature-double-colon curr)))
                (when (haskell-ts--is-standalone-node? double-colon)
                  (throw 'term double-colon))))
             ((string= typ "declarations")
@@ -290,7 +305,7 @@
     (catch 'term
       (let* ((sig prev)
              (sig-end (treesit-node-end sig)))
-        (when-let ((double-colon (treesit-node-child sig 1)))
+        (when-let ((double-colon (haskell-ts-indent--get-signature-double-colon sig)))
           (when (haskell-ts--is-standalone-node? double-colon)
             (throw 'term double-colon)))
 
@@ -303,6 +318,22 @@
       (goto-char start)
       (skip-chars-backward " \t")
       (eq (point) (line-beginning-position)))))
+
+(defun haskell-ts-indent--type-function-anchor (node parent bol)
+  (let ((prev node)
+        (curr parent))
+    (catch 'term
+      (while curr
+        (let ((typ (treesit-node-type curr)))
+          (cond
+            ((string= typ "signature")
+             (when-let ((double-colon (haskell-ts-indent--get-signature-double-colon curr)))
+               (throw 'term double-colon)))
+            ((or (string= typ "parens")
+                 (string= typ "tuple"))
+             (throw 'term curr)))
+          (setf prev curr
+                curr (treesit-node-parent curr)))))))
 
 (defconst haskell-ts-indent-rules
   (eval-when-compile
@@ -473,6 +504,14 @@
              ((n-p-gp "," "tuple" nil) parent 0)
 
              ((node-is "deriving") parent haskell-indent-offset)
+
+             ((n-p-gp "->" "function" nil)
+              haskell-ts-indent--type-function-anchor
+              ,(lambda (node parent bol)
+                 (lambda (matched-anchor)
+                   (if (string= "::" (treesit-node-type matched-anchor))
+                       0
+                     haskell-indent-offset))))
 
              ;; No backup - we would like to default to something else.
              ;; ;; Backup
