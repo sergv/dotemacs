@@ -22,7 +22,8 @@
     (haskell-ts-mode (haskell-ts-mode))
     (emacs-lisp-mode (emacs-lisp-mode))
     (rust-mode (rust-mode))
-    (c-mode (c-mode))))
+    (c-mode (c-mode))
+    (sh-mode (sh-mode))))
 
 (defconst vim-tests--all-known-modes-and-init
   (cons '(haskell-hsc-mode (haskell-hsc-mode))
@@ -1025,6 +1026,27 @@
      " quux)"
      "")))
 
+(ert-deftest vim-tests/comment-linewise-region-2a/c-mode ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (c-mode)
+      (execute-kbd-macro (kbd "V h h j c c"))
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " b_|_ar"
+     ""
+     "   baz"
+     " quux)"
+     "")
+    (tests-utils--multiline
+     ""
+     "(foo"
+     " // bar"
+     " // "
+     " //  _|_ baz"
+     " quux)"
+     "")))
+
 (ert-deftest vim-tests/comment-linewise-region-3/c-mode ()
   (vim-tests--test-fresh-buffer-contents-init
       (c-mode)
@@ -1042,6 +1064,58 @@
      "\t// bar"
      "\t// \t_|_baz"
      "\tquux)"
+     "")))
+
+(ert-deftest vim-tests/comment-linewise-region-4/sh-mode ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (sh-mode)
+      (execute-kbd-macro (kbd "V h h h h h h j c c"))
+    (tests-utils--multiline
+     ""
+     "    _|_# --skip-depends \\"
+     "#--freeze1"
+     "if [[ \"$#\" = 0 ]]; then"
+     "    do_build \"$builddir_to_use/stage1/bin/\"{ghc,ghc-pkg}"
+     "    # do_build \"$builddir_to_use/stage2/bin/\"{ghc,ghc-pkg}"
+     "else"
+     "fi"
+     "")
+    (tests-utils--multiline
+     ""
+     "#     # --skip-depends \\"
+     "# #--freeze1"
+     "# if [[ \"$#\" = 0 ]]; then"
+     "#     do_build \"$builddir_to_use/stage1/bin/\"{ghc,ghc-pkg}"
+     "#     # do_build \"$builddir_to_use/stage2/bin/\"{ghc,ghc-pkg}"
+     "# else"
+     "# fi_|_"
+     "")))
+
+(ert-deftest vim-tests/comment-linewise-region-5/sh-mode ()
+  (vim-tests--test-fresh-buffer-contents-init
+      (sh-mode)
+      (execute-kbd-macro (kbd "V h h h h h h h j c c"))
+    (tests-utils--multiline
+     ""
+     "    _|_# --skip-depends \\"
+     "#--freeze1"
+     "if [[ \"$#\" = 0 ]]; then"
+     ""
+     "    do_build \"$builddir_to_use/stage1/bin/\"{ghc,ghc-pkg}"
+     "    # do_build \"$builddir_to_use/stage2/bin/\"{ghc,ghc-pkg}"
+     "else"
+     "fi"
+     "")
+    (tests-utils--multiline
+     ""
+     "#     # --skip-depends \\"
+     "# #--freeze1"
+     "# if [[ \"$#\" = 0 ]]; then"
+     "# "
+     "#     do_build \"$builddir_to_use/stage1/bin/\"{ghc,ghc-pkg}"
+     "#     # do_build \"$builddir_to_use/stage2/bin/\"{ghc,ghc-pkg}"
+     "# else"
+     "# fi_|_"
      "")))
 
 (ert-deftest vim-tests/comment-sexp-1/emacs-lisp-mode ()
