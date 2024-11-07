@@ -543,8 +543,10 @@ be used only for vim-visual-mode of the vim-mode package."
      (let ((col (indentation-size)))
        (save-excursion
          (dotimes (_ lines)
-           (let ((new-col (indentation-size)))
-             (when (< 0 new-col)
+           ;; When not on empty line
+           (when (not (eq (line-beginning-position)
+                          (line-end-position)))
+             (let ((new-col (indentation-size)))
                (setf col (min col new-col))))
            (forward-line 1)))
        (comment-util--comment-n-lines-starting-at-col (concat (comment-format-one-line fmt)
@@ -559,7 +561,9 @@ be used only for vim-visual-mode of the vim-mode package."
          ;; somewhat hackish but we're already in special case of
          ;; dealing with region comments
          (forward-line (- lines 1))
-         (comment-util--comment-chunk-region begin (line-end-position) fmt))))))
+         (comment-util--comment-chunk-region begin (line-end-position) fmt))))
+    (t
+     (error "Neither single-line nor region comment formats defined"))))
 
 (defun comment-util--comment-n-lines-starting-at-col (comment-str lines column update-column?)
   "Comment next LINES with COMMENT-STR, but insert them at COLUMN."
