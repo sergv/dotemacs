@@ -1721,6 +1721,64 @@
   "       )"
   "foo = undefined"))
 
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-3d
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  -> f (PB c d)"
+  "  -> Either"
+  "       Msg"
+  "       ( [Int]"
+  "         -> Bar"
+  "                _|_Quux"
+  "       , Fizz"
+  "       )"
+  "foo = undefined")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  -> f (PB c d)"
+  "  -> Either"
+  "       Msg"
+  "       ( [Int]"
+  "         -> Bar"
+  "              _|_Quux"
+  "       , Fizz"
+  "       )"
+  "foo = undefined"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-3e
+ :contents
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  -> f (PB c d)"
+  "  -> Either"
+  "       Msg"
+  "       (                              [Int]"
+  "         -> Bar"
+  "                _|_Quux"
+  "       , Fizz"
+  "       )"
+  "foo = undefined")
+ :expected-value
+ (tests-utils--multiline
+  "foo"
+  "  :: P A B"
+  "  -> f (PB c d)"
+  "  -> Either"
+  "       Msg"
+  "       (                              [Int]"
+  "         -> Bar"
+  "              _|_Quux"
+  "       , Fizz"
+  "       )"
+  "foo = undefined"))
+
 (provide 'haskell-indentation-tests)
 
 ;; Local Variables:
