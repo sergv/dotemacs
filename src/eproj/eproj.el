@@ -891,29 +891,36 @@ for project at ROOT directory."
                                  (expand-file-name (eproj-project/root proj)))
                                 (eproj-tag/line subentry)))))))))))
 
-;;;; utilities
+;;;; Utilities
 
 (defmacro eproj/evaluate-with-caching-buffer-local-var (value-expr
                                                         buffer-expr
                                                         caching-var
                                                         value-predicate)
+  "BUFFER-EXPR may evaluate to nil in which case CACHING-VAR will contain unique value that
+will be interpreted as NIL by this macro."
+  (cl-assert (symbolp caching-var))
   (let* ((buffer-var '#:buffer)
+         (tmp-var '#:tmp)
          (is-nil '#:is-nil)
          (is-nil-value `(quote ,is-nil)))
-    `(let ((,buffer-var ,buffer-expr))
-       (with-current-buffer ,buffer-var
-         (when (or (null ,caching-var)
-                   (eq ,caching-var ,is-nil-value))
-           (setf ,caching-var (or ,value-expr ,is-nil-value)))
-         (unless (eq ,caching-var ,is-nil-value)
-           (cl-assert (funcall ,value-predicate ,caching-var)
-                      nil
-                      (format
-                       ,(format "Variable `%s' must contain value that satisfies predicate %s. Value: %%s"
-                                caching-var
-                                value-predicate)
-                       ,caching-var))
-           ,caching-var)))))
+    `(let* ((,buffer-var ,buffer-expr)
+            (,tmp-var (buffer-local-value ',caching-var ,buffer-var)))
+       (when (or (null ,tmp-var)
+                 (eq ,tmp-var ,is-nil-value))
+         (with-current-buffer ,buffer-var
+           (setf ,tmp-var ,value-expr)
+           (setf ,caching-var (or ,tmp-var ,is-nil-value))))
+       (unless (eq ,tmp-var ,is-nil-value)
+         (cl-assert (funcall ,value-predicate ,tmp-var)
+                    nil
+                    (format
+                     ,(format "Variable `%s' must contain value that satisfies predicate %s. Value: %%S, type: %%s"
+                              caching-var
+                              value-predicate)
+                     ,tmp-var
+                     (type-of ,tmp-var)))
+         ,tmp-var))))
 
 (defun eproj/reset-buffer-local-cache ()
   "Reset all caching buffer-local values associated with eproj in all buffers"
