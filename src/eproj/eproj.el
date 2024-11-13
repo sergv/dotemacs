@@ -1389,16 +1389,15 @@ that. Report error if both conditions don’t hold."
 (defun eproj--get-buffer-directory (buf)
   "Get directory associated with BUFFER, either through visited file
 or `default-directory', if no file is visited."
-  (with-current-buffer buf
-    (eproj/evaluate-with-caching-buffer-local-var
-     ;; Take directory since the file visited by buf may not be
-     ;; under version control per se.
-     (or (and buffer-file-name
-              (file-name-directory buffer-file-name))
-         default-directory)
-     buf
-     eproj/buffer-directory
-     #'stringp)))
+  (eproj/evaluate-with-caching-buffer-local-var
+   ;; Take directory since the file visited by buf may not be
+   ;; under version control per se.
+   (or (and buffer-file-name
+            (file-name-directory buffer-file-name))
+       default-directory)
+   buf
+   eproj/buffer-directory
+   #'stringp))
 
 (defun eproj-get-matching-tags (proj tag-major-mode identifier search-with-regexp?)
   "Get all tags from PROJ and its related projects from mode TAG-MAJOR-MODE
