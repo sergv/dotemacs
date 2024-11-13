@@ -82,6 +82,11 @@
     default))
 
 ;;;###autoload
+(defun eproj-query/java/indent-style (proj &optional default)
+  (declare (pure t) (side-effect-free nil))
+  (eproj-query/any-mode/indent-style proj 'java-mode default))
+
+;;;###autoload
 (defun eproj-query/any-mode/indent-style (proj mode &optional default)
   "For now only allows styles registerted in ‘c-style-alist’ and thus only has
 sense for modes where cc’s indentation engine works."
