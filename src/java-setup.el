@@ -27,7 +27,7 @@
               ;; "java-clojure"
               whitespace-style '(face tabs space-after-tab space-before-tab))
   (let ((proj (eproj-get-project-for-buf-lax (current-buffer))))
-    (awhen (eproj-query/any-mode/indent-style proj 'java-mode nil)
+    (awhen (eproj-query/java/indent-style proj nil)
       (message "Switching to ‘%s’ indentation style" it)
       (c-set-style it))
 
