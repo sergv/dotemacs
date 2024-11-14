@@ -452,7 +452,7 @@ get proper flycheck checker."
         ((memq (car entry) '(file-list tag-file build-dir indent-style))
          (and (= (length entry) 2)
               (stringp (cadr entry))))
-        ((eq (car entry) 'create-cache-files)
+        ((memq (car entry) '(create-cache-files indent-tab delete-trailing-whitespace))
          (and (= (length entry) 2)
               (booleanp (cadr entry))))
         ((memq (car entry) '(language-specific checker disabled-checkers local-variables aux-files))
