@@ -27,6 +27,7 @@
 ;;; Code:
 
 (require 'magit)
+(require 'magit-log)
 
 ;;; Options
 
@@ -278,6 +279,7 @@ bisect run'."
       (magit-git-wash (apply-partially #'magit-log-wash-log 'bisect-vis)
         "bisect" "visualize" "git" "log"
         "--format=%h%x00%D%x00%s" "--decorate=full"
+        magit--log-refs-to-decorate
         (and magit-bisect-show-graph "--graph")
         (and (magit-repository-local-get 'bisect--first-parent)
              "--first-parent")))))
