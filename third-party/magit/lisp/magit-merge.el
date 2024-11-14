@@ -28,6 +28,7 @@
 
 (require 'magit)
 (require 'magit-diff)
+(require 'magit-log)
 
 (declare-function magit-git-push "magit-push" (branch target args))
 
@@ -312,7 +313,9 @@ If no merge is in progress, do nothing."
           range
           (let ((args magit-buffer-log-args))
             (unless (member "--decorate=full" magit-buffer-log-args)
-              (push "--decorate=full" args))
+              (setf args (cons "--decorate=full"
+                               (append magit--log-refs-to-decorate
+                                       args))))
             args))))))
 
 ;;; _
