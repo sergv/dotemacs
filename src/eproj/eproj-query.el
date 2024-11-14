@@ -112,6 +112,29 @@ sense for modes where cc’s indentation engine works."
     default))
 
 ;;;###autoload
+(defun eproj-query/java/delete-trailing-whitespace (proj &optional default)
+  (declare (pure t) (side-effect-free nil))
+  (eproj-query/any-mode/delete-trailing-whitespace proj 'java-mode default))
+
+;;;###autoload
+(defun eproj-query/any-mode/delete-trailing-whitespace (proj mode &optional default)
+  (declare (pure t) (side-effect-free nil))
+  (cl-assert (symbolp mode) "Mode must be a symbol")
+  (if-let ((p proj)
+           (entry (eproj-project/query-aux-info-entry (eproj-project/aux-info p)
+                    'language-specific
+                    mode
+                    'delete-trailing-whitespace)))
+      (let ((res (car entry)))
+        (unless (booleanp res)
+          (error "language-specific.%s.delete-trailing-whitespace entry in .eproj-info of %s must be a boolean, but got %s"
+                 mode
+                 (eproj-project/root proj)
+                 res))
+        res)
+    default))
+
+;;;###autoload
 (defun eproj-query/checker (proj mode default)
   (declare (pure t) (side-effect-free nil))
   (cl-assert (symbolp mode))
