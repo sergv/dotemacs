@@ -1170,6 +1170,18 @@ Type \\[magit-reset] to reset `HEAD' to the commit at point.
   (declare (obsolete magit--insert-log "Magit 4.0.0"))
   (magit--insert-log nil revs args files))
 
+(defconst magit--log-refs-to-decorate
+  (eval-when-compile
+    (mapcar (lambda (x)
+              (concat "--decorate-refs=" x))
+            '("refs/bisect"
+              "refs/heads"
+              "refs/tags"
+              "refs/remotes"
+              "refs/stash"
+              "HEAD")))
+  "Ref patterns to request from git to be shown in the magit logs.")
+
 (defun magit--insert-log (keep-error revs &optional args files)
   "Insert a log section.
 Do not add this to a hook variable."
@@ -1213,7 +1225,9 @@ Do not add this to a hook variable."
           (setq args (cons (format "--%s-order" (match-string 1 order))
                            (remove order args))))
         (when (member "--decorate" args)
-          (setq args (cons "--decorate=full" (remove "--decorate" args))))
+          (setq args (cons "--decorate=full"
+                           (append magit--log-refs-to-decorate
+                                   (remove "--decorate" args)))))
         (when (member "--reverse" args)
           (setq args (remove "--graph" args)))
         (setq args (magit-diff--maybe-add-stat-arguments args))
