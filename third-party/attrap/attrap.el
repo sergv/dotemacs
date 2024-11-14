@@ -962,7 +962,13 @@ Error is given as MSG and reported between POS and END."
                  "unsafeFixIO"))
                (("GHC.IO")
                 "Control.Exception"
-                ("evaluate")))))))
+                ("evaluate"))
+               (("GHC.Internal.Stack.Types")
+                "GHC.Stack.Types"
+                t)
+               (("GHC.Internal.Stack")
+                "GHC.Stack"
+                t))))))
 
 (defun attrap-haskell-import--fix-module-name (identifier mod-name)
   (cl-assert (stringp identifier))
