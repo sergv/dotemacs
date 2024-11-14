@@ -31,6 +31,9 @@
       (message "Switching to ‘%s’ indentation style" it)
       (c-set-style it))
 
+    (setq-local inhibit-delete-trailing-whitespace
+                (not (eproj-query/java/delete-trailing-whitespace proj t)))
+
     ;; Override indenting with tabs since selecting style may have
     ;; changed it.
     (setq-local indent-tabs-mode (eproj-query/java/indent-tab proj t))
