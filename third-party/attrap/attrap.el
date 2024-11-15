@@ -895,22 +895,33 @@ Error is given as MSG and reported between POS and END."
       (cl-decf j))
     (substring identifier i j)))
 
+(cl-defstruct attrap--fixed-mod-name
+  (new-name :read-only t)
+  (is-authoritative? :read-only t))
+
 (defconst attrap--module-name-fixes
   (eval-when-compile
     (alist->hash-table
      (mapcan (lambda (x)
                (let ((source-modules (car x))
                      (target-module (cadr x))
-                     (identifiers (caddr x)))
+                     (identifiers (caddr x))
+                     ;; Should be ‘t’ for base and ‘nil’ for most others.
+                     (is-authoritative? (cadddr x)))
                  (cl-assert (listp source-modules))
                  (cl-assert (stringp target-module))
                  (mapcar (lambda (xx)
                            (cons xx
                                  (if (eq identifiers t)
-                                     target-module
+                                     ;; All identifiers are in scope.
+                                     (make-attrap--fixed-mod-name :new-name target-module
+                                                                  :is-authoritative? is-authoritative?)
+                                   ;; Only listed identifiers are in scope.
                                    (alist->hash-table
                                     (mapcar (lambda (y)
-                                              (cons y target-module))
+                                              (cons y (make-attrap--fixed-mod-name
+                                                       :new-name target-module
+                                                       :is-authoritative? is-authoritative?)))
                                             identifiers)))))
                          source-modules)))
              '((("GHC.IO.Handle.Text"
@@ -923,63 +934,88 @@ Error is given as MSG and reported between POS and END."
                  "hPutStr"
                  "stdin"
                  "stdout"
-                 "stderr"))
+                 "stderr")
+                t)
                (("GHC.Internal.IO.Handle")
                 "System.IO"
-                ("hFlush"))
+                ("hFlush")
+                t)
                (("GHC.Word")
                 "Data.Word"
                 ("Word8"
                  "Word16"
                  "Word32"
-                 "Word64"))
+                 "Word64")
+                t)
                (("Prettyprinter.Internal")
                 "Prettyprinter"
                 ;; wildcard
+                t
                 t)
                (("Basement.Compat.Bifunctor"
                  "Bifunctor")
                 "Data.Bifunctor"
                 ("Bifunctor"
-                 "bimap"))
+                 "bimap")
+                t)
                (("Data.Generics.Aliases"
                  "Generics.Deriving.Base.Internal"
                  "Generics.SOP.Universe")
                 "GHC.Generics"
-                ("Generic"))
+                ("Generic")
+                t)
                (("Data.Bit.Internal")
                 "Data.Bit"
                 ;; wildcard
+                t
                 t)
                (("GHC.Internal.Unsafe.Coerce")
                 "Unsafe.Coerce"
+                t
                 t)
                (("GHC.Internal.IO.Unsafe")
                 "System.IO.Unsafe"
                 ("unsafePerformIO"
                  "unsafeDupablePerformIO"
                  "unsafeInterleaveIO"
-                 "unsafeFixIO"))
+                 "unsafeFixIO")
+                t)
                (("GHC.IO")
                 "Control.Exception"
-                ("evaluate"))
+                ("evaluate")
+                t)
                (("GHC.Internal.Stack.Types")
                 "GHC.Stack.Types"
+                t
                 t)
                (("GHC.Internal.Stack")
                 "GHC.Stack"
+                t
                 t))))))
 
 (defun attrap-haskell-import--fix-module-name (identifier mod-name)
+  "Returns cons: (NEW-MODULE-NAME IS-AUTHORITATIVE?). If any of the results are authoritative
+then all non-authoritative results from that collection should be ignored."
   (cl-assert (stringp identifier))
   (cl-assert (stringp mod-name))
   (if-let ((entry (gethash mod-name attrap--module-name-fixes)))
-      (if (stringp entry)
-          entry
-        (if-let ((new-name (gethash identifier entry)))
-            new-name
-          mod-name))
-    mod-name))
+      (cond
+        ((attrap--fixed-mod-name-p entry)
+         ;; All identifiers are in scope.
+         entry)
+        ((hash-table-p entry)
+         (if-let ((new-name (gethash identifier entry)))
+             new-name
+           (make-attrap--fixed-mod-name
+            :new-name mod-name
+            :is-authoritative? nil)))
+        (t
+         (make-attrap--fixed-mod-name
+          :new-name mod-name
+          :is-authoritative? nil)))
+    (make-attrap--fixed-mod-name
+     :new-name mod-name
+     :is-authoritative? nil)))
 
 (defvar attrap--import-history nil)
 
@@ -1019,12 +1055,25 @@ Error is given as MSG and reported between POS and END."
   (cl-assert (stringp identifier))
   (let* ((filtered-tags
           (attrap-haskell-import--filter-tags-by-type candidate-tags is-constructor? is-type-or-class?))
+         (tags-with-fixed-mod-names
+          (--map (cons (attrap-haskell-import--fix-module-name
+                        identifier
+                        (haskell-misc--file-name-to-module-name (eproj-tag/file (cl-second it))))
+                       it)
+                 filtered-tags))
+         (any-authoritative-renamings?
+          (--any? (attrap--fixed-mod-name-is-authoritative? (car it))
+                  tags-with-fixed-mod-names))
+         (tags-with-filtered-authoritative
+          (--map (cons (attrap--fixed-mod-name-new-name (car it))
+                       (cdr it))
+                 (if any-authoritative-renamings?
+                     (--filter (attrap--fixed-mod-name-is-authoritative? (car it))
+                               tags-with-fixed-mod-names)
+                   tags-with-fixed-mod-names)))
          (module-names
           (remove-duplicates-sorting
-           (--map (cons (attrap-haskell-import--fix-module-name identifier
-                                                                (haskell-misc--file-name-to-module-name (eproj-tag/file (cl-second it))))
-                        it)
-                  filtered-tags)
+           tags-with-filtered-authoritative
            (lambda (x y)
              (string= (car x) (car y)))
            (lambda (x y)
