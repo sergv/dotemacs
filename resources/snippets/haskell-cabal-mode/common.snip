@@ -16,7 +16,6 @@ common ghc-options
     -Wno-missed-specialisations
     -Wno-missing-import-lists
     -Wno-missing-local-signatures
-    -Wno-missing-safe-haskell-mode
     -Wno-safe
     -Wno-unsafe
 
@@ -24,9 +23,10 @@ common ghc-options
     ghc-options:
       -Wno-missing-deriving-strategies
 
-  -- if impl(ghc >= 8.10)
-  --   ghc-options:
-  --     -Wno-prepositive-qualified-module
+  if impl(ghc >= 8.10)
+    ghc-options:
+      -Wno-missing-safe-haskell-mode
+      -- -Wno-prepositive-qualified-module
 
   if impl(ghc >= 9.2)
     ghc-options:
