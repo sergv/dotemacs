@@ -79,7 +79,8 @@ Allowed flags are:
                 ((memq ?I flags) nil)
                 (t               nil)))
              (start (vim-motion-begin-pos motion))
-             (end (vim-motion-end-pos motion)))
+             (end (vim-motion-end-pos motion))
+             (indent-tabs-mode nil))
         (prettify-symbols-decompose-region start end)
         (align-regexp start
                       end
