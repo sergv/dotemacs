@@ -33,6 +33,9 @@
             #pkgs.universal-ctags
           ];
 
+          RUNNING_UNDER_NIX = "1";
+
+          # For native compilation
           LIBRARY_PATH=
             "${pkgs.lib.makeLibraryPath [stdenv.cc.cc pkgs.glibc]}:${pkgs.lib.getLib pkgs.libgccjit}/lib/gcc/${stdenv.hostPlatform.config}/${pkgs.lib.getVersion stdenv.cc.cc}";
 

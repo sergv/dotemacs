@@ -11,16 +11,9 @@ set -u
 set -o pipefail
 set -e
 
-function is_tracked() {
-    local file="$1"
-    local check=$(git status --porcelain "$file" | awk '{ print $1; }')
-    [[ "$check" != "??" && ! -z "$check" ]]
-}
-
-if [[ "${RUNNING_UNDER_NIX:-0}" != 1 ]] && which nix 2>/dev/null && is_tracked "flake.nix"; then
+if [[ "${RUNNING_UNDER_NIX:-0}" != 1 ]] && which nix 2>/dev/null; then
     echo "Building via nix"
-    export RUNNING_UNDER_NIX=1
-    exec nix develop --command "$0"
+    exec nix develop --no-warn-dirty --command "$0"
 fi
 
 if [[ -z "${TMPDIR:-}" ]]; then
