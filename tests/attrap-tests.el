@@ -1076,6 +1076,144 @@
 
     ("FooType" "/tmp/Foo/Frobnicate.hs" 200 ?t nil))))
 
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/add-extension-1a
+ :flycheck-errors
+ (list
+  (let ((linecol (save-excursion
+                   (re-search-forward "_|_")
+                   (flycheck-line-column-at-pos (point)))))
+    (flycheck-error-new
+     :line (car linecol)
+     :column (cdr linecol)
+     :buffer (current-buffer)
+     :checker 'haskell-dante
+     :message
+     (tests-utils--multiline
+      "error: [GHC-17779]"
+      "    • Illegal role annotation for Foo"
+      "    • while checking a role annotation for ‘Foo’"
+      "    Suggested fix:"
+      "      Perhaps you intended to use RoleAnnotations"
+      "      You may enable this language extension in GHCi with:"
+      "        :set -XRoleAnnotations")
+     :level 'error
+     :id nil
+     :group nil)))
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  "#!/usr/bin/env -S cabal run"
+  "{- cabal:"
+  "build-depends:"
+  "  , base"
+  "-}"
+  "{- project:"
+  "allow-newer:"
+  "  , *:base"
+  "-}"
+  ""
+  "module Test where"
+  ""
+  "import GHC.TypeNats"
+  ""
+  "newtype Foo n = Foo Int"
+  "_|_type role Foo nominal"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "#!/usr/bin/env -S cabal run"
+  "{- cabal:"
+  "build-depends:"
+  "  , base"
+  "-}"
+  "{- project:"
+  "allow-newer:"
+  "  , *:base"
+  "-}"
+  ""
+  "{-# LANGUAGE RoleAnnotations #-}"
+  ""
+  "module Test where"
+  ""
+  "import GHC.TypeNats"
+  ""
+  "newtype Foo n = Foo Int"
+  "_|_type role Foo nominal"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/add-extension-1b
+ :flycheck-errors
+ (list
+  (let ((linecol (save-excursion
+                   (re-search-forward "_|_")
+                   (flycheck-line-column-at-pos (point)))))
+    (flycheck-error-new
+     :line (car linecol)
+     :column (cdr linecol)
+     :buffer (current-buffer)
+     :checker 'haskell-dante
+     :message
+     (tests-utils--multiline
+      "error: [GHC-17779]"
+      "    • Illegal role annotation for Foo"
+      "    • while checking a role annotation for ‘Foo’"
+      "    Suggested fix:"
+      "      Perhaps you intended to use RoleAnnotations"
+      "      You may enable this language extension in GHCi with:"
+      "        :set -XRoleAnnotations")
+     :level 'error
+     :id nil
+     :group nil)))
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  "#!/usr/bin/env -S cabal run"
+  ""
+  " {-project :"
+  "allow-newer:"
+  "  , *:base"
+  "-}"
+  ""
+  " {-cabal :"
+  "build-depends:"
+  "  , base"
+  "-}"
+  ""
+  "module Test where"
+  ""
+  "import GHC.TypeNats"
+  ""
+  "newtype Foo n = Foo Int"
+  "_|_type role Foo nominal"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "#!/usr/bin/env -S cabal run"
+  ""
+  " {-project :"
+  "allow-newer:"
+  "  , *:base"
+  "-}"
+  ""
+  " {-cabal :"
+  "build-depends:"
+  "  , base"
+  "-}"
+  ""
+  "{-# LANGUAGE RoleAnnotations #-}"
+  ""
+  "module Test where"
+  ""
+  "import GHC.TypeNats"
+  ""
+  "newtype Foo n = Foo Int"
+  "_|_type role Foo nominal"
+  ""))
+
 (provide 'attrap-tests)
 
 ;; Local Variables:
