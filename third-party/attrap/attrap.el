@@ -250,6 +250,7 @@ Returns list of triples
     "QuantifiedConstraints"
     "RankNTypes"
     "RecordWildCards"
+    "RoleAnnotations"
     "ScopedTypeVariables"
     "StandaloneDeriving"
     "StandaloneKindSignatures"
@@ -1109,21 +1110,33 @@ then all non-authoritative results from that collection should be ignored."
 
 (defun attrap-skip-shebangs ()
   "Skip #! and -- shebangs used in Haskell scripts."
-  (let ((skip-empty? nil))
+  (let ((do-skip-empty
+         (lambda ()
+           (while (and (not (eobp))
+                       (= (point) (line-end-position)))
+             (forward-line 1)))))
     (when (looking-at-p "#!")
       (forward-line 1)
-      (setf skip-empty? t))
-    (when (looking-at-p "--[ \t]*stack\\>")
-      (forward-line 1)
-      (setf skip-empty? t))
-    (while (and (not (eobp))
+      (skip-whitespace-forward))
+    (let ((continue? t))
+      (while continue?
+        (cond
+          ((looking-at-p "--[ \t]*stack\\>")
+           (forward-line 1)
+           (skip-whitespace-forward))
+          ((looking-at-p "[ \t]*{-[ \t]*\\(?:cabal\\|project\\)[ \t]*:")
+           (goto-char (pseudovim-motion-jump-item-to-pos (point) nil))
+           (when (eq (char-after) ?\})
+             (forward-char))
+           (skip-whitespace-forward))
+          ((and (not (eobp))
                 (looking-at-p "--"))
-      (forward-line 1)
-      (setf skip-empty? t))
-    (when skip-empty?
-      (while (and (not (eobp))
-                  (= (point) (line-end-position)))
-        (forward-line 1)))))
+           (while (and (not (eobp))
+                       (looking-at-p "--"))
+             (forward-line 1))
+           (skip-whitespace-forward))
+          (t
+           (setf continue? nil)))))))
 
 (defun attrap-hlint-fixer (msg pos end)
   "Fixer for any hlint hint given as MSG and reported between POS and END."
