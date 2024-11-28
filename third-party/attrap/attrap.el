@@ -925,74 +925,56 @@ Error is given as MSG and reported between POS and END."
                                                        :is-authoritative? is-authoritative?)))
                                             identifiers)))))
                          source-modules)))
-             '((("GHC.IO.Handle.Text"
-                 "GHC.IO.FD"
-                 "GHC.IO.Handle.FD"
-                 "GHC.IO.StdHandles"
-                 "GHC.IO.Windows.Handle")
-                "System.IO"
-                ("hPutStrLn"
-                 "hPutStr"
-                 "stdin"
-                 "stdout"
-                 "stderr")
-                t)
-               (("GHC.Internal.IO.Handle")
-                "System.IO"
-                ("hFlush")
-                t)
-               (("GHC.Word")
-                "Data.Word"
-                ("Word8"
-                 "Word16"
-                 "Word32"
-                 "Word64")
-                t)
-               (("Prettyprinter.Internal")
-                "Prettyprinter"
-                ;; wildcard
-                t
-                t)
-               (("Basement.Compat.Bifunctor"
-                 "Bifunctor")
-                "Data.Bifunctor"
-                ("Bifunctor"
-                 "bimap")
-                t)
-               (("Data.Generics.Aliases"
-                 "Generics.Deriving.Base.Internal"
-                 "Generics.SOP.Universe")
-                "GHC.Generics"
-                ("Generic")
-                t)
-               (("Data.Bit.Internal")
-                "Data.Bit"
-                ;; wildcard
-                t
-                t)
-               (("GHC.Internal.Unsafe.Coerce")
-                "Unsafe.Coerce"
-                t
-                t)
-               (("GHC.Internal.IO.Unsafe")
-                "System.IO.Unsafe"
-                ("unsafePerformIO"
-                 "unsafeDupablePerformIO"
-                 "unsafeInterleaveIO"
-                 "unsafeFixIO")
-                t)
-               (("GHC.IO")
-                "Control.Exception"
-                ("evaluate")
-                t)
-               (("GHC.Internal.Stack.Types")
-                "GHC.Stack.Types"
-                t
-                t)
-               (("GHC.Internal.Stack")
-                "GHC.Stack"
-                t
-                t))))))
+             (--map
+              ;; Make them all authoritative
+              (append it '(t))
+              (append
+               '((("GHC.IO.Handle.Text"
+                   "GHC.IO.FD"
+                   "GHC.IO.Handle.FD"
+                   "GHC.IO.StdHandles"
+                   "GHC.IO.Windows.Handle")
+                  "System.IO"
+                  ("hPutStrLn"
+                   "hPutStr"
+                   "stdin"
+                   "stdout"
+                   "stderr"))
+                 (("GHC.Internal.IO.Handle")
+                  "System.IO"
+                  ("hFlush"))
+                 (("GHC.Word")
+                  "Data.Word"
+                  ("Word8"
+                   "Word16"
+                   "Word32"
+                   "Word64"))
+                 (("Basement.Compat.Bifunctor"
+                   "Bifunctor")
+                  "Data.Bifunctor"
+                  ("Bifunctor"
+                   "bimap"))
+                 (("Data.Generics.Aliases"
+                   "Generics.Deriving.Base.Internal"
+                   "Generics.SOP.Universe")
+                  "GHC.Generics"
+                  ("Generic"))
+                 (("GHC.Internal.IO.Unsafe")
+                  "System.IO.Unsafe"
+                  ("unsafePerformIO"
+                   "unsafeDupablePerformIO"
+                   "unsafeInterleaveIO"
+                   "unsafeFixIO"))
+                 (("GHC.IO")
+                  "Control.Exception"
+                  ("evaluate")))
+               ;; Wildcards
+               (--map (list (list (car it)) (cdr it) t)
+                      '(("Prettyprinter.Internal" . "Prettyprinter")
+                        ("Data.Bit.Internal" . "Data.Bit")
+                        ("GHC.Internal.Unsafe.Coerce" . "Unsafe.Coerce")
+                        ("GHC.Internal.Stack.Types" . "GHC.Stack.Types")
+                        ("GHC.Internal.Stack" . "GHC.Stack")))))))))
 
 (defun attrap-haskell-import--fix-module-name (identifier mod-name)
   "Returns cons: (NEW-MODULE-NAME IS-AUTHORITATIVE?). If any of the results are authoritative
