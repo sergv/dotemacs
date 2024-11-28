@@ -974,7 +974,8 @@ Error is given as MSG and reported between POS and END."
                         ("Data.Bit.Internal" . "Data.Bit")
                         ("GHC.Internal.Unsafe.Coerce" . "Unsafe.Coerce")
                         ("GHC.Internal.Stack.Types" . "GHC.Stack.Types")
-                        ("GHC.Internal.Stack" . "GHC.Stack")))))))))
+                        ("GHC.Internal.Stack" . "GHC.Stack")
+                        ("Data.Semigroup.Internal" . "Data.Semigroup")))))))))
 
 (defun attrap-haskell-import--fix-module-name (identifier mod-name)
   "Returns cons: (NEW-MODULE-NAME IS-AUTHORITATIVE?). If any of the results are authoritative
