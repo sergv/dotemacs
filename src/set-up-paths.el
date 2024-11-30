@@ -33,7 +33,10 @@
 (defconst +execs-path+ (concat +emacs-config-path+ "/execs")
   "Path to directory with programs executables files.")
 
-(defconst +tmp-global-path+ temporary-file-directory
+(defconst +tmp-global-path+ (fold-platform-os-type (if (equal (getenv "RUNNING_UNDER_NIX") "1")
+                                                       "/tmp"
+                                                     temporary-file-directory)
+                                                   temporary-file-directory)
   "Path to temporary files that are visible across different emacs instances.")
 
 (provide 'set-up-paths)
