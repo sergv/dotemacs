@@ -323,11 +323,15 @@ then Bar would be the result."
            (if (derived-mode-p 'haskell-ts-mode)
                (if-let* ((node (treesit-node-at (point)))
                          (p (treesit-node-parent node)))
-                   (if (equal "operator" (treesit-node-type p))
+                   (if (string= "operator" (treesit-node-type p))
                        (if-let ((p2 (treesit-node-parent p)))
-                           ;; Operator not applied no anything and just being there at toplevel
-                           ;; waiting to be expanded.
-                           (equal "ERROR" (treesit-node-type p2))
+                           (let ((p2-type (treesit-node-type p2)))
+                             (or (string= "ERROR" p2-type)
+                                 (and (string= "infix" p2-type)
+                                      (if-let ((p3 (treesit-node-parent p2)))
+                                          (string= "top_splice" (treesit-node-type p3))
+                                        nil))))
+
                          t)
                      t)
                  t)
@@ -337,8 +341,24 @@ then Bar would be the result."
 (add-to-list 'ivy-re-builders-alist
              '(haskell-abbrev+--insert-pragma . ivy--regex-fuzzy))
 
+(defun haskell-abbrev+--name-of-following-entity ()
+  "Try to find out what’s being defined after point while trying to ignore comments."
+  (save-excursion
+    (skip-whitespace-forward)
+    (when (derived-mode-p 'haskell-ts-mode)
+      (let ((node nil)
+            (continue? t))
+        (while (and continue?
+                    (setf node (treesit-node-at (point)))
+                    (haskell-ts--is-comment-node-type? (treesit-node-type node)))
+          (goto-char (treesit-node-end node))
+          (let ((dist (skip-whitespace-forward)))
+            (when (zerop dist)
+              (setf continue? nil))))))
+    (unless (eobp)
+      (thing-at-point 'haskell-symbol))))
+
 (defun haskell-abbrev+--insert-pragma ()
-  (insert "{-# ")
   (let ((pragma (ivy-read "Pragma: "
                           haskell-completions--pragma-names
                           :predicate nil
@@ -346,24 +366,21 @@ then Bar would be the result."
                           :initial-input nil
                           :history nil
                           :caller 'haskell-abbrev+--insert-pragma)))
-    (insert pragma)
     (cond
       ((string-match-p haskell-regexen/pragma-without-args-re pragma)
-       (insert " #-}"))
+       (insert "{-# " pragma" #-}"))
       ((string-match-p haskell-regexen/language-pragma-name pragma)
-       (yas-expand-snippet " $\{1:\$\$\(yas-choose-value \(get-haskell-language-extensions\)\)\} #-}\$0"))
+       (yas-expand-snippet
+        (concat "{-# " pragma " $\{1:\$\$\(yas-choose-value \(get-haskell-language-extensions\)\)\} #-}\$0")))
       ((string-match-p haskell-regexen/scc-pragma-name pragma)
-       (yas-expand-snippet " \"${1:cost center name}\" #-}\$0"))
+       (yas-expand-snippet
+        (concat "{-# " pragma " \"${1:cost center name}\" #-}\$0")))
       ((string-match-p haskell-regexen/inline-pragmas pragma)
-       (let ((entity (save-excursion
-                       (skip-whitespace-forward)
-                       (unless (eobp)
-                         (thing-at-point 'haskell-symbol)))))
-         (if entity
-             (yas-expand-snippet (concat " ${1:" entity "} #-}$0"))
-           (yas-expand-snippet (concat " $1 #-}$0")))))
+       (if-let ((entity (haskell-abbrev+--name-of-following-entity)))
+           (yas-expand-snippet (concat "{-# " pragma " ${1:" entity "} #-}$0"))
+         (yas-expand-snippet (concat "{-# " pragma " $1 #-}$0"))))
       (t
-       (yas-expand-snippet (concat " $1 #-}$0"))))))
+       (yas-expand-snippet (concat "{-# " pragma " $1 #-}$0"))))))
 
 (defun haskell-abbrev+--get-ghc-flags ()
   (let ((flags (mapcan (lambda (x)
