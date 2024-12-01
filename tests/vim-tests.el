@@ -3563,36 +3563,131 @@ _|_bar")
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-mode haskell-ts-mode)
     vim-tests/haskell-abbrev-1
-    ;; Aborting pragma prompt with <escape> causes 'quit signal to be raised.
-    ;; If we don’t catch it then ert will not proceed to compare buffer contents.
-    (condition-case nil
-        (execute-kbd-macro (kbd "i # # SPC <escape> <escape>"))
-      (quit t))
+    (execute-kbd-macro (kbd "i # # SPC u n p a c k <return>"))
   (tests-utils--multiline
    ""
    "_|_"
    "")
   (tests-utils--multiline
    ""
-   "{-# _|_"
+   "{-# UNPACK #-}_|_"
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-mode haskell-ts-mode)
-    vim-tests/haskell-abbrev-2
-    ;; Aborting pragma prompt with <escape> causes 'quit signal to be raised.
-    ;; If we don’t catch it then ert will not proceed to compare buffer contents.
-    (condition-case nil
-        (execute-kbd-macro (kbd "i SPC <escape> <escape>"))
-      (quit t))
+    vim-tests/haskell-abbrev-2a
+    (execute-kbd-macro (kbd "i # # SPC u n p a c k <return>"))
   (tests-utils--multiline
    ""
-   "##    _|_"
+   "_|_"
+   "foo :: Int -> Int"
+   "foo x = x * x"
    "")
   (tests-utils--multiline
    ""
-   "{-# _|_"
+   "{-# UNPACK #-}_|_"
+   "foo :: Int -> Int"
+   "foo x = x * x"
    ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell-abbrev-2b
+    (execute-kbd-macro (kbd "i # # SPC u n p a c k <return>"))
+  (tests-utils--multiline
+   ""
+   "_|_"
+   "-- | A function with haddoc docs"
+   "foo :: Int -> Int"
+   "foo x = x * x"
+   "")
+  (tests-utils--multiline
+   ""
+   "{-# UNPACK #-}_|_"
+   "-- | A function with haddoc docs"
+   "foo :: Int -> Int"
+   "foo x = x * x"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-abbrev-2c
+    (execute-kbd-macro (kbd "i # # SPC i n l i n e <return> <tab>"))
+  (tests-utils--multiline
+   ""
+   "bar root ="
+   "  myFold"
+   "    Nothing"
+   "    (\\absPath _ _ -> pure (Just absPath))"
+   "    (Just root)"
+   ""
+   "_|_"
+   "-- | A function with haddoc docs"
+   "--"
+   "-- more docs"
+   "foo :: Int -> Int"
+   "foo x = x * x"
+   "")
+  (tests-utils--multiline
+   ""
+   "bar root ="
+   "  myFold"
+   "    Nothing"
+   "    (\\absPath _ _ -> pure (Just absPath))"
+   "    (Just root)"
+   ""
+   "{-# INLINE foo #-}_|_"
+   "-- | A function with haddoc docs"
+   "--"
+   "-- more docs"
+   "foo :: Int -> Int"
+   "foo x = x * x"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-abbrev-2d
+    (execute-kbd-macro (kbd "i # # SPC i n l i n e <return> <tab>"))
+    (tests-utils--multiline
+     ""
+     "_|_"
+     "-- | General form of gathering directory contents."
+     "--"
+     "-- Treats symlinks the same as regular files and directories. Folding functions can"
+     "-- decide how to handle symlinks."
+     "listContentsRecFold"
+     "  :: forall f a. Foldable f"
+     "  => Maybe Int"
+     "  -- ^ Depth limit if specified, negative values treated the same as positive ones."
+     "  -> (OsPath -> Rel OsPath -> Streaming.FileType -> (IO [a] -> IO [a]) -> IO [a] -> IO [a])"
+     "  -- ^ Fold directory by running passed IO action that will scan its contents."
+     "  -- Can ignore the action to avoid traversing the directory."
+     "  -> (OsPath -> Rel OsPath -> Streaming.FileType -> IO (Maybe a))"
+     "  -- ^ What to do with file"
+     "  -> f OsPath"
+     "  -- ^ Roots to search in, either absolute or relative"
+     "  -> IO [a]"
+     "listContentsRecFold depthLimit foldDir filePred = undefined")
+    (tests-utils--multiline
+     ""
+     "{-# INLINE listContentsRecFold #-}_|_"
+     "-- | General form of gathering directory contents."
+     "--"
+     "-- Treats symlinks the same as regular files and directories. Folding functions can"
+     "-- decide how to handle symlinks."
+     "listContentsRecFold"
+     "  :: forall f a. Foldable f"
+     "  => Maybe Int"
+     "  -- ^ Depth limit if specified, negative values treated the same as positive ones."
+     "  -> (OsPath -> Rel OsPath -> Streaming.FileType -> (IO [a] -> IO [a]) -> IO [a] -> IO [a])"
+     "  -- ^ Fold directory by running passed IO action that will scan its contents."
+     "  -- Can ignore the action to avoid traversing the directory."
+     "  -> (OsPath -> Rel OsPath -> Streaming.FileType -> IO (Maybe a))"
+     "  -- ^ What to do with file"
+     "  -> f OsPath"
+     "  -- ^ Roots to search in, either absolute or relative"
+     "  -> IO [a]"
+     "listContentsRecFold depthLimit foldDir filePred = undefined"))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-mode haskell-ts-mode)
@@ -3979,7 +4074,7 @@ _|_bar")
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-mode haskell-ts-mode)
     vim-tests/haskell-abbrev-pragma-3
-    (execute-kbd-macro (kbd "i SPC inline <return> foobar <tab>"))
+    (execute-kbd-macro (kbd "i SPC i n line <return> foobar <tab>"))
   (tests-utils--multiline
    ""
    "##_|_"
@@ -4005,7 +4100,7 @@ _|_bar")
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-mode haskell-ts-mode)
     vim-tests/haskell-abbrev-pragma-5
-    (execute-kbd-macro (kbd "i SPC inl <return> <tab>"))
+    (execute-kbd-macro (kbd "i SPC i n l <return> <tab>"))
   (tests-utils--multiline
    ""
    "##_|_"
@@ -4022,7 +4117,7 @@ _|_bar")
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-mode haskell-ts-mode)
     vim-tests/haskell-abbrev-pragma-5a
-    (execute-kbd-macro (kbd "i SPC inl <return> <tab>"))
+    (execute-kbd-macro (kbd "i SPC i n l <return> <tab>"))
   (tests-utils--multiline
    ""
    "  ##_|_"
@@ -4039,7 +4134,7 @@ _|_bar")
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-mode haskell-ts-mode)
     vim-tests/haskell-abbrev-pragma-5b
-    (execute-kbd-macro (kbd "i SPC inl <return> <tab>"))
+    (execute-kbd-macro (kbd "i SPC i n l <return> <tab>"))
   (tests-utils--multiline
    ""
    "\t\t##_|_"
@@ -4049,6 +4144,136 @@ _|_bar")
   (tests-utils--multiline
    ""
    "\t\t{-# INLINE foo #-}_|_"
+   "foo :: a -> a"
+   "foo x = x"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-abbrev-pragma-5c
+    (execute-kbd-macro (kbd "i SPC i n l <return> <tab>"))
+  (tests-utils--multiline
+   ""
+   "##_|_"
+   "-- Comment"
+   "foo :: a -> a"
+   "foo x = x"
+   "")
+  (tests-utils--multiline
+   ""
+   "{-# INLINE foo #-}_|_"
+   "-- Comment"
+   "foo :: a -> a"
+   "foo x = x"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-abbrev-pragma-5d
+    (execute-kbd-macro (kbd "i SPC i n l <return> <tab>"))
+  (tests-utils--multiline
+   ""
+   "##_|_"
+   "-- Comment 1"
+   "-- Comment 2"
+   "foo :: a -> a"
+   "foo x = x"
+   "")
+  (tests-utils--multiline
+   ""
+   "{-# INLINE foo #-}_|_"
+   "-- Comment 1"
+   "-- Comment 2"
+   "foo :: a -> a"
+   "foo x = x"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-abbrev-pragma-5e
+    (execute-kbd-macro (kbd "i SPC i n l <return> <tab>"))
+  (tests-utils--multiline
+   ""
+   "##_|_"
+   "-- | Haddock docs 1"
+   "foo :: a -> a"
+   "foo x = x"
+   "")
+  (tests-utils--multiline
+   ""
+   "{-# INLINE foo #-}_|_"
+   "-- | Haddock docs 1"
+   "foo :: a -> a"
+   "foo x = x"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-abbrev-pragma-5f
+    (execute-kbd-macro (kbd "i SPC i n l <return> <tab>"))
+  (tests-utils--multiline
+   ""
+   "##_|_"
+   "-- | Haddock docs 1"
+   "-- Haddock docs 2"
+   "foo :: a -> a"
+   "foo x = x"
+   "")
+  (tests-utils--multiline
+   ""
+   "{-# INLINE foo #-}_|_"
+   "-- | Haddock docs 1"
+   "-- Haddock docs 2"
+   "foo :: a -> a"
+   "foo x = x"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-abbrev-pragma-5g
+    (execute-kbd-macro (kbd "i SPC i n l <return> <tab>"))
+  (tests-utils--multiline
+   ""
+   "##_|_"
+   "-- | Haddock docs 1"
+   "-- Haddock docs 2"
+   ""
+   "foo :: a -> a"
+   "foo x = x"
+   "")
+  (tests-utils--multiline
+   ""
+   "{-# INLINE foo #-}_|_"
+   "-- | Haddock docs 1"
+   "-- Haddock docs 2"
+   ""
+   "foo :: a -> a"
+   "foo x = x"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-abbrev-pragma-5h
+    (execute-kbd-macro (kbd "i SPC i n l <return> <tab>"))
+  (tests-utils--multiline
+   ""
+   "##_|_"
+   ""
+   "-- Comment 1"
+   ""
+   "-- Comment 2"
+   ""
+   "foo :: a -> a"
+   "foo x = x"
+   "")
+  (tests-utils--multiline
+   ""
+   "{-# INLINE foo #-}_|_"
+   ""
+   "-- Comment 1"
+   ""
+   "-- Comment 2"
+   ""
    "foo :: a -> a"
    "foo x = x"
    ""))
