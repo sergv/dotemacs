@@ -978,9 +978,10 @@ Error is given as MSG and reported between POS and END."
                 (--map (list (list (car it)) (cdr it) t)
                        '(("Prettyprinter.Internal" . "Prettyprinter")
                          ("Data.Bit.Internal" . "Data.Bit")
-                         ("GHC.Internal.Unsafe.Coerce" . "Unsafe.Coerce")
+                         ("GHC.Internal.Data.Foldable" . "Data.Foldable")
                          ("GHC.Internal.Stack.Types" . "GHC.Stack.Types")
                          ("GHC.Internal.Stack" . "GHC.Stack")
+                         ("GHC.Internal.Unsafe.Coerce" . "Unsafe.Coerce")
                          ("Data.Semigroup.Internal" . "Data.Semigroup"))))))))))
 
 (defun attrap-haskell-import--fix-module-name (identifier mod-name)
