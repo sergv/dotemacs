@@ -55,11 +55,11 @@
 
 (defun yafolding-get-overlays (beg end)
   "Get all overlays between BEG and END."
-  (delq nil
-        (mapcar (lambda (overlay)
-                  (and (memq 'yafolding (overlay-properties overlay))
-                       overlay))
-                (overlays-in beg end))))
+  (let ((res nil))
+    (dolist (ov (overlays-in beg end))
+      (when (memq 'yafolding (overlay-properties ov))
+        (push ov res)))
+    res))
 
 (defun yafolding-should-ignore-current-line-p ()
   "Return if should ignore current line."
