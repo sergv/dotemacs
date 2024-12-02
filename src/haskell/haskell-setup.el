@@ -395,6 +395,8 @@ _<tab>_: reindent  _h_: jump to topmont function/entity end"
 
   (setq-local paredit-forward-sexp-function #'haskell-forward-sexp-no-pairing
 
+              yafolding-empty-line-function #'haskell-on-blank-line?
+
               eproj-symbnav/identifier-type 'haskell-symbol
 
               ;; Improve vim treatment of words for Haskell.
