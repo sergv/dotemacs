@@ -79,13 +79,13 @@
         (forward-line 1)
         (yafolding-get-indent-level))
       (let ((indent-level 0)
-            (last-indentation (current-indentation)))
+            (last-indentation (indentation-size)))
         (save-excursion
-          (while (and (> (current-indentation) 0)
+          (while (and (> (indentation-size) 0)
                       (> (line-number-at-pos) 1))
             (forward-line -1)
-            (when (< (current-indentation) last-indentation)
-              (setq last-indentation (current-indentation))
+            (when (< (indentation-size) last-indentation)
+              (setq last-indentation (indentation-size))
               (setq indent-level (+ 1 indent-level)))))
         indent-level)))
 
@@ -152,7 +152,7 @@ If given, toggle all entries that start at INDENT-LEVEL."
   "Show yafolding information of the current position."
   (interactive)
   (message "indentation: %d, indent level: %d, ingore current line: %s, element-region: %d - %d, (L%d - L%d)"
-           (current-indentation)
+           (indentation-size)
            (yafolding-get-indent-level)
            (yafolding-should-ignore-current-line-p)
            (car (yafolding-get-element-region))
@@ -164,14 +164,14 @@ If given, toggle all entries that start at INDENT-LEVEL."
   "Get '(beg end) of current element."
   (let* ((beg (line-end-position))
          (end beg)
-         (indentation (current-indentation))
+         (indentation (indentation-size))
          (last-line-num (line-number-at-pos (point-max))))
     (save-excursion
       (next-line)
       (goto-char (line-beginning-position))
       (let ((curr-line (line-number-at-pos)))
         (while (and (< curr-line last-line-num)
-                    (or (> (current-indentation) indentation)
+                    (or (> (indentation-size) indentation)
                         (yafolding-should-ignore-current-line-p)))
           (unless (yafolding-should-ignore-current-line-p)
             (setq end (line-end-position)))
@@ -215,7 +215,7 @@ If given, toggle all entries that start at INDENT-LEVEL."
   "Go back to parent element."
   (interactive)
   (re-search-backward (concat "^.\\{,"
-                              (number-to-string (max 0 (- (current-indentation) 1)))
+                              (number-to-string (max 0 (- (indentation-size) 1)))
                               "\\}[^ \t]+")))
 
 (defun yafolding-hide-parent-element ()
