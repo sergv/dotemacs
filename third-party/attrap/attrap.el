@@ -926,11 +926,10 @@ Error is given as MSG and reported between POS and END."
                                             identifiers)))))
                          source-modules)))
              (append
-              '((("GHC.Internal.Control.Exception.Base")
-                 "Control.Exception"
-                 t
-                 ;; Not authoritative
-                 nil))
+              ;; All names, Not authoritative
+              (--map (list (list (car it)) (cdr it) t nil)
+                     '(("GHC.Internal.Control.Exception.Base" . "Control.Exception")
+                       ("GHC.Internal.Data.OldList" . "Data.List")))
               (--map
                ;; Make them all authoritative
                (append it '(t))
@@ -949,6 +948,9 @@ Error is given as MSG and reported between POS and END."
                   (("GHC.Internal.IO.Handle")
                    "System.IO"
                    ("hFlush"))
+                  (("GHC.Internal.Base")
+                   "Control.Monad"
+                   ("when"))
                   (("GHC.Word")
                    "Data.Word"
                    ("Word8"
@@ -978,9 +980,15 @@ Error is given as MSG and reported between POS and END."
                 (--map (list (list (car it)) (cdr it) t)
                        '(("Prettyprinter.Internal" . "Prettyprinter")
                          ("Data.Bit.Internal" . "Data.Bit")
+                         ("GHC.Internal.Control.Monad" . "Control.Monad")
                          ("GHC.Internal.Data.Foldable" . "Data.Foldable")
+                         ("GHC.Internal.Data.Function" . "Data.Function")
+                         ("GHC.Internal.Data.Traversable" . "Data.Traversable")
+                         ("GHC.Internal.Data.Ord" . "Data.Ord")
+                         ("GHC.Internal.Foreign.Storable" . "Foreign.Storable")
                          ("GHC.Internal.Stack.Types" . "GHC.Stack.Types")
                          ("GHC.Internal.Stack" . "GHC.Stack")
+                         ("GHC.Internal.System.Exit" . "System.Exit")
                          ("GHC.Internal.Unsafe.Coerce" . "Unsafe.Coerce")
                          ("Data.Semigroup.Internal" . "Data.Semigroup"))))))))))
 
