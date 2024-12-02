@@ -27,6 +27,8 @@
 
 ;;; Code:
 
+(require 'indentation)
+
 (declare-function discover-add-context-menu "discover")
 
 (defgroup yafolding nil
@@ -61,12 +63,12 @@
         (push ov res)))
     res))
 
-(defun yafolding-should-ignore-current-line-p ()
+(defvar yafolding-empty-line-function #'indent-on-blank-line?
+  "Check whether line with point at 0th column should be considered empty.")
+
+(defsubst yafolding-should-ignore-current-line-p ()
   "Return if should ignore current line."
-  (string-match-p "^[ \t]*$"
-                  (buffer-substring-no-properties
-                   (line-beginning-position)
-                   (line-end-position))))
+  (funcall yafolding-empty-line-function))
 
 (defun yafolding-get-indent-level ()
   "Get the indent level of current line."
