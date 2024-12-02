@@ -156,12 +156,12 @@ If given, toggle all entries that start at INDENT-LEVEL."
            (yafolding-get-indent-level)
            (yafolding-should-ignore-current-line-p)
            (car (yafolding-get-element-region))
-           (car (cdr (yafolding-get-element-region)))
+           (cdr (yafolding-get-element-region))
            (line-number-at-pos (car (yafolding-get-element-region)))
-           (line-number-at-pos (car (cdr (yafolding-get-element-region))))))
+           (line-number-at-pos (cdr (yafolding-get-element-region)))))
 
 (defun yafolding-get-element-region ()
-  "Get '(beg end) of current element."
+  "Get (beg . end) of current element."
   (let* ((beg (line-end-position))
          (end beg)
          (indentation (indentation-size))
@@ -177,14 +177,13 @@ If given, toggle all entries that start at INDENT-LEVEL."
             (setq end (line-end-position)))
           (next-line) ; using next-line instead of forward-line, for issue#23
           (cl-incf curr-line))))
-    (list beg end)))
+    (cons beg end)))
 
 (defun yafolding-hide-element ()
   "Hide current element."
   (interactive)
   (let ((region (yafolding-get-element-region)))
-    (yafolding-hide-region (car region)
-                           (cadr region))))
+    (yafolding-hide-region (car region) (cdr region))))
 
 (defun yafolding-show-element ()
   "Show current element."
