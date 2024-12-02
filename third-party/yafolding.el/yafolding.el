@@ -89,7 +89,7 @@
 
 (defun yafolding-show-region (beg end)
   "Delete all yafolding overlays between BEG and END."
-  (mapcar 'delete-overlay (yafolding-get-overlays beg end)))
+  (mapc #'delete-overlay (yafolding-get-overlays beg end)))
 
 (defun yafolding-show-all ()
   "Delete all yafolding overlays."
