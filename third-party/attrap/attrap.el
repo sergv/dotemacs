@@ -839,7 +839,9 @@ Error is given as MSG and reported between POS and END."
            (rx (or (ghc-error "76037")
                    (seq (ghc-warning "88464") " [-Wdeferred-out-of-scope-variables]"))
                (+ ws)
-               (or (seq "Not in scope: type constructor or class"
+               (or (seq "Not in scope: "
+                        (or "data constructor"
+                            "type constructor or class")
                         (+ ws)
                         (identifier 1)
                         (+ ws))
