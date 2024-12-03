@@ -815,6 +815,57 @@
     (":++:" "/tmp/Test/Foo/Bar.hs" 100 ?t nil))))
 
 (attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/add-import-4aa
+ :flycheck-errors
+ (list
+  (let ((linecol (save-excursion
+                   (re-search-forward "_|_")
+                   (flycheck-line-column-at-pos (point)))))
+    (flycheck-error-new
+     :line (car linecol)
+     :column (cdr linecol)
+     :buffer (current-buffer)
+     :checker 'haskell-dante
+     :message
+     (tests-utils--multiline
+      "error: [GHC-76037]"
+      "    Not in scope: data constructor ‘Foo’")
+     :level 'error
+     :id nil
+     :group nil)))
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Decombobulate"
+  ""
+  "main :: IO ()"
+  "main = do"
+  "  print (\\(_|_Foo y) -> y) $ x"
+  "  pure ()"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Decombobulate"
+  "import Test.Foo.Bar (Bar(Foo))"
+  ""
+  "main :: IO ()"
+  "main = do"
+  "  print (\\(_|_Foo y) -> y) $ x"
+  "  pure ()"
+  "")
+ :eproj-project
+ (attrap-tests-make-ephemeral-haskell-eproj-project
+  '(
+    ;; Tags produced by fast-tags may not contain parent annotation
+    ;; for patterns. But in case they do then this test ensures that
+    ;; everything on the Emacs side will be handled correctly.
+    ("Foo" "/tmp/Test/Foo/Bar.hs" 100 ?p ((parent "Bar" . ?t)))
+    ("Bar" "/tmp/Test/Foo/Bar.hs" 100 ?t nil))))
+
+(attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/add-import-4b
  :flycheck-errors
  (list
