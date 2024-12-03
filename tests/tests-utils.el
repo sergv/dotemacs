@@ -143,6 +143,45 @@ Ensures a final newline is inserted."
                 (treesit-available-p))
      (ert-skip "treesitter not available")))
 
+(defconst tests-utils--modes-and-init
+  '((text-mode (text-mode))
+    (haskell-mode (haskell-mode))
+    (haskell-ts-mode (haskell-ts-mode))
+    (emacs-lisp-mode (emacs-lisp-mode))
+    (rust-mode (rust-mode))
+    (c-mode (c-mode))
+    (sh-mode (sh-mode))))
+
+(cl-defmacro tests-utils--test-buffer-contents-for-inits
+    (&key name inits action contents expected-value buffer-id)
+  (declare (indent 3))
+  (cl-assert (symbolp name) "invalid name: %s" name)
+  `(progn
+     ,@(cl-loop
+        for init in inits
+        collecting
+        (let ((subname (car init))
+              (expr (cdr init)))
+          (cl-assert (symbolp subname))
+          `(ert-deftest ,(string->symbol (format "%s//%s" name subname)) ()
+             (tests-utils--test-buffer-contents
+              :action ,action
+              :contents ,contents
+              :expected-value ,expected-value
+              :initialisation (progn ,@expr)
+              :buffer-id ,buffer-id))))))
+
+(cl-defmacro tests-utils--test-fresh-buffer-contents-init-standard-modes
+    (&key name action contents expected-value buffer-id)
+  (declare (indent 2))
+  `(tests-utils--test-buffer-contents-for-inits
+    :name ,name
+    :inits ,tests-utils--modes-and-init
+    :action ,action
+    :contents ,contents
+    :expected-value ,expected-value
+    :buffer-id ,buffer-id))
+
 (provide 'tests-utils)
 
 ;; Local Variables:
