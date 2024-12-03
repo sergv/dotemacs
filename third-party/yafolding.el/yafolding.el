@@ -46,13 +46,6 @@
   "Text to show in place of a folded block."
   :tag "Ellipsis"
   :type 'string
-  :group 'yafolding
-  )
-
-(defcustom yafolding-show-fringe-marks t
-  "Show fold markers in the fringe?"
-  :tag "Show fringe marks?"
-  :type 'boolean
   :group 'yafolding)
 
 (defun yafolding-get-overlays (beg end)
@@ -134,10 +127,7 @@ If given, toggle all entries that start at INDENT-LEVEL."
   (when (> end beg)
       (yafolding-show-region beg end)
       (let ((before-string
-             (concat
-              (when yafolding-show-fringe-marks
-                (propertize " " 'display '(left-fringe right-triangle)))
-              (yafolding-ellipsis)))
+             (yafolding-ellipsis))
             (new-overlay (make-overlay beg end)))
         (overlay-put new-overlay 'invisible t)
         (overlay-put new-overlay 'intangible t)
