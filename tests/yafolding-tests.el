@@ -55,7 +55,7 @@
 
 (yafolding-tests--region-test-for-modes
  :modes (text-mode haskell-mode haskell-ts-mode)
- :name yafolding-tests/bounds-2a
+ :name yafolding-tests/bounds-2aa
  :contents
  (tests-utils--multiline
   ""
@@ -75,7 +75,25 @@
 
 (yafolding-tests--region-test-for-modes
  :modes (text-mode haskell-mode haskell-ts-mode)
- :name yafolding-tests/bounds-2b
+ :name yafolding-tests/bounds-2ab
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = bar (x * baz x)"
+  "  _|_where"
+  "    bar y = y + y"
+  "    baz z = z + z + z")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = bar (x * baz x)"
+  "  _|_whereXXX"
+  "    bar y = y + y"
+  "    baz z = z + z + zYYY"))
+
+(yafolding-tests--region-test-for-modes
+ :modes (text-mode haskell-mode haskell-ts-mode)
+ :name yafolding-tests/bounds-2ba
  :contents
  (tests-utils--multiline
   ""
@@ -97,7 +115,27 @@
 
 (yafolding-tests--region-test-for-modes
  :modes (text-mode haskell-mode haskell-ts-mode)
- :name yafolding-tests/bounds-2c
+ :name yafolding-tests/bounds-2bb
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x = bar (x * baz x)"
+  "  _|_where"
+  "    bar y = y + y"
+  ""
+  "    baz z = z + z + z")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x = bar (x * baz x)"
+  "  _|_whereXXX"
+  "    bar y = y + y"
+  ""
+  "    baz z = z + z + zYYY"))
+
+(yafolding-tests--region-test-for-modes
+ :modes (text-mode haskell-mode haskell-ts-mode)
+ :name yafolding-tests/bounds-2ca
  :contents
  (tests-utils--multiline
   ""
@@ -119,7 +157,7 @@
 
 (yafolding-tests--region-test-for-modes
  :modes (text-mode haskell-mode haskell-ts-mode)
- :name yafolding-tests/bounds-2d
+ :name yafolding-tests/bounds-2cb
  :contents
  (tests-utils--multiline
   ""
