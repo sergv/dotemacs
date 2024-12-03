@@ -1033,7 +1033,7 @@ then all non-authoritative results from that collection should be ignored."
 (defun attrap-haskell-import--filter-tags-by-type (candidate-tags is-constructor? is-type-or-class?)
   (cond
     (is-constructor?
-     (--filter (eq (eproj-tag/type (cl-second it)) ?C) candidate-tags))
+     (--filter (memq (eproj-tag/type (cl-second it)) '(?C ?p)) candidate-tags))
     (is-type-or-class?
      (--filter (let ((typ (eproj-tag/type (cl-second it))))
                  (or (eq typ ?t)
