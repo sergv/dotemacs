@@ -16,18 +16,9 @@
 (require 'vim-search)
 (require 'ert)
 
-(defconst vim-tests--modes-and-init
-  '((text-mode (text-mode))
-    (haskell-mode (haskell-mode))
-    (haskell-ts-mode (haskell-ts-mode))
-    (emacs-lisp-mode (emacs-lisp-mode))
-    (rust-mode (rust-mode))
-    (c-mode (c-mode))
-    (sh-mode (sh-mode))))
-
 (defconst vim-tests--all-known-modes-and-init
   (cons '(haskell-hsc-mode (haskell-hsc-mode))
-        vim-tests--modes-and-init))
+        tests-utils--modes-and-init))
 
 (defmacro vim-tests--enable-undo (&rest body)
   `(let ((buffer-undo-list nil))
@@ -88,23 +79,15 @@
 
 (defmacro vim-tests--test-fresh-buffer-contents-init-all (name inits action contents expected-value)
   (declare (indent 3))
-  (cl-assert (symbolp name) "invalid name: %s" name)
-  `(progn
-     ,@(cl-loop
-         for init in inits
-         collecting
-         (let ((subname (car init))
-               (expr (cdr init)))
-           (cl-assert (symbolp subname))
-           `(ert-deftest ,(string->symbol (format "%s//%s" name subname)) ()
-              (tests-utils--test-buffer-contents
-               :action ,action
-               :contents ,contents
-               :expected-value ,expected-value
-               :initialisation (progn ,@expr)
-               ;; Don’t reuse buffer to start out in fresh environment each time and don’t
-               ;; share things like last cmd events, etc.
-               :buffer-id nil))))))
+  `(tests-utils--test-buffer-contents-for-inits
+    :name ,name
+    :inits ,inits
+    :action ,action
+    :contents ,contents
+    :expected-value ,expected-value
+    ;; Don’t reuse buffer to start out in fresh environment each time and don’t
+    ;; share things like last cmd events, etc.
+    :buffer-id nil))
 
 ;; Text mode has surprising bindings for <tab>. It doesn’t really matter
 ;; day to day but breaks tests significantly without much benefit testingwise.
@@ -114,7 +97,7 @@
   (cl-assert (cl-every #'symbolp skip-modes))
   `(vim-tests--test-fresh-buffer-contents-init-all
        ,name
-       ,(--remove (memq (car it) skip-modes) vim-tests--modes-and-init)
+       ,(--remove (memq (car it) skip-modes) tests-utils--modes-and-init)
        ,action
      ,contents
      ,expected-value))
@@ -134,7 +117,7 @@
   (declare (indent 2))
   `(vim-tests--test-fresh-buffer-contents-init-all
        ,name
-       ,vim-tests--modes-and-init
+       ,tests-utils--modes-and-init
        ,action
      ,contents
      ,expected-value))
@@ -149,7 +132,7 @@
               (action (cadr entry)))
           `(vim-tests--test-fresh-buffer-contents-init-all
             ,name
-            ,vim-tests--modes-and-init
+            ,tests-utils--modes-and-init
             ,action
             ,contents
             ,expected-value)))))
