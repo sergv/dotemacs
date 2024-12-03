@@ -379,6 +379,46 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/replace-3
+ :flycheck-errors
+ (list
+  (let ((linecol (save-excursion
+                   (re-search-forward "_|_")
+                   (flycheck-line-column-at-pos (point)))))
+    (flycheck-error-new
+     :line (car linecol)
+     :column (cdr linecol)
+     :buffer (current-buffer)
+     :checker 'haskell-dante
+     :message
+     (tests-utils--multiline
+      "error: [GHC-76037]"
+      "    Not in scope: data constructor ‘SocketType’"
+      "    Suggested fix:"
+      "      Perhaps use ‘DirInternals.SocketType’ (imported from System.Posix.Directory.Internals)")
+     :level 'error
+     :id nil
+     :group nil)))
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo typ = do  "
+  "  case typ of"
+  "    UnknownType -> getFileType $ coerce path"
+  "    _|_SocketType -> pure Other"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo typ = do  "
+  "  case typ of"
+  "    UnknownType -> getFileType $ coerce path"
+  "    _|_DirInternals.SocketType -> pure Other"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/add-binding-1
  :flycheck-errors
  (list
