@@ -7,9 +7,11 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'cl-lib))
+  (require 'cl-lib)
+  (require 'dash))
 
 (require 'common)
+(require 'dash)
 (require 'el-patch)
 (require 'ert)
 
@@ -154,7 +156,6 @@ Ensures a final newline is inserted."
 
 (cl-defmacro tests-utils--test-buffer-contents-for-inits
     (&key name inits action contents expected-value buffer-id)
-  (declare (indent 3))
   (cl-assert (symbolp name) "invalid name: %s" name)
   `(progn
      ,@(cl-loop
@@ -162,21 +163,41 @@ Ensures a final newline is inserted."
         collecting
         (let ((subname (car init))
               (expr (cdr init)))
-          (cl-assert (symbolp subname))
+          (cl-assert (symbolp subname) nil "Invalid subname: %s" subname)
           `(ert-deftest ,(string->symbol (format "%s//%s" name subname)) ()
              (tests-utils--test-buffer-contents
               :action ,action
               :contents ,contents
               :expected-value ,expected-value
               :initialisation (progn ,@expr)
-              :buffer-id ,buffer-id))))))
+              :buffer-id ,(let ((tmp nil))
+                            (cond
+                              ((functionp buffer-id)
+                               (funcall buffer-id subname))
+                              ((and (consp buffer-id)
+                                    (eq 'function (car buffer-id))
+                                    (functionp (setf tmp (eval buffer-id))))
+                               (funcall tmp subname))
+                              ((symbolp buffer-id)
+                               buffer-id)
+                              (t
+                               (error "Invalid buffer-id: ‘%s’" buffer-id))))))))))
 
 (cl-defmacro tests-utils--test-fresh-buffer-contents-init-standard-modes
     (&key name action contents expected-value buffer-id)
-  (declare (indent 2))
   `(tests-utils--test-buffer-contents-for-inits
     :name ,name
     :inits ,tests-utils--modes-and-init
+    :action ,action
+    :contents ,contents
+    :expected-value ,expected-value
+    :buffer-id ,buffer-id))
+
+(cl-defmacro tests-utils--test-buffer-contents-init-only-modes
+    (&key select-modes name action contents expected-value buffer-id)
+  `(tests-utils--test-buffer-contents-for-inits
+    :name ,name
+    :inits ,(--filter (memq (car it) select-modes) tests-utils--modes-and-init)
     :action ,action
     :contents ,contents
     :expected-value ,expected-value
