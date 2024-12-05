@@ -154,7 +154,8 @@ If given, toggle all entries that start at INDENT-LEVEL."
   "Get (beg . end) of current element."
   (let* ((beg (line-end-position))
          (end beg)
-         (indentation (indentation-size)))
+         (indentation (indentation-size))
+         (buffer-invisibility-spec nil))
     (save-excursion
       (forward-line 1)
       (goto-char (line-beginning-position))
