@@ -134,32 +134,33 @@
   (setcdr it #'ivy-sort-file-function-prioritise-visible-dirs))
 
 (defun ivy-sort-file-function-prioritise-visible-dirs (x y)
-  "Compare two files X and Y.
-Prioritize directories unless they're invisible."
+  "Compare two paths X and Y, intended for sorting.
+Puts directories before files unless they're invisible."
   (if (= 0 (length x))
       (not (= 0 (length y)))
-    (let* ((x-dir? (directory-name-p x))
-           (y-dir? (directory-name-p y))
-           (x-visible? (and (< 0 (length x))
-                            (not (char-equal ?. (aref x 0)))))
-           (y-visible? (and (< 0 (length y))
-                            (not (char-equal ?. (aref y 0)))))
-           (cmp-dir
-            (lambda ()
-              (if x-dir?
-                  (if y-dir?
-                      (string< (directory-file-name x) (directory-file-name y))
-                    t)
-                (if y-dir?
-                    nil
-                  (string< x y))))))
+    (let ((x-visible? (and (< 0 (length x))
+                           (not (char-equal ?. (aref x 0)))))
+          (y-visible? (and (< 0 (length y))
+                           (not (char-equal ?. (aref y 0))))))
       (if x-visible?
           (if y-visible?
-              (funcall cmp-dir)
+              (ivy-sort-file-function-prioritise-visible-dirs--compare-dirs x y)
             t)
         (if y-visible?
             nil
-          (funcall cmp-dir))))))
+          (ivy-sort-file-function-prioritise-visible-dirs--compare-dirs x y))))))
+
+(defun ivy-sort-file-function-prioritise-visible-dirs--compare-dirs (x y)
+  "Worker for ‘ivy-sort-file-function-prioritise-visible-dirs’."
+  (let ((x-dir? (directory-name-p x))
+        (y-dir? (directory-name-p y)))
+    (if x-dir?
+        (if y-dir?
+            (string< (directory-file-name x) (directory-file-name y))
+          t)
+      (if y-dir?
+          nil
+        (string< x y)))))
 
 (def-keys-for-map ivy-minibuffer-map
   (("C-h" "<C-up>")   ivy-next-history-element)
