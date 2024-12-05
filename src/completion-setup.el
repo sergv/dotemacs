@@ -138,8 +138,8 @@
 Prioritize directories unless they're invisible."
   (if (= 0 (length x))
       (not (= 0 (length y)))
-    (let* ((x-dir? (file-directory-p x))
-           (y-dir? (file-directory-p y))
+    (let* ((x-dir? (directory-name-p x))
+           (y-dir? (directory-name-p y))
            (x-visible? (and (< 0 (length x))
                             (not (char-equal ?. (aref x 0)))))
            (y-visible? (and (< 0 (length y))
