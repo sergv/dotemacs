@@ -2043,7 +2043,7 @@ Directories come first."
                  (error (directory-files
                          dir nil directory-files-no-dot-files-regexp))))))
     (when sort-fn
-      (setq seq (sort seq sort-fn)))
+      (setq seq (sort seq :lessp sort-fn :in-place t)))
     (dolist (extra ivy-extra-directories)
       (push extra seq))
     (if (string= dir "/")
