@@ -125,7 +125,6 @@ If given, toggle all entries that start at INDENT-LEVEL."
 (defun yafolding-hide-region (beg end)
   "Hide region between BEG and END."
   (when (> end beg)
-      (yafolding-show-region beg end)
       (let ((before-string
              (yafolding-ellipsis))
             (new-overlay (make-overlay beg end)))
