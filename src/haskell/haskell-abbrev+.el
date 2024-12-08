@@ -17,6 +17,7 @@
 (require 'haskell-misc)
 (require 'haskell-snippets)
 (require 's)
+(require 'treesit-utils)
 (require 'trie)
 (require 'v)
 
@@ -318,25 +319,48 @@ then Bar would be the result."
        (trie-opt-recover-sharing!
         (trie-from-list (list (cons (s-reverse "instance") t))))))))
 
-(defun haskell-abbrev+--only-whitespace-till-line-start-and-not-operator? ()
-  (or (and (haskell-abbrev+--only-whitespace-till-line-start?)
-           (if (derived-mode-p 'haskell-ts-mode)
-               (if-let* ((node (treesit-node-at (point)))
-                         (p (treesit-node-parent node)))
-                   (if (string= "operator" (treesit-node-type p))
-                       (if-let ((p2 (treesit-node-parent p)))
-                           (let ((p2-type (treesit-node-type p2)))
-                             (or (string= "ERROR" p2-type)
-                                 (and (string= "infix" p2-type)
-                                      (if-let ((p3 (treesit-node-parent p2)))
-                                          (string= "top_splice" (treesit-node-type p3))
-                                        nil))))
+(defun haskell-abbrev+--within-data-type? ()
+  "Check that we’re within \"fields\" part of a \"data_type\"."
+  (when-let
+      ((fields-node
+        (treesit-utils-find-topmost-parent-stop-at-first
+         (treesit-haskell--current-node)
+         (lambda (x)
+           (when (equal "fields" (treesit-node-type x))
+             x)))))
+    (treesit-utils-find-topmost-parent-stop-at-first
+     fields-node
+     (lambda (x)
+       (equal "data_type" (treesit-node-type x))))))
 
-                         t)
-                     t)
-                 t)
-             t))
-      (haskell-abbrev+--after-instance-keyword?)))
+;; Check that either
+;; 1. And
+;;    a. There’s only whitespace till line start
+;;    b. We’re not within operator
+;; 2. We’re after instance keyword
+;; 3. We’re within datatype
+(defun haskell-abbrev+--should-insert-pragma? ()
+  (let ((is-haskell-ts? (derived-mode-p 'haskell-ts-mode)))
+    (or (and (haskell-abbrev+--only-whitespace-till-line-start?)
+             (if is-haskell-ts?
+                 (if-let* ((node (treesit-node-at (point)))
+                           (p (treesit-node-parent node)))
+                     (if (string= "operator" (treesit-node-type p))
+                         (if-let ((p2 (treesit-node-parent p)))
+                             (let ((p2-type (treesit-node-type p2)))
+                               (or (string= "ERROR" p2-type)
+                                   (and (string= "infix" p2-type)
+                                        (if-let ((p3 (treesit-node-parent p2)))
+                                            (string= "top_splice" (treesit-node-type p3))
+                                          nil))))
+
+                           t)
+                       t)
+                   t)
+               t))
+        (haskell-abbrev+--after-instance-keyword?)
+        (when is-haskell-ts?
+          (haskell-abbrev+--within-data-type?)))))
 
 (add-to-list 'ivy-re-builders-alist
              '(haskell-abbrev+--insert-pragma . ivy--regex-fuzzy))
@@ -441,7 +465,7 @@ then Bar would be the result."
                    :followed-by-space t
                    :action-type 'function-with-side-effects
                    :action-data #'haskell-abbrev+--insert-pragma
-                   :predicate #'haskell-abbrev+--only-whitespace-till-line-start-and-not-operator?))
+                   :predicate #'haskell-abbrev+--should-insert-pragma?))
             (cons (list "#scc"
                         "##scc"
                         "# scc"
