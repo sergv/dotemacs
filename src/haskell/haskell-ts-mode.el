@@ -165,10 +165,13 @@
        (:pred haskell-ts-mode--name-not-within-infix? @haskell-type-face))
 
       ;; constructor
-      ([(constructor) (unit) (list "[" !element "]") (constructor_operator)] @haskell-constructor-face)
-
+      (((constructor) @haskell-constructor-face)
+       (:pred haskell-ts-mode--name-not-within-infix? @haskell-constructor-face))
       ((qualified (module) @haskell-type-face
-                  [(constructor) (constructor_operator)] @haskell-constructor-face))
+                  [(constructor) (constructor_operator)] @haskell-constructor-face)
+       (:pred haskell-ts-mode--name-not-within-infix? @haskell-constructor-face))
+
+      ([(unit) (list "[" !element "]") (constructor_operator)] @haskell-constructor-face)
 
       ;; strictness
       ([(strict_field "!") (strict "!")] @haskell-ts-mode--fontify-bang)
