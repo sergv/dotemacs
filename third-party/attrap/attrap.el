@@ -947,12 +947,6 @@ Error is given as MSG and reported between POS and END."
                     "stdin"
                     "stdout"
                     "stderr"))
-                  (("GHC.Internal.IO.Handle")
-                   "System.IO"
-                   ("hFlush"))
-                  (("GHC.Internal.Base")
-                   "Control.Monad"
-                   ("when"))
                   (("GHC.Word")
                    "Data.Word"
                    ("Word8"
@@ -969,6 +963,33 @@ Error is given as MSG and reported between POS and END."
                     "Generics.SOP.Universe")
                    "GHC.Generics"
                    ("Generic"))
+
+                  (("GHC.Internal.ForeignPtr")
+                   "Foreign.ForeignPtr"
+                   ("ForeignPtr"
+                    "FinalizerPtr"
+                    "FinalizerEnvPtr"
+                    "newForeignPtr"
+                    "newForeignPtr_"
+                    "addForeignPtrFinalizer"
+                    "newForeignPtrEnv"
+                    "addForeignPtrFinalizerEnv"
+                    "withForeignPtr"
+                    "finalizeForeignPtr"
+                    "touchForeignPtr"
+                    "castForeignPtr"
+                    "plusForeignPtr"
+                    "mallocForeignPtr"
+                    "mallocForeignPtrBytes"
+                    "mallocForeignPtrArray"
+                    "mallocForeignPtrArray0"))
+
+                  (("GHC.Internal.Base")
+                   "Control.Monad"
+                   ("when"))
+                  (("GHC.Internal.IO.Handle")
+                   "System.IO"
+                   ("hFlush"))
                   (("GHC.Internal.IO.Unsafe")
                    "System.IO.Unsafe"
                    ("unsafePerformIO"
@@ -982,6 +1003,7 @@ Error is given as MSG and reported between POS and END."
                 (--map (list (list (car it)) (cdr it) t)
                        '(("Prettyprinter.Internal" . "Prettyprinter")
                          ("Data.Bit.Internal" . "Data.Bit")
+                         ("GHC.Internal.Conc.Sync" . "Control.Concurrent")
                          ("GHC.Internal.Control.Monad" . "Control.Monad")
                          ("GHC.Internal.Data.Foldable" . "Data.Foldable")
                          ("GHC.Internal.Data.Function" . "Data.Function")
