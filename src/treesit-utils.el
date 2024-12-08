@@ -43,6 +43,17 @@
                             (error "Unexpected offset: ‘%s’" ,offset-var)))))
          ,@body))))
 
+(defun treesit-utils-find-topmost-parent-stop-at-first (node pred)
+  (let ((result nil)
+        (p node)
+        (continue? t))
+    (while (and continue? p)
+      (when (funcall pred p)
+        (setf result p
+              continue? nil))
+      (setf p (treesit-node-parent p)))
+    result))
+
 (provide 'treesit-utils)
 
 ;; Local Variables:
