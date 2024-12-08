@@ -378,6 +378,48 @@ not checked."
    ("default"       nil))
   :fresh-buffer t)
 
+(fontification-tests--test-ts-fontification
+    haskell-ts-mode/fontification-8a
+  :modes (haskell-ts-mode)
+  :contents
+  (tests-utils--multiline
+   ""
+   "foo :: Int -> Int"
+   "foo = (`Foo` 100)"
+   "")
+  :fontification
+  (("foo"           nil)
+   ("::"            haskell-operator-face)
+   ("Int"           haskell-type-face)
+   ("->"            haskell-operator-face)
+   ("Int"           haskell-type-face)
+   ("foo"           nil)
+   ("="             haskell-operator-face)
+   ("`Foo`"         haskell-operator-face)
+   ("100"           font-lock-constant-face))
+  :fresh-buffer t)
+
+(fontification-tests--test-ts-fontification
+    haskell-ts-mode/fontification-8b
+  :modes (haskell-ts-mode)
+  :contents
+  (tests-utils--multiline
+   ""
+   "foo :: Int -> Int"
+   "foo = (100 `Bar.Baz.Foo`)"
+   "")
+  :fontification
+  (("foo"           nil)
+   ("::"            haskell-operator-face)
+   ("Int"           haskell-type-face)
+   ("->"            haskell-operator-face)
+   ("Int"           haskell-type-face)
+   ("foo"           nil)
+   ("="             haskell-operator-face)
+   ("100"           font-lock-constant-face)
+   ("`Bar.Baz.Foo`" haskell-operator-face))
+  :fresh-buffer t)
+
 (provide 'fontification-tests)
 
 ;; Local Variables:
