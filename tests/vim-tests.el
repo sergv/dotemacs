@@ -4337,6 +4337,50 @@ _|_bar")
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-abbrev-pragma--expands-in-data-1a
+    (execute-kbd-macro (kbd "i SPC u n p a c k <return>"))
+  (tests-utils--multiline
+   ""
+   "data DirStream = DirStream"
+   "  { dsHandle   :: ##_|_ !Raw.DirStream"
+   "  , dsIsClosed :: !Counter"
+   "  , dsPath     :: OsPath"
+   "  }"
+   "")
+  (tests-utils--multiline
+   ""
+   "data DirStream = DirStream"
+   "  { dsHandle   :: {-# UNPACK #-}_|_ !Raw.DirStream"
+   "  , dsIsClosed :: !Counter"
+   "  , dsPath     :: OsPath"
+   "  }"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-mode haskell-ts-mode)
+    vim-tests/haskell-abbrev-pragma--expands-in-data-1b
+    (execute-kbd-macro (kbd "i SPC u n p a c k <return>"))
+  (tests-utils--multiline
+   ""
+   "data DirStream = DirStream"
+   "  { dsHandle   ::"
+   "      ##_|_ !Raw.DirStream"
+   "  , dsIsClosed :: !Counter"
+   "  , dsPath     :: OsPath"
+   "  }"
+   "")
+  (tests-utils--multiline
+   ""
+   "data DirStream = DirStream"
+   "  { dsHandle   ::"
+   "      {-# UNPACK #-}_|_ !Raw.DirStream"
+   "  , dsIsClosed :: !Counter"
+   "  , dsPath     :: OsPath"
+   "  }"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-mode haskell-ts-mode)
     vim-tests/haskell-insert-quote-1
     (execute-kbd-macro (kbd "i '"))
