@@ -1969,8 +1969,16 @@ under version-control directories."
                   programs))
          (deps-flags `("--only-dependencies"
                        "--dependencies-only"))
+         (ghc-flags '("-w"
+                      "--with-compiler"
+                      "--with-hc-pkg"))
+         (constraints-flags '("--constraint"
+                              "--preference"))
+         (project-file-flags
+          '(("--project-file" (pcmpl-haskell-cabal-project-file))))
          (configure-flags `(,@help-verbosity-flags
                             ,@builddir-flags
+                            ,@ghc-flags
                             "-g"
                             "--ghc"
                             ;; "--nhc98"
@@ -1978,9 +1986,7 @@ under version-control directories."
                             ;; "--lhc"
                             ;; "--hugs"
                             "--uhc"
-                            "-w"
-                            "--with-compiler"
-                            "--with-hc-pkg"
+                            ,@ghc-flags
                             (("--prefix"
                               "--bindir"
                               "--libdir"
@@ -2057,8 +2063,7 @@ under version-control directories."
                              (pcmpl-dirs))
                             ,@program-options-flags
                             "--cabal-lib-version"
-                            "--constraint"
-                            "--preference"
+                            ,@constraints-flags
                             ,@fetch-flags
                             ,@solver-flags
                             "--allow-older"
@@ -2094,7 +2099,7 @@ under version-control directories."
                             "-j"
                             "--jobs"
                             "--offline"
-                            ("--project-file" (pcmpl-haskell-cabal-project-file)))))
+                            ,@project-file-flags)))
     `(or
       ("install"
        (opts
@@ -2239,7 +2244,14 @@ under version-control directories."
            ("hc-pkg")
            ("list-sources")))
       ("copy")
-      ("haddock")
+      ("haddock"
+       (opts
+        (flags ,@help-verbosity-flags
+               ,@builddir-flags
+               ,@ghc-flags
+               ,@constraints-flags
+               ,@project-file-flags))
+       (args (pcomplete-here '("all"))))
       ("clean"
        (opts
         (flags
