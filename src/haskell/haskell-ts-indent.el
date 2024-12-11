@@ -160,11 +160,17 @@
               ((string= "tuple" curr-type)
                (throw 'term prev1))
               ((haskell-ts--is-standalone-node? curr)
-               (if (or (string= "let" curr-type)
-                       (string= "let_in" curr-type))
-                   (when prev2
-                     (throw 'term prev2))
-                 (throw 'term curr)))))
+               (cond
+                 ((string= "match" curr-type)
+                  (if-let ((expr (treesit-node-child-by-field-name curr "expression")))
+                      (throw 'term expr)
+                    (throw 'term curr)))
+                 ((or (string= "let" curr-type)
+                      (string= "let_in" curr-type))
+                  (when prev2
+                    (throw 'term prev2)))
+                 (t
+                  (throw 'term curr))))))
           (setq prev2 prev1
                 prev1 curr
                 curr (treesit-node-parent curr)))))))

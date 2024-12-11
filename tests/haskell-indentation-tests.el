@@ -496,6 +496,50 @@
   "foo = undefined"))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-apply-14a
+ :contents
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo x = bar + 1"
+  "  where"
+  "    bar"
+  "      = decombobulate"
+  "            _|_frobnicator"
+  "      $ x"
+  )
+ :expected-value
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo x = bar + 1"
+  "  where"
+  "    bar"
+  "      = decombobulate"
+  "          _|_frobnicator"
+  "      $ x"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-apply-14b
+ :contents
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo x = bar + 1"
+  "  where"
+  "    bar"
+  "      = decombobulate x"
+  "            _|_frobnicator"
+  "      $ x"
+  )
+ :expected-value
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo x = bar + 1"
+  "  where"
+  "    bar"
+  "      = decombobulate x"
+  "          _|_frobnicator"
+  "      $ x"))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-comment-1
  :contents
  (tests-utils--multiline
