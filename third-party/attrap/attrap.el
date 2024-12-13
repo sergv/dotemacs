@@ -936,14 +936,21 @@ Error is given as MSG and reported between POS and END."
                ;; Make them all authoritative
                (append it '(t))
                (append
-                '((("GHC.IO.Handle.Text"
-                    "GHC.IO.FD"
+                '((("GHC.IO.FD"
                     "GHC.IO.Handle.FD"
+                    "GHC.IO.Handle.Text"
                     "GHC.IO.StdHandles"
-                    "GHC.IO.Windows.Handle")
+                    "GHC.IO.Windows.Handle"
+                    "GHC.Internal.IO.FD"
+                    "GHC.Internal.IO.Handle"
+                    "GHC.Internal.IO.Handle.FD"
+                    "GHC.Internal.IO.Handle.Text"
+                    "GHC.Internal.IO.StdHandles"
+                    "GHC.Internal.IO.Windows.Handle")
                    "System.IO"
                    ("hPutStrLn"
                     "hPutStr"
+                    "hFlush"
                     "stdin"
                     "stdout"
                     "stderr"))
@@ -987,9 +994,6 @@ Error is given as MSG and reported between POS and END."
                   (("GHC.Internal.Base")
                    "Control.Monad"
                    ("when"))
-                  (("GHC.Internal.IO.Handle")
-                   "System.IO"
-                   ("hFlush"))
                   (("GHC.Internal.IO.Unsafe")
                    "System.IO.Unsafe"
                    ("unsafePerformIO"
