@@ -96,7 +96,7 @@ otherwise the command for starting repl will be inferred."
                (proc (get-buffer-process buf)))
       (when (and (buffer-live-p buf)
                  (process-live-p proc))
-        (kill-process proc)))
+        (delete-process proc)))
 
     (let ((repl-buf (get-buffer-create buf-name)))
       (condition-case err
