@@ -217,6 +217,14 @@ the function."
                          exp))))
         (t exp)))
 
+(defun treesit--named-children (node)
+  "Get all children of NODE along with their names, return list of (NAME . CHILD) pairs."
+  (cl-loop
+   for i from 0 below (treesit-node-child-count node)
+   collect
+   (cons (treesit-node-field-name-for-child node i)
+         (treesit-node-child node i))))
+
 ;; Debug indentation:
 ;; treesit--indent-verbose
 
