@@ -931,7 +931,8 @@ Error is given as MSG and reported between POS and END."
               ;; All names, Not authoritative
               (--map (list (list (car it)) (cdr it) t nil)
                      '(("GHC.Internal.Control.Exception.Base" . "Control.Exception")
-                       ("GHC.Internal.Data.OldList" . "Data.List")))
+                       ("GHC.Internal.Data.OldList" . "Data.List")
+                       ("GHC.Internal.Float" . "GHC.Float")))
               (--map
                ;; Make them all authoritative
                (append it '(t))
