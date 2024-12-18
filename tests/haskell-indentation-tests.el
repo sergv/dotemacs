@@ -1823,6 +1823,189 @@
   "       )"
   "foo = undefined"))
 
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-guard-1a
+ :contents
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo x = bar + 1"
+  "  where"
+  "    bar"
+  "       _|_| cond1 = 1"
+  "      | cond2 = 2")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo x = bar + 1"
+  "  where"
+  "    bar"
+  "      _|_| cond1 = 1"
+  "      | cond2 = 2"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-guard-1b
+ :contents
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo x = bar + 1"
+  "  where"
+  "    bar"
+  "      | cond1 = 1"
+  "       _|_| cond2 = 2")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo x = bar + 1"
+  "  where"
+  "    bar"
+  "      | cond1 = 1"
+  "      _|_| cond2 = 2"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-guard-1c
+ :contents
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo x = bar + 1"
+  "  where"
+  "    bar"
+  "      | cond1 = 1"
+  "      -- Comment"
+  "       _|_| cond2 = 2")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo x = bar + 1"
+  "  where"
+  "    bar"
+  "      | cond1 = 1"
+  "      -- Comment"
+  "      _|_| cond2 = 2"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-guard-1d
+ :contents
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo x = bar + 1"
+  "  where"
+  "    bar"
+  "      | cond1"
+  "      = 1"
+  "      -- Comment"
+  "       _|_| cond2"
+  "      = 2")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo x = bar + 1"
+  "  where"
+  "    bar"
+  "      | cond1"
+  "      = 1"
+  "      -- Comment"
+  "      _|_| cond2"
+  "      = 2"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-guard-1e
+ :contents
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo x = bar + 1"
+  "  where"
+  "    bar"
+  "      -- Comment"
+  "      | cond1"
+  "      = 1"
+  "      -- Comment"
+  "       _|_| cond2"
+  "      = 2")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo x = bar + 1"
+  "  where"
+  "    bar"
+  "      -- Comment"
+  "      | cond1"
+  "      = 1"
+  "      -- Comment"
+  "      _|_| cond2"
+  "      = 2"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-guard-2a
+ :contents
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo x = bar + 1"
+  "  where"
+  "    bar _|_| cond1 = 1"
+  "      | cond2 = 2")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo x = bar + 1"
+  "  where"
+  "    bar _|_| cond1 = 1"
+  "      | cond2 = 2"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-guard-2b
+ :contents
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo x = bar + 1"
+  "  where"
+  "    bar | cond1 = 1"
+  "      _|_| cond2 = 2")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo x = bar + 1"
+  "  where"
+  "    bar | cond1 = 1"
+  "        _|_| cond2 = 2"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-guard-2c
+ :contents
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo x = bar + 1"
+  "  where"
+  "    bar | cond1 = 1"
+  "        -- Comment"
+  "      _|_| cond2 = 2")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo x = bar + 1"
+  "  where"
+  "    bar | cond1 = 1"
+  "        -- Comment"
+  "        _|_| cond2 = 2"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-guard-2d
+ :contents
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo x = bar + 1"
+  "  where"
+  "        bar | cond1 = 1"
+  "            -- Comment"
+  "                    _|_| cond2 = 2")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo x = bar + 1"
+  "  where"
+  "        bar | cond1 = 1"
+  "            -- Comment"
+  "            _|_| cond2 = 2"))
+
 (provide 'haskell-indentation-tests)
 
 ;; Local Variables:
