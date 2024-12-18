@@ -344,6 +344,31 @@
           (setf prev curr
                 curr (treesit-node-parent curr)))))))
 
+(defun haskell-ts-indent--first-guard-or-parent (node parent bol)
+  (let ((bind-node parent))
+    (cl-assert (string= "bind" (treesit-node-type bind-node)))
+    (let ((first-match nil)
+          (continue? t)
+          (i 0)
+          (children-count (treesit-node-child-count bind-node)))
+      (while (and continue?
+                  (< i children-count))
+        (let ((child (treesit-node-child bind-node i)))
+          (when (and (string= "match" (treesit-node-field-name-for-child bind-node i))
+                     (string= "match" (treesit-node-type child)))
+            (setf continue? nil
+                  first-match child)))
+        (setf i (+ i 1)))
+      (if first-match
+          (if (equal node first-match)
+              bind-node
+            (progn
+              (cl-assert (string= "match" (treesit-node-type first-match)))
+              (let ((pipe-node (treesit-node-child first-match 0)))
+                (cl-assert (string= "|" (treesit-node-type pipe-node)))
+                pipe-node)))
+        bind-node))))
+
 (defconst haskell-ts-indent-rules
   (eval-when-compile
     (let ((rules
@@ -471,34 +496,14 @@
              ((parent-is "local_binds" "instance_declarations") haskell-ts-indent--prev-sib 0)
              ((node-is "where") parent haskell-indent-offset)
 
-             ;; Match
-             ;; ((match "match" nil 2 2 nil) haskell-ts-indent--prev-sib 0)
-             ((lambda (node _ _)
-                (and (string= (treesit-node-type node) "match")
-                     (let ((pos 3)
-                           (n node)
-                           (ch (lambda () )))
-                       (while (and (not (null n))
-                                   (not (eq pos 0)))
-                         (setq n (treesit-node-prev-sibling n))
-                         (unless (string= "comment" (treesit-node-type n))
-                           (setq pos (- pos 1))))
-                       (and (null n) (eq pos 0)))))
-              parent
-              haskell-indent-offset)
-             ;; ((match "match" nil nil 3 nil) haskell-ts-indent--prev-sib 0)
-             ((lambda (node _ _)
-                (and (string= (treesit-node-type node) "match")
-                     (let ((pos 4)
-                           (n node)
-                           (ch (lambda () )))
-                       (while (and (not (null n))
-                                   (not (eq pos 0)))
-                         (setq n (treesit-node-prev-sibling n))
-                         (unless (string= "comment" (treesit-node-type n))
-                           (setq pos (- pos 1))))
-                       (eq pos 0))))
-              haskell-ts-indent--prev-sib 0)
+             ((n-p-gp "match" "bind" nil)
+              haskell-ts-indent--first-guard-or-parent
+              ,(lambda (node parent bol)
+                 (lambda (matched-anchor)
+                   (if (string= "|" (treesit-node-type matched-anchor))
+                       0
+                     haskell-indent-offset))))
+
              ((parent-is "match")
               haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function
               haskell-indent-offset)
