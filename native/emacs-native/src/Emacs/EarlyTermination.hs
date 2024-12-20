@@ -41,9 +41,9 @@ instance Pretty EarlyTermination where
 processInputDelayMicroseconds :: Int
 processInputDelayMicroseconds = 100_000
 
-{-# INLINE mkDelay #-}
-mkDelay :: MonadBase IO m => m (TVar Bool)
-mkDelay = liftBase (registerDelay processInputDelayMicroseconds)
+{-# INLINE newDelay #-}
+newDelay :: MonadBase IO m => m (TVar Bool)
+newDelay = liftBase (registerDelay processInputDelayMicroseconds)
 
 {-# INLINE runWithEarlyTermination #-}
 runWithEarlyTermination
@@ -66,8 +66,8 @@ runWithEarlyTermination doWork =
             Left () ->
               processInput >>= \case
                 ProcessInput.Quit     -> throwM EarlyTermination
-                ProcessInput.Continue -> go =<< mkDelay
-    go =<< mkDelay
+                ProcessInput.Continue -> go =<< newDelay
+    go =<< newDelay
 
 {-# INLINE consumeTMQueueWithEarlyTermination #-}
 -- | Interleave reading from TMQueue and checking 'processInput'.
@@ -83,19 +83,19 @@ consumeTMQueueWithEarlyTermination
   -> (b -> a -> m s b)
   -> m s b
 consumeTMQueueWithEarlyTermination !source !initState f =
-  go initState =<< mkDelay
+  go initState =<< newDelay
   where
     go :: b -> TVar Bool -> m s b
-    go !acc delayVar = do
-      res <- liftBase $ atomically $
-        (Left <$> (readTVar delayVar >>= check)) `orElse` (Right <$> readTMQueue source)
-      case res of
-        Right Nothing  -> pure acc
-        Right (Just a) -> do
-          acc' <- f acc a
-          go acc' delayVar
-        Left () ->
-          processInput >>= \case
-            ProcessInput.Quit     -> throwM EarlyTermination
-            ProcessInput.Continue -> go acc =<< mkDelay
+    go !initAcc delayVar = go' initAcc
+      where
+        go' !acc = do
+          res <- liftBase $ atomically $
+            (Left <$> (readTVar delayVar >>= check)) `orElse` (Right <$> readTMQueue source)
+          case res of
+            Right Nothing  -> pure acc
+            Right (Just a) -> go' =<< f acc a
+            Left () ->
+              processInput >>= \case
+                ProcessInput.Quit     -> throwM EarlyTermination
+                ProcessInput.Continue -> go acc =<< newDelay
 
