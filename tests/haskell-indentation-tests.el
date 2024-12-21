@@ -750,6 +750,33 @@
   "  in decombobulate"))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-let-5
+ :contents
+ (tests-utils--multiline
+  "tests :: TestTree"
+  "tests = testGroup \"Data.Filesystem.Grep.Tests\""
+  "  [ testCase \"grep 1\" $ do"
+  "      pwd <- getCurrentDirectory"
+  "      let expected = MatchEntry"
+  "           _|_{"
+  "           }"
+  "      xs  <- grep' pwd \"module Data.Filesystem.Grep.Tests\" [\"*.hs\"] False dummyIgnores"
+  "      checkEqual xs [expected]"
+  "  ]")
+ :expected-value
+ (tests-utils--multiline
+  "tests :: TestTree"
+  "tests = testGroup \"Data.Filesystem.Grep.Tests\""
+  "  [ testCase \"grep 1\" $ do"
+  "      pwd <- getCurrentDirectory"
+  "      let expected = MatchEntry"
+  "            _|_{"
+  "           }"
+  "      xs  <- grep' pwd \"module Data.Filesystem.Grep.Tests\" [\"*.hs\"] False dummyIgnores"
+  "      checkEqual xs [expected]"
+  "  ]"))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-record-1a
  :contents
  (tests-utils--multiline
