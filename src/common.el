@@ -329,6 +329,15 @@ structure like this (:arg1 value1 :arg2 value2 ... :argN valueN)"
       (puthash (car item) (cdr item) table))
     table))
 
+(defun alist->hash-table-with (comb alist &optional cmp)
+  "Translate alist of (<key> . <value>) pairs into hash-table."
+  (declare (pure t) (side-effect-free t))
+  (let ((table (make-hash-table :test (or cmp #'equal))))
+    (dolist (item alist)
+      (let ((key (car item)))
+        (puthash key (funcall comb (cdr item) (gethash key table)) table)))
+    table))
+
 (defun hash-table->alist (table)
   "Translate hash table into alist of (<key> . <value>) pairs."
   (declare (pure t) (side-effect-free t))
