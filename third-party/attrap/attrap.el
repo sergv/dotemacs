@@ -904,7 +904,16 @@ Error is given as MSG and reported between POS and END."
 
 (defconst attrap--module-name-fixes
   (eval-when-compile
-    (alist->hash-table
+    (alist->hash-table-with
+     (lambda (x y)
+       (cond
+         ((and (hash-table-p x)
+               (hash-table-p y))
+          (hash-table-merge x y))
+         ((null y)
+          x)
+         (t
+          (error "Cannot combine ‘%s’ and ‘%s’" x y))))
      (mapcan (lambda (x)
                (let ((source-modules (car x))
                      (target-module (cadr x))
@@ -994,16 +1003,55 @@ Error is given as MSG and reported between POS and END."
 
                   (("GHC.Internal.Base")
                    "Control.Monad"
-                   ("when"))
+                   ("when"
+                    "unless"))
+                  (("GHC.Internal.Base")
+                   "Data.List.NonEmpty"
+                   ("NonEmpty"))
+                  (("GHC.Internal.Base")
+                   "Data.Char"
+                   ("ord"))
+                  (("GHC.Internal.Base")
+                   "GHC.Base"
+                   ("unsafeChr"))
+                  (("GHC.Internal.Char")
+                   "Data.Char"
+                   ("chr"))
+                  (("GHC.Internal.Int")
+                   "Data.Int"
+                   ("Int8"
+                    "Int16"
+                    "Int32"
+                    "Int64"))
                   (("GHC.Internal.IO.Unsafe")
                    "System.IO.Unsafe"
                    ("unsafePerformIO"
                     "unsafeDupablePerformIO"
                     "unsafeInterleaveIO"
                     "unsafeFixIO"))
+                  (("GHC.Internal.Word")
+                   "Data.Word"
+                   ("Word"
+                    "Word8"
+                    "Word16"
+                    "Word32"
+                    "Word64"))
                   (("GHC.IO")
                    "Control.Exception"
-                   ("evaluate")))
+                   ("evaluate"))
+
+                  (("Data.ByteString.Internal.Type")
+                   "Data.ByteString"
+                   ("ByteString"))
+                  (("Data.ByteString.Short.Internal")
+                   "Data.ByteString.Short"
+                   ("ShortByteString"))
+                  (("Data.Map.Internal")
+                   "Data.Map.Strict"
+                   ("Map"))
+                  (("Data.Text.Internal")
+                   "Data.Text"
+                   ("Text")))
                 ;; Wildcards
                 (--map (list (list (car it)) (cdr it) t)
                        '(("Prettyprinter.Internal" . "Prettyprinter")
@@ -1012,6 +1060,7 @@ Error is given as MSG and reported between POS and END."
                          ("GHC.Internal.Control.Monad" . "Control.Monad")
                          ("GHC.Internal.Data.Foldable" . "Data.Foldable")
                          ("GHC.Internal.Data.Function" . "Data.Function")
+                         ("GHC.Internal.Data.Functor.Identity" . "Data.Functor.Identity")
                          ("GHC.Internal.Data.Traversable" . "Data.Traversable")
                          ("GHC.Internal.Data.Ord" . "Data.Ord")
                          ("GHC.Internal.Foreign.Storable" . "Foreign.Storable")
