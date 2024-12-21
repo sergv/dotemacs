@@ -2006,6 +2006,48 @@
   "            -- Comment"
   "            _|_| cond2 = 2"))
 
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-do-1a
+ :contents
+ (tests-utils--multiline
+  "tests :: TestTree"
+  "tests = testGroup \"Data.Filesystem.Grep.Tests\""
+  "  [ testCase \"grep 1\" $ do"
+  "      _|_pwd <- getCurrentDirectory"
+  "      xs  <- grep' pwd \"module Data.Filesystem.Grep.Tests\" [\"*.hs\"] False dummyIgnores"
+  "      checkEqual xs [todo]"
+  "  ]")
+ :expected-value
+ (tests-utils--multiline
+  "tests :: TestTree"
+  "tests = testGroup \"Data.Filesystem.Grep.Tests\""
+  "  [ testCase \"grep 1\" $ do"
+  "      _|_pwd <- getCurrentDirectory"
+  "      xs  <- grep' pwd \"module Data.Filesystem.Grep.Tests\" [\"*.hs\"] False dummyIgnores"
+  "      checkEqual xs [todo]"
+  "  ]"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-do-1b
+ :contents
+ (tests-utils--multiline
+  "tests :: TestTree"
+  "tests = testGroup \"Data.Filesystem.Grep.Tests\""
+  "  [ testCase \"grep 1\" $ do"
+  "     _|_pwd <- getCurrentDirectory"
+  "      xs  <- grep' pwd \"module Data.Filesystem.Grep.Tests\" [\"*.hs\"] False dummyIgnores"
+  "      checkEqual xs [todo]"
+  "  ]")
+ :expected-value
+ (tests-utils--multiline
+  "tests :: TestTree"
+  "tests = testGroup \"Data.Filesystem.Grep.Tests\""
+  "  [ testCase \"grep 1\" $ do"
+  "      _|_pwd <- getCurrentDirectory"
+  "      xs  <- grep' pwd \"module Data.Filesystem.Grep.Tests\" [\"*.hs\"] False dummyIgnores"
+  "      checkEqual xs [todo]"
+  "  ]"))
+
 (provide 'haskell-indentation-tests)
 
 ;; Local Variables:
