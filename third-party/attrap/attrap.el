@@ -388,7 +388,8 @@ value is a list which is appended to the result of
                    (not (= (line-beginning-position)
                            (line-end-position))))
           (insert-char ?\n))
-        (haskell-align-language-pragmas start)))))
+        (haskell-align-language-pragmas start)))
+    (message "Added %s" pragma)))
 
 (defmacro attrap-insert-language-pragma (pragma)
   `(attrap-option (list 'use-extension ,pragma)
