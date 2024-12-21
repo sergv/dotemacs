@@ -368,6 +368,15 @@ returns true for key and value."
              table)
     result))
 
+(defun hash-table-merge (table-main table-aux)
+  "Add all entries from TABLE-AUX into TABLE-MAIN."
+  (declare (pure nil) (side-effect-free nil))
+  (let ((new (copy-hash-table table-main)))
+    (maphash (lambda (k v)
+               (puthash k v new))
+             table-aux)
+    new))
+
 (defun hash-table-merge! (table-main table-aux)
   "Add all entries from TABLE-AUX into TABLE-MAIN."
   (declare (pure nil) (side-effect-free nil))
