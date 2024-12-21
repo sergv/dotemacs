@@ -103,7 +103,7 @@
             not
             list))))
 
-(defun haskell-ts-indent--standalone-non-infix-parent--generic (node parent bol support-functions? support-field-update?)
+(defun haskell-ts-indent--standalone-non-infix-parent--generic (node parent bol support-functions? support-field-update? return-list-child?)
   (save-excursion
     (let ((prev2 nil)
           (prev1 node)
@@ -154,9 +154,12 @@
                           curr
                           prev1)))))
             (cond
-              ((or (string= "parens" curr-type)
-                   (string= "list" curr-type))
+              ((string= "parens" curr-type)
                (throw 'term curr))
+              ((string= "list" curr-type)
+               (throw 'term (if return-list-child?
+                                prev1
+                              curr)))
               ((string= "tuple" curr-type)
                (throw 'term prev1))
               ((haskell-ts--is-standalone-node? curr)
@@ -176,13 +179,16 @@
                 curr (treesit-node-parent curr)))))))
 
 (defun haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update (node parent bol)
-  (haskell-ts-indent--standalone-non-infix-parent--generic node parent bol t t))
+  (haskell-ts-indent--standalone-non-infix-parent--generic node parent bol t t nil))
 
 (defun haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function (node parent bol)
-  (haskell-ts-indent--standalone-non-infix-parent--generic node parent bol t nil))
+  (haskell-ts-indent--standalone-non-infix-parent--generic node parent bol t nil nil))
 
 (defun haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update (node parent bol)
-  (haskell-ts-indent--standalone-non-infix-parent--generic node parent bol nil t))
+  (haskell-ts-indent--standalone-non-infix-parent--generic node parent bol nil t nil))
+
+(defun haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update-no-list (node parent bol)
+  (haskell-ts-indent--standalone-non-infix-parent--generic node parent bol nil t t))
 
 (defun haskell-ts-indent--get-record-or-fields-open-brace (node)
   (cl-assert (member (treesit-node-type node) '("record" "fields")))
@@ -470,7 +476,7 @@
              ;;  haskell-indent-offset)
              ;; ((parent-is "do") haskell-ts-indent--prev-sib 0)
 
-             ((parent-is "do") haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update haskell-indent-offset)
+             ((parent-is "do") haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update-no-list haskell-indent-offset)
 
 
              ((node-is "alternatives")
