@@ -11,6 +11,9 @@
 
 (require 'comp nil t)
 
+(let ((load-path (cons (file-name-directory load-file-name) load-path)))
+  (require 'recompile-init))
+
 (defconst +ignored-files-re+
   (rx (or "yafolding.el/features/support/env.el"
           "yafolding.el/features/step-definitions/yafolding-steps.el"

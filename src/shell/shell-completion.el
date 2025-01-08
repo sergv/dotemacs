@@ -20,6 +20,8 @@
 (require 'pcomplete)
 ;; (require 'json)
 
+(require 'shell-completion-ghc-flags)
+
 ;;;; Utilities
 
 ;; Use this to debug completion functions
@@ -1289,40 +1291,6 @@ under version-control directories."
 (defpcmpl pcomplete/runhaskell
   (opts
    (args (pcmpl-haskell-source-or-obj-files))))
-
-;;;###autoload (autoload 'pcomplete-ghc-flags "shell-completion" nil)
-(defvar pcomplete-ghc-flags
-  (eval-when-compile
-    (let* ((known-options '(("--show-iface" (pcmpl-haskell-hi-files))
-                            (("--exclude-module" "-dep-makefile" "-o") (pcmpl-entries))
-                            (("-i" "-I" "-L" "--dumpdir" "-hidir" "-odir" "-outputdir" "-stubdir" "-tmpdir" "-working-dir") (pcmpl-dirs))
-                            (("-package-db" "-package-env") (pcmpl-entries-ignoring-common))
-                            ("-dth-dec-file" (pcmpl-entries))
-                            "-v"
-                            "-v1"
-                            "-v2"
-                            "-v3"
-                            "-O"
-                            "-O1"
-                            "-O0"
-                            "-O2"
-                            "-fdiagnostics-color=always"
-                            "-fdiagnostics-color=auto"
-                            "-fdiagnostics-color=never"))
-           (known-options-names
-            (--mapcat (if (stringp it)
-                          (list (seq-take-while (lambda (c) (not (eq c ?=))) it))
-                        (let ((fst (car it)))
-                          (if (stringp fst)
-                              (list fst)
-                            fst)))
-                      known-options))
-           (known-options-names-ht (alist->hash-table (--map (cons it t) known-options-names))))
-      (append known-options
-              (if (executable-find "ghc")
-                  (--filter (not (gethash it known-options-names-ht))
-                            (process-lines "ghc" "--show-options"))
-                (error "The ‘ghc’ executable was not found, cannot query it for the list of options it supports"))))))
 
 ;;;###autoload (autoload 'pcomplete/ghc "shell-completion" nil t)
 (defpcmpl pcomplete/ghc
