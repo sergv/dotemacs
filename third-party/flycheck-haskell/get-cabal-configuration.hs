@@ -35,7 +35,16 @@ module Main (main) where
 
 #if defined(GHC_INCLUDES_VERSION_MACRO)
 
-# if MIN_VERSION_Cabal(3, 8, 0)
+# if MIN_VERSION_Cabal(3, 14, 0)
+#  define Cabal314OrLater 1
+#  define Cabal38OrLater 1
+#  define Cabal36OrLater 1
+#  define Cabal32OrLater 1
+#  define Cabal30OrLater 1
+#  define Cabal24OrLater 1
+#  define Cabal22OrLater 1
+#  define Cabal20OrLater 1
+# elif MIN_VERSION_Cabal(3, 8, 0)
 #  define Cabal38OrLater 1
 #  define Cabal36OrLater 1
 #  define Cabal32OrLater 1
@@ -238,6 +247,10 @@ import Distribution.ParseUtils (locatedErrorMsg)
 
 #if defined(Cabal30OrLater)
 import Distribution.Types.LibraryName (libraryNameString)
+#endif
+
+#if defined(Cabal314OrLater)
+import Distribution.Utils.Path (SymbolicPathX)
 #endif
 
 #if defined(Cabal36OrLater)
@@ -473,7 +486,7 @@ getComponents packageName pkgDescr =
   , let bi = foreignLibBuildInfo flib
   ] ++
 #endif
-  [ (CTExecutable, C8.pack (exeName' exe), Just (C8.pack (modulePath exe)), biMods bi, hsSourceDirs' bi)
+  [ (CTExecutable, C8.pack (exeName' exe), Just (getSymbolicPath' (modulePath exe)), biMods bi, hsSourceDirs' bi)
   | exe <- executables pkgDescr
   , let bi = buildInfo exe
   ] ++
@@ -481,7 +494,7 @@ getComponents packageName pkgDescr =
   | tst <- testSuites pkgDescr
   , let bi = testBuildInfo tst
   , let (exeFile, extraMod) = case testInterface tst of
-          TestSuiteExeV10 _ path  -> (Just (C8.pack path), Nothing)
+          TestSuiteExeV10 _ path  -> (Just (getSymbolicPath' path), Nothing)
           TestSuiteLibV09 _ modName -> (Nothing, Just modName)
           TestSuiteUnsupported{}  -> (Nothing, Nothing)
   ]
@@ -491,7 +504,7 @@ getComponents packageName pkgDescr =
   | tst <- benchmarks pkgDescr
   , let bi = benchmarkBuildInfo tst
   , let exeFile = case benchmarkInterface tst of
-          BenchmarkExeV10 _ path -> Just (C8.pack path)
+          BenchmarkExeV10 _ path -> Just (getSymbolicPath' path)
           BenchmarkUnsupported{} -> Nothing
   ]
 #endif
@@ -506,6 +519,18 @@ getComponents packageName pkgDescr =
 #else
     biMods = otherModules
 #endif
+
+
+#if defined(Cabal314OrLater)
+getSymbolicPath' :: SymbolicPathX a b c -> C8.ByteString
+getSymbolicPath' = C8.pack . getSymbolicPath
+#endif
+
+#if !defined(Cabal314OrLater)
+getSymbolicPath' :: String -> C8.ByteString
+getSymbolicPath' = C8.pack
+#endif
+
 
 libSignatures :: Library -> [ModuleName]
 libSignatures =
