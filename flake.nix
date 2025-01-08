@@ -14,13 +14,15 @@
 
           stdenv = pkgs.stdenv;
 
+          cc = stdenv.cc.cc;
+
           # hpkgs = pkgs.haskell.packages.ghc961;
       in {
         devShell = pkgs.mkShell {
 
           nativeBuildInputs = [
             # pkgs.tree-sitter
-            pkgs.gcc
+            cc
             pkgs.libgccjit
             # pkgs.nodejs
             #hpkgs.ghc
@@ -37,7 +39,7 @@
 
           # For native compilation
           LIBRARY_PATH=
-            "${pkgs.lib.makeLibraryPath [stdenv.cc.cc pkgs.glibc]}:${pkgs.lib.getLib pkgs.libgccjit}/lib/gcc/${stdenv.hostPlatform.config}/${pkgs.lib.getVersion stdenv.cc.cc}";
+            "${pkgs.lib.makeLibraryPath [cc pkgs.glibc]}:${pkgs.lib.getLib pkgs.libgccjit}/lib/gcc/${stdenv.hostPlatform.config}/${pkgs.lib.getVersion cc}";
 
 
             # ${pkgs.lib.getVersion pkgs.stdenv.cc.cc}
