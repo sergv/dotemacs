@@ -314,6 +314,7 @@
     "static"
     "static"
     "strong-flags"
+    "store-dir"
     "subdir"
     "tag"
     "test-options"
