@@ -215,7 +215,7 @@
                               (eproj-project/root proj)
                               (eproj-thunk-get-value project-files-thunk)
                               (current-buffer))
-    (prog1 (funcall parse-tags-proc (eproj-project/root proj) (current-buffer))
+    (prog1 (funcall parse-tags-proc (eproj-project/root proj) (current-buffer) nil)
       (erase-buffer))))
 
 (defvar eproj/languages
@@ -592,21 +592,21 @@ cache tags in."
                        (if (file-exists-p tag-file)
                            (with-temp-buffer
                              (insert-file-contents-literally tag-file)
-                             (funcall parse-tags-procedure (eproj-project/root proj) (current-buffer)))
+                             (funcall parse-tags-procedure (eproj-project/root proj) (current-buffer) tag-file))
                          (funcall create-tags-procedure
                                   proj
                                   project-files-thunk
-                                  (lambda (proj-root buf)
+                                  (lambda (proj-root buf tags-source)
                                     (with-current-buffer buf
                                       (write-region (point-min) (point-max) tag-file)
-                                      (funcall parse-tags-procedure proj-root buf)))))))
+                                      (funcall parse-tags-procedure proj-root buf tags-source)))))))
                     ((eproj-project/tag-file proj)
                      (let ((tag-file (or (eproj-project/tag-file proj)
                                          (eproj/tag-file-name proj mode))))
                        (if (file-exists-p tag-file)
                            (with-temp-buffer
                              (insert-file-contents-literally tag-file)
-                             (funcall parse-tags-procedure (eproj-project/root proj) (current-buffer)))
+                             (funcall parse-tags-procedure (eproj-project/root proj) (current-buffer) tag-file))
                          (error "The specified tag file does not exist and create-cache-files was not specified in the .eproj-info: %s"
                                 tag-file))))
                     (t
