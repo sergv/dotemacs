@@ -11,7 +11,7 @@ set -u
 set -o pipefail
 set -e
 
-if [[ "${RUNNING_UNDER_NIX:-0}" != 1 ]] && which nix 2>/dev/null; then
+if [[ -z "${IN_NIX_SHELL-}" ]] && which nix 2>/dev/null; then
     echo "Building via nix"
     exec nix develop --no-warn-dirty --command "$0"
 fi
