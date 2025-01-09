@@ -156,9 +156,10 @@
 
 ;; tags parsing
 ;;;###autoload
-(defun eproj/ctags-get-tags-from-buffer (proj-root buffer)
+(defun eproj/ctags-get-tags-from-buffer (proj-root buffer tags-source)
   "Constructs hash-table of (tag . eproj-tag) bindings extracted from buffer BUFFER.
 BUFFER is expected to contain output of ctags command."
+  (declare (ignore tags-source))
   (with-current-buffer buffer
     (save-match-data
       (goto-char (point-min))
