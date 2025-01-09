@@ -52,7 +52,7 @@
                      (with-current-buffer out-buffer
                        (buffer-substring-no-properties (point-min) (point-max)))))
             (erase-buffer))))
-        (funcall parse-tags-proc (eproj-project/root proj) out-buffer))))))
+        (funcall parse-tags-proc (eproj-project/root proj) out-buffer nil))))))
 
 ;;;###autoload
 (defun eproj/create-haskell-vim-tags (proj project-files-thunk parse-tags-proc)
@@ -75,13 +75,14 @@
      "-")))
 
 ;;;###autoload
-(defun eproj/get-fast-tags-vim-tags-from-buffer (proj-root buffer)
+(defun eproj/get-fast-tags-vim-tags-from-buffer (proj-root buffer tags-source)
   "Constructs hash-table of (tag . eproj-tag) bindings extracted from buffer BUFFER.
 BUFFER is expected to contain simplified output of ctags - fast-tags command.
 
 Function does not attempt to parse <key>=<value> pairs after ;\",
 and expects single character there instead (this isn't be checked at
 runtime but rather will be silently relied on)."
+  (declare (ignore tags-source))
   (with-current-buffer buffer
     (save-match-data
       (goto-char (point-min))
@@ -127,7 +128,7 @@ runtime but rather will be silently relied on)."
         tags-index))))
 
 ;;;###autoload
-(defun eproj/get-fast-tags-compact-tags-from-buffer (proj-root buffer)
+(defun eproj/get-fast-tags-compact-tags-from-buffer (proj-root buffer tags-source)
   "Constructs hash-able of (tag . eproj-tag) bindings extracted from buffer BUFFER.
 BUFFER is expected to contain simplified output of ctags - fast-tags command.
 
@@ -138,10 +139,14 @@ runtime but rather will be silently relied on)."
     (save-match-data
       (goto-char (point-min))
       (let ((tags-index (empty-eproj-tag-index))
-            (data (read (current-buffer)))
+            (data (condition-case err
+                      (read (current-buffer))
+                    (error
+                     (if tags-source
+                         (error "Failed to parse tags from %s" tags-source)
+                       (signal (car err) (cdr err))))))
             (file-name-cache (eproj-normalise-file-name-expand-cached/make-cache))
             (sharing-cache (eproj-ctags--make-sharing-cache)))
-
         (dolist (entry data)
           (let* ((filename (car entry))
                  (tags (cdr entry))
