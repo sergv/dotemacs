@@ -136,55 +136,57 @@ Function does not attempt to parse <key>=<value> pairs after ;\",
 and expects single character there instead (this isn't be checked at
 runtime but rather will be silently relied on)."
   (with-current-buffer buffer
-    (save-match-data
-      (goto-char (point-min))
-      (let ((tags-index (empty-eproj-tag-index))
-            (data (condition-case err
-                      (read (current-buffer))
-                    (error
-                     (if tags-source
-                         (error "Failed to parse tags from %s" tags-source)
-                       (signal (car err) (cdr err))))))
-            (file-name-cache (eproj-normalise-file-name-expand-cached/make-cache))
-            (sharing-cache (eproj-ctags--make-sharing-cache)))
-        (dolist (entry data)
-          (let* ((filename (car entry))
-                 (tags (cdr entry))
-                 (file (eproj-ctags--share
-                        (eproj-normalise-file-name-expand-cached/with-explicit-cache
-                         file-name-cache
-                         filename
-                         proj-root)
-                        sharing-cache)))
-            (dolist (tag tags)
-              (let* ((line (car tag))
-                     (tag2 (cdr tag))
-                     (symbol (car tag2))
-                     (tag3 (cdr tag2)))
-                (if (consp tag3)
-                    (let* ((type (car tag3))
-                           (tag4 (cdr tag3))
-                           ;; (parent-name (car tag4))
-                           ;; (tag5 (cdr tag4))
-                           ;; (parent-type (car tag5))
-                           )
+    (if (= 0 (buffer-size))
+        (empty-eproj-tag-index)
+      (save-match-data
+        (goto-char (point-min))
+        (let ((tags-index (empty-eproj-tag-index))
+              (data (condition-case err
+                        (read (current-buffer))
+                      (error
+                       (if tags-source
+                           (error "Failed to parse tags from %s" tags-source)
+                         (signal (car err) (cdr err))))))
+              (file-name-cache (eproj-normalise-file-name-expand-cached/make-cache))
+              (sharing-cache (eproj-ctags--make-sharing-cache)))
+          (dolist (entry data)
+            (let* ((filename (car entry))
+                   (tags (cdr entry))
+                   (file (eproj-ctags--share
+                          (eproj-normalise-file-name-expand-cached/with-explicit-cache
+                           file-name-cache
+                           filename
+                           proj-root)
+                          sharing-cache)))
+              (dolist (tag tags)
+                (let* ((line (car tag))
+                       (tag2 (cdr tag))
+                       (symbol (car tag2))
+                       (tag3 (cdr tag2)))
+                  (if (consp tag3)
+                      (let* ((type (car tag3))
+                             (tag4 (cdr tag3))
+                             ;; (parent-name (car tag4))
+                             ;; (tag5 (cdr tag4))
+                             ;; (parent-type (car tag5))
+                             )
+                        (eproj-tag-index-add! symbol
+                                              file
+                                              line
+                                              type
+                                              ;; tag4 is (cons <parent-name> <parent-type>)
+                                              ;; <parent-name> is string
+                                              ;; <parent-type> is character, same as regular type
+                                              (list (cons 'parent tag4))
+                                              tags-index))
+                    (let ((type tag3))
                       (eproj-tag-index-add! symbol
                                             file
                                             line
                                             type
-                                            ;; tag4 is (cons <parent-name> <parent-type>)
-                                            ;; <parent-name> is string
-                                            ;; <parent-type> is character, same as regular type
-                                            (list (cons 'parent tag4))
-                                            tags-index))
-                  (let ((type tag3))
-                    (eproj-tag-index-add! symbol
-                                          file
-                                          line
-                                          type
-                                          nil
-                                          tags-index)))))))
-        tags-index))))
+                                            nil
+                                            tags-index)))))))
+          tags-index)))))
 
 ;;;###autoload
 (defun eproj/haskell-tag-kind (tag)
