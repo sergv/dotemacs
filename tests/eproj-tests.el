@@ -625,7 +625,7 @@ foo3	%s	102	;\"	z
       test-filename
       test-filename)
      tags-index
-     (eproj/ctags-get-tags-from-buffer test-root (current-buffer))
+     (eproj/ctags-get-tags-from-buffer test-root (current-buffer) (format "buffer %s" (current-buffer)))
      (should-not (= 0 (eproj-tag-index-size tags-index)))
 
      (let ((tag1 (car-safe (eproj-tag-index-get "foo1" tags-index))))
@@ -667,7 +667,7 @@ foo3	%s	102	;\"	z
       test-filename
       test-filename)
      tags-index
-     (eproj/get-fast-tags-vim-tags-from-buffer test-root (current-buffer))
+     (eproj/get-fast-tags-vim-tags-from-buffer test-root (current-buffer) (format "buffer %s" (current-buffer)))
      (should-not (= 0 (eproj-tag-index-size tags-index)))
 
      (let ((tag1 (car-safe (eproj-tag-index-get "foo1" tags-index))))
@@ -706,7 +706,7 @@ foo3	%s	102	;\"	z
       test-filename
       test-filename)
      tags-index
-     (eproj/get-fast-tags-vim-tags-from-buffer nil (current-buffer))
+     (eproj/get-fast-tags-vim-tags-from-buffer nil (current-buffer) (format "buffer %s" (current-buffer)))
      (should-not (= 0 (eproj-tag-index-size tags-index)))
 
      (let ((tag1 (car-safe (eproj-tag-index-get "foo1" tags-index))))
@@ -744,7 +744,7 @@ test	%s	102	;\"	f
       test-filename
       test-filename)
      tags-index
-     (eproj/get-fast-tags-vim-tags-from-buffer nil (current-buffer))
+     (eproj/get-fast-tags-vim-tags-from-buffer nil (current-buffer) (format "buffer %s" (current-buffer)))
      (should-not (= 0 (eproj-tag-index-size tags-index)))
 
      (let ((type-tag (car-safe (eproj-tag-index-get "Identity" tags-index))))
