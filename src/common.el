@@ -431,12 +431,12 @@ main table and value in aux table."
 (defsubst file-modification-time (filename)
   "Return latest modification time of file FILENAME."
   (declare (pure nil) (side-effect-free t))
-  (nth 5 (file-attributes filename 'integer)))
+  (file-attribute-modification-time (file-attributes filename 'integer)))
 
 (defsubst file-size (filename)
   "Return size of file FILENAME."
   (declare (pure nil) (side-effect-free t))
-  (nth 7 (file-attributes filename 'integer)))
+  (file-attribute-size (file-attributes filename 'integer)))
 
 (if (executable-find "cmp")
     (defun different-files-fast? (file1 file2)
