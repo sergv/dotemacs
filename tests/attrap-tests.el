@@ -164,6 +164,61 @@
   "_|_"
   ""))
 
+(attrap-tests--test-buffer-contents-many
+ :name attrap/haskell-dante/delete-module-import-1a
+ :flycheck-errors
+ (list
+  (let ((linecol (save-excursion
+                   (re-search-forward "_|_")
+                   (flycheck-line-column-at-pos (point)))))
+    (flycheck-error-new
+     :line (car linecol)
+     :column (cdr linecol)
+     :buffer (current-buffer)
+     :checker 'haskell-dante
+     :message
+     (tests-utils--multiline
+      "error: [GHC-66111] [-Wunused-imports, Werror=unused-imports]"
+      "    The import of ‘Foo.Bar.Baz’ is redundant"
+      "      except perhaps to import instances from ‘Foo.Bar.Baz’"
+      "    To import instances alone, use: import Foo.Bar.Baz()")
+     :level 'warning
+     :id nil
+     :group nil)))
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ ((a
+   (tests-utils--multiline
+    ""
+    "import Quux"
+    "_|_import Foo.Bar.Baz"
+    ""
+    ""))
+  (b
+   (tests-utils--multiline
+    ""
+    "import Quux"
+    "_|_import Foo.Bar.Baz (foo, bar)"
+    ""
+    ""))
+  (c
+   (tests-utils--multiline
+    ""
+    "import Quux"
+    "_|_import Foo.Bar.Baz"
+    "  ( foo"
+    "  , bar"
+    "  )"
+    ""
+    "")))
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Quux"
+  "_|_"
+  ""))
+
 (attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/delete-module-import-2
  :flycheck-errors
@@ -379,6 +434,50 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/replace-2a
+ :flycheck-errors
+ (list
+  (let ((linecol (save-excursion
+                   (re-search-forward "_|_")
+                   (flycheck-line-column-at-pos (point)))))
+    (flycheck-error-new
+     :line (car linecol)
+     :column (cdr linecol)
+     :buffer (current-buffer)
+     :checker 'haskell-dante
+     :message
+     (tests-utils--multiline
+      "error: [GHC-88464] [-Wdeferred-out-of-scope-variables, Werror=deferred-out-of-scope-variables]"
+      "    Variable not in scope:"
+      "      withWindow"
+      "        :: Int -> Int -> String -> (GLFW.Window -> IO ()) -> IO a0"
+      "    Suggested fix:"
+      "      Perhaps use ‘GLFW.withWindow’ (imported from Graphics.UI.GLFW)")
+     :level 'error
+     :id nil
+     :group nil)))
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Graphics.UI.GLFW qualified as GLFW"
+  ""
+  "main = do"
+  "  _|_withWindow width height \"Turgtle Geometry\" $ \win -> do"
+  "    pure ()"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Graphics.UI.GLFW qualified as GLFW"
+  ""
+  "main = do"
+  "  _|_GLFW.withWindow width height \"Turgtle Geometry\" $ \win -> do"
+  "    pure ()"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/replace-3
  :flycheck-errors
  (list
@@ -507,6 +606,50 @@
      :message
      (tests-utils--multiline
       "warning: [GHC-40910] [-Wunused-top-binds]"
+      "    Defined but not used: ‘foo’")
+     :level 'error
+     :id nil
+     :group nil)))
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "module Foo () where"
+  ""
+  "foo"
+  "  :: MonadMask m"
+  "  => a"
+  "  -> m a"
+  "_|_foo = _"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "module Foo (foo) where"
+  ""
+  "foo"
+  "  :: MonadMask m"
+  "  => a"
+  "  -> m a"
+  "_|_foo = _"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/export-1a
+ :flycheck-errors
+ (list
+  (let ((linecol (save-excursion
+                   (re-search-forward "_|_")
+                   (flycheck-line-column-at-pos (point)))))
+    (flycheck-error-new
+     :line (car linecol)
+     :column (cdr linecol)
+     :buffer (current-buffer)
+     :checker 'haskell-dante
+     :message
+     (tests-utils--multiline
+      "error: [GHC-40910] [-Wunused-top-binds, Werror=unused-top-binds]"
       "    Defined but not used: ‘foo’")
      :level 'error
      :id nil
@@ -688,6 +831,53 @@
      :message
      (tests-utils--multiline
       "warning: [GHC-88464] [-Wdeferred-out-of-scope-variables]"
+      "    Data constructor not in scope: Compose")
+     :level 'error
+     :id nil
+     :group nil)))
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Decombobulate"
+  ""
+  "main :: IO ()"
+  "main = do"
+  "  print _|_Compose"
+  "  pure ()"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Decombobulate"
+  "import Test.Foo.Bar (ComposeT(Compose))"
+  ""
+  "main :: IO ()"
+  "main = do"
+  "  print _|_Compose"
+  "  pure ()"
+  "")
+ :eproj-project
+ (attrap-tests-make-ephemeral-haskell-eproj-project
+  '(("Compose" "/tmp/Test/Foo/Bar.hs" 100 ?C ((parent "ComposeT" . ?t)))
+    ("ComposeT" "/tmp/Test/Foo/Bar.hs" 100 ?t nil))))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/add-import-3b
+ :flycheck-errors
+ (list
+  (let ((linecol (save-excursion
+                   (re-search-forward "_|_")
+                   (flycheck-line-column-at-pos (point)))))
+    (flycheck-error-new
+     :line (car linecol)
+     :column (cdr linecol)
+     :buffer (current-buffer)
+     :checker 'haskell-dante
+     :message
+     (tests-utils--multiline
+      "error: [GHC-88464] [-Wdeferred-out-of-scope-variables, Werror=deferred-out-of-scope-variables]"
       "    Data constructor not in scope: Compose")
      :level 'error
      :id nil
