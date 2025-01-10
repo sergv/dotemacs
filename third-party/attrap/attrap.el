@@ -948,6 +948,7 @@ Error is given as MSG and reported between POS and END."
               (--map (list (list (car it)) (cdr it) t nil)
                      '(("GHC.Internal.Control.Exception.Base" . "Control.Exception")
                        ("GHC.Internal.Data.OldList" . "Data.List")
+                       ("GHC.Internal.Data.Maybe" . "Data.Maybe")
                        ("GHC.Internal.Float" . "GHC.Float")))
               (--map
                ;; Make them all authoritative
@@ -1010,7 +1011,10 @@ Error is given as MSG and reported between POS and END."
 
                   (("GHC.Internal.Base")
                    "Control.Monad"
-                   ("when"
+                   ("MonadPlus"
+                    "mplus"
+                    "mzero"
+                    "when"
                     "unless"))
                   (("GHC.Internal.Base")
                    "Data.List.NonEmpty"
@@ -1065,8 +1069,10 @@ Error is given as MSG and reported between POS and END."
                          ("Data.Bit.Internal" . "Data.Bit")
                          ("GHC.Internal.Conc.Sync" . "Control.Concurrent")
                          ("GHC.Internal.Control.Monad" . "Control.Monad")
+                         ("GHC.Internal.Control.Monad.IO.Class" . "Control.Monad.IO.Class")
                          ("GHC.Internal.Data.Foldable" . "Data.Foldable")
                          ("GHC.Internal.Data.Function" . "Data.Function")
+                         ("GHC.Internal.Data.Functor" . "Data.Functor")
                          ("GHC.Internal.Data.Functor.Identity" . "Data.Functor.Identity")
                          ("GHC.Internal.Data.Traversable" . "Data.Traversable")
                          ("GHC.Internal.Data.Ord" . "Data.Ord")
