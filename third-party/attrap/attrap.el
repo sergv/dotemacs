@@ -457,8 +457,14 @@ Error is given as MSG and reported between POS and END."
            (module-name (+ (any "_." alphanumeric)))
            (identifier (n) (seq "‘" (group-n n (* (not "’"))) "’"))
            (ws (any ?\n ?\r ?\s ?\t))
+           (spaces (+ ?\s))
            (name-capture (n) (group-n n (+ (not (any ?\n ?\r ?\s ?\t)))))
-           (ghc-warning (n) (seq "warning:" (optional " [GHC-" n "]")))
+           (ghc-warning (n name)
+                        (seq (or "error:" "warning:")
+                             (optional spaces "[GHC-" n "]")
+                             (optional spaces "[-W" name
+                                       (optional "," spaces "Werror=" name)
+                                       "]")))
            (ghc-error (n) (seq "error:" (optional " [GHC-" n "]"))))
   (append
    (when (string-match-p "Parse error in pattern: pattern" msg)
@@ -630,7 +636,7 @@ Error is given as MSG and reported between POS and END."
       (insert (concat (substring-no-properties msg (match-end 0)) "\n"))))
    (when (and (string-match-p "Defined but not used" msg)
               (not (string-match-p
-                    (rx (ghc-warning "40910") " [-Wunused-top-binds]" (+ ws)
+                  (rx (ghc-warning "40910" "unused-top-binds") (+ ws)
                         "Defined but not used: "
                         (identifier 1))
                     msg)))
@@ -684,7 +690,7 @@ Error is given as MSG and reported between POS and END."
                           (looking-back (rx "," (* space)) (line-beginning-position)))
                   (replace-match "")))))))))
    (when (string-match
-          (rx (ghc-warning "66111") " [-Wunused-imports]" (+ ws)
+          (rx (ghc-warning "66111" "unused-imports") (+ ws)
               "The " (? "qualified ") "import of " (identifier 1) " is redundant")
           msg)
     (attrap-one-option "delete module import"
@@ -768,7 +774,7 @@ Error is given as MSG and reported between POS and END."
           (--filter (s-matches? it normalized-msg) attrap-haskell-extensions))
 
    (when (string-match
-          (rx (or (seq (ghc-warning "88464") " [-Wdeferred-out-of-scope-variables]" (+ ws)
+          (rx (or (seq (ghc-warning "88464" "deferred-out-of-scope-variables") (+ ws)
                        (or "Variable"
                            (group-n 2 "Data constructor"))
                        " not in scope:"
@@ -838,7 +844,7 @@ Error is given as MSG and reported between POS and END."
     ;;       Perhaps use ‘GLFW.hideWindow’ (imported from Graphics.UI.GLFW)
     (when (string-match
            (rx (or (ghc-error "76037")
-                   (seq (ghc-warning "88464") " [-Wdeferred-out-of-scope-variables]"))
+                   (seq (ghc-warning "88464" "deferred-out-of-scope-variables")))
                (+ ws)
                (or (seq "Not in scope: "
                         (or "data constructor"
@@ -879,7 +885,7 @@ Error is given as MSG and reported between POS and END."
     ;; warning: [GHC-40910] [-Wunused-top-binds]
     ;;     Defined but not used: ‘withSystemTempFileContents’
     (when (string-match
-           (rx (ghc-warning "40910") " [-Wunused-top-binds]" (+ ws)
+           (rx (ghc-warning "40910" "unused-top-binds") (+ ws)
                "Defined but not used: "
                (identifier 1))
            msg)
