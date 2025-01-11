@@ -76,19 +76,29 @@
       (nxml-scan-prolog))
 
     (save-excursion
-      (let (start1 end1 start2 end2)
-        (when (looking-at-p "<") (forward-char))
+      (let (start1
+            end1
+            start2
+            end2
+
+            xmltok-type
+            xmltok-start
+            xmltok-name-end
+            xmltok-name-colon
+            xmltok-attributes
+            xmltok-namespace-attributes)
+
+        (when (eq (char-after) ?<) (forward-char))
         (nxml-up-element 1)
         (setq end2 (point))
 
+        (nxml-token-before)
+        (setq start2 xmltok-start)
+
         (nxml-backward-single-balanced-item)
-        (setq start2 (point))
 
-        (nxml-up-element -1)
         (setq start1 (point))
-
-        (nxml-forward-single-balanced-item)
-        (setq end1 (point))
+        (setq end1 (nxml-token-after))
 
         (cons (cons start1 end1) (cons start2 end2))))))
 
