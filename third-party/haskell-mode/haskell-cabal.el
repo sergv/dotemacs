@@ -456,37 +456,31 @@
   (setq-local indent-line-function 'haskell-cabal-indent-line)
   (setq indent-tabs-mode nil))
 
-(make-obsolete 'haskell-cabal-get-setting
-               'haskell-cabal--get-field-from-current-buffer
-               "March 14, 2016")
-(defalias 'haskell-cabal-get-setting 'haskell-cabal--get-field-from-current-buffer
-  "Try to read value of field with NAME from current buffer.
-Obsolete function.  Defined for backward compatibility.  Use
-`haskell-cabal--get-field-from-current-buffer' instead.")
-
+;;;###autoload
 (defun haskell-cabal--get-field-from-current-buffer (name)
   "Try to read value of field with NAME from current buffer."
-  (save-excursion
-    (let ((case-fold-search t))
-      (goto-char (point-min))
-      (when (re-search-forward
-             (concat "^[ \t]*" (regexp-quote name)
-                     ":[ \t]*\\(.*\\(\n[ \t]+[ \t\n].*\\)*\\)")
-             nil t)
-        (let ((val (match-string 1))
-              (start 1))
-          (when (match-end 2)             ;Multiple lines.
-            ;; The documentation is not very precise about what to do about
-            ;; the \n and the indentation: are they part of the value or
-            ;; the encoding?  I take the point of view that \n is part of
-            ;; the value (so that values can span multiple lines as well),
-            ;; and that only the first char in the indentation is part of
-            ;; the encoding, the rest is part of the value (otherwise, lines
-            ;; in the value cannot start with spaces or tabs).
-            (while (string-match "^[ \t]\\(?:\\.$\\)?" val start)
-              (setq start (1+ (match-beginning 0)))
-              (setq val (replace-match "" t t val))))
-          val)))))
+  (save-match-data
+    (save-excursion
+      (let ((case-fold-search t))
+        (goto-char (point-min))
+        (when (re-search-forward
+               (concat "^[ \t]*" name
+                       ":[ \t]*\\(.*\\(\n[ \t]+[ \t\n].*\\)*\\)")
+               nil t)
+          (let ((val (match-string 1))
+                (start 1))
+            (when (match-end 2)             ;Multiple lines.
+              ;; The documentation is not very precise about what to do about
+              ;; the \n and the indentation: are they part of the value or
+              ;; the encoding?  I take the point of view that \n is part of
+              ;; the value (so that values can span multiple lines as well),
+              ;; and that only the first char in the indentation is part of
+              ;; the encoding, the rest is part of the value (otherwise, lines
+              ;; in the value cannot start with spaces or tabs).
+              (while (string-match "^[ \t]\\(?:\\.$\\)?" val start)
+                (setq start (1+ (match-beginning 0)))
+                (setq val (replace-match "" t t val))))
+            val))))))
 
 
 (make-obsolete 'haskell-cabal-guess-setting
@@ -509,7 +503,7 @@ file), then this function returns nil."
       (when (and cabal-file (file-readable-p cabal-file))
         (with-temp-buffer
           (insert-file-contents cabal-file)
-          (haskell-cabal--get-field-from-current-buffer name))))))
+          (haskell-cabal--get-field-from-current-buffer (regexp-quote name)))))))
 
 ;;;###autoload
 (defun haskell-cabal-get-dir (&optional use-defaults)
