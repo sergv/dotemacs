@@ -642,11 +642,17 @@ and over."
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Flycheck checker
 
+(defvar dante-check-force-interpret nil
+  "Make dante load any module into ghci as bytecode. Typically has to be used if
+module was already loaded as object code but hasn’t changed since so subsequent loads
+won’t have any effect (ghci’s recompilation avoidance will make it skip doing extra work).")
+
 (defun dante-check (checker cont)
   "Run a check with CHECKER and pass the status onto CONT."
-  (if (eq (dante-get-var dante-state) 'dead) (funcall cont 'interrupted)
+  (if (eq (dante-get-var dante-state) 'dead)
+      (funcall cont 'interrupted)
     (lcr-spawn
-      (let* ((messages (lcr-call dante-async-load-current-buffer nil nil))
+      (let* ((messages (lcr-call dante-async-load-current-buffer dante-check-force-interpret nil))
              (temp-file (dante-local-name (dante-temp-file-name (current-buffer)))))
         (funcall cont
                  'finished
