@@ -13,6 +13,8 @@
 
 (defvar lsp-document-sync-method)
 
+(defvar dante-check-force-interpret)
+
 (require 'common)
 (require 'dash)
 
@@ -123,7 +125,8 @@ scheme and it’s view of current buffer is malformed."
           ;; pressed this button to synchronize
           (lsp-debounce-full-sync-notifications nil))
       (lsp-on-change 0 n n)))
-  (flycheck-buffer))
+  (let ((dante-check-force-interpret t))
+    (flycheck-buffer)))
 
 (vim-defcmd vim:flycheck-compile (nonrepeatable)
   (call-interactively #'flycheck-compile))
