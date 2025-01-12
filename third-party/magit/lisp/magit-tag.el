@@ -44,8 +44,9 @@
    ("-s" "Sign"         ("-s" "--sign"))
    (magit-tag:--local-user)]
   [["Create"
-    ("t"  "tag"     magit-tag-create)
-    ("r"  "release" magit-tag-release)]
+    ("a"  "annotate without message" magit-tag-annotate)
+    ("t"  "tag with message"         magit-tag-create)
+    ("r"  "release"                  magit-tag-release)]
    ["Do"
     ("k"  "delete"  magit-tag-delete)
     ("p"  "prune"   magit-tag-prune)]])
@@ -60,6 +61,17 @@
   :argument "--local-user="
   :reader #'magit-read-gpg-signing-key
   :history-key 'magit:--gpg-sign)
+
+;;;###autoload
+(defun magit-tag-annotate (name rev &optional args)
+  "Create annotated tag with empty message."
+  (interactive (list (magit-read-tag "Tag name")
+                     (magit-read-branch-or-commit "Place tag on")
+                     (magit-tag-arguments)))
+  (magit-run-git "tag"
+                 (cons "-m" (cons "" (cl-pushnew "--annotate" args :test #'equal)))
+                 name
+                 rev))
 
 ;;;###autoload
 (defun magit-tag-create (name rev &optional args)
