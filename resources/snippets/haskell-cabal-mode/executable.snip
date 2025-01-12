@@ -6,7 +6,7 @@
 executable ${1:test}
   import: ghc-options
   main-is:
-    exe/${2:${1:$(haskell-cabal--yasnippet--main-module-from-executable-name yas-text)}}.hs
+    exe/${2:${1:$(concat (haskell-cabal--yasnippet--main-module-from-executable-name yas-text) "Main")}}.hs
 ${3:  other-modules:
     ${4:Other.Module}
 }${5:  hs-source-dirs:
