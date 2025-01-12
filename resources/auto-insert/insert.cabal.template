@@ -96,7 +96,7 @@ library
 executable ${filename no ext}
   import: ghc-options
   main-is:
-    exe/Main.hs
+    exe/ExeMain.hs
   -- other-modules:
   --   Other.Module
   -- hs-source-dirs:
@@ -113,7 +113,7 @@ executable ${filename no ext}
     -rtsopts
     -- -threaded
     -- "-with-rtsopts=-N -A32M"
-    -- -main-is ExeMain
+    -main-is ExeMain
 
 test-suite ${filename no ext}-test
   import: ghc-options
