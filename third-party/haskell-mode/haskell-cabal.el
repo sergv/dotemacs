@@ -457,14 +457,14 @@
   (setq indent-tabs-mode nil))
 
 (make-obsolete 'haskell-cabal-get-setting
-               'haskell-cabal--get-field
+               'haskell-cabal--get-field-from-current-buffer
                "March 14, 2016")
-(defalias 'haskell-cabal-get-setting 'haskell-cabal--get-field
+(defalias 'haskell-cabal-get-setting 'haskell-cabal--get-field-from-current-buffer
   "Try to read value of field with NAME from current buffer.
 Obsolete function.  Defined for backward compatibility.  Use
-`haskell-cabal--get-field' instead.")
+`haskell-cabal--get-field-from-current-buffer' instead.")
 
-(defun haskell-cabal--get-field (name)
+(defun haskell-cabal--get-field-from-current-buffer (name)
   "Try to read value of field with NAME from current buffer."
   (save-excursion
     (let ((case-fold-search t))
@@ -509,7 +509,7 @@ file), then this function returns nil."
       (when (and cabal-file (file-readable-p cabal-file))
         (with-temp-buffer
           (insert-file-contents cabal-file)
-          (haskell-cabal--get-field name))))))
+          (haskell-cabal--get-field-from-current-buffer name))))))
 
 ;;;###autoload
 (defun haskell-cabal-get-dir (&optional use-defaults)
@@ -794,7 +794,7 @@ OTHER-WINDOW use `find-file-other-window'."
         (haskell-cabal-mode)
         (goto-char (point-min))
         (let ((matches)
-              (package-name (haskell-cabal--get-field "name")))
+              (package-name (haskell-cabal--get-field-from-current-buffer "name")))
           (haskell-cabal-next-section)
           (while (not (eobp))
             (if (haskell-cabal-source-section-p (haskell-cabal-section))
