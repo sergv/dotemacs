@@ -18,7 +18,7 @@ ${3:  other-modules:
     , filepath >= 1.4.100
     , optparse-applicative
     , text
-    , ${6:my-module}
+    , ${6:`(haskell-cabal--yasnippet--current-package-name-from-cabal-file)`}
   ghc-options:
     -rtsopts
     -- -threaded
