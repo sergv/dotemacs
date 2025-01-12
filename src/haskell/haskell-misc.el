@@ -989,6 +989,12 @@ value section should have if it is to be properly indented."
 (defsubst haskell-cabal--yasnippet--main-module-from-main-file (str)
   (haskell-misc--file-name-to-module-name str))
 
+(defun haskell-cabal--yasnippet--current-package-name-from-cabal-file ()
+  (let ((filename (file-name-nondirectory buffer-file-name)))
+    (if (string= (file-name-extension filename) "cabal")
+        (file-name-sans-extension (file-name-nondirectory buffer-file-name))
+      (trim-whitespace (haskell-cabal--get-field-from-current-buffer "name")))))
+
 (defun haskell-cabal--yasnippet--main-module-from-executable-name (str)
   (let ((upcase-first-character
          (lambda (str)

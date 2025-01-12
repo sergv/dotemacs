@@ -19,7 +19,7 @@ ${3:  other-modules:
     , tasty
     , tasty-hunit
     , tasty-quickcheck
-    , ${6:my-package}
+    , ${6:`(haskell-cabal--yasnippet--current-package-name-from-cabal-file)`}
   ghc-options:
     -rtsopts
     -- -threaded
