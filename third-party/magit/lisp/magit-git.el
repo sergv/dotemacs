@@ -1714,6 +1714,25 @@ according to the branch type."
                     'magit-branch-local
                   'magit-branch-remote)))))
 
+(defun magit-get-push-upstream-branch (&optional branch)
+  "Return the name of the upstream branch of BRANCH.
+It BRANCH is nil, then return the upstream of the current branch
+if any, nil otherwise.  If the upstream is not configured, the
+configured remote is an url, or the named branch does not exist,
+then return nil.  I.e., return the name of an existing local or
+remote-tracking branch.  The returned string is colorized
+according to the branch type."
+  (magit--with-refresh-cache
+      (list default-directory 'magit-get-upstream-branch branch)
+    (and-let* ((branch (or branch (magit-get-current-branch)))
+               (upstream (magit-ref-abbrev (concat branch "@{upstream}"))))
+      (let ((push-remote (magit-get "branch" branch "pushRemote")))
+        (unless (string= push-remote "no_push")
+          (magit--propertize-face
+           upstream (if (equal (magit-get "branch" branch "remote") ".")
+                        'magit-branch-local
+                      'magit-branch-remote)))))))
+
 (defun magit-get-indirect-upstream-branch (branch &optional force)
   (let ((remote (magit-get "branch" branch "remote")))
     (and remote (not (equal remote "."))
