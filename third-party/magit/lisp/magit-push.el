@@ -156,11 +156,14 @@ the upstream."
 
 (defun magit-push--upstream-description ()
   (and-let* ((branch (magit-get-current-branch)))
-    (or (magit-get-upstream-branch branch)
+    (or (magit-get-push-upstream-branch branch)
         (let ((remote (magit-get "branch" branch "remote"))
               (merge  (magit-get "branch" branch "merge"))
-              (u (magit--propertize-face "@{upstream}" 'bold)))
+              (u (magit--propertize-face "@{upstream}" 'bold))
+              (push-remote (magit-get "branch" branch "pushRemote")))
           (cond
+           ((string= push-remote "no_push")
+            (magit--propertize-face "push disabled" 'error))
            ((magit--unnamed-upstream-p remote merge)
             (format "%s as %s"
                     (magit--propertize-face remote 'bold)
