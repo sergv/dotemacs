@@ -6644,6 +6644,195 @@ _|_bar")
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-ts-mode)
+    vim-tests/haskell-ts-rename-at-point-7
+    (execute-kbd-macro (kbd "C-r <backspace> x x x <return>"))
+  (tests-utils--multiline
+   ""
+   "class Eq x => Foo a x where"
+   "  foo :: x -> _|_a -> b -> (a, b)"
+   "  bar :: x -> b -> a -> (b, a)"
+   "  bar x b a = case foo x a b of"
+   "    (a', b') -> (b', a')"
+   "")
+  (tests-utils--multiline
+   ""
+   "class Eq x => Foo xxx x where"
+   "  foo :: x -> xxx_|_ -> b -> (xxx, b)"
+   "  bar :: x -> b -> xxx -> (b, xxx)"
+   "  bar x b xxx = case foo x xxx b of"
+   "    (a', b') -> (b', a')"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-rename-at-point-7a
+    (execute-kbd-macro (kbd "C-r <backspace> x x x <return>"))
+  (tests-utils--multiline
+   ""
+   "class Eq x => Foo a x where"
+   "  foo :: x -> a -> _|_b -> (a, b)"
+   "  bar :: x -> b -> a -> (b, a)"
+   "  bar x b a = case foo x a b of"
+   "    (a', b') -> (b', a')"
+   "")
+  (tests-utils--multiline
+   ""
+   "class Eq x => Foo a x where"
+   "  foo :: x -> a -> xxx_|_ -> (a, xxx)"
+   "  bar :: x -> xxx -> a -> (xxx, a)"
+   "  bar x xxx a = case foo x a xxx of"
+   "    (a', b') -> (b', a')"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-rename-at-point-7b
+    (execute-kbd-macro (kbd "C-r C-w x x x <return>"))
+  (tests-utils--multiline
+   ""
+   "class Eq x => Foo a x where"
+   "  _|_foo :: x -> a -> b -> (a, b)"
+   "  bar :: x -> b -> a -> (b, a)"
+   "  bar x b a = case foo x a b of"
+   "    (a', b') -> (b', a')"
+   "")
+  (tests-utils--multiline
+   ""
+   "class Eq x => Foo a x where"
+   "  xxx_|_ :: x -> a -> b -> (a, b)"
+   "  bar :: x -> b -> a -> (b, a)"
+   "  bar x b a = case xxx x a b of"
+   "    (a', b') -> (b', a')"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-rename-at-point-8
+    (execute-kbd-macro (kbd "C-r <backspace> x x x <return>"))
+  (tests-utils--multiline
+   ""
+   "class Eq x => a `Foo` x where"
+   "  foo :: x -> _|_a -> b -> (a, b)"
+   "  bar :: x -> b -> a -> (b, a)"
+   "  bar x b a = case foo x a b of"
+   "    (a', b') -> (b', a')"
+   "")
+  (tests-utils--multiline
+   ""
+   "class Eq x => xxx `Foo` x where"
+   "  foo :: x -> xxx_|_ -> b -> (xxx, b)"
+   "  bar :: x -> b -> xxx -> (b, xxx)"
+   "  bar x b xxx = case foo x xxx b of"
+   "    (a', b') -> (b', a')"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-rename-at-point-8a
+    (execute-kbd-macro (kbd "C-r <backspace> x x x <return>"))
+  (tests-utils--multiline
+   ""
+   "class Eq x => a `Foo` x where"
+   "  foo :: x -> a -> _|_b -> (a, b)"
+   "  bar :: x -> b -> a -> (b, a)"
+   "  bar x b a = case foo x a b of"
+   "    (a', b') -> (b', a')"
+   "")
+  (tests-utils--multiline
+   ""
+   "class Eq x => a `Foo` x where"
+   "  foo :: x -> a -> xxx_|_ -> (a, xxx)"
+   "  bar :: x -> xxx -> a -> (xxx, a)"
+   "  bar x xxx a = case foo x a xxx of"
+   "    (a', b') -> (b', a')"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-rename-at-point-8b
+    (execute-kbd-macro (kbd "C-r C-w x x x <return>"))
+  (tests-utils--multiline
+   ""
+   "class Eq x => a `Foo` x where"
+   "  _|_foo :: x -> a -> b -> (a, b)"
+   "  bar :: x -> b -> a -> (b, a)"
+   "  bar x b a = case foo x a b of"
+   "    (a', b') -> (b', a')"
+   "")
+  (tests-utils--multiline
+   ""
+   "class Eq x => a `Foo` x where"
+   "  xxx_|_ :: x -> a -> b -> (a, b)"
+   "  bar :: x -> b -> a -> (b, a)"
+   "  bar x b a = case xxx x a b of"
+   "    (a', b') -> (b', a')"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-rename-at-point-9
+    (execute-kbd-macro (kbd "C-r <backspace> x x x <return>"))
+  (tests-utils--multiline
+   ""
+   "instance Eq x => Foo Int x_|_ where"
+   "  foo :: x -> Int -> b -> (Int, b)"
+   "  foo _ a b = (a, b)"
+   "  bar :: x -> b -> Int -> (b, Int)"
+   "  bar _ b a = (b, a)"
+   "")
+  (tests-utils--multiline
+   ""
+   "instance Eq xxx => Foo Int xxx_|_ where"
+   "  foo :: xxx -> Int -> b -> (Int, b)"
+   "  foo _ a b = (a, b)"
+   "  bar :: xxx -> b -> Int -> (b, Int)"
+   "  bar _ b a = (b, a)"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-rename-at-point-9a
+    (execute-kbd-macro (kbd "C-r <backspace> x x x <return>"))
+  (tests-utils--multiline
+   ""
+   "instance Eq x => Foo Int x where"
+   "  foo :: x -> Int -> b -> (Int, _|_b)"
+   "  foo _ a b = (a, b)"
+   "  bar :: x -> b -> Int -> (b, Int)"
+   "  bar _ b a = (b, a)"
+   "")
+  (tests-utils--multiline
+   ""
+   "instance Eq x => Foo Int x where"
+   "  foo :: x -> Int -> xxx -> (Int, xxx_|_)"
+   "  foo _ a xxx = (a, xxx)"
+   "  bar :: x -> xxx -> Int -> (xxx, Int)"
+   "  bar _ xxx a = (xxx, a)"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-rename-at-point-9b
+    (execute-kbd-macro (kbd "C-r C-w x x x <return>"))
+  (tests-utils--multiline
+   ""
+   "instance Eq x => Foo Int x where"
+   "  _|_foo :: x -> Int -> b -> (Int, b)"
+   "  foo _ a b = (a, b)"
+   "  bar x b a = case foo x a b of"
+   "    (a', b') -> (b', a')"
+   "")
+  (tests-utils--multiline
+   ""
+   "instance Eq x => Foo Int x where"
+   "  xxx_|_ :: x -> Int -> b -> (Int, b)"
+   "  xxx _ a b = (a, b)"
+   "  bar x b a = case xxx x a b of"
+   "    (a', b') -> (b', a')"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
     vim-tests/haskell-ts-beginning-of-defun-1
     (execute-kbd-macro (kbd "g t"))
   (tests-utils--multiline
