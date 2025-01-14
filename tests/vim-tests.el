@@ -2663,6 +2663,90 @@
    ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/search-1
+    (execute-kbd-macro (kbd "/ f o o 2 <return>"))
+  (tests-utils--multiline
+   ""
+   "_|_"
+   "foo1"
+   "bar1"
+   "foo2"
+   "bar2"
+   "foo3"
+   "bar3"
+   "foo4"
+   "bar4"
+   "")
+  (tests-utils--multiline
+   ""
+   ""
+   "foo1"
+   "bar1"
+   "foo2_|_"
+   "bar2"
+   "foo3"
+   "bar3"
+   "foo4"
+   "bar4"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/search-2
+    (execute-kbd-macro (kbd "/ f o o \\ n <return>"))
+  (tests-utils--multiline
+   ""
+   "_|_"
+   "bar1"
+   "foo foo foo"
+   "bar2"
+   "")
+  (tests-utils--multiline
+   ""
+   ""
+   "bar1"
+   "foo foo foo"
+   "_|_bar2"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/search-2a
+    (execute-kbd-macro (kbd "/ f o o <return>"))
+  (tests-utils--multiline
+   ""
+   "_|_"
+   "bar1"
+   "foo foo foo"
+   "bar2"
+   "")
+  (tests-utils--multiline
+   ""
+   ""
+   "bar1"
+   "foo_|_ foo foo"
+   "bar2"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/search-3
+    (execute-kbd-macro (kbd "/ \\ ( f o o \\ | q u u x \\ ) <return>"))
+  (tests-utils--multiline
+   ""
+   "_|_"
+   "bar1"
+   "quux"
+   "foo foo foo"
+   "bar2"
+   "")
+  (tests-utils--multiline
+   ""
+   ""
+   "bar1"
+   "quux_|_"
+   "foo foo foo"
+   "bar2"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
     vim-tests/delete-to-beginning-of-buffer-1
     (execute-kbd-macro (kbd ", g g"))
   (tests-utils--multiline

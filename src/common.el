@@ -1332,7 +1332,8 @@ are CHAR1 and CHAR2 repsectively."
 \\n  -> <newline>
 \\r  -> <carriage-return>
 \\t  -> <tab>
-"
+
+All other backslashes are preserved as is."
   (cl-assert (stringp str))
   (let ((limit (length str))
         (i 0)
