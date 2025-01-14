@@ -30,6 +30,12 @@
 (require 'solarized)
 (require 'haskell-syntax-table)
 
+;;; utils
+
+(defun search--expand-escape-sequences (str)
+  (when str
+    (expand-escape-sequences str)))
+
 ;;; search faces
 
 (defgroup search nil
@@ -101,7 +107,12 @@
 highlighting searches.")
 
 (defvar-local search--current-regexp nil
-  "Regexp being searched now.")
+  "Regexp being searched now. Must always be ready to pass to e.g.
+‘string-match’ so any escape sequences within must always be in expanded state
+(e.g. regexp must never contain \\n that is intended (by user) to match newline).")
+
+(defun search--assign-current-regexp! (re)
+  (setf search--current-regexp (search--expand-escape-sequences re)))
 
 (defvar-local search--start-marker nil
   "Marker which points to location from which search was initiated.")
@@ -257,7 +268,7 @@ Highlighting starts at the beginning of buffer.")
          (when (region-active-p)
            (regexp-quote
             (get-region-string-no-properties)))))
-    (setf search--current-regexp init-regexp)
+    (search--assign-current-regexp! init-regexp)
     (search--with-initiated-buffer
      (search--update init-regexp))
     (read-from-minibuffer prompt
@@ -273,8 +284,8 @@ Highlighting starts at the beginning of buffer.")
                                     (case-sensetive t))
   "Set up internal search variables for use of `search--next-impl',
 `search--prev-impl' etc for REGEX."
-  (setf search--current-regexp regex
-        search--current-syntax-table (syntax-table)
+  (search--assign-current-regexp! regex)
+  (setf search--current-syntax-table (syntax-table)
         search--start-marker   (point-marker)
         search--direction-forward? is-forward?
         search--case-sensetive case-sensetive
@@ -305,7 +316,7 @@ Highlighting starts at the beginning of buffer.")
   ;; Get search regexp before we visit buffer that initiated search.
   (let ((re (search--get-current-regexp)))
     (search--with-initiated-buffer
-     (setf search--current-regexp re)
+     (search--assign-current-regexp! re)
      (condition-case nil
          (search--update search--current-regexp)
        ;; swallow an error or we'll be kicked out of the hook
