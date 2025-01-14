@@ -12,7 +12,7 @@ set -o pipefail
 
 set -e
 
-shared_ext=$((emacs --batch --eval '(message "%s" (car dynamic-library-suffixes))' 2>&1 || true) | head -n 1)
+shared_ext=$((EMACS_FORCE_PRISTINE=1 emacs --batch --eval '(message "%s" (car dynamic-library-suffixes))' 2>&1 || true) | head -n 1)
 
 case "${shared_ext}" in
     ".dll" | ".so" )
