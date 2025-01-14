@@ -6,3 +6,11 @@ constraints:
 
 allow-newer:
   , boring:base
+
+-- -fPIC is not needed on Windows. It’s supposed to be a no-op but
+-- actually leads to segfaults, cf
+-- https://gitlab.haskell.org/ghc/ghc/-/issues/24016.
+if !os(windows)
+  package *
+    ghc-options:
+      -fPIC
