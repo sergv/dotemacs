@@ -6444,6 +6444,25 @@ _|_bar")
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-ts-mode)
+    vim-tests/haskell-ts-rename-at-point-1a
+    (execute-kbd-macro (kbd "C-r y z <return>"))
+  (tests-utils--multiline
+   ""
+   "test :: forall a. [a] -> [(a, a)]"
+   "test = \\_|_x -> do"
+   "  y <- frobnicator"
+   "  pure $ x + y + x"
+   "")
+  (tests-utils--multiline
+   ""
+   "test :: forall a. [a] -> [(a, a)]"
+   "test = \\xyz_|_ -> do"
+   "  y <- frobnicator"
+   "  pure $ xyz + y + xyz"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
     vim-tests/haskell-ts-rename-at-point-2
     (execute-kbd-macro (kbd "C-r C-w a b c <return>"))
   (tests-utils--multiline
@@ -6463,6 +6482,25 @@ _|_bar")
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-ts-mode)
+    vim-tests/haskell-ts-rename-at-point-2a
+    (execute-kbd-macro (kbd "C-r C-w a b c <return>"))
+  (tests-utils--multiline
+   ""
+   "test :: forall a. [a] -> [(a, a)]"
+   "test = \\_|_x -> do"
+   "  y <- frobnicator"
+   "  pure $ x + y + x"
+   "")
+  (tests-utils--multiline
+   ""
+   "test :: forall a. [a] -> [(a, a)]"
+   "test = \\abc_|_ -> do"
+   "  y <- frobnicator"
+   "  pure $ abc + y + abc"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
     vim-tests/haskell-ts-rename-at-point-3
     (execute-kbd-macro (kbd "C-r b c <return>"))
   (tests-utils--multiline
@@ -6476,6 +6514,25 @@ _|_bar")
    ""
    "test :: forall abc. [abc] -> [(abc, abc)]"
    "test x = do"
+   "  y <- frobnicator"
+   "  pure $ (x :: abc_|_) + y + x"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-rename-at-point-3a
+    (execute-kbd-macro (kbd "C-r b c <return>"))
+  (tests-utils--multiline
+   ""
+   "test :: forall a. [a] -> [(a, a)]"
+   "test = \\x -> do"
+   "  y <- frobnicator"
+   "  pure $ (x :: _|_a) + y + x"
+   "")
+  (tests-utils--multiline
+   ""
+   "test :: forall abc. [abc] -> [(abc, abc)]"
+   "test = \\x -> do"
    "  y <- frobnicator"
    "  pure $ (x :: abc_|_) + y + x"
    ""))
@@ -6503,6 +6560,27 @@ _|_bar")
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-ts-mode)
+    vim-tests/haskell-ts-rename-at-point-4a
+    (execute-kbd-macro (kbd "C-r b c <return>"))
+  (tests-utils--multiline
+   ""
+   "test :: forall a. [a] -> [(a, a)]"
+   "-- inconvenient comment"
+   "test = \\x -> do"
+   "  y <- frobnicator"
+   "  pure $ (x :: _|_a) + y + x"
+   "")
+  (tests-utils--multiline
+   ""
+   "test :: forall abc. [abc] -> [(abc, abc)]"
+   "-- inconvenient comment"
+   "test = \\x -> do"
+   "  y <- frobnicator"
+   "  pure $ (x :: abc_|_) + y + x"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
     vim-tests/haskell-ts-rename-at-point-5
     (execute-kbd-macro (kbd "C-r b c <return>"))
   (tests-utils--multiline
@@ -6518,6 +6596,27 @@ _|_bar")
    "test :: forall abc. [abc_|_] -> [(abc, abc)]"
    "-- inconvenient comment"
    "test x = do"
+   "  y <- frobnicator"
+   "  pure $ (x :: abc) + y + x"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-ts-rename-at-point-5a
+    (execute-kbd-macro (kbd "C-r b c <return>"))
+  (tests-utils--multiline
+   ""
+   "test :: forall a. [_|_a] -> [(a, a)]"
+   "-- inconvenient comment"
+   "test = \\x -> do"
+   "  y <- frobnicator"
+   "  pure $ (x :: a) + y + x"
+   "")
+  (tests-utils--multiline
+   ""
+   "test :: forall abc. [abc_|_] -> [(abc, abc)]"
+   "-- inconvenient comment"
+   "test = \\x -> do"
    "  y <- frobnicator"
    "  pure $ (x :: abc) + y + x"
    ""))
