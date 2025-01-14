@@ -416,6 +416,14 @@
   (should (equal (expand-escape-sequences "ab\\rc")
                  "ab\rc")))
 
+(ert-deftest common-tests/expand-escape-sequences-10 ()
+  (should (equal (expand-escape-sequences "\\(foo\\|bar\\)")
+                 "\\(foo\\|bar\\)")))
+
+(ert-deftest common-tests/expand-escape-sequences-11 ()
+  (should (equal (expand-escape-sequences "abc\\")
+                 "abc\\")))
+
 ;;;
 
 (ert-deftest common-tests/call-n-1 ()
