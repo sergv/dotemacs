@@ -142,7 +142,7 @@ library
 
 foreign-library emacs-native
   import: ghc-options
-  -- options: standalone
+  options: standalone
   type:
     native-shared
   if !os(Windows)
