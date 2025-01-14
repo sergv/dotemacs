@@ -74,7 +74,7 @@
              (relevant-scopes (list closest-scope)))
 
         (pcase (treesit-node-type closest-scope)
-          ("function"
+          ((or "function" "bind")
            ;; Find signature for current function by searching backwards.
            (when-let ((func-name (treesit-node-child-by-field-name closest-scope "name")))
              (let ((continue t)
@@ -82,7 +82,7 @@
                (while (and n
                            continue)
                  (pcase (treesit-node-type n)
-                   ("function"
+                   ((or "function" "bind")
                     ;; Found previous function’s definition.
                     (setf continue nil))
                    ("signature"
@@ -100,7 +100,7 @@
                (while (and n
                            continue)
                  (pcase (treesit-node-type n)
-                   ("function"
+                   ((or "function" "bind")
                     (when-let ((sig-name (treesit-node-child-by-field-name n "name")))
                       (when (equal (treesit-node-text func-name)
                                    (treesit-node-text sig-name))
