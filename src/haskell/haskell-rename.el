@@ -35,14 +35,14 @@
 ;;;###autoload
 (defun haskell-ts-rename-at-point ()
   (interactive "*")
-  (let ((node (treesit-node-at (point) 'haskell)))
-    (unless node
+  (let ((var-node (treesit-node-at (point) 'haskell)))
+    (unless var-node
       (error "No treesitter node at point to rename"))
-    (unless (equal "variable" (treesit-node-type node))
-      (error "Cannot rename non-variable. Node at point is: %s" (treesit-node-type node)))
-    (let ((topmost-parent
+    (unless (equal "variable" (treesit-node-type var-node))
+      (error "Cannot rename non-variable. Node at point is: %s" (treesit-node-type var-node)))
+    (let ((closest-scope
            (treesit-utils-find-topmost-parent
-            node
+            var-node
             (lambda (x)
               (member (treesit-node-type x)
                       '("function"
@@ -50,24 +50,13 @@
                         "data_type"
                         "newtype"
                         "bind"
-                        "class"))))))
-      (unless topmost-parent
+                        "class"
+                        "instance"))))))
+      (unless closest-scope
         (error "Internal error: failed to find scoping node above variable at point"))
-      (let* ((closest-scope
-              (if (equal "class" (treesit-node-type topmost-parent))
-                  (treesit-utils-find-topmost-parent
-                   node
-                   (lambda (x)
-                     (member (treesit-node-type x)
-                             '("function"
-                               "signature"
-                               "data_type"
-                               "newtype"
-                               "bind"))))
-                topmost-parent))
-             (ovs nil)
+      (let* ((ovs nil)
              (mod-hooks (list #'haskell-ts-rename--modification-hook))
-             (node-text (treesit-node-text node
+             (node-text (treesit-node-text var-node
                                            t ;; no properties
                                            ))
              (node-text-len (length node-text))
@@ -142,7 +131,7 @@
           (setf haskell-ts-rename--current-overlays ovs
                 haskell-ts-rename--should-restore-vim-normal-mode? vim-normal-mode)
 
-          (goto-char (treesit-node-end node))
+          (goto-char (treesit-node-end var-node))
           (vim-activate-insert-mode))))))
 
 (defun haskell-ts-rename--modification-hook (ov changed beg end &optional len)
