@@ -6,8 +6,8 @@
 ;; Author: Sebastien Chapuis <sebastien@chapu.is>, Fangrui Song <i@maskray.me>
 ;; Keywords: languages, tools
 ;; URL: https://github.com/emacs-lsp/lsp-ui
-;; Package-Requires: ((emacs "26.1") (dash "2.18.0") (lsp-mode "6.0") (markdown-mode "2.3"))
-;; Version: 8.0.1
+;; Package-Requires: ((emacs "27.1") (dash "2.18.0") (lsp-mode "6.0") (markdown-mode "2.3"))
+;; Version: 9.0.0
 
 ;;; License
 ;;
@@ -171,7 +171,6 @@ Both should have the form (FILENAME LINE COLUMN)."
           (forward-char (caddr res))
           (cons idx (length refs)))
       (cons 0 0))))
-
 
 (provide 'lsp-ui)
 ;;; lsp-ui.el ends here

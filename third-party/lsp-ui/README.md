@@ -50,6 +50,9 @@ When set to 'line' the information will be updated when user
 changes current line otherwise the information will be updated
 when user changes current point
 - `lsp-ui-sideline-delay` seconds to wait before showing sideline
+- `lsp-ui-sideline-diagnostic-max-lines` default to showing only the
+  first line of diagnostic messages, increase for more verbose
+  messages, decrease if flickering occurs
 
 ## lsp-ui-peek:
 
@@ -94,8 +97,9 @@ Focus into lsp-ui-doc-frame
 
 Customization:
 
-- `lsp-ui-doc-enable` enable lsp-ui-doc
-- `lsp-ui-doc-position` Where to display the doc
+- `lsp-ui-doc-enable` Enable lsp-ui-doc
+- `lsp-ui-doc-position` Where to display the doc (top, bottom or at-point)
+- `lsp-ui-doc-side` Where to display the doc (left or right)
 - `lsp-ui-doc-delay` Number of seconds before showing the doc
 - `lsp-ui-doc-show-with-cursor` When non-nil, move the cursor over a symbol to show the doc
 - `lsp-ui-doc-show-with-mouse` When non-nil, move the mouse pointer over a symbol to show the doc
