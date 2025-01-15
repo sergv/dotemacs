@@ -98,7 +98,9 @@
 
 (defcustom lsp-solargraph-log-level "warn"
   "Level of debug info to log. `warn` is least and `debug` is most."
-  :type '(choice (const :tag "warn" "info" "debug"))
+  :type '(choice (const "warn")
+                 (const "info")
+                 (const "debug"))
   :group 'lsp-solargraph
   :package-version '(lsp-mode . "6.1"))
 
@@ -128,7 +130,7 @@
   "Command to start Solargraph Ruby language server."
   :type '(repeat string)
   :group 'lsp-solargraph
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defun lsp-solargraph--build-command ()
   "Build solargraph command"
