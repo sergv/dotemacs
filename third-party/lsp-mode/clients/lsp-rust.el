@@ -33,6 +33,7 @@
 (require 'ht)
 (require 'dash)
 (require 'lsp-semantic-tokens)
+(require 's)
 
 (defgroup lsp-rust nil
   "LSP support for Rust, using Rust Language Server or rust-analyzer."
@@ -56,7 +57,7 @@
   "LSP semantic tokens support for rust-analyzer."
   :group 'lsp-rust-analyzer
   :link '(url-link "https://github.com/rust-lang/rust-analyzer")
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-server 'rust-analyzer
   "Choose LSP server."
@@ -73,7 +74,8 @@
   :group 'lsp-rust-rls
   :package-version '(lsp-mode . "6.1"))
 
-(defcustom lsp-rust-library-directories '("~/.cargo/registry/src" "~/.rustup/toolchains")
+(defcustom lsp-rust-library-directories
+  '("~/.cargo/registry/src" "~/.rustup/toolchains")
   "List of directories which will be considered to be libraries."
   :risky t
   :type '(repeat string)
@@ -190,6 +192,7 @@ the latest build duration."
 
 (defcustom lsp-rust-features []
   "List of features to activate.
+Corresponds to the `rust-analyzer` setting `rust-analyzer.cargo.features`.
 Set this to `\"all\"` to pass `--all-features` to cargo."
   :type 'lsp-string-vector
   :group 'lsp-rust-rls
@@ -355,19 +358,20 @@ PARAMS progress report notification data."
   :group 'lsp-rust-analyzer
   :package-version '(lsp-mode . "6.2"))
 
-(defcustom lsp-rust-analyzer-library-directories '("~/.cargo/registry/src" "~/.rustup/toolchains")
+(defcustom lsp-rust-analyzer-library-directories
+  '("~/.cargo/registry/src" "~/.rustup/toolchains")
   "List of directories which will be considered to be libraries."
   :risky t
   :type '(repeat string)
   :group 'lsp-rust-analyzer
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-server-format-inlay-hints t
   "Whether to ask rust-analyzer to format inlay hints itself.  If
 active, the various inlay format settings are not used."
   :type 'boolean
   :group 'lsp-rust-analyzer
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-hide-closure-initialization nil
   "Whether to hide inlay type hints for `let` statements that initialize
@@ -375,42 +379,42 @@ to a closure. Only applies to closures with blocks, same as
 `#rust-analyzer.inlayHints.closureReturnTypeHints.enable#`."
   :type 'boolean
   :group 'lsp-rust-analyzer
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-highlight-breakpoints t
   "Enables highlighting of related references while the cursor is on
 `break`, `loop`, `while`, or `for` keywords."
   :type 'boolean
   :group 'lsp-rust-analyzer
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-highlight-closure-captures t
   "Enables highlighting of all captures of a closure while the
 cursor is on the `|` or move keyword of a closure."
   :type 'boolean
   :group 'lsp-rust-analyzer
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-highlight-exit-points t
   "Enables highlighting of all exit points while the cursor is on
 any `return`, `?`, `fn`, or return type arrow (`->`)."
   :type 'boolean
   :group 'lsp-rust-analyzer
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-highlight-references t
   "Enables highlighting of related references while the cursor is on
 any identifier."
   :type 'boolean
   :group 'lsp-rust-analyzer
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-highlight-yield-points t
   "Enables highlighting of all break points for a loop or block
 context while the cursor is on any `async` or `await` keywords."
   :type 'boolean
   :group 'lsp-rust-analyzer
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-closure-return-type-hints "never"
   "Whether to show inlay type hints for return types of closures."
@@ -419,7 +423,7 @@ context while the cursor is on any `async` or `await` keywords."
           (const "always")
           (const "with_block"))
   :group 'lsp-rust-analyzer
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-discriminants-hints "never"
   "Whether to show enum variant discriminant hints."
@@ -428,7 +432,7 @@ context while the cursor is on any `async` or `await` keywords."
           (const "always")
           (const "fieldless"))
   :group 'lsp-rust-analyzer
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-expression-adjustment-hints "never"
   "Whether to show inlay hints for type adjustments.."
@@ -437,7 +441,7 @@ context while the cursor is on any `async` or `await` keywords."
           (const "always")
           (const "reborrow"))
   :group 'lsp-rust-analyzer
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-expression-adjustment-hints-mode "prefix"
   "Whether to show inlay hints as postfix ops (`.*` instead of `*`, etc)."
@@ -447,39 +451,39 @@ context while the cursor is on any `async` or `await` keywords."
           (const "prefer_prefix")
           (const "prefer_postfix"))
   :group 'lsp-rust-analyzer
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-expression-adjustment-hide-unsafe nil
   "Whether to hide inlay hints for type adjustments outside of
 `unsafe` blocks."
   :type 'boolean
   :group 'lsp-rust-analyzer
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-implicit-drops nil
   "Whether to show implicit drop hints."
   :type 'boolean
   :group 'lsp-rust-analyzer
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 
 (defcustom lsp-rust-analyzer-closure-capture-hints nil
   "Whether to show inlay hints for closure captures."
   :type 'boolean
   :group 'lsp-rust-analyzer
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-closure-style "impl_fn"
   "Closure notation in type and chaining inlay hints."
   :type 'string
   :group 'lsp-rust-analyzer
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-hide-named-constructor nil
   "Whether to hide inlay type hints for constructors."
   :type 'boolean
   :group 'lsp-rust-analyzer
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-max-inlay-hint-length nil
   "Max inlay hint length."
@@ -502,21 +506,21 @@ the mode is not configured to ask the server to format them."
           (const "always")
           (const "skip_trivial"))
   :group 'lsp-rust-analyzer
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-display-lifetime-elision-hints-use-parameter-names nil
   "When showing elided lifetime inlay hints, whether to use
 parameter names or numeric placeholder names for the lifetimes."
   :type 'boolean
   :group 'lsp-rust-analyzer
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-display-closure-return-type-hints nil
   "Whether to show closure return type inlay hints for closures
 with block bodies."
   :type 'boolean
   :group 'lsp-rust-analyzer
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-display-parameter-hints nil
   "Whether to show function parameter name inlay hints at the call site."
@@ -531,27 +535,27 @@ with block bodies."
           (const "never")
           (const "mutable"))
   :group 'lsp-rust-analyzer
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-binding-mode-hints nil
   "Whether to show inlay type hints for binding modes."
   :type 'boolean
   :group 'lsp-rust-analyzer
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-closing-brace-hints t
   "Whether to show inlay hints after a closing `}` to indicate what item it
 belongs to."
   :type 'boolean
   :group 'lsp-rust-analyzer
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-closing-brace-hints-min-lines 25
   "Minimum number of lines required before the `}` until the hint is shown
 \(set to 0 or 1 to always show them)."
   :type 'integer
   :group 'lsp-rust-analyzer
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-lru-capacity nil
   "Number of syntax trees rust-analyzer keeps in memory."
@@ -598,9 +602,15 @@ The command should include `--message=format=json` or similar option."
   :group 'lsp-rust-analyzer
   :package-version '(lsp-mode . "8.0.2"))
 
-(defcustom lsp-rust-analyzer-checkonsave-features []
+(defcustom lsp-rust-analyzer-checkonsave-features nil
   "List of features to activate.
-Set this to `\"all\"` to pass `--all-features` to cargo."
+Corresponds to the `rust-analyzer` setting `rust-analyzer.check.features`.
+When set to `nil` (default), the value of `lsp-rust-features' is inherited.
+Set this to `\"all\"` to pass `--all-features` to cargo.
+Note: setting this to `nil` means \"unset\", whereas setting this
+to `[]` (empty vector) means \"set to empty list of features\",
+which overrides any value that would otherwise be inherited from
+`lsp-rust-features'."
   :type 'lsp-string-vector
   :group 'lsp-rust-rust-analyzer
   :package-version '(lsp-mode . "8.0.2"))
@@ -609,7 +619,13 @@ Set this to `\"all\"` to pass `--all-features` to cargo."
   "force rust-analyzer to unset `#[cfg(test)]` for the specified crates."
   :type 'lsp-string-vector
   :group 'lsp-rust-analyzer
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
+
+(defcustom lsp-rust-analyzer-cfg-set-test t
+  "force rust-analyzer to set `#[cfg(test)]` for the current crate / workspace."
+  :type 'boolean
+  :group 'lsp-rust-analyzer
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-use-client-watching t
   "Use client watching"
@@ -697,7 +713,7 @@ for formatting."
 available on a nightly build."
   :type 'boolean
   :group 'lsp-rust-analyzer
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-completion-add-call-parenthesis t
   "Whether to add parenthesis when completing functions."
@@ -749,10 +765,10 @@ them with `crate' or the crate name they refer to."
 (defcustom lsp-rust-analyzer-import-granularity "crate"
   "How imports should be grouped into use statements."
   :type '(choice
-          (const "crate" :doc "Merge imports from the same crate into a single use statement. This kind of nesting is only supported in Rust versions later than 1.24.")
-          (const "module" :doc "Merge imports from the same module into a single use statement.")
-          (const "item" :doc "Don’t merge imports at all, creating one import per item.")
-          (const "preserve" :doc "Do not change the granularity of any imports. For auto-import this has the same effect as `\"item\"'"))
+          (const :tag "Merge imports from the same crate into a single use statement. This kind of nesting is only supported in Rust versions later than 1.24." "crate" )
+          (const :tag "Merge imports from the same module into a single use statement." "module" )
+          (const :tag "Don’t merge imports at all, creating one import per item." "item" )
+          (const :tag "Do not change the granularity of any imports. For auto-import this has the same effect as `\"item\"'" "preserve" ))
   :group 'lsp-rust-analyzer
   :package-version '(lsp-mode . "8.0.0"))
 
@@ -796,7 +812,7 @@ and field accesses with self prefixed to them when inside a method."
 glob imports like `use std::fmt::*;`."
   :type 'boolean
   :group 'lsp-rust-analyzer
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-import-group t
   "Group inserted imports by the following order:
@@ -826,7 +842,7 @@ projects. Elements must be paths pointing to `Cargo.toml`, `rust-project.json`,
 or JSON objects in `rust-project.json` format."
   :type 'lsp-string-vector
   :group 'lsp-rust-analyzer
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-experimental-proc-attr-macros t
   "Whether to enable experimental support for expanding proc macro attributes."
@@ -838,14 +854,14 @@ or JSON objects in `rust-project.json` format."
   "Extra arguments that are passed to every cargo invocation."
   :type 'lsp-string-vector
   :group 'lsp-rust-analyzer
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-cargo-extra-env []
   "Extra environment variables that will be set when running cargo, rustc or
 other commands within the workspace.  Useful for setting RUSTFLAGS."
   :type 'lsp-string-vector
   :group 'lsp-rust-analyzer
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defconst lsp-rust-notification-handlers
   '(("rust-analyzer/publishDecorations" . (lambda (_w _p)))))
@@ -1121,171 +1137,169 @@ other commands within the workspace.  Useful for setting RUSTFLAGS."
   "Face for semantic token modifier for `documentation' attribute."
   :type 'face
   :group 'lsp-rust-analyzer-semantic-tokens
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-declaration-modifier 'lsp-rust-analyzer-declaration-modifier-face
   "Face for semantic token modifier for `declaration' attribute."
   :type 'face
   :group 'lsp-rust-analyzer-semantic-tokens
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-definition-modifier 'lsp-rust-analyzer-definition-modifier-face
   "Face for semantic token modifier for `definition' attribute."
   :type 'face
   :group 'lsp-rust-analyzer-semantic-tokens
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-static-modifier 'lsp-rust-analyzer-static-modifier-face
   "Face for semantic token modifier for `static' attribute."
   :type 'face
   :group 'lsp-rust-analyzer-semantic-tokens
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-abstract-modifier 'lsp-rust-analyzer-abstract-modifier-face
   "Face for semantic token modifier for `abstract' attribute."
   :type 'face
   :group 'lsp-rust-analyzer-semantic-tokens
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-deprecated-modifier 'lsp-rust-analyzer-deprecated-modifier-face
   "Face for semantic token modifier for `deprecated' attribute."
   :type 'face
   :group 'lsp-rust-analyzer-semantic-tokens
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-readonly-modifier 'lsp-rust-analyzer-readonly-modifier-face
   "Face for semantic token modifier for `readonly' attribute."
   :type 'face
   :group 'lsp-rust-analyzer-semantic-tokens
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-default-library-modifier 'lsp-rust-analyzer-default-library-modifier-face
   "Face for semantic token modifier for `default' attribute."
   :type 'face
   :group 'lsp-rust-analyzer-semantic-tokens
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-async-modifier 'lsp-rust-analyzer-async-modifier-face
   "Face for semantic token modifier for `async' attribute."
   :type 'face
   :group 'lsp-rust-analyzer-semantic-tokens
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-attribute-modifier 'lsp-rust-analyzer-attribute-modifier-face
   "Face for semantic token modifier for `attribute' attribute."
   :type 'face
   :group 'lsp-rust-analyzer-semantic-tokens
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-callable-modifier 'lsp-rust-analyzer-callable-modifier-face
   "Face for semantic token modifier for `callable' attribute."
   :type 'face
   :group 'lsp-rust-analyzer-semantic-tokens
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-constant-modifier 'lsp-rust-analyzer-constant-modifier-face
   "Face for semantic token modifier for `constant' attribute."
   :type 'face
   :group 'lsp-rust-analyzer-semantic-tokens
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-consuming-modifier 'lsp-rust-analyzer-consuming-modifier-face
   "Face for semantic token modifier for `consuming' attribute."
   :type 'face
   :group 'lsp-rust-analyzer-semantic-tokens
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-control-flow-modifier 'lsp-rust-analyzer-control-flow-modifier-face
   "Face for semantic token modifier for `control_flow' attribute."
   :type 'face
   :group 'lsp-rust-analyzer-semantic-tokens
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-crate-root-modifier 'lsp-rust-analyzer-crate-root-modifier-face
   "Face for semantic token modifier for `crate_root' attribute."
   :type 'face
   :group 'lsp-rust-analyzer-semantic-tokens
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-injected-modifier 'lsp-rust-analyzer-injected-modifier-face
   "Face for semantic token modifier for `injected' attribute."
   :type 'face
   :group 'lsp-rust-analyzer-semantic-tokens
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-intra-doc-link-modifier 'lsp-rust-analyzer-intra-doc-link-modifier-face
   "Face for semantic token modifier for `intra_doc_link' attribute."
   :type 'face
   :group 'lsp-rust-analyzer-semantic-tokens
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-library-modifier 'lsp-rust-analyzer-library-modifier-face
   "Face for semantic token modifier for `library' attribute."
   :type 'face
   :group 'lsp-rust-analyzer-semantic-tokens
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-mutable-modifier 'lsp-rust-analyzer-mutable-modifier-face
   "Face for semantic token modifier for `mutable' attribute."
   :type 'face
   :group 'lsp-rust-analyzer-semantic-tokens
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-public-modifier 'lsp-rust-analyzer-public-modifier-face
   "Face for semantic token modifier for `public' attribute."
   :type 'face
   :group 'lsp-rust-analyzer-semantic-tokens
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-reference-modifier 'lsp-rust-analyzer-reference-modifier-face
   "Face for semantic token modifier for `reference' attribute."
   :type 'face
   :group 'lsp-rust-analyzer-semantic-tokens
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-trait-modifier 'lsp-rust-analyzer-trait-modifier-face
   "Face for semantic token modifier for `trait' attribute."
   :type 'face
   :group 'lsp-rust-analyzer-semantic-tokens
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-unsafe-modifier 'lsp-rust-analyzer-unsafe-modifier-face
   "Face for semantic token modifier for `unsafe' attribute."
   :type 'face
   :group 'lsp-rust-analyzer-semantic-tokens
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 ;; ---------------------------------------------------------------------
-
 
 (defun lsp-rust-analyzer--semantic-modifiers ()
   "Mapping between rust-analyzer keywords and fonts to apply.
 The keywords are sent in the initialize response, in the semantic
 tokens legend."
-  `(
-    ("documentation" . ,lsp-rust-analyzer-documentation-modifier)
-    ("declaration" . ,lsp-rust-analyzer-declaration-modifier)
-    ("definition" . ,lsp-rust-analyzer-definition-modifier)
-    ("static" . ,lsp-rust-analyzer-static-modifier)
-    ("abstract" . ,lsp-rust-analyzer-abstract-modifier)
-    ("deprecated" . ,lsp-rust-analyzer-deprecated-modifier)
-    ("readonly" . ,lsp-rust-analyzer-readonly-modifier)
+  `(("documentation"   . ,lsp-rust-analyzer-documentation-modifier)
+    ("declaration"     . ,lsp-rust-analyzer-declaration-modifier)
+    ("definition"      . ,lsp-rust-analyzer-definition-modifier)
+    ("static"          . ,lsp-rust-analyzer-static-modifier)
+    ("abstract"        . ,lsp-rust-analyzer-abstract-modifier)
+    ("deprecated"      . ,lsp-rust-analyzer-deprecated-modifier)
+    ("readonly"        . ,lsp-rust-analyzer-readonly-modifier)
     ("default_library" . ,lsp-rust-analyzer-default-library-modifier)
-    ("async" . ,lsp-rust-analyzer-async-modifier)
-    ("attribute" . ,lsp-rust-analyzer-attribute-modifier)
-    ("callable" . ,lsp-rust-analyzer-callable-modifier)
-    ("constant" . ,lsp-rust-analyzer-constant-modifier)
-    ("consuming" . ,lsp-rust-analyzer-consuming-modifier)
-    ("control_flow" . ,lsp-rust-analyzer-control-flow-modifier)
-    ("crate_root" . ,lsp-rust-analyzer-crate-root-modifier)
-    ("injected" . ,lsp-rust-analyzer-injected-modifier)
-    ("intra_doc_link" . ,lsp-rust-analyzer-intra-doc-link-modifier)
-    ("library" . ,lsp-rust-analyzer-library-modifier)
-    ("mutable" . ,lsp-rust-analyzer-mutable-modifier)
-    ("public" . ,lsp-rust-analyzer-public-modifier)
-    ("reference" . ,lsp-rust-analyzer-reference-modifier)
-    ("trait" . ,lsp-rust-analyzer-trait-modifier)
-    ("unsafe" . ,lsp-rust-analyzer-unsafe-modifier)))
+    ("async"           . ,lsp-rust-analyzer-async-modifier)
+    ("attribute"       . ,lsp-rust-analyzer-attribute-modifier)
+    ("callable"        . ,lsp-rust-analyzer-callable-modifier)
+    ("constant"        . ,lsp-rust-analyzer-constant-modifier)
+    ("consuming"       . ,lsp-rust-analyzer-consuming-modifier)
+    ("control_flow"    . ,lsp-rust-analyzer-control-flow-modifier)
+    ("crate_root"      . ,lsp-rust-analyzer-crate-root-modifier)
+    ("injected"        . ,lsp-rust-analyzer-injected-modifier)
+    ("intra_doc_link"  . ,lsp-rust-analyzer-intra-doc-link-modifier)
+    ("library"         . ,lsp-rust-analyzer-library-modifier)
+    ("mutable"         . ,lsp-rust-analyzer-mutable-modifier)
+    ("public"          . ,lsp-rust-analyzer-public-modifier)
+    ("reference"       . ,lsp-rust-analyzer-reference-modifier)
+    ("trait"           . ,lsp-rust-analyzer-trait-modifier)
+    ("unsafe"          . ,lsp-rust-analyzer-unsafe-modifier)))
 
 (defun lsp-rust-switch-server (&optional lsp-server)
   "Switch priorities of lsp servers, unless LSP-SERVER is already active."
@@ -1299,7 +1313,8 @@ tokens legend."
                              (* (lsp--client-priority (gethash server lsp-clients)) -1)))
           (message (format "Switched to server %s." server)))))))
 
-;; inlay hints
+;;
+;;; Inlay hints
 
 (defcustom lsp-rust-analyzer-debug-lens-extra-dap-args
   '(:MIMode "gdb" :miDebuggerPath "gdb" :stopAtEntry t :externalConsole :json-false)
@@ -1314,7 +1329,8 @@ meaning."
   :group 'lsp-rust-analyzer
   :package-version '(lsp-mode . "8.0.0"))
 
-;; lenses
+;;
+;;; Lenses
 
 (defgroup lsp-rust-analyzer-lens nil
   "LSP lens support for Rust when using rust-analyzer.
@@ -1328,19 +1344,19 @@ function or running an individual test.
   :prefix "lsp-rust-analyzer-lens-"
   :group 'lsp-rust-analyzer
   :link '(url-link "https://emacs-lsp.github.io/lsp-mode/")
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-lens-debug-enable t
   "Enable or disable the Debug lens."
   :type 'boolean
   :group 'lsp-rust-analyzer-lens
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-lens-enable t
   "Master-enable of lenses in Rust files."
   :type 'boolean
   :group 'lsp-rust-analyzer-lens
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 ;; This customisation "works" in that it works as described, but the default is fine and changing it
 ;; from the default will either stop lenses working or do nothing.
@@ -1353,7 +1369,7 @@ function or running an individual test.
 ;; client doesn't set the corresponding capability."
 ;;   :type 'boolean
 ;;   :group 'lsp-rust-analyzer-lens
-;;   :package-version '(lsp-mode . "8.0.1"))
+;;   :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-lens-implementations-enable t
   "Enable or disable the Implementations lens.
@@ -1365,7 +1381,7 @@ on it gives a list of the impls of that type.
 "
   :type 'boolean
   :group 'lsp-rust-analyzer-lens
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 ;; The valid range of values for this is documented in the rust-lang/rust-analyzer repository at the
 ;; path "editors/code/package.json"; the TL:DR is that it's "above_name" or "above_whole_item".
@@ -1382,7 +1398,7 @@ on it gives a list of the impls of that type.
 ;;            (const :tag "Above name" "above_name")
 ;;            (const :tag "Above whole item" "above_whole_item")
 ;;    :group 'lsp-rust-analyzer-lens
-;;    :package-version '(lsp-mode . "8.0.1"))
+;;    :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-lens-references-adt-enable nil
   "Enable or disable the References lens on enums, structs, and traits.
@@ -1393,7 +1409,7 @@ the count of uses of that type. Clicking on it gives a list of
 where that type is used."
   :type 'boolean
   :group 'lsp-rust-analyzer-lens
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-lens-references-enum-variant-enable nil
   "Enable or disable the References lens on enum variants.
@@ -1404,7 +1420,7 @@ uses of that enum variant. Clicking on it gives a list of where
 that enum variant is used."
   :type 'boolean
   :group 'lsp-rust-analyzer-lens
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-lens-references-method-enable nil
   "Enable or disable the References lens on functions.
@@ -1416,7 +1432,7 @@ function is used."
 
   :type 'boolean
   :group 'lsp-rust-analyzer-lens
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-lens-references-trait-enable nil
   "Enable or disable the References lens on traits.
@@ -1431,16 +1447,16 @@ all of the trait's impl blocks, but this also shows other uses
 such as imports and dyn traits."
   :type 'boolean
   :group 'lsp-rust-analyzer-lens
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-rust-analyzer-lens-run-enable t
   "Enable or disable the Run lens."
   :type 'boolean
   :group 'lsp-rust-analyzer-lens
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defun lsp-rust-analyzer-initialized? ()
-  (when-let ((workspace (lsp-find-workspace 'rust-analyzer (buffer-file-name))))
+  (when-let* ((workspace (lsp-find-workspace 'rust-analyzer (buffer-file-name))))
     (eq 'initialized (lsp--workspace-status workspace))))
 
 (defun lsp-rust-analyzer-expand-macro ()
@@ -1467,10 +1483,14 @@ such as imports and dyn traits."
         (rust-syntax-mode)))
     (pop-to-buffer buf)))
 
-;; runnables
-(defvar lsp-rust-analyzer--last-runnable nil)
+;;
+;;; Runnables
+
+(defvar lsp-rust-analyzer--last-runnable nil
+  "Record the last runnable.")
 
 (defun lsp-rust-analyzer--runnables ()
+  "Return list of runnables."
   (lsp-send-request (lsp-make-request
                      "experimental/runnables"
                      (lsp-make-rust-analyzer-runnables-params
@@ -1478,6 +1498,7 @@ such as imports and dyn traits."
                       :position? (lsp--cur-position)))))
 
 (defun lsp-rust-analyzer--select-runnable ()
+  "Select runnable."
   (lsp--completing-read
    "Select runnable:"
    (if lsp-rust-analyzer--last-runnable
@@ -1487,7 +1508,6 @@ such as imports and dyn traits."
                       (lsp-rust-analyzer--runnables)))
      (lsp-rust-analyzer--runnables))
    (-lambda ((&rust-analyzer:Runnable :label)) label)))
-
 
 (defun lsp-rust-analyzer--common-runner (runnable)
   "Execute a given RUNNABLE.
@@ -1508,7 +1528,6 @@ and run a compilation"
        (if (functionp 'cargo-process-mode) 'cargo-process-mode nil)
        (lambda (_) (concat "*" label "*"))))))
 
-
 (defun lsp-rust-analyzer-run (runnable)
   "Select and run a RUNNABLE action."
   (interactive (list (lsp-rust-analyzer--select-runnable)))
@@ -1518,8 +1537,8 @@ and run a compilation"
 (defun lsp-rust-analyzer-debug (runnable)
   "Select and debug a RUNNABLE action."
   (interactive (list (lsp-rust-analyzer--select-runnable)))
-  (unless (featurep 'dap-cpptools)
-    (user-error "You must require `dap-cpptools'"))
+  (unless (or (featurep 'dap-cpptools) (featurep 'dap-gdb))
+    (user-error "You must require `dap-cpptools' or 'dap-gdb'"))
   (-let (((&rust-analyzer:Runnable
            :args (&rust-analyzer:RunnableArgs :cargo-args :workspace-root? :executable-args)
            :label) runnable))
@@ -1546,7 +1565,7 @@ and run a compilation"
               (`() (user-error "No compilation artifacts or obtaining the runnable artifacts failed"))
               (`(,spec) spec)
               (_ (user-error "Multiple compilation artifacts are not supported")))))
-         (list :type "cppdbg"
+         (list :type (if (featurep 'dap-gdb) "gdb" "cppdbg")
                :request "launch"
                :name label
                :args executable-args
@@ -1674,11 +1693,22 @@ https://github.com/rust-lang/rust-analyzer/blob/master/docs/dev/lsp-extensions.m
                :merge (:glob ,(lsp-json-bool lsp-rust-analyzer-imports-merge-glob))
                :prefix ,lsp-rust-analyzer-import-prefix)
     :lruCapacity ,lsp-rust-analyzer-lru-capacity
+    ;; This `checkOnSave` is called `check` in the `rust-analyzer` docs, not
+    ;; `checkOnSave`, but the `rust-analyzer` source code shows that both names
+    ;; work. The `checkOnSave` name has been supported by `rust-analyzer` for a
+    ;; long time, whereas the `check` name was introduced here in 2023:
+    ;; https://github.com/rust-lang/rust-analyzer/commit/d2bb62b6a81d26f1e41712e04d4ac760f860d3b3
     :checkOnSave ( :enable ,(lsp-json-bool lsp-rust-analyzer-cargo-watch-enable)
                    :command ,lsp-rust-analyzer-cargo-watch-command
                    :extraArgs ,lsp-rust-analyzer-cargo-watch-args
                    :allTargets ,(lsp-json-bool lsp-rust-analyzer-check-all-targets)
-                   :features ,lsp-rust-analyzer-checkonsave-features
+                   ;; We need to distinguish between setting this to the empty
+                   ;; vector, and not setting it at all, which `rust-analyzer`
+                   ;; interprets as "inherit from
+                   ;; `rust-analyzer.cargo.features`". We use `nil` to mean
+                   ;; "unset".
+                   ,@(when (vectorp lsp-rust-analyzer-checkonsave-features)
+                       `(:features ,lsp-rust-analyzer-checkonsave-features))
                    :overrideCommand ,lsp-rust-analyzer-cargo-override-command)
     :highlightRelated ( :breakPoints (:enable ,(lsp-json-bool lsp-rust-analyzer-highlight-breakpoints))
                         :closureCaptures (:enable ,(lsp-json-bool lsp-rust-analyzer-highlight-closure-captures))
@@ -1688,6 +1718,7 @@ https://github.com/rust-lang/rust-analyzer/blob/master/docs/dev/lsp-extensions.m
     :files ( :exclude ,lsp-rust-analyzer-exclude-globs
              :watcher ,(if lsp-rust-analyzer-use-client-watching "client" "notify")
              :excludeDirs ,lsp-rust-analyzer-exclude-dirs)
+    :cfg ( :setTest ,(lsp-json-bool lsp-rust-analyzer-cfg-set-test) )
     :cargo ( :allFeatures ,(lsp-json-bool lsp-rust-all-features)
              :noDefaultFeatures ,(lsp-json-bool lsp-rust-no-default-features)
              :features ,lsp-rust-features
@@ -1766,17 +1797,35 @@ https://github.com/rust-lang/rust-analyzer/blob/master/docs/dev/lsp-extensions.m
                        ("rust-analyzer.showReferences" #'lsp-rust--analyzer-show-references)
                        ("rust-analyzer.triggerParameterHints" #'lsp--action-trigger-parameter-hints))
   :library-folders-fn (lambda (_workspace) lsp-rust-analyzer-library-directories)
-  :semantic-tokens-faces-overrides `(:discard-default-modifiers t
-                                                                :modifiers
-                                                                ,(lsp-rust-analyzer--semantic-modifiers))
+  :semantic-tokens-faces-overrides `( :discard-default-modifiers t
+                                      :modifiers ,(lsp-rust-analyzer--semantic-modifiers))
   :server-id 'rust-analyzer
-  :custom-capabilities `((experimental . ((snippetTextEdit . ,(and lsp-enable-snippet (featurep 'yasnippet))))))
+  :custom-capabilities `((experimental .
+                                       ((snippetTextEdit . ,(and lsp-enable-snippet (fboundp 'yas-minor-mode)))
+                                        (commands . ((commands .
+                                                               [
+                                                                "rust-analyzer.runSingle"
+                                                                "rust-analyzer.debugSingle"
+                                                                "rust-analyzer.showReferences"
+                                                                ;; "rust-analyzer.gotoLocation"
+                                                                "rust-analyzer.triggerParameterHints"
+                                                                ;; "rust-analyzer.rename"
+                                                                ]))))))
   :download-server-fn (lambda (_client callback error-callback _update?)
                         (lsp-package-ensure 'rust-analyzer callback error-callback))))
 
+(cl-defmethod lsp-clients-extract-signature-on-hover (contents (_server-id (eql rust-analyzer)))
+  "Extract first non-comment line from rust-analyzer's hover CONTENTS.
+The first line of the hover contents is usally about memory layout or notable
+traits starting with //, with the actual signature follows."
+  (let* ((lines (s-lines (s-trim (lsp--render-element contents))))
+         (non-comment-lines (--filter (not (s-prefix? "//" it)) lines)))
+    (if non-comment-lines
+        (car non-comment-lines)
+      (car lines))))
+
 (defvar-local lsp-rust--has-experimental-parent-module-cap +undef+)
 (defvar-local lsp-rust--has-experimental-open-cargo-toml-cap +undef+)
-
 
 (lsp-consistency-check lsp-rust)
 
