@@ -17,7 +17,7 @@ jobs:
         emacs-version:
           - 27.2
           - 28.2
-          - 29.2
+          - 29.4
         experimental: [false]
         include:
           - os: ubuntu-latest
@@ -29,6 +29,9 @@ jobs:
           - os: windows-latest
             emacs-version: snapshot
             experimental: true
+        exclude:
+          - os: macos-latest
+            emacs-version: 27.2
 
     steps:
     - uses: jcs090218/setup-emacs@master
@@ -49,16 +52,15 @@ jobs:
       if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
       run: "cmake --version"
       
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v5.1.0
       with:
         python-version: "3.9"
-        architecture: "x64"
       
     - name: Install depedencies on Linux
       if: runner.os == 'Linux'
       run: |
         pip3 install python-language-server
-        sudo apt-get install clangd-11
+        sudo apt-get install clangd-15
 
     - name: Install depedencies on macOS
       if: runner.os == 'macOS'
@@ -67,9 +69,9 @@ jobs:
 
     - name: Check clangd
       if: runner.os == 'Linux'
-      run: "clangd-11 --version"
+      run: "clangd-15 --version"
 
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Grant execution permission
       if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'

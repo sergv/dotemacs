@@ -40,7 +40,7 @@
 (define-obsolete-variable-alias
   'lsp-clients-typescript-init-opts
   'lsp-clients-typescript-preferences
-  "lsp-mode 8.0.1")
+  "lsp-mode 9.0.0")
 
 (defcustom lsp-clients-typescript-javascript-server-args '()
   "Extra arguments for the typescript-language-server language server."
@@ -157,7 +157,7 @@ See https://github.com/typescript-language-server/typescript-language-server#ini
 (defcustom lsp-typescript-tsdk nil
   "Specifies the folder path containing tsserver and lib*.d.ts files to use."
   :type '(repeat string)
-  :group 'lsp-vetur
+  :group 'lsp-typescript
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-typescript-disable-automatic-type-acquisition nil
@@ -165,7 +165,7 @@ See https://github.com/typescript-language-server/typescript-language-server#ini
 Automatic type acquisition fetches `@types` packages from npm to improve
 IntelliSense for external libraries."
   :type 'boolean
-  :group 'lsp-vetur
+  :group 'lsp-typescript
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-typescript-npm nil
@@ -173,32 +173,32 @@ IntelliSense for external libraries."
 Requires using TypeScript 2.3.4 or newer in the
 workspace."
   :type '(repeat string)
-  :group 'lsp-vetur
+  :group 'lsp-typescript
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-typescript-check-npm-is-installed t
   "Check if NPM is installed for Automatic Type Acquisition."
   :type 'boolean
-  :group 'lsp-vetur
+  :group 'lsp-typescript
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-javascript-references-code-lens-enabled nil
   "Enable/disable references CodeLens in JavaScript files."
   :type 'boolean
-  :group 'lsp-vetur
+  :group 'lsp-typescript
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-typescript-references-code-lens-enabled nil
   "Enable/disable references CodeLens in TypeScript files."
   :type 'boolean
-  :group 'lsp-vetur
+  :group 'lsp-typescript
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-typescript-implementations-code-lens-enabled nil
   "Enable/disable implementations CodeLens.
 This CodeLens shows the implementers of an interface."
   :type 'boolean
-  :group 'lsp-vetur
+  :group 'lsp-typescript
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-typescript-tsserver-log "off"
@@ -211,7 +211,7 @@ from your project."
           (const "terse")
           (const "normal")
           (const "verbose"))
-  :group 'lsp-vetur
+  :group 'lsp-typescript
   :package-version '(lsp-mode . "6.1"))
 
 (defcustom lsp-typescript-tsserver-plugin-paths nil
@@ -608,45 +608,45 @@ Code's JavaScript and TypeScript support."
 (defcustom lsp-javascript-display-enum-member-value-hints nil
   "Show inlay hints for enum member values."
   :type 'boolean
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-javascript-display-return-type-hints nil
   "Show inlay hints for function return types."
   :type 'boolean
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-javascript-display-parameter-type-hints nil
   "Show inlay hints for function parameters."
   :type 'boolean
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-javascript-display-parameter-name-hints "none"
   "Level of hinting for parameter types."
   :type '(choice (const :tag "none" "none")
                  (const :tag "literals" "literals")
                  (const :tag "all" "all"))
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-javascript-display-parameter-name-hints-when-argument-matches-name nil
   "Show inlay hints for function parameters even when argument matches
 name (e.g. `data' variable passed as `data' parameter)."
   :type 'boolean
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-javascript-display-property-declaration-type-hints nil
   "Show inlay hints for property declaration types."
   :type 'boolean
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-javascript-display-variable-type-hints nil
   "Show inlay hints for variable types."
   :type 'boolean
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-javascript-completions-complete-function-calls t
   "Complete function calls."
   :type 'boolean
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (lsp-register-custom-settings
  '(("javascript.autoClosingTags" lsp-javascript-auto-closing-tags t)
@@ -787,23 +787,40 @@ name (e.g. `data' variable passed as `data' parameter)."
       (lsp--info "Renamed '%s' to '%s'." name (file-name-nondirectory new)))))
 
 (defun lsp-javascript-initialized? ()
-  (when-let ((workspace (lsp-find-workspace 'ts-ls (buffer-file-name))))
+  (when-let* ((workspace (lsp-find-workspace 'ts-ls (buffer-file-name))))
     (eq 'initialized (lsp--workspace-status workspace))))
 
-(defun lsp-clients-typescript-project-ts-server-path ()
-  "Return the project local TS server path."
-  (f-join (lsp-workspace-root) "node_modules" "typescript" "lib" "tsserver.js"))
+(defun lsp-clients-typescript-require-resolve (&optional dir)
+  "Get the location of the typescript.
+Use Node.js require.
+The node_modules directory structure is suspect
+and should be trusted as little as possible.
+If you call require in Node.js,
+it should take into account the various hooks.
+For example, yarn PnP.
+
+Optional argument DIR specifies the working directory
+to run the command in."
+  (when-let*
+      ((default-directory (or dir default-directory))
+       (output
+        (string-trim-right
+         (shell-command-to-string
+          "node -e \"console.log(require.resolve('typescript'))\"")))
+       (not-empty (not (string-empty-p output))))
+    (f-parent output)))
 
 (defun lsp-clients-typescript-server-path ()
-  "Return the TS sever path base on settings."
-  (cond
-   ((and lsp-clients-typescript-prefer-use-project-ts-server
-         (f-exists? (lsp-clients-typescript-project-ts-server-path)))
-    (lsp-clients-typescript-project-ts-server-path))
-   (t
+  "Return the TS server path based on settings."
+  (if-let* ((use-project-ts lsp-clients-typescript-prefer-use-project-ts-server)
+            (server-path (lsp-clients-typescript-require-resolve))
+            (server-path-exist (f-exists? server-path)))
+      server-path
     (if (memq system-type '(cygwin windows-nt ms-dos))
-        (f-join (f-parent (lsp-package-path 'typescript)) "node_modules" "typescript" "lib")
-      (f-join (f-parent (f-parent (lsp-package-path 'typescript))) "lib" "node_modules" "typescript" "lib")))))
+        ;; The Windows environment does not recognize the top-level PATH returned by `lsp-package-path',
+        ;; so the real PATH is returned through Node.js.
+        (lsp-clients-typescript-require-resolve (f-parent (lsp-package-path 'typescript)))
+      (lsp-package-path 'typescript))))
 
 (lsp-register-client
  (make-lsp-client :new-connection (lsp-stdio-connection (lambda ()
@@ -874,7 +891,7 @@ finding the executable with variable `exec-path'."
 (defun lsp-clients-flow-tag-file-present-p (file-name)
   "Check if the '// @flow' or `/* @flow */' tag is present in
 the contents of FILE-NAME."
-  (if-let ((buffer (find-buffer-visiting file-name)))
+  (if-let* ((buffer (find-buffer-visiting file-name)))
       (with-current-buffer buffer
         (lsp-clients-flow-tag-string-present-p))
     (with-temp-buffer

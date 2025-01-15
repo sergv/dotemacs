@@ -111,12 +111,20 @@ Example usage with `dash`.
                                                ',required))))
                     `(cl-defun ,(intern (format "lsp-make-%s" (s-dashed-words (symbol-name interface))))
                          (&rest plist &key ,@(-map (-lambda ((key))
-                                                     (intern (substring (symbol-name key) 1))) params)
+                                                     (let ((key-sym (intern (substring (symbol-name key) 1))))
+                                                       (if (special-variable-p key-sym)
+                                                           `((,key ,(intern (format "%s_" (symbol-name key-sym)))))
+                                                         key-sym)))
+                                                   params)
                                 &allow-other-keys)
-                       (ignore ,@(-map (-lambda ((key))
-                                         (intern (substring (symbol-name key) 1))) params))
                        ,(format "Constructs %s from `plist.'
 Allowed params: %s" interface (reverse (-map #'cl-first params)))
+                       (ignore ,@(-map (-lambda ((key))
+                                         (let ((key-sym (intern (substring (symbol-name key) 1))))
+                                           (if (special-variable-p key-sym)
+                                               (intern (format "%s_" (symbol-name key-sym)))
+                                             key-sym)))
+                                       params))
                        ,(if lsp-use-plists
                             `(-mapcat (-lambda ((key value))
                                         (list (or (cl-rest (assoc key ',params)) key) value))
@@ -129,7 +137,7 @@ Allowed params: %s" interface (reverse (-map #'cl-first params)))
                                               $$result))
                                    (-partition 2 plist))
                              $$result)))
-                    `(pcase-defmacro ,interface (&rest property-bindings)
+                    `(cl-defun ,(intern (format "lsp--pcase-macroexpander-%s" interface)) (&rest property-bindings)
                        ,(if lsp-use-plists
                             ``(and
                                (pred listp)
@@ -245,6 +253,25 @@ Allowed params: %s" interface (reverse (-map #'cl-first params)))
                              params)))))
          (apply #'append)
          (cl-list* 'progn))))
+
+(pcase-defmacro lsp-interface (interface &rest property-bindings)
+  "If EXPVAL is an instance of INTERFACE, destructure it by matching its
+properties. EXPVAL should be a plist or hash table depending on the variable
+`lsp-use-plists'.
+
+INTERFACE should be an LSP interface defined with `lsp-interface'. This form
+will not match if any of INTERFACE's required fields are missing in EXPVAL.
+
+Each :PROPERTY keyword matches a field in EXPVAL. The keyword may be followed by
+an optional PATTERN, which is a `pcase' pattern to apply to the field's value.
+Otherwise, PROPERTY is let-bound to the field's value.
+
+\(fn INTERFACE [:PROPERTY [PATTERN]]...)"
+  (cl-check-type interface symbol)
+  (let ((lsp-pcase-macroexpander
+         (intern (format "lsp--pcase-macroexpander-%s" interface))))
+    (cl-assert (fboundp lsp-pcase-macroexpander) "not a known LSP interface: %s" interface)
+    (apply lsp-pcase-macroexpander property-bindings)))
 
 (if lsp-use-plists
     (progn
@@ -399,7 +426,9 @@ See `-let' for a description of the destructuring mechanism."
                (omnisharp:RunTestsInClassRequest (:MethodNames :RunSettings :TestFrameworkname :TargetFrameworkVersion :NoBuild :Line :Column :Buffer :FileName))
                (omnisharp:RunTestResponse (:Results :Pass :Failure :ContextHadNoTests))
                (omnisharp:TestMessageEvent (:MessageLevel :Message))
-               (omnisharp:DotNetTestResult (:MethodName :Outcome :ErrorMessage :ErrorStackTrace :StandardOutput :StandardError)))
+               (omnisharp:DotNetTestResult (:MethodName :Outcome :ErrorMessage :ErrorStackTrace :StandardOutput :StandardError))
+               (omnisharp:MetadataRequest (:AssemblyName :TypeName :ProjectName :VersionNumber :Language))
+               (omnisharp:MetadataResponse (:SourceName :Source)))
 
 (lsp-interface (csharp-ls:CSharpMetadata (:textDocument))
                (csharp-ls:CSharpMetadataResponse (:source :projectName :assemblyName :symbolName)))
@@ -436,6 +465,11 @@ See `-let' for a description of the destructuring mechanism."
 (lsp-interface (terraform-ls:Providers (:v :provider_requirements :installed_providers) nil))
 (lsp-interface (terraform-ls:module.terraform (:v :required_version :discovered_version)))
 
+(lsp-interface
+ (copilot-ls:SignInInitiateResponse (:status :userCode :verificationUri :expiresIn :interval :user) nil)
+ (copilot-ls:SignInConfirmResponse (:status :user))
+ (copilot-ls:CheckStatusResponse (:status :user)))
+
 
 ;; begin autogenerated code
 
@@ -471,6 +505,8 @@ See `-let' for a description of the destructuring mechanism."
 (defconst lsp/completion-trigger-kind-invoked 1)
 (defconst lsp/completion-trigger-kind-trigger-character 2)
 (defconst lsp/completion-trigger-kind-trigger-for-incomplete-completions 3)
+(defconst lsp/inline-completion-trigger-invoked 1 "Explicit invocation as per https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/specification/#inlineCompletionTriggerKind")
+(defconst lsp/inline-completion-trigger-automatic 2 "Automatic invocation as per https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/specification/#inlineCompletionTriggerKind")
 (defvar lsp/diagnostic-severity-lookup
   [nil Error Warning Information Hint Max])
 (defconst lsp/diagnostic-severity-error 1)
@@ -591,7 +627,7 @@ See `-let' for a description of the destructuring mechanism."
  (CompletionCapabilities nil (:completionItem :completionItemKind :contextSupport :dynamicRegistration))
  (CompletionContext (:triggerKind) (:triggerCharacter))
  (CompletionItem (:label) (:additionalTextEdits :command :commitCharacters :data :deprecated :detail :documentation :filterText :insertText :insertTextFormat :insertTextMode :kind :preselect :sortText :tags :textEdit :score :labelDetails))
- (CompletionItemCapabilities nil (:commitCharactersSupport :deprecatedSupport :documentationFormat :preselectSupport :snippetSupport :tagSupport :insertReplaceSupport :resolveSupport))
+ (CompletionItemCapabilities nil (:commitCharactersSupport :deprecatedSupport :documentationFormat :preselectSupport :snippetSupport :tagSupport :insertReplaceSupport :resolveSupport :labelDetailsSupport))
  (CompletionItemKindCapabilities nil (:valueSet))
  (CompletionItemTagSupportCapabilities (:valueSet) nil)
  (CompletionOptions nil (:resolveProvider :triggerCharacters :allCommitCharacters))
@@ -601,10 +637,15 @@ See `-let' for a description of the destructuring mechanism."
  (DefinitionCapabilities nil (:dynamicRegistration :linkSupport))
  (DeleteFileOptions nil (:ignoreIfNotExists :recursive))
  (Diagnostic (:range :message) (:code :relatedInformation :severity :source :tags))
+ (DiagnosticClientCapabilities nil (:dynamicRegistration :relatedDocumentSupport))
+ (DiagnosticOptions (:interFileDependencies :workspaceDiagnostics) (:identifier))
  (DiagnosticRelatedInformation (:location :message) nil)
+ (DiagnosticServerCancellationData (:retriggerRequest) nil)
  (DiagnosticsTagSupport (:valueSet) nil)
  (DidChangeConfigurationCapabilities nil (:dynamicRegistration))
  (DidChangeWatchedFilesCapabilities nil (:dynamicRegistration))
+ (DocumentDiagnosticParams (:textDocument) (:identifier :previousResultId))
+ (DocumentDiagnosticReport (:kind) (:resultId :items :relatedDocuments))
  (DocumentFilter nil (:language :pattern :scheme))
  (DocumentHighlightCapabilities nil (:dynamicRegistration))
  (DocumentLinkCapabilities nil (:dynamicRegistration :tooltipSupport))
@@ -626,7 +667,6 @@ See `-let' for a description of the destructuring mechanism."
  (FormattingOptions (:tabSize :insertSpaces) (:trimTrailingWhitespace :insertFinalNewline :trimFinalNewlines))
  (HoverCapabilities nil (:contentFormat :dynamicRegistration))
  (ImplementationCapabilities nil (:dynamicRegistration :linkSupport))
- (LabelDetails (:detail :description) nil)
  (LinkedEditingRanges (:ranges) (:wordPattern))
  (Location (:range :uri) nil)
  (MarkedString (:language :value) nil)
@@ -653,7 +693,7 @@ See `-let' for a description of the destructuring mechanism."
  (SemanticHighlightingCapabilities nil (:semanticHighlighting))
  (SemanticHighlightingInformation (:line) (:tokens))
  (SemanticHighlightingServerCapabilities nil (:scopes))
- (ServerCapabilities nil (:callHierarchyProvider :codeActionProvider :codeLensProvider :colorProvider :completionProvider :declarationProvider :definitionProvider :documentFormattingProvider :documentHighlightProvider :documentLinkProvider :documentOnTypeFormattingProvider :documentRangeFormattingProvider :documentSymbolProvider :executeCommandProvider :experimental :foldingRangeProvider :hoverProvider :implementationProvider :referencesProvider :renameProvider :selectionRangeProvider :semanticHighlighting :signatureHelpProvider :textDocumentSync :typeDefinitionProvider :typeHierarchyProvider :workspace :workspaceSymbolProvider :semanticTokensProvider))
+ (ServerCapabilities nil (:callHierarchyProvider :codeActionProvider :codeLensProvider :colorProvider :completionProvider :declarationProvider :definitionProvider :documentFormattingProvider :documentHighlightProvider :documentLinkProvider :documentOnTypeFormattingProvider :documentRangeFormattingProvider :documentSymbolProvider :executeCommandProvider :experimental :foldingRangeProvider :hoverProvider :implementationProvider :referencesProvider :renameProvider :selectionRangeProvider :semanticHighlighting :signatureHelpProvider :textDocumentSync :typeDefinitionProvider :typeHierarchyProvider :workspace :workspaceSymbolProvider :semanticTokensProvider :inlineCompletionProvider))
  (ServerInfo (:name) (:version))
  (SignatureHelp (:signatures) (:activeParameter :activeSignature))
  (SignatureHelpCapabilities nil (:contextSupport :dynamicRegistration :signatureInformation))
@@ -783,9 +823,15 @@ See `-let' for a description of the destructuring mechanism."
  (WillSaveTextDocumentParams (:reason :textDocument) nil)
  (WorkspaceSymbolParams (:query) nil)
  ;; 3.17
+ (LabelDetails nil (:detail :description))
  (InlayHint (:label :position) (:kind :paddingLeft :paddingRight))
  (InlayHintLabelPart (:value) (:tooltip :location :command))
- (InlayHintsParams (:textDocument) (:range)))
+ (InlayHintsParams (:textDocument) (:range))
+ ;; 3.18
+ (InlineCompletionParams (:textDocument :position :context))
+ (InlineCompletionContext (:triggerKind))
+ (InlineCompletionItem (:insertText) (:filterText :range :command))
+ (InlineCompletionList (:items) nil))
 
 ;; 3.17
 (defconst lsp/inlay-hint-kind-type-hint 1)
@@ -793,5 +839,4 @@ See `-let' for a description of the destructuring mechanism."
 
 
 (provide 'lsp-protocol)
-
 ;;; lsp-protocol.el ends here

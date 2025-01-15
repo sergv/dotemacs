@@ -39,25 +39,31 @@
   "Lsp support for vue3."
   :group 'lsp-mode
   :link '(url-link "https://github.com/vuejs/language-tools")
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-volar-take-over-mode t
   "Enable Take Over Mode."
   :type 'boolean
   :group 'lsp-volar
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
+
+(defcustom lsp-volar-hybrid-mode nil
+  "Enable Hybrid Mode."
+  :type 'boolean
+  :group 'lsp-volar
+  :package-version '(lsp-mode . "9.0.1"))
 
 (defcustom lsp-volar-activate-file ".volarrc"
   "A file with a custom name placed in WORKSPACE-ROOT is used to force enable
  volar when there is no package.json in the WORKSPACE-ROOT."
   :type 'string
   :group 'lsp-volar
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defconst lsp-volar--is-windows (memq system-type '(cygwin windows-nt ms-dos)))
 (defun lsp-volar-get-typescript-tsdk-path ()
   "Get tsserver lib*.d.ts directory path."
-  (if-let ((package-path (lsp-package-path 'typescript))
+  (if-let* ((package-path (lsp-package-path 'typescript))
            (system-tsdk-path (f-join (file-truename package-path)
                                      (if lsp-volar--is-windows
                                          "../node_modules/typescript/lib"
@@ -79,17 +85,20 @@
 (lsp-register-custom-settings
  '(("typescript.tsdk"
     (lambda ()
-      (if-let ((project-root (lsp-workspace-root))
+      (if-let* ((project-root (lsp-workspace-root))
                (tsdk-path (f-join project-root "node_modules/typescript/lib"))
                ((file-exists-p tsdk-path)))
           tsdk-path
         (lsp-volar-get-typescript-tsdk-path)))
     t)))
 
+(lsp-register-custom-settings
+ '(("vue.hybridMode" lsp-volar-hybrid-mode t)))
+
 (defun lsp-volar--vue-project-p (workspace-root)
   "Check if the `Vue' package is present in the package.json file
 in the WORKSPACE-ROOT."
-  (if-let ((package-json (f-join workspace-root "package.json"))
+  (if-let* ((package-json (f-join workspace-root "package.json"))
            (exist (f-file-p package-json))
            (config (json-read-file package-json))
            (dependencies (alist-get 'dependencies config)))
@@ -118,6 +127,7 @@ in the WORKSPACE-ROOT."
   :multi-root nil
   :server-id 'vue-semantic-server
   :initialization-options (lambda () (ht-merge (lsp-configuration-section "typescript")
+                                               (lsp-configuration-section "vue")
                                                (ht ("serverMode" 0)
                                                    ("diagnosticModel" 1)
                                                    ("textDocumentSync" 2))))

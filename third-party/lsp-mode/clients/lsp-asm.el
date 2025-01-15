@@ -30,7 +30,7 @@
   "LSP support for Assembly Language."
   :group 'lsp-mode
   :link '(url-link "https://github.com/bergercookie/asm-lsp")
-  :package-version `(lsp-mode . "8.0.1"))
+  :package-version `(lsp-mode . "9.0.0"))
 
 (defcustom lsp-asm-active-modes
   '( asm-mode fasm-mode masm-mode nasm-mode gas-mode)
@@ -43,13 +43,13 @@
   "Url we use to install asm-lsp."
   :type 'string
   :group 'lsp-asm
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-asm-store-path (f-join lsp-server-install-dir "asm")
   "The path to the file in which `asm-lsp' will be stored."
   :type 'file
   :group 'lsp-asm
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defun lsp-asm--download-server (_client callback error-callback update?)
   "Install/update asm-ls language server using `cargo install'.
@@ -81,7 +81,8 @@ Will update if UPDATE? is t."
  (make-lsp-client
   :new-connection (lsp-stdio-connection
                    #'lsp-asm--server-command
-                   (lambda () (f-exists? lsp-asm-store-path)))
+                   (lambda () (or (executable-find "asm-lsp")
+                                  (f-exists? lsp-asm-store-path))))
   :major-modes lsp-asm-active-modes
   :priority -1
   :server-id 'asm-lsp
