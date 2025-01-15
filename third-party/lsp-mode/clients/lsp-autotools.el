@@ -30,7 +30,7 @@
   "LSP support for Autotools."
   :group 'lsp-mode
   :link '(url-link "https://github.com/Freed-Wu/autotools-language-server")
-  :package-version `(lsp-mode . "8.0.1"))
+  :package-version `(lsp-mode . "9.0.0"))
 
 (defcustom lsp-autotools-active-modes
   '( autoconf-mode
@@ -41,7 +41,7 @@
      makefile-bsdmake-mode
      makefile-imake-mode)
   "List of major mode that work with Autotools."
-  :type 'list
+  :type '(repeat function)
   :group 'lsp-autotools)
 
 (defun lsp-autotools--download-server (_client callback error-callback update?)
