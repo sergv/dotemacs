@@ -30,86 +30,95 @@
   "LSP support for Perl Navigator."
   :group 'lsp-mode
   :link '(url-link "https://github.com/bscan/PerlNavigator")
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-perlnavigator-perl-path "perl"
   "Full path to the perl executable (no aliases, .bat files or ~/)."
   :type 'string
   :group 'lsp-perlnavigator
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-perlnavigator-enable-warnings t
   "Enable warnings using -Mwarnings command switch."
   :type 'boolean
   :group 'lsp-perlnavigator
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-perlnavigator-perltidy-profile nil
   "Path to perl tidy profile (no aliases, .bat files or ~/)."
   :type 'string
   :group 'lsp-perlnavigator
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-perlnavigator-perlcritic-profile nil
   "Path to perl critic profile. Otherwise perlcritic itself will
 default to ~/.perlcriticrc. (no aliases, .bat files or ~/)."
   :type 'string
   :group 'lsp-perlnavigator
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-perlnavigator-perlcritic-enabled t
   "Enable perl critic."
   :type 'boolean
   :group 'lsp-perlnavigator
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
+
+(defconst lsp-perlnavigator--log-level-type
+  '(choice  (const "error")
+            (const "warning")
+            (const "info")
+            (const "hint")
+            (const "none")))
 
 (defcustom lsp-perlnavigator-severity5 "warning"
   "Editor Diagnostic severity level for Critic severity 5."
-  :type '(choice (:tag "error" "warning" "info" "hint" "none"))
+  :type lsp-perlnavigator--log-level-type
   :group 'lsp-perlnavigator
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-perlnavigator-severity4 "info"
   "Editor Diagnostic severity level for Critic severity 4."
-  :type '(choice (:tag "error" "warning" "info" "hint" "none"))
+  :type lsp-perlnavigator--log-level-type
   :group 'lsp-perlnavigator
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-perlnavigator-severity3 "hint"
   "Editor Diagnostic severity level for Critic severity 3."
-  :type '(choice (:tag "error" "warning" "info" "hint" "none"))
+  :type lsp-perlnavigator--log-level-type
   :group 'lsp-perlnavigator
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-perlnavigator-severity2 "hint"
   "Editor Diagnostic severity level for Critic severity 2."
-  :type '(choice (:tag "error" "warning" "info" "hint" "none"))
+  :type lsp-perlnavigator--log-level-type
   :group 'lsp-perlnavigator
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-perlnavigator-severity1 "hint"
   "Editor Diagnostic severity level for Critic severity 1."
-  :type '(choice (:tag "error" "warning" "info" "hint" "none"))
+  :type lsp-perlnavigator--log-level-type
   :group 'lsp-perlnavigator
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-perlnavigator-include-paths nil
   "Array of paths added to @INC.  You can use $workspaceRoot as a placeholder."
   :type 'lsp-string-vector
   :group 'lsp-perlnavigator
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-perlnavigator-logging t
   "Log to stdout from the navigator.  Viewable in the Perl Navigator LSP log."
   :type 'boolean
   :group 'lsp-perlnavigator
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (defcustom lsp-perlnavigator-trace-server "messages"
   "Traces the communication between VS Code and the language server."
-  :type '(choice (:tag "off" "messages" "verbose"))
+  :type '(choice (const "off")
+                 (const "messages")
+                 (const "verbose"))
   :group 'lsp-perlnavigator
-  :package-version '(lsp-mode . "8.0.1"))
+  :package-version '(lsp-mode . "9.0.0"))
 
 (lsp-register-custom-settings
  '(("perlnavigator.trace.server" lsp-perlnavigator-trace-server)
@@ -166,9 +175,9 @@ default to ~/.perlcriticrc. (no aliases, .bat files or ~/)."
 
 
 (defvar lsp-perlnavigator--autoinstall-binary-path
-    (let ((exe-name (if (eq system-type 'windows-nt) "perlnavigator.exe" "perlnavigator")))
-      (f-join lsp-perlnavigator-autoinstall-dir "latest" (concat "perlnavigator" lsp-perlnavigator--os-suffix) exe-name))
-    "The path to the automatically installed language server executable.")
+  (let ((exe-name (if (eq system-type 'windows-nt) "perlnavigator.exe" "perlnavigator")))
+    (f-join lsp-perlnavigator-autoinstall-dir "latest" (concat "perlnavigator" lsp-perlnavigator--os-suffix) exe-name))
+  "The path to the automatically installed language server executable.")
 
 (lsp-dependency
  'perlnavigator
