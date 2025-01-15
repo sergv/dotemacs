@@ -2033,6 +2033,8 @@ Directories come first."
          (seq (cl-mapcan
                (lambda (f)
                  (unless (member f '("./" "../"))
+                   ;; FIXME: Use `substitute-in-file-name'?
+                   ;; Re: #2012, #3060.
                    (setq f (ivy--string-replace "$$" "$" f))
                    (list (if (and dirs-first (ivy--dirname-p f))
                              (propertize f 'ivy--dir (directory-file-name f))
