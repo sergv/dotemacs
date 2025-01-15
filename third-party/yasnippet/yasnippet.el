@@ -1,6 +1,6 @@
 ;;; yasnippet.el --- Yet another snippet extension for Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2025 Free Software Foundation, Inc.
 ;; Authors: pluskid <pluskid@gmail.com>,
 ;;          João Távora <joaotavora@gmail.com>,
 ;;          Noam Postavsky <npostavs@gmail.com>
@@ -867,18 +867,19 @@ which decides on the snippet to expand.")
                             (cons (if (eq mode 'fundamental-mode) ()
                                     (append (cdr ap) '(fundamental-mode)))
                                   extras))))
-                 (cons mode
-                       (yas--merge-ordered-lists
-                        (mapcar #'yas--all-parents
-                                (remq nil
-                                      `(,(or (get mode 'derived-mode-parent)
-                                             ;; Consider `fundamental-mode'
-                                             ;; as ultimate ancestor.
-                                             'fundamental-mode)
-                                        ,(let ((alias (symbol-function mode)))
-                                           (when (symbolp alias) alias))
-                                        ,@(get mode 'derived-mode-extra-parents)
-                                        ,@(gethash mode yas--parents)))))))))
+                 (delete-dups
+                  (cons mode
+                        (yas--merge-ordered-lists
+                         (mapcar #'yas--all-parents
+                                 (remq nil
+                                       `(,(or (get mode 'derived-mode-parent)
+                                              ;; Consider `fundamental-mode'
+                                              ;; as ultimate ancestor.
+                                              'fundamental-mode)
+                                         ,(let ((alias (symbol-function mode)))
+                                            (when (symbolp alias) alias))
+                                         ,@(get mode 'derived-mode-extra-parents)
+                                         ,@(gethash mode yas--parents))))))))))
           (dolist (parent all-parents)
             (cl-pushnew mode (get parent 'yas--cached-children)))
           (put mode 'yas--all-parents all-parents)))))
@@ -1015,7 +1016,7 @@ Honour `yas-dont-activate-functions', which see."
 ;;; Major mode stuff
 
 (defvar yas--font-lock-keywords
-  (append '(("^#.*$" . font-lock-comment-face))
+  (append '(("^#.*$" (0 'font-lock-comment-face)))
           (with-temp-buffer
             (let ((prog-mode-hook nil)
                   (emacs-lisp-mode-hook nil))
@@ -1026,14 +1027,14 @@ Honour `yas-dont-activate-functions', which see."
                 (cadr font-lock-keywords)
               font-lock-keywords))
           '(("\\$\\([0-9]+\\)"
-             (0 font-lock-keyword-face)
-             (1 font-lock-string-face t))
+             (0 'font-lock-keyword-face)
+             (1 'font-lock-string-face t))
             ("\\${\\([0-9]+\\):?"
-             (0 font-lock-keyword-face)
-             (1 font-lock-warning-face t))
-            ("\\(\\$(\\)" 1 font-lock-preprocessor-face)
+             (0 'font-lock-keyword-face)
+             (1 'font-lock-warning-face t))
+            ("\\(\\$(\\)" 1 'font-lock-preprocessor-face)
             ("}"
-             (0 font-lock-keyword-face)))))
+             (0 'font-lock-keyword-face)))))
 
 (defvar snippet-mode-map
   (let ((map (make-sparse-keymap)))
@@ -2799,18 +2800,20 @@ Return the `yas--template' object created"
 
 (defun yas-maybe-load-snippet-buffer ()
   "Added to `after-save-hook' in `snippet-mode'."
-  (let* ((mode (intern (file-name-sans-extension
-                        (file-name-nondirectory
-                         (directory-file-name default-directory)))))
-         (current-snippet
-          (apply #'yas--define-snippets-2 (yas--table-get-create mode)
-                 (yas--parse-template buffer-file-name)))
-         (uuid (yas--template-uuid current-snippet)))
-    (unless (equal current-snippet
-                   (if uuid (yas--get-template-by-uuid mode uuid)
-                     (yas--lookup-snippet-1
-                      (yas--template-name current-snippet) mode)))
-      (yas-load-snippet-buffer mode t))))
+  (save-excursion ;; Issue #1146.  Here or in `yas--parse-template`?
+    (let* ((mode (intern (file-name-sans-extension
+                          (file-name-nondirectory
+                           (directory-file-name default-directory)))))
+           (current-snippet
+            (apply #'yas--define-snippets-2 (yas--table-get-create mode)
+                   ;; FIXME: `yas-load-snippet-buffer' will *re*parse!
+                   (yas--parse-template buffer-file-name)))
+           (uuid (yas--template-uuid current-snippet)))
+      (unless (equal current-snippet
+                     (if uuid (yas--get-template-by-uuid mode uuid)
+                       (yas--lookup-snippet-1
+                        (yas--template-name current-snippet) mode)))
+        (yas-load-snippet-buffer mode t)))))
 
 (defun yas-load-snippet-buffer-and-close (table &optional kill)
   "Load and save the snippet, then `quit-window' if saved.
@@ -4143,39 +4146,40 @@ Returns the newly created snippet."
       (yas--letenv expand-env
         ;; Put a single undo action for the expanded snippet's
         ;; content.
-        (let ((buffer-undo-list t))
-          (goto-char begin)
-          (if (> emacs-major-version 29)
-              ;; Don't use the workaround for CC-mode's cache,
-              ;; since it was presumably a bug in CC-mode, so either
-              ;; it's fixed already, or it should get fixed.
-              (progn
-                (insert content)
-                (narrow-to-region begin (point))
-                (goto-char (point-min))
-                (yas--snippet-parse-create snippet))
-            ;; Call before and after change functions manually,
-            ;; otherwise cc-mode's cache can get messed up.  Don't use
-            ;; `inhibit-modification-hooks' for that, that blocks
-            ;; overlay and text property hooks as well!  FIXME: Maybe
-            ;; use `combine-change-calls'?  (Requires Emacs 27+ though.)
-            (run-hook-with-args 'before-change-functions begin end)
-            (let ((before-change-functions nil)
-                  (after-change-functions nil))
-              ;; Some versions of cc-mode (might be the one with Emacs
-              ;; 24.3 only) fail when inserting snippet content in a
-              ;; narrowed buffer, so make sure to insert before
-              ;; narrowing.
-              (insert content)
-              (narrow-to-region begin (point))
-              (goto-char (point-min))
-              (yas--snippet-parse-create snippet))
-            (run-hook-with-args 'after-change-functions
-                                (point-min) (point-max)
-                                (- end begin))))
-        (when (listp buffer-undo-list)
-          (push (cons (point-min) (point-max))
-                buffer-undo-list))
+        (unwind-protect
+            (let ((buffer-undo-list t))
+              (goto-char begin)
+              (if (> emacs-major-version 29)
+                  ;; Don't use the workaround for CC-mode's cache,
+                  ;; since it was presumably a bug in CC-mode, so either
+                  ;; it's fixed already, or it should get fixed.
+                  (progn
+                    (insert content)
+                    (narrow-to-region begin (point))
+                    (goto-char (point-min))
+                    (yas--snippet-parse-create snippet))
+                ;; Call before and after change functions manually,
+                ;; otherwise cc-mode's cache can get messed up.  Don't use
+                ;; `inhibit-modification-hooks' for that, that blocks
+                ;; overlay and text property hooks as well!  FIXME: Maybe
+                ;; use `combine-change-calls'?  (Requires Emacs 27+ though.)
+                (run-hook-with-args 'before-change-functions begin end)
+                (let ((before-change-functions nil)
+                      (after-change-functions nil))
+                  ;; Some versions of cc-mode (might be the one with Emacs
+                  ;; 24.3 only) fail when inserting snippet content in a
+                  ;; narrowed buffer, so make sure to insert before
+                  ;; narrowing.
+                  (insert content)
+                  (narrow-to-region begin (point))
+                  (goto-char (point-min))
+                  (yas--snippet-parse-create snippet))
+                (run-hook-with-args 'after-change-functions
+                                    (point-min) (point-max)
+                                    (- end begin))))
+          (when (listp buffer-undo-list)
+            (push (cons (point-min) (point-max))
+                  buffer-undo-list)))
 
         ;; Indent, collecting undo information normally.
         (yas--indent snippet)
