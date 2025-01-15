@@ -58,9 +58,11 @@
       lsp-auto-execute-action nil
       lsp-enable-relative-indentation t
 
-      lsp-ui-sideline-enable t
+      lsp-ui-sideline-enable nil
+      lsp-ui-sideline-ignore-duplicate t
       lsp-ui-sideline-show-diagnostics nil
-      lsp-ui-sideline-show-hover t
+      lsp-ui-sideline-show-symbol nil
+      lsp-ui-sideline-show-hover nil
       lsp-ui-sideline-show-code-actions t
 
       ;; lsp-progress-via-spinner nil
