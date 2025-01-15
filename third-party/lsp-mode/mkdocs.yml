@@ -55,10 +55,13 @@ nav:
     - AWK: page/lsp-awk.md
     - Bash: page/lsp-bash.md
     - Beancount: page/lsp-beancount.md
+    - Buf/Protocol Buffers (Buf CLI): page/lsp-buf.md
+    - Buf/Protocol Buffers (Buf Language Server): page/lsp-bufls.md
     - Camel: page/lsp-camel.md
     - C++ (ccls): page/lsp-ccls.md
     - C++ (clangd): page/lsp-clangd.md
     - C# (omnisharp-roslyn): page/lsp-csharp-omnisharp.md
+    - C# (csharp-roslyn): page/lsp-csharp-roslyn.md
     - C# (csharp-ls): page/lsp-csharp-ls.md
     - Clojure: page/lsp-clojure.md
     - CMake: page/lsp-cmake.md
@@ -71,6 +74,7 @@ nav:
     - Dart: https://emacs-lsp.github.io/lsp-dart
     - Dhall: page/lsp-dhall.md
     - Dockerfile: page/lsp-dockerfile.md
+    - Earthfile: page/lsp-earthly.md
     - Elixir: page/lsp-elixir.md
     - Elm: page/lsp-elm.md
     - Emmet: page/lsp-emmet.md
@@ -78,9 +82,12 @@ nav:
     - ESLint: page/lsp-eslint.md
     - F#: page/lsp-fsharp.md
     - Fortran: page/lsp-fortran.md
+    - Futhark: page/lsp-futhark.md
     - GDScript: page/lsp-gdscript.md
+    - Github Copilot: page/lsp-copilot.md
     - Gleam: page/lsp-gleam.md
     - GLSL: page/lsp-glsl.md
+    - GNAT Project: page/lsp-gpr.md
     - Go (gopls): manual-language-docs/lsp-gopls.md
     - Grammarly: page/lsp-grammarly.md
     - GraphQL: page/lsp-graphql.md
@@ -104,12 +111,15 @@ nav:
     - Lua (EmmyLua): page/lsp-emmy-lua.md
     - Lua (Lua Language Server): page/lsp-lua-language-server.md
     - Lua (Lua-Lsp): page/lsp-lua-lsp.md
+    - Fennel: page/lsp-fennel.md
     - Magik: page/lsp-magik.md
     - Markdown: page/lsp-markdown.md
     - Marksman: page/lsp-marksman.md
+    - Meson: page/lsp-meson.md
     - Move: page/lsp-move.md
     - MDX: page/lsp-mdx.md
     - MSSQL: https://emacs-lsp.github.io/lsp-mssql
+    - Nextflow: page/lsp-nextflow.md
     - Nginx: page/lsp-nginx.md
     - Nim: page/lsp-nim.md
     - Nix (nixd-lsp): page/lsp-nix-nixd.md
@@ -134,10 +144,12 @@ nav:
     - Python (Palantir deprecated): page/lsp-pyls.md
     - Python (Pyright): https://emacs-lsp.github.io/lsp-pyright
     - Python (Microsoft): https://emacs-lsp.github.io/lsp-python-ms
-    - Python (Ruff): page/lsp-ruff-lsp.md
+    - Python (Ruff): page/lsp-ruff.md
+    - QML: page/lsp-qml.md
     - R: page/lsp-r.md
     - Racket (jeapostrophe): page/lsp-racket-langserver.md
     - Racket (Theia): page/lsp-racket-language-server.md
+    - Roc: page/lsp-roc.md
     - RPM Spec: page/lsp-rpm-spec.md
     - Ruby (RuboCop): page/lsp-rubocop.md
     - Ruby (ruby-lsp): page/lsp-ruby-lsp.md
@@ -150,6 +162,7 @@ nav:
     - Scala: https://emacs-lsp.github.io/lsp-metals
     - Semgrep: page/lsp-semgrep.md
     - ShaderLab: page/lsp-shader.md
+    - SQL (sql): page/lsp-sql.md
     - SQL (sqls): page/lsp-sqls.md
     - Standard ML (Millet): page/lsp-sml.md
     - Svelte: page/lsp-svelte.md
@@ -161,8 +174,10 @@ nav:
     - TeX, LaTeX, etc (texlab, external): page/lsp-latex.md
     - Tilt: page/lsp-tilt.md
     - TOML: page/lsp-toml.md
+    - Tree-sitter Query: page/lsp-ts-query.md
     - Trunk: page/lsp-trunk.md
     - TTCN3: page/lsp-ttcn3.md
+    - TypeSpec: page/lsp-typespec.md
     - V: page/lsp-v.md
     - Vala: page/lsp-vala.md
     - Verilog/SystemVerilog (hdl-checker): page/lsp-verilog.md
@@ -175,6 +190,8 @@ nav:
     - wgsl: page/lsp-wgsl.md
     - XML: page/lsp-xml.md
     - YAML: page/lsp-yaml.md
+    - YAML (helm-ls): page/lsp-kubernetes-helm.md
+    - YANG: page/lsp-yang.md
     - Zig: page/lsp-zig.md
   - Debugging:
       - https://emacs-lsp.github.io/dap-mode

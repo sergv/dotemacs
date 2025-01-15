@@ -178,7 +178,8 @@ opening bracket's line."
 (defcustom lsp-pylsp-plugins-pydocstyle-convention nil
   "Choose the basic list of checked errors by specifying an
 existing convention."
-  :type '(choice (:tag "pep257" "numpy"))
+  :type '(choice (const "pep257")
+                 (const "numpy"))
   :group 'lsp-pylsp)
 
 (defcustom lsp-pylsp-plugins-pydocstyle-add-ignore nil
@@ -233,6 +234,16 @@ dot."
 Drastically increases startup time."
   :type 'boolean
   :group 'lsp-pylsp)
+
+(defcustom lsp-pylsp-plugins-rope-autoimport-completions-enabled nil
+    "Enable or disable completions from rope-autoimport."
+    :type 'boolean
+    :group 'lsp-pylsp)
+
+(defcustom lsp-pylsp-plugins-rope-autoimport-code-actions-enabled nil
+    "Enable or disable code actions from rope-autoimport."
+    :type 'boolean
+    :group 'lsp-pylsp)
 
 (defcustom lsp-pylsp-plugins-rope-completion-enabled nil
   "Enable or disable the plugin."
@@ -583,6 +594,8 @@ So it will rename only references it can find."
    ("pylsp.plugins.pyls_isort.enabled" lsp-pylsp-plugins-isort-enabled t)
    ("pylsp.plugins.rope_autoimport.enabled" lsp-pylsp-plugins-rope-autoimport-enabled t)
    ("pylsp.plugins.rope_autoimport.memory" lsp-pylsp-plugins-rope-autoimport-memory t)
+   ("pylsp.plugins.rope_autoimport.completions.enabled" lsp-pylsp-plugins-rope-autoimport-completions-enabled t)
+   ("pylsp.plugins.rope_autoimport.code_actions.enabled" lsp-pylsp-plugins-rope-autoimport-code-actions-enabled t)
    ("pylsp.plugins.rope_completion.enabled" lsp-pylsp-plugins-rope-completion-enabled t)
    ("pylsp.plugins.rope_completion.eager" lsp-pylsp-plugins-rope-completion-eager t)
    ("pylsp.plugins.pyflakes.enabled" lsp-pylsp-plugins-pyflakes-enabled t)

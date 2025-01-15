@@ -314,11 +314,11 @@
         (pcase locations
           (`nil
            (error "No matches for %s" identifier))
-          ((seq (or (Location)
-                    (LocationLink)))
+          ((seq (or (lsp-interface Location)
+                    (lsp-interface LocationLink)))
            (append locations nil))
-          ((or (Location)
-               (LocationLink))
+          ((or (lsp-interface Location)
+               (lsp-interface LocationLink))
            (list locations))))
 
   (let ((get-tags-in-file
