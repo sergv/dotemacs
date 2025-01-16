@@ -1,6 +1,6 @@
 ;;; compat-tests.el --- Tests for Compat -*- lexical-binding: t; no-byte-compile: t; -*-
 
-;; Copyright (C) 2021-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2025 Free Software Foundation, Inc.
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -3231,6 +3231,28 @@
       (should-equal 'compat-test (compat-call completion-metadata-get md 'category))
       (let ((completion-category-overrides '((compat-test (a . 10)))))
         (should-equal 10 (compat-call completion-metadata-get md 'a))))))
+
+(ert-deftest compat-untrusted-content ()
+  (should (local-variable-if-set-p 'untrusted-content)))
+
+(ert-deftest compat-trusted-content ()
+  (should (boundp 'trusted-content))
+  (should (risky-local-variable-p 'trusted-content)))
+
+(ert-deftest compat-trusted-content-p ()
+  (should-not (trusted-content-p))
+  (let ((untrusted-content t)
+        (buffer-file-truename user-init-file))
+    (should-not (trusted-content-p)))
+  (let ((buffer-file-truename (expand-file-name "compat-tests.el")))
+    (should-not (trusted-content-p)))
+  (let ((buffer-file-truename (expand-file-name "compat-tests.el"))
+        (trusted-content '("compat-tests.el")))
+    (should (trusted-content-p)))
+  (let ((untrusted-content t)
+        (buffer-file-truename (expand-file-name "compat-tests.el"))
+        (trusted-content '("compat-tests.el")))
+    (should-not (trusted-content-p))))
 
 (provide 'compat-tests)
 ;;; compat-tests.el ends here
