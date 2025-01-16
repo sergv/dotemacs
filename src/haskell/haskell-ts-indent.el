@@ -480,7 +480,7 @@
 
 
              ((node-is "alternatives")
-              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update
+              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update-no-list
               haskell-indent-offset)
              ((parent-is "alternatives") haskell-ts-indent--prev-sib 0)
 
