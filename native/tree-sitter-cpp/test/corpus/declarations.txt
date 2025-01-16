@@ -422,7 +422,6 @@ class A {
     (type_identifier)
     (field_declaration_list
       (declaration
-        (virtual)
         (function_declarator
           (destructor_name
             (identifier))
@@ -433,28 +432,24 @@ class A {
           (field_identifier)
           (parameter_list)))
       (function_definition
-        (virtual)
         (primitive_type)
         (function_declarator
           (field_identifier)
           (parameter_list))
         (compound_statement))
       (field_declaration
-        (virtual)
         (primitive_type)
         (function_declarator
           (field_identifier)
           (parameter_list)))
       (field_declaration
         (storage_class_specifier)
-        (virtual)
         (primitive_type)
         (function_declarator
           (field_identifier)
           (parameter_list)
           (virtual_specifier)))
       (field_declaration
-        (virtual)
         (storage_class_specifier)
         (primitive_type)
         (function_declarator
@@ -563,6 +558,8 @@ class C : C::D, public E {};
 class F : [[deprecated]] public G {};
 class H : public virtual I {};
 class J : virtual protected I {};
+class K : virtual I {};
+class L : protected I {};
 
 --------------------------------------------------------------------------------
 
@@ -595,13 +592,22 @@ class J : virtual protected I {};
     (type_identifier)
     (base_class_clause
       (access_specifier)
-      (virtual)
       (type_identifier))
     (field_declaration_list))
   (class_specifier
     (type_identifier)
     (base_class_clause
-      (virtual)
+      (access_specifier)
+      (type_identifier))
+    (field_declaration_list))
+  (class_specifier
+    (type_identifier)
+    (base_class_clause
+      (type_identifier))
+    (field_declaration_list))
+  (class_specifier
+    (type_identifier)
+    (base_class_clause
       (access_specifier)
       (type_identifier))
     (field_declaration_list)))
@@ -1621,7 +1627,7 @@ class Foo {
 (translation_unit
   (enum_specifier
     (type_identifier)
-    (type_identifier)
+    (primitive_type)
     (enumerator_list))
   (enum_specifier
     (type_identifier)
@@ -1656,7 +1662,7 @@ class Foo {
     (type_identifier))
   (enum_specifier
     (type_identifier)
-    (type_identifier)
+    (primitive_type)
     (enumerator_list))
   (class_specifier
     (type_identifier)
@@ -1774,7 +1780,6 @@ operator T*();
         (parameter_list)
         (type_qualifier))))
   (declaration
-    (virtual)
     (operator_cast
       (type_identifier)
       (abstract_function_declarator
@@ -1867,7 +1872,6 @@ class A {
             (parameter_list)
             (type_qualifier))))
       (declaration
-        (virtual)
         (operator_cast
           (type_identifier)
           (abstract_function_declarator
@@ -2111,6 +2115,8 @@ int main() {
 
     (obj.*member_function_ptr)(42); // 84
 
+    this->Base::f();
+
     return 0;
 }
 
@@ -2170,8 +2176,40 @@ int main() {
           (argument_list
             (number_literal))))
       (comment)
+      (expression_statement
+        (call_expression
+          (field_expression
+            (this)
+            (qualified_identifier
+              (namespace_identifier)
+              (field_identifier)))
+          (argument_list)))
       (return_statement
         (number_literal)))))
+
+================================================================================
+Unnamed default parameter
+================================================================================
+
+class Foo {
+    void foo(Bar& = defaultBar);
+};
+
+--------------------------------------------------------------------------------
+
+(translation_unit
+  (class_specifier
+    (type_identifier)
+    (field_declaration_list
+      (field_declaration
+        (primitive_type)
+        (function_declarator
+          (field_identifier)
+          (parameter_list
+            (optional_parameter_declaration
+              (type_identifier)
+              (abstract_reference_declarator)
+              (identifier))))))))
 
 ================================================================================
 Alignas specifier and alignof expression
@@ -2204,8 +2242,9 @@ int main(void) {
     (type_identifier)
     (field_declaration_list
       (field_declaration
-        (alignas_specifier
-          (number_literal))
+        (type_qualifier
+          (alignas_qualifier
+            (number_literal)))
         (primitive_type)
         (array_declarator
           (field_identifier)
@@ -2217,8 +2256,9 @@ int main(void) {
         (primitive_type)
         (field_identifier))
       (field_declaration
-        (alignas_specifier
-          (number_literal))
+        (type_qualifier
+          (alignas_qualifier
+            (number_literal)))
         (primitive_type)
         (array_declarator
           (field_identifier)
@@ -2256,8 +2296,9 @@ int main(void) {
                 (struct_specifier
                   (type_identifier)))))))
       (declaration
-        (alignas_specifier
-          (number_literal))
+        (type_qualifier
+          (alignas_qualifier
+            (number_literal)))
         (struct_specifier
           (type_identifier))
         (identifier))
