@@ -1,4 +1,152 @@
 # -*- mode: org -*-
+* v0.8.3    2025-01-03
+
+- Added new constant ~transient-version~.  3022f6d5
+
+* v0.8.2    2025-01-01
+
+- Added support for displaying the transient menu in a dedicated
+  frame.  bf58c0bb
+
+- When including a group via a variable, the imported value can now be
+  a top-level group.  eebcbe30
+
+- The transient window is now fitted to its buffer horizontally as well.
+  fd9811ea
+
+- Added new command ~transient-copy-menu-text~.  042f37aa
+
+- Added new command ~transient-toggle-docstrings~.  52679f98
+
+- Added new command ~transient-describe~, which can be bound as many times
+  as needed to show help for arbitrary things.  5a18a791
+
+Bug fixes:
+
+- The use of ~display-buffer-full-frame~ was prevented too aggressively.
+  5353464b
+
+- Fixed remembering and restoring the old value of the ~no-other-window~
+  window parameter.  de984302
+
+- When a command is bound multiple times and the instances use different
+  transient behavior, then the behavior (and color) for the last binding
+  was used for all bindings.  fe71a7e7, a99dcda9
+
+- Enabling ~transient-force-single-column~ resulted in an error.
+  28347e59
+
+- ~transient-toggle-common~ used to exit the menu.  98c01b84
+
+* v0.8.1    2024-12-08
+
+Bug fixes:
+
+- Interactively setting the level of a transient prefix resulted in
+  an error.  #337.
+
+* v0.8.0    2024-12-06
+
+- While the minibuffer is in use, the menu window is now hidden by
+  default.  The new option ~transient-show-during-minibuffer-read~ not
+  only controls whether the menu stays visible while the minibuffer
+  is in use, but also whether it may be resized if necessary.  This
+  new option replaces ~transient-hide-during-minibuffer-read~.  #330
+
+- When returning to a prefix whose ~refresh-suffixes~ slot is non-nil,
+  its suffixes are now re-initialized.  #327
+
+- Added documentation for ~inapt-if*~ slots to manual.  179545a6
+
+- ~transient-args~ and ~transient-scope~ now both take a prefix command or
+  a list of prefix commands as argument.  ~transient-scope~ can still be
+  called without an argument, but that should only be done in functions
+  that take part in setting up a menu, not in a suffix command.
+
+- Added new generic function ~transient-prefix-value~, giving finer
+  control over how the value returned by ~transient-args~ is determined.
+
+- Added support for implementing ~transient-init-scope~ methods for
+  prefix classes.
+
+- ~transient-setup-buffer-hook~ is now run later to allow overriding
+  more default settings.
+
+- The new prefix slots ~display-action~ and ~mode-line-format~, can be
+  used to override ~transient-display-buffer-action~ and
+  ~transient-mode-line-format~ for individual prefix menus.  #332
+
+- Updated the manual considerably.
+
+Bug fixes:
+
+- Fixes some menu navigation edge-cases.
+
+* v0.7.9    2024-11-04
+
+Bug fixes:
+
+- Fixed a recent regression in ~transient-suffix-object~.  #325
+
+- The height of the transient window was fixed even it used the full
+  frame height.  5478d4e6
+
+* v0.7.8    2024-11-02
+
+- Additional potential mistakes in menu definitions are now detected.
+  bbda5bb6, 8873c300
+
+- Added new (and still experimental) ~environment~ prefix slot, which
+  can be used to, for example, implement a cache to be used while
+  refreshing the menu.  05c011b8
+
+- When navigating through the menu using the keyboard or hovering a
+  suffix command with the mouse, information about the command is now
+  shown in the echo area or using a tooltip.  #282
+
+Bug fixes:
+
+- When the command that exits a transient uses the minibuffer,
+  ~transient-current-*~ variables were not immediately reset to
+  ~nil~. #323
+
+- Key sequences with three or more events broke
+  ~transient-suffix-object~.  #324
+
+* v0.7.7    2024-10-04
+
+Bug fix:
+
+- Fix a regression introduced by the previous commit, which broke
+  dynamic prefixes that use a ~:setup-children~ function to prepare
+  their suffixes.  #313
+
+* v0.7.6    2024-10-01
+
+- ~transient-active-prefix~ now accepts a single prefix symbol, in place
+  of a list of such symbols.  #307
+
+- ~other-frame-prefix~ and ~other-window-prefix~ can now be used while a
+  transient prefix is active.  #305
+
+- Added new macro ~transient-with-help-window~ for use in ~:show-help~
+  functions.  #309
+
+* v0.7.5    2024-09-01
+
+- Updated tooling.
+
+Bug fixes:
+
+- ~static-if~ is now used correctly.  0e35673e
+
+- When an existing window ends up being used to display the transient
+  buffer, then the previous value of the ~no-other-window~ parameter is
+  now restored, when the transient is exited.  #302
+
+- The names assigned to suffixes, which are defined using lambdas in
+  the prefix definition, are now guaranteed to be unique.  #304
+
 * v0.7.4    2024-08-05
 
 - Added new function ~transient-active-prefix~.
@@ -675,7 +823,7 @@ Also contains various documentation updates and code clean-ups.
   248862c5
 
 - Added support for disabling and dimming suffix commands that are
-  currently not suitable, instead of completely hidding them.  #80
+  currently not suitable, instead of completely hiding them.  #80
 
 - Autoload functions that serve a purpose similar to that of
   ~define-key~. #85
