@@ -1039,6 +1039,29 @@
   "  _|_Bar y -> y * y"))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-alternatives-2
+ :contents
+ (tests-utils--multiline
+  "quux = do"
+  "  let bar ="
+  "        [ frobnicate"
+  "        , case xyz of"
+  "             _|_True  -> 1"
+  "            False -> 2"
+  "        ]"
+  "  pure ()")
+ :expected-value
+ (tests-utils--multiline
+  "quux = do"
+  "  let bar ="
+  "        [ frobnicate"
+  "        , case xyz of"
+  "            _|_True  -> 1"
+  "            False -> 2"
+  "        ]"
+  "  pure ()"))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-list-1
  :contents
  (tests-utils--multiline
