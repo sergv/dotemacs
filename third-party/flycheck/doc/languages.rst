@@ -300,6 +300,10 @@ to view the docstring of the syntax checker.  Likewise, you may use
 
         Allows for ``__host__ __device__`` lambdas as described (`here <https://developer.nvidia.com/blog/new-compiler-features-cuda-8/>`_).
 
+      .. defcustom:: flycheck-cuda-compiler-options
+
+        Specify options directly to the compiler/preprocessor.
+
 .. supported-language:: CWL
 
    .. syntax-checker:: cwl
@@ -767,7 +771,17 @@ to view the docstring of the syntax checker.  Likewise, you may use
 
    .. syntax-checker:: jsonnet
 
-      Checks `Jsonnet <https://jsonnet.org>`_ with `jsonnet`.
+      Checks `Jsonnet <https://jsonnet.org>`_ with the `jsonnet` binary published at `https://github.com/google/go-jsonnet`_.
+
+      .. defcustom:: flycheck-jsonnet-command-args
+
+         A list of additional arguments that are passed to `jsonnet`.
+
+      .. defcustom:: flycheck-jsonnet-include-paths
+
+         A list of include directories. These are passed to the `jsonnet`
+         binary via ``-J``. Relative paths are resolved relative to the path
+         of the buffer being checked.
 
 .. supported-language:: Less
 
@@ -1682,6 +1696,7 @@ to view the docstring of the syntax checker.  Likewise, you may use
    .. syntax-checker:: xml-xmllint
 
       Check syntax with :program:`xmllint` from Libxml2_.
+
       .. defcustom:: flycheck-xml-xmllint-xsd-path
                      flycheck-xml-xmllint-relaxng-path
 
@@ -1705,6 +1720,6 @@ to view the docstring of the syntax checker.  Likewise, you may use
 
    .. syntax-checker:: yaml-yamllint
 
-      Check syntax with yamllint.
+      Check syntax with :program:`yamllint`.
 
       .. syntax-checker-config-file:: flycheck-yamllintrc
