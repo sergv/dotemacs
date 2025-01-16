@@ -1,6 +1,6 @@
 ;;; magit-status.el --- The grand overview  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2024 The Magit Project Contributors
+;; Copyright (C) 2008-2025 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 ;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
@@ -41,12 +41,12 @@
   :type 'hook)
 
 (defcustom magit-status-headers-hook
-  '(magit-insert-error-header
-    magit-insert-diff-filter-header
-    magit-insert-head-branch-header
-    magit-insert-upstream-branch-header
-    magit-insert-push-branch-header
-    magit-insert-tags-header)
+  (list #'magit-insert-error-header
+        #'magit-insert-diff-filter-header
+        #'magit-insert-head-branch-header
+        #'magit-insert-upstream-branch-header
+        #'magit-insert-push-branch-header
+        #'magit-insert-tags-header)
   "Hook run to insert headers into the status buffer.
 
 This hook is run by `magit-insert-status-headers', which in turn
@@ -55,32 +55,32 @@ all."
   :package-version '(magit . "2.1.0")
   :group 'magit-status
   :type 'hook
-  :options '(magit-insert-error-header
-             magit-insert-diff-filter-header
-             magit-insert-repo-header
-             magit-insert-remote-header
-             magit-insert-head-branch-header
-             magit-insert-upstream-branch-header
-             magit-insert-push-branch-header
-             magit-insert-tags-header))
+  :options (list #'magit-insert-error-header
+                 #'magit-insert-diff-filter-header
+                 #'magit-insert-repo-header
+                 #'magit-insert-remote-header
+                 #'magit-insert-head-branch-header
+                 #'magit-insert-upstream-branch-header
+                 #'magit-insert-push-branch-header
+                 #'magit-insert-tags-header))
 
 (defcustom magit-status-sections-hook
-  '(magit-insert-status-headers
-    magit-insert-merge-log
-    magit-insert-rebase-sequence
-    magit-insert-am-sequence
-    magit-insert-sequencer-sequence
-    magit-insert-bisect-output
-    magit-insert-bisect-rest
-    magit-insert-bisect-log
-    magit-insert-untracked-files
-    magit-insert-unstaged-changes
-    magit-insert-staged-changes
-    magit-insert-stashes
-    magit-insert-unpushed-to-pushremote
-    magit-insert-unpushed-to-upstream-or-recent
-    magit-insert-unpulled-from-pushremote
-    magit-insert-unpulled-from-upstream)
+  (list #'magit-insert-status-headers
+        #'magit-insert-merge-log
+        #'magit-insert-rebase-sequence
+        #'magit-insert-am-sequence
+        #'magit-insert-sequencer-sequence
+        #'magit-insert-bisect-output
+        #'magit-insert-bisect-rest
+        #'magit-insert-bisect-log
+        #'magit-insert-untracked-files
+        #'magit-insert-unstaged-changes
+        #'magit-insert-staged-changes
+        #'magit-insert-stashes
+        #'magit-insert-unpushed-to-pushremote
+        #'magit-insert-unpushed-to-upstream-or-recent
+        #'magit-insert-unpulled-from-pushremote
+        #'magit-insert-unpulled-from-upstream)
   "Hook run to insert sections into a status buffer."
   :package-version '(magit . "2.12.0")
   :group 'magit-status
@@ -141,6 +141,58 @@ The functions which respect this option are
   :package-version '(magit . "2.4.0")
   :group 'magit-status
   :type 'boolean)
+
+(defcustom magit-status-show-untracked-files nil
+  "Whether and how to list untracked files in the status buffer.
+
+This controls the behavior of function `magit-insert-untracked-files'.
+If that function is removed from `magit-status-sections-hook', then
+untracked files are not shown, regardless of what this option says.
+
+The behavior can be controled using this option and/or the Git variable
+`status.showUntrackedFiles'.  The following settings are used in order:
+
+1. The buffer-local value of this option.
+
+   This can be set in \".dir-locals-2.el\" like so:
+   ((magit-status-mode
+     (magit-status-show-untracked-files . \"no\")))
+
+2. The repository-local value of `status.showUntrackedFiles'.
+
+   This can be set using:
+   git config --local status.showUntrackedFiles normal
+
+3. The global value of this option.
+
+   This can be set using the Custom interface or `setq'.
+
+4. The global value of `status.showUntrackedFiles'.
+
+   This can be set using:
+   git config --global status.showUntrackedFiles all
+
+5. The default is \"normal\" and is used if all of the above places
+   are unspecified or, in the case of the Lisp values, nil.
+
+The valid non-nil values are:
+
+- \"no\" - Show no untracked files.
+
+- \"normal\" - Show top-level untracked files and directories containing
+  untracked files.  The directories can be expanded to reveal the
+  contained untracked files.
+
+- \"all\" - Immediately show all individual untracked files.  This is
+  potentially expensive and/or overwhelming, and should be avoided."
+  :package-version '(magit . "4.2.1")
+  :group 'magit-status
+  :type '(choice
+          (const :tag "Show no untracked files" "no")
+          (const :tag "Show directories containing untracked files" "normal")
+          (const :tag "Show individual untracked files" "all")
+          (const :tag "Use value of status.showUntrackedFiles" nil))
+  :safe (lambda (value) (member value '("no" "normal" "all" nil))))
 
 (defcustom magit-status-margin
   (list nil
@@ -537,13 +589,13 @@ instead.  The optional BRANCH argument is for internal use only."
               (insert (propertize commit 'font-lock-face 'magit-hash) ?\s))
             (insert (propertize branch 'font-lock-face 'magit-branch-local))
             (insert ?\s)
-            (insert (funcall magit-log-format-message-function branch summary))
+            (insert (magit-log--wash-summary summary))
             (insert ?\n))
         (magit-insert-section (commit commit)
           (insert (format "%-10s" "Head: "))
           (insert (propertize commit 'font-lock-face 'magit-hash))
           (insert ?\s)
-          (insert (funcall magit-log-format-message-function nil summary))
+          (insert (magit-log--wash-summary summary))
           (insert ?\n))))))
 
 (defun magit-insert-upstream-branch-header (&optional branch upstream keyword)
@@ -570,10 +622,9 @@ arguments are for internal use only."
                                                 'font-lock-face 'magit-hash)
                                     " "))
                        upstream " "
-                       (funcall magit-log-format-message-function upstream
-                                (funcall magit-log-format-message-function nil
-                                         (or (magit-rev-format "%s" upstream)
-                                             "(no commit message)"))))
+                       (magit-log--wash-summary
+                        (or (magit-rev-format "%s" upstream)
+                            "(no commit message)")))
              (cond
               ((magit--unnamed-upstream-p remote merge)
                (concat (propertize merge  'font-lock-face 'magit-branch-remote)
@@ -609,10 +660,8 @@ arguments are for internal use only."
                                             'font-lock-face 'magit-hash)
                                 " "))
                    target " "
-                   (funcall magit-log-format-message-function target
-                            (funcall magit-log-format-message-function nil
-                                     (or (magit-rev-format "%s" target)
-                                         "(no commit message)"))))
+                   (magit-log--wash-summary (or (magit-rev-format "%s" target)
+                                                "(no commit message)")))
          (let ((remote (magit-get-push-remote branch)))
            (if (magit-remote-p remote)
                (concat target " "
@@ -708,22 +757,26 @@ remote in alphabetic order."
 (defun magit-insert-untracked-files ()
   "Maybe insert a list or tree of untracked files.
 
-Do so depending on the value of `status.showUntrackedFiles'.
-Note that even if the value is `all', Magit still initially
-only shows directories.  But the directory sections can then
-be expanded using \"TAB\".
+The option `magit-status-show-untracked-files' (which see), in
+cooperation with the Git variable `status.showUntrackedFiles', control
+whether and how that is done.
 
-If the first element of `magit-buffer-diff-files' is a
-directory, then limit the list to files below that.  The value
-value of that variable can be set using \"D -- DIRECTORY RET g\"."
-  (let ((show (or (magit-get "status.showUntrackedFiles") "normal")))
+If the first element of `magit-buffer-diff-files' is a directory, then
+limit the list to files below that.  The value of that variable can be
+set using \"D -- DIRECTORY RET g\"."
+  (let ((show (or (and (local-variable-p 'magit-status-show-untracked-files)
+                       magit-status-show-untracked-files)
+                  (magit-get "--local" "status.showUntrackedFiles")
+                  (default-value 'magit-status-show-untracked-files)
+                  (magit-get "--global" "status.showUntrackedFiles")
+                  "normal")))
     (unless (equal show "no")
       (let* ((all (equal show "all"))
              (base (car magit-buffer-diff-files))
              (base (and base (file-directory-p base) base)))
         (magit-insert-files 'untracked
-                            (lambda () (magit-untracked-files nil base (not all)))
-                            (not all))))))
+                            (lambda () (magit-untracked-files nil base all))
+                            all)))))
 
 (defun magit-insert-tracked-files ()
   "Insert a tree of tracked files.

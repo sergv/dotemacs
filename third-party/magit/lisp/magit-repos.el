@@ -1,6 +1,6 @@
 ;;; magit-repos.el --- Listing repositories  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2024 The Magit Project Contributors
+;; Copyright (C) 2008-2025 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 ;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
@@ -271,7 +271,7 @@ If it contains \"%s\" then the directory is substituted for that."
   :group 'magit-repolist
   (setq-local x-stretch-cursor nil)
   (setq tabulated-list-padding 0)
-  (add-hook 'tabulated-list-revert-hook #'magit-repolist-refresh nil t)
+  (setq-local tabulated-list-revert-hook (list #'magit-repolist-refresh t))
   (setq imenu-prev-index-position-function
         #'magit-repolist--imenu-prev-index-position)
   (setq imenu-extract-index-name-function #'tabulated-list-get-id))
@@ -502,9 +502,9 @@ instead."
                           (or (magit-toplevel) default-directory)))))
 
 (defun magit-list-repos ()
-  (cl-mapcan (pcase-lambda (`(,dir . ,depth))
-               (magit-list-repos-1 dir depth))
-             magit-repository-directories))
+  (mapcan (pcase-lambda (`(,dir . ,depth))
+            (magit-list-repos-1 dir depth))
+          magit-repository-directories))
 
 (defun magit-list-repos-1 (directory depth)
   (cond ((file-readable-p (expand-file-name ".git" directory))

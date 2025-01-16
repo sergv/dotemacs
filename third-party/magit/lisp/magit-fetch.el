@@ -1,6 +1,6 @@
 ;;; magit-fetch.el --- Download objects and refs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2024 The Magit Project Contributors
+;; Copyright (C) 2008-2025 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 ;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
@@ -178,11 +178,6 @@ with a prefix argument."
                  (list nil (transient-args 'magit-fetch-modules))))
   (if transient
       (transient-setup 'magit-fetch-modules)
-    (when (magit-git-version< "2.8.0")
-      (when-let ((value (transient-arg-value "--jobs=" args)))
-        (message "Dropping --jobs; not supported by Git v%s"
-                 (magit-git-version))
-        (setq args (remove (format "--jobs=%s" value) args))))
     (magit-with-toplevel
       (magit-run-git-async "fetch" "--recurse-submodules" args))))
 
