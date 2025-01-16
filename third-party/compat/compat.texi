@@ -7,7 +7,7 @@
 @c %**end of header
 
 @copying
-Copyright @copyright{} 2022-2024 Free Software Foundation, Inc.
+Copyright @copyright{} 2022-2025 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -31,7 +31,7 @@ modify this GNU manual.”
 @finalout
 @titlepage
 @title "Compat" Manual
-@subtitle For version 30.0.0.0
+@subtitle For version 30.0.2.0
 @author Philip Kaludercic, Daniel Mendler
 @page
 @vskip 0pt plus 1filll
@@ -46,7 +46,7 @@ modify this GNU manual.”
 
 This manual documents the usage of the "Compat" Emacs lisp library,
 the forward-compatibility library for Emacs Lisp, corresponding to
-version 30.0.0.0.
+version 30.0.2.0.
 
 @insertcopying
 @end ifnottex
@@ -109,7 +109,7 @@ mirrors the version of Emacs releases.  The current version of Compat
 corresponds to the current Emacs release.
 
 @example
-;; Package-Requires: ((emacs "24.4") (compat "30.0.0.0"))
+;; Package-Requires: ((emacs "24.4") (compat "30.0.2.0"))
 @end example
 
 There is no need to depend on @code{emacs 24.4} specifically.  One can
@@ -2264,6 +2264,13 @@ care.
 The @code{defcustom} type @code{key} introduced in Emacs 29.1 is
 made available by Compat.
 
+@defvar untrusted-content
+Non-nil means that current buffer originated from an untrusted source.
+Email clients and some other modes may set this non-nil to mark the
+buffer contents as untrusted. This variable might be subject to change
+without notice.
+@end defvar
+
 @c copied from lispref/loading.texi
 @defvar lisp-directory
 This variable holds a string naming the directory which holds Emacs's
@@ -3325,6 +3332,28 @@ The following functions and macros are implemented in Emacs
 older than 30.1.  Note that due to upstream changes, it might happen
 that there will be the need for changes, so use these functions with
 care.
+
+@defvar trusted-content
+List of files and directories whose content we trust.  Be extra careful
+here since trusting means that Emacs might execute the code contained
+within those files and directories without an explicit request by the
+user.  One important case when this might happen is when
+@code{flymake-mode} is enabled (for example, when it is added to a mode
+hook).  Each element of the list should be a string:
+- If it ends in "/", it is considered as a directory name and means that
+  Emacs should trust all the files whose name has this directory as a prefix.
+- else it is considered as a file name.
+Use abbreviated file names.  For example, an entry "~/mycode" means
+that Emacs will trust all the files in your directory "mycode".  This
+variable can also be set to @code{:all}, in which case Emacs will trust all
+files, which opens a gaping security hole.
+@end defvar
+
+@defun trusted-content-p
+Return non-nil if we trust the contents of the current buffer.  Here,
+"trust" means that we are willing to run code found inside of it.  See
+also @code{trusted-content}.
+@end defun
 
 @c copied from lispref/nonascii.texi
 @defun char-to-name char
