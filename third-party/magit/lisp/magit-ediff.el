@@ -1,6 +1,6 @@
 ;;; magit-ediff.el --- Ediff extension for Magit  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2024 The Magit Project Contributors
+;; Copyright (C) 2008-2025 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 ;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
@@ -42,8 +42,8 @@
   :group 'magit-extensions)
 
 (defcustom magit-ediff-quit-hook
-  '(magit-ediff-cleanup-auxiliary-buffers
-    magit-ediff-restore-previous-winconf)
+  (list #'magit-ediff-cleanup-auxiliary-buffers
+        #'magit-ediff-restore-previous-winconf)
   "Hooks to run after finishing Ediff, when that was invoked using Magit.
 The hooks are run in the Ediff control buffer.  This is similar
 to `ediff-quit-hook' but takes the needs of Magit into account.
@@ -53,8 +53,8 @@ invoked using Magit."
   :group 'magit-ediff
   :type 'hook
   :get #'magit-hook-custom-get
-  :options '(magit-ediff-cleanup-auxiliary-buffers
-             magit-ediff-restore-previous-winconf))
+  :options (list #'magit-ediff-cleanup-auxiliary-buffers
+                 #'magit-ediff-restore-previous-winconf))
 
 (defcustom magit-ediff-dwim-resolve-function #'magit-ediff-resolve-rest
   "The function `magit-ediff-dwim' uses to resolve conflicts."
