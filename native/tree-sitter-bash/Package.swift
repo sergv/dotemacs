@@ -6,34 +6,32 @@ let package = Package(
     products: [
         .library(name: "TreeSitterBash", targets: ["TreeSitterBash"]),
     ],
-    dependencies: [],
+    dependencies: [
+        .package(url: "https://github.com/ChimeHQ/SwiftTreeSitter", from: "0.8.0"),
+    ],
     targets: [
-        .target(name: "TreeSitterBash",
-                path: ".",
-                exclude: [
-                    "binding.gyp",
-                    "bindings",
-                    "Cargo.toml",
-                    "corpus",
-                    "grammar.js",
-                    "LICENSE",
-                    "Makefile",
-                    "package.json",
-                    "README.md",
-                    "script",
-                    ".travis.yml",
-                    "appveyor.yaml",
-                    "src/grammar.json",
-                    "src/node-types.json",
-                ],
-                sources: [
-                    "src/parser.c",
-                    "src/scanner.c",
-                ],
-                resources: [
-                    .copy("queries")
-                ],
-                publicHeadersPath: "bindings/swift",
-                cSettings: [.headerSearchPath("src")])
-    ]
+        .target(
+            name: "TreeSitterBash",
+            dependencies: [],
+            path: ".",
+            sources: [
+                "src/parser.c",
+                "src/scanner.c",
+            ],
+            resources: [
+                .copy("queries")
+            ],
+            publicHeadersPath: "bindings/swift",
+            cSettings: [.headerSearchPath("src")]
+        ),
+        .testTarget(
+            name: "TreeSitterBashTests",
+            dependencies: [
+                "SwiftTreeSitter",
+                "TreeSitterBash",
+            ],
+            path: "bindings/swift/TreeSitterBashTests"
+        )
+    ],
+    cLanguageStandard: .c11
 )

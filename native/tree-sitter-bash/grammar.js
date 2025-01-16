@@ -5,9 +5,6 @@
  * @license MIT
  */
 
-/* eslint-disable arrow-parens */
-/* eslint-disable camelcase */
-/* eslint-disable-next-line spaced-comment */
 /// <reference types="tree-sitter-cli/dsl" />
 // @ts-check
 
@@ -54,6 +51,7 @@ module.exports = grammar({
     [$.redirected_statement, $.command],
     [$.redirected_statement, $.command_substitution],
     [$.function_definition, $.command_name],
+    [$.pipeline],
   ],
 
   inline: $ => [
@@ -67,6 +65,7 @@ module.exports = grammar({
     $._special_variable_name,
     $._c_word,
     $._statement_not_subshell,
+    $._redirect,
   ],
 
   externals: $ => [
@@ -96,6 +95,8 @@ module.exports = grammar({
     '<<',
     '<<-',
     /\n/,
+    '(',
+    'esac',
     $.__error_recovery,
   ],
 
@@ -158,7 +159,27 @@ module.exports = grammar({
       $.function_definition,
     ),
 
-    redirected_statement: $ => prec.dynamic(-1, prec(-1, choice(
+    _statement_not_pipeline: $ => prec(1, choice(
+      $.redirected_statement,
+      $.variable_assignment,
+      $.variable_assignments,
+      $.command,
+      $.declaration_command,
+      $.unset_command,
+      $.test_command,
+      $.negated_command,
+      $.for_statement,
+      $.c_style_for_statement,
+      $.while_statement,
+      $.if_statement,
+      $.case_statement,
+      $.list,
+      $.compound_statement,
+      $.function_definition,
+      $.subshell,
+    )),
+
+    redirected_statement: $ => prec.dynamic(-1, prec.right(-1, choice(
       seq(
         field('body', $._statement),
         field('redirect', choice(
@@ -172,7 +193,7 @@ module.exports = grammar({
         field('body', choice($.if_statement, $.while_statement)),
         $.herestring_redirect,
       ),
-      field('redirect', repeat1($.file_redirect)),
+      field('redirect', repeat1($._redirect)),
       $.herestring_redirect,
     ))),
 
@@ -358,9 +379,11 @@ module.exports = grammar({
         choice(
           $.compound_statement,
           $.subshell,
-          $.test_command),
+          $.test_command,
+          $.if_statement,
+        ),
       ),
-      field('redirect', optional($.file_redirect)),
+      field('redirect', optional($._redirect)),
     )),
 
     compound_statement: $ => seq(
@@ -375,10 +398,12 @@ module.exports = grammar({
       ')',
     ),
 
-    pipeline: $ => prec.left(1, seq(
-      $._statement,
-      choice('|', '|&'),
-      $._statement,
+    pipeline: $ => prec.right(seq(
+      $._statement_not_pipeline,
+      repeat1(seq(
+        choice('|', '|&'),
+        $._statement_not_pipeline,
+      )),
     )),
 
     list: $ => prec.left(-1, seq(
@@ -402,8 +427,23 @@ module.exports = grammar({
     test_command: $ => seq(
       choice(
         seq('[', optional(choice($._expression, $.redirected_statement)), ']'),
-        seq('[[', $._expression, ']]'),
+        seq(
+          '[[',
+          choice(
+            $._expression,
+            alias($._test_command_binary_expression, $.binary_expression),
+          ),
+          ']]',
+        ),
         seq('((', optional($._expression), '))'),
+      ),
+    ),
+
+    _test_command_binary_expression: $ => prec(PREC.ASSIGN,
+      seq(
+        field('left', $._expression),
+        field('operator', '='),
+        field('right', alias($._regex_no_space, $.regex)),
       ),
     ),
 
@@ -427,7 +467,7 @@ module.exports = grammar({
     command: $ => prec.left(seq(
       repeat(choice(
         $.variable_assignment,
-        field('redirect', choice($.file_redirect, $.herestring_redirect)),
+        field('redirect', $._redirect),
       )),
       field('name', $.command_name),
       choice(
@@ -495,7 +535,7 @@ module.exports = grammar({
       optional(choice(
         alias($._heredoc_pipeline, $.pipeline),
         seq(
-          field('redirect', repeat1($.file_redirect)),
+          field('redirect', repeat1($._redirect)),
           optional($._heredoc_expression),
         ),
         $._heredoc_expression,
@@ -543,6 +583,8 @@ module.exports = grammar({
       $._literal,
     )),
 
+    _redirect: $ => choice($.file_redirect, $.herestring_redirect),
+
     // Expressions
 
     _expression: $ => choice(
@@ -575,7 +617,7 @@ module.exports = grammar({
 
       return choice(
         choice(...table.map(([operator, precedence]) => {
-        // @ts-ignore
+          // @ts-ignore
           return prec[operator === '**' ? 'right' : 'left'](precedence, seq(
             field('left', $._expression),
             // @ts-ignore
@@ -805,8 +847,8 @@ module.exports = grammar({
 
     number: $ => choice(
       /-?(0x)?[0-9]+(#[0-9A-Za-z@_]+)?/,
-      // the base can be an expansion
-      seq(/-?(0x)?[0-9]+#/, $.expansion),
+      // the base can be an expansion or command substitution
+      seq(/-?(0x)?[0-9]+#/, choice($.expansion, $.command_substitution)),
     ),
 
     simple_expansion: $ => seq(
@@ -815,6 +857,7 @@ module.exports = grammar({
         $._simple_variable_name,
         $._multiline_variable_name,
         $._special_variable_name,
+        $.variable_name,
         alias('!', $.special_variable_name),
         alias('#', $.special_variable_name),
       ),
@@ -896,7 +939,13 @@ module.exports = grammar({
 
     _expansion_regex: $ => seq(
       field('operator', choice('#', alias($._immediate_double_hash, '##'), '%', '%%')),
-      optional(choice($.regex, alias(')', $.regex), $.string, $.raw_string, alias(/\s+/, $.regex))),
+      repeat(choice(
+        $.regex,
+        alias(')', $.regex),
+        $.string,
+        $.raw_string,
+        alias(/\s+/, $.regex),
+      )),
     ),
 
     _expansion_regex_replacement: $ => seq(
@@ -943,6 +992,7 @@ module.exports = grammar({
       )),
       optional(seq(
         field('operator', ':'),
+        optional($.simple_expansion),
         optional(choice(
           $._simple_variable_name,
           $.number,
@@ -996,6 +1046,7 @@ module.exports = grammar({
         $.command_substitution,
         alias($._expansion_word, $.word),
         $.array,
+        $.process_substitution,
       ),
       repeat1(seq(
         choice($._concat, alias(/`\s*`/, '``')),
@@ -1010,6 +1061,7 @@ module.exports = grammar({
           $.command_substitution,
           alias($._expansion_word, $.word),
           $.array,
+          $.process_substitution,
         ),
       )),
     )),
@@ -1081,8 +1133,7 @@ module.exports = grammar({
  *
  * @param  {...string} characters
  *
- * @return {RegExp}
- *
+ * @returns {RegExp}
  */
 function noneOf(...characters) {
   const negatedString = characters.map(c => c == '\\' ? '\\\\' : c).join('');
@@ -1094,8 +1145,7 @@ function noneOf(...characters) {
  *
  * @param {RuleOrLiteral} rule
  *
- * @return {ChoiceRule}
- *
+ * @returns {ChoiceRule}
  */
 function commaSep(rule) {
   return optional(commaSep1(rule));
@@ -1106,8 +1156,7 @@ function commaSep(rule) {
  *
  * @param {RuleOrLiteral} rule
  *
- * @return {SeqRule}
- *
+ * @returns {SeqRule}
  */
 function commaSep1(rule) {
   return seq(rule, repeat(seq(',', rule)));
@@ -1117,9 +1166,9 @@ function commaSep1(rule) {
  *
  * Turns a list of rules into a choice of immediate rule
  *
- * @param {(RegExp|String)[]} literals
+ * @param {(RegExp | string)[]} literals
  *
- * @return {ChoiceRule}
+ * @returns {ChoiceRule}
  */
 function immediateLiterals(...literals) {
   return choice(...literals.map(l => token.immediate(l)));
@@ -1131,9 +1180,9 @@ function immediateLiterals(...literals) {
  *
  * @param {number} precedence
  *
- * @param {(RegExp|String)[]} literals
+ * @param {(RegExp | string)[]} literals
  *
- * @return {ChoiceRule}
+ * @returns {ChoiceRule}
  */
 function tokenLiterals(precedence, ...literals) {
   return choice(...literals.map(l => token(prec(precedence, l))));
