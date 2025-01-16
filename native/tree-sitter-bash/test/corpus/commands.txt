@@ -101,6 +101,8 @@ exec {VIRTWL[0]}<&- {VIRTWL[1]}>&-
 
 grep 2>/dev/null -q "^/usr/bin/scponly$" /etc/shells
 
+x <x a b c
+
 ---
 
 (program
@@ -136,15 +138,30 @@ grep 2>/dev/null -q "^/usr/bin/scponly$" /etc/shells
     (file_redirect)
     (file_redirect))
   (redirected_statement
-    (command
-      (command_name (word))
+    (command (command_name (word))
       (concatenation (word) (word) (word) (number) (word) (word)))
     (file_redirect
-      (concatenation (word) (word) (word) (number) (word) (word)))
+      (concatenation
+        (word)
+        (word)
+        (word)
+        (number)
+        (word)
+        (word)))
     (file_redirect))
   (redirected_statement
     (command (command_name (word)))
-    (file_redirect (file_descriptor) (word) (word) (string (string_content)) (word))))
+    (file_redirect (file_descriptor) (word)
+      (word)
+      (string
+        (string_content))
+      (word)))
+  (redirected_statement
+    (command (command_name (word)))
+    (file_redirect (word)
+      (word)
+      (word)
+      (word))))
 
 ===============================
 File redirects (noclobber override)
@@ -517,6 +534,48 @@ EOF
     (heredoc_redirect
       (heredoc_start)
       (heredoc_body)
+      (heredoc_end))))
+
+==========================================
+Nested Heredocs
+==========================================
+
+cat <<OUTER
+Outer Heredoc Start
+$(cat <<INNER
+Inner Heredoc Content
+$(cat <<INNERMOST
+Innermost Heredoc Content
+INNERMOST
+)
+INNER)
+Outer Heredoc End
+OUTER
+
+---
+
+(program
+  (redirected_statement
+    (command (command_name (word)))
+    (heredoc_redirect
+      (heredoc_start)
+      (heredoc_body
+        (command_substitution
+          (redirected_statement
+            (command (command_name (word)))
+            (heredoc_redirect
+              (heredoc_start)
+              (heredoc_body
+                (command_substitution
+                  (redirected_statement
+                    (command (command_name (word)))
+                    (heredoc_redirect
+                      (heredoc_start)
+                      (heredoc_body)
+                      (heredoc_end))))
+                (heredoc_content))
+              (heredoc_end))))
+        (heredoc_content))
       (heredoc_end))))
 
 ==========================================
