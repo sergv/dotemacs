@@ -48,8 +48,9 @@
 The hook runs in the call-back once installation is done in child emacs.")
 
 (defface async-package-message
-    '((t (:foreground "yellow")))
-  "Face used for mode-line message.")
+  '((t (:foreground "yellow")))
+  "Face used for mode-line message."
+  :group 'async)
 
 (defun async-package-do-action (action packages error-file)
   "Execute ACTION asynchronously on PACKAGES.
@@ -76,6 +77,12 @@ Argument ERROR-FILE is the file where errors are logged, if some."
                package-user-dir ,package-user-dir
                package-alist ',package-alist
                load-path ',load-path)
+         ;; Ensure `async-bytecomp-package-mode' doesn't kick in
+         ;; (issue #194) as some packages may enable it
+         ;; inconditionally.  We don't need to compile async as we are
+         ;; already async and in a clean environment.
+         (require 'async-bytecomp)
+         (setq async-bytecomp-allowed-packages nil)
          (prog1
              (condition-case err
                  (mapc ',fn ',packages)
