@@ -112,20 +112,6 @@
     ]
   },
   {
-    "type": "comment",
-    "named": true,
-    "subtypes": [
-      {
-        "type": "block_comment",
-        "named": true
-      },
-      {
-        "type": "line_comment",
-        "named": true
-      }
-    ]
-  },
-  {
     "type": "declaration",
     "named": true,
     "subtypes": [
@@ -1282,21 +1268,6 @@
     }
   },
   {
-    "type": "condition",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": false,
-      "required": true,
-      "types": [
-        {
-          "type": "expression",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
     "type": "constant_declaration",
     "named": true,
     "fields": {
@@ -2189,7 +2160,7 @@
         "required": true,
         "types": [
           {
-            "type": "condition",
+            "type": "parenthesized_expression",
             "named": true
           }
         ]
@@ -2936,6 +2907,7 @@
   {
     "type": "program",
     "named": true,
+    "root": true,
     "fields": {},
     "children": {
       "multiple": true,
@@ -3366,6 +3338,14 @@
       "types": [
         {
           "type": "_unannotated_type",
+          "named": true
+        },
+        {
+          "type": "annotation",
+          "named": true
+        },
+        {
+          "type": "marker_annotation",
           "named": true
         },
         {
@@ -4014,7 +3994,7 @@
         "required": true,
         "types": [
           {
-            "type": "condition",
+            "type": "parenthesized_expression",
             "named": true
           }
         ]
