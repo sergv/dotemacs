@@ -84,7 +84,17 @@ enum e3 {
 };
 
 enum e4: int {
-  val1,
+#ifdef A
+  val1 = 'hey',
+#else
+  val1 = 'ho',
+#endif
+
+#if HEY
+  val2 = 'hey',
+#else
+  val2 = 'ho',
+#endif
 };
 
 --------------------------------------------------------------------------------
@@ -111,8 +121,34 @@ enum e4: int {
     name: (type_identifier)
     underlying_type: (primitive_type)
     body: (enumerator_list
-      (enumerator
-        name: (identifier)))))
+      (preproc_ifdef
+        name: (identifier)
+        (enumerator
+          name: (identifier)
+          value: (char_literal
+            (character)
+            (character)
+            (character)))
+        alternative: (preproc_else
+          (enumerator
+            name: (identifier)
+            value: (char_literal
+              (character)
+              (character)))))
+      (preproc_if
+        condition: (identifier)
+        (enumerator
+          name: (identifier)
+          value: (char_literal
+            (character)
+            (character)
+            (character)))
+        alternative: (preproc_else
+          (enumerator
+            name: (identifier)
+            value: (char_literal
+              (character)
+              (character))))))))
 
 ================================================================================
 Struct declarations containing preprocessor directives
@@ -151,6 +187,8 @@ long int b, c = 5, d;
 float d, e;
 unsigned f;
 short g, h;
+int unsigned short i;
+unsigned int long j;
 
 --------------------------------------------------------------------------------
 
@@ -177,6 +215,14 @@ short g, h;
   (declaration
     type: (sized_type_specifier)
     declarator: (identifier)
+    declarator: (identifier))
+  (declaration
+    type: (sized_type_specifier
+      type: (primitive_type))
+    declarator: (identifier))
+  (declaration
+    type: (sized_type_specifier
+      type: (primitive_type))
     declarator: (identifier)))
 
 ================================================================================
@@ -324,6 +370,7 @@ typedef unsigned short ushort;
 typedef unsigned unsigned short;
 typedef signed signed short;
 typedef signed signed unsigned;
+typedef unsigned long int long ull;
 
 typedef int register_t __attribute__((__mode__(__word__)));
 
@@ -439,6 +486,10 @@ __extension__ typedef struct {
   (type_definition
     type: (sized_type_specifier)
     declarator: (primitive_type))
+  (type_definition
+    type: (sized_type_specifier
+      type: (primitive_type))
+    declarator: (type_identifier))
   (type_definition
     type: (primitive_type)
     declarator: (type_identifier)
@@ -579,6 +630,38 @@ int static inline do_stuff(int arg1) {
         (number_literal)))))
 
 ================================================================================
+Function definitions with macro attributes
+================================================================================
+
+void * do_stuff(int arg1)
+  SOME_ATTR
+  SOME_ATTR(1)
+{
+  return 5;
+}
+
+--------------------------------------------------------------------------------
+
+(translation_unit
+  (function_definition
+    type: (primitive_type)
+    declarator: (pointer_declarator
+      declarator: (function_declarator
+        declarator: (identifier)
+        parameters: (parameter_list
+          (parameter_declaration
+            type: (primitive_type)
+            declarator: (identifier)))
+        (identifier)
+        (call_expression
+          function: (identifier)
+          arguments: (argument_list
+            (number_literal)))))
+    body: (compound_statement
+      (return_statement
+        (number_literal)))))
+
+================================================================================
 Linkage specifications
 ================================================================================
 
@@ -637,6 +720,8 @@ restrict int y = 6;
 volatile int z = 7;
 constexpr int a = 8;
 __thread int c = 9;
+alignas(16) int i;
+_Alignas(int) int j;
 noreturn void b() {}
  __extension__ extern int ffsll (long long int __ll)
      __attribute__ ((__nothrow__ )) __attribute__ ((__const__));
@@ -676,6 +761,19 @@ noreturn void b() {}
     (init_declarator
       (identifier)
       (number_literal)))
+  (declaration
+    (type_qualifier
+      (alignas_qualifier
+        (number_literal)))
+    (primitive_type)
+    (identifier))
+  (declaration
+    (type_qualifier
+      (alignas_qualifier
+        (type_descriptor
+          (primitive_type))))
+    (primitive_type)
+    (identifier))
   (function_definition
     (type_qualifier)
     (primitive_type)
@@ -743,6 +841,9 @@ extern int strerror_r(int __errnum, char *__buf,
                       int __buflen) __asm__(""
                                             "__xpg_strerror_r")
     __attribute__((__nothrow__)) __attribute__((__nonnull__(2)));
+
+extern int _IO_vfprintf (_IO_FILE *__restrict, const char *__restrict,
+    __gnuc_va_list);
 
 int f([[a::b(c), d]] int x) {}
 
@@ -872,6 +973,25 @@ struct __attribute__((__packed__)) foo_t {
             (identifier)
             (argument_list
               (number_literal)))))))
+  (declaration
+    (storage_class_specifier)
+    (primitive_type)
+    (function_declarator
+      (identifier)
+      (parameter_list
+        (parameter_declaration
+          (type_identifier)
+          (abstract_pointer_declarator
+            (ms_pointer_modifier
+              (ms_restrict_modifier))))
+        (parameter_declaration
+          (type_qualifier)
+          (primitive_type)
+          (abstract_pointer_declarator
+            (ms_pointer_modifier
+              (ms_restrict_modifier))))
+        (parameter_declaration
+          (type_identifier)))))
   (function_definition
     (primitive_type)
     (function_declarator
@@ -1034,3 +1154,103 @@ struct __attribute__((__packed__)) foo_t {
       (field_declaration
         (primitive_type)
         (field_identifier)))))
+
+================================================================================
+More Assembly
+================================================================================
+
+int main() {
+  int var;
+  __asm__(
+    "nop;"
+    : [var] "=r"(var)
+    :
+    : "eax", "ra" "x"
+  );
+
+  asm("addq %2,%0; adcq %3,%1"
+      : "+m"(rp[0]), "+d"(high)
+      : "r"(c1), "g"(0)
+      : "cc"
+  );
+}
+
+
+--------------------------------------------------------------------------------
+
+(translation_unit
+  (function_definition
+    (primitive_type)
+    (function_declarator
+      (identifier)
+      (parameter_list))
+    (compound_statement
+      (declaration
+        (primitive_type)
+        (identifier))
+      (expression_statement
+        (gnu_asm_expression
+          (string_literal
+            (string_content))
+          (gnu_asm_output_operand_list
+            (gnu_asm_output_operand
+              (identifier)
+              (string_literal
+                (string_content))
+              (identifier)))
+          (gnu_asm_input_operand_list)
+          (gnu_asm_clobber_list
+            (string_literal
+              (string_content))
+            (concatenated_string
+              (string_literal
+                (string_content))
+              (string_literal
+                (string_content))))))
+      (expression_statement
+        (gnu_asm_expression
+          (string_literal
+            (string_content))
+          (gnu_asm_output_operand_list
+            (gnu_asm_output_operand
+              (string_literal
+                (string_content))
+              (subscript_expression
+                (identifier)
+                (number_literal)))
+            (gnu_asm_output_operand
+              (string_literal
+                (string_content))
+              (identifier)))
+          (gnu_asm_input_operand_list
+            (gnu_asm_input_operand
+              (string_literal
+                (string_content))
+              (identifier))
+            (gnu_asm_input_operand
+              (string_literal
+                (string_content))
+              (number_literal)))
+          (gnu_asm_clobber_list
+            (string_literal
+              (string_content))))))))
+
+================================================================================
+Static in Array Declarations
+================================================================================
+
+void foo (int a[static 10]);
+
+--------------------------------------------------------------------------------
+
+(translation_unit
+  (declaration
+    (primitive_type)
+    (function_declarator
+      (identifier)
+      (parameter_list
+        (parameter_declaration
+          (primitive_type)
+          (array_declarator
+            (identifier)
+            (number_literal)))))))
