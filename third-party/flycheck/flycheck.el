@@ -11,7 +11,7 @@
 ;; URL: https://www.flycheck.org
 ;; Keywords: convenience, languages, tools
 ;; Version: 35.0-snapshot
-;; Package-Requires: ((emacs "26.1"))
+;; Package-Requires: ((emacs "27.1"))
 
 ;; This file is not part of GNU Emacs.
 
@@ -8404,6 +8404,14 @@ See URL `https://stylelint.io/'."
   :package-version '(flycheck . "32"))
 (make-variable-buffer-local 'flycheck-cuda-language-standard)
 
+(flycheck-def-option-var flycheck-cuda-compiler-options '("-Wall" "-Wextra") cuda-nvcc
+  "Specify options directly to the compiler/preprocessor."
+  :type '(choice (const :tag "No additional compiler options" nil)
+                 (repeat :tag "Addition compiler options"
+                         (string :tag "Compiler option")))
+  :safe #'flycheck-string-list-p
+  :package-version '(flycheck . "35"))
+
 (flycheck-def-option-var flycheck-cuda-gencodes nil cuda-nvcc
   "Our real and virtual GPU architectures to pass to nvcc."
   :type '(repeat (file :tag "GPU architecture"))
@@ -8461,6 +8469,7 @@ See URL `https://developer.nvidia.com/cuda-llvm-compiler'."
             (option-flag "--expt-extended-lambda" flycheck-cuda-extended-lambda)
             (option-list "-include" flycheck-cuda-includes)
             (option-list "-gencode" flycheck-cuda-gencodes)
+            (option-list "-Xcompiler" flycheck-cuda-compiler-options)
             (option-list "-D" flycheck-cuda-definitions concat)
             (option-list "-I" flycheck-cuda-include-path)
             source)
@@ -8470,12 +8479,18 @@ See URL `https://developer.nvidia.com/cuda-llvm-compiler'."
           " " (or "<stdin>" (file-name))
           ":" line ":" line-end)
    (error line-start (or "<stdin>" (file-name))
-          "(" line "): error: " (message) line-end)
+          "(" line "): error"
+          (optional " #" (id (one-or-more digit) (optional "-D")))
+          ": " (message) line-end)
    (error line-start (or "<stdin>" (file-name))
           ":" line ":" column
-          ": fatal error: " (optional (message)) line-end)
+          ": fatal error"
+          (optional " #" (id (one-or-more digit) (optional "-D")))
+          ": " (optional (message)) line-end)
    (warning line-start (or "<stdin>" (file-name))
-            "(" line "): warning: " (message) line-end))
+            "(" line "): warning"
+            (optional " #" (id (one-or-more digit) (optional "-D")))
+            ": " (message) line-end))
   :modes cuda-mode)
 
 
@@ -9826,11 +9841,26 @@ See URL `https://stedolan.github.io/jq/'."
           (zero-or-more not-newline) line-end))
   :modes (json-mode js-json-mode json-ts-mode))
 
+(flycheck-def-option-var flycheck-jsonnet-include-paths nil jsonnet
+  "a list of include paths to specify to the jsonnet binary, via -J .
+
+For example (\"./lib\") ."
+  :type '(repeat (directory :tag "Include directory"))
+  :safe #'flycheck-string-list-p
+  :package-version '(flycheck . "35.0"))
+
+(flycheck-def-args-var flycheck-jsonnet-command-args jsonnet
+  :package-version '(flycheck . "35.0"))
+
 (flycheck-define-checker jsonnet
   "A Jsonnet syntax checker using the jsonnet binary.
 
 See URL `https://jsonnet.org'."
-  :command ("jsonnet" source-inplace)
+  :command
+  ("jsonnet"
+   (option-list "-J" flycheck-jsonnet-include-paths)
+   (eval flycheck-jsonnet-command-args)
+   source-inplace)
   :error-patterns
   ((error line-start "STATIC ERROR: " (file-name) ":"
           (or (seq line ":" column (zero-or-one (seq "-" end-column)))
@@ -10388,7 +10418,7 @@ See URL `https://puppet.com/'."
           ": Could not parse for environment " (one-or-more word)
           ": " (message (minimal-match (zero-or-more anything)))
           " at " (file-name "/" (zero-or-more not-newline)) ":" line line-end))
-  :modes puppet-mode
+  :modes (puppet-mode puppet-ts-mode)
   :next-checkers ((warning . puppet-lint)))
 
 (flycheck-def-config-file-var flycheck-puppet-lint-rc puppet-lint
@@ -10430,7 +10460,7 @@ See URL `https://puppet-lint.com/'."
   :error-patterns
   ((warning line-start (file-name) ":" line ":warning: " (message) line-end)
    (error line-start (file-name) ":" line ":error: " (message) line-end))
-  :modes puppet-mode
+  :modes (puppet-mode puppet-ts-mode)
   ;; Since we check the original file, we can only use this syntax checker if
   ;; the buffer is actually linked to a file, and if it is not modified.
   :predicate flycheck-buffer-saved-p)
