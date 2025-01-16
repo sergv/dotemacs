@@ -1,4 +1,4 @@
-name: Fuzz Parser
+name: Fuzz
 
 on:
   push:
@@ -9,14 +9,18 @@ on:
       - src/scanner.c
   workflow_dispatch:
 
+concurrency:
+  group: ${{github.workflow}}-${{github.ref}}
+  cancel-in-progress: true
+
 jobs:
   test:
-    name: Parser fuzzing
+    name: Fuzz scanner
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: vigoux/tree-sitter-fuzz-action@v1
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Run fuzzer
+        uses: tree-sitter/fuzz-action@v4
         with:
-          language: bash
-          external-scanner: src/scanner.c
-          time: 60
+          corpus: examples
