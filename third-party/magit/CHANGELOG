@@ -1,5 +1,60 @@
 # -*- mode: org -*-
-* v4.1.2    UNRELEASED
+* v4.2.0    2025-01-01
+
+- At least Git 2.25.0 is required now.  033a0c0cdc
+
+- At least Emacs 27.1 is required now.  c1a86066e8
+
+- Added new command ~magit-toggle-profiling~.  f637dd1877
+
+- Added new command ~magit-toggle-subprocess-record~.  ec1f403af1
+
+Bug fixes:
+
+- Fixed a regression in ~transient-init-value~.  5b4c4aea1b
+
+- Fixed setting ~fill-paragraph-function~ in
+  ~git-commit-setup-changelog-support~.  139e0fcff3
+
+- ~magit-log-refresh~ lacked the ~--since~ and ~--until~ arguments, which
+  were already available in ~magit-log~.  3ecebe8d11
+
+- Enabling verbose output in ~magit-commit-absorb~ caused an error.
+  #5272
+
+- In logs, no longer strip ~heads/~ prefix from branch names if a tag
+  with the same name exists.  5cb3492464
+
+- ~magit-list-special-refnames~ returned nonsense.  #5277
+
+* v4.1.3    2024-12-06
+
+- For most important sections, if an error occurs while inserting the
+  section, the error message is now displayed in the section body.
+  #5255
+
+- ~magit-submodule-populate~ now supports ~--recursive~.  #5191 #5256
+
+- Improved ~magit-process-password-prompt-regexps~.  #5257
+
+Bug fixes:
+
+- ~magit-stash-pop~ and ~magit-stash-apply~ sometimes installed conflicts
+  for the user to resolve that are more complicated than they need to
+  be.  #5253
+
+- ~magit-stash-push~ placed ~--~ before other arguments.  #5260
+
+- ~magit-autorevert~ failed to require ~magit-process~.  #5263
+
+* v4.1.2    2024-11-02
+
+- Add various minor process logging improvements:
+  5b30c05d3a magit--git-insert: Collapse process section if appropriate
+  b11524120e magit--git-insert: Optionally always log to process buffer
+  cd6cf89d6a Use different face for debug-only process sections
+  bba06845de magit-process-insert-section: Improve file-path comparison
+  f2a6133443 magit-run-git-async: No longer clutter ~*Messages*~ buffer
 
 Bug fixes:
 
@@ -10,6 +65,25 @@ Bug fixes:
 - Prior to Tramp being loaded, setting ~magit-tramp-pipe-stty-settings~
   to ~nil~ resulted in an error, due to ~tramp-pipe-stty-settings~ not
   being bound yet.  #5240
+
+- ~magit-copy-section-value~ no longer did anything for most section
+  types.  #5244.
+
+- Global git arguments often got added twice to the list of arguments
+  ultimately passed to git.  914285a5e8
+
+- Inserting the headers of status buffers involves temporary changes
+  to ~magit-insert-section-hook~.  These changes were not restricted to
+  the current buffer, causing errors when ~magit-git-debug~ is enabled
+  and we thus insert sections in the process buffer, while the status
+  buffer is being refreshed.  11e13640c4
+
+- Some ~git~ errors were not logged despite ~magit-git-debug~ being
+  enabled.  874fb0fede
+
+- ~magit-browse-thing~ and ~magit-visit-thing~ tried to turn anything
+  at point into an URL.  Now the bail if there is no URL at point.
+  7c842b8ac0
 
 * v4.1.1    2024-10-01
 

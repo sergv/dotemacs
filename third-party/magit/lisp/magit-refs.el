@@ -1,6 +1,6 @@
 ;;; magit-refs.el --- Listing references  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2024 The Magit Project Contributors
+;; Copyright (C) 2008-2025 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 ;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
@@ -42,11 +42,11 @@
   :type 'hook)
 
 (defcustom magit-refs-sections-hook
-  '(magit-insert-error-header
-    magit-insert-branch-description
-    magit-insert-local-branches
-    magit-insert-remote-branches
-    magit-insert-tags)
+  (list #'magit-insert-error-header
+        #'magit-insert-branch-description
+        #'magit-insert-local-branches
+        #'magit-insert-remote-branches
+        #'magit-insert-tags)
   "Hook run to insert sections into a references buffer."
   :package-version '(magit . "2.1.0")
   :group 'magit-refs
@@ -97,6 +97,15 @@ shown), so this isn't enabled yet.")
 This is redundant because the name of the remote is already shown
 in the heading preceding the list of its branches."
   :package-version '(magit . "2.12.0")
+  :group 'magit-refs
+  :type 'boolean)
+
+(defcustom magit-refs-show-branch-descriptions nil
+  "Whether to show the description, if any, of local branches.
+To distinguish branch descriptions from the commit summary of the tip,
+which is shown when there is no description or this option is disabled,
+descriptions use the bold face."
+  :package-version '(magit . "4.2.1")
   :group 'magit-refs
   :type 'boolean)
 
@@ -552,7 +561,7 @@ line is inserted at all."
                                magit-refs-primary-column-width)
                              (length tag)))
                    ?\s)
-                  (and msg (magit-log-propertize-keywords nil msg)))
+                  (and msg (magit-log--wash-summary msg)))
                 (when (and magit-refs-margin-for-tags (magit-buffer-margin-p))
                   (magit-refs--format-margin tag))
                 (magit-refs--insert-cherry-commits tag)))))
@@ -607,7 +616,7 @@ line is inserted at all."
                                    magit-refs-primary-column-width)
                                  (length abbrev)))
                        ?\s)
-                      (and msg (magit-log-propertize-keywords nil msg))))
+                      (and msg (magit-log--wash-summary msg))))
                   (when (magit-buffer-margin-p)
                     (magit-refs--format-margin branch))
                   (magit-refs--insert-cherry-commits branch))))))))
@@ -653,8 +662,9 @@ line is inserted at all."
                       def
                     (pcase-let ((`(,min . ,max) def))
                       (min max (apply #'max min (mapcar #'car lines)))))))
-    (mapcar (pcase-lambda (`(,_ ,branch ,focus ,branch-desc ,u:ahead ,p:ahead
-                                ,u:behind ,upstream ,p:behind ,push ,msg))
+    (mapcar (pcase-lambda (`( ,_ ,branch ,focus
+                   ,branch-desc ,u:ahead ,p:ahead
+                   ,u:behind ,upstream ,p:behind ,msg))
               (list branch focus branch-desc u:ahead p:ahead
                     (make-string (max 1 (- magit-refs-primary-column-width
                                            (length (concat branch-desc
@@ -662,8 +672,7 @@ line is inserted at all."
                                                            p:ahead
                                                            u:behind))))
                                  ?\s)
-                    u:behind upstream p:behind push
-                    msg))
+                    u:behind upstream p:behind msg))
             lines)))
 
 (defun magit-refs--format-local-branch (line)
@@ -677,7 +686,7 @@ line is inserted at all."
                          magit-refs-show-push-remote
                          (magit-rev-verify p:ref)
                          (not (equal p:ref u:ref))))
-             (branch-desc
+             (branch-pretty
               (if branch
                   (magit-refs--propertize-branch
                    branch ref (and headp 'magit-branch-current))
@@ -710,10 +719,11 @@ line is inserted at all."
                                      (match-string 1 p:track)
                                      (and magit-refs-pad-commit-counts " "))
                              'magit-dimmed))))
-        (list (1+ (length (concat branch-desc u:ahead p:ahead u:behind)))
+        (list (1+ (length (concat branch-pretty u:ahead p:ahead u:behind)))
               branch
               (magit-refs--format-focus-column branch headp)
-              branch-desc u:ahead p:ahead u:behind
+              branch-pretty u:ahead p:ahead
+              u:behind
               (and upstream
                    (concat (if (equal u:track "[gone]")
                                (magit--propertize-face upstream 'error)
@@ -724,7 +734,10 @@ line is inserted at all."
                            (magit--propertize-face
                             push 'magit-branch-remote)
                            " "))
-              (and msg (magit-log-propertize-keywords nil msg)))))))
+              (if-let ((magit-refs-show-branch-descriptions)
+                       (desc (magit-get "branch" branch "description")))
+                  (magit--propertize-face desc 'bold)
+                (and msg (magit-log--wash-summary msg))))))))
 
 (defun magit-refs--format-focus-column (ref &optional type)
   (let ((focus magit-buffer-upstream)
