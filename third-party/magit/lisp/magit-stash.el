@@ -1,6 +1,6 @@
 ;;; magit-stash.el --- Stash support for Magit  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2024 The Magit Project Contributors
+;; Copyright (C) 2008-2025 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 ;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
@@ -39,10 +39,10 @@
 ;;;; Diff options
 
 (defcustom magit-stash-sections-hook
-  '(magit-insert-stash-notes
-    magit-insert-stash-worktree
-    magit-insert-stash-index
-    magit-insert-stash-untracked)
+  (list #'magit-insert-stash-notes
+        #'magit-insert-stash-worktree
+        #'magit-insert-stash-index
+        #'magit-insert-stash-untracked)
   "Hook run to insert sections into stash diff buffers."
   :package-version '(magit . "2.1.0")
   :group 'magit-stash
@@ -256,27 +256,30 @@ specifying a list of files to be stashed."
                  (list t)))
   (if transient
       (transient-setup 'magit-stash-push)
-    (magit-run-git "stash" "push" args)))
+    (magit-run-git "stash" "push"
+                   (seq-filter #'atom args)
+                   (assoc "--" args))))
 
 ;;;###autoload
 (defun magit-stash-apply (stash)
   "Apply a stash to the working tree.
 
-First try \"git stash apply --index\", which tries to preserve
-the index stored in the stash, if any.  This may fail because
-applying the stash could result in conflicts and those have to
-be stored in the index, making it impossible to also store the
-stash's index there as well.
+When using a Git release before v2.38.0, simply run \"git stash
+apply\" or with a prefix argument \"git stash apply --index\".
 
-If the above failed, then try \"git stash apply\".  This fails
-\(with or without \"--index\") if there are any uncommitted
-changes to files that are also modified in the stash.
+When using Git v2.38.0 or later, behave more intelligently:
 
-If both of the above failed, then apply using \"git apply\".
-If there are no conflicting files, use \"--3way\".  If there are
-conflicting files, then using \"--3way\" requires that those
-files are staged first, which may be undesirable, so prompt
-the user whether to use \"--3way\" or \"--reject\"."
+First try \"git stash apply --index\", which tries to preserve the
+index stored in the stash, if any.  This may fail because applying
+the stash could result in conflicts and those have to be stored in
+the index, making it impossible to also store the stash's index
+there.
+
+If \"git stash\" fails, then potentially fall back to using \"git
+apply\".  If the stash does not touch any unstaged files, then pass
+\"--3way\" to that command.  Otherwise ask the user whether to use
+that argument or \"--reject\".  Customize `magit-no-confirm' if you
+want to fall back to using \"--3way\", without being prompted."
   (interactive (list (magit-read-stash "Apply stash")))
   (magit-stash--apply "apply" stash))
 
@@ -284,48 +287,82 @@ the user whether to use \"--3way\" or \"--reject\"."
 (defun magit-stash-pop (stash)
   "Apply a stash to the working tree, on success remove it from stash list.
 
-First try \"git stash pop --index\", which tries to preserve
-the index stored in the stash, if any.  This may fail because
-applying the stash could result in conflicts and those have to
-be stored in the index, making it impossible to also store the
-stash's index there as well.
+When using a Git release before v2.38.0, simply run \"git stash
+pop\" or with a prefix argument \"git stash pop --index\".
 
-If the above failed, then try \"git stash apply\".  This fails
-\(with or without \"--index\") if there are any uncommitted
-changes to files that are also modified in the stash.
+When using Git v2.38.0 or later, behave more intelligently:
 
-If both of the above failed, then apply using \"git apply\".
-If there are no conflicting files, use \"--3way\".  If there are
-conflicting files, then using \"--3way\" requires that those
-files are staged first, which may be undesirable, so prompt
-the user whether to use \"--3way\" or \"--reject\"."
+First try \"git stash apply --index\", which tries to preserve the
+index stored in the stash, if any.  This may fail because applying
+the stash could result in conflicts and those have to be stored in
+the index, making it impossible to also store the stash's index
+there.
+
+If \"git stash\" fails, then potentially fall back to using \"git
+apply\".  If the stash does not touch any unstaged files, then pass
+\"--3way\" to that command.  Otherwise ask the user whether to use
+that argument or \"--reject\".  Customize `magit-no-confirm' if you
+want to fall back to using \"--3way\", without being prompted."
   (interactive (list (magit-read-stash "Pop stash")))
   (magit-stash--apply "pop" stash))
 
 (defun magit-stash--apply (action stash)
-  (or (= (magit-call-git "stash" action "--index" stash) 0)
-      ;; The stash's index could not be applied, so always keep the stash.
-      (= (magit-call-git "stash" "apply" stash) 0)
-      (let* ((range (format "%s^..%s" stash stash))
-             (stashed (magit-git-items "diff" "-z" "--name-only" range "--"))
-             (conflicts (cl-sort (cl-union (magit-unstaged-files t stashed)
-                                           (magit-untracked-files t stashed)
-                                           :test #'equal)
-                                 #'string<))
-             (arg (cond
-                   ((not conflicts) "--3way")
-                   ((magit-confirm-files
-                     'stash-apply-3way conflicts
-                     "Apply stash using `--3way', which requires first staging"
-                     "(else use `--reject')"
-                     t)
-                    (magit-stage-1 nil conflicts)
-                    "--3way")
-                   ("--reject"))))
-        (with-temp-buffer
-          (magit-git-insert "diff" range)
-          (magit-run-git-with-input "apply" arg "-"))))
-  (magit-refresh))
+  (if (magit-git-version< "2.38.0")
+      (magit-run-git "stash" action stash (and current-prefix-arg "--index"))
+    (magit-stash--apply-1 action stash)
+    (magit-refresh)))
+
+(defun magit-stash--apply-1 (action stash)
+  (or
+   (magit--run-git-stash action "--index" stash)
+   ;; The stash's index could not be applied, so always keep the stash.
+   (magit--run-git-stash "apply" stash)
+   (let* ((range (format "%s^..%s" stash stash))
+          (stashed (magit-git-items "diff" "-z" "--name-only" range "--"))
+          (conflicts (cl-sort (cl-union (magit-unstaged-files t stashed)
+                                        (magit-untracked-files t stashed)
+                                        :test #'equal)
+                              #'string<))
+          (arg (if (or (not conflicts)
+                       (memq 'stash-apply-3way magit-no-confirm))
+                   "--3way"
+                 (magit-read-char-case
+                     (concat
+                      "Could not apply stash because of unstaged changes.\n\n"
+                      "To do a tree-way merge, these files have to be staged\n"
+                      (mapconcat (lambda (f) (format "  %s" f)) conflicts "\n")
+                      "\n")
+                     nil
+                   (?s (format
+                        "\n[s] stage file%s and apply with \"git apply --3way\""
+                        (if (length> conflicts 1) "s" ""))
+                       "--3way")
+                   (?r "\n[r] apply with \"git apply --reject\"" "--reject")
+                   (?c "\n[c] cancel" nil)))))
+     (when arg
+       (when (and (equal arg "--3way") conflicts)
+         (magit-stage-1 nil conflicts))
+       (with-temp-buffer
+         (magit-git-insert "diff" range)
+         (magit-run-git-with-input "apply" arg "-"))))))
+
+(defun magit--run-git-stash (&rest args)
+  (magit--with-temp-process-buffer
+    (let ((exit (save-excursion
+                  (with-environment-variables (("LC_ALL" "en_US.utf8"))
+                    (magit-process-git t "stash" args))))
+          (buffer (current-buffer))
+          (failed (looking-at "\\`error: ")))
+      (with-current-buffer (magit-process-buffer t)
+        (magit-process-finish-section
+         (magit-process-insert-section default-directory magit-git-executable
+                                       (magit-process-git-arguments args)
+                                       exit buffer)
+         exit))
+      (pcase (list exit failed)
+        (`(0  ,_) t) ; no conflict
+        (`(1 nil) t) ; successfully installed conflict
+        (_ nil)))))  ; could not install conflict, or genuine error
 
 ;;;###autoload
 (defun magit-stash-drop (stash)
@@ -413,7 +450,7 @@ Then apply STASH, dropping it if it applies cleanly."
                                                 (t "local"))))))
 
 (defun magit-stash-store (message ref commit)
-  (magit-update-ref ref message commit t))
+  (magit-update-ref ref message commit))
 
 (defun magit-stash-create (message index worktree untracked)
   (unless (magit-rev-parse "--verify" "HEAD")
@@ -577,6 +614,9 @@ If there is no stash buffer in the same frame, then do nothing."
   :group 'magit-diff
   (magit-hack-dir-local-variables)
   (setq magit--imenu-group-types '(commit)))
+
+(put 'magit-stash-mode 'magit-diff-default-arguments
+     '("--no-ext-diff"))
 
 (defun magit-stash-setup-buffer (stash args files)
   (magit-setup-buffer #'magit-stash-mode nil

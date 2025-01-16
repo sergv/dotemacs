@@ -1,6 +1,6 @@
 ;;; magit-mode.el --- Create and refresh Magit buffers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2024 The Magit Project Contributors
+;; Copyright (C) 2008-2025 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 ;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
@@ -39,6 +39,13 @@
 (require 'transient)
 
 (defvar bookmark-make-record-function)
+
+(eval-when-compile (require 'elp))
+(declare-function elp-reset-all "elp" ())
+(declare-function elp-instrument-package "elp" (prefix))
+(declare-function elp-results "elp" ())
+(declare-function elp-restore-all "elp" ())
+
 (defvar magit--wip-inhibit-autosave)
 (defvar magit-wip-after-save-local-mode)
 (declare-function magit-wip-get-ref "magit-wip" ())
@@ -47,17 +54,17 @@
 ;;; Options
 
 (defcustom magit-mode-hook
-  '(magit-load-config-extensions)
+  (list #'magit-load-config-extensions)
   "Hook run when entering a mode derived from Magit mode."
   :package-version '(magit . "3.0.0")
   :group 'magit-modes
   :type 'hook
-  :options '(magit-load-config-extensions
-             bug-reference-mode))
+  :options (list #'magit-load-config-extensions
+                 #'bug-reference-mode))
 
 (defcustom magit-setup-buffer-hook
-  '(magit-maybe-save-repository-buffers
-    magit-set-buffer-margin)
+  (list #'magit-maybe-save-repository-buffers
+        'magit-set-buffer-margin) ; from magit-margin.el
   "Hook run by `magit-setup-buffer'.
 
 This is run right after displaying the buffer and right before
@@ -68,10 +75,11 @@ should be used instead of this one."
   :package-version '(magit . "2.3.0")
   :group 'magit-modes
   :type 'hook
-  :options '(magit-maybe-save-repository-buffers
-             magit-set-buffer-margin))
+  :options (list #'magit-maybe-save-repository-buffers
+                 'magit-set-buffer-margin))
 
-(defcustom magit-pre-refresh-hook '(magit-maybe-save-repository-buffers)
+(defcustom magit-pre-refresh-hook
+  (list #'magit-maybe-save-repository-buffers)
   "Hook run before refreshing in `magit-refresh'.
 
 This hook, or `magit-post-refresh-hook', should be used
@@ -83,9 +91,10 @@ inside your function."
   :package-version '(magit . "2.4.0")
   :group 'magit-refresh
   :type 'hook
-  :options '(magit-maybe-save-repository-buffers))
+  :options (list #'magit-maybe-save-repository-buffers))
 
 (defcustom magit-post-refresh-hook
+  ;; Do not function-quote to avoid circular dependencies.
   '(magit-auto-revert-buffers
     magit-run-post-commit-hook
     magit-run-post-stage-hook
@@ -122,21 +131,22 @@ which in turn uses the function specified here."
                 (function-item display-buffer)
                 (function :tag "Function")))
 
-(defcustom magit-pre-display-buffer-hook '(magit-save-window-configuration)
+(defcustom magit-pre-display-buffer-hook
+  (list #'magit-save-window-configuration)
   "Hook run by `magit-display-buffer' before displaying the buffer."
   :package-version '(magit . "2.3.0")
   :group 'magit-buffers
   :type 'hook
   :get #'magit-hook-custom-get
-  :options '(magit-save-window-configuration))
+  :options (list #'magit-save-window-configuration))
 
-(defcustom magit-post-display-buffer-hook '(magit-maybe-set-dedicated)
+(defcustom magit-post-display-buffer-hook (list #'magit-maybe-set-dedicated)
   "Hook run by `magit-display-buffer' after displaying the buffer."
   :package-version '(magit . "2.3.0")
   :group 'magit-buffers
   :type 'hook
   :get #'magit-hook-custom-get
-  :options '(magit-maybe-set-dedicated))
+  :options (list #'magit-maybe-set-dedicated))
 
 (defcustom magit-generate-buffer-name-function
   #'magit-generate-buffer-name-default-function
@@ -262,7 +272,8 @@ and Buffer Variables'."
           (const :tag "use args from buffer if it is current" current)
           (const :tag "never use args from buffer" never)))
 
-(defcustom magit-region-highlight-hook '(magit-diff-update-hunk-region)
+(defcustom magit-region-highlight-hook
+  '(magit-diff-update-hunk-region) ; from magit-diff.el
   "Functions used to highlight the region.
 
 Each function is run with the current section as only argument
@@ -435,7 +446,7 @@ which actually visits the thing at point."
   (interactive)
   (if (eq transient-current-command 'magit-dispatch)
       (call-interactively (key-binding (this-command-keys)))
-    (if-let ((url (browse-url-url-at-point)))
+    (if-let ((url (thing-at-point 'url t)))
         (browse-url url)
       (user-error "There is no thing at point that could be visited"))))
 (put 'magit-visit-thing 'completion-predicate #'ignore)
@@ -456,7 +467,7 @@ buffer."
 Where applicable, other keymaps remap this command to another,
 which actually visits thing at point using `browse-url'."
   (interactive)
-  (if-let ((url (browse-url-url-at-point)))
+  (if-let ((url (thing-at-point 'url t)))
       (browse-url url)
     (user-error "There is no thing at point that could be browsed")))
 (put 'magit-browse-thing 'completion-predicate #'ignore)
@@ -879,7 +890,7 @@ If a frame, then only consider buffers on that frame."
       (setq magit-buffer-locked-p (and value t))
       (magit-restore-section-visibility-cache mode))
     (when magit-uniquify-buffer-names
-      (add-to-list 'uniquify-list-buffers-directory-modes mode)
+      (cl-pushnew mode uniquify-list-buffers-directory-modes)
       (with-current-buffer buffer
         (setq list-buffers-directory (abbreviate-file-name default-directory)))
       (let ((uniquify-buffer-name-style
@@ -1052,7 +1063,7 @@ Run hooks `magit-pre-refresh-hook' and `magit-post-refresh-hook'."
       (when magit-refresh-verbose
         (message "Refreshing buffer `%s'..." (buffer-name)))
       (let* ((buffer (current-buffer))
-             (windows (cl-mapcan
+             (windows (mapcan
                        (lambda (window)
                          (with-selected-window window
                            (with-current-buffer buffer
@@ -1094,13 +1105,31 @@ Run hooks `magit-pre-refresh-hook' and `magit-post-refresh-hook'."
   "Profile refreshing the current Magit buffer."
   (interactive)
   (require (quote elp))
-  (when (fboundp 'elp-reset-all)
-    (elp-reset-all)
-    (elp-instrument-package "magit-")
-    (elp-instrument-package "forge-")
-    (magit-refresh-buffer)
-    (elp-results)
-    (elp-reset-all)))
+  (elp-reset-all)
+  (message "Profiling Magit and Forge...")
+  (elp-instrument-package "magit-")
+  (elp-instrument-package "forge-")
+  (magit-refresh-buffer)
+  (message "Profiling Magit and Forge...done")
+  (elp-results)
+  (elp-reset-all))
+
+(defun magit-toggle-profiling ()
+  "Start profiling Magit, or if in progress, stop and display the results."
+  (interactive)
+  (require (quote elp))
+  (cond ((catch 'in-progress
+           (mapatoms (lambda (symbol)
+                       (and (get symbol elp-timer-info-property)
+                            (throw 'in-progress t)))))
+         (message "Stop profiling and display results...")
+         (elp-results)
+         (elp-restore-all))
+        (t
+         (message "Start profiling Magit and Forge...")
+         (elp-reset-all)
+         (elp-instrument-package "magit-")
+         (elp-instrument-package "forge-"))))
 
 ;;; Save File-Visiting Buffers
 
@@ -1133,12 +1162,11 @@ Note that refreshing a Magit buffer is done by re-creating its
 contents from scratch, which can be slow in large repositories.
 If you are not satisfied with Magit's performance, then you
 should obviously not add this function to that hook."
-  (when (and (not magit--disable-save-buffers)
-             (magit-inside-worktree-p t))
-    (when-let ((buffer (ignore-errors
-                         (magit-get-mode-buffer 'magit-status-mode))))
-      (add-to-list 'magit-after-save-refresh-buffers buffer)
-      (add-hook 'post-command-hook #'magit-after-save-refresh-buffers))))
+  (when-let (((and (not magit--disable-save-buffers)
+                   (magit-inside-worktree-p t)))
+             (buf (ignore-errors (magit-get-mode-buffer 'magit-status-mode))))
+    (cl-pushnew buf magit-after-save-refresh-buffers)
+    (add-hook 'post-command-hook #'magit-after-save-refresh-buffers)))
 
 (defun magit-maybe-save-repository-buffers ()
   "Maybe save file-visiting buffers belonging to the current repository.
@@ -1155,10 +1183,6 @@ if you so desire."
                  (current-message)
                  (not (equal msg (current-message))))
         (message "%s" msg)))))
-
-(add-hook 'magit-pre-refresh-hook #'magit-maybe-save-repository-buffers)
-(add-hook 'magit-pre-call-git-hook #'magit-maybe-save-repository-buffers)
-(add-hook 'magit-pre-start-git-hook #'magit-maybe-save-repository-buffers)
 
 (defvar-local magit-inhibit-refresh-save nil)
 
@@ -1475,6 +1499,22 @@ The additional output can be found in the *Messages* buffer."
                 (lambda (fn)
                   (message "  %-50s %f" fn (benchmark-elapse (funcall fn))))))))
    ((run-hooks hook))))
+
+(defun magit-file-region-line-numbers ()
+  "Return the bounds of the region as line numbers.
+The returned value has the form (BEGINNING-LINE END-LINE).  If
+the region end at the beginning of a line, do not include that
+line.  Avoid including the line after the end of the file."
+  (and (or magit-buffer-file-name buffer-file-name)
+       (region-active-p)
+       (not (= (region-beginning) (region-end) (1+ (buffer-size))))
+       (let ((beg (region-beginning))
+             (end (min (region-end) (buffer-size))))
+         (list (line-number-at-pos beg t)
+               (line-number-at-pos (if (= (magit--bol-position end) end)
+                                       (max beg (1- end))
+                                     end)
+                                   t)))))
 
 ;;; _
 (provide 'magit-mode)
