@@ -7,7 +7,7 @@
 #+texinfo_dir_category: Emacs
 #+texinfo_dir_title: Magit: (magit).
 #+texinfo_dir_desc: Using Git from Emacs with Magit.
-#+subtitle: for version 4.1.1
+#+subtitle: for version 4.2.0
 
 #+setupfile: .orgconfig
 
@@ -24,7 +24,7 @@ directly from within Emacs.  While many fine Git clients exist, only
 Magit and Git itself deserve to be called porcelains.
 
 #+texinfo: @noindent
-This manual is for Magit version 4.1.1.
+This manual is for Magit version 4.2.0.
 
 #+texinfo: @insertcopying
 :END:
@@ -264,7 +264,7 @@ If you run into problems, then please see the [[*FAQ]].  Also see the
 [[*Debugging Tools]].
 
 And last but not least please consider making a donation, to ensure
-that I can keep working on Magit.  See https://magit.vc/donations.
+that I can keep working on Magit.  See https://magit.vc/donate.
 for various donation options.
 
 * Getting Started
@@ -1840,10 +1840,9 @@ sections are available.  There is one additional command.
 
   This command kills the process represented by the section at point.
 
-- Variable: magit-git-debug ::
+- Key: M-x magit-toggle-git-debug ::
 
-  This option controls whether additional reporting of git errors is
-  enabled.
+  This command toggles whether additional git errors are reported.
 
   Magit basically calls git for one of these two reasons: for
   side-effects or to do something with its standard output.
@@ -1852,34 +1851,17 @@ sections are available.  There is one additional command.
   messages, go into the process buffer which is shown when using ~$~.
 
   When git's output is consumed in some way, then it would be too
-  expensive to also insert it into this buffer, but when this
-  option is non-nil and git returns with a non-zero exit status,
-  then at least its standard error is inserted into this buffer.
+  expensive to also insert it into this buffer, but with this command
+  that can be enabled temporarily.  In that case, if git returns with
+  a non-zero exit status, then at least its standard error is inserted
+  into this buffer.
 
-  This is only intended for debugging purposes.  Do not enable this
-  permanently, that would negatively affect performance.
-
-  This is only intended for debugging purposes.  Do not enable this
-  permanently, that would negatively affect performance.  Also note
-  that just because git exits with a non-zero exit status and prints
-  an error message that usually doesn't mean that it is an error as
-  far as Magit is concerned, which is another reason we usually hide
-  these error messages.  Whether some error message is relevant in
-  the context of some unexpected behavior has to be judged on a case
-  by case basis.
-
-  The command ~magit-toggle-git-debug~ changes the value of this
-  variable.
-
-- Variable: magit-process-extreme-logging ::
-
-  This option controls whether ~magit-process-file~ logs to the
-  ~*Messages*~ buffer.
-
-  Only intended for temporary use when you try to figure out how
-  Magit uses Git behind the scene.  Output that normally goes to
-  the magit-process buffer continues to go there.  Not all output
-  goes to either of these two buffers.
+  Also note that just because git exits with a non-zero status and
+  prints an error message, that usually doesn't mean that it is an
+  error as far as Magit is concerned, which is another reason we
+  usually hide these error messages.  Whether some error message is
+  relevant in the context of some unexpected behavior has to be judged
+  on a case by case basis.
 
 *** Git Process Status
 
@@ -2239,10 +2221,13 @@ By default the following functions are also members of that hook:
 
   Maybe insert a list or tree of untracked files.
 
-  Do so depending on the value of ~status.showUntrackedFiles~.  Note
-  that even if the value is ~all~, Magit still initially only shows
-  directories.  But the directory sections can then be expanded using
-  ~TAB~.
+  The option ~magit-status-show-untracked-files~ (which see), in
+  cooperation with the Git variable ~status.showUntrackedFiles~,
+  control whether and how that is done.
+
+  If the first element of ~magit-buffer-diff-files~ is a directory, then
+  limit the list to files below that.  The value of that variable can
+  be set using ~D -- DIRECTORY RET g~.
 
 - Function: magit-insert-unstaged-changes ::
 
@@ -3100,6 +3085,24 @@ Also see [[man:git-diff]]
 - Key: d d (magit-diff-dwim) ::
 
   Show changes for the thing at point.
+
+  For example, if point is on a commit, show the changes introduced by
+  that commit.  Likewise if point is on the section titled "Unstaged
+  changes", then show those changes in a separate buffer.  Generally
+  speaking, compare the thing at point with the most logical, trivial
+  and (in *any* situation) at least potentially useful other thing it
+  could be compared to.
+
+  When the region selects commits, then compare the two commits at
+  either end.  There are different ways two commits can be compared.
+  In the buffer showing the diff, you can control how the comparison,
+  is done, using "D r" and "D f".
+
+  This function does not always show the changes that you might want
+  to view in any given situation.  You can think of the changes being
+  shown as the smallest common denominator.  There is no AI involved.
+  If this command never does what you want, then ignore it, and instead
+  use the commands that allow you to explicitly specify what you need.
 
 - Key: d r (magit-diff-range) ::
 
@@ -6419,24 +6422,27 @@ Also see [[man:git-stash]]
 
   Apply a stash to the working tree.
 
-  First try ~git stash apply --index~, which tries to preserve
-  the index stored in the stash, if any.  This may fail because
-  applying the stash could result in conflicts and those have to
-  be stored in the index, making it impossible to also store the
-  stash's index there as well.
+  When using a Git release before v2.38.0, simply run ~git stash apply~
+  or with a prefix argument ~git stash apply --index~.
 
-  If the above failed, then try ~git stash apply~.  This fails
-  (with or without ~--index~) if there are any uncommitted
-  changes to files that are also modified in the stash.
+  When using Git v2.38.0 or later, behave more intelligently:
 
-  If both of the above failed, then apply using ~git apply~.
-  If there are no conflicting files, use ~--3way~.  If there are
-  conflicting files, then using ~--3way~ requires that those
-  files are staged first, which may be undesirable, so prompt
-  the user whether to use ~--3way~ or ~--reject~.
+  First try ~git stash apply --index~, which tries to preserve the index
+  stored in the stash, if any.  This may fail because applying the
+  stash could result in conflicts and those have to be stored in the
+  index, making it impossible to also store the stash's index there.
 
-  Customize ~magit-no-confirm~ if you want to always use ~--3way~,
-  without being prompted.
+  First try ~git stash apply --index~, which tries to preserve the
+  index stored in the stash, if any.  This may fail because applying
+  the stash could result in conflicts and those have to be stored in
+  the index, making it impossible to also store the stash's index
+  there.
+
+  If ~git stash~ fails, then potentially fall back to using ~git apply~.
+  If the stash does not touch any unstaged files, then pass ~--3way~ to
+  that command.  Otherwise ask the user whether to use that argument
+  or ~--reject~.  Customize ~magit-no-confirm~ if you want to fall back
+  to using ~--3way~, without being prompted.
 
 - Key: z p (magit-stash-pop) ::
 
@@ -6444,24 +6450,21 @@ Also see [[man:git-stash]]
   stash can be applied without any conflicts, and while preserving
   the stash's index) then remove the stash from stash list.
 
-  First try ~git stash pop --index~, which tries to preserve
-  the index stored in the stash, if any.  This may fail because
-  applying the stash could result in conflicts and those have to
-  be stored in the index, making it impossible to also store the
-  stash's index there as well.
+  When using a Git release before v2.38.0, simply run ~git stash pop~
+  or with a prefix argument ~git stash pop --index~.
 
-  If the above failed, then try ~git stash apply~.  This fails
-  (with or without ~--index~) if there are any uncommitted
-  changes to files that are also modified in the stash.
+  When using Git v2.38.0 or later, behave more intelligently:
 
-  If both of the above failed, then apply using ~git apply~.
-  If there are no conflicting files, use ~--3way~.  If there are
-  conflicting files, then using ~--3way~ requires that those
-  files are staged first, which may be undesirable, so prompt
-  the user whether to use ~--3way~ or ~--reject~.
+  First try ~git stash pop --index~, which tries to preserve the index
+  stored in the stash, if any.  This may fail because applying the
+  stash could result in conflicts and those have to be stored in the
+  index, making it impossible to also store the stash's index there.
 
-  Customize ~magit-no-confirm~ if you want to always use ~--3way~,
-  without being prompted.
+  If ~git stash~ fails, then potentially fall back to using ~git apply~.
+  If the stash does not touch any unstaged files, then pass ~--3way~ to
+  that command.  Otherwise ask the user whether to use that argument
+  or ~--reject~.  Customize ~magit-no-confirm~ if you want to fall back
+  to using ~--3way~, without being prompted.
 
 - Key: z k (magit-stash-drop) ::
 
@@ -8998,7 +9001,7 @@ to pronounce Magit like magic, while taking into account that C and T
 do not sound the same.
 
 The German "Magie" is not pronounced the same as the English "magic",
-so if you speak German then you can use the above rationale to justify
+so if you speak German, then you can use the above rationale to justify
 using the former pronunciation; ~Mag{ie => it}~.
 
 You can also choose to use the former pronunciation just because you
@@ -9010,30 +9013,31 @@ Also see https://emacs.stackexchange.com/questions/13696.
 *** How to show git's output?
 
 To show the output of recently run git commands, press ~$~ (or, if that
-isn't available, ~M-x magit-process-buffer~).  This will show a buffer
+isn't available, use ~M-x magit-process-buffer~).  This shows a buffer
 containing a section per git invocation; as always press ~TAB~ to expand
 or collapse them.
 
-By default, git's output is only inserted into the process buffer if it
-is run for side-effects.  When the output is consumed in some way,
-also inserting it into the process buffer would be too expensive.  For
-debugging purposes, it's possible to do so anyway by setting
-~magit-git-debug~ to ~t~.
+By default, git's output is only inserted into the process buffer if
+it is run for side-effects.  When the output is consumed in some way,
+also inserting it into the process buffer would be too expensive.
+For debugging purposes, it's possible to do so anyway, using ~M-x
+magit-toggle-git-debug~.
 
 *** How to install the gitman info manual?
 
 Git's manpages can be exported as an info manual called ~gitman~.
 Magit's own info manual links to nodes in that manual instead of the
-actual manpages because Info doesn't support linking to manpages.
+actual manpages, simply because Info doesn't support linking to
+manpages.
 
 Unfortunately some distributions do not install the ~gitman~ manual by
-default and you will have to install a separate documentation package
+default and you would have to install a separate documentation package
 to get it.
 
-Magit patches Info adding the ability to visit links to the ~gitman~
-Info manual by instead viewing the respective manpage.  If you prefer
+Magit patches info, adding the ability to visit links to the ~gitman~
+info manual, by instead viewing the respective manpage.  If you prefer
 that approach, then set the value of ~magit-view-git-manual-method~ to
-one of the supported packages ~man~ or ~woman~, e.g.:
+one of the supported Emacs packages ~man~ or ~woman~, e.g.:
 
 #+begin_src emacs-lisp
   (setq magit-view-git-manual-method 'man)
@@ -9052,7 +9056,7 @@ also affects the diffs displayed inside Magit.
 
 *** How does branching and pushing work?
 
-Please see [[*Branching]] and https://emacsair.me/2016/01/17/magit-2.4
+Please see [[*Branching]] and https://emacsair.me/2016/01/18/magit-2.4
 
 *** Should I disable VC?
 
@@ -9086,7 +9090,7 @@ commit.  Also see [[*Performance]].
 *** I am having problems committing
 
 That likely means that Magit is having problems finding an appropriate
-emacsclient executable.  See [[info:with-editor#Configuring With-Editor]]
+~emacsclient~ executable.  See [[info:with-editor#Configuring With-Editor]]
 and [[info:with-editor#Debugging]].
 
 *** I am using MS Windows and cannot push with Magit
@@ -9120,7 +9124,7 @@ undo that setting in Magit by customizing ~magit-git-global-arguments~.
 Neither Magit nor ~git-commit.el~ fiddle with point in the buffer used
 to write commit messages, so something else must be doing it.
 
-You have probably globally enabled a mode which restores point in
+You have probably globally enabled a mode, which restores point in
 file-visiting buffers.  It might be a bit surprising, but when you
 write a commit message, then you are actually editing a file.
 
@@ -9306,24 +9310,35 @@ issue.
   messages, go into the process buffer which is shown when using ~$~.
 
   When git's output is consumed in some way, then it would be too
-  expensive to also insert it into this buffer, but when this
-  option is non-nil and git returns with a non-zero exit status,
-  then at least its standard error is inserted into this buffer.
+  expensive to also insert it into this buffer, but with this command
+  that can be enabled temporarily.  In that case, if git returns with
+  a non-zero exit status, then at least its standard error is inserted
+  into this buffer.
 
-  This is only intended for debugging purposes.  Do not enable this
-  permanently, that would negatively affect performance.  Also note
-  that just because git exits with a non-zero exit status and prints
-  an error message that usually doesn't mean that it is an error as
-  far as Magit is concerned, which is another reason we usually hide
-  these error messages.  Whether some error message is relevant in
-  the context of some unexpected behavior has to be judged on a case
-  by case basis.
+  Also note that just because git exits with a non-zero status and
+  prints an error message, that usually doesn't mean that it is an
+  error as far as Magit is concerned, which is another reason we
+  usually hide these error messages.  Whether some error message is
+  relevant in the context of some unexpected behavior has to be judged
+  on a case by case basis.
 
 - Key: M-x magit-toggle-verbose-refresh ::
 
   This command toggles whether Magit refreshes buffers verbosely.
   Enabling this helps figuring out which sections are bottlenecks.
   The additional output can be found in the ~*Messages*~ buffer.
+
+- Key: M-x magit-toggle-subprocess-record ::
+
+  This command toggles whether subprocess invocations are recorded.
+
+  When enabled, all subprocesses started by ~magit-process-file~ are
+  logged into the buffer specified by ~magit-process-record-buffer-name~
+  using the format ~magit-process-record-entry-format~.  This is for
+  debugging purposes.
+
+  This is in addition to and distinct from the default logging done by
+  default, and additional logging enabled with ~magit-toggle-git-debug~.
 
 - Key: M-x magit-debug-git-executable ::
 
@@ -9332,6 +9347,16 @@ issue.
   investigating ~exec-path~ issues.
 
   Also see [[*Git Executable]].
+
+- Key: M-x magit-profile-refresh-buffer ::
+
+  This command profiles refreshing the current Magit buffer and then
+  displays the results.
+
+- Key: M-x magit-toggle-profiling ::
+
+  This command starts profiling Magit and Forge, or if profiling is
+  already in progress, it instead stops that and displays the results.
 
 - Key: M-x with-editor-debug ::
 
