@@ -1,3 +1,7 @@
+; Variables
+
+(identifier) @variable
+
 ; Methods
 
 (method_declaration
@@ -50,12 +54,12 @@
   (void_type)
 ] @type.builtin
 
-; Variables
+; Constants
 
 ((identifier) @constant
  (#match? @constant "^_*[A-Z][A-Z\\d_]+$"))
 
-(identifier) @variable
+; Builtins
 
 (this) @variable.builtin
 
@@ -117,6 +121,7 @@
   "open"
   "opens"
   "package"
+  "permits"
   "private"
   "protected"
   "provides"
@@ -137,6 +142,8 @@
   "try"
   "uses"
   "volatile"
+  "when"
   "while"
   "with"
+  "yield"
 ] @keyword
