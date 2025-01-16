@@ -44,7 +44,11 @@
 (declare-function treesit-search-subtree "treesit.c")
 (declare-function treesit-thing-at-point "treesit.c")
 
-(defvar kotlin-ts-mode-indent-offset 4)
+(defcustom kotlin-ts-mode-indent-offset 4
+  "Number of spaces for each indentation step in `kotlin-ts-mode'."
+  :type 'natnum
+  :safe #'natnump
+  :group 'kotlin)
 
 (defvar kotlin-ts-mode-syntax-table
   (let ((st (make-syntax-table)))
@@ -324,30 +328,29 @@ and END mark the region to be fontified.  OVERRIDE is the override flag."
                         (:equal @font-lock-builtin-face "synchronized"))))))
 
 (defconst kotlin-ts-mode--treesit-indent-rules
-  (let ((offset kotlin-ts-mode-indent-offset))
-    `((kotlin
-       ((node-is "}") parent-bol 0)
-       ((n-p-gp "control_structure_body" "if_expression" nil) parent-bol 0)
-       ((n-p-gp "{" "control_structure_body" "if_expression") grand-parent-bol 0)
-       ((n-p-gp ")" "if_expression" nil) prev-sibling 0)
-       ((node-is ")") parent-bol 0)
-       ((parent-is "anonymous_initializer") parent-bol ,offset)
-       ((parent-is "statements") parent-bol 0)
-       ((parent-is "catch_block") parent-bol ,offset)
-       ((parent-is "class_body") parent-bol ,offset)
-       ((parent-is "control_structure_body") parent-bol ,offset)
-       ((parent-is "finally_block") parent-bol ,offset)
-       ((parent-is "function_body") parent-bol ,offset)
-       ((parent-is "function_value_parameters") parent-bol ,offset)
-       ((parent-is "lambda_literal") parent-bol ,offset)
-       ((parent-is "primary_constructor") parent-bol ,offset)
-       ((parent-is "secondary_constructor") parent-bol ,offset)
-       ((parent-is "try_expression") parent-bol ,offset)
-       ((parent-is "value_arguments") parent-bol ,offset)
-       ((parent-is "when_expression") parent-bol ,offset)
-       ((parent-is "comment") parent-bol 1)
-       ((node-is "navigation_suffix") parent-bol ,offset)
-       (catch-all prev-sibling 0)))))
+  '((kotlin
+     ((node-is "}") parent-bol 0)
+     ((n-p-gp "control_structure_body" "if_expression" nil) parent-bol 0)
+     ((n-p-gp "{" "control_structure_body" "if_expression") grand-parent-bol 0)
+     ((n-p-gp ")" "if_expression" nil) prev-sibling 0)
+     ((node-is ")") parent-bol 0)
+     ((parent-is "anonymous_initializer") parent-bol kotlin-ts-mode-indent-offset)
+     ((parent-is "statements") parent-bol 0)
+     ((parent-is "catch_block") parent-bol kotlin-ts-mode-indent-offset)
+     ((parent-is "class_body") parent-bol kotlin-ts-mode-indent-offset)
+     ((parent-is "control_structure_body") parent-bol kotlin-ts-mode-indent-offset)
+     ((parent-is "finally_block") parent-bol kotlin-ts-mode-indent-offset)
+     ((parent-is "function_body") parent-bol kotlin-ts-mode-indent-offset)
+     ((parent-is "function_value_parameters") parent-bol kotlin-ts-mode-indent-offset)
+     ((parent-is "lambda_literal") parent-bol kotlin-ts-mode-indent-offset)
+     ((parent-is "primary_constructor") parent-bol kotlin-ts-mode-indent-offset)
+     ((parent-is "secondary_constructor") parent-bol kotlin-ts-mode-indent-offset)
+     ((parent-is "try_expression") parent-bol kotlin-ts-mode-indent-offset)
+     ((parent-is "value_arguments") parent-bol kotlin-ts-mode-indent-offset)
+     ((parent-is "when_expression") parent-bol kotlin-ts-mode-indent-offset)
+     ((parent-is "comment") parent-bol 1)
+     ((node-is "navigation_suffix") parent-bol kotlin-ts-mode-indent-offset)
+     (catch-all prev-sibling 0))))
 
 ;; Imenu
 
