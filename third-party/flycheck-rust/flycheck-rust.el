@@ -2,6 +2,7 @@
 
 ;; Copyright (C) 2016, 2017  fmdkdd
 ;; Copyright (C) 2014, 2015  Sebastian Wiesner <swiesner@lunaryorn.com>
+;; Copyright (C) 2024-2025  Shen, Jen-Chieh
 
 ;; Author: Sebastian Wiesner <swiesner@lunaryorn.com>
 ;; URL: https://github.com/flycheck/flycheck-rust
@@ -102,7 +103,7 @@ more information on setting your PATH with Emacs."))
     (-when-let (packages (let-alist
                              (with-temp-buffer
                                (let ((exit-status
-                                      (call-process cargo nil '(t t) nil
+                                      (call-process cargo nil '(t nil) nil
                                                     "metadata" "--no-deps"
                                                     "--manifest-path" manifest
                                                     "--format-version" "1")))
@@ -118,8 +119,8 @@ more information on setting your PATH with Emacs."))
                                        (json-read))))))
                            .packages))
       (seq-map (lambda (pkg)
-                    (let-alist pkg .targets))
-                  packages))))
+                 (let-alist pkg .targets))
+               packages))))
 
 (defun flycheck-rust-find-cargo-target (file-name)
   "Return the Cargo build target associated with FILE-NAME.
