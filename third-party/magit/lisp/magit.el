@@ -1,6 +1,6 @@
 ;;; magit.el --- A Git porcelain inside Emacs  -*- lexical-binding:t; coding:utf-8 -*-
 
-;; Copyright (C) 2008-2024 The Magit Project Contributors
+;; Copyright (C) 2008-2025 The Magit Project Contributors
 
 ;; Author: Marius Vollmer <marius.vollmer@gmail.com>
 ;;     Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
@@ -17,15 +17,15 @@
 ;; Homepage: https://github.com/magit/magit
 ;; Keywords: git tools vc
 
-;; Package-Version: 4.1.1
+;; Package-Version: 4.2.0
 ;; Package-Requires: (
-;;     (emacs "26.1")
-;;     (compat "30.0.0.0")
+;;     (emacs "27.1")
+;;     (compat "30.0.1.0")
 ;;     (dash "2.19.1")
-;;     (magit-section "4.1.1")
+;;     (magit-section "4.2.0")
 ;;     (seq "2.24")
-;;     (transient "0.7.6")
-;;     (with-editor "3.4.2"))
+;;     (transient "0.8.2")
+;;     (with-editor "3.4.3"))
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -193,7 +193,7 @@ and/or `magit-branch-remote-head'."
 
 (defface magit-keyword-squash
   '((t :inherit font-lock-warning-face))
-  "Face for squash! and fixup! keywords in commit messages."
+  "Face for squash! and similar keywords in commit messages."
   :group 'magit-faces)
 
 (defface magit-signature-good
@@ -481,7 +481,7 @@ is run in the top-level directory of the current working tree."
 (defun magit--shell-command (command &optional directory)
   (let ((default-directory (or directory default-directory)))
     (with-environment-variables (("GIT_PAGER" "cat"))
-      (magit--with-connection-local-variables
+      (with-connection-local-variables
         (magit-with-editor
           (magit-start-process shell-file-name nil
                                shell-command-switch command)))))
@@ -514,7 +514,7 @@ is run in the top-level directory of the current working tree."
 (defun magit-read-gpg-secret-key
     (prompt &optional initial-input history predicate default)
   (require 'epa)
-  (let* ((keys (cl-mapcan
+  (let* ((keys (mapcan
                 (lambda (cert)
                   (and (or (not predicate)
                            (funcall predicate cert))

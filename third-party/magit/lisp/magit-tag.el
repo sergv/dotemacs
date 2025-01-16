@@ -1,6 +1,6 @@
 ;;; magit-tag.el --- Tag functionality  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2024 The Magit Project Contributors
+;; Copyright (C) 2008-2025 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 ;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
@@ -238,7 +238,7 @@ a tag qualifies as a release tag."
     (mapcar
      #'cdr
      (nreverse
-      (cl-sort (cl-mapcan
+      (cl-sort (mapcan
                 (lambda (line)
                   (and (string-match " +" line)
                        (let ((tag (substring line 0 (match-beginning 0)))

@@ -1,6 +1,6 @@
 ;;; magit-remote.el --- Transfer Git commits  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2024 The Magit Project Contributors
+;; Copyright (C) 2008-2025 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 ;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
@@ -68,9 +68,7 @@ has to be used to view and change remote related variables."
   :man-page "git-remote"
   :value '("-f")
   ["Variables"
-   :if (lambda ()
-         (and magit-remote-direct-configure
-              (oref (transient-prefix-object) scope)))
+   :if (lambda () (and magit-remote-direct-configure (transient-scope)))
    ("u" magit-remote.<remote>.url)
    ("U" magit-remote.<remote>.fetch)
    ("s" magit-remote.<remote>.pushurl)
@@ -211,8 +209,8 @@ the now stale refspecs.  Other stale branches are not removed."
                     nil refs))
               (magit-confirm 'prune-stale-refspecs nil
                 (format "Prune %%d stale refspecs and %d branches"
-                        (length (cl-mapcan (lambda (s) (copy-sequence (cdr s)))
-                                           stale)))
+                        (length (mapcan (lambda (s) (copy-sequence (cdr s)))
+                                        stale)))
                 nil
                 (mapcar (pcase-lambda (`(,refspec . ,refs))
                           (concat refspec "\n"
@@ -315,8 +313,7 @@ refspec."
   [:description
    (lambda ()
      (concat (propertize "Configure " 'face 'transient-heading)
-             (propertize (oref (transient-prefix-object) scope)
-                         'face 'magit-branch-remote)))
+             (propertize (transient-scope) 'face 'magit-branch-remote)))
    ("u" magit-remote.<remote>.url)
    ("U" magit-remote.<remote>.fetch)
    ("s" magit-remote.<remote>.pushurl)
