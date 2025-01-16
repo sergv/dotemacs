@@ -1,6 +1,6 @@
 ;;; git-rebase.el --- Edit Git rebase files  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2024 The Magit Project Contributors
+;; Copyright (C) 2008-2025 The Magit Project Contributors
 
 ;; Author: Phil Jackson <phil@shellarchive.co.uk>
 ;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
@@ -375,13 +375,11 @@ non-nil, return the beginning and end of the current rebase line,
 if any."
   (cond
    ((use-region-p)
-    (let ((beg (save-excursion (goto-char (region-beginning))
-                               (line-beginning-position)))
-          (end (save-excursion (goto-char (region-end))
-                               (line-end-position))))
-      (when (and (git-rebase-line-p beg)
-                 (git-rebase-line-p end))
-        (list beg (1+ end)))))
+    (let ((beg (magit--bol-position (region-beginning)))
+          (end (magit--eol-position (region-end))))
+      (and (git-rebase-line-p beg)
+           (git-rebase-line-p end)
+           (list beg (1+ end)))))
    ((and fallback (git-rebase-line-p))
     (list (line-beginning-position)
           (1+ (line-end-position))))))
@@ -778,7 +776,7 @@ running \"man git-rebase\" at the command line) for details."
     (git-rebase-match-comment-line 0 'font-lock-comment-face)
     ("\\[[^[]*\\]"
      0 'magit-keyword t)
-    ("\\(?:fixup!\\|squash!\\)"
+    ("\\(?:fixup!\\|squash!\\|amend!\\)"
      0 'magit-keyword-squash t)
     (,(format "^%s Rebase \\([^ ]*\\) onto \\([^ ]*\\)" comment-start)
      (1 'git-rebase-comment-hash t)

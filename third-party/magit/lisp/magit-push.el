@@ -1,6 +1,6 @@
 ;;; magit-push.el --- Update remote objects and refs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2024 The Magit Project Contributors
+;; Copyright (C) 2008-2025 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
 ;; Maintainer: Jonas Bernoulli <emacs.magit@jonas.bernoulli.dev>
@@ -308,7 +308,7 @@ what this command will do.  To add it use something like:
                      (let ((remotes (magit-list-remotes)))
                        (cond
                         ((and (magit-git-version>= "2.27")
-                              (= (length remotes) 1))
+                              (length= remotes 1))
                          (car remotes))
                         ((member "origin" remotes) "origin"))))))
     (if (null remote)
