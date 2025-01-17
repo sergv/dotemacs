@@ -7918,6 +7918,87 @@ _|_bar")
    "  liftReadList      = liftReadListDefault"
    ""))
 
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/substitute-adjacent-1
+    (execute-kbd-macro (kbd "s % s / f o o / b a r <return>"))
+  (tests-utils--multiline
+   "_|_"
+   "foofoo")
+  (tests-utils--multiline
+   ""
+   "barbar_|_"))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/substitute-adjacent-2
+    (execute-kbd-macro (kbd "s % s / f o o / b a r <return>"))
+  (tests-utils--multiline
+   "_|_foofoo")
+  (tests-utils--multiline
+   "barbar_|_"))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/substitute-adjacent-2a
+    (execute-kbd-macro (kbd "s s / f o o / b a r <return>"))
+  (tests-utils--multiline
+   "_|_foofoo")
+  (tests-utils--multiline
+   "barbar_|_"))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/substitute-adjacent-3
+    (execute-kbd-macro (kbd "s % s / f o o / b a r <return>"))
+  (tests-utils--multiline
+   "_|_foofoo"
+   "")
+  (tests-utils--multiline
+   "barbar_|_"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/substitute-adjacent-4
+    (execute-kbd-macro (kbd "s % s / o / x <return>"))
+  (tests-utils--multiline
+   "_|_"
+   "foofoo"
+   "")
+  (tests-utils--multiline
+   ""
+   "fxxfxx_|_"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/substitute-adjacent-5
+    (execute-kbd-macro (kbd "s s / o ? / x <return>"))
+  (tests-utils--multiline
+   ""
+   "_|_foofoo"
+   "")
+  (tests-utils--multiline
+   ""
+   "xfxxfxx_|_"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/substitute-adjacent-6
+    (execute-kbd-macro (kbd "s % s / \\ ( . * <right> <right> / \" \\ 1 \" <return>"))
+  (tests-utils--multiline
+   "_|_"
+   ""
+   ""
+   "foo"
+   ""
+   ""
+   "")
+  (tests-utils--multiline
+   (tests-utils--multiline
+   "\"\""
+   "\"\""
+   "\"\""
+   "\"foo\""
+   "\"\""
+   "\"\"_|_"
+   "")))
+
 (ert-deftest vim-tests/indent-region/c-mode-1 ()
   (vim-tests--test-fresh-buffer-contents-init
       (c-mode)
