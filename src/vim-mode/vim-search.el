@@ -484,11 +484,22 @@ pattern and replace matches with REPLACEMENT.
                    (goto-char first-line-pos)
                    (while (and (< (point) last-line-pos-marker)
                                (re-search-forward regex last-line-pos-marker t))
-                     (replace-match replacement t nil)
-                     (setf last-end (point))
-                     (unless (eobp)
-                       ;; To avoid adjacent maches
-                       (forward-char 1)))
+                     (if (eq (match-beginning 0) (match-end 0))
+                         ;; Edge case - empty match between two
+                         ;; characters. Don’t do anything on empty
+                         ;; match after empty match or after
+                         ;; successful replacement to avoid infinite
+                         ;; growth and keep reasonable behaviour,
+                         ;; respectively.
+                         (if (eq (point) last-end)
+                             (progn
+                               (forward-char 1))
+                           (progn
+                             (replace-match replacement t nil)
+                             (setf last-end (point))))
+                       (progn
+                         (replace-match replacement t nil)
+                         (setf last-end (point)))))
                    (when last-end
                      (goto-char last-end)))))
               (t
