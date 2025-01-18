@@ -490,7 +490,6 @@
               comment-start-skip "(\\*+[ \t]*"
               comment-style 'multi-line)
   (pretty-ligatures-install-isabelle-ligatures!)
-  (run-hooks 'isar-mode-hook)
 
   (isar-unicode-tokens-configure)
   (add-hook 'after-save-hook #'isar-replace-all-utf8-by-encoding nil t)
