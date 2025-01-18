@@ -426,12 +426,7 @@
     (if (boundp (intern (concat "isar-" (symbol-name var))))
         (set (intern (concat "unicode-tokens-" (symbol-name var) "-variable"))
              (intern (concat "isar-" (symbol-name var))))))
-  (unicode-tokens-initialise)
-  ;; Map raw unicode to equivalent Isabelle sequences.
-  (cl-loop for (token beautified)
-           in (cl-concatenate 'list isar-symbols-tokens isar-extended-symbols-tokens isar-symbols-tokens)
-	         do (define-key isar-mode-map (kbd beautified) (format "\\<%s>" token)))
-)
+  (unicode-tokens-initialise))
 
 ;; provided by Ghilain https://github.com/m-fleury/isabelle-emacs/issues/83
 (defun isar-unicodify-region-or-buffer ()
