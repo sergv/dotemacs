@@ -199,7 +199,7 @@ Set `lsp-isabelle-options' for other options (like importing the AFP)."
 
 
 (defcustom lsp-isar-remote-path-to-isabelle
-  "isabelle"
+  "isabelle-emacs-lsp"
   "Default path to Isabelle (e.g., /path/to/isabelle/folder)."
   :type '(string)
   :group 'isabelle)

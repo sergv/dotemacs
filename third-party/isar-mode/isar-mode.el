@@ -420,14 +420,6 @@
    start
    end))
 
-(defun isar-unicode-tokens-configure ()
-  "Set the Unicode Tokens table and initialise."
-  (dolist (var unicode-tokens-configuration-variables)
-    (if (boundp (intern (concat "isar-" (symbol-name var))))
-        (set (intern (concat "unicode-tokens-" (symbol-name var) "-variable"))
-             (intern (concat "isar-" (symbol-name var))))))
-  (unicode-tokens-initialise))
-
 ;; provided by Ghilain https://github.com/m-fleury/isabelle-emacs/issues/83
 (defun isar-unicodify-region-or-buffer ()
   "Open a view of the active region (or the whole buffer if none) using true Unicode tokens."
@@ -485,10 +477,7 @@
               comment-start-skip "(\\*+[ \t]*"
               comment-style 'multi-line)
   (pretty-ligatures-install-isabelle-ligatures!)
-
-  (isar-unicode-tokens-configure)
-  (add-hook 'after-save-hook #'isar-replace-all-utf8-by-encoding nil t)
-  (unicode-tokens-mode 1))
+  (add-hook 'after-save-hook #'isar-replace-all-utf8-by-encoding nil t))
 
 ;;spacemacs specific function
 (when (boundp 'spacemacs-jump-handlers-isar-mode)
