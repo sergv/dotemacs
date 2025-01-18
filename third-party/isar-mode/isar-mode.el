@@ -36,6 +36,8 @@
 (require 'isar-unicode-tokens)
 
 (defvar isar-mode-hook nil)
+(defcustom isar-mode-remove-utf8-when-saving nil
+  "Replace the '‹' by the Isabelle encoding.")
 
 (defvar isar-mode-map
   (make-sparse-keymap)
@@ -424,7 +426,52 @@
     (if (boundp (intern (concat "isar-" (symbol-name var))))
         (set (intern (concat "unicode-tokens-" (symbol-name var) "-variable"))
              (intern (concat "isar-" (symbol-name var))))))
-  (unicode-tokens-initialise))
+  (unicode-tokens-initialise)
+  ;; Map raw unicode to equivalent Isabelle sequences.
+  (cl-loop for (token beautified)
+           in (cl-concatenate 'list isar-symbols-tokens isar-extended-symbols-tokens isar-symbols-tokens)
+	         do (define-key isar-mode-map (kbd beautified) (format "\\<%s>" token)))
+)
+
+;; provided by Ghilain https://github.com/m-fleury/isabelle-emacs/issues/83
+(defun isar-unicodify-region-or-buffer ()
+  "Open a view of the active region (or the whole buffer if none) using true Unicode tokens."
+  (interactive)
+  (let* ((range (if (use-region-p) (list (region-beginning) (region-end)) (list nil nil)))
+         (start (car range))
+         (end (cadr range))
+         ;; Register all the existing symbols to be replaced.
+         (symbs (append isar-extended-symbols-tokens isar-symbols-tokens isar-modifier-symbols-tokens))
+         (buf (generate-new-buffer (format "%s-unicode" (buffer-name)))))
+    ;; Copy the selected region (or the whole buffer) into `buf'.
+    (insert-into-buffer buf start end)
+    ;; Switch to the (soon to be) beautiful buffer.
+    (switch-to-buffer buf)
+    ;; Now replace Isabelle sequences in `buf' by actual Unicode symbols.
+    (setq case-fold-search nil)
+    (mapc
+     (lambda (x)
+       (goto-char (point-max))
+       (while (re-search-backward (regexp-quote (format isar-token-format (car x))) nil t)
+         (replace-match (cadr x) nil t)))
+     symbs)
+    ;; And this should be it!
+  ))
+
+(defun isar-replace-all-utf8-by-encoding ()
+  "Remove the accidentally entered utf8 by the corresponding Isabelle encoding"
+  (interactive)
+  (when isar-mode-remove-utf8-when-saving
+    (save-match-data
+      (save-excursion
+        (dolist (symbolpair (append
+                             isar-symbols-tokens
+                             isar-extended-symbols-tokens))
+          (let* ((symbol (car symbolpair))
+                 (utf8-symbol (cadr symbolpair)))
+            (goto-char (point-min))
+            (while (re-search-forward utf8-symbol nil t)
+              (replace-match (concat "\\\\<" symbol ">") nil nil))))))))
 
 ;;;###autoload
 (define-derived-mode isar-mode prog-mode "isar"
@@ -443,7 +490,11 @@
               comment-start-skip "(\\*+[ \t]*"
               comment-style 'multi-line)
   (pretty-ligatures-install-isabelle-ligatures!)
-  (run-hooks 'isar-mode-hook))
+  (run-hooks 'isar-mode-hook)
+
+  (isar-unicode-tokens-configure)
+  (add-hook 'after-save-hook #'isar-replace-all-utf8-by-encoding nil t)
+  (unicode-tokens-mode 1))
 
 ;;spacemacs specific function
 (when (boundp 'spacemacs-jump-handlers-isar-mode)
