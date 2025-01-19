@@ -951,13 +951,12 @@ one.  This a performance critical function."
   "Initialise all elements required for the decorations."
   ;; (unless lsp-isar-decorations--recycler
   ;;   (setq lsp-isar-decorations--recycler (run-with-timer 0 0.5 'lsp-isar-decorations-recycle-batch nil)))
-  (if (and
-       (not lsp-isar-decorations--cleaner-timer)
-       lsp-isar-decorations-full-clean-after-inactivity
-       (> lsp-isar-decorations-full-clean-after-inactivity 0))
-      (setq lsp-isar-decorations--cleaner-timer
-	    (run-with-idle-timer lsp-isar-decorations-full-clean-after-inactivity t
-				 'lsp-isar-decorations-kill-all-unused-overlays))))
+  (when (and (not lsp-isar-decorations--cleaner-timer)
+             lsp-isar-decorations-full-clean-after-inactivity
+             (> lsp-isar-decorations-full-clean-after-inactivity 0))
+    (setq lsp-isar-decorations--cleaner-timer
+	  (run-with-idle-timer lsp-isar-decorations-full-clean-after-inactivity t
+			       'lsp-isar-decorations-kill-all-unused-overlays))))
 
 (defun lsp-isar-decorations--print-delayed-buffer-decorations (file params)
   "Prints the decorations from buffer FILE that were not printed so far."
