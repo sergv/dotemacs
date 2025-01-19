@@ -8,7 +8,7 @@
 
 (require 'pretty-ligatures)
 
-(defun pretty-ligatures--isabelle-install (ligatures)
+(defun pretty-ligatures--isabelle-install! (ligatures)
   "Add hasklig ligatures for use with prettify-symbols-mode."
   (when (pretty-ligatures-supported?)
     (setq-local prettify-symbols-alist
@@ -161,7 +161,7 @@
 
 ;;;###autoload
 (defun pretty-ligatures-install-isabelle-ligatures! ()
-  (pretty-ligatures--isabelle-install pretty-ligatures--isabelle-replacements))
+  (pretty-ligatures--isabelle-install! pretty-ligatures--isabelle-replacements))
 
 (provide 'isabelle-symbols)
 
