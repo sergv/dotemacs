@@ -125,19 +125,13 @@ In Isar, `(*)' does not start a compent but is the multiplication sign."
   "Name of isar mode.")
 
 ;;;###autoload
-(defun isar-goal-mode ()
+(define-derived-mode isar-goal-mode prog-mode "Isar-goal"
   "Major mode for editing isar files"
-  (interactive)
-  (kill-all-local-variables)
-  (set-syntax-table isar-goal-mode-syntax-table)
-  (use-local-map isar-goal-mode-map)
-  (set (make-local-variable 'font-lock-defaults) '(isar-goal-font-lock-keywords))
-  (set (make-local-variable 'syntax-propertize-function)
-       #'isar-goal-syntax-propertize)
-  (setq major-mode 'isar-goal-mode)
-  (setq mode-name "Isar-goal")
-  (pretty-ligatures-install-isabelle-ligatures!)
-  (run-hooks 'isar-goal-mode-hook))
+
+  (setq-local font-lock-defaults '(isar-goal-font-lock-keywords)
+              syntax-propertize-function #'isar-goal-syntax-propertize)
+
+  (pretty-ligatures-install-isabelle-ligatures!))
 
 ;;spacemacs specific function
 (when (boundp 'spacemacs-jump-handlers-isar-goal-mode)
