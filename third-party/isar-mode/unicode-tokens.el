@@ -166,19 +166,21 @@ and (match-string 2) has the display control applied.")
 ;;
 
 (defconst unicode-tokens-configuration-variables
-  '(token-symbol-map
-    token-format
-    token-variant-format-regexp
-    shortcut-alist
-    shortcut-replacement-alist
-    control-region-format-regexp
-    control-region-format-start
-    control-region-format-end
-    control-char-format-regexp
-    control-char-format
-    control-regions
-    control-characters
-    tokens-customizable-variables))
+  nil
+  ;; '(token-symbol-map
+  ;;   token-format
+  ;;   token-variant-format-regexp
+  ;;   shortcut-alist
+  ;;   shortcut-replacement-alist
+  ;;   control-region-format-regexp
+  ;;   control-region-format-start
+  ;;   control-region-format-end
+  ;;   control-char-format-regexp
+  ;;   control-char-format
+  ;;   control-regions
+  ;;   control-characters
+  ;;   tokens-customizable-variables)
+  )
 
 (defun unicode-tokens-config (sym)
   "Construct the symbol name `unicode-tokens-SYM'."
