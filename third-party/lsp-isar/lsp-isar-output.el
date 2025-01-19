@@ -46,7 +46,6 @@
 
 (eval-when-compile (require 'subr-x))
 
-(defvar lsp-isar-output-buffer nil "Isabelle output buffer.")
 (defvar lsp-isar-output-proof-cases-content nil)
 (defvar lsp-isar-output-proof-timer nil "Current timer rendering the HTML.")
 
@@ -436,7 +435,7 @@ Lisp equivalent of `replace-regexp' as indicated in the help."
 	  (lsp-isar-output--prepare-html)
 	  (setq parsed-content (libxml-parse-html-region (point-min) (point-max)))))
 
-      (with-current-buffer lsp-isar-output-buffer
+      (with-current-buffer (lsp-isar--get-output-buffer)
         (with-inhibited-read-only
          (erase-buffer)
 	 (setf decorations (lsp-isar-output-parse-output parsed-content))
@@ -446,7 +445,7 @@ Lisp equivalent of `replace-regexp' as indicated in the help."
       (when (= lsp-isar-output-current-output-number lsp-isar-output-current-output-number-res)
         (cl-incf lsp-isar-output-current-output-number)
         (when lsp-isar-have-output?
-	  (with-current-buffer lsp-isar-output-buffer
+	  (with-current-buffer (lsp-isar--get-output-buffer)
             (with-inhibited-read-only
 	     (dolist (deco decorations)
                (let ((point0 (car deco))
@@ -454,16 +453,19 @@ Lisp equivalent of `replace-regexp' as indicated in the help."
 		     (face (caddr deco)))
 	         (put-text-property point0 point1 'font-lock-face face))))))))))
 
-;; Deactivate font-lock-mode because we do the fontification ourselves anyway.
-(defun lsp-isar-output-initialize-output-buffer ()
-  "Initialize buffers."
-  (setq lsp-isar-output-buffer (get-buffer-create "*lsp-isar-output*"))
-  (with-current-buffer lsp-isar-output-buffer
-    (visual-line-mode t)
-    (hl-line-mode t)
-    (read-only-mode t)
-    (isar-goal-mode)
-    (font-lock-mode nil)))
+(defun lsp-isar--get-output-buffer ()
+  (let ((buf (get-buffer "*lsp-isar-output*")))
+    (if (and buf
+             (buffer-live-p buf))
+        buf
+      (let ((fresh-buf (get-buffer-create "*lsp-isar-output*")))
+        (with-current-buffer fresh-buf
+          (read-only-mode t)
+          (isar-goal-mode)
+          ;; Deactivate font-lock-mode because we do the fontification ourselves anyway.
+          (font-lock-mode nil))
+        fresh-buf))))
+
 
 (lsp-defun lsp-isar-output-update-state-and-output-buffer (_workspace (&lsp-isar:DynamicOutput :content))
   "Launch the thread or timer to update the state and the output
@@ -492,8 +494,8 @@ panel with CONTENT."
 
 (defun lsp-isar-output-adapt-length ()
   "Adapt the size of the buffer"
-  (when lsp-isar-output-buffer
-    (let ((cols (window-body-width (get-buffer-window lsp-isar-output-buffer))))
+  (when-let* ((out-buf (lsp-isar--get-output-buffer)))
+    (let ((cols (window-body-width (get-buffer-window out-buf))))
       (lsp-isar-output-set-size (- cols 5)))))
 
 (defun lsp-isar-output-adapt-to-change (&optional _frame)

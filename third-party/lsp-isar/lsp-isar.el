@@ -115,7 +115,6 @@ you can decide at startup what you want."
     (lsp-isar-caret-activate-caret-update)
     (lsp-isar-decorations-activate-delayed-printing)
     (unless lsp-isar-already-initialised
-      (lsp-isar-output-initialize-output-buffer)
       (lsp-isar-progress-activate-progress-update)
       (lsp-isar-decorations--init-decorations)
       (run-hooks 'lsp-isar-init-hook)
