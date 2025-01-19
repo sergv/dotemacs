@@ -776,16 +776,15 @@ the current buffer."
 
 (defun swap-buffers-in-windows (win-a win-b)
   "Swap buffers in windows WIN-A and WIN-B."
-  (let* ((buf-a (current-buffer))
+  (let* ((buf-a (window-buffer win-a))
          (pos-a (with-selected-window win-a
                   (with-current-buffer buf-a
                     (point))))
-         (buf-b (save-selected-window (select-window win-b t)
-                                      (current-buffer)))
+         (buf-b (window-buffer win-b))
          (pos-b (with-selected-window win-b
                   (with-current-buffer buf-b
                     (point)))))
-    (if (eq? buf-b buf-a)
+    (if (eq buf-b buf-a)
         (progn
           (with-selected-window win-a
             (with-current-buffer buf-a
@@ -794,10 +793,15 @@ the current buffer."
           (with-selected-window win-b
             (with-current-buffer buf-b
               (goto-char pos-a))))
-      (progn
+      (let ((dedicated-a? (window-dedicated-p win-a))
+            (dedicated-b? (window-dedicated-p win-b)))
+        (set-window-dedicated-p win-a nil)
+        (set-window-dedicated-p win-b nil)
         (switch-to-buffer buf-b)
         (select-window win-b)
-        (switch-to-buffer buf-a)))))
+        (switch-to-buffer buf-a)
+        (set-window-dedicated-p win-a dedicated-b?)
+        (set-window-dedicated-p win-b dedicated-a?)))))
 
 (defun call-n (n f x)
   "Call function F multiple times (N repetitions) feeding its output to itself. Initial input is X."
