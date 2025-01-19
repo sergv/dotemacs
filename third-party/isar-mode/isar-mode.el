@@ -414,11 +414,38 @@
 (defun isar-syntax-propertize (start end)
   (funcall
    (syntax-propertize-rules
-    ((rx (group "(") "*" (group ")")) ;; (*) are not opening comments
+
+    ((rx (group-n 1 "(") "*" (group-n 2 ")")) ;; (*) are not opening comments
      (1 "_")
-     (2 "_")))
+     (2 "_"))
+
+    ((rx (or (seq (group-n 1 "\\") "<open>") (seq "\\<close" (group-n 2 ">"))))
+     ;; Generic string delimiters must span single characters or adjacent characters
+     ;; will be matched against each other.
+     (1 "|")
+     (2 "|")))
    start
    end))
+
+(defun isar-syntax-propertize-extend-region (start end)
+  "Member of ‘syntax-propertize-extend-region-functions’ that extends region until it can
+be safely analyzed by ‘isar-syntax-propertize’."
+  (save-excursion
+    (save-match-data
+      (let ((new-start nil)
+            (new-end nil))
+        (goto-char start)
+        (when (and (re-search-backward (rx "\\<" (or (group-n 1 "open") "close") ">") nil t)
+                   (setf new-start (match-beginning 1)))
+          ;; Found unclosed open above.
+          (setf start new-start))
+        (goto-char end)
+        (when (and (re-search-forward (rx "\\<" (or "open" (group-n 1 "close")) ">") nil t)
+                   (setf new-end (match-end 1)))
+          ;; Found unopened close after.
+          (setf end new-end))
+        (when (or new-start new-end)
+          (cons start end))))))
 
 ;; provided by Ghilain https://github.com/m-fleury/isabelle-emacs/issues/83
 (defun isar-unicodify-region-or-buffer ()
@@ -471,6 +498,11 @@
               comment-end " *)"
               comment-start-skip "(\\*+[ \t]*"
               comment-style 'multi-line)
+
+  (add-hook 'syntax-propertize-extend-region-functions
+            #'isar-syntax-propertize-extend-region
+            nil
+            t)
 
   (pretty-ligatures-install-isabelle-ligatures!)
   (add-hook 'after-save-hook #'isar-replace-all-utf8-by-encoding nil t))
