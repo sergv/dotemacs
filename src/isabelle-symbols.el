@@ -21,30 +21,31 @@
 (defun pretty-ligatures--isabelle--compose-p (start end match-str)
   "Do not prettify withing comments or within words/operators."
   (let ((len (length match-str)))
-    (and (not (zerop len))
-         (let ((start-char (aref match-str 0))
-               (end-char (aref match-str (1- (length match-str)))))
-           (or
-            ;; Always fontify ligatures of the form "\<...>".
-            (and (char-equal start-char ?\\)
-                 (char-equal end-char ?\>)
-                 (char-equal (aref match-str 1) ?<))
-            (let* ((syntaxes-beg (if (memq (char-syntax start-char) '(?w ?_))
-                                     '(?w ?_)
-                                   '(?. ?\\)))
-                   (syntaxes-end (if (memq (char-syntax end-char) '(?w ?_))
-                                     '(?w ?_)
-                                   '(?. ?\\)))
-                   (following-char (or (char-after end) ?\s)))
-              (and (not (memq (char-syntax (or (char-before start) ?\s)) syntaxes-beg))
-                   (or (char-equal following-char ?,)
-                       (not (memq (char-syntax following-char) syntaxes-end)))
-                   ;; Enable ligatures in both strings and comments for now.
-                   ;; (let ((syn (syntax-ppss)))
-                   ;;   (if (nth 8 syn) ;; If in string or comment...
-                   ;;       (nth 3 syn) ;; ... only compose if in string.
-                   ;;     t))
-                   )))))))
+    (and
+     (not (zerop len))
+     (let ((start-char (aref match-str 0))
+           (end-char (aref match-str (1- len))))
+       (or
+        ;; Always fontify ligatures of the form "\<...>".
+        (and (eq start-char ?\\)
+             (eq end-char ?\>)
+             (eq (aref match-str 1) ?<))
+        (let* ((syntaxes-beg (if (memq (char-syntax start-char) '(?w ?_))
+                                 '(?w ?_)
+                               '(?. ?\\)))
+               (syntaxes-end (if (memq (char-syntax end-char) '(?w ?_))
+                                 '(?w ?_)
+                               '(?. ?\\)))
+               (following-char (or (char-after end) ?\s)))
+          (and (not (memq (char-syntax (or (char-before start) ?\s)) syntaxes-beg))
+               (or (eq following-char ?,)
+                   (not (memq (char-syntax following-char) syntaxes-end)))
+               ;; Enable ligatures in both strings and comments for now - keep the below commented.
+               ;; (let ((syn (syntax-ppss)))
+               ;;   (if (nth 8 syn) ;; If in string or comment...
+               ;;       (nth 3 syn) ;; ... only compose if in string.
+               ;;     t))
+               )))))))
 
 (defconst isabelle-arrows
   '(("leftarrow"      . "<-")
