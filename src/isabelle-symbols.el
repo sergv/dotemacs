@@ -101,7 +101,14 @@
        ("Prod"           . "product")
        ("Coprod"         . "coproduct")
        ("And"            . "&&")
-       ("Or"             . "||"))))
+       ("Or"             . "||")
+
+       ("and"            . "&&")
+       ("or"             . "||")
+
+       ("le"             . "LE")
+       ("ge"             . "GE")
+       ("noteq"          . "/="))))
   "Mapping to specific ‘Iosevka Slab Lig’ glyphs.")
 
 (defconst pretty-ligatures--isabelle-unicode-ligatures
@@ -143,10 +150,8 @@
     ("open"  . ?‹)
     ("close" . ?›)
 
-    ("and" . ?∧ ;; ?⋀
-     )
-    ("or" . ?∨ ;; ?⋁
-     ))
+    ("circ" . ?∘) ;; ?○
+    ("bar" . ?¦))
   "Mapping to regular unicode characters.")
 
 (defconst pretty-ligatures--isabelle-replacements
