@@ -79,6 +79,21 @@ _r_ename
 ;;;###autoload
 (add-hook 'isar-mode-hook #'isar-setup)
 
+(defun isar-goal-setup ()
+  (init-common :use-yasnippet nil
+               :use-comment nil
+               :use-fci nil
+               :use-whitespace nil
+               :use-render-formula nil
+               :use-hl-line t
+               :enable-backup nil
+               :hl-parens-backend 'hl-paren
+               :typography t
+               :smerge nil))
+
+;;;###autoload
+(add-hook 'isar-goal-mode-hook #'isar-goal-setup)
+
 ;;;###autoload
 (add-hook 'lsp-isar-init-hook #'lsp-isar-open-output-and-progress-right-spacemacs)
 
