@@ -26,11 +26,12 @@
 (defun isar-set-and-restart-tokens (sym val)
   "Function to restart Unicode Tokens when a token value is adjusted."
   (set-default sym val)
-  (when (featurep 'isar-unicode-tokens) ; not during loading
-    (isar-init-token-symbol-map)
-    (isar-init-shortcut-alists)
-    (if (featurep 'unicode-tokens)
-        (unicode-tokens-initialise))))
+  ;; (when (featurep 'isar-unicode-tokens) ; not during loading
+  ;;   (isar-init-token-symbol-map)
+  ;;   (isar-init-shortcut-alists)
+  ;;   (if (featurep 'unicode-tokens)
+  ;;       (unicode-tokens-initialise)))
+  )
 
 ;;
 ;; Controls
@@ -135,7 +136,6 @@
     ("Psi" "Ψ")
     ("Omega" "Ω"))
   "Greek letter token map for Isabelle."
-  :type 'unicode-tokens-token-symbol-map
   :group 'isabelle-tokens
   :set 'isar-set-and-restart-tokens)
 
@@ -147,7 +147,6 @@
     ("real" "ℝ")
     ("int" "ℤ"))
   "Miscellaneous letter token map for Isabelle."
-  :type 'unicode-tokens-token-symbol-map
   :group 'isabelle-tokens
   :set 'isar-set-and-restart-tokens)
 
@@ -529,7 +528,6 @@
     ("^action" "☛")
     )
   "Symbol token map for Isabelle.  The standard set of Isabelle symbols."
-  :type 'unicode-tokens-token-symbol-map
   :group 'isabelle-tokens
   :set 'isar-set-and-restart-tokens)
 
@@ -598,7 +596,6 @@
     ("eightsuperior" "⁸")
     ("ninesuperior" "⁹"))
   "Extended symbols token map for Isabelle.  These are not defined standardly."
-  :type 'unicode-tokens-token-symbol-map
   :group 'isabelle-tokens
   :set 'isar-set-and-restart-tokens)
 
@@ -629,7 +626,6 @@
   "Fallback alternatives to `isar-symbols-tokens'.
 The first displayable composition will be displayed to replace the
 tokens."
-  :type 'unicode-tokens-token-symbol-map
   :group 'isabelle-tokens
   :set 'isar-set-and-restart-tokens)
 
@@ -645,7 +641,6 @@ tokens."
     ("eight" "8" bold)
     ("nine" "9" bold))
   "Tokens for bold numerals."
-  :type 'unicode-tokens-token-symbol-map
   :group 'isabelle-tokens
   :set 'isar-set-and-restart-tokens)
 
@@ -667,7 +662,6 @@ tokens."
     ("eight" "𝟖")
     ("nine" "𝟗"))
   "Some various symbols used for Unicode printing. Most should be either invisible or styled (e.g. bold)."
-  :type 'unicode-tokens-token-symbol-map
   :group 'isabelle-tokens
   :set 'isar-set-and-restart-tokens)
 
@@ -709,7 +703,6 @@ Each element is a list
 
 COMPOSITION is usually a string, perhaps containing Unicode characters.
 For Isabelle, the token TOKNAME is made into the token \\<TOKNAME>."
-  :type 'unicode-tokens-token-symbol-map
   :group 'isabelle
   :set 'isar-set-and-restart-tokens
   :tag "Isabelle Unicode Token Mapping")
@@ -723,7 +716,6 @@ Each element is a list
 
 COMPOSITION is usually a string, perhaps containing Unicode characters.
 For Isabelle, the token TOKNAME is made into the token \\<TOKNAME>."
-  :type 'unicode-tokens-token-symbol-map
   :group 'isabelle
   :set 'isar-set-and-restart-tokens
   :tag "User extensions for Isabelle Token Mapping")
