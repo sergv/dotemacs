@@ -123,10 +123,7 @@ you can decide at startup what you want."
 ;; lsp-after-initialize-hook might look like the right macro.  However, the
 ;; workspace (lsp--cur-workspace) is not opened yet.
 (add-hook 'lsp-after-open-hook
-	  'lsp-isar-initialise)
-
-(defvar lsp-isar--already-split nil
-  "Boolean to indicate if we have already split the window.")
+          'lsp-isar-initialise)
 
 (defvar lsp-isar-split-pattern-three-columns 'lsp-isar-split-pattern-three-columns)
 (defvar lsp-isar-split-pattern-two-columns 'lsp-isar-split-pattern-two-columns)
