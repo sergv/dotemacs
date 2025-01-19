@@ -85,28 +85,7 @@
 (defvar isar-goal-font-lock-keywords isar-goal-font-lock-keywords-1
   "Default highlighting expressions for isar mode")
 
-(defvar isar-goal-mode-syntax-table
-  (let ((st (make-syntax-table)))
-    (modify-syntax-entry ?\" " " st)
-    (modify-syntax-entry ?_ "w" st)
-    (modify-syntax-entry ?\$ "." st)
-    (modify-syntax-entry ?\/ "." st)
-    (modify-syntax-entry ?\\ "\\" st)
-    (modify-syntax-entry ?+  "." st)
-    (modify-syntax-entry ?-  "." st)
-    (modify-syntax-entry ?=  "." st)
-    (modify-syntax-entry ?%  "." st)
-    (modify-syntax-entry ?\& "." st)
-    (modify-syntax-entry ?.  "w" st)
-    ;;(modify-syntax-entry ?_  "w" st)
-    (modify-syntax-entry ?\' "w" st)
-    (modify-syntax-entry ??  "w" st)
-    (modify-syntax-entry ?\( "()1" st)
-    (modify-syntax-entry ?\) ")(4" st)
-    (modify-syntax-entry ?\{ "(}1b" st)
-    (modify-syntax-entry ?\} "){4b" st)
-    (modify-syntax-entry ?\* ". 23n" st)
-  st)
+(defvar isar-goal-mode-syntax-table (make-syntax-table isar-mode-syntax-table)
   "Syntax table for isar-goal-mode")
 
 
