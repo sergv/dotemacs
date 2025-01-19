@@ -741,28 +741,47 @@ more memory), so we only remove some with a short timeout."
 	 (overlay-put ov 'face ,face)
 	 ov)))))
 
+(define-inline lsp-isar-decorations-dummy-new-or-recycle-overlay (overlays-to-reuse point0 point1 face)
+  (inline-letevals (overlays-to-reuse point0 point1 face)
+    (inline-quote
+     (if ,overlays-to-reuse
+	 (let ((ov (pop ,overlays-to-reuse)))
+	   (move-overlay ov ,point0 ,point1)
+	   (overlay-put ov 'face 'lsp-isar-font-nothing)
+	   ov)
+       (cl-assert (numberp ,point0))
+       (cl-assert (numberp ,point1))
+       (let ((ov (make-overlay ,point0 ,point1)))
+	 (overlay-put ov 'evaporate t)
+	 (overlay-put ov 'face 'lsp-isar-font-nothing)
+	 ov)))))
+
 ;; if a range is new, find it in the buffer and print it
 ;; if the current range is already not valid, return nil
 (define-inline lsp-isar-decorations-find-range-and-add-to-print (range curoverlays position end_char_offset overlays-to-reuse line face)
   (inline-letevals (range position end_char_offset overlays-to-reuse line face)
     (inline-quote
-     (ignore-errors
-       (let ((l0 (elt ,range 0))
-	     (c0 (elt ,range 1))
-	     (l1 (elt ,range 2))
-	     (c1 (elt ,range 3))
-	     point0 point1)
-	 (forward-line (- (cl-the fixnum l0) (cl-the fixnum line)))
-	 (forward-char c0)
-	 (setq point0 (point))
-	 (forward-line (- (cl-the fixnum l1) (cl-the fixnum l0)))
-	 (forward-char (+ (cl-the fixnum c1) ,end_char_offset))
-	 (setq point1 (point))
-	 (setq line l1)
+     (let ((l0 (aref ,range 0))
+           (c0 (aref ,range 1))
+           (l1 (aref ,range 2))
+           (c1 (aref ,range 3))
+           point0 point1)
+       (forward-line (- (cl-the fixnum l0) (cl-the fixnum line)))
+       (forward-char c0)
+       (setq point0 (point))
+       (forward-line (- (cl-the fixnum l1) (cl-the fixnum l0)))
+       (forward-char (+ (cl-the fixnum c1) ,end_char_offset))
+       (setq point1 (point))
+       (setq line l1)
 
-	 (let ((ov (lsp-isar-decorations-new-or-recycle-overlay overlays-to-reuse point0 point1 ,face)))
-	   (aset ,curoverlays ,position (lsp-isar-ov-create :x0 l0 :y0 c0 :x1 l1 :y1 c1 :overlay ov))
-	   t))))))
+       (let ((ov (if (and (eq ,face 'lsp-isar-font-text-improper)
+                          (member (buffer-substring-no-properties point0 point1)
+                                  '("apply" "done")))
+                     ;; Skip improper colorization for ‘apply’, ‘done’.
+                     (lsp-isar-decorations-dummy-new-or-recycle-overlay overlays-to-reuse point0 point1 ,face)
+                   (lsp-isar-decorations-new-or-recycle-overlay overlays-to-reuse point0 point1 ,face))))
+         (aset ,curoverlays ,position (lsp-isar-ov-create :x0 l0 :y0 c0 :x1 l1 :y1 c1 :overlay ov))
+         t)))))
 
 ;; This function iterates over huge lists and therefore
 ;; requires either tail-call optimisation or a while loop
