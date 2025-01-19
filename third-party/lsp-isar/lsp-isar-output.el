@@ -52,11 +52,6 @@
 (defvar lsp-isar-output-current-output-number 0 "Number of the current output.")
 (defvar lsp-isar-output-last-seen-prover nil "Name of the prover that was seen last.")
 
-(defcustom lsp-isar-output-use-async nil
-  "Use asynchronous goal printing."
-  :type '(bool)
-  :group 'isabelle)
-
 (defcustom lsp-isar-output-time-before-printing-goal 0.3
   "Time before printing goal.  Use nil to avoid printing."
   :type '(number)
