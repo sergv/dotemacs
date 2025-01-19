@@ -530,33 +530,6 @@ classes."
 
      ("spell_checker"               .  lsp-isar-font-spell-checker))))
 
-
-;; REMOVE FOR DEBUGGING: performance hacks
-(cl-proclaim `(optimize (speed 3) (safety 0)))
-
-(defmacro lsp-isar-decorations--cl-assert (form &optional show-args string &rest args)
-  "Verify that FORM returns non-nil; signal an error if not.
-
-Saner version of cl-assert of FORM: no cost if optimizations are activated!
-By default it is only when the file is compiling and if it is
-not, we just pay for the cost of the test.  The cost is not high,
-but still, I want assertions to be done only for debugging."
-  (declare (debug (form &rest form)))
-  (and (or (< cl--optimize-speed 3) (= cl--optimize-safety 3))
-       (let ((sargs (and show-args
-                         (delq nil (mapcar (lambda (x)
-                                             (unless (macroexp-const-p x)
-                                               x))
-                                           (cdr-safe form))))))
-	 `(progn
-            (or ,form
-                (cl--assertion-failed
-                 ',form ,@(if (or string sargs args)
-                              `(,string (list ,@sargs) (list ,@args)))))
-            nil))))
-
-
-
 ;; range functions
 ;;
 ;; we need to compare both points because of identifier changes from "ab" to
@@ -761,8 +734,8 @@ more memory), so we only remove some with a short timeout."
 	   (move-overlay ov ,point0 ,point1)
 	   (overlay-put ov 'face ,face)
 	   ov)
-       (lsp-isar-decorations--cl-assert (numberp ,point0))
-       (lsp-isar-decorations--cl-assert (numberp ,point1))
+       (cl-assert (numberp ,point0))
+       (cl-assert (numberp ,point1))
        (let ((ov (make-overlay ,point0 ,point1)))
 	 (overlay-put ov 'evaporate t)
 	 (overlay-put ov 'face ,face)
@@ -850,8 +823,8 @@ more memory), so we only remove some with a short timeout."
 	   (cl-loop for x from inew to (1- lnews) do
 		    (lsp-isar-decorations-find-range-and-add-to-print (elt ,news x) ,curoverlays x  ,end_char_offset ,overlays-to-reuse line ,face))
 	   (setq inew lnews)
-	   (lsp-isar-decorations--cl-assert (= iold lolds))
-	   (lsp-isar-decorations--cl-assert (= inew lnews))))))))
+	   (cl-assert (= iold lolds))
+	   (cl-assert (= inew lnews))))))))
 
 
 (lsp-defun lsp-isar-decorations-update-cached-decorations-overlays (params)
