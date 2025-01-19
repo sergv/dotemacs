@@ -839,7 +839,7 @@
       (lsp-isar-font-foreground-quoted ;; :background ,background-highlights
        :background unspecified)
 
-      (lsp-isar-font-foreground-antiquoted :background ,magenta ;;:priority 0
+      (lsp-isar-font-foreground-antiquoted :background ,orange ;;:priority 0
                                            )
 
       (lsp-isar-font-dotted-writeln nil)
@@ -862,7 +862,7 @@
       ;; (lsp-isar-font-text-keyword3 :foreground ,cyan)
       ;; (lsp-isar-font-text-quasi_keyword :foreground ,red)
 
-      (lsp-isar-font-text-improper :background ,red)
+      (lsp-isar-font-text-improper :underline (:style wave :color ,red))
 
       (lsp-isar-font-text-operator :foreground ,red)
 
@@ -878,9 +878,9 @@
       (lsp-isar-font-text-inner_cartouche :inherit lsp-isar-font-foreground-quoted :bold t :underline t)
       (lsp-isar-font-text-inner_comment :inherit font-lock-comment-face)
 
-      (lsp-isar-font-text-dynamic :background ,magenta)
-      (lsp-isar-font-text-class_parameter :background ,magenta)
-      (lsp-isar-font-text-antiquote :background ,magenta)
+      (lsp-isar-font-text-dynamic :underline (:color ,green))
+      (lsp-isar-font-text-class_parameter :underline (:color ,orange))
+      (lsp-isar-font-text-antiquote :underline (:color ,orange))
 
       (lsp-isar-font-text-overview-unprocessed :inherit lsp-isar-font-background-unprocessed)
 
