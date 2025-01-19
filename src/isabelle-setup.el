@@ -13,7 +13,7 @@
 (require 'isar-mode)
 (require 'lsp-setup)
 
-(setf lsp-isar-path-to-isabelle-exe (executable-find "isabelle-emacs-lsp"))
+(defconst lsp-isar-path-to-isabelle-exe (executable-find "isabelle-emacs-lsp"))
 
 (defun lsp-full-isabelle-path-override ()
   (append (list lsp-isar-path-to-isabelle-exe
