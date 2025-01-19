@@ -463,19 +463,15 @@
 ;;;###autoload
 (define-derived-mode isar-mode prog-mode "isar"
   "Major mode for editing isar files"
-  (kill-all-local-variables)
-  (set-syntax-table isar-mode-syntax-table)
-  (set-keymap-parent isar-mode-map prog-mode-map)
-  (use-local-map isar-mode-map)
-  (set (make-local-variable 'font-lock-defaults) '(isar-font-lock-keywords))
-  (set (make-local-variable 'syntax-propertize-function)
-        #'isar-syntax-propertize)
-  (setq major-mode 'isar-mode
-        mode-name "Isar")
+
+  (setq-local font-lock-defaults '(isar-font-lock-keywords)
+              syntax-propertize-function #'isar-syntax-propertize)
+
   (setq-local comment-start "(* "
               comment-end " *)"
               comment-start-skip "(\\*+[ \t]*"
               comment-style 'multi-line)
+
   (pretty-ligatures-install-isabelle-ligatures!)
   (add-hook 'after-save-hook #'isar-replace-all-utf8-by-encoding nil t))
 
