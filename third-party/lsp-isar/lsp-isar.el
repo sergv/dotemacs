@@ -110,7 +110,7 @@ you can decide at startup what you want."
 
 (defun lsp-isar-initialise ()
   "Initialise all Isar-related informations."
-  (when (equal major-mode 'isar-mode)
+  (when (eq major-mode 'isar-mode)
     ;; delayed decoration printing
     (lsp-isar-caret-activate-caret-update)
     (lsp-isar-decorations-activate-delayed-printing)
