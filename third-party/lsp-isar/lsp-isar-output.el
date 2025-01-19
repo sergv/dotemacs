@@ -471,7 +471,13 @@ panel with CONTENT."
 	  (run-at-time lsp-isar-output-time-before-printing-goal nil
 		       (lambda (content)
 			 (lsp-isar-output-recalculate-sync lsp-isar-output-current-output-number content))
-		       content))))
+		       content))
+    (let ((out-buf (lsp-isar--get-output-buffer)))
+      (unless (buffer-visible-p out-buf)
+        (let ((curr-win (selected-window)))
+          (unwind-protect
+              (pop-to-buffer out-buf nil t)
+            (select-window curr-win)))))))
 
 (defvar lsp-isar-output--last-message-margin nil)
 
