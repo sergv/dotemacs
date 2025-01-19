@@ -94,9 +94,6 @@ _r_ename
 ;;;###autoload
 (add-hook 'isar-goal-mode-hook #'isar-goal-setup)
 
-;;;###autoload
-(add-hook 'lsp-isar-init-hook #'lsp-isar-open-output-and-progress-right-spacemacs)
-
 (provide 'isabelle-setup)
 
 ;; Local Variables:
