@@ -7,15 +7,13 @@
 ;; Description:
 
 (defvar lsp-isar-progress-theory-name-map)
-(defvar lsp-isar-split-pattern)
 
 (require 'flycheck-setup)
 (require 'hydra-setup)
 (require 'isar-mode)
 (require 'lsp-setup)
 
-(setf lsp-isar-split-pattern 'lsp-isar-split-pattern-two-columns
-      lsp-isar-path-to-isabelle-exe (executable-find "isabelle"))
+(setf lsp-isar-path-to-isabelle-exe (executable-find "isabelle-emacs-lsp"))
 
 (defun lsp-full-isabelle-path-override ()
   (append (list lsp-isar-path-to-isabelle-exe

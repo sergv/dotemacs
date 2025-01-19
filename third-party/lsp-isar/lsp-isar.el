@@ -128,18 +128,6 @@ you can decide at startup what you want."
 ;; workspace (lsp--cur-workspace) is not opened yet.
 (add-hook 'lsp-after-open-hook 'lsp-isar-initialise)
 
-(defvar lsp-isar-split-pattern-three-columns 'lsp-isar-split-pattern-three-columns)
-(defvar lsp-isar-split-pattern-two-columns 'lsp-isar-split-pattern-two-columns)
-
-(defcustom lsp-isar-split-pattern 'lsp-isar-split-pattern-two-columns
-  "Split motif for the columns."
-  :type
-  '(choice
-     (const :tag "Split in two columns" lsp-isar-split-pattern-two-columns)
-     (const :tag "Split in three columns (with progress on the right)"
-	    lsp-isar-split-pattern-three-columns))
-  :group 'isabelle)
-
 ;; taken from
 ;; https://emacs.stackexchange.com/questions/2189/how-can-i-prevent-a-command-from-using-specific-windows
 (defun lsp-isar-set-window-dedicated! ()
