@@ -114,12 +114,7 @@
   "Fix of syntax highlighting.
 
 In Isar, `(*)' does not start a compent but is the multiplication sign."
-  (goto-char start)
-  (funcall
-   (syntax-propertize-rules
-    ("\\((\\)\\(\\*\\)\\()\\)" ;; (*) are not opening comments
-     (1 "w")))
-   start end))
+  (isar-syntax-propertize start end))
 
 (defvar isar-goal-name "isar-goal"
   "Name of isar mode.")
