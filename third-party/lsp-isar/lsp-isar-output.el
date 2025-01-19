@@ -455,12 +455,9 @@ Lisp equivalent of `replace-regexp' as indicated in the help."
         buf
       (let ((fresh-buf (get-buffer-create "*lsp-isar-output*")))
         (with-current-buffer fresh-buf
-          (read-only-mode t)
           (isar-goal-mode)
-          ;; Deactivate font-lock-mode because we do the fontification ourselves anyway.
-          (font-lock-mode nil))
+          (read-only-mode 1))
         fresh-buf))))
-
 
 (lsp-defun lsp-isar-output-update-state-and-output-buffer (_workspace (&lsp-isar:DynamicOutput :content))
   "Launch the thread or timer to update the state and the output
