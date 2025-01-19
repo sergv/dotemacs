@@ -37,8 +37,7 @@
 
 (defvar isar-goal-mode-hook nil)
 
-(defvar isar-goal-mode-map
-  ()
+(defvar isar-goal-mode-map (make-sparse-keymap)
   "Keymap for isar major mode.")
 
 ;;;###autoload
@@ -95,15 +94,15 @@
 In Isar, `(*)' does not start a compent but is the multiplication sign."
   (isar-syntax-propertize start end))
 
-(defvar isar-goal-name "isar-goal"
-  "Name of isar mode.")
-
 ;;;###autoload
 (define-derived-mode isar-goal-mode prog-mode "Isar-goal"
   "Major mode for editing isar files"
 
-  (setq-local font-lock-defaults '(isar-goal-font-lock-keywords)
+  (setq-local font-lock-defaults '(nil)
               syntax-propertize-function #'isar-goal-syntax-propertize)
+
+  ;; Deactivate font-lock-mode because we do the fontification ourselves anyway.
+  (font-lock-mode nil)
 
   (pretty-ligatures-install-isabelle-ligatures!))
 
