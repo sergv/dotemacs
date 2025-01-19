@@ -111,19 +111,22 @@ you can decide at startup what you want."
 (defun lsp-isar-initialise ()
   "Initialise all Isar-related informations."
   (when (eq major-mode 'isar-mode)
+
+    (lsp-isar-open-output-and-progress-right-two-columns!)
+
     ;; delayed decoration printing
     (lsp-isar-caret-activate-caret-update)
     (lsp-isar-decorations-activate-delayed-printing)
+
     (unless lsp-isar-already-initialised
       (lsp-isar-progress-activate-progress-update)
-      (lsp-isar-decorations--init-decorations)
-      (run-hooks 'lsp-isar-init-hook)
-      (setq lsp-isar-already-initialised t))))
+      (setq lsp-isar-already-initialised t))
+
+    (lsp-isar-decorations--init-decorations)))
 
 ;; lsp-after-initialize-hook might look like the right macro.  However, the
 ;; workspace (lsp--cur-workspace) is not opened yet.
-(add-hook 'lsp-after-open-hook
-          'lsp-isar-initialise)
+(add-hook 'lsp-after-open-hook 'lsp-isar-initialise)
 
 (defvar lsp-isar-split-pattern-three-columns 'lsp-isar-split-pattern-three-columns)
 (defvar lsp-isar-split-pattern-two-columns 'lsp-isar-split-pattern-two-columns)
@@ -135,11 +138,11 @@ you can decide at startup what you want."
      (const :tag "Split in two columns" lsp-isar-split-pattern-two-columns)
      (const :tag "Split in three columns (with progress on the right)"
 	    lsp-isar-split-pattern-three-columns))
-  :group 'isabelle);;
+  :group 'isabelle)
 
 ;; taken from
 ;; https://emacs.stackexchange.com/questions/2189/how-can-i-prevent-a-command-from-using-specific-windows
-(defun lsp-isar-set-window-dedicated ()
+(defun lsp-isar-set-window-dedicated! ()
   "Dedicate current window to content.
 
 Control whether or not Emacs is allowed to display another
@@ -147,29 +150,19 @@ buffer in current window."
   (let ((window (get-buffer-window (current-buffer))))
     (set-window-dedicated-p window t)))
 
-(defun lsp-isar-open-output-and-progress-right-two-columns ()
-  "Opens the *lsp-isar-output* buffer on the right."
+(defun lsp-isar-open-output-and-progress-right-two-columns! ()
+  "Opens the *lsp-isar-output* buffer on the right and dedicates it."
   (interactive)
-  (unless (get-buffer-window "*lsp-isar-output*")
-    (split-window-right)
-    (other-window 1)
-    (switch-to-buffer "*lsp-isar-output*")
-    (lsp-isar-set-window-dedicated)
-    (other-window -1)))
-
-(defun lsp-isar-open-output-and-progress-right ()
-  "Opens the *lsp-isar-output* and *lsp-isar-progress* buffers on the right.
-
-It can be used for example by ``(add-hook \\='lsp-isar-init-hook
-\\='lsp-isar-open-output-and-progress-right-spacemacs)''."
-  (lsp-isar-open-output-and-progress-right-two-columns))
-
-;; split the window 2 seconds later (the timeout is necessary to give
-;; enough time to spacemacs to jump to the theory file).
-(defun lsp-isar-open-output-and-progress-right-spacemacs ()
-  "Split the window with motif defined by `lsp-isar-split-pattern'."
-  (run-at-time 2 nil (lambda () (lsp-isar-open-output-and-progress-right))))
-
+  (let ((buf (lsp-isar--get-output-buffer)))
+    (unless (get-buffer-window buf)
+      (let ((curr-win (selected-window)))
+        (split-window-right)
+        (unwind-protect
+            (progn
+              (other-window 1)
+              (switch-to-buffer buf)
+              (lsp-isar-set-window-dedicated!))
+          (select-window curr-win t))))))
 
 (defcustom lsp-isar-path-to-isabelle "/home/zmaths/Documents/isabelle/isabelle2018-vsce"
   "Default path to Isabelle (e.g., /path/to/isabelle/folder)."
