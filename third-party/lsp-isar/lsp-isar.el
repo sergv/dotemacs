@@ -324,7 +324,7 @@ mode automically, use `(add-hook \\='isar-mode-hook
            (not lsp-isar-use-lsp)
            lsp-isar-parse-args-noisabelle
            (boundp 'lsp-isar-already-started))
-    (set (make-local-variable 'lsp-isar-already-started) t)
+    (setq-local lsp-isar-already-started t)
     (unless lsp-isar--already-defined-client
       (lsp-isar-define-client)
       (setq lsp-isar--already-defined-client t))
