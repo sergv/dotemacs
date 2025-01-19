@@ -412,11 +412,11 @@
   "Syntax table for isar-mode")
 
 (defun isar-syntax-propertize (start end)
-  (goto-char start)
   (funcall
    (syntax-propertize-rules
-    ("\\((\\)\\(\\*\\)\\()\\)" ;; (*) are not opening comments
-     (1 "w")))
+    ((rx (group "(") "*" (group ")")) ;; (*) are not opening comments
+     (1 "_")
+     (2 "_")))
    start
    end))
 
