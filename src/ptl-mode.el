@@ -74,7 +74,7 @@
     (modify-syntax-entry ?=  "_"    table)
 
     ;; Comments
-    (modify-syntax-entry ?-  "_ 12" table)
+    (modify-syntax-entry ?-  "_" table)
     (modify-syntax-entry ?#  "<"    table)
     (modify-syntax-entry ?\n ">"    table)
 
@@ -91,8 +91,7 @@
               '(ptl-mode-font-lock-keywords
                 nil ;; Do perform fontification of comments and strings.
                 nil ;; Do not ignore case.
-                nil
-                ))
+                nil))
 
   (indent-tabs-mode +1))
 
