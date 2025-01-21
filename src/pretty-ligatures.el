@@ -175,16 +175,17 @@ Regexp match data 0 specifies the characters to be composed."
   "G must denote one of ‘iosevka-slab-lig-glyphs’ glyphs."
   (cl-assert (stringp g))
   (cl-assert (gethash g iosevka-slab-lig-glyphs))
-  (if-let ((glyph (gethash g iosevka-slab-lig-glyphs))
-           (c (ligature-glyph-symbol glyph))
-           (width (or override-width
-                      (ligature-glyph-width glyph))))
+  (if-let* ((glyph (gethash g iosevka-slab-lig-glyphs))
+            (c (ligature-glyph-symbol glyph))
+            (glyph-width (ligature-glyph-width glyph))
+            (width (or override-width
+                       glyph-width)))
       (if (eq width t)
           ;; No width
           (string ?\t c ?\t)
         (vconcat
          (apply #'vconcat [?\s] (-repeat (1- width) [(Br . Bl) ?\s]))
-         (vector (if (eq (ligature-glyph-width glyph) width)
+         (vector (if (eq glyph-width width)
                      '(Bc . Bc) ;; Put c’s center in the center of the previously composed whitespace
                    '(Bl . Bl))
                  c)))
@@ -381,7 +382,13 @@ Regexp match data 0 specifies the characters to be composed."
               ("error" . "bottom")
               ("all"   . "forall")
               ("any"   . "exists"))))
-      (--map (cons (car it) (pretty-ligatures--make-glyph-composition (cdr it) (length (car it)))) ligs)))
+      (--map (cons (car it)
+                   (pretty-ligatures--make-glyph-composition
+                    (cdr it)
+                    ;; Make sure e.g. ‘not’ ligature accupies 3 characters even though
+                    ;; its ligature width is only 2 characters wide.
+                    (length (car it))))
+             ligs)))
   "Word replacements that are likely to conflict with general use of words, e.g.
 in Haskell compilation output. So they're disabled by default.")
 
