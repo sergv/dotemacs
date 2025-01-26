@@ -387,7 +387,7 @@
    `(,isar-minor    0 'isar-minor-face))
   "Default highlighting expressions for isar mode")
 
-(defvar isar-mode-syntax-table
+(defconst isar-mode-syntax-table
   (let ((st (make-syntax-table)))
     ;; (modify-syntax-entry ?\" "" st)
     (modify-syntax-entry ?_ "w" st)
@@ -408,22 +408,26 @@
     (modify-syntax-entry ?\{ "(}1b" st)
     (modify-syntax-entry ?\} "){4b" st)
     (modify-syntax-entry ?\* ". 23n" st)
+    (modify-syntax-entry ?\n ">" st)
   st)
   "Syntax table for isar-mode")
 
 (defun isar-syntax-propertize (start end)
   (funcall
    (syntax-propertize-rules
+    ;; Comments take priority over everything else
+    ((rx (seq (group-n 1 "\\") "<comment>"))
+     (1 "<"))
 
-    ((rx (group-n 1 "(") "*" (group-n 2 ")")) ;; (*) are not opening comments
-     (1 "_")
-     (2 "_"))
+    ((rx (group-n 2 "(") "*" (group-n 3 ")")) ;; (*) are not opening comments
+     (2 "_")
+     (3 "_"))
 
-    ((rx (or (seq (group-n 1 "\\") "<open>") (seq "\\<close" (group-n 2 ">"))))
+    ((rx (or (seq (group-n 4 "\\") "<open>") (seq "\\<close" (group-n 5 ">"))))
      ;; Generic string delimiters must span single characters or adjacent characters
      ;; will be matched against each other.
-     (1 "|")
-     (2 "|")))
+     (4 "|")
+     (5 "|")))
    start
    end))
 
@@ -491,7 +495,7 @@ be safely analyzed by ‘isar-syntax-propertize’."
 (define-derived-mode isar-mode prog-mode "isar"
   "Major mode for editing isar files"
 
-  (setq-local font-lock-defaults '(isar-font-lock-keywords)
+  (setq-local font-lock-defaults '(isar-font-lock-keywords nil)
               syntax-propertize-function #'isar-syntax-propertize)
 
   (setq-local comment-start "(* "
