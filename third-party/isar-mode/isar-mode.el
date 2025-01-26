@@ -314,6 +314,7 @@
           "end"
           "fixes"
           "for"
+          "if"
           "imports"
           "infixl"
           "infixr"
