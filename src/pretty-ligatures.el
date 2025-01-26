@@ -101,6 +101,27 @@ Regexp match data 0 specifies the characters to be composed."
   width  ;; integer
   )
 
+(defconst iosevka-slab-lig-wide-unicode-glyphs
+  (eval-when-compile
+    (alist->hash-table
+     (mapcar
+      (lambda (x) (cons (cl-first x) (make-ligature-glyph :symbol (cl-first x) :width (cl-second x))))
+      '((?⋁ 2)
+        (?⋁ 2)
+
+        ;; Check font: ?⨆, ?⨅, ?⨉
+        ;; Good: ?⨁, ?⨂, ?⨀
+        (?⋃ 2) ;; union
+        (?⋂ 2) ;; intersection
+        (?⨆ 2) ;; square union
+        (?⨅ 2) ;; square intersection
+        (?⨉ 2)
+        (?∑ 2)
+        (?∏ 2)
+        (?∐ 2)
+        (?⋀ 2)
+        (?⋁ 2))))))
+
 (defconst iosevka-slab-lig-glyphs
   (eval-when-compile
     (alist->hash-table
@@ -108,7 +129,7 @@ Regexp match data 0 specifies the characters to be composed."
       (lambda (x) (cons (cl-first x) (make-ligature-glyph :symbol (cl-second x) :width (cl-third x))))
       '(("<-"   #xe100 2) ;; "<-"
         ("->"   #xe101 2) ;; "->"
-        ("<="   #xe102 2) ;; "<=", left short double arrow, not used much since clashes with less-than-or-equal
+        ("<="   #xe102 2) ;; "<=", left short double arrow, not used much it since clashes with less-than-or-equal
         ("=>"   #xe103 2) ;; "=>"
         ("<->"  #xe104 3) ;; "<->"
         ("<=>"  #xe105 3) ;; "<=>"
@@ -144,13 +165,11 @@ Regexp match data 0 specifies the characters to be composed."
         ("<<="  #xe120 3) ;; "<<="
         ("=>>"  #xe121 3) ;; "=>>"
 
-        ("LE"   #xe122 2) ;; "<="
-        ("GE"   #xe123 2) ;; ">="
-        ("||"   #xe124 2) ;; "||"
-        ("&&"   #xe125 2) ;; "&&"
+        ("LE"   #xe122 2) ;; "<=", but has width of 2 as opposed to ?≤
+        ("GE"   #xe123 2) ;; ">=", but has width of 2 as opposed to ?≥
+        ("||"   #xe124 2) ;; "||", but is taller than ?⋁
+        ("&&"   #xe125 2) ;; "&&", but is taller than ?⋀
 
-        ("union"            #xe130 2) ;; union
-        ("intersection"     #xe131 2) ;; intersection
         ("elem"             #xe12b 2) ;; elem, member
         ("notElem"          #xe12c 2) ;; notElem, notMember
         ("isSubsetOf"       #xe12f 2) ;; isSubsetOf
@@ -164,18 +183,30 @@ Regexp match data 0 specifies the characters to be composed."
         ("nexists" #xe136 2)
         ("not"     #xe133 2) ;; not
 
-        ("sum"       #xe12d 2) ;; sum
-        ("product"   #xe132 2) ;; product
-        ("coproduct" #xe135 2) ;; product
-        ("-o"        #xe134 2) ;; linear lollipop, -o
+        ("-o"      #xe134 2) ;; linear lollipop, -o
+
+        ;; These are less elegant and probably should never be used
+        ;; ("union"        #xe130 2) ;; union, but less elegant than ?⋃
+        ;; ("intersection" #xe131 2) ;; intersection, but less elegant than ?⋂
+        ;; ("sum"          #xe12d 2) ;; sum, but less elegant than ?∑ character
+        ;; ("product"      #xe132 2) ;; product, but less elegant than ?∏ character
+        ;; ("coproduct"    #xe135 2) ;; coproduct, but less elegant than ?∐ character
         )))))
 
 ;; Make [?\s (Bl . Br) ?\s (Bl . Br) ?\s (Bc . Bc) #xe11d] out of #xe11d (">>=").
 (defun pretty-ligatures--make-glyph-composition (g &optional override-width)
   "G must denote one of ‘iosevka-slab-lig-glyphs’ glyphs."
-  (cl-assert (stringp g))
-  (cl-assert (gethash g iosevka-slab-lig-glyphs))
-  (if-let* ((glyph (gethash g iosevka-slab-lig-glyphs))
+  (cl-assert (or (stringp g) (characterp g)))
+  (cl-assert (or (gethash g iosevka-slab-lig-wide-unicode-glyphs)
+                 (gethash g iosevka-slab-lig-glyphs))
+             nil
+             "Glyph not found: %s"
+             (if (characterp g)
+                 (format "?%c (%s)" g g)
+               g))
+  (if-let* ((glyph (if (characterp g)
+                       (gethash g iosevka-slab-lig-wide-unicode-glyphs)
+                     (gethash g iosevka-slab-lig-glyphs)))
             (c (ligature-glyph-symbol glyph))
             (glyph-width (ligature-glyph-width glyph))
             (width (or override-width
@@ -189,7 +220,7 @@ Regexp match data 0 specifies the characters to be composed."
                      '(Bc . Bc) ;; Put c’s center in the center of the previously composed whitespace
                    '(Bl . Bl))
                  c)))
-    (error "No width for glyph '%s'" g)))
+    (error "No width for glyph ‘%s’" g)))
 
 (defun pretty-ligatures--make-literal-composition (symbol &optional override-width)
   (cl-assert (characterp symbol))
@@ -281,8 +312,8 @@ Regexp match data 0 specifies the characters to be composed."
 
               ("<="  . "LE")
               (">="  . "GE")
-              ("||"  . "||")
-              ("&&"  . "&&")
+              ("||"  . ?⋁)
+              ("&&"  . ?⋀)
 
               ("%1 ->" . "-o")
 
@@ -329,8 +360,8 @@ Regexp match data 0 specifies the characters to be composed."
            (ligs
             (append
              (funcall make-combinations "mappend" nil "<>")
-             (funcall make-combinations "union" standard-prefixes "union")
-             (funcall make-combinations "intersection" standard-prefixes "intersection")
+             (funcall make-combinations "union" standard-prefixes ?⋃)
+             (funcall make-combinations "intersection" standard-prefixes ?⋂)
              (funcall make-combinations "elem" nil "elem")
              (funcall make-combinations "member" standard-prefixes "elem")
              (funcall make-combinations "notElem" nil "notElem")
@@ -367,9 +398,10 @@ Regexp match data 0 specifies the characters to be composed."
                ("[]"        . "emptySet")
                ("mempty"    . "emptySet")
 
-               ("sum"       . "sum")
-               ("product"   . "product")
-               ("coproduct" . "coproduct")))))
+               ("sum"       . ?∑)
+               ("product"   . ?∏)
+               ("coproduct" . ?∐)))))
+
       (--map (cons (car it) (pretty-ligatures--make-glyph-composition (cdr it) (length (car it)))) ligs)))
   "Replacements of word with single symbols that work through `prettify-symbols-mode'.")
 
@@ -377,8 +409,8 @@ Regexp match data 0 specifies the characters to be composed."
   (eval-when-compile
     (let* ((ligs
             '(("not"   . "not")
-              ("or"    . "||")
-              ("and"   . "&&")
+              ("or"    . ?⋁)
+              ("and"   . ?⋀)
               ("error" . "bottom")
               ("all"   . "forall")
               ("any"   . "exists"))))
@@ -456,7 +488,7 @@ into accound and do the replacement only within specific circumstances.")
          ((stringp current-font)
           (string-match-p "Iosevka Slab Lig" current-font))
          ((fontp current-font)
-          (string= "Iosevka Slab Lig" (font-get current-font :name)))
+          (string-match-p "Iosevka Slab Lig" (font-get current-font :name)))
          (t
           (error "Invalid current font: %s" current-font)))))
 
