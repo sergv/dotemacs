@@ -120,7 +120,8 @@ Regexp match data 0 specifies the characters to be composed."
         (?∏ 2)
         (?∐ 2)
         (?⋀ 2)
-        (?⋁ 2))))))
+        (?⋁ 2)
+        (?― 2))))))
 
 (defconst iosevka-slab-lig-glyphs
   (eval-when-compile
@@ -222,7 +223,7 @@ Regexp match data 0 specifies the characters to be composed."
                  c)))
     (error "No width for glyph ‘%s’" g)))
 
-(defun pretty-ligatures--make-literal-composition (symbol &optional override-width)
+(defun pretty-ligatures--make-literal-singleton-composition (symbol &optional override-width)
   (cl-assert (characterp symbol))
   (let ((width (or override-width 1)))
     (if (eq width t)
