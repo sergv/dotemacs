@@ -497,12 +497,14 @@ be safely analyzed by ‘isar-syntax-propertize’."
   "Major mode for editing isar files"
 
   (setq-local font-lock-defaults '(isar-font-lock-keywords nil)
-              syntax-propertize-function #'isar-syntax-propertize)
+              syntax-propertize-function #'isar-syntax-propertize
 
-  (setq-local comment-start "(* "
+              comment-start "(* "
               comment-end " *)"
               comment-start-skip "(\\*+[ \t]*"
-              comment-style 'multi-line)
+              comment-style 'multi-line
+
+              indent-line-function #'lsp-isar-indent-line)
 
   (add-hook 'syntax-propertize-extend-region-functions
             #'isar-syntax-propertize-extend-region
