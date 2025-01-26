@@ -522,6 +522,7 @@ not match the pattern A."
 	 (lsp-isar-indent-trace-indent "previous-command %s" (list current-command previous-command))
 	 0)))))
 
+;;;###autoload
 (defun lsp-isar-indent-line ()
   "Indent current line as Isar code."
   (interactive)
