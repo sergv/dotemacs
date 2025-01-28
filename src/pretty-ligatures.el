@@ -192,6 +192,9 @@ Regexp match data 0 specifies the characters to be composed."
         ;; ("sum"          #xe12d 2) ;; sum, but less elegant than ?∑ character
         ;; ("product"      #xe132 2) ;; product, but less elegant than ?∏ character
         ;; ("coproduct"    #xe135 2) ;; coproduct, but less elegant than ?∐ character
+
+        ("equivalent"    #xe137 2) ;; equivalent, ≡ 
+        ("notEquivalent" #xe138 2) ;; not equivalent, ≢ 
         )))))
 
 ;; Make [?\s (Bl . Br) ?\s (Bl . Br) ?\s (Bc . Bc) #xe11d] out of #xe11d (">>=").
