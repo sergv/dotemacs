@@ -391,9 +391,10 @@ they are defined for current mode or one-line comments otherwise."
   (interactive "*")
   (save-excursion
     (let ((fmt (comment-util-current-format)))
-      (if (or (save-match-data
-                (beginning-of-line)
-                (comment-util-detect-line-comment fmt))
+      (if (or (save-excursion
+                (save-match-data
+                  (beginning-of-line)
+                  (comment-util-detect-line-comment fmt)))
               (not (comment-util-region-comments-defined? fmt)))
           ;; If no region comments are defined then use line comments.
           (comment-util--uncomment-lined-region fmt)
@@ -517,9 +518,8 @@ be used only for vim-visual-mode of the vim-mode package."
       (error "Cannot find beginning of the commented block"))
     (unless end-pos
       (error "Cannot find end of the commented block"))
-    (unless (and
-             (<= begin-pos curr-pos)
-             (<= curr-pos end-pos))
+    (unless (and (<= begin-pos curr-pos)
+                 (<= curr-pos end-pos))
       (error "Point is not within commented block"))
     ;; NB deletion of last comment must come first because
     ;; otherwise point must be adjusted.
