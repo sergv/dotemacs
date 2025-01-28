@@ -1542,6 +1542,22 @@ and cdr is a boolean whether any element was let out."
               continue (< i len))))
     res))
 
+(defun append-plists-uniq (new-props old-props)
+  "Append two property lists, return new list that has properties from both
+OLD-PROPS and NEW-PROPS. Keys of OLD-PROPS that already have value in
+NEW-PROPS will be ignored."
+  (let* ((res (cons nil nil))
+         (tmp res))
+    (while old-props
+      (let ((prop-name (car old-props)))
+        (unless (plist-member new-props prop-name)
+          (let ((old-val (cadr old-props)))
+            (setf (cdr tmp) (cons prop-name (cons old-val nil))
+                  tmp (cddr tmp))))
+        (setf old-props (cddr old-props))))
+    (setf (cdr tmp) new-props)
+    (cdr res)))
+
 (provide 'common)
 
 ;; Local Variables:
