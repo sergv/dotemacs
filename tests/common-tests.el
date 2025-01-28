@@ -692,6 +692,68 @@
   (should-not (string-list< '("b") '("a"))))
 
 
+(ert-deftest common-tests/append-plists-uniq-1a ()
+  (let* ((xs '(a 1 b 2 c 3))
+         (ys '())
+         (xs-copy (copy-list xs)))
+    (should (equal (append-plists-uniq xs ys)
+                   xs-copy))
+    ;; Must not mutate anything
+    (should (equal xs xs-copy))))
+
+(ert-deftest common-tests/append-plists-uniq-1b ()
+  (let* ((xs '(a 1 b 2 c 3))
+         (ys '())
+         (xs-copy (copy-list xs)))
+    (should (equal (append-plists-uniq ys xs)
+                   xs-copy))
+    ;; Must not mutate anything
+    (should (equal xs xs-copy))))
+
+(ert-deftest common-tests/append-plists-uniq-2a ()
+  (let* ((xs '(a 1 b 2 c 3))
+         (ys '(a 4))
+         (xs-copy (copy-list xs))
+         (ys-copy (copy-list ys)))
+    (should (equal (append-plists-uniq xs ys)
+                   '(a 1 b 2 c 3)))
+    ;; Must not mutate anything
+    (should (equal xs xs-copy))
+    (should (equal ys ys-copy))))
+
+(ert-deftest common-tests/append-plists-uniq-2b ()
+  (let* ((xs '(a 1 b 2 c 3))
+         (ys '(a 4))
+         (xs-copy (copy-list xs))
+         (ys-copy (copy-list ys)))
+    (should (equal (append-plists-uniq ys xs)
+                   '(b 2 c 3 a 4)))
+    ;; Must not mutate anything
+    (should (equal xs xs-copy))
+    (should (equal ys ys-copy))))
+
+(ert-deftest common-tests/append-plists-uniq-3a ()
+  (let* ((xs '(a 1 b 2 c 3))
+         (ys '(a 4 x 5 c 10))
+         (xs-copy (copy-list xs))
+         (ys-copy (copy-list ys)))
+    (should (equal (append-plists-uniq xs ys)
+                   '(x 5 a 1 b 2 c 3)))
+    ;; Must not mutate anything
+    (should (equal xs xs-copy))
+    (should (equal ys ys-copy))))
+
+(ert-deftest common-tests/append-plists-uniq-3b ()
+  (let* ((xs '(a 1 b 2 c 3))
+         (ys '(a 4 x 5 c 10))
+         (xs-copy (copy-list xs))
+         (ys-copy (copy-list ys)))
+    (should (equal (append-plists-uniq ys xs)
+                   '(b 2 a 4 x 5 c 10)))
+    ;; Must not mutate anything
+    (should (equal xs xs-copy))
+    (should (equal ys ys-copy))))
+
 ;; (progn
 ;;   (ert "common-tests/.*")
 ;;   nil)
