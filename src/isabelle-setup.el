@@ -6,8 +6,6 @@
 ;; Created:  1 August 2023
 ;; Description:
 
-(defvar lsp-isar-progress-theory-name-map)
-
 (require 'flycheck-setup)
 (require 'hydra-setup)
 (require 'isar-mode)
