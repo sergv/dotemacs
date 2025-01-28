@@ -48,16 +48,21 @@
                )))))))
 
 (defconst isabelle-arrows
-  '(("leftarrow"      . "<-")
-    ("Leftarrow"      . "<=")
-    ("rightarrow"     . "->")
-    ("Rightarrow"     . "=>")
-    ("leftrightarrow" . "<->")
-    ("Leftrightarrow" . "<=>")
-    ("longrightarrow" . "-->")
-    ("Longrightarrow" . "==>")
-    ("longleftarrow"  . "<--")
-    ("Longleftarrow"  . "<==")
+  '(("leftarrow"          . "<-")
+    ("Leftarrow"          . "<=")
+    ("rightarrow"         . "->")
+    ("Rightarrow"         . "=>")
+
+    ;; These below have width 3!
+    ("leftrightarrow"     . "<->")
+    ("Leftrightarrow"     . "<=>")
+    ("longrightarrow"     . "-->")
+    ("Longrightarrow"     . "==>")
+    ("longleftarrow"      . "<--")
+    ("Longleftarrow"      . "<==")
+
+    ("longleftrightarrow" . "<->")
+
     ;; ("mapsto"         . "|->")
     ;; ("longmapsto"     . "|-->")
     ;; ("longleftrightarrow" . "<-->")
@@ -97,6 +102,8 @@
        ("nexists"  . "nexists")
        ("not"      . "not")
        ("emptyset" . "emptySet")
+       ("in"       . "elem")
+       ("subseteq" . "isSubsetOf")
 
        ;; These two should be taller than n-ary conjunction character (?⋀)
        ("And"      . "&&")
@@ -112,7 +119,8 @@
        ("Coprod"   . ?∐)
 
        ("comment"  . ?―)
-       )))
+
+       ("times"    . ?⨉))))
   "Mapping to specific ‘Iosevka Slab Lig’ glyphs.")
 
 (defconst pretty-ligatures--isabelle-unicode-ligatures
@@ -159,7 +167,8 @@
 
     ("le"      . ?≤) ;; "LE" takes 2 characters but I want to get the same width as with ASCII <
     ("ge"      . ?≥) ;; "GE" takes 2 characters but I want to get the same width as with ASCII >
-    )
+
+    ("cdot"    . ?·))
   "Mapping to regular unicode characters.")
 
 (defconst pretty-ligatures--isabelle-replacements
