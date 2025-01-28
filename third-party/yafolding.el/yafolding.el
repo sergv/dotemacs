@@ -232,12 +232,7 @@ If given, toggle all entries that start at INDENT-LEVEL."
   (defalias 'yafolding-discover 'makey-key-mode-popup-yafolding))
 
 ;;;###autoload
-(defvar yafolding-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "<C-S-return>") #'yafolding-hide-parent-element)
-    (define-key map (kbd "<C-M-return>") #'yafolding-toggle-all)
-    (define-key map (kbd "<C-return>") #'yafolding-toggle-element)
-    map))
+(defvar yafolding-mode-map (make-sparse-keymap))
 
 ;;;###autoload
 (define-minor-mode yafolding-mode
