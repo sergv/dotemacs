@@ -25,6 +25,56 @@
   "How to fontify Haddock omments, e.g. ‘-- |’"
   :group 'haskell-appearance)
 
+(defface haskell-ts-comment-face
+  '((t :inherit font-lock-comment-face))
+  "Face used to highlight Haskell comments."
+  :group 'haskell-appearance)
+
+(defface haskell-ts-constant-face
+  '((t :inherit font-lock-constant-face))
+  "Face used to highlight Haskell constants."
+  :group 'haskell-appearance)
+
+(defface haskell-ts-quasiquote-pipe-face
+  '((t :inherit default))
+  "Face used to highlight ‘|’ within Haskell quasiuqote syntax."
+  :group 'haskell-appearance)
+
+(defface haskell-ts-string-face
+  '((t :inherit font-lock-string-face))
+  "Face used to highlight Haskell strings."
+  :group 'haskell-appearance)
+
+(defface haskell-ts-pragma-face
+  '((t :inherit haskell-pragma-face))
+  "Face used to highlight Haskell pragmas ({-# ... #-})."
+  :group 'haskell-appearance)
+
+(defface haskell-ts-keyword-face
+  '((t :inherit haskell-keyword-face))
+  "Face used to highlight Haskell keywords."
+  :group 'haskell-appearance)
+
+(defface haskell-ts-operator-face
+  '((t :inherit haskell-operator-face))
+  "Face used to highlight Haskell operators."
+  :group 'haskell-appearance)
+
+(defface haskell-ts-type-face
+  '((t :inherit haskell-type-face))
+  "Face used to highlight Haskell types"
+  :group 'haskell-appearance)
+
+(defface haskell-ts-constructor-face
+  '((t :inherit haskell-constructor-face))
+  "Face used to highlight Haskell constructors."
+  :group 'haskell-appearance)
+
+(defface haskell-ts-strictness-face
+  '((t :inherit font-lock-negation-char-face))
+  "How to fontify ! and ~ in strictness contexts."
+  :group 'haskell-appearance)
+
 (defun haskell-ts-mode--name-not-within-infix? (node)
   (let ((p1 (treesit-node-parent node)))
     (if p1
@@ -46,37 +96,37 @@
    '((everyone
 
       ;; comment
-      ((comment) @font-lock-comment-face)
+      ((comment) @haskell-ts-comment-face)
 
       ((haddock) @haskell-ts-haddock-face)
 
       ;; constant
-      ([(integer) (float)] @font-lock-constant-face)
+      ([(integer) (float)] @haskell-ts-constant-face)
 
-      (quasiquote "|" @default)
+      (quasiquote "|" @haskell-ts-quasiquote-pipe-face)
 
       ;; string
-      ([(char) (string) (quasiquote_body)] @font-lock-string-face)
+      ([(char) (string) (quasiquote_body)] @haskell-ts-string-face)
 
       ;; preprocessor
-      ([(pragma) (cpp)] @haskell-pragma-face)
+      ([(pragma) (cpp)] @haskell-ts-pragma-face)
 
       ;; keyword
       (lambda_cases
        "\\"
-       ("cases" @haskell-keyword-face))
+       ("cases" @haskell-ts-keyword-face))
 
       (default_signature
-       ("default" @haskell-keyword-face))
+       ("default" @haskell-ts-keyword-face))
 
       (pattern_synonym
-       ("pattern" @haskell-keyword-face))
+       ("pattern" @haskell-ts-keyword-face))
 
       (namespace
-       ("pattern" @haskell-keyword-face))
+       ("pattern" @haskell-ts-keyword-face))
 
-      ((variable) @haskell-keyword-face
-       (:equal "_" @haskell-keyword-face))
+      ((variable) @haskell-ts-keyword-face
+       (:equal "_" @haskell-ts-keyword-face))
 
       ([
         "forall"
@@ -113,7 +163,7 @@
         "module"
         (wildcard "_")
         ]
-       @haskell-keyword-face)
+       @haskell-ts-keyword-face)
 
       ;; operator
       ([
@@ -129,12 +179,12 @@
         "\\"
         "@"
         ]
-       @haskell-operator-face)
+       @haskell-ts-operator-face)
 
-      (forall "." @haskell-keyword-face)
+      (forall "." @haskell-ts-keyword-face)
 
-      ;; (unboxed_tuple "(#" @haskell-keyword-face)
-      ;; (unboxed_tuple "#)" @haskell-keyword-face)
+      ;; (unboxed_tuple "(#" @haskell-ts-keyword-face)
+      ;; (unboxed_tuple "#)" @haskell-ts-keyword-face)
 
       ((infix_id
         "`"
@@ -145,33 +195,33 @@
          (constructor)
          (qualified (constructor))]
         "`")
-       @haskell-operator-face)
+       @haskell-ts-operator-face)
 
       ;; module-name
       ;; Competes with (module)
       ;; ((qualified (variable)) @default)
 
-      (import (module) @haskell-type-face)
-      (header (module) @haskell-type-face)
-      (module_export (module) @haskell-type-face)
+      (import (module) @haskell-ts-type-face)
+      (header (module) @haskell-ts-type-face)
+      (module_export (module) @haskell-ts-type-face)
 
       ;; type
-      ;; ((signature name: (variable) @font-lock-type-face))
+      ;; ((signature name: (variable) @haskell-ts-type-face))
 
       ;; Handles all types
-      (((name) @haskell-type-face)
-       (:pred haskell-ts-mode--name-not-within-infix? @haskell-type-face))
-      (((qualified (module) (name)) @haskell-type-face)
-       (:pred haskell-ts-mode--name-not-within-infix? @haskell-type-face))
+      (((name) @haskell-ts-type-face)
+       (:pred haskell-ts-mode--name-not-within-infix? @haskell-ts-type-face))
+      (((qualified (module) (name)) @haskell-ts-type-face)
+       (:pred haskell-ts-mode--name-not-within-infix? @haskell-ts-type-face))
 
       ;; constructor
-      (((constructor) @haskell-constructor-face)
-       (:pred haskell-ts-mode--name-not-within-infix? @haskell-constructor-face))
-      ((qualified (module) @haskell-type-face
-                  [(constructor) (constructor_operator)] @haskell-constructor-face)
-       (:pred haskell-ts-mode--name-not-within-infix? @haskell-constructor-face))
+      (((constructor) @haskell-ts-constructor-face)
+       (:pred haskell-ts-mode--name-not-within-infix? @haskell-ts-constructor-face))
+      ((qualified (module) @haskell-ts-type-face
+                  [(constructor) (constructor_operator)] @haskell-ts-constructor-face)
+       (:pred haskell-ts-mode--name-not-within-infix? @haskell-ts-constructor-face))
 
-      ([(unit) (list "[" !element "]") (constructor_operator)] @haskell-constructor-face)
+      ([(unit) (list "[" !element "]") (constructor_operator)] @haskell-ts-constructor-face)
 
       ;; strictness
       ([(strict_field "!") (strict "!")] @haskell-ts-mode--fontify-bang)
@@ -193,7 +243,7 @@
       (setf p (+ p 1)
             c (char-after p)))
     (when (eq (char-after p) char)
-      (put-text-property p (1+ p) 'face 'font-lock-negation-char-face))))
+      (put-text-property p (1+ p) 'face 'haskell-ts-strictness-face))))
 
 (defconst haskell-ts-syntax-propertize--query
   (treesit-query-compile 'haskell

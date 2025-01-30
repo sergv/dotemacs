@@ -309,6 +309,23 @@
       (rust-question-mark :weight bold :inherit font-lock-negation-char-face)
 
       (haskell-operator-face :foreground ,red)
+      (haskell-constructor-face :inherit font-lock-type-face)
+      (haskell-pragma-face :inherit font-lock-preprocessor-face)
+      (haskell-keyword-face :inherit font-lock-keyword-face)
+      (haskell-type-face :inherit font-lock-type-face)
+
+      (haskell-ts-haddock-face :inherit font-lock-comment-face :bold t)
+      (haskell-ts-comment-face :inherit font-lock-comment-face)
+      (haskell-ts-constant-face :inherit font-lock-constant-face)
+      (haskell-ts-quasiquote-pipe-face :inherit default)
+      (haskell-ts-string-face :inherit font-lock-string-face)
+      (haskell-ts-pragma-face :inherit haskell-pragma-face)
+      (haskell-ts-keyword-face :inherit haskell-keyword-face)
+      (haskell-ts-operator-face :inherit haskell-operator-face)
+      (haskell-ts-type-face :inherit haskell-type-face)
+      (haskell-ts-constructor-face :inherit haskell-constructor-face)
+      (haskell-ts-strictness-face :inherit font-lock-negation-char-face)
+
       (ghc-face-error :underline (:style wave :color ,red))
       (ghc-face-warn :underline (:style wave :color ,orange))
       ;; ((supports :underline (:style wave)))
