@@ -490,7 +490,7 @@ _<tab>_: reindent  _h_: jump to topmont function/entity end"
     (("C-l" "<f6>") vim:haskell-dante-load-file-into-repl:interactive))
 
   (def-keys-for-map vim-normal-mode-local-keymap
-    ("\\"           vim:flycheck-run:interactive)
+    ("\\"           haskell-flycheck-force-run)
     ("g"            hydra-haskell-vim-normal-g-ext/body)
     ("j"            hydra-haskell-vim-normal-j-ext/body)
     ("C-="          input-unicode))
