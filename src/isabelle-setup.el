@@ -64,7 +64,7 @@ _r_ename
     ("C-?" lsp-symbnav/find-references))
 
   (def-keys-for-map vim-normal-mode-local-keymap
-    ("\\"  vim:flycheck-run:interactive)
+    ("\\"  flycheck-force-run)
     ("-"   hydra-isabelle-lsp/body))
 
   (def-keys-for-map (vim-normal-mode-local-keymap
