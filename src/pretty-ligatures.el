@@ -121,7 +121,16 @@ Regexp match data 0 specifies the characters to be composed."
         (?∐ 2)
         (?⋀ 2)
         (?⋁ 2)
-        (?― 2))))))
+        (?― 2)
+        (?↑ 2)
+        (?⇑ 2)
+        (?↓ 2)
+        (?⇓ 2)
+        (?↕ 2)
+        (?⇕ 2)
+        (?↦ 2)
+        (?⟼ 2)
+        (?∞ 2))))))
 
 (defconst iosevka-slab-lig-glyphs
   (eval-when-compile
@@ -193,8 +202,11 @@ Regexp match data 0 specifies the characters to be composed."
         ;; ("product"      #xe132 2) ;; product, but less elegant than ?∏ character
         ;; ("coproduct"    #xe135 2) ;; coproduct, but less elegant than ?∐ character
 
-        ("equivalent"    #xe137 2) ;; equivalent, ≡ 
-        ("notEquivalent" #xe138 2) ;; not equivalent, ≢ 
+        ("equivalent"    #xe137 2) ;; equivalent, ≡ 
+        ("notEquivalent" #xe138 2) ;; not equivalent, ≢ 
+
+        ("<-->"  #xe138 4) ;; "<-->"
+        ("<==>"  #xe139 4) ;; "<==>"
         )))))
 
 ;; Make [?\s (Bl . Br) ?\s (Bl . Br) ?\s (Bc . Bc) #xe11d] out of #xe11d (">>=").
@@ -227,8 +239,12 @@ Regexp match data 0 specifies the characters to be composed."
     (error "No width for glyph ‘%s’" g)))
 
 (defun pretty-ligatures--make-literal-singleton-composition (symbol &optional override-width)
-  (cl-assert (characterp symbol))
-  (let ((width (or override-width 1)))
+  (cl-assert (or (characterp symbol) (stringp symbol)))
+  (let ((width (or override-width
+                   (cond
+                     ((characterp symbol) 1)
+                     ((stringp symbol) (length symbol))
+                     (t (error "invalid symbol: ‘%s’" symbol))))))
     (if (eq width t)
         ;; No width
         (string ?\t symbol ?\t)
