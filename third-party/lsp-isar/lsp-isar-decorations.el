@@ -765,7 +765,8 @@ more memory), so we only remove some with a short timeout."
   (eval-when-compile
     (alist->hash-table
      '(("apply" . t)
-       ("done"  . t)))))
+       ("done"  . t)
+       ("hence" . t)))))
 
 ;; if a range is new, find it in the buffer and print it
 ;; if the current range is already not valid, return nil
