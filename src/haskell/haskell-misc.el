@@ -1439,6 +1439,17 @@ otherwise search for project root using
   (when-let ((bnds (bounds-of-haskell-symbol)))
     (buffer-substring-no-properties (car bnds) (cdr bnds))))
 
+(defun haskell-flycheck-force-run ()
+  "Haskell-specific version of ‘flycheck-force-run’ that integrates better
+with dante."
+  (interactive)
+  ;; Make sure dante will reload this buffer.
+  (when (eq flycheck-checker 'haskell-dante)
+    (dante-reset-temp-fingerprint!))
+
+  (let ((dante-check-force-interpret t))
+    (flycheck-force-run)))
+
 (provide 'haskell-misc)
 
 ;; Local Variables:
