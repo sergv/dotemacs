@@ -102,20 +102,16 @@ do check that ‘overlay-buffer’ is non-nil before use.")
        (flycheck-checker-supports-major-mode-p checker)
        (flycheck-may-enable-checker checker)))
 
-;;;###autoload (autoload 'vim:flycheck-run "flycheck-setup" nil t)
-;;;###autoload (autoload 'vim:flycheck-run:interactive "flycheck-setup" nil t)
-(vim-defcmd vim:flycheck-run (nonrepeatable)
+(defun flycheck-force-run ()
   "Force re-send buffer’s content to currently running LSP server.
 Useful if the server got confused with incremental updating
 scheme and it’s view of current buffer is malformed."
+  (interactive)
   (let ((time (current-time)))
     ;; Set modtime of the underlying file
     (set-file-times (buffer-file-name) time)
     ;; Sync buffer’s recorded modtime so that auto-revert won’t trigger.
-    (set-visited-file-modtime time)
-    ;; Make sure dante will reload this buffer.
-    (when (eq flycheck-checker 'haskell-dante)
-      (dante-reset-temp-fingerprint!)))
+    (set-visited-file-modtime time))
 
   (when lsp-mode
     (let ((n (buffer-size))
@@ -125,8 +121,13 @@ scheme and it’s view of current buffer is malformed."
           ;; pressed this button to synchronize
           (lsp-debounce-full-sync-notifications nil))
       (lsp-on-change 0 n n)))
-  (let ((dante-check-force-interpret t))
-    (flycheck-buffer)))
+
+  (flycheck-buffer))
+
+;;;###autoload (autoload 'vim:flycheck-run "flycheck-setup" nil t)
+;;;###autoload (autoload 'vim:flycheck-run:interactive "flycheck-setup" nil t)
+(vim-defcmd vim:flycheck-run (nonrepeatable)
+  (flycheck-force-run))
 
 (vim-defcmd vim:flycheck-compile (nonrepeatable)
   (call-interactively #'flycheck-compile))
