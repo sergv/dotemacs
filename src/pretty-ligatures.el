@@ -13,6 +13,8 @@
 (require 'el-patch)
 (require 'treesit-utils)
 
+(require 'common-font)
+
 (el-patch-feature prog-mode)
 
 (el-patch-defun prettify-symbols--post-command-hook ()
