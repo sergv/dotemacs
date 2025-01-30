@@ -162,17 +162,18 @@ lemma True
 
 locale test =
   fixes
-    f :: "'a \<Rightarrow> 'a" and 
+    f :: "'a \<Rightarrow> 'a" and
     g :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a\<close>
   assumes
     \<Phi>\<^sub>\<Phi>: "f \<circ> f = id" and
-   "\<And>a. g a o g b = id"
+    "\<And>a. g a o g b = id"
 begin
 notation g ("g\<^bsub>_\<^esub>")
 
-lemma "f \<circ> f \<circ> f \<circ> f = id"
+(* lemma "f \<circ> f \<circ> f \<circ> f = id"
   sledgehammer
-  using \<Phi>\<^sub>\<Phi> by auto
+  using \<Phi>\<^sub>\<Phi> by auto *)
+
 lemma \<open>\<And>a. g a o g b = id\<close>
   using test_axioms unfolding test_def by auto
 
@@ -181,3 +182,18 @@ lemma "g a o g a o g a o g a = id"
 (*copy pasting the goal to see if sub is correctly used*)
 term "g\<^bsub>a\<^esub> \<circ> g\<^bsub>a\<^esub> \<circ> g\<^bsub>a\<^esub> \<circ> g\<^bsub>a\<^esub>"
 end
+
+lemma "x \<and> y"
+  oops
+
+(* \<bar>x|
+
+\<equiv>
+
+x < y
+x \<lt> \<alpha>\<beta>\<delta>\<gamma> X\<and>\<And>\<Lambda>x\<le>\<subset>\<emptyset>
+
+x \<prec> y
+x \<le> y
+x < y
+x \<lesssim> y *)
