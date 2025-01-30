@@ -8,8 +8,6 @@
 
 (eval-when-compile (require 'cl))
 
-(defvar current-font)
-
 ;;;; Platform
 
 (defvar +platform+ nil
@@ -86,16 +84,6 @@ binaries."
   (declare (indent 1))
   (when (eval `(let ((it ,emacs-major-version)) ,version-expr))
     `(progn ,@body)))
-
-(defun pretty-ligatures-supported? ()
-  (and (bound-and-true-p current-font)
-       (cond
-         ((stringp current-font)
-          (string-match-p "Iosevka Slab Lig" current-font))
-         ((fontp current-font)
-          (string-match-p "Iosevka Slab Lig" (font-get current-font :name)))
-         (t
-          (error "Invalid current font: %s" current-font)))))
 
 (provide 'set-up-platform)
 

@@ -9,6 +9,7 @@
 (eval-when-compile
   (require 'cl))
 
+(defvar default-composition-function-table)
 (defvar dumping)
 
 (when (or dumping
@@ -18,6 +19,8 @@
 (require 'set-up-platform)
 (require 'set-up-environment-variables)
 (require 'set-up-paths)
+
+(require 'common-font)
 
 (defconst current-font
   (let ((name "Iosevka Slab Lig"))
@@ -102,34 +105,16 @@ use that, otherwise either use past specified value or a reasonable default."
       (set-face-attribute 'default frame :height effective-scaling))))
 
 (when (pretty-ligatures-supported?)
-  ;; Compose ASCII with harfbuzz to take advantage of the TXTR feature (requires custom
-  ;; emacs build as well).
-  ;; See also:
-  ;; ! https://github.com/mickeynp/ligature.el/issues/53#issuecomment-1828732077
-  ;; https://github.com/githubnext/monaspace/issues/12
-  ;; https://github.com/harfbuzz/harfbuzz/discussions/4490
-  (let ((composition-spec
-         `([,(rx (+ (any
-                     ?\s ?\! ?\" ?\' ?\( ?\) ?\, ?\- ?\. ?\: ?\; ?\< ?\> ?\? ?\@ ?\[ ?\] ?\_ ?\{ ?\| ?\}
-                     (?a . ?z)
-                     (?A . ?Z)))
-                 ;; Somehow newline does not work as space does and
-                 ;; does not lead to glyph enlargement.
-                 (? (any ?\r ?\n)))
-            0
-            font-shape-gstring
-            ])))
-    (dolist (c '(?\s
-                 ?\! ?\" ?\' ?\( ?\) ?\, ?\- ?\. ?\: ?\; ?\< ?\> ?\? ?\@ ?\[ ?\] ?\_ ?\{ ?\| ?\}
-                 (?a . ?z)
-                 (?A . ?Z)))
-      (if (numberp c)
-          (set-char-table-range composition-function-table c composition-spec)
-        (cl-loop
-         for i from (car c) to (cdr c)
-         do
-         (set-char-table-range composition-function-table i composition-spec)
-         )))))
+  ;; Does not have any effect, left for future reference in case it’s needed.
+  ;; (defun treesit-font-lock-fontify-region-with-safe-composition-table (old-fn &rest args)
+  ;;   (let ((composition-function-table default-composition-function-table))
+  ;;     (apply old-fn args)))
+  ;;
+  ;; (advice-add 'treesit-font-lock-fontify-region
+  ;;             :around
+  ;;             #'treesit-font-lock-fontify-region-with-safe-composition-table)
+
+  (add-hook 'after-init-hook #'common-font--init-function-tables-after-init))
 
 (provide 'set-up-font)
 
