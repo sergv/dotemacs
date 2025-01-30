@@ -8,6 +8,8 @@
 
 (require 'pretty-ligatures)
 
+(require 'common-font)
+
 (defun pretty-ligatures--isabelle-install! (ligatures)
   "Add hasklig ligatures for use with prettify-symbols-mode."
   (when (pretty-ligatures-supported?)
