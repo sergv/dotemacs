@@ -622,7 +622,8 @@ Optional argument FACENIL means set the face property to nil, unless 'face is in
     ;; simpler but buggy with font-lock-prepend-text-property:
     ;; (2 ',(unicode-tokens-symbs-to-props props t) prepend)
     (2 (unicode-tokens-prepend-text-properties-in-match
-        ',(unicode-tokens-symbs-to-props props t) 2) prepend)
+        ',(unicode-tokens-symbs-to-props props t) 2)
+       prepend)
     ))
 
 (defun unicode-tokens-control-region (name start end &rest props)
@@ -632,7 +633,8 @@ Optional argument FACENIL means set the face property to nil, unless 'face is in
     ;; simpler but buggy with font-lock-prepend-text-property:
     ;; (2 ',(unicode-tokens-symbs-to-props props t) prepend)
     (2 (unicode-tokens-prepend-text-properties-in-match
-        ',(unicode-tokens-symbs-to-props props t) 2) prepend)
+        ',(unicode-tokens-symbs-to-props props t) 2)
+       prepend)
     (3 '(face nil invisible unicode-tokens-show-controls) prepend)
     ))
 
