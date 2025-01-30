@@ -119,6 +119,11 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'common))
+
+(require 'common)
+
 (require 'lsp-mode)
 (require 'lsp-isar-types)
 
@@ -756,6 +761,12 @@ more memory), so we only remove some with a short timeout."
 	 (overlay-put ov 'face 'lsp-isar-font-nothing)
 	 ov)))))
 
+(defconst lsp-isar--ignore-improper-decorations-keywords
+  (eval-when-compile
+    (alist->hash-table
+     '(("apply" . t)
+       ("done"  . t)))))
+
 ;; if a range is new, find it in the buffer and print it
 ;; if the current range is already not valid, return nil
 (define-inline lsp-isar-decorations-find-range-and-add-to-print (range curoverlays position end_char_offset overlays-to-reuse line face)
@@ -775,8 +786,8 @@ more memory), so we only remove some with a short timeout."
        (setq line l1)
 
        (let ((ov (if (and (eq ,face 'lsp-isar-font-text-improper)
-                          (member (buffer-substring-no-properties point0 point1)
-                                  '("apply" "done")))
+                          (gethash (buffer-substring-no-properties point0 point1)
+                                   lsp-isar--ignore-improper-decorations-keywords))
                      ;; Skip improper colorization for ‘apply’, ‘done’.
                      (lsp-isar-decorations-dummy-new-or-recycle-overlay overlays-to-reuse point0 point1 ,face)
                    (lsp-isar-decorations-new-or-recycle-overlay overlays-to-reuse point0 point1 ,face))))
