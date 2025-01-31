@@ -723,11 +723,12 @@ Optional argument OBJECT is the string or buffer containing the text."
      (2 "_")
      (3 "_"))
 
-    ((rx (or (seq (group-n 4 "\\") "<open>") (seq "\\<close" (group-n 5 ">"))))
-     ;; Generic string delimiters must span single characters or adjacent characters
-     ;; will be matched against each other.
-     (4 "|")
-     (5 "|")))
+    ;; ((rx (or (seq (group-n 4 "\\") "<open>") (seq "\\<close" (group-n 5 ">"))))
+    ;;  ;; Generic string delimiters must span single characters or adjacent characters
+    ;;  ;; will be matched against each other.
+    ;;  (4 "|")
+    ;;  (5 "|"))
+    )
    start
    end))
 
