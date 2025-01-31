@@ -856,8 +856,7 @@
       (lsp-isar-font-foreground-quoted ;; :background ,background-highlights
        :background unspecified)
 
-      (lsp-isar-font-foreground-antiquoted :background ,orange ;;:priority 0
-                                           )
+      (lsp-isar-font-foreground-antiquoted :italic t)
 
       (lsp-isar-font-dotted-writeln nil)
       (lsp-isar-font-dotted-information nil)
