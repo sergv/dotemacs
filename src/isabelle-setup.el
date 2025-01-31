@@ -11,6 +11,8 @@
 (require 'isar-mode)
 (require 'lsp-setup)
 
+(require 'isabelle-abbrev+)
+
 (defconst lsp-isar-path-to-isabelle-exe (executable-find "isabelle-emacs-lsp"))
 
 (defun lsp-full-isabelle-path-override ()
@@ -70,7 +72,9 @@ _r_ename
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-insert-mode-local-keymap)
     ("C-h" flycheck-enhancements-next-error-with-wraparound)
-    ("C-t" flycheck-enhancements-previous-error-with-wraparound)))
+    ("C-t" flycheck-enhancements-previous-error-with-wraparound))
+
+  (isabelle-abbrev+-setup))
 
 ;;;###autoload
 (add-hook 'isar-mode-hook #'isar-setup)
