@@ -634,14 +634,21 @@ Optional argument OBJECT is the string or buffer containing the text."
 (defvar isar-tactics
   (rx bow
       (or "auto"
+          "assumption"
           "blast"
           "cases"
+          "clarify"
           "contradiction"
+          "drule"
+          "erule"
+          "erule_tac"
           "force"
           "fastforce"
           "fast"
+          "rename_tac"
           "rule"
-          "simp")
+          "simp"
+          "subst")
       eow))
 
 (defvar isar-minor
