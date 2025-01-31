@@ -58,7 +58,9 @@ interface Caret_Update {
   "Return URI of the current buffer."
   (or lsp-buffer-uri
       (lsp--path-to-uri
-       (or buffer-file-name (ignore-errors (buffer-file-name (buffer-base-buffer)))))))
+       (or (or buffer-file-name
+               (ignore-errors (buffer-file-name (buffer-base-buffer))))
+           (error "Internal error while getting buffer URI: buffer has no file: %s" (current-buffer))))))
 
 (define-inline lsp-isar-caret-cur-caret_update ()
   "Make a Caret_Update object for the current point."
