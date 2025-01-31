@@ -36,6 +36,8 @@
 (eval-when-compile
   (require 'macro-util))
 
+(require 'common)
+
 (require 'isar-goal-mode)
 (require 'lsp-isar-decorations)
 (require 'dash)
@@ -395,25 +397,102 @@ Lisp equivalent of `replace-regexp' as indicated in the help."
   (while (re-search-forward REGEXP nil t)
     (replace-match TO-STRING nil nil)))
 
-(defun lsp-isar-output--prepare-html ()
+(defun lsp-isar-output--prepare-html! ()
   "fixes the html output from Isabelle to match the expectation from emacs"
 
   (lsp-isar-output-replace-regexp-all-occs "\\\\<\\(\\w*\\)>" "<emacs_isabelle_symbol>\\1</emacs_isabelle_symbol>")
   ;; remove line breaks at beginning
-  (lsp-isar-output-replace-regexp-all-occs "\\$\n*<body>\n" "<body>")
+  (lsp-isar-output-replace-regexp-all-occs "\\`\n*<body>\n" "<body>")
   ;; protect spaces and line breaks
   (lsp-isar-output-replace-regexp-all-occs "\s\s\s\s\s"
-					   "  ")
+                                           "  ")
   (lsp-isar-output-replace-regexp-all-occs "\n\\( *\\)"
-					   "<break line=1>'\\1'</break>")
+                                           "<break line=1>'\\1'</break>")
   (lsp-isar-output-replace-regexp-all-occs "\\(\\w\\)>\\( +\\)<"
-					   "\\1><break>'\\2'</break><")
+                                           "\\1><break>'\\2'</break><")
   )
 
 (defun lsp-isar-output--caddddr (x)
   "Return the `car' of the `cdr' of the `cdr' of the `cdr' of the `cdr' of X."
   (declare (compiler-macro internal--compiler-macro-cXXr))
   (car (cdr (cdr (cdr (cdr x))))))
+
+
+;; Turn
+;; """
+;; have 0 \<le> (\<Sum>j = 1..n. (x\<^bsub>j\<^esub>)\<^sup>2)
+;; proof (state)
+;;             this:
+;;               0 \<le> (\<Sum>j = 1..n. (x\<^bsub>j\<^esub>)\<^sup>2)
+;;
+;;             goal (1 subgoal):
+;;              1. 0 \<le> (\<parallel>x\<parallel> * \<parallel>y\<parallel>)\<^sup>2 - \<bar>x \<cdot> y\<bar>\<^sup>2
+;; """
+;;
+;; Into
+;;
+;; """
+;; have 0 \<le> (\<Sum>j = 1..n. (x\<^bsub>j\<^esub>)\<^sup>2)
+;; proof (state)
+;; this:
+;;   0 \<le> (\<Sum>j = 1..n. (x\<^bsub>j\<^esub>)\<^sup>2)
+;;
+;; goal (1 subgoal):
+;;  1. 0 \<le> (\<parallel>x\<parallel> * \<parallel>y\<parallel>)\<^sup>2 - \<bar>x \<cdot> y\<bar>\<^sup>2
+;; """
+(defun lsp-isar-output--delete-indentation-safe! (n)
+  (cl-assert (numberp n))
+  (let ((start (point)))
+    (skip-indentation-forward (min (+ start n) (line-end-position)))
+    (delete-region start (point))))
+
+(defun lsp-isar-output--fix-indents! ()
+  ;; (message "Contents:\n%S" (buffer-substring-no-properties (point-min) (point-max)))
+  (save-excursion
+    (save-match-data
+      (goto-char (point-min))
+      (when (search-forward "proof (state)" nil t)
+        (let* ((proof-state-pt
+                (line-beginning-position))
+               (this-indent-and-pt
+                (save-excursion
+                  (when (search-forward "this:" nil t)
+                    (cons (indentation-size)
+                          (copy-marker (line-beginning-position))))))
+               (goal-indent-and-pt
+                (save-excursion
+                  (when (re-search-forward (rx "goal" (? "(" (+ (any (?0 . ?9))) " subgoal" (? "s") ")") ":")
+                                           nil
+                                           t)
+                    (cons (indentation-size)
+                          (copy-marker (line-beginning-position)))))))
+
+          (when this-indent-and-pt
+            (goto-char (cdr this-indent-and-pt))
+            (let ((indent-to-remove (car this-indent-and-pt)))
+              (with-marker (limit (copy-marker (or (cdr goal-indent-and-pt)
+                                                   (point-max))))
+                (lsp-isar-output--delete-indentation-safe! indent-to-remove)
+                (forward-line 1)
+                (while (< (point) limit)
+                  (lsp-isar-output--delete-indentation-safe! indent-to-remove)
+                  (forward-line 1)))))
+
+          (when goal-indent-and-pt
+            (goto-char (cdr goal-indent-and-pt))
+            (let ((indent-to-remove (car goal-indent-and-pt)))
+              (with-marker (limit (copy-marker (or (cdr goal-indent-and-pt)
+                                                   (point-max))))
+                (lsp-isar-output--delete-indentation-safe! indent-to-remove)
+                (forward-line 1)
+                (while (< (point) limit)
+                  (lsp-isar-output--delete-indentation-safe! indent-to-remove)
+                  (forward-line 1)))))
+
+          (when this-indent-and-pt
+            (set-marker (cdr this-indent-and-pt) nil))
+          (when goal-indent-and-pt
+            (set-marker (cdr goal-indent-and-pt) nil)))))))
 
 (defun lsp-isar-output-recalculate-sync (lsp-isar-output-current-output-number-res content)
   (setf lsp-isar-output-proof-cases-content nil)
@@ -424,29 +503,29 @@ Lisp equivalent of `replace-regexp' as indicated in the help."
 
     (let ((parsed-content nil))
       (with-temp-buffer
-	(when content
-	  (insert "$")
-	  (insert content)
-	  (lsp-isar-output--prepare-html)
-	  (setq parsed-content (libxml-parse-html-region (point-min) (point-max)))))
+        (when content
+          (insert content)
+          (lsp-isar-output--prepare-html!)
+          (setq parsed-content (libxml-parse-html-region (point-min) (point-max)))))
 
       (with-current-buffer (lsp-isar--get-output-buffer)
         (with-inhibited-read-only
          (erase-buffer)
-	 (setf decorations (lsp-isar-output-parse-output parsed-content))
-	 (goto-char (point-min))
-	 (setq lsp-isar-have-output? t)))
+         (setf decorations (lsp-isar-output-parse-output parsed-content))
+         (goto-char (point-min))
+         (setq lsp-isar-have-output? t)))
 
       (when (= lsp-isar-output-current-output-number lsp-isar-output-current-output-number-res)
         (cl-incf lsp-isar-output-current-output-number)
         (when lsp-isar-have-output?
-	  (with-current-buffer (lsp-isar--get-output-buffer)
+          (with-current-buffer (lsp-isar--get-output-buffer)
             (with-inhibited-read-only
-	     (dolist (deco decorations)
+             (dolist (deco decorations)
                (let ((point0 (car deco))
-		     (point1 (cadr deco))
-		     (face (caddr deco)))
-	         (put-text-property point0 point1 'font-lock-face face))))))))))
+                     (point1 (cadr deco))
+                     (face (caddr deco)))
+                 (put-text-property point0 point1 'font-lock-face face)))
+             (lsp-isar-output--fix-indents!))))))))
 
 (defun lsp-isar--get-output-buffer ()
   (let ((buf (get-buffer "*lsp-isar-output*")))
