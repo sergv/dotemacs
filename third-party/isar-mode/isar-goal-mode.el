@@ -97,7 +97,8 @@ In Isar, `(*)' does not start a compent but is the multiplication sign."
 ;;;###autoload
 (define-derived-mode isar-goal-mode prog-mode "Isar-goal"
   "Major mode for editing isar files"
-  (isar--setup-font-lock! isar-control--font-lock-keywords))
+  (isar--setup-font-lock! isar-control--font-lock-keywords)
+  (face-remap-set-base 'lsp-isar-font-text-overview-error nil))
 
 ;;spacemacs specific function
 (when (boundp 'spacemacs-jump-handlers-isar-goal-mode)
