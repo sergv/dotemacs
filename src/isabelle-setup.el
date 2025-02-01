@@ -6,6 +6,7 @@
 ;; Created:  1 August 2023
 ;; Description:
 
+(require 'common-font)
 (require 'flycheck-setup)
 (require 'hydra-setup)
 (require 'isar-mode)
