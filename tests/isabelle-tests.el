@@ -6,6 +6,8 @@
 ;; Created: 31 January 2025
 ;; Description:
 
+(defvar lsp-isar-use-lsp)
+
 (require 'isabelle-setup)
 (require 'lsp-isar-output)
 
@@ -781,6 +783,76 @@
       "_|_")
      :initialisation nil
      :buffer-id nil)))
+
+(ert-deftest isabelle-tests/uncomment-nested-region-1 ()
+  (tests-utils--test-buffer-contents
+   :action
+   (should-error (comment-util-uncomment-region))
+   :contents
+   (tests-utils--multiline
+    ""
+    "thm _|_natural_numbers.simps[of \"int_to_nat \\\<lfloor>M + 1\\\\<rfloor>\"]"
+    "")
+   :expected-value
+   (tests-utils--multiline
+    ""
+    "thm _|_natural_numbers.simps[of \"int_to_nat \\\<lfloor>M + 1\\\\<rfloor>\"]"
+    "")
+   :initialisation (let ((lsp-isar-use-lsp nil)) (isar-mode) (isar-setup))
+   :buffer-id isabelle-comment-tests))
+
+(ert-deftest isabelle-tests/uncomment-nested-region-2a ()
+  (tests-utils--test-buffer-contents
+   :action
+   (comment-util-uncomment-region)
+   :contents
+   (tests-utils--multiline
+    ""
+    "(* thm _|_natural_numbers.simps[of \"int_to_nat \\\<lfloor>M + 1\\\\<rfloor>\"] *)"
+    "")
+   :expected-value
+   (tests-utils--multiline
+    ""
+    "thm _|_natural_numbers.simps[of \"int_to_nat \\\<lfloor>M + 1\\\\<rfloor>\"]"
+    "")
+   :initialisation (let ((lsp-isar-use-lsp nil)) (isar-mode) (isar-setup))
+   :buffer-id isabelle-comment-tests))
+
+(ert-deftest isabelle-tests/uncomment-nested-region-2b ()
+  (tests-utils--test-buffer-contents
+   :action
+   (comment-util-uncomment-region)
+   :contents
+   (tests-utils--multiline
+    ""
+    "(*thm _|_natural_numbers.simps[of \"int_to_nat \\\<lfloor>M + 1\\\\<rfloor>\"]*)"
+    "")
+   :expected-value
+   (tests-utils--multiline
+    ""
+    "thm _|_natural_numbers.simps[of \"int_to_nat \\\<lfloor>M + 1\\\\<rfloor>\"]"
+    "")
+   :initialisation (let ((lsp-isar-use-lsp nil)) (isar-mode) (isar-setup))
+   :buffer-id isabelle-comment-tests))
+
+(ert-deftest isabelle-tests/uncomment-nested-region-3 ()
+  (tests-utils--test-buffer-contents
+   :action
+   (comment-util-uncomment-region)
+   :contents
+   (tests-utils--multiline
+    "(*"
+    "(* thm _|_natural_numbers.simps[of \"int_to_nat \\\<lfloor>M + 1\\\\<rfloor>\"] *)"
+    "(* value \"1 :: nat\" *)"
+    "*)")
+   :expected-value
+   (tests-utils--multiline
+    ""
+    "(* thm _|_natural_numbers.simps[of \"int_to_nat \\\<lfloor>M + 1\\\\<rfloor>\"] *)"
+    "(* value \"1 :: nat\" *)"
+    "")
+   :initialisation (let ((lsp-isar-use-lsp nil)) (isar-mode) (isar-setup))
+   :buffer-id isabelle-comment-tests))
 
 (provide 'isabelle-tests)
 
