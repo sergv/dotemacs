@@ -14,6 +14,7 @@
   (require 'macro-util))
 
 (require 'common)
+(require 'common-font)
 (require 'dash)
 (require 'el-patch)
 (require 'indentation)
@@ -364,6 +365,9 @@ _C_: hide everything except current entry and its parents"
   ("C" outline-hide-other))
 
 (defun org-mode-setup ()
+  ;; Harfbuzz and texture healing break rendering of tables and make
+  ;; some | separators disappear.
+  (common-font--use-default-composition-function-table!)
   (init-common :use-yasnippet t
                :use-render-formula nil
                :use-whitespace 'tabs-only
