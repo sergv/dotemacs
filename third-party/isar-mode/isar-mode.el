@@ -349,7 +349,7 @@ Optional argument OBJECT is the string or buffer containing the text."
 
 ;; dark blue
 (defvar isar-keyword1
-  (rx bow
+  (rx symbol-start
       (or "ML"
           "ML_command"
           "ML_file"
@@ -603,11 +603,11 @@ Optional argument OBJECT is the string or buffer containing the text."
           ;; "{"
           ;; "}"
           )
-      eow))
+      symbol-end))
 
 ;; green
 (defvar isar-keyword2
-  (rx bow
+  (rx symbol-start
       (or "and"
           "assumes"
           "begin"
@@ -622,11 +622,11 @@ Optional argument OBJECT is the string or buffer containing the text."
           "obtains"
           "shows"
           "where")
-      eow))
+      symbol-end))
 
 ;; light blue
 (defvar isar-keyword3
-  (rx bow
+  (rx symbol-start
       (or "assume"
           "case"
           "define"
@@ -635,10 +635,10 @@ Optional argument OBJECT is the string or buffer containing the text."
           "show"
           "thus"
           "presume")
-      eow))
+      symbol-end))
 
 (defvar isar-tactics
-  (rx bow
+  (rx symbol-start
       (or "auto"
           "assumption"
           "blast"
@@ -655,12 +655,12 @@ Optional argument OBJECT is the string or buffer containing the text."
           "rule"
           "simp"
           "subst")
-      eow))
+      symbol-end))
 
 (defvar isar-minor
-  (rx bow
+  (rx symbol-start
       (or "is" "of" "OF" "THEN")
-      eow))
+      symbol-end))
 
 (defface isar-keyword1-face
   `((t (:inherit font-lock-keyword-face)))
