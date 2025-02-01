@@ -21,6 +21,14 @@
 (defvar default-composition-function-table nil)
 (defvar texture-healed-composition-function-table nil)
 
+(defun common-font--use-default-composition-function-table! ()
+  "Don’t use harfbuzz for compositing in current buffer. Useful if it produces
+incorrect results in some modes."
+  ;; If ‘default-composition-function-table’ is not defined then ‘composition-function-table’
+  ;; wasn’t modified so nothing needs to be done.
+  (when default-composition-function-table
+    (setq-local composition-function-table default-composition-function-table)))
+
 (defun common-font--init-function-tables-after-init ()
   (setf default-composition-function-table composition-function-table)
 
