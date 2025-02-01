@@ -703,6 +703,7 @@ Optional argument OBJECT is the string or buffer containing the text."
 (defconst isar-mode-syntax-table
   (let ((st (make-syntax-table)))
     ;; (modify-syntax-entry ?\" "" st)
+    (modify-syntax-entry ?\" "$" st)
     (modify-syntax-entry ?_  "_" st)
     (modify-syntax-entry ?$  "." st)
     (modify-syntax-entry ?/  "." st)
