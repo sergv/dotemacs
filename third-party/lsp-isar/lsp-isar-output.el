@@ -353,14 +353,16 @@ functions adds up.  So any optimisation would help."
 		        (not (cdr children))
 		        (stringp (car children)))
 		       (insert (format "\\<^sub>%s" (car children)))
-	             (if (and (cadr children) (eq (car (cadr children)) 'emacs_isabelle_symbol))
+                     (let ((first (cadr children)))
+	               (if (and (consp first)
+                                (eq (car first) 'emacs_isabelle_symbol))
+		           (progn
+		             (insert "\\<^sub>")
+		             (setq contents (append children contents)))
 		         (progn
-		           (insert "\\<^sub>")
-		           (setq contents (append children contents)))
-		       (progn
-		         (insert "\\<^bsub>")
-		         (push "\\<^esub>" contents))
-		       (setq contents (append children contents))))))
+		           (insert "\\<^bsub>")
+		           (push "\\<^esub>" contents))
+		         (setq contents (append children contents)))))))
 
 	        ('sup ;; Heuristically find the difference between sup and bsup...esup
 	         ;; but we cannot do better as the information is not transmitted
@@ -369,13 +371,15 @@ functions adds up.  So any optimisation would help."
 		        (not (cdr children))
 		        (stringp (car children)))
 		       (insert (format "\\<^sup>%s" (car children)))
-	             (if (and (cadr children) (eq (car (cadr children)) 'emacs_isabelle_symbol))
-		         (progn
-		           (insert "\\<^sup>")
-		           (setq contents (append children contents)))
-		       (insert "\\<^bsup>")
-		       (push "\\<^esup>" contents)
-		       (setq contents (append children contents))))))
+	             (let ((first (cadr children)))
+                       (if (and (consp first)
+                                (eq (car first) 'emacs_isabelle_symbol))
+		           (progn
+		             (insert "\\<^sup>")
+		             (setq contents (append children contents)))
+		         (insert "\\<^bsup>")
+		         (push "\\<^esup>" contents)
+		         (setq contents (append children contents)))))))
 
 	        ('p nil) ;; libxml odd behaviour
 
