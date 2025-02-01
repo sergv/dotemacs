@@ -48,7 +48,7 @@ _r_ename
   (init-common :use-yasnippet t
                :use-comment t
                :use-render-formula t
-               :use-fci t
+               :use-fci nil ;; Doesn’t play well with subscripts
                :use-whitespace 'tabs-only)
   (setup-indent-size 2)
   (lsp-isar-define-client-and-start)
