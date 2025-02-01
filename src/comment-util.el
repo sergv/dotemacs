@@ -105,7 +105,8 @@ Intended to be used with comment-util-mode."
   ;; Should return ‘t’ if there’s a comment after the position and
   ;; move the point past that comment.
   detect-line-comment
-  comment-chars-str)
+  comment-chars-str
+  nested-ok?)
 
 (defconst comment-util-comment-format-alist
   (mapcan (lambda (x)
@@ -138,7 +139,8 @@ Intended to be used with comment-util-mode."
              ,(make-comment-format :one-line "--"
                                    :line-regexp "--+"
                                    :comment-chars-str "-"
-                                   :detect-line-comment #'comment-util--detect-line-comment-with-at-least-2-chars))
+                                   :detect-line-comment #'comment-util--detect-line-comment-with-at-least-2-chars
+                                   :nested-ok? nil))
 
             ((org-mode
               nix-mode
@@ -174,7 +176,8 @@ Intended to be used with comment-util-mode."
              ,(make-comment-format :one-line "#"
                                    :line-regexp "#+"
                                    :comment-chars-str "#"
-                                   :detect-line-comment #'comment-util--detect-line-comment-with-at-least-1-char))
+                                   :detect-line-comment #'comment-util--detect-line-comment-with-at-least-1-char
+                                   :nested-ok? nil))
 
             ((rust-mode
               cuda-mode
@@ -202,7 +205,8 @@ Intended to be used with comment-util-mode."
              ,(make-comment-format :one-line "//"
                                    :line-regexp "//+"
                                    :comment-chars-str "/"
-                                   :detect-line-comment #'comment-util--detect-line-comment-with-at-least-2-chars))
+                                   :detect-line-comment #'comment-util--detect-line-comment-with-at-least-2-chars
+                                   :nested-ok? nil))
 
             ((emacs-lisp-mode
               elisp-byte-code-mode
@@ -219,7 +223,8 @@ Intended to be used with comment-util-mode."
              ,(make-comment-format :one-line ";;"
                                    :line-regexp ";+"
                                    :comment-chars-str ";"
-                                   :detect-line-comment #'comment-util--detect-line-comment-with-at-least-1-char))
+                                   :detect-line-comment #'comment-util--detect-line-comment-with-at-least-1-char
+                                   :nested-ok? nil))
 
             ((wisent-grammar-mode
               bovine-grammar-mode)
@@ -227,7 +232,8 @@ Intended to be used with comment-util-mode."
              ,(make-comment-format :one-line ";;"
                                    :line-regexp ";+"
                                    :comment-chars-str ";"
-                                   :detect-line-comment #'comment-util--detect-line-comment-with-at-least-2-chars))
+                                   :detect-line-comment #'comment-util--detect-line-comment-with-at-least-2-chars
+                                   :nested-ok? nil))
 
             ((asm-mode
               nasm-mode
@@ -237,7 +243,8 @@ Intended to be used with comment-util-mode."
              ,(make-comment-format :one-line ";"
                                    :line-regexp ";+"
                                    :comment-chars-str ";"
-                                   :detect-line-comment #'comment-util--detect-line-comment-with-at-least-1-char))
+                                   :detect-line-comment #'comment-util--detect-line-comment-with-at-least-1-char
+                                   :nested-ok? nil))
 
             ((latex-mode
               prolog-mode
@@ -247,14 +254,16 @@ Intended to be used with comment-util-mode."
              ,(make-comment-format :one-line "%"
                                    :line-regexp "%+"
                                    :comment-chars-str "%"
-                                   :detect-line-comment #'comment-util--detect-line-comment-with-at-least-1-char))
+                                   :detect-line-comment #'comment-util--detect-line-comment-with-at-least-1-char
+                                   :nested-ok? nil))
 
             (octave-mode
              .
              ,(make-comment-format :one-line "%"
                                    :line-regexp "\\(?:%+\\|#+\\)"
                                    :comment-chars-str "%#"
-                                   :detect-line-comment #'comment-util--detect-line-comment-with-at-least-1-char))
+                                   :detect-line-comment #'comment-util--detect-line-comment-with-at-least-1-char
+                                   :nested-ok? nil))
 
             ((isar-mode
               sml-mode
@@ -263,7 +272,8 @@ Intended to be used with comment-util-mode."
              ,(make-comment-format :region-begin "(*"
                                    :region-end "*)"
                                    :line-regexp "(\\*"
-                                   :detect-line-comment #'ignore))
+                                   :detect-line-comment #'ignore
+                                   :nested-ok? t))
 
             ((bison-mode
               flex-mode)
@@ -271,7 +281,8 @@ Intended to be used with comment-util-mode."
              ,(make-comment-format :region-begin "/*"
                                    :region-end "*/"
                                    :line-regexp "/[/*]"
-                                   :detect-line-comment #'ignore))
+                                   :detect-line-comment #'ignore
+                                   :nested-ok? nil))
 
             ((markdown-mode
               nxhtml-mode
@@ -283,38 +294,44 @@ Intended to be used with comment-util-mode."
              ,(make-comment-format :region-begin "<!--"
                                    :region-end "-->"
                                    :line-regexp "<!--"
-                                   :detect-line-comment #'ignore))
+                                   :detect-line-comment #'ignore
+                                   :nested-ok? nil))
 
             (rst-mode
              .
              ,(make-comment-format :one-line ".. "
                                    :line-regexp "\\.\\. "
-                                   :detect-line-comment #'comment-util--detect-line-comment-with-regexp))
+                                   :detect-line-comment #'comment-util--detect-line-comment-with-regexp
+                                   :nested-ok? nil))
 
             (j-mode
              .
              ,(make-comment-format :one-line "NB. "
                                    :line-regexp "NB\\. "
-                                   :detect-line-comment #'comment-util--detect-line-comment-with-regexp))
+                                   :detect-line-comment #'comment-util--detect-line-comment-with-regexp
+                                   :nested-ok? nil))
 
             (xmodmap-mode
              .
              ,(make-comment-format :one-line "!"
                                    :line-regexp "!+"
                                    :comment-chars-str "!"
-                                   :detect-line-comment #'comment-util--detect-line-comment-with-at-least-1-char))
+                                   :detect-line-comment #'comment-util--detect-line-comment-with-at-least-1-char
+                                   :nested-ok? nil))
 
             (texinfo-mode
              .
              ,(make-comment-format :one-line "@comment"
                                    :line-regexp "@c\\(?:o\\(?:m\\(?:m\\(?:e\\(?:n\\(?:t?\\)?\\)?\\)?\\)?\\)?\\)?"
-                                   :detect-line-comment #'comment-util--detect-line-comment-with-regexp))
+                                   :detect-line-comment #'comment-util--detect-line-comment-with-regexp
+                                   :nested-ok? nil))
 
             (dos-mode
              .
              ,(make-comment-format :one-line "rem "
                                    :line-regexp "rem ?"
-                                   :detect-line-comment #'comment-util--detect-line-comment-with-regexp))
+                                   :detect-line-comment #'comment-util--detect-line-comment-with-regexp
+                                   :nested-ok? nil))
 
             (comint-mode
              .
@@ -485,21 +502,22 @@ be used only for vim-visual-mode of the vim-mode package."
 
 (defun comment-util--comment-chunk-region (begin end fmt)
   (save-excursion
-    (let ((has-open (progn (goto-char begin)
-                           (search-forward (comment-format-region-begin fmt)
-                                           end
-                                           t)))
-          (has-close (progn (goto-char begin)
-                            (search-forward (comment-format-region-end fmt)
-                                            end
-                                            t))))
-      (cond
-        ((and has-open has-close)
-         (error "Specified region already contains commented part"))
-        (has-open
-         (error "Specified region already contains open comment"))
-        (has-close
-         (error "Specified region already contains close comment")))))
+    (unless (comment-format-nested-ok? fmt)
+      (let ((has-open (progn (goto-char begin)
+                             (search-forward (comment-format-region-begin fmt)
+                                             end
+                                             t)))
+            (has-close (progn (goto-char begin)
+                              (search-forward (comment-format-region-end fmt)
+                                              end
+                                              t))))
+        (cond
+          ((and has-open has-close)
+           (error "Specified region already contains commented part"))
+          (has-open
+           (error "Specified region already contains open comment"))
+          (has-close
+           (error "Specified region already contains close comment"))))))
   (goto-char end)
   (insert comment-util--spaces-after-comment
           (comment-format-region-end fmt))
