@@ -248,6 +248,7 @@
 
     ("circ"      . ?∘) ;; Isabelle shows compositions as ?○ but it seems to be too large .
     ("bar"       . ?¦)
+    ("parallel"  . ?∥)
 
     ("le"        . ?≤) ;; "LE" takes 2 characters but I want to get the same width as with ASCII <
     ("ge"        . ?≥) ;; "GE" takes 2 characters but I want to get the same width as with ASCII >
