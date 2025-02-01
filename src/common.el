@@ -222,12 +222,25 @@ combinations"
 
 ;;;
 
+(defsubst parse-partial-sexp--inside-comment? (state)
+  (elt state 4))
+
+(defsubst parse-partial-sexp--comment-or-string-start (state)
+  (elt state 8))
+
 (defun point-inside-string? (&optional pos)
   "Return non-nil if point is positioned inside a string."
   (declare (pure nil) (side-effect-free t))
   (save-excursion
     (let ((state (syntax-ppss (or pos (point)))))
       (elt state 3))))
+
+(defun ppss-point-inside-comment? (&optional pos)
+  "Return non-nil if point is positioned inside a string."
+  (declare (pure nil) (side-effect-free t))
+  (save-excursion
+    (let ((state (syntax-ppss (or pos (point)))))
+      (parse-partial-sexp--inside-comment? state))))
 
 (defun point-inside-comment? (&optional pos)
   "Return non-nil if point is positioned inside a string."
