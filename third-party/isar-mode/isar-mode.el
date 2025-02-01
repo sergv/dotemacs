@@ -46,12 +46,16 @@
 ;;; Subscripts and superscripts
 
 (defconst isar-control--token-properties
-  `((sub          "Lower"         ,(if (display-graphic-p)
-                                       '(display (raise -0.4))
-                                     '(face (:width ultra-condensed :height 0.8 :slant reverse-italic))))
-    (sup          "Raise"         ,(if (display-graphic-p)
-                                       '(display (raise 0.4))
-                                     '(face (:width ultra-condensed :height 0.8 :slant italic))))
+  `((sub          "Lower"         (display (raise -0.4))
+                  ;; (if (display-graphic-p)
+                  ;;     '(display (raise -0.4))
+                  ;;   '(face (:width ultra-condensed :height 0.8 :slant reverse-italic)))
+                  )
+    (sup          "Raise"         (display (raise 0.4))
+                  ;; (if (display-graphic-p)
+                  ;;     '(display (raise 0.4))
+                  ;;   '(face (:width ultra-condensed :height 0.8 :slant italic)))
+                  )
     (bold         "Bold"          (face (:weight bold)))
     (italic       "Italic"        (face (:slant italic)))
     (big          "Bigger"        (face (:height 1.5)))
@@ -256,12 +260,13 @@ Optional argument OBJECT is the string or buffer containing the text."
                                                                 props))))))))
 
 (defconst isar-control--font-lock-keywords
-  (eval-when-compile
-    (append
-     (--map (isar-control--make-control-char-font-lock-keyword (cl-second it) (cl-third it))
-            isar-control--single-characters)
-     (--map (isar-control--make-control-region-font-lock-keyword (cl-second it) (cl-third it) (cl-fourth it))
-            isar-control--regions))))
+  ;; Don’t eval-when-compile - properties change depending on whether we have
+  ;; graphical display.
+  (append
+   (--map (isar-control--make-control-char-font-lock-keyword (cl-second it) (cl-third it))
+          isar-control--single-characters)
+   (--map (isar-control--make-control-region-font-lock-keyword (cl-second it) (cl-third it) (cl-fourth it))
+          isar-control--regions)))
 
 (defvar-local isar-control--current-symbol-bounds nil)
 
@@ -682,15 +687,15 @@ Optional argument OBJECT is the string or buffer containing the text."
   :group 'lsp-isar-sem)
 
 (defconst isar-font-lock-keywords
-  (eval-when-compile
-    (append
+  (append
+   (eval-when-compile
      (list
       ;; (cons isar-tactics 'isar-tactics-face)
       `(,isar-keyword1 0 'isar-keyword1-face)
       `(,isar-keyword2 0 'isar-keyword2-face)
       `(,isar-keyword3 0 'isar-keyword3-face)
-      `(,isar-minor    0 'isar-minor-face))
-     isar-control--font-lock-keywords))
+      `(,isar-minor    0 'isar-minor-face)))
+   isar-control--font-lock-keywords)
   "Default highlighting expressions for isar mode")
 
 ;;; Syntax table
