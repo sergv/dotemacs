@@ -842,7 +842,7 @@
                                             ;; :background ,orange
                                             )
       (lsp-isar-font-background-running1 :background ,yellow)
-      (lsp-isar-font-background-bad :overline ,red)
+      (lsp-isar-font-background-bad :underline (:style wave :color ,red))
 
       (lsp-isar-font-background-intensify :foreground ,orange)
       (lsp-isar-font-background-quoted :inherit default :bold t)
