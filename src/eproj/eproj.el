@@ -349,6 +349,14 @@
     :parse-tags-procedure nil
     :show-tag-kind-procedure #'eproj/generic-tag-kind
     :tag->string-func #'eproj/generic-tag->string
+    :tag->signature-func #'eproj/extract-tag-line)
+   (mk-eproj-lang
+    :mode 'isar-mode
+    :extensions '("thy")
+    :create-tags-procedure nil
+    :parse-tags-procedure nil
+    :show-tag-kind-procedure #'eproj/generic-tag-kind
+    :tag->string-func #'eproj/generic-tag->string
     :tag->signature-func #'eproj/extract-tag-line)))
 
 (defvar eproj/languages-table
