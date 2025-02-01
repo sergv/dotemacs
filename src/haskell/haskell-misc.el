@@ -345,7 +345,11 @@ _#-}_: on pragma close"
       ((or (save-excursion
              (beginning-of-line)
              (looking-at-p haskell-regexen/options-ghc-pragma-prefix))
-           (and (eq (get-char-property (point) 'face) 'haskell-pragma-face)
+           (and (cond
+                  ((derived-mode-p 'haskell-mode)
+                   (eq (get-char-property (point) 'face) 'haskell-pragma-face))
+                  ((derived-mode-p 'haskell-ts-mode)
+                   (string= "pragma" (treesit-node-type (treesit-node-at (point))))))
                 (save-excursion
                   (re-search-backward haskell-regexen/pragma-start nil t)
                   (looking-at-p haskell-regexen/options-ghc-pragma-prefix))))
