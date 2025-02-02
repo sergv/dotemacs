@@ -182,6 +182,7 @@
         (cons 'slime-repl-mode #'vim-normal-mode)
         (cons 'slime-xref-mode nil)
         (cons 'text-mode #'vim-normal-mode)
+        (cons 'lsp-log-io-mode #'vim-normal-mode)
         (cons 'undo-tree-visualizer-mode nil)
         (cons 'xref--xref-buffer-mode nil))
   "Associated list of (major-mode . vim:mode) which specifies the
