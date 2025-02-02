@@ -112,14 +112,14 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
                     ""))
         "!error: no lines in the block!"))))
 
-(defun egrep--find-matches (regexp exts-globs ignored-files-globs root ignore-case)
+(defun egrep--find-matches (regexp exts-globs ignored-files-globs root ignore-case ignored-abs-dirs)
   (pcase egrep-backend
     (`native
-     (egrep--find-matches--native regexp exts-globs ignored-files-globs root ignore-case))
+     (egrep--find-matches--native regexp exts-globs ignored-files-globs root ignore-case ignored-abs-dirs))
     (`elisp
-     (egrep--find-matches--elisp regexp exts-globs ignored-files-globs root ignore-case))))
+     (egrep--find-matches--elisp regexp exts-globs ignored-files-globs root ignore-case ignored-abs-dirs))))
 
-(defun egrep--find-matches--native (regexp globs-to-find ignored-files-globs root ignore-case)
+(defun egrep--find-matches--native (regexp globs-to-find ignored-files-globs root ignore-case ignored-abs-dirs)
   (save-some-buffers)
   (let ((matches
          (haskell-native-grep
@@ -129,7 +129,7 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
           ignored-files-globs
           +ignored-directories+
           +ignored-directory-prefixes+
-          nil
+          ignored-abs-dirs
           ignore-case)))
     (cl-assert (listp matches))
     (when (or (null matches)
@@ -139,14 +139,15 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
              (mapconcat #'identity globs-to-find ", ")))
     matches))
 
-(defun egrep--find-matches--elisp (regexp exts-globs ignored-files-globs root ignore-case)
+(defun egrep--find-matches--elisp (regexp exts-globs ignored-files-globs root ignore-case ignored-abs-dirs)
   (save-match-data
     (let* ((files (find-rec*
                    :root root
                    :globs-to-find exts-globs
                    :ignored-files-globs ignored-files-globs
                    :ignored-directories +ignored-directories+
-                   :ignored-directory-prefixes +ignored-directory-prefixes+))
+                   :ignored-directory-prefixes +ignored-directory-prefixes+
+                   :ignored-absolute-dirs ignored-abs-dirs))
            (files-length (length files))
            (should-report-progress? (and (<= 100 files-length) (not noninteractive)))
            (progress-reporter
@@ -290,13 +291,13 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
 
       (select-mode-exit))))
 
-(defun egrep-search (regexp exts-globs ignored-files-globs dir ignore-case)
+(defun egrep-search (regexp exts-globs ignored-files-globs dir ignore-case ignored-abs-dirs)
   "Search for REGEXP in files under directory DIR that match
 FILE-GLOBS and don't match IGNORED-FILE-GLOBS."
   (let* ((get-matches
           (lambda ()
             (let ((matches
-                   (egrep--find-matches regexp exts-globs ignored-files-globs dir ignore-case)))
+                   (egrep--find-matches regexp exts-globs ignored-files-globs dir ignore-case ignored-abs-dirs)))
               (sort (list->vector
                      (remove-duplicates-by-hashing-projections
                       (lambda (match)
@@ -407,11 +408,14 @@ string patterns."
       (and current-prefix-arg
            (<= 4 (first current-prefix-arg))))))
   (cl-assert (listp exts-globs))
+
   (egrep-search (expand-escape-sequences regexp)
                 exts-globs
                 grep-find-ignored-files
                 dir
-                ignore-case))
+                ignore-case
+                (awhen (eproj-get-project-for-buf-lax (current-buffer))
+                  (eproj-thunk-get-value (eproj-project/ignored-dirs it)))))
 
 ;;;###autoload
 (defun egrep-region (str exts-globs dir &optional ignore-case)
