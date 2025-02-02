@@ -586,7 +586,7 @@ panel with CONTENT."
 
 (add-hook 'window-configuration-change-hook #'lsp-isar-output-adapt-to-change)
 
-(modify-coding-system-alist 'file "*lsp-isar-output*" 'utf-8-auto)
+(modify-coding-system-alist 'file "*lsp-isar-output*" 'utf-8)
 
 (provide 'lsp-isar-output)
 
