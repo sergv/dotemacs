@@ -117,6 +117,7 @@
        ("not"      . "not")
        ("emptyset" . "emptySet")
        ("in"       . "elem")
+       ("notin"    . "notElem")
        ("subseteq" . "isSubsetOf")
 
        ;; These two should be taller than n-ary conjunction character (?⋀)
