@@ -1364,7 +1364,7 @@ projects into the mix."
 (defun eproj--get-ignored-files (root aux-info)
   (cl-assert (stringp root))
   (--map (replace-regexp-in-string "[$]{eproj-root}" root it)
-         (cdr-safe (assq 'ignored-files aux-info))))
+         (eproj-project/query-aux-info-entry aux-info 'ignored-files)))
 
 (defmacro eproj-resolve-to-abs-path (path proj)
   `(if (file-name-absolute-p ,path)
