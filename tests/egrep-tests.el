@@ -67,7 +67,7 @@
   (should
    (equal (cl-map 'vector
                   #'egrep-tests--normalise-egrep-match
-                  (egrep--find-matches regexp '("*.c") nil egrep-tests/project-dir nil))
+                  (egrep--find-matches regexp '("*.c") nil egrep-tests/project-dir nil nil))
           (cl-map 'vector
                   #'egrep-tests--normalise-egrep-match
                   (vconcat egrep-tests--bar-matches egrep-tests--foo-matches)))))
@@ -77,7 +77,7 @@
     "hello"
     "hello"
   (should-error
-   (egrep--find-matches regexp '("*.c") '("*.c") egrep-tests/project-dir nil)))
+   (egrep--find-matches regexp '("*.c") '("*.c") egrep-tests/project-dir nil nil)))
 
 (grep-tests--define-tests "egrep-tests-ignore-file-globs-work/%s"
     regexp
@@ -86,7 +86,7 @@
   (should
    (equal (cl-map 'vector
                   #'egrep-tests--normalise-egrep-match
-                  (egrep--find-matches regexp '("*.c") '("*src/*") egrep-tests/project-dir t))
+                  (egrep--find-matches regexp '("*.c") '("*src/*") egrep-tests/project-dir t nil))
           (cl-map 'vector
                   #'egrep-tests--normalise-egrep-match
                   egrep-tests--bar-matches))))
@@ -98,7 +98,7 @@
   (should
    (equal (cl-map 'vector
                   #'egrep-tests--normalise-egrep-match
-                  (egrep--find-matches regexp '("*.c") nil egrep-tests/project-dir t))
+                  (egrep--find-matches regexp '("*.c") nil egrep-tests/project-dir t nil))
           (cl-map 'vector
                   #'egrep-tests--normalise-egrep-match
                   (vconcat egrep-tests--bar-matches egrep-tests--foo-matches)))))
