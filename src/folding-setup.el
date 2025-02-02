@@ -168,6 +168,8 @@ Original match data is restored upon return."
             (trim-whitespace-right (regexp-quote comment-start)))
            ((memq major-mode '(bkr-mode select-mode text-mode flycheck-error-message-mode))
             "\\(?:#\\|//\\)")
+           ((memq major-mode '(lsp-log-io-mode))
+            "\\(?:#\\)")
            (t
             (error "Mode %s has no comment format defined for hideshow to use"
                    mode-name)))))
