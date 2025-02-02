@@ -385,6 +385,24 @@ _l_ens                             %`lsp-lens-mode
   ("h" lsp-toggle-symbol-highlight)
   ("l" lsp-lens-mode))
 
+;;;###autoload
+(defun lsp-log-io-setup ()
+  (init-common :use-yasnippet nil
+               :use-comment   nil
+               :use-fci       nil
+               :enable-backup nil
+               :typography    nil
+               :smerge        nil)
+  (setq-local hs-allow-nesting t)
+  (setup-indent-size 2)
+  (setup-hideshow-yafolding t nil))
+
+;; Evaluate to enable log collection.
+;; (setf lsp-log-io t)
+
+;;;###autoload
+(add-hook 'lsp-log-io-mode-hook #'lsp-log-io-setup)
+
 (provide 'lsp-setup)
 
 ;; Local Variables:
