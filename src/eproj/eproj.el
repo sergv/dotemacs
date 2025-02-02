@@ -21,6 +21,7 @@
 ;;                             Can use ${eproj-root} variable which points to
 ;;                             the directory of the .eproj-info file, without
 ;;                             trailing slash.
+;; [(ignored-dirs <abs-or-rel-dir>*) - list of directories to never descend into.
 ;; [(file-list <abs-or-rel-file>)] - filename listing all files on on each line
 ;; [(extra-navigation-files <glob>+)] - more files to include into navigation via `eproj-switch-to-file-or-buffer'.
 ;;
@@ -409,6 +410,8 @@ get proper flycheck checker."
   (cached-file-list      nil)
   ;; List of absolute filename globs to ignore in current project.
   (ignored-files-globs   nil :read-only t)
+  ;; Thunk producing list of absolute directory paths to not descend into in current project.
+  (ignored-dirs          nil :read-only t)
   ;; list of files, if specified in aux-info via 'file-list
   (file-list-filename    nil :read-only t)
   ;; boolean, whether to cache tags, list of files, list of navigation files for this project in files
@@ -455,7 +458,7 @@ get proper flycheck checker."
          nil)
         ((memq (car entry) '(languages no-default-proj authoritative-tag-source-for))
          (-all? #'symbolp (cdr entry)))
-        ((memq (car entry) '(related ignored-files))
+        ((memq (car entry) '(related ignored-files ignored-dirs))
          (-all? #'stringp (cdr entry)))
         ((memq (car entry) '(file-list tag-file build-dir indent-style))
          (and (= (length entry) 2)
@@ -695,6 +698,7 @@ cache tags in."
     related
     aux-files
     ignored-files
+    ignored-dirs
     file-list
     extra-navigation-files
     create-cache-files
@@ -755,6 +759,8 @@ for project at ROOT directory."
                         nil)))
          (ignored-files-globs
           (eproj--get-ignored-files root aux-info))
+         (ignored-dirs
+          (eproj-project/query-aux-info-entry aux-info 'ignored-dirs))
          (file-list-filename
           (awhen (eproj-project/query-aux-info aux-info 'file-list)
             (let ((fname (eproj--resolve-to-abs-path-cached it root)))
@@ -783,24 +789,27 @@ for project at ROOT directory."
     (cl-assert (-all? #'stringp extra-navigation-globs))
     (cl-assert (-all? #'symbolp no-default-project-for))
     (let ((proj
-           (make-eproj-project :root root
-                               :aux-info aux-info
-                               :aux-files-entries (cdr-safe (assq 'aux-files aux-info))
-                               :tags nil
-                               :related-projects related-projects
-                               :languages languages
-                               :cached-file-list nil
-                               :ignored-files-globs ignored-files-globs
-                               :file-list-filename file-list-filename
-                               :create-cache-files create-cache-files
-                               :tag-file (awhen tag-file
-                                           (eproj--resolve-to-abs-path-cached it root))
-                               :no-default-project-for no-default-project-for
-                               :extra-navigation-globs extra-navigation-globs
-                               :cached-files-for-navigation nil
-                               :transient-files-for-navigation nil
-                               :cached-ignored-files-re cached-ignored-files-re
-                               :authoritative-tag-source-for authoritative-tag-source-for)))
+           (make-eproj-project
+            :root root
+            :aux-info aux-info
+            :aux-files-entries (cdr-safe (assq 'aux-files aux-info))
+            :tags nil
+            :related-projects related-projects
+            :languages languages
+            :cached-file-list nil
+            :ignored-files-globs ignored-files-globs
+            :ignored-dirs (eproj--make-thunk
+                           (--map (eproj--resolve-to-abs-path-cached it root) ignored-dirs))
+            :file-list-filename file-list-filename
+            :create-cache-files create-cache-files
+            :tag-file (awhen tag-file
+                        (eproj--resolve-to-abs-path-cached it root))
+            :no-default-project-for no-default-project-for
+            :extra-navigation-globs extra-navigation-globs
+            :cached-files-for-navigation nil
+            :transient-files-for-navigation nil
+            :cached-ignored-files-re cached-ignored-files-re
+            :authoritative-tag-source-for authoritative-tag-source-for)))
       (eproj--prepare-to-load-fresh-tags-lazily-on-demand! proj)
       proj)))
 
