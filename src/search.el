@@ -712,6 +712,38 @@ is assumed to be identifier at point.")
   :regex-end-func #'search-for-ghc-core-symbol-at-point-regex-end-func
   :error-message "No symbol at point")
 
+;;;###autoload (autoload 'search-for-nix-symbol-at-point-forward "search" nil t)
+;;;###autoload (autoload 'search-for-nix-symbol-at-point-forward-new-color "search" nil t)
+(search--make-search-for-thing
+    search-for-nix-symbol-at-point-forward
+    search-for-nix-symbol-at-point-forward-new-color
+    (bounds-of-thing-at-point 'nix-symbol)
+    (lambda (x) `(search--next-impl ,x))
+  :is-forward t
+  ;; nix-mode’s symbol table is botched: syntax of ‘'’ quote character is not symbol
+  ;; constituent but it can be part of symbol and there are no text properties to
+  ;; rectify it. We want to be able to search for ‘foo'’ so cannot us eregular
+  ;; symbol bounds here.
+  :regex-start-func (constantly "")
+  :regex-end-func (constantly "")
+  :error-message "No symbol at point")
+
+;;;###autoload (autoload 'search-for-nix-symbol-at-point-backward "search" nil t)
+;;;###autoload (autoload 'search-for-nix-symbol-at-point-backward-new-color "search" nil t)
+(search--make-search-for-thing
+    search-for-nix-symbol-at-point-backward
+    search-for-nix-symbol-at-point-backward-new-color
+    (bounds-of-thing-at-point 'nix-symbol)
+    (lambda (x) `(search--prev-impl ,x))
+  :is-forward nil
+  ;; nix-mode’s symbol table is botched: syntax of ‘'’ quote character is not symbol
+  ;; constituent but it can be part of symbol and there are no text properties to
+  ;; rectify it. We want to be able to search for ‘foo'’ so cannot us eregular
+  ;; symbol bounds here.
+  :regex-start-func (constantly "")
+  :regex-end-func (constantly "")
+  :error-message "No symbol at point")
+
 ;; Lispocentric searches
 ;;;###autoload (autoload 'search-for-symbol-at-point-forward "search" nil t)
 ;;;###autoload (autoload 'search-for-symbol-at-point-forward-new-color "search" nil t)
