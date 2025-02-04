@@ -17,8 +17,9 @@
 (require 'ert)
 
 (defconst vim-tests--all-known-modes-and-init
-  (cons '(haskell-hsc-mode (haskell-hsc-mode))
-        tests-utils--modes-and-init))
+  (append '((haskell-hsc-mode (haskell-hsc-mode))
+            (nix-mode (nix-mode)))
+          tests-utils--modes-and-init))
 
 (defmacro vim-tests--enable-undo (&rest body)
   `(let ((buffer-undo-list nil))
@@ -8056,6 +8057,36 @@ _|_bar")
      "_|_\t}"
      "}"
      "")))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (nix-mode)
+    vim-tests/haskell--search-for-nix-symbol-at-point-1
+    (execute-kbd-macro (kbd "*"))
+  (tests-utils--multiline
+   ""
+   "let b_|_ar = 1;"
+   "in bar"
+   "")
+  (tests-utils--multiline
+   ""
+   "let bar = 1;"
+   "in bar_|_"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (nix-mode)
+    vim-tests/haskell--search-for-nix-symbol-at-point-2
+    (execute-kbd-macro (kbd "*"))
+  (tests-utils--multiline
+   ""
+   "let b_|_ar' = 1;"
+   "in bar + bar'"
+   "")
+  (tests-utils--multiline
+   ""
+   "let bar' = 1;"
+   "in bar + bar'_|_"
+   ""))
 
 (provide 'vim-tests)
 
