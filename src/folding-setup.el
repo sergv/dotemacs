@@ -353,10 +353,9 @@ function; and adjust-block-beginning function."
     (yafolding-show-element)))
 
 (vim-defcmd vim:folding-show-all-indented-or-sexp-or-commented ()
-  (if (and hs-minor-mode
-           (folding-outline-on-sexp-or-commented?))
-      (hs-show-all)
-    (yafolding-show-all)))
+  (when hs-minor-mode
+    (hs-show-all))
+  (yafolding-show-all))
 
 (defun folding-outline-on-sexp-or-commented? ()
   (or (when-let (next (char-after))
