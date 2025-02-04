@@ -24,6 +24,26 @@
 (awhen (getenv "EMACS_NIX_STATE_DIR")
   (setf nix-state-dir it))
 
+(defconst nix-misc--bounds-of-symbol--base-word-chars "[:alnum:]_")
+
+(defun nix-misc--bounds-of-symbol-impl ()
+  (save-excursion
+    (let ((init (point)))
+      (skip-chars-backward (eval-when-compile (concat nix-misc--bounds-of-symbol--base-word-chars "-")))
+      (let ((start (point)))
+        (goto-char init)
+        (skip-chars-forward (eval-when-compile (concat nix-misc--bounds-of-symbol--base-word-chars "'-")))
+        (let ((end (point)))
+          (unless (eq start end)
+            (cons start end)))))))
+
+;;;###autoload
+(defun bounds-of-nix-symbol ()
+  (nix-misc--bounds-of-symbol-impl))
+
+;;;###autoload
+(put 'nix-symbol 'bounds-of-thing-at-point #'bounds-of-nix-symbol)
+
 (defun nix-align-generic ()
   (interactive)
   (generic-align-on-equals))
@@ -100,7 +120,14 @@ _a_lign"
     ("C-SPC"                           company-complete)
     ("C-<return>"                      nix--simple-indent-newline-indent)
     ("C-<tab>"                         indent-relative-forward)
-    (("C-S-<tab>" "C-S-<iso-lefttab>") indent-relative-backward)))
+    (("C-S-<tab>" "C-S-<iso-lefttab>") indent-relative-backward))
+
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-visual-mode-local-keymap)
+    ("*"            search-for-nix-symbol-at-point-forward)
+    ("C-*"          search-for-nix-symbol-at-point-forward-new-color)
+    ("#"            search-for-nix-symbol-at-point-backward)
+    ("C-#"          search-for-nix-symbol-at-point-backward-new-color)))
 
 ;;;###autoload
 (add-hook 'nix-mode-hook #'nix-setup)
