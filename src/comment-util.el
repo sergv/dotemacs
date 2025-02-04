@@ -467,26 +467,35 @@ be used only for vim-visual-mode of the vim-mode package."
   (skip-to-indentation)
   (let ((middle (point))
         (start (line-beginning-position))
-        (end (line-end-position))
-        tmp)
+        (end (line-end-position)))
     (unless (comment-util-detect-line-comment format)
       (error "Not in commented region"))
     ;; Go back to find the start of commented region.
     (goto-char middle)
-    (while (progn
-             (setf tmp (point))
-             (and (not (bobp))
-                  (comment-util-detect-line-comment format)))
-      (setf start tmp)
-      (forward-line -1))
+    (let ((tmp nil)
+          (continue? t))
+      (while continue?
+        (setf tmp (point))
+        (if (save-excursion (comment-util-detect-line-comment format))
+            (progn
+              (setf start tmp)
+              (if (bobp)
+                  (setf continue? nil)
+                (forward-line -1)))
+          (setf continue? nil))))
     ;; Go forward to find the end of commented region.
     (goto-char middle)
-    (while (progn
-             (setf tmp (point))
-             (and (not (eobp))
-                  (comment-util-detect-line-comment format)))
-      (setf end tmp)
-      (forward-line +1))
+    (let ((tmp nil)
+          (continue? t))
+      (while continue?
+        (setf tmp (point))
+        (if (save-excursion (comment-util-detect-line-comment format))
+            (progn
+              (setf end tmp)
+              (if (eobp)
+                  (setf continue? nil)
+                (forward-line +1)))
+          (setf continue? nil))))
     ;; Fix end position.
     (goto-char end)
     (setf end (line-end-position))
