@@ -178,25 +178,26 @@ See also `indent-relative-maybe'."
 
 Returns t if point moved."
   (cl-assert (functionp on-blank-line-p))
-  (let ((start-indent (indentation-size))
-        (start-col (current-column-fixed)))
-    (cond
-      ((< start-indent start-col)
-       (skip-to-indentation)
-       t)
-      ;; Do not move past 0th column in order to not skip to the
-      ;; beginning of file.
-      ((/= 0 start-indent)
-       ;;(= start-col start-indent)
-       (while (and (not (bobp))
-                   (<= start-indent (indentation-size)))
-         (forward-line -1)
-         (while (funcall on-blank-line-p)
-           (forward-line -1)))
-       (skip-to-indentation)
-       t)
-      (t
-       nil))))
+  (with-ignored-invisibility
+    (let ((start-indent (indentation-size))
+          (start-col (current-column-fixed)))
+      (cond
+        ((< start-indent start-col)
+         (skip-to-indentation)
+         t)
+        ;; Do not move past 0th column in order to not skip to the
+        ;; beginning of file.
+        ((/= 0 start-indent)
+         ;;(= start-col start-indent)
+         (while (and (not (bobp))
+                     (<= start-indent (indentation-size)))
+           (forward-line -1)
+           (while (funcall on-blank-line-p)
+             (forward-line -1)))
+         (skip-to-indentation)
+         t)
+        (t
+         nil)))))
 
 (defun indent-backward-up-indentation-or-sexp (on-blank-line-p)
   "Alternative ‘paredit-backward-up’ that considers both
