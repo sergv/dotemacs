@@ -93,11 +93,7 @@ See also `indent-relative-maybe'."
       (with-disabled-undo
        (with-inhibited-modification-hooks
         (with-inhibited-redisplay
-          (with-expanded-invisible-overlays
-              (max (save-excursion (haskell-move-to-topmost-start)
-                                   (point))
-                   (point-min))
-              (point)
+          (with-ignored-invisibility
             (save-restriction
               (save-excursion
                 (widen)
