@@ -624,12 +624,12 @@ produced by MARKER-INIT and remove marker after BODY finishes."
      (unwind-protect
          (progn
            (dolist (ov (overlays-in ,start ,end))
-             (when (overlay-get ov 'invisible)
+             (awhen (overlay-get ov 'invisible)
                (overlay-put ov 'invisible nil)
-               (push ov invisible-ovs)))
+               (push (cons ov it) invisible-ovs)))
            ,@body)
        (dolist (ov invisible-ovs)
-         (overlay-put ov 'invisible t)))))
+         (overlay-put (car ov) 'invisible (cdr ov))))))
 
 (defmacro with-temporary-file (var prefix suffix contents &rest body)
   "Create temporary file with PREFIX and SUFFIX in it's name (see
