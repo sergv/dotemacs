@@ -201,34 +201,35 @@ Returns t if point moved."
 (defun indent-backward-up-indentation-or-sexp (on-blank-line-p)
   "Alternative ‘paredit-backward-up’ that considers both
 sexps and indentation levels."
-  (let* ((start (point))
-         (via-indentation
-          (with-demoted-errors "Ignoring error: %s"
-            (save-excursion
-              (if (funcall on-blank-line-p)
-                  (progn
-                    (while (and (not (bobp))
-                                (funcall on-blank-line-p))
-                      (forward-line -1))
-                    (skip-to-indentation))
-                (indent-back-up-indent-level on-blank-line-p))
-              (let ((p (point)))
-                (when (/= p start)
-                  p)))))
-         (via-parens
-          (when (/= 0 (syntax-ppss-depth (syntax-ppss start)))
-            (with-demoted-errors "Ignoring error: %s"
-              (save-excursion
-                (paredit-backward-up)
-                (let ((p (point)))
-                  (when (/= p start)
-                    p)))))))
-    (if (and via-indentation
-             via-parens)
-        (goto-char (max via-indentation via-parens))
-      (goto-char (or via-indentation
-                     via-parens
-                     (error "Both indentation-based and sexp-based navigations failed"))))))
+  (with-ignored-invisibility
+   (let* ((start (point))
+          (via-indentation
+           (with-demoted-errors "Ignoring error: %s"
+             (save-excursion
+               (if (funcall on-blank-line-p)
+                   (progn
+                     (while (and (not (bobp))
+                                 (funcall on-blank-line-p))
+                       (forward-line -1))
+                     (skip-to-indentation))
+                 (indent-back-up-indent-level on-blank-line-p))
+               (let ((p (point)))
+                 (when (/= p start)
+                   p)))))
+          (via-parens
+           (when (/= 0 (syntax-ppss-depth (syntax-ppss start)))
+             (with-demoted-errors "Ignoring error: %s"
+               (save-excursion
+                 (paredit-backward-up)
+                 (let ((p (point)))
+                   (when (/= p start)
+                     p)))))))
+     (if (and via-indentation
+              via-parens)
+         (goto-char (max via-indentation via-parens))
+       (goto-char (or via-indentation
+                      via-parens
+                      (error "Both indentation-based and sexp-based navigations failed")))))))
 
 (provide 'indentation)
 

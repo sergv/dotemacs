@@ -631,6 +631,10 @@ produced by MARKER-INIT and remove marker after BODY finishes."
        (dolist (ov invisible-ovs)
          (overlay-put (car ov) 'invisible (cdr ov))))))
 
+(defmacro with-ignored-invisibility (&rest body)
+  `(let ((buffer-invisibility-spec nil))
+     ,@body))
+
 (defmacro with-temporary-file (var prefix suffix contents &rest body)
   "Create temporary file with PREFIX and SUFFIX in it's name (see
 `make-temp-file' for meaning of these parameters). If CONTENTS is
