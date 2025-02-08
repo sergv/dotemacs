@@ -134,16 +134,6 @@ single indentation unit."
                           haskell-indentation-starter-offset real-offset
                           haskell-indentation-left-offset    real-offset)))
 
-(defmacro haskell-misc--with-expanded-invisible-overlays-in-current-function (&rest body)
-  `(with-expanded-invisible-overlays
-       (max (save-excursion (haskell-move-to-topmost-start)
-                            (point))
-            (point-min))
-       (save-excursion
-         (haskell-move-to-topmost-end)
-         (point))
-     ,@body))
-
 (defun haskell-misc--single-indent ()
   "Return a string for single indentation amount for Haskell."
 -  (make-string vim-shift-width ?\s))
@@ -652,7 +642,7 @@ a single entity."
 (defun haskell-newline-with-signature-expansion ()
   "Similar to ‘paredit-newline’ but autoexpands haskell signatures."
   (interactive "*")
-  (haskell-misc--with-expanded-invisible-overlays-in-current-function
+  (with-ignored-invisibility
    (let* (
           ;; Our regexps distinguish between upper and lower case so it’s
           ;; importent to be case-sensitive during searches.
@@ -1175,14 +1165,14 @@ value section should have if it is to be properly indented."
                                             haskell-indentation-indent-line-expand-yafolding
                                             activate
                                             compile)
-  (haskell-misc--with-expanded-invisible-overlays-in-current-function
+  (with-ignored-invisibility
    ad-do-it))
 
 (defadvice haskell-indentation-indent-backwards (around
                                                  haskell-indentation-indent-backwards-expand-yafolding
                                                  activate
                                                  compile)
-  (haskell-misc--with-expanded-invisible-overlays-in-current-function
+  (with-ignored-invisibility
    ad-do-it))
 
 (defvar-local haskell-misc--dante-configured? nil
