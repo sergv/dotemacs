@@ -618,6 +618,7 @@ produced by MARKER-INIT and remove marker after BODY finishes."
            ,@body)
        (set-marker ,marker-var nil))))
 
+;; NB consider using ‘with-ignored-invisibility’ first since its more lighter-weight.
 (defmacro with-expanded-invisible-overlays (start end &rest body)
   (declare (indent 2))
   `(let ((invisible-ovs nil))
