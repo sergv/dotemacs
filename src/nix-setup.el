@@ -72,6 +72,31 @@
   (nix--simple-indent-newline-same-col)
   (insert-char ?\s vim-shift-width))
 
+;;;###autoload
+(defun nix-backward-up-indentation-or-sexp ()
+  "Nix brother of ‘paredit-backward-up’ that considers both
+sexps and indentation levels."
+  (interactive)
+  (indent-backward-up-indentation-or-sexp #'indent-on-blank-line?))
+
+(vimmize-motion nix-backward-up-indentation-or-sexp
+                :name vim:nix-backward-up-indentation-or-sexp
+                :exclusive t
+                :unadjusted t
+                :raw-result t)
+
+;;;###autoload
+(defun nix-up-sexp ()
+  "Nix brother of ‘paredit-forward-up’ that considers only sexps for now."
+  (interactive)
+  (paredit-forward-up))
+
+(vimmize-motion nix-up-sexp
+                :name vim:nix-up-sexp
+                :exclusive t
+                :unadjusted t
+                :raw-result t)
+
 (defhydra-ext hydra-nix-align (:exit t :foreign-keys nil :hint nil)
   "
 _a_: generic
@@ -127,7 +152,14 @@ _a_lign"
     ("*"            search-for-nix-symbol-at-point-forward)
     ("C-*"          search-for-nix-symbol-at-point-forward-new-color)
     ("#"            search-for-nix-symbol-at-point-backward)
-    ("C-#"          search-for-nix-symbol-at-point-backward-new-color)))
+    ("C-#"          search-for-nix-symbol-at-point-backward-new-color))
+
+  (def-keys-for-map (vim-normal-mode-local-keymap
+                     vim-visual-mode-local-keymap
+                     vim-motion-mode-local-keymap
+                     vim-operator-pending-mode-local-keymap)
+    ("'" vim:nix-backward-up-indentation-or-sexp:interactive)
+    ("q" vim:haskell-up-sexp:interactive)))
 
 ;;;###autoload
 (add-hook 'nix-mode-hook #'nix-setup)
