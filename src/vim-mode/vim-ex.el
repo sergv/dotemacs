@@ -336,8 +336,8 @@ argument handler. Gets called on every minibuffer change."
   (cmd    nil :read-only t) ;; the string for the command itself
   (spaces nil :read-only t) ;; the string containing the spaces between the command and the argument
   (arg    nil :read-only t)
-  (beg    nil :read-only t) ;; the start line of the range
-  (end    nil :read-only t) ;; the end line of the range
+  (beg    nil :read-only t) ;; the start position (point + line) of the range
+  (end    nil :read-only t) ;; the end position (point + line) of the range
   (force  nil :read-only t) ;; t iff the command was followed by an exclamation mark
   )
 
@@ -351,11 +351,13 @@ with the following meanings.
   `range' is the string containing the command's range
   `cmd' is the string for the command itself
   `spaces' is the string containing the spaces between the command and the argument
-  `beg' is the start line of the range
-  `end' is the end line of the range
+  `beg' is the start position (point + line) of the range
+  `end' is the end position (point + line) of the range
   `force' is t iff the command was followed by an exclamation mark"
   (save-match-data
     (cl-multiple-value-bind (cmd-region beg end force) (vim-ex--parse cmdline)
+      (cl-assert (or (null beg) (vim-ex-position-p beg)))
+      (cl-assert (or (null end) (vim-ex-position-p end)))
       (if (null cmd-region)
           (make-vim-ex-command
            :range  cmdline
@@ -578,32 +580,31 @@ has been pressed."
   "Called to execute the current command."
   (let* ((cmd        (vim-ex-command-cmd split))
          (arg        (vim-ex-command-arg split))
-         (start-line (vim-ex-command-beg split))
-         (end-line   (vim-ex-command-end split))
+         (start      (vim-ex-command-beg split))
+         (end        (vim-ex-command-end split))
          (force      (vim-ex-command-force split)))
     (setf vim-ex--cmd cmd
           cmd (vim-ex--binding cmd)
           arg (vim-ex--strip-ex-info arg))
     (let ((motion (when (eq (vim--cmd-type cmd) 'complex)
                     (cond
-                      ((and start-line end-line)
-                       (vim-make-motion :begin (save-excursion
-                                                 (goto-line-dumb start-line)
-                                                 (line-beginning-position))
-                                        :end (save-excursion
-                                               (goto-line-dumb end-line)
-                                               (line-beginning-position))
+                      ((and start end)
+                       (vim-make-motion :begin (vim-ex-position-point start)
+                                        :end (vim-ex-position-point end)
                                         :has-begin t
-                                        :type 'linewise))
-                      (start-line
-                       (let ((beg-pos (save-excursion
-                                        (goto-line-dumb start-line)
-                                        (line-beginning-position))))
-                         (vim-make-motion :begin beg-pos
-                                          :end beg-pos
+                                        :type (if (and (vim-ex-position-linewise? start)
+                                                       (vim-ex-position-linewise? end))
+                                                  'linewise
+                                                'inclusive)))
+                      (start
+                       (let ((pos (vim-ex-position-point start)))
+                         (vim-make-motion :begin pos
+                                          :end pos
                                           :has-begin t
                                           :type 'linewise))))))
-          (count (and (not end-line) start-line)))
+          (count (when (and (not end) start)
+                   ;; Line serves as number of repeats here.
+                   (vim-ex-position-line start))))
       (when (zerop (length arg))
         (setq arg nil))
       (cond
@@ -615,7 +616,7 @@ has been pressed."
                   motion ;; motion
                   ;; count
                   (when (eq (vim--cmd-type cmd) 'simple)
-                    (when end-line
+                    (when end
                       (error "Command does not take a range: %s" vim-ex--cmd))
                     (or count
                         (and arg
@@ -625,8 +626,9 @@ has been pressed."
                   force ;; force
                   nil   ;; register
                   ))
-        (start-line
-         (vim:motion-go-to-first-non-blank-beg:wrapper :count (or end-line start-line)))
+        (start
+         (vim:motion-go-to-first-non-blank-beg:wrapper
+          :count (vim-ex-position-line (or end start))))
         (t
          (error "Unknown command: %s" (if (zerop (length vim-ex--cmd))
                                           split
@@ -767,47 +769,86 @@ the offset and the new position."
   "Must be called from within ex buffer."
   (with-current-buffer vim-ex--current-buffer
     (when start
-      (setq start (vim-ex--get-line start)))
+      (setq start (vim-ex--translate-address start)))
     (when (and sep end)
+      (cl-assert (not (null start)))
       (save-excursion
-        (when (= sep ?\;)
-          (goto-line-dumb start))
-        (setq end (vim-ex--get-line end))))
+        (when (eq sep ?\;)
+          (goto-char (vim-ex-position-point start)))
+        (setq end (vim-ex--translate-address end))))
     (values start end)))
 
-(defun vim-ex--get-line (address)
+(cl-defstruct vim-ex-position
+  (point     nil :read-only t)
+  (line      nil :read-only t)
+  (linewise? nil :read-only t))
+
+(defun vim-ex--mk-position (pos linewise?)
+  (make-vim-ex-position :point pos
+                        :line (line-number-at-pos pos)
+                        :linewise? linewise?))
+
+;; todo: switch to working on points so that ex ‘!’ command does not have to work
+;; on whole lines and can take half of line in the middle.
+(defun vim-ex--translate-address (address)
   (let ((base (car address))
         (offset (cdr address)))
     (cond
       ((null base) nil)
       ((consp offset)
-       (let ((line (vim-ex--get-line (car address))))
-         (when line
+       (let ((position (vim-ex--translate-address (car address))))
+         (when position
            (save-excursion
-             (goto-line-dumb line)
-             (vim-ex--get-line (cdr address))))))
+             (goto-char (vim-ex-position-point position))
+             (vim-ex--translate-address (cdr address))))))
       (t
-       (+ offset
-          ;; NB car-safe is essential here to ignore non-lists
-          (pcase (or (car-safe base) base)
-            (`abs (cdr base))
-            ;; TODO: (1- ...) may be wrong if the match is the empty string
-            (`re-fwd (save-excursion
-                       (beginning-of-line 2)
-                       (and (re-search-forward (cdr base))
-                            (line-number-at-pos (1- (match-end 0))))))
-            (`re-bwd (save-excursion
-                       (beginning-of-line 0)
-                       (and (re-search-backward (cdr base))
-                            (line-number-at-pos (match-beginning 0)))))
-            (`current-line        (line-number-at-pos (point)))
-            (`first-line          (line-number-at-pos (point-min)))
-            (`last-line           (line-number-at-pos (point-max)))
-            (`mark                (line-number-at-pos (vim-get-local-mark (cadr base))))
-            (`next-of-prev-search (error "Next-of-prev-search not yet implemented"))
-            (`prev-of-prev-search (error "Prev-of-prev-search not yet implemented"))
-            (`next-of-prev-subst  (error "Next-of-prev-subst not yet implemented"))
-            (_                    (error "Invalid address: %s" address))))))))
+       (cl-assert (numberp offset))
+       (let ((position
+              ;; NB car-safe is essential here to ignore non-lists
+              (pcase (or (car-safe base) base)
+                (`abs (save-excursion
+                        (let ((line (cdr base)))
+                          (goto-line-dumb line)
+                          (cons (line-beginning-position) line))))
+                ;; TODO: (1- ...) may be wrong if the match is the empty string
+                (`re-fwd (save-excursion
+                           (beginning-of-line 2)
+                           (when (re-search-forward (cdr base))
+                             (vim-ex--mk-position (1- (match-end 0)) t))))
+                (`re-bwd (save-excursion
+                           (beginning-of-line 0)
+                           (when (re-search-backward (cdr base))
+                             (vim-ex--mk-position (match-beginning 0) t))))
+                (`current-line        (vim-ex--mk-position (point) t))
+                (`first-line          (vim-ex--mk-position (point-min) t))
+                (`last-line           (vim-ex--mk-position (point-max) t))
+                (`mark                (let* ((m (cadr base))
+                                             (pos (vim-get-local-mark m)))
+                                        (vim-ex--mk-position pos
+                                                             (if (memq m '(?\< ?\>))
+                                                                 (pcase vim-visual--mode-type
+                                                                  (`normal   nil)
+                                                                  (`linewise t)
+                                                                  (`block    t)
+                                                                  (_
+                                                                   (error "Invalid visual mode type: ‘%s’"
+                                                                          vim-visual--mode-type)))
+                                                               t))))
+                (`next-of-prev-search (error "Next-of-prev-search not yet implemented"))
+                (`prev-of-prev-search (error "Prev-of-prev-search not yet implemented"))
+                (`next-of-prev-subst  (error "Next-of-prev-subst not yet implemented"))
+                (_                    (error "Invalid address: %s" address)))))
+         (if (zerop offset)
+             position
+           (save-excursion
+             (let ((new-line (+ offset
+                                (vim-ex-position-line position))))
+               (goto-line-dumb new-line)
+               (make-vim-ex-position :point (line-beginning-position)
+                                     :line new-line
+                                     ;; Moving by offset erases position within line so switch
+                                     ;; to linewise unconditionally.
+                                     :linewise? t)))))))))
 
 (defconst vim-ex--prompt ">"
   "Prompt shape for ex mode.")
