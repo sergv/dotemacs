@@ -381,19 +381,19 @@ e.g. whether regexp is malformed, not matched, etc.")
                    (vim--construct-substitute-pattern pattern
                                                       (string->list flag-str)))))
             (setf vim-substitute-face-replacement replacement)
+            (cl-assert (or (null vim-ex--range) (consp vim-ex--range)))
             (vim-hl-set-region 'vim-substitute-face
                                ;; first line
-                               (if (car-safe vim-ex--range)
-                                   (save-excursion
-                                     (goto-line-dumb (car vim-ex--range))
-                                     (line-beginning-position))
+                               (if-let* ((r vim-ex--range)
+                                         (pos (car vim-ex--range)))
+                                   (vim-ex-position-point pos)
                                  (line-beginning-position))
                                ;; last line
-                               (if (car-safe vim-ex--range)
-                                   (save-excursion
-                                     (goto-line-dumb (or (cdr vim-ex--range)
-                                                     (car vim-ex--range)))
-                                     (line-end-position))
+                               (if-let* ((r vim-ex--range)
+                                         (pos (aif (cdr r)
+                                                  it
+                                                (car r))))
+                                   (vim-ex-position-point pos)
                                  (line-end-position)))
             (vim-hl-change 'vim-substitute-face substitute-pattern)))))))
 
