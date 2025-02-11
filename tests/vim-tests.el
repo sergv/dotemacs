@@ -7991,14 +7991,13 @@ _|_bar")
    ""
    "")
   (tests-utils--multiline
-   (tests-utils--multiline
    "\"\""
    "\"\""
    "\"\""
    "\"foo\""
    "\"\""
    "\"\"_|_"
-   "")))
+   ""))
 
 (ert-deftest vim-tests/indent-region/c-mode-1 ()
   (vim-tests--test-fresh-buffer-contents-init
@@ -8086,6 +8085,94 @@ _|_bar")
    ""
    "let bar' = 1;"
    "in bar + bar'_|_"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands-all-known-inits
+    vim-tests/shell-command-on-region-1a
+  ((default (execute-kbd-macro (kbd "v E s ! e c h o SPC - n SPC q u u x <return>"))))
+  ((a
+    (tests-utils--multiline
+     "foo _|_bar baz")))
+  (tests-utils--multiline
+   "foo _|_quux baz"))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands-all-known-inits
+    vim-tests/shell-command-on-region-1b
+  ((default (execute-kbd-macro (kbd "v E s ! e c h o SPC - n SPC q u u x <return>"))))
+  ((a
+    (tests-utils--multiline
+     ""
+     "foo _|_bar baz")))
+  (tests-utils--multiline
+   ""
+   "foo _|_quux baz"))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands-all-known-inits
+    vim-tests/shell-command-on-region-1c
+  ((default (execute-kbd-macro (kbd "v E s ! e c h o SPC - n SPC q u u x <return>"))))
+  ((a
+    (tests-utils--multiline
+     "foo _|_bar baz"
+     "")))
+  (tests-utils--multiline
+   "foo _|_quux baz"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands-all-known-inits
+    vim-tests/shell-command-on-region-1d
+  ((default (execute-kbd-macro (kbd "v E s ! e c h o SPC - n SPC q u u x <return>"))))
+  ((a
+    (tests-utils--multiline
+     ""
+     "foo _|_bar baz"
+     "")))
+  (tests-utils--multiline
+   ""
+   "foo _|_quux baz"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands-all-known-inits
+    vim-tests/shell-command-on-region-2a
+  ((default (execute-kbd-macro (kbd "V s ! e c h o SPC - n SPC q u u x <return>"))))
+  ((a
+    (tests-utils--multiline
+     "foo _|_bar baz")))
+  (tests-utils--multiline
+   "_|_quux"))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands-all-known-inits
+    vim-tests/shell-command-on-region-2b
+  ((default (execute-kbd-macro (kbd "V s ! e c h o SPC - n SPC q u u x <return>"))))
+  ((a
+    (tests-utils--multiline
+     ""
+     "foo _|_bar baz")))
+  (tests-utils--multiline
+   ""
+   "_|_quux"))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands-all-known-inits
+    vim-tests/shell-command-on-region-2c
+  ((default (execute-kbd-macro (kbd "V s ! e c h o SPC - n SPC q u u x <return>"))))
+  ((a
+    (tests-utils--multiline
+     "foo _|_bar baz"
+     "")))
+  (tests-utils--multiline
+   "_|_quux"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands-all-known-inits
+    vim-tests/shell-command-on-region-2d
+  ((default (execute-kbd-macro (kbd "V s ! e c h o SPC - n SPC q u u x <return>"))))
+  ((a
+    (tests-utils--multiline
+     ""
+     "foo _|_bar baz"
+     "")))
+  (tests-utils--multiline
+   ""
+   "_|_quux"
    ""))
 
 (provide 'vim-tests)
