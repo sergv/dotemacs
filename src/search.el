@@ -741,7 +741,7 @@ is assumed to be identifier at point.")
   ;; constituent but it can be part of symbol and there are no text properties to
   ;; rectify it. We want to be able to search for ‘foo'’ so cannot us eregular
   ;; symbol bounds here.
-  :regex-start-func (constantly "")
+  :regex-start-func (constantly "\\_<")
   :regex-end-func #'search-for-nix-symbol-at-point-regex-end-func
   :error-message "No symbol at point"
   :syntax-table nix-search-fixed-syntax-table)
@@ -758,7 +758,7 @@ is assumed to be identifier at point.")
   ;; constituent but it can be part of symbol and there are no text properties to
   ;; rectify it. We want to be able to search for ‘foo'’ so cannot us eregular
   ;; symbol bounds here.
-  :regex-start-func (constantly "")
+  :regex-start-func (constantly "\\_<")
   :regex-end-func #'search-for-nix-symbol-at-point-regex-end-func
   :error-message "No symbol at point"
   :syntax-table nix-search-fixed-syntax-table)
