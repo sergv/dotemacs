@@ -2045,7 +2045,9 @@ Directories come first."
                  (error (directory-files
                          dir nil directory-files-no-dot-files-regexp))))))
     (when sort-fn
-      (setq seq (sort seq :lessp sort-fn :in-place t)))
+      (setq seq (if (eval-when-compile (<= 30 emacs-major-version))
+                    (sort seq :lessp sort-fn :in-place t)
+                  (sort seq sort-fn))))
     (dolist (extra ivy-extra-directories)
       (push extra seq))
     (if (string= dir "/")
