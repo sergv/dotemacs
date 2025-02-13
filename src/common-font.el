@@ -14,7 +14,12 @@
          ((stringp current-font)
           (string-match-p "Iosevka Slab Lig" current-font))
          ((fontp current-font)
-          (string-match-p "Iosevka Slab Lig" (font-get current-font :name)))
+          (let ((name (font-get current-font :name))
+                (family (font-get current-font :family)))
+            (or (when (stringp name)
+                  (string-match-p "Iosevka Slab Lig" name))
+                (when (stringp family)
+                  (string-match-p "Iosevka Slab Lig" family)))))
          (t
           (error "Invalid current font: %s" current-font)))))
 
