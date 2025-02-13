@@ -636,6 +636,59 @@
   "        = action n *> go (n + 1)"))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-where-3
+ :contents
+ (tests-utils--multiline
+  "foo x = bar x"
+  "  where"
+  "     _|_-- Bar"
+  "    bar y = y")
+ :expected-value
+ (tests-utils--multiline
+  "foo x = bar x"
+  "  where"
+  "    _|_-- Bar"
+  "    bar y = y"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-where-4a
+ :contents
+ (tests-utils--multiline
+  "foo x = baz $ bar x"
+  "  where"
+  "    -- Bar"
+  "    bar y = y"
+  "     _|_-- Baz"
+  "    baz z = z")
+ :expected-value
+ (tests-utils--multiline
+  "foo x = baz $ bar x"
+  "  where"
+  "    -- Bar"
+  "    bar y = y"
+  "    _|_-- Baz"
+  "    baz z = z"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-where-4b
+ :contents
+ (tests-utils--multiline
+  "foo x = baz $ bar x"
+  "  where"
+  "    -- Bar"
+  "    bar y = y"
+  "   _|_-- Baz"
+  "    baz z = z")
+ :expected-value
+ (tests-utils--multiline
+  "foo x = baz $ bar x"
+  "  where"
+  "    -- Bar"
+  "    bar y = y"
+  "    _|_-- Baz"
+  "    baz z = z"))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-let-1
  :contents
  (tests-utils--multiline
