@@ -16,6 +16,7 @@
 ;;; Code:
 
 (require 'current-column-fixed)
+(require 'nix-syntax-table)
 
 (require 'nix)
 (require 'nix-format)
@@ -171,26 +172,6 @@ KEYWORDS a list of strings to match as Nix keywords."
 (defvar nix-mode-abbrev-table
   (make-abbrev-table)
   "Abbrev table for Nix mode.")
-
-(defvar nix-mode-syntax-table
-  (let ((table (make-syntax-table)))
-    (modify-syntax-entry ?/ ". 14" table)
-    (modify-syntax-entry ?* ". 23" table)
-    (modify-syntax-entry ?# "< b" table)
-    (modify-syntax-entry ?\n "> b" table)
-    (modify-syntax-entry ?_ "_" table)
-    (modify-syntax-entry ?. "'" table)
-    (modify-syntax-entry ?- "_" table)
-    (modify-syntax-entry ?' "'" table)
-    (modify-syntax-entry ?= "." table)
-    (modify-syntax-entry ?< "." table)
-    (modify-syntax-entry ?> "." table)
-    ;; We handle strings
-    (modify-syntax-entry ?\" "." table)
-    ;; We handle escapes
-    (modify-syntax-entry ?\\ "." table)
-    table)
-  "Syntax table for Nix mode.")
 
 (defun nix--syntax-match-antiquote (limit)
   "Find antiquote within a Nix expression up to LIMIT."
