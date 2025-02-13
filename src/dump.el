@@ -87,6 +87,9 @@
 
     (require 'messages-buffer-setup)
 
+    (require 'haskell-syntax-table)
+    (require 'nix-syntax-table)
+
     (require 'company)
     (require 'company-mode-setup)
     (require 'el-patch)

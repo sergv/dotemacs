@@ -28,8 +28,6 @@
 
 (require 'persistent-sessions-global-vars)
 (require 'solarized)
-(require 'haskell-syntax-table)
-(require 'nix-syntax-table)
 
 ;;; utils
 
@@ -282,13 +280,11 @@ Highlighting starts at the beginning of buffer.")
                                     is-forward?
                                     &key
                                     (save-position t)
-                                    (case-sensetive t)
-                                    (syntax-table nil))
+                                    (case-sensetive t))
   "Set up internal search variables for use of `search--next-impl',
 `search--prev-impl' etc for REGEX."
   (search--assign-current-regexp! regex)
-  (setf search-syntax-table syntax-table
-        search--start-marker   (point-marker)
+  (setf search--start-marker   (point-marker)
         search--direction-forward? is-forward?
         search--case-sensetive case-sensetive
         *search-init-buffer*  (current-buffer)
@@ -588,8 +584,7 @@ called in buffer that initiated search."
                                             regex-start-func
                                             regex-end-func
                                             (error-message nil)
-                                            (force-include-bounds-to 'not-provided)
-                                            (syntax-table nil))
+                                            (force-include-bounds-to 'not-provided))
   "BOUNDS-FUNC should return cons pair (START . END), everything else is
 obvious"
   (declare (indent 4))
@@ -602,48 +597,44 @@ obvious"
             `(defun ,name (,count-var)
                "Do search in the specified direction of a text at point (or from currently selected region"
                (interactive "p")
-               (,@(if syntax-table
-                      `(with-syntax-table ,syntax-table)
-                    '(progn))
-                (let* ((,include-bounds?-var ,(if (eq force-include-bounds-to 'not-provided)
-                                                  '(not vim--current-universal-argument-provided?)
-                                                force-include-bounds-to))
-                       (,bounds-var ,get-bounds-expr)
-                       (,substr-var (progn
-                                      ,@(when error-message
-                                          (cl-assert (stringp error-message))
-                                          (list
-                                           `(unless ,bounds-var
-                                              (error ,error-message))))
-                                      (buffer-substring-no-properties
-                                       (car ,bounds-var)
-                                       (cdr ,bounds-var)))))
-                  (vim-save-position)
-                  (goto-char
-                   ,(if is-forward
-                        `(cdr ,bounds-var)
-                      `(car ,bounds-var)))
-                  ,(unless create-reset?
-                     '(search--increment-search-highlight-face-index))
-                  (search--setup-search-for
-                   (if ,include-bounds?-var
-                       (let ((start-raw
-                              (funcall ,regex-start-func ,substr-var))
-                             (end-raw
-                              (funcall ,regex-end-func ,substr-var)))
-                         (concat (if (string= "" start-raw)
-                                     start-raw
-                                   (concat "\\(?:" start-raw "\\)"))
-                                 (regexp-quote ,substr-var)
-                                 (if (string= "" end-raw)
-                                     end-raw
-                                   (concat "\\(?:" end-raw "\\)"))))
-                     (regexp-quote ,substr-var))
-                   ,is-forward
-                   :case-sensetive t
-                   :save-position nil
-                   :syntax-table ,syntax-table)
-                  ,(funcall mk-action-after count-var)))))))
+               (let* ((,include-bounds?-var ,(if (eq force-include-bounds-to 'not-provided)
+                                                 '(not vim--current-universal-argument-provided?)
+                                               force-include-bounds-to))
+                      (,bounds-var ,get-bounds-expr)
+                      (,substr-var (progn
+                                     ,@(when error-message
+                                         (cl-assert (stringp error-message))
+                                         (list
+                                          `(unless ,bounds-var
+                                             (error ,error-message))))
+                                     (buffer-substring-no-properties
+                                      (car ,bounds-var)
+                                      (cdr ,bounds-var)))))
+                 (vim-save-position)
+                 (goto-char
+                  ,(if is-forward
+                       `(cdr ,bounds-var)
+                     `(car ,bounds-var)))
+                 ,(unless create-reset?
+                    '(search--increment-search-highlight-face-index))
+                 (search--setup-search-for
+                  (if ,include-bounds?-var
+                      (let ((start-raw
+                             (funcall ,regex-start-func ,substr-var))
+                            (end-raw
+                             (funcall ,regex-end-func ,substr-var)))
+                        (concat (if (string= "" start-raw)
+                                    start-raw
+                                  (concat "\\(?:" start-raw "\\)"))
+                                (regexp-quote ,substr-var)
+                                (if (string= "" end-raw)
+                                    end-raw
+                                  (concat "\\(?:" end-raw "\\)"))))
+                    (regexp-quote ,substr-var))
+                  ,is-forward
+                  :case-sensetive t
+                  :save-position nil)
+                 ,(funcall mk-action-after count-var))))))
     `(progn
        ,(funcall make-search-func name t)
        ,(funcall make-search-func alt-name nil))))
@@ -655,24 +646,29 @@ obvious"
   "Regexp to add at the begginning of the pattern to be searched. Pattern
 is assumed to be identifier at point.")
 
+;; NB syntax table is provided via ‘search-syntax-table’ by mode-specific setup.
 (defsubst search-for-haskell-symbol-at-point-regex-start-func (pat)
   (if (string-match-p "^[a-zA-Z0-9]" pat)
       haskell-symbol-at-point--left-symbol-bound
     ""))
 
+;; NB syntax table is provided via ‘search-syntax-table’ by mode-specific setup.
 (defsubst search-for-haskell-symbol-at-point-regex-end-func (pat)
   (if (string-match-p "[a-zA-Z0-9]$" pat)
       "\\_>"
     ""))
 
+;; NB syntax table is provided via ‘search-syntax-table’ by mode-specific setup.
 (defsubst search-for-ghc-core-symbol-at-point-regex-start-func (pat)
   (if (string-match-p "^[a-zA-Z0-9$]" pat)
       haskell-symbol-at-point--left-symbol-bound
     ""))
 
+;; NB syntax table is provided via ‘search-syntax-table’ by mode-specific setup.
 (defsubst search-for-ghc-core-symbol-at-point-regex-end-func (pat)
   (search-for-haskell-symbol-at-point-regex-end-func pat))
 
+;; NB syntax table is provided via ‘search-syntax-table’ by mode-specific setup.
 (defsubst search-for-nix-symbol-at-point-regex-end-func (pat)
   "End of symbol anchor for nix symbols."
   (if (string-match-p "'+$" pat)
@@ -689,8 +685,7 @@ is assumed to be identifier at point.")
   :is-forward t
   :regex-start-func #'search-for-haskell-symbol-at-point-regex-start-func
   :regex-end-func #'search-for-haskell-symbol-at-point-regex-end-func
-  :error-message "No symbol at point"
-  :syntax-table haskell-search-fixed-syntax-table)
+  :error-message "No symbol at point")
 
 ;;;###autoload (autoload 'search-for-haskell-symbol-at-point-backward "search" nil t)
 ;;;###autoload (autoload 'search-for-haskell-symbol-at-point-backward-new-color "search" nil t)
@@ -702,8 +697,7 @@ is assumed to be identifier at point.")
   :is-forward nil
   :regex-start-func #'search-for-haskell-symbol-at-point-regex-start-func
   :regex-end-func #'search-for-haskell-symbol-at-point-regex-end-func
-  :error-message "No symbol at point"
-  :syntax-table haskell-search-fixed-syntax-table)
+  :error-message "No symbol at point")
 
 ;;;###autoload (autoload 'search-for-ghc-core-symbol-at-point-forward "search" nil t)
 ;;;###autoload (autoload 'search-for-ghc-core-symbol-at-point-forward-new-color "search" nil t)
@@ -743,8 +737,7 @@ is assumed to be identifier at point.")
   ;; symbol bounds here.
   :regex-start-func (constantly "\\_<")
   :regex-end-func #'search-for-nix-symbol-at-point-regex-end-func
-  :error-message "No symbol at point"
-  :syntax-table nix-search-fixed-syntax-table)
+  :error-message "No symbol at point")
 
 ;;;###autoload (autoload 'search-for-nix-symbol-at-point-backward "search" nil t)
 ;;;###autoload (autoload 'search-for-nix-symbol-at-point-backward-new-color "search" nil t)
@@ -760,8 +753,7 @@ is assumed to be identifier at point.")
   ;; symbol bounds here.
   :regex-start-func (constantly "\\_<")
   :regex-end-func #'search-for-nix-symbol-at-point-regex-end-func
-  :error-message "No symbol at point"
-  :syntax-table nix-search-fixed-syntax-table)
+  :error-message "No symbol at point")
 
 ;; Lispocentric searches
 ;;;###autoload (autoload 'search-for-symbol-at-point-forward "search" nil t)
