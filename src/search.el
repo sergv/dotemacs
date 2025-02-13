@@ -29,6 +29,7 @@
 (require 'persistent-sessions-global-vars)
 (require 'solarized)
 (require 'haskell-syntax-table)
+(require 'nix-syntax-table)
 
 ;;; utils
 
@@ -625,9 +626,17 @@ obvious"
                      '(search--increment-search-highlight-face-index))
                   (search--setup-search-for
                    (if ,include-bounds?-var
-                       (concat (funcall ,regex-start-func ,substr-var)
-                               (regexp-quote ,substr-var)
-                               (funcall ,regex-end-func ,substr-var))
+                       (let ((start-raw
+                              (funcall ,regex-start-func ,substr-var))
+                             (end-raw
+                              (funcall ,regex-end-func ,substr-var)))
+                         (concat (if (string= "" start-raw)
+                                     start-raw
+                                   (concat "\\(?:" start-raw "\\)"))
+                                 (regexp-quote ,substr-var)
+                                 (if (string= "" end-raw)
+                                     end-raw
+                                   (concat "\\(?:" end-raw "\\)"))))
                      (regexp-quote ,substr-var))
                    ,is-forward
                    :case-sensetive t
@@ -661,6 +670,12 @@ is assumed to be identifier at point.")
 
 (defsubst search-for-ghc-core-symbol-at-point-regex-end-func (pat)
   (search-for-haskell-symbol-at-point-regex-end-func pat))
+
+(defsubst search-for-nix-symbol-at-point-regex-end-func (pat)
+  "End of symbol anchor for nix symbols."
+  (if (string-match-p "'+$" pat)
+      "\\>"
+    "\\_>"))
 
 ;;;###autoload (autoload 'search-for-haskell-symbol-at-point-forward "search" nil t)
 ;;;###autoload (autoload 'search-for-haskell-symbol-at-point-forward-new-color "search" nil t)
@@ -725,8 +740,9 @@ is assumed to be identifier at point.")
   ;; rectify it. We want to be able to search for ‘foo'’ so cannot us eregular
   ;; symbol bounds here.
   :regex-start-func (constantly "")
-  :regex-end-func (constantly "")
-  :error-message "No symbol at point")
+  :regex-end-func #'search-for-nix-symbol-at-point-regex-end-func
+  :error-message "No symbol at point"
+  :syntax-table nix-search-fixed-syntax-table)
 
 ;;;###autoload (autoload 'search-for-nix-symbol-at-point-backward "search" nil t)
 ;;;###autoload (autoload 'search-for-nix-symbol-at-point-backward-new-color "search" nil t)
@@ -741,8 +757,9 @@ is assumed to be identifier at point.")
   ;; rectify it. We want to be able to search for ‘foo'’ so cannot us eregular
   ;; symbol bounds here.
   :regex-start-func (constantly "")
-  :regex-end-func (constantly "")
-  :error-message "No symbol at point")
+  :regex-end-func #'search-for-nix-symbol-at-point-regex-end-func
+  :error-message "No symbol at point"
+  :syntax-table nix-search-fixed-syntax-table)
 
 ;; Lispocentric searches
 ;;;###autoload (autoload 'search-for-symbol-at-point-forward "search" nil t)
