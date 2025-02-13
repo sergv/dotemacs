@@ -17,6 +17,7 @@
 
 (require 'nix-company)
 (require 'nix-shebang)
+(require 'nix-syntax-table)
 
 (awhen (getenv "EMACS_NIX_STORE_DIR")
   (setf nix-store-dir it))
@@ -121,7 +122,8 @@ _a_lign"
 (defun nix-setup ()
   (init-common :use-whitespace t)
 
-  (setq-local vim-shift-width 2)
+  (setq-local vim-shift-width 2
+              search-syntax-table nix-search-fixed-syntax-table)
 
   (setup-hideshow-yafolding t '(:header-symbol "#" :length-min 3))
 
