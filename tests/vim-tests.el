@@ -8074,7 +8074,7 @@ _|_bar")
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (nix-mode)
-    vim-tests/haskell--search-for-nix-symbol-at-point-2
+    vim-tests/haskell--search-for-nix-symbol-at-point-2a
     (execute-kbd-macro (kbd "*"))
   (tests-utils--multiline
    ""
@@ -8085,6 +8085,36 @@ _|_bar")
    ""
    "let bar' = 1;"
    "in bar + bar'_|_"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (nix-mode)
+    vim-tests/haskell--search-for-nix-symbol-at-point-2b
+    (execute-kbd-macro (kbd "*"))
+  (tests-utils--multiline
+   ""
+   "let b_|_ar' = 1;"
+   "in bar'' + bar'"
+   "")
+  (tests-utils--multiline
+   ""
+   "let bar' = 1;"
+   "in bar'' + bar'_|_"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (nix-mode)
+    vim-tests/haskell--search-for-nix-symbol-at-point-3
+    (execute-kbd-macro (kbd "*"))
+  (tests-utils--multiline
+   ""
+   "let f_|_oo = 1;"
+   "in foo-bar + foo + baz"
+   "")
+  (tests-utils--multiline
+   ""
+   "let foo = 1;"
+   "in foo-bar + foo_|_ + baz"
    ""))
 
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands-all-known-inits
