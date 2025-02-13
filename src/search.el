@@ -282,11 +282,12 @@ Highlighting starts at the beginning of buffer.")
                                     is-forward?
                                     &key
                                     (save-position t)
-                                    (case-sensetive t))
+                                    (case-sensetive t)
+                                    (syntax-table nil))
   "Set up internal search variables for use of `search--next-impl',
 `search--prev-impl' etc for REGEX."
   (search--assign-current-regexp! regex)
-  (setf search--current-syntax-table (syntax-table)
+  (setf search-syntax-table syntax-table
         search--start-marker   (point-marker)
         search--direction-forward? is-forward?
         search--case-sensetive case-sensetive
@@ -640,7 +641,8 @@ obvious"
                      (regexp-quote ,substr-var))
                    ,is-forward
                    :case-sensetive t
-                   :save-position nil)
+                   :save-position nil
+                   :syntax-table ,syntax-table)
                   ,(funcall mk-action-after count-var)))))))
     `(progn
        ,(funcall make-search-func name t)
