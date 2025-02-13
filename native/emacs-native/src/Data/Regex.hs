@@ -30,6 +30,7 @@ import Control.Monad.Catch (MonadThrow(..))
 import Data.ByteString.Lazy.Char8 qualified as CL8
 import Data.ByteString.Short (ShortByteString)
 import Data.ByteString.Short qualified as BSS
+import Data.Coerce
 import Data.Foldable
 import Data.Text (Text)
 import Data.Text.Builder.Linear.Buffer
@@ -37,21 +38,21 @@ import Data.Text.Encoding qualified as T
 import Data.Text.Ext (textFoldLinear)
 import Prettyprinter
 import System.OsPath
+import System.OsPath.Ext
 import Text.Regex.TDFA
 import Text.Regex.TDFA.Text qualified as TDFA
 
-import Data.Emacs.Path
 import Emacs.Module.Assert (WithCallStack)
 import Emacs.Module.Errors
 
 fileGlobsToRegex
-  :: (WithCallStack, MonadThrow m, Foldable f, Functor f)
-  => f Text -> m Regex
+  :: (WithCallStack, MonadThrow m, Foldable f, Functor f, Coercible a Text)
+  => f a -> m Regex
 fileGlobsToRegex patterns = compileReWithOpts compOpts $ runBuffer initRe
   where
     initRe :: Buffer %1 -> Buffer
     initRe buf =
-      mkRe (toList patterns) (buf |>. '^' |>. '(') |>. ')' |>. '$'
+      mkRe (coerce (toList patterns)) (buf |>. '^' |>. '(') |>. ')' |>. '$'
 
     mkRe :: [Text] -> Buffer %1 -> Buffer
     mkRe []       buf = buf

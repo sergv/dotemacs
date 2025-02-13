@@ -8,24 +8,28 @@
 
 module Data.Ignores
   ( Ignores
+  , mkEmacsIgnores
   , mkIgnores
-  , shouldVisit
+  , isIgnored
   , isIgnoredFile
   , dummyIgnores
   ) where
 
+import Data.Coerce (coerce)
 import Data.Filesystem.Find
 import Data.Regex
+import Data.Text (Text)
 import Emacs.Module
 import Emacs.Module.Assert
+import System.Directory.OsPath.Types
+import System.OsPath.Types (OsPath)
 
 data Ignores = Ignores
-  { ignoresFilesRE   :: !Regex
-  , ignoresDirsRE    :: !Regex
-  , ignoresAbsDirsRE :: !Regex
+  { ignoresBasenameRE :: !Regex
+  , ignoresAbsRE      :: !Regex
   }
 
-mkIgnores
+mkEmacsIgnores
   :: ( WithCallStack
      , MonadEmacs m v
      , MonadThrow (m s)
@@ -34,33 +38,43 @@ mkIgnores
   -> v s
   -> v s
   -> v s
-  -> m s Ignores
-mkIgnores ignoredFileGlobs ignoredDirGlobs ignoredDirPrefixes ignoredAbsDirs = do
+  -> m s (Ignores, Ignores)
+mkEmacsIgnores ignoredFileGlobs ignoredDirGlobs ignoredDirPrefixes ignoredAbsDirs = do
   ignoredFileGlobs'   <- extractListWith extractText ignoredFileGlobs
   ignoredDirGlobs'    <- extractListWith extractText ignoredDirGlobs
   ignoredDirPrefixes' <- extractListWith extractText ignoredDirPrefixes
   ignoredAbsDirs'     <- extractListWith extractText ignoredAbsDirs
+  fileIgnores         <- mkIgnores ignoredFileGlobs' []
+  dirIgnores          <- mkIgnores ignoredAbsDirs' (coerce (ignoredDirGlobs' ++ map (<> "*") ignoredDirPrefixes'))
+  pure (fileIgnores, dirIgnores)
 
-  ignoresFilesRE      <- fileGlobsToRegex ignoredFileGlobs'
-  ignoresDirsRE       <- fileGlobsToRegex (ignoredDirGlobs' ++ map (<> "*") ignoredDirPrefixes')
-  ignoresAbsDirsRE    <- fileGlobsToRegex ignoredAbsDirs'
+mkIgnores
+  :: ( WithCallStack
+     , Functor f
+     , Foldable f
+     , MonadThrow m
+     )
+  => f Text
+  -> f (Basename Text)
+  -> m Ignores
+mkIgnores ignoredAbsGlobs ignoredBasenameGlobs = do
+  ignoresAbsRE      <- fileGlobsToRegex ignoredAbsGlobs
+  ignoresBasenameRE <- fileGlobsToRegex ignoredBasenameGlobs
+  pure Ignores{ignoresAbsRE, ignoresBasenameRE}
 
-  pure Ignores{ignoresFilesRE, ignoresDirsRE, ignoresAbsDirsRE}
-
-shouldVisit :: Ignores -> AbsDir -> RelDir -> Bool
-shouldVisit Ignores{ignoresDirsRE, ignoresAbsDirsRE} (AbsDir absPath) (RelDir relPath) =
-  not (reMatchesOsPath ignoresDirsRE relPath) &&
-  not (reMatchesOsPath ignoresAbsDirsRE absPath)
+isIgnored :: Ignores -> OsPath -> Basename OsPath -> Bool
+isIgnored Ignores{ignoresAbsRE, ignoresBasenameRE} absPath (Basename basePath) =
+  reMatchesOsPath ignoresBasenameRE basePath ||
+  reMatchesOsPath ignoresAbsRE absPath
 
 isIgnoredFile :: Ignores -> AbsFile -> Bool
-isIgnoredFile Ignores{ignoresFilesRE} (AbsFile absPath) =
-  reMatchesOsPath ignoresFilesRE absPath
+isIgnoredFile Ignores{ignoresAbsRE} (AbsFile absPath) =
+  reMatchesOsPath ignoresAbsRE absPath
 
 dummyIgnores :: Ignores
 dummyIgnores = Ignores
-  { ignoresFilesRE   = dummyRe
-  , ignoresDirsRE    = dummyRe
-  , ignoresAbsDirsRE = dummyRe
+  { ignoresAbsRE      = dummyRe
+  , ignoresBasenameRE = dummyRe
   }
   where
     dummyRe :: Regex
