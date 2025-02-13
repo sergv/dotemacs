@@ -407,14 +407,6 @@
               0
               ;; haskell-indent-offset
               )
-             ((or (parent-is "record")
-                  (node-is "comment" "haddock"))
-              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update
-              ,(lambda (node parent bol)
-                 (lambda (matched-anchor)
-                   (if (string= "field_name" (treesit-node-type matched-anchor))
-                       0
-                     haskell-indent-offset))))
 
              ((or (parent-is "field_update")
                   (node-is "infix"))
@@ -496,11 +488,36 @@
                   (while (string= "comment" (treesit-node-type n))
                     (setq n (treesit-node-prev-sibling n)))
                   (string= "where" (treesit-node-type n))))
-              (lambda (_ b _)
-                (+ haskell-indent-offset (treesit-node-start (treesit-node-prev-sibling b))))
+              (lambda (node parent _bol)
+                ;; In situation
+                ;; ```
+                ;; foo = ...
+                ;;   where
+                ;;     _|_-- comment
+                ;;     ...
+                ;; ```
+                ;; the node is "comment" but parent is "function" instead of "where"
+                ;; so it has to be worked around.
+                (let ((n (treesit-node-prev-sibling node)))
+                  (while (string= "comment" (treesit-node-type n))
+                    (setq n (treesit-node-prev-sibling n)))
+                  n))
               haskell-indent-offset)
              ((parent-is "local_binds" "instance_declarations") haskell-ts-indent--prev-sib 0)
              ((node-is "where") parent haskell-indent-offset)
+
+             ;; Must come after where because parents of comments are sometimes
+             ;; incorrect and comment under ‘where’ may be attributed to the enclosing
+             ;; function.
+             ((or (parent-is "record")
+                  (node-is "comment" "haddock"))
+              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update
+              ,(lambda (node parent bol)
+                 (lambda (matched-anchor)
+                   (if (string= "field_name" (treesit-node-type matched-anchor))
+                       0
+                     haskell-indent-offset))))
+
 
              ((n-p-gp "match" "bind" nil)
               haskell-ts-indent--first-guard-or-parent
