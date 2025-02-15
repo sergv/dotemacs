@@ -13,3 +13,5 @@ foo = id
 
 bar :: Double
 bar = 3.1415
+
+data Foo = FooConstructor Int
