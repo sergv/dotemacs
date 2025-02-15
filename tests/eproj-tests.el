@@ -584,8 +584,8 @@ under ROOT directory."
 
 (eproj-tests--define-tests
  "eproj-tests/haskell-project-authoritative"
-  (unless (cached-executable-find "fast-tags")
-    (ert-skip "fast-tags not available"))
+ (unless (cached-executable-find "fast-tags")
+   (ert-skip "fast-tags not available"))
  (let* ((path eproj-tests/haskell-project-authoritative)
         (authoritative-proj (eproj-get-project-for-path (concat path "/authoritative")))
         (non-authoritative-proj (eproj-get-project-for-path (concat path "/non-authoritative"))))
@@ -601,10 +601,11 @@ under ROOT directory."
      (let ((non-authoritative-tags (eproj-get-matching-tags non-authoritative-proj 'haskell-mode name nil)))
        (should (equal (length non-authoritative-tags)
                       2))
-       (should (--all? (member (eproj-tag/file (cadr it))
-                               (list (concat path "/non-authoritative/src/Foo.hs")
-                                     (concat path "/subproj/src/Foo.hs")))
-                       non-authoritative-tags))))))
+       (dolist (path (list (concat path "/non-authoritative/src/Foo.hs")
+                           (concat path "/subproj/src/Foo.hs")))
+         (should (--any? (equal (eproj-tag/file (cadr it))
+                                path)
+                         non-authoritative-tags)))))))
 
 ;;;; eproj/ctags-get-tags-from-buffer
 
