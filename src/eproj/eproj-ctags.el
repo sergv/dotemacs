@@ -13,6 +13,7 @@
   (require 'set-up-platform))
 
 (require 'common)
+(require 'eproj-common)
 (require 'eproj-tag-index)
 (require 'set-up-paths)
 
@@ -354,17 +355,6 @@ BUFFER is expected to contain output of ctags command."
           "\n"))
 
 ;;;; Tag presentation utilities
-
-;;;###autoload
-(defun eproj/extract-tag-line (proj tag)
-  "Fetch line where TAG is defined."
-  (cl-assert (eproj-tag-p tag) nil "Eproj tag is required.")
-  (for-buffer-with-file
-      (eproj-resolve-to-abs-path (eproj-tag/file tag) proj)
-    (with-inhibited-field-text-motion
-      (save-excursion
-        (goto-line-dumb (eproj-tag/line tag))
-        (current-line-with-properties)))))
 
 (defun eproj/format-tag-path-and-line (proj tag)
   (let* ((tag-file (eproj-tag/file tag))
