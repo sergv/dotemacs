@@ -590,7 +590,7 @@ under ROOT directory."
         (authoritative-proj (eproj-get-project-for-path (concat path "/authoritative")))
         (non-authoritative-proj (eproj-get-project-for-path (concat path "/non-authoritative"))))
 
-   (dolist (name '("foo" "bar"))
+   (dolist (name '("foo" "bar" "FooConstructor"))
      (let ((authoritative-tags (eproj-get-matching-tags authoritative-proj 'haskell-mode name nil)))
        (should (equal (length authoritative-tags)
                       1))
