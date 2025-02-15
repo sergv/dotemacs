@@ -228,8 +228,8 @@ runtime but rather will be silently relied on)."
          (pcase (eproj-tag/type tag)
            (?m t)
            (_  nil))))
-    (with-inhibited-field-text-motion
-      (unless is-module?
+    (unless is-module?
+      (with-inhibited-field-text-motion
         (for-buffer-with-file
             (eproj-resolve-to-abs-path (eproj-tag/file tag) proj)
           (save-excursion
