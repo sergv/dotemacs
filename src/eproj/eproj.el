@@ -87,6 +87,7 @@
 
 (require 'common)
 (require 'dash)
+(require 'eproj-common)
 (require 'eproj-ctags)
 (require 'eproj-haskell)
 (require 'eproj-tag-index)
@@ -131,11 +132,15 @@
   show-tag-kind-procedure
   ;; function of 3 arguments, a project, a string tag name and a tag struct, returning string
   tag->string-func
-  ;; function of 2 arguments, a project and a tag struct, returning string or nil
-  tag->signature-func
   ;; list of symbols, these modes will resolve to this language during
   ;; tag search
   synonym-modes
+
+  ;; Function of two arguments: identifier and eproj tag. Should
+  ;; return hash table key used to determine whether two tags are part
+  ;; of the same group in which authoritative sources will override
+  ;; non-authoritative ones.
+  authoritative-key-func
 
   ;; Possibly strip unneeded information before performing navigation
   normalise-identifier-before-navigation-procedure
@@ -148,7 +153,7 @@
                               parse-tags-procedure
                               show-tag-kind-procedure
                               tag->string-func
-                              tag->signature-func
+                              authoritative-key-func
                               synonym-modes
                               normalise-identifier-before-navigation-procedure
                               extra-navigation-globs)
@@ -174,12 +179,13 @@
              nil
              "Invalid tag->string-func: %s"
              tag->string-func)
-  (cl-assert (or (functionp tag->signature-func)
-                 (autoload-p tag->signature-func)
-                 (subr-native-elisp-p tag->signature-func))
+  (cl-assert (or (null authoritative-key-func)
+                 (functionp authoritative-key-func)
+                 (autoload-p authoritative-key-func)
+                 (subr-native-elisp-p authoritative-key-func))
              nil
-             "Invalid tag->signature-func: %s"
-             tag->signature-func)
+             "Invalid authoritative-key-func: %s"
+             authoritative-key-func)
   (cl-assert (listp synonym-modes))
   (cl-assert (-all? #'symbolp synonym-modes))
   (cl-assert (or (null normalise-identifier-before-navigation-procedure)
@@ -201,7 +207,8 @@
    :parse-tags-procedure parse-tags-procedure
    :show-tag-kind-procedure show-tag-kind-procedure
    :tag->string-func tag->string-func
-   :tag->signature-func tag->signature-func
+   :authoritative-key-func (or authoritative-key-func
+                               #'eproj/default-authoritative-key-func)
    :synonym-modes synonym-modes
    :normalise-identifier-before-navigation-procedure
    normalise-identifier-before-navigation-procedure
@@ -230,7 +237,6 @@
     #'eproj/get-fast-tags-compact-tags-from-buffer
     :show-tag-kind-procedure #'eproj/haskell-tag-kind
     :tag->string-func #'eproj/haskell-tag->string
-    :tag->signature-func #'eproj/haskell-extract-tag-signature
     :synonym-modes '(haskell-ts-mode
                      haskell-literate-mode
                      haskell-c-mode
@@ -261,7 +267,6 @@
     #'eproj/ctags-get-tags-from-buffer
     :show-tag-kind-procedure #'eproj/rust-tag-kind
     :tag->string-func #'eproj/rust-tag->string
-    :tag->signature-func #'eproj/extract-tag-line
     :extra-navigation-globs
     (eval-when-compile
       (--map (concat "*." it)
@@ -276,8 +281,7 @@
     :parse-tags-procedure
     #'eproj/ctags-get-tags-from-buffer
     :show-tag-kind-procedure #'eproj/c-tag-kind
-    :tag->string-func #'eproj/c-tag->string
-    :tag->signature-func #'eproj/extract-tag-line)
+    :tag->string-func #'eproj/c-tag->string)
    (mk-eproj-lang
     :mode 'c++-mode
     :extensions +cpp-extensions+
@@ -287,8 +291,7 @@
     :parse-tags-procedure
     #'eproj/ctags-get-tags-from-buffer
     :show-tag-kind-procedure #'eproj/c-tag-kind
-    :tag->string-func #'eproj/c-tag->string
-    :tag->signature-func #'eproj/extract-tag-line)
+    :tag->string-func #'eproj/c-tag->string)
    (mk-eproj-lang
     :mode 'python-mode
     :extensions '("py" "pyx" "pxd" "pxi")
@@ -298,8 +301,7 @@
     :parse-tags-procedure
     #'eproj/ctags-get-tags-from-buffer
     :show-tag-kind-procedure #'eproj/generic-tag-kind
-    :tag->string-func #'eproj/generic-tag->string
-    :tag->signature-func #'eproj/extract-tag-line)
+    :tag->string-func #'eproj/generic-tag->string)
    (mk-eproj-lang
     :mode 'clojure-mode
     :extensions '("clj" "java")
@@ -310,8 +312,7 @@
     :parse-tags-procedure
     #'eproj/ctags-get-tags-from-buffer
     :show-tag-kind-procedure #'eproj/generic-tag-kind
-    :tag->string-func #'eproj/generic-tag->string
-    :tag->signature-func #'eproj/extract-tag-line)
+    :tag->string-func #'eproj/generic-tag->string)
    (mk-eproj-lang
     :mode 'java-mode
     :extensions '("java" "kt")
@@ -321,8 +322,7 @@
     :parse-tags-procedure
     #'eproj/ctags-get-tags-from-buffer
     :show-tag-kind-procedure #'eproj/java-tag-kind
-    :tag->string-func #'eproj/java-tag->string
-    :tag->signature-func #'eproj/extract-tag-line)
+    :tag->string-func #'eproj/java-tag->string)
    (mk-eproj-lang
     :mode 'kotlin-mode
     :extensions '("kt" "java")
@@ -333,7 +333,6 @@
     #'eproj/ctags-get-tags-from-buffer
     :show-tag-kind-procedure #'eproj/java-tag-kind
     :tag->string-func #'eproj/java-tag->string
-    :tag->signature-func #'eproj/extract-tag-line
     :synonym-modes '(kotlin-ts-mode))
    (mk-eproj-lang
     :mode 'emacs-lisp-mode
@@ -341,24 +340,21 @@
     :create-tags-procedure nil
     :parse-tags-procedure nil
     :show-tag-kind-procedure #'eproj/generic-tag-kind
-    :tag->string-func #'eproj/generic-tag->string
-    :tag->signature-func #'eproj/extract-tag-line)
+    :tag->string-func #'eproj/generic-tag->string)
    (mk-eproj-lang
     :mode 'nix-mode
     :extensions '("nix")
     :create-tags-procedure nil
     :parse-tags-procedure nil
     :show-tag-kind-procedure #'eproj/generic-tag-kind
-    :tag->string-func #'eproj/generic-tag->string
-    :tag->signature-func #'eproj/extract-tag-line)
+    :tag->string-func #'eproj/generic-tag->string)
    (mk-eproj-lang
     :mode 'isar-mode
     :extensions '("thy")
     :create-tags-procedure nil
     :parse-tags-procedure nil
     :show-tag-kind-procedure #'eproj/generic-tag-kind
-    :tag->string-func #'eproj/generic-tag->string
-    :tag->signature-func #'eproj/extract-tag-line)))
+    :tag->string-func #'eproj/generic-tag->string)))
 
 (defvar eproj/languages-table
   (let ((table (make-hash-table :test #'eq)))
@@ -1425,11 +1421,11 @@ Returns list of (tag-name tag project is-authoritative?) lists."
   (let* ((has-authoritative-projects? nil)
          (matched-tags
           (mapcan (lambda (proj)
-                    (aif (cdr
-                          (assq tag-major-mode
-                                (eproj-project/tags proj)))
+                    (aif (cdr (assq tag-major-mode (eproj-project/tags proj)))
                         (let* ((all-tags (eproj-thunk-get-value it))
-                               (is-authoritative? (memq tag-major-mode (eproj-project/authoritative-tag-source-for proj)))
+                               (is-authoritative? (and (memq tag-major-mode (eproj-project/authoritative-tag-source-for proj))
+                                                       ;; To make it more obvious when dumping.
+                                                       t))
                                (matched-tags
                                 (if search-with-regexp?
                                     (mapcan (lambda (key-and-tags)
@@ -1451,13 +1447,11 @@ Returns list of (tag-name tag project is-authoritative?) lists."
                        (lang (aif (gethash tag-major-mode eproj/languages-table)
                                  it
                                (error "unsupported language %s" tag-major-mode)))
-                       (tag->string (eproj-language/tag->signature-func lang))
-                       (tag->kind (eproj-language/show-tag-kind-procedure lang)))
+                       (mk-authoritative-key (eproj-language/authoritative-key-func lang)))
                   (dolist (entry matched-tags)
-                    (let* ((tag (caddr entry))
-                           (key (cons (cadr entry)
-                                      (cons (funcall tag->kind tag)
-                                            (funcall tag->string proj tag)))))
+                    (let* ((identifier (cadr entry))
+                           (tag (caddr entry))
+                           (key (funcall mk-authoritative-key identifier tag)))
                       (puthash key (cons entry (gethash key tbl nil)) tbl)))
                   (let ((result nil))
                     (maphash (lambda (_k vs)
