@@ -458,7 +458,7 @@ get proper flycheck checker."
          nil)
         ((memq (car entry) '(languages no-default-proj authoritative-tag-source-for))
          (-all? #'symbolp (cdr entry)))
-        ((memq (car entry) '(related ignored-files ignored-dirs))
+        ((memq (car entry) '(related ignored-files ignored-dirs extra-navigation-files))
          (-all? #'stringp (cdr entry)))
         ((memq (car entry) '(file-list tag-file build-dir indent-style))
          (and (= (length entry) 2)
