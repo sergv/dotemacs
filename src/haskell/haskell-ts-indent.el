@@ -480,8 +480,22 @@
              ;;  haskell-indent-offset)
              ;; ((parent-is "do") haskell-ts-indent--prev-sib 0)
 
-             ((parent-is "do") haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update-no-list haskell-indent-offset)
-
+             ((parent-is "do")
+              ,(lambda (n p bol)
+                 (when-let* ((matched-anchor
+                              (haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update-no-list n p bol)))
+                   (if (string= "do" (treesit-node-type matched-anchor))
+                       ;; If do node is our topmost guide then take its bol...
+                       (save-excursion
+                         (goto-char (treesit-node-start matched-anchor))
+                         (skip-to-indentation)
+                         (point))
+                     ;; ...otherwise the carefully selected anchor is our guide so keep it.
+                     ;; Sometimes bol of the ‘do’ node is not what we want because of e.g. ‘let’:
+                     ;; let foo x = do
+                     ;;       _|_...
+                     matched-anchor)))
+              haskell-indent-offset)
 
              ((node-is "alternatives")
               haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update-no-list
