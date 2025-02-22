@@ -227,6 +227,18 @@
                (treesit-node-parent node))
     result))
 
+(defun haskell-ts-indent--get-match-guard-pipe (node)
+  (cl-assert (string= "match" (treesit-node-type node)))
+  (let ((result (treesit-node-child node 0)))
+    (cl-assert (or (null result)
+                   (string= "|" (treesit-node-type result)))
+               nil
+               "Not a pipe: %s, node = %s, parent = %s"
+               result
+               node
+               (treesit-node-parent node))
+    result))
+
 (defun haskell-ts-indent--standalone-record-start (node parent bol)
   (let ((typ (treesit-node-type parent)))
     (cond
@@ -526,6 +538,14 @@
                    (if (string= "|" (treesit-node-type matched-anchor))
                        0
                      haskell-indent-offset))))
+
+             (,(lambda (n p _)
+                 (and (string= "=" (treesit-node-type n))
+                      (string= "match" (treesit-node-type p))
+                      (treesit-node-child-by-field-name p "guards")))
+              ,(lambda (_ p _)
+                 (haskell-ts-indent--get-match-guard-pipe p))
+              0)
 
              ((parent-is "match")
               haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function
