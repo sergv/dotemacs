@@ -2151,6 +2151,63 @@
   "      checkEqual xs [todo]"
   "  ]"))
 
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-module-header-1a
+ :contents
+ (tests-utils--multiline
+  "module FasterRicherTags.CompactFormat"
+  "    _|_( writeTo"
+  "  ) where")
+ :expected-value
+ (tests-utils--multiline
+  "module FasterRicherTags.CompactFormat"
+  "  _|_( writeTo"
+  "  ) where"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-module-header-1b
+ :contents
+ (tests-utils--multiline
+  "module FasterRicherTags.CompactFormat"
+  "  ( writeTo"
+  "    _|_) where")
+ :expected-value
+ (tests-utils--multiline
+  "module FasterRicherTags.CompactFormat"
+  "  ( writeTo"
+  "  _|_) where"))
+
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-module-header-2
+ :contents
+ (tests-utils--multiline
+  "module FasterRicherTags.CompactFormat"
+  "  ( writeTo"
+  "      _|_, foo"
+  "  ) where")
+ :expected-value
+ (tests-utils--multiline
+  "module FasterRicherTags.CompactFormat"
+  "  ( writeTo"
+  "  _|_, foo"
+  "  ) where"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-module-header-3
+ :contents
+ (tests-utils--multiline
+  "module FasterRicherTags.CompactFormat"
+  "  ( writeTo"
+  "      _|_foo"
+  "  ) where")
+ :expected-value
+ (tests-utils--multiline
+  "module FasterRicherTags.CompactFormat"
+  "  ( writeTo"
+  "    _|_foo"
+  "  ) where"))
+
 (provide 'haskell-indentation-tests)
 
 ;; Local Variables:
