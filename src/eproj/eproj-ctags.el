@@ -219,6 +219,7 @@ BUFFER is expected to contain output of ctags command."
                                       file
                                       line
                                       type
+                                      t
                                       (eproj-ctags--share fields sharing-cache)
                                       tags-index)))
             (when eproj-verbose-tag-loading
