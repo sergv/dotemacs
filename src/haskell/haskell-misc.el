@@ -934,38 +934,37 @@ value section should have if it is to be properly indented."
             (setf add-at-end "\n"))
           (insert "import " mod-name)
           (when identifier
-            (insert " ("
-                    (if parent-name
-                        (concat (if (s-starts-with? ":" parent-name)
-                                    (concat "(" parent-name ")")
-                                  parent-name)
-                                "(")
-                      "")
-                    (if (haskel-misc--is-operator? identifier)
-                        (concat "(" identifier ")")
-                      identifier)
-                    (if parent-name
-                        ")"
-                      "")
-                    ")"))
+            (let ((propertized-ident (propertize identifier 'haskell-imported-name identifier)))
+              (insert " ("
+                      (if parent-name
+                          (concat (if (s-starts-with? ":" parent-name)
+                                      (concat "(" parent-name ")")
+                                    parent-name)
+                                  "(")
+                        "")
+                      (if (haskel-misc--is-operator? identifier)
+                          (concat "(" propertized-ident ")")
+                        propertized-ident)
+                      (if parent-name
+                          ")"
+                        "")
+                      ")")))
           (insert-char ?\n)
           (when add-at-end
             (save-excursion
               (insert add-at-end)))
+          ;; This call must not destroy our text properties.
           (haskell-sort-imports)
           (goto-char start)
-          (if (re-search-forward (concat "^import[ \t]+"
-                                         (regexp-quote mod-name)
-                                         (if identifier
-                                             (concat (rx (* anything)
-                                                         "("
-                                                         (* anything))
-                                                     (regexp-quote identifier))
-                                           ""))
-                                 nil
-                                 t)
-              (vim-save-position)
-            (error "Cannot locate the import we just added, fix ASAP")))))))
+          (if (text-property-search-forward 'haskell-imported-name identifier t t)
+              (let ((prop-start (point)))
+                ;; Jump to end
+
+                (remove-text-properties prop-start
+                                        (next-single-char-property-change prop-start 'haskell-imported-name)
+                                        '(haskell-imported-name nil))
+                (vim-save-position))
+            (error "Cannot locate the import we just added, fixme")))))))
 
 (defun haskel-misc--is-operator? (str)
   (cl-assert (stringp str))
