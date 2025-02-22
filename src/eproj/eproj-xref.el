@@ -59,6 +59,7 @@
                  (make-eproj-tag file
                                  line
                                  nil
+                                 t
                                  (list (cons 'column column)
                                        (cons 'summary summary))))))
       (list name tag proj))))
