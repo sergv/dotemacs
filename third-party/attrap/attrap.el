@@ -62,6 +62,7 @@
 (require 'haskell-misc)
 (require 'haskell-regexen)
 (require 's)
+(require 'vim-motions)
 
 (declare-function flycheck-error-message "ext:flycheck" (cl-x))
 (declare-function flycheck-overlays-at "ext:flycheck" (pos))
@@ -407,7 +408,8 @@ value is a list which is appended to the result of
   (unless (looking-back "\(" (- (point) 2)) (insert-char ?,) (insert-char ?\s))
   (if parent
       (insert (attrap-add-operator-parens parent) "(" (attrap-add-operator-parens missing) ")")
-    (insert (attrap-add-operator-parens missing))))
+    (insert (attrap-add-operator-parens missing)))
+  (vim-save-position))
 
 (defun attrap-add-to-haskell-import--add-parent-from-eproj-tags-if-needed
     (identifier mod-name line col is-constructor? is-type-or-class?)
