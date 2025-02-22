@@ -272,6 +272,7 @@ under ROOT directory."
                              (make-eproj-tag identity-monad-test-path
                                              13
                                              ?o
+                                             t
                                              nil)))
                  (-map (lambda (x) (list (first x) (second x)))
                        (eproj-get-matching-tags proj
@@ -285,6 +286,7 @@ under ROOT directory."
                              (make-eproj-tag nonexistent-test-path
                                              100000
                                              ?f
+                                             t
                                              nil)))
                  (-map (lambda (x) (list (first x) (second x)))
                        (eproj-get-matching-tags proj
@@ -327,6 +329,7 @@ under ROOT directory."
                           (make-eproj-tag distribution-test-path
                                           17
                                           ?f
+                                          t
                                           nil)))
               (-map (lambda (x) (list (first x) (second x)))
                     (eproj-get-matching-tags proj
@@ -338,6 +341,7 @@ under ROOT directory."
                           (make-eproj-tag distribution-test-path
                                           17
                                           ?f
+                                          t
                                           nil)))
               (-map (lambda (x) (list (first x) (second x)))
                     (eproj-get-matching-tags proj
