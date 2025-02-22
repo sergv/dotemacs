@@ -277,6 +277,7 @@ regexps to not be confused by the instance location."
       (make-eproj-tag (expand-file-name resolved-file (dante-project-root))
                       line
                       nil
+                      t
                       (list `(column . ,(1- col)))))))
 
 (defhydra-derive hydra-haskell-lsp-toggle hydra-lsp-toggle (:exit t :foreign-keys nil :hint nil)

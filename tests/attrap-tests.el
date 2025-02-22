@@ -28,7 +28,7 @@
     (cl-assert (listp tags))
     (dolist (x tags)
       (cl-destructuring-bind (sym file line type props) x
-        (eproj-tag-index-add! sym file line type props tags-index)))
+        (eproj-tag-index-add! sym file line type t props tags-index)))
     (cl-assert (= (eproj-tag-index-size tags-index)
                   (length tags)))
     (setf (eproj-project/tags proj)
