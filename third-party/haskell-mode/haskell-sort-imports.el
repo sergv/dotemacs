@@ -50,8 +50,7 @@ within that region."
   (save-match-data
     (when (haskell-sort-imports-at-import)
       (let* ((points (haskell-sort-imports-decl-points))
-             (current-string (buffer-substring-no-properties (car points)
-                                                             (cdr points)))
+             (current-string (buffer-substring (car points) (cdr points)))
              (current-offset (- (point) (car points))))
         (if (region-active-p)
             (progn
@@ -233,7 +232,7 @@ entities. Entities must be valid Haskell import/export names. E.g.
                 (skip-whitespace-backward)
 
                 (when (< entry-start (point))
-                  (push (buffer-substring-no-properties entry-start (point)) entries))
+                  (push (buffer-substring entry-start (point)) entries))
 
                 (let ((ws-before-end (point)))
                   (skip-whitespace)
@@ -241,7 +240,7 @@ entities. Entities must be valid Haskell import/export names. E.g.
                     (?,
                      (advance-char ?,)
                      (skip-whitespace)
-                     (let ((sep (buffer-substring-no-properties ws-before-end (point))))
+                     (let ((sep (buffer-substring ws-before-end (point))))
                        (push sep entries)
                        (unless first-sep
                          (setf first-sep sep))))
@@ -249,9 +248,9 @@ entities. Entities must be valid Haskell import/export names. E.g.
                      (setf continue nil
                            result
                            (make-haskell-import-list
-                            :start-str (buffer-substring-no-properties open-start open-end)
+                            :start-str (buffer-substring open-start open-end)
                             :sep       first-sep
-                            :end-str   (buffer-substring-no-properties (if entries ws-before-end (point)) (point-max))
+                            :end-str   (buffer-substring (if entries ws-before-end (point)) (point-max))
                             :entries   (nreverse entries))))))))
 
             result))))))
@@ -286,10 +285,10 @@ entities. Entities must be valid Haskell import/export names. E.g.
                                 t))
             (import-list-pos (match-beginning 11)))
         (make-haskell-import
-         :mod-name (match-string-no-properties 10 str)
+         :mod-name (match-string 10 str)
          :is-qualified? is-qualified?
          :qualified-as-name (when is-qualified?
-                              (match-string-no-properties 12 str))
+                              (match-string 12 str))
          :is-hiding? (and (match-beginning 5) t)
 
          :import-list (when import-list-pos
@@ -408,15 +407,14 @@ I.e. chacks that A defines less names that B."
 (defun haskell-sort-imports--extract-mod-name (str)
   "Normalize an import, if possible, so that it can be sorted."
   (if (string-match haskell-regexen/pre-post-qualified-import-line str)
-      (match-string-no-properties 10 str)
+      (match-string 10 str)
     str))
 
 (defun haskell-sort-imports-collect-imports ()
   (let ((imports (list)))
     (while (looking-at-p "import")
       (let* ((points (haskell-sort-imports-decl-points))
-             (string (buffer-substring-no-properties (car points)
-                                                     (cdr points))))
+             (string (buffer-substring (car points) (cdr points))))
         (goto-char (min (1+ (cdr points))
                         (point-max)))
         (setq imports (cons string imports))))
