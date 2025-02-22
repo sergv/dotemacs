@@ -305,6 +305,7 @@
           (make-eproj-tag tag-path
                           tag-line
                           tag-kind
+                          t
                           (list (cons 'column tag-column)))
           nil)))
 
@@ -368,6 +369,7 @@
     (make-eproj-tag filename
                     (lsp-translate-line (1+ start-line))
                     nil
+                    t
                     (list (cons 'column (lsp-translate-column start-char))
                           (cons 'summary line)))))
 
