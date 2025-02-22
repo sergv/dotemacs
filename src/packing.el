@@ -22,6 +22,46 @@
   (require 'macro-util))
 
 (if (eval-when-compile
+      ;; If we’re not little-endian
+      (not (equal (byteorder) ?l)))
+    (progn
+      (defalias 'packing32-pack-pair #'cons)
+      (defalias 'packing32-unpack-pair-car #'car)
+      (defalias 'packing32-unpack-pair-cdr #'cdr))
+  (progn
+    (defun packing32-pack-pair (a b)
+      (declare (pure t) (side-effect-free t))
+      (let ((a-neg? (< a 0))
+            (b-neg? (< b 0)))
+        ;; Store sign bit separately from number payload. I.e. the number is packed not
+        ;; in 2's complement but as payload+sign bit.
+        (logior (ash (logior (if a-neg?
+                                 #x2000
+                               #x0000)
+                             (logand #x1fff (abs a)))
+                     14)
+                (logior (if b-neg?
+                            #x2000
+                          #x0000)
+                        (logand #x1fff (abs b))))))
+
+    (defun packing32-unpack-pair-car (x)
+      (declare (pure t) (side-effect-free t))
+      (let ((is-neg? (= #x8000000 (logand #x8000000 x))))
+        (* (logand #x1fff (ash x -14))
+           (if is-neg?
+               -1
+             1))))
+
+    (defun packing32-unpack-pair-cdr (x)
+      (declare (pure t) (side-effect-free t))
+      (let ((is-neg? (= #x2000 (logand #x2000 x))))
+        (* (logand #x1fff x)
+           (if is-neg?
+               -1
+             1))))))
+
+(if (eval-when-compile
       (or ;; If we’re not little-endian...
           (not (equal (byteorder) ?l))
           ;; ...or not at least 64 bit
@@ -65,6 +105,21 @@
                -1
              1))))))
 
+;; 32 bit maximum on both 64 and 32 bit platforms.
+;; =
+;; 2^29
+;; =
+;; #x 1f ff ff ff
+;;
+;; Divide it evenly into two, 1 bit at the start is lost
+;; #x 1 | f ff |> f <| f ff |
+;; Now divide the middle f into pair of 2-bit slices, c and 3:
+;; #x 1 | f ff |> c & 3 <| f ff
+;;        4 8     2 | 2    4 8  = 14 = 1 + 13
+
+(defun packing32-unpack-pair (x)
+  (declare (pure t) (side-effect-free t))
+  (cons (packing32-unpack-pair-car x) (packing32-unpack-pair-cdr x)))
 
 (defun packing-unpack-pair (x)
   (declare (pure t) (side-effect-free t))
