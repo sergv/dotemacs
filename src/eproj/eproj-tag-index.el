@@ -32,6 +32,11 @@
 (defun make-eproj-tag (file line type props)
   (declare (pure t) (side-effect-free t))
   (cl-assert (or (null props) (consp props)))
+  (cl-assert (or (stringp type)
+                 (null type)
+                 (and (numberp type)
+                      (<= 0 type)
+                      (< type 256))))
   (cond
     ((stringp type)
      ;; Put complex type into props.
