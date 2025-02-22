@@ -907,7 +907,8 @@ value section should have if it is to be properly indented."
       (save-excursion
         (widen)
         (haskell-navigate-imports)
-        (let ((positions nil)
+        (let ((start (point))
+              (positions nil)
               (add-at-end nil))
           (save-excursion
             (while (re-search-forward (eval-when-compile (concat "^" haskell-regexen/pre-post-qualified-import-line)) nil t)
@@ -951,7 +952,20 @@ value section should have if it is to be properly indented."
           (when add-at-end
             (save-excursion
               (insert add-at-end)))
-          (haskell-sort-imports))))))
+          (haskell-sort-imports)
+          (goto-char start)
+          (if (re-search-forward (concat "^import[ \t]+"
+                                         (regexp-quote mod-name)
+                                         (if identifier
+                                             (concat (rx (* anything)
+                                                         "("
+                                                         (* anything))
+                                                     (regexp-quote identifier))
+                                           ""))
+                                 nil
+                                 t)
+              (vim-save-position)
+            (error "Cannot locate the import we just added, fix ASAP")))))))
 
 (defun haskel-misc--is-operator? (str)
   (cl-assert (stringp str))
