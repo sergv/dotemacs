@@ -30,6 +30,27 @@
       (should (equal unpacked
                      item)))))
 
+(ert-deftest packing-tests/pack-unpack-pair32 ()
+  (dolist (item (list (cons 1 2)
+                      (cons 10 20)
+                      (cons 100 200)
+                      (cons 1000 2000)
+                      (cons 8191 8191)
+                      (cons -8191 8191)
+                      (cons 8191 -8191)
+                      (cons -1 0)
+                      (cons 0 -1)
+                      (cons -1 -1)
+                      (cons -1 -2)
+                      (cons -10 -20)
+                      (cons 10 -20)
+                      (cons -10 20)))
+    (let ((unpacked (packing32-unpack-pair (packing32-pack-pair (car item) (cdr item)))))
+      (should (fixnump (car unpacked)))
+      (should (fixnump (cdr unpacked)))
+      (should (equal unpacked
+                     item)))))
+
 (ert-deftest packing-tests/split-join-path ()
   (dolist (item (list "bar/baz"
                       "/foo/bar/baz"
