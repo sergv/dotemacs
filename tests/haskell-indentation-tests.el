@@ -2222,6 +2222,41 @@
   "  ]"))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-do-2
+ :contents
+ (tests-utils--multiline
+  "foldBSM :: (Monoid a, MonadIO m) => (Char -> m a) -> ByteString -> m a"
+  "foldBSM f (BSI.BS ptr len) = do"
+  "  let ptr' = unsafeForeignPtrToPtr ptr"
+  "  let go !acc !n"
+  "        | n == len"
+  "        = pure acc"
+  "        | otherwise"
+  "        = do"
+  "            _|_b <- liftIO $ peekByteOff ptr' n"
+  "            x <- f (BSI.w2c b)"
+  "            go (acc <> x) (n + 1)"
+  "  res <- go mempty 0"
+  "  liftIO $ touchForeignPtr ptr"
+  "  pure res")
+ :expected-value
+ (tests-utils--multiline
+  "foldBSM :: (Monoid a, MonadIO m) => (Char -> m a) -> ByteString -> m a"
+  "foldBSM f (BSI.BS ptr len) = do"
+  "  let ptr' = unsafeForeignPtrToPtr ptr"
+  "  let go !acc !n"
+  "        | n == len"
+  "        = pure acc"
+  "        | otherwise"
+  "        = do"
+  "          _|_b <- liftIO $ peekByteOff ptr' n"
+  "            x <- f (BSI.w2c b)"
+  "            go (acc <> x) (n + 1)"
+  "  res <- go mempty 0"
+  "  liftIO $ touchForeignPtr ptr"
+  "  pure res"))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-module-header-1a
  :contents
  (tests-utils--multiline
