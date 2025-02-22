@@ -120,6 +120,7 @@ runtime but rather will be silently relied on)."
                                       file
                                       line
                                       type
+                                      t
                                       nil
                                       tags-index))))
           (forward-line 1)
@@ -174,6 +175,7 @@ runtime but rather will be silently relied on)."
                                               file
                                               line
                                               type
+                                              t
                                               ;; tag4 is (cons <parent-name> <parent-type>)
                                               ;; <parent-name> is string
                                               ;; <parent-type> is character, same as regular type
@@ -184,6 +186,7 @@ runtime but rather will be silently relied on)."
                                             file
                                             line
                                             type
+                                            t
                                             nil
                                             tags-index)))))))
           tags-index)))))
