@@ -533,8 +533,17 @@
 
              ((parent-is "comment" "imports" "haskell" "declarations") column-0 0)
 
+             ((funcall n-p-gp "exports" "header" nil)
+              parent
+              haskell-indent-offset)
+
+             ((n-p-gp '(")" ",") "exports" nil)
+              parent
+              0)
+
              ((parent-is "exports")
-              (lambda (_ b _) (treesit-node-start (treesit-node-prev-sibling b)))
+              (lambda (n _ _)
+                (treesit-node-start (treesit-node-prev-sibling n)))
               0)
              ((n-p-gp nil "signature" "foreign_import") grand-parent haskell-indent-offset)
 
