@@ -29,7 +29,12 @@
 
 (defconst eproj-tag-complex-type-prop 'eproj--type)
 
-(defun make-eproj-tag (file line type props)
+;; file       - string, absolute path
+;; line       - number
+;; type       - nil, character or string
+;; props      - alist of language -dependent properties
+;; is-public? - boolean, t if name is visible in other projects (previous default), nil if only in the current one.
+(defun make-eproj-tag (file line type is-public? props)
   (declare (pure t) (side-effect-free t))
   (cl-assert (or (null props) (consp props)))
   (cl-assert (or (stringp type)
@@ -41,18 +46,23 @@
     ((stringp type)
      ;; Put complex type into props.
      (cons file
-           (cons (packing-pack-pair line -1)
+           (cons (packing-pack-pair line
+                                    (packing32-pack-pair (if is-public? 1 0) -1))
                  (cons (cons eproj-tag-complex-type-prop
                              type)
                        props))))
     (props
      (cons file
-           (cons (packing-pack-pair line (or type -1))
+           (cons (packing-pack-pair line
+                                    (packing32-pack-pair (if is-public? 1 0)
+                                                         (or type -1)))
                  props)))
     (t
      ;; Compact representation when there are no props.
      (cons file
-           (packing-pack-pair line (or type -1))))))
+           (packing-pack-pair line
+                              (packing32-pack-pair (if is-public? 1 0)
+                                                   (or type -1)))))))
 
 (defun eproj-tag-p (tag-struct)
   (declare (pure t) (side-effect-free t))
@@ -81,12 +91,23 @@
   (declare (pure t) (side-effect-free t))
   (cl-assert (eproj-tag-p tag-struct))
   (let* ((rest (cdr-sure tag-struct))
-         (res (packing-unpack-pair-cdr (if (consp rest)
-                                           (car rest)
-                                         rest))))
+         (res (packing32-unpack-pair-cdr
+               (packing-unpack-pair-cdr (if (consp rest)
+                                            (car rest)
+                                          rest)))))
     (if (= -1 res)
         (eproj-tag/get-prop eproj-tag-complex-type-prop tag-struct)
       res)))
+
+(defun eproj-tag/is-public? (tag-struct)
+  (declare (pure t) (side-effect-free t))
+  (cl-assert (eproj-tag-p tag-struct))
+  (let* ((rest (cdr-sure tag-struct))
+         (res (packing32-unpack-pair-car
+               (packing-unpack-pair-cdr (if (consp rest)
+                                            (car rest)
+                                          rest)))))
+    res))
 
 (defsubst eproj-tag/column (tag-struct)
   (declare (pure t) (side-effect-free t))
@@ -132,7 +153,7 @@
              (cdr-sure index))
     n))
 
-(defun eproj-tag-index-add! (symbol file line type props index)
+(defun eproj-tag-index-add! (symbol file line type is-public? props index)
   (cl-assert (stringp symbol))
   (cl-assert (or (characterp type) (stringp type) (null type)))
   (cl-assert (file-name-absolute-p file))
@@ -144,7 +165,7 @@
                                props))))
   (let ((table (cdr-sure index)))
     (puthash symbol
-             (cons (make-eproj-tag file line type props)
+             (cons (make-eproj-tag file line type is-public? props)
                    (gethash symbol table))
              table)))
 
