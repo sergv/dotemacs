@@ -1,1 +1,1 @@
-(("Foo/Bar/IdentityMonad.hs"(22">>=#".?o)(27">>>".?o)(13">>>=".?o)(35"extract".?f)(38"main".?f)(3"IdentityMMangledForNoReason"?C"IdentityMMangledForNoReason".?t)(3"IdentityMMangledForNoReason".?t)(1"Main".?m))("Foo/Bar/Nonexistent.hs"(100000"outdated".?f)))
+(("Foo/Bar/IdentityMonad.hs"(22">>=#"t .?o)(27">>>"t .?o)(13">>>="t .?o)(35"extract"t .?f)(38"main"t .?f)(3"IdentityMMangledForNoReason"?C"IdentityMMangledForNoReason"t .?t)(3"IdentityMMangledForNoReason"t .?t)(1"Main"t .?m))("Foo/Bar/Nonexistent.hs"(100000"outdated"t .?f)))

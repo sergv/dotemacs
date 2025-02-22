@@ -163,30 +163,32 @@ runtime but rather will be silently relied on)."
                 (let* ((line (car tag))
                        (tag2 (cdr tag))
                        (symbol (car tag2))
-                       (tag3 (cdr tag2)))
-                  (if (consp tag3)
-                      (let* ((type (car tag3))
-                             (tag4 (cdr tag3))
-                             ;; (parent-name (car tag4))
-                             ;; (tag5 (cdr tag4))
-                             ;; (parent-type (car tag5))
+                       (tag3 (cdr tag2))
+                       (is-public? (car tag3))
+                       (tag4 (cdr tag3)))
+                  (if (consp tag4)
+                      (let* ((type (car tag4))
+                             (tag5 (cdr tag4))
+                             ;; (parent-name (car tag5))
+                             ;; (tag6 (cdr tag5))
+                             ;; (parent-type (car tag6))
                              )
                         (eproj-tag-index-add! symbol
                                               file
                                               line
                                               type
-                                              t
-                                              ;; tag4 is (cons <parent-name> <parent-type>)
+                                              is-public?
+                                              ;; tag5 is (cons <parent-name> <parent-type>)
                                               ;; <parent-name> is string
                                               ;; <parent-type> is character, same as regular type
-                                              (list (cons 'parent tag4))
+                                              (list (cons 'parent tag5))
                                               tags-index))
-                    (let ((type tag3))
+                    (let ((type tag4))
                       (eproj-tag-index-add! symbol
                                             file
                                             line
                                             type
-                                            t
+                                            is-public?
                                             nil
                                             tags-index)))))))
           tags-index)))))
