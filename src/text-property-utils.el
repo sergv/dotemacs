@@ -108,6 +108,20 @@
                 (end (cdr pos)))
             (put-text-property start end prop-name prop-value str)))))))
 
+(defun text-property-utils-merge-properties-unsafe (x y)
+  "Merge text properties between strings X and Y producing new string than
+contains text properties from both strings. Intended to be used with
+equal strings otherwise it doesn’t make sense to apply text properties
+from longer strings to shorter ones since properties in the longer
+string may be applied to parts that are not present in the shorter
+strings thus making their indices invalid."
+  (cl-assert (stringp x))
+  (cl-assert (stringp y))
+  (let ((tmp (substring x)))
+    (text-property-utils-apply-properties-to-string! (text-property-utils-get-all-text-properties-in-string y nil)
+                                                     tmp)
+    tmp))
+
 ;; (defun sessions/get-all-text-properties-in-string (str)
 ;;   (let ((properties
 ;;          (make-hash-table :test #'eq)))

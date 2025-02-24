@@ -902,6 +902,7 @@ value section should have if it is to be properly indented."
 (defun haskell-misc--add-new-import (mod-name identifier is-name-from-current-project? parent-name)
   "Go to the imports section and add MOD-NAME import."
   (cl-assert (stringp mod-name))
+  (cl-assert (or (null identifier) (stringp identifier)))
   (save-match-data
     (save-restriction
       (save-excursion
@@ -909,11 +910,13 @@ value section should have if it is to be properly indented."
         (haskell-navigate-imports)
         (let ((start (point))
               (positions nil)
-              (add-at-end nil))
+              (add-at-end nil)
+              (propertized-mod-name (propertize mod-name 'haskell-imported-module mod-name))
+              (added-props-to-remove '(haskell-imported-name nil haskell-imported-module nil)))
           (save-excursion
             (while (re-search-forward (eval-when-compile (concat "^" haskell-regexen/pre-post-qualified-import-line)) nil t)
               (aif (match-beginning 10)
-                  (push (cons (common-string-prefix-length mod-name (match-string 10) nil)
+                  (push (cons (common-string-prefix-length propertized-mod-name (match-string 10) nil)
                               (match-beginning 7))
                         positions)
                 (error "Import regexps matched without matching module name!"))))
@@ -932,7 +935,7 @@ value section should have if it is to be properly indented."
                                (-last-item candidate-imports)
                              (-first-item candidate-imports)))))
             (setf add-at-end "\n"))
-          (insert "import " mod-name)
+          (insert "import " propertized-mod-name)
           (when identifier
             (let ((propertized-ident (propertize identifier 'haskell-imported-name identifier)))
               (insert " ("
@@ -942,7 +945,7 @@ value section should have if it is to be properly indented."
                                     parent-name)
                                   "(")
                         "")
-                      (if (haskel-misc--is-operator? identifier)
+                      (if (haskel-misc--is-operator? propertized-ident)
                           (concat "(" propertized-ident ")")
                         propertized-ident)
                       (if parent-name
@@ -956,15 +959,23 @@ value section should have if it is to be properly indented."
           ;; This call must not destroy our text properties.
           (haskell-sort-imports)
           (goto-char start)
-          (if (text-property-search-forward 'haskell-imported-name identifier t t)
-              (let ((prop-start (point)))
-                ;; Jump to end
-
-                (remove-text-properties prop-start
-                                        (next-single-char-property-change prop-start 'haskell-imported-name)
-                                        '(haskell-imported-name nil))
-                (vim-save-position))
-            (error "Cannot locate the import we just added, fixme")))))))
+          (if identifier
+              (if (text-property-search-forward 'haskell-imported-name identifier t t)
+                  (let ((prop-start (point)))
+                    ;; Jump to end
+                    (remove-text-properties prop-start
+                                            (next-single-char-property-change prop-start 'haskell-imported-name)
+                                            added-props-to-remove)
+                    (vim-save-position))
+                (error "Cannot locate the import we just added, fixme"))
+            (if (text-property-search-forward 'haskell-imported-module mod-name t t)
+                (let ((prop-start (point)))
+                  ;; Jump to end
+                  (remove-text-properties prop-start
+                                          (next-single-char-property-change prop-start 'haskell-imported-module)
+                                          added-props-to-remove)
+                  (vim-save-position))
+              (error "Cannot locate the import we just added, fixme"))))))))
 
 (defun haskel-misc--is-operator? (str)
   (cl-assert (stringp str))

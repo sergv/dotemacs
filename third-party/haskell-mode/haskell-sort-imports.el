@@ -38,6 +38,7 @@
 (require 'dash)
 (require 'haskell-regexen)
 (require 'ht)
+(require 'text-property-utils)
 
 ;;;###autoload
 (defun haskell-sort-imports ()
@@ -299,9 +300,15 @@ entities. Entities must be valid Haskell import/export names. E.g.
     (error "Malformed import: %s" str)))
 
 (defun haskell-import-merge (a b)
-  "Return T if \"import A\" can be replaced by \"import B\" with introducing compilation errors.
-I.e. chacks that A defines less names that B."
-  (let ((mod-name (haskell-import-mod-name a))
+  "Return T if \"import A\" can be replaced by \"import B\" without
+introducing compilation errors. I.e. checks that A defines less names
+than B."
+  (let ((mod-name
+         (if (string= (haskell-import-mod-name a)
+                      (haskell-import-mod-name b))
+             (text-property-utils-merge-properties-unsafe (haskell-import-mod-name a)
+                                                          (haskell-import-mod-name b))
+           (error "Attempting to merge imports of different modules: %s and %s" a b)))
         (is-qualified? (haskell-import-is-qualified? a))
         (qualified-as-name (haskell-import-qualified-as-name a))
         (merged-str-before-import-list
