@@ -117,6 +117,24 @@ have different input states."
           ,@(when modes `(:modes ,modes))
           :fresh-buffer ,fresh-buffer))))
 
+(cl-defmacro haskell-tests--make-multiple-test-result-tests (name &key entries contents modes)
+  (declare (indent 1))
+  `(progn
+     ,@(cl-loop
+        for entry in entries
+        collect
+        `(haskell-tests--test-result
+             ,(string->symbol
+               (concat (symbol->string name)
+                       (symbol->string (or (plist-get entry :subname)
+                                           (error "No :subname in entries")))))
+           :action ,(or (plist-get entry :action)
+                        (error "No :action in entries"))
+           :expected-value ,(or (plist-get entry :expected-value)
+                                (error "No :expected-value in entrties"))
+           :contents ,contents
+           :modes ,modes))))
+
 (cl-defmacro haskell-tests--test-result (name &key action expected-value contents modes)
   (declare (indent 1))
   `(haskell-tests--test-results ,name
@@ -7388,12 +7406,25 @@ have different input states."
    ""))
 
 ;; This test may infilitely loop if ‘poly-alex-happy-find-front’ is not implemented correctly.
-(haskell-tests--test-result
+(haskell-tests--make-multiple-test-result-tests
     haskell-tests/poly-alex-happy-find-front-1
-  :action
-  (poly-alex-happy-find-front -1)
-  :expected-value
-  (cons 1 3)
+  :entries
+  ((:subname
+    a
+    :action (poly-alex-happy-find-front -1 nil)
+    :expected-value (cons 1 3))
+   (:subname
+    b
+    :action (poly-alex-happy-find-front -1 t)
+    :expected-value (cons 1 3))
+   (:subname
+    c
+    :action (poly-alex-find-front -1)
+    :expected-value (cons 1 3))
+   (:subname
+    d
+    :action (poly-happy-find-front -1)
+    :expected-value (cons 1 3)))
   :contents
   (tests-utils--multiline
    "{"
