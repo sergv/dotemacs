@@ -10,9 +10,22 @@
   (require 'macro-util))
 
 (require 'common)
-(require 'happy-mode)
 
 (require 'polymode)
+(require 'alex-happy-utils)
+
+(defun poly-alex-find-front (direction)
+  (poly-alex-happy-find-front direction t))
+
+(define-innermode poly-alex-haskell-innermode
+  :mode 'haskell-mode
+  :head-matcher #'poly-alex-find-front
+  :tail-matcher #'poly-alex-happy-find-tail
+  :head-mode 'host
+  :tail-mode 'host
+  :allow-nested nil
+  :can-nest nil
+  :protect-syntax t)
 
 (define-hostmode poly-alex-hostmode
   :mode 'alex-grammar-mode)
@@ -20,7 +33,7 @@
 ;;;###autoload (autoload 'alex-mode "alex-mode" nil t)
 (define-polymode alex-mode
   :hostmode 'poly-alex-hostmode
-  :innermodes '(poly-alex-happy-haskell-innermode))
+  :innermodes '(poly-alex-haskell-innermode))
 
 (defconst alex-colon-column 16 "\
 *The column in which to place a colon separating a token from its definition.")
