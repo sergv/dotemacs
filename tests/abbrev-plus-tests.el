@@ -103,6 +103,7 @@
 (provide 'abbrev-plus-tests)
 
 ;; Local Variables:
+;; no-byte-compile: t
 ;; End:
 
 ;; abbrev-plus-tests.el ends here
