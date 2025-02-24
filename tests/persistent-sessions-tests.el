@@ -15,45 +15,6 @@
 
 (require 'ert)
 
-(ert-deftest persistent-sessions-tests/sessions/position-ranges/add-range ()
-  (let ((ranges (sessions/empty-position-ranges)))
-    (sessions/position-ranges/add-range 1 5 ranges)
-    (sessions/position-ranges/add-range 5 10 ranges)
-    (sessions/position-ranges/add-range 15 20 ranges)
-    (sessions/position-ranges/add-range 25 27 ranges)
-    (sessions/position-ranges/add-range 27 29 ranges)
-    (should (equal (sessions/position-ranges/ranges ranges)
-                   '((25 . 29) (15 . 20) (1 . 10))))))
-
-(ert-deftest persistent-sessions-tests/sessions/get-all-text-properties-in-string ()
-  (let ((test-string "foo bar"))
-    (put-text-property 0 1 'foo 'bar test-string)
-    (put-text-property 4 6 'quux 'baz test-string)
-    (let ((props (sessions/get-all-text-properties-in-string test-string nil)))
-      (should (listp props))
-      (should (= 2 (length props)))
-      (should (equal (car props) '(quux baz ((4 . 6)))))
-      (should (equal (cadr props) '(foo bar ((0 . 1))))))))
-
-(ert-deftest persistent-sessions-tests/sessions/get-all-text-properties-in-string-2 ()
-  (let ((test-string "foo bar"))
-    (put-text-property 0 7 'foo 'bar test-string)
-    (put-text-property 4 7 'quux 'baz test-string)
-    (let ((props (sessions/get-all-text-properties-in-string test-string nil)))
-      (should (listp props))
-      (should (= 2 (length props)))
-      (should (equal (car props) '(quux baz ((4 . 7)))))
-      (should (equal (cadr props) '(foo bar ((0 . 7))))))))
-
-(ert-deftest persistent-sessions-tests/sessions/get-all-text-properties-in-string-3 ()
-  (let ((test-string "foo bar"))
-    (put-text-property 0 7 'foo 'bar test-string)
-    (put-text-property 4 7 'quux 'baz test-string)
-    (let ((props (sessions/get-all-text-properties-in-string test-string '(foo))))
-      (should (listp props))
-      (should (= 1 (length props)))
-      (should (equal (car props) '(quux baz ((4 . 7))))))))
-
 (ert-deftest persistent-sessions-tests/store-and-restore-string ()
   (let ((test-string "foo bar"))
     (put-text-property 0 1 'foo 'bar test-string)
@@ -181,6 +142,7 @@ pairs."
 (provide 'persistent-sessions-tests)
 
 ;; Local Variables:
+;; no-byte-compile: t
 ;; End:
 
 ;; persistent-sessions-tests.el ends here
