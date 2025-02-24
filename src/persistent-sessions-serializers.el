@@ -12,6 +12,7 @@
 
 (require 'common)
 (require 'persistent-sessions-error-reporting)
+(require 'text-property-utils)
 
 (defun sessions/store-value (lisp-value)
   "Encode LISP-VALUE into some representation that can be read reliably and which
@@ -186,135 +187,12 @@ can allows value to be decoded back fully.)"
       (sessions/apply-properties-to-string props str)
       str)))
 
-(cl-defstruct (sessions/position-ranges
-               (:conc-name sessions/position-ranges/))
-  ranges ;; List of either <number> or cons pairs (<number> . <number>).
-         ;; Cons pair stands for (<start> . <end>) range, single number -
-         ;; for singleton range (<start> . <start>).
-         ;;
-         ;; Later positions appear at the beginning of the list.
-  )
-
-(defun sessions/empty-position-ranges ()
-  (make-sessions/position-ranges :ranges nil))
-
-(defun sessions/position-ranges/add-range (start end position-ranges)
-  (cl-assert (and (numberp start)
-                  (numberp end)
-                  (< start end)))
-  (let* ((ranges (sessions/position-ranges/ranges position-ranges))
-         (new-ranges
-          (if ranges
-            (let ((first-range (car ranges)))
-              (cl-assert (consp first-range))
-              (let ((range-end (cdr first-range)))
-                (cl-assert (numberp range-end))
-                (cl-assert (<= range-end start)
-                           nil
-                           "Must add positions in increasing order only. range-end = %s, start = %s"
-                           range-end
-                           start)
-                (if (= range-end start)
-                  (progn
-                    (setf (cdr first-range) end)
-                    ranges)
-                  (cons (cons start end) ranges))))
-            (list (cons start end)))))
-    (setf (sessions/position-ranges/ranges position-ranges)
-          new-ranges)
-    position-ranges))
-
 (defun sessions/get-all-text-properties-in-string (string ignored-text-properties)
   "Get all suitable for serialisation text properties from STRING."
-  (let* ((end (length string))
-         (props (text-properties-at 0 string))
-         (pos 0)
-         (properties (make-hash-table :test #'eq)))
-    (while (< pos end)
-      (let ((change-pos (or (next-property-change pos string) end)))
-        (let ((start pos)
-              (end change-pos))
-          (cl-loop
-            for (key value) on props by #'cddr
-            do
-            (unless (memq key ignored-text-properties)
-              (let ((value-table
-                     (gethash key
-                              properties
-                              (make-hash-table :test #'equal))))
-                (puthash value
-                         (sessions/position-ranges/add-range
-                          start
-                          end
-                          (gethash value
-                                   value-table
-                                   (sessions/empty-position-ranges)))
-                         value-table)
-                (puthash key
-                         value-table
-                         properties)))))
-        (setf props (text-properties-at change-pos string)
-              pos change-pos)))
-    (let ((results nil))
-      (maphash (lambda (prop value-table)
-                 (maphash (lambda (val ranges)
-                            (push (list prop val (reverse (sessions/position-ranges/ranges ranges))) results))
-                          value-table))
-               properties)
-      results)))
-
-;; (defun sessions/get-all-text-properties-in-string (str)
-;;   (let ((properties
-;;          (make-hash-table :test #'eq)))
-;;     (dotimes (pos (length str))
-;;       (let ((props (text-properties-at pos str)))
-;;         (while props
-;;           (let* ((key (car props))
-;;                  (value (cadr props))
-;;                  (value-table
-;;                   (gethash key
-;;                            properties
-;;                            (make-hash-table :test #'equal))))
-;;             (puthash value
-;;                      (sessions/position-ranges/add-position
-;;                       pos
-;;                       (gethash value
-;;                                value-table
-;;                                (make-sessions/position-ranges)))
-;;                      value-table)
-;;             (puthash key
-;;                      value-table
-;;                      properties))
-;;           (setf props (cddr props)))))
-;;     (let ((results nil))
-;;       (maphash (lambda (prop value-table)
-;;                  (maphash (lambda (val ranges)
-;;                             (push (list prop val (reverse (sessions/position-ranges/ranges ranges))) results))
-;;                           value-table))
-;;                properties)
-;;       results)))
+  (text-property-utils-get-all-text-properties-in-string string ignored-text-properties))
 
 (defun sessions/apply-properties-to-string (props str)
-  (dolist (entry props)
-    (sessions/report-and-ignore-asserts
-      (sessions/assert-with-args (and (listp entry)
-                                      (= 3 (length entry)))
-                                 "Invalid property entry: %s"
-                                 entry)
-      (let ((prop-name (car entry))
-            (prop-value (cadr entry))
-            (prop-positions (caddr entry)))
-        (sessions/assert-with-args (symbolp prop-name)
-                                   "Invalid property name: %s"
-                                   prop-name)
-        (dolist (pos prop-positions)
-          (sessions/assert-with-args (or (numberp pos)
-                                         (consp pos))
-                                     "Invalid property range: %s"
-                                     pos)
-          (let ((start (car pos))
-                (end (cdr pos)))
-            (put-text-property start end prop-name prop-value str)))))))
+  (text-property-utils-apply-properties-to-string! props str))
 
 (defun sessions/map-ring (f ring)
   (sessions/assert (ring-p ring) "Not a ring")
