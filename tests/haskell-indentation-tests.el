@@ -2633,6 +2633,237 @@
   "      | otherwise"
   "        -> negate x"))
 
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-vanilla-if-1a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo2 :: Int -> Int"
+  "foo2 x ="
+  "    _|_if x > 0"
+  "      then x + 1"
+  "      else"
+  "        negate x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo2 :: Int -> Int"
+  "foo2 x ="
+  "  _|_if x > 0"
+  "      then x + 1"
+  "      else"
+  "        negate x"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-vanilla-if-1b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo2 :: Int -> Int"
+  "foo2 x ="
+  "  if x > 0"
+  "      _|_then x + 1"
+  "      else"
+  "        negate x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo2 :: Int -> Int"
+  "foo2 x ="
+  "  if x > 0"
+  "  _|_then x + 1"
+  "      else"
+  "        negate x"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-vanilla-if-1c
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo2 :: Int -> Int"
+  "foo2 x ="
+  "  if x > 0"
+  "  then x + 1"
+  "      _|_else"
+  "        negate x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo2 :: Int -> Int"
+  "foo2 x ="
+  "  if x > 0"
+  "  then x + 1"
+  "  _|_else"
+  "        negate x"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-vanilla-if-1d
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo2 :: Int -> Int"
+  "foo2 x ="
+  "  if x > 0"
+  "  then x + 1"
+  "  else"
+  "        _|_negate x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo2 :: Int -> Int"
+  "foo2 x ="
+  "  if x > 0"
+  "  then x + 1"
+  "  else"
+  "    _|_negate x"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-vanilla-if-1e
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo2 :: Int -> Int"
+  "foo2 x ="
+  "  if x > 0"
+  "  then"
+  "         _|_x + 1"
+  "  else"
+  "    negate x"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo2 :: Int -> Int"
+  "foo2 x ="
+  "  if x > 0"
+  "  then"
+  "    _|_x + 1"
+  "  else"
+  "    negate x"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-tuple-1a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo bar ="
+  "  ( x"
+  "  , 4"
+  "    _|_)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo bar ="
+  "  ( x"
+  "  , 4"
+  "  _|_)"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-tuple-1b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo bar ="
+  "  ( x"
+  "    _|_, 4"
+  "  )"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo bar ="
+  "  ( x"
+  "  _|_, 4"
+  "  )"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-tuple-1c
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo bar ="
+  "  ( x,"
+  "  _|_4"
+  "  )"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo bar ="
+  "  ( x,"
+  "    _|_4"
+  "  )"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-unboxed-tuple-1a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo bar ="
+  "  (# x"
+  "  , 4"
+  "    _|_#)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo bar ="
+  "  (# x"
+  "  , 4"
+  "  _|_#)"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-unboxed-tuple-1b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo bar ="
+  "  (# x"
+  "    _|_, 4"
+  "  #)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo bar ="
+  "  (# x"
+  "  _|_, 4"
+  "  #)"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-unboxed-tuple-1c
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo bar ="
+  "  (# x,"
+  "  _|_4"
+  "  #)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo bar ="
+  "  (# x,"
+  "    _|_4"
+  "  #)"
+  ""))
+
 (provide 'haskell-indentation-tests)
 
 ;; Local Variables:
