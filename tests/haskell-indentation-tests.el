@@ -986,6 +986,44 @@
   "  }"))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-record-5a
+ :contents
+ (tests-utils--multiline
+  "data AlexState = AlexState"
+  "  { asInput        :: {-# UNPACK #-} !AlexInput"
+  "    _|_, asIntStore     :: {-# UNPACK #-} !Word64"
+  "    -- ^ Integer field that stores all the other useful fields for lexing."
+  "    , asContextStack :: [Context]"
+  "  } deriving (Show, Eq, Ord)")
+ :expected-value
+ (tests-utils--multiline
+  "data AlexState = AlexState"
+  "  { asInput        :: {-# UNPACK #-} !AlexInput"
+  "  _|_, asIntStore     :: {-# UNPACK #-} !Word64"
+  "    -- ^ Integer field that stores all the other useful fields for lexing."
+  "    , asContextStack :: [Context]"
+  "  } deriving (Show, Eq, Ord)"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-record-5b
+ :contents
+ (tests-utils--multiline
+  "data AlexState = AlexState"
+  "  { asInput        :: {-# UNPACK #-} !AlexInput"
+  "  , asIntStore     :: {-# UNPACK #-} !Word64"
+  "    -- ^ Integer field that stores all the other useful fields for lexing."
+  "    _|_, asContextStack :: [Context]"
+  "  } deriving (Show, Eq, Ord)")
+ :expected-value
+ (tests-utils--multiline
+  "data AlexState = AlexState"
+  "  { asInput        :: {-# UNPACK #-} !AlexInput"
+  "  , asIntStore     :: {-# UNPACK #-} !Word64"
+  "    -- ^ Integer field that stores all the other useful fields for lexing."
+  "  _|_, asContextStack :: [Context]"
+  "  } deriving (Show, Eq, Ord)"))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-field-update-1a
  :contents
  (tests-utils--multiline
