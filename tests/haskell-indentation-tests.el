@@ -30,12 +30,14 @@
 (cl-defmacro haskell-indentation-tests--test-treesitter
     (&key name
           contents
-          expected-value)
+          expected-value
+          expected-result)
   `(progn
      ,@(cl-loop
         for mode in '(haskell-ts-mode)
         collect
         `(ert-deftest ,(string->symbol (format "%s/%s" name mode)) ()
+           :expected-result ,(or expected-result :passed) ;;:failed
            (tests-utils--test-buffer-contents
             :action
             (progn
@@ -2481,6 +2483,138 @@
   "  ( writeTo"
   "    _|_foo"
   "  ) where"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-multi-way-if-1
+ :contents
+ (tests-utils--multiline
+  "{-# INLINE utf8SizeChar# #-}"
+  "utf8SizeChar# :: Addr# -> Int#"
+  "utf8SizeChar# a# ="
+  "  case word8ToWord# (indexWord8OffAddr# a# 0#) of"
+  "    0## -> 0#"
+  "    !x# ->"
+  "      let !ch0 = word2Int# x# in"
+  "      if  | startsWith0# ch0     -> 1#"
+  "                _|_| startsWith110# ch0   -> 2#"
+  "                | startsWith1110# ch0  -> 3#"
+  "                | startsWith11110# ch0 -> 4#"
+  "                | otherwise            -> 1#")
+ :expected-value
+ (tests-utils--multiline
+  "{-# INLINE utf8SizeChar# #-}"
+  "utf8SizeChar# :: Addr# -> Int#"
+  "utf8SizeChar# a# ="
+  "  case word8ToWord# (indexWord8OffAddr# a# 0#) of"
+  "    0## -> 0#"
+  "    !x# ->"
+  "      let !ch0 = word2Int# x# in"
+  "      if  | startsWith0# ch0     -> 1#"
+  "          _|_| startsWith110# ch0   -> 2#"
+  "                | startsWith1110# ch0  -> 3#"
+  "                | startsWith11110# ch0 -> 4#"
+  "                | otherwise            -> 1#"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-multi-way-if-2a
+ :contents
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo x ="
+  "  if   _|_| x > 0"
+  "        -> x + 1"
+  "      | otherwise"
+  "        -> negate x")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo x ="
+  "  if  _|_| x > 0"
+  "        -> x + 1"
+  "      | otherwise"
+  "        -> negate x")
+ ;; Cannot process in the middle of al ine.
+ :expected-result :failed)
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-multi-way-if-2b
+ :contents
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo x ="
+  "  if  | x > 0"
+  "        -> x + 1"
+  "        _|_| otherwise"
+  "        -> negate x")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo x ="
+  "  if  | x > 0"
+  "        -> x + 1"
+  "      _|_| otherwise"
+  "        -> negate x"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-multi-way-if-2c
+ :contents
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo x ="
+  "  if  | x > 0"
+  "        _|_-> x + 1"
+  "      | otherwise"
+  "        -> negate x")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo x ="
+  "  if  | x > 0"
+  "      _|_-> x + 1"
+  "      | otherwise"
+  "        -> negate x"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-multi-way-if-2d
+ :contents
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo x ="
+  "  if"
+  "            _|_| x > 0"
+  "        -> x + 1"
+  "      | otherwise"
+  "        -> negate x")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo x ="
+  "  if"
+  "    _|_| x > 0"
+  "        -> x + 1"
+  "      | otherwise"
+  "        -> negate x"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-multi-way-if-2e
+ :contents
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo x ="
+  "  if"
+  "    | x > 0"
+  "        _|_-> x + 1"
+  "      | otherwise"
+  "        -> negate x")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo x ="
+  "  if"
+  "    | x > 0"
+  "    _|_-> x + 1"
+  "      | otherwise"
+  "        -> negate x"))
 
 (provide 'haskell-indentation-tests)
 
