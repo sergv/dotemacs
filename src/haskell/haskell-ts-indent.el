@@ -367,7 +367,7 @@
 
 (defun haskell-ts-indent--first-guard-or-parent (node parent bol)
   (let ((bind-node parent))
-    (cl-assert (string= "bind" (treesit-node-type bind-node)))
+    (cl-assert (member (treesit-node-type bind-node) '("bind" "multi_way_if")))
     (let ((first-match nil)
           (continue? t)
           (i 0)
@@ -547,8 +547,7 @@
                        0
                      haskell-indent-offset))))
 
-
-             ((n-p-gp "match" "bind" nil)
+             ((n-p-gp "match" '("bind" "multi_way_if") nil)
               haskell-ts-indent--first-guard-or-parent
               ,(lambda (node parent bol)
                  (lambda (matched-anchor)
@@ -557,7 +556,7 @@
                      haskell-indent-offset))))
 
              (,(lambda (n p _)
-                 (and (string= "=" (treesit-node-type n))
+                 (and (member (treesit-node-type n) '("=" "->"))
                       (string= "match" (treesit-node-type p))
                       (treesit-node-child-by-field-name p "guards")))
               ,(lambda (_ p _)
