@@ -403,7 +403,7 @@
               haskell-ts-haddock--haddock-result-doc-anchor
               0)
 
-             ((n-p-gp '("comment" "haddock") "haskell" nil) prev-sibling 0)
+             ((n-p-gp '("comment" "haddock") '("declarations" "haskell") nil) prev-sibling 0)
 
              ((node-is "cpp") column-0 0)
 
