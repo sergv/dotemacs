@@ -2516,12 +2516,12 @@
   "                | otherwise            -> 1#"))
 
 (haskell-indentation-tests--test-treesitter
- :name haskell-indentation-tests--test-multi-way-if-2a
+ :name haskell-indentation-tests--test-multi-way-if-2aa
  :contents
  (tests-utils--multiline
   "foo :: Int -> Int"
   "foo x ="
-  "  if   _|_| x > 0"
+  "  if         _|_| x > 0"
   "        -> x + 1"
   "      | otherwise"
   "        -> negate x")
@@ -2532,9 +2532,26 @@
   "  if  _|_| x > 0"
   "        -> x + 1"
   "      | otherwise"
+  "        -> negate x"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-multi-way-if-2ab
+ :contents
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo x ="
+  "             if         _|_| x > 0"
+  "        -> x + 1"
+  "      | otherwise"
   "        -> negate x")
- ;; Cannot process in the middle of al ine.
- :expected-result :failed)
+ :expected-value
+ (tests-utils--multiline
+  "foo :: Int -> Int"
+  "foo x ="
+  "  if  _|_| x > 0"
+  "        -> x + 1"
+  "      | otherwise"
+  "        -> negate x"))
 
 (haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-multi-way-if-2b
