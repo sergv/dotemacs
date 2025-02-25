@@ -54,6 +54,15 @@
       (setf p (treesit-node-parent p)))
     result))
 
+(defun treesit-utils-largest-node-starting-at (p)
+  (let* ((node (treesit-node-at p))
+         (start (treesit-node-start node))
+         (tmp (treesit-node-parent node)))
+    (while (eq (treesit-node-start tmp) start)
+      (setf node tmp
+            tmp (treesit-node-parent tmp)))
+    node))
+
 (provide 'treesit-utils)
 
 ;; Local Variables:
