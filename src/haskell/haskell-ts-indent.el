@@ -417,7 +417,7 @@
                             (treesit-node-start open-brace)))))
               haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update
               haskell-indent-offset)
-             ((n-p-gp "}" '("record" "fields") nil)
+             ((n-p-gp '("," "}") '("record" "fields") nil)
               haskell-ts-indent--standalone-record-start
               0
               ;; haskell-indent-offset
