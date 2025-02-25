@@ -230,6 +230,18 @@
                (treesit-node-parent node))
     result))
 
+(defun haskell-ts-indent--get-match-equals (node)
+  (cl-assert (string= "match" (treesit-node-type node)))
+  (let ((result (treesit-node-child node 0)))
+    (cl-assert (or (null result)
+                   (string= "=" (treesit-node-type result)))
+               nil
+               "Not an equals %s, node = %s, parent = %s"
+               result
+               node
+               (treesit-node-parent node))
+    result))
+
 (defun haskell-ts-indent--get-match-guard-pipe (node)
   (cl-assert (string= "match" (treesit-node-type node)))
   (let ((result (treesit-node-child node 0)))
@@ -251,17 +263,28 @@
       (t
        (haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update node parent bol)))))
 
-(defun haskell-ts-indent--standalone-parent-fast (node parent bol)
+(defun haskell-ts-indent--standalone-vertical-infix-parent (node parent bol)
   (save-excursion
-    (let ((curr parent))
+    (let ((curr parent)
+          (prev1 node)
+          (prev2 nil))
       (catch 'term
         (while curr
-          (let ((start (treesit-node-start curr)))
-            (goto-char start)
-            (skip-chars-backward " \t")
-            (when (eq (point) (line-beginning-position))
-              (throw 'term start)))
-          (setq curr (treesit-node-parent curr)))))))
+          (let ((curr-type (treesit-node-type curr)))
+            (cond
+              ((string= "parens" curr-type)
+               (throw 'term curr))
+              ((string= "tuple" curr-type)
+               (throw 'term prev1))
+              ((and (string= "match" curr-type)
+                    (treesit-node-child-by-field-name curr "expression"))
+               (throw 'term (haskell-ts-indent--get-match-equals curr)))
+              ((haskell-ts--is-standalone-node? curr)
+               (throw 'term curr))
+              (t
+               (setq prev2 prev1
+                     prev1 curr
+                     curr (treesit-node-parent curr))))))))))
 
 (defun haskell-ts-indent--prev-sib (node parent bol)
   (let ((n (treesit-node-prev-sibling node)))
@@ -436,14 +459,14 @@
 
              ;; Assumes that this will only hit when "operator" node is at beginning of line.
              ((n-p-gp "operator" "infix" nil)
-              haskell-ts-indent--standalone-parent-fast
+              haskell-ts-indent--standalone-vertical-infix-parent
               0)
 
              ;; Fallback
-             ((parent-is "infix") haskell-ts-indent--standalone-parent-fast haskell-indent-offset)
+             ((parent-is "infix") haskell-ts-indent--standalone-vertical-infix-parent haskell-indent-offset)
 
              ;; Lambda
-             ((parent-is "lambda") haskell-ts-indent--standalone-parent-fast haskell-indent-offset)
+             ((parent-is "lambda") haskell-ts-indent--standalone-vertical-infix-parent haskell-indent-offset)
 
              ((parent-is "class_declarations") prev-sibling 0)
 
@@ -479,7 +502,7 @@
              ;;      (while (string= "comment" (treesit-node-type n))
              ;;        (setq n (treesit-node-prev-sibling n)))
              ;;      (string= "do" (treesit-node-type n))))
-             ;;  haskell-ts-indent--standalone-parent-fast
+             ;;  haskell-ts-indent--standalone-vertical-infix-parent
              ;;  haskell-indent-offset)
              ;; ((parent-is "do") haskell-ts-indent--prev-sib 0)
 
