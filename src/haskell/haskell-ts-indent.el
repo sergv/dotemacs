@@ -65,10 +65,10 @@
                           (lambda (node &rest _)
                             (awhen (treesit-node-type node)
                               (member it types)))))
-         (cons 'field-is (lambda (name)
+         (cons 'field-is (lambda (&rest names)
                            (lambda (node &rest _)
                              (awhen (treesit-node-field-name node)
-                               (string= name it)))))
+                               (member it names)))))
 
          (cons 'between-siblings
                (lambda (prev next)
@@ -423,6 +423,10 @@
               ;; haskell-indent-offset
               )
 
+             ;; If then else
+             ((n-p-gp '("then" "else") "conditional" nil) parent 0)
+             ((field-is "then" "else") parent haskell-indent-offset)
+
              ((or (parent-is "field_update")
                   (node-is "infix"))
               haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update
@@ -462,10 +466,6 @@
              ((node-is "]") parent 0)
              ((n-p-gp "," "list" nil) parent 0)
              ((parent-is "list") parent haskell-indent-offset)
-
-             ;; If then else
-             ((node-is "then") parent haskell-indent-offset)
-             ((node-is "else") parent haskell-indent-offset)
 
              ((parent-is "apply")
               haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update
@@ -583,7 +583,12 @@
               0)
              ((n-p-gp nil "signature" "foreign_import") grand-parent haskell-indent-offset)
 
-             ((n-p-gp "," "tuple" nil) parent 0)
+             ((n-p-gp '("," ")" "#)") '("tuple" "unboxed_tuple") nil) parent 0)
+
+             ((and (parent-is "tuple" "unboxed_tuple")
+                   (field-is "element"))
+              parent
+              haskell-indent-offset)
 
              ((node-is "deriving") parent haskell-indent-offset)
 
