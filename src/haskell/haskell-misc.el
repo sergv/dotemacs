@@ -59,27 +59,61 @@ of my home config.")
   (interactive "*r")
   (comment-util-uncomment-region-simple--impl begin end nil))
 
+(defconst haskell-misc--multiway-if-query
+  (treesit-query-compile 'haskell
+                         '((multi_way_if
+                            :anchor
+                            (match "|" @pipe)))))
+
 (defun haskell-misc--indent-line-with-treesitter ()
   (treesit-update-ranges (line-beginning-position)
                          (line-end-position))
-  (pcase-let* ((`(,anchor . ,offset) (treesit--indent-1)))
-    (when (and anchor offset)
-      (treesit-with-evaluated-anchor-and-offset
-          (anchor-pos anchor)
-          (offset-num offset)
-        ;; Indent with treesitter
-        (let ((col (+ (save-excursion
-                        (goto-char anchor-pos)
-                        (current-column))
-                      offset-num))
-              (delta (- (point-max) (point))))
-          (indent-line-to col)
-          ;; Now point is at the end of indentation.  If we started
-          ;; from within the line, go back to where we started.
-          (let ((d (- (point-max) delta)))
-            (when (> d (point))
-              (goto-char d))
-            t))))))
+  (let ((indent-res
+         (pcase-let* ((`(,anchor . ,offset) (treesit--indent-1)))
+           (when (and anchor offset)
+             (treesit-with-evaluated-anchor-and-offset
+                 (anchor-pos anchor)
+                 (offset-num offset)
+               ;; Indent with treesitter
+               (let ((col (+ (save-excursion
+                               (goto-char anchor-pos)
+                               (current-column))
+                             offset-num))
+                     (delta (- (point-max) (point))))
+                 (indent-line-to col)
+                 ;; Now point is at the end of indentation.  If we started
+                 ;; from within the line, go back to where we started.
+                 (let ((d (- (point-max) delta)))
+                   (when (> d (point))
+                     (goto-char d))
+                   t)))))))
+    (when indent-res
+      ;; Normalize spaces between if and | in a multiway if ‘if...|’ construct.
+      (let ((line-start-pos (line-beginning-position))
+            (line-end-pos (line-end-position)))
+        (treesit-update-ranges line-start-pos line-end-pos)
+        (let* ((curr-node (treesit-utils-largest-node-starting-at line-start-pos))
+               (multiway-if-pipes
+                (treesit-query-capture curr-node
+                                       haskell-misc--multiway-if-query
+                                       nil
+                                       nil
+                                       t ;; Don’t capture names, return list of matched nodes we asked for.
+                                       )))
+          (dolist (pipe-node multiway-if-pipes)
+            (let ((start (treesit-node-start pipe-node)))
+              (when (< start line-end-pos)
+                (let ((p
+                       (save-excursion
+                         (goto-char start)
+                         (skip-chars-backward " \t")
+                         (point))))
+                  (when (not (= 2 (- start p)))
+                    (when-let* ((node-before (treesit-node-at p)))
+                      (when (string= "if" (treesit-node-type node-before))
+                        (delete-region p start)
+                        (insert "  ")))))))))))
+    indent-res))
 
 (defun haskell-misc--indent-line-with-treesitter-or-fallback (fallback)
   "Try to indent with treesiter if we can, otherwise fallback to haskell-indentation.el"

@@ -497,6 +497,16 @@ exits via signal then no restoration will take place, hence the unsafety."
            (progn ,@body)
          (goto-char ,start-var)))))
 
+(defmacro save-position-marker-unsafe (&rest body)
+  "Remember position of point and restore it after BODY finishes normally. If body
+exits via signal then no restoration will take place, hence the unsafety."
+  (declare (indent 0))
+  (let ((start-var '#:start))
+    `(with-marker (,start-var (point-marker))
+       (prog1
+           (progn ,@body)
+         (goto-char ,start-var)))))
+
 (defmacro save-current-line (&rest body)
   "Save current line (but not column), execute BODY and go to saved line."
   (declare (indent 0))
