@@ -1411,6 +1411,23 @@
   "  foo $"
   "    _|_foo $ x - 1"))
 
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-infix-3a
+ :contents
+ (tests-utils--multiline
+  "foo :: Int -> IO Int"
+  "foo x = do"
+  "  let (a, xs) = evalState (runWriterT action)"
+  "                      _|_$ mkAlexState litLoc startCode input'"
+  "  pure undefined")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: Int -> IO Int"
+  "foo x = do"
+  "  let (a, xs) = evalState (runWriterT action)"
+  "              _|_$ mkAlexState litLoc startCode input'"
+  "  pure undefined"))
+
 (haskell-indentation-tests--test-treesitter-region
  :name haskell-indentation-tests--test-treesitter-region-1
  :contents
