@@ -345,7 +345,7 @@ _#-}_: on pragma close"
                   (looking-at-p haskell-regexen/options-ghc-pragma-prefix))))
        (save-current-line-column
          (haskell-align-options-ghc-pragmas (point))))
-      ((haskell-sort-imports-at-import)
+      ((haskell-sort-imports-at-import?)
        (save-current-line-column
          (haskell-sort-imports)))
       ((save-excursion
