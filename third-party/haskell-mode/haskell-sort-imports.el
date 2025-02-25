@@ -49,7 +49,7 @@ If the region is active, it will restrict the imports to sort
 within that region."
   (interactive)
   (save-match-data
-    (when (haskell-sort-imports-at-import)
+    (when (haskell-sort-imports-at-import?)
       (let* ((points (haskell-sort-imports-decl-points))
              (current-string (buffer-substring (car points) (cdr points)))
              (current-offset (- (point) (car points))))
@@ -439,7 +439,7 @@ than B."
       (forward-line))
     t))
 
-(defun haskell-sort-imports-at-import ()
+(defun haskell-sort-imports-at-import? ()
   "Are we at an import?"
   (save-excursion
     (haskell-sort-imports-goto-import-start)
