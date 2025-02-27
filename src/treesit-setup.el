@@ -225,6 +225,15 @@ the function."
    (cons (treesit-node-field-name-for-child node i)
          (treesit-node-child node i))))
 
+;;;###autoload
+(defun treesit-tree-explorer-setup ()
+  (vim:bind-local-keymaps)
+  (hl-line-mode +1)
+  (setup-folding-no-comments t nil))
+
+;;;###autoload
+(add-hook 'treesit--explorer-tree-mode-hook #'treesit-tree-explorer-setup)
+
 ;; Debug indentation:
 ;; treesit--indent-verbose
 
