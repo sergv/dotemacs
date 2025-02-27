@@ -130,6 +130,7 @@
 ;;;; f-symlink
 
 (ert-deftest f-guard-test/f-symlink/same ()
+  (when (eq system-type 'windows-nt) (ert-skip "Doesn’t work on Windows"))
   (with-playground
    (let ((path-foo (f-expand "foo" f-test/playground-path))
          (path-bar (f-expand "bar" f-test/playground-path)))
@@ -139,6 +140,7 @@
        (should-exist path-bar)))))
 
 (ert-deftest f-guard-test/f-symlink/inside ()
+  (when (eq system-type 'windows-nt) (ert-skip "Doesn’t work on Windows"))
   (with-playground
    (f-with-sandbox f-test/playground-path
      (f-touch "foo")

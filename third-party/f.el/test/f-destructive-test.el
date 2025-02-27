@@ -96,6 +96,7 @@
    (should-not-exist "foo/bar.txt")))
 
 (ert-deftest f-delete-test/symlink-to-file ()
+  (when (eq system-type 'windows-nt) (ert-skip "Doesn’t work on Windows"))
   (with-playground
    (f-touch "foo")
    (f-symlink "foo" "bar")
@@ -104,6 +105,7 @@
    (should-not-exist "bar")))
 
 (ert-deftest f-delete-test/symlink-to-directory ()
+  (when (eq system-type 'windows-nt) (ert-skip "Doesn’t work on Windows"))
   (with-playground
    (f-mkdir "foo")
    (f-symlink "foo" "bar")
@@ -115,6 +117,7 @@
 ;;;; f-symlink
 
 (ert-deftest f-symlink-test/make-link-to-file ()
+  (when (eq system-type 'windows-nt) (ert-skip "Doesn’t work on Windows"))
   (with-playground
    (f-touch "foo.txt")
    (f-symlink "foo.txt" "foo.link")
