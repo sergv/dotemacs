@@ -63,6 +63,29 @@
             tmp (treesit-node-parent tmp)))
     node))
 
+(defun treesit-utils--get-ast-node-soup (node &optional intern-fields?)
+  "Extract structure of ast nodes from NODE as nested lists.
+
+INTERN-FIELDS? is useful for debug but otherwise will only lead to extra
+overhead if produced structures will only be compared once."
+  (cl-assert (treesit-node-p node))
+  (let ((children-count (treesit-node-child-count node)))
+    (if (zerop children-count)
+        (treesit-node-type node)
+      (cons
+       (treesit-node-type node)
+       (cl-loop
+        for i from 0 below children-count
+        append
+        (if-let* ((field-name (treesit-node-field-name-for-child node i)))
+            (list
+             (if intern-fields?
+                 (string->symbol (concat ":" field-name))
+               field-name)
+             (treesit-utils--get-ast-node-soup (treesit-node-child node i)))
+          (list
+           (treesit-utils--get-ast-node-soup (treesit-node-child node i)))))))))
+
 (provide 'treesit-utils)
 
 ;; Local Variables:
