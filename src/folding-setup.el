@@ -157,6 +157,7 @@ Original match data is restored upon return."
                                     selector
                                     end
                                     comment-start-re
+                                    comments-not-supported
                                     forward-sexp)
   (let ((comment-start-regexp
          (cond
@@ -170,6 +171,8 @@ Original match data is restored upon return."
             "\\(?:#\\|//\\)")
            ((memq major-mode '(lsp-log-io-mode))
             "\\(?:#\\)")
+           (comments-not-supported
+            (rx unmatchable))
            (t
             (error "Mode %s has no comment format defined for hideshow to use"
                    mode-name)))))
@@ -188,16 +191,18 @@ Original match data is restored upon return."
   (cl-assert (functionp hs-forward-sexp-func))
   (cl-assert (functionp hs-adjust-block-beginning)))
 
-(defun hs-minor-mode--initialize-preproc (fold-preprocessor?)
+(defun hs-minor-mode--initialize-preproc (fold-preprocessor? comments-not-supported?)
   "Must be called before enabling ‘hs-minor-mode’."
   (if fold-preprocessor?
       (hs-minor-mode-initialize
        :start +c-preprocessor-open-hideshow-re+
        :end +c-preprocessor-close-hideshow-re+
-       :forward-sexp #'c-preprocessor-hideshow-forward-sexp)
+       :forward-sexp #'c-preprocessor-hideshow-forward-sexp
+       :comments-not-supported comments-not-supported?)
     (hs-minor-mode-initialize
      :start "\\s("
-     :end "\\s)")))
+     :end "\\s)"
+     :comments-not-supported comments-not-supported?)))
 
 (defun hs-minor-mode-ensure-initialized ()
   (unless (stringp hs-block-start-regexp)
@@ -450,17 +455,27 @@ _T_: toggle all indented"
 
 ;;;###autoload
 (defun setup-folding (enable-hideshow? outline-params)
-  "Enable either hideshow, or outline, or both."
-  (setup-folding--impl enable-hideshow? outline-params t))
+  "Enable either hideshow, or outline, or both. Requires mode to have
+comments defined. Good default."
+  (setup-folding--impl enable-hideshow? outline-params t nil))
 
-(defun setup-folding--impl (enable-hideshow? outline-params bind-keys?)
+;;;###autoload
+(defun setup-folding-no-comments (enable-hideshow? outline-params)
+  "Enable either hideshow, or outline, or both. Works with modes that don’t
+have comments defined.
+
+Prefer to define comment format instead of using this function if
+possible."
+  (setup-folding--impl enable-hideshow? outline-params t t))
+
+(defun setup-folding--impl (enable-hideshow? outline-params bind-keys? comments-not-supported?)
   "Enable either hideshow, or outline, or both."
   (cl-assert (memq enable-hideshow? '(t nil enable-cpp)))
   (let ((outline-enabled? (not (null outline-params))))
     (if enable-hideshow?
         (progn
           (unless hs-block-start-regexp
-            (hs-minor-mode--initialize-preproc (eq enable-hideshow? 'enable-cpp)))
+            (hs-minor-mode--initialize-preproc (eq enable-hideshow? 'enable-cpp) comments-not-supported?))
           (hs-minor-mode +1)
           (if outline-enabled?
               (progn

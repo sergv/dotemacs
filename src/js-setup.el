@@ -48,7 +48,7 @@ _O_: show all blocks"
 ;;;###autoload
 (defun js2-setup ()
   (init-common :use-whitespace 'tabs-only)
-  (setup-folding--impl t nil nil)
+  (setup-folding--impl t nil nil nil)
 
   (def-keys-for-map vim-normal-mode-local-keymap
     ("z" hydra-js-vim-normal-z/body)))
