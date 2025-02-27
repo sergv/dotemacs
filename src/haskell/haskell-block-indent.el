@@ -17,7 +17,16 @@
 ;;;###autoload
 (defun haskell-backspace-with-block-dedent (&optional count)
   (interactive "*p")
-  (setf count (or count 1))
+  (haskell-backspace-with-block-dedent--impl (or count 1) nil))
+
+;;;###autoload
+(defun haskell-space-with-block-indent (&optional count)
+  "Insert space character and potentially indent to the right
+haskell block at current indentation level."
+  (interactive "*p")
+  (haskell-space-with-block-indent--impl (or count 1) nil))
+
+(defun haskell-backspace-with-block-dedent--impl (count apply-starting-from-exact?)
   (let ((col (current-column-fixed))
         (line (count-lines-fixed (point-min) (point))))
     (if (= 0 col)
@@ -25,6 +34,7 @@
       (cl-destructuring-bind (function-applied? . at-indentation?)
           (with-inhibited-modification-hooks
             (haskell--apply-to-block
+             apply-starting-from-exact?
              (lambda (start)
                (goto-char start)
                (if (eobp)
@@ -38,18 +48,14 @@
                 (move-to-column (max 0 (- col count)))))
           (pseudoparedit-backspace count))))))
 
-;;;###autoload
-(defun haskell-space-with-block-indent (&optional count)
-  "Insert space character and potentially indent to the right
-haskell block at current indentation level."
-  (interactive "*p")
-  (setf count (or count 1))
+(defun haskell-space-with-block-indent--impl (count apply-starting-from-exact?)
   (let ((col (current-column-fixed))
         (line (count-lines-fixed (point-min) (point))))
     (cl-destructuring-bind
         (function-applied? . at-indentation?)
         (with-inhibited-modification-hooks
           (haskell--apply-to-block
+           apply-starting-from-exact?
            (lambda (start)
              (goto-char start)
              (dotimes (_ count)
@@ -63,7 +69,7 @@ haskell block at current indentation level."
         (dotimes (_ count)
           (insert-char ?\s))))))
 
-(defun haskell--apply-to-block (f)
+(defun haskell--apply-to-block (apply-starting-from-exact? f)
   "Call function F on start of every non-trivial line within
 block at current indentation. Preprocessor lines and empty lines
 as defined by ‘haskell-on-blank-line?’ will be ignored.
@@ -92,7 +98,9 @@ Returns t if operation commenced and nil otherwise."
                 ((let ((indent (progn
                                  (skip-indentation-forward)
                                  (current-column-fixed-uncached))))
-                   (< start-indent indent))
+                   (if apply-starting-from-exact?
+                       (<= start-indent indent)
+                     (< start-indent indent)))
                  'line-to-indent)
                 (t
                  nil ;; stop classification
