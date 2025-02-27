@@ -45,17 +45,17 @@
   (should (equal (f-join "path" "to" "file") "path/to/file")))
 
 (ert-deftest f-join-test/multiple-paths-absolute ()
-  (fold-platform-os-type nil (ert-skip "Doesn’t work on Windows"))
+  (when (eq system-type 'windows-nt) (ert-skip "Doesn’t work on Windows"))
   (should (equal (f-join "/path" "to" "file") "/path/to/file"))
   (should (equal (f-join "/" "path" "to" "file") "/path/to/file")))
 
 (ert-deftest f-join-test/delimiters-in-path/relative ()
-  (fold-platform-os-type nil (ert-skip "Doesn’t work on Windows"))
+  (when (eq system-type 'windows-nt) (ert-skip "Doesn’t work on Windows"))
   (should (equal (f-join "path" "/" "to" "/" "file") "/file"))
   (should (equal (f-join "path" "/to" "file") "/to/file")))
 
 (ert-deftest f-join-test/delimiters-in-path/absolute ()
-  (fold-platform-os-type nil (ert-skip "Doesn’t work on Windows"))
+  (when (eq system-type 'windows-nt) (ert-skip "Doesn’t work on Windows"))
   (should (equal (f-join "/path" "/to" "file") "/to/file"))
   (should (equal (f-join "/path" "to/" "file") "/path/to/file")))
 
@@ -88,7 +88,7 @@
   (should (equal (f-split "/path/to/file") '("/" "path" "to" "file"))))
 
 (ert-deftest f-split-test/inverse-of-join ()
-  (fold-platform-os-type nil (ert-skip "Doesn’t work on Windows"))
+  (when (eq system-type 'windows-nt) (ert-skip "Doesn’t work on Windows"))
   (should (equal (f-split (apply 'f-join (f-split "/path/to/file")))
                  '("/" "path" "to" "file"))))
 
@@ -189,7 +189,7 @@
   (should (equal (f-common-parent '("foo/bar/baz" "foo/bar/qux" "foo/bax/mux")) "foo/")))
 
 (ert-deftest f-common-parent/directory-absolute ()
-  (fold-platform-os-type nil (ert-skip "Doesn’t work on Windows"))
+  (when (eq system-type 'windows-nt) (ert-skip "Doesn’t work on Windows"))
   (should (equal (f-common-parent '("/foo/bar/baz" "/foo/bar/qux" "/foo/bar/mux")) "/foo/bar/"))
   (should (equal (f-common-parent '("/foo/bar/baz" "/foo/bar/qux" "/foo/bax/mux")) "/foo/")))
 
@@ -302,6 +302,7 @@
   (should (equal (f-canonical f-test/playground-path) f-test/playground-path)))
 
 (ert-deftest f-canonical-test/symlink ()
+  (when (eq system-type 'windows-nt) (ert-skip "Doesn’t work on Windows"))
   (with-playground
    (f-touch "foo")
    (f-symlink "foo" "bar")
@@ -347,6 +348,7 @@
      (should (equal (f-slash foo) foo)))))
 
 (ert-deftest f-slash-test/symlink-to-file ()
+  (when (eq system-type 'windows-nt) (ert-skip "Doesn’t work on Windows"))
   (with-playground
    (f-touch "foo")
    (f-symlink "foo" "bar")
@@ -354,6 +356,7 @@
      (should (equal (f-slash bar) bar)))))
 
 (ert-deftest f-slash-test/symlink-to-directory ()
+  (when (eq system-type 'windows-nt) (ert-skip "Doesn’t work on Windows"))
   (with-playground
    (f-mkdir "foo")
    (f-symlink "foo" "bar")

@@ -102,7 +102,7 @@
      '("bar.el" "bar" "bar/qux" "bar/baz.el" "bar/qux/hey.el")))))
 
 (ert-deftest f-entries-test/safe-recursion ()
-  (fold-platform-os-type nil (ert-skip "Doesn’t work on Windows"))
+  (when (eq system-type 'windows-nt) (ert-skip "Doesn’t work on Windows"))
   (with-playground
    (f-mkdir "foo")
    (f-touch "foo/bar.el")
