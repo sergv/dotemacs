@@ -947,6 +947,29 @@
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-let-7
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> IO Int"
+  "foo x = do"
+  "   _|_let !ptr  = aiPtr input' `plusPtr` 1"
+  "       !size = inputSize - 1"
+  "       !idx  = positionsIndex ptr size"
+  "   pure 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> IO Int"
+  "foo x = do"
+  "  _|_let !ptr  = aiPtr input' `plusPtr` 1"
+  "      !size = inputSize - 1"
+  "      !idx  = positionsIndex ptr size"
+  "  pure 1"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-record-1a
  :contents
  (tests-utils--multiline
@@ -1692,7 +1715,7 @@
   ""
   "data Foo2 ix where"
   "  _|_XXX :: Foo2 Int"
-  "  YYY :: a -> Foo2 a"))
+  "   YYY :: a -> Foo2 a"))
 
 (haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-haddock-1
@@ -2520,8 +2543,8 @@
   "tests = testGroup \"Data.Filesystem.Grep.Tests\""
   "  [ testCase \"grep 1\" $ do"
   "      _|_pwd <- getCurrentDirectory"
-  "      xs  <- grep' pwd \"module Data.Filesystem.Grep.Tests\" [\"*.hs\"] False dummyIgnores"
-  "      checkEqual xs [todo]"
+  "       xs  <- grep' pwd \"module Data.Filesystem.Grep.Tests\" [\"*.hs\"] False dummyIgnores"
+  "       checkEqual xs [todo]"
   "  ]"))
 
 (haskell-indentation-tests--test-treesitter
@@ -2553,8 +2576,8 @@
   "        | otherwise"
   "        = do"
   "          _|_b <- liftIO $ peekByteOff ptr' n"
-  "            x <- f (BSI.w2c b)"
-  "            go (acc <> x) (n + 1)"
+  "          x <- f (BSI.w2c b)"
+  "          go (acc <> x) (n + 1)"
   "  res <- go mempty 0"
   "  liftIO $ touchForeignPtr ptr"
   "  pure res"))
