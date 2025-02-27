@@ -65,28 +65,67 @@ of my home config.")
                             :anchor
                             (match "|" @pipe)))))
 
+(defun haskell-misc--indent-line--fingerprint ()
+  (treesit-utils--get-ast-node-soup
+   (treesit-node-parent
+    (treesit-utils-largest-node-starting-at
+     (line-beginning-position)))))
+
 (defun haskell-misc--indent-line-with-treesitter ()
   (treesit-update-ranges (line-beginning-position)
                          (line-end-position))
   (let ((indent-res
          (pcase-let* ((`(,anchor . ,offset) (treesit--indent-1)))
            (when (and anchor offset)
-             (treesit-with-evaluated-anchor-and-offset
-                 (anchor-pos anchor)
-                 (offset-num offset)
-               ;; Indent with treesitter
-               (let ((col (+ (save-excursion
-                               (goto-char anchor-pos)
-                               (current-column))
-                             offset-num))
-                     (delta (- (point-max) (point))))
-                 (indent-line-to col)
-                 ;; Now point is at the end of indentation.  If we started
-                 ;; from within the line, go back to where we started.
-                 (let ((d (- (point-max) delta)))
-                   (when (> d (point))
-                     (goto-char d))
-                   t)))))))
+             (with-undo-amalgamate
+               (treesit-with-evaluated-anchor-and-offset
+                   (anchor-pos anchor)
+                   (offset-num offset)
+                 ;; Indent with treesitter
+                 (let* ((target-indent (+ (save-excursion
+                                            (goto-char anchor-pos)
+                                            (current-column))
+                                          offset-num))
+                        (is-on-empty-line?
+                         (save-excursion
+                           (beginning-of-line)
+                           (skip-chars-forward " \t")
+                           (eolp)))
+                        (old-fingerprint
+                         (unless is-on-empty-line?
+                           (haskell-misc--indent-line--fingerprint))))
+                   (undo-boundary)
+                   (let ((delta (- (point-max) (point))))
+                     (indent-line-to target-indent)
+                     (if (or is-on-empty-line?
+                             (progn
+                               (treesit-update-ranges (line-beginning-position)
+                                                      (line-end-position))
+                               (let ((new-fingerprint
+                                      (haskell-misc--indent-line--fingerprint)))
+                                 (equal old-fingerprint new-fingerprint))))
+                         ;; Now point is at the end of indentation. If we started
+                         ;; from within the line, go back to where we started.
+                         (let ((d (- (point-max) delta)))
+                           (when (> d (point))
+                             (goto-char d))
+                           t)
+                       (progn
+                         ;; Our one-line indentation produces different AST
+                         ;; so undo it and try more distruptive but safer
+                         ;; method that keeps spaces alignment of current block.
+                         (undo-start)
+                         (undo-more 1)
+                         ;; Undo then indent with preserving spaces
+                         (let* ((current-indent (indentation-size))
+                                (diff (abs (- current-indent target-indent))))
+                           (save-position-marker-unsafe
+                             (skip-to-indentation)
+                             (if (and (not (zerop diff))
+                                      (< target-indent current-indent))
+                                 (haskell-backspace-with-block-dedent--impl diff t)
+                               (haskell-space-with-block-indent--impl diff t))
+                             t))))))))))))
     (when indent-res
       ;; Normalize spaces between if and | in a multiway if ‘if...|’ construct.
       (let ((line-start-pos (line-beginning-position))
