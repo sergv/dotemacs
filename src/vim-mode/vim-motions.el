@@ -215,7 +215,7 @@
 
 (vim-defmotion vim:motion-current-line (linewise count raw-result)
   "Moves count - 1 lines down, properly considering the case when point is at
-e.g. shell prompt.."
+e.g. shell prompt."
   (vim--use-last-column!)
   (let (line-move-visual
         (start (line-beginning-position)))

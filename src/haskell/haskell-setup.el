@@ -569,7 +569,8 @@ _<tab>_: reindent  _h_: jump to topmont function/entity end"
     ("g"   hydra-haskell-ts-vim-normal-g-ext/body))
 
   (def-keys-for-map vim-visual-mode-local-keymap
-    ("g"   hydra-haskell-ts-vim-visual-g-ext/body))
+    ("<tab>" haskell-ts-reindent-region)
+    ("g"     hydra-haskell-ts-vim-visual-g-ext/body))
 
   (def-keys-for-map (vim-normal-mode-local-keymap
                      vim-insert-mode-local-keymap)
