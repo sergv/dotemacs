@@ -1550,7 +1550,7 @@
   "    _|_foo $ x - 1"))
 
 (haskell-indentation-tests--test-treesitter
- :name haskell-indentation-tests--test-treesitter-infix-3a
+ :name haskell-indentation-tests--test-treesitter-infix-3
  :contents
  (tests-utils--multiline
   "foo :: Int -> IO Int"
@@ -1565,6 +1565,70 @@
   "  let (a, xs) = evalState (runWriterT action)"
   "              _|_$ mkAlexState litLoc startCode input'"
   "  pure undefined"))
+
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-infix-4a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> IO Int"
+  "foo x ="
+  "  let bar = Quux $"
+  "              _|_x"
+  "  in bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> IO Int"
+  "foo x ="
+  "  let bar = Quux $"
+  "        _|_x"
+  "  in bar"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-infix-4b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> IO Int"
+  "foo x ="
+  "  let bar = Quux"
+  "              _|_x"
+  "  in bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> IO Int"
+  "foo x ="
+  "  let bar = Quux"
+  "        _|_x"
+  "  in bar"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-infix-4c
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> IO Int"
+  "foo x = do"
+  "  let bar = Quux"
+  "              _|_x"
+  "  baz"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> IO Int"
+  "foo x = do"
+  "  let bar = Quux"
+  "        _|_x"
+  "  baz"
+  ""))
 
 (haskell-indentation-tests--test-treesitter-region
  :name haskell-indentation-tests--test-treesitter-region-1

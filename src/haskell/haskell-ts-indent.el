@@ -164,7 +164,7 @@
                (throw 'term prev1))
               ((and (string= "match" curr-type)
                     (treesit-node-child-by-field-name curr "guards"))
-               (throw 'term (haskell-ts-indent--get-match-guard-pipe curr)))
+               (throw 'term (haskell-ts-indent--get-match-guard-pipe-opt curr)))
               ((haskell-ts--is-standalone-node? curr)
                (cond
                  ((string= "match" curr-type)
@@ -245,6 +245,17 @@
 (defun haskell-ts-indent--get-match-guard-pipe (node)
   (cl-assert (string= "match" (treesit-node-type node)))
   (let ((result (treesit-node-child node 0)))
+    (cl-assert (string= "|" (treesit-node-type result))
+               nil
+               "Not a pipe: %s, node = %s, parent = %s"
+               result
+               node
+               (treesit-node-parent node))
+    result))
+
+(defun haskell-ts-indent--get-match-guard-pipe-opt (node)
+  (cl-assert (string= "match" (treesit-node-type node)))
+  (let ((result (treesit-node-child node 0)))
     (cl-assert (or (null result)
                    (string= "|" (treesit-node-type result)))
                nil
@@ -263,7 +274,7 @@
       (t
        (haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update node parent bol)))))
 
-(defun haskell-ts-indent--standalone-vertical-infix-parent (node parent bol)
+(defun haskell-ts-indent--standalone-vertical-infix-operator-parent (node parent bol)
   (save-excursion
     (let ((curr parent)
           (prev1 node)
@@ -464,14 +475,18 @@
 
              ;; Assumes that this will only hit when "operator" node is at beginning of line.
              ((n-p-gp "operator" "infix" nil)
-              haskell-ts-indent--standalone-vertical-infix-parent
+              haskell-ts-indent--standalone-vertical-infix-operator-parent
               0)
 
              ;; Fallback
-             ((parent-is "infix") haskell-ts-indent--standalone-vertical-infix-parent haskell-indent-offset)
+             ((parent-is "infix")
+              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update
+              haskell-indent-offset)
 
              ;; Lambda
-             ((parent-is "lambda") haskell-ts-indent--standalone-vertical-infix-parent haskell-indent-offset)
+             ((parent-is "lambda")
+              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update
+              haskell-indent-offset)
 
              ((parent-is "class_declarations") prev-sibling 0)
 
@@ -507,7 +522,7 @@
              ;;      (while (string= "comment" (treesit-node-type n))
              ;;        (setq n (treesit-node-prev-sibling n)))
              ;;      (string= "do" (treesit-node-type n))))
-             ;;  haskell-ts-indent--standalone-vertical-infix-parent
+             ;;  haskell-ts-indent--standalone-vertical-infix-operator-parent
              ;;  haskell-indent-offset)
              ;; ((parent-is "do") haskell-ts-indent--prev-sib 0)
 
