@@ -18,23 +18,37 @@
 (defun haskell-format--format-region-preserving-position (indent-offset width start end format-with-brittany?)
   (let ((p (point))
         (col (current-column))
-        (end-mark (copy-marker end))
         (fingerprint-re (haskell-format--fingerprint-re (current-line))))
-    (if format-with-brittany?
-        (haskell-format--format-with-brittany indent-offset
-                                              (if (and width
-                                                       (< 1 width))
-                                                  width
-                                                haskell-format-default-width)
-                                              start
-                                              end)
-      (indent-region start end))
-    (goto-char start)
-    (if (re-search-forward fingerprint-re end-mark t)
-        (progn
-          (goto-char (match-beginning 0))
-          (move-to-column col))
-      (goto-char p))))
+    (with-marker (end-mark (copy-marker end))
+      (if format-with-brittany?
+          (haskell-format--format-with-brittany indent-offset
+                                                (if (and width
+                                                         (< 1 width))
+                                                    width
+                                                  haskell-format-default-width)
+                                                start
+                                                end)
+        (haskell-format--format-with-treesitter start end-mark))
+      (goto-char start)
+      (if (re-search-forward fingerprint-re end-mark t)
+          (progn
+            (goto-char (match-beginning 0))
+            (move-to-column col))
+        (goto-char p)))))
+
+(defun haskell-format--format-with-treesitter (start end-mark)
+  (goto-char start)
+  (with-marker (m (copy-marker start))
+    (while (< (point) end-mark)
+      (let ((beg (point)))
+        (haskell-move-to-topmost-end)
+        (let* ((line-count (count-lines-fixed beg (point)))
+               (treesit--indent-region-batch-size (max treesit--indent-region-batch-size
+                                                       (+ (* 2 line-count) 10))))
+          (set-marker m (point))
+          (indent-region beg (point))
+          (goto-char m)
+          (skip-whitespace-forward))))))
 
 (defun haskell-format--fingerprint-re (str)
   "Take current line and come up with a fingerprint
