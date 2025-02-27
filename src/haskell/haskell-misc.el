@@ -368,11 +368,14 @@ _#-}_: on pragma close"
 (defun haskell-ts-reindent-region (_start _end)
   (interactive "r*")
   (with-region-bounds start end
-    (haskell-format--format-region-preserving-position haskell-indent-offset
-                                                       width
-                                                       start
-                                                       end
-                                                       nil)))
+    (haskell-ts-reindent-region--impl start end)))
+
+(defun haskell-ts-reindent-region--impl (start end)
+  (haskell-format--format-region-preserving-position haskell-indent-offset
+                                                     nil
+                                                     start
+                                                     end
+                                                     nil))
 
 ;;;###autoload
 (defun haskell-reindent-at-point (&optional width)
