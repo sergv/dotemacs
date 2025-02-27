@@ -291,7 +291,12 @@
     (while (and n
                 (string= "comment" (treesit-node-type n)))
       (setq n (treesit-node-prev-sibling n)))
-    (treesit-node-start n)))
+    (if (string= "bind" (treesit-node-type n))
+        (save-excursion
+          (goto-char (treesit-node-start n))
+          (skip-whitespace-forward)
+          (point))
+        n)))
 
 (defun haskell-ts--positions-on-the-same-line? (pos1 pos2)
   (let ((end (max pos1 pos2)))
@@ -555,7 +560,10 @@
                     (setq n (treesit-node-prev-sibling n)))
                   n))
               haskell-indent-offset)
-             ((parent-is "local_binds" "instance_declarations") haskell-ts-indent--prev-sib 0)
+             ;; Also handles binds within let.
+             ((parent-is "local_binds" "instance_declarations")
+              haskell-ts-indent--prev-sib
+              0)
              ((node-is "where") parent haskell-indent-offset)
 
              ;; Must come after where because parents of comments are sometimes
