@@ -832,6 +832,121 @@
   "  ]"))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-let-6a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> IO Int"
+  "foo x = do"
+  "   let !ptr  = aiPtr input' `plusPtr` 1 -- Drop first newline"
+  "       _|_!size = inputSize - 1"
+  "       !idx  = positionsIndex ptr size"
+  "   pure 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> IO Int"
+  "foo x = do"
+  "   let !ptr  = aiPtr input' `plusPtr` 1 -- Drop first newline"
+  "       _|_!size = inputSize - 1"
+  "       !idx  = positionsIndex ptr size"
+  "   pure 1"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-let-6b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> IO Int"
+  "foo x = do"
+  "   let !ptr  = aiPtr input' `plusPtr` 1"
+  "       _|_!size = inputSize - 1"
+  "       !idx  = positionsIndex ptr size"
+  "   pure 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> IO Int"
+  "foo x = do"
+  "   let !ptr  = aiPtr input' `plusPtr` 1"
+  "       _|_!size = inputSize - 1"
+  "       !idx  = positionsIndex ptr size"
+  "   pure 1"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-let-6c
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> IO Int"
+  "foo x = do"
+  "   let ptr  = aiPtr input' `plusPtr` 1"
+  "       _|_!size = inputSize - 1"
+  "       !idx  = positionsIndex ptr size"
+  "   pure 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> IO Int"
+  "foo x = do"
+  "   let ptr  = aiPtr input' `plusPtr` 1"
+  "       _|_!size = inputSize - 1"
+  "       !idx  = positionsIndex ptr size"
+  "   pure 1"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-let-6d
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> IO Int"
+  "foo x = do"
+  "   let ptr  = aiPtr input' `plusPtr` 1"
+  "       _|_size = inputSize - 1"
+  "       !idx  = positionsIndex ptr size"
+  "   pure 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> IO Int"
+  "foo x = do"
+  "   let ptr  = aiPtr input' `plusPtr` 1"
+  "       _|_size = inputSize - 1"
+  "       !idx  = positionsIndex ptr size"
+  "   pure 1"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-let-6e
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> IO Int"
+  "foo x = do"
+  "   let !ptr  = aiPtr input' `plusPtr` 1"
+  "       _|_size = inputSize - 1"
+  "       !idx  = positionsIndex ptr size"
+  "   pure 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Int -> IO Int"
+  "foo x = do"
+  "   let !ptr  = aiPtr input' `plusPtr` 1"
+  "       _|_size = inputSize - 1"
+  "       !idx  = positionsIndex ptr size"
+  "   pure 1"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-record-1a
  :contents
  (tests-utils--multiline
