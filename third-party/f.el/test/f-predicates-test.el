@@ -89,6 +89,7 @@
 ;;;; f-symlink-p
 
 (ert-deftest f-symlink-p-test/is-symlink ()
+  (when (eq system-type 'windows-nt) (ert-skip "Doesn’t work on Windows"))
   (with-playground
    (f-touch "foo.txt")
    (f-symlink "foo.txt" "foo.link")
@@ -109,7 +110,7 @@
    (should (f-readable-p "foo.txt"))))
 
 (ert-deftest f-readable-p-test/is-not-readable ()
-  (fold-platform-os-type nil (ert-skip "Doesn’t work on Windows"))
+  (when (eq system-type 'windows-nt) (ert-skip "Doesn’t work on Windows"))
   (with-playground
    (f-touch "foo.txt")
    (chmod "foo.txt" "000")
@@ -131,7 +132,7 @@
    (should-not (f-writable-p "foo.txt"))))
 
 (ert-deftest f-executable-p-test/is-executable ()
-  (fold-platform-os-type nil (ert-skip "Doesn’t work on Windows"))
+  (when (eq system-type 'windows-nt) (ert-skip "Doesn’t work on Windows"))
   (with-playground
    (f-touch "foo.txt")
    (chmod "foo.txt" "100")
@@ -274,6 +275,7 @@
    (should-not (f-same-p "foo" (f-expand "bar" f-test/playground-path)))))
 
 (ert-deftest f-same-p/symlink ()
+  (when (eq system-type 'windows-nt) (ert-skip "Doesn’t work on Windows"))
   (with-playground
    (f-touch "foo")
    (f-symlink "foo" "bar")
