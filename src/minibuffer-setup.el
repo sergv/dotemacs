@@ -53,6 +53,10 @@
   ;; In sexp-related situations the "''" is quite rare.
   ("'" self-insert-command))
 
+(def-keys-for-map read--expression-map
+  ("C-h" next-history-element)
+  ("C-t" previous-history-element))
+
 (provide 'minibuffer-setup)
 
 ;; Local Variables:
