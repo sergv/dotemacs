@@ -93,12 +93,14 @@ Ensures a final newline is inserted."
     :action
     (progn
       ,action
-      (insert "_|_")
+      (unless ,suppress-cursor
+        (insert "_|_"))
       (let ((actual-contents
              (buffer-substring-no-properties (point-min) (point-max)))
             (expected-contents ,expected-value))
-        (unless (string-match-p "_|_" expected-contents)
-          (error "Expected buffer contents does not provide point position with _|_"))
+        (unless ,suppress-cursor
+          (unless (string-match-p "_|_" expected-contents)
+            (error "Expected buffer contents does not provide point position with _|_")))
         (let ((actual-lines (split-into-lines actual-contents t))
               (expected-lines (split-into-lines expected-contents t)))
           (unless (equal actual-lines expected-lines)
