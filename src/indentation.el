@@ -162,12 +162,14 @@ See also `indent-relative-maybe'."
 
 (defun indent-on-blank-line? ()
   "Assumes point is at 0th column."
+  (cl-assert (= 0 (current-column-fixed-uncached)))
   (save-excursion
     (skip-indentation-forward)
     (let ((c (char-after)))
       ;; Check that we’re at line end.
       (or (eq c ?\r)
-          (eq c ?\n)))))
+          (eq c ?\n)
+          (eobp)))))
 
 (defun indent-back-up-indent-level (on-blank-line-p)
   "Move up to lesser indentation level, skipping empty lines.
