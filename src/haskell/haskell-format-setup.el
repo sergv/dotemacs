@@ -16,9 +16,14 @@
 (defvar haskell-format-default-width 100)
 
 (defun haskell-format--format-region-preserving-position (indent-offset width start end format-with-brittany?)
-  (let ((p (point))
-        (col (current-column))
-        (fingerprint-re (haskell-format--fingerprint-re (current-line))))
+  (let* ((p (point))
+         (line-before (buffer-substring-no-properties (line-beginning-position) (point)))
+         (line-after (buffer-substring-no-properties (point) (line-end-position)))
+         (use-line-after? (< (length line-before) (length line-after)))
+         (fingerprint-re (haskell-format--fingerprint-re
+                          (if use-line-after?
+                              line-after
+                            line-before))))
     (with-marker (end-mark (copy-marker end))
       (if format-with-brittany?
           (haskell-format--format-with-brittany indent-offset
@@ -28,15 +33,13 @@
                                                   haskell-format-default-width)
                                                 start
                                                 end)
-        (haskell-format--format-with-treesitter start end-mark))
+        (haskell-format--format-region-by-toplevel-chunks-with-treesitter! start end-mark))
       (goto-char start)
       (if (re-search-forward fingerprint-re end-mark t)
-          (progn
-            (goto-char (match-beginning 0))
-            (move-to-column col))
+          (goto-char (if use-line-after? (match-beginning 0) (match-end 0)))
         (goto-char p)))))
 
-(defun haskell-format--format-with-treesitter (start end-mark)
+(defun haskell-format--format-region-by-toplevel-chunks-with-treesitter! (start end-mark)
   (cl-assert (numberp start))
   (cl-assert (markerp end-mark))
   (goto-char start)
