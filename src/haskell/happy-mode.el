@@ -386,7 +386,8 @@ Return the amount the indentation changed by."
 ;;;###autoload (autoload 'happy-mode "happy-mode" nil t)
 (define-polymode happy-mode
   :hostmode 'poly-happy-hostmode
-  :innermodes '(poly-happy-haskell-innermode))
+  :innermodes '(poly-happy-haskell-innermode)
+  (setq-local poly-lock-allow-background-adjustment nil))
 
 ;;;; utils
 
