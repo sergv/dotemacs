@@ -141,7 +141,8 @@
                   ((or (equal prev1 right-child)
                        (equal prev1 op-child))
                    ;; Operator may be on a line of its own, take it into account.
-                   (when (haskell-ts--is-standalone-node? op-child)
+                   (when (and (haskell-ts--is-standalone-node? op-child)
+                              (not (haskell-ts--is-standalone-node? right-child)))
                      (throw 'term prev1))
                    ;; Otherwise whole operator application may occupy
                    ;; its own line, i.e. its left child may be at the
