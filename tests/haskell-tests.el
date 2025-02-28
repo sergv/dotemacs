@@ -448,6 +448,36 @@ have different input states."
    "#endif"
    ""))
 
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-reindent-at-point-1
+ :modes
+ (haskell-ts-mode)
+ :action
+ (haskell-ts-reindent-at-point)
+ :contents
+ (concat
+  (tests-utils--multiline
+   "foo :: Int -> Int"
+   "foo x ="
+   "    _|_case x of")
+  "\n"
+  (mapconcat (lambda (i) (format "        %s -> %s + 1" i i))
+             (cl-loop for i from 0 to treesit--indent-region-batch-size collect i)
+             "\n")
+  "\n")
+ :expected-value
+ (concat
+  (tests-utils--multiline
+   "foo :: Int -> Int"
+   "foo x ="
+   "  _|_case x of")
+  "\n"
+  (mapconcat (lambda (i) (format "    %s -> %s + 1" i i))
+             (cl-loop for i from 0 to treesit--indent-region-batch-size collect i)
+             "\n")
+  "\n"))
+
 (ert-deftest haskell-tests/haskell-indentation--add-to-sorted-list! ()
   (dolist (entry '((0 ()        (0))
                    (0 (2 4 6 8) (0 2 4 6 8))
