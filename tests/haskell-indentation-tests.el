@@ -1685,7 +1685,7 @@
   "foo ="
   "  [ \"abc\" ==> [A, B, C]"
   "  , \"deriveJSON defaultOptions ''CI.CI\""
-  "  _|_==>"
+  "   _|_==>"
   "        [T \"deriveJSON\", T \"defaultOptions\", T \"''CI.CI\", Newline 0]"
   "  ]"
   "")
@@ -1698,6 +1698,58 @@
   "  , \"deriveJSON defaultOptions ''CI.CI\""
   "    _|_==>"
   "        [T \"deriveJSON\", T \"defaultOptions\", T \"''CI.CI\", Newline 0]"
+  "  ]"
+  "")
+ )
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-infix-5b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: [Test]"
+  "foo ="
+  "  [ \"abc\" ==> [A, B, C]"
+  "  , \"deriveJSON defaultOptions ''CI.CI\""
+  "    ==>"
+  "     _|_[T \"deriveJSON\", T \"defaultOptions\", T \"''CI.CI\", Newline 0]"
+  "  ]"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: [Test]"
+  "foo ="
+  "  [ \"abc\" ==> [A, B, C]"
+  "  , \"deriveJSON defaultOptions ''CI.CI\""
+  "    ==>"
+  "    _|_[T \"deriveJSON\", T \"defaultOptions\", T \"''CI.CI\", Newline 0]"
+  "  ]"
+  "")
+ )
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-infix-5c
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: [Test]"
+  "foo ="
+  "  [ \"abc\" ==> [A, B, C]"
+  "  , \"deriveJSON defaultOptions ''CI.CI\""
+  "    ==>"
+  "                      _|_[T \"deriveJSON\", T \"defaultOptions\", T \"''CI.CI\", Newline 0]"
+  "  ]"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: [Test]"
+  "foo ="
+  "  [ \"abc\" ==> [A, B, C]"
+  "  , \"deriveJSON defaultOptions ''CI.CI\""
+  "    ==>"
+  "    _|_[T \"deriveJSON\", T \"defaultOptions\", T \"''CI.CI\", Newline 0]"
   "  ]"
   "")
  )
