@@ -4815,6 +4815,138 @@ have different input states."
    "foo x = x + 1"
    ""))
 
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-move-to-topmost-end-4a
+    (haskell-move-to-topmost-end)
+  (tests-utils--multiline
+   ""
+   "_|_foo :: Int -> IO Int"
+   "foo x ="
+   "  let bar = Quux ( x)"
+   "  in bar"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo :: Int -> IO Int"
+   "foo x ="
+   "  let bar = Quux ( x)"
+   "  in bar_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-move-to-topmost-end-4b
+    (haskell-move-to-topmost-end)
+  (tests-utils--multiline
+   ""
+   "_|_foo :: Int -> IO Int"
+   "foo x ="
+   "  let bar = Quux ("
+   "             x)"
+   "  in bar"
+   "")
+  (tests-utils--multiline
+   ""
+   "foo :: Int -> IO Int"
+   "foo x ="
+   "  let bar = Quux ("
+   "             x)"
+   "  in bar_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-move-to-topmost-end-5a
+    (haskell-move-to-topmost-end)
+  (tests-utils--multiline
+   "_|_{-# INLINE alexGetByte #-}"
+   "alexGetByte :: AlexInput -> Maybe (Word8, AlexInput)"
+   "alexGetByte input@AlexInput{aiPtr} ="
+   "  case nextChar aiPtr of"
+   "    (# c#, n, cs #) ->"
+   "      case fixChar c# of"
+   "        0##  -> Nothing -- Abort on an unknown character"
+   "        -- '\\n'"
+   "        10## -> Just (10, input')"
+   "          where"
+   "            !input' ="
+   "              over aiLineL increaseLine $"
+   "                set aiLineLengthL 0 $"
+   "                  input { aiPtr = cs }"
+   "        c    -> Just (b, input')"
+   "          where"
+   "            !b     = W8# (wordToWord8# c)"
+   "            !input' ="
+   "              over aiLineLengthL (+ I# n) $"
+   "                input { aiPtr = cs }")
+  (tests-utils--multiline
+   "{-# INLINE alexGetByte #-}"
+   "alexGetByte :: AlexInput -> Maybe (Word8, AlexInput)"
+   "alexGetByte input@AlexInput{aiPtr} ="
+   "  case nextChar aiPtr of"
+   "    (# c#, n, cs #) ->"
+   "      case fixChar c# of"
+   "        0##  -> Nothing -- Abort on an unknown character"
+   "        -- '\\n'"
+   "        10## -> Just (10, input')"
+   "          where"
+   "            !input' ="
+   "              over aiLineL increaseLine $"
+   "                set aiLineLengthL 0 $"
+   "                  input { aiPtr = cs }"
+   "        c    -> Just (b, input')"
+   "          where"
+   "            !b     = W8# (wordToWord8# c)"
+   "            !input' ="
+   "              over aiLineLengthL (+ I# n) $"
+   "                input { aiPtr = cs }_|_"))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-move-to-topmost-end-5b
+    (haskell-move-to-topmost-end)
+  (tests-utils--multiline
+   "_|_{-# INLINE alexGetByte #-}"
+   "alexGetByte :: AlexInput -> Maybe (Word8, AlexInput)"
+   "alexGetByte input@AlexInput{aiPtr} ="
+   "  case nextChar aiPtr of"
+   "    (# c#, n, cs #) ->"
+   "      case fixChar c# of"
+   "        0##  -> Nothing -- Abort on an unknown character"
+   "        -- '\\n'"
+   "        10## -> Just (10, input')"
+   "          where"
+   "            !input' ="
+   "              over aiLineL increaseLine $"
+   "                set aiLineLengthL 0 $"
+   "                  input { aiPtr = cs }"
+   "        c    -> Just (b, input')"
+   "          where"
+   "            !b     = W8# (wordToWord8# c)"
+   "            !input' ="
+   "              over aiLineLengthL (+ I# n) $"
+   "                input { aiPtr = cs }"
+   "")
+  (tests-utils--multiline
+   "{-# INLINE alexGetByte #-}"
+   "alexGetByte :: AlexInput -> Maybe (Word8, AlexInput)"
+   "alexGetByte input@AlexInput{aiPtr} ="
+   "  case nextChar aiPtr of"
+   "    (# c#, n, cs #) ->"
+   "      case fixChar c# of"
+   "        0##  -> Nothing -- Abort on an unknown character"
+   "        -- '\\n'"
+   "        10## -> Just (10, input')"
+   "          where"
+   "            !input' ="
+   "              over aiLineL increaseLine $"
+   "                set aiLineLengthL 0 $"
+   "                  input { aiPtr = cs }"
+   "        c    -> Just (b, input')"
+   "          where"
+   "            !b     = W8# (wordToWord8# c)"
+   "            !input' ="
+   "              over aiLineLengthL (+ I# n) $"
+   "                input { aiPtr = cs }_|_"
+   ""))
+
 (ert-deftest haskell-tests/haskell-regexen/pre-post-qualified-import-line-1 ()
   (dolist (str '("import qualified Data.Ord  "
                  "import Data.Ord  qualified   "
