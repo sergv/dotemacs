@@ -1677,6 +1677,32 @@
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-infix-5a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: [Test]"
+  "foo ="
+  "  [ \"abc\" ==> [A, B, C]"
+  "  , \"deriveJSON defaultOptions ''CI.CI\""
+  "  _|_==>"
+  "        [T \"deriveJSON\", T \"defaultOptions\", T \"''CI.CI\", Newline 0]"
+  "  ]"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: [Test]"
+  "foo ="
+  "  [ \"abc\" ==> [A, B, C]"
+  "  , \"deriveJSON defaultOptions ''CI.CI\""
+  "    _|_==>"
+  "        [T \"deriveJSON\", T \"defaultOptions\", T \"''CI.CI\", Newline 0]"
+  "  ]"
+  "")
+ )
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-vertical-op-1
  :contents
  (tests-utils--multiline
