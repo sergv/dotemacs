@@ -287,6 +287,8 @@
                (throw 'term curr))
               ((string= "tuple" curr-type)
                (throw 'term prev1))
+              ((string= "list" curr-type)
+               (throw 'term prev1))
               ((and (string= "match" curr-type)
                     (treesit-node-child-by-field-name curr "expression"))
                (throw 'term (haskell-ts-indent--get-match-equals curr)))
