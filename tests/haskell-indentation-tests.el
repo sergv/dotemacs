@@ -87,7 +87,7 @@
                 ;; ‘indent-region’ produces incorrect results because
                 ;; of too small ‘treesit--indent-region-batch-size’.
                 ;; Increasing it to cover everything is not possible.
-                (haskell-format--format-with-treesitter start (copy-marker end))
+                (haskell-format--format-region-by-toplevel-chunks-with-treesitter! start (copy-marker end))
                 (insert "_|_")))
             :contents ,contents
             :expected-value ,expected-value
