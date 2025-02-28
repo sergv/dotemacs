@@ -37,7 +37,10 @@
         (goto-char p)))))
 
 (defun haskell-format--format-with-treesitter (start end-mark)
+  (cl-assert (numberp start))
+  (cl-assert (markerp end-mark))
   (goto-char start)
+  (skip-whitespace-forward)
   (with-marker (m (copy-marker start))
     (while (< (point) end-mark)
       (let ((beg (point)))
