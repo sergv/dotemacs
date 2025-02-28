@@ -554,6 +554,18 @@
              ((node-is "gadt_constructors") parent haskell-indent-offset)
              ((parent-is "gadt_constructors") grand-parent haskell-indent-offset)
 
+             ;; instance
+
+             ;; first instance function
+             ((node-is "instance_declarations")
+              parent
+              haskell-indent-offset)
+
+             ;; subsequent instance functions
+             ((parent-is "instance_declarations")
+              grand-parent
+              haskell-indent-offset)
+
              ;; where
              ((lambda (node _ _)
                 (let ((n (treesit-node-prev-sibling node)))
@@ -576,7 +588,7 @@
                   n))
               haskell-indent-offset)
              ;; Also handles binds within let.
-             ((parent-is "local_binds" "instance_declarations")
+             ((parent-is "local_binds")
               haskell-ts-indent--prev-sib
               0)
              ((node-is "where") parent haskell-indent-offset)
