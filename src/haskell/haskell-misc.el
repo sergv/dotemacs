@@ -1136,6 +1136,7 @@ value section should have if it is to be properly indented."
 
 (defun haskell-on-blank-line? ()
   "Assumes point is at 0th column."
+  (cl-assert (= 0 (current-column-fixed-uncached)))
   (or
    ;; Skip preprocessor lines
    (eq (char-after) ?#)
@@ -1168,11 +1169,13 @@ value section should have if it is to be properly indented."
               (or (haskell-on-indented-line?)
                   (haskell-on-blank-line?)))
     (forward-line 1))
-  (forward-line -1)
-  (while (and (not (bobp))
-              (haskell-on-blank-line?))
-    (forward-line -1))
-  (end-of-line))
+  (unless (eobp)
+    (forward-line -1)
+    (while (and (not (bobp))
+                (haskell-on-blank-line?))
+      (forward-line -1)))
+  (end-of-line)
+  (skip-whitespace-backward))
 
 (defun haskell-qualify-import ()
   "Turn ‘import X’ -> ‘import qualified X’."
