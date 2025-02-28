@@ -33,7 +33,8 @@
 ;;;###autoload (autoload 'alex-mode "alex-mode" nil t)
 (define-polymode alex-mode
   :hostmode 'poly-alex-hostmode
-  :innermodes '(poly-alex-haskell-innermode))
+  :innermodes '(poly-alex-haskell-innermode)
+  (setq-local poly-lock-allow-background-adjustment nil))
 
 (defconst alex-colon-column 16 "\
 *The column in which to place a colon separating a token from its definition.")
