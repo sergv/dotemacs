@@ -691,6 +691,48 @@
   "    baz z = z"))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-where-5a
+ :contents
+ (tests-utils--multiline
+  "instance Show AlexInput where"
+  "                          _|_show AlexInput{aiPtr, aiIntStore} ="
+  "                            printf \"AlexInput 0x%08x 0x%08x\" ptr aiIntStore"
+  "                            where"
+  "                              ptr :: Word"
+  "                              ptr = fromIntegral $ ptrToWordPtr aiPtr")
+ :expected-value
+ (tests-utils--multiline
+  "instance Show AlexInput where"
+  "  _|_show AlexInput{aiPtr, aiIntStore} ="
+  "                            printf \"AlexInput 0x%08x 0x%08x\" ptr aiIntStore"
+  "                            where"
+  "                              ptr :: Word"
+  "                              ptr = fromIntegral $ ptrToWordPtr aiPtr"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-where-5b
+ :contents
+ (tests-utils--multiline
+  "instance Show AlexInput where"
+  "                          _|_show AlexInput{aiPtr, aiIntStore} ="
+  "                            printf \"AlexInput 0x%08x 0x%08x\" ptr aiIntStore"
+  "                            where"
+  "                              ptr :: Word"
+  "                              ptr = fromIntegral $ ptrToWordPtr aiPtr"
+  ""
+  "                          showsPrec = foo")
+ :expected-value
+ (tests-utils--multiline
+  "instance Show AlexInput where"
+  "  _|_show AlexInput{aiPtr, aiIntStore} ="
+  "    printf \"AlexInput 0x%08x 0x%08x\" ptr aiIntStore"
+  "    where"
+  "      ptr :: Word"
+  "      ptr = fromIntegral $ ptrToWordPtr aiPtr"
+  ""
+  "  showsPrec = foo"))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-let-1
  :contents
  (tests-utils--multiline
