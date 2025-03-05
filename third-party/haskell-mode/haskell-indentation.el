@@ -519,38 +519,41 @@ and indent when all of the following are true:
                               (+ (current-column) offset-num))))
                    (list col))))))
         (remove-duplicates-sorting
-         (append
-          treesit-indent
-          (cond
-            ((or (haskell-smart-operators--in-string-syntax?-raw node)
-                 (nth 3 (syntax-ppss-update! ppss)))
-             (if (save-excursion
-                   (and (forward-line -1)
-                        (< (nth 8 (syntax-ppss-cached ppss)) (point))))
-                 ;; if this string goes over more than one line we want to
-                 ;; sync with the last line, not the first one
-                 (list (save-excursion
-                         (forward-line -1)
-                         (current-indentation)))
-
+         (remq nil
                (append
-                (haskell-indentation-first-indentation)
-                (list (save-excursion
-                        (goto-char (nth 8 (syntax-ppss-cached ppss)))
-                        (current-column-fixed))))))
-            ;; Is inside comment
-            ((or (haskell-smart-operators--treesit--in-comment? node)
-                 (nth 4 (syntax-ppss-cached ppss)))
-             (if (save-excursion
-                   (and (skip-syntax-forward "-")
-                        (eolp)
-                        (not (> (forward-line 1) 0))
-                        (not (or (haskell-smart-operators--treesit--in-comment? (treesit-haskell--current-node))
-                                 (nth 4 (syntax-ppss))))))
-                 (haskell-indentation-parse-to-indentations)
-               (haskell-indentation-first-indentation)))
-            (t
-             (haskell-indentation-parse-to-indentations))))
+                treesit-indent
+                (cond
+                  ((or (haskell-smart-operators--in-string-syntax?-raw node)
+                       (nth 3 (syntax-ppss-update! ppss)))
+                   (if (save-excursion
+                         (and (forward-line -1)
+                              (when-let* ((string-start (nth 8 (syntax-ppss-cached ppss))))
+                                (< string-start (point)))))
+                       ;; if this string goes over more than one line we want to
+                       ;; sync with the last line, not the first one
+                       (list (save-excursion
+                               (forward-line -1)
+                               (current-indentation)))
+
+                     (append
+                      (haskell-indentation-first-indentation)
+                      (list (save-excursion
+                              (when-let* ((string-start (nth 8 (syntax-ppss-cached ppss))))
+                                (goto-char string-start)
+                                (current-column-fixed)))))))
+                  ;; Is inside comment
+                  ((or (haskell-smart-operators--treesit--in-comment? node)
+                       (nth 4 (syntax-ppss-cached ppss)))
+                   (if (save-excursion
+                         (and (skip-syntax-forward "-")
+                              (eolp)
+                              (not (> (forward-line 1) 0))
+                              (not (or (haskell-smart-operators--treesit--in-comment? (treesit-haskell--current-node))
+                                       (nth 4 (syntax-ppss))))))
+                       (haskell-indentation-parse-to-indentations)
+                     (haskell-indentation-first-indentation)))
+                  (t
+                   (haskell-indentation-parse-to-indentations)))))
          #'=
          #'<)))))
 
