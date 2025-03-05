@@ -551,6 +551,9 @@
               haskell-indent-offset)
              ((parent-is "alternatives") haskell-ts-indent--prev-sib 0)
 
+             ;; Here node is typically nil but we don’t want to match the ‘no-node’ rule below.
+             ((parent-is "string") parent 0)
+
              (no-node prev-adaptive-prefix 0)
 
              ((parent-is "data_constructors") grand-parent haskell-indent-offset)
