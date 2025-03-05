@@ -182,8 +182,12 @@
                 prev1 curr
                 curr (treesit-node-parent curr)))))))
 
+;; This is the most general of the lot and thus is a reasonable default.
 (defun haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update (node parent bol)
   (haskell-ts-indent--standalone-non-infix-parent--generic node parent bol t t nil))
+
+(defun haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update-no-list-parent (node parent bol)
+  (haskell-ts-indent--standalone-non-infix-parent--generic node parent bol t t t))
 
 (defun haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function (node parent bol)
   (haskell-ts-indent--standalone-non-infix-parent--generic node parent bol t nil nil))
@@ -191,7 +195,7 @@
 (defun haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update (node parent bol)
   (haskell-ts-indent--standalone-non-infix-parent--generic node parent bol nil t nil))
 
-(defun haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update-no-list (node parent bol)
+(defun haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update-no-list-parent (node parent bol)
   (haskell-ts-indent--standalone-non-infix-parent--generic node parent bol nil t t))
 
 (defun haskell-ts-indent--get-record-or-fields-open-brace (node)
@@ -532,7 +536,7 @@
              ((parent-is "do")
               ,(lambda (n p bol)
                  (when-let* ((matched-anchor
-                              (haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update-no-list n p bol)))
+                              (haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update-no-list-parent n p bol)))
                    (if (string= "do" (treesit-node-type matched-anchor))
                        ;; If do node is our topmost guide then take its bol...
                        (save-excursion
@@ -547,12 +551,12 @@
               haskell-indent-offset)
 
              ((node-is "alternatives")
-              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update-no-list
+              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update-no-list-parent
               haskell-indent-offset)
              ((parent-is "alternatives") haskell-ts-indent--prev-sib 0)
 
              ;; Here node is typically nil but we don’t want to match the ‘no-node’ rule below.
-             ((parent-is "string") parent 0)
+             ((parent-is "string") haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update-no-list-parent 0)
 
              (no-node prev-adaptive-prefix 0)
 
