@@ -4744,6 +4744,27 @@
   "          | otherwise            -> 1#"
   "_|_"))
 
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-string-1a
+ :contents
+ (tests-utils--multiline
+  "foo :: [String]"
+  "foo ="
+  "  [ \"bar\""
+  "  , \"  {-   foo \\n\\"
+  "   _|_\\\\n\\"
+  "    \\-}\""
+  "  ]")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: [String]"
+  "foo ="
+  "  [ \"bar\""
+  "  , \"  {-   foo \\n\\"
+  "    _|_\\\\n\\"
+  "    \\-}\""
+  "  ]"))
+
 (provide 'haskell-indentation-tests)
 
 ;; Local Variables:
