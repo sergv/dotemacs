@@ -21,7 +21,7 @@
 
   ("<f1>"     help-command)
   ("<f1> t"   nil)
-  ("<f2>"     universal-argument)
+  ("<f2>"     vim-universal-argument)
 
   ("<f5>"     revert-buffer)
   ("<f6>"     revert-buffer)
