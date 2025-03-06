@@ -206,6 +206,15 @@ maintain `vim--current-key-sequence' in order. That is needed to make
   (call-interactively #'digit-argument arg)
   (vim--remember-this-command-keys!))
 
+(defun vim-universal-argument (arg)
+  "Wrapper around `digit-argument' that does the necessary bookkeeping to
+maintain `vim--current-key-sequence' in order. That is needed to make
+`vim:cmd-repeat' and visual block mode work as expected."
+  (interactive "P")
+  (call-interactively #'universal-argument arg)
+  (vim--remember-this-command-keys!))
+
+(define-key universal-argument-map [remap universal-argument] 'vim-universal-argument)
 (define-key universal-argument-map [remap digit-argument] 'vim-digit-argument)
 (define-key universal-argument-map [?-] nil)
 (define-key universal-argument-map (kbd "C--") 'vim-universal-argument-minus)
