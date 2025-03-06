@@ -7965,6 +7965,36 @@ have different input states."
   "")
  :modes (haskell-ts-mode))
 
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-convert-to-multiline-string-8a
+ :action
+ (haskell-ts-convert-to-multiline-string)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: String"
+  "foo ="
+  "  [hereDoc|"
+  "  foo"
+  "  _|_bar"
+  "  baz"
+  "  |]"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MultilineStrings #-}"
+  ""
+  "foo :: String"
+  "foo ="
+  "  \"\"\""
+  "  foo"
+  "  _|_bar"
+  "  baz"
+  "  \"\"\""
+  "")
+ :modes (haskell-ts-mode))
+
 (provide 'haskell-tests)
 
 ;; (let ((ert-debug-on-error nil))
