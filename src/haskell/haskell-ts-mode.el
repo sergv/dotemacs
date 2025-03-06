@@ -7,6 +7,7 @@
 ;; Description:
 
 (eval-when-compile
+  (require 'cl)
   (require 'dash))
 
 (require 'common)
@@ -14,6 +15,7 @@
 (require 'haskell-lexeme)
 (require 'haskell-syntax-table)
 (require 'haskell-ts-indent)
+(require 's)
 (require 'treesit)
 
 (declare-function treesit-parser-create "treesit.c")
@@ -558,6 +560,68 @@ indented block will be their bounds without any extra processing."
   (if-let ((bounds (haskell-ts--bounds-of-toplevel-entity pos nil nil t t)))
       (indent-region (car bounds) (cdr bounds))
     (error "No function at point")))
+
+(defun haskell-ts-convert-to-multiline-string (&optional preserve-newline-at-end?)
+  "Convert string literal to multiline syntax."
+  (interactive "P")
+  (when-let* ((node (treesit-node-at (point))))
+    (when (string= "string" (treesit-node-type node))
+      (let* ((start (treesit-node-start node))
+             (end (treesit-node-end node))
+             (contents (buffer-substring-no-properties start end))
+             (triple-delim "\"\"\""))
+        (if (and (not (s-prefix-p triple-delim contents))
+                 (not (s-suffix-p triple-delim contents))
+                 ;; This below makes current function only work on
+                 ;; strings containing newlines, not sure whether it’s
+                 ;; such a good idea.
+                 ;;
+                 ;; One may very well want to convert given single-line string to multiline
+                 ;; format and add more lines.
+                 ;;
+                 ;; (or (seq-contains-p contents ?\n)
+                 ;;     (cl-search "\\n" contents))
+                 )
+            (save-excursion
+              (goto-char start)
+              (let ((indent (make-string (- (point) (line-beginning-position)) ?\s)))
+                (delete-region start end)
+                (haskell-misc--ensure-language-pragma "MultilineStrings")
+                (let* ((newline-indent (concat "\n" indent))
+                       (no-delims (substring contents 1 -1))
+                       (fixed-last-newline
+                        (replace-regexp-in-string
+                         (rx (seq ?\\ ?n) eos)
+                         ""
+                         no-delims
+                         t
+                         t))
+                       (no-old-style-newlines
+                        (replace-regexp-in-string
+                         (rx (seq ?\\ ?n ?\\ (? ?\r) ?\n (* (any ?\s)) ?\\))
+                         newline-indent
+                         fixed-last-newline
+                         t
+                         t))
+                       (no-regular-newlines
+                        (replace-regexp-in-string
+                         (rx (seq ?\\ ?n))
+                         newline-indent
+                         no-old-style-newlines
+                         t
+                         t)))
+                  (insert triple-delim
+                          newline-indent
+                          no-regular-newlines
+                          (if (and preserve-newline-at-end?
+                                   ;; If the string did not end with ?\\ ?\\n
+                                   ;; then employ special syntax to make
+                                   ;; string literal evaluate to a string
+                                   ;; not ending with a newline.
+                                   (string= fixed-last-newline no-delims))
+                              (concat "\\\n" indent "\\" triple-delim)
+                            (concat newline-indent triple-delim))))))
+          (error "String literal at point is already multiline"))))))
 
 ;;;###autoload
 (define-derived-mode haskell-ts-mode prog-mode "Haskell[ts]"
