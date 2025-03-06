@@ -4961,6 +4961,56 @@
   "    \"\"\""
   "  )"))
 
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--quasi-quote-1a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: String"
+  "foo ="
+  "  [hereDoc|"
+  "  foo"
+  "  bar"
+  "  baz"
+  " _|_|]"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: String"
+  "foo ="
+  "  [hereDoc|"
+  "  foo"
+  "  bar"
+  "  baz"
+  "  _|_|]"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--quasi-quote-1b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: String"
+  "foo ="
+  "    _|_[hereDoc|"
+  "  foo"
+  "  bar"
+  "  baz"
+  "  |]"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: String"
+  "foo ="
+  "  _|_[hereDoc|"
+  "  foo"
+  "  bar"
+  "  baz"
+  "  |]"
+  ""))
+
 (provide 'haskell-indentation-tests)
 
 ;; Local Variables:
