@@ -7723,6 +7723,248 @@ have different input states."
   "")
  :modes (haskell-ts-mode))
 
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-convert-to-multiline-string-1
+ :action
+ (haskell-ts-convert-to-multiline-string)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  \"_|_bar\""
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MultilineStrings #-}"
+  ""
+  "foo ="
+  "  _|_\"\"\""
+  "  bar"
+  "  \"\"\""
+  "")
+ :modes (haskell-ts-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-convert-to-multiline-string-2
+ :action
+ (haskell-ts-convert-to-multiline-string t)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  \"_|_bar\""
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MultilineStrings #-}"
+  ""
+  "foo ="
+  "  _|_\"\"\""
+  "  bar\\"
+  "  \\\"\"\""
+  "")
+ :modes (haskell-ts-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-convert-to-multiline-string-3
+ :action
+ (haskell-ts-convert-to-multiline-string)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  \"_|_bar\\nbaz\""
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MultilineStrings #-}"
+  ""
+  "foo ="
+  "  _|_\"\"\""
+  "  bar"
+  "  baz"
+  "  \"\"\""
+  "")
+ :modes (haskell-ts-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-convert-to-multiline-string-4a
+ :action
+ (haskell-ts-convert-to-multiline-string)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  \"_|_bar\\n\\"
+  "  \\baz\\n\\"
+  "  \\quux\""
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MultilineStrings #-}"
+  ""
+  "foo ="
+  "  _|_\"\"\""
+  "  bar"
+  "  baz"
+  "  quux"
+  "  \"\"\""
+  "")
+ :modes (haskell-ts-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-convert-to-multiline-string-4b
+ :action
+ (haskell-ts-convert-to-multiline-string)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  \"bar\\n\\"
+  "  \\baz\\n\\"
+  "  _|_\\quux\""
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MultilineStrings #-}"
+  ""
+  "foo ="
+  "  _|_\"\"\""
+  "  bar"
+  "  baz"
+  "  quux"
+  "  \"\"\""
+  "")
+ :modes (haskell-ts-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-convert-to-multiline-string-5a
+ :action
+ (haskell-ts-convert-to-multiline-string)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  \"_|_bar\\n\""
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MultilineStrings #-}"
+  ""
+  "foo ="
+  "  _|_\"\"\""
+  "  bar"
+  "  \"\"\""
+  "")
+ :modes (haskell-ts-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-convert-to-multiline-string-5b
+ :action
+ (haskell-ts-convert-to-multiline-string t)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  \"_|_bar\\n\""
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MultilineStrings #-}"
+  ""
+  "foo ="
+  "  _|_\"\"\""
+  "  bar"
+  "  \"\"\""
+  "")
+ :modes (haskell-ts-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-convert-to-multiline-string-6a
+ :action
+ (haskell-ts-convert-to-multiline-string)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  \"bar\\n\\"
+  "  _|_\\baz\\n\\"
+  "  \\quux\\n\""
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MultilineStrings #-}"
+  ""
+  "foo ="
+  "  _|_\"\"\""
+  "  bar"
+  "  baz"
+  "  quux"
+  "  \"\"\""
+  "")
+ :modes (haskell-ts-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-convert-to-multiline-string-6b
+ :action
+ (haskell-ts-convert-to-multiline-string t)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  \"bar\\n\\"
+  "  _|_\\baz\\n\\"
+  "  \\quux\\n\""
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MultilineStrings #-}"
+  ""
+  "foo ="
+  "  _|_\"\"\""
+  "  bar"
+  "  baz"
+  "  quux"
+  "  \"\"\""
+  "")
+ :modes (haskell-ts-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-convert-to-multiline-string-7
+ :action
+ (haskell-ts-convert-to-multiline-string)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  \"bar\\n\\"
+  "  _|_\\baz1\\nbaz2\\n\\"
+  "  \\quux\\n\""
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MultilineStrings #-}"
+  ""
+  "foo ="
+  "  _|_\"\"\""
+  "  bar"
+  "  baz1"
+  "  baz2"
+  "  quux"
+  "  \"\"\""
+  "")
+ :modes (haskell-ts-mode))
+
 (provide 'haskell-tests)
 
 ;; (let ((ert-debug-on-error nil))
