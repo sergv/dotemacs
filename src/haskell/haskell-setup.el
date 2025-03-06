@@ -103,6 +103,9 @@
   (haskell-navigate-imports)
   (setq-local vim-save-position-omit-next t))
 
+(vim-defcmd vim:haskell-ts-convert-to-multiline-string ()
+  (haskell-ts-convert-to-multiline-string current-prefix-arg))
+
 (vim-defcmd vim:haskell-comment-line (count repeatable)
   (haskell-comment-line count))
 
@@ -359,10 +362,13 @@ _<tab>_: reindent         _h_: jump to topmont node end"
 
 (defhydra-derive hydra-haskell-ts-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
   "
-_i_:     jump to imports  _t_: jump to topmost function/entity start
-_<tab>_: reindent         _h_: jump to topmont function/entity end"
+_i_:     jump to imports                      _t_: jump to topmost function/entity start
+_<tab>_: reindent                             _h_: jump to topmont function/entity end
+_\"_:    convert string literal to multiline
+"
   ("i"     vim:haskell-navigate-imports:interactive)
   ("<tab>" haskell-ts-reindent-at-point)
+  ("\""    vim:haskell-ts-convert-to-multiline-string:interactive)
 
   ("t"     haskell-ts-beginning-of-defun)
   ("h"     haskell-ts-end-of-defun))
