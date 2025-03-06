@@ -6214,8 +6214,8 @@ have different input states."
                        nil))))
 
 (haskell-tests--test-buffer-contents
-    haskell-tests/haskell-abbrev+--ensure-language-pragma-1
-    (haskell-abbrev+--ensure-language-pragma "OverloadedStrings")
+    haskell-tests/haskell-misc--ensure-language-pragma-1
+    (haskell-misc--ensure-language-pragma "OverloadedStrings")
   (tests-utils--multiline
    ""
    "foo x xs = foo _|_"
@@ -6227,8 +6227,8 @@ have different input states."
    ""))
 
 (haskell-tests--test-buffer-contents
-    haskell-tests/haskell-abbrev+--ensure-language-pragma-2
-    (haskell-abbrev+--ensure-language-pragma "OverloadedStrings")
+    haskell-tests/haskell-misc--ensure-language-pragma-2
+    (haskell-misc--ensure-language-pragma "OverloadedStrings")
   (tests-utils--multiline
    "{-# LANGUAGE OverloadedStrings #-}"
    ""
