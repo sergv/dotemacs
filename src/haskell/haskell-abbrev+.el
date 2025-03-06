@@ -224,7 +224,7 @@
   (interactive "*")
   (haskell-abbrev+--ensure-debug-trace-available)
   (haskell-abbrev+--ensure-prettyprinter-combinators-available)
-  (haskell-abbrev+--ensure-language-pragma "OverloadedStrings")
+  (haskell-misc--ensure-language-pragma "OverloadedStrings")
   (let ((indent (current-indentation)))
     (insert "Debug.Trace.trace\n"
             (make-string (+ indent haskell-indent-offset) ?\s)
@@ -236,20 +236,9 @@
   (interactive "*")
   (haskell-abbrev+--ensure-debug-trace-available)
   (haskell-abbrev+--ensure-prettyprinter-combinators-available)
-  (haskell-abbrev+--ensure-language-pragma "OverloadedStrings")
+  (haskell-misc--ensure-language-pragma "OverloadedStrings")
   (insert "Debug.Trace.traceM $ renderString $ ")
   (haskell-insert-pp-dict-info-template))
-
-(defun haskell-abbrev+--ensure-language-pragma (pragma)
-  (save-restriction
-    (save-excursion
-      (save-match-data
-        (goto-char (point-min))
-        (unless (re-search-forward (concat "{-#[ \t]*LANGUAGE[ \t\r\n]+\\(?:[a-zA-Z]+[ \t\r\n]+\\)*"
-                                           pragma)
-                                   nil
-                                   t)
-          (attrap-do-insert-language-pragma pragma))))))
 
 (defun haskell-abbrev+-extract-first-capital-char (qualified-name)
   (when qualified-name
