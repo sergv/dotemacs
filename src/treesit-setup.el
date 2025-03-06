@@ -46,6 +46,7 @@ Return the root node of the syntax tree."
      (treesit-parser-create language))))
 
 (defun treesit-utils-find-topmost-parent (node pred)
+  (cl-assert (treesit-node-p node))
   (let ((result nil)
         (p node))
     (while p
@@ -55,6 +56,7 @@ Return the root node of the syntax tree."
     result))
 
 (defun treesit-utils-find-topmost-parent-limited (node pred limit)
+  (cl-assert (treesit-node-p node))
   (let ((result nil)
         (p node))
     (while (and p
