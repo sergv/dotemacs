@@ -1547,6 +1547,18 @@ with dante."
   (let ((dante-check-force-interpret t))
     (flycheck-force-run)))
 
+;;;###autoload
+(defun haskell-misc--ensure-language-pragma (pragma)
+  (save-restriction
+    (save-excursion
+      (save-match-data
+        (goto-char (point-min))
+        (unless (re-search-forward (concat "{-#[ \t]*LANGUAGE[ \t\r\n]+\\(?:[a-zA-Z]+[ \t\r\n]+\\)*"
+                                           pragma)
+                                   nil
+                                   t)
+          (attrap-do-insert-language-pragma pragma))))))
+
 (provide 'haskell-misc)
 
 ;; Local Variables:
