@@ -586,60 +586,45 @@ indented block will be their bounds without any extra processing."
                  (haskell-misc--ensure-language-pragma "MultilineStrings")))
            (error "Point is at quasiquoter node without body")))
         ((string= "string" (treesit-node-type node))
-         (let* ((start (treesit-node-start node))
-                (end (treesit-node-end node))
-                (contents (buffer-substring-no-properties start end)))
-           (if (and (not (s-prefix-p triple-delim contents))
-                    (not (s-suffix-p triple-delim contents))
-                    ;; This below makes current function only work on
-                    ;; strings containing newlines, not sure whether it’s
-                    ;; such a good idea.
-                    ;;
-                    ;; One may very well want to convert given single-line string to multiline
-                    ;; format and add more lines.
-                    ;;
-                    ;; (or (seq-contains-p contents ?\n)
-                    ;;     (cl-search "\\n" contents))
-                    )
-               (save-excursion
-                 (goto-char start)
-                 (let ((indent (make-string (- (point) (line-beginning-position)) ?\s)))
-                   (delete-region start end)
-                   (haskell-misc--ensure-language-pragma "MultilineStrings")
-                   (let* ((newline-indent (concat "\n" indent))
-                          (no-delims (substring contents 1 -1))
-                          (fixed-last-newline
-                           (replace-regexp-in-string
-                            (rx (seq ?\\ ?n) eos)
-                            ""
-                            no-delims
-                            t
-                            t))
-                          (no-old-style-newlines
-                           (replace-regexp-in-string
-                            (rx (seq ?\\ ?n ?\\ (? ?\r) ?\n (* (any ?\s)) ?\\))
-                            newline-indent
-                            fixed-last-newline
-                            t
-                            t))
-                          (no-regular-newlines
-                           (replace-regexp-in-string
-                            (rx (seq ?\\ ?n))
-                            newline-indent
-                            no-old-style-newlines
-                            t
-                            t)))
-                     (insert triple-delim
-                             newline-indent
-                             no-regular-newlines
-                             (if (and preserve-newline-at-end?
-                                      ;; If the string did not end with ?\\ ?\\n
-                                      ;; then employ special syntax to make
-                                      ;; string literal evaluate to a string
-                                      ;; not ending with a newline.
-                                      (string= fixed-last-newline no-delims))
-                                 (concat "\\\n" indent "\\" triple-delim)
-                               (concat newline-indent triple-delim))))))
+         (let ((start (treesit-node-start node))
+               (end (treesit-node-end node)))
+           (if (not (or (text-after-pos-matches? start triple-delim)
+                        (text-before-pos-matches? end triple-delim)))
+               (save-match-data
+                 (save-position-marker-unsafe
+                   (goto-char start)
+                   (let* ((indent (make-string (- (point) (line-beginning-position)) ?\s))
+                          (newline-indent (concat "\n" indent))
+                          (double-delim "\"\""))
+                     (with-marker (end-mark (copy-marker end))
+                       (goto-char end)
+                       ;; Remove last newline if present
+                       (forward-char -1)
+
+                       (if (and (not (when (text-before-matches? "\\n")
+                                       (delete-char -2)
+                                       t))
+                                preserve-newline-at-end?)
+                           (insert "\\" newline-indent "\\" double-delim)
+                         (insert newline-indent double-delim))
+
+                       (goto-char (+ start 1))
+                       (insert-before-markers double-delim newline-indent)
+
+                       ;; Fix old style multiline strings.
+                       (goto-char start)
+                       (while (re-search-forward
+                               (rx (seq ?\\ ?n ?\\ (? ?\r) ?\n (* (any ?\s)) ?\\))
+                               end-mark
+                               t)
+                         (replace-match-insert-before-markers newline-indent))
+
+                       ;; Fix regular newlines.
+                       (goto-char start)
+                       (while (re-search-forward (rx (seq ?\\ ?n)) end-mark t)
+                         (replace-match-insert-before-markers newline-indent)))
+
+                     (haskell-misc--ensure-language-pragma "MultilineStrings"))))
              (error "String literal at point is already multiline"))))
         (t
          (error "Node at point is neither string nor quasiquote: %s"
