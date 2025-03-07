@@ -1429,8 +1429,12 @@ All other backslashes are preserved as is."
 (defun text-before-matches? (str)
   "Check if text before point is equal to STR, last character of which should come strictly
 before point."
-  (let ((res t)
-        (p (point)))
+  (text-before-pos-matches? (point) str))
+
+(defun text-before-pos-matches? (p str)
+  "Check if text before point is equal to STR, last character of which should come strictly
+before point."
+  (let ((res t))
     (cl-loop
       for i from 0
       for j downfrom (1- (length str)) to 0
@@ -1443,8 +1447,11 @@ before point."
 
 (defun text-before-matches1? (str)
   "Check if text before point is equal to STR, last character of which should be currently under point."
-  (let ((res t)
-        (p (point)))
+  (text-before-pos-matches1? (point) str))
+
+(defun text-before-pos-matches1? (p str)
+  "Check if text before point is equal to STR, last character of which should be currently under point."
+  (let ((res t))
     (cl-loop
       for i from 0
       for j downfrom (1- (length str)) to 0
@@ -1457,10 +1464,13 @@ before point."
 
 (defun text-after-matches? (str)
   "Check if text after point is equal to STR."
-  (let ((res t)
-        (p (point)))
+  (text-after-pos-matches? (point) str))
+
+(defun text-after-pos-matches? (p str)
+  "Check if text after point is equal to STR."
+  (let ((res t))
     (cl-loop
-      for i from 0 to (1- (length str))
+      for i from 0 below (length str)
       while res
       do
       (setf res
@@ -1570,6 +1580,11 @@ NEW-PROPS will be ignored."
         (setf old-props (cddr old-props))))
     (setf (cdr tmp) new-props)
     (cdr res)))
+
+(defun replace-match-insert-before-markers (newtext)
+  "Like ‘replace-match’ but inserts NEWTEXT before markers, instead of after."
+  (delete-region (match-beginning 0) (match-end 0))
+  (insert-before-markers newtext))
 
 (provide 'common)
 
