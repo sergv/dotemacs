@@ -807,23 +807,34 @@ a single entity."
      (when (null expanded-function-name?)
        (goto-char start-pos)
        (let* ((syn nil)
-              (in-string? (let ((node (treesit-haskell--current-node)))
-                            (cond
-                              ((haskell-smart-operators--treesit--in-quasiquote-body? node)
-                               ;; [Non-Haskell-QQ]
-                               ;; Quasiquote’s body syntax probably
-                               ;; doesn’t support Haskell’s multiline
-                               ;; strings separated by backslashes.
-                               nil)
-                              ((and (derived-mode-p 'haskell-mode)
-                                    (when-let ((prop (get-char-property (point) 'haskell-mode-quasiquote)))
-                                      (not (member prop '("" "t" "e" "d")))))
-                               ;; Same reasoning as for [Non-Haskell-QQ].
-                               nil)
-                              (t
-                               (or (haskell-smart-operators--in-string-syntax?-raw node)
-                                   (nth 3 (syntax-ppss-update! syn))))))))
+              (node (treesit-haskell--current-node))
+              (multiline-string-start
+               (when (and node
+                          (treesit-haskell--is-multiline-string? node))
+                 (treesit-node-start node)))
+              (in-string? (cond
+                            ((haskell-smart-operators--treesit--in-quasiquote-body? node)
+                             ;; [Non-Haskell-QQ]
+                             ;; Quasiquote’s body syntax probably
+                             ;; doesn’t support Haskell’s multiline
+                             ;; strings separated by backslashes.
+                             nil)
+                            ((and (derived-mode-p 'haskell-mode)
+                                  (when-let ((prop (get-char-property (point) 'haskell-mode-quasiquote)))
+                                    (not (member prop '("" "t" "e" "d")))))
+                             ;; Same reasoning as for [Non-Haskell-QQ].
+                             nil)
+                            (t
+                             (or (haskell-smart-operators--in-string-syntax?-raw node)
+                                 (nth 3 (syntax-ppss-update! syn)))))))
          (cond
+           (multiline-string-start
+            (let ((string-start-column (save-excursion
+                                         (goto-char multiline-string-start)
+                                         (current-column-fixed-uncached))))
+              (delete-horizontal-space t)
+              (insert-char ?\n)
+              (insert-char ?\s string-start-column)))
            (in-string?
             (let ((string-start-column (save-excursion
                                          (goto-char (nth 8 (syntax-ppss-cached syn)))
