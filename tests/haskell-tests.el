@@ -8068,6 +8068,50 @@ have different input states."
 
 (haskell-tests--test-buffer-contents*
  :name
+ haskell-tests/haskell-ts-convert-to-multiline-string-9bb
+ :action
+ (haskell-ts-convert-to-multiline-string)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  \"_|_bar \\\\\\\"\\\"baz\\\"\\\" quux\""
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MultilineStrings #-}"
+  ""
+  "foo ="
+  "  \"\"\""
+  "  _|_bar \\\\\"\"baz\"\" quux"
+  "  \"\"\""
+  "")
+ :modes (haskell-ts-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-convert-to-multiline-string-9bbb
+ :action
+ (haskell-ts-convert-to-multiline-string)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  \"_|_bar \\\\\\\"\\\"baz\\\"\\\"\""
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MultilineStrings #-}"
+  ""
+  "foo ="
+  "  \"\"\""
+  "  _|_bar \\\\\"\"baz\"\""
+  "  \"\"\""
+  "")
+ :modes (haskell-ts-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
  haskell-tests/haskell-ts-convert-to-multiline-string-9c
  :action
  (haskell-ts-convert-to-multiline-string)
@@ -8129,6 +8173,156 @@ have different input states."
   "  \"\"\""
   "  _|_bar \"baz\"\\"
   "  \\\"\"\""
+  "")
+ :modes (haskell-ts-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-convert-to-multiline-string-11a
+ :action
+ (haskell-ts-convert-to-multiline-string)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  \"_|_bar \\\\n baz\""
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MultilineStrings #-}"
+  ""
+  "foo ="
+  "  \"\"\""
+  "  _|_bar \\\\n baz"
+  "  \"\"\""
+  "")
+ :modes (haskell-ts-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-convert-to-multiline-string-11b
+ :action
+ (haskell-ts-convert-to-multiline-string)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  \"_|_bar \\\\\\n baz\""
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MultilineStrings #-}"
+  ""
+  "foo ="
+  "  \"\"\""
+  "  _|_bar \\\\"
+  "   baz"
+  "  \"\"\""
+  "")
+ :modes (haskell-ts-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-convert-to-multiline-string-11c
+ :action
+ (haskell-ts-convert-to-multiline-string)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  \"_|_bar \\\\\\\\n baz\""
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MultilineStrings #-}"
+  ""
+  "foo ="
+  "  \"\"\""
+  "  _|_bar \\\\\\\\n baz"
+  "  \"\"\""
+  "")
+ :modes (haskell-ts-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-convert-to-multiline-string-11d
+ :action
+ (haskell-ts-convert-to-multiline-string)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  \"_|_bar \\\\\\\\\\n baz\""
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MultilineStrings #-}"
+  ""
+  "foo ="
+  "  \"\"\""
+  "  _|_bar \\\\\\\\"
+  "   baz"
+  "  \"\"\""
+  "")
+ :modes (haskell-ts-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-convert-to-multiline-string-12
+ :action
+ (haskell-ts-convert-to-multiline-string)
+ :contents
+ (tests-utils--multiline
+  ""
+  "bar ="
+  "  \"_|_foo = \\\"foo\\\\n\\\\\\n\\"
+  "  \\  \\\\x\\\" bar\""
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MultilineStrings #-}"
+  ""
+  "bar ="
+  "  \"\"\""
+  "  _|_foo = \"foo\\\\n\\\\"
+  "    \\\\x\" bar"
+  "  \"\"\""
+  "")
+ :modes (haskell-ts-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-convert-to-multiline-string-13
+ :action
+ (haskell-ts-convert-to-multiline-string)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  _|_\"This is a factorial function\\n\\"
+  "  \\\\n\\"
+  "  \\> f :: Integer -> Integer\\n\\"
+  "  \\> f 0 = 1\\n\\"
+  "  \\> f n = \\n\\"
+  "  \\>   n * (f $ n - 1)\\n\\"
+  "  \\\\n\\"
+  "  \\And that's it !\""
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MultilineStrings #-}"
+  ""
+  "foo ="
+  "  _|_\"\"\""
+  "  This is a factorial function"
+  "  "
+  "  > f :: Integer -> Integer"
+  "  > f 0 = 1"
+  "  > f n = "
+  "  >   n * (f $ n - 1)"
+  "  "
+  "  And that's it !"
+  "  \"\"\""
   "")
  :modes (haskell-ts-mode))
 
