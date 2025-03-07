@@ -362,16 +362,16 @@ _<tab>_: reindent         _h_: jump to topmont node end"
 
 (defhydra-derive hydra-haskell-ts-vim-normal-g-ext hydra-vim-normal-g-ext (:exit t :foreign-keys nil :hint nil)
   "
-_i_:     jump to imports                      _t_: jump to topmost function/entity start
-_<tab>_: reindent                             _h_: jump to topmont function/entity end
-_\"_:    convert string literal to multiline
+_i_:     jump to imports  _t_: jump to topmost function/entity start
+_<tab>_: reindent         _h_: jump to topmont function/entity end
+                        _\"_: convert string literal to multiline
 "
   ("i"     vim:haskell-navigate-imports:interactive)
   ("<tab>" haskell-ts-reindent-at-point)
-  ("\""    vim:haskell-ts-convert-to-multiline-string:interactive)
 
   ("t"     haskell-ts-beginning-of-defun)
-  ("h"     haskell-ts-end-of-defun))
+  ("h"     haskell-ts-end-of-defun)
+  ("\""    vim:haskell-ts-convert-to-multiline-string:interactive))
 
 (defhydra-derive hydra-haskell-vim-visual-g-ext hydra-vim-visual-g-ext (:exit t :foreign-keys nil :hint nil)
   "
