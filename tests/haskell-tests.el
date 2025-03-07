@@ -4330,6 +4330,28 @@ have different input states."
    "  , baz "
    "  ]"))
 
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion--inside-string-2
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  "quux = "
+  "  [ foobar"
+  "  , \"\"\"T.makeInstances [2..6]_|_\"\"\" ==> []"
+  "  , baz "
+  "  ]")
+ :expected-value
+ (tests-utils--multiline
+  "quux = "
+  "  [ foobar"
+  "  , \"\"\"T.makeInstances [2..6]"
+  "    _|_\"\"\" ==> []"
+  "  , baz "
+  "  ]")
+ :modes (haskell-ts-mode))
+
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-newline-with-signature-expansion--outside-string-1
     (haskell-newline-with-signature-expansion)
@@ -4348,7 +4370,7 @@ have different input states."
    "  c    -> C8.singleton c"))
 
 (haskell-tests--test-buffer-contents
-    haskell-tests/haskell-newline-with-signature-expansion--outside-string-2
+    haskell-tests/haskell-newline-with-signature-expansion--outside-string-2a
     (haskell-newline-with-signature-expansion)
   (tests-utils--multiline
    "quux = "
@@ -4365,7 +4387,7 @@ have different input states."
    "  ]"))
 
 (haskell-tests--test-buffer-contents
- haskell-tests/haskell-newline-with-signature-expansion--outside-string-3
+ haskell-tests/haskell-newline-with-signature-expansion--outside-string-3a
  (haskell-newline-with-signature-expansion)
  (tests-utils--multiline
   "quux = "
@@ -4380,6 +4402,95 @@ have different input states."
   "  _|_\"T.makeInstances [2..6]\" ==> []"
   "  , baz "
   "  ]"))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion--outside-string-2ba
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  "quux = "
+  "  [ foobar"
+  "  , \"\"\"T.makeInstances [2..6]\"\"\"_|_ ==> []"
+  "  , baz "
+  "  ]")
+ :expected-value
+ (tests-utils--multiline
+  "quux = "
+  "  [ foobar"
+  "  , \"\"\"T.makeInstances [2..6]\"\"\""
+  "  _|_ ==> []"
+  "  , baz "
+  "  ]")
+ :modes (haskell-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion--outside-string-3ba
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  "quux = "
+  "  [ foobar"
+  "  , _|_\"\"\"T.makeInstances [2..6]\"\"\" ==> []"
+  "  , baz "
+  "  ]")
+ :expected-value
+ (tests-utils--multiline
+  "quux = "
+  "  [ foobar"
+  "  ,"
+  "  _|_\"\"\"T.makeInstances [2..6]\"\"\" ==> []"
+  "  , baz "
+  "  ]")
+ :modes (haskell-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion--outside-string-2bb
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  "quux = "
+  "  [ foobar"
+  "  , \"\"\"T.makeInstances [2..6]\"\"\"_|_ ==> []"
+  "  , baz "
+  "  ]")
+ :expected-value
+ (tests-utils--multiline
+  "quux = "
+  "  [ foobar"
+  "  , \"\"\"T.makeInstances [2..6]\"\"\""
+  "    _|_ ==> []"
+  "  , baz "
+  "  ]")
+ :modes (haskell-ts-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion--outside-string-3bb
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  "quux = "
+  "  [ foobar"
+  "  , _|_\"\"\"T.makeInstances [2..6]\"\"\" ==> []"
+  "  , baz "
+  "  ]")
+ :expected-value
+ (tests-utils--multiline
+  "quux = "
+  "  [ foobar"
+  "  ,"
+  "    _|_\"\"\"T.makeInstances [2..6]\"\"\" ==> []"
+  "  , baz "
+  "  ]")
+ :modes (haskell-ts-mode))
+
 
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-newline-with-signature-expansion--inside-quasiquote-1
@@ -4456,6 +4567,30 @@ have different input states."
    "    \\_|_decombobulator\""
    "  |]"
    ""))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-newline-with-signature-expansion--inside-quasiquote-5
+ :action
+ (haskell-newline-with-signature-expansion)
+ :contents
+ (tests-utils--multiline
+  ""
+  "quux ="
+  "  [e| "
+  "    \"\"\"frobnicate _|_decombobulator\"\"\""
+  "  |]"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "quux ="
+  "  [e| "
+  "    \"\"\"frobnicate"
+  "    _|_decombobulator\"\"\""
+  "  |]"
+  "")
+ :modes (haskell-ts-mode))
 
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-newline-with-signature-expansion--at-beginning-of-buffer-1
