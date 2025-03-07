@@ -7739,8 +7739,8 @@ have different input states."
   "{-# LANGUAGE MultilineStrings #-}"
   ""
   "foo ="
-  "  _|_\"\"\""
-  "  bar"
+  "  \"\"\""
+  "  _|_bar"
   "  \"\"\""
   "")
  :modes (haskell-ts-mode))
@@ -7761,8 +7761,8 @@ have different input states."
   "{-# LANGUAGE MultilineStrings #-}"
   ""
   "foo ="
-  "  _|_\"\"\""
-  "  bar\\"
+  "  \"\"\""
+  "  _|_bar\\"
   "  \\\"\"\""
   "")
  :modes (haskell-ts-mode))
@@ -7783,8 +7783,8 @@ have different input states."
   "{-# LANGUAGE MultilineStrings #-}"
   ""
   "foo ="
-  "  _|_\"\"\""
-  "  bar"
+  "  \"\"\""
+  "  _|_bar"
   "  baz"
   "  \"\"\""
   "")
@@ -7808,8 +7808,8 @@ have different input states."
   "{-# LANGUAGE MultilineStrings #-}"
   ""
   "foo ="
-  "  _|_\"\"\""
-  "  bar"
+  "  \"\"\""
+  "  _|_bar"
   "  baz"
   "  quux"
   "  \"\"\""
@@ -7834,10 +7834,10 @@ have different input states."
   "{-# LANGUAGE MultilineStrings #-}"
   ""
   "foo ="
-  "  _|_\"\"\""
+  "  \"\"\""
   "  bar"
   "  baz"
-  "  quux"
+  "  _|_quux"
   "  \"\"\""
   "")
  :modes (haskell-ts-mode))
@@ -7858,8 +7858,8 @@ have different input states."
   "{-# LANGUAGE MultilineStrings #-}"
   ""
   "foo ="
-  "  _|_\"\"\""
-  "  bar"
+  "  \"\"\""
+  "  _|_bar"
   "  \"\"\""
   "")
  :modes (haskell-ts-mode))
@@ -7880,8 +7880,8 @@ have different input states."
   "{-# LANGUAGE MultilineStrings #-}"
   ""
   "foo ="
-  "  _|_\"\"\""
-  "  bar"
+  "  \"\"\""
+  "  _|_bar"
   "  \"\"\""
   "")
  :modes (haskell-ts-mode))
@@ -7904,9 +7904,9 @@ have different input states."
   "{-# LANGUAGE MultilineStrings #-}"
   ""
   "foo ="
-  "  _|_\"\"\""
+  "  \"\"\""
   "  bar"
-  "  baz"
+  "  _|_baz"
   "  quux"
   "  \"\"\""
   "")
@@ -7930,9 +7930,9 @@ have different input states."
   "{-# LANGUAGE MultilineStrings #-}"
   ""
   "foo ="
-  "  _|_\"\"\""
+  "  \"\"\""
   "  bar"
-  "  baz"
+  "  _|_baz"
   "  quux"
   "  \"\"\""
   "")
@@ -7940,7 +7940,7 @@ have different input states."
 
 (haskell-tests--test-buffer-contents*
  :name
- haskell-tests/haskell-ts-convert-to-multiline-string-7
+ haskell-tests/haskell-ts-convert-to-multiline-string-7a
  :action
  (haskell-ts-convert-to-multiline-string)
  :contents
@@ -7956,10 +7956,37 @@ have different input states."
   "{-# LANGUAGE MultilineStrings #-}"
   ""
   "foo ="
-  "  _|_\"\"\""
+  "  \"\"\""
+  "  bar"
+  "  _|_baz1"
+  "  baz2"
+  "  quux"
+  "  \"\"\""
+  "")
+ :modes (haskell-ts-mode))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-ts-convert-to-multiline-string-7b
+ :action
+ (haskell-ts-convert-to-multiline-string)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  \"bar\\n\\"
+  "  \\baz1\\nba_|_z2\\n\\"
+  "  \\quux\\n\""
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MultilineStrings #-}"
+  ""
+  "foo ="
+  "  \"\"\""
   "  bar"
   "  baz1"
-  "  baz2"
+  "  ba_|_z2"
   "  quux"
   "  \"\"\""
   "")
