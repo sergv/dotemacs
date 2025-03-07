@@ -1581,10 +1581,14 @@ NEW-PROPS will be ignored."
     (setf (cdr tmp) new-props)
     (cdr res)))
 
-(defun replace-match-insert-before-markers (newtext)
+(defun replace-match-insert-before-markers (newtext group)
   "Like ‘replace-match’ but inserts NEWTEXT before markers, instead of after."
-  (delete-region (match-beginning 0) (match-end 0))
-  (insert-before-markers newtext))
+  (cl-assert (stringp newtext))
+  (cl-assert (numberp group))
+  (let ((end (match-end group)))
+    (goto-char end)
+    (delete-region (match-beginning group) end)
+    (insert-before-markers newtext)))
 
 (provide 'common)
 
