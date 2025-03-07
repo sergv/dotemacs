@@ -596,18 +596,20 @@ indented block will be their bounds without any extra processing."
                    (let* ((indent (make-string (- (point) (line-beginning-position)) ?\s))
                           (newline-indent (concat "\n" indent))
                           (double-delim "\"\""))
-                     (with-marker (end-mark (copy-marker end))
-                       (goto-char end)
-                       ;; Remove last newline if present
-                       (forward-char -1)
+                     (goto-char end)
+                     ;; Remove last newline if present
+                     (forward-char -1)
 
-                       (if (and (not (when (text-before-matches? "\\n")
-                                       (delete-char -2)
-                                       t))
-                                preserve-newline-at-end?)
-                           (insert "\\" newline-indent "\\" double-delim)
-                         (insert newline-indent double-delim))
+                     (if (and (not (when (text-before-matches? "\\n")
+                                     (delete-char -2)
+                                     t))
+                              preserve-newline-at-end?)
+                         (insert "\\" newline-indent "\\" double-delim)
+                       (insert newline-indent double-delim))
 
+                     ;; After this we’ll be right before the final triple """.
+                     (forward-char -2)
+                     (with-marker (end-mark (copy-marker (point)))
                        (goto-char (+ start 1))
                        (insert-before-markers double-delim newline-indent)
 
@@ -622,7 +624,21 @@ indented block will be their bounds without any extra processing."
                        ;; Fix regular newlines.
                        (goto-char start)
                        (while (re-search-forward (rx (seq ?\\ ?n)) end-mark t)
-                         (replace-match-insert-before-markers newline-indent)))
+                         (replace-match-insert-before-markers newline-indent))
+
+                       ;; Fix escaped double quotes
+                       (goto-char start)
+                       (while (re-search-forward
+                               (rx (group-n 1 (not ?\"))
+                                   (group-n 2 (** 1 2 (seq ?\\ ?\")))
+                                   (group-n 3 (or (seq ?\\ (not ?\"))
+                                                  (not ?\\))))
+                               end-mark
+                               t)
+                         (replace-match-insert-before-markers
+                          (concat (match-string 1)
+                                  (cl-remove-if (lambda (c) (eq c ?\\)) (match-string 2))
+                                  (match-string 3)))))
 
                      (haskell-misc--ensure-language-pragma "MultilineStrings"))))
              (error "String literal at point is already multiline"))))
