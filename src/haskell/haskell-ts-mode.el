@@ -616,29 +616,44 @@ indented block will be their bounds without any extra processing."
                        ;; Fix old style multiline strings.
                        (goto-char start)
                        (while (re-search-forward
-                               (rx (seq ?\\ ?n ?\\ (? ?\r) ?\n (* (any ?\s)) ?\\))
+                               (rx (group-n 1 (or bos (not ?\\)) (* (seq ?\\ ?\\)))
+                                   ?\\ ?n
+                                   ?\\
+                                   (? ?\r) ?\n
+                                   (* (any ?\s)) ?\\)
                                end-mark
                                t)
-                         (replace-match-insert-before-markers newline-indent))
+                         (replace-match-insert-before-markers (concat (match-string 1) newline-indent) 0)
+                         (goto-char (match-beginning 0)))
 
                        ;; Fix regular newlines.
                        (goto-char start)
-                       (while (re-search-forward (rx (seq ?\\ ?n)) end-mark t)
-                         (replace-match-insert-before-markers newline-indent))
+                       (while (re-search-forward
+                               (rx (group-n 1 (or bos (not ?\\)) (* (seq ?\\ ?\\)))
+                                   ?\\ ?n)
+                               end-mark
+                               t)
+                         (replace-match-insert-before-markers (concat (match-string 1) newline-indent) 0))
 
                        ;; Fix escaped double quotes
                        (goto-char start)
                        (while (re-search-forward
-                               (rx (group-n 1 (not ?\"))
+                               (rx (group-n 1 (or bos
+                                                  (not (any ?\"))
+                                                  (seq (or bos
+                                                           (not (any ?\\)))
+                                                       (+ (seq ?\\ ?\\)))))
                                    (group-n 2 (** 1 2 (seq ?\\ ?\")))
                                    (group-n 3 (or (seq ?\\ (not ?\"))
-                                                  (not ?\\))))
+                                                  (not ?\\)
+                                                  eos)))
                                end-mark
                                t)
                          (replace-match-insert-before-markers
                           (concat (match-string 1)
                                   (cl-remove-if (lambda (c) (eq c ?\\)) (match-string 2))
-                                  (match-string 3)))))
+                                  (match-string 3))
+                          0)))
 
                      (haskell-misc--ensure-language-pragma "MultilineStrings"))))
              (error "String literal at point is already multiline"))))
