@@ -390,7 +390,7 @@ value is a list which is appended to the result of
                            (line-end-position))))
           (insert-char ?\n))
         (haskell-align-language-pragmas start)))
-    (message "Added %s" pragma)))
+    (notify "Added %s" pragma)))
 
 (defmacro attrap-insert-language-pragma (pragma)
   `(attrap-option (list 'use-extension ,pragma)
@@ -1191,7 +1191,7 @@ then all non-authoritative results from that collection should be ignored."
                                   identifier
                                   import-from-current-project?
                                   (attrap-haskell-import--resolve-tag-parent-name tag))
-    (message "Added import of ‘%s’" mod-name)))
+    (notify "Added import of ‘%s’" mod-name)))
 
 (defun attrap-add-operator-parens (name)
   "Add parens around a NAME if it refers to a Haskell operator."
