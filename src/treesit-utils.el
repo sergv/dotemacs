@@ -16,6 +16,12 @@
                      ;; haskell-ts-mode and its derivatives.
                      (treesit-parser-create 'haskell))))
 
+(defun treesit-haskell--is-multiline-string? (node)
+  (cl-assert (treesit-node-p node))
+  (and (string= "string" (treesit-node-type node))
+       (text-after-pos-matches? (treesit-node-start node) "\"\"\"")
+       (text-before-pos-matches? (treesit-node-end node) "\"\"\"")))
+
 (defmacro* treesit-with-evaluated-anchor-and-offset
     ((evaluated-anchor-pos-var anchor)
      (evaluated-offset-num-var offset)
