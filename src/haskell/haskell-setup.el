@@ -769,6 +769,8 @@ _<tab>_: reindent  _h_: jump to topmont function/entity end"
   (pretty-ligatures-install-special-haskell-ligatures!)
   (pretty-ligatures-install-safe!)
 
+  (setup-hideshow-yafolding nil nil)
+
   (vim-local-emap "c" #'vim:recompile))
 
 ;;;###autoload
