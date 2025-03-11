@@ -1270,7 +1270,8 @@ value section should have if it is to be properly indented."
                       (1
                        (insert ", " identifier))
                       (_
-                       (insert (haskell-import-list-sep parsed) identifier)))))
+                       (insert (haskell-import-list-sep parsed) identifier)))
+                    (vim-save-position)))
               ;; Nothing to do: either no module keyword or no export
               ;; list - in both cses everything is exported.
               nil)))))))
