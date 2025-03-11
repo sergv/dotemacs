@@ -182,6 +182,16 @@ command has finished execution."
       (apply #'vconcat (append-list-reify events))
     []))
 
+(defsubst vim--reify-events-no-escape (events)
+  (if events
+      (let* ((v (apply #'vconcat (append-list-reify events)))
+             (end (- (length v) 1)))
+        (while (and (<= 0 end)
+                    (eq (aref v end) 'escape))
+          (setf end (- end 1)))
+        (subseq v nil (+ end 1)))
+    []))
+
 (defsubst vim--cmd-count-p (cmd)
   "Returns non-nil iff command CMD takes a count."
   (get cmd 'count))
