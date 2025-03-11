@@ -65,7 +65,7 @@
 
 (defvar-local vim--insert-newline nil)
 
-(defun vim--insert-mode-insert-newline ()
+(defun vim--insert-mode-insert-newline! ()
   "Inserts a newline according to current insert-mode direction."
   (pcase vim--insert-newline
     (`above
@@ -84,7 +84,7 @@
 where to insert a newline."
   (setq vim--insert-count count
         vim--insert-newline newline)
-  (vim--insert-mode-insert-newline)
+  (vim--insert-mode-insert-newline!)
   (when (eq vim--insert-newline 'above)
     (setq vim--insert-newline 'below))
   (when vim--insert-count
@@ -123,12 +123,12 @@ where to insert a newline."
 
   ;; Repeat insertion.
   (when vim--insert-count
-    (let ((current-key-sequence (vim--reify-events vim--current-key-sequence)))
+    (let ((current-key-sequence (vim--reify-events-no-escape vim--current-key-sequence)))
       (dotimes (_ (1- vim--insert-count))
         (goto-char (if (eq vim--insert-marker 'eob)
                        (point-max)
                      (1- vim--insert-marker)))
-        (vim--insert-mode-insert-newline)
+        (vim--insert-mode-insert-newline!)
         (execute-kbd-macro current-key-sequence)))
     (when (markerp vim--insert-marker)
       (move-marker vim--insert-marker nil))
