@@ -8235,6 +8235,54 @@ _|_bar")
    "_|_quux"
    ""))
 
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/insert-1
+    (execute-kbd-macro (kbd "i f o o <escape>"))
+  (tests-utils--multiline
+   ""
+   "_|_"
+   "")
+  (tests-utils--multiline
+   ""
+   "fo_|_o"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/insert-2
+    (execute-kbd-macro (kbd "i f o o <escape>"))
+  (tests-utils--multiline
+   ""
+   "x_|_y"
+   "")
+  (tests-utils--multiline
+   ""
+   "xfo_|_oy"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/insert-3
+    (execute-kbd-macro (kbd "i f o o <escape> ."))
+  (tests-utils--multiline
+   ""
+   "x_|_y"
+   "")
+  (tests-utils--multiline
+   ""
+   "xfofo_|_ooy"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes
+    vim-tests/insert-4
+    (execute-kbd-macro (kbd "2 i f o o <escape>"))
+  (tests-utils--multiline
+   ""
+   "x_|_y"
+   "")
+  (tests-utils--multiline
+   ""
+   "xfoofo_|_oy"
+   ""))
+
 (provide 'vim-tests)
 
 ;; Local Variables:
