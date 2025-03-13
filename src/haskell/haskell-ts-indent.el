@@ -112,7 +112,8 @@
   (save-excursion
     (let ((prev2 nil)
           (prev1 node)
-          (curr parent))
+          (curr parent)
+          (tmp nil))
       (catch 'term
         (while curr
           (let ((curr-type (treesit-node-type curr)))
@@ -178,6 +179,11 @@
                (throw 'term
                       (haskell-ts-indent--make-trivial-computed-indent
                        (haskell-ts-indent--get-match-guard-pipe-opt curr))))
+              ((and (string= "bind" curr-type)
+                    (setf tmp (treesit-node-child-by-field-name curr "arrow"))
+                    (haskell-ts--is-standalone-node? tmp))
+               (throw 'term
+                      (haskell-ts-indent--make-trivial-computed-indent tmp)))
               ((haskell-ts--is-standalone-node? curr)
                (cond
                  ((string= "match" curr-type)
