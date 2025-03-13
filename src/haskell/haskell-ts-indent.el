@@ -15,6 +15,7 @@
 (require 'common-whitespace)
 (require 'haskell-lexeme)
 (require 'treesit)
+(require 'treesit-utils)
 
 (defconst haskell-ts--treesit-simple-indent-presets
   (append
@@ -103,6 +104,10 @@
             not
             list))))
 
+(defun haskell-ts-indent--make-trivial-computed-indent (x)
+  (cl-assert (treesit-node-p x))
+  (make-treesit-computed-indent :anchor-node x :flags nil))
+
 (defun haskell-ts-indent--standalone-non-infix-parent--generic (node parent bol support-functions? support-field-update? return-list-child?)
   (save-excursion
     (let ((prev2 nil)
@@ -115,12 +120,12 @@
                        (string= "function" curr-type))
               (let ((result-child (treesit-node-child-by-field-name curr "result")))
                 (if (equal result-child prev1)
-                    (throw 'term prev1)
-                  (throw 'term curr))))
+                    (throw 'term (haskell-ts-indent--make-trivial-computed-indent prev1))
+                  (throw 'term (haskell-ts-indent--make-trivial-computed-indent curr)))))
             (when (and support-field-update?
                        (string= "field_update" curr-type))
               (when-let ((field-name (treesit-node-child-by-field-name curr "field")))
-                (throw 'term field-name)))
+                (throw 'term (haskell-ts-indent--make-trivial-computed-indent field-name))))
             (when (string= "infix" curr-type)
               (let ((left-child (treesit-node-child-by-field-name
                                  curr
@@ -141,9 +146,13 @@
                   ((or (equal prev1 right-child)
                        (equal prev1 op-child))
                    ;; Operator may be on a line of its own, take it into account.
-                   (when (and (haskell-ts--is-standalone-node? op-child)
-                              (not (haskell-ts--is-standalone-node? right-child)))
-                     (throw 'term prev1))
+                   (when (haskell-ts--is-standalone-node? op-child)
+                     (if (haskell-ts--is-standalone-node? right-child)
+                         (when (equal prev1 right-child)
+                           (throw 'term (make-treesit-computed-indent
+                                         :anchor-node op-child
+                                         :flags '(right-child-of-standalone-op))))
+                       (throw 'term (haskell-ts-indent--make-trivial-computed-indent right-child))))
                    ;; Otherwise whole operator application may occupy
                    ;; its own line, i.e. its left child may be at the
                    ;; line start so continue processing current node
@@ -156,28 +165,31 @@
                           prev1)))))
             (cond
               ((string= "parens" curr-type)
-               (throw 'term curr))
+               (throw 'term (haskell-ts-indent--make-trivial-computed-indent curr)))
               ((string= "list" curr-type)
-               (throw 'term (if return-list-child?
-                                prev1
-                              curr)))
+               (throw 'term
+                      (haskell-ts-indent--make-trivial-computed-indent (if return-list-child?
+                                                                           prev1
+                                                                         curr))))
               ((string= "tuple" curr-type)
-               (throw 'term prev1))
+               (throw 'term (haskell-ts-indent--make-trivial-computed-indent prev1)))
               ((and (string= "match" curr-type)
                     (treesit-node-child-by-field-name curr "guards"))
-               (throw 'term (haskell-ts-indent--get-match-guard-pipe-opt curr)))
+               (throw 'term
+                      (haskell-ts-indent--make-trivial-computed-indent
+                       (haskell-ts-indent--get-match-guard-pipe-opt curr))))
               ((haskell-ts--is-standalone-node? curr)
                (cond
                  ((string= "match" curr-type)
                   (if-let* ((expr (treesit-node-child-by-field-name curr "expression")))
-                      (throw 'term expr)
-                    (throw 'term curr)))
+                      (throw 'term (haskell-ts-indent--make-trivial-computed-indent expr))
+                    (throw 'term (haskell-ts-indent--make-trivial-computed-indent curr))))
                  ((or (string= "let" curr-type)
                       (string= "let_in" curr-type))
                   (when prev2
-                    (throw 'term prev2)))
+                    (throw 'term (haskell-ts-indent--make-trivial-computed-indent prev2))))
                  (t
-                  (throw 'term curr))))))
+                  (throw 'term (haskell-ts-indent--make-trivial-computed-indent curr)))))))
           (setq prev2 prev1
                 prev1 curr
                 curr (treesit-node-parent curr)))))))
@@ -480,16 +492,6 @@
 
              ;; Other infix rules
 
-             ;; Assumes that this will only hit when "operator" node is at beginning of line.
-             ((n-p-gp "operator" "infix" nil)
-              haskell-ts-indent--standalone-vertical-infix-operator-parent
-              0)
-
-             ;; Fallback
-             ((parent-is "infix")
-              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update
-              haskell-indent-offset)
-
              ;; Lambda
              ((parent-is "lambda")
               haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update
@@ -508,7 +510,7 @@
                      in-node)))
               ,(lambda (node parent bol)
                  (lambda (matched-anchor)
-                   (if (string= "let_in" (treesit-node-type matched-anchor))
+                   (if (string= "let_in" (treesit-matched-anchor-node-type matched-anchor))
                        0
                      haskell-indent-offset))))
 
@@ -516,6 +518,27 @@
              ((node-is "]") parent 0)
              ((n-p-gp "," "list" nil) parent 0)
              ((parent-is "list") parent haskell-indent-offset)
+
+             ;; Assumes that this will only hit when "operator" node is at beginning of line.
+             ((n-p-gp "operator" "infix" nil)
+              haskell-ts-indent--standalone-vertical-infix-operator-parent
+              0)
+
+             ;; Fallback
+             ((parent-is "infix")
+              ;; haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update
+              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update-no-list-parent
+              ,(lambda (node parent bol)
+                 (lambda (matched-anchor)
+                   (cond
+                     ((and (treesit-computed-indent-p matched-anchor)
+                           (memq 'right-child-of-standalone-op
+                                 (treesit-computed-indent-flags matched-anchor)))
+                      0)
+                     ((string= "let_in" (treesit-matched-anchor-node-type matched-anchor))
+                      0)
+                     (t
+                      haskell-indent-offset)))))
 
              ((parent-is "apply")
               haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update-no-list-parent
@@ -537,7 +560,7 @@
               ,(lambda (n p bol)
                  (when-let* ((matched-anchor
                               (haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update-no-list-parent n p bol)))
-                   (if (string= "do" (treesit-node-type matched-anchor))
+                   (if (string= "do" (treesit-matched-anchor-node-type matched-anchor))
                        ;; If do node is our topmost guide then take its bol...
                        (save-excursion
                          (goto-char (treesit-node-start matched-anchor))
@@ -556,7 +579,9 @@
              ((parent-is "alternatives") haskell-ts-indent--prev-sib 0)
 
              ;; Here node is typically nil but we don’t want to match the ‘no-node’ rule below.
-             ((parent-is "string") haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update-no-list-parent 0)
+             ((parent-is "string")
+              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update-no-list-parent
+              0)
 
              (no-node prev-adaptive-prefix 0)
 
@@ -611,7 +636,7 @@
               haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update
               ,(lambda (node parent bol)
                  (lambda (matched-anchor)
-                   (if (string= "field_name" (treesit-node-type matched-anchor))
+                   (if (string= "field_name" (treesit-matched-anchor-node-type matched-anchor))
                        0
                      haskell-indent-offset))))
 
@@ -619,7 +644,7 @@
               haskell-ts-indent--first-guard-or-parent
               ,(lambda (node parent bol)
                  (lambda (matched-anchor)
-                   (if (string= "|" (treesit-node-type matched-anchor))
+                   (if (string= "|" (treesit-matched-anchor-node-type matched-anchor))
                        0
                      haskell-indent-offset))))
 
@@ -664,7 +689,7 @@
               haskell-ts-indent--type-function-anchor
               ,(lambda (node parent bol)
                  (lambda (matched-anchor)
-                   (if (string= "::" (treesit-node-type matched-anchor))
+                   (if (string= "::" (treesit-matched-anchor-node-type matched-anchor))
                        0
                      haskell-indent-offset))))
 
