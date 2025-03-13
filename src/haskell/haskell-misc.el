@@ -260,7 +260,7 @@ Returns t if indentation occured."
   "Haskell brother of ‘paredit-backward-up’ that considers both
 sexps and indentation levels."
   (interactive)
-  (indent-backward-up-indentation-or-sexp #'haskell-on-blank-line?))
+  (indent-backward-up-indentation-or-sexp #'haskell-on-blank-line-from-any-column?))
 
 ;;;###autoload
 (defun haskell-up-sexp ()
@@ -1152,6 +1152,15 @@ value section should have if it is to be properly indented."
    ;; Skip preprocessor lines
    (eq (char-after) ?#)
    (indent-on-blank-line?)))
+
+(defun haskell-on-blank-line-from-any-column? ()
+  "Assumes point is at 0th column."
+  (save-excursion
+    (beginning-of-line)
+    (or
+     ;; Skip preprocessor lines
+     (eq (char-after) ?#)
+     (indent-on-blank-line?))))
 
 (defun haskell-on-nonindented-line? ()
   "Assumes point is at 0th column."
