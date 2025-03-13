@@ -22,6 +22,20 @@
        (text-after-pos-matches? (treesit-node-start node) "\"\"\"")
        (text-before-pos-matches? (treesit-node-end node) "\"\"\"")))
 
+(cl-defstruct treesit-computed-indent
+  (anchor-node :read-only t) ;; treesit node
+  (flags       :read-only t) ;; list of symbols
+  )
+
+(defun treesit-matched-anchor-node-type (x)
+  (cl-assert (or (treesit-node-p x)
+                 (treesit-computed-indent-p x)))
+  (let ((node
+         (if (treesit-computed-indent-p x)
+             (treesit-computed-indent-anchor-node x)
+           x)))
+    (treesit-node-type node)))
+
 (defmacro* treesit-with-evaluated-anchor-and-offset
     ((evaluated-anchor-pos-var anchor)
      (evaluated-offset-num-var offset)
@@ -32,6 +46,8 @@
     `(let ((,anchor-var ,anchor)
            (,offset-var ,offset))
        (let ((anchor-pos (cond
+                           ((treesit-computed-indent-p ,anchor-var)
+                            (treesit-node-start (treesit-computed-indent-anchor-node ,anchor-var)))
                            ((treesit-node-p ,anchor-var)
                             (treesit-node-start ,anchor-var))
                            ((number-or-marker-p ,anchor-var)
