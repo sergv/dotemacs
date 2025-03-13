@@ -29,6 +29,7 @@
 
 (require 'abbrev+)
 (require 'compilation-setup)
+(require 'haskell-block-indent)
 (require 'haskell-compile)
 (require 'haskell-compilation-commands)
 (require 'haskell-ext-tracking)

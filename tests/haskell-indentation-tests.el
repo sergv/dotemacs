@@ -2873,6 +2873,77 @@
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-do-3c
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = do"
+  "  bar"
+  "    <-"
+  "          _|_quux $ x"
+  ""
+  "  pure bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = do"
+  "  bar"
+  "    <-"
+  "      _|_quux $ x"
+  ""
+  "  pure bar"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-do-3d
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = do"
+  "  bar"
+  "    <-"
+  "      quux $"
+  "           _|_x"
+  ""
+  "  pure bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = do"
+  "  bar"
+  "    <-"
+  "      quux $"
+  "        _|_x"
+  ""
+  "  pure bar"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-do-3e
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = do"
+  "  bar"
+  "    <- quux $"
+  "             _|_x"
+  ""
+  "  pure bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = do"
+  "  bar"
+  "    <- quux $"
+  "      _|_x"
+  ""
+  "  pure bar"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-module-header-1a
  :contents
  (tests-utils--multiline
