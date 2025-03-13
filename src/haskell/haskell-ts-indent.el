@@ -556,6 +556,20 @@
              ;;  haskell-indent-offset)
              ;; ((parent-is "do") haskell-ts-indent--prev-sib 0)
 
+             ((n-p-gp "<-" "bind" "do")
+              parent
+              haskell-indent-offset)
+
+             ((and (parent-is "bind")
+                   (field-is "expression"))
+              ,(lambda (n p bol)
+                 (let ((arrow (treesit-node-child-by-field-name p "arrow")))
+                   (if (and arrow
+                            (haskell-ts--is-standalone-node? arrow))
+                       arrow
+                     p)))
+              haskell-indent-offset)
+
              ((parent-is "do")
               ,(lambda (n p bol)
                  (when-let* ((matched-anchor
