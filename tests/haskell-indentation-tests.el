@@ -544,7 +544,7 @@
   "      $ x"))
 
 (haskell-indentation-tests--test-treesitter
- :name haskell-indentation-tests--test-treesitter-apply-15
+ :name haskell-indentation-tests--test-treesitter-apply-15a
  :contents
  (tests-utils--multiline
   ""
@@ -568,6 +568,33 @@
   "        createFreshTempDir tmp [osp|test|])"
   "      removeDirectoryRecursive"
   "  ]"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-apply-15b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  ( bar"
+  "  , withResource"
+  "     _|_(do"
+  "        tmp <- getTemporaryDirectory >>= canonicalizePath"
+  "        createFreshTempDir tmp [osp|test|])"
+  "      removeDirectoryRecursive"
+  "  )"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  ( bar"
+  "  , withResource"
+  "      _|_(do"
+  "        tmp <- getTemporaryDirectory >>= canonicalizePath"
+  "        createFreshTempDir tmp [osp|test|])"
+  "      removeDirectoryRecursive"
+  "  )"
   ""))
 
 (haskell-indentation-tests--test-treesitter
@@ -1780,6 +1807,27 @@
  )
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-infix-6
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  [ bar"
+  "  , x +"
+  "     _|_(baz x y z)"
+  "  ]"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  [ bar"
+  "  , x +"
+  "      _|_(baz x y z)"
+  "  ]"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-vertical-op-1
  :contents
  (tests-utils--multiline
@@ -2779,6 +2827,25 @@
   "  res <- go mempty 0"
   "  liftIO $ touchForeignPtr ptr"
   "  pure res"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-do-5
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  RawST.do"
+  "              _|_mnUpd <- foo"
+  "              pure bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo ="
+  "  RawST.do"
+  "    _|_mnUpd <- foo"
+  "    pure bar"
+  ""))
 
 (haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-module-header-1a
@@ -4819,7 +4886,7 @@
   "foo ="
   "  [ bar :-> \"bar\""
   "  , foo :->"
-  "      _|_\"  {-   foo \\n\\"
+  "     _|_\"  {-   foo \\n\\"
   "    \\\\n\\"
   "    \\-}\""
   "  ]")
@@ -4829,7 +4896,7 @@
   "foo ="
   "  [ bar :-> \"bar\""
   "  , foo :->"
-  "    _|_\"  {-   foo \\n\\"
+  "      _|_\"  {-   foo \\n\\"
   "    \\\\n\\"
   "    \\-}\""
   "  ]"))
