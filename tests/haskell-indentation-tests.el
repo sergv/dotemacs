@@ -5128,6 +5128,54 @@
   "  |]"
   ""))
 
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--lambda-1a
+ :contents
+ (tests-utils--multiline
+  ""
+  "getDirectoryContentsWithFilterRecursive visitPred collectPred root ="
+  "  listContentsRecFold'"
+  "    Nothing"
+  "    (\\_ _ (Relative path) basename ft symlink cons prependSubdir rest ->"
+  "           _|_foo)"
+  "    (Just root)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "getDirectoryContentsWithFilterRecursive visitPred collectPred root ="
+  "  listContentsRecFold'"
+  "    Nothing"
+  "    (\\_ _ (Relative path) basename ft symlink cons prependSubdir rest ->"
+  "      _|_foo)"
+  "    (Just root)"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--lambda-1b
+ :contents
+ (tests-utils--multiline
+  ""
+  "getDirectoryContentsWithFilterRecursive visitPred collectPred root ="
+  "  listContentsRecFold'"
+  "    Nothing"
+  "    (\\_ _ (Relative path) basename ft symlink cons prependSubdir rest ->"
+  "           _|_if foo)"
+  "    (Just root)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "getDirectoryContentsWithFilterRecursive visitPred collectPred root ="
+  "  listContentsRecFold'"
+  "    Nothing"
+  "    (\\_ _ (Relative path) basename ft symlink cons prependSubdir rest ->"
+  "      _|_if foo)"
+  "    (Just root)"
+  "")
+ ;; AST is incorrect so lambda construct is never fully parsed and thus cannot be indented.
+ :expected-result :failed)
+
 (provide 'haskell-indentation-tests)
 
 ;; Local Variables:
