@@ -511,8 +511,7 @@
   "    bar"
   "      = decombobulate"
   "            _|_frobnicator"
-  "      $ x"
-  )
+  "      $ x")
  :expected-value
  (tests-utils--multiline
   "foo :: Int -> Int"
@@ -533,8 +532,7 @@
   "    bar"
   "      = decombobulate x"
   "            _|_frobnicator"
-  "      $ x"
-  )
+  "      $ x")
  :expected-value
  (tests-utils--multiline
   "foo :: Int -> Int"
@@ -544,6 +542,33 @@
   "      = decombobulate x"
   "          _|_frobnicator"
   "      $ x"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-apply-15
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  [ bar"
+  "  , withResource"
+  "     _|_(do"
+  "        tmp <- getTemporaryDirectory >>= canonicalizePath"
+  "        createFreshTempDir tmp [osp|test|])"
+  "      removeDirectoryRecursive"
+  "  ]"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = "
+  "  [ bar"
+  "  , withResource"
+  "      _|_(do"
+  "        tmp <- getTemporaryDirectory >>= canonicalizePath"
+  "        createFreshTempDir tmp [osp|test|])"
+  "      removeDirectoryRecursive"
+  "  ]"
+  ""))
 
 (haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-comment-1

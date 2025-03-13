@@ -518,7 +518,7 @@
              ((parent-is "list") parent haskell-indent-offset)
 
              ((parent-is "apply")
-              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update
+              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update-no-list-parent
               haskell-indent-offset)
 
              ((node-is "quasiquote") grand-parent haskell-indent-offset)
