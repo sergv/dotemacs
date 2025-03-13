@@ -2829,6 +2829,50 @@
   "  pure res"))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-do-3a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = do"
+  "  bar"
+  "      _|_<- quux"
+  ""
+  "  pure bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = do"
+  "  bar"
+  "    _|_<- quux"
+  ""
+  "  pure bar"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-do-3b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = do"
+  "  bar"
+  "    <-"
+  "          _|_quux"
+  ""
+  "  pure bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = do"
+  "  bar"
+  "    <-"
+  "      _|_quux"
+  ""
+  "  pure bar"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-module-header-1a
  :contents
  (tests-utils--multiline
