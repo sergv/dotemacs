@@ -9,8 +9,8 @@
 (require 'treesit)
 (require 'treesit-setup)
 
-(defconst haskell-ts-rename--variable-query
-  (treesit-query-compile 'haskell '((variable) @variable)))
+(defconst haskell-ts-rename--renameable-identifier-query
+  (treesit-query-compile 'haskell '([(variable) (name) (constructor)] @variable)))
 
 (defface haskell-ts-rename-candidate-face
   `((t :box (:line-width
@@ -38,7 +38,7 @@
   (let ((var-node (treesit-node-at (point) 'haskell)))
     (unless var-node
       (error "No treesitter node at point to rename"))
-    (unless (equal "variable" (treesit-node-type var-node))
+    (unless (member (treesit-node-type var-node) '("variable" "name" "constructor"))
       (error "Cannot rename non-variable. Node at point is: %s" (treesit-node-type var-node)))
     (let ((closest-scope
            (treesit-utils-find-topmost-parent
@@ -101,14 +101,14 @@
                  (setf n (treesit-node-next-sibling n)))))))
 
         (dolist (scope relevant-scopes)
-          (let ((variables
+          (let ((names
                  (treesit-query-capture scope
-                                        haskell-ts-rename--variable-query
+                                        haskell-ts-rename--renameable-identifier-query
                                         nil
                                         nil
                                         t ;; Don’t capture names, we only ask for variables.
                                         )))
-            (dolist (v variables)
+            (dolist (v names)
               (let ((start (treesit-node-start v))
                     (end (treesit-node-end v)))
                 (when (and (= (- end start) node-text-len)
