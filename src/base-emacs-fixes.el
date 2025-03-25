@@ -1226,6 +1226,13 @@ Also see the `async-shell-command-buffer' variable."
                       (y-or-n-p query))))
         (user-error "Shell command in progress")))))
 
+(defun base-emacs-fixes--pp-fill--save-match-data (f &rest args)
+  "Fix ‘pp-fill’ to not corrupt global match data."
+  (save-match-data
+    (apply f args)))
+
+(advice-add 'pp-fill :around #'base-emacs-fixes--pp-fill--save-match-data)
+
 (provide 'base-emacs-fixes)
 
 ;; Local Variables:
