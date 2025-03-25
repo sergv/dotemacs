@@ -743,7 +743,8 @@ a single entity."
                         (line-beginning-position)))))
                (when lower-bound
                  (let ((found? nil)
-                       (func-name nil))
+                       (func-name nil)
+                       (start-of-default-keyword nil))
                    (while (and (not found?)
                                (< lower-bound (point))
                                (not (bolp)))
@@ -762,7 +763,7 @@ a single entity."
                                                                  "\\)+"
                                                                  "[)]")
                                                          "\\)")))
-                                           (concat "\\(?:\\_<\\(?:let\\|where\\)\\_>" ws "+\\)?"
+                                           (concat "\\(?:\\_<\\(?:let\\|where\\|\\(?2:default\\)\\)\\_>" ws "+\\)?"
                                                    "\\(?1:"
                                                    (concat "\\(?:" name-re "\\)"
                                                            "\\(?:," ws "*" name-re "\\)*")
@@ -770,15 +771,18 @@ a single entity."
                                                    ws "*"
                                                    haskell-regexen/function-signature-colons))))
                        (setf found? t
-                             func-name (match-string-no-properties 1))))
+                             func-name (match-string-no-properties 1)
+                             start-of-default-keyword (match-beginning 2))))
                    (when found?
-                     (goto-char (match-beginning 1))
-                     (setf function-name-column (current-column-fixed-uncached))
+                     (goto-char (or start-of-default-keyword
+                                    (match-beginning 1)))
+                     (setf function-name-column
+                           (current-column-fixed-uncached))
                      (let ((indented-section-end (line-end-position)))
                        (setf point-at-end-of-function-signature?
                              (or (and (derived-mode-p 'haskell-ts-mode)
                                       (let ((sig-node (treesit-node-parent (treesit-node-at (point)))))
-                                        (when (string= "signature" (treesit-node-type sig-node))
+                                        (when (member (treesit-node-type sig-node) '("signature" "default_signature"))
                                           (setf indented-section-end (treesit-node-end sig-node))
                                           (= start-pos-no-ws (treesit-node-end sig-node)))))
                                  (progn
