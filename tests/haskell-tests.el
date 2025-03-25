@@ -3988,6 +3988,38 @@ have different input states."
  :modes (haskell-mode haskell-ts-mode))
 
 (haskell-tests--test-buffer-contents
+    haskell-tests/haskell-newline-with-signature-expansion-12
+    (haskell-newline-with-signature-expansion)
+  (tests-utils--multiline
+   ""
+   "class GenericDiff a where"
+   "  genericDiff :: a -> a -> [FieldDiff]"
+   "  default genericDiff :: (Generic a, GGenericDiff (Rep a)) => a -> a -> [FieldDiff]_|_"
+   "")
+  (tests-utils--multiline
+   ""
+   "class GenericDiff a where"
+   "  genericDiff :: a -> a -> [FieldDiff]"
+   "  default genericDiff :: (Generic a, GGenericDiff (Rep a)) => a -> a -> [FieldDiff]"
+   "  genericDiff _|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-newline-with-signature-expansion-13
+    (haskell-newline-with-signature-expansion)
+  (tests-utils--multiline
+   ""
+   "instance GenericDiff foo where"
+   "  genericDiff :: a -> a -> [FieldDiff]_|_"
+   "")
+  (tests-utils--multiline
+   ""
+   "instance GenericDiff foo where"
+   "  genericDiff :: a -> a -> [FieldDiff]"
+   "  genericDiff _|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
     haskell-tests/haskell-newline-with-signature-expansion--within-where-block-1
     (haskell-newline-with-signature-expansion)
   (tests-utils--multiline
