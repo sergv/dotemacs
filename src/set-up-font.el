@@ -104,17 +104,18 @@ use that, otherwise either use past specified value or a reasonable default."
     (dolist (frame (frame-list))
       (set-face-attribute 'default frame :height effective-scaling))))
 
-(when (pretty-ligatures-supported?)
-  ;; Does not have any effect, left for future reference in case it’s needed.
-  ;; (defun treesit-font-lock-fontify-region-with-safe-composition-table (old-fn &rest args)
-  ;;   (let ((composition-function-table default-composition-function-table))
-  ;;     (apply old-fn args)))
-  ;;
-  ;; (advice-add 'treesit-font-lock-fontify-region
-  ;;             :around
-  ;;             #'treesit-font-lock-fontify-region-with-safe-composition-table)
-
-  (add-hook 'after-init-hook #'common-font--init-function-tables-after-init))
+;; Texture healing disabled for now as it doesn’t bring any noticeable benefits.
+;; (when (pretty-ligatures-supported?)
+;;   ;; Does not have any effect, left for future reference in case it’s needed.
+;;   ;; (defun treesit-font-lock-fontify-region-with-safe-composition-table (old-fn &rest args)
+;;   ;;   (let ((composition-function-table default-composition-function-table))
+;;   ;;     (apply old-fn args)))
+;;   ;;
+;;   ;; (advice-add 'treesit-font-lock-fontify-region
+;;   ;;             :around
+;;   ;;             #'treesit-font-lock-fontify-region-with-safe-composition-table)
+;;
+;;   (add-hook 'after-init-hook #'common-font--init-function-tables-after-init))
 
 (provide 'set-up-font)
 
