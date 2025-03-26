@@ -1076,6 +1076,7 @@ Error is given as MSG and reported between POS and END."
                          ("GHC.Internal.Data.Function" . "Data.Function")
                          ("GHC.Internal.Data.Functor" . "Data.Functor")
                          ("GHC.Internal.Data.Functor.Identity" . "Data.Functor.Identity")
+                         ("GHC.Internal.Data.Proxy" . "Data.Proxy")
                          ("GHC.Internal.Data.Traversable" . "Data.Traversable")
                          ("GHC.Internal.Data.Ord" . "Data.Ord")
                          ("GHC.Internal.Foreign.Storable" . "Foreign.Storable")
