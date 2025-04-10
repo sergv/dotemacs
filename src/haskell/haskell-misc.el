@@ -318,7 +318,9 @@ sexps and indentation levels."
 ;;;###autoload (autoload 'haskell-align-on-pragma-close "haskell-misc" nil t)
 (defalign haskell-align-on-pragma-close
   "#-}")
-
+;;;###autoload (autoload 'haskell-align-on-pragma-open "haskell-misc" nil t)
+(defalign haskell-align-on-pragma-open
+  "{-#")
 
 (defun haskell-align-generic ()
   (interactive "*")
@@ -327,6 +329,7 @@ sexps and indentation levels."
   (haskell-align-on-left-arrows)
   (haskell-align-on-comments)
   (haskell-align-on-double-colons)
+  (haskell-align-on-pragma-open)
   (haskell-align-on-pragma-close))
 
 (defvar hydra-haskell-align--empty-keymap (make-sparse-keymap))
@@ -343,6 +346,7 @@ _|_:   on guards
 _,_:   on commas
 _--_:  on comments
 _::_:  on double colons
+_{-#_: on pragma open
 _#-}_: on pragma close"
   ("a"   haskell-align-generic)
   ("$"   haskell-align-on-dollars)
@@ -353,6 +357,7 @@ _#-}_: on pragma close"
   (","   haskell-align-on-commas)
   ("--"  haskell-align-on-comments)
   ("::"  haskell-align-on-double-colons)
+  ("{-#" haskell-align-on-pragma-open)
   ("#-}" haskell-align-on-pragma-close))
 
 ;;;###autoload
