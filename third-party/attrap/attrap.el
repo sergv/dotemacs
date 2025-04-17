@@ -243,6 +243,7 @@ Returns list of triples
     "MultiParamTypeClasses"
     "NamedFieldPuns"
     "NumericUnderscores"
+    "OrPatterns"
     "ParallelListComp"
     "PartialTypeSignatures"
     "PatternGuards"
