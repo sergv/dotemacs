@@ -74,6 +74,9 @@
   :group 'dante :safe t
   :type '(set (const inputs) (const outputs) (const responses) (const command-line)))
 
+;; (setf dante-debug '(inputs outputs responses command-line))
+;; (setf dante-debug nil)
+
 (defcustom dante-repl-command-line nil
   "Command line to start GHCi, as a list: the executable and its arguments.
 When nil, dante will guess the value depending on
