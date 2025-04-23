@@ -11,6 +11,7 @@
   (require 'macro-util))
 
 (require 'common)
+(require 'persistent-sessions-error-reporting)
 
 (cl-defstruct (text-property-ranges
                (:conc-name text-property-ranges/))
