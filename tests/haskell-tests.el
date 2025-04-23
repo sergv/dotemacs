@@ -6864,6 +6864,54 @@ have different input states."
    "import Foo"
    ""))
 
+(haskell-tests--test-buffer-contents
+    haskell-tests/sort-imports-7
+    (haskell-sort-imports)
+  (tests-utils--multiline
+   ""
+   "_|_import Data.Text (Text)"
+   "import Data.Text qualified as T"
+   "import Control.Monad"
+   "import Data.Bits"
+   "import Data.Bytestring qualified as BS"
+   "import Data.Bytestring.Internal qualified as BS"
+   "import Data.Bytestring.Unsafe qualified as BS"
+   "import Data.Bytestring.Unsafe qualified as BSU"
+   "import Data.Foldable"
+   "import Data.List.Ext qualified as L"
+   "import Data.Map.Strict (Map)"
+   "import Data.Map.Strict qualified as M"
+   "import Data.Ratio"
+   "import Data.Text (Text)"
+   "import Data.Text.Encoding qualified as T"
+   "import Data.Word"
+   "import Foreign (peek)"
+   "import Foreign.Ptr (castPtr)"
+   "import Utils.Pretty"
+   "import Foreign.Ptr"
+   "")
+  (tests-utils--multiline
+   ""
+   "import Control.Monad"
+   "import Data.Bits"
+   "import Data.Bytestring qualified as BS"
+   "import Data.Bytestring.Internal qualified as BS"
+   "import Data.Bytestring.Unsafe qualified as BSU"
+   "import Data.Bytestring.Unsafe qualified as BS"
+   "import Data.Foldable"
+   "import Data.List.Ext qualified as L"
+   "import Data.Map.Strict (Map)"
+   "import Data.Map.Strict qualified as M"
+   "import Data.Ratio"
+   "_|_import Data.Text (Text)"
+   "import Data.Text qualified as T"
+   "import Data.Text.Encoding qualified as T"
+   "import Data.Word"
+   "import Foreign (peek)"
+   "import Foreign.Ptr"
+   "import Utils.Pretty"
+   ""))
+
 (ert-deftest haskell-tests/haskell-sort-imports--group-imports-1 ()
   (should (equal (haskell-sort-imports--group-imports
                   '("import Foo"
