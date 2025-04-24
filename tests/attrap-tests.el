@@ -110,7 +110,104 @@
     (attrap-flycheck (point))))
 
 (attrap-tests--test-buffer-contents-many
- :name attrap/haskell-dante/delete-module-import-1
+ :name attrap/haskell-dante/delete-import-1
+ :flycheck-errors
+ (list
+  (let ((linecol (save-excursion
+                   (re-search-forward "_|_")
+                   (flycheck-line-column-at-pos (point)))))
+    (flycheck-error-new
+     :line (car linecol)
+     :column (cdr linecol)
+     :buffer (current-buffer)
+     :checker 'haskell-dante
+     :message
+     (tests-utils--multiline
+      "warning: [GHC-38856] [-Wunused-imports]"
+      "    The import of ‘depPkgName, unPackageName’"
+      "    from module ‘Distribution.Package’ is redundant")
+     :level 'warning
+     :id nil
+     :group nil)))
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ ((a
+   (tests-utils--multiline
+    ""
+    "import Quux"
+    "_|_import Distribution.Package (unPackageName, depPkgName, PackageName)"
+    ""))
+  (b
+   (tests-utils--multiline
+    ""
+    "import Quux"
+    "_|_import Distribution.Package (unPackageName, PackageName, depPkgName)"
+    ""))
+  (c
+   (tests-utils--multiline
+    ""
+    "import Quux"
+    "_|_import Distribution.Package (PackageName, depPkgName,unPackageName)"
+    ""))
+  (d
+   (tests-utils--multiline
+    ""
+    "import Quux"
+    "_|_import Distribution.Package (PackageName, unPackageName, depPkgName)"
+    ""))
+  (e
+   (tests-utils--multiline
+    ""
+    "import Quux"
+    "_|_import Distribution.Package (PackageName, depPkgName, unPackageName)"
+    "")))
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Quux"
+  "_|_import Distribution.Package (PackageName)"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/delete-import-2
+ :flycheck-errors
+ (list
+  (let ((linecol (save-excursion
+                   (re-search-forward "_|_")
+                   (flycheck-line-column-at-pos (point)))))
+    (flycheck-error-new
+     :line (car linecol)
+     :column (cdr linecol)
+     :buffer (current-buffer)
+     :checker 'haskell-dante
+     :message
+     (tests-utils--multiline
+      "warning: [GHC-38856] [-Wunused-imports]"
+      "    The import of ‘Executable(buildInfo), Library(exposedModules),"
+      "                   hcOptions, Library(libBuildInfo), Executable(modulePath),"
+      "                   usedExtensions’"
+      "    from module ‘Distribution.PackageDescription’ is redundant")
+     :level 'warning
+     :id nil
+     :group nil)))
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Quux"
+  "_|_import Distribution.PackageDescription (GenericPackageDescription, PackageDescription(..), usedExtensions, hcOptions, exeName, buildInfo, modulePath, libBuildInfo, exposedModules)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Quux"
+  "_|_import Distribution.PackageDescription (GenericPackageDescription, PackageDescription(..), exeName)"
+  ""))
+
+(attrap-tests--test-buffer-contents-many
+ :name attrap/haskell-dante/delete-import-3
  :flycheck-errors
  (list
   (let ((linecol (save-excursion
@@ -165,7 +262,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-many
- :name attrap/haskell-dante/delete-module-import-1a
+ :name attrap/haskell-dante/delete-import-3a
  :flycheck-errors
  (list
   (let ((linecol (save-excursion
@@ -220,7 +317,7 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
- :name attrap/haskell-dante/delete-module-import-2
+ :name attrap/haskell-dante/delete-import-4
  :flycheck-errors
  (list
   (let ((linecol (save-excursion
@@ -256,8 +353,150 @@
   "_|_"
   ""))
 
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/delete-import-5a
+ :flycheck-errors
+ (list
+  (let ((linecol (save-excursion
+                   (re-search-forward "_|_")
+                   (flycheck-line-column-at-pos (point)))))
+    (flycheck-error-new
+     :line (car linecol)
+     :column (cdr linecol)
+     :buffer (current-buffer)
+     :checker 'haskell-dante
+     :message
+     (tests-utils--multiline
+      "error: [GHC-38856] [-Wunused-imports, Werror=unused-imports]"
+      "    The import of ‘PPTokens, PPTokens’"
+      "    from module ‘Haskell.Language.Lexer.Types’ is redundant")
+     :level 'warning
+     :id nil
+     :group nil)))
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Quux"
+  "_|_import Haskell.Language.Lexer.Types (Pos, ServerToken, processTokens, PPTokens(PPTokens))"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Quux"
+  "_|_import Haskell.Language.Lexer.Types (Pos, ServerToken, processTokens)"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/delete-import-5b
+ :flycheck-errors
+ (list
+  (let ((linecol (save-excursion
+                   (re-search-forward "_|_")
+                   (flycheck-line-column-at-pos (point)))))
+    (flycheck-error-new
+     :line (car linecol)
+     :column (cdr linecol)
+     :buffer (current-buffer)
+     :checker 'haskell-dante
+     :message
+     (tests-utils--multiline
+      "error: [GHC-38856] [-Wunused-imports, Werror=unused-imports]"
+      "    The import of ‘PPTokens, PPTokens2’"
+      "    from module ‘Haskell.Language.Lexer.Types’ is redundant")
+     :level 'warning
+     :id nil
+     :group nil)))
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Quux"
+  "_|_import Haskell.Language.Lexer.Types (Pos, ServerToken, processTokens, PPTokens(PPTokens2))"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Quux"
+  "_|_import Haskell.Language.Lexer.Types (Pos, ServerToken, processTokens)"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :modes (haskell-ts-mode)
+ :name attrap/haskell-dante/delete-import-5c
+ :flycheck-errors
+ (list
+  (let ((linecol (save-excursion
+                   (re-search-forward "_|_")
+                   (flycheck-line-column-at-pos (point)))))
+    (flycheck-error-new
+     :line (car linecol)
+     :column (cdr linecol)
+     :buffer (current-buffer)
+     :checker 'haskell-dante
+     :message
+     (tests-utils--multiline
+      "error: [GHC-38856] [-Wunused-imports, Werror=unused-imports]"
+      "    The import of ‘PPTokens, PPTokens2’"
+      "    from module ‘Haskell.Language.Lexer.Types’ is redundant")
+     :level 'warning
+     :id nil
+     :group nil)))
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Quux"
+  "_|_import Haskell.Language.Lexer.Types (Pos, ServerToken, processTokens, PPTokens (PPTokens2))"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Quux"
+  "_|_import Haskell.Language.Lexer.Types (Pos, ServerToken, processTokens)"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :modes (haskell-ts-mode)
+ :name attrap/haskell-dante/delete-import-5d
+ :flycheck-errors
+ (list
+  (let ((linecol (save-excursion
+                   (re-search-forward "_|_")
+                   (flycheck-line-column-at-pos (point)))))
+    (flycheck-error-new
+     :line (car linecol)
+     :column (cdr linecol)
+     :buffer (current-buffer)
+     :checker 'haskell-dante
+     :message
+     (tests-utils--multiline
+      "error: [GHC-38856] [-Wunused-imports, Werror=unused-imports]"
+      "    The import of ‘PPTokens’"
+      "    from module ‘Haskell.Language.Lexer.Types’ is redundant")
+     :level 'warning
+     :id nil
+     :group nil)))
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Quux"
+  "_|_import Haskell.Language.Lexer.Types (Pos, ServerToken, processTokens, PPTokens(PPTokens, Foo))"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Quux"
+  "_|_import Haskell.Language.Lexer.Types (Pos, ServerToken, processTokens, PPTokens(Foo))"
+  ""))
+
 (attrap-tests--test-buffer-contents-many
- :name attrap/haskell-dante/delete-import-1
+ :name attrap/haskell-dante/delete-import-6
  :flycheck-errors
  (list
   (let ((linecol (save-excursion
@@ -271,7 +510,7 @@
      :message
      (tests-utils--multiline
       "warning: [GHC-38856] [-Wunused-imports]"
-      "    The import of ‘depPkgName, unPackageName’"
+      "    The import of ‘foo, bar’"
       "    from module ‘Distribution.Package’ is redundant")
      :level 'warning
      :id nil
@@ -283,33 +522,19 @@
    (tests-utils--multiline
     ""
     "import Quux"
-    "_|_import Distribution.Package (unPackageName, depPkgName, PackageName)"
-    ""
-    ""))
-  (b
-   (tests-utils--multiline
-    ""
-    "import Quux"
-    "_|_import Distribution.Package (unPackageName, PackageName, depPkgName)"
-    ""
-    ""))
-  (c
-   (tests-utils--multiline
-    ""
-    "import Quux"
-    "_|_import Distribution.Package (PackageName, depPkgName,unPackageName)"
+    "_|_import Distribution.Package (foo, quux, bar)"
     ""
     "")))
  :expected-value
  (tests-utils--multiline
   ""
   "import Quux"
-  "_|_import Distribution.Package (PackageName)"
+    "_|_import Distribution.Package (quux)"
   ""
   ""))
 
-(attrap-tests--test-buffer-contents-one
- :name attrap/haskell-dante/delete-import-2
+(attrap-tests--test-buffer-contents-many
+ :name attrap/haskell-dante/delete-import-6a
  :flycheck-errors
  (list
   (let ((linecol (save-excursion
@@ -323,27 +548,26 @@
      :message
      (tests-utils--multiline
       "warning: [GHC-38856] [-Wunused-imports]"
-      "    The import of ‘Executable(buildInfo), Library(exposedModules),"
-      "                   hcOptions, Library(libBuildInfo), Executable(modulePath),"
-      "                   usedExtensions’"
-      "    from module ‘Distribution.PackageDescription’ is redundant")
+      "    The import of ‘foo, bar’"
+      "    from module ‘Distribution.Package’ is redundant")
      :level 'warning
      :id nil
      :group nil)))
  :action
  (attrap-tests--run-attrap)
  :contents
- (tests-utils--multiline
-  ""
-  "import Quux"
-  "_|_import Distribution.PackageDescription (GenericPackageDescription, PackageDescription(..), usedExtensions, hcOptions, exeName, buildInfo, modulePath, libBuildInfo, exposedModules)"
-  ""
-  "")
+ ((a
+   (tests-utils--multiline
+    ""
+    "import Quux"
+    "_|_import Distribution.Package (foo, quux, bar, bar)"
+    ""
+    "")))
  :expected-value
  (tests-utils--multiline
   ""
   "import Quux"
-  "_|_import Distribution.PackageDescription (GenericPackageDescription, PackageDescription(..), exeName)"
+    "_|_import Distribution.Package (quux, bar)"
   ""
   ""))
 
