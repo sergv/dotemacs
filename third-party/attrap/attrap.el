@@ -665,33 +665,11 @@ Error is given as MSG and reported between POS and END."
                               normalized-msg)))
     (attrap-one-option "delete import"
       (let ((redundant (nth 1 match)))
-        (save-match-data
-          (save-excursion
-            (when (looking-at (rx "import"))
-                                   ; if there are several things redundant, the message starts at 'import'
-              (search-forward "(")) ; the imported things are after the parenthesis
-            (dolist (r (s-split "[, \n\r\t]+" redundant t))
-              (save-excursion
-                ;; Transform Executable(buildInfo) -> buildInfo for when
-                ;; we imported a type’s accessor but GHC reports it together
-                ;; with parent type name.
-                (when-let (m (s-match (rx
-                                       (* (any ?_))
-                                       (any (?A . ?Z))
-                                       (* alphanumeric)
-                                       "("
-                                       (group-n 1 (+ (not ?\))))
-                                       ")")
-                                      r))
-                    (setf r (nth 1 m)))
-                (re-search-forward (rx-to-string (if (s-matches? (rx bol alphanumeric) r)
-                                                     `(seq word-start ,r word-end) ; regular ident
-                                                   `(seq "(" ,r ")")))) ; operator
-                (replace-match "")
-                (when (looking-at "(..)") (delete-char 4))
-                (when (or (looking-at (rx (* space) "," (* space)))
-                          (looking-back (rx "," (* space)) (line-beginning-position)))
-                  (replace-match "")))))))))
+        (save-excursion
+          (let ((names-to-remove (s-split "[, \n\r\t]+" redundant t)))
+            (if (derived-mode-p 'haskell-ts-mode)
+                (haskell-ts-remove-from-import-statement-at (point) names-to-remove)
+              (attrap-remove-from-import-statement-at-point names-to-remove)))))))
    (when (string-match
           (rx (ghc-warning "66111" "unused-imports") (+ ws)
               "The " (? "qualified ") "import of " (identifier 1) " is redundant")
@@ -895,6 +873,42 @@ Error is given as MSG and reported between POS and END."
       (let ((identifier (match-string-no-properties 1 msg)))
         (attrap-one-option (list 'export identifier)
           (haskell--export-ident identifier))))))))
+
+(defun attrap-remove-from-import-statement-at-point (names-to-remove)
+  (save-match-data
+    ;; If there are several things redundant, the message starts at 'import'.
+    (when (looking-at-p (rx "import"))
+      ;; The imported things are after the parenthesis.
+      (search-forward "("))
+    (dolist (r names-to-remove)
+      (save-excursion
+        ;; Transform Executable(buildInfo) -> buildInfo for when
+        ;; we imported a type’s accessor but GHC reports it together
+        ;; with parent type name.
+        (when-let (m (s-match (rx
+                               (* (any ?_))
+                               (any (?A . ?Z))
+                               (* alphanumeric)
+                               "("
+                               (group-n 1 (+ (not ?\))))
+                               ")")
+                              r))
+          (setf r (nth 1 m)))
+        (re-search-forward (rx-to-string (if (s-matches? (rx bol alphanumeric) r)
+                                             `(or (seq word-start ,r word-end)
+                                                  (seq "(" ,r ")")) ; regular ident
+                                           `(seq "(" ,r ")")))) ; operator
+        (replace-match "")
+        (when (looking-at-p "(..)") (delete-char 4))
+        (when (or (looking-at (rx (* space)
+                                  ","
+                                  (* space)
+                                  (? "(" (* space) ")")))
+                  (looking-back (rx ","
+                                    (* space)
+                                    (? "(" (* (any ?\n ?\r ?\s ?\t)) ")"))
+                                (line-beginning-position)))
+          (replace-match ""))))))
 
 (defun attrap-strip-parens (identifier)
   (let* ((i 0)
