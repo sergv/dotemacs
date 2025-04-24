@@ -334,6 +334,13 @@ structure like this (:arg1 value1 :arg2 value2 ... :argN valueN)"
 
 ;;;
 
+(defun hash-table-from-list (mk-key mk-value xs &optional cmp)
+  (declare (pure t) (side-effect-free t))
+  (let ((table (make-hash-table :test (or cmp #'equal))))
+    (dolist (item xs)
+      (puthash (funcall mk-key item) (funcall mk-value item) table))
+    table))
+
 (defun alist->hash-table (alist &optional cmp)
   "Translate alist of (<key> . <value>) pairs into hash-table."
   (declare (pure t) (side-effect-free t))
