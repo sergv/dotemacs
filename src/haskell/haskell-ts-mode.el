@@ -12,11 +12,13 @@
 
 (require 'common)
 (require 'common-whitespace)
+(require 'interval-with-margins)
 (require 'haskell-lexeme)
 (require 'haskell-syntax-table)
 (require 'haskell-ts-indent)
 (require 's)
 (require 'treesit)
+(require 'treesit-utils)
 
 (declare-function treesit-parser-create "treesit.c")
 
@@ -661,6 +663,108 @@ indented block will be their bounds without any extra processing."
         (t
          (error "Node at point is neither string nor quasiquote: %s"
                 node))))))
+
+(defconst haskell-ts--imported-name-query
+  (treesit-query-compile 'haskell
+                         '(((import_name) @name))))
+
+(defun haskell-ts-remove-from-import-statement-at (pos names)
+  (cl-assert (listp names))
+  (cl-assert (-all? #'stringp names))
+  (let ((import-node (treesit-utils-find-topmost-parent
+                      (treesit-node-at pos)
+                      (lambda (x) (string= "import" (treesit-node-type x))))))
+    (unless (treesit-node-p import-node)
+      (error "Cannot find import node at point"))
+
+    (let ((import-list (treesit-node-child-by-field-name import-node "names")))
+      (unless (and (treesit-node-p import-list)
+                   (string= "import_list"
+                            (treesit-node-type import-list)))
+        (error "Cannot find import list in the import node at point: %s, ‘%s’"
+               import-node
+               (treesit-node-text-no-properties-unsafe import-node)))
+
+      (let ((imported-names (treesit-node-children import-list t))
+
+            (constructors (make-hash-table :test #'equal))
+            (other (make-hash-table :test #'equal)))
+        (dolist (name imported-names)
+          (unless (and (treesit-node-p name)
+                       (string= "import_name" (treesit-node-type name)))
+            (error "Invalid imported name node: %s" name))
+
+          (if-let* ((variable (treesit-node-child-by-field-name name "variable")))
+              (let ((str (treesit-node-text-no-properties-unsafe variable)))
+                ;; Use whole import_name so that we’ll be able to
+                ;; detect commas before and after it. There would be
+                ;; no commas around its inner ‘variable’.
+                (puthash str name other))
+            (when-let* ((type (treesit-node-child-by-field-name name "type")))
+              (let ((str (treesit-node-text-no-properties-unsafe type)))
+                (puthash str
+                         ;; NB whone import_name is added here to be
+                         ;; removed with its children if we’re going
+                         ;; to remove it.
+                         name
+                         other))
+              (when-let* ((children (treesit-node-child-by-field-name name "children"))
+                          (constructor-nodes (treesit-node-children children t)))
+                (dolist (constructor constructor-nodes)
+                  (let ((typ (treesit-node-type constructor)))
+                    (unless (member typ '("constructor" "all_names"))
+                      (error "Unexpected constructor node: %s" constructor))
+                    (when (string= "constructor" typ)
+                      (let ((str (treesit-node-text-no-properties-unsafe constructor)))
+                        (puthash str constructor constructors)))))))))
+
+        (let ((remove-nodes nil))
+          (dolist (name names)
+
+            ;; Transform Executable(buildInfo) -> buildInfo for when
+            ;; we imported a type’s accessor but GHC reports it together
+            ;; with parent type name.
+            (when-let (m (s-match (rx
+                                   (* (any ?_))
+                                   (any (?A . ?Z))
+                                   (* alphanumeric)
+                                   "("
+                                   (group-n 1 (+ (not ?\))))
+                                   ")")
+                                  name))
+              (setf name (nth 1 m)))
+
+            (let ((tmp nil))
+              (cond
+                ((setf tmp (gethash name constructors))
+                 (remhash name constructors)
+                 (push tmp remove-nodes))
+                ((setf tmp (gethash name other))
+                 (remhash name constructors)
+                 (push tmp remove-nodes)))))
+
+          (let ((remove-intervals nil))
+            (dolist (node remove-nodes)
+              (let ((margin-before (when-let* ((prev (treesit-node-prev-sibling node))
+                                               ((string= "," (treesit-node-type prev))))
+                                     (- (treesit-node-start node)
+                                        (treesit-node-start prev))))
+                    (margin-after (when-let* ((next (treesit-node-next-sibling node))
+                                              ((string= "," (treesit-node-type next)))
+                                              (next2 (treesit-node-next-sibling next)))
+                                    (- (treesit-node-start next2) (treesit-node-end node)))))
+                (push (mk-interval-with-margins (treesit-node-start node)
+                                                (treesit-node-end node)
+                                                ;; If surrounded by commas then remove the node
+                                                ;; itself, margins will be nil.
+                                                margin-before
+                                                margin-after)
+                      remove-intervals)))
+
+            (let ((merged (nreverse (interval-with-margins-merge-overlapping! remove-intervals))))
+              (dolist (interval merged)
+                (delete-region (interval-with-margins-resolve-start interval)
+                               (interval-with-margins-resolve-end interval))))))))))
 
 ;;;###autoload
 (define-derived-mode haskell-ts-mode prog-mode "Haskell[ts]"
