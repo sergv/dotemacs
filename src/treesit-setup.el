@@ -45,28 +45,6 @@ Return the root node of the syntax tree."
     (treesit-parser-root-node
      (treesit-parser-create language))))
 
-(defun treesit-utils-find-topmost-parent (node pred)
-  (cl-assert (treesit-node-p node))
-  (let ((result nil)
-        (p node))
-    (while p
-      (when (funcall pred p)
-        (setf result p))
-      (setf p (treesit-node-parent p)))
-    result))
-
-(defun treesit-utils-find-topmost-parent-limited (node pred limit)
-  (cl-assert (treesit-node-p node))
-  (let ((result nil)
-        (p node))
-    (while (and p
-                (> limit 0))
-      (when (funcall pred p)
-        (setf result p))
-      (setf p (treesit-node-parent p)
-            limit (- limit 1)))
-    result))
-
 (defun treesit-grand-parent-bol (_n parent &rest _)
   (awhen (treesit-node-parent parent)
     (save-excursion
