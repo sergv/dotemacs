@@ -119,12 +119,10 @@ can allows value to be decoded back fully.)"
                    "Invalid tag of encoded hash table")
   (let ((kv-alist (cadr encoded-data))
         (test (caddr encoded-data)))
-    (alist->hash-table
-     (-map (lambda (kv)
-             (cons (sessions/versioned/restore-value version (car kv))
-                   (sessions/versioned/restore-value version (cdr kv))))
-           kv-alist)
-     test)))
+    (hash-table-from-list (lambda (x) (sessions/versioned/restore-value version (car x)))
+                          (lambda (x) (sessions/versioned/restore-value version (cdr x)))
+                          kv-alist
+                          test)))
 
 ;;;; Store/restore rings
 
