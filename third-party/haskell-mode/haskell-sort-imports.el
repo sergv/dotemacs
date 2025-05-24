@@ -174,6 +174,7 @@ within that region."
 
 (defvar haskell-sort-imports--parens-syntax-table
   (let ((tbl (make-syntax-table)))
+    (modify-syntax-entry ?\\ "." tbl)
     (modify-syntax-entry ?\( "\(\)" tbl)
     (modify-syntax-entry ?\) "\)\(" tbl)
     tbl))
