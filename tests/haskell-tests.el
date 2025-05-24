@@ -6912,6 +6912,60 @@ have different input states."
    "import Utils.Pretty"
    ""))
 
+(haskell-tests--test-buffer-contents
+    haskell-tests/sort-imports-8a
+    (haskell-sort-imports)
+  (tests-utils--multiline
+   ""
+   "_|_import GHC.Generics (Generic)"
+   "import Algebra.Lattice ((/\))"
+   "import Data.ByteString qualified as BS"
+   "import Sasha.TTH"
+   "")
+  (tests-utils--multiline
+   ""
+   "import Algebra.Lattice ((/\))"
+   "import Data.ByteString qualified as BS"
+   "_|_import GHC.Generics (Generic)"
+   "import Sasha.TTH"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/sort-imports-8b
+    (haskell-sort-imports)
+  (tests-utils--multiline
+   ""
+   "import GHC.Generics (Generic)"
+   "import Algebra.Lattice ((/\))"
+   "_|_import Data.ByteString qualified as BS"
+   "import Sasha.TTH"
+   "")
+  (tests-utils--multiline
+   ""
+   "import Algebra.Lattice ((/\))"
+   "_|_import Data.ByteString qualified as BS"
+   "import GHC.Generics (Generic)"
+   "import Sasha.TTH"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/sort-imports-8c
+    (haskell-sort-imports)
+  (tests-utils--multiline
+   ""
+   "import GHC.Generics (Generic)"
+   "_|_import Algebra.Lattice ((/\))"
+   "import Data.ByteString qualified as BS"
+   "import Sasha.TTH"
+   "")
+  (tests-utils--multiline
+   ""
+   "_|_import Algebra.Lattice ((/\))"
+   "import Data.ByteString qualified as BS"
+   "import GHC.Generics (Generic)"
+   "import Sasha.TTH"
+   ""))
+
 (ert-deftest haskell-tests/haskell-sort-imports--group-imports-1 ()
   (should (equal (haskell-sort-imports--group-imports
                   '("import Foo"
@@ -7069,6 +7123,15 @@ have different input states."
                   :sep "\n  , "
                   :end-str "\n  )"
                   :entries '("foo" "\n  , " "pattern Bar" "\n ,   " "Decombobulator (..)" "  \n  , " "baz")))))
+
+(ert-deftest haskell-tests/haskell-sort-imports--parse-import-list-8 ()
+  (should (equal (haskell-sort-imports--parse-import-list
+                  " ((/\\))")
+                 (make-haskell-import-list
+                  :start-str " ("
+                  :sep nil
+                  :end-str ")"
+                  :entries '("(/\\)")))))
 
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-misc--add-new-import-1
