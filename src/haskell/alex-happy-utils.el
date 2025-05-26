@@ -81,7 +81,8 @@
 (defun poly-alex-happy-find-tail (_direction)
   (skip-chars-backward " \t\r\n%")
   (when-let ((prev (char-before)))
-    (when (eq prev ?\{)
+    (when (and (eq prev ?\{)
+               (not (eq (char-after) ?-)))
       (forward-char -1)
       (with-syntax-table haskell-blocks-default-syntax-table
         (let ((parse-sexp-lookup-properties nil))
