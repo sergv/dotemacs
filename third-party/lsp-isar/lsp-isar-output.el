@@ -297,16 +297,18 @@ functions adds up.  So any optimisation would help."
                    (push (cons 'lsp-isar-output-fontification (cons start-point face)) contents)
 	           (setq contents (append (dom-children content) contents))))
 
-	        ('sendback ;; TODO handle properly
+                ('sendback ;; TODO handle properly
                  (insert "|" (format "%s" (1+ (length lsp-isar-output-proof-cases-content))) "|: ")
 	         (let ((start-point (point)))
-	           (let ((str (buffer-substring-no-properties (line-beginning-position) start-point)))
-	             (if (cl-search "Try" str)
-		         (setq lsp-isar-output-last-seen-prover str)
-		       (setq lsp-isar-output-last-seen-prover
-		             (concat lsp-isar-output-last-seen-prover "Isar"))))
-	           (push (list 'lsp-isar-output-save-sendback start-point) contents)
-	           (setq contents (append (dom-children content) contents))))
+		   (save-excursion
+		     (beginning-of-line)
+		     (let ((str (buffer-substring (point) start-point)))
+		       (if (and str (cl-search "Try" str))
+			   (setq lsp-isar-output-last-seen-prover str)
+		         (setq lsp-isar-output-last-seen-prover
+			       (concat lsp-isar-output-last-seen-prover "Isar")))))
+		   (push (dom-node 'lsp-isar-output-save-sendback `((start-point .  ,start-point) nil)) contents)
+		   (setq contents (append (dom-children content) contents))))
 
 	        ('bullet
 	         (insert "•")
