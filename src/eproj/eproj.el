@@ -128,9 +128,9 @@
   ;; bindings for specified files, where <eproj-tags> is a list of tags.
   parse-tags-procedure
 
-  ;; function that takes a tag and returns a string
+  ;; function of 2 arguments that takes a tag and a symbol for tag major mode and returns a string
   show-tag-kind-procedure
-  ;; function of 3 arguments, a project, a string tag name and a tag struct, returning string
+  ;; function of 4 arguments, a project, a string tag name, a tag struct, and a symbol for tag major mode or nil, returning string
   tag->string-func
   ;; list of symbols, these modes will resolve to this language during
   ;; tag search
@@ -145,7 +145,11 @@
   ;; Possibly strip unneeded information before performing navigation
   normalise-identifier-before-navigation-procedure
   ;; List of strings - globs for files to consider during quick navigation.
-  extra-navigation-globs)
+  extra-navigation-globs
+
+  ;; List of symbols - modes within this project that should also be queries
+  ;; alongside current effective major mode for e.g. navigation or tag resolution.
+  related-modes)
 
 (cl-defun mk-eproj-lang (&key mode
                               extensions
@@ -156,7 +160,8 @@
                               authoritative-key-func
                               synonym-modes
                               normalise-identifier-before-navigation-procedure
-                              extra-navigation-globs)
+                              extra-navigation-globs
+                              related-modes)
   (declare (pure t) (side-effect-free t))
   (cl-assert (symbolp mode))
   (cl-assert (listp extensions))
@@ -197,6 +202,7 @@
              normalise-identifier-before-navigation-procedure)
   (cl-assert (or (null extra-navigation-globs)
                  (-all? #'stringp extra-navigation-globs)))
+  (cl-assert (-all? #'symbolp related-modes))
   (make-eproj-language
    :mode mode
    :extensions extensions
@@ -210,10 +216,11 @@
    :authoritative-key-func (or authoritative-key-func
                                #'eproj/default-authoritative-key-func)
    :synonym-modes synonym-modes
+   :extra-navigation-globs extra-navigation-globs
+   :related-modes related-modes
+
    :normalise-identifier-before-navigation-procedure
-   normalise-identifier-before-navigation-procedure
-   :extra-navigation-globs
-   extra-navigation-globs))
+   normalise-identifier-before-navigation-procedure))
 
 ;;;; language definitions
 
@@ -315,7 +322,8 @@
     :tag->string-func #'eproj/generic-tag->string)
    (mk-eproj-lang
     :mode 'java-mode
-    :extensions '("java" "kt")
+    :extensions '("java")
+    :related-modes '(kotlin-mode)
     :create-tags-procedure
     (lambda (proj project-files-thunk parse-tags-proc)
       (eproj/load-ctags-project 'java-mode proj project-files-thunk parse-tags-proc))
@@ -325,14 +333,15 @@
     :tag->string-func #'eproj/java-tag->string)
    (mk-eproj-lang
     :mode 'kotlin-mode
-    :extensions '("kt" "java")
+    :extensions '("kt")
+    :related-modes '(java-mode)
     :create-tags-procedure
     (lambda (proj project-files-thunk parse-tags-proc)
       (eproj/load-ctags-project 'kotlin-mode proj project-files-thunk parse-tags-proc))
     :parse-tags-procedure
     #'eproj/ctags-get-tags-from-buffer
-    :show-tag-kind-procedure #'eproj/java-tag-kind
-    :tag->string-func #'eproj/java-tag->string
+    :show-tag-kind-procedure #'eproj/kotlin-tag-kind
+    :tag->string-func #'eproj/kotlin-tag->string
     :synonym-modes '(kotlin-ts-mode))
    (mk-eproj-lang
     :mode 'emacs-lisp-mode
@@ -1181,7 +1190,7 @@ doing `eproj-switch-to-file-or-buffer'."
               nil
               (eproj/list-of-files-file-name proj)
               (let ((files (eproj--get-project-files proj))
-                   (aux (eproj--aux-files proj)))
+                    (aux (eproj--aux-files proj)))
                (nconc aux files)))))
         (dolist (file all-files)
           (eproj--add-cached-file-for-navigation proj-root file files-cache))
@@ -1412,12 +1421,27 @@ or `default-directory', if no file is visited."
    eproj/buffer-directory
    #'stringp))
 
+(defun eproj-get-matching-and-related-tags (proj tag-major-mode lang identifier search-with-regexp?)
+  "Returns list of (tag-name tag-struct tag-project major-mode) lists."
+  (cl-assert (eproj-language-p lang))
+  (let ((related (eproj-language/related-modes lang)))
+    (if related
+        (--mapcat (eproj-get-matching-tags proj
+                                           it
+                                           identifier
+                                           search-with-regexp?)
+                  (cons tag-major-mode related))
+      (eproj-get-matching-tags proj
+                               tag-major-mode
+                               identifier
+                               search-with-regexp?))))
+
 (defun eproj-get-matching-tags (proj tag-major-mode identifier search-with-regexp?)
   "Get all tags from PROJ and its related projects from mode TAG-MAJOR-MODE
 whose name equals IDENTIFIER or matches regexp IDENTIFIER if SEARCH-WITH-REGEXP?
 is non-nil.
 
-Returns list of (tag-name tag project is-authoritative?) lists."
+Returns list of (tag-name tag-struct tag-project major-mode) lists."
   (let* ((has-authoritative-projects? nil)
          (matched-tags
           (mapcan (lambda (proj)
@@ -1430,10 +1454,10 @@ Returns list of (tag-name tag project is-authoritative?) lists."
                                 (if search-with-regexp?
                                     (mapcan (lambda (key-and-tags)
                                               (let ((key (car key-and-tags)))
-                                                (-map (lambda (tag) (list is-authoritative? key tag proj))
+                                                (-map (lambda (tag) (list is-authoritative? key tag proj tag-major-mode))
                                                       (cdr key-and-tags))))
                                             (eproj-tag-index-values-where-key-matches-regexp identifier all-tags))
-                                  (mapcar (lambda (x) (list is-authoritative? identifier x proj))
+                                  (mapcar (lambda (x) (list is-authoritative? identifier x proj tag-major-mode))
                                           (eproj-tag-index-get identifier all-tags nil)))))
                           (when matched-tags
                             (setf has-authoritative-projects? (or has-authoritative-projects?
@@ -1441,7 +1465,7 @@ Returns list of (tag-name tag project is-authoritative?) lists."
                           matched-tags)
                       nil))
                   (eproj-get-all-related-projects-for-mode proj tag-major-mode))))
-    (mapcar #'cdr
+    (mapcar #'cdr ;; drop is-authoritative? first entry
             (if has-authoritative-projects?
                 (let* ((tbl (make-hash-table :test #'equal))
                        (lang (aif (gethash tag-major-mode eproj/languages-table)
