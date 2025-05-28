@@ -228,7 +228,7 @@ BUFFER is expected to contain output of ctags command."
 
 ;;;; Rust tags
 
-(defun eproj/rust-tag-kind (tag)
+(defun eproj/rust-tag-kind (tag _mode)
   (cl-assert (eproj-tag-p tag) nil "Invalid tag: %s" tag)
   (aif (eproj-tag/type tag)
       (pcase it
@@ -249,10 +249,10 @@ BUFFER is expected to contain output of ctags command."
     "Unknown"))
 
 ;;;###autoload
-(defun eproj/rust-tag->string (proj tag-name tag)
+(defun eproj/rust-tag->string (proj tag-name tag mode)
   (cl-assert (eproj-tag-p tag))
   (concat tag-name
-          (awhen (eproj/rust-tag-kind tag)
+          (awhen (eproj/rust-tag-kind tag mode)
             (concat " [" it "]"))
           "\n"
           (eproj/format-tag-path-and-line proj tag)
@@ -262,7 +262,7 @@ BUFFER is expected to contain output of ctags command."
 
 ;;;; C/C++ tags
 
-(defun eproj/c-tag-kind (tag)
+(defun eproj/c-tag-kind (tag _mode)
   (cl-assert (eproj-tag-p tag) nil "Invalid tag: %s" tag)
   (aif (eproj-tag/type tag)
       (pcase it
@@ -288,10 +288,10 @@ BUFFER is expected to contain output of ctags command."
     "Unknown"))
 
 ;;;###autoload
-(defun eproj/c-tag->string (proj tag-name tag)
+(defun eproj/c-tag->string (proj tag-name tag mode)
   (cl-assert (eproj-tag-p tag))
   (concat tag-name
-          (awhen (eproj/c-tag-kind tag)
+          (awhen (eproj/c-tag-kind tag mode)
             (concat " [" it "]"))
           "\n"
           (eproj/format-tag-path-and-line proj tag)
@@ -301,7 +301,7 @@ BUFFER is expected to contain output of ctags command."
 
 ;;;; Java tags
 
-(defun eproj/java-tag-kind (tag)
+(defun eproj/java-tag-kind (tag _mode)
   (cl-assert (eproj-tag-p tag) nil "Invalid tag: %s" tag)
   (aif (eproj-tag/type tag)
       (concat
@@ -321,11 +321,11 @@ BUFFER is expected to contain output of ctags command."
     "Unknown"))
 
 ;;;###autoload
-(defun eproj/java-tag->string (proj tag-name tag)
+(defun eproj/java-tag->string (proj tag-name tag mode)
   (cl-assert (eproj-tag-p tag))
   (concat tag-name
           " ["
-          (eproj/java-tag-kind tag)
+          (eproj/java-tag-kind tag mode)
           "]\n"
           (awhen (eproj-tag/get-prop 'class tag)
             (concat it
@@ -338,21 +338,61 @@ BUFFER is expected to contain output of ctags command."
             (concat (eproj/extract-tag-line proj tag)
                     "\n"))))
 
+;;;; Kotlin tags
+
+(defun eproj/kotlin-tag-kind (tag _mode)
+  (cl-assert (eproj-tag-p tag) nil "Invalid tag: %s" tag)
+  (aif (eproj-tag/type tag)
+      (concat
+       (pcase it
+         (?p "package")
+         (?i "interface")
+         (?c "classe")
+         (?o "object")
+         (?m "method")
+         (?T "typealiase")
+         (?C "constant")
+         (?v "variable")
+         (invalid
+          (error "Invalid Kotlin tag type %c" invalid)))
+       (awhen (eproj-tag/get-prop 'access tag)
+         (concat "/" it)))
+    "Unknown"))
+
+;;;###autoload
+(defun eproj/kotlin-tag->string (proj tag-name tag mode)
+  (cl-assert (eproj-tag-p tag))
+  (concat tag-name
+          " ["
+          (eproj/kotlin-tag-kind tag mode)
+          "]\n"
+          (awhen (or (eproj-tag/get-prop 'class tag)
+                     (eproj-tag/get-prop 'object tag))
+            (concat it
+                    "."
+                    tag-name
+                    "\n"))
+          (eproj/format-tag-path-and-line proj tag)
+          "\n"
+          (when (eproj-tag/line tag)
+            (concat (eproj/extract-tag-line proj tag)
+                    "\n"))))
+
 ;;;; Generic tags
 
-(defun eproj/generic-tag-kind (tag)
+(defun eproj/generic-tag-kind (tag _mode)
   (concat (awhen (eproj-tag/type tag)
             (format "%c " it))
           (format "%s" (eproj-tag/properties tag))))
 
 ;;;###autoload
-(defun eproj/generic-tag->string (proj tag-name tag)
+(defun eproj/generic-tag->string (proj tag-name tag mode)
   (cl-assert (eproj-tag-p tag))
   (concat tag-name
           "\n"
           (eproj/format-tag-path-and-line proj tag)
           "\n"
-          (eproj/generic-tag-kind tag)
+          (eproj/generic-tag-kind tag mode)
           "\n"))
 
 ;;;; Tag presentation utilities
