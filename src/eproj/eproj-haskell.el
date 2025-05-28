@@ -194,7 +194,7 @@ runtime but rather will be silently relied on)."
           tags-index)))))
 
 ;;;###autoload
-(defun eproj/haskell-tag-kind (tag)
+(defun eproj/haskell-tag-kind (tag _mode)
   (cl-assert (eproj-tag-p tag) nil "Invalid tag: %s" tag)
   (aif (eproj-tag/type tag)
       (pcase it
@@ -212,11 +212,11 @@ runtime but rather will be silently relied on)."
     "Unknown"))
 
 ;;;###autoload
-(defun eproj/haskell-tag->string (proj tag-name tag)
+(defun eproj/haskell-tag->string (proj tag-name tag mode)
   (cl-assert (eproj-tag-p tag))
   (concat tag-name
           " ["
-          (eproj/haskell-tag-kind tag)
+          (eproj/haskell-tag-kind tag mode)
           "]\n"
           (eproj/format-tag-path-and-line proj tag)
           (awhen (eproj-tag/column tag)
