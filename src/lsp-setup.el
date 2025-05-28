@@ -196,7 +196,7 @@
 
 (defalias 'lsp-symbnav/go-back #'eproj-symbnav/go-back)
 
-(defun lsp-symbnav--tag-kind (tag)
+(defun lsp-symbnav--tag-kind (tag _mode)
   (awhen (eproj-tag/type tag)
     (cl-assert (stringp it) nil "Expected string tag type but got: %s" it)
     it))
@@ -206,7 +206,7 @@
   (if use-regexp?
       (let* ((re (read-regexp "enter regexp to search for"))
              (lsp-tags
-              (-map #'lsp-symbnav--symbol-information->eproj-tag-triple
+              (-map #'lsp-symbnav--symbol-information->eproj-tag-quadruple
                     (lsp-request "workspace/symbol" `(:query ,re)))))
         (lsp-symbnav/go-to-symbol-home-impl re lsp-tags))
     (lsp-symbnav/go-to-symbol-home-no-regexp)))
@@ -215,7 +215,7 @@
   (interactive)
   (let* ((identifier (eproj-symbnav/identifier-at-point nil))
          (lsp-tags
-          (--map (list identifier it nil)
+          (--map (list identifier it nil nil)
                  (lsp-symbnav--locations->eproj-tags
                   identifier
                   (lsp-request "textDocument/definition"
@@ -229,7 +229,7 @@
         (enable-shortcut? t))
     (eproj-symbnav/choose-location-to-jump-to
      ident
-     (lambda (_proj tag-name tag)
+     (lambda (_proj tag-name tag _mode _tag-from-current-proj?)
        (cl-assert (stringp tag-name))
        (concat tag-name
                (awhen (eproj-tag/type tag)
@@ -247,8 +247,8 @@
 (defun lsp-symbnav/find-references (&optional include-declaration?)
   (interactive "P")
   (let* ((identifier (eproj-symbnav/identifier-at-point nil))
-         (tag-triples
-          (--map (list identifier it nil)
+         (tag-quadruples
+          (--map (list identifier it nil nil)
                  (lsp-symbnav--locations->eproj-tags
                   identifier
                   (lsp-request "textDocument/references"
@@ -257,21 +257,21 @@
           (enable-shortcut? nil))
       (eproj-symbnav/choose-location-to-jump-to
        identifier
-       (lambda (_proj _tag-name tag)
+       (lambda (_proj _tag-name tag _mode)
          (eproj-xref-symbnav--tag->string tag))
        #'lsp-symbnav--tag-kind
        (eproj-symbnav-get-file-name)
        proj
        (eproj-symbnav-current-home-entry)
-       tag-triples
+       tag-quadruples
        enable-shortcut?
        (concat "Uses of " identifier "\n\n")))))
 
 (defun lsp-symbnav/find-implementations ()
   (interactive)
   (let* ((identifier (eproj-symbnav/identifier-at-point nil))
-         (tag-triples
-          (--map (list identifier it nil)
+         (tag-quadruples
+          (--map (list identifier it nil nil)
                  (lsp-symbnav--locations->eproj-tags
                   identifier
                   (lsp-request "textDocument/implementation"
@@ -280,18 +280,18 @@
           (enable-shortcut? nil))
       (eproj-symbnav/choose-location-to-jump-to
        identifier
-       (lambda (_proj _tag-name tag)
+       (lambda (_proj _tag-name tag _mode)
          (eproj-xref-symbnav--tag->string tag))
        #'lsp-symbnav--tag-kind
        (eproj-symbnav-get-file-name)
        proj
        (eproj-symbnav-current-home-entry)
-       tag-triples
+       tag-quadruples
        enable-shortcut?
        (concat "Implementations for " identifier "\n\n")))))
 
 ;; sync with `lsp--symbol-information-to-xref’
-(lsp-defun lsp-symbnav--symbol-information->eproj-tag-triple
+(lsp-defun lsp-symbnav--symbol-information->eproj-tag-quadruple
   ((&SymbolInformation :kind :name :deprecated?
                        :location (&Location :uri :range (&Range :start
                                                                 (&Position :line :character)))))
@@ -309,6 +309,8 @@
                           tag-kind
                           t
                           (list (cons 'column tag-column)))
+          nil
+          ;; No mode for disambiguation.
           nil)))
 
 ;; sync with `lsp--locations-to-xref-items’
