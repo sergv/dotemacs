@@ -201,7 +201,7 @@ regexps to not be confused by the instance location."
              (eproj-symbnav-get-file-name)
              proj
              (eproj-symbnav-current-home-entry)
-             (--map (list identifier it proj) ghci-tags)
+             (--map (list identifier it proj effective-major-mode) ghci-tags)
              t
              "Choose symbol\n\n"))
         (lcr-cps-let ((_load-message (dante-async-load-current-buffer t nil))

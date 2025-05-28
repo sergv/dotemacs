@@ -95,7 +95,7 @@
   (if use-regexp?
       (let* ((re (read-regexp "enter regexp to search for"))
              (lsp-tags
-              (-map #'lsp-symbnav--symbol-information->eproj-tag-triple
+              (-map #'lsp-symbnav--symbol-information->eproj-tag-quadruple
                     (lsp-request "workspace/symbol" `(:query ,re)))))
         (if lsp-tags
             (lsp-haskell-symbnav/go-to-symbol-home-impl re lsp-tags)
@@ -107,7 +107,7 @@
       (if lsp-tags
           (lsp-haskell-symbnav/go-to-symbol-home-impl
            identifier
-           (--map (list identifier it nil)
+           (--map (list identifier it nil nil)
                   (lsp-symbnav--locations->eproj-tags identifier lsp-tags)))
         (lsp-haskell-symbnav/go-to-symbol-home/with-lsp-location-hint identifier)))))
 
@@ -116,7 +116,7 @@
         (enable-shortcut? t))
     (eproj-symbnav/choose-location-to-jump-to
      ident
-     (lambda (_proj tag-name tag)
+     (lambda (_proj tag-name tag _mode)
        (cl-assert (stringp tag-name))
        (concat tag-name
                (awhen (eproj-tag/type tag)
