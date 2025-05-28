@@ -120,6 +120,9 @@ under ROOT directory."
 (defconst eproj-tests/haskell-project-authoritative
   (expand-file-name (concat eproj-tests/project-dir "/haskell-project-authoritative")))
 
+(defconst eproj-tests/java-kotlin-combined
+  (expand-file-name (concat eproj-tests/project-dir "/java-kotlin-combined-project")))
+
 (eproj-tests--define-tests
     "eproj-tests/eproj-get-all-related-projects"
   (let* ((path (concat eproj-tests/folder-with-related-projects "/project-main"))
@@ -610,6 +613,37 @@ under ROOT directory."
          (should (--any? (equal (eproj-tag/file (cadr it))
                                 path)
                          non-authoritative-tags)))))))
+
+(eproj-tests--define-tests
+ "eproj-tests/java-kotlin-combined"
+ (unless (cached-executable-find "universal-ctags")
+   (ert-skip "universal-ctags not available"))
+ (let* ((path eproj-tests/java-kotlin-combined)
+        (proj (eproj-get-project-for-path path)))
+   (should (not (null proj)))
+   (dolist (mode '(java-mode kotlin-mode))
+     (let ((lang (aif (gethash mode eproj/languages-table)
+                     it
+                   (error "unsupported language ‘%s’" mode))))
+       (should (equal (--map (list (nth 0 it) (nth 1 it) (nth 3 it))
+                             (eproj-get-matching-and-related-tags proj mode lang "foo" nil))
+                      (list (list "foo"
+                                  (make-eproj-tag (concat path "/Test1.java")
+                                                  3
+                                                  ?m
+                                                  t
+                                                  '((access . "public")
+                                                    (class . "Test1")))
+                                  'java-mode))))
+       (should (equal (--map (list (nth 0 it) (nth 1 it) (nth 3 it))
+                             (eproj-get-matching-and-related-tags proj mode lang "bar" nil))
+                      (list (list "bar"
+                                  (make-eproj-tag (concat path "/Test2.kt")
+                                                  2
+                                                  ?m
+                                                  t
+                                                  nil)
+                                  'kotlin-mode))))))))
 
 ;;;; eproj/ctags-get-tags-from-buffer
 
