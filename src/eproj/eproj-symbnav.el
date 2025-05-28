@@ -222,24 +222,57 @@ as accepted by `bounds-of-thing-at-point'.")
                 eproj-symbnav/previous-homes)
           (setf eproj-symbnav/selected-loc (pop eproj-symbnav/next-homes)))
 
-      (let* ((lang (aif (gethash effective-major-mode eproj/languages-table)
-                       it
-                     (error "unsupported language %s" effective-major-mode)))
-             (tag->string (eproj-language/tag->string-func lang))
-             (tag->kind (eproj-language/show-tag-kind-procedure lang)))
-        (eproj-symbnav/choose-location-to-jump-to
-         identifier
-         tag->string
-         tag->kind
-         (eproj-symbnav-get-file-name)
-         proj
-         (eproj-symbnav-current-home-entry)
-         (eproj-get-matching-tags proj
-                                  effective-major-mode
-                                  identifier
-                                  use-regexp?)
-         t
-         "Choose symbol\n\n")))))
+      (let ((lang (aif (gethash effective-major-mode eproj/languages-table)
+                      it
+                    (error "unsupported language %s" effective-major-mode))))
+        (if (eproj-language/related-modes lang)
+            (let ((composite-tag->string
+                   (lambda (tag-name tag proj mode)
+                     (cl-assert (symbolp mode))
+                     (if-let* ((lang (gethash mode eproj/languages-table)))
+                         (funcall (eproj-language/tag->string-func lang)
+                                  tag-name
+                                  tag
+                                  proj
+                                  mode)
+                       (error "Invalid tag mode: ‘%s’" mode))))
+                  (composite-tag->kind
+                   (lambda (tag mode)
+                     (cl-assert (symbolp mode))
+                     (if-let* ((lang (gethash mode eproj/languages-table)))
+                         (funcall (eproj-language/show-tag-kind-procedure lang)
+                                  tag
+                                  mode)
+                       (error "Invalid tag mode: ‘%s’" mode)))))
+              (eproj-symbnav/choose-location-to-jump-to
+               identifier
+               composite-tag->string
+               composite-tag->kind
+               (eproj-symbnav-get-file-name)
+               proj
+               (eproj-symbnav-current-home-entry)
+               (eproj-get-matching-and-related-tags proj
+                                                    effective-major-mode
+                                                    lang
+                                                    identifier
+                                                    use-regexp?)
+               t
+               "Choose symbol\n\n"))
+          (let ((tag->string (eproj-language/tag->string-func lang))
+                (tag->kind (eproj-language/show-tag-kind-procedure lang)))
+            (eproj-symbnav/choose-location-to-jump-to
+             identifier
+             tag->string
+             tag->kind
+             (eproj-symbnav-get-file-name)
+             proj
+             (eproj-symbnav-current-home-entry)
+             (eproj-get-matching-tags proj
+                                      effective-major-mode
+                                      identifier
+                                      use-regexp?)
+             t
+             "Choose symbol\n\n")))))))
 
 (defface eproj-symbnav-file-name
   '((t :inherit compilation-info))
@@ -259,12 +292,12 @@ as accepted by `bounds-of-thing-at-point'.")
 ;;;###autoload
 (defun eproj-symbnav/choose-location-to-jump-to
     (identifier
-     tag->string
-     tag->kind
+     tag->string ;; function of 4 arguments, a project, a string tag name, a tag struct, and a symbol for tag major mode or nil, returning string
+     tag->kind ;; function of 2 arguments that takes a tag and a symbol for tag major mode and returns a string
      current-buffer-file-name
      current-proj ;; may be nil
      current-home-entry
-     tag-entries ;; list of (tag-name tag-struct tag-proj) triples
+     tag-entries ;; list of (tag-name tag-struct tag-proj tag-major-mode-or-nil) quadruples
      enable-shortcut? ;; Jump to destination if there’s only one tag
      preamble
      )
@@ -272,9 +305,9 @@ as accepted by `bounds-of-thing-at-point'.")
   (cl-assert (functionp tag->kind))
   (cl-assert (or (null current-proj) (eproj-project-p current-proj)))
   (let* ((tag->sort-token
-          (lambda (tag-name tag)
+          (lambda (tag-name tag mode)
             (list tag-name
-                  (funcall tag->kind tag)
+                  (funcall tag->kind tag mode)
                   (eproj-tag/file tag)
                   (eproj-tag/line tag))))
          (sort-token<
@@ -306,9 +339,9 @@ as accepted by `bounds-of-thing-at-point'.")
                                                (cl-assert (numberp line-x))
                                                (cl-assert (numberp line-y))
                                                (< line-x line-y)))))))))))))
-         (tag->string
+         (augmented-tag->string
           (if current-proj
-              (lambda (tag-proj tag-name tag)
+              (lambda (tag-proj tag-name tag mode)
                 (let* ((expanded-tag-file
                         (expand-file-name
                          (eproj-resolve-to-abs-path (eproj-tag/file tag) tag-proj)))
@@ -323,8 +356,8 @@ as accepted by `bounds-of-thing-at-point'.")
                                  (propertize tag-name 'face 'italic))
                                 (t
                                  tag-name)))))
-                  (funcall tag->string tag-proj tag-name-pretty tag)))
-            (lambda (tag-proj tag-name tag)
+                  (funcall tag->string tag-proj tag-name-pretty tag mode)))
+            (lambda (tag-proj tag-name tag mode)
               (let* ((expanded-tag-file
                       (expand-file-name
                        (eproj-resolve-to-abs-path (eproj-tag/file tag) tag-proj)))
@@ -335,7 +368,7 @@ as accepted by `bounds-of-thing-at-point'.")
                                (propertize tag-name 'face 'font-lock-negation-char-face))
                               (t
                                tag-name)))))
-                (funcall tag->string tag-proj tag-name-pretty tag)))))
+                (funcall tag->string tag-proj tag-name-pretty tag mode)))))
          (entry-sort-token #'first-sure)
          (entry-tag-name #'second-sure)
          (entry-tag #'third-sure)
@@ -351,15 +384,15 @@ as accepted by `bounds-of-thing-at-point'.")
              entry-sort-token
              #'equal
              (-map (lambda (tag-entry)
-                     (cl-destructuring-bind (tag-name tag tag-proj)
+                     (cl-destructuring-bind (tag-name tag tag-proj mode)
                          tag-entry
                        (cl-assert (stringp tag-name))
                        (cl-assert (eproj-tag-p tag))
                        (cl-assert (eproj-project-p tag-proj))
-                       (list (funcall tag->sort-token tag-name tag)
+                       (list (funcall tag->sort-token tag-name tag mode)
                              tag-name
                              tag
-                             (funcall tag->string tag-proj tag-name tag)
+                             (funcall augmented-tag->string tag-proj tag-name tag mode)
                              tag-proj)))
                    tag-entries))
             (lambda (a b)

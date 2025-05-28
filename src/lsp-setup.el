@@ -196,7 +196,7 @@
 
 (defalias 'lsp-symbnav/go-back #'eproj-symbnav/go-back)
 
-(defun lsp-symbnav--tag-kind (tag)
+(defun lsp-symbnav--tag-kind (tag _mode)
   (awhen (eproj-tag/type tag)
     (cl-assert (stringp it) nil "Expected string tag type but got: %s" it)
     it))
@@ -229,7 +229,7 @@
         (enable-shortcut? t))
     (eproj-symbnav/choose-location-to-jump-to
      ident
-     (lambda (_proj tag-name tag)
+     (lambda (_proj tag-name tag _mode)
        (cl-assert (stringp tag-name))
        (concat tag-name
                (awhen (eproj-tag/type tag)
@@ -257,7 +257,7 @@
           (enable-shortcut? nil))
       (eproj-symbnav/choose-location-to-jump-to
        identifier
-       (lambda (_proj _tag-name tag)
+       (lambda (_proj _tag-name tag _mode)
          (eproj-xref-symbnav--tag->string tag))
        #'lsp-symbnav--tag-kind
        (eproj-symbnav-get-file-name)
@@ -280,7 +280,7 @@
           (enable-shortcut? nil))
       (eproj-symbnav/choose-location-to-jump-to
        identifier
-       (lambda (_proj _tag-name tag)
+       (lambda (_proj _tag-name tag _mode)
          (eproj-xref-symbnav--tag->string tag))
        #'lsp-symbnav--tag-kind
        (eproj-symbnav-get-file-name)
@@ -291,7 +291,7 @@
        (concat "Implementations for " identifier "\n\n")))))
 
 ;; sync with `lsp--symbol-information-to-xref’
-(lsp-defun lsp-symbnav--symbol-information->eproj-tag-triple
+(lsp-defun lsp-symbnav--symbol-information->eproj-tag-quadruple
   ((&SymbolInformation :kind :name :deprecated?
                        :location (&Location :uri :range (&Range :start
                                                                 (&Position :line :character)))))
@@ -309,6 +309,8 @@
                           tag-kind
                           t
                           (list (cons 'column tag-column)))
+          nil
+          ;; No mod efor disambiguation.
           nil)))
 
 ;; sync with `lsp--locations-to-xref-items’
