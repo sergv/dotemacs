@@ -11,10 +11,10 @@ set -u
 set -o pipefail
 set -e
 
-if [[ -z "${IN_NIX_SHELL-}" ]] && which nix 2>/dev/null; then
-    echo "Building via nix"
-    exec nix develop --no-warn-dirty --command "$0"
-fi
+# if [[ -z "${IN_NIX_SHELL-}" ]] && which nix 2>/dev/null; then
+#     echo "Building via nix"
+#     exec nix develop --no-warn-dirty --command "$0"
+# fi
 
 if [[ -z "${TMPDIR:-}" ]]; then
     export TMPDIR="/tmp"
