@@ -174,26 +174,36 @@ Returns list of triples
                                 fixers))
                       messages))))
 
+(defmacro attrap-flycheck--with-messages-and-checker (pos checker-var messages-var &rest body)
+  (declare (indent 3))
+  (let ((pos-var '#:pos-tmp))
+    `(let* ((,pos-var ,pos)
+            (,messages-var (--filter-nondet
+                            (car-sure it)
+                            (--map (cons (flycheck-error-message (overlay-get it 'flycheck-error))
+                                         it)
+                                   (--filter-nondet
+                                    (and (<= (overlay-start it) ,pos-var)
+                                         (<= ,pos-var (overlay-end it)))
+                                    (flycheck-enhancements--get-error-overlays)))))
+            (,checker-var (flycheck-get-checker-for-buffer)))
+       (when (not ,messages-var) (error "No flycheck message at point"))
+       (when (not ,checker-var) (error "No flycheck-checker for current buffer"))
+       ,@body)))
+
 ;;;###autoload
 (defun attrap-flycheck (pos)
   "Attempt to repair the flycheck error at POS."
   (interactive "d")
-  (let ((messages (--filter-nondet
-                   (car-sure it)
-                   (--map (cons (flycheck-error-message (overlay-get it 'flycheck-error))
-                                it)
-                          (--filter-nondet
-                           (and (<= (overlay-start it) pos)
-                                (<= pos (overlay-end it)))
-                           (flycheck-enhancements--get-error-overlays)))))
-        (checker (flycheck-get-checker-for-buffer)))
-    (when (not messages) (error "No flycheck message at point"))
-    (when (not checker) (error "No flycheck-checker for current buffer"))
+  (attrap-flycheck--with-messages-and-checker pos checker messages
     (attrap-select-and-apply-option
-     (remove-duplicates-by-hashing-projections
-      #'car
-      #'equal
-      (attrap--find-fixes-for-flycheck-messages checker messages)))))
+     (attrap-flycheck--collect-fixes checker messages))))
+
+(defun attrap-flycheck--collect-fixes (checker messages)
+  (remove-duplicates-by-hashing-projections
+   #'car
+   #'equal
+   (attrap--find-fixes-for-flycheck-messages checker messages)))
 
 ;;;###autoload
 (defun attrap-attrap (pos)
@@ -615,7 +625,7 @@ Error is given as MSG and reported between POS and END."
     (let* ((delete (nth 1 match))
            (delete-has-paren (eq ?\( (elt delete 0)))
            (delete-no-paren (if delete-has-paren (substring delete 1 (1- (length delete))) delete))
-           (rest (nth 1 (s-match (rx "Perhaps you meant" (? " one of these:") (group (+ anychar))) normalized-msg)))
+           (rest (nth 1 (s-match (rx "Perhaps " (or "you meant" "use") (? " one of these:") (group (+ anychar))) normalized-msg)))
            (replacements (s-match-strings-all
                           (rx (identifier 1) " "
                               (parens (or (seq "imported from " (group-n 2 module-name))

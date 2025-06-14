@@ -99,15 +99,28 @@
      :modes ,modes
      :eproj-project ,eproj-project))
 
+(defmacro attrap-tests--wrap-run-attrap (&rest body)
+  (declare (indent 0))
+  `(cl-letf
+       ;; Set up artificial checker because flycheck is disabled and
+       ;; it’s best to not enable it for temporary buffers if we can
+       ;; help it.
+       (((symbol-function 'flycheck-get-checker-for-buffer)
+         (lambda ()
+           'haskell-dante)))
+     ,@body))
+
 (defun attrap-tests--run-attrap ()
-  (cl-letf
-      ;; Set up artificial checker because flycheck is disabled and
-      ;; it’s best to not enable it for temporary buffers if we can
-      ;; help it.
-      (((symbol-function 'flycheck-get-checker-for-buffer)
-        (lambda ()
-          'haskell-dante)))
-    (attrap-flycheck (point))))
+  (attrap-tests--wrap-run-attrap
+   (attrap-flycheck (point))))
+
+(defun attrap-tests--run-attrap-check-fixes (expected-fixes)
+  (attrap-tests--wrap-run-attrap
+    (attrap-flycheck--with-messages-and-checker (point) checker messages
+      (let ((fixes (attrap-flycheck--collect-fixes checker messages)))
+        (should (equal (-map #'car fixes)
+                       expected-fixes))
+        (attrap-select-and-apply-option fixes)))))
 
 (attrap-tests--test-buffer-contents-many
  :name attrap/haskell-dante/delete-import-1
@@ -739,6 +752,53 @@
   "  case typ of"
   "    UnknownType -> getFileType $ coerce path"
   "    _|_DirInternals.SocketType -> pure Other"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/replace-4
+ :flycheck-errors
+ (list
+  (let ((linecol (save-excursion
+                   (re-search-forward "_|_")
+                   (flycheck-line-column-at-pos (point)))))
+    (flycheck-error-new
+     :line (car linecol)
+     :column (cdr linecol)
+     :buffer (current-buffer)
+     :checker 'haskell-dante
+     :message
+     (tests-utils--multiline
+      "warning: [GHC-88464] [-Wdeferred-out-of-scope-variables]"
+      "    Variable not in scope: GHC.Stack.prettyCallSack"
+      "    Note: The module ‘GHC.Stack’ does not export ‘prettyCallSack’."
+      "    Suggested fix:"
+      "      Perhaps use one of these:"
+      "        ‘GHC.Stack.prettyCallStack’ (imported from GHC.Stack),"
+      "        ‘GHC.Stack.getCallStack’ (imported from GHC.Stack),"
+      "        ‘GHC.Stack.emptyCallStack’ (imported from GHC.Stack)")
+     :level 'error
+     :id nil
+     :group nil)))
+ :action
+ (let ((attrap-select-predefined-option
+        "replace GHC.Stack.prettyCallSack by GHC.Stack.prettyCallStack from GHC.Stack"))
+   (attrap-tests--run-attrap-check-fixes
+    '("replace GHC.Stack.prettyCallSack by GHC.Stack.prettyCallStack from GHC.Stack"
+      "replace GHC.Stack.prettyCallSack by GHC.Stack.getCallStack from GHC.Stack"
+      "replace GHC.Stack.prettyCallSack by GHC.Stack.emptyCallStack from GHC.Stack")))
+ :contents
+ (tests-utils--multiline
+  ""
+  "import qualified GHC.Stack"
+  ""
+  "foo = _|_GHC.Stack.prettyCallSack"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import qualified GHC.Stack"
+  ""
+  "foo = _|_GHC.Stack.prettyCallStack"
   ""))
 
 (attrap-tests--test-buffer-contents-one
@@ -1439,7 +1499,9 @@
      :id nil
      :group nil)))
  :action
- (attrap-tests--run-attrap)
+ (let ((attrap-select-predefined-option
+        "add to import list of ‘System.IO’"))
+   (attrap-tests--run-attrap))
  :contents
  (tests-utils--multiline
   ""
@@ -1499,7 +1561,9 @@
      :id nil
      :group nil)))
  :action
- (attrap-tests--run-attrap)
+ (let ((attrap-select-predefined-option
+        "add to import list of ‘Foo.Decombobulate’"))
+   (attrap-tests--run-attrap))
  :contents
  (tests-utils--multiline
   ""
@@ -1554,7 +1618,9 @@
      :id nil
      :group nil)))
  :action
- (attrap-tests--run-attrap)
+ (let ((attrap-select-predefined-option
+        "add to import list of ‘Foo.Decombobulate’"))
+   (attrap-tests--run-attrap))
  :contents
  (tests-utils--multiline
   ""
