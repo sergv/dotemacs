@@ -585,6 +585,135 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/delete-import-7a
+ :modes (haskell-ts-mode)
+ :flycheck-errors
+ (list
+  (let ((linecol (save-excursion
+                   (re-search-forward "_|_")
+                   (flycheck-line-column-at-pos (point)))))
+    (flycheck-error-new
+     :line (car linecol)
+     :column (cdr linecol)
+     :buffer (current-buffer)
+     :checker 'haskell-dante
+     :message
+     (tests-utils--multiline
+      "error: [GHC-38856] [-Wunused-imports, Werror=unused-imports]"
+      "    The import of ‘foo’"
+      "    from module ‘Data.Foo’ is redundant")
+     :level 'warning
+     :id nil
+     :group nil)))
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Quux"
+  "import Data.Foo"
+  "  ( _|_foo"
+  "  , bar"
+  "  , quux"
+  "  )"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Quux"
+  "import Data.Foo"
+  "  ( _|_bar"
+  "  , quux"
+  "  )"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/delete-import-7b
+ :modes (haskell-ts-mode)
+ :flycheck-errors
+ (list
+  (let ((linecol (save-excursion
+                   (re-search-forward "_|_")
+                   (flycheck-line-column-at-pos (point)))))
+    (flycheck-error-new
+     :line (car linecol)
+     :column (cdr linecol)
+     :buffer (current-buffer)
+     :checker 'haskell-dante
+     :message
+     (tests-utils--multiline
+      "error: [GHC-38856] [-Wunused-imports, Werror=unused-imports]"
+      "    The import of ‘foo’"
+      "    from module ‘Data.Foo’ is redundant")
+     :level 'warning
+     :id nil
+     :group nil)))
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Quux"
+  "import Data.Foo"
+  "  ( bar"
+  "  , quux"
+  "  , _|_foo"
+  "  )"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Quux"
+  "import Data.Foo"
+  "  ( bar"
+  "  , quux_|_"
+  "  )"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/delete-import-7c
+ :modes (haskell-ts-mode)
+ :flycheck-errors
+ (list
+  (let ((linecol (save-excursion
+                   (re-search-forward "_|_")
+                   (flycheck-line-column-at-pos (point)))))
+    (flycheck-error-new
+     :line (car linecol)
+     :column (cdr linecol)
+     :buffer (current-buffer)
+     :checker 'haskell-dante
+     :message
+     (tests-utils--multiline
+      "error: [GHC-38856] [-Wunused-imports, Werror=unused-imports]"
+      "    The import of ‘foo’"
+      "    from module ‘Data.Foo’ is redundant")
+     :level 'warning
+     :id nil
+     :group nil)))
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Quux"
+  "import Data.Foo"
+  "  ( bar"
+  "  , _|_foo"
+  "  , quux"
+  "  )"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Quux"
+  "import Data.Foo"
+  "  ( bar_|_"
+  "  , quux"
+  "  )"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/replace-1
  :flycheck-errors
  (list
