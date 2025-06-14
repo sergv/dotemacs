@@ -661,7 +661,8 @@ Error is given as MSG and reported between POS and END."
        (insert "\n" "import " (nth 1 m) "\n")))
    (when-let ((match (s-match (rx (or (seq "The " (? "qualified ") "import of " (identifier 1) (* (any ?\s ?\t ?\n ?\r))
                                            "from module " (identifier 2) " is redundant")
-                                      (seq "Module " (identifier 2) " does not export " (identifier 1))))
+                                      (seq bos (ghc-error "61689") " "
+                                           "Module " (identifier 2) " does not export " (identifier 1))))
                               normalized-msg)))
     (attrap-one-option "delete import"
       (let ((redundant (nth 1 match)))
