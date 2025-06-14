@@ -825,7 +825,7 @@ Error is given as MSG and reported between POS and END."
     ;;       Perhaps use ‘GLFW.hideWindow’ (imported from Graphics.UI.GLFW)
     (when (string-match
            (rx (or (ghc-error "76037")
-                   (seq (ghc-warning "88464" "deferred-out-of-scope-variables")))
+                   (ghc-warning "88464" "deferred-out-of-scope-variables"))
                (+ ws)
                (or (seq "Not in scope: "
                         (or "data constructor"
