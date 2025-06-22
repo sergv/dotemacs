@@ -47,11 +47,11 @@
   (if typopunct-typographical-dashes-enabled?
       (cond ((eq (char-before) ?-)
 	     (delete-char -1)
-	     (insert typopunct-en-dash))
+	     (insert-char typopunct-en-dash))
 	    ((eq (char-before) typopunct-en-dash)
 	     (delete-char -1)
-	     (insert typopunct-em-dash))
-	    (t (insert ?-)))
+	     (insert-char typopunct-em-dash))
+	    (t (insert-char ?-)))
     (insert-char ?- n)))
 
 (defvar typopunct-map
