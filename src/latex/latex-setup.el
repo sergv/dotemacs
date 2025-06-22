@@ -84,6 +84,7 @@ _o_: unfold region
 ;;;###autoload
 (defun latex-setup ()
   (init-common :use-whitespace 'tabs-only)
+  (setq-local typopunct-typographical-dashes-enabled? nil)
   (typography-setup)
   (tex-fold-mode 1)
 
