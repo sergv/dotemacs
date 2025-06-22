@@ -38,17 +38,21 @@
 (defconst typopunct-em-dash
   (decode-char 'ucs #x2014))
 
+(defvar typopunct-typographical-dashes-enabled? t)
+
 ;;;###autoload
-(defun typopunct-insert-typographical-dashes ()
+(defun typopunct-insert-typographical-dashes (n)
   "Insert a dashes, an en-dash or an em-dash."
-  (interactive)
-  (cond ((eq (char-before) ?-)
-	 (delete-char -1)
-	 (insert typopunct-en-dash))
-	((eq (char-before) typopunct-en-dash)
-	 (delete-char -1)
-	 (insert typopunct-em-dash))
-	(t (insert ?-))))
+  (interactive "P")
+  (if typopunct-typographical-dashes-enabled?
+      (cond ((eq (char-before) ?-)
+	     (delete-char -1)
+	     (insert typopunct-en-dash))
+	    ((eq (char-before) typopunct-en-dash)
+	     (delete-char -1)
+	     (insert typopunct-em-dash))
+	    (t (insert ?-)))
+    (insert-char ?- n)))
 
 (defvar typopunct-map
   (let ((map (make-sparse-keymap)))
