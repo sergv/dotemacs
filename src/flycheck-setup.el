@@ -107,11 +107,13 @@ do check that ‘overlay-buffer’ is non-nil before use.")
 Useful if the server got confused with incremental updating
 scheme and it’s view of current buffer is malformed."
   (interactive)
-  (let ((time (current-time)))
-    ;; Set modtime of the underlying file
-    (set-file-times (buffer-file-name) time)
-    ;; Sync buffer’s recorded modtime so that auto-revert won’t trigger.
-    (set-visited-file-modtime time))
+  (let ((time (current-time))
+        (buf (resolve-to-base-buffer (current-buffer))))
+    (with-current-buffer buf
+      ;; Set modtime of the underlying file
+      (set-file-times (buffer-file-name buf) time)
+      ;; Sync buffer’s recorded modtime so that auto-revert won’t trigger.
+      (set-visited-file-modtime time)))
 
   (when lsp-mode
     (let ((n (buffer-size))
