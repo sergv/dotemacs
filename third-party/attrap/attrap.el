@@ -620,7 +620,8 @@ Error is given as MSG and reported between POS and END."
                (s-match (rx (or (seq (or "Data constructor" "Variable") " not in scope:"
                                      (* (any " \n\t")) (group-n 1 (+ (not (any " \n")))))
                                 (seq "Not in scope: "
-                                     (or "" "data constructor " "type constructor or class ") (identifier 1))))
+                                     (or "" "data constructor " "type constructor or class " "record field ")
+                                     (identifier 1))))
                         msg)))
     (let* ((delete (nth 1 match))
            (delete-has-paren (eq ?\( (elt delete 0)))

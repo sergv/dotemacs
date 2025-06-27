@@ -931,6 +931,103 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/replace-5a
+ :flycheck-errors
+ (list
+  (let ((linecol (save-excursion
+                   (re-search-forward "_|_")
+                   (flycheck-line-column-at-pos (point)))))
+    (flycheck-error-new
+     :line (car linecol)
+     :column (cdr linecol)
+     :buffer (current-buffer)
+     :checker 'haskell-dante
+     :message
+     (tests-utils--multiline
+      "error: [GHC-22385]"
+      "    Not in scope: record field ‘recordFiled1’"
+      "    Suggested fix:"
+      "      Perhaps use record field of Record ‘recordField1’ (line 26)")
+     :level 'error
+     :id nil
+     :group nil)))
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "data Record = Record"
+  "  { recordField1   :: Int"
+  "  , recordWhatever :: Int"
+  "  }"
+  ""
+  "test :: Record -> Record"
+  "test x = x { _|_recordFiled1 = 100 }"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data Record = Record"
+  "  { recordField1   :: Int"
+  "  , recordWhatever :: Int"
+  "  }"
+  ""
+  "test :: Record -> Record"
+  "test x = x { _|_recordField1 = 100 }"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/replace-5b
+ :flycheck-errors
+ (list
+  (let ((linecol (save-excursion
+                   (re-search-forward "_|_")
+                   (flycheck-line-column-at-pos (point)))))
+    (flycheck-error-new
+     :line (car linecol)
+     :column (cdr linecol)
+     :buffer (current-buffer)
+     :checker 'haskell-dante
+     :message
+     (tests-utils--multiline
+      "error: [GHC-22385]"
+      "    Not in scope: record field ‘recordFiled1’"
+      "    Suggested fix:"
+      "      Perhaps use one of these:"
+      "        record field of Record ‘recordField1’ (line 26),"
+      "        record field of Record ‘recordField2’ (line 27)")
+     :level 'error
+     :id nil
+     :group nil)))
+ :action
+ (let ((attrap-select-predefined-option "replace recordFiled1 by recordField2 from line 27"))
+   (attrap-tests--run-attrap-check-fixes
+    '("replace recordFiled1 by recordField1 from line 26"
+      "replace recordFiled1 by recordField2 from line 27")))
+ :contents
+ (tests-utils--multiline
+  ""
+  "data Record = Record"
+  "  { recordField1 :: Int"
+  "  , recordField2 :: Int"
+  "  }"
+  ""
+  "test :: Record -> Record"
+  "test x = x { _|_recordFiled1 = 100 }"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data Record = Record"
+  "  { recordField1 :: Int"
+  "  , recordField2 :: Int"
+  "  }"
+  ""
+  "test :: Record -> Record"
+  "test x = x { _|_recordField2 = 100 }"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/add-binding-1
  :flycheck-errors
  (list
