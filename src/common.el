@@ -1597,6 +1597,9 @@ NEW-PROPS will be ignored."
     (delete-region (match-beginning group) end)
     (insert-before-markers newtext)))
 
+(defun resolve-to-base-buffer (x)
+  (aif (buffer-base-buffer x) it x))
+
 (provide 'common)
 
 ;; Local Variables:
