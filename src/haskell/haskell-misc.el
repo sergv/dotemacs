@@ -1341,19 +1341,20 @@ value section should have if it is to be properly indented."
   "Set up vital variables for operation of ‘dante-mode’.
 
 Returns ‘t’ on success, otherwise returns ‘nil’."
-  (let* ((buf (current-buffer))
+  (let* ((buf (resolve-to-base-buffer (current-buffer)))
          (proj (eproj-get-project-for-buf-lax buf))
          (vars (and proj
                     (eproj-query/local-variables proj major-mode nil)))
          (val-dante-target (cadr-safe (assq 'dante-target vars)))
-         (all-warnings nil))
+         (all-warnings nil)
+         (fname (buffer-file-name buf)))
     (if val-dante-target
         (progn
           (setq-local dante-target it)
           t)
-      (if (buffer-file-name)
+      (if fname
           (if (file-directory-p default-directory)
-              (if-let ((cabal-files (haskell-misc--find-potential-cabal-files (file-name-directory (buffer-file-name buf)))))
+              (if-let ((cabal-files (haskell-misc--find-potential-cabal-files (file-name-directory fname))))
                   (let ((component nil)
                         (pkg-name nil)
                         (tmp cabal-files))
@@ -1364,7 +1365,7 @@ Returns ‘t’ on success, otherwise returns ‘nil’."
                           (let* ((result
                                   (haskell-misc--configure-dante--find-cabal-component-for-file
                                    components
-                                   (buffer-file-name)))
+                                   fname))
                                  (candidate-component (car result))
                                  (warnings (cdr result)))
                             (when candidate-component
@@ -1381,7 +1382,7 @@ Returns ‘t’ on success, otherwise returns ‘nil’."
                             (setq-local dante-target (concat pkg-name ":" component)))
                           t)
                       (error "Couldn’t determine cabal component for %s from cabal file%s%s"
-                             (file-name-nondirectory (buffer-file-name))
+                             (file-name-nondirectory fname)
                              (if (null (cdr cabal-files))
                                  (concat " " (car cabal-files))
                                (concat "s "
@@ -1392,7 +1393,7 @@ Returns ‘t’ on success, otherwise returns ‘nil’."
                                  ""))))
                 (error "No cabal files"))
             (error "Buffer’s directory doesn’t exist: %s" default-directory))
-        (error "Buffer has no file: %s" (current-buffer))))))
+        (error "Buffer has no file: %s" buf)))))
 
 (defun haskell-misc--configure-dante--find-cabal-component-for-file (components filename)
   "Get components dumped by get-cabal-configuration.hs for current package and attempt
