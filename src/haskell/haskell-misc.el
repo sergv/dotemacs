@@ -1167,10 +1167,7 @@ value section should have if it is to be properly indented."
   "Assumes point is at 0th column."
   (save-excursion
     (beginning-of-line)
-    (or
-     ;; Skip preprocessor lines
-     (eq (char-after) ?#)
-     (indent-on-blank-line?))))
+    (haskell-on-blank-line?)))
 
 (defun haskell-on-nonindented-line? ()
   "Assumes point is at 0th column."
