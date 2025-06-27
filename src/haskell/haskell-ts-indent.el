@@ -164,6 +164,16 @@
                    (error "Unexpected infix field, node = %s, child = %s"
                           curr
                           prev1)))))
+            (when-let* (((string= "signature" curr-type))
+                        (double-colon (haskell-ts-indent--get-signature-double-colon curr))
+                        (type-child (treesit-node-child-by-field-name curr "type"))
+                        ;; If we came from signature’s type...
+                        ((equal prev1 type-child))
+                        (double-colon (haskell-ts-indent--get-signature-double-colon curr))
+                        ;; ... and colon was standalone ...
+                        ((haskell-ts--is-standalone-node? double-colon)))
+              ;; ... then type after colon is our anchor
+              (throw 'term (haskell-ts-indent--make-trivial-computed-indent prev1)))
             (cond
               ((string= "parens" curr-type)
                (throw 'term (haskell-ts-indent--make-trivial-computed-indent curr)))
