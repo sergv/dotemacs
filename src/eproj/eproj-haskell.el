@@ -258,7 +258,7 @@ runtime but rather will be silently relied on)."
         (setq indent-size advance)
         (while (and continue
                     (or (< start-col indent-size)
-                        (haskell-on-blank-line?)))
+                        (haskell-on-blank-line-from-any-column?)))
           (setq indent-size advance))
         (skip-chars-backward " \t\n\r\f")
         (buffer-substring-no-properties start (point))))))
