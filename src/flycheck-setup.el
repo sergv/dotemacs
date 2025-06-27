@@ -204,9 +204,18 @@ scheme and it’s view of current buffer is malformed."
 ;; hold - all reported errors have to be presented to the user at some point.
 ;; Invisible errors would not be desirable.
 (defun flycheck-enhancements--navigate-errors-with-wraparound (forward? error-overlays)
-  (let* ((expanded-buffer-file-name (aif buffer-file-name
+  (let* ((curr-buf (current-buffer))
+         (min-pt (point-min))
+         (max-pt (point-max))
+         (buf (resolve-to-base-buffer curr-buf))
+         (is-indirect? (not (eq curr-buf buf)))
+         (expanded-buffer-file-name (aif buffer-file-name
                                         (expand-file-name it)
-                                      (buffer-name)))
+                                      (if is-indirect?
+                                          (aif (buffer-file-name buf)
+                                              (expand-file-name it)
+                                            (buffer-name buf))
+                                        (buffer-name))))
          (curr-buf (current-buffer))
          (all-errors (--separate
                       (let ((err (car-sure it)))
@@ -219,7 +228,11 @@ scheme and it’s view of current buffer is malformed."
                       (sort (--map (cons (overlay-get it 'flycheck-error) it)
                                    error-overlays)
                             #'flycheck-error-and-ov-pair<)))
-         (current-file-errors (car all-errors))
+         (current-file-errors
+          (--filter (let ((ov (cdr-sure it)))
+                      (and (<= min-pt (overlay-start ov))
+                           (<= (overlay-end ov) max-pt)))
+                    (car all-errors)))
          (other-all (cadr all-errors))
          (other-errors
           (--filter (eq (flycheck-error-level (car it)) 'error) other-all))
@@ -260,33 +273,47 @@ scheme and it’s view of current buffer is malformed."
             (t nil)))
 
          (next-error (car next-error-and-overlay))
-         (next-error-overlay (cdr next-error-and-overlay))
-         (buf (current-buffer)))
+         (next-error-overlay (cdr next-error-and-overlay)))
+
     (if next-error
-        (progn
-          (if-let (filename (flycheck-error-filename next-error))
+        (let ((switched?
+               (if-let* ((filename (flycheck-error-filename next-error)))
+                   ;; Test if we’re already visiting the necessary file.
+                   (unless (string= filename (buffer-file-name buf))
+                     (if (file-exists-p filename)
+                         (progn
+                           (find-file filename)
+                           t)
+                       (aif (compilation/find-buffer filename
+                                                     (funcall flycheck-enhancements--get-project-root-for-current-buffer))
+                           (progn
+                             (switch-to-buffer it)
+                             t)
+                         (error "Failed to find path the error refers to: ‘%s’. file does not exist an no matching buffer is opened"
+                                (flycheck-error-filename next-error)))))
+                 ;; No filename - got to the bufer in the error message
+                 (if-let* ((err-buf (flycheck-error-buffer next-error)))
+                     (when
+                         (not
+                          ;; When called from indirect buffer the error may be for either
+                          ;; the indirect buffer or its base buffer
+                          ;; (e.g. copied when the indirect was created).
+                          ;;
+                          ;; Both cases are acceptable
+                          (or (eq err-buf buf)
+                              (eq err-buf curr-buf)))
+                       (switch-to-buffer err-buf)
+                       t)
+                   (error "Error does not refer to any file or buffer: ‘%s’" next-error)))))
+          (if switched?
+              ;; Jumped to different buffer - use position from error struct.
               (progn
-                (if (file-exists-p filename)
-                    (find-file filename)
-                  (aif (compilation/find-buffer filename
-                                                (funcall flycheck-enhancements--get-project-root-for-current-buffer))
-                      (switch-to-buffer it)
-                    (error "Failed to find path the error refers to: ‘%s’. file does not exist an no matching buffer is opened"
-                           (flycheck-error-filename next-error)))))
-            ;; No filename - got to the bufer in the error message
-            (if-let (buf (flycheck-error-buffer next-error))
-                (switch-to-buffer buf)
-              (error "Error does not refer to any file or buffer: ‘%s’" next-error)))
-          (if (eq buf (current-buffer))
-              ;; Stayed in current buffer - use position from overlays
-              (progn
-                (goto-char (overlay-start (cdr next-error-and-overlay))))
-            ;; Jumped to different buffer - use position from error struct
-            (progn
-              (goto-line-dumb (flycheck-error-line next-error))
-              (awhen (flycheck-error-column next-error)
-                ;; Flycheck columns are 1-based .
-                (move-to-character-column (- it 1)))))
+                (goto-line-dumb (flycheck-error-line next-error))
+                (awhen (flycheck-error-column next-error)
+                  ;; Flycheck columns are 1-based .
+                  (move-to-character-column (- it 1))))
+            ;; Stayed in current buffer - use position from overlays
+            (goto-char (overlay-start (cdr next-error-and-overlay))))
           (flycheck-display-error-at-point))
       (let ((message-log-max nil))
         (message "No more flycheck errors")))))
