@@ -874,15 +874,17 @@ This applies to paths of the form x:\\foo\\bar"
 (defun dante--ghc-subexp (reg)
   "Format the subexpression denoted by REG for GHCi commands."
   (cl-assert (not (null reg)))
-  (let ((beg (car reg))
-        (end (cdr reg)))
-    (format "%S %d %d %d %d %s"
-            (dante-local-name (dante-temp-file-name (current-buffer)))
-            (line-number-at-pos beg)
-            (dante--ghc-column-number-at-pos beg)
-            (line-number-at-pos end)
-            (dante--ghc-column-number-at-pos end)
-            (buffer-substring-no-properties beg end))))
+  (save-restriction
+    (widen)
+    (let ((beg (car reg))
+          (end (cdr reg)))
+      (format "%S %d %d %d %d %s"
+              (dante-local-name (dante-temp-file-name (current-buffer)))
+              (line-number-at-pos beg)
+              (dante--ghc-column-number-at-pos beg)
+              (line-number-at-pos end)
+              (dante--ghc-column-number-at-pos end)
+              (buffer-substring-no-properties beg end)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; GHCi process communication
