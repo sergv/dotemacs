@@ -606,10 +606,14 @@ When the universal argument INSERT is non-nil, insert the type in the buffer."
 Interpreting puts all symbols from the current module in
 scope.  Compiling to avoids re-interpreting the dependencies over
 and over."
-  (let* ((fingerprint (sha1 (current-buffer)))
+  (let* ((curr-buf (current-buffer))
+         (buf (resolve-to-base-buffer curr-buf))
+         (fingerprint (sha1 curr-buf))
          (unchanged (equal fingerprint dante-temp-fingerprint))
-         (src-fname (buffer-file-name (current-buffer)))
-         (fname (dante-temp-file-name (current-buffer)))
+         ;; Make sure to not use indirect buffer’s filename (which is typically nil)
+         ;; or we’ll overwrite the base buffer and trigger its revert!
+         (src-fname (buffer-file-name buf))
+         (fname (dante-temp-file-name curr-buf))
          (buffer (lcr-call dante-session))
          (same-target (and (or dante-interpreted (not interpret))
                            (s-equals? (buffer-local-value 'dante-loaded-file buffer) src-fname))))
@@ -618,6 +622,9 @@ and over."
       (setq dante-temp-fingerprint fingerprint)
       (setq dante-interpreted interpret)
       (puthash (dante-local-name fname) src-fname dante-original-buffer-map)
+      ;; Take care not to overwrite original buffer needlessly if we’re
+      ;; calling this function from a remote buffer or base buffer will be
+      ;; auto-reverted and, for example, will lose all its flycheck error overlays.
       (unless (s-equals? src-fname fname)
         ;; Set `noninteractive' to suppress messages from `write-region'.
         (let ((noninteractive t))
@@ -656,6 +663,7 @@ won’t have any effect (ghci’s recompilation avoidance will make it skip doin
       (funcall cont 'interrupted)
     (lcr-spawn
       (let* ((messages (lcr-call dante-async-load-current-buffer dante-check-force-interpret nil))
+             ;; todo: map current buffer to base buffer if it’s an indirect one?
              (temp-file (dante-local-name (dante-temp-file-name (current-buffer)))))
         (funcall cont
                  'finished
