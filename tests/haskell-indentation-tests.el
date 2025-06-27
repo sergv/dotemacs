@@ -2420,6 +2420,54 @@
   "foo = undefined"))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-4a
+ :contents
+ (tests-utils--multiline
+  "foo :: IO Int"
+  "foo = do"
+  "  let bar"
+  "        :: Foo"
+  "              _|_Int"
+  "                Int"
+  "                 Int"
+  "      bar = Foo 1 2 3"
+  "  pure 0")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: IO Int"
+  "foo = do"
+  "  let bar"
+  "        :: Foo"
+  "             _|_Int"
+  "                Int"
+  "                 Int"
+  "      bar = Foo 1 2 3"
+  "  pure 0"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-type-4b
+ :contents
+ (tests-utils--multiline
+  "foo :: IO Int"
+  "foo = do"
+  "  let bar :: Foo"
+  "              _|_Int"
+  "                Int"
+  "                 Int"
+  "      bar = Foo 1 2 3"
+  "  pure 0")
+ :expected-value
+ (tests-utils--multiline
+  "foo :: IO Int"
+  "foo = do"
+  "  let bar :: Foo"
+  "        _|_Int"
+  "                Int"
+  "                 Int"
+  "      bar = Foo 1 2 3"
+  "  pure 0"))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-guard-1a
  :contents
  (tests-utils--multiline
