@@ -70,7 +70,7 @@
            (when ,form
              (setf ,tmp (setf ,res ,lst))))
          (setf ,lst (cdr lst)))
-       ;; Continue filtetring, now we have a cons cell to modify
+       ;; Continue filtering, now we have a cons cell to modify
        (while ,lst
          (let ((it (car ,lst)))
            (when ,form
