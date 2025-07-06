@@ -934,7 +934,7 @@ topmost `kill-ring' item is equal to text (text properties are ignored)."
 (defun save-buffer-if-modified ()
   (when-buffer-has-file
     (when (buffer-modified-p)
-      (save-buffer))))
+      (indirect-aware-save-buffer))))
 
 ;;;;
 
@@ -968,7 +968,7 @@ Save buffer if it has assigned file and this file exists on disk."
                             buffer-file-name)))
     (when-buffer-has-file
       (when (file-exists? buffer-file-name)
-        (save-buffer)))
+        (indirect-aware-save-buffer)))
     (kill-buffer buffer-or-name)))
 
 (defun remove-buffer-and-window ()
