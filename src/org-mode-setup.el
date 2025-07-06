@@ -288,19 +288,19 @@
   (render-formula-toggle-formulae))
 
 (vim-defcmd vim:org-mode-export (nonrepeatable)
-  (save-buffer)
+  (indirect-aware-save-buffer)
   (org-export-dispatch))
 
 (vim-defcmd vim:org-mode-tangle (nonrepeatable)
-  (save-buffer)
+  (indirect-aware-save-buffer)
   (org-babel-tangle))
 
 (vim-defcmd vim:org-mode-make-beamer-presentation (nonrepeatable)
-  (save-buffer)
+  (indirect-aware-save-buffer)
   (org-beamer-export-to-pdf))
 
 (vim-defcmd vim:org-latex-export-to-pdf (nonrepeatable)
-  (save-buffer)
+  (indirect-aware-save-buffer)
   (org-latex-export-to-pdf))
 
 (defun org-mode-show-level-1 ()
