@@ -36,7 +36,7 @@
       (cond
         ((and (null beg-pos)
               (string= file-name buffer-file-name))
-         (save-buffer))
+         (indirect-aware-save-buffer))
         ((and (null beg-pos)
               (null buffer-file-name))
          (write-file file-name (not force)))
