@@ -86,6 +86,7 @@
 (require 'ansi-color)            ; `flycheck-parse-with-patterns-without-color'
 
 (require 'common-whitespace)
+(require 'indirect-aware-save-buffer)
 
 ;; Declare a bunch of dynamic variables that we need from other modes
 (defvar sh-shell)                       ; For shell script checker predicates
@@ -2963,7 +2964,7 @@ Slots:
 (defconst flycheck-hooks-alist
   '(
     ;; Handle events that may start automatic syntax checks
-    (after-save-hook        . flycheck-handle-save)
+    (indirect-aware-after-save-hook . flycheck-handle-save)
     (after-change-functions . flycheck-handle-change)
     ;; Handle events that may triggered pending deferred checks
     (window-configuration-change-hook . flycheck-perform-deferred-syntax-check)
