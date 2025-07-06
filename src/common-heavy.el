@@ -1275,28 +1275,29 @@ groups in the result is *not specified*."
   (with-region-bounds start end
     (when (vim-visual-mode-p)
       (vim:visual-mode-exit--impl))
-    (if create-new-buf?
-        (progn
-          (let* ((orig-buf (current-buffer))
-                 (new-buf (make-indirect-buffer orig-buf
-                                                (narrow-to-region-indirect--find-new-buf-name orig-buf)
-                                                t)))
-            (with-current-buffer new-buf
+    (let ((end-fixed (min end (point-max))))
+      (if create-new-buf?
+          (progn
+            (let* ((orig-buf (current-buffer))
+                   (new-buf (make-indirect-buffer orig-buf
+                                                  (narrow-to-region-indirect--find-new-buf-name orig-buf)
+                                                  t)))
+              (with-current-buffer new-buf
 
-              (with-all-matching-overlays
-                  ov
-                  t
-                (if (overlay-get ov 'is-fixed-after-clone?)
-                    ;; So that subsequent indirect buffers don’t inherit
-                    ;; fixedness state.
-                    (overlay-put ov 'is-fixed-after-clone? nil)
-                  ;; Remove overlays that were not explicitly migrated.
-                  (delete-overlay ov)))
+                (with-all-matching-overlays
+                    ov
+                    t
+                  (if (overlay-get ov 'is-fixed-after-clone?)
+                      ;; So that subsequent indirect buffers don’t inherit
+                      ;; fixedness state.
+                      (overlay-put ov 'is-fixed-after-clone? nil)
+                    ;; Remove overlays that were not explicitly migrated.
+                    (delete-overlay ov)))
 
-              (narrow-to-region start end))
-            (switch-to-buffer new-buf)))
+                (narrow-to-region start end-fixed))
+              (switch-to-buffer new-buf)))
 
-      (narrow-to-region start end))))
+        (narrow-to-region start end-fixed)))))
 
 (defun narrow-to-region-indirect--find-new-buf-name (orig-buf)
   (generate-new-buffer-name (concat (buffer-name orig-buf)
