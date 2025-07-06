@@ -177,7 +177,7 @@ Use like this to pick changes that will go into CURR-CONFIG-DIR:
                         (ediff-diff-files-recursive-edit new curr :read-only nil)
                         (kill-buffer new-buf)
                         (with-current-buffer curr-buf
-                          (save-buffer))
+                          (indirect-aware-save-buffer))
                         (redisplay t))
                     (progn
                       (message "Files %s and %s are the same, skipping" new curr)))
@@ -1079,7 +1079,7 @@ to deleted items. ITEMS will be mutated in order to obtain result."
     ;; This also renames the buffer, and works with uniquify
     (set-visited-file-name new-name)
     (if was-modified
-        (save-buffer)
+        (indirect-aware-save-buffer)
       ;; Clear buffer-modified flag caused by set-visited-file-name
       (set-buffer-modified-p nil))
     (message "Renamed to %s" new-name)))
