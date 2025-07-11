@@ -254,6 +254,7 @@ Returns list of triples
     "NamedFieldPuns"
     "NumericUnderscores"
     "OrPatterns"
+    "PackageImports"
     "ParallelListComp"
     "PartialTypeSignatures"
     "PatternGuards"
