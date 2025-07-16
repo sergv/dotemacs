@@ -1436,7 +1436,7 @@ or `default-directory', if no file is visited."
                                identifier
                                search-with-regexp?))))
 
-(defun eproj-get-matching-tags (proj tag-major-mode identifier search-with-regexp?)
+(defun eproj-get-matching-tags (current-proj tag-major-mode identifier search-with-regexp?)
   "Get all tags from PROJ and its related projects from mode TAG-MAJOR-MODE
 whose name equals IDENTIFIER or matches regexp IDENTIFIER if SEARCH-WITH-REGEXP?
 is non-nil.
@@ -1447,9 +1447,18 @@ Returns list of (tag-name tag-struct tag-project major-mode) lists."
           (mapcan (lambda (proj)
                     (aif (cdr (assq tag-major-mode (eproj-project/tags proj)))
                         (let* ((all-tags (eproj-thunk-get-value it))
-                               (is-authoritative? (and (memq tag-major-mode (eproj-project/authoritative-tag-source-for proj))
-                                                       ;; To make it more obvious when dumping.
-                                                       t))
+                               ;; Current project is always relevant source of names,
+                               ;; don’t lose it.
+                               (is-always-relevant?
+                                (string= (eproj-project/root current-proj)
+                                         (eproj-project/root proj)))
+                               (is-authoritative-non-current?
+                                (and (memq tag-major-mode
+                                           (eproj-project/authoritative-tag-source-for proj))
+                                     ;; To make it more obvious when dumping.
+                                     t))
+                               (is-authoritative? (or is-authoritative-non-current?
+                                                      is-always-relevant?))
                                (matched-tags
                                 (if search-with-regexp?
                                     (mapcan (lambda (key-and-tags)
@@ -1461,10 +1470,10 @@ Returns list of (tag-name tag-struct tag-project major-mode) lists."
                                           (eproj-tag-index-get identifier all-tags nil)))))
                           (when matched-tags
                             (setf has-authoritative-projects? (or has-authoritative-projects?
-                                                                  is-authoritative?)))
+                                                                  is-authoritative-non-current?)))
                           matched-tags)
                       nil))
-                  (eproj-get-all-related-projects-for-mode proj tag-major-mode))))
+                  (eproj-get-all-related-projects-for-mode current-proj tag-major-mode))))
     (mapcar #'cdr ;; drop is-authoritative? first entry
             (if has-authoritative-projects?
                 (let* ((tbl (make-hash-table :test #'equal))
