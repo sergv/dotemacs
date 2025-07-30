@@ -69,6 +69,13 @@
 This list comes from GHC documentation (URL
 `https://downloads.haskell.org/~ghc/7.10.1/docs/html/users_guide/pragmas.html'.")
 
+(defvar haskell-completions--instance-pragma-names
+  (list "INCOHERENT"
+        "OVERLAPPABLE"
+        "OVERLAPPING"
+        "OVERLAPS")
+  "A list of pragmas that can be used within instances.")
+
 (defvar haskell-completions--keywords
   (list
    "as"
