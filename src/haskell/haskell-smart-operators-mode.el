@@ -385,7 +385,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
         (smart-operators--point-surrounded-by ?\{ ?\})
       (cond (is-surrounded-for-pragma?
              (delete-region (- pt-pragma-start 2) (+ pt-pragma-end 2))
-             (haskell-abbrev+--insert-pragma))
+             (haskell-abbrev+--insert-pragma nil))
             ;; for c2hs
             (is-surrounded-for-c2hs?
              (delete-region pt-c2hs-start pt-c2hs-end)
