@@ -308,6 +308,15 @@ then Bar would be the result."
        (trie-opt-recover-sharing!
         (trie-from-list (list (cons (s-reverse "instance") t))))))))
 
+(defun haskell-abbrev+--after-import-keyword? ()
+  "Check that the point is at the start of the line."
+  (save-excursion
+    (skip-chars-backward " \t")
+    (trie-matches-backwards?
+     (eval-when-compile
+       (trie-opt-recover-sharing!
+        (trie-from-list (list (cons (s-reverse "import") t))))))))
+
 (defun haskell-abbrev+--within-data-type? ()
   "Check that we’re within \"fields\" part of a \"data_type\"."
   (when-let
@@ -328,6 +337,7 @@ then Bar would be the result."
 ;;    b. We’re not within operator
 ;; 2. We’re after instance keyword
 ;; 3. We’re within datatype
+;; 4. We’re within import statement
 (defun haskell-abbrev+--should-insert-pragma? ()
   (let ((is-haskell-ts? (derived-mode-p 'haskell-ts-mode)))
     (or (and (haskell-abbrev+--only-whitespace-till-line-start?)
@@ -347,9 +357,10 @@ then Bar would be the result."
                        t)
                    t)
                t))
-        (haskell-abbrev+--after-instance-keyword?)
+        (and (haskell-abbrev+--after-instance-keyword?) 'within-instance)
+        (and (haskell-abbrev+--after-import-keyword?) 'within-import)
         (when is-haskell-ts?
-          (haskell-abbrev+--within-data-type?)))))
+          (and (haskell-abbrev+--within-data-type?) 'within-data)))))
 
 (add-to-list 'ivy-re-builders-alist
              '(haskell-abbrev+--insert-pragma . ivy--regex-fuzzy))
@@ -371,29 +382,45 @@ then Bar would be the result."
     (unless (eobp)
       (thing-at-point 'haskell-symbol))))
 
-(defun haskell-abbrev+--insert-pragma ()
-  (let ((pragma (ivy-read "Pragma: "
-                          haskell-completions--pragma-names
-                          :predicate nil
-                          :require-match t
-                          :initial-input nil
-                          :history nil
-                          :caller 'haskell-abbrev+--insert-pragma)))
+(defun haskell-abbrev+--insert-pragma (predicate-result)
+  (let ((within-instance? (eq predicate-result 'within-instance)))
     (cond
-      ((string-match-p haskell-regexen/pragma-without-args-re pragma)
-       (insert "{-# " pragma" #-}"))
-      ((string-match-p haskell-regexen/language-pragma-name pragma)
-       (yas-expand-snippet
-        (concat "{-# " pragma " $\{1:\$\$\(yas-choose-value \(get-haskell-language-extensions\)\)\} #-}\$0")))
-      ((string-match-p haskell-regexen/scc-pragma-name pragma)
-       (yas-expand-snippet
-        (concat "{-# " pragma " \"${1:cost center name}\" #-}\$0")))
-      ((string-match-p haskell-regexen/inline-pragmas pragma)
-       (if-let ((entity (haskell-abbrev+--name-of-following-entity)))
-           (yas-expand-snippet (concat "{-# " pragma " ${1:" entity "} #-}$0"))
-         (yas-expand-snippet (concat "{-# " pragma " $1 #-}$0"))))
+      ((and predicate-result
+            (not (eq predicate-result t))
+            (not within-instance?))
+       (insert (pcase predicate-result
+                 (`within-import "{-# SOURCE #-}")
+                 (`within-data   "{-# UNPACK #-}")))
+       (awhen (char-after)
+         (when (not (whitespace-char? it))
+           (save-excursion
+             (insert-char ?\s)))))
       (t
-       (yas-expand-snippet (concat "{-# " pragma " $1 #-}$0"))))))
+       (let ((pragma (ivy-read "Pragma: "
+                               (if within-instance?
+                                   haskell-completions--instance-pragma-names
+                                 haskell-completions--pragma-names)
+                               :predicate nil
+                               :require-match t
+                               :initial-input nil
+                               :history nil
+                               :caller 'haskell-abbrev+--insert-pragma)))
+         (cond
+           ((string-match-p haskell-regexen/pragma-without-args-re pragma)
+            (insert "{-# " pragma" #-}"))
+           ((string-match-p haskell-regexen/language-pragma-name pragma)
+            (yas-expand-snippet
+             (concat "{-# " pragma " $\{1:\$\$\(yas-choose-value \(get-haskell-language-extensions\)\)\} #-}\$0")))
+           ((string-match-p haskell-regexen/scc-pragma-name pragma)
+            (yas-expand-snippet
+             (concat "{-# " pragma " \"${1:cost center name}\" #-}\$0")))
+           ((string-match-p haskell-regexen/inline-pragmas pragma)
+            (yas-expand-snippet
+             (if-let ((entity (haskell-abbrev+--name-of-following-entity)))
+                 (concat "{-# " pragma " ${1:" entity "} #-}$0")
+               (concat "{-# " pragma " $1 #-}$0"))))
+           (t
+            (yas-expand-snippet (concat "{-# " pragma " $1 #-}$0")))))))))
 
 (defun haskell-abbrev+--get-ghc-flags ()
   (let ((flags (mapcan (lambda (x)
@@ -452,7 +479,7 @@ then Bar would be the result."
             (cons (list "##")
                   (make-abbrev+-abbreviation
                    :followed-by-space t
-                   :action-type 'function-with-side-effects
+                   :action-type 'function-with-side-effects-and-predicate-result
                    :action-data #'haskell-abbrev+--insert-pragma
                    :predicate #'haskell-abbrev+--should-insert-pragma?))
             (cons (list "#scc"
