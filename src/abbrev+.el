@@ -30,14 +30,13 @@
   ;; 'function-with-side-effects, 'function-with-side-effects-and-args
   ;; or 'yas-snippet.
   (action-type nil :read-only t)
-  ;; Action, type depends on value of action-type field.
-  ;; For 'literal-string it's a string.
-  ;; For 'literal-string-no-space-at-end it's a string.
-  ;; For 'function-with-side-effects it's a function that inserts the
-  ;; necessary content itself.
-  ;; For 'function-with-side-effects-and-args it's a function that inserts the
-  ;; necessary content itself and takes some args.
-  ;; For 'yas-snippet it's a string that will be passed to `yas-expand-snippet'.
+  ;; Action, type depends on value of action-type field:
+  ;; 'literal-string                                   - a string.
+  ;; 'literal-string-no-space-at-end                   - a string.
+  ;; 'function-with-side-effects                       - a function that inserts the necessary content itself.
+  ;; 'function-with-side-effects-and-predicate-result  - a function that inserts the necessary content itself and takes one argument - result that predicate produced (‘t’ if there was no predicate).
+  ;; 'function-with-side-effects-and-args              - a function that inserts the necessary content itself and takes some args.
+  ;; 'yas-snippet                                      - a string that will be passed to `yas-expand-snippet'.
   (action-data nil :read-only t)
   ;; Function of no arguments, either symbol or lambda, that
   ;; will be called before performing ACTION and should return nil or t.
@@ -71,6 +70,11 @@
                      (functionp action-data)
                      (byte-code-function-p action-data)))
       t)
+     (`function-with-side-effects-and-predicate-result
+      (cl-assert (or (symbolp action-data)
+                     (functionp action-data)
+                     (byte-code-function-p action-data)))
+      t)
      (`function-with-side-effects-and-args
       (cl-assert (and (listp action-data)
                       (or (symbolp (car action-data))
@@ -85,7 +89,7 @@
    :predicate predicate
    :on-successful-expansion on-successful-expansion))
 
-(defun abbrev+-perform-substitution (abbrev)
+(defun abbrev+--perform-substitution (abbrev predicate-result)
   "Perform actual substitution. Return two arguments: first being
 t if after substitution it may be desirable to insert space and
 second being actual substituted text."
@@ -101,6 +105,10 @@ second being actual substituted text."
           (`function-with-side-effects
            (cl-assert (or (symbolp data) (functionp data) (byte-code-function-p data)))
            (funcall data)
+           nil)
+          (`function-with-side-effects-and-predicate-result
+           (cl-assert (or (symbolp data) (functionp data) (byte-code-function-p data)))
+           (funcall data predicate-result)
            nil)
           (`function-with-side-effects-and-args
            (cl-assert (listp data))
@@ -253,23 +261,24 @@ expansion was performed."
          (setf found found-followed
                found-pt found-followed-pt)))
 
-      (let ((res (when found
-                   (cl-assert (<= line-start found-pt))
+      (let* ((predicate-result t)
+             (res (when found
+                    (cl-assert (<= line-start found-pt))
 
-                   (when (aif (abbrev+-abbreviation-predicate found)
-                             (save-excursion
-                               (goto-char (1- found-pt))
-                               (funcall it))
-                           ;; do substitution if no predicate supplied
-                           t)
-                     (delete-region (1- found-pt) start)
-                     (let* ((insert-space? (abbrev+-perform-substitution found)))
-                       (when (and insert-space?
-                                  (or (eobp)
-                                      (not (eq (char-after) ?\s))))
-                         (insert ?\s))
-                       ;; substitution was succesfull
-                       t)))))
+                    (when (aif (abbrev+-abbreviation-predicate found)
+                              (save-excursion
+                                (goto-char (1- found-pt))
+                                (setf predicate-result (funcall it)))
+                            ;; do substitution if no predicate supplied
+                            t)
+                      (delete-region (1- found-pt) start)
+                      (let* ((insert-space? (abbrev+--perform-substitution found predicate-result)))
+                        (when (and insert-space?
+                                   (or (eobp)
+                                       (not (eq (char-after) ?\s))))
+                          (insert ?\s))
+                        ;; substitution was succesfull
+                        t)))))
         (unless res
           (goto-char start))
         res))))
