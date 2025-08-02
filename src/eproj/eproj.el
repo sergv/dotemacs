@@ -330,7 +330,10 @@
     :parse-tags-procedure
     #'eproj/ctags-get-tags-from-buffer
     :show-tag-kind-procedure #'eproj/java-tag-kind
-    :tag->string-func #'eproj/java-tag->string)
+    :tag->string-func #'eproj/java-tag->string
+    :extra-navigation-globs
+    '("*.gradle"
+      "proguard.cfg"))
    (mk-eproj-lang
     :mode 'kotlin-mode
     :extensions '("kt")
@@ -342,7 +345,10 @@
     #'eproj/ctags-get-tags-from-buffer
     :show-tag-kind-procedure #'eproj/kotlin-tag-kind
     :tag->string-func #'eproj/kotlin-tag->string
-    :synonym-modes '(kotlin-ts-mode))
+    :synonym-modes '(kotlin-ts-mode)
+    :extra-navigation-globs
+    '("*.gradle"
+      "proguard.cfg"))
    (mk-eproj-lang
     :mode 'emacs-lisp-mode
     :extensions '("el")
