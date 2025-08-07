@@ -790,8 +790,8 @@ Error is given as MSG and reported between POS and END."
                                 (identifier 1))
                            (seq "• Not in scope: "
                                 (identifier 1))))))
-          msg)
-     (let ((identifier (attrap-strip-parens (match-string-no-properties 1 msg)))
+          normalized-msg)
+     (let ((identifier (attrap-strip-parens (match-string-no-properties 1 normalized-msg)))
            (is-constructor? (not (null (match-beginning 2))))
            (is-type-or-class? (not (null (match-beginning 3)))))
        (if-let ((have-specific-import-location?
@@ -805,10 +805,10 @@ Error is given as MSG and reported between POS and END."
                                "• Add" (* ws) (identifier 1) (* ws)
                                "to the import list in the import of"
                                (* ws) (identifier 2) (* ws) (parens (src-loc 3 4 5 6)))))
-                  msg)))
-           (let ((module (match-string-no-properties 2 msg))
-                 (line (match-string-no-properties 5 msg))
-                 (col (match-string-no-properties 6 msg)))
+                  normalized-msg)))
+           (let ((module (match-string-no-properties 2 normalized-msg))
+                 (line (match-string-no-properties 5 normalized-msg))
+                 (col (match-string-no-properties 6 normalized-msg)))
              (attrap-one-option (format "add to import list of ‘%s’" module)
                (attrap-add-to-haskell-import--add-parent-from-eproj-tags-if-needed identifier
                                                                                    module
