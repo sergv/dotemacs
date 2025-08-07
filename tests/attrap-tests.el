@@ -1874,6 +1874,49 @@
     ("FooType" "/tmp/Foo/Frobnicate.hs" 200 ?t nil))))
 
 (attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/add-to-import-import-list-5
+ :flycheck-errors
+ (list
+  (let ((linecol (save-excursion
+                   (re-search-forward "_|_")
+                   (flycheck-line-column-at-pos (point)))))
+    (flycheck-error-new
+     :line (car linecol)
+     :column (cdr linecol)
+     :buffer (current-buffer)
+     :checker 'haskell-dante
+     :message
+     (tests-utils--multiline
+      "error: [GHC-76037]"
+      "    Not in scope:"
+      "      type constructor or class ‘Decombobulate’"
+      "    Suggested fix:"
+      "      Add ‘Decombobulate’ to the import list"
+      "      in the import of ‘Foobar’"
+      "      (at /foo/bar/baz/Quux.hs:2:1-28).")
+     :level 'error
+     :id nil
+     :group nil)))
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "import Foobar (Bar(..), Baz)"
+  ""
+  "test :: _|_Decombobulate a => FooType a -> IO ()"
+  "test (Foo x) = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "import Foobar (Bar(..), Baz, Decombobulate)"
+  ""
+  "test :: _|_Decombobulate a => FooType a -> IO ()"
+  "test (Foo x) = undefined"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/add-extension-1a
  :flycheck-errors
  (list
