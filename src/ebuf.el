@@ -701,14 +701,50 @@
   (awhen (ebuf--get-buffer-at-point-or-cycle)
     (switch-to-buffer-other-window it)))
 
+(defvar ebuf-regexp-history nil)
+
+(defun ebuf--default-regexp-from-extension-at-point ()
+  (when-let*
+      ((name (ebuf-section-name
+              (aref ebuf--all-sections
+                    (ebuf--section-idx-at-point))))
+       ((not (null name)))
+       (ext (file-name-extension name t))
+       ((not (null ext))))
+    (regexp-quote ext)))
+
+(defun ebuf--mark-single-buffer (buf)
+  (cl-assert (bufferp buf))
+  (puthash buf t ebuf--marked-buffers))
+
+(defun ebuf--unmark-single-buffer (buf)
+  (cl-assert (bufferp buf))
+  (remhash buf ebuf--marked-buffers))
+
+(defun ebuf-mark-buffers-regexp (re unmark?)
+  (interactive (list
+                (read-regexp (concat (if current-prefix-arg "Unmark" "Mark")
+                                     " files (regexp)")
+                             ;; Suggestions
+                             #'ebuf--default-regexp-from-extension-at-point
+                             'ebuf-regexp-history)
+                current-prefix-arg))
+  (dolist (section ebuf--toplevel-sections)
+    (ebuf--for-section-buffers section
+                               (lambda (buf)
+                                 (awhen (buffer-name buf)
+                                   (when (string-match-p re it)
+                                     (if unmark?
+                                         (ebuf--unmark-single-buffer buf)
+                                       (ebuf--mark-single-buffer buf)))))))
+  (ebuf-refresh))
+
 (defun ebuf-mark-buffers-at-point ()
   (interactive)
   (let* ((start (point))
          (idx (ebuf--section-idx-at-point))
          (section (aref ebuf--all-sections idx)))
-    (ebuf--for-section-buffers section
-                               (lambda (buf)
-                                 (puthash buf t ebuf--marked-buffers)))
+    (ebuf--for-section-buffers section #'ebuf--mark-single-buffer)
     (goto-char (ebuf-section-end section))
     (skip-chars-forward "\n")
     (if (eobp)
@@ -730,9 +766,7 @@
   (interactive)
   (let ((start (point))
         (section (ebuf--section-at-point)))
-    (ebuf--for-section-buffers section
-                               (lambda (buf)
-                                 (remhash buf ebuf--marked-buffers)))
+    (ebuf--for-section-buffers section #'ebuf--unmark-single-buffer)
     (goto-char (ebuf-section-end section))
     (skip-chars-forward "\n")
     (if (eobp)
@@ -763,8 +797,7 @@
                               (lambda ()
                                 (error "No buffers marked")))
     (when removed
-      (dolist (buf removed)
-        (remhash buf ebuf--marked-buffers))
+      (mapc #'ebuf-unmark-buffers-at-point removed)
       (ebuf-refresh))))
 
 (defun ebuf-with-marked-buffers (f if-none-selected)
@@ -823,6 +856,7 @@ _r_ecency
       (("SPC" "o")       ebuf-switch-to-buffer-at-point-other-window-or-cycle)
       (("H" "<f5>")      ebuf-refresh)
 
+      ("* %"             ebuf-mark-buffers-regexp)
       ("m"               ebuf-mark-buffers-at-point)
       (","               ebuf-delete-marked-buffers)
       ("e"               ebuf-eval-in-marked-buffers)
