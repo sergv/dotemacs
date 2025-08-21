@@ -720,7 +720,10 @@ Error is given as MSG and reported between POS and END."
        (attrap-one-option "explicit type wildcard"
          (goto-char pos)
          (search-forward wildcard)
-         (replace-match (concat "(" type-expr ")") t))))
+         (replace-match
+          (if (string-contains? ?\s type-expr) (concat "(" type-expr ")") type-expr)
+          t
+          t))))
    (when (and (string-match-p "parse error on input ‘case’" msg) ; Obsolete with GHC 9, which appears to recognize Lambda case specially.
               (save-excursion
                 (goto-char pos)
