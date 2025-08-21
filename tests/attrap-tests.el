@@ -1523,6 +1523,102 @@
   "_|_type role Foo nominal"
   ""))
 
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/explicit-type-wildcard-1
+ :error-message
+ (tests-utils--multiline
+  "error: [GHC-88464]"
+  "    • Found type wildcard ‘_’ standing for ‘Frobnicator’"
+  "      To use the inferred type, enable PartialTypeSignatures"
+  "    • In the type signature: tests :: _")
+ :action
+ (let ((attrap-select-predefined-option "explicit type wildcard"))
+   (attrap-tests--run-attrap))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: _|__"
+  "foo = bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: _|_Frobnicator"
+  "foo = bar"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/explicit-type-wildcard-2
+ :error-message
+ (tests-utils--multiline
+  "error: [GHC-88464]"
+  "    • Found type wildcard ‘_’ standing for ‘Frobnicator’"
+  "      To use the inferred type, enable PartialTypeSignatures"
+  "    • In the type signature: tests :: _")
+ :action
+ (let ((attrap-select-predefined-option "explicit type wildcard"))
+   (attrap-tests--run-attrap))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Maybe _|__"
+  "foo = bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Maybe _|_Frobnicator"
+  "foo = bar"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/explicit-type-wildcard-3
+ :error-message
+ (tests-utils--multiline
+  "error: [GHC-88464]"
+  "    • Found type wildcard ‘_’ standing for ‘Frobnicator Int’"
+  "      To use the inferred type, enable PartialTypeSignatures"
+  "    • In the type signature: tests :: _")
+ :action
+ (let ((attrap-select-predefined-option "explicit type wildcard"))
+   (attrap-tests--run-attrap))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Maybe _|__"
+  "foo = bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Maybe _|_(Frobnicator Int)"
+  "foo = bar"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/explicit-type-wildcard-4
+ :error-message
+ (tests-utils--multiline
+  "error: [GHC-88464]"
+  "    • Found type wildcard ‘_’ standing for ‘Frobnicator Int’"
+  "      To use the inferred type, enable PartialTypeSignatures"
+  "    • In the type signature: tests :: _")
+ :action
+ (let ((attrap-select-predefined-option "explicit type wildcard"))
+   (attrap-tests--run-attrap))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: [_|__]"
+  "foo = bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: [_|_(Frobnicator Int)]"
+  "foo = bar"
+  ""))
+
 (provide 'attrap-tests)
 
 ;; Local Variables:
