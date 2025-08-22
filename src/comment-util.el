@@ -396,11 +396,12 @@ they are defined for current mode or one-line comments otherwise."
 (defun comment-util-comment-region--impl (begin end)
   "Comment region between BEGIN and END position inserting region comments if
 they are defined for current mode or one-line comments otherwise."
-  (save-excursion
-    (let ((fmt (comment-util-current-format)))
-      (if (comment-util-region-comments-defined? fmt)
-          (comment-util--comment-chunk-region begin end fmt)
-        (comment-util--comment-lined-region begin end fmt)))))
+  (with-ignored-invisibility
+   (save-excursion
+     (let ((fmt (comment-util-current-format)))
+       (if (comment-util-region-comments-defined? fmt)
+           (comment-util--comment-chunk-region begin end fmt)
+         (comment-util--comment-lined-region begin end fmt))))))
 
 ;;;###autoload
 (defun comment-util-uncomment-region ()
