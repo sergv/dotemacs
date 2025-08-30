@@ -107,12 +107,33 @@ if CASE-SENSETIVE is t."
     (remove-duplicates-sorting (--filter-nondet (< 127 it) chars) #'= #'<)))
 
 ;;;###autoload
-(defun input-unicode ()
-  (interactive)
-  (let* ((symbs (-map #'char->string (extract-unicode)))
-         (symb (ivy-completing-read "> " symbs)))
-    (remove-text-properties 0 (length symb) '(font-lock-face nil) symb)
-    (insert symb)))
+(defun input-unicode (&optional query-for-symbol-name?)
+  "Allows to quickly insert one of the unicode characters that already exist in a buffer.
+
+Alternatively, with prefix argument allows to specify which character to
+insert via ‘read-char-by-name’. You can specify CHARACTER at the prompt
+in one of these ways:
+
+ - As its Unicode character name, e.g. \"LATIN SMALL LETTER A\".
+   Completion is available; if you type a substring of the name
+   preceded by an asterisk ‘*’, Emacs shows all names which include
+   that substring, not necessarily at the beginning of the name.
+
+ - As a hexadecimal code point, e.g. 263A.  Note that code points in
+   Emacs are equivalent to Unicode up to 10FFFF (which is the limit of
+   the Unicode code space).
+
+ - As a code point with a radix specified with #, e.g. #o21430
+   (octal), #x2318 (hex), or #10r8984 (decimal).
+
+"
+  (interactive "P")
+  (if query-for-symbol-name?
+      (insert-char (read-char-by-name "Insert character (unicode name or hex): " t))
+    (let* ((symbs (-map #'char->string (extract-unicode)))
+           (symb (ivy-completing-read "> " symbs)))
+      (remove-text-properties 0 (length symb) '(font-lock-face nil) symb)
+      (insert symb))))
 
 (defun org-to-json (buf)
   "Export the current Org-mode buffer as JSON to the supplied PATH."
