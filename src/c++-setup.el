@@ -239,8 +239,8 @@ _<tab>_: format region
     )
 
   (c++-abbrev+-setup)
-  ;; (setup-eproj-symbnav)
-  (setup-lsp-symbnav)
+  (setup-eproj-symbnav)
+  ;; (setup-lsp-symbnav)
 
   (setq-local company-idle-delay 0.0
               company-minimum-prefix-length 1
@@ -252,7 +252,7 @@ _<tab>_: format region
                     "--suggest-missing-includes"
                     "--cross-file-rename")
               lsp-enable-indentation nil)
-  (lsp)
+  ;; (lsp)
   (setq-local indent-region-function #'c++-indent-region)
   (when lsp-mode
     (def-keys-for-map vim-normal-mode-local-keymap
