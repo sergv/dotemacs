@@ -54,7 +54,7 @@
                                            (list :file (eproj-tag/file tag)
                                                  :line (eproj-tag/line tag)
                                                  ;; :tag tag
-                                                 :kind (funcall show-tag-kind-func tag))
+                                                 :kind (funcall show-tag-kind-func tag effective-major-mode))
                                            new-completion)
                                           new-completion))
                                       tags)))
