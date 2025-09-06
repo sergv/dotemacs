@@ -1507,8 +1507,7 @@ Returns (<component name or nil> . <list of warnings>)"
 ;; actually in - the project we’re part of will have a cabal file
 ;; above us.
 (defun haskell-misc--get-project-root-for-path (start-dir)
-  "Obtain root of a Haskell project that FILE is part of."
-  (cl-assert (file-directory-p start-dir))
+  "Obtain root of a Haskell project that START-DIR is part of."
   (let ((regexp
          (rx (seq bos
                   (or (seq "cabal" (* nonl) ".project" (? ".local"))
@@ -1518,11 +1517,13 @@ Returns (<component name or nil> . <list of warnings>)"
                   eos))))
     (locate-dominating-file start-dir
                             (lambda (dir-name)
-                              (directory-files dir-name
-                                               nil ;; Relative names.
-                                               regexp
-                                               t ;; Do not sort - faster this way.
-                                               )))))
+                              (when (file-exists-p dir-name)
+                                (cl-assert (file-directory-p dir-name))
+                                (directory-files dir-name
+                                                 nil ;; Relative names.
+                                                 regexp
+                                                 t ;; Do not sort - faster this way.
+                                                 ))))))
 
 (defvar-local haskell-misc--project-root nil)
 
