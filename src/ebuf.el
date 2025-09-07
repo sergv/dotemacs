@@ -209,6 +209,11 @@
         (abbreviate-file-name buf-file))
     (buffer-name buf)))
 
+(defun ebuf--buffer-filename-for-render (buf)
+  (cl-assert (bufferp buf))
+  (or (buffer-local-value 'buffer-file-name buf)
+      (buffer-local-value 'default-directory buf)))
+
 (defun ebuf--render-buffers! (marked-bufs buffers)
   (cl-assert (hash-table-p marked-bufs))
   (let ((hidden-sections (make-hash-table :test #'equal)))
@@ -312,8 +317,7 @@
                                             buf-caption))))))
                   (insert buf-line)
                   (when ebuf-render-filenames?
-                    (when-let ((absolute-path (or buf-file
-                                                  (buffer-local-value 'default-directory buf))))
+                    (when-let ((absolute-path (ebuf--buffer-filename-for-render buf)))
                       (cl-assert (stringp absolute-path))
                       (insert (make-string (+ (max 0
                                                    (- (+ (length prefix)
@@ -395,7 +399,7 @@
   (cl-assert (ebuf-section-p section))
   (cl-assert (functionp f))
   (aif (ebuf-section-buf section)
-      (funcall f it)
+      (funcall f section it)
     (dolist (child (ebuf-section-children section))
       (ebuf--for-section-buffers child f))))
 
@@ -724,6 +728,8 @@
   (remhash buf ebuf--marked-buffers))
 
 (defun ebuf-mark-buffers-regexp (re unmark?)
+  "Mark (unmark with prefix arg) buffers whose sections (or absolute paths
+if we’re showing them) match given regexp RE."
   (interactive (list
                 (read-regexp (concat (if current-prefix-arg "Unmark" "Mark")
                                      " files (regexp)")
@@ -733,8 +739,11 @@
                 current-prefix-arg))
   (dolist (section ebuf--toplevel-sections)
     (ebuf--for-section-buffers section
-                               (lambda (buf)
-                                 (awhen (buffer-name buf)
+                               (lambda (section buf)
+                                 (awhen (or (and ebuf-render-filenames?
+                                                 ;; Match on filenames if we’re showing them.
+                                                 (ebuf--buffer-filename-for-render buf))
+                                            (ebuf-section-name section))
                                    (when (string-match-p re it)
                                      (if unmark?
                                          (ebuf--unmark-single-buffer buf)
@@ -746,7 +755,7 @@
   (let* ((start (point))
          (idx (ebuf--section-idx-at-point))
          (section (aref ebuf--all-sections idx)))
-    (ebuf--for-section-buffers section #'ebuf--mark-single-buffer)
+    (ebuf--for-section-buffers section (lambda (_section buf) (ebuf--mark-single-buffer buf)))
     (goto-char (ebuf-section-end section))
     (skip-chars-forward "\n")
     (if (eobp)
@@ -768,7 +777,7 @@
   (interactive)
   (let ((start (point))
         (section (ebuf--section-at-point)))
-    (ebuf--for-section-buffers section #'ebuf--unmark-single-buffer)
+    (ebuf--for-section-buffers section (lambda (_section buf) (ebuf--unmark-single-buffer buf)))
     (goto-char (ebuf-section-end section))
     (skip-chars-forward "\n")
     (if (eobp)
