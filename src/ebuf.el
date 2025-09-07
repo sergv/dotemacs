@@ -274,6 +274,10 @@
                        (buf-end nil)
 
                        (is-marked? (gethash buf marked-bufs))
+                       (add-marked-face (if is-marked?
+                                            (lambda (str)
+                                              (ebuf--add-face str 'ebuf-marked-buffer-face))
+                                          #'identity))
                        (mark (if is-marked?
                                  ">"
                                " "))
@@ -295,19 +299,17 @@
                                                     ?\s)))
 
                        (buf-line
-                        (let ((line (concat prefix
-                                            (cond
-                                              (buf-ro?
-                                               (ebuf--add-face buf-caption
-                                                               'ebuf-read-only-buffer-face))
-                                              ((invisible-buffer? buf)
-                                               (ebuf--add-face buf-caption
-                                                               'ebuf-invisible-buffer-face))
-                                              (t
-                                               buf-caption)))))
-                          (if is-marked?
-                              (ebuf--add-face line 'ebuf-marked-buffer-face)
-                            line))))
+                        (funcall add-marked-face
+                                 (concat prefix
+                                         (cond
+                                           (buf-ro?
+                                            (ebuf--add-face buf-caption
+                                                            'ebuf-read-only-buffer-face))
+                                           ((invisible-buffer? buf)
+                                            (ebuf--add-face buf-caption
+                                                            'ebuf-invisible-buffer-face))
+                                           (t
+                                            buf-caption))))))
                   (insert buf-line)
                   (when ebuf-render-filenames?
                     (when-let ((absolute-path (or buf-file
@@ -319,7 +321,7 @@
                                                       (length buf-line)))
                                               2)
                                            ?\s)
-                              (abbreviate-file-name absolute-path))))
+                              (funcall add-marked-face (abbreviate-file-name absolute-path)))))
                   (setf buf-end (point)
                         buf-caption-end (point))
                   (insert-char ?\n)
