@@ -542,7 +542,6 @@
 
              ;; Fallback
              ((parent-is "infix")
-              ;; haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update
               haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update-no-list-parent
               ,(lambda (node parent bol)
                  (lambda (matched-anchor)
@@ -663,7 +662,7 @@
              ;; function.
              ((or (parent-is "record")
                   (node-is "comment" "haddock"))
-              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update
+              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update-no-list-parent
               haskell-indent-offset)
 
              ((n-p-gp "match" '("bind" "multi_way_if") nil)
