@@ -1325,7 +1325,7 @@
   "foo x ="
   "  baz"
   "    { quux = bar"
-  "        _|_{ frobnicate = baar $ baaz"
+  "          _|_{ frobnicate = baar $ baaz"
   "      }"
   "    }")
  :expected-value
@@ -1333,12 +1333,80 @@
   "foo x ="
   "  baz"
   "    { quux = bar"
-  "      _|_{ frobnicate = baar $ baaz"
+  "        _|_{ frobnicate = baar $ baaz"
   "      }"
   "    }"))
 
 (haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-field-update-3b
+ :contents
+ (tests-utils--multiline
+  "foo x ="
+  "  baz"
+  "    { quux = bar"
+  "          _|_baar $ baaz"
+  "    }")
+ :expected-value
+ (tests-utils--multiline
+  "foo x ="
+  "  baz"
+  "    { quux = bar"
+  "        _|_baar $ baaz"
+  "    }"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-field-update-3c
+ :contents
+ (tests-utils--multiline
+  "foo x ="
+  "  baz"
+  "    { quux = bar"
+  "          _|_(baar, baaz)"
+  "    }")
+ :expected-value
+ (tests-utils--multiline
+  "foo x ="
+  "  baz"
+  "    { quux = bar"
+  "        _|_(baar, baaz)"
+  "    }"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-field-update-3d
+ :contents
+ (tests-utils--multiline
+  "foo x ="
+  "  baz"
+  "    { quux = bar"
+  "          _|_[baar, baaz]"
+  "    }")
+ :expected-value
+ (tests-utils--multiline
+  "foo x ="
+  "  baz"
+  "    { quux = bar"
+  "        _|_[baar, baaz]"
+  "    }"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-field-update-3e
+ :contents
+ (tests-utils--multiline
+  "foo x ="
+  "  baz"
+  "    { quux = bar"
+  "          _|_[baar| baaz |]"
+  "    }")
+ :expected-value
+ (tests-utils--multiline
+  "foo x ="
+  "  baz"
+  "    { quux = bar"
+  "        _|_[baar| baaz |]"
+  "    }"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-field-update-3f
  :contents
  (tests-utils--multiline
   "foo x ="
