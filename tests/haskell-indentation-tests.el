@@ -671,6 +671,25 @@
   ""))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-comment-3
+ :contents
+ (tests-utils--multiline
+  "foo x ="
+  "  [ bar"
+  "  , baz"
+  "         _|_-- foobar"
+  "  , quux"
+  "  ]")
+ :expected-value
+ (tests-utils--multiline
+  "foo x ="
+  "  [ bar"
+  "  , baz"
+  "    _|_-- foobar"
+  "  , quux"
+  "  ]"))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-where-1
  :contents
  (tests-utils--multiline
@@ -1581,6 +1600,44 @@
   "  , baz"
   "  , let quux = x"
   "    _|_in y"
+  "  ]"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-list-4a
+ :contents
+ (tests-utils--multiline
+  "foo x ="
+  "  [ bar"
+  "  , baz"
+  "  , test"
+  "      _|_y"
+  "  ]")
+ :expected-value
+ (tests-utils--multiline
+  "foo x ="
+  "  [ bar"
+  "  , baz"
+  "  , test"
+  "      _|_y"
+  "  ]"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-list-4b
+ :contents
+ (tests-utils--multiline
+  "foo x ="
+  "  [ bar"
+  "  , baz"
+  "  , Test"
+  "        _|_{ frobnicate = 1 }"
+  "  ]")
+ :expected-value
+ (tests-utils--multiline
+  "foo x ="
+  "  [ bar"
+  "  , baz"
+  "  , Test"
+  "      _|_{ frobnicate = 1 }"
   "  ]"))
 
 (haskell-indentation-tests--test-treesitter
@@ -3502,6 +3559,48 @@
   "  (# x"
   "  , 4"
   "  _|_#)"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-tuple-2a
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo bar ="
+  "  ( x"
+  "  , foo"
+  "          _|_bar"
+  "  )"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo bar ="
+  "  ( x"
+  "  , foo"
+  "      _|_bar"
+  "  )"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-tuple-2b
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo bar ="
+  "  ( x"
+  "  , Test"
+  "          _|_{ frobnicate = 1 }"
+  "  )"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo bar ="
+  "  ( x"
+  "  , Test"
+  "      _|_{ frobnicate = 1 }"
+  "  )"
   ""))
 
 (haskell-indentation-tests--test-treesitter
