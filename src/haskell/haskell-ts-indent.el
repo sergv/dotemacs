@@ -664,11 +664,7 @@
              ((or (parent-is "record")
                   (node-is "comment" "haddock"))
               haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-field-update
-              ,(lambda (node parent bol)
-                 (lambda (matched-anchor)
-                   (if (string= "field_name" (treesit-matched-anchor-node-type matched-anchor))
-                       0
-                     haskell-indent-offset))))
+              haskell-indent-offset)
 
              ((n-p-gp "match" '("bind" "multi_way_if") nil)
               haskell-ts-indent--first-guard-or-parent
