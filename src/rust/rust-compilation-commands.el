@@ -9,6 +9,7 @@
 (declare-function rust-get-compilation-buffer-name "rust-setup")
 
 (eval-when-compile
+  (require 'cl-lib)
   (require 'set-up-platform)
   (require 'macro-util)
   (defvar compilation-command))
@@ -21,21 +22,26 @@
 
 (defun rust-compilation--make-cargo-build-command-presets (target-dir)
   (let ((cargo-command
-         (lambda (env cmd &rest args)
-           (when target-dir
-             (setf args (cons "--target-dir" (cons target-dir args))))
+         (cl-function
+          (lambda (&key env cmd args)
+            (cl-assert (stringp cmd))
+            (cl-assert (listp env))
+            (cl-assert (listp args))
 
-           (setf args (cons rust-cargo-bin (cons cmd args)))
+            (when target-dir
+              (setf args (cons "--target-dir" (cons target-dir args))))
 
-           (lambda (proj-dir)
-             (make-cc-command args env proj-dir (s-join " " args))))))
+            (setf args (cons rust-cargo-bin (cons cmd args)))
+
+            (lambda (proj-dir)
+              (make-optional-nix-cc-command args env proj-dir))))))
     (mapcan (lambda (entry)
               (let ((target (car entry)))
                 (if (listp target)
                     (--map (cons it (cdr entry)) target)
                   (list entry))))
-            `((build . ,(funcall cargo-command nil "build" "--color=always"))
-              (test .  ,(funcall cargo-command '("RUST_BACKTRACE=1") "test" "--color=always"))))))
+            `((build . ,(funcall cargo-command :cmd "build" :args '("--color=always")))
+              (test .  ,(funcall cargo-command :env '("RUST_BACKTRACE=1") :cmd "test" :args '("--color=always")))))))
 
 (defvar rust-compilation-cargo-build-command-default-presets
   (rust-compilation--make-cargo-build-command-presets (fold-platform-os-type "/tmp/target" nil)))

@@ -112,15 +112,36 @@ same for a set of buffers rather than being different."
   (pretty-cmd nil :read-only t) ;; String with properties, what to show user when this command executes.
   )
 
-(defun make-cc-command (cmd env dir pretty-cmd)
-  (cl-assert (not (null cmd)))
-  (cl-assert (listp cmd))
-  (cl-assert (-all? #'stringp cmd))
+(defun make-optional-nix-cc-command (full-command-line env proj-dir)
+  (let ((pretty-cmd nil))
+    (if proj-dir
+        (setf full-command-line
+              (nix-maybe-call-via-flakes full-command-line proj-dir)
+              pretty-cmd
+              (let ((tmp nil))
+                (s-join " "
+                        (if (and full-command-line
+                                 (equal "nix"
+                                        (setf tmp
+                                              (file-name-nondirectory-preserve-text-properties (car full-command-line)))))
+                            (cons (configurable-compilation--unimportant-text tmp) (cdr full-command-line))
+                          full-command-line))))
+      (setf pretty-cmd
+            (s-join " " full-command-line)))
+    (make-cc-command full-command-line
+                     env
+                     proj-dir
+                     pretty-cmd)))
+
+(defun make-cc-command (full-command-line env dir pretty-cmd)
+  (cl-assert (not (null full-command-line)))
+  (cl-assert (listp full-command-line))
+  (cl-assert (-all? #'stringp full-command-line))
   (cl-assert (or (null env) (and (listp env) (-all? #'stringp env))))
   (cl-assert (stringp dir))
   (cl-assert (file-directory-p dir))
   (cl-assert (stringp pretty-cmd))
-  (make--cc-command :cmd cmd
+  (make--cc-command :cmd full-command-line
                     :env env
                     :dir dir
                     :pretty-cmd pretty-cmd))
