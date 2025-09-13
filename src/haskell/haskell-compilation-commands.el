@@ -27,27 +27,7 @@
            (setf args (cons "cabal" (cons cmd args)))
 
            (lambda (proj-dir)
-             (let ((cmd-args args)
-                   (pretty-cmd nil))
-               (if proj-dir
-                   (progn
-                     (setf cmd-args
-                           (nix-maybe-call-via-flakes args proj-dir)
-                           pretty-cmd
-                           (let ((tmp nil))
-                             (s-join " "
-                                     (if (and cmd-args
-                                              (equal "nix"
-                                                     (setf tmp
-                                                           (file-name-nondirectory-preserve-text-properties (car cmd-args)))))
-                                         (cons (configurable-compilation--unimportant-text tmp) (cdr cmd-args))
-                                       cmd-args)))))
-                 (setf pretty-cmd
-                       (s-join " " cmd-args)))
-               (make-cc-command cmd-args
-                                nil
-                                proj-dir
-                                pretty-cmd))))))
+             (make-optional-nix-cc-command args nil proj-dir)))))
     (mapcan (lambda (entry)
               (let ((target (car entry)))
                 (if (listp target)
