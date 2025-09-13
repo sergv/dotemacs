@@ -407,7 +407,11 @@ foo {
                   ,(if proj
                        '(company-eproj company-dabbrev-code company-keywords)
                      '(company-dabbrev-code company-keywords))
-                  company-dabbrev))
+                  company-dabbrev)
+                lsp-rust-analyzer-server-command
+                (nix-maybe-call-via-flakes lsp-rust-analyzer-server-command
+                                           (awhen proj
+                                             (eproj-project/root it))))
 
     (rust-compilation-commands-install! proj)
     (eproj-setup-local-variables proj)
