@@ -459,28 +459,36 @@ _#-}_: on pragma close"
       (t
        (error "Don't know how to reindent construct at point")))))
 
-(defun haskell-misc--point-inside-pragma? (point)
-  (cond
-    ((derived-mode-p 'haskell-mode)
-     (save-excursion
-       (save-match-data
-         (when (search-forward (eval-when-compile
-                                 (unless (equal (regexp-quote haskell-regexen/pragma-end)
-                                                haskell-regexen/pragma-end)
-                                   (error "Definition of haskell-regexen/pragma-start is not plain string anymore, amend its use in searching"))
-                                 haskell-regexen/pragma-end)
-                               nil
-                               t)
-           (let ((end (point)))
-             (backward-sexp)
-             (let ((start (point)))
-               (and (<= start point)
-                    (<= point end))))))))
-    ((derived-mode-p 'haskell-ts-mode)
-     (when-let ((node (treesit-node-at (point))))
-       (string= "pragma" (treesit-node-type node))))
-    (t
-     (error "haskell-misc--point-inside-pragma?: not implemented for major mode %s" major-mode))))
+(defun haskell-misc--point-inside-matching-pragma? (point re)
+  (when-let ((pragma-start-pos
+              (cond
+                ((derived-mode-p 'haskell-mode)
+                 (save-excursion
+                   (save-match-data
+                     (when (search-forward (eval-when-compile
+                                             (unless (equal (regexp-quote haskell-regexen/pragma-end)
+                                                            haskell-regexen/pragma-end)
+                                               (error "Definition of haskell-regexen/pragma-start is not plain string anymore, amend its use in searching"))
+                                             haskell-regexen/pragma-end)
+                                           nil
+                                           t)
+                       (let ((end (point)))
+                         (backward-sexp)
+                         (let ((start (point)))
+                           (when (and (<= start point)
+                                      (<= point end))
+                             start)))))))
+                ((derived-mode-p 'haskell-ts-mode)
+                 (when-let ((node (treesit-node-at (point))))
+                   (when (and (string= "pragma" (treesit-node-type node))
+                              (<= (treesit-node-start node) point)
+                              (<= point (treesit-node-end node)))
+                     (treesit-node-start node))))
+                (t
+                 (error "haskell-misc--point-inside-pragma?: not implemented for major mode %s" major-mode)))))
+    (save-excursion
+      (goto-char pragma-start-pos)
+      (looking-at-p re))))
 
 (defun haskell-align-language-pragmas (start)
   (haskell-align--pragmas-impl haskell-regexen/language-pragma-prefix
@@ -533,11 +541,12 @@ extensions as a list of strings. Leaves point at the end of pragma"
     (let ((p (point)))
       (goto-char start)
       ;; (cl-assert (looking-at-p haskell-regexen/language-pragma-prefix))
-      ;; Navigate up while we're still getting LANGUAGE pragmas.
+      ;; Navigate up while we're still getting requested pragmas.
       (beginning-of-line)
       (while (and (not (bobp))
                   (or (looking-at-p pragma-prefix-re)
-                      (haskell-misc--point-inside-pragma? (point))))
+                      (haskell-misc--point-inside-matching-pragma? (point)
+                                                                   pragma-prefix-re)))
         ;; Go to beginning of the previous line.
         (backward-line))
       ;; Skip whitespace and possible comments to the beginning of pragma.
