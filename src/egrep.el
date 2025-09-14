@@ -158,44 +158,45 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
               (cl-loop
                for filename in (sort files #'string<)
                nconc
-               (for-buffer-with-file filename
-                 (save-excursion
-                   (when progress-reporter
-                     (funcall progress-reporter 1))
-                   (redisplay t)
-                   (goto-char (point-min))
-                   (let* ((res (cons nil nil))
-                          (tmp res))
-                     (while (re-search-forward regexp nil t)
-                       (let* ((match-start (match-beginning 0))
-                              (match-end (match-end 0))
-                              (line (line-number-at-pos match-start))
-                              (column (- match-start (line-beginning-position))))
-                         (save-excursion
-                           (goto-char match-start)
-                           (let ((match-prefix
-                                  (buffer-substring (line-beginning-position)
-                                                    match-start))
-                                 (match-text
-                                  (buffer-substring match-start match-end))
-                                 (match-suffix
-                                  (progn
-                                    (goto-char match-end)
-                                    (buffer-substring match-end (line-end-position)))))
-                             (setf tmp
-                                   (setcdr-sure tmp
-                                                (cons (make-egrep-match filename
-                                                                        (file-relative-name filename root)
-                                                                        line
-                                                                        column
-                                                                        match-prefix
-                                                                        match-text
-                                                                        match-suffix)
-                                                      nil)))))
-                         ;; Jump to end of line in order to show at most one match per
-                         ;; line.
-                         (end-of-line)))
-                     (cdr res))))))))
+               (when (file-exists-p filename)
+                 (for-buffer-with-file filename
+                   (save-excursion
+                     (when progress-reporter
+                       (funcall progress-reporter 1))
+                     (redisplay t)
+                     (goto-char (point-min))
+                     (let* ((res (cons nil nil))
+                            (tmp res))
+                       (while (re-search-forward regexp nil t)
+                         (let* ((match-start (match-beginning 0))
+                                (match-end (match-end 0))
+                                (line (line-number-at-pos match-start))
+                                (column (- match-start (line-beginning-position))))
+                           (save-excursion
+                             (goto-char match-start)
+                             (let ((match-prefix
+                                    (buffer-substring (line-beginning-position)
+                                                      match-start))
+                                   (match-text
+                                    (buffer-substring match-start match-end))
+                                   (match-suffix
+                                    (progn
+                                      (goto-char match-end)
+                                      (buffer-substring match-end (line-end-position)))))
+                               (setf tmp
+                                     (setcdr-sure tmp
+                                                  (cons (make-egrep-match filename
+                                                                          (file-relative-name filename root)
+                                                                          line
+                                                                          column
+                                                                          match-prefix
+                                                                          match-text
+                                                                          match-suffix)
+                                                        nil)))))
+                           ;; Jump to end of line in order to show at most one match per
+                           ;; line.
+                           (end-of-line)))
+                       (cdr res)))))))))
       (when (null matches)
         (error "No matches for regexp \"%s\" across files %s"
                regexp
