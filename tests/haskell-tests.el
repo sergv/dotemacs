@@ -333,6 +333,28 @@ have different input states."
    "{-# OPTIONS_GHC -Wno-orphans          #-}_|_"))
 
 (haskell-tests--test-buffer-contents
+    haskell-tests/haskell-align-options-ghc-pragmas-2
+    (haskell-align-options-ghc-pragmas (point))
+  (tests-utils--multiline
+   ""
+   "{-# LANGUAGE DerivingVia          #-}"
+   "{-# LANGUAGE UndecidableInstances #-}"
+   ""
+   "{-# OPTIONS_GHC -Wno-unused-top-binds #-}"
+   "{-# _|_OPTIONS_GHC -Wno-unused-imports #-}"
+   "{-# OPTIONS_GHC -Wno-orphans #-}"
+   "")
+  (tests-utils--multiline
+   ""
+   "{-# LANGUAGE DerivingVia          #-}"
+   "{-# LANGUAGE UndecidableInstances #-}"
+   ""
+   "{-# OPTIONS_GHC -Wno-orphans          #-}"
+   "{-# OPTIONS_GHC -Wno-unused-imports   #-}"
+   "{-# OPTIONS_GHC -Wno-unused-top-binds #-}_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
     haskell-tests/haskell-reindent-at-point-1
     (haskell-reindent-at-point)
   (tests-utils--multiline
