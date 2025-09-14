@@ -512,8 +512,6 @@
               haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update
               haskell-indent-offset)
 
-             ((parent-is "class_declarations") prev-sibling 0)
-
              ((node-is "in") parent 0)
              ((match nil "let_in" "expression" nil nil)
               ,(lambda (node parent bol)
@@ -620,12 +618,12 @@
              ;; instance
 
              ;; first instance function
-             ((node-is "instance_declarations")
+             ((node-is "class_declarations" "instance_declarations")
               parent
               haskell-indent-offset)
 
              ;; subsequent instance functions
-             ((parent-is "instance_declarations")
+             ((parent-is "class_declarations" "instance_declarations")
               grand-parent
               haskell-indent-offset)
 
