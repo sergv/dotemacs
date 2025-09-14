@@ -103,16 +103,30 @@
      ,contents
      ,expected-value))
 
+(cl-defmacro vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+    (&key modes
+          name
+          action
+          contents
+          expected-value)
+  (declare (indent 0))
+  (cl-assert (listp modes))
+  (cl-assert (cl-every #'symbolp modes))
+  `(vim-tests--test-fresh-buffer-contents-init-all
+    ,name
+    ,(--filter (memq (car it) modes) vim-tests--all-known-modes-and-init)
+    ,action
+    ,contents
+    ,expected-value))
+
 (defmacro vim-tests--test-fresh-buffer-contents-init-standard-modes-only (keep-modes name action contents expected-value)
   (declare (indent 3))
-  (cl-assert (listp keep-modes))
-  (cl-assert (cl-every #'symbolp keep-modes))
-  `(vim-tests--test-fresh-buffer-contents-init-all
-       ,name
-       ,(--filter (memq (car it) keep-modes) vim-tests--all-known-modes-and-init)
-       ,action
-     ,contents
-     ,expected-value))
+  `(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+    :modes ,keep-modes
+    :name ,name
+    :action ,action
+    :contents ,contents
+    :expected-value ,expected-value))
 
 (defmacro vim-tests--test-fresh-buffer-contents-init-standard-modes (name action contents expected-value)
   (declare (indent 2))
@@ -4345,6 +4359,160 @@ _|_bar")
    "foo :: a -> a"
    "foo x = x"
    ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-abbrev-pragma-6a
+    (execute-kbd-macro (kbd "i # # SPC SPC <escape>"))
+  (tests-utils--multiline
+   ""
+   "-- Glushkov construction of glob patterns."
+   "data PatternF a"
+   "  = Star"
+   "  | Sym _|_!Char"
+   "  | Or a a"
+   "  | Seq a a"
+   "  deriving (Eq, Ord, Show, Foldable, Traversable, Generic, Generic1)"
+   "  deriving Pretty via PPGeneric (PatternF a)"
+   "")
+  (tests-utils--multiline
+   ""
+   "-- Glushkov construction of glob patterns."
+   "data PatternF a"
+   "  = Star"
+   "  | Sym {-# UNPACK #-_|_} !Char"
+   "  | Or a a"
+   "  | Seq a a"
+   "  deriving (Eq, Ord, Show, Foldable, Traversable, Generic, Generic1)"
+   "  deriving Pretty via PPGeneric (PatternF a)"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-abbrev-pragma-6b
+    (execute-kbd-macro (kbd "i SPC <escape>"))
+  (tests-utils--multiline
+   ""
+   "-- Glushkov construction of glob patterns."
+   "data PatternF a"
+   "  = Star"
+   "  | Sym ##_|_ !Char"
+   "  | Or a a"
+   "  | Seq a a"
+   "  deriving (Eq, Ord, Show, Foldable, Traversable, Generic, Generic1)"
+   "  deriving Pretty via PPGeneric (PatternF a)"
+   "")
+  (tests-utils--multiline
+   ""
+   "-- Glushkov construction of glob patterns."
+   "data PatternF a"
+   "  = Star"
+   "  | Sym {-# UNPACK #-_|_} !Char"
+   "  | Or a a"
+   "  | Seq a a"
+   "  deriving (Eq, Ord, Show, Foldable, Traversable, Generic, Generic1)"
+   "  deriving Pretty via PPGeneric (PatternF a)"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-abbrev-pragma-6c
+    (execute-kbd-macro (kbd "i SPC <escape>"))
+  (tests-utils--multiline
+   ""
+   "-- Glushkov construction of glob patterns."
+   "data PatternF a"
+   "  = Star"
+   "  | Sym##_|_ !Char"
+   "  | Or a a"
+   "  | Seq a a"
+   "  deriving (Eq, Ord, Show, Foldable, Traversable, Generic, Generic1)"
+   "  deriving Pretty via PPGeneric (PatternF a)"
+   "")
+  (tests-utils--multiline
+   ""
+   "-- Glushkov construction of glob patterns."
+   "data PatternF a"
+   "  = Star"
+   "  | Sym##_|_  !Char"
+   "  | Or a a"
+   "  | Seq a a"
+   "  deriving (Eq, Ord, Show, Foldable, Traversable, Generic, Generic1)"
+   "  deriving Pretty via PPGeneric (PatternF a)"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-abbrev-pragma-7a
+    (execute-kbd-macro (kbd "i SPC <escape>"))
+  (tests-utils--multiline
+   ""
+   "data Foo = Foo"
+   "  { bar      :: Int"
+   "  , baz##_|_ :: Map String Double"
+   "  , decombobulate :: Colour"
+   "  }"
+   "")
+  (tests-utils--multiline
+   ""
+   "data Foo = Foo"
+   "  { bar      :: Int"
+   "  , baz##_|_  :: Map String Double"
+   "  , decombobulate :: Colour"
+   "  }"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only
+    (haskell-ts-mode)
+    vim-tests/haskell-abbrev-pragma-7b
+    (execute-kbd-macro (kbd "i # SPC <escape>"))
+  (tests-utils--multiline
+   ""
+   "data Foo = Foo"
+   "  { bar      :: Int"
+   "  , baz#_|_ :: Map String Double"
+   "  , decombobulate :: Colour"
+   "  }"
+   "")
+  (tests-utils--multiline
+   ""
+   "data Foo = Foo"
+   "  { bar      :: Int"
+   "  , baz# #_|_  :: Map String Double"
+   "  , decombobulate :: Colour"
+   "  }"
+   ""))
+
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-ts-mode)
+ :name
+ vim-tests/haskell-abbrev-pragma-7c
+ :action
+ (progn
+   (haskell-ext-tracking--update!)
+   (should (haskell-ext-tracking-have-magic-hash?))
+   (execute-kbd-macro (kbd "i # SPC <escape>")))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE MagicHash #-}"
+  ""
+  "data Foo = Foo"
+  "  { bar      :: Int"
+  "  , baz#_|_ :: Map String Double"
+  "  , decombobulate :: Colour"
+  "  }"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MagicHash #-}"
+  ""
+  "data Foo = Foo"
+  "  { bar      :: Int"
+  "  , baz##_|_  :: Map String Double"
+  "  , decombobulate :: Colour"
+  "  }"
+  ""))
 
 (vim-tests--test-fresh-buffer-contents-init-standard-modes-only
     (haskell-mode haskell-ts-mode)
