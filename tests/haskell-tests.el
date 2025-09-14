@@ -1476,331 +1476,431 @@ have different input states."
    "  | x `elem` xs ||_|_= xs"
    "  | otherwise   = []"))
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-smart-operators--magic-hash-0
-    (progn
-      (haskell-smart-operators-mode +1)
-      (haskell-ext-tracking-mode +1)
-      (should (haskell-ext-tracking-have-magic-hash?))
-      (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
-  (tests-utils--multiline
-   "{-# LANGUAGE MagicHash #-}"
-   "foo x xs = (bar_|_, baz)"
-   "")
-  (tests-utils--multiline
-   "{-# LANGUAGE MagicHash #-}"
-   "foo x xs = (bar#_|_, baz)"
-   ""))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--magic-hash-0
+ :action
+ (progn
+   (haskell-smart-operators-mode +1)
+   (haskell-ext-tracking-mode +1)
+   (should (haskell-ext-tracking-have-magic-hash?))
+   (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE MagicHash #-}"
+  "foo x xs = (bar_|_, baz)"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MagicHash #-}"
+  "foo x xs = (bar#_|_, baz)"
+  "")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-smart-operators--magic-hash-1
-    (progn
-      (haskell-smart-operators-mode +1)
-      (haskell-ext-tracking-mode +1)
-      (should (haskell-ext-tracking-have-magic-hash?))
-      (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
-  (tests-utils--multiline
-   "{-# LANGUAGE MagicHash #-}"
-   "foo x xs = foo_|_ +# bar"
-   "")
-  (tests-utils--multiline
-   "{-# LANGUAGE MagicHash #-}"
-   "foo x xs = foo#_|_ +# bar"
-   ""))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--magic-hash-1
+ :action
+ (progn
+   (haskell-smart-operators-mode +1)
+   (haskell-ext-tracking-mode +1)
+   (should (haskell-ext-tracking-have-magic-hash?))
+   (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE MagicHash #-}"
+  "foo x xs = foo_|_ +# bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MagicHash #-}"
+  "foo x xs = foo#_|_ +# bar"
+  "")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-smart-operators--magic-hash-2
-    (progn
-      (haskell-smart-operators-mode +1)
-      (haskell-ext-tracking-mode +1)
-      (should (haskell-ext-tracking-have-magic-hash?))
-      (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
-  (tests-utils--multiline
-   "{-# LANGUAGE MagicHash #-}"
-   "foo x xs = foo _|_ +# bar"
-   "")
-  (tests-utils--multiline
-   "{-# LANGUAGE MagicHash #-}"
-   "foo x xs = foo#_|_ +# bar"
-   ""))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--magic-hash-2
+ :action
+ (progn
+   (haskell-smart-operators-mode +1)
+   (haskell-ext-tracking-mode +1)
+   (should (haskell-ext-tracking-have-magic-hash?))
+   (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE MagicHash #-}"
+  "foo x xs = foo _|_ +# bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MagicHash #-}"
+  "foo x xs = foo#_|_ +# bar"
+  "")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-smart-operators--magic-hash-3
-    (progn
-      (haskell-smart-operators-mode +1)
-      (haskell-ext-tracking-mode +1)
-      (should (haskell-ext-tracking-have-magic-hash?))
-      (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
-  (tests-utils--multiline
-   "{-# LANGUAGE MagicHash #-}"
-   "foo x xs = foo _|_bar"
-   "")
-  (tests-utils--multiline
-   "{-# LANGUAGE MagicHash #-}"
-   "foo x xs = foo# _|_bar"
-   ""))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--magic-hash-3
+ :action
+ (progn
+   (haskell-smart-operators-mode +1)
+   (haskell-ext-tracking-mode +1)
+   (should (haskell-ext-tracking-have-magic-hash?))
+   (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE MagicHash #-}"
+  "foo x xs = foo _|_bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MagicHash #-}"
+  "foo x xs = foo# _|_bar"
+  "")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-smart-operators--magic-hash-4
-    (progn
-      (haskell-smart-operators-mode +1)
-      (haskell-ext-tracking-mode +1)
-      (should (haskell-ext-tracking-have-magic-hash?))
-      (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
-  (tests-utils--multiline
-   "{-# LANGUAGE MagicHash #-}"
-   "foo x xs = foo #  _|_bar"
-   "")
-  (tests-utils--multiline
-   "{-# LANGUAGE MagicHash #-}"
-   "foo x xs = foo ## _|_bar"
-   ""))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--magic-hash-4
+ :action
+ (progn
+   (haskell-smart-operators-mode +1)
+   (haskell-ext-tracking-mode +1)
+   (should (haskell-ext-tracking-have-magic-hash?))
+   (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE MagicHash #-}"
+  "foo x xs = foo #  _|_bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MagicHash #-}"
+  "foo x xs = foo ## _|_bar"
+  "")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-smart-operators--magic-hash-5
-    (progn
-      (haskell-smart-operators-mode +1)
-      (haskell-ext-tracking-mode +1)
-      (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
-      (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
-  (tests-utils--multiline
-   "{-# LANGUAGE MagicHash #-}"
-   "foo x xs = foo _|_bar"
-   "")
-  (tests-utils--multiline
-   "{-# LANGUAGE MagicHash #-}"
-   "foo x xs = foo# # _|_bar"
-   ""))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--magic-hash-5
+ :action
+ (progn
+   (haskell-smart-operators-mode +1)
+   (haskell-ext-tracking-mode +1)
+   (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
+   (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE MagicHash #-}"
+  "foo x xs = foo _|_bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MagicHash #-}"
+  "foo x xs = foo# # _|_bar"
+  "")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-smart-operators--magic-hash-6
-    (progn
-      (haskell-smart-operators-mode +1)
-      (haskell-ext-tracking-mode +1)
-      (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
-  (tests-utils--multiline
-   "{-# LANGUAGE MagicHash #-}"
-   "foo x xs = 1 _|_bar"
-   "")
-  (tests-utils--multiline
-   "{-# LANGUAGE MagicHash #-}"
-   "foo x xs = 1# _|_bar"
-   ""))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--magic-hash-6
+ :action
+ (progn
+   (haskell-smart-operators-mode +1)
+   (haskell-ext-tracking-mode +1)
+   (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE MagicHash #-}"
+  "foo x xs = 1 _|_bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MagicHash #-}"
+  "foo x xs = 1# _|_bar"
+  "")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-smart-operators--magic-hash-6a
-    (progn
-      (haskell-smart-operators-mode +1)
-      (haskell-ext-tracking-mode +1)
-      (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
-  (tests-utils--multiline
-   "{-# LANGUAGE MagicHash #-}"
-   "foo x xs = 123.45 _|_bar"
-   "")
-  (tests-utils--multiline
-   "{-# LANGUAGE MagicHash #-}"
-   "foo x xs = 123.45# _|_bar"
-   ""))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--magic-hash-6a
+ :action
+ (progn
+   (haskell-smart-operators-mode +1)
+   (haskell-ext-tracking-mode +1)
+   (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE MagicHash #-}"
+  "foo x xs = 123.45 _|_bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MagicHash #-}"
+  "foo x xs = 123.45# _|_bar"
+  "")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-smart-operators--magic-hash-6b
-    (progn
-      (haskell-smart-operators-mode +1)
-      (haskell-ext-tracking-mode +1)
-      (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
-  (tests-utils--multiline
-   "{-# LANGUAGE MagicHash #-}"
-   "foo x xs = 123.45e-2 _|_bar"
-   "")
-  (tests-utils--multiline
-   "{-# LANGUAGE MagicHash #-}"
-   "foo x xs = 123.45e-2# _|_bar"
-   ""))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--magic-hash-6b
+ :action
+ (progn
+   (haskell-smart-operators-mode +1)
+   (haskell-ext-tracking-mode +1)
+   (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE MagicHash #-}"
+  "foo x xs = 123.45e-2 _|_bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MagicHash #-}"
+  "foo x xs = 123.45e-2# _|_bar"
+  "")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-smart-operators--magic-hash-7
-    (progn
-      (haskell-smart-operators-mode +1)
-      (haskell-ext-tracking-mode +1)
-      (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
-      (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
-  (tests-utils--multiline
-   "{-# LANGUAGE MagicHash #-}"
-   "foo x xs = 1 _|_bar"
-   "")
-  (tests-utils--multiline
-   "{-# LANGUAGE MagicHash #-}"
-   "foo x xs = 1## _|_bar"
-   ""))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--magic-hash-7
+ :action
+ (progn
+   (haskell-smart-operators-mode +1)
+   (haskell-ext-tracking-mode +1)
+   (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
+   (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE MagicHash #-}"
+  "foo x xs = 1 _|_bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MagicHash #-}"
+  "foo x xs = 1## _|_bar"
+  "")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-smart-operators--magic-hash-7a
-    (progn
-      (haskell-smart-operators-mode +1)
-      (haskell-ext-tracking-mode +1)
-      (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
-      (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
-  (tests-utils--multiline
-   "{-# LANGUAGE MagicHash #-}"
-   "foo x xs = 123.45 _|_bar"
-   "")
-  (tests-utils--multiline
-   "{-# LANGUAGE MagicHash #-}"
-   "foo x xs = 123.45## _|_bar"
-   ""))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--magic-hash-7a
+ :action
+ (progn
+   (haskell-smart-operators-mode +1)
+   (haskell-ext-tracking-mode +1)
+   (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
+   (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE MagicHash #-}"
+  "foo x xs = 123.45 _|_bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MagicHash #-}"
+  "foo x xs = 123.45## _|_bar"
+  "")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-smart-operators--magic-hash-7b
-    (progn
-      (haskell-smart-operators-mode +1)
-      (haskell-ext-tracking-mode +1)
-      (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
-      (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
-  (tests-utils--multiline
-   "{-# LANGUAGE MagicHash #-}"
-   "foo x xs = 123.45e-2 _|_bar"
-   "")
-  (tests-utils--multiline
-   "{-# LANGUAGE MagicHash #-}"
-   "foo x xs = 123.45e-2## _|_bar"
-   ""))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--magic-hash-7b
+ :action
+ (progn
+   (haskell-smart-operators-mode +1)
+   (haskell-ext-tracking-mode +1)
+   (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
+   (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE MagicHash #-}"
+  "foo x xs = 123.45e-2 _|_bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MagicHash #-}"
+  "foo x xs = 123.45e-2## _|_bar"
+  "")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-smart-operators--magic-hash-8
-    (progn
-      (haskell-smart-operators-mode +1)
-      (haskell-ext-tracking-mode +1)
-      (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
-      (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
-      (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
-  (tests-utils--multiline
-   "{-# LANGUAGE MagicHash #-}"
-   "foo x xs = 1 _|_bar"
-   "")
-  (tests-utils--multiline
-   "{-# LANGUAGE MagicHash #-}"
-   "foo x xs = 1## # _|_bar"
-   ""))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--magic-hash-8
+ :action
+ (progn
+   (haskell-smart-operators-mode +1)
+   (haskell-ext-tracking-mode +1)
+   (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
+   (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
+   (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE MagicHash #-}"
+  "foo x xs = 1 _|_bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MagicHash #-}"
+  "foo x xs = 1## # _|_bar"
+  "")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-smart-operators--magic-hash-8a
-    (progn
-      (haskell-smart-operators-mode +1)
-      (haskell-ext-tracking-mode +1)
-      (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
-      (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
-      (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
-  (tests-utils--multiline
-   "{-# LANGUAGE MagicHash #-}"
-   "foo x xs = 123.45 _|_bar"
-   "")
-  (tests-utils--multiline
-   "{-# LANGUAGE MagicHash #-}"
-   "foo x xs = 123.45## # _|_bar"
-   ""))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--magic-hash-8a
+ :action
+ (progn
+   (haskell-smart-operators-mode +1)
+   (haskell-ext-tracking-mode +1)
+   (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
+   (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
+   (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE MagicHash #-}"
+  "foo x xs = 123.45 _|_bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MagicHash #-}"
+  "foo x xs = 123.45## # _|_bar"
+  "")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-smart-operators--magic-hash-8b
-    (progn
-      (haskell-smart-operators-mode +1)
-      (haskell-ext-tracking-mode +1)
-      (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
-      (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
-      (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
-  (tests-utils--multiline
-   "{-# LANGUAGE MagicHash #-}"
-   "foo x xs = 123.45e-11 _|_bar"
-   "")
-  (tests-utils--multiline
-   "{-# LANGUAGE MagicHash #-}"
-   "foo x xs = 123.45e-11## # _|_bar"
-   ""))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--magic-hash-8b
+ :action
+ (progn
+   (haskell-smart-operators-mode +1)
+   (haskell-ext-tracking-mode +1)
+   (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
+   (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
+   (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE MagicHash #-}"
+  "foo x xs = 123.45e-11 _|_bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MagicHash #-}"
+  "foo x xs = 123.45e-11## # _|_bar"
+  "")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-smart-operators--magic-hash-and-equals-space-1
-    (progn
-      (haskell-smart-operators-mode +1)
-      (haskell-ext-tracking-mode +1)
-      (haskell-smart-operators-hash)
-      (should (haskell-ext-tracking-have-magic-hash?))
-      (haskell-smart-operators--insert-char-surrounding-with-spaces ?=))
-  (tests-utils--multiline
-   "{-# LANGUAGE MagicHash #-}"
-   ""
-   "  where"
-   "    ptr_|_"
-   "")
-  (tests-utils--multiline
-   "{-# LANGUAGE MagicHash #-}"
-   ""
-   "  where"
-   "    ptr# = _|_"
-   ""))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--magic-hash-and-equals-space-1
+ :action
+ (progn
+   (haskell-smart-operators-mode +1)
+   (haskell-ext-tracking-mode +1)
+   (haskell-smart-operators-hash)
+   (should (haskell-ext-tracking-have-magic-hash?))
+   (haskell-smart-operators--insert-char-surrounding-with-spaces ?=))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE MagicHash #-}"
+  ""
+  "  where"
+  "    ptr_|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MagicHash #-}"
+  ""
+  "  where"
+  "    ptr# = _|_"
+  "")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-smart-operators--magic-hash-and-equals-space-2
-    (progn
-      (haskell-smart-operators-mode +1)
-      (haskell-ext-tracking-mode +1)
-      (should (haskell-ext-tracking-have-magic-hash?))
-      (haskell-smart-operators--insert-char-surrounding-with-spaces ?=))
-  (tests-utils--multiline
-   "{-# LANGUAGE MagicHash #-}"
-   ""
-   "  where"
-   "    ptr#_|_"
-   "")
-  (tests-utils--multiline
-   "{-# LANGUAGE MagicHash #-}"
-   ""
-   "  where"
-   "    ptr# = _|_"
-   ""))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--magic-hash-and-equals-space-2
+ :action
+ (progn
+   (haskell-smart-operators-mode +1)
+   (haskell-ext-tracking-mode +1)
+   (should (haskell-ext-tracking-have-magic-hash?))
+   (haskell-smart-operators--insert-char-surrounding-with-spaces ?=))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE MagicHash #-}"
+  ""
+  "  where"
+  "    ptr#_|_"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE MagicHash #-}"
+  ""
+  "  where"
+  "    ptr# = _|_"
+  "")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-smart-operators--dot-1
-    (progn
-      (haskell-smart-operators-mode +1)
-      (haskell-ext-tracking-mode +1)
-      (haskell-smart-operators-dot))
-  (tests-utils--multiline
-   ""
-   "foo x xs = foo .+  _|_bar"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x xs = foo .+. _|_bar"
-   ""))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--dot-1
+ :action
+ (progn
+   (haskell-smart-operators-mode +1)
+   (haskell-ext-tracking-mode +1)
+   (haskell-smart-operators-dot))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x xs = foo .+  _|_bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x xs = foo .+. _|_bar"
+  "")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-smart-operators--dot-2
-    (progn
-      (haskell-smart-operators-mode +1)
-      (haskell-ext-tracking-mode +1)
-      (haskell-smart-operators-dot))
-  (tests-utils--multiline
-   ""
-   "foo x xs = foo .+  _|_ bar"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x xs = foo .+._|_ bar"
-   ""))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--dot-2
+ :action
+ (progn
+   (haskell-smart-operators-mode +1)
+   (haskell-ext-tracking-mode +1)
+   (haskell-smart-operators-dot))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x xs = foo .+  _|_ bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x xs = foo .+._|_ bar"
+  "")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-smart-operators--dot-3
-    (progn
-      (haskell-smart-operators-mode +1)
-      (haskell-ext-tracking-mode +1)
-      (haskell-smart-operators-dot))
-  (tests-utils--multiline
-   ""
-   "foo x xs = foo <_|_> bar"
-   "")
-  (tests-utils--multiline
-   ""
-   "foo x xs = foo <._|_> bar"
-   ""))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators--dot-3
+ :action
+ (progn
+   (haskell-smart-operators-mode +1)
+   (haskell-ext-tracking-mode +1)
+   (haskell-smart-operators-dot))
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo x xs = foo <_|_> bar"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo x xs = foo <._|_> bar"
+  "")
+ :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-smart-operators--arrows-in-non-haddock-comment-1
@@ -5210,367 +5310,477 @@ have different input states."
           (should (equal beginning 0))
           (should (equal end (length str))))))))
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-qualify-import-1
-    (progn
-      (haskell-ext-tracking-mode +1)
-      (should-not (haskell-ext-tracking-have-import-qualified-post?))
-      (haskell-qualify-import))
-  (tests-utils--multiline
-   "import Data.List"
-   "import Data.Ord_|_"
-   "import Data.Set (Set)")
-  (tests-utils--multiline
-   "import Data.List"
-   "import qualified Data.Ord_|_"
-   "import Data.Set (Set)"))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-qualify-import-1
+ :action
+ (progn
+   (haskell-ext-tracking-mode +1)
+   (should-not (haskell-ext-tracking-have-import-qualified-post?))
+   (haskell-qualify-import))
+ :contents
+ (tests-utils--multiline
+  "import Data.List"
+  "import Data.Ord_|_"
+  "import Data.Set (Set)")
+ :expected-value
+ (tests-utils--multiline
+  "import Data.List"
+  "import qualified Data.Ord_|_"
+  "import Data.Set (Set)")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-qualify-import-1a
-    (progn
-      (haskell-ext-tracking-mode +1)
-      (should (haskell-ext-tracking-have-import-qualified-post?))
-      (haskell-qualify-import))
-  (tests-utils--multiline
-   "{-# LANGUAGE ImportQualifiedPost #-}"
-   "import Data.List"
-   "import Data.Ord_|_"
-   "import Data.Set (Set)")
-  (tests-utils--multiline
-   "{-# LANGUAGE ImportQualifiedPost #-}"
-   "import Data.List"
-   "import Data.Ord_|_ qualified"
-   "import Data.Set (Set)"))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-qualify-import-1a
+ :action
+ (progn
+   (haskell-ext-tracking-mode +1)
+   (should (haskell-ext-tracking-have-import-qualified-post?))
+   (haskell-qualify-import))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE ImportQualifiedPost #-}"
+  "import Data.List"
+  "import Data.Ord_|_"
+  "import Data.Set (Set)")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE ImportQualifiedPost #-}"
+  "import Data.List"
+  "import Data.Ord_|_ qualified"
+  "import Data.Set (Set)")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-qualify-import-2
-    (progn
-      (haskell-ext-tracking-mode +1)
-      (should-not (haskell-ext-tracking-have-import-qualified-post?))
-      (haskell-qualify-import))
-  (tests-utils--multiline
-   "import Data.List"
-   "import      Data.Ord_|_"
-   "import Data.Set (Set)")
-  (tests-utils--multiline
-   "import Data.List"
-   "import qualified Data.Ord_|_"
-   "import Data.Set (Set)"))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-qualify-import-2
+ :action
+ (progn
+   (haskell-ext-tracking-mode +1)
+   (should-not (haskell-ext-tracking-have-import-qualified-post?))
+   (haskell-qualify-import))
+ :contents
+ (tests-utils--multiline
+  "import Data.List"
+  "import      Data.Ord_|_"
+  "import Data.Set (Set)")
+ :expected-value
+ (tests-utils--multiline
+  "import Data.List"
+  "import qualified Data.Ord_|_"
+  "import Data.Set (Set)")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-qualify-import-2a
-    (progn
-      (haskell-ext-tracking-mode +1)
-      (should (haskell-ext-tracking-have-import-qualified-post?))
-      (haskell-qualify-import))
-  (tests-utils--multiline
-   "{-# LANGUAGE ImportQualifiedPost #-}"
-   "import Data.List"
-   "import      Data.Ord_|_"
-   "import Data.Set (Set)")
-  (tests-utils--multiline
-   "{-# LANGUAGE ImportQualifiedPost #-}"
-   "import Data.List"
-   "import      Data.Ord_|_ qualified"
-   "import Data.Set (Set)"))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-qualify-import-2a
+ :action
+ (progn
+   (haskell-ext-tracking-mode +1)
+   (should (haskell-ext-tracking-have-import-qualified-post?))
+   (haskell-qualify-import))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE ImportQualifiedPost #-}"
+  "import Data.List"
+  "import      Data.Ord_|_"
+  "import Data.Set (Set)")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE ImportQualifiedPost #-}"
+  "import Data.List"
+  "import      Data.Ord_|_ qualified"
+  "import Data.Set (Set)")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-qualify-import-3
-    (progn
-      (haskell-ext-tracking-mode +1)
-      (should-not (haskell-ext-tracking-have-import-qualified-post?))
-      (haskell-qualify-import))
-  (tests-utils--multiline
-   "import Data.List"
-   "import \"foo\"     Data.Ord_|_"
-   "import Data.Set (Set)")
-  (tests-utils--multiline
-   "import Data.List"
-   "import qualified \"foo\"     Data.Ord_|_"
-   "import Data.Set (Set)"))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-qualify-import-3
+ :action
+ (progn
+   (haskell-ext-tracking-mode +1)
+   (should-not (haskell-ext-tracking-have-import-qualified-post?))
+   (haskell-qualify-import))
+ :contents
+ (tests-utils--multiline
+  "import Data.List"
+  "import \"foo\"     Data.Ord_|_"
+  "import Data.Set (Set)")
+ :expected-value
+ (tests-utils--multiline
+  "import Data.List"
+  "import qualified \"foo\"     Data.Ord_|_"
+  "import Data.Set (Set)")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-qualify-import-3a
-    (progn
-      (haskell-ext-tracking-mode +1)
-      (should (haskell-ext-tracking-have-import-qualified-post?))
-      (haskell-qualify-import))
-  (tests-utils--multiline
-   "{-# LANGUAGE ImportQualifiedPost #-}"
-   "import Data.List"
-   "import \"foo\"     Data.Ord_|_"
-   "import Data.Set (Set)")
-  (tests-utils--multiline
-   "{-# LANGUAGE ImportQualifiedPost #-}"
-   "import Data.List"
-   "import \"foo\"     Data.Ord_|_ qualified"
-   "import Data.Set (Set)"))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-qualify-import-3a
+ :action
+ (progn
+   (haskell-ext-tracking-mode +1)
+   (should (haskell-ext-tracking-have-import-qualified-post?))
+   (haskell-qualify-import))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE ImportQualifiedPost #-}"
+  "import Data.List"
+  "import \"foo\"     Data.Ord_|_"
+  "import Data.Set (Set)")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE ImportQualifiedPost #-}"
+  "import Data.List"
+  "import \"foo\"     Data.Ord_|_ qualified"
+  "import Data.Set (Set)")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-qualify-import-4
-    (progn
-      (haskell-ext-tracking-mode +1)
-      (should-not (haskell-ext-tracking-have-import-qualified-post?))
-      (haskell-qualify-import))
-  (tests-utils--multiline
-   "import Data.List"
-   "import   qualified   Data.Ord_|_"
-   "import Data.Set (Set)")
-  (tests-utils--multiline
-   "import Data.List"
-   "import   Data.Ord_|_"
-   "import Data.Set (Set)"))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-qualify-import-4
+ :action
+ (progn
+   (haskell-ext-tracking-mode +1)
+   (should-not (haskell-ext-tracking-have-import-qualified-post?))
+   (haskell-qualify-import))
+ :contents
+ (tests-utils--multiline
+  "import Data.List"
+  "import   qualified   Data.Ord_|_"
+  "import Data.Set (Set)")
+ :expected-value
+ (tests-utils--multiline
+  "import Data.List"
+  "import   Data.Ord_|_"
+  "import Data.Set (Set)")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-qualify-import-4a
-    (progn
-      (haskell-ext-tracking-mode +1)
-      (should (haskell-ext-tracking-have-import-qualified-post?))
-      (haskell-qualify-import))
-  (tests-utils--multiline
-   "{-# LANGUAGE ImportQualifiedPost #-}"
-   "import Data.List"
-   "import   qualified   Data.Ord_|_"
-   "import Data.Set (Set)")
-  (tests-utils--multiline
-   "{-# LANGUAGE ImportQualifiedPost #-}"
-   "import Data.List"
-   "import   Data.Ord_|_"
-   "import Data.Set (Set)"))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-qualify-import-4a
+ :action
+ (progn
+   (haskell-ext-tracking-mode +1)
+   (should (haskell-ext-tracking-have-import-qualified-post?))
+   (haskell-qualify-import))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE ImportQualifiedPost #-}"
+  "import Data.List"
+  "import   qualified   Data.Ord_|_"
+  "import Data.Set (Set)")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE ImportQualifiedPost #-}"
+  "import Data.List"
+  "import   Data.Ord_|_"
+  "import Data.Set (Set)")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-qualify-import-4b
-    (progn
-      (haskell-ext-tracking-mode +1)
-      (should (haskell-ext-tracking-have-import-qualified-post?))
-      (haskell-qualify-import))
-  (tests-utils--multiline
-   "{-# LANGUAGE ImportQualifiedPost #-}"
-   "import Data.List"
-   "import Data.Ord qualified_|_"
-   "import Data.Set (Set)")
-  (tests-utils--multiline
-   "{-# LANGUAGE ImportQualifiedPost #-}"
-   "import Data.List"
-   "import Data.Ord_|_"
-   "import Data.Set (Set)"))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-qualify-import-4b
+ :action
+ (progn
+   (haskell-ext-tracking-mode +1)
+   (should (haskell-ext-tracking-have-import-qualified-post?))
+   (haskell-qualify-import))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE ImportQualifiedPost #-}"
+  "import Data.List"
+  "import Data.Ord qualified_|_"
+  "import Data.Set (Set)")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE ImportQualifiedPost #-}"
+  "import Data.List"
+  "import Data.Ord_|_"
+  "import Data.Set (Set)")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-qualify-import-4c
-    (progn
-      (haskell-ext-tracking-mode +1)
-      (should (haskell-ext-tracking-have-import-qualified-post?))
-      (haskell-qualify-import))
-  (tests-utils--multiline
-   "{-# LANGUAGE ImportQualifiedPost #-}"
-   "import Data.List"
-   "import Data.Ord      qualified   _|_"
-   "import Data.Set (Set)")
-  (tests-utils--multiline
-   "{-# LANGUAGE ImportQualifiedPost #-}"
-   "import Data.List"
-   "import Data.Ord   _|_"
-   "import Data.Set (Set)"))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-qualify-import-4c
+ :action
+ (progn
+   (haskell-ext-tracking-mode +1)
+   (should (haskell-ext-tracking-have-import-qualified-post?))
+   (haskell-qualify-import))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE ImportQualifiedPost #-}"
+  "import Data.List"
+  "import Data.Ord      qualified   _|_"
+  "import Data.Set (Set)")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE ImportQualifiedPost #-}"
+  "import Data.List"
+  "import Data.Ord   _|_"
+  "import Data.Set (Set)")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-qualify-import-4d
-    (progn
-      (haskell-ext-tracking-mode +1)
-      (should (haskell-ext-tracking-have-import-qualified-post?))
-      (haskell-qualify-import)
-      (haskell-qualify-import))
-  (tests-utils--multiline
-   "{-# LANGUAGE ImportQualifiedPost #-}"
-   "import Data.List"
-   "import Data.Ord      qualified   _|_"
-   "import Data.Set (Set)")
-  (tests-utils--multiline
-   "{-# LANGUAGE ImportQualifiedPost #-}"
-   "import Data.List"
-   "import Data.Ord qualified   _|_"
-   "import Data.Set (Set)"))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-qualify-import-4d
+ :action
+ (progn
+   (haskell-ext-tracking-mode +1)
+   (should (haskell-ext-tracking-have-import-qualified-post?))
+   (haskell-qualify-import)
+   (haskell-qualify-import))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE ImportQualifiedPost #-}"
+  "import Data.List"
+  "import Data.Ord      qualified   _|_"
+  "import Data.Set (Set)")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE ImportQualifiedPost #-}"
+  "import Data.List"
+  "import Data.Ord qualified   _|_"
+  "import Data.Set (Set)")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-qualify-import-5
-    (progn
-      (haskell-ext-tracking-mode +1)
-      (should-not (haskell-ext-tracking-have-import-qualified-post?))
-      (haskell-qualify-import))
-  (tests-utils--multiline
-   "import Data.List"
-   "import  qualified   \"foo\"  Data.Ord_|_"
-   "import Data.Set (Set)")
-  (tests-utils--multiline
-   "import Data.List"
-   "import  \"foo\"  Data.Ord_|_"
-   "import Data.Set (Set)"))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-qualify-import-5
+ :action
+ (progn
+   (haskell-ext-tracking-mode +1)
+   (should-not (haskell-ext-tracking-have-import-qualified-post?))
+   (haskell-qualify-import))
+ :contents
+ (tests-utils--multiline
+  "import Data.List"
+  "import  qualified   \"foo\"  Data.Ord_|_"
+  "import Data.Set (Set)")
+ :expected-value
+ (tests-utils--multiline
+  "import Data.List"
+  "import  \"foo\"  Data.Ord_|_"
+  "import Data.Set (Set)")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-qualify-import-5a
-    (progn
-      (haskell-ext-tracking-mode +1)
-      (should (haskell-ext-tracking-have-import-qualified-post?))
-      (haskell-qualify-import))
-  (tests-utils--multiline
-   "{-# LANGUAGE ImportQualifiedPost #-}"
-   "import Data.List"
-   "import  qualified   \"foo\"    Data.Ord_|_"
-   "import Data.Set (Set)")
-  (tests-utils--multiline
-   "{-# LANGUAGE ImportQualifiedPost #-}"
-   "import Data.List"
-   "import  \"foo\"    Data.Ord_|_"
-   "import Data.Set (Set)"))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-qualify-import-5a
+ :action
+ (progn
+   (haskell-ext-tracking-mode +1)
+   (should (haskell-ext-tracking-have-import-qualified-post?))
+   (haskell-qualify-import))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE ImportQualifiedPost #-}"
+  "import Data.List"
+  "import  qualified   \"foo\"    Data.Ord_|_"
+  "import Data.Set (Set)")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE ImportQualifiedPost #-}"
+  "import Data.List"
+  "import  \"foo\"    Data.Ord_|_"
+  "import Data.Set (Set)")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-qualify-import-5b
-    (progn
-      (haskell-ext-tracking-mode +1)
-      (should (haskell-ext-tracking-have-import-qualified-post?))
-      (haskell-qualify-import))
-  (tests-utils--multiline
-   "{-# LANGUAGE ImportQualifiedPost #-}"
-   "import Data.List"
-   "import  \"foo\"  Data.Ord   qualified   _|_"
-   "import Data.Set (Set)")
-  (tests-utils--multiline
-   "{-# LANGUAGE ImportQualifiedPost #-}"
-   "import Data.List"
-   "import  \"foo\"  Data.Ord   _|_"
-   "import Data.Set (Set)"))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-qualify-import-5b
+ :action
+ (progn
+   (haskell-ext-tracking-mode +1)
+   (should (haskell-ext-tracking-have-import-qualified-post?))
+   (haskell-qualify-import))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE ImportQualifiedPost #-}"
+  "import Data.List"
+  "import  \"foo\"  Data.Ord   qualified   _|_"
+  "import Data.Set (Set)")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE ImportQualifiedPost #-}"
+  "import Data.List"
+  "import  \"foo\"  Data.Ord   _|_"
+  "import Data.Set (Set)")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-qualify-import-6
-    (progn
-      (haskell-ext-tracking-mode +1)
-      (should-not (haskell-ext-tracking-have-import-qualified-post?))
-      (haskell-qualify-import))
-  (tests-utils--multiline
-   "import Data.List"
-   "import qualified Data.Ord as Ord (Down_|_)"
-   "import Data.Set (Set)")
-  (tests-utils--multiline
-   "import Data.List"
-   "import Data.Ord as Ord (Down_|_)"
-   "import Data.Set (Set)"))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-qualify-import-6
+ :action
+ (progn
+   (haskell-ext-tracking-mode +1)
+   (should-not (haskell-ext-tracking-have-import-qualified-post?))
+   (haskell-qualify-import))
+ :contents
+ (tests-utils--multiline
+  "import Data.List"
+  "import qualified Data.Ord as Ord (Down_|_)"
+  "import Data.Set (Set)")
+ :expected-value
+ (tests-utils--multiline
+  "import Data.List"
+  "import Data.Ord as Ord (Down_|_)"
+  "import Data.Set (Set)")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-qualify-import-6a
-    (progn
-      (haskell-ext-tracking-mode +1)
-      (should-not (haskell-ext-tracking-have-import-qualified-post?))
-      (haskell-qualify-import)
-      (haskell-qualify-import))
-  (tests-utils--multiline
-   "import Data.List"
-   "import    qualified    Data.Ord as Ord (Down_|_)"
-   "import Data.Set (Set)")
-  (tests-utils--multiline
-   "import Data.List"
-   "import qualified Data.Ord as Ord (Down_|_)"
-   "import Data.Set (Set)"))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-qualify-import-6a
+ :action
+ (progn
+   (haskell-ext-tracking-mode +1)
+   (should-not (haskell-ext-tracking-have-import-qualified-post?))
+   (haskell-qualify-import)
+   (haskell-qualify-import))
+ :contents
+ (tests-utils--multiline
+  "import Data.List"
+  "import    qualified    Data.Ord as Ord (Down_|_)"
+  "import Data.Set (Set)")
+ :expected-value
+ (tests-utils--multiline
+  "import Data.List"
+  "import qualified Data.Ord as Ord (Down_|_)"
+  "import Data.Set (Set)")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-qualify-import-6b
-    (progn
-      (haskell-ext-tracking-mode +1)
-      (should (haskell-ext-tracking-have-import-qualified-post?))
-      (haskell-qualify-import))
-  (tests-utils--multiline
-   "{-# LANGUAGE ImportQualifiedPost #-}"
-   "import Data.List"
-   "import qualified Data.Ord as Ord (Down_|_)"
-   "import Data.Set (Set)")
-  (tests-utils--multiline
-   "{-# LANGUAGE ImportQualifiedPost #-}"
-   "import Data.List"
-   "import Data.Ord as Ord (Down_|_)"
-   "import Data.Set (Set)"))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-qualify-import-6b
+ :action
+ (progn
+   (haskell-ext-tracking-mode +1)
+   (should (haskell-ext-tracking-have-import-qualified-post?))
+   (haskell-qualify-import))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE ImportQualifiedPost #-}"
+  "import Data.List"
+  "import qualified Data.Ord as Ord (Down_|_)"
+  "import Data.Set (Set)")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE ImportQualifiedPost #-}"
+  "import Data.List"
+  "import Data.Ord as Ord (Down_|_)"
+  "import Data.Set (Set)")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-qualify-import-6c
-    (progn
-      (haskell-ext-tracking-mode +1)
-      (should (haskell-ext-tracking-have-import-qualified-post?))
-      (haskell-qualify-import)
-      (haskell-qualify-import))
-  (tests-utils--multiline
-   "{-# LANGUAGE ImportQualifiedPost #-}"
-   "import Data.List"
-   "import qualified Data.Ord as Ord (Down_|_)"
-   "import Data.Set (Set)")
-  (tests-utils--multiline
-   "{-# LANGUAGE ImportQualifiedPost #-}"
-   "import Data.List"
-   "import Data.Ord qualified as Ord (Down_|_)"
-   "import Data.Set (Set)"))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-qualify-import-6c
+ :action
+ (progn
+   (haskell-ext-tracking-mode +1)
+   (should (haskell-ext-tracking-have-import-qualified-post?))
+   (haskell-qualify-import)
+   (haskell-qualify-import))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE ImportQualifiedPost #-}"
+  "import Data.List"
+  "import qualified Data.Ord as Ord (Down_|_)"
+  "import Data.Set (Set)")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE ImportQualifiedPost #-}"
+  "import Data.List"
+  "import Data.Ord qualified as Ord (Down_|_)"
+  "import Data.Set (Set)")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-qualify-import-6d
-    (progn
-      (haskell-ext-tracking-mode +1)
-      (should (haskell-ext-tracking-have-import-qualified-post?))
-      (haskell-qualify-import)
-      (haskell-qualify-import)
-      (haskell-qualify-import))
-  (tests-utils--multiline
-   "{-# LANGUAGE ImportQualifiedPost #-}"
-   "import Data.List"
-   "import qualified Data.Ord as Ord (Down_|_)"
-   "import Data.Set (Set)")
-  (tests-utils--multiline
-   "{-# LANGUAGE ImportQualifiedPost #-}"
-   "import Data.List"
-   "import Data.Ord as Ord (Down_|_)"
-   "import Data.Set (Set)"))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-qualify-import-6d
+ :action
+ (progn
+   (haskell-ext-tracking-mode +1)
+   (should (haskell-ext-tracking-have-import-qualified-post?))
+   (haskell-qualify-import)
+   (haskell-qualify-import)
+   (haskell-qualify-import))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE ImportQualifiedPost #-}"
+  "import Data.List"
+  "import qualified Data.Ord as Ord (Down_|_)"
+  "import Data.Set (Set)")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE ImportQualifiedPost #-}"
+  "import Data.List"
+  "import Data.Ord as Ord (Down_|_)"
+  "import Data.Set (Set)")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-qualify-import-6e
-    (progn
-      (haskell-ext-tracking-mode +1)
-      (should (haskell-ext-tracking-have-import-qualified-post?))
-      (haskell-qualify-import)
-      (haskell-qualify-import))
-  (tests-utils--multiline
-   "{-# LANGUAGE ImportQualifiedPost #-}"
-   "import Data.List"
-   "import Data.Ord   qualified   as Ord (Down_|_)"
-   "import Data.Set (Set)")
-  (tests-utils--multiline
-   "{-# LANGUAGE ImportQualifiedPost #-}"
-   "import Data.List"
-   "import Data.Ord qualified as Ord (Down_|_)"
-   "import Data.Set (Set)"))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-qualify-import-6e
+ :action
+ (progn
+   (haskell-ext-tracking-mode +1)
+   (should (haskell-ext-tracking-have-import-qualified-post?))
+   (haskell-qualify-import)
+   (haskell-qualify-import))
+ :contents
+ (tests-utils--multiline
+  "{-# LANGUAGE ImportQualifiedPost #-}"
+  "import Data.List"
+  "import Data.Ord   qualified   as Ord (Down_|_)"
+  "import Data.Set (Set)")
+ :expected-value
+ (tests-utils--multiline
+  "{-# LANGUAGE ImportQualifiedPost #-}"
+  "import Data.List"
+  "import Data.Ord qualified as Ord (Down_|_)"
+  "import Data.Set (Set)")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-qualify-import-7
-    (progn
-      (haskell-ext-tracking-mode +1)
-      (should-not (haskell-ext-tracking-have-import-qualified-post?))
-      (haskell-qualify-import))
-  (tests-utils--multiline
-   "import Data.List"
-   "import {-# SOURCE #-} qualified Data.Ord as Ord (Down_|_)"
-   "import Data.Set (Set)")
-  (tests-utils--multiline
-   "import Data.List"
-   "import {-# SOURCE #-} Data.Ord as Ord (Down_|_)"
-   "import Data.Set (Set)"))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-qualify-import-7
+ :action
+ (progn
+   (haskell-ext-tracking-mode +1)
+   (should-not (haskell-ext-tracking-have-import-qualified-post?))
+   (haskell-qualify-import))
+ :contents
+ (tests-utils--multiline
+  "import Data.List"
+  "import {-# SOURCE #-} qualified Data.Ord as Ord (Down_|_)"
+  "import Data.Set (Set)")
+ :expected-value
+ (tests-utils--multiline
+  "import Data.List"
+  "import {-# SOURCE #-} Data.Ord as Ord (Down_|_)"
+  "import Data.Set (Set)")
+ :fresh-buffer t)
 
-(haskell-tests--test-buffer-contents
-    haskell-tests/haskell-qualify-import-7a
-    (progn
-      (haskell-ext-tracking-mode +1)
-      (should-not (haskell-ext-tracking-have-import-qualified-post?))
-      (haskell-qualify-import))
-  (tests-utils--multiline
-   "import Data.List"
-   "import {-# SOURCE #-} Data.Ord as Ord (Down_|_)"
-   "import Data.Set (Set)")
-  (tests-utils--multiline
-   "import Data.List"
-   "import {-# SOURCE #-} qualified Data.Ord as Ord (Down_|_)"
-   "import Data.Set (Set)"))
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-qualify-import-7a
+ :action
+ (progn
+   (haskell-ext-tracking-mode +1)
+   (should-not (haskell-ext-tracking-have-import-qualified-post?))
+   (haskell-qualify-import))
+ :contents
+ (tests-utils--multiline
+  "import Data.List"
+  "import {-# SOURCE #-} Data.Ord as Ord (Down_|_)"
+  "import Data.Set (Set)")
+ :expected-value
+ (tests-utils--multiline
+  "import Data.List"
+  "import {-# SOURCE #-} qualified Data.Ord as Ord (Down_|_)"
+  "import Data.Set (Set)")
+ :fresh-buffer t)
 
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-back-up-indent-level-1
