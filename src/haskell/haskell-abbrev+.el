@@ -318,25 +318,19 @@ then Bar would be the result."
         (trie-from-list (list (cons (s-reverse "import") t))))))))
 
 (defun haskell-abbrev+--within-data-type? ()
-  "Check that we’re within \"fields\" part of a \"data_type\"."
-  (when-let
-      ((fields-node
-        (treesit-utils-find-topmost-parent-stop-at-first
-         (treesit-haskell--current-node)
-         (lambda (x)
-           (when (equal "fields" (treesit-node-type x))
-             x)))))
-    (treesit-utils-find-topmost-parent-stop-at-first
-     fields-node
-     (lambda (x)
-       (equal "data_type" (treesit-node-type x))))))
+  "Check that we’re within a \"data_type\" node."
+  (and (treesit-utils-find-topmost-parent-stop-at-first
+        (treesit-haskell--current-node)
+        (lambda (x)
+          (string= "data_type" (treesit-node-type x))))
+       t))
 
 ;; Check that either
 ;; 1. And
 ;;    a. There’s only whitespace till line start
 ;;    b. We’re not within operator
 ;; 2. We’re after instance keyword
-;; 3. We’re within datatype
+;; 3. We’re within datatype and there’s space before ## to be expanded.
 ;; 4. We’re within import statement
 (defun haskell-abbrev+--should-insert-pragma? ()
   (let ((is-haskell-ts? (derived-mode-p 'haskell-ts-mode)))
@@ -360,7 +354,10 @@ then Bar would be the result."
         (and (haskell-abbrev+--after-instance-keyword?) 'within-instance)
         (and (haskell-abbrev+--after-import-keyword?) 'within-import)
         (when is-haskell-ts?
-          (and (haskell-abbrev+--within-data-type?) 'within-data)))))
+          (and (haskell-abbrev+--within-data-type?)
+               (let ((char-before-abbrev (char-before)))
+                 (whitespace-char? char-before-abbrev))
+               'within-data)))))
 
 (add-to-list 'ivy-re-builders-alist
              '(haskell-abbrev+--insert-pragma . ivy--regex-fuzzy))
