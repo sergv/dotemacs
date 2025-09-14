@@ -13,7 +13,7 @@
   "\\(?:_\\|\\b[[:lower:]]\\)[[:alnum:]'_#]*")
 
 (defconst haskell-regexen/core/varid
-  "[$]?\\(?:_\\|\\b[[:lower:]]\\)[[:alnum:]'_#]*")
+  "[$]?\\(?:_\\|\\b[[:lower:]]\\)[[:alnum:]'_#$]*")
 
 (defconst haskell-regexen/conid-raw
   "[[:upper:]][[:alnum:]'_#]*")
@@ -121,27 +121,34 @@
           "\\)"
           ))
 
-(defconst haskell-regexen/core/opt-q/varid-or-conid-or-operator-or-number
-  (concat "\\(?:" "'*"
-          "\\(?:" "\\(?:" haskell-regexen/core/pkgid ":\\)?" haskell-regexen/modid-raw "\\.\\)"
-          "\\|"
-          "\\(?:"
-          haskell-regexen/core/pkgid ":" "\\(?:" haskell-regexen/modid-raw "\\.\\)?"
-          "\\)"
+(defconst haskell-regexen/core/opt-q/varid-or-conid-or-operator-or-number/posix-only
+  (concat "\\(?:"
+          (concat "'*"
+                  "\\(?:" "\\(?:" haskell-regexen/core/pkgid ":\\)?" haskell-regexen/modid-raw "\\.\\)"
+                  "\\|"
+                  "\\(?:"
+                  haskell-regexen/core/pkgid ":" "\\(?:" haskell-regexen/modid-raw "\\.\\)?"
+                  "\\)")
           "\\)?"
 
           "\\(?1:"
-          "'*"
-          "\\(?:" haskell-regexen/conid-raw
-          "\\|"
-          (concat "[$]?"
-                  "\\(?:" haskell-regexen/operator
-                  "\\|" haskell-regexen/varid
-                  "\\)")
-          "\\)"
-          "\\|"
-          haskell-regexen/number
-          "\\)"))
+          (concat "'*"
+                  "\\(?:"
+                  (concat haskell-regexen/conid-raw
+                          "\\|"
+                          ;; This spot means that Core identifiers that start with $, e.g. ‘$foo’
+                          ;; will match only up to a dollar in standard Emacs regex semantics.
+                          ;; So this regexp needs to be used with POSIX semantics for correct results.
+                          (concat "\\(?:" haskell-regexen/operator
+                                  "\\|" haskell-regexen/core/varid
+                                  "\\)"))
+                  "\\)"
+                  "\\|"
+                  haskell-regexen/number)
+          "\\)")
+  "NB only use this regex with POSIX semantics, e.g. ‘posix-string-match’,
+‘posix-search-forward’, and ‘posix-looking-at’,
+otherwise results will be incorrect.")
 
 ;; ;; (old-sym "[-!#$%&*+./<=>?@^|~:\\]+")
 ;; (defconst haskell-regexen/sym-constructor
