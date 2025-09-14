@@ -902,7 +902,18 @@ have different input states."
   :expected-value
   "$test_prim#"
   :contents
-  " ++$tes_|_t_prim# ")
+  " ++$tes_|_t_prim# "
+  :modes (haskell-ts-mode ghc-core-mode text-mode))
+
+(haskell-tests--test-result
+    haskell-tests/bounds-of-ghc-core-symbol-2
+  :action
+  (substring-no-properties (thing-at-point 'ghc-core-symbol))
+  :expected-value
+  "$w$sexecMatch"
+  :contents
+  " ++$w$sexecMa_|_tch "
+  :modes (haskell-ts-mode ghc-core-mode text-mode))
 
 (ert-deftest haskell-tests/haskell-cabal--yasnippet--main-module-from-main-file-1 ()
   (should
@@ -5157,8 +5168,25 @@ have different input states."
                  "import \"package-1.2.3\" B"
                  "import safe B"
                  "import safe qualified \"unicode-7.0\" Data.Char.Unicode_v_7 as U (func)"))
-    (should (string-match-p haskell-regexen/pre-post-qualified-import-line str))))
+    (save-match-data
+      (should (string-match haskell-regexen/pre-post-qualified-import-line str))
+      (let ((end (match-end 0)))
+        (should (equal end (length str)))))))
 
+(ert-deftest haskell-tests/haskell-regexen/core-1 ()
+  (with-syntax-table ghc-core-symbol--identifier-syntax-table
+    (dolist (str '("$test_prim#"
+                   "$w$sexecMatch"))
+      (save-match-data
+        (should (posix-string-match (concat "^\\(?:" haskell-regexen/core/opt-q/varid-or-conid-or-operator-or-number/posix-only "\\)$")
+                                    str
+                                    nil
+                                    t))
+        (should (posix-string-match haskell-regexen/core/opt-q/varid-or-conid-or-operator-or-number/posix-only str))
+        (let ((beginning (match-beginning 0))
+              (end (match-end 0)))
+          (should (equal beginning 0))
+          (should (equal end (length str))))))))
 
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-qualify-import-1
