@@ -614,9 +614,10 @@ extensions as a list of strings. Leaves point at the end of pragma"
                   (skip-chars-backward word-chars))))
             (unless include-quotes?
               (skip-chars-forward "'"))
-            (when (looking-at (if core-mode?
-                                  haskell-regexen/core/opt-q/varid-or-conid-or-operator-or-number
-                                haskell-regexen/opt-q/varid-or-conid-or-operator-or-number))
+            (when (posix-looking-at
+                   (if core-mode?
+                       haskell-regexen/core/opt-q/varid-or-conid-or-operator-or-number/posix-only
+                     haskell-regexen/opt-q/varid-or-conid-or-operator-or-number))
               (if qualified?
                   (cons (match-beginning 0) (match-end 0))
                 (cons (match-beginning 1) (match-end 1)))))))))
