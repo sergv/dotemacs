@@ -551,6 +551,212 @@ have different input states."
       (should (equal "Ide.Types" (match-string 3 sample-input))))))
 
 (haskell-tests--test-result
+    haskell-tests/haskell-abbrev+--within-data-type?-1a
+  :action
+  (not (null (haskell-abbrev+--within-data-type?)))
+  :expected-value
+  t
+  :contents
+  (tests-utils--multiline
+   "-- Glushkov construction of glob patterns."
+   "data PatternF a"
+   "  = Star"
+   "  | Sym _|_!Char"
+   "  | Or a a"
+   "  | Seq a a"
+   "  deriving (Eq, Ord, Show, Foldable, Traversable, Generic, Generic1)"
+   "  deriving Pretty via PPGeneric (PatternF a)")
+  :modes (haskell-ts-mode))
+
+(haskell-tests--test-result
+    haskell-tests/haskell-abbrev+--within-data-type?-1b
+  :action
+  (not (null (haskell-abbrev+--within-data-type?)))
+  :expected-value
+  t
+  :contents
+  (tests-utils--multiline
+   "-- Glushkov construction of glob patterns."
+   "data PatternF a"
+   "  = _|_Star"
+   "  | Sym !Char"
+   "  | Or a a"
+   "  | Seq a a"
+   "  deriving (Eq, Ord, Show, Foldable, Traversable, Generic, Generic1)"
+   "  deriving Pretty via PPGeneric (PatternF a)")
+  :modes (haskell-ts-mode))
+
+(haskell-tests--test-result
+    haskell-tests/haskell-abbrev+--within-data-type?-1c
+  :action
+  (not (null (haskell-abbrev+--within-data-type?)))
+  :expected-value
+  t
+  :contents
+  (tests-utils--multiline
+   "-- Glushkov construction of glob patterns."
+   "data PatternF a"
+   "  = Star"
+   "  | Sym !Char"
+   "  | Or a a"
+   "  | Seq a a"
+   "  deriving (Eq, _|_Ord, Show, Foldable, Traversable, Generic, Generic1)"
+   "  deriving Pretty via PPGeneric (PatternF a)")
+  :modes (haskell-ts-mode))
+
+(haskell-tests--test-result
+    haskell-tests/haskell-abbrev+--within-data-type?-1d
+  :action
+  (not (null (haskell-abbrev+--within-data-type?)))
+  :expected-value
+  t
+  :contents
+  (tests-utils--multiline
+   "-- Glushkov construction of glob patterns."
+   "data PatternF a"
+   "  = Star"
+   "  | Sym !Char"
+   "  | Or a a_|_"
+   "  | Seq a a"
+   "  deriving (Eq, Ord, Show, Foldable, Traversable, Generic, Generic1)"
+   "  deriving Pretty via PPGeneric (PatternF a)")
+  :modes (haskell-ts-mode))
+
+(haskell-tests--test-result
+    haskell-tests/haskell-abbrev+--within-data-type?-1e
+  :action
+  (not (null (haskell-abbrev+--within-data-type?)))
+  :expected-value
+  t
+  :contents
+  (tests-utils--multiline
+   "-- Glushkov construction of glob patterns."
+   "data PatternF a"
+   "  = Star"
+   "  | Sym !Char"
+   "  _|_| Or a a"
+   "  | Seq a a"
+   "  deriving (Eq, Ord, Show, Foldable, Traversable, Generic, Generic1)"
+   "  deriving Pretty via PPGeneric (PatternF a)")
+  :modes (haskell-ts-mode))
+
+(haskell-tests--test-result
+    haskell-tests/haskell-abbrev+--within-data-type?-1f
+  :action
+  (not (null (haskell-abbrev+--within-data-type?)))
+  :expected-value
+  t
+  :contents
+  (tests-utils--multiline
+   "-- Glushkov construction of glob patterns."
+   "data PatternF a"
+   "  _|_= Star"
+   "  | Sym !Char"
+   "  | Or a a"
+   "  | Seq a a"
+   "  deriving (Eq, Ord, Show, Foldable, Traversable, Generic, Generic1)"
+   "  deriving Pretty via PPGeneric (PatternF a)")
+  :modes (haskell-ts-mode))
+
+(haskell-tests--test-result
+    haskell-tests/haskell-abbrev+--within-data-type?-2
+  :action
+  (not (null (haskell-abbrev+--within-data-type?)))
+  :expected-value
+  t
+  :contents
+  (tests-utils--multiline
+   "-- Glushkov construction of glob patterns."
+   "data PatternF a"
+   "  = Star"
+   "  | Sym ##_|_ !Char"
+   "  | Or a a"
+   "  | Seq a a"
+   "  deriving (Eq, Ord, Show, Foldable, Traversable, Generic, Generic1)"
+   "  deriving Pretty via PPGeneric (PatternF a)")
+  :modes (haskell-ts-mode))
+
+(haskell-tests--test-result
+    haskell-tests/haskell-abbrev+--within-data-type?-3a
+  :action
+  (not (null (haskell-abbrev+--within-data-type?)))
+  :expected-value
+  t
+  :contents
+  (tests-utils--multiline
+   ""
+   "data Foo = Foo"
+   "  { bar :: _|_Int"
+   "  , baz :: Map String Double"
+   "  }"
+   "")
+  :modes (haskell-ts-mode))
+
+(haskell-tests--test-result
+    haskell-tests/haskell-abbrev+--within-data-type?-3b
+  :action
+  (not (null (haskell-abbrev+--within-data-type?)))
+  :expected-value
+  t
+  :contents
+  (tests-utils--multiline
+   ""
+   "data Foo = Foo"
+   "  { bar :: Int"
+   "  , baz :: Map String _|_Double"
+   "  }"
+   "")
+  :modes (haskell-ts-mode))
+
+(haskell-tests--test-result
+    haskell-tests/haskell-abbrev+--within-data-type?-3c
+  :action
+  (not (null (haskell-abbrev+--within-data-type?)))
+  :expected-value
+  t
+  :contents
+  (tests-utils--multiline
+   ""
+   "data Foo = Foo"
+   "  { bar :: Int"
+   "  , _|_baz :: Map String Double"
+   "  }"
+   "")
+  :modes (haskell-ts-mode))
+
+(haskell-tests--test-result
+    haskell-tests/haskell-abbrev+--within-data-type?-3d
+  :action
+  (not (null (haskell-abbrev+--within-data-type?)))
+  :expected-value
+  t
+  :contents
+  (tests-utils--multiline
+   ""
+   "data Foo = Foo"
+   "  { bar :: Int"
+   "  _|_, baz :: Map String Double"
+   "  }"
+   "")
+  :modes (haskell-ts-mode))
+
+(haskell-tests--test-result
+    haskell-tests/haskell-abbrev+--within-data-type?-3e
+  :action
+  (not (null (haskell-abbrev+--within-data-type?)))
+  :expected-value
+  t
+  :contents
+  (tests-utils--multiline
+   ""
+   "data Foo = Foo"
+   "  _|_{ bar :: Int"
+   "  , baz :: Map String Double"
+   "  }"
+   "")
+  :modes (haskell-ts-mode))
+
+(haskell-tests--test-result
     haskell-tests/forward-haskell-symbol-1
   :action
   (list
