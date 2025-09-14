@@ -831,6 +831,55 @@
   "  showsPrec = foo"))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-class-1
+ :contents
+ (tests-utils--multiline
+  ""
+  "class Measurable a where"
+  "    _|_measure :: a -> Int"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "class Measurable a where"
+  "  _|_measure :: a -> Int"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-class-2a
+ :contents
+ (tests-utils--multiline
+  ""
+  "class Measurable a where"
+  "    _|_foo :: a -> Int"
+  "    bar :: a -> Int"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "class Measurable a where"
+  "  _|_foo :: a -> Int"
+  "  bar :: a -> Int"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-class-2b
+ :contents
+ (tests-utils--multiline
+  ""
+  "class Measurable a where"
+  "    foo :: a -> Int"
+  "    _|_bar :: a -> Int"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "class Measurable a where"
+  "  foo :: a -> Int"
+  "  _|_bar :: a -> Int"
+  ""))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-let-1
  :contents
  (tests-utils--multiline
