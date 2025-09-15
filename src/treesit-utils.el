@@ -22,6 +22,11 @@
        (text-after-pos-matches? (treesit-node-start node) "\"\"\"")
        (text-before-pos-matches? (treesit-node-end node) "\"\"\"")))
 
+(defun treesit-haskell--is-inside-pragma-node? (p node)
+  (and (string= "pragma" (treesit-node-type node))
+       (<= (treesit-node-start node) p)
+       (<= p (treesit-node-end node))))
+
 (cl-defstruct treesit-computed-indent
   (anchor-node :read-only t) ;; treesit node
   (flags       :read-only t) ;; list of symbols

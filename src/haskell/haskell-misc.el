@@ -402,29 +402,15 @@ _#-}_: on pragma close"
       ((or (save-excursion
              (beginning-of-line)
              (looking-at-p haskell-regexen/language-pragma-prefix))
-           ;; First check that we’re inside pragma then try to locate beginning
-           ;; of pragma block.
-           (and (cond
-                  ((derived-mode-p 'haskell-mode)
-                   (eq (get-char-property (point) 'face) 'haskell-pragma-face))
-                  ((derived-mode-p 'haskell-ts-mode)
-                   (string= "pragma" (treesit-node-type (treesit-node-at (point))))))
-                (save-excursion
-                  (re-search-backward haskell-regexen/pragma-start nil t)
-                  (looking-at-p haskell-regexen/language-pragma-prefix))))
+           (haskell-misc--point-inside-matching-pragma? (point)
+                                                        haskell-regexen/language-pragma-prefix))
        (save-current-line-column
          (haskell-align-language-pragmas (point))))
       ((or (save-excursion
              (beginning-of-line)
              (looking-at-p haskell-regexen/options-ghc-pragma-prefix))
-           (and (cond
-                  ((derived-mode-p 'haskell-mode)
-                   (eq (get-char-property (point) 'face) 'haskell-pragma-face))
-                  ((derived-mode-p 'haskell-ts-mode)
-                   (string= "pragma" (treesit-node-type (treesit-node-at (point))))))
-                (save-excursion
-                  (re-search-backward haskell-regexen/pragma-start nil t)
-                  (looking-at-p haskell-regexen/options-ghc-pragma-prefix))))
+           (haskell-misc--point-inside-matching-pragma? (point)
+                                                        haskell-regexen/options-ghc-pragma-prefix))
        (save-current-line-column
          (haskell-align-options-ghc-pragmas (point))))
       ((haskell-sort-imports-at-import?)
@@ -480,9 +466,7 @@ _#-}_: on pragma close"
                              start)))))))
                 ((derived-mode-p 'haskell-ts-mode)
                  (when-let ((node (treesit-node-at (point))))
-                   (when (and (string= "pragma" (treesit-node-type node))
-                              (<= (treesit-node-start node) point)
-                              (<= point (treesit-node-end node)))
+                   (when (treesit-haskell--is-inside-pragma-node? (point) node)
                      (treesit-node-start node))))
                 (t
                  (error "haskell-misc--point-inside-pragma?: not implemented for major mode %s" major-mode)))))
