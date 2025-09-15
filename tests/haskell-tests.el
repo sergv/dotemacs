@@ -355,6 +355,42 @@ have different input states."
    ""))
 
 (haskell-tests--test-buffer-contents
+    haskell-tests/haskell-align-options-ghc-pragmas-3a
+    (haskell-align-options-ghc-pragmas (point))
+  (tests-utils--multiline
+   ""
+   "{-# _|_OPTIONS_GHC -Wno-unused-imports      #-}"
+   "")
+  (tests-utils--multiline
+   ""
+   "{-# OPTIONS_GHC -Wno-unused-imports #-}_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-align-options-ghc-pragmas-3b
+    (haskell-align-options-ghc-pragmas (point))
+  (tests-utils--multiline
+   ""
+   "{-# OPTIONS_GHC -Wno-unused-imports      _|_#-}"
+   "")
+  (tests-utils--multiline
+   ""
+   "{-# OPTIONS_GHC -Wno-unused-imports #-}_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-align-options-ghc-pragmas-3c
+    (haskell-align-options-ghc-pragmas (point))
+  (tests-utils--multiline
+   ""
+   "_|_{-# OPTIONS_GHC -Wno-unused-imports      #-}"
+   "")
+  (tests-utils--multiline
+   ""
+   "{-# OPTIONS_GHC -Wno-unused-imports #-}_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
     haskell-tests/haskell-reindent-at-point-1
     (haskell-reindent-at-point)
   (tests-utils--multiline
