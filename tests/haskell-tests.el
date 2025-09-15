@@ -391,6 +391,82 @@ have different input states."
    ""))
 
 (haskell-tests--test-buffer-contents
+    haskell-tests/haskell-align-options-ghc-pragmas-4a
+    (pcase major-mode
+      (`haskell-ts-mode
+       (haskell-ts-reindent-at-point))
+      (`haskell-mode
+       (haskell-reindent-at-point))
+      (_
+       (error "Unhandled major mode: %s" major-mode)))
+  (tests-utils--multiline
+   ""
+   "{-# _|_OPTIONS_GHC -Wno-unused-imports      #-}"
+   "")
+  (tests-utils--multiline
+   ""
+   "{-# _|_OPTIONS_GHC -Wno-unused-imports #-}"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-align-options-ghc-pragmas-4b
+    (pcase major-mode
+      (`haskell-ts-mode
+       (haskell-ts-reindent-at-point))
+      (`haskell-mode
+       (haskell-reindent-at-point))
+      (_
+       (error "Unhandled major mode: %s" major-mode)))
+  (tests-utils--multiline
+   ""
+   "{-# OPTIONS_GHC -Wno-unused-imports      _|_#-}"
+   "")
+  (tests-utils--multiline
+   ""
+   "{-# OPTIONS_GHC -Wno-unused-imports #-}_|_"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-align-options-ghc-pragmas-4c
+    (pcase major-mode
+      (`haskell-ts-mode
+       (haskell-ts-reindent-at-point))
+      (`haskell-mode
+       (haskell-reindent-at-point))
+      (_
+       (error "Unhandled major mode: %s" major-mode)))
+  (tests-utils--multiline
+   ""
+   "_|_{-# OPTIONS_GHC -Wno-unused-imports      #-}"
+   "")
+  (tests-utils--multiline
+   ""
+   "_|_{-# OPTIONS_GHC -Wno-unused-imports #-}"
+   ""))
+
+(haskell-tests--test-buffer-contents
+    haskell-tests/haskell-align-options-ghc-pragmas-4d
+    (pcase major-mode
+      (`haskell-ts-mode
+       (haskell-ts-reindent-at-point))
+      (`haskell-mode
+       (haskell-reindent-at-point))
+      (_
+       (error "Unhandled major mode: %s" major-mode)))
+  (tests-utils--multiline
+   ""
+   "{-# LANGUAGE DerivingVia #-}"
+   ""
+   "_|_{-# OPTIONS_GHC -Wno-unused-imports      #-}"
+   "")
+  (tests-utils--multiline
+   ""
+   "{-# LANGUAGE DerivingVia #-}"
+   ""
+   "_|_{-# OPTIONS_GHC -Wno-unused-imports #-}"
+   ""))
+
+(haskell-tests--test-buffer-contents
     haskell-tests/haskell-reindent-at-point-1
     (haskell-reindent-at-point)
   (tests-utils--multiline
