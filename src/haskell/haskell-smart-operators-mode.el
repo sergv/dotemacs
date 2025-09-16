@@ -460,7 +460,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
                         (and (string= (treesit-node-type parent) "bind")
                              (awhen (treesit-node-parent parent)
                                (string= (treesit-node-type it) "local_binds"))
-                             (string= (treesit-node-field-name x) "pattern")))))
+                             (member (treesit-node-field-name x) '("pattern" "name"))))))
                t)))
 
            (ts-enclosing-pattern-node
