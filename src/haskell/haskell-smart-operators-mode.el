@@ -400,151 +400,152 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
              (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))))))
 
 ;;;###autoload
-(defun haskell-smart-operators-exclamation-mark ()
+(defun haskell-smart-operators-exclamation-mark (&optional insert-literal?)
   "Smart insertion for ! aimed at placing bangs within records."
-  (interactive "*")
-  (let* ((p (point))
-         (p-before-ws
-          (save-excursion
-            (skip-syntax-backward " ")
-            (point)))
-         (p-after-ws
-          (save-excursion
-            (skip-syntax-forward " ")
-            (point)))
-         (preceded-by-double-colon?
-          (save-excursion
-            (goto-char p-before-ws)
-            (preceded-by2 ?: ?:)))
-         (preceded-by-arrow?
-          (save-excursion
-            (goto-char p-before-ws)
-            (preceded-by2 ?- ?>)))
-         (preceded-by-operator?
-          (save-excursion
-            (goto-char p-before-ws)
-            (gethash (char-before) haskell-smart-operators--operator-chars)))
-         (followed-by-operator?
-          (save-excursion
-            (goto-char p-after-ws)
+  (interactive "*P")
+  (if insert-literal?
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?!)
+    (let* ((p (point))
+           (p-before-ws
+            (save-excursion
+              (skip-syntax-backward " ")
+              (point)))
+           (p-after-ws
+            (save-excursion
+              (skip-syntax-forward " ")
+              (point)))
+           (preceded-by-double-colon?
+            (save-excursion
+              (goto-char p-before-ws)
+              (preceded-by2 ?: ?:)))
+           (preceded-by-arrow?
+            (save-excursion
+              (goto-char p-before-ws)
+              (preceded-by2 ?- ?>)))
+           (preceded-by-operator?
+            (save-excursion
+              (goto-char p-before-ws)
+              (gethash (char-before) haskell-smart-operators--operator-chars)))
+           (followed-by-operator?
+            (save-excursion
+              (goto-char p-after-ws)
 
-            (gethash (char-after) haskell-smart-operators--operator-chars)))
+              (gethash (char-after) haskell-smart-operators--operator-chars)))
 
-         (ts-field-node-children
-          (when (and (derived-mode-p 'haskell-ts-mode)
-                     (or
-                      ;; Don’t stick to preceding arrow since it’s
-                      ;; most likely part of a funciton type.
-                      preceded-by-arrow?
-                      (not (or (and (not preceded-by-double-colon?)
-                                    preceded-by-operator?)
-                               followed-by-operator?))))
-            (awhen (treesit-node-top-level
-                    (treesit-node-at p)
-                    (lambda (x) (string= (treesit-node-type x) "field"))
-                    t)
-              (treesit-node-children it))))
-         (ts-field-colon-node nil)
-         (ts-field-type-node nil)
+           (ts-field-node-children
+            (when (and (derived-mode-p 'haskell-ts-mode)
+                       (or
+                        ;; Don’t stick to preceding arrow since it’s
+                        ;; most likely part of a funciton type.
+                        preceded-by-arrow?
+                        (not (or (and (not preceded-by-double-colon?)
+                                      preceded-by-operator?)
+                                 followed-by-operator?))))
+              (awhen (treesit-node-top-level
+                      (treesit-node-at p)
+                      (lambda (x) (string= (treesit-node-type x) "field"))
+                      t)
+                (treesit-node-children it))))
+           (ts-field-colon-node nil)
+           (ts-field-type-node nil)
 
-         (ts-enclosing-local-binds-pattern-node
-          (when (and (not preceded-by-operator?)
-                     (derived-mode-p 'haskell-ts-mode))
-            (treesit-node-top-level
-             (treesit-node-at p)
-             (lambda (x)
-               (and (treesit-haskell--is-inside-node? p x)
-                    (when-let ((parent (treesit-node-parent x)))
-                      (and (string= (treesit-node-type parent) "bind")
-                           (awhen (treesit-node-parent parent)
-                             (string= (treesit-node-type it) "local_binds"))
-                           (string= (treesit-node-field-name x) "pattern")))))
-             t)))
+           (ts-enclosing-local-binds-pattern-node
+            (when (and (not preceded-by-operator?)
+                       (derived-mode-p 'haskell-ts-mode))
+              (treesit-node-top-level
+               (treesit-node-at p)
+               (lambda (x)
+                 (and (treesit-haskell--is-inside-node? p x)
+                      (when-let ((parent (treesit-node-parent x)))
+                        (and (string= (treesit-node-type parent) "bind")
+                             (awhen (treesit-node-parent parent)
+                               (string= (treesit-node-type it) "local_binds"))
+                             (string= (treesit-node-field-name x) "pattern")))))
+               t)))
 
-         (ts-enclosing-regular-datatype-pattern-node
-          (when (and (not preceded-by-operator?)
-                     (derived-mode-p 'haskell-ts-mode))
-            (treesit-node-top-level
-             (treesit-node-at p)
-             (lambda (x)
-               (and (treesit-haskell--is-inside-node? p x)
-                    (let ((parent-type (awhen (treesit-node-parent x)
-                                         (treesit-node-type it))))
-                      (or (and (string= parent-type "prefix")
-                               (string= (treesit-node-field-name x) "field"))
-                          (and (string= parent-type "infix")
-                               (when-let ((field-name (treesit-node-field-name x)))
-                                 (or (string= field-name "left_operand")
-                                     (string= field-name "right_operand"))))))))
-             t)))
+           (ts-enclosing-regular-datatype-pattern-node
+            (when (and (not preceded-by-operator?)
+                       (derived-mode-p 'haskell-ts-mode))
+              (treesit-node-top-level
+               (treesit-node-at p)
+               (lambda (x)
+                 (and (treesit-haskell--is-inside-node? p x)
+                      (let ((parent-type (awhen (treesit-node-parent x)
+                                           (treesit-node-type it))))
+                        (or (and (string= parent-type "prefix")
+                                 (string= (treesit-node-field-name x) "field"))
+                            (and (string= parent-type "infix")
+                                 (when-let ((field-name (treesit-node-field-name x)))
+                                   (or (string= field-name "left_operand")
+                                       (string= field-name "right_operand"))))))))
+               t)))
 
-         (inside-gadt-constructor?
-          (when (and (not (and (not preceded-by-double-colon?)
-                               preceded-by-operator?))
-                     (derived-mode-p 'haskell-ts-mode))
-            (treesit-node-top-level
-             (treesit-node-at p)
-             (lambda (x)
-               (and (string= (treesit-node-type x) "gadt_constructor")
-                    (treesit-haskell--is-inside-node? p x)))
-             t)))
+           (inside-gadt-constructor?
+            (when (and (not (and (not preceded-by-double-colon?)
+                                 preceded-by-operator?))
+                       (derived-mode-p 'haskell-ts-mode))
+              (treesit-node-top-level
+               (treesit-node-at p)
+               (lambda (x)
+                 (and (string= (treesit-node-type x) "gadt_constructor")
+                      (treesit-haskell--is-inside-node? p x)))
+               t)))
 
-         (gadt-field
-          (when inside-gadt-constructor?
-            (treesit-node-top-level
-             (treesit-node-at p)
-             (lambda (x)
-               (and (awhen (treesit-node-parent x)
-                      (string= (treesit-node-type it) "function"))
-                    (string= (treesit-node-field-name x) "parameter")
-                    (treesit-haskell--is-inside-node? p x)))
-             t))))
+           (gadt-field
+            (when inside-gadt-constructor?
+              (treesit-node-top-level
+               (treesit-node-at p)
+               (lambda (x)
+                 (and (awhen (treesit-node-parent x)
+                        (string= (treesit-node-type it) "function"))
+                      (string= (treesit-node-field-name x) "parameter")
+                      (treesit-haskell--is-inside-node? p x)))
+               t))))
+      (cond
+        ((and ts-field-node-children
+              (= (length ts-field-node-children) 3)
+              (string= (treesit-node-type (car ts-field-node-children)) "field_name")
+              (setf ts-field-colon-node (cadr ts-field-node-children))
+              (string= (treesit-node-type ts-field-colon-node) "::")
+              (setf ts-field-type-node (caddr ts-field-node-children))
+              ;; Check for when inserting ! in:
+              ;;
+              ;; data Foo = Foo
+              ;;   { foo :: Set Int
+              ;;   , bar :: Map Int Double
+              ;;   , baz :: _|_
+              ;;   })
 
-    (cond
-      ((and ts-field-node-children
-            (= (length ts-field-node-children) 3)
-            (string= (treesit-node-type (car ts-field-node-children)) "field_name")
-            (setf ts-field-colon-node (cadr ts-field-node-children))
-            (string= (treesit-node-type ts-field-colon-node) "::")
-            (setf ts-field-type-node (caddr ts-field-node-children))
-            ;; Check for when inserting ! in:
-            ;;
-            ;; data Foo = Foo
-            ;;   { foo :: Set Int
-            ;;   , bar :: Map Int Double
-            ;;   , baz :: _|_
-            ;;   })
+              ;; If there’s a node but it’s empty then there’s no node and treesitter
+              ;; is messing with us.
+              (/= (treesit-node-start ts-field-type-node)
+                  (treesit-node-end ts-field-type-node))
 
-            ;; If there’s a node but it’s empty then there’s no node and treesitter
-            ;; is messing with us.
-            (/= (treesit-node-start ts-field-type-node)
-                (treesit-node-end ts-field-type-node))
-
-            ;; That we’re after :: but before type end (i.e. could be
-            ;; before type start but that’s ok).
-            (<= (treesit-node-end ts-field-colon-node) p)
-            (<= p (treesit-node-end ts-field-type-node)))
-       (haskell-smart-operators-exclamation-mark--insert-for-field!
-        preceded-by-double-colon?
-        ts-field-type-node))
-      (ts-enclosing-local-binds-pattern-node
-       (haskell-smart-operators-exclamation-mark--insert-for-field!
-        preceded-by-double-colon?
-        ts-enclosing-local-binds-pattern-node))
-      (ts-enclosing-regular-datatype-pattern-node
-       (haskell-smart-operators-exclamation-mark--insert-for-field!
-        preceded-by-double-colon?
-        ts-enclosing-regular-datatype-pattern-node))
-      (gadt-field
-       (haskell-smart-operators-exclamation-mark--insert-for-field!
-        preceded-by-double-colon?
-        gadt-field))
-      (preceded-by-double-colon?
-       (unless (eq (char-before) ?\s)
-         (insert-char ?\s))
-       (insert-char ?!))
-      (t
-       (haskell-smart-operators--insert-char-surrounding-with-spaces ?!)))))
+              ;; That we’re after :: but before type end (i.e. could be
+              ;; before type start but that’s ok).
+              (<= (treesit-node-end ts-field-colon-node) p)
+              (<= p (treesit-node-end ts-field-type-node)))
+         (haskell-smart-operators-exclamation-mark--insert-for-field!
+          preceded-by-double-colon?
+          ts-field-type-node))
+        (ts-enclosing-local-binds-pattern-node
+         (haskell-smart-operators-exclamation-mark--insert-for-field!
+          preceded-by-double-colon?
+          ts-enclosing-local-binds-pattern-node))
+        (ts-enclosing-regular-datatype-pattern-node
+         (haskell-smart-operators-exclamation-mark--insert-for-field!
+          preceded-by-double-colon?
+          ts-enclosing-regular-datatype-pattern-node))
+        (gadt-field
+         (haskell-smart-operators-exclamation-mark--insert-for-field!
+          preceded-by-double-colon?
+          gadt-field))
+        (preceded-by-double-colon?
+         (unless (eq (char-before) ?\s)
+           (insert-char ?\s))
+         (insert-char ?!))
+        (t
+         (haskell-smart-operators--insert-char-surrounding-with-spaces ?!))))))
 
 (defun haskell-smart-operators-exclamation-mark--insert-for-field! (preceded-by-double-colon? field-type-node)
   (cl-assert (treesit-node-p field-type-node))
