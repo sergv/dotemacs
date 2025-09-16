@@ -463,6 +463,18 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
                              (string= (treesit-node-field-name x) "pattern")))))
                t)))
 
+           (ts-enclosing-pattern-node
+            (when (and (not preceded-by-operator?)
+                       (derived-mode-p 'haskell-ts-mode))
+              (treesit-node-top-level
+               (treesit-node-at p)
+               (lambda (x)
+                 (and (treesit-haskell--is-inside-node? p x)
+                      (member (treesit-node-type x) '("parens" "as"))
+                      (when-let ((parent (treesit-node-parent x)))
+                        (or (string= (treesit-node-type parent) "patterns")))))
+               t)))
+
            (ts-enclosing-regular-datatype-pattern-node
             (when (and (not preceded-by-operator?)
                        (derived-mode-p 'haskell-ts-mode))
@@ -532,6 +544,10 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
          (haskell-smart-operators-exclamation-mark--insert-for-field!
           preceded-by-double-colon?
           ts-enclosing-local-binds-pattern-node))
+        (ts-enclosing-pattern-node
+         (haskell-smart-operators-exclamation-mark--insert-for-field!
+          preceded-by-double-colon?
+          ts-enclosing-pattern-node))
         (ts-enclosing-regular-datatype-pattern-node
          (haskell-smart-operators-exclamation-mark--insert-for-field!
           preceded-by-double-colon?
@@ -550,7 +566,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
 (defun haskell-smart-operators-exclamation-mark--insert-for-field! (preceded-by-double-colon? field-type-node)
   (cl-assert (treesit-node-p field-type-node))
   (unless (member (treesit-node-type field-type-node) '("strict" "strict_field"))
-    (let ((has-parens? (string= (treesit-node-type field-type-node) "parens")))
+    (let ((has-parens? (member (treesit-node-type field-type-node) '("parens" "as"))))
       (if has-parens?
           (progn
             (goto-char (treesit-node-start field-type-node))
