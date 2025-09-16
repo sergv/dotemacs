@@ -3126,6 +3126,66 @@ have different input states."
  :modes (haskell-ts-mode)
  :fresh-buffer t)
 
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-pattern-strictness-3a
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Text -> Pattern"
+  "foo (TI_|_.Text arr off len) = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Text -> Pattern"
+  "foo !_|_(TI.Text arr off len) = undefined"
+  "")
+ :modes (haskell-ts-mode)
+ :fresh-buffer t)
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-pattern-strictness-3b
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Text -> Pattern"
+  "foo str@(TI_|_.Text arr off len) = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Text -> Pattern"
+  "foo !_|_str@(TI.Text arr off len) = undefined"
+  "")
+ :modes (haskell-ts-mode)
+ :fresh-buffer t)
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-pattern-strictness-3c
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Text -> Pattern"
+  "foo (TI.Text arr off len) (TI.Text arr2 off2 _|_len2) = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Text -> Pattern"
+  "foo (TI.Text arr off len) !_|_(TI.Text arr2 off2 len2) = undefined"
+  "")
+ :modes (haskell-ts-mode)
+ :fresh-buffer t)
+
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-backspace-with-block-dedent-1
     (haskell-backspace-with-block-dedent)
