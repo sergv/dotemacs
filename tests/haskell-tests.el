@@ -100,7 +100,7 @@ end."
            ,initial
            ,(cl-third entry)))))
 
-(cl-defmacro haskell-tests--make-multiple-input-test-buffer-contents
+(cl-defmacro haskell-tests--make-multiple-input-test-buffer-contents*
     (&key action entries expected-value modes fresh-buffer)
   "Define a set of tests that share final buffer state but
 have different input states."
@@ -167,7 +167,7 @@ have different input states."
 ;;      :contents ,contents
 ;;      :initialisation (haskell-mode)))
 
-(haskell-tests--make-multiple-input-test-buffer-contents
+(haskell-tests--make-multiple-input-test-buffer-contents*
   :action
   (let ((start (point)))
     (forward-line 2)
@@ -2632,7 +2632,7 @@ have different input states."
    "data Foo = Foo { bar :: !_|_Int }"
    ""))
 
-(haskell-tests--make-multiple-input-test-buffer-contents
+(haskell-tests--make-multiple-input-test-buffer-contents*
   :action
   (haskell-smart-operators-exclamation-mark)
   :entries
@@ -2663,7 +2663,7 @@ have different input states."
   :modes (haskell-ts-mode)
   :fresh-buffer t)
 
-(haskell-tests--make-multiple-input-test-buffer-contents
+(haskell-tests--make-multiple-input-test-buffer-contents*
   :action
   (haskell-smart-operators-exclamation-mark)
   :entries
@@ -2775,6 +2775,354 @@ have different input states."
   "  , bar :: Map Int Double"
   "  , baz ::      !_|_     "
   "  }")
+ :modes (haskell-ts-mode)
+ :fresh-buffer t)
+
+(haskell-tests--make-multiple-input-test-buffer-contents*
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data Pattern a = Foo !_|_Int"
+  "")
+ :modes (haskell-ts-mode)
+ :entries
+ ((haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-6a
+   (tests-utils--multiline
+    ""
+    "data Pattern a = Foo _|_Int"
+    ""))
+  (haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-6b
+   (tests-utils--multiline
+    ""
+    "data Pattern a = Foo In_|_t"
+    ""))))
+
+(haskell-tests--make-multiple-input-test-buffer-contents*
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data Pattern a = Foo !_|_(Bar Int)"
+  "")
+ :modes (haskell-ts-mode)
+ :entries
+ ((haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-7a
+   (tests-utils--multiline
+    ""
+    "data Pattern a = Foo _|_(Bar Int)"
+    ""))
+  (haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-7b
+   (tests-utils--multiline
+    ""
+    "data Pattern a = Foo (Bar In_|_t)"
+    ""))))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-8a
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  ""
+  "data Pattern a = Foo (Bar _|_Int) | String `Bar` [a] | a :+: a"
+  "")
+ :expected-value
+(tests-utils--multiline
+  ""
+  "data Pattern a = Foo !_|_(Bar Int) | String `Bar` [a] | a :+: a"
+  "")
+ :modes (haskell-ts-mode)
+ :fresh-buffer t)
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-8b
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  ""
+  "data Pattern a = Foo !(Bar _|_Int) | String `Bar` [a] | a :+: a"
+  "")
+ :expected-value
+(tests-utils--multiline
+  ""
+  "data Pattern a = Foo !(Bar _|_Int) | String `Bar` [a] | a :+: a"
+  "")
+ :modes (haskell-ts-mode)
+ :fresh-buffer t)
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-8c
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  ""
+  "data Pattern a = Foo (Bar Int) | Stri_|_ng `Bar` [a] | a :+: a"
+  "")
+ :expected-value
+(tests-utils--multiline
+  ""
+  "data Pattern a = Foo (Bar Int) | !_|_String `Bar` [a] | a :+: a"
+  "")
+ :modes (haskell-ts-mode)
+ :fresh-buffer t)
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-8d
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  ""
+  "data Pattern a = Foo (Bar Int) | String `Bar` [a_|_] | a :+: a"
+  "")
+ :expected-value
+(tests-utils--multiline
+  ""
+  "data Pattern a = Foo (Bar Int) | String `Bar` !_|_[a] | a :+: a"
+  "")
+ :modes (haskell-ts-mode)
+ :fresh-buffer t)
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-8e
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  ""
+  "data Pattern a = Foo (Bar Int) | String `Bar` [a] | a :+: (Bar _|_a)"
+  "")
+ :expected-value
+(tests-utils--multiline
+  ""
+  "data Pattern a = Foo (Bar Int) | String `Bar` [a] | a :+: !_|_(Bar a)"
+  "")
+ :modes (haskell-ts-mode)
+ :fresh-buffer t)
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-9a
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  ""
+  "data Foo a where"
+  "  Foo"
+  "    :: Int"
+  "    -> Ba_|_r a"
+  "    -> Foo a"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data Foo a where"
+  "  Foo"
+  "    :: Int"
+  "    -> !(_|_Bar a)"
+  "    -> Foo a"
+  "")
+ :modes (haskell-ts-mode)
+ :fresh-buffer t)
+
+(haskell-tests--make-multiple-input-test-buffer-contents*
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data Foo a where"
+  "  Foo"
+  "    :: !_|_Int"
+  "    -> Bar a"
+  "    -> Foo a"
+  "")
+ :modes (haskell-ts-mode)
+ :fresh-buffer t
+ :entries
+ ((haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-9b
+   (tests-utils--multiline
+    ""
+    "data Foo a where"
+    "  Foo"
+    "    :: In_|_t"
+    "    -> Bar a"
+    "    -> Foo a"
+    ""))
+  (haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-9c
+   (tests-utils--multiline
+    ""
+    "data Foo a where"
+    "  Foo"
+    "    :: Int_|_"
+    "    -> Bar a"
+    "    -> Foo a"
+    ""))
+  (haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-9d
+   (tests-utils--multiline
+    ""
+    "data Foo a where"
+    "  Foo"
+    "    :: _|_Int"
+    "    -> Bar a"
+    "    -> Foo a"
+    ""))))
+
+(haskell-tests--make-multiple-input-test-buffer-contents*
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "parseGlobPattern :: Text -> Pattern"
+  "parseGlobPattern str = undefined"
+  "  where"
+  "    !(_|_TU.Iter c' delta) ="
+  "      TU.iterArray arr i"
+  "")
+ :modes (haskell-ts-mode)
+ :fresh-buffer t
+ :entries
+ ((haskell-tests/haskell-smart-operators-exclamation-mark-pattern-strictness-1a
+   (tests-utils--multiline
+    ""
+    "parseGlobPattern :: Text -> Pattern"
+    "parseGlobPattern str = undefined"
+    "  where"
+    "    _|_TU.Iter c' delta ="
+    "      TU.iterArray arr i"
+    ""))
+  (haskell-tests/haskell-smart-operators-exclamation-mark-pattern-strictness-1c
+   (tests-utils--multiline
+    ""
+    "parseGlobPattern :: Text -> Pattern"
+    "parseGlobPattern str = undefined"
+    "  where"
+    "    TU.I_|_ter c' delta ="
+    "      TU.iterArray arr i"
+    ""))
+  (haskell-tests/haskell-smart-operators-exclamation-mark-pattern-strictness-1d
+   (tests-utils--multiline
+    ""
+    "parseGlobPattern :: Text -> Pattern"
+    "parseGlobPattern str = undefined"
+    "  where"
+    "    TU.Iter_|_ c' delta ="
+    "      TU.iterArray arr i"
+    ""))))
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-pattern-strictness-1aa
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  ""
+  "parseGlobPattern :: Text -> Pattern"
+  "parseGlobPattern str = undefined"
+  "  where"
+  "    !(TU.I_|_ter c' delta) ="
+  "      TU.iterArray arr i"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "parseGlobPattern :: Text -> Pattern"
+  "parseGlobPattern str = undefined"
+  "  where"
+  "    !(TU.I_|_ter c' delta) ="
+  "      TU.iterArray arr i"
+  "")
+ :modes (haskell-ts-mode)
+ :fresh-buffer t)
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-pattern-strictness-1b
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  ""
+  "parseGlobPattern :: Text -> Pattern"
+  "parseGlobPattern str = undefined"
+  "  where"
+  "    (_|_TU.Iter c' delta) ="
+  "      TU.iterArray arr i"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "parseGlobPattern :: Text -> Pattern"
+  "parseGlobPattern str = undefined"
+  "  where"
+  "    !_|_(TU.Iter c' delta) ="
+  "      TU.iterArray arr i"
+  "")
+ :modes (haskell-ts-mode)
+ :fresh-buffer t)
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-pattern-strictness-2a
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  ""
+  "parseGlobPattern :: Text -> Pattern"
+  "parseGlobPattern str ="
+  "  let _|_TU.Iter c' delta ="
+  "        TU.iterArray arr i"
+  "  in foo"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "parseGlobPattern :: Text -> Pattern"
+  "parseGlobPattern str ="
+  "  let !(_|_TU.Iter c' delta) ="
+  "        TU.iterArray arr i"
+  "  in foo"
+  "")
+ :modes (haskell-ts-mode)
+ :fresh-buffer t)
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-pattern-strictness-2b
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  ""
+  "parseGlobPattern :: Text -> Pattern"
+  "parseGlobPattern str ="
+  "  let (TU.Ite_|_r c' delta) ="
+  "        TU.iterArray arr i"
+  "  in foo"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "parseGlobPattern :: Text -> Pattern"
+  "parseGlobPattern str ="
+  "  let !_|_(TU.Iter c' delta) ="
+  "        TU.iterArray arr i"
+  "  in foo"
+  "")
  :modes (haskell-ts-mode)
  :fresh-buffer t)
 
@@ -4386,7 +4734,7 @@ have different input states."
    ""
    ""))
 
-(haskell-tests--make-multiple-input-test-buffer-contents
+(haskell-tests--make-multiple-input-test-buffer-contents*
  :action
  (haskell-newline-with-signature-expansion)
  :entries
