@@ -987,21 +987,21 @@ variable or symbol 'unresolved.")
                                                                       )))))
       (eproj-normalise-file-name-expand-cached it))))
 
-(defun eproj--locate-dominating-file (file name)
+(defun eproj--locate-dominating-file (dir name)
   "Like ‘locate-dominating-file’ but with optimisations."
   (let ((root nil)
         try)
     (while (not (or root
-                    (null file)
-                    (string-match-p locate-dominating-stop-dir-regexp file)))
+                    (null dir)
+                    (string-match-p locate-dominating-stop-dir-regexp dir)))
       (setq try (if (stringp name)
-                    (and (file-directory-p file)
-                         (file-exists-p (expand-file-name name file)))
-                  (funcall name file)))
-      (cond (try (setq root file))
-            ((equal file (setq file (file-name-directory
-                                     (directory-file-name file))))
-             (setq file nil))))
+                    (and (file-directory-p dir)
+                         (file-exists-p (expand-file-name name dir)))
+                  (funcall name dir)))
+      (cond (try (setq root dir))
+            ((equal dir (setq dir (file-name-directory
+                                   (directory-file-name dir))))
+             (setq dir nil))))
     (when root (file-name-as-directory root))))
 
 (defvar eproj--inferrable-project-infos
