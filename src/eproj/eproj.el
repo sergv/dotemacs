@@ -973,18 +973,28 @@ variable or symbol 'unresolved.")
                     (file-directory-p path-dir))))
     (awhen (and exists?
                 (or (eproj--locate-dominating-file path-dir ".eproj-info")
-                    (eproj--locate-dominating-file path-dir
-                                                   (lambda (dir)
-                                                     (directory-files dir
-                                                                      nil ;; absolute names
-                                                                      (rx bos
-                                                                          (or ".git"
-                                                                              (seq "cabal.project"
-                                                                                   (? "." (* any))
-                                                                                   (? ".local")))
-                                                                          eos)
-                                                                      t ;; nosort
-                                                                      )))))
+                    (eproj--locate-dominating-file
+                     path-dir
+                     (lambda (dir)
+                       (condition-case err
+                           (directory-files dir
+                                            nil ;; absolute names
+                                            (rx bos
+                                                (or ".git"
+                                                    (seq "cabal.project"
+                                                         (? "." (* any))
+                                                         (? ".local")))
+                                                eos)
+                                            t ;; nosort
+                                            )
+                         ;; On WSL it happens that ‘file-directory-p’
+                         ;; returns ‘t’ but the directory doesn’t actually
+                         ;; exist any more and the only way to find out is via ‘directory-files’.
+                         (file-missing
+                          (if (and (string= (cadr err) "Opening directory")
+                                   (string= (caddr err) "No such file or directory"))
+                              nil
+                            (signal (car err) (cdr err)))))))))
       (eproj-normalise-file-name-expand-cached it))))
 
 (defun eproj--locate-dominating-file (dir name)
