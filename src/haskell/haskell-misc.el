@@ -1486,6 +1486,9 @@ Returns (<component name or nil> . <list of warnings>)"
             (cabal-files nil))
         (dolist (file interesting-files)
           (cond
+            ((string-prefix-p ".#" file)
+             ;; Skip .#* Emacs lock files.
+             )
             ((or (string-suffix-p ".project.local" file)
                  (string-suffix-p ".project" file))
              (setf have-project? t))
