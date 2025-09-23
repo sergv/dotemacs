@@ -1291,6 +1291,18 @@ groups in the result is *not specified*."
     groups))
 
 ;;;###autoload
+(defun narrow-to-region-indirect-setup-indirect-buffer ()
+  (with-all-matching-overlays
+      ov
+      t
+    (if (overlay-get ov 'is-fixed-after-clone?)
+        ;; So that subsequent indirect buffers don’t inherit
+        ;; fixedness state.
+        (overlay-put ov 'is-fixed-after-clone? nil)
+      ;; Remove overlays that were not explicitly migrated.
+      (delete-overlay ov))))
+
+;;;###autoload
 (defun narrow-to-region-indirect (&optional create-new-buf?)
   (interactive "P")
   (with-region-bounds start end
@@ -1304,21 +1316,11 @@ groups in the result is *not specified*."
                                                   (narrow-to-region-indirect--find-new-buf-name orig-buf)
                                                   t)))
               (with-current-buffer new-buf
-
-                (with-all-matching-overlays
-                    ov
-                    t
-                  (if (overlay-get ov 'is-fixed-after-clone?)
-                      ;; So that subsequent indirect buffers don’t inherit
-                      ;; fixedness state.
-                      (overlay-put ov 'is-fixed-after-clone? nil)
-                    ;; Remove overlays that were not explicitly migrated.
-                    (delete-overlay ov)))
-
-                (narrow-to-region start end-fixed))
+                (narrow-to-region-indirect-setup-indirect-buffer)
+                (persistent-narrow-to-region start end-fixed))
               (switch-to-buffer new-buf)))
 
-        (narrow-to-region start end-fixed)))))
+        (persistent-narrow-to-region start end-fixed)))))
 
 (defun narrow-to-region-indirect--find-new-buf-name (orig-buf)
   (generate-new-buffer-name (concat (buffer-name orig-buf)
