@@ -1315,6 +1315,18 @@ are CHAR1 and CHAR2 repsectively."
     t ;; either 'nil <= ~nil' or 'nil = nil'
     ))
 
+(defun nil-<=-t (a b)
+  "Compare nil vs non-nil."
+  (if a
+      (if b
+          t ;; a = t, b = t, t <= t
+        nil ;; a = t, b = nil, !(t <= nil)
+        )
+    (if b
+        t ;; a = nil, b = t, nil <= t
+      t   ;; a = nil, b = nil, nil <= nil
+      )))
+
 (defun scroll-down-command-fast ()
   (interactive)
   (let ((completed nil))
@@ -1598,7 +1610,21 @@ NEW-PROPS will be ignored."
     (insert-before-markers newtext)))
 
 (defun resolve-to-base-buffer (x)
+  "If X is an indirect buffer then return its base buffer, otherwise return it."
   (aif (buffer-base-buffer x) it x))
+
+;;
+
+(defvar-local persistent-narrow-to-region--bounds nil
+  "Cons pair of start and end of latest narrow to region that should be preserved.
+NB Will not get invalidated on ‘widen’ so it’s only valid when
+‘buffer-narrowed-p’ returns non-nil.")
+
+(defun persistent-narrow-to-region (start end)
+  "Like ‘narrow-to-region’ but records that buffer was narrowed so that
+persistent store may restore the narrowing state when session is loaded."
+  (narrow-to-region start end)
+  (setq-local persistent-narrow-to-region--bounds (cons start end)))
 
 (provide 'common)
 
