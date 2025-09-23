@@ -375,7 +375,9 @@ function; and adjust-block-beginning function."
               (let ((syn (char-syntax next)))
                 (or (eq syn ?\()
                     (eq syn ?\))
-                    (eq syn ?\<))))))))
+                    (eq syn ?\<))))
+            (awhen (comment-util-current-format)
+              (comment-util--on-commented-line? it))))))
 
 ;;;; Hydras and setups
 
