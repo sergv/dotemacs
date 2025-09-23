@@ -503,7 +503,7 @@
 
              ((or (parent-is "field_update")
                   (node-is "infix"))
-              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update
+              haskell-ts-indent--standalone-non-infix-parent-or-let-bind-or-function-or-field-update-no-list-parent
               haskell-indent-offset)
 
              ;; Other infix rules
