@@ -1690,6 +1690,92 @@
   "  ]"))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-list-5a
+ :contents
+ (tests-utils--multiline
+  "foo x ="
+  "  [ bar"
+  "  , baz"
+  "  , quux $"
+  "      mkQuux"
+  "        [ test $ test2 $"
+  "                _|_y $ z"
+  "        ]"
+  "  ]")
+ :expected-value
+ (tests-utils--multiline
+  "foo x ="
+  "  [ bar"
+  "  , baz"
+  "  , quux $"
+  "      mkQuux"
+  "        [ test $ test2 $"
+  "            _|_y $ z"
+  "        ]"
+  "  ]"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-list-6a
+ :contents
+ (tests-utils--multiline
+  "foo x ="
+  "  [ bar"
+  "  , baz"
+  "  , \\x ->"
+  "   _|_x + 1"
+  "  ]")
+ :expected-value
+ (tests-utils--multiline
+  "foo x ="
+  "  [ bar"
+  "  , baz"
+  "  , \\x ->"
+  "      _|_x + 1"
+  "  ]"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-list-7a
+ :contents
+ (tests-utils--multiline
+  "foo x ="
+  "  [ bar"
+  "  , baz"
+  "  , quux $"
+  "             _|_\\x ->"
+  "           x + 1"
+  "  ]")
+ :expected-value
+ (tests-utils--multiline
+  "foo x ="
+  "  [ bar"
+  "  , baz"
+  "  , quux $"
+  "      _|_\\x ->"
+  "           x + 1"
+  "  ]"))
+
+(haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-list-7b
+ :contents
+ (tests-utils--multiline
+  "foo x ="
+  "  [ bar"
+  "  , baz"
+  "  , quux $"
+  "             \\x ->"
+  "           _|_x + 1"
+  "  ]")
+ :expected-value
+ (tests-utils--multiline
+  "foo x ="
+  "  [ bar"
+  "  , baz"
+  "  , quux $"
+  "             \\x ->"
+  "               _|_x + 1"
+  "  ]"))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-complex-1
  :contents
  (tests-utils--multiline
@@ -3694,16 +3780,18 @@
  :name haskell-indentation-tests--test-treesitter-region-1
  :contents
  (tests-utils--multiline
-  "foo = _|_["
+  "foo ="
+  " _|_["
   "  bar $ quux"
   "  , baz"
   " _||_]")
  :expected-value
  (tests-utils--multiline
-  "foo = ["
-  "        bar $ quux"
-  "      , baz"
-  "      ]_|_"))
+  "foo ="
+  "  ["
+  "    bar $ quux"
+  "  , baz"
+  "  ]_|_"))
 
 (haskell-indentation-tests--test-treesitter-region
  :name haskell-indentation-tests--test-treesitter-region-2
