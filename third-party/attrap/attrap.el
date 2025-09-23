@@ -488,8 +488,18 @@ Error is given as MSG and reported between POS and END."
       (let ((missings (s-match-strings-all "‘\\([^’]*\\)’"
                                            (car (s-split-up-to "In the instance declaration" msg 1)))))
         (end-of-line)
-        (dolist (missing missings)
-          (insert (format "\n  %s = _" (nth 1 missing)))))))
+        (let ((start (point)))
+          (skip-whitespace-backward)
+          (delete-region (point) start))
+        (let* ((start (point))
+               (have-where?
+                (save-excursion
+                  (backward-word)
+                  (string= "where" (trim-whitespace (buffer-substring-no-properties (point) start))))))
+          (unless have-where?
+            (insert " where"))
+          (dolist (missing missings)
+            (insert (format "\n  %s = _" (nth 1 missing))))))))
    (when (string-match "No explicit associated type or default declaration for ‘\\(.*\\)’" msg)
     (let ((type (match-string 1 msg)))
       (attrap-one-option "insert type"
