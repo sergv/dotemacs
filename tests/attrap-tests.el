@@ -1619,6 +1619,122 @@
   "foo = bar"
   ""))
 
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/add-missing-class-methods-1a
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-06201] [-Wmissing-methods]"
+  "    • No explicit implementation for"
+  "        ‘basicLength’, ‘basicUnsafeSlice’, ‘basicOverlaps’, ‘basicUnsafeNew’, ‘basicInitialize’, ‘basicUnsafeRead’, and ‘basicUnsafeWrite’"
+  "    • In the instance declaration for ‘MVector MVector ActiveFinalMatchesEmptyEntry’")
+ :action
+ (let ((attrap-select-predefined-option "explicit type wildcard"))
+   (attrap-tests--run-attrap))
+ :contents
+ (tests-utils--multiline
+  ""
+  "instance _|_GM.MVector U.MVector ActiveFinalMatchesEmptyEntry"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "instance _|_GM.MVector U.MVector ActiveFinalMatchesEmptyEntry where"
+  "  basicLength = _"
+  "  basicUnsafeSlice = _"
+  "  basicOverlaps = _"
+  "  basicUnsafeNew = _"
+  "  basicInitialize = _"
+  "  basicUnsafeRead = _"
+  "  basicUnsafeWrite = _"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/add-missing-class-methods-1b
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-06201] [-Wmissing-methods]"
+  "    • No explicit implementation for"
+  "        ‘basicLength’, ‘basicUnsafeSlice’, ‘basicOverlaps’, ‘basicUnsafeNew’, ‘basicInitialize’, ‘basicUnsafeRead’, and ‘basicUnsafeWrite’"
+  "    • In the instance declaration for ‘MVector MVector ActiveFinalMatchesEmptyEntry’")
+ :action
+ (let ((attrap-select-predefined-option "explicit type wildcard"))
+   (attrap-tests--run-attrap))
+ :contents
+ (tests-utils--multiline
+  ""
+  "instance _|_GM.MVector U.MVector ActiveFinalMatchesEmptyEntry where"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "instance _|_GM.MVector U.MVector ActiveFinalMatchesEmptyEntry where"
+  "  basicLength = _"
+  "  basicUnsafeSlice = _"
+  "  basicOverlaps = _"
+  "  basicUnsafeNew = _"
+  "  basicInitialize = _"
+  "  basicUnsafeRead = _"
+  "  basicUnsafeWrite = _"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/add-missing-class-methods-1c
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-06201] [-Wmissing-methods]"
+  "    • No explicit implementation for"
+  "        ‘basicLength’, ‘basicUnsafeSlice’, ‘basicOverlaps’, ‘basicUnsafeNew’, ‘basicInitialize’, ‘basicUnsafeRead’, and ‘basicUnsafeWrite’"
+  "    • In the instance declaration for ‘MVector MVector ActiveFinalMatchesEmptyEntry’")
+ :action
+ (let ((attrap-select-predefined-option "explicit type wildcard"))
+   (attrap-tests--run-attrap))
+ :contents
+ (tests-utils--multiline
+  ""
+  "instance _|_GM.MVector U.MVector ActiveFinalMatchesEmptyEntry   "
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "instance _|_GM.MVector U.MVector ActiveFinalMatchesEmptyEntry where"
+  "  basicLength = _"
+  "  basicUnsafeSlice = _"
+  "  basicOverlaps = _"
+  "  basicUnsafeNew = _"
+  "  basicInitialize = _"
+  "  basicUnsafeRead = _"
+  "  basicUnsafeWrite = _"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/add-missing-class-methods-1d
+ :error-message
+ (tests-utils--multiline
+  "warning: [GHC-06201] [-Wmissing-methods]"
+  "    • No explicit implementation for"
+  "        ‘basicLength’, ‘basicUnsafeSlice’, ‘basicOverlaps’, ‘basicUnsafeNew’, ‘basicInitialize’, ‘basicUnsafeRead’, and ‘basicUnsafeWrite’"
+  "    • In the instance declaration for ‘MVector MVector ActiveFinalMatchesEmptyEntry’")
+ :action
+ (let ((attrap-select-predefined-option "explicit type wildcard"))
+   (attrap-tests--run-attrap))
+ :contents
+ (tests-utils--multiline
+  ""
+  "instance _|_GM.MVector U.MVector ActiveFinalMatchesEmptyEntry   where     "
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "instance _|_GM.MVector U.MVector ActiveFinalMatchesEmptyEntry   where"
+  "  basicLength = _"
+  "  basicUnsafeSlice = _"
+  "  basicOverlaps = _"
+  "  basicUnsafeNew = _"
+  "  basicInitialize = _"
+  "  basicUnsafeRead = _"
+  "  basicUnsafeWrite = _"
+  ""))
+
 (provide 'attrap-tests)
 
 ;; Local Variables:
