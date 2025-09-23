@@ -167,14 +167,10 @@ realign _l_et
 ;;;;
 
 (defun elisp-compile-get-elc-destination (path)
-  (concat (file-name-sans-extension path) ".elc")
-  ;; Old vesrion that moves .elc files which doesn’t work with native compilation and
-  ;; documentation finding.
-  ;; (concat
-  ;;  +emacs-config-path+
-  ;;  "/compiled/"
-  ;;  (file-name-sans-extension (file-name-nondirectory path)) ".elc")
-  )
+  (concat
+   +emacs-config-path+
+   "/compiled/"
+   (file-name-sans-extension (file-name-nondirectory path)) ".elc"))
 
 (defun elisp-compile-and-move ()
   (interactive)
