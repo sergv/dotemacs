@@ -66,7 +66,6 @@
   (rx (seq bol
            "#"
            (* (any ?\s ?\t))
-           symbol-start
            (group-n 1
                     (or "ifdef"
                         "ifndef"
@@ -80,7 +79,6 @@
   (rx (or (seq bol
                "#"
                (* (any ?\s ?\t))
-               symbol-start
                (or "ifdef"
                    "ifndef"
                    "if"
@@ -94,7 +92,6 @@
   (rx (or (seq bol
                "#"
                (* (any ?\s ?\t))
-               symbol-start
                (or "endif"
                    "elif"
                    "else")
