@@ -165,6 +165,7 @@
         (cons 'magit-diff-mode nil)
         (cons 'magit-key-mode nil)
         (cons 'magit-log-mode nil)
+        (cons 'magit-log-select-mode nil)
         (cons 'magit-popup-mode nil)
         (cons 'magit-popup-sequence-mode nil)
         (cons 'magit-refs-mode nil)
