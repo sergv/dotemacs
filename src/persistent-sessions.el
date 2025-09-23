@@ -32,45 +32,79 @@
 ;;     - Encode strings and ring contents with explicit property list.
 ;; 3   - Support saving tabs from ‘tab-bar-mode’. Will output 'frames-per-tab instead of 'frames
 ;;       if 'tab-bar-mode was active.
-(defconst +sessions-schema-version+ 3)
+;; 4   - support indirect and narrowed buffers
+(defconst +sessions-schema-version+ 4)
 
-(defsubst make-session-entry (buf-name point variables mode other-data special-variables)
-  "BUF-NAME         - buffer name
+(defun make-session-entry
+    (buf-file
+     point
+     variables
+     mode
+     other-data
+     special-variables
+     indirect-base
+     narrowing-bounds
+     buf-name)
+  "
+BUF-FILE          - visited filename
 POINT             - position within buffer
 VARIABLES         - values of local variables
 MODE              - buffer's major mode
 OTHER-DATA        - some data, depending on buffer type
-SPECIAL-VARIABLES - local variables that may require special treatment when restoring"
-  (list buf-name
+SPECIAL-VARIABLES - local variables that may require special treatment when restoring
+INDIRECT-BASE     - if this buffer is indirect then here is the
+                    abbreviated filename (for regular file-visiting buffers) or
+                    buffer name (for temporary buffers) of its base buffer
+NARROWING-BOUNDS  - nil or cons pair of region bounds this buffer was narrowed to
+BUF-NAME          - buffer-name
+"
+  (list buf-file
         point
         variables
         mode
         other-data
-        special-variables))
+        special-variables
+        indirect-base
+        narrowing-bounds
+        buf-name))
 
-(defsubst session-entry/buffer-name (entry)
+(defun session-entry/buffer-file (entry)
   "Extract buffer name from ENTRY. For buffers with  files this is absolute file
 name, for temporary buffers - just the buffer name."
   (car-safe entry))
 
-(defsubst session-entry/point (entry)
+(defun session-entry/point (entry)
   (car-safe (cdr-safe entry)))
 
-(defsubst session-entry/variables (entry)
+(defun session-entry/variables (entry)
   (car-safe (cdr-safe (cdr-safe entry))))
 
 ;; Major mode is remembered because there're cases when emacs infers wrong
 ;; mode for otherwise normal buffer. Also modes may be changed by hand, so
 ;; it is preserved for every buffer.
-(defsubst session-entry/major-mode (entry)
+(defun session-entry/major-mode (entry)
   (car-safe (cdr-safe (cdr-safe (cdr-safe entry)))))
 
-(defsubst session-entry/other-data (entry)
+(defun session-entry/other-data (entry)
   (car-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe entry))))))
 
-(defsubst session-entry/special-variables (entry)
+(defun session-entry/special-variables (entry)
   (car-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe entry)))))))
 
+(defun session-entry/indirect-base (entry)
+  (car-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe entry))))))))
+
+(defun session-entry/narrowing-bounds (entry)
+  (car-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe entry)))))))))
+
+(defun session-entry/buffer-name (entry)
+  (or (car-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe entry)))))))))
+      ;; On version 3 the buffer name for temporary buffers was stored
+      ;; in the first field where the buffer file name is stored now.
+      ;;
+      ;; Safe to remove this alternative after a while when old
+      ;; session files lose their relevance.
+      (car-safe entry)))
 
 (defconst +sessions-buffer-variables+
   (list
@@ -423,7 +457,14 @@ entries."
   "Make session to save later"
   (let* ((max-lisp-eval-depth 1000)
          (print-circle t)
-         (buffers (buffer-list))
+         ;; Sort so that indirect buffers will come after their base buffers
+         ;; and thus we’ll always be able to call ‘make-indirect-buffer’
+         ;; when restoring.
+         (buffers (sort (buffer-list)
+                        (lambda (x y)
+                          (let ((x-indirect? (not (null (buffer-base-buffer x))))
+                                (y-indirect? (not (null (buffer-base-buffer y)))))
+                            (nil-<=-t x-indirect? y-indirect?)))))
          (buffer-data
           (-map (lambda (buf)
                   (with-current-buffer buf
@@ -433,7 +474,12 @@ entries."
                      (sessions/get-buffer-variables buf)
                      major-mode
                      nil
-                     (sessions/get-special-buffer-variables buf))))
+                     (sessions/get-special-buffer-variables buf)
+                     (awhen (buffer-base-buffer)
+                       (sessions/store-string (abbreviate-file-name it)))
+                     (when (buffer-narrowed-p)
+                       (sessions/store-value persistent-narrow-to-region--bounds))
+                     (sessions/store-string (buffer-name buf) t))))
                 (--filter (and (not (null (buffer-file-name it)))
                                (not (sessions--is-polymode-indirect-buffer? it)))
                           buffers)))
@@ -441,16 +487,30 @@ entries."
           (-map (lambda (buf)
                   (with-current-buffer buf
                     (let ((drop-properties?
-                           (memq major-mode '(markdown-mode))))
+                           ;; These properties hold on to too much data.
+                           (memq major-mode '(markdown-mode)))
+                          (base (buffer-base-buffer)))
                       (make-session-entry
-                       (sessions/store-string (buffer-name buf) drop-properties?)
+                       nil
                        (point)
                        (sessions/get-buffer-variables buf)
                        major-mode
-                       (sessions/store-string
-                        (buffer-substring (point-min) (point-max))
-                        drop-properties?)
-                       (sessions/get-special-buffer-variables buf)))))
+                       (unless base
+                         ;; Don’t store data for indirect buffers since
+                         ;; they’re mirroring their bases.
+                         (sessions/store-string
+                          (if (buffer-narrowed-p)
+                              (save-restriction
+                                (widen)
+                                (buffer-substring (point-min) (point-max)))
+                            (buffer-substring (point-min) (point-max)))
+                          drop-properties?))
+                       (sessions/get-special-buffer-variables buf)
+                       (awhen base
+                         (sessions/store-string (buffer-name it)))
+                       (when (buffer-narrowed-p)
+                         (sessions/store-value persistent-narrow-to-region--bounds))
+                       (sessions/store-string (buffer-name buf) t)))))
                 (-filter #'sessions/is-temporary-buffer? buffers)))
          (special-buffer-data
           (remq nil
@@ -520,29 +580,44 @@ entries."
           (cadr-safe
            (assq 'schema-version session-entries)))
          (setup-buffer
-          (lambda (point mode vars special-vars)
-            (sessions/report-and-ignore-asserts
-                (format "while restoring major mode of buffer '%s'" (buffer-name))
-              (sessions/assert-with-args (symbolp mode)
-                                         "Invalid mode: %s"
-                                         mode)
-              (setf mode (or (and (fboundp mode)
-                                  mode)
-                             (default-value 'major-mode)))
-              (unless (eq? major-mode mode)
-                (sessions/call-symbol-function mode)))
-            (sessions/report-and-ignore-asserts
-                (format "while restoring point of buffer '%s'" (buffer-name))
-              (sessions/assert-with-args (numberp point)
-                                         "Invalid point: %s"
-                                         point)
-              (goto-char point))
-            (sessions/report-and-ignore-asserts
-                (format "while restoring buffer variables of buffer '%s'" (buffer-name))
-              (sessions/restore-buffer-variables version (current-buffer) vars))
-            (sessions/report-and-ignore-asserts
-                (format "while restoring special buffer variables of buffer '%s'" (buffer-name))
-              (sessions/restore-special-buffer-variables (current-buffer) special-vars)))))
+          (lambda (point mode vars special-vars indirect-base narrowing-bounds buffer-name)
+            (with-current-buffer
+                (if indirect-base
+                    (make-indirect-buffer (current-buffer)
+                                          (sessions/versioned/restore-string version buffer-name)
+                                          t)
+                  (current-buffer))
+
+              (when indirect-base
+                (narrow-to-region-indirect-setup-indirect-buffer))
+
+              (awhen narrowing-bounds
+                (let ((bounds (sessions/versioned/restore-value version it)))
+                  (persistent-narrow-to-region (car bounds) (cdr bounds))))
+
+              (sessions/report-and-ignore-asserts
+                  (format "while restoring major mode of buffer '%s'" (buffer-name))
+                (sessions/assert-with-args (symbolp mode)
+                                           "Invalid mode: %s"
+                                           mode)
+
+                (setf mode (or (and (fboundp mode)
+                                    mode)
+                               (default-value 'major-mode)))
+                (unless (eq? major-mode mode)
+                  (sessions/call-symbol-function mode)))
+              (sessions/report-and-ignore-asserts
+                  (format "while restoring point of buffer '%s'" (buffer-name))
+                (sessions/assert-with-args (numberp point)
+                                           "Invalid point: %s"
+                                           point)
+                (goto-char point))
+              (sessions/report-and-ignore-asserts
+                  (format "while restoring buffer variables of buffer '%s'" (buffer-name))
+                (sessions/restore-buffer-variables version (current-buffer) vars))
+              (sessions/report-and-ignore-asserts
+                  (format "while restoring special buffer variables of buffer '%s'" (buffer-name))
+                (sessions/restore-special-buffer-variables (current-buffer) special-vars))))))
     (sessions/report-and-ignore-asserts
         "while restoring extracting version"
       (sessions/assert-with-args
@@ -554,19 +629,24 @@ entries."
         (mapc (lambda (entry)
                 (sessions/report-and-ignore-asserts
                     (format "while extracting buffer name from '%s'" entry)
-                  (let ((buf-name
+                  (let ((buf-file
                          (sessions/versioned/restore-string
                           version
-                          (session-entry/buffer-name entry))))
-                    (sessions/assert-with-args (file-exists? buf-name)
+                          (aif (session-entry/indirect-base entry)
+                              it
+                            (session-entry/buffer-file entry)))))
+                    (sessions/assert-with-args (file-exists? buf-file)
                                                "File %s does not exist!"
-                                               buf-name)
-                    (with-current-buffer (find-file-noselect buf-name)
+                                               buf-file)
+                    (with-current-buffer (find-file-noselect buf-file)
                       (funcall setup-buffer
                                (session-entry/point entry)
                                (session-entry/major-mode entry)
                                (session-entry/variables entry)
-                               (session-entry/special-variables entry))))))
+                               (session-entry/special-variables entry)
+                               (session-entry/indirect-base entry)
+                               (session-entry/narrowing-bounds entry)
+                               (session-entry/buffer-name entry))))))
               (cadr it))
       (message "sessions/load-from-data: no 'buffers field"))
     (aif (assq 'temporary-buffers session-entries)
@@ -577,17 +657,20 @@ entries."
                     (let ((buf (get-buffer-create
                                 (sessions/versioned/restore-string
                                  version
-                                 (session-entry/buffer-name entry)))))
+                                 (aif (session-entry/indirect-base entry)
+                                     it
+                                   (session-entry/buffer-name entry))))))
                       (with-current-buffer buf
-                        (insert
-                         (sessions/versioned/restore-string
-                          version
-                          (session-entry/other-data entry)))
+                        (awhen (session-entry/other-data entry)
+                          (insert (sessions/versioned/restore-string version it)))
                         (funcall setup-buffer
                                  (session-entry/point entry)
                                  (session-entry/major-mode entry)
                                  (session-entry/variables entry)
-                                 (session-entry/special-variables entry)))))))
+                                 (session-entry/special-variables entry)
+                                 (session-entry/indirect-base entry)
+                                 (session-entry/narrowing-bounds entry)
+                                 (session-entry/buffer-name entry)))))))
               (cadr it))
       (message "sessions/load-from-data: no 'temporary-buffers field"))
     (aif (assq 'special-buffers session-entries)
