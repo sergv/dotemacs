@@ -3208,6 +3208,28 @@ have different input states."
  :modes (haskell-ts-mode)
  :fresh-buffer t)
 
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-pattern-strictness-5
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = bar"
+  "  where"
+  "    (start, en_|_d) = quux 1"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = bar"
+  "  where"
+  "    !_|_(start, end) = quux 1"
+  "")
+ :modes (haskell-ts-mode)
+ :fresh-buffer t)
+
 (haskell-tests--test-buffer-contents
     haskell-tests/haskell-backspace-with-block-dedent-1
     (haskell-backspace-with-block-dedent)
