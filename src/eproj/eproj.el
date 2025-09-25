@@ -457,34 +457,10 @@ get proper flycheck checker."
 (defmacro eproj-project/query-aux-info-entry (aux-info &rest keys)
   "Retrieve aux-data assoc entry associated with a KEY in the aux info AUX-INFO."
   (declare (indent 1))
-  `(let ((entry ,(foldl (lambda (acc key)
-                          `(assq ,key ,acc))
-                        aux-info
-                        keys)))
-     (cl-assert
-      (cond
-        ((null entry)
-         t)
-        ((not (consp entry))
-         nil)
-        ((memq (car entry) '(languages no-default-proj authoritative-tag-source-for))
-         (-all? #'symbolp (cdr entry)))
-        ((memq (car entry) '(related ignored-files ignored-dirs extra-navigation-files))
-         (-all? #'stringp (cdr entry)))
-        ((memq (car entry) '(file-list tag-file build-dir indent-style))
-         (and (= (length entry) 2)
-              (stringp (cadr entry))))
-        ((memq (car entry) '(create-cache-files indent-tab delete-trailing-whitespace))
-         (and (= (length entry) 2)
-              (booleanp (cadr entry))))
-        ((memq (car entry) '(language-specific checker disabled-checkers local-variables aux-files))
-         (-all? #'listp (cdr entry)))
-        (t
-         nil))
-      nil
-      "Invalid entry in .eproj-info: %s"
-      entry)
-     (cdr-safe entry)))
+  `(cdr-safe ,(foldl (lambda (acc key)
+                       `(assq ,key ,acc))
+                     aux-info
+                     keys)))
 
 (defmacro eproj-project/query-aux-info (aux-info &rest keys)
   "Retrieve aux-data value associated with a KEY in the aux info AUX-INFO."
@@ -734,13 +710,35 @@ cache tags in."
     (goto-char (point-min))
     (let ((info (read (current-buffer))))
       (cl-assert (listp info) nil "Expected eproj info to be a list: %s" nifo)
-      (unless (--every? (memq (car it) eproj--known-eproj-info-entries)
-                        info)
-        (error "Some entries in .eproj-info at %s are not supported:\n%s"
-               filename
-               (pp-to-string
-                (--filter (not (memq (car it) eproj--known-eproj-info-entries))
-                          info))))
+      (dolist (entry info)
+        (unless
+            (memq (car entry) eproj--known-eproj-info-entries)
+          (error "Unsupported entries in .eproj-info at %s:\n%s"
+                 filename
+                 (pp-to-string
+                  (--filter (not (memq (car it) eproj--known-eproj-info-entries))
+                            info))))
+        (unless
+            (cond
+              ((null entry)
+               t)
+              ((not (consp entry))
+               nil)
+              ((memq (car entry) '(languages no-default-proj authoritative-tag-source-for))
+               (-all? #'symbolp (cdr entry)))
+              ((memq (car entry) '(related ignored-files ignored-dirs extra-navigation-files))
+               (-all? #'stringp (cdr entry)))
+              ((memq (car entry) '(file-list tag-file build-dir indent-style))
+               (and (= (length entry) 2)
+                    (stringp (cadr entry))))
+              ((memq (car entry) '(create-cache-files indent-tab delete-trailing-whitespace))
+               (and (= (length entry) 2)
+                    (booleanp (cadr entry))))
+              ((memq (car entry) '(language-specific checker disabled-checkers local-variables aux-files))
+               (-all? #'listp (cdr entry)))
+              (t
+               nil))
+          (error "Invalid entry in .eproj-info: %s" entry)))
       info)))
 
 ;;;; project creation
