@@ -567,30 +567,34 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
   (cl-assert (treesit-node-p field-type-node))
   (unless (member (treesit-node-type field-type-node) '("strict" "strict_field"))
     (let ((has-parens? (member (treesit-node-type field-type-node) '("parens" "as" "tuple"))))
-      (if has-parens?
-          (progn
-            (goto-char (treesit-node-start field-type-node))
-            (insert-char ?!))
-        (let* ((start (treesit-node-start field-type-node))
-               (end (treesit-node-end field-type-node))
-               (should-add-parens?
-                (save-excursion
-                  (save-restriction
-                    (narrow-to-region start end)
-                    (goto-char (point-min))
-                    (search-forward " " nil t)))))
-          ;; Start from the end so that we don’t need to recompute
-          ;; positions due to moves.
-          (when should-add-parens?
-            (goto-char end)
-            (insert-char ?\)))
-          (goto-char start)
-          (when (and preceded-by-double-colon?
-                     (not (eq (char-before) ?\s)))
-            (insert-char ?\s))
-          (insert-char ?!)
-          (when should-add-parens?
-            (insert-char ?\()))))))
+      (with-marker (m (point-marker))
+        (set-marker-insertion-type m t)
+        (unwind-protect
+            (if has-parens?
+                (progn
+                  (goto-char (treesit-node-start field-type-node))
+                  (insert-char ?!))
+              (let* ((start (treesit-node-start field-type-node))
+                     (end (treesit-node-end field-type-node))
+                     (should-add-parens?
+                      (save-excursion
+                        (save-restriction
+                          (narrow-to-region start end)
+                          (goto-char (point-min))
+                          (search-forward " " nil t)))))
+                ;; Start from the end so that we don’t need to recompute
+                ;; positions due to moves.
+                (when should-add-parens?
+                  (goto-char end)
+                  (insert-char ?\)))
+                (goto-char start)
+                (when (and preceded-by-double-colon?
+                           (not (eq (char-before) ?\s)))
+                  (insert-char ?\s))
+                (insert-char ?!)
+                (when should-add-parens?
+                  (insert-char ?\())))
+          (goto-char m))))))
 
 ;;;###autoload
 (defun haskell-smart-operators-quote ()
