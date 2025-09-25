@@ -84,7 +84,15 @@ Ensures a final newline is inserted."
           (goto-char begin)
           (indent-sexp))))))
 
-(cl-defmacro tests-utils--test-buffer-contents (&key action contents expected-value initialisation post-content-initialisation buffer-id suppress-cursor)
+(cl-defmacro tests-utils--test-buffer-contents
+    (&key action
+          contents
+          expected-value
+          initialisation
+          post-content-initialisation
+          buffer-id
+          suppress-cursor
+          collect-actual-contents)
   (declare (indent nil))
   `(tests-utils--with-temp-buffer
     :initialisation ,initialisation
@@ -96,7 +104,9 @@ Ensures a final newline is inserted."
       (unless ,suppress-cursor
         (insert "_|_"))
       (let ((actual-contents
-             (buffer-substring-no-properties (point-min) (point-max)))
+             ,(if collect-actual-contents
+                  collect-actual-contents
+                '(buffer-substring-no-properties (point-min) (point-max))))
             (expected-contents ,expected-value))
         (unless ,suppress-cursor
           (unless (string-match-p "_|_" expected-contents)
