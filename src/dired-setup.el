@@ -44,6 +44,23 @@
           (lambda ()
             (dired-omit-mode 1)))
 
+(defhydra-ext hydra-dired-sort (:exit t :foreign-keys nil :hint nil)
+  "
+Sort by:
+_n_ame
+_s_ize
+_t_ime
+e_x_tension
+
+_S_: toggle sorting
+"
+  ("n" dired-ext-sort-by-name)
+  ("s" dired-ext-sort-by-size)
+  ("t" dired-ext-sort-by-time)
+  ("x" dired-ext-sort-by-ext)
+
+  ("S" dired-ext-toggle-sorting :exit nil))
+
 (def-keys-for-map dired-mode-map
   +vim-special-keys+
   +vim-search-keys+
@@ -56,6 +73,8 @@
   ("q"            nil)
   ("e"            dired-do-eval)
   ("f"            nil)
+  ("l"            dired-do-symlink)
+  ("S"            hydra-dired-sort/body)
   ("o"            dired-do-open-marked)
   ("Q"            dired-do-query-replace-regexp)
   ("<return>"     dired-single-buffer)
@@ -141,6 +160,26 @@ current one."
 (defun dired-single-up-directory ()
   (interactive)
   (dired-single-buffer ".."))
+
+(defun dired-ext-toggle-sorting ()
+  (interactive)
+  (dired-sort-toggle))
+
+(defun dired-ext-sort-by-name ()
+  (interactive)
+  (dired-sort-other (concat dired-actual-switches " --sort=name")))
+
+(defun dired-ext-sort-by-size ()
+  (interactive)
+  (dired-sort-other (concat dired-actual-switches " --sort=size")))
+
+(defun dired-ext-sort-by-time ()
+  (interactive)
+  (dired-sort-other (concat dired-actual-switches " --sort=time")))
+
+(defun dired-ext-sort-by-ext ()
+  (interactive)
+  (dired-sort-other (concat dired-actual-switches " --sort=extension")))
 
 ;;;###autoload
 (defun dired-setup ()
