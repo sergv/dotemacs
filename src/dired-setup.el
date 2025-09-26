@@ -40,10 +40,6 @@
                         dired-bibtex-unclean-extensions
                         dired-texinfo-unclean-extensions)))
 
-(add-hook 'dired-mode-hook
-          (lambda ()
-            (dired-omit-mode 1)))
-
 (defhydra-ext hydra-dired-sort (:exit t :foreign-keys nil :hint nil)
   "
 Sort by:
@@ -183,7 +179,8 @@ current one."
 
 ;;;###autoload
 (defun dired-setup ()
-  (hl-line-mode +1))
+  (hl-line-mode +1)
+  (dired-omit-mode +1))
 
 ;;;###autoload
 (add-hook 'dired-mode-hook #'dired-setup)
