@@ -33,6 +33,7 @@
       (rx (or (seq bol (? ".") "#") ;; emacs autosave files
               (seq "~" eol)         ;; backup-files
               ))
+      dired-omit-verbose nil
       dired-omit-extensions
       (--remove (equal ".log" it)
                 (append dired-latex-unclean-extensions
