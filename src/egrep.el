@@ -32,8 +32,8 @@
         (t
          'elisp)))
 
-(defun make-egrep-match (file short-file-name line column matched-prefix matched-text matched-suffix)
-  (cons file (cons short-file-name (cons line (cons column (cons matched-prefix (cons matched-text matched-suffix)))))))
+(defun make-egrep-match (file short-file-name line column matched-prefix matched-text matched-suffix matched-offset)
+  (cons file (cons short-file-name (cons line (cons column (cons matched-prefix (cons matched-text (cons matched-suffix matched-offset))))))))
 
 (defsubst egrep-match-file (x)
   (declare (pure t) (side-effect-free t))
@@ -61,7 +61,12 @@
 
 (defsubst egrep-match-matched-suffix (x)
   (declare (pure t) (side-effect-free t))
-  (cddr (cddddr x)))
+  (caddr (cddddr x)))
+
+;; This is the start of match, the prefix comes before this.
+(defsubst egrep-match-matched-offset (x)
+  (declare (pure t) (side-effect-free t))
+  (cdddr (cddddr x)))
 
 (defun egrep-match< (a b)
   (let ((file-a (egrep-match-short-file-name a))
@@ -191,7 +196,8 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
                                                                           column
                                                                           match-prefix
                                                                           match-text
-                                                                          match-suffix)
+                                                                          match-suffix
+                                                                          match-start)
                                                         nil)))))
                            ;; Jump to end of line in order to show at most one match per
                            ;; line.
@@ -212,10 +218,12 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
     (select-mode-on-selectable-items
      (lambda (match-entry buffer-str)
        (let ((orig-str
+              ;; Contents we’ve shown to the user.
               (concat
                (substring-no-properties (egrep-match-matched-prefix match-entry))
                (substring-no-properties (egrep-match-matched-text match-entry))
                (substring-no-properties (egrep-match-matched-suffix match-entry))))
+             ;; Current contents, commit it if it differs from what was shown.
              (stripped-buffer-str (substring (substring-no-properties buffer-str)
                                              0
                                              -1)))
@@ -239,11 +247,11 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
                                 (lambda (x y)
                                   (let ((x-match (car x))
                                         (y-match (car y)))
-                                    ;; Use descending by line numbers order so
-                                    ;; that line numbers will not be
+                                    ;; Use descending by offsets order so
+                                    ;; that later entries will not be
                                     ;; invalidated when changes are applied.
-                                    (> (egrep-match-line x-match)
-                                       (egrep-match-line y-match)))))
+                                    (> (egrep-match-offset x-match)
+                                       (egrep-match-offset y-match)))))
                           ordered-changed-entries))
                changed-entries-hash-table)
       ;; Sanity check that changes can be applied - old content didn’t change after we gathered it.
@@ -254,8 +262,8 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
              (let ((match-entry (car entry))
                    (orig-str (cadr entry)))
                (cl-assert (stringp orig-str))
-               (goto-line-dumb (egrep-match-line match-entry))
-               (beginning-of-line)
+               (goto-char (- (egrep-match-offset match-entry)
+                             (length (egrep-match-matched-prefix match-entry))))
                (let ((current-str
                       (buffer-substring-no-properties (point)
                                                       (+ (point)
