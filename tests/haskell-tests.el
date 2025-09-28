@@ -3254,6 +3254,58 @@ have different input states."
 
 (haskell-tests--test-buffer-contents*
  :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-pattern-strictness-1e
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  ""
+  "parseGlobPattern :: Text -> Pattern"
+  "parseGlobPattern str = undefined"
+  "  where"
+  "    TU.Iter c' del_|_ta ="
+  "      TU.iterArray arr i"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "parseGlobPattern :: Text -> Pattern"
+  "parseGlobPattern str = undefined"
+  "  where"
+  "    TU.Iter c' !del_|_ta ="
+  "      TU.iterArray arr i"
+  "")
+ :modes (haskell-ts-mode)
+ :fresh-buffer t)
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-pattern-strictness-1f
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  ""
+  "parseGlobPattern :: Text -> Pattern"
+  "parseGlobPattern str = undefined"
+  "  where"
+  "    !(TU.Iter c' del_|_ta) ="
+  "      TU.iterArray arr i"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "parseGlobPattern :: Text -> Pattern"
+  "parseGlobPattern str = undefined"
+  "  where"
+  "    !(TU.Iter c' !del_|_ta) ="
+  "      TU.iterArray arr i"
+  "")
+ :modes (haskell-ts-mode)
+ :fresh-buffer t)
+
+(haskell-tests--test-buffer-contents*
+ :name
  haskell-tests/haskell-smart-operators-exclamation-mark-pattern-strictness-2a
  :action
  (haskell-smart-operators-exclamation-mark)
@@ -3298,6 +3350,32 @@ have different input states."
   "parseGlobPattern :: Text -> Pattern"
   "parseGlobPattern str ="
   "  let !(TU.Ite_|_r c' delta) ="
+  "        TU.iterArray arr i"
+  "  in foo"
+  "")
+ :modes (haskell-ts-mode)
+ :fresh-buffer t)
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-pattern-strictness-2c
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  ""
+  "parseGlobPattern :: Text -> Pattern"
+  "parseGlobPattern str ="
+  "  let TU.Iter c' delt_|_a ="
+  "        TU.iterArray arr i"
+  "  in foo"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "parseGlobPattern :: Text -> Pattern"
+  "parseGlobPattern str ="
+  "  let TU.Iter c' !delt_|_a ="
   "        TU.iterArray arr i"
   "  in foo"
   "")
@@ -3359,7 +3437,47 @@ have different input states."
  (tests-utils--multiline
   ""
   "foo :: Text -> Pattern"
-  "foo (TI.Text arr off len) !(TI.Text arr2 off2 _|_len2) = undefined"
+  "foo (TI.Text arr off len) (TI.Text arr2 off2 !_|_len2) = undefined"
+  "")
+ :modes (haskell-ts-mode)
+ :fresh-buffer t)
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-pattern-strictness-3d
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Text -> Pattern"
+  "foo (TI.Text arr off len) (TI.Text arr2 off2 len_|_2) = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Text -> Pattern"
+  "foo (TI.Text arr off len) (TI.Text arr2 off2 !len_|_2) = undefined"
+  "")
+ :modes (haskell-ts-mode)
+ :fresh-buffer t)
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-pattern-strictness-3e
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo :: Text -> Pattern"
+  "foo (TI.Text arr off len) (TI.Text arr2 off2 len2_|_) = undefined"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo :: Text -> Pattern"
+  "foo (TI.Text arr off len) !(TI.Text arr2 off2 len2_|_) = undefined"
   "")
  :modes (haskell-ts-mode)
  :fresh-buffer t)
@@ -3403,7 +3521,7 @@ have different input states."
   ""
   "foo = bar"
   "  where"
-  "    !(start, en_|_d) = quux 1"
+  "    (start, !en_|_d) = quux 1"
   "")
  :modes (haskell-ts-mode)
  :fresh-buffer t)
