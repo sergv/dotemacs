@@ -441,44 +441,17 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
                         (not (or (and (not preceded-by-double-colon?)
                                       preceded-by-operator?)
                                  followed-by-operator?))))
-              (awhen (treesit-node-top-level
+              (awhen (treesit-utils-find-topmost-parent
                       (treesit-node-at p)
-                      (lambda (x) (string= (treesit-node-type x) "field"))
-                      t)
+                      (lambda (x) (string= (treesit-node-type x) "field")))
                 (treesit-node-children it))))
            (ts-field-colon-node nil)
            (ts-field-type-node nil)
 
-           (ts-enclosing-local-binds-pattern-node
-            (when (and (not preceded-by-operator?)
-                       (derived-mode-p 'haskell-ts-mode))
-              (treesit-node-top-level
-               (treesit-node-at p)
-               (lambda (x)
-                 (and (treesit-haskell--is-inside-node? p x)
-                      (when-let ((parent (treesit-node-parent x)))
-                        (and (string= (treesit-node-type parent) "bind")
-                             (awhen (treesit-node-parent parent)
-                               (string= (treesit-node-type it) "local_binds"))
-                             (member (treesit-node-field-name x) '("pattern" "name"))))))
-               t)))
-
-           (ts-enclosing-pattern-node
-            (when (and (not preceded-by-operator?)
-                       (derived-mode-p 'haskell-ts-mode))
-              (treesit-node-top-level
-               (treesit-node-at p)
-               (lambda (x)
-                 (and (treesit-haskell--is-inside-node? p x)
-                      (member (treesit-node-type x) '("parens" "as"))
-                      (when-let ((parent (treesit-node-parent x)))
-                        (or (string= (treesit-node-type parent) "patterns")))))
-               t)))
-
            (ts-enclosing-regular-datatype-pattern-node
             (when (and (not preceded-by-operator?)
                        (derived-mode-p 'haskell-ts-mode))
-              (treesit-node-top-level
+              (treesit-utils-find-topmost-parent
                (treesit-node-at p)
                (lambda (x)
                  (and (treesit-haskell--is-inside-node? p x)
@@ -489,31 +462,66 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
                             (and (string= parent-type "infix")
                                  (when-let ((field-name (treesit-node-field-name x)))
                                    (or (string= field-name "left_operand")
-                                       (string= field-name "right_operand"))))))))
-               t)))
+                                       (string= field-name "right_operand")))))))))))
 
            (inside-gadt-constructor?
             (when (and (not (and (not preceded-by-double-colon?)
                                  preceded-by-operator?))
                        (derived-mode-p 'haskell-ts-mode))
-              (treesit-node-top-level
+              (treesit-utils-find-topmost-parent
                (treesit-node-at p)
                (lambda (x)
                  (and (string= (treesit-node-type x) "gadt_constructor")
-                      (treesit-haskell--is-inside-node? p x)))
-               t)))
+                      (treesit-haskell--is-inside-node? p x))))))
 
            (gadt-field
             (when inside-gadt-constructor?
-              (treesit-node-top-level
+              (treesit-utils-find-topmost-parent
                (treesit-node-at p)
                (lambda (x)
                  (and (awhen (treesit-node-parent x)
                         (string= (treesit-node-type it) "function"))
                       (string= (treesit-node-field-name x) "parameter")
-                      (treesit-haskell--is-inside-node? p x)))
-               t))))
+                      (treesit-haskell--is-inside-node? p x))))))
+
+           (ts-inside-pattern?
+            (when (and (not (and (not preceded-by-double-colon?)
+                                 preceded-by-operator?))
+                       (derived-mode-p 'haskell-ts-mode))
+              (not
+               (null
+                (treesit-utils-find-topmost-parent
+                 (treesit-node-at p)
+                 (lambda (x)
+                   (and (treesit-haskell--is-inside-node? p x)
+                        (or (string= (treesit-node-type x) "patterns")
+                            (when-let ((parent (treesit-node-parent x)))
+                              (and (string= (treesit-node-type parent) "bind")
+                                   (awhen (treesit-node-parent parent)
+                                     (string= (treesit-node-type it) "local_binds"))
+                                   (member (treesit-node-field-name x) '("pattern" "name"))))))))))))
+
+           (ts-closest-pattern-name
+            (when ts-inside-pattern?
+              (let ((tmp (treesit-utils-find-topmost-parent-stop-at-first
+                          (treesit-node-at p)
+                          (lambda (x)
+                            (and (treesit-haskell--is-inside-node? p x)
+                                 (or (member (treesit-node-field-name x) '("pattern" "name" "argument" "element"))
+                                     (when-let ((parent (treesit-node-parent x)))
+                                       (string= (treesit-node-type parent) "patterns"))))))))
+                (when-let ((parent (treesit-node-parent tmp)))
+                  (when (string= (treesit-node-type parent) "parens")
+                    (setf tmp parent)))
+                (when-let ((parent (treesit-node-parent tmp)))
+                  (when (string= (treesit-node-type parent) "as")
+                    (setf tmp parent)))
+                (when-let ((parent (treesit-node-parent tmp)))
+                  (when (string= (treesit-node-type parent) "strict")
+                    (setf tmp parent)))
+                tmp))))
       (cond
+        ;; Datatype fields always insert at "toplevel spot"
         ((and ts-field-node-children
               (= (length ts-field-node-children) 3)
               (string= (treesit-node-type (car ts-field-node-children)) "field_name")
@@ -540,14 +548,6 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
          (haskell-smart-operators-exclamation-mark--insert-for-field!
           preceded-by-double-colon?
           ts-field-type-node))
-        (ts-enclosing-local-binds-pattern-node
-         (haskell-smart-operators-exclamation-mark--insert-for-field!
-          preceded-by-double-colon?
-          ts-enclosing-local-binds-pattern-node))
-        (ts-enclosing-pattern-node
-         (haskell-smart-operators-exclamation-mark--insert-for-field!
-          preceded-by-double-colon?
-          ts-enclosing-pattern-node))
         (ts-enclosing-regular-datatype-pattern-node
          (haskell-smart-operators-exclamation-mark--insert-for-field!
           preceded-by-double-colon?
@@ -556,6 +556,13 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
          (haskell-smart-operators-exclamation-mark--insert-for-field!
           preceded-by-double-colon?
           gadt-field))
+
+        ;; Within pattern nodes we insert ! to closest name.
+        (ts-closest-pattern-name
+         (haskell-smart-operators-exclamation-mark--insert-for-field!
+          preceded-by-double-colon?
+          ts-closest-pattern-name))
+
         (preceded-by-double-colon?
          (unless (eq (char-before) ?\s)
            (insert-char ?\s))
