@@ -151,7 +151,7 @@ scheme and it’s view of current buffer is malformed."
     (dolist (cmd '("re" "reset"))
       (vim-local-emap cmd
                       (or reset-func
-                          #'vim:flycheck-clear:interactive)))
+                          #'vim:flycheck-clear)))
     (dolist (cmd '("errors" "errs"))
       (vim-local-emap cmd #'vim:flycheck-list-errors)))
   (when load-func
