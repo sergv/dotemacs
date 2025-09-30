@@ -1715,6 +1715,33 @@
   "  ]"))
 
 (haskell-indentation-tests--test-treesitter
+ :name haskell-indentation-tests--test-treesitter-list-5b
+ :contents
+ (tests-utils--multiline
+  "foo x ="
+  "  [ bar"
+  "  , baz"
+  "  , quux $"
+  "      mkQuux"
+  "        [ test $ test2 $"
+  "                _|_y $ z"
+  "        | z <- process x"
+  "        ]"
+  "  ]")
+ :expected-value
+ (tests-utils--multiline
+  "foo x ="
+  "  [ bar"
+  "  , baz"
+  "  , quux $"
+  "      mkQuux"
+  "        [ test $ test2 $"
+  "            _|_y $ z"
+  "        | z <- process x"
+  "        ]"
+  "  ]"))
+
+(haskell-indentation-tests--test-treesitter
  :name haskell-indentation-tests--test-treesitter-list-6a
  :contents
  (tests-utils--multiline
