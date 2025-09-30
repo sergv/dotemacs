@@ -177,7 +177,8 @@
             (cond
               ((string= "parens" curr-type)
                (throw 'term (haskell-ts-indent--make-trivial-computed-indent curr)))
-              ((string= "list" curr-type)
+              ((or (string= "list" curr-type)
+                   (string= "list_comprehension" curr-type))
                (throw 'term
                       (haskell-ts-indent--make-trivial-computed-indent (if return-list-child?
                                                                            prev1
