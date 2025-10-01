@@ -10,7 +10,7 @@
   (treesit-haskell--node-at (point)))
 
 (defun treesit-haskell--node-at (pos)
-  (when (derived-mode-p 'haskell-ts-mode)
+  (when (derived-mode-p 'haskell-ts-base-mode)
     (treesit-node-at pos
                      ;; Hoping the parser will get reused, should be safe for
                      ;; haskell-ts-mode and its derivatives.

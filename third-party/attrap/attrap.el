@@ -690,7 +690,7 @@ Error is given as MSG and reported between POS and END."
       (let ((redundant (nth 1 match)))
         (save-excursion
           (let ((names-to-remove (s-split "[, \n\r\t]+" redundant t)))
-            (if (derived-mode-p 'haskell-ts-mode)
+            (if (derived-mode-p 'haskell-ts-base-mode)
                 (haskell-ts-remove-from-import-statement-at (point) names-to-remove)
               (attrap-remove-from-import-statement-at-point names-to-remove)))))))
    (when (string-match

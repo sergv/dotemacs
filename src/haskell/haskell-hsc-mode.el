@@ -17,7 +17,7 @@
 (add-to-list 'auto-mode-alist '("\\.hsc\\'" . haskell-hsc-mode))
 
 ;;;###autoload
-(define-derived-mode haskell-hsc-mode haskell-mode "HSC"
+(define-derived-mode haskell-hsc-mode haskell-ts-base-mode "HSC"
   "Mode for editing *.hsc files of the hsc2hs Haskell tool.")
 
 (provide 'haskell-hsc-mode)

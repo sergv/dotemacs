@@ -464,7 +464,7 @@ _#-}_: on pragma close"
                            (when (and (<= start point)
                                       (<= point end))
                              start)))))))
-                ((derived-mode-p 'haskell-ts-mode)
+                ((derived-mode-p 'haskell-ts-base-mode)
                  (when-let ((node (treesit-node-at (point))))
                    (when (treesit-haskell--is-inside-pragma-node? (point) node)
                      (treesit-node-start node))))
@@ -495,7 +495,7 @@ extensions as a list of strings. Leaves point at the end of pragma"
                               (save-excursion
                                 (forward-sexp)
                                 (point)))
-                             ((derived-mode-p 'haskell-ts-mode)
+                             ((derived-mode-p 'haskell-ts-base-mode)
                               (let ((node (treesit-node-at (point))))
                                 (cl-assert (string= "pragma" (treesit-node-type node))
                                            nil
@@ -784,7 +784,7 @@ a single entity."
                            (current-column-fixed-uncached))
                      (let ((indented-section-end (line-end-position)))
                        (setf point-at-end-of-function-signature?
-                             (or (and (derived-mode-p 'haskell-ts-mode)
+                             (or (and (derived-mode-p 'haskell-ts-base-mode)
                                       (let ((sig-node (treesit-node-parent (treesit-node-at (point)))))
                                         (when (member (treesit-node-type sig-node) '("signature" "default_signature"))
                                           (setf indented-section-end (treesit-node-end sig-node))
