@@ -333,7 +333,7 @@ then Bar would be the result."
 ;; 3. We’re within datatype and there’s space before ## to be expanded.
 ;; 4. We’re within import statement
 (defun haskell-abbrev+--should-insert-pragma? ()
-  (let ((is-haskell-ts? (derived-mode-p 'haskell-ts-mode)))
+  (let ((is-haskell-ts? (derived-mode-p 'haskell-ts-base-mode)))
     (or (and (haskell-abbrev+--only-whitespace-till-line-start?)
              (if is-haskell-ts?
                  (if-let* ((node (treesit-node-at (point)))
@@ -366,7 +366,7 @@ then Bar would be the result."
   "Try to find out what’s being defined after point while trying to ignore comments."
   (save-excursion
     (skip-whitespace-forward)
-    (when (derived-mode-p 'haskell-ts-mode)
+    (when (derived-mode-p 'haskell-ts-base-mode)
       (let ((node nil)
             (continue? t))
         (while (and continue?
