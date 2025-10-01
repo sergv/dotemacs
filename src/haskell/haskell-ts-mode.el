@@ -770,8 +770,8 @@ indented block will be their bounds without any extra processing."
                                (interval-with-margins-resolve-end interval))))))))))
 
 ;;;###autoload
-(define-derived-mode haskell-ts-mode prog-mode "Haskell[ts]"
-  "Major mode for Haskell that uses tree-sitter."
+(define-derived-mode haskell-ts-base-mode prog-mode "Haskell[ts]"
+  "Bare-bones major mode for Haskell that uses tree-sitter."
 
   ;; Important to disable long lines optimizations because they make font locking
   ;; operate in narrowed buffer which could make treesitter miss things.
@@ -808,6 +808,9 @@ indented block will be their bounds without any extra processing."
               fill-paragraph-function #'haskell-fill-paragraph)
 
   (treesit-major-mode-setup))
+
+(define-derived-mode haskell-ts-mode haskell-ts-base-mode "Haskell[ts]"
+  "Major mode for Haskell that uses tree-sitter.")
 
 (provide 'haskell-ts-mode)
 
