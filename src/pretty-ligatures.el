@@ -458,7 +458,7 @@ a pretty symbol."
 
 (defun pretty-ligatures--compose-dot ()
   (when (and (not (pretty-ligatures--disable-pretty-symbols? (match-beginning 0)))
-             (if (derived-mode-p 'haskell-ts-mode)
+             (if (derived-mode-p 'haskell-ts-base-mode)
                  (if-let ((node (treesit-haskell--node-at (match-beginning 1))))
                      (not (and (equal (treesit-node-type node) ".")
                                (when-let ((p (treesit-node-parent node)))
