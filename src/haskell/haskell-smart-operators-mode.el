@@ -433,7 +433,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
               (gethash (char-after) haskell-smart-operators--operator-chars)))
 
            (ts-field-node-children
-            (when (and (derived-mode-p 'haskell-ts-mode)
+            (when (and (derived-mode-p 'haskell-ts-base-mode)
                        (or
                         ;; Don’t stick to preceding arrow since it’s
                         ;; most likely part of a funciton type.
@@ -450,7 +450,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
 
            (ts-enclosing-regular-datatype-pattern-node
             (when (and (not preceded-by-operator?)
-                       (derived-mode-p 'haskell-ts-mode))
+                       (derived-mode-p 'haskell-ts-base-mode))
               (treesit-utils-find-topmost-parent
                (treesit-node-at p)
                (lambda (x)
@@ -467,7 +467,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
            (inside-gadt-constructor?
             (when (and (not (and (not preceded-by-double-colon?)
                                  preceded-by-operator?))
-                       (derived-mode-p 'haskell-ts-mode))
+                       (derived-mode-p 'haskell-ts-base-mode))
               (treesit-utils-find-topmost-parent
                (treesit-node-at p)
                (lambda (x)
@@ -487,7 +487,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
            (ts-inside-pattern?
             (when (and (not (and (not preceded-by-double-colon?)
                                  preceded-by-operator?))
-                       (derived-mode-p 'haskell-ts-mode))
+                       (derived-mode-p 'haskell-ts-base-mode))
               (not
                (null
                 (treesit-utils-find-topmost-parent

@@ -588,8 +588,6 @@ _<tab>_: reindent  _h_: jump to topmont function/entity end"
         (using-lsp? nil)
         (should-enable-flycheck? nil))
 
-    (haskell-setup-common-prelude)
-
     (add-hook 'after-save-hook #'make-script-file-exec nil t)
 
     (let ((proj (haskell-setup-common-project t)))
@@ -680,8 +678,6 @@ _<tab>_: reindent  _h_: jump to topmont function/entity end"
 ;;;###autoload
 (defun haskell-hsc-setup ()
   (let ((should-enable-flycheck? nil))
-    (haskell-setup-common-prelude)
-
     (add-to-list 'flycheck-disabled-checkers 'haskell-hlint)
 
     (let ((proj (haskell-setup-common-project t)))
