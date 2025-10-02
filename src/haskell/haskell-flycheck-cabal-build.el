@@ -57,7 +57,7 @@
       (goto-char (point-min))
       (while (re-search-forward dante-error-regexp nil t)
         (let* ((file (match-string 4))
-               (buf (compilation/find-buffer file))
+               (b (compilation/find-buffer file dir dir))
                (location-raw (match-string 5))
                (err-type (match-string 6))
                (msg (match-string 7))
@@ -72,9 +72,9 @@
                                        (cadr location)
                                        type
                                        (concat fixed-err-type "\n" (trim-whitespace-right msg))
-                                       :buffer buf
-                                       :filename (if buf
-                                                     (buffer-file-name buf)
+                                       :buffer b
+                                       :filename (if b
+                                                     (buffer-file-name b)
                                                    file))
                 results))))
     results))
