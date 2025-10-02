@@ -88,70 +88,11 @@
 
 Not as low-latency as ‘haskell-dante’ checker, but works with .hsc files."
   :start 'haskell-flycheck-cabal-build--check
-  ;; :predicate (lambda () dante-mode)
   :modes '(haskell-mode haskell-ts-mode haskell-literate-mode haskell-hsc-mode)
   :working-directory (lambda (_checker)
                        (unless dante-project-root (dante-initialize-method))
                        dante-project-root))
 
-;; (flycheck-define-checker haskell-cabal-build
-;;   "A Haskell syntax and type checker using `stack ghc'.
-;;
-;; See URL `https://github.com/commercialhaskell/stack'."
-;;   :command ("cabal"
-;;             "build"
-;;             "--no-install-ghc"
-;;             (option "--stack-yaml" flycheck-ghc-stack-project-file)
-;;             (option-flag "--nix" flycheck-ghc-stack-use-nix)
-;;             "ghc" "--" "-Wall" "-no-link"
-;;             "-outputdir" (eval (flycheck-haskell-ghc-cache-directory))
-;;             (option-list "-X" flycheck-ghc-language-extensions concat)
-;;             (option-list "-i" flycheck-ghc-search-path concat)
-;;             (eval (concat
-;;                    "-i"
-;;                    (flycheck-module-root-directory
-;;                     (flycheck-find-in-buffer flycheck-haskell-module-re))))
-;;             (eval flycheck-ghc-args)
-;;             "-x" (eval
-;;                   (pcase major-mode
-;;                     ((or `haskell-mode `haskell-ts-mode) "hs")
-;;                     ((or `literate-haskell-mode 'haskell-literate-mode) "lhs")))
-;;             source)
-;;   :error-patterns
-;;   ((warning line-start (file-name) ":" line ":" column ":"
-;;             (or " " "\n    ") (in "Ww") "arning:"
-;;             (optional " " "[" (id (one-or-more not-newline)) "]")
-;;             (optional "\n")
-;;             (message
-;;              (one-or-more " ") (one-or-more not-newline)
-;;              (zero-or-more "\n"
-;;                            (one-or-more " ")
-;;                            (one-or-more (not (any ?\n ?|)))))
-;;             line-end)
-;;    (error line-start (file-name) ":" line ":" column ":" (optional " error:")
-;;           (or (message (one-or-more not-newline))
-;;               (and "\n"
-;;                    (message
-;;                     (one-or-more " ") (one-or-more not-newline)
-;;                     (zero-or-more "\n"
-;;                                   (one-or-more " ")
-;;                                   (one-or-more (not (any ?\n ?|)))))))
-;;           line-end))
-;;   :error-filter
-;;   (lambda (errors)
-;;     (flycheck-sanitize-errors (flycheck-dedent-error-messages errors)))
-;;   :modes (haskell-mode haskell-ts-mode haskell-literate-mode literate-haskell-mode)
-;;   :next-checkers ((warning . haskell-hlint))
-;;   :working-directory (lambda (_)
-;;                        (flycheck-haskell--find-stack-default-directory))
-;;   :enabled flycheck-haskell--find-stack-default-directory
-;;   :verify (lambda (_)
-;;             (let* ((stack (flycheck-haskell--find-stack-default-directory)))
-;;               (list
-;;                (flycheck-verification-result-new
-;;                 :label "stack config"
-;;                 :message (or stack "Not found")
-;;                 :face (if stack 'success '(bold error)))))))
 (provide 'haskell-flycheck-cabal-build)
 
 ;; Local Variables:
