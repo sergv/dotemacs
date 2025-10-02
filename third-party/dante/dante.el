@@ -963,7 +963,7 @@ If WAIT is nil, abort if Dante is busy.  Pass the dante buffer to CONT"
                                               (dante-sentinel process
                                                               change
                                                               (and ghc-initialising?
-                                                                   (join-lines (reverse (--drop-while (string= "" it) initial-ghc-messages))))))
+                                                                   initial-ghc-messages)))
                                   :file-handler t))))
     (with-current-buffer buffer
       (erase-buffer)
@@ -1098,7 +1098,7 @@ ACC umulate input and ERR-MSGS."
           (setq matched (string-match dante-ghci-prompt acc)))
         (ansi-color-apply (trim-whitespace-right (substring acc 0 (1- (match-beginning 1)))))))))
 
-(defun dante-sentinel (process change init-msg)
+(defun dante-sentinel (process change initial-ghc-messages)
   "Handle when PROCESS reports a CHANGE.
 This is a standard process sentinel function."
   (let ((buffer (process-buffer process)))
@@ -1106,7 +1106,8 @@ This is a standard process sentinel function."
       (if (eq (buffer-local-value 'dante-state buffer) 'deleting)
           (message "GHCi process deleted.")
         (with-current-buffer buffer (setq dante-state 'dead))
-        (dante-show-process-problem process change init-msg)))))
+        (let ((init-msg (join-lines (reverse (--drop-while (string= "" it) initial-ghc-messages)))))
+          (dante-show-process-problem process change init-msg))))))
 
 (defun dante-diagnose ()
   "Show all state info in a help buffer."
