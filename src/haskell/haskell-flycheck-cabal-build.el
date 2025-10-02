@@ -35,23 +35,21 @@
       (with-current-buffer buf
         (erase-buffer))
       (let* ((orig-buf (current-buffer))
-             (proc (make-process :name "flycheck-haskell-cabal-build"
-                                 :buffer nil
-                                 :command command
-                                 :noquery t
-                                 :filter (lambda (process str)
-                                           (with-current-buffer buf
-                                             (insert str)))
-                                 :sentinel (lambda (process event)
-                                             (pcase (process-status process)
-                                               (`signal
-                                                (funcall cont 'interrupted))
-                                               (`exit
-                                                (funcall cont
-                                                         'finished
-                                                         (haskell-flycheck-cabal-build--extract-errors buf))))))))))))
+             (proc
+              (let ((default-directory proj-dir))
+                (make-process :name "flycheck-haskell-cabal-build"
+                              :buffer buf
+                              :command command
+                              :noquery t
+                              :sentinel (lambda (process event)
+                                          (pcase (process-status process)
+                                            (`signal
+                                             (funcall cont 'interrupted))
+                                            (`exit
+                                             (let ((result (haskell-flycheck-cabal-build--extract-errors buf proj-dir process)))
+                                               (funcall cont (car result) (cdr result))))))))))))))
 
-(defun haskell-flycheck-cabal-build--extract-errors (buf)
+(defun haskell-flycheck-cabal-build--extract-errors (buf dir proc)
   (let ((results nil))
     (with-current-buffer buf
       (goto-char (point-min))
@@ -67,7 +65,6 @@
                                    err-type
                                  (replace-match (symbol->string type) nil nil err-type)))
                (location (dante-parse-error-location location-raw)))
-
           (push (flycheck-error-new-at (car location)
                                        (cadr location)
                                        type
@@ -77,7 +74,22 @@
                                                      (buffer-file-name b)
                                                    file))
                 results))))
-    results))
+    (cond
+      (results (cons 'finished results))
+      ((not (zerop (process-exit-status proc)))
+       (let ((sep "\n--------------------------------\n"))
+         (cons 'errored
+               (format "Cabal checker failed!%sDirectory: ‘%s’%s%s%s%s"
+                       sep
+                       (buffer-local-value 'default-directory (process-buffer proc))
+                       sep
+                       (join-lines (process-command proc) " ")
+                       sep
+                       (with-current-buffer buf
+                         (buffer-substring-no-properties (point-min) (point-max)))))))
+      (t
+       ;; Finished with no errors.
+       (cons 'finished nil)))))
 
 (defun haskell-flycheck-cabal-build--buffer-name ()
   (unless dante-project-root (dante-initialize-method))
