@@ -289,8 +289,10 @@ regexps to not be confused by the instance location."
 (defhydra-ext hydra-haskell-minus (:exit t :foreign-keys warn :hint nil)
   "
 _q_ualify import  _-_: attrap
+_e_xport
 "
   ("q" vim:haskell-qualify-import:interactive)
+  ("e" haskell-export-ident-at-point)
 
   ("-" vim:attrap-flycheck:interactive))
 
@@ -399,7 +401,6 @@ _<tab>_: reindent  _h_: jump to topmont function/entity end"
 
 ;;;###autoload
 (defun haskell-setup-common-editing ()
-
   (setq-local paredit-forward-sexp-function #'haskell-forward-sexp-no-pairing
 
               yafolding-empty-line-function #'haskell-on-blank-line?
