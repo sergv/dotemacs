@@ -899,7 +899,26 @@ Error is given as MSG and reported between POS and END."
            msg)
       (let ((identifier (match-string-no-properties 1 msg)))
         (attrap-one-option (list 'export identifier)
-          (haskell--export-ident identifier))))))))
+          (haskell--export-ident identifier))))
+
+    ;; error: [GHC-28623]
+    ;;     File name does not match module name:
+    ;;     Saw     : ‘Data.Regex.FFI.Rure’
+    ;;     Expected: ‘Data.Regex.Rure.FFI’
+    ;;   |
+    (when (string-match
+           (rx (ghc-error "28623") (+ ws)
+               "File name does not match module name:" (+ ws)
+               "Saw" (* spaces) ":" (* spaces) (identifier 1) (* ws)
+               "Expected" (* spaces) ":" (* spaces) (identifier 2))
+           msg)
+      (let ((old (match-string-no-properties 1 msg))
+            (new (match-string-no-properties 2 msg)))
+        (attrap-one-option (list 'rename-module-to new)
+          (save-match-data
+            (goto-char pos)
+            (search-forward old)
+            (replace-match new)))))))))
 
 (defun attrap-remove-from-import-statement-at-point (names-to-remove)
   (save-match-data
