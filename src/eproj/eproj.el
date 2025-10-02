@@ -1318,27 +1318,34 @@ Returns nil if no relevant entry found in AUX-INFO."
   (cond ((eq (car-safe item) 'tree)
          (let ((tree-root (cadr-safe item))
                (patterns (cddr-safe item)))
-           (cl-assert (and (not (null tree-root))
-                           (file-exists-p tree-root)
-                           (file-directory-p tree-root))
+           (cl-assert (stringp tree-root)
                       nil
-                      "Invalid tree root under aux-files/tree clause: %s"
+                      "Root of aux-files/tree must be a string, but got: %s"
                       tree-root)
-           (cl-assert (and (listp patterns)
-                           (not (null patterns)))
-                      nil
-                      "Invalid patterns under aux-files/tree clause: %s"
-                      patterns)
-           (let ((resolved-tree-root
-                  (eproj--resolve-to-abs-path-cached tree-root project-root)))
-             (cl-assert (file-name-absolute-p resolved-tree-root)
+           ;; It’s ok if tree root does not exist.
+           ;; It may be a new entry for new repository
+           ;; layout while we’re on an old commit at the moment.
+           (when (file-exists-p tree-root)
+             (cl-assert (file-directory-p tree-root)
                         nil
-                        "Resolved aux tree root is not absolute: %s"
-                        resolved-tree-root)
-             (puthash resolved-tree-root
-                      (append patterns
-                              (gethash resolved-tree-root aux-trees nil))
-                      aux-trees))))
+                        "Non-directory tree root under aux-files/tree clause: %s"
+                        tree-root)
+             (cl-assert (and (listp patterns)
+                             (not (null patterns))
+                             (-all? #'stringp patterns))
+                        nil
+                        "Invalid patterns under aux-files/tree clause, expected a list of strings but got: %s"
+                        patterns)
+             (when-let ((resolved-tree-root
+                         (eproj--resolve-to-abs-path-with-translation-lax tree-root project-root)))
+               (cl-assert (file-name-absolute-p resolved-tree-root)
+                          nil
+                          "Resolved aux tree root is not absolute: %s"
+                          resolved-tree-root)
+               (puthash resolved-tree-root
+                        (append patterns
+                                (gethash resolved-tree-root aux-trees nil))
+                        aux-trees)))))
         (t
          (error "Invalid 'aux-files entry: 'tree clause not found"))))
 
@@ -1413,6 +1420,14 @@ to check whether it’s an existing file relative to DIR and return
 that. Report error if both conditions don’t hold."
   (resolve-to-abs-path (if eproj-translate-file-name (funcall eproj-translate-file-name path) path)
                        dir))
+
+(defun eproj--resolve-to-abs-path-with-translation-lax (path dir)
+  (resolve-to-abs-path-lax
+   (if eproj-translate-file-name
+       (funcall eproj-translate-file-name path)
+     path)
+   dir
+   #'ignore))
 
 (defun-caching-extended
   eproj-normalise-file-name-expand-cached (path &optional dir)
