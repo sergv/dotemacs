@@ -1735,6 +1735,30 @@
   "  basicUnsafeWrite = _"
   ""))
 
+(attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/file-name-does-not-match-module-name-1
+ :error-message
+ (tests-utils--multiline
+  "error: [GHC-28623]"
+  "    File name does not match module name:"
+  "    Saw     : ‘Data.Regex.FFI.Rure’"
+  "    Expected: ‘Data.Regex.Rure.FFI’"
+  "  |")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "module _|_Data.Regex.FFI.Rure"
+  "  ( Match(..)"
+  "  ) where")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "module _|_Data.Regex.Rure.FFI"
+  "  ( Match(..)"
+  "  ) where"))
+
 (provide 'attrap-tests)
 
 ;; Local Variables:
