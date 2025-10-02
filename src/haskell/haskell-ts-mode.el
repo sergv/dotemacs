@@ -165,6 +165,7 @@
         "import"
         "qualified"
         "module"
+        "foreign"
         (wildcard "_")
         ]
        @haskell-ts-keyword-face)
@@ -189,6 +190,11 @@
 
       ;; (unboxed_tuple "(#" @haskell-ts-keyword-face)
       ;; (unboxed_tuple "#)" @haskell-ts-keyword-face)
+
+      ((foreign_import
+        [(calling_convention)
+         (safety)]
+        @haskell-ts-keyword-face))
 
       ((infix_id
         "`"

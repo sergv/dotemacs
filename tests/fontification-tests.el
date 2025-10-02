@@ -418,6 +418,48 @@ not checked."
    ("`Bar.Baz.Foo`" haskell-ts-operator-face))
   :fresh-buffer t)
 
+(fontification-tests--test-ts-fontification
+    haskell-ts-mode/fontification-9a
+  :modes (haskell-ts-mode)
+  :contents
+  (tests-utils--multiline
+   ""
+   "foreign import ccall unsafe \"rure.h rure_compile\" rureCompileRaw"
+   "  :: Ptr CUInt8 -- pattern"
+   "  -> CSize      -- length"
+   "  -> CUInt32    -- flags"
+   "  -> Ptr Options"
+   "  -> Ptr Error"
+   "  -> IO (Ptr Regex)"
+   "")
+  :fontification
+  (("foreign"                 haskell-ts-keyword-face)
+   ("import"                  haskell-ts-keyword-face)
+   ("ccall"                   haskell-ts-keyword-face)
+   ("unsafe"                  haskell-ts-keyword-face)
+   ("\"rure.h rure_compile\"" haskell-ts-string-face)
+   ("rureCompileRaw"          nil)
+   ("::"                      haskell-ts-operator-face)
+   ("Ptr"                     haskell-ts-type-face)
+   ("CUInt8"                  haskell-ts-type-face)
+   ("-- pattern"              haskell-ts-comment-face)
+   ("->"                      haskell-ts-operator-face)
+   ("CSize"                   haskell-ts-type-face)
+   ("-- length"               haskell-ts-comment-face)
+   ("->"                      haskell-ts-operator-face)
+   ("CUInt32"                 haskell-ts-type-face)
+   ("-- flags"                haskell-ts-comment-face)
+   ("->"                      haskell-ts-operator-face)
+   ("Ptr"                     haskell-ts-type-face)
+   ("Options"                 haskell-ts-type-face)
+   ("->"                      haskell-ts-operator-face)
+   ("Ptr"                     haskell-ts-type-face)
+   ("Error"                   haskell-ts-type-face)
+   ("->"                      haskell-ts-operator-face)
+   ("IO"                      haskell-ts-type-face)
+   ("Ptr"                     haskell-ts-type-face)
+   ("Regex"                   haskell-ts-type-face))
+  :fresh-buffer t)
 (provide 'fontification-tests)
 
 ;; Local Variables:
