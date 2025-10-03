@@ -691,7 +691,8 @@ _<tab>_: reindent  _h_: jump to topmont function/entity end"
     (haskell-setup-common-keybindings should-enable-flycheck?)
 
     (def-keys-for-map vim-normal-mode-local-keymap
-      ("-" hydra-haskell-minus/body))
+      ("-"  hydra-haskell-minus/body)
+      ("\\" haskell-flycheck-force-run-by-changing-contents))
 
     (flycheck-install-ex-commands!
      :install-flycheck flycheck-mode
