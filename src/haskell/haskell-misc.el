@@ -1579,6 +1579,50 @@ with dante."
   (let ((dante-check-force-interpret t))
     (flycheck-force-run)))
 
+(defvar haskell-flycheck-force-run-by-changing-contents--insertion-point nil)
+(defvar haskell-flycheck-force-run-by-changing-contents--state nil)
+
+(defun haskell-flycheck-force-run-by-changing-contents--init ()
+  (save-excursion
+    (goto-char (point-max))
+    ;; (goto-char (line-end-position))
+    (setf haskell-flycheck-force-run-by-changing-contents--insertion-point
+          (point-marker))
+    (set-marker-insertion-type
+     haskell-flycheck-force-run-by-changing-contents--insertion-point
+     nil)
+    (with-inhibited-modification-hooks
+     (insert-char ?\n)
+     (when haskell-flycheck-force-run-by-changing-contents--state
+       (insert-char ?\n))
+     (quiet-save-buffer))))
+
+(defun haskell-flycheck-force-run-by-changing-contents--cleanup ()
+  (remove-hook 'flycheck-before-syntax-check-hook #'haskell-flycheck-force-run-by-changing-contents--init t)
+  (remove-hook 'flycheck-after-syntax-check-hook #'haskell-flycheck-force-run-by-changing-contents--cleanup t)
+  (with-inhibited-modification-hooks
+   (awhen haskell-flycheck-force-run-by-changing-contents--insertion-point
+     (save-excursion
+       (goto-char it)
+       (delete-char (if haskell-flycheck-force-run-by-changing-contents--state
+                        2
+                      1))
+       (quiet-save-buffer))))
+  (setf haskell-flycheck-force-run-by-changing-contents--insertion-point nil))
+
+(defun haskell-flycheck-force-run-by-changing-contents ()
+  "Force re-urn"
+  (interactive)
+  (add-hook 'flycheck-before-syntax-check-hook #'haskell-flycheck-force-run-by-changing-contents--init nil t)
+  (add-hook 'flycheck-after-syntax-check-hook #'haskell-flycheck-force-run-by-changing-contents--cleanup nil t)
+  (condition-case nil
+      (let ((flycheck-check-syntax-automatically (remq 'save flycheck-check-syntax-automatically)))
+        (setf haskell-flycheck-force-run-by-changing-contents--state
+              (not haskell-flycheck-force-run-by-changing-contents--state))
+        (flycheck-force-run))
+    (error
+     (haskell-flycheck-force-run-by-changing-contents--cleanup))))
+
 ;;;###autoload
 (defun haskell-misc--ensure-language-pragma (pragma)
   (save-restriction
