@@ -1626,6 +1626,11 @@ persistent store may restore the narrowing state when session is loaded."
   (narrow-to-region start end)
   (setq-local persistent-narrow-to-region--bounds (cons start end)))
 
+(defun quiet-save-buffer ()
+  (let ((message-log-max nil)
+        (inhibit-message t))
+    (basic-save-buffer)))
+
 (provide 'common)
 
 ;; Local Variables:
