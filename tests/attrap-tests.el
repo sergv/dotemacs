@@ -880,6 +880,31 @@
   ""))
 
 (attrap-tests--test-buffer-contents-one
+ :name attrap/haskell-dante/export-2
+ :error-message
+ (tests-utils--multiline
+  "error: [GHC-40910] [-Wunused-top-binds]"
+  "    Defined but not used: ‘foo’")
+ :action
+ (attrap-tests--run-attrap)
+ :contents
+ (tests-utils--multiline
+  ""
+  "module Foo () where"
+  ""
+  "_|_foreign import ccall unsafe \"foo.h foo\" foo"
+  "  :: Ptr CInt -> CInt -> IO CInt"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "module Foo (foo) where"
+  ""
+  "_|_foreign import ccall unsafe \"foo.h foo\" foo"
+  "  :: Ptr CInt -> CInt -> IO CInt"
+  ""))
+
+(attrap-tests--test-buffer-contents-one
  :name attrap/haskell-dante/add-import-1
  :error-message
  (tests-utils--multiline
