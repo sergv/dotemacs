@@ -18,7 +18,7 @@
        (equal (treesit-node-type node) "quasiquote_body")))
 
 (defun haskell-smart-operators--treesit--in-string?-sure (node)
-  (when (haskell-ts--is-string-node-type? (treesit-node-type node))
+  (when (treesit-haskell--is-string-node-type? (treesit-node-type node))
     (let ((p (point)))
       (and (< (treesit-node-start node) p)
            (< p (treesit-node-end node))))))
@@ -28,7 +28,7 @@
     (haskell-smart-operators--treesit--in-string?-sure node)))
 
 (defun haskell-smart-operators--treesit--in-comment?-sure (node)
-  (haskell-ts--is-comment-node-type? (treesit-node-type node)))
+  (treesit-haskell--is-comment-node-type? (treesit-node-type node)))
 
 (defsubst haskell-smart-operators--treesit--in-comment? (node)
   (when node
