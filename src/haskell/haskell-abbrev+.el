@@ -371,7 +371,7 @@ then Bar would be the result."
             (continue? t))
         (while (and continue?
                     (setf node (treesit-node-at (point)))
-                    (haskell-ts--is-comment-node-type? (treesit-node-type node)))
+                    (treesit-haskell--is-comment-node-type? (treesit-node-type node)))
           (goto-char (treesit-node-end node))
           (let ((dist (skip-whitespace-forward)))
             (when (zerop dist)
