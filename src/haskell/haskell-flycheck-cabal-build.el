@@ -49,13 +49,27 @@
                                              (let ((result (haskell-flycheck-cabal-build--extract-errors buf proj-dir process)))
                                                (funcall cont (car result) (cdr result))))))))))))))
 
+(defconst haskell-flycheck-cabal-build--extract-errors--resolved-filenames
+  (make-hash-table :test #'equal)
+  "Mapping from strings (filenames reported by the checker) to buffers.")
+
 (defun haskell-flycheck-cabal-build--extract-errors (buf dir proc)
+  (clrhash haskell-flycheck-cabal-build--extract-errors--resolved-filenames)
   (let ((results nil))
     (with-current-buffer buf
       (goto-char (point-min))
       (while (re-search-forward dante-error-regexp nil t)
         (let* ((file (match-string 4))
-               (b (compilation/find-buffer file dir dir))
+               (bs (aif (gethash file haskell-flycheck-cabal-build--extract-errors--resolved-filenames)
+                       it
+                     (puthash file
+                              ;; Find all buffers because hsc may report just the basename
+                              ;; without any directories. If a project has multiple files with
+                              ;; the same basename but in different folders then we will have
+                              ;; no way to know which one was meant. So the best we can do
+                              ;; is to instruct flycheck to assign the error to all of them.
+                              (compilation/find-all-buffers file dir dir)
+                              haskell-flycheck-cabal-build--extract-errors--resolved-filenames)))
                (location-raw (match-string 5))
                (err-type (match-string 6))
                (msg (match-string 7))
@@ -64,16 +78,24 @@
                (fixed-err-type (if (eq type 'error)
                                    err-type
                                  (replace-match (symbol->string type) nil nil err-type)))
-               (location (dante-parse-error-location location-raw)))
-          (push (flycheck-error-new-at (car location)
-                                       (cadr location)
-                                       type
-                                       (concat fixed-err-type "\n" (trim-whitespace-right msg))
-                                       :buffer b
-                                       :filename (if b
-                                                     (buffer-file-name b)
-                                                   file))
-                results))))
+               (location (dante-parse-error-location location-raw))
+               (msg-for-user (concat fixed-err-type "\n" (trim-whitespace-right msg))))
+          (if bs
+              (dolist (b (remove-duplicates-hashing (append (car bs) (awhen (cdr bs) (list it))) #'eq))
+                (push (flycheck-error-new-at (car location)
+                                             (cadr location)
+                                             type
+                                             msg-for-user
+                                             :buffer b
+                                             :filename (buffer-file-name b))
+                      results))
+            (push (flycheck-error-new-at (car location)
+                                         (cadr location)
+                                         type
+                                         msg-for-user
+                                         :buffer nil
+                                         :filename file)
+                  results)))))
     (cond
       (results (cons 'finished results))
       ((not (zerop (process-exit-status proc)))
