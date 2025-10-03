@@ -400,20 +400,8 @@ but when paired then it’s like a string."
       (goto-char (cdr it))
     (error "No toplevel entity at point")))
 
-(defun haskell-ts--is-comment-node-type? (typ)
-  (cl-assert (stringp typ))
-  (or (string= typ "comment")
-      (string= typ "haddock")
-      (string= typ "pragma")))
-
-(defun haskell-ts--is-string-node-type? (typ)
-  (cl-assert (stringp typ))
-  (or (string= typ "char")
-      (string= typ "string")
-      (string= typ "quasiquote_body")))
-
 (defun haskell-ts--is-comment-node? (node)
-  (haskell-ts--is-comment-node-type? (treesit-node-type node)))
+  (treesit-haskell--is-comment-node-type? (treesit-node-type node)))
 
 (defun haskell-ts--is-toplevel-function-related-named-node-type? (typ)
   (cl-assert (stringp typ))
@@ -455,7 +443,7 @@ but when paired then it’s like a string."
           ((funcall found-predicate tmp tmp-type)
            (setf result tmp
                  continue? continue-after-first-find?))
-          ((haskell-ts--is-comment-node-type? tmp-type)
+          ((treesit-haskell--is-comment-node-type? tmp-type)
            ;; Continue search.
            )
           (t
@@ -488,7 +476,7 @@ indented block will be their bounds without any extra processing."
                                     (max (point) (point-min)))))))
                          (unless (eq pos next-pos)
                            (treesit-node-at next-pos)))))
-                    ((haskell-ts--is-comment-node-type? n-typ)
+                    ((treesit-haskell--is-comment-node-type? n-typ)
                      (let ((func-node-above (haskell-ts--search-non-comment-nodes
                                              current-node
                                              nil
@@ -519,7 +507,7 @@ indented block will be their bounds without any extra processing."
                              current-node
                              scan-forward?
                              (lambda (_ typ)
-                               (not (haskell-ts--is-comment-node-type? typ)))
+                               (not (treesit-haskell--is-comment-node-type? typ)))
                              t)))
                          (t
                           nil))))
@@ -811,7 +799,12 @@ indented block will be their bounds without any extra processing."
               comment-start-skip "[-{]-[ \t]*"
               comment-end ""
               comment-end-skip "[ \t]*\\(-}\\|\\s>\\)"
-              fill-paragraph-function #'haskell-fill-paragraph)
+              fill-paragraph-function #'haskell-fill-paragraph
+
+              point-inside-string?-impl                #'point-inside-string?--ts-haskell
+              point-inside-comment?-impl               #'point-inside-comment?--ts-haskell
+              point-inside-string-or-comment?-impl     #'point-inside-string-or-comment?--ts-haskell
+              point-not-inside-string-or-comment?-impl #'point-not-inside-string-or-comment?--ts-haskell)
 
   (treesit-major-mode-setup))
 
