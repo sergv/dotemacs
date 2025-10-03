@@ -33,36 +33,52 @@
                               :line-number line
                               :column-number col))))
 
-(defun compilation/find-buffer (filename &optional root proj-dir)
-  "Get buffer that corresponds to FILENAME, which may be neither full nor
-relative path. In case it's neither, a buffer visiting filename
-with suffix equal to FILENAME will searched for."
+(defun compilation/find-all-buffers (filename &optional root proj-dir)
+  "Get all buffers that corresponds to FILENAME within current project and/or current root that
+we could reasonably identify.
+
+Returns cons pair of opened buffers that we found and filename, if any, resolved under ROOT."
   (cl-assert (and filename
                   (not (zerop (length filename)))))
-  (let ((root-norm (and root
-                        (normalise-file-name root)))
-        (proj-dir-norm (and proj-dir
-                            (normalise-file-name proj-dir))))
-    (aif (-find (lambda (buf)
-                  (awhen (buffer-file-name buf)
-                    (let ((buf-file (normalise-file-name it)))
-                      (and (string-suffix-p filename buf-file)
-                           (or (and root-norm (string-prefix-p root-norm buf-file))
-                               (and proj-dir-norm (string-prefix-p proj-dir-norm buf-file)))))))
-                (visible-buffers))
-        it
-      (cl-block done
-        ;; If filename did not resolve in immediate root then try all the parents,
-        ;; perhaps compilation was actually executed/reported its errors from the
-        ;; directory above?
-        (dolist (parent (file-name-all-parents root))
-          (let ((resolved-filename (resolve-to-abs-path-lax filename parent)))
-            (when (and resolved-filename
-                       (file-exists-p resolved-filename))
-              (cl-return-from done
-                (aif (get-file-buffer resolved-filename)
-                    it
-                  (find-file-noselect resolved-filename))))))))))
+  (cl-assert (if root (file-name-absolute-p root) t))
+  (cl-assert (if proj-dir (file-name-absolute-p proj-dir) t))
+  (let* ((root-norm (and root
+                         (normalise-file-name (expand-file-name root))))
+         (proj-dir-norm (and proj-dir
+                             (normalise-file-name (expand-file-name proj-dir))))
+         (candidates
+          (-filter (lambda (buf)
+                     (awhen (buffer-file-name buf)
+                       (let ((buf-file (normalise-file-name it)))
+                         (and (string-suffix-p filename buf-file)
+                              (or (and root-norm (string-prefix-p root-norm buf-file))
+                                  (and proj-dir-norm (string-prefix-p proj-dir-norm buf-file)))))))
+                   (visible-buffers))))
+    (cons
+     candidates
+     (cl-block done
+       ;; If filename did not resolve in immediate root then try all the parents,
+       ;; perhaps compilation was actually executed/reported its errors from the
+       ;; directory above?
+       (dolist (parent (file-name-all-parents root))
+         (let ((resolved-filename (resolve-to-abs-path-lax filename parent)))
+           (when (and resolved-filename
+                      (file-exists-p resolved-filename))
+             (cl-return-from done
+               (aif (get-file-buffer resolved-filename)
+                   it
+                 (find-file-noselect resolved-filename))))))))))
+
+(defun compilation/find-buffer (filename &optional root proj-dir)
+  "Get buffer that corresponds to FILENAME within current project and/or current root.
+
+The FILENAME may be neither full nor relative path. In case it’s
+neither, a buffer visiting filename with suffix equal to FILENAME will
+searched for within specified root and/or project."
+  (let ((candidates (compilation/find-all-buffers filename root proj-dir)))
+    (aif (car candidates)
+        (car it)
+      (cdr candidates))))
 
 (defun compilation/jump-to-error (err &optional other-window proj-dir)
   "Jump to source of compilation error. ERR should be structure describing
