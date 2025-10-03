@@ -534,8 +534,7 @@ into accound and do the replacement only within specific circumstances.")
                    (eq end-char ?|)
                    (or (eq preceding-char ?\[)
                        (eq following-char ?\]))))
-         ;; Not in string or comment.
-         (not (nth 8 (syntax-ppss))))))
+         (point-not-inside-string-or-comment? (point)))))
 
 
 ;;;###autoload
