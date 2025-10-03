@@ -451,7 +451,9 @@ in Haskell compilation output. So they're disabled by default.")
 a pretty symbol."
   (or (memq (get-text-property pos 'face)
             '(font-lock-comment-face
-              font-lock-string-face))
+              font-lock-string-face
+              haskell-ts-comment-face
+              haskell-ts-haddock-face))
       (point-inside-string-or-comment? pos)
       ;; (get-text-property pos 'disable-pretty-symbols)
       ))
