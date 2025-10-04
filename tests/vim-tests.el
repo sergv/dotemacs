@@ -7825,6 +7825,36 @@ _|_bar")
      "  | Bar Foo Foo"
      "  deriving (Eq, Ord, Show)_|_")))
 
+(vim-tests--test-fresh-buffer-contents-init-standard-modes-only*
+ :modes
+ (haskell-ts-mode)
+ :name
+ vim-tests/haskell-ts-insert-bang-1a
+ :action
+ (execute-kbd-macro (kbd "C-v h h h h I ! <escape>"))
+ :contents
+ (tests-utils--multiline
+  ""
+  "data Component = Component"
+  "  { cType       :: _|_ComponentType"
+  "  , cName       :: C8.ByteString"
+  "  , cModulePath :: Maybe C8.ByteString"
+  "  , cModules    :: [ModuleName]"
+  "  , cSourceDirs :: [UnixFilepath]"
+  "  }"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data Component = Component"
+  "  { cType       :: _|_!ComponentType"
+  "  , cName       :: !C8.ByteString"
+  "  , cModulePath :: !(Maybe C8.ByteString)"
+  "  , cModules    :: ![ModuleName]"
+  "  , cSourceDirs :: ![UnixFilepath]"
+  "  }"
+  ""))
+
 (vim-tests--test-fresh-buffer-contents-equivalent-inits-and-commands-all-known-inits
     vim-tests/substitute-1
   ((yes-confirm (execute-kbd-macro (kbd "s % s / f o o / d e c o m b o b u l a t e / c <return> y y y")))
