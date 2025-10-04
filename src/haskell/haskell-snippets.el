@@ -21,8 +21,8 @@ build-depends:
 default-language:
   GHC2021
 ghc-options:
-  -threaded -rtsopts \"-with-rtsopts=-A32m -s\"
-}-}$(3:
+  -threaded -rtsopts \"-with-rtsopts=-A32m -s\"}
+-}$(3:
 {- project:
 allow-newer:
   , *:base
