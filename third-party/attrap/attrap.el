@@ -1141,6 +1141,8 @@ Error is given as MSG and reported between POS and END."
                          ("GHC.Internal.Data.Proxy" . "Data.Proxy")
                          ("GHC.Internal.Data.Traversable" . "Data.Traversable")
                          ("GHC.Internal.Data.Typeable" . "Data.Typeable")
+                         ("GHC.Internal.Foreign.Marshal.Array" . "Foreign.Marshal.Array")
+                         ("GHC.Internal.Foreign.Marshal.Utils" . "Foreign.Marshal.Utils")
                          ("GHC.Internal.Foreign.Storable" . "Foreign.Storable")
                          ("GHC.Internal.Stack.Types" . "GHC.Stack.Types")
                          ("GHC.Internal.Stack" . "GHC.Stack")
