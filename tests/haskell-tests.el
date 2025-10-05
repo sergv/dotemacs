@@ -3124,6 +3124,36 @@ have different input states."
 
 (haskell-tests--test-buffer-contents*
  :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-field-strictness-10a
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  ""
+  "data Foo a where"
+  "  Foo"
+  "    :: Int"
+  "#if _|_defined(FOO)"
+  "    -> Bar a"
+  "#endif"
+  "    -> Foo a"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "data Foo a where"
+  "  Foo"
+  "    :: Int"
+  "#if !_|_defined(FOO)"
+  "    -> Bar a"
+  "#endif"
+  "    -> Foo a"
+  "")
+ :modes (haskell-ts-mode)
+ :fresh-buffer t)
+
+(haskell-tests--test-buffer-contents*
+ :name
  haskell-tests/haskell-smart-operators-exclamation-mark-pattern-strictness-1a
  :action
  (haskell-smart-operators-exclamation-mark)
@@ -3522,6 +3552,110 @@ have different input states."
   "foo = bar"
   "  where"
   "    (start, !en_|_d) = quux 1"
+  "")
+ :modes (haskell-ts-mode)
+ :fresh-buffer t)
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-pattern-strictness-6a
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = do"
+  "#if defined(FOO)"
+  "  let xxx = Foo"
+  "        { yyy = zzz"
+  "        }"
+  "  fst <$> bar"
+  "    bar1"
+  "    bar2"
+  "    bar3"
+  "#endif"
+  "#if _|_defined(FOO)"
+  "  let xxx = Foo"
+  "        { yyy = zzz"
+  "        }"
+  "  fst <$> quux"
+  "    quux1"
+  "    quux2"
+  "#endif"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = do"
+  "#if defined(FOO)"
+  "  let xxx = Foo"
+  "        { yyy = zzz"
+  "        }"
+  "  fst <$> bar"
+  "    bar1"
+  "    bar2"
+  "    bar3"
+  "#endif"
+  "#if !_|_defined(FOO)"
+  "  let xxx = Foo"
+  "        { yyy = zzz"
+  "        }"
+  "  fst <$> quux"
+  "    quux1"
+  "    quux2"
+  "#endif"
+  "")
+ :modes (haskell-ts-mode)
+ :fresh-buffer t)
+
+(haskell-tests--test-buffer-contents*
+ :name
+ haskell-tests/haskell-smart-operators-exclamation-mark-pattern-strictness-6b
+ :action
+ (haskell-smart-operators-exclamation-mark)
+ :contents
+ (tests-utils--multiline
+  ""
+  "foo = do"
+  "#if defined(FOO)"
+  "  let xxx = Foo"
+  "        { yyy = zzz"
+  "        }"
+  "  fst <$> bar"
+  "    bar1"
+  "    bar2"
+  "    bar3"
+  "#endif"
+  "#if !defined(FOO)"
+  "  let xxx = Foo"
+  "        { yyy = zzz"
+  "        }"
+  "  fst <$> quux"
+  "    quux1"
+  "    quux2_|_"
+  "#endif"
+  "")
+ :expected-value
+ (tests-utils--multiline
+  ""
+  "foo = do"
+  "#if defined(FOO)"
+  "  let xxx = Foo"
+  "        { yyy = zzz"
+  "        }"
+  "  fst <$> bar"
+  "    bar1"
+  "    bar2"
+  "    bar3"
+  "#endif"
+  "#if !defined(FOO)"
+  "  let xxx = Foo"
+  "        { yyy = zzz"
+  "        }"
+  "  fst <$> quux"
+  "    quux1"
+  "    quux2 !_|_"
+  "#endif"
   "")
  :modes (haskell-ts-mode)
  :fresh-buffer t)
