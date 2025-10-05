@@ -604,7 +604,7 @@ When the universal argument INSERT is non-nil, insert the type in the buffer."
 (lcr-def dante-async-load-current-buffer (interpret err-fn)
   "Load and maybe INTERPRET the temp file for current buffer.
 Interpreting puts all symbols from the current module in
-scope.  Compiling to avoids re-interpreting the dependencies over
+scope.  Compiling avoids re-interpreting the dependencies over
 and over."
   (let* ((curr-buf (current-buffer))
          (buf (resolve-to-base-buffer curr-buf))
