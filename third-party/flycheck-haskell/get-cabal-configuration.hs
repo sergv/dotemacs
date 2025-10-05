@@ -27,6 +27,9 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
+{-# OPTIONS_GHC -Wno-orphans                      #-}
+{-# OPTIONS_GHC -Wno-prepositive-qualified-module #-}
+
 module Main (main) where
 
 #if __GLASGOW_HASKELL__ >= 800
@@ -115,7 +118,13 @@ module Main (main) where
 #define HAVE_DATA_FUNCTOR_IDENTITY
 #endif
 
-import Prelude (IO, Maybe(..), Either(..), FilePath, Bool(..), Char, Eq(..), Ord(..), Semigroup(..), String, Enum(..), Bounded(..), Show(..), ($), unlines, (++), concatMap, putStrLn, (=<<), any, elem, pure, flip, (.), otherwise, const, Functor(..), fst, map, Monoid(..), id, maybe, Num(..), not, fromIntegral)
+import Distribution.Text (display)
+import qualified System.Info
+import qualified Data.Version
+
+import Distribution.Types.PackageId (PackageId)
+
+import Prelude (IO, Maybe(..), Either(..), FilePath, Bool(..), Char, Eq(..), Ord(..), Semigroup(..), String, Show(..), ($), unlines, (++), concatMap, putStrLn, (=<<), any, elem, pure, flip, (.), otherwise, const, Functor(..), fst, map, Monoid(..), id, maybe, Num(..), not, fromIntegral)
 
 import qualified Data.ByteString.Char8 as C8
 #if defined(bytestring_10_2_or_later)
@@ -286,12 +295,15 @@ instance Ord UnixFilepath where
   compare = compare `on` ufHash
 
 mkUnixFilepath :: FilePath -> UnixFilepath
-mkUnixFilepath x = UnixFilepath
+mkUnixFilepath = mkUnixFilepathBS . C8.pack . normalise
+
+mkUnixFilepathBS :: C8.ByteString -> UnixFilepath
+mkUnixFilepathBS x = UnixFilepath
   { ufContents = builderFromByteString x'
   , ufHash     = mkHash x'
   }
   where
-    x' = C8.map (\c -> if isPathSeparator c then '/' else c) $ C8.pack $ normalise x
+    x' = C8.map (\c -> if isPathSeparator c then '/' else c) x
 
 joinPaths :: UnixFilepath -> UnixFilepath -> UnixFilepath
 joinPaths (UnixFilepath x xh) (UnixFilepath y yh) = UnixFilepath
@@ -395,8 +407,8 @@ cons :: (ToSexp a, ToSexp b) => a -> [b] -> Sexp
 cons h t = SList (toSexp h : map toSexp t)
 
 getSourceDirectories :: [BuildInfo] -> UnixFilepath -> [UnixFilepath]
-getSourceDirectories buildInfo cabalDir =
-  map (cabalDir `joinPaths`) (concatMap hsSourceDirs' buildInfo)
+getSourceDirectories buildInfo projDir =
+  map (projDir `joinPaths`) (concatMap hsSourceDirs' buildInfo)
 
 hsSourceDirs' :: BuildInfo -> [UnixFilepath]
 hsSourceDirs' =
@@ -407,6 +419,14 @@ hsSourceDirs' =
   hsSourceDirs
 #endif
 
+-- | Get possible dist directory
+cabalDistDir :: PackageId -> UnixFilepath
+cabalDistDir packageId =
+  mkUnixFilepath "build" `joinPaths`
+    mkUnixFilepath (display buildPlatform) `joinPaths`
+      mkUnixFilepath ("ghc-" ++ Data.Version.showVersion System.Info.fullCompilerVersion) `joinPaths`
+        mkUnixFilepath (display packageId)
+
 serializePackageDescription :: PackageDescription -> FilePath -> Sexp
 serializePackageDescription pkgDesc projectDir =
   SList
@@ -416,10 +436,12 @@ serializePackageDescription pkgDesc projectDir =
     , cons (sym "other-options") (cppOpts ++ ghcOpts)
     , cons (sym "should-include-version-header") [not ghcIncludesVersionMacro]
     , cons (sym "package-name") [packageName]
-    , cons (sym "components") $ getComponents packageName pkgDesc
+    , cons (sym "components") components
     ]
   where
     packageName = C8.pack $ unPackageName' $ pkgName $ package pkgDesc
+
+    components = getComponents (cabalDistDir (package pkgDesc)) packageName pkgDesc
 
     buildInfo :: [BuildInfo]
     buildInfo = allBuildInfo pkgDesc
@@ -451,16 +473,16 @@ serializePackageDescription pkgDesc projectDir =
       ordNub (map C8.pack (concatMap (hcOptions GHC) buildInfo))
 
 data ComponentType
-  = CTLibrary
+  = CTLibrary (Maybe String)
   | CTForeignLibrary
   | CTExecutable
   | CTTestSuite
   | CTBenchmark
-  deriving (Eq, Ord, Show, Enum, Bounded)
+  deriving (Eq, Ord, Show)
 
 componentTypePrefix :: ComponentType -> C8.ByteString
 componentTypePrefix x = case x of
-  CTLibrary        -> "lib"
+  CTLibrary _      -> "lib"
   CTForeignLibrary -> "flib"
   CTExecutable     -> "exe"
   CTTestSuite      -> "test"
@@ -469,38 +491,80 @@ componentTypePrefix x = case x of
 instance ToSexp ComponentType where
   toSexp = toSexp . componentTypePrefix
 
+data Component = Component
+  { cType       :: !ComponentType
+  , cName       :: !C8.ByteString
+  , cModulePath :: !(Maybe C8.ByteString)
+  , cModules    :: ![ModuleName]
+  , cSourceDirs :: ![UnixFilepath]
+  , cBuildDir   :: !UnixFilepath
+  }
+
+mkComponent :: UnixFilepath -> ComponentType -> C8.ByteString -> Maybe C8.ByteString -> [ModuleName] -> [UnixFilepath] -> Component
+mkComponent distDir cType cName cModulePath cModules cSourceDirs =
+  Component
+    { cType
+    , cName
+    , cModulePath
+    , cModules
+    , cSourceDirs
+    , cBuildDir
+    }
+  where
+    buildDir :: UnixFilepath
+    buildDir =
+      distDir `joinPaths`
+        mkUnixFilepath "build"
+    componentBuildDir :: UnixFilepath
+    componentBuildDir =
+      buildDir `joinPaths`
+        mkUnixFilepathBS cName `joinPaths`
+          mkUnixFilepathBS (cName <> "-tmp")
+
+    cBuildDir :: UnixFilepath
+    cBuildDir =
+      case cType of
+        CTLibrary Nothing -> buildDir
+        _                 -> componentBuildDir
+
+instance ToSexp Component where
+  toSexp Component{cType, cName, cModulePath, cModules, cSourceDirs, cBuildDir} =
+    SList [toSexp cType, toSexp cName, toSexp cModulePath, toSexp cModules, toSexp cSourceDirs, toSexp cBuildDir]
+
 -- | Gather files and modules that constitute each component.
 getComponents
-  :: C8.ByteString
+  :: UnixFilepath
+  -> C8.ByteString
   -> PackageDescription
-  -> [(ComponentType, C8.ByteString, Maybe C8.ByteString, [ModuleName], [UnixFilepath])]
-getComponents packageName pkgDescr =
-  [ (CTLibrary, name, Nothing, exposedModules lib ++ libSignatures lib ++ biMods bi, hsSourceDirs' bi)
+  -> [Component]
+getComponents distDir packageName pkgDescr =
+  [ mkComponent distDir (CTLibrary libName'') name Nothing (exposedModules lib ++ libSignatures lib ++ biMods bi) (hsSourceDirs' bi)
   | lib <- allLibraries' pkgDescr
-  , let bi = libBuildInfo lib
-  , let name = maybe packageName C8.pack $ libName' lib
+  , let bi        = libBuildInfo lib
+        libName'' = libName' lib
+        name      = maybe packageName C8.pack libName''
   ] ++
 #if defined(Cabal20OrLater)
-  [ (CTForeignLibrary, C8.pack (foreignLibName' flib), Nothing, biMods bi, hsSourceDirs' bi)
+  [ mkComponent distDir CTForeignLibrary (C8.pack (foreignLibName' flib)) Nothing (biMods bi) (hsSourceDirs' bi)
   | flib <- foreignLibs pkgDescr
   , let bi = foreignLibBuildInfo flib
   ] ++
 #endif
-  [ (CTExecutable, C8.pack (exeName' exe), Just (getSymbolicPath' (modulePath exe)), biMods bi, hsSourceDirs' bi)
+  [ mkComponent distDir CTExecutable (C8.pack (exeName' exe)) (Just (getSymbolicPath' (modulePath exe))) (biMods bi) (hsSourceDirs' bi)
   | exe <- executables pkgDescr
   , let bi = buildInfo exe
   ] ++
-  [ (CTTestSuite, C8.pack (testName' tst), exeFile, maybeToList extraMod ++ biMods bi, hsSourceDirs' bi)
+  [ mkComponent distDir CTTestSuite (C8.pack (testName' tst)) exeFile (maybeToList extraMod ++ biMods bi) (hsSourceDirs' bi)
   | tst <- testSuites pkgDescr
   , let bi = testBuildInfo tst
   , let (exeFile, extraMod) = case testInterface tst of
-          TestSuiteExeV10 _ path  -> (Just (getSymbolicPath' path), Nothing)
+          TestSuiteExeV10 _ path    -> (Just (getSymbolicPath' path), Nothing)
           TestSuiteLibV09 _ modName -> (Nothing, Just modName)
-          TestSuiteUnsupported{}  -> (Nothing, Nothing)
+          TestSuiteUnsupported{}    -> (Nothing, Nothing)
   ]
 #if defined(Cabal114OrMore)
   ++
-  [ (CTBenchmark, C8.pack (benchmarkName' tst), exeFile, biMods bi, hsSourceDirs' bi)
+  [ mkComponent distDir CTBenchmark (C8.pack (benchmarkName' tst)) exeFile (biMods bi) (hsSourceDirs' bi)
   | tst <- benchmarks pkgDescr
   , let bi = benchmarkBuildInfo tst
   , let exeFile = case benchmarkInterface tst of
@@ -619,43 +683,47 @@ getConcretePackageDescription genericDesc = do
         }
   fst A.<$> finalizePD
     (mkFlagAssignment []) -- Flag assignment
-    enabled         -- Enable all components
-    (const True)      -- Whether given dependency is available
+    enabled               -- Enable all components
+    (const True)          -- Whether given dependency is available
     buildPlatform
     buildCompilerId
-    []          -- Additional constraints
+    []                    -- Additional constraints
     genericDesc
-#elif defined(Cabal20OrLater)
+#endif
+#if !defined(Cabal22OrLater)
+# if defined(Cabal20OrLater)
   let enabled :: ComponentRequestedSpec
-    enabled = ComponentRequestedSpec
-      { testsRequested    = True
-      , benchmarksRequested = True
-      }
+      enabled = ComponentRequestedSpec
+        { testsRequested    = True
+        , benchmarksRequested = True
+        }
   fst A.<$> finalizePD
-    []       -- Flag assignment
-    enabled    -- Enable all components
+    []           -- Flag assignment
+    enabled      -- Enable all components
     (const True) -- Whether given dependency is available
     buildPlatform
     buildCompilerId
-    []       -- Additional constraints
+    []           -- Additional constraints
     genericDesc
-#elif Cabal114OrMore
+# endif
+# if !defined(Cabal20OrLater)
+#  if Cabal114OrMore
    -- This let block is eerily like one in Cabal.Distribution.Simple.Configure
    let enableTest :: TestSuite -> TestSuite
-     enableTest t = t { testEnabled = True }
-     enableBenchmark :: Benchmark -> Benchmark
-     enableBenchmark bm = bm { benchmarkEnabled = True }
-     flaggedTests =
-       map (second (mapTreeData enableTest)) (condTestSuites genericDesc)
-     flaggedBenchmarks =
-       map
-         (second (mapTreeData enableBenchmark))
-         (condBenchmarks genericDesc)
-     genericDesc' =
-       genericDesc
-       { condTestSuites = flaggedTests
-       , condBenchmarks = flaggedBenchmarks
-       }
+       enableTest t = t { testEnabled = True }
+       enableBenchmark :: Benchmark -> Benchmark
+       enableBenchmark bm = bm { benchmarkEnabled = True }
+       flaggedTests =
+         map (second (mapTreeData enableTest)) (condTestSuites genericDesc)
+       flaggedBenchmarks =
+         map
+           (second (mapTreeData enableBenchmark))
+           (condBenchmarks genericDesc)
+       genericDesc' =
+         genericDesc
+         { condTestSuites = flaggedTests
+         , condBenchmarks = flaggedBenchmarks
+         }
    fst A.<$> finalizePackageDescription
      []
      (const True)
@@ -663,16 +731,16 @@ getConcretePackageDescription genericDesc = do
      buildCompilerId
      []
      genericDesc'
-#else
+#  else
    -- This let block is eerily like one in Cabal.Distribution.Simple.Configure
    let enableTest :: TestSuite -> TestSuite
-     enableTest t = t { testEnabled = True }
-     flaggedTests =
-       map (second (mapTreeData enableTest)) (condTestSuites genericDesc)
-     genericDesc' =
-       genericDesc
-       { condTestSuites = flaggedTests
-       }
+       enableTest t = t { testEnabled = True }
+       flaggedTests =
+         map (second (mapTreeData enableTest)) (condTestSuites genericDesc)
+       genericDesc' =
+         genericDesc
+         { condTestSuites = flaggedTests
+         }
    fst A.<$> finalizePackageDescription
      []
      (const True)
@@ -680,6 +748,8 @@ getConcretePackageDescription genericDesc = do
      buildCompilerId
      []
      genericDesc'
+#  endif
+# endif
 #endif
 
 #if defined(Cabal118OrLess)
@@ -848,5 +918,6 @@ main = do
     (_,  _,   _,   es) ->
       die' $ "Failed to parse command-line options:\n" ++ unlines es
   where
+    header :: String
     header = "Usage: get-cabal-configuration [OPTION...]"
     usage = usageInfo header optionDescr
