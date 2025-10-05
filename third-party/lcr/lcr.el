@@ -62,6 +62,11 @@
   "Call the coroutine FUN with arguments ARGS."
   (error "`lcr-call' used outside `lcr-spawn' (%S %S)" fun args))
 
+(defun lcr-funcall (fun &rest args)
+  "Call the coroutine FUN with arguments ARGS via ‘funcall’. I.e. the FUN
+will be evaluated before performing the call."
+  (error "`lcr-funcall' used outside `lcr-spawn' (%S %S)" fun args))
+
 (defun lcr-halt (fun &rest args)
   "End the coroutine by calling the regular function FUN with arguments ARGS."
   (error "`lcr-halt' used outside `lcr-spawn' (%S %S)" fun args))
@@ -75,6 +80,7 @@
        (let* ((lcr-yield-seen nil))
          (ignore (macroexpand-all
                   `(cl-macrolet ((lcr-call (fun &rest args) (setf lcr-yield-seen t))
+                                 (lcr-funcall (fun &rest args) (setf lcr-yield-seen t))
                                  (lcr-halt (fun &rest args) (setf lcr-yield-seen t)))
                      ,form)
                   macroexpand-all-environment))
@@ -305,6 +311,10 @@ expands to: (fun1 arg1 (λ (x) (fun2 arg2 (λ (y z) body))))."
      (let ((var (cl-gensym "v")))
        (lcr--transform-n args (lambda (xs)
                                 `(,fun ,@xs (lambda (,var) ,(funcall k var)))))))
+    (`(lcr-funcall . (,fun . ,args))
+     (let ((var (cl-gensym "v")))
+       (lcr--transform-n args (lambda (xs)
+                                `(funcall ,fun ,@xs (lambda (,var) ,(funcall k var)))))))
     (`(,fun . ,args )
      (let ((var (cl-gensym "v")))
        (lcr--transform-n args (lambda (xs)
@@ -440,6 +450,19 @@ function is a lightweight coroutine, see `lcr'."
                          (lcr-set-local 'lcr-process-callback nil buffer)
                          (lcr-resume continue input))
                        buffer))))
+
+(defun lcr-call-process-async (args continue)
+  "Like ‘call-process’ but waiting for process is made asynchronously.
+
+Implementation detail: this is actually implemented via ‘make-process’ so it takes
+arguments in that format. Don’t supply sentinel - it’s reserved and is not possible
+in the regular ‘call-process’ anyway."
+  (lcr-context-switch
+    (apply #'make-process
+           :sentinel (lambda (p signal)
+                       (when (memq (process-status p) '(exit signal finished))
+                         (lcr-resume continue (process-exit-status p))))
+           args)))
 
 (defun lcr-set-local (var val buffer)
   "Set variable VAR to value VAL in BUFFER."
