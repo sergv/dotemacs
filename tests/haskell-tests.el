@@ -10,11 +10,12 @@
   (require 'cl-lib)
   (require 'cl))
 
-(require 'dante)
 (require 'alex-mode)
+(require 'dante)
 (require 'happy-mode)
 (require 'haskell-abbrev+)
 (require 'haskell-block-indent)
+(require 'haskell-cabal-components)
 (require 'haskell-format-setup)
 (require 'haskell-misc)
 (require 'haskell-regexen)
@@ -7802,14 +7803,14 @@ have different input states."
 (ert-deftest haskell-tests/haskell-misc--configure-dante--find-cabal-component-for-file-1 ()
   (let* ((cabal-file (expand-file-name (concat haskell-tests/cabal-test-data "/test-components.cabal")))
          (config (flycheck-haskell-read-cabal-configuration cabal-file nil))
-         (components (cdr (assq 'components config)))
+         (components (-map #'parse-cabal-component (cdr (assq 'components config))))
          (root "/home/user/proj1")
          (results nil))
     (should-not (null components))
-    (dolist (entry '(("src/Foo.hs" "lib:test-components" )
-                     ("src/Bar.hs" "lib:test-components" )
-                     ("src/Baz/Quux.hs" "lib:test-components" )
-                     ("src/Frob/Decombobulate.hs" "lib:test-components" )
+    (dolist (entry '(("src/Foo.hs" "lib:test-components")
+                     ("src/Bar.hs" "lib:test-components")
+                     ("src/Baz/Quux.hs" "lib:test-components")
+                     ("src/Frob/Decombobulate.hs" "lib:test-components")
                      ("exe/Main1.hs" "exe:test-components-exe1")
                      ("exe/Main2.hs" "exe:test-components-exe2")
                      ("exe/Main3.hs" "exe:test-components-exe3")
@@ -7828,14 +7829,16 @@ have different input states."
 
 (ert-deftest haskell-tests/haskell-misc--configure-dante--find-cabal-component-for-file-2 ()
   (should (equal (haskell-misc--configure-dante--find-cabal-component-for-file
-                  '(("exe" "tg" "exe/TG.hs" nil ("exe")))
+                  (-map #'parse-cabal-component
+                        '(("exe" "tg" "exe/TG.hs" nil ("exe"))))
                   "/home/sergey/projects/haskell/projects/tg/exe/TG.hs")
                  (cons nil
                        '("Component ‘exe:tg’ specifies main file with slash (exe/TG.hs) but doesn’t put ‘.’ in source dirs: ‘exe’. Possible fix: remove slash or put ‘.’ into source dirs.")))))
 
 (ert-deftest haskell-tests/haskell-misc--configure-dante--find-cabal-component-for-file-3 ()
   (should (equal (haskell-misc--configure-dante--find-cabal-component-for-file
-                  '(("exe" "tg" "exe/TG.hs" nil ("exe" ".")))
+                  (-map #'parse-cabal-component
+                        '(("exe" "tg" "exe/TG.hs" nil ("exe" "."))))
                   "/home/sergey/projects/haskell/projects/tg/exe/TG.hs")
                  (cons "exe:tg"
                        nil))))
