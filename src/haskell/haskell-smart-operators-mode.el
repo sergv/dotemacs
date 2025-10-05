@@ -448,9 +448,18 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
            (ts-field-colon-node nil)
            (ts-field-type-node nil)
 
-           (ts-enclosing-regular-datatype-pattern-node
-            (when (and (not preceded-by-operator?)
+           (inside-regular-constructor?
+            (when (and (not (and (not preceded-by-double-colon?)
+                                 preceded-by-operator?))
                        (derived-mode-p 'haskell-ts-base-mode))
+              (treesit-utils-find-topmost-parent
+               (treesit-node-at p)
+               (lambda (x)
+                 (and (string= (treesit-node-type x) "data_constructor")
+                      (treesit-haskell--is-inside-node? p x))))))
+
+           (ts-enclosing-regular-datatype-pattern-node
+            (when inside-regular-constructor?
               (treesit-utils-find-topmost-parent
                (treesit-node-at p)
                (lambda (x)
