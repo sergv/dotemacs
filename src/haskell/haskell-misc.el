@@ -1377,7 +1377,8 @@ Returns ‘t’ on success, otherwise returns ‘nil’."
                     (if component
                         (progn
                           (unless val-dante-target
-                            (setq-local dante-target (concat pkg-name ":" component)))
+                            (setq-local dante-target (concat pkg-name ":"
+                                                             (cabal-component-get-cabal-target component))))
                           t)
                       (error "Couldn’t determine cabal component for %s from cabal file%s%s"
                              (file-name-nondirectory fname)
@@ -1451,7 +1452,7 @@ Returns (<component name or nil> . <list of warnings>)"
                                 (string-match-p re filename))))))
                    components)))
       (if component
-          (cons (concat (cabal-component/type component) ":" (cabal-component/name component))
+          (cons component
                 nil)
         (progn
           (cons nil
