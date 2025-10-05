@@ -7800,6 +7800,10 @@ have different input states."
 (defconst haskell-tests/cabal-test-data
   (concat +emacs-config-path+ "/tests/test-data/cabal"))
 
+(defun map-first (f x)
+  (cons (funcall f (car x))
+        (cdr x)))
+
 (ert-deftest haskell-tests/haskell-misc--configure-dante--find-cabal-component-for-file-1 ()
   (let* ((cabal-file (expand-file-name (concat haskell-tests/cabal-test-data "/test-components.cabal")))
          (config (flycheck-haskell-read-cabal-configuration cabal-file nil))
@@ -7824,7 +7828,8 @@ have different input states."
             (expected-component (cadr entry)))
         (dolist (path (list file (concat root "/" file)))
           (should (equal
-                   (haskell-misc--configure-dante--find-cabal-component-for-file components path)
+                   (map-first #'cabal-component-get-cabal-target
+                              (haskell-misc--configure-dante--find-cabal-component-for-file components path))
                    (cons expected-component nil))))))))
 
 (ert-deftest haskell-tests/haskell-misc--configure-dante--find-cabal-component-for-file-2 ()
@@ -7836,10 +7841,11 @@ have different input states."
                        '("Component ‘exe:tg’ specifies main file with slash (exe/TG.hs) but doesn’t put ‘.’ in source dirs: ‘exe’. Possible fix: remove slash or put ‘.’ into source dirs.")))))
 
 (ert-deftest haskell-tests/haskell-misc--configure-dante--find-cabal-component-for-file-3 ()
-  (should (equal (haskell-misc--configure-dante--find-cabal-component-for-file
-                  (-map #'parse-cabal-component
-                        '(("exe" "tg" "exe/TG.hs" nil ("exe" "."))))
-                  "/home/sergey/projects/haskell/projects/tg/exe/TG.hs")
+  (should (equal (map-first #'cabal-component-get-cabal-target
+                            (haskell-misc--configure-dante--find-cabal-component-for-file
+                             (-map #'parse-cabal-component
+                                   '(("exe" "tg" "exe/TG.hs" nil ("exe" "."))))
+                             "/home/sergey/projects/haskell/projects/tg/exe/TG.hs"))
                  (cons "exe:tg"
                        nil))))
 
