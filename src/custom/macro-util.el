@@ -820,6 +820,13 @@ quote it for macro’s sake).
          (with-current-buffer ,buf-var
            ,@body)))))
 
+(defmacro with-fresh-buffer-no-switch (buf-var buf &rest body)
+  (declare (indent 2))
+  `(let ((,buf-var ,buf))
+     (unwind-protect
+         ,@body
+       (and (buffer-name ,buf-var)
+            (kill-buffer ,buf-var)))))
 ;;;
 
 (defmacro syntax-ppss-update! (var)
