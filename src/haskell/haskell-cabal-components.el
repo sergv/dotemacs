@@ -22,6 +22,9 @@
   module-list
   source-dirs)
 
+(defun cabal-component-get-cabal-target (component)
+  (concat (cabal-component/type component) ":" (cabal-component/name component)))
+
 (defun parse-cabal-component (entry)
   "Turn
 
