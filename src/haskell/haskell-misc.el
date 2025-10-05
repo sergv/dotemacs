@@ -1359,13 +1359,13 @@ Returns ‘t’ on success, otherwise returns ‘nil’."
                                 tmp)
                       (when-let ((config (flycheck-haskell-get-configuration (car tmp) proj)))
                         (let-alist-static config (package-name components)
-                          (let* ((cabal-components (-map parse-cabal-component components))
+                          (let* ((cabal-components (-map #'parse-cabal-component components))
                                  (result
                                   (haskell-misc--configure-dante--find-cabal-component-for-file
                                    cabal-components
                                    fname))
                                  (candidate-component (car result))
-                                 (warnings (cdr result)))
+                                 (warnings (cadr result)))
                             (when candidate-component
                               (setf component candidate-component
                                     pkg-name (car package-name))
@@ -1378,7 +1378,8 @@ Returns ‘t’ on success, otherwise returns ‘nil’."
                         (progn
                           (unless val-dante-target
                             (setq-local dante-target (concat pkg-name ":"
-                                                             (cabal-component-get-cabal-target component))))
+                                                             (cabal-component-get-cabal-target component))
+                                        dante-component component))
                           t)
                       (error "Couldn’t determine cabal component for %s from cabal file%s%s"
                              (file-name-nondirectory fname)
