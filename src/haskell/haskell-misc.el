@@ -16,13 +16,14 @@
   (require 'treesit-utils)
   (require 'trie))
 
-(require 'align-util)
 (require 'advices-util)
-(require 'macro-util)
+(require 'align-util)
 (require 'common)
 (require 'configurable-compilation)
 (require 'current-column-fixed)
+(require 'haskell-cabal-components)
 (require 'indentation)
+(require 'macro-util)
 (require 'search)
 (require 'treesit-utils)
 (require 'trie)
@@ -1358,9 +1359,10 @@ Returns ‘t’ on success, otherwise returns ‘nil’."
                                 tmp)
                       (when-let ((config (flycheck-haskell-get-configuration (car tmp) proj)))
                         (let-alist-static config (package-name components)
-                          (let* ((result
+                          (let* ((cabal-components (-map parse-cabal-component components))
+                                 (result
                                   (haskell-misc--configure-dante--find-cabal-component-for-file
-                                   components
+                                   cabal-components
                                    fname))
                                  (candidate-component (car result))
                                  (warnings (cdr result)))
@@ -1395,20 +1397,19 @@ Returns ‘t’ on success, otherwise returns ‘nil’."
   "Get components dumped by get-cabal-configuration.hs for current package and attempt
 to find which component the FILENAME belongs to.
 
-COMPONENTS is a list of
-(<component type> <component name> <main file> <module list> <source dirs>)
+COMPONENTS is a list of ‘cabal-component’ structs.
 
 Returns (<component name or nil> . <list of warnings>)"
   (when filename
     (let* ((case-fold-search (fold-platform-os-type nil t))
            (components-with-main-is-with-slash-and-no-dot-in-src-dirs nil)
-           (entry
-            (-find (lambda (component-descr)
-                     (let* ((main-file (cl-third component-descr))
-                            (modules (cl-fourth component-descr))
+           (component
+            (-find (lambda (component)
+                     (let* ((main-file (cabal-component/main-file component))
+                            (modules (cabal-component/module-list component))
                             (src-dirs-res (filter-elem (lambda (x) (not (equal x ".")))
                                                        (-map #'strip-trailing-slash
-                                                             (cl-fifth component-descr))))
+                                                             (cabal-component/source-dirs component))))
                             (src-dirs (car src-dirs-res))
                             (src-dirs-contained-dot? (cdr src-dirs-res)))
                        (when (and (or (string-contains? ?/ main-file)
@@ -1417,7 +1418,7 @@ Returns (<component name or nil> . <list of warnings>)"
                                   (not src-dirs-contained-dot?)
                                   (string-match-p (concat (regexp-quote main-file) "\\'")
                                                   filename))
-                         (push component-descr components-with-main-is-with-slash-and-no-dot-in-src-dirs))
+                         (push component components-with-main-is-with-slash-and-no-dot-in-src-dirs))
                        (when (or main-file modules)
                          (let* ((mod-regexps
                                  (when modules
@@ -1449,21 +1450,19 @@ Returns (<component name or nil> . <list of warnings>)"
                            (and re
                                 (string-match-p re filename))))))
                    components)))
-      (if entry
-          (let ((typ (car entry))
-                (name (cadr entry)))
-            (cons (concat typ ":" name)
-                  nil))
+      (if component
+          (cons (concat (cabal-component/type component) ":" (cabal-component/name component))
+                nil)
         (progn
           (cons nil
                 ;; Report possible error to the user
-                (-map (lambda (component-descr)
+                (-map (lambda (component)
                         (format "Component ‘%s:%s’ specifies main file with slash (%s) but doesn’t put ‘.’ in source dirs: %s. Possible fix: remove slash or put ‘.’ into source dirs."
-                                (cl-first component-descr)
-                                (cl-second component-descr)
-                                (cl-third component-descr)
+                                (cabal-component/type component)
+                                (cabal-component/name component)
+                                (cabal-component/main-file component)
                                 (mapconcat (lambda (x) (concat "‘" x "’"))
-                                           (cl-fifth component-descr)
+                                           (cabal-component/source-dirs component)
                                            ", ")))
                       components-with-main-is-with-slash-and-no-dot-in-src-dirs)))))))
 
