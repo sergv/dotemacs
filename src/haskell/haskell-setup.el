@@ -436,6 +436,7 @@ _<tab>_: reindent  _h_: jump to topmont function/entity end"
     (("iS" "S") vim:motion-inner-qualified-haskell-symbol:interactive)
     ("aS"       vim:motion-outer-qualified-haskell-symbol:interactive)))
 
+;;;###autoload
 (defun haskell-setup-common-prelude ()
   (init-common :use-whitespace 'tabs-only)
   (add-hook 'after-save-hook #'haskell-update-eproj-tags-on-save nil t)
@@ -585,7 +586,7 @@ _<tab>_: reindent  _h_: jump to topmont function/entity end"
 
 ;;;###autoload
 (defun haskell-setup ()
-  (let ((non-vanilla-haskell-mode? (-any? #'derived-mode-p '(ghc-core-mode haskell-c2hs-mode haskell-hsc-mode)))
+  (let ((non-vanilla-haskell-mode? (-any? #'derived-mode-p '(ghc-core-mode haskell-c2hs-mode)))
         (using-lsp? nil)
         (should-enable-flycheck? nil))
 
@@ -678,25 +679,9 @@ _<tab>_: reindent  _h_: jump to topmont function/entity end"
 
 ;;;###autoload
 (defun haskell-hsc-setup ()
-  (let ((should-enable-flycheck? nil))
-    (add-to-list 'flycheck-disabled-checkers 'haskell-hlint)
-
-    (let ((proj (haskell-setup-common-project t)))
-      (flycheck-setup-from-eproj-deferred proj
-                                          'haskell-cabal-build
-                                          #'ignore
-                                          (lambda (should-enable?)
-                                            (setf should-enable-flycheck? (if should-enable? +1 -1)))))
-
-    (haskell-setup-common-keybindings should-enable-flycheck?)
-
-    (def-keys-for-map vim-normal-mode-local-keymap
-      ("-"  hydra-haskell-minus/body)
-      ("\\" haskell-flycheck-force-run-by-changing-contents))
-
-    (flycheck-install-ex-commands!
-     :install-flycheck flycheck-mode
-     :load-func #'vim:haskell-dante-load-file-into-repl:interactive)))
+  (haskell-setup)
+  (setq-local dante-temp-file-name-impl #'dante-temp-file-name--hsc2hs-impl
+              dante-setup-file-to-load-impl #'dante-setup-file-to-load--hsc2hs-impl))
 
 ;;;###autoload
 (defun dante-repl-mode-setup ()
