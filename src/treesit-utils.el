@@ -68,6 +68,14 @@
                   (treesit-haskell--is-string-node-type? typ)))
          (treesit-haskell--is-inside-node? p node))))
 
+(defun treesit-haskell-get-buffer-module-name ()
+  (if-let* ((header-candidates (treesit-filter-child
+                                (treesit-buffer-root-node 'haskell)
+                                (lambda (node)
+                                  (string= "header" (treesit-node-type node))))))
+      (treesit-node-text-no-properties-unsafe (treesit-node-child-by-field-name (car header-candidates) "module"))
+    "Main"))
+
 (defun point-inside-string?--ts-haskell (&optional pos)
   "Return non-nil if point is positioned inside a string."
   (declare (pure nil) (side-effect-free t))
