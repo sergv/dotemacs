@@ -20,7 +20,8 @@
   name
   main-file
   module-list
-  source-dirs)
+  source-dirs
+  build-dir)
 
 (defun cabal-component-get-cabal-target (component)
   (concat (cabal-component/type component) ":" (cabal-component/name component)))
@@ -28,7 +29,7 @@
 (defun parse-cabal-component (entry)
   "Turn
 
-(<component type> <component name> <main file> <module list> <source dirs>)
+(<component type> <component name> <main file> <module list> <source dirs> <build-dir>)
 
 into
 
@@ -37,7 +38,8 @@ into
         (name (cadr entry))
         (main-file (caddr entry))
         (module-list (cadddr entry))
-        (source-dirs (car (cddddr entry))))
+        (source-dirs (car (cddddr entry)))
+        (build-dir (cadr (cddddr entry))))
     (cl-assert (stringp type))
     (cl-assert (stringp name))
     (cl-assert (or (string= type "lib")
@@ -48,12 +50,14 @@ into
     (cl-assert (-all? (lambda (xs) (-all? #'stringp xs)) module-list))
     (cl-assert (listp source-dirs))
     (cl-assert (-all? #'stringp source-dirs))
+    (cl-assert (stringp build-dir))
     (make-cabal-component
      :type type
      :name name
      :main-file main-file
      :module-list module-list
-     :source-dirs source-dirs)))
+     :source-dirs source-dirs
+     :build-dir build-dir)))
 
 (provide 'haskell-cabal-components)
 
