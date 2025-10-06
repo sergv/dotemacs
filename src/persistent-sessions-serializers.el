@@ -143,9 +143,11 @@ can allows value to be decoded back fully.)"
 
 (defun sessions/store-string (str &optional do-not-store-properties ignored-text-properties)
   (list 'string
-        (split-string (base64-encode-string (string-as-unibyte (sessions/strip-text-properties str)))
-                      "\n"
-                      t)
+        (if (string= str "")
+            (list str)
+          (split-string (base64-encode-string (string-as-unibyte (sessions/strip-text-properties str)))
+                        "\n"
+                        t))
         (if do-not-store-properties
             nil
           (sessions/get-all-text-properties-in-string
