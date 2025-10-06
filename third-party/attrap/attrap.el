@@ -969,8 +969,8 @@ Error is given as MSG and reported between POS and END."
     (substring identifier i j)))
 
 (cl-defstruct attrap--fixed-mod-name
-  (new-name :read-only t)
-  (is-authoritative? :read-only t))
+  (new-name nil :read-only t)
+  (is-authoritative? nil :read-only t))
 
 (defconst attrap--module-name-fixes
   (eval-when-compile
