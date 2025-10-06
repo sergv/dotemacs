@@ -1110,7 +1110,7 @@ Error is given as MSG and reported between POS and END."
                     "Word16"
                     "Word32"
                     "Word64"))
-                  (("GHC.IO")
+                  (("GHC.IO" "GHC.Internal.IO")
                    "Control.Exception"
                    ("evaluate"))
 
@@ -1141,12 +1141,15 @@ Error is given as MSG and reported between POS and END."
                          ("GHC.Internal.Data.Proxy" . "Data.Proxy")
                          ("GHC.Internal.Data.Traversable" . "Data.Traversable")
                          ("GHC.Internal.Data.Typeable" . "Data.Typeable")
+                         ("GHC.Internal.Foreign.Marshal.Alloc" . "Foreign.Marshal.Alloc")
                          ("GHC.Internal.Foreign.Marshal.Array" . "Foreign.Marshal.Array")
                          ("GHC.Internal.Foreign.Marshal.Utils" . "Foreign.Marshal.Utils")
                          ("GHC.Internal.Foreign.Storable" . "Foreign.Storable")
+                         ("GHC.Internal.Ptr" . "Foreign.Ptr")
                          ("GHC.Internal.Stack.Types" . "GHC.Stack.Types")
                          ("GHC.Internal.Stack" . "GHC.Stack")
                          ("GHC.Internal.System.Exit" . "System.Exit")
+                         ("GHC.Internal.Text.Read" . "Text.Read")
                          ("GHC.Internal.Unsafe.Coerce" . "Unsafe.Coerce")
                          ("Data.Semigroup.Internal" . "Data.Semigroup"))))))))))
 
