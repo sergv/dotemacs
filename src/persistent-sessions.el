@@ -324,7 +324,7 @@ entries."
                                  (eshell-send-input))
                              (message "eshell-restore: no 'current-dir")))
                          (sessions/report-and-ignore-asserts
-                             (format "while restoring 'comint-input-ring of eshell buffer '%s'" buffer-name)
+                             (format "while restoring 'eshell-history-ring of eshell buffer '%s'" buffer-name)
                            (aif (cadr-safe (assoc 'eshell-history-ring saved-data))
                                (with-current-buffer buf
                                  (setq-local eshell-history-ring (sessions/versioned/restore-ring version it)))
