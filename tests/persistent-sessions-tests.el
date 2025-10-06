@@ -15,7 +15,7 @@
 
 (require 'ert)
 
-(ert-deftest persistent-sessions-tests/store-and-restore-string ()
+(ert-deftest persistent-sessions-tests/store-and-restore-string-1 ()
   (let ((test-string "foo bar"))
     (put-text-property 0 1 'foo 'bar test-string)
     (put-text-property 4 6 'quux 'baz test-string)
@@ -43,21 +43,37 @@
       (should (null (get-text-property 3 'foo converted-string)))
       (should (equal (get-text-property 4 'quux converted-string) 'baz))
       (should (equal (get-text-property 5 'quux converted-string) 'baz))
-      (should (null (get-text-property 6 'quux converted-string))))))
+      (should (null (get-text-property 6 'quux converted-string)))
+
+      (should (string= converted-string test-string)))))
+
+(ert-deftest persistent-sessions-tests/store-and-restore-string-2 ()
+  (let ((test-string ""))
+    (let* ((encoded-string
+            (sessions/store-value test-string))
+           (converted-string
+            (sessions/versioned/restore-value nil encoded-string)))
+      (should (listp encoded-string))
+      (should (equal 4 (length encoded-string)))
+      (should (eq 'string (car encoded-string)))
+
+      (should (stringp converted-string))
+      (should (string= converted-string test-string)))))
 
 (ert-deftest persistent-sessions-tests/store-and-restore-ring ()
   (let* ((size 10)
-         (test-ring (make-ring size)))
+         (test-ring (make-ring (+ size 1))))
     (dotimes (n size)
       (let ((start (mod n 3))
             (new-string (format "foo%d" n)))
         (put-text-property start (+ start 1) 'foo n new-string)
         (ring-insert test-ring new-string)))
+    (ring-insert test-ring "")
     (let ((restored-ring
            (sessions/versioned/restore-value
             nil
             (sessions/store-value test-ring))))
-      (should (equal size (ring-size restored-ring)))
+      (should (equal (+ size 1) (ring-size restored-ring)))
       (should (equal test-ring restored-ring))
       (should (equal (prin1-to-string test-ring)
                      (prin1-to-string restored-ring))))))
