@@ -734,6 +734,7 @@ optimization purposes.")
 ;;;
 
 (cl-defun pp-to-string* (obj &key (length nil) (depth nil))
+  "Like ‘pp-to-string’ but with configurable length and depth"
   (let ((print-length length)
         (print-level depth))
     (pp-to-string obj)))
