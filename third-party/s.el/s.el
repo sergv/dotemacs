@@ -170,7 +170,7 @@ See also `s-split'."
   (declare (pure t) (side-effect-free t))
   (let ((pos (length prefix)))
     (if (and (>= (length s) (length prefix))
-             (string= prefix (substring s 0 pos)))
+             (string-prefix-p prefix s))
         (substring s pos)
       s)))
 
