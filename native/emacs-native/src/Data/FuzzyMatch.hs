@@ -6,7 +6,6 @@
 -- Maintainer  :  serg.foo@gmail.com
 ----------------------------------------------------------------------------
 
-{-# LANGUAGE CPP                #-}
 {-# LANGUAGE DerivingVia        #-}
 {-# LANGUAGE MagicHash          #-}
 {-# LANGUAGE OverloadedStrings  #-}
@@ -71,6 +70,7 @@ import Data.Vector.Unboxed.Mutable qualified as UM
 import Data.Word
 import GHC.Int (Int32(I32#))
 import GHC.Magic (inline)
+import GHC.Prim
 import GHC.ST
 import GHC.Types
 import GHC.Word (Word64(W64#))
@@ -79,21 +79,6 @@ import Prettyprinter.Generics
 import Data.Packed
 import Data.StrIdx
 import Emacs.Module.Assert (WithCallStack)
-
-#if __GLASGOW_HASKELL__ < 904
-
-import GHC.Prim hiding (Word64#)
-
-type Word64# = Word#
-
-wordToWord64# :: Word# -> Word64#
-wordToWord64# x = x
-
-#else
-
-import GHC.Prim
-
-#endif
 
 {-# INLINE isWord #-}
 isWord :: Int# -> Bool#
@@ -677,8 +662,9 @@ fuzzyMatchImpl store mkHeatmap (needle, needleChars) haystack
   where
     makeKey :: V.MVector s (U.Vector a) -> StrCharIdx Int32 -> Int
     makeKey !occs !k =
-      j `unsafeShiftL` 32 .|. fromIntegral (unStrCharIdx k)
+      j `unsafeShiftL` (intBits `unsafeShiftR` 1) .|. fromIntegral (unStrCharIdx k)
       where
+        !intBits = finiteBitSize (1 :: Int)
         !j = VM.length occs
 
     findBestWith
