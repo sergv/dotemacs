@@ -63,8 +63,9 @@
   (declare (pure t) (side-effect-free t))
   (caddr (cddddr x)))
 
-;; This is the start of match, the prefix comes before this.
-(defsubst egrep-match-matched-offset (x)
+;; This is the start of match in bytes, not characters.
+;; The prefix comes before this.
+(defsubst egrep-match-offset (x)
   (declare (pure t) (side-effect-free t))
   (cdddr (cddddr x)))
 
@@ -197,7 +198,7 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
                                                                           match-prefix
                                                                           match-text
                                                                           match-suffix
-                                                                          match-start)
+                                                                          (position-bytes match-start))
                                                         nil)))))
                            ;; Jump to end of line in order to show at most one match per
                            ;; line.
@@ -262,7 +263,7 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
              (let ((match-entry (car entry))
                    (orig-str (cadr entry)))
                (cl-assert (stringp orig-str))
-               (goto-char (- (egrep-match-offset match-entry)
+               (goto-char (- (byte-to-position (egrep-match-offset match-entry))
                              (length (egrep-match-matched-prefix match-entry))))
                (let ((current-str
                       (buffer-substring-no-properties (point)
