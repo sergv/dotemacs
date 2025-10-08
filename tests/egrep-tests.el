@@ -33,8 +33,8 @@
 
 (defun egrep-tests--normalise-egrep-match (entry)
   (make-egrep-match
-   (egrep-tests--normalise-file-name (egrep-match-file entry) t)
-   (egrep-tests--normalise-file-name (egrep-match-short-file-name entry) nil)
+   (test-utils--normalise-file-name (egrep-match-file entry) t)
+   (test-utils--normalise-file-name (egrep-match-short-file-name entry) nil)
    (egrep-match-line entry)
    (egrep-match-column entry)
    (substring-no-properties (egrep-match-matched-prefix entry))
@@ -44,13 +44,6 @@
 
 (defconst egrep-tests/project-dir
   (concat +emacs-config-path+ "/tests/test-data/egrep"))
-
-(defun egrep-tests--normalise-file-name (x expand?)
-  (funcall
-   (fold-platform-os-type
-    #'identity
-    #'downcase)
-   (funcall (if expand? #'expand-file-name #'identity) x)))
 
 (defconst egrep-tests--bar-matches
   (vector
