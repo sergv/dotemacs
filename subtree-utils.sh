@@ -7,8 +7,8 @@
 grafts_file=".git/info/grafts"
 
 if [[ ! -f "$grafts_file" ]]; then
-    echo "Grafts file does not exist: $grafts_file"
-    exit 1
+    echo "Grafts file does not exist: $grafts_file, creating" >&2
+    touch "$grafts_file"
 fi
 
 
