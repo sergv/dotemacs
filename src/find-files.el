@@ -112,6 +112,8 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
     (error "No globs to search for under %s" root))
   (cl-assert (listp ignored-directories))
   (cl-assert (listp ignored-directory-prefixes))
+  (cl-assert (listp globs-to-find))
+  (cl-assert (-every? #'stringp globs-to-find))
   (funcall (pcase find-rec-backend
              (`native
               #'find-rec--haskell-native-impl)
