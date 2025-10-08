@@ -1,0 +1,103 @@
+cabal-version: 3.6
+
+-- Created : 28 September 2025
+
+name:
+  rure-ffi
+version:
+  0.1
+synopsis:
+  Foreign bindings to the Rust Regex library
+description:
+  The plan is to hase simple bindings but try not to leak resources
+  if an exception arises.
+copyright:
+  (c) Sergey Vinokurov 2025
+license:
+  Apache-2.0
+author:
+  Sergey Vinokurov
+maintainer:
+  Sergey Vinokurov <serg.foo@gmail.com>
+
+build-type:
+  Simple
+
+extra-source-files:
+  Changelog.md
+  Readme.md
+
+homepage:
+  https://github.com/sergv/rure-ffi
+
+source-repository head
+  type: git
+  location: https://github.com/sergv/rure-ffi.git
+
+common ghc-options
+  default-language:
+    GHC2021
+
+  default-extensions:
+    LambdaCase
+
+  ghc-options:
+    -Weverything
+    -Wno-all-missed-specialisations
+    -Wno-implicit-prelude
+    -Wno-missed-specialisations
+    -Wno-missing-import-lists
+    -Wno-missing-local-signatures
+    -Wno-safe
+    -Wno-unsafe
+
+  if impl(ghc >= 8.8)
+    ghc-options:
+      -Wno-missing-deriving-strategies
+
+  if impl(ghc >= 8.10)
+    ghc-options:
+      -Wno-missing-safe-haskell-mode
+
+  if impl(ghc >= 9.2)
+    ghc-options:
+      -Wno-missing-kind-signatures
+
+  if impl(ghc >= 9.8)
+    ghc-options:
+      -Wno-missing-role-annotations
+      -Wno-missing-poly-kind-signatures
+
+library
+  import: ghc-options
+  exposed-modules:
+    Data.Regex.Rure
+    Data.Regex.Rure.FFI
+  hs-source-dirs:
+    src
+  build-depends:
+    , base >= 4.16
+    , bytestring
+  build-tool-depends:
+    , hsc2hs:hsc2hs
+  includes:
+    rure.h
+  extra-libraries:
+    rure
+
+test-suite rure-ffi-test
+  import: ghc-options
+  type:
+    exitcode-stdio-1.0
+  main-is:
+    test/TestMain.hs
+  build-depends:
+    , base >= 4.14
+    , bytestring
+    , tasty
+    , tasty-hunit
+    , text
+    , rure-ffi
+  ghc-options:
+    -rtsopts
+    -main-is TestMain
