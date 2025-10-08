@@ -23,7 +23,6 @@ import Control.Monad.Catch
 import Control.Monad.Trans.Control
 import Data.ByteString.Short qualified as BSS
 import Data.Coerce
-import GHC.Conc (getNumCapabilities)
 import System.Directory.OsPath.Types
 import System.OsPath.Types (OsPath)
 
@@ -67,11 +66,8 @@ emacsFindRec (R roots (R globsToFind (R ignoredFileGlobs (R ignoredDirGlobs (R i
   (fileIgnores, dirIgnores) <-
     mkEmacsIgnores ignoredFileGlobs ignoredDirGlobs ignoredDirPrefixes ignoredAbsDirs
   isRelativePaths'          <- extractBool isRelativePaths
-
-  nil' <- nil
-  jobs <- liftBase getNumCapabilities
-
-  globsToFindRE <- fileGlobsToRegex globsToFind'
+  nil'                      <- nil
+  globsToFindRE             <- fileGlobsToRegex globsToFind'
 
   let roots'' :: [AbsDir]
       roots'' = coerce roots'
@@ -80,15 +76,15 @@ emacsFindRec (R roots (R globsToFind (R ignoredFileGlobs (R ignoredDirGlobs (R i
 
   let shouldCollect :: AbsDir -> AbsFile -> Relative OsPath -> Basename OsPath -> IO (Maybe OsPath)
       shouldCollect _root absPath (Relative relPath) (Basename basePath)
-        | isIgnoredFile fileIgnores absPath      = pure Nothing
-        | reMatchesOsPath globsToFindRE basePath = pure $ Just $ if isRelativePaths' then relPath else unAbsFile absPath
-        | otherwise                              = pure Nothing
+        | isIgnoredFile fileIgnores absPath         = pure Nothing
+        | reSetMatchesOsPath globsToFindRE basePath = pure $ Just $ if isRelativePaths' then relPath else unAbsFile absPath
+        | otherwise                                 = pure Nothing
 
       collect :: OsPath -> IO ()
       collect = atomically . writeTMQueue results
 
       doFind =
-        traverse_ collect =<< findRec FollowSymlinks jobs
+        traverse_ collect =<< findRec FollowSymlinks
           (\x y -> not $ isIgnored dirIgnores x y)
           shouldCollect
           roots''
