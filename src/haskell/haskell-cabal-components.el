@@ -16,6 +16,7 @@
 
 (cl-defstruct (cabal-component
                (:conc-name cabal-component/))
+  cabal-file
   type
   name
   main-file
@@ -26,7 +27,7 @@
 (defun cabal-component-get-cabal-target (component)
   (concat (cabal-component/type component) ":" (cabal-component/name component)))
 
-(defun parse-cabal-component (entry)
+(defun parse-cabal-component (cabal-file entry)
   "Turn
 
 (<component type> <component name> <main file> <module list> <source dirs> <build-dir>)
@@ -40,6 +41,8 @@ into
         (module-list (cadddr entry))
         (source-dirs (car (cddddr entry)))
         (build-dir (cadr (cddddr entry))))
+    (cl-assert (stringp cabal-file))
+    (cl-assert (file-regular-p cabal-file))
     (cl-assert (stringp type))
     (cl-assert (stringp name))
     (cl-assert (or (string= type "lib")
@@ -52,6 +55,7 @@ into
     (cl-assert (-all? #'stringp source-dirs))
     (cl-assert (stringp build-dir))
     (make-cabal-component
+     :cabal-file cabal-file
      :type type
      :name name
      :main-file main-file
