@@ -1,11 +1,15 @@
 packages:
   emacs-native.cabal
+  ../rure-ffi/rure-ffi.cabal
 
 constraints:
   , prettyprinter-combinators -enummapset
 
 allow-newer:
   , boring:base
+
+constraints:
+  , emacs-native +standalone-foreign-lib
 
 -- -fPIC is not needed on Windows. It’s supposed to be a no-op but
 -- actually leads to segfaults, cf
