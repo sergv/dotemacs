@@ -217,13 +217,46 @@ otherwise the command for starting repl will be inferred."
   (let* ((repl-buf-name (dante-repl-buffer-name))
          (repl-buf (get-buffer repl-buf-name)))
     (aif (buffer-file-name)
-        (dante-repl-load-file--send-load-command repl-buf-name repl-buf it)
+        ;; Buffer backed by a file.
+        (dante-repl-load-file--send-load-command repl-buf-name repl-buf (dante-repl-get-file-to-load (current-buffer)))
+      ;; Temporary buffer without file counterpart.
       (with-temporary-file tmp-file
           (shell-quote-argument (file-name-nondirectory (buffer-name)))
           "tmp"
           (buffer-substring-no-properties (point-min) (point-max))
         (dante-repl-load-file--send-load-command repl-buf-name repl-buf tmp-file)))
     (switch-to-buffer-other-window (get-buffer repl-buf-name))))
+
+(defvar dante-repl-get-file-to-load--impl #'dante-repl-get-file-to-load--default-impl)
+
+(defun dante-repl-get-file-to-load (buf)
+  (funcall dante-repl-get-file-to-load--impl buf))
+
+(defun dante-repl-get-file-to-load--default-impl (buf)
+  (buffer-file-name buf))
+
+(defvar-local dante-repl--file-name-to-load-instead nil)
+
+(defun dante-repl-get-component-build-dir (buf)
+  (let ((method (buffer-local-value 'dante--selected-method buf)))
+    ;; Must be already initialized.
+    (cl-assert method)
+    (dante-get-component-build-dir
+     buf
+     (when-let ((f (dante-method-get-repl-build-dir method)))
+       (funcall f (buffer-local-value 'dante-current-eproj-project buf))))))
+
+(defun dante-repl-get-file-to-load--hsc2hs-impl (buf)
+  (with-current-buffer buf
+    (or dante-repl--file-name-to-load-instead
+        (setq-local dante-repl--file-name-to-load-instead
+                    (concat
+                     (dante-repl-get-component-build-dir buf)
+                     "/"
+                     (replace-regexp-in-string "[.]"
+                                               "/"
+                                               (treesit-haskell-get-buffer-module-name))
+                     ".hs")))))
 
 (defun dante-repl-load-file--send-load-command (repl-buf-name repl-buf file-to-load)
   (let ((cmd (concat ":load \"*" file-to-load "\"")))
