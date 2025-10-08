@@ -215,6 +215,13 @@ Ensures a final newline is inserted."
     :expected-value ,expected-value
     :buffer-id ,buffer-id))
 
+(defun test-utils--normalise-file-name (x &optional expand?)
+  (funcall
+   (fold-platform-os-type
+    #'identity
+    #'downcase)
+   (funcall (if expand? #'expand-file-name #'identity) x)))
+
 (provide 'tests-utils)
 
 ;; Local Variables:
