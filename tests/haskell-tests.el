@@ -7807,7 +7807,8 @@ have different input states."
 (ert-deftest haskell-tests/haskell-misc--configure-dante--find-cabal-component-for-file-1 ()
   (let* ((cabal-file (expand-file-name (concat haskell-tests/cabal-test-data "/test-components.cabal")))
          (config (flycheck-haskell-read-cabal-configuration cabal-file nil))
-         (components (-map #'parse-cabal-component (cdr (assq 'components config))))
+         (components (--map (parse-cabal-component "/foo/bar.cabal" it)
+                            (cdr (assq 'components config))))
          (root "/home/user/proj1")
          (results nil))
     (should-not (null components))
@@ -7834,8 +7835,8 @@ have different input states."
 
 (ert-deftest haskell-tests/haskell-misc--configure-dante--find-cabal-component-for-file-2 ()
   (should (equal (haskell-misc--configure-dante--find-cabal-component-for-file
-                  (-map #'parse-cabal-component
-                        '(("exe" "tg" "exe/TG.hs" nil ("exe") "build/x86_64-linux/ghc-9.12.2/tg-0.1/build")))
+                  (--map (parse-cabal-component "/foo/bar.cabal" it)
+                         '(("exe" "tg" "exe/TG.hs" nil ("exe") "build/x86_64-linux/ghc-9.12.2/tg-0.1/build")))
                   "/home/sergey/projects/haskell/projects/tg/exe/TG.hs")
                  (cons nil
                        '("Component ‘exe:tg’ specifies main file with slash (exe/TG.hs) but doesn’t put ‘.’ in source dirs: ‘exe’. Possible fix: remove slash or put ‘.’ into source dirs.")))))
@@ -7843,8 +7844,8 @@ have different input states."
 (ert-deftest haskell-tests/haskell-misc--configure-dante--find-cabal-component-for-file-3 ()
   (should (equal (map-first #'cabal-component-get-cabal-target
                             (haskell-misc--configure-dante--find-cabal-component-for-file
-                             (-map #'parse-cabal-component
-                                   '(("exe" "tg" "exe/TG.hs" nil ("exe" ".") "build/x86_64-linux/ghc-9.12.2/tg-0.1/build")))
+                             (--map (parse-cabal-component "/foo/bar.cabal" it)
+                                    '(("exe" "tg" "exe/TG.hs" nil ("exe" ".") "build/x86_64-linux/ghc-9.12.2/tg-0.1/build")))
                              "/home/sergey/projects/haskell/projects/tg/exe/TG.hs"))
                  (cons "exe:tg"
                        nil))))
