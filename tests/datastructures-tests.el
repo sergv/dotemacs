@@ -501,6 +501,30 @@
     (should (eq (trie-lookup "foobar" trie 'not-found)
                 300))))
 
+(ert-deftest datastructures-tests/trie-matches-stringh-suffix-1 ()
+  (let ((items '(("foo" . 1)
+                 ("bar" . 2)
+                 ("quux" . 3)))
+        (trie (make-empty-trie)))
+    (dolist (x items)
+      (trie-insert! (reverse (car x)) (cdr x) trie))
+
+    (should (equal (trie-matches-string-suffix? trie "foo") 1))
+    (should (equal (trie-matches-string-suffix? trie "bar") 2))
+    (should (equal (trie-matches-string-suffix? trie "quux") 3))
+
+    (should (equal (trie-matches-string-suffix? trie "xfoo") 1))
+    (should (equal (trie-matches-string-suffix? trie "xbar") 2))
+    (should (equal (trie-matches-string-suffix? trie "xquux") 3))
+
+    (should (equal (trie-matches-string-suffix? trie "fooxfoo") 1))
+    (should (equal (trie-matches-string-suffix? trie "barxbar") 2))
+    (should (equal (trie-matches-string-suffix? trie "quuxxquux") 3))
+
+    (should (equal (trie-matches-string-suffix? trie "fooxfo" 'not-found) 'not-found))
+    (should (equal (trie-matches-string-suffix? trie "barxba" 'not-found) 'not-found))
+    (should (equal (trie-matches-string-suffix? trie "quuxxquu" 'not-found) 'not-found))))
+
 (ert-deftest datastructures-tests/append-list-null-1 ()
   (should (append-list-null (append-list-empty))))
 
