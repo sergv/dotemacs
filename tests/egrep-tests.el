@@ -39,7 +39,8 @@
    (egrep-match-column entry)
    (substring-no-properties (egrep-match-matched-prefix entry))
    (substring-no-properties (egrep-match-matched-text entry))
-   (substring-no-properties (egrep-match-matched-suffix entry))))
+   (substring-no-properties (egrep-match-matched-suffix entry))
+   (egrep-match-offset entry)))
 
 (defconst egrep-tests/project-dir
   (concat +emacs-config-path+ "/tests/test-data/egrep"))
@@ -53,12 +54,12 @@
 
 (defconst egrep-tests--bar-matches
   (vector
-   (make-egrep-match (concat egrep-tests/project-dir "/bar.c")     "bar.c"     5 6 "  int " "hello" " = x + y;")
-   (make-egrep-match (concat egrep-tests/project-dir "/bar.c")     "bar.c"     6 9 "  return " "hello" ";")))
+   (make-egrep-match (concat egrep-tests/project-dir "/bar.c")     "bar.c"     5 6 "  int " "hello" " = x + y;" 52)
+   (make-egrep-match (concat egrep-tests/project-dir "/bar.c")     "bar.c"     6 9 "  return " "hello" ";" 76)))
 
 (defconst egrep-tests--foo-matches
   (vector
-   (make-egrep-match (concat egrep-tests/project-dir "/src/foo.c") "src/foo.c" 3 5 "void " "hello" "(char const * name)")))
+   (make-egrep-match (concat egrep-tests/project-dir "/src/foo.c") "src/foo.c" 3 5 "void " "hello" "(char const * name)" 26)))
 
 (grep-tests--define-tests "egrep-tests-1/%s"
     regexp
