@@ -1357,21 +1357,22 @@ Returns ‘t’ on success, otherwise returns ‘nil’."
                         (tmp cabal-files))
                     (while (and (not component)
                                 tmp)
-                      (when-let ((config (flycheck-haskell-get-configuration (car tmp) proj)))
-                        (let-alist-static config (package-name components)
-                          (let* ((cabal-components (-map #'parse-cabal-component components))
-                                 (result
-                                  (haskell-misc--configure-dante--find-cabal-component-for-file
-                                   cabal-components
-                                   fname))
-                                 (candidate-component (car result))
-                                 (warnings (cadr result)))
-                            (when candidate-component
-                              (setf component candidate-component
-                                    pkg-name (car package-name))
-                              (cl-assert (stringp pkg-name) nil
-                                         "Expected package name to be a string but got %s" pkg-name))
-                            (setf all-warnings (nconc warnings all-warnings)))))
+                      (let ((cabal-file (car tmp)))
+                        (when-let ((config (flycheck-haskell-get-configuration cabal-file proj)))
+                          (let-alist-static config (package-name components)
+                            (let* ((cabal-components (--map (parse-cabal-component cabal-file it) components))
+                                   (result
+                                    (haskell-misc--configure-dante--find-cabal-component-for-file
+                                     cabal-components
+                                     fname))
+                                   (candidate-component (car result))
+                                   (warnings (cadr result)))
+                              (when candidate-component
+                                (setf component candidate-component
+                                      pkg-name (car package-name))
+                                (cl-assert (stringp pkg-name) nil
+                                           "Expected package name to be a string but got %s" pkg-name))
+                              (setf all-warnings (nconc warnings all-warnings))))))
 
                       (setf tmp (cdr tmp)))
                     (if component
