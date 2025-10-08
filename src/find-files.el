@@ -157,6 +157,59 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
      ignored-absolute-dirs
      relative-paths?)))
 
+;;;###autoload
+(cl-defun find-rec-multi* (&key
+                           roots
+                           globs-to-find
+                           ignored-extensions-globs
+                           ignored-files-globs
+                           ignored-absolute-dirs
+                           ignored-directories
+                           ignored-directory-prefixes)
+  (declare (pure nil) (side-effect-free nil))
+  (when (null globs-to-find)
+    (error "No globs to search for under %s" root))
+  (cl-assert (listp ignored-directories))
+  (cl-assert (listp ignored-directory-prefixes))
+  (cl-assert (listp globs-to-find))
+  (cl-assert (-every? #'stringp globs-to-find))
+  (funcall (pcase find-rec-backend
+             (`native
+              #'find-rec-multi--haskell-native-impl)
+             (other
+              (error "find-rec-multi doesn’t work with backend %s" other)))
+           roots
+           globs-to-find
+           ignored-extensions-globs
+           ignored-files-globs
+           ignored-absolute-dirs
+           ignored-directories
+           ignored-directory-prefixes))
+
+(defun find-rec-multi--haskell-native-impl
+    (roots
+     globs-to-find
+     ignored-extensions-globs
+     ignored-files-globs
+     ignored-absolute-dirs
+     ignored-directories
+     ignored-directory-prefixes)
+  "A version of `find-rec-multi' that uses ffi to do the search."
+  (declare (pure nil) (side-effect-free nil))
+  (let ((ignored-files
+         (append
+          ignored-extensions-globs
+          ignored-files-globs)))
+    (cl-assert (featurep 'haskell-native-emacs-extensions))
+    (cl-assert (fboundp #'haskell-native-find-rec))
+    (haskell-native-find-rec
+     roots
+     globs-to-find
+     ignored-files
+     ignored-directories
+     ignored-directory-prefixes
+     ignored-absolute-dirs
+     nil)))
 
 (defun find-rec--find-executable-impl (root
                                        globs-to-find
