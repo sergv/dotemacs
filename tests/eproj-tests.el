@@ -420,141 +420,114 @@ under ROOT directory."
 
   (unless (cached-executable-find "fast-tags")
     (ert-skip "fast-tags not available"))
-  (let ((tmp-dir (make-temp-file "temp" t))
-        (unzip (cached-executable-find "unzip")))
 
-    (unless unzip
-      (ert-skip "unzip not available"))
+  (test-utils--with-unzipped-project
+      eproj-tests/implicit-haskell-project-archive
+      tmp-dir
+    (let ((path (concat tmp-dir "/haskell-implicit-project/main"))
+          (related-roots
+           (list (concat tmp-dir "/haskell-implicit-project/dep1")
+                 (concat tmp-dir "/haskell-implicit-project/dep2")
+                 (concat tmp-dir "/haskell-implicit-project/main"))))
 
-    (unwind-protect
-        (progn
-          (call-process unzip nil nil nil
-                        eproj-tests/implicit-haskell-project-archive
-                        "-d" tmp-dir)
+      (let ((run-check
+             (lambda ()
+               (let ((proj (eproj-get-project-for-path path)))
 
-          (let ((path (concat tmp-dir "/haskell-implicit-project/main"))
-                (related-roots
-                 (list (concat tmp-dir "/haskell-implicit-project/dep1")
-                       (concat tmp-dir "/haskell-implicit-project/dep2")
-                       (concat tmp-dir "/haskell-implicit-project/main"))))
+                 (should (not (null proj)))
+                 (should (eproj-tests/paths=? path (eproj-project/root proj)))
 
-            (let ((run-check
-                   (lambda ()
-                     (let ((proj (eproj-get-project-for-path path)))
+                 (should (not (null (eproj-project/related-projects proj))))
+                 (should (equal
+                          (eproj-tests/normalize-file-list
+                           (-map #'eproj-project/root
+                                 (eproj-get-all-related-projects proj)))
+                          related-roots))
 
-                       (should (not (null proj)))
-                       (should (eproj-tests/paths=? path (eproj-project/root proj)))
+                 (dolist (name '("dep1" "dep2" "mainFunc" "subdepFoo"))
+                   (should (eproj-get-matching-tags proj 'haskell-mode name nil)))))))
 
-                       (should (not (null (eproj-project/related-projects proj))))
-                       (should (equal
-                                (eproj-tests/normalize-file-list
-                                 (-map #'eproj-project/root
-                                       (eproj-get-all-related-projects proj)))
-                                related-roots))
-
-                       (dolist (name '("dep1" "dep2" "mainFunc" "subdepFoo"))
-                         (should (eproj-get-matching-tags proj 'haskell-mode name nil)))))))
-
-              (funcall run-check)
-              (eproj-update-projects)
-              (funcall run-check)
-              (eproj-reset-projects)
-              (funcall run-check))))
-      (delete-directory tmp-dir t))))
+        (funcall run-check)
+        (eproj-update-projects)
+        (funcall run-check)
+        (eproj-reset-projects)
+        (funcall run-check)))))
 
 (eproj-tests--define-tests
     "eproj-tests/implicit-haskell-project-alt-cabal.project"
 
   (unless (cached-executable-find "fast-tags")
     (ert-skip "fast-tags not available"))
-  (let ((tmp-dir (make-temp-file "temp" t))
-        (unzip (cached-executable-find "unzip")))
 
-    (unless unzip
-      (ert-skip "unzip not available"))
+  (test-utils--with-unzipped-project
+      eproj-tests/implicit-haskell-project2-archive
+      tmp-dir
+    (let ((path (concat tmp-dir "/haskell-implicit-project-alt-cabal.project/main"))
+          (related-roots
+           (list (concat tmp-dir "/haskell-implicit-project-alt-cabal.project/dep1")
+                 (concat tmp-dir "/haskell-implicit-project-alt-cabal.project/dep2")
+                 (concat tmp-dir "/haskell-implicit-project-alt-cabal.project/main"))))
 
-    (unwind-protect
-        (progn
-          (call-process unzip nil nil nil
-                        eproj-tests/implicit-haskell-project2-archive
-                        "-d" tmp-dir)
+      (let ((run-check
+             (lambda ()
+               (let ((proj (eproj-get-project-for-path path)))
 
-          (let ((path (concat tmp-dir "/haskell-implicit-project-alt-cabal.project/main"))
-                (related-roots
-                 (list (concat tmp-dir "/haskell-implicit-project-alt-cabal.project/dep1")
-                       (concat tmp-dir "/haskell-implicit-project-alt-cabal.project/dep2")
-                       (concat tmp-dir "/haskell-implicit-project-alt-cabal.project/main"))))
+                 (should (not (null proj)))
+                 (should (eproj-tests/paths=? path (eproj-project/root proj)))
 
-            (let ((run-check
-                   (lambda ()
-                     (let ((proj (eproj-get-project-for-path path)))
+                 (should (not (null (eproj-project/related-projects proj))))
+                 (should (equal
+                          (eproj-tests/normalize-file-list
+                           (-map #'eproj-project/root
+                                 (eproj-get-all-related-projects proj)))
+                          related-roots))
 
-                       (should (not (null proj)))
-                       (should (eproj-tests/paths=? path (eproj-project/root proj)))
+                 (dolist (name '("dep1" "dep2" "mainFunc" "subdepFoo"))
+                   (should (eproj-get-matching-tags proj 'haskell-mode name nil)))))))
 
-                       (should (not (null (eproj-project/related-projects proj))))
-                       (should (equal
-                                (eproj-tests/normalize-file-list
-                                 (-map #'eproj-project/root
-                                       (eproj-get-all-related-projects proj)))
-                                related-roots))
-
-                       (dolist (name '("dep1" "dep2" "mainFunc" "subdepFoo"))
-                         (should (eproj-get-matching-tags proj 'haskell-mode name nil)))))))
-
-              (funcall run-check)
-              (eproj-update-projects)
-              (funcall run-check)
-              (eproj-reset-projects)
-              (funcall run-check))))
-      (delete-directory tmp-dir t))))
+        (funcall run-check)
+        (eproj-update-projects)
+        (funcall run-check)
+        (eproj-reset-projects)
+        (funcall run-check)))))
 
 (eproj-tests--define-tests
     "eproj-tests/implicit-haskell-project-with-local"
 
   (unless (cached-executable-find "fast-tags")
     (ert-skip "fast-tags not available"))
-  (let ((tmp-dir (make-temp-file "temp" t))
-        (unzip (cached-executable-find "unzip")))
 
-    (unless unzip
-      (ert-skip "unzip not available"))
+  (test-utils--with-unzipped-project
+      eproj-tests/implicit-haskell-project-with-local-archive
+      tmp-dir
+    (let ((path (concat tmp-dir "/haskell-implicit-project-with-local/main"))
+          (related-roots
+           (list (concat tmp-dir "/haskell-implicit-project-with-local/dep1")
+                 (concat tmp-dir "/haskell-implicit-project-with-local/dep2")
+                 (concat tmp-dir "/haskell-implicit-project-with-local/main"))))
 
-    (unwind-protect
-        (progn
-          (call-process unzip nil nil nil
-                        eproj-tests/implicit-haskell-project-with-local-archive
-                        "-d" tmp-dir)
+      (let ((run-check
+             (lambda ()
+               (let ((proj (eproj-get-project-for-path path)))
 
-          (let ((path (concat tmp-dir "/haskell-implicit-project-with-local/main"))
-                (related-roots
-                 (list (concat tmp-dir "/haskell-implicit-project-with-local/dep1")
-                       (concat tmp-dir "/haskell-implicit-project-with-local/dep2")
-                       (concat tmp-dir "/haskell-implicit-project-with-local/main"))))
+                 (should (not (null proj)))
+                 (should (eproj-tests/paths=? path (eproj-project/root proj)))
 
-            (let ((run-check
-                   (lambda ()
-                     (let ((proj (eproj-get-project-for-path path)))
+                 (should (not (null (eproj-project/related-projects proj))))
+                 (should (equal
+                          (eproj-tests/normalize-file-list
+                           (-map #'eproj-project/root
+                                 (eproj-get-all-related-projects proj)))
+                          related-roots))
 
-                       (should (not (null proj)))
-                       (should (eproj-tests/paths=? path (eproj-project/root proj)))
+                 (dolist (name '("dep1" "dep2" "mainFunc" "subdepFoo"))
+                   (should (eproj-get-matching-tags proj 'haskell-mode name nil)))))))
 
-                       (should (not (null (eproj-project/related-projects proj))))
-                       (should (equal
-                                (eproj-tests/normalize-file-list
-                                 (-map #'eproj-project/root
-                                       (eproj-get-all-related-projects proj)))
-                                related-roots))
-
-                       (dolist (name '("dep1" "dep2" "mainFunc" "subdepFoo"))
-                         (should (eproj-get-matching-tags proj 'haskell-mode name nil)))))))
-
-              (funcall run-check)
-              (eproj-update-projects)
-              (funcall run-check)
-              (eproj-reset-projects)
-              (funcall run-check))))
-      (delete-directory tmp-dir t))))
+        (funcall run-check)
+        (eproj-update-projects)
+        (funcall run-check)
+        (eproj-reset-projects)
+        (funcall run-check)))))
 
 (eproj-tests--define-tests
     "eproj-tests/haskell-project-with-aux-files"
