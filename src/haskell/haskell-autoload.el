@@ -71,20 +71,14 @@
 (add-hook 'dante-repl-mode-hook #'dante-repl-mode-setup)
 (add-hook 'cmm-mode-hook #'cmm-setup)
 
-(add-hook 'haskell-mode-hook #'haskell-setup-common-prelude)
-(add-hook 'haskell-mode-hook #'haskell-setup t)
+(add-hook 'haskell-mode-hook #'haskell-setup)
 
-(add-hook 'haskell-ts-base-mode-hook #'haskell-setup-common-prelude)
-
-(add-hook 'haskell-ts-mode-hook #'haskell-setup t)
-(add-hook 'haskell-ts-mode-hook #'haskell-ts-setup t)
+(add-hook 'haskell-ts-mode-hook #'haskell-ts-setup)
 ;; (add-hook 'haskell-literate-mode-hook #'haskell-setup)
 
 (add-hook 'haskell-c2hs-mode-hook #'haskell-c2hs-setup)
 
-(add-hook 'haskell-hsc-mode-hook #'haskell-hsc-setup t)
-(add-hook 'haskell-hsc-mode-hook #'haskell-ts-setup t)
-
+(add-hook 'haskell-hsc-mode-hook #'haskell-hsc-setup)
 
 (add-hook 'alex-mode-hook #'haskell-grammar-tools-setup)
 (add-hook 'happy-mode-hook #'haskell-grammar-tools-setup)
