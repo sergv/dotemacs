@@ -222,6 +222,24 @@ Ensures a final newline is inserted."
     #'downcase)
    (funcall (if expand? #'expand-file-name #'identity) x)))
 
+(defmacro test-utils--with-unzipped-project (archive-path created-tmp-dir-var &rest body)
+  (declare (indent 2))
+  (cl-assert (symbolp created-tmp-dir-var))
+  (let ((unzip-var '#:unzip))
+    `(progn
+       (let ((,unzip-var (cached-executable-find "unzip")))
+         (unless ,unzip-var
+           (ert-skip "unzip not available"))
+         (let ((,created-tmp-dir-var (make-temp-file "temp" t)))
+           (unwind-protect
+               (progn
+                 (unless (zerop (call-process ,unzip-var nil nil nil
+                                              ,archive-path
+                                              "-d" ,created-tmp-dir-var))
+                   (ert-fail (concat "Failed to unzip ‘" ,archive-path "’")))
+                 ,@body)
+             (delete-directory ,created-tmp-dir-var t)))))))
+
 (provide 'tests-utils)
 
 ;; Local Variables:
