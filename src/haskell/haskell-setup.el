@@ -436,7 +436,6 @@ _<tab>_: reindent  _h_: jump to topmont function/entity end"
     (("iS" "S") vim:motion-inner-qualified-haskell-symbol:interactive)
     ("aS"       vim:motion-outer-qualified-haskell-symbol:interactive)))
 
-;;;###autoload
 (defun haskell-setup-common-prelude ()
   (init-common :use-whitespace 'tabs-only)
   (add-hook 'after-save-hook #'haskell-update-eproj-tags-on-save nil t)
@@ -573,6 +572,7 @@ _<tab>_: reindent  _h_: jump to topmont function/entity end"
 
 ;;;###autoload
 (defun haskell-ts-setup ()
+  (haskell-setup)
   (def-keys-for-map vim-normal-mode-local-keymap
     ("g"   hydra-haskell-ts-vim-normal-g-ext/body))
 
@@ -589,6 +589,8 @@ _<tab>_: reindent  _h_: jump to topmont function/entity end"
   (let ((non-vanilla-haskell-mode? (-any? #'derived-mode-p '(ghc-core-mode haskell-c2hs-mode)))
         (using-lsp? nil)
         (should-enable-flycheck? nil))
+
+    (haskell-setup-common-prelude)
 
     (add-hook 'after-save-hook #'make-script-file-exec nil t)
 
@@ -679,7 +681,7 @@ _<tab>_: reindent  _h_: jump to topmont function/entity end"
 
 ;;;###autoload
 (defun haskell-hsc-setup ()
-  (haskell-setup)
+  (haskell-ts-setup)
   (setq-local dante-temp-file-name-impl #'dante-temp-file-name--hsc2hs-impl
               dante-setup-file-to-load-impl #'dante-setup-file-to-load--preprocessed-file
               dante-repl-get-file-to-load--impl #'dante-repl-get-file-to-load--hsc2hs-impl))
