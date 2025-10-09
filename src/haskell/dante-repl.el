@@ -183,10 +183,10 @@ otherwise the command for starting repl will be inferred."
       (with-temp-buffer
         (comint-redirect-send-command-to-process
          (format ":complete repl %S" str) ;; command
-         (current-buffer) ;; output buffer
-         proc ;; target process
-         nil  ;; echo
-         t)   ;; no-display
+         (current-buffer)                 ;; output buffer
+         proc                             ;; target process
+         nil                              ;; echo
+         t)                               ;; no-display
         (while (not (with-current-buffer repl-buffer
                       comint-redirect-completed))
           (sleep-for 0.01))
@@ -218,12 +218,16 @@ otherwise the command for starting repl will be inferred."
          (repl-buf (get-buffer repl-buf-name)))
     (aif (buffer-file-name)
         ;; Buffer backed by a file.
-        (dante-repl-load-file--send-load-command repl-buf-name repl-buf (dante-repl-get-file-to-load (current-buffer)))
+        (dante-repl-load-file--send-load-command repl-buf-name
+                                                 repl-buf
+                                                 (dante-repl-get-file-to-load (current-buffer)))
       ;; Temporary buffer without file counterpart.
       (with-temporary-file tmp-file
           (shell-quote-argument (file-name-nondirectory (buffer-name)))
           "tmp"
-          (buffer-substring-no-properties (point-min) (point-max))
+          nil
+        (let ((noninteractive t))
+          (write-region (point-min) (point-max) tmp-file))
         (dante-repl-load-file--send-load-command repl-buf-name repl-buf tmp-file)))
     (switch-to-buffer-other-window (get-buffer repl-buf-name))))
 
