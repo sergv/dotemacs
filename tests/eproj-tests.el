@@ -557,93 +557,93 @@ under ROOT directory."
       (delete-directory tmp-dir t))))
 
 (eproj-tests--define-tests
- "eproj-tests/haskell-project-with-aux-files"
- (unless (cached-executable-find "fast-tags")
-   (ert-skip "fast-tags not available"))
- (let* ((path eproj-tests/haskell-project-with-aux-files)
-        (proj (eproj-get-project-for-path path))
-        (expected-navigation-files
-         '("foo.cabal"
-           "src/Foo.hs"
-           "cabal.project"
-           "dep/cabal.project"
-           "dep/subdep1/subdep1.cabal"
-           "dep/subdep1/src/Subdep1/Foo.hs"
-           "dep/subdep1/test2.extra"
-           "dep/subdep2/src/Subdep2/Bar.hs"
-           "dep/subdep2/subdep2.cabal"
-           "dep/subdep2/test3.foobar"
-           "test.foobar"
-           "test.extra")))
-   (should (not (null proj)))
-   (should (eproj-tests/paths=? path (eproj-project/root proj)))
-   (should (not (null (eproj--aux-files proj))))
+    "eproj-tests/haskell-project-with-aux-files"
+  (unless (cached-executable-find "fast-tags")
+    (ert-skip "fast-tags not available"))
+  (let* ((path eproj-tests/haskell-project-with-aux-files)
+         (proj (eproj-get-project-for-path path))
+         (expected-navigation-files
+          '("foo.cabal"
+            "src/Foo.hs"
+            "cabal.project"
+            "dep/cabal.project"
+            "dep/subdep1/subdep1.cabal"
+            "dep/subdep1/src/Subdep1/Foo.hs"
+            "dep/subdep1/test2.extra"
+            "dep/subdep2/src/Subdep2/Bar.hs"
+            "dep/subdep2/subdep2.cabal"
+            "dep/subdep2/test3.foobar"
+            "test.foobar"
+            "test.extra")))
+    (should (not (null proj)))
+    (should (eproj-tests/paths=? path (eproj-project/root proj)))
+    (should (not (null (eproj--aux-files proj))))
 
-   (let ((actual-navigation-files nil))
-     (eproj-with-all-project-files-for-navigation proj
-                                                  (lambda (_abs-path rel-path)
-                                                    (push rel-path actual-navigation-files)))
-     (should (equal (eproj-tests/sort-file-list actual-navigation-files)
-                    (eproj-tests/sort-file-list expected-navigation-files))))
+    (let ((actual-navigation-files nil))
+      (eproj-with-all-project-files-for-navigation proj
+                                                   (lambda (_abs-path rel-path)
+                                                     (push rel-path actual-navigation-files)))
+      (should (equal (eproj-tests/sort-file-list actual-navigation-files)
+                     (eproj-tests/sort-file-list expected-navigation-files))))
 
-   (dolist (name '("foobar" "subfoo" "subbar" "prefixFoo"))
-     (should (eproj-get-matching-tags proj 'haskell-mode name nil)))))
-
-(eproj-tests--define-tests
- "eproj-tests/haskell-project-authoritative"
- (unless (cached-executable-find "fast-tags")
-   (ert-skip "fast-tags not available"))
- (let* ((path eproj-tests/haskell-project-authoritative)
-        (authoritative-proj (eproj-get-project-for-path (concat path "/authoritative")))
-        (non-authoritative-proj (eproj-get-project-for-path (concat path "/non-authoritative"))))
-
-   (dolist (name '("foo" "bar" "FooConstructor"))
-     (let ((authoritative-tags (eproj-get-matching-tags authoritative-proj 'haskell-mode name nil)))
-       (should (equal (length authoritative-tags)
-                      1))
-       (should (--all? (member (eproj-tag/file (cadr it))
-                               (list (concat path "/authoritative/src/Foo.hs")))
-                       authoritative-tags)))
-
-     (let ((non-authoritative-tags (eproj-get-matching-tags non-authoritative-proj 'haskell-mode name nil)))
-       (should (equal (length non-authoritative-tags)
-                      2))
-       (dolist (path (list (concat path "/non-authoritative/src/Foo.hs")
-                           (concat path "/subproj/src/Foo.hs")))
-         (should (--any? (equal (eproj-tag/file (cadr it))
-                                path)
-                         non-authoritative-tags)))))))
+    (dolist (name '("foobar" "subfoo" "subbar" "prefixFoo"))
+      (should (eproj-get-matching-tags proj 'haskell-mode name nil)))))
 
 (eproj-tests--define-tests
- "eproj-tests/java-kotlin-combined"
- (unless (cached-executable-find "universal-ctags")
-   (ert-skip "universal-ctags not available"))
- (let* ((path eproj-tests/java-kotlin-combined)
-        (proj (eproj-get-project-for-path path)))
-   (should (not (null proj)))
-   (dolist (mode '(java-mode kotlin-mode))
-     (let ((lang (aif (gethash mode eproj/languages-table)
-                     it
-                   (error "unsupported language ‘%s’" mode))))
-       (should (equal (--map (list (nth 0 it) (nth 1 it) (nth 3 it))
-                             (eproj-get-matching-and-related-tags proj mode lang "foo" nil))
-                      (list (list "foo"
-                                  (make-eproj-tag (concat path "/Test1.java")
-                                                  3
-                                                  ?m
-                                                  t
-                                                  '((access . "public")
-                                                    (class . "Test1")))
-                                  'java-mode))))
-       (should (equal (--map (list (nth 0 it) (nth 1 it) (nth 3 it))
-                             (eproj-get-matching-and-related-tags proj mode lang "bar" nil))
-                      (list (list "bar"
-                                  (make-eproj-tag (concat path "/Test2.kt")
-                                                  2
-                                                  ?m
-                                                  t
-                                                  nil)
-                                  'kotlin-mode))))))))
+    "eproj-tests/haskell-project-authoritative"
+  (unless (cached-executable-find "fast-tags")
+    (ert-skip "fast-tags not available"))
+  (let* ((path eproj-tests/haskell-project-authoritative)
+         (authoritative-proj (eproj-get-project-for-path (concat path "/authoritative")))
+         (non-authoritative-proj (eproj-get-project-for-path (concat path "/non-authoritative"))))
+
+    (dolist (name '("foo" "bar" "FooConstructor"))
+      (let ((authoritative-tags (eproj-get-matching-tags authoritative-proj 'haskell-mode name nil)))
+        (should (equal (length authoritative-tags)
+                       1))
+        (should (--all? (member (eproj-tag/file (cadr it))
+                                (list (concat path "/authoritative/src/Foo.hs")))
+                        authoritative-tags)))
+
+      (let ((non-authoritative-tags (eproj-get-matching-tags non-authoritative-proj 'haskell-mode name nil)))
+        (should (equal (length non-authoritative-tags)
+                       2))
+        (dolist (path (list (concat path "/non-authoritative/src/Foo.hs")
+                            (concat path "/subproj/src/Foo.hs")))
+          (should (--any? (equal (eproj-tag/file (cadr it))
+                                 path)
+                          non-authoritative-tags)))))))
+
+(eproj-tests--define-tests
+    "eproj-tests/java-kotlin-combined"
+  (unless (cached-executable-find "universal-ctags")
+    (ert-skip "universal-ctags not available"))
+  (let* ((path eproj-tests/java-kotlin-combined)
+         (proj (eproj-get-project-for-path path)))
+    (should (not (null proj)))
+    (dolist (mode '(java-mode kotlin-mode))
+      (let ((lang (aif (gethash mode eproj/languages-table)
+                      it
+                    (error "unsupported language ‘%s’" mode))))
+        (should (equal (--map (list (nth 0 it) (nth 1 it) (nth 3 it))
+                              (eproj-get-matching-and-related-tags proj mode lang "foo" nil))
+                       (list (list "foo"
+                                   (make-eproj-tag (concat path "/Test1.java")
+                                                   3
+                                                   ?m
+                                                   t
+                                                   '((access . "public")
+                                                     (class . "Test1")))
+                                   'java-mode))))
+        (should (equal (--map (list (nth 0 it) (nth 1 it) (nth 3 it))
+                              (eproj-get-matching-and-related-tags proj mode lang "bar" nil))
+                       (list (list "bar"
+                                   (make-eproj-tag (concat path "/Test2.kt")
+                                                   2
+                                                   ?m
+                                                   t
+                                                   nil)
+                                   'kotlin-mode))))))))
 
 ;;;; eproj/ctags-get-tags-from-buffer
 
