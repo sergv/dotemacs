@@ -610,13 +610,18 @@ If `haskell-mode' is not loaded, just return EXPRESSION."
   "Get the type of the thing or selection at point.
 When the universal argument INSERT is non-nil, insert the type in the buffer."
   (interactive "P")
+  (dante-type-at--with-type-at-point
+   (lambda (ty)
+     (dante--insert-or-show-fontified ty insert))))
+
+(defun dante-type-at--with-type-at-point (consume)
   (let ((tap (if-let ((thing (dante-thing-at-point t)))
                  (dante--ghc-subexp thing)
                (error "No thing at point"))))
     (lcr-spawn
       (lcr-call dante-async-load-current-buffer nil nil)
       (let ((ty (lcr-call dante-async-call (concat ":type-at " tap))))
-        (dante--insert-or-show-fontified ty insert)))))
+        (funcall consume ty)))))
 
 (defun dante--insert-or-show-fontified (expr insert?)
   (if insert?
