@@ -11,13 +11,13 @@
 
 (require 'common)
 
-(defun java-print-info-template ()
+(defun java-print-info-template-generic (func-name)
   "Insert call to printf statement to print some variables and messages
 while interactively prompting for variables/messages."
   (interactive)
   (let* ((start
           (lambda ()
-            (insert "Utils.d(\"")))
+            (insert func-name "(\"")))
          (end
           (lambda ()
             (insert ");")))
@@ -48,13 +48,25 @@ while interactively prompting for variables/messages."
      :insert-message insert-message
      :insert-variable insert-variable)))
 
+(defun java-print-info-template-utils ()
+  (interactive)
+  (java-print-info-template-generic "Utils.d"))
+
+(defun java-print-info-template-log-utils ()
+  (interactive)
+  (java-print-info-template-generic "LogUtils.d"))
+
 (defun-once java-abbrev+-make-abbrevs
   (abbrev+-compile-abbreviations
    (list
     (cons (list "Utils.d")
           (make-abbrev+-abbreviation
            :action-type 'function-with-side-effects
-           :action-data #'java-print-info-template)))))
+           :action-data #'java-print-info-template-utils))
+    (cons (list "LogUtils.d")
+          (make-abbrev+-abbreviation
+           :action-type 'function-with-side-effects
+           :action-data #'java-print-info-template-log-utils)))))
 
 (defun java-abbrev+-setup ()
   (setf abbrev+-abbreviations (java-abbrev+-make-abbrevs)
