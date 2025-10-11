@@ -1,7 +1,7 @@
 ;;; lsp-haskell.el --- Haskell support for lsp-mode -*- lexical-binding: t; -*-
 
 ;; Version: 1.1
-;; Package-Requires: ((emacs "27.1") (lsp-mode "3.0") (haskell-mode "16.1"))
+;; Package-Requires: ((emacs "28.1") (lsp-mode "3.0"))
 ;; Keywords: haskell
 ;; URL: https://github.com/emacs-lsp/lsp-haskell
 
@@ -29,7 +29,6 @@
 ;;; Code:
 
 (require 'lsp-mode)
-(require 'haskell-mode)
 
 ;; ---------------------------------------------------------------------
 ;; Configuration
@@ -68,7 +67,7 @@ It could lead to bad perfomance in large projects."
 (defcustom-lsp lsp-haskell-session-loading
   "singleComponent"
   "Preferred approach for loading package components. Setting this
-to 'multiple components' (EXPERIMENTAL) allows the build
+to 'multipleComponents' (EXPERIMENTAL) allows the build
 tool (such as `cabal` or `stack`) to load multiple components at
 once `https://github.com/haskell/cabal/pull/8726', which is a
 significant improvement."
