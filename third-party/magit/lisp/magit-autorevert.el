@@ -20,6 +20,13 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with Magit.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
+;; This library implements support for automatically reverting buffers
+;; when visited files in the repository change.
+
+;; See (info "(magit)Automatic Reverting of File-Visiting Buffers").
+
 ;;; Code:
 
 (require 'dash)
@@ -59,9 +66,9 @@ is enabled."
   :group 'auto-revert
   :group 'magit-auto-revert
   :group 'magit-related
-  :type '(radio (const :tag "No filter" nil)
-                (function-item magit-auto-revert-buffer-p)
-                (function-item magit-auto-revert-repository-buffer-p)
+  :type `(radio (const :tag "No filter" nil)
+                (function-item ,#'magit-auto-revert-buffer-p)
+                (function-item ,#'magit-auto-revert-repository-buffer-p)
                 function))
 
 (defcustom magit-auto-revert-tracked-only t
@@ -262,4 +269,15 @@ defaults to nil) for any BUFFER."
 
 ;;; _
 (provide 'magit-autorevert)
+;; Local Variables:
+;; read-symbol-shorthands: (
+;;   ("and$"         . "cond-let--and$")
+;;   ("and>"         . "cond-let--and>")
+;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let"    . "cond-let--while-let")
+;;   ("match-string" . "match-string")
+;;   ("match-str"    . "match-string-no-properties"))
+;; End:
 ;;; magit-autorevert.el ends here
