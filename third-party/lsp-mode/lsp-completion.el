@@ -688,10 +688,14 @@ Others: CANDIDATES"
                                            'lsp-completion-item)
                              candidate
                            (cl-find candidate (funcall candidates) :test #'equal)))
+              (item (plist-get (text-properties-at 0 candidate) 'lsp-completion-item))
               (candidate
                ;; see #3498 typescript-language-server does not provide the
                ;; proper insertText without resolving.
-               (if (lsp-completion--find-workspace 'ts-ls)
+               (if (and (lsp-completion--find-workspace 'ts-ls)
+                        lsp-enable-snippet
+                        (eql (lsp:completion-item-insert-text-format? item)
+                             lsp/insert-text-format-snippet))
                    (lsp-completion--resolve candidate)
                  candidate))
               ((&plist 'lsp-completion-item item
@@ -850,22 +854,34 @@ The return is nil or in range of (0, inf)."
   "Disable LSP completion support."
   (lsp-completion-mode -1))
 
-(defun lsp-completion-passthrough-try-completion (string table _pred point)
-  "Passthrough try function, always return the passed STRING and POINT."
-  (when table
+(defun lsp-completion-passthrough-try-completion (string table pred point)
+  "Passthrough try function.
+
+If TABLE is a function, it is called with STRING, PRED and nil to get
+the candidates, otherwise it is treated as the candidates.
+
+If the candidates is non-empty, return the passed STRING and POINT."
+  (when (pcase table
+          ((pred functionp)
+           (funcall table string pred nil))
+          ((pred hash-table-p)
+           (not (hash-table-empty-p table)))
+          (_ table))
     (cons string point)))
 
 (defun lsp-completion-passthrough-all-completions (_string table pred _point)
   "Passthrough all completions from TABLE with PRED."
   (defvar completion-lazy-hilit-fn)
   (when (bound-and-true-p completion-lazy-hilit)
-    (setq completion-lazy-hilit-fn
-          (lambda (candidate)
-            (->> candidate
-                 lsp-completion--company-match
-                 (mapc (-lambda ((start . end))
-                         (put-text-property start end 'face 'completions-common-part candidate))))
-            candidate)))
+    (let ((buf (current-buffer)))
+      (setq completion-lazy-hilit-fn
+            (lambda (candidate)
+              (with-current-buffer buf
+                (->> candidate
+                     lsp-completion--company-match
+                     (mapc (-lambda ((start . end))
+                             (put-text-property start end 'face 'completions-common-part candidate))))
+                candidate)))))
   (all-completions "" table pred))
 
 ;;;###autoload

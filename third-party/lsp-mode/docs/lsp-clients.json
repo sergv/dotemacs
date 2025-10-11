@@ -118,10 +118,10 @@
   },
   {
     "name": "copilot",
-    "full-name": "Github Copilot",
-    "server-name": "copilot-node-server",
-    "server-url": "https://www.npmjs.com/package/copilot-node-server",
-    "installation-url": "https://www.npmjs.com/package/copilot-node-server",
+    "full-name": "GitHub Copilot",
+    "server-name": "copilot-language-server",
+    "server-url": "https://www.npmjs.com/package/@github/copilot-language-server",
+    "installation-url": "https://www.npmjs.com/package/@github/copilot-language-server",
     "debugger": "Not available"
   },
   {
@@ -161,6 +161,14 @@
     "installation": "Supports automatic installation via NuGet",
     "lsp-install-server": "csharp-roslyn",
     "debugger": "Yes (netcoredbg)"
+  },
+  {
+    "name": "c3-lsp",
+    "full-name": "c3 language server",
+    "server-name": "c3lsp",
+    "server-url": "https://github.com/pherrymason/c3-lsp",
+    "installation-url": "https://github.com/pherrymason/c3-lsp",
+    "debugger": "Yes (gdb or lldb)"
   },
   {
     "name": "ccls",
@@ -583,6 +591,14 @@
     "debugger": "Not available"
   },
   {
+    "name": "ltex-plus",
+    "full-name": "LanguageTool",
+    "server-name": "LTEX+",
+    "server-url": "https://github.com/ltex-plus/ltex-ls-plus",
+    "installation-url": "https://ltex-plus.github.io/ltex-plus/installation-usage.html",
+    "debugger": "Not available"
+  },
+  {
     "name": "emmy-lua",
     "common-group-name": "lua",
     "full-name": "Lua",
@@ -652,6 +668,14 @@
     "server-name": "marksman",
     "server-url": "https://github.com/artempyanykh/marksman",
     "installation-url": "https://github.com/artempyanykh/marksman",
+    "debugger": "Not available"
+  },
+  {
+    "name": "matlab",
+    "full-name": "MATLAB",
+    "server-name": "MATLAB language server",
+    "server-url": "https://github.com/mathworks/MATLAB-language-server",
+    "installation-url": "https://github.com/mathworks/MATLAB-language-server",
     "debugger": "Not available"
   },
   {
@@ -772,6 +796,14 @@
     "server-name": "ocaml-language-server",
     "server-url": "https://github.com/ocaml-lsp/ocaml-language-server",
     "installation-url": "https://github.com/ocaml-lsp/ocaml-language-server#server",
+    "debugger": "Not available"
+  },
+  {
+    "name": "ols",
+    "full-name": "Odin Language Server",
+    "server-name": "ols",
+    "server-url": "https://github.com/DanielGavin/ols",
+    "installation-url": "https://github.com/DanielGavin/ols",
     "debugger": "Not available"
   },
   {
@@ -914,6 +946,16 @@
     "client-name": "lsp-python-ms",
     "client-url": "https://github.com/emacs-lsp/lsp-python-ms",
     "installation-url": "https://github.com/emacs-lsp/lsp-python-ms",
+    "debugger": "Yes"
+  },
+  {
+    "name": "python-ty",
+    "full-name": "Python (ty)",
+    "server-name": "LSP support for Python(ty).",
+    "server-url": "https://github.com/astral-sh/ty",
+    "client-name": "lsp-python-ty",
+    "client-url": "https://github.com/astral-sh/ty",
+    "installation-url": "https://github.com/astral-sh/ty",
     "debugger": "Yes"
   },
   {
@@ -1095,6 +1137,14 @@
     "debugger": "Not available"
   },
   {
+    "name": "postgres",
+    "full-name": "SQL (postgres-ls)",
+    "server-name": "postgres-language-server",
+    "server-url": "https://github.com/supabase-community/postgres-language-server",
+    "installation-url": "https://pgtools.dev/#installation",
+    "debugger": "Not available"
+  },
+  {
     "name": "steep",
     "full-name": "Ruby (Steep)",
     "server-name": "steep",
@@ -1189,6 +1239,14 @@
     "debugger": "Not available"
   },
   {
+    "name": "toml-tombi",
+    "full-name": "TOML",
+    "server-name": "tombi",
+    "server-url": "https://github.com/tombi-toml/tombi",
+    "installation-url": "https://tombi-toml.github.io/tombi/docs/installation",
+    "debugger": "Not available"
+  },
+  {
     "name": "trunk",
     "full-name": "Trunk",
     "server-name": "trunk-lsp",
@@ -1210,6 +1268,14 @@
     "server-name": "typeprof",
     "server-url": "https://github.com/ruby/typeprof",
     "installation": "It is included in Ruby >= 3.1",
+    "debugger": "Not available"
+  },
+  {
+    "name": "typos",
+    "full-name": "Typos source code spell checker",
+    "server-name": "typos-lsp",
+    "server-url": "https://github.com/tekumara/typos-lsp",
+    "installation": "cargo install --git https://github.com/tekumara/typos-lsp typos-lsp",
     "debugger": "Not available"
   },
   {
