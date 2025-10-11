@@ -56,6 +56,7 @@
 (require 'time-date)
 (require 'image)
 (require 'text-property-search nil t)
+(require 'color)
 
 ;; Setup tramp mock
 (require 'tramp)
@@ -2446,6 +2447,12 @@
                   (cond ((= x 0) 'ok)
                         ((and t (lop (1- x))))))
                 'ok)
+  (should-equal (let ((n 0))
+                  (named-let lop ((l '(1 2 3)))
+                    (setq n (1+ n))
+                    (and l (lop (cdr l))))
+                  n)
+                4)
   (should-equal (let ((b t))
                   (named-let lop ((i 0))
                     (cond ((null i) nil) ((= i 10000) 'ok)
@@ -2680,6 +2687,45 @@
   ;; (should-not (color-values-from-color-spec "rgbi: 0/ 0/ 0"))
   (should-not (color-values-from-color-spec "rgbi : 0/0/0"))
   (should-not (color-values-from-color-spec "rgbi:0/0.5/10")))
+
+(defun compat-tests--color-approx-equal (color1 color2)
+  "Return t if COLOR1 and COLOR2 are approximately equal."
+  (seq-every-p
+   (lambda (x) (< (abs x) 0.00001))
+   (cl-mapcar #'- color1 color2)))
+
+(ert-deftest compat-color-oklab-to-xyz ()
+  (should (compat-tests--color-approx-equal (compat-call color-oklab-to-xyz 0 0 0) '(0.0 0.0 0.0)))
+  (should (compat-tests--color-approx-equal (compat-call color-oklab-to-xyz 1.0 0.0 0.0)
+                                     '(0.95047005 1.0 1.0883001)))
+  (should (compat-tests--color-approx-equal (compat-call color-oklab-to-xyz 0.450 1.236 -0.019) '(1.000604 -0.000008 -0.000038)))
+  (should (compat-tests--color-approx-equal (compat-call color-oklab-to-xyz 0.922 -0.671 0.263) '(0.000305 1.000504 0.000898)))
+  (should (compat-tests--color-approx-equal (compat-call color-oklab-to-xyz 0.153 -1.415 -0.449) '(0.000590 0.000057 1.001650))))
+
+(ert-deftest compat-color-xyz-to-oklab ()
+  (should (compat-tests--color-approx-equal (compat-call color-xyz-to-oklab 0 0 0) '(0.0 0.0 0.0)))
+  (should (compat-tests--color-approx-equal (compat-call color-xyz-to-oklab 0.95 1.0 1.089)
+                                     '(0.999969 -0.000258 -0.000115)))
+  (should (compat-tests--color-approx-equal (compat-call color-xyz-to-oklab 1.0 0.0 0.0)
+                                     '(0.449932 1.235710 -0.019028)))
+  (should (compat-tests--color-approx-equal (compat-call color-xyz-to-oklab 0.0 1.0 0.0)
+                                     '(0.921817 -0.671238 0.263324)))
+  (should (compat-tests--color-approx-equal (compat-call color-xyz-to-oklab 0.0 0.0 1.0)
+                                     '(0.152603 -1.414997 -0.448927))))
+
+(ert-deftest compat-color-srgb-to-oklab ()
+  (should (equal (compat-call color-srgb-to-oklab 0 0 0) '(0.0 0.0 0.0)))
+  (should
+   (compat-tests--color-approx-equal (compat-call color-srgb-to-oklab 0 0 1) '(0.451978 -0.032430 -0.311611)))
+  (should
+   (compat-tests--color-approx-equal (compat-call color-srgb-to-oklab 0.1 0.2 0.3) '(0.313828 -0.019091 -0.052561))))
+
+(ert-deftest compat-color-oklab-to-srgb ()
+  (should (equal (compat-call color-oklab-to-srgb 0 0 0) '(0.0 0.0 0.0)))
+  (should
+   (compat-tests--color-approx-equal (compat-call color-oklab-to-srgb 0.451978 -0.032430 -0.311611) '(0.0 0.0 1.0)))
+  (should
+   (compat-tests--color-approx-equal (compat-call color-oklab-to-srgb 0.313828 -0.019091 -0.052561) '(0.1 0.2 0.3))))
 
 (ert-deftest compat-lookup-key ()
   (let ((a-map (make-sparse-keymap))
