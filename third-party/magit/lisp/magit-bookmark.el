@@ -37,6 +37,11 @@
 (cl-defmethod magit-bookmark-get-filename (&context (major-mode magit-mode))
   (magit-toplevel))
 
+(cl-defmethod magit-bookmark-get-value
+  (bookmark &context (major-mode magit-mode))
+  (dolist (var (get major-mode 'magit-bookmark-variables))
+    (bookmark-prop-set bookmark var (symbol-value var))))
+
 (cl-defmethod magit-bookmark-get-buffer-create
   (bookmark (mode (derived-mode magit-mode)))
   (let ((default-directory (bookmark-get-filename bookmark))
@@ -44,8 +49,8 @@
         (magit-display-buffer-noselect t))
     (apply (intern (format "%s-setup-buffer"
                            (substring (symbol-name mode) 0 -5)))
-           (--map (bookmark-prop-get bookmark it)
-                  (get mode 'magit-bookmark-variables)))))
+           (mapcar (##bookmark-prop-get bookmark %)
+                   (get mode 'magit-bookmark-variables)))))
 
 ;;; Diff
 ;;;; Diff
@@ -151,4 +156,15 @@
 
 ;;; _
 (provide 'magit-bookmark)
+;; Local Variables:
+;; read-symbol-shorthands: (
+;;   ("and$"         . "cond-let--and$")
+;;   ("and>"         . "cond-let--and>")
+;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let"    . "cond-let--while-let")
+;;   ("match-string" . "match-string")
+;;   ("match-str"    . "match-string-no-properties"))
+;; End:
 ;;; magit-bookmark.el ends here

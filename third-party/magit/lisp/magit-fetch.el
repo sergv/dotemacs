@@ -84,8 +84,7 @@ push-remote."
      ((member remote (magit-list-remotes)) remote)
      (remote
       (format "%s, replacing invalid" v))
-     (t
-      (format "%s, setting that" v)))))
+     ((format "%s, setting that" v)))))
 
 ;;;###autoload (autoload 'magit-fetch-from-upstream "magit-fetch" nil t)
 (transient-define-suffix magit-fetch-from-upstream (remote args)
@@ -99,8 +98,8 @@ Otherwise if a remote named \"origin\" exists, then use that.
 If no remote can be determined, then this command is not available
 from the `magit-fetch' transient prefix and invoking it directly
 results in an error."
-  :if          (lambda () (magit-get-current-remote t))
-  :description (lambda () (magit-get-current-remote t))
+  :if          (##magit-get-current-remote t)
+  :description (##magit-get-current-remote t)
   (interactive (list (magit-get-current-remote t)
                      (magit-fetch-arguments)))
   (unless remote
@@ -183,4 +182,15 @@ with a prefix argument."
 
 ;;; _
 (provide 'magit-fetch)
+;; Local Variables:
+;; read-symbol-shorthands: (
+;;   ("and$"         . "cond-let--and$")
+;;   ("and>"         . "cond-let--and>")
+;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let"    . "cond-let--while-let")
+;;   ("match-string" . "match-string")
+;;   ("match-str"    . "match-string-no-properties"))
+;; End:
 ;;; magit-fetch.el ends here

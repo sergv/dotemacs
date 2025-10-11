@@ -31,7 +31,7 @@ General Public License for more details.
 @finalout
 @titlepage
 @title Magit User Manual
-@subtitle for version 4.2.0
+@subtitle for version 4.4.2
 @author Jonas Bernoulli
 @page
 @vskip 0pt plus 1filll
@@ -53,7 +53,7 @@ directly from within Emacs.  While many fine Git clients exist, only
 Magit and Git itself deserve to be called porcelains.
 
 @noindent
-This manual is for Magit version 4.2.0.
+This manual is for Magit version 4.4.2.
 
 @insertcopying
 @end ifnottex
@@ -305,7 +305,8 @@ Now see @ref{Post-Installation Tasks}.
 @node Installing from the Git Repository
 @section Installing from the Git Repository
 
-Magit depends on the @code{compat}, @code{dash}, @code{transient} and @code{with-editor} libraries
+Magit depends on the @code{compat}, @code{cond-let}, @code{llama}, @code{seq} (the built-in version
+is enough when using Emacs >= 29.1), @code{transient} and @code{with-editor} libraries
 which are available from Melpa and Melpa-Stable.  Install them using
 @code{M-x package-install RET <package> RET}.  Of course you may also install
 them manually from their repository.
@@ -323,17 +324,20 @@ Then compile the libraries and generate the info manuals:
 $ make
 @end example
 
-If you haven't installed @code{compat}, @code{dash}, @code{transient} and @code{with-editor} from
-Melpa or at @code{/path/to/magit/../<package>}, then you have to tell @code{make}
-where to find them.  To do so create the file @code{/path/to/magit/config.mk}
-with the following content before running @code{make}:
+If you haven't installed @code{compat}, @code{cond-let}, @code{llama}, @code{seq}
+(only for Emacs 28), @code{transient} and @code{with-editor} from Melpa, or at
+@code{/path/to/magit/../<package>}, then you have to tell @code{make} where to find
+them.  To do so create the file @code{/path/to/magit/config.mk} with the
+following content before running @code{make}:
 
 @example
 LOAD_PATH  = -L ~/.emacs.d/site-lisp/magit/lisp
-LOAD_PATH += -L ~/.emacs.d/site-lisp/dash
+LOAD_PATH += -L ~/.emacs.d/site-lisp/compat
+LOAD_PATH += -L ~/.emacs.d/site-lisp/cond-let
+LOAD_PATH += -L ~/.emacs.d/site-lisp/llama
+LOAD_PATH += -L ~/.emacs.d/site-lisp/seq
 LOAD_PATH += -L ~/.emacs.d/site-lisp/transient/lisp
 LOAD_PATH += -L ~/.emacs.d/site-lisp/with-editor/lisp
-LOAD_PATH += -L ~/.emacs.d/site-lisp/compat
 @end example
 
 Finally add this to your init file:
@@ -344,15 +348,17 @@ Finally add this to your init file:
 
 (with-eval-after-load 'info
   (info-initialize)
-  (add-to-list 'Info-directory-list
-               "~/.emacs.d/site-lisp/magit/Documentation/"))
+  (add-to-list 'Info-directory-list "~/.emacs.d/site-lisp/magit/docs/"))
 @end lisp
 
 Of course if you installed the dependencies manually as well, then
 you have to tell Emacs about them too, by prefixing the above with:
 
 @lisp
-(add-to-list 'load-path "~/.emacs.d/site-lisp/dash")
+(add-to-list 'load-path "~/.emacs.d/site-lisp/compat")
+(add-to-list 'load-path "~/.emacs.d/site-lisp/cond-let")
+(add-to-list 'load-path "~/.emacs.d/site-lisp/llama")
+(add-to-list 'load-path "~/.emacs.d/site-lisp/seq")
 (add-to-list 'load-path "~/.emacs.d/site-lisp/transient/lisp")
 (add-to-list 'load-path "~/.emacs.d/site-lisp/with-editor")
 @end lisp
@@ -1076,6 +1082,12 @@ To move within a section use the usual keys (@code{C-p}, @code{C-n}, @code{C-b},
 whose global bindings are not shadowed.  To move to another section use
 the following commands.
 
+The section movement commands described here run the hook
+@code{magit-section-movement-hook}.  Note that they explicitly run that hook
+and that arbitrary other movement, defined in Emacs and other packages,
+do not run that hook.  That hook, and hook functions that can be added
+to it, or are part of its default value, are described below.
+
 @table @asis
 @item @kbd{p} (@code{magit-section-backward})
 @kindex p
@@ -1122,8 +1134,10 @@ remove function that haven't even been added yet, for example:
 @end lisp
 
 @defvar magit-section-movement-hook
-This hook is run by all of the above movement commands, after
-arriving at the destination.
+This hook is run by all of the above section movement commands,
+after arriving at the destination.  It is @strong{not} run by arbitrary other
+movement commands (such as @code{next-line}), which are provided by Emacs
+or third-party packages.
 @end defvar
 
 @defun magit-hunk-set-window-start
@@ -1190,9 +1204,11 @@ in another window of the same frame.
 @defopt magit-update-other-window-delay
 Delay before automatically updating the other window.
 
-When moving around in certain buffers, then certain other buffers,
-which are being displayed in another window, may optionally be
-updated to display information about the section at point.
+When moving around in certain buffers using Magit's own section
+movement commands (but not other movement commands), then certain
+other buffers, which are being displayed in another window, may
+optionally be updated to display information about the section at
+point.
 
 When holding down a key to move by more than just one section, then
 that would update that buffer for each section on the way.  To
@@ -2029,10 +2045,6 @@ use an alternative completion framework.  For example, if you enable
 @code{ivy-mode}, then Magit will respect that, and if you enable @code{helm-mode},
 then you are done too.
 
-However if you want to use Ido, then @code{ido-mode} won't do the trick.  You
-will also have to install the @code{ido-completing-read+} package and use
-@code{magit-ido-completing-read} as @code{magit-completing-read-function}.
-
 @defopt magit-completing-read-function
 The value of this variable is the low-level function used to perform
 completion by code that uses @code{magit-completing-read} (as opposed to
@@ -2050,17 +2062,6 @@ the same.
 @defun magit-builtin-completing-read prompt choices &optional predicate require-match initial-input hist def
 This function performs completion using the built-in @code{completing-read}
 and does some additional magit-specific work.
-@end defun
-
-@defun magit-ido-completing-read prompt choices &optional predicate require-match initial-input hist def
-This function performs completion using @code{ido-completing-read+} from the
-package by the same name (which you have to explicitly install) and
-does some additional magit-specific work.
-
-We have to use @code{ido-completing-read+} instead of the
-@code{ido-completing-read} that comes with Ido itself, because the latter,
-while intended as a drop-in replacement, cannot serve that purpose
-because it violates too many of the implicit conventions.
 @end defun
 
 @defun magit-completing-read prompt choices &optional predicate require-match initial-input hist def fallback
@@ -2088,7 +2089,12 @@ If REQUIRE-MATCH is @code{nil} and the user exits without a choice, then
 @code{nil} is returned instead of an empty string.
 
 @item
-If REQUIRE-MATCH is non-nil and the users exits without a choice,
+If REQUIRE-MATCH is @code{any}, then do not require a match but
+do require non-empty input (or non-nil DEFAULT, since that
+is substituted for empty input).
+
+@item
+If REQUIRE-MATCH is non-@code{nil} and the users exits without a choice,
 an user-error is raised.
 
 @item
@@ -2140,15 +2146,15 @@ some value (e.g., the name of the current branch).
 
 When Git is run for side-effects, the process output is logged in a
 per-repository log buffer, which can be consulted using the
-@code{magit-process} command when things don't go as expected.
+@code{magit-process-buffer} command, when things don't go as expected.
 
-The output/errors for up to `magit-process-log-max' Git commands are
+The output/errors for up to @code{magit-process-log-max} Git commands are
 retained.
 
 @table @asis
-@item @kbd{$} (@code{magit-process})
+@item @kbd{$} (@code{magit-process-buffer})
 @kindex $
-@findex magit-process
+@findex magit-process-buffer
 This commands displays the process buffer for the current
 repository.
 @end table
@@ -2202,10 +2208,13 @@ tooltip for mouse users.  This error indicator persists in the mode
 line until the next magit buffer refresh.
 
 If you do not wish process errors to be indicated in the mode line,
-customize the @code{magit-process-display-mode-line-error} user option.
+set @code{magit-process-display-mode-line-error} to @code{nil}.
 
-Process errors are additionally indicated at the top of the status
-buffer.
+Process errors are displayed at the top of the status buffer and in
+the echo area.  In both places a hint is appended, which informs users
+that they can see the full output in the process buffer and how to
+display that buffer.  However, once you are aware of that, you might
+want to set @code{magit-show-process-buffer-hint} to @code{nil}.
 
 @anchor{Running Git Manually}
 @subsection Running Git Manually
@@ -2528,30 +2537,6 @@ It supports displaying any existing Magit buffer that belongs to the
 current repository; not just the status buffer.
 @end deffn
 
-@deffn Command ido-enter-magit-status
-From an Ido prompt used to open a file, instead drop into
-@code{magit-status}.  This is similar to @code{ido-magic-delete-char}, which,
-despite its name, usually causes a Dired buffer to be created.
-
-To make this command available, use something like:
-
-@lisp
-(add-hook 'ido-setup-hook
-          (lambda ()
-            (define-key ido-completion-map
-              (kbd \"C-x g\") 'ido-enter-magit-status)))
-@end lisp
-
-Starting with Emacs 25.1 the Ido keymaps are defined just once
-instead of every time Ido is invoked, so now you can modify it
-like pretty much every other keymap:
-
-@lisp
-(define-key ido-common-completion-map
-  (kbd \"C-x g\") 'ido-enter-magit-status)
-@end lisp
-@end deffn
-
 @anchor{Status Sections}
 @subsection Status Sections
 
@@ -2560,12 +2545,22 @@ The contents of status buffers is controlled using the hook
 hooks and how to customize them.
 
 @defopt magit-status-sections-hook
-Hook run to insert sections into a status buffer.
+This hook is run to insert sections into a status buffer.
+
+The functions described in this section, and the functions
+@code{magit-insert-status-headers} and @code{magit-insert-untracked-files},
+which are described in subsequent sections, are members of this
+hook.
+
+Some additional functions that can be added to this hook, but are by
+default added to another hooks, are listed in @ref{References Buffer}.
 @end defopt
 
-The first function on that hook by default is
-@code{magit-insert-status-headers}; it is described in the next section.
-By default the following functions are also members of that hook:
+@defun magit-insert-status-headers
+Insert header sections appropriate for @code{magit-status-mode} buffers.
+The sections are inserted by running the functions on the hook
+@code{magit-status-headers-hook}.  See @ref{Status Header Sections}.
+@end defun
 
 @defun magit-insert-merge-log
 Insert section for the on-going merge.  Display the heads that are
@@ -2599,18 +2594,6 @@ While bisecting, insert section visualizing the bisect state.
 While bisecting, insert section logging bisect progress.
 @end defun
 
-@defun magit-insert-untracked-files
-Maybe insert a list or tree of untracked files.
-
-The option @code{magit-status-show-untracked-files} (which see), in
-cooperation with the Git variable @code{status.showUntrackedFiles},
-control whether and how that is done.
-
-If the first element of @code{magit-buffer-diff-files} is a directory, then
-limit the list to files below that.  The value of that variable can
-be set using @code{D -- DIRECTORY RET g}.
-@end defun
-
 @defun magit-insert-unstaged-changes
 Insert section showing unstaged changes.
 @end defun
@@ -2636,6 +2619,15 @@ Insert section showing commits that haven't been pulled from the
 push-remote branch yet.
 @end defun
 
+@defun magit-insert-unpushed-to-upstream-or-recent
+Insert section showing unpushed or other recent commits.
+If an upstream is configured for the current branch and it is
+behind of the current branch, then show the commits that have
+not yet been pushed into the upstream branch.  If no upstream is
+configured or if the upstream is not behind of the current branch,
+then show the last @code{magit-log-section-commit-count} commits.
+@end defun
+
 @defun magit-insert-unpushed-to-upstream
 Insert section showing commits that haven't been pushed to the
 upstream yet.
@@ -2646,36 +2638,88 @@ Insert section showing commits that haven't been pushed to the
 push-remote yet.
 @end defun
 
-The following functions can also be added to the above hook:
+@anchor{Status File List Sections}
+@subsection Status File List Sections
+
+These functions honor the buffer's file filter, which can be set using
+@code{D - -}.
+
+@defun magit-insert-untracked-files
+This function may insert a list of untracked files.  Whether it
+actually does so, depends on the option described next.
+@end defun
+
+@defopt magit-status-show-untracked-files
+This option controls whether the above function inserts a list of
+untracked files in the status buffer.
+
+@itemize
+@item
+If @code{nil}, do not list any untracked files.
+@item
+If @code{t}, list untracked files, but if a directory does not contain any
+tracked files, then only list that directory, not the contained
+untracked files.
+@item
+If @code{all}, then list each individual untracked files.  This is can be
+very slow and is discouraged.
+@end itemize
+
+The corresponding values for the Git variable are "no", "normal"
+and "all".
+
+To disable listing untracked files in a specific repository only,
+add the following to @code{.dir-locals.el}:
+
+@lisp
+((magit-status-mode
+ (magit-status-show-untracked-files . "no")))
+@end lisp
+
+Alternatively (and mostly for historic reasons), it is possible to
+use @code{git config} to set the repository-local value:
+
+@example
+git config set --local status.showUntrackedFiles no
+@end example
+
+This does @strong{not} override the (if any) local value of this Lisp variable,
+but it does override its global value.
+
+See the last section in the git-status(1) manpage, to speed up the part
+of the work Git is responsible for.  Turning that list into sections is
+also not free, so Magit only lists @code{magit-status-file-list-limit} files.
+@end defopt
+
+@defopt magit-status-file-list-limit
+This option controls many files are listed at most in each section
+that lists files in the status buffer.  For performance reasons, it
+is recommended that you do not increase this limit.
+@end defopt
+
+While the above function is a member of @code{magit-status-section-hook} by
+default, the following functions have to be explicitly added by the
+user.  Because that negatively affects performance, it is recommended
+that you don't do that.
 
 @defun magit-insert-tracked-files
-Insert a tree of tracked files.
+Insert a list of tracked files.
 @end defun
 
 @defun magit-insert-ignored-files
-Insert a tree of ignored files.
-Its possible to limit the logs in the current buffer to a certain
-directory using @code{D = f <DIRECTORY> RET g}.  If you do that, then that
-that also affects this command.
-
-The log filter can be used to limit to multiple files.  In that case
-this function only respects the first of the files and only if it is
-a directory.
+Insert a list of ignored files.
 @end defun
 
 @defun magit-insert-skip-worktree-files
-Insert a tree of skip-worktree files.
-If the first element of @code{magit-buffer-diff-files} is a
-directory, then limit the list to files below that.  The value
-of that variable can be set using @code{D -- DIRECTORY RET g}.
+Insert a list of skip-worktree files.
 @end defun
 
-@defun magit-insert-assumed-unchanged-files
-Insert a tree of files that are assumed to be unchanged.
-If the first element of @code{magit-buffer-diff-files} is a
-directory, then limit the list to files below that.  The value
-of that variable can be set using @code{D -- DIRECTORY RET g}.
+@defun magit-insert-assume-unchanged-files
+Insert a list of files that are assumed to be unchanged.
 @end defun
+
+@anchor{Status Log Sections}
+@subsection Status Log Sections
 
 @defun magit-insert-unpulled-or-recent-commits
 Insert section showing unpulled or recent commits.
@@ -2711,9 +2755,6 @@ which has not been applied to upstream yet (i.e., a commit with
 a patch-id not shared with any upstream commit) with "+" and
 all others with "-".
 @end defun
-
-See @ref{References Buffer} for some more section inserters, which could be
-used here.
 
 @anchor{Status Header Sections}
 @subsection Status Header Sections
@@ -3900,9 +3941,12 @@ Whether to show word-granularity differences within diff hunks.
 @item
 @code{nil} Never show fine differences.
 @item
-@code{t} Show fine differences for the current diff hunk only.
-@item
 @code{all} Show fine differences for all displayed diff hunks.
+@item
+@code{t} Refine each hunk once it becomes the current section.
+Keep the refinement when another section is selected.
+Refreshing the buffer removes all refinement.  This
+variant is only provided for performance reasons.
 @end itemize
 @end defopt
 
@@ -4047,6 +4091,15 @@ the <a href="http://git-scm.com/docs/git-diff">git-diff(1)</a> manpage.
 @iftex
 the git-diff(1) manpage.
 @end iftex
+@end defopt
+
+@defopt magit-format-file-function
+This function is used to format lines representing a file.  It is
+used for file headings in diffs, in diffstats and for lists of files
+(such as the untracked files).  Depending on the caller, it receives
+either three or five arguments; the signature has to be @code{(kind file
+  face &optional status orig)}.  KIND is one of @code{diff}, @code{module}, @code{stat} and
+@code{list}.
 @end defopt
 
 @anchor{Revision Buffer}
@@ -4723,66 +4776,39 @@ frame.
 @subsection Visiting Files and Blobs from a Diff
 
 These commands can only be used when point is inside a diff.
+Elsewhere use @code{magit-find-file}.
 
 @table @asis
 @item @kbd{@key{RET}} (@code{magit-diff-visit-file})
 @kindex RET
 @findex magit-diff-visit-file
-This command visits the appropriate version of the file that the
-diff at point is about.
+This command visits the appropriate version of the file at point.
 
-This commands visits the worktree version of the appropriate file.
-The location of point inside the diff determines which file is being
-visited.  The visited version depends on what changes the diff is
-about.
+Display the buffer in the selected window.  With a prefix argument,
+OTHER-WINDOW, instead display the buffer in another window.
 
-@enumerate
-@item
-If the diff shows uncommitted changes (i.e., staged or unstaged
-changes), then visit the file in the working tree (i.e., the
-same "real" file that @code{find-file} would visit.  In all other
-cases visit a "blob" (i.e., the version of a file as stored
-in some commit).
+In the visited file or blob, go to the location corresponding to the
+location in the diff.
 
-@item
-If point is on a removed line, then visit the blob for the
-first parent of the commit that removed that line, i.e., the
-last commit where that line still exists.
+If point is on an added or context line, visit the blob corresponding
+to our side (i.e., the new/right side).  If point is on a removed line,
+visit the blob corresponding to their side (i.e., the old/left side).
 
-@item
-If point is on an added or context line, then visit the blob
-that adds that line, or if the diff shows from more than a
-single commit, then visit the blob from the last of these
-commits.
-@end enumerate
+This applies to diffs of staged and unstaged changes as well.  For
+staged changes the two sides are blobs from the index and the `HEAD'
+commit.  For unstaged changes the two sides are the actual file in
+the worktree and the blob from the index.
 
-In the file-visiting buffer this command goes to the line that
-corresponds to the line that point is on in the diff.
+To visit the file in the worktree, regardless of what the current
+diff is about, use @code{magit-diff-visit-worktree-file}, described next.
 
-The buffer is displayed in the selected window.  With a prefix
-argument the buffer is displayed in another window instead.
-@end table
-
-@defopt magit-diff-visit-previous-blob
-This option controls whether @code{magit-diff-visit-file} may visit the
-previous blob.  When this is @code{t} (the default) and point is on a
-removed line in a diff for a committed change, then
-@code{magit-diff-visit-file} visits the blob from the last revision which
-still had that line.
-
-Currently this is only supported for committed changes, for staged
-and unstaged changes @code{magit-diff-visit-file} always visits the file in
-the working tree.
-@end defopt
-
-@table @asis
-@item @kbd{C-<return>} (@code{magit-diff-visit-file-worktree})
+@item @kbd{C-<return>} (@code{magit-diff-visit-worktree-file})
 @kindex C-<return>
-@findex magit-diff-visit-file-worktree
+@findex magit-diff-visit-worktree-file
 This command visits the worktree version of the appropriate file.
 The location of point inside the diff determines which file is being
 visited.  Unlike @code{magit-diff-visit-file} it always visits the "real"
-file in the working tree, i.e the "current version" of the file.
+file in the working tree, i.e., the "current version" of the file.
 
 In the file-visiting buffer this command goes to the line that
 corresponds to the line that point is on in the diff.  Lines that
@@ -4806,7 +4832,60 @@ argument.
 @deffn Command magit-diff-visit-worktree-file-other-window
 @end deffn
 @deffn Command magit-diff-visit-worktree-file-other-frame
+These commands behave like the respective commands described above,
+except that they display the blob or file in another window or frame.
 @end deffn
+
+@defopt magit-diff-visit-prefer-worktree
+This option controls whether @code{magit-diff-visit-file} always visits the
+respective file in the worktree, when invoked anywhere from within a
+hunk of staged or unstaged changes.
+
+By default @code{magit-diff-visit-file} does not do that.  Instead it
+behaves for staged and unstaged changes as it does for committed
+changes, by visiting a blob from the old/left or new/right side,
+depending on whether point is on a removed line or not.
+
+For staged changes the old side is the blob from HEAD and the right
+side is the blog from the index.  For unstaged changes the left side
+is the blob from the index (if there are any changes in the index
+for that file, else the blob from HEAD), and the right side is the
+file in the worktree.
+
+Being able to jump to HEAD or the index from a removed line is very
+useful, because it allows you to, e.g., use blame to investigate why
+some line, which you have already removed, was added in the first
+place.
+
+But if you want to make further changes to already staged changes,
+you of course instead need to go to the respective file in the
+worktree.  The command @code{magit-diff-visit-worktree-file} was created
+for that purpose, and it is strongly recommend that you make use of
+that command, even if you initially find it inconvenient having to
+remember to use @code{C-<return>} instead of @code{RET} in this case.
+
+While discouraged, you can alternatively set this option to @code{t},
+which causes @code{magit-diff-visit-file} itself to go to the file in the
+worktree, even when invoked from within a hunk of staged changes.
+If you do that, you lose the ability to instantly go to lines you
+have already removed.
+@end defopt
+
+@defopt magit-diff-visit-previous-blob
+This option controls whether @code{magit-diff-visit-file} visits the
+previous blob when invoked with point on a removed line.
+
+When this is @code{t} (the default) and point is on a removed line, then
+@code{magit-diff-visit-file} visits the blob from the old/left commit,
+which still has that line, instead of going to the new/right blob,
+which removes that line.
+
+Setting this to @code{nil}, causes @code{magit-diff-visit-file} to always go to
+the new/right blob, even when point is on a removed line.  This is
+very strongly discouraged.  Instead place the cursor anywhere else
+within the hunk but on a removed line, if you want to visit the new
+side.  That way you don't lose the ability to visit the old side.
+@end defopt
 
 @node Blaming
 @section Blaming
@@ -5460,12 +5539,14 @@ appropriate (i.e., when @code{git apply} is used internally).
 @node Committing
 @section Committing
 
-When the user initiates a commit, Magit calls @code{git commit} without any
-arguments, so Git has to get it from the user.  It creates the file
-@code{.git/COMMIT_EDITMSG} and then opens that file in an editor.  Magit
-arranges for that editor to be the Emacsclient.  Once the user
-finishes the editing session, the Emacsclient exits and Git creates the
-commit using the file's content as message.
+When the user initiates a commit, Magit calls @code{git commit} without the
+@code{--message} argument, so Git has to get the message from the user.  To
+do so, it creates a file such as @code{.git/COMMIT_EDITMSG} and then opens
+that file in the editor specified by @code{$EDITOR} (or @code{$GIT_EDITOR}).
+
+Magit arranges for that editor to be the Emacsclient.  Once the user
+finishes the editing session, the Emacsclient exits and Git creates
+the commit, using the file's content as the commit message.
 
 @anchor{Initiating a Commit}
 @subsection Initiating a Commit
@@ -5490,102 +5571,241 @@ the git-commit(1) manpage.
 This transient prefix command binds the following suffix commands
 along with the appropriate infix arguments and displays them in a
 temporary buffer until a suffix is invoked.
+@end table
 
+@anchor{Creating a new commit}
+@subsubheading Creating a new commit
+
+@table @asis
 @item @kbd{c c} (@code{magit-commit-create})
 @kindex c c
 @findex magit-commit-create
-Create a new commit on @code{HEAD}.  With a prefix argument amend to the
-commit at @code{HEAD} instead.
+Create a new commit.
+@end table
+
+@anchor{Editing the last commit}
+@subsubheading Editing the last commit
+
+These commands modify the last (a.k.a., "HEAD") commit.  The commit is
+modified (a.k.a., replaced) immediately.  Similar commands exist for
+modifying other (non-HEAD) commits.  Those commands are described in
+the following two sections.  For each command in this section, we
+mention the respective non-HEAD commands, to make the relation
+explicit.
+
+The command descriptions below mention the specific arguments they use
+when calling @code{git commit}.  The arguments specified in the menu are
+appended to those arguments.
+
+@table @asis
+@item @kbd{c e} (@code{magit-commit-extend})
+@kindex c e
+@findex magit-commit-extend
+This command amends the staged changes to the last commit, without
+editing its commit message.
+
+This command calls @code{git commit --amend --no-edit}.
+
+With a prefix argument the committer date is not updated; without an
+argument it is updated.
+
+The option @code{magit-commit-extend-override-date} can be used to inverse
+the meaning of the prefix argument.  Non-interactively, the optional
+OVERRIDE-DATE argument controls this behavior, and the option is of
+no relevance.
 
 @item @kbd{c a} (@code{magit-commit-amend})
 @kindex c a
 @findex magit-commit-amend
-Amend the last commit.
+This command amends the staged changes to the last commit, and pops
+up a buffer to let the user edit its commit message.
 
-@item @kbd{c e} (@code{magit-commit-extend})
-@kindex c e
-@findex magit-commit-extend
-Amend the last commit, without editing the message.  With a prefix
-argument keep the committer date, otherwise change it.  The option
-@code{magit-commit-extend-override-date} can be used to inverse the meaning
-of the prefix argument.
-
-Non-interactively respect the optional OVERRIDE-DATE argument and
-ignore the option.
+This command calls @code{git commit --amend --edit}.
 
 @item @kbd{c w} (@code{magit-commit-reword})
 @kindex c w
 @findex magit-commit-reword
-Reword the last commit, ignoring staged changes.  With a prefix
-argument keep the committer date, otherwise change it.  The option
-@code{magit-commit-reword-override-date} can be used to inverse the meaning
-of the prefix argument.
+This command pops up a buffer to let the user edit the message of
+the latest commit.  The commit tree remains unchanged and staged
+changes remain staged.
 
-Non-interactively respect the optional OVERRIDE-DATE argument and
-ignore the option.
+This command calls @code{git commit --amend --only --edit}.
 
+With a prefix argument the committer date is not updated; without an
+argument it is updated.
+
+The option @code{magit-commit-reword-override-date} can be used to inverse
+the meaning of the prefix argument.  Non-interactively, the optional
+OVERRIDE-DATE argument controls this behavior, and the option is of
+no relevance.
+@end table
+
+@anchor{Editing any reachable commit}
+@subsubheading Editing any reachable commit
+
+These commands create a new commit, which targets an existing commit,
+from the staged changes and/or using a new commit message.  Any commit
+that is reachable from HEAD, including HEAD itself, can be the target.
+
+The new commit is intended to be eventually squashed into the targeted
+commit, but this is @strong{not} done immediately.  The squashing is done at a
+later time, when you explicitly call @code{magit-rebase-autosquash}, or use
+@code{--autosquash} with another rebase command.
+
+Some of these commands require that you immediately write a new commit
+message, or that you immediately edit an existing message.
+
+The new commits are called "squash" and "fixup" commits.  The
+difference is that when a "squash" commit is squashed into its
+targeted commit, the user gets a chance to modify the message to be
+used for the final commit; while for "fixup" commits the existing
+message of the targeted commit is used as-is and the message of the
+"fixup" commit is discarded.
+
+If point is on a reachable commit, then all of these commands target
+that commit, without requiring confirmation.  If point is on some
+reachable commit, but you want to target another commit, use a prefix
+argument, to select a commit in a log buffer dedicated to that task.
+The meaning of the prefix argument can be inverted by customizing
+@code{magit-commit-squash-confirm}.
+
+The command descriptions below mention the specific arguments they use
+when calling @code{git commit}.  The arguments specified in the menu are
+appended to those arguments.
+
+The next two commands also exist in "instant" variants, which are
+described in the next section.  Those variants behave the same as the
+variants described here, except that they immediately initiate an
+@code{--autosquash} rebase.
+
+@table @asis
 @item @kbd{c f} (@code{magit-commit-fixup})
 @kindex c f
 @findex magit-commit-fixup
-Create a fixup commit.
+This command creates a new fixup commit from the staged changes,
+targeting the reachable commit at point, if any.  Otherwise the
+user is prompted for a commit.
 
-With a prefix argument the target commit has to be confirmed.
-Otherwise the commit at point may be used without confirmation
-depending on the value of option @code{magit-commit-squash-confirm}.
+Use this variant if you want to correct some minor defect in the
+targeted commit, which does not require changes to the existing
+message of the targeted commit.
 
-@item @kbd{c F} (@code{magit-commit-instant-fixup})
-@kindex c F
-@findex magit-commit-instant-fixup
-Create a fixup commit and instantly rebase.
+This command calls @code{git commit --fixup=COMMIT --no-edit}.
 
 @item @kbd{c s} (@code{magit-commit-squash})
 @kindex c s
 @findex magit-commit-squash
-Create a squash commit, without editing the squash message.
+This command creates a new squash commit from the staged changes,
+targeting the reachable commit at point, if any.  Otherwise the
+user is prompted for a commit.
 
-With a prefix argument the target commit has to be confirmed.
-Otherwise the commit at point may be used without confirmation
-depending on the value of option @code{magit-commit-squash-confirm}.
+Use this variant if you want a chance to make changes to the final
+commit message, but not until the two commits are being squashed
+into the final combined commit.
+
+This command calls @code{git commit --squash=COMMIT --no-edit}.
+
+@item @kbd{c A} (@code{magit-commit-alter})
+@kindex c A
+@findex magit-commit-alter
+This command creates a new fixup commit from the staged changes,
+targeting the reachable commit at point, if any.  Otherwise the
+user is prompted for a commit.
+
+Use this variant if you want to write the final commit message now,
+but (as for all variants in this section) do not want to immediately
+squash the fixup and targeted commits into a final combined commit.
+
+This command calls @code{git commit --fixup=amend:COMMIT --edit}.
+
+@item @kbd{c n} (@code{magit-commit-augment})
+@kindex c n
+@findex magit-commit-augment
+This command creates a new squash commit from the staged changes,
+targeting the reachable commit at point, if any.  Otherwise the
+user is prompted for a commit.
+
+Use this variant if you want to describe the new changes now, but
+want to delay writing the final message, which describes the changes
+in the combined commit, until you actually combine the squash and
+target commits into the final commit.  You can think of the new
+message, which you write here, as a "note", to be integrated once
+once you write the final commit message.
+
+This command calls @code{git commit --squash=COMMIT --edit}.
+
+@item @kbd{c W} (@code{magit-commit-revise})
+@kindex c W
+@findex magit-commit-revise
+This command pops up a buffer containing the commit message of the
+reachable commit at point, if any.  Otherwise the user is prompted
+for a commit to target.
+
+Use this variant if you want to correct the message of the targeted
+commit, but want to delay performing the @code{--autosquash} rebase, which
+actually changes that commit.
+
+This command calls @code{git commit --fixup=reword:COMMIT --edit}.
+@end table
+
+@anchor{Editing any reachable commit and rebasing immediately}
+@subsubheading Editing any reachable commit and rebasing immediately
+
+These commands create a new commit, which targets an existing commit,
+from the staged changes.  Any commit that is reachable from HEAD,
+including HEAD itself, can be the target.
+
+The new commit is immediately squashed into its target commit, using
+an @code{--autosquash} rebase.
+
+The command descriptions below mention the specific arguments they use
+when calling @code{git commit}.  The arguments specified in the menu are
+appended to those arguments when calling @code{git commit}.
+
+@table @asis
+@item @kbd{c F} (@code{magit-commit-instant-fixup})
+@kindex c F
+@findex magit-commit-instant-fixup
+This command creates a fixup commit, targeting the reachable commit
+at point, if any.  Otherwise the user is prompted for a commit. Then
+it instantly performs a rebase, to squash the new commit into the
+targeted commit.
+
+The original commit message of the targeted commit is left untouched.
+
+This command calls @code{git commit --fixup=COMMIT --no-edit}
+and then @code{git rebase --autosquash MERGE-BASE}.
 
 @item @kbd{c S} (@code{magit-commit-instant-squash})
 @kindex c S
 @findex magit-commit-instant-squash
-Create a squash commit and instantly rebase.
+This command creates a squash commit, targeting the reachable commit
+at point, if any.  Otherwise the user is prompted for a commit. Then
+it instantly performs a rebase, to squash the new commit into the
+targeted commit.
 
-@item @kbd{c A} (@code{magit-commit-augment})
-@kindex c A
-@findex magit-commit-augment
-Create a squash commit, editing the squash message.
+During the rebase phase the user is asked to author the final commit
+message, based on the original message of the targeted commit.
 
-With a prefix argument the target commit has to be confirmed.
-Otherwise the commit at point may be used without confirmation
-depending on the value of option @code{magit-commit-squash-confirm}.
+This command calls @code{git commit --squash=COMMIT --no-edit}
+and then @code{git rebase --autosquash MERGE-BASE}.
 @end table
 
-@defopt magit-commit-ask-to-stage
-Whether to ask to stage all unstaged changes when committing and nothing is
-staged.
-@end defopt
+@anchor{Options used by commit commands}
+@subsubheading Options used by commit commands
+
+@itemize
+@item
+@anchor{Used by all or most commit commands}Used by all or most commit commands
+
 
 @defopt magit-commit-show-diff
 Whether the relevant diff is automatically shown when committing.
 @end defopt
 
-@defopt magit-commit-extend-override-date
-Whether using @code{magit-commit-extend} changes the committer date.
-@end defopt
-
-@defopt magit-commit-reword-override-date
-Whether using @code{magit-commit-reword} changes the committer date.
-@end defopt
-
-@defopt magit-commit-squash-confirm
-Whether the commit targeted by squash and fixup has to be confirmed.
-When non-nil then the commit at point (if any) is used as default
-choice.  Otherwise it has to be confirmed.  This option only affects
-@code{magit-commit-squash} and @code{magit-commit-fixup}.  The "instant" variants
-always require confirmation because making an error while using
-those is harder to recover from.
+@defopt magit-commit-ask-to-stage
+Whether to ask to stage all unstaged changes when committing and
+nothing is staged.
 @end defopt
 
 @defopt magit-post-commit-hook
@@ -5625,6 +5845,32 @@ diff buffer would end up being displayed in a new frame.
 
 Also see @uref{https://github.com/magit/magit/issues/4132}.
 @end defopt
+
+@item
+@anchor{Used by all squash and fixup commands}Used by all squash and fixup commands
+
+
+@defopt magit-commit-squash-confirm
+Whether the commit targeted by squash and fixup has to be confirmed.
+When non-nil then the commit at point (if any) is used as default
+choice.  Otherwise it has to be confirmed.  This option only affects
+@code{magit-commit-squash} and @code{magit-commit-fixup}.  The "instant" variants
+always require confirmation because making an error while using
+those is harder to recover from.
+@end defopt
+
+@item
+@anchor{Used by specific commit commands}Used by specific commit commands
+
+
+@defopt magit-commit-extend-override-date
+Whether using @code{magit-commit-extend} changes the committer date.
+@end defopt
+
+@defopt magit-commit-reword-override-date
+Whether using @code{magit-commit-reword} changes the committer date.
+@end defopt
+@end itemize
 
 @anchor{Editing Commit Messages}
 @subsection Editing Commit Messages
@@ -5995,7 +6241,7 @@ checkout branches, and to make changes to existing branches.  It is
 not used to fetch, pull, merge, rebase, or push branches, i.e., this
 command deals with branches themselves, not with the commits reachable
 from them.  Those features are available from separate transient
-command.
+commands.
 
 @table @asis
 @item @kbd{b} (@code{magit-branch})
@@ -6598,9 +6844,9 @@ stuck on some obsolete version of the commits that are being merged.
 Finally, if @code{magit-branch-pull-request} was used to create the merged
 branch, then the respective remote branch is also removed.
 
-@item @kbd{m i} (@code{magit-merge-into})
-@kindex m i
-@findex magit-merge-into
+@item @kbd{m d} (@code{magit-merge-dissolve})
+@kindex m d
+@findex magit-merge-dissolve
 This command merges the current branch into another local branch and
 then removes the former.  The latter becomes the new current branch.
 
@@ -6877,6 +7123,11 @@ This command starts an interactive rebase sequence.
 This command combines squash and fixup commits with their intended
 targets.
 
+By default only commits that are not reachable from the upstream
+branch are potentially squashed into.  If no upstream is configured
+or with a prefix argument, the user is prompted for the first commit
+to potentially squash into.
+
 @item @kbd{r m} (@code{magit-rebase-edit-commit})
 @kindex r m
 @findex magit-rebase-edit-commit
@@ -6997,18 +7248,46 @@ Stop at the commit on the current line.
 @item @kbd{s} (@code{git-rebase-squash})
 @kindex s
 @findex git-rebase-squash
-Meld commit on current line into previous commit, and edit message.
+This command folds the commit on the current line into the previous
+commit, giving the user a change to manually merge the two messages.
+
+@item @kbd{S} (@code{git-rebase-squish})
+@kindex S
+@findex git-rebase-squish
+This command folds the commit on the current line into the previous
+commit, discarding the message of the previous commit but giving the
+user a change to edit the final message, based on the message of the
+current commit.
+
+This action's indicator, shown in the list of commits, is @code{fixup -c}
+(with a lower-case c).
 
 @item @kbd{f} (@code{git-rebase-fixup})
 @kindex f
 @findex git-rebase-fixup
-Meld commit on current line into previous commit, discarding the
-current commit's message.
+This command folds the commit on the current line into the previous
+commit, using only the message of the previous commit as-is and
+discarding the message of the current commit.
+
+@item @kbd{F} (@code{git-rebase-alter})
+@kindex F
+@findex git-rebase-alter
+This command folds the commit on the current into the previous
+commit, discarding the message of the previous commit and instead
+using the message of the current commit as-is.
+
+This is like @code{git-rebase-alter}, except that it uses the other
+message.  This is also like @code{git-rebase-squish}, except that it lets
+the user edit the message.
+
+This action's indicator, shown in the list of commits, is @code{fixup -C}
+(with a upper-case C).
 
 @item @kbd{k} (@code{git-rebase-kill-line})
 @kindex k
 @findex git-rebase-kill-line
-Kill the current action line.
+Comment the current action line, or if it is already commented, then
+uncomment it.
 
 @item @kbd{c} (@code{git-rebase-pick})
 @kindex c
@@ -7639,11 +7918,6 @@ When using a Git release before v2.38.0, simply run @code{git stash apply}
 or with a prefix argument @code{git stash apply --index}.
 
 When using Git v2.38.0 or later, behave more intelligently:
-
-First try @code{git stash apply --index}, which tries to preserve the index
-stored in the stash, if any.  This may fail because applying the
-stash could result in conflicts and those have to be stored in the
-index, making it impossible to also store the stash's index there.
 
 First try @code{git stash apply --index}, which tries to preserve the
 index stored in the stash, if any.  This may fail because applying
@@ -9455,6 +9729,9 @@ buffer, like @code{magit-status} does.  Additionally it tries to go to
 the position in that buffer, which corresponds to the position
 in the current file-visiting buffer (if any).
 
+Before doing so, save all file-visiting buffers belonging to the
+current repository without prompting.
+
 @item @kbd{C-c M-g G} (@code{magit-display-repository-buffer})
 @kindex C-c M-g G
 @findex magit-display-repository-buffer
@@ -9493,18 +9770,24 @@ bindings, but this might be extended.
 @item @kbd{p} (@code{magit-blob-previous})
 @kindex p
 @findex magit-blob-previous
-Visit the previous blob which modified the current file.
+This command visits the previous blob that modified the current
+file.
 
 @item @kbd{n} (@code{magit-blob-next})
 @kindex n
 @findex magit-blob-next
-Visit the next blob which modified the current file.
+This command visit the next blob that modified the current file.
 
-@item @kbd{q} (@code{magit-kill-this-buffer})
+@item @kbd{q} (@code{magit-bury-or-kill-buffer})
 @kindex q
-@findex magit-kill-this-buffer
-Kill the current buffer.
+@findex magit-bury-or-kill-buffer
+This command buries the current buffer, if that is being displayed
+in multiple windows and/or when a prefix argument is used.  If
+neither is the case, it instead kills the current buffer.
 @end table
+
+You might want to bind @code{u} to another command.  Suitable commands
+include @code{bury-buffer}, @code{magit-bury-buffer} and @code{magit-kill-this-buffer}.
 
 @node Customizing
 @chapter Customizing
@@ -10108,6 +10391,9 @@ her wait until that has completed.  In other cases it makes sense to
 wait for git to complete before letting the user do something else.
 For example after staging a change it is useful to wait until after
 the refresh because that also automatically moves to the next change.
+
+The synchronous functions return the exit code, while the asynchronous
+functions return the process object.
 
 @defun magit-call-git &rest args
 Calls git synchronously with ARGS@.

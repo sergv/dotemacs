@@ -63,7 +63,7 @@
    ["Arguments"
     ("-n" "Don't checkout commits"              "--no-checkout")
     ("-p" "Follow only first parent of a merge" "--first-parent"
-     :if (lambda () (magit-git-version>= "2.29")))
+     :if (##magit-git-version>= "2.29"))
     (magit-bisect:--term-old :level 6)
     (magit-bisect:--term-new :level 6)]
    ["Actions"
@@ -257,9 +257,9 @@ bisect run'."
            (done-re "^\\([a-z0-9]\\{40,\\}\\) is the first bad commit$")
            (bad-line (or (and (string-match done-re (car lines))
                               (pop lines))
-                         (--first (string-match done-re it) lines))))
+                         (seq-find (##string-match done-re %) lines))))
       (magit-insert-section ((eval (if bad-line 'commit 'bisect-output))
-                             (and bad-line (match-string 1 bad-line)))
+                             (and bad-line (match-str 1 bad-line)))
         (magit-insert-heading
           (propertize (or bad-line (pop lines))
                       'font-lock-face 'magit-section-heading))
@@ -293,7 +293,7 @@ bisect run'."
     (while (progn (setq beg (point-marker))
                   (re-search-forward
                    "^\\(\\(?:git bisect\\|# status:\\) [^\n]+\n\\)" nil t))
-      (if (string-prefix-p "# status:" (match-string 1))
+      (if (string-prefix-p "# status:" (match-str 1))
           (magit-delete-match)
         (magit-bind-match-strings (heading) nil
           (magit-delete-match)
@@ -301,9 +301,9 @@ bisect run'."
             (narrow-to-region beg (point))
             (goto-char (point-min))
             (magit-insert-section (bisect-item heading t)
-              (insert (propertize heading 'font-lock-face
-                                  'magit-section-secondary-heading))
-              (magit-insert-heading)
+              (magit-insert-heading
+                (propertize heading 'font-lock-face
+                            'magit-section-secondary-heading))
               (magit-wash-sequence
                (apply-partially #'magit-log-wash-rev 'bisect-log
                                 (magit-abbrev-length)))
@@ -317,4 +317,15 @@ bisect run'."
 
 ;;; _
 (provide 'magit-bisect)
+;; Local Variables:
+;; read-symbol-shorthands: (
+;;   ("and$"         . "cond-let--and$")
+;;   ("and>"         . "cond-let--and>")
+;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let"    . "cond-let--while-let")
+;;   ("match-string" . "match-string")
+;;   ("match-str"    . "match-string-no-properties"))
+;; End:
 ;;; magit-bisect.el ends here
