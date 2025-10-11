@@ -1,13 +1,13 @@
 ;;; with-editor.el --- Use the Emacsclient as $EDITOR  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2014-2024 The Magit Project Contributors
+;; Copyright (C) 2014-2025 The Magit Project Contributors
 
 ;; Author: Jonas Bernoulli <emacs.with-editor@jonas.bernoulli.dev>
 ;; Homepage: https://github.com/magit/with-editor
 ;; Keywords: processes terminals
 
-;; Package-Version: 3.4.2
-;; Package-Requires: ((emacs "26.1") (compat "30.0.0.0"))
+;; Package-Version: 3.4.6
+;; Package-Requires: ((emacs "26.1") (compat "30.1"))
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -111,6 +111,10 @@ Determining an Emacsclient executable suitable for the
 current Emacs instance failed.  For more information
 please see https://github.com/magit/magit/wiki/Emacsclient."))))
 
+(defvar with-editor-emacsclient-program-suffixes
+  (list "-snapshot" ".emacs-snapshot")
+  "Suffixes to append to append when looking for a Emacsclient executables.")
+
 (defun with-editor-locate-emacsclient-1 (path depth)
   (let* ((version-lst (cl-subseq (split-string emacs-version "\\.") 0 depth))
          (version-reg (concat "^" (string-join version-lst "\\."))))
@@ -120,15 +124,16 @@ please see https://github.com/magit/magit/wiki/Emacsclient."))))
                ((bound-and-true-p emacsclient-program-name))
                ("emacsclient"))
          path
-         (cl-mapcan
-          (lambda (v) (cl-mapcar (lambda (e) (concat v e)) exec-suffixes))
-          (nconc (and (boundp 'debian-emacs-flavor)
-                      (list (format ".%s" debian-emacs-flavor)))
-                 (cl-mapcon (lambda (v)
-                              (setq v (string-join (reverse v) "."))
-                              (list v (concat "-" v) (concat ".emacs" v)))
-                            (reverse version-lst))
-                 (list "" "-snapshot" ".emacs-snapshot")))
+         (mapcan (lambda (v) (cl-mapcar (lambda (e) (concat v e)) exec-suffixes))
+                 (nconc (and (boundp 'debian-emacs-flavor)
+                             (list (format ".%s" debian-emacs-flavor)))
+                        (cl-mapcon (lambda (v)
+                                     (setq v (string-join (reverse v) "."))
+                                     (list v
+                                           (concat "-" v)
+                                           (concat ".emacs" v)))
+                                   (reverse version-lst))
+                        (cons "" with-editor-emacsclient-program-suffixes)))
          (lambda (exec)
            (ignore-errors
              (string-match-p version-reg
@@ -153,10 +158,15 @@ please see https://github.com/magit/magit/wiki/Emacsclient."))))
         (let ((dir (expand-file-name "bin" invocation-directory)))
           (when (file-directory-p dir)
             (push dir path)))
-        (when (string-search "Cellar" invocation-directory)
+        (cond
+         ((string-search "Cellar" invocation-directory)
           (let ((dir (expand-file-name "../../../bin" invocation-directory)))
             (when (file-directory-p dir)
-              (push dir path))))))
+              (push dir path))))
+         ((string-search "Emacs.app" invocation-directory)
+          (let ((dir (expand-file-name "../../../../bin" invocation-directory)))
+            (when (file-directory-p dir)
+              (push dir path)))))))
     (cl-remove-duplicates path :test #'equal)))
 
 (defcustom with-editor-emacsclient-executable (with-editor-locate-emacsclient)
@@ -771,7 +781,7 @@ This works in `shell-mode', `term-mode', `eshell-mode' and
           (when-let ((v (getenv "EMACS_SERVER_FILE")))
             (vterm-send-string (format " export EMACS_SERVER_FILE=%S" v))
             (vterm-send-return))
-          (vterm-send-string "clear")
+          (vterm-send-string " clear")
           (vterm-send-return))
       (error "Cannot use sleeping editor in this buffer")))
    (t
