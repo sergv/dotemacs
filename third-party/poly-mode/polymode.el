@@ -46,10 +46,17 @@
 (require 'easymenu)
 (require 'derived)
 
-(defvar polymode-prefix-key nil
-  "[Obsoleted] Prefix key for the polymode mode keymap.
-Not effective after loading the polymode library.")
-(make-obsolete-variable 'polymode-prefix-key "Unbind in `polymode-mode-map'" "v0.1.6")
+(defvar polymode-prefix-key "\M-n"
+  "Default prefix key in `polymode-minor-mode-map'.
+Not effective after loading the polymode library.
+
+Instead of setting this key you can programatically bind it directly
+in `polymode-minor-mode-map` keymap:
+
+ (define-key polymode-minor-mode-map (kbd \"M-n\") nil)
+ ;unbind the default M-n prefix
+ (define-key polymode-minor-mode-map (kbd \"C-c n\") polymode-map)
+")
 
 (defvar polymode-map
   (let ((map (define-prefix-command 'polymode-map)))
@@ -63,23 +70,25 @@ Not effective after loading the polymode library.")
     ;; chunk manipulation
     (define-key map "\M-k" #'polymode-kill-chunk)
     (define-key map "\M-m" #'polymode-mark-or-extend-chunk)
+    (define-key map "\M-w" #'polymode-kill-ring-save-chunk)
     (define-key map "\C-t" #'polymode-toggle-chunk-narrowing)
     ;; backends
     (define-key map "e" #'polymode-export)
     (define-key map "E" #'polymode-set-exporter)
     (define-key map "w" #'polymode-weave)
     (define-key map "W" #'polymode-set-weaver)
-    (define-key map "t" #'polymode-tangle)
-    (define-key map "T" #'polymode-set-tangler)
+    ;; (define-key map "t" #'polymode-tangle)
+    ;; (define-key map "T" #'polymode-set-tangler)
     (define-key map "$" #'polymode-show-process-buffer)
     map)
   "Polymode prefix map.
-Lives on `polymode-prefix-key' in polymode buffers.")
+By default, lives on `polymode-prefix-key' in polymode buffers.")
 
 (defvaralias 'polymode-mode-map 'polymode-minor-mode-map)
 (defvar polymode-minor-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (or polymode-prefix-key "\M-n") 'polymode-map)
+    (when polymode-prefix-key
+      (define-key map polymode-prefix-key 'polymode-map))
     map)
   "The minor mode keymap which is inherited by all polymodes.")
 
@@ -235,6 +244,23 @@ Return the number of chunks of the same type moved over."
       (tail (if (= pmin (nth 1 span))
                 (pm-span-to-range span)
               (pm-chunk-range (1- (nth 1 span))))))))
+
+(defun polymode-kill-ring-save-chunk ()
+  "Copy current chunk into the kill-ring.
+When in the head of chunk, copy the chunk including the head and tail,
+otherwise only the body span.
+When called interactively, highlight the copie region for `copy-region-blink-delay'."
+  (interactive)
+  (let ((span (pm-innermost-span)))
+    (let ((range (if (memq (car span) '(nil body))
+                     (pm-span-to-range span)
+                   (pm-chunk-range))))
+      (copy-region-as-kill (car range) (cdr range))
+      (when (called-interactively-p 'interactive)
+        (let ((overlay (make-overlay (car range) (cdr range))))
+          (overlay-put overlay 'face  'highlight)
+          (run-with-timer copy-region-blink-delay nil
+                          (lambda () (delete-overlay overlay))))))))
 
 (defun polymode-mark-or-extend-chunk ()
   "DWIM command to repeatedly mark chunk or extend region.
@@ -435,7 +461,7 @@ non-nil, don't throw if `polymode-eval-region-function' is nil."
         (pi parent-conf)
         (parent-map))
     (while pi
-      (let ((map (and (slot-boundp pi :keylist)
+      (let ((map (and (slot-boundp pi 'keylist)
                       (eieio-oref pi 'keylist))))
         (when map
           (if (and (symbolp map)
@@ -445,7 +471,7 @@ non-nil, don't throw if `polymode-eval-region-function' is nil."
               (setq parent-map map
                     pi nil)
             ;; list, descend to next parent and append the key list to keylist
-            (setq pi (and (slot-boundp pi :parent-instance)
+            (setq pi (and (slot-boundp pi 'parent-instance)
                           (eieio-oref pi 'parent-instance))
                   keylist (append map keylist))))))
     (when (and parent-map (symbolp parent-map))
