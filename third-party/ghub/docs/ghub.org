@@ -1,13 +1,13 @@
 #+title: Ghub User and Developer Manual
 :PREAMBLE:
 #+author: Jonas Bernoulli
-#+email: jonas@bernoul.li
+#+email: emacs.ghub@jonas.bernoulli.dev
 #+date: 2017-{{{year}}}
 
 #+texinfo_dir_category: Emacs
 #+texinfo_dir_title: Ghub: (ghub).
 #+texinfo_dir_desc: Client library for the Github API.
-#+subtitle: for version 3.6.0
+#+subtitle: for version 5.0.1
 
 #+setupfile: .orgconfig
 
@@ -15,7 +15,7 @@ Ghub is an Emacs library that is used by various packages to access
 the APIs of various instances of various Git forge implementations.
 
 #+texinfo: @noindent
-This manual is for Ghub version 3.6.0.
+This manual is for Ghub version 5.0.1.
 
 #+texinfo: @insertcopying
 :END:
@@ -44,33 +44,23 @@ you are, and how you are going to prove the latter to the former.
 Additionally Ghub wants to know on behalf of which Emacs package it is
 making a request.  So the question of "who is making the request" has
 to be rephrased as "which human (or bot) is using what (Emacs) package
-to make the request".  If for example, the human known as "tarsius" is
+to make the request".  If, for example, the human known as "tarsius" is
 using the ~forge~ package, then that is represented in some places using
 the string "tarsius^forge".
 
-This package used to attempt to get the answers to these questions
-using a setup wizard.  Unfortunately that had to be removed because
-(a) it only ever supported Github, (b) by now Github has removed
-support for that on their end, (c) it did not always work, and (d)
-when it couldn't be used, or failed, then it made things /more/
-complicated.
-
-So now it is necessary for users to read some documentation and
-because many things can go wrong, those instructions have to be fairly
-detailed.  You can of course skip over most of this, but if things go
-wrong, then I would like to kindly request that you take another
-look before asking me for help.
-
 ** Basic Concepts, Arguments and Variables
 
-Originally Ghub supported only Github but now it also supports Gitlab,
-Gitea, Gogs and Bitbucket.  For the historic reason just given, the
-function ~ghub-request~ defaults to acting on a ~github~ forge, but can
-be told to act on another forge using the FORGE argument.
+(If you are trying to configure Forge for https://github.com and/or
+https://gitlab.com, then you can skip this section.)
 
-The FORGE argument only specifies what kind of forge to act on, not
-which instance.  The HOST argument can be used to select the instance.
-For some forges a default instance is defined:
+Originally Ghub supported only Github but now it also supports Gitlab,
+Gitea, Gogs and Bitbucket.  Because of that, the function ~ghub-request~
+defaults to acting on a ~github~ forge, but can be told to act on other
+forges using the FORGE argument.
+
+The FORGE argument only specifies what kind of forge we are accessing,
+not which host specifically.  The HOST argument can be used to select
+the instance.  For some forges a default instance is defined:
 
 - Forge ~github~ defaults to host ~api.github.com~.
 - Forge ~gitlab~ defaults to host ~gitlab.com/api/v4~.
@@ -140,10 +130,10 @@ for these two forges:
 
 ** Setting the Username
 
-Ghub needs to know your username that you use on the host that you
+Ghub needs to know your username, which you use on the host that you
 want it to connect to.  For each host a different Git variable has to
-be set to specify the username on that host.  More than one variable
-is needed because you might use different usernames on different
+be set, to specify the username on that host.  More than one variable
+is needed, because you might use different usernames on different
 hosts.
 
 *** Setting your Github.com Username
@@ -245,12 +235,12 @@ then you have to set that variable locally:
 ** Creating and Storing a Token
 *** Creating a Token
 
-To create a token, use the web interface of the forge/host you want to
+To create a token, use the web interface of the host you want to
 connect to.  Here is a list of pages to do this for certain popular
 hosts:
 
 - https://github.com/settings/tokens
-- https://gitlab.com/-/profile/personal_access_tokens
+- https://gitlab.com/-/user_settings/personal_access_tokens
 
 For other forges we cannot provide a functioning URL because they
 contain unknown values such as your name.  Just go to the general
@@ -272,7 +262,7 @@ Please also see [[info:auth]] for all the gory details about Auth-Source.
 The variable ~auth-sources~ controls how and where Auth-Source keeps its
 secrets.  The default value is a list of three files: ~("~/.authinfo"
 "~/.authinfo.gpg" "~/.netrc")~, but to avoid confusion you should make
-sure that only one of these files exists and then you should also
+sure that only one of these files exists, and then you should also
 adjust the value of the variable to only ever use that file, for
 example:
 
@@ -359,17 +349,17 @@ supports, but for your convenience, here are the links to their API
 manuals:
 
 - Github:
-  - https://developer.github.com/v4 (GraphQl)
-  - https://developer.github.com/v3 (REST)
+  - https://docs.github.com/en/graphql (GraphQl)
+  - https://docs.github.com/en/rest (REST)
 - Gitlab:
-  - https://docs.gitlab.com/ee/api/README.html
+  - https://docs.gitlab.com/api
 - Gitea:
-  - https://docs.gitea.io/en-us/api-usage
-  - https://try.gitea.io/api/swagger
+  - https://docs.gitea.com/next/development/api-usage
+  - https://demo.gitea.com
 - Gogs:
-  - https://github.com/gogs/go-gogs-client/wiki
+  - https://gogs.io/docs
 - Bitbucket:
-  - https://developer.atlassian.com/bitbucket/api/2/reference
+  - https://developer.atlassian.com/cloud/bitbucket
 
 ** Making REST Requests
 
@@ -457,9 +447,7 @@ manuals:
     argument.
 
   - If ~FORGE~ is ~gitlab~, then connect to Gitlab.com or, depending
-    on ~HOST~, to another Gitlab instance.  This is only intended for
-    internal use.  Instead of using this argument you should use
-    function ~glab-request~ and other ~glab-*~ functions.
+    on ~HOST~, to another Gitlab instance.
 
   - If ~CALLBACK~ and/or ~ERRORBACK~ is non-nil, then this function makes
     one or more asynchronous requests and calls ~CALLBACK~ or ~ERRORBACK~
@@ -729,67 +717,6 @@ making an initial request.
 
   See ~ghub-request~'s documentation above for information about the
   other arguments.
-  
-** Non-Github Convenience Wrappers
-
-~ghub-request~ and ~ghub-METHOD~ can be used to make a request for any
-of the supported forge types, but except when making a request for
-a ~github~ instance, then that requires the use of the FORGE argument.
-
-To avoid that, functions named ~FORGE-request~ and ~FORGE-METHOD~ are also
-available.  The following forms are equivalent, for example:
-
-#+begin_src emacs-lisp
-  (ghub-get ... :auth 'PACKAGE :forge 'gitlab)
-  (glab-get ... :auth 'PACKAGE)
-#+end_src
-
-These forms would remain equivalent even if you did not specify a
-value for the AUTH arguments — but you should not do that if you plan
-to share your code with others (see [[*Using Ghub in Your Own Package]]).
-If you do omit AUTH, then the request is made on behalf of the ~ghub~
-package, *regardless* of the symbol prefix of the function you use to do
-so.
-
-All ~FORGE-request~ and ~FORGE-METHOD~ functions, including but not
-limited to ~ghub-METHOD~, are very simple wrappers around ~ghub-request~.
-They take fewer arguments than ~ghub-request~ and instead pass constant
-values for the arguments METHOD and/or FORGE.
-
-- Function: buck-request resource &optional params &key query payload headers unpaginate noerror reader username auth host callback errorback ::
-- Function: glab-request resource &optional params &key query payload headers unpaginate noerror reader username auth host callback errorback ::
-- Function: gogs-request resource &optional params &key query payload headers unpaginate noerror reader username auth host callback errorback ::
-
-  Wrappers around ~ghub-request~ which hardcode the FORGE to either
-  ~bitbucket~, ~gitlab~, ~gogs~ or ~gitea~.
-
-- Function: buck-get resource &optional params &key query payload headers unpaginate noerror reader username auth host callback errorback ::
-- Function: buck-put resource &optional params &key query payload headers unpaginate noerror reader username auth host callback errorback ::
-- Function: buck-post resource &optional params &key query payload headers unpaginate noerror reader username auth host callback errorback ::
-- Function: buck-delete resource &optional params &key query payload headers unpaginate noerror reader username auth host callback errorback ::
-- Function: glab-head resource &optional params &key query payload headers unpaginate noerror reader username auth host callback errorback ::
-- Function: glab-get resource &optional params &key query payload headers unpaginate noerror reader username auth host callback errorback ::
-- Function: glab-put resource &optional params &key query payload headers unpaginate noerror reader username auth host callback errorback ::
-- Function: glab-post resource &optional params &key query payload headers unpaginate noerror reader username auth host callback errorback ::
-- Function: glab-patch resource &optional params &key query payload headers unpaginate noerror reader username auth host callback errorback ::
-- Function: glab-delete resource &optional params &key query payload headers unpaginate noerror reader username auth host callback errorback ::
-- Function: gogs-get resource &optional params &key query payload headers unpaginate noerror reader username auth host callback errorback ::
-- Function: gogs-put resource &optional params &key query payload headers unpaginate noerror reader username auth host callback errorback ::
-- Function: gogs-post resource &optional params &key query payload headers unpaginate noerror reader username auth host callback errorback ::
-- Function: gogs-patch resource &optional params &key query payload headers unpaginate noerror reader username auth host callback errorback ::
-- Function: gogs-delete resource &optional params &key query payload headers unpaginate noerror reader username auth host callback errorback ::
-- Function: gtea-get resource &optional params &key query payload headers unpaginate noerror reader username auth host callback errorback ::
-- Function: gtea-put resource &optional params &key query payload headers unpaginate noerror reader username auth host callback errorback ::
-- Function: gtea-post resource &optional params &key query payload headers unpaginate noerror reader username auth host callback errorback ::
-- Function: gtea-patch resource &optional params &key query payload headers unpaginate noerror reader username auth host callback errorback ::
-- Function: gtea-delete resource &optional params &key query payload headers unpaginate noerror reader username auth host callback errorback ::
-
-  Wrappers around ~FORGE-METHOD~ which hardcode the FORGE to either
-  ~bitbucket~, ~gitlab~, ~gogs~ or ~gitea~, and the METHOD to the implied
-  method.
-
-  Note that ~buck-head~, ~buck-patch~, ~gogs-head~ and ~gtea-head~ do not exist
-  because the respective APIs do not appear to support these methods.
 
 * Notes
 ** Using Ghub in Personal Scripts
@@ -812,7 +739,7 @@ package in personal scripts.
 
 When the ~AUTH~ argument is not specified, then a request is made on
 behalf of the ~ghub~ package itself.  Like for any other package you
-have to create a dedicated token of coures.
+have to create a dedicated token of course.
 
 ** Using Ghub in Your Own Package
 
@@ -853,7 +780,8 @@ needs; and explain what they are needed for.
   to use ~user%2Frepo~ when accessing Gitlab, e.g.:
 
   #+BEGIN_SRC emacs-lisp
-    (glab-get "/projects/python-mode-devs%2Fpython-mode")
+    (ghub-get "/projects/python-mode-devs%2Fpython-mode"
+              nil :forge 'gitlab)
   #+END_SRC
 
 * Function Index
@@ -872,7 +800,7 @@ needs; and explain what they are needed for.
 :END:
 
 #+begin_quote
-Copyright (C) 2017-{{{year}}} Jonas Bernoulli <jonas@bernoul.li>
+Copyright (C) 2017-{{{year}}} Jonas Bernoulli <emacs.ghub@jonas.bernoulli.dev>
 
 You can redistribute this document and/or modify it under the terms
 of the GNU General Public License as published by the Free Software

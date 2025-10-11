@@ -8,8 +8,10 @@ all: lisp docs
 help:
 	$(info make all          - generate lisp and manual)
 	$(info make lisp         - generate byte-code and autoloads)
-	$(info make docs         - generate most manual formats)
-	$(info make texi         - generate texi manual (see comments))
+	$(info make redo         - re-generate byte-code and autoloads)
+	$(info make docs         - generate all manual formats)
+	$(info make redo-docs    - re-generate all manual formats)
+	$(info make texi         - generate texi manual)
 	$(info make info         - generate info manual)
 	$(info make html         - generate html manual file)
 	$(info make html-dir     - generate html manual directory)
@@ -23,9 +25,13 @@ help:
 
 lisp:
 	@$(MAKE) -C lisp lisp
+redo:
+	@$(MAKE) -C lisp clean lisp
 
 docs:
 	@$(MAKE) -C docs docs
+redo-docs:
+	@$(MAKE) -C docs redo-docs
 texi:
 	@$(MAKE) -C docs texi
 info:
@@ -40,7 +46,7 @@ pdf:
 publish:
 	@$(MAKE) -C docs publish
 release:
-	@$(MAKE) VERSION=$(VERSION) -C docs release
+	@$(MAKE) -C docs release
 
 stats:
 	@$(MAKE) -C docs stats
