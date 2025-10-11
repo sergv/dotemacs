@@ -274,6 +274,12 @@ def func(int a, int b) {
         'arg1',
         'arg2',
     ]
+}")
+  (should-preserve-indent
+   "
+def func(int a, int b) {
+    call_method arg1: /arg1/,
+        arg2: /arg2/
 }"))
 
 (ert-deftest groovy-indent-call-with-comma ()
@@ -500,7 +506,22 @@ then run BODY."
   ;; Interpolation after an escaped dollar, i.e. \$$foo
   (with-highlighted-groovy "x = \"\\$$foo\""
     (search-forward "f")
-    (should (memq 'font-lock-variable-name-face (faces-at-point)))) )
+    (should (memq 'font-lock-variable-name-face (faces-at-point))))
+  (with-highlighted-groovy "x = \"${foo}\""
+    (search-forward "f")
+    (should (equal '(font-lock-variable-name-face) (faces-at-point))))
+  (with-highlighted-groovy "x = \"${foo}\\${bar}"
+    (search-forward "b")
+    (should (equal '(font-lock-string-face) (faces-at-point))))
+  (with-highlighted-groovy "x = \"${foo}\\\\${bar}"
+    (search-forward "b")
+    (should (equal '(font-lock-variable-name-face) (faces-at-point))))
+  (with-highlighted-groovy "x = \"${foo}\\\\\\${bar}"
+    (search-forward "b")
+    (should (equal '(font-lock-string-face) (faces-at-point))))
+  (with-highlighted-groovy "x = \"${foo}\\\\\\\\${bar}"
+    (search-forward "b")
+    (should (equal '(font-lock-variable-name-face) (faces-at-point)))))
 
 (ert-deftest groovy-highlight-interpolation-single-quotes ()
   "Ensure we do not highlight interpolation in single-quoted strings."
@@ -517,6 +538,23 @@ then run BODY."
   (with-highlighted-groovy "x = '''${foo}'''"
     (search-forward "f")
     (should (equal '(font-lock-string-face) (faces-at-point)))))
+
+(ert-deftest groovy-highlight-interpolation-slashy-string ()
+  "Ensure we highlight interpolation in slashy strings."
+  (with-highlighted-groovy "x = /$foo/"
+    (search-forward "$")
+    (should (memq 'font-lock-variable-name-face (faces-at-point))))
+  (with-highlighted-groovy "x = /$foo$bar/"
+    (search-forward "b")
+    (should (memq 'font-lock-variable-name-face (faces-at-point))))
+  (with-highlighted-groovy "x = /${foo}/"
+    (search-forward "f")
+    (should (memq 'font-lock-variable-name-face (faces-at-point))))
+  ;; Only forward slashes actually get escaped in slashy strings, otherwise
+  ;; backslashes are literal.
+  (with-highlighted-groovy "x = /${foo}\\${bar}/"
+    (search-forward "b")
+    (should (memq 'font-lock-variable-name-face (faces-at-point)))))
 
 (ert-deftest groovy-highlight-comments ()
   "Ensure we do not confuse comments with slashy strings."
