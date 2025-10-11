@@ -1,10 +1,10 @@
 ;;; lsp-mode.el --- LSP mode                              -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020-2024 emacs-lsp maintainers
+;; Copyright (C) 2020-2025 emacs-lsp maintainers
 
 ;; Author: Vibhav Pant, Fangrui Song, Ivan Yonchovski
 ;; Keywords: languages
-;; Package-Requires: ((emacs "27.1") (dash "2.18.0") (f "0.20.0") (ht "2.3") (spinner "1.7.3") (markdown-mode "2.3") (lv "0") (eldoc "1.11"))
+;; Package-Requires: ((emacs "28.1") (dash "2.18.0") (f "0.20.0") (ht "2.3") (spinner "1.7.3") (markdown-mode "2.3") (lv "0") (eldoc "1.11"))
 ;; Version: 9.0.1
 
 ;; URL: https://github.com/emacs-lsp/lsp-mode
@@ -177,23 +177,25 @@ As defined by the Language Server Protocol 3.16."
 (defcustom lsp-client-packages
   '( ccls lsp-actionscript lsp-ada lsp-angular lsp-ansible lsp-asm lsp-astro
      lsp-autotools lsp-awk lsp-bash lsp-beancount lsp-bufls lsp-clangd
-     lsp-clojure lsp-cmake lsp-cobol lsp-credo lsp-crystal lsp-csharp lsp-css
-     lsp-copilot lsp-cucumber lsp-cypher lsp-d lsp-dart lsp-dhall lsp-docker lsp-dockerfile
-     lsp-earthly lsp-elixir lsp-elm lsp-emmet lsp-erlang lsp-eslint lsp-fortran lsp-futhark
-     lsp-fsharp lsp-gdscript lsp-gleam lsp-glsl lsp-go lsp-golangci-lint lsp-grammarly
-     lsp-graphql lsp-groovy lsp-hack lsp-haskell lsp-haxe lsp-idris lsp-java
-     lsp-javascript lsp-jq lsp-json lsp-kotlin lsp-kubernetes-helm lsp-latex lsp-lisp lsp-ltex
-     lsp-lua lsp-fennel lsp-magik lsp-markdown lsp-marksman lsp-mdx lsp-meson lsp-metals lsp-mint
-     lsp-mojo lsp-move lsp-mssql lsp-nextflow lsp-nginx lsp-nim lsp-nix lsp-nushell lsp-ocaml
-     lsp-openscad lsp-pascal lsp-perl lsp-perlnavigator lsp-php lsp-pls
-     lsp-purescript lsp-pwsh lsp-pyls lsp-pylsp lsp-pyright lsp-python-ms
-     lsp-qml lsp-r lsp-racket lsp-remark lsp-rf lsp-roc lsp-roslyn lsp-rubocop lsp-ruby-lsp
-     lsp-ruby-syntax-tree lsp-ruff lsp-rust lsp-semgrep lsp-shader
+     lsp-clojure lsp-cmake lsp-cobol lsp-credo lsp-crystal lsp-csharp lsp-c3 lsp-css
+     lsp-copilot lsp-cucumber lsp-cypher lsp-d lsp-dart lsp-dhall lsp-docker
+     lsp-dockerfile lsp-earthly lsp-elixir lsp-elm lsp-emmet lsp-erlang
+     lsp-eslint lsp-fortran lsp-futhark lsp-fsharp lsp-gdscript lsp-gleam
+     lsp-glsl lsp-go lsp-golangci-lint lsp-grammarly lsp-graphql lsp-groovy
+     lsp-hack lsp-haskell lsp-haxe lsp-idris lsp-java lsp-javascript lsp-jq
+     lsp-json lsp-kotlin lsp-kubernetes-helm lsp-latex lsp-lisp lsp-ltex
+     lsp-ltex-plus lsp-lua lsp-fennel lsp-magik lsp-markdown lsp-marksman
+     lsp-matlab lsp-mdx lsp-meson lsp-metals lsp-mint lsp-mojo lsp-move lsp-mssql
+     lsp-nextflow lsp-nginx lsp-nim lsp-nix lsp-nushell lsp-ocaml lsp-odin lsp-openscad
+     lsp-pascal lsp-perl lsp-perlnavigator lsp-php lsp-pls lsp-postgres
+     lsp-purescript lsp-pwsh lsp-pyls lsp-pylsp lsp-pyright lsp-python-ms lsp-python-ty
+     lsp-qml lsp-r lsp-racket lsp-remark lsp-rf lsp-roc lsp-roslyn lsp-rubocop
+     lsp-ruby-lsp lsp-ruby-syntax-tree lsp-ruff lsp-rust lsp-semgrep lsp-shader
      lsp-solargraph lsp-solidity lsp-sonarlint lsp-sorbet lsp-sourcekit
      lsp-sql lsp-sqls lsp-steep lsp-svelte lsp-tailwindcss lsp-terraform
-     lsp-tex lsp-tilt lsp-toml lsp-trunk lsp-ts-query lsp-ttcn3 lsp-typeprof lsp-typespec lsp-v
-     lsp-vala lsp-verilog lsp-vetur lsp-vhdl lsp-vimscript lsp-volar lsp-wgsl
-     lsp-xml lsp-yaml lsp-yang lsp-zig)
+     lsp-tex lsp-tilt lsp-toml lsp-toml-tombi lsp-trunk lsp-ts-query lsp-ttcn3 lsp-typeprof
+     lsp-typespec lsp-typos lsp-v lsp-vala lsp-verilog lsp-vetur lsp-vhdl lsp-vimscript
+     lsp-volar lsp-wgsl lsp-xml lsp-yaml lsp-yang lsp-zig)
   "List of the clients to be automatically required."
   :group 'lsp-mode
   :type '(repeat symbol))
@@ -364,6 +366,8 @@ the server has requested that."
     "[/\\\\]\\.nox\\'"
     "[/\\\\]dist\\'"
     "[/\\\\]dist-newstyle\\'"
+    "[/\\\\]\\.hifiles\\'"
+    "[/\\\\]\\.hiefiles\\'"
     "[/\\\\]\\.stack-work\\'"
     "[/\\\\]\\.bloop\\'"
     "[/\\\\]\\.bsp\\'"
@@ -573,6 +577,20 @@ language server."
   "If non-nil, `lsp-mode' will apply edits suggested by the language server
 before saving a document."
   :type 'boolean
+  :group 'lsp-mode)
+
+(defcustom lsp-format-buffer-on-save nil
+  "If non-nil format buffer on save.
+To only format specific major-mode buffers see `lsp-format-buffer-on-save-list'."
+  :type 'boolean
+  :safe #'booleanp
+  :local t
+  :group 'lsp-mode)
+
+(defcustom lsp-format-buffer-on-save-list '()
+  "If the list is empty format all buffer on save. Else only format buffers
+if their major-mode is in the list."
+  :type '(repeat symbol)
   :group 'lsp-mode)
 
 (defcustom lsp-after-apply-edits-hook nil
@@ -894,6 +912,7 @@ Changes take effect only when a new session is started."
     (typescript-mode . "typescript")
     (typescript-ts-mode . "typescript")
     (typespec-mode . "typespec")
+    (typespec-ts-mode . "typespec")
     (tsx-ts-mode . "typescriptreact")
     (svelte-mode . "svelte")
     (fsharp-mode . "fsharp")
@@ -902,6 +921,7 @@ Changes take effect only when a new session is started."
     (tuareg-mode . "ocaml")
     (futhark-mode . "futhark")
     (swift-mode . "swift")
+    (swift-ts-mode . "swift")
     (elixir-mode . "elixir")
     (elixir-ts-mode . "elixir")
     (heex-ts-mode . "elixir")
@@ -957,6 +977,7 @@ Changes take effect only when a new session is started."
     (zig-ts-mode . "zig")
     (text-mode . "plaintext")
     (markdown-mode . "markdown")
+    (markdown-ts-mode . "markdown")
     (gfm-mode . "markdown")
     (beancount-mode . "beancount")
     (conf-toml-mode . "toml")
@@ -984,7 +1005,13 @@ Changes take effect only when a new session is started."
     (nushell-mode . "nushell")
     (nushell-ts-mode . "nushell")
     (meson-mode . "meson")
-    (yang-mode . "yang"))
+    (yang-mode . "yang")
+    (matlab-mode . "matlab")
+    (matlab-ts-mode . "matlab")
+    (message-mode . "plaintext")
+    (mu4e-compose-mode . "plaintext")
+    (odin-mode . "odin")
+    (odin-ts-mode . "odin"))
   "Language id configuration.")
 
 (defvar lsp--last-active-workspaces nil
@@ -2202,14 +2229,18 @@ PARAMS - the data sent from WORKSPACE."
         (completing-read (concat message " ") (seq-into choices 'list) nil t)
       (lsp-log message))))
 
-(lsp-defun lsp--window-show-document ((&ShowDocumentParams :uri :selection?))
-  "Show document URI in a buffer and go to SELECTION if any."
+(lsp-defun lsp--window-show-document ((&ShowDocumentParams :uri :selection? :external?))
+  "Show document URI in a buffer or in a external browser if EXTERNAL is t, and go to SELECTION if any."
   (let ((path (lsp--uri-to-path uri)))
-    (when (f-exists? path)
-      (with-current-buffer (find-file path)
-        (when selection?
-          (goto-char (lsp--position-to-point (lsp:range-start selection?))))
-        t))))
+    (if external?
+        (progn
+          (browse-url uri)
+          t)
+      (when (f-exists? path)
+        (with-current-buffer (find-file path)
+          (when selection?
+            (goto-char (lsp--position-to-point (lsp:range-start selection?))))
+          t)))))
 
 (defcustom lsp-progress-prefix "⌛ "
   "Progress prefix."
@@ -2979,11 +3010,11 @@ and end-of-string meta-characters."
 (defun lsp-glob-to-regexps (glob-pattern)
   "Convert a GLOB-PATTERN to a list of Elisp regexps."
   (when-let*
-      ((glob-pattern (cond ((hash-table-p glob-pattern)
-                            (ht-get glob-pattern "pattern"))
-                           ((stringp glob-pattern) glob-pattern)
-                           (t (error "Unknown glob-pattern type: %s" glob-pattern))))
-       (trimmed-pattern (trim-whitespace glob-pattern))
+      ((glob (pcase glob-pattern
+               ((pred stringp) glob-pattern)
+               ((lsp-interface RelativePattern :base-uri :pattern) (format "%s%s" base-uri pattern))
+               (_ (error "Unknown glob-pattern type: %s" glob-pattern))))
+       (trimmed-pattern (trim-whitespace glob))
        (top-level-unbraced-patterns (lsp-glob-unbrace-at-top-level trimmed-pattern)))
     (seq-map #'lsp-glob-convert-to-wrapped-regexp
              top-level-unbraced-patterns)))
@@ -3809,7 +3840,8 @@ disappearing, unset all the variables related to it."
                                                         (labelDetailsSupport . t)))
                                      (contextSupport . t)
                                      (dynamicRegistration . t)))
-                      (signatureHelp . ((signatureInformation . ((parameterInformation . ((labelOffsetSupport . t)))))
+                      (signatureHelp . ((signatureInformation . ((parameterInformation . ((labelOffsetSupport . t)))
+                                                                 (activeParameterSupport . t)))
                                         (dynamicRegistration . t)))
                       (documentLink . ((dynamicRegistration . t)
                                        (tooltipSupport . t)))
@@ -4549,12 +4581,12 @@ interface TextDocumentEdit {
     (lsp:set-position-line (max 0 line))
     (lsp:set-position-character (max 0 character))))
 
-(lsp-defun lsp--apply-text-edit-replace-buffer-contents ((edit &as
+(lsp-defun lsp--apply-text-edit-replace-region-contents ((edit &as
                                                                &TextEdit
                                                                :range (&Range :start :end)
                                                                :new-text))
   "Apply the edits described in the TextEdit object in TEXT-EDIT.
-The method uses `replace-buffer-contents'."
+The method uses `replace-region-contents'."
   (setq new-text (s-replace "\r" "" (or new-text "")))
   (lsp:set-text-edit-new-text edit new-text)
   (-let* ((source (current-buffer))
@@ -4566,21 +4598,12 @@ The method uses `replace-buffer-contents'."
         (with-current-buffer source
           (save-excursion
             (save-restriction
-              (narrow-to-region beg end)
-
-              ;; On emacs versions < 26.2,
-              ;; `replace-buffer-contents' is buggy - it calls
-              ;; change functions with invalid arguments - so we
-              ;; manually call the change functions here.
-              ;;
-              ;; See emacs bugs #32237, #32278:
-              ;; https://debbugs.gnu.org/cgi/bugreport.cgi?bug=32237
-              ;; https://debbugs.gnu.org/cgi/bugreport.cgi?bug=32278
               (let ((inhibit-modification-hooks t)
                     (length (- end beg)))
                 (run-hook-with-args 'before-change-functions
                                     beg end)
-                (replace-buffer-contents temp)
+                (replace-region-contents beg end
+                                         (lambda (&rest _) temp))
                 (run-hook-with-args 'after-change-functions
                                     beg (+ beg (length new-text))
                                     length)))))))))
@@ -4656,7 +4679,7 @@ OPERATION is symbol representing the source of this text edit."
              (reporter (make-progress-reporter message 0 howmany))
              (done 0)
              (apply-edit (if (not lsp--virtual-buffer)
-                             #'lsp--apply-text-edit-replace-buffer-contents
+                             #'lsp--apply-text-edit-replace-region-contents
                            #'lsp--apply-text-edit)))
         (unwind-protect
             (->> edits
@@ -4858,6 +4881,13 @@ Added to `before-change-functions'."
         (lsp:text-document-sync-options-change? sync)
       sync)))
 
+(defvaralias 'lsp--revert-buffer-in-progress
+  (if (boundp 'revert-buffer-in-progress)
+      'revert-buffer-in-progress
+    'revert-buffer-in-progress-p)
+  "Alias for `revert-buffer-in-progress' if available, or `revert-buffer-in-progress-p'
+prior to emacs 31.")
+
 (defun lsp-on-change (start end length &optional content-change-event-fn)
   "Executed when a file is changed.
 Added to `after-change-functions'."
@@ -4885,7 +4915,7 @@ Added to `after-change-functions'."
       ;; buffer-file-name. We need the buffer-file-name to send notifications;
       ;; so we skip handling revert-buffer-caused changes and instead handle
       ;; reverts separately in lsp-on-revert
-      (when (not revert-buffer-in-progress-p)
+      (when (not lsp--revert-buffer-in-progress)
         (cl-incf lsp--cur-version)
         (mapc
          (lambda (workspace)
@@ -5028,6 +5058,8 @@ movements may have changed the position")
   :group 'lsp-mode
   :type 'boolean)
 
+(defun lsp--on-type-formatting-do-apply (data)
+  (lsp--apply-text-edits data 'format))
 
 (defun lsp--on-type-formatting (first-trigger-characters more-trigger-characters)
   "Self insert handling.
@@ -5035,19 +5067,29 @@ Applies on type formatting."
   (let ((ch last-command-event))
     (when (or (eq (string-to-char first-trigger-characters) ch)
               (cl-find ch more-trigger-characters :key #'string-to-char))
-      (lsp-request-async "textDocument/onTypeFormatting"
-                         (lsp-make-document-on-type-formatting-params
-                          :text-document (lsp--text-document-identifier)
-                          :options (lsp-make-formatting-options
-                                    :tab-size (symbol-value (lsp--get-indent-width major-mode))
-                                    :insert-spaces (lsp-json-bool (not indent-tabs-mode))
-                                    :trim-trailing-whitespace? (lsp-json-bool lsp-trim-trailing-whitespace)
-                                    :insert-final-newline? (lsp-json-bool lsp-insert-final-newline)
-                                    :trim-final-newlines? (lsp-json-bool lsp-trim-final-newlines))
-                          :ch (char-to-string ch)
-                          :position (lsp--cur-position))
-                         (lambda (data) (lsp--apply-text-edits data 'format))
-                         :mode 'tick))))
+
+      ;; defer to after hooks -- avoids the request being cancelled by smart
+      ;; parens, electric indent or other hooks
+      (run-at-time
+       0 nil
+       (lambda (pos-marker)
+         (lsp-request-async "textDocument/onTypeFormatting"
+                            (lsp-make-document-on-type-formatting-params
+                             :text-document (lsp--text-document-identifier)
+                             :options (lsp-make-formatting-options
+                                       :tab-size (symbol-value (lsp--get-indent-width major-mode))
+                                       :insert-spaces (lsp-json-bool (not indent-tabs-mode))
+                                       :trim-trailing-whitespace? (lsp-json-bool lsp-trim-trailing-whitespace)
+                                       :insert-final-newline? (lsp-json-bool lsp-insert-final-newline)
+                                       :trim-final-newlines? (lsp-json-bool lsp-trim-final-newlines))
+                             :ch (char-to-string ch)
+                             :position (lsp--point-to-position (marker-position pos-marker)))
+                            #'lsp--on-type-formatting-do-apply
+                            :mode 'tick)
+         (set-marker pos-marker nil))
+
+       ;; argument to lambda:
+       (point-marker)))))
 
 
 ;; links
@@ -5164,7 +5206,7 @@ one of the LANGUAGES."
   "Executed when a file is reverted.
 Added to `after-revert-hook'."
   (let ((n (buffer-size))
-        (revert-buffer-in-progress-p nil))
+        (lsp--revert-buffer-in-progress nil))
     (lsp-on-change 0 n n)))
 
 (defun lsp--text-document-did-close (&optional keep-workspace-alive)
@@ -5200,6 +5242,13 @@ if it's closing the last buffer in the workspace."
                             params)
                'before-save)
             (error)))))))
+
+(defun lsp--format-buffer-before-save ()
+  (when lsp-format-buffer-on-save
+    (if (not lsp-format-buffer-on-save-list)
+        (lsp-format-buffer)
+      (when (member major-mode lsp-format-buffer-on-save-list)
+        (lsp-format-buffer)))))
 
 (defun lsp--on-auto-save ()
   "Handler for auto-save."
@@ -5463,6 +5512,21 @@ If EXCLUDE-DECLARATION is non-nil, request the server to include declarations."
 (define-derived-mode lsp-help-mode help-mode "LspHelp"
   "Major mode for displaying lsp help.")
 
+(defun lsp--display-contents (contents)
+  "Display CONTENTS in a dedicated buffer."
+  (if (and contents (not (equal contents "")))
+      (let ((lsp-help-buf-name "*lsp-help*"))
+        (with-current-buffer (get-buffer-create lsp-help-buf-name)
+          (delay-mode-hooks
+            (lsp-help-mode)
+            (with-help-window lsp-help-buf-name
+              (insert
+               (mapconcat #'trim-whitespace-right
+                          (split-string (lsp--render-on-hover-content contents t) "\n")
+                          "\n"))))
+          (run-mode-hooks)))
+    (lsp--info "No content at point.")))
+
 (defun lsp-describe-thing-at-point ()
   "Display the type signature and documentation of the thing at point."
   (interactive)
@@ -5470,18 +5534,7 @@ If EXCLUDE-DECLARATION is non-nil, request the server to include declarations."
                     (lsp--make-request "textDocument/hover")
                     (lsp--send-request)
                     (lsp:hover-contents))))
-    (if (and contents (not (equal contents "")))
-        (let ((lsp-help-buf-name "*lsp-help*"))
-          (with-current-buffer (get-buffer-create lsp-help-buf-name)
-            (delay-mode-hooks
-              (lsp-help-mode)
-              (with-help-window lsp-help-buf-name
-                (insert
-                 (mapconcat #'trim-whitespace-right
-                            (split-string (lsp--render-on-hover-content contents t) "\n")
-                            "\n"))))
-            (run-mode-hooks)))
-      (lsp--info "No content at point."))))
+    (lsp--display-contents contents)))
 
 (defun lsp--point-in-bounds-p (bounds)
   "Return whether the current point is within BOUNDS."
@@ -5934,6 +5987,8 @@ It will show up only if current point has signature help."
             (active-signature? (or lsp--signature-last-index active-signature? 0))
             (_ (setq lsp--signature-last-index active-signature?))
             ((signature &as &SignatureInformation? :label :parameters?) (seq-elt signatures active-signature?))
+            (active-parameter? (or (lsp:signature-information-active-parameter? signature)
+                                   active-parameter?))
             (prefix (if (= (length signatures) 1)
                         ""
                       (concat (propertize (format " %s/%s"
@@ -6087,12 +6142,24 @@ It will show up only if current point has signature help."
 
 (defun lsp--text-document-code-action-params (&optional kind)
   "Code action params."
-  (list :textDocument (lsp--text-document-identifier)
-        :range (if (use-region-p)
-                   (lsp--region-to-range (region-beginning) (region-end))
-                 (lsp--region-to-range (point) (point)))
-        :context `( :diagnostics ,(lsp-cur-possition-diagnostics)
-                    ,@(when kind (list :only (vector kind))))))
+  (let* ((diagnostics (lsp-cur-possition-diagnostics))
+         (range (cond ((use-region-p)
+                       (lsp--region-to-range (region-beginning) (region-end)))
+                      (diagnostics
+                       (let* ((start (point)) (end (point)))
+                         (mapc (-lambda
+                                 ((&Diagnostic
+                                   :range (&Range :start (&Position :line l1 :character c1)
+                                                  :end (&Position :line l2 :character c2))))
+                                 (setq start (min (lsp--line-character-to-point l1 c1) start))
+                                 (setq end (max (lsp--line-character-to-point l2 c2) end)))
+                               diagnostics)
+                         (lsp--region-to-range start end)))
+                      (t (lsp--region-to-range (point) (point))))))
+    (list :textDocument (lsp--text-document-identifier)
+          :range range
+          :context `( :diagnostics ,diagnostics
+                      ,@(when kind (list :only (vector kind)))))))
 
 (defun lsp-code-actions-at-point (&optional kind)
   "Retrieve the code actions for the active region or the current line.
@@ -6239,6 +6306,7 @@ one or more symbols, and STRUCTURE should be compatible with
     (scala-mode                 . scala-indent:step)                ; Scala
     (sgml-mode                  . sgml-basic-offset)                ; SGML
     (sh-mode                    . sh-basic-offset)                  ; Shell Script
+    (swift-mode                 . swift-mode:basic-offset)          ; Swift
     (toml-ts-mode               . toml-ts-mode-indent-offset)
     (typescript-mode            . typescript-indent-level)          ; Typescript
     (typescript-ts-mode         . typescript-ts-mode-indent-offset) ; Typescript (tree-sitter, Emacs29)
@@ -6281,7 +6349,10 @@ one or more symbols, and STRUCTURE should be compatible with
 
 (defun lsp-format-region (s e)
   "Ask the server to format the region, or if none is selected, the current line."
-  (interactive "r")
+  (interactive
+   (if (use-region-p)
+       (list (region-beginning) (region-end))
+     (list (point) (point))))
   (let ((edits (lsp-request
                 "textDocument/rangeFormatting"
                 (lsp--make-document-range-formatting-params s e))))
@@ -6634,11 +6705,13 @@ to check if server wants to apply any workspaceEdits after renamed."
                      :files (vector (lsp-make-file-rename
                                      :oldUri (lsp--path-to-uri old-name)
                                      :newUri (lsp--path-to-uri new-name))))))
-        (when-let* ((edits (lsp-request "workspace/willRenameFiles" params)))
-          (lsp--apply-workspace-edit edits 'rename-file)
-          (funcall old-func old-name new-name ok-if-already-exists?)
-          (when (lsp--send-did-rename-files-p)
-            (lsp-notify "workspace/didRenameFiles" params))))
+        (if-let* ((edits (lsp-request "workspace/willRenameFiles" params)))
+            (progn
+              (lsp--apply-workspace-edit edits 'rename-file)
+              (funcall old-func old-name new-name ok-if-already-exists?)
+              (when (lsp--send-did-rename-files-p)
+                (lsp-notify "workspace/didRenameFiles" params)))
+          (funcall old-func old-name new-name ok-if-already-exists?)))
     (funcall old-func old-name new-name ok-if-already-exists?)))
 
 (advice-add 'rename-file :around #'lsp--on-rename-file)
@@ -8344,7 +8417,7 @@ nil."
      ((and (f-absolute? path)
            (f-exists? path))
       path)
-     ((executable-find path t) path))))
+     ((executable-find path t)))))
 
 (defun lsp-package-path (dependency)
   "Path to the DEPENDENCY each of the registered providers."
@@ -8402,7 +8475,7 @@ nil."
                                          (lsp-async-start-process callback
                                                                   error-callback
                                                                   (executable-find "npx")
-                                                                  "npm-install-peers")))))
+                                                                  "i-peers")))))
                                  error-callback
                                  npm-binary
                                  "-g"
@@ -9350,6 +9423,7 @@ Errors if there are none."
   (lsp--text-document-did-close t)
   (lsp-managed-mode -1)
   (lsp-mode -1)
+  (remove-hook 'before-save-hook #'lsp--format-buffer-before-save t)
   (setq lsp--buffer-workspaces nil)
   (lsp--info "Disconnected"))
 
@@ -9398,6 +9472,7 @@ argument ask the user to select which language server to start."
                         (lsp--try-project-root-workspaces (equal arg '(4))
                                                           (and arg (not (equal arg 1))))))
           (lsp-mode 1)
+          (add-hook 'before-save-hook #'lsp--format-buffer-before-save nil t)
           (when lsp-auto-configure (lsp--auto-configure))
           (setq lsp-buffer-uri (lsp--buffer-uri))
           (lsp--info "Connected to %s."
