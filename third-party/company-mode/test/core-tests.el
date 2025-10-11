@@ -1,6 +1,6 @@
 ;;; core-tests.el --- company-mode tests  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2018, 2020-2024  Free Software Foundation, Inc.
+;; Copyright (C) 2015-2025  Free Software Foundation, Inc.
 
 ;; Author: Dmitry Gutov
 
@@ -134,6 +134,9 @@
                  (cl-case command
                    (prefix "")
                    (candidates '("a" "b"))))
+               (lambda (command &optional _ &rest _r)
+                 (cl-case command
+                   (prefix 'stop)))
                (lambda (command &optional _ &rest _r)
                  (cl-case command
                    (prefix "")
@@ -372,6 +375,38 @@
             (company-call-backend 'adjust-boundaries
                                   (car (member "a1b" candidates))
                                   "aa" "bcd")))))
+
+(ert-deftest company-multi-backend-adjust-boundaries-default ()
+  (let* ((one (lambda (command &rest _args)
+                (cl-case command
+                  (prefix '("a" "1"))
+                  (candidates
+                   '("ab1")))))
+         (tri (lambda (command &rest _args)
+                (cl-case command
+                  (prefix '("aa" "bcd"))
+                  (candidates
+                   '("aa3bb"
+                     "aa3bcd")))))
+         (company-backend (list one tri))
+         (company-point (point))
+         (candidates (company-call-backend 'candidates "a" "")))
+    (should
+     (equal (cons "a" "1")
+            (company-call-backend 'adjust-boundaries
+                                  (car (member "ab1" candidates))
+                                  "aa" "bcd")))
+    (should
+     (equal (cons "aa" "")
+            (company-call-backend 'adjust-boundaries
+                                  (car (member "aa3bb" candidates))
+                                  "aa" "bcd")))
+    (should
+     (equal (cons "aa" "bcd")
+            (company-call-backend 'adjust-boundaries
+                                  (car (member "aa3bcd" candidates))
+                                  "aa" "bcd")))
+    ))
 
 (ert-deftest company-multi-backend-combines-expand-common ()
   (let* ((one (lambda (command &rest _args)
@@ -705,6 +740,67 @@
       (should (string= "tc" (buffer-string)))
       (company-complete-selection)
       (should (string= "tea-cup" (buffer-string))))))
+
+(ert-deftest company-complete-restarts-in-new-field ()
+  (with-temp-buffer
+    (insert "foo")
+    (company-mode)
+    (let (company-frontends
+          (company-backends
+           (list (lambda (command &optional _arg &rest rest)
+                   (cl-case command
+                     (prefix (buffer-substring (point-min) (point)))
+                     (adjust-boundaries
+                      (if (string-suffix-p "/" (car rest))
+                          (cons "" (nth 1 rest))
+                        (cons (car rest) (nth 1 rest))))
+                     (candidates '("cc/" "aa1" "bb2"))
+                     (sorted t))))))
+      (let (this-command)
+        (company-complete))
+      (should (string= "foo" (buffer-string)))
+      (company-complete-selection)
+      (should (string= "cc/" (buffer-string)))
+      (should (equal company-candidates '("cc/" "aa1" "bb2"))))))
+
+(ert-deftest company-complete-no-restart-in-old-field ()
+  (with-temp-buffer
+    (insert "foo")
+    (company-mode)
+    (let (company-frontends
+          (company-backends
+           (list (lambda (command &rest _rest)
+                   (cl-case command
+                     (prefix (buffer-substring (point-min) (point)))
+                     (candidates '("cc/" "aa1" "bb2"))
+                     (sorted t))))))
+      (let (this-command)
+        (company-complete))
+      (company-complete-selection)
+      (should (string= "cc/" (buffer-string)))
+      (should (null company-candidates)))))
+
+(ert-deftest company-complete-no-restart-after-post-completion-change ()
+  (with-temp-buffer
+    (insert "foo")
+    (company-mode)
+    (let (company-frontends
+          (company-backends
+           (list (lambda (command &optional _arg &rest rest)
+                   (cl-case command
+                     (prefix (buffer-substring (point-min) (point)))
+                     (candidates '("cc/" "aa1" "bb2"))
+                     (adjust-boundaries
+                      (if (string-suffix-p "/" (car rest))
+                          (cons "" (nth 1 rest))
+                        (cons (car rest) (nth 1 rest))))
+                     (post-completion (insert "bar/"))
+                     (sorted t))))))
+      (let (this-command)
+        (company-complete))
+      (company-complete-selection)
+      (should (string= "cc/bar/" (buffer-string)))
+      (should (null company-candidates)))))
 
 (defvar ct-sorted nil)
 
