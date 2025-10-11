@@ -8,7 +8,8 @@
 ;; Maintainer:  Russel Winder <russel@winder.org.uk>
 ;; Created: 2006-08-01
 ;; Keywords: languages
-;; Version: 2.1
+;; URL: https://github.com/Groovy-Emacs-Modes/groovy-emacs-modes
+;; Version: 2.2
 ;; Package-Requires: ((s "1.12.0") (emacs "24.3") (dash "2.13.0"))
 
 ;; This program is free software: you can redistribute it and/or modify
@@ -38,6 +39,8 @@
 ;;; Notes:
 ;;  Should we support GString / template markup ( e.g. `<%' and `%>') specially?
 
+;;; Commentary:
+
 ;;; Code:
 
 (require 's)
@@ -64,7 +67,7 @@
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.g\\(?:ant\\|roovy\\|radle\\)\\'" . groovy-mode))
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("Jenkinsfile" . groovy-mode))
+(add-to-list 'auto-mode-alist '("/Jenkinsfile\\'" . groovy-mode))
 ;;;###autoload
 (add-to-list 'interpreter-mode-alist '("groovy" . groovy-mode))
 
@@ -125,7 +128,7 @@
               "void")
              symbol-end
              (? "[]")))))))
-  "Matches declarations of the type 'def FooBar<?>'.")
+  "Matches declarations of the type `def FooBar<?>'.")
 
 (defconst groovy-symbol-regexp
   (rx
@@ -141,7 +144,7 @@
      (* space)
      "="
      (not (any "~" "="))))
-  "Matches variable assignments of the type 'a = 1'.")
+  "Matches variable assignments of the type `a = 1'.")
 
 (defconst groovy-class-regexp
   "^[ \t\n\r]*\\(final\\|abstract\\|public\\|[ \t\n\r]\\)*class[ \t\n\r]+\\([a-zA-Z0-9_$]+\\)[^;{]*{"
@@ -181,6 +184,15 @@
   "Return t if POS is in a string."
   (save-excursion
     (nth 3 (syntax-ppss pos))))
+
+(defun groovy--preceded-by-odd-number-of-backslashes ()
+  "Return non-nil if point is preceded by an odd number of backslashes."
+  (let ((point (- (point) 2))
+        (slashes 0))
+    (while (eq (char-before point) ?\\)
+      (cl-incf slashes)
+      (cl-decf point))
+    (cl-oddp slashes)))
 
 (defvar groovy-font-lock-keywords
   ;; Annotations are defined with the @interface, which is a keyword:
@@ -286,8 +298,8 @@
                   (search-forward "${" limit t))
             (let* ((string-delimiter-pos (nth 8 (syntax-ppss)))
                    (string-delimiter (char-after string-delimiter-pos))
-                   (escaped-p (eq (char-before (- (point) 2))
-                                  ?\\)))
+                   (escaped-p (and (not (eq string-delimiter ?/))
+                                   (groovy--preceded-by-odd-number-of-backslashes))))
               (when (and (groovy--in-string-p)
                          ;; Interpolation does not apply in single-quoted strings.
                          (not (eq string-delimiter ?'))
@@ -632,7 +644,8 @@ dollar-slashy-quoted strings."
 
 (defcustom groovy-indent-offset 4
   "Indentation amount for Groovy."
-  :safe #'integerp
+  :type 'natnum
+  :safe #'natnump
   :group 'groovy)
 
 (defcustom groovy-highlight-assignments nil
@@ -651,6 +664,7 @@ dollar-slashy-quoted strings."
    `(or symbol-end
         space
         (syntax string-quote)
+        (syntax string-delimiter)
         (syntax close-parenthesis)
         (regexp ,groovy-postfix-operator-regex))))
 
@@ -729,13 +743,14 @@ Then this function returns (\"def\" \"if\" \"switch\")."
       ":"))
 
 (defun groovy--remove-comments (src)
-  "Remove all comments from a string of groovy source code."
+  "Remove all comments from a string SRC of groovy source code."
   (->> src
        (replace-regexp-in-string (rx "/*" (*? anything) "*/") "")
        (replace-regexp-in-string (rx "//" (* not-newline)) "")))
 
 (defun groovy--effective-paren-depth (pos)
-  "Return the paren depth of position POS, but ignore repeated parens on the same line."
+  "Return the indentation paren depth of position POS.
+Only one opening paren per source code line is counted."
   (let ((paren-depth 0)
         (syntax (syntax-ppss pos))
         (current-line (line-number-at-pos pos)))
@@ -909,12 +924,12 @@ statement, without an open curly brace."
         ;; without the optional curly brace and without a body, then indent
         ;; for each block.
         (save-excursion
-          (let (next-line)
+          (let (next-line line-after)
             (while
                 (and
                  (setq line-after (groovy--trim-current-line))
                  (groovy--backwards-to-prev-code-line)
-                 
+
                  ;; Handle the special case of a chain of if-else statements, e.g.
                  ;;   if (x) foo()
                  ;;   else if (y) bar()
@@ -927,10 +942,10 @@ statement, without an open curly brace."
                               (groovy--backwards-to-prev-code-line)
                               (setq line-after cur-line))))
                    t)
-                 
+
                  (groovy--line-ends-with-incomplete-block-statement-p))
               (setq indent-level (1+ indent-level)))))
-        
+
         ;; If this line is .methodCall() then we should indent one
         ;; more level.
         (when (s-starts-with-p "." current-line)
@@ -994,7 +1009,9 @@ Key bindings:
        groovy-syntax-propertize-function)
   (setq imenu-generic-expression groovy-imenu-regexp)
   (set (make-local-variable 'indent-line-function) #'groovy-indent-line)
-  (set (make-local-variable 'comment-start) "//"))
+  (set (make-local-variable 'comment-start) "//")
+  (set (make-local-variable 'comment-start-skip)
+       (rx (or "//" "/*" "/**" "/**@") (zero-or-more space))))
 
 (provide 'groovy-mode)
 
