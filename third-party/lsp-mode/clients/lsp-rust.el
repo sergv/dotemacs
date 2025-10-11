@@ -359,7 +359,7 @@ PARAMS progress report notification data."
   :package-version '(lsp-mode . "6.2"))
 
 (defcustom lsp-rust-analyzer-library-directories
-  '("~/.cargo/registry/src" "~/.rustup/toolchains")
+  '("~/.cargo/git" "~/.cargo/registry/src" "~/.rustup/toolchains")
   "List of directories which will be considered to be libraries."
   :risky t
   :type '(repeat string)
@@ -568,6 +568,20 @@ belongs to."
   :type '(choice
           (string :tag "Target")
           (const :tag "None" nil))
+  :group 'lsp-rust-analyzer
+  :package-version '(lsp-mode . "8.0.0"))
+
+(defcustom lsp-rust-analyzer-cargo-target-dir nil
+  "Optional path to a rust-analyzer specific target directory.
+This prevents rust-analyzer's `cargo check` and initial build-script and
+proc-macro building from locking the `Cargo.lock` at the expense of
+duplicating build artifacts.
+
+Set to `true` to use a subdirectory of the existing target directory or
+set to a path relative to the workspace to use that path."
+  :type '(choice
+          (string :tag "Directory")
+          boolean)
   :group 'lsp-rust-analyzer
   :package-version '(lsp-mode . "8.0.0"))
 
@@ -856,10 +870,10 @@ or JSON objects in `rust-project.json` format."
   :group 'lsp-rust-analyzer
   :package-version '(lsp-mode . "9.0.0"))
 
-(defcustom lsp-rust-analyzer-cargo-extra-env []
+(defcustom lsp-rust-analyzer-cargo-extra-env #s(hash-table)
   "Extra environment variables that will be set when running cargo, rustc or
 other commands within the workspace.  Useful for setting RUSTFLAGS."
-  :type 'lsp-string-vector
+  :type 'alist
   :group 'lsp-rust-analyzer
   :package-version '(lsp-mode . "9.0.0"))
 
@@ -1515,18 +1529,24 @@ such as imports and dyn traits."
 Extract the arguments, prepare the minor mode (cargo-process-mode if possible)
 and run a compilation"
   (-let* (((&rust-analyzer:Runnable :kind :label :args) runnable)
-          ((&rust-analyzer:RunnableArgs :cargo-args :executable-args :workspace-root? :expect-test?) args)
+          ((&rust-analyzer:RunnableArgs :cargo-args :executable-args :workspace-root? :expect-test? :environment?) args)
           (default-directory (or workspace-root? default-directory)))
     (if (not (string-equal kind "cargo"))
         (lsp--error "'%s' runnable is not supported" kind)
       (compilation-start
        (string-join (append (when expect-test? '("env" "UPDATE_EXPECT=1"))
+                            (when environment? (lsp-rust-analyzer--to-bash-env environment?))
                             (list "cargo") cargo-args
                             (when executable-args '("--")) executable-args '()) " ")
 
        ;; cargo-process-mode is nice, but try to work without it...
        (if (functionp 'cargo-process-mode) 'cargo-process-mode nil)
        (lambda (_) (concat "*" label "*"))))))
+
+(defun lsp-rust-analyzer--to-bash-env (env-vars)
+  "Extract the environment variables from plist ENV-VARS."
+  (cl-loop for (key value) on env-vars by 'cddr
+           collect (format "%s=%s" (substring (symbol-name key) 1) value)))
 
 (defun lsp-rust-analyzer-run (runnable)
   "Select and run a RUNNABLE action."
@@ -1725,12 +1745,14 @@ https://github.com/rust-lang/rust-analyzer/blob/master/docs/dev/lsp-extensions.m
              :extraArgs ,lsp-rust-analyzer-cargo-extra-args
              :extraEnv ,lsp-rust-analyzer-cargo-extra-env
              :target ,lsp-rust-analyzer-cargo-target
+             :targetDir ,lsp-rust-analyzer-cargo-target-dir
              :runBuildScripts ,(lsp-json-bool lsp-rust-analyzer-cargo-run-build-scripts)
              ;; Obsolete, but used by old Rust-Analyzer versions
              :loadOutDirsFromCheck ,(lsp-json-bool lsp-rust-analyzer-cargo-run-build-scripts)
              :autoreload ,(lsp-json-bool lsp-rust-analyzer-cargo-auto-reload)
              :useRustcWrapperForBuildScripts ,(lsp-json-bool lsp-rust-analyzer-use-rustc-wrapper-for-build-scripts)
-             :unsetTest ,lsp-rust-analyzer-cargo-unset-test)
+             :unsetTest ,lsp-rust-analyzer-cargo-unset-test
+	     :buildScripts (:overrideCommand ,lsp-rust-analyzer-cargo-override-command))
     :rustfmt ( :extraArgs ,lsp-rust-analyzer-rustfmt-extra-args
                :overrideCommand ,lsp-rust-analyzer-rustfmt-override-command
                :rangeFormatting (:enable ,(lsp-json-bool lsp-rust-analyzer-rustfmt-rangeformatting-enable)))
