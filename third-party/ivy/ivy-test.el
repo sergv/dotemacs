@@ -1,6 +1,6 @@
 ;;; ivy-test.el --- tests for ivy -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2025 Free Software Foundation, Inc.
 
 ;; Author: Oleh Krehel
 
@@ -26,6 +26,11 @@
 
 ;;; Code:
 
+;; Optional dependencies.
+(and (require 'targets/elpa nil t)
+     (fboundp 'ivy--elpa-activate)
+     (ivy--elpa-activate))
+
 (defvar ivy-empty "tests/find-file/empty-dir/")
 
 (defvar ivy-features nil
@@ -48,8 +53,6 @@ Intended as :after-while advice for `require'."
 (require 'ivy)
 
 (require 'ert)
-
-(message "%s" (emacs-version))
 
 (setq ivy-last (make-ivy-state))
 
@@ -576,10 +579,10 @@ Since `execute-kbd-macro' doesn't pick up a let-bound `default-directory'.")
              (colir-blend-face-background 0 (length str) 'ivy-current-match str)
              str)
            #("Desktop" 0 7 (face (ivy-current-match (foreground-color . "#8ac6f2") bold))))))
+
+;;; Prefix arg tests
+;;;; Tests with no prefix
 
-
-;;* prefix arg tests
-;;** tests with no prefix
 (ert-deftest ivy-no-prefix-arg ()
   "Tests with no prefix arg."
   (should (equal
@@ -655,7 +658,8 @@ Since `execute-kbd-macro' doesn't pick up a let-bound `default-directory'.")
             "TAB TAB")
            nil)))
 
-;;** tests with one prefix
+;;;; Tests with one prefix
+
 (ert-deftest ivy-one-prefix-arg ()
   "Tests with no prefix arg."
   (should (equal
@@ -1007,20 +1011,103 @@ Since `execute-kbd-macro' doesn't pick up a let-bound `default-directory'.")
       (ivy-mode ivy-mode-reset-arg))))
 
 (ert-deftest ivy-completion-common-length ()
-  (should (= 2
-             (ivy-completion-common-length
-              #("test/"
-                0 2 (face completions-common-part)
-                2 3 (face (completions-first-difference))))))
-  (should (= 5
-             (ivy-completion-common-length
-              #("Math/E"
-                0 5 (face (completions-common-part))
-                5 6 (face (completions-first-difference))))))
-  (should (= 3
-             (ivy-completion-common-length
-              #("vec"
-                0 3 (face (completions-common-part)))))))
+  (mapc (lambda (pair)
+          (dolist (str (cdr pair))
+            (ert-info ((format "%S" str) :prefix "String: ")
+              (should (= (with-no-warnings (ivy-completion-common-length str))
+                         (car pair))))))
+        '((0 ""
+             #("a"   0 1 (face completions-first-difference))
+             #("ab"  0 1 (face completions-first-difference))
+             #("abc" 0 1 (face completions-first-difference))
+             #("a"   0 1 (face (completions-first-difference)))
+             #("ab"  0 1 (face (completions-first-difference)))
+             #("abc" 0 1 (face (completions-first-difference)))
+             #("a"   0 1 (font-lock-face (completions-first-difference)))
+             #("ab"  0 1 (font-lock-face (completions-first-difference)))
+             #("abc" 0 1 (font-lock-face (completions-first-difference)))
+             #("abc"
+               0 1 (face completions-first-difference)
+               1 2 (face default))
+             #("abc"
+               0 1 (face completions-first-difference)
+               2 3 (face default))
+             #("abc"
+               0 1 (face (completions-first-difference))
+               1 2 (face default))
+             #("abc"
+               0 1 (face (completions-first-difference))
+               2 3 (face default)))
+          (1 "a"
+             #("a"   0 1 (face default))
+             #("ab"  1 2 (face completions-first-difference))
+             #("ab"  0 2 (face completions-first-difference))
+             #("abc" 1 2 (face completions-first-difference))
+             #("abc" 0 2 (face completions-first-difference))
+             #("ab"  1 2 (face (completions-first-difference)))
+             #("ab"  0 2 (face (completions-first-difference)))
+             #("abc" 1 2 (face (completions-first-difference)))
+             #("abc" 0 2 (face (completions-first-difference)))
+             #("ab"  1 2 (font-lock-face (completions-first-difference)))
+             #("ab"  0 2 (font-lock-face (completions-first-difference)))
+             #("abc" 1 2 (font-lock-face (completions-first-difference)))
+             #("abc" 0 2 (font-lock-face (completions-first-difference)))
+             #("abc"
+               0 1 (face default)
+               1 2 (face completions-first-difference))
+             #("abc"
+               1 2 (face completions-first-difference)
+               2 3 (face default))
+             #("abc"
+               0 1 (face default)
+               1 2 (face (completions-first-difference)))
+             #("abc"
+               1 2 (face (completions-first-difference))
+               2 3 (face default)))
+          (2 "ab"
+             #("ab"  0 1 (face default))
+             #("ab"  1 2 (face default))
+             #("ab"  0 2 (face default))
+             #("abc" 2 3 (face completions-first-difference))
+             #("abc" 1 3 (face completions-first-difference))
+             #("abc" 0 3 (face completions-first-difference))
+             #("abc" 2 3 (face (completions-first-difference)))
+             #("abc" 1 3 (face (completions-first-difference)))
+             #("abc" 0 3 (face (completions-first-difference)))
+             #("abc" 2 3 (font-lock-face (completions-first-difference)))
+             #("abc" 1 3 (font-lock-face (completions-first-difference)))
+             #("abc" 0 3 (font-lock-face (completions-first-difference)))
+             #("abc"
+               0 1 (face default)
+               2 3 (face completions-first-difference))
+             #("abc"
+               1 2 (face default)
+               2 3 (face completions-first-difference))
+             #("abc"
+               0 1 (face default)
+               2 3 (face (completions-first-difference)))
+             #("abc"
+               1 2 (face default)
+               2 3 (face (completions-first-difference)))
+             #("test/"
+               0 2 (face completions-common-part)
+               2 3 (face completions-first-difference))
+             #("test/"
+               0 2 (face completions-common-part)
+               2 3 (face (completions-first-difference))))
+          (3 "abc"
+             #("abc" 0 1 (face default))
+             #("abc" 1 2 (face default))
+             #("abc" 2 3 (face default))
+             #("abc" 0 2 (face default))
+             #("abc" 1 3 (face default))
+             #("abc" 0 3 (face default)))
+          (5 #("Math/E"
+               0 5 (face completions-common-part)
+               5 6 (face completions-first-difference))
+             #("Math/E"
+               0 5 (face completions-common-part)
+               5 6 (face (completions-first-difference)))))))
 
 (ert-deftest ivy--sort-function ()
   "Test `ivy--sort-function' behavior."

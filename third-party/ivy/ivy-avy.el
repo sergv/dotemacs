@@ -1,12 +1,12 @@
 ;;; ivy-avy.el --- Avy integration for Ivy -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2025 Free Software Foundation, Inc.
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; Maintainer: Basil L. Contovounesios <basil@contovou.net>
 ;; URL: https://github.com/abo-abo/swiper
-;; Version: 0.14.2
-;; Package-Requires: ((emacs "24.5") (ivy "0.14.2") (avy "0.5.0"))
+;; Version: 0.15.1
+;; Package-Requires: ((emacs "24.5") (ivy "0.15.1") (avy "0.5.0"))
 ;; Keywords: convenience
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -107,7 +107,7 @@
       (when res
         (ivy-avy--action res)))))
 
-(put 'ivy-avy 'no-counsel-M-x t)
+(function-put #'ivy-avy 'no-counsel-M-x t)
 (unless (lookup-key ivy-minibuffer-map (kbd "C-'"))
   (define-key ivy-minibuffer-map (kbd "C-'") 'ivy-avy))
 (add-to-list 'avy-styles-alist `(ivy-avy . ,ivy-avy-style))

@@ -41,6 +41,7 @@ jobs:
           - 29.2
           - 29.3
           - 29.4
+          - 30.1
           - release-snapshot
           - snapshot
 
@@ -56,7 +57,11 @@ jobs:
     - name: Check Emacs version
       run: emacs --version
 
+    - name: Dependencies
+      run: make deps
+
+    - name: Compile
+      run: make
+
     - name: Test
-      run: |
-        make deps
-        make test
+      run: make test
