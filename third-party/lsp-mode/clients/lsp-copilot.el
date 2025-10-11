@@ -1,4 +1,4 @@
-;;; lsp-copilot.el --- lsp-mode client for copilot       -*- lexical-binding: t -*-
+;;; lsp-copilot.el --- lsp-mode client for Copilot       -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2024 Rodrigo Virote Kassick
 
@@ -22,7 +22,8 @@
 
 ;; Commentary:
 
-;; LSP client for the copilot node server -- https://www.npmjs.com/package/copilot-node-server
+;; LSP client for the Copilot Language Server:
+;; https://www.npmjs.com/package/@github/copilot-language-server
 
 ;; Package-Requires: (lsp-mode secrets s compile dash cl-lib request company)
 
@@ -36,19 +37,26 @@
   "Copilot LSP configuration"
   :group 'lsp-mode
   :tag "Copilot LSP"
-  :link '(url-link "https://www.npmjs.com/package/copilot-node-server"))
+  :link '(url-link "https://www.npmjs.com/package/@github/copilot-language-server"))
 
-(defcustom lsp-copilot-enabled t
+(defcustom lsp-copilot-enabled nil
   "Whether the server should be started to provide completions."
   :type 'boolean
   :group 'lsp-copilot)
+
+(defcustom lsp-copilot-auth-check-delay 5
+  "How much time to wait before checking if the server is properly authenticated.
+
+Set this value to nil if you do not want for the check to be made."
+  :type '(choice (const :tag "Do not check" nil)
+                 (integer :tag "Seconds" 5)))
 
 (defcustom lsp-copilot-langserver-command-args '("--stdio")
   "Command to start copilot-langserver."
   :type '(repeat string)
   :group 'lsp-copilot)
 
-(defcustom lsp-copilot-executable "copilot-lsp"
+(defcustom lsp-copilot-executable "copilot-language-server"
   "The system-wise executable of lsp-copilot.
 When this executable is not found, you can stil use
 lsp-install-server to fetch an emacs-local version of the LSP."
@@ -56,22 +64,22 @@ lsp-install-server to fetch an emacs-local version of the LSP."
   :group 'lsp-copilot)
 
 (defcustom lsp-copilot-applicable-fn (lambda (&rest _) lsp-copilot-enabled)
-  "A function which returns whether the copilot is applicable for the buffer.
+  "A function which returns whether the Copilot is applicable for the buffer.
 The input are the file name and the major mode of the buffer."
   :type 'function
   :group 'lsp-copilot)
 
 (defcustom lsp-copilot-server-disabled-languages nil
-  "The languages for which the server must not be enabled (initialization setup for copilot)"
+  "The languages for which the server must not be enabled (initialization setup for Copilot)"
   :type '(repeat string)
   :group 'lsp-copilot)
 
 (defcustom lsp-copilot-server-multi-root t
-  "Whether the copilot server is started with multi-root."
+  "Whether the Copilot server is started with multi-root."
   :type 'boolean
   :group 'lsp-copilot)
 
-(defcustom lsp-copilot-version "1.41.0"
+(defcustom lsp-copilot-version "1.270.0"
   "Copilot version."
   :type '(choice (const :tag "Latest" nil)
                  (string :tag "Specific Version"))
@@ -79,8 +87,8 @@ The input are the file name and the major mode of the buffer."
 
 (lsp-dependency 'copilot-ls
                 `(:system ,lsp-copilot-executable)
-                '(:npm :package "copilot-node-server"
-                       :path "copilot-node-server"
+                '(:npm :package "@github/copilot-language-server"
+                       :path "copilot-language-server"
                        :version lsp-copilot-version))
 
 (defun lsp-copilot--find-active-workspaces ()
@@ -121,7 +129,7 @@ The input are the file name and the major mode of the buffer."
 
 ;;;###autoload
 (defun lsp-copilot-login ()
-  "Log in with copilot.
+  "Log in with Copilot.
 
 This function is automatically called during the client initialization if needed"
   (interactive)
@@ -135,7 +143,7 @@ This function is automatically called during the client initialization if needed
           (cond
            ((s-equals-p status "AlreadySignedIn")
             (lsp--info "Copilot :: Already signed in as %s" user))
-           ((yes-or-no-p "Copilot requires you to log into your Github account. Proceed now?")
+           ((yes-or-no-p "Copilot requires you to log into your GitHub account. Proceed now?")
             (if (display-graphic-p)
                 (progn
                   (gui-set-selection 'CLIPBOARD user-code)
@@ -182,14 +190,29 @@ automatically, browse to %s." user-code verification-uri))
         :name "emacs"
         :version "0.1.0"))
 
+(defun lsp-copilot--mcp-tools-notification (_ params)
+   "Reacts to the copilot/mcpTools notification"
+  (-let* (((&copilot-ls:McpToolsNotification :servers) params)
+          (tools-str (s-join ", " servers)))
+    (when (s-present? tools-str)
+        (lsp--info "Copilot: Available MCP Tools: %s" tools-str))))
+
 (defun lsp-copilot--server-initialized-fn (workspace)
   ;; Patch capabilities -- server may respond with an empty dict. In plist,
   ;; this would become nil
   (let ((caps (lsp--workspace-server-capabilities workspace)))
     (lsp:set-server-capabilities-inline-completion-provider? caps t))
 
-  (unless (lsp-copilot--authenticated-as)
-    (lsp-copilot-login)))
+
+  (when lsp-copilot-auth-check-delay
+    (run-at-time lsp-copilot-auth-check-delay
+                 nil
+                 (lambda ()
+                   (condition-case err
+                       (unless (lsp-copilot--authenticated-as)
+                         (lsp-copilot-login))
+                     (t (lsp--error "Could not authenticate with Copilot: %s" (error-message-string err)))))))
+  t)
 
 ;; Server installed by emacs
 (lsp-register-client
@@ -211,6 +234,8 @@ automatically, browse to %s." user-code verification-uri))
                           ("$/progress" (lambda (&rest args) (lsp-message "$/progress with %S" args)))
                           ("featureFlagsNotification" #'ignore)
                           ("statusNotification" #'ignore)
+                          ("didChangeStatus" #'ignore)
+                          ("copilot/mcpTools" #'lsp-copilot--mcp-tools-notification)
                           ("window/logMessage" #'lsp--window-log-message)
                           ("conversation/preconditionsNotification" #'ignore))))
 
