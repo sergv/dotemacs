@@ -103,7 +103,8 @@
 This will be done even if the head wasn't designated for exiting.")
 
 (defvar hydra-amaranth-warn-message "An amaranth Hydra can only exit through a blue head"
-  "Amaranth Warning message.  Shown when the user tries to press an unbound/non-exit key while in an amaranth head.")
+  "Amaranth Warning message.  Shown when the user tries to press an
+unbound/non-exit key while in an amaranth head.")
 
 (defun hydra-set-transient-map (keymap on-exit &optional foreign-keys)
   "Set KEYMAP to the highest priority.
@@ -329,29 +330,10 @@ Exitable only through a blue head.")
      "^.*(\\(defhydra\\) \\([a-zA-Z-]+\\)"
      2)))
 
-;;* Find Function
-(eval-after-load 'find-func
-  '(defadvice find-function-search-for-symbol
-    (around hydra-around-find-function-search-for-symbol-advice
-     (symbol type library) activate)
-    "Navigate to hydras with `find-function-search-for-symbol'."
-    (prog1 ad-do-it
-      (when (symbolp symbol)
-        ;; The original function returns (cons (current-buffer) (point))
-        ;; if it found the point.
-        (unless (cdr ad-return-value)
-          (with-current-buffer (find-file-noselect library)
-            (let ((sn (symbol-name symbol)))
-              (when (and (null type)
-                         (string-match "\\`\\(hydra-[a-z-A-Z0-9]+\\)/\\(.*\\)\\'" sn)
-                         (re-search-forward (concat "(defhydra " (match-string 1 sn))
-                                            nil t))
-                (goto-char (match-beginning 0)))
-              (cons (current-buffer) (point)))))))))
-
 ;;* Universal Argument
 (defvar hydra-base-map
   (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "<f1> k") 'hydra--describe-key)
     (define-key map [?\C-u] 'hydra--universal-argument)
     (define-key map [?-] 'hydra--negative-argument)
     (define-key map [?0] 'hydra--digit-argument)
@@ -412,6 +394,15 @@ Exitable only through a blue head.")
   (setq prefix-arg (cond ((integerp arg) (- arg))
                          ((eq arg '-) nil)
                          (t '-))))
+
+(defun hydra--describe-key ()
+  "Forward to `describe-key'.
+Call order: the hydra body, `hydra--describe-key', the head."
+  (interactive)
+  (lv-delete-window)
+  (let ((hydra-hint-display-type 'message))
+    (call-interactively 'describe-key)
+    (hydra-keyboard-quit)))
 
 ;;* Repeat
 (defvar hydra-repeat--prefix-arg nil
@@ -842,7 +833,9 @@ HEADS is a list of heads."
    "The heads for the associated hydra are:\n\n%s\n\n%s%s."
    (mapconcat
     (lambda (x)
-      (format "\"%s\":    `%S'" (car x) (cadr x)))
+      (format "\"%s\":    %s"
+              (car x)
+              (if (cadr x) (format "`%S'" (cadr x)) "nil")))
     heads ",\n")
    (format "The body can be accessed via `%S'" body-name)
    (if body-key
