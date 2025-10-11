@@ -1,10 +1,17 @@
 ;;; ghub.el --- Client libraries for Git forge APIs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2016-2023 Jonas Bernoulli
+;; Copyright (C) 2016-2025 Jonas Bernoulli
 
-;; Author: Jonas Bernoulli <jonas@bernoul.li>
+;; Author: Jonas Bernoulli <emacs.ghub@jonas.bernoulli.dev>
 ;; Homepage: https://github.com/magit/ghub
 ;; Keywords: tools
+
+;; Package-Version: 5.0.1
+;; Package-Requires: (
+;;     (emacs   "29.1")
+;;     (compat  "30.1")
+;;     (llama    "1.0")
+;;     (treepy "0.1.2"))
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -30,10 +37,7 @@
 
 ;; Ghub abstracts access to API resources using only a handful of basic
 ;; functions such as `ghub-get'.  These are convenience wrappers around
-;; `ghub-request'.  Additional forge-specific wrappers like `glab-put',
-;; `gtea-put', `gogs-post' and `buck-delete' are also available.  Ghub
-;; does not provide any resource-specific functions, with the exception
-;; of `FORGE-repository-id'.
+;; `ghub-request'.
 
 ;; When accessing Github, then Ghub handles the creation and storage of
 ;; access tokens using a setup wizard to make it easier for users to get
@@ -55,21 +59,12 @@
 (require 'compat)
 (require 'gnutls)
 (require 'let-alist)
+(require 'llama)
 (require 'url)
 (require 'url-auth)
 (require 'url-http)
 
 (eval-when-compile (require 'subr-x))
-
-;; Needed for Emacs < 27.
-(eval-when-compile (require 'json))
-(declare-function json-read-from-string "json" (string))
-(declare-function json-encode "json" (object))
-
-(declare-function glab-repository-id "glab" (owner name &key username auth host))
-(declare-function gtea-repository-id "gtea" (owner name &key username auth host))
-(declare-function gogs-repository-id "gogs" (owner name &key username auth host))
-(declare-function buck-repository-id "buck" (owner name &key username auth host))
 
 (defvar url-callback-arguments)
 (defvar url-http-end-of-headers)
@@ -78,8 +73,13 @@
 
 ;;; Settings
 
-(defconst ghub-default-host "api.github.com"
-  "The default host that is used if `ghub.host' is not set.")
+(defvar ghub-default-host-alist
+  '((github    . "api.github.com")
+    (gitlab    . "gitlab.com/api/v4")
+    (gitea     . "localhost:3000/api/v1")
+    (gogs      . "localhost:3000/api/v1")
+    (bitbucket . "api.bitbucket.org/2.0"))
+  "Alist of default hosts used when the respective `FORGE.host' is not set.")
 
 (defvar ghub-github-token-scopes '(repo)
   "The Github API scopes that your private tools need.
@@ -91,18 +91,8 @@ only serves as documentation.")
 (defvar ghub-insecure-hosts nil
   "List of hosts that use http instead of https.")
 
-(defvar ghub-json-use-jansson nil
-  "Whether to use the Jansson library, if available.
-This is experimental.  Only let-bind this but do not enable it
-globally because doing that is likely to break other packages
-that use `ghub'.  As a user also do not enable this yet.
-See https://github.com/magit/ghub/pull/149.")
-
-(defvar ghub-json-object-type 'alist
-  "The object type that is used for json payload decoding.")
-
-(defvar ghub-json-array-type 'list
-  "The array type that is used for json payload decoding.")
+(defvar ghub-debug nil
+  "Record additional debug information.")
 
 ;;; Request
 ;;;; Object
@@ -110,19 +100,21 @@ See https://github.com/magit/ghub/pull/149.")
 (cl-defstruct (ghub--req
                (:constructor ghub--make-req)
                (:copier nil))
-  (url        nil :read-only nil)
-  (forge      nil :read-only t)
-  (silent     nil :read-only t)
-  (method     nil :read-only t)
-  (headers    nil :read-only t)
-  (handler    nil :read-only t)
-  (unpaginate nil :read-only nil)
-  (noerror    nil :read-only t)
-  (reader     nil :read-only t)
-  (callback   nil :read-only t)
-  (errorback  nil :read-only t)
-  (value      nil :read-only nil)
-  (extra      nil :read-only nil))
+  (url         nil :read-only nil)
+  (forge       nil :read-only t)
+  (silent      nil :read-only t)
+  (method      nil :read-only t)
+  (headers     nil :read-only t)
+  (handler     nil :read-only t)
+  (unpaginate  nil :read-only nil)
+  (noerror     nil :read-only t)
+  (reader      nil :read-only t)
+  (buffer      nil :read-only t)
+  (synchronous nil :read-only t)
+  (callback    nil :read-only t)
+  (errorback   nil :read-only t)
+  (value       nil :read-only nil)
+  (extra       nil :read-only nil))
 
 (defalias 'ghub-req-extra #'ghub--req-extra)
 
@@ -136,11 +128,12 @@ See https://github.com/magit/ghub/pull/149.")
 `ghub-request' returns the response body and stores the
 response headers in this variable.")
 
-(cl-defun ghub-head (resource &optional params
-                              &key query payload headers
-                              silent unpaginate noerror reader
-                              username auth host
-                              callback errorback extra)
+(cl-defun ghub-head (resource
+                     &optional params
+                     &key query payload headers
+                     silent unpaginate noerror reader
+                     username auth host
+                     callback errorback extra)
   "Make a `HEAD' request for RESOURCE, with optional query PARAMS.
 Like calling `ghub-request' (which see) with \"HEAD\" as METHOD."
   (ghub-request "HEAD" resource params
@@ -150,81 +143,87 @@ Like calling `ghub-request' (which see) with \"HEAD\" as METHOD."
                 :username username :auth auth :host host
                 :callback callback :errorback errorback :extra extra))
 
-(cl-defun ghub-get (resource &optional params
-                             &key query payload headers
-                             silent unpaginate noerror reader
-                             username auth host
-                             callback errorback extra)
+(cl-defun ghub-get (resource
+                    &optional params
+                    &key query payload headers
+                    silent unpaginate noerror reader
+                    username auth host forge
+                    callback errorback extra)
   "Make a `GET' request for RESOURCE, with optional query PARAMS.
 Like calling `ghub-request' (which see) with \"GET\" as METHOD."
   (ghub-request "GET" resource params
                 :query query :payload payload :headers headers
                 :silent silent :unpaginate unpaginate
                 :noerror noerror :reader reader
-                :username username :auth auth :host host
+                :username username :auth auth :host host :forge forge
                 :callback callback :errorback errorback :extra extra))
 
-(cl-defun ghub-put (resource &optional params
-                             &key query payload headers
-                             silent unpaginate noerror reader
-                             username auth host
-                             callback errorback extra)
+(cl-defun ghub-put (resource
+                    &optional params
+                    &key query payload headers
+                    silent unpaginate noerror reader
+                    username auth host forge
+                    callback errorback extra)
   "Make a `PUT' request for RESOURCE, with optional payload PARAMS.
 Like calling `ghub-request' (which see) with \"PUT\" as METHOD."
   (ghub-request "PUT" resource params
                 :query query :payload payload :headers headers
                 :silent silent :unpaginate unpaginate
                 :noerror noerror :reader reader
-                :username username :auth auth :host host
+                :username username :auth auth :host host :forge forge
                 :callback callback :errorback errorback :extra extra))
 
-(cl-defun ghub-post (resource &optional params
-                              &key query payload headers
-                              silent unpaginate noerror reader
-                              username auth host
-                              callback errorback extra)
+(cl-defun ghub-post (resource
+                     &optional params
+                     &key query payload headers
+                     silent unpaginate noerror reader
+                     username auth host forge
+                     callback errorback extra)
   "Make a `POST' request for RESOURCE, with optional payload PARAMS.
 Like calling `ghub-request' (which see) with \"POST\" as METHOD."
   (ghub-request "POST" resource params
                 :query query :payload payload :headers headers
                 :silent silent :unpaginate unpaginate
                 :noerror noerror :reader reader
-                :username username :auth auth :host host
+                :username username :auth auth :host host :forge forge
                 :callback callback :errorback errorback :extra extra))
 
-(cl-defun ghub-patch (resource &optional params
-                               &key query payload headers
-                               silent unpaginate noerror reader
-                               username auth host
-                               callback errorback extra)
+(cl-defun ghub-patch (resource
+                      &optional params
+                      &key query payload headers
+                      silent unpaginate noerror reader
+                      username auth host forge
+                      callback errorback extra)
   "Make a `PATCH' request for RESOURCE, with optional payload PARAMS.
 Like calling `ghub-request' (which see) with \"PATCH\" as METHOD."
   (ghub-request "PATCH" resource params
                 :query query :payload payload :headers headers
                 :silent silent :unpaginate unpaginate
                 :noerror noerror :reader reader
-                :username username :auth auth :host host
+                :username username :auth auth :host host :forge forge
                 :callback callback :errorback errorback :extra extra))
 
-(cl-defun ghub-delete (resource &optional params
-                                &key query payload headers
-                                silent unpaginate noerror reader
-                                username auth host
-                                callback errorback extra)
+(cl-defun ghub-delete (resource
+                       &optional params
+                       &key query payload headers
+                       silent unpaginate noerror reader
+                       username auth host forge
+                       callback errorback extra)
   "Make a `DELETE' request for RESOURCE, with optional payload PARAMS.
 Like calling `ghub-request' (which see) with \"DELETE\" as METHOD."
   (ghub-request "DELETE" resource params
                 :query query :payload payload :headers headers
                 :silent silent :unpaginate unpaginate
                 :noerror noerror :reader reader
-                :username username :auth auth :host host
+                :username username :auth auth :host host :forge forge
                 :callback callback :errorback errorback :extra extra))
 
-(cl-defun ghub-request (method resource &optional params
-                               &key query payload headers
-                               silent unpaginate noerror reader
-                               username auth host forge
-                               callback errorback value extra)
+(cl-defun ghub-request ( method resource
+                         &optional params
+                         &key query payload headers
+                         silent unpaginate noerror reader
+                         username auth host forge
+                         callback errorback value extra)
   "Make a request for RESOURCE and return the response body.
 
 Also place the response headers in `ghub-response-headers'.
@@ -292,10 +291,9 @@ If HOST is non-nil, then connect to that Github instance.  This
   that using the Git variable `github.host' instead of using this
   argument.
 
-If FORGE is `gitlab', then connect to Gitlab.com or, depending
-  on HOST, to another Gitlab instance.  This is only intended for
-  internal use.  Instead of using this argument you should use
-  function `glab-request' and other `glab-*' functions.
+If optional FORGE is nil, then it is assumed that HOST is a
+  Github host.  When connecting to another forge type, then
+  FORGE must be one of `gitlab', `gitea', `gogs' or `bitbucket'.
 
 If CALLBACK and/or ERRORBACK is non-nil, then make one or more
   asynchronous requests and call CALLBACK or ERRORBACK when
@@ -317,6 +315,7 @@ Both callbacks are called with four arguments.
      argument.
   4. A `ghub--req' struct, which can be passed to `ghub-continue'
      (which see) to retrieve the next page, if any."
+  (declare (indent defun))
   (cl-assert (or (booleanp unpaginate) (natnump unpaginate)))
   (unless (string-prefix-p "/" resource)
     (setq resource (concat "/" resource)))
@@ -340,32 +339,21 @@ Both callbacks are called with four arguments.
   (ghub--retrieve
    (ghub--encode-payload payload)
    (ghub--make-req
-    :url (url-generic-parse-url
-          (concat (if (member host ghub-insecure-hosts) "http://" "https://")
-                  (cond ((and (equal resource "/graphql")
-                              (string-suffix-p "/v3" host))
-                         ;; Needed for some Github Enterprise instances.
-                         (substring host 0 -3))
-                        ((and (equal resource "/api/graphql")
-                              (string-suffix-p "/api/v4" host))
-                         ;; Needed for all Gitlab instances.
-                         (substring host 0 -7))
-                        (host))
-                  resource
-                  (and query (concat "?" (ghub--url-encode-params query)))))
-    :forge forge
-    :silent silent
-    ;; Encode in case caller used (symbol-name 'GET). #35
-    :method     (encode-coding-string method 'utf-8)
-    :headers    (ghub--headers headers host auth username forge)
-    :handler    #'ghub--handle-response
-    :unpaginate unpaginate
-    :noerror    noerror
-    :reader     reader
-    :callback   callback
-    :errorback  errorback
-    :value      value
-    :extra      extra)))
+    :url         (ghub--encode-url host resource query)
+    :forge       forge
+    :silent      silent
+    :method      (encode-coding-string method 'utf-8) ;#35
+    :headers     (ghub--headers headers host auth username forge)
+    :handler     #'ghub--handle-response
+    :unpaginate  unpaginate
+    :noerror     noerror
+    :reader      reader
+    :buffer      (current-buffer)
+    :synchronous (not (or callback errorback))
+    :callback    callback
+    :errorback   errorback
+    :value       value
+    :extra       extra)))
 
 (defun ghub-continue (req)
   "If there is a next page, then retrieve that.
@@ -384,8 +372,9 @@ called after the next request has finished.  Use the function
   (and (assq 'next (ghub-response-link-relations req))
        (or (ghub--retrieve nil req) t)))
 
-(cl-defun ghub-wait (resource &optional duration
-                              &key username auth host forge)
+(cl-defun ghub-wait (resource
+                     &optional duration
+                     &key username auth host forge)
   "Busy-wait up to DURATION seconds for RESOURCE to become available.
 
 DURATION specifies how many seconds to wait at most.  It defaults
@@ -428,10 +417,8 @@ to the value of `ghub-response-headers', for later use when
 this function is called with nil for PAYLOAD."
   (if (eq (ghub--req-forge req) 'bitbucket)
       (if payload
-          (let* ((page (cl-mapcan (lambda (key)
-                                    (and-let* ((elt (assq key payload)))
-                                      (list elt)))
-                                  '(size page pagelen next previous)))
+          (let* ((page (seq-keep (##assq % payload)
+                                 '(size page pagelen next previous)))
                  (headers (cons (cons 'link-alist page) headers)))
             (if (and req (or (ghub--req-callback req)
                              (ghub--req-errorback req)))
@@ -439,100 +426,87 @@ this function is called with nil for PAYLOAD."
               (setq-default ghub-response-headers headers))
             page)
         (cdr (assq 'link-alist ghub-response-headers)))
-    (and-let* ((rels (cdr (assoc "Link" (or headers ghub-response-headers)))))
+    (and-let* ((headers (or headers ghub-response-headers))
+               (rels (cdr (or (assoc "Link" headers)
+                              (assoc "link" headers)))))
       (mapcar (lambda (elt)
                 (pcase-let ((`(,url ,rel) (split-string elt "; ")))
                   (cons (intern (substring rel 5 -1))
                         (substring url 1 -1))))
-              (split-string rels ", ")))))
+              (split-string rels ", ?")))))
 
 (cl-defun ghub-repository-id (owner name &key username auth host forge noerror)
   "Return the id of the specified repository.
 Signal an error if the id cannot be determined."
-  (let ((fn (cl-case forge
-              ((nil ghub github) #'ghub--repository-id)
-              (gitlab            #'glab-repository-id)
-              (gitea             #'gtea-repository-id)
-              (gogs              #'gogs-repository-id)
-              (bitbucket         #'buck-repository-id)
-              (t (intern (format "%s-repository-id" forge))))))
-    (unless (fboundp fn)
-      (error "ghub-repository-id: Forge type/abbreviation `%s' is unknown"
-             forge))
-    (or (funcall fn owner name :username username :auth auth :host host)
-        (and (not noerror)
-             (error "Repository %S does not exist on %S.\n%s%S?"
-                    (concat owner "/" name)
-                    (or host (ghub--host forge))
-                    "Maybe it was renamed and you have to update "
-                    "remote.<remote>.url")))))
+  (or (pcase forge
+        ((or 'nil 'github)
+         (let-alist (ghub-graphql
+                     '(query (repository [(owner $owner String!)
+                                          (name  $name  String!)]
+                                         id))
+                     `((owner . ,owner)
+                       (name  . ,name))
+                     :username username :auth auth :host host)
+           .data.repository.id))
+        ('gitlab
+         (number-to-string
+          (alist-get
+           'id (ghub-get (format "/projects/%s%%2F%s"
+                                 (string-replace "/" "%2F" owner)
+                                 name)
+                         nil :forge 'gitlab
+                         :username username :auth auth :host host))))
+        ((or 'forgejo 'gitea 'gogs)
+         (number-to-string
+          (alist-get
+           'id (ghub-get (format "/repos/%s/%s" owner name)
+                         nil :forge forge
+                         :username username :auth auth :host host))))
+        ('bitbucket
+         (substring
+          (alist-get 'uuid
+                     (ghub-get (format "/repositories/%s/%s" owner name)
+                               nil :forge 'bitbucket
+                               :username username :auth auth :host host))
+          1 -1))
+        (_ (error "ghub-repository-id: Forge type `%s' is unknown" forge)))
+      (and (not noerror)
+           (error "Repository %S does not exist on %S.\n%s%S?"
+                  (concat owner "/" name)
+                  (or host (ghub--host forge))
+                  "Maybe it was renamed and you have to update "
+                  "remote.<remote>.url"))))
 
 ;;;; Internal
 
-(defvar ghub-use-workaround-for-emacs-bug t
-  "Whether to work around Emacs bug debbugs#34341.
-
-First see https://github.com/magit/ghub/wiki/Known-Issues,
-for information about this bug and another related bug.
-
-Because our under of these bugs evolved over time, the possible
-values of this variable are a bit odd: If t, enable workaround if
-necessary (i.e., if Emacs < 26.3 and GnuTLS >= 3.6.3 are used).
-If `force', enable workaround even if that is believed to be
-unnecessary.  If nil, do not enable the workaround.  The default
-is t.")
-
-(defvar ghub-use-workaround-for-emacs-bug-54989 t
-  "Whether to work around Emacs bug debbugs#54989.
-
-First see https://github.com/magit/ghub/wiki/Known-Issues,
-for information about this bug and another related bug.
-
-If t, work around the bug if necessary (i.e., if not using Emacs'
-\"master\" branch).  If nil, then don't work around the bug.  The
-default is t.  Setting this variable only has an effect if it is
-done before `ghub' is loaded.")
-
 (cl-defun ghub--retrieve (payload req)
-  (let ((url-request-extra-headers
-         (let ((headers (ghub--req-headers req)))
-           (if (functionp headers) (funcall headers) headers)))
-        (url-request-method (ghub--req-method req))
-        (url-request-data payload)
-        (url-show-status nil)
-        (url     (ghub--req-url req))
-        (handler (ghub--req-handler req))
-        (silent  (ghub--req-silent req))
-        (gnutls-algorithm-priority
-         (if (and ghub-use-workaround-for-emacs-bug
-                  (or (eq ghub-use-workaround-for-emacs-bug 'force)
-                      (and (not gnutls-algorithm-priority)
-                           (>= libgnutls-version 30603)
-                           (version< emacs-version "26.3")
-                           ;; (memq (ghub--req-forge req) '(github nil))
-                           )))
-             "NORMAL:-VERS-TLS1.3"
-           gnutls-algorithm-priority)))
-    (if (or (ghub--req-callback  req)
-            (ghub--req-errorback req))
-        (url-retrieve url handler (list req) silent)
-      (with-current-buffer
-          (url-retrieve-synchronously url silent)
-        (funcall handler (car url-callback-arguments) req)))))
+  (pcase-let*
+      (((cl-struct ghub--req headers method url handler silent synchronous) req)
+       (url-request-extra-headers
+        (if (functionp headers) (funcall headers) headers))
+       (url-request-method method)
+       (url-request-data payload)
+       (url-show-status nil))
+    (if synchronous
+        (if-let ((buf (url-retrieve-synchronously url silent)))
+            (with-current-buffer buf
+              (funcall handler (car url-callback-arguments) req))
+          (error "ghub--retrieve: No buffer returned"))
+      (url-retrieve url handler (list req) silent))))
 
 (defun ghub--handle-response (status req)
-  (let ((buffer (current-buffer)))
+  (let ((buf (current-buffer)))
     (unwind-protect
         (progn
           (set-buffer-multibyte t)
           (let* ((unpaginate (ghub--req-unpaginate req))
-                 (headers    (ghub--handle-response-headers status req))
-                 (payload    (ghub--handle-response-payload req))
-                 (payload    (ghub--handle-response-error status payload req))
-                 (value      (ghub--handle-response-value payload req))
-                 (prev       (ghub--req-url req))
-                 (next       (cdr (assq 'next (ghub-response-link-relations
-                                               req headers payload)))))
+                 (headers (ghub--handle-response-headers status req))
+                 (payload (ghub--handle-response-payload req))
+                 (payload (ghub--handle-response-error status payload req))
+                 (value   (ghub--handle-response-value payload req))
+                 (prev    (ghub--req-url req))
+                 (next    (cdr (assq 'next (ghub-response-link-relations
+                                            req headers payload)))))
             (when (numberp unpaginate)
               (cl-decf unpaginate))
             (setf (ghub--req-url req)
@@ -543,7 +517,8 @@ done before `ghub' is loaded.")
                      (or (eq unpaginate t)
                          (>  unpaginate 0))
                      (ghub-continue req))
-                (let ((callback  (ghub--req-callback req))
+                (let ((req-buf   (ghub--req-buffer req))
+                      (callback  (ghub--req-callback req))
                       (errorback (ghub--req-errorback req))
                       (err       (plist-get status :error)))
                   (cond ((and err errorback)
@@ -553,19 +528,22 @@ done before `ghub' is loaded.")
                                     errorback)
                                   err headers status req))
                         (callback
-                         (funcall callback value headers status req))
+                         (save-current-buffer
+                           (when (buffer-live-p req-buf)
+                             (set-buffer req-buf))
+                           (funcall callback value headers status req)))
                         (t value))))))
-      (when (buffer-live-p buffer)
-        (kill-buffer buffer)))))
+      (when (and (buffer-live-p buf)
+                 (not (buffer-local-value 'ghub-debug buf)))
+        (kill-buffer buf)))))
 
 (defun ghub--handle-response-headers (_status req)
-  (goto-char (point-min))
-  (forward-line 1)
   (let (headers)
     (when (memq url-http-end-of-headers '(nil 0))
-      (setq url-debug t)
-      (error "BUG: missing headers; but there's a patch for that \
-see https://github.com/magit/ghub/wiki/Known-Issues"))
+      (unless url-debug (setq url-debug t))
+      (error "BUG: Missing headers in response buffer %s" (current-buffer)))
+    (goto-char (point-min))
+    (forward-line 1)
     (while (re-search-forward "^\\([^:]*\\): \\(.+\\)"
                               url-http-end-of-headers t)
       (push (cons (match-string 1)
@@ -580,16 +558,14 @@ see https://github.com/magit/ghub/wiki/Known-Issues"))
     headers))
 
 (defun ghub--handle-response-error (status payload req)
-  (let ((noerror (ghub--req-noerror req))
-        (err (plist-get status :error)))
-    (if err
-        (if noerror
-            (if (eq noerror 'return)
-                payload
-              (setcdr (last err) (list payload))
-              nil)
-          (ghub--signal-error err payload req))
-      payload)))
+  (if-let ((err (plist-get status :error)))
+      (if-let ((noerror (ghub--req-noerror req)))
+          (if (eq noerror 'return)
+              payload
+            (setcdr (last err) (list payload))
+            nil)
+        (ghub--signal-error err payload req))
+    payload))
 
 (defun ghub--signal-error (err &optional payload req)
   (pcase-let ((`(,symb . ,data) err))
@@ -599,7 +575,7 @@ see https://github.com/magit/ghub/wiki/Known-Issues"))
                     (let ((code (car (cdr-safe data))))
                       (list code
                             (nth 2 (assq code url-http-codes))
-                            (and req (url-filename (ghub--req-url req)))
+                            (and req (url-recreate-url (ghub--req-url req)))
                             payload)))
           (signal 'ghub-error data))
       (signal symb data))))
@@ -620,34 +596,28 @@ see https://github.com/magit/ghub/wiki/Known-Issues"))
                'ghub--read-json-payload)
            url-http-response-status))
 
-(defun ghub--read-json-payload (_status)
-  (let ((raw (ghub--decode-payload)))
-    (and raw
-         (condition-case nil
-             (if (and ghub-json-use-jansson
-                      (fboundp 'json-parse-string))
-                 (json-parse-string
-                  raw
-                  :object-type  ghub-json-object-type
-                  :array-type   ghub-json-array-type
-                  :false-object nil
-                  :null-object  nil)
-               (require 'json)
-               (let ((json-object-type ghub-json-object-type)
-                     (json-array-type  ghub-json-array-type)
-                     (json-false       nil)
-                     (json-null        nil))
-                 (json-read-from-string raw)))
-           ((json-parse-error json-readtable-error)
-            `((message
-               . ,(if (looking-at "<!DOCTYPE html>")
-                      (if (re-search-forward
-                           "<p>\\(?:<strong>\\)?\\([^<]+\\)" nil t)
-                          (match-string 1)
-                        "error description missing")
-                    (string-trim (buffer-substring (point) (point-max)))))
-              (documentation_url
-               . "https://github.com/magit/ghub/wiki/Github-Errors")))))))
+(defun ghub--read-json-payload (_status &optional json-type-args)
+  (and-let* ((payload (ghub--decode-payload)))
+    (ghub--assert-json-available)
+    (condition-case nil
+        (apply #'json-parse-string payload
+               (or json-type-args
+                   '( :object-type alist
+                      :array-type list
+                      :null-object nil
+                      :false-object nil)))
+      (json-parse-error
+       (when ghub-debug
+         (pop-to-buffer (current-buffer)))
+       (setq-local ghub-debug t)
+       `((message . ,(if (looking-at "<!DOCTYPE html>")
+                         (if (re-search-forward
+                              "<p>\\(?:<strong>\\)?\\([^<]+\\)" nil t)
+                             (match-string 1)
+                           "error description missing")
+                       (string-trim (buffer-substring (point) (point-max)))))
+         (documentation_url
+          . "https://github.com/magit/ghub/wiki/Github-Errors"))))))
 
 (defun ghub--decode-payload (&optional _status)
   (and (not (eobp))
@@ -656,27 +626,31 @@ see https://github.com/magit/ghub/wiki/Known-Issues"))
         'utf-8)))
 
 (defun ghub--encode-payload (payload)
-  (and payload
-       (progn
-         (unless (stringp payload)
-           (setq payload
-                 (if (and ghub-json-use-jansson
-                          (fboundp 'json-serialize))
-                     (json-serialize payload
-                                     ;; :object-type and :array-type
-                                     ;; are not supported here.
-                                     :false-object nil
-                                     :null-object  :null)
-                   (require 'json)
-                   (let ((json-object-type ghub-json-object-type)
-                         (json-array-type  ghub-json-array-type)
-                         (json-false       nil)
-                         (json-null        :null))
-                     ;; Unfortunately `json-encode' may modify the input.
-                     ;; See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=40693.
-                     ;; and https://github.com/magit/forge/issues/267
-                     (json-encode (copy-tree payload))))))
-         (encode-coding-string payload 'utf-8))))
+  (cl-typecase payload
+    (null nil)
+    (string (encode-coding-string payload 'utf-8))
+    (t (ghub--assert-json-available)
+       (encode-coding-string
+        (json-serialize payload
+                        :null-object :null
+                        :false-object nil)
+        'utf-8))))
+
+(defun ghub--encode-url (host resource &optional query)
+  (url-generic-parse-url
+   (concat (if (member host ghub-insecure-hosts) "http://" "https://")
+           ;; Needed for some Github Enterprise instances.
+           (cond
+            ((and (equal resource "/graphql")
+                  (string-suffix-p "/v3" host))
+             (substring host 0 -3))
+            ;; Needed for all Gitlab instances.
+            ((and (equal resource "/api/graphql")
+                  (string-suffix-p "/api/v4" host))
+             (substring host 0 -7))
+            (host))
+           resource
+           (and query (concat "?" (ghub--url-encode-params query))))))
 
 (defun ghub--url-encode-params (params)
   (mapconcat (lambda (param)
@@ -687,6 +661,11 @@ see https://github.com/magit/ghub/wiki/Known-Issues"))
                            (boolean (if val "true" "false"))
                            (t (url-hexify-string val))))))
              params "&"))
+
+(defun ghub--assert-json-available ()
+  (unless (and (fboundp 'json-available-p)
+               (json-available-p))
+    (error "Ghub requires Emacs 29 --with-json or Emacs >= 30")))
 
 ;;; Authentication
 ;;;; API
@@ -723,17 +702,15 @@ and call `auth-source-forget+'."
   (unless username
     (setq username (ghub--username host forge)))
   (if (eq auth 'basic)
-      (cl-ecase forge
-        ((nil gitea gogs bitbucket)
+      (pcase-exhaustive forge
+        ((or 'nil 'forgejo 'gitea 'gogs 'bitbucket)
          (cons "Authorization" (ghub--basic-auth host username)))
-        ((github gitlab)
+        ((or 'github 'gitlab)
          (error "%s does not support basic authentication"
                 (capitalize (symbol-name forge)))))
-    (cons (cl-ecase forge
-            ((nil github gitea gogs bitbucket)
-             "Authorization")
-            (gitlab
-             "Private-Token"))
+    (cons (pcase-exhaustive forge
+            ((or 'nil 'forgejo 'github 'gitea 'gogs 'bitbucket) "Authorization")
+            ('gitlab "Private-Token"))
           (if (eq forge 'bitbucket)
               ;; For some undocumented reason Bitbucket supports
               ;; values of the form "token <token>" only for GET
@@ -766,248 +743,73 @@ and call `auth-source-forget+'."
 
 (defun ghub--token (host username package &optional nocreate forge)
   (let* ((user (ghub--ident username package))
-         (token
-          (or (car (ghub--auth-source-get (list :secret)
-                     :host host :user user))
-              (progn
-                ;; Auth-Source caches the information that there is no
-                ;; value, but in our case that is a situation that needs
-                ;; fixing so we want to keep trying by invalidating that
-                ;; information.
-                ;; The (:max 1) is needed and has to be placed at the
-                ;; end for Emacs releases before 26.1.  #24 #64 #72
-                (auth-source-forget (list :host host :user user :max 1))
-                (and (not nocreate)
-                     (error "\
-Required %s token (\"%s\" for \"%s\") does not exist.
+         (token (or (ghub--auth-source-get :secret :host host :user user)
+                    (and (string-match "\\`\\([^/]+\\)" host)
+                         (ghub--auth-source-get :secret
+                           :host (match-string 1 host)
+                           :user user)))))
+    (unless (or token nocreate)
+      (error "\
+Required %s token (%S for %s%S) does not exist.
 See https://magit.vc/manual/ghub/Getting-Started.html
-or (info \"(ghub)Getting Started\") for instructions.
-\(The setup wizard no longer exists.)"
-                            (capitalize (symbol-name (or forge 'github)))
-                            user host))))))
+or (info \"(ghub)Getting Started\") for instructions."
+             (capitalize (symbol-name (or forge 'github)))
+             user
+             (if (string-match "\\`\\([^/]+\\)" host)
+                 (format "either %S or " (match-string 1 host))
+               "")
+             host))
     (if (functionp token) (funcall token) token)))
 
-(cl-defgeneric ghub--host (&optional forge)
-  (cl-ecase forge
-    ((nil github)
-     (or (ignore-errors (car (process-lines "git" "config" "github.host")))
-         ghub-default-host))
-    (gitlab
-     (or (ignore-errors (car (process-lines "git" "config" "gitlab.host")))
-         (bound-and-true-p glab-default-host)))
-    (gitea
-     (or (ignore-errors (car (process-lines "git" "config" "gitea.host")))
-         (bound-and-true-p gtea-default-host)))
-    (gogs
-     (or (ignore-errors (car (process-lines "git" "config" "gogs.host")))
-         (bound-and-true-p gogs-default-host)))
-    (bitbucket
-     (or (ignore-errors (car (process-lines "git" "config" "bitbucket.host")))
-         (bound-and-true-p buck-default-host)))))
+(cl-defmethod ghub--host (&optional forge)
+  (let ((forge (or forge 'github)))
+    (or (ghub--git-get (format "%s.host" forge))
+        (alist-get forge ghub-default-host-alist))))
 
-(cl-defgeneric ghub--username (host &optional forge)
-  (let ((var
-         (cl-ecase forge
-           ((nil github)
-            (if (equal host ghub-default-host)
-                "github.user"
-              (format "github.%s.user" host)))
-           (gitlab
-            (if (equal host "gitlab.com/api/v4")
-                "gitlab.user"
-              (format "gitlab.%s.user" host)))
-           (bitbucket
-            (if (equal host "api.bitbucket.org/2.0")
-                "bitbucket.user"
-              (format "bitbucket.%s.user" host)))
-           (gitea
-            (when (zerop (call-process "git" nil nil nil "config" "gitea.host"))
-              (error "gitea.host is set but always ignored"))
-            (format "gitea.%s.user" host))
-           (gogs
-            (when (zerop (call-process "git" nil nil nil "config" "gogs.host"))
-              (error "gogs.host is set but always ignored"))
-            (format "gogs.%s.user"  host)))))
-    (condition-case nil
-        (car (process-lines "git" "config" var))
-      (error
-       (let ((user (read-string
-                    (format "Git variable `%s' is unset.  Set to: " var))))
-         (if (equal user "")
-             (user-error "The empty string is not a valid username")
-           (call-process
-            "git" nil nil nil "config"
-            (if (eq (read-char-choice
-                     (format "Set %s=%s [g]lobally (recommended) or [l]ocally? "
-                             var user)
-                     (list ?g ?l))
-                    ?g)
-                "--global"
-              "--local")
-            var user)
-           user))))))
+(cl-defmethod ghub--username (host &optional forge)
+  (let* ((forge (or forge 'github))
+         (host (or host (ghub--host forge)))
+         (var (format "%s.%s.user" forge host)))
+    (or (ghub--git-get var)
+        (if-let ((_(equal host (alist-get forge ghub-default-host-alist)))
+                 (default-var (format "%s.user" forge)))
+            (or (ghub--git-get default-var)
+                (user-error "%s; `%s' and `%s' are both unset"
+                            "Cannot determine username" var default-var))
+          (user-error "Cannot determine username; `%s' is unset" var)))))
 
 (defun ghub--ident (username package)
   (format "%s^%s" username package))
 
 (defun ghub--auth-source-get (keys &rest spec)
   (declare (indent 1))
-  (let ((plist (car (apply #'auth-source-search
-                           (append spec (list :max 1))))))
-    (mapcar (lambda (k)
-              (plist-get plist k))
-            keys)))
+  (if-let ((plist (car (apply #'auth-source-search spec))))
+      (if (keywordp keys)
+          (plist-get plist keys)
+        (mapcar (##plist-get plist %) keys))
+    ;; Auth-Source caches the information that there is no value, but in
+    ;; our case that is a situation that needs fixing, so we want to keep
+    ;; trying, by invalidating that information.
+    (auth-source-forget spec)
+    nil))
 
-(when (version< emacs-version "26.2")
-  ;; Fixed by Emacs commit 60ff8101449eea3a5ca4961299501efd83d011bd.
-  (advice-add 'auth-source-netrc-parse-next-interesting :around
-              'auth-source-netrc-parse-next-interesting@save-match-data)
-  (defun auth-source-netrc-parse-next-interesting@save-match-data (fn)
-    "Save match-data for the benefit of caller `auth-source-netrc-parse-one'.
-Without wrapping this function in `save-match-data' the caller
-won't see the secret from a line that is followed by a commented
-line."
-    (save-match-data (funcall fn))))
+(define-advice auth-source-netrc-parse (:around (fn &rest args) handle-symlink)
+  "Follow symlinks for FILE before comparing modification times."
+  (let ((file (plist-get args :file)))
+    (when (and (stringp file)
+               (file-exists-p file))
+      (setq args (plist-put args :file (file-chase-links file)))))
+  (apply fn args))
 
-(when (< emacs-major-version 28)
-  ;; Fixed by Emacs commit 0b98ea5fbe276c67206896dca111c000f984ee0f.
-  (advice-add 'url-http-handle-authentication :around
-              'url-http-handle-authentication@unauthorized-bugfix)
-  (defun url-http-handle-authentication@unauthorized-bugfix (fn proxy)
-    "If authorization failed then don't try again but fail properly.
-For Emacs 27.1 prevent a useful `http' error from being replaced
-by a generic one that omits all useful information.  For earlier
-releases prevent a new request from being made, which would
-either result in an infinite loop or (e.g. in the case of `ghub')
-the user being asked for their name."
-    (if (assoc "Authorization" url-http-extra-headers)
-        t ; Return "success", here also known as "successfully failed".
-      (funcall fn proxy))))
-
-(when (and (< emacs-major-version 29)
-           ghub-use-workaround-for-emacs-bug-54989)
-  ;; Fixed in Emacs commit 0829c6836eff14dda0cf8b3047376967f7b000f4.
-  ;; Cleanup from 26faa2b943675107e1664b2fea7174137c473475 is not
-  ;; included in this copy because doing that would require changes
-  ;; to more functions.  This function has seen a few other changes
-  ;; since Emacs 25.1, the oldest version we still support.  Of these
-  ;; only 4f1df40db36b221e7842bd75d6281922dcb268ee makes a functional
-  ;; change, fixing debbug#35658.  The first release to contain that
-  ;; commit is 27.1.  That commit either fixes a related bug or it
-  ;; deals with the same bug but only partially fixes it.
-  (advice-add 'url-http-chunked-encoding-after-change-function :override
-              'url-http-chunked-encoding-after-change-function@54989-backport)
-  (defvar url-http-chunked-last-crlf-missing nil)
-  (defvar url-http-content-type)
-  (defvar url-http-chunked-start)
-  (defvar url-http-chunked-length)
-  (defvar url-http-chunked-counter)
-  (defun url-http-chunked-encoding-after-change-function@54989-backport
-      (st nd length)
-    "Backport bugfix from https://debbugs.gnu.org/cgi/bugreport.cgi?bug=54989."
-    (if url-http-chunked-last-crlf-missing
-        (progn
-          (goto-char url-http-chunked-last-crlf-missing)
-          (if (not (looking-at "\r\n"))
-              (url-http-debug
-               "Still spinning for the terminator of last chunk...")
-            (url-http-debug "Saw the last CRLF.")
-            (delete-region (match-beginning 0) (match-end 0))
-            (when (url-http-parse-headers)
-              (url-http-activate-callback))))
-      (save-excursion
-        (goto-char st)
-        (let ((read-next-chunk t)
-              (case-fold-search t)
-              (regexp nil)
-              (no-initial-crlf nil))
-          ;; We need to loop thru looking for more chunks even within
-          ;; one after-change-function call.
-          (while read-next-chunk
-            (setq no-initial-crlf (= 0 url-http-chunked-counter))
-            (with-no-warnings
-              (if url-http-content-type
-                  (url-display-percentage nil
-                                          "Reading [%s]... chunk #%d"
-                                          url-http-content-type url-http-chunked-counter)
-                (url-display-percentage nil
-                                        "Reading... chunk #%d"
-                                        url-http-chunked-counter)))
-            (url-http-debug "Reading chunk %d (%d %d %d)"
-                            url-http-chunked-counter st nd length)
-            (setq regexp (if no-initial-crlf
-                             "\\([0-9a-z]+\\).*\r?\n"
-                           "\r?\n\\([0-9a-z]+\\).*\r?\n"))
-
-            (if url-http-chunked-start
-                ;; We know how long the chunk is supposed to be, skip over
-                ;; leading crap if possible.
-                (if (> nd (+ url-http-chunked-start url-http-chunked-length))
-                    (progn
-                      (url-http-debug "Got to the end of chunk #%d!"
-                                      url-http-chunked-counter)
-                      (goto-char (+ url-http-chunked-start
-                                    url-http-chunked-length)))
-                  (url-http-debug "Still need %d bytes to hit end of chunk"
-                                  (- (+ url-http-chunked-start
-                                        url-http-chunked-length)
-                                     nd))
-                  (setq read-next-chunk nil)))
-            (if (not read-next-chunk)
-                (url-http-debug "Still spinning for next chunk...")
-              (if no-initial-crlf (skip-chars-forward "\r\n"))
-              (if (not (looking-at regexp))
-                  (progn
-                    ;; Must not have received the entirety of the chunk header,
-                    ;; need to spin some more.
-                    (url-http-debug "Did not see start of chunk @ %d!" (point))
-                    (setq read-next-chunk nil))
-                ;; The data we got may have started in the middle of the
-                ;; initial chunk header, so move back to the start of the
-                ;; line and re-compute.
-                (when (= url-http-chunked-counter 0)
-                  (beginning-of-line)
-                  (looking-at regexp))
-                (add-text-properties (match-beginning 0) (match-end 0)
-                                     (list 'chunked-encoding t
-                                           'face 'cursor
-                                           'invisible t))
-                (setq url-http-chunked-length
-                      (string-to-number (buffer-substring (match-beginning 1)
-                                                          (match-end 1))
-                                        16)
-                      url-http-chunked-counter (1+ url-http-chunked-counter)
-                      url-http-chunked-start (set-marker
-                                              (or url-http-chunked-start
-                                                  (make-marker))
-                                              (match-end 0)))
-                (delete-region (match-beginning 0) (match-end 0))
-                (url-http-debug "Saw start of chunk %d (length=%d, start=%d"
-                                url-http-chunked-counter url-http-chunked-length
-                                (marker-position url-http-chunked-start))
-                (if (= 0 url-http-chunked-length)
-                    (progn
-                      ;; Found the end of the document!  Wheee!
-                      (url-http-debug "Saw end of stream chunk!")
-                      (setq read-next-chunk nil)
-                      (with-no-warnings
-                        (url-display-percentage nil nil))
-                      ;; Every chunk, even the last 0-length one, is
-                      ;; terminated by CRLF.  Skip it.
-                      (if (not (looking-at "\r?\n"))
-                          (progn
-                            (url-http-debug
-                             "Spinning for the terminator of last chunk...")
-                            (setq-local url-http-chunked-last-crlf-missing
-                                        (point)))
-                        (url-http-debug "Removing terminator of last chunk")
-                        (delete-region (match-beginning 0) (match-end 0))
-                        (when (re-search-forward "^\r?\n" nil t)
-                          (url-http-debug "Saw end of trailers..."))
-                        (when (url-http-parse-headers)
-                          (url-http-activate-callback)))))))))))))
+(defun ghub--git-get (var)
+  (catch 'non-zero
+    (car (process-lines-handling-status
+          "git" (##unless (zerop %) (throw 'non-zero nil))
+          ;; Beginning with Git v2.46 we could use "get".
+          "config" "--get" var))))
 
 ;;; _
 (provide 'ghub)
 (require 'ghub-graphql)
+(require 'ghub-legacy)
 ;;; ghub.el ends here
