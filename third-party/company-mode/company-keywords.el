@@ -292,10 +292,10 @@
      "then" "type" "where")
     (python-mode
      ;; https://docs.python.org/3/reference/lexical_analysis.html#keywords
-     "False" "None" "True" "and" "as" "assert" "break" "class" "continue" "def"
-     "del" "elif" "else" "except" "exec" "finally" "for" "from" "global" "if"
-     "import" "in" "is" "lambda" "nonlocal" "not" "or" "pass" "print" "raise"
-     "return" "try" "while" "with" "yield")
+     "False" "None" "True" "and" "as" "assert" "async" "await" "break" "class"
+     "continue" "def" "del" "elif" "else" "except" "exec" "finally" "for" "from"
+     "global" "if" "import" "in" "is" "lambda" "nonlocal" "not" "or" "pass"
+     "print" "raise" "return" "try" "while" "with" "yield")
     (ruby-mode
      "BEGIN" "END" "alias" "and"  "begin" "break" "case" "class" "def" "defined?"
      "do" "else" "elsif"  "end" "ensure" "false" "for" "if" "in" "module"
@@ -377,6 +377,11 @@
      "new" "null" "object" "override" "package" "private" "protected"
      "return" "sealed" "super" "this" "throw" "trait" "true" "try" "type" "val"
      "var" "while" "with" "yield")
+    (sh-mode
+     "break" "case" "continue" "do" "done" "elif" "else" "esac" "eval"
+     "exec" "exit" "export" "false" "fi" "for" "function" "if" "in" "readonly"
+     "return" "set" "shift" "test" "then" "time" "times" "trap" "true" "unset"
+     "until" "while")
     (swift-mode
      "Protocol" "Self" "Type" "and" "as" "assignment" "associatedtype"
      "associativity" "available" "break" "case" "catch" "class" "column" "continue"
