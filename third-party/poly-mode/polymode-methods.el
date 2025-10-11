@@ -63,13 +63,13 @@ Ran by the polymode mode function."
           ;; Set if nil! This allows unspecified host chunkmodes to be used in
           ;; minor modes.
           (host-mode (or (eieio-oref hostmode 'mode)
-                         (oset hostmode :mode major-mode))))
+                         (oset hostmode mode major-mode))))
       ;; FIXME: mode hooks and local var hacking happens here. Need to move it
       ;; to the end.
       (pm--mode-setup host-mode)
       (oset hostmode -buffer (current-buffer))
       (oset config -hostmode hostmode)
-      (setq pm--core-buffer-name (buffer-name)
+      (setq pm--base-buffer-name (buffer-name)
             pm/polymode config
             pm/chunkmode hostmode
             pm/current t
@@ -82,17 +82,13 @@ Ran by the polymode mode function."
     ;; (run-mode-hooks) ;; FIXME
     ))
 
+
 (cl-defmethod pm-initialize ((chunkmode pm-inner-chunkmode) &optional type mode)
   "Initialization of the innermodes' (indirect) buffers."
   ;; run in chunkmode indirect buffer
   (setq mode (or mode (pm--get-innermode-mode chunkmode type)))
-  (let* ((pm-initialization-in-progress t)
-         (post-fix (replace-regexp-in-string "poly-\\|-mode" "" (symbol-name mode)))
-         (core-name (format "%s[%s]" (buffer-name (pm-base-buffer))
-                            (or (cdr (assoc post-fix polymode-mode-abbrev-aliases))
-                                post-fix)))
-         (new-name (generate-new-buffer-name core-name)))
-    (rename-buffer new-name)
+  (let* ((pm-initialization-in-progress t))
+    (rename-buffer (pm--buffer-name))
     ;; FIXME: Mode hooks and local var hacking happens here. Need to move it to
     ;; the end. But then font-lock is not activated and buffers not installed
     ;; correctly.
@@ -102,8 +98,7 @@ Ran by the polymode mode function."
     (pm--move-vars '(pm/polymode buffer-file-coding-system) (pm-base-buffer))
     ;; FIXME: This breaks if different chunkmodes use same-mode buffer. Even for
     ;; head/tail the value of pm/type will be wrong for tail
-    (setq pm--core-buffer-name core-name
-          pm/chunkmode chunkmode
+    (setq pm/chunkmode chunkmode
           pm/type (pm-true-span-type chunkmode type))
     ;; FIXME: should not be here?
     (vc-refresh-state)
@@ -115,7 +110,7 @@ Ran by the polymode mode function."
     ;; If this rename happens before the mode setup font-lock doesn't work in
     ;; inner buffers.
     (when pm-hide-implementation-buffers
-      (rename-buffer (generate-new-buffer-name (concat " " pm--core-buffer-name)))))
+      (rename-buffer (pm--buffer-name 'hidden))))
   (pm--run-init-hooks chunkmode type 'polymode-init-inner-hook)
   ;; Call polymode mode for the sake of the keymap and hook. Same minor mode
   ;; which runs in the host buffer but without recursive call to `pm-initialize'.
@@ -403,7 +398,7 @@ TAIL-BEG TAIL-END).")
                   (when (stringp matcher)
                     (setq matcher (cons matcher 0)))
                   (cond  ((consp matcher)
-                          (re-search-forward (car matcher) (point-at-eol) t)
+                          (re-search-forward (car matcher) (line-end-position) t)
                           (match-string-no-properties (cdr matcher)))
                          ((functionp matcher)
                           (funcall matcher)))))
@@ -477,7 +472,7 @@ TAIL-BEG TAIL-END).")
 
 (defun pm--indent-line-raw (span)
   (pm--indent-raw span 'pm--indent-line-function-original)
-  (pm--reindent-with+-indent span (point-at-bol) (point-at-eol)))
+  (pm--reindent-with+-indent span (line-beginning-position) (line-end-position)))
 
 (defun pm--indent-region-raw (span beg end)
   (pm--indent-raw span 'pm--indent-region-function-original beg end)
@@ -499,7 +494,6 @@ Function used for `indent-region-function'."
           (let* ((end-span (copy-marker (nth 2 span)))
                  (end1 (min end end-span)))
             (goto-char beg)
-            ;; (pm-switch-to-buffer)
             ;; indent first line separately
             (pm-indent-line (nth 3 span) span)
             (beginning-of-line 2)
@@ -530,7 +524,7 @@ the chunkmode.")
         (delta))
     (back-to-indentation)
     (setq delta (- pos (point)))
-    (let* ((bol (point-at-bol))
+    (let* ((bol (line-beginning-position))
            (span (or span (pm-innermost-span)))
            (prev-span-pos)
            (first-line (save-excursion
@@ -603,14 +597,14 @@ to indent."
                                  ;; empty line
                                  ((looking-at-p "[ \t]*$") 0)
                                  ;; inner span starts at bol; honor +-indent cookie
-                                 ((= (point) (point-at-bol))
+                                 ((= (point) (line-beginning-position))
                                   (pm--+-indent-offset-on-this-line span))
                                  ;; code after header
                                  (t
                                   (end-of-line)
                                   (skip-chars-forward "\t\n")
                                   (pm--indent-line-raw span)
-                                  (- (point) (point-at-bol))))))))
+                                  (- (point) (line-beginning-position))))))))
                   (indent-line-to
                    ;; indent with respect to header line
                    (+ delta (pm--head-indent span)))))))))
@@ -628,13 +622,13 @@ to indent."
       (when (not (bolp)) ; for spans which don't start at bol, first line is next line
         (forward-line 1))
       (skip-chars-forward " \t\n\r")
-      (when (< (point-at-eol) pos)
+      (when (< (line-end-position) pos)
         ;; not on first line -> compute indent of the first line
         (goto-char (nth 1 span))
         (skip-chars-forward " \t\n\r")
         (back-to-indentation)
-        (when (< (point-at-eol) pos)
-          (- (point) (point-at-bol)))))))
+        (when (< (line-end-position) pos)
+          (- (point) (line-beginning-position)))))))
 
 ;; SPAN is a body span; do nothing if narrowed to body
 (defun pm--head-indent (&optional span)
@@ -658,7 +652,7 @@ to indent."
         (current-column)))))
 
 (defun pm--+-indent-offset-on-this-line (span)
-  (if (re-search-forward "\\([+-]\\)indent" (point-at-eol) t)
+  (if (re-search-forward "\\([+-]\\)indent" (line-end-position) t)
       (let ((basic-offset (pm--oref-value (nth 3 span) 'indent-offset)))
         (if (string= (match-string 1) "-")
             (- basic-offset)
