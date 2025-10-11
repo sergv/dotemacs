@@ -7,7 +7,7 @@
 #+texinfo_dir_category: Emacs
 #+texinfo_dir_title: Magit: (magit).
 #+texinfo_dir_desc: Using Git from Emacs with Magit.
-#+subtitle: for version 4.2.0
+#+subtitle: for version 4.4.2
 
 #+setupfile: .orgconfig
 
@@ -24,7 +24,7 @@ directly from within Emacs.  While many fine Git clients exist, only
 Magit and Git itself deserve to be called porcelains.
 
 #+texinfo: @noindent
-This manual is for Magit version 4.2.0.
+This manual is for Magit version 4.4.2.
 
 #+texinfo: @insertcopying
 :END:
@@ -153,7 +153,8 @@ Now see [[*Post-Installation Tasks]].
 
 ** Installing from the Git Repository
 
-Magit depends on the ~compat~, ~dash~, ~transient~ and ~with-editor~ libraries
+Magit depends on the ~compat~, ~cond-let~, ~llama~, ~seq~ (the built-in version
+is enough when using Emacs >= 29.1), ~transient~ and ~with-editor~ libraries
 which are available from Melpa and Melpa-Stable.  Install them using
 ~M-x package-install RET <package> RET~.  Of course you may also install
 them manually from their repository.
@@ -171,17 +172,20 @@ Then compile the libraries and generate the info manuals:
   $ make
 #+end_src
 
-If you haven't installed ~compat~, ~dash~, ~transient~ and ~with-editor~ from
-Melpa or at ~/path/to/magit/../<package>~, then you have to tell ~make~
-where to find them.  To do so create the file ~/path/to/magit/config.mk~
-with the following content before running ~make~:
+If you haven't installed ~compat~, ~cond-let~, ~llama~, ~seq~
+(only for Emacs 28), ~transient~ and ~with-editor~ from Melpa, or at
+~/path/to/magit/../<package>~, then you have to tell ~make~ where to find
+them.  To do so create the file ~/path/to/magit/config.mk~ with the
+following content before running ~make~:
 
 #+begin_src makefile
   LOAD_PATH  = -L ~/.emacs.d/site-lisp/magit/lisp
-  LOAD_PATH += -L ~/.emacs.d/site-lisp/dash
+  LOAD_PATH += -L ~/.emacs.d/site-lisp/compat
+  LOAD_PATH += -L ~/.emacs.d/site-lisp/cond-let
+  LOAD_PATH += -L ~/.emacs.d/site-lisp/llama
+  LOAD_PATH += -L ~/.emacs.d/site-lisp/seq
   LOAD_PATH += -L ~/.emacs.d/site-lisp/transient/lisp
   LOAD_PATH += -L ~/.emacs.d/site-lisp/with-editor/lisp
-  LOAD_PATH += -L ~/.emacs.d/site-lisp/compat
 #+end_src
 
 Finally add this to your init file:
@@ -192,15 +196,17 @@ Finally add this to your init file:
 
   (with-eval-after-load 'info
     (info-initialize)
-    (add-to-list 'Info-directory-list
-                 "~/.emacs.d/site-lisp/magit/Documentation/"))
+    (add-to-list 'Info-directory-list "~/.emacs.d/site-lisp/magit/docs/"))
 #+end_src
 
 Of course if you installed the dependencies manually as well, then
 you have to tell Emacs about them too, by prefixing the above with:
 
 #+begin_src emacs-lisp
-  (add-to-list 'load-path "~/.emacs.d/site-lisp/dash")
+  (add-to-list 'load-path "~/.emacs.d/site-lisp/compat")
+  (add-to-list 'load-path "~/.emacs.d/site-lisp/cond-let")
+  (add-to-list 'load-path "~/.emacs.d/site-lisp/llama")
+  (add-to-list 'load-path "~/.emacs.d/site-lisp/seq")
   (add-to-list 'load-path "~/.emacs.d/site-lisp/transient/lisp")
   (add-to-list 'load-path "~/.emacs.d/site-lisp/with-editor")
 #+end_src
@@ -887,6 +893,12 @@ To move within a section use the usual keys (~C-p~, ~C-n~, ~C-b~, ~C-f~ etc),
 whose global bindings are not shadowed.  To move to another section use
 the following commands.
 
+The section movement commands described here run the hook
+~magit-section-movement-hook~.  Note that they explicitly run that hook
+and that arbitrary other movement, defined in Emacs and other packages,
+do not run that hook.  That hook, and hook functions that can be added
+to it, or are part of its default value, are described below.
+
 - Key: p (magit-section-backward) ::
 
   When not at the beginning of a section, then move to the beginning
@@ -927,8 +939,10 @@ remove function that haven't even been added yet, for example:
 
 - Variable: magit-section-movement-hook ::
 
-  This hook is run by all of the above movement commands, after
-  arriving at the destination.
+  This hook is run by all of the above section movement commands,
+  after arriving at the destination.  It is *not* run by arbitrary other
+  movement commands (such as ~next-line~), which are provided by Emacs
+  or third-party packages.
 
 - Function: magit-hunk-set-window-start ::
 
@@ -995,9 +1009,11 @@ remove function that haven't even been added yet, for example:
 
   Delay before automatically updating the other window.
 
-  When moving around in certain buffers, then certain other buffers,
-  which are being displayed in another window, may optionally be
-  updated to display information about the section at point.
+  When moving around in certain buffers using Magit's own section
+  movement commands (but not other movement commands), then certain
+  other buffers, which are being displayed in another window, may
+  optionally be updated to display information about the section at
+  point.
 
   When holding down a key to move by more than just one section, then
   that would update that buffer for each section on the way.  To
@@ -1724,10 +1740,6 @@ use an alternative completion framework.  For example, if you enable
 ~ivy-mode~, then Magit will respect that, and if you enable ~helm-mode~,
 then you are done too.
 
-However if you want to use Ido, then ~ido-mode~ won't do the trick.  You
-will also have to install the ~ido-completing-read+~ package and use
-~magit-ido-completing-read~ as ~magit-completing-read-function~.
-
 - User Option: magit-completing-read-function ::
 
   The value of this variable is the low-level function used to perform
@@ -1746,17 +1758,6 @@ will also have to install the ~ido-completing-read+~ package and use
 
   This function performs completion using the built-in ~completing-read~
   and does some additional magit-specific work.
-
-- Function: magit-ido-completing-read prompt choices &optional predicate require-match initial-input hist def ::
-
-  This function performs completion using ~ido-completing-read+~ from the
-  package by the same name (which you have to explicitly install) and
-  does some additional magit-specific work.
-
-  We have to use ~ido-completing-read+~ instead of the
-  ~ido-completing-read~ that comes with Ido itself, because the latter,
-  while intended as a drop-in replacement, cannot serve that purpose
-  because it violates too many of the implicit conventions.
 
 - Function: magit-completing-read prompt choices &optional predicate require-match initial-input hist def fallback ::
 
@@ -1780,7 +1781,11 @@ will also have to install the ~ido-completing-read+~ package and use
   - If REQUIRE-MATCH is ~nil~ and the user exits without a choice, then
     ~nil~ is returned instead of an empty string.
 
-  - If REQUIRE-MATCH is non-nil and the users exits without a choice,
+  - If REQUIRE-MATCH is ~any~, then do not require a match but
+    do require non-empty input (or non-nil DEFAULT, since that
+    is substituted for empty input).
+
+  - If REQUIRE-MATCH is non-~nil~ and the users exits without a choice,
     an user-error is raised.
 
   - FALLBACK specifies a secondary default that is only used if the
@@ -1823,12 +1828,12 @@ some value (e.g., the name of the current branch).
 
 When Git is run for side-effects, the process output is logged in a
 per-repository log buffer, which can be consulted using the
-~magit-process~ command when things don't go as expected.
+~magit-process-buffer~ command, when things don't go as expected.
 
-The output/errors for up to `magit-process-log-max' Git commands are
+The output/errors for up to ~magit-process-log-max~ Git commands are
 retained.
 
-- Key: $ (magit-process) ::
+- Key: $ (magit-process-buffer) ::
 
   This commands displays the process buffer for the current
   repository.
@@ -1878,10 +1883,13 @@ tooltip for mouse users.  This error indicator persists in the mode
 line until the next magit buffer refresh.
 
 If you do not wish process errors to be indicated in the mode line,
-customize the ~magit-process-display-mode-line-error~ user option.
+set ~magit-process-display-mode-line-error~ to ~nil~.
 
-Process errors are additionally indicated at the top of the status
-buffer.
+Process errors are displayed at the top of the status buffer and in
+the echo area.  In both places a hint is appended, which informs users
+that they can see the full output in the process buffer and how to
+display that buffer.  However, once you are aware of that, you might
+want to set ~magit-show-process-buffer-hint~ to ~nil~.
 
 *** Running Git Manually
 
@@ -2147,30 +2155,6 @@ that it should be bound globally.  We recommend using ~C-x g~:
   It supports displaying any existing Magit buffer that belongs to the
   current repository; not just the status buffer.
 
-- Command: ido-enter-magit-status ::
-
-  From an Ido prompt used to open a file, instead drop into
-  ~magit-status~.  This is similar to ~ido-magic-delete-char~, which,
-  despite its name, usually causes a Dired buffer to be created.
-
-  To make this command available, use something like:
-
-  #+BEGIN_SRC emacs-lisp
-    (add-hook 'ido-setup-hook
-              (lambda ()
-                (define-key ido-completion-map
-                  (kbd \"C-x g\") 'ido-enter-magit-status)))
-  #+END_SRC
-
-  Starting with Emacs 25.1 the Ido keymaps are defined just once
-  instead of every time Ido is invoked, so now you can modify it
-  like pretty much every other keymap:
-
-  #+BEGIN_SRC emacs-lisp
-    (define-key ido-common-completion-map
-      (kbd \"C-x g\") 'ido-enter-magit-status)
-  #+END_SRC
-
 *** Status Sections
 
 The contents of status buffers is controlled using the hook
@@ -2179,11 +2163,21 @@ hooks and how to customize them.
 
 - User Option: magit-status-sections-hook ::
 
-  Hook run to insert sections into a status buffer.
+  This hook is run to insert sections into a status buffer.
 
-The first function on that hook by default is
-~magit-insert-status-headers~; it is described in the next section.
-By default the following functions are also members of that hook:
+  The functions described in this section, and the functions
+  ~magit-insert-status-headers~ and ~magit-insert-untracked-files~,
+  which are described in subsequent sections, are members of this
+  hook.
+
+  Some additional functions that can be added to this hook, but are by
+  default added to another hooks, are listed in [[*References Buffer]].
+
+- Function: magit-insert-status-headers ::
+
+  Insert header sections appropriate for ~magit-status-mode~ buffers.
+  The sections are inserted by running the functions on the hook
+  ~magit-status-headers-hook~.  See [[*Status Header Sections]].
 
 - Function: magit-insert-merge-log ::
 
@@ -2217,18 +2211,6 @@ By default the following functions are also members of that hook:
 
   While bisecting, insert section logging bisect progress.
 
-- Function: magit-insert-untracked-files ::
-
-  Maybe insert a list or tree of untracked files.
-
-  The option ~magit-status-show-untracked-files~ (which see), in
-  cooperation with the Git variable ~status.showUntrackedFiles~,
-  control whether and how that is done.
-
-  If the first element of ~magit-buffer-diff-files~ is a directory, then
-  limit the list to files below that.  The value of that variable can
-  be set using ~D -- DIRECTORY RET g~.
-
 - Function: magit-insert-unstaged-changes ::
 
   Insert section showing unstaged changes.
@@ -2254,6 +2236,15 @@ By default the following functions are also members of that hook:
   Insert section showing commits that haven't been pulled from the
   push-remote branch yet.
 
+- Function: magit-insert-unpushed-to-upstream-or-recent ::
+
+  Insert section showing unpushed or other recent commits.
+  If an upstream is configured for the current branch and it is
+  behind of the current branch, then show the commits that have
+  not yet been pushed into the upstream branch.  If no upstream is
+  configured or if the upstream is not behind of the current branch,
+  then show the last ~magit-log-section-commit-count~ commits.
+
 - Function: magit-insert-unpushed-to-upstream ::
 
   Insert section showing commits that haven't been pushed to the
@@ -2264,36 +2255,81 @@ By default the following functions are also members of that hook:
   Insert section showing commits that haven't been pushed to the
   push-remote yet.
 
-The following functions can also be added to the above hook:
+*** Status File List Sections
+
+These functions honor the buffer's file filter, which can be set using
+~D - -~.
+
+- Function: magit-insert-untracked-files ::
+
+  This function may insert a list of untracked files.  Whether it
+  actually does so, depends on the option described next.
+
+- User Option: magit-status-show-untracked-files ::
+
+  This option controls whether the above function inserts a list of
+  untracked files in the status buffer.
+
+  - If ~nil~, do not list any untracked files.
+  - If ~t~, list untracked files, but if a directory does not contain any
+    tracked files, then only list that directory, not the contained
+    untracked files.
+  - If ~all~, then list each individual untracked files.  This is can be
+    very slow and is discouraged.
+
+  The corresponding values for the Git variable are "no", "normal"
+  and "all".
+
+  To disable listing untracked files in a specific repository only,
+  add the following to ~.dir-locals.el~:
+
+  #+begin_src emacs-lisp
+    ((magit-status-mode
+     (magit-status-show-untracked-files . "no")))
+  #+end_src
+
+  Alternatively (and mostly for historic reasons), it is possible to
+  use ~git config~ to set the repository-local value:
+
+  #+begin_src shell-script
+    git config set --local status.showUntrackedFiles no
+  #+end_src
+
+  This does *not* override the (if any) local value of this Lisp variable,
+  but it does override its global value.
+
+  See the last section in the git-status(1) manpage, to speed up the part
+  of the work Git is responsible for.  Turning that list into sections is
+  also not free, so Magit only lists ~magit-status-file-list-limit~ files.
+
+- User Option: magit-status-file-list-limit ::
+
+  This option controls many files are listed at most in each section
+  that lists files in the status buffer.  For performance reasons, it
+  is recommended that you do not increase this limit.
+
+While the above function is a member of ~magit-status-section-hook~ by
+default, the following functions have to be explicitly added by the
+user.  Because that negatively affects performance, it is recommended
+that you don't do that.
 
 - Function: magit-insert-tracked-files ::
 
-  Insert a tree of tracked files.
+  Insert a list of tracked files.
 
 - Function: magit-insert-ignored-files ::
 
-  Insert a tree of ignored files.
-  Its possible to limit the logs in the current buffer to a certain
-  directory using ~D = f <DIRECTORY> RET g~.  If you do that, then that
-  that also affects this command.
-
-  The log filter can be used to limit to multiple files.  In that case
-  this function only respects the first of the files and only if it is
-  a directory.
+  Insert a list of ignored files.
 
 - Function: magit-insert-skip-worktree-files ::
 
-  Insert a tree of skip-worktree files.
-  If the first element of ~magit-buffer-diff-files~ is a
-  directory, then limit the list to files below that.  The value
-  of that variable can be set using ~D -- DIRECTORY RET g~.
+  Insert a list of skip-worktree files.
 
-- Function: magit-insert-assumed-unchanged-files ::
+- Function: magit-insert-assume-unchanged-files ::
 
-  Insert a tree of files that are assumed to be unchanged.
-  If the first element of ~magit-buffer-diff-files~ is a
-  directory, then limit the list to files below that.  The value
-  of that variable can be set using ~D -- DIRECTORY RET g~.
+  Insert a list of files that are assumed to be unchanged.
+
+*** Status Log Sections
 
 - Function: magit-insert-unpulled-or-recent-commits ::
 
@@ -2329,9 +2365,6 @@ The following functions can also be added to the above hook:
   which has not been applied to upstream yet (i.e., a commit with
   a patch-id not shared with any upstream commit) with "+" and
   all others with "-".
-
-See [[*References Buffer]] for some more section inserters, which could be
-used here.
 
 *** Status Header Sections
 
@@ -3319,8 +3352,11 @@ that they are available here too.
   Whether to show word-granularity differences within diff hunks.
 
   - ~nil~ Never show fine differences.
-  - ~t~ Show fine differences for the current diff hunk only.
   - ~all~ Show fine differences for all displayed diff hunks.
+  - ~t~ Refine each hunk once it becomes the current section.
+    Keep the refinement when another section is selected.
+    Refreshing the buffer removes all refinement.  This
+    variant is only provided for performance reasons.
 
 - User Option: magit-diff-refine-ignore-whitespace ::
 
@@ -3437,6 +3473,15 @@ that they are available here too.
   takes no argument and returns such a list.  These arguments are
   allowed here: ~--stat-width~, ~--stat-name-width~,
   ~--stat-graph-width~ and ~--compact-summary~.  Also see [[man:git-diff]]
+
+- User Option: magit-format-file-function ::
+
+  This function is used to format lines representing a file.  It is
+  used for file headings in diffs, in diffstats and for lists of files
+  (such as the untracked files).  Depending on the caller, it receives
+  either three or five arguments; the signature has to be ~(kind file
+  face &optional status orig)~.  KIND is one of ~diff~, ~module~, ~stat~ and
+  ~list~.
 
 *** Revision Buffer
 
@@ -4014,56 +4059,36 @@ change.
 *** Visiting Files and Blobs from a Diff
 
 These commands can only be used when point is inside a diff.
+Elsewhere use ~magit-find-file~.
 
 - Key: RET (magit-diff-visit-file) ::
 
-  This command visits the appropriate version of the file that the
-  diff at point is about.
+  This command visits the appropriate version of the file at point.
 
-  This commands visits the worktree version of the appropriate file.
-  The location of point inside the diff determines which file is being
-  visited.  The visited version depends on what changes the diff is
-  about.
+  Display the buffer in the selected window.  With a prefix argument,
+  OTHER-WINDOW, instead display the buffer in another window.
 
-  1. If the diff shows uncommitted changes (i.e., staged or unstaged
-     changes), then visit the file in the working tree (i.e., the
-     same "real" file that ~find-file~ would visit.  In all other
-     cases visit a "blob" (i.e., the version of a file as stored
-     in some commit).
+  In the visited file or blob, go to the location corresponding to the
+  location in the diff.
 
-  2. If point is on a removed line, then visit the blob for the
-     first parent of the commit that removed that line, i.e., the
-     last commit where that line still exists.
+  If point is on an added or context line, visit the blob corresponding
+  to our side (i.e., the new/right side).  If point is on a removed line,
+  visit the blob corresponding to their side (i.e., the old/left side).
 
-  3. If point is on an added or context line, then visit the blob
-     that adds that line, or if the diff shows from more than a
-     single commit, then visit the blob from the last of these
-     commits.
+  This applies to diffs of staged and unstaged changes as well.  For
+  staged changes the two sides are blobs from the index and the `HEAD'
+  commit.  For unstaged changes the two sides are the actual file in
+  the worktree and the blob from the index.
 
-  In the file-visiting buffer this command goes to the line that
-  corresponds to the line that point is on in the diff.
+  To visit the file in the worktree, regardless of what the current
+  diff is about, use ~magit-diff-visit-worktree-file~, described next.
 
-  The buffer is displayed in the selected window.  With a prefix
-  argument the buffer is displayed in another window instead.
-
-- User Option: magit-diff-visit-previous-blob ::
-
-  This option controls whether ~magit-diff-visit-file~ may visit the
-  previous blob.  When this is ~t~ (the default) and point is on a
-  removed line in a diff for a committed change, then
-  ~magit-diff-visit-file~ visits the blob from the last revision which
-  still had that line.
-
-  Currently this is only supported for committed changes, for staged
-  and unstaged changes ~magit-diff-visit-file~ always visits the file in
-  the working tree.
-
-- Key: C-<return> (magit-diff-visit-file-worktree) ::
+- Key: C-<return> (magit-diff-visit-worktree-file) ::
 
   This command visits the worktree version of the appropriate file.
   The location of point inside the diff determines which file is being
   visited.  Unlike ~magit-diff-visit-file~ it always visits the "real"
-  file in the working tree, i.e the "current version" of the file.
+  file in the working tree, i.e., the "current version" of the file.
 
   In the file-visiting buffer this command goes to the line that
   corresponds to the line that point is on in the diff.  Lines that
@@ -4083,6 +4108,60 @@ argument.
 - Command: magit-diff-visit-file-other-frame ::
 - Command: magit-diff-visit-worktree-file-other-window ::
 - Command: magit-diff-visit-worktree-file-other-frame ::
+
+  These commands behave like the respective commands described above,
+  except that they display the blob or file in another window or frame.
+
+- User Option: magit-diff-visit-prefer-worktree ::
+
+  This option controls whether ~magit-diff-visit-file~ always visits the
+  respective file in the worktree, when invoked anywhere from within a
+  hunk of staged or unstaged changes.
+
+  By default ~magit-diff-visit-file~ does not do that.  Instead it
+  behaves for staged and unstaged changes as it does for committed
+  changes, by visiting a blob from the old/left or new/right side,
+  depending on whether point is on a removed line or not.
+
+  For staged changes the old side is the blob from HEAD and the right
+  side is the blog from the index.  For unstaged changes the left side
+  is the blob from the index (if there are any changes in the index
+  for that file, else the blob from HEAD), and the right side is the
+  file in the worktree.
+
+  Being able to jump to HEAD or the index from a removed line is very
+  useful, because it allows you to, e.g., use blame to investigate why
+  some line, which you have already removed, was added in the first
+  place.
+
+  But if you want to make further changes to already staged changes,
+  you of course instead need to go to the respective file in the
+  worktree.  The command ~magit-diff-visit-worktree-file~ was created
+  for that purpose, and it is strongly recommend that you make use of
+  that command, even if you initially find it inconvenient having to
+  remember to use ~C-<return>~ instead of ~RET~ in this case.
+
+  While discouraged, you can alternatively set this option to ~t~,
+  which causes ~magit-diff-visit-file~ itself to go to the file in the
+  worktree, even when invoked from within a hunk of staged changes.
+  If you do that, you lose the ability to instantly go to lines you
+  have already removed.
+
+- User Option: magit-diff-visit-previous-blob ::
+
+  This option controls whether ~magit-diff-visit-file~ visits the
+  previous blob when invoked with point on a removed line.
+
+  When this is ~t~ (the default) and point is on a removed line, then
+  ~magit-diff-visit-file~ visits the blob from the old/left commit,
+  which still has that line, instead of going to the new/right blob,
+  which removes that line.
+
+  Setting this to ~nil~, causes ~magit-diff-visit-file~ to always go to
+  the new/right blob, even when point is on a removed line.  This is
+  very strongly discouraged.  Instead place the cursor anywhere else
+  within the hunk but on a removed line, if you want to visit the new
+  side.  That way you don't lose the ability to visit the old side.
 
 ** Blaming
 
@@ -4601,12 +4680,14 @@ appropriate (i.e., when ~git apply~ is used internally).
 
 ** Committing
 
-When the user initiates a commit, Magit calls ~git commit~ without any
-arguments, so Git has to get it from the user.  It creates the file
-~.git/COMMIT_EDITMSG~ and then opens that file in an editor.  Magit
-arranges for that editor to be the Emacsclient.  Once the user
-finishes the editing session, the Emacsclient exits and Git creates the
-commit using the file's content as message.
+When the user initiates a commit, Magit calls ~git commit~ without the
+~--message~ argument, so Git has to get the message from the user.  To
+do so, it creates a file such as ~.git/COMMIT_EDITMSG~ and then opens
+that file in the editor specified by ~$EDITOR~ (or ~$GIT_EDITOR~).
+
+Magit arranges for that editor to be the Emacsclient.  Once the user
+finishes the editing session, the Emacsclient exits and Git creates
+the commit, using the file's content as the commit message.
 
 *** Initiating a Commit
 
@@ -4618,92 +4699,212 @@ Also see [[man:git-commit]]
   along with the appropriate infix arguments and displays them in a
   temporary buffer until a suffix is invoked.
 
+**** Creating a new commit
+
 - Key: c c (magit-commit-create) ::
 
-  Create a new commit on ~HEAD~.  With a prefix argument amend to the
-  commit at ~HEAD~ instead.
+  Create a new commit.
 
-- Key: c a (magit-commit-amend) ::
+**** Editing the last commit
 
-  Amend the last commit.
+These commands modify the last (a.k.a., "HEAD") commit.  The commit is
+modified (a.k.a., replaced) immediately.  Similar commands exist for
+modifying other (non-HEAD) commits.  Those commands are described in
+the following two sections.  For each command in this section, we
+mention the respective non-HEAD commands, to make the relation
+explicit.
+
+The command descriptions below mention the specific arguments they use
+when calling ~git commit~.  The arguments specified in the menu are
+appended to those arguments.
 
 - Key: c e (magit-commit-extend) ::
 
-  Amend the last commit, without editing the message.  With a prefix
-  argument keep the committer date, otherwise change it.  The option
-  ~magit-commit-extend-override-date~ can be used to inverse the meaning
-  of the prefix argument.
+  This command amends the staged changes to the last commit, without
+  editing its commit message.
 
-  Non-interactively respect the optional OVERRIDE-DATE argument and
-  ignore the option.
+  This command calls ~git commit --amend --no-edit~.
+
+  With a prefix argument the committer date is not updated; without an
+  argument it is updated.
+
+  The option ~magit-commit-extend-override-date~ can be used to inverse
+  the meaning of the prefix argument.  Non-interactively, the optional
+  OVERRIDE-DATE argument controls this behavior, and the option is of
+  no relevance.
+
+- Key: c a (magit-commit-amend) ::
+
+  This command amends the staged changes to the last commit, and pops
+  up a buffer to let the user edit its commit message.
+
+  This command calls ~git commit --amend --edit~.
 
 - Key: c w (magit-commit-reword) ::
 
-  Reword the last commit, ignoring staged changes.  With a prefix
-  argument keep the committer date, otherwise change it.  The option
-  ~magit-commit-reword-override-date~ can be used to inverse the meaning
-  of the prefix argument.
+  This command pops up a buffer to let the user edit the message of
+  the latest commit.  The commit tree remains unchanged and staged
+  changes remain staged.
 
-  Non-interactively respect the optional OVERRIDE-DATE argument and
-  ignore the option.
+  This command calls ~git commit --amend --only --edit~.
+
+  With a prefix argument the committer date is not updated; without an
+  argument it is updated.
+
+  The option ~magit-commit-reword-override-date~ can be used to inverse
+  the meaning of the prefix argument.  Non-interactively, the optional
+  OVERRIDE-DATE argument controls this behavior, and the option is of
+  no relevance.
+
+**** Editing any reachable commit
+
+These commands create a new commit, which targets an existing commit,
+from the staged changes and/or using a new commit message.  Any commit
+that is reachable from HEAD, including HEAD itself, can be the target.
+
+The new commit is intended to be eventually squashed into the targeted
+commit, but this is *not* done immediately.  The squashing is done at a
+later time, when you explicitly call ~magit-rebase-autosquash~, or use
+~--autosquash~ with another rebase command.
+
+Some of these commands require that you immediately write a new commit
+message, or that you immediately edit an existing message.
+
+The new commits are called "squash" and "fixup" commits.  The
+difference is that when a "squash" commit is squashed into its
+targeted commit, the user gets a chance to modify the message to be
+used for the final commit; while for "fixup" commits the existing
+message of the targeted commit is used as-is and the message of the
+"fixup" commit is discarded.
+
+If point is on a reachable commit, then all of these commands target
+that commit, without requiring confirmation.  If point is on some
+reachable commit, but you want to target another commit, use a prefix
+argument, to select a commit in a log buffer dedicated to that task.
+The meaning of the prefix argument can be inverted by customizing
+~magit-commit-squash-confirm~.
+
+The command descriptions below mention the specific arguments they use
+when calling ~git commit~.  The arguments specified in the menu are
+appended to those arguments.
+
+The next two commands also exist in "instant" variants, which are
+described in the next section.  Those variants behave the same as the
+variants described here, except that they immediately initiate an
+~--autosquash~ rebase.
 
 - Key: c f (magit-commit-fixup) ::
 
-  Create a fixup commit.
+  This command creates a new fixup commit from the staged changes,
+  targeting the reachable commit at point, if any.  Otherwise the
+  user is prompted for a commit.
 
-  With a prefix argument the target commit has to be confirmed.
-  Otherwise the commit at point may be used without confirmation
-  depending on the value of option ~magit-commit-squash-confirm~.
+  Use this variant if you want to correct some minor defect in the
+  targeted commit, which does not require changes to the existing
+  message of the targeted commit.
 
-- Key: c F (magit-commit-instant-fixup) ::
-
-  Create a fixup commit and instantly rebase.
+  This command calls ~git commit --fixup=COMMIT --no-edit~.
 
 - Key: c s (magit-commit-squash) ::
 
-  Create a squash commit, without editing the squash message.
+  This command creates a new squash commit from the staged changes,
+  targeting the reachable commit at point, if any.  Otherwise the
+  user is prompted for a commit.
 
-  With a prefix argument the target commit has to be confirmed.
-  Otherwise the commit at point may be used without confirmation
-  depending on the value of option ~magit-commit-squash-confirm~.
+  Use this variant if you want a chance to make changes to the final
+  commit message, but not until the two commits are being squashed
+  into the final combined commit.
+
+  This command calls ~git commit --squash=COMMIT --no-edit~.
+
+- Key: c A (magit-commit-alter) ::
+
+  This command creates a new fixup commit from the staged changes,
+  targeting the reachable commit at point, if any.  Otherwise the
+  user is prompted for a commit.
+
+  Use this variant if you want to write the final commit message now,
+  but (as for all variants in this section) do not want to immediately
+  squash the fixup and targeted commits into a final combined commit.
+
+  This command calls ~git commit --fixup=amend:COMMIT --edit~.
+
+- Key: c n (magit-commit-augment) ::
+
+  This command creates a new squash commit from the staged changes,
+  targeting the reachable commit at point, if any.  Otherwise the
+  user is prompted for a commit.
+
+  Use this variant if you want to describe the new changes now, but
+  want to delay writing the final message, which describes the changes
+  in the combined commit, until you actually combine the squash and
+  target commits into the final commit.  You can think of the new
+  message, which you write here, as a "note", to be integrated once
+  once you write the final commit message.
+
+  This command calls ~git commit --squash=COMMIT --edit~.
+
+- Key: c W (magit-commit-revise) ::
+
+  This command pops up a buffer containing the commit message of the
+  reachable commit at point, if any.  Otherwise the user is prompted
+  for a commit to target.
+
+  Use this variant if you want to correct the message of the targeted
+  commit, but want to delay performing the ~--autosquash~ rebase, which
+  actually changes that commit.
+
+  This command calls ~git commit --fixup=reword:COMMIT --edit~.
+
+**** Editing any reachable commit and rebasing immediately
+
+These commands create a new commit, which targets an existing commit,
+from the staged changes.  Any commit that is reachable from HEAD,
+including HEAD itself, can be the target.
+
+The new commit is immediately squashed into its target commit, using
+an ~--autosquash~ rebase.
+
+The command descriptions below mention the specific arguments they use
+when calling ~git commit~.  The arguments specified in the menu are
+appended to those arguments when calling ~git commit~.
+
+- Key: c F (magit-commit-instant-fixup) ::
+
+  This command creates a fixup commit, targeting the reachable commit
+  at point, if any.  Otherwise the user is prompted for a commit. Then
+  it instantly performs a rebase, to squash the new commit into the
+  targeted commit.
+
+  The original commit message of the targeted commit is left untouched.
+
+  This command calls ~git commit --fixup=COMMIT --no-edit~
+  and then ~git rebase --autosquash MERGE-BASE~.
 
 - Key: c S (magit-commit-instant-squash) ::
 
-  Create a squash commit and instantly rebase.
+  This command creates a squash commit, targeting the reachable commit
+  at point, if any.  Otherwise the user is prompted for a commit. Then
+  it instantly performs a rebase, to squash the new commit into the
+  targeted commit.
 
-- Key: c A (magit-commit-augment) ::
+  During the rebase phase the user is asked to author the final commit
+  message, based on the original message of the targeted commit.
 
-  Create a squash commit, editing the squash message.
+  This command calls ~git commit --squash=COMMIT --no-edit~
+  and then ~git rebase --autosquash MERGE-BASE~.
 
-  With a prefix argument the target commit has to be confirmed.
-  Otherwise the commit at point may be used without confirmation
-  depending on the value of option ~magit-commit-squash-confirm~.
-
-- User Option: magit-commit-ask-to-stage ::
-
-  Whether to ask to stage all unstaged changes when committing and nothing is
-  staged.
+**** Options used by commit commands
+***** Used by all or most commit commands
 
 - User Option: magit-commit-show-diff ::
 
   Whether the relevant diff is automatically shown when committing.
 
-- User Option: magit-commit-extend-override-date ::
+- User Option: magit-commit-ask-to-stage ::
 
-  Whether using ~magit-commit-extend~ changes the committer date.
-
-- User Option: magit-commit-reword-override-date ::
-
-  Whether using ~magit-commit-reword~ changes the committer date.
-
-- User Option: magit-commit-squash-confirm ::
-
-  Whether the commit targeted by squash and fixup has to be confirmed.
-  When non-nil then the commit at point (if any) is used as default
-  choice.  Otherwise it has to be confirmed.  This option only affects
-  ~magit-commit-squash~ and ~magit-commit-fixup~.  The "instant" variants
-  always require confirmation because making an error while using
-  those is harder to recover from.
+  Whether to ask to stage all unstaged changes when committing and
+  nothing is staged.
 
 - User Option: magit-post-commit-hook ::
 
@@ -4742,6 +4943,27 @@ Also see [[man:git-commit]]
   diff buffer would end up being displayed in a new frame.
 
   Also see https://github.com/magit/magit/issues/4132.
+
+***** Used by all squash and fixup commands
+
+- User Option: magit-commit-squash-confirm ::
+
+  Whether the commit targeted by squash and fixup has to be confirmed.
+  When non-nil then the commit at point (if any) is used as default
+  choice.  Otherwise it has to be confirmed.  This option only affects
+  ~magit-commit-squash~ and ~magit-commit-fixup~.  The "instant" variants
+  always require confirmation because making an error while using
+  those is harder to recover from.
+
+***** Used by specific commit commands
+
+- User Option: magit-commit-extend-override-date ::
+
+  Whether using ~magit-commit-extend~ changes the committer date.
+
+- User Option: magit-commit-reword-override-date ::
+
+  Whether using ~magit-commit-reword~ changes the committer date.
 
 *** Editing Commit Messages
 
@@ -5078,7 +5300,7 @@ checkout branches, and to make changes to existing branches.  It is
 not used to fetch, pull, merge, rebase, or push branches, i.e., this
 command deals with branches themselves, not with the commits reachable
 from them.  Those features are available from separate transient
-command.
+commands.
 
 - Key: b (magit-branch) ::
 
@@ -5578,7 +5800,7 @@ following suffix commands.
   Finally, if ~magit-branch-pull-request~ was used to create the merged
   branch, then the respective remote branch is also removed.
 
-- Key: m i (magit-merge-into) ::
+- Key: m d (magit-merge-dissolve) ::
 
   This command merges the current branch into another local branch and
   then removes the former.  The latter becomes the new current branch.
@@ -5824,6 +6046,11 @@ is not enabled in the transient.
   This command combines squash and fixup commits with their intended
   targets.
 
+  By default only commits that are not reachable from the upstream
+  branch are potentially squashed into.  If no upstream is configured
+  or with a prefix argument, the user is prompted for the first commit
+  to potentially squash into.
+
 - Key: r m (magit-rebase-edit-commit) ::
 
   This command starts an interactive rebase sequence that lets the
@@ -5920,16 +6147,42 @@ the following suffix commands.
 
 - Key: s (git-rebase-squash) ::
 
-  Meld commit on current line into previous commit, and edit message.
+  This command folds the commit on the current line into the previous
+  commit, giving the user a change to manually merge the two messages.
+
+- Key: S (git-rebase-squish) ::
+
+  This command folds the commit on the current line into the previous
+  commit, discarding the message of the previous commit but giving the
+  user a change to edit the final message, based on the message of the
+  current commit.
+
+  This action's indicator, shown in the list of commits, is ~fixup -c~
+  (with a lower-case c).
 
 - Key: f (git-rebase-fixup) ::
 
-  Meld commit on current line into previous commit, discarding the
-  current commit's message.
+  This command folds the commit on the current line into the previous
+  commit, using only the message of the previous commit as-is and
+  discarding the message of the current commit.
+
+- Key: F (git-rebase-alter) ::
+
+  This command folds the commit on the current into the previous
+  commit, discarding the message of the previous commit and instead
+  using the message of the current commit as-is.
+
+  This is like ~git-rebase-alter~, except that it uses the other
+  message.  This is also like ~git-rebase-squish~, except that it lets
+  the user edit the message.
+
+  This action's indicator, shown in the list of commits, is ~fixup -C~
+  (with a upper-case C).
 
 - Key: k (git-rebase-kill-line) ::
 
-  Kill the current action line.
+  Comment the current action line, or if it is already commented, then
+  uncomment it.
 
 - Key: c (git-rebase-pick) ::
 
@@ -6426,11 +6679,6 @@ Also see [[man:git-stash]]
   or with a prefix argument ~git stash apply --index~.
 
   When using Git v2.38.0 or later, behave more intelligently:
-
-  First try ~git stash apply --index~, which tries to preserve the index
-  stored in the stash, if any.  This may fail because applying the
-  stash could result in conflicts and those have to be stored in the
-  index, making it impossible to also store the stash's index there.
 
   First try ~git stash apply --index~, which tries to preserve the
   index stored in the stash, if any.  This may fail because applying
@@ -7814,6 +8062,9 @@ all, add this to your init file and restart Emacs.
   the position in that buffer, which corresponds to the position
   in the current file-visiting buffer (if any).
 
+  Before doing so, save all file-visiting buffers belonging to the
+  current repository without prompting.
+
 - Key: C-c M-g G (magit-display-repository-buffer) ::
 
   This command reads and displays a Magit buffer belonging to the
@@ -7846,15 +8097,21 @@ bindings, but this might be extended.
 
 - Key: p (magit-blob-previous) ::
 
-  Visit the previous blob which modified the current file.
+  This command visits the previous blob that modified the current
+  file.
 
 - Key: n (magit-blob-next) ::
 
-  Visit the next blob which modified the current file.
+  This command visit the next blob that modified the current file.
 
-- Key: q (magit-kill-this-buffer) ::
+- Key: q (magit-bury-or-kill-buffer) ::
 
-  Kill the current buffer.
+  This command buries the current buffer, if that is being displayed
+  in multiple windows and/or when a prefix argument is used.  If
+  neither is the case, it instead kills the current buffer.
+
+You might want to bind ~u~ to another command.  Suitable commands
+include ~bury-buffer~, ~magit-bury-buffer~ and ~magit-kill-this-buffer~.
 
 * Customizing
 
@@ -8408,6 +8665,9 @@ her wait until that has completed.  In other cases it makes sense to
 wait for git to complete before letting the user do something else.
 For example after staging a change it is useful to wait until after
 the refresh because that also automatically moves to the next change.
+
+The synchronous functions return the exit code, while the asynchronous
+functions return the process object.
 
 - Function: magit-call-git &rest args ::
 
@@ -9408,7 +9668,7 @@ General Public License for more details.
 
 #  LocalWords:  ARG ARGS CONDITIONs ChangeLog DNS Dired Ediff Ediffing
 #  LocalWords:  Elpa Emacsclient FUNC Flyspell Git Git's Gitk HOOK's
-#  LocalWords:  IDENT Ido Junio LocalWords Magit Magit's Magitian Magitians
+#  LocalWords:  IDENT Junio LocalWords Magit Magit's Magitian Magitians
 #  LocalWords:  Melpa Propertize REF REF's RET Reflog SPC SYM Spacemacs
 #  LocalWords:  Submodules TODO TYPEs Theming Unpulled Unpushed Unstaged
 #  LocalWords:  Untracked WORKTREE Wip ack args async autoloads autosaving
@@ -9416,7 +9676,7 @@ General Public License for more details.
 #  LocalWords:  cdr changelog committer config customizable diff's diffstat
 #  LocalWords:  dwim ediff ediffing editmsg emacsclient filename fixup
 #  LocalWords:  flyspell func git's gitk gitman gitmodule gitmodules goto
-#  LocalWords:  gpg gui ident ido init inserter inserters keymap keymaps
+#  LocalWords:  gpg gui ident init inserter inserters keymap keymaps
 #  LocalWords:  logfile magit maildir manpage manpages minibuffer multi mv
 #  LocalWords:  namespace newbase nocommit notesRef posix prev
 #  LocalWords:  propertize rebase rebased rebasing reflog repo signoff str
