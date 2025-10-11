@@ -1,12 +1,12 @@
 ;;; swiper.el --- Isearch with an overview.  Oh, man! -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2025 Free Software Foundation, Inc.
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; Maintainer: Basil L. Contovounesios <basil@contovou.net>
 ;; URL: https://github.com/abo-abo/swiper
-;; Version: 0.14.2
-;; Package-Requires: ((emacs "24.5") (ivy "0.14.2"))
+;; Version: 0.15.1
+;; Package-Requires: ((emacs "24.5") (ivy "0.15.1"))
 ;; Keywords: matching
 
 ;; This file is part of GNU Emacs.
@@ -155,12 +155,12 @@ If the input is empty, select the previous history element instead."
 
 (defvar swiper-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-s") 'swiper-C-s)
-    (define-key map (kbd "M-q") 'swiper-query-replace)
-    (define-key map (kbd "C-l") 'swiper-recenter-top-bottom)
-    (define-key map (kbd "C-'") 'swiper-avy)
-    (define-key map (kbd "C-7") 'swiper-mc)
-    (define-key map (kbd "C-c C-f") 'swiper-toggle-face-matching)
+    (define-key map (kbd "C-s") #'swiper-C-s)
+    (define-key map (kbd "M-q") #'swiper-query-replace)
+    (define-key map (kbd "C-l") #'swiper-recenter-top-bottom)
+    (define-key map (kbd "C-'") #'swiper-avy)
+    (define-key map (kbd "C-7") #'swiper-mc)
+    (define-key map (kbd "C-c C-f") #'swiper-toggle-face-matching)
     map)
   "Keymap for swiper.")
 
@@ -247,7 +247,7 @@ If the input is empty, select the previous history element instead."
 
 (ivy-configure 'swiper-query-replace
   :update-fn #'swiper--query-replace-updatefn)
-(put 'swiper-query-replace 'no-counsel-M-x t)
+(function-put #'swiper-query-replace 'no-counsel-M-x t)
 
 (defvar inhibit-message)
 
@@ -272,7 +272,7 @@ If the input is empty, select the previous history element instead."
                     (goto-char (point-min))
                     (perform-replace from to t t nil)))
              (set-window-configuration wnd-conf))))))))
-(put 'swiper-all-query-replace 'no-counsel-M-x t)
+(function-put #'swiper-all-query-replace 'no-counsel-M-x t)
 
 (defvar avy-all-windows)
 (defvar avy-style)
@@ -481,7 +481,7 @@ such as `scroll-conservatively' are set to a high value.")
   "List of major-modes that are incompatible with `font-lock-ensure'.")
 
 (defun swiper-font-lock-ensure-p ()
-  "Return non-nil if we should `font-lock-ensure'."
+  "Return non-nil if we should not `font-lock-ensure'."
   (or (derived-mode-p 'magit-mode)
       (bound-and-true-p magit-blame-mode)
       (memq major-mode swiper-font-lock-exclude)
@@ -489,12 +489,13 @@ such as `scroll-conservatively' are set to a high value.")
 
 (defun swiper-font-lock-ensure ()
   "Ensure the entire buffer is highlighted."
-  (unless (swiper-font-lock-ensure-p)
-    (unless (or (> (buffer-size) 100000) (null font-lock-mode))
-      (if (fboundp 'font-lock-ensure)
-          ;; Added in Emacs 25.1.
-          (font-lock-ensure)
-        (with-no-warnings (font-lock-fontify-buffer))))))
+  (unless (or (swiper-font-lock-ensure-p)
+              (> (buffer-size) 100000)
+              (not font-lock-mode))
+    (static-if (fboundp 'font-lock-ensure)
+        ;; Added in Emacs 25.1.
+        (font-lock-ensure)
+      (font-lock-fontify-buffer))))
 
 (defvar swiper--format-spec ""
   "Store the current candidates format spec.")
@@ -857,6 +858,9 @@ When non-nil, INITIAL-INPUT is the initial search pattern."
   :unwind-fn #'swiper--cleanup
   :index-fn #'ivy-recompute-index-swiper)
 
+(ivy-add-actions 'swiper
+                 `(("w" ,#'swiper-action-copy "copy")))
+
 (defun swiper-toggle-face-matching ()
   "Toggle matching only the candidates with `swiper-invocation-face'."
   (interactive)
@@ -1085,7 +1089,7 @@ WND, when specified is the window."
 (defvar evil-ex-search-pattern)
 (defvar evil-ex-search-persistent-highlight)
 (defvar evil-ex-search-direction)
-(declare-function evil-ex-search-activate-highlight "evil-ex")
+(declare-function evil-ex-search-activate-highlight "ext:evil-search")
 
 (defun swiper--maybe-recenter ()
   (cond (swiper-action-recenter
@@ -1259,8 +1263,9 @@ otherwise continue prompting for buffers."
       ((eq mode 'gnus-article-mode) t)
       ;; Otherwise, only consider the file if it's backed by a file.
       (t (buffer-file-name buffer)))))
+
+;;; `swiper-all'
 
-;;* `swiper-all'
 (defun swiper-all-function (str)
   "Search in all open buffers for STR."
   (or
@@ -1331,7 +1336,7 @@ See `ivy-format-functions-alist' for further information."
 
 (defvar swiper-all-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "M-q") 'swiper-all-query-replace)
+    (define-key map (kbd "M-q") #'swiper-all-query-replace)
     map)
   "Keymap for `swiper-all'.")
 
@@ -1379,8 +1384,9 @@ See `ivy-format-functions-alist' for further information."
                 (swiper--candidates 4))
                res))))
     res))
+
+;;; `swiper-isearch'
 
-;;* `swiper-isearch'
 (defun swiper-isearch-function (str)
   "Collect STR matches in the current buffer for `swiper-isearch'."
   (with-ivy-window
@@ -1564,10 +1570,6 @@ completion."
     ;; In case of unexpected error.
     (goto-char swiper--opoint)))
 
-(ivy-add-actions 'swiper-isearch '(("w" swiper-isearch-action-copy "copy")))
-(ivy-add-actions 'swiper-isearch '(("i" swiper-isearch-action-insert "insert")))
-(ivy-add-actions 'swiper '(("w" swiper-action-copy "copy")))
-
 (defun swiper--isearch-insert-current ()
   "Replace minibuffer contents with the current candidate.
 Like `ivy-insert-current', but tailored for `swiper-isearch'."
@@ -1575,6 +1577,16 @@ Like `ivy-insert-current', but tailored for `swiper-isearch'."
   (delete-minibuffer-contents)
   (let ((cur (ivy-state-current ivy-last)))
     (insert (with-ivy-window (swiper--isearch-candidate-string cur)))))
+
+(defun swiper--isearch-kill-ring-save ()
+  "Save the current candidates in the kill ring.
+If the region is active, forward to `kill-ring-save' instead.
+Like `ivy-kill-ring-save', but tailored for `swiper-isearch'."
+  (interactive)
+  (if (use-region-p)
+      (call-interactively #'kill-ring-save)
+    (kill-new (with-ivy-window
+                (mapconcat #'swiper--line-at-point ivy--old-cands "\n")))))
 
 (defun swiper-isearch-thing-at-point ()
   "Insert `symbol-at-point' into the minibuffer of `swiper-isearch'.
@@ -1616,7 +1628,12 @@ When the input is empty, browse the search history instead."
 (defvar swiper-isearch-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map swiper-map)
-    (define-key map [remap ivy-insert-current] #'swiper--isearch-insert-current)
+    (define-key map `[remap ,#'ivy-insert-current]
+                #'swiper--isearch-insert-current)
+    (define-key map `[remap ,#'ivy-kill-ring-save]
+                #'swiper--isearch-kill-ring-save)
+    (define-key map `[remap ,#'kill-ring-save]
+                #'swiper--isearch-kill-ring-save)
     (define-key map (kbd "M-n") #'swiper-isearch-thing-at-point)
     (define-key map (kbd "C-r") #'swiper-isearch-C-r)
     map)
@@ -1764,6 +1781,10 @@ When the input is empty, browse the search history instead."
   :update-fn 'auto
   :unwind-fn #'swiper--isearch-unwind
   :format-fn #'swiper-isearch-format-function)
+
+(ivy-add-actions 'swiper-isearch
+                 `(("w" ,#'swiper-isearch-action-copy "copy")
+                   ("i" ,#'swiper-isearch-action-insert "insert")))
 
 ;;;###autoload
 (defun swiper-isearch-backward (&optional initial-input)
