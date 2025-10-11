@@ -99,14 +99,12 @@ push-remote."
          (target (magit-get-push-branch branch t))
          (remote (magit-get-push-remote branch))
          (v (magit--push-remote-variable branch t)))
-    (cond
-     (target)
-     ((member remote (magit-list-remotes))
-      (format "%s, replacing non-existent" v))
-     (remote
-      (format "%s, replacing invalid" v))
-     (t
-      (format "%s, setting that" v)))))
+    (cond (target)
+          ((member remote (magit-list-remotes))
+           (format "%s, replacing non-existent" v))
+          (remote
+           (format "%s, replacing invalid" v))
+          ((format "%s, setting that" v)))))
 
 ;;;###autoload (autoload 'magit-pull-from-upstream "magit-pull" nil t)
 (transient-define-suffix magit-pull-from-upstream (args)
@@ -134,7 +132,7 @@ the upstream."
     (magit-run-git-with-editor "pull" args remote merge)))
 
 (defun magit-pull--upstream-description ()
-  (and-let* ((branch (magit-get-current-branch)))
+  (and-let ((branch (magit-get-current-branch)))
     (or (magit-get-upstream-branch branch)
         (let ((remote (magit-get "branch" branch "remote"))
               (merge  (magit-get "branch" branch "merge"))
@@ -148,8 +146,7 @@ the upstream."
             (concat u ", replacing non-existent"))
            ((or remote merge)
             (concat u ", replacing invalid"))
-           (t
-            (concat u ", setting that")))))))
+           ((concat u ", setting that")))))))
 
 ;;;###autoload
 (defun magit-pull-branch (source args)
@@ -163,4 +160,15 @@ the upstream."
 
 ;;; _
 (provide 'magit-pull)
+;; Local Variables:
+;; read-symbol-shorthands: (
+;;   ("and$"         . "cond-let--and$")
+;;   ("and>"         . "cond-let--and>")
+;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let"    . "cond-let--while-let")
+;;   ("match-string" . "match-string")
+;;   ("match-str"    . "match-string-no-properties"))
+;; End:
 ;;; magit-pull.el ends here

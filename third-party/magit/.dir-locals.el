@@ -1,12 +1,15 @@
-((emacs-lisp-mode
+((nil
   (indent-tabs-mode . nil))
- (git-commit-mode
-  (git-commit-major-mode . git-commit-elisp-text-mode))
- (makefile-gmake-mode
+ (makefile-mode
+  (indent-tabs-mode . t)
   (outline-regexp . "#\\(#+\\)")
   (mode . outline-minor))
- ("docs/RelNotes"
-  (org-mode
-   (fill-column . 80)
-   (mode . display-fill-column-indicator)))
- )
+ (emacs-lisp-mode
+  (checkdoc-allow-quoting-nil-and-t . t))
+ (git-commit-mode
+  (git-commit-major-mode . git-commit-elisp-text-mode))
+ (".github/PULL_REQUEST_TEMPLATE"
+  (nil (truncate-lines . nil)))
+ ("CHANGELOG"
+  (nil (fill-column . 70)
+       (mode . display-fill-column-indicator))))

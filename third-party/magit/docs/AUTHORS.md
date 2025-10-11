@@ -103,6 +103,7 @@ All Contributors
 - Clément Pit-Claudel
 - Cornelius Mika
 - Craig Andera
+- Curt Brune
 - Daanturo
 - Dale Hagglund
 - Damien Cassou
@@ -153,6 +154,7 @@ All Contributors
 - Frédéric Giquel
 - Fritz Grabo
 - Fritz Stelzer
+- gemmaro
 - Geoff Shannon
 - George Kadianakis
 - Géza Herman
@@ -171,10 +173,12 @@ All Contributors
 - Ian Eure
 - Ian Milligan
 - Ilya Grigoriev
+- Iñaki Arenaza
 - Ingmar Sittl
 - Ingo Lohmar
 - Ioan-Adrian Ratiu
 - Ivan Brennan
+- Jacob Ilsø
 - Jan Tatarik
 - Jasper St. Pierre
 - JD Smith
@@ -283,6 +287,7 @@ All Contributors
 - Nicolas Dudebout
 - Nicolas Petton
 - Nicolas Richard
+- Nikita Leshenko
 - Nikolay Martynov
 - Noam Postavsky
 - N. Troy de Freitas
@@ -297,6 +302,7 @@ All Contributors
 - Paul Stadig
 - Pavel Holejsovsky
 - Pekka Pessi
+- Pengji Zhang
 - Peter Eisentraut
 - Peter Jaros
 - Peter J. Weisberg
@@ -325,6 +331,7 @@ All Contributors
 - Rémi Vanicat
 - René Stadler
 - Richard Kim
+- Richard Sent
 - Robert Boone
 - Robert Irelan
 - Robin Green
@@ -402,6 +409,7 @@ All Contributors
 - Win Treese
 - Wojciech Siewierski
 - Wouter Bolsterlee
+- X4lldux
 - Xavier Noria
 - Xu Chunyang
 - Yann Herklotz

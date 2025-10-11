@@ -57,6 +57,8 @@ HTMLDIRS  = $(PKGSTEXI)
 PDFFILES  = $(addsuffix .pdf,$(PKGSTEXI))
 EPUBFILES = $(addsuffix .epub,$(PKGSTEXI))
 
+# When making changes here, also update "<nongnu.git>/elpa-packages".
+
 ELS  = git-commit.el
 ELS += magit-section.el
 ELS += magit-base.el
@@ -101,6 +103,7 @@ ELS += magit-ediff.el
 ELS += magit-gitignore.el
 ELS += magit-bundle.el
 ELS += magit-extras.el
+ELS += magit-dired.el
 ELS += git-rebase.el
 ELS += magit-bookmark.el
 ELCS = $(ELS:.el=.elc)
@@ -114,7 +117,7 @@ VERSION ?= $(shell \
   git describe --tags --abbrev=0 --always | cut -c2-)
 REVDESC := $(shell test -e $(TOP).git && git describe --tags)
 
-EMACS_VERSION = 26.1
+EMACS_VERSION = 28.1
 
 EMACSOLD := $(shell $(BATCH) --eval \
   "(and (version< emacs-version \"$(EMACS_VERSION)\") (princ \"true\"))")
@@ -145,11 +148,18 @@ ifeq "$(COMPAT_DIR)" ""
   COMPAT_DIR = $(TOP)../compat
 endif
 
-DASH_DIR ?= $(shell \
-  find -L $(ELPA_DIR) -maxdepth 1 -regex '.*/dash-[.0-9]*' 2> /dev/null | \
+COND_LET_DIR ?= $(shell \
+  find -L $(ELPA_DIR) -maxdepth 1 -regex '.*/cond-let-[.0-9]*' 2> /dev/null | \
   sort | tail -n 1)
-ifeq "$(DASH_DIR)" ""
-  DASH_DIR = $(TOP)../dash
+ifeq "$(COND_LET_DIR)" ""
+  COND_LET_DIR = $(TOP)../cond-let
+endif
+
+LLAMA_DIR ?= $(shell \
+  find -L $(ELPA_DIR) -maxdepth 1 -regex '.*/llama-[.0-9]*' 2> /dev/null | \
+  sort | tail -n 1)
+ifeq "$(LLAMA_DIR)" ""
+  LLAMA_DIR = $(TOP)../llama
 endif
 
 SEQ_DIR ?= $(shell \
@@ -184,14 +194,18 @@ endif
 
 LOAD_PATH = -L $(TOP)lisp
 
-# When making changes here, then don't forget to adjust "Makefile",
-# ".github/workflows/test.yml", ".github/ISSUE_TEMPLATE/bug_report.md",
-# `magit-emacs-Q-command' and the "Installing from the Git Repository"
-# info node accordingly.  Also don't forget to "rgrep \b<pkg>\b".
+# When making changes here, then don't forget to adjust DEPS below,
+# ".github/ISSUE_TEMPLATE/bug_report.md", `magit-emacs-Q-command'
+# and the "Installing from the Git Repository" info node accordingly.
+# Also run "rgrep \b<another-package\b", to find other places where
+# a newly added dependency might have to be mentioned as well.  Also
+# remember that DEPS of packages that depend on Magit also have to
+# be updated.
 
 ifdef CYGPATH
   LOAD_PATH += -L $(shell cygpath --mixed $(COMPAT_DIR))
-  LOAD_PATH += -L $(shell cygpath --mixed $(DASH_DIR))
+  LOAD_PATH += -L $(shell cygpath --mixed $(COND_LET_DIR))
+  LOAD_PATH += -L $(shell cygpath --mixed $(LLAMA_DIR))
   LOAD_PATH += -L $(shell cygpath --mixed $(SEQ_DIR))
   LOAD_PATH += -L $(shell cygpath --mixed $(TRANSIENT_DIR))
   LOAD_PATH += -L $(shell cygpath --mixed $(WITH_EDITOR_DIR))
@@ -200,7 +214,8 @@ ifdef CYGPATH
   endif
 else
   LOAD_PATH += -L $(COMPAT_DIR)
-  LOAD_PATH += -L $(DASH_DIR)
+  LOAD_PATH += -L $(COND_LET_DIR)
+  LOAD_PATH += -L $(LLAMA_DIR)
   LOAD_PATH += -L $(SEQ_DIR)
   LOAD_PATH += -L $(TRANSIENT_DIR)
   LOAD_PATH += -L $(WITH_EDITOR_DIR)
@@ -220,10 +235,10 @@ endif
 # This isn't used by make, but is needed for the Compile ci workflow.
 
 DEPS  = compat
-DEPS += dash
+DEPS += cond-let
+DEPS += llama
 DEPS += seq
 DEPS += transient/lisp
-DEPS += vterm
 DEPS += with-editor/lisp
 
 ## Publish ###########################################################
