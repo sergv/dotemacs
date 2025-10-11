@@ -1,4 +1,146 @@
 # -*- mode: org -*-
+* v5.0.1    2025-10-06
+
+- Fixed two token cache invalidation failures.  #180
+
+* v5.0.0    2025-09-09
+
+- Added new GraphQL query function ~ghub-query~, replacing
+  ~ghub--graphql-vacuum~, ~ghub-graphql~ and ~ghub--graphql~ (which for the
+  time being are still provided by the new ~ghub-legacy~ library), and
+  ~ghub--graphql-synchronous~ (which was removed).  9790607, 3a3d209,
+  508e763
+
+- Deprecated ~ghub-fetch-repository~, ~ghub-fetch-repository-discussion~,
+  ~ghub-fetch-repository-issue~, ~ghub-fetch-repository-pullreq~ and
+  ~ghub-fetch-repository-review-threads~.  For the time being these
+  functions are still defined in the new ~ghub-legacy~ library, but a
+  future release will remove that.  Such high-level and opinionated
+  (i.e., optimized for the Forge package) functions are now
+  considered to be beyond the scope of this package.  d9d6559
+
+- Removed the libraries ~buck~, ~glab~, ~gogs~ and ~gtea~, defining the
+  functions ~{buck,glab,gogs,gtea}-{VERB,repository-id}~.  For now
+  these libraries are available as new, transitional packages ~buck~,
+  ~glab~, ~gogs~ and ~gtea~.  I recommend you stop using these wrapper
+  functions and instead use ~(ghub-VERB ... :forge FORGE)~, where
+  FORGE is one of ~bitbucket~, ~gitlab~, ~gogs~ and ~gitea~.
+
+- Added very rudimentary support for Forgejo.  #177
+
+- Fixed and improved host and username lookup.  6997e47
+
+- Fixed bugs in getting the value of Git variables.  d0576a1
+
+* v4.3.2    2025-06-01
+
+- It's now possible to wrap ~ghub--read-json-payload~ to depart from
+  how it encodes json by default.  #172
+
+* v4.3.1    2025-04-28
+
+- Fixed following paging links for Forgejo.  #170
+
+- Deprecated ~{buck,gogs,gtea}-{VERB}~ functions.
+
+* v4.3.0    2025-04-01
+
+- Use the built-in native JSON support added in Emacs 30.  In Emacs
+  29 the built-in support used the jansson library, but only if it
+  was built with ~--with-json~.  We already required Emacs 29 before,
+  now we require "Emacs 29 with ~--with-json~, or Emacs 30".  Support
+  for the old ~json.el~ interface is dropped.
+
+  Decoding should work as before.  When it comes to encoding we
+  inherit a backward incompatible change.  Lists, or more accurately
+  "JSON arrays", now have to be specified using Lisp vectors, not
+  Lisp lists.  #168
+
+- ~ghub-fetch-repository~ now also fetches discussions and discussion
+  categories.  26d5da1, a57baff
+
+- Display more debugging information; some of it only if ~ghub-debug~
+  is non-nil.
+
+* v4.2.2    2025-03-01
+
+Thoughts and whitespace.
+
+* v4.2.1    2025-02-01
+
+- Added new variable ~ghub-graphql-message-progress~.  magit/forge#633
+
+Bug fix:
+
+- When ~ghub--token~ does not find a token for ~host/path~, it now falls
+  back to ~host~.  See https://github.com/magit/forge/issues/720.
+
+* v4.2.0    2024-12-08
+
+- At least Emacs 29.1 is required now.
+
+Bug fix:
+
+- Revert timeout changes from previous two releases.  Url.el is
+  such a pain.  See https://github.com/magit/forge/issues/709.
+
+* v4.1.1    2024-10-01
+
+Bug fix:
+
+- Fix the timeout handling from the previous release.
+
+* v4.1.0    2024-09-01
+
+- Updated tooling.
+
+Bug fix:
+
+- Timeouts are now handled properly.  03d7161
+
+* v4.0.0    2024-08-08
+
+- When calling the callback for a REST request, the same buffer which
+  was current when the request was made, is now temporarily made
+  current.  2061136
+
+- When calling the callback or errorback for a GraphQL request, the
+  same buffer which was current when the request was made, is now
+  temporarily made current.  2241135
+
+- The default value of ~ghub-graphql-items-per-request~ had to be
+  halved.  We use deeply nested requests and Github's default (and
+  suggested) limit of 100, often leads to timeouts on the server side.
+  b3dd176
+
+- It is now possible to specify how many items to fetch for a specific
+  GraphQL edge using ~:edges INTEGER~.  e6af790
+
+- Added new ~paginate~ argument to ~ghub--graphql-vacuum~ and all its public
+  callers (such as ~ghub-fetch-repository~).  337b884, b9c1600
+
+- Taught ~ghub--graphql-vacuum~ to respects ~forge.graphqlItemLimit~.
+  11c31d1
+
+- Added support for synchronous GraphQL queries, using the new
+  ~ghub--graphql-synchronous~ function.  a61da16
+
+- Since there are now multiple ways to paginate results, make sure
+  that the smallest value is used.  ce7adcd
+
+- Setting the new ~ghub--graphql-debug~ variable causes debug information
+  to be inserted into the ~*gsexp-encode*~ buffer.  87321cd
+
+- ~ghub-fetch-repository~ now also fetches the ~id~ of ~comments~, the
+  ~stateReason~ of ~issues~, and ~isReadByViewer~ of ~issues~ and ~pullRequests~
+  78a370f, 636a463, 13f3627, c59de91
+
+Bug fixes:
+
+- 0d7c81e ghub-response-link-relations: Fix for GitLab
+- 2dc1cee ghub-graphql-error: Define missing error type
+- 3647748 ghub--retrieve: Better error if buffer is nil
+
 * v3.6.0    2023-05-13
 
 - Queries can now be passed to ~ghub-graphql~ in the gsexp format.
@@ -43,7 +185,7 @@ build improvements.
 * v3.5.4    2021-10-02
 
 - Add new ~sparse~ argument to ~ghub-fetch-repository~, making it possible
-  to fetch only information about the repository itself, exluding data
+  to fetch only information about the repository itself, excluding data
   such as issues and pull-requests.
 
 * v3.5.3    2021-05-26
