@@ -52,6 +52,19 @@
   :safe 'booleanp
   :group 'glsl)
 
+(defcustom glsl-ts-indent-style t
+  "Style to use for indentation.
+
+This style is passed directly to the "
+  :type '(choice (symbol :tag "Gnu" gnu)
+                 (symbol :tag "K&R" k&r)
+                 (symbol :tag "Linux" linux)
+                 (symbol :tag "BSD" bsd)
+                 (function :tag "A function for user customized style" ignore))
+  :set #'c-ts-mode--indent-style-setter
+  :safe 'c-ts-indent-style-safep
+  :group 'glsl)
+
 ;; TODO: Add Keyword "discard" to GLSL grammar.
 (defvar glsl-ts-keywords
   '("break" "continue" "do" "for" "while" "if" "else" ;; "discard"
@@ -131,8 +144,13 @@
     ;; extension specifications.
     ((preproc_call (preproc_directive) @glsl-preprocessor-face
                    ((preproc_arg) @glsl-extension-face))
+     (preproc_ifdef "#ifndef" @glsl-preprocessor-face
+                    name: ((identifier) @font-lock-variable-name-face))
+     (["#endif"] @glsl-preprocessor-face)
      (preproc_def "#define" @glsl-preprocessor-face
                   name: ((identifier) @font-lock-variable-name-face))
+     (preproc_function_def "#define" @glsl-preprocessor-face
+                           name: ((identifier) @font-lock-function-name-face))
      (preproc_include "#include" @glsl-preprocessor-face
                       ((string_literal) @font-lock-string-face))
      (preproc_extension (preproc_directive) @glsl-preprocessor-face
@@ -142,11 +160,19 @@
      (preproc_extension (preproc_directive) @glsl-preprocessor-face
                         extension: (identifier) @glsl-extension-face
                         ((extension_behavior) @font-lock-warning-face
-                         (:match "warn\\|disable" @font-lock-warning-face))))
+                         (:match "warn\\|disable" @font-lock-warning-face)))
+     (preproc_params
+      (identifier) @font-lock-variable-name-face)
+     (preproc_defined
+      "defined" @glsl-preprocessor-face
+      "(" @glsl-preprocessor-face
+      (identifier) @font-lock-variable-name-face
+      ")" @glsl-preprocessor-face))
 
     :language glsl
     :feature definition
     ((function_declarator declarator: (_) @font-lock-function-name-face)
+     (struct_specifier "struct" @font-lock-keyword-face)
      (declaration (layout_specification "layout" @glsl-qualifier-face)
                   ["buffer" @font-lock-keyword-face
                    "uniform" @font-lock-keyword-face]
@@ -159,6 +185,7 @@
                    "out" @font-lock-keyword-face]
                   (identifier) @font-lock-variable-name-face)
      (declaration (layout_specification "layout" @glsl-qualifier-face))
+     (declaration (extension_storage_class ["hitAttributeEXT"] @glsl-qualifier-face))
      (declaration type: (_) declarator: (identifier) @font-lock-variable-name-face)
      (init_declarator declarator: (identifier) @font-lock-variable-name-face)
      (parameter_declaration type: (_) declarator: (identifier) @font-lock-variable-name-face)
@@ -265,7 +292,7 @@
   ;; Indentation.
   (setq-local treesit-simple-indent-rules
               (treesit--indent-rules-optimize
-               (c-ts-mode--get-indent-style 'c)))
+               (c-ts-mode--simple-indent-rules 'c c-ts-mode-indent-style)))
 
   (setq-local c-ts-mode-indent-offset glsl-indent-offset)
 
@@ -316,10 +343,10 @@
   ;; Font-lock settings.
   (setq-local font-lock-defaults nil)
   (setq-local treesit-font-lock-feature-list
-              '((comment definition)
+              '((comment document definition)
                 (keyword preprocessor string type qualifier builtin)
                 (assignment constant escape-sequence literal)
-                (delimiter variable)))
+                (bracket delimiter error function operator property variable)))
 
   (when (treesit-ready-p 'glsl)
     (treesit-parser-create 'glsl)
