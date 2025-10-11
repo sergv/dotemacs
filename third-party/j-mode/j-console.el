@@ -1,11 +1,12 @@
-
+;; -*- lexical-binding:t -*-
 ;;; j-mode.el --- Major mode for editing J programs
 
 ;; Copyright (C) 2012 Zachary Elliott
+;; Copyright (C) 2023-2025 LdBeth
 ;;
 ;; Authors: Zachary Elliott <ZacharyElliott1@gmail.com>
 ;; URL: http://github.com/zellio/j-mode
-;; Version: 1.1.1
+;; Version: 2.0.2
 ;; Keywords: J, Languages
 
 ;; This file is not part of GNU Emacs.
@@ -36,17 +37,14 @@
 
 (require 'comint)
 
-
-;; (defconst j-console-version "1.1.1"
-;;   "`j-console' version")
-
 (defgroup j-console nil
   "REPL integration extention for `j-mode'"
   :group 'applications
   :group 'j
   :prefix "j-console-")
 
-(defcustom j-console-cmd "ijconsole"
+(defcustom j-console-cmd (or (executable-find "jc")
+                             (executable-find "jconsole.sh"))
   "Name of the executable used for the J REPL session"
   :type 'string
   :group 'j-console)
@@ -86,7 +84,8 @@ Should be NIL if there is no file not the empty string"
 
 (defun j-console-create-session ()
   "Starts a comint session wrapped around the j-console-cmd"
-  (setq comint-process-echoes t)
+  (setq comint-process-echoes nil
+        comint-use-prompt-regexp t)
   (apply 'make-comint j-console-cmd-buffer-name
          j-console-cmd j-console-cmd-init-file j-console-cmd-args)
   (mapc
@@ -110,7 +109,8 @@ Should be NIL if there is no file not the empty string"
         (get-process j-console-cmd-buffer-name))))
 
 (define-derived-mode inferior-j-mode comint-mode "Inferior J"
-  "Major mode for J inferior process.")
+  "Major mode for J inferior process."
+  (setq comint-prompt-regexp "\s+"))
 
 ;;;###autoload
 (defun j-console ()
@@ -120,27 +120,39 @@ the containing buffer"
   (switch-to-buffer-other-window (process-buffer (j-console-ensure-session)))
   (inferior-j-mode))
 
-(defun j-console-execute-region ( start end )
+(defun j-console-execute-region (start end)
   "Sends current region to the j-console-cmd session and exectues it"
   (interactive "r")
   (when (= start end)
     (error "Region is empty"))
   (let ((region (buffer-substring-no-properties start end))
-        (session (j-console-ensure-session)))
-    (pop-to-buffer (process-buffer session))
-    (goto-char (point-max))
-    (insert (format "\n%s\n" region))
-    (comint-send-input)))
+        (buffer (process-buffer (j-console-ensure-session))))
+    (with-current-buffer buffer
+      (goto-char (point-max))
+      (insert (format "%s" region))
+      (comint-send-input))
+    (display-buffer buffer)))
 
 (defun j-console-execute-line ()
   "Sends current line to the j-console-cmd session and exectues it"
   (interactive)
-  (j-console-execute-region (point-at-bol) (point-at-eol)))
+  (j-console-execute-region (pos-bol) (pos-eol)))
 
 (defun j-console-execute-buffer ()
   "Sends current buffer to the j-console-cmd session and exectues it"
   (interactive)
   (j-console-execute-region (point-min) (point-max)))
+
+;;XXX should maybe check that we are indeed in an explicit def, unlike
+;;elisp counterpart
+(defun j-console-execute-definition ()
+  "Send the current explicit definition to a running J session."
+  (interactive)
+  (save-excursion
+    (mark-defun)
+    (let ((start (point))
+          (end (mark)))
+      (j-console-execute-region start end))))
 
 (provide 'j-console)
 
