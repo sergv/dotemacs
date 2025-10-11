@@ -43,10 +43,9 @@
    ("p" "privately (.git/info/exclude)"
     magit-gitignore-in-gitdir)
    ("g" magit-gitignore-on-system
-    :if (lambda () (magit-get "core.excludesfile"))
-    :description (lambda ()
-                   (format "privately for all repositories (%s)"
-                           (magit-get "core.excludesfile"))))]
+    :if (##magit-get "core.excludesfile")
+    :description (##format "privately for all repositories (%s)"
+                           (magit-get "core.excludesfile")))]
   ["Skip worktree"
    (7 "w" "do skip worktree"     magit-skip-worktree)
    (7 "W" "do not skip worktree" magit-no-skip-worktree)]
@@ -117,11 +116,12 @@ Rules that are defined in that file affect all local repositories."
          (base (and base (file-directory-p base) base))
          (choices
           (delete-dups
-           (--mapcat
-            (cons (concat "/" it)
-                  (and-let* ((ext (file-name-extension it)))
-                    (list (concat "/" (file-name-directory it) "*." ext)
-                          (concat "*." ext))))
+           (mapcan
+            (lambda (file)
+              (cons (concat "/" file)
+                    (and$ (file-name-extension file)
+                          (list (concat "/" (file-name-directory file) "*." $)
+                                (concat "*." $)))))
             (sort (nconc
                    (magit-untracked-files nil base)
                    ;; The untracked section of the status buffer lists
@@ -139,7 +139,7 @@ Rules that are defined in that file affect all local repositories."
         (unless (member default choices)
           (setq default nil))))
     (magit-completing-read "File or pattern to ignore"
-                           choices nil nil nil nil default)))
+                           choices nil 'any nil nil default)))
 
 ;;; Skip Worktree Commands
 
@@ -193,4 +193,15 @@ Rules that are defined in that file affect all local repositories."
 
 ;;; _
 (provide 'magit-gitignore)
+;; Local Variables:
+;; read-symbol-shorthands: (
+;;   ("and$"         . "cond-let--and$")
+;;   ("and>"         . "cond-let--and>")
+;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let"    . "cond-let--while-let")
+;;   ("match-string" . "match-string")
+;;   ("match-str"    . "match-string-no-properties"))
+;; End:
 ;;; magit-gitignore.el ends here
