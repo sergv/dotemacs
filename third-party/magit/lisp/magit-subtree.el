@@ -20,6 +20,13 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with Magit.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
+;; This library implements support for "git subtree".
+;; The entry point is the `magit-subtree' menu command.
+
+;; See (info "(magit)Subtree").
+
 ;;; Code:
 
 (require 'magit)
@@ -75,7 +82,6 @@
          (topdir (magit-toplevel))
          (prefix (read-directory-name (concat prompt ": ") topdir default)))
     (if (file-name-absolute-p prefix)
-        ;; At least `ido-mode's variant is not compatible.
         (if (string-prefix-p topdir prefix)
             (file-relative-name prefix topdir)
           (user-error "%s isn't inside the repository at %s" prefix topdir))
@@ -107,14 +113,14 @@
   :reader #'magit-transient-read-revision)
 
 (defun magit-subtree-prefix (transient prompt)
-  (if-let ((arg (--first (string-prefix-p "--prefix=" it)
-                         (transient-args transient))))
+  (if-let ((arg (seq-find (##string-prefix-p "--prefix=" %)
+                          (transient-args transient))))
       (substring arg 9)
     (magit-subtree-read-prefix prompt)))
 
 (defun magit-subtree-arguments (transient)
-  (--remove (string-prefix-p "--prefix=" it)
-            (transient-args transient)))
+  (seq-remove (##string-prefix-p "--prefix=" %)
+              (transient-args transient)))
 
 (defun magit-git-subtree (subcmd prefix &rest args)
   (magit-run-git-async "subtree" subcmd (concat "--prefix=" prefix) args))
@@ -178,4 +184,15 @@
 
 ;;; _
 (provide 'magit-subtree)
+;; Local Variables:
+;; read-symbol-shorthands: (
+;;   ("and$"         . "cond-let--and$")
+;;   ("and>"         . "cond-let--and>")
+;;   ("and-let"      . "cond-let--and-let")
+;;   ("if-let"       . "cond-let--if-let")
+;;   ("when-let"     . "cond-let--when-let")
+;;   ("while-let"    . "cond-let--while-let")
+;;   ("match-string" . "match-string")
+;;   ("match-str"    . "match-string-no-properties"))
+;; End:
 ;;; magit-subtree.el ends here
