@@ -1,10 +1,12 @@
-;;; j-help.el --- Documentation extention for j-mode -*- lexical-binding: t; -*-
+;; -*- lexical-binding:t -*-
+;;; j-help.el --- Documentation extention for j-mode
 
 ;; Copyright (C) 2012 Zachary Elliott
+;; Copyright (C) 2023-2025 LdBeth
 ;;
 ;; Authors: Zachary Elliott <ZacharyElliott1@gmail.com>
 ;; URL: http://github.com/zellio/j-mode
-;; Version: 1.1.1
+;; Version: 2.0.2
 ;; Keywords: J, Languages
 
 ;; This file is not part of GNU Emacs.
@@ -41,45 +43,50 @@
 
 ;;; Code:
 
-(defun group-by* ( list fn prev coll agr )
-  "Helper method for the group-by function. Should not be called directly."
-  (if list
-      (let* ((head (car list))
-             (tail (cdr list)))
-        (if (eq (funcall fn head) (funcall fn prev))
-            (group-by* tail fn head (cons head coll) agr)
-          (group-by* tail fn head '() (cons coll agr))))
-    (cons coll agr)))
-
-(defun group-by ( list fn )
-  "Group-by is a FUNCTION across LIST, returning a sequence
-It groups the objects in LIST according to the predicate FN"
-  (let ((sl (sort list (lambda (x y) (< (funcall fn x) (funcall fn y))))))
-    (group-by* sl fn '() '() '())))
-
-(unless (fboundp 'some)
-  (defun some ( fn list )
-    (when list
-      (let ((val (funcall fn (car list))))
-	(if val val (some fn (cdr list)))))))
-
-(unless (fboundp 'caddr)
-  (defun caddr ( list )
-    (car (cdr (cdr list)))))
+(defun j-help--process-voc-list (alist)
+  (let ((table (make-hash-table))
+        res)
+    (dolist (x alist)
+      (let ((len (length (car x))))
+        (puthash len
+                 (cons x (gethash len table))
+                 table)))
+    (maphash (lambda (key l)
+               (push
+                (list key
+                      (regexp-opt (mapcar #'car l))
+                      l)
+                res))
+             table)
+    res))
 
 (defgroup j-help nil
   "Documentation extention for j-mode"
   :group 'applications
   :prefix "j-help-")
 
-(defcustom j-help-local-dictionary-url ""
+(defcustom j-help-local-dictionary-url nil
   "Path to the local instance of the j-dictionary"
+  :type '(choice (const :tag "Off" nil)
+                 string)
+  :group 'j-help)
+
+(defcustom j-help-remote-dictionary-url
+  "http://www.jsoftware.com/help/dictionary"
+  "Path to the remote instance of the j-dictionary"
+  :type '(choice (const :tag "Off" nil)
+                 string)
+  :group 'j-help)
+
+(defcustom j-help-jwiki-url
+  "https://code.jsoftware.com/wiki/Vocabulary"
+  "Path to JWiki NuVoc"
   :type 'string
   :group 'j-help)
 
-(defcustom j-help-remote-dictionary-url "http://www.jsoftware.com/help/dictionary"
-  "Path to the remote instance of the j-dictionary"
-  :type 'string
+(defcustom j-help-use-jwiki nil
+  "If t, use JWiki NuVoc (experimental) instead of j-dictionary"
+  :type 'boolean
   :group 'j-help)
 
 (defcustom j-help-symbol-search-branch-limit 5
@@ -119,66 +126,97 @@ It groups the objects in LIST according to the predicate FN"
     ("p.." . "dpdotdot") ("_9:" . "dconsf") ("&.:" . "d631") ("NB." . "dnb"))
   "(string * string) alist")
 
+(defconst j-help-nuvoc-alist
+  '((?= . "eq") (?< . "lt") (?< . "gt") (?_ . "under")
+    (?+ . "plus") (?* . "star") (?- . "minus") (?% . "percent")
+    (?^ . "hat") (?$ . "dollar") (?~ . "tilde") (?| . "bar")
+    (?. . "dot") (?: "cor" "co")
+    (?, . "comma") (?\; . "semi") (?# . "number") (?! . "bang")
+    (?/ . "slash") (?\\ . "bslash") (?\[ . "squarelf") (?\] . "squarert")
+    (?\{ . "curlylf") (?\} . "curlyrt") (?\" "quote") (?` . "grave")
+    (?@ . "at") (?& "ampm" "amp") (?? . "query")
+    (?a . "a") (?A . "acap") (?b . "b") (?c . "c")
+    (?C . "ccap") (?e . "e") (?E . "ecap") (?f . "f") (?F . "fcap")
+    (?H . "hcap") (?i . "i") (?I . "icap") (?j . "j") (?L . "lcap")
+    (?m . "m") (?M . "mcap") (?o . "o") (?p . "p") (?q . "q")
+    (?r . "r") (?s . "s") (?S . "scap") (?t . "t") (?T . "T")
+    (?u . "u") (?x . "x") (?Z . "zcap")))
+
 (defconst j-help-dictionary-data-block
-  (mapcar
-   (lambda (l) (list (length (caar l))
-                     (regexp-opt (mapcar 'car l))
-                     l))
-   (delq nil (group-by j-help-voc-alist (lambda (x) (length (car x))))))
+  (j-help--process-voc-list j-help-voc-alist)
   "(int * string * (string * string) alist) list")
 
 (defun j-help-valid-dictionary ()
   "Return best defined dictionary"
   (replace-regexp-in-string
    "/$" ""
-   (cond ((not (string= "" j-help-local-dictionary-url))
-          j-help-local-dictionary-url)
-         ((not (string= "" j-help-remote-dictionary-url))
-          j-help-remote-dictionary-url))))
+   (or j-help-local-dictionary-url
+       j-help-remote-dictionary-url)))
+
+(defun j-help-symbol--to-nuvoc (j-symbol)
+  (cond ((= 1 (length j-symbol))
+         (let ((result (cdr (assoc (aref j-symbol 0) j-help-nuvoc-alist))))
+           (if (atom result)
+               result
+             (car result))))
+        ((< 1 (length j-symbol))
+         (apply #'concat
+          (mapcar (lambda (c)
+                    (let ((result (cdr (assoc c j-help-nuvoc-alist))))
+                      (if (atom result)
+                          result
+                        (cadr result))))
+                  j-symbol)))
+        (t nil)))
 
 (defun j-help-symbol-pair-to-doc-url ( alist-data )
-  ""
   (let ((dic (j-help-valid-dictionary)))
-    (if (or (not alist-data) (string= dic ""))
-        (error "%s" "No dictionary found. Please specify a dictionary.")
-      (let ((name (car alist-data))
-            (doc-name (cdr alist-data)))
-        (format "%s/%s.%s" dic doc-name "htm")))))
+    (cond ((not dic)
+           (error "No dictionary found. Please specify a dictionary."))
+          ((not alist-data)
+           (error "No such symbol"))
+          (t
+           (let ((_name (car alist-data))
+                 (doc-name (cdr alist-data)))
+             (format "%s/%s.%s" dic doc-name "htm"))))))
 
-(defun j-help-symbol-to-doc-url ( j-symbol )
+(defun j-help-symbol-to-doc-url (j-symbol)
   "Convert J-SYMBOL into localtion URL"
-  (j-help-symbol-pair-to-doc-url (assoc j-symbol j-help-voc-alist)))
+  (if j-help-use-jwiki
+      (format "%s/%s" j-help-jwiki-url (j-help-symbol--to-nuvoc j-symbol))
+    (j-help-symbol-pair-to-doc-url (assoc j-symbol j-help-voc-alist))))
 
-(defun j-help-determine-symbol ( s point )
+(defun j-help--determine-symbol ( s point )
   "Internal function to determine j symbols. Should not be called directly
-
 string * int -> (string * string) list"
   (unless (or (< point 0) (< (length s) point))
-    (some
-     (lambda (x)
-       (let* ((check-size (car x)))
-         (if (and
-              (<= (+ check-size point) (length s))
-              (string-match (cadr x) (substring s point (+ point check-size))))
-           (let* ((m (match-data))
-                  (ss (substring s (+ point (car m)) (+ point (cadr m)))))
-             (assoc ss (caddr x))))))
-     j-help-dictionary-data-block)))
+    (let ((list j-help-dictionary-data-block)
+          val)
+      (while (and list (not val))
+        (setq val (let* ((x (car list))
+                         (check-size (car x)))
+                    (and
+                     (<= (+ check-size point) (length s))
+                     (string-match (cadr x) (substring s point (+ point check-size)))
+                     (let* ((m (match-data))
+                            (ss (substring s (+ point (car m)) (+ point (cadr m)))))
+                       (assoc ss (caddr x)))))
+              list (cdr list)))
+      val)))
 
 (defun j-help-determine-symbol-at-point ( point )
   "int -> (string * string) list"
   (save-excursion
     (goto-char point)
-    (let* ((bol (point-at-bol))
-           (eol (point-at-eol))
+    (let* ((bol (pos-bol))
+           (eol (pos-eol))
            (s (buffer-substring-no-properties bol eol)))
-      (j-help-determine-symbol s (- point bol)))))
+      (j-help--determine-symbol s (- point bol)))))
 
 (defun j-help-branch-determine-symbol-at-point*
   ( string current-index target-index resolved-symbol )
-  ""
   (if (> current-index target-index) resolved-symbol
-    (let ((next-symbol (j-help-determine-symbol string current-index)))
+    (let ((next-symbol (j-help--determine-symbol string current-index)))
       (j-help-branch-determine-symbol-at-point*
        string
        (+ current-index (length (or (car next-symbol) " ")))
@@ -186,13 +224,12 @@ string * int -> (string * string) list"
        next-symbol))))
 
 (defun j-help-branch-determine-symbol-at-point ( point )
-  ""
   (save-excursion
     (goto-char point)
     (j-help-branch-determine-symbol-at-point*
-     (buffer-substring-no-properties (point-at-bol) (point-at-eol))
-     (- (max (- point j-help-symbol-search-branch-limit) (point-at-bol)) (point-at-bol))
-     (- point (point-at-bol))
+     (buffer-substring-no-properties (pos-bol) (pos-eol))
+     (- (max (- point j-help-symbol-search-branch-limit) (pos-bol)) (pos-bol))
+     (- point (pos-bol))
      nil)))
 
 (defvar j-help-lookup-symbol-history nil)
