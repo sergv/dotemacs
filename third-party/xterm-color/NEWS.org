@@ -1,0 +1,16 @@
+* Changes
+
+** 2.0 (2020-05-10)
+
++ Added truecolor (24-bit) and overlay support. Overlays may optionally
+  be used only when colorizing entire buffers. Thanks to Dan Davison
+  for initial implementation.
+
++ Better parsing and malformed input detection. Errors are no longer
+  signaled to avoid desynchronizing the state machine. Unsupported SGR
+  sequences that happen to overlap with supported ones are skipped.
+
++ Added `xterm-color-render' (default: t) that can be used to filter out
+  ANSI control sequences without applying them to the text.
+
++ Minor documentation fixes and style updates.
