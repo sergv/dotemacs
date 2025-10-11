@@ -1,9 +1,9 @@
 ;;; lsp-mock-server-test.el --- Unit test utilities -*- lexical-binding: t -*-
 
-;; Copyright (C) 2024-2024 emacs-lsp maintainers
+;; Copyright (C) 2024-2025 emacs-lsp maintainers
 
 ;; Author: Arseniy Zaostrovnykh
-;; Package-Requires: ((emacs "27.1"))
+;; Package-Requires: ((emacs "28.1"))
 ;; Version: 0.0.1
 ;; License: GPL-3.0-or-later
 
@@ -862,6 +862,6 @@ line 3 words here and here
        (should (string-match-p "My command"
                                (overlay-get (car lenses) 'after-string)))
        (goto-char (overlay-start (car lenses)))
-       (should (equal (line-number-at-pos) (- line 1)))))))
+       (should (equal (line-number-at-pos) (+ line 1)))))))
 
 ;;; lsp-mock-server-test.el ends here

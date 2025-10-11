@@ -308,7 +308,8 @@ PATH is the current folder to be checked."
   "Get the severity level for RANGE."
   (let ((range-severity 10))
     (mapc (-lambda ((&Diagnostic :range (&Range :start) :severity?))
-            (when (lsp-point-in-range? start range)
+            (when (and severity?
+                       (lsp-point-in-range? start range))
               (setq range-severity (min range-severity severity?))))
           (lsp--get-buffer-diagnostics))
     range-severity))
@@ -409,7 +410,7 @@ PATH is the current folder to be checked."
     lsp-headerline-breadcrumb-segments
     "")))
 
-(defun lsp-headerline--check-breadcrumb (&rest _)
+(defun lsp-headerline-check-breadcrumb (&rest _)
   "Request for document symbols to build the breadcrumb."
   (set-window-parameter (selected-window) 'lsp-headerline--string (lsp-headerline--build-string))
   (force-mode-line-update))
@@ -442,17 +443,17 @@ PATH is the current folder to be checked."
       (setq header-line-format (list header-line-format)))
     (add-to-list 'header-line-format '(t (:eval (window-parameter nil 'lsp-headerline--string) )))
 
-    (add-hook 'xref-after-jump-hook #'lsp-headerline--check-breadcrumb nil t)
+    (add-hook 'xref-after-jump-hook #'lsp-headerline-check-breadcrumb nil t)
 
-    (add-hook 'lsp-on-idle-hook #'lsp-headerline--check-breadcrumb nil t)
+    (add-hook 'lsp-on-idle-hook #'lsp-headerline-check-breadcrumb nil t)
     (add-hook 'lsp-configure-hook #'lsp-headerline--enable-breadcrumb nil t)
     (add-hook 'lsp-unconfigure-hook #'lsp-headerline--disable-breadcrumb nil t))
    (t
-    (remove-hook 'lsp-on-idle-hook #'lsp-headerline--check-breadcrumb t)
+    (remove-hook 'lsp-on-idle-hook #'lsp-headerline-check-breadcrumb t)
     (remove-hook 'lsp-configure-hook #'lsp-headerline--enable-breadcrumb t)
     (remove-hook 'lsp-unconfigure-hook #'lsp-headerline--disable-breadcrumb t)
 
-    (remove-hook 'xref-after-jump-hook #'lsp-headerline--check-breadcrumb t)
+    (remove-hook 'xref-after-jump-hook #'lsp-headerline-check-breadcrumb t)
 
     (setq lsp-headerline--path-up-to-project-segments nil)
     (setq header-line-format (remove '(t (:eval (window-parameter nil 'lsp-headerline--string) )) header-line-format)))))
